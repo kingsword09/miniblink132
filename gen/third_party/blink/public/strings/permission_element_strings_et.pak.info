@@ -1,0 +1,10 @@
+IDS_PERMISSION_REQUEST_CAMERA_ALLOWED,48840,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_CAMERA,48841,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_MICROPHONE_ALLOWED,48842,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_MICROPHONE,48843,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_GEOLOCATION_ALLOWED,48844,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_GEOLOCATION,48845,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_CAMERA_MICROPHONE_ALLOWED,48846,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_CAMERA_MICROPHONE,48847,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_PRECISE_GEOLOCATION_ALLOWED,48848,../../third_party/blink/public/strings/permission_element_strings.grd
+IDS_PERMISSION_REQUEST_PRECISE_GEOLOCATION,48849,../../third_party/blink/public/strings/permission_element_strings.grd

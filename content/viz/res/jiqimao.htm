@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>哆啦A梦</title>
+    <style>
+    @charset "utf-8";
+*{
+    margin:0;
+    padding:0;
+}
+.box{
+    width:397px;
+    height:498px;
+    margin:0 auto;
+    position: relative;
+}
+header{
+    width:310px;
+    height:310px;
+    background:#0eabd4;
+    border:2px solid #343331;
+    border-radius:100% 100%;
+    position: absolute;
+    left:42px;
+    top:11px;
+    box-shadow:-27px 43px 36px -28px grey;
+}
+.face{
+    width:264px;
+    height:200px;
+    border:2px solid #000;
+    border-radius:132px / 100px;
+    background:#fff;
+    position: absolute;
+    left:21px;bottom:4px;
+}
+.eye1,.eye2{
+    width:72px;
+    height:83px;
+    border:2px solid #000;
+    border-radius:32px / 35px;
+    background:#fff;
+}
+.eye1{
+    position:absolute;
+    top:-41px;
+    left:56px;
+}
+.eye2{
+    position:absolute;
+    top:-41px;
+    right:56px;
+}
+.eyeball{
+    width:15px;
+    height:15px;
+    background:#000;
+    border-radius:100% 100%;
+}
+.eye1 .eyeball{
+    position: absolute;
+    right:15px;
+    bottom:15px;
+}
+.eye2 .eyeball{
+    position: absolute;
+    left:15px;
+    bottom:15px;
+}
+.nose{
+    width:32px;
+    height:32px;
+    background:#ca3e01;
+    border:2px solid #000;
+    border-radius:100% 100%;
+    position:absolute;
+    top: 33px;
+    left: 114px;
+}
+.nose div{
+    width:4px;
+    height:4px;
+    background:#fff;
+    border-radius:100% 100%;
+    box-shadow:0px 0px 3px 3px #fff;
+    position: absolute;
+    top:10px;
+    right:6px;
+}
+.beard{
+    width:60px;
+    height:2px;
+    background:#000;
+}
+.beard1{
+    transform:skewY(20deg);
+    position: absolute;
+    left:21px;
+    top:62px;
+}
+.beard2{
+    position: absolute;
+    left:22px;
+    top:79px;
+}
+.beard3{
+    transform:skewY(-20deg) ;
+    position: absolute;
+    left:21px;
+    top:96px;
+}
+.beard4{
+    transform:skewY(-20deg);
+    position: absolute;
+    right:21px;
+    top:62px;
+}
+.beard5{
+    position: absolute;
+    right:22px;
+    top:79px;
+}
+.beard6{
+    transform:skewY(20deg) ;
+    position: absolute;
+    right:21px;
+    top:96px;
+}
+.nose2{
+    width:3px;
+    height:84px;
+    background:#000;
+    position:absolute;
+    left:131px;
+    top:69px;
+}
+.mouth{
+    width:166px;
+    height:66px;
+    border-bottom:2px solid #000;
+    border-radius:0 0 82px 82px / 0 0 33px 33px;
+    position: absolute;
+    left:47px;
+    top:87px;
+}
+.collar{
+    width:220px;
+    height:20px;
+    background: #a42e00;
+    border:2px solid #000;
+    border-radius:6px;
+    position: absolute;
+    left:86px;
+    bottom:183px;
+}
+.bell{
+    width:40px;
+    height:40px;
+    background:#ded514;
+    border:2px solid #000;
+    border-radius:100% 100%;
+    position: absolute;
+    left:176px;
+    bottom:170px;
+}
+.bell div:nth-child(1){
+    width:36px;
+    height:2px;
+    border:2px solid #343233;
+    position: absolute;
+    top:12px;
+}
+.bell div:nth-child(2){
+    width:12px;
+    height:12px;
+    background: #000;
+    border-radius:6px 6px;
+    position: absolute;
+    top:20px;
+    left:14px;
+}
+.bell div:nth-child(3){
+    width:3px;
+    height:10px;
+    background: #000;
+    position: absolute;
+    left:19px;
+    bottom:0;
+}
+.left-hand{
+    width:86px;
+    height:50px;
+    background:#0eabd4;
+    border:1px solid #000;
+    position: absolute;
+    bottom:130px;
+    left:45px;
+    transform:skewY(-30deg);
+}
+.right-hand{
+    width:86px;
+    height:50px;
+    background:#0eabd4;
+    border:1px solid #000;
+    position: absolute;
+    bottom:130px;
+    right:45px;
+    transform:skewY(30deg);
+    box-shadow:-20px 13px 35px 6px grey;
+}
+.clothes{
+    width:220px;
+    height:106px;
+    background: #0eabd4;
+    border:2px solid #2d2d2d;
+    position: absolute;
+    left:88px;
+    bottom:43px;
+    border-top:none;
+    border-bottom:none;
+    box-shadow: -26px 16px 35px -9px grey;
+}
+.trouser{
+    width:20px;
+    height:20px;
+    background:#fff;
+    border-top:2px solid #000;
+    border-radius:10px 10px 0 0;
+    position: absolute;
+    left:98px;
+    bottom:-10px;
+}
+.pocket{
+    width:170px;
+    height:140px;
+    background:#fff;
+    border:2px solid #000;
+    border-radius:85px / 70px;
+    position: absolute;
+    left:111px;
+    bottom: 63px;
+}
+.pocket2{
+    width:130px;
+    height:66px;
+    background: #fff;
+    border:2px solid #000;
+    border-radius: 0 0 65px 65px;
+    position: absolute;
+    bottom:16px;
+    left:18px;
+}
+.finger_l{
+    width:60px;
+    height:60px;
+    background:#fff;
+    border:2px solid #000;
+    border-radius:30px 30px;
+    position: absolute;
+    left:8px;
+    bottom:100px;
+}
+.finger_r{
+    width:60px;
+    height:60px;
+    background:#fff;
+    border:2px solid #000;
+    border-radius:30px 30px;
+    position: absolute;
+    right:8px;
+    bottom:100px;
+}
+.foot_l{
+    width:125px;
+    height:30px;
+    background:#fff;
+    border:2px solid #2e2e2e;
+    border-radius:18px 13px 13px 9px;
+    position: absolute;
+    left:68px;
+    bottom:9px;
+}
+.foot_r{
+    width:125px;
+    height:30px;
+    background:#fff;
+    border:2px solid #2e2e2e;
+    border-radius:13px 18px 9px 13px;
+    position: absolute;
+    right:68px;
+    bottom:9px;
+}
+    </style>
+    
+</head>
+<body>
+    <div class="box">
+        <!-- 头部 -->
+        <header>
+            <!-- 脸部 -->
+            <div class="face">
+                <!-- 左眼 -->
+                <div class="eye1">
+                    <!-- 左眼球 -->
+                    <div class="eyeball"></div>
+                </div>
+                <!-- 右眼 -->
+                <div class="eye2">
+                    <!-- 右眼球 -->
+                    <div class="eyeball"></div>
+                </div>
+                <!-- 鼻子 -->
+                <div class="nose">
+                    <div></div>
+                </div>
+                <!-- 胡须 -->
+                <div class="beard beard1"></div>
+                <div class="beard beard2"></div>
+                <div class="beard beard3"></div>
+                <div class="beard beard4"></div>
+                <div class="beard beard5"></div>
+                <div class="beard beard6"></div>
+                <div class="nose2"></div>
+                <!-- 嘴 -->
+                <div class="mouth"></div>
+            </div>
+            
+        </header>
+        <!-- 手 -->
+        <div class="left-hand"></div>
+        <div class="right-hand"></div>
+        <!-- 衣服 -->
+        <div class="clothes">
+            <div class="trouser"></div>
+        </div>
+        <!-- 口袋 -->
+        <div class="pocket">
+            <div class="pocket2"></div>
+        </div>
+        <!-- 衣领 -->
+        <div class="collar"></div>
+        <!-- 铃铛 -->
+        <div class="bell">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <!-- 手上的圆 -->
+        <div class="finger_l"></div>
+        <div class="finger_r"></div>
+        <footer class="foot_l"></footer>
+        <footer class="foot_r"></footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+IDR_FLAGS_UI_FLAGS_HTML,43420,gen/components/flags_ui/resources/resources.grd
+IDR_FLAGS_UI_APP_HTML_JS,43421,gen/components/flags_ui/resources/resources.grd
+IDR_FLAGS_UI_APP_JS,43422,gen/components/flags_ui/resources/resources.grd
+IDR_FLAGS_UI_EXPERIMENT_HTML_JS,43423,gen/components/flags_ui/resources/resources.grd
+IDR_FLAGS_UI_EXPERIMENT_JS,43424,gen/components/flags_ui/resources/resources.grd
+IDR_FLAGS_UI_FLAGS_BROWSER_PROXY_JS,43425,gen/components/flags_ui/resources/resources.grd
+IDR_FLAGS_UI_APP_CSS_JS,43426,gen/components/flags_ui/resources/resources.grd
+IDR_FLAGS_UI_EXPERIMENT_CSS_JS,43427,gen/components/flags_ui/resources/resources.grd

@@ -1,0 +1,7 @@
+IDS_NEW_METRICS_SERVER_URL,42700,../../components/metrics/url_constants.grd
+IDS_NEW_METRICS_SERVER_URL_INSECURE,42701,../../components/metrics/url_constants.grd
+IDS_OLD_METRICS_SERVER_URL,42702,../../components/metrics/url_constants.grd
+IDS_DEFAULT_METRICS_MIME_TYPE,42703,../../components/metrics/url_constants.grd
+IDS_DEFAULT_UKM_SERVER_URL,42704,../../components/metrics/url_constants.grd
+IDS_UKM_MIME_TYPE,42705,../../components/metrics/url_constants.grd
+IDS_DEFAULT_DWA_SERVER_URL,42706,../../components/metrics/url_constants.grd

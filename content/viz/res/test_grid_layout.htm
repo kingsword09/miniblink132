@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>test demo</title>
+<style>
+
+.wrapper {
+  margin: 60px;
+  /* 声明一个容器 */
+  display: grid;
+  /*  声明列的宽度  */
+  grid-template-columns: repeat(3, 200px);
+  /*  声明行间距和列间距  */
+  grid-gap: 20px;
+  /*  声明行的高度  */
+  grid-template-rows: 100px 200px;
+}
+.one {
+  background: #19CAAD;
+}
+.two { 
+  background: #8CC7B5;
+}
+.three {
+  background: #D1BA74;
+}
+.four {
+  background: #BEE7E9;
+}
+.five {
+  background: #E6CEAC;
+}
+.six {
+  background: #ECAD9E;
+}
+.item {
+  text-align: center;
+  font-size: 16px;/*200%;*/
+  color: #fff;
+}
+/*-------------------------------*/
+.fade-in-out {
+  animation: fade-in-out 2s infinite;
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-left: 50px solid transparent;
+  border-right: 50px solid transparent;
+  border-bottom: 100px solid red;
+}
+
+
+</style>
+<link rel="stylesheet" type="text/css" href="res/1.css">
+</head>
+
+
+
+<body style="background-color: #CCFFCC; "  >
+<script src="1.js"></script>
+<script>
+console.log("dsdfsdafasdf");
+document.write("test document.write35345234523452345");
+//alert("asdasdas");
+</script>
+
+<!--
+<h1 style="font-size:10px; font-family:Arial;"> Hello World! </h1>
+<p style="font-size:14px; font-family:Arial;"> Any text whose font we want to change </p>
+
+
+<div class="fade-in-out">
+  <div class="triangle"></div>
+</div>
+-->
+<div >
+Grid layout test
+</div>
+
+<p>Hello World!</p>
+<p>这些段落是通过 CSS 设置样式的。</p>
+
+<!-- -->
+<div class="wrapper">
+  <div class="one item">One</div>
+  <div class="two item">Two</div>
+  <div class="three item">Three</div>
+  <div class="four item">Four</div>
+  <div class="five item">Five</div>
+  <div class="six item">Six</div>
+</div>
+
+
+
+</body>
+</html>

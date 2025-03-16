@@ -1,0 +1,4 @@
+../../components/commerce/core/mojom/commerce_web_extractor.mojom
+../../components/commerce/core/mojom/product_specifications.mojom
+../../components/commerce/core/mojom/shared.mojom
+../../components/commerce/core/mojom/shopping_service.mojom

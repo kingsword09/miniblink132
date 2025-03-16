@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>test demo</title>
+<style>
+.fade-in-out {
+  animation: fade-in-out 2s infinite;
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-left: 50px solid transparent;
+  border-right: 50px solid transparent;
+  border-bottom: 100px solid red;
+}
+</style>
+</head>
+<body style="background-color: #CCFFCC; "  >
+
+<h1 style="font-size:10px; font-family:Arial;"> Hello World! </h1>
+<p style="font-size:14px; font-family:Arial;"> Any text whose font we want to change </p>
+
+<div class="fade-in-out">
+  <div class="triangle"></div>
+</div>
+   
+</body>
+</html>

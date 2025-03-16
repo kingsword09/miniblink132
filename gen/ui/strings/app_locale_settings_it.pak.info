@@ -1,0 +1,5 @@
+IDS_MINIMUM_UI_FONT_SIZE,400,../../ui/strings/app_locale_settings.grd
+IDS_UI_FONT_FAMILY,398,../../ui/strings/app_locale_settings.grd
+IDS_UI_FONT_SIZE_SCALER,399,../../ui/strings/app_locale_settings.grd
+IDS_WEB_FONT_FAMILY,692,../../ui/strings/app_locale_settings.grd
+IDS_WEB_FONT_SIZE,691,../../ui/strings/app_locale_settings.grd

@@ -1,0 +1,17 @@
+IDR_BROKENCANVAS,48650,../../third_party/blink/public/blink_image_resources.grd
+IDR_BROKENIMAGE,48651,../../third_party/blink/public/blink_image_resources.grd
+IDR_SEARCH_CANCEL,48652,../../third_party/blink/public/blink_image_resources.grd
+IDR_SEARCH_CANCEL_PRESSED,48653,../../third_party/blink/public/blink_image_resources.grd
+IDR_SEARCH_CANCEL_DARK_MODE,48654,../../third_party/blink/public/blink_image_resources.grd
+IDR_SEARCH_CANCEL_PRESSED_DARK_MODE,48655,../../third_party/blink/public/blink_image_resources.grd
+IDR_SEARCH_CANCEL_HC_LIGHT_MODE,48656,../../third_party/blink/public/blink_image_resources.grd
+IDR_SEARCH_CANCEL_PRESSED_HC_LIGHT_MODE,48657,../../third_party/blink/public/blink_image_resources.grd
+IDR_UASTYLE_MEDIA_CONTROLS_CSS,48870,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_UASTYLE_MEDIA_INTERSTITIALS_CSS,48871,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_SHADOWSTYLE_MEDIA_CONTROLS_LOADING_CSS,48872,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_UASTYLE_MEDIA_CONTROLS_ANDROID_CSS,48860,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_SHADOWSTYLE_MEDIA_CONTROLS_ANIMATED_ARROW_CSS,48861,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_SHADOWSTYLE_MEDIA_CONTROLS_SCRUBBING_MESSAGE_CSS,48862,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_MEDIA_CONTROLS_JUMP_SVG,48863,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_MEDIA_CONTROLS_ARROW_RIGHT_SVG,48864,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
+IDR_MEDIA_CONTROLS_ARROW_LEFT_SVG,48865,../../third_party/blink/renderer/modules/media_controls/resources/media_controls_resources.grd
