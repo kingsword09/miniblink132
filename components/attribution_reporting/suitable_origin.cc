@@ -17,42 +17,47 @@
 
 namespace attribution_reporting {
 
-bool IsSitePotentiallySuitable(const net::SchemefulSite& site) {
-  return site.has_registrable_domain_or_host() &&
-         site.GetURL().SchemeIsHTTPOrHTTPS();
+bool IsSitePotentiallySuitable(const net::SchemefulSite& site)
+{
+    return site.has_registrable_domain_or_host() && site.GetURL().SchemeIsHTTPOrHTTPS();
 }
 
 // static
-bool SuitableOrigin::IsSuitable(const url::Origin& origin) {
-  return IsOriginSuitable(origin);
+bool SuitableOrigin::IsSuitable(const url::Origin& origin)
+{
+    return IsOriginSuitable(origin);
 }
 
 // static
-std::optional<SuitableOrigin> SuitableOrigin::Create(url::Origin origin) {
-  if (!IsSuitable(origin))
-    return std::nullopt;
+std::optional<SuitableOrigin> SuitableOrigin::Create(url::Origin origin)
+{
+    if (!IsSuitable(origin))
+        return std::nullopt;
 
-  return SuitableOrigin(std::move(origin));
+    return SuitableOrigin(std::move(origin));
 }
 
 // static
-std::optional<SuitableOrigin> SuitableOrigin::Create(const GURL& url) {
-  return Create(url::Origin::Create(url));
+std::optional<SuitableOrigin> SuitableOrigin::Create(const GURL& url)
+{
+    return Create(url::Origin::Create(url));
 }
 
 // static
-std::optional<SuitableOrigin> SuitableOrigin::Deserialize(
-    std::string_view str) {
-  return Create(GURL(str));
+std::optional<SuitableOrigin> SuitableOrigin::Deserialize(std::string_view str)
+{
+    return Create(GURL(str));
 }
 
-SuitableOrigin::SuitableOrigin(mojo::DefaultConstruct::Tag) {
-  CHECK(!IsValid());
+SuitableOrigin::SuitableOrigin(mojo::DefaultConstruct::Tag)
+{
+    CHECK(!IsValid());
 }
 
 SuitableOrigin::SuitableOrigin(url::Origin origin)
-    : origin_(std::move(origin)) {
-  CHECK(IsValid());
+    : origin_(std::move(origin))
+{
+    CHECK(IsValid());
 }
 
 SuitableOrigin::~SuitableOrigin() = default;
@@ -65,13 +70,15 @@ SuitableOrigin::SuitableOrigin(SuitableOrigin&&) = default;
 
 SuitableOrigin& SuitableOrigin::operator=(SuitableOrigin&&) = default;
 
-std::string SuitableOrigin::Serialize() const {
-  CHECK(IsValid());
-  return origin_.Serialize();
+std::string SuitableOrigin::Serialize() const
+{
+    CHECK(IsValid());
+    return origin_.Serialize();
 }
 
-bool SuitableOrigin::IsValid() const {
-  return IsSuitable(origin_);
+bool SuitableOrigin::IsValid() const
+{
+    return IsSuitable(origin_);
 }
 
-}  // namespace attribution_reporting
+} // namespace attribution_reporting

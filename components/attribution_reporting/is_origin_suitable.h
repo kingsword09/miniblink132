@@ -9,7 +9,7 @@
 
 namespace url {
 class Origin;
-}  // namespace url
+} // namespace url
 
 namespace attribution_reporting {
 
@@ -18,6 +18,6 @@ namespace attribution_reporting {
 COMPONENT_EXPORT(ATTRIBUTION_REPORTING_IS_ORIGIN_SUITABLE)
 bool IsOriginSuitable(const url::Origin&);
 
-}  // namespace attribution_reporting
+} // namespace attribution_reporting
 
-#endif  // COMPONENTS_ATTRIBUTION_REPORTING_IS_ORIGIN_SUITABLE_H_
+#endif // COMPONENTS_ATTRIBUTION_REPORTING_IS_ORIGIN_SUITABLE_H_

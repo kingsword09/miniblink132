@@ -20,7 +20,7 @@ class GURL;
 
 namespace net {
 class SchemefulSite;
-}  // namespace net
+} // namespace net
 
 namespace attribution_reporting {
 
@@ -42,69 +42,72 @@ bool IsSitePotentiallySuitable(const net::SchemefulSite&);
 //
 // It is an error to use instances of this type after moving.
 class COMPONENT_EXPORT(ATTRIBUTION_REPORTING) SuitableOrigin {
- public:
-  static bool IsSuitable(const url::Origin&);
+public:
+    static bool IsSuitable(const url::Origin&);
 
-  static std::optional<SuitableOrigin> Create(url::Origin);
+    static std::optional<SuitableOrigin> Create(url::Origin);
 
-  static std::optional<SuitableOrigin> Create(const GURL&);
+    static std::optional<SuitableOrigin> Create(const GURL&);
 
-  // Creates a `SuitableOrigin` from the given string, which is first converted
-  // to a `GURL`, then to a `url::Origin`, and then subject to this class's
-  // invariants.
-  //
-  // All parts of the URL other than the origin are ignored.
-  static std::optional<SuitableOrigin> Deserialize(std::string_view);
+    // Creates a `SuitableOrigin` from the given string, which is first converted
+    // to a `GURL`, then to a `url::Origin`, and then subject to this class's
+    // invariants.
+    //
+    // All parts of the URL other than the origin are ignored.
+    static std::optional<SuitableOrigin> Deserialize(std::string_view);
 
-  // Creates an invalid instance for use with Mojo deserialization, which
-  // requires types to be default-constructible.
-  explicit SuitableOrigin(mojo::DefaultConstruct::Tag);
+    // Creates an invalid instance for use with Mojo deserialization, which
+    // requires types to be default-constructible.
+    explicit SuitableOrigin(mojo::DefaultConstruct::Tag);
 
-  ~SuitableOrigin();
+    ~SuitableOrigin();
 
-  SuitableOrigin(const SuitableOrigin&);
-  SuitableOrigin& operator=(const SuitableOrigin&);
+    SuitableOrigin(const SuitableOrigin&);
+    SuitableOrigin& operator=(const SuitableOrigin&);
 
-  SuitableOrigin(SuitableOrigin&&);
-  SuitableOrigin& operator=(SuitableOrigin&&);
+    SuitableOrigin(SuitableOrigin&&);
+    SuitableOrigin& operator=(SuitableOrigin&&);
 
-  const url::Origin& operator*() const& {
-    CHECK(IsValid());
-    return origin_;
-  }
+    const url::Origin& operator*() const&
+    {
+        CHECK(IsValid());
+        return origin_;
+    }
 
-  url::Origin&& operator*() && {
-    CHECK(IsValid());
-    return std::move(origin_);
-  }
+    url::Origin&& operator*() &&
+    {
+        CHECK(IsValid());
+        return std::move(origin_);
+    }
 
-  const url::Origin* operator->() const& {
-    CHECK(IsValid());
-    return &origin_;
-  }
+    const url::Origin* operator->() const&
+    {
+        CHECK(IsValid());
+        return &origin_;
+    }
 
-  // This implicit "widening" conversion is allowed to ease drop-in use of
-  // this type in places currently requiring `url::Origin`s with
-  // guaranteed preconditions.
-  operator const url::Origin&() const {  // NOLINT
-    CHECK(IsValid());
-    return origin_;
-  }
+    // This implicit "widening" conversion is allowed to ease drop-in use of
+    // this type in places currently requiring `url::Origin`s with
+    // guaranteed preconditions.
+    operator const url::Origin&() const
+    { // NOLINT
+        CHECK(IsValid());
+        return origin_;
+    }
 
-  // Allows this type to be used as a key in a set or map.
-  friend std::weak_ordering operator<=>(const SuitableOrigin&,
-                                        const SuitableOrigin&) = default;
+    // Allows this type to be used as a key in a set or map.
+    friend std::weak_ordering operator<=>(const SuitableOrigin&, const SuitableOrigin&) = default;
 
-  std::string Serialize() const;
+    std::string Serialize() const;
 
-  bool IsValid() const;
+    bool IsValid() const;
 
- private:
-  explicit SuitableOrigin(url::Origin);
+private:
+    explicit SuitableOrigin(url::Origin);
 
-  url::Origin origin_;
+    url::Origin origin_;
 };
 
-}  // namespace attribution_reporting
+} // namespace attribution_reporting
 
-#endif  // COMPONENTS_ATTRIBUTION_REPORTING_SUITABLE_ORIGIN_H_
+#endif // COMPONENTS_ATTRIBUTION_REPORTING_SUITABLE_ORIGIN_H_

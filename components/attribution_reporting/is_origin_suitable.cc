@@ -12,10 +12,10 @@
 
 namespace attribution_reporting {
 
-bool IsOriginSuitable(const url::Origin& origin) {
-  const std::string& scheme = origin.scheme();
-  return (scheme == url::kHttpScheme || scheme == url::kHttpsScheme) &&
-         network::IsOriginPotentiallyTrustworthy(origin);
+bool IsOriginSuitable(const url::Origin& origin)
+{
+    const std::string& scheme = origin.scheme();
+    return (scheme == url::kHttpScheme || scheme == url::kHttpsScheme) && network::IsOriginPotentiallyTrustworthy(origin);
 }
 
-}  // namespace attribution_reporting
+} // namespace attribution_reporting

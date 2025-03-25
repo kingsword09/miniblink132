@@ -14,9 +14,8 @@
 namespace attribution_reporting {
 
 COMPONENT_EXPORT(ATTRIBUTION_REPORTING)
-std::optional<mojom::RegistrationEligibility> GetRegistrationEligibility(
-    network::mojom::AttributionReportingEligibility);
+std::optional<mojom::RegistrationEligibility> GetRegistrationEligibility(network::mojom::AttributionReportingEligibility);
 
-}  // namespace attribution_reporting
+} // namespace attribution_reporting
 
-#endif  // COMPONENTS_ATTRIBUTION_REPORTING_ELIGIBILITY_H_
+#endif // COMPONENTS_ATTRIBUTION_REPORTING_ELIGIBILITY_H_

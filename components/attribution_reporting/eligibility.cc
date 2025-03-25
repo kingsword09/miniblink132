@@ -14,23 +14,23 @@ namespace attribution_reporting {
 namespace {
 using ::attribution_reporting::mojom::RegistrationEligibility;
 using ::network::mojom::AttributionReportingEligibility;
-}  // namespace
+} // namespace
 
-std::optional<RegistrationEligibility> GetRegistrationEligibility(
-    AttributionReportingEligibility net_value) {
-  switch (net_value) {
+std::optional<RegistrationEligibility> GetRegistrationEligibility(AttributionReportingEligibility net_value)
+{
+    switch (net_value) {
     case AttributionReportingEligibility::kEmpty:
-      return std::nullopt;
+        return std::nullopt;
     case AttributionReportingEligibility::kUnset:
     case AttributionReportingEligibility::kTrigger:
-      return RegistrationEligibility::kTrigger;
+        return RegistrationEligibility::kTrigger;
     case AttributionReportingEligibility::kEventSource:
     case AttributionReportingEligibility::kNavigationSource:
-      return RegistrationEligibility::kSource;
+        return RegistrationEligibility::kSource;
     case AttributionReportingEligibility::kEventSourceOrTrigger:
-      return RegistrationEligibility::kSourceOrTrigger;
-  }
-  return std::nullopt;
+        return RegistrationEligibility::kSourceOrTrigger;
+    }
+    return std::nullopt;
 }
 
-}  // namespace attribution_reporting
+} // namespace attribution_reporting
