@@ -15,6 +15,8 @@
 #include "third_party/blink/public/mojom/input/input_handler.mojom-blink.h"
 #include "third_party/blink/public/mojom/page/widget.mojom-blink.h"
 #include "ui/latency/latency_info.h"
+#include "ui/events/keycodes/dom/dom_code.h"
+#include "ui/events/keycodes/dom/dom_key.h"
 
 namespace content {
 
@@ -618,7 +620,23 @@ LRESULT PlatformEventHandler::fireMouseEvent(HWND hWnd, UINT message, WPARAM wPa
     return 0;
 }
 
-uint32_t windowsKeyCodeToDomKey(int windowsKeyCode)
+static void buildDomCode(blink::WebKeyboardEvent* keyEvent)
+{
+    int domCode = keyEvent->dom_code;
+    if (0x30 <= domCode && domCode <= 0x39) {
+        keyEvent->dom_code = domCode - 0x31 + (int)ui::DomCode::DIGIT1;
+    } else if (0x41 <= domCode && domCode <= 0x5A) {
+        keyEvent->dom_code = domCode + (int)ui::DomCode::US_A - (int)'A';
+    } else if (VK_NUMPAD0 <= domCode && domCode <= VK_NUMPAD9) {
+        keyEvent->dom_code = domCode - VK_NUMPAD0 - 1 + (int)ui::DomCode::NUMPAD1;
+    } else if (VK_F1 <= domCode && domCode <= VK_F12) {
+        keyEvent->dom_code = domCode - VK_F1 + (int)ui::DomCode::F1;
+    } else if (VK_F13 <= domCode && domCode <= VK_F24) {
+        keyEvent->dom_code = domCode - VK_F13 + (int)ui::DomCode::F13;
+    }
+}
+
+static uint32_t windowsKeyCodeToDomKey(int windowsKeyCode)
 {
     if (0x0008 == windowsKeyCode || 0x0009 == windowsKeyCode ||
         0x000D == windowsKeyCode || 0x001B == windowsKeyCode || 0x001B == 0x007F)
@@ -635,7 +653,7 @@ blink::WebKeyboardEvent PlatformEventHandler::buildKeyboardEvent(blink::WebInput
     keyEvent.native_key_code = wParam;
     keyEvent.dom_code = (keyEvent.windows_key_code);
     keyEvent.dom_key = windowsKeyCodeToDomKey(keyEvent.windows_key_code);
-
+    buildDomCode(&keyEvent);
     keyEvent.SetTimeStamp(time);
     //keyEvent.SetSize(sizeof(WebKeyboardEvent));
     keyEvent.SetType(type);
