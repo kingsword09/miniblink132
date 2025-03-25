@@ -618,6 +618,14 @@ LRESULT PlatformEventHandler::fireMouseEvent(HWND hWnd, UINT message, WPARAM wPa
     return 0;
 }
 
+uint32_t windowsKeyCodeToDomKey(int windowsKeyCode)
+{
+    if (0x0008 == windowsKeyCode || 0x0009 == windowsKeyCode ||
+        0x000D == windowsKeyCode || 0x001B == windowsKeyCode || 0x001B == 0x007F)
+        return windowsKeyCode | 0x400000;
+    return  windowsKeyCode | 0x200000;
+}
+
 blink::WebKeyboardEvent PlatformEventHandler::buildKeyboardEvent(blink::WebInputEvent::Type type, UINT message, WPARAM wParam, LPARAM lParam)
 {
     base::TimeTicks time = base::TimeTicks::Now();
@@ -625,8 +633,9 @@ blink::WebKeyboardEvent PlatformEventHandler::buildKeyboardEvent(blink::WebInput
     blink::WebKeyboardEvent keyEvent;
     keyEvent.windows_key_code = (type == blink::WebInputEvent::Type::kRawKeyDown || type == blink::WebInputEvent::Type::kKeyUp) ? wParam : 0;
     keyEvent.native_key_code = wParam;
-    keyEvent.dom_code = keyEvent.windows_key_code;
-    keyEvent.dom_key = keyEvent.windows_key_code;
+    keyEvent.dom_code = (keyEvent.windows_key_code);
+    keyEvent.dom_key = windowsKeyCodeToDomKey(keyEvent.windows_key_code);
+
     keyEvent.SetTimeStamp(time);
     //keyEvent.SetSize(sizeof(WebKeyboardEvent));
     keyEvent.SetType(type);
