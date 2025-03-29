@@ -171,10 +171,11 @@ Frame* EmptyLocalFrameClient::FindFrame(const AtomicString& name) const
 
 AssociatedInterfaceProvider* EmptyLocalFrameClient::GetRemoteNavigationAssociatedInterfaces()
 {
-    if (!associated_interface_provider_) {
-        associated_interface_provider_ = std::make_unique<AssociatedInterfaceProvider>(base::SingleThreadTaskRunner::GetCurrentDefault());
-    }
-    return associated_interface_provider_.get();
+    return AssociatedInterfaceProvider::GetEmptyAssociatedInterfaceProvider();
+//     if (!associated_interface_provider_) {
+//         associated_interface_provider_ = std::make_unique<AssociatedInterfaceProvider>(base::SingleThreadTaskRunner::GetCurrentDefault());
+//     }
+//     return associated_interface_provider_.get();
 }
 
 std::unique_ptr<WebServiceWorkerProvider> EmptyLocalFrameClient::CreateServiceWorkerProvider()
