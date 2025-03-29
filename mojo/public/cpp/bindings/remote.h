@@ -117,7 +117,9 @@ public:
 
     Interface* TryGet() const
     {
-        return remote_impl_.instance();
+        if (!is_bound())
+            return nullptr;
+        return (Interface*)remote_impl_.TryGetInstance();
     }
 
     // Shorthand form of |get()|. See above.

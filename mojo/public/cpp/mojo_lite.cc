@@ -2282,9 +2282,11 @@ bool mojo::Connector::Accept(mojo::Message* msg)
     if (!otherConnector)
         return false;
 
-    otherConnector->task_runner_->PostTask(FROM_HERE,
-        base::BindOnce(&onConnectorAcceptMsg, otherConnector, (uintptr_t)base::GetCurrentProcId(), otherConnector->incoming_receiver_, std::move(data),
-            std::move(mojoHandles)));
+    if (otherConnector->task_runner_) {
+        otherConnector->task_runner_->PostTask(FROM_HERE,
+            base::BindOnce(&onConnectorAcceptMsg, otherConnector, (uintptr_t)base::GetCurrentProcId(), otherConnector->incoming_receiver_, std::move(data),
+                std::move(mojoHandles)));
+    }
 
     return true;
 }
@@ -2620,7 +2622,7 @@ void mojo::internal::ReceiverImplBase::BindInternal2(mojo::internal::PendingRece
     MojoHandleMgr::MojoHandleEntry* entry = mgr->findEntryNotLock(handle);
 
     CHECK(entry && !entry->m_interfacePtr);
-    entry->m_interfacePtr = impl_;
+    entry->m_interfacePtr = impl_ ? impl_ : last_impl_;
     entry->m_receiverImplBaseId = this->GetId();
     entry->m_receiverRunner = mojo::internal::GetTaskRunnerToUseFromUserProvidedTaskRunner(std::move(runner));
     runner_ = entry->m_receiverRunner;
@@ -2770,6 +2772,8 @@ void mojo::internal::ReceiverImplBase::Close()
     //         remoteImplBase->OnReceiverImplBaseClose(std::move(reset_handler_)); // 本接收端析构的话，通知发送端
 
     handle_.reset();
+    if (impl_)
+        last_impl_ = impl_; // receiver.reset();后可能还要再绑定
     impl_ = nullptr;
 }
 

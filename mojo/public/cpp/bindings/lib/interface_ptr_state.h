@@ -86,6 +86,8 @@ public:
         return runner_;
     }
 
+    void* TryGetInstance();
+
 protected:
     void OnDisconnectError(MojoHandle handle, base::OnceClosure reset_handler);
     //     InterfaceEndpointClient* endpoint_client() const;
@@ -114,7 +116,6 @@ protected:
     //scoped_refptr<RawPtrMessagePipe> PassRawPtrMessagePipe();
 
     void* GetInstance();
-    void* TryGetInstance();
     //     void** GetInstanceAddrImpl();
     //     void SetRawPtrMessagePipe(scoped_refptr<RawPtrMessagePipe> pipe);
 
@@ -170,11 +171,6 @@ public:
     //         : interface_addr_(inter) {}
 
     Interface* instance()
-    {
-        return (Interface*)GetInstance();
-    }
-
-    Interface* try_getInstance()
     {
         return (Interface*)GetInstance();
     }

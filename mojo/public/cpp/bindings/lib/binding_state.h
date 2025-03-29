@@ -105,6 +105,7 @@ protected:
 
     ScopedMessagePipeHandle handle_;
     void* impl_ = nullptr;
+    void* last_impl_ = nullptr;
     int64_t id_ = 0;
 
     // We use SequenceCheckerImpl directly, to assert some sequence checks even in

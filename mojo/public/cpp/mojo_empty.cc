@@ -42,6 +42,7 @@
 #include "services/network/public/mojom/cookie_manager.mojom-blink.h"
 #include "services/network/public/mojom/accept_ch_frame_observer.mojom.h"
 #include "ui/gfx/mojom/delegated_ink_point_renderer.mojom.h"
+#include "third_party/blink/public/mojom/conversions/conversions.mojom-blink.h"
 #include "third_party/blink/public/mojom/payments/payment_app.mojom-blink.h"
 #include "third_party/blink/public/mojom/device_posture/device_posture_provider.mojom-blink.h"
 #include "third_party/blink/public/mojom/loader/fetch_later.mojom.h"
@@ -72,6 +73,8 @@
 #include "third_party/blink/public/mojom/associated_interfaces/associated_interfaces.mojom-blink.h"
 #include "third_party/blink/public/mojom/blob/file_backed_blob_factory.mojom-blink.h"
 #include "components/viz/service/debugger/mojom/viz_debugger.mojom.h"
+#include "components/attribution_reporting/data_host.mojom-blink.h"
+#include "components/performance_manager/public/mojom/coordination_unit.mojom-blink.h"
 #include "mojo/public/mojom/base/big_buffer.mojom-shared-internal.h"
 #include "mojo/public/mojom/base/string16.mojom-shared-internal.h"
 #include "mojo/public/mojom/base/time.mojom-shared-internal.h"
@@ -196,12 +199,9 @@
 #include "third_party/blink/public/mojom/worker/worker_content_settings_proxy.mojom-blink.h"
 //#include "third_party/blink/public/mojom/conversions/attribution_reporting_automation.mojom-blink.h"
 #include "third_party/blink/public/mojom/disk_allocator.mojom-blink.h"
-
 #include "third_party/blink/public/mojom/websockets/websocket_connector.mojom-blink.h"
 #include "services/network/public/mojom/websocket.mojom-blink.h"
-
 #include "cc/mojom/render_frame_metadata.mojom-blink.h"
-#include "components/performance_manager/public/mojom/coordination_unit.mojom-blink.h"
 #include "media/mojo/mojom/watch_time_recorder.mojom.h"
 #include "media/mojo/mojom/media_player.mojom-blink.h"
 #include "services/device/public/mojom/screen_orientation.mojom-blink.h"
@@ -1090,7 +1090,7 @@ void mojo::Message::SerializeHandles(mojo::AssociatedGroupController*)
 
 void mojo::internal::ReceiverImplBase::EnableBatchDispatch(void)
 {
-    *(int*)1 = 1;
+
 }
 void mojo::internal::ReceiverImplBase::FlushForTesting(void)
 {
@@ -1609,3 +1609,5 @@ const char blink::mojom::blink::BackgroundFetchService::Name_[] = "blink.mojom.b
 const char blink::mojom::blink::BackgroundFetchRegistrationService::Name_[] = "blink.mojom.blink.BackgroundFetchRegistrationService";
 const char blink::mojom::blink::BackgroundFetchRegistrationObserver::Name_[] = "blink.mojom.blink.BackgroundFetchRegistrationObserver";
 const char blink::mojom::blink::AssociatedInterfaceProvider::Name_[] = "blink.mojom.blink.AssociatedInterfaceProvider";
+const char attribution_reporting::mojom::blink::DataHost::Name_[] = "attribution_reporting.mojom.blink.DataHost";
+const char blink::mojom::blink::AttributionHost::Name_[] = "blink.mojom.blink.AttributionHost";
