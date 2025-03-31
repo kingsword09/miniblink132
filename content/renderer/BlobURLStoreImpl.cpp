@@ -39,15 +39,15 @@ void BlobURLStoreSet::addUrlBlob(const std::string& url, const std::string& secu
 
 void BlobURLStoreSet::removeUrlBlob(const std::string& url)
 {
-    UrlToBlobs::iterator it = m_urlToBlobs.find(url);
-    if (it == m_urlToBlobs.end())
-        return;
-    //::mojo::Remote<::blink::mojom::blink::Blob>* blobRemote = it->second;
-    //delete blobRemote;
-    SecurityOriginAndBlob* securityOriginAndBlob = it->second;
-    delete securityOriginAndBlob;
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE, base::BindOnce([](BlobURLStoreSet* self, const std::string& url) {
+        UrlToBlobs::iterator it = self->m_urlToBlobs.find(url);
+        if (it == self->m_urlToBlobs.end())
+            return;
+        SecurityOriginAndBlob* securityOriginAndBlob = it->second;
+        delete securityOriginAndBlob;
 
-    m_urlToBlobs.erase(it);
+        self->m_urlToBlobs.erase(it);
+    }, base::Unretained(this), url), base::Seconds(2));
 }
 
 void BlobURLStoreSet::removeBySecurityOriginToken(const std::string& securityOriginToken)
