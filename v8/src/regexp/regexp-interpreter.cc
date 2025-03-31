@@ -67,7 +67,7 @@ bool BackRefMatchesNoCase(Isolate* isolate, int from, int current, int len, base
     return true;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void MaybeTraceInterpreter(
     const uint8_t* code_base, const uint8_t* pc, int stack_depth, int current_position, uint32_t current_char, int bytecode_length, const char* bytecode_name)
 {
@@ -378,7 +378,7 @@ bool IndexIsInBounds(int index, int length)
     } while (false)
 #define ADVANCE_CURRENT_POSITION(by) SET_CURRENT_POSITION(current + (by))
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define BYTECODE(name)                                                                                                                                         \
     BC_LABEL(name)                                                                                                                                             \
     MaybeTraceInterpreter(code_base, pc, backtrack_stack.sp(), current, current_char, RegExpBytecodeLength(BC_##name), #name);
@@ -445,7 +445,7 @@ IrregexpInterpreter::Result RawMatch(Isolate* isolate, Tagged<TrustedByteArray> 
 
     uint32_t backtrack_count = 0;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_regexp_bytecodes) {
         PrintF("\n\nStart bytecode interpreter\n\n");
     }

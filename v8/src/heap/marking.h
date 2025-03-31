@@ -39,7 +39,7 @@ public:
     // transition the bit from 1 to 0. Only works in non-atomic contexts.
     inline bool Clear();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool operator==(const MarkBit& other)
     {
         return cell_ == other.cell_ && mask_ == other.mask_;

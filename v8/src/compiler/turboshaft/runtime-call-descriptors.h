@@ -20,14 +20,14 @@ private:
             DCHECK_IMPLIES(lazy_deopt_on_throw == LazyDeoptOnThrow::kYes, Derived::kNeedsFrameState);
             auto descriptor = Linkage::GetRuntimeCallDescriptor(zone, Derived::kFunction, std::tuple_size_v<typename Derived::arguments_t>,
                 Derived::kProperties, Derived::kNeedsFrameState ? CallDescriptor::kNeedsFrameState : CallDescriptor::kNoFlags);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             Derived::Verify(descriptor);
 #endif // DEBUG
             CanThrow can_throw = (Derived::kProperties & Operator::kNoThrow) ? CanThrow::kNo : CanThrow::kYes;
             return TSCallDescriptor::Create(descriptor, can_throw, lazy_deopt_on_throw, zone);
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         static void Verify(const CallDescriptor* desc)
         {
             using result_t = typename Derived::result_t;

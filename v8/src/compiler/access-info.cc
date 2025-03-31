@@ -58,7 +58,7 @@ bool CanInlinePropertyAccess(MapRef map, AccessMode access_mode)
     return false;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool HasFieldRepresentationDependenciesOnMap(ZoneVector<CompilationDependency const*>& dependencies, Handle<Map> const& field_owner_map)
 {
     for (auto dep : dependencies) {

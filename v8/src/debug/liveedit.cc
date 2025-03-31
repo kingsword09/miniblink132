@@ -782,7 +782,7 @@ void UpdatePositions(Isolate* isolate, DirectHandle<SharedFunctionInfo> sfi, Fun
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 Tagged<ScopeInfo> FindOuterScopeInfoFromScriptSfi(Isolate* isolate, DirectHandle<Script> script)
 {
     // We take some SFI from the script and walk outwards until we find the
@@ -831,7 +831,7 @@ MaybeHandle<ScopeInfo> DetermineOuterScopeInfo(Isolate* isolate, DirectHandle<Sc
     // Sloppy eval compiles use the ScopeInfo of the context. Let's find it.
     while (!scope_info->IsEmpty()) {
         if (scope_info->HasContext()) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             Tagged<ScopeInfo> other_scope_info = FindOuterScopeInfoFromScriptSfi(isolate, script);
             DCHECK_IMPLIES(!other_scope_info.is_null(), scope_info == other_scope_info);
 #endif
@@ -1034,7 +1034,7 @@ void LiveEdit::PatchScript(
             constants->set(i, old_unchanged_inner_sfi);
         }
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     {
         // Check that all the functions in the new script are valid, that their
         // function literals match what is expected, and that start positions are

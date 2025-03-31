@@ -40,7 +40,7 @@ constexpr auto CallInterfaceDescriptor::DefaultReturnDoubleRegisterArray()
     return registers;
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 template <typename DerivedDescriptor>
 void StaticCallInterfaceDescriptor<DerivedDescriptor>::VerifyArgumentRegisterCount(CallInterfaceDescriptorData* data, int argc)
 {

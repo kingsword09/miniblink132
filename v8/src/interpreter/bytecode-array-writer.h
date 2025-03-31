@@ -57,7 +57,7 @@ public:
 
     template <typename IsolateT> EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) Handle<TrustedByteArray> ToSourcePositionTable(IsolateT* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Returns -1 if they match or the offset of the first mismatching byte.
     int CheckBytecodeMatches(Tagged<BytecodeArray> bytecode);
 #endif

@@ -20,7 +20,7 @@ namespace detail {
 static constexpr Register kScratchRegisters[] = { r9, r10, ip };
 static constexpr int kNumScratchRegisters = arraysize(kScratchRegisters);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 inline bool Clobbers(Register target, MemOperand op)
 {
     return op.rb() == target || op.ra() == target;

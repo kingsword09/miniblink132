@@ -2665,7 +2665,7 @@ void Assembler::set_target_value_at(Address pc, uint64_t target, WritableJitAllo
     // It relies on fact the upper [63:48] bits are not used for virtual address
     // translation and they have to be set according to value of bit 47 in order
     // get canonical address.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check we have the result from a li macro-instruction.
     Instr instr0 = instr_at(pc);
     Instr instr1 = instr_at(pc + kInstrSize);
@@ -2705,7 +2705,7 @@ void Assembler::set_target_value_at(Address pc, uint64_t target, WritableJitAllo
 
 void Assembler::set_target_compressed_value_at(Address pc, uint32_t target, WritableJitAllocation* jit_allocation, ICacheFlushMode icache_flush_mode)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check we have the result from a li macro-instruction.
     Instr instr0 = instr_at(pc);
     Instr instr1 = instr_at(pc + kInstrSize);

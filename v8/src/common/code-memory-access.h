@@ -205,7 +205,7 @@ public:
     }
 #endif
 
-#if DEBUG
+#ifdef V8_DEBUG
     static bool initialized()
     {
         return trusted_data_.initialized;
@@ -353,7 +353,7 @@ private:
         base::Mutex* jit_pages_mutex_;
         JitPageMap* jit_pages_;
 
-#if DEBUG
+#ifdef V8_DEBUG
         bool initialized = false;
 #endif
     };

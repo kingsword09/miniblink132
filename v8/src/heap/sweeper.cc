@@ -345,7 +345,7 @@ bool Sweeper::LocalSweeper::ParallelSweepSpace(AllocationSpace identity, Sweepin
         ParallelSweepPage(page, identity, sweeping_mode);
         if (!page->Chunk()->IsFlagSet(MemoryChunk::NEVER_ALLOCATE_ON_PAGE)) {
             found_usable_pages = true;
-#if DEBUG
+#ifdef V8_DEBUG
         } else {
             // All remaining pages are also marked with NEVER_ALLOCATE_ON_PAGE.
             base::MutexGuard guard(&sweeper_->mutex_);
@@ -1292,7 +1292,7 @@ void Sweeper::AddPromotedPage(MutablePageMetadata* chunk)
 namespace {
 void VerifyPreparedPage(PageMetadata* page)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_GE(page->area_size(), static_cast<size_t>(page->live_bytes()));
     DCHECK_EQ(PageMetadata::ConcurrentSweepingState::kDone, page->concurrent_sweeping_state());
     page->ForAllFreeListCategories([page](FreeListCategory* category) { DCHECK(!category->is_linked(page->owner()->free_list())); });
@@ -1460,7 +1460,7 @@ uint64_t Sweeper::GetTraceIdForFlowEvent(GCTracer::Scope::ScopeId scope_id) cons
     return GCTracer::Scope::NeedsYoungEpoch(scope_id) ? minor_sweeping_state_.trace_id() : major_sweeping_state_.trace_id();
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 bool Sweeper::HasUnsweptPagesForMajorSweeping() const
 {
     DCHECK(heap_->IsMainThread());

@@ -11,7 +11,7 @@ namespace internal {
 
 void Segment::ZapContents()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     memset(reinterpret_cast<void*>(start()), kZapDeadByte, capacity());
 #endif
     MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start(), capacity());
@@ -19,7 +19,7 @@ void Segment::ZapContents()
 
 void Segment::ZapHeader()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     memset(this, kZapDeadByte, sizeof(Segment));
 #endif
     MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start(), sizeof(Segment));

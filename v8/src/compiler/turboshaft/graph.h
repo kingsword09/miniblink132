@@ -241,7 +241,7 @@ public:
     }
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     friend class RandomAccessStackDominatorNode<Derived>;
 #endif
     Derived* neighboring_child_ = nullptr;
@@ -279,7 +279,7 @@ public:
 
 private:
     friend class DominatorForwardTreeNode<Derived>;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     friend class Block;
 #endif
 
@@ -412,13 +412,13 @@ public:
 
     int PredecessorCount() const
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CheckPredecessorCount();
 #endif
         return predecessor_count_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Checks that the {predecessor_count_} is equal to the number of predecessors
     // reachable through {last_predecessor_}.
     void CheckPredecessorCount() const
@@ -568,7 +568,7 @@ public:
         return false;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // {has_peeled_iteration_} is currently only updated for loops peeled in
     // Turboshaft (it is true only for loop headers of loops that have had their
     // first iteration peeled). So be aware that while Turbofan loop peeling is
@@ -602,7 +602,7 @@ public:
     void set_custom_data(uint32_t data, CustomDataKind kind_for_debug_check)
     {
         custom_data_ = data;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         custom_data_kind_for_debug_check_ = kind_for_debug_check;
 #endif
     }
@@ -616,7 +616,7 @@ public:
     void clear_custom_data()
     {
         custom_data_ = 0;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         custom_data_kind_for_debug_check_ = CustomDataKind::kUnset;
 #endif
     }
@@ -648,7 +648,7 @@ private:
     // output graph and algorithms cannot rely on this field being properly reset
     // after previous uses.
     uint32_t custom_data_ = 0;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CustomDataKind custom_data_kind_for_debug_check_ = CustomDataKind::kUnset;
     size_t graph_generation_ = 0;
     // True if this is a loop header of a loop with a peeled iteration.
@@ -684,7 +684,7 @@ public:
         , operation_origins_(graph_zone, this)
         , operation_types_(graph_zone, this)
         ,
-#ifdef DEBUG
+#ifdef V8_DEBUG
         block_type_refinement_(graph_zone)
         ,
 #endif
@@ -706,7 +706,7 @@ public:
         operation_origins_.Reset();
         operation_types_.Reset();
         dominator_tree_depth_ = 0;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         block_type_refinement_.Reset();
         // Do not reset of graph_created_from_turbofan_ as it is propagated along
         // the phases.
@@ -764,7 +764,7 @@ public:
     OpIndex Index(const Operation& op) const
     {
         OpIndex result = operations_.Index(op);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         result.set_generation_mod2(generation_mod2());
 #endif
         return result;
@@ -802,7 +802,7 @@ public:
     OpIndex NextIndex(const OpIndex idx) const
     {
         OpIndex next = operations_.Next(idx);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         next.set_generation_mod2(generation_mod2());
 #endif
         return next;
@@ -810,7 +810,7 @@ public:
     OpIndex PreviousIndex(const OpIndex idx) const
     {
         OpIndex prev = operations_.Previous(idx);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         prev.set_generation_mod2(generation_mod2());
 #endif
         return prev;
@@ -829,7 +829,7 @@ public:
     {
         DecrementInputUses(*AllOperations().rbegin());
         operations_.RemoveLast();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (v8_flags.turboshaft_trace_emitted) {
             std::cout << "/!\\ Removed last emitted operation /!\\\n";
         }
@@ -838,14 +838,14 @@ public:
 
     template <class Op, class... Args> V8_INLINE Op& Add(Args... args)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         OpIndex result = next_operation_index();
 #endif // DEBUG
         Op& op = Op::New(this, args...);
         IncrementInputUses(op);
 
         DCHECK_EQ(result, Index(op));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         for (OpIndex input : op.inputs()) {
             DCHECK_LT(input, result);
             DCHECK(BelongsToThisGraph(input));
@@ -895,7 +895,7 @@ public:
         }
         Block* result = all_blocks_[next_block_++];
         new (result) Block(kind);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         result->graph_generation_ = generation_;
 #endif
         result->SetOrigin(origin);
@@ -916,7 +916,7 @@ public:
         uint32_t depth = block->ComputeDominator();
         dominator_tree_depth_ = std::max<uint32_t>(dominator_tree_depth_, depth);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (v8_flags.turboshaft_trace_emitted) {
             std::cout << "\nBound: " << block->index() << " [predecessors: ";
             auto preds = block->Predecessors();
@@ -996,7 +996,7 @@ public:
     OpIndex BeginIndex() const
     {
         OpIndex begin = operations_.BeginIndex();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         begin.set_generation_mod2(generation_mod2());
 #endif
         return begin;
@@ -1004,7 +1004,7 @@ public:
     OpIndex EndIndex() const
     {
         OpIndex end = operations_.EndIndex();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         end.set_generation_mod2(generation_mod2());
 #endif
         return end;
@@ -1199,7 +1199,7 @@ public:
     {
         return operation_types_;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Store refined types per block here for --trace-turbo printing.
     // TODO(nicohartmann@): Remove this once we have a proper way to print
     // type information inside the reducers.
@@ -1232,7 +1232,7 @@ public:
     {
         if (!companion_) {
             companion_ = graph_zone_->New<Graph>(graph_zone_, operations_.size());
-#ifdef DEBUG
+#ifdef V8_DEBUG
             companion_->generation_ = generation_ + 1;
             if (IsCreatedFromTurbofan())
                 companion_->SetCreatedFromTurbofan();
@@ -1256,7 +1256,7 @@ public:
         source_positions_.SwapData(companion.source_positions_);
         operation_origins_.SwapData(companion.operation_origins_);
         operation_types_.SwapData(companion.operation_types_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         std::swap(block_type_refinement_, companion.block_type_refinement_);
         // Update generation index.
         DCHECK_EQ(generation_ + 1, companion.generation_);
@@ -1267,7 +1267,7 @@ public:
         stack_checks_to_remove_.clear();
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t generation() const
     {
         return generation_;
@@ -1306,7 +1306,7 @@ public:
         DCHECK_NOT_NULL(loop_unrolling_analyzer_);
         return loop_unrolling_analyzer_;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool has_loop_unrolling_analyzer() const
     {
         return loop_unrolling_analyzer_ != nullptr;
@@ -1404,13 +1404,13 @@ private:
     GrowingOpIndexSidetable<OpIndex> operation_origins_;
     uint32_t dominator_tree_depth_ = 0;
     GrowingOpIndexSidetable<Type> operation_types_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     GrowingBlockSidetable<TypeRefinements> block_type_refinement_;
     bool graph_created_from_turbofan_ = false;
 #endif
 
     Graph* companion_ = nullptr;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t generation_ = 1;
 #endif // DEBUG
 

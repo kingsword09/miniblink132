@@ -256,7 +256,7 @@ MaybeHandle<Map> TransitionsAccessor::FindTransitionToField(DirectHandle<String>
     Tagged<Map> target = SearchTransition(*name, PropertyKind::kData, NONE);
     if (target.is_null())
         return MaybeHandle<Map>();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     PropertyDetails details = target->GetLastDescriptorDetails(isolate_);
     DCHECK_EQ(NONE, details.attributes());
     DCHECK_EQ(PropertyKind::kData, details.kind());
@@ -517,7 +517,7 @@ Tagged<Map> TransitionsAccessor::GetMigrationTarget()
 // static
 void TransitionsAccessor::ReplaceTransitions(Isolate* isolate, DirectHandle<Map> map, Tagged<UnionOf<TransitionArray, MaybeWeak<Map>>> new_transitions)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     if (GetEncoding(isolate, map) == kFullTransitionArray) {
         CheckNewTransitionsAreConsistent(isolate, map, new_transitions.GetHeapObjectAssumeStrong());
         DCHECK_NE(GetTransitionArray(isolate, map), new_transitions.GetHeapObjectAssumeStrong());
@@ -617,7 +617,7 @@ void TransitionsAccessor::TraverseTransitionTreeInternal(const TraverseCallback&
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 void TransitionsAccessor::CheckNewTransitionsAreConsistent(Isolate* isolate, DirectHandle<Map> map, Tagged<Object> transitions)
 {

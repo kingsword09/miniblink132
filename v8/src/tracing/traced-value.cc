@@ -19,7 +19,7 @@ namespace {
 
 #define DCHECK_CURRENT_CONTAINER_IS(x) DCHECK_EQ(x, nesting_stack_.back())
 #define DCHECK_CONTAINER_STACK_DEPTH_EQ(x) DCHECK_EQ(x, nesting_stack_.size())
-#ifdef DEBUG
+#ifdef V8_DEBUG
 const bool kStackTypeDict = false;
 const bool kStackTypeArray = true;
 #define DEBUG_PUSH_CONTAINER(x) nesting_stack_.push_back(x)

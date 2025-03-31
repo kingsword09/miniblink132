@@ -277,7 +277,7 @@ bool FreeListManyCached::AddCategory(FreeListCategory* category)
         UpdateCacheAfterAddition(category->type_);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CheckCacheIntegrity();
 #endif
 
@@ -294,7 +294,7 @@ void FreeListManyCached::RemoveCategory(FreeListCategory* category)
         UpdateCacheAfterRemoval(type);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CheckCacheIntegrity();
 #endif
 }
@@ -321,7 +321,7 @@ size_t FreeListManyCached::Free(const WritableFreeSpace& free_space, FreeMode mo
     if (mode == kLinkCategory) {
         UpdateCacheAfterAddition(type);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CheckCacheIntegrity();
 #endif
     }
@@ -355,7 +355,7 @@ Tagged<FreeSpace> FreeListManyCached::Allocate(size_t size_in_bytes, size_t* nod
         UpdateCacheAfterRemoval(type);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CheckCacheIntegrity();
 #endif
 
@@ -423,7 +423,7 @@ Tagged<FreeSpace> FreeListManyCachedFastPathBase::Allocate(size_t size_in_bytes,
         PageMetadata::FromHeapObject(node)->IncreaseAllocatedBytes(*node_size);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CheckCacheIntegrity();
 #endif
 
@@ -572,7 +572,7 @@ int FreeListCategory::FreeListLength()
     return length;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool FreeList::IsVeryLong()
 {
     int len = 0;

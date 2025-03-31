@@ -69,7 +69,7 @@ void AsmJsScanner::Next()
         return;
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_asm_scanner) {
         if (Token() == kDouble) {
             PrintF("%lf ", AsDouble());
@@ -179,7 +179,7 @@ void AsmJsScanner::ResetLocals()
     local_names_.clear();
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 // Only used for debugging.
 std::string AsmJsScanner::Name(token_t token) const
 {

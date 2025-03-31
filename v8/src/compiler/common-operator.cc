@@ -291,7 +291,7 @@ SparseInputMask::InputIterator::InputIterator(SparseInputMask::BitMaskType bit_m
     , parent_(parent)
     , real_index_(0)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     if (bit_mask_ != SparseInputMask::kDenseBitMask) {
         DCHECK_EQ(base::bits::CountPopulation(bit_mask_) - base::bits::CountPopulation(kEndMarker), parent->InputCount());
     }
@@ -1522,7 +1522,7 @@ const Operator* CommonOperatorBuilder::StateValues(int arguments, SparseInputMas
         }
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     DCHECK(bitmask.IsDense() || bitmask.CountReal() == arguments);
 #endif
 
@@ -1536,7 +1536,7 @@ const Operator* CommonOperatorBuilder::StateValues(int arguments, SparseInputMas
 
 const Operator* CommonOperatorBuilder::TypedStateValues(const ZoneVector<MachineType>* types, SparseInputMask bitmask)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     DCHECK(bitmask.IsDense() || bitmask.CountReal() == static_cast<int>(types->size()));
 #endif
 

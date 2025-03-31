@@ -2218,7 +2218,7 @@ std::optional<BailoutReason> BuildGraph(
     PipelineData* data, Schedule* schedule, Zone* phase_zone, Linkage* linkage, JsWasmCallsSidetable* js_wasm_calls_sidetable)
 {
     GraphBuilder builder { data, phase_zone, *schedule, linkage, js_wasm_calls_sidetable };
-#if DEBUG
+#ifdef V8_DEBUG
     data->graph().SetCreatedFromTurbofan();
 #endif
     return builder.Run();

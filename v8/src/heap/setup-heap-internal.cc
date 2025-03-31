@@ -71,7 +71,7 @@ Handle<SharedFunctionInfo> CreateSharedFunctionInfo(Isolate* isolate, Builtin bu
     return shared;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool IsMutableMap(InstanceType instance_type, ElementsKind elements_kind)
 {
     bool is_js_object = InstanceTypeChecker::IsJSObject(instance_type);
@@ -194,7 +194,7 @@ bool Heap::CreateReadOnlyHeapObjects()
     if (!CreateLateReadOnlyJSReceiverMaps())
         return false;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ReadOnlyRoots roots(isolate());
     for (auto pos = RootIndex::kFirstReadOnlyRoot; pos <= RootIndex::kLastReadOnlyRoot; ++pos) {
         DCHECK(roots.is_initialized(pos));
@@ -1055,7 +1055,7 @@ bool Heap::CreateReadOnlyObjects()
         // Mark "Interesting Symbols" appropriately.
         to_primitive_symbol->set_is_interesting_symbol(true);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         roots.VerifyNameForProtectors();
 #endif
         roots.VerifyNameForProtectorsPages();

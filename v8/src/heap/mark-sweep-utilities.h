@@ -101,7 +101,7 @@ protected:
 
 bool IsCppHeapMarkingFinished(Heap* heap, MarkingWorklists::Local* local_marking_worklists);
 
-#if DEBUG
+#ifdef V8_DEBUG
 void VerifyRememberedSetsAfterEvacuation(Heap* heap, GarbageCollector garbage_collector);
 #endif // DEBUG
 

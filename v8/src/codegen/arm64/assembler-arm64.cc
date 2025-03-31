@@ -404,7 +404,7 @@ void Assembler::AbortedCodeGeneration()
 
 void Assembler::Reset()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK((pc_ >= buffer_start_) && (pc_ < buffer_start_ + buffer_->size()));
     DCHECK_EQ(veneer_pool_blocked_nesting_, 0);
     DCHECK(unresolved_branches_.empty());
@@ -498,7 +498,7 @@ void Assembler::CodeTargetAlign()
 
 void Assembler::CheckLabelLinkChain(Label const* label)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (label->is_linked()) {
         static const int kMaxLinksToCheck = 64; // Avoid O(n2) behaviour.
         int links_checked = 0;
@@ -2603,7 +2603,7 @@ Instr Assembler::LoadStoreStructAddrModeField(const MemOperand& addr)
 
 void Assembler::LoadStoreStructVerify(const VRegister& vt, const MemOperand& addr, Instr op)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Assert that addressing mode is either offset (with immediate 0), post
     // index by immediate of the size of the register list, or post index by a
     // value in a core register.
@@ -4891,7 +4891,7 @@ void Assembler::EmitVeneers(bool force_emit, bool need_protection, size_t margin
                 static_assert(Instruction::ImmBranchRange(CondBranchType) == Instruction::ImmBranchRange(CompareBranchType));
                 pc_offset -= Instruction::ImmBranchRange(CondBranchType);
             }
-#ifdef DEBUG
+#ifdef V8_DEBUG
             Label veneer_size_check;
             bind(&veneer_size_check);
 #endif

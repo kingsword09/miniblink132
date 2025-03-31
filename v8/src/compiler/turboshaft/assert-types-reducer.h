@@ -96,7 +96,7 @@ public:
             actual_value_indices.push_back(__ SmiConstant(op_id));
             actual_value_indices.push_back(__ SmiConstant(NoContextConstant()));
             __ CallBuiltin(builtin, OpIndex::Invalid(), { actual_value_indices.data(), actual_value_indices.size() }, CanThrow::kNo, isolate_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // Used for debugging
             if (v8_flags.turboshaft_trace_typing) {
                 PrintF("Inserted assert for %3d:%-40s (%s)\n", original_value.id(), __ output_graph().Get(original_value).ToString().c_str(),

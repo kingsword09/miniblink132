@@ -442,7 +442,7 @@ public:
                     set_no_liftoff_inlining_budget(InliningTree::NoLiftoffBudget(decoder->module_, func_index_));
                 }
             } else {
-#if DEBUG
+#ifdef V8_DEBUG
                 // We don't have support for inlining asm.js functions, those should
                 // never be selected in `InliningTree`.
                 DCHECK(!wasm::is_asmjs_module(decoder->module_));
@@ -1997,7 +1997,7 @@ public:
         BuildModifyThreadInWasmFlag(__ graph_zone(), false);
         OpIndex ret_val = __ Call(target_address, OpIndex::Invalid(), base::VectorOf(inputs), ts_call_descriptor);
 
-#if DEBUG
+#ifdef V8_DEBUG
         // Reset the context again after the call, to make sure nobody is using the
         // leftover context in the isolate.
         __ Store(__ LoadRootRegister(), __ WordPtrConstant(Context::kInvalidContext), StoreOp::Kind::RawAligned(), MemoryRepresentation::UintPtr(),
@@ -4692,7 +4692,7 @@ private:
                 WasmTrustedInstanceData::kNativeContextOffset);
 
             if (!mod->memories.empty()) {
-#if DEBUG
+#ifdef V8_DEBUG
                 has_memory_ = true;
 #endif
                 const WasmMemory& mem = mod->memories[0];
@@ -4806,7 +4806,7 @@ private:
         bool memory_can_grow_ { false };
         bool memory_can_move_ { false };
         bool memory_size_cached_ { false };
-#if DEBUG
+#ifdef V8_DEBUG
         bool has_memory_ { false };
 #endif
     };
@@ -4848,7 +4848,7 @@ private:
             phi_inputs_capacity_total_ = phi_count_ * input_capacity_per_phi_;
             phi_inputs_ = zone->AllocateArray<OpIndex>(phi_inputs_capacity_total_);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
             constexpr uint32_t kNoInputs = 0;
             input_count_per_phi_ = std::vector(phi_count_, kNoInputs);
 #endif
@@ -4880,7 +4880,7 @@ private:
                 GrowInputsVector();
             }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // We rely on adding inputs in the order of phis, i.e.,
             // `AddInputForPhi(0, ...); AddInputForPhi(1, ...); ...`.
             size_t phi_inputs_start = phi_i * input_capacity_per_phi_;
@@ -4897,7 +4897,7 @@ private:
                 // We have finished adding the last input for all phis.
                 inputs_per_phi_++;
                 next_phi_input_add_offset_ = inputs_per_phi_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 EnsureAllPhisHaveSameInputCount();
 #endif
             }
@@ -4929,7 +4929,7 @@ private:
             return base::VectorOf(incoming_exceptions_);
         }
 
-#if DEBUG
+#ifdef V8_DEBUG
         void DcheckConsistency()
         {
             EnsureAllPhisHaveSameInputCount();
@@ -4971,7 +4971,7 @@ private:
         static constexpr uint32_t kInitialInputCapacityPerPhi = 2;
         uint32_t input_capacity_per_phi_ = kInitialInputCapacityPerPhi;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         std::vector<uint32_t> input_count_per_phi_;
         void EnsureAllPhisHaveSameInputCount() const
         {
@@ -5010,7 +5010,7 @@ private:
             // This is essentially a strided copy, where we expand the storage by
             // "inserting" unitialized elements in between contiguous stretches of
             // inputs belonging to the same phi.
-#ifdef DEBUG
+#ifdef V8_DEBUG
             EnsureAllPhisHaveSameInputCount();
 #endif
             for (size_t phi_i = 0; phi_i < phi_count(); ++phi_i) {
@@ -5097,7 +5097,7 @@ private:
         uint32_t merge_arity = merge != nullptr ? merge->arity : 0;
         DCHECK_EQ(decoder->num_locals() + merge_arity, block_phis.phi_count());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Check consistency of Phi storage. We do this here rather than inside
         // {block_phis.phi_inputs()} to avoid overall O(n²) complexity.
         block_phis.DcheckConsistency();

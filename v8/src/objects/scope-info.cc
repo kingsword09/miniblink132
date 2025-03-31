@@ -21,7 +21,7 @@
 namespace v8 {
 namespace internal {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool ScopeInfo::Equals(Tagged<ScopeInfo> other, bool is_live_edit_compare) const
 {
     if (length() != other->length())

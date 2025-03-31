@@ -76,7 +76,7 @@ private:
     {
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Constant byte value used for zapping dead memory in debug mode.
     static const unsigned char kZapDeadByte = 0xcd;
 #endif

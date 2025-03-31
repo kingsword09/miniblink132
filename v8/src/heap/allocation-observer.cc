@@ -14,7 +14,7 @@ namespace internal {
 
 void AllocationCounter::AddAllocationObserver(AllocationObserver* observer)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     auto it = std::find_if(observers_.begin(), observers_.end(), [observer](const AllocationObserverCounter& aoc) { return aoc.observer_ == observer; });
     DCHECK_EQ(observers_.end(), it);
 #endif

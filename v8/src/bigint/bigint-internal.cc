@@ -8,7 +8,7 @@ namespace v8 {
 namespace bigint {
 
 // Used for checking consistency between library and public header.
-#if DEBUG
+#ifdef V8_DEBUG
 #if V8_ADVANCED_BIGINT_ALGORITHMS
 bool kAdvancedAlgorithmsEnabledInLibrary = true;
 #else

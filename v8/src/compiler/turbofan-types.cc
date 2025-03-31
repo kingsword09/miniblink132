@@ -1221,7 +1221,7 @@ void Type::PrintTo(std::ostream& os) const
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Type::Print() const
 {
     StdoutStream os;

@@ -476,7 +476,7 @@ protected:
 
     template <size_t... indices> static void RecordValuesImpl(BlockData& data, Block* source, const values_t& values, std::index_sequence<indices...>)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         std::initializer_list<size_t> sizes { std::get<indices>(data.recorded_values).size()... };
         // There a -1 on the PredecessorCounts below, because we've emitted the
         // Goto/Branch before calling RecordValues (which we do because the
@@ -975,7 +975,7 @@ public:
         OpIndex result = Asm().output_graph().next_operation_index();
         Op& op = Asm().output_graph().template Add<Op>(args...);
         Asm().output_graph().operation_origins()[result] = Asm().current_operation_origin();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (v8_flags.turboshaft_trace_intermediate_reductions) {
             std::cout << std::setw(Asm().intermediate_tracing_depth()) << ' ' << "[" << ReducerName() << "]: emitted " << op << "\n";
         }
@@ -988,7 +988,7 @@ public:
     }
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     GrowingOpIndexSidetable<Block*> op_to_block_ { Asm().phase_zone(), &Asm().output_graph() };
 
     bool ValidInputs(OpIndex op_idx)
@@ -1089,7 +1089,7 @@ public:
     {
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Verify(OpIndex old_index, OpIndex new_index)
     {
     }
@@ -1107,7 +1107,7 @@ public:
         }
         DCHECK(output_graph_loop->Contains(output_index));
         auto& pending_phi = Asm().output_graph().Get(output_index).template Cast<PendingLoopPhiOp>();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_EQ(pending_phi.rep, input_phi.rep);
         // The 1st input of the PendingLoopPhi should be the same as the original
         // Phi, except for peeled loops (where it's the same as the 2nd input when
@@ -1183,7 +1183,7 @@ public:
 
     V<None> REDUCE(Switch)(V<Word32> input, base::Vector<SwitchOp::Case> cases, Block* default_case, BranchHint default_hint)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Making sure that all cases and {default_case} are different. If we ever
         // decide to lift this condition, then AddPredecessor and SplitEdge should
         // be updated accordingly.
@@ -1335,7 +1335,7 @@ public:
         // This can potentially involve copying the `iterable` if it is not moved to
         // the `FOREACH` macro. `ForeachIterable`s should be cheap to copy and they
         // MUST NOT emit any code in their constructors/destructors.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         OpIndex next_index = Asm().output_graph().next_operation_index();
         {
             It temp_copy = iterable;
@@ -3658,7 +3658,7 @@ public:
         USE(isolate);
         DCHECK_NOT_NULL(isolate);
         DCHECK_EQ(ThreadId::Current(), isolate->thread_id());
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (v8_flags.debug_code) {
             Check(condition, message, file, line, loc);
         }
@@ -3913,7 +3913,7 @@ public:
     // TODO(nicohartmann): Maybe this can be unified with Dcheck?
     void AssertImpl(V<Word32> condition, const char* condition_string, const char* file, int line)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // We use 256 characters as a buffer size. This can be increased if
         // necessary.
         static constexpr size_t kMaxAssertCommentLength = 256;
@@ -4619,7 +4619,7 @@ public:
     }
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define REDUCE_OP(Op)                                                                                                                                          \
     template <class... Args> V8_INLINE OpIndex ReduceIfReachable##Op(Args... args)                                                                             \
     {                                                                                                                                                          \
@@ -4790,7 +4790,7 @@ public:
 #endif
     bool Bind(Block* block)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         set_conceptually_in_a_block(true);
 #endif
 
@@ -4836,7 +4836,7 @@ public:
         current_operation_origin_ = operation_origin;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void set_conceptually_in_a_block(bool value)
     {
         conceptually_in_a_block_ = value;
@@ -4876,7 +4876,7 @@ public:
         current_catch_block_ = block;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int& intermediate_tracing_depth()
     {
         return intermediate_tracing_depth_;
@@ -4971,7 +4971,7 @@ private:
     {
         this->output_graph().Finalize(current_block_);
         current_block_ = nullptr;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         set_conceptually_in_a_block(false);
 #endif
     }
@@ -5161,7 +5161,7 @@ private:
     // additional parameters to ReduceXXX methods.
     V<AnyOrNone> current_operation_origin_ = V<AnyOrNone>::Invalid();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int intermediate_tracing_depth_ = 0;
 #endif
 
@@ -5176,7 +5176,7 @@ public:
         , previous_catch_block_(assembler.current_catch_block_)
     {
         assembler_.current_catch_block_ = catch_block;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         this->catch_block = catch_block;
 #endif
     }
@@ -5195,7 +5195,7 @@ public:
 private:
     AssemblerT& assembler_;
     Block* previous_catch_block_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Block* catch_block = nullptr;
 #endif
 

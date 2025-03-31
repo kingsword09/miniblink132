@@ -15,7 +15,7 @@
 #include "src/objects/shared-function-info.h"
 #include "src/objects/source-text-module-inl.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #include "src/common/ptr-compr-inl.h"
 #include "src/runtime/runtime-utils.h"
 #endif
@@ -149,7 +149,7 @@ bool Isolate::is_execution_terminating()
     return thread_local_top()->exception_ == i::ReadOnlyRoots(this).termination_exception();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 Tagged<Object> Isolate::VerifyBuiltinsResult(Tagged<Object> result)
 {
     if (is_execution_terminating() && !v8_flags.strict_termination_checks) {

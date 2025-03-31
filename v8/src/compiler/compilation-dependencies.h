@@ -163,7 +163,7 @@ public:
     CompilationDependency const* FieldTypeDependencyOffTheRecord(
         MapRef map, MapRef owner, InternalIndex descriptor, ObjectRef /* Contains a FieldType underneath. */ type) const;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static bool IsFieldRepresentationDependencyOnMap(const CompilationDependency* dep, const Handle<Map>& receiver_map);
 #endif // DEBUG
 

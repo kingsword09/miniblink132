@@ -32,7 +32,7 @@ public:
     static void Initialize(CodeDesc* desc, Assembler* assembler, int safepoint_table_offset, int handler_table_offset, int constant_pool_offset,
         int code_comments_offset, int builtin_jump_table_info_offset, int reloc_info_offset);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static void Verify(const CodeDesc* desc);
 #else
     inline static void Verify(const CodeDesc* desc)

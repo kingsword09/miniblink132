@@ -133,7 +133,7 @@ void JSFunction::UpdateCode(Tagged<Code> value, WriteBarrierMode mode)
 #ifdef V8_ENABLE_LEAPTIERING
     JSDispatchHandle canonical_handle = raw_feedback_cell()->dispatch_handle();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool has_context_specialized_dispatch_entry = canonical_handle != kNullJSDispatchHandle && dispatch_handle() != canonical_handle;
     if (has_context_specialized_dispatch_entry) {
         auto jdt = GetProcessWideJSDispatchTable();

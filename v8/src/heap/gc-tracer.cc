@@ -1569,7 +1569,7 @@ void GCTracer::UpdateCurrentEventPriority(GCTracer::Priority priority)
     current_.priority = std::nullopt;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool GCTracer::IsInObservablePause() const
 {
     return start_of_observable_pause_.has_value();

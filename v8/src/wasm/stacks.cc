@@ -135,7 +135,7 @@ std::unique_ptr<StackMemory> StackPool::GetOrAllocate()
         freelist_.pop_back();
         size_ -= stack->allocated_size();
     }
-#if DEBUG
+#ifdef V8_DEBUG
     constexpr uint8_t kZapValue = 0xab;
     stack->FillWith(kZapValue);
 #endif

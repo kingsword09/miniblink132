@@ -3677,7 +3677,7 @@ void MacroAssembler::JumpIfJSAnyIsNotPrimitive(Register heap_object, Register sc
 {
     CHECK(cc == Condition::kUnsignedLessThan || cc == Condition::kUnsignedGreaterThanEqual);
     if (V8_STATIC_ROOTS_BOOL) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Label ok;
         LoadMap(scratch, heap_object);
         CmpInstanceTypeRange(scratch, scratch, FIRST_JS_RECEIVER_TYPE, LAST_JS_RECEIVER_TYPE);
@@ -4433,7 +4433,7 @@ void MacroAssembler::LeaveExitFrame()
     ExternalReference context_address = ExternalReference::Create(IsolateAddressId::kContextAddress, isolate());
     Operand context_operand = ExternalReferenceAsOperand(context_address);
     movq(rsi, context_operand);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Move(context_operand, Context::kInvalidContext);
 #endif
 

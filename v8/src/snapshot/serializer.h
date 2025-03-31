@@ -349,7 +349,7 @@ protected:
 
     void CountAllocation(Tagged<Map> map, int size, SnapshotSpace space);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void PushStack(DirectHandle<HeapObject> o)
     {
         stack_.Push(*o);
@@ -498,7 +498,7 @@ private:
     std::unique_ptr<size_t[]> instance_type_size_[kNumberOfSnapshotSpaces];
 #endif // VERBOSE_SERIALIZATION_STATISTICS
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     GlobalHandleVector<HeapObject> back_refs_;
     GlobalHandleVector<HeapObject> stack_;
 #endif // DEBUG
@@ -513,13 +513,13 @@ public:
         , sink_(sink)
         , bytes_processed_so_far_(0)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         serializer_->PushStack(obj);
 #endif // DEBUG
     }
     ~ObjectSerializer() override
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         serializer_->PopStack();
 #endif // DEBUG
     }

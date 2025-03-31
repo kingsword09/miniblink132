@@ -280,7 +280,7 @@ public:
         Insert(base, offset_sentinel, kLoadLikeType, kLoadLikeSize, mutability, value_idx);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Print()
     {
         std::cout << "WasmMemoryContentTable:\n";
@@ -778,7 +778,7 @@ void WasmLoadEliminationAnalyzer::ProcessArrayLength(OpIndex op_idx, const Array
     static constexpr int offset = wle::kArrayLengthFieldIndex;
     OpIndex existing = memory_.FindLoadLike(length.array(), offset);
     if (existing.valid()) {
-#if DEBUG
+#ifdef V8_DEBUG
         const Operation& replacement = graph_.Get(existing);
         DCHECK_EQ(replacement.outputs_rep().size(), 1);
         DCHECK_EQ(length.outputs_rep().size(), 1);
@@ -912,7 +912,7 @@ void WasmLoadEliminationAnalyzer::InvalidateIfAlias(OpIndex op_idx)
 // happens on non-aliasing objects.
 void WasmLoadEliminationAnalyzer::DcheckWordBinop(OpIndex op_idx, const WordBinopOp& binop)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     auto check = [&](V<Word> left, V<Word> right) {
         if (auto key = non_aliasing_objects_.TryGetKeyFor(left); key.has_value() && non_aliasing_objects_.Get(*key)) {
             int64_t cst;

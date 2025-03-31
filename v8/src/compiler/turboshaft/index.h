@@ -82,7 +82,7 @@ public:
     uint32_t offset() const
     {
         SLOW_DCHECK(CheckInvariants());
-#ifdef DEBUG
+#ifdef V8_DEBUG
         return offset_ & kUnmaskGenerationMask;
 #else
         return offset_;
@@ -142,7 +142,7 @@ public:
         return offset_ >= other.offset_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int generation_mod2() const
     {
         return (offset_ & kGenerationMask) >> kGenerationMaskShift;

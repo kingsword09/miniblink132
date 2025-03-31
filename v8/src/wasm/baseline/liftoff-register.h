@@ -552,7 +552,7 @@ public:
         return LiftoffRegList { bits };
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     void Print() const;
 #endif
 

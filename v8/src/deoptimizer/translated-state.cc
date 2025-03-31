@@ -2243,7 +2243,7 @@ void TranslatedState::InitializeJSObjectAt(
     // The object should have at least a map and some payload.
     CHECK_GE(children_count, 2);
 
-#if DEBUG
+#ifdef V8_DEBUG
     // No need to invalidate slots in object because no slot was recorded yet.
     // Verify this here.
     Address object_start = object_storage->address();
@@ -2343,7 +2343,7 @@ void TranslatedState::InitializeObjectWithTaggedFieldsAt(
         return;
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     // No need to invalidate slots in object because no slot was recorded yet.
     // Verify this here.
     Address object_start = object_storage->address();

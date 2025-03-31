@@ -175,7 +175,7 @@ protected:
         WriteIterator& operator++()
         {
             index_++;
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (IsAligned(index_, kEntriesPerSegment)) {
                 crossed_segment_ = true;
             }
@@ -185,7 +185,7 @@ protected:
         WriteIterator& operator--()
         {
             DCHECK_GT(index_, 0);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (IsAligned(index_, kEntriesPerSegment)) {
                 crossed_segment_ = true;
             }
@@ -198,7 +198,7 @@ protected:
         Entry* base_;
         uint32_t index_;
         std::conditional_t<kIsWriteProtected, CFIMetadataWriteScope, NopRwxMemoryWriteScope> write_scope_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         bool crossed_segment_ = false;
 #endif
     };

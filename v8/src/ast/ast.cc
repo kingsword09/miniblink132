@@ -36,7 +36,7 @@ namespace internal {
 // ----------------------------------------------------------------------------
 // Implementation of other node functionality.
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 void AstNode::Print(Isolate* isolate)
 {

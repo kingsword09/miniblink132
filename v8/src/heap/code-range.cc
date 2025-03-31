@@ -240,7 +240,7 @@ bool CodeRange::InitReservation(v8::PageAllocator* page_allocator, size_t reques
             return false;
         }
         if (immutable) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             immutable_ = true;
 #endif
 #ifdef V8_ENABLE_MEMORY_SEALING

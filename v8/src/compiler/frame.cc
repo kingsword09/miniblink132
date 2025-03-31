@@ -19,7 +19,7 @@ Frame::Frame(int fixed_frame_size_in_slots, Zone* zone)
 
 void Frame::AlignFrame(int alignment)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     spill_slots_finished_ = true;
     frame_aligned_ = true;
 #endif

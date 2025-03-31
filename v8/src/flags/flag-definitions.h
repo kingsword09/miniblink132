@@ -173,7 +173,7 @@
 #define DEFINE_ALIAS_SIZE_T(alias, nam) FLAG_ALIAS(SIZE_T, size_t, alias, nam)
 #define DEFINE_ALIAS_STRING(alias, nam) FLAG_ALIAS(STRING, const char*, alias, nam)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define DEFINE_DEBUG_BOOL DEFINE_BOOL
 #else
 #define DEFINE_DEBUG_BOOL DEFINE_BOOL_READONLY
@@ -1193,7 +1193,7 @@ DEFINE_NEG_IMPLICATION(experimental_wasm_shared, liftoff)
 DEFINE_IMPLICATION(experimental_wasm_fp16, turboshaft_wasm)
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 DEFINE_UINT64(turboshaft_opt_bisect_limit, std::numeric_limits<uint64_t>::max(),
     "stop applying optional optimizations after a specified number "
@@ -1919,7 +1919,7 @@ DEFINE_BOOL(prepare_always_turbofan, false, "prepare for turning on always opt")
 DEFINE_BOOL(deopt_to_baseline, false, "deoptimize to baseline code when available")
 
 DEFINE_BOOL(trace_serializer, false, "print code serializer trace")
-#ifdef DEBUG
+#ifdef V8_DEBUG
 DEFINE_BOOL(external_reference_stats, false, "print statistics on external references used during serialization")
 #endif // DEBUG
 
@@ -2375,7 +2375,7 @@ DEFINE_NEG_IMPLICATION(gdbjit, compact_code_space)
 // Debug only flags
 //
 #undef FLAG
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define FLAG FLAG_FULL
 #else
 #define FLAG FLAG_READONLY

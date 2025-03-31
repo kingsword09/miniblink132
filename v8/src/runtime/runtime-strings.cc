@@ -341,7 +341,7 @@ RUNTIME_FUNCTION(Runtime_StringToArray)
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (int i = 0; i < length; ++i) {
         DCHECK_EQ(Cast<String>(elements->get(i))->length(), 1);
     }

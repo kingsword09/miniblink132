@@ -725,7 +725,7 @@ public:
     // returned by following calls to GetActiveBytecodeArray.
     static void UninstallDebugBytecode(Tagged<SharedFunctionInfo> shared, Isolate* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Verifies that all SFI::unique_id values on the heap are unique, including
     // Isolate::new_unique_sfi_id_.
     static bool UniqueIdsAreUnique(Isolate* isolate);

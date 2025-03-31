@@ -24,7 +24,7 @@ public:
     // |case_value_base|.
     BytecodeJumpTable(size_t constant_pool_index, int size, int case_value_base, Zone* zone)
         :
-#ifdef DEBUG
+#ifdef V8_DEBUG
         bound_(size, zone)
         ,
 #endif
@@ -51,7 +51,7 @@ public:
     {
         return size_;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool is_bound(int case_value) const
     {
         DCHECK_GE(case_value, case_value_base_);
@@ -72,7 +72,7 @@ private:
 
     void mark_bound(int case_value)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_GE(case_value, case_value_base_);
         DCHECK_LT(case_value, case_value_base_ + size());
         bound_.Add(case_value - case_value_base_);
@@ -85,7 +85,7 @@ private:
         switch_bytecode_offset_ = offset;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This bit vector is only used for DCHECKS, so only store the field in debug
     // builds.
     BitVector bound_;

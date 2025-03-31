@@ -193,7 +193,7 @@ void ReadOnlyHeap::InitFromIsolate(Isolate* isolate)
 
         read_only_space_ = artifacts->shared_read_only_space();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         artifacts->VerifyHeapAndSpaceRelationships(isolate);
 #endif
     } else {

@@ -68,7 +68,7 @@ class AstValueFactory;
  */
 
 struct PreparseByteDataConstants {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static constexpr int kMagicValue = 0xC0DE0DE;
 
     static constexpr size_t kUint32Size = 5;
@@ -159,7 +159,7 @@ public:
         void WriteUint8(uint8_t data);
         void WriteQuarter(uint8_t data);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         void WriteUint32(uint32_t data);
         // For overwriting previously written data at position 0.
         void SaveCurrentSizeAtFirstUint32();
@@ -178,7 +178,7 @@ public:
         };
         uint8_t free_quarters_in_last_byte_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         bool is_finalized_ = false;
 #endif
     };
@@ -203,7 +203,7 @@ public:
         return bailed_out_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool ThisOrParentBailedOut() const
     {
         if (bailed_out_)
@@ -253,7 +253,7 @@ private:
     bool bailed_out_ : 1;
     bool has_data_ : 1;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool finalized_children_ = false;
 #endif
 };

@@ -74,7 +74,7 @@ private:
         return node_uniqueness == kMultipleInstances ? depth_if_multiple_instances : 0;
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     bool BlocksAndStatesInvariant();
 #endif
 
@@ -191,7 +191,7 @@ void ControlPathState<NodeState, node_uniqueness>::ResetToCommonAncestor(Control
     SLOW_DCHECK(BlocksAndStatesInvariant());
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 template <typename NodeState, NodeUniqueness node_uniqueness> bool ControlPathState<NodeState, node_uniqueness>::BlocksAndStatesInvariant()
 {
     PersistentMap<NodeWithPathDepth, NodeState> states_copy(states_);

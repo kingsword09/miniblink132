@@ -54,7 +54,7 @@ public:
 
     GrowingOpIndexSidetable<Type> Run(GrowingBlockSidetable<std::vector<std::pair<OpIndex, Type>>>* block_refinements = nullptr)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         block_refinements_ = block_refinements;
 #endif // DEBUG
         TURBOSHAFT_TRACE_TYPING("=== Running Type Inference Analysis ===\n");
@@ -63,7 +63,7 @@ public:
             ++unprocessed_index;
             const Block& block = graph_.Get(block_index);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (V8_UNLIKELY(v8_flags.turboshaft_trace_typing)) {
                 std::stringstream os;
                 os << block.kind() << " " << block.index().id();
@@ -408,7 +408,7 @@ public:
         DCHECK(key_opt.has_value());
         table_.Set(*key_opt, type);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (block_refinements_) {
             (*block_refinements_)[new_block->index()].emplace_back(op, type);
         }
@@ -522,7 +522,7 @@ private:
     ZoneVector<table_t::Snapshot> predecessors_;
     Zone* graph_zone_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // {block_refinements_} are only stored for tracing in Debug builds.
     GrowingBlockSidetable<std::vector<std::pair<OpIndex, Type>>>* block_refinements_ = nullptr;
 #endif

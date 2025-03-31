@@ -157,7 +157,7 @@ private:
     std::unique_ptr<ReadOnlyHeap> read_only_heap_;
     uint32_t initial_next_unique_sfi_id_ = 0;
     std::vector<ExternalPointerRegistryEntry> external_pointer_registry_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // The checksum of the blob the read-only heap was deserialized from, if
     // any.
     std::optional<uint32_t> read_only_blob_checksum_;
@@ -238,7 +238,7 @@ public:
     V8_EXPORT_PRIVATE void ShrinkPages();
 #ifdef VERIFY_HEAP
     void Verify(Isolate* isolate, SpaceVerificationVisitor* visitor) const final;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyCounters(Heap* heap) const;
 #endif // DEBUG
 #endif // VERIFY_HEAP

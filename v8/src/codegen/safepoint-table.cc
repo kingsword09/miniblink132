@@ -157,7 +157,7 @@ void SafepointTableBuilder::Emit(Assembler* assembler, int tagged_slots_size)
 {
     DCHECK_LT(max_stack_index_, tagged_slots_size);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int last_pc = -1;
     int last_trampoline = -1;
     for (const EntryBuilder& entry : entries_) {

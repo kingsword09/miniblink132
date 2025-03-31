@@ -58,7 +58,7 @@ void JSDispatchTable::InitializePreAllocatedEntry(Space* space, JSDispatchHandle
     at(index).MakeJSDispatchEntry(code.address(), code->instruction_start(), parameter_count, space->allocate_black());
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool JSDispatchTable::IsMarked(JSDispatchHandle handle)
 {
     return at(HandleToIndex(handle)).IsMarked();

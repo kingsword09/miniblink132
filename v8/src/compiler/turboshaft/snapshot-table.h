@@ -184,7 +184,7 @@ public:
     {
         DCHECK(current_snapshot_->IsSealed());
         MoveToNewSnapshot(predecessors, change_callback);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         snapshot_was_created_with_merge = false;
 #endif
     }
@@ -204,7 +204,7 @@ public:
     {
         StartNewSnapshot(predecessors, change_callback);
         MergePredecessors(predecessors, merge_fun, change_callback);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         snapshot_was_created_with_merge = true;
 #endif
     }
@@ -317,7 +317,7 @@ private:
     ZoneVector<Value> merge_values_ { zone_ };
     ZoneVector<SnapshotData*> path_ { zone_ };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool snapshot_was_created_with_merge = false;
 #endif
 

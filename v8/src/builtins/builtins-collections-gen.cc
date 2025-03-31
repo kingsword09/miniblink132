@@ -93,7 +93,7 @@ void BaseCollectionsAssembler::AddConstructorEntries(
         Label if_exception_during_fast_iteration(this, Label::kDeferred);
         TVARIABLE(IntPtrT, var_index, IntPtrConstant(0));
         TNode<JSArray> initial_entries_jsarray = UncheckedCast<JSArray>(initial_entries);
-#if DEBUG
+#ifdef V8_DEBUG
         CSA_DCHECK(this, IsFastJSArrayWithNoCustomIteration(context, initial_entries_jsarray));
         TNode<Map> original_initial_entries_map = LoadMap(initial_entries_jsarray);
 #endif
@@ -107,7 +107,7 @@ void BaseCollectionsAssembler::AddConstructorEntries(
 
         if (variant == kMap || variant == kWeakMap) {
             BIND(&if_may_have_side_effects);
-#if DEBUG
+#ifdef V8_DEBUG
             {
                 // Check that add/set function has not been modified.
                 Label if_not_modified(this), if_modified(this);
@@ -170,7 +170,7 @@ void BaseCollectionsAssembler::AddConstructorEntriesFromFastJSArray(Variant vari
     TNode<IntPtrT> length = PositiveSmiUntag(LoadFastJSArrayLength(fast_jsarray));
     CSA_DCHECK(this, HasInitialCollectionPrototype(variant, native_context, collection));
 
-#if DEBUG
+#ifdef V8_DEBUG
     TNode<Map> original_collection_map = LoadMap(CAST(collection));
     TNode<Map> original_fast_js_array_map = LoadMap(fast_jsarray);
 #endif
@@ -210,7 +210,7 @@ void BaseCollectionsAssembler::AddConstructorEntriesFromFastJSArray(Variant vari
         }
     }
     BIND(&exit);
-#if DEBUG
+#ifdef V8_DEBUG
     CSA_DCHECK(this, TaggedEqual(original_collection_map, LoadMap(CAST(collection))));
     CSA_DCHECK(this, TaggedEqual(original_fast_js_array_map, LoadMap(fast_jsarray)));
 #endif

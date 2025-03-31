@@ -31,7 +31,7 @@ public:
         DCHECK(!now.IsNull());
         DCHECK(!IsStarted());
         set_start_ticks(now);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         started_ = true;
 #endif
         DCHECK(IsStarted());
@@ -43,7 +43,7 @@ public:
     {
         DCHECK(IsStarted());
         set_start_ticks(TimeTicks());
-#ifdef DEBUG
+#ifdef V8_DEBUG
         started_ = false;
 #endif
         DCHECK(!IsStarted());
@@ -57,7 +57,7 @@ public:
         return !start_ticks_.IsNull();
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     bool IsPaused() const
     {
         return paused_;
@@ -94,7 +94,7 @@ public:
     {
         TimeDelta elapsed = Elapsed(now);
         DCHECK(IsStarted());
-#ifdef DEBUG
+#ifdef V8_DEBUG
         paused_ = true;
 #endif
         set_paused_elapsed(elapsed);
@@ -111,7 +111,7 @@ public:
         DCHECK(started_);
         DCHECK(paused_);
         TimeDelta elapsed = paused_elapsed();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         paused_ = false;
 #endif
         set_start_ticks(now - elapsed);
@@ -181,7 +181,7 @@ private:
         TimeTicks start_ticks_;
         TimeDelta paused_elapsed_;
     };
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool started_ = false;
     bool paused_ = false;
 #endif

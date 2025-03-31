@@ -12,7 +12,7 @@ namespace internal {
 PropertyCallbackArguments::PropertyCallbackArguments(
     Isolate* isolate, Tagged<Object> data, Tagged<Object> self, Tagged<JSObject> holder, Maybe<ShouldThrow> should_throw)
     : Super(isolate)
-#ifdef DEBUG
+#ifdef V8_DEBUG
     , javascript_execution_counter_(isolate->javascript_execution_counter())
 #endif // DEBUG
 {

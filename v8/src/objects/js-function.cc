@@ -139,7 +139,7 @@ std::optional<CodeKind> JSFunction::GetActiveTier(IsolateForSandbox isolate) con
     if (!HighestTierOf(GetAvailableCodeKinds(isolate), &highest_tier))
         return {};
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CHECK(highest_tier == CodeKind::TURBOFAN_JS || highest_tier == CodeKind::BASELINE || highest_tier == CodeKind::MAGLEV
         || highest_tier == CodeKind::INTERPRETED_FUNCTION);
 
@@ -764,7 +764,7 @@ void JSFunction::EnsureHasInitialMap(Handle<JSFunction> function)
 
 namespace {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool CanSubclassHaveInobjectProperties(InstanceType instance_type)
 {
     switch (instance_type) {

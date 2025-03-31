@@ -265,7 +265,7 @@ private:
 
     void UpdateMinMaxStackIndex(int index)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (index > max_stack_index_)
             max_stack_index_ = index;
 #endif // DEBUG
@@ -282,7 +282,7 @@ private:
     // index when encoding the actual table since we shift all unused lower
     // indices out of the encoding. Tracking the indices during safepoint
     // construction means we don't have to iterate again later.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int max_stack_index_ = 0;
 #endif // DEBUG
     int min_stack_index_ = std::numeric_limits<int>::max();

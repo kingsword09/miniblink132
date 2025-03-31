@@ -40,7 +40,7 @@ void CodeStatistics::RecordCodeAndMetadataStatistics(Tagged<HeapObject> object, 
             isolate->set_bytecode_and_metadata_size(size);
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Record code kind and code comment statistics.
         CodeKind code_kind = abstract_code->kind(cage_base);
         isolate->code_kind_statistics()[static_cast<int>(code_kind)] += abstract_code->Size(cage_base);
@@ -54,7 +54,7 @@ void CodeStatistics::ResetCodeAndMetadataStatistics(Isolate* isolate)
     isolate->set_code_and_metadata_size(0);
     isolate->set_bytecode_and_metadata_size(0);
     isolate->set_external_script_source_size(0);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ResetCodeStatistics(isolate);
 #endif
 }
@@ -83,7 +83,7 @@ void CodeStatistics::CollectCodeStatistics(OldLargeObjectSpace* space, Isolate* 
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void CodeStatistics::ReportCodeStatistics(Isolate* isolate)
 {
     // Report code kind statistics

@@ -21,7 +21,7 @@ const word_t kWordTAllBitsSet = std::numeric_limits<word_t>::max();
 const word_t kOneInEveryByte = kWordTAllBitsSet / 0xFF;
 const word_t kAsciiMask = kOneInEveryByte << 7;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool CheckFastAsciiConvert(char* dst, const char* src, uint32_t length, bool changed, bool is_to_lower)
 {
     bool expected_changed = false;
@@ -62,7 +62,7 @@ static inline word_t AsciiRangeMask(word_t w, char m, char n)
 
 template <bool is_lower> uint32_t FastAsciiConvert(char* dst, const char* src, uint32_t length, bool* changed_out)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     char* saved_dst = dst;
 #endif
     const char* saved_src = src;

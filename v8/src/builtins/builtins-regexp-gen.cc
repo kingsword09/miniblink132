@@ -631,7 +631,7 @@ TNode<HeapObject> RegExpBuiltinsAssembler::RegExpExecInternal(TNode<Context> con
     BIND(&if_exception);
     {
 // A stack overflow was detected in RegExp code.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         TNode<ExternalReference> exception_address = ExternalConstant(ExternalReference::Create(IsolateAddressId::kExceptionAddress, isolate()));
         TNode<Object> exception = LoadFullTagged(exception_address);
         CSA_DCHECK(this, IsTheHole(exception));

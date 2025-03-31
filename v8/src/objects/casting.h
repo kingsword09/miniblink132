@@ -101,7 +101,7 @@ template <typename To, typename From> inline bool TryCast(MaybeDirectHandle<From
 }
 
 // Only initialise the SourceLocation in debug mode.
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define INIT_SOURCE_LOCATION_IN_DEBUG v8::SourceLocation::Current()
 #else
 #define INIT_SOURCE_LOCATION_IN_DEBUG v8::SourceLocation()

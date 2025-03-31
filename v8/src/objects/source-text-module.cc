@@ -420,7 +420,7 @@ bool SourceTextModule::MaybeTransitionComponent(
 {
     DCHECK(new_status == kLinked || new_status == kEvaluated);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_module_status) {
         StdoutStream os;
         os << "Transitioning strongly connected module graph component to " << Module::StatusString(new_status) << " {\n";
@@ -486,7 +486,7 @@ bool SourceTextModule::MaybeTransitionComponent(
             }
         } while (*ancestor != *module);
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_module_status) {
         StdoutStream os;
         os << "}\n";
@@ -849,7 +849,7 @@ Maybe<bool> SourceTextModule::AsyncModuleExecutionFulfilled(Isolate* isolate, Ha
     // 11. Assert: All elements of sortedExecList have their [[AsyncEvaluation]]
     //    field set to true, [[PendingAsyncDependencies]] field set to 0 and
     //    [[EvaluationError]] field set to undefined.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (DirectHandle<SourceTextModule> m : exec_list) {
         DCHECK(m->HasAsyncEvaluationOrdinal());
         DCHECK(!m->HasPendingAsyncDependencies());

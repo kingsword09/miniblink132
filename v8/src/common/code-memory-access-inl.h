@@ -39,7 +39,7 @@ RwxMemoryWriteScope::~RwxMemoryWriteScope()
 
 WritableJitAllocation::~WritableJitAllocation()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (enforce_write_api_) {
         // We disabled RWX write access for debugging. But we'll need it in the
         // destructor again to release the jit page reference.
@@ -60,7 +60,7 @@ WritableJitAllocation::WritableJitAllocation(
     , allocation_(source == JitAllocationSource::kRegister ? page_ref_->RegisterAllocation(addr, size, type) : page_ref_->LookupAllocation(addr, size, type))
     , enforce_write_api_(enforce_write_api)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (enforce_write_api_) {
         // Reset the write scope for debugging. We'll create fine-grained scopes in
         // all Write functions of this class instead.
@@ -83,7 +83,7 @@ WritableJitAllocation WritableJitAllocation::ForNonExecutableMemory(Address addr
 
 std::optional<RwxMemoryWriteScope> WritableJitAllocation::WriteScopeForApiEnforcement() const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (enforce_write_api_) {
         return std::optional<RwxMemoryWriteScope>("WriteScopeForApiEnforcement");
     }

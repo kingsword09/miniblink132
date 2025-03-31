@@ -117,7 +117,7 @@ private:
     WEAK_OBJECT_WORKLISTS(DECLARE_UPDATE_METHODS)
 #undef DECLARE_UPDATE_METHODS
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     template <typename Type> static bool ContainsYoungObjects(WeakObjectWorklist<Tagged<Type>>& worklist);
 #endif
 };

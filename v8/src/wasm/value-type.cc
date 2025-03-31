@@ -36,7 +36,7 @@ bool EquivalentNumericSig(const CanonicalSig* a, const FunctionSig* b)
     return true;
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 V8_EXPORT_PRIVATE extern void PrintFunctionSig(const wasm::FunctionSig* sig)
 {
     std::ostringstream os;

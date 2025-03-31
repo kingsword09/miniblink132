@@ -28,7 +28,7 @@ BasicBlock::BasicBlock(Zone* zone, Id id)
     , successors_(zone)
     , predecessors_(zone)
     ,
-#if DEBUG
+#ifdef V8_DEBUG
     debug_info_(AssemblerDebugInfo(nullptr, nullptr, -1))
     ,
 #endif
@@ -141,7 +141,7 @@ void BasicBlock::Print()
 std::ostream& operator<<(std::ostream& os, const BasicBlock& block)
 {
     os << "id:" << block.id();
-#if DEBUG
+#ifdef V8_DEBUG
     AssemblerDebugInfo info = block.debug_info();
     if (info.name)
         os << info;
@@ -267,7 +267,7 @@ void Schedule::AddGoto(BasicBlock* block, BasicBlock* succ)
     AddSuccessor(block, succ);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 namespace {
 
 bool IsPotentiallyThrowingCall(IrOpcode::Value opcode)
@@ -439,7 +439,7 @@ void Schedule::EliminateRedundantPhiNodes()
 
 void Schedule::EnsureSplitEdgeForm(BasicBlock* block)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(block->PredecessorCount() > 1 && block != end_);
     for (auto current_pred = block->predecessors().begin(); current_pred != block->predecessors().end(); ++current_pred) {
         BasicBlock* pred = *current_pred;

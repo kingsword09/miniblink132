@@ -627,7 +627,7 @@ public:
     WasmJSApiScope(const WasmJSApiScope&) = delete;
     WasmJSApiScope& operator=(const WasmJSApiScope&) = delete;
 
-#if DEBUG
+#ifdef V8_DEBUG
     ~WasmJSApiScope()
     {
         // If there was an exception we should not have a return value set.

@@ -1103,7 +1103,7 @@ FunctionLiteral* Parser::ParseClassForMemberInitialization(
         // Class initializers don't care about position of the class token.
         int class_token_pos = kNoSourcePosition;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         scope()->MarkReparsingForClassInitializer();
 #endif
 
@@ -2531,7 +2531,7 @@ FunctionLiteral* Parser::ParseFunctionLiteral(const AstRawString* function_name,
     if (is_wrapped) {
         scope->set_is_wrapped_function();
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     scope->SetScopeName(function_name);
 #endif
 
@@ -2809,7 +2809,7 @@ void Parser::ParseFunction(ScopedPtrList<Statement>* body, const AstRawString* f
 
 void Parser::DeclareClassVariable(ClassScope* scope, const AstRawString* name, ClassInfo* class_info, int class_token_pos)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     scope->SetScopeName(name);
 #endif
 
@@ -2926,7 +2926,7 @@ FunctionLiteral* Parser::CreateInitializerFunction(
     statements.Add(initializer_stmt);
     FunctionLiteral* result = factory()->NewFunctionLiteral(class_name, scope, statements, 0, 0, 0, FunctionLiteral::kNoDuplicateParameters,
         FunctionSyntaxKind::kAccessorOrMethod, FunctionLiteral::kShouldEagerCompile, scope->start_position(), false, function_literal_id);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     scope->SetScopeName(class_name);
 #endif
     RecordFunctionLiteralSourceRange(result);

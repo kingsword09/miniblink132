@@ -115,7 +115,7 @@ protected:
     V8_INLINE explicit HandleBase(Address object, LocalIsolate* isolate);
     V8_INLINE explicit HandleBase(Address object, LocalHeap* local_heap);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_EXPORT_PRIVATE bool IsDereferenceAllowed() const;
 #else
     V8_INLINE bool IsDereferenceAllowed() const
@@ -357,7 +357,7 @@ using CanonicalHandlesMap = IdentityMap<Address*, ZoneAllocationPolicy>;
 // if a new HandleScope is entered.
 class V8_NODISCARD SealHandleScope final {
 public:
-#ifndef DEBUG
+#ifndef V8_DEBUG
     explicit SealHandleScope(Isolate* isolate)
     {
     }
@@ -401,7 +401,7 @@ static_assert(V8_ENABLE_CONSERVATIVE_STACK_SCANNING_BOOL);
 // ----------------------------------------------------------------------------
 // Base class for DirectHandle instantiations. Don't use directly.
 class V8_TRIVIAL_ABI DirectHandleBase :
-#ifdef DEBUG
+#ifdef V8_DEBUG
     public api_internal::StackAllocated<true>
 #else
     public api_internal::StackAllocated<false>
@@ -426,7 +426,7 @@ public:
         return obj_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Counts the number of allocated handles for the current thread that are
     // below the stack marker. The number is only accurate if
     // V8_HAS_ATTRIBUTE_TRIVIAL_ABI, otherwise it's zero.
@@ -477,7 +477,7 @@ protected:
         Register();
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_EXPORT_PRIVATE bool IsDereferenceAllowed() const;
 #else
     V8_INLINE bool IsDereferenceAllowed() const
@@ -513,7 +513,7 @@ private:
 #endif
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     inline static thread_local int number_of_handles_ = 0;
 #endif
 };

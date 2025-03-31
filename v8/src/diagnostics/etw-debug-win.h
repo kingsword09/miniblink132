@@ -20,7 +20,7 @@ public:
 std::ostream& operator<<(std::ostream& os, const EtwTraceDebug&);
 
 #undef ETWTRACEDBG
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define ETWTRACEDBG v8_flags.etw_trace_debug&& std::cout << EtwTraceDebug::info
 #else
 #define ETWTRACEDBG 0 && std::cout

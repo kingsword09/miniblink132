@@ -414,7 +414,7 @@ void GlobalSafepoint::EnterGlobalSafepointScope(Isolate* initiator)
         client.safepoint()->InitiateGlobalSafepointScope(initiator, &client);
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     for (const PerClientSafepointData& client : clients) {
         DCHECK_EQ(client.isolate()->shared_space_isolate(), shared_space_isolate_);
     }

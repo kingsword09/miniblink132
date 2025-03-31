@@ -157,7 +157,7 @@ public:
     };
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static bool IsOnCurrentStack(const void* ptr);
 #endif
 

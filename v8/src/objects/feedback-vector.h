@@ -425,7 +425,7 @@ private:
     // Private for initializing stores in FeedbackVector::New().
     inline void Set(FeedbackSlot slot, Tagged<MaybeObject> value, WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Returns true if value is a non-HashTable FixedArray. We want to
     // make sure not to store such objects in the vector.
     inline static bool IsOfLegacyType(Tagged<MaybeObject> value);

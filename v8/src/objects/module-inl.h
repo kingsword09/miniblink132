@@ -85,7 +85,7 @@ Tagged<FixedArray> SourceTextModuleInfo::namespace_imports() const
     return Cast<FixedArray>(get(kNamespaceImportsIndex));
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool SourceTextModuleInfo::Equals(Tagged<SourceTextModuleInfo> other) const
 {
     return regular_exports() == other->regular_exports() && regular_imports() == other->regular_imports() && special_exports() == other->special_exports()

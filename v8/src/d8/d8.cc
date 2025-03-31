@@ -4331,7 +4331,7 @@ private:
             v8::TryCatch try_catch(isolate_);
             Local<Value> args[] = { message };
             USE(callback.As<Function>()->Call(context, Undefined(isolate_), 1, args));
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (try_catch.HasCaught()) {
                 Local<Object> exception = try_catch.Exception().As<Object>();
                 Local<String> key = v8::String::NewFromUtf8Literal(isolate_, "message", NewStringType::kInternalized);
@@ -5841,7 +5841,7 @@ public:
     {
         if (i::v8_flags.stress_runs != 0)
             return i::v8_flags.stress_runs;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // In debug mode the code runs much slower so stressing will only make two
         // runs.
         return 2;

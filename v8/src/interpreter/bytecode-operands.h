@@ -144,7 +144,7 @@ public:
 
     static constexpr int OperandScaleAsIndex(OperandScale operand_scale)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         int result = static_cast<int>(operand_scale) >> 1;
         switch (operand_scale) {
         case OperandScale::kSingle:

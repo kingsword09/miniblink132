@@ -185,7 +185,7 @@ private:
     // index. Will skip entire chunks and is therefore faster than iterating.
     SeekResult SeekIndex(size_t index) const;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check the invariants.
     void Verify() const
     {
@@ -281,7 +281,7 @@ public:
     {
         static_assert(!backwards, "Advance only works on forward iterators");
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         ZoneChunkListIterator clone(*this);
         for (uint32_t i = 0; i < amount; ++i) {
             ++clone;
@@ -297,7 +297,7 @@ public:
             DCHECK(position_ == 0 || current_);
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_EQ(clone, *this);
 #endif
     }
@@ -473,7 +473,7 @@ template <typename T> void ZoneChunkList<T>::Rewind(const size_t limit)
 
     size_ = limit;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Verify();
 #endif
 }
@@ -541,7 +541,7 @@ template <typename T> ZoneChunkList<T> ZoneChunkList<T>::SplitAt(iterator split_
     result.size_ = size() - new_size;
     size_ = new_size;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Verify();
     result.Verify();
 #endif
@@ -562,7 +562,7 @@ template <typename T> void ZoneChunkList<T>::Append(ZoneChunkList<T>& other)
     last_nonempty_ = other.last_nonempty_;
 
     size_ += other.size_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Verify();
 #endif
 

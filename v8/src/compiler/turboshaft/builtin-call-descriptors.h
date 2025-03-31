@@ -25,14 +25,14 @@ private:
             CallInterfaceDescriptor interface_descriptor = Builtins::CallInterfaceDescriptorFor(Derived::kFunction);
             auto descriptor = Linkage::GetStubCallDescriptor(zone, interface_descriptor, interface_descriptor.GetStackParameterCount(),
                 Derived::kNeedsFrameState ? CallDescriptor::kNeedsFrameState : CallDescriptor::kNoFlags, Derived::kProperties, call_mode);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             Derived::Verify(descriptor);
 #endif // DEBUG
             bool can_throw = !(Derived::kProperties & Operator::kNoThrow);
             return TSCallDescriptor::Create(descriptor, can_throw ? CanThrow::kYes : CanThrow::kNo, lazy_deopt_on_throw, zone);
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         static void Verify(const CallDescriptor* desc)
         {
             using results_t = typename Derived::results_t;

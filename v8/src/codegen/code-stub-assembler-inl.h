@@ -119,7 +119,7 @@ TNode<Object> CodeStubAssembler::FastCloneJSObject(
     TNode<JSReceiver> target = materialize_target(target_map, var_properties.value(), var_elements.value());
 
     // Lastly, clone any in-object properties.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     {
         TNode<IntPtrT> source_used_instance_size = MapUsedInstanceSizeInWords(source_map);
         TNode<IntPtrT> target_used_instance_size = MapUsedInstanceSizeInWords(target_map);

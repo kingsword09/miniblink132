@@ -25,7 +25,7 @@ namespace {
 
 void DcheckIntegerPartRange(Digits X, digit_t min, digit_t max)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     digit_t integer_part = X.msd();
     DCHECK(integer_part >= min);
     DCHECK(integer_part <= max);
@@ -350,7 +350,7 @@ void ProcessorImpl::DivideBarrett(RWDigits Q, RWDigits R, Digits A, Digits B)
                 target[j] = Qi[j];
             for (int j = to_copy; j < target.len(); j++)
                 target[j] = 0;
-#if DEBUG
+#ifdef V8_DEBUG
             for (int j = to_copy; j < Qi.len(); j++) {
                 DCHECK(Qi[j] == 0);
             }

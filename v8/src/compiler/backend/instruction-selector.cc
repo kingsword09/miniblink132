@@ -167,7 +167,7 @@ template <typename Adapter> std::optional<BailoutReason> InstructionSelectorT<Ad
         }
         EndBlock(this->rpo_number(block));
     }
-#if DEBUG
+#ifdef V8_DEBUG
     sequence()->ValidateSSA();
 #endif
     return std::nullopt;
@@ -414,7 +414,7 @@ template <> turboshaft::OpIndex InstructionSelectorT<TurboshaftAdapter>::FindPro
     // If there is no Projection with index {projection_index} following the
     // operation, then there shouldn't be any such Projection in the graph. We
     // verify this in Debug mode.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (OpIndex use : turboshaft_uses(node)) {
         if (const ProjectionOp* projection = this->Get(use).TryCast<ProjectionOp>()) {
             DCHECK_EQ(projection->input(), node);
@@ -2095,7 +2095,7 @@ template <> void InstructionSelectorT<TurboshaftAdapter>::VisitBitcastSmiToWord(
     // move is then truncating or extending). As a temporary work-around until the
     // register allocator is fixed, we use Emit(kArchNop) in DEBUG mode to silence
     // the register allocator verifier.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     OperandGenerator g(this);
     Emit(kArchNop, g.DefineSameAsFirst(node), g.Use(this->Get(node).Cast<turboshaft::TaggedBitcastOp>().input()));
 #else
@@ -2897,7 +2897,7 @@ template <typename Adapter> void InstructionSelectorT<Adapter>::VisitRetain(node
 template <> void InstructionSelectorT<TurboshaftAdapter>::VisitControl(block_t block)
 {
     using namespace turboshaft; // NOLINT(build/namespaces)
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // SSA deconstruction requires targets of branches not to have phis.
     // Edge split form guarantees this property, but is more strict.
     if (auto successors = SuccessorBlocks(block->LastOperation(*turboshaft_graph())); successors.size() > 1) {
@@ -2984,7 +2984,7 @@ template <> void InstructionSelectorT<TurboshaftAdapter>::VisitControl(block_t b
 
 template <> void InstructionSelectorT<TurbofanAdapter>::VisitControl(BasicBlock* block)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // SSA deconstruction requires targets of branches not to have phis.
     // Edge split form guarantees this property, but is more strict.
     if (block->SuccessorCount() > 1) {

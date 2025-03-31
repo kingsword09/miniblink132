@@ -726,7 +726,7 @@ void Bignum::BigitsShiftLeft(int shift_amount)
 
 void Bignum::SubtractTimes(const Bignum& other, int factor)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Bignum a, b;
     a.AssignBignum(*this);
     b.AssignBignum(other);

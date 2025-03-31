@@ -36,7 +36,7 @@ public:
 #if !V8_TARGET_ARCH_ARM64
 // In debug builds, the old Label has to be cleared in order to avoid a DCHECK
 // failure in it's destructor.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Label(Label&& other) V8_NOEXCEPT
     {
         *this = std::move(other);
@@ -55,7 +55,7 @@ public:
 #endif
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_INLINE ~Label()
     {
         DCHECK(!is_linked());

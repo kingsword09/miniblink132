@@ -12,7 +12,7 @@ namespace interpreter {
 
 void BytecodeNode::Print(std::ostream& os) const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::ios saved_state(nullptr);
     saved_state.copyfmt(os);
     os << Bytecodes::ToString(bytecode_);

@@ -220,7 +220,7 @@ const size_t kMinComplexMemCopy = 8;
 template <size_t kBlockCopyLimit, typename T> inline void CopyImpl(T* dst_ptr, const T* src_ptr, size_t count)
 {
     constexpr int kTWordSize = sizeof(T);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Address dst = reinterpret_cast<Address>(dst_ptr);
     Address src = reinterpret_cast<Address>(src_ptr);
     DCHECK(IsAligned(dst, kTWordSize));
@@ -315,7 +315,7 @@ inline void MemsetPointer(Address* dest, Address value, size_t counter)
 
 template <typename T, typename U> inline void MemsetPointer(T** dest, U* value, size_t counter)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     T* a = nullptr;
     U* b = nullptr;
     a = b; // Fake assignment to check assignability.
@@ -342,7 +342,7 @@ template <typename SrcType, typename DstType> void CopyChars(DstType* dst, const
     using SrcTypeUnsigned = typename std::make_unsigned<SrcType>::type;
     using DstTypeUnsigned = typename std::make_unsigned<DstType>::type;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check for no overlap, otherwise {std::copy_n} cannot be used.
     Address src_start = reinterpret_cast<Address>(src);
     Address src_end = src_start + count * sizeof(SrcType);

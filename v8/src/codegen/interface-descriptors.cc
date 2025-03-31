@@ -10,7 +10,7 @@
 namespace v8 {
 namespace internal {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void CheckRegisterConfiguration(int count, const Register* registers, const DoubleRegister* double_registers)
 {
     // Make sure that the registers are all valid, and don't alias each other.
@@ -42,7 +42,7 @@ void CallInterfaceDescriptorData::InitializeRegisters(Flags flags, CodeEntrypoin
 {
     DCHECK(!IsInitializedTypes());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CheckRegisterConfiguration(register_parameter_count, registers, double_registers);
     CheckRegisterConfiguration(return_count, return_registers, return_double_registers);
 #endif
@@ -80,7 +80,7 @@ void CallInterfaceDescriptorData::InitializeTypes(const MachineType* machine_typ
         DCHECK(AllStackParametersAreTagged());
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool CallInterfaceDescriptorData::AllStackParametersAreTagged() const
 {
     DCHECK(IsInitialized());
@@ -152,7 +152,7 @@ bool CallInterfaceDescriptor::IsValidFloatParameterRegister(Register reg)
 #endif
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 template <typename DerivedDescriptor> void StaticCallInterfaceDescriptor<DerivedDescriptor>::Verify(CallInterfaceDescriptorData* data)
 {
 }

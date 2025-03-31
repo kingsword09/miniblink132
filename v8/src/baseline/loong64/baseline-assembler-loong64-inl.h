@@ -46,7 +46,7 @@ private:
 
 namespace detail {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 inline bool Clobbers(Register target, MemOperand op)
 {
     return op.base() == target || op.index() == target;

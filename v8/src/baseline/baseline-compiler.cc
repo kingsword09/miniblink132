@@ -76,7 +76,7 @@ template <typename IsolateT> Handle<TrustedByteArray> BytecodeOffsetTableBuilder
 
 namespace detail {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool Clobbers(Register target, Register reg)
 {
     return target == reg;
@@ -385,7 +385,7 @@ void BaselineCompiler::LoadRegister(Register output, int operand_index)
 
 void BaselineCompiler::StoreRegister(int operand_index, Register value)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     effect_state_.CheckEffect();
 #endif
     __ Move(RegisterOperand(operand_index), value);
@@ -393,7 +393,7 @@ void BaselineCompiler::StoreRegister(int operand_index, Register value)
 
 void BaselineCompiler::StoreRegisterPair(int operand_index, Register val0, Register val1)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     effect_state_.CheckEffect();
 #endif
     interpreter::Register reg0, reg1;
@@ -512,7 +512,7 @@ void BaselineCompiler::PreVisitSingleBytecode()
 
 void BaselineCompiler::VisitSingleBytecode()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     effect_state_.clear();
 #endif
     int offset = iterator().current_offset();
@@ -539,7 +539,7 @@ void BaselineCompiler::VisitSingleBytecode()
     {
         interpreter::Bytecode bytecode = iterator().current_bytecode();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         std::optional<EnsureAccumulatorPreservedScope> accumulator_preserved_scope;
         // We should make sure to preserve the accumulator whenever the bytecode
         // isn't registered as writing to it. We can't do this for jumps or switches
@@ -647,7 +647,7 @@ Label* BaselineCompiler::BuildForwardJumpLabel()
     return EnsureLabel(target_offset);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // Allowlist to mark builtin calls during which it is impossible that the
 // sparkplug frame would have to be deoptimized. Either because they don't
 // execute any user code, or because they would anyway replace the current
@@ -672,7 +672,7 @@ constexpr static bool BuiltinMayDeopt(Builtin id)
 
 template <Builtin kBuiltin, typename... Args> void BaselineCompiler::CallBuiltin(Args... args)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     effect_state_.CheckEffect();
     if (BuiltinMayDeopt(kBuiltin)) {
         effect_state_.MayDeopt();
@@ -685,7 +685,7 @@ template <Builtin kBuiltin, typename... Args> void BaselineCompiler::CallBuiltin
 
 template <Builtin kBuiltin, typename... Args> void BaselineCompiler::TailCallBuiltin(Args... args)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     effect_state_.CheckEffect();
 #endif
     detail::MoveArgumentsForBuiltin<kBuiltin>(&basm_, args...);
@@ -694,7 +694,7 @@ template <Builtin kBuiltin, typename... Args> void BaselineCompiler::TailCallBui
 
 template <typename... Args> void BaselineCompiler::CallRuntime(Runtime::FunctionId function, Args... args)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     effect_state_.CheckEffect();
     effect_state_.MayDeopt();
 #endif
@@ -2045,7 +2045,7 @@ void BaselineCompiler::VisitJumpLoop()
         // In case we deopt during the above interrupt check then this part of the
         // jump loop is skipped. This is not a problem as nothing observable happens
         // here.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         effect_state_.safe_to_skip = true;
 #endif
 
@@ -2076,7 +2076,7 @@ void BaselineCompiler::VisitJumpLoop()
         __ AddToInterruptBudgetAndJumpIfNotExceeded(weight, nullptr);
         __ Jump(&osr_not_armed, Label::kNear);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         effect_state_.safe_to_skip = false;
 #endif
     }
@@ -2477,13 +2477,13 @@ DEBUG_BREAK_BYTECODE_LIST(DEBUG_BREAK)
 
 SaveAccumulatorScope::SaveAccumulatorScope(BaselineCompiler* compiler, BaselineAssembler* assembler)
     :
-#ifdef DEBUG
+#ifdef V8_DEBUG
     compiler_(compiler)
     ,
 #endif
     assembler_(assembler)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(!compiler_->effect_state_.accumulator_on_stack);
     compiler_->effect_state_.accumulator_on_stack = true;
 #endif // DEBUG
@@ -2493,7 +2493,7 @@ SaveAccumulatorScope::SaveAccumulatorScope(BaselineCompiler* compiler, BaselineA
 
 SaveAccumulatorScope::~SaveAccumulatorScope()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(compiler_->effect_state_.accumulator_on_stack);
     compiler_->effect_state_.accumulator_on_stack = false;
 #endif // DEBUG

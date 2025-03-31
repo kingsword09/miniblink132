@@ -105,7 +105,7 @@ public:
     int start_position();
     int end_position();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Debug print of the content of the current scope.
     void DebugPrint();
 #endif

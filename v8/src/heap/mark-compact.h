@@ -123,7 +123,7 @@ public:
 
     void RecordStrongDescriptorArraysForWeakening(GlobalHandleVector<DescriptorArray> strong_descriptor_arrays);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Checks whether performing mark-compact collection.
     bool in_use()
     {
@@ -382,7 +382,7 @@ private:
     base::Mutex mutex_;
     base::Semaphore page_parallel_job_semaphore_ { 0 };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     enum CollectorState { IDLE, PREPARE_GC, MARK_LIVE_OBJECTS, SWEEP_SPACES, ENCODE_FORWARDING_ADDRESSES, UPDATE_POINTERS, RELOCATE_OBJECTS };
 
     // The current stage of the collector.

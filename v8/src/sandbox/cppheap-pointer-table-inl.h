@@ -153,7 +153,7 @@ void CppHeapPointerTable::Mark(Space* space, CppHeapPointerHandle handle, Addres
     // the null handle to a valid handle. However, in that case the
     // newly-allocated entry will already have been marked as alive during
     // allocation, and so we don't need to do anything here.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CppHeapPointerHandle current_handle = base::AsAtomic32::Acquire_Load(reinterpret_cast<CppHeapPointerHandle*>(handle_location));
     DCHECK(handle == kNullCppHeapPointerHandle || handle == current_handle);
 #endif

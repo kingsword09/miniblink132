@@ -19,7 +19,7 @@
 
 // Simulator specific helpers.
 #if USE_SIMULATOR
-#if DEBUG
+#ifdef V8_DEBUG
 #define ASM_LOCATION(message) __ Debug("LOCATION: " message, __LINE__, NO_PARAM)
 #define ASM_LOCATION_IN_ASSEMBLER(message) Debug("LOCATION: " message, __LINE__, NO_PARAM)
 #else
@@ -205,7 +205,7 @@ class V8_EXPORT_PRIVATE MacroAssembler : public MacroAssemblerBase {
 public:
     using MacroAssemblerBase::MacroAssemblerBase;
 
-#if DEBUG
+#ifdef V8_DEBUG
     void set_allow_macro_instructions(bool value)
     {
         allow_macro_instructions_ = value;
@@ -2215,7 +2215,7 @@ protected:
     void CallPrintf(int arg_count = 0, const CPURegister* args = nullptr);
 
 private:
-#if DEBUG
+#ifdef V8_DEBUG
     // Tell whether any of the macro instruction can be used. When false the
     // MacroAssembler will assert if a method which can emit a variable number
     // of instructions is called.
@@ -2289,13 +2289,13 @@ public:
     explicit InstructionAccurateScope(MacroAssembler* masm, size_t count = 0)
         : masm_(masm)
         , block_pool_(masm, count * kInstrSize)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , size_(count * kInstrSize)
 #endif
     {
         masm_->CheckVeneerPool(false, true, count * kInstrSize);
         masm_->StartBlockVeneerPool();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (count != 0) {
             masm_->bind(&start_);
         }
@@ -2307,7 +2307,7 @@ public:
     ~InstructionAccurateScope()
     {
         masm_->EndBlockVeneerPool();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (start_.is_bound()) {
             DCHECK(masm_->SizeOfCodeGeneratedSince(&start_) == size_);
         }
@@ -2318,7 +2318,7 @@ public:
 private:
     MacroAssembler* masm_;
     MacroAssembler::BlockConstPoolScope block_pool_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t size_;
     Label start_;
     bool previous_allow_macro_instructions_;
@@ -2410,7 +2410,7 @@ public:
     }
     void Exclude(const CPURegList& list)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         CPURegList copy(list);
         while (!copy.IsEmpty()) {
             const CPURegister& reg = copy.PopHighestIndex();
@@ -2421,7 +2421,7 @@ public:
     }
     void ExcludeFP(const CPURegList& list)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         CPURegList copy(list);
         while (!copy.IsEmpty()) {
             const CPURegister& reg = copy.PopHighestIndex();

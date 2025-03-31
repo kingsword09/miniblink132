@@ -30,7 +30,7 @@ public:
         : native_context_(native_context)
         , no_gc_(no_gc)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (!allow_active_isolate_for_testing) {
             // Microtasks.
             MicrotaskQueue* microtask_queue = native_context_->microtask_queue();

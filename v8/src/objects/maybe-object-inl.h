@@ -40,13 +40,13 @@ template <typename THeapObjectSlot> void UpdateHeapObjectReferenceSlot(THeapObje
     Address new_value = value.ptr();
     DCHECK(Internals::HasHeapObjectTag(new_value));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool weak_before = HAS_WEAK_HEAP_OBJECT_TAG(old_value);
 #endif
 
     slot.store(Cast<HeapObjectReference>(Tagged<MaybeObject>(new_value | (old_value & kWeakHeapObjectMask))));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool weak_after = HAS_WEAK_HEAP_OBJECT_TAG((*slot).ptr());
     DCHECK_EQ(weak_before, weak_after);
 #endif

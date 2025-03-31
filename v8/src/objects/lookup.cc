@@ -153,7 +153,7 @@ void LookupIterator::RecheckTypedArrayBounds()
         return;
     }
     property_details_ = accessor->GetDetails(js_object, number_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Tagged<Map> map = holder_->map(isolate_);
     DCHECK(!map->has_frozen_elements());
     DCHECK(!map->has_sealed_elements());
@@ -1070,7 +1070,7 @@ void LookupIterator::WriteDataValue(DirectHandle<Object> value, bool initializin
     } else if (IsJSGlobalObject(*holder, isolate_)) {
         // PropertyCell::PrepareForAndSetValue already wrote the value into the
         // cell.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Tagged<GlobalDictionary> dictionary = Cast<JSGlobalObject>(*holder)->global_dictionary(isolate_, kAcquireLoad);
         Tagged<PropertyCell> cell = dictionary->CellAt(isolate_, dictionary_entry());
         DCHECK(cell->value() == *value || (IsString(cell->value()) && IsString(*value) && Cast<String>(cell->value())->Equals(Cast<String>(*value))));

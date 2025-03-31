@@ -69,7 +69,7 @@ public:
                 : consumed_data_(consumed_data)
             {
                 consumed_data->data_ = data;
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 consumed_data->has_data_ = true;
 #endif
             }
@@ -79,7 +79,7 @@ public:
             }
             ~ReadingScope()
             {
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 consumed_data_->has_data_ = false;
 #endif
             }
@@ -171,7 +171,7 @@ public:
         int index_ = 0;
         uint8_t stored_quarters_ = 0;
         uint8_t stored_byte_ = 0;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         bool has_data_ = false;
 #endif
     };
@@ -193,7 +193,7 @@ public:
 
     void RestoreScopeAllocationData(DeclarationScope* scope, AstValueFactory* ast_value_factory, Zone* zone) final;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool VerifyDataStart();
 #endif
 

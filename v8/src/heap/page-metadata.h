@@ -123,7 +123,7 @@ public:
 
     template <RememberedSetType remembered_set> void AssertNoTypedSlotsInFreeMemory(const TypedSlotSet::FreeRangesMap& ranges)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         TypedSlotSet* typed_slot_set = this->typed_slot_set<remembered_set>();
         if (typed_slot_set != nullptr) {
             typed_slot_set->AssertNoInvalidSlots(ranges);

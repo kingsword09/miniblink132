@@ -7,7 +7,7 @@
 
 #include "src/ast/ast-traversal-visitor.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #include <set>
 #endif
 
@@ -33,7 +33,7 @@ public:
 private:
     int delta_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Visited set, only used in DCHECKs for verification.
     std::set<FunctionLiteral*> visited_;
 

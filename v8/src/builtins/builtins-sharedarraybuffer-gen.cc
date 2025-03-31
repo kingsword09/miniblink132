@@ -133,7 +133,7 @@ TNode<UintPtrT> SharedArrayBufferBuiltinsAssembler::ValidateAtomicAccess(TNode<J
 
 void SharedArrayBufferBuiltinsAssembler::DebugCheckAtomicIndex(TNode<JSTypedArray> array, TNode<UintPtrT> index)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     // In Debug mode, we re-validate the index as a sanity check because ToInteger
     // above calls out to JavaScript. Atomics work on ArrayBuffers, which may be
     // detached, and detachment state must be checked and throw before this

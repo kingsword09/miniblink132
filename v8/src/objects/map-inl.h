@@ -462,7 +462,7 @@ void Map::AccountAddedPropertyField()
 {
     // Update used instance size and unused property fields number.
     static_assert(JSObject::kFieldsAdded == JSObject::kHeaderSize / kTaggedSize);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int new_unused = UnusedPropertyFields() - 1;
     if (new_unused < 0)
         new_unused += JSObject::kFieldsAdded;
@@ -827,7 +827,7 @@ void Map::AppendDescriptor(Isolate* isolate, Descriptor* desc)
 
 // This function does not support appending double field descriptors and
 // it should never try to (otherwise, layout descriptor must be updated too).
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(details.location() != PropertyLocation::kField || !details.representation().IsDouble());
 #endif
 }

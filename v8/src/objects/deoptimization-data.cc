@@ -80,7 +80,7 @@ Tagged<SharedFunctionInfo> DeoptimizationData::GetInlinedFunction(int index)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void DeoptimizationData::Verify(Handle<BytecodeArray> bytecode) const
 {
 #ifdef V8_USE_ZLIB
@@ -161,7 +161,7 @@ void DeoptimizationData::PrintDeoptimizationData(std::ostream& os) const
     int deopt_count = DeoptCount();
     os << "Deoptimization Input Data (deopt points = " << deopt_count << ")\n";
     if (0 != deopt_count) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         os << " index  bytecode-offset  node-id    pc";
 #else // DEBUG
         os << " index  bytecode-offset    pc";
@@ -172,7 +172,7 @@ void DeoptimizationData::PrintDeoptimizationData(std::ostream& os) const
     }
     for (int i = 0; i < deopt_count; i++) {
         os << std::setw(6) << i << "  " << std::setw(15) << GetBytecodeOffsetOrBuiltinContinuationId(i).ToInt() << "  "
-#ifdef DEBUG
+#ifdef V8_DEBUG
            << std::setw(7) << NodeId(i).value() << "  "
 #endif // DEBUG
            << std::setw(4);

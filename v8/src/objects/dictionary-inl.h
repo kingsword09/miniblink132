@@ -45,7 +45,7 @@ Tagged<Object> Dictionary<Derived, Shape>::ValueAt(PtrComprCageBase cage_base, I
 
 template <typename Derived, typename Shape> std::optional<Tagged<Object>> Dictionary<Derived, Shape>::TryValueAt(InternalIndex entry)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     Isolate* isolate;
     GetIsolateFromHeapObject(this, &isolate);
     DCHECK_NE(isolate, nullptr);

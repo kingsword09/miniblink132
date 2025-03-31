@@ -13,7 +13,7 @@ namespace internal {
 
 Address CheckObjectType(Address raw_value, Address raw_type, Address raw_location)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ObjectType type = static_cast<ObjectType>(Tagged<Smi>(raw_type).value());
     Tagged<String> location = Cast<String>(Tagged<Object>(raw_location));
     const char* expected;

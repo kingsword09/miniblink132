@@ -211,7 +211,7 @@ public:
     void VisitExternalPointer(Tagged<HeapObject>, ExternalPointerSlot slot) override
     {
         // This slot was encoded in a previous pass, see EncodeExternalPointerSlot.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         ExternalPointerSlot slot_in_segment { reinterpret_cast<Address>(segment_->contents.get() + SegmentOffsetOf(slot)), slot.tag() };
         // Constructing no_gc here is not the intended use pattern (instead we
         // should pass it along the entire callchain); but there's little point of

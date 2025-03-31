@@ -197,7 +197,7 @@ public:
         if (Asm().generating_unreachable_operations())
             return;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Making sure that we didn't call CloneAndInlineBlock recursively.
         DCHECK(!is_in_recursive_inlining_);
         ScopedModification<bool> recursive_guard(&is_in_recursive_inlining_, true);
@@ -337,7 +337,7 @@ public:
             // To account for this, we reorder the inputs of the Phi, and get rid of
             // inputs from blocks that vanished.
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // To check that indices are set properly, we zap them in debug builds.
             for (auto& block : Asm().modifiable_input_graph().blocks()) {
                 block.clear_custom_data();
@@ -424,7 +424,7 @@ public:
 
         // Emit a goto to 1st block.
         Block* start = block_mapping_[(*sub_graph.begin())->index()];
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (is_loop_after_peeling)
             start->set_has_peeled_iteration();
 #endif
@@ -664,7 +664,7 @@ private:
                 TraceReductionResult(current_block, first_output_index, new_index);
             }
         }
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_IMPLIES(new_index.valid(), Asm().output_graph().BelongsToThisGraph(new_index));
         if (V8_UNLIKELY(v8_flags.turboshaft_verify_reductions)) {
             if (new_index.valid()) {
@@ -992,7 +992,7 @@ private:
     };
     ZoneVector<BlockToClone> blocks_to_clone_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Recursively inlining blocks is still allowed (mainly for
     // LoopUnrollingReducer), but it shouldn't be actually recursive. This is
     // checked by the {is_in_recursive_inlining_}, which is set to true while
@@ -1009,7 +1009,7 @@ public:
     static void Run(PipelineData* data, Graph& input_graph, Zone* phase_zone, bool trace_reductions = false)
     {
         TSAssembler<GraphVisitor, Reducers...> phase(data, input_graph, input_graph.GetOrCreateCompanion(), phase_zone);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (trace_reductions) {
             phase.template VisitGraph<true>();
         } else {

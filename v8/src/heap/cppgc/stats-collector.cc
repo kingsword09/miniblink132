@@ -295,11 +295,11 @@ v8::base::TimeDelta StatsCollector::marking_time() const
 void StatsCollector::NotifyAllocatedMemory(int64_t size)
 {
     memory_allocated_bytes_ += size;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const auto saved_epoch = current_.epoch;
 #endif // DEBUG
     ForAllAllocationObservers([size](AllocationObserver* observer) { observer->AllocatedSizeIncreased(static_cast<size_t>(size)); });
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // AllocatedSizeIncreased() must not trigger GC.
     DCHECK_EQ(saved_epoch, current_.epoch);
 #endif // DEBUG
@@ -308,11 +308,11 @@ void StatsCollector::NotifyAllocatedMemory(int64_t size)
 void StatsCollector::NotifyFreedMemory(int64_t size)
 {
     memory_freed_bytes_since_end_of_marking_ += size;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const auto saved_epoch = current_.epoch;
 #endif // DEBUG
     ForAllAllocationObservers([size](AllocationObserver* observer) { observer->AllocatedSizeDecreased(static_cast<size_t>(size)); });
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // AllocatedSizeDecreased() must not trigger GC.
     DCHECK_EQ(saved_epoch, current_.epoch);
 #endif // DEBUG

@@ -122,7 +122,7 @@ template <typename DerivedDescriptor> void StaticCallInterfaceDescriptor<Derived
 
     DCHECK(data->IsInitialized());
     DCHECK(this->CheckFloatingPointParameters(data));
-#if DEBUG
+#ifdef V8_DEBUG
     DerivedDescriptor::Verify(data);
 #endif
 }

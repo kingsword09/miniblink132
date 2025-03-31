@@ -328,7 +328,7 @@ private:
 
     int depth_ = 0;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     uint32_t num_api_references_;
 
     // Record the previous object allocated for DCHECKs.
@@ -363,7 +363,7 @@ public:
 
 private:
     DirectHandle<String> string_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DeserializingUserCodeOption deserializing_user_code_;
 #endif
     DISALLOW_GARBAGE_COLLECTION(no_gc)

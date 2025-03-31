@@ -17,7 +17,7 @@ namespace bigint {
 
 // To play nice with embedders' macros, we define our own DCHECK here.
 // It's only used in this file, and undef'ed at the end.
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define BIGINT_H_DCHECK(cond)                                                                                                                                  \
     if (!(cond)) {                                                                                                                                             \
         std::cerr << __FILE__ << ":" << __LINE__ << ": ";                                                                                                      \

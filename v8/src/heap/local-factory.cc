@@ -39,7 +39,7 @@ void LocalFactory::ProcessNewScript(DirectHandle<Script> script, ScriptEventType
     // For now, prevent accidentally creating more scripts that don't get added to
     // the script list with a simple DCHECK.
     int script_id = script->id();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (script_id != Script::kTemporaryScriptId) {
         DCHECK(!a_script_was_added_to_the_script_list_);
         a_script_was_added_to_the_script_list_ = true;

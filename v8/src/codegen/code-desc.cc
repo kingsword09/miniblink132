@@ -43,7 +43,7 @@ void CodeDesc::Initialize(CodeDesc* desc, Assembler* assembler, int safepoint_ta
     CodeDesc::Verify(desc);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 void CodeDesc::Verify(const CodeDesc* desc)
 {

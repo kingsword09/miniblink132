@@ -415,7 +415,7 @@ public:
 
     double_iterator& operator++()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         iterator old_first = first_;
         iterator old_second = second_;
 #endif

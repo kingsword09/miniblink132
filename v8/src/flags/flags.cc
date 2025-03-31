@@ -220,7 +220,7 @@ bool Flag::CheckFlagChange(SetBy new_set_by, bool change_flag, const char* impli
     if (IsAnyImplication(new_set_by)) {
         DCHECK_NOT_NULL(implied_by);
         implied_by_ = implied_by;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // This only works when implied_by is a flag_name or !flag_name, but it
         // can also be a condition e.g. flag_name > 3. Since this is only used for
         // checks in DEBUG mode, we will just ignore the more complex conditions
@@ -377,7 +377,7 @@ Flag* FindFlagByName(const char* name)
     if (flag != nullptr && FlagHelpers::EqualNames(flag->name(), name)) {
         return flag;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Ensure the flag is not in the global list.
     for (size_t i = 0; i < kNumFlags; ++i) {
         DCHECK(!FlagHelpers::EqualNames(name, flags[i].name()));
@@ -477,7 +477,7 @@ uint32_t ComputeFlagListHash()
     if (DEBUG_BOOL)
         modified_args_as_string << "debug";
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // These two sets are used to check that we don't leave out any flags
     // implied by --predictable in the list below.
     std::set<const char*> flags_implied_by_predictable;
@@ -487,7 +487,7 @@ uint32_t ComputeFlagListHash()
     for (const Flag& flag : flags) {
         if (flag.IsDefault())
             continue;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (flag.ImpliedBy(&v8_flags.predictable)) {
             flags_implied_by_predictable.insert(flag.name());
         }
@@ -516,7 +516,7 @@ uint32_t ComputeFlagListHash()
             || flag.PointsTo(&v8_flags.cppheap_concurrent_marking) || flag.PointsTo(&v8_flags.cppheap_incremental_marking)
             || flag.PointsTo(&v8_flags.single_threaded_gc) || flag.PointsTo(&v8_flags.fuzzing_and_concurrent_recompilation)
             || flag.PointsTo(&v8_flags.predictable_and_random_seed_is_0)) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (flag.ImpliedBy(&v8_flags.predictable)) {
                 flags_ignored_because_of_predictable.insert(flag.name());
             }
@@ -526,7 +526,7 @@ uint32_t ComputeFlagListHash()
         modified_args_as_string << flag;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Disable the check for fuzzing. This check is only here
     // to ensure that we can generate reproducible code cache
     // for production builds, we don't care as much about the

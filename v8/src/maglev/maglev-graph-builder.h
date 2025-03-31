@@ -560,7 +560,7 @@ private:
         current_block_ = zone()->New<BasicBlock>(nullptr, zone());
         BasicBlock* result = FinishBlock<Jump>({}, &jump_targets);
         result->set_edge_split_block(predecessor);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         new_nodes_.clear();
 #endif
         return result;
@@ -841,7 +841,7 @@ private:
             // some earlier deopt). Mark this bytecode dead too and return.
             // TODO(leszeks): Merge these two conditions by marking dead states with
             // a sentinel value.
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (predecessors_[offset] == 1) {
                 DCHECK(bytecode_analysis().IsLoopHeader(offset));
                 DCHECK_NULL(merge_state);
@@ -882,7 +882,7 @@ private:
         }
 
         DCHECK_NOT_NULL(current_block_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Clear new nodes for the next VisitFoo
         new_nodes_.clear();
 #endif
@@ -921,7 +921,7 @@ private:
         if (v8_flags.trace_maglev_graph_building) {
             std::cout << "  " << node << "  " << PrintNodeLabel(graph_labeller(), node) << ": " << PrintNode(graph_labeller(), node) << std::endl;
         }
-#ifdef DEBUG
+#ifdef V8_DEBUG
         new_nodes_.insert(node);
 #endif
     }
@@ -1207,7 +1207,7 @@ private:
     {
         CallBuiltin* call_builtin = BuildCallBuiltin<kBuiltin>(inputs);
         call_builtin->set_feedback(feedback, slot_type);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Check that the last parameters are kSlot and kVector.
         using Descriptor = typename CallInterfaceDescriptorFor<kBuiltin>::type;
         int slot_index = call_builtin->InputCountWithoutContext();
@@ -1638,7 +1638,7 @@ private:
     }
 
     std::pair<interpreter::Register, int> GetResultLocationAndSize() const;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool HasOutputRegister(interpreter::Register reg) const;
 #endif
 
@@ -2737,7 +2737,7 @@ private:
     ZoneStack<HandlerTableEntry> catch_block_stack_;
     int next_handler_table_index_ = 0;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsNodeCreatedForThisBytecode(ValueNode* node) const
     {
         return new_nodes_.find(node) != new_nodes_.end();

@@ -73,7 +73,7 @@ namespace trap_handler {
 #define TH_CHECK(condition)                                                                                                                                    \
     if (!(condition))                                                                                                                                          \
         IMMEDIATE_CRASH();
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define TH_DCHECK(condition) TH_CHECK(condition)
 #else
 #define TH_DCHECK(condition) void(0)

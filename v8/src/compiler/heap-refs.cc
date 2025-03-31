@@ -74,7 +74,7 @@ public:
     ObjectData(JSHeapBroker* broker, ObjectData** storage, IndirectHandle<Object> object, ObjectDataKind kind)
         : object_(object)
         , kind_(kind)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , broker_(broker)
 #endif // DEBUG
     {
@@ -129,7 +129,7 @@ public:
         return i::IsNull(*object_);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     JSHeapBroker* broker() const
     {
         return broker_;
@@ -139,7 +139,7 @@ public:
 private:
     IndirectHandle<Object> const object_;
     ObjectDataKind const kind_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     JSHeapBroker* const broker_; // For DCHECKs.
 #endif // DEBUG
 };
@@ -513,7 +513,7 @@ public:
 private:
     void Cache(JSHeapBroker* broker);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool serialized_ = false;
 #endif // DEBUG
 
@@ -697,7 +697,7 @@ void JSFunctionData::Cache(JSHeapBroker* broker)
     FeedbackCellRef feedback_cell = MakeRefAssumeMemoryFence(broker, function->raw_feedback_cell(kAcquireLoad));
     feedback_cell_ = feedback_cell.data();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     serialized_ = true;
 #endif // DEBUG
 }
@@ -1194,7 +1194,7 @@ OptionalMapRef MapRef::AsElementsKind(JSHeapBroker* broker, ElementsKind kind) c
     if (kind == current_kind)
         return *this;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // If starting from an initial JSArray map, TryAsElementsKind must succeed
     // and return the expected transitioned JSArray map.
     NativeContextRef native_context = broker->target_native_context();
@@ -2375,7 +2375,7 @@ HEAP_BROKER_OBJECT_LIST(DEF_OBJECT_GETTER)
 
 ObjectData* ObjectRef::data() const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     switch (JSHeapBroker::Current()->mode()) {
     case JSHeapBroker::kDisabled:
         break;

@@ -93,7 +93,7 @@ public:
     void Analyze()
     {
         if (args_.input_graph_typing == Args::InputGraphTyping::kPrecise) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             GrowingBlockSidetable<std::vector<std::pair<OpIndex, Type>>> block_refinements(Asm().input_graph().block_count(), {}, Asm().phase_zone());
             input_graph_types_ = analyzer_.Run(&block_refinements);
             Tracing::Get().PrintPerBlockData(
@@ -255,7 +255,7 @@ public:
         if (key_opt.has_value()) {
             table_.Set(*key_opt, type);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
             std::vector<std::pair<OpIndex, Type>>& refinement = Asm().output_graph().block_type_refinement()[new_block->index()];
             refinement.push_back(std::make_pair(op, type));
 #endif
@@ -469,7 +469,7 @@ private:
 // support a precise typing of the operations after the lowering.
 // TODO(nicohartmann@): Evaluate new strategies for verification.
 #if 0
-#ifdef DEBUG
+#ifdef V8_DEBUG
   void Verify(OpIndex input_index, OpIndex output_index) {
     DCHECK(input_index.valid());
     DCHECK(output_index.valid());

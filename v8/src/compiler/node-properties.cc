@@ -243,7 +243,7 @@ Node* NodeProperties::FindProjection(Node* node, size_t projection_index)
 // static
 void NodeProperties::CollectValueProjections(Node* node, Node** projections, size_t projection_count)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (size_t index = 0; index < projection_count; ++index) {
         DCHECK_NULL(projections[index]);
     }
@@ -260,7 +260,7 @@ void NodeProperties::CollectValueProjections(Node* node, Node** projections, siz
 // static
 void NodeProperties::CollectControlProjections(Node* node, Node** projections, size_t projection_count)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LE(static_cast<int>(projection_count), node->UseCount());
     std::memset(projections, 0, sizeof(*projections) * projection_count);
 #endif
@@ -303,7 +303,7 @@ void NodeProperties::CollectControlProjections(Node* node, Node** projections, s
         DCHECK_NULL(projections[index]);
         projections[index] = use;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (size_t index = 0; index < projection_count; ++index) {
         DCHECK_NOT_NULL(projections[index]);
     }

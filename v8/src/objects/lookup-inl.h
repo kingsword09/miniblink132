@@ -85,7 +85,7 @@ LookupIterator::LookupIterator(
     } else {
         DCHECK(!name_.is_null());
         name_ = isolate->factory()->InternalizeName(name_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Assert that the name is not an index.
         // If we're not looking at the prototype chain and the lookup start object
         // is not a typed array, then this means "array index", otherwise we need to
@@ -142,7 +142,7 @@ PropertyKey::PropertyKey(Isolate* isolate, Handle<Name> name, size_t index)
 #if V8_TARGET_ARCH_32_BIT
     DCHECK_IMPLIES(index_ != LookupIterator::kInvalidIndex, index_ <= JSObject::kMaxElementIndex);
 #endif
-#if DEBUG
+#ifdef V8_DEBUG
     if (index_ != LookupIterator::kInvalidIndex && !name_.is_null()) {
         // If both valid index and name are given then the name is a string
         // representation of the same index.
@@ -278,7 +278,7 @@ void LookupIterator::UpdateProtector(Isolate* isolate, Handle<JSAny> receiver, D
     ReadOnlyRoots roots(isolate);
     bool maybe_protector = roots.IsNameForProtector(*name);
 
-#if DEBUG
+#ifdef V8_DEBUG
     bool debug_maybe_protector = *name == roots.constructor_string() || *name == roots.next_string() || *name == roots.resolve_string()
         || *name == roots.then_string() || *name == roots.is_concat_spreadable_symbol() || *name == roots.iterator_symbol() || *name == roots.species_symbol()
         || *name == roots.match_all_symbol() || *name == roots.replace_symbol() || *name == roots.split_symbol() || *name == roots.to_primitive_symbol()

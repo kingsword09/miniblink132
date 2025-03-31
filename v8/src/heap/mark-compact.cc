@@ -292,7 +292,7 @@ private:
 MarkCompactCollector::MarkCompactCollector(Heap* heap)
     : heap_(heap)
     ,
-#ifdef DEBUG
+#ifdef V8_DEBUG
     state_(IDLE)
     ,
 #endif
@@ -736,7 +736,7 @@ void MarkCompactCollector::CollectEvacuationCandidates(PagedSpace* space)
 
 void MarkCompactCollector::Prepare()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(state_ == IDLE);
     state_ = PREPARE_GC;
 #endif
@@ -839,7 +839,7 @@ void MarkCompactCollector::Finish()
             SweepLargeSpace(heap_->new_lo_space());
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         heap_->VerifyCountersBeforeConcurrentSweeping(GarbageCollector::MARK_COMPACTOR);
 #endif // DEBUG
     }
@@ -905,7 +905,7 @@ void MarkCompactCollector::Finish()
     // Shrink pages if possible after processing and filtering slots.
     ShrinkPagesToObjectSizes(heap_, heap_->lo_space());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(state_ == SWEEP_SPACES || state_ == RELOCATE_OBJECTS);
     state_ = IDLE;
 #endif
@@ -1445,7 +1445,7 @@ public:
         observers_.push_back(observer);
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     void DisableAbortEvacuationAtAddress(MutablePageMetadata* chunk)
     {
         abort_evacuation_at_address_ = chunk->area_end();
@@ -1562,14 +1562,14 @@ protected:
         , shared_string_table_(v8_flags.shared_string_table && heap->isolate()->has_shared_space())
     {
         migration_function_ = RawMigrateObject<MigrationMode::kFast>;
-#if DEBUG
+#ifdef V8_DEBUG
         rng_.emplace(heap_->isolate()->fuzzer_rng()->NextInt64());
 #endif // DEBUG
     }
 
     inline bool TryEvacuateObject(AllocationSpace target_space, Tagged<HeapObject> object, int size, Tagged<HeapObject>* target_object)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         DCHECK_LE(abort_evacuation_at_address_, MutablePageMetadata::FromHeapObject(object)->area_end());
         DCHECK_GE(abort_evacuation_at_address_, MutablePageMetadata::FromHeapObject(object)->area_start());
 
@@ -1619,7 +1619,7 @@ protected:
     std::vector<MigrationObserver*> observers_;
     MigrateFunction migration_function_;
     const bool shared_string_table_;
-#if DEBUG
+#ifdef V8_DEBUG
     Address abort_evacuation_at_address_ { kNullAddress };
 #endif // DEBUG
     std::optional<base::RandomNumberGenerator> rng_;
@@ -2419,7 +2419,7 @@ void MarkCompactCollector::MarkLiveObjects()
         MarkingBarrier::PublishAll(heap_);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(state_ == PREPARE_GC);
     state_ = MARK_LIVE_OBJECTS;
 #endif
@@ -3450,7 +3450,7 @@ bool MarkCompactCollector::TransitionArrayNeedsCompaction(Tagged<TransitionArray
             // This target is still being deserialized,
             DCHECK(heap_->isolate()->has_active_deserializer());
             DCHECK_EQ(raw_target.ToSmi(), Smi::uninitialized_deserialization_value());
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // Targets can only be dead iff this array is fully deserialized.
             for (int j = 0; j < num_transitions; ++j) {
                 DCHECK_IMPLIES(!transitions->GetRawTarget(j).IsSmi(), !non_atomic_marking_state_->IsUnmarked(transitions->GetTarget(j)));
@@ -3458,7 +3458,7 @@ bool MarkCompactCollector::TransitionArrayNeedsCompaction(Tagged<TransitionArray
 #endif
             return false;
         } else if (MarkingHelper::IsUnmarkedAndNotAlwaysLive(heap_, non_atomic_marking_state_, TransitionsAccessor::GetTargetFromRaw(raw_target))) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // Targets can only be dead iff this array is fully deserialized.
             for (int j = 0; j < num_transitions; ++j) {
                 DCHECK(!transitions->GetRawTarget(j).IsSmi());
@@ -4184,7 +4184,7 @@ void MarkCompactCollector::EvacuateEpilogue()
     // Old generation. Deallocate evacuated candidate pages.
     ReleaseEvacuationCandidates();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyRememberedSetsAfterEvacuation(heap_, GarbageCollector::MARK_COMPACTOR);
 #endif // DEBUG
 }
@@ -4360,7 +4360,7 @@ bool Evacuator::RawEvacuatePage(MutablePageMetadata* page)
         page->live_bytes());
     switch (evacuation_mode) {
     case kObjectsNewToOld:
-#if DEBUG
+#ifdef V8_DEBUG
         new_space_visitor_.DisableAbortEvacuationAtAddress(page);
 #endif // DEBUG
         LiveObjectVisitor::VisitMarkedObjectsNoFail(PageMetadata::cast(page), &new_space_visitor_);
@@ -4378,7 +4378,7 @@ bool Evacuator::RawEvacuatePage(MutablePageMetadata* page)
         new_to_old_page_visitor_.account_moved_bytes(page->live_bytes());
         break;
     case kObjectsOldToOld: {
-#if DEBUG
+#ifdef V8_DEBUG
         old_space_visitor_.SetUpAbortEvacuationAtAddress(page);
 #endif // DEBUG
         Tagged<HeapObject> failed_object;
@@ -4852,7 +4852,7 @@ private:
     {
         Tagged<HeapObject> heap_object = UpdateTypedSlotHelper::GetTargetObject(page->heap(), slot_type, addr);
 
-#if DEBUG
+#ifdef V8_DEBUG
         UpdateTypedSlotHelper::UpdateTypedSlot(jit_allocation, page->heap(), slot_type, addr, [heap_object](FullMaybeObjectSlot slot) {
             DCHECK_EQ((*slot).GetHeapObjectAssumeStrong(), heap_object);
             return KEEP_SLOT;
@@ -5628,7 +5628,7 @@ void MarkCompactCollector::Sweep()
 
     TRACE_GC_EPOCH_WITH_FLOW(
         heap_->tracer(), GCTracer::Scope::MC_SWEEP, ThreadKind::kMain, sweeper_->GetTraceIdForFlowEvent(GCTracer::Scope::MC_SWEEP), TRACE_EVENT_FLAG_FLOW_OUT);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     state_ = SWEEP_SPACES;
 #endif
 

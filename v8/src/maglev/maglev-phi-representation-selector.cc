@@ -957,7 +957,7 @@ void MaglevPhiRepresentationSelector::RegisterNewNode(ValueNode* node)
     if (builder_->has_graph_labeller()) {
         builder_->graph_labeller()->RegisterNode(node);
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     new_nodes_.insert(node);
 #endif
 }

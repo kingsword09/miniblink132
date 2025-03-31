@@ -84,7 +84,7 @@ Handle<Object> FunctionCallbackArguments::CallOrConstruct(Tagged<FunctionTemplat
 }
 
 PropertyCallbackArguments::~PropertyCallbackArguments() {
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // TODO(chromium:1310062): enable this check.
 // if (javascript_execution_counter_) {
 //   CHECK_WITH_MSG(javascript_execution_counter_ ==
@@ -167,6 +167,8 @@ Handle<JSAny> PropertyCallbackArguments::CallNamedGetter(Handle<InterceptorInfo>
     slot_at(kReturnValueIndex).store(ReadOnlyRoots(isolate).undefined_value());
     NamedPropertyGetterCallback f = ToCData<NamedPropertyGetterCallback, kApiNamedPropertyGetterCallbackTag>(isolate, interceptor->getter());
     PREPARE_CALLBACK_INFO_INTERCEPTOR(isolate, f, v8::Value, interceptor, ExceptionContext::kNamedGetter);
+
+
     v8::Intercepted intercepted = f(v8::Utils::ToLocal(name), callback_info);
     if (intercepted == v8::Intercepted::kNo)
         return {};

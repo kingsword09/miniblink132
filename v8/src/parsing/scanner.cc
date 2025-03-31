@@ -382,7 +382,7 @@ Token::Value Scanner::ScanHtmlComment()
     return SkipSingleHTMLComment();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Scanner::SanityCheckTokenDesc(const TokenDesc& token) const
 {
     // Only TEMPLATE_* tokens can have an invalid_template_escape_message.

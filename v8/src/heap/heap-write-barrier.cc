@@ -27,7 +27,7 @@ MarkingBarrier* WriteBarrier::CurrentMarkingBarrier(Tagged<HeapObject> verificat
 {
     MarkingBarrier* marking_barrier = current_marking_barrier;
     DCHECK_NOT_NULL(marking_barrier);
-#if DEBUG
+#ifdef V8_DEBUG
     if (!verification_candidate.is_null() && !HeapLayout::InAnySharedSpace(verification_candidate)) {
         Heap* host_heap = MutablePageMetadata::FromHeapObject(verification_candidate)->heap();
         LocalHeap* local_heap = LocalHeap::Current();
@@ -196,7 +196,7 @@ int WriteBarrier::MarkingFromCode(Address raw_host, Address raw_slot)
     }
 #endif
 
-#if DEBUG
+#ifdef V8_DEBUG
     Heap* heap = MutablePageMetadata::FromHeapObject(host)->heap();
     DCHECK(heap->incremental_marking()->IsMarking());
 
@@ -220,7 +220,7 @@ int WriteBarrier::IndirectPointerMarkingFromCode(Address raw_host, Address raw_s
     DCHECK(IsValidIndirectPointerTag(tag));
     IndirectPointerSlot slot(raw_slot, tag);
 
-#if DEBUG
+#ifdef V8_DEBUG
     DCHECK(!HeapLayout::InWritableSharedSpace(host));
     MarkingBarrier* barrier = CurrentMarkingBarrier(host);
     DCHECK(barrier->heap()->isolate()->isolate_data()->is_marking());
@@ -242,7 +242,7 @@ int WriteBarrier::SharedMarkingFromCode(Address raw_host, Address raw_slot)
 
     DCHECK(HeapLayout::InWritableSharedSpace(host));
 
-#if DEBUG
+#ifdef V8_DEBUG
     Heap* heap = MutablePageMetadata::FromHeapObject(host)->heap();
     DCHECK(heap->incremental_marking()->IsMajorMarking());
     Isolate* isolate = heap->isolate();
@@ -401,7 +401,7 @@ template <int kModeMask, typename TSlot> void ForRangeImpl(Heap* heap, MemoryChu
                 continue;
             compressed_page = tagged_value & kPageMask;
             if (compressed_page == cached_uninteresting_page) {
-#if DEBUG
+#ifdef V8_DEBUG
                 typename TSlot::TObject value = *slot;
                 Tagged<HeapObject> value_heap_object;
                 if (value.GetHeapObject(&value_heap_object)) {

@@ -97,7 +97,7 @@ public:
         freed_size_for_tracing_ += size;
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         static const unsigned char kZapDeadByte = 0xcd;
         memset(pointer, kZapDeadByte, size);
 #endif
@@ -235,7 +235,7 @@ public:
     }
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool Contains(const void* ptr) const;
 #endif
 

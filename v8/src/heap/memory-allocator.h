@@ -189,7 +189,7 @@ public:
     // |bytes_to_free| is computed by the caller.
     void PartialFreeMemory(MemoryChunkMetadata* chunk, Address start_free, size_t bytes_to_free, Address new_area_end);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Checks if an allocated MemoryChunk was intended to be used for executable
     // memory.
     bool IsMemoryChunkExecutable(MutablePageMetadata* chunk)
@@ -363,7 +363,7 @@ private:
 
     void RegisterReadOnlyMemory(ReadOnlyPageMetadata* page);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void RegisterExecutableMemoryChunk(MutablePageMetadata* chunk)
     {
         base::MutexGuard guard(&executable_memory_mutex_);
@@ -424,7 +424,7 @@ private:
     Pool pool_;
     std::vector<MutablePageMetadata*> queued_pages_to_be_freed_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Data structure to remember allocated executable memory chunks.
     // This data structure is used only in DCHECKs.
     std::unordered_set<MutablePageMetadata*, base::hash<MutablePageMetadata*>> executable_memory_;

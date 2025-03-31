@@ -121,7 +121,7 @@ public:
         }
         offset = RoundUp(offset, kTaggedSize);
         field_offsets_[field_count() - 1] = offset;
-#if DEBUG
+#ifdef V8_DEBUG
         offsets_initialized_ = true;
 #endif
     }
@@ -169,7 +169,7 @@ public:
             if (compute_offsets == kComputeOffsets) {
                 result->InitializeOffsets();
             } else {
-#if DEBUG
+#ifdef V8_DEBUG
                 bool offsets_specified = true;
                 for (uint32_t i = 0; i < field_count_; i++) {
                     if (field_offsets_[i] == 0) {
@@ -199,7 +199,7 @@ private:
     friend class CanonicalStructType;
 
     const uint32_t field_count_;
-#if DEBUG
+#ifdef V8_DEBUG
     bool offsets_initialized_ = false;
 #endif
     uint32_t* const field_offsets_;

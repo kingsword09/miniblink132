@@ -70,7 +70,7 @@ void LocalHandles::Iterate(RootVisitor* visitor)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool LocalHandles::Contains(Address* location)
 {
     // We have to search in all blocks since they have no guarantee of order.

@@ -41,7 +41,7 @@ ObjectVisitorWithCageBases::ObjectVisitorWithCageBases(Heap* heap)
 
 template <typename Visitor> inline void ClientRootVisitor<Visitor>::VisitRunningCode(FullObjectSlot code_slot, FullObjectSlot maybe_istream_slot)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     DCHECK(!HeapLayout::InWritableSharedSpace(Cast<HeapObject>(*code_slot)));
     Tagged<Object> maybe_istream = *maybe_istream_slot;
     DCHECK(maybe_istream == Smi::zero() || !HeapLayout::InWritableSharedSpace(Cast<HeapObject>(maybe_istream)));
@@ -63,7 +63,7 @@ template <typename Visitor> inline void ClientObjectVisitor<Visitor>::VisitMapPo
 
 template <typename Visitor> void ClientObjectVisitor<Visitor>::VisitInstructionStreamPointer(Tagged<Code> host, InstructionStreamSlot slot)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     Tagged<Object> istream_object = slot.load(code_cage_base());
     Tagged<InstructionStream> istream;
     if (istream_object.GetHeapObject(&istream)) {
@@ -74,7 +74,7 @@ template <typename Visitor> void ClientObjectVisitor<Visitor>::VisitInstructionS
 
 template <typename Visitor> inline void ClientObjectVisitor<Visitor>::VisitCodeTarget(Tagged<InstructionStream> host, RelocInfo* rinfo)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     Tagged<InstructionStream> target = InstructionStream::FromTargetAddress(rinfo->target_address());
     DCHECK(!HeapLayout::InWritableSharedSpace(target));
 #endif

@@ -548,7 +548,7 @@ private:
         // Reset the CPU profiler target address.
         __ StoreOffHeap(target_address, __ IntPtrConstant(0), MemoryRepresentation::UintPtr());
 
-#if DEBUG
+#ifdef V8_DEBUG
         // Reset the context again after the call, to make sure nobody is using the
         // leftover context in the isolate.
         __ StoreOffHeap(context_address, __ WordPtrConstant(Context::kInvalidContext), MemoryRepresentation::UintPtr());

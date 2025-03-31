@@ -9554,7 +9554,7 @@ void Isolate::TerminateExecution()
 bool Isolate::IsExecutionTerminating()
 {
     i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This method might be called on a thread that's not bound to any Isolate
     // and thus pointer compression schemes might have cage base value unset.
     // Read-only roots accessors contain type DCHECKs which require access to
@@ -9741,7 +9741,7 @@ void Isolate::Dispose()
 void Isolate::DumpAndResetStats()
 {
     i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(this);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This method might be called on a thread that's not bound to any Isolate
     // and thus pointer compression schemes might have cage base value unset.
     // Read-only roots accessors contain type DCHECKs which require access to
@@ -10262,7 +10262,7 @@ void Isolate::LowMemoryNotification()
     {
         i::NestedTimedHistogramScope idle_notification_scope(i_isolate->counters()->gc_low_memory_notification());
         TRACE_EVENT0("v8", "V8.GCLowMemoryNotification");
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // This method might be called on a thread that's not bound to any Isolate
         // and thus pointer compression schemes might have cage base value unset.
         // Read-only roots accessors contain type DCHECKs which require access to
@@ -10654,7 +10654,7 @@ MicrotasksScope::MicrotasksScope(Isolate* v8_isolate, MicrotaskQueue* microtask_
 {
     if (run_)
         microtask_queue_->IncrementMicrotasksScopeDepth();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!run_)
         microtask_queue_->IncrementDebugMicrotasksScopeDepth();
 #endif
@@ -10669,7 +10669,7 @@ MicrotasksScope::~MicrotasksScope()
             DCHECK_IMPLIES(i_isolate_->has_exception(), i_isolate_->is_execution_terminating());
         }
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!run_)
         microtask_queue_->DecrementDebugMicrotasksScopeDepth();
 #endif
@@ -11708,7 +11708,7 @@ char* HandleScopeImplementer::RestoreThread(char* storage)
 
 void HandleScopeImplementer::IterateThis(RootVisitor* v)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool found_block_before_persistent = false;
 #endif
     // Iterate over all handles in the blocks except for the last.
@@ -11721,7 +11721,7 @@ void HandleScopeImplementer::IterateThis(RootVisitor* v)
             && (reinterpret_cast<Address>(last_handle_before_persistent_block_.value()) >= reinterpret_cast<Address>(block))) {
             v->VisitRootPointers(Root::kHandleScope, nullptr, FullObjectSlot(block), FullObjectSlot(last_handle_before_persistent_block_.value()));
             DCHECK(!found_block_before_persistent);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             found_block_before_persistent = true;
 #endif
         } else {
@@ -11772,7 +11772,7 @@ std::unique_ptr<PersistentHandles> HandleScopeImplementer::DetachPersistent(Addr
     do {
         block_start = blocks_.back();
         ph->blocks_.push_back(blocks_.back());
-#if DEBUG
+#ifdef V8_DEBUG
         ph->ordered_blocks_.insert(blocks_.back());
 #endif
         blocks_.pop_back();
@@ -12018,14 +12018,14 @@ template <> bool V8_EXPORT ValidateCallbackInfo(const PropertyCallbackInfo<void>
 
 ExternalMemoryAccounterBase::~ExternalMemoryAccounterBase()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_EQ(amount_of_external_memory_, 0U);
 #endif
 }
 
 ExternalMemoryAccounterBase::ExternalMemoryAccounterBase(ExternalMemoryAccounterBase&& other) V8_NOEXCEPT
 {
-#if DEBUG
+#ifdef V8_DEBUG
     amount_of_external_memory_ = std::exchange(other.amount_of_external_memory_, 0U);
     isolate_ = std::exchange(other.isolate_, nullptr);
 #endif
@@ -12033,7 +12033,7 @@ ExternalMemoryAccounterBase::ExternalMemoryAccounterBase(ExternalMemoryAccounter
 
 ExternalMemoryAccounterBase& ExternalMemoryAccounterBase::operator=(ExternalMemoryAccounterBase&& other) V8_NOEXCEPT
 {
-#if DEBUG
+#ifdef V8_DEBUG
     if (this == &other) {
         return *this;
     }
@@ -12046,7 +12046,7 @@ ExternalMemoryAccounterBase& ExternalMemoryAccounterBase::operator=(ExternalMemo
 
 void ExternalMemoryAccounterBase::Increase(Isolate* isolate, size_t size)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(isolate == isolate_ || isolate_ == nullptr);
     isolate_ = isolate;
     amount_of_external_memory_ += size;
@@ -12056,7 +12056,7 @@ void ExternalMemoryAccounterBase::Increase(Isolate* isolate, size_t size)
 
 void ExternalMemoryAccounterBase::Update(Isolate* isolate, int64_t delta)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(isolate == isolate_ || isolate_ == nullptr);
     DCHECK_GE(static_cast<int64_t>(amount_of_external_memory_), -delta);
     isolate_ = isolate;
@@ -12071,7 +12071,7 @@ void ExternalMemoryAccounterBase::Decrease(Isolate* isolate, size_t size)
     if (size == 0) {
         return;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_EQ(isolate, isolate_);
     DCHECK_GE(amount_of_external_memory_, size);
     amount_of_external_memory_ -= size;

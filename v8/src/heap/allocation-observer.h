@@ -84,7 +84,7 @@ public:
         return next_counter_ - current_counter_;
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     bool HasAllocationObservers() const
     {
         return !observers_.empty() || !pending_added_.empty() || !pending_removed_.empty();

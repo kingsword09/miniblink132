@@ -77,7 +77,7 @@ public:
     V8_INLINE uint32_t encoding_tag() const;
     V8_INLINE uint32_t representation_and_encoding_tag() const;
     V8_INLINE uint32_t representation_encoding_and_shared_tag() const;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     inline uint32_t type() const
     {
         return type_;
@@ -103,7 +103,7 @@ public:
 
 private:
     uint32_t type_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     inline void set_valid()
     {
         valid_ = true;

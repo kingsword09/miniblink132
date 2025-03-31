@@ -72,7 +72,7 @@ public:
 
         explicit Iterator(const BitVector* target, StartTag)
             :
-#ifdef DEBUG
+#ifdef V8_DEBUG
             target_(target)
             ,
 #endif
@@ -92,7 +92,7 @@ public:
 
         explicit Iterator(const BitVector* target, EndTag)
             :
-#ifdef DEBUG
+#ifdef V8_DEBUG
             target_(target)
             ,
 #endif
@@ -102,7 +102,7 @@ public:
         {
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         const BitVector* target_;
 #endif
         uintptr_t* ptr_;
@@ -306,7 +306,7 @@ public:
         return Iterator(this, Iterator::kEndTag);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Print() const;
 #endif
 

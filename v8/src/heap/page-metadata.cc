@@ -89,7 +89,7 @@ void PageMetadata::MarkNeverAllocateForTesting()
     reinterpret_cast<PagedSpace*>(owner())->free_list()->EvictFreeListItems(this);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 // Skips filler starting from the given filler until the end address.
 // Returns the first address after the skipped fillers.

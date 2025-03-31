@@ -342,7 +342,7 @@ private:
     };
     const StringBuilder kInvalidStringBuilder = { nullptr, kInvalidId, false, OneOrTwoByteAnalysis::State::kUnknown };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool StringBuilderIsValid(StringBuilder string_builder)
     {
         return string_builder.start != nullptr && string_builder.id != kInvalidId && string_builder.has_loop_phi;

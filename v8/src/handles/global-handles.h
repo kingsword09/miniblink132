@@ -125,7 +125,7 @@ public:
 
     void IterateAllRootsForTesting(v8::PersistentHandleVisitor* v);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void PrintStats();
     void Print();
 #endif // DEBUG

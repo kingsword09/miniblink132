@@ -170,7 +170,7 @@ bool IsSupportedLoad(const Node* node)
     return false;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool IsSupportedLoad(const ZoneVector<Node*>& node_group)
 {
     for (auto node : node_group) {

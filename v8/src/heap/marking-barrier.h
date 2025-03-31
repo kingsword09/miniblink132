@@ -76,7 +76,7 @@ public:
         return heap_;
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     void AssertMarkingIsActivated() const;
     void AssertSharedMarkingIsActivated() const;
     bool IsMarked(const Tagged<HeapObject> value) const;

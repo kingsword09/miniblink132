@@ -2613,7 +2613,7 @@ void Debug::OnDebugBreak(Handle<FixedArray> break_points_hit, StepAction lastSte
     if (ignore_events())
         return;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     PrintBreakLocation();
 #endif // DEBUG
 
@@ -2910,7 +2910,7 @@ void Debug::HandleDebugBreak(IgnoreBreakMode ignore_break_mode, v8::debug::Break
     OnDebugBreak(break_points.is_null() ? isolate_->factory()->empty_fixed_array() : break_points.ToHandleChecked(), lastStepAction, break_reasons);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Debug::PrintBreakLocation()
 {
     if (!v8_flags.print_break_location)

@@ -796,7 +796,7 @@ public:
         T* insert_position = data_begin_ + insert_index;
         *insert_position = value;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Verify();
 #endif
         DCHECK_LE(begin(), insert_position);
@@ -828,7 +828,7 @@ public:
         data_end_ = split_begin;
         storage_end_ = split_begin;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Verify();
         split_off.Verify();
 #endif
@@ -870,7 +870,7 @@ public:
 
         *this = std::move(result);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Verify();
 #endif
         DCHECK_EQ(size(), merged_size);
@@ -918,13 +918,13 @@ private:
         data_end_ = data_begin_ + old.size();
         std::copy(old.begin(), old.end(), data_begin_);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Verify();
 #endif
         DCHECK_EQ(size(), old.size());
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Verify() const
     {
         DCHECK_LE(storage_begin_, data_begin_);
@@ -1108,7 +1108,7 @@ public:
         return next_start_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyChildStructure() const
     {
         VerifyIntervals();
@@ -1147,7 +1147,7 @@ private:
     UseIntervalVector::iterator FirstSearchIntervalForPosition(LifetimePosition position);
     void AdvanceLastProcessedMarker(UseIntervalVector::iterator to_start_of, LifetimePosition but_not_past);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyPositions() const;
     void VerifyIntervals() const;
 #endif
@@ -1449,7 +1449,7 @@ public:
         return vreg_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Verify() const;
     void VerifyChildrenInOrder() const;
 #endif
@@ -1714,7 +1714,7 @@ private:
         return data()->live_in_sets();
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Verification.
     void Verify() const;
     bool IntervalStartsAtBlockBoundary(UseInterval interval) const;
@@ -2013,7 +2013,7 @@ private:
     LifetimePosition next_active_ranges_change_;
     LifetimePosition next_inactive_ranges_change_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     LifetimePosition allocation_finger_;
 #endif
 };

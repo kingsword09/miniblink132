@@ -100,7 +100,7 @@ public:
 
 private:
     NativeHandle native_handle_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This is being used for Assert* methods. Accesses are only allowed if you
     // actually hold the mutex, otherwise you would get race conditions.
     int level_;
@@ -108,7 +108,7 @@ private:
 
     V8_INLINE void AssertHeldAndUnmark()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // If this access results in a race condition being detected by TSan, this
         // means that you in fact did *not* hold the mutex.
         DCHECK_EQ(1, level_);
@@ -118,7 +118,7 @@ private:
 
     V8_INLINE void AssertUnheldAndMark()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // This is only invoked *after* actually getting the mutex, so should not
         // result in race conditions.
         DCHECK_EQ(0, level_);
@@ -207,7 +207,7 @@ private:
 #endif
 
     NativeHandle native_handle_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This is being used for Assert* methods. Accesses are only allowed if you
     // actually hold the mutex, otherwise you would get race conditions.
     int level_;

@@ -76,7 +76,7 @@ protected:
     void FindArguments(const ZonePtrList<Expression>* arguments);
 };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 class AstPrinter final : public AstVisitor<AstPrinter> {
 public:

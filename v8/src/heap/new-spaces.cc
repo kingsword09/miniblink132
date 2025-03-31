@@ -374,7 +374,7 @@ std::unique_ptr<ObjectIterator> SemiSpace::GetObjectIterator(Heap* heap)
     UNREACHABLE();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void SemiSpace::Print()
 {
 }
@@ -423,7 +423,7 @@ void SemiSpace::VerifyPageMetadata() const
 }
 #endif // VERIFY_HEAP
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void SemiSpace::AssertValidRange(Address start, Address end)
 {
     // Addresses belong to same semi-space
@@ -916,7 +916,7 @@ void PagedSpaceForNewSpace::FinishShrinking()
 {
     DCHECK(heap()->tracer()->IsInAtomicPause());
     if (current_capacity_ > target_capacity_) {
-#if DEBUG
+#ifdef V8_DEBUG
         // If `current_capacity_` is higher than `target_capacity_`, i.e. the
         // space could not be shrunk all the way down to `target_capacity_`, it
         // must mean that all pages contain live objects.

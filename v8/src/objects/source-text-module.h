@@ -203,7 +203,7 @@ public:
     int RegularExportCellIndex(int i) const;
     Tagged<FixedArray> RegularExportExportNames(int i) const;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     inline bool Equals(Tagged<SourceTextModuleInfo> other) const;
 #endif
 

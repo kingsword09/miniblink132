@@ -572,7 +572,7 @@ void AdjustStackPointerForTailCall(
     }
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 bool VerifyOutputOfAtomicPairInstr(ArmOperandConverter* converter, const Instruction* instr, Register low, Register high)
 {
     DCHECK_GE(instr->OutputCount() + instr->TempCount(), 2);

@@ -721,7 +721,7 @@ public:
     // Print and verify the special reverse-post-order.
     void PrintAndVerifySpecialRPO()
     {
-#if DEBUG
+#ifdef V8_DEBUG
         if (v8_flags.trace_turbo_scheduler)
             PrintRPO();
         VerifySpecialRPO();
@@ -1056,7 +1056,7 @@ private:
         }
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     void PrintRPO()
     {
         StdoutStream os;
@@ -1500,7 +1500,7 @@ private:
         }
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     bool InsideSameDominatorChain(BasicBlock* b1, BasicBlock* b2)
     {
         BasicBlock* dominator = BasicBlock::GetCommonDominator(b1, b2);

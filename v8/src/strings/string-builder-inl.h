@@ -142,12 +142,12 @@ inline IncrementalStringBuilder::NoExtend<DestChar>::NoExtend(Tagged<String> str
         start_ = reinterpret_cast<DestChar*>(Cast<SeqTwoByteString>(string)->GetChars(no_gc) + offset);
     }
     cursor_ = start_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     string_ = string;
 #endif
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 template <typename DestChar> inline IncrementalStringBuilder::NoExtend<DestChar>::~NoExtend()
 {
     DestChar* end;

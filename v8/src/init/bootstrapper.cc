@@ -382,7 +382,7 @@ void Bootstrapper::LogAllMaps()
 
 namespace {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool IsFunctionMapOrSpecialBuiltin(DirectHandle<Map> map, Builtin builtin, DirectHandle<Context> context)
 {
     // During bootstrapping some of these maps could be not created yet.
@@ -399,7 +399,7 @@ Handle<SharedFunctionInfo> CreateSharedFunctionInfoForBuiltin(Isolate* isolate, 
     Handle<SharedFunctionInfo> info = isolate->factory()->NewSharedFunctionInfoForBuiltin(name, builtin, len, adapt);
     info->set_language_mode(LanguageMode::kStrict);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Tagged<Code> code = info->GetCode(isolate);
     if (code->parameter_count() != kDontAdaptArgumentsSentinel) {
         DCHECK_EQ(info->internal_formal_parameter_count_with_receiver(), code->parameter_count());
@@ -1124,7 +1124,7 @@ static void AddToWeakNativeContextList(Isolate* isolate, Tagged<Context> context
 {
     DCHECK(IsNativeContext(context));
     Heap* heap = isolate->heap();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     {
         DCHECK(IsUndefined(context->next_context_link(), isolate));
         // Check that context is not in the list yet.
@@ -1197,7 +1197,7 @@ Handle<JSGlobalObject> Genesis::CreateNewGlobals(v8::Local<v8::ObjectTemplate> g
         Handle<JSObject> prototype = factory()->NewFunctionPrototype(isolate()->object_function());
         js_global_object_function = CreateFunctionForBuiltinWithPrototype(
             isolate(), name, Builtin::kIllegal, prototype, JS_GLOBAL_OBJECT_TYPE, JSGlobalObject::kHeaderSize, 0, MUTABLE, 0, kDontAdapt);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         LookupIterator it(isolate(), prototype, factory()->constructor_string(), LookupIterator::OWN_SKIP_INTERCEPTOR);
         DirectHandle<Object> value = Object::GetProperty(&it).ToHandleChecked();
         DCHECK(it.IsFound());

@@ -852,14 +852,14 @@ public:
     BasicBlockRef()
         : next_ref_(nullptr)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         state_ = kRefList;
 #endif
     }
     explicit BasicBlockRef(BasicBlock* block)
         : block_ptr_(block)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         state_ = kBlockPointer;
 #endif
     }
@@ -889,7 +889,7 @@ public:
 
         BasicBlockRef* old_next_ptr = next_ref_;
         block_ptr_ = block;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         state_ = kBlockPointer;
 #endif
         return old_next_ptr;
@@ -959,7 +959,7 @@ private:
         BasicBlock* block_ptr_;
         BasicBlockRef* next_ref_;
     };
-#ifdef DEBUG
+#ifdef V8_DEBUG
     enum { kBlockPointer, kRefList } state_;
 #endif // DEBUG
 };
@@ -1719,7 +1719,7 @@ public:
         translation_index_ = index;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t input_location_count()
     {
         return input_location_count_;
@@ -1730,7 +1730,7 @@ private:
     DeoptFrame top_frame_;
     const compiler::FeedbackSource feedback_to_update_;
     InputLocation* const input_locations_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t input_location_count_;
 #endif // DEBUG
     Label deopt_entry_label_;
@@ -1814,7 +1814,7 @@ public:
     static bool InReturnValues(interpreter::Register reg, interpreter::Register result_location, int result_size);
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsConsideredForResultLocation() const
     {
         switch (top_frame().type()) {
@@ -2164,7 +2164,7 @@ public:
     void OverwriteWith(Opcode new_opcode, std::optional<OpProperties> maybe_new_properties = std::nullopt)
     {
         OpProperties new_properties = maybe_new_properties.has_value() ? maybe_new_properties.value() : StaticPropertiesForOpcode(new_opcode);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CheckCanOverwriteWith(new_opcode, new_properties);
 #endif
         set_opcode(new_opcode);
@@ -2207,7 +2207,7 @@ protected:
     }
     void set_bitfield(uint64_t new_bitfield)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Make sure that all the base bitfield bits (all bits before the next
         // bitfield start, excluding any spare bits) are equal in the new value.
         const uint64_t base_bitfield_mask = ((uint64_t { 1 } << NextBitField<bool, 1>::kShift) - 1) & ~ReservedField::kMask;
@@ -2299,7 +2299,7 @@ private:
         DCHECK(IsAligned(size_before_inputs, alignof(Derived)));
         const size_t size = size_before_node + sizeof(Derived);
         intptr_t raw_buffer = reinterpret_cast<intptr_t>(zone->Allocate<NodeWithInlineInputs>(size));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         memset(reinterpret_cast<void*>(raw_buffer), 0, size);
 #endif
 
@@ -2379,7 +2379,7 @@ private:
 
         BasicBlock* operator=(BasicBlock* owner)
         {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             DCHECK(state_ == State::kNull || state_ == State::kOwner);
             state_ = State::kOwner;
 #endif
@@ -2388,7 +2388,7 @@ private:
 
         void InitReglist()
         {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             DCHECK(state_ == State::kNull || state_ == State::kOwner);
             state_ = State::kReglist;
 #endif
@@ -2410,7 +2410,7 @@ private:
             Regs regs_;
         };
         Store store_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         enum class State {
             kNull,
             kOwner,
@@ -2604,7 +2604,7 @@ public:
 
     void Spill(compiler::AllocatedOperand operand)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (state_ == kLastUse) {
             state_ = kSpill;
         } else {
@@ -2820,7 +2820,7 @@ protected:
         , last_uses_next_use_id_(&next_use_)
         , hint_(compiler::InstructionOperand())
         , use_count_(0)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , state_(kLastUse)
 #endif // DEBUG
     {
@@ -2858,7 +2858,7 @@ protected:
     compiler::InstructionOperand hint_;
     // TODO(leszeks): Union this into another field.
     int use_count_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     enum { kLastUse, kSpill } state_;
 #endif // DEBUG
 };
@@ -2883,7 +2883,7 @@ inline void NodeBase::change_input(int index, ValueNode* node)
     DCHECK_NE(input(index).node(), nullptr);
     input(index).node()->remove_use();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     input(index) = Input(nullptr);
 #endif
     set_input(index, node);

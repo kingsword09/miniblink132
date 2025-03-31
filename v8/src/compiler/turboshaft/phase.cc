@@ -86,7 +86,7 @@ void PrintTurboshaftGraphForTurbolizer(std::ofstream& stream, const Graph& graph
             stream << static_cast<int>(graph.Get(index).saturated_use_count.Get());
             return true;
         });
-#ifdef DEBUG
+#ifdef V8_DEBUG
     PrintTurboshaftCustomDataPerBlock(
         stream, "Type Refinements", graph, [](std::ostream& stream, const turboshaft::Graph& graph, turboshaft::BlockIndex index) -> bool {
             const std::vector<std::pair<turboshaft::OpIndex, turboshaft::Type>>& refinements = graph.block_type_refinement()[index];

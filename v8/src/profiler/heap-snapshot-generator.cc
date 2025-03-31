@@ -2242,7 +2242,7 @@ bool V8HeapExplorer::IterateAndExtractReferences(HeapSnapshotGenerator* generato
         IndexedReferencesExtractor refs_extractor(this, obj, entry);
         VisitObject(heap_->isolate(), obj, &refs_extractor);
 
-#if DEBUG
+#ifdef V8_DEBUG
         // Ensure visited_fields_ doesn't leak to the next object.
         for (size_t i = 0; i < max_pointers_; ++i) {
             DCHECK(!visited_fields_[i]);

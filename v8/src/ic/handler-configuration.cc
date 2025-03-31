@@ -201,7 +201,7 @@ Handle<Object> StoreHandler::StoreElementTransition(Isolate* isolate, DirectHand
 MaybeObjectHandle StoreHandler::StoreOwnTransition(Isolate* isolate, Handle<Map> transition_map)
 {
     bool is_dictionary_map = transition_map->is_dictionary_map();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!is_dictionary_map) {
         InternalIndex descriptor = transition_map->LastAdded();
         DirectHandle<DescriptorArray> descriptors(transition_map->instance_descriptors(isolate), isolate);
@@ -233,7 +233,7 @@ MaybeObjectHandle StoreHandler::StoreOwnTransition(Isolate* isolate, Handle<Map>
 MaybeObjectHandle StoreHandler::StoreTransition(Isolate* isolate, Handle<Map> transition_map)
 {
     bool is_dictionary_map = transition_map->is_dictionary_map();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!is_dictionary_map) {
         InternalIndex descriptor = transition_map->LastAdded();
         DirectHandle<DescriptorArray> descriptors(transition_map->instance_descriptors(isolate), isolate);

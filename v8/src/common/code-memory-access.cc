@@ -85,7 +85,7 @@ template <typename T> void ThreadIsolation::Delete(T* ptr)
 // static
 void ThreadIsolation::Initialize(ThreadIsolatedAllocator* thread_isolated_allocator)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     trusted_data_.initialized = true;
 #endif
 
@@ -674,7 +674,7 @@ template <size_t offset> void WritableFreeSpace::ClearTagged(size_t count) const
 template void WritableFreeSpace::ClearTagged<kTaggedSize>(size_t count) const;
 template void WritableFreeSpace::ClearTagged<2 * kTaggedSize>(size_t count) const;
 
-#if DEBUG
+#ifdef V8_DEBUG
 
 // static
 void ThreadIsolation::CheckTrackedMemoryEmpty()

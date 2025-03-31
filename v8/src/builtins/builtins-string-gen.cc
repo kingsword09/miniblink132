@@ -497,7 +497,7 @@ void StringBuiltinsAssembler::BranchIfCanDerefIndirectString(TNode<String> strin
 
 void StringBuiltinsAssembler::DerefIndirectString(TVariable<String>* var_string, TNode<Int32T> instance_type)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Label can_deref(this), cannot_deref(this);
     BranchIfCanDerefIndirectString(var_string->value(), instance_type, &can_deref, &cannot_deref);
     BIND(&cannot_deref);
@@ -1567,7 +1567,7 @@ void StringBuiltinsAssembler::CopyStringCharacters(TNode<T> from_string, TNode<S
         vars, from_offset, limit_offset,
         [&](TNode<IntPtrT> offset) {
             compiler::Node* value = Load(type, from_string, offset);
-#if DEBUG
+#ifdef V8_DEBUG
             // Copying two-byte characters to one-byte is okay if callers have
             // checked that this loses no information.
             if (v8_flags.debug_code && !from_one_byte && to_one_byte) {

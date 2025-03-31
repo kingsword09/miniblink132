@@ -3469,7 +3469,7 @@ CodeGenerator::CodeGenResult CodeGenerator::AssembleArchInstruction(Instruction*
         break;
     }
     default:
-#ifdef DEBUG
+#ifdef V8_DEBUG
         switch (arch_opcode) {
 #define Print(name)                                                                                                                                            \
     case k##name:                                                                                                                                              \

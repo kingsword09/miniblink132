@@ -1623,7 +1623,7 @@ bool CharCanFastCompareOrOutOfBounds(const String::FlatContent& string, int stri
     return index >= string_length || CanFastCompare(string.Get(index));
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool USetContainsAllAsciiItem(USet* set)
 {
     static constexpr int kBufferSize = 64;
@@ -1788,7 +1788,7 @@ std::optional<UCollationResult> TryFastCompareStrings(
 
     *processed_until_out = 0;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Checked by the caller, see CompareStringsOptionsFor.
     SLOW_DCHECK(CollatorAllowsFastComparison(icu_collator));
     USE(CollatorAllowsFastComparison);

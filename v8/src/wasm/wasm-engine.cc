@@ -718,7 +718,7 @@ MaybeHandle<WasmModuleObject> WasmEngine::SyncCompile(
     if (!native_module)
         return {};
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Ensure that code GC will check this isolate for live code.
     {
         base::MutexGuard lock(&mutex_);

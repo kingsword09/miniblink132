@@ -103,7 +103,7 @@ void InstructionStream::RelocateFromDescWriteBarriers(
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void InstructionStream::WriteBarrierPromise::RegisterAddress(Address address)
 {
     DCHECK(delayed_write_barriers_.insert(address).second);

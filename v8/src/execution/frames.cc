@@ -1766,7 +1766,7 @@ void WasmFrame::Iterate(RootVisitor* v) const
     DrumBrakeWasmCode* wasm_code = interpreter_wasm_code.get();
 #endif // !V8_ENABLE_DRUMBRAKE
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     intptr_t marker = Memory<intptr_t>(fp() + CommonFrameConstants::kContextOrFrameTypeOffset);
     DCHECK(StackFrame::IsTypeMarker(marker));
     StackFrame::Type type = StackFrame::MarkerToType(marker);
@@ -2007,7 +2007,7 @@ void TypedFrame::Iterate(RootVisitor* v) const
     DCHECK(code->is_turbofanned());
     SafepointEntry safepoint_entry = GetSafepointEntryFromCodeCache(isolate(), inner_pointer, entry);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     intptr_t marker = Memory<intptr_t>(fp() + CommonFrameConstants::kContextOrFrameTypeOffset);
     DCHECK(StackFrame::IsTypeMarker(marker));
 #endif // DEBUG
@@ -2126,7 +2126,7 @@ void MaglevFrame::Iterate(RootVisitor* v) const
     DCHECK(code->is_maglevved());
     MaglevSafepointEntry maglev_safepoint_entry = GetMaglevSafepointEntryFromCodeCache(isolate(), inner_pointer, entry);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Assert that it is a JS frame and it has a context.
     intptr_t marker = Memory<intptr_t>(fp() + CommonFrameConstants::kContextOrFrameTypeOffset);
     DCHECK(!StackFrame::IsTypeMarker(marker));
@@ -2280,7 +2280,7 @@ void CommonFrame::IterateTurbofanJSOptimizedFrame(RootVisitor* v) const
     DCHECK(code->is_turbofanned());
     SafepointEntry safepoint_entry = GetSafepointEntryFromCodeCache(isolate(), inner_pointer, entry);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Assert that it is a JS frame and it has a context.
     intptr_t marker = Memory<intptr_t>(fp() + CommonFrameConstants::kContextOrFrameTypeOffset);
     DCHECK(!StackFrame::IsTypeMarker(marker));

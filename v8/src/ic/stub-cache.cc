@@ -69,7 +69,7 @@ int StubCache::SecondaryOffsetForTesting(Tagged<Name> name, Tagged<Map> map)
     return SecondaryOffset(name, map);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 
 bool CommonStubCacheChecks(StubCache* stub_cache, Tagged<Name> name, Tagged<Map> map, Tagged<MaybeObject> handler)

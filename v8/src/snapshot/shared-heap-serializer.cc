@@ -38,7 +38,7 @@ bool SharedHeapSerializer::ShouldBeInSharedHeapObjectCache(Tagged<HeapObject> ob
 
 SharedHeapSerializer::SharedHeapSerializer(Isolate* isolate, Snapshot::SerializerFlags flags)
     : RootsSerializer(isolate, flags, RootIndex::kFirstStrongRoot)
-#ifdef DEBUG
+#ifdef V8_DEBUG
     , serialized_objects_(isolate->heap())
 #endif
 {
@@ -66,7 +66,7 @@ void SharedHeapSerializer::FinalizeSerialization()
     SerializeDeferredObjects();
     Pad();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check that all serialized object are in shared heap and not RO. RO objects
     // should be in the RO snapshot.
     IdentityMap<int, base::DefaultAllocationPolicy>::IteratableScope it_scope(&serialized_objects_);
@@ -186,7 +186,7 @@ void SharedHeapSerializer::SerializeObjectImpl(Handle<HeapObject> obj, SlotType 
     ObjectSerializer object_serializer(this, obj, &sink_);
     object_serializer.Serialize(slot_type);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CHECK_NULL(serialized_objects_.Find(obj));
     // There's no "IdentitySet", so use an IdentityMap with a value that is
     // later ignored.

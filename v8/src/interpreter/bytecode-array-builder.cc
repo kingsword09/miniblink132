@@ -114,7 +114,7 @@ template <typename IsolateT> Handle<BytecodeArray> BytecodeArrayBuilder::ToBytec
 template EXPORT_TEMPLATE_DEFINE(V8_EXPORT_PRIVATE) Handle<BytecodeArray> BytecodeArrayBuilder::ToBytecodeArray(Isolate* isolate);
 template EXPORT_TEMPLATE_DEFINE(V8_EXPORT_PRIVATE) Handle<BytecodeArray> BytecodeArrayBuilder::ToBytecodeArray(LocalIsolate* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 int BytecodeArrayBuilder::CheckBytecodeMatches(Tagged<BytecodeArray> bytecode)
 {
     DisallowGarbageCollection no_gc;

@@ -765,7 +765,7 @@ int GetIdentityHashHelper(Tagged<JSReceiver> object)
         return Cast<GlobalDictionary>(properties)->Hash();
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ReadOnlyRoots roots = object->GetReadOnlyRoots();
     DCHECK(properties == roots.empty_fixed_array() || properties == roots.empty_property_dictionary() || properties == roots.empty_swiss_property_dictionary());
 #endif
@@ -3059,7 +3059,7 @@ void MigrateFastToSlow(Isolate* isolate, DirectHandle<JSObject> object, DirectHa
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_normalization) {
         StdoutStream os;
         os << "Object properties have been normalized:\n";
@@ -3263,7 +3263,7 @@ void JSObject::AddProperty(Isolate* isolate, Handle<JSObject> object, Handle<Nam
 
     LookupIterator it(isolate, object, name, object, LookupIterator::OWN_SKIP_INTERCEPTOR);
     CHECK_NE(LookupIterator::ACCESS_CHECK, it.state());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     uint32_t index;
     DCHECK(!IsJSProxy(*object));
     DCHECK(!IsWasmObject(*object));
@@ -3702,7 +3702,7 @@ Handle<NumberDictionary> JSObject::NormalizeElements(Handle<JSObject> object)
         object->set_elements(*dictionary);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_normalization) {
         StdoutStream os;
         os << "Object elements have been normalized:\n";
@@ -4472,7 +4472,7 @@ void JSObject::OptimizeAsPrototype(DirectHandle<JSObject> object, bool enable_se
     } else {
         DirectHandle<Map> new_map;
         if (enable_setup_mode && PrototypeBenefitsFromNormalization(*object)) {
-#if DEBUG
+#ifdef V8_DEBUG
             DirectHandle<Map> old_map(object->map(isolate), isolate);
 #endif // DEBUG
             // First normalize to ensure all JSFunctions are DATA_CONSTANT. Don't use
@@ -4536,7 +4536,7 @@ void JSObject::OptimizeAsPrototype(DirectHandle<JSObject> object, bool enable_se
             }
         }
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool should_be_dictionary = V8_DICT_PROPERTY_CONST_TRACKING_BOOL && enable_setup_mode && !IsJSGlobalProxy(*object) && !isolate->bootstrapper()->IsActive();
     DCHECK_IMPLIES(should_be_dictionary, object->map(isolate)->is_dictionary_map());
 #endif
@@ -4739,7 +4739,7 @@ void JSObject::InvalidatePrototypeValidityCell(Tagged<JSGlobalObject> global)
 
 Maybe<bool> JSObject::SetPrototype(Isolate* isolate, Handle<JSObject> object, Handle<Object> value_obj, bool from_javascript, ShouldThrow should_throw)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int size = object->Size();
 #endif
 
@@ -5299,7 +5299,7 @@ Tagged<Object> JSDate::GetUTCField(FieldIndex index, double value, DateCache* da
 // static
 void JSDate::SetValue(double value)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(!std::isnan(value));
     double clipped_value = value;
     DCHECK(DateCache::TryTimeClip(&clipped_value));

@@ -22,7 +22,7 @@
 
 V8_BASE_EXPORT V8_NOINLINE void V8_Dcheck(const char* file, int line, const char* message);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // In debug, include file, line, and full error message for all
 // FATAL() calls.
 [[noreturn]] PRINTF_FORMAT(3, 4) V8_BASE_EXPORT V8_NOINLINE void V8_Fatal(const char* file, int line, const char* format, ...);
@@ -117,7 +117,7 @@ enum class OOMType {
     } while (false)
 #define CHECK(condition) CHECK_WITH_MSG(condition, #condition)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 #define DCHECK_WITH_MSG_AND_LOC(condition, message, loc)                                                                                                       \
     do {                                                                                                                                                       \
@@ -430,7 +430,7 @@ template <typename T> constexpr std::make_unsigned_t<T> ToUnsigned(T val)
 
 // The DCHECK macro is equivalent to CHECK except that it only
 // generates code in debug builds.
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define DCHECK_EQ(lhs, rhs) DCHECK_OP(EQ, ==, lhs, rhs)
 #define DCHECK_NE(lhs, rhs) DCHECK_OP(NE, !=, lhs, rhs)
 #define DCHECK_GT(lhs, rhs) DCHECK_OP(GT, >, lhs, rhs)

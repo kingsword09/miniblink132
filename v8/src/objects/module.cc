@@ -26,7 +26,7 @@ namespace v8 {
 namespace internal {
 
 namespace {
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void PrintModuleName(Tagged<Module> module, std::ostream& os)
 {
     if (IsSourceTextModule(module)) {
@@ -62,7 +62,7 @@ void PrintStatusMessage(Tagged<Module> module, const char* message)
 void SetStatusInternal(Tagged<Module> module, Module::Status new_status)
 {
     DisallowGarbageCollection no_gc;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Module::Status old_status = static_cast<Module::Status>(module->status());
     module->set_status(new_status);
     PrintStatusTransition(module, old_status);
@@ -73,7 +73,7 @@ void SetStatusInternal(Tagged<Module> module, Module::Status new_status)
 
 } // end namespace
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 const char* Module::StatusString(Module::Status status)
 {
@@ -201,7 +201,7 @@ MaybeHandle<Cell> Module::ResolveExport(Isolate* isolate, Handle<Module> module,
 bool Module::Instantiate(Isolate* isolate, Handle<Module> module, v8::Local<v8::Context> context, v8::Module::ResolveModuleCallback module_callback,
     v8::Module::ResolveSourceCallback source_callback)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     PrintStatusMessage(*module, "Instantiating module ");
 #endif // DEBUG
 
@@ -257,7 +257,7 @@ bool Module::FinishInstantiate(Isolate* isolate, Handle<Module> module, ZoneForw
 
 MaybeHandle<Object> Module::Evaluate(Isolate* isolate, Handle<Module> module)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     PrintStatusMessage(*module, "Evaluating module ");
 #endif // DEBUG
     int module_status = module->status();

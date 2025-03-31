@@ -353,7 +353,7 @@ public:
     void SetOldGenerationPageFlags(MarkingMode marking_mode, AllocationSpace space);
     void SetYoungGenerationPageFlags(MarkingMode marking_mode);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsTrusted() const;
 #else
     bool IsTrusted() const
@@ -380,7 +380,7 @@ public:
         return static_cast<uint32_t>(address) & kAlignmentMask;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t Offset(Address addr) const;
     // RememberedSetOperations take an offset to an end address that can be behind
     // the allocated memory.

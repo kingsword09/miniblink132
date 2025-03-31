@@ -403,7 +403,7 @@ bool RegExpImpl::EnsureCompiledIrregexp(Isolate* isolate, DirectHandle<IrRegExpD
 
 namespace {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool RegExpCodeIsValidForPreCompilation(IsolateForSandbox isolate, DirectHandle<IrRegExpData> re_data, bool is_one_byte)
 {
     bool has_code = re_data->has_code(is_one_byte);
@@ -614,7 +614,7 @@ MaybeHandle<Object> RegExpImpl::IrregexpExec(Isolate* isolate, DirectHandle<IrRe
 {
     subject = String::Flatten(isolate, subject);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_regexp_bytecodes && regexp_data->ShouldProduceBytecode()) {
         PrintF("\n\nRegexp match:   /%s/\n\n", regexp_data->source()->ToCString().get());
         PrintF("\n\nSubject string: '%s'\n\n", subject->ToCString().get());
@@ -846,7 +846,7 @@ bool RegExpImpl::Compile(Isolate* isolate, Zone* zone, RegExpCompileData* data, 
     }
 
     RegExpMacroAssembler* macro_assembler_ptr = macro_assembler.get();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::unique_ptr<RegExpMacroAssembler> tracer_macro_assembler;
     if (v8_flags.trace_regexp_assembler) {
         tracer_macro_assembler.reset(new RegExpMacroAssemblerTracer(isolate, macro_assembler_ptr));

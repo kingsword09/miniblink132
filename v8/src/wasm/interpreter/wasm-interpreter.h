@@ -1670,7 +1670,7 @@ private:
         return value_type;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool CheckEqualKind(ValueKind value_kind, ValueKind stack_slot_kind)
     {
         if (is_reference(value_kind)) {
@@ -2045,7 +2045,7 @@ private:
 
     bool is_instruction_reachable_;
     uint32_t unreachable_block_count_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool was_current_instruction_reachable_;
 #endif // DEBUG
 

@@ -45,7 +45,7 @@ void ArrayBuiltinsAssembler::TypedArrayMapResultGenerator()
     TNode<JSTypedArray> a = TypedArraySpeciesCreateByLength(context(), method_name, original_array, len());
     // In the Spec and our current implementation, the length check is already
     // performed in TypedArraySpeciesCreate.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Label detached_or_out_of_bounds(this), done(this);
     CSA_DCHECK(this, UintPtrLessThanOrEqual(len(), LoadJSTypedArrayLengthAndCheckDetached(a, &detached_or_out_of_bounds)));
     Goto(&done);

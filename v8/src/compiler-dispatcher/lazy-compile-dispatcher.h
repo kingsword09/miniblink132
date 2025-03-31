@@ -173,7 +173,7 @@ private:
         VerifyBackgroundTaskCount(lock);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyBackgroundTaskCount(const base::MutexGuard&);
 #else
     void VerifyBackgroundTaskCount(const base::MutexGuard&)
@@ -213,7 +213,7 @@ private:
     // and those currently running.
     std::atomic<size_t> num_jobs_for_background_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // The set of all allocated jobs, used for verification of the various queues
     // and counts.
     std::unordered_set<Job*> all_jobs_;

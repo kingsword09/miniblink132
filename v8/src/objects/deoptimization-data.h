@@ -315,7 +315,7 @@ public:
     static const int kBytecodeOffsetRawOffset = 0;
     static const int kTranslationIndexOffset = 1;
     static const int kPcOffset = 2;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static const int kNodeIdOffset = 3;
     static const int kDeoptEntrySize = 4;
 #else // DEBUG
@@ -352,7 +352,7 @@ public:
     DECL_ENTRY_ACCESSORS(BytecodeOffsetRaw, Tagged<Smi>)
     DECL_ENTRY_ACCESSORS(TranslationIndex, Tagged<Smi>)
     DECL_ENTRY_ACCESSORS(Pc, Tagged<Smi>)
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DECL_ENTRY_ACCESSORS(NodeId, Tagged<Smi>)
 #endif // DEBUG
 
@@ -383,7 +383,7 @@ public:
     V8_EXPORT_PRIVATE static Handle<DeoptimizationData> Empty(Isolate* isolate);
     V8_EXPORT_PRIVATE static Handle<DeoptimizationData> Empty(LocalIsolate* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Verify(Handle<BytecodeArray> bytecode) const;
 #endif
 #ifdef ENABLE_DISASSEMBLER

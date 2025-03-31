@@ -298,7 +298,7 @@ void ThreadManager::EagerlyArchiveThread()
 
 void ThreadManager::FreeThreadResources()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This method might be called on a thread that's not bound to any Isolate
     // and thus pointer compression schemes might have cage base value unset.
     // Read-only roots accessors contain type DCHECKs which require access to

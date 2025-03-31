@@ -139,7 +139,7 @@ void MainAllocator::AdvanceAllocationObservers()
 void MainAllocator::MarkLabStartInitialized()
 {
     allocation_info().ResetStart();
-#if DEBUG
+#ifdef V8_DEBUG
     Verify();
 #endif
 }
@@ -172,7 +172,7 @@ void MainAllocator::InvokeAllocationObservers(Address soon_object, size_t size_i
         // Ensure that there is a valid object
         space_heap()->CreateFillerObjectAt(soon_object, static_cast<int>(size_in_bytes));
 
-#if DEBUG
+#ifdef V8_DEBUG
         // Ensure that allocation_info_ isn't modified during one of the
         // AllocationObserver::Step methods.
         LinearAllocationArea saved_allocation_info = allocation_info();
@@ -237,7 +237,7 @@ void MainAllocator::MakeLinearAllocationAreaIterable()
     if (!IsLabValid())
         return;
 
-#if DEBUG
+#ifdef V8_DEBUG
     Verify();
 #endif // DEBUG
 
@@ -331,7 +331,7 @@ void MainAllocator::FreeLinearAllocationArea()
     if (!IsLabValid())
         return;
 
-#if DEBUG
+#ifdef V8_DEBUG
     Verify();
 #endif // DEBUG
 
@@ -387,7 +387,7 @@ Address MainAllocator::ComputeLimit(Address start, Address end, size_t min_size)
     return start + std::max(step_size, min_size);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void MainAllocator::Verify() const
 {
     // Ensure validity of LAB: start <= top.
@@ -514,7 +514,7 @@ void SemiSpaceNewSpaceAllocatorPolicy::FreeLinearAllocationArea()
     if (!allocator_->IsLabValid())
         return;
 
-#if DEBUG
+#ifdef V8_DEBUG
     allocator_->Verify();
 #endif // DEBUG
 
@@ -583,7 +583,7 @@ bool PagedNewSpaceAllocatorPolicy::WaitForSweepingForAllocation(int size_in_byte
         return false;
     Sweeper* sweeper = space_heap()->sweeper();
     if (!sweeper->AreMinorSweeperTasksRunning() && !sweeper->ShouldRefillFreelistForSpace(NEW_SPACE)) {
-#if DEBUG
+#ifdef V8_DEBUG
         for (PageMetadata* p : *space_) {
             DCHECK(p->SweepingDone());
             p->ForAllFreeListCategories([space = space_->paged_space()](
@@ -806,7 +806,7 @@ bool PagedSpaceAllocatorPolicy::TryAllocationFromFreeList(size_t size_in_bytes, 
     PagedSpace::ConcurrentAllocationMutex guard(space_);
     DCHECK(IsAligned(size_in_bytes, kTaggedSize));
     DCHECK_LE(allocator_->top(), allocator_->limit());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (allocator_->top() != allocator_->limit()) {
         DCHECK_EQ(PageMetadata::FromAddress(allocator_->top()), PageMetadata::FromAddress(allocator_->limit() - 1));
     }
@@ -895,7 +895,7 @@ void PagedSpaceAllocatorPolicy::FreeLinearAllocationAreaUnsynchronized()
     if (!allocator_->IsLabValid())
         return;
 
-#if DEBUG
+#ifdef V8_DEBUG
     allocator_->Verify();
 #endif // DEBUG
 

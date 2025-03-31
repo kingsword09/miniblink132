@@ -79,7 +79,7 @@ private:
     void WriteComma();
     void WriteName(const char* name);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // In debug builds checks the pairings of {Begin,End}{Dictionary,Array}
     std::vector<bool> nesting_stack_;
 #endif

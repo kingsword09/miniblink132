@@ -1638,7 +1638,7 @@ void MacroAssembler::LeaveExitFrame(Register scratch)
     ER context_address = ER::Create(IsolateAddressId::kContextAddress, isolate());
     LoadU64(cp, ExternalReferenceAsOperand(context_address, no_reg));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     mov(scratch, Operand(Context::kInvalidContext));
     StoreU64(scratch, ExternalReferenceAsOperand(context_address, no_reg));
 #endif

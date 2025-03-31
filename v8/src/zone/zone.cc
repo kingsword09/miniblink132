@@ -97,7 +97,7 @@ void Zone::Reset()
     DCHECK_EQ(segment_bytes_allocated_, keep->total_size());
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool Zone::Contains(const void* ptr) const
 {
     Address address = reinterpret_cast<Address>(ptr);

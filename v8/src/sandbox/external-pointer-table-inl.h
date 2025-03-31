@@ -241,7 +241,7 @@ void ExternalPointerTable::Mark(Space* space, ExternalPointerHandle handle, Addr
     // the null handle to a valid handle. However, in that case the
     // newly-allocated entry will already have been marked as alive during
     // allocation, and so we don't need to do anything here.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ExternalPointerHandle current_handle = base::AsAtomic32::Acquire_Load(reinterpret_cast<ExternalPointerHandle*>(handle_location));
     DCHECK(handle == kNullExternalPointerHandle || handle == current_handle);
 #endif
@@ -271,7 +271,7 @@ void ExternalPointerTable::Evacuate(Space* from_space, Space* to_space, External
 
     auto handle_ptr = reinterpret_cast<ExternalPointerHandle*>(handle_location);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Unlike Mark(), we require that the mutator is stopped, so we can simply
     // verify that the location stores the handle with a non-atomic load.
     DCHECK_EQ(handle, *handle_ptr);
@@ -351,7 +351,7 @@ void ExternalPointerTable::Space::NotifyExternalPointerFieldInvalidated(Address 
     // external pointers. If this is ever needed, we would probably need to free
     // the managed object here as we may otherwise fail to do so during sweeping.
     DCHECK(!IsManagedExternalPointerType(tag));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ExternalPointerHandle handle = base::AsAtomic32::Acquire_Load(reinterpret_cast<ExternalPointerHandle*>(field_address));
     DCHECK(Contains(HandleToIndex(handle)));
 #endif

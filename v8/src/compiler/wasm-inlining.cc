@@ -182,7 +182,7 @@ void WasmInliner::Finalize()
         const wasm::WasmFunction* inlinee = &module()->functions[candidate.inlinee_index];
 
         DCHECK_EQ(inlinee->sig->parameter_count(), call->op()->ValueInputCount() - 2);
-#if DEBUG
+#ifdef V8_DEBUG
         // The two first parameters in the call are the function and instance, and
         // then come the wasm function parameters.
         for (uint32_t i = 0; i < inlinee->sig->parameter_count(); i++) {
@@ -425,7 +425,7 @@ void WasmInliner::InlineCall(Node* call, Node* callee_start, Node* callee_end, c
         DCHECK(Int32Matcher(NodeProperties::GetValueInput(return_nodes[0], 0)).Is(0));
         int const return_arity = return_nodes[0]->op()->ValueInputCount() - 1;
         NodeVector values(zone());
-#if DEBUG
+#ifdef V8_DEBUG
         for (Node* const return_node : return_nodes) {
             // 3 = effect, control, first 0 return value.
             CHECK_EQ(return_arity, return_node->InputCount() - 3);

@@ -312,7 +312,7 @@ private:
 
     void CheckArgumentsAreNotConversionNodes()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Arguments can leak to the interpreter frame if the call is inlined,
         // conversions should be stored in known_node_aspects/NodeInfo.
         for (ValueNode* arg : args_) {
@@ -957,7 +957,7 @@ MaglevGraphBuilder::MaglevGraphBuilder(LocalIsolate* local_isolate, MaglevCompil
     CHECK_EQ(compilation_unit_->info()->toplevel_osr_offset() != BytecodeOffset::None(), graph_->is_osr());
     if (compilation_unit_->is_osr()) {
         CHECK(!is_inline());
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // OSR'ing into the middle of a loop is currently not supported. There
         // should not be any issue with OSR'ing outside of loops, just we currently
         // dont do it...
@@ -1217,7 +1217,7 @@ std::pair<interpreter::Register, int> MaglevGraphBuilder::GetResultLocationAndSi
     UNREACHABLE();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool MaglevGraphBuilder::HasOutputRegister(interpreter::Register reg) const
 {
     interpreter::Bytecode bytecode = iterator_.current_bytecode();
@@ -1294,7 +1294,7 @@ DeoptFrame MaglevGraphBuilder::GetLatestCheckpointedFrame()
             // expanded in the future if necessary.
             DCHECK_NULL(deopt_scope->parent());
             DCHECK_EQ(deopt_scope->data().tag(), DeoptFrame::FrameType::kBuiltinContinuationFrame);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (deopt_scope->data().tag() == DeoptFrame::FrameType::kBuiltinContinuationFrame) {
                 const DeoptFrame::BuiltinContinuationFrameData& frame = deopt_scope->data().get<DeoptFrame::BuiltinContinuationFrameData>();
                 if (frame.maybe_js_target) {
@@ -1359,7 +1359,7 @@ DeoptFrame MaglevGraphBuilder::GetDeoptFrameForLazyDeoptHelper(
     // the accumulator
     DCHECK(interpreter::Bytecodes::WritesOrClobbersAccumulator(iterator_.current_bytecode()));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (scope->data().tag() == DeoptFrame::FrameType::kBuiltinContinuationFrame) {
         const DeoptFrame::BuiltinContinuationFrameData& frame = current_deopt_scope_->data().get<DeoptFrame::BuiltinContinuationFrameData>();
         if (frame.maybe_js_target) {
@@ -4065,7 +4065,7 @@ NodeType MaglevGraphBuilder::GetType(ValueNode* node)
     if (auto phi = node->TryCast<Phi>()) {
         actual_type = CombineType(actual_type, phi->type());
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     NodeType static_type = StaticTypeForNode(broker(), local_isolate(), node);
     if (!NodeTypeIs(actual_type, static_type)) {
         // In case we needed a numerical alternative of a smi value, the type
@@ -4381,7 +4381,7 @@ ReduceResult MaglevGraphBuilder::BuildCheckMaps(ValueNode* object, base::Vector<
         if (!NodeTypeIs(known_info->type(), merger.node_type())) {
             known_info->IntersectType(merger.node_type());
         }
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Double check that, for every possible map, it's one of the maps we'd
         // want to check.
         for (compiler::MapRef map : known_node_aspects().TryGetInfoFor(object)->possible_maps()) {
@@ -10774,7 +10774,7 @@ std::optional<VirtualObject*> MaglevGraphBuilder::TryReadBoilerplateForFastLiter
             return {};
 
         int offset = boilerplate_map.GetInObjectPropertyOffset(index);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         FieldIndex field_index = FieldIndex::ForDetails(*boilerplate_map.object(), property_details);
         DCHECK(field_index.is_inobject());
         DCHECK_EQ(index, field_index.property_index());
@@ -11945,7 +11945,7 @@ void MaglevGraphBuilder::MarkBranchDeadAndJumpIfNeeded(bool is_jump_taken)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 bool IsNumberRootConstant(RootIndex root_index)
 {

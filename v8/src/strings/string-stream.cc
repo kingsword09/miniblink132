@@ -272,7 +272,7 @@ void StringStream::ClearMentionedObjectCache(Isolate* isolate)
     isolate->string_stream_debug_object_cache()->clear();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool StringStream::IsMentionedObjectCacheClear(Isolate* isolate)
 {
     return object_print_mode_ == kPrintObjectConcise || isolate->string_stream_debug_object_cache()->size() == 0;

@@ -3251,7 +3251,7 @@ void RestoreParentSuspender(MacroAssembler* masm, Register tmp1, Register tmp2)
     __ CompareRoot(suspender, RootIndex::kUndefinedValue);
     Label undefined;
     __ j(equal, &undefined, Label::kNear);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check that the parent suspender is active.
     Label parent_inactive;
     Register state = tmp2;
@@ -3627,7 +3627,7 @@ void Builtins::Generate_WasmSuspend(MacroAssembler* masm)
 
     Register suspender_continuation = edi;
     __ Move(suspender_continuation, FieldOperand(suspender, WasmSuspenderObject::kContinuationOffset));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // -------------------------------------------
     // Check that the suspender's continuation is the active continuation.
     // -------------------------------------------

@@ -131,7 +131,7 @@ public:
     void AlignSavedCalleeRegisterSlots(int alignment = kDoubleSize)
     {
         DCHECK(!frame_aligned_);
-#if DEBUG
+#ifdef V8_DEBUG
         spill_slots_finished_ = true;
 #endif
         DCHECK(base::bits::IsPowerOfTwo(alignment));
@@ -144,7 +144,7 @@ public:
     void AllocateSavedCalleeRegisterSlots(int count)
     {
         DCHECK(!frame_aligned_);
-#if DEBUG
+#ifdef V8_DEBUG
         spill_slots_finished_ = true;
 #endif
         slot_allocator_.AllocateUnaligned(count);
@@ -217,7 +217,7 @@ private:
     BitVector* allocated_double_registers_;
     Zone* zone_;
     GrowableBitVector tagged_slots_bits_;
-#if DEBUG
+#ifdef V8_DEBUG
     bool spill_slots_finished_ = false;
     bool frame_aligned_ = false;
 #endif

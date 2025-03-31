@@ -226,7 +226,7 @@ public:
 
     std::unique_ptr<ObjectIterator> GetObjectIterator(Heap* heap) final;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_EXPORT_PRIVATE void Print() final;
     // Validate a range of of addresses in a SemiSpace.
     // The "from" address must be on a page prior to the "to" address,
@@ -498,7 +498,7 @@ public:
     void VerifyObjects(Isolate* isolate, SpaceVerificationVisitor* visitor) const;
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Print the active semispace.
     void Print() override
     {
@@ -865,7 +865,7 @@ public:
     }
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Print the active semispace.
     void Print() final
     {

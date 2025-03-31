@@ -135,7 +135,7 @@ v8::Maybe<v8::PropertyAttribute> DebugPropertyIterator::attributes()
         // and verify that the data from both sides matches. If there is a mismatch,
         // V8 will crash.
 
-#if DEBUG
+#ifdef V8_DEBUG
     base::ScopedVector<char> property_message(128);
     base::ScopedVector<char> name_buffer(100);
     raw_name()->NameShortPrint(name_buffer);

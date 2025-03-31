@@ -309,7 +309,7 @@ int32_t Assembler::target_constant32_at(Address pc)
 void Assembler::set_target_constant32_at(Address pc, uint32_t target, WritableJitAllocation* jit_allocation, ICacheFlushMode icache_flush_mode)
 {
     uint32_t* p = reinterpret_cast<uint32_t*>(pc);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check we have the result from a li macro-instruction.
     Instruction* instr0 = Instruction::At((unsigned char*)pc);
     Instruction* instr1 = Instruction::At((unsigned char*)(pc + 1 * kInstrSize));

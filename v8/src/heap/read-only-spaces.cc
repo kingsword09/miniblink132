@@ -70,14 +70,14 @@ void ReadOnlyArtifacts::set_read_only_heap(std::unique_ptr<ReadOnlyHeap> read_on
 
 void ReadOnlyArtifacts::InitializeChecksum(SnapshotData* read_only_snapshot_data)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     read_only_blob_checksum_ = Checksum(read_only_snapshot_data->Payload());
 #endif // DEBUG
 }
 
 void ReadOnlyArtifacts::VerifyChecksum(SnapshotData* read_only_snapshot_data, bool read_only_heap_created)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (read_only_blob_checksum_) {
         // The read-only heap was set up from a snapshot. Make sure it's the always
         // the same snapshot.
@@ -318,12 +318,12 @@ void ReadOnlySpace::Verify(Isolate* isolate, SpaceVerificationVisitor* visitor) 
     }
     CHECK(allocation_pointer_found_in_space);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyCounters(isolate->heap());
 #endif
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void ReadOnlySpace::VerifyCounters(Heap* heap) const
 {
     size_t total_capacity = 0;

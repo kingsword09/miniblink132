@@ -138,7 +138,7 @@ template <typename T> template <class Visitor> void ZoneList<T>::Iterate(Visitor
 template <typename T> template <typename CompareFunction> void ZoneList<T>::Sort(CompareFunction cmp)
 {
     std::sort(begin(), end(), [cmp](const T& a, const T& b) { return cmp(&a, &b) < 0; });
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (int i = 1; i < length_; i++) {
         DCHECK_LE(cmp(&data_[i - 1], &data_[i]), 0);
     }
@@ -148,7 +148,7 @@ template <typename T> template <typename CompareFunction> void ZoneList<T>::Sort
 template <typename T> template <typename CompareFunction> void ZoneList<T>::StableSort(CompareFunction cmp, size_t s, size_t l)
 {
     std::stable_sort(begin() + s, begin() + s + l, [cmp](const T& a, const T& b) { return cmp(&a, &b) < 0; });
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (size_t i = s + 1; i < l; i++) {
         DCHECK_LE(cmp(&data_[i - 1], &data_[i]), 0);
     }

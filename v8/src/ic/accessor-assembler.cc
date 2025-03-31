@@ -40,7 +40,7 @@ namespace internal {
 // Loads dataX field from the DataHandler object.
 TNode<MaybeObject> AccessorAssembler::LoadHandlerDataField(TNode<DataHandler> handler, int data_index)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     TNode<Map> handler_map = LoadMap(handler);
     TNode<Uint16T> instance_type = LoadMapInstanceType(handler_map);
 #endif
@@ -1415,7 +1415,7 @@ void AccessorAssembler::CheckFieldType(
         // FieldType::Class(...) performs a map check.
         // If the type is None we want this check to fail too, thus we compare the
         // maybe weak field type as is against a weak map ptr.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         {
             // Check the field type is None or a weak map.
             Label check_done(this);
@@ -1788,7 +1788,7 @@ void AccessorAssembler::HandleStoreToProxy(const StoreICParameters* p, TNode<JSP
 void AccessorAssembler::HandleStoreICSmiHandlerCase(TNode<Word32T> handler_word, TNode<JSObject> holder, TNode<Object> value, Label* miss)
 {
     Comment("field store");
-#ifdef DEBUG
+#ifdef V8_DEBUG
     TNode<Uint32T> handler_kind = DecodeWord32<StoreHandler::KindBits>(handler_word);
     CSA_DCHECK(this, Word32Or(Word32Equal(handler_kind, STORE_KIND(kField)), Word32Equal(handler_kind, STORE_KIND(kConstField))));
 #endif
@@ -1855,7 +1855,7 @@ void AccessorAssembler::CheckHeapObjectTypeMatchesDescriptor(TNode<Word32T> hand
     {
         // If the type is None we want this check to fail too, thus we compare the
         // maybe weak field type as is against a weak map ptr.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         {
             // Check the field type is None or a weak map.
             Label check_done(this);
@@ -3574,7 +3574,7 @@ void AccessorAssembler::StoreInArrayLiteralIC(const StoreICParameters* p)
 
             BIND(&if_smi_handler);
             {
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 // A check to ensure that no other Smi handler uses this path.
                 TNode<Int32T> handler_word = SmiToInt32(CAST(var_handler.value()));
                 TNode<Uint32T> handler_kind = DecodeWord32<StoreHandler::KindBits>(handler_word);

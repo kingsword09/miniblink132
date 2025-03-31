@@ -73,6 +73,7 @@ AllocationResult HeapAllocator::AllocateRawLargeInternal(int size_in_bytes, Allo
     case AllocationType::kReadOnly:
     case AllocationType::kSharedMap:
         UNREACHABLE();
+        return AllocationResult::Failure();
     }
 }
 
@@ -189,7 +190,7 @@ void HeapAllocator::MakeLinearAllocationAreasIterable()
     }
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void HeapAllocator::VerifyLinearAllocationAreas() const
 {
     if (new_space_allocator_) {
@@ -353,7 +354,7 @@ void HeapAllocator::ResumeAllocationObservers()
     code_space_allocator_->ResumeAllocationObservers();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 void HeapAllocator::IncrementObjectCounters()
 {

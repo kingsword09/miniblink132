@@ -111,7 +111,7 @@ RUNTIME_FUNCTION(Runtime_WeakCollectionDelete)
     Handle<Object> key = args.at(1);
     int hash = args.smi_value_at(2);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(Object::CanBeHeldWeakly(*key));
     DCHECK(EphemeronHashTable::IsKey(ReadOnlyRoots(isolate), *key));
     DirectHandle<EphemeronHashTable> table(Cast<EphemeronHashTable>(weak_collection->table()), isolate);
@@ -133,7 +133,7 @@ RUNTIME_FUNCTION(Runtime_WeakCollectionSet)
     DirectHandle<Object> value = args.at(2);
     int hash = args.smi_value_at(3);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(Object::CanBeHeldWeakly(*key));
     DCHECK(EphemeronHashTable::IsKey(ReadOnlyRoots(isolate), *key));
     DirectHandle<EphemeronHashTable> table(Cast<EphemeronHashTable>(weak_collection->table()), isolate);

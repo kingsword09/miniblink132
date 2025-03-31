@@ -53,7 +53,7 @@ void DivideByThree(RWDigits X)
 
 } // namespace
 
-#if DEBUG
+#ifdef V8_DEBUG
 // Set {len_} to 1 rather than 0 so that attempts to access the first digit
 // will crash.
 #define MARK_INVALID(D) D = RWDigits(nullptr, 1)
@@ -187,7 +187,7 @@ void ProcessorImpl::Toom3Main(RWDigits Z, Digits X, Digits Y)
     // R1 <- R1 - R3
     R1_sign = SubtractSigned(R1, R1, R1_sign, R3, R3_sign);
 
-#if DEBUG
+#ifdef V8_DEBUG
     R1.Normalize();
     R2.Normalize();
     R3.Normalize();

@@ -1875,7 +1875,7 @@ MaybeObjectHandle StoreIC::ComputeHandler(LookupIterator* lookup)
 
             if (IsJSGlobalObject(*lookup_start_object_map())) {
                 DCHECK(IsStoreGlobalIC());
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 DirectHandle<JSObject> holder = lookup->GetHolder<JSObject>();
                 DCHECK_EQ(*lookup->GetReceiver(), *holder);
                 DCHECK_EQ(*store_target, *holder);
@@ -2828,7 +2828,7 @@ RUNTIME_FUNCTION(Runtime_StoreGlobalIC_Slow)
     Handle<Object> value = args.at(0);
     Handle<String> name = args.at<String>(4);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     {
         int slot = args.tagged_index_value_at(1);
         DirectHandle<FeedbackVector> vector = args.at<FeedbackVector>(2);
@@ -3172,7 +3172,7 @@ bool CanFastCloneObjectToObjectLiteral(
             return false;
         }
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ElementsKind source_elements_kind = source_map->elements_kind();
     ElementsKind target_elements_kind = target_map->elements_kind();
     DCHECK(IsSmiOrObjectElementsKind(source_elements_kind) || IsAnyNonextensibleElementsKind(source_elements_kind));
@@ -3328,7 +3328,7 @@ template <SideStepTransition::Kind kind> Tagged<Object> GetCloneTargetMap(Isolat
             }
         }
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     FastCloneObjectMode clone_mode = GetCloneModeForMap(source_map, false, isolate);
     if (result == SideStepTransition::Unreachable) {
         switch (clone_mode) {

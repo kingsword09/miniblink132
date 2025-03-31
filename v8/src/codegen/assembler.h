@@ -656,7 +656,7 @@ public:
         kDontCheckSupported,
     };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CpuFeatureScope(AssemblerBase* assembler, CpuFeature f, CheckPolicy check = kCheckSupported);
     ~CpuFeatureScope();
 

@@ -2431,7 +2431,7 @@ bool PipelineImpl::OptimizeTurbofanGraph(Linkage* linkage)
 
     // In order to catch bugs related to type access after this point, we now
     // remove the types from the nodes (currently only in Debug builds).
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Run<UntyperPhase>();
     RunPrintAndVerify(UntyperPhase::phase_name(), true);
 #endif
@@ -2714,7 +2714,7 @@ MaybeHandle<Code> Pipeline::GenerateCodeForTurboshaftBuiltin(turboshaft::Pipelin
 
 #if V8_ENABLE_EXPERIMENTAL_TSA_BUILTINS
 // TODO(nicohartmann): Use during development and remove afterwards.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::cout << "=== Generating Builtin '" << debug_name << "' with Turboshaft ===" << std::endl;
 #endif
 
@@ -3820,7 +3820,7 @@ void PipelineImpl::AllocateRegisters(const RegisterConfiguration* config, CallDe
         verifier = verifier_zone->New<RegisterAllocatorVerifier>(verifier_zone.get(), config, data->sequence(), data->frame());
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     data_->sequence()->ValidateEdgeSplitForm();
     data_->sequence()->ValidateDeferredBlockEntryPaths();
     data_->sequence()->ValidateDeferredBlockExitPaths();

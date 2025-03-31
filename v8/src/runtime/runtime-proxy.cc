@@ -46,7 +46,7 @@ RUNTIME_FUNCTION(Runtime_GetPropertyWithReceiver)
     // TODO(mythria): Remove the on_non_existent parameter to this function. This
     // should only be called when getting named properties on receiver. This
     // doesn't handle the global variable loads.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int on_non_existent = args.smi_value_at(3);
     DCHECK_NE(static_cast<OnNonExistent>(on_non_existent), OnNonExistent::kThrowReferenceError);
 #endif

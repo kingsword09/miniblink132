@@ -718,7 +718,7 @@ Address NativeRegExpMacroAssembler::GrowStack(Isolate* isolate)
     RegExpStack* regexp_stack = isolate->regexp_stack();
     const size_t old_size = regexp_stack->memory_size();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const Address old_stack_top = regexp_stack->memory_top();
     const Address old_stack_pointer = regexp_stack->stack_pointer();
     CHECK_LE(old_stack_pointer, old_stack_top);

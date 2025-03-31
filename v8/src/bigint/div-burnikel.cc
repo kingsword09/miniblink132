@@ -282,7 +282,7 @@ void ProcessorImpl::DivideBurnikelZiegler(RWDigits Q, RWDigits R, Digits A, Digi
             return;
     }
     // 9. Return Q = [Q_(t-2), ..., Q_0] and R = R_0 * 2^(-sigma).
-#if DEBUG
+#ifdef V8_DEBUG
     for (int i = 0; i < digit_shift; i++) {
         DCHECK(Ri[i] == 0);
     }

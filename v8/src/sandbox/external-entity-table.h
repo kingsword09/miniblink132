@@ -111,7 +111,7 @@ protected:
             return is_internal_read_only_space_;
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Check whether this space belongs to the given external entity table.
         bool BelongsTo(const void* table) const
         {
@@ -129,7 +129,7 @@ protected:
     protected:
         friend class ExternalEntityTable<Entry, size>;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // In debug builds we keep track of which table a space belongs to to be
         // able to insert additional DCHECKs that verify that spaces are always used
         // with the correct table.

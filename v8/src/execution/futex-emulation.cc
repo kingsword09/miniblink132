@@ -954,7 +954,7 @@ int FutexEmulation::NumUnresolvedAsyncPromisesForTesting(Tagged<JSArrayBuffer> a
 
 void FutexWaitList::Verify() const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     auto VerifyNode = [](FutexWaitListNode* node, FutexWaitListNode* head, FutexWaitListNode* tail) {
         if (node->next_ != nullptr) {
             DCHECK_NE(node, tail);

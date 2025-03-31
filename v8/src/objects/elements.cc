@@ -1815,7 +1815,7 @@ public:
     static void ValidateContents(Tagged<JSObject> holder, size_t length)
     {
         DisallowGarbageCollection no_gc;
-#if DEBUG
+#ifdef V8_DEBUG
         DCHECK_EQ(holder->map()->elements_kind(), DICTIONARY_ELEMENTS);
         if (!v8_flags.enable_slow_asserts)
             return;
@@ -2051,7 +2051,7 @@ public:
 
     static void ValidateContents(Tagged<JSObject> holder, size_t length)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         Isolate* isolate = holder->GetIsolate();
         Heap* heap = isolate->heap();
         Tagged<FixedArrayBase> elements = holder->elements();

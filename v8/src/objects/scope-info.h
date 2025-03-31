@@ -236,7 +236,7 @@ public:
     // come from debug evaluate but are different to IsDebugEvaluateScope().
     bool IsReplModeScope() const;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // For LiveEdit we ignore:
     //   - position info: "unchanged" functions are allowed to move in a script
     //   - module info: SourceTextModuleInfo::Equals compares exact FixedArray

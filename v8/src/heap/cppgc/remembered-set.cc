@@ -53,7 +53,7 @@ void InvalidateCompressedRememberedSlots(const HeapBase& heap, void* begin, void
     const uintptr_t uend = reinterpret_cast<uintptr_t>(end);
 
     slot_set->RemoveRange(ubegin - page_start, uend - page_start, buckets_size, SlotSet::EmptyBucketMode::FREE_EMPTY_BUCKETS);
-#if DEBUG
+#ifdef V8_DEBUG
     EraseFromSet(remembered_slots_for_verification, begin, end);
 #endif // DEBUG
 }
@@ -61,7 +61,7 @@ void InvalidateCompressedRememberedSlots(const HeapBase& heap, void* begin, void
 void InvalidateUncompressedRememberedSlots(std::set<void*>& slots, void* begin, void* end, std::set<void*>& remembered_slots_for_verification)
 {
     EraseFromSet(slots, begin, end);
-#if DEBUG
+#ifdef V8_DEBUG
     EraseFromSet(remembered_slots_for_verification, begin, end);
 #endif // DEBUG
 #if defined(ENABLE_SLOW_DCHECKS)
@@ -359,7 +359,7 @@ void OldToNewRememberedSet::Reset()
     slot_remover.Run();
     remembered_uncompressed_slots_.clear();
     remembered_source_objects_.clear();
-#if DEBUG
+#ifdef V8_DEBUG
     remembered_slots_for_verification_.clear();
 #endif // DEBUG
     remembered_in_construction_objects_.Reset();

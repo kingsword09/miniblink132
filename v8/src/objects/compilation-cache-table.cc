@@ -87,7 +87,7 @@ void AddToFeedbackCellsMap(
     new_literals_map->set(entry + kLiteralContextOffset, MakeWeak(*native_context));
     new_literals_map->set(entry + kLiteralLiteralsOffset, MakeWeak(*feedback_cell));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (int i = 0; i < new_literals_map->length(); i += kLiteralEntryLength) {
         Tagged<MaybeObject> object = new_literals_map->get(i + kLiteralContextOffset);
         DCHECK(object.IsCleared() || IsNativeContext(object.GetHeapObjectAssumeWeak()));
@@ -343,7 +343,7 @@ ScriptCacheKey::ScriptCacheKey(Handle<String> source, MaybeHandle<Object> name, 
     , isolate_(isolate)
 {
     DCHECK(Smi::IsValid(static_cast<int>(Hash())));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Handle<FixedArray> wrapped_arguments;
     if (maybe_wrapped_arguments.ToHandle(&wrapped_arguments)) {
         int length = wrapped_arguments->length();

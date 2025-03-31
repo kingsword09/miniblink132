@@ -59,7 +59,7 @@
 #define ENTER_V8(i_isolate, context, class_name, function_name, HandleScopeClass)                                                                              \
     ENTER_V8_HELPER_INTERNAL(i_isolate, context, class_name, function_name, HandleScopeClass, true)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define ENTER_V8_NO_SCRIPT(i_isolate, context, class_name, function_name, HandleScopeClass)                                                                    \
     ENTER_V8_HELPER_INTERNAL(i_isolate, context, class_name, function_name, HandleScopeClass, false);                                                          \
     i::DisallowJavascriptExecutionDebugOnly __no_script__((i_isolate))

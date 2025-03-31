@@ -138,7 +138,7 @@ void PreparseDataBuilder::ByteData::Finalize(Zone* zone)
     memcpy(raw_zone_data, byte_data_->data(), index_);
     byte_data_->resize(0);
     zone_byte_data_ = base::Vector<uint8_t>(raw_zone_data, index_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     is_finalized_ = true;
 #endif
 }
@@ -166,7 +166,7 @@ void PreparseDataBuilder::ByteData::Add(uint8_t byte)
     (*byte_data_)[index_++] = byte;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void PreparseDataBuilder::ByteData::WriteUint32(uint32_t data)
 {
     DCHECK(!is_finalized_);
@@ -190,7 +190,7 @@ void PreparseDataBuilder::ByteData::SaveCurrentSizeAtFirstUint32()
 
 void PreparseDataBuilder::ByteData::WriteVarint32(uint32_t data)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Save expected item size in debug mode.
     Add(kVarint32MinSize);
 #endif
@@ -203,7 +203,7 @@ void PreparseDataBuilder::ByteData::WriteVarint32(uint32_t data)
             next_byte |= 0x80;
         Add(next_byte & 0xFF);
     } while (data);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Add(kVarint32EndMarker);
 #endif
     free_quarters_in_last_byte_ = 0;
@@ -212,7 +212,7 @@ void PreparseDataBuilder::ByteData::WriteVarint32(uint32_t data)
 void PreparseDataBuilder::ByteData::WriteUint8(uint8_t data)
 {
     DCHECK(!is_finalized_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Save expected item size in debug mode.
     Add(kUint8Size);
 #endif
@@ -225,7 +225,7 @@ void PreparseDataBuilder::ByteData::WriteQuarter(uint8_t data)
     DCHECK(!is_finalized_);
     DCHECK_LE(data, 3);
     if (free_quarters_in_last_byte_ == 0) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Save a marker in debug mode.
         Add(kQuarterMarker);
 #endif
@@ -277,7 +277,7 @@ void PreparseDataBuilder::FinalizeChildren(Zone* zone)
     base::Vector<PreparseDataBuilder*> children = CloneVector(zone, children_buffer_.ToConstVector());
     children_buffer_.Rewind();
     children_ = children;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     finalized_children_ = true;
 #endif
 }
@@ -334,7 +334,7 @@ void PreparseDataBuilder::SaveScopeAllocationData(DeclarationScope* scope, Parse
 
     byte_data_.Start(parser->preparse_data_buffer());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Reserve Uint32 for scope_data_start debug info.
     byte_data_.Reserve(kUint32Size);
     byte_data_.WriteUint32(0);
@@ -350,7 +350,7 @@ void PreparseDataBuilder::SaveScopeAllocationData(DeclarationScope* scope, Parse
 
     // Don't save incomplete scope information when bailed out.
     if (!bailed_out_) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // function data items, kSkippableMinFunctionDataSize each.
         CHECK_GE(byte_data_.length(), kPlaceholderSize);
         CHECK_LE(byte_data_.length(), std::numeric_limits<uint32_t>::max());
@@ -375,7 +375,7 @@ void PreparseDataBuilder::SaveDataForScope(Scope* scope)
     DCHECK_NE(scope->end_position(), kNoSourcePosition);
     DCHECK(ScopeNeedsData(scope));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     byte_data_.Reserve(kUint8Size);
     byte_data_.WriteUint8(scope->scope_type());
 #endif
@@ -404,7 +404,7 @@ void PreparseDataBuilder::SaveDataForScope(Scope* scope)
 
 void PreparseDataBuilder::SaveDataForVariable(Variable* var)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Store the variable name in debug mode; this way we can check that we
     // restore data to the correct variable.
     const AstRawString* name = var->raw_name();
@@ -650,7 +650,7 @@ template <class Data> void BaseConsumedPreparseData<Data>::RestoreScopeAllocatio
     DCHECK_EQ(scope->scope_type(), ScopeType::FUNCTION_SCOPE);
     typename ByteData::ReadingScope reading_scope(this);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int magic_value_from_data = scope_data_->ReadUint32();
     // Check that we've consumed all inner function data.
     DCHECK_EQ(magic_value_from_data, ByteData::kMagicValue);
@@ -727,7 +727,7 @@ template <typename Data> void BaseConsumedPreparseData<Data>::RestoreDataForScop
 
 template <typename Data> void BaseConsumedPreparseData<Data>::RestoreDataForVariable(Variable* var)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const AstRawString* name = var->raw_name();
     bool data_one_byte = scope_data_->ReadUint8();
     DCHECK_IMPLIES(name->is_one_byte(), data_one_byte);
@@ -767,7 +767,7 @@ template <typename Data> void BaseConsumedPreparseData<Data>::RestoreDataForInne
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 template <class Data> bool BaseConsumedPreparseData<Data>::VerifyDataStart()
 {
     typename ByteData::ReadingScope reading_scope(this);

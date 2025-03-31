@@ -2229,7 +2229,7 @@ private:
 
     void MergeValuesInto(FullDecoder* decoder, Control* c, Merge<Value>* merge, uint32_t drop_values = 0)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         uint32_t avail = decoder->stack_size() - decoder->control_at(0)->stack_depth - drop_values;
         DCHECK_GE(avail, merge->arity);
 #endif

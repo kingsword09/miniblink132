@@ -67,7 +67,7 @@ PreParser::PreParseResult PreParser::PreParseProgram()
 {
     DCHECK_NULL(scope_);
     DeclarationScope* scope = NewScriptScope(REPLMode::kNo);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     scope->set_is_being_lazily_parsed(true);
 #endif
 
@@ -109,7 +109,7 @@ PreParser::PreParseResult PreParser::PreParseFunction(const AstRawString* functi
 {
     DCHECK_EQ(FUNCTION_SCOPE, function_scope->scope_type());
     use_counts_ = use_counts;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     function_scope->set_is_being_lazily_parsed(true);
 #endif
 

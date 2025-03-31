@@ -175,14 +175,12 @@ public:
 
         size_t GetMaxConcurrency(size_t worker_count) const override
         {
-//             size_t max_threads = v8_flags.concurrent_sparkplug_max_threads;
-//             size_t num_tasks = incoming_queue_->size() + worker_count;
-//             if (max_threads > 0) {
-//                 return std::min(max_threads, num_tasks);
-//             }
-//             return num_tasks;
-            *(int*)1 = 1;
-            return 0;
+            size_t max_threads = v8_flags.concurrent_sparkplug_max_threads;
+            size_t num_tasks = incoming_queue_->size() + worker_count;
+            if (max_threads > 0) {
+                return std::min(max_threads, num_tasks);
+            }
+            return num_tasks;
         }
 
     private:
@@ -195,9 +193,8 @@ public:
         : isolate_(isolate)
     {
         if (v8_flags.concurrent_sparkplug) {
-          *(int*)1 = 1;
-//             TaskPriority priority = v8_flags.concurrent_sparkplug_high_priority_threads ? TaskPriority::kUserBlocking : TaskPriority::kUserVisible;
-//             job_handle_ = V8::GetCurrentPlatform()->PostJob(priority, std::make_unique<JobDispatcher>(isolate_, &incoming_queue_, &outgoing_queue_));
+            TaskPriority priority = v8_flags.concurrent_sparkplug_high_priority_threads ? TaskPriority::kUserBlocking : TaskPriority::kUserVisible;
+            job_handle_ = V8::GetCurrentPlatform()->PostJob(priority, std::make_unique<JobDispatcher>(isolate_, &incoming_queue_, &outgoing_queue_));
         }
     }
 

@@ -71,7 +71,7 @@ template <typename Entry, size_t size> void ExternalEntityTable<Entry, size>::Te
 
 template <typename Entry, size_t size> void ExternalEntityTable<Entry, size>::InitializeSpace(Space* space)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_EQ(space->owning_table_, nullptr);
     space->owning_table_ = this;
 #endif
@@ -261,7 +261,7 @@ template <typename Entry, size_t size> void ExternalEntityTable<Entry, size>::Ex
         // For the internal read-only segment, index 0 is reserved for the `null`
         // entry. The underlying memory has been nulled by allocation, and is
         // therefore already initialized.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         uint32_t first = segment.first_entry();
         CHECK_EQ(first, kInternalNullEntryIndex);
         static constexpr uint8_t kNullBytes[kEntrySize] = { 0 };

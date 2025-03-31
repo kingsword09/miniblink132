@@ -6,7 +6,7 @@
 
 #include "src/codegen/reloc-info.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #include "src/objects/instruction-stream-inl.h"
 #include "src/objects/smi.h"
 #endif // DEBUG

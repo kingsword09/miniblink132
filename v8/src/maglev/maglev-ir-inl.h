@@ -198,7 +198,7 @@ template <typename Function> void DeepForEachInputRemovingIdentities(LazyDeoptIn
 
 } // namespace detail
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 inline RegList GetGeneralRegistersUsedAsInputs(const EagerDeoptInfo* deopt_info)
 {
     RegList regs;

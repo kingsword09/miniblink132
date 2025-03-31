@@ -1026,7 +1026,7 @@ TNode<Object> GraphAssembler::Call(const Operator* op, int inputs_size, Node** i
 
 void GraphAssembler::TailCall(const CallDescriptor* call_descriptor, int inputs_size, Node** inputs)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static constexpr int kTargetEffectControl = 3;
     DCHECK_EQ(inputs_size, call_descriptor->ParameterCount() + kTargetEffectControl);
 #endif // DEBUG

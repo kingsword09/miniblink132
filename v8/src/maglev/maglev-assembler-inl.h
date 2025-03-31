@@ -133,20 +133,20 @@ public:
     void Generate(MaglevAssembler* masm) override
     {
         MaglevAssembler::TemporaryRegisterScope scratch_scope(masm, deferred_scratch_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         masm->set_allow_call(allow_call_);
         masm->set_allow_deferred_call(allow_call_);
         masm->set_allow_allocate(allow_allocate_);
 #endif // DEBUG
         std::apply(function, std::tuple_cat(std::make_tuple(masm), std::move(args)));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         masm->set_allow_call(false);
         masm->set_allow_deferred_call(false);
         masm->set_allow_allocate(false);
 #endif // DEBUG
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void set_allow_call(bool value)
     {
         allow_call_ = value;
@@ -162,7 +162,7 @@ private:
     Tuple args;
     MaglevAssembler::TemporaryRegisterScope::SavedData deferred_scratch_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool allow_call_ = false;
     bool allow_allocate_ = false;
 #endif // DEBUG
@@ -183,7 +183,7 @@ template <typename Function, typename... Args> inline Label* MaglevAssembler::Ma
     DeferredCodeInfoT* deferred_code
         = compilation_info()->zone()->New<DeferredCodeInfoT>(compilation_info(), scratch_scope.CopyForDefer(), deferred_code_gen, std::forward<Args>(args)...);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     deferred_code->set_allow_call(allow_deferred_call_);
     deferred_code->set_allow_allocate(allow_allocate_);
 #endif // DEBUG
@@ -344,7 +344,7 @@ inline void MaglevAssembler::LoadHeapNumberOrOddballValue(DoubleRegister result,
 
 namespace detail {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 inline bool ClobberedBy(RegList written_registers, Register reg)
 {
     return written_registers.has(reg);
@@ -574,7 +574,7 @@ template <Builtin kBuiltin, typename... Args> void MoveArgumentsForBuiltin(Magle
 // Then, set register arguments.
 // TODO(leszeks): Use the parallel move helper to do register moves, instead
 // of detecting clobbering.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     RegList written_registers = {};
     DoubleRegList written_double_registers = {};
 #endif // DEBUG
@@ -596,7 +596,7 @@ template <Builtin kBuiltin, typename... Args> void MoveArgumentsForBuiltin(Magle
             } else {
                 masm->Move(target, std::forward<Arg>(arg));
             }
-#ifdef DEBUG
+#ifdef V8_DEBUG
             written_double_registers.set(target);
 #endif // DEBUG
         } else {
@@ -607,7 +607,7 @@ template <Builtin kBuiltin, typename... Args> void MoveArgumentsForBuiltin(Magle
             } else {
                 masm->Move(target, std::forward<Arg>(arg));
             }
-#ifdef DEBUG
+#ifdef V8_DEBUG
             written_registers.set(target);
 #endif // DEBUG
         }
@@ -650,7 +650,7 @@ inline void MaglevAssembler::CallBuiltin(Builtin builtin)
 
     // Make sure that none of the register parameters alias the default
     // temporaries.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CallInterfaceDescriptor descriptor = Builtins::CallInterfaceDescriptorFor(builtin);
     for (int i = 0; i < descriptor.GetRegisterParameterCount(); ++i) {
         DCHECK(!reset_temps.Available().has(descriptor.GetRegisterParameter(i)));

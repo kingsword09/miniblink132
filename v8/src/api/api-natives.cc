@@ -90,7 +90,7 @@ MaybeHandle<Object> DefineDataProperty(Isolate* isolate, Handle<JSObject> object
     PropertyKey key(isolate, name);
     LookupIterator it(isolate, object, key, LookupIterator::OWN_SKIP_INTERCEPTOR);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Maybe<PropertyAttributes> maybe = JSReceiver::GetPropertyAttributes(&it);
     DCHECK(maybe.IsJust());
     if (it.IsFound()) {

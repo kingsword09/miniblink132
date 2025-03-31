@@ -76,7 +76,7 @@ bool ProductGreaterThan(digit_t factor1, digit_t factor2, digit_t high, digit_t 
     return result_high > high || (result_high == high && result_low > low);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 bool QLengthOK(Digits Q, Digits A, Digits B)
 {
     // If A's top B.len digits are greater than or equal to B, then the division

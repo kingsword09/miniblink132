@@ -214,7 +214,7 @@ Node* StateValuesCache::BuildTree(size_t* values_idx, Node** values, size_t coun
     }
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 namespace {
 
 void CheckTreeContainsValues(Node* tree, Node** values, size_t count, const BytecodeLivenessState* liveness)
@@ -240,7 +240,7 @@ void CheckTreeContainsValues(Node* tree, Node** values, size_t count, const Byte
 
 Node* StateValuesCache::GetNodeForValues(Node** values, size_t count, const BytecodeLivenessState* liveness)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     // Check that the values represent actual values, and not a tree of values.
     for (size_t i = 0; i < count; i++) {
         if (values[i] != nullptr) {
@@ -282,7 +282,7 @@ Node* StateValuesCache::GetNodeForValues(Node** values, size_t count, const Byte
     // The 'tree' must be rooted with a state value node.
     DCHECK_EQ(tree->opcode(), IrOpcode::kStateValues);
 
-#if DEBUG
+#ifdef V8_DEBUG
     CheckTreeContainsValues(tree, values, count, liveness);
 #endif
 

@@ -9,7 +9,7 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool ShouldSkipOptimizationStep()
 {
     static std::atomic<uint64_t> counter { 0 };

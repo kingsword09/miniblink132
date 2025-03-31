@@ -151,7 +151,7 @@ public:
     void Retire();
     bool SerializingAllowed() const;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Get the current heap broker for this thread. Only to be used for DCHECKs.
     static JSHeapBroker* Current();
 #endif
@@ -178,7 +178,7 @@ public:
 
     bool StackHasOverflowed() const;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void PrintRefsAnalysis() const;
 #endif // DEBUG
 
@@ -478,7 +478,7 @@ private:
     static_assert(base::bits::IsPowerOfTwo(kInitialRefsBucketCount));
 };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // In debug builds, store the current heap broker on a thread local, for
 // DCHECKs to access it via JSHeapBroker::Current();
 class V8_NODISCARD V8_EXPORT_PRIVATE CurrentHeapBrokerScope {

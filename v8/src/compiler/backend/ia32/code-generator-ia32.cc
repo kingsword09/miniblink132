@@ -598,7 +598,7 @@ void AdjustStackPointerForTailCall(MacroAssembler* masm, FrameAccessState* state
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool VerifyOutputOfAtomicPairInstr(IA32OperandConverter* converter, const Instruction* instr)
 {
     if (instr->OutputCount() == 2) {

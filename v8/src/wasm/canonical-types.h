@@ -115,7 +115,7 @@ public:
 
     CanonicalTypeIndex FindIndex_Slow(const CanonicalSig* sig) const;
 
-#if DEBUG
+#ifdef V8_DEBUG
     // Check whether a supposedly-canonicalized function signature does indeed
     // live in this class's storage. Useful for guarding casts of signatures
     // that are entering the typed world.

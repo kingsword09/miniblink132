@@ -50,7 +50,7 @@
 #include "src/sandbox/trusted-pointer-table.h"
 #include "src/utils/allocation.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #include "src/runtime/runtime-utils.h"
 #endif
 
@@ -474,7 +474,7 @@ class WaiterQueueNode;
 V8_EXPORT_PRIVATE void DisableEmbeddedBlobRefcounting();
 V8_EXPORT_PRIVATE void FreeCurrentEmbeddedBlob();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 #define ISOLATE_INIT_DEBUG_ARRAY_LIST(V)                                                                                                                       \
     V(CommentStatistic, paged_space_comments_statistics, CommentStatistic::kMaxComments + 1)                                                                   \
@@ -884,7 +884,7 @@ public:
     inline bool has_pending_message();
     inline void set_pending_message(Tagged<Object> message_obj);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     inline Tagged<Object> VerifyBuiltinsResult(Tagged<Object> result);
     inline ObjectPair VerifyBuiltinsResult(ObjectPair pair);
 #endif
@@ -1649,7 +1649,7 @@ public:
         return heap_profiler_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static size_t non_disposed_isolates()
     {
         return non_disposed_isolates_;
@@ -2889,7 +2889,7 @@ private:
     // Time stamp at initialization.
     double time_millis_at_init_ = 0;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static std::atomic<size_t> non_disposed_isolates_;
 
     JSObject::SpillInformation js_spill_information_;
@@ -2929,7 +2929,7 @@ private:
     ISOLATE_INIT_ARRAY_LIST(GLOBAL_ARRAY_BACKING_STORE)
 #undef GLOBAL_ARRAY_BACKING_STORE
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This class is huge and has a number of fields controlled by
     // preprocessor defines. Make sure the offsets of these fields agree
     // between compilation units.
@@ -3184,7 +3184,7 @@ public:
 };
 
 class AssertNoContextChange {
-#ifdef DEBUG
+#ifdef V8_DEBUG
 public:
     explicit AssertNoContextChange(Isolate* isolate);
     ~AssertNoContextChange()

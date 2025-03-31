@@ -12,7 +12,7 @@ namespace internal {
 
 ExternalReferenceEncoder::ExternalReferenceEncoder(Isolate* isolate)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     api_references_ = isolate->api_external_references();
     if (api_references_ != nullptr) {
         for (uint32_t i = 0; api_references_[i] != 0; ++i)
@@ -48,7 +48,7 @@ ExternalReferenceEncoder::ExternalReferenceEncoder(Isolate* isolate)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 ExternalReferenceEncoder::~ExternalReferenceEncoder()
 {
     if (!v8_flags.external_reference_stats)
@@ -69,7 +69,7 @@ Maybe<ExternalReferenceEncoder::Value> ExternalReferenceEncoder::TryEncode(Addre
     if (maybe_index.IsNothing())
         return Nothing<Value>();
     Value result(maybe_index.FromJust());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (result.is_from_api())
         count_[result.index()]++;
 #endif // DEBUG
@@ -86,7 +86,7 @@ ExternalReferenceEncoder::Value ExternalReferenceEncoder::Encode(Address address
         v8::base::OS::Abort();
     }
     Value result(maybe_index.FromJust());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (result.is_from_api())
         count_[result.index()]++;
 #endif // DEBUG

@@ -17,7 +17,7 @@ void DCheckImpl(const char* message, const SourceLocation& loc)
 
 void FatalImpl(const char* message, const SourceLocation& loc)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     V8_Fatal(loc.FileName(), static_cast<int>(loc.Line()), "Check failed: %s.", message);
 #elif !defined(OFFICIAL_BUILD)
     V8_Fatal("Check failed: %s.", message);

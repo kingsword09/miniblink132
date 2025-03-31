@@ -1144,7 +1144,7 @@ template <typename Impl> MaybeDirectHandle<Map> FactoryBase<Impl>::GetInPlaceInt
 
 template <typename Impl> AllocationType FactoryBase<Impl>::RefineAllocationTypeForInPlaceInternalizableString(AllocationType allocation, Tagged<Map> string_map)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     InstanceType instance_type = string_map->instance_type();
     DCHECK(InstanceTypeChecker::IsInternalizedString(instance_type) || String::IsInPlaceInternalizable(instance_type));
 #endif

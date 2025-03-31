@@ -224,7 +224,7 @@ public:
         instance_nocheck()->Base::Initialize();
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsMarked(JSDispatchHandle handle);
     inline void VerifyEntry(JSDispatchHandle handle, Space* space, Space* ro_space);
 #endif // DEBUG
@@ -234,13 +234,13 @@ public:
     static constexpr bool kWriteBarrierSetsEntryMarkBit = true;
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static std::atomic<bool> initialized_;
 #endif // DEBUG
 
     static void CheckInitialization(bool is_initializing)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_NE(is_initializing, initialized_.load());
         initialized_.store(true);
 #endif // DEBUG

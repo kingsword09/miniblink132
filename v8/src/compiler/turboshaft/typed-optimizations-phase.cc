@@ -14,7 +14,7 @@ namespace v8::internal::compiler::turboshaft {
 
 void TypedOptimizationsPhase::Run(PipelineData* data, Zone* temp_zone)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     UnparkedScopeIfNeeded scope(data->broker(), v8_flags.turboshaft_trace_typing);
 #endif
 

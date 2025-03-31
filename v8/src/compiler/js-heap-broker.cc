@@ -77,7 +77,7 @@ std::string JSHeapBroker::Trace() const
     return oss.str();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 static thread_local JSHeapBroker* current_broker = nullptr;
 
 CurrentHeapBrokerScope::CurrentHeapBrokerScope(JSHeapBroker* broker)

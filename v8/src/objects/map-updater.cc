@@ -442,7 +442,7 @@ void MapUpdater::CompleteInobjectSlackTracking(Isolate* isolate, Tagged<Map> ini
     if (slack != 0) {
         // Resize the initial map and all maps in its transition tree.
         callback = [slack](Tagged<Map> map) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             int old_visitor_id = Map::GetVisitorId(map);
             int new_unused = map->UnusedPropertyFields() - slack;
 #endif
@@ -692,7 +692,7 @@ MapUpdater::State MapUpdater::FindTargetMap()
     // Directly change the map if the target map is more general.
     int target_nof = target_map_->NumberOfOwnDescriptors();
     if (target_nof == old_nof_) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (modified_descriptor_.is_found()) {
             Tagged<DescriptorArray> target_descriptors = target_map_->instance_descriptors(isolate_);
             PropertyDetails details = target_descriptors->GetDetails(modified_descriptor_);
@@ -735,7 +735,7 @@ MapUpdater::State MapUpdater::FindTargetMap()
         if (!maybe_tmp_map.ToHandle(&tmp_map))
             break;
         DirectHandle<DescriptorArray> tmp_descriptors(tmp_map->instance_descriptors(isolate_), isolate_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Check that target map is compatible.
         PropertyDetails tmp_details = tmp_descriptors->GetDetails(i);
         DCHECK_EQ(old_details.kind(), tmp_details.kind());
@@ -779,7 +779,7 @@ Handle<DescriptorArray> MapUpdater::BuildDescriptorArray()
         if (old_details.location() == PropertyLocation::kField) {
             current_offset += old_details.field_width_in_words();
         }
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Ensuring FindRootMap gave us a compatible root map.
         // TODO(olivf): In some cases it might be nice to be able to generalize the
         // root map (for instance if the prototype transitions overflowed). For that
@@ -941,7 +941,7 @@ Handle<Map> MapUpdater::FindSplitMap(DirectHandle<DescriptorArray> descriptors)
 
 MapUpdater::State MapUpdater::ConstructNewMap()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DirectHandle<EnumCache> old_enum_cache(old_map_->instance_descriptors()->enum_cache(), isolate_);
 #endif
     DirectHandle<DescriptorArray> new_descriptors = BuildDescriptorArray();

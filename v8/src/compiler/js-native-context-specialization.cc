@@ -1828,7 +1828,7 @@ Reduction JSNativeContextSpecialization::ReduceJSGetIterator(Node* node)
         DCHECK_EQ(exception_node_index, if_exception_merge->InputCount());
         DCHECK_EQ(exception_node_index, if_exception_effect_phi->InputCount() - 1);
         DCHECK_EQ(exception_node_index, if_exception_phi->InputCount() - 1);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         for (Node* input : if_exception_merge->inputs()) {
             DCHECK(!input->IsDead());
         }

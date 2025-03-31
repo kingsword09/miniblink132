@@ -858,7 +858,7 @@ public:
     void LoadConstantPoolPointerRegisterFromCodeTargetAddress(Register code_target_address, Register scratch1, Register scratch2);
     void AbortConstantPoolBuilding()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Avoid DCHECK(!is_linked()) failure in ~Label()
         bind(ConstantPoolPosition());
 #endif

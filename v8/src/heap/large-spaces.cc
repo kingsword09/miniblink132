@@ -212,7 +212,7 @@ void LargeObjectSpace::RemovePage(LargePageMetadata* page)
 void LargeObjectSpace::ShrinkPageToObjectSize(LargePageMetadata* page, Tagged<HeapObject> object, size_t object_size)
 {
     MemoryChunk* chunk = page->Chunk();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     PtrComprCageBase cage_base(heap()->isolate());
     DCHECK_EQ(object, page->GetObject());
     DCHECK_EQ(object_size, page->GetObject()->Size(cage_base));
@@ -309,7 +309,7 @@ void LargeObjectSpace::Verify(Isolate* isolate, SpaceVerificationVisitor* visito
 }
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void LargeObjectSpace::Print()
 {
     StdoutStream os;

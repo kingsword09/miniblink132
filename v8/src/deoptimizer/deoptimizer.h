@@ -242,7 +242,7 @@ private:
     }
     void TraceDeoptBegin(int optimization_id, BytecodeOffset bytecode_offset);
     void TraceDeoptEnd(double deopt_duration);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static void TraceFoundActivation(Isolate* isolate, Tagged<JSFunction> function);
 #endif
     static void TraceDeoptAll(Isolate* isolate);
@@ -300,7 +300,7 @@ private:
     size_t shadow_stack_count_ = 0;
 #endif // V8_ENABLE_CET_SHADOW_STACK
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DisallowGarbageCollection* disallow_garbage_collection_;
 #endif // DEBUG
 

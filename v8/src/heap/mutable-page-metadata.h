@@ -307,7 +307,7 @@ protected:
     // chunk is about to be freed.
     void ReleaseAllAllocatedMemory();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static void ValidateOffsets(MutablePageMetadata* chunk);
 #endif
 

@@ -176,7 +176,7 @@ public:
     DECL_PRINTER(DescriptorArray)
     DECL_VERIFIER(DescriptorArray)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Is the descriptor array sorted and without duplicates?
     V8_EXPORT_PRIVATE bool IsSortedNoDuplicates();
 

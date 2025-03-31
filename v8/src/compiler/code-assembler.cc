@@ -76,7 +76,7 @@ int CodeAssemblerState::parameter_count() const
 
 CodeAssembler::~CodeAssembler() = default;
 
-#if DEBUG
+#ifdef V8_DEBUG
 void CodeAssemblerState::PrintCurrentBlock(std::ostream& os)
 {
     raw_assembler_->PrintCurrentBlock(os);
@@ -90,7 +90,7 @@ bool CodeAssemblerState::InsideBlock()
 
 void CodeAssemblerState::SetInitialDebugInformation(const char* msg, const char* file, int line)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     AssemblerDebugInfo debug_info = { msg, file, line };
     raw_assembler_->SetCurrentExternalSourcePosition({ file, line });
     raw_assembler_->SetInitialDebugInformation(debug_info);
@@ -649,7 +649,7 @@ void CodeAssembler::Bind(Label* label)
     return label->Bind();
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void CodeAssembler::Bind(Label* label, AssemblerDebugInfo debug_info)
 {
     return label->Bind(debug_info);
@@ -1148,7 +1148,7 @@ private:
     Node** ptr_ = arr_;
 };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool IsValidArgumentCountFor(const CallInterfaceDescriptor& descriptor, size_t argument_count)
 {
     size_t parameter_count = descriptor.GetParameterCount();
@@ -1576,7 +1576,7 @@ class CodeAssemblerVariable::Impl : public ZoneObject {
 public:
     explicit Impl(MachineRepresentation rep, CodeAssemblerState::VariableId id)
         :
-#if DEBUG
+#ifdef V8_DEBUG
         debug_info_(AssemblerDebugInfo(nullptr, nullptr, -1))
         ,
 #endif
@@ -1586,7 +1586,7 @@ public:
     {
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     AssemblerDebugInfo debug_info() const
     {
         return debug_info_;
@@ -1625,7 +1625,7 @@ CodeAssemblerVariable::CodeAssemblerVariable(CodeAssembler* assembler, MachineRe
     Bind(initial_value);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 CodeAssemblerVariable::CodeAssemblerVariable(CodeAssembler* assembler, AssemblerDebugInfo debug_info, MachineRepresentation rep)
     : impl_(assembler->zone()->New<Impl>(rep, assembler->state()->NextVariableId()))
     , state_(assembler->state())
@@ -1654,7 +1654,7 @@ void CodeAssemblerVariable::Bind(Node* value)
 
 Node* CodeAssemblerVariable::value() const
 {
-#if DEBUG
+#ifdef V8_DEBUG
     if (!IsBound()) {
         std::stringstream str;
         str << "#Use of unbound variable:"
@@ -1684,7 +1684,7 @@ bool CodeAssemblerVariable::IsBound() const
 
 std::ostream& operator<<(std::ostream& os, const CodeAssemblerVariable::Impl& impl)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     AssemblerDebugInfo info = impl.debug_info();
     if (info.name)
         os << "V" << info;
@@ -1753,7 +1753,7 @@ void CodeAssemblerLabel::MergeVariables()
                     // the variable after the label bind (it's not possible to add phis to
                     // the bound label after the fact, just make sure to list the variable
                     // in the label's constructor's list of merged variables).
-#if DEBUG
+#ifdef V8_DEBUG
                     if (find_if(i->second.begin(), i->second.end(), [node](Node* e) -> bool { return node != e; }) != i->second.end()) {
                         std::stringstream str;
                         str << "Unmerged variable found when jumping to block. \n"
@@ -1772,7 +1772,7 @@ void CodeAssemblerLabel::MergeVariables()
     }
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void CodeAssemblerLabel::Bind(AssemblerDebugInfo debug_info)
 {
     if (bound_) {
@@ -1820,7 +1820,7 @@ void CodeAssemblerLabel::UpdateVariablesAfterBind()
     for (auto var : variable_phis_) {
         CodeAssemblerVariable::Impl* var_impl = var.first;
         auto i = variable_merges_.find(var_impl);
-#if DEBUG
+#ifdef V8_DEBUG
         bool not_found = i == variable_merges_.end();
         if (not_found || i->second.size() != merge_count_) {
             std::stringstream str;

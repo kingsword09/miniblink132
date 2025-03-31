@@ -129,7 +129,7 @@ public:
     public:
         inline NoExtend(Tagged<String> string, int offset, const DisallowGarbageCollection& no_gc);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         inline ~NoExtend();
 #endif
 
@@ -152,7 +152,7 @@ public:
     private:
         DestChar* start_;
         DestChar* cursor_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Tagged<String> string_;
 #endif
         DISALLOW_GARBAGE_COLLECTION(no_gc_)

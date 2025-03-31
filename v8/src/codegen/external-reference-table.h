@@ -106,7 +106,7 @@ private:
     void AddNativeCodeStatsCounters(Isolate* isolate, int* index);
 
     static_assert(sizeof(Address) == kEntrySize);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Address ref_addr_[kSize] = { kNullAddress };
 #else
     Address ref_addr_[kSize];

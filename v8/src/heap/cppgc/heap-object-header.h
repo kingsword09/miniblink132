@@ -186,7 +186,7 @@ HeapObjectHeader::HeapObjectHeader(size_t size, GCInfoIndex gc_info_index)
     // answer when checking if objects are in-construction.
     v8::base::AsAtomicPtr(&encoded_high_)->store(GCInfoIndexField::encode(gc_info_index), std::memory_order_relaxed);
     DCHECK(IsInConstruction());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CheckApiConstants();
 #endif // DEBUG
 }

@@ -34,7 +34,7 @@ public:
 
     template <typename T> IndirectHandle<T> NewHandle(Tagged<T> obj)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CheckOwnerIsNotParked();
 #endif
         return IndirectHandle<T>(GetHandle(obj.ptr()));
@@ -56,7 +56,7 @@ public:
         return isolate_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_EXPORT_PRIVATE bool Contains(Address* location);
 #endif
 
@@ -64,7 +64,7 @@ private:
     void AddBlock();
     V8_EXPORT_PRIVATE Address* GetHandle(Address value);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Attach(LocalHeap* local_heap);
     void Detach();
     V8_EXPORT_PRIVATE void CheckOwnerIsNotParked();
@@ -89,7 +89,7 @@ private:
     PersistentHandles* prev_;
     PersistentHandles* next_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::set<Address*> ordered_blocks_;
 #endif
 
@@ -139,7 +139,7 @@ private:
     Address* prev_next_;
     HandleScopeImplementer* const impl_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool handles_detached_ = false;
     int prev_level_;
 #endif

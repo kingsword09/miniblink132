@@ -3524,12 +3524,12 @@ public:
     {
         if (V8_UNLIKELY(assembler_->buffer_overflow()))
             assembler_->GrowBuffer();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         space_before_ = assembler_->available_space();
 #endif
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ~EnsureSpace()
     {
         int bytes_generated = space_before_ - assembler_->available_space();
@@ -3539,7 +3539,7 @@ public:
 
 private:
     Assembler* const assembler_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int space_before_;
 #endif
 };

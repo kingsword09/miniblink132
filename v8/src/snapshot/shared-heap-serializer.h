@@ -46,7 +46,7 @@ private:
 
     void SerializeObjectImpl(Handle<HeapObject> obj, SlotType slot_type) override;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     IdentityMap<int, base::DefaultAllocationPolicy> serialized_objects_;
 #endif
 };

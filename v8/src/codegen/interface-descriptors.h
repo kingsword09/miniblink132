@@ -297,7 +297,7 @@ private:
         return initialized;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool AllStackParametersAreTagged() const;
 #endif // DEBUG
 
@@ -610,7 +610,7 @@ public:
     {
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     // Overwritten in DerivedDescriptor.
     static void Verify(CallInterfaceDescriptorData* data);
     // Verify that the CallInterfaceDescriptorData contains the default
@@ -1499,7 +1499,7 @@ public:
     // A temporary register used in helpers.
     static constexpr inline Register ValueRegister();
     static constexpr inline RegList ComputeSavedRegisters(Register object, Register slot_address = no_reg);
-#if DEBUG
+#ifdef V8_DEBUG
     static void Verify(CallInterfaceDescriptorData* data);
 #endif
 };
@@ -1523,7 +1523,7 @@ public:
     static constexpr inline Register SlotAddressRegister();
     static constexpr inline Register IndirectPointerTagRegister();
     static constexpr inline RegList ComputeSavedRegisters(Register object, Register slot_address = no_reg);
-#if DEBUG
+#ifdef V8_DEBUG
     static void Verify(CallInterfaceDescriptorData* data);
 #endif
 };

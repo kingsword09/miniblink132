@@ -801,7 +801,7 @@ public:
         return UintPtrLessThanOrEqual(IntPtrSub(value, IntPtrConstant(lower_limit)), IntPtrConstant(higher_limit - lower_limit));
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     void Bind(Label* label, AssemblerDebugInfo debug_info);
 #endif // DEBUG
     void Bind(Label* label);

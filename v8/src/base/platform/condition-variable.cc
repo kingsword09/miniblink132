@@ -149,7 +149,7 @@ bool ConditionVariable::WaitFor(Mutex* mutex, const TimeDelta& rel_time)
     int64_t msec = rel_time.InMilliseconds();
     mutex->AssertHeldAndUnmark();
     BOOL result = SleepConditionVariableSRW(V8ToWindowsType(&native_handle_), V8ToWindowsType(&mutex->native_handle()), static_cast<DWORD>(msec), 0);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!result) {
         // On failure, we only expect the CV to timeout. Any other error value means
         // that we've unexpectedly woken up.

@@ -718,7 +718,7 @@ void CallPrinter::PrintLiteral(const AstRawString* value, bool quote)
 
 //-----------------------------------------------------------------------------
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 const char* AstPrinter::Print(AstNode* node)
 {

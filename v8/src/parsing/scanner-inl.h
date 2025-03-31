@@ -574,7 +574,7 @@ void Scanner::Scan(TokenDesc* next_desc)
     DCHECK_IMPLIES(has_parser_error(), next_desc->token == Token::kIllegal);
     next_desc->location.end_pos = source_pos();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     SanityCheckTokenDesc(current());
     SanityCheckTokenDesc(next());
     SanityCheckTokenDesc(next_next());

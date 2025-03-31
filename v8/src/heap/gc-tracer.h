@@ -297,7 +297,7 @@ public:
     void NotifyYoungCppGCRunning();
     void NotifyYoungCppGCCompleted();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsInObservablePause() const;
     bool IsInAtomicPause() const;
 

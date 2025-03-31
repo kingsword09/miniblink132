@@ -119,7 +119,7 @@ private:
     // Number of entries in the loaded handler table.
     const int number_of_entries_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // The encoding mode of the table. Mostly useful for debugging to check that
     // used accessors and constructors fit together.
     const EncodingMode mode_;

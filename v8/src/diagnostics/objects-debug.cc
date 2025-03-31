@@ -1206,7 +1206,7 @@ void SlicedString::SlicedStringVerify(Isolate* isolate)
     CHECK(IsSlicedString(this, isolate));
     CHECK(!IsConsString(parent()));
     CHECK(!IsSlicedString(parent()));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!isolate->has_turbofan_string_builders()) {
         // Turbofan's string builder optimization can introduce SlicedString that
         // are less than SlicedString::kMinLength characters. Their live range and
@@ -2688,7 +2688,7 @@ void StringTable::VerifyIfOwnedBy(Isolate* isolate)
 
 #endif // VERIFY_HEAP
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 void JSObject::IncrementSpillStatistics(Isolate* isolate, SpillInformation* info)
 {
@@ -2880,7 +2880,7 @@ bool TransitionsAccessor::IsConsistentWithBackPointers()
     ReadOnlyRoots roots(isolate_);
     DCHECK_IMPLIES(map_->IsInobjectSlackTrackingInProgress(), !HasSideStepTransitions());
     auto CheckTarget = [&](Tagged<Map> target) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (!map_->is_deprecated() && !target->is_deprecated()) {
             DCHECK_EQ(map_->IsInobjectSlackTrackingInProgress(), target->IsInobjectSlackTrackingInProgress());
             // Check prototype transitions are first.

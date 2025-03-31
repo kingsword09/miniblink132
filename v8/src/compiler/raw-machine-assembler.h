@@ -1415,7 +1415,7 @@ public:
     void Comment(const std::string& msg);
     void StaticAssert(Node* value, const char* source);
 
-#if DEBUG
+#ifdef V8_DEBUG
     void Bind(RawMachineLabel* label, AssemblerDebugInfo info);
     void SetInitialDebugInformation(AssemblerDebugInfo info);
     void PrintCurrentBlock(std::ostream& os);

@@ -200,7 +200,7 @@ void SharedFunctionInfo::SetScript(
         DCHECK(!IsScript(script()));
         Tagged<Script> script = Cast<Script>(script_object);
         Tagged<WeakFixedArray> list = script->infos();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_LT(function_literal_id, list->length());
         Tagged<MaybeObject> maybe_object = list->get(function_literal_id);
         Tagged<HeapObject> heap_object;
@@ -254,7 +254,7 @@ void SharedFunctionInfo::CopyFrom(Tagged<SharedFunctionInfo> other, IsolateForSa
     set_unique_id(other->unique_id());
     set_age(0);
 
-#if DEBUG
+#ifdef V8_DEBUG
     // This should now be byte-for-byte identical to the input except for the age
     // field (could be reset concurrently). Compare content before age field now:
     DCHECK_EQ(memcmp(reinterpret_cast<void*>(address()), reinterpret_cast<void*>(other.address()), SharedFunctionInfo::kAgeOffset), 0);
@@ -836,7 +836,7 @@ void SharedFunctionInfo::EnsureOldForTesting(Tagged<SharedFunctionInfo> sfi)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 bool SharedFunctionInfo::UniqueIdsAreUnique(Isolate* isolate)
 {

@@ -256,7 +256,7 @@ private:
         }
         const FrameStateOp* first_frame = frame_states[0];
 
-#if DEBUG
+#ifdef V8_DEBUG
         // Making sure that all frame states have the same number of inputs, the
         // same "inlined" field, and the same data.
         for (auto frame_state : frame_states) {

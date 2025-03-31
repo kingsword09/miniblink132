@@ -33,7 +33,7 @@ public:
         capacity_ = stats.capacity_.load();
         max_capacity_ = stats.max_capacity_;
         size_.store(stats.size_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         allocated_on_page_ = stats.allocated_on_page_;
 #endif
         return *this;
@@ -50,7 +50,7 @@ public:
     void ClearSize()
     {
         size_ = 0;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         allocated_on_page_.clear();
 #endif
     }
@@ -68,7 +68,7 @@ public:
     {
         return size_;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t AllocatedOnPage(const MemoryChunkMetadata* page) const
     {
         return allocated_on_page_.at(page);
@@ -78,12 +78,12 @@ public:
     void IncreaseAllocatedBytes(size_t bytes, const MemoryChunkMetadata* page)
     {
         DCHECK_IMPLIES(V8_COMPRESS_POINTERS_8GB_BOOL, IsAligned(bytes, kObjectAlignment8GbHeap));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         size_t size = size_;
         DCHECK_GE(size + bytes, size);
 #endif
         size_.fetch_add(bytes);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         allocated_on_page_[page] += bytes;
 #endif
     }
@@ -92,7 +92,7 @@ public:
     {
         DCHECK_GE(size_, bytes);
         size_.fetch_sub(bytes);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_GE(allocated_on_page_[page], bytes);
         allocated_on_page_[page] -= bytes;
 #endif
@@ -127,7 +127,7 @@ private:
     // |size_|: The number of allocated bytes.
     std::atomic<size_t> size_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::unordered_map<const MemoryChunkMetadata*, size_t, base::hash<const MemoryChunkMetadata*>> allocated_on_page_;
 #endif
 };

@@ -936,7 +936,7 @@ RUNTIME_FUNCTION(Runtime_RegExpBuildIndices)
     DCHECK_EQ(3, args.length());
     DirectHandle<RegExpMatchInfo> match_info = args.at<RegExpMatchInfo>(1);
     Handle<Object> maybe_names = args.at(2);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DirectHandle<JSRegExp> regexp = args.at<JSRegExp>(0);
     DCHECK(regexp->flags() & JSRegExp::kHasIndices);
 #endif

@@ -235,7 +235,7 @@ SourcePositionTableIterator::SourcePositionTableIterator(
     , function_entry_filter_(function_entry_filter)
 {
     Initialize();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // We can enable allocation because we keep the table in a handle.
     no_gc.Release();
 #endif // DEBUG
@@ -248,7 +248,7 @@ SourcePositionTableIterator::SourcePositionTableIterator(
     , function_entry_filter_(function_entry_filter)
 {
     Initialize();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // We can enable allocation because the underlying vector does not move.
     no_gc.Release();
 #endif // DEBUG

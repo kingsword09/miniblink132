@@ -660,7 +660,7 @@ void StraightForwardRegisterAllocator::AllocateLazyDeopt(const LazyDeoptInfo& de
     });
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 #define GET_NODE_RESULT_REGISTER_T(RegisterT, AssignedRegisterT)                                                                                               \
     RegisterT GetNodeResult##RegisterT(Node* node)                                                                                                             \
@@ -1218,7 +1218,7 @@ void StraightForwardRegisterAllocator::MarkAsClobbered(ValueNode* node, const co
 
 namespace {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool IsInRegisterLocation(ValueNode* node, compiler::InstructionOperand location)
 {
     DCHECK(location.IsAnyRegister());
@@ -1374,7 +1374,7 @@ void StraightForwardRegisterAllocator::AssignInputs(NodeBase* node)
 
 void StraightForwardRegisterAllocator::VerifyInputs(NodeBase* node)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (Input& input : *node) {
         if (input.operand().IsRegister()) {
             Register reg = compiler::AllocatedOperand::cast(input.operand()).GetRegister();
@@ -1399,7 +1399,7 @@ void StraightForwardRegisterAllocator::VerifyInputs(NodeBase* node)
 
 void StraightForwardRegisterAllocator::VerifyRegisterState()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // We shouldn't have any blocked registers by now.
     DCHECK(general_registers_.blocked().is_empty());
     DCHECK(double_registers_.blocked().is_empty());
@@ -1713,7 +1713,7 @@ compiler::AllocatedOperand StraightForwardRegisterAllocator::ForceAllocate(Regis
         DCHECK(!registers.is_blocked(reg));
         DropRegisterValue(registers, reg);
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(!registers.free().has(reg));
 #endif
     registers.unblock(reg);
@@ -1962,7 +1962,7 @@ void StraightForwardRegisterAllocator::InitializeRegisterValues(MergePointRegist
     double_registers_.clear_blocked();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 bool StraightForwardRegisterAllocator::IsInRegister(MergePointRegisterState& target_state, ValueNode* incoming)
 {

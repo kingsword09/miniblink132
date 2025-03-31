@@ -187,7 +187,7 @@ void Simulator::CallImpl(Address entry, CallArgument* args)
     set_sp(original_stack);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 int PopLowestIndexAsCode(CPURegList* list)
 {
@@ -209,7 +209,7 @@ void Simulator::CheckPCSComplianceAndRun()
     // Adjust JS-based stack limit to C-based stack limit.
     isolate_->stack_guard()->AdjustStackLimitForSimulator();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_EQ(kNumberOfCalleeSavedRegisters, kCalleeSaved.Count());
     DCHECK_EQ(kNumberOfCalleeSavedVRegisters, kCalleeSavedV.Count());
 
@@ -232,7 +232,7 @@ void Simulator::CheckPCSComplianceAndRun()
 #endif
     // Start the simulation!
     Run();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_EQ(original_stack, sp());
     DCHECK_EQ(original_fp, fp());
     // Check that callee-saved registers have been preserved.
@@ -263,7 +263,7 @@ void Simulator::CheckPCSComplianceAndRun()
 #endif
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // The least significant byte of the curruption value holds the corresponding
 // register's code.
 void Simulator::CorruptRegisters(CPURegList* list, uint64_t value)
@@ -611,7 +611,7 @@ void Simulator::CallAnyCTypeFunction(Address target_address, const EncodedCSigna
 #undef CALL_ARGS
 #undef GEN_MAX_PARAM_COUNT
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CorruptAllCallerSavedCPURegisters();
 #endif
 
@@ -754,7 +754,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         int64_t result
             = target(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19);
         TraceSim("Returned: 0x%16\n", result);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         set_xreg(0, result);
@@ -804,7 +804,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         MSAN_MEMORY_IS_INITIALIZED(&result, sizeof(result));
 #endif
         TraceSim("Returned: {%p, %p}\n", reinterpret_cast<void*>(result.x), reinterpret_cast<void*>(result.y));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         set_xreg(0, static_cast<int64_t>(result.x));
@@ -819,7 +819,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         TraceSim("Arguments: %f, %f\n", dreg(0), dreg(1));
         int64_t result = target(dreg(0), dreg(1));
         TraceSim("Returned: %" PRId64 "\n", result);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         set_xreg(0, result);
@@ -833,7 +833,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         TraceSim("Argument: %f\n", dreg(0));
         double result = target(dreg(0));
         TraceSim("Returned: %f\n", result);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         set_dreg(0, result);
@@ -847,7 +847,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         TraceSim("Arguments: %f, %f\n", dreg(0), dreg(1));
         double result = target(dreg(0), dreg(1));
         TraceSim("Returned: %f\n", result);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         set_dreg(0, result);
@@ -861,7 +861,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         TraceSim("Arguments: %f, %d\n", dreg(0), wreg(0));
         double result = target(dreg(0), wreg(0));
         TraceSim("Returned: %f\n", result);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         set_dreg(0, result);
@@ -877,7 +877,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
             arg0, arg1, arg2, arg3);
         double result = target(arg0, arg1, arg2, arg3);
         TraceSim("Returned: %f\n", result);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         set_dreg(0, result);
@@ -891,7 +891,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         SimulatorRuntimeDirectApiCall target = reinterpret_cast<SimulatorRuntimeDirectApiCall>(external);
         target(arg0);
         TraceSim("No return value.");
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         break;
@@ -904,7 +904,7 @@ void Simulator::DoRuntimeCall(Instruction* instr)
         SimulatorRuntimeDirectGetterCall target = reinterpret_cast<SimulatorRuntimeDirectGetterCall>(external);
         target(arg0, arg1);
         TraceSim("No return value.");
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CorruptAllCallerSavedCPURegisters();
 #endif
         break;
@@ -4000,7 +4000,7 @@ bool Simulator::ExecDebugCommand(ArrayUniquePtr<char> line_ptr)
             if (GetValue(arg1, &value)) {
                 Tagged<Object> obj(value);
                 os << arg1 << ": \n";
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 Print(obj, os);
                 os << "\n";
 #else
@@ -6602,7 +6602,7 @@ void Simulator::DoPrintf(Instruction* instr)
 
     fprintf(stream_, "%s", clr_normal);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CorruptAllCallerSavedCPURegisters();
 #endif
 

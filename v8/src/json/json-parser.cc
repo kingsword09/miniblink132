@@ -734,7 +734,7 @@ public:
             } else {
                 key = it.GetKey({});
             }
-#ifdef DEBUG
+#ifdef V8_DEBUG
             uint32_t index;
             DCHECK(!key->AsArrayIndex(&index));
 #endif

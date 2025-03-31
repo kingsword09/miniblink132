@@ -148,7 +148,7 @@ constexpr bool WasmOpcodes::IsFP16SimdOpcode(WasmOpcode opcode)
     return (opcode >= kExprF16x8Splat && opcode <= kExprF16x8ReplaceLane) || (opcode >= kExprF16x8Abs && opcode <= kExprF16x8Qfms);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 // static
 constexpr bool WasmOpcodes::IsMemoryAccessOpcode(WasmOpcode opcode)
 {

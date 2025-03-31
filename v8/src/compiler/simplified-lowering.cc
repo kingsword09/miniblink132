@@ -257,7 +257,7 @@ private:
 
 } // namespace
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // Helpers for monotonicity checking.
 class InputUseInfos {
 public:
@@ -410,7 +410,7 @@ public:
         , count_(jsgraph->graph()->NodeCount())
         , info_(count_, zone)
         ,
-#ifdef DEBUG
+#ifdef V8_DEBUG
         node_input_use_infos_(count_, InputUseInfos(zone), zone)
         ,
 #endif
@@ -4295,7 +4295,7 @@ public:
                     ChangeOp(node, simplified()->AssertType(inputType));
                 } else {
                     if (!v8_flags.fuzzing) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
                         inputType.Print();
 #endif
                         FATAL("%%VerifyType: unsupported type");
@@ -4474,7 +4474,7 @@ private:
     ZoneMap<Node*, ZoneVector<Node*>> might_need_revisit_;
     size_t count_; // number of nodes in the graph
     ZoneVector<NodeInfo> info_; // node id -> usage information
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ZoneVector<InputUseInfos> node_input_use_infos_; // Debug information about
         // requirements on inputs.
 #endif // DEBUG
@@ -4530,7 +4530,7 @@ template <> void RepresentationSelector::EnqueueInput<PROPAGATE>(Node* use_node,
 {
     Node* node = use_node->InputAt(index);
     NodeInfo* info = GetInfo(node);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check monotonicity of input requirements.
     node_input_use_infos_[use_node->id()].SetAndCheckInput(use_node, index, use_info);
 #endif // DEBUG

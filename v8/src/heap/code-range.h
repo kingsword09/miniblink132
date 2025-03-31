@@ -126,7 +126,7 @@ private:
     // race during Isolate::Init.
     base::Mutex remap_embedded_builtins_mutex_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool immutable_ = false;
 #endif
 };

@@ -474,7 +474,7 @@
 #endif
 
 #if V8_HAS_BUILTIN_ASSUME
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // In debug mode, check assumptions in addition to adding annotations.
 // This helps GCC (and maybe other compilers) figure out that certain
 // situations are unreachable.

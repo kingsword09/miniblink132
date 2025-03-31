@@ -5,7 +5,7 @@
 #ifndef V8_OBJECTS_INSTRUCTION_STREAM_H_
 #define V8_OBJECTS_INSTRUCTION_STREAM_H_
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #include <set>
 #endif
 
@@ -154,7 +154,7 @@ private:
         WriteBarrierPromise(const WriteBarrierPromise&) = delete;
         WriteBarrierPromise& operator=(const WriteBarrierPromise&) = delete;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         void RegisterAddress(Address address);
         void ResolveAddress(Address address);
         ~WriteBarrierPromise();

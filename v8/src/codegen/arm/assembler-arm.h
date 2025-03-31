@@ -1153,7 +1153,7 @@ protected:
     {
         if (--const_pool_blocked_nesting_ == 0) {
             if (first_const_pool_32_use_ >= 0) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 // Check the constant pool hasn't been blocked for too long.
                 DCHECK_LE(pc_offset(), first_const_pool_32_use_ + kMaxDistToIntPool);
 #endif

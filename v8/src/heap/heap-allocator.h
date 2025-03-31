@@ -89,7 +89,7 @@ public:
     // Make all LABs iterable.
     void MakeLinearAllocationAreasIterable();
 
-#if DEBUG
+#ifdef V8_DEBUG
     void VerifyLinearAllocationAreas() const;
 #endif // DEBUG
 
@@ -170,7 +170,7 @@ private:
 
     bool ReachedAllocationTimeout();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void IncrementObjectCounters();
 #endif // DEBUG
 

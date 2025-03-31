@@ -751,7 +751,7 @@ void ChoiceNode::GenerateGuard(RegExpMacroAssembler* macro_assembler, Guard* gua
 
 namespace {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool ContainsOnlyUtf16CodeUnits(unibrow::uchar* chars, int length)
 {
     static_assert(sizeof(unibrow::uchar) == 4);
@@ -3134,7 +3134,7 @@ GreedyLoopState::GreedyLoopState(bool not_at_start)
 
 void ChoiceNode::AssertGuardsMentionRegisters(Trace* trace)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int choice_count = alternatives_->length();
     for (int i = 0; i < choice_count - 1; i++) {
         GuardedAlternative alternative = alternatives_->at(i);

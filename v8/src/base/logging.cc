@@ -57,7 +57,7 @@ std::string PrettyPrintChar(int ch)
 
 void DefaultDcheckHandler(const char* file, int line, const char* message)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_Fatal(file, line, "Debug check failed: %s.", message);
 #else
     // This case happens only for unit tests.
@@ -170,7 +170,7 @@ public:
 
 } // namespace
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void V8_Fatal(const char* file, int line, const char* format, ...)
 {
 #else

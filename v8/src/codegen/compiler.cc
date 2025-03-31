@@ -2880,7 +2880,7 @@ void Compiler::CompileOptimized(Isolate* isolate, Handle<JSFunction> function, C
 #endif // V8_ENABLE_LEAPTIERING
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(!isolate->has_exception());
     DCHECK(function->is_compiled(isolate));
     DCHECK(function->shared()->HasBytecodeArray());

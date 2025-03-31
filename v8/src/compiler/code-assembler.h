@@ -437,7 +437,7 @@ public:
 
     template <class PreviousType, bool FromTyped> class CheckedNode {
     public:
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CheckedNode(Node* node, CodeAssembler* code_assembler, const char* location)
             : node_(node)
             , code_assembler_(code_assembler)
@@ -462,7 +462,7 @@ public:
                 "Coercion to untagged values cannot be "
                 "checked.");
             static_assert(!FromTyped || !std::is_convertible<TNode<PreviousType>, TNode<A>>::value, "Unnecessary CAST: types are convertible.");
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (v8_flags.debug_code) {
                 TNode<ExternalReference> function = code_assembler_->ExternalConstant(ExternalReference::check_object_type());
                 code_assembler_->CallCFunction(function, MachineType::AnyTagged(), std::make_pair(MachineType::AnyTagged(), node_),
@@ -480,7 +480,7 @@ public:
 
     private:
         Node* node_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         CodeAssembler* code_assembler_;
         const char* location_;
 #endif
@@ -513,7 +513,7 @@ public:
         return { value, this, location };
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define STRINGIFY(x) #x
 #define TO_STRING_LITERAL(x) STRINGIFY(x)
 #define CAST(x) Cast(x, "CAST(" #x ") at " __FILE__ ":" TO_STRING_LITERAL(__LINE__))
@@ -760,7 +760,7 @@ public:
     const std::vector<FileAndLine>& GetMacroSourcePositionStack() const;
 
     void Bind(Label* label);
-#if DEBUG
+#ifdef V8_DEBUG
     void Bind(Label* label, AssemblerDebugInfo debug_info);
 #endif // DEBUG
     void Goto(Label* label);
@@ -1523,7 +1523,7 @@ public:
 protected:
     explicit CodeAssemblerVariable(CodeAssembler* assembler, MachineRepresentation rep);
     CodeAssemblerVariable(CodeAssembler* assembler, MachineRepresentation rep, Node* initial_value);
-#if DEBUG
+#ifdef V8_DEBUG
     CodeAssemblerVariable(CodeAssembler* assembler, AssemblerDebugInfo debug_info, MachineRepresentation rep);
     CodeAssemblerVariable(CodeAssembler* assembler, AssemblerDebugInfo debug_info, MachineRepresentation rep, Node* initial_value);
 #endif // DEBUG
@@ -1557,7 +1557,7 @@ public:
         : CodeAssemblerVariable(assembler, PhiMachineRepresentationOf<T>)
     {
     }
-#if DEBUG
+#ifdef V8_DEBUG
     TypedCodeAssemblerVariable(AssemblerDebugInfo debug_info, CodeAssembler* assembler)
         : CodeAssemblerVariable(assembler, debug_info, PhiMachineRepresentationOf<T>)
     {
@@ -1630,7 +1630,7 @@ private:
     friend class CodeAssembler;
 
     void Bind();
-#if DEBUG
+#ifdef V8_DEBUG
     void Bind(AssemblerDebugInfo debug_info);
 #endif // DEBUG
     void UpdateVariablesAfterBind();
@@ -1734,7 +1734,7 @@ public:
     }
     int parameter_count() const;
 
-#if DEBUG
+#ifdef V8_DEBUG
     void PrintCurrentBlock(std::ostream& os);
 #endif // DEBUG
     bool InsideBlock();

@@ -152,7 +152,7 @@ bool IsCppHeapMarkingFinished(Heap* heap, MarkingWorklists::Local* local_marking
     return cpp_heap->IsTracingDone() && local_marking_worklists->IsWrapperEmpty();
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void VerifyRememberedSetsAfterEvacuation(Heap* heap, GarbageCollector garbage_collector)
 {
     // Old-to-old slot sets must be empty after evacuation.

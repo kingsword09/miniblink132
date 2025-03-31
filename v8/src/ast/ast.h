@@ -159,7 +159,7 @@ public:
         return position_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Print(Isolate* isolate);
 #endif // DEBUG
 

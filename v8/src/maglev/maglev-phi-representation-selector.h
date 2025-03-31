@@ -212,7 +212,7 @@ private:
     // it, in order to save memory and not reallocate it for each merge.
     ZoneVector<Snapshot> predecessors_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::unordered_set<NodeBase*> new_nodes_;
 #endif
 };

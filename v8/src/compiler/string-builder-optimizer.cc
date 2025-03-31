@@ -1102,7 +1102,7 @@ void StringBuilderOptimizer::FinalizeStringBuilders()
         string_builder->one_or_two_bytes = one_or_two_byte;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (one_string_builder_or_more_valid) {
         broker()->isolate()->set_has_turbofan_string_builders();
     }

@@ -379,7 +379,7 @@ public:
 
     static void Verify(Isolate* isolate, const SafepointScope& safepoint_scope)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Verify that certain objects were promoted as expected.
         //
         // Known objects.
@@ -595,7 +595,7 @@ private:
                       << reinterpret_cast<void*>(slot.address()) << " from " << AsHex(old_handle, 8, true) << " to " << AsHex(new_handle, 8, true) << "}\n";
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         void RecordProcessedSlotIfDebug(Address slot_address)
         {
             // If this fails, we're visiting some object multiple times by accident.

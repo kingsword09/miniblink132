@@ -894,7 +894,7 @@ void BytecodeGraphBuilder::Environment::Merge(BytecodeGraphBuilder::Environment*
     for (int i = 0; i < register_count(); i++) {
         int index = register_base() + i;
         if (liveness == nullptr || liveness->RegisterIsLive(i)) {
-#if DEBUG
+#ifdef V8_DEBUG
             // We only do these DCHECKs when we are not in the resume path of a
             // generator -- this is, when either there is no generator state at all,
             // or the generator state is not the constant "executing" value.
@@ -1243,7 +1243,7 @@ void BytecodeGraphBuilder::PrepareEagerCheckpoint()
 
         Node* frame_state_before = environment()->Checkpoint(bailout_id, OutputFrameStateCombine::Ignore(), liveness_before);
         NodeProperties::ReplaceFrameStateInput(node, frame_state_before);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     } else {
         // In case we skipped checkpoint creation above, we must be able to find an
         // existing checkpoint that effect-dominates the nodes about to be created.

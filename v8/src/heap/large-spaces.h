@@ -116,7 +116,7 @@ public:
     void Verify(Isolate* isolate, SpaceVerificationVisitor* visitor) const final;
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Print() override;
 #endif
 

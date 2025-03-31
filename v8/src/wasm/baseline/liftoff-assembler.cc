@@ -445,7 +445,7 @@ void LiftoffAssembler::PrepareForBranch(uint32_t arity, LiftoffRegList pinned)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 bool SlotInterference(const VarState& a, const VarState& b)
 {
@@ -622,7 +622,7 @@ void LiftoffAssembler::ClearRegister(Register reg, std::initializer_list<Registe
         // at the beginning of an instruction when values don't have to be in
         // specific registers yet. Therefore the instance should never be one of the
         // {possible_uses}.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         for (Register* use : possible_uses)
             DCHECK_NE(reg, *use);
 #endif
@@ -911,7 +911,7 @@ void LiftoffAssembler::MoveToReturnLocationsMultiReturn(const FunctionSig* sig, 
     // original state in case it is needed after the current instruction
     // (conditional branch).
     CacheState saved_state { zone() };
-#if DEBUG
+#ifdef V8_DEBUG
     uint32_t saved_state_frozenness = cache_state_.frozen;
     cache_state_.frozen = 0;
 #endif
@@ -966,12 +966,12 @@ void LiftoffAssembler::MoveToReturnLocationsMultiReturn(const FunctionSig* sig, 
         }
     }
     cache_state()->Steal(saved_state);
-#if DEBUG
+#ifdef V8_DEBUG
     cache_state_.frozen = saved_state_frozenness;
 #endif
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void LiftoffRegList::Print() const
 {
     std::ostringstream os;
@@ -1133,7 +1133,7 @@ std::ostream& operator<<(std::ostream& os, LiftoffVarState slot)
     UNREACHABLE();
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 bool CompatibleStackSlotTypes(ValueKind a, ValueKind b)
 {
     // Since Liftoff doesn't do accurate type tracking (e.g. on loop back edges,

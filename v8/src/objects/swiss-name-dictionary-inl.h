@@ -328,7 +328,7 @@ Tagged<Object> SwissNameDictionary::ValueAt(InternalIndex entry)
 
 std::optional<Tagged<Object>> SwissNameDictionary::TryValueAt(InternalIndex entry)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     Isolate* isolate;
     GetIsolateFromHeapObject(*this, &isolate);
     DCHECK_NE(isolate, nullptr);

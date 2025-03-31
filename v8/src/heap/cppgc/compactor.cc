@@ -76,7 +76,7 @@ private:
 
     const bool heap_has_move_listeners_;
 
-#if DEBUG
+#ifdef V8_DEBUG
     // The following two collections are used to allow refer back from a slot to
     // an already moved object.
     std::unordered_set<const void*> moved_objects_;
@@ -136,14 +136,14 @@ void MovableReferences::AddOrFilter(MovableReference* slot)
 
     CHECK_EQ(interior_movable_references_.end(), interior_movable_references_.find(slot));
     interior_movable_references_.emplace(slot, nullptr);
-#if DEBUG
+#ifdef V8_DEBUG
     interior_slot_to_object_.emplace(slot, slot_header.ObjectStart());
 #endif // DEBUG
 }
 
 void MovableReferences::Relocate(Address from, Address to, size_t size_including_header)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     moved_objects_.insert(from);
 #endif // DEBUG
 
@@ -179,7 +179,7 @@ void MovableReferences::Relocate(Address from, Address to, size_t size_including
         MovableReference* slot_location = reinterpret_cast<MovableReference*>(interior_it->second);
         if (!slot_location) {
             interior_it->second = to;
-#if DEBUG
+#ifdef V8_DEBUG
             // Check that the containing object has not been moved yet.
             auto reverse_it = interior_slot_to_object_.find(slot);
             DCHECK_NE(interior_slot_to_object_.end(), reverse_it);
@@ -297,7 +297,7 @@ public:
 
     void FinishCompactingPage(NormalPage* page)
     {
-#if DEBUG || defined(V8_USE_MEMORY_SANITIZER) || defined(V8_USE_ADDRESS_SANITIZER)
+#ifdef V8_DEBUG || defined(V8_USE_MEMORY_SANITIZER) || defined(V8_USE_ADDRESS_SANITIZER)
         // Zap the unused portion, until it is either compacted into or freed.
         if (current_page_ != page) {
             ZapMemory(page->PayloadStart(), page->PayloadSize());
@@ -363,7 +363,7 @@ void CompactPage(NormalPage* page, CompactionState& compaction_state, StickyBits
             // As compaction is under way, leave the freed memory accessible
             // while compacting the rest of the page. We just zap the payload
             // to catch out other finalizers trying to access it.
-#if DEBUG || defined(V8_USE_MEMORY_SANITIZER) || defined(V8_USE_ADDRESS_SANITIZER)
+#ifdef V8_DEBUG || defined(V8_USE_MEMORY_SANITIZER) || defined(V8_USE_ADDRESS_SANITIZER)
             ZapMemory(header, size);
 #endif
             header_address += size;

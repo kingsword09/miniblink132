@@ -511,7 +511,7 @@ CsaLoadElimination::AbstractState const* CsaLoadElimination::ComputeLoopState(No
                 const HalfState* new_mutable_state = state->mutable_state.KillField(object, offset, repr);
                 state = zone()->New<AbstractState>(*new_mutable_state, state->immutable_state);
             } else if (current->opcode() == IrOpcode::kInitializeImmutableInObject) {
-#if DEBUG
+#ifdef V8_DEBUG
                 // We are not allowed to reset an immutable (object, offset) pair.
                 Node* object = NodeProperties::GetValueInput(current, 0);
                 Node* offset = NodeProperties::GetValueInput(current, 1);

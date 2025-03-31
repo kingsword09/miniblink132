@@ -53,7 +53,7 @@ constexpr size_t HandlerDataSize(size_t num_protected_instructions)
 }
 
 namespace {
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool IsDisjoint(const CodeProtectionInfo* a, const CodeProtectionInfo* b)
 {
     if (a == nullptr || b == nullptr) {
@@ -89,7 +89,7 @@ void ValidateCodeObjects()
     }
 
     // Check the validity of the free list.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t free_count = 0;
     for (size_t i = gNextCodeObject; i != gNumCodeObjects; i = gCodeObjects[i].next_free) {
         TH_DCHECK(i < gNumCodeObjects);

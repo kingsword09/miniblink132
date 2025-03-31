@@ -57,7 +57,7 @@ public:
         return IsSameOrSubTypeHint(TypeHint::kString, hint);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int CheckBytecodeMatches(Tagged<BytecodeArray> bytecode);
 #endif
 

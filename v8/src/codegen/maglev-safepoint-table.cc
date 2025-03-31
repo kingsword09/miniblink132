@@ -135,7 +135,7 @@ int MaglevSafepointTableBuilder::UpdateDeoptimizationInfo(int pc, int trampoline
 
 void MaglevSafepointTableBuilder::Emit(Assembler* assembler)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int last_pc = -1;
     int last_trampoline = -1;
     for (const EntryBuilder& entry : entries_) {

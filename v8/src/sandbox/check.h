@@ -22,7 +22,7 @@
 // corrupt memory inside the sandbox, but otherwise holds true.
 #ifdef V8_ENABLE_SANDBOX
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // It's unsafe to access sandbox memory during a SBXCHECK since such an access
 // will be inherently racy. If sandbox hardware support is enabled, we'll block
 // these accesses temporarily in debug builds.

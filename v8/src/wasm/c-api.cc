@@ -463,7 +463,7 @@ StoreImpl::~StoreImpl()
 {
     {
         v8::Isolate::Scope isolate_scope(isolate_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate_);
         PtrComprCageAccessScope ptr_compr_cage_access_scope(i_isolate);
         i_isolate->heap()->PreciseCollectAllGarbage(i::GCFlag::kForced, i::GarbageCollectionReason::kTesting, v8::kNoGCCallbackFlags);
@@ -1040,7 +1040,7 @@ public:
 
     i::Handle<JSType> v8_object() const
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         PtrComprCageAccessScope ptr_compr_cage_access_scope(isolate());
 #endif // DEBUG
         return i::Cast<JSType>(val_);

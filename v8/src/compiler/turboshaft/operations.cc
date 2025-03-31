@@ -25,7 +25,7 @@
 #include "src/handles/maybe-handles-inl.h"
 #include "src/objects/code-inl.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // For InWritableSharedSpace
 #include "src/objects/objects-inl.h"
 #endif
@@ -104,7 +104,7 @@ void TailCallOp::PrintOptions(std::ostream& os) const
     os << '[' << *descriptor->descriptor << ']';
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 bool ValidOpInputRep(const Graph& graph, OpIndex input, std::initializer_list<RegisterRepresentation> expected_reps, std::optional<size_t> projection_index)
 {
     base::Vector<const RegisterRepresentation> input_reps = graph.Get(input).outputs_rep();
@@ -860,7 +860,7 @@ void DeoptimizeIfOp::PrintOptions(std::ostream& os) const
 
 void DidntThrowOp::Validate(const Graph& graph) const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(MayThrow(graph.Get(throwing_operation()).opcode));
     switch (graph.Get(throwing_operation()).opcode) {
     case Opcode::kCall: {

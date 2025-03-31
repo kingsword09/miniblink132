@@ -105,7 +105,7 @@ void LoopBuilder::BindLoopEnd()
 
 SwitchBuilder::~SwitchBuilder()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (auto site : case_sites_) {
         DCHECK(!site.has_referrer_jump() || site.is_bound());
     }
@@ -230,7 +230,7 @@ void TryFinallyBuilder::EndFinally()
 ConditionalChainControlFlowBuilder::~ConditionalChainControlFlowBuilder()
 {
     end_labels_.Bind(builder());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(end_labels_.empty() || end_labels_.is_bound());
 
     for (auto* label : then_labels_list_) {

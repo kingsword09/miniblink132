@@ -154,7 +154,7 @@ public:
     // time of this object.
     inline void AcceptSideEffects()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         javascript_execution_counter_ = 0;
 #endif // DEBUG
     }
@@ -217,7 +217,7 @@ private:
     // to ExceptionPropagationCallback.
     uint32_t index_ = kMaxUInt32;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This stores current value of Isolate::javascript_execution_counter().
     // It's used for detecting whether JavaScript code was executed between
     // PropertyCallbackArguments's constructor and destructor.

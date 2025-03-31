@@ -205,7 +205,7 @@ void CodeGenerator::AssembleCode()
     // ultimately set the parameter count on the resulting Code object.
     if (call_descriptor->IsJSFunctionCall()) {
         parameter_count_ = call_descriptor->ParameterSlotCount();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (Builtins::IsBuiltinId(info->builtin())) {
             DCHECK_EQ(parameter_count_, Builtins::GetStackParameterCount(info->builtin()));
         } else if (info->has_bytecode_array()) {
@@ -1011,12 +1011,12 @@ Handle<DeoptimizationData> CodeGenerator::GenerateDeoptimizationData()
         data->SetBytecodeOffset(i, deoptimization_exit->bailout_id());
         data->SetTranslationIndex(i, Smi::FromInt(deoptimization_exit->translation_id()));
         data->SetPc(i, Smi::FromInt(deoptimization_exit->pc_offset()));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         data->SetNodeId(i, Smi::FromInt(deoptimization_exit->node_id()));
 #endif // DEBUG
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     data->Verify(info->bytecode_array());
 #endif // DEBUG
     return data;
@@ -1047,7 +1047,7 @@ base::OwnedVector<uint8_t> CodeGenerator::GenerateWasmDeoptimizationData()
     base::Vector<const uint8_t> frame_translations = translations_.ToFrameTranslationWasm();
     base::OwnedVector<uint8_t> result = wasm::WasmDeoptDataProcessor::Serialize(
         deopt_exit_start_offset_, eager_deopt_count_, frame_translations, base::VectorOf(deopt_entries), deoptimization_literals_);
-#if DEBUG
+#ifdef V8_DEBUG
     // Verify that the serialized data can be deserialized.
     wasm::WasmDeoptView view(base::VectorOf(result));
     wasm::WasmDeoptData data = view.GetDeoptData();
@@ -1295,7 +1295,7 @@ DeoptimizationExit* CodeGenerator::BuildTranslation(
 
     DeoptimizationExit* const exit
         = zone()->New<DeoptimizationExit>(current_source_position_, descriptor->bailout_id(), translation_index, pc_offset, entry.kind(), entry.reason(),
-#ifdef DEBUG
+#ifdef V8_DEBUG
             entry.node_id());
 #else // DEBUG
             0);

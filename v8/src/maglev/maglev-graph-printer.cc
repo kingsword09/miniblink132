@@ -519,7 +519,7 @@ void PrintVirtualObjects(std::ostream& os, std::vector<BasicBlock*> targets, con
 void PrintDeoptInfoInputLocation(
     std::ostream& os, std::vector<BasicBlock*> targets, DeoptInfo* deopt_info, MaglevGraphLabeller* graph_labeller, int max_node_id)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!v8_flags.print_maglev_deopt_verbose)
         return;
     PrintVerticalArrows(os, targets);

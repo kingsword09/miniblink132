@@ -47,7 +47,7 @@ public:
     static void ApplySideEffectChecks(Handle<BytecodeArray> bytecode_array);
     static bool IsSideEffectFreeIntrinsic(Runtime::FunctionId id);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static void VerifyTransitiveBuiltins(Isolate* isolate);
 #endif // DEBUG
 

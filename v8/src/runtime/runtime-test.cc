@@ -1146,7 +1146,7 @@ RUNTIME_FUNCTION(Runtime_SetAllocationTimeout)
     CONVERT_INT32_ARG_FUZZ_SAFE(timeout, 1);
     isolate->heap()->set_allocation_timeout(timeout);
 #endif
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (args.length() == 3) {
         // Enable/disable inline allocation if requested.
         CONVERT_BOOLEAN_ARG_FUZZ_SAFE(inline_allocation, 2);
@@ -1526,7 +1526,7 @@ RUNTIME_FUNCTION(Runtime_AbortCSADcheck)
 RUNTIME_FUNCTION(Runtime_DisassembleFunction)
 {
     HandleScope scope(isolate);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (args.length() != 1) {
         return CrashUnlessFuzzing(isolate);
     }

@@ -232,7 +232,7 @@ bool JumpThreading::ComputeForwarding(Zone* local_zone, ZoneVector<RpoNumber>* r
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (RpoNumber num : *result) {
         DCHECK(num.IsValid());
     }

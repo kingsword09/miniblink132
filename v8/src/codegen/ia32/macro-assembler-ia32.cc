@@ -1250,7 +1250,7 @@ void MacroAssembler::LeaveExitFrame(Register scratch)
     ExternalReference context_address = ExternalReference::Create(IsolateAddressId::kContextAddress, isolate());
     mov(esi, ExternalReferenceAsOperand(context_address, scratch));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     push(eax);
     mov(ExternalReferenceAsOperand(context_address, eax), Immediate(Context::kInvalidContext));
     pop(eax);
@@ -2214,7 +2214,7 @@ void MacroAssembler::LoadLabelAddress(Register dst, Label* lbl)
     // The byte distance between acquired PC and end of sequence.
     const int kInsDelta = 10;
     PushPC();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const int kStart = pc_offset();
 #endif
     pop(dst);

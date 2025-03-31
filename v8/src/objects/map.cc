@@ -789,7 +789,7 @@ Tagged<Map> Map::TryReplayPropertyTransitions(Isolate* isolate, Tagged<Map> old_
                 }
             } else {
                 DCHECK_EQ(PropertyKind::kAccessor, new_details.kind());
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 Tagged<FieldType> new_type = new_descriptors->GetFieldType(i);
                 DCHECK(IsAny(new_type));
 #endif
@@ -1362,7 +1362,7 @@ Handle<Map> Map::TransitionToImmutableProto(Isolate* isolate, Handle<Map> map)
 namespace {
 void EnsureInitialMap(Isolate* isolate, DirectHandle<Map> map)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Tagged<Object> maybe_constructor = map->GetConstructor();
     DCHECK((IsJSFunction(maybe_constructor) && *map == Cast<JSFunction>(maybe_constructor)->initial_map()) ||
         // Below are the exceptions to the check above.
@@ -2115,7 +2115,7 @@ bool Map::EquivalentToForElementsKindTransition(const Tagged<Map> other, Concurr
     if (!EquivalentToForTransition(other, cmode)) {
         return false;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Ensure that we don't try to generate elements kind transitions from maps
     // with fields that may be generalized in-place. This must already be handled
     // during addition of a new field.

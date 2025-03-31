@@ -176,7 +176,7 @@ private:
         }
     };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void CheckNoExistingMoveToRegister(RegisterT target_reg)
     {
         for (RegisterT reg : kAllocatableRegistersT) {
@@ -664,7 +664,7 @@ private:
         if (save_accumulator)
             __ Push(kReturnRegister0);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Allow calls in these materialisations.
         __ set_allow_call(true);
 #endif
@@ -676,7 +676,7 @@ private:
             __ MaterialiseValueNode(kReturnRegister0, move.source);
             __ Push(kReturnRegister0);
         }
-#ifdef DEBUG
+#ifdef V8_DEBUG
         __ set_allow_call(false);
 #endif
     }
@@ -842,7 +842,7 @@ public:
         scratch_scope.Include(node->general_temporaries());
         scratch_scope.IncludeDouble(node->double_temporaries());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         masm()->set_allow_allocate(node->properties().can_allocate());
         masm()->set_allow_call(node->properties().is_call());
         masm()->set_allow_deferred_call(node->properties().is_deferred_call());
@@ -850,7 +850,7 @@ public:
 
         node->GenerateCode(masm(), state);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         masm()->set_allow_allocate(false);
         masm()->set_allow_call(false);
         masm()->set_allow_deferred_call(false);
@@ -1988,7 +1988,7 @@ Handle<DeoptimizationData> MaglevCodeGenerator::GenerateDeoptimizationData(Local
         raw_data->SetBytecodeOffset(i, GetBytecodeOffset(deopt_info->top_frame()));
         raw_data->SetTranslationIndex(i, Smi::FromInt(deopt_info->translation_index()));
         raw_data->SetPc(i, Smi::FromInt(deopt_info->deopt_entry_label()->pos()));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         raw_data->SetNodeId(i, Smi::FromInt(i));
 #endif // DEBUG
         i++;
@@ -1998,13 +1998,13 @@ Handle<DeoptimizationData> MaglevCodeGenerator::GenerateDeoptimizationData(Local
         raw_data->SetBytecodeOffset(i, GetBytecodeOffset(deopt_info->top_frame()));
         raw_data->SetTranslationIndex(i, Smi::FromInt(deopt_info->translation_index()));
         raw_data->SetPc(i, Smi::FromInt(deopt_info->deopt_entry_label()->pos()));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         raw_data->SetNodeId(i, Smi::FromInt(i));
 #endif // DEBUG
         i++;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     raw_data->Verify(code_gen_state_.compilation_info()->toplevel_compilation_unit()->bytecode().object());
 #endif
 

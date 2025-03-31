@@ -74,7 +74,7 @@ template <typename Adapter> bool IsCompressed(InstructionSelectorT<Adapter>* sel
     return false;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // {left_idx} and {right_idx} are assumed to be the inputs of a commutative
 // binop. This function checks that {left_idx} is not the only constant input of
 // this binop (since the graph should have been normalized before, putting

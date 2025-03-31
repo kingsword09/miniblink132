@@ -281,7 +281,7 @@ protected:
         FreeListCategory* current_;
     };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_EXPORT_PRIVATE size_t SumFreeLists();
     V8_EXPORT_PRIVATE bool IsVeryLong();
 #endif
@@ -422,7 +422,7 @@ protected:
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void CheckCacheIntegrity()
     {
         for (int i = 0; i <= last_category_; i++) {

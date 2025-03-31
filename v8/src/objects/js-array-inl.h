@@ -52,7 +52,7 @@ bool JSArray::SetLengthWouldNormalize(Heap* heap, uint32_t new_length)
 void JSArray::SetContent(Handle<JSArray> array, Handle<FixedArrayBase> storage)
 {
     EnsureCanContainElements(array, storage, storage->length(), ALLOW_COPIED_DOUBLE_ELEMENTS);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ReadOnlyRoots roots = array->GetReadOnlyRoots();
     Tagged<Map> map = storage->map();
     if (map == roots.fixed_double_array_map()) {

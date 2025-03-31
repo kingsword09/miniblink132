@@ -150,7 +150,7 @@ PageMemoryRegion* NormalPageMemoryPool::Take()
         CHECK(entry.region->allocator().RecommitPages(base, size, v8::PageAllocator::kReadWrite));
         CHECK(entry.region->allocator().SetPermissions(base, size, v8::PageAllocator::kReadWrite));
     }
-#if DEBUG
+#ifdef V8_DEBUG
     CheckMemoryIsZero(base, size);
 #endif
     return entry.region;

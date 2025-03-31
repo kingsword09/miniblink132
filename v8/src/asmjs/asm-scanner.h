@@ -65,7 +65,7 @@ public:
         return preceded_by_newline_;
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     // Debug only method to go from a token back to its name.
     // Slow, only use for debugging.
     std::string Name(token_t token) const;

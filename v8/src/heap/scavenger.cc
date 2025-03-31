@@ -539,7 +539,7 @@ void ScavengerCollector::CollectGarbage()
             }
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         OldGenerationMemoryChunkIterator::ForAll(heap_, [](MutablePageMetadata* chunk) {
             if (chunk->slot_set<OLD_TO_NEW>() || chunk->typed_slot_set<OLD_TO_NEW>() || chunk->slot_set<OLD_TO_NEW_BACKGROUND>()) {
                 DCHECK(chunk->possibly_empty_buckets()->IsEmpty());

@@ -13,7 +13,7 @@
 #include "src/objects/casting.h"
 #include "src/objects/objects.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #include "src/utils/ostreams.h"
 #endif
 
@@ -238,7 +238,7 @@ HandleScope& HandleScope::operator=(HandleScope&& other) V8_NOEXCEPT
 
 void HandleScope::CloseScope(Isolate* isolate, Address* prev_next, Address* prev_limit)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int before = v8_flags.check_handle_count ? NumberOfHandles(isolate) : 0;
 #endif
     DCHECK_NOT_NULL(isolate);
@@ -256,7 +256,7 @@ void HandleScope::CloseScope(Isolate* isolate, Address* prev_next, Address* prev
     ZapRange(current->next, limit);
 #endif
     MSAN_ALLOCATED_UNINITIALIZED_MEMORY(current->next, static_cast<size_t>(reinterpret_cast<Address>(limit) - reinterpret_cast<Address>(current->next)));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int after = v8_flags.check_handle_count ? NumberOfHandles(isolate) : 0;
     DCHECK_LT(after - before, kCheckHandleThreshold);
     DCHECK_LT(before, kCheckHandleThreshold);
@@ -286,7 +286,7 @@ template <typename T, template <typename> typename HandleType, typename> HandleT
 Address* HandleScope::CreateHandle(Isolate* isolate, Address value)
 {
     DCHECK(AllowHandleAllocation::IsAllowed());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!AllowHandleUsageOnAllThreads::IsAllowed()) {
         DCHECK(isolate->main_thread_local_heap()->IsRunning());
         DCHECK_WITH_MSG(isolate->thread_id() == ThreadId::Current(), "main-thread handle can only be created on the main thread.");
@@ -305,7 +305,7 @@ Address* HandleScope::CreateHandle(Isolate* isolate, Address value)
     return result;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 inline SealHandleScope::SealHandleScope(Isolate* isolate)
     : isolate_(isolate)
 {

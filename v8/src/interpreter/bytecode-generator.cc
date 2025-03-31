@@ -923,7 +923,7 @@ public:
                     continue;
                 if (var->location() != VariableLocation::MODULE)
                     continue;
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 int start = array_index;
 #endif
                 if (decl->IsFunctionDeclaration()) {
@@ -951,7 +951,7 @@ public:
                     continue;
                 if (var->location() != VariableLocation::UNALLOCATED)
                     continue;
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 int start = array_index;
 #endif
                 if (decl->IsVariableDeclaration()) {
@@ -1270,7 +1270,7 @@ public:
     {
         DCHECK_NE(UINT64_MAX, merge_value_);
         *bitmap_ = merge_value_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         merge_called_ = true;
 #endif
     }
@@ -1279,7 +1279,7 @@ public:
     {
         if (cond)
             Merge();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         merge_called_ = true;
 #endif
     }
@@ -1305,7 +1305,7 @@ private:
     Variable::HoleCheckBitmap* bitmap_;
     Variable::HoleCheckBitmap merge_value_ = UINT64_MAX;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool merge_called_ = false;
 #endif
 };
@@ -1521,7 +1521,7 @@ private:
 
 } // namespace
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 static bool IsInEagerLiterals(FunctionLiteral* literal, const std::vector<FunctionLiteral*>& eager_literals)
 {
@@ -1602,7 +1602,7 @@ template <typename Isolate> using NullContextScopeFor = typename NullContextScop
 template <typename IsolateT> Handle<BytecodeArray> BytecodeGenerator::FinalizeBytecode(IsolateT* isolate, Handle<Script> script)
 {
     DCHECK_EQ(ThreadId::Current(), isolate->thread_id());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Unoptimized compilation should be context-independent. Verify that we don't
     // access the native context by nulling it out during finalization.
     NullContextScopeFor<IsolateT> null_context_scope(isolate);
@@ -1636,7 +1636,7 @@ template Handle<BytecodeArray> BytecodeGenerator::FinalizeBytecode(LocalIsolate*
 template <typename IsolateT> Handle<TrustedByteArray> BytecodeGenerator::FinalizeSourcePositionTable(IsolateT* isolate)
 {
     DCHECK_EQ(ThreadId::Current(), isolate->thread_id());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Unoptimized compilation should be context-independent. Verify that we don't
     // access the native context by nulling it out during finalization.
     NullContextScopeFor<IsolateT> null_context_scope(isolate);
@@ -1652,7 +1652,7 @@ template <typename IsolateT> Handle<TrustedByteArray> BytecodeGenerator::Finaliz
 template Handle<TrustedByteArray> BytecodeGenerator::FinalizeSourcePositionTable(Isolate* isolate);
 template Handle<TrustedByteArray> BytecodeGenerator::FinalizeSourcePositionTable(LocalIsolate* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 int BytecodeGenerator::CheckBytecodeMatches(Tagged<BytecodeArray> bytecode)
 {
     return builder()->CheckBytecodeMatches(bytecode);
@@ -2440,7 +2440,7 @@ bool IsSmiLiteralSwitchCaseValue(Expression* expr)
 {
     if (expr->IsSmiLiteral() || (expr->IsLiteral() && expr->AsLiteral()->IsNumber() && expr->AsLiteral()->AsNumber() == 0.0)) {
         return true;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     } else if (expr->IsLiteral() && expr->AsLiteral()->IsNumber()) {
         DCHECK(!IsSmiDouble(expr->AsLiteral()->AsNumber()));
 #endif
@@ -2707,7 +2707,7 @@ void BytecodeGenerator::VisitSwitchStatement(SwitchStatement* stmt)
     }
 
     int case_compare_ctr = 0;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::unordered_map<int, int> case_ctr_checker;
 #endif
 
@@ -2732,7 +2732,7 @@ void BytecodeGenerator::VisitSwitchStatement(SwitchStatement* stmt)
                     // Perform label comparison as if via '===' with tag.
                     VisitForAccumulatorValue(clause->label());
                     builder()->CompareOperation(Token::kEqStrict, tag_holder, feedback_index(slot));
-#ifdef DEBUG
+#ifdef V8_DEBUG
                     case_ctr_checker[i] = case_compare_ctr;
 #endif
                     switch_builder.JumpToCaseIfTrue(ToBooleanMode::kAlreadyBoolean, case_compare_ctr++);
@@ -2765,7 +2765,7 @@ void BytecodeGenerator::VisitSwitchStatement(SwitchStatement* stmt)
                 bool use_table = use_jump_table && info.CaseExists(clause->label());
                 if (!use_table) {
 // Guarantee that we should generate compare/jump if no table.
-#ifdef DEBUG
+#ifdef V8_DEBUG
                     DCHECK(case_ctr_checker[i] == case_compare_ctr);
 #endif
                     switch_builder.BindCaseTargetForCompareJump(case_compare_ctr++, clause);

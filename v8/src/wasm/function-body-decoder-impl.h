@@ -48,7 +48,7 @@ struct WasmTag;
 // DCHECK that it is true and always return true otherwise.
 // Note that this needs to be a macro, because the "likely" annotation does not
 // survive inlining.
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define VALIDATE(condition) (ValidationTag::validate ? V8_LIKELY(condition) : ValidateAssumeTrue(condition, #condition))
 
 V8_INLINE bool ValidateAssumeTrue(bool condition, const char* message)
@@ -1325,7 +1325,7 @@ public:
         Grow(initial_size, zone);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ~FastZoneVector()
     {
         // Check that {Reset} was called on this vector.
@@ -2966,7 +2966,7 @@ private:
         return MemoryAccessImmediate(this, this->pc_ + pc_offset, max_alignment, this->enabled_.has_memory64(), validate);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     class TraceLine {
     public:
         explicit TraceLine(WasmFullDecoder* decoder)

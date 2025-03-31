@@ -26,7 +26,7 @@ void HeapLayout::CheckYoungGenerationConsistency(const MemoryChunk* chunk)
 
     // If the object is in the young generation, then it is safe to get to the
     // containing Heap.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const MemoryChunkMetadata* metadata = chunk->Metadata();
     SLOW_DCHECK(metadata->IsWritable());
     Heap* heap = metadata->heap();

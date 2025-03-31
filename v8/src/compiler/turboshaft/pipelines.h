@@ -394,7 +394,7 @@ public:
             verifier = verifier_zone->New<RegisterAllocatorVerifier>(verifier_zone.get(), config, data()->sequence(), data()->frame());
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         data_->sequence()->ValidateEdgeSplitForm();
         data_->sequence()->ValidateDeferredBlockEntryPaths();
         data_->sequence()->ValidateDeferredBlockExitPaths();

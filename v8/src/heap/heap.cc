@@ -1024,7 +1024,7 @@ void Heap::GarbageCollectionPrologue(GarbageCollectionReason gc_reason, const v8
 
     UpdateMaximumCommitted();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(!AllowGarbageCollection::IsAllowed());
     DCHECK_EQ(gc_state(), NOT_IN_GC);
 
@@ -1159,7 +1159,7 @@ void Heap::GarbageCollectionEpilogueInSafepoint(GarbageCollector collector)
 #undef UPDATE_FRAGMENTATION_FOR_SPACE
 #undef UPDATE_COUNTERS_AND_FRAGMENTATION_FOR_SPACE
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.print_global_handles)
         isolate_->global_handles()->Print();
     if (v8_flags.print_handles)
@@ -1216,7 +1216,7 @@ void Heap::GarbageCollectionEpilogue(GarbageCollector collector)
         isolate_->counters()->heap_sample_maximum_committed()->AddSample(static_cast<int>(MaximumCommittedMemory() / KB));
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ReportStatisticsAfterGC();
     if (v8_flags.code_stats)
         ReportCodeStatistics("After GC");
@@ -1848,7 +1848,7 @@ void Heap::StartIncrementalMarking(GCFlags gc_flags, GarbageCollectionReason gc_
         safepoint_scope.emplace(isolate(), kGlobalSafepointForSharedSpaceIsolate);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyCountersAfterSweeping();
 #endif
 
@@ -2673,7 +2673,7 @@ Tagged<String> Heap::UpdateYoungReferenceInExternalStringTableEntry(Heap* heap, 
 
 void Heap::ExternalStringTable::VerifyYoung()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::set<Tagged<String>> visited_map;
     std::map<MutablePageMetadata*, size_t> size_map;
     ExternalBackingStoreType type = ExternalBackingStoreType::kExternalString;
@@ -2696,7 +2696,7 @@ void Heap::ExternalStringTable::VerifyYoung()
 
 void Heap::ExternalStringTable::Verify()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::set<Tagged<String>> visited_map;
     std::map<MutablePageMetadata*, size_t> size_map;
     ExternalBackingStoreType type = ExternalBackingStoreType::kExternalString;
@@ -3084,7 +3084,7 @@ void CreateFillerObjectAtImpl(const WritableFreeSpace& free_space, Heap* heap, C
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void VerifyNoNeedToClearSlots(Address start, Address end)
 {
     MemoryChunk* chunk = MemoryChunk::FromAddress(start);
@@ -3923,7 +3923,7 @@ double Heap::MonotonicallyIncreasingTimeInMs() const
     return V8::GetCurrentPlatform()->MonotonicallyIncreasingTime() * static_cast<double>(base::Time::kMillisecondsPerSecond);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void Heap::VerifyNewSpaceTop()
 {
     if (!new_space())
@@ -4132,7 +4132,7 @@ void Heap::CollectCodeStatistics()
     CodeStatistics::CollectCodeStatistics(trusted_lo_space_, isolate());
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 void Heap::Print()
 {
@@ -4313,7 +4313,7 @@ bool Heap::IsValidAllocationSpace(AllocationSpace space)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Heap::VerifyCountersAfterSweeping()
 {
     MakeHeapIterable();
@@ -4467,7 +4467,7 @@ private:
             return false;
         Tagged<HeapObject> current = Cast<HeapObject>(*p);
         if (!current->map_word(cage_base(), kRelaxedLoad).IsForwardingAddress() && IsFreeSpaceOrFiller(current, cage_base())) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // We need to find a FixedArrayBase map after walking the fillers.
             while (!current->map_word(cage_base(), kRelaxedLoad).IsForwardingAddress() && IsFreeSpaceOrFiller(current, cage_base())) {
                 Address next = current.ptr();
@@ -5725,7 +5725,7 @@ void Heap::NotifyDeserializationComplete()
             continue;
         if (isolate()->snapshot_available())
             s->ShrinkImmortalImmovablePages();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // All pages right after bootstrapping must be marked as never-evacuate.
         for (PageMetadata* p : *s) {
             DCHECK(p->Chunk()->NeverEvacuate());
@@ -6145,7 +6145,7 @@ void Heap::FatalProcessOutOfMemory(const char* location)
     V8::FatalProcessOutOfMemory(isolate(), location, V8::kHeapOOM);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 class PrintHandleVisitor : public RootVisitor {
 public:
@@ -6200,7 +6200,7 @@ int Heap::InsertIntoRememberedSetFromCode(MutablePageMetadata* chunk, size_t slo
     return 0;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Heap::VerifySlotRangeHasNoRecordedSlots(Address start, Address end)
 {
 #ifndef V8_DISABLE_WRITE_BARRIERS
@@ -6958,7 +6958,7 @@ std::optional<Tagged<Code>> Heap::TryFindCodeForInnerPointerForPrinting(Address 
     return {};
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Heap::IncrementObjectCounters()
 {
     isolate_->counters()->objs_since_last_full()->Increment();

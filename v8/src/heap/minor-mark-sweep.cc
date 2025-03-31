@@ -335,7 +335,7 @@ void MinorMarkSweepCollector::FinishConcurrentMarking()
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 template <typename Space> static bool ExternalPointerRememberedSetsEmpty(Space* space)
 {
     for (auto it = space->begin(); it != space->end();) {
@@ -1029,7 +1029,7 @@ void MinorMarkSweepCollector::Sweep()
 
     sweeper_->StartMinorSweeping();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyRememberedSetsAfterEvacuation(heap_, GarbageCollector::MINOR_MARK_SWEEPER);
     heap_->VerifyCountersBeforeConcurrentSweeping(GarbageCollector::MINOR_MARK_SWEEPER);
 #endif

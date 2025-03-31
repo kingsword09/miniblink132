@@ -1824,7 +1824,7 @@ template <typename DestChar> bool JsonStringifier::TrySerializeSimplePropertyKey
     no_extend.Append('"');
     base::Vector<const uint8_t> chars(Cast<SeqOneByteString>(key)->GetChars(no_gc), copy_length);
     DCHECK_LE(reinterpret_cast<Address>(chars.end()), key.address() + key->Size());
-#if DEBUG
+#ifdef V8_DEBUG
     for (int i = 0; i < length; ++i) {
         DCHECK(DoNotEscape(chars[i]));
     }

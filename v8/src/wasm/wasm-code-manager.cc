@@ -341,7 +341,7 @@ void WasmCode::Validate() const
     static constexpr int kMaxSlotsPerParam = 4; // S128 on 32-bit platforms.
     static_assert(wasm::kV8MaxWasmFunctionParams * kMaxSlotsPerParam < std::numeric_limits<uint16_t>::max());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     NativeModule::CallIndirectTargetMap function_index_map;
     if (native_module_) {
         function_index_map = native_module_->CreateIndirectCallTargetToFunctionIndexMap();
@@ -2735,7 +2735,7 @@ WasmCodeLookupCache::CacheEntry* WasmCodeLookupCache::GetCacheEntry(Address pc)
         // considered live, and it has not yet been reported as no longer
         // referenced from any stack. It thus cannot have been released
         // yet.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         wasm::WasmCodeRefScope code_ref_scope;
         DCHECK_EQ(entry->code, wasm::GetWasmCodeManager()->LookupCode(pc));
 #endif // DEBUG

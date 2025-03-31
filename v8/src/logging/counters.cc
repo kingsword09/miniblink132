@@ -44,7 +44,7 @@ std::atomic<int>* StatsCounter::SetupPtrFromStatsTable()
     DCHECK_NOT_NULL(name_);
     int* location = counters_->FindLocation(name_);
     std::atomic<int>* ptr = location ? base::AsAtomicPtr(location) : &unused_counter_dump;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::atomic<int>* old_ptr = ptr_.exchange(ptr, std::memory_order_release);
     DCHECK_IMPLIES(old_ptr, old_ptr == ptr);
 #else
@@ -94,7 +94,7 @@ void TimedHistogram::RecordAbandon(base::ElapsedTimer* timer, Isolate* isolate)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool TimedHistogram::ToggleRunningState(bool expect_to_run) const
 {
 #if __clang__

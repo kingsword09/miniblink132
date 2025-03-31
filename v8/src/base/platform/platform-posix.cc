@@ -1410,7 +1410,7 @@ void Thread::SetThreadLocal(LocalStorageKey key, void* value)
 #if !defined(V8_OS_FREEBSD) && !defined(V8_OS_DARWIN) && !defined(_AIX) && !defined(V8_OS_SOLARIS)
 
 namespace {
-#if DEBUG
+#ifdef V8_DEBUG
 bool MainThreadIsCurrentThread()
 {
     // This method assumes the first time is called is from the main thread.

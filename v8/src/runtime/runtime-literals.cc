@@ -172,7 +172,7 @@ template <class ContextObject> MaybeHandle<JSObject> JSObjectWalkVisitor<Context
     case SHARED_ARRAY_ELEMENTS: {
         DirectHandle<FixedArray> elements(Cast<FixedArray>(copy->elements(isolate)), isolate);
         if (elements->map() == ReadOnlyRoots(isolate).fixed_cow_array_map()) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             for (int i = 0; i < elements->length(); i++) {
                 DCHECK(!IsJSObject(elements->get(i)));
             }

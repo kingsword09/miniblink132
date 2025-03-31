@@ -85,7 +85,7 @@ inline constexpr Condition Flip(Condition cond)
 class LiftoffAssembler;
 class FreezeCacheState {
 public:
-#if DEBUG
+#ifdef V8_DEBUG
     explicit FreezeCacheState(LiftoffAssembler& assm);
     ~FreezeCacheState();
 
@@ -151,7 +151,7 @@ public:
         // cached ({cached_mem_start} will be {no_reg} in that case).
         int cached_mem_index = kNoCachedMemIndex;
         Register cached_mem_start = no_reg;
-#if DEBUG
+#ifdef V8_DEBUG
         uint32_t frozen = 0;
 #endif
 
@@ -680,7 +680,7 @@ public:
     void MoveToReturnLocations(const FunctionSig*, compiler::CallDescriptor*);
     // Slow path for multi-return, called from {MoveToReturnLocations}.
     V8_NOINLINE V8_PRESERVE_MOST void MoveToReturnLocationsMultiReturn(const FunctionSig*, compiler::CallDescriptor*);
-#if DEBUG
+#ifdef V8_DEBUG
     void SetCacheStateFrozen()
     {
         cache_state_.frozen++;
@@ -1321,7 +1321,7 @@ private:
     const char* bailout_detail_ = nullptr;
 };
 
-#if DEBUG
+#ifdef V8_DEBUG
 inline FreezeCacheState::FreezeCacheState(LiftoffAssembler& assm)
     : assm_(assm)
 {
@@ -1399,7 +1399,7 @@ private:
     LiftoffAssembler* const asm_;
 };
 
-#if DEBUG
+#ifdef V8_DEBUG
 bool CompatibleStackSlotTypes(ValueKind a, ValueKind b);
 #endif
 

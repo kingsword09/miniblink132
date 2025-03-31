@@ -144,7 +144,7 @@ public:
         return first_page()->ChunkAddress();
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     virtual void Print() = 0;
 #endif
 

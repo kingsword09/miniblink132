@@ -154,7 +154,7 @@ MarkerBase::~MarkerBase()
     // Such objects should have already been found through the stack scan though
     // and should thus already be marked.
     if (!marking_worklists_.not_fully_constructed_worklist()->IsEmpty()) {
-#if DEBUG
+#ifdef V8_DEBUG
         DCHECK_NE(StackState::kNoHeapPointers, config_.stack_state);
         std::unordered_set<HeapObjectHeader*> objects = mutator_marking_state_.not_fully_constructed_worklist().Extract();
         for (HeapObjectHeader* object : objects)
@@ -167,7 +167,7 @@ MarkerBase::~MarkerBase()
     // |discovered_ephemeron_pairs_worklist_| may still hold ephemeron pairs with
     // dead keys.
     if (!marking_worklists_.discovered_ephemeron_pairs_worklist()->IsEmpty()) {
-#if DEBUG
+#ifdef V8_DEBUG
         MarkingWorklists::EphemeronPairItem item;
         while (mutator_marking_state_.discovered_ephemeron_pairs_worklist().Pop(&item)) {
             DCHECK(!HeapObjectHeader::FromObject(item.key).IsMarked());

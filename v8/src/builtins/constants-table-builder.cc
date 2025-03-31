@@ -28,7 +28,7 @@ BuiltinsConstantsTableBuilder::BuiltinsConstantsTableBuilder(Isolate* isolate)
 
 uint32_t BuiltinsConstantsTableBuilder::AddObject(Handle<Object> object)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Roots must not be inserted into the constants table as they are already
     // accessibly from the root list.
     RootIndex root_list_index;
@@ -124,7 +124,7 @@ void BuiltinsConstantsTableBuilder::Finalize()
         table->set(index, value);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (int i = 0; i < map_.size(); i++) {
         DCHECK(IsHeapObject(table->get(i)));
         DCHECK_NE(ReadOnlyRoots(isolate_).undefined_value(), table->get(i));

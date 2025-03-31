@@ -682,7 +682,7 @@ void Context::set_extension(Tagged<HeapObject> object, WriteBarrierMode mode)
     set(EXTENSION_INDEX, object, mode);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 bool Context::IsBootstrappingOrValidParentContext(Tagged<Object> object, Tagged<Context> child)
 {

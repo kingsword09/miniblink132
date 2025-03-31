@@ -312,7 +312,7 @@ size_t HeapVisitor<ConcreteVisitor>::VisitWithBodyDescriptor(Tagged<Map> map, Ta
     // We can only perform this check for types that do not support right trimming
     // when running concurrently. `RefineAllocatedBytesAfterSweeping()` ensures
     // that we only see sizes that get smaller during marking.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!SupportsRightTrim<visitor_id>() || !ConcreteVisitor::EnableConcurrentVisitation()) {
         DCHECK_EQ(object->SizeFromMap(map), TBodyDescriptor::SizeOf(map, object));
     }

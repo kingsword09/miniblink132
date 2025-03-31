@@ -2098,7 +2098,7 @@ protected:
 
     inline void CheckPCSComplianceAndRun();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Corruption values should have their least significant byte cleared to
     // allow the code of the register being corrupted to be inserted.
     static const uint64_t kCallerSavedRegisterCorruptionValue = 0xca11edc0de000000UL;

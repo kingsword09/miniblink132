@@ -45,7 +45,7 @@ namespace internal {
 
 #include "src/codegen/define-code-stub-assembler-macros.inc"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define CSA_DCHECK_BRANCH(csa, gen, ...) (csa)->Dcheck(gen, #gen, __FILE__, __LINE__, CSA_DCHECK_ARGS(__VA_ARGS__))
 #else
 #define CSA_DCHECK_BRANCH(csa, ...) ((void)0)
@@ -221,7 +221,7 @@ void CodeStubAssembler::FailAssert(
     }
     TNode<String> message_node = StringConstant(message);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Only print the extra nodes in debug builds.
     for (auto& node : extra_nodes) {
         CallRuntime(Runtime::kPrintWithNameForAssert, SmiConstant(0), StringConstant(node.second), node.first);
@@ -1303,7 +1303,7 @@ TNode<BoolT> CodeStubAssembler::WordIsAligned(TNode<WordT> word, size_t alignmen
     return Word32Equal(Int32Constant(0), Word32And(TruncateWordToInt32(word), Uint32Constant(static_cast<uint32_t>(alignment) - 1)));
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void CodeStubAssembler::Bind(Label* label, AssemblerDebugInfo debug_info)
 {
     CodeAssembler::Bind(label, debug_info);
@@ -1503,7 +1503,7 @@ TNode<HeapObject> CodeStubAssembler::Allocate(TNode<IntPtrT> size_in_bytes, Allo
     TNode<ExternalReference> top_address = ExternalConstant(
         new_space ? ExternalReference::new_space_allocation_top_address(isolate()) : ExternalReference::old_space_allocation_top_address(isolate()));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // New space is optional and if disabled both top and limit return
     // kNullAddress.
     if (ExternalReference::new_space_allocation_top_address(isolate()).address() != kNullAddress) {
@@ -3238,7 +3238,7 @@ TNode<BytecodeArray> CodeStubAssembler::LoadSharedFunctionInfoBytecodeArray(TNod
     GotoIfNot(HasInstanceType(var_result.value(), CODE_TYPE), &check_for_interpreter_data);
     {
         TNode<Code> code = CAST(var_result.value());
-#ifdef DEBUG
+#ifdef V8_DEBUG
         TNode<Int32T> code_flags = LoadObjectField<Int32T>(code, Code::kFlagsOffset);
         CSA_DCHECK(this, Word32Equal(DecodeWord32<Code::KindField>(code_flags), Int32Constant(static_cast<int>(CodeKind::BASELINE))));
 #endif // DEBUG
@@ -4028,7 +4028,7 @@ template <typename CollectionType> TNode<CollectionType> CodeStubAssembler::Allo
 
         StoreFieldsNoWriteBarrier(data_start_address, data_end_address, UndefinedConstant());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         TNode<IntPtrT> ptr_diff = IntPtrSub(data_end_address, buckets_start_address);
         TNode<IntPtrT> array_length = LoadAndUntagFixedArrayBaseLength(table);
         TNode<IntPtrT> array_data_fields = IntPtrSub(array_length, IntPtrConstant(CollectionType::HashTableStartIndex()));
@@ -4583,7 +4583,7 @@ TNode<FixedArray> CodeStubAssembler::ExtractToFixedArray(TNode<FixedArrayBase> s
         var_result = to_elements;
 
 #if !defined(V8_ENABLE_SINGLE_GENERATION) && !V8_ENABLE_STICKY_MARK_BITS_BOOL
-#ifdef DEBUG
+#ifdef V8_DEBUG
         TNode<IntPtrT> object_word = BitcastTaggedToWord(to_elements);
         TNode<IntPtrT> object_page_header = MemoryChunkFromAddress(object_word);
         TNode<IntPtrT> page_flags = Load<IntPtrT>(object_page_header, IntPtrConstant(MemoryChunkLayout::kFlagsOffset));
@@ -5236,7 +5236,7 @@ void CodeStubAssembler::CopyPropertyArrayValues(
         },
         LoopUnrollingMode::kYes);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Zap {from_array} if the copying above has made it invalid.
     if (destroy_source == DestroySource::kYes) {
         Label did_zap(this);
@@ -12293,7 +12293,7 @@ TNode<Context> CodeStubAssembler::GotoIfHasContextExtensionUpToDepth(TNode<Conte
     Goto(&context_search);
     BIND(&context_search);
     {
-#if DEBUG
+#ifdef V8_DEBUG
         // Const tracking let data is stored in the extension slot of a
         // ScriptContext - however, it's unrelated to the sloppy eval variable
         // extension. We should never iterate through a ScriptContext here.
@@ -15632,7 +15632,7 @@ public:
     {
         TNode<IntPtrT> offset = OverallOffset(meta_table, index);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         int bits = mt.MemSize() * 8;
         TNode<UintPtrT> max_value = csa.UintPtrConstant((1ULL << bits) - 1);
 
@@ -15665,7 +15665,7 @@ private:
             overall_offset = csa.IntPtrAdd(csa.IntPtrConstant(offset_to_data_minus_tag), index_offset);
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         TNode<IntPtrT> byte_array_data_bytes = csa.SmiToIntPtr(csa.LoadFixedArrayBaseLength(meta_table));
         TNode<IntPtrT> max_allowed_offset = csa.IntPtrAdd(byte_array_data_bytes, csa.IntPtrConstant(offset_to_data_minus_tag));
         CSA_DCHECK(&csa, csa.UintPtrLessThan(overall_offset, max_allowed_offset));

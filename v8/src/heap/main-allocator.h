@@ -263,7 +263,7 @@ public:
     // the minimum size that the limited area should have.
     Address ComputeLimit(Address start, Address end, size_t min_size) const;
 
-#if DEBUG
+#ifdef V8_DEBUG
     void Verify() const;
 #endif // DEBUG
 

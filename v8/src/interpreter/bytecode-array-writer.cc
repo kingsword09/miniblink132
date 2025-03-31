@@ -65,7 +65,7 @@ template <typename IsolateT> Handle<TrustedByteArray> BytecodeArrayWriter::ToSou
 template EXPORT_TEMPLATE_DEFINE(V8_EXPORT_PRIVATE) Handle<TrustedByteArray> BytecodeArrayWriter::ToSourcePositionTable(Isolate* isolate);
 template EXPORT_TEMPLATE_DEFINE(V8_EXPORT_PRIVATE) Handle<TrustedByteArray> BytecodeArrayWriter::ToSourcePositionTable(LocalIsolate* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 int BytecodeArrayWriter::CheckBytecodeMatches(Tagged<BytecodeArray> bytecode)
 {
     int mismatches = false;

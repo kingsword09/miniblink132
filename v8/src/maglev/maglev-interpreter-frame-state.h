@@ -266,7 +266,7 @@ public:
         possible_maps_ = possible_maps;
         possible_maps_are_known_ = true;
         any_map_is_unstable_ = any_map_is_unstable;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (possible_maps.size()) {
             NodeType expected = StaticTypeForMap(*possible_maps.begin(), broker);
             for (auto map : possible_maps) {
@@ -1197,7 +1197,7 @@ private:
 struct LoopEffects {
     explicit LoopEffects(int loop_header, Zone* zone)
         :
-#ifdef DEBUG
+#ifdef V8_DEBUG
         loop_header(loop_header)
         ,
 #endif
@@ -1207,7 +1207,7 @@ struct LoopEffects {
         , allocations(zone)
     {
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int loop_header;
 #endif
     ZoneSet<KnownNodeAspects::LoadedContextSlotsKey> context_slot_written;

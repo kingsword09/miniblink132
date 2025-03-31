@@ -21,7 +21,7 @@
 #include "src/maglev/maglev-concurrent-dispatcher.h"
 #endif // V8_ENABLE_MAGLEV
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // For GetIsolateFromWritableHeapObject.
 #include "src/heap/heap-write-barrier-inl.h"
 // For GetIsolateFromWritableObject.
@@ -82,7 +82,7 @@ Address* HandleBase::indirect_handle(Address object, LocalHeap* local_heap)
 
 #endif // V8_ENABLE_DIRECT_HANDLE
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 bool HandleBase::IsDereferenceAllowed() const
 {

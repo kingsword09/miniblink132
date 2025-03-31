@@ -126,7 +126,7 @@ KnownNodeAspects::KnownNodeAspects(const KnownNodeAspects& other, bool optimisti
 {
     if (!other.any_map_for_any_node_is_unstable) {
         node_infos = other.node_infos;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         for (const auto& it : node_infos) {
             DCHECK(!it.second.any_map_is_unstable());
         }

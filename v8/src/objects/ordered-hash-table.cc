@@ -621,7 +621,7 @@ template <class Derived> void SmallOrderedHashTable<Derived>::Initialize(Isolate
 
     MemsetTagged(RawField(DataTableStartOffset()), ReadOnlyRoots(isolate).the_hole_value(), capacity * Derived::kEntrySize);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (int i = 0; i < num_buckets; ++i) {
         DCHECK_EQ(kNotFound, GetFirstEntry(i));
     }

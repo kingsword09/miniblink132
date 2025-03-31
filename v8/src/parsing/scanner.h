@@ -556,7 +556,7 @@ private:
         uint32_t smi_value = 0;
         bool after_line_terminator = false;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         bool CanAccessLiteral() const
         {
             return token == Token::kPrivateName || token == Token::kIllegal || token == Token::kEscapedKeyword || token == Token::kUninitialized
@@ -833,7 +833,7 @@ private:
         return token.literal_chars.length() != source_length;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void SanityCheckTokenDesc(const TokenDesc&) const;
 #endif
 

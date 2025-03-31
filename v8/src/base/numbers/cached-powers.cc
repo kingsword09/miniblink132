@@ -112,7 +112,7 @@ static const CachedPower kCachedPowers[] = {
     { 0xAF87'023B'9BF0'EE6B, 1066, 340 },
 };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 static const int kCachedPowersLength = arraysize(kCachedPowers);
 #endif
 

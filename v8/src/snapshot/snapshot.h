@@ -102,7 +102,7 @@ public:
     static const v8::StartupData* DefaultSnapshotBlob();
     static bool ShouldVerifyChecksum(const v8::StartupData* data);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static bool SnapshotIsValid(const v8::StartupData* snapshot_blob);
 #endif // DEBUG
 };

@@ -60,7 +60,7 @@ public:
         CHECK(allocation);
         BasicSlotSet* slot_set = reinterpret_cast<BasicSlotSet*>(reinterpret_cast<uint8_t*>(allocation) + kInitialBucketsSize);
         DCHECK(IsAligned(reinterpret_cast<uintptr_t>(slot_set), kSystemPointerSize));
-#ifdef DEBUG
+#ifdef V8_DEBUG
         *slot_set->initial_buckets() = buckets;
 #endif
         for (size_t i = 0; i < buckets; i++) {
@@ -78,7 +78,7 @@ public:
             slot_set->ReleaseBucket(i);
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         size_t initial_buckets = *slot_set->initial_buckets();
 
         for (size_t i = buckets; i < initial_buckets; i++) {
@@ -477,7 +477,7 @@ protected:
         return buckets() + bucket_index;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t* initial_buckets()
     {
         return reinterpret_cast<size_t*>(this) - 1;

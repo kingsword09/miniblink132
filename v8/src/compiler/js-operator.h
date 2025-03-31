@@ -18,7 +18,7 @@
 #include "src/objects/oddball.h"
 #include "src/runtime/runtime.h"
 
-#if DEBUG && V8_ENABLE_WEBASSEMBLY
+#ifdef V8_DEBUG && V8_ENABLE_WEBASSEMBLY
 #include "src/wasm/canonical-types.h"
 #endif
 

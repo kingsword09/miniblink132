@@ -73,7 +73,7 @@ void RelocInfoWriter::WriteIntData(int number)
 void RelocInfoWriter::Write(const RelocInfo* rinfo)
 {
     RelocInfo::Mode rmode = rinfo->rmode();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     uint8_t* begin_pos = pos_;
 #endif
     DCHECK(rinfo->rmode() < RelocInfo::NUMBER_OF_MODES);
@@ -100,7 +100,7 @@ void RelocInfoWriter::Write(const RelocInfo* rinfo)
         }
     }
     last_pc_ = reinterpret_cast<uint8_t*>(rinfo->pc());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LE(begin_pos - pos_, kMaxSize);
 #endif
 }

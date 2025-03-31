@@ -166,7 +166,7 @@ void PagedSpaceBase::DecrementCommittedPhysicalMemory(size_t decrement_value)
     DCHECK_GT(old_value, old_value - decrement_value);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void PagedSpaceBase::VerifyCommittedPhysicalMemory() const
 {
     heap()->safepoint()->AssertActive();
@@ -369,7 +369,7 @@ std::unique_ptr<ObjectIterator> PagedSpaceBase::GetObjectIterator(Heap* heap)
     return std::unique_ptr<ObjectIterator>(new PagedSpaceObjectIterator(heap, this));
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void PagedSpaceBase::Print()
 {
 }
@@ -435,7 +435,7 @@ void PagedSpaceBase::Verify(Isolate* isolate, SpaceVerificationVisitor* visitor)
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyCountersAfterSweeping(isolate->heap());
 #endif
 }
@@ -458,7 +458,7 @@ void PagedSpaceBase::VerifyLiveBytes() const
 }
 #endif // VERIFY_HEAP
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void PagedSpaceBase::VerifyCountersAfterSweeping(Heap* heap) const
 {
     size_t total_capacity = 0;

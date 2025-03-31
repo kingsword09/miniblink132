@@ -150,7 +150,7 @@ void OptimizingCompileDispatcher::AwaitCompileTasks()
     // Join kills the job handle, so drop it and post a new one.
     job_handle_ = V8::GetCurrentPlatform()->PostJob(kTaskPriority, std::make_unique<CompileTask>(isolate_, this));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     CHECK_EQ(input_queue_.Length(), 0);
 #endif // DEBUG
 }

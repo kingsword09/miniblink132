@@ -180,7 +180,7 @@ void CpuFeatures::ProbeImpl(bool cross_compile)
     if (cross_compile)
         return;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     initialized_ = true;
 #endif
 
@@ -564,7 +564,7 @@ void Assembler::bind_to(Label* L, int pos)
     bool is_branch = false;
     while (L->is_linked()) {
         int fixup_pos = L->pos();
-#ifdef DEBUG
+#ifdef V8_DEBUG
         int32_t offset = pos - fixup_pos;
         int maxReach = max_reach_from(fixup_pos);
 #endif

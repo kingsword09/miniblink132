@@ -155,7 +155,7 @@ public:
     // Approximate amount of physical memory committed for this space.
     size_t CommittedPhysicalMemory() const override;
 
-#if DEBUG
+#ifdef V8_DEBUG
     void VerifyCommittedPhysicalMemory() const;
 #endif // DEBUG
 
@@ -244,7 +244,7 @@ public:
     void VerifyLiveBytes() const;
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyCountersAfterSweeping(Heap* heap) const;
     void VerifyCountersBeforeConcurrentSweeping() const;
     // Print meta info and objects in this space.

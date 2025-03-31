@@ -1350,7 +1350,7 @@ template <typename T> Maybe<T> ValueDeserializer::ReadVarint()
     auto max_read_position = position_ + sizeof(T) + 1;
     if (V8_UNLIKELY(max_read_position >= end_))
         return ReadVarintLoop<T>();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // DCHECK code to make sure the manually unrolled loop yields the exact
     // same end state and result.
     auto previous_position = position_;
@@ -2692,7 +2692,7 @@ MaybeHandle<Object> ValueDeserializer::ReadObjectUsingEntireBufferForLegacyForma
     }
 
 // Nothing remains but padding.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     while (position_ < end_) {
         DCHECK(*position_++ == static_cast<uint8_t>(SerializationTag::kPadding));
     }

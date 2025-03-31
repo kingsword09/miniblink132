@@ -174,7 +174,7 @@ class StrongRootsEntry final {
     friend class Heap;
 };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 struct CommentStatistic {
     const char* comment;
     int size;
@@ -595,7 +595,7 @@ public:
 
     V8_EXPORT_PRIVATE double MonotonicallyIncreasingTimeInMs() const;
 
-#if DEBUG
+#ifdef V8_DEBUG
     void VerifyNewSpaceTop();
 #endif // DEBUG
 
@@ -1076,7 +1076,7 @@ public:
     void ClearRecordedSlotRange(Address start, Address end);
     static int InsertIntoRememberedSetFromCode(MutablePageMetadata* chunk, size_t slot_offset);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifySlotRangeHasNoRecordedSlots(Address start, Address end);
 #endif
 
@@ -1627,7 +1627,7 @@ public:
     void V8_EXPORT_PRIVATE set_allocation_timeout(int allocation_timeout);
 #endif // V8_ENABLE_ALLOCATION_TIMEOUT
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyCountersAfterSweeping();
     void VerifyCountersBeforeConcurrentSweeping(GarbageCollector collector);
     void VerifyCommittedPhysicalMemory();
@@ -2112,7 +2112,7 @@ private:
     // Helper for IsPendingAllocation.
     inline bool IsPendingAllocationInternal(Tagged<HeapObject> object);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_EXPORT_PRIVATE void IncrementObjectCounters();
 #endif // DEBUG
 

@@ -174,7 +174,7 @@ public:
 
     uint64_t GetTraceIdForFlowEvent(GCTracer::Scope::ScopeId scope_id) const;
 
-#if DEBUG
+#ifdef V8_DEBUG
     // Can only be called on the main thread when no tasks are running.
     bool HasUnsweptPagesForMajorSweeping() const;
 #endif // DEBUG

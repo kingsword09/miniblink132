@@ -181,7 +181,7 @@ template <typename IsolateT> void String::MakeThin(IsolateT* isolate, Tagged<Str
 
     DCHECK(!initial_shape.IsThin());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check that shared strings can only transition to ThinStrings on the main
     // thread when no other thread is active.
     // The exception is during serialization, as no strings have escaped the
@@ -1649,7 +1649,7 @@ Handle<String> SeqString::Truncate(Isolate* isolate, Handle<SeqString> string, u
         new_size = SeqTwoByteString::SizeFor(new_length);
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     Address start_of_string = (*string).address();
     DCHECK(IsAligned(start_of_string, kObjectAlignment));
     DCHECK(IsAligned(start_of_string + new_size, kObjectAlignment));
@@ -1767,7 +1767,7 @@ FlatStringReader::FlatStringReader(Isolate* isolate, Handle<String> str)
     , str_(str)
     , length_(str->length())
 {
-#if DEBUG
+#ifdef V8_DEBUG
     // Check that this constructor is called only from the main thread.
     DCHECK_EQ(ThreadId::Current(), isolate->thread_id());
 #endif

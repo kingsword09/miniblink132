@@ -928,7 +928,7 @@ public:
     static constexpr bool IsThrowingOpcode(WasmOpcode);
     static constexpr bool IsRelaxedSimdOpcode(WasmOpcode);
     static constexpr bool IsFP16SimdOpcode(WasmOpcode);
-#if DEBUG
+#ifdef V8_DEBUG
     static constexpr bool IsMemoryAccessOpcode(WasmOpcode);
 #endif // DEBUG
     // Check whether the given opcode always jumps, i.e. all instructions after

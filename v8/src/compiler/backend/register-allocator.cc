@@ -196,7 +196,7 @@ LiveRange::LiveRange(int relative_id, MachineRepresentation rep, TopLevelLiveRan
     bits_ = AssignedRegisterField::encode(kUnassignedRegister) | RepresentationField::encode(rep) | ControlFlowRegisterHint::encode(kUnassignedRegister);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void LiveRange::VerifyPositions() const
 {
     SLOW_DCHECK(std::is_sorted(positions().begin(), positions().end(), UsePosition::Ordering()));
@@ -312,7 +312,7 @@ bool LiveRange::RegisterFromFirstHint(int* register_index)
     if (!needs_revisit) {
         current_hint_position_index_ = std::distance(positions_span_.begin(), pos_it);
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     UsePosition** pos_check_it = std::find_if(positions_span_.begin(), positions_span_.end(), [](UsePosition* pos) { return pos->HasHint(); });
     CHECK_EQ(pos_it, pos_check_it);
 #endif
@@ -466,7 +466,7 @@ LiveRange* LiveRange::SplitAt(LifetimePosition position, Zone* zone)
     current_interval_ = intervals_.begin();
     result->current_interval_ = result->intervals_.begin();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyChildStructure();
     result->VerifyChildStructure();
 #endif
@@ -789,7 +789,7 @@ AllocatedOperand TopLevelLiveRange::GetSpillRangeOperand() const
 
 LiveRange* TopLevelLiveRange::GetChildCovers(LifetimePosition pos)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Make sure the cache contains the correct, actual children.
     LiveRange* child = this;
     for (LiveRange* cached_child : children_) {
@@ -803,7 +803,7 @@ LiveRange* TopLevelLiveRange::GetChildCovers(LifetimePosition pos)
     return child_it == children_.end() || !(*child_it)->Covers(pos) ? nullptr : *child_it;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void TopLevelLiveRange::Verify() const
 {
     VerifyChildrenInOrder();
@@ -2314,7 +2314,7 @@ void LiveRangeBuilder::BuildLiveRanges()
         SpillRange* spill = range->HasSpillRange() ? range->GetSpillRange() : data()->AssignSpillRangeToLiveRange(range, SpillMode::kSpillAtDefinition);
         spill->set_assigned_slot(slot_id);
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Verify();
 #endif
 }
@@ -2336,7 +2336,7 @@ void LiveRangeBuilder::ResolvePhiHint(InstructionOperand* operand, UsePosition* 
     it->second->ResolveHint(use_pos);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void LiveRangeBuilder::Verify() const
 {
     for (auto& hint : phi_hints_) {
@@ -3435,7 +3435,7 @@ void LinearScanAllocator::AllocateRegisters()
         data()->tick_counter()->TickAndMaybeEnterSafepoint();
         LiveRange* current = unhandled_live_ranges().empty() ? nullptr : *unhandled_live_ranges().begin();
         LifetimePosition position = current ? current->Start() : next_block_boundary;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         allocation_finger_ = position;
 #endif
         // Check whether we just moved across a block boundary. This will trigger
@@ -3468,7 +3468,7 @@ void LinearScanAllocator::AllocateRegisters()
 
                 ForwardStateTo(next_block_boundary);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 // Allow allocation at current position.
                 allocation_finger_ = next_block_boundary;
 #endif
@@ -3480,7 +3480,7 @@ void LinearScanAllocator::AllocateRegisters()
             DCHECK_IMPLIES(!current_block->IsDeferred(), HasNonDeferredPredecessor(current_block));
 
             if (!fallthrough) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 // Allow allocation at current position.
                 allocation_finger_ = next_block_boundary;
 #endif

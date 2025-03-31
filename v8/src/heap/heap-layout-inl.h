@@ -30,7 +30,7 @@ bool HeapLayout::InYoungGeneration(const MemoryChunk* chunk, Tagged<HeapObject> 
         return InYoungGenerationForStickyMarkbits(chunk, object);
     }
     const bool in_young_generation = chunk->InYoungGeneration();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (in_young_generation) {
         CheckYoungGenerationConsistency(chunk);
     }

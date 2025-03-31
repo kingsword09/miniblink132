@@ -27,7 +27,7 @@ public:
     // Reset code size related statistics
     static void ResetCodeAndMetadataStatistics(Isolate* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Report statistics about code kind, code+metadata and code comments.
     static void ReportCodeStatistics(Isolate* isolate);
 #endif
@@ -35,7 +35,7 @@ public:
 private:
     static void RecordCodeAndMetadataStatistics(Tagged<HeapObject> object, Isolate* isolate);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static void CollectCommentStatistics(Isolate* isolate, CodeCommentsIterator* it);
     static void CollectCodeCommentStatistics(Tagged<AbstractCode> obj, Isolate* isolate);
     static void EnterComment(Isolate* isolate, const char* comment, int delta);

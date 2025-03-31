@@ -31,6 +31,9 @@
 #include "src/snapshot/snapshot-compression.h"
 #endif
 
+#include <windows.h>
+#pragma clang optimize off
+
 namespace v8 {
 namespace internal {
 
@@ -127,7 +130,7 @@ SnapshotData MaybeDecompress(Isolate* isolate, base::Vector<const uint8_t> snaps
 #endif
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool Snapshot::SnapshotIsValid(const v8::StartupData* snapshot_blob)
 {
     return SnapshotImpl::ExtractNumContexts(snapshot_blob) > 0;
@@ -155,6 +158,15 @@ bool Snapshot::VersionIsValid(const v8::StartupData* data)
     return strncmp(version, data->data + SnapshotImpl::kVersionStringOffset, SnapshotImpl::kVersionStringLength) == 0;
 }
 
+uint32_t simple_hash(const uint8_t* str, uint32_t table_size)
+{
+    uint32_t hash = 0;
+    for (int i = 0; str[i] != '\0'; i++) {
+        hash += str[i];
+    }
+    return hash % table_size;
+}
+
 bool Snapshot::Initialize(Isolate* isolate)
 {
     if (!isolate->snapshot_available())
@@ -173,6 +185,12 @@ bool Snapshot::Initialize(Isolate* isolate)
     SnapshotData startup_snapshot_data(MaybeDecompress(isolate, startup_data));
     SnapshotData read_only_snapshot_data(MaybeDecompress(isolate, read_only_data));
     SnapshotData shared_heap_snapshot_data(MaybeDecompress(isolate, shared_heap_data));
+
+//     char output[100] = { 0 };
+//     sprintf_s(output, 99, "Snapshot::Initialize: %d, %d %d %d, %x\n",
+//         blob->raw_size, startup_data.size(), read_only_data.size(), shared_heap_data.size(),
+//         simple_hash(read_only_data.data(), read_only_data.size()));
+//     OutputDebugStringA(output);
 
     return isolate->InitWithSnapshot(&startup_snapshot_data, &read_only_snapshot_data, &shared_heap_snapshot_data, ExtractRehashability(blob));
 }
@@ -260,7 +278,7 @@ void Snapshot::ClearReconstructableDataForSerialization(Isolate* isolate, bool c
             if (!IsUndefined(fun->raw_feedback_cell(cage_base)->value(cage_base))) {
                 fun->raw_feedback_cell(cage_base)->set_value(i::ReadOnlyRoots(isolate).undefined_value());
             }
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (clear_recompilable_data) {
 #if V8_ENABLE_WEBASSEMBLY
                 DCHECK(fun->shared()->HasWasmExportedFunctionData() || fun->shared()->HasBuiltinId() || fun->shared()->IsApiFunction()

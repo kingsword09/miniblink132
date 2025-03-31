@@ -199,7 +199,7 @@ void UpdateInLiveness(BytecodeLivenessState* in_liveness, const interpreter::Byt
     UpdateInLiveness<bytecode, implicit_register_use, operand_types...>(in_liveness, iterator, std::make_index_sequence<sizeof...(operand_types)>());
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void UpdateInLiveness(Bytecode bytecode, BytecodeLivenessState* in_liveness, const interpreter::BytecodeArrayIterator& iterator)
 {
     switch (bytecode) {
@@ -455,7 +455,7 @@ private:
         loop_stack_.push({ loop_header, loop_info });
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     bool ResumeJumpTargetsAreValid();
     bool ResumeJumpTargetLeavesResolveSuspendIds(
         int parent_offset, const ZoneVector<ResumeJumpTarget>& resume_jump_targets, std::map<int, int>* unresolved_suspend_ids);
@@ -801,7 +801,7 @@ std::ostream& BytecodeAnalysis::BytecodeAnalysisImpl::PrintLivenessTo(std::ostre
     return os;
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 bool BytecodeAnalysis::BytecodeAnalysisImpl::ResumeJumpTargetsAreValid()
 {
     bool valid = true;

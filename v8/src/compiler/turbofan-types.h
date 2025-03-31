@@ -290,7 +290,7 @@ public:
 
     static const char* Name(bitset);
     static void Print(std::ostream& os, bitset);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static void Print(bitset);
 #endif
 
@@ -597,7 +597,7 @@ public:
 
     void PrintTo(std::ostream& os) const;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Print() const;
 #endif
 

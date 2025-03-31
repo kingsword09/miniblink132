@@ -322,7 +322,7 @@ void PPCDebugger::Debug()
                     if (GetValue(arg1, &value)) {
                         Tagged<Object> obj(value);
                         os << arg1 << ": \n";
-#ifdef DEBUG
+#ifdef V8_DEBUG
                         Print(obj, os);
                         os << "\n";
 #else
@@ -1085,7 +1085,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             CHECK(stack_aligned);
             SimulatorRuntimeFPTaggedCall target = reinterpret_cast<SimulatorRuntimeFPTaggedCall>(external);
             double dresult = target(arg[0], arg[1], arg[2], arg[3]);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             TrashCallerSaveRegisters();
 #endif
             SetFpResult(dresult);

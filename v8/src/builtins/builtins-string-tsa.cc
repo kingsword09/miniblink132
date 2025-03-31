@@ -41,7 +41,7 @@ public:
         StringView src_view(no_gc, src_string, src_encoding, src_begin, character_count);
         FOREACH(src_char, dst_offset, Zip(src_view, Sequence(dst_begin_offset, dst_stride)))
         {
-#if DEBUG
+#ifdef V8_DEBUG
             // Copying two-byte characters to one-byte is okay if callers have
             // checked that this loses no information.
             if (v8_flags.debug_code && !src_one_byte && dst_one_byte) {

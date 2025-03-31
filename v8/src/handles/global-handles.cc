@@ -1101,7 +1101,7 @@ void GlobalHandles::RecordStats(HeapStats* stats)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 void GlobalHandles::PrintStats()
 {

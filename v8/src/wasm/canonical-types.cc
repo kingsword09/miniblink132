@@ -108,7 +108,7 @@ void TypeCanonicalizer::AddRecursiveSingletonGroup(WasmModule* module, uint32_t 
 CanonicalTypeIndex TypeCanonicalizer::AddRecursiveGroup(const FunctionSig* sig)
 {
 // Types in the signature must be module-independent.
-#if DEBUG
+#ifdef V8_DEBUG
     for (ValueType type : sig->all())
         DCHECK(!type.has_index());
 #endif
@@ -398,7 +398,7 @@ CanonicalTypeIndex TypeCanonicalizer::FindIndex_Slow(const CanonicalSig* sig) co
     UNREACHABLE();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool TypeCanonicalizer::Contains(const CanonicalSig* sig) const
 {
     base::MutexGuard mutex_guard(&mutex_);

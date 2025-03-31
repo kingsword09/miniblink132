@@ -137,7 +137,7 @@ public:
     {
         head_ = other.head_;
         tail_ = other.head_ ? other.tail_ : &head_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         other.Clear();
 #endif
         return *this;
@@ -145,7 +145,7 @@ public:
 
     ThreadedListBase(ThreadedListBase&& other) V8_NOEXCEPT : head_(other.head_), tail_(other.head_ ? other.tail_ : &head_)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         other.Clear();
 #endif
     }

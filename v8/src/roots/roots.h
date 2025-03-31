@@ -632,7 +632,7 @@ public:
 
     V8_INLINE bool IsNameForProtector(Tagged<HeapObject> object) const;
     V8_INLINE void VerifyNameForProtectorsPages() const;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyNameForProtectors();
 #endif
 
@@ -663,7 +663,7 @@ public:
 private:
     V8_INLINE Address first_name_for_protector() const;
     V8_INLINE Address last_name_for_protector() const;
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define ROOT_TYPE_CHECK(Type, name, CamelName) V8_EXPORT_PRIVATE bool CheckType_##name() const;
 
     READ_ONLY_ROOT_LIST(ROOT_TYPE_CHECK)

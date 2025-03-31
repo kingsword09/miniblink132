@@ -298,7 +298,7 @@ protected:
         return static_cast<ExpressionParsingScope<Types>*>(this);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool has_error() const
     {
         return parser_->has_error();
@@ -577,7 +577,7 @@ public:
     void ClearExpressionError()
     {
         DCHECK(verified_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         verified_ = false;
 #endif
         clear(kExpressionIndex);
@@ -586,7 +586,7 @@ public:
     void ClearPatternError()
     {
         DCHECK(verified_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         verified_ = false;
 #endif
         clear(kPatternIndex);
@@ -633,7 +633,7 @@ public:
 protected:
     bool is_verified() const
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         return verified_;
 #else
         return false;
@@ -685,17 +685,17 @@ private:
     // Debug verification to make sure every scope is validated exactly once.
     void mark_verified()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         verified_ = true;
 #endif
     }
     void clear_verified()
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         verified_ = false;
 #endif
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool verified_ = false;
 #endif
 
@@ -764,7 +764,7 @@ public:
         scope_->ValidateExpression();
         DCHECK(scope_->is_verified());
         scope_->clear(ExpressionParsingScope<Types>::kPatternIndex);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         scope_->clear_verified();
 #endif
     }
@@ -860,7 +860,7 @@ public:
             }
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (!this->has_error()) {
             for (auto declaration : *result->declarations()) {
                 DCHECK_NE(declaration->var()->initializer_position(), kNoSourcePosition);

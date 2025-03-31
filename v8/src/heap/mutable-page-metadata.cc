@@ -39,7 +39,7 @@ MutablePageMetadata::MutablePageMetadata(
 
     DCHECK_EQ(page_size == PageSize::kLarge, IsLargePage());
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ValidateOffsets(this);
 #endif
 }
@@ -211,7 +211,7 @@ int MutablePageMetadata::ComputeFreeListsLength()
     return length;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void MutablePageMetadata::ValidateOffsets(MutablePageMetadata* chunk)
 {
     // Note that we cannot use offsetof because MutablePageMetadata is not a POD.

@@ -76,7 +76,7 @@ template <typename T> void JumpTableAssembler::emit(T value, RelaxedStoreTag) DI
     // requirements. We instead guarantee in the jump table layout that the writes
     // will still be atomic since they don't cross a qword boundary.
 #if V8_TARGET_ARCH_X64
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Address write_start = reinterpret_cast<Address>(pc_);
     Address write_end = write_start + sizeof(T) - 1;
     // Check that the write doesn't cross a qword boundary.

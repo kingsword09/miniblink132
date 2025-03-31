@@ -194,7 +194,7 @@ private:
     Label* labels_;
     BitVector label_tags_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     friend class SaveAccumulatorScope;
 
     struct EffectState {
@@ -231,7 +231,7 @@ public:
     ~SaveAccumulatorScope();
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     BaselineCompiler* compiler_;
 #endif
     BaselineAssembler* assembler_;

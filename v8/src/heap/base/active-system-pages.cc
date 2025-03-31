@@ -14,7 +14,7 @@ namespace base {
 
 size_t ActiveSystemPages::Init(size_t header_size, size_t page_size_bits, size_t user_page_size)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     size_t page_size = 1 << page_size_bits;
     DCHECK_LE(RoundUp(user_page_size, page_size) >> page_size_bits, ActiveSystemPages::kMaxPages);
 #endif // DEBUG

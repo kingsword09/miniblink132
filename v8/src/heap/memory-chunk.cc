@@ -131,12 +131,12 @@ bool MemoryChunk::InReadOnlySpace() const
 
 #endif // THREAD_SANITIZER
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 bool MemoryChunk::IsTrusted() const
 {
     bool is_trusted = IsFlagSet(IS_TRUSTED);
-#if DEBUG
+#ifdef V8_DEBUG
     AllocationSpace id = Metadata()->owner()->identity();
     DCHECK_EQ(is_trusted, IsAnyTrustedSpace(id) || IsAnyCodeSpace(id));
 #endif

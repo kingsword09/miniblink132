@@ -80,7 +80,7 @@ namespace internal {
 #define V8_EMBEDDED_CONSTANT_POOL_BOOL false
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define DEBUG_BOOL true
 #else
 #define DEBUG_BOOL false
@@ -343,7 +343,7 @@ const size_t kShortBuiltinCallsOldSpaceSizeThreshold = size_t { 2 } * GB;
 // Superclass for classes only using static method functions.
 // The subclass of AllStatic cannot be instantiated at all.
 class AllStatic {
-#ifdef DEBUG
+#ifdef V8_DEBUG
 public:
     AllStatic() = delete;
 #endif
@@ -1862,7 +1862,7 @@ enum class VariableMode : uint8_t {
 };
 
 // Printing support
-#ifdef DEBUG
+#ifdef V8_DEBUG
 inline const char* VariableMode2String(VariableMode mode)
 {
     switch (mode) {

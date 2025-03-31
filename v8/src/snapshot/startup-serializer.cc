@@ -28,7 +28,7 @@ public:
         , feedback_vectors_for_profiling_tools_(isolate->heap()->feedback_vectors_for_profiling_tools())
         , detached_contexts_(isolate->heap()->detached_contexts())
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (!allow_active_isolate_for_testing) {
             // These should already be empty when creating a real snapshot.
             DCHECK_EQ(feedback_vectors_for_profiling_tools_, ReadOnlyRoots(isolate).undefined_value());
@@ -92,7 +92,7 @@ StartupSerializer::~StartupSerializer()
 void StartupSerializer::SerializeObjectImpl(Handle<HeapObject> obj, SlotType slot_type)
 {
     PtrComprCageBase cage_base(isolate());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (IsJSFunction(*obj, cage_base)) {
         v8::base::OS::PrintError("Reference stack:\n");
         PrintStack(std::cerr);

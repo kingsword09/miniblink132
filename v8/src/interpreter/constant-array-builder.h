@@ -218,7 +218,7 @@ private:
 #undef ENTRY_TAG
         } tag_;
 
-#if DEBUG
+#ifdef V8_DEBUG
         // Required by CheckAllElementsAreUnique().
         friend struct ConstantArraySlice;
 #endif
@@ -239,7 +239,7 @@ private:
         Entry& At(size_t index);
         const Entry& At(size_t index) const;
 
-#if DEBUG
+#ifdef V8_DEBUG
         template <typename IsolateT> void CheckAllElementsAreUnique(IsolateT* isolate) const;
 #endif
 

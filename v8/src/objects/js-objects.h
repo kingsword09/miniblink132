@@ -646,7 +646,7 @@ public:
 
     void PrintInstanceMigration(FILE* file, Tagged<Map> original_map, Tagged<Map> new_map);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Structure for collecting spill information about JSObjects.
     class SpillInformation {
     public:

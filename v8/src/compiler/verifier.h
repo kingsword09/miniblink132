@@ -29,7 +29,7 @@ public:
 
     static void Run(Graph* graph, Typing typing = TYPED, CheckInputs check_inputs = kAll, CodeType code_type = kDefault);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Verifies consistency of node inputs and uses:
     // - node inputs should agree with the input count computed from
     //   the node's operator.

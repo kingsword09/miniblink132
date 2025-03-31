@@ -139,7 +139,7 @@ private:
                     break;
                 argc++;
             }
-#ifdef DEBUG
+#ifdef V8_DEBUG
             for (int i = argc; i < kMaxArgumentCount; i++) {
                 DCHECK_EQ(args_[i].type, kNone);
             }

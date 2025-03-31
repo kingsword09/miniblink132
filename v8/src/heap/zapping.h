@@ -17,7 +17,7 @@ namespace v8::internal::heap {
 // Zapping is needed for verify heap, and always done in debug builds.
 inline bool ShouldZapGarbage()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     return true;
 #else
 #ifdef VERIFY_HEAP

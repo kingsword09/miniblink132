@@ -19,7 +19,7 @@ AstFunctionLiteralIdReindexer::~AstFunctionLiteralIdReindexer() = default;
 
 void AstFunctionLiteralIdReindexer::Reindex(Expression* pattern)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     visited_.clear();
 #endif
     Visit(pattern);
@@ -92,7 +92,7 @@ void AstFunctionLiteralIdReindexer::VisitClassLiteral(ClassLiteral* expr)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 
 class AstFunctionLiteralIdReindexChecker final : public AstTraversalVisitor<AstFunctionLiteralIdReindexChecker> {

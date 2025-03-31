@@ -654,7 +654,7 @@ uint32_t WasmModuleBuilder::AddExportedGlobal(ValueType type, bool mutability, W
 
 void WasmModuleBuilder::ExportImportedFunction(base::Vector<const char> name, int import_index)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     // The size of function_imports_ must not change any more.
     adding_imports_allowed_ = false;
 #endif

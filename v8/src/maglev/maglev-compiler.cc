@@ -122,7 +122,7 @@ bool MaglevCompiler::Compile(LocalIsolate* local_isolate, MaglevCompilationInfo*
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     {
         GraphProcessor<MaglevGraphVerifier> verifier(compilation_info);
         verifier.ProcessGraph(graph);
@@ -144,7 +144,7 @@ bool MaglevCompiler::Compile(LocalIsolate* local_isolate, MaglevCompilationInfo*
         PrintGraph(std::cout, compilation_info, graph);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     {
         GraphProcessor<MaglevGraphVerifier> verifier(compilation_info);
         verifier.ProcessGraph(graph);

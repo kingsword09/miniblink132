@@ -106,7 +106,7 @@ public:
     };
     // Pass a {NoName} if we know statically that we do not use it anyway (we are
     // not tracing (in release mode) and not running full validation).
-#ifdef DEBUG
+#ifdef V8_DEBUG
     template <typename ValidationTag> using Name = const char*;
 #else
     template <typename ValidationTag> using Name = std::conditional_t<ValidationTag::validate, const char*, NoName>;

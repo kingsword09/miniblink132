@@ -2016,7 +2016,7 @@ Handle<WasmDispatchTable> WasmDispatchTable::Grow(Isolate* isolate, Handle<WasmD
 
 bool WasmCapiFunction::MatchesSignature(wasm::CanonicalTypeIndex other_canonical_sig_index) const
 {
-#if DEBUG
+#ifdef V8_DEBUG
     // TODO(14034): Change this if indexed types are allowed.
     for (wasm::CanonicalValueType type : this->sig()->all()) {
         CHECK(!type.has_index());
@@ -2128,7 +2128,7 @@ Handle<WasmContinuationObject> WasmContinuationObject::New(
     auto parent = ReadOnlyRoots(isolate).undefined_value();
     return New(isolate, stack, state, handle(parent, isolate), allocation_type);
 }
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 namespace {
 
@@ -2476,7 +2476,7 @@ const wasm::CanonicalSig* WasmJSFunctionData::GetSignature() const
 
 bool WasmJSFunctionData::MatchesSignature(wasm::CanonicalTypeIndex other_canonical_sig_index) const
 {
-#if DEBUG
+#ifdef V8_DEBUG
     // TODO(14034): Change this if indexed types are allowed.
     const wasm::CanonicalSig* sig = GetSignature();
     for (wasm::CanonicalValueType type : sig->all())

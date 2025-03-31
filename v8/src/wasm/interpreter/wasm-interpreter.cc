@@ -4521,7 +4521,7 @@ INSTRUCTION_HANDLER_FUNC s2s_RefArrayNew(const uint8_t* code, uint32_t* sp, Wasm
         TRAP(TrapReason::kTrapArrayTooLarge)
     }
 
-#if DEBUG
+#ifdef V8_DEBUG
     const ArrayType* array_type = array_new_result.second;
     DCHECK_EQ(value_kind_size(array_type->element_type().kind()), sizeof(Tagged_t));
 #endif
@@ -5527,7 +5527,7 @@ WasmBytecodeGenerator::WasmBytecodeGenerator(uint32_t function_index, Interprete
     , is_instruction_reachable_(true)
     , unreachable_block_count_(0)
     ,
-#ifdef DEBUG
+#ifdef V8_DEBUG
     was_current_instruction_reachable_(true)
     ,
 #endif // DEBUG
@@ -6778,7 +6778,7 @@ RegMode WasmBytecodeGenerator::EncodeInstruction(const WasmInstruction& instr, R
 {
     DCHECK(curr_reg_mode != RegMode::kAnyReg);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     was_current_instruction_reachable_ = is_instruction_reachable_;
 #endif // DEBUG
     if (!is_instruction_reachable_) {

@@ -88,7 +88,7 @@ public:
     explicit DefaultAssemblerBuffer(int size)
         : buffer_(base::OwnedVector<uint8_t>::NewForOverwrite(std::max(AssemblerBase::kMinimalBufferSize, size)))
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         ZapCode(reinterpret_cast<Address>(buffer_.begin()), buffer_.size());
 #endif
     }
@@ -214,7 +214,7 @@ void AssemblerBase::Print(Isolate* isolate)
 // -----------------------------------------------------------------------------
 // Implementation of CpuFeatureScope
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 CpuFeatureScope::CpuFeatureScope(AssemblerBase* assembler, CpuFeature f, CheckPolicy check)
     : assembler_(assembler)
 {
@@ -258,7 +258,7 @@ void Assembler::RecordDeoptReason(DeoptimizeReason reason, uint32_t node_id, Sou
         RecordRelocInfo(RelocInfo::DEOPT_REASON, static_cast<int>(reason));
         RecordRelocInfo(RelocInfo::DEOPT_ID, id);
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     EnsureSpace space(this);
     RecordRelocInfo(RelocInfo::DEOPT_NODE_ID, node_id);
 #endif // DEBUG

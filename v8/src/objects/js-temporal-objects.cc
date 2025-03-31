@@ -373,7 +373,7 @@ inline double modulo(double a, int32_t b)
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define TEMPORAL_DEBUG_INFO AT
 #define TEMPORAL_ENTER_FUNC()
 // #define TEMPORAL_ENTER_FUNC()  do { PrintF("Start: %s\n", __func__); } while

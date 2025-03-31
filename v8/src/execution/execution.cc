@@ -289,7 +289,7 @@ V8_WARN_UNUSED_RESULT MaybeHandle<Object> Invoke(Isolate* isolate, const InvokeP
             }
             return value;
         }
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (function->shared()->is_script()) {
             DCHECK(params.IsScript());
             DCHECK(IsJSGlobalProxy(*params.receiver));

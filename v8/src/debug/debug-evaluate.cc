@@ -1085,7 +1085,7 @@ DebugInfo::SideEffectState DebugEvaluate::FunctionGetSideEffectState(Isolate* is
     return DebugInfo::kHasSideEffects;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller, Builtin callee)
 {
     switch (callee) {

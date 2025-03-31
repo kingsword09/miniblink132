@@ -114,7 +114,7 @@ public:
     // Regular initialization. Allocates size-dependent internal data.
     void Initialize(int size)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         DCHECK_EQ(-1, size_);
         size_ = size;
 #endif
@@ -148,7 +148,7 @@ private:
     // code objects needing to stay in sync).
     std::unique_ptr<std::atomic<WellKnownImport>[]> statuses_;
 
-#if DEBUG
+#ifdef V8_DEBUG
     int size_ { -1 };
 #endif
 };

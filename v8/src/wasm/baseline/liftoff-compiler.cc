@@ -747,7 +747,7 @@ public:
 
     void UnuseLabels(FullDecoder* decoder)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         auto Unuse = [](Label* label) {
             label->Unuse();
             label->UnuseNear();
@@ -1218,7 +1218,7 @@ public:
         if (DidAssemblerBailout(decoder))
             return;
         __ AlignFrameSize();
-#if DEBUG
+#ifdef V8_DEBUG
         int frame_size = __ GetTotalFrameSize();
 #endif
         for (OutOfLineCode& ool : out_of_line_code_) {
@@ -3781,7 +3781,7 @@ public:
     {
         auto& stack_state = __ cache_state()->stack_state;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // For value types, we use the cached {stack_value_types_for_debugging_}
         // vector (gathered in {NextInstruction}). This still includes call
         // arguments, which Liftoff has already popped at this point. Hence the size
@@ -5609,7 +5609,7 @@ public:
 
     // The following functions are to be used inside a DCHECK. They always return
     // true and will fail internally on a detected inconsistency.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Checks that the top-of-stack value matches the declared memory (64-bit or
     // 32-bit).
     bool MatchingMemTypeOnTopOfStack(const WasmMemory* memory)

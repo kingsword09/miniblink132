@@ -125,7 +125,7 @@ PER_ISOLATE_CHECK_TYPE(PER_ISOLATE_ASSERT_ENABLE_SCOPE, true)
 PER_ISOLATE_DCHECK_TYPE(PER_ISOLATE_ASSERT_DISABLE_SCOPE, false)
 PER_ISOLATE_CHECK_TYPE(PER_ISOLATE_ASSERT_DISABLE_SCOPE, false)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define PER_ISOLATE_DCHECK_ENABLE_SCOPE(EnableType, DisableType, field, _)                                                                                     \
     class EnableType##DebugOnly : public EnableType {                                                                                                          \
     public:                                                                                                                                                    \
@@ -144,7 +144,7 @@ PER_ISOLATE_CHECK_TYPE(PER_ISOLATE_ASSERT_DISABLE_SCOPE, false)
     };
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define PER_ISOLATE_DCHECK_DISABLE_SCOPE(EnableType, DisableType, field, _)                                                                                    \
     class DisableType##DebugOnly : public DisableType {                                                                                                        \
     public:                                                                                                                                                    \
@@ -166,7 +166,7 @@ PER_ISOLATE_CHECK_TYPE(PER_ISOLATE_ASSERT_DISABLE_SCOPE, false)
 PER_ISOLATE_DCHECK_TYPE(PER_ISOLATE_DCHECK_ENABLE_SCOPE, true)
 PER_ISOLATE_DCHECK_TYPE(PER_ISOLATE_DCHECK_DISABLE_SCOPE, false)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 template <bool kAllow, PerThreadAssertType... kTypes> using PerThreadAssertScopeDebugOnly = PerThreadAssertScope<kAllow, kTypes...>;
 #else
 template <bool kAllow, PerThreadAssertType... kTypes> using PerThreadAssertScopeDebugOnly = PerThreadAssertScopeEmpty<kAllow, kTypes...>;
@@ -237,7 +237,7 @@ using AllowPositionInfoSlow = PerThreadAssertScopeDebugOnly<true, POSITION_INFO_
 // The DISALLOW_GARBAGE_COLLECTION macro can be used to define a
 // DisallowGarbageCollection field in classes that isn't present in release
 // builds.
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define DISALLOW_GARBAGE_COLLECTION(name) DisallowGarbageCollection name;
 #else
 #define DISALLOW_GARBAGE_COLLECTION(name)

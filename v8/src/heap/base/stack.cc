@@ -19,10 +19,10 @@ namespace heap::base {
 // marker.
 extern "C" void PushAllRegistersAndIterateStack(Stack* stack, void* argument, Stack::IterateStackCallback callback);
 
-extern "C" void PushAllRegistersAndIterateStack(Stack * stack, void* argument, Stack::IterateStackCallback callback)
-{
-  *(int*)1 = 1;
-}
+// extern "C" void PushAllRegistersAndIterateStack(Stack * stack, void* argument, Stack::IterateStackCallback callback)
+// {
+//   *(int*)1 = 1;
+// }
 
 // static
 bool Stack::IsOnStack(const void* slot)
@@ -185,7 +185,7 @@ void Stack::IterateBackgroundStacks(StackVisitor* visitor) const
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 bool Stack::IsOnCurrentStack(const void* ptr)
 {

@@ -13,7 +13,7 @@
 #include "src/handles/handles-inl.h"
 #include "src/objects/map-inl.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define TRACE(...)                                                                                                                                             \
     do {                                                                                                                                                       \
         if (v8_flags.trace_turbo_escape)                                                                                                                       \
@@ -586,7 +586,7 @@ VariableTracker::State VariableTracker::MergeInputs(Node* effect_phi)
                     }
                 }
             }
-#ifdef DEBUG
+#ifdef V8_DEBUG
             if (Node* result_node = result.Get(var)) {
                 TRACE("  result: %s#%d\n", result_node->op()->mnemonic(), result_node->id());
             } else {

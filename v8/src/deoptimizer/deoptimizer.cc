@@ -330,7 +330,7 @@ class ActivationsFinder : public ThreadVisitor {
 public:
     ActivationsFinder(Tagged<GcSafeCode> topmost_optimized_code, bool safe_to_deopt_topmost_optimized_code)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         topmost_ = topmost_optimized_code;
         safe_to_deopt_ = safe_to_deopt_topmost_optimized_code;
 #endif
@@ -379,7 +379,7 @@ public:
     }
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Tagged<GcSafeCode> topmost_;
     bool safe_to_deopt_;
 #endif
@@ -394,7 +394,7 @@ void Deoptimizer::DeoptimizeMarkedCode(Isolate* isolate)
 
     Tagged<GcSafeCode> topmost_optimized_code;
     bool safe_to_deopt_topmost_optimized_code = false;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Make sure all activations of optimized code can deopt at their current PC.
     // The topmost optimized code has special handling because it cannot be
     // deoptimized due to weak object dependency.
@@ -598,7 +598,7 @@ Deoptimizer::Deoptimizer(Isolate* isolate, Tagged<JSFunction> function, Deoptimi
 
     DCHECK_NE(from, kNullAddress);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(AllowGarbageCollection::IsAllowed());
     disallow_garbage_collection_ = new DisallowGarbageCollection();
 #endif // DEBUG
@@ -721,7 +721,7 @@ void Deoptimizer::DeleteFrameDescriptions()
         shadow_stack_ = nullptr;
     }
 #endif // V8_ENABLE_CET_SHADOW_STACK
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(!AllowGarbageCollection::IsAllowed());
     DCHECK_NOT_NULL(disallow_garbage_collection_);
     delete disallow_garbage_collection_;
@@ -778,14 +778,14 @@ void Deoptimizer::TraceDeoptBegin(int optimization_id, BytecodeOffset bytecode_o
     ShortPrint(compiled_code_, file);
     PrintF(file,
         ", opt id %d, "
-#ifdef DEBUG
+#ifdef V8_DEBUG
         "node id %d, "
 #endif // DEBUG
         "bytecode offset %d, deopt exit %d, FP to SP "
         "delta %d, "
         "caller SP " V8PRIxPTR_FMT ", pc " V8PRIxPTR_FMT "]\n",
         optimization_id,
-#ifdef DEBUG
+#ifdef V8_DEBUG
         info.node_id,
 #endif // DEBUG
         bytecode_offset.ToInt(), deopt_exit_index_, fp_to_sp_delta_, caller_frame_top_, PointerAuthentication::StripPAC(from_));
@@ -842,7 +842,7 @@ void Deoptimizer::TraceEvictFromOptimizedCodeCache(Isolate* isolate, Tagged<Shar
     PrintF(scope.file(), "]\n");
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 void Deoptimizer::TraceFoundActivation(Isolate* isolate, Tagged<JSFunction> function)
 {

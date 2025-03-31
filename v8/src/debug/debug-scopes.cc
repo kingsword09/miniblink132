@@ -730,7 +730,7 @@ void ScopeIterator::CollectLocalsFromCurrentScope()
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // Debug print of the content of the current scope.
 void ScopeIterator::DebugPrint()
 {

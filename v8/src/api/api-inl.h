@@ -179,7 +179,7 @@ public:
         }
         if (do_callback)
             isolate_->FireCallCompletedCallback(microtask_queue);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (do_callback) {
             if (microtask_queue && microtask_queue->microtasks_policy() == v8::MicrotasksPolicy::kScoped) {
                 DCHECK(microtask_queue->GetMicrotasksScopeDepth() || !microtask_queue->DebugMicrotasksScopeDepthIsZero());
@@ -195,7 +195,7 @@ public:
     CallDepthScope& operator=(const CallDepthScope&) = delete;
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool CheckKeptObjectsClearedAfterMicrotaskCheckpoint(i::MicrotaskQueue* microtask_queue)
     {
         bool did_perform_microtask_checkpoint = isolate_->thread_local_top()->CallDepthIsZero() && do_callback && microtask_queue

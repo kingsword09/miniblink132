@@ -2175,7 +2175,7 @@ void Assembler::AdjustBaseAndOffset(MemOperand* src, OffsetAccessType access_typ
 
     DCHECK(src->rm() != at); // Must not overwrite the register 'base' while loading 'offset'.
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Remember the "(mis)alignment" of 'offset', it will be checked at the end.
     uint32_t misalignment = src->offset() & (kDoubleSize - 1);
 #endif
@@ -4265,7 +4265,7 @@ void Assembler::set_target_value_at(Address pc, uint64_t target, WritableJitAllo
     Instr instr1 = instr_at(pc + kInstrSize);
     uint32_t rt_code = GetRt(instr1);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check we have the result from a li macro-instruction.
     Instr instr0 = instr_at(pc);
     Instr instr3 = instr_at(pc + kInstrSize * 3);

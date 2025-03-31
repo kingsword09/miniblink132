@@ -114,7 +114,7 @@ void GCInfoTable::Resize()
 
 void GCInfoTable::CheckMemoryIsZeroed(uintptr_t* base, size_t len)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     for (size_t i = 0; i < len; ++i) {
         DCHECK(!base[i]);
     }

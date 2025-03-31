@@ -221,7 +221,7 @@ void WeakObjects::UpdateBaselineFlushingCandidates(WeakObjectWorklist<Tagged<JSF
 
 #endif // !V8_ENABLE_LEAPTIERING
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 template <typename Type> bool WeakObjects::ContainsYoungObjects(WeakObjectWorklist<Tagged<Type>>& worklist)
 {

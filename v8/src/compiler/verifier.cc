@@ -133,7 +133,7 @@ void Verifier::Visitor::CheckSwitch(Node* node, const AllNodes& all)
     CheckNotTyped(node);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 // Print more debug information just before a DCHECK failure.
 bool FailSoon(Node* node)
@@ -163,7 +163,7 @@ void Verifier::Visitor::Check(Node* node, const AllNodes& all)
     // If this node has any effect outputs, make sure that it is
     // consumed as an effect input somewhere else.
     if (node->op()->EffectOutputCount() > 0) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         int effect_edges = 0;
         for (Edge edge : node->use_edges()) {
             if (all.IsLive(edge.from()) && NodeProperties::IsEffectEdge(edge)) {
@@ -2247,7 +2247,7 @@ void ScheduleVerifier::Run(Schedule* schedule)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 
 // static
 void Verifier::VerifyNode(Node* node)

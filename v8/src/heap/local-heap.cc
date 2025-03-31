@@ -38,7 +38,7 @@ void LocalHeap::SetCurrent(LocalHeap* local_heap)
     g_current_local_heap_ = local_heap;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void LocalHeap::VerifyCurrent() const
 {
     LocalHeap* current = LocalHeap::Current();
@@ -145,7 +145,7 @@ void LocalHeap::SetUpMarkingBarrier()
 
 void LocalHeap::SetUpSharedMarking()
 {
-#if DEBUG
+#ifdef V8_DEBUG
     // Ensure the thread is either in the running state or holds the safepoint
     // lock. This guarantees that the state of incremental marking can't change
     // concurrently (this requires a safepoint).
@@ -187,7 +187,7 @@ std::unique_ptr<PersistentHandles> LocalHeap::DetachPersistentHandles()
     return std::move(persistent_handles_);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool LocalHeap::ContainsPersistentHandle(Address* location)
 {
     return persistent_handles_ ? persistent_handles_->Contains(location) : false;
@@ -207,7 +207,7 @@ bool LocalHeap::IsHandleDereferenceAllowed()
 
 bool LocalHeap::IsParked() const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyCurrent();
 #endif
     return state_.load_relaxed().IsParked();
@@ -215,7 +215,7 @@ bool LocalHeap::IsParked() const
 
 bool LocalHeap::IsRunning() const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     VerifyCurrent();
 #endif
     return state_.load_relaxed().IsRunning();
@@ -388,7 +388,7 @@ void LocalHeap::SleepInSafepoint()
     });
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool LocalHeap::IsSafeForConservativeStackScanning() const
 {
 #ifdef V8_ENABLE_DIRECT_HANDLE
@@ -416,7 +416,7 @@ void LocalHeap::FreeLinearAllocationAreas()
     heap_allocator_.FreeLinearAllocationAreas();
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void LocalHeap::VerifyLinearAllocationAreas() const
 {
     heap_allocator_.VerifyLinearAllocationAreas();

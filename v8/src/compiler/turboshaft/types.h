@@ -20,7 +20,7 @@
 #include "src/utils/ostreams.h"
 #include "src/zone/zone-containers.h"
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define TURBOSHAFT_TRACE_TYPING(...)                                                                                                                           \
     do {                                                                                                                                                       \
         if (V8_UNLIKELY(v8_flags.turboshaft_trace_typing)) {                                                                                                   \

@@ -16,7 +16,7 @@ void ParallelMove::TransferToStack(int dst_offset, const VarState& src)
         // because of alignment.
         if (src.offset() == dst_offset)
             return;
-#if DEBUG
+#ifdef V8_DEBUG
         // Check that the stack value at `dst_offset` is not used in a pending
         // register load.
         for (LiftoffRegister reg : load_dst_regs_) {

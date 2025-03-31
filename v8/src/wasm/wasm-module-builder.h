@@ -676,7 +676,7 @@ private:
     // first index -> size
     ZoneUnorderedMap<uint32_t, uint32_t> recursive_groups_;
     int start_function_index_;
-#if DEBUG
+#ifdef V8_DEBUG
     // Once AddExportedImport is called, no more imports can be added.
     bool adding_imports_allowed_ = true;
 #endif

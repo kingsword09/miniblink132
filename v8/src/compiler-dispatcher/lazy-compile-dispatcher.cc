@@ -157,7 +157,7 @@ void LazyCompileDispatcher::Enqueue(LocalIsolate* isolate, Handle<SharedFunction
             PrintF("\n");
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         all_jobs_.insert(job);
 #endif
         pending_background_jobs_.push_back(job);
@@ -518,7 +518,7 @@ void LazyCompileDispatcher::DeleteJob(Job* job)
 void LazyCompileDispatcher::DeleteJob(Job* job, const base::MutexGuard&)
 {
     DCHECK(job->state == Job::State::kFinalized);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     all_jobs_.erase(job);
 #endif
     jobs_to_dispose_.push_back(job);
@@ -527,7 +527,7 @@ void LazyCompileDispatcher::DeleteJob(Job* job, const base::MutexGuard&)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void LazyCompileDispatcher::VerifyBackgroundTaskCount(const base::MutexGuard&)
 {
     size_t pending_jobs = 0;

@@ -626,7 +626,7 @@ public:
 #endif
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Bootstrapping-aware type checks.
     static bool IsBootstrappingOrValidParentContext(Tagged<Object> object, Tagged<Context> kid);
 #endif

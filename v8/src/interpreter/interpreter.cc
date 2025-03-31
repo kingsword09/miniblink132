@@ -24,6 +24,9 @@
 #include "src/parsing/parse-info.h"
 #include "src/utils/ostreams.h"
 
+#include <windows.h>
+#pragma clang optimize off
+
 namespace v8 {
 namespace internal {
 namespace interpreter {
@@ -135,7 +138,7 @@ void MaybePrintAst(ParseInfo* parse_info, UnoptimizedCompilationInfo* compilatio
     StdoutStream os;
     std::unique_ptr<char[]> name = compilation_info->literal()->GetDebugName();
     os << "[generating bytecode for function: " << name.get() << "]" << std::endl;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     os << "--- AST ---" << std::endl << AstPrinter(parse_info->stack_limit()).PrintProgram(compilation_info->literal()) << std::endl;
 #endif // DEBUG
 }
@@ -187,7 +190,7 @@ InterpreterCompilationJob::Status InterpreterCompilationJob::ExecuteJobImpl()
     return SUCCEEDED;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 template <typename IsolateT>
 void InterpreterCompilationJob::CheckAndPrintBytecodeMismatch(IsolateT* isolate, Handle<Script> script, DirectHandle<BytecodeArray> bytecode)
 {
@@ -264,7 +267,7 @@ InterpreterCompilationJob::Status InterpreterCompilationJob::DoFinalizeJobImpl(H
         os << std::flush;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (parse_info()->literal()->shared_function_info().is_null()) {
         parse_info()->literal()->set_shared_function_info(shared_info);
     }
@@ -319,7 +322,7 @@ void Interpreter::Initialize()
         Builtin builtin = BuiltinIndexFromBytecode(bytecode, operand_scale);
         Tagged<Code> handler = builtins->code(builtin);
         if (Bytecodes::BytecodeHasHandler(bytecode, operand_scale)) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             std::string builtin_name(Builtins::name(builtin));
             std::string expected_name = (Bytecodes::IsShortStar(bytecode) ? "ShortStar" : Bytecodes::ToString(bytecode, operand_scale, "")) + "Handler";
             DCHECK_EQ(expected_name, builtin_name);

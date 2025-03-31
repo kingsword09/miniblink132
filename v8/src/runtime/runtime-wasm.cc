@@ -88,7 +88,7 @@ Tagged<WasmTrustedInstanceData> GetWasmInstanceDataOnStackTop(Isolate* isolate)
 {
     Address fp = Isolate::c_entry_fp(isolate->thread_local_top());
     fp = Memory<Address>(fp + ExitFrameConstants::kCallerFPOffset);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     intptr_t marker = Memory<intptr_t>(fp + CommonFrameConstants::kContextOrFrameTypeOffset);
     DCHECK(StackFrame::MarkerToType(marker) == StackFrame::WASM || StackFrame::MarkerToType(marker) == StackFrame::WASM_SEGMENT_START);
 #endif
@@ -263,7 +263,7 @@ RUNTIME_FUNCTION(Runtime_TrapHandlerThrowWasmError)
         // Calling imported string function with null can trigger a signal.
         op == wasm::kExprCallFunction || op == wasm::kExprReturnCall) {
         message = MessageTemplate::kWasmTrapNullDereference;
-#if DEBUG
+#ifdef V8_DEBUG
     } else {
         if (wasm::WasmOpcodes::IsPrefixOpcode(op)) {
             op = wasm::Decoder { wire_bytes }.read_prefixed_opcode<wasm::Decoder::NoValidationTag>(&wire_bytes.begin()[pos]).first;

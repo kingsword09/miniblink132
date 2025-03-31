@@ -318,7 +318,7 @@ bool ArmDebugger::ExecDebugCommand(ArrayUniquePtr<char> line_ptr)
             if (GetValue(arg1, &value)) {
                 Tagged<Object> obj(value);
                 os << arg1 << ": \n";
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 Print(obj, os);
                 os << "\n";
 #else
@@ -1776,7 +1776,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             case ExternalReference::BUILTIN_COMPARE_CALL: {
                 SimulatorRuntimeCompareCall target = reinterpret_cast<SimulatorRuntimeCompareCall>(external);
                 iresult = target(dval0, dval1);
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 TrashCallerSaveRegisters();
 #endif
                 set_register(r0, static_cast<int32_t>(iresult));
@@ -1786,7 +1786,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             case ExternalReference::BUILTIN_FP_FP_CALL: {
                 SimulatorRuntimeFPFPCall target = reinterpret_cast<SimulatorRuntimeFPFPCall>(external);
                 dresult = target(dval0, dval1);
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 TrashCallerSaveRegisters();
 #endif
                 SetFpResult(dresult);
@@ -1795,7 +1795,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             case ExternalReference::BUILTIN_FP_CALL: {
                 SimulatorRuntimeFPCall target = reinterpret_cast<SimulatorRuntimeFPCall>(external);
                 dresult = target(dval0);
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 TrashCallerSaveRegisters();
 #endif
                 SetFpResult(dresult);
@@ -1804,7 +1804,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             case ExternalReference::BUILTIN_FP_INT_CALL: {
                 SimulatorRuntimeFPIntCall target = reinterpret_cast<SimulatorRuntimeFPIntCall>(external);
                 dresult = target(dval0, ival);
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 TrashCallerSaveRegisters();
 #endif
                 SetFpResult(dresult);
@@ -1838,7 +1838,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             CHECK(stack_aligned);
             SimulatorRuntimeFPTaggedCall target = reinterpret_cast<SimulatorRuntimeFPTaggedCall>(external);
             double dresult = target(arg0, arg1, arg2, arg3);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             TrashCallerSaveRegisters();
 #endif
             SetFpResult(dresult);
@@ -1857,7 +1857,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             CHECK(stack_aligned);
             SimulatorRuntimeDirectApiCall target = reinterpret_cast<SimulatorRuntimeDirectApiCall>(external);
             target(arg0);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             TrashCallerSaveRegisters();
 #endif
         } else if (redirection->type() == ExternalReference::DIRECT_GETTER_CALL) {
@@ -1872,7 +1872,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             CHECK(stack_aligned);
             SimulatorRuntimeDirectGetterCall target = reinterpret_cast<SimulatorRuntimeDirectGetterCall>(external);
             target(arg0, arg1);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             TrashCallerSaveRegisters();
 #endif
         } else {
@@ -1904,7 +1904,7 @@ void Simulator::SoftwareInterrupt(Instruction* instr)
             CHECK(stack_aligned);
             int64_t result = UnsafeGenericFunctionCall(
                 external, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19);
-#ifdef DEBUG
+#ifdef V8_DEBUG
             TrashCallerSaveRegisters();
 #endif
             int32_t lo_res = static_cast<int32_t>(result);

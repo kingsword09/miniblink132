@@ -123,7 +123,7 @@ public:
 
     void Verify() const
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         SLOW_DCHECK(start_ <= top_);
         SLOW_DCHECK(top_ <= limit_);
         if (V8_COMPRESS_POINTERS_8GB_BOOL) {

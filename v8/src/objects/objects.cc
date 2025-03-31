@@ -3582,7 +3582,7 @@ Handle<JSAny> AccessorPair::GetComponent(
     return Cast<JSAny>(accessor);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool DescriptorArray::IsEqualTo(Tagged<DescriptorArray> other)
 {
     if (number_of_all_descriptors() != other->number_of_all_descriptors()) {
@@ -3687,7 +3687,7 @@ template <typename sinkchar> void WriteFixedArrayToFlat(Tagged<FixedArray> fixed
     DisallowGarbageCollection no_gc;
     CHECK_GT(length, 0);
     CHECK_LE(length, fixed_array->length());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     sinkchar* sink_end = sink + sink_length;
 #endif
 
@@ -3918,7 +3918,7 @@ bool Script::GetPositionInfo(DirectHandle<Script> script, int position, Position
 #if V8_ENABLE_WEBASSEMBLY
     // For wasm, we do not create an artificial line_ends array, but do the
     // translation directly.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (script->type() == Type::kWasm) {
         DCHECK(script->has_line_ends());
         DCHECK_EQ(Cast<FixedArray>(script->line_ends())->length(), 0);
@@ -5863,7 +5863,7 @@ bool PropertyCell::CheckDataIsCompatible(PropertyDetails details, Tagged<Object>
     return true;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool PropertyCell::CanTransitionTo(PropertyDetails new_details, Tagged<Object> new_value) const
 {
     // Extending the implementation of PropertyCells with additional states

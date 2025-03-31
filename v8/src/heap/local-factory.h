@@ -90,7 +90,7 @@ private:
     // ------
 
     ReadOnlyRoots roots_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool a_script_was_added_to_the_script_list_ = false;
 #endif
 };

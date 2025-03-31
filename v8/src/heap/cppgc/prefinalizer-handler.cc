@@ -79,7 +79,7 @@ void PreFinalizerHandler::InvokePreFinalizers()
 
 bool PreFinalizerHandler::CurrentThreadIsCreationThread()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     return heap_.CurrentThreadIsHeapThread();
 #else
     return true;

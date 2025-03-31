@@ -88,7 +88,7 @@ V8_WARN_UNUSED_RESULT V8_INLINE AllocationResult HeapAllocator::AllocateRaw(int 
     DCHECK(AllowHeapAllocation::IsAllowed());
     CHECK(AllowHeapAllocationInRelease::IsAllowed());
     DCHECK(local_heap_->IsRunning());
-#if DEBUG
+#ifdef V8_DEBUG
     local_heap_->VerifyCurrent();
 #endif
 
@@ -102,7 +102,7 @@ V8_WARN_UNUSED_RESULT V8_INLINE AllocationResult HeapAllocator::AllocateRaw(int 
     }
 #endif // V8_ENABLE_ALLOCATION_TIMEOUT
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     IncrementObjectCounters();
 #endif // DEBUG
 

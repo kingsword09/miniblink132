@@ -1030,7 +1030,7 @@ namespace {
 // the stack, and the start of the JS frame.
 void CheckExcludedPropertiesAreOnCallerStack(Isolate* isolate, Address base, int count)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     StackFrameIterator it(isolate);
 
     // Don't need to check when there's no excluded properties.

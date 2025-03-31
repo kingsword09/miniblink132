@@ -23,7 +23,7 @@ namespace v8 {
 namespace internal {
 namespace wasm {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define TRACE_ASM_PARSER(...)                                                                                                                                  \
     if (v8_flags.trace_asm_parser) {                                                                                                                           \
         PrintF(__VA_ARGS__);                                                                                                                                   \

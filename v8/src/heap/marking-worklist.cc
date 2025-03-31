@@ -57,7 +57,7 @@ void MarkingWorklists::ReleaseContextWorklists()
 
 void MarkingWorklists::PrintWorklist(const char* worklist_name, MarkingWorklist* worklist)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::map<InstanceType, int> count;
     int total_count = 0;
     worklist->Iterate([&count, &total_count](Tagged<HeapObject> obj) {

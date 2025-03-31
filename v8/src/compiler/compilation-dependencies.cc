@@ -1444,7 +1444,7 @@ bool CompilationDependencies::Commit(Handle<Code> code)
     if (v8_flags.stress_gc_during_compilation) {
         broker_->isolate()->heap()->PreciseCollectAllGarbage(GCFlag::kForced, GarbageCollectionReason::kTesting, kNoGCCallbackFlags);
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (auto dep : dependencies_) {
         CHECK_IMPLIES(!dep->IsValid(broker_), dep->IsPretenureMode() || dep->IsConsistentJSFunctionView());
     }
@@ -1598,7 +1598,7 @@ CompilationDependency const* CompilationDependencies::FieldTypeDependencyOffTheR
     return zone_->New<FieldTypeDependency>(map, owner, descriptor, type);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // static
 bool CompilationDependencies::IsFieldRepresentationDependencyOnMap(const CompilationDependency* dep, const Handle<Map>& receiver_map)
 {

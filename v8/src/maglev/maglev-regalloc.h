@@ -127,7 +127,7 @@ public:
         DCHECK_NOT_NULL(node);
         return node;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Like GetValue, but allow reading freed registers as long as they were also
     // blocked. This allows us to DCHECK expected register state against node
     // state, even if that node is dead or clobbered by the end of the current
@@ -277,7 +277,7 @@ private:
 
     void ClearRegisterValues();
     void InitializeRegisterValues(MergePointRegisterState& target_state);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsInRegister(MergePointRegisterState& target_state, ValueNode* incoming);
     bool IsForwardReachable(BasicBlock* start_block, NodeIdT first_id, NodeIdT last_id);
 #endif

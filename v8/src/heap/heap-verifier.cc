@@ -415,7 +415,7 @@ void HeapVerification::Verify()
 
     isolate()->string_table()->VerifyIfOwnedBy(isolate());
 
-#if DEBUG
+#ifdef V8_DEBUG
     heap()->VerifyCommittedPhysicalMemory();
 #endif // DEBUG
 }
@@ -542,7 +542,7 @@ public:
 
     void VisitPointers(Tagged<HeapObject> host, ObjectSlot start, ObjectSlot end) override
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         for (ObjectSlot slot = start; slot < end; ++slot) {
             Tagged<Object> obj = slot.load(cage_base());
             CHECK(!MapWord::IsPacked(obj.ptr()) || !HasWeakHeapObjectTag(obj));

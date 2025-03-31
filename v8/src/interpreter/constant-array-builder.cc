@@ -68,7 +68,7 @@ const ConstantArrayBuilder::Entry& ConstantArrayBuilder::ConstantArraySlice::At(
     return constants_[index - start_index()];
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 template <typename IsolateT> void ConstantArrayBuilder::ConstantArraySlice::CheckAllElementsAreUnique(IsolateT* isolate) const
 {
     std::set<Tagged<Smi>> smis;
@@ -189,7 +189,7 @@ template <typename IsolateT> Handle<TrustedFixedArray> ConstantArrayBuilder::ToF
     for (const ConstantArraySlice* slice : idx_slice_) {
         DCHECK_EQ(slice->reserved(), 0);
         DCHECK(array_index == 0 || base::bits::IsPowerOfTwo(static_cast<uint32_t>(array_index)));
-#if DEBUG
+#ifdef V8_DEBUG
         // Different slices might contain the same element due to reservations, but
         // all elements within a slice should be unique.
         slice->CheckAllElementsAreUnique(isolate);

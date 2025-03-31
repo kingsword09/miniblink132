@@ -1281,7 +1281,7 @@ const uint8_t* ExternalOneByteString::GetChars() const
             // avoid this call.
             return reinterpret_cast<const uint8_t*>(res->cached_data());
         }
-#if DEBUG
+#ifdef V8_DEBUG
         // Check that this method is called only from the main thread if we have an
         // uncached string with an uncacheable resource.
         {
@@ -1348,7 +1348,7 @@ const uint16_t* ExternalTwoByteString::GetChars() const
             // avoid this call.
             return res->cached_data();
         }
-#if DEBUG
+#ifdef V8_DEBUG
         // Check that this method is called only from the main thread if we have an
         // uncached string with an uncacheable resource.
         {

@@ -320,7 +320,7 @@ FeedbackSlot FeedbackVector::ToSlot(intptr_t index)
     return FeedbackSlot(static_cast<int>(index));
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // Instead of FixedArray, the Feedback and the Extra should contain
 // WeakFixedArrays. The only allowed FixedArray subtype is HashTable.
 bool FeedbackVector::IsOfLegacyType(Tagged<MaybeObject> value)

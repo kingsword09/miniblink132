@@ -411,7 +411,7 @@ void MutatorMarkingState::InvokeWeakRootsCallbackIfNeeded(const void* object, Tr
 {
     // Since weak roots are only traced at the end of marking, we can execute
     // the callback instead of registering it.
-#if DEBUG
+#ifdef V8_DEBUG
     const HeapObjectHeader& header = HeapObjectHeader::FromObject(desc.base_object_payload);
     DCHECK_IMPLIES(header.IsInConstruction(), header.IsMarked<AccessMode::kAtomic>());
 #endif // DEBUG

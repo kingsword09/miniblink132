@@ -144,7 +144,7 @@ private:
         DCHECK(!string.is_null());
         DCHECK(!has_string_);
         string_ = string;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         has_string_ = true;
 #endif
     }
@@ -157,7 +157,7 @@ private:
     base::Vector<const uint8_t> literal_bytes_; // Memory owned by Zone.
     uint32_t raw_hash_field_;
     bool is_one_byte_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // (Debug-only:) Verify the object life-cylce: Some functions may only be
     // called after internalization (that is, after a v8::internal::String has
     // been set); some only before.

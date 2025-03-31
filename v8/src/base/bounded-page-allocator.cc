@@ -174,7 +174,7 @@ bool BoundedPageAllocator::ReleasePages(void* raw_address, size_t size, size_t n
     size_t allocated_size = RoundUp(size, allocate_page_size_);
     size_t new_allocated_size = RoundUp(new_size, allocate_page_size_);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     {
         // There must be an allocated region at given |address| of a size not
         // smaller than |size|.

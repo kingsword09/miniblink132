@@ -370,7 +370,7 @@ void LateLoadEliminationAnalyzer::ProcessStore(OpIndex op_idx, const StoreOp& st
 void LateLoadEliminationAnalyzer::ProcessCall(OpIndex op_idx, const CallOp& op)
 {
     const Operation& callee = graph_.Get(op.callee());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (const ConstantOp* external_constant = callee.template TryCast<Opmask::kExternalConstant>()) {
         if (external_constant->external_reference() == ExternalReference::check_object_type()) {
             return;
@@ -420,7 +420,7 @@ void LateLoadEliminationAnalyzer::ProcessCall(OpIndex op_idx, const CallOp& op)
 // happens on non-aliasing objects.
 void LateLoadEliminationAnalyzer::DcheckWordBinop(OpIndex op_idx, const WordBinopOp& binop)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     auto check = [&](V<Word> left, V<Word> right) {
         if (auto key = non_aliasing_objects_.TryGetKeyFor(left); key.has_value() && non_aliasing_objects_.Get(*key)) {
             int64_t cst;

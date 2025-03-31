@@ -166,7 +166,7 @@ void MarkingBarrier::Write(Tagged<DescriptorArray> descriptor_array, int number_
         DCHECK(shared_heap_worklists_.has_value());
         worklist = &*shared_heap_worklists_;
     } else {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (const auto target_worklist = MarkingHelper::ShouldMarkObject(heap_, descriptor_array)) {
             DCHECK_EQ(target_worklist.value(), MarkingHelper::WorklistTarget::kRegular);
         } else {
@@ -446,7 +446,7 @@ Isolate* MarkingBarrier::isolate() const
     return heap_->isolate();
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void MarkingBarrier::AssertMarkingIsActivated() const
 {
     DCHECK(is_activated_);

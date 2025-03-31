@@ -437,7 +437,7 @@ void Node::RemoveUse(Use* use)
     }
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void Node::Verify()
 {
     // Check basic validity of input data structures.

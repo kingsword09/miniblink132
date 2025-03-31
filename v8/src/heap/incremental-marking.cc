@@ -527,7 +527,7 @@ void IncrementalMarking::UpdateExternalPointerTableAfterScavenge()
             // There may be objects in the EPT that do not exist anymore. If these
             // objects are dead at scavenging time, their marking deque entries will
             // not point to forwarding addresses. Hence, we can discard them.
-#if DEBUG
+#ifdef V8_DEBUG
             // Check that the handle did reside inside the original dead object.
             const int object_size = object->Size();
             // Map slots can never contain external pointers.
@@ -538,7 +538,7 @@ void IncrementalMarking::UpdateExternalPointerTableAfterScavenge()
         }
 
         Tagged<HeapObject> moved_object = map_word.ToForwardingAddress(object);
-#if DEBUG
+#ifdef V8_DEBUG
         const int object_size = moved_object->Size();
         // Map slots can never contain external pointers.
         DCHECK_LT(object.address(), old_handle_location);

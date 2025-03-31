@@ -1835,7 +1835,7 @@ Type Typer::Visitor::TypeJSLoadProperty(Node* node)
 
 Type Typer::Visitor::TypeJSLoadNamed(Node* node)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Loading of private methods is compiled to a named load of a BlockContext
     // via a private brand, which is an internal object. However, native context
     // specialization should always apply for those cases, so assert that the name

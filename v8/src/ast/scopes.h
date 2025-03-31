@@ -94,7 +94,7 @@ public:
 
     Scope(Zone* zone, Scope* outer_scope, ScopeType scope_type);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // The scope name is only used for printing/debugging.
     void SetScopeName(const AstRawString* scope_name)
     {
@@ -669,7 +669,7 @@ public:
     // ---------------------------------------------------------------------------
     // Debugging.
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Print(int n = 0); // n = indentation; n < 0 => don't print recursively
 
     // Check that the scope has positions assigned.
@@ -869,7 +869,7 @@ private:
     // Serialized scope info support.
     IndirectHandle<ScopeInfo> scope_info_;
 // Debugging support.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const AstRawString* scope_name_;
 
     // True if it doesn't need scope resolution (e.g., if the scope was
@@ -986,7 +986,7 @@ public:
         // Sloppy eval in an eval scope can only introduce variables into the outer
         // (non-eval) declaration scope, not into this eval scope.
         if (is_eval_scope()) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // One of three things must be true:
             //   1. The outer non-eval declaration scope should already be marked as
             //      being extendable by sloppy eval, by the current sloppy eval rather
@@ -1033,7 +1033,7 @@ public:
 
     void DeserializeReceiver(AstValueFactory* ast_value_factory);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void set_is_being_lazily_parsed(bool is_being_lazily_parsed)
     {
         is_being_lazily_parsed_ = is_being_lazily_parsed;
@@ -1046,7 +1046,7 @@ public:
 
     void set_zone(Zone* zone)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         needs_migration_ = true;
 #endif
         // Migrate variables_' backing store to new zone.
@@ -1294,7 +1294,7 @@ public:
         s->force_eager_compilation_ = true;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void PrintParameters();
 #endif
 
@@ -1409,7 +1409,7 @@ private:
     bool should_eager_compile_ : 1;
     // Set to true after we have finished lazy parsing the scope.
     bool was_lazily_parsed_ : 1;
-#if DEBUG
+#ifdef V8_DEBUG
     bool is_being_lazily_parsed_ : 1;
 #endif
     bool is_skipped_function_ : 1;

@@ -2775,14 +2775,14 @@ public:
             }
             break;
         }
-#ifdef DEBUG
+#ifdef V8_DEBUG
         last_event_ = event;
 #endif
     }
 
 private:
     AsyncCompileJob* job_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // This will be modified by different threads, but they externally
     // synchronize, so no explicit synchronization (currently) needed here.
     std::optional<CompilationEvent> last_event_;
@@ -3315,7 +3315,7 @@ void AsyncStreamingProcessor::OnFinishedStream(base::OwnedVector<const uint8_t> 
     // This DCHECK could be considered slow, but it only happens once per async
     // module compilation, and we only re-decode the module structure, without
     // validating function bodies. Overall this does not add a lot of overhead.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     WasmDetectedFeatures detected_module_features;
     DCHECK(DecodeWasmModule(job_->enabled_features_, job_->bytes_copy_.as_vector(),
         /* validate functions */ false, kWasmOrigin, &detected_module_features)
@@ -4038,7 +4038,7 @@ void CompilationStateImpl::PublishCompilationResults(std::vector<std::unique_ptr
     if (unpublished_code.empty())
         return;
 
-#if DEBUG
+#ifdef V8_DEBUG
     // We don't compile import wrappers eagerly.
     for (const auto& code : unpublished_code) {
         int func_index = code->index();
@@ -4120,7 +4120,7 @@ void CompilationStateImpl::WaitForCompilationEvent(CompilationEvent expect_event
         // Waiting on other CompilationEvent doesn't make sense.
         UNREACHABLE();
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     base::EnumSet<CompilationEvent> events { expect_event, CompilationEvent::kFailedCompilation };
     base::MutexGuard guard(&callbacks_mutex_);
     DCHECK(finished_events_.contains_any(events));

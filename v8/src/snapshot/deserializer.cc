@@ -39,9 +39,6 @@
 // Has to be the last include (doesn't have include guards)
 #include "src/objects/object-macros.h"
 
-#include <windows.h>
-#pragma clang optimize off
-
 namespace v8::internal {
 
 #ifdef V8_COMPRESS_POINTERS
@@ -324,7 +321,7 @@ template <typename IsolateT> int Deserializer<IsolateT>::WriteExternalPointer(Ta
 }
 
 namespace {
-#ifdef DEBUG
+#ifdef V8_DEBUG
 int GetNumApiReferences(Isolate* isolate)
 {
     int num_api_references = 0;
@@ -375,7 +372,7 @@ Deserializer<IsolateT>::Deserializer(
     static_assert(kEmptyBackingStoreRefSentinel == 0);
     backing_stores_.push_back({});
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     num_api_references_ = GetNumApiReferences(isolate);
 #endif // DEBUG
     CHECK_EQ(magic_number_, SerializedData::kMagicNumber);
@@ -391,7 +388,7 @@ template <typename IsolateT> void Deserializer<IsolateT>::Rehash()
 
 template <typename IsolateT> Deserializer<IsolateT>::~Deserializer()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Do not perform checks if we aborted deserialization.
     if (source_.position() == 0)
         return;
@@ -481,7 +478,7 @@ StringTableInsertionKey::StringTableInsertionKey(Isolate* isolate, DirectHandle<
     : StringTableKey(ComputeRawHashField(isolate, *string), string->length())
     , string_(string)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     deserializing_user_code_ = deserializing_user_code;
 #endif
     DCHECK(IsInternalizedString(*string));
@@ -491,7 +488,7 @@ StringTableInsertionKey::StringTableInsertionKey(LocalIsolate* isolate, DirectHa
     : StringTableKey(ComputeRawHashField(isolate, *string), string->length())
     , string_(string)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     deserializing_user_code_ = deserializing_user_code;
 #endif
     DCHECK(IsInternalizedString(*string));
@@ -807,7 +804,7 @@ template <typename IsolateT> Handle<HeapObject> Deserializer<IsolateT>::ReadObje
             (size_in_bytes - table->kElementsStartOffset) / kTaggedSize);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     PtrComprCageBase cage_base(isolate());
     // We want to make sure that all embedder pointers are initialized to null.
     if (IsJSObject(raw_obj, cage_base) && Cast<JSObject>(raw_obj)->MayHaveEmbedderFields()) {
@@ -838,7 +835,7 @@ template <typename IsolateT> Handle<HeapObject> Deserializer<IsolateT>::ReadObje
     ReadData(obj, 1, size_in_tagged);
     PostProcessNewObject(map, obj, space);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (IsInstructionStream(*obj, cage_base)) {
         DCHECK(space == SnapshotSpace::kCode || space == SnapshotSpace::kReadOnlyHeap);
     } else {
@@ -1032,7 +1029,7 @@ template <typename IsolateT> template <typename SlotAccessor> int Deserializer<I
     case CASE_RANGE(kFixedRepeatRoot, 16):
         return ReadFixedRepeatRoot(data, slot_accessor);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define UNUSED_CASE(byte_code)                                                                                                                                 \
     case byte_code:                                                                                                                                            \
         UNREACHABLE();
@@ -1317,12 +1314,14 @@ template <typename IsolateT> template <typename SlotAccessor> int Deserializer<I
     DCHECK_IMPLIES(data == kSandboxedApiReference, V8_ENABLE_SANDBOX_BOOL);
     uint32_t reference_id = static_cast<uint32_t>(source_.GetUint30());
     Address address;
+
     if (main_thread_isolate()->api_external_references()) {
         DCHECK_WITH_MSG(reference_id < num_api_references_, "too few external references provided through the API");
         address = static_cast<Address>(main_thread_isolate()->api_external_references()[reference_id]);
     } else {
         address = reinterpret_cast<Address>(NoExternalReferencesCallback);
     }
+
     ExternalPointerTag tag = kExternalPointerNullTag;
     if (data == kSandboxedApiReference) {
         tag = ReadExternalPointerTag();
@@ -1523,7 +1522,7 @@ template <typename IsolateT> ExternalPointerTag Deserializer<IsolateT>::ReadExte
 
 template <typename IsolateT> Tagged<HeapObject> Deserializer<IsolateT>::Allocate(AllocationType allocation, int size, AllocationAlignment alignment)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!previous_allocation_obj_.is_null()) {
         // Make sure that the previous object is initialized sufficiently to
         // be iterated over by the GC.
@@ -1534,7 +1533,7 @@ template <typename IsolateT> Tagged<HeapObject> Deserializer<IsolateT>::Allocate
 
     Tagged<HeapObject> obj = HeapObject::FromAddress(isolate()->heap()->AllocateRawOrFail(size, allocation, AllocationOrigin::kRuntime, alignment));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     previous_allocation_obj_ = handle(obj, isolate());
     previous_allocation_size_ = size;
 #endif

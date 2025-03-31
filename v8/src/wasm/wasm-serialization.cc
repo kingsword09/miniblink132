@@ -406,7 +406,7 @@ void NativeModuleSerializer::WriteHeader(Writer* writer, size_t total_code_size)
     // information per function.
     const bool fully_validated = !v8_flags.wasm_lazy_validation;
     writer->Write(fully_validated);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (fully_validated) {
         const WasmModule* module = native_module_->module();
         for (auto& function : module->declared_functions()) {
@@ -714,7 +714,7 @@ private:
     void Publish(std::vector<DeserializationUnit> batch);
 
     NativeModule* const native_module_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool read_called_ = false;
 #endif
 
@@ -807,7 +807,7 @@ NativeModuleDeserializer::NativeModuleDeserializer(NativeModule* native_module)
 bool NativeModuleDeserializer::Read(Reader* reader)
 {
     DCHECK(!read_called_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     read_called_ = true;
 #endif
 

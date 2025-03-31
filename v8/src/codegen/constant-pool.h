@@ -115,7 +115,7 @@ class ConstantPoolBuilder {
 public:
     ConstantPoolBuilder(int ptr_reach_bits, int double_reach_bits);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ~ConstantPoolBuilder()
     {
         // Unused labels to prevent DCHECK failures.

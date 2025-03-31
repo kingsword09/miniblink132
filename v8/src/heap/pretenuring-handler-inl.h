@@ -21,7 +21,7 @@ void PretenuringHandler::UpdateAllocationSite(
     Heap* heap, Tagged<Map> map, Tagged<HeapObject> object, int object_size, PretenuringFeedbackMap* pretenuring_feedback)
 {
     DCHECK_NE(pretenuring_feedback, &heap->pretenuring_handler()->global_pretenuring_feedback_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     MemoryChunk* chunk = MemoryChunk::FromHeapObject(object);
     // MemoryChunk::IsToPage() is not available with sticky mark-bits.
     DCHECK_IMPLIES(v8_flags.sticky_mark_bits || chunk->IsToPage(), v8_flags.minor_ms);

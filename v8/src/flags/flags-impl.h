@@ -83,7 +83,7 @@ struct Flag {
     SetBy set_by_ = SetBy::kDefault;
     // Name of the flag implying this flag, if any.
     const char* implied_by_ = nullptr;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Pointer to the flag implying this flag, if any.
     const Flag* implied_by_ptr_ = nullptr;
 #endif
@@ -108,7 +108,7 @@ struct Flag {
         return valptr_ == ptr;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool ImpliedBy(const void* ptr) const
     {
         const Flag* current = this->implied_by_ptr_;

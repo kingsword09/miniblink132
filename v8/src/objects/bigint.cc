@@ -159,7 +159,7 @@ template <typename IsolateT> MaybeHandle<MutableBigInt> MutableBigInt::New(Isola
     }
     Handle<MutableBigInt> result = Cast<MutableBigInt>(isolate->factory()->NewBigInt(length, allocation));
     result->initialize_bitfield(false, length);
-#if DEBUG
+#ifdef V8_DEBUG
     result->InitializeDigits(length, 0xBF);
 #endif
     return result;
@@ -899,7 +899,7 @@ MaybeHandle<String> BigInt::ToString(Isolate* isolate, DirectHandle<BigInt> bigi
     // Right-trim any over-allocation (which can happen due to conservative
     // estimates).
     RightTrimString(isolate, result, chars_allocated, chars_written);
-#if DEBUG
+#ifdef V8_DEBUG
     // Verify that all characters have been written.
     DCHECK(result->length() == chars_written);
     DisallowGarbageCollection no_gc;

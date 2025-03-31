@@ -67,7 +67,7 @@ public:
         return has_inline_inputs() ? InlineCountField::decode(bit_field_) : outline_inputs()->count_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Verify();
 #else
     inline void Verify()
@@ -829,7 +829,7 @@ public:
         // Checking no use gets mutated while iterating through them, a potential
         // very tricky cause of bug.
         current_ = current_->next;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_EQ(current_, next_);
         next_ = current_ ? current_->next : nullptr;
 #endif
@@ -846,14 +846,14 @@ private:
     }
     explicit const_iterator(Node* node)
         : current_(node->first_use_)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , next_(current_ ? current_->next : nullptr)
 #endif
     {
     }
 
     Node::Use* current_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Node::Use* next_;
 #endif
 };

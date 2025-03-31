@@ -297,7 +297,7 @@ void MemoryAllocator::UnregisterMemoryChunk(MemoryChunkMetadata* chunk_metadata,
     if (executable == EXECUTABLE) {
         DCHECK_GE(size_executable_, size);
         size_executable_ -= size;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         UnregisterExecutableMemoryChunk(static_cast<MutablePageMetadata*>(chunk_metadata));
 #endif // DEBUG
 
@@ -430,7 +430,7 @@ PageMetadata* MemoryAllocator::AllocatePage(MemoryAllocator::AllocationMode allo
         chunk = new (chunk_info->chunk) MemoryChunk(flags, metadata);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (chunk->executable())
         RegisterExecutableMemoryChunk(metadata);
 #endif // DEBUG
@@ -489,7 +489,7 @@ LargePageMetadata* MemoryAllocator::AllocateLargePage(LargeObjectSpace* space, s
         chunk = new (chunk_info->chunk) MemoryChunk(flags, metadata);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (chunk->executable())
         RegisterExecutableMemoryChunk(metadata);
 #endif // DEBUG

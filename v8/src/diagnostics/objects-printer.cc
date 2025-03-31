@@ -3981,7 +3981,7 @@ void DescriptorArray::PrintDescriptorDetails(std::ostream& os, InternalIndex des
     }
 }
 
-#if defined(DEBUG) || defined(OBJECT_PRINT)
+#if defined(V8_DEBUG) || defined(OBJECT_PRINT)
 // This method is only meant to be called from gdb for debugging purposes.
 // Since the string can also be in two-byte encoding, non-Latin1 characters
 // will be ignored in the output.
@@ -4362,7 +4362,7 @@ V8_EXPORT_PRIVATE extern void _v8_internal_Print_TransitionTree(void* object, bo
     if (!IsMap(o)) {
         printf("Please provide a valid Map\n");
     } else {
-#if defined(DEBUG) || defined(OBJECT_PRINT)
+#if defined(V8_DEBUG) || defined(OBJECT_PRINT)
         i::Tagged<i::Map> map = i::UncheckedCast<i::Map>(o);
         i::TransitionsAccessor transitions(i::Isolate::Current(), start_at_root ? map->FindRootMap(GetPtrComprCageBase(map)) : map);
         transitions.PrintTransitionTree();

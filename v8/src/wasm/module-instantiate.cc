@@ -1167,7 +1167,7 @@ MaybeHandle<WasmInstanceObject> InstanceBuilder::Build()
     trusted_data->set_managed_object_maps(*non_shared_maps);
     if (shared)
         shared_trusted_data->set_managed_object_maps(*shared_maps);
-#if DEBUG
+#ifdef V8_DEBUG
     for (uint32_t i = 0; i < module_->types.size(); i++) {
         DirectHandle<FixedArray> maps = module_->types[i].is_shared ? shared_maps : non_shared_maps;
         Tagged<Object> o = maps->get(i);

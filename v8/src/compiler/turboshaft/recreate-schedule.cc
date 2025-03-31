@@ -1269,7 +1269,7 @@ Node* ScheduleBuilder::ProcessOperation(const PhiOp& op)
         DCHECK(std::is_sorted(new_predecessors.begin(), new_predecessors.end(), cmp_basic_block));
         size_t predecessor_count = new_predecessors.size();
         base::SmallVector<Node*, 8> inputs(predecessor_count);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         std::fill(inputs.begin(), inputs.end(), nullptr);
 #endif
 

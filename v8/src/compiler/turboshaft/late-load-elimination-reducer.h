@@ -511,7 +511,7 @@ public:
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void Print()
     {
         std::cout << "MemoryContentTable:\n";

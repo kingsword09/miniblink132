@@ -34,7 +34,7 @@ PersistentHandles::~PersistentHandles()
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void PersistentHandles::Attach(LocalHeap* local_heap)
 {
     DCHECK_NULL(owner_);
@@ -79,7 +79,7 @@ void PersistentHandles::AddBlock()
     block_next_ = block_start;
     block_limit_ = block_start + kHandleBlockSize;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ordered_blocks_.insert(block_start);
 #endif
 }
@@ -148,7 +148,7 @@ PersistentHandlesScope::PersistentHandlesScope(Isolate* isolate)
     Address* new_limit = &new_next[kHandleBlockSize];
     impl_->blocks()->push_back(new_next);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     prev_level_ = data->level;
 #endif
     data->level++;
@@ -172,7 +172,7 @@ std::unique_ptr<PersistentHandles> PersistentHandlesScope::Detach()
     HandleScopeData* data = impl_->isolate()->handle_scope_data();
     data->next = prev_next_;
     data->limit = prev_limit_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     handles_detached_ = true;
 #endif
     return ph;

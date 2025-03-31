@@ -181,7 +181,7 @@ public:
         stack_switch_info_.source_fp = kNullAddress;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static constexpr int kJSLimitOffsetKB = 80;
 #else
     static constexpr int kJSLimitOffsetKB = 40;

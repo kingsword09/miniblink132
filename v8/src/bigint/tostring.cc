@@ -537,7 +537,7 @@ char* ToStringFormatter::ProcessLevel(RecursionLevel* level, Digits chunk, char*
             return out;
     }
     RightShift(right, right, level->leading_zero_shift_);
-#if DEBUG
+#ifdef V8_DEBUG
     Digits left_test = left;
     left_test.Normalize();
     DCHECK(left_test.len() <= level->divisor_.len());
@@ -569,7 +569,7 @@ void ProcessorImpl::ToString(char* out, uint32_t* out_length, Digits X, int radi
 // Factored out so that tests can call it.
 void ProcessorImpl::ToStringImpl(char* out, uint32_t* out_length, Digits X, int radix, bool sign, bool fast)
 {
-#if DEBUG
+#ifdef V8_DEBUG
     for (uint32_t i = 0; i < *out_length; i++)
         out[i] = kStringZapValue;
 #endif

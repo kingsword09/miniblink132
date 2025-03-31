@@ -168,7 +168,7 @@ class V8_EXPORT_PRIVATE BytecodeLivenessMap {
 public:
     BytecodeLivenessMap(int bytecode_size, Zone* zone)
         : liveness_(zone->AllocateArray<BytecodeLiveness>(bytecode_size))
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , size_(bytecode_size)
 #endif
     {
@@ -178,7 +178,7 @@ public:
     {
         DCHECK_GE(offset, 0);
         DCHECK_LT(offset, size_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Null out the in/out liveness, so that later DCHECKs know whether these
         // have been correctly initialised or not. That code does initialise them
         // unconditionally though, so we can skip the nulling out in release.
@@ -221,7 +221,7 @@ public:
 
 private:
     BytecodeLiveness* liveness_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t size_;
 #endif
 };

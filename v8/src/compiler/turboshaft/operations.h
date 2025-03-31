@@ -1203,7 +1203,7 @@ template <class Derived> struct OperationT : Operation {
     {
         OperationStorageSlot* ptr = AllocateOpStorage(graph, StorageSlotCount(input_count));
         Derived* result = new (ptr) Derived(args...);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         result->Validate(*graph);
         ZoneVector<MaybeRegisterRepresentation> storage(get_zone(graph));
         base::Vector<const MaybeRegisterRepresentation> expected = result->inputs_rep(storage);
@@ -1432,7 +1432,7 @@ template <MaybeRegisterRepresentation::Enum... reps> base::Vector<const MaybeReg
     return base::VectorOf(rep_array);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 V8_EXPORT_PRIVATE bool ValidOpInputRep(
     const Graph& graph, OpIndex input, std::initializer_list<RegisterRepresentation> expected_rep, std::optional<size_t> projection_index = {});
 V8_EXPORT_PRIVATE bool ValidOpInputRep(const Graph& graph, OpIndex input, RegisterRepresentation expected_rep, std::optional<size_t> projection_index = {});
@@ -9553,7 +9553,7 @@ struct Simd128ExtractLaneOp : FixedArityOperationT<1, Simd128ExtractLaneOp> {
 
     void Validate(const Graph& graph) const
     {
-#if DEBUG
+#ifdef V8_DEBUG
         uint8_t lane_count;
         switch (kind) {
         case Kind::kI8x16S:
@@ -9628,7 +9628,7 @@ struct Simd128ReplaceLaneOp : FixedArityOperationT<2, Simd128ReplaceLaneOp> {
 
     void Validate(const Graph& graph) const
     {
-#if DEBUG
+#ifdef V8_DEBUG
         uint8_t lane_count;
         switch (kind) {
         case Kind::kI8x16:
@@ -9741,7 +9741,7 @@ struct Simd128LaneMemoryOp : FixedArityOperationT<3, Simd128LaneMemoryOp> {
     void Validate(const Graph& graph)
     {
         DCHECK(!kind.tagged_base);
-#if DEBUG
+#ifdef V8_DEBUG
         uint8_t lane_count;
         switch (lane_kind) {
         case LaneKind::k8:
@@ -9887,7 +9887,7 @@ struct Simd128ShuffleOp : FixedArityOperationT<2, Simd128ShuffleOp> {
 
     void Validate(const Graph& graph)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         constexpr uint8_t kNumberOfLanesForShuffle = 32;
         for (uint8_t index : shuffle) {
             DCHECK_LT(index, kNumberOfLanesForShuffle);
@@ -9970,7 +9970,7 @@ struct Simd256Extract128LaneOp : FixedArityOperationT<1, Simd256Extract128LaneOp
 
     void Validate(const Graph& graph) const
     {
-#if DEBUG
+#ifdef V8_DEBUG
         DCHECK_LT(lane, 2);
 #endif
     }

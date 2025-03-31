@@ -559,7 +559,7 @@ public:
         return scratch_register_scope_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool allow_allocate() const
     {
         return allow_allocate_;
@@ -600,7 +600,7 @@ private:
 
     MaglevCodeGenState* const code_gen_state_;
     TemporaryRegisterScope* scratch_register_scope_ = nullptr;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool allow_allocate_ = false;
     bool allow_call_ = false;
     bool allow_deferred_call_ = false;

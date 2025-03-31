@@ -54,7 +54,7 @@ namespace detail {
 
 #define __ masm_->
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 inline bool Clobbers(Register target, MemOperand op)
 {
     return op.AddressUsesRegister(target);

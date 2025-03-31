@@ -243,7 +243,7 @@ uint32_t ExternalPointerTable::EvacuateAndSweepAndCompact(Space* space, Space* f
 
     // We cannot deallocate the segments during the above loop, so do it now.
     for (auto segment : segments_to_deallocate) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // There should not be any live entries in the segments we are freeing.
         // TODO(saelo): we should be able to assert here that we're not freeing any
         // entries here. Otherwise, we'd have to FreeManagedResourceIfPresent.

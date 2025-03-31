@@ -111,7 +111,7 @@ template <ArgumentsType T> FullObjectSlot Arguments<T>::slot_from_address_at(int
     return FullObjectSlot(location + offset);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define CLOBBER_DOUBLE_REGISTERS() ClobberDoubleRegisters(1, 2, 3, 4);
 #else
 #define CLOBBER_DOUBLE_REGISTERS()
@@ -154,7 +154,7 @@ template <ArgumentsType T> FullObjectSlot Arguments<T>::slot_from_address_at(int
                                                                                                                                                                \
     static InternalType __RT_impl_##Name(RuntimeArguments args, Isolate* isolate)
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define BUILTIN_CONVERT_RESULT(x) (isolate->VerifyBuiltinsResult(x)).ptr()
 #define BUILTIN_CONVERT_RESULT_PAIR(x) isolate->VerifyBuiltinsResult(x)
 #else // DEBUG

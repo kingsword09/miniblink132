@@ -57,7 +57,7 @@ RUNTIME_FUNCTION(Runtime_CompileLazy)
     DirectHandle<SharedFunctionInfo> sfi(function->shared(), isolate);
 
     DCHECK(!function->is_compiled(isolate));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.trace_lazy && sfi->is_compiled()) {
         PrintF("[unoptimized: %s]\n", function->DebugNameCStr().get());
     }
@@ -514,7 +514,7 @@ Tagged<Object> CompileOptimizedOSR(Isolate* isolate, Handle<JSFunction> function
     DCHECK(result->is_turbofanned() || result->is_maglevved());
     DCHECK(CodeKindIsOptimizedJSFunction(result->kind()));
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Tagged<DeoptimizationData> data = Cast<DeoptimizationData>(result->deoptimization_data());
     DCHECK_EQ(BytecodeOffset(data->OsrBytecodeOffset().value()), osr_offset);
     DCHECK_GE(data->OsrPcOffset().value(), 0);

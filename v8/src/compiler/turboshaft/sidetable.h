@@ -19,7 +19,7 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 V8_EXPORT_PRIVATE bool OpIndexBelongsToTableGraph(const Graph* graph, OpIndex index);
 #endif
 
@@ -164,7 +164,7 @@ template <class T> class GrowingOpIndexSidetable : public detail::GrowingSidetab
 public:
     explicit GrowingOpIndexSidetable(Zone* zone, const Graph* graph)
         : Base(zone)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , graph_(graph)
 #endif
     {
@@ -173,7 +173,7 @@ public:
 
     GrowingOpIndexSidetable(size_t size, const T& initial_value, Zone* zone, const Graph* graph)
         : Base(size, initial_value, zone)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , graph_(graph)
 #endif
     {
@@ -198,7 +198,7 @@ public:
     }
 
 public:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const Graph* graph_;
 #endif
 };
@@ -209,14 +209,14 @@ template <class T> class FixedOpIndexSidetable : public detail::FixedSidetable<T
 public:
     FixedOpIndexSidetable(size_t size, Zone* zone, const Graph* graph)
         : Base(size, zone)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , graph_(graph)
 #endif
     {
     }
     FixedOpIndexSidetable(size_t size, const T& default_value, Zone* zone, const Graph* graph)
         : Base(size, default_value, zone)
-#ifdef DEBUG
+#ifdef V8_DEBUG
         , graph_(graph)
 #endif
     {
@@ -240,7 +240,7 @@ public:
     }
 
 public:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const Graph* graph_;
 #endif
 };

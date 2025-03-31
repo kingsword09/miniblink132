@@ -212,7 +212,7 @@ void StringForwardingTable::Record::DisposeExternalResource()
 
 void StringForwardingTable::Record::DisposeUnusedExternalResource(Isolate* isolate, Tagged<String> original)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Tagged<String> stored_original = original_string(isolate);
     if (IsThinString(stored_original)) {
         stored_original = Cast<ThinString>(stored_original)->actual();

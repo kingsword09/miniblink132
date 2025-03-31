@@ -13,7 +13,7 @@ namespace v8::internal::heap {
 
 void ZapCodeBlock(Address start, int size_in_bytes)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK(ShouldZapGarbage());
     CodePageMemoryModificationScopeForDebugging code_modification_scope(MemoryChunkMetadata::FromAddress(start));
     DCHECK(IsAligned(start, kIntSize));

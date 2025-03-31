@@ -44,7 +44,7 @@ Serializer::Serializer(Isolate* isolate, Snapshot::SerializerFlags flags)
     , deferred_objects_(isolate->heap())
     , forward_refs_per_pending_object_(isolate->heap())
     , flags_(flags)
-#ifdef DEBUG
+#ifdef V8_DEBUG
     , back_refs_(isolate->heap())
     , stack_(isolate->heap())
 #endif
@@ -60,7 +60,7 @@ Serializer::Serializer(Isolate* isolate, Snapshot::SerializerFlags flags)
 #endif // VERBOSE_SERIALIZATION_STATISTICS
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Serializer::PopStack()
 {
     stack_.Pop();
@@ -205,7 +205,7 @@ void Serializer::SerializeRootObject(FullObjectSlot slot)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void Serializer::PrintStack()
 {
     PrintStack(std::cout);
@@ -395,7 +395,7 @@ ExternalReferenceEncoder::Value Serializer::EncodeExternalReference(Address addr
 {
     Maybe<ExternalReferenceEncoder::Value> result = external_reference_encoder_.TryEncode(addr);
     if (result.IsNothing()) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         PrintStack(std::cerr);
 #endif
         void* addr_ptr = reinterpret_cast<void*>(addr);
@@ -559,7 +559,7 @@ void Serializer::ObjectSerializer::SerializePrologue(SnapshotSpace space, int si
     // Mark this object as already serialized, and add it to the reference map so
     // that it can be accessed by backreference by future objects.
     serializer_->num_back_refs_++;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     serializer_->back_refs_.Push(*object_);
     DCHECK_EQ(serializer_->back_refs_.size(), serializer_->num_back_refs_);
 #endif

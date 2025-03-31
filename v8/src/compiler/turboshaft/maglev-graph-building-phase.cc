@@ -601,7 +601,7 @@ public:
             __ Goto(turboshaft_block);
         }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         loop_phis_first_input_.clear();
         loop_phis_first_input_index_ = -1;
         catch_block_begin_ = V<Object>::Invalid();
@@ -1068,7 +1068,7 @@ public:
         // the indices, making everything more complex. We should try to have the
         // same InitialValues in Turboshaft as in Maglev, in order to simplify
         // things.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // We cannot use strdup or something that simple for {debug_name}, because
         // it has to be zone allocated rather than heap-allocated, since it won't be
         // freed and this would thus cause a leak.
@@ -3803,7 +3803,7 @@ public:
         DCHECK(second_return_value_.valid());
         SetMap(node, second_return_value_);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         second_return_value_ = V<Object>::Invalid();
 #endif
 
@@ -5067,7 +5067,7 @@ void RunMaglevOptimizations(
         processor.ProcessGraph(maglev_graph);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     maglev::GraphProcessor<maglev::MaglevGraphVerifier> verifier(compilation_info);
     verifier.ProcessGraph(maglev_graph);
 #endif

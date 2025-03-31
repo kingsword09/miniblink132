@@ -120,7 +120,7 @@ std::pair<Address, Address> FreeList::AddReturningUnusedBounds(Block block)
 void FreeList::Append(FreeList&& other)
 {
     DCHECK_NE(this, &other);
-#if DEBUG
+#ifdef V8_DEBUG
     const size_t expected_size = Size() + other.Size();
 #endif
     // Newly created entries get added to the head.
@@ -140,7 +140,7 @@ void FreeList::Append(FreeList&& other)
 
     biggest_free_list_index_ = std::max(biggest_free_list_index_, other.biggest_free_list_index_);
     other.biggest_free_list_index_ = 0;
-#if DEBUG
+#ifdef V8_DEBUG
     DCHECK_EQ(expected_size, Size());
 #endif
     DCHECK(other.IsEmpty());

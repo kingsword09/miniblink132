@@ -190,7 +190,7 @@ private:
         histogram_->AddTimedSample(elapsed);
         if (isolate_)
             RecordLongTaskTime(elapsed);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // StopInternal() is called in the destructor and don't access timer_
         // after that.
         timer_.Stop();

@@ -274,7 +274,7 @@ inline void F64x2Compare(LiftoffAssembler* assm, LiftoffRegister dst, LiftoffReg
 
 inline void Store(LiftoffAssembler* assm, LiftoffRegister src, MemOperand dst, ValueKind kind)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // The {str} instruction needs a temp register when the immediate in the
     // provided MemOperand does not fit into 12 bits. This happens for large stack
     // frames. This DCHECK checks that the temp register is available when needed.

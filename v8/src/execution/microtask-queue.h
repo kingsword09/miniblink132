@@ -97,7 +97,7 @@ public:
         return microtasks_suppressions_ != 0;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // In debug we check that calls not intended to invoke microtasks are
     // still correctly wrapped with microtask scopes.
     void IncrementDebugMicrotasksScopeDepth()
@@ -181,7 +181,7 @@ private:
 
     int microtasks_depth_ = 0;
     int microtasks_suppressions_ = 0;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int debug_microtasks_depth_ = 0;
 #endif
 

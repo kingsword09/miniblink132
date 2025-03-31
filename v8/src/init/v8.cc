@@ -284,7 +284,7 @@ void V8::DisposePlatform()
 
     platform_ = nullptr;
 
-#if DEBUG
+#ifdef V8_DEBUG
     internal::ThreadIsolation::CheckTrackedMemoryEmpty();
 #endif
 

@@ -27,7 +27,7 @@ bool TorqueCodeGenerator::IsEmptyInstruction(const Instruction& instruction)
 
 void TorqueCodeGenerator::EmitInstruction(const Instruction& instruction, Stack<std::string>* stack)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (!IsEmptyInstruction(instruction)) {
         EmitSourcePosition(instruction->pos);
     }

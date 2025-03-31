@@ -1955,7 +1955,7 @@ public:
         return frame_ == nullptr;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // The StackFrameIteratorForProfiler is limited in functionality because it
     // may run at an arbitrary point in time where stack contents are not
     // guaranteed to be in a consistent state and heap accesses may be limited.
@@ -2046,7 +2046,7 @@ public:
     void set_continuation(Tagged<WasmContinuationObject> continuation);
 #endif
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsStackFrameIteratorForProfiler() const override
     {
         return false;
@@ -2154,7 +2154,7 @@ public:
         return top_frame_type_;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsStackFrameIteratorForProfiler() const override
     {
         return true;

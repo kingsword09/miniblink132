@@ -288,7 +288,7 @@ public:
     // Add a single sample to this histogram.
     V8_EXPORT_PRIVATE void AddTimedSample(base::TimeDelta sample);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Ensures that we don't have nested timers for TimedHistogram per thread, use
     // NestedTimedHistogram which correctly pause and resume timers.
     // This method assumes that each timer is alternating between stopped and

@@ -40,7 +40,7 @@ void ReadOnlyRoots::Iterate(RootVisitor* visitor)
     visitor->Synchronize(VisitorSynchronization::kReadOnlyRootList);
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void ReadOnlyRoots::VerifyNameForProtectors()
 {
     DisallowGarbageCollection no_gc;

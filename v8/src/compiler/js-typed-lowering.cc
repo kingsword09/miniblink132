@@ -1512,7 +1512,7 @@ Reduction JSTypedLowering::ReduceJSHasContextExtension(Node* node)
     gasm.InitializeEffectControl(effect, control);
 
     for (size_t i = 0; i < depth; ++i) {
-#if DEBUG
+#ifdef V8_DEBUG
         // Const tracking let data is stored in the extension slot of a
         // ScriptContext - however, it's unrelated to the sloppy eval variable
         // extension. We should never iterate through a ScriptContext here.

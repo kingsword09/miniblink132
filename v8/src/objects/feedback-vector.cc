@@ -93,7 +93,7 @@ template <typename IsolateT> Handle<FeedbackMetadata> FeedbackMetadata::New(Isol
     if (slot_count == 0 && create_closure_slot_count == 0) {
         return factory->empty_feedback_metadata();
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (int i = 0; i < slot_count;) {
         FeedbackSlotKind kind = spec->GetKind(FeedbackSlot(i));
         int entry_size = FeedbackMetadata::GetSlotSize(kind);
@@ -902,7 +902,7 @@ void FeedbackNexus::ConfigurePropertyCellMode(DirectHandle<PropertyCell> cell)
     SetFeedback(MakeWeak(*cell), UPDATE_WRITE_BARRIER, UninitializedSentinel(), SKIP_WRITE_BARRIER);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 namespace {
 bool shouldStressLexicalIC(int script_context_index, int context_slot_index)
 {
@@ -916,7 +916,7 @@ bool FeedbackNexus::ConfigureLexicalVarMode(int script_context_index, int contex
     DCHECK(IsGlobalICKind(kind()));
     DCHECK_LE(0, script_context_index);
     DCHECK_LE(0, context_slot_index);
-#if DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.stress_ic && shouldStressLexicalIC(script_context_index, context_slot_index)) {
         return false;
     }

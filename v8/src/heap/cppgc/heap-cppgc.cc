@@ -26,7 +26,7 @@ void VerifyCustomSpaces(const std::vector<std::unique_ptr<CustomSpaceBase>>& cus
 {
     // Ensures that user-provided custom spaces have indices that form a sequence
     // starting at 0.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     for (size_t i = 0; i < custom_spaces.size(); ++i) {
         DCHECK_EQ(i, custom_spaces[i]->GetCustomSpaceIndex().value);
     }

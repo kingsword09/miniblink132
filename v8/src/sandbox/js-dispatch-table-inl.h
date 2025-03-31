@@ -187,7 +187,7 @@ void JSDispatchTable::Mark(JSDispatchHandle handle)
     at(index).Mark();
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void JSDispatchTable::VerifyEntry(JSDispatchHandle handle, Space* space, Space* ro_space)
 {
     DCHECK(space->BelongsTo(this));

@@ -219,7 +219,7 @@ Scope::Scope(Zone* zone, ScopeType scope_type, AstValueFactory* ast_value_factor
 {
     DCHECK(!scope_info.is_null());
     SetDefaults();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     already_resolved_ = true;
 #endif
     set_language_mode(scope_info->language_mode());
@@ -265,7 +265,7 @@ Scope::Scope(Zone* zone, const AstRawString* catch_variable_name, MaybeAssignedF
     , scope_type_(CATCH_SCOPE)
 {
     SetDefaults();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     already_resolved_ = true;
 #endif
     // Cache the catch variable, even though it's also available via the
@@ -302,7 +302,7 @@ void DeclarationScope::SetDefaults()
     is_skipped_function_ = false;
     preparse_data_builder_ = nullptr;
     class_scope_has_private_brand_ = false;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DeclarationScope* outer_declaration_scope = outer_scope_ ? outer_scope_->GetDeclarationScope() : nullptr;
     is_being_lazily_parsed_ = outer_declaration_scope ? outer_declaration_scope->is_being_lazily_parsed_ : false;
 #endif
@@ -310,7 +310,7 @@ void DeclarationScope::SetDefaults()
 
 void Scope::SetDefaults()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     scope_name_ = nullptr;
     already_resolved_ = false;
     needs_migration_ = false;
@@ -642,7 +642,7 @@ bool DeclarationScope::Analyze(ParseInfo* info)
     DeclarationScope* scope = info->literal()->scope();
 
     std::optional<AllowHandleDereference> allow_deref;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (scope->outer_scope() && !scope->outer_scope()->scope_info_.is_null()) {
         allow_deref.emplace();
     }
@@ -673,7 +673,7 @@ bool DeclarationScope::Analyze(ParseInfo* info)
         return false;
     scope->GetScriptScope()->RewriteReplGlobalVariables();
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.print_scopes) {
         PrintF("Global scope:\n");
         scope->Print();
@@ -783,7 +783,7 @@ Variable* DeclarationScope::DeclareGeneratorObjectVar(const AstRawString* name)
 Scope* Scope::FinalizeBlockScope()
 {
     DCHECK(is_block_scope());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_NE(sibling_, this);
 #endif
 
@@ -826,7 +826,7 @@ Scope* Scope::FinalizeBlockScope()
     num_heap_slots_ = 0;
 
     // Mark scope as removed by making it its own sibling.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     sibling_ = this;
 #endif
 
@@ -1613,7 +1613,7 @@ void DeclarationScope::ResetAfterPreparsing(AstValueFactory* ast_value_factory, 
         }
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     needs_migration_ = false;
     is_being_lazily_parsed_ = false;
 #endif
@@ -1691,7 +1691,7 @@ void DeclarationScope::AnalyzePartially(Parser* parser, AstNodeFactory* ast_node
         SavePreparseData(parser);
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (v8_flags.print_scopes) {
         PrintF("Inner function scope:\n");
         Print();
@@ -1715,7 +1715,7 @@ void DeclarationScope::RewriteReplGlobalVariables()
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 
 const char* Header(ScopeType scope_type, FunctionKind function_kind, bool is_declaration_scope)
@@ -2616,13 +2616,13 @@ void Scope::AllocateScopeInfosRecursively(
         DCHECK(!scope_info_.is_null());
         CHECK_EQ(scope_info_->scope_type(), scope_type_);
         CHECK_EQ(scope_info_->ContextLength(), num_heap_slots_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Consume the scope info.
         it->second = {};
 #endif
     } else if (NeedsScopeInfo()) {
         scope_info_ = ScopeInfo::Create(isolate, zone(), this, outer_scope);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // Mark this ID as being used.
         if (v8_flags.reuse_scope_infos) {
             scope_infos_to_reuse[UniqueIdInScript()] = {};
@@ -2637,7 +2637,7 @@ void Scope::AllocateScopeInfosRecursively(
 
     // Allocate ScopeInfos for inner scopes.
     for (Scope* scope = inner_scope_; scope != nullptr; scope = scope->sibling_) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         DCHECK_GT(scope->UniqueIdInScript(), UniqueIdInScript());
         DCHECK_IMPLIES(scope->sibling_, scope->sibling_->UniqueIdInScript() != scope->UniqueIdInScript());
 #endif

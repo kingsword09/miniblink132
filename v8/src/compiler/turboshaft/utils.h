@@ -76,7 +76,7 @@ template <class... Ts> std::ostream& operator<<(std::ostream& os, all_of<Ts...> 
     return all.PrintTo(os, std::index_sequence_for<Ts...> {});
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 V8_EXPORT_PRIVATE bool ShouldSkipOptimizationStep();
 #else
 V8_EXPORT_PRIVATE inline bool ShouldSkipOptimizationStep()

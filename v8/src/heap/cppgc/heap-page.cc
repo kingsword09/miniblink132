@@ -291,7 +291,7 @@ void LargePage::Destroy(LargePage* page)
     DCHECK(page);
     HeapBase& heap = page->heap();
     const size_t payload_size = page->PayloadSize();
-#if DEBUG
+#ifdef V8_DEBUG
     const BaseSpace& space = page->space();
     {
         // Destroy() happens on the mutator but another concurrent sweeper task may

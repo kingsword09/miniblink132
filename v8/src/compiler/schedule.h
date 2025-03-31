@@ -77,7 +77,7 @@ public:
     {
         return id_;
     }
-#if DEBUG
+#ifdef V8_DEBUG
     void set_debug_info(AssemblerDebugInfo debug_info)
     {
         debug_info_ = debug_info;
@@ -339,7 +339,7 @@ private:
 
     BasicBlockVector successors_;
     BasicBlockVector predecessors_;
-#if DEBUG
+#ifdef V8_DEBUG
     AssemblerDebugInfo debug_info_;
 #endif
 #ifdef LOG_BUILTIN_BLOCK_COUNT

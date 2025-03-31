@@ -1701,7 +1701,7 @@ void Assembler::set_target_value_at(Address pc, uint64_t target, WritableJitAllo
     uint32_t* p = reinterpret_cast<uint32_t*>(pc);
 #ifdef RISCV_USE_SV39
     DCHECK_EQ((target & 0xffffff8000000000ll), 0);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check we have the result from a li macro-instruction.
     Instruction* instr0 = Instruction::At((unsigned char*)pc);
     Instruction* instr1 = Instruction::At((unsigned char*)(pc + 1 * kInstrSize));
@@ -1725,7 +1725,7 @@ void Assembler::set_target_value_at(Address pc, uint64_t target, WritableJitAllo
     }
 #else
     DCHECK_EQ((target & 0xffff000000000000ll), 0);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check we have the result from a li macro-instruction.
     Instruction* instr0 = Instruction::At((unsigned char*)pc);
     Instruction* instr1 = Instruction::At((unsigned char*)(pc + 1 * kInstrSize));
@@ -1789,7 +1789,7 @@ bool Assembler::IsConstantPoolAt(Instruction* instr)
 #elif V8_TARGET_ARCH_RISCV32
     bool result = IsLw(instr_value) && (instr->Rs1Value() == kRegCode_zero_reg) && (instr->RdValue() == kRegCode_zero_reg);
 #endif
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // It is still worth asserting the marker is complete.
     // 1: j 0x0
     Instruction* instr_following = instr + kInstrSize;

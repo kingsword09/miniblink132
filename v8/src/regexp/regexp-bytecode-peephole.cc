@@ -685,7 +685,7 @@ int RegExpBytecodePeephole::TryOptimizeSequence(const uint8_t* bytecode, int byt
 
 void RegExpBytecodePeephole::EmitOptimization(int start_pc, const uint8_t* bytecode, const BytecodeSequenceNode& last_node)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int optimized_start_pc = pc();
 #endif
     // Jump sources that are mapped or marked as unused will be deleted at the end
@@ -876,7 +876,7 @@ void RegExpBytecodePeephole::FixJump(int jump_source, int jump_destination)
 {
     int fixed_jump_destination = jump_destination + (--jump_destination_fixups_.upper_bound(jump_destination))->second;
     DCHECK_LT(fixed_jump_destination, Length());
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // TODO(pthier): This check could be better if we track the bytecodes
     // actually used and check if we jump to one of them.
     uint8_t jump_bc = optimized_bytecode_buffer_[fixed_jump_destination];

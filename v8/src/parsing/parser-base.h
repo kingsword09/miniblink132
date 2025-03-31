@@ -4438,7 +4438,7 @@ void ParserBase<Impl>::ParseVariableDeclarations(
 
             impl()->SetFunctionNameFromIdentifierRef(value, pattern);
         } else {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             // We can fall through into here on error paths, so don't DCHECK those.
             if (!has_error()) {
                 // We should never get identifier patterns for the non-initializer path,

@@ -51,7 +51,7 @@ public:
     explicit ExternalReferenceEncoder(Isolate* isolate);
     ExternalReferenceEncoder(const ExternalReferenceEncoder&) = delete;
     ExternalReferenceEncoder& operator=(const ExternalReferenceEncoder&) = delete;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ~ExternalReferenceEncoder();
 #endif // DEBUG
 
@@ -63,7 +63,7 @@ public:
 private:
     AddressToIndexHashMap* map_;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     std::vector<int> count_;
     const intptr_t* api_references_;
 #endif // DEBUG

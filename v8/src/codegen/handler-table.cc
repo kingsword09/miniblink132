@@ -44,7 +44,7 @@ HandlerTable::HandlerTable(Tagged<TrustedByteArray> byte_array)
 HandlerTable::HandlerTable(Address handler_table, int handler_table_size, EncodingMode encoding_mode)
     : number_of_entries_(handler_table_size / EntrySizeFromMode(encoding_mode) / sizeof(int32_t))
     ,
-#ifdef DEBUG
+#ifdef V8_DEBUG
     mode_(encoding_mode)
     ,
 #endif
@@ -203,7 +203,7 @@ int HandlerTable::NumberOfReturnEntries() const
 int HandlerTable::LookupHandlerIndexForRange(int pc_offset) const
 {
     int innermost_handler = kNoHandlerFound;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Assuming that ranges are well nested, we don't need to track the innermost
     // offsets. This is just to verify that the table is actually well nested.
     int innermost_start = std::numeric_limits<int>::min();
@@ -219,7 +219,7 @@ int HandlerTable::LookupHandlerIndexForRange(int pc_offset) const
         DCHECK_GE(start_offset, innermost_start);
         DCHECK_LT(end_offset, innermost_end);
         innermost_handler = i;
-#ifdef DEBUG
+#ifdef V8_DEBUG
         innermost_start = start_offset;
         innermost_end = end_offset;
 #endif

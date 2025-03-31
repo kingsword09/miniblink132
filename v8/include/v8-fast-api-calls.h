@@ -360,7 +360,7 @@ struct V8_DEPRECATED("When an API function expects a TypedArray as a parameter, 
 public:
     V8_INLINE T get(size_t index) const
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         ValidateIndex(index);
 #endif // DEBUG
         T tmp;

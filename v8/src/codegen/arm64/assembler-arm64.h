@@ -3317,7 +3317,7 @@ protected:
     static_assert(AssemblerBase::kMinimalBufferSize >= 2 * kGap);
 
 public:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Functions used for testing.
     size_t GetConstantPoolEntriesSizeForTesting() const
     {

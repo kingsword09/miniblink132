@@ -110,7 +110,7 @@ void StringForwardingTable::Block::UpdateAfterYoungEvacuation(PtrComprCageBase c
         }
 // No need to update forwarded (internalized) strings as they are never
 // in young space.
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Tagged<Object> forward = record(index)->ForwardStringObjectOrHash(cage_base);
         if (IsHeapObject(forward)) {
             DCHECK(!HeapLayout::InYoungGeneration(Cast<HeapObject>(forward)));

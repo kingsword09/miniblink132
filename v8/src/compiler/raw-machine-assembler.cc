@@ -785,7 +785,7 @@ void RawMachineAssembler::Bind(RawMachineLabel* label)
     current_block_->set_deferred(label->deferred_);
 }
 
-#if DEBUG
+#ifdef V8_DEBUG
 void RawMachineAssembler::Bind(RawMachineLabel* label, AssemblerDebugInfo info)
 {
     if (current_block_ != nullptr) {
@@ -854,7 +854,7 @@ Node* RawMachineAssembler::MakeNode(const Operator* op, int input_count, Node* c
 
 RawMachineLabel::~RawMachineLabel()
 {
-#if DEBUG
+#ifdef V8_DEBUG
     if (bound_ == used_)
         return;
     std::stringstream str;

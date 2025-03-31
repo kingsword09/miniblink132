@@ -92,7 +92,7 @@ void ExternalBufferTableEntry::MigrateInto(ExternalBufferTableEntry& other)
     other.payload_.store(payload, std::memory_order_relaxed);
     other.size_.store(size, std::memory_order_relaxed);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // In debug builds, we clobber this old entry so that any sharing of table
     // entries is easily detected. Shared entries would require write barriers,
     // so we'd like to avoid them. See the compaction algorithm explanation in
@@ -170,7 +170,7 @@ ExternalBufferHandle ExternalBufferTable::IndexToHandle(uint32_t index)
 
 void ExternalBufferTable::Space::NotifyExternalPointerFieldInvalidated(Address field_address)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ExternalBufferHandle handle = base::AsAtomic32::Acquire_Load(reinterpret_cast<ExternalBufferHandle*>(field_address));
     DCHECK(Contains(HandleToIndex(handle)));
 #endif

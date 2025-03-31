@@ -3720,7 +3720,7 @@ bool IsSafeArgumentsElements(Node* node)
     return true;
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 bool IsCallOrConstructWithArrayLike(Node* node)
 {
     return node->opcode() == IrOpcode::kJSCallWithArrayLike || node->opcode() == IrOpcode::kJSConstructWithArrayLike;

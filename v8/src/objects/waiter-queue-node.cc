@@ -173,7 +173,7 @@ void WaiterQueueNode::VerifyNotInList()
 
 void WaiterQueueNode::SetNotInListForVerification()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     next_ = prev_ = nullptr;
 #endif
 }

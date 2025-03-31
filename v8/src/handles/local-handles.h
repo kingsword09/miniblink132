@@ -23,7 +23,7 @@ public:
 
     void Iterate(RootVisitor* visitor);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool Contains(Address* location);
 #endif
 

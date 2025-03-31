@@ -211,7 +211,7 @@ public:
         return ProcessResult::kContinue;
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ProcessResult Process(Dead* node, const ProcessingState& state)
     {
         UNREACHABLE();
@@ -239,7 +239,7 @@ private:
 
     void VerifyEscapeAnalysis(Graph* graph)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         for (auto it : graph->allocations_escape_map()) {
             auto alloc = it.first;
             DCHECK(alloc->HasBeenAnalysed());

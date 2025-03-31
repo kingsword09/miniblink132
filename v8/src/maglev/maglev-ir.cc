@@ -73,7 +73,7 @@ static_assert(!std::is_same_v<decltype(kScratchDoubleRegister), DoubleRegister>)
 
 } // namespace
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 namespace {
 
 template <size_t InputCount, typename Base, typename Derived> int StaticInputCount(FixedInputNodeTMixin<InputCount, Base, Derived>*)
@@ -322,7 +322,7 @@ bool RootToBoolean(RootIndex index)
     }
 }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 // For all RO roots, check that RootToBoolean returns the same value as
 // BooleanValue on that root.
 bool CheckToBooleanOnAllRoots(LocalIsolate* local_isolate)
@@ -438,7 +438,7 @@ size_t DeoptFrame::GetInputLocationsArraySize() const
 
 bool RootConstant::ToBoolean(LocalIsolate* local_isolate) const
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // (Ab)use static locals to call CheckToBooleanOnAllRoots once, on first
     // call to this function.
     static bool check_once = CheckToBooleanOnAllRoots(local_isolate);
@@ -479,7 +479,7 @@ DeoptInfo::DeoptInfo(Zone* zone, const DeoptFrame top_frame, compiler::FeedbackS
     for (size_t i = 0; i < input_locations_size; ++i) {
         new (&input_locations_[i]) InputLocation();
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     input_location_count_ = input_locations_size;
 #endif // DEBUG
 }
@@ -585,7 +585,7 @@ void ValueNode::SetHint(compiler::InstructionOperand hint)
 void ValueNode::SetNoSpill()
 {
     DCHECK(!IsConstantNode(opcode()));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     state_ = kSpill;
 #endif // DEBUG
     spill_ = compiler::InstructionOperand();
@@ -594,7 +594,7 @@ void ValueNode::SetNoSpill()
 void ValueNode::SetConstantLocation()
 {
     DCHECK(IsConstantNode(opcode()));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     state_ = kSpill;
 #endif // DEBUG
     spill_ = compiler::ConstantOperand(compiler::UnallocatedOperand::cast(result().operand()).virtual_register());
@@ -848,7 +848,7 @@ void CallBuiltin::VerifyInputs(MaglevGraphLabeller* graph_labeller) const
     }
 
 // {all_input_count} includes the feedback slot and vector.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     int all_input_count = count + (has_feedback() ? 2 : 0);
     if (descriptor.AllowVarArgs()) {
         DCHECK_GE(all_input_count, descriptor.GetParameterCount());
@@ -1265,7 +1265,7 @@ void GetSecondReturnedValue::GenerateCode(MaglevAssembler* masm, const Processin
     // No-op. This is just a hack that binds kReturnRegister1 to a value node.
     // kReturnRegister1 is guaranteed to be free in the register allocator, since
     // previous node in the basic block is a call.
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check if the previous node is call.
     Node* previous = nullptr;
     for (Node* node : state.block()->nodes()) {
@@ -5302,7 +5302,7 @@ void UnsafeTruncateFloat64ToInt32::SetValueLocationConstraints()
 }
 void UnsafeTruncateFloat64ToInt32::GenerateCode(MaglevAssembler* masm, const ProcessingState& state)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Label fail, start;
     __ Jump(&start);
     __ bind(&fail);
@@ -5339,7 +5339,7 @@ void UnsafeTruncateUint32ToInt32::SetValueLocationConstraints()
 }
 void UnsafeTruncateUint32ToInt32::GenerateCode(MaglevAssembler* masm, const ProcessingState& state)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     Register input_reg = ToRegister(input());
     __ CompareInt32AndAssert(input_reg, 0, kGreaterThanEqual, AbortReason::kUint32IsNotAInt32);
 #endif
@@ -6422,7 +6422,7 @@ void GenerateTypedArrayLoad(MaglevAssembler* masm, NodeT* node, Register object,
             __ LoadUnsignedField(result_reg, operand, element_size);
         }
     } else {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         bool result_reg_is_double = std::is_same_v<ResultReg, DoubleRegister>;
         DCHECK(result_reg_is_double);
         DCHECK(IsFloatTypedArrayElementsKind(kind));
@@ -6461,7 +6461,7 @@ void GenerateTypedArrayStore(MaglevAssembler* masm, NodeT* node, Register object
         int element_size = ElementsKindSize(kind);
         __ StoreField(operand, value, element_size);
     } else {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         bool value_is_double = std::is_same_v<ValueReg, DoubleRegister>;
         DCHECK(value_is_double);
         DCHECK(IsFloatTypedArrayElementsKind(kind));

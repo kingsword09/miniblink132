@@ -573,7 +573,7 @@ public:
     void Decrease(Isolate* isolate, size_t size);
 
 private:
-#ifdef DEBUG
+#ifdef V8_DEBUG
     size_t amount_of_external_memory_ = 0;
     Isolate* isolate_ = nullptr;
 #endif

@@ -302,7 +302,7 @@ bool Assembler::IsConstantPoolLoadStart(Address pc, ConstantPoolEntry::Access* a
     if (GetRA(instr) != kConstantPoolRegister)
         return false;
     bool overflowed = (opcode == ADDIS);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     if (overflowed) {
         opcode = instr_at(pc + kInstrSize) & kOpcodeMask;
     }
@@ -338,7 +338,7 @@ bool Assembler::IsConstantPoolLoadEnd(Address pc, ConstantPoolEntry::Access* acc
 int Assembler::GetConstantPoolOffset(Address pc, ConstantPoolEntry::Access access, ConstantPoolEntry::Type type)
 {
     bool overflowed = (access == ConstantPoolEntry::OVERFLOWED);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ConstantPoolEntry::Access access_check = static_cast<ConstantPoolEntry::Access>(-1);
     DCHECK(IsConstantPoolLoadStart(pc, &access_check));
     DCHECK(access_check == access);
@@ -359,7 +359,7 @@ void Assembler::PatchConstantPoolAccessInstruction(int pc_offset, int offset, Co
     Address pc = reinterpret_cast<Address>(buffer_start_) + pc_offset;
     bool overflowed = (access == ConstantPoolEntry::OVERFLOWED);
     CHECK(overflowed != is_int16(offset));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     ConstantPoolEntry::Access access_check = static_cast<ConstantPoolEntry::Access>(-1);
     DCHECK(IsConstantPoolLoadStart(pc, &access_check));
     DCHECK(access_check == access);

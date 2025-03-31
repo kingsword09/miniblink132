@@ -831,7 +831,7 @@ public:
 
     void CheckPointerCompressionConsistency()
     {
-#if DEBUG && V8_COMPRESS_POINTERS
+#ifdef V8_DEBUG && V8_COMPRESS_POINTERS
         if (!source_.IsLocationOperand())
             return;
         if (!destination_.IsLocationOperand())
@@ -1215,7 +1215,7 @@ public:
     {
         DCHECK(IsCallWithDescriptorFlags());
         static_assert(CallDescriptor::kFlagsBitsEncodedInInstructionCode == 10);
-#ifdef DEBUG
+#ifdef V8_DEBUG
         static constexpr int kInstructionCodeFlagsMask = ((1 << CallDescriptor::kFlagsBitsEncodedInInstructionCode) - 1);
         DCHECK_EQ(static_cast<int>(flag) & kInstructionCodeFlagsMask, flag);
 #endif
@@ -1937,7 +1937,7 @@ public:
         , kind_(kind)
         , reason_(reason)
         ,
-#ifdef DEBUG
+#ifdef V8_DEBUG
         node_id_(node_id)
         ,
 #endif // DEBUG
@@ -1958,7 +1958,7 @@ public:
     {
         return reason_;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     NodeId node_id() const
     {
         return node_id_;
@@ -1973,7 +1973,7 @@ private:
     FrameStateDescriptor* const descriptor_;
     const DeoptimizeKind kind_;
     const DeoptimizeReason reason_;
-#ifdef DEBUG
+#ifdef V8_DEBUG
     const NodeId node_id_;
 #endif // DEBUG
     const FeedbackSource feedback_;

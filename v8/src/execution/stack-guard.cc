@@ -296,7 +296,7 @@ Tagged<Object> StackGuard::HandleInterrupts(InterruptLevel level)
 {
     TRACE_EVENT0("v8.execute", "V8.HandleInterrupts");
 
-#if DEBUG
+#ifdef V8_DEBUG
     isolate_->heap()->VerifyNewSpaceTop();
 #endif
 

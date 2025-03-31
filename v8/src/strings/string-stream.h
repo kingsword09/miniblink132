@@ -141,7 +141,7 @@ class StringStream final {
         friend class StringStream;
         enum Type { INT, DOUBLE, C_STR, LC_STR, OBJ, HANDLE, POINTER };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
         Type type_;
         explicit FmtElm(Type type)
             : type_(type)
@@ -232,7 +232,7 @@ public:
     // Mentioned object cache support.
     void PrintMentionedObjectCache(Isolate* isolate);
     V8_EXPORT_PRIVATE static void ClearMentionedObjectCache(Isolate* isolate);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsMentionedObjectCacheClear(Isolate* isolate);
 #endif
 

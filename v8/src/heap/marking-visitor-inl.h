@@ -266,7 +266,7 @@ template <typename ConcreteVisitor> void MarkingVisitorBase<ConcreteVisitor>::Vi
 {
 #ifdef V8_ENABLE_LEAPTIERING
     JSDispatchTable* table = GetProcessWideJSDispatchTable();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     JSDispatchTable::Space* space = heap_->js_dispatch_table_space();
     JSDispatchTable::Space* ro_space = heap_->isolate()->read_only_heap()->js_dispatch_table_space();
     table->VerifyEntry(handle, space, ro_space);
@@ -717,7 +717,7 @@ template <typename ConcreteVisitor> void MarkingVisitorBase<ConcreteVisitor>::Vi
         const auto descriptors_to_mark = std::min<int>(number_of_own_descriptors, descriptors->number_of_descriptors());
         concrete_visitor()->marking_state()->TryMark(descriptors);
         if (DescriptorArrayMarkingState::TryUpdateIndicesToMark(mark_compact_epoch_, descriptors, descriptors_to_mark)) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             const auto target_worklist = MarkingHelper::ShouldMarkObject(heap_, descriptors);
             DCHECK(target_worklist);
             DCHECK_EQ(target_worklist.value(), MarkingHelper::WorklistTarget::kRegular);

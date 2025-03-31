@@ -177,13 +177,13 @@ public:
     inline Tagged<Object> GetSideStepTransition(SideStepTransition::Kind i);
     inline void SetSideStepTransition(SideStepTransition::Kind i, Tagged<Object> target);
 
-#if DEBUG || OBJECT_PRINT
+#ifdef V8_DEBUG || OBJECT_PRINT
     void PrintTransitions(std::ostream& os);
     static void PrintOneTransition(std::ostream& os, Tagged<Name> key, Tagged<Map> target);
     void PrintTransitionTree();
     void PrintTransitionTree(std::ostream& os, int level, DisallowGarbageCollection* no_gc);
 #endif
-#if DEBUG
+#ifdef V8_DEBUG
     static void CheckNewTransitionsAreConsistent(Isolate* isolate, DirectHandle<Map> map, Tagged<Object> transitions);
     bool IsConsistentWithBackPointers();
     bool IsSortedNoDuplicates();
@@ -285,7 +285,7 @@ public:
 
     static constexpr int kNotFound = -1;
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     V8_EXPORT_PRIVATE bool IsSortedNoDuplicates();
 #endif
 

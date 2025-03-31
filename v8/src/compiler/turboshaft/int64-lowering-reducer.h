@@ -383,7 +383,7 @@ public:
                 if (!output_graph_loop->Contains(phi_index)) {
                     continue;
                 }
-#ifdef DEBUG
+#ifdef V8_DEBUG
                 const PendingLoopPhiOp& pending_phi = __ Get(phi_index).template Cast<PendingLoopPhiOp>();
                 DCHECK_EQ(pending_phi.rep, RegisterRepresentation::Word32());
                 DCHECK_EQ(pending_phi.first(), __ Projection(new_inputs[0], i, RegisterRepresentation::Word32()));
@@ -488,7 +488,7 @@ public:
 private:
     bool CheckPairOrPairOp(OpIndex input)
     {
-#ifdef DEBUG
+#ifdef V8_DEBUG
         if (const TupleOp* tuple = matcher_.TryCast<TupleOp>(input)) {
             DCHECK_EQ(2, tuple->input_count);
             RegisterRepresentation word32 = RegisterRepresentation::Word32();

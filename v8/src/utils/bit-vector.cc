@@ -12,7 +12,7 @@
 namespace v8 {
 namespace internal {
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 void BitVector::Print() const
 {
     bool first = true;

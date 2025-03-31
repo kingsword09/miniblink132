@@ -100,7 +100,7 @@ public:
 
     void AttachPersistentHandles(std::unique_ptr<PersistentHandles> persistent_handles);
     std::unique_ptr<PersistentHandles> DetachPersistentHandles();
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool HasPersistentHandles()
     {
         return !!persistent_handles_;
@@ -145,7 +145,7 @@ public:
     // Give up all LABs. Used for e.g. full GCs.
     void FreeLinearAllocationAreas();
 
-#if DEBUG
+#ifdef V8_DEBUG
     void VerifyLinearAllocationAreas() const;
 #endif // DEBUG
 
@@ -176,7 +176,7 @@ public:
 
     static void SetCurrent(LocalHeap* local_heap);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     void VerifyCurrent() const;
 #endif
 
@@ -356,7 +356,7 @@ private:
         std::atomic<uint8_t> raw_state_;
     };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     bool IsSafeForConservativeStackScanning() const;
 #endif
 

@@ -239,7 +239,7 @@ void Assembler::set_uint32_constant_at(
     Instr instr1 = instr_at(pc + kInstrSize);
     uint32_t rt_code = GetRt(instr1);
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     // Check we have the result from a li macro-instruction.
     Instr instr0 = instr_at(pc);
     DCHECK((GetOpcodeField(instr0) == LUI) && (GetOpcodeField(instr1) == ORI) && (GetRt(instr0) == rt_code));

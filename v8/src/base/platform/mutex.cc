@@ -10,7 +10,7 @@
 
 #include "src/base/platform/condition-variable.h"
 
-#if DEBUG
+#ifdef V8_DEBUG
 #include <unordered_set>
 #endif // DEBUG
 
@@ -21,7 +21,7 @@
 namespace v8 {
 namespace base {
 
-#if DEBUG
+#ifdef V8_DEBUG
 namespace {
 // Used for asserts to guarantee we are not re-locking a mutex on the same
 // thread. If this thread has only one held shared mutex (common case), we use
@@ -152,7 +152,7 @@ static V8_INLINE bool TryLockNativeHandle(pthread_mutex_t* mutex)
 Mutex::Mutex()
 {
     InitializeNativeHandle(&native_handle_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     level_ = 0;
 #endif
 }
@@ -187,7 +187,7 @@ bool Mutex::TryLock()
 RecursiveMutex::RecursiveMutex()
 {
     InitializeRecursiveNativeHandle(&native_handle_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     level_ = 0;
 #endif
 }
@@ -201,7 +201,7 @@ RecursiveMutex::~RecursiveMutex()
 void RecursiveMutex::Lock()
 {
     LockNativeHandle(&native_handle_);
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LE(0, level_);
     level_++;
 #endif
@@ -209,7 +209,7 @@ void RecursiveMutex::Lock()
 
 void RecursiveMutex::Unlock()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LT(0, level_);
     level_--;
 #endif
@@ -221,7 +221,7 @@ bool RecursiveMutex::TryLock()
     if (!TryLockNativeHandle(&native_handle_)) {
         return false;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LE(0, level_);
     level_++;
 #endif
@@ -344,7 +344,7 @@ bool SharedMutex::TryLockExclusive()
 Mutex::Mutex()
     : native_handle_(SRWLOCK_INIT)
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     level_ = 0;
 #endif
 }
@@ -378,7 +378,7 @@ bool Mutex::TryLock()
 RecursiveMutex::RecursiveMutex()
 {
     InitializeCriticalSection(V8ToWindowsType(&native_handle_));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     level_ = 0;
 #endif
 }
@@ -392,7 +392,7 @@ RecursiveMutex::~RecursiveMutex()
 void RecursiveMutex::Lock()
 {
     EnterCriticalSection(V8ToWindowsType(&native_handle_));
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LE(0, level_);
     level_++;
 #endif
@@ -400,7 +400,7 @@ void RecursiveMutex::Lock()
 
 void RecursiveMutex::Unlock()
 {
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LT(0, level_);
     level_--;
 #endif
@@ -412,7 +412,7 @@ bool RecursiveMutex::TryLock()
     if (!TryEnterCriticalSection(V8ToWindowsType(&native_handle_))) {
         return false;
     }
-#ifdef DEBUG
+#ifdef V8_DEBUG
     DCHECK_LE(0, level_);
     level_++;
 #endif

@@ -79,13 +79,13 @@ class ObjectStartBitmapVerifier final : private HeapVisitor<ObjectStartBitmapVer
 public:
     void Verify(RawHeap& heap)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         Traverse(heap);
 #endif // DEBUG
     }
     void Verify(NormalPage& page)
     {
-#if DEBUG
+#ifdef V8_DEBUG
         Traverse(page);
 #endif // DEBUG
     }
@@ -921,7 +921,7 @@ protected:
 
         BaseSpace::Pages space_pages = space.RemoveAllPages();
         for (BasePage* page : space_pages) {
-#ifdef DEBUG
+#ifdef V8_DEBUG
             const auto* header = LargePage::From(page)->ObjectHeader();
             DCHECK_IMPLIES(page->marked_bytes() == 0, !header->IsMarked());
             DCHECK_IMPLIES(page->marked_bytes() != 0, header->IsMarked());
@@ -1050,7 +1050,7 @@ public:
     bool SweepForLargeAllocation(BaseSpace* space, size_t size, v8::base::TimeDelta max_duration)
     {
         DCHECK(space->is_large());
-#ifdef DEBUG
+#ifdef V8_DEBUG
         // SpaceState for large objects is emtpy as those objects are put directly
         // on `empty_large_pages_`.
         SweepingState& space_state = space_states_[space->index()];

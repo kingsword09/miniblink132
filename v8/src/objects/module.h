@@ -46,7 +46,7 @@ public:
         kErrored
     };
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
     static const char* StatusString(Module::Status status);
 #endif // DEBUG
 

@@ -126,7 +126,7 @@ constexpr int InvertScratchSpace(int n)
         abort();                                                                                                                                               \
     }
 
-#ifdef DEBUG
+#ifdef V8_DEBUG
 #define DCHECK(cond) CHECK(cond)
 #else
 #define DCHECK(cond) (void(0))
