@@ -60,9 +60,9 @@ const TERM_ENVS = {
   'mosh': COLORS_16m,
   'putty': COLORS_16,
   'st': COLORS_16,
-  // https://github.com/da-x/rxvt-unicode/tree/v9.22-with-24bit-color
+  // http://lists.schmorp.de/pipermail/rxvt-unicode/2016q2/002261.html
   'rxvt-unicode-24bit': COLORS_16m,
-  // https://gist.github.com/XVilka/8346728#gistcomment-2823421
+  // https://bugs.launchpad.net/terminator/+bug/1030562
   'terminator': COLORS_16m,
 };
 
@@ -138,7 +138,7 @@ function getColorDepth(env = process.env) {
     // Lazy load for startup performance.
     if (OSRelease === undefined) {
       const { release } = require('os');
-      OSRelease = StringPrototypeSplit(release(), '.');
+      OSRelease = StringPrototypeSplit(release(), '.', 3);
     }
     // Windows 10 build 10586 is the first Windows release that supports 256
     // colors. Windows 10 build 14931 is the first release that supports

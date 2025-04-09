@@ -1,6 +1,9 @@
 'use strict';
 
-const { ObjectDefineProperty } = primordials;
+const {
+  ObjectDefineProperty,
+} = primordials;
+
 const rawMethods = internalBinding('process_methods');
 const {
   namespace: {
@@ -95,7 +98,7 @@ function createWritableStdioStream(fd) {
       stream = new Writable({
         write(buf, enc, cb) {
           if ("buffer" === enc && ("mbConsoleLog" in globalThis))
-            mbConsoleLog("WritableStdio:" + (buf.toString())); 
+            mbConsoleLog("WritableStdio:" + (buf.toString()));
           cb();
         },
       });
@@ -250,7 +253,7 @@ function getStdin() {
   // `stdin` starts out life in a paused state, but node doesn't
   // know yet. Explicitly to readStop() it to put it in the
   // not-reading state.
-  if (stdin._handle && stdin._handle.readStop) {
+  if (stdin._handle?.readStop) {
     stdin._handle.reading = false;
     stdin._readableState.reading = false;
     stdin._handle.readStop();

@@ -51,6 +51,11 @@ inline double AsyncWrap::get_trigger_async_id() const
     return trigger_async_id_;
 }
 
+inline v8::Local<v8::Value> AsyncWrap::context_frame() const
+{
+    return context_frame_.Get(env()->isolate());
+}
+
 inline v8::MaybeLocal<v8::Value> AsyncWrap::MakeCallback(const v8::Local<v8::String> symbol, int argc, v8::Local<v8::Value>* argv)
 {
     return MakeCallback(symbol.As<v8::Name>(), argc, argv);

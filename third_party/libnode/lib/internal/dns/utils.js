@@ -11,7 +11,13 @@ const {
   Symbol,
 } = primordials;
 
-const errors = require('internal/errors');
+const {
+  codes: {
+    ERR_DNS_SET_SERVERS_FAILED,
+    ERR_INVALID_ARG_VALUE,
+    ERR_INVALID_IP_ADDRESS,
+  },
+} = require('internal/errors');
 const { isIP } = require('internal/net');
 const { getOptionValue } = require('internal/options');
 const {
@@ -28,11 +34,6 @@ function lazyBinding() {
 const IANA_DNS_PORT = 53;
 const IPv6RE = /^\[([^[\]]*)\]/;
 const addrSplitRE = /(^.+?)(?::(\d+))?$/;
-const {
-  ERR_DNS_SET_SERVERS_FAILED,
-  ERR_INVALID_ARG_VALUE,
-  ERR_INVALID_IP_ADDRESS,
-} = errors.codes;
 
 const {
   namespace: {
@@ -58,7 +59,7 @@ const kSerializeResolver = Symbol('dns:resolver:serialize');
 const kDeserializeResolver = Symbol('dns:resolver:deserialize');
 const kSnapshotStates = Symbol('dns:resolver:config');
 const kInitializeHandle = Symbol('dns:resolver:initializeHandle');
-const kSetServersInteral = Symbol('dns:resolver:setServers');
+const kSetServersInternal = Symbol('dns:resolver:setServers');
 
 // Resolver instances correspond 1:1 to c-ares channels.
 
@@ -138,10 +139,10 @@ class ResolverBase {
       throw new ERR_INVALID_IP_ADDRESS(serv);
     });
 
-    this[kSetServersInteral](newSet, servers);
+    this[kSetServersInternal](newSet, servers);
   }
 
-  [kSetServersInteral](newSet, servers) {
+  [kSetServersInternal](newSet, servers) {
     const orig = ArrayPrototypeMap(this._handle.getServers() || [], (val) => {
       val.unshift(isIP(val[0]));
       return val;
@@ -193,13 +194,15 @@ class ResolverBase {
       this._handle.setLocalAddress(ipv4, ipv6);
     }
     if (servers) {
-      this[kSetServersInteral](servers, servers);
+      this[kSetServersInternal](servers, servers);
     }
   }
 }
 
 let defaultResolver;
 let dnsOrder;
+const validDnsOrders = ['verbatim', 'ipv4first', 'ipv6first'];
+const validFamilies = [0, 4, 6];
 
 function initializeDns() {
   const orderFromCLI = getOptionValue('--dns-result-order');
@@ -207,7 +210,7 @@ function initializeDns() {
     dnsOrder ??= 'verbatim';
   } else {
     // Allow the deserialized application to override order from CLI.
-    validateOneOf(orderFromCLI, '--dns-result-order', ['verbatim', 'ipv4first', 'ipv6first']);
+    validateOneOf(orderFromCLI, '--dns-result-order', validDnsOrders);
     dnsOrder = orderFromCLI;
   }
 
@@ -234,6 +237,7 @@ const resolverKeys = [
   'resolvePtr',
   'resolveSoa',
   'resolveSrv',
+  'resolveTlsa',
   'resolveTxt',
   'reverse',
 ];
@@ -279,7 +283,7 @@ function emitInvalidHostnameWarning(hostname) {
 }
 
 function setDefaultResultOrder(value) {
-  validateOneOf(value, 'dnsOrder', ['verbatim', 'ipv4first', 'ipv6first']);
+  validateOneOf(value, 'dnsOrder', validDnsOrders);
   dnsOrder = value;
 }
 
@@ -299,6 +303,7 @@ function createResolverClass(resolver) {
   Resolver.prototype.resolveCname = resolveMap.CNAME = resolver('queryCname');
   Resolver.prototype.resolveMx = resolveMap.MX = resolver('queryMx');
   Resolver.prototype.resolveNs = resolveMap.NS = resolver('queryNs');
+  Resolver.prototype.resolveTlsa = resolveMap.TLSA = resolver('queryTlsa');
   Resolver.prototype.resolveTxt = resolveMap.TXT = resolver('queryTxt');
   Resolver.prototype.resolveSrv = resolveMap.SRV = resolver('querySrv');
   Resolver.prototype.resolvePtr = resolveMap.PTR = resolver('queryPtr');
@@ -353,4 +358,6 @@ module.exports = {
   errorCodes,
   createResolverClass,
   initializeDns,
+  validDnsOrders,
+  validFamilies,
 };

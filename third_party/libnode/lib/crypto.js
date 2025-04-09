@@ -25,8 +25,8 @@
 'use strict';
 
 const {
-  ObjectDefineProperty,
   ObjectDefineProperties,
+  ObjectDefineProperty,
 } = primordials;
 
 const {
@@ -88,9 +88,7 @@ const {
   diffieHellman,
 } = require('internal/crypto/diffiehellman');
 const {
-  Cipher,
   Cipheriv,
-  Decipher,
   Decipheriv,
   privateDecrypt,
   privateEncrypt,
@@ -139,16 +137,8 @@ function createHash(algorithm, options) {
   return new Hash(algorithm, options);
 }
 
-function createCipher(cipher, password, options) {
-  return new Cipher(cipher, password, options);
-}
-
 function createCipheriv(cipher, key, iv, options) {
   return new Cipheriv(cipher, key, iv, options);
-}
-
-function createDecipher(cipher, password, options) {
-  return new Decipher(cipher, password, options);
 }
 
 function createDecipheriv(cipher, key, iv, options) {
@@ -232,15 +222,13 @@ module.exports = {
 
   // Classes
   Certificate,
-  Cipher,
   Cipheriv,
-  Decipher,
   Decipheriv,
   DiffieHellman,
   DiffieHellmanGroup,
   ECDH,
-  Hash,
-  Hmac,
+  Hash: deprecate(Hash, 'crypto.Hash constructor is deprecated.', 'DEP0179'),
+  Hmac: deprecate(Hmac, 'crypto.Hmac constructor is deprecated.', 'DEP0181'),
   KeyObject,
   Sign,
   Verify,
@@ -338,23 +326,12 @@ function getRandomBytesAlias(key) {
 }
 
 ObjectDefineProperties(module.exports, {
-  createCipher: {
-    __proto__: null,
-    enumerable: false,
-    value: deprecate(createCipher,
-                     'crypto.createCipher is deprecated.', 'DEP0106'),
-  },
-  createDecipher: {
-    __proto__: null,
-    enumerable: false,
-    value: deprecate(createDecipher,
-                     'crypto.createDecipher is deprecated.', 'DEP0106'),
-  },
-  // crypto.fips is deprecated. DEP0093. Use crypto.getFips()/crypto.setFips()
   fips: {
     __proto__: null,
-    get: getFips,
-    set: setFips,
+    get: deprecate(getFips, 'The crypto.fips is deprecated. ' +
+      'Please use crypto.getFips()', 'DEP0093'),
+    set: deprecate(setFips, 'The crypto.fips is deprecated. ' +
+      'Please use crypto.setFips()', 'DEP0093'),
   },
   constants: {
     __proto__: null,

@@ -1,17 +1,17 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2022
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "histogram", "histogram.vcxproj", "{B4626328-1E41-8768-0DFE-16828384FD19}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "histogram", "histogram.vcxproj", "{FEC2FF84-048C-2B90-A35E-780DC633135E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+		Debug|x64 = Debug|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B4626328-1E41-8768-0DFE-16828384FD19}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B4626328-1E41-8768-0DFE-16828384FD19}.Debug|Win32.Build.0 = Debug|Win32
-		{B4626328-1E41-8768-0DFE-16828384FD19}.Release|Win32.ActiveCfg = Release|Win32
-		{B4626328-1E41-8768-0DFE-16828384FD19}.Release|Win32.Build.0 = Release|Win32
+		{FEC2FF84-048C-2B90-A35E-780DC633135E}.Release|x64.ActiveCfg = Release|x64
+		{FEC2FF84-048C-2B90-A35E-780DC633135E}.Release|x64.Build.0 = Release|x64
+		{FEC2FF84-048C-2B90-A35E-780DC633135E}.Debug|x64.ActiveCfg = Debug|x64
+		{FEC2FF84-048C-2B90-A35E-780DC633135E}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

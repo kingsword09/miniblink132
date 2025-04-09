@@ -8,10 +8,12 @@ const {
   DatePrototypeGetTime,
   ErrorCaptureStackTrace,
   FunctionPrototypeCall,
-  Number,
-  NumberIsFinite,
   MathMin,
   MathRound,
+  Number,
+  NumberIsFinite,
+  ObjectDefineProperties,
+  ObjectDefineProperty,
   ObjectIs,
   ObjectSetPrototypeOf,
   ReflectApply,
@@ -22,23 +24,19 @@ const {
   Symbol,
   TypedArrayPrototypeAt,
   TypedArrayPrototypeIncludes,
-  uncurryThis,
 } = primordials;
-
-const permission = require('internal/process/permission');
 
 const { Buffer } = require('buffer');
 const {
+  UVException,
   codes: {
     ERR_FS_EISDIR,
-    ERR_FS_INVALID_SYMLINK_TYPE,
     ERR_INCOMPATIBLE_OPTION_PAIR,
     ERR_INVALID_ARG_TYPE,
     ERR_INVALID_ARG_VALUE,
     ERR_OUT_OF_RANGE,
   },
   hideStackFrames,
-  UVException,
 } = require('internal/errors');
 const {
   isArrayBufferView,
@@ -49,6 +47,8 @@ const {
 const {
   kEmptyObject,
   once,
+  deprecate,
+  isWindows,
 } = require('internal/util');
 const { toPathIfFileURL } = require('internal/url');
 const {
@@ -64,8 +64,6 @@ const pathModule = require('path');
 const kType = Symbol('type');
 const kStats = Symbol('stats');
 const assert = require('internal/assert');
-
-const { encodeUtf8String } = internalBinding('encoding_binding');
 
 const {
   fs: {
@@ -147,20 +145,15 @@ const kWriteFileMaxChunkSize = 512 * 1024;
 
 const kMaxUserId = 2 ** 32 - 1;
 
-const isWindows = process.platform === 'win32';
-
 let fs;
 function lazyLoadFs() {
-  if (!fs) {
-    fs = require('fs');
-  }
-  return fs;
+  return fs ??= require('fs');
 }
 
 function assertEncoding(encoding) {
   if (encoding && !Buffer.isEncoding(encoding)) {
     const reason = 'is invalid encoding';
-    throw new ERR_INVALID_ARG_VALUE(encoding, 'encoding', reason);
+    throw new ERR_INVALID_ARG_VALUE('encoding', encoding, reason);
   }
 }
 
@@ -168,7 +161,6 @@ class Dirent {
   constructor(name, type, path) {
     this.name = name;
     this.parentPath = path;
-    this.path = path;
     this[kType] = type;
   }
 
@@ -309,7 +301,7 @@ function getDirent(path, name, type, callback) {
           callback(err);
           return;
         }
-        callback(null, new DirentFromStats(name, stats, filepath));
+        callback(null, new DirentFromStats(name, stats, path));
       });
     } else {
       callback(null, new Dirent(name, type, path));
@@ -451,6 +443,54 @@ function dateFromMs(ms) {
   return new Date(MathRound(Number(ms)));
 }
 
+const lazyDateFields = {
+  __proto__: null,
+  atime: {
+    __proto__: null,
+    enumerable: true,
+    configurable: true,
+    get() {
+      return this.atime = dateFromMs(this.atimeMs);
+    },
+    set(value) {
+      ObjectDefineProperty(this, 'atime', { __proto__: null, value, writable: true });
+    },
+  },
+  mtime: {
+    __proto__: null,
+    enumerable: true,
+    configurable: true,
+    get() {
+      return this.mtime = dateFromMs(this.mtimeMs);
+    },
+    set(value) {
+      ObjectDefineProperty(this, 'mtime', { __proto__: null, value, writable: true });
+    },
+  },
+  ctime: {
+    __proto__: null,
+    enumerable: true,
+    configurable: true,
+    get() {
+      return this.ctime = dateFromMs(this.ctimeMs);
+    },
+    set(value) {
+      ObjectDefineProperty(this, 'ctime', { __proto__: null, value, writable: true });
+    },
+  },
+  birthtime: {
+    __proto__: null,
+    enumerable: true,
+    configurable: true,
+    get() {
+      return this.birthtime = dateFromMs(this.birthtimeMs);
+    },
+    set(value) {
+      ObjectDefineProperty(this, 'birthtime', { __proto__: null, value, writable: true });
+    },
+  },
+};
+
 function BigIntStats(dev, mode, nlink, uid, gid, rdev, blksize,
                      ino, size, blocks,
                      atimeNs, mtimeNs, ctimeNs, birthtimeNs) {
@@ -465,14 +505,11 @@ function BigIntStats(dev, mode, nlink, uid, gid, rdev, blksize,
   this.mtimeNs = mtimeNs;
   this.ctimeNs = ctimeNs;
   this.birthtimeNs = birthtimeNs;
-  this.atime = dateFromMs(this.atimeMs);
-  this.mtime = dateFromMs(this.mtimeMs);
-  this.ctime = dateFromMs(this.ctimeMs);
-  this.birthtime = dateFromMs(this.birthtimeMs);
 }
 
 ObjectSetPrototypeOf(BigIntStats.prototype, StatsBase.prototype);
 ObjectSetPrototypeOf(BigIntStats, StatsBase);
+ObjectDefineProperties(BigIntStats.prototype, lazyDateFields);
 
 BigIntStats.prototype._checkModeProperty = function(property) {
   if (isWindows && (property === S_IFIFO || property === S_IFBLK ||
@@ -491,18 +528,11 @@ function Stats(dev, mode, nlink, uid, gid, rdev, blksize,
   this.mtimeMs = mtimeMs;
   this.ctimeMs = ctimeMs;
   this.birthtimeMs = birthtimeMs;
-  this.atime = dateFromMs(atimeMs);
-  this.mtime = dateFromMs(mtimeMs);
-  this.ctime = dateFromMs(ctimeMs);
-  this.birthtime = dateFromMs(birthtimeMs);
 }
 
 ObjectSetPrototypeOf(Stats.prototype, StatsBase.prototype);
 ObjectSetPrototypeOf(Stats, StatsBase);
-
-// HACK: Workaround for https://github.com/standard-things/esm/issues/821.
-// TODO(ronag): Remove this as soon as `esm` publishes a fixed version.
-Stats.prototype.isFile = StatsBase.prototype.isFile;
+ObjectDefineProperties(Stats.prototype, lazyDateFields);
 
 Stats.prototype._checkModeProperty = function(property) {
   if (isWindows && (property === S_IFIFO || property === S_IFBLK ||
@@ -603,22 +633,16 @@ function stringToFlags(flags, name = 'flags') {
 }
 
 const stringToSymlinkType = hideStackFrames((type) => {
-  let flags = 0;
-  if (typeof type === 'string') {
-    switch (type) {
-      case 'dir':
-        flags |= UV_FS_SYMLINK_DIR;
-        break;
-      case 'junction':
-        flags |= UV_FS_SYMLINK_JUNCTION;
-        break;
-      case 'file':
-        break;
-      default:
-        throw new ERR_FS_INVALID_SYMLINK_TYPE(type);
-    }
+  switch (type) {
+    case undefined:
+    case null:
+    case 'file':
+      return 0;
+    case 'dir':
+      return UV_FS_SYMLINK_DIR;
+    case 'junction':
+      return UV_FS_SYMLINK_JUNCTION;
   }
-  return flags;
 });
 
 // converts Date or number to a fractional UNIX timestamp
@@ -695,31 +719,10 @@ const validatePath = hideStackFrames((path, propName = 'path') => {
   );
 });
 
-// TODO(rafaelgss): implement the path.resolve on C++ side
-// See: https://github.com/nodejs/node/pull/44004#discussion_r930958420
-// The permission model needs the absolute path for the fs_permission
-const resolvePath = pathModule.resolve;
-const { isBuffer: BufferIsBuffer, from: BufferFrom } = Buffer;
-const BufferToString = uncurryThis(Buffer.prototype.toString);
-function possiblyTransformPath(path) {
-  if (permission.isEnabled()) {
-    if (typeof path === 'string') {
-      return resolvePath(path);
-    }
-    assert(isUint8Array(path));
-    if (!BufferIsBuffer(path)) path = BufferFrom(path);
-    // Avoid Buffer.from() and use a C++ binding instead to encode the result
-    // of path.resolve() in order to prevent path traversal attacks that
-    // monkey-patch Buffer internals.
-    return encodeUtf8String(resolvePath(BufferToString(path)));
-  }
-  return path;
-}
-
 const getValidatedPath = hideStackFrames((fileURLOrPath, propName = 'path') => {
   const path = toPathIfFileURL(fileURLOrPath);
   validatePath(path, propName);
-  return possiblyTransformPath(path);
+  return path;
 });
 
 const getValidatedFd = hideStackFrames((fd, propName = 'fd') => {
@@ -919,13 +922,14 @@ const validateStringAfterArrayBufferView = hideStackFrames((buffer, name) => {
   }
 });
 
-const validatePosition = hideStackFrames((position, name) => {
+const validatePosition = hideStackFrames((position, name, length) => {
   if (typeof position === 'number') {
     validateInteger.withoutStackTrace(position, name, -1);
   } else if (typeof position === 'bigint') {
-    if (!(position >= -(2n ** 63n) && position <= 2n ** 63n - 1n)) {
+    const maxPosition = 2n ** 63n - 1n - BigInt(length);
+    if (!(position >= -1n && position <= maxPosition)) {
       throw new ERR_OUT_OF_RANGE.HideStackFramesError(name,
-                                                      `>= ${-(2n ** 63n)} && <= ${2n ** 63n - 1n}`,
+                                                      `>= -1 && <= ${maxPosition}`,
                                                       position);
     }
   } else {
@@ -945,6 +949,7 @@ module.exports = {
   BigIntStats,  // for testing
   copyObject,
   Dirent,
+  DirentFromStats,
   emitRecursiveRmdirWarning,
   getDirent,
   getDirents,
@@ -952,14 +957,13 @@ module.exports = {
   getValidatedFd,
   getValidatedPath,
   handleErrorFromBinding,
-  possiblyTransformPath,
   preprocessSymlinkDestination,
   realpathCacheKey: Symbol('realpathCacheKey'),
   getStatFsFromBinding,
   getStatsFromBinding,
   stringToFlags,
   stringToSymlinkType,
-  Stats,
+  Stats: deprecate(Stats, 'fs.Stats constructor is deprecated.', 'DEP0180'),
   toUnixTimestamp,
   validateBufferArray,
   validateCpOptions,

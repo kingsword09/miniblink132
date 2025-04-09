@@ -16,6 +16,8 @@ const {
   getDefaultResultOrder,
   setDefaultResultOrder,
   setDefaultResolver,
+  validDnsOrders,
+  validFamilies,
 } = require('internal/dns/utils');
 
 const {
@@ -44,7 +46,14 @@ const {
   ADDRGETNETWORKPARAMS,
   CANCELLED,
 } = dnsErrorCodes;
-const { codes, DNSException } = require('internal/errors');
+const {
+  DNSException,
+  codes: {
+    ERR_INVALID_ARG_TYPE,
+    ERR_INVALID_ARG_VALUE,
+    ERR_MISSING_ARGS,
+  },
+} = require('internal/errors');
 const { isIP } = require('internal/net');
 const {
   getaddrinfo,
@@ -56,11 +65,6 @@ const {
   DNS_ORDER_IPV4_FIRST,
   DNS_ORDER_IPV6_FIRST,
 } = internalBinding('cares_wrap');
-const {
-  ERR_INVALID_ARG_TYPE,
-  ERR_INVALID_ARG_VALUE,
-  ERR_MISSING_ARGS,
-} = codes;
 const {
   validateBoolean,
   validateNumber,
@@ -177,7 +181,6 @@ function createLookupPromise(family, hostname, all, hints, dnsOrder) {
   });
 }
 
-const validFamilies = [0, 4, 6];
 /**
  * Get the IP address for a given hostname.
  * @param {string} hostname - The hostname to resolve (ex. 'nodejs.org').
@@ -225,7 +228,7 @@ function lookup(hostname, options) {
       dnsOrder = options.verbatim ? 'verbatim' : 'ipv4first';
     }
     if (options?.order != null) {
-      validateOneOf(options.order, 'options.order', ['ipv4first', 'ipv6first', 'verbatim']);
+      validateOneOf(options.order, 'options.order', validDnsOrders);
       dnsOrder = options.order;
     }
   }
@@ -334,7 +337,7 @@ function resolver(bindingName) {
   function query(name, options) {
     validateString(name, 'name');
 
-    const ttl = !!(options && options.ttl);
+    const ttl = !!(options?.ttl);
     return createResolverPromise(this, bindingName, name, ttl);
   }
 

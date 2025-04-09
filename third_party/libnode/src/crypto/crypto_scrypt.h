@@ -50,11 +50,11 @@ struct ScryptTraits final {
     static constexpr const char* JobName = "ScryptJob";
     static constexpr AsyncWrap::ProviderType Provider = AsyncWrap::PROVIDER_SCRYPTREQUEST;
 
-    static v8::Maybe<bool> AdditionalConfig(CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, ScryptConfig* params);
+    static v8::Maybe<void> AdditionalConfig(CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, ScryptConfig* params);
 
     static bool DeriveBits(Environment* env, const ScryptConfig& params, ByteSource* out);
 
-    static v8::Maybe<bool> EncodeOutput(Environment* env, const ScryptConfig& params, ByteSource* out, v8::Local<v8::Value>* result);
+    static v8::MaybeLocal<v8::Value> EncodeOutput(Environment* env, const ScryptConfig& params, ByteSource* out);
 };
 
 using ScryptJob = DeriveBitsJob<ScryptTraits>;

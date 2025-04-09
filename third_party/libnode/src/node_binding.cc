@@ -4,6 +4,7 @@
 #include "node_builtins.h"
 #include "node_errors.h"
 #include "node_external_reference.h"
+#include "node_url_pattern.h"
 #include "util.h"
 
 #include <string>
@@ -20,6 +21,12 @@
 #define NODE_BUILTIN_PROFILER_BINDINGS(V)
 #endif
 
+#ifdef DEBUG
+#define NODE_BUILTIN_DEBUG_BINDINGS(V) V(debug)
+#else
+#define NODE_BUILTIN_DEBUG_BINDINGS(V)
+#endif
+
 // A list of built-in bindings. In order to do binding registration
 // in node::Init(), need to add built-in bindings in the following list.
 // Then in binding::RegisterBuiltinBindings(), it calls bindings' registration
@@ -29,6 +36,7 @@
 // The binding IDs that start with 'internal_only' are not exposed to the user
 // land even from internal/test/binding module under --expose-internals.
 #define NODE_BUILTIN_STANDARD_BINDINGS(V)                                                                                                                      \
+    V(async_context_frame)                                                                                                                                     \
     V(async_wrap)                                                                                                                                              \
     V(blob)                                                                                                                                                    \
     V(block_list)                                                                                                                                              \
@@ -45,13 +53,14 @@
     V(fs_dir)                                                                                                                                                  \
     V(fs_event_wrap)                                                                                                                                           \
     V(heap_utils)                                                                                                                                              \
-    /*V(http2)*/                                                                                                                                               \
+    /*V(http2)*/                                                                                                                                                   \
     V(http_parser)                                                                                                                                             \
     V(inspector)                                                                                                                                               \
     V(internal_only_v8)                                                                                                                                        \
     V(js_stream)                                                                                                                                               \
     V(js_udp_wrap)                                                                                                                                             \
     V(messaging)                                                                                                                                               \
+    V(modules)                                                                                                                                                 \
     V(module_wrap)                                                                                                                                             \
     V(mksnapshot)                                                                                                                                              \
     V(options)                                                                                                                                                 \
@@ -66,6 +75,7 @@
     V(serdes)                                                                                                                                                  \
     V(signal_wrap)                                                                                                                                             \
     V(spawn_sync)                                                                                                                                              \
+    /*V(sqlite)*/                                                                                                                                                  \
     V(stream_pipe)                                                                                                                                             \
     V(stream_wrap)                                                                                                                                             \
     V(string_decoder)                                                                                                                                          \
@@ -78,12 +88,14 @@
     V(types)                                                                                                                                                   \
     V(udp_wrap)                                                                                                                                                \
     V(url)                                                                                                                                                     \
+    V(url_pattern)                                                                                                                                             \
     V(util)                                                                                                                                                    \
     V(uv)                                                                                                                                                      \
     V(v8)                                                                                                                                                      \
     V(wasi)                                                                                                                                                    \
     V(wasm_web_api)                                                                                                                                            \
     V(watchdog)                                                                                                                                                \
+    /*V(webstorage)*/                                                                                                                                              \
     V(worker)                                                                                                                                                  \
     V(zlib)
 
@@ -91,7 +103,9 @@
     NODE_BUILTIN_STANDARD_BINDINGS(V)                                                                                                                          \
     NODE_BUILTIN_OPENSSL_BINDINGS(V)                                                                                                                           \
     NODE_BUILTIN_ICU_BINDINGS(V)                                                                                                                               \
-    NODE_BUILTIN_PROFILER_BINDINGS(V)
+    NODE_BUILTIN_PROFILER_BINDINGS(V)                                                                                                                          \
+    NODE_BUILTIN_DEBUG_BINDINGS(V)                                                                                                                             \
+    NODE_BUILTIN_QUIC_BINDINGS(V)
 
 // This is used to load built-in bindings. Instead of using
 // __attribute__((constructor)), we call the _register_<modname>
@@ -577,12 +591,8 @@ void DLOpen(const FunctionCallbackInfo<Value>& args)
 
 inline struct node_module* FindModule(struct node_module* list, const char* name, int flag)
 {
-    //     std::string output1 = "FindModule, name:";
-    //     output1 += name;
-    //     output1 += "\n";
-    //     OutputDebugStringA(output1.c_str());
-
     struct node_module* mp;
+
     for (mp = list; mp != nullptr; mp = mp->nm_link) {
         if (strcmp(mp->nm_modname, name) == 0)
             break;
@@ -690,8 +700,9 @@ void GetLinkedBinding(const FunctionCallbackInfo<Value>& args)
 
     Local<Object> module = Object::New(env->isolate());
     Local<Object> exports = Object::New(env->isolate());
-    Local<String> exports_prop = String::NewFromUtf8Literal(env->isolate(), "exports");
-    module->Set(env->context(), exports_prop, exports).Check();
+    if (module->Set(env->context(), env->exports_string(), exports).IsNothing()) {
+        return;
+    }
 
     if (mod->nm_context_register_func != nullptr) {
         mod->nm_context_register_func(exports, module, env->context(), mod->nm_priv);
@@ -701,9 +712,10 @@ void GetLinkedBinding(const FunctionCallbackInfo<Value>& args)
         return THROW_ERR_INVALID_MODULE(env, "Linked binding has no declared entry point.");
     }
 
-    auto effective_exports = module->Get(env->context(), exports_prop).ToLocalChecked();
-
-    args.GetReturnValue().Set(effective_exports);
+    Local<Value> effective_exports;
+    if (module->Get(env->context(), env->exports_string()).ToLocal(&effective_exports)) {
+        args.GetReturnValue().Set(effective_exports);
+    }
 }
 
 // Call built-in bindings' _register_<module name> function to

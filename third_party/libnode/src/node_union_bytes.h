@@ -77,10 +77,7 @@ public:
     v8::Local<v8::String> ToStringChecked(v8::Isolate* isolate) const;
 
     // weolar
-    StaticExternalOneByteResource* one_byte_resource() const
-    {
-        return one_byte_resource_;
-    }
+    StaticExternalOneByteResource* one_byte_resource() const { return one_byte_resource_; }
     void changeStaticExternalOneByteResource(StaticExternalOneByteResource* one_byte_resource)
     {
         one_byte_resource_ = one_byte_resource;

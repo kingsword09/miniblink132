@@ -182,6 +182,35 @@ public:
         tracker->TrackField("entries", entries_, "std::vector<std::unique_ptr<Entry>>");
     }
 
+    void addBackpressureListener(BackpressureListener* listener) override
+    {
+        if (idempotent_)
+            return;
+        DCHECK_NOT_NULL(listener);
+        backpressure_listeners_.insert(listener);
+    }
+
+    void removeBackpressureListener(BackpressureListener* listener) override
+    {
+        if (idempotent_)
+            return;
+        DCHECK_NOT_NULL(listener);
+        backpressure_listeners_.erase(listener);
+    }
+
+    void NotifyBackpressure(size_t amount)
+    {
+        if (idempotent_)
+            return;
+        for (auto& listener : backpressure_listeners_)
+            listener->EntryRead(amount);
+    }
+
+    bool HasBackpressureListeners() const noexcept
+    {
+        return !backpressure_listeners_.empty();
+    }
+
     std::shared_ptr<Reader> get_reader() override;
     SET_MEMORY_INFO_NAME(DataQueue)
     SET_SELF_SIZE(DataQueueImpl)
@@ -192,6 +221,8 @@ private:
     std::optional<uint64_t> size_ = std::nullopt;
     std::optional<uint64_t> capped_size_ = std::nullopt;
     bool locked_to_reader_ = false;
+
+    std::unordered_set<BackpressureListener*> backpressure_listeners_;
 
     friend class DataQueue;
     friend class IdempotentDataQueueReader;
@@ -433,6 +464,17 @@ public:
                         status = bob::Status::STATUS_CONTINUE;
                     std::move(next)(status, nullptr, 0, [](uint64_t) {});
                     return;
+                }
+
+                // If there is a backpressure listener, lets report on how much data
+                // was actually read.
+                if (data_queue_->HasBackpressureListeners()) {
+                    // How much did we actually read?
+                    size_t read = 0;
+                    for (uint64_t n = 0; n < count; n++) {
+                        read += vecs[n].len;
+                    }
+                    data_queue_->NotifyBackpressure(read);
                 }
 
                 // Now that we have updated this readers state, we can forward
@@ -820,6 +862,7 @@ public:
         , start_(start)
         , end_(end)
     {
+        CHECK_LE(start, end);
     }
 
     std::shared_ptr<DataQueue::Reader> get_reader() override
@@ -832,7 +875,7 @@ public:
         uint64_t new_start = start_ + start;
         uint64_t new_end = end_;
         if (end.has_value()) {
-            new_end = std::min(end.value(), end_);
+            new_end = std::min(end.value() + start_, end_);
         }
 
         CHECK(new_start >= start_);
@@ -1106,7 +1149,7 @@ std::unique_ptr<DataQueue::Entry> DataQueue::CreateInMemoryEntryFromView(Local<A
     auto store = view->Buffer()->GetBackingStore();
     auto offset = view->ByteOffset();
     auto length = view->ByteLength();
-    /*USE*/ (view->Buffer()->Detach(/*Local<Value>()*/));
+    USE(view->Buffer()->Detach(Local<Value>()));
     return CreateInMemoryEntryFromBackingStore(std::move(store), offset, length);
 }
 

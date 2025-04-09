@@ -10,12 +10,10 @@ const {
   RegExpPrototypeExec,
   SafeSet,
   SafeStringIterator,
-  StringPrototypeEndsWith,
   StringPrototypeIndexOf,
   StringPrototypeLastIndexOf,
   StringPrototypeReplaceAll,
   StringPrototypeSlice,
-  StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
   Symbol,
@@ -298,8 +296,7 @@ function setupPreview(repl, contextSymbol, bufferSymbol, active) {
   function getInputPreview(input, callback) {
     // For similar reasons as `defaultEval`, wrap expressions starting with a
     // curly brace with parenthesis.
-    if (StringPrototypeStartsWith(input, '{') &&
-        !StringPrototypeEndsWith(input, ';') && !wrapped) {
+    if (!wrapped && input[0] === '{' && input[input.length - 1] !== ';') {
       input = `(${input})`;
       wrapped = true;
     }
@@ -436,9 +433,9 @@ function setupPreview(repl, contextSymbol, bufferSymbol, active) {
 
       // Line breaks are very rare and probably only occur in case of error
       // messages with line breaks.
-      const lineBreakPos = StringPrototypeIndexOf(inspected, '\n');
-      if (lineBreakPos !== -1) {
-        inspected = `${StringPrototypeSlice(inspected, 0, lineBreakPos)}`;
+      const lineBreakMatch = RegExpPrototypeExec(/[\r\n\v]/, inspected);
+      if (lineBreakMatch !== null) {
+        inspected = `${StringPrototypeSlice(inspected, 0, lineBreakMatch.index)}`;
       }
 
       const result = repl.useColors ?
@@ -742,6 +739,22 @@ function setupReverseSearch(repl) {
   return { reverseSearch };
 }
 
+const startsWithBraceRegExp = /^\s*{/;
+const endsWithSemicolonRegExp = /;\s*$/;
+
+/**
+ * Checks if some provided code represents an object literal.
+ * This is helpful to prevent confusing repl code evaluations where
+ * strings such as `{ a : 1 }` would get interpreted as block statements
+ * rather than object literals.
+ * @param {string} code the code to check
+ * @returns {boolean} true if the code represents an object literal, false otherwise
+ */
+function isObjectLiteral(code) {
+  return RegExpPrototypeExec(startsWithBraceRegExp, code) !== null &&
+    RegExpPrototypeExec(endsWithSemicolonRegExp, code) === null;
+}
+
 module.exports = {
   REPL_MODE_SLOPPY: Symbol('repl-sloppy'),
   REPL_MODE_STRICT,
@@ -749,4 +762,5 @@ module.exports = {
   kStandaloneREPL: Symbol('kStandaloneREPL'),
   setupPreview,
   setupReverseSearch,
+  isObjectLiteral,
 };

@@ -9,6 +9,7 @@
 #include "node_external_reference.h"
 #include "node_internals.h"
 #include "node_process-inl.h"
+#include "path.h"
 #include "util-inl.h"
 #include "uv.h"
 #include "v8-fast-api-calls.h"
@@ -26,12 +27,14 @@
 #if defined(_MSC_VER)
 #include <direct.h>
 #include <io.h>
+#include <process.h>
 #define umask _umask
 typedef int mode_t;
 #else
 #include <pthread.h>
 #include <sys/resource.h> // getrlimit, setrlimit
 #include <termios.h> // tcgetattr, tcsetattr
+#include <unistd.h>
 #endif
 
 namespace node {
@@ -74,7 +77,7 @@ static void Abort(const FunctionCallbackInfo<Value>& args)
 static void CauseSegfault(const FunctionCallbackInfo<Value>& args)
 {
     // This should crash hard all platforms.
-    volatile void** d = static_cast<volatile void**>(nullptr);
+    void* volatile* d = static_cast<void* volatile*>(nullptr);
     *d = nullptr;
 }
 
@@ -86,6 +89,7 @@ static void Chdir(const FunctionCallbackInfo<Value>& args)
     CHECK_EQ(args.Length(), 1);
     CHECK(args[0]->IsString());
     Utf8Value path(env->isolate(), args[0]);
+    THROW_IF_INSUFFICIENT_PERMISSIONS(env, permission::PermissionScope::kFileSystemRead, path.ToStringView());
     int err = uv_chdir(*path);
     if (err) {
         // Also include the original working directory, since that will usually
@@ -129,6 +133,31 @@ static void CPUUsage(const FunctionCallbackInfo<Value>& args)
     fields[1] = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec;
 }
 
+// ThreadCPUUsage use libuv's uv_getrusage_thread() this-thread resource usage
+// accessor, to access ru_utime (user CPU time used) and ru_stime
+// (system CPU time used), which are uv_timeval_t structs
+// (long tv_sec, long tv_usec).
+// Returns those values as Float64 microseconds in the elements of the array
+// passed to the function.
+static void ThreadCPUUsage(const FunctionCallbackInfo<Value>& args)
+{
+    Environment* env = Environment::GetCurrent(args);
+    uv_rusage_t rusage;
+
+    // Call libuv to get the values we'll return.
+    int err = uv_getrusage_thread(&rusage);
+    if (err)
+        return env->ThrowUVException(err, "uv_getrusage_thread");
+
+    // Get the double array pointer from the Float64Array argument.
+    Local<ArrayBuffer> ab = get_fields_array_buffer(args, 0, 2);
+    double* fields = static_cast<double*>(ab->Data());
+
+    // Set the Float64Array elements to be user / system values in microseconds.
+    fields[0] = MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec;
+    fields[1] = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec;
+}
+
 static void Cwd(const FunctionCallbackInfo<Value>& args)
 {
     Environment* env = Environment::GetCurrent(args);
@@ -136,11 +165,14 @@ static void Cwd(const FunctionCallbackInfo<Value>& args)
     char buf[PATH_MAX_BYTES];
     size_t cwd_len = sizeof(buf);
     int err = uv_cwd(buf, &cwd_len);
-    if (err)
+    if (err) {
         return env->ThrowUVException(err, "uv_cwd");
+    }
 
-    Local<String> cwd = String::NewFromUtf8(env->isolate(), buf, NewStringType::kNormal, cwd_len).ToLocalChecked();
-    args.GetReturnValue().Set(cwd);
+    Local<String> cwd;
+    if (String::NewFromUtf8(env->isolate(), buf, NewStringType::kNormal, cwd_len).ToLocal(&cwd)) {
+        args.GetReturnValue().Set(cwd);
+    }
 }
 
 static void Kill(const FunctionCallbackInfo<Value>& args)
@@ -310,10 +342,10 @@ static void GetActiveResourcesInfo(const FunctionCallbackInfo<Value>& args)
     }
 
     // Active timeouts
-    resources_info.insert(resources_info.end(), env->timeout_info()[0], OneByteString(env->isolate(), "Timeout"));
+    resources_info.insert(resources_info.end(), env->timeout_info()[0], FIXED_ONE_BYTE_STRING(env->isolate(), "Timeout"));
 
     // Active immediates
-    resources_info.insert(resources_info.end(), env->immediate_info()->ref_count(), OneByteString(env->isolate(), "Immediate"));
+    resources_info.insert(resources_info.end(), env->immediate_info()->ref_count(), FIXED_ONE_BYTE_STRING(env->isolate(), "Immediate"));
 
     args.GetReturnValue().Set(Array::New(env->isolate(), resources_info.data(), resources_info.size()));
 }
@@ -462,12 +494,98 @@ static void ReallyExit(const FunctionCallbackInfo<Value>& args)
     env->Exit(code);
 }
 
+#ifdef __POSIX__
+inline int persist_standard_stream(int fd)
+{
+    int flags = fcntl(fd, F_GETFD, 0);
+
+    if (flags < 0) {
+        return flags;
+    }
+
+    flags &= ~FD_CLOEXEC;
+    return fcntl(fd, F_SETFD, flags);
+}
+
+static void Execve(const FunctionCallbackInfo<Value>& args)
+{
+    Environment* env = Environment::GetCurrent(args);
+    Isolate* isolate = env->isolate();
+    Local<Context> context = env->context();
+
+    THROW_IF_INSUFFICIENT_PERMISSIONS(env, permission::PermissionScope::kChildProcess, "");
+
+    CHECK(args[0]->IsString());
+    CHECK(args[1]->IsArray());
+    CHECK(args[2]->IsArray());
+
+    Local<Array> argv_array = args[1].As<Array>();
+    Local<Array> envp_array = args[2].As<Array>();
+
+    // Copy arguments and environment
+    Utf8Value executable(isolate, args[0]);
+    std::vector<std::string> argv_strings(argv_array->Length());
+    std::vector<std::string> envp_strings(envp_array->Length());
+    std::vector<char*> argv(argv_array->Length() + 1);
+    std::vector<char*> envp(envp_array->Length() + 1);
+
+    for (unsigned int i = 0; i < argv_array->Length(); i++) {
+        Local<Value> str;
+        if (!argv_array->Get(context, i).ToLocal(&str)) {
+            THROW_ERR_INVALID_ARG_VALUE(env, "Failed to deserialize argument.");
+            return;
+        }
+
+        argv_strings[i] = Utf8Value(isolate, str).ToString();
+        argv[i] = argv_strings[i].data();
+    }
+    argv[argv_array->Length()] = nullptr;
+
+    for (unsigned int i = 0; i < envp_array->Length(); i++) {
+        Local<Value> str;
+        if (!envp_array->Get(context, i).ToLocal(&str)) {
+            THROW_ERR_INVALID_ARG_VALUE(env, "Failed to deserialize environment variable.");
+            return;
+        }
+
+        envp_strings[i] = Utf8Value(isolate, str).ToString();
+        envp[i] = envp_strings[i].data();
+    }
+
+    envp[envp_array->Length()] = nullptr;
+
+    // Set stdin, stdout and stderr to be non-close-on-exec
+    // so that the new process will inherit it.
+    if (persist_standard_stream(0) < 0 || persist_standard_stream(1) < 0 || persist_standard_stream(2) < 0) {
+        env->ThrowErrnoException(errno, "fcntl");
+        return;
+    }
+
+    // Perform the execve operation.
+    RunAtExit(env);
+    execve(*executable, argv.data(), envp.data());
+
+    // If it returns, it means that the execve operation failed.
+    // In that case we abort the process.
+    auto error_message = std::string("process.execve failed with error code ") + errors::errno_string(errno);
+
+    // Abort the process
+    Local<v8::Value> exception = ErrnoException(isolate, errno, "execve", *executable);
+    Local<v8::Message> message = v8::Exception::CreateMessage(isolate, exception);
+
+    std::string info = FormatErrorMessage(isolate, context, error_message.c_str(), message, true);
+    FPrintF(stderr, "%s\n", info);
+    ABORT();
+}
+#endif
+
 static void LoadEnvFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Environment* env = Environment::GetCurrent(args);
     std::string path = ".env";
     if (args.Length() == 1) {
-        Utf8Value path_value(args.GetIsolate(), args[0]);
+        BufferValue path_value(args.GetIsolate(), args[0]);
+        ToNamespacedPath(env, &path_value);
         path = path_value.ToString();
     }
 
@@ -477,7 +595,7 @@ static void LoadEnvFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     switch (dotenv.ParsePath(path)) {
     case dotenv.ParseResult::Valid: {
-        dotenv.SetEnvironment(env);
+        USE(dotenv.SetEnvironment(env));
         break;
     }
     case dotenv.ParseResult::InvalidContent: {
@@ -572,12 +690,12 @@ void BindingData::BigIntImpl(BindingData* receiver)
 
 void BindingData::SlowBigInt(const FunctionCallbackInfo<Value>& args)
 {
-    BigIntImpl(FromJSObject<BindingData>(args.Holder()));
+    BigIntImpl(FromJSObject<BindingData>(args.This()));
 }
 
 void BindingData::SlowNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    NumberImpl(FromJSObject<BindingData>(args.Holder()));
+    NumberImpl(FromJSObject<BindingData>(args.This()));
 }
 
 bool BindingData::PrepareForSerialization(Local<Context> context, v8::SnapshotCreator* creator)
@@ -633,6 +751,7 @@ static void CreatePerIsolateProperties(IsolateData* isolate_data, Local<ObjectTe
     SetMethod(isolate, target, "availableMemory", GetAvailableMemory);
     SetMethod(isolate, target, "rss", Rss);
     SetMethod(isolate, target, "cpuUsage", CPUUsage);
+    SetMethod(isolate, target, "threadCpuUsage", ThreadCPUUsage);
     SetMethod(isolate, target, "resourceUsage", ResourceUsage);
 
     SetMethod(isolate, target, "_debugEnd", DebugEnd);
@@ -645,6 +764,10 @@ static void CreatePerIsolateProperties(IsolateData* isolate_data, Local<ObjectTe
     SetMethodNoSideEffect(isolate, target, "cwd", Cwd);
     SetMethod(isolate, target, "dlopen", binding::DLOpen);
     SetMethod(isolate, target, "reallyExit", ReallyExit);
+
+#ifdef __POSIX__
+    SetMethod(isolate, target, "execve", Execve);
+#endif
     SetMethodNoSideEffect(isolate, target, "uptime", Uptime);
     SetMethod(isolate, target, "patchProcessObject", PatchProcessObject);
 
@@ -676,6 +799,7 @@ void RegisterExternalReferences(ExternalReferenceRegistry* registry)
     registry->Register(GetAvailableMemory);
     registry->Register(Rss);
     registry->Register(CPUUsage);
+    registry->Register(ThreadCPUUsage);
     registry->Register(ResourceUsage);
 
     registry->Register(GetActiveRequests);
@@ -686,6 +810,10 @@ void RegisterExternalReferences(ExternalReferenceRegistry* registry)
     registry->Register(Cwd);
     registry->Register(binding::DLOpen);
     registry->Register(ReallyExit);
+
+#ifdef __POSIX__
+    registry->Register(Execve);
+#endif
     registry->Register(Uptime);
     registry->Register(PatchProcessObject);
 

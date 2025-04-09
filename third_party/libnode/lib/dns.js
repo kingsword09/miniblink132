@@ -31,12 +31,12 @@ const cares = internalBinding('cares_wrap');
 const { isIP } = require('internal/net');
 const { customPromisifyArgs } = require('internal/util');
 const {
+  DNSException,
   codes: {
     ERR_INVALID_ARG_TYPE,
     ERR_INVALID_ARG_VALUE,
     ERR_MISSING_ARGS,
   },
-  DNSException,
 } = require('internal/errors');
 const {
   bindDefaultResolver,
@@ -46,6 +46,8 @@ const {
   getDefaultResultOrder,
   setDefaultResultOrder,
   errorCodes: dnsErrorCodes,
+  validDnsOrders,
+  validFamilies,
 } = require('internal/dns/utils');
 const {
   Resolver,
@@ -138,7 +140,6 @@ function onlookupall(err, addresses) {
 
 // Easy DNS A/AAAA look up
 // lookup(hostname, [options,] callback)
-const validFamilies = [0, 4, 6];
 function lookup(hostname, options, callback) {
   let hints = 0;
   let family = 0;
@@ -192,8 +193,8 @@ function lookup(hostname, options, callback) {
       dnsOrder = options.verbatim ? 'verbatim' : 'ipv4first';
     }
     if (options?.order != null) {
-      validateOneOf(options.order, 'options.order', ['ipv4first', 'ipv6first', 'verbatim']);
-      dnsOrder = options.dnsOrder;
+      validateOneOf(options.order, 'options.order', validDnsOrders);
+      dnsOrder = options.order;
     }
   }
 

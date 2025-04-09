@@ -25,6 +25,7 @@
 'use strict';
 
 const {
+  ArrayFromAsync,
   ArrayPrototypePush,
   BigIntPrototypeToString,
   Boolean,
@@ -51,9 +52,6 @@ const {
   S_IFREG,
   S_IFSOCK,
   F_OK,
-  R_OK,
-  W_OK,
-  X_OK,
   O_WRONLY,
   O_SYMLINK,
 } = constants;
@@ -70,14 +68,13 @@ const { Buffer } = require('buffer');
 const { isBuffer: BufferIsBuffer } = Buffer;
 const BufferToString = uncurryThis(Buffer.prototype.toString);
 const {
+  AbortError,
   aggregateTwoErrors,
   codes: {
     ERR_ACCESS_DENIED,
     ERR_FS_FILE_TOO_LARGE,
     ERR_INVALID_ARG_VALUE,
   },
-  AbortError,
-  UVException,
 } = require('internal/errors');
 
 const {
@@ -87,12 +84,16 @@ const {
 const { toPathIfFileURL } = require('internal/url');
 const {
   customPromisifyArgs: kCustomPromisifyArgsSymbol,
+  emitExperimentalWarning,
+  getLazy,
   kEmptyObject,
   promisify: {
     custom: kCustomPromisifiedSymbol,
   },
   SideEffectFreeRegExpPrototypeExec,
   defineLazyProperties,
+  isWindows,
+  isMacOS,
 } = require('internal/util');
 const {
   constants: {
@@ -141,13 +142,13 @@ const {
   validateFunction,
   validateInteger,
   validateObject,
+  validateOneOf,
   validateString,
   kValidateObjectAllowNullable,
 } = require('internal/validators');
 
 const permission = require('internal/process/permission');
 
-let truncateWarn = true;
 let fs;
 
 // Lazy loaded
@@ -157,26 +158,13 @@ let promises = null;
 let ReadStream;
 let WriteStream;
 let rimraf;
-let rimrafSync;
 let kResistStopPropagation;
+let ReadFileContext;
 
 // These have to be separate because of how graceful-fs happens to do it's
 // monkeypatching.
 let FileReadStream;
 let FileWriteStream;
-
-const isWindows = process.platform === 'win32';
-const isOSX = process.platform === 'darwin';
-
-function showTruncateDeprecation() {
-  if (truncateWarn) {
-    process.emitWarning(
-      'Using fs.truncate with a file descriptor is deprecated. Please use ' +
-      'fs.ftruncate with a file descriptor instead.',
-      'DeprecationWarning', 'DEP0081');
-    truncateWarn = false;
-  }
-}
 
 // Ensure that callbacks run in the global context. Only use this function
 // for callbacks that are passed to the binding layer, callbacks that are
@@ -229,7 +217,7 @@ function access(path, mode, callback) {
 
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.access(pathModule.toNamespacedPath(path), mode, req);
+  binding.access(path, mode, req);
 }
 
 /**
@@ -240,8 +228,7 @@ function access(path, mode, callback) {
  * @returns {void}
  */
 function accessSync(path, mode) {
-  path = getValidatedPath(path);
-  binding.access(pathModule.toNamespacedPath(path), mode);
+  binding.access(getValidatedPath(path), mode);
 }
 
 /**
@@ -254,7 +241,7 @@ function exists(path, callback) {
   validateFunction(callback, 'cb');
 
   function suppressedCallback(err) {
-    callback(err ? false : true);
+    callback(!err);
   }
 
   try {
@@ -271,12 +258,7 @@ ObjectDefineProperty(exists, kCustomPromisifiedSymbol, {
   },
 });
 
-// fs.existsSync never throws, it only returns true or false.
-// Since fs.existsSync never throws, users have established
-// the expectation that passing invalid arguments to it, even like
-// fs.existsSync(), would only get a false in return, so we cannot signal
-// validation errors to users properly out of compatibility concerns.
-// TODO(joyeecheung): deprecate the never-throw-on-invalid-arguments behavior
+let showExistsDeprecation = true;
 /**
  * Synchronously tests whether or not the given path exists.
  * @param {string | Buffer | URL} path
@@ -285,11 +267,17 @@ ObjectDefineProperty(exists, kCustomPromisifiedSymbol, {
 function existsSync(path) {
   try {
     path = getValidatedPath(path);
-  } catch {
+  } catch (err) {
+    if (showExistsDeprecation && err?.code === 'ERR_INVALID_ARG_TYPE') {
+      process.emitWarning(
+        'Passing invalid argument types to fs.existsSync is deprecated', 'DeprecationWarning', 'DEP0187',
+      );
+      showExistsDeprecation = false;
+    }
     return false;
   }
 
-  return binding.existsSync(pathModule.toNamespacedPath(path));
+  return binding.existsSync(path);
 }
 
 function readFileAfterOpen(err, fd) {
@@ -340,7 +328,7 @@ function readFileAfterStat(err, stats) {
 
 function checkAborted(signal, callback) {
   if (signal?.aborted) {
-    callback(new AbortError(undefined, { cause: signal?.reason }));
+    callback(new AbortError(undefined, { cause: signal.reason }));
     return true;
   }
   return false;
@@ -364,7 +352,7 @@ function readFile(path, options, callback) {
   callback ||= options;
   validateFunction(callback, 'cb');
   options = getOptions(options, { flag: 'r' });
-  const ReadFileContext = require('internal/fs/read/context');
+  ReadFileContext ??= require('internal/fs/read/context');
   const context = new ReadFileContext(callback, options.encoding);
   context.isUserFd = isFd(path); // File descriptor ownership
 
@@ -382,22 +370,16 @@ function readFile(path, options, callback) {
     return;
 
   const flagsNumber = stringToFlags(options.flag, 'options.flag');
-  path = getValidatedPath(path);
-
   const req = new FSReqCallback();
   req.context = context;
   req.oncomplete = readFileAfterOpen;
-  binding.open(pathModule.toNamespacedPath(path),
-               flagsNumber,
-               0o666,
-               req);
+  binding.open(getValidatedPath(path), flagsNumber, 0o666, req);
 }
 
 function tryStatSync(fd, isUserFd) {
   const stats = binding.fstat(fd, false, undefined, true /* shouldNotThrow */);
   if (stats === undefined && !isUserFd) {
     fs.closeSync(fd);
-    throw new UVException();
   }
   return stats;
 }
@@ -443,7 +425,7 @@ function readFileSync(path, options) {
 
   if (options.encoding === 'utf8' || options.encoding === 'utf-8') {
     if (!isInt32(path)) {
-      path = pathModule.toNamespacedPath(getValidatedPath(path));
+      path = getValidatedPath(path);
     }
     return binding.readFileUtf8(path, stringToFlags(options.flag));
   }
@@ -554,10 +536,7 @@ function open(path, flags, mode, callback) {
   const req = new FSReqCallback();
   req.oncomplete = callback;
 
-  binding.open(pathModule.toNamespacedPath(path),
-               flagsNumber,
-               mode,
-               req);
+  binding.open(path, flagsNumber, mode, req);
 }
 
 /**
@@ -568,10 +547,8 @@ function open(path, flags, mode, callback) {
  * @returns {number}
  */
 function openSync(path, flags, mode) {
-  path = getValidatedPath(path);
-
   return binding.open(
-    pathModule.toNamespacedPath(path),
+    getValidatedPath(path),
     stringToFlags(flags),
     parseFileMode(mode, 'mode', 0o666),
   );
@@ -592,7 +569,7 @@ function openAsBlob(path, options = kEmptyObject) {
   // To give ourselves flexibility to maybe return the Blob asynchronously,
   // this API returns a Promise.
   path = getValidatedPath(path);
-  return PromiseResolve(createBlobFromFilePath(pathModule.toNamespacedPath(path), { type }));
+  return PromiseResolve(createBlobFromFilePath(path, { type }));
 }
 
 /**
@@ -672,10 +649,11 @@ function read(fd, buffer, offsetOrOptions, length, position, callback) {
 
   validateOffsetLengthRead(offset, length, buffer.byteLength);
 
-  if (position == null)
+  if (position == null) {
     position = -1;
-
-  validatePosition(position, 'position');
+  } else {
+    validatePosition(position, 'position', length);
+  }
 
   function wrapper(err, bytesRead) {
     // Retain a reference to buffer so that it can't be GC'ed too soon.
@@ -742,10 +720,11 @@ function readSync(fd, buffer, offsetOrOptions, length, position) {
 
   validateOffsetLengthRead(offset, length, buffer.byteLength);
 
-  if (position == null)
+  if (position == null) {
     position = -1;
-
-  validatePosition(position, 'position');
+  } else {
+    validatePosition(position, 'position', length);
+  }
 
   return binding.read(fd, buffer, offset, length, position);
 }
@@ -759,8 +738,8 @@ function readSync(fd, buffer, offsetOrOptions, length, position) {
  * @param {(
  *   err?: Error,
  *   bytesRead?: number,
- *   buffers?: ArrayBufferView[];
- *   ) => any} callback
+ *   buffers?: ArrayBufferView[]
+ * ) => any} callback
  * @returns {void}
  */
 function readv(fd, buffers, position, callback) {
@@ -813,9 +792,9 @@ function readvSync(fd, buffers, position) {
  * @param {number | null} [position]
  * @param {(
  *   err?: Error,
- *   bytesWritten?: number;
+ *   bytesWritten?: number,
  *   buffer?: Buffer | TypedArray | DataView
- *   ) => any} callback
+ * ) => any} callback
  * @returns {void}
  */
 function write(fd, buffer, offsetOrOptions, length, position, callback) {
@@ -891,6 +870,8 @@ ObjectDefineProperty(write, kCustomPromisifyArgsSymbol,
  *   length?: number;
  *   position?: number | null;
  *   }} [offsetOrOptions]
+ * @param {number} [length]
+ * @param {number} [position]
  * @returns {number}
  */
 function writeSync(fd, buffer, offsetOrOptions, length, position) {
@@ -1007,13 +988,13 @@ function writevSync(fd, buffers, position) {
  */
 function rename(oldPath, newPath, callback) {
   callback = makeCallback(callback);
-  oldPath = getValidatedPath(oldPath, 'oldPath');
-  newPath = getValidatedPath(newPath, 'newPath');
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.rename(pathModule.toNamespacedPath(oldPath),
-                 pathModule.toNamespacedPath(newPath),
-                 req);
+  binding.rename(
+    getValidatedPath(oldPath, 'oldPath'),
+    getValidatedPath(newPath, 'newPath'),
+    req,
+  );
 }
 
 
@@ -1025,11 +1006,9 @@ function rename(oldPath, newPath, callback) {
  * @returns {void}
  */
 function renameSync(oldPath, newPath) {
-  oldPath = getValidatedPath(oldPath, 'oldPath');
-  newPath = getValidatedPath(newPath, 'newPath');
   binding.rename(
-    pathModule.toNamespacedPath(oldPath),
-    pathModule.toNamespacedPath(newPath),
+    getValidatedPath(oldPath, 'oldPath'),
+    getValidatedPath(newPath, 'newPath'),
   );
 }
 
@@ -1041,10 +1020,6 @@ function renameSync(oldPath, newPath) {
  * @returns {void}
  */
 function truncate(path, len, callback) {
-  if (typeof path === 'number') {
-    showTruncateDeprecation();
-    return fs.ftruncate(path, len, callback);
-  }
   if (typeof len === 'function') {
     callback = len;
     len = 0;
@@ -1074,24 +1049,16 @@ function truncate(path, len, callback) {
  * @returns {void}
  */
 function truncateSync(path, len) {
-  if (typeof path === 'number') {
-    // legacy
-    showTruncateDeprecation();
-    return fs.ftruncateSync(path, len);
-  }
   if (len === undefined) {
     len = 0;
   }
   // Allow error to be thrown, but still close fd.
   const fd = fs.openSync(path, 'r+');
-  let ret;
-
   try {
-    ret = fs.ftruncateSync(fd, len);
+    fs.ftruncateSync(fd, len);
   } finally {
     fs.closeSync(fd);
   }
-  return ret;
 }
 
 /**
@@ -1123,8 +1090,7 @@ function ftruncate(fd, len = 0, callback) {
  */
 function ftruncateSync(fd, len = 0) {
   validateInteger(len, 'len');
-  len = MathMax(0, len);
-  binding.ftruncate(fd, len);
+  binding.ftruncate(fd, len < 0 ? 0 : len);
 }
 
 function lazyLoadCp() {
@@ -1137,7 +1103,7 @@ function lazyLoadCp() {
 
 function lazyLoadRimraf() {
   if (rimraf === undefined)
-    ({ rimraf, rimrafSync } = require('internal/fs/rimraf'));
+    ({ rimraf } = require('internal/fs/rimraf'));
 }
 
 /**
@@ -1158,7 +1124,7 @@ function rmdir(path, options, callback) {
   }
 
   callback = makeCallback(callback);
-  path = pathModule.toNamespacedPath(getValidatedPath(path));
+  path = getValidatedPath(path);
 
   if (options?.recursive) {
     emitRecursiveRmdirWarning();
@@ -1205,14 +1171,13 @@ function rmdirSync(path, options) {
     emitRecursiveRmdirWarning();
     options = validateRmOptionsSync(path, { ...options, force: false }, true);
     if (options !== false) {
-      lazyLoadRimraf();
-      return rimrafSync(pathModule.toNamespacedPath(path), options);
+      return binding.rmSync(path, options.maxRetries, options.recursive, options.retryDelay);
     }
   } else {
     validateRmdirOptions(options);
   }
 
-  binding.rmdir(pathModule.toNamespacedPath(path));
+  binding.rmdir(path);
 }
 
 /**
@@ -1240,7 +1205,7 @@ function rm(path, options, callback) {
       return callback(err);
     }
     lazyLoadRimraf();
-    return rimraf(pathModule.toNamespacedPath(path), options, callback);
+    return rimraf(path, options, callback);
   });
 }
 
@@ -1257,11 +1222,8 @@ function rm(path, options, callback) {
  * @returns {void}
  */
 function rmSync(path, options) {
-  path = getValidatedPath(path);
-  options = validateRmOptionsSync(path, options, false);
-
-  lazyLoadRimraf();
-  return rimrafSync(pathModule.toNamespacedPath(path), options);
+  const opts = validateRmOptionsSync(path, options, false);
+  return binding.rmSync(getValidatedPath(path), opts.maxRetries, opts.recursive, opts.retryDelay);
 }
 
 /**
@@ -1328,22 +1290,26 @@ function mkdir(path, options, callback) {
   if (typeof options === 'function') {
     callback = options;
   } else if (typeof options === 'number' || typeof options === 'string') {
-    mode = options;
+    mode = parseFileMode(options, 'mode');
   } else if (options) {
-    if (options.recursive !== undefined)
+    if (options.recursive !== undefined) {
       recursive = options.recursive;
-    if (options.mode !== undefined)
-      mode = options.mode;
+      validateBoolean(recursive, 'options.recursive');
+    }
+    if (options.mode !== undefined) {
+      mode = parseFileMode(options.mode, 'options.mode');
+    }
   }
   callback = makeCallback(callback);
-  path = getValidatedPath(path);
-
-  validateBoolean(recursive, 'options.recursive');
 
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.mkdir(pathModule.toNamespacedPath(path),
-                parseFileMode(mode, 'mode'), recursive, req);
+  binding.mkdir(
+    getValidatedPath(path),
+    mode,
+    recursive,
+    req,
+  );
 }
 
 /**
@@ -1359,24 +1325,121 @@ function mkdirSync(path, options) {
   let mode = 0o777;
   let recursive = false;
   if (typeof options === 'number' || typeof options === 'string') {
-    mode = options;
+    mode = parseFileMode(options, 'mode');
   } else if (options) {
-    if (options.recursive !== undefined)
+    if (options.recursive !== undefined) {
       recursive = options.recursive;
-    if (options.mode !== undefined)
-      mode = options.mode;
+      validateBoolean(recursive, 'options.recursive');
+    }
+    if (options.mode !== undefined) {
+      mode = parseFileMode(options.mode, 'options.mode');
+    }
   }
-  path = getValidatedPath(path);
-  validateBoolean(recursive, 'options.recursive');
 
   const result = binding.mkdir(
-    pathModule.toNamespacedPath(path),
-    parseFileMode(mode, 'mode'),
+    getValidatedPath(path),
+    mode,
     recursive,
   );
 
   if (recursive) {
     return result;
+  }
+}
+
+/*
+ * An recursive algorithm for reading the entire contents of the `basePath` directory.
+ * This function does not validate `basePath` as a directory. It is passed directly to
+ * `binding.readdir`.
+ * @param {string} basePath
+ * @param {{ encoding: string, withFileTypes: boolean }} options
+ * @param {(
+ *   err?: Error,
+ *   files?: string[] | Buffer[] | Dirent[]
+ * ) => any} callback
+ * @returns {void}
+*/
+function readdirRecursive(basePath, options, callback) {
+  const context = {
+    withFileTypes: Boolean(options.withFileTypes),
+    encoding: options.encoding,
+    basePath,
+    readdirResults: [],
+    pathsQueue: [basePath],
+  };
+
+  let i = 0;
+
+  function read(path) {
+    const req = new FSReqCallback();
+    req.oncomplete = (err, result) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      if (result === undefined) {
+        callback(null, context.readdirResults);
+        return;
+      }
+
+      processReaddirResult({
+        result,
+        currentPath: path,
+        context,
+      });
+
+      if (i < context.pathsQueue.length) {
+        read(context.pathsQueue[i++]);
+      } else {
+        callback(null, context.readdirResults);
+      }
+    };
+
+    binding.readdir(
+      path,
+      context.encoding,
+      context.withFileTypes,
+      req,
+    );
+  }
+
+  read(context.pathsQueue[i++]);
+}
+
+// Calling `readdir` with `withFileTypes=true`, the result is an array of arrays.
+// The first array is the names, and the second array is the types.
+// They are guaranteed to be the same length; hence, setting `length` to the length
+// of the first array within the result.
+const processReaddirResult = (args) => (args.context.withFileTypes ? handleDirents(args) : handleFilePaths(args));
+
+function handleDirents({ result, currentPath, context }) {
+  const { 0: names, 1: types } = result;
+  const { length } = names;
+
+  for (let i = 0; i < length; i++) {
+    // Avoid excluding symlinks, as they are not directories.
+    // Refs: https://github.com/nodejs/node/issues/52663
+    const fullPath = pathModule.join(currentPath, names[i]);
+    const dirent = getDirent(currentPath, names[i], types[i]);
+    ArrayPrototypePush(context.readdirResults, dirent);
+
+    if (dirent.isDirectory() || binding.internalModuleStat(binding, fullPath) === 1) {
+      ArrayPrototypePush(context.pathsQueue, fullPath);
+    }
+  }
+}
+
+function handleFilePaths({ result, currentPath, context }) {
+  for (let i = 0; i < result.length; i++) {
+    const resultPath = pathModule.join(currentPath, result[i]);
+    const relativeResultPath = pathModule.relative(context.basePath, resultPath);
+    const stat = binding.internalModuleStat(binding, resultPath);
+    ArrayPrototypePush(context.readdirResults, relativeResultPath);
+
+    if (stat === 1) {
+      ArrayPrototypePush(context.pathsQueue, resultPath);
+    }
   }
 }
 
@@ -1389,55 +1452,37 @@ function mkdirSync(path, options) {
  * @returns {string[] | Dirent[]}
  */
 function readdirSyncRecursive(basePath, options) {
-  const withFileTypes = Boolean(options.withFileTypes);
-  const encoding = options.encoding;
-
-  const readdirResults = [];
-  const pathsQueue = [basePath];
+  const context = {
+    withFileTypes: Boolean(options.withFileTypes),
+    encoding: options.encoding,
+    basePath,
+    readdirResults: [],
+    pathsQueue: [basePath],
+  };
 
   function read(path) {
     const readdirResult = binding.readdir(
-      pathModule.toNamespacedPath(path),
-      encoding,
-      withFileTypes,
+      path,
+      context.encoding,
+      context.withFileTypes,
     );
 
     if (readdirResult === undefined) {
       return;
     }
 
-    if (withFileTypes) {
-      // Calling `readdir` with `withFileTypes=true`, the result is an array of arrays.
-      // The first array is the names, and the second array is the types.
-      // They are guaranteed to be the same length; hence, setting `length` to the length
-      // of the first array within the result.
-      const length = readdirResult[0].length;
-      for (let i = 0; i < length; i++) {
-        const dirent = getDirent(path, readdirResult[0][i], readdirResult[1][i]);
-        ArrayPrototypePush(readdirResults, dirent);
-        if (dirent.isDirectory()) {
-          ArrayPrototypePush(pathsQueue, pathModule.join(dirent.parentPath, dirent.name));
-        }
-      }
-    } else {
-      for (let i = 0; i < readdirResult.length; i++) {
-        const resultPath = pathModule.join(path, readdirResult[i]);
-        const relativeResultPath = pathModule.relative(basePath, resultPath);
-        const stat = binding.internalModuleStat(resultPath);
-        ArrayPrototypePush(readdirResults, relativeResultPath);
-        // 1 indicates directory
-        if (stat === 1) {
-          ArrayPrototypePush(pathsQueue, resultPath);
-        }
-      }
-    }
+    processReaddirResult({
+      result: readdirResult,
+      currentPath: path,
+      context,
+    });
   }
 
-  for (let i = 0; i < pathsQueue.length; i++) {
-    read(pathsQueue[i]);
+  for (let i = 0; i < context.pathsQueue.length; i++) {
+    read(context.pathsQueue[i]);
   }
 
-  return readdirResults;
+  return context.readdirResults;
 }
 
 /**
@@ -1450,8 +1495,8 @@ function readdirSyncRecursive(basePath, options) {
  *   }} [options]
  * @param {(
  *   err?: Error,
- *   files?: string[] | Buffer[] | Dirent[];
- *   ) => any} callback
+ *   files?: string[] | Buffer[] | Dirent[]
+ * ) => any} callback
  * @returns {void}
  */
 function readdir(path, options, callback) {
@@ -1463,7 +1508,10 @@ function readdir(path, options, callback) {
   }
 
   if (options.recursive) {
-    callback(null, readdirSyncRecursive(path, options));
+    // Make shallow copy to prevent mutating options from affecting results
+    options = copyObject(options);
+
+    readdirRecursive(path, options, callback);
     return;
   }
 
@@ -1479,8 +1527,12 @@ function readdir(path, options, callback) {
       getDirents(path, result, callback);
     };
   }
-  binding.readdir(pathModule.toNamespacedPath(path), options.encoding,
-                  !!options.withFileTypes, req);
+  binding.readdir(
+    path,
+    options.encoding,
+    !!options.withFileTypes,
+    req,
+  );
 }
 
 /**
@@ -1505,7 +1557,7 @@ function readdirSync(path, options) {
   }
 
   const result = binding.readdir(
-    pathModule.toNamespacedPath(path),
+    path,
     options.encoding,
     !!options.withFileTypes,
   );
@@ -1521,7 +1573,7 @@ function readdirSync(path, options) {
  * @param {(
  *   err?: Error,
  *   stats?: Stats
- *   ) => any} callback
+ *   ) => any} [callback]
  * @returns {void}
  */
 function fstat(fd, options = { bigint: false }, callback) {
@@ -1554,10 +1606,15 @@ function lstat(path, options = { bigint: false }, callback) {
   }
   callback = makeStatsCallback(callback);
   path = getValidatedPath(path);
+  if (permission.isEnabled() && !permission.has('fs.read', path)) {
+    const resource = BufferIsBuffer(path) ? BufferToString(path) : path;
+    callback(new ERR_ACCESS_DENIED('Access to this API has been restricted', 'FileSystemRead', resource));
+    return;
+  }
 
   const req = new FSReqCallback(options.bigint);
   req.oncomplete = callback;
-  binding.lstat(pathModule.toNamespacedPath(path), options.bigint, req);
+  binding.lstat(path, options.bigint, req);
 }
 
 /**
@@ -1576,11 +1633,10 @@ function stat(path, options = { bigint: false }, callback) {
     options = kEmptyObject;
   }
   callback = makeStatsCallback(callback);
-  path = getValidatedPath(path);
 
   const req = new FSReqCallback(options.bigint);
   req.oncomplete = callback;
-  binding.stat(pathModule.toNamespacedPath(path), options.bigint, req);
+  binding.stat(getValidatedPath(path), options.bigint, req);
 }
 
 function statfs(path, options = { bigint: false }, callback) {
@@ -1598,16 +1654,14 @@ function statfs(path, options = { bigint: false }, callback) {
 
     callback(err, getStatFsFromBinding(stats));
   };
-  binding.statfs(pathModule.toNamespacedPath(path), options.bigint, req);
+  binding.statfs(getValidatedPath(path), options.bigint, req);
 }
 
 /**
  * Synchronously retrieves the `fs.Stats` for
  * the file descriptor.
  * @param {number} fd
- * @param {{
- *   bigint?: boolean;
- *   }} [options]
+ * @param {{ bigint?: boolean; }} [options]
  * @returns {Stats | undefined}
  */
 function fstatSync(fd, options = { bigint: false }) {
@@ -1630,8 +1684,12 @@ function fstatSync(fd, options = { bigint: false }) {
  */
 function lstatSync(path, options = { bigint: false, throwIfNoEntry: true }) {
   path = getValidatedPath(path);
+  if (permission.isEnabled() && !permission.has('fs.read', path)) {
+    const resource = BufferIsBuffer(path) ? BufferToString(path) : path;
+    throw new ERR_ACCESS_DENIED('Access to this API has been restricted', 'FileSystemRead', resource);
+  }
   const stats = binding.lstat(
-    pathModule.toNamespacedPath(path),
+    getValidatedPath(path),
     options.bigint,
     undefined,
     options.throwIfNoEntry,
@@ -1654,9 +1712,8 @@ function lstatSync(path, options = { bigint: false, throwIfNoEntry: true }) {
  * @returns {Stats}
  */
 function statSync(path, options = { bigint: false, throwIfNoEntry: true }) {
-  path = getValidatedPath(path);
   const stats = binding.stat(
-    pathModule.toNamespacedPath(path),
+    getValidatedPath(path),
     options.bigint,
     undefined,
     options.throwIfNoEntry,
@@ -1668,8 +1725,7 @@ function statSync(path, options = { bigint: false, throwIfNoEntry: true }) {
 }
 
 function statfsSync(path, options = { bigint: false }) {
-  path = getValidatedPath(path);
-  const stats = binding.statfs(pathModule.toNamespacedPath(path), options.bigint);
+  const stats = binding.statfs(getValidatedPath(path), options.bigint);
   return getStatFsFromBinding(stats);
 }
 
@@ -1687,10 +1743,9 @@ function statfsSync(path, options = { bigint: false }) {
 function readlink(path, options, callback) {
   callback = makeCallback(typeof options === 'function' ? options : callback);
   options = getOptions(options);
-  path = getValidatedPath(path, 'oldPath');
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.readlink(pathModule.toNamespacedPath(path), options.encoding, req);
+  binding.readlink(getValidatedPath(path), options.encoding, req);
 }
 
 /**
@@ -1702,24 +1757,24 @@ function readlink(path, options, callback) {
  */
 function readlinkSync(path, options) {
   options = getOptions(options);
-  path = getValidatedPath(path, 'oldPath');
-  return binding.readlink(
-    pathModule.toNamespacedPath(path),
-    options.encoding,
-  );
+  return binding.readlink(getValidatedPath(path), options.encoding);
 }
 
 /**
  * Creates the link called `path` pointing to `target`.
  * @param {string | Buffer | URL} target
  * @param {string | Buffer | URL} path
- * @param {string | null} [type_]
- * @param {(err?: Error) => any} callback_
+ * @param {string | null} [type]
+ * @param {(err?: Error) => any} callback
  * @returns {void}
  */
-function symlink(target, path, type_, callback_) {
-  const type = (typeof type_ === 'string' ? type_ : null);
-  const callback = makeCallback(arguments[arguments.length - 1]);
+function symlink(target, path, type, callback) {
+  if (callback === undefined) {
+    callback = makeCallback(type);
+    type = undefined;
+  } else {
+    validateOneOf(type, 'type', ['dir', 'file', 'junction', null, undefined]);
+  }
 
   if (permission.isEnabled()) {
     // The permission model's security guarantees fall apart in the presence of
@@ -1738,7 +1793,7 @@ function symlink(target, path, type_, callback_) {
   target = getValidatedPath(target, 'target');
   path = getValidatedPath(path);
 
-  if (isWindows && type === null) {
+  if (isWindows && type == null) {
     let absoluteTarget;
     try {
       // Symlinks targets can be relative to the newly created path.
@@ -1760,8 +1815,12 @@ function symlink(target, path, type_, callback_) {
 
         const req = new FSReqCallback();
         req.oncomplete = callback;
-        binding.symlink(destination,
-                        pathModule.toNamespacedPath(path), resolvedFlags, req);
+        binding.symlink(
+          destination,
+          path,
+          resolvedFlags,
+          req,
+        );
       });
       return;
     }
@@ -1772,7 +1831,7 @@ function symlink(target, path, type_, callback_) {
   const flags = stringToSymlinkType(type);
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.symlink(destination, pathModule.toNamespacedPath(path), flags, req);
+  binding.symlink(destination, path, flags, req);
 }
 
 /**
@@ -1784,8 +1843,8 @@ function symlink(target, path, type_, callback_) {
  * @returns {void}
  */
 function symlinkSync(target, path, type) {
-  type = (typeof type === 'string' ? type : null);
-  if (isWindows && type === null) {
+  validateOneOf(type, 'type', ['dir', 'file', 'junction', null, undefined]);
+  if (isWindows && type == null) {
     const absoluteTarget = pathModule.resolve(`${path}`, '..', `${target}`);
     if (statSync(absoluteTarget, { throwIfNoEntry: false })?.isDirectory()) {
       type = 'dir';
@@ -1809,7 +1868,7 @@ function symlinkSync(target, path, type) {
 
   binding.symlink(
     preprocessSymlinkDestination(target, type, path),
-    pathModule.toNamespacedPath(path),
+    path,
     stringToSymlinkType(type),
   );
 }
@@ -1831,9 +1890,7 @@ function link(existingPath, newPath, callback) {
   const req = new FSReqCallback();
   req.oncomplete = callback;
 
-  binding.link(pathModule.toNamespacedPath(existingPath),
-               pathModule.toNamespacedPath(newPath),
-               req);
+  binding.link(existingPath, newPath, req);
 }
 
 /**
@@ -1848,8 +1905,8 @@ function linkSync(existingPath, newPath) {
   newPath = getValidatedPath(newPath, 'newPath');
 
   binding.link(
-    pathModule.toNamespacedPath(existingPath),
-    pathModule.toNamespacedPath(newPath),
+    existingPath,
+    newPath,
   );
 }
 
@@ -1861,10 +1918,9 @@ function linkSync(existingPath, newPath) {
  */
 function unlink(path, callback) {
   callback = makeCallback(callback);
-  path = getValidatedPath(path);
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.unlink(pathModule.toNamespacedPath(path), req);
+  binding.unlink(getValidatedPath(path), req);
 }
 
 /**
@@ -1873,8 +1929,7 @@ function unlink(path, callback) {
  * @returns {void}
  */
 function unlinkSync(path) {
-  path = pathModule.toNamespacedPath(getValidatedPath(path));
-  binding.unlink(path);
+  binding.unlink(getValidatedPath(path));
 }
 
 /**
@@ -1888,6 +1943,11 @@ function fchmod(fd, mode, callback) {
   mode = parseFileMode(mode, 'mode');
   callback = makeCallback(callback);
 
+  if (permission.isEnabled()) {
+    callback(new ERR_ACCESS_DENIED('fchmod API is disabled when Permission Model is enabled.'));
+    return;
+  }
+
   const req = new FSReqCallback();
   req.oncomplete = callback;
   binding.fchmod(fd, mode, req);
@@ -1900,6 +1960,9 @@ function fchmod(fd, mode, callback) {
  * @returns {void}
  */
 function fchmodSync(fd, mode) {
+  if (permission.isEnabled()) {
+    throw new ERR_ACCESS_DENIED('fchmod API is disabled when Permission Model is enabled.');
+  }
   binding.fchmod(
     fd,
     parseFileMode(mode, 'mode'),
@@ -1942,13 +2005,11 @@ function lchmodSync(path, mode) {
 
   // Prefer to return the chmod error, if one occurs,
   // but still try to close, and report closing errors if they occur.
-  let ret;
   try {
-    ret = fs.fchmodSync(fd, mode);
+    fs.fchmodSync(fd, mode);
   } finally {
     fs.closeSync(fd);
   }
-  return ret;
 }
 
 /**
@@ -1965,7 +2026,7 @@ function chmod(path, mode, callback) {
 
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.chmod(pathModule.toNamespacedPath(path), mode, req);
+  binding.chmod(path, mode, req);
 }
 
 /**
@@ -1978,10 +2039,7 @@ function chmodSync(path, mode) {
   path = getValidatedPath(path);
   mode = parseFileMode(mode, 'mode');
 
-  binding.chmod(
-    pathModule.toNamespacedPath(path),
-    mode,
-  );
+  binding.chmod(path, mode);
 }
 
 /**
@@ -1999,7 +2057,7 @@ function lchown(path, uid, gid, callback) {
   validateInteger(gid, 'gid', -1, kMaxUserId);
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.lchown(pathModule.toNamespacedPath(path), uid, gid, req);
+  binding.lchown(path, uid, gid, req);
 }
 
 /**
@@ -2013,11 +2071,7 @@ function lchownSync(path, uid, gid) {
   path = getValidatedPath(path);
   validateInteger(uid, 'uid', -1, kMaxUserId);
   validateInteger(gid, 'gid', -1, kMaxUserId);
-  binding.lchown(
-    pathModule.toNamespacedPath(path),
-    uid,
-    gid,
-  );
+  binding.lchown(path, uid, gid);
 }
 
 /**
@@ -2032,6 +2086,10 @@ function fchown(fd, uid, gid, callback) {
   validateInteger(uid, 'uid', -1, kMaxUserId);
   validateInteger(gid, 'gid', -1, kMaxUserId);
   callback = makeCallback(callback);
+  if (permission.isEnabled()) {
+    callback(new ERR_ACCESS_DENIED('fchown API is disabled when Permission Model is enabled.'));
+    return;
+  }
 
   const req = new FSReqCallback();
   req.oncomplete = callback;
@@ -2048,6 +2106,9 @@ function fchown(fd, uid, gid, callback) {
 function fchownSync(fd, uid, gid) {
   validateInteger(uid, 'uid', -1, kMaxUserId);
   validateInteger(gid, 'gid', -1, kMaxUserId);
+  if (permission.isEnabled()) {
+    throw new ERR_ACCESS_DENIED('fchown API is disabled when Permission Model is enabled.');
+  }
 
   binding.fchown(fd, uid, gid);
 }
@@ -2069,7 +2130,7 @@ function chown(path, uid, gid, callback) {
 
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.chown(pathModule.toNamespacedPath(path), uid, gid, req);
+  binding.chown(path, uid, gid, req);
 }
 
 /**
@@ -2084,11 +2145,7 @@ function chownSync(path, uid, gid) {
   path = getValidatedPath(path);
   validateInteger(uid, 'uid', -1, kMaxUserId);
   validateInteger(gid, 'gid', -1, kMaxUserId);
-  binding.chown(
-    pathModule.toNamespacedPath(path),
-    uid,
-    gid,
-  );
+  binding.chown(path, uid, gid);
 }
 
 /**
@@ -2106,10 +2163,12 @@ function utimes(path, atime, mtime, callback) {
 
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.utimes(pathModule.toNamespacedPath(path),
-                 toUnixTimestamp(atime),
-                 toUnixTimestamp(mtime),
-                 req);
+  binding.utimes(
+    path,
+    toUnixTimestamp(atime),
+    toUnixTimestamp(mtime),
+    req,
+  );
 }
 
 /**
@@ -2121,9 +2180,8 @@ function utimes(path, atime, mtime, callback) {
  * @returns {void}
  */
 function utimesSync(path, atime, mtime) {
-  path = getValidatedPath(path);
   binding.utimes(
-    pathModule.toNamespacedPath(path),
+    getValidatedPath(path),
     toUnixTimestamp(atime),
     toUnixTimestamp(mtime),
   );
@@ -2180,10 +2238,12 @@ function lutimes(path, atime, mtime, callback) {
 
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.lutimes(pathModule.toNamespacedPath(path),
-                  toUnixTimestamp(atime),
-                  toUnixTimestamp(mtime),
-                  req);
+  binding.lutimes(
+    path,
+    toUnixTimestamp(atime),
+    toUnixTimestamp(mtime),
+    req,
+  );
 }
 
 /**
@@ -2195,9 +2255,8 @@ function lutimes(path, atime, mtime, callback) {
  * @returns {void}
  */
 function lutimesSync(path, atime, mtime) {
-  path = getValidatedPath(path);
   binding.lutimes(
-    pathModule.toNamespacedPath(path),
+    getValidatedPath(path),
     toUnixTimestamp(atime),
     toUnixTimestamp(mtime),
   );
@@ -2205,7 +2264,7 @@ function lutimesSync(path, atime, mtime) {
 
 function writeAll(fd, isUserFd, buffer, offset, length, signal, flush, callback) {
   if (signal?.aborted) {
-    const abortError = new AbortError(undefined, { cause: signal?.reason });
+    const abortError = new AbortError(undefined, { cause: signal.reason });
     if (isUserFd) {
       callback(abortError);
     } else {
@@ -2340,11 +2399,12 @@ function writeFileSync(path, data, options) {
   // C++ fast path for string data and UTF8 encoding
   if (typeof data === 'string' && (options.encoding === 'utf8' || options.encoding === 'utf-8')) {
     if (!isInt32(path)) {
-      path = pathModule.toNamespacedPath(getValidatedPath(path));
+      path = getValidatedPath(path);
     }
 
     return binding.writeFileUtf8(
-      path, data,
+      path,
+      data,
       stringToFlags(flag),
       parseFileMode(options.mode, 'mode', 0o666),
     );
@@ -2460,7 +2520,7 @@ function watch(filename, options, listener) {
   // TODO(anonrig): Remove non-native watcher when/if libuv supports recursive.
   // As of November 2022, libuv does not support recursive file watch on all platforms,
   // e.g. Linux due to the limitations of inotify.
-  if (options.recursive && !isOSX && !isWindows) {
+  if (options.recursive && !isMacOS && !isWindows) {
     const nonNativeWatcher = require('internal/fs/recursive_watch');
     watcher = new nonNativeWatcher.FSWatcher(options);
     watcher[watchers.kFSWatchStart](path);
@@ -2661,7 +2721,7 @@ function realpathSync(p, options) {
 
   // On windows, check that the root exists. On unix there is no need.
   if (isWindows) {
-    const out = binding.lstat(pathModule.toNamespacedPath(base), false, undefined, true /* throwIfNoEntry */);
+    const out = binding.lstat(base, false, undefined, true /* throwIfNoEntry */);
     if (out === undefined) {
       return;
     }
@@ -2703,8 +2763,7 @@ function realpathSync(p, options) {
       // Use stats array directly to avoid creating an fs.Stats instance just
       // for our internal use.
 
-      const baseLong = pathModule.toNamespacedPath(base);
-      const stats = binding.lstat(baseLong, true, undefined, true /* throwIfNoEntry */);
+      const stats = binding.lstat(base, true, undefined, true /* throwIfNoEntry */);
       if (stats === undefined) {
         return;
       }
@@ -2728,8 +2787,8 @@ function realpathSync(p, options) {
         }
       }
       if (linkTarget === null) {
-        binding.stat(baseLong, false, undefined, true);
-        linkTarget = binding.readlink(baseLong, undefined);
+        binding.stat(base, false, undefined, true);
+        linkTarget = binding.readlink(base, undefined);
       }
       resolvedLink = pathModule.resolve(previous, linkTarget);
 
@@ -2746,7 +2805,7 @@ function realpathSync(p, options) {
 
     // On windows, check that the root exists. On unix there is no need.
     if (isWindows && !knownHard.has(base)) {
-      const out = binding.lstat(pathModule.toNamespacedPath(base), false, undefined, true /* throwIfNoEntry */);
+      const out = binding.lstat(base, false, undefined, true /* throwIfNoEntry */);
       if (out === undefined) {
         return;
       }
@@ -2766,9 +2825,8 @@ function realpathSync(p, options) {
  */
 realpathSync.native = (path, options) => {
   options = getOptions(options);
-  path = getValidatedPath(path);
   return binding.realpath(
-    pathModule.toNamespacedPath(path),
+    getValidatedPath(path),
     options.encoding,
   );
 };
@@ -2816,7 +2874,7 @@ function realpath(p, options, callback) {
 
   // On windows, check that the root exists. On unix there is no need.
   if (isWindows && !knownHard.has(base)) {
-    fs.lstat(base, (err, stats) => {
+    fs.lstat(base, (err) => {
       if (err) return callback(err);
       knownHard.add(base);
       LOOP();
@@ -2932,7 +2990,7 @@ realpath.native = (path, options, callback) => {
   path = getValidatedPath(path);
   const req = new FSReqCallback();
   req.oncomplete = callback;
-  binding.realpath(pathModule.toNamespacedPath(path), options.encoding, req);
+  binding.realpath(path, options.encoding, req);
 };
 
 /**
@@ -2977,7 +3035,7 @@ function mkdtempSync(prefix, options) {
  * @param {string | Buffer | URL} src
  * @param {string | Buffer | URL} dest
  * @param {number} [mode]
- * @param {() => any} callback
+ * @param {(err?: Error) => any} callback
  * @returns {void}
  */
 function copyFile(src, dest, mode, callback) {
@@ -2988,9 +3046,6 @@ function copyFile(src, dest, mode, callback) {
 
   src = getValidatedPath(src, 'src');
   dest = getValidatedPath(dest, 'dest');
-
-  src = pathModule.toNamespacedPath(src);
-  dest = pathModule.toNamespacedPath(dest);
   callback = makeCallback(callback);
 
   const req = new FSReqCallback();
@@ -3007,12 +3062,9 @@ function copyFile(src, dest, mode, callback) {
  * @returns {void}
  */
 function copyFileSync(src, dest, mode) {
-  src = getValidatedPath(src, 'src');
-  dest = getValidatedPath(dest, 'dest');
-
   binding.copyFile(
-    pathModule.toNamespacedPath(src),
-    pathModule.toNamespacedPath(dest),
+    getValidatedPath(src, 'src'),
+    getValidatedPath(dest, 'dest'),
     mode,
   );
 }
@@ -3023,7 +3075,7 @@ function copyFileSync(src, dest, mode) {
  * @param {string | URL} src
  * @param {string | URL} dest
  * @param {object} [options]
- * @param {() => any} callback
+ * @param {(err?: Error) => any} callback
  * @returns {void}
  */
 function cp(src, dest, options, callback) {
@@ -3033,8 +3085,8 @@ function cp(src, dest, options, callback) {
   }
   callback = makeCallback(callback);
   options = validateCpOptions(options);
-  src = pathModule.toNamespacedPath(getValidatedPath(src, 'src'));
-  dest = pathModule.toNamespacedPath(getValidatedPath(dest, 'dest'));
+  src = getValidatedPath(src, 'src');
+  dest = getValidatedPath(dest, 'dest');
   lazyLoadCp();
   cpFn(src, dest, options, callback);
 }
@@ -3049,8 +3101,8 @@ function cp(src, dest, options, callback) {
  */
 function cpSync(src, dest, options) {
   options = validateCpOptions(options);
-  src = pathModule.toNamespacedPath(getValidatedPath(src, 'src'));
-  dest = pathModule.toNamespacedPath(getValidatedPath(dest, 'dest'));
+  src = getValidatedPath(src, 'src');
+  dest = getValidatedPath(dest, 'dest');
   lazyLoadCp();
   cpSyncFn(src, dest, options);
 }
@@ -3110,6 +3162,35 @@ function createWriteStream(path, options) {
   return new WriteStream(path, options);
 }
 
+const lazyGlob = getLazy(() => require('internal/fs/glob').Glob);
+
+function glob(pattern, options, callback) {
+  emitExperimentalWarning('glob');
+  if (typeof options === 'function') {
+    callback = options;
+    options = undefined;
+  }
+  callback = makeCallback(callback);
+
+  const Glob = lazyGlob();
+  // TODO: Use iterator helpers when available
+  (async () => {
+    try {
+      const res = await ArrayFromAsync(new Glob(pattern, options).glob());
+      callback(null, res);
+    } catch (err) {
+      callback(err);
+    }
+  })();
+}
+
+function globSync(pattern, options) {
+  emitExperimentalWarning('globSync');
+  const Glob = lazyGlob();
+  return new Glob(pattern, options).globSync();
+}
+
+
 module.exports = fs = {
   appendFile,
   appendFileSync,
@@ -3143,6 +3224,8 @@ module.exports = fs = {
   ftruncateSync,
   futimes,
   futimesSync,
+  glob,
+  globSync,
   lchown,
   lchownSync,
   lchmod: constants.O_SYMLINK !== undefined ? lchmod : undefined,
@@ -3251,10 +3334,6 @@ defineLazyProperties(
 );
 
 ObjectDefineProperties(fs, {
-  F_OK: { __proto__: null, enumerable: true, value: F_OK || 0 },
-  R_OK: { __proto__: null, enumerable: true, value: R_OK || 0 },
-  W_OK: { __proto__: null, enumerable: true, value: W_OK || 0 },
-  X_OK: { __proto__: null, enumerable: true, value: X_OK || 0 },
   constants: {
     __proto__: null,
     configurable: false,

@@ -85,7 +85,7 @@ public:
         static void SetFunction(Environment*, const char*, v8::Local<v8::FunctionTemplate>);
 
     private:
-        static R FastCallback(v8::Local<v8::Object> receiver, Args..., v8::FastApiCallbackOptions&);
+        static R FastCallback(v8::Local<v8::Object> unused, v8::Local<v8::Object> receiver, Args..., v8::FastApiCallbackOptions&);
 
         static void SlowCallback(const v8::FunctionCallbackInfo<v8::Value>&);
     };

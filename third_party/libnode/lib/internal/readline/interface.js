@@ -9,8 +9,8 @@ const {
   ArrayPrototypePop,
   ArrayPrototypePush,
   ArrayPrototypeReverse,
-  ArrayPrototypeSplice,
   ArrayPrototypeShift,
+  ArrayPrototypeSplice,
   ArrayPrototypeUnshift,
   DateNow,
   FunctionPrototypeCall,
@@ -21,6 +21,7 @@ const {
   NumberIsFinite,
   ObjectSetPrototypeOf,
   RegExpPrototypeExec,
+  SafeStringIterator,
   StringPrototypeCodePointAt,
   StringPrototypeEndsWith,
   StringPrototypeRepeat,
@@ -28,17 +29,18 @@ const {
   StringPrototypeStartsWith,
   StringPrototypeTrim,
   Symbol,
-  SymbolDispose,
   SymbolAsyncIterator,
-  SafeStringIterator,
+  SymbolDispose,
 } = primordials;
 
-const { codes } = require('internal/errors');
-
 const {
-  ERR_INVALID_ARG_VALUE,
-  ERR_USE_AFTER_CLOSE,
-} = codes;
+  AbortError,
+  codes: {
+    ERR_INVALID_ARG_VALUE,
+    ERR_USE_AFTER_CLOSE,
+  },
+} = require('internal/errors');
+
 const {
   validateAbortSignal,
   validateArray,
@@ -112,6 +114,7 @@ const kPrompt = Symbol('_prompt');
 const kPushToKillRing = Symbol('_pushToKillRing');
 const kPushToUndoStack = Symbol('_pushToUndoStack');
 const kQuestionCallback = Symbol('_questionCallback');
+const kQuestionReject = Symbol('_questionReject');
 const kRedo = Symbol('_redo');
 const kRedoStack = Symbol('_redoStack');
 const kRefreshLine = Symbol('_refreshLine');
@@ -263,7 +266,7 @@ function InterfaceConstructor(input, output, completer, terminal) {
 
   function onkeypress(s, key) {
     self[kTtyWrite](s, key);
-    if (key && key.sequence) {
+    if (key?.sequence) {
       // If the key.sequence is half of a surrogate pair
       // (>= 0xd800 and <= 0xdfff), refresh the line so
       // the character is displayed appropriately.
@@ -347,7 +350,7 @@ class Interface extends InterfaceConstructor {
     super(input, output, completer, terminal);
   }
   get columns() {
-    if (this.output && this.output.columns) return this.output.columns;
+    if (this.output?.columns) return this.output.columns;
     return Infinity;
   }
 
@@ -1056,7 +1059,7 @@ class Interface extends InterfaceConstructor {
   // Handle a write from the tty
   [kTtyWrite](s, key) {
     const previousKey = this[kPreviousKey];
-    key = key || kEmptyObject;
+    key ||= kEmptyObject;
     this[kPreviousKey] = key;
 
     if (!key.meta || key.name !== 'y') {
@@ -1127,6 +1130,7 @@ class Interface extends InterfaceConstructor {
           } else {
             // This readline instance is finished
             this.close();
+            this[kQuestionReject]?.(new AbortError('Aborted with Ctrl+C'));
           }
           break;
 
@@ -1138,6 +1142,7 @@ class Interface extends InterfaceConstructor {
           if (this.cursor === 0 && this.line.length === 0) {
             // This readline instance is finished
             this.close();
+            this[kQuestionReject]?.(new AbortError('Aborted with Ctrl+D'));
           } else if (this.cursor < this.line.length) {
             this[kDeleteRight]();
           }
@@ -1366,6 +1371,7 @@ class Interface extends InterfaceConstructor {
     return this[kLineObjectStream];
   }
 }
+Interface.prototype[SymbolDispose] = Interface.prototype.close;
 
 module.exports = {
   Interface,
@@ -1393,6 +1399,7 @@ module.exports = {
   kQuestion,
   kQuestionCallback,
   kQuestionCancel,
+  kQuestionReject,
   kRefreshLine,
   kSawKeyPress,
   kSawReturnAt,

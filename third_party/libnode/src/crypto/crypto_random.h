@@ -25,20 +25,20 @@ struct RandomBytesTraits final {
     static constexpr const char* JobName = "RandomBytesJob";
     static constexpr AsyncWrap::ProviderType Provider = AsyncWrap::PROVIDER_RANDOMBYTESREQUEST;
 
-    static v8::Maybe<bool> AdditionalConfig(
+    static v8::Maybe<void> AdditionalConfig(
         CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, RandomBytesConfig* params);
 
     static bool DeriveBits(Environment* env, const RandomBytesConfig& params, ByteSource* out_);
 
-    static v8::Maybe<bool> EncodeOutput(Environment* env, const RandomBytesConfig& params, ByteSource* unused, v8::Local<v8::Value>* result);
+    static v8::MaybeLocal<v8::Value> EncodeOutput(Environment* env, const RandomBytesConfig& params, ByteSource* unused);
 };
 
 using RandomBytesJob = DeriveBitsJob<RandomBytesTraits>;
 
 struct RandomPrimeConfig final : public MemoryRetainer {
-    BignumPointer prime;
-    BignumPointer rem;
-    BignumPointer add;
+    ncrypto::BignumPointer prime;
+    ncrypto::BignumPointer rem;
+    ncrypto::BignumPointer add;
     int bits;
     bool safe;
     void MemoryInfo(MemoryTracker* tracker) const override;
@@ -51,18 +51,18 @@ struct RandomPrimeTraits final {
     static constexpr const char* JobName = "RandomPrimeJob";
     static constexpr AsyncWrap::ProviderType Provider = AsyncWrap::PROVIDER_RANDOMPRIMEREQUEST;
 
-    static v8::Maybe<bool> AdditionalConfig(
+    static v8::Maybe<void> AdditionalConfig(
         CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, RandomPrimeConfig* params);
 
     static bool DeriveBits(Environment* env, const RandomPrimeConfig& params, ByteSource* out_);
 
-    static v8::Maybe<bool> EncodeOutput(Environment* env, const RandomPrimeConfig& params, ByteSource* unused, v8::Local<v8::Value>* result);
+    static v8::MaybeLocal<v8::Value> EncodeOutput(Environment* env, const RandomPrimeConfig& params, ByteSource* unused);
 };
 
 using RandomPrimeJob = DeriveBitsJob<RandomPrimeTraits>;
 
 struct CheckPrimeConfig final : public MemoryRetainer {
-    BignumPointer candidate;
+    ncrypto::BignumPointer candidate;
     int checks = 1;
 
     void MemoryInfo(MemoryTracker* tracker) const override;
@@ -76,11 +76,11 @@ struct CheckPrimeTraits final {
 
     static constexpr AsyncWrap::ProviderType Provider = AsyncWrap::PROVIDER_CHECKPRIMEREQUEST;
 
-    static v8::Maybe<bool> AdditionalConfig(CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, CheckPrimeConfig* params);
+    static v8::Maybe<void> AdditionalConfig(CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, CheckPrimeConfig* params);
 
     static bool DeriveBits(Environment* env, const CheckPrimeConfig& params, ByteSource* out);
 
-    static v8::Maybe<bool> EncodeOutput(Environment* env, const CheckPrimeConfig& params, ByteSource* out, v8::Local<v8::Value>* result);
+    static v8::MaybeLocal<v8::Value> EncodeOutput(Environment* env, const CheckPrimeConfig& params, ByteSource* out);
 };
 
 using CheckPrimeJob = DeriveBitsJob<CheckPrimeTraits>;

@@ -36,7 +36,7 @@ protected:
     Hash(Environment* env, v8::Local<v8::Object> wrap);
 
 private:
-    EVPMDCtxPointer mdctx_ {};
+    ncrypto::EVPMDCtxPointer mdctx_ {};
     unsigned int md_len_ = 0;
     ByteSource digest_;
 };
@@ -63,11 +63,11 @@ struct HashTraits final {
     static constexpr const char* JobName = "HashJob";
     static constexpr AsyncWrap::ProviderType Provider = AsyncWrap::PROVIDER_HASHREQUEST;
 
-    static v8::Maybe<bool> AdditionalConfig(CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, HashConfig* params);
+    static v8::Maybe<void> AdditionalConfig(CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int offset, HashConfig* params);
 
     static bool DeriveBits(Environment* env, const HashConfig& params, ByteSource* out);
 
-    static v8::Maybe<bool> EncodeOutput(Environment* env, const HashConfig& params, ByteSource* out, v8::Local<v8::Value>* result);
+    static v8::MaybeLocal<v8::Value> EncodeOutput(Environment* env, const HashConfig& params, ByteSource* out);
 };
 
 using HashJob = DeriveBitsJob<HashTraits>;

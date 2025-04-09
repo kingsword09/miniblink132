@@ -58,10 +58,10 @@ EnabledDebugList enabled_debug_list;
 using v8::Local;
 using v8::StackTrace;
 
-void EnabledDebugList::Parse(std::shared_ptr<KVStore> env_vars)
+void EnabledDebugList::Parse(Environment* env)
 {
     std::string cats;
-    credentials::SafeGetenv("NODE_DEBUG_NATIVE", &cats, env_vars);
+    credentials::SafeGetenv("NODE_DEBUG_NATIVE", &cats, env);
     Parse(cats);
 }
 
@@ -260,7 +260,7 @@ public:
             USE(GetLastError());
 #endif // DEBUG
         }
-        return nullptr;
+        return {};
     }
 
     SymbolInfo LookupSymbol(void* address) override
@@ -502,8 +502,6 @@ std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries()
     return list;
 }
 
-bool kNodeDebug = false;
-
 void FWrite(FILE* file, const std::string& str)
 {
     auto simple_fwrite = [&]() {
@@ -530,13 +528,11 @@ void FWrite(FILE* file, const std::string& str)
     // Get required wide buffer size
     int n = MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), nullptr, 0);
 
-    std::vector<wchar_t> wbuf(n + 3);
-    memset(wbuf.data(), 0, wbuf.size() * sizeof(wchar_t));
+    std::vector<wchar_t> wbuf(n);
     MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), wbuf.data(), n);
 
     WriteConsoleW(handle, wbuf.data(), n, nullptr, nullptr);
     OutputDebugStringW(wbuf.data());
-
     return;
 #elif defined(__ANDROID__)
     if (file == stderr) {

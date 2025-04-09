@@ -16,12 +16,12 @@ bool ReadFileToString(const wchar_t* path, std::string* buffer);
 //////////////////////////////////////////////////////////////////////////
 
 namespace node {
-
 namespace builtins {
 
+using v8::Boolean;
 using v8::Context;
-using v8::DEFAULT;
 using v8::EscapableHandleScope;
+using v8::Exception;
 using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::IntegrityLevel;
@@ -29,6 +29,7 @@ using v8::Isolate;
 using v8::Local;
 using v8::MaybeLocal;
 using v8::Name;
+using v8::NewStringType;
 using v8::None;
 using v8::Object;
 using v8::ObjectTemplate;
@@ -38,45 +39,48 @@ using v8::ScriptOrigin;
 using v8::Set;
 using v8::SideEffectType;
 using v8::String;
+using v8::TryCatch;
 using v8::Undefined;
 using v8::Value;
 
 //---
 StaticExternalOneByteResource electron_resource((const uint8_t*)"  ", 2, nullptr);
 
-const char electron_resource_str[] = "function sayHiImpl() {\n"
-                                     "    mbConsoleLog('hello, sayHiImpl!!!!');\n"
-                                     "}\n"
-                                     "module.exports.sayHi = sayHiImpl;\n"
-                                     "var electron = require('electron');\n"
-                                     "module.exports.app = electron.app\n"
-                                     "module.exports.BrowserWindow = electron.BrowserWindow\n"
-                                     "module.exports.BrowserView = electron.BrowserView\n"
-                                     "module.exports.webContents = electron.webContents\n"
-                                     "module.exports.session = electron.session\n"
-                                     "module.exports.MenuItem = electron.MenuItem\n"
-                                     "module.exports.Menu = electron.Menu\n"
-                                     "module.exports.isPromise = electron.isPromise\n"
-                                     "module.exports.dialog = electron.dialog\n"
-                                     "module.exports.net = electron.net\n"
-                                     "module.exports.shell = electron.shell\n"
-                                     "module.exports.screen = electron.screen\n"
-                                     "module.exports.tray = electron.tray\n"
-                                     "module.exports.clipboard = electron.clipboard\n"
-                                     "module.exports.nativeImage = electron.nativeImage\n"
-                                     "module.exports.systemPreferences = electron.systemPreferences\n"
-                                     "module.exports.protocol = electron.protocol\n"
-                                     "module.exports.TouchBar = electron.TouchBar\n"
-                                     "module.exports.Tray = electron.Tray\n"
-                                     "module.exports.autoUpdater = electron.autoUpdater\n"
-                                     "module.exports.globalShortcut = electron.globalShortcut\n"
-                                     "module.exports.powerMonitor = electron.powerMonitor\n"
-                                     "module.exports.powerSaveBlocker = electron.powerSaveBlocker\n"
-                                     "module.exports.crashReporter = electron.crashReporter\n"
-                                     "module.exports.utilityProcess = electron.utilityProcess\n"
-                                     "module.exports.contentTracing = electron.contentTracing\n"
-                                     "module.exports.MessageChannelMain = electron.MessageChannelMain\n"
-                                     "module.exports.safeStorage = electron.safeStorage\n";
+const char electron_resource_str[] =
+"function sayHiImpl() {\n"
+"    mbConsoleLog('hello, sayHiImpl!!!!');\n"
+"}\n"
+"module.exports.sayHi = sayHiImpl;\n"
+"var electron = require('electron');\n"
+"module.exports.app = electron.app\n"
+"module.exports.BrowserWindow = electron.BrowserWindow\n"
+"module.exports.BrowserView = electron.BrowserView\n"
+"module.exports.webContents = electron.webContents\n"
+"module.exports.session = electron.session\n"
+"module.exports.MenuItem = electron.MenuItem\n"
+"module.exports.Menu = electron.Menu\n"
+"module.exports.isPromise = electron.isPromise\n"
+"module.exports.dialog = electron.dialog\n"
+"module.exports.net = electron.net\n"
+"module.exports.shell = electron.shell\n"
+"module.exports.screen = electron.screen\n"
+"module.exports.tray = electron.tray\n"
+"module.exports.clipboard = electron.clipboard\n"
+"module.exports.nativeImage = electron.nativeImage\n"
+"module.exports.systemPreferences = electron.systemPreferences\n"
+"module.exports.protocol = electron.protocol\n"
+"module.exports.TouchBar = electron.TouchBar\n"
+"module.exports.Tray = electron.Tray\n"
+"module.exports.autoUpdater = electron.autoUpdater\n"
+"module.exports.globalShortcut = electron.globalShortcut\n"
+"module.exports.powerMonitor = electron.powerMonitor\n"
+"module.exports.powerSaveBlocker = electron.powerSaveBlocker\n"
+"module.exports.crashReporter = electron.crashReporter\n"
+"module.exports.utilityProcess = electron.utilityProcess\n"
+"module.exports.contentTracing = electron.contentTracing\n"
+"module.exports.MessageChannelMain = electron.MessageChannelMain\n"
+"module.exports.safeStorage = electron.safeStorage\n"
+;
 StaticExternalOneByteResource electron_module_resource((const uint8_t*)electron_resource_str, sizeof(electron_resource_str) - 1, nullptr);
 
 struct FakeExternalReseEntry {
@@ -102,6 +106,12 @@ BuiltinLoader::BuiltinLoader()
 #ifdef NODE_SHARED_BUILTIN_UNDICI_UNDICI_PATH
     AddExternalizedBuiltin("internal/deps/undici/undici", STRINGIFY(NODE_SHARED_BUILTIN_UNDICI_UNDICI_PATH));
 #endif // NODE_SHARED_BUILTIN_UNDICI_UNDICI_PATH
+
+#if HAVE_AMARO
+#ifdef NODE_SHARED_BUILTIN_AMARO_DIST_INDEX_PATH
+    AddExternalizedBuiltin("internal/deps/amaro/dist/index", STRINGIFY(NODE_SHARED_BUILTIN_AMARO_DIST_INDEX_PATH));
+#endif // NODE_SHARED_BUILTIN_AMARO_DIST_INDEX_PATH
+#endif // HAVE_AMARO
 
     // weolar
     static StaticExternalOneByteResource* asar_resource = nullptr;
@@ -138,9 +148,9 @@ BuiltinLoader::BuiltinLoader()
         //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\loader.js", "internal/modules/esm/loader"},
         //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\cjs\\loader.js", "internal/modules/cjs/loader"},
         //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\module_job.js", "internal/modules/esm/module_job"},
-        { L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\utils.js", "internal/modules/esm/utils" },
-        { L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\translators.js", "internal/modules/esm/translators" },
-        //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", "internal/bootstrap/realm"},
+                {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\utils.js", "internal/modules/esm/utils"},
+                {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\translators.js", "internal/modules/esm/translators"},
+                //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", "internal/bootstrap/realm"},
     };
     for (size_t i = 0; i < arraysize(fakes); ++i) {
         FakeExternalReseEntry& it = fakes[i];
@@ -158,20 +168,20 @@ BuiltinLoader::BuiltinLoader()
         }
     }
 
-//     {
-//         // W:\mycode\mb108\third_party\libnode\lib\internal\bootstrap\realm.js
-//         ThreadsafeCopyOnWrite<BuiltinSourceMap>::Write source2 = source_.write();
-//         std::map<std::string, UnionBytes>::iterator console_constructor_it = source2->find("internal/bootstrap/realm");
-//
-//         static StaticExternalOneByteResource* console_constructor_resource = nullptr;
-//         if (!console_constructor_resource) {
-//             std::string* buffer = new std::string();
-//             asar::ReadFileToString(L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", buffer);
-//             *buffer += '\0';
-//             console_constructor_resource = new StaticExternalOneByteResource((const uint8_t*)buffer->c_str(), buffer->size() - 1, nullptr);
-//         }
-//         console_constructor_it->second.changeStaticExternalOneByteResource(console_constructor_resource);
-//     }
+    //     {
+    //         // W:\mycode\mb108\third_party\libnode\lib\internal\bootstrap\realm.js
+    //         ThreadsafeCopyOnWrite<BuiltinSourceMap>::Write source2 = source_.write();
+    //         std::map<std::string, UnionBytes>::iterator console_constructor_it = source2->find("internal/bootstrap/realm");
+    // 
+    //         static StaticExternalOneByteResource* console_constructor_resource = nullptr;
+    //         if (!console_constructor_resource) {
+    //             std::string* buffer = new std::string();
+    //             asar::ReadFileToString(L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", buffer);
+    //             *buffer += '\0';
+    //             console_constructor_resource = new StaticExternalOneByteResource((const uint8_t*)buffer->c_str(), buffer->size() - 1, nullptr);
+    //         }
+    //         console_constructor_it->second.changeStaticExternalOneByteResource(console_constructor_resource);
+    //     }
 #endif
     //-----
 }
@@ -197,8 +207,10 @@ void BuiltinLoader::GetNatives(Local<Name> property, const PropertyCallbackInfo<
     Local<Object> out = Object::New(isolate);
     auto source = env->builtin_loader()->source_.read();
     for (auto const& x : *source) {
-        Local<String> key = OneByteString(isolate, x.first.c_str(), x.first.size());
-        out->Set(context, key, x.second.ToStringChecked(isolate)).FromJust();
+        Local<String> key = OneByteString(isolate, x.first);
+        if (out->Set(context, key, x.second.ToStringChecked(isolate)).IsNothing()) {
+            return;
+        }
     }
     info.GetReturnValue().Set(out);
 }
@@ -206,17 +218,6 @@ void BuiltinLoader::GetNatives(Local<Name> property, const PropertyCallbackInfo<
 Local<String> BuiltinLoader::GetConfigString(Isolate* isolate)
 {
     return config_.ToStringChecked(isolate);
-}
-
-std::vector<std::string_view> BuiltinLoader::GetBuiltinIds() const
-{
-    std::vector<std::string_view> ids;
-    auto source = source_.read();
-    ids.reserve(source->size());
-    for (auto const& x : *source) {
-        ids.emplace_back(x.first);
-    }
-    return ids;
 }
 
 BuiltinLoader::BuiltinCategories BuiltinLoader::GetBuiltinCategories() const
@@ -240,7 +241,8 @@ BuiltinLoader::BuiltinCategories BuiltinLoader::GetBuiltinCategories() const
     builtin_categories.cannot_be_required = std::set<std::string>
     {
 #if !HAVE_INSPECTOR
-        "inspector", "inspector/promises", "internal/util/inspector",
+        "inspector", "inspector/promises", "internal/util/inspector", "internal/inspector/network", "internal/inspector/network_http",
+            "internal/inspector/network_undici", "internal/inspector_async_hook", "internal/inspector_network_tracking",
 #endif // !HAVE_INSPECTOR
 
 #if !NODE_USE_V8_PLATFORM || !defined(NODE_HAVE_I18N_SUPPORT)
@@ -248,10 +250,14 @@ BuiltinLoader::BuiltinCategories BuiltinLoader::GetBuiltinCategories() const
 #endif // !NODE_USE_V8_PLATFORM || !defined(NODE_HAVE_I18N_SUPPORT)
 
 #if !HAVE_OPENSSL
-            "crypto", "crypto/promises", "https", "http2", "tls", "_tls_common", "_tls_wrap", "internal/tls/secure-pair", "internal/tls/parse-cert-string",
-            "internal/tls/secure-context", "internal/http2/core", "internal/http2/compat", "internal/policy/manifest", "internal/process/policy",
-            "internal/streams/lazy_transform",
+            "crypto", "crypto/promises", "https", "http2", "tls", "_tls_common", "_tls_wrap", "internal/tls/parse-cert-string", "internal/tls/secure-context",
+            "internal/http2/core", "internal/http2/compat", "internal/streams/lazy_transform",
 #endif // !HAVE_OPENSSL
+#if !NODE_OPENSSL_HAS_QUIC
+            "internal/quic/quic", "internal/quic/symbols", "internal/quic/stats", "internal/quic/state",
+#endif // !NODE_OPENSSL_HAS_QUIC
+            "quic", // Experimental.
+            "sqlite", // Experimental.
             "sys", // Deprecated.
             "wasi", // Experimental.
             "internal/test/binding", "internal/v8_prof_polyfill", "internal/v8_prof_processor",
@@ -303,10 +309,12 @@ MaybeLocal<String> BuiltinLoader::LoadBuiltinSource(Isolate* isolate, const char
     auto source = source_.read();
 #ifndef NODE_BUILTIN_MODULES_PATH
     const auto source_it = source->find(id);
-    if (UNLIKELY(source_it == source->end())) {
-        fprintf(stderr, "Cannot find native builtin: \"%s\".\n", id);
-        ABORT();
-    }
+    if (source_it == source->end())
+        [[unlikely]]
+        {
+            fprintf(stderr, "Cannot find native builtin: \"%s\".\n", id);
+            ABORT();
+        }
     return source_it->second.ToStringChecked(isolate);
 #else // !NODE_BUILTIN_MODULES_PATH
     std::string filename = OnDiskFileName(id);
@@ -315,11 +323,11 @@ MaybeLocal<String> BuiltinLoader::LoadBuiltinSource(Isolate* isolate, const char
     int r = ReadFileSync(&contents, filename.c_str());
     if (r != 0) {
         const std::string buf = SPrintF("Cannot read local builtin. %s: %s \"%s\"", uv_err_name(r), uv_strerror(r), filename);
-        Local<String> message = OneByteString(isolate, buf.c_str());
-        isolate->ThrowException(v8::Exception::Error(message));
+        Local<String> message = OneByteString(isolate, buf);
+        isolate->ThrowException(Exception::Error(message));
         return MaybeLocal<String>();
     }
-    return String::NewFromUtf8(isolate, contents.c_str(), v8::NewStringType::kNormal, contents.length());
+    return String::NewFromUtf8(isolate, contents.c_str(), NewStringType::kNormal, contents.length());
 #endif // NODE_BUILTIN_MODULES_PATH
 }
 
@@ -371,8 +379,8 @@ MaybeLocal<Function> BuiltinLoader::LookupAndCompileInternal(
     }
 
     std::string filename_s = std::string("node:") + id;
-    Local<String> filename = OneByteString(isolate, filename_s.c_str(), filename_s.size());
-    ScriptOrigin origin(isolate, filename, 0, 0, true);
+    Local<String> filename = OneByteString(isolate, filename_s);
+    ScriptOrigin origin(filename, 0, 0, true);
 
     BuiltinCodeCacheData cached_data {};
     {
@@ -503,9 +511,6 @@ MaybeLocal<Function> BuiltinLoader::LookupAndCompile(Local<Context> context, con
 MaybeLocal<Value> BuiltinLoader::CompileAndCall(Local<Context> context, const char* id, Realm* realm)
 {
     Isolate* isolate = context->GetIsolate();
-    // Arguments must match the parameters specified in
-    // BuiltinLoader::LookupAndCompile().
-    std::vector<Local<Value>> arguments;
     // Detects parameters of the scripts based on module ids.
     // internal/bootstrap/realm: process, getLinkedBinding,
     //                           getInternalBinding, primordials
@@ -516,21 +521,22 @@ MaybeLocal<Value> BuiltinLoader::CompileAndCall(Local<Context> context, const ch
             || !NewFunctionTemplate(isolate, binding::GetInternalBinding)->GetFunction(context).ToLocal(&get_internal_binding)) {
             return MaybeLocal<Value>();
         }
-        arguments = { realm->process_object(), get_linked_binding, get_internal_binding, realm->primordials() };
+        Local<Value> arguments[] = { realm->process_object(), get_linked_binding, get_internal_binding, realm->primordials() };
+        return CompileAndCall(context, id, arraysize(arguments), &arguments[0], realm);
     } else if (strncmp(id, "internal/main/", strlen("internal/main/")) == 0 || strncmp(id, "internal/bootstrap/", strlen("internal/bootstrap/")) == 0) {
         // internal/main/*, internal/bootstrap/*: process, require,
         //                                        internalBinding, primordials
-        arguments = { realm->process_object(), realm->builtin_module_require(), realm->internal_binding_loader(), realm->primordials() };
-    } else {
-        // This should be invoked with the other CompileAndCall() methods, as
-        // we are unable to generate the arguments.
-        // Currently there are two cases:
-        // internal/per_context/*: the arguments are generated in
-        //                         InitializePrimordials()
-        // all the other cases: the arguments are generated in the JS-land loader.
-        UNREACHABLE();
+        Local<Value> arguments[] = { realm->process_object(), realm->builtin_module_require(), realm->internal_binding_loader(), realm->primordials() };
+        return CompileAndCall(context, id, arraysize(arguments), &arguments[0], realm);
     }
-    return CompileAndCall(context, id, arguments.size(), arguments.data(), realm);
+
+    // This should be invoked with the other CompileAndCall() methods, as
+    // we are unable to generate the arguments.
+    // Currently there are two cases:
+    // internal/per_context/*: the arguments are generated in
+    //                         InitializePrimordials()
+    // all the other cases: the arguments are generated in the JS-land loader.
+    UNREACHABLE();
 }
 
 MaybeLocal<Value> BuiltinLoader::CompileAndCall(Local<Context> context, const char* id, int argc, Local<Value> argv[], Realm* optional_realm)
@@ -543,35 +549,37 @@ MaybeLocal<Value> BuiltinLoader::CompileAndCall(Local<Context> context, const ch
         return MaybeLocal<Value>();
     }
     Local<Value> undefined = Undefined(context->GetIsolate());
+    return fn->Call(context, undefined, argc, argv);
+}
 
-    MaybeLocal<Value> ret = fn->Call(context, undefined, argc, argv);
-    return ret;
+MaybeLocal<Function> BuiltinLoader::LookupAndCompile(Local<Context> context, const char* id, std::vector<Local<String>>* parameters, Realm* optional_realm)
+{
+    return LookupAndCompileInternal(context, id, parameters, optional_realm);
 }
 
 bool BuiltinLoader::CompileAllBuiltinsAndCopyCodeCache(Local<Context> context, const std::vector<std::string>& eager_builtins, std::vector<CodeCacheInfo>* out)
 {
-    std::vector<std::string_view> ids = GetBuiltinIds();
+    auto ids = GetBuiltinIds();
     bool all_succeeded = true;
-    std::string v8_tools_prefix = "internal/deps/v8/tools/";
-    std::string primordial_prefix = "internal/per_context/";
-    std::string bootstrap_prefix = "internal/bootstrap/";
-    std::string main_prefix = "internal/main/";
-    to_eager_compile_ = std::unordered_set<std::string>(eager_builtins.begin(), eager_builtins.end());
+    constexpr std::string_view v8_tools_prefix = "internal/deps/v8/tools/";
+    constexpr std::string_view primordial_prefix = "internal/per_context/";
+    constexpr std::string_view bootstrap_prefix = "internal/bootstrap/";
+    constexpr std::string_view main_prefix = "internal/main/";
+    to_eager_compile_ = std::unordered_set(eager_builtins.begin(), eager_builtins.end());
 
     for (const auto& id : ids) {
-        if (id.compare(0, v8_tools_prefix.size(), v8_tools_prefix) == 0) {
+        if (id.starts_with(v8_tools_prefix)) {
             // No need to generate code cache for v8 scripts.
             continue;
         }
 
         // Eagerly compile primordials/boostrap/main scripts during code cache
         // generation.
-        if (id.compare(0, primordial_prefix.size(), primordial_prefix) == 0 || id.compare(0, bootstrap_prefix.size(), bootstrap_prefix) == 0
-            || id.compare(0, main_prefix.size(), main_prefix) == 0) {
+        if (id.starts_with(primordial_prefix) || id.starts_with(bootstrap_prefix) || id.starts_with(main_prefix)) {
             to_eager_compile_.emplace(id);
         }
 
-        v8::TryCatch bootstrapCatch(context->GetIsolate());
+        TryCatch bootstrapCatch(context->GetIsolate());
         auto fn = LookupAndCompile(context, id.data(), nullptr);
         if (bootstrapCatch.HasCaught()) {
             per_process::Debug(DebugCategory::CODE_CACHE, "Failed to compile code cache for %s\n", id.data());
@@ -585,8 +593,8 @@ bool BuiltinLoader::CompileAllBuiltinsAndCopyCodeCache(Local<Context> context, c
     }
 
     RwLock::ScopedReadLock lock(code_cache_->mutex);
-    for (auto const& item : code_cache_->map) {
-        out->push_back({ item.first, item.second });
+    for (const auto& [id, data] : code_cache_->map) {
+        out->push_back({ id, data });
     }
     return all_succeeded;
 }
@@ -596,8 +604,8 @@ void BuiltinLoader::RefreshCodeCache(const std::vector<CodeCacheInfo>& in)
     RwLock::ScopedLock lock(code_cache_->mutex);
     code_cache_->map.reserve(in.size());
     DCHECK(code_cache_->map.empty());
-    for (auto const& item : in) {
-        auto result = code_cache_->map.emplace(item.id, item.data);
+    for (auto const& [id, data] : in) {
+        auto result = code_cache_->map.emplace(id, data);
         USE(result.second);
         DCHECK(result.second);
     }
@@ -621,13 +629,10 @@ void BuiltinLoader::GetBuiltinCategories(Local<Name> property, const PropertyCal
     Local<Value> cannot_be_required_js;
     Local<Value> can_be_required_js;
 
-    if (!ToV8Value(context, builtin_categories.cannot_be_required).ToLocal(&cannot_be_required_js))
-        return;
-    if (result->Set(context, OneByteString(isolate, "cannotBeRequired"), cannot_be_required_js).IsNothing())
-        return;
-    if (!ToV8Value(context, builtin_categories.can_be_required).ToLocal(&can_be_required_js))
-        return;
-    if (result->Set(context, OneByteString(isolate, "canBeRequired"), can_be_required_js).IsNothing()) {
+    if (!ToV8Value(context, builtin_categories.cannot_be_required).ToLocal(&cannot_be_required_js)
+        || result->Set(context, FIXED_ONE_BYTE_STRING(isolate, "cannotBeRequired"), cannot_be_required_js).IsNothing()
+        || !ToV8Value(context, builtin_categories.can_be_required).ToLocal(&can_be_required_js)
+        || result->Set(context, FIXED_ONE_BYTE_STRING(isolate, "canBeRequired"), can_be_required_js).IsNothing()) {
         return;
     }
     info.GetReturnValue().Set(result);
@@ -643,24 +648,12 @@ void BuiltinLoader::GetCacheUsage(const FunctionCallbackInfo<Value>& args)
     Local<Value> builtins_with_cache_js;
     Local<Value> builtins_without_cache_js;
     Local<Value> builtins_in_snapshot_js;
-    if (!ToV8Value(context, realm->builtins_with_cache).ToLocal(&builtins_with_cache_js)) {
-        return;
-    }
-    if (result->Set(context, OneByteString(isolate, "compiledWithCache"), builtins_with_cache_js).IsNothing()) {
-        return;
-    }
-
-    if (!ToV8Value(context, realm->builtins_without_cache).ToLocal(&builtins_without_cache_js)) {
-        return;
-    }
-    if (result->Set(context, OneByteString(isolate, "compiledWithoutCache"), builtins_without_cache_js).IsNothing()) {
-        return;
-    }
-
-    if (!ToV8Value(context, realm->builtins_in_snapshot).ToLocal(&builtins_in_snapshot_js)) {
-        return;
-    }
-    if (result->Set(context, OneByteString(isolate, "compiledInSnapshot"), builtins_in_snapshot_js).IsNothing()) {
+    if (!ToV8Value(context, realm->builtins_with_cache).ToLocal(&builtins_with_cache_js)
+        || result->Set(context, FIXED_ONE_BYTE_STRING(isolate, "compiledWithCache"), builtins_with_cache_js).IsNothing()
+        || !ToV8Value(context, realm->builtins_without_cache).ToLocal(&builtins_without_cache_js)
+        || result->Set(context, FIXED_ONE_BYTE_STRING(isolate, "compiledWithoutCache"), builtins_without_cache_js).IsNothing()
+        || !ToV8Value(context, realm->builtins_in_snapshot).ToLocal(&builtins_in_snapshot_js)
+        || result->Set(context, FIXED_ONE_BYTE_STRING(isolate, "compiledInSnapshot"), builtins_in_snapshot_js).IsNothing()) {
         return;
     }
 
@@ -672,8 +665,11 @@ void BuiltinLoader::BuiltinIdsGetter(Local<Name> property, const PropertyCallbac
     Environment* env = Environment::GetCurrent(info);
     Isolate* isolate = env->isolate();
 
-    std::vector<std::string_view> ids = env->builtin_loader()->GetBuiltinIds();
-    info.GetReturnValue().Set(ToV8Value(isolate->GetCurrentContext(), ids).ToLocalChecked());
+    auto ids = env->builtin_loader()->GetBuiltinIds();
+    Local<Value> ret;
+    if (ToV8Value(isolate->GetCurrentContext(), ids).ToLocal(&ret)) {
+        info.GetReturnValue().Set(ret);
+    }
 }
 
 void BuiltinLoader::ConfigStringGetter(Local<Name> property, const PropertyCallbackInfo<Value>& info)
@@ -708,7 +704,7 @@ void BuiltinLoader::HasCachedBuiltins(const FunctionCallbackInfo<Value>& args)
 {
     auto instance = Environment::GetCurrent(args)->builtin_loader();
     RwLock::ScopedReadLock lock(instance->code_cache_->mutex);
-    args.GetReturnValue().Set(v8::Boolean::New(args.GetIsolate(), instance->code_cache_->has_code_cache));
+    args.GetReturnValue().Set(Boolean::New(args.GetIsolate(), instance->code_cache_->has_code_cache));
 }
 
 void SetInternalLoaders(const FunctionCallbackInfo<Value>& args)
@@ -732,16 +728,15 @@ void BuiltinLoader::CreatePerIsolateProperties(IsolateData* isolate_data, Local<
 {
     Isolate* isolate = isolate_data->isolate();
 
-    target->SetNativeDataProperty(isolate_data->config_string(), ConfigStringGetter, nullptr, Local<Value>(), None, DEFAULT, SideEffectType::kHasNoSideEffect);
+    target->SetNativeDataProperty(isolate_data->config_string(), ConfigStringGetter, nullptr, Local<Value>(), None, SideEffectType::kHasNoSideEffect);
 
     target->SetNativeDataProperty(
-        FIXED_ONE_BYTE_STRING(isolate, "builtinIds"), BuiltinIdsGetter, nullptr, Local<Value>(), None, DEFAULT, SideEffectType::kHasNoSideEffect);
+        FIXED_ONE_BYTE_STRING(isolate, "builtinIds"), BuiltinIdsGetter, nullptr, Local<Value>(), None, SideEffectType::kHasNoSideEffect);
 
     target->SetNativeDataProperty(
-        FIXED_ONE_BYTE_STRING(isolate, "builtinCategories"), GetBuiltinCategories, nullptr, Local<Value>(), None, DEFAULT, SideEffectType::kHasNoSideEffect);
+        FIXED_ONE_BYTE_STRING(isolate, "builtinCategories"), GetBuiltinCategories, nullptr, Local<Value>(), None, SideEffectType::kHasNoSideEffect);
 
-    target->SetNativeDataProperty(
-        FIXED_ONE_BYTE_STRING(isolate, "natives"), GetNatives, nullptr, Local<Value>(), None, DEFAULT, SideEffectType::kHasNoSideEffect);
+    target->SetNativeDataProperty(FIXED_ONE_BYTE_STRING(isolate, "natives"), GetNatives, nullptr, Local<Value>(), None, SideEffectType::kHasNoSideEffect);
 
     SetMethod(isolate, target, "getCacheUsage", BuiltinLoader::GetCacheUsage);
     SetMethod(isolate, target, "compileFunction", BuiltinLoader::CompileFunction);

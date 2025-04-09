@@ -68,7 +68,7 @@ class FSWatcher extends EventEmitter {
     if (encoding != null) {
       // This is required since on macOS and Windows it throws ERR_INVALID_ARG_VALUE
       if (typeof encoding !== 'string') {
-        throw new ERR_INVALID_ARG_VALUE(encoding, 'options.encoding');
+        throw new ERR_INVALID_ARG_VALUE('options.encoding', encoding);
       }
     }
 
@@ -83,7 +83,7 @@ class FSWatcher extends EventEmitter {
     this.#closed = true;
 
     for (const file of this.#files.keys()) {
-      this.#watchers.get(file).close();
+      this.#watchers.get(file)?.close();
       this.#watchers.delete(file);
     }
 
@@ -98,7 +98,7 @@ class FSWatcher extends EventEmitter {
     for (const filename of this.#files.keys()) {
       if (StringPrototypeStartsWith(filename, file)) {
         this.#files.delete(filename);
-        this.#watchers.get(filename).close();
+        this.#watchers.get(filename)?.close();
         this.#watchers.delete(filename);
       }
     }
@@ -126,9 +126,16 @@ class FSWatcher extends EventEmitter {
             this.#symbolicFiles.add(f);
           }
 
-          this.#watchFile(f);
-          if (file.isDirectory() && !file.isSymbolicLink()) {
-            this.#watchFolder(f);
+          try {
+            this.#watchFile(f);
+            if (file.isDirectory() && !file.isSymbolicLink()) {
+              this.#watchFolder(f);
+            }
+          } catch (err) {
+            // Ignore ENOENT
+            if (err.code !== 'ENOENT') {
+              throw err;
+            }
           }
         }
       }

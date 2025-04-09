@@ -38,6 +38,8 @@ const {
 } = require('internal/async_hooks');
 const { isErrorStackTraceLimitWritable } = require('internal/errors');
 
+const AsyncContextFrame = require('internal/async_context_frame');
+
 // *Must* match Environment::TickInfo::Fields in src/env.h.
 const kHasRejectionToWarn = 1;
 
@@ -85,7 +87,7 @@ class UnhandledPromiseRejectionWarning extends Error {
   /**
    * @param {number} uid
    */
-  constructor(uid) { mbConsoleLog("__callstack__ UnhandledPromiseRejectionWarning");
+  constructor(uid) {
     const message = 'Unhandled promise rejection. This error originated either by ' +
     'throwing inside of an async function without a catch block, ' +
     'or by rejecting a promise which was not handled with .catch(). ' +
@@ -260,6 +262,7 @@ function unhandledRejection(promise, reason) {
     uid: ++lastPromiseId,
     warned: false,
     domain: process.domain,
+    contextFrame: AsyncContextFrame.current(),
   });
   setHasRejectionToWarn(true);
 }
@@ -466,9 +469,12 @@ function processPromiseRejections() {
       );
     }
 
+    const { contextFrame } = promiseInfo;
+    const priorContextFrame = AsyncContextFrame.exchange(contextFrame);
     try {
       needPop = unhandledRejectionsMode(promise, promiseInfo, promiseAsyncId);
     } finally {
+      AsyncContextFrame.set(priorContextFrame);
       needPop &&
       promiseAsyncId !== undefined &&
       popAsyncContext(promiseAsyncId);

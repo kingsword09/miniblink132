@@ -152,7 +152,8 @@ public:
         state_ = kAfterValue;
     }
 
-    struct Null { }; // Usable as a JSON value.
+    struct Null {
+    }; // Usable as a JSON value.
 
     struct ForeignJSON {
         std::string as_string;

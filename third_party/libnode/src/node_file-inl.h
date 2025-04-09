@@ -200,7 +200,13 @@ template <typename AliasedBufferT> void FSReqPromise<AliasedBufferT>::Reject(v8:
     finished_ = true;
     v8::HandleScope scope(env()->isolate());
     InternalCallbackScope callback_scope(this);
-    v8::Local<v8::Value> value = object()->Get(env()->context(), env()->promise_string()).ToLocalChecked();
+    v8::Local<v8::Value> value;
+    if (!object()->Get(env()->context(), env()->promise_string()).ToLocal(&value)) {
+        // If we hit this, getting the value from the object failed and
+        // an error was likely scheduled. We could try to reject the promise
+        // but let's just allow the error to propagate.
+        return;
+    }
     v8::Local<v8::Promise::Resolver> resolver = value.As<v8::Promise::Resolver>();
     USE(resolver->Reject(env()->context(), reject).FromJust());
 }
@@ -210,7 +216,13 @@ template <typename AliasedBufferT> void FSReqPromise<AliasedBufferT>::Resolve(v8
     finished_ = true;
     v8::HandleScope scope(env()->isolate());
     InternalCallbackScope callback_scope(this);
-    v8::Local<v8::Value> val = object()->Get(env()->context(), env()->promise_string()).ToLocalChecked();
+    v8::Local<v8::Value> val;
+    if (!object()->Get(env()->context(), env()->promise_string()).ToLocal(&val)) {
+        // If we hit this, getting the value from the object failed and
+        // an error was likely scheduled. We could try to reject the promise
+        // but let's just allow the error to propagate.
+        return;
+    }
     v8::Local<v8::Promise::Resolver> resolver = val.As<v8::Promise::Resolver>();
     USE(resolver->Resolve(env()->context(), value).FromJust());
 }
@@ -229,7 +241,13 @@ template <typename AliasedBufferT> void FSReqPromise<AliasedBufferT>::ResolveSta
 
 template <typename AliasedBufferT> void FSReqPromise<AliasedBufferT>::SetReturnValue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Value> val = object()->Get(env()->context(), env()->promise_string()).ToLocalChecked();
+    v8::Local<v8::Value> val;
+    if (!object()->Get(env()->context(), env()->promise_string()).ToLocal(&val)) {
+        // If we hit this, getting the value from the object failed and
+        // an error was likely scheduled. We could try to reject the promise
+        // but let's just allow the error to propagate.
+        return;
+    }
     v8::Local<v8::Promise::Resolver> resolver = val.As<v8::Promise::Resolver>();
     args.GetReturnValue().Set(resolver->GetPromise());
 }
@@ -245,7 +263,7 @@ FSReqBase* GetReqWrap(const v8::FunctionCallbackInfo<v8::Value>& args, int index
 {
     v8::Local<v8::Value> value = args[index];
     if (value->IsObject()) {
-        return Unwrap<FSReqBase>(value.As<v8::Object>());
+        return BaseObject::Unwrap<FSReqBase>(value.As<v8::Object>());
     }
 
     Realm* realm = Realm::GetCurrent(args);

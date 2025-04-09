@@ -5,11 +5,12 @@
 #include <ngtcp2/ngtcp2_crypto.h>
 #include <node_sockaddr-inl.h>
 #include <string_bytes.h>
+#include <util-inl.h>
 #include <algorithm>
-#include "util.h"
+#include "nbytes.h"
+#include "ncrypto.h"
 
-namespace node {
-namespace quic {
+namespace node::quic {
 
 // ============================================================================
 // TokenSecret
@@ -17,20 +18,25 @@ namespace quic {
 TokenSecret::TokenSecret()
     : buf_()
 {
-    Reset();
+    // As a performance optimization later, we could consider creating an entropy
+    // cache here similar to what we use for random CIDs so that we do not have
+    // to engage CSPRNG on every call. That, however, is suboptimal for secrets.
+    // If someone manages to get visibility into that cache then they would know
+    // the secrets for a larger number of tokens, which could be bad. For now,
+    // generating on each call is safer, even if less performant.
+    CHECK(ncrypto::CSPRNG(buf_, QUIC_TOKENSECRET_LEN));
 }
 
 TokenSecret::TokenSecret(const uint8_t* secret)
     : buf_()
 {
-    *this = secret;
+    CHECK_NOT_NULL(secret);
+    memcpy(buf_, secret, QUIC_TOKENSECRET_LEN);
 }
 
-TokenSecret& TokenSecret::operator=(const uint8_t* other)
+TokenSecret::~TokenSecret()
 {
-    CHECK_NOT_NULL(other);
-    memcpy(buf_, other, QUIC_TOKENSECRET_LEN);
-    return *this;
+    memset(buf_, 0, QUIC_TOKENSECRET_LEN);
 }
 
 TokenSecret::operator const uint8_t*() const
@@ -38,15 +44,24 @@ TokenSecret::operator const uint8_t*() const
     return buf_;
 }
 
-void TokenSecret::Reset()
+uint8_t TokenSecret::operator[](int pos) const
 {
-    // As a performance optimization later, we could consider creating an entropy
-    // cache here similar to what we use for random CIDs so that we do not have
-    // to engage CSPRNG on every call. That, however, is suboptimal for secrets.
-    // If someone manages to get visibility into that cache then they would know
-    // the secrets for a larger number of tokens, which could be bad. For now,
-    // generating on each call is safer, even if less performant.
-    CHECK(crypto::CSPRNG(buf_, QUIC_TOKENSECRET_LEN).is_ok());
+    CHECK_GE(pos, 0);
+    CHECK_LT(pos, QUIC_TOKENSECRET_LEN);
+    return buf_[pos];
+}
+
+TokenSecret::operator const char*() const
+{
+    return reinterpret_cast<const char*>(buf_);
+}
+
+std::string TokenSecret::ToString() const
+{
+    char dest[QUIC_TOKENSECRET_LEN * 2];
+    size_t written = nbytes::HexEncode(*this, QUIC_TOKENSECRET_LEN, dest, arraysize(dest));
+    DCHECK_EQ(written, arraysize(dest));
+    return std::string(dest, written);
 }
 
 // ============================================================================
@@ -120,7 +135,7 @@ std::string StatelessResetToken::ToString() const
     if (ptr_ == nullptr)
         return std::string();
     char dest[kStatelessTokenLen * 2];
-    size_t written = StringBytes::hex_encode(*this, kStatelessTokenLen, dest, arraysize(dest));
+    size_t written = nbytes::HexEncode(*this, kStatelessTokenLen, dest, arraysize(dest));
     DCHECK_EQ(written, arraysize(dest));
     return std::string(dest, written);
 }
@@ -202,6 +217,32 @@ RetryToken::operator const ngtcp2_vec*() const
     return &ptr_;
 }
 
+std::string RetryToken::ToString() const
+{
+    if (ptr_.base == nullptr)
+        return std::string();
+    MaybeStackBuffer<char, 32> dest(ptr_.len * 2);
+    size_t written = nbytes::HexEncode(*this, ptr_.len, dest.out(), dest.length());
+    DCHECK_EQ(written, dest.length());
+    return std::string(dest.out(), written);
+}
+
+RetryToken::operator const char*() const
+{
+    return reinterpret_cast<const char*>(ptr_.base);
+}
+
+RetryToken::operator bool() const
+{
+    return ptr_.base != nullptr && ptr_.len > 0;
+}
+
+RegularToken::RegularToken()
+    : buf_()
+    , ptr_(ngtcp2_vec { nullptr, 0 })
+{
+}
+
 RegularToken::RegularToken(uint32_t version, const SocketAddress& address, const TokenSecret& token_secret)
     : buf_()
     , ptr_(GenerateRegularToken(buf_, version, address, token_secret))
@@ -213,6 +254,11 @@ RegularToken::RegularToken(const uint8_t* token, size_t size)
 {
     DCHECK_LE(size, RegularToken::kRegularTokenLen);
     DCHECK_IMPLIES(token == nullptr, size = 0);
+}
+
+RegularToken::operator bool() const
+{
+    return ptr_.base != nullptr && ptr_.len > 0;
 }
 
 bool RegularToken::Validate(uint32_t version, const SocketAddress& addr, const TokenSecret& token_secret, uint64_t verification_expiration)
@@ -233,7 +279,21 @@ RegularToken::operator const ngtcp2_vec*() const
     return &ptr_;
 }
 
-} // namespace quic
-} // namespace node
+std::string RegularToken::ToString() const
+{
+    if (ptr_.base == nullptr)
+        return std::string();
+    MaybeStackBuffer<char, 32> dest(ptr_.len * 2);
+    size_t written = nbytes::HexEncode(*this, ptr_.len, dest.out(), dest.length());
+    DCHECK_EQ(written, dest.length());
+    return std::string(dest.out(), written);
+}
+
+RegularToken::operator const char*() const
+{
+    return reinterpret_cast<const char*>(ptr_.base);
+}
+
+} // namespace node::quic
 
 #endif // HAVE_OPENSSL && NODE_OPENSSL_HAS_QUIC

@@ -50,6 +50,11 @@ template <typename T> void ReqWrap<T>::Cancel()
         uv_cancel(reinterpret_cast<uv_req_t*>(&req_));
 }
 
+template <typename T> bool ReqWrap<T>::IsDispatched()
+{
+    return req_.data != nullptr;
+}
+
 template <typename T> AsyncWrap* ReqWrap<T>::GetAsyncWrap()
 {
     return this;

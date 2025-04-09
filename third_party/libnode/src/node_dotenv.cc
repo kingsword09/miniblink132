@@ -6,90 +6,116 @@
 
 namespace node {
 
+using v8::EscapableHandleScope;
+using v8::JustVoid;
 using v8::Local;
-using v8::NewStringType;
+using v8::Maybe;
+using v8::MaybeLocal;
+using v8::Nothing;
 using v8::Object;
 using v8::String;
+using v8::Value;
 
-std::vector<std::string> Dotenv::GetPathFromArgs(const std::vector<std::string>& args)
+std::vector<Dotenv::env_file_data> Dotenv::GetDataFromArgs(const std::vector<std::string>& args)
 {
+    const std::string_view optional_env_file_flag = "--env-file-if-exists";
+
     const auto find_match = [](const std::string& arg) {
-        const std::string_view flag = "--env-file";
-        return strncmp(arg.c_str(), flag.data(), flag.size()) == 0;
+        return arg == "--" || arg == "--env-file" || arg.starts_with("--env-file=") || arg == "--env-file-if-exists"
+            || arg.starts_with("--env-file-if-exists=");
     };
-    std::vector<std::string> paths;
-    auto path = std::find_if(args.begin(), args.end(), find_match);
 
-    while (path != args.end()) {
-        auto equal_char = path->find('=');
+    std::vector<Dotenv::env_file_data> env_files;
+    // This will be an iterator, pointing to args.end() if no matches are found
+    auto matched_arg = std::find_if(args.begin(), args.end(), find_match);
 
-        if (equal_char != std::string::npos) {
-            paths.push_back(path->substr(equal_char + 1));
+    while (matched_arg != args.end()) {
+        if (*matched_arg == "--") {
+            return env_files;
+        }
+
+        auto equal_char_index = matched_arg->find('=');
+
+        if (equal_char_index != std::string::npos) {
+            // `--env-file=path`
+            auto flag = matched_arg->substr(0, equal_char_index);
+            auto file_path = matched_arg->substr(equal_char_index + 1);
+
+            struct env_file_data env_file_data = { file_path, flag.starts_with(optional_env_file_flag) };
+            env_files.push_back(env_file_data);
         } else {
-            auto next_path = std::next(path);
+            // `--env-file path`
+            auto file_path = std::next(matched_arg);
 
-            if (next_path == args.end()) {
-                return paths;
+            if (file_path == args.end()) {
+                return env_files;
             }
 
-            paths.push_back(*next_path);
+            struct env_file_data env_file_data = { *file_path, matched_arg->starts_with(optional_env_file_flag) };
+            env_files.push_back(env_file_data);
         }
 
-        path = std::find_if(++path, args.end(), find_match);
+        matched_arg = std::find_if(++matched_arg, args.end(), find_match);
     }
 
-    return paths;
+    return env_files;
 }
 
-void Dotenv::SetEnvironment(node::Environment* env)
+Maybe<void> Dotenv::SetEnvironment(node::Environment* env)
 {
-    if (store_.empty()) {
-        return;
-    }
-
-    auto isolate = env->isolate();
+    Local<Value> name;
+    Local<Value> val;
+    auto context = env->context();
 
     for (const auto& entry : store_) {
-        auto key = entry.first;
-        auto value = entry.second;
-
-        auto existing = env->env_vars()->Get(key.data());
-
-        if (existing.IsNothing()) {
-            env->env_vars()->Set(isolate, v8::String::NewFromUtf8(isolate, key.data(), NewStringType::kNormal, key.size()).ToLocalChecked(),
-                v8::String::NewFromUtf8(isolate, value.data(), NewStringType::kNormal, value.size()).ToLocalChecked());
+        auto existing = env->env_vars()->Get(entry.first.data());
+        if (!existing.has_value()) {
+            if (!ToV8Value(context, entry.first).ToLocal(&name) || !ToV8Value(context, entry.second).ToLocal(&val)) {
+                return Nothing<void>();
+            }
+            env->env_vars()->Set(env->isolate(), name.As<String>(), val.As<String>());
         }
     }
+
+    return JustVoid();
 }
 
-Local<Object> Dotenv::ToObject(Environment* env)
+MaybeLocal<Object> Dotenv::ToObject(Environment* env) const
 {
+    EscapableHandleScope scope(env->isolate());
     Local<Object> result = Object::New(env->isolate());
 
-    for (const auto& entry : store_) {
-        auto key = entry.first;
-        auto value = entry.second;
+    Local<Value> name;
+    Local<Value> val;
+    auto context = env->context();
 
-        result
-            ->Set(env->context(), v8::String::NewFromUtf8(env->isolate(), key.data(), NewStringType::kNormal, key.size()).ToLocalChecked(),
-                v8::String::NewFromUtf8(env->isolate(), value.data(), NewStringType::kNormal, value.size()).ToLocalChecked())
-            .Check();
+    for (const auto& entry : store_) {
+        if (!ToV8Value(context, entry.first).ToLocal(&name) || !ToV8Value(context, entry.second).ToLocal(&val) || result->Set(context, name, val).IsNothing()) {
+            return MaybeLocal<Object>();
+        }
     }
 
-    return result;
+    return scope.Escape(result);
 }
 
+// Removes space characters (spaces, tabs and newlines) from
+// the start and end of a given input string
 std::string_view trim_spaces(std::string_view input)
 {
     if (input.empty())
         return "";
-    if (input.front() == ' ') {
-        input.remove_prefix(input.find_first_not_of(' '));
+
+    auto pos_start = input.find_first_not_of(" \t\n");
+    if (pos_start == std::string_view::npos) {
+        return "";
     }
-    if (!input.empty() && input.back() == ' ') {
-        input = input.substr(0, input.find_last_not_of(' ') + 1);
+
+    auto pos_end = input.find_last_not_of(" \t\n");
+    if (pos_end == std::string_view::npos) {
+        return input.substr(pos_start);
     }
-    return input;
+
+    return input.substr(pos_start, pos_end - pos_start + 1);
 }
 
 void Dotenv::ParseContent(const std::string_view input)
@@ -125,13 +151,20 @@ void Dotenv::ParseContent(const std::string_view input)
         content.remove_prefix(equal + 1);
         key = trim_spaces(key);
 
+        // If the value is not present (e.g. KEY=) set is to an empty string
+        if (content.empty() || content.front() == '\n') {
+            store_.insert_or_assign(std::string(key), "");
+            continue;
+        }
+
+        content = trim_spaces(content);
+
         if (key.empty()) {
             break;
         }
 
         // Remove export prefix from key
-        auto have_export = key.compare(0, 7, "export ") == 0;
-        if (have_export) {
+        if (key.starts_with("export ")) {
             key.remove_prefix(7);
         }
 
@@ -158,7 +191,10 @@ void Dotenv::ParseContent(const std::string_view input)
                 }
 
                 store_.insert_or_assign(std::string(key), multi_line_value);
-                content.remove_prefix(content.find('\n', closing_quote + 1));
+                auto newline = content.find('\n', closing_quote + 1);
+                if (newline != std::string_view::npos) {
+                    content.remove_prefix(newline);
+                }
                 continue;
             }
         }
@@ -185,7 +221,10 @@ void Dotenv::ParseContent(const std::string_view input)
                 store_.insert_or_assign(std::string(key), value);
                 // Select the first newline after the closing quotation mark
                 // since there could be newline characters inside the value.
-                content.remove_prefix(content.find('\n', closing_quote + 1));
+                auto newline = content.find('\n', closing_quote + 1);
+                if (newline != std::string_view::npos) {
+                    content.remove_prefix(newline);
+                }
             }
         } else {
             // Regular key value pair.
@@ -253,7 +292,7 @@ Dotenv::ParseResult Dotenv::ParsePath(const std::string_view path)
     return ParseResult::Valid;
 }
 
-void Dotenv::AssignNodeOptionsIfAvailable(std::string* node_options)
+void Dotenv::AssignNodeOptionsIfAvailable(std::string* node_options) const
 {
     auto match = store_.find("NODE_OPTIONS");
 

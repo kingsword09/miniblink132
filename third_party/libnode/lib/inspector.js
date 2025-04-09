@@ -18,12 +18,15 @@ const {
   ERR_INSPECTOR_NOT_WORKER,
 } = require('internal/errors').codes;
 
+const { isLoopback } = require('internal/net');
+
 const { hasInspector } = internalBinding('config');
 if (!hasInspector)
   throw new ERR_INSPECTOR_NOT_AVAILABLE();
 
 const EventEmitter = require('events');
 const { queueMicrotask } = require('internal/process/task_queues');
+const { kEmptyObject } = require('internal/util');
 const {
   isUint32,
   validateFunction,
@@ -42,6 +45,7 @@ const {
   isEnabled,
   waitForDebugger,
   console,
+  emitProtocolEvent,
 } = internalBinding('inspector');
 
 class Session extends EventEmitter {
@@ -170,6 +174,17 @@ function inspectorOpen(port, host, wait) {
   if (isUint32(port)) {
     validateInt32(port, 'port', 0, 65535);
   }
+  if (host && !isLoopback(host)) {
+    process.emitWarning(
+      'Binding the inspector to a public IP with an open port is insecure, ' +
+        'as it allows external hosts to connect to the inspector ' +
+        'and perform a remote code execution attack. ' +
+        'Documentation can be found at ' +
+      'https://nodejs.org/api/cli.html#--inspecthostport',
+      'SecurityWarning',
+    );
+  }
+
   open(port, host);
   if (wait)
     waitForDebugger();
@@ -188,6 +203,19 @@ function inspectorWaitForDebugger() {
     throw new ERR_INSPECTOR_NOT_ACTIVE();
 }
 
+function broadcastToFrontend(eventName, params = kEmptyObject) {
+  validateString(eventName, 'eventName');
+  validateObject(params, 'params');
+  emitProtocolEvent(eventName, params);
+}
+
+const Network = {
+  requestWillBeSent: (params) => broadcastToFrontend('Network.requestWillBeSent', params),
+  responseReceived: (params) => broadcastToFrontend('Network.responseReceived', params),
+  loadingFinished: (params) => broadcastToFrontend('Network.loadingFinished', params),
+  loadingFailed: (params) => broadcastToFrontend('Network.loadingFailed', params),
+};
+
 module.exports = {
   open: inspectorOpen,
   close: _debugEnd,
@@ -195,4 +223,5 @@ module.exports = {
   waitForDebugger: inspectorWaitForDebugger,
   console,
   Session,
+  Network,
 };

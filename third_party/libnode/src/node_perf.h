@@ -119,7 +119,7 @@ template <typename Traits> struct PerformanceEntry {
             return;
         }
 
-        v8::Local<v8::Value> argv[] = { OneByteString(env->isolate(), name.c_str()), OneByteString(env->isolate(), GetPerformanceEntryTypeName(Traits::kType)),
+        v8::Local<v8::Value> argv[] = { OneByteString(env->isolate(), name), OneByteString(env->isolate(), GetPerformanceEntryTypeName(Traits::kType)),
             v8::Number::New(env->isolate(), start_time), v8::Number::New(env->isolate(), duration), detail };
 
         node::MakeSyncCallback(env->isolate(), env->context()->Global(), env->performance_entry_callback(), arraysize(argv), argv);

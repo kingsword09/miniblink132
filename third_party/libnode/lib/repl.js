@@ -87,9 +87,9 @@ const {
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeStartsWith,
+  StringPrototypeToLocaleLowerCase,
   StringPrototypeTrim,
   StringPrototypeTrimStart,
-  StringPrototypeToLocaleLowerCase,
   Symbol,
   SyntaxError,
   SyntaxErrorPrototype,
@@ -111,6 +111,7 @@ const {
   decorateErrorStack,
   isError,
   deprecate,
+  deprecateInstantiation,
   SideEffectFreeRegExpPrototypeSymbolReplace,
   SideEffectFreeRegExpPrototypeSymbolSplit,
 } = require('internal/util');
@@ -130,7 +131,7 @@ const { shouldColorize } = require('internal/util/colors');
 const CJSModule = require('internal/modules/cjs/loader').Module;
 let _builtinLibs = ArrayPrototypeFilter(
   CJSModule.builtinModules,
-  (e) => !StringPrototypeStartsWith(e, '_'),
+  (e) => e[0] !== '_' && !StringPrototypeStartsWith(e, 'node:'),
 );
 const nodeSchemeBuiltinLibs = ArrayPrototypeMap(
   _builtinLibs, (lib) => `node:${lib}`);
@@ -143,6 +144,7 @@ let debug = require('internal/util/debuglog').debuglog('repl', (fn) => {
   debug = fn;
 });
 const {
+  ErrorPrepareStackTrace,
   codes: {
     ERR_CANNOT_WATCH_SIGINT,
     ERR_INVALID_REPL_EVAL_CONFIG,
@@ -152,7 +154,6 @@ const {
   },
   isErrorStackTraceLimitWritable,
   overrideStackTrace,
-  ErrorPrepareStackTrace,
 } = require('internal/errors');
 const { sendInspectorCommand } = require('internal/util/inspector');
 const { getOptionValue } = require('internal/options');
@@ -171,6 +172,7 @@ const {
   kStandaloneREPL,
   setupPreview,
   setupReverseSearch,
+  isObjectLiteral,
 } = require('internal/repl/utils');
 const {
   constants: {
@@ -262,12 +264,7 @@ function REPLServer(prompt,
                     ignoreUndefined,
                     replMode) {
   if (!(this instanceof REPLServer)) {
-    return new REPLServer(prompt,
-                          stream,
-                          eval_,
-                          useGlobal,
-                          ignoreUndefined,
-                          replMode);
+    return deprecateInstantiation(REPLServer, 'DEP0185', prompt, stream, eval_, useGlobal, ignoreUndefined, replMode);
   }
 
   let options;
@@ -286,10 +283,9 @@ function REPLServer(prompt,
 
   if (!options.input && !options.output) {
     // Legacy API, passing a 'stream'/'socket' option.
-    if (!stream) {
-      // Use stdin and stdout as the default streams if none were given.
-      stream = process;
-    }
+    // Use stdin and stdout as the default streams if none were given.
+    stream ||= process;
+
     // We're given a duplex readable/writable Stream, like a `net.Socket`
     // or a custom object with 2 streams, or the `process` object.
     options.input = stream.stdin || stream;
@@ -398,7 +394,7 @@ function REPLServer(prompt,
                                   `${sep}(.*)${sep}(.*)${sep}(.*)${sep}(.*)` +
                                   `${sep}(.*)$`);
 
-  eval_ = eval_ || defaultEval;
+  eval_ ||= defaultEval;
 
   const self = this;
 
@@ -441,13 +437,8 @@ function REPLServer(prompt,
     let awaitPromise = false;
     const input = code;
 
-    // It's confusing for `{ a : 1 }` to be interpreted as a block
-    // statement rather than an object literal.  So, we first try
-    // to wrap it in parentheses, so that it will be interpreted as
-    // an expression.  Note that if the above condition changes,
-    // lib/internal/repl/utils.js needs to be changed to match.
-    if (RegExpPrototypeExec(/^\s*{/, code) !== null &&
-        RegExpPrototypeExec(/;\s*$/, code) === null) {
+    if (isObjectLiteral(code)) {
+      // Add parentheses to make sure `code` is parsed as an expression
       code = `(${StringPrototypeTrim(code)})\n`;
       wrappedCmd = true;
     }
@@ -462,9 +453,11 @@ function REPLServer(prompt,
     } catch {
       // Continue regardless of error.
     }
-    async function importModuleDynamically(specifier, _, importAttributes) {
+    async function importModuleDynamically(specifier, _, importAttributes, phase) {
       const cascadedLoader = require('internal/modules/esm/loader').getOrInitializeCascadedLoader();
-      return cascadedLoader.import(specifier, parentURL, importAttributes);
+      return cascadedLoader.import(specifier, parentURL, importAttributes,
+                                   phase === 'evaluation' ? cascadedLoader.kEvaluationPhase :
+                                     cascadedLoader.kSourcePhase);
     }
     // `experimentalREPLAwait` is set to true by default.
     // Shall be false in case `--no-experimental-repl-await` flag is used.
@@ -879,7 +872,7 @@ function REPLServer(prompt,
 
   self.on('line', function onLine(cmd) {
     debug('line %j', cmd);
-    cmd = cmd || '';
+    cmd ||= '';
     sawSIGINT = false;
 
     if (self.editorMode) {
@@ -908,8 +901,8 @@ function REPLServer(prompt,
           StringPrototypeCharAt(trimmedCmd, 1) !== '.' &&
           NumberIsNaN(NumberParseFloat(trimmedCmd))) {
         const matches = RegExpPrototypeExec(/^\.([^\s]+)\s*(.*)$/, trimmedCmd);
-        const keyword = matches && matches[1];
-        const rest = matches && matches[2];
+        const keyword = matches?.[1];
+        const rest = matches?.[2];
         if (ReflectApply(_parseREPLKeyword, self, [keyword, rest]) === true) {
           return;
         }
@@ -931,7 +924,9 @@ function REPLServer(prompt,
       ReflectApply(_memory, self, [cmd]);
 
       if (e && !self[kBufferedCommandSymbol] &&
-          StringPrototypeStartsWith(StringPrototypeTrim(cmd), 'npm ')) {
+          StringPrototypeStartsWith(StringPrototypeTrim(cmd), 'npm ') &&
+          !(e instanceof Recoverable)
+      ) {
         self.output.write('npm should be run outside of the ' +
                                 'Node.js REPL, in your normal shell.\n' +
                                 '(Press Ctrl+D to exit.)\n');
@@ -1005,7 +1000,7 @@ function REPLServer(prompt,
   // Wrap readline tty to enable editor mode and pausing.
   const ttyWrite = FunctionPrototypeBind(self._ttyWrite, self);
   self._ttyWrite = (d, key) => {
-    key = key || {};
+    key ||= {};
     if (paused && !(self.breakEvalOnSigint && key.ctrl && key.name === 'c')) {
       ArrayPrototypePush(pausedBuffer,
                          ['key', [d, key], self.isCompletionEnabled]);
@@ -1251,7 +1246,7 @@ function filteredOwnPropertyNames(obj) {
   let isObjectPrototype = false;
   if (ObjectGetPrototypeOf(obj) === null) {
     const ctorDescriptor = ObjectGetOwnPropertyDescriptor(obj, 'constructor');
-    if (ctorDescriptor && ctorDescriptor.value) {
+    if (ctorDescriptor?.value) {
       const ctorProto = ObjectGetPrototypeOf(ctorDescriptor.value);
       isObjectPrototype = ctorProto && ObjectGetPrototypeOf(ctorProto) === obj;
     }
@@ -1526,7 +1521,7 @@ function complete(line, callback) {
         let p;
         if ((typeof obj === 'object' && obj !== null) ||
             typeof obj === 'function') {
-          memberGroups.push(filteredOwnPropertyNames(obj));
+          ArrayPrototypePush(memberGroups, filteredOwnPropertyNames(obj));
           p = ObjectGetPrototypeOf(obj);
         } else {
           p = obj.constructor ? obj.constructor.prototype : null;
@@ -1534,7 +1529,7 @@ function complete(line, callback) {
         // Circular refs possible? Let's guard against that.
         let sentinel = 5;
         while (p !== null && sentinel-- !== 0) {
-          memberGroups.push(filteredOwnPropertyNames(p));
+          ArrayPrototypePush(memberGroups, filteredOwnPropertyNames(p));
           p = ObjectGetPrototypeOf(p);
         }
       } catch {
@@ -1551,9 +1546,7 @@ function complete(line, callback) {
                              ArrayPrototypeMap(group,
                                                (member) => `${expr}${member}`));
         });
-        if (filter) {
-          filter = `${expr}${filter}`;
-        }
+        filter &&= `${expr}${filter}`;
       }
 
       completionGroupsLoaded();
@@ -1643,8 +1636,8 @@ REPLServer.prototype.defineCommand = function(keyword, cmd) {
 // sufficient anymore.
 function _memory(cmd) {
   const self = this;
-  self.lines = self.lines || [];
-  self.lines.level = self.lines.level || [];
+  self.lines ||= [];
+  self.lines.level ||= [];
 
   // Save the line so I can do magic later
   if (cmd) {

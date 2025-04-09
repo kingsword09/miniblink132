@@ -3,10 +3,10 @@
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
+#include <functional>
 #include <queue>
 #include <unordered_map>
 #include <vector>
-#include <functional>
 
 #include "libplatform/libplatform.h"
 #include "node.h"
@@ -55,9 +55,6 @@ public:
     ~PerIsolatePlatformData() override;
 
     std::shared_ptr<v8::TaskRunner> GetForegroundTaskRunner() override;
-    void PostTask(std::unique_ptr<v8::Task> task) override;
-    void PostIdleTask(std::unique_ptr<v8::IdleTask> task) override;
-    void PostDelayedTask(std::unique_ptr<v8::Task> task, double delay_in_seconds) override;
     bool IdleTasksEnabled() override
     {
         return false;
@@ -72,8 +69,6 @@ public:
     {
         return true;
     }
-    void PostNonNestableTask(std::unique_ptr<v8::Task> task) override;
-    void PostNonNestableDelayedTask(std::unique_ptr<v8::Task> task, double delay_in_seconds) override;
 
     void AddShutdownCallback(void (*callback)(void*), void* data);
     void Shutdown();
@@ -89,6 +84,13 @@ public:
     }
 
 private:
+    // v8::TaskRunner implementation.
+    void PostTaskImpl(std::unique_ptr<v8::Task> task, const v8::SourceLocation& location) override;
+    void PostDelayedTaskImpl(std::unique_ptr<v8::Task> task, double delay_in_seconds, const v8::SourceLocation& location) override;
+    void PostIdleTaskImpl(std::unique_ptr<v8::IdleTask> task, const v8::SourceLocation& location) override;
+    void PostNonNestableTaskImpl(std::unique_ptr<v8::Task> task, const v8::SourceLocation& location) override;
+    void PostNonNestableDelayedTaskImpl(std::unique_ptr<v8::Task> task, double delay_in_seconds, const v8::SourceLocation& location) override;
+
     void DeleteFromScheduledTasks(DelayedTask* task);
     void DecreaseHandleCount();
 
@@ -149,23 +151,23 @@ public:
 
     // v8::Platform implementation.
     int NumberOfWorkerThreads() override;
-    void CallOnWorkerThread(std::unique_ptr<v8::Task> task) override;
-    void CallDelayedOnWorkerThread(std::unique_ptr<v8::Task> task, double delay_in_seconds) override;
+    void PostTaskOnWorkerThreadImpl(v8::TaskPriority priority, std::unique_ptr<v8::Task> task, const v8::SourceLocation& location) override;
+    void PostDelayedTaskOnWorkerThreadImpl(
+        v8::TaskPriority priority, std::unique_ptr<v8::Task> task, double delay_in_seconds, const v8::SourceLocation& location) override;
     bool IdleTasksEnabled(v8::Isolate* isolate) override;
     double MonotonicallyIncreasingTime() override;
     double CurrentClockTimeMillis() override;
     v8::TracingController* GetTracingController() override;
     bool FlushForegroundTasks(v8::Isolate* isolate) override;
-    std::unique_ptr<v8::JobHandle> CreateJob(v8::TaskPriority priority, std::unique_ptr<v8::JobTask> job_task) override;
+    std::unique_ptr<v8::JobHandle> CreateJobImpl(v8::TaskPriority priority, std::unique_ptr<v8::JobTask> job_task, const v8::SourceLocation& location) override;
 
-    bool IsRegisterIsolate(v8::Isolate* isolate) const override;
     void RegisterIsolate(v8::Isolate* isolate, uv_loop_t* loop) override;
     void RegisterIsolate(v8::Isolate* isolate, IsolatePlatformDelegate* delegate) override;
 
     void UnregisterIsolate(v8::Isolate* isolate) override;
     void AddIsolateFinishedCallback(v8::Isolate* isolate, void (*callback)(void*), void* data) override;
 
-    std::shared_ptr<v8::TaskRunner> GetForegroundTaskRunner(v8::Isolate* isolate) override;
+    std::shared_ptr<v8::TaskRunner> GetForegroundTaskRunner(v8::Isolate* isolate, v8::TaskPriority priority) override;
 
     Platform::StackTracePrinter GetStackTracePrinter() override;
     v8::PageAllocator* GetPageAllocator() override;

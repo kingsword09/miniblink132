@@ -14,7 +14,7 @@ void ChildProcessPermission::Apply(Environment* env, const std::vector<std::stri
     deny_all_ = true;
 }
 
-bool ChildProcessPermission::is_granted(PermissionScope perm, const std::string_view& param) const
+bool ChildProcessPermission::is_granted(Environment* env, PermissionScope perm, const std::string_view& param) const
 {
     return deny_all_ == false;
 }

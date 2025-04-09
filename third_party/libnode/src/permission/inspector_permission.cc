@@ -13,7 +13,7 @@ void InspectorPermission::Apply(Environment* env, const std::vector<std::string>
     deny_all_ = true;
 }
 
-bool InspectorPermission::is_granted(PermissionScope perm, const std::string_view& param) const
+bool InspectorPermission::is_granted(Environment* env, PermissionScope perm, const std::string_view& param) const
 {
     return deny_all_ == false;
 }

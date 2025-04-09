@@ -11,9 +11,10 @@
 #include "uv.h"
 #include "v8.h"
 
+#include <compare>
+#include <list>
 #include <memory>
 #include <string>
-#include <list>
 #include <unordered_map>
 
 namespace node {
@@ -22,8 +23,6 @@ class Environment;
 
 class SocketAddress : public MemoryRetainer {
 public:
-    enum class CompareResult { NOT_COMPARABLE = -2, LESS_THAN, SAME, GREATER_THAN };
-
     struct Hash {
         size_t operator()(const SocketAddress& addr) const;
     };
@@ -31,10 +30,7 @@ public:
     inline bool operator==(const SocketAddress& other) const;
     inline bool operator!=(const SocketAddress& other) const;
 
-    inline bool operator<(const SocketAddress& other) const;
-    inline bool operator>(const SocketAddress& other) const;
-    inline bool operator<=(const SocketAddress& other) const;
-    inline bool operator>=(const SocketAddress& other) const;
+    inline std::partial_ordering operator<=>(const SocketAddress& other) const;
 
     inline static bool is_numeric_host(const char* hostname);
     inline static bool is_numeric_host(const char* hostname, int family);
@@ -86,7 +82,7 @@ public:
     bool is_match(const SocketAddress& other) const;
 
     // Compares this SocketAddress to the given other SocketAddress.
-    CompareResult compare(const SocketAddress& other) const;
+    std::partial_ordering compare(const SocketAddress& other) const;
 
     // Returns true if this SocketAddress is within the subnet
     // identified by the given network address and CIDR prefix.
@@ -152,7 +148,7 @@ public:
     SET_MEMORY_INFO_NAME(SocketAddressBase)
     SET_SELF_SIZE(SocketAddressBase)
 
-    TransferMode GetTransferMode() const override
+    BaseObject::TransferMode GetTransferMode() const override
     {
         return TransferMode::kCloneable;
     }
@@ -301,7 +297,7 @@ public:
     SET_SELF_SIZE(SocketAddressBlockList)
 
 private:
-    bool ListRules(Environment* env, std::vector<v8::Local<v8::Value>>* vec);
+    bool ListRules(Environment* env, v8::LocalVector<v8::Value>* vec);
 
     std::shared_ptr<SocketAddressBlockList> parent_;
     std::list<std::unique_ptr<Rule>> rules_;
@@ -333,7 +329,7 @@ public:
     SET_MEMORY_INFO_NAME(SocketAddressBlockListWrap)
     SET_SELF_SIZE(SocketAddressBlockListWrap)
 
-    TransferMode GetTransferMode() const override
+    BaseObject::TransferMode GetTransferMode() const override
     {
         return TransferMode::kCloneable;
     }

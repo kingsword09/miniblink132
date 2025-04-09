@@ -31,26 +31,22 @@
 #define SKIP_CHECK_VALUE "1"
 #define SKIP_CHECK_STRLEN (sizeof(SKIP_CHECK_VALUE) - 1)
 
-// E:\mycode\node-v20.15.0\deps\YY-Thunks-1.1.2\objs\x86\YY_Thunks_for_WinXP.obj
-
-int wmainNode(int argc, wchar_t* wargv[])
+int wmain(int argc, wchar_t* wargv[])
 {
     // Windows Server 2012 (not R2) is supported until 10/10/2023, so we allow it
     // to run in the experimental support tier.
     char buf[SKIP_CHECK_STRLEN + 1];
-    //   if (!IsWindows8Point1OrGreater() &&
-    //       !(IsWindowsServer() && IsWindows8OrGreater()) &&
-    //       (GetEnvironmentVariableA(SKIP_CHECK_VAR, buf, sizeof(buf)) !=
-    //            SKIP_CHECK_STRLEN ||
-    //        strncmp(buf, SKIP_CHECK_VALUE, SKIP_CHECK_STRLEN) != 0)) {
-    //     fprintf(stderr, "Node.js is only supported on Windows 8.1, Windows "
-    //                     "Server 2012 R2, or higher.\n"
-    //                     "Setting the " SKIP_CHECK_VAR " environment variable "
-    //                     "to 1 skips this\ncheck, but Node.js might not execute "
-    //                     "correctly. Any issues encountered on\nunsupported "
-    //                     "platforms will not be fixed.");
-    //     exit(ERROR_EXE_MACHINE_TYPE_MISMATCH);
-    //   }
+    if (!IsWindows10OrGreater()
+        && (GetEnvironmentVariableA(SKIP_CHECK_VAR, buf, sizeof(buf)) != SKIP_CHECK_STRLEN || strncmp(buf, SKIP_CHECK_VALUE, SKIP_CHECK_STRLEN) != 0)) {
+        fprintf(stderr,
+            "Node.js is only supported on Windows 10, Windows "
+            "Server 2016, or higher.\n"
+            "Setting the " SKIP_CHECK_VAR " environment variable "
+            "to 1 skips this\ncheck, but Node.js might not execute "
+            "correctly. Any issues encountered on\nunsupported "
+            "platforms will not be fixed.");
+        exit(ERROR_EXE_MACHINE_TYPE_MISMATCH);
+    }
 
     // Convert argv to UTF8
     char** argv = new char*[argc + 1];

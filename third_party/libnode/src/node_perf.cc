@@ -14,6 +14,7 @@
 namespace node {
 namespace performance {
 
+using v8::Array;
 using v8::Context;
 using v8::DontDelete;
 using v8::Function;
@@ -155,8 +156,11 @@ void MarkGarbageCollectionEnd(Isolate* isolate, GCType type, GCCallbackFlags fla
     }
     env->performance_state()->current_gc_type = 0;
     // If no one is listening to gc performance entries, do not create them.
-    if (LIKELY(!state->observers[NODE_PERFORMANCE_ENTRY_TYPE_GC]))
-        return;
+    if (!state->observers[NODE_PERFORMANCE_ENTRY_TYPE_GC])
+        [[likely]]
+        {
+            return;
+        }
 
     double start_time = (state->performance_last_gc_start_mark - env->time_origin()) / NANOS_PER_MILLIS;
     double duration = (PERFORMANCE_NOW() / NANOS_PER_MILLIS) - (state->performance_last_gc_start_mark / NANOS_PER_MILLIS);
@@ -215,6 +219,22 @@ void LoopIdleTime(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(1.0 * idle_time / NANOS_PER_MILLIS);
 }
 
+void UvMetricsInfo(const FunctionCallbackInfo<Value>& args)
+{
+    Environment* env = Environment::GetCurrent(args);
+    Isolate* isolate = env->isolate();
+    uv_metrics_t metrics;
+    // uv_metrics_info always return 0
+    CHECK_EQ(uv_metrics_info(env->event_loop(), &metrics), 0);
+    Local<Value> data[] = {
+        Integer::New(isolate, metrics.loop_count),
+        Integer::New(isolate, metrics.events),
+        Integer::New(isolate, metrics.events_waiting),
+    };
+    Local<Array> arr = Array::New(env->isolate(), data, arraysize(data));
+    args.GetReturnValue().Set(arr);
+}
+
 void CreateELDHistogram(const FunctionCallbackInfo<Value>& args)
 {
     Environment* env = Environment::GetCurrent(args);
@@ -271,6 +291,7 @@ static void CreatePerIsolateProperties(IsolateData* isolate_data, Local<ObjectTe
     SetMethod(isolate, target, "loopIdleTime", LoopIdleTime);
     SetMethod(isolate, target, "createELDHistogram", CreateELDHistogram);
     SetMethod(isolate, target, "markBootstrapComplete", MarkBootstrapComplete);
+    SetMethod(isolate, target, "uvMetricsInfo", UvMetricsInfo);
     SetFastMethodNoSideEffect(isolate, target, "now", SlowPerformanceNow, &fast_performance_now);
 }
 
@@ -320,6 +341,7 @@ void RegisterExternalReferences(ExternalReferenceRegistry* registry)
     registry->Register(LoopIdleTime);
     registry->Register(CreateELDHistogram);
     registry->Register(MarkBootstrapComplete);
+    registry->Register(UvMetricsInfo);
     registry->Register(SlowPerformanceNow);
     registry->Register(FastPerformanceNow);
     registry->Register(fast_performance_now.GetTypeInfo());

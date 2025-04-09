@@ -88,7 +88,7 @@ ShadowRealm::ShadowRealm(Environment* env)
 
 ShadowRealm::~ShadowRealm()
 {
-    while (HasCleanupHooks()) {
+    while (PendingCleanup()) {
         RunCleanup();
     }
 

@@ -102,14 +102,14 @@ public:
     static void GetPercentiles(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void GetPercentilesBigInt(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-    static void FastReset(v8::Local<v8::Value> receiver);
-    static double FastGetCount(v8::Local<v8::Value> receiver);
-    static double FastGetMin(v8::Local<v8::Value> receiver);
-    static double FastGetMax(v8::Local<v8::Value> receiver);
-    static double FastGetMean(v8::Local<v8::Value> receiver);
-    static double FastGetExceeds(v8::Local<v8::Value> receiver);
-    static double FastGetStddev(v8::Local<v8::Value> receiver);
-    static double FastGetPercentile(v8::Local<v8::Value> receiver, const double percentile);
+    static void FastReset(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
+    static double FastGetCount(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
+    static double FastGetMin(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
+    static double FastGetMax(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
+    static double FastGetMean(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
+    static double FastGetExceeds(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
+    static double FastGetStddev(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
+    static double FastGetPercentile(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver, const double percentile);
 
     static void AddMethods(v8::Isolate* isolate, v8::Local<v8::FunctionTemplate> tmpl);
 
@@ -150,15 +150,15 @@ public:
     static void RecordDelta(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Add(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-    static void FastRecord(v8::Local<v8::Value> receiver, const int64_t value,
+    static void FastRecord(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver, const int64_t value,
         v8::FastApiCallbackOptions& options); // NOLINT(runtime/references)
-    static void FastRecordDelta(v8::Local<v8::Value> receiver);
+    static void FastRecordDelta(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
 
     HistogramBase(Environment* env, v8::Local<v8::Object> wrap, const Histogram::Options& options = Histogram::Options {});
 
     HistogramBase(Environment* env, v8::Local<v8::Object> wrap, std::shared_ptr<Histogram> histogram);
 
-    TransferMode GetTransferMode() const override
+    BaseObject::TransferMode GetTransferMode() const override
     {
         return TransferMode::kCloneable;
     }
@@ -208,10 +208,10 @@ public:
     static void Start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Stop(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-    static void FastStart(v8::Local<v8::Value> receiver, bool reset);
-    static void FastStop(v8::Local<v8::Value> receiver);
+    static void FastStart(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver, bool reset);
+    static void FastStop(v8::Local<v8::Value> unused, v8::Local<v8::Value> receiver);
 
-    TransferMode GetTransferMode() const override
+    BaseObject::TransferMode GetTransferMode() const override
     {
         return TransferMode::kCloneable;
     }

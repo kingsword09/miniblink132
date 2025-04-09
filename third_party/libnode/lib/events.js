@@ -34,8 +34,8 @@ const {
   FunctionPrototypeBind,
   FunctionPrototypeCall,
   NumberMAX_SAFE_INTEGER,
-  ObjectDefineProperty,
   ObjectDefineProperties,
+  ObjectDefineProperty,
   ObjectGetPrototypeOf,
   ObjectSetPrototypeOf,
   Promise,
@@ -46,33 +46,31 @@ const {
   String,
   StringPrototypeSplit,
   Symbol,
-  SymbolFor,
   SymbolAsyncIterator,
   SymbolDispose,
+  SymbolFor,
 } = primordials;
 const kRejection = SymbolFor('nodejs.rejection');
 
-const { kEmptyObject } = require('internal/util');
+const { kEmptyObject, spliceOne } = require('internal/util');
 
 const {
   inspect,
   identicalSequenceRange,
 } = require('internal/util/inspect');
 
-let spliceOne;
 let FixedQueue;
 let kFirstEventParam;
 let kResistStopPropagation;
 
 const {
   AbortError,
-  kEnhanceStackBeforeInspector,
   codes: {
     ERR_INVALID_ARG_TYPE,
-    ERR_INVALID_THIS,
     ERR_UNHANDLED_ERROR,
   },
   genericNodeError,
+  kEnhanceStackBeforeInspector,
 } = require('internal/errors');
 
 const {
@@ -81,6 +79,7 @@ const {
   validateBoolean,
   validateFunction,
   validateNumber,
+  validateObject,
   validateString,
 } = require('internal/validators');
 const { addAbortListener } = require('internal/events/abort_listener');
@@ -106,9 +105,9 @@ function lazyEventEmitterAsyncResource() {
       AsyncResource,
     } = require('async_hooks');
 
-    const kEventEmitter = Symbol('kEventEmitter');
-    const kAsyncResource = Symbol('kAsyncResource');
     class EventEmitterReferencingAsyncResource extends AsyncResource {
+      #eventEmitter;
+
       /**
        * @param {EventEmitter} ee
        * @param {string} [type]
@@ -119,21 +118,21 @@ function lazyEventEmitterAsyncResource() {
        */
       constructor(ee, type, options) {
         super(type, options);
-        this[kEventEmitter] = ee;
+        this.#eventEmitter = ee;
       }
 
       /**
        * @type {EventEmitter}
        */
       get eventEmitter() {
-        if (this[kEventEmitter] === undefined)
-          throw new ERR_INVALID_THIS('EventEmitterReferencingAsyncResource');
-        return this[kEventEmitter];
+        return this.#eventEmitter;
       }
     }
 
     EventEmitterAsyncResource =
       class EventEmitterAsyncResource extends EventEmitter {
+        #asyncResource;
+
         /**
          * @param {{
          *   name?: string,
@@ -154,8 +153,7 @@ function lazyEventEmitterAsyncResource() {
           }
           super(options);
 
-          this[kAsyncResource] =
-            new EventEmitterReferencingAsyncResource(this, name, options);
+          this.#asyncResource = new EventEmitterReferencingAsyncResource(this, name, options);
         }
 
         /**
@@ -164,9 +162,7 @@ function lazyEventEmitterAsyncResource() {
          * @returns {boolean}
          */
         emit(event, ...args) {
-          if (this[kAsyncResource] === undefined)
-            throw new ERR_INVALID_THIS('EventEmitterAsyncResource');
-          const { asyncResource } = this;
+          const asyncResource = this.#asyncResource;
           ArrayPrototypeUnshift(args, super.emit, this, event);
           return ReflectApply(asyncResource.runInAsyncScope, asyncResource,
                               args);
@@ -176,36 +172,28 @@ function lazyEventEmitterAsyncResource() {
          * @returns {void}
          */
         emitDestroy() {
-          if (this[kAsyncResource] === undefined)
-            throw new ERR_INVALID_THIS('EventEmitterAsyncResource');
-          this.asyncResource.emitDestroy();
+          this.#asyncResource.emitDestroy();
         }
 
         /**
          * @type {number}
          */
         get asyncId() {
-          if (this[kAsyncResource] === undefined)
-            throw new ERR_INVALID_THIS('EventEmitterAsyncResource');
-          return this.asyncResource.asyncId();
+          return this.#asyncResource.asyncId();
         }
 
         /**
          * @type {number}
          */
         get triggerAsyncId() {
-          if (this[kAsyncResource] === undefined)
-            throw new ERR_INVALID_THIS('EventEmitterAsyncResource');
-          return this.asyncResource.triggerAsyncId();
+          return this.#asyncResource.triggerAsyncId();
         }
 
         /**
          * @type {EventEmitterReferencingAsyncResource}
          */
         get asyncResource() {
-          if (this[kAsyncResource] === undefined)
-            throw new ERR_INVALID_THIS('EventEmitterAsyncResource');
-          return this[kAsyncResource];
+          return this.#asyncResource;
         }
       };
   }
@@ -350,7 +338,7 @@ EventEmitter.init = function(opts) {
     this[kShapeMode] = true;
   }
 
-  this._maxListeners = this._maxListeners || undefined;
+  this._maxListeners ||= undefined;
 
 
   if (opts?.captureRejections) {
@@ -470,7 +458,7 @@ EventEmitter.prototype.emit = function emit(type, ...args) {
   if (events !== undefined) {
     if (doError && events[kErrorMonitor] !== undefined)
       this.emit(kErrorMonitor, ...args);
-    doError = (doError && events.error === undefined);
+    doError &&= events.error === undefined;
   } else if (!doError)
     return false;
 
@@ -717,8 +705,6 @@ EventEmitter.prototype.removeListener =
         if (position === 0)
           list.shift();
         else {
-          if (spliceOne === undefined)
-            spliceOne = require('internal/util').spliceOne;
           spliceOne(list, position);
         }
 
@@ -953,7 +939,7 @@ function getEventListeners(emitterOrTarget, type) {
 function getMaxListeners(emitterOrTarget) {
   if (typeof emitterOrTarget?.getMaxListeners === 'function') {
     return _getMaxListeners(emitterOrTarget);
-  } else if (emitterOrTarget?.[kMaxEventTargetListeners]) {
+  } else if (typeof emitterOrTarget?.[kMaxEventTargetListeners] === 'number') {
     return emitterOrTarget[kMaxEventTargetListeners];
   }
 
@@ -966,15 +952,16 @@ function getMaxListeners(emitterOrTarget) {
  * Creates a `Promise` that is fulfilled when the emitter
  * emits the given event.
  * @param {EventEmitter} emitter
- * @param {string} name
+ * @param {string | symbol} name
  * @param {{ signal: AbortSignal; }} [options]
  * @returns {Promise}
  */
 async function once(emitter, name, options = kEmptyObject) {
-  const signal = options?.signal;
+  validateObject(options, 'options');
+  const { signal } = options;
   validateAbortSignal(signal, 'options.signal');
   if (signal?.aborted)
-    throw new AbortError(undefined, { cause: signal?.reason });
+    throw new AbortError(undefined, { cause: signal.reason });
   return new Promise((resolve, reject) => {
     const errorListener = (err) => {
       emitter.removeListener(name, resolver);
@@ -1058,10 +1045,11 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
  */
 function on(emitter, event, options = kEmptyObject) {
   // Parameters validation
+  validateObject(options, 'options');
   const signal = options.signal;
   validateAbortSignal(signal, 'options.signal');
   if (signal?.aborted)
-    throw new AbortError(undefined, { cause: signal?.reason });
+    throw new AbortError(undefined, { cause: signal.reason });
   // Support both highWaterMark and highWatermark for backward compatibility
   const highWatermark = options.highWaterMark ?? options.highWatermark ?? NumberMAX_SAFE_INTEGER;
   validateInteger(highWatermark, 'options.highWaterMark', 1);

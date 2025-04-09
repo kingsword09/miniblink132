@@ -71,7 +71,7 @@ public:
     int Start();
     void Close();
 
-    v8::Local<v8::Object> GetOutputAsBuffer(Environment* env) const;
+    v8::MaybeLocal<v8::Object> GetOutputAsBuffer(Environment* env) const;
 
     inline bool readable() const;
     inline bool writable() const;
@@ -132,7 +132,7 @@ private:
     inline Environment* env() const;
 
     v8::MaybeLocal<v8::Object> Run(v8::Local<v8::Value> options);
-    v8::Maybe<bool> TryInitializeAndRunLoop(v8::Local<v8::Value> options);
+    v8::Maybe<void> TryInitializeAndRunLoop(v8::Local<v8::Value> options);
     void CloseHandlesAndDeleteLoop();
 
     void CloseStdioPipes();
@@ -148,12 +148,12 @@ private:
     void SetError(int error);
     void SetPipeError(int pipe_error);
 
-    v8::Local<v8::Object> BuildResultObject();
-    v8::Local<v8::Array> BuildOutputArray();
+    v8::MaybeLocal<v8::Object> BuildResultObject();
+    v8::MaybeLocal<v8::Array> BuildOutputArray();
 
     v8::Maybe<int> ParseOptions(v8::Local<v8::Value> js_value);
-    int ParseStdioOptions(v8::Local<v8::Value> js_value);
-    int ParseStdioOption(int child_fd, v8::Local<v8::Object> js_stdio_option);
+    v8::Maybe<int> ParseStdioOptions(v8::Local<v8::Value> js_value);
+    v8::Maybe<int> ParseStdioOption(int child_fd, v8::Local<v8::Object> js_stdio_option);
 
     inline int AddStdioIgnore(uint32_t child_fd);
     inline int AddStdioPipe(uint32_t child_fd, bool readable, bool writable, uv_buf_t input_buffer);

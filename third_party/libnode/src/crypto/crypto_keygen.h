@@ -11,8 +11,7 @@
 #include "memory_tracker.h"
 #include "v8.h"
 
-namespace node {
-namespace crypto {
+namespace node::crypto {
 namespace Keygen {
 void Initialize(Environment* env, v8::Local<v8::Object> target);
 void RegisterExternalReferences(ExternalReferenceRegistry* registry);
@@ -81,25 +80,34 @@ public:
         }
     }
 
-    v8::Maybe<bool> ToResult(v8::Local<v8::Value>* err, v8::Local<v8::Value>* result) override
+    v8::Maybe<void> ToResult(v8::Local<v8::Value>* err, v8::Local<v8::Value>* result) override
     {
         Environment* env = AsyncWrap::env();
         CryptoErrorStore* errors = CryptoJob<KeyGenTraits>::errors();
         AdditionalParams* params = CryptoJob<KeyGenTraits>::params();
 
         if (status_ == KeyGenJobStatus::OK) {
-            v8::Maybe<bool> ret = KeyGenTraits::EncodeKey(env, params, result);
-            if (ret.IsJust() && ret.FromJust()) {
+            v8::TryCatch try_catch(env->isolate());
+            if (KeyGenTraits::EncodeKey(env, params).ToLocal(result)) {
                 *err = Undefined(env->isolate());
+            } else {
+                CHECK(try_catch.HasCaught());
+                CHECK(try_catch.CanContinue());
+                *result = Undefined(env->isolate());
+                *err = try_catch.Exception();
             }
-            return ret;
+        } else {
+            if (errors->Empty())
+                errors->Capture();
+            CHECK(!errors->Empty());
+            *result = Undefined(env->isolate());
+            if (!errors->ToException(env).ToLocal(err)) {
+                return v8::Nothing<void>();
+            }
         }
-
-        if (errors->Empty())
-            errors->Capture();
-        CHECK(!errors->Empty());
-        *result = Undefined(env->isolate());
-        return v8::Just(errors->ToException(env).ToLocal(err));
+        CHECK(!result->IsEmpty());
+        CHECK(!err->IsEmpty());
+        return v8::JustVoid();
     }
 
     SET_SELF_SIZE(KeyGenJob)
@@ -115,7 +123,7 @@ template <typename KeyPairAlgorithmTraits> struct KeyPairGenTraits final {
     static const AsyncWrap::ProviderType Provider = AsyncWrap::PROVIDER_KEYPAIRGENREQUEST;
     static constexpr const char* JobName = KeyPairAlgorithmTraits::JobName;
 
-    static v8::Maybe<bool> AdditionalConfig(
+    static v8::Maybe<void> AdditionalConfig(
         CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int* offset, AdditionalParameters* params)
     {
         // Notice that offset is a pointer. Each of the AdditionalConfig,
@@ -123,23 +131,18 @@ template <typename KeyPairAlgorithmTraits> struct KeyPairGenTraits final {
         // functions will update the value of the offset as they successfully
         // process input parameters. This allows each job to have a variable
         // number of input parameters specific to each job type.
-        if (KeyPairAlgorithmTraits::AdditionalConfig(mode, args, offset, params).IsNothing()) {
-            return v8::Just(false);
+        if (KeyPairAlgorithmTraits::AdditionalConfig(mode, args, offset, params).IsNothing()
+            || !KeyObjectData::GetPublicKeyEncodingFromJs(args, offset, kKeyContextGenerate).To(&params->public_key_encoding)
+            || !KeyObjectData::GetPrivateKeyEncodingFromJs(args, offset, kKeyContextGenerate).To(&params->private_key_encoding)) {
+            return v8::Nothing<void>();
         }
 
-        params->public_key_encoding = ManagedEVPPKey::GetPublicKeyEncodingFromJs(args, offset, kKeyContextGenerate);
-
-        auto private_key_encoding = ManagedEVPPKey::GetPrivateKeyEncodingFromJs(args, offset, kKeyContextGenerate);
-
-        if (!private_key_encoding.IsEmpty())
-            params->private_key_encoding = private_key_encoding.Release();
-
-        return v8::Just(true);
+        return v8::JustVoid();
     }
 
     static KeyGenJobStatus DoKeyGen(Environment* env, AdditionalParameters* params)
     {
-        EVPKeyCtxPointer ctx = KeyPairAlgorithmTraits::Setup(params);
+        ncrypto::EVPKeyCtxPointer ctx = KeyPairAlgorithmTraits::Setup(params);
 
         if (!ctx)
             return KeyGenJobStatus::FAILED;
@@ -149,19 +152,21 @@ template <typename KeyPairAlgorithmTraits> struct KeyPairGenTraits final {
         if (!EVP_PKEY_keygen(ctx.get(), &pkey))
             return KeyGenJobStatus::FAILED;
 
-        params->key = ManagedEVPPKey(EVPKeyPointer(pkey));
+        auto data = KeyObjectData::CreateAsymmetric(KeyType::kKeyTypePrivate, ncrypto::EVPKeyPointer(pkey));
+        if (!data)
+            [[unlikely]] return KeyGenJobStatus::FAILED;
+        params->key = std::move(data);
         return KeyGenJobStatus::OK;
     }
 
-    static v8::Maybe<bool> EncodeKey(Environment* env, AdditionalParameters* params, v8::Local<v8::Value>* result)
+    static v8::MaybeLocal<v8::Value> EncodeKey(Environment* env, AdditionalParameters* params)
     {
         v8::Local<v8::Value> keys[2];
-        if (params->key.ToEncodedPublicKey(env, params->public_key_encoding, &keys[0]).IsNothing()
-            || params->key.ToEncodedPrivateKey(env, params->private_key_encoding, &keys[1]).IsNothing()) {
-            return v8::Nothing<bool>();
+        if (!params->key.ToEncodedPublicKey(env, params->public_key_encoding, &keys[0])
+            || !params->key.ToEncodedPrivateKey(env, params->private_key_encoding, &keys[1])) {
+            return {};
         }
-        *result = v8::Array::New(env->isolate(), keys, arraysize(keys));
-        return v8::Just(true);
+        return v8::Array::New(env->isolate(), keys, arraysize(keys));
     }
 };
 
@@ -179,29 +184,25 @@ struct SecretKeyGenTraits final {
     static const AsyncWrap::ProviderType Provider = AsyncWrap::PROVIDER_KEYGENREQUEST;
     static constexpr const char* JobName = "SecretKeyGenJob";
 
-    static v8::Maybe<bool> AdditionalConfig(
+    static v8::Maybe<void> AdditionalConfig(
         CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int* offset, SecretKeyGenConfig* params);
 
     static KeyGenJobStatus DoKeyGen(Environment* env, SecretKeyGenConfig* params);
 
-    static v8::Maybe<bool> EncodeKey(Environment* env, SecretKeyGenConfig* params, v8::Local<v8::Value>* result);
+    static v8::MaybeLocal<v8::Value> EncodeKey(Environment* env, SecretKeyGenConfig* params);
 };
 
 template <typename AlgorithmParams> struct KeyPairGenConfig final : public MemoryRetainer {
-    PublicKeyEncodingConfig public_key_encoding;
-    PrivateKeyEncodingConfig private_key_encoding;
-    ManagedEVPPKey key;
+    ncrypto::EVPKeyPointer::PublicKeyEncodingConfig public_key_encoding;
+    ncrypto::EVPKeyPointer::PrivateKeyEncodingConfig private_key_encoding;
+    KeyObjectData key;
     AlgorithmParams params;
 
     KeyPairGenConfig() = default;
-    ~KeyPairGenConfig()
-    {
-        Mutex::ScopedLock priv_lock(*key.mutex());
-    }
 
     explicit KeyPairGenConfig(KeyPairGenConfig&& other) noexcept
         : public_key_encoding(other.public_key_encoding)
-        , private_key_encoding(std::forward<PrivateKeyEncodingConfig>(other.private_key_encoding))
+        , private_key_encoding(std::forward<ncrypto::EVPKeyPointer::PrivateKeyEncodingConfig>(other.private_key_encoding))
         , key(std::move(other.key))
         , params(std::move(other.params))
     {
@@ -218,8 +219,9 @@ template <typename AlgorithmParams> struct KeyPairGenConfig final : public Memor
     void MemoryInfo(MemoryTracker* tracker) const override
     {
         tracker->TrackField("key", key);
-        if (!private_key_encoding.passphrase_.IsEmpty()) {
-            tracker->TrackFieldWithSize("private_key_encoding.passphrase", private_key_encoding.passphrase_->size());
+        if (private_key_encoding.passphrase.has_value()) {
+            auto& passphrase = private_key_encoding.passphrase.value();
+            tracker->TrackFieldWithSize("private_key_encoding.passphrase", passphrase.size());
         }
         tracker->TrackField("params", params);
     }
@@ -241,16 +243,15 @@ struct NidKeyPairGenTraits final {
     using AdditionalParameters = NidKeyPairGenConfig;
     static constexpr const char* JobName = "NidKeyPairGenJob";
 
-    static EVPKeyCtxPointer Setup(NidKeyPairGenConfig* params);
+    static ncrypto::EVPKeyCtxPointer Setup(NidKeyPairGenConfig* params);
 
-    static v8::Maybe<bool> AdditionalConfig(
+    static v8::Maybe<void> AdditionalConfig(
         CryptoJobMode mode, const v8::FunctionCallbackInfo<v8::Value>& args, unsigned int* offset, NidKeyPairGenConfig* params);
 };
 
 using NidKeyPairGenJob = KeyGenJob<KeyPairGenTraits<NidKeyPairGenTraits>>;
 using SecretKeyGenJob = KeyGenJob<SecretKeyGenTraits>;
-} // namespace crypto
-} // namespace node
+} // namespace node::crypto
 
 #endif // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 #endif // SRC_CRYPTO_CRYPTO_KEYGEN_H_

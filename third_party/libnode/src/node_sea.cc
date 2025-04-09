@@ -19,7 +19,7 @@
 // resource has been injected. See
 // https://github.com/nodejs/postject/blob/35343439cac8c488f2596d7c4c1dddfec1fddcae/postject-api.h#L42-L45.
 #define POSTJECT_SENTINEL_FUSE "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"
-#include "postject-api.h"
+//#include "postject-api.h"
 #undef POSTJECT_SENTINEL_FUSE
 
 #include <memory>
@@ -36,6 +36,7 @@ using v8::FunctionCallbackInfo;
 using v8::HandleScope;
 using v8::Isolate;
 using v8::Local;
+using v8::MaybeLocal;
 using v8::NewStringType;
 using v8::Object;
 using v8::ScriptCompiler;
@@ -159,25 +160,27 @@ template <> SeaResource SeaDeserializer::Read()
 
 std::string_view FindSingleExecutableBlob()
 {
-#if !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
-    CHECK(IsSingleExecutable());
-    static const std::string_view result = []() -> std::string_view {
-        size_t size;
-#ifdef __APPLE__
-        postject_options options;
-        postject_options_init(&options);
-        options.macho_segment_name = "NODE_SEA";
-        const char* blob = static_cast<const char*>(postject_find_resource("NODE_SEA_BLOB", &size, &options));
-#else
-        const char* blob = static_cast<const char*>(postject_find_resource("NODE_SEA_BLOB", &size, nullptr));
-#endif
-        return { blob, size };
-    }();
-    per_process::Debug(DebugCategory::SEA, "Found SEA blob %p, size=%zu\n", result.data(), result.size());
-    return result;
-#else
-    UNREACHABLE();
-#endif // !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
+    *(int*)1 = 1;
+    return std::string_view("NODE_SEA_BLOB");
+// #if !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
+//     CHECK(IsSingleExecutable());
+//     static const std::string_view result = []() -> std::string_view {
+//         size_t size;
+// #ifdef __APPLE__
+//         postject_options options;
+//         postject_options_init(&options);
+//         options.macho_segment_name = "NODE_SEA";
+//         const char* blob = static_cast<const char*>(postject_find_resource("NODE_SEA_BLOB", &size, &options));
+// #else
+//         const char* blob = static_cast<const char*>(postject_find_resource("NODE_SEA_BLOB", &size, nullptr));
+// #endif
+//         return { blob, size };
+//     }();
+//     per_process::Debug(DebugCategory::SEA, "Found SEA blob %p, size=%zu\n", result.data(), result.size());
+//     return result;
+// #else
+//     UNREACHABLE();
+// #endif // !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
 }
 
 } // anonymous namespace
@@ -205,7 +208,8 @@ SeaResource FindSingleExecutableResource()
 
 bool IsSingleExecutable()
 {
-    return postject_has_resource();
+    //return postject_has_resource();
+    return false;
 }
 
 void IsSea(const FunctionCallbackInfo<Value>& args)
@@ -228,22 +232,6 @@ void IsExperimentalSeaWarningNeeded(const FunctionCallbackInfo<Value>& args)
 
     SeaResource sea_resource = FindSingleExecutableResource();
     args.GetReturnValue().Set(!static_cast<bool>(sea_resource.flags & SeaFlags::kDisableExperimentalSeaWarning));
-}
-
-void GetCodePath(const FunctionCallbackInfo<Value>& args)
-{
-    DCHECK(IsSingleExecutable());
-
-    Isolate* isolate = args.GetIsolate();
-
-    SeaResource sea_resource = FindSingleExecutableResource();
-
-    Local<String> code_path;
-    if (!String::NewFromUtf8(isolate, sea_resource.code_path.data(), NewStringType::kNormal, sea_resource.code_path.length()).ToLocal(&code_path)) {
-        return;
-    }
-
-    args.GetReturnValue().Set(code_path);
 }
 
 std::tuple<int, char**> FixupArgsForSEA(int argc, char** argv)
@@ -325,7 +313,13 @@ std::optional<SeaConfig> ParseSingleExecutableConfig(const std::string& config_p
         return std::nullopt;
     }
     if (use_code_cache.value()) {
-        result.flags |= SeaFlags::kUseCodeCache;
+        if (use_snapshot.value()) {
+            // TODO(joyeecheung): code cache in snapshot should be configured by
+            // separate snapshot configurations.
+            FPrintF(stderr, "\"useCodeCache\" is redundant when \"useSnapshot\" is true\n");
+        } else {
+            result.flags |= SeaFlags::kUseCodeCache;
+        }
     }
 
     auto assets_opt = parser.GetTopLevelStringDict("assets");
@@ -453,17 +447,13 @@ ExitCode GenerateSingleExecutableBlob(const SeaConfig& config, const std::vector
     std::optional<std::string_view> optional_sv_code_cache;
     std::string code_cache;
     if (static_cast<bool>(config.flags & SeaFlags::kUseCodeCache)) {
-        if (builds_snapshot_from_main) {
-            FPrintF(stderr, "\"useCodeCache\" is redundant when \"useSnapshot\" is true\n");
-        } else {
-            std::optional<std::string> optional_code_cache = GenerateCodeCache(config.main_path, main_script);
-            if (!optional_code_cache.has_value()) {
-                FPrintF(stderr, "Cannot generate V8 code cache\n");
-                return ExitCode::kGenericUserError;
-            }
-            code_cache = optional_code_cache.value();
-            optional_sv_code_cache = code_cache;
+        std::optional<std::string> optional_code_cache = GenerateCodeCache(config.main_path, main_script);
+        if (!optional_code_cache.has_value()) {
+            FPrintF(stderr, "Cannot generate V8 code cache\n");
+            return ExitCode::kGenericUserError;
         }
+        code_cache = optional_code_cache.value();
+        optional_sv_code_cache = code_cache;
     }
 
     std::unordered_map<std::string, std::string> assets;
@@ -528,11 +518,49 @@ void GetAsset(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(ab);
 }
 
+MaybeLocal<Value> LoadSingleExecutableApplication(const StartExecutionCallbackInfo& info)
+{
+    // Here we are currently relying on the fact that in NodeMainInstance::Run(),
+    // env->context() is entered.
+    Local<Context> context = Isolate::GetCurrent()->GetCurrentContext();
+    Environment* env = Environment::GetCurrent(context);
+    SeaResource sea = FindSingleExecutableResource();
+
+    CHECK(!sea.use_snapshot());
+    // TODO(joyeecheung): this should be an external string. Refactor UnionBytes
+    // and make it easy to create one based on static content on the fly.
+    Local<Value> main_script = ToV8Value(env->context(), sea.main_code_or_snapshot).ToLocalChecked();
+    return info.run_cjs->Call(env->context(), Null(env->isolate()), 1, &main_script);
+}
+
+bool MaybeLoadSingleExecutableApplication(Environment* env)
+{
+#ifndef DISABLE_SINGLE_EXECUTABLE_APPLICATION
+    if (!IsSingleExecutable()) {
+        return false;
+    }
+
+    SeaResource sea = FindSingleExecutableResource();
+
+    if (sea.use_snapshot()) {
+        // The SEA preparation blob building process should already enforce this,
+        // this check is just here to guard against the unlikely case where
+        // the SEA preparation blob has been manually modified by someone.
+        CHECK(!env->snapshot_deserialize_main().IsEmpty());
+        LoadEnvironment(env, StartExecutionCallback {});
+        return true;
+    }
+
+    LoadEnvironment(env, LoadSingleExecutableApplication);
+    return true;
+#endif
+    return false;
+}
+
 void Initialize(Local<Object> target, Local<Value> unused, Local<Context> context, void* priv)
 {
     SetMethod(context, target, "isSea", IsSea);
     SetMethod(context, target, "isExperimentalSeaWarningNeeded", IsExperimentalSeaWarningNeeded);
-    SetMethod(context, target, "getCodePath", GetCodePath);
     SetMethod(context, target, "getAsset", GetAsset);
 }
 
@@ -540,7 +568,6 @@ void RegisterExternalReferences(ExternalReferenceRegistry* registry)
 {
     registry->Register(IsSea);
     registry->Register(IsExperimentalSeaWarningNeeded);
-    registry->Register(GetCodePath);
     registry->Register(GetAsset);
 }
 

@@ -1,17 +1,17 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2022
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "llhttp", "llhttp.vcxproj", "{CA0A9E17-2B23-CD83-5028-218009877094}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "llhttp", "llhttp.vcxproj", "{793AF097-503D-3A09-E545-8D69DDF1E37A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+		Debug|x64 = Debug|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CA0A9E17-2B23-CD83-5028-218009877094}.Debug|Win32.ActiveCfg = Debug|Win32
-		{CA0A9E17-2B23-CD83-5028-218009877094}.Debug|Win32.Build.0 = Debug|Win32
-		{CA0A9E17-2B23-CD83-5028-218009877094}.Release|Win32.ActiveCfg = Release|Win32
-		{CA0A9E17-2B23-CD83-5028-218009877094}.Release|Win32.Build.0 = Release|Win32
+		{793AF097-503D-3A09-E545-8D69DDF1E37A}.Release|x64.ActiveCfg = Release|x64
+		{793AF097-503D-3A09-E545-8D69DDF1E37A}.Release|x64.Build.0 = Release|x64
+		{793AF097-503D-3A09-E545-8D69DDF1E37A}.Debug|x64.ActiveCfg = Debug|x64
+		{793AF097-503D-3A09-E545-8D69DDF1E37A}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
