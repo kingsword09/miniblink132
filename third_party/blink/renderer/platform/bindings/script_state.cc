@@ -27,6 +27,9 @@ ScriptState* ScriptState::Create(v8::Local<v8::Context> context, DOMWrapperWorld
     return s_create_callback_(context, world, execution_context);
 }
 
+int kBlinkV8ContextFlagIndex = 19;
+int kBlinkV8ContextFlagValue = 123456;
+
 ScriptState::ScriptState(v8::Local<v8::Context> context, DOMWrapperWorld* world, ExecutionContext* execution_context)
     : isolate_(context->GetIsolate())
     , context_(isolate_, context)
@@ -37,6 +40,11 @@ ScriptState::ScriptState(v8::Local<v8::Context> context, DOMWrapperWorld* world,
     context_.SetWeak(this, &OnV8ContextCollectedCallback);
     context->SetAlignedPointerInEmbedderData(kV8ContextPerContextDataIndex, this);
     RendererResourceCoordinator::Get()->OnScriptStateCreated(this, execution_context);
+
+    //--
+    CHECK(context->GetNumberOfEmbedderDataFields() < kBlinkV8ContextFlagIndex);
+    context->SetEmbedderData(kBlinkV8ContextFlagIndex, v8::Integer::New(isolate_, kBlinkV8ContextFlagValue));
+    //---
 }
 
 ScriptState::~ScriptState()
@@ -45,6 +53,40 @@ ScriptState::~ScriptState()
     DCHECK(context_.IsEmpty());
     InstanceCounters::DecrementCounter(InstanceCounters::kDetachedScriptStateCounter);
     RendererResourceCoordinator::Get()->OnScriptStateDestroyed(this);
+}
+
+ScriptState* ScriptState::From(v8::Isolate* isolate, v8::Local<v8::Context> context)
+{
+    DCHECK(!context.IsEmpty());
+    ScriptState* script_state = static_cast<ScriptState*>(context->GetAlignedPointerFromEmbedderData(isolate, kV8ContextPerContextDataIndex));
+    // ScriptState::From() must not be called for a context that does not have
+    // valid embedder data in the embedder field.
+    DCHECK(script_state);
+    SECURITY_CHECK(script_state->context_ == context);
+    return script_state;
+}
+
+ScriptState* ScriptState::MaybeFrom(v8::Isolate* isolate, v8::Local<v8::Context> context)
+{
+    DCHECK(!context.IsEmpty());
+    if (context->GetNumberOfEmbedderDataFields() <= kV8ContextPerContextDataIndex) {
+        return nullptr;
+    }
+
+    // ---- check for nodejs context
+    if (context->GetNumberOfEmbedderDataFields() < kBlinkV8ContextFlagIndex)
+        return nullptr;
+    v8::Local<v8::Value> blink_v8context_flag_value = context->GetEmbedderData(kBlinkV8ContextFlagIndex);
+    if (blink_v8context_flag_value.IsEmpty() || !blink_v8context_flag_value->IsInt32())
+        return nullptr;
+    int value = blink_v8context_flag_value.As<v8::Int32>()->Value();
+    if (value != kBlinkV8ContextFlagValue)
+        return nullptr;
+    //----
+
+    ScriptState* script_state = static_cast<ScriptState*>(context->GetAlignedPointerFromEmbedderData(isolate, kV8ContextPerContextDataIndex));
+    SECURITY_CHECK(!script_state || script_state->context_ == context);
+    return script_state;
 }
 
 void ScriptState::Trace(Visitor* visitor) const

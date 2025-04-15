@@ -168,16 +168,7 @@ public:
         return script_state;
     }
 
-    static ScriptState* From(v8::Isolate* isolate, v8::Local<v8::Context> context)
-    {
-        DCHECK(!context.IsEmpty());
-        ScriptState* script_state = static_cast<ScriptState*>(context->GetAlignedPointerFromEmbedderData(isolate, kV8ContextPerContextDataIndex));
-        // ScriptState::From() must not be called for a context that does not have
-        // valid embedder data in the embedder field.
-        DCHECK(script_state);
-        SECURITY_CHECK(script_state->context_ == context);
-        return script_state;
-    }
+    static ScriptState* From(v8::Isolate* isolate, v8::Local<v8::Context> context);
 
     // For use when it is not absolutely certain that the v8::Context is
     // associated with a ScriptState. This is necessary in unit tests when a
@@ -186,16 +177,7 @@ public:
     // This is also called in some situations where DissociateContext() has
     // already been called and therefore the ScriptState pointer on the
     // v8::Context has already been nulled.
-    static ScriptState* MaybeFrom(v8::Isolate* isolate, v8::Local<v8::Context> context)
-    {
-        DCHECK(!context.IsEmpty());
-        if (context->GetNumberOfEmbedderDataFields() <= kV8ContextPerContextDataIndex) {
-            return nullptr;
-        }
-        ScriptState* script_state = static_cast<ScriptState*>(context->GetAlignedPointerFromEmbedderData(isolate, kV8ContextPerContextDataIndex));
-        SECURITY_CHECK(!script_state || script_state->context_ == context);
-        return script_state;
-    }
+    static ScriptState* MaybeFrom(v8::Isolate* isolate, v8::Local<v8::Context> context);
 
     v8::Isolate* GetIsolate() const
     {
