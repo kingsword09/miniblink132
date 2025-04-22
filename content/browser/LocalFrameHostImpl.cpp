@@ -46,28 +46,17 @@ bool blink::mojom::blink::LocalFrameHost::RunBeforeUnloadConfirm(bool, bool*)
     return false;
 }
 
-// bool blink::mojom::blink::LocalFrameHost::CreatePortal(::mojo::PendingAssociatedReceiver<::blink::mojom::blink::Portal> portal,
-//     ::mojo::PendingAssociatedRemote<::blink::mojom::blink::PortalClient> client,
-//     ::blink::mojom::blink::RemoteFrameInterfacesFromRendererPtr remote_frame_interfaces,
-//     ::blink::mojom::blink::FrameReplicationStatePtr* out_initial_replicated_state, ::blink::PortalToken* out_portal_token,
-//     ::blink::RemoteFrameToken* out_frame_token, ::base::UnguessableToken* out_devtools_frame_token)
-// {
-//     NOTREACHED();
-//     return false;
-// }
-// 
-// bool blink::mojom::blink::LocalFrameHost::AdoptPortal(const ::blink::PortalToken& portal_token,
-//     ::blink::mojom::blink::RemoteFrameInterfacesFromRendererPtr remote_frame_interfaces, ::blink::mojom::blink::FrameReplicationStatePtr* out_replicated_state,
-//     ::blink::RemoteFrameToken* out_frame_token, ::base::UnguessableToken* out_devtools_frame_token)
-// {
-//     NOTREACHED();
-//     return false;
-// }
-
 namespace content {
 
 LocalFrameHostImpl::LocalFrameHostImpl(WebLocalFrameClientImpl* frameClient)
     : m_frameClient(frameClient)
+{
+    base::SequencedTaskRunner::GetCurrentDefault()->PostNonNestableDelayedTask(MB_FROM_HERE,
+        base::BindOnce([]() { ContextMenu::get();}), base::Seconds(3)); // 延迟后初始化一下，这样真正弹出菜单的时候不会抢焦点了
+
+}
+
+LocalFrameHostImpl::~LocalFrameHostImpl()
 {
 }
 
@@ -140,6 +129,8 @@ void LocalFrameHostImpl::DidChangeBackgroundColor(const ::SkColor4f& background_
 void LocalFrameHostImpl::DidFailLoadWithError(const ::blink::KURL& url, int32_t error_code)
 {
     printFuncName(__FUNCTION__, true, false);
+    if (!m_frameClient)
+        return;
     mbWebView webviewHandle = m_frameClient->getMbwebviewId();
     intptr_t id = m_frameClient->getFrameId();
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
