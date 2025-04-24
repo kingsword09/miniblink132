@@ -29,7 +29,7 @@ public:
     }
 
 private:
-    using ErrorGenerator = v8::Local<v8::Value> (*)(v8::Local<v8::String> err_msg /*, v8::Local<v8::Value> options*/);
+    using ErrorGenerator = v8::Local<v8::Value> (*)(v8::Local<v8::String> err_msg , v8::Local<v8::Value> options);
     void Throw(ErrorGenerator gen, const std::string& err_msg) const;
 
     v8::Isolate* m_isolate;

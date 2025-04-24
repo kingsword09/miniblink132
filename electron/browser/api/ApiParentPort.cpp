@@ -27,7 +27,7 @@
 //#include "third_party/blink/public/mojom/messaging/transferable_message.mojom.h"
 #include "third_party/blink/public/mojom/messaging/transferable_message.mojom-blink.h"
 #include "mojo/public/cpp/bindings/connector.h"
-#include "base/threading/thread_task_runner_handle.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/strings/string_split.h"
 #include "base/process/process.h"
 #include "base/process/launch.h"
@@ -148,7 +148,7 @@ void ApiParentPort::newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
 ApiParentPort::ApiParentPort(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, const gin_helper::Dictionary& options)
 {
     gin_helper::Wrappable<ApiParentPort>::InitWith(isolate, wrapper);
-    m_mainThread = base::SequencedTaskRunnerHandle::Get();
+    m_mainThread = base::SequencedTaskRunner::GetCurrentDefault();
     m_messageFilterWrap = new MessageFilterWrap(this);
 
     //bool isChildProcess = false;

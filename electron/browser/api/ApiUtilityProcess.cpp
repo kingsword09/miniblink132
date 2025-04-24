@@ -26,7 +26,7 @@
 //#include "third_party/blink/public/mojom/messaging/transferable_message.mojom.h"
 #include "third_party/blink/public/mojom/messaging/transferable_message.mojom-blink.h"
 #include "mojo/public/cpp/bindings/connector.h"
-#include "base/threading/thread_task_runner_handle.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/process/process.h"
 #include "base/process/launch.h"
 #include "base/strings/stringprintf.h"
@@ -166,7 +166,7 @@ void* testChannel()
 ApiUtilityProcess::ApiUtilityProcess(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, const std::string& modulePath)
 {
     gin_helper::Wrappable<ApiUtilityProcess>::InitWith(isolate, wrapper);
-    m_mainThread = base::SequencedTaskRunnerHandle::Get();
+    m_mainThread = base::SequencedTaskRunner::GetCurrentDefault();
     m_messageFilterWrap = new MessageFilterWrap(this);
 
     base::FilePath program;

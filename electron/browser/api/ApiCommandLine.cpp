@@ -12,7 +12,7 @@
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
 #include "third_party/libnode/src/node_binding.h"
-#include "base/threading/thread_task_runner_handle.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/command_line.h"
 
 // electron\shell\browser\api\electron_api_utility_process.cc

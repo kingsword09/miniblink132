@@ -14,6 +14,7 @@
 #include "electron/common/gin_helper/function_template.h"
 #include "electron/common/gin_helper/locker.h"
 #include "electron/common/gin_helper/microtasks_scope.h"
+#include "electron/common/gin_helper/function_template.h"
 // Implements safe conversions between JS functions and base::RepeatingCallback.
 
 namespace gin_helper {
@@ -49,7 +50,7 @@ template <typename... ArgTypes> struct V8FunctionInvoker<v8::Local<v8::Value>(Ar
         v8::Local<v8::Function> holder = function.NewHandle(isolate);
         v8::Local<v8::Context> context = holder->GetCreationContextChecked();
         v8::Context::Scope context_scope(context);
-        std::vector<v8::Local<v8::Value>> args { gin::ConvertToV8(isolate, std::forward<ArgTypes>(raw))... };
+        std::vector<v8::Local<v8::Value>> args { gin_helper::ConvertToV8(isolate, std::forward<ArgTypes>(raw))... };
 
         v8::MaybeLocal<v8::Value> ret = holder->Call(context, holder, args.size(), args.empty() ? nullptr : &args.front());
         if (ret.IsEmpty())
@@ -89,12 +90,12 @@ template <typename ReturnType, typename... ArgTypes> struct V8FunctionInvoker<Re
         v8::Local<v8::Function> holder = function.NewHandle(isolate);
         v8::Local<v8::Context> context = holder->GetCreationContextChecked();
         v8::Context::Scope context_scope(context);
-        std::vector<v8::Local<v8::Value>> args { gin::ConvertToV8(isolate, std::forward<ArgTypes>(raw))... };
+        std::vector<v8::Local<v8::Value>> args { gin_helper::ConvertToV8(isolate, std::forward<ArgTypes>(raw))... };
         v8::Local<v8::Value> result;
 
         auto maybe_result = holder->Call(context, holder, args.size(), args.empty() ? nullptr : &args.front());
         if (maybe_result.ToLocal(&result))
-            gin::Converter<ReturnType>::FromV8(isolate, result, &ret);
+            gin_helper::Converter<ReturnType>::FromV8(isolate, result, &ret);
         return ret;
     }
 };
@@ -113,8 +114,8 @@ template <typename Sig> struct NativeFunctionInvoker { };
 template <typename ReturnType, typename... ArgTypes> struct NativeFunctionInvoker<ReturnType(ArgTypes...)> {
     static void Go(base::RepeatingCallback<ReturnType(ArgTypes...)> val, gin_helper::Arguments* args)
     {
-        using Indices = typename IndicesGenerator<sizeof...(ArgTypes)>::type;
-        Invoker<Indices, ArgTypes...> invoker(args, 0);
+        using Indices = typename internal::IndicesGenerator<sizeof...(ArgTypes)>::type;
+        internal::Invoker<Indices, ArgTypes...> invoker(args, 0);
 
         if (invoker.IsOK())
             invoker.DispatchToCallback(val);

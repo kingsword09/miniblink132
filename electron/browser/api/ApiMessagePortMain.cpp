@@ -15,10 +15,11 @@
 #include "electron/common/gin_helper/object_template_builder.h"
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
-#include "electron\common/gin_helper/error_thrower.h"
+#include "electron/common/gin_helper/error_thrower.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "base/strings/string_number_conversions.h"
-#include "base/threading/thread_task_runner_handle.h"
+#include "base/task/sequenced_task_runner.h"
+#include "base/task/single_thread_task_runner.h"
 #include "base/containers/contains.h"
 #include "base/command_line.h"
 #include <unordered_set>

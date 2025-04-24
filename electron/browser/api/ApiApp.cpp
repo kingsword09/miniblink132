@@ -433,7 +433,7 @@ v8::Local<v8::Value> App::getJumpListSettingsApi(const v8::FunctionCallbackInfo<
 
     obj.Set("minItems", 1);
 
-    base::ListValue removedItems;
+    base::Value::List removedItems;
     obj.Set("removedItems", std::move(removedItems));
 
     v8::Local<v8::Value> result = gin_helper::Converter<base::Value::Dict>::ToV8(args.GetIsolate(), obj);

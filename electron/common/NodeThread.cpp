@@ -5,7 +5,7 @@
 #include "content/common/ThreadCall.h"
 #include "electron/common/TracingControllerImpl.h"
 #include "electron/nodeblink.h"
-#include "W:\mycode\mb108\third_party\libnode\src\node_platform.h"
+#include "third_party/libnode/src/node_platform.h"
 #include "v8/include/libplatform/libplatform.h"
 //#include "third_party/zlib/unzip.h"
 #include "electron/common/AtomVersion.h"
@@ -188,10 +188,11 @@ NodeArgc* g_nodeArgc = nullptr;
 NodeArgc* runNodeThread()
 {
     //MessageBoxA(0, "runNodeThread", 0, 0);
-    NodeArgc* nodeArgc = (NodeArgc*)malloc(sizeof(NodeArgc));
+    //NodeArgc* nodeArgc = (NodeArgc*)malloc(sizeof(NodeArgc));
+    NodeArgc* nodeArgc = new NodeArgc();
     g_nodeArgc = nodeArgc;
-    memset(nodeArgc, 0, sizeof(NodeArgc));
-    //     nodeArgc->childLoop = (uv_loop_t*)malloc(sizeof(uv_loop_t));
+    // memset(nodeArgc, 0, sizeof(NodeArgc));
+    // nodeArgc->childLoop = (uv_loop_t*)malloc(sizeof(uv_loop_t));
 
     nodeArgc->m_nodeBinding = new NodeBindings(true /*, nodeArgc->childLoop*/);
 

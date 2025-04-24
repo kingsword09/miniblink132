@@ -7,6 +7,7 @@
 
 #include "electron/common/gin_helper/converter.h"
 #include "electron/common/gin_helper/function_template.h"
+#include "electron/common/gin_helper/object_template_builder.h"
 #include "gin/gin_export.h"
 #include <functional>
 

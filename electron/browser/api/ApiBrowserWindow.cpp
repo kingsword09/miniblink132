@@ -9,6 +9,7 @@
 #include "electron/browser/api/ApiSession.h"
 #include "electron/common/OptionsSwitches.h"
 #include "electron/common/NodeRegisterHelp.h"
+#include "electron/common/LoadMiniElectronAsarRes.h"
 #include "electron/common/StringUtil.h"
 #include "electron/common/api/EventEmitter.h"
 #include "electron/common/IdLiveDetect.h"
@@ -1845,6 +1846,12 @@ private:
         //             mbNetHookRequest(job);
         //             return true;
         //         }
+
+        std::string miniElectronAsarRes;
+        if (LoadMiniElectronAsarRes(url, &miniElectronAsarRes)) {
+            mbNetSetData(job, miniElectronAsarRes.data(), miniElectronAsarRes.size());
+            return true;
+        }
 
         OutputDebugStringA("apiwindow.load:");
         OutputDebugStringA(url);

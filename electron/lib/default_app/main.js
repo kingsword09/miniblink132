@@ -8,6 +8,8 @@ const fs = require('fs');
 const Module = require('module');
 const path = require('path');
 const url = require('url');
+mbConsoleLog("1111111111");
+console.log("2122222222222");
 
 // Parse command line options.
 const argv = process.argv.slice(1);

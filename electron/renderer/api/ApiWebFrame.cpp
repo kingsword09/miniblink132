@@ -4,6 +4,7 @@
 
 #include "electron/nodeblink.h"
 #include "mbvip/core/mb.h"
+#include "content/renderer/V8ValueConverterImpl.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libnode/src/node_version.h"
@@ -26,6 +27,7 @@
 #include "third_party/blink/public/platform/web_string.h"
 #include "third_party/blink/renderer/platform/bindings/dom_wrapper_world.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
+#include <vector>
 
 namespace gin_helper {
 
@@ -106,17 +108,22 @@ public:
         }
     }
 
-    void completed(const blink::WebVector<v8::Local<v8::Value>>& result)
+    void completed(v8::Local<v8::Context> context, std::optional<base::Value> result, base::TimeTicks)
     {
         v8::Isolate* isolate = m_promise.isolate();
-        if (!result.empty()) {
-            if (!result[0].IsEmpty()) {
-                v8::Local<v8::Value> value = result[0];
+        if (result.has_value()) {
+            if (/*!result[0].IsEmpty()*/true) {
+                //v8::Local<v8::Value> value = result.value();
+                const base::Value& valueTemp = result.value();
+                std::unique_ptr<content::V8ValueConverter> converter = content::V8ValueConverter::Create();
+                v8::Local<v8::Value> value = converter->ToV8Value(base::ValueView(valueTemp), context);
+
                 // Either the result was created in the same world as the caller
                 // or the result is not an object and therefore does not have a
                 // prototype chain to protect
                 bool shouldCloneValue
-                    = !(value->IsObject() && m_promise.GetContext() == value.As<v8::Object>()->GetCreationContextChecked()) && value->IsObject();
+                    = !(value->IsObject() && m_promise.GetContext() == context/*value.As<v8::Object>()->GetCreationContextChecked()*/) 
+                    && value->IsObject();
                 if (shouldCloneValue) {
                     opyResultToCallingContextAndFinalize(isolate, value.As<v8::Object>());
                 } else {
@@ -313,11 +320,20 @@ public:
 
         ScriptExecutionCallback* self = new ScriptExecutionCallback(std::move(promise), std::move(completionCallback));
 
-        webFrame->RequestExecuteScript(blink::DOMWrapperWorld::kMainWorldId, base::make_span(&source, 1),
+        std::vector<blink::WebScriptSource> sourcesTemp;
+        sourcesTemp.push_back(source);
+        base::span<const blink::WebScriptSource> sources(sourcesTemp.begin(), sourcesTemp.end());
+        webFrame->RequestExecuteScript(
+            blink::DOMWrapperWorld::kMainWorldId, 
+            sources,
             has_user_gesture ? blink::mojom::UserActivationOption::kActivate : blink::mojom::UserActivationOption::kDoNotActivate,
-            blink::mojom::EvaluationTiming::kSynchronous, blink::mojom::LoadEventBlockingOption::kDoNotBlock, base::NullCallback(),
-            base::BindOnce(&ScriptExecutionCallback::completed, base::Unretained(self)), blink::BackForwardCacheAware::kAllow,
-            blink::mojom::WantResultOption::kWantResult, blink::mojom::PromiseResultOption::kDoNotWait);
+            blink::mojom::EvaluationTiming::kSynchronous, 
+            blink::mojom::LoadEventBlockingOption::kDoNotBlock, 
+            //base::NullCallback(),
+            base::BindOnce(&ScriptExecutionCallback::completed, base::Unretained(self), context),
+            blink::BackForwardCacheAware::kAllow,
+            blink::mojom::WantResultOption::kWantResult, 
+            blink::mojom::PromiseResultOption::kDoNotWait);
 
         return handle;
     }

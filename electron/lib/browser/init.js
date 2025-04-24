@@ -1,7 +1,6 @@
 'use strict';
 
-require('./electron');
-
+require('./electron.js');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
@@ -10,8 +9,8 @@ const v8 = require('v8');
 const app = require('electron').app;
 
 // Import common settings. 
-require('./../common/init');
-require('./rpc-server');
+require('./../common/init.js');
+require('./rpc-server.js');
 
 if (typeof module!== 'undefined' && module.exports) {
     mbConsoleLog("is_module_js!!");

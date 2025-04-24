@@ -103,8 +103,8 @@ template <typename T> bool GetNextArgument(Arguments* args, int create_flags, bo
     } else {
         b = args->GetNext(result);
     }
-    if (!b)
-        OutputDebugStringA("GetNextArgument failed!\n");
+//     if (!b)
+//         OutputDebugStringA("GetNextArgument failed!\n");
     return b;
 }
 
@@ -240,57 +240,57 @@ template <typename ReturnType, typename... ArgTypes> struct Dispatcher<ReturnTyp
 
         using Indices = typename IndicesGenerator<sizeof...(ArgTypes)>::type;
         Invoker<Indices, ArgTypes...> invoker(&args, holder->flags);
-        if (invoker.IsOK())
+        if (invoker.IsOK()) {
             invoker.DispatchToCallback(holder->callback);
-        else {
-            const v8::StackTrace::StackTraceOptions options = static_cast<v8::StackTrace::StackTraceOptions>(v8::StackTrace::kLineNumber
-                | v8::StackTrace::kColumnOffset | v8::StackTrace::kScriptId | v8::StackTrace::kScriptNameOrSourceURL | v8::StackTrace::kFunctionName);
-
-            int stackNum = 50;
-            v8::HandleScope handleScope(info.GetIsolate());
-            v8::Local<v8::StackTrace> stackTrace(v8::StackTrace::CurrentStackTrace(info.GetIsolate(), stackNum, options));
-            int count = stackTrace->GetFrameCount();
-
-            char* output = (char*)malloc(0x100);
-            sprintf(output, "DispatchToCallback fail: %d\n", count);
-            OutputDebugStringA(output);
-            free(output);
-
-            for (int i = 0; i < count; ++i) {
-                v8::Local<v8::StackFrame> stackFrame = stackTrace->GetFrame(info.GetIsolate(), i);
-                stackTrace->GetFrameCount();
-                int line = stackFrame->GetLineNumber();
-                v8::Local<v8::String> scriptName = stackFrame->GetScriptNameOrSourceURL();
-                v8::Local<v8::String> funcName = stackFrame->GetFunctionName();
-
-                std::string scriptNameWTF;
-                std::string funcNameWTF;
-
-                if (!scriptName.IsEmpty()) {
-                    v8::String::Utf8Value scriptNameUtf8(info.GetIsolate(), scriptName);
-                    scriptNameWTF = *scriptNameUtf8;
-                }
-
-                if (!funcName.IsEmpty()) {
-                    v8::String::Utf8Value funcNameUtf8(info.GetIsolate(), funcName);
-                    funcNameWTF = *funcNameUtf8;
-                }
-                std::vector<char> output;
-                output.resize(1000);
-                sprintf(&output[0], "line:%d, [", line);
-                OutputDebugStringA(&output[0]);
-
-                if (!scriptNameWTF.empty()) {
-                    OutputDebugStringA(scriptNameWTF.c_str());
-                }
-                OutputDebugStringA("] , [");
-
-                if (!funcNameWTF.empty()) {
-                    OutputDebugStringA(funcNameWTF.c_str());
-                }
-                OutputDebugStringA("]\n");
-            }
-            OutputDebugStringA("\n");
+        } else {
+//             const v8::StackTrace::StackTraceOptions options = static_cast<v8::StackTrace::StackTraceOptions>(v8::StackTrace::kLineNumber
+//                 | v8::StackTrace::kColumnOffset | v8::StackTrace::kScriptId | v8::StackTrace::kScriptNameOrSourceURL | v8::StackTrace::kFunctionName);
+// 
+//             int stackNum = 50;
+//             v8::HandleScope handleScope(info.GetIsolate());
+//             v8::Local<v8::StackTrace> stackTrace(v8::StackTrace::CurrentStackTrace(info.GetIsolate(), stackNum, options));
+//             int count = stackTrace->GetFrameCount();
+// 
+//             char* output = (char*)malloc(0x100);
+//             sprintf(output, "DispatchToCallback fail: %d\n", count);
+//             OutputDebugStringA(output);
+//             free(output);
+// 
+//             for (int i = 0; i < count; ++i) {
+//                 v8::Local<v8::StackFrame> stackFrame = stackTrace->GetFrame(info.GetIsolate(), i);
+//                 stackTrace->GetFrameCount();
+//                 int line = stackFrame->GetLineNumber();
+//                 v8::Local<v8::String> scriptName = stackFrame->GetScriptNameOrSourceURL();
+//                 v8::Local<v8::String> funcName = stackFrame->GetFunctionName();
+// 
+//                 std::string scriptNameWTF;
+//                 std::string funcNameWTF;
+// 
+//                 if (!scriptName.IsEmpty()) {
+//                     v8::String::Utf8Value scriptNameUtf8(info.GetIsolate(), scriptName);
+//                     scriptNameWTF = *scriptNameUtf8;
+//                 }
+// 
+//                 if (!funcName.IsEmpty()) {
+//                     v8::String::Utf8Value funcNameUtf8(info.GetIsolate(), funcName);
+//                     funcNameWTF = *funcNameUtf8;
+//                 }
+//                 std::vector<char> output;
+//                 output.resize(1000);
+//                 sprintf(&output[0], "line:%d, [", line);
+//                 OutputDebugStringA(&output[0]);
+// 
+//                 if (!scriptNameWTF.empty()) {
+//                     OutputDebugStringA(scriptNameWTF.c_str());
+//                 }
+//                 OutputDebugStringA("] , [");
+// 
+//                 if (!funcNameWTF.empty()) {
+//                     OutputDebugStringA(funcNameWTF.c_str());
+//                 }
+//                 OutputDebugStringA("]\n");
+//             }
+//             OutputDebugStringA("\n");
         }
     }
 };
@@ -371,8 +371,9 @@ void SetMemberGetSetAccessor(v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>
     typedef internal::CallbackHolderGetSet<ClassType, Type> HolderGetSetT;
     HolderGetSetT* holder = new HolderGetSetT(isolate, get_callback, set_callback);
 
-    obj_template->SetAccessor(name, &internal::DispatcherAccessor<ClassType, Type>::DispatchToCallbackGetter,
-        &internal::DispatcherAccessor<ClassType, Type>::DispatchToCallbackSetter, ConvertToV8<v8::Local<v8::External>>(isolate, holder->GetHandle(isolate)));
+    *(int*)1 = 1;
+//     obj_template->SetAccessor(name, &internal::DispatcherAccessor<ClassType, Type>::DispatchToCallbackGetter,
+//         &internal::DispatcherAccessor<ClassType, Type>::DispatchToCallbackSetter, ConvertToV8<v8::Local<v8::External>>(isolate, holder->GetHandle(isolate)));
 }
 
 // CreateFunctionHandler installs a CallAsFunction handler on the given

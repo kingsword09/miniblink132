@@ -7,7 +7,7 @@
 
 #include <utility>
 
-#include "base/callback_helpers.h"
+//#include "base/callback_helpers.h"
 #include "electron/common/gin_helper/callback.h"
 
 namespace gin_helper {
@@ -34,7 +34,9 @@ template <typename Sig> struct Converter<base::RepeatingCallback<Sig>> {
 template <typename Sig> struct Converter<base::OnceCallback<Sig>> {
     static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, base::OnceCallback<Sig> in)
     {
-        return gin::ConvertToV8(isolate, base::AdaptCallbackForRepeating(std::move(in)));
+        *(int*)1 = 1;
+        return v8::Local<v8::Value>();
+        //return gin::ConvertToV8(isolate, base::AdaptCallbackForRepeating(std::move(in)));
     }
     static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val, base::OnceCallback<Sig>* out)
     {

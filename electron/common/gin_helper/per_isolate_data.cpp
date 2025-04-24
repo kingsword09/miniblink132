@@ -6,7 +6,7 @@
 
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "base/logging.h"
-#include "base/threading/thread_task_runner_handle.h"
+#include "base/task/single_thread_task_runner.h"
 
 using v8::ArrayBuffer;
 using v8::Eternal;
@@ -21,7 +21,7 @@ namespace gin_helper {
 PerIsolateData::PerIsolateData(Isolate* isolate, ArrayBuffer::Allocator* allocator)
     : isolate_(isolate)
     , allocator_(allocator)
-    , task_runner_(base::ThreadTaskRunnerHandle::Get())
+    , task_runner_(base::SingleThreadTaskRunner::GetCurrentDefault())
 {
     isolate_->SetData(gin_helper::GinEmbedder::kEmbedderNativeGin, this);
 }

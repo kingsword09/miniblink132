@@ -419,9 +419,9 @@ v8::Local<v8::Value> Converter<base::Value::Dict>::ToV8(v8::Isolate* isolate, co
     v8::Local<v8::Object> v8Ojb = v8::Object::New(isolate);
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-    absl::optional<bool> boolVal;
-    absl::optional<int> intVal;
-    absl::optional<double> doubleVal = 0;
+    std::optional<bool> boolVal;
+    std::optional<int> intVal;
+    std::optional<double> doubleVal = 0;
     const std::string* strVal;
     const base::Value::List* listValue = nullptr;
     const base::Value::Dict* dictionaryValue = nullptr;
@@ -457,7 +457,7 @@ v8::Local<v8::Value> Converter<base::Value::Dict>::ToV8(v8::Isolate* isolate, co
             listValue = outValue.GetIfList();
             v8Ojb->Set(context, v8Key, Converter<base::Value::List>::ToV8(isolate, *listValue));
             break;
-        case base::Value::Type::DICTIONARY:
+        case base::Value::Type::DICT:
             dictionaryValue = outValue.GetIfDict();
             v8Ojb->Set(context, v8Key, Converter<base::Value::Dict>::ToV8(isolate, *dictionaryValue));
             break;
@@ -542,9 +542,9 @@ v8::Local<v8::Value> Converter<base::Value::List>::ToV8(v8::Isolate* isolate, co
     size_t size = val.size();
     v8::Local<v8::Array> v8Arr = v8::Array::New(isolate, size);
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    absl::optional<bool> boolVal = false;
-    absl::optional<int> intVal = 0;
-    absl::optional<double> doubleVal = 0;
+    std::optional<bool> boolVal = false;
+    std::optional<int> intVal = 0;
+    std::optional<double> doubleVal = 0;
     const std::string* strVal = nullptr;
     const base::Value::List* listValue = nullptr;
     const base::Value::Dict* dictionaryValue = nullptr;
@@ -572,7 +572,7 @@ v8::Local<v8::Value> Converter<base::Value::List>::ToV8(v8::Isolate* isolate, co
             listValue = outValue.GetIfList();
             v8Arr->Set(context, i, Converter<base::Value::List>::ToV8(isolate, *listValue));
             break;
-        case base::Value::Type::DICTIONARY:
+        case base::Value::Type::DICT:
             dictionaryValue = outValue.GetIfDict();
             v8Arr->Set(context, i, Converter<base::Value::Dict>::ToV8(isolate, *dictionaryValue));
             break;
@@ -672,9 +672,9 @@ v8::Local<v8::Value> ConvertToV8(v8::Isolate* isolate, const base::Value::List& 
 
 v8::Local<v8::Value> ConvertToV8(v8::Isolate* isolate, const base::Value& input)
 {
-    absl::optional<bool> boolVal = false;
-    absl::optional<int> intVal = 0;
-    absl::optional<double> doubleVal = 0;
+    std::optional<bool> boolVal = false;
+    std::optional<int> intVal = 0;
+    std::optional<double> doubleVal = 0;
     const std::string* strVal = nullptr;
     const base::Value::List* listValue = nullptr;
     const base::Value::Dict* dictionaryValue = nullptr;
@@ -700,7 +700,7 @@ v8::Local<v8::Value> ConvertToV8(v8::Isolate* isolate, const base::Value& input)
     case base::Value::Type::LIST:
         listValue = input.GetIfList();
         return Converter<base::Value::List>::ToV8(isolate, *listValue);
-    case base::Value::Type::DICTIONARY:
+    case base::Value::Type::DICT:
         dictionaryValue = input.GetIfDict();
         return Converter<base::Value::Dict>::ToV8(isolate, *dictionaryValue);
         break;

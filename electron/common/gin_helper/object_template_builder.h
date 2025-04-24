@@ -24,7 +24,7 @@ typedef void (mate::Event::*SetT)(int);
 
 namespace gin_helper {
 
-namespace {
+//namespace {
 
 // Base template - used only for non-member function pointers. Other types
 // either go to one of the below specializations, or go here and fail to compile
@@ -36,7 +36,7 @@ template <typename T, typename Enable = void> struct CallbackTraits {
     }
     static void SetAsFunctionHandler(v8::Isolate* isolate, v8::Local<v8::ObjectTemplate> tmpl, T callback)
     {
-        CreateFunctionHandler(isolate, tmpl, base::Bind(callback));
+        CreateFunctionHandler(isolate, tmpl, base::BindOnce(callback));
     }
 };
 
@@ -63,7 +63,7 @@ template <typename T> struct CallbackTraits<T, typename std::enable_if<std::is_m
     }
     static void SetAsFunctionHandler(v8::Isolate* isolate, v8::Local<v8::ObjectTemplate> tmpl, T callback)
     {
-        CreateFunctionHandler(isolate, tmpl, base::Bind(callback), HolderIsFirstArgument);
+        CreateFunctionHandler(isolate, tmpl, base::BindOnce(callback), HolderIsFirstArgument);
     }
 };
 
@@ -76,7 +76,7 @@ template <> struct CallbackTraits<v8::Local<v8::FunctionTemplate>> {
     }
 };
 
-} // namespace
+//} // namespace
 
 // ObjectTemplateBuilder provides a handy interface to creating
 // v8::ObjectTemplate instances with various sorts of properties.
@@ -113,7 +113,7 @@ public:
     }
     template <typename GetT, typename SetT> ObjectTemplateBuilder& SetMemberAccessor(const base::StringPiece& name, const GetT& getter, const SetT& setter)
     {
-        SetMemberGetSetAccessor(isolate_, template_, StringToSymbol(isolate_, name), base::Bind(getter), base::Bind(setter));
+        SetMemberGetSetAccessor(isolate_, template_, StringToSymbol(isolate_, name), base::BindOnce(getter), base::BindOnce(setter));
         return *this;
     }
 

@@ -50,7 +50,7 @@ void ErrorThrower::ThrowSyntaxError(const std::string& err_msg) const
 
 void ErrorThrower::Throw(ErrorGenerator gen, const std::string& err_msg) const
 {
-    v8::Local<v8::Value> exception = gen(gin_helper::StringToV8(m_isolate, err_msg) /*, {}*/);
+    v8::Local<v8::Value> exception = gen(gin_helper::StringToV8(m_isolate, err_msg), {});
     if (!m_isolate->IsExecutionTerminating())
         m_isolate->ThrowException(exception);
 }

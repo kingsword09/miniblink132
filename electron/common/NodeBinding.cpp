@@ -12,6 +12,7 @@
 #include "electron/common/api/EventEmitterCaller.h"
 //#include "electron/common/TracingControllerImpl.h"
 #include "electron/common/Locker.h"
+#include "electron/common/LoadMiniElectronAsarRes.h"
 #include "electron/common/NodeThread.h"
 //#include "base/task/thread_pool/initialization_util.h"
 #include "gin/v8_platform_page_allocator.h"
@@ -147,19 +148,38 @@ std::wstring getResourcesPath(const std::wstring& name)
     std::vector<WCHAR> path;
     path.resize(MAX_PATH + 1);
     ::GetModuleFileName(nullptr, &path[0], MAX_PATH);
-
     ::PathRemoveFileSpecW(&path[0]);
     out += &path[0];
 
     std::wstring temp(out);
     temp += L"\\skia.lib";
-    if (!::PathFileExists(temp.c_str()))
-        out += L"\\resources\\miniblink.asar\\";
-    else
-        out += L"\\..\\..\\electron\\lib\\";
+    if (::PathFileExists(temp.c_str())) {
+        out += L"..\\..\\..\\electron\\lib\\";
+    } else { // release模式下，直接用打包好的数据
+        //out += L"\\..\\..\\electron\\lib\\";
+        WCHAR drive = L'c';
+        for (size_t i = 0; path[i] != L'\0'; ++i) { // 取一个可用的盘符
+            if (path[i] == L':') {
+                CHECK(i != 0);
+                drive = path[i - 1];
+                if (drive >= 'A' && drive <= 'Z') {
+                    drive += 32;
+                }
+                break;
+            }
+        }
+        out = drive;
+        out += L":\\" kMiniElectronAsarPrefix "\\lib\\";
+    }
 
     kResPath = new std::wstring(out);
     out += name;
+
+    temp = L"getResourcesPath:";
+    temp += out;
+    temp += L"\n";
+    OutputDebugStringW(temp.c_str());
+
     return out;
 }
 
@@ -475,9 +495,14 @@ node::Environment* NodeBindings::createEnvironment(v8::Local<v8::Context> contex
     args.insert(args.begin() + 1, scriptPathStr.c_str());
 
     if (!m_isolateData) {
-        if (!g_nodeArgc->m_nodeMultiIsolatePlatform->IsRegisterIsolate(context->GetIsolate()))
+        g_nodeArgc->m_registerIsolatesLock.Acquire();
+        if (g_nodeArgc->m_registerIsolates.end() == g_nodeArgc->m_registerIsolates.find(context->GetIsolate())) {
             g_nodeArgc->m_nodeMultiIsolatePlatform->RegisterIsolate(context->GetIsolate(), m_uvLoop); // 所有线程的isolate都必须调用这个注册
+        } else {
+            *(int*)1 = 1;
+        }
         m_isolateData = node::CreateIsolateData(context->GetIsolate(), m_uvLoop, g_nodeArgc->m_nodeMultiIsolatePlatform);
+        g_nodeArgc->m_registerIsolatesLock.Release();
     }
 
     uint64_t flags =
@@ -570,9 +595,9 @@ void NodeBindings::onCallNextTick(uv_async_t* handle)
         // look: E:\chroium\electron22\electron\shell\common\api\electron_bindings.cc
         v8::Isolate* isolate = nodeEnvironmentGetV8Isolate(env);
         //gin_helper::Locker locker(isolate, self->m_isBrowser); // 暂时不锁了，不然在initNodeEnvAndRunLoop里的 v8::HandleScope会导致gin_helper::Locker卡死
-        v8::Context::Scope contextScope(nodeEnvironmentGetV8Context(env));
+        v8::Context::Scope contextScope(context);
         v8::HandleScope handleScope(isolate);
-        v8::MicrotasksScope microtasksScope(isolate, v8::MicrotasksScope::kRunMicrotasks);
+        v8::MicrotasksScope microtasksScope(context, v8::MicrotasksScope::kRunMicrotasks);
         node::CallbackScope scope(isolate, v8::Object::New(isolate), { 0, 0 });
     }
 

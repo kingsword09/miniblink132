@@ -14,7 +14,7 @@ MicrotasksScope::MicrotasksScope(v8::Isolate* isolate, bool ignore_browser_check
         if (!ignore_browser_checkpoint)
             v8::MicrotasksScope::PerformCheckpoint(isolate);
     } else {
-        v8_microtasks_scope_ = std::make_unique<v8::MicrotasksScope>(isolate, scope_type);
+        v8_microtasks_scope_ = std::make_unique<v8::MicrotasksScope>(isolate->GetCurrentContext(), scope_type);
     }
 }
 

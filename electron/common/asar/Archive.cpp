@@ -92,14 +92,14 @@ const base::Value::Dict* GetNodeFromPath(std::string path, const base::Value::Di
 
 bool FillFileInfoWithNode(Archive::FileInfo* info, uint32_t header_size, const base::Value::Dict* node)
 {
-    absl::optional<int> sizeOpt = node->FindInt("size");
+    std::optional<int> sizeOpt = node->FindInt("size");
     if (!sizeOpt.has_value())
         return false;
     info->size = static_cast<uint32_t>(sizeOpt.value());
 
     //if (node->GetBoolean("unpacked", &info->unpacked) && info->unpacked)
     //    return true;
-    absl::optional<bool> isUnpacked = node->FindBool("unpacked");
+    std::optional<bool> isUnpacked = node->FindBool("unpacked");
     if (isUnpacked.has_value() && isUnpacked.value()) {
         info->unpacked = true;
         return true;
@@ -118,7 +118,7 @@ bool FillFileInfoWithNode(Archive::FileInfo* info, uint32_t header_size, const b
     info->offset += header_size;
 
     info->executable = false;
-    absl::optional<bool> isExecutable = node->FindBool("executable");
+    std::optional<bool> isExecutable = node->FindBool("executable");
     if (isExecutable.has_value() && isExecutable.value())
         info->executable = true;
 

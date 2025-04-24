@@ -12,10 +12,11 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/win/scoped_co_mem.h"
 #include "base/win/scoped_com_initializer.h"
-#include "base/win/scoped_comptr.h"
+//#include "base/win/scoped_comptr.h"
 #include "base/win/windows_version.h"
 #include "base/win/registry.h"
 #include "ui/base/win/shell.h"
+#include "base/memory/scoped_refptr.h"
 
 #include "v8.h"
 #include <windows.h>
@@ -242,10 +243,14 @@ void showItemInFolder(const base::FilePath& full_path)
         return;
     }
 
-    base::win::ScopedComPtr<IShellFolder> desktop;
-    HRESULT hr = SHGetDesktopFolder(desktop.Receive());
+    //base::win::ScopedComPtr<IShellFolder> desktop;
+    IShellFolder* ptr = nullptr;
+    HRESULT hr = SHGetDesktopFolder(&ptr);
     if (FAILED(hr))
         return;
+    scoped_refptr<IShellFolder> desktop(ptr);
+    ptr->Release(); // 这里引用技术不知道对不对
+    *(int*)1 = 1;
 
     base::win::ScopedCoMem<ITEMIDLIST> dir_item;
     hr = desktop->ParseDisplayName(NULL, NULL, const_cast<wchar_t*>(dir.value().c_str()), NULL, &dir_item, NULL);

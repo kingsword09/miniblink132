@@ -80,7 +80,8 @@ bool FormatCommandLineString(std::wstring* exe, const std::vector<std::u16string
     }
 
     if (!launch_args.empty()) {
-        std::u16string joined_launch_args = base::JoinString(launch_args, u" ");
+        std::u16string joined_launch_args = base::JoinString(
+            base::span<const std::u16string>(launch_args.data(), launch_args.size()), std::u16string_view(u" "));
         *exe = base::StringPrintf(L"%ls %ls", exe->c_str(), base::as_wcstr(joined_launch_args));
     }
 

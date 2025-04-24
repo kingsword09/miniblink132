@@ -33,9 +33,9 @@ v8::Local<v8::Value> callEmitWithArgs(v8::Isolate* isolate, v8::Local<v8::Object
 v8::Local<v8::Value> emitEventImpl(
     v8::Isolate* isolate, v8::Local<v8::Object> obj, internal::ValueVector& converted_args, v8::Local<v8::Object> event, const base::Value::List& args)
 {
-    absl::optional<bool> boolVal;
-    absl::optional<int> intVal;
-    absl::optional<double> doubleVal;
+    std::optional<bool> boolVal;
+    std::optional<int> intVal;
+    std::optional<double> doubleVal;
     const std::string* strVal = nullptr;
     const base::Value::List* listValue = nullptr;
     const base::Value::Dict* dictionaryValue = nullptr;
@@ -65,7 +65,7 @@ v8::Local<v8::Value> emitEventImpl(
             listValue = outValue.GetIfList();
             converted_args.push_back(gin_helper::Converter<base::Value::List>::ToV8(isolate, *listValue));
             break;
-        case base::Value::Type::DICTIONARY:
+        case base::Value::Type::DICT:
             dictionaryValue = outValue.GetIfDict();
             converted_args.push_back(gin_helper::Converter<base::Value::Dict>::ToV8(isolate, *dictionaryValue));
             break;

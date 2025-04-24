@@ -152,7 +152,11 @@ v8::Local<v8::Promise> ApiWebFrameMain::executeJavaScriptApi(gin_helper::Argumen
     //         return handle;
     //     }
 
-    mojoLocalFrame->JavaScriptExecuteRequestForTests(::WTF::String::FromUTF8(code), isUserGesture, true /* resolve_promises */,
+    mojoLocalFrame->JavaScriptExecuteRequestForTests(
+        ::WTF::String::FromUTF8(code),
+        isUserGesture, 
+        true /* resolve_promises */,
+        true /*honor_js_content_settings*/,
         0 /*content::ISOLATED_WORLD_ID_GLOBAL*/,
         base::BindOnce(
             [](gin_helper::Promise<base::Value> promise, blink::mojom::JavaScriptExecutionResultType type, base::Value value) {

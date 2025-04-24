@@ -326,7 +326,7 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
     if (WorldIDs::MAIN_WORLD_ID == worldId)
         mbRunJs(webView, frame, "window.clientAPItest = 'hahahah'", false, nullptr, nullptr, (void*)(WorldIDs::MAIN_WORLD_ID));
 
-    v8::MicrotasksScope microtasksScope((*context)->GetIsolate(), v8::MicrotasksScope::Type::kRunMicrotasks);
+    v8::MicrotasksScope microtasksScope((*context), v8::MicrotasksScope::Type::kRunMicrotasks);
     if (!m_preloadScriptPath.empty()) {
         char* output = (char*)malloc(0x300);
         sprintf_s(output, 0x299, "preload,WebContents::onDidCreateScriptContext: %p, %s\n", this, m_preloadScriptPath.c_str());
@@ -559,7 +559,7 @@ static void emitIPCEventImpl(
     if (!frame /*|| wkeIsWebRemoteFrame(view, frame)*/)
         return;
 
-    v8::Isolate* isolate = (v8::Isolate*)blink::MainThreadIsolate();
+    v8::Isolate* isolate = webContents->isolate();
     v8::HandleScope handleScope(isolate);
     v8::TryCatch tryCatch(isolate);
     v8::Local<v8::Context> context;
@@ -807,7 +807,6 @@ void WebContents::_loadURLApi(const std::string& url)
     std::string* str = trimUrl(url);
     m_isLoading = true;
 
-    content::printCallstack();
     mbLoadURL(m_view, str->c_str());
 
     delete str;

@@ -150,7 +150,7 @@ ObjectTemplateBuilder::~ObjectTemplateBuilder()
 
 ObjectTemplateBuilder& ObjectTemplateBuilder::AddNamedPropertyInterceptor()
 {
-    DebugBreak();
+    *(int*)1 = 1;
     //   v8::Local<v8::Value> data;
     //   template_->SetNamedPropertyHandler(&NamedPropertyGetter,
     //                                      &NamedPropertySetter,
@@ -162,7 +162,8 @@ ObjectTemplateBuilder& ObjectTemplateBuilder::AddNamedPropertyInterceptor()
 
 ObjectTemplateBuilder& ObjectTemplateBuilder::AddIndexedPropertyInterceptor()
 {
-    template_->SetIndexedPropertyHandler(&IndexedPropertyGetter, &IndexedPropertySetter, NULL, NULL, &IndexedPropertyEnumerator);
+    *(int*)1 = 1;
+    //template_->SetIndexedPropertyHandler(&IndexedPropertyGetter, &IndexedPropertySetter, NULL, NULL, &IndexedPropertyEnumerator);
     return *this;
 }
 

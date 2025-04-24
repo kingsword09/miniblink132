@@ -10,6 +10,7 @@
 #include "common/asar/Archive.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
+#include <windows.h>
 
 namespace asar {
 

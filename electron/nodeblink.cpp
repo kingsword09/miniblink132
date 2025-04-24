@@ -19,10 +19,7 @@
 #include "third_party/libnode/src/node_platform.h"
 #include "third_party/libuv/include/uv.h"
 #include "gin/public/isolate_holder.h"
-#include "gin/per_isolate_data.h"
 #include "v8/include/libplatform/libplatform.h"
-#include "base/task/single_thread_task_runner.h"
-#include "base/task/thread_pool/initialization_util.h"
 #if V8_MAJOR_VERSION >= 7
 //#include "v8_7_5/src/libplatform/default_platform_wrap.h"
 #include "v8/src/libplatform/default-platform-wrap.h"
@@ -486,17 +483,6 @@ char* nodeBufferGetData(void* buf, size_t* len)
     char* data = node::Buffer::Data(*val);
     *len = node::Buffer::Length(*val);
     return data;
-}
-
-void nodeCreateGinPerIsolateData(v8::Isolate* isolate, v8::ArrayBuffer::Allocator* allocator, bool isUseLocker)
-{
-    if (gin::PerIsolateData::From(isolate))
-        return;
-
-    gin::IsolateHolder::AccessMode mode = gin::IsolateHolder::kSingleThread;
-    if (isUseLocker)
-        mode = gin::IsolateHolder::AccessMode::kUseLocker;
-    new gin::PerIsolateData(isolate, allocator, mode, base::SingleThreadTaskRunner::GetCurrentDefault());
 }
 
 std::shared_ptr<v8::TaskRunner> nodePlatformGetForegroundTaskRunner(v8::Isolate* isolate)
