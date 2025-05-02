@@ -93,6 +93,7 @@ void ApiDownloadItem::newFunction(const v8::FunctionCallbackInfo<v8::Value>& arg
     }
 }
 
+// 这个路径是全路径，不包含了文件名的
 void ApiDownloadItem::setSavePathApi(const std::string path)
 {
     m_savePath = StringUtil::normalizePath(path);
@@ -211,8 +212,10 @@ void ApiDownloadItem::staticOnNetJobDataRecvCallback(void* ptr, mbNetJob job, co
     ApiDownloadItem* item = (ApiDownloadItem*)ptr;
     item->m_recvSize += length;
 
-    content::ThreadCall::callUiThreadSync(
-        FROM_HERE, [item] { item->mate::EventEmitter<ApiDownloadItem>::emit(std::string("updated"), std::string("progressing")); });
+    content::ThreadCall::callUiThreadAsync(
+        FROM_HERE, [item] { 
+            item->mate::EventEmitter<ApiDownloadItem>::emit(std::string("updated"), std::string("progressing")); 
+        });
 }
 
 static unsigned int __stdcall msgBoxThread(void* param)
@@ -243,14 +246,14 @@ void ApiDownloadItem::staticOnNetJobDataFinishCallback(void* ptr, mbNetJob job, 
     //     *title += L" 下载完成：";
     //     *title += temp;
 
-    content::ThreadCall::callUiThreadSync(FROM_HERE, [item, result] {
+    content::ThreadCall::callUiThreadAsync(FROM_HERE, [item, result] {
         if (result == MB_LOADING_SUCCEEDED)
             item->mate::EventEmitter<ApiDownloadItem>::emit(std::string("done"), std::string("completed"), std::string("completed"));
         else
             item->mate::EventEmitter<ApiDownloadItem>::emit(std::string("done"), std::string("interrupted"), std::string("interrupted"));
-    });
 
-    delete item;
+        delete item;
+    });
 
     //     std::function<void(void)>* callback = new std::function<void(void)>([title, result] {
     //         LPCWSTR lpCaption = (result == MB_LOADING_SUCCEEDED ? L"下载成功" : L"下载失败");

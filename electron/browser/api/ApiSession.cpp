@@ -94,6 +94,7 @@ static std::string createSessionDirname(const std::string& name, std::wstring* f
         ::PathAppendW(buffer.data(), temp);
 
     *fullpathW = buffer.data();
+
     return StringUtil::UTF16ToUTF8(*fullpathW);
 }
 
@@ -115,6 +116,7 @@ ApiSession* ApiSession::create(v8::Isolate* isolate, const std::string& name)
 
     std::wstring fullpathW;
     self->m_path = createSessionDirname(name, &fullpathW); // rootdir/minieleses/11223344/ 这种形式的目录
+    self->m_downloadPath = self->m_path;
 
     if (!FileUtil::isDirExist(fullpathW)) {
         if (!::CreateDirectory(fullpathW.c_str(), NULL)) {
@@ -162,7 +164,7 @@ mbDownloadOpt ApiSession::onDownloadCallback(WebContents* webContents, mbWebView
     ApiSession* self = this;
     int id = webContents->getIdApi();
 
-    content::ThreadCall::callUiThreadAsync(FROM_HERE, [self, id, webContents, itemPtr] {
+    content::ThreadCall::callUiThreadSync(FROM_HERE, [self, id, webContents, itemPtr] {
         if (IdLiveDetect::get()->isLive(id)) {
             *itemPtr = ApiDownloadItem::create(v8::Isolate::GetCurrent());
             self->mate::EventEmitter<ApiSession>::emit("will-download", *itemPtr, webContents);

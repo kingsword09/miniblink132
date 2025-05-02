@@ -40,9 +40,9 @@ public:
     }
 
     // this.emit(name, event, args...);
-    template <typename... Args> bool emitCustomEvent(const base::StringPiece& name, v8::Local<v8::Object> event, const Args&... args)
+    template <typename... Args> bool emitCustomEvent(const std::string& name, v8::Local<v8::Object> event, const Args&... args)
     {
-        return emitWithEvent(name, internal::createCustomEvent(isolate(), GetWrapper(), event), args...);
+        return emitWithEvent(name, /*internal::createCustomEvent(isolate(), GetWrapper(isolate()), event)*/event, args...);
     }
 
     // this.emit(name, new Event(flags), args...);

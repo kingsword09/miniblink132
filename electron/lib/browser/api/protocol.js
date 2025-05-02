@@ -8,11 +8,14 @@ var idGen = 0;
 
 function onLoadUrlBegin(id, request, nativeCallbackInfo) {
     var handler = handlerToIdMap[id];
-    if (!handler)
+    mbConsoleLog("Protocol.onLoadUrlBegin:" + handler);
+    if (!handler) {
+        protocol.onHandlerFinish(request, nativeCallbackInfo);
         return;
+    }
 
     handler(request, function(request) {
-//        var filePath；
+//        var filePath;
 //        if ("string" != (typeof redirectRequest)) {
 //            filePath = redirectRequest.path;
 //        }

@@ -24,6 +24,7 @@
 #include "content/common/ThreadCall.h"
 //#include "gin/public/v8_platform.h"
 #include "third_party/blink/renderer/platform/bindings/v8_per_context_data.h"
+#include "third_party/blink/renderer/platform/wtf/wtf.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libuv/include/uv.h"
@@ -32,6 +33,7 @@
 #include <shlwapi.h>
 
 void MB_CALL_TYPE mbGetWorldScriptContextByWebFrame(mbWebView webviewHandle, mbWebFrameHandle frameId, int worldID, v8ContextPtr contextOut);
+void MB_CALL_TYPE mbDownloadUrl(mbWebView webviewHandle, mbWebFrameHandle frameId, const std::string& url);
 
 namespace content {
 void printCallstack();
@@ -51,7 +53,7 @@ void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node:
     builder.SetMethod("equal", &WebContents::equalApi);
     builder.SetMethod("_loadURL", &WebContents::_loadURLApi);
     builder.SetMethod("loadURL", &WebContents::_loadURLApi);
-    builder.SetMethod("downloadURL", &WebContents::nullFunction);
+    builder.SetMethod("downloadURL", &WebContents::downloadURLApi);
     builder.SetMethod("_getURL", &WebContents::_getURLApi);
     builder.SetMethod("getTitle", &WebContents::getTitleApi);
     builder.SetMethod("isLoading", &WebContents::isLoadingApi);
@@ -301,31 +303,8 @@ static void disableNodejsOfWindow(mbWebView webView, mbWebFrameHandle frame)
     mbRunJs(webView, frame, "window.require = null;", false, nullptr, nullptr, nullptr);
 }
 
-// class NodeBindingsData : public blink::GarbageCollected<NodeBindingsData>, public blink::V8PerContextData::Data {
-// public:
-//     NodeBindingsData(bool b)
-//     {
-//         m_bind = new NodeBindings(b);
-//     }
-//
-//     void clear()
-//     {
-//         delete m_bind;
-//         m_bind = nullptr;
-//     }
-//
-//     ~NodeBindingsData()
-//     {
-//         CHECK(m_bind);
-//     }
-//     NodeBindings* m_bind = nullptr;
-// };
-
 void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle frame, v8::Local<v8::Context>* context, int extensionGroup, int worldId)
 {
-    if (WorldIDs::MAIN_WORLD_ID == worldId)
-        mbRunJs(webView, frame, "window.clientAPItest = 'hahahah'", false, nullptr, nullptr, (void*)(WorldIDs::MAIN_WORLD_ID));
-
     v8::MicrotasksScope microtasksScope((*context), v8::MicrotasksScope::Type::kRunMicrotasks);
     if (!m_preloadScriptPath.empty()) {
         char* output = (char*)malloc(0x300);
@@ -377,7 +356,7 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
 
     /////
     if (isMainWorld) {
-        shouldLoadNodejs = true; // 老版本electron是强行兼容
+        //shouldLoadNodejs = true; // 老版本electron是强行兼容，新版本不兼容算了
         shouldDisableNodejsOfWindow = false;
     }
     /////
@@ -391,12 +370,14 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
         BlinkMicrotaskSuppressionHandle handle = nodeBlinkMicrotaskSuppressionEnter(isolate);
         uv_loop_t* uvloop = content::ThreadCall::getBlinkLoop();
         m_nodeBindings->setUvLoop(uvloop);
+        m_nodeBindings->m_processObjInfo.isContextIsolated = m_createWindowParam->m_isContextIsolation;
+
         node::Environment* env = m_nodeBindings->createEnvironment(*context);
         m_nodeBindings->loadEnvironment(env);
 
         m_environments.insert(env);
 
-        content::ThreadCall::runBlinkThreadNode(uvloop, /*gin::V8Platform::Get(),*/ isolate);
+        content::ThreadCall::runBlinkThreadNode(uvloop, isolate);
         nodeBlinkMicrotaskSuppressionLeave(handle);
 
         //perCtx->AddData("NodeBindings", nodeBinding);
@@ -416,9 +397,9 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
                     preloadScriptPath[i] = '/';
             }
 
-            std::string contents = "window.require('";
+            std::string contents = "try {window.require('";
             contents += preloadScriptPath;
-            contents += "');";
+            contents += "');} catch(e) { mbConsoleLog('window.require fail:' + e); }";
 
             char output[100] = { 0 };
             sprintf_s(output, 99, "onDidCreateScriptContext preload begin: %p, %d\n", frame, worldId);
@@ -443,7 +424,7 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
         //             "  }"
         //             "});";
         //         mbRunJs(webView, frame, testjs, false, nullptr, nullptr, (void*)(WorldIDs::MAIN_WORLD_ID));
-        mbRunJs(webView, frame, "mbConsoleLog('window.clientAPI~~~' + window.clientAPI)", false, nullptr, nullptr, (void*)(WorldIDs::MAIN_WORLD_ID));
+        // mbRunJs(webView, frame, "mbConsoleLog('window.clientAPI~~~' + window.clientAPI)", false, nullptr, nullptr, (void*)(WorldIDs::MAIN_WORLD_ID));
     }
 }
 
@@ -498,6 +479,8 @@ mbDownloadOpt WebContents::staticOnDownloadCallback(mbWebView webView, void* par
     return ses->onDownloadCallback(self, webView, expectedContentLength, url, mime, disposition, job, dataBind);
 }
 
+int testEventEmitter = 0;
+
 // channel是"ipc-message"字符串，和用户发送的channel不是一回事
 void WebContents::rendererPostMessageToMain(const std::string& channel, const base::Value::List& listParams)
 {
@@ -510,7 +493,26 @@ void WebContents::rendererPostMessageToMain(const std::string& channel, const ba
 
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [self, id, channelCopy, listParamsCopy] {
         if (IdLiveDetect::get()->isLive(id)) {
-            self->mate::EventEmitter<WebContents>::emit(channelCopy->c_str(), *listParamsCopy);
+            //self->mate::EventEmitter<WebContents>::emit(channelCopy->c_str(), *listParamsCopy);
+
+            v8::Isolate* isolate = self->isolate();
+            v8::HandleScope handleScope(isolate);
+            v8::Local<v8::Object> event = mate::internal::createJSEvent(isolate, self->getWrapper());
+
+            mbWebView webView = self->getMbView();
+            intptr_t mainFrame = (intptr_t)mbWebFrameGetMainFrame(webView);
+
+            ApiWebFrameMain* webframe = ApiWebFrameMain::createOrGet(mainFrame);
+            v8::Local<v8::Object> webframeV8 = webframe->GetWrapper(isolate);
+            v8::Local<v8::Context> context = webframeV8->GetCreationContextChecked();
+            v8::Context::Scope contextScope(context);
+
+            event->Set(context, gin_helper::StringToV8(isolate, "senderFrame"), webframeV8);
+
+            v8::Local<v8::Object> webContentsV8 = self->GetWrapper(isolate);
+            event->Set(context, gin_helper::StringToV8(isolate, "sender"), webContentsV8);
+
+            self->mate::EventEmitter<WebContents>::emitCustomEvent(channelCopy->c_str(), event, *listParamsCopy);
         }
         delete listParamsCopy;
         delete channelCopy;
@@ -535,9 +537,9 @@ static bool getIPCObject(v8::Isolate* isolate, v8::Local<v8::Context> context, v
 {
     v8::Local<v8::String> key = gin_helper::StringToV8(isolate, "ipc");
     v8::Local<v8::Private> privateKey = v8::Private::ForApi(isolate, key);
-    v8::Local<v8::Object> global_object = context->Global();
+    v8::Local<v8::Object> globalObject = context->Global();
     v8::Local<v8::Value> value;
-    if (!global_object->GetPrivate(context, privateKey).ToLocal(&value))
+    if (!globalObject->GetPrivate(context, privateKey).ToLocal(&value))
         return false;
     if (value.IsEmpty() || !value->IsObject())
         return false;
@@ -553,19 +555,21 @@ static std::vector<v8::Local<v8::Value>> listValueToVector(v8::Isolate* isolate,
     return result;
 }
 
-static void emitIPCEventImpl(
+static void emitIPCEventToRendererImpl(
     WebContents* webContents, mbWebView view, mbWebFrameHandle frame, int worldID, const std::string& channel, const base::Value::List& args)
 {
+    CHECK(WTF::IsMainThread());
     if (!frame /*|| wkeIsWebRemoteFrame(view, frame)*/)
         return;
 
-    v8::Isolate* isolate = webContents->isolate();
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
     v8::HandleScope handleScope(isolate);
     v8::TryCatch tryCatch(isolate);
     v8::Local<v8::Context> context;
     mbGetWorldScriptContextByWebFrame(view, frame, worldID, &context);
     if (context.IsEmpty())
         return;
+    v8::MicrotasksScope microtasksScope(context, v8::MicrotasksScope::kRunMicrotasks);
     v8::Context::Scope contextScope(context);
 
     tryCatch.SetVerbose(true);
@@ -590,15 +594,15 @@ static void emitIPCEventImpl(
     }
 }
 
-static void emitIPCEvent(WebContents* webContents, mbWebView view, mbWebFrameHandle frame, const std::string& channel, const base::Value::List& args)
+static void emitIPCEventToRenderer(WebContents* webContents, mbWebView view, mbWebFrameHandle frame, const std::string& channel, const base::Value::List& args)
 {
-    emitIPCEventImpl(webContents, view, frame, WorldIDs::MAIN_WORLD_ID, channel, args);
-    emitIPCEventImpl(webContents, view, frame, WorldIDs::ISOLATED_WORLD_ID, channel, args);
+    emitIPCEventToRendererImpl(webContents, view, frame, WorldIDs::MAIN_WORLD_ID, channel, args);
+    emitIPCEventToRendererImpl(webContents, view, frame, WorldIDs::ISOLATED_WORLD_ID, channel, args);
 }
 
 void WebContents::rendererSendMessageToRenderer(mbWebView view, mbWebFrameHandle frame, const std::string& channel, const base::Value::List& args)
 {
-    emitIPCEvent(nullptr, view, frame, channel, args);
+    emitIPCEventToRenderer(nullptr, view, frame, channel, args);
 }
 
 void WebContents::anyPostMessageToRenderer(const std::string& channel, const base::Value::List& listParams)
@@ -610,7 +614,7 @@ void WebContents::anyPostMessageToRenderer(const std::string& channel, const bas
 
     content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [self, id, channelWrap, listParamsWrap] {
         if (IdLiveDetect::get()->isLive(id)) {
-            emitIPCEvent(self, self->m_view, mbWebFrameGetMainFrame(self->m_view), *channelWrap, *listParamsWrap);
+            emitIPCEventToRenderer(self, self->m_view, mbWebFrameGetMainFrame(self->m_view), *channelWrap, *listParamsWrap);
         }
 
         delete channelWrap;
@@ -732,6 +736,13 @@ void WebContents::setWindowOpenHandlerApi(const v8::FunctionCallbackInfo<v8::Val
         return;
     v8::Local<v8::Function> fn = arg0.As<v8::Function>();
     m_windowOpenHandlerCb.Reset(info.GetIsolate(), fn);
+}
+
+void WebContents::downloadURLApi(const std::string& url)
+{
+    mbWebView webView = getMbView();
+    intptr_t mainFrame = (intptr_t)mbWebFrameGetMainFrame(webView);
+    mbDownloadUrl(webView, (mbWebFrameHandle) mainFrame, url);
 }
 
 void WebContents::setZoomLevelApi(float level)

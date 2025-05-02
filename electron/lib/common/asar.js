@@ -4,7 +4,14 @@
     const ArchiveClass = process._linkedBinding('atom_common_asar').Archive; // asar
     const childProcess = require('child_process');
     const path = require('path');
-    const util = require('util');
+    //const util = require('util');
+    
+    function util_isString(arg) {
+        return typeof arg === 'string';
+    }
+    function util_isObject(arg) {
+        return arg !== null && typeof arg === 'object';
+    }
 
     const hasProp = {}.hasOwnProperty;
 
@@ -13,7 +20,6 @@
 
     const internalModuleStat = process.binding('fs').internalModuleStat;
     const internalModuleReadJSON = process.binding('fs').internalModuleReadJSON;
-    //mbConsoleLog("internalModuleReadJSON:::" + internalModuleReadJSON);
     
     const getOrCreateArchive = function (p) {
         let archive = cachedArchives[p];
@@ -36,7 +42,14 @@
                 continue;
             cachedArchives[p].destroy();
         }
-    })
+    });
+    
+    function removePrefix(str, prefixStr) {
+        if (str.startsWith(prefixStr)) {
+            return str.slice(prefixStr.length);
+        }
+        return str;
+    }
 
     // Separate asar package's path from full path.
     const splitPath = function (p) {
@@ -58,7 +71,7 @@
         }
 
         if (p.substr(-5) === '.asar') {
-            const stats = internalModuleStat(p);
+            const stats = internalModuleStat(null, p);
             if (1 == stats) {
                 return [false];
             }
@@ -66,13 +79,19 @@
         }
 
         p = path.normalize(p);
+        p = removePrefix(p, ".\\");
+        ////
+        //if (p.indexOf("@electron-toolkit\\utils.js") !== -1)
+        //    mbConsoleLog("electron-toolkit __callstack__");
+        ////
+        
         const index = p.lastIndexOf('.asar' + path.sep);
         if (index === -1) {
             return [false];
         }
 
         const asarPath = p.substr(0, index + 5);
-        const stats = internalModuleStat(asarPath);
+        const stats = internalModuleStat(null, asarPath);
         if (1 == stats)
             return [false];
         return [true, asarPath, p.substr(index + 6)];
@@ -545,11 +564,11 @@
                 options = {
                     encoding: null
                 }
-            } else if (util.isString(options)) {
+            } else if (util_isString(options)) {
                 options = {
                     encoding: options
                 }
-            } else if (!util.isObject(options)) {
+            } else if (!util_isObject(options)) {
                 throw new TypeError('Bad arguments');
             }
             const encoding = options.encoding;
@@ -574,6 +593,7 @@
                 return readFileSync.apply(this, arguments);
             }
             
+            //mbConsoleLog("readFileSync, asarPath: " + asarPath);
             const archive = getOrCreateArchive(asarPath);
             if (!archive) {
                 invalidArchiveError(asarPath);
@@ -598,11 +618,11 @@
                 options = {
                     encoding: null
                 }
-            } else if (util.isString(options)) {
+            } else if (util_isString(options)) {
                 options = {
                     encoding: options
                 }
-            } else if (!util.isObject(options)) {
+            } else if (!util_isObject(options)) {
                 throw new TypeError('Bad arguments');
             }
             const encoding = options.encoding;
@@ -732,14 +752,97 @@
             return [result, false]; // result must be string
         }
 
-        process.binding('fs').internalModuleStat = function (p) {
+        const readPackageJSON = internalBinding('modules').readPackageJSON;
+        
+        // lib/internal/modules/package_json_reader.js:
+        function serializePackageJSON (jsonPath, jsonStr) {
+            let parsed = JSON.parse(jsonStr);
+            const result = {
+                __proto__: null,
+                exists: true,
+                pjsonPath: jsonPath,
+                main: undefined,
+                name: undefined,
+                type: 'none', // Ignore unknown types for forwards compatibility
+                exports: undefined,
+                imports: undefined,
+            };
+            
+            if (parsed.hasOwnProperty('name') && typeof parsed.name === 'string') {
+                result.name = parsed.name;
+            }
+
+            if (parsed.hasOwnProperty('main') && typeof parsed.main === 'string') {
+                result.main = parsed.main;
+            }
+
+            if (parsed.hasOwnProperty('exports')) {
+                result.exports = parsed.exports;
+            }
+
+            if (parsed.hasOwnProperty('imports')) {
+                result.imports = parsed.imports;
+            }
+
+            // Ignore unknown types for forwards compatibility
+            if (parsed.hasOwnProperty(parsed, 'type') && (parsed.type === 'commonjs' || parsed.type === 'module')) {
+                result.type = parsed.type;
+            }
+            // 0: name,
+            // 1: main,
+            // 2: type,
+            // 3: plainImports,
+            // 4: plainExports,
+            // 5: optionalFilePath,
+            return [result.name, result.main, result.type, result.imports, result.exports, result.pjsonPath];
+        }
+        
+        internalBinding('modules').readPackageJSON = function (p, isESM, base, specifier) {
+            //mbConsoleLog("asar.js, readPackageJSON:" + p);
+            
             const paths = splitPath(p);
             const isAsar = paths[0];
             const asarPath = paths[1];
             const filePath = paths[2];
-            
+
             if (!isAsar) {
-                return internalModuleStat(p);
+                return readPackageJSON(p, isESM, base, specifier);
+            }
+            const archive = getOrCreateArchive(asarPath);
+            if (!archive) {
+                return [];
+            }
+            const info = archive.getFileInfo(filePath);
+            if (!info) {
+                return [];
+            }
+            if (info.size === 0) {
+                return [];
+            }
+            if (info.unpacked) {
+                const realPath = archive.copyFileOut(filePath);
+                return fs.readFileSync(realPath, {
+                    encoding: 'utf8'
+                });
+            }
+            const buffer = new Buffer(info.size);
+            const fd = archive.getFd();
+            if (!(fd >= 0)) {
+                return [];
+            }
+            logASARAccess(asarPath, filePath, info.offset);
+            fs.readSync(fd, buffer, 0, info.size, info.offset);
+            return serializePackageJSON(p, buffer.toString('utf8'));
+        }
+
+        process.binding('fs').internalModuleStat = function (internalFsBinding, p) {
+            const paths = splitPath(p);
+            const isAsar = paths[0];
+            const asarPath = paths[1];
+            const filePath = paths[2];
+
+            if (!isAsar) { 
+                return internalModuleStat(internalFsBinding, p);
             }
 
             const archive = getOrCreateArchive(asarPath);
@@ -815,8 +918,9 @@
         // has filesystem caching.
         overrideAPI(fs, 'copyFile');
         overrideAPISync(fs, 'copyFileSync');
-
+        
         overrideAPI(fs, 'open');
+        //overrideAPI(fs, 'openFileHandle');
         overrideAPI(childProcess, 'execFile');
         overrideAPISync(process, 'dlopen', 1, false);
         overrideAPISync(require('module')._extensions, '.node', 1, false);

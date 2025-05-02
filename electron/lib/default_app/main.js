@@ -8,8 +8,6 @@ const fs = require('fs');
 const Module = require('module');
 const path = require('path');
 const url = require('url');
-mbConsoleLog("1111111111");
-console.log("2122222222222");
 
 // Parse command line options.
 const argv = process.argv.slice(1);
@@ -59,28 +57,30 @@ if (null == option.file) {
     exePath = path.dirname(exePath);
     let tryExePaths = ['resources/app.asar/package.json', 'resources/app.asar/main.js', 'resources/app/package.json', 'resources/index.html'];
     let find = false;
-    console.log("exePath:" + exePath);
+    mbConsoleLog("exePath:" + exePath);
     for (let i = 0; i < tryExePaths.length; ++i) {
         let tryPath = tryExePaths[i];
         let fileName = path.join(exePath, tryPath);
+        mbConsoleLog("default_app.js, exePath, fileName:" + fileName);
         if (!fs.existsSync(fileName))
             continue;
         option.file = fileName;
         find = true;
         break;
     }
-    console.log("default_app.js, option.file 1:" + option.file);
+    mbConsoleLog("default_app.js, option.file 1:" + option.file);
     
     let tryPaths = ['../../app.asar/package.json', '../../app.asar/main.js', '../../app/package.json', '/index.html'];
     for (let i = 0; !find && i < tryPaths.length; ++i) {
         let tryPath = tryPaths[i];
         let fileName = path.join(__dirname, tryPath);
+        mbConsoleLog("default_app.js, __dirname, fileName:" + fileName);
         if (!fs.existsSync(fileName))
             continue;
         option.file = fileName;
         break;
     }
-    console.log("default_app.js, option.file 2:" + option.file);
+    mbConsoleLog("default_app.js, option.file 2:" + option.file);
 }
 
 // Quit when all windows are closed and no other one is listening to this.
@@ -97,7 +97,7 @@ if (option.modules.length > 0) {
 async function loadApplicationPackage(packagePath) {
     // Add a flag indicating app is started from default app.
     process.defaultApp = true;
-    console.log("loadApplicationPackage:" + packagePath);
+    mbConsoleLog("loadApplicationPackage:" + packagePath);
 
     try {
         // Override app name and version.
@@ -111,12 +111,12 @@ async function loadApplicationPackage(packagePath) {
 
         if (fs.existsSync(packageJsonPath)) {
             let packageJson;
-            try {
+            //try {
                 packageJson = require(packageJsonPath);
-            } catch (e) {
-                showErrorMessage(`Unable to parse ${packageJsonPath}\n\n${e.message}`);
-                return;
-            }
+            //} catch (e) {
+            //    showErrorMessage(`Unable to parse ${packageJsonPath}\n\n${e.message}`);
+            //    return;
+            //}
 
             if (packageJson.version) {
                 app.setVersion(packageJson.version);
@@ -133,12 +133,12 @@ async function loadApplicationPackage(packagePath) {
             packagePath = path.join(packagePath, packageJson.main);
         }
         
-        console.log("default_app main.js packagePath," + packagePath);
+        mbConsoleLog("default_app main.js packagePath," + packagePath);
 
         try {
             Module._resolveFilename(packagePath, module, true);
         } catch (e) {
-            console.log(`default_app/main.js: Unable to find Electron app at ${packagePath}\n\n${e.message}`);
+            mbConsoleLog(`default_app/main.js: Unable to find Electron app at ${packagePath}\n\n${e.message}`);
             process.exit(1);
             return;
         }
@@ -155,12 +155,13 @@ async function loadApplicationPackage(packagePath) {
 
 function showErrorMessage(message) {
     app.focus();
+    mbConsoleLog(message);
     dialog.showErrorBox('Error launching app', message);
     process.exit(1);
 }
 
 function loadApplicationByUrl(appUrl) {
-    console.log("default_app.js, loadApplicationByUrl: " + appUrl);
+    mbConsoleLog("default_app.js, loadApplicationByUrl: " + appUrl);
     require('./default_app').load(appUrl);
 }
 
@@ -169,7 +170,7 @@ function loadApplicationByJsUrl(packagePath, appJsUrl) {
     let packageJsonPath = packagePath;
     packagePath = path.dirname(packagePath);
     app.setAppPath(packagePath);
-    console.log("loadApplicationByJsUrl:" + appJsUrl);
+    mbConsoleLog("loadApplicationByJsUrl:" + appJsUrl);
     
     require(appJsUrl);
 }
@@ -186,6 +187,7 @@ function startRepl() {
         process.exit(0);
     })
 }
+mbConsoleLog("option.file::" + option.file);
 
 // Start the specified app if there is one specified in command line, otherwise
 // start the default app.
@@ -204,10 +206,10 @@ if (option.file && !option.webdriver) {
         loadApplicationPackage(file);
     }
 } else if (option.version) {
-    console.log('v' + process.versions.electron);
+    mbConsoleLog('v' + process.versions.electron);
     process.exit(0);
 } else if (option.abi) {
-    console.log(process.versions.modules);
+    mbConsoleLog(process.versions.modules);
     process.exit(0);
 } else if (option.help) {
     const helpMessage = `Electron ${process.versions.electron} - Build cross platform desktop apps with JavaScript, HTML, and CSS
@@ -228,7 +230,7 @@ if (option.file && !option.webdriver) {
     -r, --require         Module to preload (option can be repeated)
     -v, --version         Print the version.
     --abi                 Print the application binary interface.`
-    console.log(helpMessage);
+    mbConsoleLog(helpMessage);
     process.exit(0);
 } else if (option.interactive) {
     startRepl();

@@ -114,9 +114,6 @@ static v8::Isolate* initNodeEnvAndRunLoop(NodeArgc* nodeArgc)
     //     nodeArgc->childEnv->file_system_hooks(&fsHooks);
     NodeBindings::initNodeEnv();
 
-    //     v8::Isolate::CreateParams params;
-    //     params.array_buffer_allocator = new ArrayBufferAllocator();
-    //     v8::Isolate* isolate = v8::Isolate::New(params);
     nodeArgc->uiThreadNodeEnv.isolateHolder
         = new gin::IsolateHolder(base::SingleThreadTaskRunner::GetCurrentDefault(), gin::IsolateHolder::IsolateType::kUtility);
     v8::Isolate* isolate = nodeArgc->uiThreadNodeEnv.isolateHolder->isolate();

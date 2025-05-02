@@ -27,6 +27,7 @@
 namespace content {
 void fixStringWelFormed(v8::Local<v8::Context> context);
 void* v8ContextToMbWebFrameHandle(v8::Local<v8::Context> context);
+void printCallstack();
 }
 
 namespace atom {
@@ -247,6 +248,8 @@ void NodeBindings::initNodeEnv()
     // to inherit the custom stdio handles created for the parent.
     processFlags |= node::ProcessFlags::kEnableStdioInheritance;
 
+    args.push_back("--no-experimental-detect-module");
+
     /*int exit_code = */ node::InitializeNodeWithArgs(&args, &execArgv, &errors, (node::ProcessFlags::Flags)(processFlags));
 }
 
@@ -267,9 +270,9 @@ static void bindMethod(
 
     // kInternalized strings are created in the old space.
     const v8::NewStringType type = v8::NewStringType::kInternalized;
-    v8::Local<v8::String> name_string = v8::String::NewFromUtf8(isolate, name, type).ToLocalChecked();
-    object->Set(context, name_string, func);
-    func->SetName(name_string); // NODE_SET_METHOD() compatibility.
+    v8::Local<v8::String> nameString = v8::String::NewFromUtf8(isolate, name, type).ToLocalChecked();
+    object->Set(context, nameString, func);
+    func->SetName(nameString); // NODE_SET_METHOD() compatibility.
 }
 
 void NodeBindings::bindFunction(gin::Dictionary* dict, v8::Local<v8::Object> object)
@@ -290,6 +293,11 @@ void NodeBindings::bindFunction(gin::Dictionary* dict, v8::Local<v8::Object> obj
     bindMethod(isolate, object, "mas", true);
 #endif
     bindMethod(isolate, object, "getSystemVersion", getSystemVersion); // M:\chromium\electron14\electron\shell\common\api\electron_bindings.cc
+
+    gin::Dictionary processObject = gin::Dictionary(isolate, object);
+    processObject.Set("sandboxed", false);
+    if (!m_processObjInfo.isBrowserProcess)
+        processObject.Set("contextIsolated", m_processObjInfo.isContextIsolated);
 
     gin::Dictionary versions = gin::Dictionary::CreateEmpty(dict->isolate());
     if (dict->Get("versions", &versions)) {
@@ -358,61 +366,17 @@ static void mbConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& info)
     str += *param0String;
     str += "\n";
 
-    if (std::string::npos != str.find("mbConsoleLog is not defined"))
+    if (std::string::npos != str.find("validateEvent!!!!!"))
         OutputDebugStringA("");
 
     if (std::string::npos != str.find("__callstack__")) {
-        const v8::StackTrace::StackTraceOptions options = static_cast<v8::StackTrace::StackTraceOptions>(v8::StackTrace::kLineNumber
-            | v8::StackTrace::kColumnOffset | v8::StackTrace::kScriptId | v8::StackTrace::kScriptNameOrSourceURL | v8::StackTrace::kFunctionName);
-
-        int stackNum = 50;
-        v8::HandleScope handleScope(info.GetIsolate());
-        v8::Local<v8::StackTrace> stackTrace(v8::StackTrace::CurrentStackTrace(info.GetIsolate(), stackNum, options));
-        int count = stackTrace->GetFrameCount();
-
-        char* output = (char*)malloc(0x100);
-        sprintf(output, "mbConsoleLog: %d\n", count);
-        OutputDebugStringA(output);
-        free(output);
-
-        for (int i = 0; i < count; ++i) {
-            v8::Local<v8::StackFrame> stackFrame = stackTrace->GetFrame(info.GetIsolate(), i);
-            int frameCount = stackTrace->GetFrameCount();
-            int line = stackFrame->GetLineNumber();
-            v8::Local<v8::String> scriptName = stackFrame->GetScriptNameOrSourceURL();
-            v8::Local<v8::String> funcName = stackFrame->GetFunctionName();
-
-            std::string scriptNameWTF;
-            std::string funcNameWTF;
-
-            if (!scriptName.IsEmpty()) {
-                v8::String::Utf8Value scriptNameUtf8(isolate, scriptName);
-                scriptNameWTF = *scriptNameUtf8;
-            }
-
-            if (!funcName.IsEmpty()) {
-                v8::String::Utf8Value funcNameUtf8(isolate, funcName);
-                funcNameWTF = *funcNameUtf8;
-            }
-            std::vector<char> output;
-            output.resize(1000);
-            sprintf(&output[0], "line:%d, [", line);
-            OutputDebugStringA(&output[0]);
-
-            if (!scriptNameWTF.empty()) {
-                OutputDebugStringA(scriptNameWTF.c_str());
-            }
-            OutputDebugStringA("] , [");
-
-            if (!funcNameWTF.empty()) {
-                OutputDebugStringA(funcNameWTF.c_str());
-            }
-            OutputDebugStringA("]\n");
-        }
-        OutputDebugStringA("\n");
+        content::printCallstack();
     }
 
     std::wstring strW = StringUtil::UTF8ToUTF16(str);
+    if (std::wstring::npos != strW.find(L"下载文件"))
+        OutputDebugStringA("");
+
     OutputDebugStringW(strW.c_str());
 }
 
@@ -492,7 +456,7 @@ node::Environment* NodeBindings::createEnvironment(v8::Local<v8::Context> contex
         scriptPath[0] += L'A' - L'a';
 
     std::string scriptPathStr = StringUtil::UTF16ToUTF8(scriptPath);
-    args.insert(args.begin() + 1, scriptPathStr.c_str());
+    args.insert(args.begin() + 1, scriptPathStr.c_str()); 
 
     if (!m_isolateData) {
         g_nodeArgc->m_registerIsolatesLock.Acquire();
@@ -533,6 +497,7 @@ node::Environment* NodeBindings::createEnvironment(v8::Local<v8::Context> contex
         addFunction(context, "blinkConsoleLog", mbConsoleLog, false);
     }
 
+    m_processObjInfo.isBrowserProcess = m_isBrowser;
     bindFunction(&process, nodeGetEnvironmentProcessObject(env));
 
     // The path to helper app.

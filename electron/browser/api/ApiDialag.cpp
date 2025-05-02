@@ -25,6 +25,9 @@
 #include <vector>
 
 //struct __declspec(uuid("00000000-0000-0000-c000-000000000046")) IFileOpenDialog;
+namespace content {
+void printCallstack();
+}
 
 namespace atom {
 
@@ -221,59 +224,10 @@ public:
 
     void _showErrorBoxApi(const std::string& title, const std::string& content)
     {
+        content::printCallstack();
         std::u16string titleW = base::UTF8ToUTF16(title);
         std::u16string contentW = base::UTF8ToUTF16(content);
         ::MessageBoxW(nullptr, (LPCWSTR)contentW.c_str(), (LPCWSTR)titleW.c_str(), MB_OK);
-
-        const v8::StackTrace::StackTraceOptions options = static_cast<v8::StackTrace::StackTraceOptions>(v8::StackTrace::kLineNumber
-            | v8::StackTrace::kColumnOffset | v8::StackTrace::kScriptId | v8::StackTrace::kScriptNameOrSourceURL | v8::StackTrace::kFunctionName);
-
-        v8::Isolate* isolate = v8::Isolate::GetCurrent();
-        int stackNum = 50;
-        v8::HandleScope handleScope(v8::Isolate::GetCurrent());
-        v8::Local<v8::StackTrace> stackTrace(v8::StackTrace::CurrentStackTrace(isolate, stackNum, options));
-        int count = stackTrace->GetFrameCount();
-
-        char* output = (char*)malloc(0x100);
-        sprintf(output, "FatalException: %d\n", count);
-        OutputDebugStringA(output);
-        free(output);
-
-        for (int i = 0; i < count; ++i) {
-            v8::Local<v8::StackFrame> stackFrame = stackTrace->GetFrame(isolate, i);
-            int frameCount = stackTrace->GetFrameCount();
-            int line = stackFrame->GetLineNumber();
-            v8::Local<v8::String> scriptName = stackFrame->GetScriptNameOrSourceURL();
-            v8::Local<v8::String> funcName = stackFrame->GetFunctionName();
-
-            std::string scriptNameWTF;
-            std::string funcNameWTF;
-
-            if (!scriptName.IsEmpty()) {
-                v8::String::Utf8Value scriptNameUtf8(isolate, scriptName);
-                scriptNameWTF = *scriptNameUtf8;
-            }
-
-            if (!funcName.IsEmpty()) {
-                v8::String::Utf8Value funcNameUtf8(isolate, funcName);
-                funcNameWTF = *funcNameUtf8;
-            }
-            std::vector<char> output;
-            output.resize(1000);
-            sprintf(&output[0], "line:%d, [", line);
-            OutputDebugStringA(&output[0]);
-
-            if (!scriptNameWTF.empty()) {
-                OutputDebugStringA(scriptNameWTF.c_str());
-            }
-            OutputDebugStringA("] , [");
-
-            if (!funcNameWTF.empty()) {
-                OutputDebugStringA(funcNameWTF.c_str());
-            }
-            OutputDebugStringA("]\n");
-        }
-        OutputDebugStringA("\n");
     }
 
     void _showMessageBoxApi(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -266,12 +266,12 @@ void initAsarSupport(const v8::FunctionCallbackInfo<v8::Value>& info)
     std::string buffer;
 
 #if FAKE_ASAR
-    asar::ReadFileToString(base::FilePath::FromUTF8Unsafe("W:\\mycode\\mb108\\electron\\lib\\common\\asar_init.js"), &buffer);
+    asar::ReadFileToString(base::FilePath::FromUTF8Unsafe("W:\\mycode\\mb132\\electron\\lib\\common\\asar_init.js"), &buffer);
     const char* asarInitNative = &buffer.at(0);
     size_t asarInitNativeLength = buffer.size();
 #else
     const char* asarInitNative = atom::AsarInitJs;
-    size_t asarInitNativeLength = 690;
+    size_t asarInitNativeLength = sizeof(atom::AsarInitJs);
 #endif
     v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
 
@@ -285,7 +285,7 @@ void initAsarSupport(const v8::FunctionCallbackInfo<v8::Value>& info)
     v8::Function* resultFunc = v8::Function::Cast(*result);
 
 #if FAKE_ASAR
-    asar::ReadFileToString(base::FilePath::FromUTF8Unsafe("W:\\mycode\\mb108\\electron\\lib\\common\\asar.js"), &buffer);
+    asar::ReadFileToString(base::FilePath::FromUTF8Unsafe("W:\\mycode\\mb132\\electron\\lib\\common\\asar.js"), &buffer);
     v8::Local<v8::String> asarNativeV8 = v8::String::NewFromUtf8(isolate, &buffer.at(0), v8::NewStringType::kNormal, buffer.size()).ToLocalChecked();
 #else
     v8::Local<v8::String> asarNativeV8 = v8::String::NewFromUtf8(isolate, (const char*)AsarJs, v8::NewStringType::kNormal, AsarJsLength - 1).ToLocalChecked();

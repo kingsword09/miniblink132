@@ -85,7 +85,7 @@ WebContents.prototype.postMessage = function (channel, data, ports) {
 
 // WebContents::send(channel, args..)
 // WebContents::sendToAll(channel, args..)
-WebContents.prototype.send = function (channel, ...args) {
+WebContents.prototype.send = function (channel, ...args) { mbConsoleLog("WebContents.prototype.send:" + channel);
     if (channel == null) throw new Error('Missing required channel argument');
     return this._send(false, channel, args);
 }

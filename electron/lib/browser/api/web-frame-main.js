@@ -4,7 +4,6 @@ const { IpcMainImpl } = require('events');
 
 const binding = process._linkedBinding('atom_browser_web_frame_main');
 const WebFrameMain = binding.WebFrameMain;
-mbConsoleLog("WebFrameMain:" + WebFrameMain);
 const fromId = binding.fromId;
 
 Object.setPrototypeOf(WebFrameMain.prototype, EventEmitter.prototype); // 把on之类的函数绑定过来
@@ -51,4 +50,9 @@ WebFrameMain.prototype.postMessage = function(...args) {
 };
 
 //process.WebFrameMain = WebFrameMain;
-module.exports = new WebFrameMain();
+//module.exports = new WebFrameMain();
+module.exports = {
+    "webFrameMain": {
+        "fromId": fromId
+    }
+};

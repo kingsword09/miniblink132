@@ -38,6 +38,13 @@ public:
 
     static void initNodeEnv();
 
+    // https://electron.js.cn/docs/latest/api/process#processcontextisolated-readonly
+    struct ProcessObjInfo {
+        bool isBrowserProcess = false;
+        bool isContextIsolated = false;
+    };
+    ProcessObjInfo m_processObjInfo;
+
     void bindFunction(gin::Dictionary* dict, v8::Local<v8::Object> object);
 
     node::Environment* createEnvironment(v8::Local<v8::Context> context);

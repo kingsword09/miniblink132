@@ -166,7 +166,6 @@ private:
     static void fromIdApi(const v8::FunctionCallbackInfo<v8::Value>& info);
 
     std::string _getURLApi();
-
     std::string getTitleApi();
 
     bool isLoadingApi();
@@ -238,6 +237,7 @@ private:
     void setEmbedderApi();
     bool isDestroyedApi() const;
     void reloadIgnoringCacheApi();
+    void downloadURLApi(const std::string& url);
 
     void nullFunction();
 
