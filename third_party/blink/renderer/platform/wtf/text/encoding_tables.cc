@@ -42,6 +42,16 @@
 #include "third_party/blink/renderer/platform/wtf/text/character_names.h"
 #include "third_party/blink/renderer/platform/wtf/text/text_codec_icu.h"
 
+//---
+namespace content {
+struct IcuIndexPair {
+    uint16_t first;
+    UChar second;
+};
+}
+#include "content/resources/IcuEncodeTable.h"
+//---
+
 namespace WTF {
 
 // These are values from https://encoding.spec.whatwg.org/index-jis0208.txt that
@@ -96,6 +106,72 @@ constexpr std::array<std::pair<uint16_t, UChar>, 388> kJis0208Extras { { { 10716
     { 11088, 0xfa2c }, { 11089, 0x999e }, { 11090, 0x9a4e }, { 11091, 0x9ad9 }, { 11092, 0x9adc }, { 11093, 0x9b75 }, { 11094, 0x9b72 }, { 11095, 0x9b8f },
     { 11096, 0x9bb1 }, { 11097, 0x9bbb }, { 11098, 0x9c00 }, { 11099, 0x9d70 }, { 11100, 0x9d6b }, { 11101, 0xfa2d }, { 11102, 0x9e19 }, { 11103, 0x9ed1 } } };
 
+// void PrintIndex(const char* name, std::pair<uint16_t, UChar>* pair, size_t len) {
+//     std::string output = "namespace content {\nIcuIndexPair k";
+//     output += name;
+// 
+//     char temp[100] = { 0 };
+//     sprintf(temp, "[%d] = {\n", (int)len);
+//     output += temp;
+// 
+//     for (size_t i = 0; i < len; ++i) {
+//         char temp2[100] = { 0 };
+//         sprintf(temp2, "{0x%x, 0x%x}, ", pair[i].first, pair[i].second);
+//         output += temp2;
+// 
+//         if (i % 21 == 0)
+//             output += "\n";
+//     }
+//     output += "\n};\n} // namespace content \n";
+// 
+//     std::string name_str = "W:\\mycode\\mb132\\out\\win_Debug_Win32\\LocalStorage\\download\\";
+//     name_str += name;
+//     name_str += ".h";
+//     base::FilePath path = base::FilePath::FromUTF8Unsafe(name_str);
+//     base::WriteFile(path, output.c_str(), output.size());
+// }
+// 
+// void PrintTable(const char* name, UChar* pair, size_t len) {
+//     std::string output = "namespace content {\nUChar k";
+//     output += name;
+// 
+//     char temp[100] = { 0 };
+//     sprintf(temp, "[%d] = {\n", (int)len);
+//     output += temp;
+// 
+//     for (size_t i = 0; i < len; ++i) {
+//         char temp2[100] = { 0 };
+//         sprintf(temp2, "0x%x, ", pair[i]);
+//         output += temp2;
+// 
+//         if (i % 21 == 0)
+//             output += "\n";
+//     }
+//     output += "\n};\n} // namespace content\n";
+// 
+//     std::string name_str = "W:\\mycode\\mb132\\out\\win_Debug_Win32\\LocalStorage\\download\\";
+//     name_str += name;
+//     name_str += ".h";
+// 
+//     base::FilePath path = base::FilePath::FromUTF8Unsafe(name_str);
+//     base::WriteFile(path, output.c_str(), output.size());
+// }
+
+static void JoinIndex(const content::IcuIndexPair* const_arr, std::pair<uint16_t, UChar>* arr, size_t len)
+{
+    for (size_t i = 0; i < len; ++i) {
+        arr[i].first = const_arr[i].first;
+        arr[i].second = const_arr[i].second;
+    }
+}
+
+static void JoinTable(const UChar* const_arr, UChar* arr, size_t len)
+{
+    for (size_t i = 0; i < len; ++i) {
+        arr[i] = const_arr[i];
+    }
+}
+
 const Jis0208EncodeIndex& EnsureJis0208EncodeIndexForDecode()
 {
     // Allocate this at runtime because building it at compile time would make the
@@ -105,35 +181,37 @@ const Jis0208EncodeIndex& EnsureJis0208EncodeIndexForDecode()
     static std::once_flag flag;
     std::call_once(flag, [] {
         array = new Jis0208EncodeIndex;
-        size_t array_index = 0;
-
-        UErrorCode error = U_ZERO_ERROR;
-        ICUConverterWrapper icu_converter;
-        icu_converter.converter = ucnv_open("EUC-JP", &error);
-        DCHECK(U_SUCCESS(error));
-
-        constexpr size_t kRange = 94;
-        uint8_t icu_input[2];
-        UChar icu_output;
-        for (size_t i = 0; i < kRange; ++i) {
-            for (size_t j = 0; j < kRange; ++j) {
-                icu_input[0] = 0xA1 + i;
-                icu_input[1] = 0xA1 + j;
-
-                UChar* output = &icu_output;
-                const char* input = reinterpret_cast<const char*>(icu_input);
-                ucnv_toUnicode(icu_converter.converter, &output, output + 1, &input, input + sizeof(icu_input), nullptr, true, &error);
-                DCHECK(U_SUCCESS(error));
-                if (icu_output != kReplacementCharacter) {
-                    uint16_t pointer = i * kRange + j;
-                    (*array)[array_index++] = { pointer, icu_output };
-                }
-            }
-        }
-
-        for (auto& extra : kJis0208Extras)
-            (*array)[array_index++] = extra;
-        SECURITY_DCHECK(array_index == kJis0208EncodeIndexSize);
+//         size_t array_index = 0;
+// 
+//         UErrorCode error = U_ZERO_ERROR;
+//         ICUConverterWrapper icu_converter;
+//         icu_converter.converter = ucnv_open("EUC-JP", &error);
+//         DCHECK(U_SUCCESS(error));
+// 
+//         constexpr size_t kRange = 94;
+//         uint8_t icu_input[2];
+//         UChar icu_output;
+//         for (size_t i = 0; i < kRange; ++i) {
+//             for (size_t j = 0; j < kRange; ++j) {
+//                 icu_input[0] = 0xA1 + i;
+//                 icu_input[1] = 0xA1 + j;
+// 
+//                 UChar* output = &icu_output;
+//                 const char* input = reinterpret_cast<const char*>(icu_input);
+//                 ucnv_toUnicode(icu_converter.converter, &output, output + 1, &input, input + sizeof(icu_input), nullptr, true, &error);
+//                 DCHECK(U_SUCCESS(error));
+//                 if (icu_output != kReplacementCharacter) {
+//                     uint16_t pointer = i * kRange + j;
+//                     (*array)[array_index++] = { pointer, icu_output };
+//                 }
+//             }
+//         }
+// 
+//         for (auto& extra : kJis0208Extras)
+//             (*array)[array_index++] = extra;
+//         SECURITY_DCHECK(array_index == kJis0208EncodeIndexSize);
+        SECURITY_DCHECK(sizeof(content::kJis0208) / sizeof(content::IcuIndexPair) == kJis0208EncodeIndexSize);
+        JoinIndex(content::kJis0208, array->data(), kJis0208EncodeIndexSize);
     });
     return *array;
 }
@@ -164,37 +242,38 @@ const Jis0212EncodeIndex& EnsureJis0212EncodeIndexForDecode()
     static std::once_flag flag;
     std::call_once(flag, [] {
         array = new Jis0212EncodeIndex;
-        size_t array_index = 0;
-
-        UErrorCode error = U_ZERO_ERROR;
-        ICUConverterWrapper icu_converter;
-        icu_converter.converter = ucnv_open("EUC-JP", &error);
-        DCHECK(U_SUCCESS(error));
-
-        constexpr size_t kRange = 94;
-        uint8_t icu_input[3];
-        UChar icu_output;
-        for (size_t i = 0; i < kRange; ++i) {
-            for (size_t j = 0; j < kRange; ++j) {
-                icu_input[0] = 0x8F;
-                icu_input[1] = 0xA1 + i;
-                icu_input[2] = 0xA1 + j;
-
-                UChar* output = &icu_output;
-                const char* input = reinterpret_cast<const char*>(icu_input);
-                ucnv_toUnicode(icu_converter.converter, &output, output + 1, &input, input + sizeof(icu_input), nullptr, true, &error);
-                DCHECK(U_SUCCESS(error));
-                if (icu_output != kReplacementCharacter) {
-                    uint16_t pointer = i * kRange + j;
-                    // ICU has some pointers above 7708 that are not in the encoding
-                    // standard.
-                    if (pointer < 7708)
-                        (*array)[array_index++] = { pointer, icu_output };
-                }
-            }
-        }
-
-        SECURITY_DCHECK(array_index == kJis0212EncodeIndexSize);
+//         size_t array_index = 0;
+// 
+//         UErrorCode error = U_ZERO_ERROR;
+//         ICUConverterWrapper icu_converter;
+//         icu_converter.converter = ucnv_open("EUC-JP", &error);
+//         DCHECK(U_SUCCESS(error));
+// 
+//         constexpr size_t kRange = 94;
+//         uint8_t icu_input[3];
+//         UChar icu_output;
+//         for (size_t i = 0; i < kRange; ++i) {
+//             for (size_t j = 0; j < kRange; ++j) {
+//                 icu_input[0] = 0x8F;
+//                 icu_input[1] = 0xA1 + i;
+//                 icu_input[2] = 0xA1 + j;
+// 
+//                 UChar* output = &icu_output;
+//                 const char* input = reinterpret_cast<const char*>(icu_input);
+//                 ucnv_toUnicode(icu_converter.converter, &output, output + 1, &input, input + sizeof(icu_input), nullptr, true, &error);
+//                 DCHECK(U_SUCCESS(error));
+//                 if (icu_output != kReplacementCharacter) {
+//                     uint16_t pointer = i * kRange + j;
+//                     // ICU has some pointers above 7708 that are not in the encoding
+//                     // standard.
+//                     if (pointer < 7708)
+//                         (*array)[array_index++] = { pointer, icu_output };
+//                 }
+//             }
+//         }
+//         SECURITY_DCHECK(array_index == kJis0212EncodeIndexSize);
+        SECURITY_DCHECK(sizeof(content::kJis0212) / sizeof(content::IcuIndexPair) == kJis0212EncodeIndexSize);
+        JoinIndex(content::kJis0212, array->data(), kJis0212EncodeIndexSize);
     });
     return *array;
 }
@@ -208,32 +287,35 @@ const EucKrEncodeIndex& EnsureEucKrEncodeIndexForDecode()
     static std::once_flag flag;
     std::call_once(flag, [] {
         array = new EucKrEncodeIndex;
-        UErrorCode error = U_ZERO_ERROR;
-        ICUConverterWrapper icu_converter;
-        icu_converter.converter = ucnv_open("windows-949", &error);
-        DCHECK(U_SUCCESS(error));
-        auto get_pair = [&icu_converter](uint16_t pointer) -> std::optional<std::pair<uint16_t, UChar>> {
-            std::array<uint8_t, 2> icu_input { static_cast<uint8_t>(pointer / 190u + 0x81), static_cast<uint8_t>(pointer % 190u + 0x41) };
-            const char* input = reinterpret_cast<const char*>(icu_input.data());
-            UChar icu_output[2];
-            UChar* output = icu_output;
-            UErrorCode error = U_ZERO_ERROR;
-            ucnv_toUnicode(icu_converter.converter, &output, output + 2, &input, input + sizeof(icu_input), nullptr, true, &error);
-            DCHECK(U_SUCCESS(error));
-            if (icu_output[0] == kReplacementCharacter)
-                return std::nullopt;
-            return { { pointer, icu_output[0] } };
-        };
-        size_t array_index = 0;
-        for (uint16_t pointer = 0; pointer < 13776; pointer++) {
-            if (auto pair = get_pair(pointer))
-                (*array)[array_index++] = std::move(*pair);
-        }
-        for (uint16_t pointer = 13870; pointer < 23750; pointer++) {
-            if (auto pair = get_pair(pointer))
-                (*array)[array_index++] = std::move(*pair);
-        }
-        SECURITY_DCHECK(array_index == kEucKrEncodeIndexSize);
+//         UErrorCode error = U_ZERO_ERROR;
+//         ICUConverterWrapper icu_converter;
+//         icu_converter.converter = ucnv_open("windows-949", &error);
+//         DCHECK(U_SUCCESS(error));
+//         auto get_pair = [&icu_converter](uint16_t pointer) -> std::optional<std::pair<uint16_t, UChar>> {
+//             std::array<uint8_t, 2> icu_input { static_cast<uint8_t>(pointer / 190u + 0x81), static_cast<uint8_t>(pointer % 190u + 0x41) };
+//             const char* input = reinterpret_cast<const char*>(icu_input.data());
+//             UChar icu_output[2];
+//             UChar* output = icu_output;
+//             UErrorCode error = U_ZERO_ERROR;
+//             ucnv_toUnicode(icu_converter.converter, &output, output + 2, &input, input + sizeof(icu_input), nullptr, true, &error);
+//             DCHECK(U_SUCCESS(error));
+//             if (icu_output[0] == kReplacementCharacter)
+//                 return std::nullopt;
+//             return { { pointer, icu_output[0] } };
+//         };
+//         size_t array_index = 0;
+//         for (uint16_t pointer = 0; pointer < 13776; pointer++) {
+//             if (auto pair = get_pair(pointer))
+//                 (*array)[array_index++] = std::move(*pair);
+//         }
+//         for (uint16_t pointer = 13870; pointer < 23750; pointer++) {
+//             if (auto pair = get_pair(pointer))
+//                 (*array)[array_index++] = std::move(*pair);
+//         }        
+//         SECURITY_DCHECK(array_index == kEucKrEncodeIndexSize);
+
+        SECURITY_DCHECK(sizeof(content::kEucKr)/sizeof(content::IcuIndexPair) == kEucKrEncodeIndexSize);
+        JoinIndex(content::kEucKr, array->data(), kEucKrEncodeIndexSize);
     });
     return *array;
 }
@@ -265,23 +347,26 @@ const Gb18030EncodeTable& EnsureGb18030EncodeTable()
     static std::once_flag flag;
     std::call_once(flag, [] {
         array = new Gb18030EncodeTable;
-        UErrorCode error = U_ZERO_ERROR;
-        ICUConverterWrapper icu_converter;
-        icu_converter.converter = ucnv_open("gb18030", &error);
-        DCHECK(U_SUCCESS(error));
-        for (size_t pointer = 0; pointer < 23940; pointer++) {
-            uint8_t icu_input[2];
-            icu_input[0] = pointer / 190 + 0x81;
-            icu_input[1] = pointer % 190;
-            icu_input[1] += (icu_input[1] < 0x3F) ? 0x40 : 0x41;
-            UChar icu_output { 0 };
-            UChar* output = &icu_output;
-            const char* input = reinterpret_cast<const char*>(icu_input);
-            ucnv_toUnicode(icu_converter.converter, &output, output + 1, &input, input + sizeof(icu_input), nullptr, true, &error);
-            DCHECK(U_SUCCESS(error));
-            DCHECK_NE(icu_output, kReplacementCharacter);
-            (*array)[pointer] = icu_output;
-        }
+//         UErrorCode error = U_ZERO_ERROR;
+//         ICUConverterWrapper icu_converter;
+//         icu_converter.converter = ucnv_open("gb18030", &error);
+//         DCHECK(U_SUCCESS(error));
+//         for (size_t pointer = 0; pointer < 23940; pointer++) {
+//             uint8_t icu_input[2];
+//             icu_input[0] = pointer / 190 + 0x81;
+//             icu_input[1] = pointer % 190;
+//             icu_input[1] += (icu_input[1] < 0x3F) ? 0x40 : 0x41;
+//             UChar icu_output { 0 };
+//             UChar* output = &icu_output;
+//             const char* input = reinterpret_cast<const char*>(icu_input);
+//             ucnv_toUnicode(icu_converter.converter, &output, output + 1, &input, input + sizeof(icu_input), nullptr, true, &error);
+//             DCHECK(U_SUCCESS(error));
+//             DCHECK_NE(icu_output, kReplacementCharacter);
+//             (*array)[pointer] = icu_output;
+//         }
+// 
+        static_assert(sizeof(content::kGb18030) / sizeof(UChar) == kGb18030EncodeIndexSize);
+        JoinTable(content::kGb18030, array->data(), kGb18030EncodeIndexSize);
 
         // Note: ICU4C that WebKit use has difference, but Chromium does not.
         DCHECK_EQ((*array)[6555], 0x3000);
