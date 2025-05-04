@@ -2646,9 +2646,14 @@ void WebLocalFrameImpl::Load(const WebURLRequest& request, WebFrameLoadType fram
     LocalDOMWindow* origin_window = GetFrame()->DomWindow();
     SecurityOrigin* orig = origin_window->GetMutableSecurityOrigin();
     if (orig->Protocol().empty()) {
-        //scoped_refptr<blink::SecurityOrigin> orig = blink::SecurityOrigin::Create(request.Url());
-        orig->GrantLoadLocalResources();
+        url::Origin url_origin = url::Origin::Create((GURL)(KURL)(request.Url()));
+        scoped_refptr<SecurityOrigin> new_security_origin = SecurityOrigin::CreateFromUrlOrigin(url_origin);
+        
+        new_security_origin->GrantLoadLocalResources();
+        origin_window->GetSecurityContext().SetSecurityOriginForTesting(nullptr);
+        origin_window->GetSecurityContext().SetSecurityOrigin(new_security_origin);
     }
+    
     FrameLoadRequest frame_load_request = FrameLoadRequest(/*nullptr*/ GetFrame()->DomWindow(), resource_request);
 
     //     HistoryItem* historyItem = item;
