@@ -77,7 +77,7 @@ base::WeakPtr<WebGraphicsContext3DProviderWrapper> SharedGpuContext::ContextProv
 // static
 WebGraphicsSharedImageInterfaceProvider* SharedGpuContext::SharedImageInterfaceProvider()
 {
-    *(int*)1 = 1;
+    return nullptr;
 //     SharedGpuContext* this_ptr = GetInstanceForCurrentThread();
 //     this_ptr->CreateSharedImageInterfaceProviderIfNeeded();
 //     if (!this_ptr->shared_image_interface_provider_) {

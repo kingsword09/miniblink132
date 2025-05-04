@@ -25,14 +25,19 @@
 
 namespace media {
 
-void SplitCodecs(std::string_view, std::vector<std::string>* codecs_out)
+// media/base/mime_util_internal.cc
+void SplitCodecs(std::string_view codecs, std::vector<std::string>* codecs_out)
 {
-    *(int*)1 = 1;
+    *codecs_out = base::SplitString(base::TrimString(codecs, "\"", base::TRIM_ALL), ",", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
+
+    // Convert empty or all-whitespace input to 0 results.
+    if (codecs_out->size() == 1 && (*codecs_out)[0].empty())
+        codecs_out->clear();
 }
 
 SupportsType IsSupportedMediaFormat(std::string_view mime_type, const std::vector<std::string>& codecs)
 {
-    return SupportsType::kSupported;
+    return SupportsType::kNotSupported;
 }
 
 } // namespace media

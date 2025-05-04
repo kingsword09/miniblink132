@@ -122,6 +122,7 @@
 #include "third_party/blink/renderer/core/page/page_visibility_observer.h"
 #include "third_party/blink/renderer/modules/remote_objects/remote_object_gateway_impl.h"
 #endif
+#include "content/renderer/RenderThreadImpl.h"
 #include <windows.h>
 
 namespace blink {
@@ -220,6 +221,9 @@ void ModulesInitializer::Initialize()
 
 void ModulesInitializer::InitLocalFrame(LocalFrame& frame) const
 {
+//     AssociatedInterfaceProvider* associatedInterfaceProvider = frame.GetRemoteNavigationAssociatedInterfaces();
+//     content::RenderThreadImpl::get()->OverrideAssociatedInterfaceProvider(associatedInterfaceProvider);
+
     //     if (frame.IsMainFrame()) {
     //         frame.GetInterfaceRegistry()->AddInterface(WTF::BindRepeating(&DocumentMetadataServer::BindReceiver, WrapWeakPersistent(&frame)));
     //     }
@@ -425,7 +429,6 @@ void ModulesInitializer::SetSessionStorageArea(LocalFrame& frame, mojo::PendingR
 
 RemotePlaybackClient* ModulesInitializer::CreateRemotePlaybackClient(HTMLMediaElement& html_media_element) const
 {
-    *(int*)1 = 1;
     return nullptr;
 }
 

@@ -3869,7 +3869,7 @@ void HTMLMediaElement::StopPeriodicTimers()
 {
     //   progress_event_timer_.Stop();
     //   playback_progress_timer_.Stop();
-    *(int*)1 = 1;
+    OutputDebugStringA("HTMLMediaElement::StopPeriodicTimers not impl\n");
 
     if (lazy_load_intersection_observer_) {
         lazy_load_intersection_observer_->disconnect();
@@ -4589,7 +4589,6 @@ void HTMLMediaElement::AudioSourceProviderImpl::Wrap(scoped_refptr<WebAudioSourc
 
 void HTMLMediaElement::AudioSourceProviderImpl::SetClient(AudioSourceProviderClient* client)
 {
-    *(int*)1 = 1;
 //     base::AutoLock locker(provide_input_lock);
 // 
 //     if (client)

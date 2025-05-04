@@ -65,101 +65,99 @@ network::mojom::blink::CookieManagerGetOptionsPtr ToBackendOptions(const CookieS
 std::unique_ptr<net::CanonicalCookie> ToCanonicalCookie(
     const KURL& cookie_url, const CookieInit* options, ExceptionState& exception_state, net::CookieInclusionStatus& status_out)
 {
-    *(int*)1 = 1;
-    return nullptr;
-//     const String& name = options->name();
-//     const String& value = options->value();
-//     if (name.empty() && value.Contains('=')) {
-//         exception_state.ThrowTypeError("Cookie value cannot contain '=' if the name is empty");
-//         return nullptr;
-//     }
-//     if (name.empty() && value.empty()) {
-//         exception_state.ThrowTypeError("Cookie name and value both cannot be empty");
-//         return nullptr;
-//     }
-// 
-//     base::Time expires = options->hasExpiresNonNull() ? base::Time::FromMillisecondsSinceUnixEpoch(options->expiresNonNull()) : base::Time();
-// 
-//     String cookie_url_host = cookie_url.Host().ToString();
-//     String domain;
-//     if (!options->domain().IsNull()) {
-//         if (name.StartsWith("__Host-")) {
-//             exception_state.ThrowTypeError("Cookies with \"__Host-\" prefix cannot have a domain");
-//             return nullptr;
-//         }
-//         // The leading dot (".") from the domain attribute is stripped in the
-//         // Set-Cookie header, for compatibility. This API doesn't have compatibility
-//         // constraints, so reject the edge case outright.
-//         if (options->domain().StartsWith(".")) {
-//             exception_state.ThrowTypeError("Cookie domain cannot start with \".\"");
-//             return nullptr;
-//         }
-// 
-//         domain = String(".") + options->domain();
-//         if (!cookie_url_host.EndsWith(domain) && cookie_url_host != options->domain()) {
-//             exception_state.ThrowTypeError("Cookie domain must domain-match current host");
-//             return nullptr;
-//         }
-//     }
-// 
-//     String path = options->path();
-//     if (!path.empty()) {
-//         if (name.StartsWith("__Host-") && path != "/") {
-//             exception_state.ThrowTypeError("Cookies with \"__Host-\" prefix cannot have a non-\"/\" path");
-//             return nullptr;
-//         }
-//         if (!path.StartsWith("/")) {
-//             exception_state.ThrowTypeError("Cookie path must start with \"/\"");
-//             return nullptr;
-//         }
-//         if (!path.EndsWith("/")) {
-//             path = path + String("/");
-//         }
-//     }
-// 
-//     // The Cookie Store API will only write secure cookies but will read insecure
-//     // cookies. As a result,
-//     // cookieStore.get("name", "value") can get an insecure cookie, but when
-//     // modifying a retrieved insecure cookie via the Cookie Store API, it will
-//     // automatically turn it into a secure cookie without any warning.
-//     //
-//     // The Cookie Store API can only set secure cookies, so it is unusable on
-//     // insecure origins. file:// are excluded too for consistency with
-//     // document.cookie.
-//     if (!network::IsUrlPotentiallyTrustworthy(GURL(cookie_url)) || base::Contains(url::GetLocalSchemes(), cookie_url.Protocol().Ascii())) {
-//         exception_state.ThrowTypeError("Cannot modify a secure cookie on insecure origin");
-//         return nullptr;
-//     }
-// 
-//     net::CookieSameSite same_site;
-//     if (options->sameSite() == "strict") {
-//         same_site = net::CookieSameSite::STRICT_MODE;
-//     } else if (options->sameSite() == "lax") {
-//         same_site = net::CookieSameSite::LAX_MODE;
-//     } else {
-//         DCHECK_EQ(options->sameSite(), "none");
-//         same_site = net::CookieSameSite::NO_RESTRICTION;
-//     }
-// 
-//     std::optional<net::CookiePartitionKey> cookie_partition_key = std::nullopt;
-//     if (options->partitioned()) {
-//         // We don't trust the renderer to determine the cookie partition key, so we
-//         // use this factory to indicate we are using a temporary value here.
-//         cookie_partition_key = net::CookiePartitionKey::FromScript();
-//     }
-// 
-//     std::unique_ptr<net::CanonicalCookie> cookie = net::CanonicalCookie::CreateSanitizedCookie(GURL(cookie_url), name.Utf8(), value.Utf8(), domain.Utf8(),
-//         path.Utf8(), base::Time() /*creation*/, expires, base::Time() /*last_access*/, true /*secure*/, false /*http_only*/, same_site,
-//         net::CookiePriority::COOKIE_PRIORITY_DEFAULT, cookie_partition_key, &status_out);
-// 
-//     // TODO(crbug.com/1310444): Improve serialization validation comments and
-//     // associate them with ExceptionState codes.
-//     if (!status_out.IsInclude()) {
-//         exception_state.ThrowTypeError("Cookie was malformed and could not be stored, due to problem(s) while "
-//                                        "parsing.");
-//     }
-// 
-//     return cookie;
+    const String& name = options->name();
+    const String& value = options->value();
+    if (name.empty() && value.Contains('=')) {
+        exception_state.ThrowTypeError("Cookie value cannot contain '=' if the name is empty");
+        return nullptr;
+    }
+    if (name.empty() && value.empty()) {
+        exception_state.ThrowTypeError("Cookie name and value both cannot be empty");
+        return nullptr;
+    }
+
+    base::Time expires = options->hasExpiresNonNull() ? base::Time::FromMillisecondsSinceUnixEpoch(options->expiresNonNull()) : base::Time();
+
+    String cookie_url_host = cookie_url.Host().ToString();
+    String domain;
+    if (!options->domain().IsNull()) {
+        if (name.StartsWith("__Host-")) {
+            exception_state.ThrowTypeError("Cookies with \"__Host-\" prefix cannot have a domain");
+            return nullptr;
+        }
+        // The leading dot (".") from the domain attribute is stripped in the
+        // Set-Cookie header, for compatibility. This API doesn't have compatibility
+        // constraints, so reject the edge case outright.
+        if (options->domain().StartsWith(".")) {
+            exception_state.ThrowTypeError("Cookie domain cannot start with \".\"");
+            return nullptr;
+        }
+
+        domain = String(".") + options->domain();
+        if (!cookie_url_host.EndsWith(domain) && cookie_url_host != options->domain()) {
+            exception_state.ThrowTypeError("Cookie domain must domain-match current host");
+            return nullptr;
+        }
+    }
+
+    String path = options->path();
+    if (!path.empty()) {
+        if (name.StartsWith("__Host-") && path != "/") {
+            exception_state.ThrowTypeError("Cookies with \"__Host-\" prefix cannot have a non-\"/\" path");
+            return nullptr;
+        }
+        if (!path.StartsWith("/")) {
+            exception_state.ThrowTypeError("Cookie path must start with \"/\"");
+            return nullptr;
+        }
+        if (!path.EndsWith("/")) {
+            path = path + String("/");
+        }
+    }
+
+    // The Cookie Store API will only write secure cookies but will read insecure
+    // cookies. As a result,
+    // cookieStore.get("name", "value") can get an insecure cookie, but when
+    // modifying a retrieved insecure cookie via the Cookie Store API, it will
+    // automatically turn it into a secure cookie without any warning.
+    //
+    // The Cookie Store API can only set secure cookies, so it is unusable on
+    // insecure origins. file:// are excluded too for consistency with
+    // document.cookie.
+    if (!network::IsUrlPotentiallyTrustworthy(GURL(cookie_url)) || base::Contains(url::GetLocalSchemes(), cookie_url.Protocol().Ascii())) {
+        exception_state.ThrowTypeError("Cannot modify a secure cookie on insecure origin");
+        return nullptr;
+    }
+
+    net::CookieSameSite same_site;
+    if (options->sameSite() == "strict") {
+        same_site = net::CookieSameSite::STRICT_MODE;
+    } else if (options->sameSite() == "lax") {
+        same_site = net::CookieSameSite::LAX_MODE;
+    } else {
+        DCHECK_EQ(options->sameSite(), "none");
+        same_site = net::CookieSameSite::NO_RESTRICTION;
+    }
+
+    std::optional<net::CookiePartitionKey> cookie_partition_key = std::nullopt;
+    if (options->partitioned()) {
+        // We don't trust the renderer to determine the cookie partition key, so we
+        // use this factory to indicate we are using a temporary value here.
+        cookie_partition_key = net::CookiePartitionKey::FromScript();
+    }
+
+    std::unique_ptr<net::CanonicalCookie> cookie = net::CanonicalCookie::CreateSanitizedCookie(GURL(cookie_url), name.Utf8(), value.Utf8(), domain.Utf8(),
+        path.Utf8(), base::Time() /*creation*/, expires, base::Time() /*last_access*/, true /*secure*/, false /*http_only*/, same_site,
+        net::CookiePriority::COOKIE_PRIORITY_DEFAULT, cookie_partition_key, &status_out);
+
+    // TODO(crbug.com/1310444): Improve serialization validation comments and
+    // associate them with ExceptionState codes.
+    if (!status_out.IsInclude()) {
+        exception_state.ThrowTypeError("Cookie was malformed and could not be stored, due to problem(s) while "
+                                       "parsing.");
+    }
+
+    return cookie;
 }
 
 const KURL DefaultCookieURL(ExecutionContext* execution_context)

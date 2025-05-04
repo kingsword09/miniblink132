@@ -764,16 +764,18 @@ void ResourceScriptStreamer::OnDataPipeReadable(MojoResult result, const mojo::H
     MojoReadDataFlags flags_to_pass = MOJO_READ_DATA_FLAG_NONE;
     MojoResult begin_read_result = data_pipe_->BeginReadData(flags_to_pass, data);
     // There should be data, so this read should succeed.
-    CHECK_EQ(begin_read_result, MOJO_RESULT_OK);
+    //CHECK_EQ(begin_read_result, MOJO_RESULT_OK);
+    CHECK(begin_read_result == MOJO_RESULT_OK || begin_read_result == MOJO_RESULT_FAILED_PRECONDITION);
 
     std::string_view chars = base::as_string_view(data);
     response_body_loader_client_->DidReceiveData(base::span<const char>(chars.data(), chars.size()));
     script_decoder_->DidReceiveData(Vector<char>(chars),
         /*send_to_client=*/false);
 
-    MojoResult end_read_result = data_pipe_->EndReadData(data.size());
-
-    CHECK_EQ(end_read_result, MOJO_RESULT_OK);
+    if (begin_read_result == MOJO_RESULT_OK) {
+        MojoResult end_read_result = data_pipe_->EndReadData(data.size());
+        CHECK_EQ(end_read_result, MOJO_RESULT_OK);
+    }
 
     if (TryStartStreamingTask()) {
         return;

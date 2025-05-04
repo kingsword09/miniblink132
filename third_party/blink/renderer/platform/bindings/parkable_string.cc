@@ -46,7 +46,7 @@
 #include "third_party/blink/renderer/platform/wtf/thread_specific.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 // #include "third_party/snappy/src/snappy.h"
-// #include "third_party/zlib/google/compression_utils.h"
+#include "third_party/zlib/google/compression_utils.h"
 //
 // #if BUILDFLAG(HAS_ZSTD_COMPRESSION)
 // // "GN check" doesn't know that this file is only included when
@@ -298,8 +298,7 @@ void ParkableStringImpl::UpdateDigestWithEncoding(Digestor* digestor, bool is_8b
 {
     std::array<uint8_t, 1> extra_data;
     extra_data[0] = is_8bit ? 1 : 0;
-    //digestor->Update(extra_data);
-    *(int*)1 = 1;
+    digestor->Update(base::span<const uint8_t>(extra_data.data(), extra_data.size()));
 }
 
 // static
@@ -829,8 +828,7 @@ void ParkableStringImpl::CompressInBackground(std::unique_ptr<BackgroundTaskPara
         if (ok) {
             switch (GetCompressionAlgorithm()) {
             case CompressionAlgorithm::kZlib:
-                //ok = compression::GzipCompress(data, buffer.data(), buffer.size(), &compressed_size, nullptr, nullptr);
-                *(int*)1 = 1;
+                ok = compression::GzipCompress(base::span<const char>(data.data(), data.size()), buffer.data(), buffer.size(), &compressed_size, nullptr, nullptr);
                 break;
             case CompressionAlgorithm::kSnappy:
                 //           snappy::RawCompress(data.data(), data.size(), buffer.data(),

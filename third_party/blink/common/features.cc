@@ -1448,7 +1448,7 @@ BASE_FEATURE(kUsePageViewportInLCP, "UsePageViewportInLCP", base::FEATURE_ENABLE
 BASE_FEATURE(kUseSnappyForParkableStrings, "UseSnappyForParkableStrings", base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Use the zstd compression algorithm for ParkableString compression.
-BASE_FEATURE(kUseZstdForParkableStrings, "UseZstdForParkableStrings", base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kUseZstdForParkableStrings, "UseZstdForParkableStrings", base::FEATURE_DISABLED_BY_DEFAULT/*base::FEATURE_ENABLED_BY_DEFAULT*/);
 
 // Allows to tweak the compression / speed tradeoff.
 //

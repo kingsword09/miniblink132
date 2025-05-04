@@ -71,6 +71,7 @@
 #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_utf8_adaptor.h"
 #include "third_party/blink/renderer/platform/wtf/wtf_size_t.h"
+#include "mbnet/websocket/WebSocketChannelCurl.h"
 
 namespace blink {
 
@@ -240,6 +241,12 @@ DOMWebSocket* DOMWebSocket::Create(
         return nullptr;
 
     return websocket;
+}
+
+WebSocketChannel* DOMWebSocket::CreateChannel(ExecutionContext* context, WebSocketChannelClient* client)
+{
+    //return WebSocketChannelImpl::Create(context, client, CaptureSourceLocation(context));
+    return mbnet::WebSocketChannelCurl::create(context, client, CaptureSourceLocation(context));
 }
 
 void DOMWebSocket::Connect(const String& url, const Vector<String>& protocols, ExceptionState& exception_state)

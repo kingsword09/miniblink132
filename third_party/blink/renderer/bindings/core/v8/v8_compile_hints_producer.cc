@@ -165,51 +165,50 @@ bool V8CrowdsourcedCompileHintsProducer::MightGenerateData()
 
 bool V8CrowdsourcedCompileHintsProducer::SendDataToUkm()
 {
-    *(int*)1 = 1;
     // Re-check the main frame, since it might have changed.
-//     Frame* main_frame = page_->MainFrame();
-//     if (!main_frame->IsLocalFrame()) {
-//         ClearData();
-//         return false;
-//     }
-// 
-//     ScriptState* script_state = ToScriptStateForMainWorld(DynamicTo<LocalFrame>(main_frame));
-//     ExecutionContext* execution_context = ExecutionContext::From(script_state);
-//     v8::Isolate* isolate = execution_context->GetIsolate();
-//     v8::HandleScope handle_scope(isolate);
-//     int total_funcs = 0;
-// 
-//     DCHECK_EQ(compile_hints_collectors_.size(), script_name_hashes_.size());
-// 
-//     // Create a Bloom filter w/ 16 key bits. This results in a Bloom filter
-//     // containing 2 ^ 16 bits, which equals to 1024 64-bit ints.
-//     static_assert((1 << kBloomFilterKeySize) / (sizeof(int32_t) * 8) == kBloomFilterInt32Count);
-//     WTF::BloomFilter<kBloomFilterKeySize> bloom;
-// 
-//     for (wtf_size_t script_ix = 0; script_ix < compile_hints_collectors_.size(); ++script_ix) {
-//         v8::Local<v8::CompileHintsCollector> compile_hints_collector = compile_hints_collectors_[script_ix].Get(isolate);
-//         std::vector<int> compile_hints = compile_hints_collector->GetCompileHints(isolate);
-//         for (int function_position : compile_hints) {
-//             uint32_t hash = CombineHash(script_name_hashes_[script_ix], function_position);
-//             bloom.Add(hash);
-//             ++total_funcs;
-//         }
-//     }
-// 
-//     // Don't clutter the data with elements with less than a threshold amount of
-//     // functions.
-//     constexpr int kFunctionCountThreshold = 100;
-//     if (total_funcs < kFunctionCountThreshold) {
-//         return false;
-//     }
-// 
-//     static_assert(sizeof(unsigned) == sizeof(int32_t));
-//     unsigned* raw_data = (bloom.GetRawData());
-// 
-//     // Add noise to the data.
-//     for (int i = 0; i < kBloomFilterInt32Count; ++i) {
-//         AddNoise(&raw_data[i]);
-//     }
+    Frame* main_frame = page_->MainFrame();
+    if (!main_frame->IsLocalFrame()) {
+        ClearData();
+        return false;
+    }
+
+    ScriptState* script_state = ToScriptStateForMainWorld(DynamicTo<LocalFrame>(main_frame));
+    ExecutionContext* execution_context = ExecutionContext::From(script_state);
+    v8::Isolate* isolate = execution_context->GetIsolate();
+    v8::HandleScope handle_scope(isolate);
+    int total_funcs = 0;
+
+    DCHECK_EQ(compile_hints_collectors_.size(), script_name_hashes_.size());
+
+    // Create a Bloom filter w/ 16 key bits. This results in a Bloom filter
+    // containing 2 ^ 16 bits, which equals to 1024 64-bit ints.
+    static_assert((1 << kBloomFilterKeySize) / (sizeof(int32_t) * 8) == kBloomFilterInt32Count);
+    WTF::BloomFilter<kBloomFilterKeySize> bloom;
+
+    for (wtf_size_t script_ix = 0; script_ix < compile_hints_collectors_.size(); ++script_ix) {
+        v8::Local<v8::CompileHintsCollector> compile_hints_collector = compile_hints_collectors_[script_ix].Get(isolate);
+        std::vector<int> compile_hints = compile_hints_collector->GetCompileHints(isolate);
+        for (int function_position : compile_hints) {
+            uint32_t hash = CombineHash(script_name_hashes_[script_ix], function_position);
+            bloom.Add(hash);
+            ++total_funcs;
+        }
+    }
+
+    // Don't clutter the data with elements with less than a threshold amount of
+    // functions.
+    constexpr int kFunctionCountThreshold = 100;
+    if (total_funcs < kFunctionCountThreshold) {
+        return false;
+    }
+
+    static_assert(sizeof(unsigned) == sizeof(int32_t));
+    unsigned* raw_data = (bloom.GetRawData());
+
+    // Add noise to the data.
+    for (int i = 0; i < kBloomFilterInt32Count; ++i) {
+        AddNoise(&raw_data[i]);
+    }
 // 
 //     // Send the data to UKM.
 //     DCHECK_NE(execution_context->UkmSourceID(), ukm::kInvalidSourceId);

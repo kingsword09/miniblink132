@@ -234,9 +234,13 @@ void ScriptDecoderWithClient::DidReceiveData(Vector<char> data, bool send_to_cli
     if (!send_to_client) {
         return;
     }
-    PostCrossThreadTask(*client_task_runner_, FROM_HERE,
-        CrossThreadBindOnce(&ResponseBodyLoaderClient::DidReceiveData, MakeUnwrappingCrossThreadWeakHandle(response_body_loader_client_), 
-            base::span<const char>(data.data(), data.size())));
+//     PostCrossThreadTask(*client_task_runner_, FROM_HERE,
+//         CrossThreadBindOnce(&ResponseBodyLoaderClient::DidReceiveData, MakeUnwrappingCrossThreadWeakHandle(response_body_loader_client_), 
+//             std::move(data)));
+    PostCrossThreadTask(*client_task_runner_, FROM_HERE, CrossThreadBindOnce([](
+        ResponseBodyLoaderClient* handle, Vector<char> data) {
+        handle->DidReceiveData(base::span<const char>(data.data(), data.size()));
+    }, MakeUnwrappingCrossThreadWeakHandle(response_body_loader_client_), data));
 }
 
 void ScriptDecoderWithClient::FinishDecode(CrossThreadOnceClosure main_thread_continuation)

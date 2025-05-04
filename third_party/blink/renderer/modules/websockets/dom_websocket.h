@@ -196,10 +196,7 @@ private:
     };
 
     // This function is virtual for unittests.
-    virtual WebSocketChannel* CreateChannel(ExecutionContext* context, WebSocketChannelClient* client)
-    {
-        return WebSocketChannelImpl::Create(context, client, CaptureSourceLocation(context));
-    }
+    virtual WebSocketChannel* CreateChannel(ExecutionContext* context, WebSocketChannelClient* client);
 
     // Adds a console message with JSMessageSource and ErrorMessageLevel.
     void LogError(const String& message);

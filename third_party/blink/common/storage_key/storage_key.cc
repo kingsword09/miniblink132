@@ -20,14 +20,6 @@
 #include "third_party/abseil-cpp/absl/strings/ascii.h"
 #include "url/gurl.h"
 
-namespace net {
-// static
-CookiePartitionKey::AncestorChainBit CookiePartitionKey::BoolToAncestorChainBit(bool cross_site)
-{
-    return cross_site ? AncestorChainBit::kCrossSite : AncestorChainBit::kSameSite;
-}
-}
-
 namespace {
 
 // This enum represents the different type of encodable partitioning

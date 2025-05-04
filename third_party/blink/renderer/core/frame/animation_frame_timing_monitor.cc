@@ -305,7 +305,6 @@ void AnimationFrameTimingMonitor::ReportPresentationTimeToTrace(uint64_t trace_i
 
 void AnimationFrameTimingMonitor::RecordLongAnimationFrameTrace(const AnimationFrameTimingInfo& info, LocalDOMWindow& window)
 {
-    *(int*)1 = 1;
 //     bool tracing_enabled;
 //     TRACE_EVENT_CATEGORY_GROUP_ENABLED("devtools.timeline", &tracing_enabled);
 //     if (!tracing_enabled) {

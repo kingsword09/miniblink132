@@ -87,41 +87,39 @@ String ToCookieListItemEffectiveSameSite(network::mojom::CookieEffectiveSameSite
 CookieListItem* CookieChangeEvent::ToCookieListItem(
     const net::CanonicalCookie& canonical_cookie, const network::mojom::blink::CookieEffectiveSameSite& effective_same_site, bool is_deleted)
 {
-    *(int*)1 = 1;
-    return nullptr;
-//     CookieListItem* list_item = CookieListItem::Create();
-// 
-//     list_item->setName(String::FromUTF8(canonical_cookie.Name()));
-//     list_item->setPath(String::FromUTF8(canonical_cookie.Path()));
-// 
-//     list_item->setSecure(canonical_cookie.SecureAttribute());
-//     // Use effective same site if available, otherwise use same site.
-//     auto&& same_site = ToCookieListItemEffectiveSameSite(effective_same_site);
-//     if (same_site.IsNull())
-//         same_site = ToCookieListItemSameSite(canonical_cookie.SameSite());
-//     if (!same_site.IsNull())
-//         list_item->setSameSite(same_site);
-// 
-//     // The domain of host-only cookies is the host name, without a dot (.) prefix.
-//     String cookie_domain = String::FromUTF8(canonical_cookie.Domain());
-//     if (cookie_domain.StartsWith(".")) {
-//         list_item->setDomain(cookie_domain.Substring(1));
-//     } else {
-//         list_item->setDomain(String());
-//     }
-// 
-//     if (!is_deleted) {
-//         list_item->setValue(String::FromUTF8(canonical_cookie.Value()));
-//         if (canonical_cookie.ExpiryDate().is_null()) {
-//             list_item->setExpires(std::nullopt);
-//         } else {
-//             list_item->setExpires(ConvertTimeToDOMHighResTimeStamp(canonical_cookie.ExpiryDate()));
-//         }
-//     }
-// 
-//     list_item->setPartitioned(canonical_cookie.IsPartitioned());
-// 
-//     return list_item;
+    CookieListItem* list_item = CookieListItem::Create();
+
+    list_item->setName(String::FromUTF8(canonical_cookie.Name()));
+    list_item->setPath(String::FromUTF8(canonical_cookie.Path()));
+
+    list_item->setSecure(canonical_cookie.SecureAttribute());
+    // Use effective same site if available, otherwise use same site.
+    auto&& same_site = ToCookieListItemEffectiveSameSite(effective_same_site);
+    if (same_site.IsNull())
+        same_site = ToCookieListItemSameSite(canonical_cookie.SameSite());
+    if (!same_site.IsNull())
+        list_item->setSameSite(same_site);
+
+    // The domain of host-only cookies is the host name, without a dot (.) prefix.
+    String cookie_domain = String::FromUTF8(canonical_cookie.Domain());
+    if (cookie_domain.StartsWith(".")) {
+        list_item->setDomain(cookie_domain.Substring(1));
+    } else {
+        list_item->setDomain(String());
+    }
+
+    if (!is_deleted) {
+        list_item->setValue(String::FromUTF8(canonical_cookie.Value()));
+        if (canonical_cookie.ExpiryDate().is_null()) {
+            list_item->setExpires(std::nullopt);
+        } else {
+            list_item->setExpires(ConvertTimeToDOMHighResTimeStamp(canonical_cookie.ExpiryDate()));
+        }
+    }
+
+    list_item->setPartitioned(canonical_cookie.IsPartitioned());
+
+    return list_item;
 }
 
 // static

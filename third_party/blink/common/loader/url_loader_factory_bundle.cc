@@ -13,16 +13,6 @@
 #include "services/network/public/mojom/url_loader.mojom.h"
 #include "url/gurl.h"
 
-network::PendingSharedURLLoaderFactory::PendingSharedURLLoaderFactory(void)
-{
-    *(int*)1 = 1;
-}
-
-network::PendingSharedURLLoaderFactory::~PendingSharedURLLoaderFactory(void)
-{
-    *(int*)1 = 1;
-}
-
 namespace blink {
 
 namespace {

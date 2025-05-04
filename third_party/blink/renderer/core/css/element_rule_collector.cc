@@ -322,7 +322,7 @@ ElementRuleCollector::ElementRuleCollector(const ElementResolveContext& context,
     , result_(result)
 {
     if (!g_selector_stats_tracing_enabled) {
-        g_selector_stats_tracing_enabled = (const unsigned char*)"blink.debug";// TRACE_EVENT_API_GET_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("blink.debug"));
+        g_selector_stats_tracing_enabled = (const unsigned char*)""; // TRACE_EVENT_API_GET_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("blink.debug"));
     }
 }
 

@@ -746,7 +746,6 @@ void ResponsivenessMetrics::Trace(Visitor* visitor) const
 void ResponsivenessMetrics::EmitInteractionToNextPaintTraceEvent(
     const ResponsivenessMetrics::EventTimestamps& event, UserInteractionType interaction_type, base::TimeDelta total_event_duration)
 {
-    *(int*)1 = 1;
     //   const perfetto::Track track(base::trace_event::GetNextGlobalTraceId(),
     //                               perfetto::ProcessTrack::Current());
     //   TRACE_EVENT_BEGIN(

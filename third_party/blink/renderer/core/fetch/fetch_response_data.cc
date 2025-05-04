@@ -18,8 +18,141 @@
 #include "third_party/blink/renderer/platform/network/http_parsers.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 
+#include "third_party/openssl/openssl/include/openssl/types.h"
+#include "third_party/openssl/openssl/include/openssl/evp.h"
+#include "third_party/openssl/openssl/include/openssl/hmac.h"
+#include "base/numerics/byte_conversions.h"
+#include "base/rand_util.h"
+#include "base/strings/stringprintf.h"
+#include <inttypes.h>
+
 using Type = network::mojom::FetchResponseType;
 using ResponseSource = network::mojom::FetchResponseSource;
+
+namespace crypto::hash {
+// If you do need to be generic, you can use the Hash() function and pass a
+// HashKind instead.
+enum HashKind {
+    kSha1,
+    kSha256,
+    kSha512,
+};
+
+inline constexpr size_t kSha1Size = 20;
+inline constexpr size_t kSha256Size = 32;
+inline constexpr size_t kSha512Size = 64;
+
+} // hash
+
+namespace storage {
+
+namespace {
+
+// The range of the padding added to response sizes for opaque resources.
+// Increment the CacheStorage padding version if changed.
+constexpr uint64_t kPaddingRange = 14431 * 1024;
+
+const EVP_MD* EVPMDForHashKind(crypto::hash::HashKind kind) 
+{
+    switch (kind) {
+        case crypto::hash::HashKind::kSha1:
+            return EVP_sha1();
+        case crypto::hash::HashKind::kSha256:
+            return EVP_sha256();
+        case crypto::hash::HashKind::kSha512:
+            return EVP_sha512();
+    }
+    NOTREACHED();
+}
+
+}  // namespace
+
+bool ShouldPadResponseType(network::mojom::FetchResponseType type)
+{
+    return type == network::mojom::FetchResponseType::kOpaque || type == network::mojom::FetchResponseType::kOpaqueRedirect;
+}
+
+int64_t ComputeRandomResponsePadding()
+{
+    uint64_t raw_random = (uint64_t)(&raw_random);
+    //crypto::RandBytes(base::byte_span_from_ref(raw_random));
+    return raw_random % kPaddingRange;
+}
+
+// Simplistic helper that wraps a call to a deleter function. In a C++11 world,
+// this would be std::function<>. An alternative would be to re-use
+// base::internal::RunnableAdapter<>, but that's far too heavy weight.
+template <typename Type, void (*Destroyer)(Type*)>
+struct OpenSSLDestroyer {
+    void operator()(Type* ptr) const { Destroyer(ptr); }
+};
+
+
+template <typename PointerType, void (*Destroyer)(PointerType*)>
+using ScopedOpenSSL = std::unique_ptr<PointerType, OpenSSLDestroyer<PointerType, Destroyer>>;
+using ScopedHMAC_CTX = ScopedOpenSSL<HMAC_CTX, HMAC_CTX_free>;
+
+void Sign(crypto::hash::HashKind kind,
+    base::span<const uint8_t> key,
+    base::span<const uint8_t> data,
+    base::span<uint8_t> hmac)
+{
+    const EVP_MD* md = EVPMDForHashKind(kind);
+    CHECK_EQ(hmac.size(), EVP_MD_size(md));
+
+    ScopedHMAC_CTX ctx;
+    CHECK(HMAC_Init_ex(ctx.get(), key.data(), key.size(), EVPMDForHashKind(kind), nullptr));
+    CHECK(HMAC_Update(ctx.get(), data.data(), data.size()));
+    CHECK(HMAC_Final(ctx.get(), hmac.data(), nullptr));
+}
+
+std::array<uint8_t, crypto::hash::kSha256Size> SignSha256(
+    base::span<const uint8_t> key,
+    base::span<const uint8_t> data) 
+{
+    std::array<uint8_t, crypto::hash::kSha256Size> result;
+    Sign(crypto::hash::HashKind::kSha256, key, data, base::span<uint8_t>(result.data(), result.size()));
+    return result;
+}
+
+int64_t ComputeStableResponsePadding(const blink::StorageKey& storage_key,
+    const std::string& response_url,
+    const base::Time& response_time,
+    const std::string& request_method,
+    int64_t side_data_size = 0)
+{
+    static std::array<uint8_t, 16> s_padding_key;
+    static bool s_padding_key_generated = false;
+
+    if (!s_padding_key_generated) {
+        // This just needs to be consistent within a single browser session, so we
+        // generate it the first time we need it.
+        base::RandBytes(base::span<uint8_t>(s_padding_key.data(), s_padding_key.size()));
+        s_padding_key_generated = true;
+    }
+
+    DCHECK(!response_url.empty());
+
+    net::SchemefulSite site(storage_key.origin());
+
+    DCHECK_GT(response_time, base::Time::UnixEpoch());
+    int64_t microseconds = (response_time - base::Time::UnixEpoch()).InMicroseconds();
+
+    // It should only be possible to have a CORS safe-listed method here since
+    // the spec does not permit other methods for no-cors requests.
+    DCHECK(request_method == net::HttpRequestHeaders::kGetMethod ||
+        request_method == net::HttpRequestHeaders::kHeadMethod ||
+        request_method == net::HttpRequestHeaders::kPostMethod);
+
+    std::string key = base::StringPrintf(
+        "%s-%" PRId64 "-%s-%s-%" PRId64, response_url.c_str(), microseconds,
+        site.Serialize().c_str(), request_method.c_str(), side_data_size);
+
+    std::array<uint8_t, crypto::hash::kSha256Size> hmac = SignSha256(base::span<uint8_t>(s_padding_key.data(), s_padding_key.size()), base::as_byte_span(key));
+    return base::U64FromNativeEndian(std::span<const uint8_t, 8u>(hmac.data(), hmac.size()).first<8>()) % kPaddingRange;
+}
+
+} // namespace storage
 
 namespace blink {
 
@@ -357,18 +490,20 @@ void FetchResponseData::InitFromResourceResponse(ExecutionContext* context, netw
     if (response.GetPadding()) {
         SetPadding(response.GetPadding());
     } else {
-        *(int*)1 = 1;
-//         if (storage::ShouldPadResponseType(response_type)) {
-//             int64_t padding = response.WasCached() ? storage::ComputeStableResponsePadding(
-//                                   // TODO(https://crbug.com/1199077): Investigate the need to
-//                                   // have a specified storage key within the ExecutionContext
-//                                   // and if warranted change this to use the actual storage
-//                                   // key instead.
-//                                   blink::StorageKey::CreateFirstParty(context->GetSecurityOrigin()->ToUrlOrigin()), Url()->GetString().Utf8(), ResponseTime(),
-//                                   request_method.Utf8())
-//                                                    : storage::ComputeRandomResponsePadding();
-//             SetPadding(padding);
-//         }
+        if (storage::ShouldPadResponseType(response_type)) {
+            int64_t padding = response.WasCached() ? 
+                storage::ComputeStableResponsePadding(
+                    // TODO(https://crbug.com/1199077): Investigate the need to
+                    // have a specified storage key within the ExecutionContext
+                    // and if warranted change this to use the actual storage
+                    // key instead.
+                    blink::StorageKey::CreateFirstParty(context->GetSecurityOrigin()->ToUrlOrigin()),
+                    Url()->GetString().Utf8(), 
+                    ResponseTime(), 
+                    request_method.Utf8()) 
+                : storage::ComputeRandomResponsePadding();
+            SetPadding(padding);
+        }
     }
 
     SetAuthChallengeInfo(response.AuthChallengeInfo());

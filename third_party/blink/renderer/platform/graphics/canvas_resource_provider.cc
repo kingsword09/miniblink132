@@ -63,12 +63,12 @@
 //////////////////////////////////////////////////////////////////////////
 void skgpu::ganesh::FlushAndSubmit(sk_sp<SkSurface>)
 {
-    *(int*)1 = 1;
+
 }
 
 void skgpu::ganesh::FlushAndSubmit(SkSurface*)
 {
-    *(int*)1 = 1;
+
 }
 
 namespace gpu {
@@ -1684,7 +1684,6 @@ gpu::gles2::GLES2Interface* CanvasResourceProvider::ContextGL() const
 
 gpu::raster::RasterInterface* CanvasResourceProvider::RasterInterface() const
 {
-    *(int*)1 = 1;
     return nullptr;
 //     if (!context_provider_wrapper_)
 //         return nullptr;

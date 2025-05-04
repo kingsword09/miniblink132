@@ -149,42 +149,6 @@
 #include "third_party/blink/renderer/platform/weborigin/security_policy.h"
 #include "third_party/blink/renderer/platform/wtf/cross_thread_functional.h"
 
-net::CanonicalCookie::~CanonicalCookie()
-{
-    *(int*)1 = 1;
-}
-
-net::CookieBase::~CookieBase()
-{
-    *(int*)1 = 1;
-}
-
-base::TimeDelta net::CookieBase::GetLaxAllowUnsafeThresholdAge() const
-{
-    *(int*)1 = 1;
-}
-
-net::CookiePartitionKey::~CookiePartitionKey()
-{
-    *(int*)1 = 1;
-}
-
-base::TimeDelta net::CanonicalCookie::GetLaxAllowUnsafeThresholdAge() const
-{
-    *(int*)1 = 1;
-    return base::TimeDelta();
-}
-
-void net::CanonicalCookie::PostIncludeForRequestURL(net::CookieAccessResult const&, net::CookieOptions const&, net::CookieOptions::SameSiteCookieContext::ContextType) const
-{
-    *(int*)1 = 1;
-}
-
-void net::CanonicalCookie::PostIsSetPermittedInContext(net::CookieAccessResult const&, net::CookieOptions const&) const
-{
-    *(int*)1 = 1;
-}
-
 namespace blink {
 
 const char HID::kSupplementName[] = "HID";

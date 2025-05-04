@@ -34,17 +34,17 @@
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/std_lib_extras.h"
 
-scoped_refptr<network::SharedURLLoaderFactory> 
-network::SharedURLLoaderFactory::Create(std::unique_ptr<network::PendingSharedURLLoaderFactory, std::default_delete<network::PendingSharedURLLoaderFactory>>)
-{
-    *(int*)1 = 1;
-    return nullptr;
-}
-
-network::SharedURLLoaderFactory::~SharedURLLoaderFactory(void)
-{
-    *(int*)1 = 1;
-}
+// scoped_refptr<network::SharedURLLoaderFactory> 
+// network::SharedURLLoaderFactory::Create(std::unique_ptr<network::PendingSharedURLLoaderFactory, std::default_delete<network::PendingSharedURLLoaderFactory>>)
+// {
+//     *(int*)1 = 1;
+//     return nullptr;
+// }
+// 
+// network::SharedURLLoaderFactory::~SharedURLLoaderFactory(void)
+// {
+//     *(int*)1 = 1;
+// }
 
 network::WrapperPendingSharedURLLoaderFactory::WrapperPendingSharedURLLoaderFactory(mojo::PendingRemote<network::mojom::URLLoaderFactory>)
 {
@@ -62,11 +62,11 @@ scoped_refptr<network::SharedURLLoaderFactory> network::WrapperPendingSharedURLL
     return nullptr;
 }
 
-bool network::SharedURLLoaderFactory::BypassRedirectChecks(void) const
-{
-    *(int*)1 = 1;
-    return false;
-}
+// bool network::SharedURLLoaderFactory::BypassRedirectChecks(void) const
+// {
+//     *(int*)1 = 1;
+//     return false;
+// }
 
 namespace blink {
 
@@ -162,8 +162,12 @@ LoaderFactoryForFrame::LoaderFactoryForFrame(DocumentLoader& document_loader, Lo
     , prefetched_signed_exchange_manager_(document_loader.GetPrefetchedSignedExchangeManager())
     , keep_alive_handle_factory_(&window)
 {
-    window.GetFrame()->GetLocalFrameHostRemote().GetKeepAliveHandleFactory(
-        keep_alive_handle_factory_.BindNewPipeAndPassReceiver(window.GetTaskRunner(TaskType::kNetworking)));
+    ::mojo::PendingReceiver<::blink::mojom::blink::KeepAliveHandleFactory> factory = keep_alive_handle_factory_.BindNewPipeAndPassReceiver(window.GetTaskRunner(TaskType::kNetworking));
+    LocalFrame* f = window.GetFrame();
+    f->GetLocalFrameHostRemote().GetKeepAliveHandleFactory(std::move(factory));
+// 
+//     window.GetFrame()->GetLocalFrameHostRemote().GetKeepAliveHandleFactory(
+//         keep_alive_handle_factory_.BindNewPipeAndPassReceiver(window.GetTaskRunner(TaskType::kNetworking)));
 }
 
 void LoaderFactoryForFrame::Trace(Visitor* visitor) const
@@ -258,8 +262,11 @@ std::unique_ptr<URLLoader> LoaderFactoryForFrame::CreateURLLoader(const network:
         CHECK(!shared_url_loader_factory);
         // When `url_loader_factory_remote` was set, wrap it to a
         // SharedURLLoaderFactory.
-        shared_url_loader_factory
-            = base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(blink::ToCrossVariantMojoType(std::move(url_loader_factory_remote)));
+//         shared_url_loader_factory
+//             = base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(blink::ToCrossVariantMojoType(std::move(url_loader_factory_remote)));
+
+        mojo::PendingRemote<network::mojom::URLLoaderFactory> pending_factory_remote = blink::ToCrossVariantMojoType(std::move(url_loader_factory_remote));
+        shared_url_loader_factory = base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(std::move(pending_factory_remote));
     }
     if (!shared_url_loader_factory) {
         // When `url_loader_factory_remote` is not set, use the frame's

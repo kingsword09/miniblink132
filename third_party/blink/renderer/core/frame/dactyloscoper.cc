@@ -161,7 +161,6 @@ void Dactyloscoper::RecordDirectSurface(ExecutionContext* context, WebFeature fe
 void Dactyloscoper::TraceFontLookup(
     ExecutionContext* execution_context, const AtomicString& name, const FontDescription& font_description, Dactyloscoper::FontLookupType lookup_type)
 {
-    *(int*)1 = 1;
 //     TRACE_EVENT_INSTANT(TRACE_DISABLED_BY_DEFAULT("identifiability.high_entropy_api"), "HighEntropyFontLookup", [&](perfetto::EventContext ctx) {
 //         auto* event = ctx.event<ChromeTrackEvent>();
 // 
@@ -186,7 +185,6 @@ void Dactyloscoper::TraceFontLookup(
 
 Dactyloscoper::HighEntropyTracer::HighEntropyTracer(const char* called_api_name, const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    *(int*)1 = 1;
 //     TRACE_EVENT_BEGIN(TRACE_DISABLED_BY_DEFAULT("identifiability.high_entropy_api"), "HighEntropyJavaScriptAPICall", [&](perfetto::EventContext ctx) {
 //         v8::Isolate* isolate = info.GetIsolate();
 //         v8::Local<v8::Context> current_context = isolate->GetCurrentContext();

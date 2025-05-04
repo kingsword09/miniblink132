@@ -74,7 +74,6 @@ String UserTiming::GetSerializedDetail(const ScriptValue& detail)
 }
 void UserTiming::AddMarkToPerformanceTimeline(PerformanceMark& mark, PerformanceMarkOptions* mark_options)
 {
-    *(int*)1 = 1;
     //   InsertPerformanceEntry(marks_map_, marks_buffer_, mark);
     //   if (!IsTracingEnabled()) {
     //     return;
@@ -202,7 +201,6 @@ base::TimeTicks UserTiming::GetPerformanceMarkUnsafeTimeForTraces(double start_t
 PerformanceMeasure* UserTiming::Measure(ScriptState* script_state, const AtomicString& measure_name, const V8UnionDoubleOrString* start,
     const std::optional<double>& duration, const V8UnionDoubleOrString* end, const ScriptValue& detail, ExceptionState& exception_state, DOMWindow* source)
 {
-    *(int*)1 = 1;
     return nullptr;
     //   double start_time =
     //       start ? GetTimeOrFindMarkTime(measure_name, start, exception_state) : 0;

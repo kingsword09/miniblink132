@@ -34,6 +34,8 @@
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/text/text_encoding.h"
 //#include "third_party/ced/src/compact_enc_det/compact_enc_det.h"
+#include "third_party/icu/source/i18n/csdetect.h"
+#include "third_party/icu/source/i18n/csmatch.h"
 
 // third_party/ced/src/util/encodings/encodings.h, which is included
 // by the include above, undefs UNICODE because that is a macro used
@@ -50,8 +52,51 @@ namespace blink {
 bool DetectTextEncoding(
     base::span<const uint8_t> bytes, const char* hint_encoding_name, const KURL& hint_url, const char* hint_user_language, WTF::TextEncoding* detected_encoding)
 {
-    *(int*)1 = 1;
-    return false;
+    *detected_encoding = WTF::TextEncoding();
+    int matchesCount = 0;
+    UErrorCode status = U_ZERO_ERROR;
+    icu::CharsetDetector* detector = new icu::CharsetDetector(status);
+    if (U_ZERO_ERROR != (status))
+        return false;
+    //ucsdet_enableInputFilter(detector, true);
+    detector->setText((const char*)bytes.data(), static_cast<int32_t>(bytes.size()));
+
+    const icu::CharsetMatch* const* matches = detector->detectAll(matchesCount, status);
+    if (U_ZERO_ERROR != (status)) {
+        delete (detector);
+        return false;
+    }
+
+    const char* encoding = 0;
+    if (hint_encoding_name) {
+        WTF::TextEncoding hintEncoding(hint_encoding_name);
+        const int32_t kThresold = 10;
+        for (int i = 0; i < matchesCount; ++i) {
+            int32_t confidence = matches[i]->getConfidence();
+            if (confidence < kThresold)
+                break;
+            const char* matchEncoding = matches[i]->getName();
+            if (WTF::TextEncoding(matchEncoding) == hintEncoding) {
+                encoding = hint_encoding_name;
+                break;
+            }
+        }
+    }
+    // If no match is found so far, just pick the top match.
+    // This can happen, say, when a parent frame in EUC-JP refers to
+    // a child frame in Shift_JIS and both frames do NOT specify the encoding
+    // making us resort to auto-detection (when it IS turned on).
+    if (!encoding && matchesCount > 0)
+        encoding = matches[0]->getName();
+
+    if (!encoding)
+        encoding = "GBK";
+
+    *detected_encoding = WTF::TextEncoding(encoding);
+
+    delete (detector);
+    return true;
+
     //   *detected_encoding = WTF::TextEncoding();
     //   // In general, do not use language hint. This helps get more
     //   // deterministic encoding detection results across devices. Note that local

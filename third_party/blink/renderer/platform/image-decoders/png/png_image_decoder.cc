@@ -494,7 +494,7 @@ void PNGImageDecoder::HeaderAvailable()
         }
     }
 #else
-    *(int*)1 = 1;
+
 #endif
 
     // Tell libpng to send us rows for interlaced pngs.
