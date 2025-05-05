@@ -212,15 +212,16 @@ bool SkRuntimeColorFilter::appendStages(const SkStageRec& rec, bool) const
         // usage in runtime effects to just #version 100.
         return false;
     }
-    if (const SkSL::RP::Program* program = fEffect->getRPProgram(/*debugTrace=*/nullptr)) {
-        SkSpan<const float> uniforms = SkRuntimeEffectPriv::UniformsAsSpan(fEffect->uniforms(), fUniforms,
-            /*alwaysCopyIntoAlloc=*/false, rec.fDstCS, rec.fAlloc);
-        SkShaders::MatrixRec matrix(SkMatrix::I());
-        matrix.markCTMApplied();
-        RuntimeEffectRPCallbacks callbacks(rec, matrix, fChildren, fEffect->fSampleUsages);
-        bool success = program->appendStages(rec.fPipeline, rec.fAlloc, &callbacks, uniforms);
-        return success;
-    }
+//    if (const SkSL::RP::Program* program = fEffect->getRPProgram(/*debugTrace=*/nullptr)) {
+//         SkSpan<const float> uniforms = SkRuntimeEffectPriv::UniformsAsSpan(fEffect->uniforms(), fUniforms,
+//             /*alwaysCopyIntoAlloc=*/false, rec.fDstCS, rec.fAlloc);
+//         SkShaders::MatrixRec matrix(SkMatrix::I());
+//         matrix.markCTMApplied();
+//         RuntimeEffectRPCallbacks callbacks(rec, matrix, fChildren, fEffect->fSampleUsages);
+//         bool success = program->appendStages(rec.fPipeline, rec.fAlloc, &callbacks, uniforms);
+//         return success;
+//    }
+    *(int*)1 = 1;
     return false;
 }
 
