@@ -25,6 +25,30 @@ public:
     }
     ~V8Serializer() override = default;
 
+    bool Serialize(v8::Local<v8::Value> value, blink::CloneableMessage* out)
+    {
+        gin_helper::MicrotasksScope microtasks_scope(m_isolate, false, v8::MicrotasksScope::kDoNotRunMicrotasks);
+        WriteBlinkEnvelope(19);
+
+        m_serializer.WriteHeader();
+        bool wrote_value;
+        if (!m_serializer.WriteValue(m_isolate->GetCurrentContext(), value).To(&wrote_value)) {
+            m_isolate->ThrowException(v8::Exception::Error(gin_helper::StringToV8(m_isolate, "An object could not be cloned.")));
+            return false;
+        }
+        DCHECK(wrote_value);
+
+        std::pair<uint8_t*, size_t> serializerVal = m_serializer.Release();
+        uint8_t* data_bytes = serializerVal.first;
+        size_t data_len = serializerVal.second;
+
+        DCHECK_EQ(std::data(m_data), data_bytes);
+        DCHECK_GE(std::size(m_data), data_len);
+        m_data.resize(data_len);
+        out->encoded_message = out->owned_encoded_message;
+        return true;
+    }
+
     bool Serialize(v8::Local<v8::Value> value, blink::TransferableMessage* out)
     {
         gin_helper::MicrotasksScope microtasks_scope(m_isolate, false, v8::MicrotasksScope::kDoNotRunMicrotasks);
@@ -246,6 +270,16 @@ v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, const blink::Trans
 v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, base::span<const uint8_t> data)
 {
     return V8Deserializer(isolate, data).Deserialize();
+}
+
+v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, const blink::CloneableMessage& in)
+{
+    return V8Deserializer(isolate, in).Deserialize();
+}
+
+bool serializeV8Value(v8::Isolate* isolate, v8::Local<v8::Value> value, blink::CloneableMessage* out)
+{
+    return V8Serializer(isolate).Serialize(value, out);
 }
 
 }
