@@ -262,11 +262,8 @@ std::unique_ptr<URLLoader> LoaderFactoryForFrame::CreateURLLoader(const network:
         CHECK(!shared_url_loader_factory);
         // When `url_loader_factory_remote` was set, wrap it to a
         // SharedURLLoaderFactory.
-//         shared_url_loader_factory
-//             = base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(blink::ToCrossVariantMojoType(std::move(url_loader_factory_remote)));
-
-        mojo::PendingRemote<network::mojom::URLLoaderFactory> pending_factory_remote = blink::ToCrossVariantMojoType(std::move(url_loader_factory_remote));
-        shared_url_loader_factory = base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(std::move(pending_factory_remote));
+        shared_url_loader_factory
+            = base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(blink::ToCrossVariantMojoType(std::move(url_loader_factory_remote)));
     }
     if (!shared_url_loader_factory) {
         // When `url_loader_factory_remote` is not set, use the frame's
