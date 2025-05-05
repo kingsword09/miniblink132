@@ -580,7 +580,12 @@ void LocalFrameHostImpl::GetKeepAliveHandleFactory(::mojo::PendingReceiver<::bli
 void LocalFrameHostImpl::DidAddMessageToConsole(::blink::mojom::blink::ConsoleMessageLevel log_level, const ::WTF::String& msg, uint32_t line_number,
     const ::WTF::String& source_id, const ::WTF::String& untrusted_stack_trace)
 {
-    printFuncName(__FUNCTION__, false, false);
+    std::string output = "DidAddMessageToConsole:[";
+    output += msg.Utf8();
+    output += "],[";
+    output += source_id.Utf8();
+    output += "]\n";
+    OutputDebugStringA(output.c_str());
 }
 
 void LocalFrameHostImpl::FrameSizeChanged(const ::gfx::Size& size)
