@@ -2,7 +2,10 @@
 #include "content/renderer/ClipboardHostImpl.h"
 #include "content/ui/ClipboardUtil.h"
 #include "content/common/mbchar.h"
+#include "content/common/StringUtil.h"
 #include "third_party/blink/public/platform/web_url.h"
+#include "third_party/blink/renderer/platform/image-encoders/image_encoder.h"
+#include "skia/ext/skia_utils_win.h"
 #include "base/strings/utf_string_conversions.h"
 #include <windows.h>
 
@@ -363,7 +366,7 @@ bool ClipboardHostImpl::ReadText(::blink::mojom::blink::ClipboardBuffer buffer, 
         return false;
 
     LPCWSTR dataText = (LPCWSTR)::GlobalLock(data);
-    *text = String((const UChar*)dataText, u16len((const UChar*)dataText));
+    *text = String(base::span<const UChar>((const UChar*)dataText, (unsigned)u16len((const UChar*)dataText)));
     ::GlobalUnlock(data);
 
     return true;
@@ -376,11 +379,119 @@ void ClipboardHostImpl::ReadText(::blink::mojom::blink::ClipboardBuffer buffer, 
     std::move(callback).Run(::WTF::String());
 }
 
-bool ClipboardHostImpl::ReadHtml(
-    ::blink::mojom::blink::ClipboardBuffer buffer, ::WTF::String* out_markup, ::blink::KURL* out_url, uint32_t* out_fragment_start, uint32_t* out_fragment_end)
+static int getOffsetOfUtf8ToUtf16(const std::string& utf8Str, int offset)
 {
-    CHECK(false);
-    return false;
+    int length = utf8Str.size();
+    if (offset >= length)
+        offset = length - 1;
+
+    std::vector<char> subStr;
+    subStr.resize(offset + 1);
+    memcpy(subStr.data(), utf8Str.c_str(), offset + 1);
+
+    //std::vector<UChar> temp;
+    //mulByteToUtf16(subStr.data(), subStr.size(), &temp, CP_UTF8);
+    std::u16string utf16Str = mulByteToUtf16(std::string(subStr.data(), subStr.size()), CP_UTF8);
+
+    return utf16Str.size() > 0 ? utf16Str.size() - 1 : 0;
+}
+
+bool ClipboardHostImpl::ReadHtml(
+    ::blink::mojom::blink::ClipboardBuffer buffer, ::WTF::String* outMarkup, ::blink::KURL* out_url, uint32_t* outFragmentStart, uint32_t* outFragmentEnd)
+{
+    ClipboardType clipboardType;
+    if (!convertBufferType(buffer, &clipboardType))
+        return false;
+
+    CHECK(clipboardType == CLIPBOARD_TYPE_COPY_PASTE);
+
+    std::string srcUrl;
+
+    *outFragmentStart = 0;
+    *outFragmentEnd = 0;
+
+    std::vector<char> utf8CfHtml;
+    {
+        // Acquire the clipboard.
+        ScopedClipboard clipboard;
+        if (!clipboard.acquire(getClipboardWindow()))
+            return false;
+
+        HANDLE data = ::GetClipboardData(ClipboardUtil::getHtmlFormatType());
+        if (!data)
+            return false;
+
+        const char* cfHtml = static_cast<const char*>(::GlobalLock(data));
+        if (!cfHtml)
+            return false;
+
+        int sizeOfHtml = GlobalSize(data);
+        if (0 == sizeOfHtml)
+            return false;
+
+        if (sizeOfHtml > 5 && '\0' == cfHtml[1]) {
+            for (int i = 0; i < sizeOfHtml / 2; ++i) {
+                if ('\0' == *((const wchar_t*)cfHtml + i)) {
+                    sizeOfHtml = i;
+                    break;
+                }
+            }
+
+            WCharToMByte((const wchar_t*)cfHtml, sizeOfHtml, &utf8CfHtml, CP_UTF8);
+        } else {
+            for (int i = 0; i < sizeOfHtml; ++i) {
+                if ('\0' == *((const char*)cfHtml + i)) {
+                    sizeOfHtml = i;
+                    break;
+                }
+            }
+
+            if (!isTextUTF8(cfHtml, sizeOfHtml)) { // GBK -> utf8
+                mulByteToUtf8(cfHtml, sizeOfHtml, &utf8CfHtml, CP_ACP);
+            } else {
+                utf8CfHtml.resize(sizeOfHtml);
+                memcpy(&utf8CfHtml[0], cfHtml, sizeOfHtml);
+            }
+        }
+
+        ::GlobalUnlock(data);
+    }
+
+    if (0 == utf8CfHtml.size())
+        return false;
+    utf8CfHtml.push_back('\0');
+
+    size_t htmlStart = std::string::npos;
+    size_t startIndex = std::string::npos;
+    size_t endIndex = std::string::npos;
+    ClipboardUtil::cfHtmlExtractMetadata(&utf8CfHtml[0], &srcUrl, &htmlStart, &startIndex, &endIndex);
+
+    // This might happen if the contents of the clipboard changed and CF_HTML is
+    // no longer available.
+    if (startIndex == std::string::npos || endIndex == std::string::npos || htmlStart == std::string::npos)
+        return false;
+
+    if (startIndex < htmlStart || endIndex < startIndex)
+        return false;
+
+    startIndex -= htmlStart;
+    endIndex -= htmlStart;
+
+    std::string utf8CfHtmlStart = &utf8CfHtml[0] + htmlStart;
+
+    startIndex = getOffsetOfUtf8ToUtf16(utf8CfHtmlStart, startIndex);
+    endIndex = getOffsetOfUtf8ToUtf16(utf8CfHtmlStart, endIndex);
+
+    *outFragmentStart = startIndex;
+    *outFragmentEnd = endIndex;
+
+    //std::vector<UChar> result;
+    //WTF::MByteToWChar(utf8CfHtmlStart.c_str(), utf8CfHtmlStart.size(), &result, CP_UTF8);
+    //blink::WebString resultStr;
+    //out_markup->Assign(&result[0], result.size());
+    *outMarkup = blink::WebString::FromUTF8(std::string_view(utf8CfHtmlStart.c_str(), utf8CfHtmlStart.size()));
+
+    return true;
 }
 
 //using ReadHtmlCallback = base::OnceCallback<void(const ::WTF::String&, const ::blink::KURL&, uint32_t, uint32_t)>;
@@ -410,10 +521,148 @@ void ClipboardHostImpl::ReadRtf(::blink::mojom::blink::ClipboardBuffer buffer, R
     std::move(callback).Run(::WTF::String());
 }
 
-bool ClipboardHostImpl::ReadPng(::blink::mojom::blink::ClipboardBuffer buffer, ::mojo_base::BigBuffer* out_png)
+bool bitmapHasInvalidPremultipliedColors(const SkBitmap& bitmap)
 {
-    CHECK(false);
+    for (int x = 0; x < bitmap.width(); ++x) {
+        for (int y = 0; y < bitmap.height(); ++y) {
+            uint32_t pixel = *bitmap.getAddr32(x, y);
+            if (SkColorGetR(pixel) > SkColorGetA(pixel) ||
+                SkColorGetG(pixel) > SkColorGetA(pixel) ||
+                SkColorGetB(pixel) > SkColorGetA(pixel))
+                return true;
+        }
+    }
     return false;
+}
+
+void makeBitmapOpaque(const SkBitmap& bitmap)
+{
+    for (int x = 0; x < bitmap.width(); ++x) {
+        for (int y = 0; y < bitmap.height(); ++y) {
+            *bitmap.getAddr32(x, y) = SkColorSetA(*bitmap.getAddr32(x, y), 0xFF);
+        }
+    }
+}
+
+BYTE* flipDIBVertically(BYTE* pBits, int width, int height, bool isDib32Or24)
+{
+    const int count = isDib32Or24 ? 4 : 3;
+    // 计算每行的字节数（可能包含填充字节）
+    int stride = (width * count + 3) & ~3; // 向上对齐到4字节
+
+    BYTE* pFlippedBits = new BYTE[height * stride];
+
+    for (int y = 0; y < height; y++) {
+        memcpy(
+            pFlippedBits + (height - 1 - y) * stride,  // 目标行
+            pBits + y * stride,                       // 源行
+            stride                                    // 行大小
+        );
+    }
+
+    return pFlippedBits;
+}
+
+static void onReleaseProc(void* addr, void* context)
+{
+    BYTE* bitmapBitsCopy = (BYTE*)addr;
+    delete[] bitmapBitsCopy;
+}
+
+bool ClipboardHostImpl::ReadPng(::blink::mojom::blink::ClipboardBuffer buffer, ::mojo_base::BigBuffer* outPng)
+{
+    ClipboardType clipboardType;
+    if (!convertBufferType(buffer, &clipboardType))
+        return false;
+
+    HWND hWnd = getClipboardWindow();
+    ScopedClipboard clipboard;
+    if (!clipboard.acquire(hWnd))
+        return false;
+
+    // We use a DIB rather than a DDB here since ::GetObject() with the
+    // HBITMAP returned from ::GetClipboardData(CF_BITMAP) always reports a color
+    // depth of 32bpp.
+    HANDLE hBitmap = ::GetClipboardData(CF_DIB);
+    if (!hBitmap)
+        return false;
+
+    SkBitmap skBitmap;
+    HDC hdcMem = nullptr;
+    BYTE* bitmapBitsCopy = nullptr;
+    bool isOk = false;
+    do {
+        BITMAPINFO* bmi = static_cast<BITMAPINFO*>(GlobalLock(hBitmap));
+        if (!bmi)
+            break;
+        int colorTableLength = 0;
+        switch (bmi->bmiHeader.biBitCount) {
+            case 1:
+            case 4:
+            case 8:
+                colorTableLength = bmi->bmiHeader.biClrUsed ? bmi->bmiHeader.biClrUsed : 1 << bmi->bmiHeader.biBitCount;
+                break;
+            case 16:
+            case 32:
+                if (bmi->bmiHeader.biCompression == BI_BITFIELDS)
+                    colorTableLength = 3;
+                break;
+            case 24:
+                break;
+            default:
+                CHECK(false);
+        }
+        if (32 != bmi->bmiHeader.biBitCount && 24 != bmi->bmiHeader.biBitCount) // 只管这两种色深，其他的应该没系统会出现吧？
+            break;
+
+        const void* bitmapBits = reinterpret_cast<const char*>(bmi) + bmi->bmiHeader.biSize + colorTableLength * sizeof(RGBQUAD);
+
+        int width = std::abs((int)bmi->bmiHeader.biWidth);
+        int height = std::abs((int)bmi->bmiHeader.biHeight);
+
+        bitmapBitsCopy = flipDIBVertically((BYTE*)bitmapBits, width, height, bmi->bmiHeader.biBitCount == 32);
+
+        SkImageInfo skInfo = SkImageInfo::MakeN32Premul(width, height);
+        if (!skBitmap.installPixels(skInfo, (void*)bitmapBitsCopy, skInfo.minRowBytes(), onReleaseProc, nullptr))
+            break;
+        bitmapBitsCopy = nullptr;
+
+        // Windows doesn't really handle alpha channels well in many situations. When
+        // the source image is < 32 bpp, we force the bitmap to be opaque. When the
+        // source image is 32 bpp, the alpha channel might still contain garbage data.
+        // Since Windows uses premultiplied alpha, we scan for instances where
+        // (R, G, B) > A. If there are any invalid premultiplied colors in the image,
+        // we assume the alpha channel contains garbage and force the bitmap to be
+        // opaque as well. Note that this  heuristic will fail on a transparent bitmap
+        // containing only black pixels...
+        {
+            bool hasInvalidAlphaChannel = bmi->bmiHeader.biBitCount < 32 || bitmapHasInvalidPremultipliedColors(skBitmap);
+            if (hasInvalidAlphaChannel)
+                makeBitmapOpaque(skBitmap);
+        }
+
+        isOk = true;
+    } while (false);
+
+    if (hdcMem)
+        ::DeleteDC(hdcMem);
+    ::GlobalUnlock(hBitmap);
+
+    if (bitmapBitsCopy)
+        delete[] bitmapBitsCopy;
+
+    if (!isOk)
+        return false;
+
+    WTF::Vector<unsigned char> output;
+    SkPngEncoder::Options opt;
+    if (!blink::ImageEncoder::Encode(&output, skBitmap.pixmap(), opt))
+        return false;
+
+    ::mojo_base::BigBuffer bigBuf(base::span<const uint8_t>(output.data(), output.size()));
+    *outPng = std::move(bigBuf);
+
+    return true;
 }
 
 //using ReadPngCallback = base::OnceCallback<void(::mojo_base::BigBuffer)>;
