@@ -674,24 +674,24 @@ String ParkableStringImpl::UnparkInternal()
 
     switch (GetCompressionAlgorithm()) {
     case CompressionAlgorithm::kZlib: {
-        *(int*)1 = 1;
-        const auto uncompressed_string_piece = base::as_string_view(chars);
+        const std::string_view uncompressed_string_piece = base::as_string_view(chars);
+        base::span<const uint8_t> compressed_string_span((const uint8_t*)compressed_string_piece.data(), compressed_string_piece.size());
         // If the buffer size is incorrect, then we have a corrupted data issue,
         // and in such case there is nothing else to do than crash.
-        //       CHECK_EQ(compression::GetUncompressedSize(compressed_string_piece), uncompressed_string_piece.size());
-        //       // If decompression fails, this is either because:
-        //       // 1. Compressed data is corrupted
-        //       // 2. Cannot allocate memory in zlib
-        //       //
-        //       // (1) is data corruption, and (2) is OOM. In all cases, we cannot
-        //       // recover the string we need, nothing else to do than to abort.
-        //       if (!compression::GzipUncompress(compressed_string_piece,
-        //                                        uncompressed_string_piece)) {
-        //         // Since this is almost always OOM, report it as such. We don't have
-        //         // certainty, but memory corruption should be much rarer, and could make
-        //         // us crash anywhere else.
-        //         OOM_CRASH(uncompressed_string_piece.size());
-        //       }
+        CHECK_EQ(compression::GetUncompressedSize(compressed_string_span), uncompressed_string_piece.size());
+        // If decompression fails, this is either because:
+        // 1. Compressed data is corrupted
+        // 2. Cannot allocate memory in zlib
+        //
+        // (1) is data corruption, and (2) is OOM. In all cases, we cannot
+        // recover the string we need, nothing else to do than to abort.
+        base::span<const uint8_t> uncompressed_string_span((const uint8_t*)chars.data(), chars.size());
+        if (!compression::GzipUncompress(compressed_string_span, /*uncompressed_string_piece*/uncompressed_string_span)) {
+            // Since this is almost always OOM, report it as such. We don't have
+            // certainty, but memory corruption should be much rarer, and could make
+            // us crash anywhere else.
+            OOM_CRASH(uncompressed_string_piece.size());
+        }
         break;
     }
     case CompressionAlgorithm::kSnappy: {
@@ -904,9 +904,8 @@ void ParkableStringImpl::OnParkingCompleteOnMainThread(
     if (CanParkNow() && metadata_->compressed_) {
         // Prevent `data` from dangling, since it points to the uncompressed data
         // freed below.
-        //     params->data = {};
-        //     DiscardUncompressedData();
-        *(int*)1 = 1;
+        params->data = base::raw_span<const uint8_t>();
+        DiscardUncompressedData();
     } else {
         metadata_->state_ = State::kUnparked;
     }
