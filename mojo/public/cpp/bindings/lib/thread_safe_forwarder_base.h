@@ -30,7 +30,7 @@ namespace internal {
 // underlying weakly-referenced interface proxy (e.g. a Remote) which may be
 // bound on a different sequence and referenced weakly by any number of other
 // ThreadSafeForwarders.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) ThreadSafeForwarderBase : public MessageReceiverWithResponder {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ ThreadSafeForwarderBase : public MessageReceiverWithResponder {
 public:
     // Constructs a new ThreadSafeForwarderBase which forwards requests through
     // an InterfaceEndpointClient's ThreadSafeProxy.

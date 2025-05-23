@@ -17,7 +17,7 @@
 
 namespace mojo {
 
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) MessageDispatcher : public MessageReceiver {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ MessageDispatcher : public MessageReceiver {
 public:
     // Doesn't take ownership of |sink|. Therefore |sink| has to stay alive while
     // this object is alive.

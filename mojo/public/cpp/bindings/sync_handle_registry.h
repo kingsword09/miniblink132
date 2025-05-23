@@ -24,14 +24,14 @@ namespace mojo {
 // to be watched together.
 //
 // This class is thread unsafe.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) SyncHandleRegistry : public base::RefCounted<SyncHandleRegistry> {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ SyncHandleRegistry : public base::RefCounted<SyncHandleRegistry> {
 public:
     using EventCallbackList = base::RepeatingClosureList;
     using EventCallback = EventCallbackList::CallbackType;
 
     // Wrapper class that runs a closure after a CallbackList subscription is
     // destroyed.
-    class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) Subscription {
+    class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ Subscription {
     public:
         Subscription(base::OnceClosure remove_closure, EventCallbackList* callbacks, EventCallback event_callback);
         Subscription(Subscription&&);

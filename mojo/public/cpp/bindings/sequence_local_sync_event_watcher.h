@@ -26,7 +26,7 @@ namespace mojo {
 // of such events fixed at a small constant value per sequence regardless of the
 // number of active interface endpoints supporting sync messages on that
 // sequence.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) SequenceLocalSyncEventWatcher {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ SequenceLocalSyncEventWatcher {
 public:
     explicit SequenceLocalSyncEventWatcher(const base::RepeatingClosure& callback);
 

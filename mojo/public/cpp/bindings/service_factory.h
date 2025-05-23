@@ -66,7 +66,7 @@ template <typename Func> struct ServiceFactoryTraits;
 //       LOG(ERROR) << "Unknown service: " << *receiver.interface_name();
 //     }
 //
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) ServiceFactory {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ ServiceFactory {
 public:
     ServiceFactory();
 
@@ -102,7 +102,7 @@ public:
     bool RunService(GenericPendingReceiver receiver, base::OnceClosure termination_callback);
 
 private:
-    class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) InstanceHolderBase {
+    class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ InstanceHolderBase {
     public:
         InstanceHolderBase();
 

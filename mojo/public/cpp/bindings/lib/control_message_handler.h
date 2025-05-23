@@ -18,7 +18,7 @@ class InterfaceEndpointClient;
 namespace internal {
 
 // Handlers for request messages defined in interface_control_messages.mojom.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) ControlMessageHandler : public MessageReceiverWithResponderStatus {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ ControlMessageHandler : public MessageReceiverWithResponderStatus {
 public:
     static bool IsControlMessage(const Message* message);
 

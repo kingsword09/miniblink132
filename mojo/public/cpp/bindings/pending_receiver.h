@@ -195,7 +195,7 @@ private:
     internal::PendingReceiverState state_;
 };
 
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) NullReceiver {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ NullReceiver {
 public:
     template <typename Interface> operator PendingReceiver<Interface>() const
     {
@@ -230,7 +230,7 @@ template <typename T> struct PendingAssociatedReceiverConverter;
 
 template <typename Interface> using PendingAssociatedReceiver = PendingReceiver<Interface>;
 
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) NullAssociatedReceiver {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ NullAssociatedReceiver {
 public:
     template <typename Interface> operator PendingAssociatedReceiver<Interface>() const
     {

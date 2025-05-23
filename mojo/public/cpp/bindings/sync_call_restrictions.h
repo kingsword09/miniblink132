@@ -64,7 +64,7 @@ class ScopedAllowSyncCallForTesting;
 // disregard that (which should be very very rare), you can override it by
 // constructing a ScopedAllowSyncCall object which allows making sync calls on
 // the current sequence during its lifetime.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) SyncCallRestrictions {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ SyncCallRestrictions {
 public:
     SyncCallRestrictions() = delete;
     SyncCallRestrictions(const SyncCallRestrictions&) = delete;

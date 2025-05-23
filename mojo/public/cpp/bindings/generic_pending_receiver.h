@@ -23,7 +23,7 @@ namespace mojo {
 // This is used by mojom C++ bindings to represent
 // |mojo_base.mojom.GenericPendingReceiver|, and it serves as a semi-safe
 // wrapper for transporting arbitrary interface receivers in a generic object.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) GenericPendingReceiver {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ GenericPendingReceiver {
 public:
     GenericPendingReceiver();
     GenericPendingReceiver(base::StringPiece interface_name, mojo::ScopedMessagePipeHandle receiving_pipe);

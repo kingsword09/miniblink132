@@ -204,7 +204,7 @@ private:
     internal::PendingRemoteState state_;
 };
 
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) NullRemote {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ NullRemote {
 public:
     template <typename Interface> operator PendingRemote<Interface>() const
     {
@@ -249,7 +249,7 @@ template <typename Interface> using PendingAssociatedRemote = PendingRemote<Inte
 
 template <typename T> struct PendingAssociatedRemoteConverter;
 
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) NullAssociatedRemote {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ NullAssociatedRemote {
 public:
     template <typename Interface> operator PendingAssociatedRemote<Interface>() const
     {

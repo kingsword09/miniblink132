@@ -30,7 +30,7 @@ namespace internal {
 // Serialize/Deserialize for [Native] mojom structs which do not have a
 // registered typemap in the current configuration (i.e. structs that are
 // represented by a raw native::NativeStruct mojom struct in C++ bindings.)
-struct COMPONENT_EXPORT(MOJO_CPP_BINDINGS) UnmappedNativeStructSerializerImpl {
+struct /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ UnmappedNativeStructSerializerImpl {
     static void Serialize(const native::NativeStructPtr& input, MessageFragment<native::internal::NativeStruct_Data>& fragment);
 
     static bool Deserialize(native::internal::NativeStruct_Data* input, native::NativeStructPtr* output, Message* message);

@@ -22,7 +22,7 @@ namespace mojo {
 // sequence to wake up as needed.
 //
 // This class is not thread safe.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) SyncEventWatcher {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ SyncEventWatcher {
 public:
     SyncEventWatcher(base::WaitableEvent* event, base::RepeatingClosure callback);
 

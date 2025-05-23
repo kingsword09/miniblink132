@@ -30,7 +30,7 @@ class PipeControlMessageProxy;
 // cases where a PendingFlush is needed before its corresponding flush operation
 // can be initiated (e.g. when the interface to flush lives on a different
 // thread from the interface that will wait on its PendingFlush).
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) AsyncFlusher {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ AsyncFlusher {
 public:
     AsyncFlusher();
     AsyncFlusher(AsyncFlusher&&);

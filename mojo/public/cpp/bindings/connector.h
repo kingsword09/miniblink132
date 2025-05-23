@@ -46,7 +46,7 @@ class SyncHandleWatcher;
 //   - Sending messages can be configured to be thread safe (please see comments
 //     of the constructor). Other than that, the object should only be accessed
 //     on the creating sequence.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) Connector : public MessageReceiver {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ Connector : public MessageReceiver {
 public:
     enum ConnectorConfig {
         // Connector::Accept() is only called from a single sequence.

@@ -22,7 +22,7 @@ class InterfaceEndpointClient;
 namespace internal {
 
 // Proxy for request messages defined in interface_control_messages.mojom.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) ControlMessageProxy {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ ControlMessageProxy {
 public:
     // Doesn't take ownership of |owner|. It must outlive this object.
     explicit ControlMessageProxy(InterfaceEndpointClient* owner);

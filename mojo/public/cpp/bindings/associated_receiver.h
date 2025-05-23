@@ -48,7 +48,7 @@ class MessageReceiver;
 //
 //// Base class containing common code for various AssociatedReceiver template
 //// expansions to reduce code size.
-// class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) AssociatedReceiverBase {
+// class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ AssociatedReceiverBase {
 // public:
 //     AssociatedReceiverBase();
 //

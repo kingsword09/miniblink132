@@ -41,11 +41,11 @@ namespace internal {
 // Either |BeforeMessagesEnqueued()| or |BeforeWrite()| may cause the quota
 // to be exceeded, thus invoking the |maybe_crash_function| set in this
 // object's Configuration.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) MessageQuotaChecker : public base::RefCountedThreadSafe<MessageQuotaChecker> {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ MessageQuotaChecker : public base::RefCountedThreadSafe<MessageQuotaChecker> {
 public:
     // A helper class to maintain a decaying average for the rate of events per
     // sampling interval over time.
-    class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) DecayingRateAverage {
+    class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ DecayingRateAverage {
     public:
         DecayingRateAverage();
 

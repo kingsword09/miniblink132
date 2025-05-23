@@ -47,7 +47,7 @@ class AsyncFlusher;
 // it may be desirable to create a PendingFlush before issuing a corresponding
 // |FlushAsync()| call. In that case, use the single-argument constructor
 // defined below.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) PendingFlush {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ PendingFlush {
 public:
     // Constructs a new PendingFlush associated with |*flusher|. |*flusher| should
     // be a default-constructed AsyncFlusher, and once it is initialized by this

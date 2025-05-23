@@ -24,7 +24,7 @@ namespace mojo {
 // associated endpoints on different sequence.
 //
 // This class is not thread safe.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) SyncHandleWatcher {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ SyncHandleWatcher {
 public:
     // Note: |handle| must outlive this object.
     SyncHandleWatcher(const Handle& handle, MojoHandleSignals handle_signals, const SyncHandleRegistry::HandleCallback& callback);

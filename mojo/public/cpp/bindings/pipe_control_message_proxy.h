@@ -21,7 +21,7 @@ class MessageReceiver;
 // Proxy for request messages defined in pipe_control_messages.mojom.
 //
 // NOTE: This object may be used from multiple sequences.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) PipeControlMessageProxy {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ PipeControlMessageProxy {
 public:
     // Doesn't take ownership of |receiver|. If This PipeControlMessageProxy will
     // be used from multiple sequences, |receiver| must be thread-safe.

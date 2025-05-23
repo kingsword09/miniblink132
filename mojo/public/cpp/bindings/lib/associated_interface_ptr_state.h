@@ -29,7 +29,7 @@
 namespace mojo {
 namespace internal {
 
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) AssociatedInterfacePtrStateBase {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ AssociatedInterfacePtrStateBase {
 public:
     AssociatedInterfacePtrStateBase();
     ~AssociatedInterfacePtrStateBase();

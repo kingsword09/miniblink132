@@ -47,7 +47,7 @@ namespace internal {
 // It is partially sequence-affine with several public methods that must be
 // called on the sequence to which the MultiplexRouter is bound. See the
 // constructor for details.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) MultiplexRouter : public MessageReceiver, public AssociatedGroupController, public PipeControlMessageHandlerDelegate {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ MultiplexRouter : public MessageReceiver, public AssociatedGroupController, public PipeControlMessageHandlerDelegate {
 public:
     enum Config {
         // There is only the primary interface running on this router. Please note

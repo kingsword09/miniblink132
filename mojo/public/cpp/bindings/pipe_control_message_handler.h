@@ -17,7 +17,7 @@ namespace mojo {
 class PipeControlMessageHandlerDelegate;
 
 // Handler for messages defined in pipe_control_messages.mojom.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) PipeControlMessageHandler : public MessageReceiver {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ PipeControlMessageHandler : public MessageReceiver {
 public:
     explicit PipeControlMessageHandler(PipeControlMessageHandlerDelegate* delegate);
 

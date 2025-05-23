@@ -56,7 +56,7 @@ template <> struct ReceiverSetContextTraits<void> {
 };
 
 // Shared base class owning specific type-agnostic ReceiverSet state and logic.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) ReceiverSetState {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ ReceiverSetState {
 public:
     class ReceiverState {
     public:
@@ -68,7 +68,7 @@ public:
         virtual void ResetWithReason(uint32_t custom_reason_code, const std::string& description) = 0;
     };
 
-    class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) Entry {
+    class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ Entry {
     public:
         Entry(ReceiverSetState& state, ReceiverId id, std::unique_ptr<ReceiverState> receiver);
         ~Entry();

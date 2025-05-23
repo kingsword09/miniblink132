@@ -28,7 +28,7 @@ namespace mojo {
 // interface needs to support sharing its message ordering with interfaces
 // defined at higher application layers, such that knowledge of those associated
 // interface(s) would constitute a layering violation.
-class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) GenericPendingAssociatedReceiver {
+class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ GenericPendingAssociatedReceiver {
 public:
     GenericPendingAssociatedReceiver();
     GenericPendingAssociatedReceiver(base::StringPiece interface_name, mojo::ScopedInterfaceEndpointHandle handle);

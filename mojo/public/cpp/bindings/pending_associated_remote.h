@@ -133,7 +133,7 @@ namespace mojo {
 
 // // Constructs an invalid PendingAssociatedRemote of any arbitrary interface
 // // type. Useful as short-hand for a default constructed value.
-// class COMPONENT_EXPORT(MOJO_CPP_BINDINGS) NullAssociatedRemote {
+// class /*COMPONENT_EXPORT(MOJO_CPP_BINDINGS)*/ NullAssociatedRemote {
 // public:
 //     template <typename Interface> operator PendingAssociatedRemote<Interface>() const { return PendingAssociatedRemote<Interface>(); }
 // };
