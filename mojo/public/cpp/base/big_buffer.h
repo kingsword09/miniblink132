@@ -76,7 +76,7 @@ private:
 // The |size()| of the data cannot be manipulated.
 class /*COMPONENT_EXPORT(MOJO_BASE)*/ BigBuffer {
 public:
-    static constexpr size_t kMaxInlineBytes = 64 * 1024 * 2;
+    static constexpr size_t kMaxInlineBytes = 64 * 1024 * 20;
 
     enum class StorageType {
         kBytes,
