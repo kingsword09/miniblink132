@@ -53,7 +53,8 @@ static const char* equalDelimiters = "__curlequal__";
 
 static void appendDotIfNeeded(std::string* domain)
 {
-    //Vector<char> domainBuffer = WTF::ensureStringToUTF8(*domain, false);
+    // According to RFC6265 we should add dot.
+#if 0
     std::string domainBuffer = domain->c_str();
     int dotCount = 0;
     for (size_t i = 0; i < domainBuffer.size(); ++i) {
@@ -63,6 +64,10 @@ static void appendDotIfNeeded(std::string* domain)
 
     if (1 == dotCount)
         domain->insert(0, ".");
+#else
+    if (!domain->empty() && domain->at(0) != '.')
+        domain->insert(0, ".");
+#endif
 }
 
 static void addMatchingCurlCookie(const char* cookie, const std::string& domain, const std::string& path, std::string& cookies, bool httponly)
@@ -308,9 +313,8 @@ static std::string getNetscapeCookieFormat(const blink::KURL& url, const std::st
             if (key == "expires") {
                 std::optional<base::Time> expiresTime = WTF::ParseDateFromNullTerminatedCharacters(val.c_str());
                 double expiresDouble = 0;
-//                 if (expiresTime.has_value())
-//                     expiresDouble = expiresTime->ToDoubleT();
-                DebugBreak();
+                if (expiresTime.has_value())
+                    expiresDouble = expiresTime->InSecondsFSinceUnixEpoch();
                 //expiresDouble = expiresDouble / WTF::kMsPerSecond;
                 expires = (int)expiresDouble;
 
@@ -539,6 +543,61 @@ void WebCookieJarImpl::flushCurlCookie(CURL* curl)
 
     if (needCleanup)
         curl_easy_cleanup(curl);
+}
+
+void WebCookieJarImpl::getAllCookies(const ::blink::KURL& url, const ::net::SiteForCookies& siteForCookies,
+    const ::scoped_refptr<const ::blink::SecurityOrigin>& topFrameOrigin, ::net::StorageAccessApiStatus storageAccessApiStatus,
+    ::network::mojom::blink::CookieManagerGetOptionsPtr options,
+    bool partitionedCookiesRuntimeFeatureEnabled, bool isAdTagged, 
+    network::mojom::blink::RestrictedCookieManager::GetAllForUrlCallback callback)
+{
+    CURL* curl = curl_easy_init();
+    if (!curl)
+        return;
+
+    flushCurlCookie(curl);
+
+    CURLSH* curlsh = m_curlShareHandle;
+
+    curl_easy_setopt(curl, CURLOPT_SHARE, curlsh);
+
+    curl_slist* list = nullptr;
+    curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &list);
+
+    WTF::Vector<::network::mojom::blink::CookieWithAccessResultPtr> results;
+
+    if (list) {
+        std::string domain = url.Host().Utf8();
+        std::string path = url.GetPath().Utf8();
+        std::string cookiesBuilder;
+
+        struct curl_slist* item = list;
+        while (item) {
+            const char* cookieLine = item->data;
+            addMatchingCurlCookie(cookieLine, domain, path, cookiesBuilder, true);
+            item = item->next;
+            if (cookiesBuilder.empty())
+                continue;
+
+            network::mojom::blink::CookieWithAccessResultPtr result = network::mojom::blink::CookieWithAccessResult::New();
+
+            net::CookieInclusionStatus status;
+            std::unique_ptr<net::CanonicalCookie> canonCookie = ::net::CanonicalCookie::Create(
+                (GURL)url, cookiesBuilder, base::Time::Now(),
+                std::nullopt, std::nullopt, net::CookieSourceType::kHTTP, &status);
+            if (!canonCookie.get())
+                continue;
+            result->cookie = *(canonCookie.get());
+            result->access_result = ::network::mojom::blink::CookieAccessResult::New();
+            results.push_back(std::move(result));
+        }
+
+        curl_slist_free_all(list);
+    }
+
+    curl_easy_cleanup(curl);
+
+    std::move(callback).Run(std::move(results));
 }
 
 std::string WebCookieJarImpl::getCookiesForSession(const blink::KURL& kurl, const blink::KURL& url, bool httponly)
