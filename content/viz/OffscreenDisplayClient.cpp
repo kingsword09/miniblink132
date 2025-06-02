@@ -133,13 +133,13 @@ bool OffscreenWindowUpdater::HasTransparent()
 
 uint32_t OffscreenWindowUpdater::GetBackgroundColor(bool* has_background_color)
 {
-    *has_background_color = false;
+    *has_background_color = true;
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtrLocked(m_mbwebviewId);
     if (!webview)
         return 0xffffffff;
     uint32_t c = webview->getBackgroundColor();
     common::LiveIdDetect::getMbWebviewIds()->unlock(m_mbwebviewId, webview);
-    *has_background_color = true;
+    *has_background_color = !m_isLayeredWnd;
     return c;
 }
 
@@ -289,7 +289,8 @@ void OffscreenWindowUpdater::Draw(const gfx::Rect& damageRect, DrawCallback draw
         RECT wr;
         ::GetWindowRect(m_hwnd, &wr);
 
-        SIZE size = { wr.right - wr.left, wr.bottom - wr.top };
+        //SIZE size = { wr.right - wr.left, wr.bottom - wr.top };
+        SIZE size = { m_pixelSize.width(), m_pixelSize.height() };
         POINT position = { wr.left, wr.top };
         POINT zero = { 0, 0 };
         BLENDFUNCTION blend = { AC_SRC_OVER, 0x00, 0xFF, AC_SRC_ALPHA };

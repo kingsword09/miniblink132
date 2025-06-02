@@ -7235,7 +7235,7 @@ CppClassNamesAsHeapObjectNameScope::~CppClassNamesAsHeapObjectNameScope() = defa
 CodePageMemoryModificationScopeForDebugging::CodePageMemoryModificationScopeForDebugging(Heap* heap, VirtualMemory* reservation, base::AddressRegion region)
     : rwx_write_scope_("Write access for zapping.")
 {
-#if !defined(DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
+#if !defined(V8_DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
     UNREACHABLE();
 #endif
 }
@@ -7243,7 +7243,7 @@ CodePageMemoryModificationScopeForDebugging::CodePageMemoryModificationScopeForD
 CodePageMemoryModificationScopeForDebugging::CodePageMemoryModificationScopeForDebugging(MemoryChunkMetadata* chunk)
     : rwx_write_scope_("Write access for zapping.")
 {
-#if !defined(DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
+#if !defined(V8_DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
     UNREACHABLE();
 #endif
 }
@@ -7258,14 +7258,14 @@ CodePageMemoryModificationScopeForDebugging::~CodePageMemoryModificationScopeFor
 
 CodePageMemoryModificationScopeForDebugging::CodePageMemoryModificationScopeForDebugging(Heap* heap, VirtualMemory* reservation, base::AddressRegion region)
 {
-#if !defined(DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
+#if !defined(V8_DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
     UNREACHABLE();
 #endif
 }
 
 CodePageMemoryModificationScopeForDebugging::CodePageMemoryModificationScopeForDebugging(MemoryChunkMetadata* chunk)
 {
-#if !defined(DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
+#if !defined(V8_DEBUG) && !defined(VERIFY_HEAP) && !defined(USE_SIMULATOR)
     UNREACHABLE();
 #endif
 }

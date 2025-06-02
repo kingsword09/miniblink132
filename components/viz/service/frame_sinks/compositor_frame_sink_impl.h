@@ -69,6 +69,8 @@ private:
     // Must be destroyed before |compositor_frame_sink_client_|. This must never
     // change for the lifetime of CompositorFrameSinkImpl.
     const std::unique_ptr<CompositorFrameSinkSupport> support_;
+
+    scoped_refptr<base::SingleThreadTaskRunner> runner_;
 };
 
 } // namespace viz

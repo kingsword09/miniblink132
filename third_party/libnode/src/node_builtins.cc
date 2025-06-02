@@ -120,7 +120,7 @@ BuiltinLoader::BuiltinLoader()
         asar_resource = new StaticExternalOneByteResource((const uint8_t*)atom::AsarJs, atom::AsarJsLength - 1, nullptr);
 #else
         std::string* asar_resource_buffer = new std::string();
-        asar::ReadFileToString(L"W:\\mycode\\mb108\\electron\\lib\\common\\asar.js", asar_resource_buffer);
+        asar::ReadFileToString(L"W:\\mycode\\mb132\\electron\\lib\\common\\asar.js", asar_resource_buffer);
         *asar_resource_buffer += '\0';
         asar_resource = new StaticExternalOneByteResource((const uint8_t*)asar_resource_buffer->c_str(), asar_resource_buffer->size() - 1, nullptr);
 #endif
@@ -142,15 +142,20 @@ BuiltinLoader::BuiltinLoader()
     Add("original-fs", UnionBytes(fs_res));
 
     //////////////////////////////////////////////////////////////////////////
-#if 1
+#if 0
     FakeExternalReseEntry fakes[] = {
-        //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\process\\promises.js", "internal/process/promises"},
-        //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\loader.js", "internal/modules/esm/loader"},
-        //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\cjs\\loader.js", "internal/modules/cjs/loader"},
-        //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\module_job.js", "internal/modules/esm/module_job"},
-                {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\utils.js", "internal/modules/esm/utils"},
-                {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\modules\\esm\\translators.js", "internal/modules/esm/translators"},
-                //         {L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", "internal/bootstrap/realm"},
+        {L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\events.js", "events"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\encoding.js", "internal/encoding"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\process\\promises.js", "internal/process/promises"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\esm\\load.js", "internal/modules/esm/load"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\esm\\loader.js", "internal/modules/esm/loader"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\esm\\resolve.js", "internal/modules/esm/resolve"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\esm\\get_format.js", "internal/modules/esm/get_format"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\cjs\\loader.js", "internal/modules/cjs/loader"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\esm\\module_job.js", "internal/modules/esm/module_job"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\esm\\utils.js", "internal/modules/esm/utils"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\modules\\esm\\translators.js", "internal/modules/esm/translators"},
+        //{L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", "internal/bootstrap/realm"},
     };
     for (size_t i = 0; i < arraysize(fakes); ++i) {
         FakeExternalReseEntry& it = fakes[i];
@@ -169,14 +174,14 @@ BuiltinLoader::BuiltinLoader()
     }
 
     //     {
-    //         // W:\mycode\mb108\third_party\libnode\lib\internal\bootstrap\realm.js
+    //         // W:\mycode\mb132\third_party\libnode\lib\internal\bootstrap\realm.js
     //         ThreadsafeCopyOnWrite<BuiltinSourceMap>::Write source2 = source_.write();
     //         std::map<std::string, UnionBytes>::iterator console_constructor_it = source2->find("internal/bootstrap/realm");
     // 
     //         static StaticExternalOneByteResource* console_constructor_resource = nullptr;
     //         if (!console_constructor_resource) {
     //             std::string* buffer = new std::string();
-    //             asar::ReadFileToString(L"W:\\mycode\\mb108\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", buffer);
+    //             asar::ReadFileToString(L"W:\\mycode\\mb132\\third_party\\libnode\\lib\\internal\\bootstrap\\realm.js", buffer);
     //             *buffer += '\0';
     //             console_constructor_resource = new StaticExternalOneByteResource((const uint8_t*)buffer->c_str(), buffer->size() - 1, nullptr);
     //         }

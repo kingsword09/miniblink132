@@ -1,4 +1,4 @@
-const Clipboard = process._linkedBinding('atom_common_clipboard').Clipboard;
+const Clipboard = process._linkedBinding('electron_common_clipboard').Clipboard;
 
 Clipboard.prototype.readText = function (type) {
 	if (!type)

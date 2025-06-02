@@ -190,7 +190,7 @@ public:
     TQ_OBJECT_CONSTRUCTORS(WasmModuleObject)
 };
 
-#if V8_ENABLE_SANDBOX || DEBUG
+#if V8_ENABLE_SANDBOX || V8_DEBUG
 // This should be checked before writing an untrusted function reference
 // into a dispatch table (e.g. via WasmTableObject::Set).
 bool FunctionSigMatchesTable(wasm::CanonicalTypeIndex sig_id, const wasm::WasmModule* module, int table_index);

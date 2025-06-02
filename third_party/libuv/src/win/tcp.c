@@ -50,7 +50,13 @@ static int uv__tcp_keepalive(uv_tcp_t* handle, SOCKET socket, int enable, unsign
         return WSAGetLastError();
     }
 
-    if (enable && setsockopt(socket, IPPROTO_TCP, TCP_KEEPALIVE, (const char*)&delay, sizeof delay) == -1) {
+    if (!enable)
+        return 0;
+
+    if (delay < 1)
+        return UV_EINVAL;
+
+    if (setsockopt(socket, IPPROTO_TCP, TCP_KEEPALIVE, (const char*)&delay, sizeof delay) == -1) {
         return WSAGetLastError();
     }
 
@@ -185,7 +191,7 @@ void uv__process_tcp_shutdown_req(uv_loop_t* loop, uv_tcp_t* stream, uv_shutdown
     assert(stream->flags & UV_HANDLE_CONNECTION);
 
     stream->stream.conn.shutdown_req = NULL;
-    UNREGISTER_HANDLE_REQ(loop, stream, req);
+    UNREGISTER_HANDLE_REQ(loop, stream);
 
     err = 0;
     if (stream->flags & UV_HANDLE_CLOSING)
@@ -260,6 +266,12 @@ static int uv__tcp_try_bind(uv_tcp_t* handle, const struct sockaddr* addr, unsig
 {
     DWORD err;
     int r;
+
+    /* There is no SO_REUSEPORT on Windows, Windows only knows SO_REUSEADDR.
+   * so we just return an error directly when UV_TCP_REUSEPORT is requested
+   * for binding the socket. */
+    if (flags & UV_TCP_REUSEPORT)
+        return ERROR_NOT_SUPPORTED;
 
     if (handle->socket == INVALID_SOCKET) {
         SOCKET sock;
@@ -748,7 +760,7 @@ out:
     if (handle->delayed_error != 0) {
         /* Process the req without IOCP. */
         handle->reqs_pending++;
-        REGISTER_HANDLE_REQ(loop, handle, req);
+        REGISTER_HANDLE_REQ(loop, handle);
         uv__insert_pending_req(loop, (uv_req_t*)req);
         return 0;
     }
@@ -758,12 +770,12 @@ out:
     if (UV_SUCCEEDED_WITHOUT_IOCP(success)) {
         /* Process the req without IOCP. */
         handle->reqs_pending++;
-        REGISTER_HANDLE_REQ(loop, handle, req);
+        REGISTER_HANDLE_REQ(loop, handle);
         uv__insert_pending_req(loop, (uv_req_t*)req);
     } else if (UV_SUCCEEDED_WITH_IOCP(success)) {
         /* The req will be processed with IOCP. */
         handle->reqs_pending++;
-        REGISTER_HANDLE_REQ(loop, handle, req);
+        REGISTER_HANDLE_REQ(loop, handle);
     } else {
         return WSAGetLastError();
     }
@@ -810,14 +822,14 @@ int uv__tcp_write(uv_loop_t* loop, uv_write_t* req, uv_tcp_t* handle, const uv_b
         req->u.io.queued_bytes = 0;
         handle->reqs_pending++;
         handle->stream.conn.write_reqs_pending++;
-        REGISTER_HANDLE_REQ(loop, handle, req);
+        REGISTER_HANDLE_REQ(loop, handle);
         uv__insert_pending_req(loop, (uv_req_t*)req);
     } else if (UV_SUCCEEDED_WITH_IOCP(result == 0)) {
         /* Request queued by the kernel. */
         req->u.io.queued_bytes = uv__count_bufs(bufs, nbufs);
         handle->reqs_pending++;
         handle->stream.conn.write_reqs_pending++;
-        REGISTER_HANDLE_REQ(loop, handle, req);
+        REGISTER_HANDLE_REQ(loop, handle);
         handle->write_queue_size += req->u.io.queued_bytes;
         if (handle->flags & UV_HANDLE_EMULATE_IOCP
             && !RegisterWaitForSingleObject(
@@ -830,7 +842,7 @@ int uv__tcp_write(uv_loop_t* loop, uv_write_t* req, uv_tcp_t* handle, const uv_b
         req->u.io.queued_bytes = 0;
         handle->reqs_pending++;
         handle->stream.conn.write_reqs_pending++;
-        REGISTER_HANDLE_REQ(loop, handle, req);
+        REGISTER_HANDLE_REQ(loop, handle);
         SET_REQ_ERROR(req, WSAGetLastError());
         uv__insert_pending_req(loop, (uv_req_t*)req);
     }
@@ -976,7 +988,7 @@ void uv__process_tcp_write_req(uv_loop_t* loop, uv_tcp_t* handle, uv_write_t* re
     assert(handle->write_queue_size >= req->u.io.queued_bytes);
     handle->write_queue_size -= req->u.io.queued_bytes;
 
-    UNREGISTER_HANDLE_REQ(loop, handle, req);
+    UNREGISTER_HANDLE_REQ(loop, handle);
 
     if (handle->flags & UV_HANDLE_EMULATE_IOCP) {
         if (req->wait_handle != INVALID_HANDLE_VALUE) {
@@ -1058,7 +1070,7 @@ void uv__process_tcp_connect_req(uv_loop_t* loop, uv_tcp_t* handle, uv_connect_t
 
     assert(handle->type == UV_TCP);
 
-    UNREGISTER_HANDLE_REQ(loop, handle, req);
+    UNREGISTER_HANDLE_REQ(loop, handle);
 
     err = 0;
     if (handle->delayed_error) {
@@ -1368,12 +1380,6 @@ int uv__tcp_connect(uv_connect_t* req, uv_tcp_t* handle, const struct sockaddr* 
 
     return 0;
 }
-
-#ifndef WSA_FLAG_NO_HANDLE_INHERIT
-/* Added in Windows 7 SP1. Specify this to avoid race conditions, */
-/* but also manually clear the inherit flag in case this failed. */
-#define WSA_FLAG_NO_HANDLE_INHERIT 0x80
-#endif
 
 int uv_socketpair(int type, int protocol, uv_os_sock_t fds[2], int flags0, int flags1)
 {

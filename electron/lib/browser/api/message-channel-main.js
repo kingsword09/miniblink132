@@ -1,6 +1,6 @@
 const MessagePortMain = require('./message-port-main.js');
 const EventEmitter = require('events').EventEmitter;
-const binding = process._linkedBinding('atom_browser_message_port');
+const binding = process._linkedBinding('electron_browser_message_port');
 const createPair = binding.createPair;
 
 function MessageChannelMain() {

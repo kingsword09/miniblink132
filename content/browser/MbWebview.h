@@ -189,6 +189,7 @@ public:
     void setCookieJarFullPath(const char* path);
     void setLocalStorageFullPath(const char* path);
     base::FilePath getLocalStorageDir();
+    base::FilePath getDownloadDirPath();
 
     void onResize(int w, int h, bool needSetHostWnd);
     LRESULT onNcHittest(LPARAM lParam);
@@ -236,11 +237,11 @@ public:
     void setProxy(const mbProxy* proxy);
     const mbProxy* getProxy() const;
 
+    void draggableRegionsChanged(blink::WebVector<blink::WebDraggableRegion> regions);
 private:
     friend class RenderWidgetHostImpl;
     friend class OffscreenWindowUpdater;
     friend class WebLocalFrameClientImpl;
-    void draggableRegionsChanged(blink::WebVector<blink::WebDraggableRegion> regions);
     void destroy();
 
     void handlePopup(UINT message);

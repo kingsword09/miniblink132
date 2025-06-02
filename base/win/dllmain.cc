@@ -7,6 +7,8 @@
 #include "base/compiler_specific.h"
 #include "base/win/win_util.h"
 
+HMODULE g_hModule;
+
 // Custom crash code to get a unique entry in crash reports.
 NOINLINE static void CrashOnProcessDetach()
 {
@@ -19,5 +21,8 @@ BOOL WINAPI DllMain(PVOID h, DWORD reason, PVOID reserved)
 {
     if (DLL_PROCESS_DETACH == reason && base::win::ShouldCrashOnProcessDetach())
         CrashOnProcessDetach();
+
+    g_hModule = (HMODULE)h;
+
     return true;
 }

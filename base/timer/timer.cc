@@ -46,11 +46,8 @@ bool TimerBase::IsRunning() const
 
 void TimerBase::SetTaskRunner(scoped_refptr<SequencedTaskRunner> task_runner)
 {
-    OutputDebugStringA("base::TimerBase::SetTaskRunner 1\n");
     DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-    OutputDebugStringA("base::TimerBase::SetTaskRunner 2\n");
     DCHECK(task_runner->RunsTasksInCurrentSequence());
-    OutputDebugStringA("base::TimerBase::SetTaskRunner 3\n");
     DCHECK(!IsRunning());
     task_runner_.swap(task_runner);
 }

@@ -51,8 +51,8 @@ void InitIDLInterfaces()
     V8HTMLElement::Impl::Init();
     V8HTMLIFrameElement::Impl::Init();
     V8HTMLInputElement::Impl::Init();
-//     V8HTMLMediaElement::Impl::Init();
-//     V8HTMLVideoElement::Impl::Init();
+    V8HTMLMediaElement::Impl::Init();
+    V8HTMLVideoElement::Impl::Init();
     V8MathMLElement::Impl::Init();
 //     V8Mojo::Impl::Init();
     V8Navigator::Impl::Init();

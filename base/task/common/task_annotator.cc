@@ -180,6 +180,12 @@ void TaskAnnotator::RunTaskImpl(PendingTask& pending_task)
     // hangs.
     const int64_t task_time = pending_task.GetDesiredExecutionTime().since_origin().InSeconds();
     base::debug::Alias(&task_time);
+#pragma clang optimize off
+    const char* file_name = pending_task.posted_from.file_name();
+    const char* function_name = pending_task.posted_from.function_name();
+    base::debug::Alias(&file_name);
+    base::debug::Alias(&function_name);
+#pragma clang optimize on
 
     {
         const AutoReset<PendingTask*> resetter(&current_pending_task, &pending_task);

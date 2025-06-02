@@ -389,11 +389,14 @@ void PageNavController::AllFrameHistoryItemSet::clearRemovedFrame(const blink::W
 void PageNavController::FrameHistoryItem::copyHistoryItem(const blink::WebHistoryItem& item)
 {
     blink::WebHistoryItem* otherWebItem = (blink::WebHistoryItem*)(&item);
-    blink::HistoryItem* pageState = *otherWebItem; // 这里面有些字段我还没实现拷贝
-    this->historyItem = (pageState);
+    blink::HistoryItem* otherItem = *otherWebItem; // 这里面有些字段我还没实现拷贝
+
+    blink::PageState pageState = otherItem->ToPageState();
+    this->historyItem = blink::WebHistoryItem(pageState);
 
     blink::HistoryItem* it = this->historyItem;
-    blink::HistoryItem* other = *otherWebItem;
+    blink::HistoryItem* other = otherItem;
+
     it->SetNavigationApiKey(other->GetNavigationApiKey());
     it->SetNavigationApiId(other->GetNavigationApiId());
     it->SetURLString(other->UrlString());

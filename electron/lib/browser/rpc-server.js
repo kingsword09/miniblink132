@@ -1,7 +1,7 @@
 'use strict'
 
 const electron = require('electron')
-var v8UtilClass = process._linkedBinding('atom_common_v8_util').v8Util;
+var v8UtilClass = process._linkedBinding('electron_common_v8_util').v8Util;
 const v8Util = new v8UtilClass();
 
 const ipcMain = electron.ipcMain;

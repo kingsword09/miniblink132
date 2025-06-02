@@ -26,7 +26,6 @@
 #include <signal.h>
 #include <limits.h>
 #include <wchar.h>
-#include <malloc.h> /* alloca */
 
 #include "uv.h"
 #include "internal.h"
@@ -100,28 +99,25 @@ static void uv__init_global_job_handle(void)
 
     if (!SetInformationJobObject(uv_global_job_handle_, JobObjectExtendedLimitInformation, &info, sizeof info))
         uv_fatal_error(GetLastError(), "SetInformationJobObject");
+
+    if (!AssignProcessToJobObject(uv_global_job_handle_, GetCurrentProcess())) {
+        /* Make sure this handle is functional. The Windows kernel has a bug that
+     * if the first use of AssignProcessToJobObject is for a Windows Store
+     * program, subsequent attempts to use the handle with fail with
+     * INVALID_PARAMETER (87). This is possibly because all uses of the handle
+     * must be for the same Terminal Services session. We can ensure it is tied
+     * to our current session now by adding ourself to it. We could remove
+     * ourself afterwards, but there doesn't seem to be a reason to.
+     */
+        DWORD err = GetLastError();
+        if (err != ERROR_ACCESS_DENIED)
+            uv_fatal_error(err, "AssignProcessToJobObject");
+    }
 }
 
 static int uv__utf8_to_utf16_alloc(const char* s, WCHAR** ws_ptr)
 {
-    int ws_len, r;
-    WCHAR* ws;
-
-    ws_len = MultiByteToWideChar(CP_UTF8, 0, s, -1, NULL, 0);
-    if (ws_len <= 0) {
-        return GetLastError();
-    }
-
-    ws = (WCHAR*)uv__malloc(ws_len * sizeof(WCHAR));
-    if (ws == NULL) {
-        return ERROR_OUTOFMEMORY;
-    }
-
-    r = MultiByteToWideChar(CP_UTF8, 0, s, -1, ws, ws_len);
-    assert(r == ws_len);
-
-    *ws_ptr = ws;
-    return 0;
+    return uv__convert_utf8_to_utf16(s, ws_ptr);
 }
 
 static void uv__process_init(uv_loop_t* loop, uv_process_t* handle)
@@ -274,8 +270,9 @@ static WCHAR* path_search_walk_ext(const WCHAR* dir, size_t dir_len, const WCHAR
  * - If there's really only a filename, check the current directory for file,
  *   then search all path directories.
  *
- * - If filename specified has *any* extension, search for the file with the
- *   specified extension first.
+ * - If filename specified has *any* extension, or already contains a path
+ *   and the UV_PROCESS_WINDOWS_FILE_PATH_EXACT_NAME flag is specified,
+ *   search for the file with the exact specified filename first.
  *
  * - If the literal filename is not found in a directory, try *appending*
  *   (not replacing) .com first and then .exe.
@@ -299,7 +296,7 @@ static WCHAR* path_search_walk_ext(const WCHAR* dir, size_t dir_len, const WCHAR
  * really a pointless restriction.
  *
  */
-static WCHAR* search_path(const WCHAR* file, WCHAR* cwd, const WCHAR* path)
+static WCHAR* search_path(const WCHAR* file, WCHAR* cwd, const WCHAR* path, unsigned int flags)
 {
     int file_has_dir;
     WCHAR* result = NULL;
@@ -333,16 +330,19 @@ static WCHAR* search_path(const WCHAR* file, WCHAR* cwd, const WCHAR* path)
 
     if (file_has_dir) {
         /* The file has a path inside, don't use path */
-        result = path_search_walk_ext(file, file_name_start - file, file_name_start, file_len - (file_name_start - file), cwd, cwd_len, name_has_ext);
+        result = path_search_walk_ext(file, file_name_start - file, file_name_start, file_len - (file_name_start - file), cwd, cwd_len,
+            name_has_ext || (flags & UV_PROCESS_WINDOWS_FILE_PATH_EXACT_NAME));
 
     } else {
         dir_end = path;
 
-        /* The file is really only a name; look in cwd first, then scan path */
-        result = path_search_walk_ext(L"", 0, file, file_len, cwd, cwd_len, name_has_ext);
+        if (NeedCurrentDirectoryForExePathW(L"")) {
+            /* The file is really only a name; look in cwd first, then scan path */
+            result = path_search_walk_ext(L"", 0, file, file_len, cwd, cwd_len, name_has_ext);
+        }
 
         while (result == NULL) {
-            if (*dir_end == L'\0') {
+            if (dir_end == NULL || *dir_end == L'\0') {
                 break;
             }
 
@@ -464,7 +464,7 @@ WCHAR* quote_cmd_arg(const WCHAR* source, WCHAR* target)
         }
     }
     target[0] = L'\0';
-    wcsrev(start);
+    _wcsrev(start);
     *(target++) = L'"';
     return target;
 }
@@ -482,16 +482,15 @@ int make_program_args(char** args, int verbatim_arguments, WCHAR** dst_ptr)
 
     /* Count the required size. */
     for (arg = args; *arg; arg++) {
-        DWORD arg_len;
+        ssize_t arg_len;
 
-        arg_len = MultiByteToWideChar(CP_UTF8, 0, *arg, -1, NULL, 0);
-        if (arg_len == 0) {
-            return GetLastError();
-        }
+        arg_len = uv_wtf8_length_as_utf16(*arg);
+        if (arg_len < 0)
+            return arg_len;
 
         dst_len += arg_len;
 
-        if (arg_len > temp_buffer_len)
+        if ((size_t)arg_len > temp_buffer_len)
             temp_buffer_len = arg_len;
 
         arg_count++;
@@ -502,29 +501,28 @@ int make_program_args(char** args, int verbatim_arguments, WCHAR** dst_ptr)
     dst_len = dst_len * 2 + arg_count * 2;
 
     /* Allocate buffer for the final command line. */
-    dst = (WCHAR*)uv__malloc(dst_len * sizeof(WCHAR));
+    dst = uv__malloc(dst_len * sizeof(WCHAR));
     if (dst == NULL) {
-        err = ERROR_OUTOFMEMORY;
+        err = UV_ENOMEM;
         goto error;
     }
 
     /* Allocate temporary working buffer. */
-    temp_buffer = (WCHAR*)uv__malloc(temp_buffer_len * sizeof(WCHAR));
+    temp_buffer = uv__malloc(temp_buffer_len * sizeof(WCHAR));
     if (temp_buffer == NULL) {
-        err = ERROR_OUTOFMEMORY;
+        err = UV_ENOMEM;
         goto error;
     }
 
     pos = dst;
     for (arg = args; *arg; arg++) {
-        DWORD arg_len;
+        ssize_t arg_len;
 
         /* Convert argument to wide char. */
-        arg_len = MultiByteToWideChar(CP_UTF8, 0, *arg, -1, temp_buffer, (int)(dst + dst_len - pos));
-        if (arg_len == 0) {
-            err = GetLastError();
-            goto error;
-        }
+        arg_len = uv_wtf8_length_as_utf16(*arg);
+        assert(arg_len > 0);
+        assert(temp_buffer_len >= (size_t)arg_len);
+        uv_wtf8_to_utf16(*arg, temp_buffer, arg_len);
 
         if (verbatim_arguments) {
             /* Copy verbatim. */
@@ -536,6 +534,7 @@ int make_program_args(char** args, int verbatim_arguments, WCHAR** dst_ptr)
         }
 
         *pos++ = *(arg + 1) ? L' ' : L'\0';
+        assert(pos <= dst + dst_len);
     }
 
     uv__free(temp_buffer);
@@ -549,12 +548,10 @@ error:
     return err;
 }
 
-int env_strncmp(const wchar_t* a, int na, const wchar_t* b)
+static int env_strncmp(const wchar_t* a, int na, const wchar_t* b)
 {
     wchar_t* a_eq;
     wchar_t* b_eq;
-    wchar_t* A;
-    wchar_t* B;
     int nb;
     int r;
 
@@ -569,27 +566,8 @@ int env_strncmp(const wchar_t* a, int na, const wchar_t* b)
     assert(b_eq);
     nb = b_eq - b;
 
-    A = alloca((na + 1) * sizeof(wchar_t));
-    B = alloca((nb + 1) * sizeof(wchar_t));
-
-    r = LCMapStringW(LOCALE_INVARIANT, LCMAP_UPPERCASE, a, na, A, na);
-    assert(r == na);
-    A[na] = L'\0';
-    r = LCMapStringW(LOCALE_INVARIANT, LCMAP_UPPERCASE, b, nb, B, nb);
-    assert(r == nb);
-    B[nb] = L'\0';
-
-    for (;;) {
-        wchar_t AA = *A++;
-        wchar_t BB = *B++;
-        if (AA < BB) {
-            return -1;
-        } else if (AA > BB) {
-            return 1;
-        } else if (!AA && !BB) {
-            return 0;
-        }
-    }
+    r = CompareStringOrdinal(a, na, b, nb, /*case insensitive*/ TRUE);
+    return r - CSTR_EQUAL;
 }
 
 static int qsort_wcscmp(const void* a, const void* b)
@@ -621,45 +599,46 @@ int make_program_env(char* env_block[], WCHAR** dst_ptr)
     WCHAR* ptr;
     char** env;
     size_t env_len = 0;
-    int len;
+    size_t len;
     size_t i;
-    DWORD var_size;
+    size_t var_size;
     size_t env_block_count = 1; /* 1 for null-terminator */
     WCHAR* dst_copy;
     WCHAR** ptr_copy;
     WCHAR** env_copy;
-    DWORD required_vars_value_len[ARRAY_SIZE(required_vars)];
+    char* p;
+    size_t required_vars_value_len[ARRAY_SIZE(required_vars)];
 
     /* first pass: determine size in UTF-16 */
     for (env = env_block; *env; env++) {
-        int len;
+        ssize_t len;
         if (strchr(*env, '=')) {
-            len = MultiByteToWideChar(CP_UTF8, 0, *env, -1, NULL, 0);
-            if (len <= 0) {
-                return GetLastError();
-            }
+            len = uv_wtf8_length_as_utf16(*env);
+            if (len < 0)
+                return len;
             env_len += len;
             env_block_count++;
         }
     }
 
     /* second pass: copy to UTF-16 environment block */
-    dst_copy = (WCHAR*)uv__malloc(env_len * sizeof(WCHAR));
-    if (dst_copy == NULL && env_len > 0) {
-        return ERROR_OUTOFMEMORY;
+    len = env_block_count * sizeof(WCHAR*);
+    p = uv__malloc(len + env_len * sizeof(WCHAR));
+    if (p == NULL) {
+        return UV_ENOMEM;
     }
-    env_copy = alloca(env_block_count * sizeof(WCHAR*));
+    env_copy = (void*)&p[0];
+    dst_copy = (void*)&p[len];
 
     ptr = dst_copy;
     ptr_copy = env_copy;
     for (env = env_block; *env; env++) {
+        ssize_t len;
         if (strchr(*env, '=')) {
-            len = MultiByteToWideChar(CP_UTF8, 0, *env, -1, ptr, (int)(env_len - (ptr - dst_copy)));
-            if (len <= 0) {
-                DWORD err = GetLastError();
-                uv__free(dst_copy);
-                return err;
-            }
+            len = uv_wtf8_length_as_utf16(*env);
+            assert(len > 0);
+            assert((size_t)len <= env_len - (ptr - dst_copy));
+            uv_wtf8_to_utf16(*env, ptr, len);
             *ptr_copy++ = ptr;
             ptr += len;
         }
@@ -697,8 +676,8 @@ int make_program_env(char* env_block[], WCHAR** dst_ptr)
     /* final pass: copy, in sort order, and inserting required variables */
     dst = uv__malloc((1 + env_len) * sizeof(WCHAR));
     if (!dst) {
-        uv__free(dst_copy);
-        return ERROR_OUTOFMEMORY;
+        uv__free(p);
+        return UV_ENOMEM;
     }
 
     for (ptr = dst, ptr_copy = env_copy, i = 0; *ptr_copy || i < ARRAY_SIZE(required_vars); ptr += len) {
@@ -736,7 +715,7 @@ int make_program_env(char* env_block[], WCHAR** dst_ptr)
     assert(env_len == (size_t)(ptr - dst));
     *ptr = L'\0';
 
-    uv__free(dst_copy);
+    uv__free(p);
     *dst_ptr = dst;
     return 0;
 }
@@ -876,28 +855,28 @@ int uv_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t*
 
     assert(options->file != NULL);
     assert(!(options->flags
-        & ~(UV_PROCESS_DETACHED | UV_PROCESS_SETGID | UV_PROCESS_SETUID | UV_PROCESS_WINDOWS_HIDE | UV_PROCESS_WINDOWS_HIDE_CONSOLE
-            | UV_PROCESS_WINDOWS_HIDE_GUI | UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS)));
+        & ~(UV_PROCESS_DETACHED | UV_PROCESS_SETGID | UV_PROCESS_SETUID | UV_PROCESS_WINDOWS_FILE_PATH_EXACT_NAME | UV_PROCESS_WINDOWS_HIDE
+            | UV_PROCESS_WINDOWS_HIDE_CONSOLE | UV_PROCESS_WINDOWS_HIDE_GUI | UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS)));
 
     err = uv__utf8_to_utf16_alloc(options->file, &application);
     if (err)
-        goto done;
+        goto done_uv;
 
     err = make_program_args(options->args, options->flags & UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS, &arguments);
     if (err)
-        goto done;
+        goto done_uv;
 
     if (options->env) {
         err = make_program_env(options->env, &env);
         if (err)
-            goto done;
+            goto done_uv;
     }
 
     if (options->cwd) {
         /* Explicit cwd */
         err = uv__utf8_to_utf16_alloc(options->cwd, &cwd);
         if (err)
-            goto done;
+            goto done_uv;
 
     } else {
         /* Inherit cwd */
@@ -928,22 +907,19 @@ int uv_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t*
         DWORD path_len, r;
 
         path_len = GetEnvironmentVariableW(L"PATH", NULL, 0);
-        if (path_len == 0) {
-            err = GetLastError();
-            goto done;
-        }
+        if (path_len != 0) {
+            alloc_path = (WCHAR*)uv__malloc(path_len * sizeof(WCHAR));
+            if (alloc_path == NULL) {
+                err = ERROR_OUTOFMEMORY;
+                goto done;
+            }
+            path = alloc_path;
 
-        alloc_path = (WCHAR*)uv__malloc(path_len * sizeof(WCHAR));
-        if (alloc_path == NULL) {
-            err = ERROR_OUTOFMEMORY;
-            goto done;
-        }
-        path = alloc_path;
-
-        r = GetEnvironmentVariableW(L"PATH", path, path_len);
-        if (r == 0 || r >= path_len) {
-            err = GetLastError();
-            goto done;
+            r = GetEnvironmentVariableW(L"PATH", path, path_len);
+            if (r == 0 || r >= path_len) {
+                err = GetLastError();
+                goto done;
+            }
         }
     }
 
@@ -951,7 +927,7 @@ int uv_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t*
     if (err)
         goto done;
 
-    application_path = search_path(application, cwd, path);
+    application_path = search_path(application, cwd, path, options->flags);
     if (application_path == NULL) {
         /* Not found. */
         err = ERROR_FILE_NOT_FOUND;
@@ -1001,6 +977,7 @@ int uv_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t*
      * breakaway.
      */
         process_flags |= DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP;
+        process_flags |= CREATE_SUSPENDED;
     }
 
     if (!CreateProcessW(application_path, arguments, NULL, NULL, 1, process_flags, env, cwd, &startup, &info)) {
@@ -1008,11 +985,6 @@ int uv_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t*
         err = GetLastError();
         goto done;
     }
-
-    /* Spawn succeeded. Beyond this point, failure is reported asynchronously. */
-
-    process->process_handle = info.hProcess;
-    process->pid = info.dwProcessId;
 
     /* If the process isn't spawned as detached, assign to the global job object
    * so windows will kill it when the parent process dies. */
@@ -1035,6 +1007,19 @@ int uv_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t*
                 uv_fatal_error(err, "AssignProcessToJobObject");
         }
     }
+
+    if (process_flags & CREATE_SUSPENDED) {
+        if (ResumeThread(info.hThread) == ((DWORD)-1)) {
+            err = GetLastError();
+            TerminateProcess(info.hProcess, 1);
+            goto done;
+        }
+    }
+
+    /* Spawn succeeded. Beyond this point, failure is reported asynchronously. */
+
+    process->process_handle = info.hProcess;
+    process->pid = info.dwProcessId;
 
     /* Set IPC pid to all IPC pipes. */
     for (i = 0; i < options->stdio_count; i++) {
@@ -1059,8 +1044,13 @@ int uv_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t*
    * made or the handle is closed, whichever happens first. */
     uv__handle_start(process);
 
+    goto done_uv;
+
     /* Cleanup, whether we succeeded or failed. */
 done:
+    err = uv_translate_sys_error(err);
+
+done_uv:
     uv__free(application);
     uv__free(application_path);
     uv__free(arguments);
@@ -1074,30 +1064,7 @@ done:
         child_stdio_buffer = NULL;
     }
 
-    return uv_translate_sys_error(err);
-}
-
-inline DWORD GetModuleBaseNameWXp(HANDLE hProcess, HMODULE hModule, LPWSTR lpBaseName, DWORD nSize)
-{
-    typedef DWORD(WINAPI * PFN_GetModuleBaseNameW)(HANDLE hProcess, HMODULE hModule, LPWSTR lpBaseName, DWORD nSize);
-
-    static PFN_GetModuleBaseNameW s_GetModuleBaseNameW = NULL;
-    static BOOL s_isInit = FALSE;
-    if (s_isInit && !s_GetModuleBaseNameW)
-        return 0;
-
-    if (!s_GetModuleBaseNameW) {
-        s_isInit = TRUE;
-
-        HMODULE kernel32_dll = GetModuleHandleW(L"Kernel32.dll");
-        s_GetModuleBaseNameW = (PFN_GetModuleBaseNameW)(GetProcAddress(kernel32_dll, "K32GetModuleBaseNameW"));
-    }
-    if (s_GetModuleBaseNameW)
-        return s_GetModuleBaseNameW(hProcess, hModule, lpBaseName, nSize);
-
-    HMODULE psapi_dll = GetModuleHandleW(L"psapi.dll");
-    s_GetModuleBaseNameW = (PFN_GetModuleBaseNameW)(GetProcAddress(psapi_dll, "GetModuleBaseNameW"));
-    return s_GetModuleBaseNameW(hProcess, hModule, lpBaseName, nSize);
+    return err;
 }
 
 static int uv__kill(HANDLE process_handle, int signum)
@@ -1119,7 +1086,7 @@ static int uv__kill(HANDLE process_handle, int signum)
         WCHAR basename[MAX_PATH];
 
         /* Get target process name. */
-        GetModuleBaseNameWXp(process_handle, NULL, &basename[0], sizeof(basename));
+        GetModuleBaseNameW(process_handle, NULL, &basename[0], sizeof(basename));
 
         /* Get PID of target process. */
         pid = GetProcessId(process_handle);
@@ -1132,9 +1099,12 @@ static int uv__kill(HANDLE process_handle, int signum)
             DWORD dump_folder_len = sizeof(dump_folder), key_type = 0;
             ret = RegGetValueW(registry_key, NULL, L"DumpFolder", RRF_RT_ANY, &key_type, (PVOID)dump_folder, &dump_folder_len);
             if (ret != ERROR_SUCCESS) {
+                /* Workaround for missing uuid.dll on MinGW. */
+                static const GUID FOLDERID_LocalAppData_libuv = { 0xf1b32785, 0x6fba, 0x4fcf, { 0x9d, 0x55, 0x7b, 0x8e, 0x7f, 0x15, 0x70, 0x91 } };
+
                 /* Default value for `dump_folder` is `%LOCALAPPDATA%\CrashDumps`. */
                 WCHAR* localappdata;
-                SHGetKnownFolderPath(&FOLDERID_LocalAppData, 0, NULL, &localappdata);
+                SHGetKnownFolderPath(&FOLDERID_LocalAppData_libuv, 0, NULL, &localappdata);
                 _snwprintf_s(dump_folder, sizeof(dump_folder), _TRUNCATE, L"%ls\\CrashDumps", localappdata);
                 CoTaskMemFree(localappdata);
             }
@@ -1184,17 +1154,34 @@ static int uv__kill(HANDLE process_handle, int signum)
     case SIGINT: {
         /* Unconditionally terminate the process. On Windows, killed processes
        * normally return 1. */
-        DWORD status;
         int err;
+        DWORD status;
 
         if (TerminateProcess(process_handle, 1))
             return 0;
 
-        /* If the process already exited before TerminateProcess was called,.
+        /* If the process already exited before TerminateProcess was called,
        * TerminateProcess will fail with ERROR_ACCESS_DENIED. */
         err = GetLastError();
-        if (err == ERROR_ACCESS_DENIED && GetExitCodeProcess(process_handle, &status) && status != STILL_ACTIVE) {
-            return UV_ESRCH;
+        if (err == ERROR_ACCESS_DENIED) {
+            /* First check using GetExitCodeProcess() with status different from
+         * STILL_ACTIVE (259). This check can be set incorrectly by the process,
+         * though that is uncommon. */
+            if (GetExitCodeProcess(process_handle, &status) && status != STILL_ACTIVE) {
+                return UV_ESRCH;
+            }
+
+            /* But the process could have exited with code == STILL_ACTIVE, use then
+         * WaitForSingleObject with timeout zero. This is prone to a race
+         * condition as it could return WAIT_TIMEOUT because the handle might
+         * not have been signaled yet.That would result in returning the wrong
+         * error code here (UV_EACCES instead of UV_ESRCH), but we cannot fix
+         * the kernel synchronization issue that TerminateProcess is
+         * inconsistent with WaitForSingleObject with just the APIs available to
+         * us in user space. */
+            if (WaitForSingleObject(process_handle, 0) == WAIT_OBJECT_0) {
+                return UV_ESRCH;
+            }
         }
 
         return uv_translate_sys_error(err);
@@ -1210,7 +1197,16 @@ static int uv__kill(HANDLE process_handle, int signum)
         if (status != STILL_ACTIVE)
             return UV_ESRCH;
 
-        return 0;
+        switch (WaitForSingleObject(process_handle, 0)) {
+        case WAIT_OBJECT_0:
+            return UV_ESRCH;
+        case WAIT_FAILED:
+            return uv_translate_sys_error(GetLastError());
+        case WAIT_TIMEOUT:
+            return 0;
+        default:
+            return UV_UNKNOWN;
+        }
     }
 
     default:
@@ -1245,7 +1241,7 @@ int uv_kill(int pid, int signum)
     if (pid == 0) {
         process_handle = GetCurrentProcess();
     } else {
-        process_handle = OpenProcess(PROCESS_TERMINATE | PROCESS_QUERY_INFORMATION, FALSE, pid);
+        process_handle = OpenProcess(PROCESS_TERMINATE | PROCESS_QUERY_INFORMATION | SYNCHRONIZE, FALSE, pid);
     }
 
     if (process_handle == NULL) {

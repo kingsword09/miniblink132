@@ -1,7 +1,7 @@
 (function () {
     //mbConsoleLog("asar.js !!!!!!!!!!!");
     
-    const ArchiveClass = process._linkedBinding('atom_common_asar').Archive; // asar
+    const ArchiveClass = process._linkedBinding('electron_common_asar').Archive; // asar
     const childProcess = require('child_process');
     const path = require('path');
     //const util = require('util');
@@ -304,13 +304,16 @@
         }
 
         const lstat = fs.lstat;
-        fs.lstat = function (p, callback) {
+        fs.lstat = function (p, options, callback) {
             const paths = splitPath(p);
             const isAsar = paths[0];
             const asarPath = paths[1];
             const filePath = paths[2];
+            
+            if (!callback)
+                callback = options;
             if (!isAsar) {
-                return lstat(p, callback);
+                return lstat(p, options, callback);
             }
             const archive = getOrCreateArchive(asarPath);
             if (!archive) {

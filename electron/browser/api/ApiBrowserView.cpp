@@ -323,6 +323,6 @@ void initializeBrowseviewApi(v8::Local<v8::Object> exports, v8::Local<v8::Value>
 
 static const char nativeBrowserViewNativeScript[] = "console.log('nativeBrowserViewNative');;";
 static NodeNative nativeBrowserViewNative { "BrowserView", nativeBrowserViewNativeScript, sizeof(nativeBrowserViewNativeScript) - 1 };
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_browserview, atom::initializeBrowseviewApi, &nativeBrowserViewNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_browserview, atom::initializeBrowseviewApi, &nativeBrowserViewNative)
 
 } // atom namespace

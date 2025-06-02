@@ -13,6 +13,8 @@
 #include "gin/gin_export.h"
 #include "v8.h"
 
+extern "C" void OutputDebugStringA(const char* lpOutputString);
+
 namespace gin_helper {
 
 class PerIsolateData;
@@ -103,8 +105,8 @@ template <typename T> bool GetNextArgument(Arguments* args, int create_flags, bo
     } else {
         b = args->GetNext(result);
     }
-//     if (!b)
-//         OutputDebugStringA("GetNextArgument failed!\n");
+    if (!b)
+        OutputDebugStringA("GetNextArgument failed!\n");
     return b;
 }
 

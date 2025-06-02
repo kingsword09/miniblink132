@@ -26,6 +26,7 @@
 #include "components/viz/service/display_embedder/skia_output_surface_dependency_impl.h"
 #include "components/viz/service/display_embedder/skia_output_surface_impl.h"
 #include "components/viz/service/display_embedder/software_output_surface.h"
+#include "components/viz/service/display_embedder/software_output_device_winlinux.h"
 //#include "components/viz/service/gl/gpu_service_impl.h"
 #include "gpu/command_buffer/client/shared_memory_limits.h"
 #include "gpu/command_buffer/service/scheduler.h"
@@ -141,24 +142,26 @@ std::unique_ptr<SoftwareOutputDevice> OutputSurfaceProviderImpl::CreateSoftwareO
     if (headless_)
         return std::make_unique<SoftwareOutputDevice>();
 
-#if BUILDFLAG(IS_WIN)
-    return CreateSoftwareOutputDeviceWin(surface_handle, &output_device_backing_, display_client);
-#elif BUILDFLAG(IS_APPLE)
-    return std::make_unique<SoftwareOutputDeviceMac>(task_runner_);
-#elif BUILDFLAG(IS_ANDROID)
-    // Android does not do software compositing, so we can't get here.
-    NOTREACHED_IN_MIGRATION();
-    return nullptr;
-#elif BUILDFLAG(IS_OZONE)
-    ui::SurfaceFactoryOzone* factory = ui::OzonePlatform::GetInstance()->GetSurfaceFactoryOzone();
-    std::unique_ptr<ui::PlatformWindowSurface> platform_window_surface = factory->CreatePlatformWindowSurface(surface_handle);
-    std::unique_ptr<ui::SurfaceOzoneCanvas> surface_ozone = factory->CreateCanvasForWidget(surface_handle);
-    CHECK(surface_ozone);
-    return std::make_unique<SoftwareOutputDeviceOzone>(std::move(platform_window_surface), std::move(surface_ozone));
-#else
-    NOTREACHED_IN_MIGRATION();
-    return nullptr;
-#endif
+    return CreateSoftwareOutputDeviceWinOrLinux(surface_handle, display_client);
+
+// #if BUILDFLAG(IS_WIN)
+//     return CreateSoftwareOutputDeviceWin(surface_handle, &output_device_backing_, display_client);
+// #elif BUILDFLAG(IS_APPLE)
+//     return std::make_unique<SoftwareOutputDeviceMac>(task_runner_);
+// #elif BUILDFLAG(IS_ANDROID)
+//     // Android does not do software compositing, so we can't get here.
+//     NOTREACHED_IN_MIGRATION();
+//     return nullptr;
+// #elif BUILDFLAG(IS_OZONE)
+//     ui::SurfaceFactoryOzone* factory = ui::OzonePlatform::GetInstance()->GetSurfaceFactoryOzone();
+//     std::unique_ptr<ui::PlatformWindowSurface> platform_window_surface = factory->CreatePlatformWindowSurface(surface_handle);
+//     std::unique_ptr<ui::SurfaceOzoneCanvas> surface_ozone = factory->CreateCanvasForWidget(surface_handle);
+//     CHECK(surface_ozone);
+//     return std::make_unique<SoftwareOutputDeviceOzone>(std::move(platform_window_surface), std::move(surface_ozone));
+// #else
+//     NOTREACHED_IN_MIGRATION();
+//     return nullptr;
+// #endif
 }
 
 gpu::SharedImageManager* OutputSurfaceProviderImpl::GetSharedImageManager()

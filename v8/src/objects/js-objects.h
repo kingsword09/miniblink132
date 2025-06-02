@@ -637,7 +637,7 @@ public:
     bool PrintProperties(std::ostream& os);
     void PrintElements(std::ostream& os);
 #endif
-#if defined(DEBUG) || defined(OBJECT_PRINT)
+#if defined(V8_DEBUG) || defined(OBJECT_PRINT)
     void PrintTransitions(std::ostream& os);
 #endif
 

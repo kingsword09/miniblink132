@@ -119,8 +119,11 @@ WebDedicatedWorkerHostFactoryClientImpl::~WebDedicatedWorkerHostFactoryClientImp
 {
 }
 
-void WebDedicatedWorkerHostFactoryClientImpl::CreateWorkerHostDeprecated(const blink::DedicatedWorkerToken& dedicated_worker_token,
-    const blink::WebURL& script_url, const blink::WebSecurityOrigin& origin, blink::WebDedicatedWorkerHostFactoryClient::CreateWorkerHostCallback callback)
+void WebDedicatedWorkerHostFactoryClientImpl::CreateWorkerHostDeprecated(
+    const blink::DedicatedWorkerToken& dedicated_worker_token,
+    const blink::WebURL& script_url, 
+    const blink::WebSecurityOrigin& origin, 
+    blink::WebDedicatedWorkerHostFactoryClient::CreateWorkerHostCallback callback)
 {
     mojo::PendingRemote<blink::mojom::blink::DedicatedWorkerHost> dedicatedWorkerHost;
     mojo::PendingRemote<blink::mojom::BrowserInterfaceBroker> browserInterfaceBroker;
@@ -146,11 +149,27 @@ void WebDedicatedWorkerHostFactoryClientImpl::CreateWorkerHostDeprecated(const b
             std::move(callback), std::move(weak)));
 }
 
-void WebDedicatedWorkerHostFactoryClientImpl::CreateWorkerHost(const blink::DedicatedWorkerToken& dedicated_worker_token, const blink::WebURL& script_url,
-    network::mojom::CredentialsMode credentials_mode, const blink::WebFetchClientSettingsObject& fetch_client_settings_object,
-    blink::CrossVariantMojoRemote<blink::mojom::BlobURLTokenInterfaceBase> blob_url_token, net::StorageAccessApiStatus storage_access_api_status)
+void WebDedicatedWorkerHostFactoryClientImpl::CreateWorkerHost(
+    const blink::DedicatedWorkerToken& dedicatedWorkerToken, 
+    const blink::WebURL& scriptUrl,
+    network::mojom::CredentialsMode credentialsMode,
+    const blink::WebFetchClientSettingsObject& fetchClientSettingsObject,
+    blink::CrossVariantMojoRemote<blink::mojom::BlobURLTokenInterfaceBase> blobUrlToken, 
+    net::StorageAccessApiStatus storageAccessApiStatus)
 {
-    DebugBreak();
+    mojo::PendingRemote<blink::mojom::blink::DedicatedWorkerHost> dedicatedWorkerHost;
+    mojo::PendingRemote<blink::mojom::BrowserInterfaceBroker> browserInterfaceBroker;
+
+    CHECK(!m_browserInterfaceBroker.is_bound());
+    mojo::PendingReceiver<blink::mojom::BrowserInterfaceBroker> pendingBroker = browserInterfaceBroker.InitWithNewPipeAndPassReceiver();
+    m_browserInterfaceBroker.Bind(std::move(pendingBroker));
+
+    CHECK(!m_dedicatedWorkerHost.is_bound());
+    mojo::PendingReceiver<blink::mojom::blink::DedicatedWorkerHost> pendingWorkerHost = dedicatedWorkerHost.InitWithNewPipeAndPassReceiver();
+    m_dedicatedWorkerHost.Bind(std::move(pendingWorkerHost));
+
+    blink::WebSecurityOrigin origin = blink::WebSecurityOrigin::Create(scriptUrl);
+    m_worker->OnWorkerHostCreated(std::move(browserInterfaceBroker), std::move(dedicatedWorkerHost), origin);
 }
 
 scoped_refptr<blink::WebWorkerFetchContext> WebDedicatedWorkerHostFactoryClientImpl::CloneWorkerFetchContext(

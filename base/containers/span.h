@@ -1012,12 +1012,14 @@ public:
     {
         data_ = other.data();
         size_ = other.size();
+        return *this;
     }
 
     span& operator=(const std::vector<char>& other)
     {
         data_ = other.data();
         size_ = other.size();
+        return *this;
     }
     //--
 

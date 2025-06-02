@@ -1209,14 +1209,13 @@ void CompositorFrameReporter::ReportEventLatencyMetrics() const
 
 void CompositorFrameReporter::ReportCompositorLatencyTraceEvents(const FrameInfo& info) const
 {
-    *(int*)1 = 1;
-//     if (stage_history_.empty())
-//         return;
-// 
-//     if (info.IsDroppedAffectingSmoothness()) {
-//         devtools_instrumentation::DidDropSmoothnessFrame(layer_tree_host_id_, args_.frame_time, args_.frame_id.sequence_number, has_partial_update_);
-//     }
-// 
+    if (stage_history_.empty())
+        return;
+
+    if (info.IsDroppedAffectingSmoothness()) {
+        devtools_instrumentation::DidDropSmoothnessFrame(layer_tree_host_id_, args_.frame_time, args_.frame_id.sequence_number, has_partial_update_);
+    }
+
 //     if (!IsTracingEnabled()) {
 //         return;
 //     }
@@ -1368,7 +1367,6 @@ void CompositorFrameReporter::ReportCompositorLatencyTraceEvents(const FrameInfo
 
 void CompositorFrameReporter::ReportScrollJankMetrics() const
 {
-    *(int*)1 = 1;
 //     int32_t fling_input_count = 0;
 //     int32_t normal_input_count = 0;
 //     float total_predicted_delta = 0;
@@ -1449,7 +1447,6 @@ void CompositorFrameReporter::ReportScrollJankMetrics() const
 
 void CompositorFrameReporter::ReportEventLatencyTraceEvents() const
 {
-    *(int*)1 = 1;
 //     for (const auto& event_metrics : events_metrics_) {
 //         EventLatencyTracingRecorder::RecordEventLatencyTraceEvent(
 //             event_metrics.get(), frame_termination_time_, args_.interval, &stage_history_, processed_viz_breakdown_.get());

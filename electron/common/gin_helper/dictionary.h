@@ -33,6 +33,28 @@ public:
 
     static Dictionary CreateEmpty(v8::Isolate* isolate);
 
+    template <typename T> bool Get(v8::Local<v8::Value> key, T* out) const
+    {
+        v8::Local<v8::Value> val;
+
+        if (object_.IsEmpty())
+            return false;
+
+        v8::Maybe<bool> hasVal = object_->Has(isolate_->GetCurrentContext(), key);
+        if (hasVal.IsNothing())
+            return false;
+        if (!hasVal.ToChecked())
+            return false;
+
+        v8::MaybeLocal<v8::Value> v = object_->Get(isolate_->GetCurrentContext(), key);
+        if (v.IsEmpty())
+            return false;
+        if (!v.ToLocal(&val))
+            return false;
+
+        return ConvertFromV8(isolate_, val, out);
+    }
+
     template <typename T> bool Get(const std::string& key, T* out) const
     {
         v8::Local<v8::Value> val;

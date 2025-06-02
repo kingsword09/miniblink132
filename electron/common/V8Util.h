@@ -15,7 +15,7 @@ namespace atom {
 bool serializeV8Value(v8::Isolate* isolate, v8::Local<v8::Value> value, blink::TransferableMessage* out);
 v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, const blink::TransferableMessage& in);
 v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, base::span<const uint8_t> data);
-
+v8::Local<v8::Value> deserializeV8Value(v8::Local<v8::Context> context, base::span<const uint8_t> data);
 v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, const blink::CloneableMessage& in);
 bool serializeV8Value(v8::Isolate* isolate, v8::Local<v8::Value> value, blink::CloneableMessage* out);
 

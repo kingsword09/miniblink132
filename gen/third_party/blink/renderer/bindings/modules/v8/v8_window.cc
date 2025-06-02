@@ -10608,7 +10608,8 @@ void HTMLVideoElementExposedConstructCallback(v8::Local<v8::Name> v8_property_na
     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_DOMWindow_HTMLVideoElement_ConstructorGetterCallback");
     BLINK_BINDINGS_TRACE_EVENT("Window.HTMLVideoElement");
 
-    bindings::V8SetReturnValue(info, V8HTMLVideoElement::GetWrapperTypeInfo(), bindings::V8ReturnValue::kInterfaceObject);
+    OutputDebugStringA("HTMLVideoElementExposedConstructCallback not impl\n");
+    // bindings::V8SetReturnValue(info, V8HTMLVideoElement::GetWrapperTypeInfo(), bindings::V8ReturnValue::kInterfaceObject);
 }
 
 // void HandwritingStrokeExposedConstructCallback(v8::Local<v8::Name> v8_property_name, const v8::PropertyCallbackInfo<v8::Value>& info)

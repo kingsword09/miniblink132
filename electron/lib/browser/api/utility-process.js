@@ -1,6 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 const MessagePortMain = require('./message-port-main.js');
-const binding = process._linkedBinding('atom_browser_utility_process');
+const { Duplex, PassThrough } = require('stream');
+const binding = process._linkedBinding('electron_browser_utility_process');
 const _fork = binding._fork;
 
 function ForkUtilityProcess (modulePath/*: string*/, args/*?: string[]*/, options/*?: Electron.ForkOptions*/) {
@@ -30,62 +31,63 @@ function ForkUtilityProcess (modulePath/*: string*/, args/*?: string[]*/, option
     }
     
     // O:\chromium\ele32fp\electron\lib\browser\api\utility-process.ts
-//    if (typeof options.stdio === 'string') {
-//        const stdio: Array < 'pipe' | 'ignore' | 'inherit' > = [];
-//        switch (options.stdio) {
-//            case 'inherit':
-//            case 'ignore':
-//                stdio.push('ignore', options.stdio, options.stdio);
-//                break;
-//            case 'pipe':
-//                this.#stderr = new PassThrough();
-//                this.#stdout = new PassThrough();
-//                stdio.push('ignore', options.stdio, options.stdio);
-//                break;
-//            default:
-//                throw new Error('stdio must be of the following values: inherit, pipe, ignore');
-//        }
-//        options.stdio = stdio;
-//    } else if (Array.isArray(options.stdio)) {
-//        if (options.stdio.length >= 3) {
-//            if (options.stdio[0] !== 'ignore') {
-//                throw new Error('stdin value other than ignore is not supported.');
-//            }
-//
-//            if (options.stdio[1] === 'pipe') {
-//                this.#stdout = new PassThrough();
-//            } else if (options.stdio[1] !== 'ignore' && options.stdio[1] !== 'inherit') {
-//                throw new Error('stdout configuration must be of the following values: inherit, pipe, ignore');
-//            }
-//
-//            if (options.stdio[2] === 'pipe') {
-//                this.#stderr = new PassThrough();
-//            } else if (options.stdio[2] !== 'ignore' && options.stdio[2] !== 'inherit') {
-//                throw new Error('stderr configuration must be of the following values: inherit, pipe, ignore');
-//            }
-//        } else {
-//            throw new Error('configuration missing for stdin, stdout or stderr.');
-//        }
-//    }
+    if (typeof options.stdio === 'string') {
+        let stdio /*: Array<'pipe' | 'ignore' | 'inherit'>*/ = [];
+        switch (options.stdio) {
+            case 'inherit':
+            case 'ignore':
+                stdio.push('ignore', options.stdio, options.stdio);
+                break;
+            case 'pipe':
+                this._stderr = new PassThrough();
+                this._stdout = new PassThrough();
+                stdio.push('ignore', options.stdio, options.stdio);
+                break;
+            default:
+                throw new Error('stdio must be of the following values: inherit, pipe, ignore');
+        }
+        options.stdio = stdio;
+    } else if (Array.isArray(options.stdio)) {
+        if (options.stdio.length >= 3) {
+            if (options.stdio[0] !== 'ignore') {
+                throw new Error('stdin value other than ignore is not supported.');
+            }
+
+            if (options.stdio[1] === 'pipe') {
+                this._stdout = new PassThrough();
+            } else if (options.stdio[1] !== 'ignore' && options.stdio[1] !== 'inherit') {
+                throw new Error('stdout configuration must be of the following values: inherit, pipe, ignore');
+            }
+
+            if (options.stdio[2] === 'pipe') {
+                this._stderr = new PassThrough();
+            } else if (options.stdio[2] !== 'ignore' && options.stdio[2] !== 'inherit') {
+                throw new Error('stderr configuration must be of the following values: inherit, pipe, ignore');
+            }
+        } else {
+            throw new Error('configuration missing for stdin, stdout or stderr.');
+        }
+    }
     
     this._handle = _fork({ options, modulePath, args });
     if (!this._handle)
         throw new Error('ForkUtilityProcess _fork fail.');
     
     this._handle.emit = (channel/*: string | symbol*/, ...args/*: any[]*/) => {
+        mbConsoleLog("this._handle.emit:" + channel);
         if (channel === 'exit') {
             try {
                 this.emit('exit', ...args);
             } finally {
                 this._handle = null;
-                //if (this.#stdout) {
-                //    this.#stdout.removeAllListeners();
-                //    this.#stdout = null;
-                //}
-                //if (this.#stderr) {
-                //    this.#stderr.removeAllListeners();
-                //    this.#stderr = null;
-                //}
+                if (this._stdout) {
+                    this._stdout.removeAllListeners();
+                    this._stdout = null;
+                }
+                if (this._stderr) {
+                    this._stderr.removeAllListeners();
+                    this._stderr = null;
+                }
             }
             return false;
         //} else if (channel === 'stdout' && this.#stdout) {

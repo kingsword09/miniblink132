@@ -839,14 +839,12 @@ DirectRenderer::RenderPassRequirements DirectRenderer::CalculateRenderPassRequir
 
 gfx::ColorSpace DirectRenderer::RenderPassColorSpace(const AggregatedRenderPass* render_pass) const
 {
-    *(int*)1 = 1;
-    return gfx::ColorSpace();
-//     const auto& display_color_spaces = current_frame()->display_color_spaces;
-//     auto content_color_usage = render_pass->content_color_usage;
-//     bool has_transparent_background = render_pass->has_transparent_background;
-//     return render_pass == current_frame()->root_render_pass
-//         ? ColorSpaceUtils::OutputColorSpace(display_color_spaces, content_color_usage, has_transparent_background)
-//         : ColorSpaceUtils::CompositingColorSpace(display_color_spaces, content_color_usage, has_transparent_background);
+    const auto& display_color_spaces = current_frame()->display_color_spaces;
+    auto content_color_usage = render_pass->content_color_usage;
+    bool has_transparent_background = render_pass->has_transparent_background;
+    return render_pass == current_frame()->root_render_pass
+        ? ColorSpaceUtils::OutputColorSpace(display_color_spaces, content_color_usage, has_transparent_background)
+        : ColorSpaceUtils::CompositingColorSpace(display_color_spaces, content_color_usage, has_transparent_background);
 }
 
 void DirectRenderer::EnsureRenderPassAllocated(const AggregatedRenderPass* render_pass)

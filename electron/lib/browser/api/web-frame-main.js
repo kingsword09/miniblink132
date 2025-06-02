@@ -2,7 +2,7 @@ const EventEmitter = require('events')
 const { IpcMainImpl } = require('events');
 //import { MessagePortMain } from '@electron/internal/browser/message-port-main';
 
-const binding = process._linkedBinding('atom_browser_web_frame_main');
+const binding = process._linkedBinding('electron_browser_web_frame_main');
 const WebFrameMain = binding.WebFrameMain;
 const fromId = binding.fromId;
 

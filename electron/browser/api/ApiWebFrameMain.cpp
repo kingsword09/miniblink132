@@ -319,6 +319,6 @@ static void initializeApiWebFrameMain(v8::Local<v8::Object> target, v8::Local<v8
 
 static const char ApiWebFrameMainSricpt[] = "exports = {};";
 static NodeNative nativeApiWebFrameMainNative { "WebFrameMain", ApiWebFrameMainSricpt, sizeof(ApiWebFrameMainSricpt) - 1 };
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_web_frame_main, initializeApiWebFrameMain, &nativeApiWebFrameMainNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_web_frame_main, initializeApiWebFrameMain, &nativeApiWebFrameMainNative)
 
 } // atom

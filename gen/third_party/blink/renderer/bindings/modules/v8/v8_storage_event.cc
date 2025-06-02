@@ -173,43 +173,42 @@ void ConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_StorageEvent_constructor");
     BLINK_BINDINGS_TRACE_EVENT("StorageEvent.constructor");
-    *(int*)1 = 1;
-//     v8::Isolate* isolate = info.GetIsolate();
-//     if (!info.IsConstructCall()) {
-//         V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::ConstructorCalledAsFunction());
-//         return;
-//     }
-//     v8::Local<v8::Object> v8_receiver = info.This();
-//     if (ConstructorMode::Current(isolate) == ConstructorMode::kWrapExistingObject) {
-//         bindings::V8SetReturnValue(info, v8_receiver);
-//         return;
-//     }
-// 
-//     if (info.Length() < 1) [[unlikely]] {
-//         V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::NotEnoughArguments(1, info.Length()));
-//         return;
-//     }
-// 
-//     ExceptionState exception_state(isolate);
-//     auto&& arg1_type = NativeValueTraits<IDLString>::ArgumentValue(isolate, 0, info[0], exception_state);
-//     if (exception_state.HadException()) [[unlikely]] {
-//         return;
-//     }
-//     decltype(NativeValueTraits<StorageEventInit>::NativeValue(
-//         std::declval<v8::Isolate*>(), std::declval<v8::Local<v8::Value>>(), std::declval<ExceptionState&>())) arg2_event_init_dict;
-//     if (info[1]->IsUndefined()) {
-//         arg2_event_init_dict = StorageEventInit::Create();
-//     } else {
-//         arg2_event_init_dict = NativeValueTraits<StorageEventInit>::ArgumentValue(isolate, 1, info[1], exception_state);
-//         if (exception_state.HadException()) [[unlikely]] {
-//             return;
-//         }
-//     }
-//     auto&& return_value = StorageEvent::Create(arg1_type, arg2_event_init_dict);
-//     static_assert(bindings::IsReturnTypeCompatible<StorageEvent, std::remove_cvref_t<decltype(return_value)>>,
-//         "Return type from native call is incompatible to the type specified in IDL");
-//     v8::Local<v8::Object> v8_wrapper = return_value->AssociateWithWrapper(isolate, V8StorageEvent::GetWrapperTypeInfo(), v8_receiver);
-//     bindings::V8SetReturnValue(info, v8_wrapper);
+    v8::Isolate* isolate = info.GetIsolate();
+    if (!info.IsConstructCall()) {
+        V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::ConstructorCalledAsFunction());
+        return;
+    }
+    v8::Local<v8::Object> v8_receiver = info.This();
+    if (ConstructorMode::Current(isolate) == ConstructorMode::kWrapExistingObject) {
+        bindings::V8SetReturnValue(info, v8_receiver);
+        return;
+    }
+
+    if (info.Length() < 1) [[unlikely]] {
+        V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::NotEnoughArguments(1, info.Length()));
+        return;
+    }
+
+    ExceptionState exception_state(isolate);
+    auto&& arg1_type = NativeValueTraits<IDLString>::ArgumentValue(isolate, 0, info[0], exception_state);
+    if (exception_state.HadException()) [[unlikely]] {
+        return;
+    }
+    decltype(NativeValueTraits<StorageEventInit>::NativeValue(
+        std::declval<v8::Isolate*>(), std::declval<v8::Local<v8::Value>>(), std::declval<ExceptionState&>())) arg2_event_init_dict;
+    if (info[1]->IsUndefined()) {
+        arg2_event_init_dict = StorageEventInit::Create();
+    } else {
+        arg2_event_init_dict = NativeValueTraits<StorageEventInit>::ArgumentValue(isolate, 1, info[1], exception_state);
+        if (exception_state.HadException()) [[unlikely]] {
+            return;
+        }
+    }
+    auto&& return_value = StorageEvent::Create(arg1_type, arg2_event_init_dict);
+    static_assert(bindings::IsReturnTypeCompatible<StorageEvent, std::remove_cvref_t<decltype(return_value)>>,
+        "Return type from native call is incompatible to the type specified in IDL");
+    v8::Local<v8::Object> v8_wrapper = return_value->AssociateWithWrapper(isolate, V8StorageEvent::GetWrapperTypeInfo(), v8_receiver);
+    bindings::V8SetReturnValue(info, v8_wrapper);
 }
 
 void InitStorageEventOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)

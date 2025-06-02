@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events').EventEmitter;
 // The global variable will be used by ipc for event dispatching
-var v8Util = new (process._linkedBinding('atom_common_v8_util').v8Util)();
+var v8Util = new (process._linkedBinding('electron_common_v8_util').v8Util)();
 v8Util.setHiddenValue(global, 'ipc', new EventEmitter());
 
 const electron = require('./electron');

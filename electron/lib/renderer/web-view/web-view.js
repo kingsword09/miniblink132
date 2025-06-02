@@ -4,7 +4,7 @@ const webFrame = require('electron').webFrame;
 const remote = require('electron').remote;
 const ipcRenderer = require('electron').ipcRenderer;
 
-const v8UtilClass = process._linkedBinding('atom_common_v8_util').v8Util;
+const v8UtilClass = process._linkedBinding('electron_common_v8_util').v8Util;
 const v8Util = new v8UtilClass();
 
 //const guestViewInternal = require('./guest-view-internal');

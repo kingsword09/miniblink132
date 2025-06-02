@@ -45,6 +45,7 @@ public:
         DCHECK_EQ(std::data(m_data), data_bytes);
         DCHECK_GE(std::size(m_data), data_len);
         m_data.resize(data_len);
+        out->owned_encoded_message = std::move(m_data);
         out->encoded_message = out->owned_encoded_message;
         return true;
     }
@@ -143,6 +144,7 @@ public:
     V8Deserializer(v8::Isolate* isolate, base::span<const uint8_t> data)
         : m_isolate(isolate)
         , m_deserializer(isolate, data.data(), data.size(), this)
+        , m_context(isolate->GetCurrentContext())
     {
     }
 
@@ -151,21 +153,26 @@ public:
     {
     }
 
+    V8Deserializer(v8::Local<v8::Context> context, base::span<const uint8_t> data)
+        : V8Deserializer(context->GetIsolate(), data)
+    {
+        m_context = (context);
+    }
+
     v8::Local<v8::Value> Deserialize()
     {
         v8::EscapableHandleScope scope(m_isolate);
-        auto context = m_isolate->GetCurrentContext();
 
-        uint32_t blink_version;
-        if (!ReadBlinkEnvelope(&blink_version))
+        uint32_t blinkVersion;
+        if (!ReadBlinkEnvelope(&blinkVersion))
             return v8::Null(m_isolate);
 
-        bool read_header;
-        if (!m_deserializer.ReadHeader(context).To(&read_header))
+        bool readHeader;
+        if (!m_deserializer.ReadHeader(m_context).To(&readHeader))
             return v8::Null(m_isolate);
-        DCHECK(read_header);
+        DCHECK(readHeader);
         v8::Local<v8::Value> value;
-        if (!m_deserializer.ReadValue(context).ToLocal(&value))
+        if (!m_deserializer.ReadValue(m_context).ToLocal(&value))
             return v8::Null(m_isolate);
         return scope.Escape(value);
     }
@@ -248,6 +255,7 @@ private:
 
     raw_ptr<v8::Isolate> m_isolate;
     v8::ValueDeserializer m_deserializer;
+    v8::Local<v8::Context> m_context;
 };
 
 //---
@@ -275,6 +283,11 @@ v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, base::span<const u
 v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, const blink::CloneableMessage& in)
 {
     return V8Deserializer(isolate, in).Deserialize();
+}
+
+v8::Local<v8::Value> deserializeV8Value(v8::Local<v8::Context> context, base::span<const uint8_t> data)
+{
+    return V8Deserializer(context, data).Deserialize();
 }
 
 bool serializeV8Value(v8::Isolate* isolate, v8::Local<v8::Value> value, blink::CloneableMessage* out)

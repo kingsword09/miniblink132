@@ -374,8 +374,7 @@ void PaintOpBuffer::Playback(SkCanvas* canvas, const PlaybackParams& params, boo
             continue;
 
         if (op->IsPaintOpWithFlags()) {
-            int max_texture_size = 0;
-            *(int*)1 = 1;
+            int max_texture_size = 4096;
 //             if (auto* context = canvas->recordingContext()) {
 //                 max_texture_size = context->maxTextureSize();
 //             } else if (auto* recorder = canvas->recorder()) {

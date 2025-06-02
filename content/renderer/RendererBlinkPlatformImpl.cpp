@@ -8,6 +8,7 @@
 #include "content/browser/TimeZoneMonitorImpl.h"
 #include "content/browser/DomStorageProviderImpl.h"
 #include "content/resources/res.h"
+#include "content/resources/HtmlFormsResources.h"
 #include "content/resources/ImageRes.h"
 #include "content/resources/MediaControls.h"
 #include "content/common/CreateAndBindTempl.h"
@@ -181,7 +182,7 @@ blink::WebData RendererBlinkPlatformImpl::GetDataResource(int resource_id, ui::R
 #define MAKE_STRING_CASE(id)                                                                                                                                   \
     case id:                                                                                                                                                   \
         return std::string((const char*)(k##id), sizeof(k##id));
-#define MAKE_STD_STRING(str) std::string(str, sizeof(str));
+#define MAKE_STD_STRING(str) std::string((const char*)str, sizeof(str));
 
 std::string RendererBlinkPlatformImpl::GetDataResourceString(int resourceId)
 {
@@ -198,30 +199,65 @@ std::string RendererBlinkPlatformImpl::GetDataResourceString(int resourceId)
         return kIDR_UASTYLE_SVG_CSS;
     case IDR_UASTYLE_THEME_CHROMIUM_LINUX_CSS: // third_party/blink/renderer/core/html/resources/linux.css
         return "select:not(:-internal-list-box) {background-color: ButtonFace;}input[type=range i] {color: #9d968E;}";
-    case IDR_PICKER_COMMON_CSS:
-        return kPickerCommonCss;
-    case IDR_PICKER_COMMON_JS:
-        return kPickerCommonJs;
-    case IDR_LIST_PICKER_JS:
-        return kListPickerJs;
-    case IDR_LIST_PICKER_CSS:
-        return kListPickerCss;
     case IDR_UASTYLE_MATHML_CSS:
         return MAKE_STD_STRING(kMathmlCss);
 //     case IDR_UASTYLE_MATHML_FALLBACK_CSS:
 //         return MAKE_STD_STRING(kMathmlFallbackCss);
+
+    case IDR_UASTYLE_TRANSITION_CSS:
+        return MAKE_STD_STRING(kTransitionCss);
+    case IDR_UASTYLE_TRANSITION_ANIMATIONS_CSS:
+        return MAKE_STD_STRING(kTransitionAnimationsCss);
     case IDR_DOCUMENTXMLTREEVIEWER_JS:
         return MAKE_STD_STRING(kDocumentXMLTreeViewerJs);
     case IDR_DOCUMENTXMLTREEVIEWER_CSS:
         return MAKE_STD_STRING(kDocumentXMLTreeViewerCss);
     case IDR_UASTYLE_VIEW_SOURCE_CSS:
         return MAKE_STD_STRING(kViewSourceCss);
-        MAKE_STRING_CASE(IDR_SHADOWSTYLE_MEDIA_CONTROLS_ANIMATED_ARROW_CSS);
-        MAKE_STRING_CASE(IDR_UASTYLE_MEDIA_INTERSTITIALS_CSS);
-        MAKE_STRING_CASE(IDR_SHADOWSTYLE_MEDIA_CONTROLS_SCRUBBING_MESSAGE_CSS);
-        MAKE_STRING_CASE(IDR_UASTYLE_MEDIA_CONTROLS_CSS);
-        MAKE_STRING_CASE(IDR_SHADOWSTYLE_MEDIA_CONTROLS_LOADING_CSS);
+    MAKE_STRING_CASE(IDR_SHADOWSTYLE_MEDIA_CONTROLS_ANIMATED_ARROW_CSS);
+    MAKE_STRING_CASE(IDR_UASTYLE_MEDIA_INTERSTITIALS_CSS);
+    MAKE_STRING_CASE(IDR_SHADOWSTYLE_MEDIA_CONTROLS_SCRUBBING_MESSAGE_CSS);
+    MAKE_STRING_CASE(IDR_UASTYLE_MEDIA_CONTROLS_CSS);
+    MAKE_STRING_CASE(IDR_SHADOWSTYLE_MEDIA_CONTROLS_LOADING_CSS);
+
+    case IDR_CALENDAR_PICKER_CSS:
+        return MAKE_STD_STRING(kCalendarPickerCss);
+    case IDR_CALENDAR_PICKER_JS:
+        return MAKE_STD_STRING(kCalendarPickerJs);
+    case IDR_COLOR_PICKER_CSS:
+        return MAKE_STD_STRING(kColorPickerCss);
+    case IDR_COLOR_PICKER_JS:
+        return MAKE_STD_STRING(kColorPickerJs);
+    case IDR_COLOR_PICKER_COMMON_JS:
+        return MAKE_STD_STRING(kColorPickerCommonJs);
+    case IDR_COLOR_SUGGESTION_PICKER_CSS:
+        return MAKE_STD_STRING(kColorSuggestionPickerCss);
+    case IDR_COLOR_SUGGESTION_PICKER_JS:
+        return MAKE_STD_STRING(kColorSuggestionPickerJs);
+    case IDR_DATETIMELOCAL_PICKER_JS:
+        return MAKE_STD_STRING(kDatetimelocalPickerJs);
+    case IDR_LIST_PICKER_CSS:
+        return MAKE_STD_STRING(kListPickerCss);
+    case IDR_LIST_PICKER_JS:
+        return MAKE_STD_STRING(kListPickerJs);
+    case IDR_MONTH_PICKER_JS:
+        return MAKE_STD_STRING(kMonthPickerJs);
+    case IDR_PICKER_COMMON_CSS:
+        return MAKE_STD_STRING(kPickerCommonCss);
+    case IDR_PICKER_COMMON_JS:
+        return MAKE_STD_STRING(kPickerCommonJs);
+    case IDR_SUGGESTION_PICKER_CSS:
+        return MAKE_STD_STRING(kSuggestionPickerCss);
+    case IDR_SUGGESTION_PICKER_JS:
+        return MAKE_STD_STRING(kSuggestionPickerJs);
+    case IDR_TIME_PICKER_CSS:
+        return MAKE_STD_STRING(kTimePickerCss);
+    case IDR_TIME_PICKER_JS:
+        return MAKE_STD_STRING(kTimePickerJs);
+    case IDR_VALIDATION_BUBBLE_CSS:
+        return MAKE_STD_STRING(kValidationBubbleCss);
     }
+
     DebugBreak();
     return "";
 }
@@ -324,6 +360,30 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resourceId)
         return blink::WebString::FromUTF8("reset");
     case IDS_FORM_VALIDATION_PATTERN_MISMATCH:
         return blink::WebString::FromUTF8("mismatch");
+    case IDS_AX_CALENDAR_SHOW_DATE_PICKER:
+        return blink::WebString::FromUTF8("ax calendar show date picker");
+    case IDS_AX_CALENDAR_SHOW_DATE_TIME_LOCAL_PICKER:
+        return blink::WebString::FromUTF8("ax calendar show date time local picker");
+    case IDS_FORM_CALENDAR_TODAY:
+        return blink::WebString::FromUTF8("today");
+    case IDS_FORM_OTHER_DATE_LABEL:
+        return blink::WebString::FromUTF8("other date");
+    case IDS_FORM_CALENDAR_CLEAR:
+        return blink::WebString::FromUTF8("calendar clear");
+    case IDS_FORM_WEEK_NUMBER_LABEL:
+        return blink::WebString::FromUTF8("week number");
+    case IDS_AX_CALENDAR_SHOW_MONTH_SELECTOR:
+        return blink::WebString::FromUTF8("calendar show month");
+    case IDS_AX_CALENDAR_SHOW_NEXT_MONTH:
+        return blink::WebString::FromUTF8("calendar show next");
+    case IDS_AX_CALENDAR_SHOW_PREVIOUS_MONTH:
+        return blink::WebString::FromUTF8("calendar show previous");
+    case IDS_AX_SECOND_FIELD_TEXT:
+        return blink::WebString::FromUTF8("second field");
+    case IDS_AX_MILLISECOND_FIELD_TEXT:
+        return blink::WebString::FromUTF8("millisecond field");
+    case IDS_AX_AM_PM_FIELD_TEXT:
+        return blink::WebString::FromUTF8("AM PM field");
     default:
         break;
     }
@@ -338,6 +398,8 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resourceId,
     case IDS_AX_MEDIA_CURRENT_TIME_DISPLAY:
     case IDS_AX_MEDIA_TIME_REMAINING_DISPLAY:
         return parameter;
+    case IDS_FORM_VALIDATION_RANGE_UNDERFLOW:
+        return blink::WebString::FromUTF8("validation range");
     default:
         break;
     }
@@ -353,11 +415,23 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resource_id
 }
 
 //const char* s_ua = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like XSD) Chrome/79.0.3945.130 Safari/537.36";
-const char* s_ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
+//const char* s_ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
+std::string* s_ua = nullptr;
+
+RendererBlinkPlatformImpl::RendererBlinkPlatformImpl()
+{
+    s_ua = new std::string();
+    *s_ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
+}
+
+void RendererBlinkPlatformImpl::setUserAgent(const std::string& ua)
+{
+    *s_ua = ua;
+}
 
 blink::WebString RendererBlinkPlatformImpl::UserAgent()
 {
-    return blink::WebString::FromASCII(s_ua);
+    return blink::WebString::FromASCII(*s_ua);
     //return blink::WebString::FromASCII("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36");
 }
 
@@ -393,7 +467,7 @@ blink::UserAgentMetadata RendererBlinkPlatformImpl::UserAgentMetadata()
 
 bool RendererBlinkPlatformImpl::IsTakingV8ContextSnapshot()
 {
-    return true;
+    return false;
 }
 
 blink::WebCrypto* RendererBlinkPlatformImpl::Crypto()

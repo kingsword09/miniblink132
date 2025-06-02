@@ -248,7 +248,7 @@ void NodeBindings::initNodeEnv()
     // to inherit the custom stdio handles created for the parent.
     processFlags |= node::ProcessFlags::kEnableStdioInheritance;
 
-    args.push_back("--no-experimental-detect-module");
+    args.push_back("--no-experimental-detect-module"); // 不加这行，asar的流程会走到nodejs的openhandle里去
 
     /*int exit_code = */ node::InitializeNodeWithArgs(&args, &execArgv, &errors, (node::ProcessFlags::Flags)(processFlags));
 }
@@ -366,19 +366,21 @@ static void mbConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& info)
     str += *param0String;
     str += "\n";
 
-    if (std::string::npos != str.find("validateEvent!!!!!"))
-        OutputDebugStringA("");
+    if (std::string::npos != str.find("__alert__"))
+        MessageBoxA(0, str.c_str(), 0, 0);
 
     if (std::string::npos != str.find("__callstack__")) {
         content::printCallstack();
     }
 
     std::wstring strW = StringUtil::UTF8ToUTF16(str);
-    if (std::wstring::npos != strW.find(L"下载文件"))
-        OutputDebugStringA("");
+//     if (std::wstring::npos != strW.find(L"下载文件"))
+//         OutputDebugStringA("");
 
     OutputDebugStringW(strW.c_str());
 }
+
+void mbTestMessageChannelMain(const v8::FunctionCallbackInfo<v8::Value>& info);
 
 static void addFunction(v8::Local<v8::Context> context, const char* name, v8::FunctionCallback callback, bool isMainNode)
 {
@@ -415,6 +417,7 @@ void bindMbConsoleLog(v8::Local<v8::Context> context)
     bool isBrowserProcess = isMainThread();
     addFunction(context, "mbConsoleLog", mbConsoleLog, isBrowserProcess);
     addFunction(context, "mbGetV8NameIdHash", mbGetV8NameIdHash, isBrowserProcess);
+    addFunction(context, "mbTestMessageChannelMain", mbTestMessageChannelMain, isBrowserProcess);
     content::fixStringWelFormed(context);
 }
 

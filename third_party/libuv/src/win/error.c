@@ -68,8 +68,6 @@ int uv_translate_sys_error(int sys_errno)
     }
 
     switch (sys_errno) {
-    case ERROR_NOACCESS:
-        return UV_EACCES;
     case WSAEACCES:
         return UV_EACCES;
     case ERROR_ELEVATION_REQUIRED:
@@ -85,6 +83,8 @@ int uv_translate_sys_error(int sys_errno)
     case WSAEAFNOSUPPORT:
         return UV_EAFNOSUPPORT;
     case WSAEWOULDBLOCK:
+        return UV_EAGAIN;
+    case ERROR_NO_DATA:
         return UV_EAGAIN;
     case WSAEALREADY:
         return UV_EALREADY;
@@ -120,7 +120,7 @@ int uv_translate_sys_error(int sys_errno)
         return UV_EEXIST;
     case ERROR_FILE_EXISTS:
         return UV_EEXIST;
-    case ERROR_BUFFER_OVERFLOW:
+    case ERROR_NOACCESS:
         return UV_EFAULT;
     case WSAEFAULT:
         return UV_EFAULT;
@@ -182,6 +182,8 @@ int uv_translate_sys_error(int sys_errno)
         return UV_EMFILE;
     case WSAEMSGSIZE:
         return UV_EMSGSIZE;
+    case ERROR_BUFFER_OVERFLOW:
+        return UV_ENAMETOOLONG;
     case ERROR_FILENAME_EXCED_RANGE:
         return UV_ENAMETOOLONG;
     case ERROR_NETWORK_UNREACHABLE:
@@ -244,8 +246,6 @@ int uv_translate_sys_error(int sys_errno)
         return UV_EPERM;
     case ERROR_BAD_PIPE:
         return UV_EPIPE;
-    case ERROR_NO_DATA:
-        return UV_EPIPE;
     case ERROR_PIPE_NOT_CONNECTED:
         return UV_EPIPE;
     case WSAESHUTDOWN:
@@ -266,7 +266,21 @@ int uv_translate_sys_error(int sys_errno)
         return UV_E2BIG;
     case WSAESOCKTNOSUPPORT:
         return UV_ESOCKTNOSUPPORT;
+    case ERROR_BAD_EXE_FORMAT:
+        return UV_EFTYPE;
     default:
         return UV_UNKNOWN;
+    }
+}
+
+int uv_translate_write_sys_error(int sys_errno)
+{
+    switch (sys_errno) {
+    case ERROR_BROKEN_PIPE:
+        return UV_EPIPE;
+    case ERROR_NO_DATA:
+        return UV_EPIPE;
+    default:
+        return uv_translate_sys_error(sys_errno);
     }
 }

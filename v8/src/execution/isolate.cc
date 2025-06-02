@@ -500,7 +500,6 @@ size_t Isolate::HashIsolateForEmbeddedBlob()
         ++i;
     }
 #endif // V8_STATIC_ROOTS_BOOL
-
     // Hash data sections of builtin code objects.
     for (Builtin builtin = Builtins::kFirst; builtin <= Builtins::kLast; ++builtin) {
         Tagged<Code> code = builtins()->code(builtin);
@@ -4779,6 +4778,9 @@ void FinalizeBuiltinCodeObjects(Isolate* isolate)
 bool IsolateIsCompatibleWithEmbeddedBlob(Isolate* isolate)
 {
     EmbeddedData d = EmbeddedData::FromBlob(isolate);
+    char output[100] = { 0 };
+    sprintf_s(output, 99, "IsolateIsCompatibleWithEmbeddedBlob: %x, %x\n", d.IsolateHash(), isolate->HashIsolateForEmbeddedBlob());
+    OutputDebugStringA(output);
     return (d.IsolateHash() == isolate->HashIsolateForEmbeddedBlob());
 }
 #endif // DEBUG

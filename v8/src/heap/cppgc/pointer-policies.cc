@@ -20,7 +20,7 @@ namespace internal {
 
 namespace {
 
-#if defined(DEBUG)
+#if defined(V8_DEBUG)
 bool IsOnStack(const void* address)
 {
     return v8::base::Stack::GetCurrentStackPosition() <= address && address < v8::base::Stack::GetStackStart();

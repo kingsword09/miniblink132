@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#if V8_TARGET_ARCH_IA32
+
 #include "src/base/overflowing-math.h"
 #include "src/codegen/assembler-inl.h"
 #include "src/codegen/callable.h"
@@ -4426,3 +4428,5 @@ void CodeGenerator::AssembleJumpTable(base::Vector<Label*> targets)
 } // namespace compiler
 } // namespace internal
 } // namespace v8
+
+#endif // V8_TARGET_ARCH_IA32

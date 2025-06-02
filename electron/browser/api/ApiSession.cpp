@@ -352,6 +352,9 @@ void ApiSession::onLoadUrlBeginInBlinkThread(mbWebView webView, const char* url,
 
 void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJob job, v8::Persistent<v8::Value>* persistentCb)
 {
+    if (!m_webRequest || !(persistentCb->IsEmpty())) {
+        return;
+    }
     ApiSession* self = this;
 
     mbRequestType httpMethod = mbNetGetRequestMethod(job);
@@ -362,6 +365,8 @@ void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJo
     BeforeSendHeadersCallbackInfo* info = new BeforeSendHeadersCallbackInfo(job);
 
     content::ThreadCall::callUiThreadSync(FROM_HERE, [self, persistentCb, urlStr, info, httpMethod, httpHead, referrer] {
+        std::unique_ptr<std::string> referrerPtr(referrer);
+        std::unique_ptr<std::string> urlStrPtr(urlStr);
         if (!self->m_webRequest || !(persistentCb->IsEmpty())) {
             info->isCalled = true;
             return;
@@ -399,9 +404,6 @@ void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJo
 
         v8::Local<v8::Value> argv[2] = { details.GetHandle(), func };
         /*v8::MaybeLocal<v8::Value> ret = */ cb->Call(context, v8::Null(isolate), 2, argv);
-
-        delete referrer;
-        delete urlStr;
     });
 
     if (!info->isCalled) {
@@ -527,6 +529,6 @@ void initializeBrowserSessionApi(v8::Local<v8::Object> exports, v8::Local<v8::Va
 static const char BrowserSessionName[] = "console.log('BrowserSessionNative');;";
 static NodeNative BrowserSessionNative { "Screen", BrowserSessionName, sizeof(BrowserSessionName) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_session, initializeBrowserSessionApi, &BrowserSessionNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_session, initializeBrowserSessionApi, &BrowserSessionNative)
 
 } // atom namespace

@@ -20,7 +20,7 @@
 // at the call.
 // Source: https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf
 
-#ifdef _WIN64
+#if 0 // def _WIN64
 #error "The masm based version must be used for Windows"
 #endif
 
@@ -31,8 +31,8 @@ asm(
     "_PushAllRegistersAndIterateStack:                  \n"
 #else // !__APPLE__
     ".globl PushAllRegistersAndIterateStack             \n"
-    ".type PushAllRegistersAndIterateStack, %function   \n"
-    ".hidden PushAllRegistersAndIterateStack            \n"
+    //".type PushAllRegistersAndIterateStack, %function   \n"
+    //".hidden PushAllRegistersAndIterateStack            \n"
     "PushAllRegistersAndIterateStack:                   \n"
 #endif // !__APPLE__
     // rbp is callee-saved. Maintain proper frame pointer for debugging.
@@ -60,7 +60,7 @@ asm(
     "  ret                                              \n"
 #if !defined(__APPLE__)
     ".Lfunc_end0:                                       \n"
-    ".size PushAllRegistersAndIterateStack, "
-    ".Lfunc_end0-PushAllRegistersAndIterateStack        \n"
+    //".size PushAllRegistersAndIterateStack, "
+    //".Lfunc_end0-PushAllRegistersAndIterateStack        \n"
 #endif // !defined(__APPLE__)
 );

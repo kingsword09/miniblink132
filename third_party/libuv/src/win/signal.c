@@ -92,7 +92,7 @@ int uv__signal_dispatch(int signum)
     lookup.loop = NULL;
 
     for (handle = RB_NFIND(uv_signal_tree_s, &uv__signal_tree, &lookup); handle != NULL && handle->signum == signum;
-         handle = RB_NEXT(uv_signal_tree_s, &uv__signal_tree, handle)) {
+         handle = RB_NEXT(uv_signal_tree_s, handle)) {
         unsigned long previous = InterlockedExchange((volatile LONG*)&handle->pending_signum, signum);
 
         if (handle->flags & UV_SIGNAL_ONE_SHOT_DISPATCHED)

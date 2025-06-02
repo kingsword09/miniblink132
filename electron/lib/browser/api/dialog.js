@@ -1,6 +1,6 @@
 'use strict';
 
-const bindings = process._linkedBinding('atom_browser_dialog');
+const bindings = process._linkedBinding('electron_browser_dialog');
 const Dialog = bindings.Dialog;
 
 Dialog.prototype.showSaveDialog = function(/* [browserWindow, ]options[, callback] */) {

@@ -289,10 +289,6 @@ bool HostFrameSinkManager::RegisterFrameSinkHierarchy(const FrameSinkId& parent_
         return false;
     }
 
-    FrameSinkData& parent_data = iter->second;
-    CHECK(!base::Contains(parent_data.children, child_frame_sink_id));
-    parent_data.children.push_back(child_frame_sink_id);
-
     // Register and store the parent.
     if (service_runner_->BelongsToCurrentThread()) {
         frame_sink_manager_->RegisterFrameSinkHierarchy(parent_frame_sink_id, child_frame_sink_id);
@@ -307,6 +303,10 @@ bool HostFrameSinkManager::RegisterFrameSinkHierarchy(const FrameSinkId& parent_
                 base::subtle::Barrier_AtomicIncrement(&(self->async_task_count_), -1);
         }, base::Unretained(this), parent_frame_sink_id, child_frame_sink_id));
     }
+
+    FrameSinkData& parent_data = iter->second;
+    CHECK(!base::Contains(parent_data.children, child_frame_sink_id));
+    parent_data.children.push_back(child_frame_sink_id);
 
     return true;
 }

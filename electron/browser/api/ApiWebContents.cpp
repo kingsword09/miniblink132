@@ -5,6 +5,7 @@
 #include "electron/browser/api/WindowList.h"
 #include "electron/browser/api/ApiSession.h"
 #include "electron/browser/api/ApiWebFrameMain.h"
+#include "electron/browser/api/PostMessageUtil.h"
 #include "electron/common/NodeRegisterHelp.h"
 #include "electron/common/IdLiveDetect.h"
 #include "electron/common/NodeBinding.h"
@@ -22,7 +23,9 @@
 #include "electron/common/gin_helper/public/wrapper_info.h"
 #include "gin/handle.h"
 #include "content/common/ThreadCall.h"
-//#include "gin/public/v8_platform.h"
+#include "mojo/public/cpp/bindings/message.h"
+#include "mojo/public/cpp/bindings/connector.h"
+#include "mojo/public/cpp/system/message_pipe.h"
 #include "third_party/blink/renderer/platform/bindings/v8_per_context_data.h"
 #include "third_party/blink/renderer/platform/wtf/wtf.h"
 #include "third_party/libnode/src/node.h"
@@ -96,6 +99,8 @@ void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node:
     builder.SetMethod("isFocused", &WebContents::isFocusedApi);
     builder.SetMethod("tabTraverse", &WebContents::tabTraverseApi);
     builder.SetMethod("_send", &WebContents::_sendApi);
+    builder.SetMethod("_postMessage", &WebContents::_postMessageApi);
+    builder.SetMethod("_testPostMessage", &WebContents::_testPostMessageApi);
     builder.SetMethod("sendInputEvent", &WebContents::sendInputEventApi);
     builder.SetMethod("beginFrameSubscription", &WebContents::beginFrameSubscriptionApi);
     builder.SetMethod("endFrameSubscription", &WebContents::endFrameSubscriptionApi);
@@ -174,6 +179,34 @@ WebContents* WebContents::create(v8::Isolate* isolate, gin_helper::Dictionary op
     return self;
 }
 
+// class TransmitToWebContents : public mojo::MessageReceiver {
+// public:
+//     TransmitToWebContents(WebContents* parent, bool isMainThread, MojoHandle port)
+//     {
+//         m_parent = parent;
+//         m_isMainThread = isMainThread;
+//         m_port = port;
+// 
+//         m_connector = std::make_unique<mojo::Connector>(std::move(port), mojo::Connector::SINGLE_THREADED_SEND);
+//         m_connector->PauseIncomingMethodCallProcessing();
+//         m_connector->set_incoming_receiver(this);
+//         //m_connectorOnMainUiThread->set_connection_error_handler(base::BindOnce(&ApiUtilityProcess::close, base::Unretained(this)));
+//         m_connector->StartReceiving(base::SequencedTaskRunner::GetCurrentDefault());
+//     }
+// 
+//     bool Accept(mojo::Message* message) override
+//     {
+// 
+//     }
+// 
+// private:
+//     WebContents* m_parent;
+//     bool m_isMainThread; // 是在主线程创建还是在网页线程
+//     MojoHandle m_port;
+// 
+//     std::unique_ptr<mojo::Connector> m_connector;
+// };
+
 WebContents::WebContents(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, const gin_helper::Dictionary& options)
 {
     m_nodeBindings = new NodeBindings(false);
@@ -223,6 +256,10 @@ WebContents::WebContents(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, co
     cookiejar += "\\cookie.dat";
     mbSetCookieJarFullPath(m_view, StringUtil::UTF8ToUTF16(cookiejar).c_str());
     mbSetLocalStorageFullPath(m_view, StringUtil::UTF8ToUTF16(session->getPath()).c_str());
+
+//     m_portPipe = std::make_unique<mojo::MessagePipe>();
+//     MojoHandle port0 = m_portPipe->handle0.get().value();
+//     m_connectorOnMainUiThread = std::make_unique<TransmitToWebContents>(this, true, port0);
 }
 
 WebContents::~WebContents()
@@ -373,6 +410,7 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
         m_nodeBindings->m_processObjInfo.isContextIsolated = m_createWindowParam->m_isContextIsolation;
 
         node::Environment* env = m_nodeBindings->createEnvironment(*context);
+        nodeEnvironmentAddCustomArgs(env, m_createWindowParam->m_customArgs);
         m_nodeBindings->loadEnvironment(env);
 
         m_environments.insert(env);
@@ -491,6 +529,18 @@ void WebContents::rendererPostMessageToMain(const std::string& channel, const ba
     if (channel != "ipc-message" && channel != "ipc-render-invoke")
         DebugBreak();
 
+    if (listParams.size() == 2) {
+        const base::Value& a0 = listParams[0];
+        const base::Value& a1 = listParams[1];
+        if (a0.type() == base::Value::Type::STRING && a1.type() == base::Value::Type::NONE) {
+            const std::string* str = a0.GetIfString();
+            if (*str == "vscode:message") {
+                testEventEmitter = 1;
+                content::printCallstack();
+            }
+        }
+    }
+
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [self, id, channelCopy, listParamsCopy] {
         if (IdLiveDetect::get()->isLive(id)) {
             //self->mate::EventEmitter<WebContents>::emit(channelCopy->c_str(), *listParamsCopy);
@@ -513,6 +563,19 @@ void WebContents::rendererPostMessageToMain(const std::string& channel, const ba
             event->Set(context, gin_helper::StringToV8(isolate, "sender"), webContentsV8);
 
             self->mate::EventEmitter<WebContents>::emitCustomEvent(channelCopy->c_str(), event, *listParamsCopy);
+
+//             if (testEventEmitter) {
+//                 base::Value::List::const_iterator it = listParamsCopy->begin();
+//                 for (; it != listParamsCopy->end(); ++it) {
+//                     const base::Value& item = *it;
+//                     base::Value::Type type = item.type();
+//                     if (type == base::Value::Type::STRING) {
+//                         const std::string* str = item.GetIfString();
+//                         OutputDebugStringA("");
+//                     }
+//                     OutputDebugStringA("");
+//                 }
+//             }
         }
         delete listParamsCopy;
         delete channelCopy;
@@ -616,6 +679,18 @@ void WebContents::anyPostMessageToRenderer(const std::string& channel, const bas
         if (IdLiveDetect::get()->isLive(id)) {
             emitIPCEventToRenderer(self, self->m_view, mbWebFrameGetMainFrame(self->m_view), *channelWrap, *listParamsWrap);
         }
+
+//         if (listParamsWrap->size() == 1) {
+//             const base::Value& a0 = (*listParamsWrap)[0];
+//             base::Value::Type xx = a0.type();
+//             if (a0.type() == base::Value::Type::STRING) {
+//                 const std::string* str = a0.GetIfString();
+//                 if (*str == "vscode:message") {
+//                     testEventEmitter = 1;
+//                     content::printCallstack();
+//                 }
+//             }
+//         }
 
         delete channelWrap;
         delete listParamsWrap;
@@ -1218,11 +1293,6 @@ void WebContents::tabTraverseApi()
     //todo
 }
 
-// bool WebContents::_postMessage()
-// {
-//
-// }
-
 bool WebContents::_sendApi(bool isAllFrames, const std::string& channel, const base::Value::List& args)
 {
     if (!isAllFrames) {
@@ -1235,6 +1305,66 @@ bool WebContents::_sendApi(bool isAllFrames, const std::string& channel, const b
         WebContents* webContents = windowInterface->getWebContents();
         webContents->anyPostMessageToRenderer(channel, args);
     }
+    return true;
+}
+
+static void emitMojoMessageToRendererImpl(
+    WebContents* webContents, mbWebView view, mbWebFrameHandle frame, int worldID, const std::string& channel, mojo::Message& mojoMessage)
+{
+    CHECK(WTF::IsMainThread());
+    if (!frame)
+        return;
+
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope handleScope(isolate);
+    v8::TryCatch tryCatch(isolate);
+    v8::Local<v8::Context> context;
+    mbGetWorldScriptContextByWebFrame(view, frame, worldID, &context);
+    if (context.IsEmpty())
+        return;
+    v8::MicrotasksScope microtasksScope(context, v8::MicrotasksScope::kRunMicrotasks);
+    v8::Context::Scope contextScope(context);
+
+    tryCatch.SetVerbose(true);
+    tryCatch.Reset();
+
+    // Only emit IPC event for context with node integration.
+    node::Environment* env = nodeEnvironmentGetByV8Context(context);
+    if (!env)
+        return;
+
+    v8::Local<v8::Object> ipc;
+    if (getIPCObject(isolate, context, &ipc)) {
+        onChannelMessagingApiAcceptHelper(true, channel, ipc, &mojoMessage);
+    }
+}
+
+void mbTestMessageChannelMain(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+
+}
+
+void WebContents::_testPostMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+
+}
+
+bool WebContents::_postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    int id = m_id;
+    WebContents* self = this;
+    mojo::Message* mojoMessage = new mojo::Message();
+    std::string* channel = new std::string();
+    if (!v8FunInfoToMojoMessage(info, mojoMessage, channel))
+        return false;
+
+    content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [self, id, mojoMessage, channel] {
+        if (IdLiveDetect::get()->isLive(id)) {
+            emitMojoMessageToRendererImpl(self, self->m_view, mbWebFrameGetMainFrame(self->m_view), WorldIDs::ISOLATED_WORLD_ID, *channel, *mojoMessage);
+        }
+        delete mojoMessage;
+        delete channel;
+    });
     return true;
 }
 
@@ -1462,7 +1592,7 @@ static const char WebContentsSricpt[] = "exports = {};";
 
 static NodeNative nativeBrowserWebContentsNative { "WebContents", WebContentsSricpt, sizeof(WebContentsSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_web_contents, initializeWebContentApi, &nativeBrowserWebContentsNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_web_contents, initializeWebContentApi, &nativeBrowserWebContentsNative)
 
 } // atom
 

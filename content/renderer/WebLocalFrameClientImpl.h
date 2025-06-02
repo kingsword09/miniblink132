@@ -21,6 +21,10 @@ namespace blink {
 class WebFrameWidget;
 }
 
+namespace network {
+class SharedURLLoaderFactory;
+}
+
 namespace content {
 
 class PolicyContainerHostImpl;
@@ -122,6 +126,8 @@ public:
 
     void WasHidden() override;
     void WasShown() override;
+
+    scoped_refptr<network::SharedURLLoaderFactory> GetURLLoaderFactory() override;
 
     //Geometry notifications
     void DraggableRegionsChanged() /*override*/;

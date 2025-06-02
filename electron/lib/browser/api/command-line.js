@@ -1,5 +1,5 @@
 //const EventEmitter = require('events').EventEmitter;
-const binding = process._linkedBinding('atom_browser_commandline');
+const binding = process._linkedBinding('electron_browser_commandline');
 const ApiCommandLine = binding.ApiCommandLine;
 
 //function CommandLine () {

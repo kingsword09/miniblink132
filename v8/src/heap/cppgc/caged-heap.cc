@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#if defined(CPPGC_CAGED_HEAP)
+
 #include "include/cppgc/internal/caged-heap.h"
 
 #include <map>
@@ -9,9 +11,9 @@
 #include "src/heap/cppgc/platform.h"
 #include "v8config.h" // NOLINT(build/include_directory)
 
-#if !defined(CPPGC_CAGED_HEAP)
-#error "Must be compiled with caged heap enabled"
-#endif
+// #if !defined(CPPGC_CAGED_HEAP)
+// #error "Must be compiled with caged heap enabled"
+// #endif
 
 #include "include/cppgc/internal/api-constants.h"
 #include "include/cppgc/internal/caged-heap-local-data.h"
@@ -137,3 +139,5 @@ void CagedHeap::CommitAgeTable(PageAllocator& platform_allocator)
 
 } // namespace internal
 } // namespace cppgc
+
+#endif // CPPGC_CAGED_HEAP

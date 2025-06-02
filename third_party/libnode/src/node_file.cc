@@ -54,6 +54,8 @@
 #include <unistd.h>
 #endif
 
+#include "../../../electron/common/LoadMiniElectronAsarRes.h"
+
 namespace node {
 
 namespace fs {
@@ -1002,6 +1004,46 @@ static void ExistsSync(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(err == 0);
 }
 
+//--
+static bool CheckMiniElectronAsarResStat(const std::string& path, int* rc)
+{
+    if (path.find(kMiniElectronAsarPrefix) != std::string::npos) {
+        *rc = (path.find(".") != std::string::npos) ? 0 : 1;
+        return true;
+    }
+
+    if (atom::LoadMiniElectronAsarRes(path, nullptr)) {
+        *rc = 0;
+        return true;
+    }
+    return false;
+}
+
+static void MakeFakeUvStat(uv_stat_t* s, bool is_dir)
+{
+    s->st_dev = 1226378985;
+    s->st_mode = is_dir ? (S_IFDIR) : (S_IFREG);
+    s->st_nlink = 1;
+    s->st_uid = 0;
+    s->st_gid = 0;
+    s->st_rdev = 0;
+    s->st_ino = 1407374883553285;
+    s->st_size = 4096; // 0
+    s->st_blksize = 4096;
+    s->st_blocks = 16;
+    s->st_flags = 0;
+    s->st_gen = 0;
+    s->st_atim.tv_sec = 1744530601;
+    s->st_atim.tv_nsec = 225400500;
+    s->st_mtim.tv_sec = 1744177550;
+    s->st_mtim.tv_nsec = 600030400;
+    s->st_ctim.tv_sec = 1744177550;
+    s->st_ctim.tv_nsec = 600030400;
+    s->st_birthtim.tv_sec = 1692539028;
+    s->st_birthtim.tv_nsec = 745000000;
+}
+//--
+
 // Used to speed up module loading.  Returns 0 if the path refers to
 // a file, 1 when it's a directory or < 0 on error (usually -ENOENT.)
 // The speedup comes from not creating thousands of Stat and Error objects.
@@ -1010,15 +1052,23 @@ static void ExistsSync(const FunctionCallbackInfo<Value>& args)
 static void InternalModuleStat(const FunctionCallbackInfo<Value>& args)
 {
     Environment* env = Environment::GetCurrent(args);
-
     CHECK_GE(args.Length(), 2);
     CHECK(args[1]->IsString());
     BufferValue path(env->isolate(), args[1]);
     CHECK_NOT_NULL(*path);
     ToNamespacedPath(env, &path);
 
+    int rc = 0;
+    //----
+    std::string path_temp = *path;
+    if (CheckMiniElectronAsarResStat(*path, &rc)) {
+        args.GetReturnValue().Set(rc);
+        return;
+    }
+    //-----
+
     uv_fs_t req;
-    int rc = uv_fs_stat(env->event_loop(), &req, *path, nullptr);
+    rc = uv_fs_stat(env->event_loop(), &req, *path, nullptr);
     if (rc == 0) {
         const uv_stat_t* const s = static_cast<const uv_stat_t*>(req.ptr);
         rc = S_ISDIR(s->st_mode);
@@ -1113,6 +1163,18 @@ static void LStat(const FunctionCallbackInfo<Value>& args)
     ToNamespacedPath(env, &path);
 
     bool use_bigint = args[1]->IsTrue();
+
+    //--
+    std::string path_temp = *path;
+    if (path_temp.find(kMiniElectronAsarPrefix) != std::string::npos) {
+        uv_stat_t s;
+        MakeFakeUvStat(&s, path_temp.find(".") != std::string::npos);
+        Local<Value> arr = FillGlobalStatsArray(binding_data, use_bigint, &s);
+        args.GetReturnValue().Set(arr);
+        return;
+    }
+    //--
+
     if (!args[2]->IsUndefined()) { // lstat(path, use_bigint, req)
         FSReqBase* req_wrap_async = GetReqWrap(args, 2, use_bigint);
         FS_ASYNC_TRACE_BEGIN1(UV_FS_LSTAT, req_wrap_async, "path", TRACE_STR_COPY(*path))
@@ -2422,6 +2484,7 @@ static void ReadFileUtf8(const FunctionCallbackInfo<Value>& args)
     uv_fs_t req;
 
     bool is_fd = args[0]->IsInt32();
+    std::string result{};
 
     // Check for file descriptor
     if (is_fd) {
@@ -2429,6 +2492,17 @@ static void ReadFileUtf8(const FunctionCallbackInfo<Value>& args)
     } else {
         BufferValue path(env->isolate(), args[0]);
         CHECK_NOT_NULL(*path);
+
+        //---atom
+        if (atom::LoadMiniElectronAsarRes(*path, &result)) {
+            Local<Value> val;
+            if (!ToV8Value(env->context(), result, isolate).ToLocal(&val))
+                return;
+            args.GetReturnValue().Set(val);
+            return;
+        }
+        //--
+
         ToNamespacedPath(env, &path);
         if (CheckOpenPermissions(env, path, flags).IsNothing())
             return;
@@ -2452,7 +2526,6 @@ static void ReadFileUtf8(const FunctionCallbackInfo<Value>& args)
         uv_fs_req_cleanup(&req);
     });
 
-    std::string result {};
     char buffer[8192];
     uv_buf_t buf = uv_buf_init(buffer, sizeof(buffer));
 

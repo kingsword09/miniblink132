@@ -1,8 +1,8 @@
 'use strict'
 
-var IpcRendererBinding = process._linkedBinding('atom_renderer_ipc').ipcRenderer;
+var IpcRendererBinding = process._linkedBinding('electron_renderer_ipc').ipcRenderer;
 const EventEmitter = require('events').EventEmitter;
-var v8Util = new (process._linkedBinding('atom_common_v8_util').v8Util)();
+var v8Util = new (process._linkedBinding('electron_common_v8_util').v8Util)();
 var ipcRendererBinding = new IpcRendererBinding();
 
 // Created by init.js.

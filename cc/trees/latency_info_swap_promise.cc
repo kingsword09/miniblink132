@@ -50,7 +50,6 @@ int64_t LatencyInfoSwapPromise::GetTraceId() const
 // Trace the original LatencyInfo of a LatencyInfoSwapPromise
 void LatencyInfoSwapPromise::OnCommit()
 {
-    *(int*)1 = 1;
 //     using perfetto::protos::pbzero::TrackEvent;
 // 
 //     int64_t trace_id = GetTraceId();

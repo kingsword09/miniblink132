@@ -73,15 +73,23 @@ public:
 private:
 };
 
-void RestrictedCookieManagerImpl::GetAllForUrl(const ::blink::KURL& url, const ::net::SiteForCookies& site_for_cookies,
-    const ::scoped_refptr<const ::blink::SecurityOrigin>& top_frame_origin, ::net::StorageAccessApiStatus storage_access_api_status,
+void RestrictedCookieManagerImpl::GetAllForUrl(const ::blink::KURL& url, const ::net::SiteForCookies& siteForCookies,
+    const ::scoped_refptr<const ::blink::SecurityOrigin>& topFrameOrigin, ::net::StorageAccessApiStatus storageAccessApiStatus,
     ::network::mojom::blink::CookieManagerGetOptionsPtr options,
-    bool partitioned_cookies_runtime_feature_enabled, bool is_ad_tagged, GetAllForUrlCallback callback)
+    bool partitionedCookiesRuntimeFeatureEnabled, bool isAdTagged,
+    network::mojom::blink::RestrictedCookieManager::GetAllForUrlCallback callback)
 {
-    printFuncName(__FUNCTION__, true, true);
-    mbnet::WebCookieJarImpl* cookieJar = mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
-    VisitAllCookies* visit = new VisitAllCookies();
-    cookieJar->visitAllCookie(visit, &VisitAllCookies::cookieVisitor);
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce([](
+        const ::blink::KURL& url, const ::net::SiteForCookies& siteForCookies,
+        const ::scoped_refptr<const ::blink::SecurityOrigin>& topFrameOrigin, ::net::StorageAccessApiStatus storageAccessApiStatus,
+        ::network::mojom::blink::CookieManagerGetOptionsPtr options,
+        bool partitionedCookiesRuntimeFeatureEnabled, bool isAdTagged,
+        network::mojom::blink::RestrictedCookieManager::GetAllForUrlCallback callback) {
+        mbnet::WebCookieJarImpl* cookieJar = mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
+        cookieJar->getAllCookies(url, siteForCookies, topFrameOrigin, storageAccessApiStatus, std::move(options), partitionedCookiesRuntimeFeatureEnabled,
+            isAdTagged, std::move(callback));
+        }, url, siteForCookies, topFrameOrigin, storageAccessApiStatus, std::move(options), partitionedCookiesRuntimeFeatureEnabled,
+            isAdTagged, std::move(callback)));
 }
 
 void RestrictedCookieManagerImpl::SetCanonicalCookie(const ::net::CanonicalCookie& cookie, const ::blink::KURL& url,

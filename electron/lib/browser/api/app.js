@@ -1,5 +1,5 @@
 
-var App = process._linkedBinding('atom_browser_app').App;
+var App = process._linkedBinding('electron_browser_app').App;
 
 App.prototype.commandLine = {
     appendSwitch: function(switchVal, value) {

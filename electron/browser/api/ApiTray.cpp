@@ -252,4 +252,4 @@ void initializeTrayApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unuse
 static const char BrowserTrayNative[] = "console.log('BrowserTrayNative');;";
 static NodeNative nativeBrowserTrayNative { "Tray", BrowserTrayNative, sizeof(BrowserTrayNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_tray, atom::initializeTrayApi, &nativeBrowserTrayNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_tray, atom::initializeTrayApi, &nativeBrowserTrayNative)

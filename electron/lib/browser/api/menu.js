@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter = require('events').EventEmitter;
-const bindings = process._linkedBinding('atom_browser_menu');
+const bindings = process._linkedBinding('electron_browser_menu');
 const Menu = bindings.Menu;
 Object.setPrototypeOf(Menu.prototype, EventEmitter.prototype);
 

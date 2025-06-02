@@ -17,6 +17,7 @@
 #include "cc/mojom/render_frame_metadata.mojom-blink.h"
 #include "third_party/blink/public/common/widget/visual_properties.h"
 #include "third_party/blink/public/platform/scheduler/web_thread_scheduler.h"
+#include "third_party/blink/public/mojom/widget/platform_widget.mojom-blink.h"
 #include "mojo/public/cpp/bindings/associated_receiver.h"
 #include "mojo/public/cpp/bindings/associated_remote.h"
 #include "components/viz/host/host_frame_sink_manager.h"
@@ -44,6 +45,7 @@ class VizHost;
 class RenderWidgetHostImpl;
 class PlatformEventHandler;
 class MbWebView;
+class ToolTip;
 
 class RenderFrameMetadataObserverClientImpl : public ::cc::mojom::blink::RenderFrameMetadataObserverClient {
 public:
@@ -175,10 +177,7 @@ public:
 
     virtual void SetCursor(const ::ui::Cursor& cursor) override;
 
-    virtual void UpdateTooltipUnderCursor(const ::WTF::String& tooltip_text, ::base::i18n::TextDirection text_direction_hint) override
-    {
-        //OutputDebugStringA("RenderWidgetHostImpl::UpdateTooltipUnderCursor not impl \n");
-    }
+    virtual void UpdateTooltipUnderCursor(const ::WTF::String& tooltip_text, ::base::i18n::TextDirection text_direction_hint) override;
 
     virtual void UpdateTooltipFromKeyboard(
         const ::WTF::String& tooltip_text, ::base::i18n::TextDirection text_direction_hint, const ::gfx::Rect& bounds) override
@@ -268,11 +267,15 @@ public:
     enum PopupState { kNoPopup = 0, kHasPopup, kRequestClosePopup };
     PopupState m_popupState = kNoPopup;
 
+    mojo::Remote<blink::mojom::blink::RenderInputRouterClient> m_browserRemote;
+
     viz::ParentLocalSurfaceIdAllocator m_surfaceIdAllocator;
     //viz::ChildLocalSurfaceIdAllocator m_surfaceIdAllocator;
 
     VizClient* m_sinkClient = nullptr;
     VizHost* m_sinkHost = nullptr;
+
+    ToolTip* m_toolTip = nullptr;
 
     scoped_refptr<base::SequencedTaskRunner> m_runner;
     base::WeakPtrFactory<RenderWidgetHostImpl> m_weakPtr { this };

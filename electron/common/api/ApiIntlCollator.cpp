@@ -99,4 +99,4 @@ static const char CommonIntlCollatorSricpt[] = "exports = {};";
 
 static NodeNative nativeCommonIntlCollatorNative { "IntlCollator", CommonIntlCollatorSricpt, sizeof(CommonIntlCollatorSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_common_intl_collator, initializeCommonIntlCollatorApi, &nativeCommonIntlCollatorNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_intl_collator, initializeCommonIntlCollatorApi, &nativeCommonIntlCollatorNative)

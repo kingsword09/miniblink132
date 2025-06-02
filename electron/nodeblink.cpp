@@ -370,6 +370,12 @@ void nodeEnvironmentSetIsblinkCore(node::Environment* env)
     env->set_is_blink_core();
 }
 
+void nodeEnvironmentAddCustomArgs(node::Environment* env, const std::vector<std::string>& argv)
+{
+    if (!argv.empty())
+        env->AddCustomArgs(argv);
+}
+
 // look: ElectronBrowserMainParts::PostEarlyInitialization
 void nodeEnvironmentElectronPostEarlyInitialization(node::Environment* env)
 {

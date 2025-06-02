@@ -128,6 +128,6 @@ static const char RendererIpcNative[] = "exports = {};";
 
 static NodeNative nativeRendererIpcNative { "ipc-renderer", RendererIpcNative, sizeof(RendererIpcNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_renderer_ipc, initializeRendererIpcApi, &nativeRendererIpcNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_renderer_ipc, initializeRendererIpcApi, &nativeRendererIpcNative)
 
 }

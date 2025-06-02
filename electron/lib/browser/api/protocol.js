@@ -1,5 +1,5 @@
 
-const binding = process._linkedBinding('atom_browser_protocol');
+const binding = process._linkedBinding('electron_browser_protocol');
 const Protocol = binding.Protocol;
 const protocol = new Protocol(onLoadUrlBegin);
 
@@ -8,7 +8,7 @@ var idGen = 0;
 
 function onLoadUrlBegin(id, request, nativeCallbackInfo) {
     var handler = handlerToIdMap[id];
-    mbConsoleLog("Protocol.onLoadUrlBegin:" + handler);
+    //mbConsoleLog("Protocol.onLoadUrlBegin:" + handler);
     if (!handler) {
         protocol.onHandlerFinish(request, nativeCallbackInfo);
         return;

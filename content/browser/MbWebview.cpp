@@ -37,6 +37,9 @@
 #include "third_party/blink/renderer/core/frame/page_scale_constraints_set.h"
 #include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
 #include "third_party/blink/renderer/core/frame/local_dom_window.h"
+#include "third_party/blink/renderer/core/frame/settings.h"
+#include "third_party/blink/renderer/core/page/page.h"
+#include "third_party/blink/renderer/core/testing/internal_runtime_flags.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 #include "mojo/public/cpp/bindings/associated_receiver.h"
 #include "mojo/public/cpp/bindings/pending_associated_remote.h"
@@ -200,7 +203,7 @@ void MbWebView::preDestroyOnUiThread()
     common::LiveIdDetect::getMbWebviewIds()->deconstructed(m_id);
     m_state = kPageDestroying;
     ::RevokeDragDrop(m_hWnd);
-    ::SetPropW(m_hWnd, kClassWndName, NULL);
+    //::SetPropW(m_hWnd, kClassWndName, NULL);
     //::SetWindowLongPtrW(m_hWnd, GWLP_USERDATA, 0);
 
 #ifdef OS_LINUX
@@ -541,12 +544,20 @@ void MbWebView::setBackgroundColor(COLORREF c)
 
 void MbWebView::setDefaultPreferences(blink::WebViewImpl* webWiew)
 {
+    webWiew->SetSupportsDraggableRegions(true);
+
     blink::WebSettings* websettings = webWiew->GetSettings();
     websettings->SetDefaultFontSize(16);
     websettings->SetDefaultFixedFontSize(16);
     websettings->SetJavaScriptEnabled(true);
     websettings->SetLoadsImagesAutomatically(true);
     websettings->SetLocalStorageEnabled(true);
+    websettings->SetAllowScriptsToCloseWindows(true);
+
+//     blink::Page* page = webWiew->GetPage();
+//     page->GetSettings().SetAcceleratedCompositingEnabled(false);
+    blink::InternalRuntimeFlags* internalRuntimeFlags = blink::InternalRuntimeFlags::create();
+    internalRuntimeFlags->setAccelerated2dCanvasEnabled(false);
 
     blink::RendererPreferences preferences;
     preferences.accept_languages = "cn-ZH,cn";
@@ -667,7 +678,7 @@ LRESULT MbWebView::windowProcImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         break;
 
     case WM_CLOSE:
-        printf("MbWebView::windowProcImpl DestroyWindow, this:%p, %p\n", this, getClosure().m_ClosingCallback);
+        //printf("MbWebView::windowProcImpl DestroyWindow, this:%p, %p\n", this, getClosure().m_ClosingCallback);
         if (getClosure().m_ClosingCallback) {
             if (!getClosure().m_ClosingCallback(getWebviewHandle(), getClosure().m_ClosingParam, nullptr))
                 return 0;
@@ -1171,16 +1182,13 @@ void MbWebView::onMouseMessage(unsigned int message, int x, int y, unsigned int 
         runner = RenderThreadImpl::get()->getTaskRunner();
     }
 
-    runner->PostTask(FROM_HERE,
-        base::BindOnce(
-            [](int64_t id) {
-                MbWebView* self = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtrLocked(id);
-                if (!self)
-                    return;
-                self->delayDoMouseMsgInCompositorThread();
-                common::LiveIdDetect::getMbWebviewIds()->unlock(id, self);
-            },
-            id));
+    runner->PostTask(FROM_HERE, base::BindOnce([](int64_t id) {
+        MbWebView* self = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtrLocked(id);
+        if (!self)
+            return;
+        self->delayDoMouseMsgInCompositorThread();
+        common::LiveIdDetect::getMbWebviewIds()->unlock(id, self);
+    }, id));
 #else
     content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, getWebviewHandle(), [](MbWebView* self) { self->delayDoMouseMsgInCompositorThread(); });
 #endif
@@ -1197,7 +1205,8 @@ bool MbWebView::onKeyUp(unsigned int virtualKeyCode, unsigned int flags, BOOL is
         lParam |= ((KF_EXTENDED) >> 16);
 
     blink::WebKeyboardEvent keyEvent = content::PlatformEventHandler::buildKeyboardEvent(blink::WebInputEvent::Type::kKeyUp, WM_KEYUP, wParam, lParam);
-    m_platformEventHandler->fireInputEventToCompositingThread(keyEvent);
+    if (m_platformEventHandler.get())
+        m_platformEventHandler->fireInputEventToCompositingThread(keyEvent);
     return true;
 }
 
@@ -1215,7 +1224,8 @@ bool MbWebView::onKeyDown(unsigned int virtualKeyCode, unsigned int flags, BOOL 
     //WTF::TemporaryChange<bool> temporaryChange(g_isBackKeyDown, true);
 
     blink::WebKeyboardEvent keyEvent = content::PlatformEventHandler::buildKeyboardEvent(blink::WebInputEvent::Type::kRawKeyDown, WM_KEYDOWN, wParam, lParam);
-    m_platformEventHandler->fireInputEventToCompositingThread(keyEvent);
+    if (m_platformEventHandler.get())
+        m_platformEventHandler->fireInputEventToCompositingThread(keyEvent);
     bool systemKey = false;
     // These events cannot be canceled, and we have no default handling for them.
     // FIXME: match IE list more closely, see <http://msdn2.microsoft.com/en-us/library/ms536938.aspx>.
@@ -1237,7 +1247,8 @@ bool MbWebView::onKeyPress(unsigned int charCode, unsigned int flags, BOOL isSys
         message = WM_IME_CHAR;
 
     blink::WebKeyboardEvent keyEvent = content::PlatformEventHandler::buildKeyboardEvent(blink::WebInputEvent::Type::kChar, message, wParam, lParam);
-    m_platformEventHandler->fireInputEventToCompositingThread(keyEvent);
+    if (m_platformEventHandler.get())
+        m_platformEventHandler->fireInputEventToCompositingThread(keyEvent);
     return true;
 }
 
@@ -1366,6 +1377,15 @@ bool MbWebView::setCursorInfoTypeByCache()
     case ui::mojom::CursorType::kNotAllowed:
         hCur = ::LoadCursorW(NULL, IDC_NO);
         break;
+    case ui::mojom::CursorType::kCustom:
+    {
+#ifdef _WIN32
+        base::win::ScopedHICON customHicon = IconUtil_CreateCursorFromSkBitmap(m_cursor.custom_bitmap(), m_cursor.custom_hotspot());
+        ::SetCursor(customHicon.get());
+        return true;
+#endif
+    }
+        break;
     default:
         break;
     }
@@ -1386,7 +1406,6 @@ void MbWebView::setCursor(const ::ui::Cursor& cursor)
 {
     if (m_cursor == cursor)
         return;
-
     m_cursor = cursor;
 
     if (m_hWnd)
@@ -1530,24 +1549,6 @@ void MbWebView::onPaint(HWND hWnd, WPARAM wParam)
     }
 
     ::EndPaint(hWnd, &ps);
-
-    ::EnterCriticalSection(&m_dirtyRectLock);
-    //     bool needCommit = m_dirtyRect.size() == 0;
-    //
-    //     mbRect dirtyRect = { destX, destY, width, height };
-    //     addAndMergeDirty(&m_dirtyRect, dirtyRect);
-    //
-    //     int64_t id = m_id;
-    //     MbWebView* self = this;
-    //     if (needCommit) {
-    //         common::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [self, id] {
-    //             if (!common::LiveIdDetect::get()->isLive(id))
-    //                 return;
-    //
-    //             self->onBlinkThreadPaint();
-    //         });
-    //     }
-    ::LeaveCriticalSection(&m_dirtyRectLock);
 }
 
 void MbWebView::setIsTransparent(bool b)
@@ -1574,7 +1575,6 @@ void MbWebView::setContextMenuEnable(bool b)
 void MbWebView::setShow(int nCmdShow /*, bool isActivate*/)
 {
     m_isShow = nCmdShow == 1;
-    //::ShowWindow(m_hWnd, b ? (isActivate ? SW_SHOW : SW_SHOWNOACTIVATE) : SW_HIDE);
     ::ShowWindow(m_hWnd, nCmdShow);
 }
 
@@ -1591,8 +1591,7 @@ static void setWindowTitleImpl(content::MbWebView* webview, int count)
                 if (webview->setWindowTitle(webview->getWindowTitle()))
                     return;
                 setWindowTitleImpl(webview, count);
-            },
-            id, count),
+            }, id, count),
         base::Microseconds(1000));
 }
 
@@ -1715,16 +1714,12 @@ base::FilePath MbWebView::getLocalStorageDir()
     return m_pageNetExtraData->getLocalStorageDir();
 }
 
-// blink::WebFrame* MbWebView::getWebFrameFromUniqueName(const blink::FrameToken& frameToken)
-// {
-//     return blink::WebFrame::FromFrameToken(frameToken);
-// //     blink::WebFrame* webFrame = m_renderWidgetHostImpl->m_webWiew->MainFrame();
-// //
-// //     while (webFrame && webFrame->GetFrameToken() != frameToken)
-// //         webFrame = webFrame->TraverseNext();
-// //
-// //     return webFrame;
-// }
+base::FilePath MbWebView::getDownloadDirPath()
+{
+    if (!m_pageNetExtraData)
+        m_pageNetExtraData = new mbnet::PageNetExtraData();
+    return m_pageNetExtraData->getDownloadDirPath();
+}
 
 void MbWebView::dispatchUrlCheanged(const std::string& url)
 {

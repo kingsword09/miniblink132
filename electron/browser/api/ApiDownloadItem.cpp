@@ -277,7 +277,7 @@ void initializeBrowserDownloadItemApi(v8::Local<v8::Object> exports, v8::Local<v
 static const char BrowserDownloadItemName[] = "console.log('BrowserDownloadItemNative');;";
 static NodeNative BrowserDownloadItemNative { "DownloadItem", BrowserDownloadItemName, sizeof(BrowserDownloadItemName) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_downloaditem, initializeBrowserDownloadItemApi, &BrowserDownloadItemNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_downloaditem, initializeBrowserDownloadItemApi, &BrowserDownloadItemNative)
 
 } // atom namespace
 

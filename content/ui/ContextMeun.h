@@ -13,6 +13,9 @@
 
 namespace content {
 
+uint32_t g_contextMenuItemMask = kMbMenuSelectedAllId | kMbMenuSelectedTextId | kMbMenuUndoId | kMbMenuCopyImageId | kMbMenuSaveImageId |
+kMbMenuInspectElementAtId | kMbMenuCutId | kMbMenuPasteId;
+
 #define kContextMenuClassName L"MbContextMenu"
 //extern WebPageImpl* g_saveImageingWebPage;
 
@@ -196,7 +199,7 @@ public:
 
     static bool canShowItem(UINT actionFlags, MenuId id)
     {
-        if ((actionFlags & id) /*&& (wke::g_contextMenuItemMask & id)*/)
+        if ((actionFlags & id) && (g_contextMenuItemMask & id))
             return true;
         return false;
     }

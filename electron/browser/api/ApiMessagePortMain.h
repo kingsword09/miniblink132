@@ -9,6 +9,7 @@
 #include "mojo/public/cpp/bindings/message.h"
 #include "mojo/public/cpp/bindings/connector.h"
 #include "gin/handle.h"
+#include "base/timer/timer.h"
 
 namespace node {
 class Environment;
@@ -67,6 +68,7 @@ private:
     bool hasPendingActivity() const;
     void pin();
     void unpin();
+    void delayPinOrUnpin();
 
     // mojo::MessageReceiver
     bool Accept(mojo::Message* mojo_message) override;
@@ -80,6 +82,8 @@ private:
     // The internal port owned by this class. The handle itself is moved into the
     // |connector_| while entangled.
     blink::MessagePortDescriptor m_port;
+
+    base::OneShotTimer m_delayPinOrUnpin;
 
     base::WeakPtrFactory<ApiMessagePortMain> m_weakFactory { this };
 };

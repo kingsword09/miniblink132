@@ -5,10 +5,10 @@ const timers = require('timers');
 
 process.atomBinding = function (name) {
     try {
-        return process._linkedBinding(`atom_${process.type}_${name}`);
+        return process._linkedBinding(`electron_${process.type}_${name}`);
     } catch (error) {
         if (/No such module/.test(error.message)) {
-            return process._linkedBinding(`atom_common_${name}`);
+            return process._linkedBinding(`electron_common_${name}`);
         } else {
             throw error;
         }

@@ -1,8 +1,8 @@
 
-process._linkedBinding('atom_browser_web_contents');
+process._linkedBinding('electron_browser_web_contents');
 
 const EventEmitter = require('events').EventEmitter;
-const BrowserWindow = process._linkedBinding('atom_browser_browserwindow').BrowserWindow;
+const BrowserWindow = process._linkedBinding('electron_browser_browserwindow').BrowserWindow;
 Object.setPrototypeOf(BrowserWindow.prototype, EventEmitter.prototype);
 
 require('./web-contents');

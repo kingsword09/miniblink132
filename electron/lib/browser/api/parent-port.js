@@ -1,6 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const MessagePortMain = require('./message-port-main.js');
-const binding = process._linkedBinding('atom_browser_parent_port');
+const binding = process._linkedBinding('electron_browser_parent_port');
 const ParentPort = binding.ParentPort;
 
 if (!ParentPort)

@@ -18,7 +18,11 @@ typedef char16_t WCHAR;
 namespace content {
 
 std::string utf16ToUtf8(const WCHAR* lpszSrc);
-std::string utf16ToMulByte(const WCHAR* lpszSrc, unsigned int codepage);
+std::string utf16ToMulByte(const WCHAR* lpszSrc, size_t len, unsigned int codepage);
+
+void mulByteToUtf8(const char* lpMCharStr, size_t cchMChar, std::vector<char>* out, unsigned int codePage);
+void WCharToMByte(const WCHAR* lpWideCharStr, size_t cchWideChar, std::vector<char>* out, unsigned int codePage);
+void MByteToWChar(const char* lpcszStr, size_t cbMultiByte, std::vector<WCHAR>* out, unsigned int codePage);
 
 std::u16string utf8ToUtf16(const std::string& utf8);
 std::u16string mulByteToUtf16(const std::string& str, unsigned int codepage);

@@ -1001,9 +1001,17 @@ public:
 
     inline void RemoveHeapSnapshotNearHeapLimitCallback(size_t heap_limit);
 
+    // weolar:
     inline void set_is_blink_core();
     inline bool is_blink_core() const;
 
+    // for electron
+    // webPreferences: {
+    //     additionalArguments: ["myvarvalue", "secondvarvalue", "--another=something"]
+    // }
+    inline void AddCustomArgs(const std::vector<std::string>& argv);
+    //--
+    
     // Field identifiers for exit_info_
     enum ExitInfoField { kExiting = 0, kExitCode, kHasExitCode, kExitInfoFieldCount };
 
@@ -1106,7 +1114,9 @@ private:
 
     AliasedInt32Array stream_base_state_;
 
+    // weolar:
     bool is_blink_core_ = false;
+    //--
 
     // As PerformanceNodeTiming is exposed in worker_threads, the per_process
     // time origin is exposed in the worker threads. This is an intentional

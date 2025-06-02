@@ -1,4 +1,4 @@
 'use strict'
 
-const contextBridge = process._linkedBinding('atom_renderer_contextbridge');
+const contextBridge = process._linkedBinding('electron_renderer_contextbridge');
 module.exports = contextBridge;

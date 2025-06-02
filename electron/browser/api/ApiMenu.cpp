@@ -553,6 +553,6 @@ static const char BrowserMenuNative[] = "exports = function {};";
 
 static NodeNative nativeBrowserMenuNative { "Menu", BrowserMenuNative, sizeof(BrowserMenuNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_menu, initializeMenuApi, &nativeBrowserMenuNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_menu, initializeMenuApi, &nativeBrowserMenuNative)
 
 }

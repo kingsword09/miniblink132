@@ -10,6 +10,9 @@
 #include "content/renderer/ClipboardHostImpl.h"
 #include "content/renderer/RenderThreadImpl.h"
 #include "content/renderer/NoStatePrefetchProcessorImpl.h"
+#include "content/renderer/DevicePostureProviderImpl.h"
+#include "content/renderer/PermissionServiceImpl.h"
+#include "content/renderer/SpeculationHostImpl.h"
 #include "content/browser/QuotaManagerHostImpl.h"
 #include "content/browser/FileChooserImpl.h"
 #include "content/browser/RestrictedCookieManagerImpl.h"
@@ -19,6 +22,7 @@
 #include "content/common/CreateAndBindTempl.h"
 #include "content/common/ThreadCall.h"
 #include "services/network/public/cpp/resource_request.h"
+#include "services/network/public/cpp/single_request_url_loader_factory.h"
 #include "third_party/blink/renderer/core/dom/document.h"
 #include "third_party/blink/public/platform/platform.h"
 //#include "third_party/blink/public/platform/web_url_loader_mock_factory.h"
@@ -34,26 +38,17 @@
 #include "third_party/blink/public/web/web_navigation_control.h"
 #include "third_party/blink/renderer/platform/network/network_utils.h"
 #include "third_party/blink/renderer/platform/loader/fetch/url_loader/navigation_body_loader.h"
+#include "gen/third_party/blink/public/mojom/loader/navigation_predictor.mojom-blink.h"
 #include "gen/third_party/blink/public/mojom/preloading/anchor_element_interaction_host.mojom-blink.h"
 #include "gen/third_party/blink/public/mojom/preloading/anchor_element_interaction_host.mojom-blink-forward.h"
 #include "gin/public/gin_embedders.h"
 #include "mbnet/LoaderFactoryImpl.h"
+#include "mbnet/SingleRequestURLLoader.h"
 #include "mbnet/WebURLLoaderImplCurl.h"
 #include "mbnet/WebURLRequestExtraDataWrap.h"
 #include "base/strings/utf_string_conversions.h"
 
-network::mojom::URLLoaderClientEndpoints::URLLoaderClientEndpoints(
-    mojo::PendingRemote<network::mojom::URLLoader>, mojo::PendingReceiver<network::mojom::URLLoaderClient>)
-{
-    *(int*)1 = 1;
-}
-
 network::DocumentIsolationPolicy::~DocumentIsolationPolicy(void)
-{
-    *(int*)1 = 1;
-}
-
-network::mojom::URLLoaderClientEndpoints::~URLLoaderClientEndpoints(void)
 {
     *(int*)1 = 1;
 }
@@ -179,7 +174,7 @@ blink::WebLocalFrame* WebLocalFrameClientImpl::CreateChildFrame(
             = mojo::PendingAssociatedReceiverConverter<blink::CrossVariantMojoAssociatedReceiver<blink::mojom::PolicyContainerHostInterfaceBase>>::To<
                 blink::mojom::PolicyContainerHostInterfaceBase>(std::move(policyContainerBindParams.receiver));
 
-        mojo::PendingAssociatedReceiver<blink::mojom::blink::PolicyContainerHost> policyContainerReceiver(std::move(policyContainerReceiverBase.PassHandle()));
+        mojo::PendingAssociatedReceiver<blink::mojom::blink::PolicyContainerHost> policyContainerReceiver(policyContainerReceiverBase.PassHandle());
 
         newClinet->m_blinkPolicyContainerHost.reset(new PolicyContainerHostImpl());
         newClinet->m_blinkPolicyContainerHostReceiver
@@ -250,8 +245,12 @@ void setNetworkRequestHead(blink::WebLocalFrame* webFrame, network::ResourceRequ
     request->headers.SetHeaderIfMissing("Connection", "keep-alive");
     request->headers.SetHeaderIfMissing("Accept-Encoding", "gzip, deflate, br");
     request->headers.SetHeaderIfMissing("User-Agent", blink::Platform::Current()->UserAgent().Utf8());
-
-    request->headers.SetHeaderIfMissing("sec-ch-ua", "\"Not ? A_Brand\";v=\"8\", \"Chromium\";v=\"108\"");
+    //  
+    request->headers.SetHeaderIfMissing("cache-control", "max-age=0");
+    request->headers.SetHeaderIfMissing("host", "data.10jqka.com.cn");
+    request->headers.SetHeaderIfMissing("sec-fetch-site", "same-origin");
+    //  
+    request->headers.SetHeaderIfMissing("sec-ch-ua", "\"Not ? A_Brand\";v=\"8\", \"Chromium\";v=\"132\"");
     request->headers.SetHeaderIfMissing("sec-ch-ua-mobile", "?0");
     request->headers.SetHeaderIfMissing("sec-ch-ua-platform", "Windows");
     request->headers.SetHeaderIfMissing("sec-fetch-dest", "document");
@@ -289,11 +288,6 @@ void setRequestHead(blink::WebLocalFrame* webFrame, blink::WebURLRequest& reques
     }
 
     std::string url = request.Url().GetString().Utf8();
-
-    if (std::string::npos != url.find("trpc.video_account_login.web_login_trpc.WebLoginTrpc/NewLogin")) {
-        OutputDebugStringA("setRequestHead~~~~\n");
-    }
-
     addHeaderIfMissing(request, kAcceptHeader, acceptValue);
     addHeaderIfMissing(request, "Accept-Language", /*webPage->webPageImpl()->acceptLanguages()*/ "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,ja;q=0.5");
     addHeaderIfMissing(request, "Upgrade-Insecure-Requests", "1");
@@ -388,6 +382,24 @@ void WebLocalFrameClientImpl::FinalizeRequest(blink::WebURLRequest& req)
     setRequestHead(m_frame, req);
 }
 
+scoped_refptr<network::SharedURLLoaderFactory> CreateURLLoaderFactoryByMbWebview(int64_t id)
+{
+    scoped_refptr<mbnet::WebURLRequestExtraDataWrap> extraData = base::MakeRefCounted<mbnet::WebURLRequestExtraDataWrap>();
+    extraData->mbwebviewId = id;
+
+    scoped_refptr<base::SingleThreadTaskRunner> runner = base::SingleThreadTaskRunner::GetCurrentDefault();
+    mbnet::SingleRequestURLLoader* loader = new mbnet::SingleRequestURLLoader(runner, runner, nullptr, extraData);
+
+    return base::MakeRefCounted<mbnet::SingleReqURLLoaderFactory>(base::BindOnce(&mbnet::SingleRequestURLLoader::startLoader,
+        base::Unretained(loader)));
+}
+
+// third_party\blink\renderer\core\editing\serializers\serialization.cc
+scoped_refptr<network::SharedURLLoaderFactory> WebLocalFrameClientImpl::GetURLLoaderFactory()
+{
+    return CreateURLLoaderFactoryByMbWebview(m_mbwebviewId);
+}
+
 class WebHTTPHeaderVisitorimpl : public blink::WebHTTPHeaderVisitor {
 public:
     void VisitHeader(const blink::WebString& name, const blink::WebString& value) override
@@ -428,10 +440,13 @@ bool decidePolicyForNavigation(int64_t mbwebviewId, blink::WebLocalFrame* frame,
     case blink::kWebNavigationTypeOther:
         navigationType = MB_NAVIGATION_TYPE_OTHER;
         break;
+    case blink::kWebNavigationTypeRestore:
+    case blink::kWebNavigationTypeFormResubmittedBackForward:
+        navigationType = MB_NAVIGATION_TYPE_OTHER;
+        break;
     }
 
     BOOL result = TRUE;
-    mbWebView webviewHandle = (mbWebView)mbwebviewId;
     std::string urlStr = gurl.possibly_invalid_spec().c_str();
     const char* url = urlStr.c_str();
     ThreadCall::callUiThreadSync(FROM_HERE, [&result, mbwebviewId, navigationType, url] {
@@ -1037,6 +1052,8 @@ mbWebFrameHandle v8ContextToMbWebFrameHandle(v8::Local<v8::Context> context)
     return frameId;
 }
 
+void printCallstack();
+
 void WebLocalFrameClientImpl::DidAddMessageToConsole(
     const blink::WebConsoleMessage& message, const blink::WebString& source_name, unsigned source_line, const blink::WebString& stack_trace)
 {
@@ -1063,6 +1080,8 @@ void WebLocalFrameClientImpl::DidAddMessageToConsole(
     OutputDebugStringW((const WCHAR*)textW.c_str());
 #endif
 
+    printCallstack();
+
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(m_mbwebviewId);
     if (!webview || !(webview->getClosure().m_ConsoleCallback))
         return;
@@ -1086,17 +1105,50 @@ public:
 class AnchorElementInteractionHostImpl : public ::blink::mojom::blink::AnchorElementInteractionHost {
     void OnPointerDown(const ::blink::KURL& target) override
     {
-        *(int*)1 = 1;
+        OutputDebugStringA("AnchorElementInteractionHostImpl::OnPointerDown not impl\n");
     }
 
     void OnPointerHover(const ::blink::KURL& target, blink::mojom::blink::AnchorElementPointerDataPtr mouseData) override
     {
-        *(int*)1 = 1;
+        OutputDebugStringA("AnchorElementInteractionHostImpl::OnPointerHover not impl\n");
     }
 
     void OnViewportHeuristicTriggered(const ::blink::KURL& target) override
     {
-        *(int*)1 = 1;
+        OutputDebugStringA("AnchorElementInteractionHostImpl::OnViewportHeuristicTriggered not impl\n");
+    }
+};
+
+class AnchorElementMetricsHostImpl : public ::blink::mojom::blink::AnchorElementMetricsHost {
+    ~AnchorElementMetricsHostImpl() override = default;
+
+    void ReportAnchorElementClick(::blink::mojom::blink::AnchorElementClickPtr clicked) override {}
+
+    void ReportNewAnchorElements(WTF::Vector<::blink::mojom::blink::AnchorElementMetricsPtr> metrics, const WTF::Vector<uint32_t>& removed_elements) override {}
+
+    void ReportAnchorElementsEnteredViewport(WTF::Vector<::blink::mojom::blink::AnchorElementEnteredViewportPtr> elements) override {}
+
+    void ReportAnchorElementsLeftViewport(WTF::Vector<::blink::mojom::blink::AnchorElementLeftViewportPtr> elements) override {}
+
+    void ReportAnchorElementsPositionUpdate(WTF::Vector<::blink::mojom::blink::AnchorElementPositionUpdatePtr> elements) override {}
+
+    void ReportAnchorElementPointerOver(::blink::mojom::blink::AnchorElementPointerOverPtr pointer_over_event) override {}
+
+    void ReportAnchorElementPointerOut(::blink::mojom::blink::AnchorElementPointerOutPtr hover_event) override {}
+
+    void ReportAnchorElementPointerDown(::blink::mojom::blink::AnchorElementPointerDownPtr pointer_down_event) override {}
+
+    void ReportAnchorElementPointerDataOnHoverTimerFired(::blink::mojom::blink::AnchorElementPointerDataOnHoverTimerFiredPtr pointer_data) override {}
+
+    void ProcessPointerEventUsingMLModel(::blink::mojom::blink::AnchorElementPointerEventForMLModelPtr pointer_event) override {}
+
+    //using ShouldSkipUpdateDelaysCallback = base::OnceCallback<void(bool)>;
+    void ShouldSkipUpdateDelays(::blink::mojom::blink::AnchorElementMetricsHost::ShouldSkipUpdateDelaysCallback callback) override
+    {
+        base::SequencedTaskRunner::GetCurrentDefault()->PostTask(MB_FROM_HERE, base::BindOnce([](
+            ::blink::mojom::blink::AnchorElementMetricsHost::ShouldSkipUpdateDelaysCallback cb) {
+            std::move(cb).Run(true);
+        }, std::move(callback)));
     }
 };
 
@@ -1154,6 +1206,14 @@ void WebLocalFrameClientImpl::GetInterface(::mojo::GenericPendingReceiver receiv
         createAndBindInterface<::blink::mojom::blink::NonAssociatedLocalFrameHost, NonAssociatedLocalFrameHostImpl>(receiver.PassPipe());
     } else if ("blink.mojom.AnchorElementInteractionHost" == name) {
         createAndBindInterface<::blink::mojom::blink::AnchorElementInteractionHost, AnchorElementInteractionHostImpl>(receiver.PassPipe());
+    } else if ("blink.mojom.blink.DevicePostureProvider" == name) {
+        createAndBindInterface<::blink::mojom::blink::DevicePostureProvider, DevicePostureProviderImpl>(receiver.PassPipe());
+    } else if ("blink.mojom.AnchorElementMetricsHost" == name) {
+        createAndBindInterface<::blink::mojom::blink::AnchorElementMetricsHost, AnchorElementMetricsHostImpl>(receiver.PassPipe());
+    } else if ("blink.mojom.SpeculationHost" == name) {
+        createAndBindInterface<::blink::mojom::blink::SpeculationHost, SpeculationHostImpl>(receiver.PassPipe());
+    } else if ("blink.mojom.PermissionService" == name) {
+        createAndBindInterface<::blink::mojom::blink::PermissionService, PermissionServiceImpl>(receiver.PassPipe());
     } else
         DebugBreak();
 }

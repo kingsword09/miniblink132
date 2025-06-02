@@ -15,6 +15,7 @@ class MbWebView;
 class LocalFrameHostImpl : public ::blink::mojom::blink::LocalFrameHost {
 public:
     LocalFrameHostImpl(WebLocalFrameClientImpl* frameClient);
+    ~LocalFrameHostImpl();
 
     virtual void EnterFullscreen(
         ::blink::mojom::blink::FullscreenOptionsPtr options, ::blink::mojom::blink::LocalFrameHost::EnterFullscreenCallback callback) override;

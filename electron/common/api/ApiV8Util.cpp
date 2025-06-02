@@ -139,4 +139,4 @@ static const char CommonV8UtilSricpt[] = "exports = {};";
 
 static NodeNative nativeCommonV8UtilNative { "v8Util", CommonV8UtilSricpt, sizeof(CommonV8UtilSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_common_v8_util, initializeCommonV8UtilApi, &nativeCommonV8UtilNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_v8_util, initializeCommonV8UtilApi, &nativeCommonV8UtilNative)

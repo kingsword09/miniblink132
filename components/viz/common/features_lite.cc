@@ -276,7 +276,7 @@ BASE_FEATURE(kBatchMainThreadReleaseCallbacks, "BatchMainThreadReleaseCallbacks"
 BASE_FEATURE(kBatchResourceRelease, "BatchResourceRelease", base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Use BlitRequests for copy requests made by ViewTransition.
-BASE_FEATURE(kBlitRequestsForViewTransition, "BlitRequestsForViewTransition", base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kBlitRequestsForViewTransition, "BlitRequestsForViewTransition", base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Do HDR color conversion per render pass update rect in renderer instead of
 // inserting a separate color conversion pass during surface aggregation.

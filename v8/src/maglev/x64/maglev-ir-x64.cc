@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#ifdef V8_ENABLE_MAGLEV
+
 #include "src/base/logging.h"
 #include "src/codegen/interface-descriptors-inl.h"
 #include "src/codegen/x64/assembler-x64-inl.h"
@@ -849,3 +851,5 @@ void Return::GenerateCode(MaglevAssembler* masm, const ProcessingState& state)
 } // namespace maglev
 } // namespace internal
 } // namespace v8
+
+#endif

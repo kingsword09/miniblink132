@@ -1,6 +1,6 @@
 
 const EventEmitter = require('events').EventEmitter;
-const binding = process._linkedBinding('atom_browser_tray');
+const binding = process._linkedBinding('electron_browser_tray');
 const Tray = binding.Tray;
 Object.setPrototypeOf(Tray.prototype, EventEmitter.prototype);
 

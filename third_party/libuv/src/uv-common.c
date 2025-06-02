@@ -511,6 +511,21 @@ int uv_udp_try_send(uv_udp_t* handle, const uv_buf_t bufs[], unsigned int nbufs,
     return uv__udp_try_send(handle, bufs, nbufs, addr, addrlen);
 }
 
+int uv_udp_try_send2(
+    uv_udp_t* handle, unsigned int count, uv_buf_t* bufs[/*count*/], unsigned int nbufs[/*count*/], struct sockaddr* addrs[/*count*/], unsigned int flags)
+{
+    if (count < 1)
+        return UV_EINVAL;
+
+    if (flags != 0)
+        return UV_EINVAL;
+
+    if (handle->send_queue_count > 0)
+        return UV_EAGAIN;
+
+    return uv__udp_try_send2(handle, count, bufs, nbufs, addrs);
+}
+
 int uv_udp_recv_start(uv_udp_t* handle, uv_alloc_cb alloc_cb, uv_udp_recv_cb recv_cb)
 {
     if (handle->type != UV_UDP || alloc_cb == NULL || recv_cb == NULL)
@@ -555,6 +570,9 @@ static void uv__print_handles(uv_loop_t* loop, int only_active, FILE* stream)
 
     if (loop == NULL)
         loop = uv_default_loop();
+
+    if (stream == NULL)
+        stream = stderr;
 
     uv__queue_foreach(q, &loop->handle_queue)
     {
@@ -639,6 +657,9 @@ int uv_send_buffer_size(uv_handle_t* handle, int* value)
 int uv_fs_event_getpath(uv_fs_event_t* handle, char* buffer, size_t* size)
 {
     size_t required_len;
+
+    if (buffer == NULL || size == NULL || *size == 0)
+        return UV_EINVAL;
 
     if (!uv__is_active(handle)) {
         *size = 0;

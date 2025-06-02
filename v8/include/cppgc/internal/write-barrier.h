@@ -97,7 +97,7 @@ public:
 #if V8_ENABLE_CHECKS
     static void CheckParams(Type expected_type, const Params& params);
 #else // !V8_ENABLE_CHECKS
-    static void CheckParams(Type expected_type, const Params& params)
+    inline static void CheckParams(Type expected_type, const Params& params)
     {
     }
 #endif // !V8_ENABLE_CHECKS

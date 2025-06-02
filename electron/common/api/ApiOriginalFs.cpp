@@ -22,4 +22,4 @@ static const char CommonOriginalFsSricpt[] = "module.exports = require('fs');";
 
 static NodeNative nativeCommonOriginalFsNative { "original-fs", CommonOriginalFsSricpt, sizeof(CommonOriginalFsSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_common_original_fs, initializeCommonOriginalFsApi, &nativeCommonOriginalFsNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_original_fs, initializeCommonOriginalFsApi, &nativeCommonOriginalFsNative)

@@ -467,7 +467,7 @@ public:
     void PrintUC16(StringStream* accumulator, int start, int end);
 
     // Dispatched behavior.
-#if defined(DEBUG) || defined(OBJECT_PRINT)
+#if defined(V8_DEBUG) || defined(OBJECT_PRINT)
     char* ToAsciiArray();
 #endif
     DECL_PRINTER(String)

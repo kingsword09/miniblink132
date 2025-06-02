@@ -9,11 +9,16 @@
 #include "electron/common/gin_helper/dictionary.h"
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
+#include "third_party/blink/public/common/messaging/cloneable_message.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libnode/src/node_version.h"
 #include "third_party/libuv/include/uv.h"
 #include "base/values.h"
+
+namespace gin_helper {
+void testValIsTypeArray(v8::Local<v8::Value> value);
+}
 
 namespace mate {
 
@@ -69,6 +74,14 @@ v8::Local<v8::Value> emitEventImpl(
             dictionaryValue = outValue.GetIfDict();
             converted_args.push_back(gin_helper::Converter<base::Value::Dict>::ToV8(isolate, *dictionaryValue));
             break;
+        case base::Value::Type::BINARY: {
+            const base::Value::BlobStorage& blob = outValue.GetBlob();
+            blink::CloneableMessage ret;
+            ret.encoded_message = blob;
+            v8::Local<v8::Value> clonedValue = gin_helper::ConvertToV8(isolate, std::move(ret));
+            gin_helper::testValIsTypeArray(clonedValue);
+            converted_args.push_back(clonedValue);
+        }
         case base::Value::Type::NONE:
             converted_args.push_back(v8::Null(isolate));
             break;

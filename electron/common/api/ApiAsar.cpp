@@ -313,4 +313,4 @@ void initializeAsarApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unuse
 static const char CommonAsarNative[] = "console.log('CommonAsarNative');;";
 static NodeNative nativeCommonAsarNative { "Asar", CommonAsarNative, sizeof(CommonAsarNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_common_asar, atom::initializeAsarApi, &nativeCommonAsarNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_asar, atom::initializeAsarApi, &nativeCommonAsarNative)

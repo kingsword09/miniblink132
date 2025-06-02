@@ -16,6 +16,7 @@
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/system/platform_handle.h"
 #include "services/viz/privileged/mojom/compositing/layered_window_updater.mojom.h"
+#include "third_party/skia/src/core/SkImagePriv.h"
 #include "skia/ext/platform_canvas.h"
 #if BUILDFLAG(IS_WIN)
 #include "skia/ext/skia_utils_win.h"
@@ -224,22 +225,22 @@ void SoftwareOutputDeviceWinOrLinux::EndPaintDelegated(const gfx::Rect& damage_r
     }
 
     if (transparent_background_canvas_.get()) {
-        *(int*)1 = 1;
-//         SkBitmap bitmap;
-//         SkAlphaType alpha = kPremul_SkAlphaType;
-//         SkImageInfo info = SkImageInfo::MakeN32(bitmap_pixels_size_.width(), bitmap_pixels_size_.height(), alpha);
-//         bitmap.installPixels(info, transparent_background_pixels_, bitmap_pixels_size_.width() * 4, nullptr, nullptr);
-// 
-//         sk_sp<SkImage> img = SkImage::MakeFromBitmap(bitmap);
-//         SkRect r = gfx::RectToSkRect(damage_rect);
-// 
-//         SkPaint paint;
-//         paint.setColor(has_background_color_ ? SkColor4f::FromColor(background_color_) : SkColors::kTransparent);
-//         paint.setBlendMode(SkBlendMode::kSrc);
-//         paint.setStyle(SkPaint::Style::kFill_Style);
-//         canvas_->drawRect(r, paint);
-// 
-//         canvas_->drawImageRect(img.get(), r, r, SkSamplingOptions(), nullptr, SkCanvas::kFast_SrcRectConstraint);
+        SkBitmap bitmap;
+        SkAlphaType alpha = kPremul_SkAlphaType;
+        SkImageInfo info = SkImageInfo::MakeN32(bitmap_pixels_size_.width(), bitmap_pixels_size_.height(), alpha);
+        bitmap.installPixels(info, transparent_background_pixels_, bitmap_pixels_size_.width() * 4, nullptr, nullptr);
+        
+        sk_sp<SkImage> img = SkMakeImageFromRasterBitmap(bitmap, kIfMutable_SkCopyPixelsMode);
+        //sk_sp<SkImage> img = SkImage::MakeFromBitmap(bitmap);
+        SkRect r = gfx::RectToSkRect(damage_rect);
+
+        SkPaint paint;
+        paint.setColor(has_background_color_ ? SkColor4f::FromColor(background_color_) : SkColors::kTransparent);
+        paint.setBlendMode(SkBlendMode::kSrc);
+        paint.setStyle(SkPaint::Style::kFill_Style);
+        canvas_->drawRect(r, paint);
+
+        canvas_->drawImageRect(img.get(), r, r, SkSamplingOptions(), nullptr, SkCanvas::kFast_SrcRectConstraint);
     }
     canvas_lock_.Release();
 

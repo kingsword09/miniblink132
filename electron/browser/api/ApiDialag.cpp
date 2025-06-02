@@ -835,6 +835,6 @@ static const char BrowserDialogNative[] = "console.log('BrowserDialogNative');"
 
 static NodeNative nativeBrowserDialogNative { "Dialog", BrowserDialogNative, sizeof(BrowserDialogNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_dialog, initializeDialogApi, &nativeBrowserDialogNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_dialog, initializeDialogApi, &nativeBrowserDialogNative)
 
 }

@@ -148,6 +148,6 @@ void initializeBrowserWebRequestApi(v8::Local<v8::Object> exports, v8::Local<v8:
 static const char BrowserWebRequestName[] = "console.log('BrowserWebRequestNative');;";
 static NodeNative BrowserWebRequestNative { "WebRequest", BrowserWebRequestName, sizeof(BrowserWebRequestName) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_webrequest, initializeBrowserWebRequestApi, &BrowserWebRequestNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_webrequest, initializeBrowserWebRequestApi, &BrowserWebRequestNative)
 
 } // atom namespace

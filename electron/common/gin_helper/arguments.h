@@ -8,6 +8,8 @@
 #include "gin/gin_export.h"
 #include "electron/common/gin_helper/converter.h"
 
+extern "C" void __stdcall OutputDebugStringA(const char* lpOutputString);
+
 namespace gin_helper {
 
 // Arguments is a wrapper around v8::FunctionCallbackInfo that integrates
@@ -26,7 +28,7 @@ public:
 
     template <typename T> bool GetHolder(T* out)
     {
-        return ConvertFromV8(isolate_, info_->Holder(), out);
+        return ConvertFromV8(isolate_, info_->This/*Holder*/(), out);
     }
 
     template <typename T> bool GetData(T* out)
@@ -41,7 +43,10 @@ public:
             return false;
         }
         v8::Local<v8::Value> val = (*info_)[next_++];
-        return ConvertFromV8(isolate_, val, out);
+        bool ok = ConvertFromV8(isolate_, val, out);
+        if (!ok)
+            OutputDebugStringA("GetNext failed!\n");
+        return ok;
     }
 
     template <typename T> bool GetRemaining(std::vector<T>* out)

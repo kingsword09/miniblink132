@@ -2,7 +2,7 @@
 //process._linkedBinding('electron');
 const electron = require('electron');
 const electronMain = require('electron/main');
-//const electron = process._linkedBinding('atom_browser_electron');
+//const electron = process._linkedBinding('electron_browser_electron');
 
 const ipcMain = require('./api/ipc-main');
 electron.ipcMain = ipcMain;

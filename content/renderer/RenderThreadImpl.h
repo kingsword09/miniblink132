@@ -9,6 +9,7 @@
 
 namespace blink {
 class WebNavigationControl;
+class AssociatedInterfaceProvider;
 }
 
 namespace content {
@@ -76,6 +77,8 @@ public:
     {
         return m_compositorTaskRunner;
     }
+
+    void OverrideAssociatedInterfaceProvider(blink::AssociatedInterfaceProvider* associatedInterfaceProvider);
 
     void createTestView();
     void loadTestUrl(const char* urlStr, blink::WebNavigationControl* navigationControl);

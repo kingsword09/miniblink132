@@ -8,6 +8,7 @@
 #include "electron/common/gin_helper/dictionary.h"
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
+#include "third_party/blink/renderer/platform/weborigin/scheme_registry.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libuv/include/uv.h"
@@ -16,6 +17,7 @@
 #include "electron/common/api/EventEmitter.h"
 #include "content/common/ThreadCall.h"
 #include "mbvip/core/mb.h"
+#include "base/memory/ref_counted.h"
 #include <vector>
 #include <map>
 
@@ -157,6 +159,13 @@ public:
         std::map<std::string, ProtocolInfo>::iterator it = m_schemeToHandleId.find(scheme);
         if (it != m_schemeToHandleId.end())
             return false;
+
+        content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [scheme] {
+            WTF::String schemeStr = WTF::String::FromUTF8(scheme);
+            blink::SchemeRegistry::RegisterURLSchemeAsSupportingFetchAPI(schemeStr);
+            blink::SchemeRegistry::RegisterURLSchemeAsAllowingServiceWorkers(schemeStr);
+        });
+
         m_schemeToHandleId.insert(std::make_pair(scheme, ProtocolInfo(handlerId, type)));
         return true;
     }
@@ -251,7 +260,7 @@ public:
             //                     mbNetSetHTTPHeaderField(info->job, StringUtil::UTF8ToUTF16(it->first).c_str(), StringUtil::UTF8ToUTF16(it->second).c_str(), FALSE);
             //                 }
             mbNetContinueJob(info->job);
-            delete info;
+            //delete info;
         }
     }
 
@@ -279,7 +288,7 @@ public:
         std::string* referrer = new std::string(mbNetGetReferrer(job));
         mbRequestType httpMethod = mbNetGetRequestMethod(job);
 
-        content::ThreadCall::callUiThreadAsync(FROM_HERE, [id, info, referrer, httpMethod] {
+        content::ThreadCall::callUiThreadAsync(FROM_HERE, [id, info, referrer, httpMethod, job] {
             v8::Isolate* isolate = v8::Isolate::GetCurrent();
             Protocol* self = (Protocol*)Protocol::inst();
             v8::Local<v8::Value> args[5];
@@ -299,19 +308,21 @@ public:
             if (!func->GetCreationContext().IsEmpty())
                 func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate), 3, args);
 
+            if (!info->isCalled) {
+                info->isAsnyc = true;
+                mbNetHoldJobToAsynCommit(job);
+            } else {
+                if (info->isCancel)
+                    mbNetCancelRequest(job);
+                else
+                    mbNetHoldJobToAsynCommit(job);
+            }
+            delete info;
+
             delete referrer;
         });
 
-        if (!info->isCalled) {
-            info->isAsnyc = true;
-            mbNetHoldJobToAsynCommit(job);
-        } else {
-            if (info->isCancel)
-                mbNetCancelRequest(job);
-            else
-                mbNetHoldJobToAsynCommit(job);
-            delete info;
-        }
+        mbNetHoldJobToAsynCommit(job);
 
         return true;
     }
@@ -344,4 +355,4 @@ void initializeProtocolApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> u
 static const char BrowserProtocolNative[] = "console.log('BrowserProtocolNative');;";
 static NodeNative nativeBrowserProtocolNative { "Protocol", BrowserProtocolNative, sizeof(BrowserProtocolNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_protocol, atom::initializeProtocolApi, &nativeBrowserProtocolNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_protocol, atom::initializeProtocolApi, &nativeBrowserProtocolNative)

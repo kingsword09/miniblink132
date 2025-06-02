@@ -10,11 +10,13 @@
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/renderer/core/exported/web_view_impl.h"
 #include "third_party/blink/renderer/modules/storage/storage_area_map.h"
+#include "third_party/blink/renderer/modules/storage/cached_storage_area.h"
 #include "third_party/blink/public/mojom/dom_storage/dom_storage.mojom-blink.h"
 #include "third_party/blink/public/mojom/dom_storage/storage_area.mojom-blink.h"
 #include "third_party/blink/public/mojom/dom_storage/session_storage_namespace.mojom-blink.h"
 #include "third_party/blink/public/platform/file_path_conversion.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
+#include "third_party/blink/renderer/platform/wtf/text/string_buffer.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
@@ -30,7 +32,7 @@ bool ::blink::mojom::blink::StorageArea::GetAll(
 namespace content {
 
 class StorageAreaImpl;
-static const char* kLocalStorageExtensionName = ".localstorage";
+//static const char* kLocalStorageExtensionName = ".localstorage";
 
 static const char* kSeparator = "--mb-sep--\n";
 static size_t kSeparatorLength = 11;
@@ -40,13 +42,13 @@ static size_t kEmptySepratorLength = 10;
 
 class StorageAreaImplMgr {
 public:
-    static WTF::String buildFileNameStringByStorageKey(const ::blink::BlinkStorageKey& storageKey)
+    static WTF::String buildFileNameStringByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey)
     {
         WTF::String name = buildFileName(storageKey);
         WTF::String key = storageKey.ToDebugString();
         unsigned hash = WTF::HashTraits<String>::GetHash(key);
 
-        return WTF::String::Format("%s_%d.localsto", name.Utf8().c_str(), hash);
+        return WTF::String::Format(isLocal ? "local_%s_%d.localsto" : "session_%s_%d.localsto", name.Utf8().c_str(), hash);
     }
 
     static StorageAreaImplMgr* get();
@@ -86,9 +88,28 @@ public:
         m_storageKey = storageKey;
     }
 
+    bool isLocal() const { return m_isLocal; }
+
     void setStorageAreaMap(blink::StorageAreaMap* areaMap)
     {
         m_areaMap = areaMap;
+    }
+
+    String getItem(const String& key, bool* found) const
+    {
+        *found = false;
+        if (!m_areaMap)
+            return g_empty_string;
+
+        *found = true;
+        return m_areaMap->GetItem(key);
+    }
+
+    unsigned getLength()
+    {
+        if (!m_areaMap)
+            return 0;
+        return m_areaMap->GetLength();
     }
 
     void destroy()
@@ -97,8 +118,7 @@ public:
             return;
         m_isDestroying = true;
         StorageAreaImpl* self = this;
-        ThreadCall::callBlinkThreadDelayed(
-            FROM_HERE, [self] { delete self; }, 5000);
+        ThreadCall::callBlinkThreadDelayed(FROM_HERE, [self] { delete self; }, 5000);
     }
 
     void toSave()
@@ -107,8 +127,7 @@ public:
             return;
         m_isSaving = true;
         StorageAreaImpl* self = this;
-        ThreadCall::callBlinkThreadDelayed(
-            FROM_HERE, [self] { self->delaySave(); }, 1500);
+        ThreadCall::callBlinkThreadDelayed(FROM_HERE, [self] { self->delaySave(); }, 1500);
     }
 
     void loadFromFile(const base::FilePath& localPathDir, WTF::Vector<::blink::mojom::blink::KeyValuePtr>* outData)
@@ -117,7 +136,7 @@ public:
             return;
 
         if (m_localPath.empty()) {
-            String localStorage = StorageAreaImplMgr::buildFileNameStringByStorageKey(m_storageKey);
+            String localStorage = StorageAreaImplMgr::buildFileNameStringByStorageKey(m_isLocal, m_storageKey);
             base::FilePath localPath = localPathDir;
             m_localPath = localPath.Append(blink::StringToFilePath(localStorage));
         }
@@ -132,7 +151,6 @@ public:
         loadFromBufferImpl(buffer, outData);
     }
 
-private:
     // look: CachedStorageArea::Uint8VectorToString
     static void StringToUint8Vector(WTF::Vector<uint8_t>* buf)
     {
@@ -141,11 +159,48 @@ private:
         if (base::UTF8ToUTF16((const char*)buf->data(), buf->size(), &output)) {
             buf->clear();
             buf->resize(1 + output.size() * sizeof(char16_t));
-            (*buf)[0] = 0;
+            (*buf)[0] = 0; // StorageFormat::UTF16
             memcpy(buf->data() + 1, output.data(), output.size() * sizeof(char16_t));
         }
     }
 
+    static String Uint8VectorToString(const Vector<uint8_t>& input, blink::CachedStorageArea::FormatOption format_option)
+    {
+        if (input.empty())
+            return g_empty_string;
+        const wtf_size_t input_size = input.size();
+        String result;
+        bool corrupt = false;
+
+        /*StorageFormat*/uint8_t format = static_cast<uint8_t>(input[0]);
+        const wtf_size_t payload_size = input_size - 1;
+        switch (format) {
+            case /*StorageFormat::UTF16*/0:
+            {
+                if (payload_size % sizeof(UChar) != 0) {
+                    corrupt = true;
+                    break;
+                }
+                WTF::StringBuffer<UChar> buffer(payload_size / sizeof(UChar));
+                std::memcpy(buffer.Characters(), input.data() + 1, payload_size);
+                result = String::Adopt(buffer);
+                break;
+            }
+            case /*StorageFormat::Latin1*/1:
+                result = String(base::span(input.data(), input.size()).subspan(1));
+                break;
+            default:
+                corrupt = true;
+        }
+        if (corrupt) {
+            // TODO(mek): Better error recovery when corrupt (or otherwise invalid) data
+            // is detected.
+            return g_empty_string;
+        }
+        return result;
+    }
+
+private:
     void loadFromBufferImpl(const std::string& buffer, WTF::Vector<::blink::mojom::blink::KeyValuePtr>* outData)
     {
         const char* pos = &buffer[0];
@@ -198,7 +253,7 @@ private:
 
     void delaySave()
     {
-        if (!m_areaMap)
+        if (!m_areaMap || !m_isLocal)
             return;
 
         std::string buffer;
@@ -255,7 +310,7 @@ StorageAreaImplMgr* StorageAreaImplMgr::get()
 
 StorageAreaImpl* StorageAreaImplMgr::findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey)
 {
-    WTF::String key = buildFileNameStringByStorageKey(storageKey);
+    WTF::String key = buildFileNameStringByStorageKey(isLocal, storageKey);
     WTF::HashMap<String, StorageAreaImpl*>::iterator it = m_areas.find(key);
     if (it != m_areas.end())
         return it->value;
@@ -310,17 +365,74 @@ public:
         s_StorageAreaStub--;
     }
 
-    void AddObserver(::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> observer) override
+    void addObserverImpl(::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> observer)
     {
         CHECK(ThreadCall::isBlinkThread());
+
+        mojo::Remote<::blink::mojom::blink::StorageAreaObserver> observerRemote(std::move(observer));
+
+        // 清理掉那些已经失效的
+        mojo::RemoteSet<::blink::mojom::blink::StorageAreaObserver> newObservers;
+        for (const mojo::RemoteSet<::blink::mojom::blink::StorageAreaObserver>::Iterator& it = (m_observers.begin()); 
+            it != m_observers.end();) {
+            ::mojo::Remote<::blink::mojom::blink::StorageAreaObserver>& observer = (::mojo::Remote<::blink::mojom::blink::StorageAreaObserver>&)(*it);
+            if (observer.TryGet()) {
+                newObservers.Add(std::move(observer));
+            } else
+                ++((mojo::RemoteSet<::blink::mojom::blink::StorageAreaObserver>::Iterator&)it);
+        }
+        m_observers.Clear();
+
+        for (const mojo::RemoteSet<::blink::mojom::blink::StorageAreaObserver>::Iterator& it = (newObservers.begin());
+            it != newObservers.end();) {
+            ::mojo::Remote<::blink::mojom::blink::StorageAreaObserver>& observer = (::mojo::Remote<::blink::mojom::blink::StorageAreaObserver>&)(*it);
+            m_observers.Add(std::move(observer));
+        }
+
+        m_observers.Add(std::move(observerRemote));
     }
 
-    void SetStorageAreaMap(void* areaMap) /*override*/
+    // components/services/storage/dom_storage/storage_area_impl.cc
+    void AddObserver(::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> observer) override
+    {
+        addObserverImpl(std::move(observer));
+    }
+
+    void SetStorageAreaMap(void* areaMap) override
     {
         m_impl->setStorageAreaMap((blink::StorageAreaMap*)areaMap);
     }
 
-    void Put(const WTF::Vector<uint8_t>& key, const WTF::Vector<uint8_t>& value, const absl::optional<WTF::Vector<uint8_t>>& client_old_value,
+    enum DelayDispatchObserversType {
+        kPut, kDelete, kDeleteAll
+    };
+
+    void delayDispatchObservers(DelayDispatchObserversType type,
+        const WTF::Vector<uint8_t>& key,
+        const WTF::Vector<uint8_t>& value, 
+        const absl::optional<WTF::Vector<uint8_t>>& clientOldValue,
+        const WTF::String& source, 
+        base::OnceCallback<void(bool)> callback)
+    {
+        if (m_impl->isLocal()) {
+            for (const auto& observer : m_observers) {
+                if (!observer.TryGet())
+                    continue;
+
+                if (type == kPut) {
+                    observer->KeyChanged(key, value, clientOldValue, source);
+                } else if (type == kDelete) {
+                    observer->KeyDeleted(key, std::nullopt, source);
+                } else if (type == kDeleteAll) {
+                    bool wasNonempty = (m_impl->getLength() == 0);
+                    observer->AllDeleted(/*was_nonempty=*/wasNonempty, source);
+                }
+            }
+        }
+        std::move(callback).Run(true); // Key already has this value.
+    }
+
+    void Put(const WTF::Vector<uint8_t>& key, const WTF::Vector<uint8_t>& value, const absl::optional<WTF::Vector<uint8_t>>& clientOldValue,
         const WTF::String& source, PutCallback callback) override
     {
         CHECK(ThreadCall::isBlinkThread());
@@ -332,21 +444,39 @@ public:
         //         memcpy(ptr2, value.data(), value.size());
         //         ptr[value.size()] = 0;
 
+        if (m_impl->isLocal()) {
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, 
+                base::BindOnce(&StorageAreaStub::delayDispatchObservers, base::Unretained(this), 
+                    DelayDispatchObserversType::kPut, key, value, clientOldValue, source, std::move(callback)));
+        }
         m_impl->toSave();
     }
 
-    void Delete(const WTF::Vector<uint8_t>& key, const absl::optional<WTF::Vector<uint8_t>>& client_old_value, const WTF::String& source,
+    void Delete(const WTF::Vector<uint8_t>& key, const absl::optional<WTF::Vector<uint8_t>>& clientOldValue, const WTF::String& source,
         ::blink::mojom::blink::StorageArea::DeleteCallback callback) override
     {
         CHECK(ThreadCall::isBlinkThread());
+        if (m_impl->isLocal()) {
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce(&StorageAreaStub::delayDispatchObservers, base::Unretained(this),
+                    DelayDispatchObserversType::kDelete, key, WTF::Vector<uint8_t>(), std::nullopt, source, std::move(callback)));
+        }
+
         m_impl->toSave();
-        std::move(callback).Run(true);
     }
 
-    void DeleteAll(const WTF::String& source, ::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> new_observer,
+    void DeleteAll(const WTF::String& source, ::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> newObserver,
         ::blink::mojom::blink::StorageArea::DeleteAllCallback callback) override
     {
         CHECK(ThreadCall::isBlinkThread());
+        addObserverImpl(std::move(newObserver));
+
+        if (m_impl->isLocal()) {
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce(&StorageAreaStub::delayDispatchObservers, base::Unretained(this),
+                    DelayDispatchObserversType::kDeleteAll, WTF::Vector<uint8_t>(), WTF::Vector<uint8_t>(), std::nullopt, source, std::move(callback)));
+        }
+
         m_impl->toSave();
     }
 
@@ -360,27 +490,31 @@ public:
         ::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> newObserver, WTF::Vector<::blink::mojom::blink::KeyValuePtr>* outData) override
     {
         CHECK(ThreadCall::isBlinkThread());
+        addObserverImpl(std::move(newObserver));
+
         //m_impl->loadFromFile(String("W:\\mycode\\mb108\\out\\Debug\\localstorage\\"), outData);
         //m_impl->loadFromFile(m_localStorageDir, outData); // !!!!!!!!!!!!!!!!
         outData->swap(m_outData);
         return true;
     }
 
-    void GetAll(::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> new_observer, GetAllCallback callback) override
+    void GetAll(::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> newObserver, GetAllCallback callback) override
     {
         CHECK(ThreadCall::isBlinkThread());
+        addObserverImpl(std::move(newObserver));
         DebugBreak();
     }
 
     void Checkpoint() override
     {
-        DebugBreak();
+
     }
 
 private:
     base::FilePath m_localStorageDir;
     WTF::Vector<::blink::mojom::blink::KeyValuePtr> m_outData;
     StorageAreaImpl* m_impl = nullptr;
+    mojo::RemoteSet<::blink::mojom::blink::StorageAreaObserver> m_observers;
 };
 
 class SessionStorageNamespaceImpl : public ::blink::mojom::blink::SessionStorageNamespace {

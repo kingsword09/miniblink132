@@ -1,6 +1,6 @@
 'use strict'
 
-var v8Util = process._linkedBinding('atom_common_v8_util').v8Util;
+var v8Util = process._linkedBinding('electron_common_v8_util').v8Util;
 v8Util = new v8Util();
 
 class CallbacksRegistry {

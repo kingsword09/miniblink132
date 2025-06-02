@@ -429,4 +429,4 @@ void initializeWebFrameApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> t
 static const char RenererWebFrameNative[] = "console.log('RenererWebFrameNative');;";
 static NodeNative nativeRenererWebFrameNative { "WebFrame", RenererWebFrameNative, sizeof(RenererWebFrameNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_renerer_webframe, atom::initializeWebFrameApi, &nativeRenererWebFrameNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_renerer_webframe, atom::initializeWebFrameApi, &nativeRenererWebFrameNative)

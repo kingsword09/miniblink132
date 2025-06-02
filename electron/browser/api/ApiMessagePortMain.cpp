@@ -8,6 +8,7 @@
 #include "electron/common/NodeThread.h"
 #include "electron/common/AtomVersion.h"
 #include "electron/common/V8Util.h"
+#include "electron/common/api/GetConstructorFromTls.h"
 #include "electron/common/api/EventEmitter.h"
 #include "electron/common/api/EventEmitterCaller.h"
 #include "electron/common/gin_helper/dictionary.h"
@@ -24,6 +25,10 @@
 #include "base/command_line.h"
 #include <unordered_set>
 
+namespace content {
+void printCallstack();
+}
+
 // electron\shell\browser\api\electron_api_utility_process.cc
 namespace atom {
 
@@ -31,6 +36,7 @@ namespace atom {
 
 gin_helper::WrapperInfo ApiMessagePortMain::kWrapperInfo = { gin_helper::GinEmbedder::kEmbedderNativeGin };
 v8::Persistent<v8::Function> s_ApiMessagePortMainConstructor;
+//DWORD s_ApiMessagePortMainConstructorTlsKey = 0;
 
 static void initializeApiMessagePortMain(v8::Local<v8::Object> target, v8::Local<v8::Value> unused, v8::Local<v8::Context> context, const NodeNative* native)
 {
@@ -52,6 +58,11 @@ static void createPair(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void ApiMessagePortMain::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node::Environment* env)
 {
+//     v8::Persistent<v8::Function>* constructor = atom::V8PersistentTls::get(&s_ApiMessagePortMainConstructorTlsKey);
+//     if (!(*constructor).IsEmpty())
+//         return;
+    CHECK(s_ApiMessagePortMainConstructor.IsEmpty());
+
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::FunctionTemplate> prototype = v8::FunctionTemplate::New(isolate, ApiMessagePortMain::newFunction);
     gin_helper::ObjectTemplateBuilder builder(isolate, prototype->PrototypeTemplate());
@@ -63,6 +74,7 @@ void ApiMessagePortMain::init(v8::Isolate* isolate, v8::Local<v8::Object> target
 
     v8::Local<v8::Function> prototypFunc = prototype->GetFunction(context).ToLocalChecked();
     target->Set(context, v8::String::NewFromUtf8(isolate, "ApiMessagePortMain").ToLocalChecked(), prototypFunc);
+    //constructor->Reset(isolate, prototypFunc);
     s_ApiMessagePortMainConstructor.Reset(isolate, prototypFunc);
 
     gin_helper::Dictionary dict(isolate, target);
@@ -81,9 +93,26 @@ void ApiMessagePortMain::newFunction(const v8::FunctionCallbackInfo<v8::Value>& 
     info.GetReturnValue().Set(info.This());
 }
 
+void ApiMessagePortMain::delayPinOrUnpin()
+{
+    if (hasPendingActivity())
+        pin();
+    else
+        unpin();
+}
+
 ApiMessagePortMain::ApiMessagePortMain(v8::Isolate* isolate, v8::Local<v8::Object> wrapper)
 {
+    char output[100] = { 0 };
+    sprintf_s(output, 99, "ApiMessagePortMain::ApiMessagePortMain: %p\n", this);
+    OutputDebugStringA(output);
+
     gin_helper::Wrappable<ApiMessagePortMain>::InitWith(isolate, wrapper);
+
+    // 这里和原版electron不一样。原版没有在这pin。之所有这里要pin一下，因为有时候会在创建了ApiMessagePortMain
+    // 后，还没走到start就立马内存回收了。
+    pin();
+    m_delayPinOrUnpin.Start(FROM_HERE, base::Seconds(80000), base::BindOnce(&ApiMessagePortMain::delayPinOrUnpin, base::Unretained(this))); // TODO!!!!
 }
 
 ApiMessagePortMain::~ApiMessagePortMain()
@@ -99,7 +128,13 @@ ApiMessagePortMain* ApiMessagePortMain::create(v8::Isolate* isolate)
 {
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Function> constructorFunction = v8::Local<v8::Function>::New(isolate, s_ApiMessagePortMainConstructor);
-
+    //v8::Persistent<v8::Function>* constructor = atom::V8PersistentTls::get(&s_ApiMessagePortMainConstructorTlsKey);
+    //if ((*constructor).IsEmpty()) { // 如果没设置，说明可能是渲染线程里
+    //    v8::Local<v8::Object> dummuyTarget = v8::Object::New(isolate);
+    //    ApiMessagePortMain::init(isolate, dummuyTarget, nullptr);
+    //}
+    //v8::Local<v8::Function> constructorFunction = v8::Local<v8::Function>::New(isolate, *constructor);
+    
     v8::MaybeLocal<v8::Object> obj = constructorFunction->NewInstance(context, 0, nullptr); // call into ApiMessagePortMain::ApiMessagePortMain
     CHECK(!obj.IsEmpty());
 
@@ -110,34 +145,26 @@ ApiMessagePortMain* ApiMessagePortMain::create(v8::Isolate* isolate)
 
 bool ApiMessagePortMain::Accept(class mojo::Message* mojoMessage)
 {
-    OutputDebugStringA("ApiMessagePortMain::Accept\n");
-    return onAcceptHelper(getWrapper(), mojoMessage);
-    //     blink::TransferableMessage message;
-    //     if (!blink::mojom::blink::TransferableMessage::DeserializeFromMessage(std::move(*mojoMessage), &message))
-    //         return false;
-    //
-    //     v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    //     v8::HandleScope scope(isolate);
-    //
-    //     std::vector<ApiMessagePortMain*> ports = entanglePorts(isolate, std::move(message.ports));
-    //
-    //     v8::Local<v8::Value> messageValue = DeserializeV8Value(isolate, message);
-    //
-    //     v8::Local<v8::Object> self = GetWrapper(isolate);
-    //     if (self->IsEmpty())
-    //         return false;
-    //
-    //     v8::Local<v8::Object> event = gin_helper::DataObjectBuilder(isolate)
-    //         .Set("data", messageValue)
-    //         .Set("ports", ports)
-    //         .Build();
-    //     gin_helper::EmitEvent(isolate, self, "message", event);
-    //     return true;
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope scope(isolate);
+    return onChannelMessagingApiAcceptHelper(false, "message", getWrapper(), mojoMessage);
 }
 
 void ApiMessagePortMain::postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    postMessageHelper(m_connector.get(), info);
+    mojo::Message* mojoMessage = new mojo::Message;
+    if (!v8FunInfoToMojoMessage(info, mojoMessage, nullptr)) {
+        delete mojoMessage;
+        return;
+    }
+
+    base::SequencedTaskRunner::GetCurrentDefault()->PostNonNestableDelayedTask(
+    FROM_HERE, base::BindOnce([](ApiMessagePortMain* self, mojo::Message* mojoMessage) {
+        self->m_connector->Accept(mojoMessage);
+        delete mojoMessage;
+    }, base::Unretained(this), base::Unretained(mojoMessage)), base::Microseconds(3000));
+
+    //postMessageHelper(m_connector.get(), info);
 }
 
 void ApiMessagePortMain::startApi()
@@ -156,6 +183,8 @@ void ApiMessagePortMain::startApi()
 
 void ApiMessagePortMain::closeApi()
 {
+    content::printCallstack();
+
     if (m_closed)
         return;
     if (!isNeutered()) {
@@ -181,7 +210,7 @@ void ApiMessagePortMain::entangle(blink::MessagePortDescriptor port)
     m_port = std::move(port);
 
     char output[100] = { 0 };
-    sprintf_s(output, 99, "ApiMessagePortMain::entangle: %p\n", this);
+    sprintf_s(output, 99, "ApiMessagePortMain::entangle: %p, %d\n", this, m_port.handle().get().value());
     OutputDebugStringA(output);
 
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
@@ -205,10 +234,18 @@ blink::MessagePortChannel ApiMessagePortMain::disentangle()
 {
     DCHECK(!isNeutered());
     m_port.GiveDisentangledHandle(m_connector->PassMessagePipe());
+
+    //m_connector.release(); // !!!!!!!!!!TODO
     m_connector = nullptr;
 
+#if 0
     if (!hasPendingActivity())
         unpin();
+#else
+    // 延时再unpin，不然可能立马被回收了
+    m_delayPinOrUnpin.Stop();
+    m_delayPinOrUnpin.Start(FROM_HERE, base::Seconds(80000), base::BindOnce(&ApiMessagePortMain::delayPinOrUnpin, base::Unretained(this)));
+#endif
     return blink::MessagePortChannel(std::move(m_port));
 }
 
@@ -226,7 +263,7 @@ bool ApiMessagePortMain::hasPendingActivity() const
 std::vector<ApiMessagePortMain*> ApiMessagePortMain::entanglePorts(v8::Isolate* isolate, std::vector<blink::MessagePortChannel> channels)
 {
     std::vector<ApiMessagePortMain*> wrappedPorts;
-    for (auto& port : channels) {
+    for (blink::MessagePortChannel& port : channels) {
         ApiMessagePortMain* wrappedPort = ApiMessagePortMain::create(isolate);
         wrappedPort->entangle(std::move(port));
         wrappedPorts.emplace_back(wrappedPort);
@@ -236,7 +273,9 @@ std::vector<ApiMessagePortMain*> ApiMessagePortMain::entanglePorts(v8::Isolate* 
 
 // static
 std::vector<blink::MessagePortChannel> ApiMessagePortMain::disentanglePorts(
-    v8::Isolate* isolate, const std::vector<ApiMessagePortMain*>& ports, bool* threw_exception)
+    v8::Isolate* isolate, 
+    const std::vector<ApiMessagePortMain*>& ports, 
+    bool* threw_exception)
 {
     if (ports.empty())
         return std::vector<blink::MessagePortChannel>();
@@ -273,11 +312,10 @@ void ApiMessagePortMain::pin()
 {
     if (!m_pinned.IsEmpty())
         return;
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope scope(isolate);
-    v8::Local<v8::Value> self;
-    if (!GetWrapper(isolate).IsEmpty()) {
-        m_pinned.Reset(isolate, self);
+    v8::HandleScope scope(isolate());
+    v8::Local<v8::Object> self = GetWrapper(isolate());
+    if (!self.IsEmpty()) {
+        m_pinned.Reset(isolate(), self);
     }
 }
 
@@ -290,6 +328,6 @@ static const char ApiMessagePortMainSricpt[] = "exports = {};";
 
 static NodeNative nativeApiMessagePortMainNative { "ApiMessagePortMain", ApiMessagePortMainSricpt, sizeof(ApiMessagePortMainSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_message_port, initializeApiMessagePortMain, &nativeApiMessagePortMainNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_message_port, initializeApiMessagePortMain, &nativeApiMessagePortMainNative)
 
 } // atom

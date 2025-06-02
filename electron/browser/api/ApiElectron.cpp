@@ -65,12 +65,12 @@ static const char BrowserElectronNative[] = "var Module = require('module');"
                                             "//console.log('BrowserElectronNative:' + module);"
                                             "//require('./../browser/browser-window');"
                                             "//var electron = Module._load('./common/electron', null, false);"
-                                            "//const App = process.binding('atom_browser_app').App;"
+                                            "//const App = process.binding('electron_browser_app').App;"
                                             "//var electron = {app : App};"
                                             "exports = {};";
 
 static NodeNative nativeBrowserAppNative { "electron", BrowserElectronNative, sizeof(BrowserElectronNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_electron, initializeElectronApi, &nativeBrowserAppNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_electron, initializeElectronApi, &nativeBrowserAppNative)
 
 }

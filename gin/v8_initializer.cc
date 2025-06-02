@@ -597,8 +597,9 @@ base::FilePath V8Initializer::GetSnapshotFilePath(bool abi_32_bit, V8SnapshotFil
 
 V8SnapshotFileType GetLoadedSnapshotFileType()
 {
-    DCHECK(g_snapshot_file_type.has_value());
-    return *g_snapshot_file_type;
+    return V8SnapshotFileType::kDefault;
+//     DCHECK(g_snapshot_file_type.has_value());
+//     return *g_snapshot_file_type;
 }
 
 #endif // defined(V8_USE_EXTERNAL_STARTUP_DATA)

@@ -156,6 +156,6 @@ static const char SafeStorageSricpt[] = "exports = {};";
 
 static NodeNative nativeSafeStorageNative { "ApiSafeStorage", SafeStorageSricpt, sizeof(SafeStorageSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_safe_storage, initializeApiSafeStorage, &nativeSafeStorageNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_safe_storage, initializeApiSafeStorage, &nativeSafeStorageNative)
 
 } // atom

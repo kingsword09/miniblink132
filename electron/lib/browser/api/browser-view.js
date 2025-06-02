@@ -1,5 +1,5 @@
 
-const binding = process._linkedBinding('atom_browser_browserview');
+const binding = process._linkedBinding('electron_browser_browserview');
 const BrowserView = binding.BrowserView;
 
 Object.defineProperty(BrowserView.prototype, "webContents", {

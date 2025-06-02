@@ -236,12 +236,12 @@ private:
     ProcessResult ProcessNodeBase(NodeBase* node, const ProcessingState& state)
     {
         switch (node->opcode()) {
-#define CASE(OPCODE)                                                                                                                                           \
-    case Opcode::k##OPCODE:                                                                                                                                    \
-        if constexpr (!visit_identity_nodes && Opcode::k##OPCODE == Opcode::kIdentity) {                                                                       \
-            return ProcessResult::kContinue;                                                                                                                   \
-        }                                                                                                                                                      \
-        PreProcess(node->Cast<OPCODE>(), state);                                                                                                               \
+#define CASE(OPCODE) \
+    case Opcode::k##OPCODE: \
+        if constexpr (!visit_identity_nodes && Opcode::k##OPCODE == Opcode::kIdentity) { \
+            return ProcessResult::kContinue; \
+        } \
+        PreProcess(node->Cast<OPCODE>(), state); \
         return node_processor_.Process(node->Cast<OPCODE>(), state);
 
             NODE_BASE_LIST(CASE)

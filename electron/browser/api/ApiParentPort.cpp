@@ -68,7 +68,7 @@ public:
     /*virtual*/ bool onMessageReceived(const IPC::Message& message) override;
     /*virtual*/ void onChannelConnected(int32 peerPid) override
     {
-        m_channel = nullptr;
+        //m_channel = nullptr;
     }
     /*virtual*/ void onChannelError() override
     {
@@ -87,6 +87,8 @@ public:
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
+    void onRecvParentMessagePortImpl();
+    void bindIpcChannelProxy(const std::string& channelId, int64_t parentProcessId);
     void onParentMsg(const std::vector<char>& msg);
     void _sendApi(const v8::FunctionCallbackInfo<v8::Value>& info);
 
@@ -96,6 +98,8 @@ public:
     std::unique_ptr<mojo::Connector> m_connector;
 
     int64_t m_parentProcessId = 0;
+
+    uintptr_t m_parentPipe = 0; // 来自ApiUtilityProcess::ApiUtilityProcess
 
     static gin_helper::WrapperInfo kWrapperInfo;
 };
@@ -134,7 +138,7 @@ void ApiParentPort::newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Isolate* isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-    MessageBoxA(0, "ApiParentPort::newFunction", 0, 0);
+    //MessageBoxA(0, "ApiParentPort::newFunction", 0, 0);
 
     CHECK(args.IsConstructCall());
     if (args.Length() != 1)
@@ -145,29 +149,61 @@ void ApiParentPort::newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     args.GetReturnValue().Set(args.This());
 }
 
+static bool s_firstEvaluateModule = false; // nodejs是否加载了第一个js
+
+void PreEvaluateModule()
+{
+    s_firstEvaluateModule = true;
+    //OutputDebugStringA("PreEvaluateModule\n");
+}
+
+void PostEvaluateModule()
+{
+    //OutputDebugStringA("PostEvaluateModule\n");
+}
+
+void ApiParentPort::bindIpcChannelProxy(const std::string& channelId, int64_t parentProcessId)
+{
+    // 要延迟一下，不然js那边还没执行到process.parentPort.once
+    if (!s_firstEvaluateModule) {
+        base::SequencedTaskRunner::GetCurrentDefault()->PostNonNestableDelayedTask(FROM_HERE,
+            base::BindOnce([](ApiParentPort* self, const std::string& channelId, int64_t parentProcessId) {
+                self->bindIpcChannelProxy(channelId, parentProcessId);
+        }, base::Unretained(this), channelId, parentProcessId), base::Milliseconds(2000));
+        s_firstEvaluateModule = true;
+        return;
+    }
+    m_channel = (new IPC::ChannelProxy(channelId, IPC::Channel::MODE_CLIENT, nullptr, IoThread::get()->taskRunner()));
+    m_channel->AddFilter(m_messageFilterWrap.get());
+
+    char output[100] = { 0 };
+    sprintf_s(output, 99, "ApiParentPort::bindIpcChannelProxy: %d\n", parentProcessId);
+    //MessageBoxA(0, output, 0, 0);
+    OutputDebugStringA(output);
+    MojoBindIpcChannelProxy(parentProcessId, m_channel);
+}
+
 ApiParentPort::ApiParentPort(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, const gin_helper::Dictionary& options)
 {
     gin_helper::Wrappable<ApiParentPort>::InitWith(isolate, wrapper);
     m_mainThread = base::SequencedTaskRunner::GetCurrentDefault();
     m_messageFilterWrap = new MessageFilterWrap(this);
 
-    //bool isChildProcess = false;
-    //options.GetBydefaultVal("isChildProcess", "", &isChildProcess);
-
     CHECK(!s_childProcessParentPort);
     s_childProcessParentPort = this;
 
     base::CommandLine* cmd = base::CommandLine::ForCurrentProcess();
     std::string channelId = cmd->GetSwitchValueASCII(kElectronUtilProcChannelId);
-    m_channel = (new IPC::ChannelProxy(channelId, IPC::Channel::MODE_CLIENT, nullptr, IoThread::get()->taskRunner()));
-    m_channel->AddFilter(m_messageFilterWrap.get());
-
     std::vector<std::string> tempStr = base::SplitString(channelId, "|", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
     CHECK(tempStr.size() == 2);
     int64_t parentProcessId = 0;
     CHECK(base::StringToInt64(tempStr[0], &parentProcessId));
-    MojoBindIpcChannelProxy(parentProcessId, m_channel);
     m_parentProcessId = parentProcessId;
+
+    //MessageBoxA(0, "ApiParentPort::ApiParentPort", 0, 0);
+    OutputDebugStringA("ApiParentPort::ApiParentPort\n");
+
+    bindIpcChannelProxy(channelId, parentProcessId);
 }
 
 ApiParentPort::~ApiParentPort()
@@ -200,7 +236,27 @@ void ApiParentPort::create(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void ApiParentPort::_sendApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    postMessageHelper(m_connector.get(), info);
+    OutputDebugStringA("ApiParentPort::_sendApi\n");
+
+    mojo::Message mojoMessage;
+    if (!v8FunInfoToMojoMessage(info, &mojoMessage, nullptr))
+        return;
+
+    if (m_connector.get()) {
+        bool b = m_connector->Accept(&mojoMessage);
+        b ? OutputDebugStringA("ApiParentPort::_sendApi 1 ok\n") : OutputDebugStringA("ApiParentPort::_sendApi 1 fail\n");
+        return;
+    }
+
+    // 等待主进程的hello消息
+    m_mainThread->PostNonNestableDelayedTask(FROM_HERE, base::BindOnce([](ApiParentPort* self, const mojo::Message& mojoMessage) {
+        if (!self->m_connector) {
+            OutputDebugStringA("ApiParentPort::_sendApi 3 fail\n");
+            return;
+        }
+        bool b = self->m_connector->Accept((mojo::Message*)(&mojoMessage));
+        b ? OutputDebugStringA("ApiParentPort::_sendApi 2 ok\n") : OutputDebugStringA("ApiParentPort::_sendApi 2 fail\n");
+    }, base::Unretained(this), std::move(mojoMessage)), base::Milliseconds(3000));
 }
 
 bool ApiParentPort::onMessageReceived(const IPC::Message& message)
@@ -208,9 +264,8 @@ bool ApiParentPort::onMessageReceived(const IPC::Message& message)
     bool handled = true;
     bool deserializeSuccess = true;
     IPC_BEGIN_MESSAGE_MAP_EX(ApiParentPort, message, deserializeSuccess)
-    //IPC_MESSAGE_HANDLER(UtilityProcessMsg_PostToChildMessage, onParentMsg)
-    IPC_MESSAGE_HANDLER(UtilityProcessMsg_PostMessagePortToChildProcess, onRecvParentMessagePort)
-    IPC_MESSAGE_UNHANDLED(handled = false)
+        IPC_MESSAGE_HANDLER(UtilityProcessMsg_PostMessagePortToChildProcess, onRecvParentMessagePort)
+        IPC_MESSAGE_UNHANDLED(handled = false)
     IPC_END_MESSAGE_MAP_EX()
 
     return handled;
@@ -218,35 +273,7 @@ bool ApiParentPort::onMessageReceived(const IPC::Message& message)
 
 bool ApiParentPort::Accept(mojo::Message* mojoMessage)
 {
-    return onAcceptHelper(getWrapper(), mojoMessage);
-    //     blink::TransferableMessage message;
-    //     if (!blink::mojom::blink::TransferableMessage::DeserializeFromMessage(std::move(*mojoMessage), &message))
-    //         return false;
-    //
-    // //     v8::Isolate* isolate = JavascriptEnvironment::GetIsolate();
-    // //     v8::HandleScope handle_scope(isolate);
-    // //     auto wrapped_ports = MessagePort::EntanglePorts(isolate, std::move(message.ports));
-    // //     v8::Local<v8::Value> message_value = electron::DeserializeV8Value(isolate, message);
-    // //     v8::Local<v8::Object> self;
-    // //     if (!GetWrapper(isolate).ToLocal(&self))
-    // //         return false;
-    // //     auto event = gin::DataObjectBuilder(isolate)
-    // //         .Set("data", message_value)
-    // //         .Set("ports", wrapped_ports)
-    // //         .Build();
-    // //     gin_helper::EmitEvent(isolate, self, "message", event);
-    //
-    //     v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    //     v8::HandleScope handleScope(isolate);
-    //     v8::Local<v8::Value> messageValue = deserializeV8Value(isolate, message.encoded_message);
-    //
-    //     v8::Local<v8::Object> evt = gin_helper::DataObjectBuilder(isolate)
-    //         .Set("data", messageValue)
-    //         //.Set("ports", wrapped_ports)
-    //         .Build();
-    //     mate::emitEvent(isolate, getWrapper(), "message", evt);
-    //
-    //     return true;
+    return onChannelMessagingApiAcceptHelper(false, "message", getWrapper(), mojoMessage);
 }
 
 void ApiParentPort::closePipe()
@@ -254,24 +281,39 @@ void ApiParentPort::closePipe()
     m_channel = nullptr;
 }
 
-// 这个是在io线程执行的
+void ApiParentPort::onRecvParentMessagePortImpl()
+{
+    char output2[120] = { 0 };
+    sprintf_s(output2, 119, "ApiParentPort.onRecvParentMessagePort 2: %d\n", m_parentPipe);
+    OutputDebugStringA(output2);
+
+    if (m_connector.get())
+        return;
+
+    MojoHandle localHandle = 0;
+    MojoChangeToRemoteClientMode(m_parentPipe, m_parentProcessId, &localHandle);
+
+    mojo::MessagePipeHandle h(localHandle);
+    mojo::ScopedMessagePipeHandle scopedMsgPipeHandle(std::move(h));
+    m_connector = std::make_unique<mojo::Connector>(std::move(scopedMsgPipeHandle), mojo::Connector::SINGLE_THREADED_SEND);
+    m_connector->PauseIncomingMethodCallProcessing();
+    m_connector->set_incoming_receiver(this);
+    m_connector->set_connection_error_handler(base::BindOnce(&ApiParentPort::closePipe, base::Unretained(this)));
+    m_connector->StartReceiving(m_mainThread);
+}
+
+// 这个是在io线程执行的，接受父进程的hello消息
 void ApiParentPort::onRecvParentMessagePort(uintptr_t pipe)
 {
-    m_mainThread->PostTask(FROM_HERE,
-        base::BindOnce(
-            [](ApiParentPort* self, uintptr_t pipe) {
-                MojoHandle localHandle = 0;
-                MojoChangeToRemoteClientMode(pipe, self->m_parentProcessId, &localHandle);
+    char output[120] = { 0 };
+    sprintf_s(output, 119, "ApiParentPort.onRecvParentMessagePort 1: %d\n", pipe);
+    OutputDebugStringA(output);
 
-                mojo::MessagePipeHandle h(localHandle);
-                mojo::ScopedMessagePipeHandle scopedMsgPipeHandle(std::move(h));
-                self->m_connector = std::make_unique<mojo::Connector>(std::move(scopedMsgPipeHandle), mojo::Connector::SINGLE_THREADED_SEND);
-                self->m_connector->PauseIncomingMethodCallProcessing();
-                self->m_connector->set_incoming_receiver(self);
-                self->m_connector->set_connection_error_handler(base::BindOnce(&ApiParentPort::closePipe, base::Unretained(self)));
-                self->m_connector->StartReceiving(self->m_mainThread);
-            },
-            base::Unretained(this), pipe));
+    m_parentPipe = pipe;
+
+    m_mainThread->PostTask(FROM_HERE, base::BindOnce([](ApiParentPort* self, uintptr_t pipe) {
+        self->onRecvParentMessagePortImpl();
+    }, base::Unretained(this), pipe));
 }
 
 // 本函数被废弃了，用Accept
@@ -286,6 +328,6 @@ static const char ParentPortSricpt[] = "exports = {};";
 
 static NodeNative nativeParentPortNative { "ParentPort", ParentPortSricpt, sizeof(ParentPortSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_parent_port, initializeParentPortApi, &nativeParentPortNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_parent_port, initializeParentPortApi, &nativeParentPortNative)
 
 } // atom

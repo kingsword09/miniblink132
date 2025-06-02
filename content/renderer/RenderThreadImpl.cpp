@@ -50,7 +50,7 @@
 #include "third_party/skia/include/ports/SkFontMgr_directory.h"
 #include "third_party/skia/include/core/SkGraphics.h"
 #include "third_party/blink/renderer/platform/wtf/threading_primitives.h"
-//#include "content/resources/IcudtlDataFlutterDesktop.h"
+#include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #if !defined(OS_WIN)
 #include <sys/mman.h>
 #else
@@ -60,25 +60,21 @@
 #include "base/threading/sequence_local_storage_slot.h"
 #include <Shlwapi.h>
 #endif
-
-//extern HWND g_hRootWnd;
-//extern SIZE g_wndSize;
+#include "url/url_util.h"
 
 extern unsigned char icudtlData[1884304];
 extern unsigned char icudtlData_flutter_desktop[2700172];
 extern unsigned char SnapshotBlobBinX86[328619];
-extern unsigned char SnapshotBlobBinX64[471944];
+extern unsigned char SnapshotBlobBinX64[327326];
 extern unsigned char SnapshotBlobBinX64Linux[471944];
 extern unsigned char SnapshotBlobBinArm64Linux[471936];
 
-// extern "C" const uint8_t* v8_Default_embedded_blob_code_ /*[]*/ = NULL;
-// extern "C" uint32_t v8_Default_embedded_blob_code_size_;
-// 
-// extern "C" const uint8_t* v8_Default_embedded_blob_data_ /*[]*/ = NULL;
-// extern "C" uint32_t v8_Default_embedded_blob_data_size_;
-// 
-// extern "C" const uint8_t v8_Default_embedded_blob_data_stub[];
-// extern "C" const uint8_t v8_Default_embedded_blob_code_stub[];
+#if 1
+extern "C" const uint8_t v8_Default_embedded_blob_code_[];
+extern "C" uint32_t v8_Default_embedded_blob_code_size_;
+extern "C" const uint8_t v8_Default_embedded_blob_data_[];
+extern "C" uint32_t v8_Default_embedded_blob_data_size_;
+#endif
 
 void readFileToBuf(const char* path, std::vector<char>* buffer);
 
@@ -122,9 +118,7 @@ RenderThreadImpl::RenderThreadImpl()
     , m_hostThread("HostThread")
 {
     m_uiThreadTask = std::make_unique<base::SingleThreadTaskExecutor>(base::MessagePumpType::UI);
-    //std::make_unique<base::SingleThreadTaskRunner::CurrentDefaultHandle>(task_runner_);
-    //base::SingleThreadTaskExecutor mainThreadTaskExecutor(base::MessagePumpType::UI);
-    base::PlatformThread::SetName("Mb108UiThread");
+    base::PlatformThread::SetName("Mb132UiThread");
 
     base::Thread::Options opt;
     opt.delegate = std::make_unique<RenderThreadImpl::ThreadDelegate>(this);
@@ -498,13 +492,12 @@ public:
 //     return proxySlot.GetOrCreateValue();
 // }
 
-void RenderThreadImpl::OverrideEmptyAssociatedInterfaceProvider()
+void RenderThreadImpl::OverrideAssociatedInterfaceProvider(blink::AssociatedInterfaceProvider* associatedInterfaceProvider)
 {
     if (!m_emptyAssociatedInterfaceProvider)
         m_emptyAssociatedInterfaceProvider = new EmptyAssociatedInterfaceProvider();
 
     // ¼ûW:\mycode\mb108\content\renderer\AssociatedInterfaceProviderImpl.cpp£º
-    blink::AssociatedInterfaceProvider* associatedInterfaceProvider = blink::AssociatedInterfaceProvider::GetEmptyAssociatedInterfaceProvider();
     associatedInterfaceProvider->OverrideBinderForTesting("blink.mojom.LocalMainFrameHost",
         base::BindRepeating(&EmptyAssociatedInterfaceProvider::onBindLocalMainFrameHost, base::Unretained(m_emptyAssociatedInterfaceProvider)));
 
@@ -523,7 +516,7 @@ void RenderThreadImpl::OverrideEmptyAssociatedInterfaceProvider()
     //     } else
     //         DebugBreak();
 
-    
+
 //     //blink::GetEmptyBrowserInterfaceBroker().SetBinderForTesting("blink.mojom.ContentSecurityNotifier", );
 //     mojo::PendingReceiver<blink::mojom::BrowserInterfaceBroker> pendingBroker
 //         = getEmptyBrowserInterfaceBroker().Reset(base::SingleThreadTaskRunner::GetCurrentDefault());
@@ -531,6 +524,12 @@ void RenderThreadImpl::OverrideEmptyAssociatedInterfaceProvider()
 //     //     blink::GetEmptyBrowserInterfaceBroker().Bind(
 //     //         m_emptyAssociatedInterfaceProvider->m_emptyBrowserInterfaceBroker.BindNewPipeAndPassRemote(),
 //     //         base::ThreadTaskRunnerHandle::Get());
+}
+
+void RenderThreadImpl::OverrideEmptyAssociatedInterfaceProvider()
+{
+    blink::AssociatedInterfaceProvider* associatedInterfaceProvider = blink::AssociatedInterfaceProvider::GetEmptyAssociatedInterfaceProvider();
+    OverrideAssociatedInterfaceProvider(associatedInterfaceProvider);
 }
 
 void* genV8EmbeddedData(const void* data, size_t size)
@@ -593,6 +592,22 @@ void initializeSkia()
     SkGraphics::SetResourceCacheSingleAllocationByteLimit(kImageCacheSingleAllocationByteLimit);
 }
 
+const uint8_t* find_string(const uint8_t* str, int str_len, const uint8_t* target, int target_len)
+{
+    for (int i = 0; i <= str_len - target_len; i++) {
+        int j;
+        for (j = 0; j < target_len; j++) {
+            if (str[i + j] != target[j]) {
+                break;
+            }
+        }
+        if (j == target_len) {
+            return &str[i];
+        }
+    }
+    return NULL;
+}
+
 void initV8Data()
 {
     static bool s_init = false;
@@ -622,21 +637,27 @@ void initV8Data()
     //     snapshotBlob.data = (const char*)(&SnapshotBlobBinArm64Linux); // ²âÊÔ
     //     snapshotBlob.raw_size = sizeof(SnapshotBlobBinArm64Linux);
     //
-    //     std::vector<char>* buffer = new std::vector<char>();
-    //     readFileToBuf("W:\\mycode\\mb108\\content\\resources\\v8_context_snapshot_linux_arm64.bin", buffer);
-    //     snapshotBlob.data = (const char*)buffer->data();
-    //     snapshotBlob.raw_size = buffer->size();
+    //std::vector<char>* buffer = new std::vector<char>();
+    //readFileToBuf("W:\\mycode\\C132\\out\\r32\\snapshot_blob.bin", buffer);
+    //readFileToBuf("W:\\mycode\\C132\\out\\r32\\v8_context_snapshot.bin", buffer);
+    //snapshotBlob.data = (const char*)buffer->data();
+    //snapshotBlob.raw_size = buffer->size();
 
     v8::V8::SetSnapshotDataBlob(&snapshotBlob);
 
-//     char output[120] = { 0 };
-//     sprintf(output, "embedded_blob: %d, %d\n", v8_Default_embedded_blob_data_size_, v8_Default_embedded_blob_code_size_);
-//     OutputDebugStringA(output);
+    char output[120] = { 0 };
+    sprintf(output, "embedded_blob: %p, %p, %d\n", v8_Default_embedded_blob_data_, v8_Default_embedded_blob_code_, snapshotBlob.raw_size);
+    OutputDebugStringA(output);
+
+    const uint8_t target[] = { 0x0F, 0xB6, 0x0C, 0x17, 0x8B, 0x0C, 0x8E };
+    find_string(v8_Default_embedded_blob_data_, v8_Default_embedded_blob_data_size_, target, sizeof(target));
+    find_string(v8_Default_embedded_blob_code_, v8_Default_embedded_blob_code_size_, target, sizeof(target));
+    find_string((const uint8_t*)snapshotBlob.data, snapshotBlob.raw_size, target, sizeof(target));
 
 //     v8_Default_embedded_blob_data_ = (const uint8_t*)genV8EmbeddedData((const void*)v8_Default_embedded_blob_data_stub, v8_Default_embedded_blob_data_size_);
 //     v8_Default_embedded_blob_code_ = (const uint8_t*)genV8EmbeddedData((const void*)v8_Default_embedded_blob_code_stub, v8_Default_embedded_blob_code_size_);
 
-#if !defined(OS_WIN)
+#if 0//!defined(OS_WIN)
     printf("v8_Default_embedded_blob_data_:::::::::::::::::::::::::::: %p, %p\n", v8_Default_embedded_blob_data_, v8_Default_embedded_blob_code_);
     printf("v8_Default_embedded_blob_data_: %d\n", v8_Default_embedded_blob_data_[0]);
 #endif
@@ -711,6 +732,8 @@ void RenderThreadImpl::initializeWebKitOnThread(/*mojo::BinderMap* binders*/)
 
     blink::GetNetworkStateNotifier().SetOnLine(true);
     blink::GetNetworkStateNotifier().SetWebConnection(blink::kWebConnectionTypeWifi, 0.0 /*max_bandwidth_mbps*/);
+
+    url::EnableNonStandardSchemesForAndroidWebView();
 }
 
 void RenderThreadImpl::initializeCompositorThread()

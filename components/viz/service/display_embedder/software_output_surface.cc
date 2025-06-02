@@ -85,7 +85,6 @@ void SoftwareOutputSurface::SwapBuffers(OutputSurfaceFrame frame)
 
 void SoftwareOutputSurface::SwapBuffersCallback(base::TimeTicks swap_time, int64_t swap_trace_id, const gfx::Size& pixel_size)
 {
-    *(int*)1 = 1;
 //     TRACE_EVENT("viz,benchmark,graphics.pipeline", "Graphics.Pipeline", perfetto::Flow::Global(swap_trace_id), [&](perfetto::EventContext ctx) {
 //         auto* event = ctx.event<perfetto::protos::pbzero::ChromeTrackEvent>();
 //         auto* data = event->set_chrome_graphics_pipeline();
@@ -93,20 +92,19 @@ void SoftwareOutputSurface::SwapBuffersCallback(base::TimeTicks swap_time, int64
 //         data->set_display_trace_id(swap_trace_id);
 //     });
 // 
-//     gpu::SwapBuffersCompleteParams params;
-//     params.swap_response.timings = { swap_time, swap_time };
-//     params.swap_response.result = gfx::SwapResult::SWAP_ACK;
-//     params.swap_trace_id = swap_trace_id;
-//     client_->DidReceiveSwapBuffersAck(params,
-//         /*release_fence=*/gfx::GpuFenceHandle());
-// 
-//     base::TimeTicks now = base::TimeTicks::Now();
-//     base::TimeDelta interval_to_next_refresh = now.SnappedToNextTick(refresh_timebase_, refresh_interval_) - now;
-// #if BUILDFLAG(IS_LINUX)
-//     if (needs_swap_size_notifications_)
-//         client_->DidSwapWithSize(pixel_size);
-// #endif
-//     client_->DidReceivePresentationFeedback(gfx::PresentationFeedback(now, interval_to_next_refresh, 0u));
+    gpu::SwapBuffersCompleteParams params;
+    params.swap_response.timings = { swap_time, swap_time };
+    params.swap_response.result = gfx::SwapResult::SWAP_ACK;
+    params.swap_trace_id = swap_trace_id;
+    client_->DidReceiveSwapBuffersAck(params, /*release_fence=*/gfx::GpuFenceHandle());
+
+    base::TimeTicks now = base::TimeTicks::Now();
+    base::TimeDelta interval_to_next_refresh = now.SnappedToNextTick(refresh_timebase_, refresh_interval_) - now;
+#if BUILDFLAG(IS_LINUX)
+    if (needs_swap_size_notifications_)
+        client_->DidSwapWithSize(pixel_size);
+#endif
+    client_->DidReceivePresentationFeedback(gfx::PresentationFeedback(now, interval_to_next_refresh, 0u));
 }
 
 void SoftwareOutputSurface::UpdateVSyncParameters(base::TimeTicks timebase, base::TimeDelta interval)

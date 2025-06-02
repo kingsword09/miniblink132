@@ -6,6 +6,10 @@
 #include "content/browser/MbWebview.h"
 #include "content/common/ThreadCall.h"
 #include "content/common/LiveIdDetect.h"
+#if defined(OS_WIN)
+#include "content/ui/ToolTip.h"
+#include "base/strings/utf_string_conversions.h"
+#endif
 #include "third_party/blink/public/web/web_frame_widget.h"
 #include "ui/display/screen.h"
 #if !defined(OS_WIN)
@@ -61,7 +65,7 @@ void RenderWidgetHostImpl::destroy()
 
     if (getHostFrameSinkManager()) {
         viz::FrameSinkId rootFrameSinkId(0xdead, 0xbeef);
-        getHostFrameSinkManager()->InvalidateFrameSinkId(rootFrameSinkId, this);
+        getHostFrameSinkManager()->InvalidateFrameSinkId(rootFrameSinkId, m_sinkHost);
         if (isSinkReady())
             getHostFrameSinkManager()->InvalidateFrameSinkId(m_frameSinkId, this);
     }
@@ -69,6 +73,9 @@ void RenderWidgetHostImpl::destroy()
 
 RenderWidgetHostImpl::~RenderWidgetHostImpl()
 {
+    if (m_toolTip)
+        delete m_toolTip;
+
     char output[100] = { 0 };
     sprintf(output, "~RenderWidgetHostImpl: %p\n", this);
     OutputDebugStringA(output);
@@ -253,9 +260,14 @@ void RenderWidgetHostImpl::CreateFrameSink(
     //         bounds.set_size(gfx::Size(1, 1));
     //     m_sinkClient->embedOnBlinkThread(m_frameSinkId, bounds, m_localSurfaceId);
 
-//     m_blinkWidget->GetWidgetInputHandler(
-//         m_platformEventHandler->m_blinkWidgetInputHandler.BindNewPipeAndPassReceiver(base::SequencedTaskRunner::GetCurrentDefault()),
-//         m_platformEventHandler->m_hostReceiver.BindNewPipeAndPassRemote(base::SequencedTaskRunner::GetCurrentDefault()));
+    mojo::PendingReceiver<blink::mojom::blink::RenderInputRouterClient> vizReceiver = mojo::NullReceiver();
+    mojo::PendingRemote<blink::mojom::blink::RenderInputRouterClient> browserRemotePending;
+    m_blinkWidget->SetupRenderInputRouterConnections(browserRemotePending.InitWithNewPipeAndPassReceiver(), std::move(vizReceiver));
+    m_browserRemote.Bind(std::move(browserRemotePending));
+
+    m_browserRemote->GetWidgetInputHandler(
+        m_platformEventHandler->m_blinkWidgetInputHandler.BindNewPipeAndPassReceiver(base::SequencedTaskRunner::GetCurrentDefault()),
+        m_platformEventHandler->m_hostReceiver.BindNewPipeAndPassRemote(base::SequencedTaskRunner::GetCurrentDefault()));
 
     if (m_webWiew) {
         m_webWiew->MainFrameWidget()->SetFocus(true);
@@ -348,6 +360,18 @@ void RenderWidgetHostImpl::RegisterRenderFrameMetadataObserver(::mojo::PendingRe
 
     m_renderFrameMetadataObserverClient->m_receiver.set_disconnect_handler(
         base::BindOnce([](RenderFrameMetadataObserverClientImpl* ptr) { delete ptr; }, base::Unretained(m_renderFrameMetadataObserverClient)));
+}
+
+void RenderWidgetHostImpl::UpdateTooltipUnderCursor(const ::WTF::String& tooltip_text, ::base::i18n::TextDirection text_direction_hint)
+{
+#if defined(OS_WIN)
+    if (!m_toolTip)
+        m_toolTip = new ToolTip(true, 0.02);
+
+    std::string txt = tooltip_text.Utf8();
+    std::u16string u16txt = base::UTF8ToUTF16(txt);
+    m_toolTip->show((const WCHAR*)u16txt.c_str(), nullptr);
+#endif
 }
 
 }

@@ -158,6 +158,9 @@ private:
     void OnSurfaceEvicted(const viz::LocalSurfaceId& local_surface_id) override;
     void OnBindCompositorFrameSinkClient() override;
 
+    bool SetServer(void* self) override;
+    void OnServerDestroy() override;
+
     // ExternalBeginFrameSourceClient implementation.
     void OnNeedsBeginFrames(bool needs_begin_frames) override;
 
@@ -207,8 +210,12 @@ private:
 
     bool use_begin_frame_presentation_feedback_ = false;
 
-    // weolar
+    //----- weolar: for Compositor Thread mojo
     bool is_compositor_frame_sink_bind_ = false;
+    int async_task_count_ = 0;
+    bool is_closing_ = false;
+    void* viz_server_ = nullptr;
+    //=====
 
     base::WeakPtrFactory<AsyncLayerTreeFrameSink> weak_factory_ { this };
 };

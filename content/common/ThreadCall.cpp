@@ -166,13 +166,14 @@ void* ThreadCall::waitForCallThreadAsync(TaskAsyncData* asyncData)
     while (!asyncData->evt) {
         ::Sleep(1);
 
+#if 0
         // 有npapi插件的时候，createwebview会死等，然后主窗口又可能会发消息给npapi窗口，造成死锁
         MSG msg;
         if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE) != FALSE) {
             ::TranslateMessage(&msg);
             ::DispatchMessageW(&msg);
         }
-
+#endif
         if (!firstPost)
             ::PostThreadMessageW(::GetCurrentThreadId(), WM_NULL, 0, 0);
         firstPost = true;

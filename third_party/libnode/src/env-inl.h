@@ -424,6 +424,7 @@ inline AliasedInt32Array& Environment::stream_base_state()
     return stream_base_state_;
 }
 
+//--
 inline void Environment::set_is_blink_core()
 {
     is_blink_core_ = true;
@@ -433,6 +434,14 @@ inline bool Environment::is_blink_core() const
 {
     return is_blink_core_;
 }
+
+inline void Environment::AddCustomArgs(const std::vector<std::string>& argv)
+{
+    for (size_t i = 0; i < argv.size(); ++i) {
+        argv_.push_back(argv[i]);
+    }
+}
+//--
 
 ShouldNotAbortOnUncaughtScope::ShouldNotAbortOnUncaughtScope(Environment* env)
     : env_(env)

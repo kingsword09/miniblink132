@@ -253,7 +253,6 @@ void DroppedFrameCounter::OnEndFrame(const viz::BeginFrameArgs& args, const Fram
 
 void DroppedFrameCounter::ReportFrames()
 {
-    *(int*)1 = 1;
 //     DCHECK(!report_for_ui_);
 // 
 //     const auto total_frames = total_counter_->ComputeTotalVisibleFrames(base::TimeTicks::Now());

@@ -1,6 +1,7 @@
 // Copyright 2022 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+#ifdef V8_ENABLE_MAGLEV
 
 #include "src/maglev/maglev-assembler.h"
 
@@ -622,3 +623,5 @@ void MaglevAssembler::TryMigrateInstance(Register object, RegisterSnapshot& regi
 } // namespace maglev
 } // namespace internal
 } // namespace v8
+
+#endif // V8_ENABLE_MAGLEV

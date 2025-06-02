@@ -11,8 +11,12 @@ class Message;
 namespace atom {
 
 bool isValidWrappable(const v8::Local<v8::Value>& val);
+bool v8FunInfoToMojoMessage(const v8::FunctionCallbackInfo<v8::Value>& info, mojo::Message* mojoMessage, std::string* channel);
 bool postMessageHelper(mojo::Connector* m_connector, const v8::FunctionCallbackInfo<v8::Value>& info);
-bool onAcceptHelper(v8::Local<v8::Object> wrap, mojo::Message* mojoMessage);
+
+// onChannelMessagingApiAcceptHelper的接收消息的字段参考https://mdn.org.cn/en-US/docs/Web/API/Channel_Messaging_API
+bool onChannelMessagingApiAcceptHelper(bool inBlinkThread, const std::string& channle, v8::Local<v8::Object> wrap, mojo::Message* mojoMessage);
+bool onApiUtilityProcessAcceptHelper(v8::Local<v8::Object> wrap, mojo::Message* mojoMessage);
 
 }
 

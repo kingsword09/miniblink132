@@ -362,4 +362,4 @@ void initializeNativeImageApi(v8::Local<v8::Object> exports, v8::Local<v8::Value
 static const char CommonNativeImageNative[] = "console.log('BrowserNativeImageNative');;";
 static NodeNative nativeCommonNativeImageNative { "NativeImage", CommonNativeImageNative, sizeof(CommonNativeImageNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_common_nativeImage, atom::initializeNativeImageApi, &nativeCommonNativeImageNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_nativeImage, atom::initializeNativeImageApi, &nativeCommonNativeImageNative)

@@ -47,7 +47,7 @@ void EnableTerminationOnOutOfMemory()
 
 bool UncheckedMalloc(size_t size, void** result)
 {
-#if PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
+#if 0 // PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
     *result = allocator_shim::UncheckedAlloc(size);
 #else
     // malloc_unchecked is required to implement UncheckedMalloc properly.
@@ -60,7 +60,7 @@ bool UncheckedMalloc(size_t size, void** result)
 
 void UncheckedFree(void* ptr)
 {
-#if PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
+#if 0 // PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
     allocator_shim::UncheckedFree(ptr);
 #else
     free(ptr);

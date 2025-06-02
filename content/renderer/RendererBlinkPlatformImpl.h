@@ -58,6 +58,7 @@ namespace content {
 
 class RendererBlinkPlatformImpl : public blink::Platform {
 public:
+    RendererBlinkPlatformImpl();
 //     std::unique_ptr<blink::WebURLLoaderFactory> WrapURLLoaderFactory(
 //         blink::CrossVariantMojoRemote<network::mojom::URLLoaderFactoryInterfaceBase> url_loader_factory) override;
     blink::ThreadSafeBrowserInterfaceBrokerProxy* GetBrowserInterfaceBroker() override;
@@ -74,6 +75,8 @@ public:
     blink::UserAgentMetadata UserAgentMetadata() override;
 
     bool IsTakingV8ContextSnapshot() override;
+
+    void setUserAgent(const std::string& ua);
     // WebWorker ----------------------------------------------------------
 
     blink::WebCrypto* Crypto() override;

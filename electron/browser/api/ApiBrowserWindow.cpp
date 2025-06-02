@@ -1833,14 +1833,14 @@ private:
 
     static BOOL MB_CALL_TYPE handleLoadUrlBegin(mbWebView webView, BrowserWindow* self, const char* url, void* job)
     {
-        if (hookUrl(job, url, "chunk-vendors.1682480299277.js", L"G:\\test\\web_test\\ele_test\\windows-common-jiasu\\my_test\\chunk-vendors.1682480299277.js",
-                "text/javascript"))
-            return true;
-        if (hookUrl(job, url, "cdn/vue.js", L"G:\\test\\web_test\\ele_test\\windows-common-jiasu\\vue.js", "text/javascript"))
-            return true;
-        if (hookUrl(job, url, "chunk-common.1685067254486.js", L"G:\\test\\web_test\\ele_test\\windows-common-jiasu\\my_test\\chunk-common.1685067254486.js",
-                "text/javascript"))
-            return true;
+//         if (hookUrl(job, url, "chunk-vendors.1682480299277.js", L"G:\\test\\web_test\\ele_test\\windows-common-jiasu\\my_test\\chunk-vendors.1682480299277.js",
+//                 "text/javascript"))
+//             return true;
+//         if (hookUrl(job, url, "cdn/vue.js", L"G:\\test\\web_test\\ele_test\\windows-common-jiasu\\vue.js", "text/javascript"))
+//             return true;
+//         if (hookUrl(job, url, "chunk-common.1685067254486.js", L"G:\\test\\web_test\\ele_test\\windows-common-jiasu\\my_test\\chunk-common.1685067254486.js",
+//                 "text/javascript"))
+//             return true;
 
         //         if (0 != strstr(url, "getH5ActivityInfo")) {
         //             mbNetHookRequest(job);
@@ -1853,9 +1853,11 @@ private:
             return true;
         }
 
-        OutputDebugStringA("apiwindow.load:");
-        OutputDebugStringA(url);
-        OutputDebugStringA("\n");
+//         std::string temp = "apiwindow.load:";
+//         temp += url;
+//         temp += "\n";
+//         OutputDebugStringA(temp.c_str());
+
 
         ApiSession* ses = SessionMgr::get()->findOrCreateSession(nullptr, self->m_webContents->m_sessionName, false);
         if (ses) {
@@ -2107,6 +2109,7 @@ private:
 
         webPreferences.GetBydefaultVal("nodeIntegration", true, &createWindowParam->m_isNodeIntegration);
         webPreferences.GetBydefaultVal("contextIsolation", true, &createWindowParam->m_isContextIsolation);
+        webPreferences.Get("additionalArguments", &createWindowParam->m_customArgs);
 
         options->GetBydefaultVal("minWidth", 400, &createWindowParam->minWidth);
         options->GetBydefaultVal("minHeight", 400, &createWindowParam->minHeight);
@@ -2444,6 +2447,6 @@ static const char BrowserWindowNative[] = "//const {EventEmitter} = require('eve
 
 static NodeNative nativeBrowserWindowNative { "BrowserWindow", BrowserWindowNative, sizeof(BrowserWindowNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_browserwindow, initializeWindowApi, &nativeBrowserWindowNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_browserwindow, initializeWindowApi, &nativeBrowserWindowNative)
 
 } // atom﻿

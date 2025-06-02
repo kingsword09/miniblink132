@@ -15,10 +15,7 @@ class WebLocalFrameClientImpl;
 
 class LocalMainFrameHostImpl : public ::blink::mojom::blink::LocalMainFrameHost {
 public:
-    LocalMainFrameHostImpl(WebLocalFrameClientImpl* frameClient)
-    {
-        m_frameClient = frameClient;
-    }
+    LocalMainFrameHostImpl(WebLocalFrameClientImpl* frameClient);
 
     virtual void ScaleFactorChanged(float scale) override
     {
@@ -50,10 +47,7 @@ public:
         printFuncName(__FUNCTION__, true, false);
     }
 
-    virtual void RequestClose() override
-    {
-        printFuncName(__FUNCTION__, true, false);
-    }
+    virtual void RequestClose() override;
 
     virtual void ShowCreatedWindow(const ::blink::LocalFrameToken& opener_frame_token, ::ui::mojom::blink::WindowOpenDisposition disposition,
         ::blink::mojom::blink::WindowFeaturesPtr window_features, bool opened_by_user_gesture, ShowCreatedWindowCallback callback) override
@@ -93,10 +87,7 @@ public:
         printFuncName(__FUNCTION__, true, false);
     }
 
-    virtual void DraggableRegionsChanged(WTF::Vector<::blink::mojom::blink::DraggableRegionPtr> regions) override
-    {
-        printFuncName(__FUNCTION__, true, false);
-    }
+    virtual void DraggableRegionsChanged(WTF::Vector<::blink::mojom::blink::DraggableRegionPtr> regions) override;
 
     virtual void OnFirstContentfulPaint() override
     {

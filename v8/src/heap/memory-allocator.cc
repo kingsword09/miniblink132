@@ -548,7 +548,7 @@ bool MemoryAllocator::SetPermissionsOnExecutableMemoryChunk(VirtualMemory* vm, A
     }
 }
 
-#if defined(V8_ENABLE_CONSERVATIVE_STACK_SCANNING) || defined(DEBUG)
+#if defined(V8_ENABLE_CONSERVATIVE_STACK_SCANNING) || defined(V8_DEBUG)
 
 const MemoryChunk* MemoryAllocator::LookupChunkContainingAddress(Address addr) const
 {

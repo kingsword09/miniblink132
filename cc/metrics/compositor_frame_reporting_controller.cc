@@ -44,7 +44,6 @@ bool EventLatencyTracingRecorder::IsEventLatencyTracingEnabled()
 void EventLatencyTracingRecorder::RecordEventLatencyTraceEvent(EventMetrics* event_metrics, base::TimeTicks termination_time, base::TimeDelta vsync_interval,
     const std::vector<CompositorFrameReporter::StageData>* stage_history, const CompositorFrameReporter::ProcessedVizBreakdown* viz_breakdown)
 {
-    *(int*)1 = 1;
 }
 
 CompositorFrameReportingController::CompositorFrameReportingController(bool should_report_histograms, bool should_report_ukm, int layer_tree_host_id)

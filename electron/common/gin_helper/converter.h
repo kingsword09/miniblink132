@@ -16,6 +16,14 @@
 #include "gin/gin_export.h"
 #include "v8.h"
 
+namespace blink {
+struct CloneableMessage;
+}
+
+namespace mojo {
+class Message;
+}
+
 namespace gin_helper {
 
 template <typename KeyType> bool SetProperty(v8::Isolate* isolate, v8::Local<v8::Object> object, KeyType key, v8::Local<v8::Value> value)
@@ -148,17 +156,10 @@ template <> struct GIN_EXPORT Converter<v8::Local<v8::Array>> {
     static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val, v8::Local<v8::Array>* out);
 };
 
-// template<>
-// struct GIN_EXPORT Converter<base::ListValue> {
-//     static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const base::ListValue& val);
-//     static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val, base::ListValue* out);
-// };
-//
-// template<>
-// struct GIN_EXPORT Converter<base::DictionaryValue> {
-//     static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const base::DictionaryValue& val);
-//     static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val, base::DictionaryValue* out);
-// };
+template <> struct GIN_EXPORT Converter<mojo::Message> {
+    static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const mojo::Message& val);
+    static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val, mojo::Message* out);
+};
 
 template <> struct GIN_EXPORT Converter<base::Value::List> {
     static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const base::Value::List& val);
@@ -290,6 +291,13 @@ v8::Local<v8::Value> ConvertToV8(v8::Isolate* isolate, std::function<void(const 
 
 GIN_EXPORT std::string V8ToString(v8::Local<v8::Value> value);
 
-} // namespace gin
+template <>
+struct Converter<blink::CloneableMessage> {
+    static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const blink::CloneableMessage& in);
+
+    static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val, blink::CloneableMessage* out);
+};
+
+} // namespace gin_helper 
 
 #endif // GIN_CONVERTER_H_

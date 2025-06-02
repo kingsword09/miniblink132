@@ -164,7 +164,6 @@ std::vector<StringIteratorPair> SplitLinkHeader(const std::string& header)
 bool ParseLinkHeaderValue(
     std::string::const_iterator begin, std::string::const_iterator end, std::string* url, std::unordered_map<std::string, absl::optional<std::string>>* params)
 {
-    *(int*)1 = 1;
     return false;
 //     // Can't parse an empty string.
 //     if (begin == end)

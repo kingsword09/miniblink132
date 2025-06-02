@@ -58,6 +58,7 @@ v8::Isolate* nodeEnvironmentGetV8Isolate(node::Environment* env);
 v8::Local<v8::Context> nodeEnvironmentGetV8Context(node::Environment* env);
 node::Environment* nodeEnvironmentGetByV8Context(v8::Local<v8::Context> context);
 void nodeEnvironmentSetIsblinkCore(node::Environment* env);
+void nodeEnvironmentAddCustomArgs(node::Environment* env, const std::vector<std::string>& argv);
 void nodeAddElectronRequire(node::Environment* env);
 void nodeEnvironmentElectronPostEarlyInitialization(node::Environment* env);
 

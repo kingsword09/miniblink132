@@ -28,11 +28,16 @@ BOOL MB_CALL_TYPE mbGetContextByV8Object(void* isolate, void* obj, int worldID, 
 BOOL MB_CALL_TYPE mbPassWebElementValueToOtherContext(void* val, void* destCtx, void* outVal);
 
 namespace features {
-
 //const base::Feature kContextBridgeMutability{ "ContextBridgeMutability", base::FEATURE_DISABLED_BY_DEFAULT };
 }
 
+namespace content {
+void printCallstackIsolate(v8::Isolate* isolate);
+}
+
 namespace atom {
+
+extern int testEventEmitter;
 
 //content::RenderFrame* GetRenderFrame(v8::Local<v8::Object> value);
 
@@ -316,21 +321,22 @@ v8::MaybeLocal<v8::Value> PassValueToOtherContext(v8::Local<v8::Context> source_
     }
 
     // Serializable objects
-    //     blink::CloneableMessage ret;
-    //     {
-    //         v8::Local<v8::Context> error_context = error_target == BridgeErrorTarget::kSource ? source_context : destination_context;
-    //         v8::Context::Scope error_scope(error_context);
-    //         // V8 serializer will throw an error if required
-    //         if (!gin_helper::ConvertFromV8(error_context->GetIsolate(), value, &ret))
-    //             return v8::MaybeLocal<v8::Value>();
-    //     }
-    //
-    //     {
-    //         v8::Context::Scope destination_context_scope(destination_context);
-    //         v8::Local<v8::Value> cloned_value = gin_helper::ConvertToV8(destination_context->GetIsolate(), ret);
-    //         object_cache->CacheProxiedObject(value, cloned_value);
-    //         return v8::MaybeLocal<v8::Value>(cloned_value);
-    //     }
+    blink::CloneableMessage ret;
+    {
+        v8::Local<v8::Context> error_context = error_target == BridgeErrorTarget::kSource ? source_context : destination_context;
+        v8::Context::Scope error_scope(error_context);
+
+        // V8 serializer will throw an error if required
+        if (!gin_helper::ConvertFromV8(error_context->GetIsolate(), value, &ret))
+            return v8::MaybeLocal<v8::Value>();
+    }
+
+    {
+        v8::Context::Scope destination_context_scope(destination_context);
+        v8::Local<v8::Value> cloned_value = gin_helper::ConvertToV8(destination_context->GetIsolate(), std::move(ret));
+        object_cache->CacheProxiedObject(value, cloned_value);
+        return v8::MaybeLocal<v8::Value>(cloned_value);
+    }
     DebugBreak();
     return v8::MaybeLocal<v8::Value>();
 }
@@ -377,6 +383,10 @@ void ProxyFunctionWrapper(const v8::FunctionCallbackInfo<v8::Value>& info)
         {
             v8::TryCatch try_catch(args.isolate());
             maybe_return_value = func->Call(func_owning_context, func, proxied_args.size(), proxied_args.data());
+            if (testEventEmitter) {
+                content::printCallstackIsolate(args.isolate());
+            }
+
             if (try_catch.HasCaught()) {
                 did_error = true;
                 v8::Local<v8::Value> exception = try_catch.Exception();
@@ -470,8 +480,10 @@ v8::MaybeLocal<v8::Object> CreateProxyForAPI(const v8::Local<v8::Object>& api_ob
 
             v8::Local<v8::Value> value;
             std::string keyStr;
-            if (!gin_helper::ConvertFromV8(api.isolate(), key, &keyStr) || !api.Get(keyStr, &value))
-                continue;
+            if (!gin_helper::ConvertFromV8(api.isolate(), key, &keyStr) || !api.Get(keyStr, &value)) {
+                if (!api.Get(key, &value))
+                    continue;
+            }
 
             v8::MaybeLocal<v8::Value> passed_value
                 = PassValueToOtherContext(source_context, destination_context, value, object_cache, support_dynamic_properties, recursion_depth + 1);
@@ -693,4 +705,4 @@ static void initializeContextBridgeApi(v8::Local<v8::Object> exports, v8::Local<
 static const char ContextBridgeSricpt[] = "exports = {};";
 static NodeNative nativeRendererContextBridgeNative { "ContextBridge", ContextBridgeSricpt, sizeof(ContextBridgeSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_renderer_contextbridge, initializeContextBridgeApi, &nativeRendererContextBridgeNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_renderer_contextbridge, initializeContextBridgeApi, &nativeRendererContextBridgeNative)

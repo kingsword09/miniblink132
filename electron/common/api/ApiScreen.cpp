@@ -589,4 +589,4 @@ void initializeCommonScreenApi(v8::Local<v8::Object> exports, v8::Local<v8::Valu
 static const char CommonScreenNative[] = "console.log('CommonScreenNative');;";
 static NodeNative nativeCommonScreenNative { "Screen", CommonScreenNative, sizeof(CommonScreenNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_common_screen, initializeCommonScreenApi, &nativeCommonScreenNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_screen, initializeCommonScreenApi, &nativeCommonScreenNative)

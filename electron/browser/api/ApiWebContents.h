@@ -9,7 +9,6 @@
 #include "electron/common/gin_helper/dictionary.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
 #include <set>
-//#include <map>
 
 namespace node {
 class Environment;
@@ -17,6 +16,10 @@ class Environment;
 
 namespace base {
 class ListValue;
+}
+
+namespace mojo {
+class Connector;
 }
 
 namespace atom {
@@ -51,7 +54,11 @@ public:
     }
 };
 
-class WebContents : public mate::EventEmitter<WebContents> {
+class TransmitToWebContents;
+
+class WebContents
+    : public mate::EventEmitter<WebContents>
+{
 public:
     struct BrowserWindowConstructorOptions {
         int x;
@@ -82,6 +89,7 @@ public:
         bool m_isNodeIntegration;
         bool m_isNodeIntegrationInSubframes;
         bool m_isContextIsolation;
+        std::vector<std::string> m_customArgs;
 
         BrowserWindowConstructorOptions()
         {
@@ -208,6 +216,8 @@ private:
     bool isFocusedApi();
     void tabTraverseApi();
     bool _sendApi(bool isAllFrames, const std::string& channel, const base::Value::List& args);
+    bool _postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info);
+    void _testPostMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info);
     void sendInputEventApi();
     void beginFrameSubscriptionApi();
     void endFrameSubscriptionApi();
@@ -279,6 +289,11 @@ private:
     int m_id;
     std::set<WebContentsObserver*> m_observers;
     std::set<node::Environment*> m_environments;
+
+    friend class TransmitToWebContents;
+//     std::unique_ptr <mojo::MessagePipe> m_portPipe;
+//     std::unique_ptr<TransmitToWebContents> m_connectorOnMainUiThread;
+//     std::unique_ptr<TransmitToWebContents> m_connectorOnBlinkUiThread;
 
     mbWebView m_view;
     WindowInterface* m_owner;

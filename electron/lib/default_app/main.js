@@ -165,15 +165,21 @@ function loadApplicationByUrl(appUrl) {
     require('./default_app').load(appUrl);
 }
 
-function loadApplicationByJsUrl(packagePath, appJsUrl) {
+async function loadApplicationByJsUrl(packagePath, appJsUrl) {
     packagePath = path.resolve(packagePath);
     let packageJsonPath = packagePath;
     packagePath = path.dirname(packagePath);
     app.setAppPath(packagePath);
     mbConsoleLog("loadApplicationByJsUrl:" + appJsUrl);
     
-    require(appJsUrl);
-}
+    //require(appJsUrl);
+    try {
+        await import("file:///" + appJsUrl);
+    } catch (e) {
+        console.error('loadApplicationByJsUrl threw an error during load');
+        console.error(e.stack || e);
+        throw e;
+    }}
 
 function startRepl() {
     if (process.platform === 'win32') {

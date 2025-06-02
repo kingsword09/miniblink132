@@ -23,6 +23,8 @@
 #include "components/viz/common/hit_test/hit_test_region_list.h"
 #include "components/viz/common/quads/compositor_frame.h"
 #include "services/viz/public/mojom/compositing/thread.mojom.h"
+#include "components/viz/service/frame_sinks/compositor_frame_sink_support.h"
+#include <windows.h>
 
 namespace cc {
 namespace mojo_embedder {
@@ -82,6 +84,15 @@ AsyncLayerTreeFrameSink::AsyncLayerTreeFrameSink(scoped_refptr<viz::RasterContex
 
 AsyncLayerTreeFrameSink::~AsyncLayerTreeFrameSink()
 {
+    viz::CompositorFrameSinkSupport* sink = (viz::CompositorFrameSinkSupport*)viz_server_;
+    viz_server_ = nullptr;
+    if (sink)
+        sink->OnClientDestroy();
+
+    while (0 != async_task_count_) {
+        base::PlatformThread::Sleep(base::Milliseconds(1));
+    }
+    weak_factory_.InvalidateWeakPtrs(); // weolar
 }
 
 bool AsyncLayerTreeFrameSink::BindToClient(LayerTreeFrameSinkClient* client)
@@ -156,6 +167,7 @@ bool AsyncLayerTreeFrameSink::BindToClient(LayerTreeFrameSinkClient* client)
 void AsyncLayerTreeFrameSink::DetachFromClient()
 {
     DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+    is_closing_ = true;
     client_->SetBeginFrameSource(nullptr);
     begin_frame_source_.reset();
     synthetic_begin_frame_source_.reset();
@@ -187,9 +199,16 @@ void AsyncLayerTreeFrameSink::SubmitCompositorFrame(viz::CompositorFrame frame, 
     }
 
     if (local_surface_id_ == last_submitted_local_surface_id_) {
-        DCHECK_EQ(last_submitted_device_scale_factor_, frame.device_scale_factor());
-        DCHECK_EQ(last_submitted_size_in_pixels_.height(), frame.size_in_pixels().height());
-        DCHECK_EQ(last_submitted_size_in_pixels_.width(), frame.size_in_pixels().width());
+//         DCHECK_EQ(last_submitted_device_scale_factor_, frame.device_scale_factor());
+//         DCHECK_EQ(last_submitted_size_in_pixels_.height(), frame.size_in_pixels().height());
+//         DCHECK_EQ(last_submitted_size_in_pixels_.width(), frame.size_in_pixels().width());
+
+        if (last_submitted_device_scale_factor_ != frame.device_scale_factor() ||
+            last_submitted_size_in_pixels_.height() != frame.size_in_pixels().height() ||
+            last_submitted_size_in_pixels_.width() != frame.size_in_pixels().width()) {
+            OutputDebugStringA("AsyncLayerTreeFrameSink::SubmitCompositorFrame fail\n");
+            return;
+        }
     }
 
     std::optional<viz::HitTestRegionList> hit_test_region_list = client_->BuildHitTestData();
@@ -271,6 +290,17 @@ void AsyncLayerTreeFrameSink::DidDeleteSharedBitmap(const viz::SharedBitmapId& i
 
 void AsyncLayerTreeFrameSink::DidReceiveCompositorFrameAck(std::vector<viz::ReturnedResource> resources)
 {
+    if (!compositor_task_runner_->BelongsToCurrentThread()) {
+        base::subtle::Barrier_AtomicIncrement(&async_task_count_, 1);
+        compositor_task_runner_->PostTask(FROM_HERE,
+            base::BindOnce([](AsyncLayerTreeFrameSink* self, std::vector<viz::ReturnedResource> resources) {
+                if (!self->is_closing_)
+                    self->DidReceiveCompositorFrameAck(std::move(resources));
+                base::subtle::Barrier_AtomicIncrement(&(self->async_task_count_), -1);
+        }, base::Unretained(this), std::move(resources)));
+        return;
+    }
+
     DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
     client_->ReclaimResources(std::move(resources));
     client_->DidReceiveCompositorFrameAck();
@@ -281,6 +311,18 @@ void AsyncLayerTreeFrameSink::OnBeginFrame(
 {
     viz::BeginFrameArgs adjusted_args = args;
     adjusted_args.client_arrival_time = base::TimeTicks::Now();
+
+    if (!compositor_task_runner_->BelongsToCurrentThread()) {
+        base::subtle::Barrier_AtomicIncrement(&async_task_count_, 1);
+        compositor_task_runner_->PostTask(FROM_HERE,
+            base::BindOnce([](AsyncLayerTreeFrameSink* self, const viz::BeginFrameArgs& args,
+                const viz::FrameTimingDetailsMap& timing_details, bool frame_ack, std::vector<viz::ReturnedResource>&& resources) {
+                    if (!self->is_closing_)
+                        self->OnBeginFrame(args, timing_details, frame_ack, std::move(resources));
+                    base::subtle::Barrier_AtomicIncrement(&(self->async_task_count_), -1);
+        }, base::Unretained(this), std::move(args), std::move(timing_details), frame_ack, std::move(resources)));
+        return;
+    }
 
 //     TRACE_EVENT("viz,benchmark,graphics.pipeline", "Graphics.Pipeline", perfetto::Flow::Global(adjusted_args.trace_id), [&](perfetto::EventContext ctx) {
 //         auto* event = ctx.event<perfetto::protos::pbzero::ChromeTrackEvent>();
@@ -323,6 +365,17 @@ void AsyncLayerTreeFrameSink::OnBeginFrame(
 
 void AsyncLayerTreeFrameSink::OnBeginFramePausedChanged(bool paused)
 {
+    if (!compositor_task_runner_->BelongsToCurrentThread()) {
+        base::subtle::Barrier_AtomicIncrement(&async_task_count_, 1);
+        compositor_task_runner_->PostTask(FROM_HERE,
+            base::BindOnce([](AsyncLayerTreeFrameSink* self, bool paused) {
+                if (!self->is_closing_)
+                    self->OnBeginFramePausedChanged(paused);
+                base::subtle::Barrier_AtomicIncrement(&(self->async_task_count_), -1);
+        }, base::Unretained(this), paused));
+        return;
+    }
+
     begin_frames_paused_ = paused;
     if (begin_frame_source_)
         begin_frame_source_->OnSetBeginFrameSourcePaused(paused);
@@ -330,12 +383,32 @@ void AsyncLayerTreeFrameSink::OnBeginFramePausedChanged(bool paused)
 
 void AsyncLayerTreeFrameSink::ReclaimResources(std::vector<viz::ReturnedResource> resources)
 {
+    if (!compositor_task_runner_->BelongsToCurrentThread()) {
+        base::subtle::Barrier_AtomicIncrement(&async_task_count_, 1);
+        compositor_task_runner_->PostTask(FROM_HERE,
+            base::BindOnce([](AsyncLayerTreeFrameSink* self, std::vector<viz::ReturnedResource> resources) {
+                if (!self->is_closing_)
+                    self->ReclaimResources(std::move(resources));
+                base::subtle::Barrier_AtomicIncrement(&(self->async_task_count_), -1);
+        }, base::Unretained(this), std::move(resources)));
+        return;
+    }
     DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
     client_->ReclaimResources(std::move(resources));
 }
 
 void AsyncLayerTreeFrameSink::OnCompositorFrameTransitionDirectiveProcessed(uint32_t sequence_id)
 {
+    if (!compositor_task_runner_->BelongsToCurrentThread()) {
+        base::subtle::Barrier_AtomicIncrement(&async_task_count_, 1);
+        compositor_task_runner_->PostTask(FROM_HERE,
+            base::BindOnce([](AsyncLayerTreeFrameSink* self, uint32_t sequence_id) {
+                if (!self->is_closing_)
+                    self->OnCompositorFrameTransitionDirectiveProcessed(sequence_id);
+                base::subtle::Barrier_AtomicIncrement(&(self->async_task_count_), -1);
+        }, base::Unretained(this), sequence_id));
+        return;
+    }
     client_->OnCompositorFrameTransitionDirectiveProcessed(sequence_id);
 }
 
@@ -362,6 +435,8 @@ void AsyncLayerTreeFrameSink::OnNeedsBeginFrames(bool needs_begin_frames)
 
 void AsyncLayerTreeFrameSink::OnMojoConnectionError(uint32_t custom_reason, const std::string& description)
 {
+    *(int*)1 = 1;
+    is_closing_ = true;
     // TODO(rivr): Use DLOG(FATAL) once crbug.com/1043899 is resolved.
     if (custom_reason)
         DLOG(ERROR) << description;
@@ -386,6 +461,17 @@ void AsyncLayerTreeFrameSink::UpdateNeedsBeginFramesInternal(bool needs_begin_fr
         TRACE_EVENT_NESTABLE_ASYNC_END0("cc,benchmark", "NeedsBeginFrames", this);
     }
     needs_begin_frames_ = needs_begin_frames;
+}
+
+bool AsyncLayerTreeFrameSink::SetServer(void* self)
+{
+    viz_server_ = self;
+    return true;
+}
+
+void AsyncLayerTreeFrameSink::OnServerDestroy()
+{
+    viz_server_ = nullptr;
 }
 
 } // namespace mojo_embedder

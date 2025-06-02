@@ -920,6 +920,6 @@ static void initializeAppApi(v8::Local<v8::Object> target, v8::Local<v8::Value> 
 static const char BrowserAppNative[] = "console.log('BrowserAppNative');;";
 static NodeNative nativeBrowserAppNative { "App", BrowserAppNative, sizeof(BrowserAppNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_app, initializeAppApi, &nativeBrowserAppNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_app, initializeAppApi, &nativeBrowserAppNative)
 
 }

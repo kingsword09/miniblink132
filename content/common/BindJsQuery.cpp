@@ -93,14 +93,14 @@ static const char* injectStringWellFormed = "String.prototype.toWellFormed = fun
 // "Intl.NumberFormat = __NumberFormat__;\n"
 ;
 
-void printCallstack()
+void printCallstackIsolate(v8::Isolate* isolate)
 {
     const v8::StackTrace::StackTraceOptions options = static_cast<v8::StackTrace::StackTraceOptions>(v8::StackTrace::kLineNumber | v8::StackTrace::kColumnOffset
         | v8::StackTrace::kScriptId | v8::StackTrace::kScriptNameOrSourceURL | v8::StackTrace::kFunctionName);
 
     int stackNum = 50;
-    v8::HandleScope handleScope(v8::Isolate::GetCurrent());
-    v8::Local<v8::StackTrace> stackTrace(v8::StackTrace::CurrentStackTrace(v8::Isolate::GetCurrent(), stackNum, options));
+    v8::HandleScope handleScope(isolate);
+    v8::Local<v8::StackTrace> stackTrace(v8::StackTrace::CurrentStackTrace(isolate, stackNum, options));
     int count = stackTrace->GetFrameCount();
 
     char* output = (char*)malloc(0x100);
@@ -109,7 +109,7 @@ void printCallstack()
     free(output);
 
     for (int i = 0; i < count; ++i) {
-        v8::Local<v8::StackFrame> stackFrame = stackTrace->GetFrame(v8::Isolate::GetCurrent(), i);
+        v8::Local<v8::StackFrame> stackFrame = stackTrace->GetFrame(isolate, i);
         int line = stackFrame->GetLineNumber();
         v8::Local<v8::String> scriptName = stackFrame->GetScriptNameOrSourceURL();
         v8::Local<v8::String> funcName = stackFrame->GetFunctionName();
@@ -118,12 +118,12 @@ void printCallstack()
         std::string funcNameWTF;
 
         if (!scriptName.IsEmpty()) {
-            v8::String::Utf8Value scriptNameUtf8(v8::Isolate::GetCurrent(), scriptName);
+            v8::String::Utf8Value scriptNameUtf8(isolate, scriptName);
             scriptNameWTF = *scriptNameUtf8;
         }
 
         if (!funcName.IsEmpty()) {
-            v8::String::Utf8Value funcNameUtf8(v8::Isolate::GetCurrent(), funcName);
+            v8::String::Utf8Value funcNameUtf8(isolate, funcName);
             funcNameWTF = *funcNameUtf8;
         }
         std::vector<char> output2;
@@ -144,6 +144,11 @@ void printCallstack()
     OutputDebugStringA("\n");
 }
 
+void printCallstack()
+{
+    printCallstackIsolate(v8::Isolate::GetCurrent());
+}
+
 static void mbConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     v8::Isolate* isolate = info.GetIsolate();
@@ -151,7 +156,6 @@ static void mbConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& info)
 
     v8::Local<v8::Value> param0 = info[0];
     v8::MaybeLocal<v8::String> param0Maybe = param0->ToString(context);
-    //v8::Local<v8::String> param0V8String = param0->ToString(isolate);
     if (param0Maybe.IsEmpty())
         return;
     v8::Local<v8::String> param0V8String = param0Maybe.ToLocalChecked();
@@ -161,8 +165,12 @@ static void mbConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& info)
     str += *param0String;
     str += "\n";
 
-    if (std::string::npos != str.find("__callstack__ registerModule"))
-        OutputDebugStringA("");
+//     if (std::string::npos != str.find("utility-process.js"))
+//         MessageBoxA(0, "utility-process.js", 0, 0);
+
+    if (std::string::npos != str.find("__alert__")) {
+        MessageBoxA(0, str.c_str(), 0, 0);
+    }
 
     if (std::string::npos != str.find("__callstack__")) {
         const v8::StackTrace::StackTraceOptions options = static_cast<v8::StackTrace::StackTraceOptions>(v8::StackTrace::kLineNumber
@@ -386,14 +394,14 @@ void fixStringWelFormed(v8::Local<v8::Context> context)
 //     bindGlobalFunction(context, "__ApiStringToWellFormed__", V8StringToWellFormed);
 //     bindGlobalFunction(context, "__ApiStringIsWellFormed__", V8StringIsWellFormed);
 
-    v8::Isolate* isolate = context->GetIsolate();
-    v8::Isolate::Scope isolateScope(isolate);
-    v8::HandleScope handleScope(isolate);
-    v8::Context::Scope contextScope(context);
-
-    v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, injectStringWellFormed).ToLocalChecked();
-    v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
-    script->Run(context);
+//     v8::Isolate* isolate = context->GetIsolate();
+//     v8::Isolate::Scope isolateScope(isolate);
+//     v8::HandleScope handleScope(isolate);
+//     v8::Context::Scope contextScope(context);
+// 
+//     v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, injectStringWellFormed).ToLocalChecked();
+//     v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
+//     script->Run(context);
 }
 
 void BindJsQuery::bindFun(v8::Local<v8::Context> context, QueryFn* queryFn, QueryFn2* queryFn2, MbWebView* webview, const blink::LocalFrameToken& frameToken)

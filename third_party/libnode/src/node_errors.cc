@@ -344,6 +344,16 @@ void Assert(const AssertionInfo& info)
 {
     std::string name = GetHumanReadableProcessName();
 
+#ifdef _WIN32
+    std::vector<char> output;
+    output.resize(2000);
+    sprintf(output.data(), "nodejs, Assert fail: \n"
+        "  #  %s: %s at %s\n"
+        "  #  Assertion failed: %s\n\n",
+        name.c_str(), info.function ? info.function : "(unknown function)", info.file_line ? info.file_line : "(unknown source location)", info.message);
+    OutputDebugStringA(output.data());
+    DebugBreak();
+#else
     fprintf(stderr,
         "\n"
         "  #  %s: %s at %s\n"
@@ -352,6 +362,7 @@ void Assert(const AssertionInfo& info)
 
     fflush(stderr);
     ABORT();
+#endif // _WIN32
 }
 
 enum class EnhanceFatalException { kEnhance, kDontEnhance };

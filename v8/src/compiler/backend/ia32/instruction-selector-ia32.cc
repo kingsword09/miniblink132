@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#if V8_TARGET_ARCH_IA32
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -4155,3 +4157,5 @@ template class EXPORT_TEMPLATE_DEFINE(V8_EXPORT_PRIVATE) InstructionSelectorT<Tu
 } // namespace compiler
 } // namespace internal
 } // namespace v8
+
+#endif // V8_TARGET_ARCH_IA32

@@ -84,8 +84,7 @@ absl::optional<blink::WebSecurityOrigin> WebWorkerFetchContextImpl::TopFrameOrig
 
 blink::WebString WebWorkerFetchContextImpl::GetAcceptLanguages(void) const
 {
-    DebugBreak();
-    return blink::WebString::FromASCII("WebWorkerFetchContextImpl::GetAcceptLanguages");
+    return blink::WebString::FromASCII("zh-CN");
 }
 
 void WebWorkerFetchContextImpl::SetIsOfflineMode(bool)

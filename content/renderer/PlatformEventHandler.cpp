@@ -623,7 +623,17 @@ LRESULT PlatformEventHandler::fireMouseEvent(HWND hWnd, UINT message, WPARAM wPa
 static void buildDomCode(blink::WebKeyboardEvent* keyEvent)
 {
     int domCode = keyEvent->dom_code;
-    if (0x30 <= domCode && domCode <= 0x39) {
+    if (VK_CONTROL == domCode) {
+        keyEvent->dom_code = (int)ui::DomCode::CONTROL_LEFT;
+    } else if (VK_SHIFT == domCode) {
+        keyEvent->dom_code = (int)ui::DomCode::SHIFT_LEFT;
+    } else if (VK_MENU == domCode) {
+        keyEvent->dom_code = (int)ui::DomCode::ALT_LEFT;
+    } else if (VK_TAB == domCode) {
+        keyEvent->dom_code = (int)ui::DomCode::TAB;
+    } else if (VK_CAPITAL == domCode) {
+        keyEvent->dom_code = (int)ui::DomCode::CAPS_LOCK;
+    } else if (0x30 <= domCode && domCode <= 0x39) {
         keyEvent->dom_code = domCode - 0x31 + (int)ui::DomCode::DIGIT1;
     } else if (0x41 <= domCode && domCode <= 0x5A) {
         keyEvent->dom_code = domCode + (int)ui::DomCode::US_A - (int)'A';

@@ -120,6 +120,6 @@ static const char CommandLineSricpt[] = "exports = {};";
 
 static NodeNative nativeCommandLineNative { "ApiCommandLine", CommandLineSricpt, sizeof(CommandLineSricpt) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_browser_commandline, initializeApiCommandLine, &nativeCommandLineNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_browser_commandline, initializeApiCommandLine, &nativeCommandLineNative)
 
 } // atom

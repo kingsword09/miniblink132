@@ -339,14 +339,23 @@ public:
         return mojo::TypeConverter<U, URLLoaderClientEndpoints>::Convert(*this);
     }
 
-    URLLoaderClientEndpoints();
+    URLLoaderClientEndpoints()
+        : url_loader()
+        , url_loader_client()
+    {
+    }
 
-    URLLoaderClientEndpoints(::mojo::PendingRemote<URLLoader> url_loader, ::mojo::PendingReceiver<URLLoaderClient> url_loader_client);
+    URLLoaderClientEndpoints(
+        ::mojo::PendingRemote<URLLoader> url_loader_in, ::mojo::PendingReceiver<URLLoaderClient> url_loader_client_in)
+        : url_loader(std::move(url_loader_in))
+        , url_loader_client(std::move(url_loader_client_in))
+    {
+    }
 
     URLLoaderClientEndpoints(const URLLoaderClientEndpoints&) = delete;
     URLLoaderClientEndpoints& operator=(const URLLoaderClientEndpoints&) = delete;
 
-    ~URLLoaderClientEndpoints();
+    ~URLLoaderClientEndpoints() = default;
 
     // Clone() is a template so it is only instantiated if it is used. Thus, the
     // bindings generator does not need to know whether Clone() or copy

@@ -177,7 +177,7 @@ public:
     inline Tagged<Object> GetSideStepTransition(SideStepTransition::Kind i);
     inline void SetSideStepTransition(SideStepTransition::Kind i, Tagged<Object> target);
 
-#ifdef V8_DEBUG || OBJECT_PRINT
+#if defined(V8_DEBUG) || defined(OBJECT_PRINT)
     void PrintTransitions(std::ostream& os);
     static void PrintOneTransition(std::ostream& os, Tagged<Name> key, Tagged<Map> target);
     void PrintTransitionTree();

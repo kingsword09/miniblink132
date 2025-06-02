@@ -964,7 +964,6 @@ void FrameSinkManagerImpl::MaybeEraseHitTestQuery(const FrameSinkId& frame_sink_
 //         return;
 //     }
 //     display_hit_test_query_.erase(frame_sink_id);
-    *(int*)1 = 1;
 }
 
 void FrameSinkManagerImpl::MaybeAddHitTestQuery(const FrameSinkId& frame_sink_id)
@@ -1023,7 +1022,6 @@ bool FrameSinkManagerImpl::IsFrameSinkIdInRootSinkMap(const FrameSinkId& frame_s
 
 gpu::SharedImageInterface* FrameSinkManagerImpl::GetSharedImageInterface()
 {
-    *(int*)1 = 1;
     return nullptr;
 
 //     DCHECK(shared_image_interface_provider_);

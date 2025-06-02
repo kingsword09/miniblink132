@@ -32,7 +32,7 @@
 #include "third_party/blink/renderer/modules/mediasource/video_playback_quality.h"
 #include "third_party/blink/renderer/modules/picture_in_picture/html_video_element_picture_in_picture.h"
 #include "third_party/blink/renderer/modules/picture_in_picture/picture_in_picture_window.h"
-#include "third_party/blink/renderer/modules/video_rvfc/video_frame_callback_requester_impl.h"
+//#include "third_party/blink/renderer/modules/video_rvfc/video_frame_callback_requester_impl.h"
 #include "third_party/blink/renderer/platform/bindings/exception_messages.h"
 #include "third_party/blink/renderer/platform/bindings/idl_member_installer.h"
 #include "third_party/blink/renderer/platform/bindings/runtime_call_stats.h"
@@ -370,22 +370,22 @@ void OnleavepictureinpictureAttributeSetCallback(const v8::FunctionCallbackInfo<
 
 void DisablePictureInPictureAttributeGetCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-
-    RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_disablePictureInPicture_Getter");
-    BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.disablePictureInPicture.get");
-    v8::Isolate* isolate = info.GetIsolate();
-    v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
-    ScriptState* current_script_state = ScriptState::From(isolate, current_context);
-    ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
-    // [Measure], [MeasureAs]
-    UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_DisablePictureInPicture_AttributeGetter);
-
-    v8::Local<v8::Object> v8_receiver = info.This();
-    HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
-    auto&& return_value = HTMLVideoElementPictureInPicture::FastHasAttribute(*blink_receiver, html_names::kDisablepictureinpictureAttr);
-    static_assert(bindings::IsReturnTypeCompatible<IDLBoolean, std::remove_cvref_t<decltype(return_value)>>,
-        "Return type from native call is incompatible to the type specified in IDL");
-    bindings::V8SetReturnValue(info, return_value, bindings::V8ReturnValue::PrimitiveType<bool>());
+    *(int*)1 = 1;
+//     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_disablePictureInPicture_Getter");
+//     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.disablePictureInPicture.get");
+//     v8::Isolate* isolate = info.GetIsolate();
+//     v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
+//     ScriptState* current_script_state = ScriptState::From(isolate, current_context);
+//     ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
+//     // [Measure], [MeasureAs]
+//     UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_DisablePictureInPicture_AttributeGetter);
+// 
+//     v8::Local<v8::Object> v8_receiver = info.This();
+//     HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
+//     auto&& return_value = HTMLVideoElementPictureInPicture::FastHasAttribute(*blink_receiver, html_names::kDisablepictureinpictureAttr);
+//     static_assert(bindings::IsReturnTypeCompatible<IDLBoolean, std::remove_cvref_t<decltype(return_value)>>,
+//         "Return type from native call is incompatible to the type specified in IDL");
+//     bindings::V8SetReturnValue(info, return_value, bindings::V8ReturnValue::PrimitiveType<bool>());
 }
 
 void DisablePictureInPictureAttributeSetCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -427,120 +427,124 @@ void ConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void CancelVideoFrameCallbackOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_cancelVideoFrameCallback");
-    BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.cancelVideoFrameCallback");
-
-    v8::Isolate* isolate = info.GetIsolate();
-    v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
-    ScriptState* current_script_state = ScriptState::From(isolate, current_context);
-    ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
-    // [Measure], [MeasureAs]
-    UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_CancelVideoFrameCallback_Method);
-
-    if (info.Length() < 1) [[unlikely]] {
-        V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::NotEnoughArguments(1, info.Length()));
-        return;
-    }
-
-    v8::Local<v8::Object> v8_receiver = info.This();
-    HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
-    ExceptionState exception_state(isolate);
-    auto&& arg1_handle = NativeValueTraits<IDLLong>::ArgumentValue(isolate, 0, info[0], exception_state);
-    if (exception_state.HadException()) [[unlikely]] {
-        return;
-    }
-    VideoFrameCallbackRequesterImpl::cancelVideoFrameCallback(*blink_receiver, arg1_handle);
+    *(int*)1 = 1;
+//     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_cancelVideoFrameCallback");
+//     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.cancelVideoFrameCallback");
+// 
+//     v8::Isolate* isolate = info.GetIsolate();
+//     v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
+//     ScriptState* current_script_state = ScriptState::From(isolate, current_context);
+//     ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
+//     // [Measure], [MeasureAs]
+//     UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_CancelVideoFrameCallback_Method);
+// 
+//     if (info.Length() < 1) [[unlikely]] {
+//         V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::NotEnoughArguments(1, info.Length()));
+//         return;
+//     }
+// 
+//     v8::Local<v8::Object> v8_receiver = info.This();
+//     HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
+//     ExceptionState exception_state(isolate);
+//     auto&& arg1_handle = NativeValueTraits<IDLLong>::ArgumentValue(isolate, 0, info[0], exception_state);
+//     if (exception_state.HadException()) [[unlikely]] {
+//         return;
+//     }
+//     VideoFrameCallbackRequesterImpl::cancelVideoFrameCallback(*blink_receiver, arg1_handle);
 }
 
 void GetVideoPlaybackQualityOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_getVideoPlaybackQuality");
-    BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.getVideoPlaybackQuality");
-
-    v8::Isolate* isolate = info.GetIsolate();
-    v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
-    ScriptState* current_script_state = ScriptState::From(isolate, current_context);
-    ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
-    // [Measure], [MeasureAs]
-    UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_GetVideoPlaybackQuality_Method);
-
-    v8::Local<v8::Object> v8_receiver = info.This();
-    HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
-    auto&& return_value = HTMLVideoElementMediaSource::getVideoPlaybackQuality(*blink_receiver);
-    static_assert(bindings::IsReturnTypeCompatible<VideoPlaybackQuality, std::remove_cvref_t<decltype(return_value)>>,
-        "Return type from native call is incompatible to the type specified in IDL");
-    bindings::V8SetReturnValue(info, return_value, blink_receiver);
+    *(int*)1 = 1;
+//     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_getVideoPlaybackQuality");
+//     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.getVideoPlaybackQuality");
+// 
+//     v8::Isolate* isolate = info.GetIsolate();
+//     v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
+//     ScriptState* current_script_state = ScriptState::From(isolate, current_context);
+//     ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
+//     // [Measure], [MeasureAs]
+//     UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_GetVideoPlaybackQuality_Method);
+// 
+//     v8::Local<v8::Object> v8_receiver = info.This();
+//     HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
+//     auto&& return_value = HTMLVideoElementMediaSource::getVideoPlaybackQuality(*blink_receiver);
+//     static_assert(bindings::IsReturnTypeCompatible<VideoPlaybackQuality, std::remove_cvref_t<decltype(return_value)>>,
+//         "Return type from native call is incompatible to the type specified in IDL");
+//     bindings::V8SetReturnValue(info, return_value, blink_receiver);
 }
 
 void RequestPictureInPictureOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_requestPictureInPicture");
-    BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.requestPictureInPicture");
-    // Promise returning function: Convert a TypeError to a reject promise.
-    ExceptionToRejectPromiseScope reject_promise_scope(info);
-
-    v8::Isolate* isolate = info.GetIsolate();
-    v8::Local<v8::Object> v8_receiver = info.This();
-    if (!V8HTMLVideoElement::HasInstance(isolate, v8_receiver)) {
-        V8ThrowException::ThrowTypeError(isolate, "Illegal invocation");
-        return;
-    }
-
-    v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
-    ScriptState* current_script_state = ScriptState::From(isolate, current_context);
-    ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
-    // [Measure], [MeasureAs]
-    UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_RequestPictureInPicture_Method);
-
-    ScriptState* receiver_script_state = ScriptState::ForRelevantRealm(isolate, v8_receiver);
-    ScriptState* script_state = receiver_script_state;
-    HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
-    const v8::ExceptionContext exception_context_type = v8::ExceptionContext::kOperation;
-    const char* const class_like_name = "HTMLVideoElement";
-    const char* const property_name = "requestPictureInPicture";
-    ExceptionState exception_state(isolate, exception_context_type, class_like_name, property_name);
-    ScriptPromise<PictureInPictureWindow> return_value
-        = HTMLVideoElementPictureInPicture::requestPictureInPicture(script_state, *blink_receiver, exception_state);
-    if (exception_state.HadException()) [[unlikely]] {
-        return;
-    }
-    bindings::V8SetReturnValue(info, return_value);
+    *(int*)1 = 1;
+//     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_requestPictureInPicture");
+//     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.requestPictureInPicture");
+//     // Promise returning function: Convert a TypeError to a reject promise.
+//     ExceptionToRejectPromiseScope reject_promise_scope(info);
+// 
+//     v8::Isolate* isolate = info.GetIsolate();
+//     v8::Local<v8::Object> v8_receiver = info.This();
+//     if (!V8HTMLVideoElement::HasInstance(isolate, v8_receiver)) {
+//         V8ThrowException::ThrowTypeError(isolate, "Illegal invocation");
+//         return;
+//     }
+// 
+//     v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
+//     ScriptState* current_script_state = ScriptState::From(isolate, current_context);
+//     ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
+//     // [Measure], [MeasureAs]
+//     UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_RequestPictureInPicture_Method);
+// 
+//     ScriptState* receiver_script_state = ScriptState::ForRelevantRealm(isolate, v8_receiver);
+//     ScriptState* script_state = receiver_script_state;
+//     HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
+//     const v8::ExceptionContext exception_context_type = v8::ExceptionContext::kOperation;
+//     const char* const class_like_name = "HTMLVideoElement";
+//     const char* const property_name = "requestPictureInPicture";
+//     ExceptionState exception_state(isolate, exception_context_type, class_like_name, property_name);
+//     ScriptPromise<PictureInPictureWindow> return_value
+//         = HTMLVideoElementPictureInPicture::requestPictureInPicture(script_state, *blink_receiver, exception_state);
+//     if (exception_state.HadException()) [[unlikely]] {
+//         return;
+//     }
+//     bindings::V8SetReturnValue(info, return_value);
 }
 
 void RequestVideoFrameCallbackOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_requestVideoFrameCallback");
-    BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.requestVideoFrameCallback");
-
-    v8::Isolate* isolate = info.GetIsolate();
-    v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
-    ScriptState* current_script_state = ScriptState::From(isolate, current_context);
-    ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
-    // [Measure], [MeasureAs]
-    UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_RequestVideoFrameCallback_Method);
-
-    if (info.Length() < 1) [[unlikely]] {
-        V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::NotEnoughArguments(1, info.Length()));
-        return;
-    }
-
-    v8::Local<v8::Object> v8_receiver = info.This();
-    HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
-    decltype(NativeValueTraits<V8VideoFrameRequestCallback>::NativeValue(
-        std::declval<v8::Isolate*>(), std::declval<v8::Local<v8::Value>>(), std::declval<ExceptionState&>())) arg1_callback;
-    if (info[0]->IsFunction()) [[likely]] {
-        arg1_callback = V8VideoFrameRequestCallback::Create(info[0].As<v8::Function>());
-    } else {
-        ExceptionState exception_state(isolate);
-        arg1_callback = NativeValueTraits<V8VideoFrameRequestCallback>::ArgumentValue(isolate, 0, info[0], exception_state);
-        if (exception_state.HadException()) [[unlikely]] {
-            return;
-        }
-    }
-    auto&& return_value = VideoFrameCallbackRequesterImpl::requestVideoFrameCallback(*blink_receiver, arg1_callback);
-    static_assert(bindings::IsReturnTypeCompatible<IDLLong, std::remove_cvref_t<decltype(return_value)>>,
-        "Return type from native call is incompatible to the type specified in IDL");
-    bindings::V8SetReturnValue(info, return_value, bindings::V8ReturnValue::PrimitiveType<int32_t>());
+    *(int*)1 = 1;
+//     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_requestVideoFrameCallback");
+//     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.requestVideoFrameCallback");
+// 
+//     v8::Isolate* isolate = info.GetIsolate();
+//     v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
+//     ScriptState* current_script_state = ScriptState::From(isolate, current_context);
+//     ExecutionContext* current_execution_context = ToExecutionContext(current_script_state);
+//     // [Measure], [MeasureAs]
+//     UseCounter::Count(current_execution_context, WebFeature::kV8HTMLVideoElement_RequestVideoFrameCallback_Method);
+// 
+//     if (info.Length() < 1) [[unlikely]] {
+//         V8ThrowException::ThrowTypeError(isolate, ExceptionMessages::NotEnoughArguments(1, info.Length()));
+//         return;
+//     }
+// 
+//     v8::Local<v8::Object> v8_receiver = info.This();
+//     HTMLVideoElement* blink_receiver = V8HTMLVideoElement::ToWrappableUnsafe(isolate, v8_receiver);
+//     decltype(NativeValueTraits<V8VideoFrameRequestCallback>::NativeValue(
+//         std::declval<v8::Isolate*>(), std::declval<v8::Local<v8::Value>>(), std::declval<ExceptionState&>())) arg1_callback;
+//     if (info[0]->IsFunction()) [[likely]] {
+//         arg1_callback = V8VideoFrameRequestCallback::Create(info[0].As<v8::Function>());
+//     } else {
+//         ExceptionState exception_state(isolate);
+//         arg1_callback = NativeValueTraits<V8VideoFrameRequestCallback>::ArgumentValue(isolate, 0, info[0], exception_state);
+//         if (exception_state.HadException()) [[unlikely]] {
+//             return;
+//         }
+//     }
+//     auto&& return_value = VideoFrameCallbackRequesterImpl::requestVideoFrameCallback(*blink_receiver, arg1_callback);
+//     static_assert(bindings::IsReturnTypeCompatible<IDLLong, std::remove_cvref_t<decltype(return_value)>>,
+//         "Return type from native call is incompatible to the type specified in IDL");
+//     bindings::V8SetReturnValue(info, return_value, bindings::V8ReturnValue::PrimitiveType<int32_t>());
 }
 
 void WebkitEnterFullScreenOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)

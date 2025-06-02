@@ -44,16 +44,16 @@
 
 #define GET_REQ_SOCK_ERROR(req) (uv__ntstatus_to_winsock_error(GET_REQ_STATUS((req))))
 
-#define REGISTER_HANDLE_REQ(loop, handle, req)                                                                                                                 \
+#define REGISTER_HANDLE_REQ(loop, handle)                                                                                                                      \
     do {                                                                                                                                                       \
         INCREASE_ACTIVE_COUNT((loop), (handle));                                                                                                               \
-        uv__req_register((loop), (req));                                                                                                                       \
+        uv__req_register((loop));                                                                                                                              \
     } while (0)
 
-#define UNREGISTER_HANDLE_REQ(loop, handle, req)                                                                                                               \
+#define UNREGISTER_HANDLE_REQ(loop, handle)                                                                                                                    \
     do {                                                                                                                                                       \
         DECREASE_ACTIVE_COUNT((loop), (handle));                                                                                                               \
-        uv__req_unregister((loop), (req));                                                                                                                     \
+        uv__req_unregister((loop));                                                                                                                            \
     } while (0)
 
 #define UV_SUCCEEDED_WITHOUT_IOCP(result) ((result) && (handle->flags & UV_HANDLE_SYNC_BYPASS_IOCP))
@@ -67,7 +67,7 @@
 
 INLINE static uv_req_t* uv__overlapped_to_req(OVERLAPPED* overlapped)
 {
-    return CONTAINING_RECORD(overlapped, uv_req_t, u.io.overlapped);
+    return container_of(overlapped, uv_req_t, u.io.overlapped);
 }
 
 INLINE static void uv__insert_pending_req(uv_loop_t* loop, uv_req_t* req)

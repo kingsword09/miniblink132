@@ -423,7 +423,7 @@ void WasmTableObject::Fill(Isolate* isolate, DirectHandle<WasmTableObject> table
     }
 }
 
-#if V8_ENABLE_SANDBOX || DEBUG
+#if V8_ENABLE_SANDBOX || V8_DEBUG
 bool FunctionSigMatchesTable(wasm::CanonicalTypeIndex sig_id, const WasmModule* module, int table_index)
 {
     wasm::ValueType table_type = module->tables[table_index].type;

@@ -230,4 +230,4 @@ void initializeClipboardApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> 
 static const char CommonClipboardNative[] = "console.log('CommonClipboardNative');;";
 static NodeNative nativeCommonClipboard { "Clipboard", CommonClipboardNative, sizeof(CommonClipboardNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(atom_common_clipboard, atom::initializeClipboardApi, &nativeCommonClipboard)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_clipboard, atom::initializeClipboardApi, &nativeCommonClipboard)

@@ -1,5 +1,7 @@
-﻿const binding = process._linkedBinding('atom_browser_web_contents');
+﻿const binding = process._linkedBinding('electron_browser_web_contents');
 const WebContents = binding.WebContents;
+
+const MessagePortMain = require('./message-port-main.js');
 
 const electron = require('electron');
 const app = electron.app;
@@ -77,15 +79,19 @@ WebContents.prototype._init = function () {
     });
 }
 
-WebContents.prototype.postMessage = function (channel, data, ports) {
+WebContents.prototype.postMessage = function (channel, data, transfer /*?: MessagePortMain[]*/) {
     if (channel == null) throw new Error('Missing required channel argument');
     //return this.mainFrame.postMessage(...args);
-    return this._postMessage(channel, data, ports);
+    if (Array.isArray(transfer)) {
+        transfer = transfer.map((o/*: any*/) => o instanceof MessagePortMain ? o._internalPort : o);
+        return this._postMessage(channel, data, transfer);
+    }
+    return this._postMessage(channel, data);
 }
 
 // WebContents::send(channel, args..)
 // WebContents::sendToAll(channel, args..)
-WebContents.prototype.send = function (channel, ...args) { mbConsoleLog("WebContents.prototype.send:" + channel);
+WebContents.prototype.send = function (channel, ...args) {
     if (channel == null) throw new Error('Missing required channel argument');
     return this._send(false, channel, args);
 }

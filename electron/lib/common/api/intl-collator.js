@@ -1,4 +1,4 @@
-const IntlCollator = process._linkedBinding('atom_common_intl_collator').IntlCollator;
+const IntlCollator = process._linkedBinding('electron_common_intl_collator').IntlCollator;
 
 /*
 function Collator(langArray, resolvedOptions) {

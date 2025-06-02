@@ -17,17 +17,28 @@ namespace content {
 
 std::string utf16ToUtf8(const WCHAR* lpszSrc)
 {
-    return utf16ToMulByte(lpszSrc, CP_UTF8);
+    return utf16ToMulByte(lpszSrc, u16len((const UChar*)lpszSrc), CP_UTF8);
 }
 
-void WCharToMByte(const UChar* lpWideCharStr, size_t cchWideChar, std::vector<char>* out, UINT codePage)
+void mulByteToUtf8(const char* lpMCharStr, size_t cchMChar, std::vector<char>* out, unsigned int codePage)
+{
+    out->resize(0);
+
+    std::vector<WCHAR> tempBuf;
+    MByteToWChar(lpMCharStr, cchMChar, &tempBuf, codePage);
+    if (0 == tempBuf.size())
+        return;
+    WCharToMByte(&tempBuf[0], tempBuf.size(), out, CP_UTF8);
+}
+
+void WCharToMByte(const WCHAR* lpWideCharStr, size_t cchWideChar, std::vector<char>* out, unsigned int codePage)
 {
     out->clear();
     if (0 == cchWideChar || nullptr == lpWideCharStr)
         return;
 
 #if !defined(OS_WIN)
-    cchWideChar *= sizeof(UChar);
+    cchWideChar *= sizeof(WCHAR);
     out->resize(cchWideChar * 4);
 
     iconv_t cd;
@@ -68,11 +79,11 @@ void WCharToMByte(const UChar* lpWideCharStr, size_t cchWideChar, std::vector<ch
 #endif
 }
 
-std::string utf16ToMulByte(const WCHAR* lpszSrc, unsigned int codepage)
+std::string utf16ToMulByte(const WCHAR* lpszSrc, size_t len, unsigned int codepage)
 {
 #if !defined(OS_WIN)
     std::vector<char> out;
-    WCharToMByte(lpszSrc, u16len(lpszSrc), &out, codepage);
+    WCharToMByte(lpszSrc, /*u16len(lpszSrc)*/len, &out, codepage);
     if (0 == out.size())
         return std::string();
     std::string ret;
@@ -82,11 +93,11 @@ std::string utf16ToMulByte(const WCHAR* lpszSrc, unsigned int codepage)
 #else
     std::string sResult;
     if (lpszSrc != NULL) {
-        int nUTF8Len = WideCharToMultiByte(codepage, 0, lpszSrc, -1, NULL, 0, NULL, NULL);
+        int nUTF8Len = WideCharToMultiByte(codepage, 0, lpszSrc, len, NULL, 0, NULL, NULL);
         char* pUTF8 = new char[nUTF8Len + 1];
         if (pUTF8 != NULL) {
             ZeroMemory(pUTF8, nUTF8Len + 1);
-            WideCharToMultiByte(codepage, 0, lpszSrc, -1, pUTF8, nUTF8Len, NULL, NULL);
+            WideCharToMultiByte(codepage, 0, lpszSrc, len, pUTF8, nUTF8Len, NULL, NULL);
             sResult = pUTF8;
             delete[] pUTF8;
         }
@@ -95,20 +106,20 @@ std::string utf16ToMulByte(const WCHAR* lpszSrc, unsigned int codepage)
 #endif // __clang__
 }
 
-void MByteToWChar(const char* lpcszStr, size_t cbMultiByte, std::vector<UChar>* out, UINT codePage)
+void MByteToWChar(const char* lpcszStr, size_t cbMultiByte, std::vector<WCHAR>* out, unsigned int codePage)
 {
     out->clear();
     if (nullptr == lpcszStr || 0 == cbMultiByte)
         return;
 #if defined(OS_LINUX)
-    out->resize(cbMultiByte * 4 / sizeof(UChar));
+    out->resize(cbMultiByte * 4 / sizeof(WCHAR));
 
     iconv_t cd;
     char* data = (char*)out->data();
     char* pIn = (char*)lpcszStr;
     char** ppIn = &pIn;
     char** ppOut = &data;
-    size_t outlen = out->size() * sizeof(UChar);
+    size_t outlen = out->size() * sizeof(WCHAR);
     size_t oldSize = outlen;
 
     if (CP_UTF8 == codePage) {
@@ -124,18 +135,18 @@ void MByteToWChar(const char* lpcszStr, size_t cbMultiByte, std::vector<UChar>* 
         return;
     iconv_close(cd);
 
-    size_t len = (((const UChar*)*ppOut) - out->data()) * sizeof(UChar);
+    size_t len = (((const WCHAR*)*ppOut) - out->data()) * sizeof(WCHAR);
     if (len != oldSize - outlen) {
         printf("MByteToWChar fail, len:%zu, oldSize:%zu, %p, %p, outlen: %zu\n", len, oldSize, *ppOut, out->data(), outlen);
         *(int*)1 = 1;
     }
 
-    size_t pre = len % sizeof(UChar);
+    size_t pre = len % sizeof(WCHAR);
     len += pre;
     if (len > oldSize)
         len = oldSize;
 
-    out->resize(len / sizeof(UChar));
+    out->resize(len / sizeof(WCHAR));
 #else
     DWORD dwMinSize;
     dwMinSize = MultiByteToWideChar(codePage, 0, lpcszStr, cbMultiByte, NULL, 0);
@@ -157,13 +168,13 @@ std::u16string utf8ToUtf16(const std::string& utf8)
 std::u16string mulByteToUtf16(const std::string& str, unsigned int codepage)
 {
 #ifdef __clang__
-    std::vector<UChar> out;
+    std::vector<WCHAR> out;
     MByteToWChar(str.c_str(), str.size(), &out, codepage);
     if (0 == out.size())
         return std::u16string();
     std::u16string ret;
     ret.assign(out.size(), L'\0');
-    memcpy((void*)ret.c_str(), out.data(), out.size() * sizeof(UChar));
+    memcpy((void*)ret.c_str(), out.data(), out.size() * sizeof(WCHAR));
     return ret;
 #else
     std::u16string utf16;

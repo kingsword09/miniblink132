@@ -2975,26 +2975,25 @@ bool skcms_Transform(const void* src, skcms_PixelFormat srcFmt, skcms_AlphaForma
     assert(ops <= program + ARRAY_COUNT(program));
     assert(contexts <= context + ARRAY_COUNT(context));
 
-//     auto run = baseline::run_program;
-//     switch (cpu_type()) {
-//     case CpuType::SKX:
-// #if !defined(SKCMS_DISABLE_SKX)
-//         run = skx::run_program;
-//         break;
-// #endif
-// 
-//     case CpuType::HSW:
-// #if !defined(SKCMS_DISABLE_HSW)
-//         run = hsw::run_program;
-//         break;
-// #endif
-// 
-//     case CpuType::Baseline:
-//         break;
-//     }
-// 
-//     run(program, context, ops - program, (const char*)src, (char*)dst, n, src_bpp, dst_bpp);
-    *(int*)1 = 1;
+    auto run = baseline::run_program;
+    switch (cpu_type()) {
+    case CpuType::SKX:
+#if !defined(SKCMS_DISABLE_SKX)
+        run = skx::run_program;
+        break;
+#endif
+
+    case CpuType::HSW:
+#if !defined(SKCMS_DISABLE_HSW)
+        run = hsw::run_program;
+        break;
+#endif
+
+    case CpuType::Baseline:
+        break;
+    }
+
+    run(program, context, ops - program, (const char*)src, (char*)dst, n, src_bpp, dst_bpp);
     return true;
 }
 

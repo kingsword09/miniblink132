@@ -248,7 +248,7 @@ public:
 
     Address HandleAllocationFailure(Executability executable);
 
-#if defined(V8_ENABLE_CONSERVATIVE_STACK_SCANNING) || defined(DEBUG)
+#if defined(V8_ENABLE_CONSERVATIVE_STACK_SCANNING) || defined(V8_DEBUG)
     // Return the normal or large page that contains this address, if it is owned
     // by this heap, otherwise a nullptr.
     V8_EXPORT_PRIVATE const MemoryChunk* LookupChunkContainingAddress(Address addr) const;
@@ -431,7 +431,7 @@ private:
     base::Mutex executable_memory_mutex_;
 #endif // DEBUG
 
-#if defined(V8_ENABLE_CONSERVATIVE_STACK_SCANNING) || defined(DEBUG)
+#if defined(V8_ENABLE_CONSERVATIVE_STACK_SCANNING) || defined(V8_DEBUG)
     // Allocated normal and large pages are stored here, to be used during
     // conservative stack scanning.
     std::unordered_set<const MemoryChunk*, base::hash<const MemoryChunk*>> normal_pages_;

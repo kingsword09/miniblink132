@@ -36,6 +36,7 @@ static void uv__getnameinfo_work(struct uv__work* w)
     uv_getnameinfo_t* req;
     WCHAR host[NI_MAXHOST];
     WCHAR service[NI_MAXSERV];
+    size_t size;
     int ret;
 
     req = container_of(w, uv_getnameinfo_t, work_req);
@@ -45,15 +46,17 @@ static void uv__getnameinfo_work(struct uv__work* w)
         return;
     }
 
-    ret = WideCharToMultiByte(CP_UTF8, 0, host, -1, req->host, sizeof(req->host), NULL, NULL);
-    if (ret == 0) {
-        req->retcode = uv_translate_sys_error(GetLastError());
+    size = sizeof(req->host);
+    ret = uv__copy_utf16_to_utf8(host, -1, req->host, &size);
+    if (ret < 0) {
+        req->retcode = ret;
         return;
     }
 
-    ret = WideCharToMultiByte(CP_UTF8, 0, service, -1, req->service, sizeof(req->service), NULL, NULL);
-    if (ret == 0) {
-        req->retcode = uv_translate_sys_error(GetLastError());
+    size = sizeof(req->service);
+    ret = uv__copy_utf16_to_utf8(service, -1, req->service, &size);
+    if (ret < 0) {
+        req->retcode = ret;
     }
 }
 
@@ -67,7 +70,7 @@ static void uv__getnameinfo_done(struct uv__work* w, int status)
     char* service;
 
     req = container_of(w, uv_getnameinfo_t, work_req);
-    uv__req_unregister(req->loop, req);
+    uv__req_unregister(req->loop);
     host = service = NULL;
 
     if (status == UV_ECANCELED) {
@@ -101,7 +104,7 @@ int uv_getnameinfo(uv_loop_t* loop, uv_getnameinfo_t* req, uv_getnameinfo_cb get
     }
 
     UV_REQ_INIT(req, UV_GETNAMEINFO);
-    uv__req_register(loop, req);
+    uv__req_register(loop);
 
     req->getnameinfo_cb = getnameinfo_cb;
     req->flags = flags;
