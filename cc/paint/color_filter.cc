@@ -187,7 +187,11 @@ sk_sp<ColorFilter> ColorFilter::MakeTable(sk_sp<SkColorTable> table)
 
 sk_sp<ColorFilter> ColorFilter::MakeLuma()
 {
+#ifdef SK_ENABLE_SKSL
     return sk_make_sp<LumaColorFilter>();
+#else
+    return nullptr;
+#endif
 }
 
 sk_sp<ColorFilter> ColorFilter::MakeHighContrast(const SkHighContrastConfig& config)
