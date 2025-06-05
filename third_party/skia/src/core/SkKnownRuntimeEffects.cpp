@@ -199,6 +199,7 @@ SkRuntimeEffect* make_matrix_conv_effect(MatrixConvolutionImpl impl, const SkRun
 
 const SkRuntimeEffect* GetKnownRuntimeEffect(StableKey stableKey)
 {
+#ifdef SK_ENABLE_SKSL
     SkRuntimeEffect::Options options;
     SkRuntimeEffectPriv::SetStableKey(&options, static_cast<uint32_t>(stableKey));
     SkRuntimeEffectPriv::AllowPrivateAccess(&options);
@@ -448,6 +449,9 @@ const SkRuntimeEffect* GetKnownRuntimeEffect(StableKey stableKey)
     }
 
     SkUNREACHABLE;
+#else
+    return nullptr;
+#endif
 }
 
 } // namespace SkKnownRuntimeEffects

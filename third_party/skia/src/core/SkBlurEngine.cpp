@@ -1237,7 +1237,10 @@ sk_sp<SkSpecialImage> SkShaderBlurAlgorithm::evalBlur2D(
     Compute2DBlurKernel(sigma, radii, kernel);
     Compute2DBlurOffsets(radii, offsets);
 
-    SkRuntimeShaderBuilder builder { sk_ref_sp(GetBlur2DEffect(radii)) };
+    const SkRuntimeEffect* re = GetBlur2DEffect(radii);
+    if (!re)
+        return nullptr;
+    SkRuntimeShaderBuilder builder { sk_ref_sp(re) };
     builder.uniform("kernel") = kernel;
     builder.uniform("offsets") = offsets;
     // NOTE: renderBlur() will configure the "child" shader as needed. The 2D blur effect only
@@ -1251,7 +1254,10 @@ sk_sp<SkSpecialImage> SkShaderBlurAlgorithm::evalBlur1D(
     std::array<SkV4, kMaxSamples / 2> offsetsAndKernel;
     Compute1DBlurLinearKernel(sigma, radius, offsetsAndKernel);
 
-    SkRuntimeShaderBuilder builder { sk_ref_sp(GetLinearBlur1DEffect(radius)) };
+    const SkRuntimeEffect* re = GetLinearBlur1DEffect(radius);
+    if (!re)
+        return nullptr;
+    SkRuntimeShaderBuilder builder { sk_ref_sp(re) };
     builder.uniform("offsetsAndKernel") = offsetsAndKernel;
     builder.uniform("dir") = dir;
     // NOTE: renderBlur() will configure the "child" shader as needed. The 1D blur effect requires

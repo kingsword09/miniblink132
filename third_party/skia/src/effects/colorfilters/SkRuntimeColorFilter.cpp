@@ -47,7 +47,6 @@ SkRuntimeEffect::Result SkRuntimeEffect::MakeForShader(SkString sksl, const Opti
 
 sk_sp<SkBlender> SkRuntimeEffect::makeBlender(sk_sp<const SkData> uniforms, SkSpan<const SkRuntimeEffect::ChildPtr> children) const
 {
-    *(int*)1 = 1;
     return nullptr;
 }
 
