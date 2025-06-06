@@ -42,6 +42,7 @@ namespace {
 
 void TryCreateSharedMemory(size_t size, BigBuffer::StorageType* storage_type, absl::optional<internal::BigBufferSharedMemoryRegion>* shared_memory)
 {
+#if 0
     if (size > BigBuffer::kMaxInlineBytes) {
         auto buffer = mojo::SharedBufferHandle::Create(size);
         if (buffer.is_valid()) {
@@ -53,7 +54,7 @@ void TryCreateSharedMemory(size_t size, BigBuffer::StorageType* storage_type, ab
             }
         }
     }
-
+#endif
     // We can use inline memory, either because the data was small or shared
     // memory allocation failed.
     *storage_type = BigBuffer::StorageType::kBytes;
