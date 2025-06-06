@@ -89,8 +89,11 @@ bool DetectTextEncoding(
     if (!encoding && matchesCount > 0)
         encoding = matches[0]->getName();
 
-    if (!encoding)
-        encoding = "GBK";
+    if (!encoding || encoding[0] == '\0') {
+        //encoding = "GBK";
+        delete (detector);
+        return false;
+    }
 
     *detected_encoding = WTF::TextEncoding(encoding);
 
