@@ -185,7 +185,9 @@ public:
     // Remote's bound SequencedTaskRunner.
     void set_disconnect_handler(base::OnceClosure handler)
     {
+#if 0
         if (is_connected())
+#endif
             remote_impl_.set_connection_error_handler(std::move(handler));
     }
 
