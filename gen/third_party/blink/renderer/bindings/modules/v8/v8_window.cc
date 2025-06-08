@@ -915,7 +915,7 @@
 // #include "third_party/blink/renderer/bindings/modules/v8/v8_speech_synthesis_utterance.h"
 // #include "third_party/blink/renderer/bindings/modules/v8/v8_speech_synthesis_voice.h"
 // #include "third_party/blink/renderer/bindings/modules/v8/v8_stereo_panner_node.h"
-// #include "third_party/blink/renderer/bindings/modules/v8/v8_storage.h"
+#include "third_party/blink/renderer/bindings/modules/v8/v8_storage.h"
 // #include "third_party/blink/renderer/bindings/modules/v8/v8_storage_bucket.h"
 // #include "third_party/blink/renderer/bindings/modules/v8/v8_storage_bucket_manager.h"
 // #include "third_party/blink/renderer/bindings/modules/v8/v8_storage_event.h"
@@ -13796,13 +13796,13 @@ void StaticRangeExposedConstructCallback(v8::Local<v8::Name> v8_property_name, c
 //     bindings::V8SetReturnValue(info, V8StereoPannerNode::GetWrapperTypeInfo(), bindings::V8ReturnValue::kInterfaceObject);
 // }
 // 
-// void StorageExposedConstructCallback(v8::Local<v8::Name> v8_property_name, const v8::PropertyCallbackInfo<v8::Value>& info)
-// {
-//     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_DOMWindow_Storage_ConstructorGetterCallback");
-//     BLINK_BINDINGS_TRACE_EVENT("Window.Storage");
-// 
-//     bindings::V8SetReturnValue(info, V8Storage::GetWrapperTypeInfo(), bindings::V8ReturnValue::kInterfaceObject);
-// }
+void StorageExposedConstructCallback(v8::Local<v8::Name> v8_property_name, const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+    RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_DOMWindow_Storage_ConstructorGetterCallback");
+    BLINK_BINDINGS_TRACE_EVENT("Window.Storage");
+
+    bindings::V8SetReturnValue(info, V8Storage::GetWrapperTypeInfo(), bindings::V8ReturnValue::kInterfaceObject);
+}
 //
 // void StorageBucketExposedConstructCallback(v8::Local<v8::Name> v8_property_name, const v8::PropertyCallbackInfo<v8::Value>& info)
 // {
@@ -20074,7 +20074,7 @@ void V8Window::Impl::InstallUnconditionalProperties(v8::Isolate* isolate, const 
             //{ "SourceBufferList", SourceBufferListExposedConstructCallback },
             { "StaticRange", StaticRangeExposedConstructCallback },
 //             { "StereoPannerNode", StereoPannerNodeExposedConstructCallback },
-//             { "Storage", StorageExposedConstructCallback },
+            { "Storage", StorageExposedConstructCallback },
 //             { "StorageEvent", StorageEventExposedConstructCallback },
             { "StylePropertyMap", StylePropertyMapExposedConstructCallback },
             { "StylePropertyMapReadOnly", StylePropertyMapReadOnlyExposedConstructCallback },
@@ -23055,7 +23055,7 @@ base::span<const intptr_t> GetRefTableOfV8Window()
 //         reinterpret_cast<intptr_t>(SourceBufferListExposedConstructCallback),
         reinterpret_cast<intptr_t>(StaticRangeExposedConstructCallback),
 //         reinterpret_cast<intptr_t>(StereoPannerNodeExposedConstructCallback),
-//         reinterpret_cast<intptr_t>(StorageExposedConstructCallback),
+        reinterpret_cast<intptr_t>(StorageExposedConstructCallback),
 //         reinterpret_cast<intptr_t>(StorageEventExposedConstructCallback),
         reinterpret_cast<intptr_t>(StylePropertyMapExposedConstructCallback),
         reinterpret_cast<intptr_t>(StylePropertyMapReadOnlyExposedConstructCallback),
