@@ -2952,6 +2952,7 @@ void HTMLMediaElement::SetLoop(bool b)
 
 bool HTMLMediaElement::ShouldShowControls() const
 {
+#if 0 // weolar
     // If the document is not active, then we should not show controls.
     if (!GetDocument().IsActive()) {
         return false;
@@ -2976,6 +2977,7 @@ bool HTMLMediaElement::ShouldShowControls() const
     if (context && !context->CanExecuteScripts(kNotAboutToExecuteScript)) {
         return true;
     }
+#endif
     return false;
 }
 
@@ -3130,6 +3132,7 @@ void HTMLMediaElement::PlaybackProgressTimerFired()
 
 void HTMLMediaElement::ScheduleTimeupdateEvent(bool periodic_event)
 {
+#if 0 // weolar
     if (web_media_player_)
         web_media_player_->OnTimeUpdate();
 
@@ -3144,12 +3147,12 @@ void HTMLMediaElement::ScheduleTimeupdateEvent(bool periodic_event)
 
     last_time_update_event_media_time_ = media_time;
 
-    *(int*)1 = 1;
     // Restart the timer to ensure periodic event fires 250ms from _this_ event.
-    //   if (!periodic_event && playback_progress_timer_.IsActive()) {
-    //     playback_progress_timer_.Stop();
-    //     playback_progress_timer_.StartRepeating(kMaxTimeupdateEventFrequency);
-    //   }
+    if (!periodic_event && playback_progress_timer_.IsActive()) {
+        playback_progress_timer_.Stop();
+        playback_progress_timer_.StartRepeating(kMaxTimeupdateEventFrequency);
+    }
+#endif
 }
 
 void HTMLMediaElement::TogglePlayState()
@@ -4245,6 +4248,7 @@ void HTMLMediaElement::EnsureMediaControls()
 
 void HTMLMediaElement::UpdateControlsVisibility()
 {
+#if 0 // weolar
     if (!isConnected())
         return;
 
@@ -4268,6 +4272,7 @@ void HTMLMediaElement::UpdateControlsVisibility()
 
     if (web_media_player_)
         web_media_player_->OnHasNativeControlsChanged(native_controls);
+#endif
 }
 
 CueTimeline& HTMLMediaElement::GetCueTimeline()
