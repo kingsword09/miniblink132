@@ -703,7 +703,8 @@ void HTMLVideoElement::MediaRemotingStopped(int error_code)
 
 bool HTMLVideoElement::SupportsPictureInPicture() const
 {
-    return PictureInPictureController::From(GetDocument()).IsElementAllowed(*this) == PictureInPictureController::Status::kEnabled;
+    return false; // weolar
+    //return PictureInPictureController::From(GetDocument()).IsElementAllowed(*this) == PictureInPictureController::Status::kEnabled;
 }
 
 DisplayType HTMLVideoElement::GetDisplayType() const
