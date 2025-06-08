@@ -159,8 +159,12 @@ static constexpr SkScalar kMaxSigma = 532.f;
 
 skif::FilterResult SkBlurImageFilter::onFilterImage(const skif::Context& ctx) const
 {
-    const bool useBlurEngine = SkToBool(ctx.backend()->getBlurEngine());
-
+    const bool useBlurEngine = 
+#ifdef SK_ENABLE_SKSL
+        SkToBool(ctx.backend()->getBlurEngine());
+#else
+        false;
+#endif
     skif::Context inputCtx = ctx.withNewDesiredOutput(this->kernelBounds(ctx.mapping(), ctx.desiredOutput(), useBlurEngine));
 
     skif::FilterResult childOutput = this->getChildOutput(0, inputCtx);
