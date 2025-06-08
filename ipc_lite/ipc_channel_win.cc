@@ -77,7 +77,7 @@ void Channel::ChannelImpl::Close()
 //     while (input_state_.is_pending || output_state_.is_pending) {
 //         base::CurrentIOThread::Get()->WaitForIOCompletionWithHandler(INFINITE, this);
 //     }
-    *(int*)1 = 1;
+    OutputDebugStringA("WaitForIOCompletionWithHandler not impl\n");
 
     while (!output_queue_.empty()) {
         Message* m = output_queue_.front();

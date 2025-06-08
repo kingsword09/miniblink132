@@ -466,12 +466,12 @@ void LocalFrameHostImpl::DownloadURL(::blink::mojom::blink::DownloadURLParamsPtr
 
 void LocalFrameHostImpl::FocusedElementChanged(bool is_editable_element, bool is_richly_editable_element, const ::gfx::Rect& bounds_in_frame_widget, ::blink::mojom::blink::FocusType focus_type)
 {
-    printFuncName(__FUNCTION__, true, false);
+    //printFuncName(__FUNCTION__, true, false);
 }
 
 void LocalFrameHostImpl::TextSelectionChanged(const ::WTF::String& text, uint32_t offset, const ::gfx::Range& range)
 {
-    printFuncName(__FUNCTION__, true, false);
+    //printFuncName(__FUNCTION__, true, false);
 }
 
 void LocalFrameHostImpl::ShowPopupMenu(::mojo::PendingRemote<::blink::mojom::blink::PopupMenuClient> popup_client, const ::gfx::Rect& bounds,
