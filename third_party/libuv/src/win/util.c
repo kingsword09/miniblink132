@@ -375,8 +375,10 @@ static int uv__get_process_title(void)
     DWORD wlen;
 
     wlen = GetConsoleTitleW(title_w, sizeof(title_w) / sizeof(WCHAR));
-    if (wlen == 0)
+    if (wlen == 0) {
+        process_title = "GetConsoleTitleW fail";
         return uv_translate_sys_error(GetLastError());
+    }
 
     return uv__convert_utf16_to_utf8(title_w, wlen, &process_title);
 }

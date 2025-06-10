@@ -265,6 +265,36 @@ int uv_thread_equal(const uv_thread_t* t1, const uv_thread_t* t2)
     return *t1 == *t2;
 }
 
+HRESULT GetThreadDescriptionXp(HANDLE hThread, PWSTR* ppszThreadDescription)
+{
+    typedef HRESULT(WINAPI* PFN_GetThreadDescription)(HANDLE hThread, PWSTR* ppszThreadDescription);
+    static PFN_GetThreadDescription s_GetThreadDescription = (PFN_GetThreadDescription)(-1);
+
+    if (s_GetThreadDescription == (PFN_GetThreadDescription)(-1)) {
+        HMODULE handle = GetModuleHandle(L"kernel32.dll");
+        s_GetThreadDescription = (PFN_GetThreadDescription)(GetProcAddress(handle, "GetThreadDescription"));
+    }
+    if (s_GetThreadDescription)
+        return s_GetThreadDescription(hThread, ppszThreadDescription);
+
+    *ppszThreadDescription = L"GetThreadDescriptionXpFail";
+    return S_OK;
+}
+
+HRESULT SetThreadDescriptionXp(HANDLE hThread, PCWSTR lpThreadDescription)
+{
+    typedef HRESULT(WINAPI* PFN_SetThreadDescription)(HANDLE hThread, PCWSTR lpThreadDescription);
+    static PFN_SetThreadDescription s_SetThreadDescription = (PFN_SetThreadDescription)(-1);
+
+    if (s_SetThreadDescription == (PFN_SetThreadDescription)(-1)) {
+        HMODULE handle = GetModuleHandle(L"kernel32.dll");
+        s_SetThreadDescription = (PFN_SetThreadDescription)(GetProcAddress(handle, "SetThreadDescription"));
+    }
+    if (s_SetThreadDescription)
+        return s_SetThreadDescription(hThread, lpThreadDescription);
+    return S_OK;
+}
+
 int uv_thread_setname(const char* name)
 {
     HRESULT hr;
@@ -283,7 +313,7 @@ int uv_thread_setname(const char* name)
     if (err)
         return err;
 
-    hr = SetThreadDescription(GetCurrentThread(), namew);
+    hr = SetThreadDescriptionXp(GetCurrentThread(), namew);
     uv__free(namew);
     if (FAILED(hr))
         return uv_translate_sys_error(HRESULT_CODE(hr));
@@ -312,7 +342,7 @@ int uv_thread_getname(uv_thread_t* tid, char* name, size_t size)
 
     namew = NULL;
     thread_name = NULL;
-    hr = GetThreadDescription(*tid, &namew);
+    hr = GetThreadDescriptionXp(*tid, &namew);
     if (FAILED(hr))
         return uv_translate_sys_error(HRESULT_CODE(hr));
 
