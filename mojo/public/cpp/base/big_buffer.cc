@@ -63,7 +63,7 @@ void TryCreateSharedMemory(size_t size, BigBuffer::StorageType* storage_type, ab
 } // namespace
 
 // static
-constexpr size_t BigBuffer::kMaxInlineBytes;
+//constexpr size_t BigBuffer::kMaxInlineBytes;
 
 BigBuffer::BigBuffer()
     : storage_type_(StorageType::kBytes)
