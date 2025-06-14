@@ -86,7 +86,7 @@ bool DetectTextEncoding(
     // This can happen, say, when a parent frame in EUC-JP refers to
     // a child frame in Shift_JIS and both frames do NOT specify the encoding
     // making us resort to auto-detection (when it IS turned on).
-    if (!encoding && matchesCount > 0)
+    if ((!encoding || encoding[0] == '\0') && matchesCount > 0)
         encoding = matches[0]->getName();
 
     if (!encoding || encoding[0] == '\0') {
