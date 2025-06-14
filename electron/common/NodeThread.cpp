@@ -160,13 +160,13 @@ static void uiThreadRun(NodeArgc* nodeArgc)
         //CHECK_EQ(err, 0);
         free(nodeArgc);
         nodeArgc->initType = false;
-        ::SetEvent(nodeArgc->initEvent);
+        //::SetEvent(nodeArgc->initEvent);
         return;
     }
     //uv_unref(reinterpret_cast<uv_handle_t*>(&nodeArgc->async)); //zero 不屏蔽此句导致loop循环退出
 
     nodeArgc->initType = true;
-    ::SetEvent(nodeArgc->initEvent);
+    //::SetEvent(nodeArgc->initEvent);
 
     nodeArgc->uiThreadNodeEnv.v8platform = (v8::Platform*)nodeCreateDefaultPlatform();
     //ThreadCall::createBlinkThread(nodeArgc->v8platform);
