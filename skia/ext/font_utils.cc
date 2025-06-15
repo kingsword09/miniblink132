@@ -70,9 +70,9 @@ static sk_sp<SkFontMgr> fontmgr_factory()
     return SkFontMgr_New_Fuchsia(std::move(provider));
 #elif BUILDFLAG(IS_WIN)
     sk_sp<SkFontMgr> result = SkFontMgr_New_DirectWrite();
-    if (!result.get()) {
+    if (!result.get())
         result = SkFontMgr_New_GDI();
-    }
+    return result;
 #elif defined(SK_FONTMGR_FREETYPE_EMPTY_AVAILABLE)
     return SkFontMgr_New_Custom_Empty();
 #else
