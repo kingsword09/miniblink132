@@ -49,12 +49,14 @@
 #include "third_party/skia/include/core/SkFontMgr.h"
 #include "third_party/skia/include/ports/SkFontMgr_directory.h"
 #include "third_party/skia/include/core/SkGraphics.h"
+#include "third_party/blink/renderer/platform/fonts/font_cache.h"
 #include "third_party/blink/renderer/platform/wtf/threading_primitives.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #if !defined(OS_WIN)
 #include <sys/mman.h>
 #else
 #include "third_party/blink/public/web/win/web_font_rendering.h"
+#include "skia/ext/font_utils.h"
 #include "base/win/windows_version.h"
 #include "base/allocator/partition_alloc_support.h"
 #include "base/threading/sequence_local_storage_slot.h"
@@ -121,6 +123,7 @@ RenderThreadImpl::RenderThreadImpl()
     base::PlatformThread::SetName("Mb132UiThread");
 
     base::Thread::Options opt;
+    opt.stack_size = 3000000;
     opt.delegate = std::make_unique<RenderThreadImpl::ThreadDelegate>(this);
     m_thread.StartWithOptions(std::move(opt));
     while (!m_inited) {
@@ -687,11 +690,12 @@ void RenderThreadImpl::initializeWebKitOnThread(/*mojo::BinderMap* binders*/)
     initializeSkia();
     initializeICUWithFileDescriptorInternal();
 
-    initV8Data();
 #if defined(OS_WIN)
-    //blink::WebFontRendering::SetUseDirectWrite(base::win::GetVersion() >= base::win::Version::WIN7);
+    // blink::WebFontRendering::SetUseDirectWrite(base::win::GetVersion() >= base::win::Version::WIN7);
+    blink::FontCache::SetFontManager(skia::DefaultFontMgr());
 #endif
 
+    initV8Data();
     base::ThreadPoolInstance::CreateAndStartWithDefaultParams("WebKitThread");
     blink::Platform::InitializeBlink();
 
