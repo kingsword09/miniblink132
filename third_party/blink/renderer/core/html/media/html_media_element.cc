@@ -842,6 +842,7 @@ void HTMLMediaElement::ScheduleEvent(Event* event)
 
 void HTMLMediaElement::LoadTimerFired(TimerBase*)
 {
+#if 0 // weolar
     if (pending_action_flags_ & kLoadTextTrackResource)
         HonorUserPreferencesForAutomaticTextTrackSelection();
 
@@ -851,7 +852,7 @@ void HTMLMediaElement::LoadTimerFired(TimerBase*)
         else
             LoadInternal();
     }
-
+#endif
     pending_action_flags_ = 0;
 }
 
