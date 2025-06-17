@@ -24,6 +24,8 @@
 #include "third_party/openssl/openssl/include/openssl/mem.h"
 #include "windows.h"
 
+extern "C" EVP_PKEY * d2i_PUBKEY(EVP_PKEY * *a, const unsigned char** in, long len);
+
 namespace webcrypto {
 
 // Exports an EVP_PKEY public key to the SPKI format.
@@ -79,10 +81,35 @@ Status CreateWebCryptoPrivateKey(bssl::UniquePtr<EVP_PKEY> private_key, const bl
     return Status::Success();
 }
 
+static EVP_PKEY* Uint8ToEvpPkeyDer(const uint8_t* data, size_t data_len)
+{
+    const unsigned char* p = data;
+
+    // 尝试解析为私钥
+    EVP_PKEY* pkey = d2i_PrivateKey(EVP_PKEY_RSA, NULL, &p, data_len);
+    if (!pkey) {
+        // 如果不是 RSA 私钥，尝试 EC
+        p = data;
+        pkey = d2i_PrivateKey(EVP_PKEY_EC, NULL, &p, data_len);
+    }
+    if (!pkey) {
+        // 如果不是 EC 私钥，尝试其他类型，或者尝试公钥
+        p = data;
+        pkey = d2i_PUBKEY(NULL, &p, data_len);
+    }
+
+    if (pkey) {
+        return pkey;
+    } else {
+        fprintf(stderr, "Failed to parse DER key\n");
+        return NULL;
+    }
+}
+
 Status ImportUnverifiedPkeyFromSpki(base::span<const uint8_t> key_data, int expected_pkey_id, bssl::UniquePtr<EVP_PKEY>* out_pkey)
 {
-    OutputDebugStringA("ImportUnverifiedPkeyFromSpki not impl\n");
-    DebugBreak();
+    bssl::UniquePtr<EVP_PKEY> pkey(Uint8ToEvpPkeyDer(key_data.data(), key_data.size()));
+
 //     crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);
 // 
 //     CBS cbs;
@@ -91,17 +118,17 @@ Status ImportUnverifiedPkeyFromSpki(base::span<const uint8_t> key_data, int expe
 //     if (!pkey || CBS_len(&cbs) != 0)
 //         return Status::DataError();
 // 
-//     if (EVP_PKEY_id(pkey.get()) != expected_pkey_id)
-//         return Status::DataError(); // Data did not define expected key type.
-// 
-//     *out_pkey = std::move(pkey);
+    if (EVP_PKEY_id(pkey.get()) != expected_pkey_id)
+        return Status::DataError(); // Data did not define expected key type.
+
+    *out_pkey = std::move(pkey);
     return Status::Success();
 }
 
 Status ImportUnverifiedPkeyFromPkcs8(base::span<const uint8_t> key_data, int expected_pkey_id, bssl::UniquePtr<EVP_PKEY>* out_pkey)
 {
-    OutputDebugStringA("ImportUnverifiedPkeyFromPkcs8 not impl\n");
-    DebugBreak();
+    bssl::UniquePtr<EVP_PKEY> pkey(Uint8ToEvpPkeyDer(key_data.data(), key_data.size()));
+
 //     crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);
 // 
 //     CBS cbs;
@@ -110,10 +137,10 @@ Status ImportUnverifiedPkeyFromPkcs8(base::span<const uint8_t> key_data, int exp
 //     if (!pkey || CBS_len(&cbs) != 0)
 //         return Status::DataError();
 // 
-//     if (EVP_PKEY_id(pkey.get()) != expected_pkey_id)
-//         return Status::DataError(); // Data did not define expected key type.
-// 
-//     *out_pkey = std::move(pkey);
+    if (EVP_PKEY_id(pkey.get()) != expected_pkey_id)
+        return Status::DataError(); // Data did not define expected key type.
+
+    *out_pkey = std::move(pkey);
     return Status::Success();
 }
 
