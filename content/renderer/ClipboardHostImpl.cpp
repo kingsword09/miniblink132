@@ -7,6 +7,7 @@
 #include "third_party/blink/renderer/platform/image-encoders/image_encoder.h"
 #include "skia/ext/skia_utils_win.h"
 #include "base/strings/utf_string_conversions.h"
+#include "base/pickle.h"
 #include <windows.h>
 
 bool blink::mojom::blink::ClipboardHost::GetSequenceNumber(::blink::mojom::blink::ClipboardBuffer buffer, ::blink::ClipboardSequenceNumberToken* out_result)
@@ -721,9 +722,44 @@ void ClipboardHostImpl::ReadDataTransferCustomData(blink::mojom::blink::Clipboar
     *(int*)1 = 1;
 }
 
+// O:\chromium\ele32fp\ui\base\clipboard\scoped_clipboard_writer.cc
+// O:\chromium\ele32fp\ui\base\clipboard\clipboard_win.cc
+// O:\chromium\ele32fp\ui\base\clipboard\clipboard.cc
+// O:\chromium\ele32fp\content\browser\renderer_host\clipboard_host_impl.cc
+
+const UINT getDataTransferCustomType()
+{
+    // TODO(http://crbug.com/106449): Standardize this name.
+    static UINT format = ::RegisterClipboardFormat(L"Chromium Web Custom MIME Data Format");
+    return format;
+}
+
+void writeCustomDataToPickle(const WTF::HashMap<::WTF::String, ::WTF::String>& data, base::Pickle* pickle)
+{
+    pickle->WriteUInt32(data.size());
+    for (WTF::HashMap<::WTF::String, ::WTF::String>::const_iterator it = data.begin(); it != data.end(); ++it) {
+        String key = it->key;
+        String value = it->value;
+
+        pickle->WriteString(key.Utf8());
+        pickle->WriteString(value.Utf8());
+    }
+}
+
 void ClipboardHostImpl::WriteDataTransferCustomData(const WTF::HashMap<::WTF::String, ::WTF::String>& data)
 {
-    *(int*)1 = 1;
+    if (0 == data.size())
+        return;
+    base::Pickle pickle;
+    writeCustomDataToPickle(data, &pickle);
+
+    ScopedClipboard clipboard;
+    if (!clipboard.acquire(getClipboardWindow()))
+        return;
+
+    HGLOBAL glob = ClipboardUtil::createGlobalDataByByte(pickle.data(), pickle.size());
+    writeToClipboardInternal(getDataTransferCustomType(), glob);
+    ::GlobalFree(glob);
 }
 
 void ClipboardHostImpl::writeToClipboardInternal(unsigned int format, HANDLE handle)

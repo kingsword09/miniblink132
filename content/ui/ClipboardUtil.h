@@ -52,6 +52,20 @@ public:
     static std::string getPlainText(IDataObject* dataObject);
     //static base::DictionaryValue* getCustomPlainTexts(IDataObject* dataObject);
 
+    static HGLOBAL createGlobalDataByByte(const uint8_t* data, const size_t size)
+    {
+        if (size == 0)
+            return nullptr;
+
+        HGLOBAL hdata = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (size));
+        if (hdata) {
+            char* rawData = (char*)::GlobalLock(hdata);
+            memcpy(rawData, data, size);
+            ::GlobalUnlock(hdata);
+        }
+        return hdata;
+    }
+
     static HGLOBAL createGlobalData(const std::string& url, const std::string& title);
     template <typename charT> static HGLOBAL createGlobalData(const std::basic_string<charT>& str)
     {

@@ -553,6 +553,8 @@ void MbWebView::setDefaultPreferences(blink::WebViewImpl* webWiew)
     websettings->SetLoadsImagesAutomatically(true);
     websettings->SetLocalStorageEnabled(true);
     websettings->SetAllowScriptsToCloseWindows(true);
+    websettings->SetJavaScriptCanAccessClipboard(true);
+    websettings->SetDOMPasteAllowed(true);
 
 //     blink::Page* page = webWiew->GetPage();
 //     page->GetSettings().SetAcceleratedCompositingEnabled(false);
@@ -992,24 +994,6 @@ void MbWebView::draggableRegionsChanged(blink::WebVector<blink::WebDraggableRegi
 
 void MbWebView::onPaintUpdatedInUiThread(const HDC hdc, int x, int y, int cx, int cy)
 {
-    //SIZE clientSize = getClientSizeLocked();
-
-    //::EnterCriticalSection(&m_memoryCanvasLock);
-
-    //     if (m_hWnd && m_isAutoDrawToHwnd) {
-    // #if defined(OS_WIN)
-    //         HDC hdcScreen = ::GetDC(m_hWnd);
-    //         if (!m_isTransparent) {
-    //             ::BitBlt(hdcScreen, x + m_offset.x, y + m_offset.y, cx, cy, m_memoryDC, x, y, SRCCOPY);
-    //         } else
-    //             drawLayeredWindow(m_hWnd, hdcScreen, m_memoryDC, m_offset);
-    //
-    //         ::ReleaseDC(m_hWnd, hdcScreen);
-    // #else
-    //         ;
-    // #endif
-    //     }
-
 #if defined(OS_WIN)
     mbPaintUpdatedCallback paintUpdatedCallback = getClosure().m_PaintUpdatedCallback;
     if (paintUpdatedCallback) {
@@ -1024,7 +1008,6 @@ void MbWebView::onPaintUpdatedInUiThread(const HDC hdc, int x, int y, int cx, in
         paintBitUpdatedCallback(getWebviewHandle(), getClosure().m_PaintBitUpdatedParam, m_bits, &r, clientSize.cx, clientSize.cy);
     }
 #endif
-    //::LeaveCriticalSection(&m_memoryCanvasLock);
 
     ::EnterCriticalSection(&m_clientSizeLock);
     m_clientSizeDirty = false;
@@ -1052,7 +1035,6 @@ void MbWebView::updataBlinkSize()
 LRESULT MbWebView::onNcHittest(LPARAM lParam)
 {
 #ifndef _WIN32
-    //printf("MbWebView::onNcHittest: %d\n", m_ncHittestPadding);
     if (0 == m_ncHittestPadding)
         return HTCLIENT;
 

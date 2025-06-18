@@ -104,7 +104,7 @@ void RestrictedCookieManagerImpl::AddChangeListener(const ::blink::KURL& url, co
     const ::scoped_refptr<const ::blink::SecurityOrigin>& top_frame_origin, ::net::StorageAccessApiStatus storage_access_api_status, ::mojo::PendingRemote<::network::mojom::blink::CookieChangeListener> listener,
     AddChangeListenerCallback callback)
 {
-    printFuncName(__FUNCTION__, true, true);
+    printFuncName(__FUNCTION__, true, false);
 }
 
 bool RestrictedCookieManagerImpl::SetCookieFromString(const ::blink::KURL& url, const ::net::SiteForCookies& site_for_cookies,

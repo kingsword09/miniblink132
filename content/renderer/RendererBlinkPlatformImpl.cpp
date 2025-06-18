@@ -29,6 +29,12 @@
 #include "gen/ui/strings/grit/ax_strings.h"
 #include <map>
 #include <windows.h>
+#include <combaseapi.h>
+
+// EXTERN_C HRESULT CoInitializeEx(LPVOID pvReserved, DWORD dwCoInit)
+// {
+//     return 0;
+// }
 
 bool blink::mojom::blink::MimeRegistry::GetMimeTypeFromExtension(WTF::String const&, WTF::String*)
 {
@@ -89,7 +95,7 @@ public:
     void GetInterfaceImpl(mojo::GenericPendingReceiver receiver) override
     {
         CHECK(receiver.interface_name().has_value());
-
+        
         std::string output("BrowserInterfaceBrokerProxy:");
         output += receiver.interface_name().has_value() ? receiver.interface_name().value() : "no name";
         output += "\n";
@@ -256,6 +262,8 @@ std::string RendererBlinkPlatformImpl::GetDataResourceString(int resourceId)
         return MAKE_STD_STRING(kTimePickerJs);
     case IDR_VALIDATION_BUBBLE_CSS:
         return MAKE_STD_STRING(kValidationBubbleCss);
+    case IDR_UASTYLE_JSON_DOCUMENT_CSS:
+        return MAKE_STD_STRING(kJsonDocumentCss);
     }
 
     DebugBreak();
@@ -360,10 +368,6 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resourceId)
         return blink::WebString::FromUTF8("reset");
     case IDS_FORM_VALIDATION_PATTERN_MISMATCH:
         return blink::WebString::FromUTF8("mismatch");
-    case IDS_AX_CALENDAR_SHOW_DATE_PICKER:
-        return blink::WebString::FromUTF8("ax calendar show date picker");
-    case IDS_AX_CALENDAR_SHOW_DATE_TIME_LOCAL_PICKER:
-        return blink::WebString::FromUTF8("ax calendar show date time local picker");
     case IDS_FORM_CALENDAR_TODAY:
         return blink::WebString::FromUTF8("today");
     case IDS_FORM_OTHER_DATE_LABEL:
@@ -372,18 +376,66 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resourceId)
         return blink::WebString::FromUTF8("calendar clear");
     case IDS_FORM_WEEK_NUMBER_LABEL:
         return blink::WebString::FromUTF8("week number");
-    case IDS_AX_CALENDAR_SHOW_MONTH_SELECTOR:
-        return blink::WebString::FromUTF8("calendar show month");
-    case IDS_AX_CALENDAR_SHOW_NEXT_MONTH:
-        return blink::WebString::FromUTF8("calendar show next");
-    case IDS_AX_CALENDAR_SHOW_PREVIOUS_MONTH:
-        return blink::WebString::FromUTF8("calendar show previous");
     case IDS_AX_SECOND_FIELD_TEXT:
         return blink::WebString::FromUTF8("second field");
     case IDS_AX_MILLISECOND_FIELD_TEXT:
         return blink::WebString::FromUTF8("millisecond field");
     case IDS_AX_AM_PM_FIELD_TEXT:
         return blink::WebString::FromUTF8("AM PM field");
+    case IDS_AX_MEDIA_EXIT_PICTURE_IN_PICTURE_BUTTON:
+        return blink::WebString::FromUTF8("exit picture in picture");
+    case IDS_AX_MEDIA_ENTER_PICTURE_IN_PICTURE_BUTTON:
+        return blink::WebString::FromUTF8("enter picture in picture");
+    case IDS_MEDIA_OVERFLOW_MENU_EXIT_PICTURE_IN_PICTURE:
+        return blink::WebString::FromUTF8("exit picture in picture");
+    case IDS_MEDIA_OVERFLOW_MENU_ENTER_PICTURE_IN_PICTURE:
+        return blink::WebString::FromUTF8("enter picture in picture");
+    case IDS_AX_COLOR_WELL:
+        return blink::WebString::FromUTF8("Color Well");
+    case IDS_AX_COLOR_WELL_ROLEDESCRIPTION:
+        return blink::WebString::FromUTF8("Color Well Role Description");
+    case IDS_AX_COLOR_HUE_SLIDER:
+        return blink::WebString::FromUTF8("Hue Slider");
+    case IDS_AX_COLOR_EDIT_HEXADECIMAL:
+        return blink::WebString::FromUTF8("Hexadecimal Edit");
+    case IDS_AX_COLOR_EDIT_RED:
+        return blink::WebString::FromUTF8("Red Edit");
+    case IDS_AX_COLOR_EDIT_GREEN:
+        return blink::WebString::FromUTF8("Green Edit");
+    case IDS_AX_COLOR_EDIT_BLUE:
+        return blink::WebString::FromUTF8("Blue Edit");
+    case IDS_AX_COLOR_EDIT_HUE:
+        return blink::WebString::FromUTF8("Hue Edit");
+    case IDS_AX_COLOR_EDIT_SATURATION:
+        return blink::WebString::FromUTF8("Saturation Edit");
+    case IDS_AX_COLOR_EDIT_LIGHTNESS:
+        return blink::WebString::FromUTF8("Lightness Edit");
+    case IDS_AX_COLOR_FORMAT_TOGGLER:
+        return blink::WebString::FromUTF8("Format Toggler");
+    case IDS_AX_COLOR_EYEDROPPER:
+        return blink::WebString::FromUTF8("Eyedropper");
+
+    case IDS_AX_CALENDAR_SHOW_DATE_PICKER:
+        return blink::WebString::FromUTF8("Show date");
+    case IDS_AX_CALENDAR_SHOW_DATE_TIME_LOCAL_PICKER:
+        return blink::WebString::FromUTF8("Show date time");
+    case IDS_AX_CALENDAR_SHOW_MONTH_PICKER:
+        return blink::WebString::FromUTF8("Show month");
+    case IDS_AX_CALENDAR_SHOW_TIME_PICKER:
+        return blink::WebString::FromUTF8("Show time");
+    case IDS_AX_CALENDAR_SHOW_WEEK_PICKER:
+        return blink::WebString::FromUTF8("Show week");
+    case IDS_AX_CALENDAR_SHOW_MONTH_SELECTOR:
+        return blink::WebString::FromUTF8("Show month selector");
+    case IDS_AX_CALENDAR_SHOW_NEXT_MONTH:
+        return blink::WebString::FromUTF8("Show next month");
+    case IDS_AX_CALENDAR_SHOW_PREVIOUS_MONTH:
+        return blink::WebString::FromUTF8("Show previous");
+    case IDS_AX_CALENDAR_WEEK_DESCRIPTION:
+        return blink::WebString::FromUTF8("Week description");
+    case IDS_PRETTY_PRINT_JSON:
+        return blink::WebString::FromUTF8("print json");
+
     default:
         break;
     }

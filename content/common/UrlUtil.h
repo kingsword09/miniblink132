@@ -9,9 +9,10 @@ namespace content {
 
 class UrlUtil {
 public:
+    // 从后往前找这几个字符串
     static int backwardSearch(const std::string& input)
     {
-        std::string targets[] = { "\\", "//", "%2f", "%2F", "%5c", "%5C" };
+        std::string targets[] = { "\\", "//", "/", "%2f", "%2F", "%5c", "%5C" };
         for (int i = input.length() - 1; i >= 0; --i) {
             for (const auto& target : targets) {
                 if (i >= static_cast<int>(target.length()) - 1) {
@@ -46,7 +47,7 @@ public:
 // 
 //         size_t pos = pos1 < pos2 ? pos1 : pos2;
         int pos = backwardSearch(url);
-        if (std::string::npos == pos || url.size() - 1 == pos)
+        if (-1 == pos || ((int)(url.size() - 1) == pos))
             pos = 0;
 
         size_t pos3 = url.find('?', pos);

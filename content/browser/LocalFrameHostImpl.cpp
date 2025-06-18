@@ -195,7 +195,6 @@ void LocalFrameHostImpl::DidBlockNavigation(
 
 void LocalFrameHostImpl::DidChangeLoadProgress(double load_progress)
 {
-    printFuncName(__FUNCTION__, false, false);
     char* output = (char*)malloc(0x100);
     sprintf(output, "LocalFrameHostImpl::DidChangeLoadProgress: %f\n", (float)load_progress);
     OutputDebugStringA(output);

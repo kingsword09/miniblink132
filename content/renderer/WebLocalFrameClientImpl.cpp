@@ -246,9 +246,9 @@ void setNetworkRequestHead(blink::WebLocalFrame* webFrame, network::ResourceRequ
     request->headers.SetHeaderIfMissing("Accept-Encoding", "gzip, deflate, br");
     request->headers.SetHeaderIfMissing("User-Agent", blink::Platform::Current()->UserAgent().Utf8());
     //  
-    request->headers.SetHeaderIfMissing("cache-control", "max-age=0");
-    request->headers.SetHeaderIfMissing("host", "data.10jqka.com.cn");
-    request->headers.SetHeaderIfMissing("sec-fetch-site", "same-origin");
+    //request->headers.SetHeaderIfMissing("cache-control", "max-age=0");
+    //request->headers.SetHeaderIfMissing("host", "data.10jqka.com.cn");
+    //request->headers.SetHeaderIfMissing("sec-fetch-site", "same-origin");
     //  
     request->headers.SetHeaderIfMissing("sec-ch-ua", "\"Not ? A_Brand\";v=\"8\", \"Chromium\";v=\"132\"");
     request->headers.SetHeaderIfMissing("sec-ch-ua-mobile", "?0");
