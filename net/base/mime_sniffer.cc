@@ -624,6 +624,7 @@ static bool SniffCRX(std::string_view content, const GURL& url, bool* have_enoug
 
 bool ShouldSniffMimeType(const GURL& url, std::string_view mime_type)
 {
+#if 0
     bool sniffable_scheme = url.is_empty() || url.SchemeIsHTTPOrHTTPS() ||
 #if BUILDFLAG(IS_ANDROID)
         url.SchemeIs("content") ||
@@ -668,6 +669,7 @@ bool ShouldSniffMimeType(const GURL& url, std::string_view mime_type)
         // type that we ignore.
         return true;
     }
+#endif // #if 0
     return false;
 }
 

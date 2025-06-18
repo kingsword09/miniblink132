@@ -608,9 +608,9 @@ bool GetWellKnownMimeTypeFromExtension(const base::FilePath::StringType& ext, st
     return g_mime_util.Get().GetWellKnownMimeTypeFromExtension(ext, mime_type);
 }
 
-bool GetPreferredExtensionForMimeType(const std::string& mime_type, base::FilePath::StringType* extension)
+bool GetPreferredExtensionForMimeType(std::string_view mime_type, base::FilePath::StringType* extension)
 {
-    return g_mime_util.Get().GetPreferredExtensionForMimeType(mime_type, extension);
+    return g_mime_util.Get().GetPreferredExtensionForMimeType(std::string(mime_type.data(), mime_type.size()), extension);
 }
 
 bool MatchesMimeType(const std::string& mime_type_pattern, const std::string& mime_type)
@@ -722,7 +722,7 @@ const size_t kMimeBoundarySize = 69;
 
 } // namespace
 
-void GetExtensionsForMimeType(const std::string& unsafe_mime_type, std::vector<base::FilePath::StringType>* extensions)
+void GetExtensionsForMimeType(std::string_view unsafe_mime_type, std::vector<base::FilePath::StringType>* extensions)
 {
     if (unsafe_mime_type == "*/*" || unsafe_mime_type == "*")
         return;
