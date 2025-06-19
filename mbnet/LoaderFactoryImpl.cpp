@@ -84,14 +84,20 @@ bool BodyLoaderClient::WillFollowRedirect(
 }
 
 void BodyLoaderClient::DidReceiveResponse(const blink::WebURLResponse& response, 
-    absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer>, std::optional<mojo_base::BigBuffer> cached_metadata)
+    absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer> responseBodyConsumerVar, std::optional<mojo_base::BigBuffer> cached_metadata)
 {
     CHECK(!m_response.get());
     m_response.reset(new blink::WebURLResponse(response));
+
+    mojo::ScopedDataPipeConsumerHandle* responseBodyConsumer = absl::get_if<mojo::ScopedDataPipeConsumerHandle>(&responseBodyConsumerVar);
+    CHECK(responseBodyConsumer);
+    DidStartLoadingResponseBody(std::move(*responseBodyConsumer));
 }
 
 void BodyLoaderClient::DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerHandle responseBodyConsumer)
 {
+    if (m_info->frame_load_type == blink::WebFrameLoadType::kBackForward)
+        return;
     blink::WebFrame* frame = blink::WebFrame::FromFrameToken(m_frameToken);
     if (!frame)
         return;
@@ -139,7 +145,7 @@ void BodyLoaderClient::DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerH
     navigationParams->frame_load_type = m_info->frame_load_type;
     navigationParams->response.SetCurrentRequestUrl(url);
     navigationParams->response.SetMimeType(m_response->MimeType());
-    //navigationParams->redirects;
+    navigationParams->history_item;
 
     blink::WebNavigationControl* navigationControl = (blink::WebNavigationControl*)blink::WebLocalFrame::FromFrameToken(m_navigationControlId);
     if (navigationControl)

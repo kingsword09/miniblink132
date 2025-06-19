@@ -162,7 +162,7 @@ private:
     void dispatchUrlEndHook(WebURLLoaderInternal* job, const char* data, size_t size)
     {
         content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)job->m_mbwebviewId);
-        if (!webview)
+        if (!webview || !job->m_isHookRequest)
             return;
         if (!webview->getClosure().m_LoadUrlEndCallback)
             return;

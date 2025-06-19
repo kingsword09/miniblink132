@@ -185,6 +185,10 @@ public:
         kDidSentData,
     };
 
+    WebURLLoaderManagerMainTask()
+    {
+    }
+
     /*virtual*/ ~WebURLLoaderManagerMainTask() /*override*/
     {
         delete m_args;
@@ -318,13 +322,25 @@ private:
         }
     }
 
+    static void runSyncMainTasks(WebURLLoaderInternal* job)
+    {
+        for (size_t i = 0; i < job->m_syncTasks.size(); ++i) {
+            WebURLLoaderManagerMainTask* task = job->m_syncTasks[i];
+            task->run();
+            delete task;
+        }
+        job->m_syncTasks.clear();
+    }
+
 public:
     static void pushTask(WebURLLoaderInternal* job, scoped_refptr<base::SequencedTaskRunner> taskRunner, WebURLLoaderManagerMainTask* task)
     {
         if (!task)
             return;
-        if (job && job->m_isSynchronous) {
+
+        if (job && job->m_isSynchronous) { // 老版本的同步请求在mbnet里处理。新版本是blink创建线程来处理了
             job->m_syncTasks.push_back(task);
+            taskRunner->PostTask(FROM_HERE, base::BindOnce(&WebURLLoaderManagerMainTask::runSyncMainTasks, job));
             return;
         }
         WebURLLoaderManager* manager = WebURLLoaderManager::sharedInstance();
@@ -612,6 +628,8 @@ static bool isDownloadResponse(WebURLLoaderInternal* job, const AtomicString& co
     if (contentType.empty() || contentType.IsNull())
         return false;
 
+    String contentMime = contentType.LowerASCII();
+
     const char* disableDownloadMimes[] = { "text/css", "text/javascript", "text/plain", "text/html", "text/xml", "text/xsl", "image/png", "image/gif",
         "image/jpeg", "image/bmp", "image/webp", "image/x-icon", "image/svg+xml", "audio/ogg", "audio/midi", "audio/x-midi", "video/x-msvideo", "video/mpeg",
         "video/mp4", "video/x-ms-wmv", "font/woff2", "font/opentype", "application/xhtml+xml", "application/font-woff", "application/json",
@@ -620,8 +638,6 @@ static bool isDownloadResponse(WebURLLoaderInternal* job, const AtomicString& co
         const char* type = disableDownloadMimes[i];
         if (!type)
             break;
-
-        String contentMime = contentType.LowerASCII();
         if (contentMime.StartsWith(type))
             return false;
     }
@@ -834,12 +850,6 @@ std::string extractCharset(const WTF::String& contentType)
         charset = charset.substr(0, pos);
 
     return charset;
-
-    //     String textEncodingName = extractCharsetFromMediaType(contentType);
-    //     size_t pos = textEncodingName.find(',');
-    //     if (kNotFound != pos)
-    //         textEncodingName = textEncodingName.substring(0, pos);
-    //     return textEncodingName;
 }
 
 static bool setHttpResponseDataToJobWhenDidReceiveResponseOnMainThread(WebURLLoaderInternal* job, MainTaskArgs* args)
@@ -962,9 +972,6 @@ static void setResponseDataToJobWhenDidReceiveResponseOnMainThread(WebURLLoaderI
     job->m_response.SetExpectedContentLength(static_cast<long long int>(args->contentLength));
     job->m_response.SetCurrentRequestUrl(blink::KURL(args->hdr));
     job->m_response.SetHttpStatusCode(args->httpCode);
-
-    //     if (job->m_url == "https://m.ctrip.com/restapi/soa2/12216/json/queryFormatNum")
-    //         OutputDebugStringA("preInitializeHandleOnMainThread\n");
 
     if (url.SchemeIsFile() && 0 == job->m_response.HttpStatusCode())
         job->m_response.SetHttpStatusCode(200);

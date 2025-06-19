@@ -195,7 +195,6 @@ void BlobResourceLoader::doStart()
     response.SetHttpStatusCode(200);
     response.SetHttpStatusText(blink::WebString::FromUTF8("OK"));
 
-
     std::vector<char> buffer;
     int64_t allSize = 0;
     blobEntry->read(&buffer, 0, -1, &allSize);

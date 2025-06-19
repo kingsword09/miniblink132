@@ -28,6 +28,8 @@ public:
     void setCookieJarFullPath(const std::string& fullPathUtf8);
     CURLSH* getCurlShareHandle();
     std::string getCookieJarFullPath();
+    base::FilePath getDownloadDirPath();
+
     WebCookieJarImpl* getCookieJar() const
     {
         return m_cookieJar;
@@ -44,6 +46,7 @@ private:
 
     WebCookieJarImpl* m_cookieJar;
     base::FilePath m_localStotageFullPath;
+    base::FilePath m_downloadDirPath;
 };
 
 }

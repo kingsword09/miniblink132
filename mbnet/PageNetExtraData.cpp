@@ -3,11 +3,10 @@
 #include "mbnet/WebURLLoaderManagerUtil.h"
 #include "mbnet/cookies/WebCookieJarCurlImpl.h"
 #include "mbnet/cookies/CookieJarMgr.h"
-//#include "mbnet/StorageMgr.h"
-//#include "mbnet/WebStorageNamespaceImpl.h"
 #include "mbnet/DefaultLocalStorageDir.h"
 #include "third_party/blink/renderer/platform/wtf/threading_primitives.h"
 #include "mbvip/core/mb.h"
+#include "base/files/file_util.h"
 #include <shlwapi.h>
 
 namespace mbnet {
@@ -25,6 +24,17 @@ PageNetExtraData::~PageNetExtraData()
 
     if (m_proxy)
         delete m_proxy;
+}
+
+base::FilePath PageNetExtraData::getDownloadDirPath()
+{
+    if (m_downloadDirPath.empty()) {
+        base::FilePath downloadPath = getLocalStorageDir();
+        downloadPath = downloadPath.AppendASCII("download");
+        base::CreateDirectory(downloadPath); // 在local storage里加个下载目录
+        m_downloadDirPath = downloadPath;
+    }
+    return m_downloadDirPath;
 }
 
 void PageNetExtraData::setCookieJarFullPath(const std::string& fullPathUtf8)
@@ -54,37 +64,6 @@ std::string PageNetExtraData::getCookieJarFullPath()
         return m_cookieJar->getCookieJarFullPath();
     return "";
 }
-
-// blink::WebStorageNamespace* PageNetExtraData::createWebStorageNamespace()
-// {
-//     if (m_localStotageFullPath.isEmpty())
-//         m_localStotageFullPath = getDefaultLocalStorageFullPath();
-//
-//     WebStorageNamespaceImpl* storageArea = nullptr;
-//     if (m_localStorage) {
-//         storageArea = new WebStorageNamespaceImpl(m_localStotageFullPath, kLocalStorageNamespaceId, m_localStorage, true);
-//         return (blink::WebStorageNamespace*)storageArea;
-//     }
-//
-//     WTF::Vector<char> buffer = WTF::ensureStringToUTF8(m_localStotageFullPath, true);
-//     setLocalStorageFullPath(buffer.data());
-//
-//     storageArea = new WebStorageNamespaceImpl(m_localStotageFullPath, kLocalStorageNamespaceId, m_localStorage, true);
-//     return (blink::WebStorageNamespace*)storageArea;
-// }
-//
-// DOMStorageMap* createOrGet(const String& fullPath)
-// {
-//     CHECK(!fullPath.is8Bit());
-//     WebStorageNamespaceImpl* storageArea = nullptr;
-//     HashMap<String, DOMStorageMap*>::iterator it = m_pathToStorageNamespace.find(fullPath);
-//     if (m_pathToStorageNamespace.end() != it)
-//         return it->value;
-//
-//     DOMStorageMap* storageMap = new DOMStorageMap();
-//     m_pathToStorageNamespace.add(fullPath, storageMap);
-//     return storageMap;
-// }
 
 base::FilePath PageNetExtraData::getLocalStorageDir()
 {

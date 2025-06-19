@@ -1,14 +1,19 @@
-#ifndef net_cookies_WebCookieJarImph_h
-#define net_cookies_WebCookieJarImph_h
+#ifndef mbnet_cookies_WebCookieJarImph_h
+#define mbnet_cookies_WebCookieJarImph_h
 
-// #include "third_party/WebKit/public/platform/WebCookieJar.h"
-// #include "third_party/WebKit/Source/platform/weborigin/KURL.h"
+#include "gen/services/network/public/mojom/restricted_cookie_manager.mojom-blink-forward.h"
+#include "gen/services/network/public/mojom/restricted_cookie_manager.mojom-blink.h"
 #include "third_party/blink/public/platform/web_url.h"
+#include "net/storage_access_api/status.h"
 #include <string>
 
 struct curl_slist;
 typedef void CURL;
 typedef void CURLSH;
+
+namespace net {
+class SiteForCookies;
+}
 
 namespace mbnet {
 
@@ -41,6 +46,11 @@ public:
         void* params, const char* name, const char* value, const char* domain, const char* path, int secure, int httpOnly, int* expires);
     void visitAllCookie(void* params, CookieVisitor visit);
 
+    void getAllCookies(const ::blink::KURL& url, const ::net::SiteForCookies& siteForCookies,
+        const ::scoped_refptr<const ::blink::SecurityOrigin>& topFrameOrigin, ::net::StorageAccessApiStatus storageAccessApiStatus,
+        ::network::mojom::blink::CookieManagerGetOptionsPtr options,
+        bool partitionedCookiesRuntimeFeatureEnabled, bool isAdTagged, network::mojom::blink::RestrictedCookieManager::GetAllForUrlCallback callback);
+
     CURLSH* getCurlShareHandle() const
     {
         return m_curlShareHandle;
@@ -56,10 +66,8 @@ private:
     CURLSH* m_curlShareHandle;
     std::string m_cookieJarFileName;
     bool m_dirty;
-
-    //static WebCookieJarImpl* m_inst;
 };
 
-} // content
+} // mbnet
 
-#endif // net_cookies_WebCookieJarImph_h
+#endif // mbnet_cookies_WebCookieJarImph_h

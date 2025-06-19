@@ -64,7 +64,7 @@ static void onFinishHandleBlobUrl(int jobId, const GURL& gurl, blink::URLLoaderC
         response->SetMimeType(blink::WebString::FromUTF8(blobEntry->m_contentType));
         response->SetExpectedContentLength(numBytes);
         absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer> body;
-        DebugBreak();
+
         client->DidReceiveResponse(*response, std::move(body), std::nullopt);
 
         if (job->m_dataBind) {
@@ -80,6 +80,9 @@ static void onFinishHandleBlobUrl(int jobId, const GURL& gurl, blink::URLLoaderC
     } while (false);
 
     if (!isOk) {
+        if (job->m_dataBind) {
+            job->m_dataBind->finishCallback(job->m_dataBind->param, job, MB_LOADING_FAILED);
+        }
         blink::WebURLError error(net::ERR_ABORTED, blink::KURL(gurl));
         client->DidFail(error, base::TimeTicks::Now(), 0, 0, 0);
     }

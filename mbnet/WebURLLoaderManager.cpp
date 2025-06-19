@@ -794,17 +794,33 @@ void WebURLLoaderManager::handleDidReceiveResponse(WebURLLoaderInternal* job)
 #endif
         handleDidSentData(job, job->m_totalBytesToBeSent, job->m_totalBytesToBeSent); // 这次mb108新加的逻辑，要小心了
 
-        MojoHandle dataPipeConsumerHandle;
-        MojoCreateDataPipeOptions createDataOptions;
-        createDataOptions.element_num_bytes = 1;
-        createDataOptions.capacity_num_bytes = -1;
-        MojoCreateDataPipe(&createDataOptions, &job->m_dataPipeProducerHandle, &dataPipeConsumerHandle);
+//         if (0 == job->m_dataPipeProducerHandle) {
+//             if (job->m_isSynchronous) {
+//                 DebugBreak();
+//                 //client->DidReceiveData(data, dataLength);
+//                 //CurlCacheManager::getInstance()->didReceiveData(*job, data, dataLength);
+//             } else
+//                 startLoadingResponseBody(job, data, dataLength);
+//         }
 
-        mojo::DataPipeConsumerHandle dataPipeConsumer(dataPipeConsumerHandle);
-        mojo::ScopedDataPipeConsumerHandle responseBody(std::move(dataPipeConsumer));
+        if (0 == job->m_dataPipeProducerHandle) {
+            MojoHandle dataPipeConsumerHandle;
+            MojoCreateDataPipeOptions createDataOptions;
+            createDataOptions.element_num_bytes = 1;
+            createDataOptions.capacity_num_bytes = -1;
+            MojoCreateDataPipe(&createDataOptions, &job->m_dataPipeProducerHandle, &dataPipeConsumerHandle);
 
-        absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer> body = std::move(responseBody);
-        job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
+            mojo::DataPipeConsumerHandle dataPipeConsumer(dataPipeConsumerHandle);
+            mojo::ScopedDataPipeConsumerHandle responseBody(std::move(dataPipeConsumer));
+
+            absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer> body = std::move(responseBody);
+            job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
+        } else {
+            mojo::ScopedDataPipeConsumerHandle responseBody;
+            absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer> body = std::move(responseBody);
+            job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
+        }
+        
     }
 }
 
@@ -878,10 +894,6 @@ static size_t writeCallbackOnIoThread(void* ptr, size_t size, size_t nmemb, void
     // #else
     //         printf("area_array_c::::::::::::::::::::::%d\n", totalSize);
     // #endif
-
-    //         char output[100] = { 0 };
-    //         sprintf(output, "965-60BA08.gif::::::::::::::::::::::%d\n", totalSize);
-    //         OutputDebugStringA(output);
     //    }
 
     // this shouldn't be necessary but apparently is. CURL writes the data
@@ -1923,6 +1935,11 @@ void onNetSetHTTPHeaderField(mbNetJob jobPtr, const utf8* key, const utf8* value
 
 void changeRequestUrl(mbNetJob jobPtr, const char* url)
 {
+//     std::string temp = "changeRequestUrl:";
+//     temp += url;
+//     temp += "\n";
+//     OutputDebugStringA(temp.c_str());
+
     WebURLLoaderInternal* job = (WebURLLoaderInternal*)jobPtr;
     blink::KURL newUrl(WTF::String::FromUTF8(url));
     job->m_response.SetCurrentRequestUrl(newUrl);
@@ -2050,6 +2067,13 @@ String getMIMETypeForPath(const String& path)
     return mimeType;
 }
 
+static bool checkNeedFixMime(const blink::KURL& url)
+{
+    if (url.ProtocolIsJavaScript() || url.ProtocolIsInHTTPFamily() || url.IsAboutBlankURL() || url.IsAboutSrcdocURL())
+        return false;
+    return true;
+}
+
 InitializeHandleInfo* WebURLLoaderManager::preInitializeHandleOnMainThread(WebURLLoaderInternal* job)
 {
     InitializeHandleInfo* info = new InitializeHandleInfo();
@@ -2058,7 +2082,7 @@ InitializeHandleInfo* WebURLLoaderManager::preInitializeHandleOnMainThread(WebUR
     // Remove any fragment part, otherwise curl will send it as part of the request.
     url.RemoveFragmentIdentifier();
     String urlString = url.GetString();
-    if (url.IsLocalFile()) {
+    if (checkNeedFixMime(url)) {
         // Remove any query part sent to a local file.
         if (!url.Query().empty()) {
             // By setting the query to a null string it'll be removed.
@@ -2229,7 +2253,7 @@ void WebURLLoaderManager::initializeHandleOnIoThread(int jobId, InitializeHandle
     if (getenv("DEBUG_CURL"))
         curl_easy_setopt(job->m_handle, CURLOPT_VERBOSE, 1);
 #endif
-    curl_easy_setopt(job->m_handle, CURLOPT_TIMEOUT, 120);
+    curl_easy_setopt(job->m_handle, CURLOPT_TIMEOUT, 60 * 10); // 请求从开始到完结的时间。如果请求不停有数据来，超过这个时间也被认为是超时
     curl_easy_setopt(job->m_handle, CURLOPT_CONNECTTIMEOUT, 30);
     curl_easy_setopt(job->m_handle, CURLOPT_SSL_VERIFYPEER, false); // ignoreSSLErrors
     curl_easy_setopt(job->m_handle, CURLOPT_SSL_VERIFYHOST, FALSE);
@@ -2579,6 +2603,9 @@ WebURLLoaderInternal::WebURLLoaderInternal(base::Thread* ioThread, WebURLLoaderI
     m_taskRunner = base::SequencedTaskRunner::GetCurrentDefault();
     m_ioThread = ioThread;
 
+    // 如果当前线程和主线程不同，就是同步请求
+    m_isSynchronous = m_taskRunner != WebURLLoaderManager::sharedInstance()->getMainRunner();
+
 #ifndef NDEBUG
     //`webURLLoaderInternalCounter.increment();
 #endif
@@ -2633,7 +2660,7 @@ void WebURLLoaderInternal::decodeUrlRequest()
 
 void WebURLLoaderInternal::resetFirstRequest(std::unique_ptr<network::ResourceRequest>&& newRequest)
 {
-    CHECK(WTF::IsMainThread() && m_firstRequest);
+    CHECK(/*WTF::IsMainThread() &&*/ m_firstRequest);
     m_firstRequest = std::move(newRequest);
 }
 
