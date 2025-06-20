@@ -49,9 +49,6 @@
 // These permissions map to these ContentSettings:
 // * CLIPBOARD_READ_WRITE, for sanitized read, and unsanitized read/write.
 // * CLIPBOARD_SANITIZED_WRITE, for sanitized write only.
-namespace ui {
-const int kMaxRegisteredClipboardFormats = 100;
-}
 
 namespace blink {
 
@@ -489,74 +486,95 @@ void ClipboardPromise::RejectClipboardItemPromise(ScriptValue exception)
 
 PermissionService* ClipboardPromise::GetPermissionService()
 {
-    *(int*)1 = 1;
-    return nullptr;
-//     DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-//     ExecutionContext* context = GetExecutionContext();
-//     DCHECK(context);
-//     if (!permission_service_.is_bound()) {
-//         ConnectToPermissionService(context, permission_service_.BindNewPipeAndPassReceiver(GetClipboardTaskRunner()));
-//     }
-//     return permission_service_.get();
+    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+    ExecutionContext* context = GetExecutionContext();
+    DCHECK(context);
+    if (!permission_service_.is_bound()) {
+        ConnectToPermissionService(context, permission_service_.BindNewPipeAndPassReceiver(GetClipboardTaskRunner()));
+    }
+    return permission_service_.get();
 }
+
+//////////////////////////////////////////////////////////////////////////
+// third_party\blink\renderer\modules\permissions\permission_utils.cc
+using MojoPermissionDescriptor = mojom::blink::PermissionDescriptor;
+
+void ConnectToPermissionService(ExecutionContext* execution_context, mojo::PendingReceiver<mojom::blink::PermissionService> receiver)
+{
+    execution_context->GetBrowserInterfaceBroker().GetInterface(std::move(receiver));
+}
+
+mojom::blink::PermissionDescriptorPtr CreatePermissionDescriptor(mojom::blink::PermissionName name)
+{
+    auto descriptor = MojoPermissionDescriptor::New();
+    descriptor->name = name;
+    return descriptor;
+}
+
+
+mojom::blink::PermissionDescriptorPtr CreateClipboardPermissionDescriptor(mojom::blink::PermissionName name, bool has_user_gesture, bool will_be_sanitized)
+{
+    auto descriptor = CreatePermissionDescriptor(name);
+    auto clipboard_extension = mojom::blink::ClipboardPermissionDescriptor::New(has_user_gesture, will_be_sanitized);
+    descriptor->extension = mojom::blink::PermissionDescriptorExtension::NewClipboard(std::move(clipboard_extension));
+    return descriptor;
+}
+//////////////////////////////////////////////////////////////////////////
 
 void ClipboardPromise::ValidatePreconditions(
     mojom::blink::PermissionName permission, bool will_be_sanitized, base::OnceCallback<void(mojom::blink::PermissionStatus)> callback)
 {
-    *(int*)1 = 1;
-//     DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-//     DCHECK(script_promise_resolver_);
-//     DCHECK(permission == mojom::blink::PermissionName::CLIPBOARD_READ || permission == mojom::blink::PermissionName::CLIPBOARD_WRITE);
-// 
-//     ExecutionContext* context = GetExecutionContext();
-//     DCHECK(context);
-//     LocalDOMWindow& window = *To<LocalDOMWindow>(context);
-//     DCHECK(window.IsSecureContext()); // [SecureContext] in IDL
-// 
-//     if (!window.document()->hasFocus()) {
-//         script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, "Document is not focused.");
-//         return;
-//     }
-// 
-//     constexpr char kFeaturePolicyMessage[] = "The Clipboard API has been blocked because of a permissions policy "
-//                                              "applied to the current document. See https://goo.gl/EuHzyv for more "
-//                                              "details.";
-// 
-//     if ((permission == mojom::blink::PermissionName::CLIPBOARD_READ
-//             && !window.IsFeatureEnabled(mojom::blink::PermissionsPolicyFeature::kClipboardRead, ReportOptions::kReportOnFailure, kFeaturePolicyMessage))
-//         || (permission == mojom::blink::PermissionName::CLIPBOARD_WRITE
-//             && !window.IsFeatureEnabled(mojom::blink::PermissionsPolicyFeature::kClipboardWrite, ReportOptions::kReportOnFailure, kFeaturePolicyMessage))) {
-//         script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, kFeaturePolicyMessage);
-//         return;
-//     }
-// 
-//     // Grant permission by-default if extension has read/write permissions.
-//     if (GetLocalFrame()->GetContentSettingsClient()
-//         && ((permission == mojom::blink::PermissionName::CLIPBOARD_READ && GetLocalFrame()->GetContentSettingsClient()->AllowReadFromClipboard())
-//             || (permission == mojom::blink::PermissionName::CLIPBOARD_WRITE && GetLocalFrame()->GetContentSettingsClient()->AllowWriteToClipboard()))) {
-//         GetClipboardTaskRunner()->PostTask(FROM_HERE, WTF::BindOnce(std::move(callback), mojom::blink::PermissionStatus::GRANTED));
-//         return;
-//     }
-// 
-//     if ((permission == mojom::blink::PermissionName::CLIPBOARD_WRITE && ClipboardCommands::IsExecutingCutOrCopy(*context))
-//         || (permission == mojom::blink::PermissionName::CLIPBOARD_READ && ClipboardCommands::IsExecutingPaste(*context))) {
-//         GetClipboardTaskRunner()->PostTask(FROM_HERE, WTF::BindOnce(std::move(callback), mojom::blink::PermissionStatus::GRANTED));
-//         return;
-//     }
-// 
-//     if (!GetPermissionService()) {
-//         script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, "Permission Service could not connect.");
-//         return;
-//     }
-// 
-//     bool has_transient_user_activation = LocalFrame::HasTransientUserActivation(GetLocalFrame());
-//     auto permission_descriptor = CreateClipboardPermissionDescriptor(permission, /*has_user_gesture=*/has_transient_user_activation,
-//         /*will_be_sanitized=*/will_be_sanitized);
-// 
-//     // Note that extra checks are performed browser-side in
-//     // `ContentBrowserClient::IsClipboardPasteAllowed()`.
-//     permission_service_->RequestPermission(std::move(permission_descriptor),
-//         /*user_gesture=*/has_transient_user_activation, std::move(callback));
+    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+    DCHECK(script_promise_resolver_);
+    DCHECK(permission == mojom::blink::PermissionName::CLIPBOARD_READ || permission == mojom::blink::PermissionName::CLIPBOARD_WRITE);
+
+    ExecutionContext* context = GetExecutionContext();
+    DCHECK(context);
+    LocalDOMWindow& window = *To<LocalDOMWindow>(context);
+    DCHECK(window.IsSecureContext()); // [SecureContext] in IDL
+
+    if (!window.document()->hasFocus()) {
+        script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, "Document is not focused.");
+        return;
+    }
+
+    constexpr char kFeaturePolicyMessage[] = "The Clipboard API has been blocked because of a permissions policy "
+                                         "applied to the current document. See https://goo.gl/EuHzyv for more details.";
+
+    if ((permission == mojom::blink::PermissionName::CLIPBOARD_READ
+            && !window.IsFeatureEnabled(mojom::blink::PermissionsPolicyFeature::kClipboardRead, ReportOptions::kReportOnFailure, kFeaturePolicyMessage))
+        || (permission == mojom::blink::PermissionName::CLIPBOARD_WRITE
+            && !window.IsFeatureEnabled(mojom::blink::PermissionsPolicyFeature::kClipboardWrite, ReportOptions::kReportOnFailure, kFeaturePolicyMessage))) {
+        script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, kFeaturePolicyMessage);
+        return;
+    }
+
+    // Grant permission by-default if extension has read/write permissions.
+    if (GetLocalFrame()->GetContentSettingsClient()
+        && ((permission == mojom::blink::PermissionName::CLIPBOARD_READ && GetLocalFrame()->GetContentSettingsClient()->AllowReadFromClipboard())
+            || (permission == mojom::blink::PermissionName::CLIPBOARD_WRITE && GetLocalFrame()->GetContentSettingsClient()->AllowWriteToClipboard()))) {
+        GetClipboardTaskRunner()->PostTask(FROM_HERE, WTF::BindOnce(std::move(callback), mojom::blink::PermissionStatus::GRANTED));
+        return;
+    }
+
+    if ((permission == mojom::blink::PermissionName::CLIPBOARD_WRITE && ClipboardCommands::IsExecutingCutOrCopy(*context))
+        || (permission == mojom::blink::PermissionName::CLIPBOARD_READ && ClipboardCommands::IsExecutingPaste(*context))) {
+        GetClipboardTaskRunner()->PostTask(FROM_HERE, WTF::BindOnce(std::move(callback), mojom::blink::PermissionStatus::GRANTED));
+        return;
+    }
+
+    if (!GetPermissionService()) {
+        script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, "Permission Service could not connect.");
+        return;
+    }
+
+    bool has_transient_user_activation = LocalFrame::HasTransientUserActivation(GetLocalFrame());
+    auto permission_descriptor = CreateClipboardPermissionDescriptor(permission, /*has_user_gesture=*/has_transient_user_activation,
+        /*will_be_sanitized=*/will_be_sanitized);
+
+    // Note that extra checks are performed browser-side in
+    // `ContentBrowserClient::IsClipboardPasteAllowed()`.
+    permission_service_->RequestPermission(std::move(permission_descriptor), /*user_gesture=*/has_transient_user_activation, std::move(callback));
 }
 
 LocalFrame* ClipboardPromise::GetLocalFrame() const
