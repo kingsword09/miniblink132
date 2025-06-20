@@ -13,19 +13,24 @@
 #include "content/renderer/WebLocalFrameClientImpl.h"
 #include "content/renderer/RenderThreadImpl.h"
 #include "mbnet/WebURLLoaderInternal.h"
+#include "mbnet/cookies/WebCookieJarCurlImpl.h"
 #include "third_party/blink/public/web/web_frame_serializer.h"
 #include "third_party/blink/public/web/web_view.h"
 #include "third_party/blink/public/web/web_frame_serializer_client.h"
+#include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_element.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
-//#include "third_party/blink/renderer/platform/bindings/to_v8.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/partitions.h"
 #include "services/network/public/cpp/resource_request.h"
-//#include "third_party/skia/include/core/SkEncodedImageFormat.h"
+#include "services/network/public/cpp/shared_url_loader_factory.h"
+#include "gen/services/network/public/mojom/url_loader.mojom.h"
+#include "gen/services/network/public/mojom/early_hints.mojom.h"
+#include "third_party/libcurl/include/curl/curl.h"
 #include "base/command_line.h"
 #include "base/run_loop.h"
 #include "base/synchronization/waitable_event.h"
+#include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_executor.h"
 #include "base/at_exit.h"
 #include "base/base64.h"
@@ -393,6 +398,9 @@ void MB_CALL_TYPE mbGetWorldScriptContextByWebFrame(mbWebView webviewHandle, mbW
     if (!webview)
         return;
 
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    // 不需要v8::HandleScope，因为这个会导致v8::Context一返回就失效了
+
     blink::WebLocalFrame* webFrame = nullptr;
     if ((mbWebFrameHandle)-2 == frameId) {
         content::WebLocalFrameClientImpl* client = webview->getFrameClient();
@@ -412,17 +420,147 @@ void MB_CALL_TYPE mbGetWorldScriptContextByWebFrame(mbWebView webviewHandle, mbW
     if (0 == worldID) {
         result = webFrame->MainWorldScriptContext();
     } else {
-        result = webFrame->GetScriptContextFromWorldId(v8::Isolate::GetCurrent(), worldID);
+        result = webFrame->GetScriptContextFromWorldId(isolate, worldID);
     }
     v8::Local<v8::Context>* contextOutPtr = (v8::Local<v8::Context>*)contextOut;
     *contextOutPtr = result;
 }
 
 namespace content {
+scoped_refptr<network::SharedURLLoaderFactory> CreateURLLoaderFactoryByMbWebview(int64_t id);
+}
+
+class DownloadUrlClient : public ::network::mojom::URLLoaderClient {
+public:
+    // network::mojom::URLLoaderClient implementation:
+    void OnReceiveEarlyHints(network::mojom::EarlyHintsPtr early_hints) override
+    {
+
+    }
+
+    void OnReceiveResponse(network::mojom::URLResponseHeadPtr response_head, mojo::ScopedDataPipeConsumerHandle body,
+        std::optional<mojo_base::BigBuffer> cached_metadata) override
+    {
+
+    }
+
+    void OnReceiveRedirect(const net::RedirectInfo& redirect_info, network::mojom::URLResponseHeadPtr response_head) override
+    {
+
+    }
+
+    void OnUploadProgress(int64_t current_position, int64_t total_size, OnUploadProgressCallback ack_callback) override
+    {
+
+    }
+
+    void OnTransferSizeUpdated(int32_t transfer_size_diff) override
+    {
+
+    }
+
+    void OnComplete(const network::URLLoaderCompletionStatus& status) override
+    {
+        OutputDebugStringA("DownloadUrlClient.OnComplete\n");
+    }
+
+    void onClientConnectionError()
+    {
+        OutputDebugStringA("DownloadUrlClient.onClientConnectionError\n");
+
+        DownloadUrlClient* self = this;
+        content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [self] {
+            delete self;
+        });
+    }
+
+    mojo::Receiver<network::mojom::URLLoaderClient> m_clientReceiver{ this };
+protected:
+private:
+    
+};
+
+void MB_CALL_TYPE mbDownloadUrl(mbWebView webviewHandle, mbWebFrameHandle frameId, const std::string& url)
+{
+    std::string* urlCopy = new std::string(url);
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [webviewHandle, urlCopy](content::MbWebView* self) {
+        scoped_refptr<network::SharedURLLoaderFactory> factory = content::CreateURLLoaderFactoryByMbWebview(webviewHandle);
+        DownloadUrlClient* client = new DownloadUrlClient();
+
+        ::network::ResourceRequest request;
+        request.url = GURL(*urlCopy);
+
+        mojo::Remote<network::mojom::URLLoader> urlLoader;
+        factory->CreateLoaderAndStart(urlLoader.BindNewPipeAndPassReceiver(),
+            0x1234, // request_id
+            0, // options
+            request,
+            client->m_clientReceiver.BindNewPipeAndPassRemote(),
+            net::MutableNetworkTrafficAnnotationTag());
+
+        client->m_clientReceiver.set_disconnect_handler(base::BindOnce(&DownloadUrlClient::onClientConnectionError, base::Unretained(client)));
+        delete urlCopy;
+    });
+}
+
+void MB_CALL_TYPE mbClearCookie(mbWebView webView)
+{
+    mbPerformCookieCommand(webView, mbCookieCommandClearAllCookies);
+}
+
+void MB_CALL_TYPE mbPerformCookieCommand(mbWebView webviewHandle, mbCookieCommand command)
+{
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [command](content::MbWebView* self) {
+        CURL* curl = curl_easy_init();
+        if (!curl)
+            return;
+
+        mbnet::WebCookieJarImpl* cookieJar = self->getWebCookieJarImpl();
+        std::string cookiesPath = cookieJar->getCookieJarFullPath();
+        CURLSH* curlsh = cookieJar->getCurlShareHandle();
+
+        curl_easy_setopt(curl, CURLOPT_SHARE, curlsh);
+        curl_easy_setopt(curl, CURLOPT_COOKIEJAR, cookiesPath.c_str());
+        curl_easy_setopt(curl, CURLOPT_COOKIEFILE, cookiesPath.c_str());
+
+        switch (command) {
+            case mbCookieCommandClearAllCookies:
+            {
+                curl_easy_setopt(curl, CURLOPT_COOKIELIST, "ALL");
+                std::u16string cookiesPathW = base::UTF8ToUTF16(cookiesPath);
+                ::DeleteFileW((LPCWSTR)(cookiesPathW.c_str()));
+            }
+            break;
+            case mbCookieCommandClearSessionCookies:
+                curl_easy_setopt(curl, CURLOPT_COOKIELIST, "SESS");
+                break;
+            case mbCookieCommandFlushCookiesToFile:
+                curl_easy_setopt(curl, CURLOPT_COOKIELIST, "FLUSH");
+                break;
+            case mbCookieCommandReloadCookiesFromFile:
+                curl_easy_setopt(curl, CURLOPT_COOKIELIST, "RELOAD");
+                break;
+        }
+        curl_easy_cleanup(curl);
+    });
+}
+
+namespace content {
 bool g_headlessEnabled = false;
 }
 
-void MB_CALL_TYPE mbSetHeadlessEnabled(mbWebView webView, BOOL b)
+void MB_CALL_TYPE mbSetHeadlessEnabled(mbWebView webviewHandle, BOOL b)
 {
     content::g_headlessEnabled = b;
+}
+
+void MB_CALL_TYPE mbSetLanguage(mbWebView webviewHandle, const char* language)
+{
+    //wke::g_language = WTF::adoptPtr(new std::string(language));
+
+    std::string* lang = new std::string(language);
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [lang](content::MbWebView* self) {
+        self->setSetLanguage(*lang);
+        delete lang;
+    });
 }

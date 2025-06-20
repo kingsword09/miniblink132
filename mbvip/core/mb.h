@@ -396,6 +396,7 @@ typedef enum _mbMenuItemId {
     kMbMenuGoForwardId = 1 << 9,
     kMbMenuGoBackId = 1 << 10,
     kMbMenuReloadId = 1 << 11,
+    kMbMenuSaveImageId = 1 << 12,
 } mbMenuItemId;
 
 typedef void* mbWebSocketChannel;
@@ -1171,6 +1172,7 @@ typedef void(MB_CALL_TYPE* mbNetViewLoadInfoCallback)(mbWebView webView, void* p
     ITERATOR2(void, mbPostToUiThread, mbOnCallUiThread callback, void* param, "")                                                                              \
     ITERATOR3(void, mbPostToUiThreadDelay, mbOnCallUiThread callback, void* param, size_t millisecond, "")                                                     \
     ITERATOR2(void, mbSetEditable, mbWebView webView, bool editable, "")                                                                                       \
+    ITERATOR2(void, mbSetLanguage, mbWebView webView, const char* language, "")                                                                                       \
     ITERATOR2(int, mbQueryState, mbWebView webviewHandle, const char* type, "")                                                                                \
     ITERATOR1(void*, mbGetProcAddr, const char* name, "")
 

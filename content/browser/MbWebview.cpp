@@ -1916,4 +1916,11 @@ const mbProxy* MbWebView::getProxy() const
     return m_pageNetExtraData->getProxy();
 }
 
+void MbWebView::setSetLanguage(const std::string& lang)
+{
+    blink::RendererPreferences pref = m_renderWidgetHostImpl->m_webWiew->GetRendererPreferences();
+    pref.accept_languages = lang;// WTF::String::FromUTF8((const uint8_t*)lang.c_str(), lang.size());
+    m_renderWidgetHostImpl->m_webWiew->SetRendererPreferences(pref);
+}
+
 }
