@@ -30,6 +30,9 @@
 #include "partition_alloc/buildflags.h"
 #include "v8_platform_page_allocator.h"
 
+std::shared_ptr<v8::TaskRunner> nodePlatformGetForegroundTaskRunner(v8::Isolate* isolate);
+bool nodePlatformIdleTasksEnabled(v8::Isolate* isolate);
+
 namespace gin {
 
 namespace {
@@ -257,6 +260,9 @@ void V8Platform::OnCriticalMemoryPressure()
 std::shared_ptr<v8::TaskRunner> V8Platform::GetForegroundTaskRunner(v8::Isolate* isolate, v8::TaskPriority priority)
 {
     PerIsolateData* data = PerIsolateData::From(isolate);
+    if (!data)
+        return nodePlatformGetForegroundTaskRunner(isolate);
+
     switch (priority) {
     case v8::TaskPriority::kBestEffort:
         // blink::scheduler::TaskPriority::kLowPriority
@@ -326,7 +332,10 @@ std::unique_ptr<v8::ScopedBlockingCall> V8Platform::CreateBlockingScope(v8::Bloc
 
 bool V8Platform::IdleTasksEnabled(v8::Isolate* isolate)
 {
-    return PerIsolateData::From(isolate)->task_runner()->IdleTasksEnabled();
+    PerIsolateData* data = PerIsolateData::From(isolate);
+    if (!data)
+        return nodePlatformIdleTasksEnabled(isolate);
+    return data->task_runner()->IdleTasksEnabled();
 }
 
 double V8Platform::MonotonicallyIncreasingTime()
