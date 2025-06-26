@@ -713,7 +713,6 @@ ukm::UkmRecorder* WorkerGlobalScope::UkmRecorder()
     //   ukm_recorder_ = ukm::MojoUkmRecorder::Create(*factory);
     //
     //   return ukm_recorder_.get();
-    *(int*)1 = 1;
     return nullptr;
 }
 

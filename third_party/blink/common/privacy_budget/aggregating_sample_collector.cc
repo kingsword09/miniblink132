@@ -87,7 +87,6 @@ void AggregatingSampleCollector::Flush(ukm::UkmRecorder* recorder)
 
 void AggregatingSampleCollector::FlushSource(ukm::UkmRecorder* recorder, ukm::SourceId source)
 {
-    *(int*)1 = 1;
 //     if (!IsStudyActive() || !recorder)
 //         return;
 // 

@@ -51,7 +51,8 @@ network::mojom::blink::ReferrerPolicy PolicyContainer::GetReferrerPolicy() const
 void PolicyContainer::UpdateReferrerPolicy(network::mojom::blink::ReferrerPolicy policy)
 {
     policies_->referrer_policy = policy;
-    policy_container_host_remote_->SetReferrerPolicy(policy);
+    if (policy_container_host_remote_.TryGet())
+        policy_container_host_remote_->SetReferrerPolicy(policy);
 }
 
 const mojom::blink::PolicyContainerPolicies& PolicyContainer::GetPolicies() const
@@ -64,7 +65,8 @@ void PolicyContainer::AddContentSecurityPolicies(Vector<network::mojom::blink::C
     for (const auto& policy : policies) {
         policies_->content_security_policies.push_back(policy->Clone());
     }
-    policy_container_host_remote_->AddContentSecurityPolicies(std::move(policies));
+    if (policy_container_host_remote_.TryGet())
+        policy_container_host_remote_->AddContentSecurityPolicies(std::move(policies));
 }
 
 } // namespace blink
