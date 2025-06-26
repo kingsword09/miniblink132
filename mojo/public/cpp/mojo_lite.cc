@@ -80,7 +80,11 @@
 
 static int s_MojoHandleEntryCount = 0;
 static void onConnectorClose(void* ptr);
-#pragma clang optimize off
+//#pragma clang optimize off
+
+namespace content {
+void printCallstack();
+}
 
 #define _DEBUG_RECODE_STACKTRACE_
 
@@ -275,6 +279,8 @@ public:
     bool postMessageNoLock(
         MojoHandleMgr* mgr, MojoHandle handle, ConnectorType state, std::unique_ptr<std::vector<char>> data, const std::vector<uintptr_t>& handles);
 
+    base::ProcessId getPid() const { return m_pid; }
+
 private:
     base::ProcessId m_pid; // 要发送的对端的进程pid
 };
@@ -289,7 +295,7 @@ public:
     {
         m_mojoRunner = base::SequencedTaskRunner::GetCurrentDefault();
 
-        m_entryAllocSet.resize(8000);
+        m_entryAllocSet.resize(18000);
         memset(m_entryAllocSet.data(), 0, sizeof(MojoHandleEntryDummy) * m_entryAllocSet.size());
     }
 
@@ -502,20 +508,11 @@ public:
 
     void handleBlinkMessagePortClose(MojoHandle handle, MojoHandleEntry* entry)
     {
-        void* connector = !isHandle0(handle) ? entry->m_connector0 : entry->m_connector1;
-        //std::set<size_t>& connectorSet = entry->isConnector0(mojo_lite_id_) ? entry->m_connector1Set : entry->m_connector0Set;
+        if (0 != entry->m_handle0Ref || 0 != entry->m_handle1Ref)
+            return;
 
-        //         for (std::set<size_t>::const_iterator it = connectorSet.begin(); it != connectorSet.end(); ++it) {
-        //             size_t id = *it;
-        //             mojo::Connector* otherConnector = (mojo::Connector*)(findConnectorNotLock(id));
-        //             if (!otherConnector)
-        //                 continue;
-        //
-        //             base::SequencedTaskRunner* task_runner = otherConnector->task_runner();
-        //             if (!task_runner)
-        //                 task_runner = base::SequencedTaskRunner::GetCurrentDefault().get();
-        //             task_runner->PostTask(FROM_HERE, base::BindOnce(&onConnectorClose, id));
-        //        }
+        void* connector = !isHandle0(handle) ? entry->m_connector0 : entry->m_connector1;
+
         if (connector && findConnectorNotLock(connector)) {
             mojo::Connector* otherConnector = (mojo::Connector*)connector;
 
@@ -744,10 +741,12 @@ public:
                 double nowT = now.InSecondsFSinceUnixEpoch();
                 double gcTime = m_gcTime.InSecondsFSinceUnixEpoch();
 
-                if (m_totalEntryCount > 4000 && (nowT - gcTime > 30)) {
+                if (m_totalEntryCount > 6000 && (nowT - gcTime > 30)) {
                     m_gcTime = now;
                     content::RenderThreadImpl::get()->garbageCollectionDelay(500);
                 }
+
+                ret->m_receiverRunner = mojo::internal::GetTaskRunnerToUseFromUserProvidedTaskRunner(nullptr);
                 return ret;
             }
         }
@@ -826,6 +825,7 @@ public:
     void createDataPipe(const MojoCreateDataPipeOptions* options, MojoHandle* dataPipeProducerHandle, MojoHandle* dataPipeConsumerHandle)
     {
         WTF::Locker<WTF::RecursiveMutex> locker(m_lock);
+
         *dataPipeProducerHandle = (MojoHandle)m_seedHandle;
         m_seedHandle++;
         *dataPipeConsumerHandle = (MojoHandle)m_seedHandle;
@@ -835,11 +835,6 @@ public:
 
         MojoHandleEntry* entry = createMojoHandleEntry(*dataPipeProducerHandle, *dataPipeConsumerHandle, EntryType::kData);
         entry->capacityNumBytes = options->capacity_num_bytes;
-
-        //         char* output = (char*)malloc(400);
-        //         sprintf_s(output, 399, "mojo::createDataPipe: %d\n", m_handle0ToEntrys.size());
-        //         OutputDebugStringA(output);
-        //         free(output);
 
         m_handle0ToEntrys.insert(std::pair<MojoHandle, MojoHandleEntry*>(*dataPipeProducerHandle, entry));
         m_handle1ToEntrys.insert(std::pair<MojoHandle, MojoHandleEntry*>(*dataPipeConsumerHandle, entry));
@@ -862,6 +857,7 @@ public:
             MojoHandleMgr::MojoHandleEntry* entry = findEntryNotLock(info->m_associatedHandle);
             if (!entry)
                 return;
+
             //if (MOJO_HANDLE_SIGNAL_READABLE == signals && !entry->m_readTrapDirty)
             //    return;
             if (MOJO_HANDLE_SIGNAL_READABLE == signals && !(info->m_signals & MOJO_HANDLE_SIGNAL_READABLE))
@@ -875,8 +871,11 @@ public:
                 // 还是得发消息给mojo::Wait，不然就一直卡死等待了
                 //if (!(info->m_signals & MOJO_HANDLE_SIGNAL_PEER_CLOSED))
                 //    return;
+#if 0
                 if (entry->m_dataPipe.size() == entry->m_readPos) // 关闭的时候，如果还有数据没读，result还是设置成MOJO_RESULT_OK
+#endif
                     result = MOJO_RESULT_FAILED_PRECONDITION;
+
             }
         } while (false);
 
@@ -910,9 +909,20 @@ public:
         if (0 == info->m_associatedHandle)
             return;
         MojoHandleMgr::MojoHandleEntry* entry = findEntryNotLock(info->m_associatedHandle);
+        if (!entry)
+            return;
         if (MOJO_HANDLE_SIGNAL_READABLE == signals)
             entry->m_readTrapDirty = false;
         entry->m_dataTrapState = MojoHandleEntry::kHadTraped;
+    }
+
+    scoped_refptr<base::SequencedTaskRunner> getMojoHandleRunnerTask(MojoHandle handle)
+    {
+        WTF::Locker<WTF::RecursiveMutex> locker(m_lock);
+        MojoHandleMgr::MojoHandleEntry* entry = findEntryNotLock(handle);
+        if (!entry)
+            return m_mojoRunner;
+        return entry->m_receiverRunner;
     }
 
     // 如果之前有数据，但之前没绑定触发器，则现在补一次触发
@@ -939,7 +949,7 @@ public:
         if (MOJO_HANDLE_SIGNAL_READABLE == signals)
             entry->m_readTrapDirty = true;
 
-        m_mojoRunner->PostTask(FROM_HERE,
+        entry->m_receiverRunner->PostTask(FROM_HERE,
             base::BindOnce(
                 [](MojoHandle handle, MojoHandleSignals signals) {
                     MojoHandleMgr* self = MojoHandleMgr::GetInst();
@@ -971,10 +981,21 @@ public:
     void writeData(MojoHandle dataPipeProducerHandle, const void* elements, uint32_t* numBytes, const MojoWriteDataOptions* options)
     {
         CHECK(!options || options->flags == 0);
-        WTF::Locker<WTF::RecursiveMutex> locker(m_lock);
-        MojoHandleEntry* entry = findEntryNotLock(dataPipeProducerHandle);
-        if (!entry)
-            return;
+        MojoHandleEntry* entry = nullptr;
+        while (true) {
+            m_lock.lock();
+            entry = findEntryNotLock(dataPipeProducerHandle);
+            if (!entry) {
+                m_lock.unlock();
+                return;
+            }
+            if (entry->m_isBeginReadingData) {
+                m_lock.unlock();
+                base::PlatformThread::Sleep(base::Milliseconds(1));
+                continue;
+            } else
+                break;
+        }
         CHECK(entry->m_type == EntryType::kData /*&& entry->m_readPos == 0*/);
 
         size_t oldSize = entry->m_dataPipe.size();
@@ -985,6 +1006,7 @@ public:
             entry->m_dataTrapState = MojoHandleEntry::kHasDataNotTrap;
 
         armTrapEventDelayNotLock(entry, MOJO_HANDLE_SIGNAL_READABLE);
+        m_lock.unlock();
     }
 
     static bool isDataPipeProducerHandleClosed(MojoHandleEntry* entry, MojoHandle dataPipeConsumerHandle)
@@ -1062,8 +1084,8 @@ public:
             if (entry->m_handle0HadClosed || entry->m_handle1HadClosed) {
                 return MOJO_RESULT_FAILED_PRECONDITION;
             } else {
-                //                 if (0 == entry->m_dataPipe.size())
-                //                     entry->m_isBeginReadingData = true;
+                // if (0 == entry->m_dataPipe.size())
+                //     entry->m_isBeginReadingData = true;
                 return MOJO_RESULT_SHOULD_WAIT;
             }
         }
@@ -1163,8 +1185,10 @@ public:
     {
         WTF::Locker<WTF::RecursiveMutex> locker(m_lock);
         MojoHandleEntry* entry = findEntryNotLock(handle);
-        if (!entry)
+        if (!entry) {
+            OutputDebugStringA("changeToRemoteServiceMode fail\n");
             return;
+        }
         CHECK(entry->m_connectorType == ConnectorType::kNormal);
         if (isHandle0(handle)) {
             CHECK(!entry->m_connector0);
@@ -1175,13 +1199,23 @@ public:
             entry->m_connectorType = ConnectorType::kCon1IsRemoteService;
             entry->m_connector1 = new CrossProcessConnector(pid);
         }
+
+        char output[100] = { 0 };
+        sprintf_s(output, 99, "changeToRemoteServiceMode: %d\n", handle);
+        OutputDebugStringA(output);
     }
 
     bool changeToRemoteClientModeNoLock(MojoHandle handle, base::ProcessId pid, MojoHandle* localHandle)
     {
+        char output[100] = { 0 };
+        sprintf_s(output, 99, "changeToRemoteClientModeNoLock: %d\n", handle);
+        OutputDebugStringA(output);
+
         std::unordered_map<base::ProcessId, MojoProcessInfo*>::const_iterator it = m_processInfo.find(pid);
-        if (it == m_processInfo.end())
+        if (it == m_processInfo.end()) {
+            OutputDebugStringA("changeToRemoteClientModeNoLock fail\n");
             return false;
+        }
         MojoProcessInfo* info = it->second;
 
         MojoHandle handle0;
@@ -1194,6 +1228,29 @@ public:
 
         info->m_crossProcessMojoHandleMap[handle] = handle0;
         return true;
+    }
+
+    bool findRemoteServiceHandle(MojoHandle handle, base::ProcessId pid, MojoHandle* out)
+    {
+        char output[100] = { 0 };
+        std::unordered_map<base::ProcessId, MojoProcessInfo*>::const_iterator it = getProcessInfo().find(pid);
+        if (it == getProcessInfo().end()) {
+            sprintf_s(output, 99, "findRemoteServiceHandle fail 1: %d %d\n", handle, pid);
+            OutputDebugStringA(output);
+            return false;
+        }
+
+        std::unordered_map<MojoHandle, MojoHandle>::const_iterator item = it->second->m_crossProcessMojoHandleMap.begin();
+        for (; item != it->second->m_crossProcessMojoHandleMap.end(); item++) {
+            if (item->second == handle) {
+                *out = item->first;
+                return true;
+            }
+        }
+
+        sprintf_s(output, 99, "findRemoteServiceHandle fail 2: %d %d\n", handle, pid);
+        OutputDebugStringA(output);
+        return false;
     }
 
     bool changeToRemoteClientMode(MojoHandle handle, base::ProcessId pid, MojoHandle* localHandle)
@@ -1807,6 +1864,26 @@ mojo::Message::Message(Message&& other)
 #endif
 }
 
+// v8FunInfoToMojoMessage里用到了这个
+mojo::Message& mojo::Message::operator=(mojo::Message&& other)
+{
+    handle_ = std::move(other.handle_);
+    payload_buffer_ = std::move(other.payload_buffer_);
+    handles_ = std::move(other.handles_);
+    associated_endpoint_handles_ = std::move(other.associated_endpoint_handles_);
+    receiver_connection_group_ = other.receiver_connection_group_;
+    transferable_ = other.transferable_;
+    other.transferable_ = false;
+    serialized_ = other.serialized_;
+    other.serialized_ = false;
+    heap_profiler_tag_ = other.heap_profiler_tag_;
+#if defined(ENABLE_IPC_FUZZER)
+    interface_name_ = other.interface_name_;
+    method_name_ = other.method_name_;
+#endif
+    return *this;
+}
+
 //
 // Message::Message(
 //     uint32_t name, uint32_t flags, size_t payload_size, size_t payload_interface_id_count, MojoCreateMessageFlags create_message_flags, std::vector<ScopedHandle>* handles)
@@ -2112,9 +2189,9 @@ void MojoProcessInfo::onPostMessageOnIoThread(
 // 收到其他进程Connector::Accept传来的消息
 void MojoProcessInfo::onPostMessage(uintptr_t senderPid, MojoHandle handle, int senderState, const std::vector<char>& data, std::vector<uintptr_t> handles)
 {
-    char output[100] = { 0 };
-    sprintf_s(output, 99, "MojoProcessInfo::onPostMessage: %d\n", handles.size());
-    OutputDebugStringA(output);
+//     char output[100] = { 0 };
+//     sprintf_s(output, 99, "MojoProcessInfo::onPostMessage: %d, %d\n", senderPid, handles.size());
+//     OutputDebugStringA(output);
 
     MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
     WTF::Locker<WTF::RecursiveMutex> locker(*(mgr->getLock()));
@@ -2197,30 +2274,11 @@ bool CrossProcessConnector::postMessageNoLock(
 
     base::Process cur = base::Process::Current();
     channel->Send(new CrossProcessConnector_PostMessage((uintptr_t)cur.Pid(), (uintptr_t)handle, (int)state, *data, handles));
-
-    //     std::vector<char> testData;
-    //     testData.resize(10);
-    //     //--
-    //     IPC::Message* message = (IPC::Message*)atom::testChannel();
-    //     uint32_t h1 = base::Hash((const void*)message, sizeof(UtilityProcessMsg_Test));
-    //
-    //     IPC::Message* temp = new UtilityProcessMsg_Test(testData);
-    //     uint32_t h2 = base::Hash((const void*)temp, sizeof(UtilityProcessMsg_Test));
-    //     //return true;
-    //     //--
-    //
-    // //     channel->Send(new CrossProcessConnector_PostMessageTest(/*testData*/1111));
-    //     //channel->Send(new UtilityProcessMsg_Test(testData));
-    //     channel->Send(temp);
-
-    char output[100] = { 0 };
-    sprintf_s(output, 99, "CrossProcessConnector::postMessageNoLock: %d\n", handles.size());
-    OutputDebugStringA(output);
 #endif // _WIN32
     return true;
 }
 
-// 发送消息给other port
+// 发送消息给other port。本函数一般来自ApiUtilityProcess::postMessageApi
 bool mojo::Connector::Accept(mojo::Message* msg)
 {
     //CHECK(task_runner_->RunsTasksInCurrentSequence());
@@ -2229,8 +2287,10 @@ bool mojo::Connector::Accept(mojo::Message* msg)
     WTF::Locker<WTF::RecursiveMutex> locker(*(mgr->getLock()));
     MojoHandle handle = message_pipe_->value();
     MojoHandleMgr::MojoHandleEntry* entry = mgr->findEntryNotLock(handle);
-    if (!entry)
+    if (!entry) {
+        OutputDebugStringA("mojo::Connector::Accept fail 1\n");
         return false;
+    }
 
     std::string tag = msg->heap_profiler_tag();
     CHECK(MojoHandleMgr::kBlinkMessagePort == entry->m_type);
@@ -2245,42 +2305,47 @@ bool mojo::Connector::Accept(mojo::Message* msg)
     const std::vector<mojo::ScopedHandle>& handles = *msg->mutable_handles();
     std::vector<uintptr_t> mojoHandles;
     for (size_t i = 0; i < handles.size(); ++i) {
+//         char output[100] = { 0 };
+//         sprintf_s(output, 99, "Connector::Accept mojoHandles: %d\n", handles[i].get().value());
+//         OutputDebugStringA(output);
+
+        MojoHandleMgr::MojoHandleEntry* entryTest = mgr->findEntryNotLock(handles[i].get().value());
+        content::printCallstack();
+
         mojoHandles.push_back(handles[i].get().value());
     }
 
     bool isConnector0 = entry->isConnector0(this);
     if (entry->m_connectorType == ConnectorType::kCon0IsRemoteClient || entry->m_connectorType == ConnectorType::kCon0IsRemoteService) {
         CrossProcessConnector* cpCon = (CrossProcessConnector*)entry->m_connector0;
-        cpCon->postMessageNoLock(mgr, entry->m_handle0, entry->m_connectorType, std::move(data), mojoHandles);
+        MojoHandle recvHandle = entry->m_handle0; // 如果本端是服务端，可以直接发句柄，否则要转换成对面（服务端）的句柄
+        if (entry->m_connectorType == ConnectorType::kCon0IsRemoteClient) {
+            base::ProcessId servicePid = cpCon->getPid();
+            if (!mgr->findRemoteServiceHandle(recvHandle, servicePid, &recvHandle))
+                return false;
+        }
+
+//         char output[100] = { 0 };
+//         sprintf_s(output, 99, "Connector::Accept 1: %d %d %d %d\n", recvHandle, entry->m_handle0, entry->m_handle1, entry->m_connectorType);
+//         OutputDebugStringA(output);
+
+        cpCon->postMessageNoLock(mgr, recvHandle, entry->m_connectorType, std::move(data), mojoHandles);
         return true;
     } else if (entry->m_connectorType == ConnectorType::kCon1IsRemoteService) {
+//         char output[100] = { 0 };
+//         sprintf_s(output, 99, "Connector::Accept 2: %d %d %d\n", entry->m_handle0, entry->m_handle1, entry->m_connectorType);
+//         OutputDebugStringA(output);
+
         CrossProcessConnector* cpCon = (CrossProcessConnector*)entry->m_connector1;
         cpCon->postMessageNoLock(mgr, entry->m_handle1, entry->m_connectorType, std::move(data), mojoHandles);
         return true;
     }
 
-    //     std::set<size_t>& connectorSet = isConnector0 ? entry->m_connector1Set : entry->m_connector0Set;
-    //     CHECK(isConnector0 == mgr->isHandle0(message_pipe_->value()));
-    //
-    //     for (std::set<size_t>::const_iterator it = connectorSet.begin(); it != connectorSet.end(); ++it) {
-    //         size_t id = *it;
-    //         mojo::Connector* otherConnector = (mojo::Connector*)(mgr->findConnectorNotLock(id));
-    //         if (!otherConnector)
-    //             continue;
-    //
-    //         std::vector<uint8_t>* data = new std::vector<uint8_t>();
-    //         data->resize(msg->data_num_bytes());
-    //         memcpy(data->data(), msg->data(), data->size()); // msg->data()里面是blink::BlinkTransferableMessage
-    //
-    //         otherConnector->task_runner_->PostTask(FROM_HERE,
-    //             base::BindOnce(&mojo::Connector::OnConnectorAcceptMsg, otherConnector->weak_factory_.GetWeakPtr(),
-    //                 handle, otherConnector->mojo_lite_id_,
-    //                 base::Unretained(otherConnector->incoming_receiver_),
-    //                 base::Unretained(data)));
-    //     }
     mojo::Connector* otherConnector = (mojo::Connector*)(isConnector0 ? entry->m_connector1 : entry->m_connector0);
-    if (!otherConnector)
+    if (!otherConnector || !mgr->findConnectorNotLock(otherConnector)) {
+        OutputDebugStringA("mojo::Connector::Accept fail 4\n");
         return false;
+    }
 
     if (otherConnector->task_runner_) {
         otherConnector->task_runner_->PostTask(FROM_HERE,
@@ -2448,93 +2513,93 @@ mojo::ReportBadMessageCallback mojo::GetBadMessageCallback()
 
 //----
 #if 0
-class mojo::SimpleWatcher::Context : public base::RefCountedThreadSafe<mojo::SimpleWatcher::Context> {
-public:
-    mojo::SimpleWatcher::Context()
-    {
-
-    }
-
-    static void simpleWatcherNotify(base::WeakPtr<mojo::SimpleWatcher> simpleWatcher)
-    {
-        simpleWatcher->context_->m_watcherNotifyCount--;
-        if (!simpleWatcher.get() || simpleWatcher->ready_callback().is_null())
-            return;
-        mojo::HandleSignalsState state;
-        simpleWatcher->ready_callback().Run(MOJO_RESULT_OK, state);
-    }
-
-    mojo::SimpleWatcher::Context(const Context&) = delete;
-    mojo::SimpleWatcher::Context& operator=(const Context&) = delete;
-
-    int m_watcherNotifyCount = 0;
-};
-
-mojo::SimpleWatcher::SimpleWatcher(
-    const base::Location& from_here, mojo::SimpleWatcher::ArmingPolicy arming_policy, scoped_refptr<base::SequencedTaskRunner> runner, const char* handler_tag)
-    : arming_policy_(arming_policy)
-    , task_runner_(std::move(runner))
-    , is_default_task_runner_(base::ThreadTaskRunnerHandle::IsSet() && task_runner_ == base::ThreadTaskRunnerHandle::Get())
-    , context_(new mojo::SimpleWatcher::Context())
-    , handler_tag_(handler_tag ? handler_tag : from_here.file_name())
-{
-   
-}
-
-mojo::SimpleWatcher::~SimpleWatcher(void) 
-{
-    MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
-    base::AutoLock locker(*(mgr->getLock()));
-    MojoHandleMgr::MojoHandleEntry* entry = mgr->findEntryNotLock(handle_.value());
-    if (!entry)
-        return;
-    CHECK(entry->m_watcher == this);
-    entry->m_watcher = nullptr;
-}
-
-MojoResult mojo::SimpleWatcher::Arm(MojoResult* readyResult, mojo::HandleSignalsState* readyState)
-{
-    *(int*)1 = 1;
-    return 0;
-}
-
-MojoResult mojo::SimpleWatcher::Watch(mojo::Handle handle, MojoHandleSignals signals, MojoTriggerCondition condition, mojo::SimpleWatcher::ReadyCallbackWithState callback)
-{
-    MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
-    base::AutoLock locker(*(mgr->getLock()));
-    MojoHandleMgr::MojoHandleEntry* entry = mgr->findEntryNotLock(handle.value());
-    if (!entry)
-        return MOJO_RESULT_INVALID_ARGUMENT;
-
-    handle_ = handle;
-    callback_ = callback;
-
-    CHECK(!entry->m_watcher);
-    entry->m_watcher = this;
-
-    if (entry->m_dataPipe.size() > 0)
-        ArmOrNotify();
-
-    return MOJO_RESULT_OK;
-}
-
-bool mojo::SimpleWatcher::IsWatching(void) const
-{
-    return false;
-}
-
-void mojo::SimpleWatcher::ArmOrNotify()
-{
-    if (callback_.is_null() || context_->m_watcherNotifyCount != 0)
-        return;
-    context_->m_watcherNotifyCount++; // 有事没事都可以发个回调，因为回调里面会去判断有没数据来了
-    task_runner_->PostTask(FROM_HERE, base::BindOnce(&mojo::SimpleWatcher::Context::simpleWatcherNotify, weak_factory_.GetWeakPtr()));
-}
-
-void mojo::SimpleWatcher::Cancel(void)
-{
-    callback_.Reset(); // TODO: 要注意跨线程安全
-}
+// class mojo::SimpleWatcher::Context : public base::RefCountedThreadSafe<mojo::SimpleWatcher::Context> {
+// public:
+//     mojo::SimpleWatcher::Context()
+//     {
+// 
+//     }
+// 
+//     static void simpleWatcherNotify(base::WeakPtr<mojo::SimpleWatcher> simpleWatcher)
+//     {
+//         simpleWatcher->context_->m_watcherNotifyCount--;
+//         if (!simpleWatcher.get() || simpleWatcher->ready_callback().is_null())
+//             return;
+//         mojo::HandleSignalsState state;
+//         simpleWatcher->ready_callback().Run(MOJO_RESULT_OK, state);
+//     }
+// 
+//     mojo::SimpleWatcher::Context(const Context&) = delete;
+//     mojo::SimpleWatcher::Context& operator=(const Context&) = delete;
+// 
+//     int m_watcherNotifyCount = 0;
+// };
+// 
+// mojo::SimpleWatcher::SimpleWatcher(
+//     const base::Location& from_here, mojo::SimpleWatcher::ArmingPolicy arming_policy, scoped_refptr<base::SequencedTaskRunner> runner, const char* handler_tag)
+//     : arming_policy_(arming_policy)
+//     , task_runner_(std::move(runner))
+//     , is_default_task_runner_(base::ThreadTaskRunnerHandle::IsSet() && task_runner_ == base::ThreadTaskRunnerHandle::Get())
+//     , context_(new mojo::SimpleWatcher::Context())
+//     , handler_tag_(handler_tag ? handler_tag : from_here.file_name())
+// {
+//    
+// }
+// 
+// mojo::SimpleWatcher::~SimpleWatcher(void) 
+// {
+//     MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
+//     base::AutoLock locker(*(mgr->getLock()));
+//     MojoHandleMgr::MojoHandleEntry* entry = mgr->findEntryNotLock(handle_.value());
+//     if (!entry)
+//         return;
+//     CHECK(entry->m_watcher == this);
+//     entry->m_watcher = nullptr;
+// }
+// 
+// MojoResult mojo::SimpleWatcher::Arm(MojoResult* readyResult, mojo::HandleSignalsState* readyState)
+// {
+//     *(int*)1 = 1;
+//     return 0;
+// }
+// 
+// MojoResult mojo::SimpleWatcher::Watch(mojo::Handle handle, MojoHandleSignals signals, MojoTriggerCondition condition, mojo::SimpleWatcher::ReadyCallbackWithState callback)
+// {
+//     MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
+//     base::AutoLock locker(*(mgr->getLock()));
+//     MojoHandleMgr::MojoHandleEntry* entry = mgr->findEntryNotLock(handle.value());
+//     if (!entry)
+//         return MOJO_RESULT_INVALID_ARGUMENT;
+// 
+//     handle_ = handle;
+//     callback_ = callback;
+// 
+//     CHECK(!entry->m_watcher);
+//     entry->m_watcher = this;
+// 
+//     if (entry->m_dataPipe.size() > 0)
+//         ArmOrNotify();
+// 
+//     return MOJO_RESULT_OK;
+// }
+// 
+// bool mojo::SimpleWatcher::IsWatching(void) const
+// {
+//     return false;
+// }
+// 
+// void mojo::SimpleWatcher::ArmOrNotify()
+// {
+//     if (callback_.is_null() || context_->m_watcherNotifyCount != 0)
+//         return;
+//     context_->m_watcherNotifyCount++; // 有事没事都可以发个回调，因为回调里面会去判断有没数据来了
+//     task_runner_->PostTask(FROM_HERE, base::BindOnce(&mojo::SimpleWatcher::Context::simpleWatcherNotify, weak_factory_.GetWeakPtr()));
+// }
+// 
+// void mojo::SimpleWatcher::Cancel(void)
+// {
+//     callback_.Reset(); // TODO: 要注意跨线程安全
+// }
 #else
 
 MojoResult MojoCreateTrap(MojoTrapEventHandler handler, const struct MojoCreateTrapOptions* options, MojoHandle* trapHandle)
