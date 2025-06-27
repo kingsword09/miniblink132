@@ -339,6 +339,9 @@ bool MessagePort::Accept(mojo::Message* mojo_message)
     }
 
     ExecutionContext* context = GetExecutionContext();
+    if (!context)
+        return false;
+
     // WorkerGlobalScope::close() in Worker onmessage handler should prevent
     // the next message from dispatching.
     if (auto* scope = DynamicTo<WorkerGlobalScope>(context)) {
