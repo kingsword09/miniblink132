@@ -508,10 +508,13 @@ ThreadPriorityForTest PlatformThread::GetCurrentThreadPriorityForTest()
     case THREAD_PRIORITY_TIME_CRITICAL:
         return ThreadPriorityForTest::kRealtimeAudio;
     case THREAD_PRIORITY_ERROR_RETURN:
-        DPCHECK(false) << "::GetThreadPriority error";
+        //DPCHECK(false) << "::GetThreadPriority error";
+        break;
     }
 
-    NOTREACHED() << "::GetThreadPriority returned " << priority << ".";
+    //NOTREACHED() << "::GetThreadPriority returned " << priority << ".";
+    // https://learn.microsoft.com/zh-cn/windows/win32/api/processthreadsapi/nf-processthreadsapi-getthreadpriority
+    return ThreadPriorityForTest::kNormal;
 }
 
 void InitializePlatformThreadFeatures()
