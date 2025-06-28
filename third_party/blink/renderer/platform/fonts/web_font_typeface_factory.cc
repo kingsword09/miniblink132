@@ -78,21 +78,22 @@ sk_sp<SkTypeface> MakeTypefaceDefaultFontMgr(sk_sp<SkData> data)
 sk_sp<SkTypeface> MakeTypefaceFallback(sk_sp<SkData> data)
 {
 #if 0 // BUILDFLAG(ENABLE_FREETYPE)
-  if (!RuntimeEnabledFeatures::FontationsFontBackendEnabled()) {
-    return SkFontMgr_New_Custom_Empty()->makeFromData(data, 0);
-  }
+    if (!RuntimeEnabledFeatures::FontationsFontBackendEnabled()) {
+        return SkFontMgr_New_Custom_Empty()->makeFromData(data, 0);
+    }
 #endif
-//     std::unique_ptr<SkStreamAsset> stream(new SkMemoryStream(data));
-//     return SkTypeface_Make_Fontations(std::move(stream), SkFontArguments());
-    *(int*)1 = 1;
-    return nullptr;
+    // SkTypeface_Make_Fontations要引入一些库，不想那么麻烦了，直接干掉
+    //std::unique_ptr<SkStreamAsset> stream(new SkMemoryStream(data));
+    //return SkTypeface_Make_Fontations(std::move(stream), SkFontArguments());
+
+    return MakeTypefaceDefaultFontMgr(std::move(data));
 }
 #endif
 
 sk_sp<SkTypeface> MakeTypefaceFontations(sk_sp<SkData> data)
 {
-    *(int*)1 = 1;
-    return nullptr;
+    return MakeTypefaceDefaultFontMgr(std::move(data));
+    // SkTypeface_Make_Fontations要引入一些库，不想那么麻烦了，直接干掉
 //     std::unique_ptr<SkStreamAsset> stream(new SkMemoryStream(data));
 //     return SkTypeface_Make_Fontations(std::move(stream), SkFontArguments());
 }
