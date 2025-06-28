@@ -7,6 +7,7 @@
 #include "electron/browser/api/MenuEventNotif.h"
 #include "electron/browser/api/ApiBrowserView.h"
 #include "electron/browser/api/ApiSession.h"
+#include "electron/renderer/WebviewPlugin.h"
 #include "electron/common/OptionsSwitches.h"
 #include "electron/common/NodeRegisterHelp.h"
 #include "electron/common/LoadMiniElectronAsarRes.h"
@@ -17,7 +18,6 @@
 //#include "common/DragAction.h"
 #include "electron/common/asar/AsarUtil.h"
 #include "electron/common/PlatformUtil.h"
-#include "electron/renderer/WebviewPlugin.h"
 #include "electron/common/gin_helper/per_isolate_data.h"
 #include "electron/common/gin_helper/object_template_builder.h"
 #include "electron/common/gin_helper/public/gin_embedders.h"
@@ -25,7 +25,9 @@
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libnode/src/node_buffer.h"
 #include "third_party/libuv/include/uv.h"
+#include "third_party/skia/include/core/SkBitmap.h"
 #include "content/common/ThreadCall.h"
+#include "ui/gfx/icon_util.h"
 #include "base/files/file_path.h"
 #include "base/win/windows_version.h"
 #include "resource.h"
@@ -2122,6 +2124,7 @@ private:
         options->GetBydefaultVal("minimizable", true, &createWindowParam->isMinimizable);
         options->GetBydefaultVal("maximizable", true, &createWindowParam->isMaximizable);
         options->GetBydefaultVal("frame", true, &createWindowParam->isFrame);
+        options->GetBydefaultVal("icon", "", &createWindowParam->m_iconPath);
 
         options->GetBydefaultVal("useContentSize", false, &createWindowParam->isUseContentSize);
         options->GetBydefaultVal("alwaysOnTop", false, &createWindowParam->isAlwaysOnTop);
@@ -2256,6 +2259,17 @@ private:
 
         //         if (createWindowParam->transparent)
         //             mbSetTransparent(webview, true);
+
+        std::string contents;
+        if (asar::ReadFileToString(base::FilePath::FromUTF8Unsafe(m_createWindowParam->m_iconPath), &contents)) {
+            HICON hIcon = nullptr;
+            void* picture = platform_util::loadIconFromMemory((const uint8_t*)contents.data(), contents.size(), &hIcon);
+            if (picture) {
+                ::SendMessageW(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+                ::SendMessageW(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+                platform_util::loadIconFromMemoryFree(picture);
+            }
+        }
 
         MenuEventNotif::onWindowDidCreated(this);
 

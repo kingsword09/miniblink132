@@ -275,10 +275,15 @@ static void bindMethod(
     func->SetName(nameString); // NODE_SET_METHOD() compatibility.
 }
 
-void NodeBindings::bindFunction(gin::Dictionary* dict, v8::Local<v8::Object> object)
+static void isInElectronEnv(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    info.GetReturnValue().Set(v8::Boolean::New(isolate, true).As<v8::Value>());
+}
+
+void NodeBindings::bindFunction(v8::Isolate* isolate, v8::Local<v8::Object> object)
 {
     NodeBindings* self = this;
-    v8::Isolate* isolate = dict->isolate();
     bindMethod(isolate, object, "crash", &crash);
     bindMethod(isolate, object, "hang", &hang);
     bindMethod(isolate, object, "log", &log);
@@ -299,16 +304,31 @@ void NodeBindings::bindFunction(gin::Dictionary* dict, v8::Local<v8::Object> obj
     if (!m_processObjInfo.isBrowserProcess)
         processObject.Set("contextIsolated", m_processObjInfo.isContextIsolated);
 
-    gin::Dictionary versions = gin::Dictionary::CreateEmpty(dict->isolate());
-    if (dict->Get("versions", &versions)) {
-        versions.Set("atom-project-name", std::string(ATOM_VERSION_STRING));
-        versions.Set("atom-shell", std::string(ATOM_VERSION_STRING)); // For compatibility.
-        versions.Set("chrome", std::string(CHROME_VERSION_STRING));
-        versions.Set("electron", std::string(ATOM_VERSION_STRING));
+    // processObject == dict
+}
+
+// third_party\libnode\src\node_process_object.cc的PatchProcessObject会重新设置versions，所以我们这个函数的时机也要注意一下
+void NodeBindings::patchProcessObject(node::Environment* env)
+{
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    gin::Dictionary versions = gin::Dictionary::CreateEmpty(isolate);
+    v8::Local<v8::Object> object = nodeGetEnvironmentProcessObject(env);
+    gin::Dictionary processObject = gin::Dictionary(isolate, object);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Context::Scope contextScope(context);
+
+    if (processObject.Get("versions", &versions)) {
+        versions.DefineOwnProperty("atom-project-name", std::string(ATOM_VERSION_STRING));
+        versions.DefineOwnProperty("atom-shell", std::string(ATOM_VERSION_STRING)); // For compatibility.
+        versions.DefineOwnProperty("chrome", std::string(CHROME_VERSION_STRING));
+        versions.DefineOwnProperty("electron", std::string(ATOM_VERSION_STRING));
 
         base::FilePath exePath;
         base::PathService::Get(base::BasePathKey::FILE_EXE, &exePath);
-        versions.Set("execPath", exePath.AsUTF8Unsafe());
+        versions.DefineOwnProperty("execPath", exePath.AsUTF8Unsafe());
+
+        object->Delete(context, gin::StringToV8(isolate, "versions"));
+        processObject.DefineOwnProperty("versions", versions);
     }
 }
 
@@ -423,8 +443,11 @@ void bindMbConsoleLog(v8::Local<v8::Context> context)
 
 node::Environment* NodeBindings::createEnvironment(v8::Local<v8::Context> context)
 {
+    v8::Isolate* isolate = context->GetIsolate();
     uv_async_init(m_uvLoop, m_callNextTickAsync, onCallNextTick);
     m_callNextTickAsync->data = this;
+
+    addFunction(context, "_isInElectronEnv", isInElectronEnv, m_isBrowser);
 
     std::vector<std::string> args = AtomCommandLine::argv();
     // Feed node the path to initialization script.
@@ -463,12 +486,12 @@ node::Environment* NodeBindings::createEnvironment(v8::Local<v8::Context> contex
 
     if (!m_isolateData) {
         g_nodeArgc->m_registerIsolatesLock.Acquire();
-        if (g_nodeArgc->m_registerIsolates.end() == g_nodeArgc->m_registerIsolates.find(context->GetIsolate())) {
-            g_nodeArgc->m_nodeMultiIsolatePlatform->RegisterIsolate(context->GetIsolate(), m_uvLoop); // 所有线程的isolate都必须调用这个注册
+        if (g_nodeArgc->m_registerIsolates.end() == g_nodeArgc->m_registerIsolates.find(isolate)) {
+            g_nodeArgc->m_nodeMultiIsolatePlatform->RegisterIsolate(isolate, m_uvLoop); // 所有线程的isolate都必须调用这个注册
         } else {
             *(int*)1 = 1;
         }
-        m_isolateData = node::CreateIsolateData(context->GetIsolate(), m_uvLoop, g_nodeArgc->m_nodeMultiIsolatePlatform);
+        m_isolateData = node::CreateIsolateData(isolate, m_uvLoop, g_nodeArgc->m_nodeMultiIsolatePlatform);
         g_nodeArgc->m_registerIsolatesLock.Release();
     }
 
@@ -484,14 +507,14 @@ node::Environment* NodeBindings::createEnvironment(v8::Local<v8::Context> contex
         nodeEnvironmentSetIsblinkCore(env);
 
     //     const char* argv1[] = { "electron.exe", "E:\\mycode\\miniblink49\\trunk\\electron\\lib\\init.js" };
-    //     node::Environment* env = node::CreateEnvironment(context->GetIsolate(), m_uvLoop, context, 2, argv1, 2, argv1);
-    //     node::Environment* env = node::CreateEnvironment(context->GetIsolate(), m_uvLoop, context, 2, argv1, 2, argv1);
+    //     node::Environment* env = node::CreateEnvironment(isolate, m_uvLoop, context, 2, argv1, 2, argv1);
+    //     node::Environment* env = node::CreateEnvironment(isolate, m_uvLoop, context, 2, argv1, 2, argv1);
 
     // Node turns off AutorunMicrotasks, but we need it in web pages to match the
     // behavior of Chrome.
     //     if (!m_isBrowser)
 
-    gin::Dictionary process(context->GetIsolate(), nodeGetEnvironmentProcessObject(env));
+    gin::Dictionary process(isolate, nodeGetEnvironmentProcessObject(env));
     process.Set("type", StringUtil::UTF16ToUTF8(processType));
     process.Set("resourcesPath", StringUtil::UTF16ToUTF8(resourcesPath));
     // Do not set DOM globals for renderer process.
@@ -501,7 +524,7 @@ node::Environment* NodeBindings::createEnvironment(v8::Local<v8::Context> contex
     }
 
     m_processObjInfo.isBrowserProcess = m_isBrowser;
-    bindFunction(&process, nodeGetEnvironmentProcessObject(env));
+    bindFunction(isolate, nodeGetEnvironmentProcessObject(env));
 
     // The path to helper app.
     //     base::FilePath helper_exec_path;

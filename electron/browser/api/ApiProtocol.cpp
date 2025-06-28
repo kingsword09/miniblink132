@@ -266,9 +266,10 @@ public:
 
     virtual bool handleLoadUrlBegin(void* param, const char* url, void* job) override
     {
-        //         OutputDebugStringA("handleLoadUrlBegin:");
-        //         OutputDebugStringA(url);
-        //         OutputDebugStringA("\n");
+//         std::string temp = "handleLoadUrlBegin:";
+//         temp += url;
+//         temp += "\n";
+//         OutputDebugStringA(temp.c_str());
 
         const char* pos = strstr(url, "://");
         if (!pos)
@@ -285,6 +286,7 @@ public:
         ProtocolCallbackInfo* info = new ProtocolCallbackInfo(job);
         info->type = it->second.type;
         info->url = url;
+
         std::string* referrer = new std::string(mbNetGetReferrer(job));
         mbRequestType httpMethod = mbNetGetRequestMethod(job);
 

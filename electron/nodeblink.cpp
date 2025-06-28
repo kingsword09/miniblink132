@@ -295,10 +295,13 @@ void enableNodejs()
     s_v8platform = (v8::Platform*)nodeCreateDefaultPlatform();
 }
 
-static void isInElectronEnv(const v8::FunctionCallbackInfo<v8::Value>& info)
+static void bindFuncToProcessObj(v8::Isolate* isolate, v8::Local<v8::Context> context, node::Environment* env, const char* name, v8::FunctionCallback callback)
 {
-    v8::Isolate* isolate = info.GetIsolate();
-    info.GetReturnValue().Set(v8::Boolean::New(isolate, false).As<v8::Value>());
+    v8::Local<v8::Function> func = v8::FunctionTemplate::New(isolate, callback)->GetFunction(context).ToLocalChecked();
+    const v8::NewStringType type = v8::NewStringType::kInternalized;
+    v8::Local<v8::String> nameString = v8::String::NewFromUtf8(isolate, name, type).ToLocalChecked();
+    env->process_object()->Set(context, nameString, func);
+    func->SetName(nameString);
 }
 
 static void getPreloadScript(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -314,15 +317,6 @@ static void getPreloadScript(const v8::FunctionCallbackInfo<v8::Value>& info)
     const v8::NewStringType type = v8::NewStringType::kInternalized;
     v8::Local<v8::String> nameString = v8::String::NewFromUtf8(isolate, data, type, size).ToLocalChecked();
     info.GetReturnValue().Set(nameString);
-}
-
-static void bindFuncToProcessObj(v8::Isolate* isolate, v8::Local<v8::Context>* context, node::Environment* env, const char* name, v8::FunctionCallback callback)
-{
-    v8::Local<v8::Function> func = v8::FunctionTemplate::New(isolate, callback)->GetFunction(*context).ToLocalChecked();
-    const v8::NewStringType type = v8::NewStringType::kInternalized;
-    v8::Local<v8::String> nameString = v8::String::NewFromUtf8(isolate, name, type).ToLocalChecked();
-    env->process_object()->Set(*context, nameString, func);
-    func->SetName(nameString);
 }
 
 void nodeWillReleaseScriptContext(NodeBindingInMbCore* nodebinding)
@@ -494,6 +488,11 @@ char* nodeBufferGetData(void* buf, size_t* len)
 std::shared_ptr<v8::TaskRunner> nodePlatformGetForegroundTaskRunner(v8::Isolate* isolate)
 {
     return atom::g_nodeArgc->m_nodeMultiIsolatePlatform->GetForegroundTaskRunner(isolate);
+}
+
+bool nodePlatformIdleTasksEnabled(v8::Isolate* isolate)
+{
+    return atom::g_nodeArgc->m_nodeMultiIsolatePlatform->IdleTasksEnabled(isolate);
 }
 
 #endif // ENABLE_NODEJS

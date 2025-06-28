@@ -136,6 +136,7 @@ static v8::Isolate* initNodeEnvAndRunLoop(NodeArgc* nodeArgc)
         nodeAddElectronRequire(env);
         nodeArgc->m_nodeBinding->loadEnvironment(env);
         nodeArgc->m_nodeBinding->setUvEnv(env);
+        nodeArgc->m_nodeBinding->patchProcessObject(env);
         nodeArgc->m_isolate = isolate;
         s_gcTimer->data = isolate;
         runUiMessageLoop(nodeArgc);

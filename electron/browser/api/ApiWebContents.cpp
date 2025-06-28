@@ -529,17 +529,17 @@ void WebContents::rendererPostMessageToMain(const std::string& channel, const ba
     if (channel != "ipc-message" && channel != "ipc-render-invoke")
         DebugBreak();
 
-    if (listParams.size() == 2) {
-        const base::Value& a0 = listParams[0];
-        const base::Value& a1 = listParams[1];
-        if (a0.type() == base::Value::Type::STRING && a1.type() == base::Value::Type::NONE) {
-            const std::string* str = a0.GetIfString();
-            if (*str == "vscode:message") {
-                testEventEmitter = 1;
-                content::printCallstack();
-            }
-        }
-    }
+//     if (listParams.size() == 2) {
+//         const base::Value& a0 = listParams[0];
+//         const base::Value& a1 = listParams[1];
+//         if (a0.type() == base::Value::Type::STRING && a1.type() == base::Value::Type::NONE) {
+//             const std::string* str = a0.GetIfString();
+//             if (*str == "vscode:message") {
+//                 testEventEmitter = 1;
+//                 content::printCallstack();
+//             }
+//         }
+//     }
 
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [self, id, channelCopy, listParamsCopy] {
         if (IdLiveDetect::get()->isLive(id)) {

@@ -1,35 +1,35 @@
 const Clipboard = process._linkedBinding('electron_common_clipboard').Clipboard;
 
 Clipboard.prototype.readText = function (type) {
-	if (!type)
-		type = "";
-	return this._readText(type);
+    if (!type)
+        type = "";
+    return this._readText(type);
 }
 
 Clipboard.prototype.readImage = function (type) {
-	if (!type)
-		type = "";
-	return this._readImage(type);
+    if (!type)
+        type = "";
+    return this._readImage(type);
 }
 
 Clipboard.prototype.writeText = function (text, type) {
-	if (!type)
-		type = "";
-	return this._writeText(text, type);
+    if (!type)
+        type = "";
+    return this._writeText(text, type);
 }
 
 Clipboard.prototype.writeImage = function (image, type) {
-	if (!image)
-		image = null;
+    if (!image)
+        image = null;
     if (!type)
-		type = "";
-	return this._writeImage(image, type);
+        type = "";
+    return this._writeImage(image, type);
 }
 
 Clipboard.prototype.clear = function (type) {
     if (!type)
-		type = "";
-	return this._clear(type);
+        type = "";
+    return this._clear(type);
 }
 
 Clipboard.prototype.availableFormats = function (type) {
@@ -38,7 +38,7 @@ Clipboard.prototype.availableFormats = function (type) {
 
 /*
 clipboard.readText = function () {
-	console.log("--------------clipboard.readText");
+    console.log("--------------clipboard.readText");
     return "";
 }
 

@@ -25,6 +25,11 @@
 #include <shellapi.h>
 #include <shlwapi.h>
 #include <shlobj.h>
+#include <cstdint>
+#include <vector>
+#include <algorithm>
+#include "third_party/skia/include/core/SkBitmap.h"
+#include "ui/gfx/image/image.h"  // 用于 gfx::Image::CreateFrom1xPNGBytes
 
 namespace {
 
@@ -443,6 +448,283 @@ bool moveItemToTrash(const base::FilePath& path)
 void beep()
 {
     MessageBeep(MB_OK);
+}
+
+#pragma pack(push)
+#pragma pack(2)
+// 定义 ICO 头结构
+struct IconDir {
+    uint16_t idReserved;  // 必须为 0
+    uint16_t idType;      // 必须为 1（图标）
+    uint16_t idCount;     // 图标数量
+};
+
+// 定义图标目录项结构
+struct IconDirEntry {
+    uint8_t bWidth;          // 宽度（0 表示 256）
+    uint8_t bHeight;         // 高度（0 表示 256）
+    uint8_t bColorCount;     // 颜色数（0 表示 24/32 位）
+    uint8_t bReserved;       // 保留，必须为 0
+    uint16_t wPlanes;        // 颜色平面数（通常为 1）
+    uint16_t wBitCount;      // 每像素位数（如 32）
+    uint32_t dwBytesInRes;   // 图像数据大小
+    uint32_t dwImageOffset;  // 图像数据偏移量
+};
+
+// ICONDIRENTRY contains meta data for an individual icon image within a
+// .ico file.
+struct ICONDIRENTRY {
+    BYTE bWidth;
+    BYTE bHeight;
+    BYTE bColorCount;
+    BYTE bReserved;
+    WORD wPlanes;
+    WORD wBitCount;
+    DWORD dwBytesInRes;
+    DWORD dwImageOffset;
+};
+
+// ICONDIR Contains information about all the icon images contained within a
+// single .ico file.
+struct ICONDIR {
+    WORD idReserved;
+    WORD idType;
+    WORD idCount;
+    ICONDIRENTRY idEntries[1];
+};
+
+// GRPICONDIRENTRY contains meta data for an individual icon image within a
+// RT_GROUP_ICON resource in an .exe or .dll.
+struct GRPICONDIRENTRY {
+    BYTE bWidth;
+    BYTE bHeight;
+    BYTE bColorCount;
+    BYTE bReserved;
+    WORD wPlanes;
+    WORD wBitCount;
+    DWORD dwBytesInRes;
+    WORD nID;
+};
+
+// GRPICONDIR Contains information about all the icon images contained within
+// a RT_GROUP_ICON resource in an .exe or .dll.
+struct GRPICONDIR {
+    WORD idReserved;
+    WORD idType;
+    WORD idCount;
+    GRPICONDIRENTRY idEntries[1];
+};
+
+// Contains the actual icon image.
+struct ICONIMAGE {
+    BITMAPINFOHEADER icHeader;
+    RGBQUAD icColors[1];
+    BYTE icXOR[1];
+    BYTE icAND[1];
+};
+#pragma pack(pop)
+
+bool parseBMPToSkBitmap(const uint8_t* bmpData, size_t bmpSize, SkBitmap* outBitmap);
+
+// 函数：从二进制 ICO 数据加载为 SkBitmap
+bool loadIconFromICOToSkBitmap(const uint8_t* data, size_t dataSize, SkBitmap* outBitmap)
+{
+    if (!data || dataSize < sizeof(IconDir) || !outBitmap) {
+        return false;
+    }
+
+    // Step 1: 解析 ICO 头
+    const IconDir* iconDir = reinterpret_cast<const IconDir*>(data);
+    if (iconDir->idReserved != 0 || iconDir->idType != 1) {
+        return false; // 不是有效的 ICO 文件
+    }
+
+    if (iconDir->idCount == 0) {
+        return false; // 没有图标
+    }
+
+    // Step 2: 遍历图标目录项，找到第一个支持的图像（比如 32x32 的 32 位）
+    const IconDirEntry* entries = reinterpret_cast<const IconDirEntry*>(data + sizeof(IconDir));
+    for (uint16_t i = 0; i < iconDir->idCount; ++i) {
+        const IconDirEntry& entry = entries[i];
+
+        // 跳过无效条目（如宽度/高度为 0）
+        if (entry.bWidth == 0 || entry.bHeight == 0)
+            continue;
+
+        // 检查是否支持该格式（这里我们只支持 32 位色深的图标）
+        //if (entry.wBitCount != 32)
+        //    continue;
+
+        // 检查偏移量是否在数据范围内
+        if (entry.dwImageOffset + entry.dwBytesInRes > dataSize)
+            continue;
+
+        // 获取图像数据
+        const uint8_t* imageData = data + entry.dwImageOffset;
+        size_t imageSize = entry.dwBytesInRes;
+
+        ICONIMAGE* iconHead = (ICONIMAGE*)imageData;
+
+        char output[120] = { 0 };
+        sprintf(output, "biSize: (%d, %d)%d(%d, %d)\n", 
+            entry.bWidth, entry.bHeight,
+            entry.wBitCount,
+            iconHead->icHeader.biWidth, iconHead->icHeader.biHeight);
+        OutputDebugStringA(output);
+
+        bool isPng = iconHead->icHeader.biCompression;
+
+        DebugBreak();
+//         if (isPng) {
+//             // Step 4: 如果是 PNG，直接使用 gfx::Image::CreateFrom1xPNGBytes 加载
+//             *outBitmap = gfx::Image::CreateFrom1xPNGBytes(base::span<const uint8_t>(imageData, imageSize)).AsBitmap();
+//             return !outBitmap->isNull();
+//         } else {
+//             // Step 4: 如果是 BMP，手动解析 BMP 数据并填充 SkBitmap
+//             if (!parseBMPToSkBitmap(imageData, imageSize, outBitmap)) {
+//                 continue;  // 解析失败，尝试下一个图标
+//             }
+//             return !outBitmap->isNull();
+//         }
+    }
+
+    return false;  // 没有找到支持的图标
+}
+
+// 手动解析 BMP 数据并填充 SkBitmap
+bool parseBMPToSkBitmap(const uint8_t* bmpData, size_t bmpSize, SkBitmap* outBitmap)
+{
+    if (!bmpData || bmpSize < sizeof(BITMAPINFOHEADER) || !outBitmap) {
+        return false;
+    }
+
+    // Step 1: 解析 BITMAPINFOHEADER
+    const BITMAPINFOHEADER* bmiHeader = reinterpret_cast<const BITMAPINFOHEADER*>(bmpData);
+    if (bmiHeader->biSize != sizeof(BITMAPINFOHEADER))
+        return false;  // 不支持的 BMP 格式
+
+    // 只支持 32 位 BMP
+    if (bmiHeader->biBitCount != 32)
+        return false;
+
+    int width = bmiHeader->biWidth;
+    int height = abs(bmiHeader->biHeight);  // BMP 高度可能是负数（表示从上到下存储）
+
+    // Step 2: 创建 SkImageInfo
+    SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+
+    // Step 3: 分配 SkBitmap 像素
+    if (!outBitmap->tryAllocPixels(info))
+        return false;
+
+    // Step 4: 计算 BMP 数据的起始位置（跳过 BITMAPINFOHEADER）
+    const uint8_t* pixelData = bmpData + bmiHeader->biSize;
+
+    // 如果有颜色表（biBitCount <= 8），需要跳过颜色表
+    if (bmiHeader->biBitCount <= 8) {
+        int colorTableSize = bmiHeader->biClrUsed * 4;  // 每个颜色项 4 字节
+        if (colorTableSize == 0) {
+            colorTableSize = 1 << bmiHeader->biBitCount * 4;
+        }
+        pixelData += colorTableSize;
+    }
+
+    // Step 5: BMP 数据可能是从下到上存储的，需要垂直翻转
+    // 计算每行的字节数（包括填充）
+    int rowBytes = (width * 4 + 3) & ~3;  // 4 字节对齐
+    //std::vector<uint8_t> row_buffer(rowBytes);
+
+    uint8_t* dstPixels = static_cast<uint8_t*>(outBitmap->getPixels());
+    for (int y = 0; y < height; ++y) {
+        // 计算当前行的起始位置
+        const uint8_t* srcRow = pixelData + (height - 1 - y) * rowBytes;
+        uint8_t* dstRow = dstPixels + y * outBitmap->rowBytes();
+
+        // 复制一行数据
+        memcpy(dstRow, srcRow, rowBytes);
+    }
+
+    return true;
+}
+
+static HRESULT createStreamOnMemory(const BYTE* pData, DWORD dwSize, IStream** ppStream)
+{
+    if (!pData || dwSize == 0 || !ppStream)
+        return E_INVALIDARG;
+
+    // 分配全局内存
+    HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dwSize);
+    if (!hGlobal)
+        return E_OUTOFMEMORY;
+
+    // 锁定内存并复制数据
+    void* pGlobalData = GlobalLock(hGlobal);
+    if (!pGlobalData) {
+        GlobalFree(hGlobal);
+        return E_OUTOFMEMORY;
+    }
+    memcpy(pGlobalData, pData, dwSize);
+    GlobalUnlock(hGlobal);
+
+    // 创建流
+    HRESULT hr = CreateStreamOnHGlobal(hGlobal, TRUE, ppStream); // 自动释放 hGlobal
+    if (FAILED(hr))
+        GlobalFree(hGlobal);
+
+    return hr;
+}
+
+void* loadIconFromMemory(const uint8_t* pData, size_t dwSize, void* hIcon)
+{
+    if (!pData || dwSize == 0)
+        return nullptr;
+
+//     HICON xx = CreateIconFromResourceEx(
+//         (PBYTE)pData,
+//         (DWORD)dwSize,
+//         TRUE,
+//         0x00030000,
+//         0,
+//         0,
+//         LR_DEFAULTSIZE | LR_SHARED);
+
+    IStream* pStream = nullptr;
+    HRESULT hr = createStreamOnMemory(pData, dwSize, &pStream);
+    if (FAILED(hr))
+        return nullptr;
+
+    // 使用 OleLoadPicture 加载 IPicture
+    IPicture* pPicture = nullptr;
+    hr = OleLoadPicture(pStream, dwSize, FALSE, IID_IPicture, (void**)&pPicture);
+    pStream->Release(); // 释放流，因为 OleLoadPicture 已经增加了引用计数
+    if (FAILED(hr))
+        return nullptr;
+
+    SHORT type = 0;
+    pPicture->get_Type(&type);
+    if (PICTYPE_ICON != type) {
+        pPicture->Release();
+        return nullptr;
+    }
+
+    // 从 IPicture 获取 HICON
+    OLE_HANDLE hIconHandle = 0;
+    hr = pPicture->get_Handle((OLE_HANDLE*)&hIconHandle);
+    if (FAILED(hr)) {
+        pPicture->Release();
+        return nullptr;
+    }
+
+    // OLE_HANDLE 实际上是一个 UINT_PTR，在 Windows 中就是 HICON
+    *(HICON*)hIcon = (HICON)hIconHandle;
+    return pPicture;
+}
+
+void loadIconFromMemoryFree(void* picture)
+{
+    IPicture* pPicture = (IPicture*)picture;
+    //pPicture->Release();
 }
 
 } // namespace platform_util

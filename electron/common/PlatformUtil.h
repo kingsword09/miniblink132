@@ -13,6 +13,7 @@
 #endif
 
 class GURL;
+class SkBitmap;
 
 namespace base {
 class FilePath;
@@ -46,6 +47,12 @@ void moveToCenter(HWND hWnd);
 bool moveItemToTrash(const base::FilePath& full_path);
 
 void beep();
+
+bool parseBMPToSkBitmap(const uint8_t* bmpData, size_t bmpSize, SkBitmap* outBitmap);
+bool loadIconFromICOToSkBitmap(const uint8_t* data, size_t dataSize, SkBitmap* outBitmap);
+
+void* loadIconFromMemory(const uint8_t* pData, size_t dwSize, void* hIcon);
+void loadIconFromMemoryFree(void* picture);
 
 } // namespace platform_util
 

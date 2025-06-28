@@ -61,6 +61,7 @@ void nodeEnvironmentSetIsblinkCore(node::Environment* env);
 void nodeEnvironmentAddCustomArgs(node::Environment* env, const std::vector<std::string>& argv);
 void nodeAddElectronRequire(node::Environment* env);
 void nodeEnvironmentElectronPostEarlyInitialization(node::Environment* env);
+bool nodePlatformIdleTasksEnabled(v8::Isolate* isolate);
 
 typedef void* BlinkMicrotaskSuppressionHandle;
 extern "C" NODE_EXTERN BlinkMicrotaskSuppressionHandle nodeBlinkMicrotaskSuppressionEnter(v8::Isolate* isolate);
@@ -82,7 +83,7 @@ struct NodeBindingInMbCore {
 NodeBindingInMbCore* nodeBindNodejsOnDidCreateScriptContext(void* webView, void* frameId, void* ctx);
 void nodeWillReleaseScriptContext(NodeBindingInMbCore* nodebinding);
 bool isNodejsEnable();
-//std::shared_ptr<v8::TaskRunner> nodePlatformGetForegroundTaskRunner(v8::Isolate* isolate);
+std::shared_ptr<v8::TaskRunner> nodePlatformGetForegroundTaskRunner(v8::Isolate* isolate);
 
 #endif // ENABLE_NODEJS
 #endif //_NODEBLINK_H_

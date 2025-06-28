@@ -45,11 +45,12 @@ public:
     };
     ProcessObjInfo m_processObjInfo;
 
-    void bindFunction(gin::Dictionary* dict, v8::Local<v8::Object> object);
+    void bindFunction(v8::Isolate* isolate, v8::Local<v8::Object> object);
 
     node::Environment* createEnvironment(v8::Local<v8::Context> context);
     void loadEnvironment(node::Environment* evn);
     void activateUVLoop(v8::Isolate* isoloate);
+    void patchProcessObject(node::Environment* env);
 
     node::IsolateData* getIsolateData() const
     {

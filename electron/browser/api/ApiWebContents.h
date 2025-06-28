@@ -91,6 +91,8 @@ public:
         bool m_isContextIsolation;
         std::vector<std::string> m_customArgs;
 
+        std::string m_iconPath;
+
         BrowserWindowConstructorOptions()
         {
             x = 0;
