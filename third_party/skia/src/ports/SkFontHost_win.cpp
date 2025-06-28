@@ -228,13 +228,21 @@ static unsigned calculateUPEM(HDC hdc, const LOGFONT& lf)
     return (0 == otmRet) ? 0 : otm.otmEMSquare;
 }
 
+extern int g_is_xp;
+
 class SkAutoHDC {
 public:
     explicit SkAutoHDC(const LOGFONT& lf)
         : fHdc(::CreateCompatibleDC(nullptr))
-        , fFont(::CreateFontIndirect(&lf))
-        , fSavefont((HFONT)::SelectObject(fHdc, fFont))
+        //, fFont(::CreateFontIndirect(&lf))
+        //, fSavefont((HFONT)::SelectObject(fHdc, fFont))
     {
+        if (g_is_xp == 1) {
+            LOGFONT lfCopy = lf;
+            _tcscpy_s(lfCopy.lfFaceName, L"SimSun"); // weolar
+            fFont = ::CreateFontIndirect(&lfCopy);
+        }
+        fSavefont = ((HFONT)::SelectObject(fHdc, fFont));
     }
     ~SkAutoHDC()
     {
@@ -716,6 +724,9 @@ SkScalerContext_GDI::SkScalerContext_GDI(sk_sp<LogFontTypeface> rawTypeface, con
     LOGFONT lf = typeface->fLogFont;
     lf.lfHeight = -SkScalarTruncToInt(gdiTextSize);
     lf.lfQuality = compute_quality(fRec);
+    if (g_is_xp == 1) {
+        _tcscpy_s(lf.lfFaceName, L"SimSun"); // weolar
+    }
     fFont = CreateFontIndirect(&lf);
     if (!fFont) {
         return;
@@ -1692,6 +1703,8 @@ std::unique_ptr<SkAdvancedTypefaceMetrics> LogFontTypeface::onGetAdvancedMetrics
         return info;
     }
     lf.lfHeight = -SkToS32(otm.otmEMSquare);
+    if (g_is_xp == 1)
+        _tcscpy_s(lf.lfFaceName, L"SimSun"); // weolar
     designFont.reset(CreateFontIndirect(&lf));
     SelectObject(hdc, designFont.get());
     if (!GetOutlineTextMetrics(hdc, sizeof(otm), &otm)) {
