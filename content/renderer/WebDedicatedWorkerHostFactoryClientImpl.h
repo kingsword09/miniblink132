@@ -14,6 +14,8 @@ class WebDedicatedWorker;
 
 namespace content {
 
+class DedicatedWorkerHostBrowserInterfaceBroker;
+
 class WebDedicatedWorkerHostFactoryClientImpl : public blink::WebDedicatedWorkerHostFactoryClient {
 public:
     WebDedicatedWorkerHostFactoryClientImpl(blink::WebDedicatedWorker* worker);
@@ -30,6 +32,7 @@ public:
 
 private:
     blink::WebDedicatedWorker* m_worker;
+    DedicatedWorkerHostBrowserInterfaceBroker* m_browserInterfaceBrokerImpl = nullptr;
     mojo::Receiver<::blink::mojom::BrowserInterfaceBroker> m_browserInterfaceBroker;
     mojo::Receiver<::blink::mojom::blink::DedicatedWorkerHost> m_dedicatedWorkerHost;
 
