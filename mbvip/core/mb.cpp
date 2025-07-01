@@ -13,10 +13,13 @@
 #include "content/common/ThreadCall.h"
 #include "content/common/mbchar.h"
 #include "content/renderer/RenderThreadImpl.h"
+#include "content/renderer/RendererBlinkPlatformImpl.h"
 #include "mbnet/WebURLLoaderInternal.h"
+#include "mbnet/cookies/WebCookieJarCurlImpl.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
 #include "third_party/blink/public/web/web_view.h"
+#include "third_party/blink/public/platform/platform.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/partitions.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "base/command_line.h"
@@ -39,6 +42,10 @@
 #include "v8.h"
 #include "third_party/skia/include/core/SkTraceMemoryDump.h"
 #include "third_party/skia/include/core/SkGraphics.h"
+
+#if OS_LINUX
+extern base::RunLoop* g_mainThreadRunLoop;
+#endif
 
 namespace blink {
 LocalFrame* FromFrameTokenHash(const size_t& frame_token_hash);
@@ -143,6 +150,11 @@ mbWebView MB_CALL_TYPE mbCreateWebWindow(mbWindowType type, HWND parent, int x, 
 {
     checkThreadCallIsValid(__FUNCTION__);
     content::MbWebView* result = new content::MbWebView(false);
+
+#ifndef OS_WIN
+    if (type == MB_WINDOW_TYPE_TRANSPARENT)
+        type = MB_WINDOW_TYPE_POPUP; // linux下没有透明窗口
+#endif // OS_WIN
 
     if (!s_gtkActivate) {
         content::ThreadCall::callUiThreadAsync(
@@ -807,23 +819,25 @@ void MB_CALL_TYPE mbSetNavigationToNewWindowEnable(mbWebView webviewHandle, BOOL
 namespace mbnet {
 void onNetSetData(mbNetJob jobPtr, void* buf, int len);
 void onNetSetMIMEType(mbNetJob jobPtr, const char* type);
-void onNetSetHTTPHeaderField(mbNetJob jobPtr, const utf8* key, const utf8* value, BOOL response);
+void onNetSetHTTPHeaderFieldCommon(mbNetJob jobPtr, const utf8* key, const utf8* value, BOOL response);
 void changeRequestUrl(mbNetJob jobPtr, const char* url);
 }
 
 void MB_CALL_TYPE mbNetSetHTTPHeaderFieldUtf8(mbNetJob jobPtr, const utf8* key, const utf8* value, BOOL response)
 {
-    if (content::ThreadCall::isBlinkThread()) {
-        mbnet::onNetSetHTTPHeaderField(jobPtr, key, value, response);
-    } else {
-        std::string* keyCopy = new std::string(key);
-        std::string* valueCopy = new std::string(value);
-        content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [jobPtr, keyCopy, valueCopy, response] {
-            mbnet::onNetSetHTTPHeaderField(jobPtr, keyCopy->c_str(), valueCopy->c_str(), response);
-            delete keyCopy;
-            delete valueCopy;
-        });
-    }
+    mbnet::onNetSetHTTPHeaderFieldCommon(jobPtr, key, value, response);
+//     if (content::ThreadCall::isBlinkThread()) {
+//         mbnet::onNetSetHTTPHeaderField(jobPtr, key, value, response);
+//     } else {
+//         DebugBreak();
+//         std::string* keyCopy = new std::string(key);
+//         std::string* valueCopy = new std::string(value);
+//         content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [jobPtr, keyCopy, valueCopy, response] {
+//             mbnet::onNetSetHTTPHeaderField(jobPtr, keyCopy->c_str(), valueCopy->c_str(), response);
+//             delete keyCopy;
+//             delete valueCopy;
+//         });
+//     }
 }
 
 void MB_CALL_TYPE mbNetSetMIMEType(mbNetJob jobPtr, const char* type)
@@ -971,10 +985,8 @@ void MB_CALL_TYPE mbSetUserAgent(mbWebView webviewHandle, const utf8* userAgent)
     std::string* userAgentString = new std::string(userAgent);
 
     content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, userAgentString] {
-        //         mb::MbWebView* webview = (mb::MbWebView*)common::LiveIdDetect::get()->getPtr((int64_t)webviewHandle);
-        //         if (webview)
-        //             wkeSetUserAgent(webview->getWkeWebView(), userAgentString->c_str());
-
+        content::RendererBlinkPlatformImpl* platform = (content::RendererBlinkPlatformImpl*)blink::Platform::Current();
+        platform->setUserAgent(*userAgentString);
         delete userAgentString;
     });
 }
@@ -1316,22 +1328,11 @@ void MB_CALL_TYPE mbStopLoading(mbWebView webView)
     //DebugBreak();
 }
 
-void MB_CALL_TYPE mbNetSetHTTPHeaderField(mbNetJob jobPtr, const wchar_t* key, const wchar_t* value, BOOL response)
+void MB_CALL_TYPE mbNetSetHTTPHeaderField(mbNetJob jobPtr, const WCHAR* key, const WCHAR* value, BOOL response)
 {
-    OutputDebugStringA("mbNetSetHTTPHeaderField not impl\n");
-    DebugBreak();
-    //     if (common::ThreadCall::isBlinkThread())
-    //         wkeNetSetHTTPHeaderField((wkeNetJob)jobPtr, key, value, !!response);
-    //     else {
-    //         std::wstring* keyCopy = new std::wstring((key));
-    //         std::wstring* valueCopy = new std::wstring((value));
-    //
-    //         common::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [jobPtr, keyCopy, valueCopy, response] {
-    //             wkeNetSetHTTPHeaderField((wkeNetJob)jobPtr, keyCopy->c_str(), valueCopy->c_str(), !!response);
-    //         delete keyCopy;
-    //         delete valueCopy;
-    //             });
-    //     }
+    std::string keyUtf8 = base::UTF16ToUTF8(std::u16string_view((const char16_t*)key));
+    std::string valueUtf8 = base::UTF16ToUTF8(std::u16string_view((const char16_t*)value));
+    mbNetSetHTTPHeaderFieldUtf8(jobPtr, keyUtf8.c_str(), valueUtf8.c_str(), response);
 }
 
 void MB_CALL_TYPE mbEditorSelectAll(mbWebView webviewHandle)
@@ -1386,7 +1387,16 @@ void gtkSimpleWin()
 #endif
 }
 
+#if OS_LINUX
+static gboolean onTimerHeartbeat(gpointer arg)
+{
+    g_mainThreadRunLoop->RunUntilIdle();
+    return TRUE;
+}
+#endif
+
 bool g_isDownloadVersion2 = false;
+extern "C" bool g_disableCookieFlushToFile = false;
 
 void MB_CALL_TYPE mbSetDebugConfig(mbWebView webviewHandle, const char* debugString, const char* param)
 {
@@ -1408,10 +1418,27 @@ void MB_CALL_TYPE mbSetDebugConfig(mbWebView webviewHandle, const char* debugStr
         g_outputDebugString = (FN_OutputDebugString)param;
     } else if (dbgStr == "setDownloadVersion2") {
         g_isDownloadVersion2 = true;
+    } else if (dbgStr == "disableCookieFlushToFile") {
+//         content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](content::MbWebView* webview) {
+//             mbnet::WebCookieJarImpl* cookieJar = webview->getWebCookieJarImpl();
+//             if (cookieJar) {
+//                 CURLSH* curlSh = cookieJar->getCurlShareHandle();
+// 
+//                 CURL* handle = curl_easy_init();
+//                 curl_easy_setopt(handle, CURLOPT_SHARE, curlSh);
+//                 curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "-");
+//                 curl_easy_cleanup(handle);
+//             }
+//         });
+        g_disableCookieFlushToFile = true;
     } else if (dbgStr == "gtkMessageBox") {
         gtkMessageBox(param);
     } else if (dbgStr == "gtkSimpleWin") {
         gtkSimpleWin();
+    } else if (dbgStr == "setTimerHeartbeat") {
+#if OS_LINUX
+        g_timeout_add(16, onTimerHeartbeat, NULL);
+#endif
     } else if (dbgStr == "showTotalSizeOfCommittedPages") {
         content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](content::MbWebView* webview) {
             size_t size = WTF::Partitions::TotalSizeOfCommittedPages();
@@ -1829,6 +1856,18 @@ void MB_CALL_TYPE mbSetCookieJarFullPath(mbWebView webviewHandle, const WCHAR* p
 void MB_CALL_TYPE mbSetContextMenuEnabled(mbWebView webviewHandle, BOOL b)
 {
     content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [b](content::MbWebView* webview) { webview->setContextMenuEnable(!!b); });
+}
+
+namespace content {
+extern uint32_t g_contextMenuItemMask;
+}
+
+void MB_CALL_TYPE mbSetContextMenuItemShow(mbWebView webviewHandle, mbMenuItemId item, BOOL isShow)
+{
+    if (isShow)
+        content::g_contextMenuItemMask |= item;
+    else
+        content::g_contextMenuItemMask &= (~item);
 }
 
 void MB_CALL_TYPE mbSetCookieJarPath(mbWebView webviewHandle, const WCHAR* path)
