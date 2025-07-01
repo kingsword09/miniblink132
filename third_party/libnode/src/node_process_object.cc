@@ -11,6 +11,10 @@
 
 #include <climits> // PATH_MAX
 
+namespace atom {
+void patchProcessObject(v8::Local<v8::Object> object);
+}
+
 namespace node {
 using v8::Context;
 using v8::EscapableHandleScope;
@@ -214,6 +218,8 @@ void PatchProcessObject(const FunctionCallbackInfo<Value>& args)
     Local<Object> versions = Object::New(isolate);
     SetVersions(isolate, versions);
     READONLY_PROPERTY(process, "versions", versions);
+
+    atom::patchProcessObject(process);
 }
 
 void RegisterProcessExternalReferences(ExternalReferenceRegistry* registry)

@@ -50,7 +50,6 @@ public:
     node::Environment* createEnvironment(v8::Local<v8::Context> context);
     void loadEnvironment(node::Environment* evn);
     void activateUVLoop(v8::Isolate* isoloate);
-    void patchProcessObject(node::Environment* env);
 
     node::IsolateData* getIsolateData() const
     {

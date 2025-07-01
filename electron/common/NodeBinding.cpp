@@ -308,11 +308,10 @@ void NodeBindings::bindFunction(v8::Isolate* isolate, v8::Local<v8::Object> obje
 }
 
 // third_party\libnode\src\node_process_object.cc的PatchProcessObject会重新设置versions，所以我们这个函数的时机也要注意一下
-void NodeBindings::patchProcessObject(node::Environment* env)
+void patchProcessObject(v8::Local<v8::Object> object)
 {
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
     gin::Dictionary versions = gin::Dictionary::CreateEmpty(isolate);
-    v8::Local<v8::Object> object = nodeGetEnvironmentProcessObject(env);
     gin::Dictionary processObject = gin::Dictionary(isolate, object);
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Context::Scope contextScope(context);
