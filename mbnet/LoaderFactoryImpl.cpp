@@ -22,6 +22,11 @@ namespace mbnet {
 
 void pushBackToBuffer(std::vector<char>* buf, const char* data, size_t len);
 
+LoaderFactoryImpl::LoaderFactoryImpl(int64_t mbwebviewId)
+{
+    m_mbwebviewId = mbwebviewId;
+}
+
 std::unique_ptr<blink::URLLoader> LoaderFactoryImpl::CreateURLLoader(
     const network::ResourceRequest& request,
     scoped_refptr<base::SingleThreadTaskRunner> freezableTaskRunnerHandle, scoped_refptr<base::SingleThreadTaskRunner> unfreezableTaskRunnerHandle,
@@ -29,7 +34,7 @@ std::unique_ptr<blink::URLLoader> LoaderFactoryImpl::CreateURLLoader(
     WTF::Vector<std::unique_ptr<blink::URLLoaderThrottle>> throttles
 )
 {
-    return std::make_unique<WebURLLoaderImplCurl>(std::move(freezableTaskRunnerHandle), std::move(unfreezableTaskRunnerHandle), m_terminateSyncLoadEvent);
+    return std::make_unique<WebURLLoaderImplCurl>(std::move(freezableTaskRunnerHandle), std::move(unfreezableTaskRunnerHandle), m_terminateSyncLoadEvent, m_mbwebviewId);
 }
 
 BodyLoaderClient::BodyLoaderClient(
@@ -43,6 +48,8 @@ BodyLoaderClient::BodyLoaderClient(
     m_navigationControlId = navigationControlToken;
     m_urlLoaderImpl = nullptr;
     m_frameToken = token;
+
+    CHECK(WTF::IsMainThread());
 
     char output[100] = { 0 };
     sprintf(output, "BodyLoaderClient: %p, %p\n", this, m_urlLoaderImpl.get());
@@ -63,9 +70,6 @@ BodyLoaderClient::~BodyLoaderClient()
 }
 
 bool BodyLoaderClient::WillFollowRedirect(
-    //     const blink::WebURL& newUrl, const net::SiteForCookies& newSiteForCookies, const blink::WebString& newReferrer,
-    //     network::mojom::ReferrerPolicy newReferrerPolicy, const blink::WebString& newMethod, const blink::WebURLResponse& passedRedirectResponse,
-    //     bool& reportRaw_headers, std::vector<std::string>* removedHeaders, bool insecureSchemeWasUpgraded
     const blink::WebURL& newUrl, const net::SiteForCookies& newSiteForCookies, const blink::WebString& newReferrer,
     network::mojom::ReferrerPolicy newReferrerPolicy, const blink::WebString& newMethod, const blink::WebURLResponse& passedRedirectResponse,
     bool& reportRaw_headers, std::vector<std::string>* removedHeaders, net::HttpRequestHeaders& modified_headers, bool insecureSchemeWasUpgraded
@@ -116,6 +120,9 @@ void BodyLoaderClient::DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerH
     navigationParams->policy_container = std::make_unique<blink::WebPolicyContainer>(
         blink::WebPolicyContainerPolicies(), blink::ToCrossVariantAssociatedMojoType(std::move(policyContainerRemote)));
 
+    if (m_response->MimeType().IsNull() || m_response->MimeType().IsEmpty())
+        m_response->SetMimeType(blink::WebString::FromASCII("text/html")); // 有的网站，比如https://mofang.163.com/下面的，没这个字段
+
     ::network::mojom::URLResponseHeadPtr urlResponseHead = ::network::mojom::URLResponseHead::New();
     //urlResponseHead->headers;
     urlResponseHead->mime_type = m_response->MimeType().Ascii();
@@ -130,7 +137,6 @@ void BodyLoaderClient::DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerH
     ::network::mojom::URLLoaderClientEndpointsPtr urlLoaderClientEndpoints = ::network::mojom::URLLoaderClientEndpoints::New(
         m_urlLoaderImpl->m_urlLoader.BindNewPipeAndPassRemote(), m_urlLoaderImpl->m_urlLoaderClient.BindNewPipeAndPassReceiver());
 
-    //m_urlLoaderImpl->m_resourceLoadInfoNotifierImpl = s_resourceLoadInfoNotifierImpl;
     blink::WeakWrapperResourceLoadInfoNotifier* resourceLoadInfoNotifier = new blink::WeakWrapperResourceLoadInfoNotifier(ResourceLoadInfoNotifierImpl::get());
 
     std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resourceLoadInfoNotifierWrap
@@ -145,10 +151,9 @@ void BodyLoaderClient::DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerH
     navigationParams->frame_load_type = m_info->frame_load_type;
     navigationParams->response.SetCurrentRequestUrl(url);
     navigationParams->response.SetMimeType(m_response->MimeType());
-    navigationParams->history_item;
 
     blink::WebNavigationControl* navigationControl = (blink::WebNavigationControl*)blink::WebLocalFrame::FromFrameToken(m_navigationControlId);
-    if (navigationControl)
+    if (navigationControl && !m_isDownload)
         navigationControl->CommitNavigation(std::move(navigationParams), nullptr);
 }
 
@@ -158,13 +163,9 @@ void BodyLoaderClient::DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerH
 void BodyLoaderClient::DidReceiveDataForTesting(base::span<const char> data)
 {
     pushBackToBuffer(&m_buf, data.data(), data.size());
-    //     uint32_t numBytes = dataLength;
-    //     MojoWriteData(m_dataPipeProducerHandle, data, &numBytes, nullptr);
 }
 
 void BodyLoaderClient::DidFinishLoading(
-    //base::TimeTicks finish_time, int64_t total_encoded_data_length, int64_t total_encoded_body_length,
-    //int64_t total_decoded_body_length, bool should_report_corb_blocking, absl::optional<bool> pervasive_payload_requested
     base::TimeTicks finish_time, int64_t total_encoded_data_length, uint64_t total_encoded_body_length, int64_t total_decoded_body_length
     )
 {
