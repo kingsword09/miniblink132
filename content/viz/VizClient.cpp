@@ -346,6 +346,8 @@ void onWebviewDidFirstVisuallyNonEmptyPaint(int64_t webviewId);
 void VizClient::OnBeginFrame(const ::viz::BeginFrameArgs& args, const base::flat_map<uint32_t, ::viz::FrameTimingDetails>& details, bool frame_ack,
     std::vector<::viz::ReturnedResource> resources)
 {
+    base::AutoLock lock(m_lock);
+
     if (!m_canCommitFrame)
         return;
 
@@ -353,7 +355,6 @@ void VizClient::OnBeginFrame(const ::viz::BeginFrameArgs& args, const base::flat
     // generates and submits the compositor-frame immediately. But it is possible
     // for the client to delay sending the compositor-frame. |args| includes the
     // deadline for the client before it needs to submit the compositor-frame.
-    base::AutoLock lock(m_lock);
     viz::CompositorFrame frame = createFrame(args);
     viz::LocalSurfaceId localSurfaceId = m_hostLocalSurfaceId;
 

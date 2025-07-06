@@ -83,11 +83,14 @@ void VizHost::resizeOnBlinkThread(const gfx::Size& size)
 
 void VizHost::resizeOnHostThread(const gfx::Size& size, base::WaitableEvent* waitEvt)
 {
-    if (m_size == size) {
-        if (waitEvt)
-            waitEvt->Signal();
-        return;
-    }
+//     if (m_size == size) {
+//         if (m_rootClient)
+//             m_rootClient->allowResize();
+// 
+//         if (waitEvt)
+//             waitEvt->Signal();
+//         return;
+//     }
     m_size = size;
 
     // Every size change for a client needs a new LocalSurfaceId.
