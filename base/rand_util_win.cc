@@ -61,9 +61,12 @@ namespace {
 decltype(&ProcessPrng) GetProcessPrng()
 {
     HMODULE hmod = LoadLibraryW(L"bcryptprimitives.dll");
-    CHECK(hmod);
+    //CHECK(hmod);
+    if (!hmod) {
+        return nullptr;
+    }
     decltype(&ProcessPrng) process_prng_fn = reinterpret_cast<decltype(&ProcessPrng)>(GetProcAddress(hmod, "ProcessPrng"));
-    CHECK(process_prng_fn);
+    //CHECK(process_prng_fn);
     return process_prng_fn;
 }
 
@@ -76,6 +79,10 @@ void RandBytesInternal(span<uint8_t> output, bool avoid_allocation)
     }
 
     static decltype(&ProcessPrng) process_prng_fn = GetProcessPrng();
+    if (!process_prng_fn) {
+        (void)RAND_bytes(output.data(), output.size());
+        return;
+    }
     BOOL success = process_prng_fn(static_cast<BYTE*>(output.data()), output.size());
     // ProcessPrng is documented to always return TRUE.
     CHECK(success);

@@ -19,6 +19,27 @@ extern "C" {
 BOOL WINAPI ProcessPrng(PBYTE pbData, SIZE_T cbData);
 }
 
+static uint32_t lcg_seed = 1;  // 初始种子（可以修改）
+
+// 线性同余生成器 (LCG) 实现
+static uint32_t LcgRand()
+{
+    // LCG公式: X_{n+1} = (a * X_n + c) mod m
+    // 这里使用常见的参数：a=1664525, c=1013904223, m=2^32
+    lcg_seed = 1664525 * lcg_seed + 1013904223;
+    return lcg_seed + ::GetCurrentThreadId();
+}
+
+void SimpleRandBytes(void* output, size_t output_length)
+{
+    uint8_t* byte_output = static_cast<uint8_t*>(output);
+    for (size_t i = 0; i < output_length; ++i) {
+        // 生成一个32位随机数，然后取低8位
+        uint32_t rand_val = LcgRand();
+        byte_output[i] = static_cast<uint8_t>(rand_val & 0xFF);
+    }
+}
+
 namespace partition_alloc::internal::base {
 
 void RandBytes(void* output, size_t output_length)
@@ -31,9 +52,17 @@ void RandBytes(void* output, size_t output_length)
     static decltype(&ProcessPrng) process_prng_fn = nullptr;
     if (!process_prng_fn) {
         HMODULE hmod = LoadLibraryW(L"bcryptprimitives.dll");
-        PA_BASE_CHECK(hmod);
+        //PA_BASE_CHECK(hmod);
+        if (!hmod) {
+            SimpleRandBytes(output, output_length);
+            return;
+        }
         process_prng_fn = reinterpret_cast<decltype(&ProcessPrng)>(GetProcAddress(hmod, "ProcessPrng"));
-        PA_BASE_CHECK(process_prng_fn);
+        //PA_BASE_CHECK(process_prng_fn);
+        if (!process_prng_fn) {
+            SimpleRandBytes(output, output_length);
+            return;
+        }
     }
     BOOL success = process_prng_fn(static_cast<BYTE*>(output), output_length);
     // ProcessPrng is documented to always return TRUE.
