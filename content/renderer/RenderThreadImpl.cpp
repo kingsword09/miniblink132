@@ -78,6 +78,10 @@ extern "C" const uint8_t v8_Default_embedded_blob_data_[];
 extern "C" uint32_t v8_Default_embedded_blob_data_size_;
 #endif
 
+namespace cc {
+extern size_t kMemoryThresholdTSoftwareImageDecodeCache;
+}
+
 void readFileToBuf(const char* path, std::vector<char>* buffer);
 
 namespace v8 {
@@ -332,7 +336,14 @@ private:
 
 std::unique_ptr<base::DiscardableMemory> TestDiscardableMemoryAllocator::AllocateLockedDiscardableMemory(size_t size)
 {
-    if (m_discardableMemorySize > 1000 * 1000 * 100) {
+    if (size > cc::kMemoryThresholdTSoftwareImageDecodeCache)
+        return nullptr;
+
+    if (m_discardableMemorySize > cc::kMemoryThresholdTSoftwareImageDecodeCache) {
+        char output[100] = { 0 };
+        sprintf(output, "AllocateLockedDiscardableMemory fail: %d\n", size);
+        OutputDebugStringA(output);
+
         m_lock.lock();
         for (std::set<int64_t>::iterator it = m_ids.begin(); it != m_ids.end(); ++it) {
             int64_t id = *it;

@@ -103,6 +103,9 @@ private:
             createAndBindBrokerProxy<::blink::mojom::blink::ReportingServiceProxy, ReportingServiceProxyImpl>(receiver.PassPipe());
         } else if ("blink.mojom.BlobURLStore" == name) {
             createAndBindInterface<::blink::mojom::blink::BlobURLStore, BlobURLStoreImpl>(std::move(receiver.PassPipe()), m_origin);
+        } else if ("blink.mojom.SharedWorkerConnector" == name) {
+            //createAndBindInterface<::blink::mojom::blink::SharedWorkerConnector, SharedWorkerConnectorImpl>(std::move(receiver.PassPipe()), m_origin);
+            DebugBreak();
         } else
             DebugBreak();
     }
@@ -193,8 +196,20 @@ void WebDedicatedWorkerHostFactoryClientImpl::CreateWorkerHost(
 }
 
 scoped_refptr<blink::WebWorkerFetchContext> WebDedicatedWorkerHostFactoryClientImpl::CloneWorkerFetchContext(
-    blink::WebWorkerFetchContext*, scoped_refptr<base::SingleThreadTaskRunner>)
+    blink::WebWorkerFetchContext* webWorkerFetchContext, 
+    scoped_refptr<base::SingleThreadTaskRunner> taskRunner)
 {
+//     scoped_refptr<blink::WebDedicatedOrSharedWorkerFetchContext> cloned_web_dedicated_or_shared_worker_fetch_context;
+// 
+//     cloned_web_dedicated_or_shared_worker_fetch_context =
+//         static_cast<blink::WebDedicatedOrSharedWorkerFetchContext*>(webWorkerFetchContext)
+//         ->CloneForNestedWorker(
+//             service_worker_provider_context_.get(),
+//             subresource_loader_factory_bundle_->Clone(),
+//             subresource_loader_factory_bundle_->Clone(),
+//             std::move(pending_subresource_loader_updater_),
+//             std::move(taskRunner));
+//     return cloned_web_dedicated_or_shared_worker_fetch_context;
     DebugBreak();
     return nullptr;
 }

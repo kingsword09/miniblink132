@@ -153,6 +153,14 @@ public:
     bool onKeyDown(unsigned int virtualKeyCode, unsigned int flags, BOOL isSystemKey);
     bool onKeyPress(unsigned int virtualKeyCode, unsigned int flags, BOOL isSystemKey);
 
+    enum ImeCompositioType {
+        kImeCompositioTypeStart,
+        kImeCompositioTypeCom,
+        kImeCompositioTypeEnd,
+        kImeCompositioTypeChar
+    };
+    void onImeComposition(ImeCompositioType type, WCHAR c);
+
     bool setCursorInfoTypeByCache();
     void setCursor(const ::ui::Cursor& cursor);
     void setCaretPos(const gfx::Point& pos);
@@ -217,7 +225,7 @@ public:
 
     void bindGtkWindow(void* rootWindow, void* drawingArea, bool isGl, DWORD style, DWORD styleEx, int width, int height);
 
-    //scoped_refptr<mbnet::PageNetExtraData> getPageNetExtraData();
+    scoped_refptr<mbnet::PageNetExtraData> getPageNetExtraData();
     mbnet::WebCookieJarImpl* getWebCookieJarImpl();
 
     std::map<std::string, void*>& getUserKeyValues()
@@ -237,7 +245,11 @@ public:
     void setProxy(const mbProxy* proxy);
     const mbProxy* getProxy() const;
 
+    void setSetLanguage(const std::string& lang);
+    std::string getSetLanguage() const;
+
     void draggableRegionsChanged(blink::WebVector<blink::WebDraggableRegion> regions);
+
 private:
     friend class RenderWidgetHostImpl;
     friend class OffscreenWindowUpdater;

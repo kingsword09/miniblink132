@@ -331,6 +331,59 @@ void PlatformEventHandler::buildMousePosInfo(HWND hWnd, UINT message, WPARAM wPa
     }
 }
 
+// 中文输入法下，按下两个ww键，会有如下消息：
+// WM_IME_STARTCOMPOSITION
+// WM_IME_COMPOSITION : 77
+// WM_IME_COMPOSITION : 77
+// WM_IME_COMPOSITION : 5916
+// WM_IME_CHAR : 5916
+// WM_IME_CHAR : 7f51
+// WM_IME_ENDCOMPOSITION
+// 说明先来两个'w'的WM_IME_COMPOSITION消息，然后是两个WM_IME_CHAR中文消息（UTF16外网），最后是WM_IME_ENDCOMPOSITION
+void PlatformEventHandler::fireImeComposition(ImeCompositioHandleType type, WCHAR c)
+{
+    gfx::Range range((size_t)(0xffffffff), (size_t)(0xffffffff));
+
+    m_lock.Acquire();
+    if (!(m_blinkWidgetInputHandler.is_bound() && m_blinkWidgetInputHandler.is_connected())) {
+        m_lock.Release();
+        return;
+    }
+
+    if (kImeCompositioHandleTypeStart == type && c != 0) {
+        m_imeTextCache.clear();
+    } else if (kImeCompositioHandleTypeCom == type && c != 0) {
+        ui::ImeTextSpan textSpan(
+            ui::ImeTextSpan::Type::kComposition,
+            /*size_t start_offset =*/ 0,
+            /*size_t end_offset =*/ 1,
+            ui::ImeTextSpan::Thickness::kThin,
+            ui::ImeTextSpan::UnderlineStyle::kSolid,
+            SK_ColorTRANSPARENT,
+            SK_ColorTRANSPARENT,
+            std::vector<std::string>(),
+            SK_ColorTRANSPARENT);
+        WTF::Vector<::ui::ImeTextSpan> imeTextSpans;
+        imeTextSpans.push_back(textSpan);
+
+        int32_t selectionStart = 1;
+        int32_t selectionEnd = 1;
+
+        WTF::String imeText(base::span<const UChar>((const UChar*)(&c), (size_t)1));
+        m_blinkWidgetInputHandler->ImeSetComposition(imeText, imeTextSpans, range, selectionStart, selectionEnd, base::BindOnce([] {}));
+    } else if (kImeCompositioHandleTypeEnd == type && !m_imeTextCache.empty()) {
+        WTF::Vector<::ui::ImeTextSpan> imeTextSpans2;
+
+        WTF::String imeText(base::span<const UChar>((const UChar*)m_imeTextCache.data(), m_imeTextCache.size()));
+        m_blinkWidgetInputHandler->ImeCommitText(imeText, imeTextSpans2, range, 0, base::BindOnce([] {}));
+        m_imeTextCache.clear();
+    } else if (kImeCompositioHandleTypeChar == type) {
+        m_imeTextCache.push_back(c);
+    }
+
+    m_lock.Release();
+}
+
 void PlatformEventHandler::fireInputEventToCompositingThread(const blink::WebInputEvent& evt)
 {
     if (evt.GetType() == blink::WebInputEvent::Type::kKeyDown)

@@ -76,7 +76,7 @@ void VizService::destroy(std::function<void(void)>&& callback)
 
                 self->m_runner.reset();
                 callback();
-                ThreadCall::delayDestroySelf(self, base::SingleThreadTaskRunner::GetCurrentDefault());
+                ThreadCall::delayDestroySelf(self, base::SingleThreadTaskRunner::GetCurrentDefault(), 2000);
             },
             base::Unretained(this), std::move(callback)));
 }

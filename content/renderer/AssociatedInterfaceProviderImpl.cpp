@@ -4,6 +4,8 @@
 #include "content/renderer/ScreenOrientationImpl.h"
 #include "content/renderer/WebLocalFrameClientImpl.h"
 #include "content/renderer/BlobURLStoreImpl.h"
+#include "content/renderer/DataHostImpl.h"
+#include "content/renderer/AttributionHostImpl.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 #include <windows.h>
 
@@ -44,6 +46,8 @@ void AssociatedInterfaceProviderImpl::GetAssociatedInterface(
         createAndBindInterface<::blink::mojom::blink::BroadcastChannelProvider, BroadcastChannelProviderImpl>(receiver.PassPipe(), m_frameClient);
     } else if ("device.mojom.blink.ScreenOrientation" == name) {
         createAndBindInterface<::device::mojom::blink::ScreenOrientation, ScreenOrientationImpl>(receiver.PassPipe());
+    } else if ("blink.mojom.blink.AttributionHost" == name) {
+        createAndBindInterface<::blink::mojom::blink::AttributionHost, AttributionHostImpl>(receiver.PassPipe());
     } else if ("blink.mojom.BlobURLStore" == name) {
         ::scoped_refptr<const ::blink::SecurityOrigin> origin;
         if (m_frameClient && m_frameClient->getFrame()) {

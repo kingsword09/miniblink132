@@ -531,7 +531,7 @@ blink::WebCrypto* RendererBlinkPlatformImpl::Crypto()
 
 // web worker
 std::unique_ptr<blink::WebDedicatedWorkerHostFactoryClient> RendererBlinkPlatformImpl::CreateDedicatedWorkerHostFactoryClient(
-    blink::WebDedicatedWorker* worker, const blink::BrowserInterfaceBrokerProxy&)
+    blink::WebDedicatedWorker* worker, const blink::BrowserInterfaceBrokerProxy& proxy)
 {
     return std::make_unique<WebDedicatedWorkerHostFactoryClientImpl>(worker);
 }

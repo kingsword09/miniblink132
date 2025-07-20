@@ -17,7 +17,7 @@ WebWorkerFetchContextImpl::WebWorkerFetchContextImpl(const blink::WebSecurityOri
 {
     m_orig = blink::WebSecurityOrigin::CreateFromString(orig.ToString());
     m_mbwebviewId = mbwebviewId;
-    m_loaderFactoryImpl.reset(new mbnet::LoaderFactoryImpl());
+    m_loaderFactoryImpl.reset(new mbnet::LoaderFactoryImpl(mbwebviewId));
 }
 
 WebWorkerFetchContextImpl::~WebWorkerFetchContextImpl()
@@ -44,7 +44,7 @@ std::unique_ptr<blink::URLLoaderFactory> WebWorkerFetchContextImpl::WrapURLLoade
     blink::CrossVariantMojoRemote<network::mojom::URLLoaderFactoryInterfaceBase> url_loader_factory)
 {
     std::unique_ptr<blink::URLLoaderFactory> loaderFactoryImpl;
-    loaderFactoryImpl.reset(new mbnet::LoaderFactoryImpl());
+    loaderFactoryImpl.reset(new mbnet::LoaderFactoryImpl(m_mbwebviewId));
     return std::move(loaderFactoryImpl);
 }
 
@@ -52,7 +52,7 @@ void setRequestHead(blink::WebLocalFrame* webFrame, blink::WebURLRequest& reques
 
 std::optional<blink::WebURL> WebWorkerFetchContextImpl::WillSendRequest(const blink::WebURL& url)
 {
-
+    return std::nullopt;
 }
 
 void WebWorkerFetchContextImpl::FinalizeRequest(blink::WebURLRequest& request)
@@ -68,7 +68,6 @@ void WebWorkerFetchContextImpl::FinalizeRequest(blink::WebURLRequest& request)
 
 blink::WebVector<std::unique_ptr<blink::URLLoaderThrottle>> WebWorkerFetchContextImpl::CreateThrottles(const network::ResourceRequest& request)
 {
-    *(int*)1 = 1;
     return blink::WebVector<std::unique_ptr<blink::URLLoaderThrottle>>();
 }
 

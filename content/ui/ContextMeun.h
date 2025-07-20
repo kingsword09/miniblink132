@@ -7,7 +7,10 @@
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/public/common/context_menu_data/untrustworthy_context_menu_params.h"
 #include "third_party/blink/renderer/platform/wtf/threading_primitives.h"
+#include "base/strings/string_util.h"
 #include <windows.h>
+
+extern bool g_isElectronMode;
 
 #if defined(OS_WIN)
 
@@ -111,6 +114,8 @@ public:
         kGoBackId = 1 << 10,
         kReloadId = 1 << 11,
         kSaveImageId = 1 << 12,
+        //////////////////////////////////////////////////////////////////////////
+        kElectronDeclareId = 1 << 30,
     };
 
     void asyncCallUiThread(std::function<void()>&& func)
@@ -190,10 +195,12 @@ public:
         if (needCreatePrintItem)
             actionFlags |= kPrintId;
 
-        asyncCallUiThread([self, actionFlags] {
+        std::string lang = base::ToLowerASCII(m_webview->getSetLanguage());
+
+        asyncCallUiThread([self, actionFlags, lang] {
             if (0 < ContextMenu::m_isDestroyed)
                 return;
-            self->showImpl(actionFlags);
+            self->showImpl(actionFlags, lang);
         });
     }
 
@@ -204,7 +211,7 @@ public:
         return false;
     }
 
-    void appendMenuText(UINT actionFlags)
+    void appendMenuText(UINT actionFlags, const std::string& lang)
     {
         //         if (!wke::g_language.get())
         //             return appendMenuTextZhcn(actionFlags);
@@ -212,6 +219,8 @@ public:
         //         if (std::string::npos != wke::g_language->find("zh-cn"))
         //             return appendMenuTextZhcn(actionFlags);
 
+        if (lang == "zh-cn")
+            return appendMenuTextZhcn(actionFlags);
         return appendMenuTextEn(actionFlags);
     }
 
@@ -251,6 +260,9 @@ public:
 
         if (canShowItem(actionFlags, kPrintId))
             ::AppendMenuW(m_popMenu, MF_STRING, kPrintId, L"打印");
+
+        if (g_isElectronMode)
+            ::AppendMenuW(m_popMenu, MF_STRING, kElectronDeclareId, L"本框架仅供测试、学习");
     }
 
     void appendMenuTextEn(UINT actionFlags)
@@ -289,9 +301,12 @@ public:
 
         if (canShowItem(actionFlags, kPrintId))
             ::AppendMenuW(m_popMenu, MF_STRING, kPrintId, L"Print");
+
+        if (g_isElectronMode)
+            ::AppendMenuW(m_popMenu, MF_STRING, kElectronDeclareId, L"this framework only for test");
     }
 
-    void showImpl(UINT actionFlags)
+    void showImpl(UINT actionFlags, const std::string& lang)
     {
         POINT screenPt = { 0 };
         ::GetCursorPos(&screenPt);
@@ -304,7 +319,7 @@ public:
         m_popMenu = ::CreatePopupMenu();
 
         //m_data = blink::WebContextMenuData();
-        appendMenuText(actionFlags);
+        appendMenuText(actionFlags, lang);
 
         if (0 == ::GetMenuItemCount(m_popMenu)) {
             ::DestroyMenu(m_popMenu);

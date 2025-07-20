@@ -41,6 +41,8 @@
 #include "gen/third_party/blink/public/mojom/loader/navigation_predictor.mojom-blink.h"
 #include "gen/third_party/blink/public/mojom/preloading/anchor_element_interaction_host.mojom-blink.h"
 #include "gen/third_party/blink/public/mojom/preloading/anchor_element_interaction_host.mojom-blink-forward.h"
+#include "gen/third_party/blink/public/mojom/worker/shared_worker_connector.mojom-blink.h"
+#include "gen/third_party/blink/public/mojom/worker/shared_worker_info.mojom-blink.h"
 #include "gin/public/gin_embedders.h"
 #include "mbnet/LoaderFactoryImpl.h"
 #include "mbnet/SingleRequestURLLoader.h"
@@ -472,7 +474,7 @@ static void beginNavigation(std::unique_ptr<blink::WebNavigationInfo> info, blin
     scoped_refptr<base::SingleThreadTaskRunner> unfreezableRunner = base::SingleThreadTaskRunner::GetCurrentDefault();
 
     std::unique_ptr<mbnet::WebURLLoaderImplCurl> loader
-        = std::make_unique<mbnet::WebURLLoaderImplCurl>(std::move(freezableRunner), std::move(unfreezableRunner), nullptr);
+        = std::make_unique<mbnet::WebURLLoaderImplCurl>(std::move(freezableRunner), std::move(unfreezableRunner), nullptr, mbwebviewId);
     loader->setNotAutoDestroy();
 
     std::unique_ptr<network::ResourceRequest> request = std::make_unique<network::ResourceRequest>();
@@ -1152,6 +1154,15 @@ class AnchorElementMetricsHostImpl : public ::blink::mojom::blink::AnchorElement
     }
 };
 
+class SharedWorkerConnectorImpl : public ::blink::mojom::blink::SharedWorkerConnector {
+    void Connect(::blink::mojom::blink::SharedWorkerInfoPtr info, ::mojo::PendingRemote<::blink::mojom::blink::SharedWorkerClient> client,
+        ::blink::mojom::blink::SharedWorkerCreationContextType creation_context_type, ::blink::MessagePortDescriptor message_port,
+        ::mojo::PendingRemote<::blink::mojom::blink::BlobURLToken> blob_url_token, int64_t client_ukm_source_id) override
+    {
+        OutputDebugStringA("SharedWorkerConnectorImpl::Connect\n");
+    }
+};
+
 void WebLocalFrameClientImpl::GetInterface(::mojo::GenericPendingReceiver receiver)
 {
     std::string output("WebLocalFrameClientImpl::GetInterface: ");
@@ -1214,6 +1225,8 @@ void WebLocalFrameClientImpl::GetInterface(::mojo::GenericPendingReceiver receiv
         createAndBindInterface<::blink::mojom::blink::SpeculationHost, SpeculationHostImpl>(receiver.PassPipe());
     } else if ("blink.mojom.PermissionService" == name) {
         createAndBindInterface<::blink::mojom::blink::PermissionService, PermissionServiceImpl>(receiver.PassPipe());
+    } else if ("blink.mojom.SharedWorkerConnector" == name) {
+        createAndBindInterface<::blink::mojom::blink::SharedWorkerConnector, SharedWorkerConnectorImpl>(receiver.PassPipe());
     } else
         DebugBreak();
 }

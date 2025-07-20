@@ -96,22 +96,38 @@ MbWebView::MbWebView(bool isPopup)
     ::InitializeCriticalSection(&m_dirtyRectLock);
     ::InitializeCriticalSection(&m_clientSizeLock);
     ::InitializeCriticalSection(&m_userKeyValuesLock);
+
+    char output[100] = { 0 };
+    sprintf_s(output, 99, "MbWebView: %p\n", this);
+    OutputDebugStringA(output);
 }
 
 // 本函数在blink线程
 MbWebView::~MbWebView()
 {
+    char output[100] = { 0 };
+    sprintf_s(output, 99, "~MbWebView: %p %p\n", m_hWnd, this);
+    OutputDebugStringA(output);
+
     m_renderWidgetHostImpl.reset();
 }
 
-void MbWebView::destroy()
+// void MbWebView::destroy()
+// {
+//     mbWebView webviewHandle = (mbWebView)m_id;
+//     ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](MbWebView* self) { delete self; });
+// }
+
+// 此函数可运行在ui和blink线程
+static void clearUiHwnd(HWND hWnd, UINT_PTR self)
 {
-    mbWebView webviewHandle = (mbWebView)m_id;
-    ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](MbWebView* self) { delete self; });
+    ::KillTimer(hWnd, self);
+    ::RemovePropW(hWnd, kClassWndName);
 }
 
 void MbWebView::preDestroyOnBlinkThread()
 {
+    CHECK(ThreadCall::isBlinkThread());
 #if !defined(OS_WIN)
     //delete m_memoryCanvasLock;
 #endif
@@ -131,8 +147,7 @@ void MbWebView::preDestroyOnBlinkThread()
         *aysnCount -= 1;
         if (0 != *aysnCount)
             return;
-        //self->destroy();
-        ThreadCall::delayDestroySelf(self, RenderThreadImpl::get()->getTaskRunner());
+        ThreadCall::delayDestroySelf(self, RenderThreadImpl::get()->getTaskRunner(), 2000);
         free(aysnCount);
     };
 
@@ -155,16 +170,18 @@ void MbWebView::preDestroyOnBlinkThread()
 #endif // DEBUG
     }
 
-    if (!ThreadCall::isBlinkThread())
-        DebugBreak();
+    char output[100] = { 0 };
+    sprintf(output, "MbWebView::preDestroyOnBlinkThread: %p %p\n", m_hWnd, this);
+    OutputDebugStringA(output);
 
+    clearUiHwnd(m_hWnd, (UINT_PTR)this);
     m_hWnd = nullptr;
 #if defined(OS_WIN)
     if (m_memoryBMP)
         ::DeleteObject(m_memoryBMP);
 
-        //     if (m_memoryDC)
-        //         ::DeleteDC(m_memoryDC);
+        // if (m_memoryDC)
+        //     ::DeleteDC(m_memoryDC);
 
         //if (m_draggableRegion)
         //  ::DeleteObject(m_draggableRegion);
@@ -181,18 +198,13 @@ void MbWebView::preDestroyOnBlinkThread()
     ::DeleteCriticalSection(&m_dirtyRectLock);
     ::DeleteCriticalSection(&m_clientSizeLock);
     ::DeleteCriticalSection(&m_userKeyValuesLock);
-
-    //     content::postTaskToMainThread(FROM_HERE, [webView] {
-    //         destroyWebViewAsyn(webView);
-    //     });
 }
 
 void MbWebView::preDestroyOnUiThread()
 {
-    char* output = (char*)malloc(0x100);
-    sprintf(output, "MbWebView::preDestroy: %p, %d\n", this, (int)m_id);
+    char output[100] = { 0 };
+    sprintf(output, "MbWebView::preDestroyOnUiThread: %p %p\n", m_hWnd, this);
     OutputDebugStringA(output);
-    free(output);
 
     clearMbWebViewInContextMenuIfNeeded(this);
 
@@ -544,6 +556,12 @@ void MbWebView::setBackgroundColor(COLORREF c)
 
 void MbWebView::setDefaultPreferences(blink::WebViewImpl* webWiew)
 {
+    LANGID langId = GetUserDefaultUILanguage();
+    if (0x0804 == langId) {
+        setSetLanguage("zh-cn");
+    }
+
+    webWiew->SetPageAttributionSupport(network::mojom::AttributionSupport::kWeb);
     webWiew->SetSupportsDraggableRegions(true);
 
     blink::WebSettings* websettings = webWiew->GetSettings();
@@ -680,9 +698,9 @@ LRESULT MbWebView::windowProcImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         break;
 
     case WM_CLOSE:
-        //printf("MbWebView::windowProcImpl DestroyWindow, this:%p, %p\n", this, getClosure().m_ClosingCallback);
-        if (getClosure().m_ClosingCallback) {
-            if (!getClosure().m_ClosingCallback(getWebviewHandle(), getClosure().m_ClosingParam, nullptr))
+        if (mbCloseCallback closingCallback = getClosure().m_ClosingCallback) {
+            getClosure().m_ClosingCallback = nullptr;
+            if (!closingCallback(getWebviewHandle(), getClosure().m_ClosingParam, nullptr))
                 return 0;
         }
         ::ShowWindow(hWnd, SW_HIDE);
@@ -690,8 +708,7 @@ LRESULT MbWebView::windowProcImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         return 0;
 
     case WM_NCDESTROY:
-        ::KillTimer(hWnd, (UINT_PTR)this);
-        ::RemovePropW(hWnd, kClassWndName);
+        clearUiHwnd(hWnd, (UINT_PTR)this);
         m_state = kPageDestroying;
         mbDestroyWebViewImpl(getWebviewHandle());
         break;
@@ -739,19 +756,6 @@ LRESULT MbWebView::windowProcImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             flags |= MB_EXTENDED;
 
         if (mbFireKeyUpEventImpl(getWebviewHandle(), virtualKeyCode, flags, false))
-            return 0;
-        break;
-    }
-    case WM_CHAR:
-    case WM_IME_CHAR: {
-        unsigned int charCode = (unsigned int)wParam;
-        unsigned int flags = 0;
-        if (HIWORD(lParam) & KF_REPEAT)
-            flags |= MB_REPEAT;
-        if (HIWORD(lParam) & KF_EXTENDED)
-            flags |= MB_EXTENDED;
-
-        if (mbFireKeyPressEventImpl(getWebviewHandle(), charCode, flags, WM_IME_CHAR == message))
             return 0;
         break;
     }
@@ -882,12 +886,37 @@ LRESULT MbWebView::windowProcImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         return onNcHittest(lParam); // 只在linux版本下处理
 #endif // _WIN32
         break;
-    case WM_IME_STARTCOMPOSITION:
-        if (mbFireWindowsMessageImpl(getWebviewHandle(), hWnd, WM_IME_STARTCOMPOSITION, 0, 0, nullptr))
+    case WM_CHAR:
+    {
+        unsigned int charCode = (unsigned int)wParam;
+        unsigned int flags = 0;
+        if (HIWORD(lParam) & KF_REPEAT)
+            flags |= MB_REPEAT;
+        if (HIWORD(lParam) & KF_EXTENDED)
+            flags |= MB_EXTENDED;
+
+        // if (message == WM_IME_CHAR)
+        //     OutputDebugStringA("WM_IME_CHAR\n");
+        // else
+        //     OutputDebugStringA("WM_CHAR\n");
+        if (mbFireKeyPressEventImpl(getWebviewHandle(), charCode, flags, WM_IME_CHAR == message))
             return 0;
         break;
-    case WM_IME_COMPOSITION:
-        if (mbFireWindowsMessageImpl(getWebviewHandle(), hWnd, WM_IME_COMPOSITION, 0, 0, nullptr))
+    }
+    case WM_IME_CHAR: {
+        mbFireWindowsMessageImpl(getWebviewHandle(), hWnd, WM_IME_CHAR, wParam, lParam, nullptr);
+        return 0; // 这里必须返回0，否则会在WM_IME_STARTCOMPOSITION等消息期间收到WM_CHAR，导致重复显示汉字
+    }
+    case WM_IME_STARTCOMPOSITION:
+        if (mbFireWindowsMessageImpl(getWebviewHandle(), hWnd, WM_IME_STARTCOMPOSITION, wParam, lParam, nullptr))
+            return 0;
+        break;
+    case WM_IME_COMPOSITION: // 这个是输入法有字符时的消息。如果输入法按了空格，就会有WM_IME_CHAR表示确定有字符写入了
+        if (mbFireWindowsMessageImpl(getWebviewHandle(), hWnd, WM_IME_COMPOSITION, wParam, lParam, nullptr))
+            return 0;
+        break;
+    case WM_IME_ENDCOMPOSITION:
+        if (mbFireWindowsMessageImpl(getWebviewHandle(), hWnd, WM_IME_ENDCOMPOSITION, wParam, lParam, nullptr))
             return 0;
         break;
     }
@@ -1130,15 +1159,39 @@ bool MbWebView::doDraggableRegionNcHitTest(HWND hWnd, int x, int y)
     return handle;
 }
 
+void MbWebView::onImeComposition(ImeCompositioType type, WCHAR c)
+{
+    int64_t id = (int64_t)getWebviewHandle();
+    blink::CompositorThreadScheduler* compositingThread = blink::ThreadScheduler::CompositorThreadScheduler();
+    scoped_refptr<base::SingleThreadTaskRunner> runner = compositingThread->InputTaskRunner();
+
+    runner->PostTask(FROM_HERE, base::BindOnce([](int64_t id, ImeCompositioType type, WCHAR c) {
+        MbWebView* self = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtrLocked(id);
+        if (!self)
+            return;
+        self->m_platformEventHandler->fireImeComposition((PlatformEventHandler::ImeCompositioHandleType)type, c);
+        common::LiveIdDetect::getMbWebviewIds()->unlock(id, self);
+    }, id, type, c));
+}
+
 void MbWebView::onMouseMessage(unsigned int message, int x, int y, unsigned int flags)
 {
     if (!m_enableMouseKeyMessage)
         return;
 
     if (message == WM_LBUTTONDOWN || message == WM_MBUTTONDOWN || message == WM_RBUTTONDOWN) {
+        content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, getWebviewHandle(), [](MbWebView* self) {
+            blink::WebViewImpl* webWiew = (blink::WebViewImpl*)(self->m_renderWidgetHostImpl->m_webWiew);
+            if (webWiew) {
+                webWiew->Focus();
+                webWiew->SetIsActive(true);
+            }
+        });
+
         bool isNotInDraggableRegion = !doDraggableRegionNcHitTest(m_hWnd, x, y);
-        if (::GetFocus() != m_hWnd && isNotInDraggableRegion && g_enableNativeSetFocus)
+        if (::GetFocus() != m_hWnd && isNotInDraggableRegion && g_enableNativeSetFocus) {
             ::SetFocus(m_hWnd);
+        }
         if (isNotInDraggableRegion && g_enableNativeSetCapture)
             ::SetCapture(m_hWnd);
     } else if (message == WM_LBUTTONUP || message == WM_MBUTTONUP || message == WM_RBUTTONUP) {
@@ -1665,6 +1718,13 @@ LRESULT MbWebView::fireWheelEventOnUiThread(WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+scoped_refptr<mbnet::PageNetExtraData> MbWebView::getPageNetExtraData()
+{
+    if (m_pageNetExtraData)
+        return m_pageNetExtraData;
+    return nullptr;
+}
+
 mbnet::WebCookieJarImpl* MbWebView::getWebCookieJarImpl()
 {
     mbnet::WebCookieJarImpl* ret = nullptr;
@@ -1921,6 +1981,17 @@ void MbWebView::setSetLanguage(const std::string& lang)
     blink::RendererPreferences pref = m_renderWidgetHostImpl->m_webWiew->GetRendererPreferences();
     pref.accept_languages = lang;// WTF::String::FromUTF8((const uint8_t*)lang.c_str(), lang.size());
     m_renderWidgetHostImpl->m_webWiew->SetRendererPreferences(pref);
+}
+
+std::string MbWebView::getSetLanguage() const
+{
+    std::string result = "en";
+    if (!m_renderWidgetHostImpl || !m_renderWidgetHostImpl->m_webWiew)
+        return result;
+    const blink::RendererPreferences& pref = m_renderWidgetHostImpl->m_webWiew->GetRendererPreferences();
+    if (pref.accept_languages.empty())
+        return result;
+    return pref.accept_languages;
 }
 
 }

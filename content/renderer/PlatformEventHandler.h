@@ -148,6 +148,13 @@ public:
     static bool isDraggableRegionNcHitTest(HWND hWnd, const gfx::Point& pos, const blink::WebVector<blink::WebDraggableRegion>& draggableRegion);
 
     void fireInputEventToCompositingThread(const blink::WebInputEvent& evt);
+    enum ImeCompositioHandleType {
+        kImeCompositioHandleTypeStart,
+        kImeCompositioHandleTypeCom,
+        kImeCompositioHandleTypeEnd,
+        kImeCompositioHandleTypeChar,
+    };
+    void fireImeComposition(ImeCompositioHandleType type, WCHAR c);
 
 private:
     void fireWheelEventOnCompositorThread(int x, int y, bool shiftKey, bool ctrlKey, float delta, float deltaX, float deltaY, int modifiers);
@@ -179,6 +186,8 @@ private:
 
     gfx::PointF m_lastTouchDownPoint;
     bool m_isValidLastTouchDownPoint;
+
+    std::vector<WCHAR> m_imeTextCache;
 
     HWND m_hWnd;
     std::unique_ptr<base::RepeatingTimer> m_checkMouseLeaveTimer;
