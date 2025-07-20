@@ -20,8 +20,12 @@
 #include "third_party/skia/include/core/SkColorSpace.h"
 #include "third_party/skia/include/core/SkImage.h"
 #include "ui/gfx/geometry/skia_conversions.h"
+#include <windows.h>
 
 namespace cc {
+
+size_t kMemoryThresholdTSoftwareImageDecodeCache = 5000 * 5000 * 4;
+
 namespace {
 // If the size of the original sized image breaches kMemoryRatioToSubrect but we
 // don't need to scale the image, consider caching only the needed subrect.
@@ -68,6 +72,14 @@ std::unique_ptr<SoftwareImageDecodeCacheUtils::CacheEntry> SoftwareImageDecodeCa
     DCHECK(target_size == paint_image.GetSupportedDecodeSize(target_size));
     sk_sp<SkColorSpace> target_color_space = key.target_color_params().color_space.ToSkColorSpace();
     SkImageInfo target_info = SkImageInfo::Make(target_size, color_type, kPremul_SkAlphaType, target_color_space);
+
+    if (target_info.width() * target_info.height() > kMemoryThresholdTSoftwareImageDecodeCache) {
+        char output[100] = { 0 };
+        sprintf(output, "DoDecodeImage fail: %p\n", target_info.width(), target_info.height());
+        OutputDebugStringA(output);
+        return nullptr;
+    }
+
     std::unique_ptr<base::DiscardableMemory> target_pixels = AllocateDiscardable(target_info, std::move(on_no_memory));
     if (!target_pixels->data())
         return nullptr;
