@@ -43,10 +43,23 @@ public:
 
     template <typename T> bool Set(const std::string& key, const T& val)
     {
+        return SetOrDefineOwnProperty<T>(key, val, true);
+    }
+
+    template <typename T> bool DefineOwnProperty(const std::string& key, const T& val)
+    {
+        return SetOrDefineOwnProperty<T>(key, val, false);
+    }
+
+    template <typename T> bool SetOrDefineOwnProperty(const std::string& key, const T& val, bool isSet)
+    {
         v8::Local<v8::Value> v8_value;
         if (!TryConvertToV8(isolate_, val, &v8_value))
             return false;
-        v8::Maybe<bool> result = object_->Set(isolate_->GetCurrentContext(), StringToV8(isolate_, key), v8_value);
+        v8::Maybe<bool> result = isSet ?
+            object_->Set(isolate_->GetCurrentContext(), StringToV8(isolate_, key), v8_value) :
+            object_->DefineOwnProperty(isolate_->GetCurrentContext(), StringToV8(isolate_, key), v8_value, v8::ReadOnly);
+
         return !result.IsNothing() && result.FromJust();
     }
 
