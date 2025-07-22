@@ -112,7 +112,6 @@ bool MediaControlCastButtonElement::KeepEventInNode(const Event& event) const
 
 bool MediaControlCastButtonElement::IsPlayingRemotely() const
 {
-    *(int*)1 = 1;
     return false;
     //return RemotePlayback::From(MediaElement()).GetState() != mojom::blink::PresentationConnectionState::CLOSED;
 }

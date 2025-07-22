@@ -14,10 +14,6 @@
 #include "third_party/blink/renderer/modules/clipboard/clipboard_promise.h"
 #include "ui/base/clipboard/clipboard_constants.h"
 
-namespace ui {
-const char kWebClipboardFormatPrefix[] = "web ";
-}
-
 namespace blink {
 
 // static

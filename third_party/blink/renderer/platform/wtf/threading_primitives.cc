@@ -62,7 +62,6 @@ void RecursiveMutex::UpdateStateAfterLockAcquired(base::PlatformThreadId thread_
     owner_.store(thread_id, std::memory_order_relaxed);
 }
 
-
 #else
 
 MutexBase::MutexBase(bool recursive)
