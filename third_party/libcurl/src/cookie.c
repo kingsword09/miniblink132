@@ -1436,6 +1436,8 @@ static char* get_netscape_format(const struct Cookie* co)
         co->path ? co->path : "/", co->secure ? "TRUE" : "FALSE", co->expires, co->name, co->value ? co->value : "");
 }
 
+extern bool g_disableCookieFlushToFile;
+
 /*
  * cookie_output()
  *
@@ -1461,6 +1463,9 @@ static int cookie_output(struct CookieInfo* c, const char* dumphere)
 
     /* at first, remove expired cookies */
     remove_expired(c);
+
+    if (g_disableCookieFlushToFile)
+        return 0;
 
     /* make sure we still have cookies after expiration */
     if (0 == c->numcookies)
