@@ -36,81 +36,44 @@ public:
         int64_t total_decoded_body_length) override;
 
     //void DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerHandle responseBodyConsumer) override;
-
 private:
-    absl::optional<blink::WebURLError>& m_error;
+    std::optional<blink::WebURLError>& m_error;
     blink::WebURLResponse& m_response;
     std::vector<char>* m_data;
 };
 
-inline BlinkSynchronousLoader::BlinkSynchronousLoader(absl::optional<blink::WebURLError>& error, blink::WebURLResponse& response, std::vector<char>* data)
+BlinkSynchronousLoader::BlinkSynchronousLoader(absl::optional<blink::WebURLError>& error, blink::WebURLResponse& response, std::vector<char>* data)
     : m_error(error)
     , m_response(response)
     , m_data(data)
 {
 }
 
-inline BlinkSynchronousLoader::~BlinkSynchronousLoader()
+BlinkSynchronousLoader::~BlinkSynchronousLoader()
 {
 }
 
-inline void BlinkSynchronousLoader::DidReceiveResponse(const blink::WebURLResponse& response,
-    absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer>, std::optional<mojo_base::BigBuffer> cached_metadata)
+void BlinkSynchronousLoader::DidReceiveResponse(
+    const blink::WebURLResponse& response,
+    absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer>, 
+    std::optional<mojo_base::BigBuffer> cached_metadata)
 {
     m_response = response;
 }
 
-inline void BlinkSynchronousLoader::DidReceiveDataForTesting(base::span<const char> data)
+void BlinkSynchronousLoader::DidReceiveDataForTesting(base::span<const char> data)
 {
     m_data->insert(m_data->end(), data.data(), data.data() + data.size());
 }
 
-// inline void BlinkSynchronousLoader::DidStartLoadingResponseBody(mojo::ScopedDataPipeConsumerHandle responseBodyConsumer)
-// {
-//     DebugBreak();
-//     //     uint32_t num_bytes_consumed = 0;
-//     //     while (reader.ShouldContinueReading()) {
-//     //         const void* buffer = nullptr;
-//     //         uint32_t available = 0;
-//     //         MojoResult result = handle->BeginReadData(&buffer, &available, MOJO_READ_DATA_FLAG_NONE);
-//     //         if (result == MOJO_RESULT_SHOULD_WAIT) {
-//     //             handle_watcher.ArmOrNotify();
-//     //             return;
-//     //         }
-//     //         if (result == MOJO_RESULT_FAILED_PRECONDITION) {
-//     //             reader.FinishedReading(/*has_error=*/false);
-//     //             return;
-//     //         }
-//     //         if (result != MOJO_RESULT_OK) {
-//     //             reader.FinishedReading(/*has_error=*/true);
-//     //             return;
-//     //         }
-//     //         const uint32_t chunk_size = network::features::GetLoaderChunkSize();
-//     //         DCHECK_LE(num_bytes_consumed, chunk_size);
-//     //         available = std::min(available, chunk_size - num_bytes_consumed);
-//     //         if (available == 0) {
-//     //             // We've already consumed many bytes in this task. Defer the remaining
-//     //             // to the next task.
-//     //             result = handle->EndReadData(0);
-//     //             DCHECK_EQ(result, MOJO_RESULT_OK);
-//     //             handle_watcher.ArmOrNotify();
-//     //             return;
-//     //         }
-//     //         num_bytes_consumed += available;
-//     //         if (!reader.DataReceived(static_cast<const char*>(buffer), available))
-//     //             return;
-//     //         result = handle->EndReadData(available);
-//     //         DCHECK_EQ(MOJO_RESULT_OK, result);
-//     //     }
-// }
-
-inline void BlinkSynchronousLoader::DidFinishLoading(base::TimeTicks finish_time, 
-    int64_t total_encoded_data_length, uint64_t total_encoded_body_length, int64_t total_decoded_body_length)
+void BlinkSynchronousLoader::DidFinishLoading(base::TimeTicks finishTime, 
+    int64_t totalEncodedDataLength, uint64_t totalEncodedBodyLength, int64_t totalDecodedBodyLength)
 {
+
 }
 
-inline void BlinkSynchronousLoader::DidFail(const blink::WebURLError& error, base::TimeTicks finish_time, int64_t total_encoded_data_length, uint64_t total_encoded_body_length,
-    int64_t total_decoded_body_length)
+void BlinkSynchronousLoader::DidFail(const blink::WebURLError& error, base::TimeTicks finishTime, int64_t totalEncodedDataLength, uint64_t totalEncodedBodyLength,
+    int64_t totalDecodedBodyLength)
 {
     m_error = error;
 }
@@ -119,11 +82,15 @@ inline void BlinkSynchronousLoader::DidFail(const blink::WebURLError& error, bas
 
 WebURLLoaderImplCurl::WebURLLoaderImplCurl(
     scoped_refptr<base::SingleThreadTaskRunner> freezableTaskRunnerHandle, 
-    scoped_refptr<base::SingleThreadTaskRunner> unfreezableTaskRunnerHandle, base::WaitableEvent* terminateSyncLoadEvent)
+    scoped_refptr<base::SingleThreadTaskRunner> unfreezableTaskRunnerHandle, 
+    base::WaitableEvent* terminateSyncLoadEvent,
+    int64_t mbwebviewId)
     : m_freezableTaskRunner(std::move(freezableTaskRunnerHandle))
     , m_unfreezableTaskRunner(std::move(unfreezableTaskRunnerHandle))
     , m_terminateSyncLoadEvent(terminateSyncLoadEvent)
+    , m_mbwebviewId(mbwebviewId)
 {
+    CHECK(m_mbwebviewId > 0);
     m_jobId = -1;
 #ifndef NDEBUG
     //webURLLoaderImplCurlCount.increment();
@@ -172,48 +139,116 @@ static bool checkIsResURL(const GURL& url)
     return false;
 }
 
-void WebURLLoaderImplCurl::LoadSynchronously(std::unique_ptr<network::ResourceRequest> request, scoped_refptr<const blink::SecurityOrigin> top_frame_origin,
-    bool download_to_blob, bool no_mime_sniffing, base::TimeDelta timeout_interval, blink::URLLoaderClient* client, blink::WebURLResponse& response,
-    std::optional<blink::WebURLError>& error, scoped_refptr<WTF::SharedBuffer>& data, int64_t& encoded_data_length, uint64_t& encoded_body_length,
-    scoped_refptr<blink::BlobDataHandle>& downloaded_blob, std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resource_load_info_notifier_wrapper)
+// 本函数一般是在web worker的xhr里调用
+void WebURLLoaderImplCurl::LoadAsynchronously(
+    std::unique_ptr<network::ResourceRequest> request, 
+    scoped_refptr<const blink::SecurityOrigin> topFrameOrigin,
+    bool noMimeSniffing, 
+    std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resourceLoadInfoNotifierWrapper,
+    blink::CodeCacheHost* codeCacheHost,
+    blink::URLLoaderClient* client
+    )
+{
+    mbnet::WebURLLoaderManager* netManager = mbnet::WebURLLoaderManager::sharedInstance();
+    //WebURLRequestExtraDataWrap* extraDataWrap = (WebURLRequestExtraDataWrap*)extraData.get();
+    if (!netManager) {
+        //MojoClose(extraDataWrap->dataPipeProducerHandle);
+        return;
+    }
+
+    init();
+
+    GURL url = request->url;
+    mbnet::WebURLLoaderManager::IoThreadType type = checkIsResURL(url) ? mbnet::WebURLLoaderManager::kIoThreadTypeRes : mbnet::WebURLLoaderManager::kIoThreadTypeOther;
+
+    int64_t mbwebviewId = m_mbwebviewId;//extraDataWrap->mbwebviewId;
+    if (url.SchemeIs("blob") /*&& !extraDataWrap->isDownload()*/) {
+        ::mojo::Remote<::blink::mojom::blink::Blob>* blob = content::BlobURLStoreSet::get()->getBlobByUrl(url.possibly_invalid_spec());
+        if (!blob)
+            return;
+
+        m_blobLoader = mbnet::BlobResourceLoader::createAsync(mbwebviewId, url, client);
+        m_blobLoader->start();
+        return;
+    }
+
+    WebURLLoaderInternal* job = new WebURLLoaderInternal(netManager->getIoThread(type), this, std::move(request), client, false, shouldContentSniffURL(url));
+    job->m_mbwebviewId = mbwebviewId;
+    //job->m_dataPipeProducerHandle = extraDataWrap->dataPipeProducerHandle;
+    job->m_frameType = blink::mojom::RequestContextFrameType::kTopLevel;//extraDataWrap->frameType;
+    //job->m_downloadName = extraDataWrap->releaseDownloadName();
+
+    int jobIds = 0;
+    jobIds = netManager->addAsynchronousJob(job);
+    if (0 == jobIds)
+        return;
+    m_jobId = jobIds;
+    job->m_jobId = m_jobId;
+
+    // 执行完add后，this可能被销毁，当dataurl的时候
+#if 0
+//     blink::KURL url = (blink::KURL)requestNew.url();
+//     Vector<UChar> host = WTF::ensureUTF16UChar(url.host());
+// 
+//     if (!url.isValid() || !url.protocolIsData()) {
+//         WTF::String outstr = String::format("WebURLLoaderImpl.loadAsynchronously: %p %ws\n", this, WTF::ensureUTF16UChar(url.string()).data());
+//         OutputDebugStringW(outstr.charactersWithNullTermination().data());
+//     }
+#endif
+}
+
+// 本函数也是在web worker的xhr里调用
+void WebURLLoaderImplCurl::LoadSynchronously(
+    std::unique_ptr<network::ResourceRequest> request,
+    scoped_refptr<const blink::SecurityOrigin> topFrameOrigin,
+    bool downloadToBlob, 
+    bool noMimeSniffing, 
+    base::TimeDelta timeoutInterval, 
+    blink::URLLoaderClient* client, 
+    blink::WebURLResponse& response,
+    std::optional<blink::WebURLError>& error,
+    scoped_refptr<WTF::SharedBuffer>& data, 
+    int64_t& encodedDataLength, 
+    uint64_t& encodedBodyLength,
+    scoped_refptr<blink::BlobDataHandle>& downloadedBlob, 
+    std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resourceLoadInfoNotifierWrapper)
 {
     if (!mbnet::WebURLLoaderManager::sharedInstance())
         return;
-    DebugBreak();
 
-//     init();
-// 
-//     GURL url = request->url;
-//     if (url.SchemeIs("blob")) {
-//         //         ::mojo::Remote<::blink::mojom::blink::Blob>* blob = content::BlobURLStoreSet::get()->getBlobByUrl(url.possibly_invalid_spec());
-//         //         if (!blob)
-//         //             return;
-//         //
-//         //         m_blobLoader = mbnet::BlobResourceLoader::createAsync(url, client);
-//         //         m_blobLoader->start();
-//         DebugBreak();
-//         return;
-//     }
-// 
-//     mbnet::WebURLLoaderManager* netManager = mbnet::WebURLLoaderManager::sharedInstance();
-//     mbnet::WebURLLoaderManager::IoThreadType type = mbnet::WebURLLoaderManager::kIoThreadTypeSync;
-//     // checkIsResURL(url) ? mbnet::WebURLLoaderManager::kIoThreadTypeRes : mbnet::WebURLLoaderManager::kIoThreadTypeOther;
-// 
-//     std::vector<char> buffer;
-//     mbnet::BlinkSynchronousLoader syncLoader(error, response, &buffer);
-//     mbnet::WebURLLoaderInternal* job
-//         = new mbnet::WebURLLoaderInternal(netManager->getIoThread(type), this, std::move(request), &syncLoader, false, shouldContentSniffURL(url));
-//     netManager->dispatchSynchronousJob(job, m_terminateSyncLoadEvent);
-// 
-//     data.Assign(buffer.data(), buffer.size());
+    init();
+
+    GURL url = request->url;
+    if (url.SchemeIs("blob")) {
+        //         ::mojo::Remote<::blink::mojom::blink::Blob>* blob = content::BlobURLStoreSet::get()->getBlobByUrl(url.possibly_invalid_spec());
+        //         if (!blob)
+        //             return;
+        //
+        //         m_blobLoader = mbnet::BlobResourceLoader::createAsync(url, client);
+        //         m_blobLoader->start();
+        DebugBreak();
+        return;
+    }
+
+    mbnet::WebURLLoaderManager* netManager = mbnet::WebURLLoaderManager::sharedInstance();
+    mbnet::WebURLLoaderManager::IoThreadType type = mbnet::WebURLLoaderManager::kIoThreadTypeSync;
+    // checkIsResURL(url) ? mbnet::WebURLLoaderManager::kIoThreadTypeRes : mbnet::WebURLLoaderManager::kIoThreadTypeOther;
+
+    std::vector<char> buffer;
+    mbnet::BlinkSynchronousLoader syncLoader(error, response, &buffer);
+    mbnet::WebURLLoaderInternal* job
+        = new mbnet::WebURLLoaderInternal(netManager->getIoThread(type), this, std::move(request), &syncLoader, false, shouldContentSniffURL(url));
+    netManager->dispatchSynchronousJob(job, m_terminateSyncLoadEvent);
+    data = WTF::SharedBuffer::Create(base::span<const unsigned char>((const unsigned char*)buffer.data(), buffer.size()));
+    memset(buffer.data(), 0, buffer.size());
 }
 
 void WebURLLoaderImplCurl::LoadAsynchronouslyEx(
     std::unique_ptr<network::ResourceRequest> request,
-    scoped_refptr<const blink::SecurityOrigin> top_frame_origin,
-    bool no_mime_sniffing, 
-    std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resource_load_info_notifier_wrapper, 
-    blink::CodeCacheHost* code_cache_host,
+    scoped_refptr<const blink::SecurityOrigin> topFrameOrigin,
+    bool noMimeSniffing, 
+    std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resourceLoadInfoNotifierWrapper,
+    blink::CodeCacheHost* codeCacheHost,
     scoped_refptr<mbnet::WebURLRequestExtraDataWrap> extraData,
     blink::URLLoaderClient* client)
 {

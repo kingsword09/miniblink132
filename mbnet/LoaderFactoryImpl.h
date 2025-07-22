@@ -109,10 +109,7 @@ public:
 
 class LoaderFactoryImpl final : public blink::URLLoaderFactory {
 public:
-    LoaderFactoryImpl()
-    {
-
-    }
+    LoaderFactoryImpl(int64_t mbwebviewId);
 
     // URLLoaderFactory implementation:
     std::unique_ptr<blink::URLLoader> CreateURLLoader(const network::ResourceRequest& request,
@@ -127,6 +124,7 @@ public:
 
 private:
     base::WaitableEvent* m_terminateSyncLoadEvent = nullptr;
+    int64_t m_mbwebviewId = 0;
 };
 
 class BodyLoaderClient : public blink::URLLoaderClient {

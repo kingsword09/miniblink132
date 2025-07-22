@@ -159,6 +159,7 @@ public:
 public:
     blink::URLLoaderClient* m_client;
     bool m_isSynchronous;
+    bool m_isCrossThread = false;
 
 private:
     std::unique_ptr<network::ResourceRequest> m_firstRequest;
@@ -219,7 +220,9 @@ public:
     };
     State m_state;
 
+    base::Lock m_syncTasksLock;
     std::vector<WebURLLoaderManagerMainTask*> m_syncTasks;
+    WebURLLoaderManagerMainTask* m_crossThreadTasksBegin = nullptr;
 
     //SharedMemoryDataConsumerHandle::Writer* m_bodyStreamWriter;
 
@@ -249,6 +252,7 @@ public:
     Vector<char>* m_asynWkeNetSetData = nullptr;
     bool m_isWkeNetSetDataBeSetted;
     bool m_isWkeCanceled; // 是否调用过wkeNetCancelRequest
+    bool m_isUrlBegining = false;
 
     mbNetJobDataBind* m_dataBind = nullptr;
     std::vector<char> m_dataCacheForDownload; // 下载时需要先缓存再给外部
@@ -262,9 +266,9 @@ public:
     scoped_refptr<base::SequencedTaskRunner> m_taskRunner;
 
     CacheForDownloadOpt m_cacheForDownloadOpt;
-#if ENABLE_WKE == 1
+
     scoped_refptr<PageNetExtraData> m_pageNetExtraData;
-#endif
+
     base::Thread* m_ioThread = nullptr;
 };
 

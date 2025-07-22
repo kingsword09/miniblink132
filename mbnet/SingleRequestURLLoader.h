@@ -49,7 +49,7 @@ public:
     /*virtual*/ void CountFeature(blink::mojom::WebFeature) override;
 
     // network::mojom::URLLoader:
-    /*virtual*/ ~SingleRequestURLLoader() = default;
+    /*virtual*/ ~SingleRequestURLLoader() override;
 
     /*virtual*/ void FollowRedirect(const std::vector<std::string>& removed_headers, const ::net::HttpRequestHeaders& modified_headers,
         const ::net::HttpRequestHeaders& modified_cors_exempt_headers, const std::optional<::GURL>& new_url) override;

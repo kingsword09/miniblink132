@@ -35,21 +35,31 @@ public:
     WebURLLoaderImplCurl(
         scoped_refptr<base::SingleThreadTaskRunner> freezableTaskRunnerHandle, 
         scoped_refptr<base::SingleThreadTaskRunner> unfreezableTaskRunnerHandle,
-        base::WaitableEvent* terminateSyncLoadEvent);
+        base::WaitableEvent* terminateSyncLoadEvent,
+        int64_t mbwebviewId);
     ~WebURLLoaderImplCurl() /*override*/;
 
     // --URLLoader methods:
-    void LoadSynchronously(std::unique_ptr<network::ResourceRequest> request, scoped_refptr<const blink::SecurityOrigin> top_frame_origin,
-        bool download_to_blob, bool no_mime_sniffing, base::TimeDelta timeout_interval, blink::URLLoaderClient* client, blink::WebURLResponse& response,
-        std::optional<blink::WebURLError>& error, scoped_refptr<WTF::SharedBuffer>& data, int64_t& encoded_data_length, uint64_t& encoded_body_length,
-        scoped_refptr<blink::BlobDataHandle>& downloaded_blob, std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resource_load_info_notifier_wrapper) override;
+    void LoadSynchronously(std::unique_ptr<network::ResourceRequest> request,
+        scoped_refptr<const blink::SecurityOrigin> topFrameOrigin,
+        bool downloadToBlob,
+        bool noMimeSniffing,
+        base::TimeDelta timeoutInterval,
+        blink::URLLoaderClient* client,
+        blink::WebURLResponse& response,
+        std::optional<blink::WebURLError>& error,
+        scoped_refptr<WTF::SharedBuffer>& data,
+        int64_t& encoded_data_length,
+        uint64_t& encodedBodyLength,
+        scoped_refptr<blink::BlobDataHandle>& downloadedBlob,
+        std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resourceLoadInfoNotifierWrapper) override;
 
-    void LoadAsynchronously(std::unique_ptr<network::ResourceRequest> request, scoped_refptr<const blink::SecurityOrigin> top_frame_origin,
-        bool no_mime_sniffing, std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resource_load_info_notifier_wrapper, blink::CodeCacheHost* code_cache_host,
-        blink::URLLoaderClient* client) override
-    {
-        *(int*)1 = 1;
-    }
+    void LoadAsynchronously(std::unique_ptr<network::ResourceRequest> request, 
+        scoped_refptr<const blink::SecurityOrigin> topFrameOrigin,
+        bool noMimeSniffing, 
+        std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resourceLoadInfoNotifierWrapper, 
+        blink::CodeCacheHost* code_cache_host,
+        blink::URLLoaderClient* client) override;
 
     void Freeze(blink::LoaderFreezeMode mode) override;
     void DidChangePriority(blink::WebURLRequest::Priority, int intra_priority_value) override;
@@ -63,10 +73,10 @@ public:
 
     void LoadAsynchronouslyEx(
         std::unique_ptr<network::ResourceRequest> request,
-        scoped_refptr<const blink::SecurityOrigin> top_frame_origin,
-        bool no_mime_sniffing,
-        std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resource_load_info_notifier_wrapper,
-        blink::CodeCacheHost* code_cache_host,
+        scoped_refptr<const blink::SecurityOrigin> topFrameOrigin,
+        bool noMimeSniffing,
+        std::unique_ptr<blink::ResourceLoadInfoNotifierWrapper> resourceLoadInfoNotifierWrapper,
+        blink::CodeCacheHost* codeCacheHost,
         scoped_refptr<mbnet::WebURLRequestExtraDataWrap> extraData,
         blink::URLLoaderClient* client);
 
@@ -90,6 +100,7 @@ private:
     scoped_refptr<base::SingleThreadTaskRunner> m_unfreezableTaskRunner;
 
     base::WaitableEvent* m_terminateSyncLoadEvent = nullptr;
+    int64_t m_mbwebviewId = 0;
 
     base::WeakPtrFactory<WebURLLoaderImplCurl> m_weakPtr { this };
 };

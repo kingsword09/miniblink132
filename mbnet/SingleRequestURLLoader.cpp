@@ -1,6 +1,7 @@
 
 #include "mbnet/SingleRequestURLLoader.h"
 
+#include "content/common/ThreadCall.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
 #include "third_party/blink/renderer/platform/weborigin/security_origin.h"
 #include "third_party/blink/public/platform/web_url_response.h"
@@ -19,7 +20,11 @@ SingleRequestURLLoader::SingleRequestURLLoader(
     scoped_refptr<WebURLRequestExtraDataWrap> extraData)
 {
     m_extraData = extraData;
-    m_loader = std::make_unique<WebURLLoaderImplCurl>(freezableTaskRunnerHandle, unfreezableTaskRunnerHandle, terminateSyncLoadEvent);
+    m_loader = std::make_unique<WebURLLoaderImplCurl>(freezableTaskRunnerHandle, unfreezableTaskRunnerHandle, terminateSyncLoadEvent, m_extraData->mbwebviewId);
+}
+
+SingleRequestURLLoader::~SingleRequestURLLoader()
+{
 }
 
 void SingleRequestURLLoader::startLoader(bool isSync, const network::ResourceRequest& request,
@@ -191,6 +196,8 @@ void SingleRequestURLLoader::DidFinishLoading(
     ::network::URLLoaderCompletionStatus status(0);
     if (m_urlLoadClient.get())
         m_urlLoadClient->OnComplete(status); 
+
+    content::ThreadCall::delayDestroySelf(this, base::SingleThreadTaskRunner::GetCurrentDefault(), 0);
 }
 
 void SingleRequestURLLoader::DidFail(const blink::WebURLError& err, base::TimeTicks finish_time, int64_t total_encoded_data_length, uint64_t total_encoded_body_length,
@@ -199,6 +206,8 @@ void SingleRequestURLLoader::DidFail(const blink::WebURLError& err, base::TimeTi
     ::network::URLLoaderCompletionStatus status(err.reason());
     if (m_urlLoadClient.get())
         m_urlLoadClient->OnComplete(status);
+
+    content::ThreadCall::delayDestroySelf(this, base::SingleThreadTaskRunner::GetCurrentDefault(), 0);
 }
 
 void SingleRequestURLLoader::CountFeature(blink::mojom::WebFeature)

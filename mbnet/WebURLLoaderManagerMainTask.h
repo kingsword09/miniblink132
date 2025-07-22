@@ -12,6 +12,7 @@
 #include "net/http/http_util.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_utf8_adaptor.h"
 #include "third_party/blink/public/mojom/loader/resource_load_info.mojom-shared.h"
+#include "base/synchronization/lock.h"
 
 #if ENABLE_WKE == 1
 #include "wke/wkeWebView.h"
@@ -303,6 +304,8 @@ private:
     static void runMainTasks()
     {
         WebURLLoaderManager* manager = WebURLLoaderManager::sharedInstance();
+        CHECK(manager->getMainRunner()->BelongsToCurrentThread());
+
         while (true) {
             manager->m_mainTasksMutex.Acquire();
             WebURLLoaderManagerMainTask* task = manager->m_mainTasksBegin; // 从头部读起
@@ -322,14 +325,21 @@ private:
         }
     }
 
-    static void runSyncMainTasks(WebURLLoaderInternal* job)
+    static void runCrossThreadTasks(WebURLLoaderInternal* job)
     {
-        for (size_t i = 0; i < job->m_syncTasks.size(); ++i) {
-            WebURLLoaderManagerMainTask* task = job->m_syncTasks[i];
+        while (true) {
+            job->m_syncTasksLock.Acquire();
+            WebURLLoaderManagerMainTask* task = job->m_crossThreadTasksBegin; // 从头部读起
+            if (!task) {
+                job->m_syncTasksLock.Release();
+                break;
+            }
+            job->m_crossThreadTasksBegin = task->m_next;
+            job->m_syncTasksLock.Release();
+
             task->run();
             delete task;
         }
-        job->m_syncTasks.clear();
     }
 
 public:
@@ -338,16 +348,38 @@ public:
         if (!task)
             return;
 
-        if (job && job->m_isSynchronous) { // 老版本的同步请求在mbnet里处理。新版本是blink创建线程来处理了
+        if (job && job->m_isSynchronous) { // 现在只有web worker的同步请求才会走到这里
+            job->m_syncTasksLock.Acquire();
             job->m_syncTasks.push_back(task);
-            taskRunner->PostTask(FROM_HERE, base::BindOnce(&WebURLLoaderManagerMainTask::runSyncMainTasks, job));
+            job->m_syncTasksLock.Release();
+            return;
+        }
+
+        if (job && job->m_isCrossThread) { // 老版本的非web worker的同步请求在mbnet里处理。新版本是blink创建线程来处理了
+            job->m_syncTasksLock.Acquire();
+            
+            if (job->m_crossThreadTasksBegin) {
+                WebURLLoaderManagerMainTask* itTask = job->m_crossThreadTasksBegin; // 尾部插入
+                while (itTask) {
+                    if (!itTask->m_next) {
+                        itTask->m_next = task;
+                        break;
+                    }
+                    itTask = itTask->m_next;
+                }
+            } else {
+                job->m_crossThreadTasksBegin = task;
+            }
+            job->m_syncTasksLock.Release();
+
+            taskRunner->PostTask(FROM_HERE, base::BindOnce(&WebURLLoaderManagerMainTask::runCrossThreadTasks, job));
             return;
         }
         WebURLLoaderManager* manager = WebURLLoaderManager::sharedInstance();
 
         base::AutoLock locker(manager->m_mainTasksMutex);
         bool needPost = false;
-        if (nullptr == manager->m_mainTasksEnd) {
+        if (nullptr == manager->m_mainTasksEnd) { // 感觉好像不需要这个m_mainTasksEnd？
             manager->m_mainTasksEnd = task;
             needPost = true;
             DCHECK(nullptr == manager->m_mainTasksBegin);
@@ -360,6 +392,8 @@ public:
         if (nullptr == manager->m_mainTasksBegin)
             manager->m_mainTasksBegin = task;
 
+        // removeFromCurlOnIoThread的时候，job->m_taskRunner可能和getMainRunner不相同
+        CHECK(taskRunner == WebURLLoaderManager::sharedInstance()->getMainRunner());
         if (needPost)
             taskRunner->PostTask(FROM_HERE, base::BindOnce(&WebURLLoaderManagerMainTask::runMainTasks));
     }

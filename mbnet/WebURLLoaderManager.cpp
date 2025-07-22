@@ -88,6 +88,7 @@
 #endif
 
 extern "C" MojoResult MojoMakeDelayCloseFlag(MojoHandle handle);
+extern "C" MojoResult MojoSetDebugMojoHandleStr(MojoHandle handle, const std::string& str);
 
 namespace mbnet {
 
@@ -408,28 +409,48 @@ void WebURLLoaderManager::handleDidSentData(WebURLLoaderInternal* job, unsigned 
     client->DidSendData(bytesSent, totalBytesToBeSent);
 }
 
-static void startLoadingResponseBody(WebURLLoaderInternal* job, const char* data, int dataLength)
+static void startLoadingResponseBody(WebURLLoaderInternal* job)
 {
-    uint32_t numBytes = (uint32_t)dataLength;
+    const blink::WebURLResponse& response = job->m_response;
+    if (job->m_isSynchronous) {// 同步请求不用管道了，直接用老的DidReceiveDataForTesting。因为同步请求的client都是mbnet::BlinkSynchronousLoader
+        WTF::SegmentedBuffer buf;
+        absl::variant<mojo::ScopedDataPipeConsumerHandle, WTF::SegmentedBuffer> body = std::move(buf);
+        job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
+        return;
+    }
 
-    if (0 != dataLength)
-        MojoWriteData(job->m_dataPipeProducerHandle, data, &numBytes, nullptr);
-    //client->DidStartLoadingResponseBody(std::move(responseBody));
-    DebugBreak();
+    if (0 == job->m_dataPipeProducerHandle) {
+        MojoHandle dataPipeConsumerHandle;
+        MojoCreateDataPipeOptions createDataOptions;
+        createDataOptions.element_num_bytes = 1;
+        createDataOptions.capacity_num_bytes = -1;
+        MojoCreateDataPipe(&createDataOptions, &job->m_dataPipeProducerHandle, &dataPipeConsumerHandle);
+        MojoSetDebugMojoHandleStr(job->m_dataPipeProducerHandle, "startLoadingResponseBody");
+
+        mojo::DataPipeConsumerHandle dataPipeConsumer(dataPipeConsumerHandle);
+        mojo::ScopedDataPipeConsumerHandle responseBody(std::move(dataPipeConsumer));
+
+        absl::variant<mojo::ScopedDataPipeConsumerHandle, WTF::SegmentedBuffer> body = std::move(responseBody);
+        job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
+    } else {
+        mojo::ScopedDataPipeConsumerHandle responseBody;
+        absl::variant<mojo::ScopedDataPipeConsumerHandle, WTF::SegmentedBuffer> body = std::move(responseBody);
+        job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
+    }
 }
 
 void WebURLLoaderManager::handlReceiveData(WebURLLoaderInternal* job, const char* data, int dataLength, int encodedDataLength)
 {
-    //blink::URLLoaderClient* client = job->client();
+    blink::URLLoaderClient* client = job->client();
     uint32_t numBytes = (uint32_t)dataLength;
 
     if (0 == job->m_dataPipeProducerHandle) {
         if (job->m_isSynchronous) {
-            DebugBreak();
-            //client->DidReceiveData(data, dataLength);
+            client->DidReceiveDataForTesting(base::span<const char>(data, (size_t)dataLength));
             //CurlCacheManager::getInstance()->didReceiveData(*job, data, dataLength);
-        } else
-            startLoadingResponseBody(job, data, dataLength);
+        } else {
+            //startLoadingResponseBody(job, data, dataLength);
+        }
     } else {
         MojoWriteData(job->m_dataPipeProducerHandle, data, &numBytes, /*const MojoWriteDataOptions**/ nullptr);
     }
@@ -623,9 +644,13 @@ void WebURLLoaderManager::handleDidFinishLoading(WebURLLoaderInternal* job, int6
 #if ENABLE_WKE == 1
         dispatchWkeLoadUrlFinishCallback(job, totalEncodedDataLength);
 #endif
-        //if (job->m_response.HttpStatusCode() <= 400) {
         if (0 == job->m_dataPipeProducerHandle && !job->m_isSynchronous) {
-            startLoadingResponseBody(job, "", 0); // 必须搞个假的，不然FetchManager::Loader::DidFinishLoading会断言错误
+            DebugBreak(); // 按理不会出现没读取response就finish的情况
+            CHECK(!job->responseFired());            
+            job->m_response.SetExpectedContentLength(0);
+            job->m_response.SetCurrentRequestUrl(blink::KURL(url));
+            job->m_response.SetHttpStatusCode(200);
+            startLoadingResponseBody(job); // 必须搞个假的，不然FetchManager::Loader::DidFinishLoading会断言错误
         }
 
         if (!job->isCancelled()) {
@@ -802,25 +827,7 @@ void WebURLLoaderManager::handleDidReceiveResponse(WebURLLoaderInternal* job)
 //             } else
 //                 startLoadingResponseBody(job, data, dataLength);
 //         }
-
-        if (0 == job->m_dataPipeProducerHandle) {
-            MojoHandle dataPipeConsumerHandle;
-            MojoCreateDataPipeOptions createDataOptions;
-            createDataOptions.element_num_bytes = 1;
-            createDataOptions.capacity_num_bytes = -1;
-            MojoCreateDataPipe(&createDataOptions, &job->m_dataPipeProducerHandle, &dataPipeConsumerHandle);
-
-            mojo::DataPipeConsumerHandle dataPipeConsumer(dataPipeConsumerHandle);
-            mojo::ScopedDataPipeConsumerHandle responseBody(std::move(dataPipeConsumer));
-
-            absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer> body = std::move(responseBody);
-            job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
-        } else {
-            mojo::ScopedDataPipeConsumerHandle responseBody;
-            absl::variant<mojo::ScopedDataPipeConsumerHandle, SegmentedBuffer> body = std::move(responseBody);
-            job->client()->DidReceiveResponse(response, std::move(body), std::nullopt);
-        }
-        
+        startLoadingResponseBody(job);
     }
 }
 
@@ -1160,7 +1167,7 @@ void WebURLLoaderManager::removeFromCurlOnIoThread(int jobId)
                 = WebURLLoaderManagerMainTask::createTask(jobId, WebURLLoaderManagerMainTask::TaskType::kRemoveFromCurl, nullptr, 0, 0, 0);
             //             if (task) // 退出时候，这里可能为null
             //                 Platform::current()->mainThread()->scheduler()->postLoadingTask(FROM_HERE, task); // postLoadingTask
-            WebURLLoaderManagerMainTask::pushTask(nullptr, job->m_taskRunner, task);
+            WebURLLoaderManagerMainTask::pushTask(nullptr, getMainRunner(), task);
         }
     }
 }
@@ -1862,30 +1869,30 @@ void WebURLLoaderManager::dispatchSynchronousJob(WebURLLoaderInternal* job, base
         delete task;
     }
 
-    if (ret != CURLE_OK) {
-        if (job->client() && job->loader()) {
-            blink::WebURLError error(net::ERR_ABORTED, (int)ret, net::ResolveErrorInfo(), blink::WebURLError::HasCopyInCache::kFalse,
-                blink::WebURLError::IsWebSecurityViolation::kFalse, blink::KURL(String(job->m_url)), blink::WebURLError::ShouldCollapseInitiator::kFalse);
-            WebURLLoaderManager::sharedInstance()->handleDidFail(job, error);
-        }
-    } else {
-        if (job->client() && job->loader())
-            handleDidReceiveResponse(job);
-
-#if 0
-        void* hookBuf = job->m_hookBufForEndHook ? job->m_hookBufForEndHook->data() : nullptr;
-        int hookLength = job->m_hookBufForEndHook ? job->m_hookBufForEndHook->size() : 0;
-
-        wkeLoadUrlEndCallback loadUrlEndCallback = page->wkeHandler().loadUrlEndCallback;
-        void* loadUrlEndCallbackParam = page->wkeHandler().loadUrlEndCallbackParam;
-        if (1 == job->m_isHookRequest && loadUrlEndCallback)
-            loadUrlEndCallback(page->wkeWebView(), loadUrlEndCallbackParam, urlBuf.data(), job, hookBuf, hookLength);
-
-        if (job->m_hookBufForEndHook)
-            didReceiveDataOrDownload(job, static_cast<char*>(job->m_hookBufForEndHook->data()), hookLength, 0);
-#endif
-        handleDidFinishLoading(job, base::TimeTicks::Now().ToInternalValue(), 0);
-    }
+//     if (ret != CURLE_OK) {
+//         if (job->client() && job->loader()) {
+//             blink::WebURLError error(net::ERR_ABORTED, (int)ret, net::ResolveErrorInfo(), blink::WebURLError::HasCopyInCache::kFalse,
+//                 blink::WebURLError::IsWebSecurityViolation::kFalse, blink::KURL(String(job->m_url)), blink::WebURLError::ShouldCollapseInitiator::kFalse);
+//             WebURLLoaderManager::sharedInstance()->handleDidFail(job, error);
+//         }
+//     } else {
+//         if (job->client() && job->loader())
+//             handleDidReceiveResponse(job);
+// 
+// #if 0
+//         void* hookBuf = job->m_hookBufForEndHook ? job->m_hookBufForEndHook->data() : nullptr;
+//         int hookLength = job->m_hookBufForEndHook ? job->m_hookBufForEndHook->size() : 0;
+// 
+//         wkeLoadUrlEndCallback loadUrlEndCallback = page->wkeHandler().loadUrlEndCallback;
+//         void* loadUrlEndCallbackParam = page->wkeHandler().loadUrlEndCallbackParam;
+//         if (1 == job->m_isHookRequest && loadUrlEndCallback)
+//             loadUrlEndCallback(page->wkeWebView(), loadUrlEndCallbackParam, urlBuf.data(), job, hookBuf, hookLength);
+// 
+//         if (job->m_hookBufForEndHook)
+//             didReceiveDataOrDownload(job, static_cast<char*>(job->m_hookBufForEndHook->data()), hookLength, 0);
+// #endif
+//         handleDidFinishLoading(job, base::TimeTicks::Now().ToInternalValue(), 0);
+//     }
 
     removeLiveJobs(jobId);
     delete job;
@@ -1901,7 +1908,6 @@ void WebURLLoaderManager::dispatchSynchronousJobOnIoThread(WebURLLoaderInternal*
     *isCallFinish = true;
 }
 
-#if 1 // (defined ENABLE_WKE) && (ENABLE_WKE == 1)
 void onNetSetMIMEType(mbNetJob jobPtr, const char* type)
 {
     //wke::checkThreadCallIsValid(__FUNCTION__);
@@ -1915,31 +1921,52 @@ void onNetSetHTTPHeaderField(mbNetJob jobPtr, const utf8* key, const utf8* value
     if (response) {
         job->m_response.SetHttpHeaderField(String(key), String(value));
     } else {
-        DebugBreak();
-        //         WTF::String keyString(key);
-        //         if (equalIgnoringCase(keyString, "referer"))
-        //             job->firstRequest()->setHTTPReferrer(String(value), WebReferrerPolicyDefault);
-        //         else
-        //             job->firstRequest()->SetHttpHeaderField(keyString, String(value));
-        //
-        //         if (job->m_initializeHandleInfo) { // setHttpResponseDataToJobWhenDidReceiveResponseOnMainThread里m_initializeHandleInfo为空
-        //             curl_slist* headers = job->m_initializeHandleInfo->headers;
-        //             curl_slist_free_all(headers);
-        //             headers = nullptr;
-        //             net::HeaderVisitor visitor(&headers);
-        //             job->firstRequest()->visitHTTPHeaderFields(&visitor);
-        //             job->m_initializeHandleInfo->headers = headers;
-        //         }
+//         WTF::String keyString(key);
+//         if (equalIgnoringCase(keyString, "referer"))
+//             job->firstRequest()->setHTTPReferrer(String(value), WebReferrerPolicyDefault);
+//         else
+//             job->firstRequest()->headers.SetHeader(keyString, String(value));
+        job->firstRequest()->headers.SetHeader(std::string_view(key), value);
+
+        if (job->m_initializeHandleInfo) { // setHttpResponseDataToJobWhenDidReceiveResponseOnMainThread里m_initializeHandleInfo为空
+            curl_slist* headers = job->m_initializeHandleInfo->headers;
+            curl_slist_free_all(headers);
+            headers = nullptr;
+
+            net::HttpRequestHeaders::Iterator it(job->firstRequest()->headers);
+            bool next = true;
+            for (; next; next = it.GetNext()) {
+                std::string builder(it.name());
+                builder += ":";
+                builder += it.value();
+
+                headers = curl_slist_append(headers, builder.c_str());
+            }
+            job->m_initializeHandleInfo->headers = headers;
+        }
     }
+}
+
+void onNetSetHTTPHeaderFieldCommon(mbNetJob jobPtr, const utf8* key, const utf8* value, BOOL response)
+{
+    //CHECK(job->m_isUrlBegining);
+    onNetSetHTTPHeaderField(jobPtr, key, value, response);
+//     if (WTF::IsMainThread()) {
+//         mbnet::onNetSetHTTPHeaderField(jobPtr, key, value, response);
+//     } else {
+//         DebugBreak();
+//         std::string* keyCopy = new std::string(key);
+//         std::string* valueCopy = new std::string(value);
+//         content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [jobPtr, keyCopy, valueCopy, response] {
+//             mbnet::onNetSetHTTPHeaderField(jobPtr, keyCopy->c_str(), valueCopy->c_str(), response);
+//             delete keyCopy;
+//             delete valueCopy;
+//         });
+//     }
 }
 
 void changeRequestUrl(mbNetJob jobPtr, const char* url)
 {
-//     std::string temp = "changeRequestUrl:";
-//     temp += url;
-//     temp += "\n";
-//     OutputDebugStringA(temp.c_str());
-
     WebURLLoaderInternal* job = (WebURLLoaderInternal*)jobPtr;
     blink::KURL newUrl(WTF::String::FromUTF8(url));
     job->m_response.SetCurrentRequestUrl(newUrl);
@@ -1983,10 +2010,12 @@ static bool dispatchWkeLoadUrlBegin(WebURLLoaderInternal* job, InitializeHandleI
         return false;
 
     void* param = webview->getClosure().m_LoadUrlBeginParam;
+
+    job->m_isUrlBegining = true;
     webview->getClosure().m_LoadUrlBeginCallback(job->m_mbwebviewId, param, job->firstRequest()->url.spec().c_str(), job);
+    job->m_isUrlBegining = false;
     return job->m_isWkeNetSetDataBeSetted;
 }
-#endif
 
 static void applyProxyToRequest(WebURLLoaderInternal* job, InitializeHandleInfo* info)
 {
@@ -2218,6 +2247,10 @@ InitializeHandleInfo* WebURLLoaderManager::preInitializeHandleOnMainThread(WebUR
     RefPtr<net::PageNetExtraData> pageNetExtraData = page->getPageNetExtraData();
     info->pageNetExtraData = pageNetExtraData;
 #else
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(job->m_mbwebviewId);
+    if (webview)
+        info->pageNetExtraData = webview->getPageNetExtraData();
+
     applyProxyToRequest(job, info);
 #endif
 
@@ -2284,12 +2317,11 @@ void WebURLLoaderManager::initializeHandleOnIoThread(int jobId, InitializeHandle
 #if ENABLE_WKE
     if (wke::g_DNS)
         curl_easy_setopt(job->m_handle, CURLOPT_DNS_SERVERS, wke::g_DNS->c_str());
-
+#endif
     if (info->pageNetExtraData && info->pageNetExtraData->getCurlShareHandle()) {
         curl_easy_setopt(job->m_handle, CURLOPT_SHARE, info->pageNetExtraData->getCurlShareHandle());
         job->m_pageNetExtraData = info->pageNetExtraData;
     } else
-#endif
         curl_easy_setopt(job->m_handle, CURLOPT_SHARE, m_shareCookieJar->getCurlShareHandle());
     curl_easy_setopt(job->m_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5); // 5 minutes
     curl_easy_setopt(job->m_handle, CURLOPT_PROTOCOLS, kAllowedProtocols);
@@ -2314,11 +2346,10 @@ void WebURLLoaderManager::initializeHandleOnIoThread(int jobId, InitializeHandle
     WTF::Locker<WTF::RecursiveMutex> locker(*mutex);
 
     std::string cookieJarFullPath;
-#if ENABLE_WKE == 1
+
     if (job->m_pageNetExtraData) {
         cookieJarFullPath = job->m_pageNetExtraData->getCookieJarFullPath();
     } else
-#endif
         cookieJarFullPath = m_shareCookieJar->getCookieJarFullPath();
 
     setCookiePath(job->m_handle, cookieJarFullPath);
@@ -2603,8 +2634,8 @@ WebURLLoaderInternal::WebURLLoaderInternal(base::Thread* ioThread, WebURLLoaderI
     m_taskRunner = base::SequencedTaskRunner::GetCurrentDefault();
     m_ioThread = ioThread;
 
-    // 如果当前线程和主线程不同，就是同步请求
-    m_isSynchronous = m_taskRunner != WebURLLoaderManager::sharedInstance()->getMainRunner();
+    // 如果当前线程和主线程不同，一般是同步请求。但和web worker的同步请求又不一样。
+    m_isCrossThread = m_taskRunner != WebURLLoaderManager::sharedInstance()->getMainRunner();
 
 #ifndef NDEBUG
     //`webURLLoaderInternalCounter.increment();
