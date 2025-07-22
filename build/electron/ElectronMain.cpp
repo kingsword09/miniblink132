@@ -10,8 +10,10 @@
 #include <stdlib.h>
 #include <ole2.h>
 
+// https://releases.electronjs.org/release/v34.5.8
 bool g_isElectronMode = false;
 
+// G:\test\ele_test\electron-api-demos\main.js
 // G:\test\web_test\crash\TestUtilityProcess.js
 // G:\test\ele_test\utility_process\main.js
 // W:\opencode\vscode-main\package.json
@@ -103,6 +105,7 @@ void initV8Data();
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     //MessageBoxA(0, 0, 0, 0);
+    g_isElectronMode = true;
     ::OleInitialize(nullptr);
     atom::initGDIPlusClsids();
     atom::AtomCommandLine::initAW();

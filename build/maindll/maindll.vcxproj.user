@@ -1,18 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommand>G:\test\exe_test\ConsoleApplication1\cs1.6_loader.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>G:\test\exe_test\ConsoleApplication1\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>G:\test\exe_test\apache-tomcat-7.0.79\demo.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\test\exe_test\apache-tomcat-7.0.79\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommand>G:\test\exe_test\T1_err_mb108\mb1_z.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>G:\test\exe_test\T1_err_mb108\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>W:\mycode\mb132\out\win_Release_Win32\pay.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>W:\mycode\mb132\out\win_Release_Win32</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommand>G:\test\web_test\TeAgentEditor\TeAgentEditor.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>G:\test\web_test\TeAgentEditor\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>G:\test\exe_test\ConsoleApplication1\TeAgentEditor.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\test\exe_test\ConsoleApplication1\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommand>G:\test\exe_test\ConsoleApplication1\TeAgentEditor.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\test\exe_test\ConsoleApplication1\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

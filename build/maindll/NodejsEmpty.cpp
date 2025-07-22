@@ -21,3 +21,8 @@ std::shared_ptr<v8::TaskRunner> nodePlatformGetForegroundTaskRunner(v8::Isolate*
 {
     return nullptr;
 }
+
+bool nodePlatformIdleTasksEnabled(v8::Isolate* isolate)
+{
+    return true;
+}

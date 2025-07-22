@@ -246,11 +246,13 @@
     <ClInclude Include="..\..\content\common\UrlUtil.h" />
     <ClInclude Include="..\..\content\common\WebMimeRegistryImpl.h" />
     <ClInclude Include="..\..\content\renderer\AssociatedInterfaceProviderImpl.h" />
+    <ClInclude Include="..\..\content\renderer\AttributionHostImpl.h" />
     <ClInclude Include="..\..\content\renderer\BlinkInterfaceRegistryImpl.h" />
     <ClInclude Include="..\..\content\renderer\BlobRegistryImpl.h" />
     <ClInclude Include="..\..\content\renderer\BlobURLStoreImpl.h" />
     <ClInclude Include="..\..\content\renderer\ClipboardHostImpl.h" />
     <ClInclude Include="..\..\content\renderer\ContentSecurityNotifierImpl.h" />
+    <ClInclude Include="..\..\content\renderer\DataHostImpl.h" />
     <ClInclude Include="..\..\content\renderer\NoStatePrefetchProcessorImpl.h" />
     <ClInclude Include="..\..\content\renderer\PermissionServiceImpl.h" />
     <ClInclude Include="..\..\content\renderer\PlatformEventHandler.h" />
@@ -1317,6 +1319,8 @@
     <ClCompile Include="..\..\net\base\data_url.cc" />
     <ClCompile Include="..\..\net\base\features_net.cc" />
     <ClCompile Include="..\..\net\base\filename_util.cc" />
+    <ClCompile Include="..\..\net\base\filename_util_icu.cc" />
+    <ClCompile Include="..\..\net\base\filename_util_internal.cc" />
     <ClCompile Include="..\..\net\base\host_port_pair.cc" />
     <ClCompile Include="..\..\net\base\ip_address.cc" />
     <ClCompile Include="..\..\net\base\ip_endpoint.cc" />

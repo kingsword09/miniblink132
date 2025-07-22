@@ -556,6 +556,21 @@
     <Filter Include="src\ui\color">
       <UniqueIdentifier>{c3f569f0-ad8b-44d6-b6d2-9fc2a8db0527}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\base\clipboard">
+      <UniqueIdentifier>{90a0b5bf-7113-4d35-8d28-b68d481f706c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\base\data_transfer_policy">
+      <UniqueIdentifier>{a4ab3b7d-9eac-4108-913e-4ee1db417873}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\gfx\codec">
+      <UniqueIdentifier>{e2af63c9-2032-43f2-826a-3a33acf809a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\gfx\image">
+      <UniqueIdentifier>{3ec4a9df-fcbf-4603-a61d-5c1c3da38b84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\base\resource">
+      <UniqueIdentifier>{18c88451-b68d-45f7-902f-fe88f51f8bd6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -6147,6 +6162,114 @@
     <ClInclude Include="..\..\services\network\public\cpp\shared_url_loader_factory.h">
       <Filter>src\services\network\public\cpp</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_android.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_buffer.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_constants.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_data.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_format_type.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_ios.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_mac.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_metrics.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_monitor.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_non_backed.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_observer.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_ozone.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_sequence_number_token.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_test_template.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_util.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_util_mac.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_util_win.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\clipboard_win.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\custom_data_helper.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\file_info.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\scoped_clipboard_writer.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\clipboard\url_file_parser.h">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\data_transfer_policy\data_transfer_endpoint.h">
+      <Filter>src\ui\base\data_transfer_policy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\codec\png_codec.h">
+      <Filter>src\ui\gfx\codec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\codec\vector_wstream.h">
+      <Filter>src\ui\gfx\codec</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\base\i18n\file_util_icu.h">
+      <Filter>src\base\i18n</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\image\image.h">
+      <Filter>src\ui\gfx\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\image\image_png_rep.h">
+      <Filter>src\ui\gfx\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\image\image_skia.h">
+      <Filter>src\ui\gfx\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\image\image_skia_rep.h">
+      <Filter>src\ui\gfx\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\image\image_internal.h">
+      <Filter>src\ui\gfx\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\resource\resource_scale_factor.h">
+      <Filter>src\ui\base\resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\image\image_skia_source.h">
+      <Filter>src\ui\gfx\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\gfx\image\image_family.h">
+      <Filter>src\ui\gfx\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\components\attribution_reporting\registration_info.h">
+      <Filter>src\components\attribution_reporting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\cc\mojo_embedder\async_layer_tree_frame_sink.cc">
@@ -9784,6 +9907,57 @@
     </ClCompile>
     <ClCompile Include="..\..\base\process\process_iterator.cc">
       <Filter>src\base\process</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_win.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\custom_data_helper.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_constants.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_data.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_format_type_win.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_util.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_util_win.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\file_info.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\url_file_parser.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\data_transfer_policy\data_transfer_endpoint.cc">
+      <Filter>src\ui\base\data_transfer_policy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\gfx\codec\png_codec.cc">
+      <Filter>src\ui\gfx\codec</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_monitor.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\clipboard_metrics.cc">
+      <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\gfx\codec\vector_wstream.cc">
+      <Filter>src\ui\gfx\codec</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\base\i18n\file_util_icu.cc">
+      <Filter>src\base\i18n</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\clipboard\scoped_clipboard_writer.cc">
+      <Filter>src\ui\base\clipboard</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
