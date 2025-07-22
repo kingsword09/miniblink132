@@ -676,6 +676,13 @@ public:
         int count = 0;
     };
 
+    void setDebugMojoHandleStr(MojoHandle handle, const std::string& str)
+    {
+        WTF::Locker<WTF::RecursiveMutex> locker(m_lock);
+        MojoHandleEntryDummy* entry = (MojoHandleEntryDummy*)findEntryNotLock(handle);
+        entry->callstack = str;
+    }
+
     void printStackTraceHash()
     {
         std::map<uint32_t, HandleEntryTrace*> entrys;
@@ -799,7 +806,7 @@ public:
 
         if (entry) {
             MojoHandleEntryDummy* dummy = (MojoHandleEntryDummy*)entry;
-            dummy->callstack = callstack;
+            //dummy->callstack = callstack;
 
             if (std::string::npos != dummy->callstack.find("StorageAreaObserver>::PendingReceiver")) {
                 OutputDebugStringA("recordCall, StorageAreaObserver\n");
@@ -1370,8 +1377,17 @@ MojoResult MojoMakeDelayCloseFlag(MojoHandle handle)
     return MOJO_RESULT_OK;
 }
 
+MojoResult MojoSetDebugMojoHandleStr(MojoHandle handle, const std::string& str)
+{
+#ifdef _DEBUG
+    MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
+    mgr->setDebugMojoHandleStr(handle, str);
+#endif
+    return MOJO_RESULT_OK;
+}
+
 // 标记是js的MessageChannel
-extern "C" MojoResult MojoMakeIsMessageChannelFlag(MojoHandle handle)
+MojoResult MojoMakeIsMessageChannelFlag(MojoHandle handle)
 {
     MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
     mgr->makeIsMessageChannelFlag(handle);

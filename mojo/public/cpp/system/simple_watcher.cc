@@ -85,8 +85,6 @@ private:
             // the default task runner for the IO thread.
             weak_watcher_->OnHandleReady(watch_id_, result, state);
         } else {
-            bool xxx = weak_watcher_->is_default_task_runner_;
-
             // Annotate the posted task with |handler_tag_| as the IPC interface.
             base::TaskAnnotator::ScopedSetIpcHash scoped_set_ipc_hash(handler_tag_);
             task_runner_->PostTask(FROM_HERE, base::BindOnce(&SimpleWatcher::OnHandleReady, weak_watcher_, watch_id_, result, state));

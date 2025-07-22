@@ -207,6 +207,7 @@
 #include "services/device/public/mojom/screen_orientation.mojom-blink.h"
 #include "services/device/public/mojom/time_zone_monitor.mojom-blink.h"
 #include "services/device/public/mojom/wake_lock.mojom-blink.h"
+#include "services/network/public/mojom/url_loader.mojom-blink.h"
 #include "services/network/public/mojom/url_loader.mojom.h"
 #include "services/network/public/mojom/data_pipe_getter.mojom.h"
 #include "services/network/public/mojom/url_loader.mojom.h"
@@ -716,14 +717,35 @@ absl::optional<std::vector<float>> mojo::StructTraits<skia::mojom::ImageInfoData
     return absl::nullopt;
 }
 
-network::mojom::blink::TimingAllowOrigin::TimingAllowOrigin(void)
+network::mojom::blink::TimingAllowOrigin::TimingAllowOrigin()
+    : tag_(Tag::kSerializedOrigins)
 {
-    *(int*)1 = 1;
+    data_.serialized_origins = new WTF::Vector<WTF::String>;
 }
 
-network::mojom::blink::TimingAllowOrigin::~TimingAllowOrigin(void)
+network::mojom::blink::TimingAllowOrigin::~TimingAllowOrigin()
 {
-    *(int*)1 = 1;
+    DestroyActive();
+}
+
+void network::mojom::blink::TimingAllowOrigin::DestroyActive()
+{
+    switch (tag_) {
+        case Tag::kSerializedOrigins:
+            delete data_.serialized_origins;
+            break;
+        case Tag::kAll:
+            break;
+    }
+}
+
+void network::mojom::blink::TimingAllowOrigin::set_all(uint8_t all)
+{
+    if (tag_ != Tag::kAll) {
+        DestroyActive();
+        tag_ = Tag::kAll;
+    }
+    data_.all = all;
 }
 
 mojo::WaitSet::~WaitSet(void)
@@ -1035,7 +1057,6 @@ mojo::internal::ValidationContext::ValidationContext(const void* data, size_t da
     , associated_endpoint_handle_end_(static_cast<uint32_t>(num_associated_endpoint_handles))
     , stack_depth_(stack_depth)
 {
-    OutputDebugStringA("mojo::internal::ValidationContext::ValidationContext not impl\n");
 }
 
 mojo::internal::ValidationContext::~ValidationContext(void)
@@ -1285,58 +1306,141 @@ void viz::mojom::blink::BundledFrameSubmissionData::set_frame(class mojo::Struct
     *(int*)1 = 1;
 }
 
+// network::mojom::AllowCSPFromHeaderValue::AllowCSPFromHeaderValue()
+//     : tag_(Tag::kAllowStar)
+// {
+//     data_.allow_star = bool();
+// }
+// 
+// network::mojom::AllowCSPFromHeaderValue::~AllowCSPFromHeaderValue()
+// {
+//     DestroyActive();
+// }
+
 void network::mojom::AllowCSPFromHeaderValue::set_allow_star(bool allow_star)
 {
-    *(int*)1 = 1;
-}
-void network::mojom::AllowCSPFromHeaderValue::set_origin(const ::url::Origin& origin)
-{
-    *(int*)1 = 1;
-}
-void network::mojom::AllowCSPFromHeaderValue::set_error_message(const std::string& error_message)
-{
-    *(int*)1 = 1;
-}
-void network::mojom::AllowCSPFromHeaderValue::DestroyActive()
-{
-    *(int*)1 = 1;
+    if (tag_ != Tag::kAllowStar) {
+        DestroyActive();
+        tag_ = Tag::kAllowStar;
+    }
+    data_.allow_star = allow_star;
 }
 
-void network::mojom::blink::AllowCSPFromHeaderValue::set_allow_star(bool)
+void network::mojom::AllowCSPFromHeaderValue::set_origin(const ::url::Origin& origin)
 {
-    *(int*)1 = 1;
+    if (tag_ == Tag::kOrigin) {
+        *(data_.origin) = std::move(origin);
+    } else {
+        DestroyActive();
+        tag_ = Tag::kOrigin;
+        data_.origin = new ::url::Origin(std::move(origin));
+    }
 }
-void network::mojom::blink::AllowCSPFromHeaderValue::set_error_message(WTF::String const&)
+
+void network::mojom::AllowCSPFromHeaderValue::set_error_message(const std::string& error_message)
 {
-    *(int*)1 = 1;
+    if (tag_ == Tag::kErrorMessage) {
+        *(data_.error_message) = std::move(error_message);
+    } else {
+        DestroyActive();
+        tag_ = Tag::kErrorMessage;
+        data_.error_message = new std::string(std::move(error_message));
+    }
 }
-void network::mojom::blink::AllowCSPFromHeaderValue::set_origin(scoped_refptr<::blink::SecurityOrigin const> const&)
+
+void network::mojom::AllowCSPFromHeaderValue::DestroyActive()
 {
-    *(int*)1 = 1;
+    switch (tag_) {
+        case Tag::kAllowStar:
+            break;
+        case Tag::kOrigin:
+            delete data_.origin;
+            break;
+        case Tag::kErrorMessage:
+            delete data_.error_message;
+            break;
+    }
+}
+
+void network::mojom::blink::AllowCSPFromHeaderValue::set_allow_star(bool allow_star)
+{
+    if (tag_ != Tag::kAllowStar) {
+        DestroyActive();
+        tag_ = Tag::kAllowStar;
+    }
+    data_.allow_star = allow_star;
+}
+void network::mojom::blink::AllowCSPFromHeaderValue::set_error_message(WTF::String const& error_message)
+{
+    if (tag_ == Tag::kErrorMessage) {
+        *(data_.error_message) = std::move(error_message);
+    } else {
+        DestroyActive();
+        tag_ = Tag::kErrorMessage;
+        data_.error_message = new WTF::String(std::move(error_message));
+    }
+}
+void network::mojom::blink::AllowCSPFromHeaderValue::set_origin(scoped_refptr<::blink::SecurityOrigin const> const& origin)
+{
+    if (tag_ == Tag::kOrigin) {
+        *(data_.origin) = std::move(origin);
+    } else {
+        DestroyActive();
+        tag_ = Tag::kOrigin;
+        data_.origin = new ::scoped_refptr<const ::blink::SecurityOrigin>(std::move(origin));
+    }
 }
 
 void network::mojom::TimingAllowOrigin::set_serialized_origins(std::vector<std::string> serialized_origins)
 {
-    *(int*)1 = 1;
-}
-void network::mojom::TimingAllowOrigin::set_all(unsigned char)
-{
-    *(int*)1 = 1;
+    if (tag_ == Tag::kSerializedOrigins) {
+        *(data_.serialized_origins) = std::move(serialized_origins);
+    } else {
+        DestroyActive();
+        tag_ = Tag::kSerializedOrigins;
+        data_.serialized_origins = new std::vector<std::string>(std::move(serialized_origins));
+    }
 }
 
-void network::mojom::blink::TimingAllowOrigin::set_all(unsigned char)
+void network::mojom::TimingAllowOrigin::set_all(uint8_t all)
 {
-    *(int*)1 = 1;
+    if (tag_ != Tag::kAll) {
+        DestroyActive();
+        tag_ = Tag::kAll;
+    }
+    data_.all = all;
 }
-void network::mojom::blink::TimingAllowOrigin::set_serialized_origins(WTF::Vector<WTF::String, 0, WTF::PartitionAllocator>)
+
+void network::mojom::blink::TimingAllowOrigin::set_serialized_origins(WTF::Vector<WTF::String, 0, WTF::PartitionAllocator> serialized_origins)
 {
-    *(int*)1 = 1;
+    if (tag_ == Tag::kSerializedOrigins) {
+        *(data_.serialized_origins) = std::move(serialized_origins);
+    } else {
+        DestroyActive();
+        tag_ = Tag::kSerializedOrigins;
+        data_.serialized_origins = new WTF::Vector<WTF::String>(std::move(serialized_origins));
+    }
 }
 
 network::mojom::TimingAllowOrigin::~TimingAllowOrigin(void)
 {
-    *(int*)1 = 1;
+    DestroyActive();
 }
+
+void network::mojom::TimingAllowOrigin::DestroyActive()
+{
+    switch (tag_) {
+
+        case Tag::kSerializedOrigins:
+
+            delete data_.serialized_origins;
+            break;
+        case Tag::kAll:
+
+            break;
+    }
+}
+
 
 // unsigned int mojo::Wait(mojo::Handle, unsigned int, unsigned int, MojoHandleSignalsState*)
 // {
@@ -1369,7 +1473,11 @@ bool viz::mojom::DisplayPrivate::DisableSwapUntilResize(void)
     return false;
 }
 
+mojo::native::NativeStruct::~NativeStruct(void) = default;
+mojo::native::SerializedHandle::~SerializedHandle(void) = default;
+
 const char device::mojom::blink::ScreenOrientation::Name_[] = "device.mojom.blink.ScreenOrientation";
+const char network::mojom::blink::URLLoader::Name_[] = "network.mojom.blink.URLLoader";
 
 namespace blink {
 namespace mojom {
