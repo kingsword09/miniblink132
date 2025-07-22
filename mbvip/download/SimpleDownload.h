@@ -3,8 +3,8 @@
 #define mbvip_download_SimpleDownload_h
 
 #include "content/common/ThreadCall.h"
-//#include "mbvip/common/LiveIdDetect.h"
-//#include "wke/wkedefine.h"
+#include "base/files/file_path.h"
+#include "base/synchronization/lock.h"
 #include <process.h>
 #include <shlwapi.h>
 
@@ -30,8 +30,8 @@ private:
     SimpleDownload(mbWebView mbView, size_t expectedContentLength, const char* url, const char* mime, const char* disposition, mbNetJob job,
         mbNetJobDataBind* dataBind, mbDownloadBind* callbackBind);
 
-    void startSave(std::vector<WCHAR>* path);
-    void startSaveImpl();
+    void startSave(/*std::vector<WCHAR>* path*/bool ok);
+    void doSave();
     bool canSave();
     void onBeginSaveCallback();
 
@@ -51,7 +51,11 @@ private:
     std::string m_url;
     std::string m_mime;
     std::string m_contentDisposition;
-    std::u16string m_savePath;
+
+    base::Lock m_saveFullPathLock; // m_saveFullPath会被多线程使用
+    std::u16string m_saveFullPath; // 用户设置的全路径
+    
+    base::FilePath m_saveTempFullPath; // 先放到临时路径，再改名成m_savePath
 
     base::File* m_handleOfSave;
     size_t m_totalSize;
@@ -60,7 +64,7 @@ private:
     mbWebView m_mbView;
 
     std::vector<char> m_cacheData;
-    bool m_hasFinish;
+    bool m_hadCallDataFinish; // 是否调用过onDataFinishImpl
     mbLoadingResult m_loadingResult;
 
     struct DialogOptions {

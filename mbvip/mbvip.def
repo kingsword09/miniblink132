@@ -23,6 +23,7 @@ mbGetStringLen
 mbDeleteString
 mbCreateString
 mbCreateStringWithCopy
+mbCreateStringWithoutNullTermination
 mbSetZoomFactor
 mbSetCookieJarPath
 mbSetViewSettings
@@ -136,9 +137,14 @@ mbDownloadByUtf8Path
 mbPostToUiThreadDelay
 mbSetContextMenuEnabled
 mbSetHeadlessEnabled
+mbSetLanguage
 mbCreateWebCustomWindow
 mbNetCreatePostBodyElements
 mbUtilBase64EncodeBuffer
 mbFreeMemBuf
 mbSetLocalStorageFullPath
 mbSetCookieJarFullPath
+mbPerformCookieCommand
+mbClearCookie
+mbNetGetRawHttpHeadInBlinkThread
+mbNetGetRawResponseHeadInBlinkThread

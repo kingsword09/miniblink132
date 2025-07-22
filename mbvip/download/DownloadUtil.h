@@ -94,7 +94,7 @@ static std::u16string getSaveName(std::string contentDisposition, std::string ur
         return result;
     result = content::UrlUtil::getSaveNameFromUrl(url);
 
-    String str = blink::DecodeURLEscapeSequences(WTF::String((const UChar*)result.c_str(), result.size()), url::DecodeURLMode::kUTF8);
+    String str = blink::DecodeURLEscapeSequences(WTF::String(base::span<const UChar>((const UChar*)result.c_str(), result.size())), url::DecodeURLMode::kUTF8);
     result = content::utf8ToUtf16(str.Utf8());
 
     return result;

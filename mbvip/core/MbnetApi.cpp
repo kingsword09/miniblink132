@@ -18,8 +18,9 @@
 #include "mbnet/DefaultLocalStorageDir.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
-#include "third_party/blink/public/web/web_view.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/partitions.h"
+#include "third_party/blink/public/web/web_view.h"
+#include "third_party/blink/public/platform/web_http_header_visitor.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "base/command_line.h"
 #include "base/run_loop.h"
@@ -61,6 +62,40 @@ const mbSlist* MB_CALL_TYPE mbNetGetRawHttpHeadInBlinkThread(mbNetJob jobPtr)
     if (!job->m_initializeHandleInfo)
         return nullptr;
     return (const mbSlist*)job->m_initializeHandleInfo->headers;
+}
+
+class HTTPHeaderVisitor : public blink::WebHTTPHeaderVisitor {
+public:
+    HTTPHeaderVisitor(curl_slist** result)
+    {
+        m_result = result;
+    }
+
+    virtual void VisitHeader(const blink::WebString& name, const blink::WebString& value) override
+    {
+        *m_result = curl_slist_append(*m_result, name.Utf8().c_str());
+        *m_result = curl_slist_append(*m_result, value.Utf8().c_str());
+    }
+
+private:
+    curl_slist** m_result;
+};
+
+const mbSlist* MB_CALL_TYPE mbNetGetRawResponseHeadInBlinkThread(mbNetJob jobPtr)
+{
+    if (content::ThreadCall::isBlinkThread()) {
+        mbnet::WebURLLoaderInternal* job = (mbnet::WebURLLoaderInternal*)jobPtr;
+        mbSlist* result = nullptr;
+        HTTPHeaderVisitor visitor((curl_slist**)&result);
+        job->m_response.VisitHttpHeaderFields(&visitor);
+
+        content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [result] {
+            curl_slist_free_all((curl_slist*)result);
+        });
+
+        return result;
+    }
+    return nullptr;
 }
 
 mbPostBodyElements* MB_CALL_TYPE mbNetCreatePostBodyElements(mbWebView webView, size_t length)
@@ -124,12 +159,21 @@ mbStringPtr MB_CALL_TYPE mbCreateString(const utf8* str, size_t len)
 
 mbStringPtr MB_CALL_TYPE mbCreateStringWithCopy(const utf8* str, size_t len)
 {
-    utf8* strCopy = (utf8*)malloc(len);
+    if (!str || 0 == len)
+        return nullptr;
+
+    utf8* strCopy = (utf8*)malloc(len + 1);
     memcpy(strCopy, str, len);
+    strCopy[len] = 0;
 
     mbStringPtr mbStr = new mbString(strCopy, len);
     mbStr->freeStrFunc = mbString::defaultFreeStr;
     return mbStr;
+}
+
+mbStringPtr MB_CALL_TYPE mbCreateStringWithoutNullTermination(const utf8* str, size_t len)
+{
+    return mbCreateStringWithCopy(str, len);
 }
 
 void MB_CALL_TYPE mbDeleteString(mbStringPtr str)
@@ -231,7 +275,7 @@ static BOOL netHoldJobToAsynCommit(mbNetJob jobPtr)
 {
     checkThreadCallIsValid(__FUNCTION__);
     mbnet::WebURLLoaderInternal* job = (mbnet::WebURLLoaderInternal*)jobPtr;
-    if (job->m_isRedirection || job->m_isSynchronous)
+    if (job->m_isRedirection || job->m_isSynchronous || job->m_isHoldJobToAsynCommit)
         return FALSE;
 
     job->m_isWkeNetSetDataBeSetted = false;

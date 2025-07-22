@@ -694,6 +694,8 @@ BOOL mbFireWindowsMessageImpl(mbWebView webviewHandle, HWND hWnd, UINT message, 
             return TRUE;
         }
     } else if (WM_IME_STARTCOMPOSITION == message) {
+        webview->onImeComposition(content::MbWebView::kImeCompositioTypeStart, (WCHAR)(0));
+
         content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [webviewHandle, hWnd](content::MbWebView* webview) {
             gfx::Point caret = webview->getCaretPos();
 
@@ -718,15 +720,23 @@ BOOL mbFireWindowsMessageImpl(mbWebView webviewHandle, HWND hWnd, UINT message, 
         });
         return false;
     } else if (WM_IME_COMPOSITION == message) {
+        WCHAR c = (WCHAR)wParam;
+        webview->onImeComposition(content::MbWebView::kImeCompositioTypeCom, c);
+
         if (lParam & GCS_RESULTSTR) {
             std::vector<WCHAR> buffer;
             HIMC hIMC = ::ImmGetContext(hWnd);
-            buffer.resize(ImmGetCompositionStringW(hIMC, GCS_COMPSTR, NULL, 0) + 2);
+            int stringSize = ImmGetCompositionStringW(hIMC, GCS_COMPSTR, NULL, 0);
+            buffer.resize(stringSize + 2);
             memset(&buffer[0], 0, buffer.size());
             ImmGetCompositionStringW(hIMC, GCS_COMPSTR, &buffer[0], buffer.size() - 2);
             ImmReleaseContext(hWnd, hIMC);
         }
-
+    } else if (WM_IME_ENDCOMPOSITION == message) {
+        webview->onImeComposition(content::MbWebView::kImeCompositioTypeEnd, (WCHAR)(0));
+    } else if (WM_IME_CHAR == message) {
+        WCHAR c = (WCHAR)wParam;
+        webview->onImeComposition(content::MbWebView::kImeCompositioTypeChar, c);
     } else {
         //         content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [hWnd, message, wParam, lParam](content::MbWebView* webview) {
         //             LRESULT result = 0;
