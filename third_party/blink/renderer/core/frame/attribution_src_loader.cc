@@ -166,7 +166,6 @@ void LogAuditIssue(ExecutionContext* execution_context, AttributionReportingIssu
 base::expected<attribution_reporting::RegistrationInfo, attribution_reporting::RegistrationInfoError> GetRegistrationInfo(
     const HTTPHeaderMap& map, ExecutionContext* execution_context, uint64_t request_id, bool cross_app_web_enabled)
 {
-    *(int*)1 = 1;
     return attribution_reporting::RegistrationInfo();
 
 //     AtomicString info_header = map.Get(http_names::kAttributionReportingInfo);
