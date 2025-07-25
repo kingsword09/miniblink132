@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -18,10 +18,12 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
+ * SPDX-License-Identifier: curl
+ *
  ***************************************************************************/
 
 #include "curl_setup.h"
-
+#ifndef CURL_DISABLE_FTP
 #include <curl/curl.h>
 
 #include "curl_fnmatch.h"
@@ -31,15 +33,6 @@
 #include "memdebug.h"
 
 #ifndef HAVE_FNMATCH
-
-/*
- * TODO:
- *
- * Make this function match POSIX. Test 1307 includes a set of test patterns
- * that returns different results with a POSIX fnmatch() than with this
- * implementation and this is considered a bug where POSIX is the guiding
- * light.
- */
 
 #define CURLFNM_CHARSET_LEN (sizeof(char) * 256)
 #define CURLFNM_CHSET_SIZE (CURLFNM_CHARSET_LEN + 15)
@@ -71,9 +64,9 @@ static int parsekeyword(unsigned char** pattern, unsigned char* charset)
     parsekey_state state = CURLFNM_PKW_INIT;
 #define KEYLEN 10
     char keyword[KEYLEN] = { 0 };
-    int found = FALSE;
     int i;
     unsigned char* p = *pattern;
+    bool found = FALSE;
     for (i = 0; !found; i++) {
         char c = *p++;
         if (i >= KEYLEN)
@@ -352,14 +345,13 @@ int Curl_fnmatch(void* ptr, const char* pattern, const char* string)
  */
 int Curl_fnmatch(void* ptr, const char* pattern, const char* string)
 {
-    int rc;
     (void)ptr; /* the argument is specified by the curl_fnmatch_callback
                 prototype, but not used by Curl_fnmatch() */
     if (!pattern || !string) {
         return CURL_FNMATCH_FAIL;
     }
-    rc = fnmatch(pattern, string, 0);
-    switch (rc) {
+
+    switch (fnmatch(pattern, string, 0)) {
     case 0:
         return CURL_FNMATCH_MATCH;
     case FNM_NOMATCH:
@@ -371,3 +363,5 @@ int Curl_fnmatch(void* ptr, const char* pattern, const char* string)
 }
 
 #endif
+
+#endif /* if FTP is disabled */

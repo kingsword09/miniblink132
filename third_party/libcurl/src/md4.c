@@ -1,9 +1,224 @@
-/*
+/***************************************************************************
+ *                                  _   _ ____  _
+ *  Project                     ___| | | |  _ \| |
+ *                             / __| | | | |_) | |
+ *                            | (__| |_| |  _ <| |___
+ *                             \___|\___/|_| \_\_____|
+ *
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
+ *
+ * This software is licensed as described in the file COPYING, which
+ * you should have received as part of this distribution. The terms
+ * are also available at https://curl.se/docs/copyright.html.
+ *
+ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+ * copies of the Software, and permit persons to whom the Software is
+ * furnished to do so, under the terms of the COPYING file.
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+ * KIND, either express or implied.
+ *
+ * SPDX-License-Identifier: curl
+ *
+ ***************************************************************************/
+
+#include "curl_setup.h"
+
+#if defined(USE_CURL_NTLM_CORE)
+
+#include <string.h>
+
+#include "curl_md4.h"
+#include "warnless.h"
+
+#ifdef USE_OPENSSL
+#include <openssl/opensslconf.h>
+#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3) && !defined(USE_AMISSL)
+/* OpenSSL 3.0.0 marks the MD4 functions as deprecated */
+#define OPENSSL_NO_MD4
+#endif
+#endif /* USE_OPENSSL */
+
+#ifdef USE_WOLFSSL
+#include <wolfssl/options.h>
+#define VOID_MD4_INIT
+#ifdef NO_MD4
+#define WOLFSSL_NO_MD4
+#endif
+#endif
+
+#ifdef USE_MBEDTLS
+#include <mbedtls/version.h>
+#if MBEDTLS_VERSION_NUMBER >= 0x03000000
+#include <mbedtls/mbedtls_config.h>
+#else
+#include <mbedtls/config.h>
+#endif
+#if (MBEDTLS_VERSION_NUMBER >= 0x02070000)
+#define HAS_MBEDTLS_RESULT_CODE_BASED_FUNCTIONS
+#endif
+#endif /* USE_MBEDTLS */
+
+#if defined(USE_GNUTLS)
+#include <nettle/md4.h>
+/* When OpenSSL or wolfSSL is available, we use their MD4 functions. */
+#elif defined(USE_WOLFSSL) && !defined(WOLFSSL_NO_MD4)
+#include <wolfssl/openssl/md4.h>
+#elif defined(USE_OPENSSL) && !defined(OPENSSL_NO_MD4)
+#include <openssl/md4.h>
+#elif (defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && (__MAC_OS_X_VERSION_MAX_ALLOWED >= 1040) && defined(__MAC_OS_X_VERSION_MIN_REQUIRED)                         \
+    && (__MAC_OS_X_VERSION_MIN_REQUIRED < 101500))                                                                                                             \
+    || (defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && (__IPHONE_OS_VERSION_MAX_ALLOWED >= 20000) && defined(__IPHONE_OS_VERSION_MIN_REQUIRED)                    \
+        && (__IPHONE_OS_VERSION_MIN_REQUIRED < 130000))
+#define AN_APPLE_OS
+#include <CommonCrypto/CommonDigest.h>
+#elif defined(USE_WIN32_CRYPTO)
+#include <wincrypt.h>
+#elif (defined(USE_MBEDTLS) && defined(MBEDTLS_MD4_C))
+#include <mbedtls/md4.h>
+#endif
+
+/* The last 3 #include files should be in this order */
+#include "curl_printf.h"
+#include "curl_memory.h"
+#include "memdebug.h"
+
+#if defined(USE_GNUTLS)
+
+typedef struct md4_ctx MD4_CTX;
+
+static int MD4_Init(MD4_CTX* ctx)
+{
+    md4_init(ctx);
+    return 1;
+}
+
+static void MD4_Update(MD4_CTX* ctx, const void* data, unsigned long size)
+{
+    md4_update(ctx, size, data);
+}
+
+static void MD4_Final(unsigned char* result, MD4_CTX* ctx)
+{
+    md4_digest(ctx, MD4_DIGEST_SIZE, result);
+}
+
+#elif defined(USE_WOLFSSL) && !defined(WOLFSSL_NO_MD4)
+
+#elif defined(USE_OPENSSL) && !defined(OPENSSL_NO_MD4)
+
+#elif defined(AN_APPLE_OS)
+typedef CC_MD4_CTX MD4_CTX;
+
+static int MD4_Init(MD4_CTX* ctx)
+{
+    return CC_MD4_Init(ctx);
+}
+
+static void MD4_Update(MD4_CTX* ctx, const void* data, unsigned long size)
+{
+    (void)CC_MD4_Update(ctx, data, (CC_LONG)size);
+}
+
+static void MD4_Final(unsigned char* result, MD4_CTX* ctx)
+{
+    (void)CC_MD4_Final(result, ctx);
+}
+
+#elif defined(USE_WIN32_CRYPTO)
+
+struct md4_ctx {
+    HCRYPTPROV hCryptProv;
+    HCRYPTHASH hHash;
+};
+typedef struct md4_ctx MD4_CTX;
+
+static int MD4_Init(MD4_CTX* ctx)
+{
+    ctx->hCryptProv = 0;
+    ctx->hHash = 0;
+
+    if (!CryptAcquireContext(&ctx->hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
+        return 0;
+
+    if (!CryptCreateHash(ctx->hCryptProv, CALG_MD4, 0, 0, &ctx->hHash)) {
+        CryptReleaseContext(ctx->hCryptProv, 0);
+        ctx->hCryptProv = 0;
+        return 0;
+    }
+
+    return 1;
+}
+
+static void MD4_Update(MD4_CTX* ctx, const void* data, unsigned long size)
+{
+    CryptHashData(ctx->hHash, (BYTE*)data, (unsigned int)size, 0);
+}
+
+static void MD4_Final(unsigned char* result, MD4_CTX* ctx)
+{
+    unsigned long length = 0;
+
+    CryptGetHashParam(ctx->hHash, HP_HASHVAL, NULL, &length, 0);
+    if (length == MD4_DIGEST_LENGTH)
+        CryptGetHashParam(ctx->hHash, HP_HASHVAL, result, &length, 0);
+
+    if (ctx->hHash)
+        CryptDestroyHash(ctx->hHash);
+
+    if (ctx->hCryptProv)
+        CryptReleaseContext(ctx->hCryptProv, 0);
+}
+
+#elif (defined(USE_MBEDTLS) && defined(MBEDTLS_MD4_C))
+
+struct md4_ctx {
+    void* data;
+    unsigned long size;
+};
+typedef struct md4_ctx MD4_CTX;
+
+static int MD4_Init(MD4_CTX* ctx)
+{
+    ctx->data = NULL;
+    ctx->size = 0;
+    return 1;
+}
+
+static void MD4_Update(MD4_CTX* ctx, const void* data, unsigned long size)
+{
+    if (!ctx->data) {
+        ctx->data = malloc(size);
+        if (ctx->data) {
+            memcpy(ctx->data, data, size);
+            ctx->size = size;
+        }
+    }
+}
+
+static void MD4_Final(unsigned char* result, MD4_CTX* ctx)
+{
+    if (ctx->data) {
+#if !defined(HAS_MBEDTLS_RESULT_CODE_BASED_FUNCTIONS)
+        mbedtls_md4(ctx->data, ctx->size, result);
+#else
+        (void)mbedtls_md4_ret(ctx->data, ctx->size, result);
+#endif
+
+        Curl_safefree(ctx->data);
+        ctx->size = 0;
+    }
+}
+
+#else
+/* When no other crypto library is available, or the crypto library doesn't
+ * support MD4, we use this code segment this implementation of it
+ *
  * This is an OpenSSL-compatible implementation of the RSA Data Security, Inc.
  * MD4 Message-Digest Algorithm (RFC 1320).
  *
  * Homepage:
- http://openwall.info/wiki/people/solar/software/public-domain-source-code/md4
+ https://openwall.info/wiki/people/solar/software/public-domain-source-code/md4
  *
  * Author:
  * Alexander Peslyak, better known as Solar Designer <solar at openwall.com>
@@ -35,30 +250,18 @@
  * compile-time configuration.
  */
 
-#include "curl_setup.h"
-
-/* The NSS, OS/400 and sometimes mbed TLS crypto libraries do not provide the
- * MD4 hash algorithm, so we have a local implementation of it */
-#if defined(USE_NSS) || defined(USE_OS400CRYPTO) || (defined(USE_MBEDTLS) && !defined(MBEDTLS_MD4_C))
-
-#include "curl_md4.h"
-#include "warnless.h"
-
-#ifndef HAVE_OPENSSL
-
-#include <string.h>
-
 /* Any 32-bit or wider unsigned integer data type will do */
 typedef unsigned int MD4_u32plus;
 
-typedef struct {
+struct md4_ctx {
     MD4_u32plus lo, hi;
     MD4_u32plus a, b, c, d;
     unsigned char buffer[64];
     MD4_u32plus block[16];
-} MD4_CTX;
+};
+typedef struct md4_ctx MD4_CTX;
 
-static void MD4_Init(MD4_CTX* ctx);
+static int MD4_Init(MD4_CTX* ctx);
 static void MD4_Update(MD4_CTX* ctx, const void* data, unsigned long size);
 static void MD4_Final(unsigned char* result, MD4_CTX* ctx);
 
@@ -104,7 +307,6 @@ static const void* body(MD4_CTX* ctx, const void* data, unsigned long size)
 {
     const unsigned char* ptr;
     MD4_u32plus a, b, c, d;
-    MD4_u32plus saved_a, saved_b, saved_c, saved_d;
 
     ptr = (const unsigned char*)data;
 
@@ -114,6 +316,8 @@ static const void* body(MD4_CTX* ctx, const void* data, unsigned long size)
     d = ctx->d;
 
     do {
+        MD4_u32plus saved_a, saved_b, saved_c, saved_d;
+
         saved_a = a;
         saved_b = b;
         saved_c = c;
@@ -189,7 +393,7 @@ static const void* body(MD4_CTX* ctx, const void* data, unsigned long size)
     return ptr;
 }
 
-static void MD4_Init(MD4_CTX* ctx)
+static int MD4_Init(MD4_CTX* ctx)
 {
     ctx->a = 0x67452301;
     ctx->b = 0xefcdab89;
@@ -198,12 +402,13 @@ static void MD4_Init(MD4_CTX* ctx)
 
     ctx->lo = 0;
     ctx->hi = 0;
+    return 1;
 }
 
 static void MD4_Update(MD4_CTX* ctx, const void* data, unsigned long size)
 {
     MD4_u32plus saved_lo;
-    unsigned long used, available;
+    unsigned long used;
 
     saved_lo = ctx->lo;
     ctx->lo = (saved_lo + size) & 0x1fffffff;
@@ -214,7 +419,7 @@ static void MD4_Update(MD4_CTX* ctx, const void* data, unsigned long size)
     used = saved_lo & 0x3f;
 
     if (used) {
-        available = 64 - used;
+        unsigned long available = 64 - used;
 
         if (size < available) {
             memcpy(&ctx->buffer[used], data, size);
@@ -286,14 +491,22 @@ static void MD4_Final(unsigned char* result, MD4_CTX* ctx)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-#endif
+#endif /* CRYPTO LIBS */
 
-void Curl_md4it(unsigned char* output, const unsigned char* input, size_t len)
+CURLcode Curl_md4it(unsigned char* output, const unsigned char* input, const size_t len)
 {
     MD4_CTX ctx;
+
+#ifdef VOID_MD4_INIT
     MD4_Init(&ctx);
+#else
+    if (!MD4_Init(&ctx))
+        return CURLE_FAILED_INIT;
+#endif
+
     MD4_Update(&ctx, input, curlx_uztoui(len));
     MD4_Final(output, &ctx);
+    return CURLE_OK;
 }
-#endif /* defined(USE_NSS) || defined(USE_OS400CRYPTO) ||
-    (defined(USE_MBEDTLS) && !defined(MBEDTLS_MD4_C)) */
+
+#endif /* USE_CURL_NTLM_CORE */
