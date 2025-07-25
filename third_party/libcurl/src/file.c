@@ -75,11 +75,117 @@
 #define AMIGA_FILESYSTEM 1
 #endif
 
-#ifdef OPEN_NEEDS_ARG3
-#define open_readonly(p, f) open((p), (f), (0))
+void* (__cdecl* userOpenFile)(const char* _Filename) = 0;
+int(__cdecl* userCloseFile)(void* userFileHandle) = 0;
+size_t(__cdecl* userFileSize)(void* userFileHandle) = 0;
+int(__cdecl* userReadFile)(void* userFileHandle, void* buf, size_t count) = 0;
+int(__cdecl* userSeekFile)(void* userFileHandle, size_t _Offset, int origin) = 0;
+bool(__cdecl* userExistsFile)(const char* _Filename) = 0;
+
+void curl_set_file_system(
+    void* (__cdecl* lpOpenFile)(const char* _Filename),
+    int(__cdecl* lpCloseFile)(void* userFileHandle),
+    size_t(__cdecl* lpFileSize)(void* userFileHandle),
+    int(__cdecl* lpReadFile)(void* userFileHandle, void* buf, size_t count),
+    int(__cdecl* lpSeekFile)(void* userFileHandle, size_t _Offset, int origin),
+    bool(__cdecl* lpExistsFile)(const char* _Filename)
+    )
+{
+    userExistsFile = lpExistsFile;
+    userOpenFile = lpOpenFile;
+    userCloseFile = lpCloseFile;
+    userReadFile = lpReadFile;
+    userSeekFile = lpSeekFile;
+    userFileSize = lpFileSize;
+}
+
+int fstat_hook(int file_handle, struct_stat* stat_info)
+{
+    if (userFileSize) {
+        stat_info->st_size = userFileSize((void*)file_handle);
+        return stat_info->st_size >= 0 ? 0 : -1;
+    }
+    return fstat(file_handle, stat_info);
+}
+
+#ifdef _MSC_VER
+WCHAR* utf8_to_wide_char(const char* inStr)
+{
+    int cbMultiByte = 0;
+    DWORD dwMinSize = 0;
+    WCHAR* outStr = 0;
+
+    FILE* fp = 0;
+
+    cbMultiByte = strlen(inStr);
+    if (0 == cbMultiByte)
+        return 0;
+
+    dwMinSize = MultiByteToWideChar(CP_UTF8, 0, inStr, cbMultiByte, NULL, 0);
+    if (0 == dwMinSize)
+        return 0;
+
+    outStr = (WCHAR*)malloc((dwMinSize + 1) * 2);
+    memset(outStr, 0, (dwMinSize + 1) * 2);
+
+    // Convert headers from ASCII to Unicode.
+    MultiByteToWideChar(CP_UTF8, 0, inStr, cbMultiByte, outStr, dwMinSize);
+
+    return outStr;
+}
+#endif // _MSC_VER
+
+FILE* fopen_wrap(/*_In_z_*/ const char* _Filename, /*_In_*/ const char* _OpenFlag)
+{
+    FILE* fp = 0;
+
+#ifdef _MSC_VER
+    WCHAR* filename_w = 0;
+    WCHAR* openFlag_w = 0;
+    filename_w = utf8_to_wide_char(_Filename);
+    openFlag_w = utf8_to_wide_char(_OpenFlag);
+
+    fp = _wfopen(filename_w, openFlag_w);
+
+    free(filename_w);
+    free(openFlag_w);
+
+    if (fp)
+        return fp;
+#endif // _MSC_VER
+    fp = fopen(_Filename, _OpenFlag);
+    return fp;
+}
+
+// #ifdef OPEN_NEEDS_ARG3
+// #define open_readonly(p, f) open((p), (f), (0))
+// #else
+// #define open_readonly(p, f) open((p), (f))
+// #endif
+int open_readonly(const char* filename, int flag)
+{
+#ifdef _MSC_VER
+    wchar_t* filename_w = 0;
+
+    int fp = -1;
+
+    if (userOpenFile)
+        return (int)userOpenFile(filename);
+
+    filename_w = utf8_to_wide_char(filename);
+    fp = _wopen(filename_w, flag);
+
+    free(filename_w);
+
+    if (-1 != fp)
+        return fp;
+
+    fp = _open(filename, flag);
 #else
-#define open_readonly(p, f) open((p), (f))
+    int fp = open(filename, flag);
 #endif
+    return fp;
+}
 
 /*
  * Forward declarations.
