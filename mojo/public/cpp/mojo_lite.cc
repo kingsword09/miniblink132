@@ -3004,6 +3004,13 @@ bool mojo::internal::RemoteImplBase::is_bound() const
     return handle_.is_valid();
 }
 
+bool mojo::internal::RemoteImplBase::is_valid() const
+{
+    if (!is_bound())
+        return false;
+    return !!TryGetInstance();
+}
+
 mojo::MessagePipeHandle mojo::internal::RemoteImplBase::handle() const
 {
     return handle_.get();
@@ -3151,7 +3158,7 @@ void* mojo::internal::RemoteImplBase::GetInstance()
     return cache_interface_ptr_;
 }
 
-void* mojo::internal::RemoteImplBase::TryGetInstance()
+void* mojo::internal::RemoteImplBase::TryGetInstance() const
 {
     MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
 
