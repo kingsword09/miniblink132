@@ -284,13 +284,13 @@
         }
 
         const lstatSync = fs.lstatSync;
-        fs.lstatSync = function (p) {
+        fs.lstatSync = function (p, options) {
             const paths = splitPath(p);
             const isAsar = paths[0];
             const asarPath = paths[1];
             const filePath = paths[2];
             if (!isAsar) {
-                return lstatSync(p);
+                return lstatSync(p, options);
             }
             const archive = getOrCreateArchive(asarPath);
             if (!archive) {
