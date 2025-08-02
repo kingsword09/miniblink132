@@ -108,6 +108,8 @@ void App::init(v8::Local<v8::Object> target, v8::Isolate* isolate)
     builder.SetMethod("getName", &App::getNameApi);
     builder.SetMethod("setName", &App::setNameApi);
     builder.SetMethod("isReady", &App::isReadyApi);
+    builder.SetProperty("isPackaged", &App::isPackagedApi);
+    builder.SetMethod("_setAppPath", &App::_setAppPathApi);
     builder.SetMethod("_setIsReady", &App::_setIsReadyApi);
     builder.SetMethod("isOnline", &App::isOnlineApi);
     builder.SetMethod("addRecentDocument", &App::addRecentDocumentApi);
@@ -192,6 +194,22 @@ bool App::isReadyApi() const
 void App::_setIsReadyApi()
 {
     m_isReady = true;
+}
+
+bool App::isPackagedApi()
+{
+    if (-1 == m_isPackaged) {
+        std::string appPath = m_appPath;
+        std::transform(appPath.begin(), appPath.end(), appPath.begin(), [](unsigned char c) { return std::tolower(c); });
+        m_isPackaged = (appPath.find(".asar") != std::string::npos) ? 1 : 0;
+    }
+    return m_isPackaged == 1;
+}
+
+void App::_setAppPathApi(const std::string& path)
+{
+    content::printCallstack();
+    m_appPath = path;
 }
 
 bool App::isOnlineApi()
