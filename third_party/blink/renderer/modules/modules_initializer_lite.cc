@@ -21,6 +21,7 @@
 #include "third_party/blink/public/platform/web_string.h"
 #include "third_party/blink/public/web/web_local_frame_client.h"
 #include "third_party/blink/public/web/web_view_client.h"
+#include "third_party/blink/public/mojom/blob/data_element.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/modules/v8/module_bindings_initializer.h"
 #include "third_party/blink/renderer/core/css/background_color_paint_image_generator.h"
 #include "third_party/blink/renderer/core/css/clip_path_paint_image_generator.h"
@@ -661,22 +662,6 @@ bool GetFileSystemUrlSize(const String& path, int64_t* file_size)
     return false;
 }
 
-// static std::unique_ptr<blink::BlobData> CreateBlobDataForFileSystemURL(const blink::KURL& file_system_url, absl::optional<::base::Time> expected_modification_time)
-// {
-//     String path = file_system_url.GetString();
-//     std::unique_ptr<BlobData> blob_data;
-//     int64_t file_size = 0;
-//     if (GetFileSystemUrlSize(path, &file_size)) {
-//         blob_data = base::WrapUnique(new BlobData(BlobData::FileCompositionStatus::kNoUnknownSizeFiles));
-//         blob_data->AppendFile(path, 0, file_size, expected_modification_time);
-//     } else
-//         blob_data = BlobData::CreateForFileWithUnknownSize(path, expected_modification_time);
-// 
-//     blob_data->SetContentType(GetContentTypeFromFileName(path, File::kWellKnownContentTypes));
-//     //blob_data->AppendFileSystemURL(fileSystemURL, 0, metadata.length, metadata.modificationTime / msPerSecond);
-//     return std::move(blob_data);
-// }
-
 class FileSystemManagerStub : public mojom::blink::FileSystemManager {
 public:
 
@@ -871,8 +856,16 @@ public:
     bool RegisterBlob(const WTF::String& content_type, const ::blink::KURL& url, uint64_t length,
         std::optional<::base::Time> expected_modification_time, ::scoped_refptr<::blink::BlobDataHandle>* out_blob) override
     {
-        DebugBreak();
-        return false;
+        String path = url.GetString();
+        std::unique_ptr<BlobData> blob_data;
+        int64_t file_size = 0;
+        if (!GetFileSystemUrlSize(path, &file_size)) {
+            file_size = std::numeric_limits<uint64_t>::max();
+        }
+
+        *out_blob = BlobDataHandle::CreateForFile(nullptr, path, 0, file_size, expected_modification_time, content_type);
+
+        return true;
     }
 
     //using RegisterBlobCallback = base::OnceCallback<void(const ::scoped_refptr<::blink::BlobDataHandle>&)>;
