@@ -15,7 +15,17 @@
     <LocalDebuggerWorkingDirectory>G:\test\exe_test\ConsoleApplication1\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <LocalDebuggerCommand>G:\test\exe_test\ConsoleApplication1\TeAgentEditor.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\test\exe_test\ConsoleApplication1\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommand>G:\test\exe_test\ConsoleApplication1\TeAgentEditor.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\test\exe_test\ConsoleApplication1\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LocalDebuggerCommand>G:\test\exe_test\ConsoleApplication1\TeAgentEditor.exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>G:\test\exe_test\ConsoleApplication1\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
