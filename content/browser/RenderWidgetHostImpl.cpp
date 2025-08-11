@@ -151,7 +151,7 @@ void RenderWidgetHostImpl::bindPopupWidget(::mojo::PendingAssociatedReceiver<::b
     initVisualProperties();
 }
 
-void RenderWidgetHostImpl::initVisualProperties()
+display::Screen* getScreenOrCreate()
 {
     display::Screen* screen = display::Screen::GetScreen();
     if (!screen) {
@@ -163,13 +163,18 @@ void RenderWidgetHostImpl::initVisualProperties()
         display::Screen::SetScreenInstance(screenNew, base::Location::Current());
         screen = display::Screen::GetScreen();
     }
+    return screen;
+}
 
+void RenderWidgetHostImpl::initVisualProperties()
+{
+    display::Screen* screen = getScreenOrCreate();
     std::vector<display::Display> displays = screen->GetAllDisplays();
     for (size_t i = 0; i < displays.size(); ++i) {
         const display::Display& dis = displays[i];
         display::ScreenInfo screenInfo;
-
         display::DisplayUtil::DisplayToScreenInfo(&screenInfo, dis);
+
         m_visualProperties.screen_infos.screen_infos.push_back(screenInfo);
     }
 
