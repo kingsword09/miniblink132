@@ -1,6 +1,9 @@
 
 #include "content/browser/RestrictedCookieManagerImpl.h"
+
+#include "content/browser/MbWebview.h"
 #include "content/common/common.h"
+#include "content/common/LiveIdDetect.h"
 #include "services/network/public/mojom/restricted_cookie_manager.mojom.h"
 #include "mbnet/cookies/WebCookieJarCurlImpl.h"
 #include "mbnet/WebURLLoaderManager.h"
@@ -73,6 +76,22 @@ public:
 private:
 };
 
+RestrictedCookieManagerImpl::RestrictedCookieManagerImpl(int64_t webviewId)
+{
+    m_webviewId = webviewId;
+}
+
+static mbnet::WebCookieJarImpl* getCookieJar(int64_t webviewId)
+{
+    mbnet::WebCookieJarImpl* cookieJar = mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
+
+    MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewId);
+    if (!webview)
+        return cookieJar;
+    cookieJar = webview->getWebCookieJarImpl();
+    return cookieJar;
+}
+
 void RestrictedCookieManagerImpl::GetAllForUrl(const ::blink::KURL& url, const ::net::SiteForCookies& siteForCookies,
     const ::scoped_refptr<const ::blink::SecurityOrigin>& topFrameOrigin, ::net::StorageAccessApiStatus storageAccessApiStatus,
     ::network::mojom::blink::CookieManagerGetOptionsPtr options,
@@ -111,8 +130,7 @@ bool RestrictedCookieManagerImpl::SetCookieFromString(const ::blink::KURL& url, 
     const ::scoped_refptr<const ::blink::SecurityOrigin>& top_frame_origin, ::net::StorageAccessApiStatus storage_access_api_status, 
     const WTF::String& cookie)
 {
-    //printFuncName(__FUNCTION__, true, false);
-    mbnet::WebCookieJarImpl* cookieJar = mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
+    mbnet::WebCookieJarImpl* cookieJar = getCookieJar(m_webviewId);
 
     //     std::string temp = "RestrictedCookieManagerImpl::SetCookieFromString:";
     //     temp += cookie.Utf8().c_str();
@@ -136,8 +154,8 @@ bool RestrictedCookieManagerImpl::GetCookiesString(const ::blink::KURL& url, con
     bool get_version_shared_memory, bool is_ad_tagged, bool force_disable_third_party_cookies, uint64_t* out_version,
     ::base::ReadOnlySharedMemoryRegion* out_version_buffer, WTF::String* out_cookies)
 {
-    mbnet::WebCookieJarImpl* cookieJar = mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
-    std::string result = cookieJar->getCookiesForSession(blink::KURL(), url, /*bool httponly*/ false);
+    mbnet::WebCookieJarImpl* cookieJar = getCookieJar(m_webviewId);
+    std::string result = cookieJar->getCookiesForSession(/*blink::KURL(),*/ url, /*bool httponly*/ false);
     *out_cookies = WTF::String::FromUTF8((const uint8_t*)result.c_str(), result.size());
     return true;
 }
