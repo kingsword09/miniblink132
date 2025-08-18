@@ -112,26 +112,6 @@ CURLM* WebURLLoaderManager::getCurrentThreadCurlMultiHandle() const
     return handle;
 }
 
-static void setCookiePath(CURL* handle, std::string cookieJarPath)
-{
-    if (0 == cookieJarPath.size())
-        return;
-
-    //     std::vector<char> cookieJar;
-    //     WTF::Utf8ToMByte(cookieJarPath.c_str(), cookieJarPath.size(), &cookieJar, CP_ACP);
-    //     if (0 == cookieJar.size())
-    //         return;
-    //
-    //     cookieJar.push_back('\0');
-    //
-    //     curl_easy_setopt(handle, CURLOPT_COOKIEJAR, &cookieJar[0]);
-    //     curl_easy_setopt(handle, CURLOPT_COOKIEFILE, &cookieJar[0]);
-
-    // 统一用UTF8格式了
-    curl_easy_setopt(handle, CURLOPT_COOKIEJAR, cookieJarPath.c_str());
-    curl_easy_setopt(handle, CURLOPT_COOKIEFILE, cookieJarPath.c_str());
-}
-
 static base::Thread* createIoThread(const char* threadName)
 {
     base::Thread* thread = new base::Thread(threadName);
@@ -315,20 +295,8 @@ void WebURLLoaderManager::initCookieSession(const char* cookieJarFullPath)
 {
     // Curl saves both persistent cookies, and session cookies to the cookie file.
     // The session cookies should be deleted before starting a new session.
-
-#if 1
     //初始化共享curl句柄,用于共享cookies和dns等缓存
     m_shareCookieJar = CookieJarMgr::getInst()->createOrGet(cookieJarFullPath);
-#endif
-    CURL* handle = curl_easy_init();
-    curl_easy_setopt(handle, CURLOPT_SHARE, m_shareCookieJar->getCurlShareHandle());
-
-    std::string cookieJarPathString = m_shareCookieJar->getCookieJarFullPath();
-
-    setCookiePath(handle, cookieJarPathString);
-
-    curl_easy_setopt(handle, CURLOPT_COOKIESESSION, 1);
-    curl_easy_cleanup(handle);
 }
 
 CURLSH* WebURLLoaderManager::getCurlShareHandle() const
@@ -2259,12 +2227,14 @@ InitializeHandleInfo* WebURLLoaderManager::preInitializeHandleOnMainThread(WebUR
 
 extern "C" CURLcode curl_ssl_cert_verify(CURL* curl, void* sslctx, void* parm);
 
+void setCookiePath(CURL* handle, std::string cookieJarPath);
+
 static int debugCallback(CURL* handle, curl_infotype type, char* data, size_t size, void* clientp)
 {
-    std::string output(data, size);
-    output.insert(0, "debugCallback:[");
-    output += "]\n";
-    OutputDebugStringA(output.c_str());
+//     std::string output(data, size);
+//     output.insert(0, "debugCallback:[");
+//     output += "]\n";
+//     OutputDebugStringA(output.c_str());
     return 0;
 }
 
@@ -2282,8 +2252,8 @@ void WebURLLoaderManager::initializeHandleOnIoThread(int jobId, InitializeHandle
         // header callback. So just assert here.
         DCHECK(/*error,*/ error == CURLE_OK);
     }
-#ifndef NDEBUG
-    if (getenv("DEBUG_CURL"))
+#if 1 // ndef NDEBUG
+    //if (getenv("DEBUG_CURL"))
         curl_easy_setopt(job->m_handle, CURLOPT_VERBOSE, 1);
 #endif
     curl_easy_setopt(job->m_handle, CURLOPT_TIMEOUT, 60 * 10); // 请求从开始到完结的时间。如果请求不停有数据来，超过这个时间也被认为是超时
@@ -2342,17 +2312,20 @@ void WebURLLoaderManager::initializeHandleOnIoThread(int jobId, InitializeHandle
     //String urlString = job->m_url;
     curl_easy_setopt(job->m_handle, CURLOPT_URL, job->m_url.c_str());
 
-    WTF::RecursiveMutex* mutex = sharedResourceMutex(CURL_LOCK_DATA_COOKIE);
-    WTF::Locker<WTF::RecursiveMutex> locker(*mutex);
+    {
+        // 这里必须对每个job都设置cookie路径，否则curl会认为这个job->m_handle不需要cookie
+        WTF::RecursiveMutex* mutex = sharedResourceMutex(CURL_LOCK_DATA_COOKIE);
+        WTF::Locker<WTF::RecursiveMutex> locker(*mutex);
 
-    std::string cookieJarFullPath;
+        std::string cookieJarFullPath;
 
-    if (job->m_pageNetExtraData) {
-        cookieJarFullPath = job->m_pageNetExtraData->getCookieJarFullPath();
-    } else
-        cookieJarFullPath = m_shareCookieJar->getCookieJarFullPath();
+        if (job->m_pageNetExtraData) {
+            cookieJarFullPath = job->m_pageNetExtraData->getCookieJarFullPath();
+        } else
+            cookieJarFullPath = m_shareCookieJar->getCookieJarFullPath();
 
-    setCookiePath(job->m_handle, cookieJarFullPath);
+        setCookiePath(job->m_handle, cookieJarFullPath);
+    }
 
     if ("GET" == info->method) {
         curl_easy_setopt(job->m_handle, CURLOPT_HTTPGET, TRUE);

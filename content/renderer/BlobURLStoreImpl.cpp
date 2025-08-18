@@ -94,7 +94,7 @@ BlobURLStoreImpl::BlobURLStoreImpl(const ::scoped_refptr<const ::blink::Security
 
 BlobURLStoreImpl::~BlobURLStoreImpl()
 {
-    BlobURLStoreSet::get()->removeBySecurityOriginToken(m_origin->ToTokenForFastCheck().Utf8());
+    BlobURLStoreSet::get()->removeBySecurityOriginToken(m_origin->ToString().Utf8());
 }
 
 bool BlobURLStoreImpl::Register(::mojo::PendingRemote<::blink::mojom::blink::Blob> blob, const ::blink::KURL& url,
@@ -103,7 +103,7 @@ bool BlobURLStoreImpl::Register(::mojo::PendingRemote<::blink::mojom::blink::Blo
 //     std::string urlStr = "BlobURLStoreImpl::Register, url: ";
 //     urlStr += url.GetString().Utf8();
 //     urlStr += ",,,,,";
-//     urlStr += m_origin->ToTokenForFastCheck().Utf8();
+//     urlStr += m_origin->ToString().Utf8();
 //     urlStr += "\n";
 //     OutputDebugStringA(urlStr.c_str());
 
@@ -134,7 +134,7 @@ void BlobURLStoreImpl::Register(::mojo::PendingRemote<::blink::mojom::blink::Blo
     ::blink::mojom::blink::BlobURLStore::RegisterCallback callback)
 {
     DebugBreak();
-    BlobURLStoreSet::get()->addUrlBlob(url.GetString().Utf8(), m_origin->ToTokenForFastCheck().Utf8(), std::move(blob));
+    BlobURLStoreSet::get()->addUrlBlob(url.GetString().Utf8(), m_origin->ToString().Utf8(), std::move(blob));
 }
 
 void BlobURLStoreImpl::Revoke(const ::blink::KURL& url)
