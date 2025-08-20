@@ -67,12 +67,6 @@
     <Filter Include="src\codegen">
       <UniqueIdentifier>{a6d7fbb5-ecf1-41a1-b821-a98a614b37a0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\codegen\ia32">
-      <UniqueIdentifier>{508b9a71-c879-4784-b3ea-72fca234c195}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\codegen\x64">
-      <UniqueIdentifier>{699e37a5-de9d-4489-a525-80d64cc8f002}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\common">
       <UniqueIdentifier>{a24b5d1a-21aa-4e4f-b3ac-d2785aefbefe}</UniqueIdentifier>
     </Filter>
@@ -109,14 +103,14 @@
     <Filter Include="include\cppgc\internal">
       <UniqueIdentifier>{c9058bfb-292a-492e-98c2-4faba5df4682}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\codegen\shared-ia32-x64">
-      <UniqueIdentifier>{75873ee7-f82d-4693-b05f-68ca8492b846}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\json">
       <UniqueIdentifier>{7e11071d-5284-4bf0-99b0-c204d51fe57e}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\base\template-meta-programming">
       <UniqueIdentifier>{7fa2cb2f-8daf-4f4a-8ada-7ff38beeda64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\codegen\arm64">
+      <UniqueIdentifier>{6b8bb667-4f0a-45ee-8d97-fc2c445e3024}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -488,9 +482,6 @@
     </ClInclude>
     <ClInclude Include="..\..\v8\include\libplatform\libplatform-export.h">
       <Filter>include\libplatform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\shared-ia32-x64\macro-assembler-shared-ia32-x64.h">
-      <Filter>src\codegen\shared-ia32-x64</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\compiler\backend\x64\unwinding-info-writer-x64.h">
       <Filter>src\compiler\backend\x64</Filter>
@@ -1133,63 +1124,6 @@
     </ClInclude>
     <ClInclude Include="..\..\v8\src\codegen\unoptimized-compilation-info.h">
       <Filter>src\codegen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\constants-ia32.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\fma-instr.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\interface-descriptors-ia32-inl.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\macro-assembler-ia32.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\register-ia32.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\reglist-ia32.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\sse-instr.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\assembler-ia32.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\ia32\assembler-ia32-inl.h">
-      <Filter>src\codegen\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\sse-instr.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\assembler-x64.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\assembler-x64-inl.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\builtin-jump-table-info-x64.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\constants-x64.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\fma-instr.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\interface-descriptors-x64-inl.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\macro-assembler-x64.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\register-x64.h">
-      <Filter>src\codegen\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\codegen\x64\reglist-x64.h">
-      <Filter>src\codegen\x64</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\common\assert-scope.h">
       <Filter>src\common</Filter>
@@ -1989,6 +1923,42 @@
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\zone-with-name.h">
       <Filter>src\compiler\turboshaft</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\assembler-arm64-inl.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\assembler-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\constants-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\decoder-arm64-inl.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\decoder-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\instructions-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\interface-descriptors-arm64-inl.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\macro-assembler-arm64-inl.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\macro-assembler-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\register-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\reglist-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\codegen\arm64\utils-arm64.h">
+      <Filter>src\codegen\arm64</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\v8\src\base\debug\stack_trace_win.cc">
@@ -2035,9 +2005,6 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\date\dateparser.cc">
       <Filter>src\date</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\shared-ia32-x64\macro-assembler-shared-ia32-x64.cc">
-      <Filter>src\codegen\shared-ia32-x64</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\compiler\backend\x64\instruction-selector-x64.cc">
       <Filter>src\compiler\backend\x64</Filter>
@@ -2557,27 +2524,6 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\codegen\tick-counter.cc">
       <Filter>src\codegen</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\ia32\assembler-ia32.cc">
-      <Filter>src\codegen\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\ia32\cpu-ia32.cc">
-      <Filter>src\codegen\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\ia32\macro-assembler-ia32.cc">
-      <Filter>src\codegen\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\x64\assembler-x64.cc">
-      <Filter>src\codegen\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\x64\builtin-jump-table-info-x64.cc">
-      <Filter>src\codegen\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\x64\cpu-x64.cc">
-      <Filter>src\codegen\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\x64\macro-assembler-x64.cc">
-      <Filter>src\codegen\x64</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\common\assert-scope.cc">
       <Filter>src\common</Filter>
@@ -3139,6 +3085,30 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\codegen\assembler-codegen.cc">
       <Filter>src\codegen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\assembler-arm64.cc">
+      <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\cpu-arm64.cc">
+      <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\decoder-arm64.cc">
+      <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\instructions-arm64-constants.cc">
+      <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\instructions-arm64.cc">
+      <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\macro-assembler-arm64.cc">
+      <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\register-arm64.cc">
+      <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\arm64\utils-arm64.cc">
+      <Filter>src\codegen\arm64</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

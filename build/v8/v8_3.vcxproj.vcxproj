@@ -200,7 +200,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;SUPPORT_XP_CODE;_GLIBCXX_USE_CXX11_ABI=1;NODE_OPENSSL_CONF_NAME=nodejs_conf;NODE_OPENSSL_HAS_QUIC;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;BUILDING_V8_SHARED=1;BUILDING_UV_SHARED=1;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;OPENSSL_NO_ASM;V8_TARGET_ARCH_X64;NOMINMAX;_WIN32_WINNT=0x0602;V8_STATIC_ROOTS;V8_ENABLE_WASM_SIMD256_REVEC;V8_HOST_ARCH_X64;V8_TARGET_OS_WIN;V8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=64;V8_INTL_SUPPORT;V8_USE_EXTERNAL_STARTUP_DATA;V8_ATOMIC_OBJECT_FIELD_WRITES;V8_ENABLE_LAZY_SOURCE_POSITIONS;V8_SHARED_RO_HEAP;V8_ENABLE_SPARKPLUG;V8_ENABLE_REGEXP_INTERPRETER_THREADED_DISPATCH;V8_SHORT_BUILTIN_CALLS;V8_EXTERNAL_CODE_SPACE;V8_ENABLE_MAGLEV;V8_ENABLE_CONTINUATION_PRESERVED_EMBEDDER_DATA;V8_ENABLE_SYSTEM_INSTRUMENTATION;V8_ENABLE_ETW_STACK_WALKING;V8_ENABLE_WEBASSEMBLY;V8_ENABLE_JAVASCRIPT_PROMISE_HOOKS;V8_ALLOCATION_FOLDING;V8_ALLOCATION_SITE_TRACKING;V8_ADVANCED_BIGINT_ALGORITHMS;V8_USE_ZLIB;V8_COMPRESS_POINTERS;V8_COMPRESS_POINTERS_IN_SHARED_CAGE;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_DEPRECATION_WARNINGS;V8_PROMISE_INTERNAL_FIELD_COUNT=0;V8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0;V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0;V8_ENABLE_BLACK_ALLOCATED_PAGES;V8_ENABLE_EXTENSIBLE_RO_SNAPSHOT;V8_ENABLE_BUILTIN_JUMP_TABLE_SWITCH;V8_ENABLE_TURBOFAN;V8_WIN64_UNWINDING_INFO;CPPGC_CAGED_HEAP;CPPGC_YOUNG_GENERATION;CPPGC_POINTER_COMPRESSION;CPPGC_SLIM_WRITE_BARRIER;CPPGC_ENABLE_LARGER_CAGE;V8_HAVE_TARGET_OS;ENABLE_HANDLE_ZAPPING;ICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_SHARED;UCONFIG_NO_SERVICE=1;U_ENABLE_DYLOAD=0;U_STATIC_IMPLEMENTATION=1;U_HAVE_STD_STRING=1;UCONFIG_NO_BREAK_ITERATION=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;SUPPORT_XP_CODE;_GLIBCXX_USE_CXX11_ABI=1;NODE_OPENSSL_CONF_NAME=nodejs_conf;NODE_OPENSSL_HAS_QUIC;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;BUILDING_V8_SHARED=1;BUILDING_UV_SHARED=1;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;V8_TARGET_ARCH_ARM64;NOMINMAX;_WIN32_WINNT=0x0602;V8_STATIC_ROOTS;V8_ENABLE_WASM_SIMD256_REVEC;V8_TARGET_OS_WIN;V8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=64;V8_INTL_SUPPORT;V8_USE_EXTERNAL_STARTUP_DATA;V8_ATOMIC_OBJECT_FIELD_WRITES;V8_ENABLE_LAZY_SOURCE_POSITIONS;V8_SHARED_RO_HEAP;V8_ENABLE_SPARKPLUG;V8_ENABLE_REGEXP_INTERPRETER_THREADED_DISPATCH;V8_SHORT_BUILTIN_CALLS;V8_EXTERNAL_CODE_SPACE;V8_ENABLE_MAGLEV;V8_ENABLE_CONTINUATION_PRESERVED_EMBEDDER_DATA;V8_ENABLE_SYSTEM_INSTRUMENTATION;V8_ENABLE_ETW_STACK_WALKING;V8_ENABLE_WEBASSEMBLY;V8_ENABLE_JAVASCRIPT_PROMISE_HOOKS;V8_ALLOCATION_FOLDING;V8_ALLOCATION_SITE_TRACKING;V8_ADVANCED_BIGINT_ALGORITHMS;V8_USE_ZLIB;V8_COMPRESS_POINTERS;V8_COMPRESS_POINTERS_IN_SHARED_CAGE;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_DEPRECATION_WARNINGS;V8_PROMISE_INTERNAL_FIELD_COUNT=0;V8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0;V8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0;V8_ENABLE_BLACK_ALLOCATED_PAGES;V8_ENABLE_EXTENSIBLE_RO_SNAPSHOT;V8_ENABLE_BUILTIN_JUMP_TABLE_SWITCH;V8_ENABLE_TURBOFAN;V8_WIN64_UNWINDING_INFO;CPPGC_CAGED_HEAP;CPPGC_YOUNG_GENERATION;CPPGC_POINTER_COMPRESSION;CPPGC_SLIM_WRITE_BARRIER;CPPGC_ENABLE_LARGER_CAGE;V8_HAVE_TARGET_OS;ENABLE_HANDLE_ZAPPING;ICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_SHARED;UCONFIG_NO_SERVICE=1;U_ENABLE_DYLOAD=0;U_STATIC_IMPLEMENTATION=1;U_HAVE_STD_STRING=1;UCONFIG_NO_BREAK_ITERATION=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -554,6 +554,18 @@
     <ClInclude Include="..\..\v8\src\builtins\profile-data-reader.h" />
     <ClInclude Include="..\..\v8\src\builtins\torque-csa-header-includes.h" />
     <ClInclude Include="..\..\v8\src\codegen\aligned-slot-allocator.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\assembler-arm64-inl.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\assembler-arm64.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\constants-arm64.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\decoder-arm64-inl.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\decoder-arm64.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\instructions-arm64.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\interface-descriptors-arm64-inl.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\macro-assembler-arm64-inl.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\macro-assembler-arm64.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\register-arm64.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\reglist-arm64.h" />
+    <ClInclude Include="..\..\v8\src\codegen\arm64\utils-arm64.h" />
     <ClInclude Include="..\..\v8\src\codegen\assembler-arch.h" />
     <ClInclude Include="..\..\v8\src\codegen\assembler-inl.h" />
     <ClInclude Include="..\..\v8\src\codegen\assembler.h" />
@@ -578,15 +590,6 @@
     <ClInclude Include="..\..\v8\src\codegen\flush-instruction-cache.h" />
     <ClInclude Include="..\..\v8\src\codegen\handler-table.h" />
     <ClInclude Include="..\..\v8\src\codegen\heap-object-list.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\assembler-ia32-inl.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\assembler-ia32.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\constants-ia32.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\fma-instr.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\interface-descriptors-ia32-inl.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\macro-assembler-ia32.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\register-ia32.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\reglist-ia32.h" />
-    <ClInclude Include="..\..\v8\src\codegen\ia32\sse-instr.h" />
     <ClInclude Include="..\..\v8\src\codegen\interface-descriptors-inl.h" />
     <ClInclude Include="..\..\v8\src\codegen\interface-descriptors.h" />
     <ClInclude Include="..\..\v8\src\codegen\label.h" />
@@ -609,7 +612,6 @@
     <ClInclude Include="..\..\v8\src\codegen\safepoint-table-base.h" />
     <ClInclude Include="..\..\v8\src\codegen\safepoint-table.h" />
     <ClInclude Include="..\..\v8\src\codegen\script-details.h" />
-    <ClInclude Include="..\..\v8\src\codegen\shared-ia32-x64\macro-assembler-shared-ia32-x64.h" />
     <ClInclude Include="..\..\v8\src\codegen\signature.h" />
     <ClInclude Include="..\..\v8\src\codegen\source-position-table.h" />
     <ClInclude Include="..\..\v8\src\codegen\source-position.h" />
@@ -617,16 +619,6 @@
     <ClInclude Include="..\..\v8\src\codegen\tnode.h" />
     <ClInclude Include="..\..\v8\src\codegen\turboshaft-builtins-assembler-inl.h" />
     <ClInclude Include="..\..\v8\src\codegen\unoptimized-compilation-info.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\assembler-x64-inl.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\assembler-x64.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\builtin-jump-table-info-x64.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\constants-x64.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\fma-instr.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\interface-descriptors-x64-inl.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\macro-assembler-x64.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\register-x64.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\reglist-x64.h" />
-    <ClInclude Include="..\..\v8\src\codegen\x64\sse-instr.h" />
     <ClInclude Include="..\..\v8\src\common\assert-scope.h" />
     <ClInclude Include="..\..\v8\src\common\checks.h" />
     <ClInclude Include="..\..\v8\src\common\code-memory-access-inl.h" />
@@ -1054,6 +1046,14 @@
     <ClCompile Include="..\..\v8\src\builtins\setup-builtins-internal.cc" />
     <ClCompile Include="..\..\v8\src\builtins\x64\builtins-x64.cc" />
     <ClCompile Include="..\..\v8\src\codegen\aligned-slot-allocator.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\assembler-arm64.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\cpu-arm64.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\decoder-arm64.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\instructions-arm64-constants.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\instructions-arm64.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\macro-assembler-arm64.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\register-arm64.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\arm64\utils-arm64.cc" />
     <ClCompile Include="..\..\v8\src\codegen\assembler-codegen.cc" />
     <ClCompile Include="..\..\v8\src\codegen\bailout-reason.cc" />
     <ClCompile Include="..\..\v8\src\codegen\code-comments.cc" />
@@ -1069,9 +1069,6 @@
     <ClCompile Include="..\..\v8\src\codegen\external-reference.cc" />
     <ClCompile Include="..\..\v8\src\codegen\flush-instruction-cache.cc" />
     <ClCompile Include="..\..\v8\src\codegen\handler-table.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\ia32\assembler-ia32.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\ia32\cpu-ia32.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\ia32\macro-assembler-ia32.cc" />
     <ClCompile Include="..\..\v8\src\codegen\interface-descriptors.cc" />
     <ClCompile Include="..\..\v8\src\codegen\machine-type.cc" />
     <ClCompile Include="..\..\v8\src\codegen\macro-assembler-base.cc" />
@@ -1081,16 +1078,11 @@
     <ClCompile Include="..\..\v8\src\codegen\register-configuration.cc" />
     <ClCompile Include="..\..\v8\src\codegen\reloc-info.cc" />
     <ClCompile Include="..\..\v8\src\codegen\safepoint-table.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\shared-ia32-x64\macro-assembler-shared-ia32-x64.cc" />
     <ClCompile Include="..\..\v8\src\codegen\source-position-table.cc" />
     <ClCompile Include="..\..\v8\src\codegen\source-position.cc" />
     <ClCompile Include="..\..\v8\src\codegen\tick-counter.cc" />
     <ClCompile Include="..\..\v8\src\codegen\tnode.cc" />
     <ClCompile Include="..\..\v8\src\codegen\unoptimized-compilation-info.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\x64\assembler-x64.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\x64\builtin-jump-table-info-x64.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\x64\cpu-x64.cc" />
-    <ClCompile Include="..\..\v8\src\codegen\x64\macro-assembler-x64.cc" />
     <ClCompile Include="..\..\v8\src\common\assert-scope.cc" />
     <ClCompile Include="..\..\v8\src\common\code-memory-access.cc" />
     <ClCompile Include="..\..\v8\src\common\ptr-compr.cc" />
