@@ -88,7 +88,7 @@ static void NTAPI on_callback(PVOID h, DWORD reason, PVOID reserved)
 // #endif  // _WIN64
 // }  // extern "C"
 
-#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__)
+#if defined(__i386__) || defined(_M_IX86)
 thread_local int* g_thread_local_stub = nullptr;
 int g_unuse = 0;
 
@@ -337,6 +337,13 @@ NOINLINE static void CrashOnProcessDetach()
     *static_cast<volatile int*>(nullptr) = 0x356;
 }
 
+int g_is_xp = -1;
+void CheckIsXp()
+{
+    if (-1 == g_is_xp)
+        g_is_xp = 0;
+}
+
 // Make DllMain call the listed callbacks.  This way any third parties that are
 // linked in will also be called.
 BOOL WINAPI DllMain(PVOID h, DWORD reason, PVOID reserved)
@@ -347,7 +354,7 @@ BOOL WINAPI DllMain(PVOID h, DWORD reason, PVOID reserved)
     if (DLL_PROCESS_ATTACH == reason) {
         g_hModule = (HMODULE)h;
         CheckIsXp();
-#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__)
+#if defined(__i386__) || defined(_M_IX86)
         g_dll_base = h;
         
         if (FixXp())

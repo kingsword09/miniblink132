@@ -1704,12 +1704,6 @@
     <ClInclude Include="..\..\skia\ext\convolver_mips_dspr2.h">
       <Filter>src\skia\ext</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\skia\ext\convolver_neon.h">
-      <Filter>src\skia\ext</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\skia\ext\convolver_SSE2.h">
-      <Filter>src\skia\ext</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\skia\ext\event_tracer_impl.h">
       <Filter>src\skia\ext</Filter>
     </ClInclude>
@@ -6989,9 +6983,6 @@
     <ClCompile Include="..\..\components\shared_highlighting\core\common\fragment_directives_constants.cc">
       <Filter>src\components\shared_highlighting\core\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\skia\ext\convolver_SSE2.cc">
-      <Filter>src\skia\ext</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\skia\ext\event_tracer_impl.cc">
       <Filter>src\skia\ext</Filter>
     </ClCompile>
@@ -9958,6 +9949,9 @@
     </ClCompile>
     <ClCompile Include="..\..\ui\base\clipboard\scoped_clipboard_writer.cc">
       <Filter>src\ui\base\clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\skia\ext\convolver_neon.cc">
+      <Filter>src\skia\ext</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

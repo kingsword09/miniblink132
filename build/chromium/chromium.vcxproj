@@ -1884,8 +1884,6 @@
     <ClInclude Include="..\..\skia\ext\cicp.h" />
     <ClInclude Include="..\..\skia\ext\convolver.h" />
     <ClInclude Include="..\..\skia\ext\convolver_mips_dspr2.h" />
-    <ClInclude Include="..\..\skia\ext\convolver_neon.h" />
-    <ClInclude Include="..\..\skia\ext\convolver_SSE2.h" />
     <ClInclude Include="..\..\skia\ext\event_tracer_impl.h" />
     <ClInclude Include="..\..\skia\ext\image_operations.h" />
     <ClInclude Include="..\..\skia\ext\legacy_display_globals.h" />
@@ -3195,7 +3193,7 @@
     <ClCompile Include="..\..\services\network\public\cpp\web_sandbox_flags.cc" />
     <ClCompile Include="..\..\skia\ext\cicp.cc" />
     <ClCompile Include="..\..\skia\ext\convolver.cc" />
-    <ClCompile Include="..\..\skia\ext\convolver_SSE2.cc" />
+    <ClCompile Include="..\..\skia\ext\convolver_neon.cc" />
     <ClCompile Include="..\..\skia\ext\event_tracer_impl.cc" />
     <ClCompile Include="..\..\skia\ext\font_utils.cc" />
     <ClCompile Include="..\..\skia\ext\image_operations.cc" />
