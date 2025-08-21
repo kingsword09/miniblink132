@@ -182,9 +182,6 @@
     <Filter Include="dav1d\libdav1d\src">
       <UniqueIdentifier>{86de9edd-6c39-46e8-a411-15cd85a5b878}</UniqueIdentifier>
     </Filter>
-    <Filter Include="dav1d\libdav1d\src\x86">
-      <UniqueIdentifier>{cdc75138-2453-45f2-9130-eca1dfb314a1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="dav1d\libdav1d\src\win32">
       <UniqueIdentifier>{02a25fde-eee6-40fe-a13d-4bc53f8e6d1e}</UniqueIdentifier>
     </Filter>
@@ -193,9 +190,6 @@
     </Filter>
     <Filter Include="dav1d\config\win">
       <UniqueIdentifier>{11f7ed5d-0b05-486a-afe2-99ffac9bfad3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="dav1d\config\win\x86">
-      <UniqueIdentifier>{a6484f14-1008-4740-86b1-9fdf6a9e36b3}</UniqueIdentifier>
     </Filter>
     <Filter Include="dav1d\libdav1d\src\bitdepth16">
       <UniqueIdentifier>{81a1b429-0c76-4bce-8ee3-606b54b18843}</UniqueIdentifier>
@@ -223,6 +217,15 @@
     </Filter>
     <Filter Include="libcurl\src\vssh">
       <UniqueIdentifier>{b27f813a-183c-4e24-9858-7dc04948b554}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dav1d\config\win\arm64">
+      <UniqueIdentifier>{0c6cdff3-8933-4443-8663-9b9903f7b08d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dav1d\libdav1d\src\arm">
+      <UniqueIdentifier>{2240bb80-5a85-4314-bbd4-4356a6bb298b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dav1d\libdav1d\src\arm\64">
+      <UniqueIdentifier>{d4798ded-03ec-418e-af40-b15e62603612}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1279,15 +1282,6 @@
     <ClInclude Include="..\..\third_party\libcurl\include\curl\typecheck-gcc.h">
       <Filter>libcurl\include\curl</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\third_party\dav1d\config\win\x86\config.h">
-      <Filter>dav1d\config\win\x86</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\x86\cpu.h">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\x86\msac.h">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\itx.h">
       <Filter>dav1d\libdav1d\src</Filter>
     </ClInclude>
@@ -1908,6 +1902,18 @@
     </ClInclude>
     <ClInclude Include="..\..\third_party\libcurl\src\vtls\hostcheck.h">
       <Filter>libcurl\src\vtls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\third_party\dav1d\config\win\arm64\config.h">
+      <Filter>dav1d\config\win\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\arm\asm-offsets.h">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\arm\cpu.h">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\arm\msac.h">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3147,36 +3153,6 @@
     <ClCompile Include="..\..\third_party\libyuv\source\scale_gcc.cc">
       <Filter>libyuv\source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\cpu_x86_dav1d.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_init_tmpl.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_init_tmpl.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_init_tmpl.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_init_tmpl.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_init_tmpl.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_init_tmpl.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\msac_init.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\refmvs_init.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_init_tmpl.c">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\itx_1d.c">
       <Filter>dav1d\libdav1d\src</Filter>
     </ClCompile>
@@ -3285,34 +3261,19 @@
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\filmgrain_tmpl_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\ipred_init_tmpl_16.c">
-      <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\ipred_prepare_tmpl_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\ipred_tmpl_16_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\itx_init_tmpl_16.c">
-      <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\lf_apply_tmpl_16.c">
-      <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\loopfilter_init_tmpl_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\loopfilter_tmpl_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\looprestoration_init_tmpl_16.c">
-      <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\looprestoration_tmpl_16.c">
-      <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\mc_init_tmpl_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\mc_tmpl_16.c">
@@ -3330,16 +3291,10 @@
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\fg_apply_tmpl_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\filmgrain_init_tmpl_16.c">
-      <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\itx_tmpl_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\lr_apply_tmpl_16.c">
-      <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\cdef_init_tmpl_x86_16.c">
       <Filter>dav1d\libdav1d\src\bitdepth16</Filter>
     </ClCompile>
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\lib_dav1d.c">
@@ -3849,6 +3804,33 @@
     <ClCompile Include="..\..\third_party\libcurl\src\curl_dict.c">
       <Filter>libcurl\src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\cdef_init_tmpl.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\cpu.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\filmgrain_init_tmpl.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\ipred_init_tmpl.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\itx_init_tmpl.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\loopfilter_init_tmpl.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\looprestoration_init_tmpl.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\mc_init_tmpl.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\refmvs_init.c">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\third_party\libxslt\src\libxslt\libxslt.3">
@@ -3874,131 +3856,68 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef16_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef16_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cpuid.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain16_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain16_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain16_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred16_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred16_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred16_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx16_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx16_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter16_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter16_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration16_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration16_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration16_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc16_avx2.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc16_avx512.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc16_sse.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\msac.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\refmvs.asm">
-      <Filter>dav1d\libdav1d\src\x86</Filter>
-    </NASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\asm.S">
+      <Filter>dav1d\libdav1d\src\arm</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef_tmpl.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef16.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\filmgrain.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\filmgrain16.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\ipred.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\ipred16.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\itx.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\itx16.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\loopfilter.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\loopfilter16.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration_common.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration_tmpl.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration16.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\mc.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\mc16.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\msac.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\refmvs.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\util.S">
+      <Filter>dav1d\libdav1d\src\arm\64</Filter>
+    </CLANGASM>
   </ItemGroup>
 </Project>

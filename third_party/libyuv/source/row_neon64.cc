@@ -1931,7 +1931,7 @@ void ARGBToUVRow_NEON(const uint8_t* src_argb, int src_stride_argb, uint8_t* dst
                                    "urshr       v2.8h, v2.8h, #1              \n"
 
                                    "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_argb), // %0
@@ -1970,7 +1970,7 @@ void ARGBToUVJRow_NEON(const uint8_t* src_argb, int src_stride_argb, uint8_t* ds
                  "urshr       v2.8h, v2.8h, #1              \n"
 
                  "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_argb), // %0
@@ -2008,7 +2008,7 @@ void ABGRToUVJRow_NEON(const uint8_t* src_abgr, int src_stride_abgr, uint8_t* ds
                  "urshr       v2.8h, v2.8h, #1              \n"
 
                  "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v2 .8h, v1 .8h, v0 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v2.8h, v1.8h, v0.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_abgr), // %0
@@ -2046,7 +2046,7 @@ void RGB24ToUVJRow_NEON(const uint8_t* src_rgb24, int src_stride_rgb24, uint8_t*
                  "urshr       v2.8h, v2.8h, #1              \n"
 
                  "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_rgb24), // %0
@@ -2084,7 +2084,7 @@ void RAWToUVJRow_NEON(const uint8_t* src_raw, int src_stride_raw, uint8_t* dst_u
                  "urshr       v2.8h, v2.8h, #1              \n"
 
                  "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v2 .8h, v1 .8h, v0 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v2.8h, v1.8h, v0.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_raw), // %0
@@ -2116,7 +2116,7 @@ void BGRAToUVRow_NEON(const uint8_t* src_bgra, int src_stride_bgra, uint8_t* dst
                                    "urshr       v2.8h, v2.8h, #1              \n"
 
                                    "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_bgra), // %0
@@ -2148,7 +2148,7 @@ void ABGRToUVRow_NEON(const uint8_t* src_abgr, int src_stride_abgr, uint8_t* dst
                                    "urshr       v1.8h, v1.8h, #1              \n"
 
                                    "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v0 .8h, v2 .8h, v1 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v0.8h, v2.8h, v1.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_abgr), // %0
@@ -2180,7 +2180,7 @@ void RGBAToUVRow_NEON(const uint8_t* src_rgba, int src_stride_rgba, uint8_t* dst
                                    "urshr       v2.8h, v2.8h, #1              \n"
 
                                    "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_rgba), // %0
@@ -2212,7 +2212,7 @@ void RGB24ToUVRow_NEON(const uint8_t* src_rgb24, int src_stride_rgb24, uint8_t* 
                                    "urshr       v2.8h, v2.8h, #1              \n"
 
                                    "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_rgb24), // %0
@@ -2244,7 +2244,7 @@ void RAWToUVRow_NEON(const uint8_t* src_raw, int src_stride_raw, uint8_t* dst_u,
                                    "urshr       v0.8h, v0.8h, #1              \n"
 
                                    "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-                 RGBTOUV(v2 .8h, v1 .8h, v0 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+                 RGBTOUV(v2.8h, v1.8h, v0.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                                  "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                                  "b.gt        1b                            \n"
                  : "+r"(src_raw), // %0
@@ -2291,7 +2291,7 @@ void RGB565ToUVRow_NEON(const uint8_t* src_rgb565, int src_stride_rgb565, uint8_
                           "urshr       v2.8h, v18.8h, #1             \n"
 
                           "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-        RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+        RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                         "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                         "b.gt        1b                            \n"
         : "+r"(src_rgb565), // %0
@@ -2338,7 +2338,7 @@ void ARGB1555ToUVRow_NEON(const uint8_t* src_argb1555, int src_stride_argb1555, 
                           "urshr       v2.8h, v18.8h, #1             \n"
 
                           "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-        RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+        RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                         "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                         "b.gt        1b                            \n"
         : "+r"(src_argb1555), // %0
@@ -2386,7 +2386,7 @@ void ARGB4444ToUVRow_NEON(const uint8_t* src_argb4444, int src_stride_argb4444, 
         "urshr       v2.8h, v18.8h, #1             \n"
 
         "subs        %w4, %w4, #16                 \n" // 16 processed per loop.
-        RGBTOUV(v0 .8h, v1 .8h, v2 .8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
+        RGBTOUV(v0.8h, v1.8h, v2.8h) "st1         {v0.8b}, [%2], #8             \n" // store 8 pixels U.
                                         "st1         {v1.8b}, [%3], #8             \n" // store 8 pixels V.
                                         "b.gt        1b                            \n"
         : "+r"(src_argb4444), // %0

@@ -86,7 +86,10 @@
     <ClInclude Include="..\..\third_party\brotli\include\brotli\port.h" />
     <ClInclude Include="..\..\third_party\brotli\include\brotli\shared_dictionary.h" />
     <ClInclude Include="..\..\third_party\brotli\include\brotli\types.h" />
-    <ClInclude Include="..\..\third_party\dav1d\config\win\x86\config.h" />
+    <ClInclude Include="..\..\third_party\dav1d\config\win\arm64\config.h" />
+    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\arm\asm-offsets.h" />
+    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\arm\cpu.h" />
+    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\arm\msac.h" />
     <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\cdef.h" />
     <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\cdef_apply.h" />
     <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\cdf.h" />
@@ -128,8 +131,6 @@
     <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\thread_task.h" />
     <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\warpmv.h" />
     <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\wedge.h" />
-    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\x86\cpu.h" />
-    <ClInclude Include="..\..\third_party\dav1d\libdav1d\src\x86\msac.h" />
     <ClInclude Include="..\..\third_party\iccjpeg\iccjpeg.h" />
     <ClInclude Include="..\..\third_party\libavif\src\include\avif\avif.h" />
     <ClInclude Include="..\..\third_party\libavif\src\include\avif\internal.h" />
@@ -621,24 +622,26 @@
     <ClCompile Include="..\..\third_party\brotli\enc\metablock.c" />
     <ClCompile Include="..\..\third_party\brotli\enc\static_dict.c" />
     <ClCompile Include="..\..\third_party\brotli\enc\utf8_util.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\cdef_init_tmpl.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\cpu.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\filmgrain_init_tmpl.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\ipred_init_tmpl.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\itx_init_tmpl.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\loopfilter_init_tmpl.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\looprestoration_init_tmpl.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\mc_init_tmpl.c" />
+    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\arm\refmvs_init.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\cdef_apply_tmpl_16.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\cdef_init_tmpl_x86_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\cdef_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\fg_apply_tmpl_16.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\filmgrain_init_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\filmgrain_tmpl_16.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\ipred_init_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\ipred_prepare_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\ipred_tmpl_16_16.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\itx_init_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\itx_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\lf_apply_tmpl_16.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\loopfilter_init_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\loopfilter_tmpl_16.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\looprestoration_init_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\looprestoration_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\lr_apply_tmpl_16.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\mc_init_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\mc_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\bitdepth16\recon_tmpl_16.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\cdef_apply_tmpl.c" />
@@ -678,16 +681,6 @@
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\warpmv.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\wedge.c" />
     <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\win32\thread_dav1d.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_init_tmpl.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\cpu_x86_dav1d.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_init_tmpl.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_init_tmpl.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_init_tmpl.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_init_tmpl.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_init_tmpl.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_init_tmpl.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\msac_init.c" />
-    <ClCompile Include="..\..\third_party\dav1d\libdav1d\src\x86\refmvs_init.c" />
     <ClCompile Include="..\..\third_party\iccjpeg\iccjpeg.c" />
     <ClCompile Include="..\..\third_party\libavif\src\src\avif.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -1320,6 +1313,92 @@
     <ClCompile Include="..\..\third_party\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef16.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef_tmpl.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\filmgrain.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\filmgrain16.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\ipred.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\ipred16.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\itx.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\itx16.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\loopfilter.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\loopfilter16.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration16.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration_common.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration_tmpl.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\mc.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\mc16.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\msac.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\refmvs.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\util.S">
+      <FileType>Document</FileType>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
+    <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\asm.S">
+      <FileType>Document</FileType>
+      <Errors Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+      </Errors>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </CLANGASM>
     <None Include="..\..\third_party\dav1d\libdav1d\src\dav1d.rc.in" />
     <None Include="..\..\third_party\dav1d\libdav1d\src\meson.build" />
     <None Include="..\..\third_party\libxslt\src\libxslt\libxslt.3" />
@@ -1327,217 +1406,6 @@
     <None Include="..\..\third_party\libxslt\src\libxslt\Makefile.am" />
     <None Include="..\..\third_party\libxslt\src\libxslt\xsltconfig.h.in" />
     <None Include="..\..\third_party\libyuv\source\test.sh" />
-  </ItemGroup>
-  <ItemGroup>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef16_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef16_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cdef_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\cpuid.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain16_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain16_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain16_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\filmgrain_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred16_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred16_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred16_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\ipred_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx16_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx16_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\itx_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter16_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter16_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\loopfilter_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration16_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration16_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration16_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\looprestoration_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc16_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc16_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc16_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_avx2.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_avx512.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\mc_sse.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\msac.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
-    <NASM Include="..\..\third_party\dav1d\libdav1d\src\x86\refmvs.asm">
-      <FileType>Document</FileType>
-      <IncludePaths Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)../third_party/dav1d/config/win/x86;$(SolutionDir)../third_party/dav1d/dav1d/src;$(SolutionDir)../third_party/dav1d/libdav1d/src;%(IncludePaths)</IncludePaths>
-      <ErrorReportingFormat Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">1</ErrorReportingFormat>
-    </NASM>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -1588,6 +1456,9 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="..\..\..\..\work\clang_asm_props\clangasm.props" />
+  </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -1720,7 +1591,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/sanitizer/inculude;$(SolutionDir)../third_party/brotli/include;$(SolutionDir)../third_party/libyuv/include;$(SolutionDir)../third_party/libxslt/src;$(SolutionDir)../third_party/libjpeg_turbo;$(SolutionDir)../third_party/libavif/src/include;$(SolutionDir)../third_party/zlib;$(SolutionDir)../third_party/libwebp/src;$(SolutionDir)../third_party/libxml;$(SolutionDir)../third_party/libxml/src/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/libcurl/src;$(SolutionDir)../third_party/libcurl/include;$(SolutionDir)../third_party/openssl/;$(SolutionDir)../third_party/openssl/openssl/include;$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/libdav1d/include;$(SolutionDir)../base/allocator/partition_allocator/src;$(SolutionDir)../gen/base/allocator/partition_allocator/src;$(SolutionDir)../gen;$(SolutionDir)../</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/sanitizer/inculude;$(SolutionDir)../third_party/brotli/include;$(SolutionDir)../third_party/libyuv/include;$(SolutionDir)../third_party/libxslt/src;$(SolutionDir)../third_party/libjpeg_turbo;$(SolutionDir)../third_party/libavif/src/include;$(SolutionDir)../third_party/zlib;$(SolutionDir)../third_party/libwebp/src;$(SolutionDir)../third_party/libxml;$(SolutionDir)../third_party/libxml/src/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/libcurl/src;$(SolutionDir)../third_party/libcurl/include;$(SolutionDir)../third_party/openssl/;$(SolutionDir)../third_party/openssl/openssl/include;$(SolutionDir)../third_party/dav1d/config/win/arm64;$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/libdav1d/include;$(SolutionDir)../base/allocator/partition_allocator/src;$(SolutionDir)../gen/base/allocator/partition_allocator/src;$(SolutionDir)../gen;$(SolutionDir)../</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -1803,4 +1674,7 @@
     </NASM>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\..\..\work\clang_asm_props\clangasm.targets" />
+  </ImportGroup>
 </Project>
