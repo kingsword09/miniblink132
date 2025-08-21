@@ -4434,9 +4434,6 @@
     <ClCompile Include="..\..\net\base\proxy_server.cc">
       <Filter>src\net\base</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\content\resources\embedded_win_x86.cc">
-      <Filter>src\content\resources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\mbnet\SingleRequestURLLoader.cpp">
       <Filter>src\mbnet</Filter>
     </ClCompile>
@@ -4473,9 +4470,6 @@
     <ClCompile Include="..\..\net\cookies\cookie_constants.cc">
       <Filter>src\net\cookies</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\content\resources\embedded_win_x64.cc">
-      <Filter>src\content\resources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinWinX64.cpp">
       <Filter>src\content\resources</Filter>
     </ClCompile>
@@ -4484,6 +4478,9 @@
     </ClCompile>
     <ClCompile Include="..\..\net\base\filename_util_icu.cc">
       <Filter>src\net\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\content\resources\embedded_win_arm64.cc">
+      <Filter>src\content\resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

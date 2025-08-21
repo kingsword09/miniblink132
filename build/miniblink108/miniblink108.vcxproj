@@ -116,8 +116,15 @@
     <OutDir>$(SolutionDir)..\out\win_$(Configuration)_$(PlatformName)\</OutDir>
     <IntDir>$(SolutionDir)..\out\tmp\$(ProjectName)\win_$(Configuration)_$(PlatformName)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <OutDir>$(SolutionDir)..\out\win_$(Configuration)_$(PlatformName)\</OutDir>
+    <IntDir>$(SolutionDir)..\out\tmp\$(ProjectName)\win_$(Configuration)_$(PlatformName)\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)..\out\win_$(Configuration)_$(PlatformName)\</OutDir>
+    <IntDir>$(SolutionDir)..\out\tmp\$(ProjectName)\win_$(Configuration)_$(PlatformName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <OutDir>$(SolutionDir)..\out\win_$(Configuration)_$(PlatformName)\</OutDir>
     <IntDir>$(SolutionDir)..\out\tmp\$(ProjectName)\win_$(Configuration)_$(PlatformName)\</IntDir>
   </PropertyGroup>
@@ -1332,8 +1339,7 @@
     <ClCompile Include="..\..\content\renderer\WebDedicatedWorkerHostFactoryClientImpl.cpp" />
     <ClCompile Include="..\..\content\renderer\WebLocalFrameClientImpl.cpp" />
     <ClCompile Include="..\..\content\renderer\WebWorkerFetchContextImpl.cpp" />
-    <ClCompile Include="..\..\content\resources\embedded_win_x64.cc" />
-    <ClCompile Include="..\..\content\resources\embedded_win_x86.cc" />
+    <ClCompile Include="..\..\content\resources\embedded_win_arm64.cc" />
     <ClCompile Include="..\..\content\resources\icudtl.cpp" />
     <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinWinX64.cpp" />
     <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinX86.cpp" />
