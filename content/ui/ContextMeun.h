@@ -19,7 +19,7 @@ namespace content {
 uint32_t g_contextMenuItemMask = kMbMenuSelectedAllId | kMbMenuSelectedTextId | kMbMenuUndoId | kMbMenuCopyImageId | kMbMenuSaveImageId |
 kMbMenuInspectElementAtId | kMbMenuCutId | kMbMenuPasteId;
 
-#define kContextMenuClassName L"MbContextMenu"
+#define kContextMenuClassName L"_ContextMenu_"
 //extern WebPageImpl* g_saveImageingWebPage;
 
 // 本类是个单例，所有webview共用一个菜单

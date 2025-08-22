@@ -82,7 +82,8 @@ static const char* injectScript =
     "    return this;\n"
     "};\n"
     "\n"
-    "window.Audio = __Audio__\n";
+    "window.Audio = __Audio__;\n"
+    "window.MediaStreamTrack = {};\n";
 
 static const char* injectStringWellFormed = "String.prototype.toWellFormed = function() { return __ApiStringToWellFormed__(this); }\n"
                                             "String.prototype.isWellFormed = function() { return __ApiStringIsWellFormed__(this); }\n";

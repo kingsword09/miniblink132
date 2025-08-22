@@ -17,6 +17,7 @@
 #include "content/viz/VizHost.h"
 #include "mbnet/PageNetExtraData.h"
 #include "mbnet/WebURLLoaderManager.h"
+#include "mbnet/cookies/WebCookieJarCurlImpl.h"
 #include "mbvip/core/MbJsValue.h"
 #include "mbvip/core/MbInternalApi.h"
 #include "third_party/blink/renderer/core/loader/document_loader.h"
@@ -267,7 +268,7 @@ void MbWebView::setHostWnd(HWND hWnd)
 
 void MbWebView::createWebWindowImplInUiThread(HWND parent, DWORD style, DWORD styleEx, int x, int y, int width, int height)
 {
-    const WCHAR* szClassName = mbu16("MtMbWebWindow");
+    const WCHAR* szClassName = mbu16("_WebWindow_");
     WNDCLASSEXW wndClass = { 0 };
     static bool isFirstRegister = true;
     if (isFirstRegister) {
@@ -493,12 +494,6 @@ blink::WebView* MbWebView::initializeViewInBlinkThread(blink::WebView* opener, b
     if (m_isTransparent)
         setIsTransparent(m_isTransparent);
     return webWiew;
-}
-
-void MbWebView::setPaintUpdatedCallback(mbPaintUpdatedCallback callback, void* param)
-{
-    getClosure().setPaintUpdatedCallback(callback, param);
-    //m_hasSetPaintUpdatedCallback = true;
 }
 
 void MbWebView::handlePopup(UINT message)
@@ -1613,7 +1608,7 @@ void MbWebView::setShow(int nCmdShow /*, bool isActivate*/)
     ::ShowWindow(m_hWnd, nCmdShow);
 }
 
-static void setWindowTitleImpl(content::MbWebView* webview, int count)
+static void setWindowTitleDalay(content::MbWebView* webview, int count)
 {
     int64_t id = webview->getId();
     base::SequencedTaskRunner::GetCurrentDefault()->PostNonNestableDelayedTask(MB_FROM_HERE,
@@ -1623,9 +1618,13 @@ static void setWindowTitleImpl(content::MbWebView* webview, int count)
                 content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(id);
                 if (!webview || count > 3)
                     return;
-                if (webview->setWindowTitle(webview->getWindowTitle()))
+
+                if (webview->getHostWnd()) {
+                    std::u16string titleW = utf8ToUtf16(webview->getWindowTitle());
+                    ::SetWindowTextW(webview->getHostWnd(), (LPCWSTR)titleW.c_str());
                     return;
-                setWindowTitleImpl(webview, count);
+                }
+                setWindowTitleDalay(webview, count);
             }, id, count),
         base::Microseconds(1000));
 }
@@ -1641,7 +1640,7 @@ bool MbWebView::setWindowTitle(const std::string& title)
     }
 
     int count = 0;
-    setWindowTitleImpl(this, count);
+    setWindowTitleDalay(this, count);
     return false;
 }
 
@@ -1725,6 +1724,24 @@ scoped_refptr<mbnet::PageNetExtraData> MbWebView::getPageNetExtraData()
     return nullptr;
 }
 
+std::string MbWebView::getCookie()
+{
+    blink::WebLocalFrame* frame = (blink::WebLocalFrame*)(m_renderWidgetHostImpl->m_webWiew->MainFrame());
+    if (!frame)
+        return "";
+
+    blink::WebDocument webDocument = frame->GetDocument();
+    if (webDocument.IsNull())
+        return "";
+
+    mbnet::WebCookieJarImpl* cookieJar = getWebCookieJarImpl();
+    if (!cookieJar)
+        return "";
+
+    const blink::Document* doc = webDocument.ConstUnwrap<blink::Document>();
+    return cookieJar->getCookiesForSession(doc->CookieURL(), true);
+}
+
 mbnet::WebCookieJarImpl* MbWebView::getWebCookieJarImpl()
 {
     mbnet::WebCookieJarImpl* ret = nullptr;
@@ -1769,6 +1786,9 @@ void MbWebView::dispatchUrlCheanged(const std::string& url)
     BOOL canGoForward = historyForwardListCount() > 0;
 
     m_url = url;
+
+    if (getFrameClient())
+        getFrameClient()->onLoadingSucceeded();
 
     if (!(getClosure().m_URLChangedCallback))
         return;
