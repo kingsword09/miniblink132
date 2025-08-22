@@ -241,6 +241,28 @@ void ThreadCall::exitUiThreadMessageLoop()
     g_mainThreadRunLoop->Quit();
 }
 
+void ThreadCall::setThreadIdle(mbThreadCallback callback, void* param1, void* param2)
+{
+//     common::ThreadCallballInfo* info = nullptr;
+//     if (common::ThreadCall::isBlinkThread()) {
+//         info = &common::ThreadCall::s_blinkThreadIdleInfo;
+//     } else if (common::ThreadCall::isUiThread()) {
+//         info = &common::ThreadCall::s_uiThreadIdleInfo;
+//     } else
+//         return;
+// 
+//     info->cb = callback;
+//     info->param1 = param1;
+//     info->param2 = param2;
+}
+
+void ThreadCall::setBlinkThreadInited(mbThreadCallback callback, void* param1, void* param2)
+{
+//     common::ThreadCall::s_blinkThreadInitedInfo.cb = callback;
+//     common::ThreadCall::s_blinkThreadInitedInfo.param1 = param1;
+//     common::ThreadCall::s_blinkThreadInitedInfo.param2 = param2;
+}
+
 }
 
 extern "C" bool ThreadCallIsUiThread()

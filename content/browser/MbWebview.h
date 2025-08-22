@@ -221,12 +221,11 @@ public:
         m_sessionStorageNamespaceId = sessionStorageNamespaceId;
     }
 
-    void setPaintUpdatedCallback(mbPaintUpdatedCallback callback, void* param);
-
     void bindGtkWindow(void* rootWindow, void* drawingArea, bool isGl, DWORD style, DWORD styleEx, int width, int height);
 
     scoped_refptr<mbnet::PageNetExtraData> getPageNetExtraData();
     mbnet::WebCookieJarImpl* getWebCookieJarImpl();
+    std::string getCookie();
 
     std::map<std::string, void*>& getUserKeyValues()
     {

@@ -997,7 +997,7 @@ void WebLocalFrameClientImpl::WillReleaseScriptContext(v8::Local<v8::Context> co
 
 void WebLocalFrameClientImpl::onLoadingSucceeded()
 {
-    if (m_onLoadingSucceededCount > 0 && m_onLoadingSucceededCount < 5) {
+    if (m_onLoadingSucceededCount >= 0 && m_onLoadingSucceededCount < 5) {
         m_onLoadingSucceededCount++;
         return;
     }
@@ -1054,8 +1054,6 @@ mbWebFrameHandle v8ContextToMbWebFrameHandle(v8::Local<v8::Context> context)
     return frameId;
 }
 
-void printCallstack();
-
 void WebLocalFrameClientImpl::DidAddMessageToConsole(
     const blink::WebConsoleMessage& message, const blink::WebString& source_name, unsigned source_line, const blink::WebString& stack_trace)
 {
@@ -1081,8 +1079,6 @@ void WebLocalFrameClientImpl::DidAddMessageToConsole(
     std::u16string textW = base::UTF8ToUTF16(text);
     OutputDebugStringW((const WCHAR*)textW.c_str());
 #endif
-
-    printCallstack();
 
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(m_mbwebviewId);
     if (!webview || !(webview->getClosure().m_ConsoleCallback))
