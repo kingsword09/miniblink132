@@ -2479,9 +2479,6 @@
     <ClInclude Include="..\..\content\browser\LocalMainFrameHostImpl.h">
       <Filter>src\content\browser</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\content\resources\res.h">
-      <Filter>src\content\resources</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\mbnet\DataURL.h">
       <Filter>src\mbnet</Filter>
     </ClInclude>
@@ -2721,9 +2718,6 @@
     </ClInclude>
     <ClInclude Include="..\..\content\common\StringConversions.h">
       <Filter>src\content\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\content\resources\MediaControls.h">
-      <Filter>src\content\resources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\content\browser\PageNavController.h">
       <Filter>src\content\browser</Filter>
@@ -3831,9 +3825,6 @@
     <ClCompile Include="..\..\content\common\common.cpp">
       <Filter>src\content\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\content\resources\icudtl.cpp">
-      <Filter>src\content\resources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\content\browser\SharedTimerWin.cpp">
       <Filter>src\content\browser</Filter>
     </ClCompile>
@@ -4437,9 +4428,6 @@
     <ClCompile Include="..\..\mbnet\SingleRequestURLLoader.cpp">
       <Filter>src\mbnet</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinX86.cpp">
-      <Filter>src\content\resources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\net\cookies\canonical_cookie.cc">
       <Filter>src\net\cookies</Filter>
     </ClCompile>
@@ -4469,9 +4457,6 @@
     </ClCompile>
     <ClCompile Include="..\..\net\cookies\cookie_constants.cc">
       <Filter>src\net\cookies</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinWinX64.cpp">
-      <Filter>src\content\resources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\net\base\filename_util_internal.cc">
       <Filter>src\net\base</Filter>

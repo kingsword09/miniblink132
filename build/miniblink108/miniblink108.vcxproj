@@ -352,8 +352,6 @@
     <ClInclude Include="..\..\content\renderer\WebLocalFrameClientImpl.h" />
     <ClInclude Include="..\..\content\renderer\WebViewClientImpl.h" />
     <ClInclude Include="..\..\content\renderer\WebWorkerFetchContextImpl.h" />
-    <ClInclude Include="..\..\content\resources\MediaControls.h" />
-    <ClInclude Include="..\..\content\resources\res.h" />
     <ClInclude Include="..\..\content\ui\ClipboardUtil.h" />
     <ClInclude Include="..\..\content\ui\ContextMeun.h" />
     <ClInclude Include="..\..\content\ui\ToolTip.h" />
@@ -1340,9 +1338,6 @@
     <ClCompile Include="..\..\content\renderer\WebLocalFrameClientImpl.cpp" />
     <ClCompile Include="..\..\content\renderer\WebWorkerFetchContextImpl.cpp" />
     <ClCompile Include="..\..\content\resources\embedded_win_arm64.cc" />
-    <ClCompile Include="..\..\content\resources\icudtl.cpp" />
-    <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinWinX64.cpp" />
-    <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinX86.cpp" />
     <ClCompile Include="..\..\content\ui\ClipboardUtil.cpp" />
     <ClCompile Include="..\..\content\viz\DeserializeCompositorFrame.cpp" />
     <ClCompile Include="..\..\content\viz\OffscreenDisplayClient.cpp" />
