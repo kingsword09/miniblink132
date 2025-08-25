@@ -259,7 +259,7 @@ MediaControls* ModulesInitializer::CreateMediaControls(HTMLMediaElement& media_e
 PictureInPictureController* ModulesInitializer::CreatePictureInPictureController(Document& document) const
 {
     //return MakeGarbageCollected<PictureInPictureControllerImpl>(document);
-    *(int*)1 = 1;
+    OutputDebugStringA("ModulesInitializer::CreatePictureInPictureController not impl\n");
     return nullptr;
 }
 
