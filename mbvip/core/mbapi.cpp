@@ -17,6 +17,7 @@
 #include "third_party/blink/public/web/web_frame_serializer.h"
 #include "third_party/blink/public/web/web_view.h"
 #include "third_party/blink/public/web/web_frame_serializer_client.h"
+#include "third_party/blink/public/web/web_css_origin.h"
 #include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_element.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
@@ -93,14 +94,17 @@ void getSourceOrMHTML(mbWebView webviewHandle, mbGetSourceCallback calback, void
 
         content::ThreadCall::callUiThreadAsync(MB_FROM_HERE, [webviewHandle, calback, param, serializer] {
             content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
-            if (webview) {
+            if (webview && serializer) {
                 if (serializer->m_result.size() > 0) {
                     serializer->m_result.push_back('\0');
                     calback(webviewHandle, param, serializer->m_result.data());
                 } else
                     calback(webviewHandle, param, nullptr);
+            } else {
+                calback(webviewHandle, param, nullptr);
             }
-            delete serializer;
+            if (serializer)
+                delete serializer;
         });
     });
 }
@@ -370,6 +374,17 @@ mbWebView MB_CALL_TYPE mbGetWebViewForCurrentContext()
         return NULL_WEBVIEW;
 
     return (mbWebView)(client->getMbwebviewId());
+}
+
+mbWebFrameHandle MB_CALL_TYPE mbGetWebFrameForCurrentContext()
+{
+    blink::WebLocalFrame* frame = blink::WebLocalFrame::FrameForCurrentContext();
+    if (!frame)
+        return 0;
+
+    const blink::LocalFrameToken& localFrameToken = frame->GetLocalFrameToken();
+    size_t hash = blink::LocalFrameToken::Hasher()(localFrameToken);
+    return (mbWebFrameHandle)(hash);
 }
 
 static blink::Element* webElementFromV8Value(v8::Local<v8::Value> value)
@@ -676,4 +691,48 @@ void MB_CALL_TYPE mbSetNpapiPluginsEnabled(mbWebView webviewHandle, BOOL b)
 void MB_CALL_TYPE mbSetMemoryCacheEnable(mbWebView webviewHandle, BOOL b)
 {
     OutputDebugStringA("mbSetMemoryCacheEnable not impl\n");
+}
+
+static void callCSSByFrameWithResultHelper(mbWebView webviewHandle, const utf8* key, mbInsertCSSByFrameResultCallback callback, void* param)
+{
+    std::string keyStr = key;
+    content::ThreadCall::callUiThreadAsync(FROM_HERE, [webviewHandle, keyStr, callback, param] {
+        callback(webviewHandle, param, keyStr.c_str());
+    });
+}
+
+void MB_CALL_TYPE mbInsertCSSByFrameWithResult(
+    mbWebView webviewHandle, mbWebFrameHandle frameId, const utf8* cssText, int cssOrigin, mbInsertCSSByFrameResultCallback callback, void* param)
+{
+    std::string cssTextStr = cssText;
+    int cssOriginCopy = cssOrigin;
+    content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [webviewHandle, frameId, cssTextStr, cssOriginCopy, callback, param] {
+        blink::WebLocalFrame* webFrame = nullptr;
+        do {
+            content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+            if (!webview)
+                break;
+
+            if ((mbWebFrameHandle)-2 == frameId) {
+                content::WebLocalFrameClientImpl* client = webview->getFrameClient();
+                if (!client) 
+                    break;
+                webFrame = client->getFrame();
+            } else {
+                blink::LocalFrame* blinkFrame = blink::FromFrameTokenHash((size_t)(frameId));
+                if (!blinkFrame) 
+                    break;
+                webFrame = blink::WebLocalFrameImpl::FromFrame(blinkFrame);
+            }
+        } while (false);
+
+        if (!webFrame) {
+            callCSSByFrameWithResultHelper(webviewHandle, "", callback, param);
+            return;
+        }
+
+        blink::WebCssOrigin webCssOrigin = cssOriginCopy == 0 ? blink::WebCssOrigin::kAuthor : blink::WebCssOrigin::kUser;
+        std::string key = webFrame->GetDocument().InsertStyleSheet(blink::WebString::FromUTF8(cssTextStr), nullptr, webCssOrigin).Utf8();
+        callCSSByFrameWithResultHelper(webviewHandle, key.c_str(), callback, param);
+    });
 }
