@@ -132,7 +132,7 @@
     <TargetName>mb132_x64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <TargetName>mb132_x64</TargetName>
+    <TargetName>mb132_arm64</TargetName>
     <OutDir>$(SolutionDir)..\out\win_$(Configuration)_$(PlatformName)\</OutDir>
     <IntDir>$(SolutionDir)..\out\tmp\$(ProjectName)\win_$(Configuration)_$(PlatformName)\</IntDir>
   </PropertyGroup>
@@ -142,7 +142,7 @@
     <TargetName>mb132_x64_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <TargetName>mb132_x64_d</TargetName>
+    <TargetName>mb132_arm64_d</TargetName>
     <OutDir>$(SolutionDir)..\out\win_$(Configuration)_$(PlatformName)\</OutDir>
     <IntDir>$(SolutionDir)..\out\tmp\$(ProjectName)\win_$(Configuration)_$(PlatformName)\</IntDir>
   </PropertyGroup>
@@ -245,7 +245,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <OutputFile>$(OutDir)mb132_x64_d.dll</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalDependencies>$(OutDir)mb_platform.lib;$(OutDir)miniblink132.lib;$(OutDir)chromium.lib;$(OutDir)gen_1.lib;$(OutDir)harfbuzz.lib;$(OutDir)icu.lib;$(OutDir)skia.lib;$(OutDir)util.lib;$(OutDir)v8_1.lib;$(OutDir)v8_2.lib;$(OutDir)v8_3.lib;$(OutDir)v8_gen_x64_1.lib;$(OutDir)v8_gen_x64_2.lib;$(OutDir)v8_gen_x64_3.lib;$(OutDir)v8_gin.lib;$(OutDir)openssl.lib;Ws2_32.lib;Winmm.lib;Setupapi.lib;Shlwapi.lib;Version.lib;Dbghelp.lib;Crypt32.lib;Usp10.lib;Imm32.lib;Wldap32.lib;Dwmapi.lib;ntdll.lib;Shcore.lib;mincore.lib;Powrprof.lib;Propsys.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>$(SolutionDir)../mbvip/mbvip.def</ModuleDefinitionFile>
     </Link>
@@ -318,7 +318,7 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>$(SolutionDir)../patch_code/YY_Thunks_x64.obj;$(SolutionDir)../patch_code/YY_Thunks_weak_x64.obj;$(OutDir)mb_platform.lib;$(OutDir)miniblink132.lib;$(OutDir)chromium.lib;$(OutDir)gen_1.lib;$(OutDir)harfbuzz.lib;$(OutDir)icu.lib;$(OutDir)skia.lib;$(OutDir)util.lib;$(OutDir)v8_1.lib;$(OutDir)v8_2.lib;$(OutDir)v8_3.lib;$(OutDir)v8_gen_x64_1.lib;$(OutDir)v8_gen_x64_2.lib;$(OutDir)v8_gen_x64_3.lib;$(OutDir)v8_gin.lib;$(OutDir)openssl.lib;Ws2_32.lib;Winmm.lib;Setupapi.lib;Shlwapi.lib;Version.lib;Dbghelp.lib;Crypt32.lib;Usp10.lib;Imm32.lib;Wldap32.lib;Dwmapi.lib;ntdll.lib;Shcore.lib;mincore.lib;Powrprof.lib;Propsys.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>$(SolutionDir)../mbvip/mbvip.def</ModuleDefinitionFile>
-      <OutputFile>$(OutDir)mb132_x64.dll</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
       <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
