@@ -1,8 +1,6 @@
 // Copyright 2019 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#ifdef V8_TARGET_ARCH_X64
-
 #include "src/diagnostics/unwinding-info-win64.h"
 
 #include "src/codegen/macro-assembler.h"
@@ -607,5 +605,3 @@ void XdataEncoder::onFramePointerAdjustment(int fp_to_saved_caller_fp, int fp_to
 } // namespace win64_unwindinfo
 } // namespace internal
 } // namespace v8
-
-#endif // V8_TARGET_ARCH_X64
