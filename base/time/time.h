@@ -277,6 +277,12 @@ public:
     constexpr double InMicrosecondsF() const;
     constexpr int64_t InNanoseconds() const;
 
+
+    constexpr bool operator<=(const TimeDelta& other) const;
+    constexpr bool operator>=(const TimeDelta& other) const;
+    constexpr bool operator>(const TimeDelta& other) const;
+    constexpr bool operator<(const TimeDelta& other) const;
+
     // Computations with other deltas.
     constexpr TimeDelta operator+(TimeDelta other) const;
     constexpr TimeDelta operator-(TimeDelta other) const;
@@ -385,6 +391,22 @@ private:
     // Delta in microseconds.
     ClampedNumeric<int64_t> delta_ = 0;
 };
+
+constexpr bool TimeDelta::operator<=(const TimeDelta& other) const {
+    return delta_ <= other.delta_;
+}
+
+constexpr bool TimeDelta::operator>=(const TimeDelta& other) const {
+    return delta_ >= other.delta_;
+}
+
+constexpr bool TimeDelta::operator>(const TimeDelta& other) const {
+    return delta_ > other.delta_;
+}
+
+constexpr bool TimeDelta::operator<(const TimeDelta& other) const {
+    return delta_ < other.delta_;
+}
 
 constexpr TimeDelta TimeDelta::operator+(TimeDelta other) const
 {
