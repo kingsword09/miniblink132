@@ -1338,6 +1338,8 @@
     <ClCompile Include="..\..\content\renderer\WebLocalFrameClientImpl.cpp" />
     <ClCompile Include="..\..\content\renderer\WebWorkerFetchContextImpl.cpp" />
     <ClCompile Include="..\..\content\resources\embedded_win_arm64.cc" />
+    <ClCompile Include="..\..\content\resources\icudtlArm64.cpp" />
+    <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinArm64.cpp" />
     <ClCompile Include="..\..\content\ui\ClipboardUtil.cpp" />
     <ClCompile Include="..\..\content\viz\DeserializeCompositorFrame.cpp" />
     <ClCompile Include="..\..\content\viz\OffscreenDisplayClient.cpp" />

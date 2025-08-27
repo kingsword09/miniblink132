@@ -64,12 +64,13 @@
 #endif
 #include "url/url_util.h"
 
-extern unsigned char icudtlData[1884304];
-extern unsigned char icudtlData_flutter_desktop[2700172];
+extern unsigned char icudtlData[10467680];
 extern unsigned char SnapshotBlobBinX86[328619];
 extern unsigned char SnapshotBlobBinX64[327326];
+extern unsigned char SnapshotBlobBinArm64[1602358];
 extern unsigned char SnapshotBlobBinX64Linux[471944];
 extern unsigned char SnapshotBlobBinArm64Linux[471936];
+
 
 #if 1
 extern "C" const uint8_t v8_Default_embedded_blob_code_[];
@@ -639,7 +640,10 @@ void initV8Data()
     snapshotBlob.raw_size = sizeof(SnapshotBlobBinX64Linux);
 #endif
 #else
-#if defined(__LP64__) || __SIZEOF_LONG__ == 8 || defined(_WIN64)
+#if defined(__AARCH64EL__) || defined(_M_ARM64)
+    snapshotBlob.data = (const char*)(&SnapshotBlobBinArm64);
+    snapshotBlob.raw_size = sizeof(SnapshotBlobBinArm64);
+#elif defined(__LP64__) || __SIZEOF_LONG__ == 8 || defined(_WIN64)
     snapshotBlob.data = (const char*)(&SnapshotBlobBinX64);
     snapshotBlob.raw_size = sizeof(SnapshotBlobBinX64);
 #else

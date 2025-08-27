@@ -4467,6 +4467,12 @@
     <ClCompile Include="..\..\content\resources\embedded_win_arm64.cc">
       <Filter>src\content\resources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinArm64.cpp">
+      <Filter>src\content\resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\content\resources\icudtlArm64.cpp">
+      <Filter>src\content\resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\third_party\blink\public\common\frame\OWNERS">
