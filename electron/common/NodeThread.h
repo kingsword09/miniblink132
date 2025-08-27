@@ -1,7 +1,7 @@
 ﻿#ifndef atom_NodeThread_h
 #define atom_NodeThread_h
 
-#define NODE_ARCH "ia32"
+#define NODE_ARCH "arm64"
 #define NODE_PLATFORM "win32"
 #define NODE_WANT_INTERNALS 1
 #define HAVE_OPENSSL 1

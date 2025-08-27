@@ -972,8 +972,7 @@
     <ClCompile Include="..\..\v8\src\heap\allocation-observer.cc" />
     <ClCompile Include="..\..\v8\src\heap\array-buffer-sweeper.cc" />
     <ClCompile Include="..\..\v8\src\heap\base\active-system-pages.cc" />
-    <ClCompile Include="..\..\v8\src\heap\base\asm\ia32\push_registers_asm_ia32.cc" />
-    <ClCompile Include="..\..\v8\src\heap\base\asm\x64\push_registers_asm_x64.cc" />
+    <ClCompile Include="..\..\v8\src\heap\base\asm\arm64\push_registers_asm_arm64.cc" />
     <ClCompile Include="..\..\v8\src\heap\base\incremental-marking-schedule.cc" />
     <ClCompile Include="..\..\v8\src\heap\base\memory-tagging.cc" />
     <ClCompile Include="..\..\v8\src\heap\base\stack.cc" />
@@ -1266,6 +1265,7 @@
     <None Include="..\..\v8\include\cppgc\DEPS" />
     <None Include="..\..\v8\include\cppgc\OWNERS" />
     <None Include="..\..\v8\include\cppgc\README.md" />
+    <None Include="..\..\v8\src\heap\base\asm\arm64\push_registers_masm.S" />
     <None Include="..\..\v8\src\maglev\OWNERS" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

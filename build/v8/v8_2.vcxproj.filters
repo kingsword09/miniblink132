@@ -106,29 +106,11 @@
     <Filter Include="src\deoptimizer">
       <UniqueIdentifier>{bd54c1ac-b740-48aa-856d-3be67eaaf10f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\deoptimizer\ia32">
-      <UniqueIdentifier>{fb205324-aca8-49fd-8b58-255503369902}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\deoptimizer\x64">
-      <UniqueIdentifier>{d15c84cd-e32c-4e26-be02-c34bae079dcb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\diagnostics">
       <UniqueIdentifier>{ebbfad0c-6ac4-4171-8566-7582de3f81fe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\diagnostics\ia32">
-      <UniqueIdentifier>{41413c4d-b1e2-4fca-8a99-cd51e1be3699}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\diagnostics\x64">
-      <UniqueIdentifier>{af15b101-1d87-46a5-a73f-ae066d2e446c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\execution">
       <UniqueIdentifier>{d442059e-4c17-4f8d-b463-d33ef217ef65}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\execution\ia32">
-      <UniqueIdentifier>{f185b948-b6b7-4f7c-a6f7-ed8c61423f3a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\execution\x64">
-      <UniqueIdentifier>{808dfd68-9eb7-4d11-88cb-b402c4a8965f}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\extensions">
       <UniqueIdentifier>{8323b578-bcf8-4217-b3a1-bd66fc770fa9}</UniqueIdentifier>
@@ -138,12 +120,6 @@
     </Filter>
     <Filter Include="src\regexp">
       <UniqueIdentifier>{a5f25b91-06c5-439d-9bb9-06aff65d2264}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\regexp\ia32">
-      <UniqueIdentifier>{588e8ee1-5fa2-4619-9878-c1653e0e0dc4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\regexp\x64">
-      <UniqueIdentifier>{be4b227d-6ade-4482-9d9c-899633df0687}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\regexp\experimental">
       <UniqueIdentifier>{a91ba0be-0d0e-478f-a740-4be9ed600fdf}</UniqueIdentifier>
@@ -171,6 +147,18 @@
     </Filter>
     <Filter Include="src\wasm\interpreter\x64">
       <UniqueIdentifier>{0ef8e395-6cbf-4804-8646-80126b63b024}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\diagnostics\arm64">
+      <UniqueIdentifier>{edefd683-89f9-4f93-97eb-d1586ba7c0ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\execution\arm64">
+      <UniqueIdentifier>{14a93f45-e3c8-4085-a9ad-8dc6d8070094}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\deoptimizer\arm64">
+      <UniqueIdentifier>{6da5c133-d978-424a-90c7-19f2e5ed0e05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\regexp\arm64">
+      <UniqueIdentifier>{7a499f8f-ea5b-4034-bb6c-18c1168af80c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -417,23 +405,11 @@
     <ClInclude Include="..\..\v8\src\execution\vm-state.h">
       <Filter>src\execution</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\v8\src\execution\ia32\frame-constants-ia32.h">
-      <Filter>src\execution\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\execution\x64\frame-constants-x64.h">
-      <Filter>src\execution\x64</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\v8\src\roots\roots-inl.h">
       <Filter>src\roots</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\roots\roots.h">
       <Filter>src\roots</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\regexp\ia32\regexp-macro-assembler-ia32.h">
-      <Filter>src\regexp\ia32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\regexp\x64\regexp-macro-assembler-x64.h">
-      <Filter>src\regexp\x64</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\regexp\experimental\experimental-bytecode.h">
       <Filter>src\regexp\experimental</Filter>
@@ -1488,6 +1464,21 @@
     <ClInclude Include="..\..\v8\src\libplatform\default-platform-wrap.h">
       <Filter>src\libplatform</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\v8\src\diagnostics\arm64\disasm-arm64.h">
+      <Filter>src\diagnostics\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\execution\arm64\frame-constants-arm64.h">
+      <Filter>src\execution\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\execution\arm64\pointer-authentication-arm64.h">
+      <Filter>src\execution\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\execution\arm64\simulator-arm64.h">
+      <Filter>src\execution\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\regexp\arm64\regexp-macro-assembler-arm64.h">
+      <Filter>src\regexp\arm64</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\v8\src\wasm\baseline\liftoff-assembler.cc">
@@ -1559,27 +1550,6 @@
     <ClCompile Include="..\..\v8\src\flags\flags.cc">
       <Filter>src\flags</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\deoptimizer\ia32\deoptimizer-ia32.cc">
-      <Filter>src\deoptimizer\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\deoptimizer\x64\deoptimizer-x64.cc">
-      <Filter>src\deoptimizer\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\diagnostics\ia32\disasm-ia32.cc">
-      <Filter>src\diagnostics\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\diagnostics\ia32\unwinder-ia32.cc">
-      <Filter>src\diagnostics\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\diagnostics\x64\disasm-x64.cc">
-      <Filter>src\diagnostics\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\diagnostics\x64\eh-frame-x64.cc">
-      <Filter>src\diagnostics\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\diagnostics\x64\unwinder-x64.cc">
-      <Filter>src\diagnostics\x64</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\execution\arguments.cc">
       <Filter>src\execution</Filter>
     </ClCompile>
@@ -1637,20 +1607,8 @@
     <ClCompile Include="..\..\v8\src\execution\v8threads.cc">
       <Filter>src\execution</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\execution\ia32\frame-constants-ia32.cc">
-      <Filter>src\execution\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\execution\x64\frame-constants-x64.cc">
-      <Filter>src\execution\x64</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\roots\roots.cc">
       <Filter>src\roots</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\regexp\ia32\regexp-macro-assembler-ia32.cc">
-      <Filter>src\regexp\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\regexp\x64\regexp-macro-assembler-x64.cc">
-      <Filter>src\regexp\x64</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\regexp\experimental\experimental-bytecode.cc">
       <Filter>src\regexp\experimental</Filter>
@@ -2485,6 +2443,33 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\libplatform\tracing\recorder-empty.cc">
       <Filter>src\libplatform\tracing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\diagnostics\arm64\disasm-arm64.cc">
+      <Filter>src\diagnostics\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\diagnostics\arm64\eh-frame-arm64.cc">
+      <Filter>src\diagnostics\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\diagnostics\arm64\unwinder-arm64.cc">
+      <Filter>src\diagnostics\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\execution\arm64\frame-constants-arm64.cc">
+      <Filter>src\execution\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\execution\arm64\pointer-auth-arm64.cc">
+      <Filter>src\execution\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\execution\arm64\simulator-arm64.cc">
+      <Filter>src\execution\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\execution\arm64\simulator-logic-arm64.cc">
+      <Filter>src\execution\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\deoptimizer\arm64\deoptimizer-arm64.cc">
+      <Filter>src\deoptimizer\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\regexp\arm64\regexp-macro-assembler-arm64.cc">
+      <Filter>src\regexp\arm64</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

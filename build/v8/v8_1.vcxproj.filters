@@ -61,12 +61,6 @@
     <Filter Include="src\heap\base\asm">
       <UniqueIdentifier>{099521ce-9dde-44a6-8b46-b60b322a8416}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\heap\base\asm\ia32">
-      <UniqueIdentifier>{f10ca203-29d2-438d-ade8-287b5ff0a5c5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\heap\base\asm\x64">
-      <UniqueIdentifier>{4ccef548-7354-4696-8f5c-c4ae4fb8f92b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\heap\cppgc">
       <UniqueIdentifier>{75e01801-25ee-4094-90e7-14157961c846}</UniqueIdentifier>
     </Filter>
@@ -84,6 +78,9 @@
     </Filter>
     <Filter Include="src\maglev\arm64">
       <UniqueIdentifier>{86a56a87-b8fd-408a-b360-6e27bee47485}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\heap\base\asm\arm64">
+      <UniqueIdentifier>{cac894b0-fbf1-4ad6-b204-1fc46ee17710}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -2942,9 +2939,6 @@
     <ClCompile Include="..\..\v8\src\runtime\runtime-test-wasm.cc">
       <Filter>src\runtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\heap\base\asm\ia32\push_registers_asm_ia32.cc">
-      <Filter>src\heap\base\asm\ia32</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\heap\cppgc\caged-heap.cc">
       <Filter>src\heap\cppgc</Filter>
     </ClCompile>
@@ -2993,14 +2987,14 @@
     <ClCompile Include="..\..\v8\src\heap\cppgc\caged-heap-local-data.cc">
       <Filter>src\heap\cppgc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\heap\base\asm\x64\push_registers_asm_x64.cc">
-      <Filter>src\heap\base\asm\x64</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\maglev\arm64\maglev-assembler-arm64.cc">
       <Filter>src\maglev\arm64</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\maglev\arm64\maglev-ir-arm64.cc">
       <Filter>src\maglev\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\heap\base\asm\arm64\push_registers_asm_arm64.cc">
+      <Filter>src\heap\base\asm\arm64</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3015,6 +3009,9 @@
     </None>
     <None Include="..\..\v8\include\cppgc\README.md">
       <Filter>include\cppgc</Filter>
+    </None>
+    <None Include="..\..\v8\src\heap\base\asm\arm64\push_registers_masm.S">
+      <Filter>src\heap\base\asm\arm64</Filter>
     </None>
   </ItemGroup>
 </Project>

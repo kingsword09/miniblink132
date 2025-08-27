@@ -6264,6 +6264,9 @@
     <ClInclude Include="..\..\components\attribution_reporting\registration_info.h">
       <Filter>src\components\attribution_reporting</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\base\i18n\string_compare.h">
+      <Filter>src\base\i18n</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\cc\mojo_embedder\async_layer_tree_frame_sink.cc">
@@ -9952,6 +9955,9 @@
     </ClCompile>
     <ClCompile Include="..\..\skia\ext\convolver_neon.cc">
       <Filter>src\skia\ext</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\base\i18n\string_compare.cc">
+      <Filter>src\base\i18n</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

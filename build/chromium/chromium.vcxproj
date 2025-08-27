@@ -586,6 +586,7 @@
     <ClInclude Include="..\..\base\i18n\file_util_icu.h" />
     <ClInclude Include="..\..\base\i18n\i18n_constants.h" />
     <ClInclude Include="..\..\base\i18n\icu_string_conversions.h" />
+    <ClInclude Include="..\..\base\i18n\string_compare.h" />
     <ClInclude Include="..\..\base\i18n\string_search.h" />
     <ClInclude Include="..\..\base\i18n\time_formatting.h" />
     <ClInclude Include="..\..\base\immediate_crash.h" />
@@ -2314,6 +2315,7 @@
     <ClCompile Include="..\..\base\i18n\file_util_icu.cc" />
     <ClCompile Include="..\..\base\i18n\i18n_constants.cc" />
     <ClCompile Include="..\..\base\i18n\icu_string_conversions.cc" />
+    <ClCompile Include="..\..\base\i18n\string_compare.cc" />
     <ClCompile Include="..\..\base\i18n\string_search.cc" />
     <ClCompile Include="..\..\base\i18n\time_formatting.cc" />
     <ClCompile Include="..\..\base\json\json_file_value_serializer.cc" />

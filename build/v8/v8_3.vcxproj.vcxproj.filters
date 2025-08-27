@@ -58,12 +58,6 @@
     <Filter Include="src\builtins">
       <UniqueIdentifier>{2ae7402b-1123-42ab-8c44-f614e0a900e2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\builtins\ia32">
-      <UniqueIdentifier>{6dbd04f6-cccc-48bd-9ddf-859097e55ca0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\builtins\x64">
-      <UniqueIdentifier>{9ae412e6-f3cf-4eec-a3e2-7e57564d5aea}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\codegen">
       <UniqueIdentifier>{a6d7fbb5-ecf1-41a1-b821-a98a614b37a0}</UniqueIdentifier>
     </Filter>
@@ -78,12 +72,6 @@
     </Filter>
     <Filter Include="src\compiler\turboshaft">
       <UniqueIdentifier>{2e1b3e45-e972-49d7-9375-ce52481d21e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\compiler\backend\ia32">
-      <UniqueIdentifier>{8d524acc-9e1e-4d02-ac3b-278310fb891b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\compiler\backend\x64">
-      <UniqueIdentifier>{9bff0fdd-074f-476e-844d-6d565b1f2880}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\compiler-dispatcher">
       <UniqueIdentifier>{b7da6501-3cb5-4809-a9c2-0ccc00dcec73}</UniqueIdentifier>
@@ -111,6 +99,12 @@
     </Filter>
     <Filter Include="src\codegen\arm64">
       <UniqueIdentifier>{6b8bb667-4f0a-45ee-8d97-fc2c445e3024}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\compiler\backend\arm64">
+      <UniqueIdentifier>{6f94c5b7-8287-42da-85a9-bce9f4d18620}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\builtins\arm64">
+      <UniqueIdentifier>{85096655-9f01-4824-84be-55ba130f1702}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -149,9 +143,6 @@
     </ClInclude>
     <ClInclude Include="..\..\v8\src\baseline\baseline-assembler-inl.h">
       <Filter>src\baseline</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\compiler\backend\ia32\instruction-codes-ia32.h">
-      <Filter>src\compiler\backend\ia32</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\compiler-dispatcher\optimizing-compile-dispatcher.h">
       <Filter>src\compiler-dispatcher</Filter>
@@ -482,12 +473,6 @@
     </ClInclude>
     <ClInclude Include="..\..\v8\include\libplatform\libplatform-export.h">
       <Filter>include\libplatform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\compiler\backend\x64\unwinding-info-writer-x64.h">
-      <Filter>src\compiler\backend\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\compiler\backend\x64\instruction-codes-x64.h">
-      <Filter>src\compiler\backend\x64</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\json\json-parser.h">
       <Filter>src\json</Filter>
@@ -1959,6 +1944,12 @@
     <ClInclude Include="..\..\v8\src\codegen\arm64\utils-arm64.h">
       <Filter>src\codegen\arm64</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\v8\src\compiler\backend\arm64\instruction-codes-arm64.h">
+      <Filter>src\compiler\backend\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\compiler\backend\arm64\unwinding-info-writer-arm64.h">
+      <Filter>src\compiler\backend\arm64</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\v8\src\base\debug\stack_trace_win.cc">
@@ -1982,18 +1973,6 @@
     <ClCompile Include="..\..\v8\src\baseline\baseline-batch-compiler.cc">
       <Filter>src\baseline</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\builtins\ia32\builtins-ia32.cc">
-      <Filter>src\builtins\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\backend\ia32\instruction-scheduler-ia32.cc">
-      <Filter>src\compiler\backend\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\backend\ia32\instruction-selector-ia32.cc">
-      <Filter>src\compiler\backend\ia32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\backend\ia32\code-generator-ia32.cc">
-      <Filter>src\compiler\backend\ia32</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\compiler-dispatcher\lazy-compile-dispatcher.cc">
       <Filter>src\compiler-dispatcher</Filter>
     </ClCompile>
@@ -2005,21 +1984,6 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\date\dateparser.cc">
       <Filter>src\date</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\backend\x64\instruction-selector-x64.cc">
-      <Filter>src\compiler\backend\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\backend\x64\unwinding-info-writer-x64.cc">
-      <Filter>src\compiler\backend\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\backend\x64\code-generator-x64.cc">
-      <Filter>src\compiler\backend\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\backend\x64\instruction-scheduler-x64.cc">
-      <Filter>src\compiler\backend\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\builtins\x64\builtins-x64.cc">
-      <Filter>src\builtins\x64</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\json\json-parser.cc">
       <Filter>src\json</Filter>
@@ -3109,6 +3073,21 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\codegen\arm64\utils-arm64.cc">
       <Filter>src\codegen\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\compiler\backend\arm64\code-generator-arm64.cc">
+      <Filter>src\compiler\backend\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\compiler\backend\arm64\instruction-scheduler-arm64.cc">
+      <Filter>src\compiler\backend\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\compiler\backend\arm64\instruction-selector-arm64.cc">
+      <Filter>src\compiler\backend\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\compiler\backend\arm64\unwinding-info-writer-arm64.cc">
+      <Filter>src\compiler\backend\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\builtins\arm64\builtins-arm64.cc">
+      <Filter>src\builtins\arm64</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
