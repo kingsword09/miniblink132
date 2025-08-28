@@ -1316,88 +1316,109 @@
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef16.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\cdef_tmpl.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\filmgrain.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\filmgrain16.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\ipred.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\ipred16.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\itx.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\itx16.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\loopfilter.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\loopfilter16.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration16.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration_common.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\looprestoration_tmpl.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\mc.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\mc16.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\msac.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\refmvs.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\64\util.S">
       <FileType>Document</FileType>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <CLANGASM Include="..\..\third_party\dav1d\libdav1d\src\arm\asm.S">
       <FileType>Document</FileType>
       <Errors Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
       </Errors>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)../third_party/dav1d/config/win/arm64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </CLANGASM>
     <None Include="..\..\third_party\dav1d\libdav1d\src\dav1d.rc.in" />
     <None Include="..\..\third_party\dav1d\libdav1d\src\meson.build" />
@@ -1657,7 +1678,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/sanitizer/inculude;$(SolutionDir)../third_party/brotli/include;$(SolutionDir)../third_party/libyuv/include;$(SolutionDir)../third_party/libxslt/src;$(SolutionDir)../third_party/libjpeg_turbo;$(SolutionDir)../third_party/libavif/src/include;$(SolutionDir)../third_party/zlib;$(SolutionDir)../third_party/libwebp/src;$(SolutionDir)../third_party/libxml;$(SolutionDir)../third_party/libxml/src/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/libcurl/src;$(SolutionDir)../third_party/libcurl/include;$(SolutionDir)../third_party/openssl/;$(SolutionDir)../third_party/openssl/openssl/include;$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/libdav1d/include;$(SolutionDir)../base/allocator/partition_allocator/src;$(SolutionDir)../gen/base/allocator/partition_allocator/src;$(SolutionDir)../gen;$(SolutionDir)../</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/sanitizer/inculude;$(SolutionDir)../third_party/brotli/include;$(SolutionDir)../third_party/libyuv/include;$(SolutionDir)../third_party/libxslt/src;$(SolutionDir)../third_party/libjpeg_turbo;$(SolutionDir)../third_party/libavif/src/include;$(SolutionDir)../third_party/zlib;$(SolutionDir)../third_party/libwebp/src;$(SolutionDir)../third_party/libxml;$(SolutionDir)../third_party/libxml/src/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/libcurl/src;$(SolutionDir)../third_party/libcurl/include;$(SolutionDir)../third_party/openssl/;$(SolutionDir)../third_party/openssl/openssl/include;$(SolutionDir)../third_party/dav1d/config/win/arm64;$(SolutionDir)../third_party/dav1d/libdav1d;$(SolutionDir)../third_party/dav1d/libdav1d/include;$(SolutionDir)../base/allocator/partition_allocator/src;$(SolutionDir)../gen/base/allocator/partition_allocator/src;$(SolutionDir)../gen;$(SolutionDir)../</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
