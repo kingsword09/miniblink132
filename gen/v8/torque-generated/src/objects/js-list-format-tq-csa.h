@@ -28,8 +28,7 @@ TNode<Smi> LoadJSListFormatFlags_0(compiler::CodeAssemblerState* state_, TNode<J
 void StoreJSListFormatFlags_0(compiler::CodeAssemblerState* state_, TNode<JSListFormat> p_o, TNode<Smi> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-list-format.tq?l=14&c=1
-TNode<JSListFormat> DownCastForTorqueClass_JSListFormat_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSListFormat> DownCastForTorqueClass_JSListFormat_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

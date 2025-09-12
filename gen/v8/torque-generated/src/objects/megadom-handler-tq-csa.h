@@ -22,8 +22,7 @@ TNode<MaybeObject> LoadMegaDomHandlerContext_0(compiler::CodeAssemblerState* sta
 void StoreMegaDomHandlerContext_0(compiler::CodeAssemblerState* state_, TNode<MegaDomHandler> p_o, TNode<MaybeObject> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/megadom-handler.tq?l=5&c=1
-TNode<MegaDomHandler> DownCastForTorqueClass_MegaDomHandler_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<MegaDomHandler> DownCastForTorqueClass_MegaDomHandler_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

@@ -24,18 +24,15 @@ class ListValue;
 class DictionaryValue;
 class Value;
 
-#define PROTOCOL_DISALLOW_COPY(ClassName)                                                                                                                      \
-private:                                                                                                                                                       \
-    ClassName(const ClassName&) = delete;                                                                                                                      \
-    ClassName& operator=(const ClassName&) = delete
+#define PROTOCOL_DISALLOW_COPY(ClassName) \
+ private:                                 \
+  ClassName(const ClassName&) = delete;   \
+  ClassName& operator=(const ClassName&) = delete
 
-class Value : public Serializable {
+class  Value : public Serializable {
     PROTOCOL_DISALLOW_COPY(Value);
-
 public:
-    virtual ~Value() override
-    {
-    }
+    virtual ~Value() override { }
 
     static std::unique_ptr<Value> null()
     {
@@ -44,17 +41,21 @@ public:
 
     static std::unique_ptr<Value> parseBinary(const uint8_t* data, size_t size);
 
-    enum ValueType { TypeNull = 0, TypeBoolean, TypeInteger, TypeDouble, TypeString, TypeBinary, TypeObject, TypeArray, TypeImported };
+    enum ValueType {
+        TypeNull = 0,
+        TypeBoolean,
+        TypeInteger,
+        TypeDouble,
+        TypeString,
+        TypeBinary,
+        TypeObject,
+        TypeArray,
+        TypeImported
+    };
 
-    ValueType type() const
-    {
-        return m_type;
-    }
+    ValueType type() const { return m_type; }
 
-    bool isNull() const
-    {
-        return m_type == TypeNull;
-    }
+    bool isNull() const { return m_type == TypeNull; }
 
     virtual bool asBoolean(bool* output) const;
     virtual bool asDouble(double* output) const;
@@ -66,14 +67,8 @@ public:
     virtual std::unique_ptr<Value> clone() const;
 
 protected:
-    Value()
-        : m_type(TypeNull)
-    {
-    }
-    explicit Value(ValueType type)
-        : m_type(type)
-    {
-    }
+    Value() : m_type(TypeNull) { }
+    explicit Value(ValueType type) : m_type(type) { }
 
 private:
     friend class DictionaryValue;
@@ -82,7 +77,7 @@ private:
     ValueType m_type;
 };
 
-class FundamentalValue : public Value {
+class  FundamentalValue : public Value {
 public:
     static std::unique_ptr<FundamentalValue> create(bool value)
     {
@@ -106,21 +101,9 @@ public:
     std::unique_ptr<Value> clone() const override;
 
 private:
-    explicit FundamentalValue(bool value)
-        : Value(TypeBoolean)
-        , m_boolValue(value)
-    {
-    }
-    explicit FundamentalValue(int value)
-        : Value(TypeInteger)
-        , m_integerValue(value)
-    {
-    }
-    explicit FundamentalValue(double value)
-        : Value(TypeDouble)
-        , m_doubleValue(value)
-    {
-    }
+    explicit FundamentalValue(bool value) : Value(TypeBoolean), m_boolValue(value) { }
+    explicit FundamentalValue(int value) : Value(TypeInteger), m_integerValue(value) { }
+    explicit FundamentalValue(double value) : Value(TypeDouble), m_doubleValue(value) { }
 
     union {
         bool m_boolValue;
@@ -129,7 +112,7 @@ private:
     };
 };
 
-class StringValue : public Value {
+class  StringValue : public Value {
 public:
     static std::unique_ptr<StringValue> create(const String& value)
     {
@@ -146,21 +129,13 @@ public:
     std::unique_ptr<Value> clone() const override;
 
 private:
-    explicit StringValue(const String& value)
-        : Value(TypeString)
-        , m_stringValue(value)
-    {
-    }
-    explicit StringValue(const char* value)
-        : Value(TypeString)
-        , m_stringValue(value)
-    {
-    }
+    explicit StringValue(const String& value) : Value(TypeString), m_stringValue(value) { }
+    explicit StringValue(const char* value) : Value(TypeString), m_stringValue(value) { }
 
     String m_stringValue;
 };
 
-class BinaryValue : public Value {
+class  BinaryValue : public Value {
 public:
     static std::unique_ptr<BinaryValue> create(const Binary& value)
     {
@@ -172,16 +147,12 @@ public:
     std::unique_ptr<Value> clone() const override;
 
 private:
-    explicit BinaryValue(const Binary& value)
-        : Value(TypeBinary)
-        , m_binaryValue(value)
-    {
-    }
+    explicit BinaryValue(const Binary& value) : Value(TypeBinary), m_binaryValue(value) { }
 
     Binary m_binaryValue;
 };
 
-class DictionaryValue : public Value {
+class  DictionaryValue : public Value {
 public:
     using Entry = std::pair<String, Value*>;
     static std::unique_ptr<DictionaryValue> create()
@@ -199,18 +170,14 @@ public:
     static std::unique_ptr<DictionaryValue> cast(std::unique_ptr<Value> value)
     {
         DictionaryValue* dictionaryValue = cast(value.get());
-        if (dictionaryValue)
-            value.release();
+        if (dictionaryValue) value.release();
         return std::unique_ptr<DictionaryValue>(dictionaryValue);
     }
 
     void AppendSerialized(std::vector<uint8_t>* bytes) const override;
     std::unique_ptr<Value> clone() const override;
 
-    size_t size() const
-    {
-        return m_data.size();
-    }
+    size_t size() const { return m_data.size(); }
 
     void setBoolean(const String& name, bool);
     void setInteger(const String& name, int);
@@ -239,7 +206,8 @@ public:
 
 private:
     DictionaryValue();
-    template <typename T> void set(const String& key, std::unique_ptr<T>& value)
+    template<typename T>
+    void set(const String& key, std::unique_ptr<T>& value)
     {
         DCHECK(value);
         bool isNew = m_data.find(key) == m_data.end();
@@ -253,7 +221,7 @@ private:
     std::vector<String> m_order;
 };
 
-class ListValue : public Value {
+class  ListValue : public Value {
 public:
     static std::unique_ptr<ListValue> create()
     {
@@ -270,8 +238,7 @@ public:
     static std::unique_ptr<ListValue> cast(std::unique_ptr<Value> value)
     {
         ListValue* listValue = cast(value.get());
-        if (listValue)
-            value.release();
+        if (listValue) value.release();
         return std::unique_ptr<ListValue>(listValue);
     }
 
@@ -283,14 +250,8 @@ public:
     void pushValue(std::unique_ptr<Value>);
 
     Value* at(size_t index);
-    size_t size() const
-    {
-        return m_data.size();
-    }
-    void reserve(size_t capacity)
-    {
-        m_data.reserve(capacity);
-    }
+    size_t size() const { return m_data.size(); }
+    void reserve(size_t capacity) { m_data.reserve(capacity); }
 
 private:
     ListValue();
@@ -301,6 +262,7 @@ private:
 } // namespace protocol
 
 #endif // v8_inspector_protocol_Values_h
+
 
 // This file is generated by Object_h.template.
 
@@ -320,7 +282,7 @@ private:
 namespace v8_inspector {
 namespace protocol {
 
-class Object : public v8_crdtp::Serializable {
+class  Object : public v8_crdtp::Serializable {
 public:
     static std::unique_ptr<Object> fromValue(protocol::Value*, ErrorSupport*);
     explicit Object(std::unique_ptr<protocol::DictionaryValue>);
@@ -344,6 +306,7 @@ private:
 
 #endif // !defined(v8_inspector_protocol_Object_h)
 
+
 // This file is generated by ValueConversions_h.template.
 
 // Copyright 2016 The Chromium Authors
@@ -360,7 +323,8 @@ private:
 namespace v8_inspector {
 namespace protocol {
 
-template <typename T> struct ValueConversions {
+template<typename T>
+struct ValueConversions {
     static std::unique_ptr<T> fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         return T::fromValue(value, errors);
@@ -377,7 +341,8 @@ template <typename T> struct ValueConversions {
     }
 };
 
-template <> struct ValueConversions<bool> {
+template<>
+struct ValueConversions<bool> {
     static bool fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         bool result = false;
@@ -393,7 +358,8 @@ template <> struct ValueConversions<bool> {
     }
 };
 
-template <> struct ValueConversions<int> {
+template<>
+struct ValueConversions<int> {
     static int fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         int result = 0;
@@ -409,7 +375,8 @@ template <> struct ValueConversions<int> {
     }
 };
 
-template <> struct ValueConversions<double> {
+template<>
+struct ValueConversions<double> {
     static double fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         double result = 0;
@@ -425,7 +392,8 @@ template <> struct ValueConversions<double> {
     }
 };
 
-template <> struct ValueConversions<String> {
+template<>
+struct ValueConversions<String> {
     static String fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         String result;
@@ -441,10 +409,12 @@ template <> struct ValueConversions<String> {
     }
 };
 
-template <> struct ValueConversions<Binary> {
+template<>
+struct ValueConversions<Binary> {
     static Binary fromValue(protocol::Value* value, ErrorSupport* errors)
     {
-        if (!value || (value->type() != Value::TypeBinary && value->type() != Value::TypeString)) {
+        if (!value ||
+            (value->type() != Value::TypeBinary && value->type() != Value::TypeString)) {
             errors->AddError("Either string base64 or binary value expected");
             return Binary();
         }
@@ -456,7 +426,7 @@ template <> struct ValueConversions<Binary> {
         bool success;
         Binary out = Binary::fromBase64(result, &success);
         if (!success)
-            errors->AddError("base64 decoding error");
+          errors->AddError("base64 decoding error");
         return out;
     }
 
@@ -466,16 +436,17 @@ template <> struct ValueConversions<Binary> {
     }
 };
 
-template <typename T> struct ValueConversions<std::vector<std::unique_ptr<T>>> {
-    static std::unique_ptr<std::vector<std::unique_ptr<T>>> fromValue(protocol::Value* value, ErrorSupport* errors)
-    {
+template<typename T>
+struct ValueConversions<std::vector<std::unique_ptr<T>>> {
+    static std::unique_ptr<std::vector<std::unique_ptr<T>>> fromValue(protocol::Value* value, ErrorSupport* errors) {
         protocol::ListValue* array = ListValue::cast(value);
         if (!array) {
             errors->AddError("array expected");
             return nullptr;
         }
         errors->Push();
-        std::unique_ptr<std::vector<std::unique_ptr<T>>> result(new std::vector<std::unique_ptr<T>>());
+        std::unique_ptr<std::vector<std::unique_ptr<T>>> result(
+            new std::vector<std::unique_ptr<T>>());
         result->reserve(array->size());
         for (size_t i = 0; i < array->size(); ++i) {
             errors->SetIndex(i);
@@ -496,11 +467,12 @@ template <typename T> struct ValueConversions<std::vector<std::unique_ptr<T>>> {
             result->pushValue(ValueConversions<T>::toValue(item.get()));
         return result;
     }
+
 };
 
-template <typename T> struct ValueConversions<std::vector<T>> {
-    static std::unique_ptr<std::vector<T>> fromValue(protocol::Value* value, ErrorSupport* errors)
-    {
+template<typename T>
+struct ValueConversions<std::vector<T>> {
+    static std::unique_ptr<std::vector<T>> fromValue(protocol::Value* value, ErrorSupport* errors) {
         protocol::ListValue* array = ListValue::cast(value);
         if (!array) {
             errors->AddError("array expected");
@@ -530,7 +502,8 @@ template <typename T> struct ValueConversions<std::vector<T>> {
     }
 };
 
-template <> struct ValueConversions<Value> {
+template<>
+struct ValueConversions<Value> {
     static std::unique_ptr<Value> fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         bool success = !!value;
@@ -552,7 +525,8 @@ template <> struct ValueConversions<Value> {
     }
 };
 
-template <> struct ValueConversions<DictionaryValue> {
+template<>
+struct ValueConversions<DictionaryValue> {
     static std::unique_ptr<DictionaryValue> fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         bool success = value && value->type() == protocol::Value::TypeObject;
@@ -572,7 +546,8 @@ template <> struct ValueConversions<DictionaryValue> {
     }
 };
 
-template <> struct ValueConversions<ListValue> {
+template<>
+struct ValueConversions<ListValue> {
     static std::unique_ptr<ListValue> fromValue(protocol::Value* value, ErrorSupport* errors)
     {
         bool success = value && value->type() == protocol::Value::TypeArray;
@@ -592,21 +567,19 @@ template <> struct ValueConversions<ListValue> {
     }
 };
 
-template <typename T> struct ValueTypeConverter {
-    static std::unique_ptr<T> FromValue(const protocol::Value& value)
-    {
-        std::vector<uint8_t> bytes;
-        value.AppendSerialized(&bytes);
-        return T::FromBinary(bytes.data(), bytes.size());
-    }
+template<typename T> struct ValueTypeConverter {
+  static std::unique_ptr<T> FromValue(const protocol::Value& value) {
+    std::vector<uint8_t> bytes;
+    value.AppendSerialized(&bytes);
+    return T::FromBinary(bytes.data(), bytes.size());
+  }
 
-    static std::unique_ptr<protocol::DictionaryValue> ToValue(const T& obj)
-    {
-        std::vector<uint8_t> bytes;
-        obj.AppendSerialized(&bytes);
-        auto result = Value::parseBinary(bytes.data(), bytes.size());
-        return DictionaryValue::cast(std::move(result));
-    }
+  static std::unique_ptr<protocol::DictionaryValue> ToValue(const T& obj) {
+    std::vector<uint8_t> bytes;
+    obj.AppendSerialized(&bytes);
+    auto result = Value::parseBinary(bytes.data(), bytes.size());
+    return DictionaryValue::cast(std::move(result));
+  }
 };
 
 } // namespace v8_inspector
@@ -614,36 +587,40 @@ template <typename T> struct ValueTypeConverter {
 
 namespace v8_crdtp {
 
-template <typename T> struct ProtocolTypeTraits<T, typename std::enable_if<std::is_base_of<v8_inspector::protocol::Value, T>::value>::type> {
-    static void Serialize(const v8_inspector::protocol::Value& value, std::vector<uint8_t>* bytes)
-    {
-        value.AppendSerialized(bytes);
-    }
+template<typename T>
+struct ProtocolTypeTraits<T,
+     typename std::enable_if<std::is_base_of<v8_inspector::protocol::Value, T>::value>::type> {
+  static void Serialize(const v8_inspector::protocol::Value& value, std::vector<uint8_t>* bytes) {
+    value.AppendSerialized(bytes);
+  }
 };
 
-template <> struct ProtocolTypeTraits<std::unique_ptr<v8_inspector::protocol::Value>> {
-    static bool Deserialize(DeserializerState* state, std::unique_ptr<v8_inspector::protocol::Value>* value);
-    static void Serialize(const std::unique_ptr<v8_inspector::protocol::Value>& value, std::vector<uint8_t>* bytes);
+template <>
+struct ProtocolTypeTraits<std::unique_ptr<v8_inspector::protocol::Value>> {
+  static bool Deserialize(DeserializerState* state, std::unique_ptr<v8_inspector::protocol::Value>* value);
+  static void Serialize(const std::unique_ptr<v8_inspector::protocol::Value>& value, std::vector<uint8_t>* bytes);
 };
 
-template <> struct ProtocolTypeTraits<std::unique_ptr<v8_inspector::protocol::DictionaryValue>> {
-    static bool Deserialize(DeserializerState* state, std::unique_ptr<v8_inspector::protocol::DictionaryValue>* value);
-    static void Serialize(const std::unique_ptr<v8_inspector::protocol::DictionaryValue>& value, std::vector<uint8_t>* bytes);
+template <>
+struct ProtocolTypeTraits<std::unique_ptr<v8_inspector::protocol::DictionaryValue>> {
+  static bool Deserialize(DeserializerState* state, std::unique_ptr<v8_inspector::protocol::DictionaryValue>* value);
+  static void Serialize(const std::unique_ptr<v8_inspector::protocol::DictionaryValue>& value, std::vector<uint8_t>* bytes);
 };
 
 // TODO(caseq): get rid of it, it's just a DictionaryValue really.
-template <> struct ProtocolTypeTraits<std::unique_ptr<v8_inspector::protocol::Object>> {
-    static bool Deserialize(DeserializerState* state, std::unique_ptr<v8_inspector::protocol::Object>* value);
-    static void Serialize(const std::unique_ptr<v8_inspector::protocol::Object>& value, std::vector<uint8_t>* bytes);
+template <>
+struct ProtocolTypeTraits<std::unique_ptr<v8_inspector::protocol::Object>> {
+  static bool Deserialize(DeserializerState* state, std::unique_ptr<v8_inspector::protocol::Object>* value);
+  static void Serialize(const std::unique_ptr<v8_inspector::protocol::Object>& value, std::vector<uint8_t>* bytes);
 };
 
-template <> struct ProtocolTypeTraits<v8_inspector::protocol::Object> {
-    static void Serialize(const v8_inspector::protocol::Object& value, std::vector<uint8_t>* bytes)
-    {
-        value.AppendSerialized(bytes);
-    }
+template<>
+struct ProtocolTypeTraits<v8_inspector::protocol::Object> {
+  static void Serialize(const v8_inspector::protocol::Object& value, std::vector<uint8_t>* bytes) {
+    value.AppendSerialized(bytes);
+  }
 };
 
-} // namespace v8_crdtp
+}  // namespace v8_crdtp
 
 #endif // !defined(v8_inspector_protocol_ValueConversions_h)

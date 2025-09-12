@@ -28,8 +28,7 @@ TNode<Foreign> LoadSyntheticModuleEvaluationSteps_0(compiler::CodeAssemblerState
 void StoreSyntheticModuleEvaluationSteps_0(compiler::CodeAssemblerState* state_, TNode<SyntheticModule> p_o, TNode<Foreign> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/synthetic-module.tq?l=5&c=1
-TNode<SyntheticModule> DownCastForTorqueClass_SyntheticModule_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<SyntheticModule> DownCastForTorqueClass_SyntheticModule_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

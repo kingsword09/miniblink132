@@ -7,20 +7,16 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-descriptor-object.tq?l=19&c=1
-TNode<PropertyDescriptorObject> Cast_PropertyDescriptorObject_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<PropertyDescriptorObject> Cast_PropertyDescriptorObject_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-descriptor-object.tq?l=53&c=1
-TNode<BoolT> IsCompatiblePropertyDescriptor_0(
-    compiler::CodeAssemblerState* state_, TNode<BoolT> p__extensible, TNode<PropertyDescriptorObject> p_newDesc, TNode<PropertyDescriptorObject> p_current);
+TNode<BoolT> IsCompatiblePropertyDescriptor_0(compiler::CodeAssemblerState* state_, TNode<BoolT> p__extensible, TNode<PropertyDescriptorObject> p_newDesc, TNode<PropertyDescriptorObject> p_current);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-descriptor-object.tq?l=99&c=1
-TNode<BoolT> IsCompatiblePropertyDescriptor_1(
-    compiler::CodeAssemblerState* state_, TNode<BoolT> p_extensible, TNode<HeapObject> p_newDesc, TNode<PropertyDescriptorObject> p_current);
+TNode<BoolT> IsCompatiblePropertyDescriptor_1(compiler::CodeAssemblerState* state_, TNode<BoolT> p_extensible, TNode<HeapObject> p_newDesc, TNode<PropertyDescriptorObject> p_current);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-descriptor-object.tq?l=114&c=1
-TNode<BoolT> IsCompatiblePropertyDescriptor_2(
-    compiler::CodeAssemblerState* state_, TNode<BoolT> p_extensible, TNode<HeapObject> p_newDesc, TNode<HeapObject> p_current);
+TNode<BoolT> IsCompatiblePropertyDescriptor_2(compiler::CodeAssemblerState* state_, TNode<BoolT> p_extensible, TNode<HeapObject> p_newDesc, TNode<HeapObject> p_current);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-descriptor-object.tq?l=131&c=1
 void CompletePropertyDescriptor_0(compiler::CodeAssemblerState* state_, TNode<PropertyDescriptorObject> p_desc);
@@ -59,12 +55,10 @@ TNode<BoolT> Method_PropertyDescriptorObject_IsAccessorDescriptor_0(compiler::Co
 TNode<BoolT> Method_PropertyDescriptorObject_IsGenericDescriptor_0(compiler::CodeAssemblerState* state_, TNode<PropertyDescriptorObject> p_this);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-descriptor-object.tq?l=35&c=3
-TNode<BoolT> Method_PropertyDescriptorObject_IsEmptyOrEquivalentTo_0(
-    compiler::CodeAssemblerState* state_, TNode<PropertyDescriptorObject> p_this, TNode<PropertyDescriptorObject> p_current);
+TNode<BoolT> Method_PropertyDescriptorObject_IsEmptyOrEquivalentTo_0(compiler::CodeAssemblerState* state_, TNode<PropertyDescriptorObject> p_this, TNode<PropertyDescriptorObject> p_current);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-descriptor-object.tq?l=19&c=1
-TNode<PropertyDescriptorObject> DownCastForTorqueClass_PropertyDescriptorObject_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<PropertyDescriptorObject> DownCastForTorqueClass_PropertyDescriptorObject_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

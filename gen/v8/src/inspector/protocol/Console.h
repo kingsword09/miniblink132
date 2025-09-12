@@ -21,13 +21,11 @@ class ConsoleMessage;
 
 // ------------- Type and builder declarations.
 
-class ConsoleMessage : public ::v8_crdtp::ProtocolObject<ConsoleMessage> {
+class  ConsoleMessage : public ::v8_crdtp::ProtocolObject<ConsoleMessage> {
 public:
-    ~ConsoleMessage() override
-    {
-    }
+    ~ConsoleMessage() override { }
 
-    struct SourceEnum {
+    struct  SourceEnum {
         static const char* Xml;
         static const char* Javascript;
         static const char* Network;
@@ -41,16 +39,10 @@ public:
         static const char* Worker;
     }; // SourceEnum
 
-    String getSource()
-    {
-        return m_source;
-    }
-    void setSource(const String& value)
-    {
-        m_source = value;
-    }
+    String getSource() { return m_source; }
+    void setSource(const String& value) { m_source = value; }
 
-    struct LevelEnum {
+    struct  LevelEnum {
         static const char* Log;
         static const char* Warning;
         static const char* Error;
@@ -58,66 +50,40 @@ public:
         static const char* Info;
     }; // LevelEnum
 
-    String getLevel()
-    {
-        return m_level;
-    }
-    void setLevel(const String& value)
-    {
-        m_level = value;
-    }
+    String getLevel() { return m_level; }
+    void setLevel(const String& value) { m_level = value; }
 
-    String getText()
-    {
-        return m_text;
-    }
-    void setText(const String& value)
-    {
-        m_text = value;
-    }
+    String getText() { return m_text; }
+    void setText(const String& value) { m_text = value; }
 
-    bool hasUrl()
-    {
-        return m_url.has_value();
+    bool hasUrl() { return m_url.has_value(); }
+    String getUrl(const String& defaultValue) const {
+       return m_url.value_or(defaultValue);
     }
-    String getUrl(const String& defaultValue) const
-    {
-        return m_url.value_or(defaultValue);
-    }
-    void setUrl(const String& value)
-    {
-        m_url = value;
-    }
+    void setUrl(const String& value) { m_url = value; }
 
-    bool hasLine()
-    {
-        return m_line.has_value();
+    bool hasLine() { return m_line.has_value(); }
+    int getLine(int defaultValue) const {
+       return m_line.value_or(defaultValue);
     }
-    int getLine(int defaultValue) const
-    {
-        return m_line.value_or(defaultValue);
-    }
-    void setLine(int value)
-    {
-        m_line = value;
-    }
+    void setLine(int value) { m_line = value; }
 
-    bool hasColumn()
-    {
-        return m_column.has_value();
+    bool hasColumn() { return m_column.has_value(); }
+    int getColumn(int defaultValue) const {
+       return m_column.value_or(defaultValue);
     }
-    int getColumn(int defaultValue) const
-    {
-        return m_column.value_or(defaultValue);
-    }
-    void setColumn(int value)
-    {
-        m_column = value;
-    }
+    void setColumn(int value) { m_column = value; }
 
-    template <int STATE> class ConsoleMessageBuilder {
+    template<int STATE>
+    class ConsoleMessageBuilder {
     public:
-        enum { NoFieldsSet = 0, SourceSet = 1 << 1, LevelSet = 1 << 2, TextSet = 1 << 3, AllFieldsSet = (SourceSet | LevelSet | TextSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            SourceSet = 1 << 1,
+            LevelSet = 1 << 2,
+            TextSet = 1 << 3,
+            AllFieldsSet = (SourceSet | LevelSet | TextSet | 0)};
+
 
         ConsoleMessageBuilder<STATE | SourceSet>& setSource(const String& value)
         {
@@ -166,12 +132,9 @@ public:
 
     private:
         friend class ConsoleMessage;
-        ConsoleMessageBuilder()
-            : m_result(new ConsoleMessage())
-        {
-        }
+        ConsoleMessageBuilder() : m_result(new ConsoleMessage()) { }
 
-        template <int STEP> ConsoleMessageBuilder<STATE | STEP>& castState()
+        template<int STEP> ConsoleMessageBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<ConsoleMessageBuilder<STATE | STEP>*>(this);
         }
@@ -199,51 +162,45 @@ private:
     Maybe<int> m_column;
 };
 
+
 // ------------- Backend interface.
 
-class Backend {
+class  Backend {
 public:
-    virtual ~Backend()
-    {
-    }
+    virtual ~Backend() { }
 
     virtual DispatchResponse clearMessages() = 0;
     virtual DispatchResponse disable() = 0;
     virtual DispatchResponse enable() = 0;
+
 };
 
 // ------------- Frontend interface.
 
-class Frontend {
+class  Frontend {
 public:
-    explicit Frontend(FrontendChannel* frontend_channel)
-        : frontend_channel_(frontend_channel)
-    {
-    }
+  explicit Frontend(FrontendChannel* frontend_channel) : frontend_channel_(frontend_channel) {}
     void messageAdded(std::unique_ptr<protocol::Console::ConsoleMessage> message);
 
-    void flush();
-    void sendRawNotification(std::unique_ptr<Serializable>);
-
-private:
-    FrontendChannel* frontend_channel_;
+  void flush();
+  void sendRawNotification(std::unique_ptr<Serializable>);
+ private:
+  FrontendChannel* frontend_channel_;
 };
 
 // ------------- Dispatcher.
 
-class Dispatcher {
+class  Dispatcher {
 public:
     static void wire(UberDispatcher*, Backend*);
 
 private:
-    Dispatcher()
-    {
-    }
+    Dispatcher() { }
 };
 
 // ------------- Metainfo.
 
-class Metainfo {
+class  Metainfo {
 public:
     using BackendClass = Backend;
     using FrontendClass = Frontend;

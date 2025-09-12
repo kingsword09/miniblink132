@@ -7,16 +7,13 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=5&c=1
-TNode<ObjectBoilerplateDescription> Cast_ObjectBoilerplateDescription_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ObjectBoilerplateDescription> Cast_ObjectBoilerplateDescription_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=13&c=1
-TNode<ArrayBoilerplateDescription> Cast_ArrayBoilerplateDescription_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ArrayBoilerplateDescription> Cast_ArrayBoilerplateDescription_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=18&c=1
-TNode<RegExpBoilerplateDescription> Cast_RegExpBoilerplateDescription_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<RegExpBoilerplateDescription> Cast_RegExpBoilerplateDescription_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=25&c=1
 TNode<ClassBoilerplate> Cast_ClassBoilerplate_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
@@ -37,15 +34,13 @@ TNode<Smi> LoadObjectBoilerplateDescriptionFlags_0(compiler::CodeAssemblerState*
 void StoreObjectBoilerplateDescriptionFlags_0(compiler::CodeAssemblerState* state_, TNode<ObjectBoilerplateDescription> p_o, TNode<Smi> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=10&c=3
-TorqueStructSlice_Object_MutableReference_Object_0 FieldSliceObjectBoilerplateDescriptionRawEntries_0(
-    compiler::CodeAssemblerState* state_, TNode<ObjectBoilerplateDescription> p_o);
+TorqueStructSlice_Object_MutableReference_Object_0 FieldSliceObjectBoilerplateDescriptionRawEntries_0(compiler::CodeAssemblerState* state_, TNode<ObjectBoilerplateDescription> p_o);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=10&c=3
 TNode<Object> LoadObjectBoilerplateDescriptionRawEntries_0(compiler::CodeAssemblerState* state_, TNode<ObjectBoilerplateDescription> p_o, TNode<IntPtrT> p_i);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=10&c=3
-void StoreObjectBoilerplateDescriptionRawEntries_0(
-    compiler::CodeAssemblerState* state_, TNode<ObjectBoilerplateDescription> p_o, TNode<IntPtrT> p_i, TNode<Object> p_v);
+void StoreObjectBoilerplateDescriptionRawEntries_0(compiler::CodeAssemblerState* state_, TNode<ObjectBoilerplateDescription> p_o, TNode<IntPtrT> p_i, TNode<Object> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=14&c=3
 TNode<Smi> LoadArrayBoilerplateDescriptionFlags_0(compiler::CodeAssemblerState* state_, TNode<ArrayBoilerplateDescription> p_o);
@@ -57,8 +52,7 @@ void StoreArrayBoilerplateDescriptionFlags_0(compiler::CodeAssemblerState* state
 TNode<FixedArrayBase> LoadArrayBoilerplateDescriptionConstantElements_0(compiler::CodeAssemblerState* state_, TNode<ArrayBoilerplateDescription> p_o);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=15&c=3
-void StoreArrayBoilerplateDescriptionConstantElements_0(
-    compiler::CodeAssemblerState* state_, TNode<ArrayBoilerplateDescription> p_o, TNode<FixedArrayBase> p_v);
+void StoreArrayBoilerplateDescriptionConstantElements_0(compiler::CodeAssemblerState* state_, TNode<ArrayBoilerplateDescription> p_o, TNode<FixedArrayBase> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=20&c=3
 TNode<TrustedPointerT> LoadRegExpBoilerplateDescriptionData_0(compiler::CodeAssemblerState* state_, TNode<RegExpBoilerplateDescription> p_o);
@@ -121,20 +115,16 @@ TNode<FixedArray> LoadClassBoilerplateInstanceComputedProperties_0(compiler::Cod
 void StoreClassBoilerplateInstanceComputedProperties_0(compiler::CodeAssemblerState* state_, TNode<ClassBoilerplate> p_o, TNode<FixedArray> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=5&c=1
-TNode<ObjectBoilerplateDescription> DownCastForTorqueClass_ObjectBoilerplateDescription_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ObjectBoilerplateDescription> DownCastForTorqueClass_ObjectBoilerplateDescription_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=13&c=1
-TNode<ArrayBoilerplateDescription> DownCastForTorqueClass_ArrayBoilerplateDescription_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ArrayBoilerplateDescription> DownCastForTorqueClass_ArrayBoilerplateDescription_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=18&c=1
-TNode<RegExpBoilerplateDescription> DownCastForTorqueClass_RegExpBoilerplateDescription_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<RegExpBoilerplateDescription> DownCastForTorqueClass_RegExpBoilerplateDescription_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/literal-objects.tq?l=25&c=1
-TNode<ClassBoilerplate> DownCastForTorqueClass_ClassBoilerplate_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ClassBoilerplate> DownCastForTorqueClass_ClassBoilerplate_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

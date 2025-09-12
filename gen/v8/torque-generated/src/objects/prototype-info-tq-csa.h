@@ -46,8 +46,7 @@ TNode<HeapObject> LoadPrototypeInfoDerivedMaps_0(compiler::CodeAssemblerState* s
 void StorePrototypeInfoDerivedMaps_0(compiler::CodeAssemblerState* state_, TNode<PrototypeInfo> p_o, TNode<HeapObject> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/prototype-info.tq?l=9&c=1
-TNode<PrototypeInfo> DownCastForTorqueClass_PrototypeInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<PrototypeInfo> DownCastForTorqueClass_PrototypeInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

@@ -97,8 +97,7 @@ void StoreDebugInfoDebugBytecodeArray_0(compiler::CodeAssemblerState* state_, TN
 TNode<Int32T> LoadCoverageInfoSlotCount_0(compiler::CodeAssemblerState* state_, TNode<CoverageInfo> p_o);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=64&c=3
-TorqueStructSlice_CoverageInfoSlot_MutableReference_CoverageInfoSlot_0 FieldSliceCoverageInfoSlots_0(
-    compiler::CodeAssemblerState* state_, TNode<CoverageInfo> p_o);
+TorqueStructSlice_CoverageInfoSlot_MutableReference_CoverageInfoSlot_0 FieldSliceCoverageInfoSlots_0(compiler::CodeAssemblerState* state_, TNode<CoverageInfo> p_o);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=79&c=3
 TNode<HeapObject> LoadStackFrameInfoSharedOrScript_0(compiler::CodeAssemblerState* state_, TNode<StackFrameInfo> p_o);
@@ -143,35 +142,28 @@ TNode<StackTraceInfo> LoadErrorStackDataStackTrace_0(compiler::CodeAssemblerStat
 void StoreErrorStackDataStackTrace_0(compiler::CodeAssemblerState* state_, TNode<ErrorStackData> p_o, TNode<StackTraceInfo> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=5&c=1
-TNode<BreakPoint> DownCastForTorqueClass_BreakPoint_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<BreakPoint> DownCastForTorqueClass_BreakPoint_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=10&c=1
-TNode<BreakPointInfo> DownCastForTorqueClass_BreakPointInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<BreakPointInfo> DownCastForTorqueClass_BreakPointInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=33&c=1
 TNode<DebugInfo> DownCastForTorqueClass_DebugInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=62&c=1
-TNode<CoverageInfo> DownCastForTorqueClass_CoverageInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<CoverageInfo> DownCastForTorqueClass_CoverageInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=72&c=1
-TNode<StackFrameInfo> DownCastForTorqueClass_StackFrameInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<StackFrameInfo> DownCastForTorqueClass_StackFrameInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=84&c=1
-TNode<StackTraceInfo> DownCastForTorqueClass_StackTraceInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<StackTraceInfo> DownCastForTorqueClass_StackTraceInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=104&c=1
-TNode<ErrorStackData> DownCastForTorqueClass_ErrorStackData_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ErrorStackData> DownCastForTorqueClass_ErrorStackData_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/debug-objects.tq?l=64&c=3
-TorqueStructSlice_CoverageInfoSlot_MutableReference_CoverageInfoSlot_0 NewMutableSlice_CoverageInfoSlot_0(
-    compiler::CodeAssemblerState* state_, TNode<Object> p_object, TNode<IntPtrT> p_offset, TNode<IntPtrT> p_length);
+TorqueStructSlice_CoverageInfoSlot_MutableReference_CoverageInfoSlot_0 NewMutableSlice_CoverageInfoSlot_0(compiler::CodeAssemblerState* state_, TNode<Object> p_object, TNode<IntPtrT> p_offset, TNode<IntPtrT> p_length);
 
 } // namespace internal
 } // namespace v8

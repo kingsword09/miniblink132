@@ -83,76 +83,72 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/typed-array-keys.tq?l=8&c=1
-const char* kBuiltinNameKeys_0(compiler::CodeAssemblerState* state_)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+const char* kBuiltinNameKeys_0(compiler::CodeAssemblerState* state_) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
     ca_.Bind(&block0);
-    return "%TypedArray%.prototype.keys";
-}
+  return "%TypedArray%.prototype.keys";}
 
-TF_BUILTIN(TypedArrayPrototypeKeys, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
-    TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
-    TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
-    TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
-    CodeStubArguments arguments(this, torque_arguments);
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = arguments.GetReceiver();
-    USE(parameter1);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(TypedArrayPrototypeKeys, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
+  TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
+  TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
+  TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
+  CodeStubArguments arguments(this, torque_arguments);
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = arguments.GetReceiver();
+  USE(parameter1);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSTypedArray> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        compiler::CodeAssemblerLabel label1(&ca_);
-        tmp0 = Cast_JSTypedArray_1(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, &label1);
-        ca_.Goto(&block5);
-        if (label1.is_used()) {
-            ca_.Bind(&label1);
-            ca_.Goto(&block6);
-        }
+  TNode<JSTypedArray> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    compiler::CodeAssemblerLabel label1(&ca_);
+    tmp0 = Cast_JSTypedArray_1(state_, TNode<Context>{parameter0}, TNode<Object>{parameter1}, &label1);
+    ca_.Goto(&block5);
+    if (label1.is_used()) {
+      ca_.Bind(&label1);
+      ca_.Goto(&block6);
     }
+  }
 
-    if (block6.is_used()) {
-        ca_.Bind(&block6);
-        CodeStubAssembler(state_).ThrowTypeError(TNode<Context> { parameter0 }, MessageTemplate::kNotTypedArray, kBuiltinNameKeys_0(state_));
-    }
+  if (block6.is_used()) {
+    ca_.Bind(&block6);
+    CodeStubAssembler(state_).ThrowTypeError(TNode<Context>{parameter0}, MessageTemplate::kNotTypedArray, kBuiltinNameKeys_0(state_));
+  }
 
-    TNode<JSTypedArray> tmp2;
-    if (block5.is_used()) {
-        ca_.Bind(&block5);
-        compiler::CodeAssemblerLabel label3(&ca_);
-        tmp2 = EnsureAttached_0(state_, TNode<JSTypedArray> { tmp0 }, &label3);
-        ca_.Goto(&block7);
-        if (label3.is_used()) {
-            ca_.Bind(&label3);
-            ca_.Goto(&block8);
-        }
+  TNode<JSTypedArray> tmp2;
+  if (block5.is_used()) {
+    ca_.Bind(&block5);
+    compiler::CodeAssemblerLabel label3(&ca_);
+    tmp2 = EnsureAttached_0(state_, TNode<JSTypedArray>{tmp0}, &label3);
+    ca_.Goto(&block7);
+    if (label3.is_used()) {
+      ca_.Bind(&label3);
+      ca_.Goto(&block8);
     }
+  }
 
-    if (block8.is_used()) {
-        ca_.Bind(&block8);
-        CodeStubAssembler(state_).ThrowTypeError(TNode<Context> { parameter0 }, MessageTemplate::kDetachedOperation, kBuiltinNameKeys_0(state_));
-    }
+  if (block8.is_used()) {
+    ca_.Bind(&block8);
+    CodeStubAssembler(state_).ThrowTypeError(TNode<Context>{parameter0}, MessageTemplate::kDetachedOperation, kBuiltinNameKeys_0(state_));
+  }
 
-    TNode<JSArrayIterator> tmp4;
-    if (block7.is_used()) {
-        ca_.Bind(&block7);
-        tmp4 = CreateArrayIterator_1(state_, TNode<NativeContext> { parameter0 }, TNode<JSReceiver> { tmp0 }, IterationKind::kKeys);
-        arguments.PopAndReturn(tmp4);
-    }
+  TNode<JSArrayIterator> tmp4;
+  if (block7.is_used()) {
+    ca_.Bind(&block7);
+    tmp4 = CreateArrayIterator_1(state_, TNode<NativeContext>{parameter0}, TNode<JSReceiver>{tmp0}, IterationKind::kKeys);
+    arguments.PopAndReturn(tmp4);
+  }
 }
 
 } // namespace internal

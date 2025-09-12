@@ -46,8 +46,7 @@ TNode<FixedArray> LoadCallSiteInfoParameters_0(compiler::CodeAssemblerState* sta
 void StoreCallSiteInfoParameters_0(compiler::CodeAssemblerState* state_, TNode<CallSiteInfo> p_o, TNode<FixedArray> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/call-site-info.tq?l=19&c=1
-TNode<CallSiteInfo> DownCastForTorqueClass_CallSiteInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<CallSiteInfo> DownCastForTorqueClass_CallSiteInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

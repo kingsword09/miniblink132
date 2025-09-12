@@ -34,8 +34,7 @@ TNode<Foreign> LoadJSDurationFormatIcuNumberFormatter_0(compiler::CodeAssemblerS
 void StoreJSDurationFormatIcuNumberFormatter_0(compiler::CodeAssemblerState* state_, TNode<JSDurationFormat> p_o, TNode<Foreign> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-duration-format.tq?l=43&c=1
-TNode<JSDurationFormat> DownCastForTorqueClass_JSDurationFormat_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSDurationFormat> DownCastForTorqueClass_JSDurationFormat_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

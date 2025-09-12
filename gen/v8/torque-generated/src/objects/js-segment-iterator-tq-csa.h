@@ -58,8 +58,7 @@ TNode<Boolean> LoadJSSegmentDataObjectWithIsWordLikeIsWordLike_0(compiler::CodeA
 void StoreJSSegmentDataObjectWithIsWordLikeIsWordLike_0(compiler::CodeAssemblerState* state_, TNode<JSSegmentDataObjectWithIsWordLike> p_o, TNode<Boolean> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-segment-iterator.tq?l=11&c=1
-TNode<JSSegmentIterator> DownCastForTorqueClass_JSSegmentIterator_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSSegmentIterator> DownCastForTorqueClass_JSSegmentIterator_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

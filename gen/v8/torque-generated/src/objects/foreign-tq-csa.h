@@ -28,8 +28,7 @@ void StoreTrustedForeignForeignAddress_0(compiler::CodeAssemblerState* state_, T
 TNode<Foreign> DownCastForTorqueClass_Foreign_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/foreign.tq?l=10&c=1
-TNode<TrustedForeign> DownCastForTorqueClass_TrustedForeign_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TrustedForeign> DownCastForTorqueClass_TrustedForeign_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

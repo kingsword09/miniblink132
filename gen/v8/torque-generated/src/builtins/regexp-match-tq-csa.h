@@ -7,16 +7,13 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/regexp-match.tq?l=25&c=1
-TNode<Object> RegExpPrototypeMatchBody_0(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSReceiver> p_regexp, TNode<String> p_string, bool p_isFastPath);
+TNode<Object> RegExpPrototypeMatchBody_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSReceiver> p_regexp, TNode<String> p_string, bool p_isFastPath);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/regexp-match.tq?l=117&c=1
-TNode<Object> FastRegExpPrototypeMatchBody_0(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSRegExp> p_receiver, TNode<String> p_string);
+TNode<Object> FastRegExpPrototypeMatchBody_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSRegExp> p_receiver, TNode<String> p_string);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/regexp-match.tq?l=122&c=1
-TNode<Object> SlowRegExpPrototypeMatchBody_0(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSReceiver> p_receiver, TNode<String> p_string);
+TNode<Object> SlowRegExpPrototypeMatchBody_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSReceiver> p_receiver, TNode<String> p_string);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/regexp-match.tq?l=29&c=12
 TNode<BoolT> Is_FastJSRegExp_JSReceiver_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSReceiver> p_o);

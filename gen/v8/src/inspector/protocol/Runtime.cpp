@@ -25,18 +25,24 @@ const char Metainfo::domainName[] = "Runtime";
 const char Metainfo::commandPrefix[] = "Runtime.";
 const char Metainfo::version[] = "1.3";
 
+
+
 const char* SerializationOptions::SerializationEnum::Deep = "deep";
 const char* SerializationOptions::SerializationEnum::Json = "json";
 const char* SerializationOptions::SerializationEnum::IdOnly = "idOnly";
 V8_CRDTP_BEGIN_DESERIALIZER(SerializationOptions)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("additionalParameters", m_additionalParameters), V8_CRDTP_DESERIALIZE_FIELD_OPT("maxDepth", m_maxDepth),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("additionalParameters", m_additionalParameters),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("maxDepth", m_maxDepth),
     V8_CRDTP_DESERIALIZE_FIELD("serialization", m_serialization),
-    V8_CRDTP_END_DESERIALIZER()
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(SerializationOptions) V8_CRDTP_SERIALIZE_FIELD("serialization", m_serialization);
-V8_CRDTP_SERIALIZE_FIELD("maxDepth", m_maxDepth);
-V8_CRDTP_SERIALIZE_FIELD("additionalParameters", m_additionalParameters);
+V8_CRDTP_BEGIN_SERIALIZER(SerializationOptions)
+    V8_CRDTP_SERIALIZE_FIELD("serialization", m_serialization);
+    V8_CRDTP_SERIALIZE_FIELD("maxDepth", m_maxDepth);
+    V8_CRDTP_SERIALIZE_FIELD("additionalParameters", m_additionalParameters);
 V8_CRDTP_END_SERIALIZER();
+
+
 
 const char* DeepSerializedValue::TypeEnum::Undefined = "undefined";
 const char* DeepSerializedValue::TypeEnum::Null = "null";
@@ -63,15 +69,22 @@ const char* DeepSerializedValue::TypeEnum::Node = "node";
 const char* DeepSerializedValue::TypeEnum::Window = "window";
 const char* DeepSerializedValue::TypeEnum::Generator = "generator";
 V8_CRDTP_BEGIN_DESERIALIZER(DeepSerializedValue)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", m_objectId), V8_CRDTP_DESERIALIZE_FIELD("type", m_type), V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", m_objectId),
+    V8_CRDTP_DESERIALIZE_FIELD("type", m_type),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
     V8_CRDTP_DESERIALIZE_FIELD_OPT("weakLocalObjectReference", m_weakLocalObjectReference),
-    V8_CRDTP_END_DESERIALIZER()
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(DeepSerializedValue) V8_CRDTP_SERIALIZE_FIELD("type", m_type);
-V8_CRDTP_SERIALIZE_FIELD("value", m_value);
-V8_CRDTP_SERIALIZE_FIELD("objectId", m_objectId);
-V8_CRDTP_SERIALIZE_FIELD("weakLocalObjectReference", m_weakLocalObjectReference);
+V8_CRDTP_BEGIN_SERIALIZER(DeepSerializedValue)
+    V8_CRDTP_SERIALIZE_FIELD("type", m_type);
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+    V8_CRDTP_SERIALIZE_FIELD("objectId", m_objectId);
+    V8_CRDTP_SERIALIZE_FIELD("weakLocalObjectReference", m_weakLocalObjectReference);
 V8_CRDTP_END_SERIALIZER();
+
+
+
+
 
 const char* RemoteObject::TypeEnum::Object = "object";
 const char* RemoteObject::TypeEnum::Function = "function";
@@ -102,23 +115,29 @@ const char* RemoteObject::SubtypeEnum::Dataview = "dataview";
 const char* RemoteObject::SubtypeEnum::Webassemblymemory = "webassemblymemory";
 const char* RemoteObject::SubtypeEnum::Wasmvalue = "wasmvalue";
 V8_CRDTP_BEGIN_DESERIALIZER(RemoteObject)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("className", m_className), V8_CRDTP_DESERIALIZE_FIELD_OPT("customPreview", m_customPreview),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("deepSerializedValue", m_deepSerializedValue), V8_CRDTP_DESERIALIZE_FIELD_OPT("description", m_description),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", m_objectId), V8_CRDTP_DESERIALIZE_FIELD_OPT("preview", m_preview),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("subtype", m_subtype), V8_CRDTP_DESERIALIZE_FIELD("type", m_type),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("unserializableValue", m_unserializableValue), V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("className", m_className),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("customPreview", m_customPreview),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("deepSerializedValue", m_deepSerializedValue),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("description", m_description),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", m_objectId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("preview", m_preview),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("subtype", m_subtype),
+    V8_CRDTP_DESERIALIZE_FIELD("type", m_type),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("unserializableValue", m_unserializableValue),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(RemoteObject) V8_CRDTP_SERIALIZE_FIELD("type", m_type);
-V8_CRDTP_SERIALIZE_FIELD("subtype", m_subtype);
-V8_CRDTP_SERIALIZE_FIELD("className", m_className);
-V8_CRDTP_SERIALIZE_FIELD("value", m_value);
-V8_CRDTP_SERIALIZE_FIELD("unserializableValue", m_unserializableValue);
-V8_CRDTP_SERIALIZE_FIELD("description", m_description);
-V8_CRDTP_SERIALIZE_FIELD("deepSerializedValue", m_deepSerializedValue);
-V8_CRDTP_SERIALIZE_FIELD("objectId", m_objectId);
-V8_CRDTP_SERIALIZE_FIELD("preview", m_preview);
-V8_CRDTP_SERIALIZE_FIELD("customPreview", m_customPreview);
+V8_CRDTP_BEGIN_SERIALIZER(RemoteObject)
+    V8_CRDTP_SERIALIZE_FIELD("type", m_type);
+    V8_CRDTP_SERIALIZE_FIELD("subtype", m_subtype);
+    V8_CRDTP_SERIALIZE_FIELD("className", m_className);
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+    V8_CRDTP_SERIALIZE_FIELD("unserializableValue", m_unserializableValue);
+    V8_CRDTP_SERIALIZE_FIELD("description", m_description);
+    V8_CRDTP_SERIALIZE_FIELD("deepSerializedValue", m_deepSerializedValue);
+    V8_CRDTP_SERIALIZE_FIELD("objectId", m_objectId);
+    V8_CRDTP_SERIALIZE_FIELD("preview", m_preview);
+    V8_CRDTP_SERIALIZE_FIELD("customPreview", m_customPreview);
 V8_CRDTP_END_SERIALIZER();
 
 // static
@@ -128,12 +147,16 @@ std::unique_ptr<API::RemoteObject> API::RemoteObject::fromBinary(const uint8_t* 
 }
 
 V8_CRDTP_BEGIN_DESERIALIZER(CustomPreview)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("bodyGetterId", m_bodyGetterId), V8_CRDTP_DESERIALIZE_FIELD("header", m_header),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("bodyGetterId", m_bodyGetterId),
+    V8_CRDTP_DESERIALIZE_FIELD("header", m_header),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(CustomPreview) V8_CRDTP_SERIALIZE_FIELD("header", m_header);
-V8_CRDTP_SERIALIZE_FIELD("bodyGetterId", m_bodyGetterId);
+V8_CRDTP_BEGIN_SERIALIZER(CustomPreview)
+    V8_CRDTP_SERIALIZE_FIELD("header", m_header);
+    V8_CRDTP_SERIALIZE_FIELD("bodyGetterId", m_bodyGetterId);
 V8_CRDTP_END_SERIALIZER();
+
+
 
 const char* ObjectPreview::TypeEnum::Object = "object";
 const char* ObjectPreview::TypeEnum::Function = "function";
@@ -164,18 +187,24 @@ const char* ObjectPreview::SubtypeEnum::Dataview = "dataview";
 const char* ObjectPreview::SubtypeEnum::Webassemblymemory = "webassemblymemory";
 const char* ObjectPreview::SubtypeEnum::Wasmvalue = "wasmvalue";
 V8_CRDTP_BEGIN_DESERIALIZER(ObjectPreview)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("description", m_description), V8_CRDTP_DESERIALIZE_FIELD_OPT("entries", m_entries),
-    V8_CRDTP_DESERIALIZE_FIELD("overflow", m_overflow), V8_CRDTP_DESERIALIZE_FIELD("properties", m_properties),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("subtype", m_subtype), V8_CRDTP_DESERIALIZE_FIELD("type", m_type),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("description", m_description),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("entries", m_entries),
+    V8_CRDTP_DESERIALIZE_FIELD("overflow", m_overflow),
+    V8_CRDTP_DESERIALIZE_FIELD("properties", m_properties),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("subtype", m_subtype),
+    V8_CRDTP_DESERIALIZE_FIELD("type", m_type),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(ObjectPreview) V8_CRDTP_SERIALIZE_FIELD("type", m_type);
-V8_CRDTP_SERIALIZE_FIELD("subtype", m_subtype);
-V8_CRDTP_SERIALIZE_FIELD("description", m_description);
-V8_CRDTP_SERIALIZE_FIELD("overflow", m_overflow);
-V8_CRDTP_SERIALIZE_FIELD("properties", m_properties);
-V8_CRDTP_SERIALIZE_FIELD("entries", m_entries);
+V8_CRDTP_BEGIN_SERIALIZER(ObjectPreview)
+    V8_CRDTP_SERIALIZE_FIELD("type", m_type);
+    V8_CRDTP_SERIALIZE_FIELD("subtype", m_subtype);
+    V8_CRDTP_SERIALIZE_FIELD("description", m_description);
+    V8_CRDTP_SERIALIZE_FIELD("overflow", m_overflow);
+    V8_CRDTP_SERIALIZE_FIELD("properties", m_properties);
+    V8_CRDTP_SERIALIZE_FIELD("entries", m_entries);
 V8_CRDTP_END_SERIALIZER();
+
+
 
 const char* PropertyPreview::TypeEnum::Object = "object";
 const char* PropertyPreview::TypeEnum::Function = "function";
@@ -207,126 +236,175 @@ const char* PropertyPreview::SubtypeEnum::Dataview = "dataview";
 const char* PropertyPreview::SubtypeEnum::Webassemblymemory = "webassemblymemory";
 const char* PropertyPreview::SubtypeEnum::Wasmvalue = "wasmvalue";
 V8_CRDTP_BEGIN_DESERIALIZER(PropertyPreview)
-V8_CRDTP_DESERIALIZE_FIELD("name", m_name), V8_CRDTP_DESERIALIZE_FIELD_OPT("subtype", m_subtype), V8_CRDTP_DESERIALIZE_FIELD("type", m_type),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value), V8_CRDTP_DESERIALIZE_FIELD_OPT("valuePreview", m_valuePreview),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("subtype", m_subtype),
+    V8_CRDTP_DESERIALIZE_FIELD("type", m_type),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("valuePreview", m_valuePreview),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(PropertyPreview) V8_CRDTP_SERIALIZE_FIELD("name", m_name);
-V8_CRDTP_SERIALIZE_FIELD("type", m_type);
-V8_CRDTP_SERIALIZE_FIELD("value", m_value);
-V8_CRDTP_SERIALIZE_FIELD("valuePreview", m_valuePreview);
-V8_CRDTP_SERIALIZE_FIELD("subtype", m_subtype);
+V8_CRDTP_BEGIN_SERIALIZER(PropertyPreview)
+    V8_CRDTP_SERIALIZE_FIELD("name", m_name);
+    V8_CRDTP_SERIALIZE_FIELD("type", m_type);
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+    V8_CRDTP_SERIALIZE_FIELD("valuePreview", m_valuePreview);
+    V8_CRDTP_SERIALIZE_FIELD("subtype", m_subtype);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(EntryPreview)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("key", m_key), V8_CRDTP_DESERIALIZE_FIELD("value", m_value),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("key", m_key),
+    V8_CRDTP_DESERIALIZE_FIELD("value", m_value),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(EntryPreview) V8_CRDTP_SERIALIZE_FIELD("key", m_key);
-V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+V8_CRDTP_BEGIN_SERIALIZER(EntryPreview)
+    V8_CRDTP_SERIALIZE_FIELD("key", m_key);
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(PropertyDescriptor)
-V8_CRDTP_DESERIALIZE_FIELD("configurable", m_configurable), V8_CRDTP_DESERIALIZE_FIELD("enumerable", m_enumerable),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("get", m_get), V8_CRDTP_DESERIALIZE_FIELD_OPT("isOwn", m_isOwn), V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("set", m_set), V8_CRDTP_DESERIALIZE_FIELD_OPT("symbol", m_symbol), V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("wasThrown", m_wasThrown), V8_CRDTP_DESERIALIZE_FIELD_OPT("writable", m_writable),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("configurable", m_configurable),
+    V8_CRDTP_DESERIALIZE_FIELD("enumerable", m_enumerable),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("get", m_get),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("isOwn", m_isOwn),
+    V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("set", m_set),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("symbol", m_symbol),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("wasThrown", m_wasThrown),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("writable", m_writable),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(PropertyDescriptor) V8_CRDTP_SERIALIZE_FIELD("name", m_name);
-V8_CRDTP_SERIALIZE_FIELD("value", m_value);
-V8_CRDTP_SERIALIZE_FIELD("writable", m_writable);
-V8_CRDTP_SERIALIZE_FIELD("get", m_get);
-V8_CRDTP_SERIALIZE_FIELD("set", m_set);
-V8_CRDTP_SERIALIZE_FIELD("configurable", m_configurable);
-V8_CRDTP_SERIALIZE_FIELD("enumerable", m_enumerable);
-V8_CRDTP_SERIALIZE_FIELD("wasThrown", m_wasThrown);
-V8_CRDTP_SERIALIZE_FIELD("isOwn", m_isOwn);
-V8_CRDTP_SERIALIZE_FIELD("symbol", m_symbol);
+V8_CRDTP_BEGIN_SERIALIZER(PropertyDescriptor)
+    V8_CRDTP_SERIALIZE_FIELD("name", m_name);
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+    V8_CRDTP_SERIALIZE_FIELD("writable", m_writable);
+    V8_CRDTP_SERIALIZE_FIELD("get", m_get);
+    V8_CRDTP_SERIALIZE_FIELD("set", m_set);
+    V8_CRDTP_SERIALIZE_FIELD("configurable", m_configurable);
+    V8_CRDTP_SERIALIZE_FIELD("enumerable", m_enumerable);
+    V8_CRDTP_SERIALIZE_FIELD("wasThrown", m_wasThrown);
+    V8_CRDTP_SERIALIZE_FIELD("isOwn", m_isOwn);
+    V8_CRDTP_SERIALIZE_FIELD("symbol", m_symbol);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(InternalPropertyDescriptor)
-V8_CRDTP_DESERIALIZE_FIELD("name", m_name), V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(InternalPropertyDescriptor) V8_CRDTP_SERIALIZE_FIELD("name", m_name);
-V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+V8_CRDTP_BEGIN_SERIALIZER(InternalPropertyDescriptor)
+    V8_CRDTP_SERIALIZE_FIELD("name", m_name);
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(PrivatePropertyDescriptor)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("get", m_get), V8_CRDTP_DESERIALIZE_FIELD("name", m_name), V8_CRDTP_DESERIALIZE_FIELD_OPT("set", m_set),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("get", m_get),
+    V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("set", m_set),
     V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
-    V8_CRDTP_END_DESERIALIZER()
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(PrivatePropertyDescriptor) V8_CRDTP_SERIALIZE_FIELD("name", m_name);
-V8_CRDTP_SERIALIZE_FIELD("value", m_value);
-V8_CRDTP_SERIALIZE_FIELD("get", m_get);
-V8_CRDTP_SERIALIZE_FIELD("set", m_set);
+V8_CRDTP_BEGIN_SERIALIZER(PrivatePropertyDescriptor)
+    V8_CRDTP_SERIALIZE_FIELD("name", m_name);
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+    V8_CRDTP_SERIALIZE_FIELD("get", m_get);
+    V8_CRDTP_SERIALIZE_FIELD("set", m_set);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(CallArgument)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", m_objectId), V8_CRDTP_DESERIALIZE_FIELD_OPT("unserializableValue", m_unserializableValue),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", m_objectId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("unserializableValue", m_unserializableValue),
     V8_CRDTP_DESERIALIZE_FIELD_OPT("value", m_value),
-    V8_CRDTP_END_DESERIALIZER()
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(CallArgument) V8_CRDTP_SERIALIZE_FIELD("value", m_value);
-V8_CRDTP_SERIALIZE_FIELD("unserializableValue", m_unserializableValue);
-V8_CRDTP_SERIALIZE_FIELD("objectId", m_objectId);
+V8_CRDTP_BEGIN_SERIALIZER(CallArgument)
+    V8_CRDTP_SERIALIZE_FIELD("value", m_value);
+    V8_CRDTP_SERIALIZE_FIELD("unserializableValue", m_unserializableValue);
+    V8_CRDTP_SERIALIZE_FIELD("objectId", m_objectId);
 V8_CRDTP_END_SERIALIZER();
+
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(ExecutionContextDescription)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("auxData", m_auxData), V8_CRDTP_DESERIALIZE_FIELD("id", m_id), V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
-    V8_CRDTP_DESERIALIZE_FIELD("origin", m_origin), V8_CRDTP_DESERIALIZE_FIELD("uniqueId", m_uniqueId),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("auxData", m_auxData),
+    V8_CRDTP_DESERIALIZE_FIELD("id", m_id),
+    V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
+    V8_CRDTP_DESERIALIZE_FIELD("origin", m_origin),
+    V8_CRDTP_DESERIALIZE_FIELD("uniqueId", m_uniqueId),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(ExecutionContextDescription) V8_CRDTP_SERIALIZE_FIELD("id", m_id);
-V8_CRDTP_SERIALIZE_FIELD("origin", m_origin);
-V8_CRDTP_SERIALIZE_FIELD("name", m_name);
-V8_CRDTP_SERIALIZE_FIELD("uniqueId", m_uniqueId);
-V8_CRDTP_SERIALIZE_FIELD("auxData", m_auxData);
+V8_CRDTP_BEGIN_SERIALIZER(ExecutionContextDescription)
+    V8_CRDTP_SERIALIZE_FIELD("id", m_id);
+    V8_CRDTP_SERIALIZE_FIELD("origin", m_origin);
+    V8_CRDTP_SERIALIZE_FIELD("name", m_name);
+    V8_CRDTP_SERIALIZE_FIELD("uniqueId", m_uniqueId);
+    V8_CRDTP_SERIALIZE_FIELD("auxData", m_auxData);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(ExceptionDetails)
-V8_CRDTP_DESERIALIZE_FIELD("columnNumber", m_columnNumber), V8_CRDTP_DESERIALIZE_FIELD_OPT("exception", m_exception),
-    V8_CRDTP_DESERIALIZE_FIELD("exceptionId", m_exceptionId), V8_CRDTP_DESERIALIZE_FIELD_OPT("exceptionMetaData", m_exceptionMetaData),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", m_executionContextId), V8_CRDTP_DESERIALIZE_FIELD("lineNumber", m_lineNumber),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("scriptId", m_scriptId), V8_CRDTP_DESERIALIZE_FIELD_OPT("stackTrace", m_stackTrace),
-    V8_CRDTP_DESERIALIZE_FIELD("text", m_text), V8_CRDTP_DESERIALIZE_FIELD_OPT("url", m_url),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("columnNumber", m_columnNumber),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("exception", m_exception),
+    V8_CRDTP_DESERIALIZE_FIELD("exceptionId", m_exceptionId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("exceptionMetaData", m_exceptionMetaData),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", m_executionContextId),
+    V8_CRDTP_DESERIALIZE_FIELD("lineNumber", m_lineNumber),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("scriptId", m_scriptId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("stackTrace", m_stackTrace),
+    V8_CRDTP_DESERIALIZE_FIELD("text", m_text),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("url", m_url),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(ExceptionDetails) V8_CRDTP_SERIALIZE_FIELD("exceptionId", m_exceptionId);
-V8_CRDTP_SERIALIZE_FIELD("text", m_text);
-V8_CRDTP_SERIALIZE_FIELD("lineNumber", m_lineNumber);
-V8_CRDTP_SERIALIZE_FIELD("columnNumber", m_columnNumber);
-V8_CRDTP_SERIALIZE_FIELD("scriptId", m_scriptId);
-V8_CRDTP_SERIALIZE_FIELD("url", m_url);
-V8_CRDTP_SERIALIZE_FIELD("stackTrace", m_stackTrace);
-V8_CRDTP_SERIALIZE_FIELD("exception", m_exception);
-V8_CRDTP_SERIALIZE_FIELD("executionContextId", m_executionContextId);
-V8_CRDTP_SERIALIZE_FIELD("exceptionMetaData", m_exceptionMetaData);
+V8_CRDTP_BEGIN_SERIALIZER(ExceptionDetails)
+    V8_CRDTP_SERIALIZE_FIELD("exceptionId", m_exceptionId);
+    V8_CRDTP_SERIALIZE_FIELD("text", m_text);
+    V8_CRDTP_SERIALIZE_FIELD("lineNumber", m_lineNumber);
+    V8_CRDTP_SERIALIZE_FIELD("columnNumber", m_columnNumber);
+    V8_CRDTP_SERIALIZE_FIELD("scriptId", m_scriptId);
+    V8_CRDTP_SERIALIZE_FIELD("url", m_url);
+    V8_CRDTP_SERIALIZE_FIELD("stackTrace", m_stackTrace);
+    V8_CRDTP_SERIALIZE_FIELD("exception", m_exception);
+    V8_CRDTP_SERIALIZE_FIELD("executionContextId", m_executionContextId);
+    V8_CRDTP_SERIALIZE_FIELD("exceptionMetaData", m_exceptionMetaData);
 V8_CRDTP_END_SERIALIZER();
+
+
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(CallFrame)
-V8_CRDTP_DESERIALIZE_FIELD("columnNumber", m_columnNumber), V8_CRDTP_DESERIALIZE_FIELD("functionName", m_functionName),
-    V8_CRDTP_DESERIALIZE_FIELD("lineNumber", m_lineNumber), V8_CRDTP_DESERIALIZE_FIELD("scriptId", m_scriptId), V8_CRDTP_DESERIALIZE_FIELD("url", m_url),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("columnNumber", m_columnNumber),
+    V8_CRDTP_DESERIALIZE_FIELD("functionName", m_functionName),
+    V8_CRDTP_DESERIALIZE_FIELD("lineNumber", m_lineNumber),
+    V8_CRDTP_DESERIALIZE_FIELD("scriptId", m_scriptId),
+    V8_CRDTP_DESERIALIZE_FIELD("url", m_url),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(CallFrame) V8_CRDTP_SERIALIZE_FIELD("functionName", m_functionName);
-V8_CRDTP_SERIALIZE_FIELD("scriptId", m_scriptId);
-V8_CRDTP_SERIALIZE_FIELD("url", m_url);
-V8_CRDTP_SERIALIZE_FIELD("lineNumber", m_lineNumber);
-V8_CRDTP_SERIALIZE_FIELD("columnNumber", m_columnNumber);
+V8_CRDTP_BEGIN_SERIALIZER(CallFrame)
+    V8_CRDTP_SERIALIZE_FIELD("functionName", m_functionName);
+    V8_CRDTP_SERIALIZE_FIELD("scriptId", m_scriptId);
+    V8_CRDTP_SERIALIZE_FIELD("url", m_url);
+    V8_CRDTP_SERIALIZE_FIELD("lineNumber", m_lineNumber);
+    V8_CRDTP_SERIALIZE_FIELD("columnNumber", m_columnNumber);
 V8_CRDTP_END_SERIALIZER();
 
-V8_CRDTP_BEGIN_DESERIALIZER(StackTrace)
-V8_CRDTP_DESERIALIZE_FIELD("callFrames", m_callFrames), V8_CRDTP_DESERIALIZE_FIELD_OPT("description", m_description),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("parent", m_parent), V8_CRDTP_DESERIALIZE_FIELD_OPT("parentId", m_parentId),
-    V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(StackTrace) V8_CRDTP_SERIALIZE_FIELD("description", m_description);
-V8_CRDTP_SERIALIZE_FIELD("callFrames", m_callFrames);
-V8_CRDTP_SERIALIZE_FIELD("parent", m_parent);
-V8_CRDTP_SERIALIZE_FIELD("parentId", m_parentId);
+V8_CRDTP_BEGIN_DESERIALIZER(StackTrace)
+    V8_CRDTP_DESERIALIZE_FIELD("callFrames", m_callFrames),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("description", m_description),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("parent", m_parent),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("parentId", m_parentId),
+V8_CRDTP_END_DESERIALIZER()
+
+V8_CRDTP_BEGIN_SERIALIZER(StackTrace)
+    V8_CRDTP_SERIALIZE_FIELD("description", m_description);
+    V8_CRDTP_SERIALIZE_FIELD("callFrames", m_callFrames);
+    V8_CRDTP_SERIALIZE_FIELD("parent", m_parent);
+    V8_CRDTP_SERIALIZE_FIELD("parentId", m_parentId);
 V8_CRDTP_END_SERIALIZER();
 
 // static
@@ -335,12 +413,15 @@ std::unique_ptr<API::StackTrace> API::StackTrace::fromBinary(const uint8_t* data
     return protocol::Runtime::StackTrace::FromBinary(data, length);
 }
 
-V8_CRDTP_BEGIN_DESERIALIZER(StackTraceId)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("debuggerId", m_debuggerId), V8_CRDTP_DESERIALIZE_FIELD("id", m_id),
-    V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(StackTraceId) V8_CRDTP_SERIALIZE_FIELD("id", m_id);
-V8_CRDTP_SERIALIZE_FIELD("debuggerId", m_debuggerId);
+V8_CRDTP_BEGIN_DESERIALIZER(StackTraceId)
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("debuggerId", m_debuggerId),
+    V8_CRDTP_DESERIALIZE_FIELD("id", m_id),
+V8_CRDTP_END_DESERIALIZER()
+
+V8_CRDTP_BEGIN_SERIALIZER(StackTraceId)
+    V8_CRDTP_SERIALIZE_FIELD("id", m_id);
+    V8_CRDTP_SERIALIZE_FIELD("debuggerId", m_debuggerId);
 V8_CRDTP_END_SERIALIZER();
 
 // static
@@ -350,6 +431,7 @@ std::unique_ptr<API::StackTraceId> API::StackTraceId::fromBinary(const uint8_t* 
 }
 
 // ------------- Enum values from params.
+
 
 namespace ConsoleAPICalled {
 namespace TypeEnum {
@@ -387,8 +469,7 @@ void Frontend::bindingCalled(const String& name, const String& payload, int exec
     frontend_channel_->SendProtocolNotification(v8_crdtp::CreateNotification("Runtime.bindingCalled", serializer.Finish()));
 }
 
-void Frontend::consoleAPICalled(const String& type, std::unique_ptr<protocol::Array<protocol::Runtime::RemoteObject>> args, int executionContextId,
-    double timestamp, Maybe<protocol::Runtime::StackTrace> stackTrace, Maybe<String> context)
+void Frontend::consoleAPICalled(const String& type, std::unique_ptr<protocol::Array<protocol::Runtime::RemoteObject>> args, int executionContextId, double timestamp, Maybe<protocol::Runtime::StackTrace> stackTrace, Maybe<String> context)
 {
     if (!frontend_channel_)
         return;
@@ -448,8 +529,7 @@ void Frontend::executionContextsCleared()
     frontend_channel_->SendProtocolNotification(v8_crdtp::CreateNotification("Runtime.executionContextsCleared"));
 }
 
-void Frontend::inspectRequested(
-    std::unique_ptr<protocol::Runtime::RemoteObject> object, std::unique_ptr<protocol::DictionaryValue> hints, Maybe<int> executionContextId)
+void Frontend::inspectRequested(std::unique_ptr<protocol::Runtime::RemoteObject> object, std::unique_ptr<protocol::DictionaryValue> hints, Maybe<int> executionContextId)
 {
     if (!frontend_channel_)
         return;
@@ -476,12 +556,8 @@ class DomainDispatcherImpl : public protocol::DomainDispatcher {
 public:
     DomainDispatcherImpl(FrontendChannel* frontendChannel, Backend* backend)
         : DomainDispatcher(frontendChannel)
-        , m_backend(backend)
-    {
-    }
-    ~DomainDispatcherImpl() override
-    {
-    }
+        , m_backend(backend) {}
+    ~DomainDispatcherImpl() override { }
 
     using CallHandler = void (DomainDispatcherImpl::*)(const v8_crdtp::Dispatchable& dispatchable);
 
@@ -509,8 +585,7 @@ public:
     void addBinding(const v8_crdtp::Dispatchable& dispatchable);
     void removeBinding(const v8_crdtp::Dispatchable& dispatchable);
     void getExceptionDetails(const v8_crdtp::Dispatchable& dispatchable);
-
-protected:
+ protected:
     Backend* m_backend;
 };
 
@@ -518,54 +593,120 @@ namespace {
 // This helper method with a static map of command methods (instance methods
 // of DomainDispatcherImpl declared just above) by their name is used immediately below,
 // in the DomainDispatcherImpl::Dispatch method.
-DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name)
-{
-    static auto* commands = []() {
-        auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>, DomainDispatcherImpl::CallHandler>> {
-            { v8_crdtp::SpanFrom("addBinding"), &DomainDispatcherImpl::addBinding },
-            { v8_crdtp::SpanFrom("awaitPromise"), &DomainDispatcherImpl::awaitPromise },
-            { v8_crdtp::SpanFrom("callFunctionOn"), &DomainDispatcherImpl::callFunctionOn },
-            { v8_crdtp::SpanFrom("compileScript"), &DomainDispatcherImpl::compileScript },
-            { v8_crdtp::SpanFrom("disable"), &DomainDispatcherImpl::disable },
-            { v8_crdtp::SpanFrom("discardConsoleEntries"), &DomainDispatcherImpl::discardConsoleEntries },
-            { v8_crdtp::SpanFrom("enable"), &DomainDispatcherImpl::enable },
-            { v8_crdtp::SpanFrom("evaluate"), &DomainDispatcherImpl::evaluate },
-            { v8_crdtp::SpanFrom("getExceptionDetails"), &DomainDispatcherImpl::getExceptionDetails },
-            { v8_crdtp::SpanFrom("getHeapUsage"), &DomainDispatcherImpl::getHeapUsage },
-            { v8_crdtp::SpanFrom("getIsolateId"), &DomainDispatcherImpl::getIsolateId },
-            { v8_crdtp::SpanFrom("getProperties"), &DomainDispatcherImpl::getProperties },
-            { v8_crdtp::SpanFrom("globalLexicalScopeNames"), &DomainDispatcherImpl::globalLexicalScopeNames },
-            { v8_crdtp::SpanFrom("queryObjects"), &DomainDispatcherImpl::queryObjects },
-            { v8_crdtp::SpanFrom("releaseObject"), &DomainDispatcherImpl::releaseObject },
-            { v8_crdtp::SpanFrom("releaseObjectGroup"), &DomainDispatcherImpl::releaseObjectGroup },
-            { v8_crdtp::SpanFrom("removeBinding"), &DomainDispatcherImpl::removeBinding },
-            { v8_crdtp::SpanFrom("runIfWaitingForDebugger"), &DomainDispatcherImpl::runIfWaitingForDebugger },
-            { v8_crdtp::SpanFrom("runScript"), &DomainDispatcherImpl::runScript },
-            { v8_crdtp::SpanFrom("setCustomObjectFormatterEnabled"), &DomainDispatcherImpl::setCustomObjectFormatterEnabled },
-            { v8_crdtp::SpanFrom("setMaxCallStackSizeToCapture"), &DomainDispatcherImpl::setMaxCallStackSizeToCapture },
-            { v8_crdtp::SpanFrom("terminateExecution"), &DomainDispatcherImpl::terminateExecution },
-        };
-        return commands;
-    }();
-    return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
+DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name) {
+  static auto* commands = [](){
+    auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>,
+                              DomainDispatcherImpl::CallHandler>>{
+    {
+          v8_crdtp::SpanFrom("addBinding"),
+          &DomainDispatcherImpl::addBinding
+    },
+    {
+          v8_crdtp::SpanFrom("awaitPromise"),
+          &DomainDispatcherImpl::awaitPromise
+    },
+    {
+          v8_crdtp::SpanFrom("callFunctionOn"),
+          &DomainDispatcherImpl::callFunctionOn
+    },
+    {
+          v8_crdtp::SpanFrom("compileScript"),
+          &DomainDispatcherImpl::compileScript
+    },
+    {
+          v8_crdtp::SpanFrom("disable"),
+          &DomainDispatcherImpl::disable
+    },
+    {
+          v8_crdtp::SpanFrom("discardConsoleEntries"),
+          &DomainDispatcherImpl::discardConsoleEntries
+    },
+    {
+          v8_crdtp::SpanFrom("enable"),
+          &DomainDispatcherImpl::enable
+    },
+    {
+          v8_crdtp::SpanFrom("evaluate"),
+          &DomainDispatcherImpl::evaluate
+    },
+    {
+          v8_crdtp::SpanFrom("getExceptionDetails"),
+          &DomainDispatcherImpl::getExceptionDetails
+    },
+    {
+          v8_crdtp::SpanFrom("getHeapUsage"),
+          &DomainDispatcherImpl::getHeapUsage
+    },
+    {
+          v8_crdtp::SpanFrom("getIsolateId"),
+          &DomainDispatcherImpl::getIsolateId
+    },
+    {
+          v8_crdtp::SpanFrom("getProperties"),
+          &DomainDispatcherImpl::getProperties
+    },
+    {
+          v8_crdtp::SpanFrom("globalLexicalScopeNames"),
+          &DomainDispatcherImpl::globalLexicalScopeNames
+    },
+    {
+          v8_crdtp::SpanFrom("queryObjects"),
+          &DomainDispatcherImpl::queryObjects
+    },
+    {
+          v8_crdtp::SpanFrom("releaseObject"),
+          &DomainDispatcherImpl::releaseObject
+    },
+    {
+          v8_crdtp::SpanFrom("releaseObjectGroup"),
+          &DomainDispatcherImpl::releaseObjectGroup
+    },
+    {
+          v8_crdtp::SpanFrom("removeBinding"),
+          &DomainDispatcherImpl::removeBinding
+    },
+    {
+          v8_crdtp::SpanFrom("runIfWaitingForDebugger"),
+          &DomainDispatcherImpl::runIfWaitingForDebugger
+    },
+    {
+          v8_crdtp::SpanFrom("runScript"),
+          &DomainDispatcherImpl::runScript
+    },
+    {
+          v8_crdtp::SpanFrom("setCustomObjectFormatterEnabled"),
+          &DomainDispatcherImpl::setCustomObjectFormatterEnabled
+    },
+    {
+          v8_crdtp::SpanFrom("setMaxCallStackSizeToCapture"),
+          &DomainDispatcherImpl::setMaxCallStackSizeToCapture
+    },
+    {
+          v8_crdtp::SpanFrom("terminateExecution"),
+          &DomainDispatcherImpl::terminateExecution
+    },
+    };
+    return commands;
+  }();
+  return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
 }
-} // namespace
+}  // namespace
 
-std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name)
-{
-    CallHandler handler = CommandByName(command_name);
-    if (!handler)
-        return nullptr;
+std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name) {
+  CallHandler handler = CommandByName(command_name);
+  if (!handler) return nullptr;
 
-    return [this, handler](const v8_crdtp::Dispatchable& dispatchable) { (this->*handler)(dispatchable); };
+  return [this, handler](const v8_crdtp::Dispatchable& dispatchable) {
+    (this->*handler)(dispatchable);
+  };
 }
+
 
 class AwaitPromiseCallbackImpl : public Backend::AwaitPromiseCallback, public DomainDispatcher::Callback {
 public:
     AwaitPromiseCallbackImpl(std::unique_ptr<DomainDispatcher::WeakPtr> backendImpl, int callId, v8_crdtp::span<uint8_t> message)
-        : DomainDispatcher::Callback(std::move(backendImpl), callId, v8_crdtp::SpanFrom("Runtime.awaitPromise"), message)
-    {
-    }
+        : DomainDispatcher::Callback(std::move(backendImpl), callId,
+v8_crdtp::SpanFrom("Runtime.awaitPromise"), message) { }
 
     void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) override
     {
@@ -597,10 +738,12 @@ struct awaitPromiseParams : public v8_crdtp::DeserializableProtocolObject<awaitP
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(awaitPromiseParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview), V8_CRDTP_DESERIALIZE_FIELD("promiseObjectId", promiseObjectId),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview),
+    V8_CRDTP_DESERIALIZE_FIELD("promiseObjectId", promiseObjectId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::awaitPromise(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -608,20 +751,18 @@ void DomainDispatcherImpl::awaitPromise(const v8_crdtp::Dispatchable& dispatchab
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     awaitPromiseParams params;
     if (!awaitPromiseParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
-    m_backend->awaitPromise(params.promiseObjectId, std::move(params.returnByValue), std::move(params.generatePreview),
-        std::make_unique<AwaitPromiseCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
+    m_backend->awaitPromise(params.promiseObjectId, std::move(params.returnByValue), std::move(params.generatePreview), std::make_unique<AwaitPromiseCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
 }
 
 class CallFunctionOnCallbackImpl : public Backend::CallFunctionOnCallback, public DomainDispatcher::Callback {
 public:
     CallFunctionOnCallbackImpl(std::unique_ptr<DomainDispatcher::WeakPtr> backendImpl, int callId, v8_crdtp::span<uint8_t> message)
-        : DomainDispatcher::Callback(std::move(backendImpl), callId, v8_crdtp::SpanFrom("Runtime.callFunctionOn"), message)
-    {
-    }
+        : DomainDispatcher::Callback(std::move(backendImpl), callId,
+v8_crdtp::SpanFrom("Runtime.callFunctionOn"), message) { }
 
     void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) override
     {
@@ -663,15 +804,22 @@ struct callFunctionOnParams : public v8_crdtp::DeserializableProtocolObject<call
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(callFunctionOnParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("arguments", arguments), V8_CRDTP_DESERIALIZE_FIELD_OPT("awaitPromise", awaitPromise),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId), V8_CRDTP_DESERIALIZE_FIELD("functionDeclaration", functionDeclaration),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview), V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", objectId), V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("serializationOptions", serializationOptions), V8_CRDTP_DESERIALIZE_FIELD_OPT("silent", silent),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("throwOnSideEffect", throwOnSideEffect), V8_CRDTP_DESERIALIZE_FIELD_OPT("uniqueContextId", uniqueContextId),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("userGesture", userGesture), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("arguments", arguments),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("awaitPromise", awaitPromise),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId),
+    V8_CRDTP_DESERIALIZE_FIELD("functionDeclaration", functionDeclaration),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectId", objectId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("serializationOptions", serializationOptions),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("silent", silent),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("throwOnSideEffect", throwOnSideEffect),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("uniqueContextId", uniqueContextId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("userGesture", userGesture),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::callFunctionOn(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -679,14 +827,11 @@ void DomainDispatcherImpl::callFunctionOn(const v8_crdtp::Dispatchable& dispatch
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     callFunctionOnParams params;
     if (!callFunctionOnParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
-    m_backend->callFunctionOn(params.functionDeclaration, std::move(params.objectId), std::move(params.arguments), std::move(params.silent),
-        std::move(params.returnByValue), std::move(params.generatePreview), std::move(params.userGesture), std::move(params.awaitPromise),
-        std::move(params.executionContextId), std::move(params.objectGroup), std::move(params.throwOnSideEffect), std::move(params.uniqueContextId),
-        std::move(params.serializationOptions), std::make_unique<CallFunctionOnCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
+    m_backend->callFunctionOn(params.functionDeclaration, std::move(params.objectId), std::move(params.arguments), std::move(params.silent), std::move(params.returnByValue), std::move(params.generatePreview), std::move(params.userGesture), std::move(params.awaitPromise), std::move(params.executionContextId), std::move(params.objectGroup), std::move(params.throwOnSideEffect), std::move(params.uniqueContextId), std::move(params.serializationOptions), std::make_unique<CallFunctionOnCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
 }
 
 namespace {
@@ -700,10 +845,13 @@ struct compileScriptParams : public v8_crdtp::DeserializableProtocolObject<compi
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(compileScriptParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId), V8_CRDTP_DESERIALIZE_FIELD("expression", expression),
-    V8_CRDTP_DESERIALIZE_FIELD("persistScript", persistScript), V8_CRDTP_DESERIALIZE_FIELD("sourceURL", sourceURL), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId),
+    V8_CRDTP_DESERIALIZE_FIELD("expression", expression),
+    V8_CRDTP_DESERIALIZE_FIELD("persistScript", persistScript),
+    V8_CRDTP_DESERIALIZE_FIELD("sourceURL", sourceURL),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::compileScript(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -711,38 +859,38 @@ void DomainDispatcherImpl::compileScript(const v8_crdtp::Dispatchable& dispatcha
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     compileScriptParams params;
     if (!compileScriptParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     Maybe<String> out_scriptId;
     Maybe<protocol::Runtime::ExceptionDetails> out_exceptionDetails;
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
-    DispatchResponse response = m_backend->compileScript(
-        params.expression, params.sourceURL, params.persistScript, std::move(params.executionContextId), &out_scriptId, &out_exceptionDetails);
+    DispatchResponse response = m_backend->compileScript(params.expression, params.sourceURL, params.persistScript, std::move(params.executionContextId), &out_scriptId, &out_exceptionDetails);
     if (response.IsFallThrough()) {
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Runtime.compileScript"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("scriptId"), out_scriptId);
-            serializer.AddField(v8_crdtp::MakeSpan("exceptionDetails"), out_exceptionDetails);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("scriptId"), out_scriptId);
+          serializer.AddField(v8_crdtp::MakeSpan("exceptionDetails"), out_exceptionDetails);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -761,7 +909,8 @@ void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::discardConsoleEntries(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -780,7 +929,8 @@ void DomainDispatcherImpl::discardConsoleEntries(const v8_crdtp::Dispatchable& d
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::enable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -800,9 +950,8 @@ void DomainDispatcherImpl::enable(const v8_crdtp::Dispatchable& dispatchable)
 class EvaluateCallbackImpl : public Backend::EvaluateCallback, public DomainDispatcher::Callback {
 public:
     EvaluateCallbackImpl(std::unique_ptr<DomainDispatcher::WeakPtr> backendImpl, int callId, v8_crdtp::span<uint8_t> message)
-        : DomainDispatcher::Callback(std::move(backendImpl), callId, v8_crdtp::SpanFrom("Runtime.evaluate"), message)
-    {
-    }
+        : DomainDispatcher::Callback(std::move(backendImpl), callId,
+v8_crdtp::SpanFrom("Runtime.evaluate"), message) { }
 
     void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) override
     {
@@ -847,16 +996,25 @@ struct evaluateParams : public v8_crdtp::DeserializableProtocolObject<evaluatePa
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(evaluateParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("allowUnsafeEvalBlockedByCSP", allowUnsafeEvalBlockedByCSP), V8_CRDTP_DESERIALIZE_FIELD_OPT("awaitPromise", awaitPromise),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("contextId", contextId), V8_CRDTP_DESERIALIZE_FIELD_OPT("disableBreaks", disableBreaks),
-    V8_CRDTP_DESERIALIZE_FIELD("expression", expression), V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("includeCommandLineAPI", includeCommandLineAPI), V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("replMode", replMode), V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("serializationOptions", serializationOptions), V8_CRDTP_DESERIALIZE_FIELD_OPT("silent", silent),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("throwOnSideEffect", throwOnSideEffect), V8_CRDTP_DESERIALIZE_FIELD_OPT("timeout", timeout),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("uniqueContextId", uniqueContextId), V8_CRDTP_DESERIALIZE_FIELD_OPT("userGesture", userGesture), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("allowUnsafeEvalBlockedByCSP", allowUnsafeEvalBlockedByCSP),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("awaitPromise", awaitPromise),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("contextId", contextId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("disableBreaks", disableBreaks),
+    V8_CRDTP_DESERIALIZE_FIELD("expression", expression),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("includeCommandLineAPI", includeCommandLineAPI),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("replMode", replMode),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("serializationOptions", serializationOptions),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("silent", silent),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("throwOnSideEffect", throwOnSideEffect),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("timeout", timeout),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("uniqueContextId", uniqueContextId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("userGesture", userGesture),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::evaluate(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -864,20 +1022,17 @@ void DomainDispatcherImpl::evaluate(const v8_crdtp::Dispatchable& dispatchable)
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     evaluateParams params;
     if (!evaluateParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
-    m_backend->evaluate(params.expression, std::move(params.objectGroup), std::move(params.includeCommandLineAPI), std::move(params.silent),
-        std::move(params.contextId), std::move(params.returnByValue), std::move(params.generatePreview), std::move(params.userGesture),
-        std::move(params.awaitPromise), std::move(params.throwOnSideEffect), std::move(params.timeout), std::move(params.disableBreaks),
-        std::move(params.replMode), std::move(params.allowUnsafeEvalBlockedByCSP), std::move(params.uniqueContextId), std::move(params.serializationOptions),
-        std::make_unique<EvaluateCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
+    m_backend->evaluate(params.expression, std::move(params.objectGroup), std::move(params.includeCommandLineAPI), std::move(params.silent), std::move(params.contextId), std::move(params.returnByValue), std::move(params.generatePreview), std::move(params.userGesture), std::move(params.awaitPromise), std::move(params.throwOnSideEffect), std::move(params.timeout), std::move(params.disableBreaks), std::move(params.replMode), std::move(params.allowUnsafeEvalBlockedByCSP), std::move(params.uniqueContextId), std::move(params.serializationOptions), std::make_unique<EvaluateCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
 }
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::getIsolateId(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -891,23 +1046,24 @@ void DomainDispatcherImpl::getIsolateId(const v8_crdtp::Dispatchable& dispatchab
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Runtime.getIsolateId"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("id"), out_id);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("id"), out_id);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::getHeapUsage(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -922,18 +1078,18 @@ void DomainDispatcherImpl::getHeapUsage(const v8_crdtp::Dispatchable& dispatchab
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Runtime.getHeapUsage"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("usedSize"), out_usedSize);
-            serializer.AddField(v8_crdtp::MakeSpan("totalSize"), out_totalSize);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("usedSize"), out_usedSize);
+          serializer.AddField(v8_crdtp::MakeSpan("totalSize"), out_totalSize);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -949,11 +1105,14 @@ struct getPropertiesParams : public v8_crdtp::DeserializableProtocolObject<getPr
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(getPropertiesParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("accessorPropertiesOnly", accessorPropertiesOnly), V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("nonIndexedPropertiesOnly", nonIndexedPropertiesOnly), V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("ownProperties", ownProperties), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("accessorPropertiesOnly", accessorPropertiesOnly),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("nonIndexedPropertiesOnly", nonIndexedPropertiesOnly),
+    V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("ownProperties", ownProperties),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::getProperties(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -961,8 +1120,8 @@ void DomainDispatcherImpl::getProperties(const v8_crdtp::Dispatchable& dispatcha
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     getPropertiesParams params;
     if (!getPropertiesParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     std::unique_ptr<protocol::Array<protocol::Runtime::PropertyDescriptor>> out_result;
@@ -971,27 +1130,25 @@ void DomainDispatcherImpl::getProperties(const v8_crdtp::Dispatchable& dispatcha
     Maybe<protocol::Runtime::ExceptionDetails> out_exceptionDetails;
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
-    DispatchResponse response = m_backend->getProperties(params.objectId, std::move(params.ownProperties), std::move(params.accessorPropertiesOnly),
-        std::move(params.generatePreview), std::move(params.nonIndexedPropertiesOnly), &out_result, &out_internalProperties, &out_privateProperties,
-        &out_exceptionDetails);
+    DispatchResponse response = m_backend->getProperties(params.objectId, std::move(params.ownProperties), std::move(params.accessorPropertiesOnly), std::move(params.generatePreview), std::move(params.nonIndexedPropertiesOnly), &out_result, &out_internalProperties, &out_privateProperties, &out_exceptionDetails);
     if (response.IsFallThrough()) {
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Runtime.getProperties"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
-            serializer.AddField(v8_crdtp::MakeSpan("internalProperties"), out_internalProperties);
-            serializer.AddField(v8_crdtp::MakeSpan("privateProperties"), out_privateProperties);
-            serializer.AddField(v8_crdtp::MakeSpan("exceptionDetails"), out_exceptionDetails);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
+          serializer.AddField(v8_crdtp::MakeSpan("internalProperties"), out_internalProperties);
+          serializer.AddField(v8_crdtp::MakeSpan("privateProperties"), out_privateProperties);
+          serializer.AddField(v8_crdtp::MakeSpan("exceptionDetails"), out_exceptionDetails);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -1003,9 +1160,10 @@ struct globalLexicalScopeNamesParams : public v8_crdtp::DeserializableProtocolOb
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(globalLexicalScopeNamesParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::globalLexicalScopeNames(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1013,8 +1171,8 @@ void DomainDispatcherImpl::globalLexicalScopeNames(const v8_crdtp::Dispatchable&
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     globalLexicalScopeNamesParams params;
     if (!globalLexicalScopeNamesParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     std::unique_ptr<protocol::Array<String>> out_names;
@@ -1025,17 +1183,17 @@ void DomainDispatcherImpl::globalLexicalScopeNames(const v8_crdtp::Dispatchable&
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Runtime.globalLexicalScopeNames"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("names"), out_names);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("names"), out_names);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -1048,9 +1206,11 @@ struct queryObjectsParams : public v8_crdtp::DeserializableProtocolObject<queryO
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(queryObjectsParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup), V8_CRDTP_DESERIALIZE_FIELD("prototypeObjectId", prototypeObjectId), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup),
+    V8_CRDTP_DESERIALIZE_FIELD("prototypeObjectId", prototypeObjectId),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::queryObjects(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1058,8 +1218,8 @@ void DomainDispatcherImpl::queryObjects(const v8_crdtp::Dispatchable& dispatchab
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     queryObjectsParams params;
     if (!queryObjectsParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     std::unique_ptr<protocol::Runtime::RemoteObject> out_objects;
@@ -1070,17 +1230,17 @@ void DomainDispatcherImpl::queryObjects(const v8_crdtp::Dispatchable& dispatchab
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Runtime.queryObjects"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("objects"), out_objects);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("objects"), out_objects);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -1092,9 +1252,10 @@ struct releaseObjectParams : public v8_crdtp::DeserializableProtocolObject<relea
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(releaseObjectParams)
-V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::releaseObject(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1102,8 +1263,8 @@ void DomainDispatcherImpl::releaseObject(const v8_crdtp::Dispatchable& dispatcha
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     releaseObjectParams params;
     if (!releaseObjectParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -1125,9 +1286,10 @@ struct releaseObjectGroupParams : public v8_crdtp::DeserializableProtocolObject<
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(releaseObjectGroupParams)
-V8_CRDTP_DESERIALIZE_FIELD("objectGroup", objectGroup), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("objectGroup", objectGroup),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::releaseObjectGroup(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1135,8 +1297,8 @@ void DomainDispatcherImpl::releaseObjectGroup(const v8_crdtp::Dispatchable& disp
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     releaseObjectGroupParams params;
     if (!releaseObjectGroupParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -1152,7 +1314,8 @@ void DomainDispatcherImpl::releaseObjectGroup(const v8_crdtp::Dispatchable& disp
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::runIfWaitingForDebugger(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1172,9 +1335,8 @@ void DomainDispatcherImpl::runIfWaitingForDebugger(const v8_crdtp::Dispatchable&
 class RunScriptCallbackImpl : public Backend::RunScriptCallback, public DomainDispatcher::Callback {
 public:
     RunScriptCallbackImpl(std::unique_ptr<DomainDispatcher::WeakPtr> backendImpl, int callId, v8_crdtp::span<uint8_t> message)
-        : DomainDispatcher::Callback(std::move(backendImpl), callId, v8_crdtp::SpanFrom("Runtime.runScript"), message)
-    {
-    }
+        : DomainDispatcher::Callback(std::move(backendImpl), callId,
+v8_crdtp::SpanFrom("Runtime.runScript"), message) { }
 
     void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) override
     {
@@ -1211,12 +1373,17 @@ struct runScriptParams : public v8_crdtp::DeserializableProtocolObject<runScript
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(runScriptParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("awaitPromise", awaitPromise), V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview), V8_CRDTP_DESERIALIZE_FIELD_OPT("includeCommandLineAPI", includeCommandLineAPI),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup), V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue),
-    V8_CRDTP_DESERIALIZE_FIELD("scriptId", scriptId), V8_CRDTP_DESERIALIZE_FIELD_OPT("silent", silent), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("awaitPromise", awaitPromise),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("generatePreview", generatePreview),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("includeCommandLineAPI", includeCommandLineAPI),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("returnByValue", returnByValue),
+    V8_CRDTP_DESERIALIZE_FIELD("scriptId", scriptId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("silent", silent),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::runScript(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1224,13 +1391,11 @@ void DomainDispatcherImpl::runScript(const v8_crdtp::Dispatchable& dispatchable)
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     runScriptParams params;
     if (!runScriptParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
-    m_backend->runScript(params.scriptId, std::move(params.executionContextId), std::move(params.objectGroup), std::move(params.silent),
-        std::move(params.includeCommandLineAPI), std::move(params.returnByValue), std::move(params.generatePreview), std::move(params.awaitPromise),
-        std::make_unique<RunScriptCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
+    m_backend->runScript(params.scriptId, std::move(params.executionContextId), std::move(params.objectGroup), std::move(params.silent), std::move(params.includeCommandLineAPI), std::move(params.returnByValue), std::move(params.generatePreview), std::move(params.awaitPromise), std::make_unique<RunScriptCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
 }
 
 namespace {
@@ -1241,9 +1406,10 @@ struct setCustomObjectFormatterEnabledParams : public v8_crdtp::DeserializablePr
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(setCustomObjectFormatterEnabledParams)
-V8_CRDTP_DESERIALIZE_FIELD("enabled", enabled), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("enabled", enabled),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::setCustomObjectFormatterEnabled(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1251,8 +1417,8 @@ void DomainDispatcherImpl::setCustomObjectFormatterEnabled(const v8_crdtp::Dispa
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     setCustomObjectFormatterEnabledParams params;
     if (!setCustomObjectFormatterEnabledParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -1274,9 +1440,10 @@ struct setMaxCallStackSizeToCaptureParams : public v8_crdtp::DeserializableProto
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(setMaxCallStackSizeToCaptureParams)
-V8_CRDTP_DESERIALIZE_FIELD("size", size), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("size", size),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::setMaxCallStackSizeToCapture(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1284,8 +1451,8 @@ void DomainDispatcherImpl::setMaxCallStackSizeToCapture(const v8_crdtp::Dispatch
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     setMaxCallStackSizeToCaptureParams params;
     if (!setMaxCallStackSizeToCaptureParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -1302,9 +1469,8 @@ void DomainDispatcherImpl::setMaxCallStackSizeToCapture(const v8_crdtp::Dispatch
 class TerminateExecutionCallbackImpl : public Backend::TerminateExecutionCallback, public DomainDispatcher::Callback {
 public:
     TerminateExecutionCallbackImpl(std::unique_ptr<DomainDispatcher::WeakPtr> backendImpl, int callId, v8_crdtp::span<uint8_t> message)
-        : DomainDispatcher::Callback(std::move(backendImpl), callId, v8_crdtp::SpanFrom("Runtime.terminateExecution"), message)
-    {
-    }
+        : DomainDispatcher::Callback(std::move(backendImpl), callId,
+v8_crdtp::SpanFrom("Runtime.terminateExecution"), message) { }
 
     void sendSuccess() override
     {
@@ -1326,7 +1492,8 @@ public:
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::terminateExecution(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1345,10 +1512,12 @@ struct addBindingParams : public v8_crdtp::DeserializableProtocolObject<addBindi
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(addBindingParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId), V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextName", executionContextName),
-    V8_CRDTP_DESERIALIZE_FIELD("name", name), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextId", executionContextId),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("executionContextName", executionContextName),
+    V8_CRDTP_DESERIALIZE_FIELD("name", name),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::addBinding(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1356,8 +1525,8 @@ void DomainDispatcherImpl::addBinding(const v8_crdtp::Dispatchable& dispatchable
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     addBindingParams params;
     if (!addBindingParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -1379,9 +1548,10 @@ struct removeBindingParams : public v8_crdtp::DeserializableProtocolObject<remov
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(removeBindingParams)
-V8_CRDTP_DESERIALIZE_FIELD("name", name), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("name", name),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::removeBinding(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1389,8 +1559,8 @@ void DomainDispatcherImpl::removeBinding(const v8_crdtp::Dispatchable& dispatcha
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     removeBindingParams params;
     if (!removeBindingParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -1412,9 +1582,10 @@ struct getExceptionDetailsParams : public v8_crdtp::DeserializableProtocolObject
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(getExceptionDetailsParams)
-V8_CRDTP_DESERIALIZE_FIELD("errorObjectId", errorObjectId), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("errorObjectId", errorObjectId),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::getExceptionDetails(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -1422,8 +1593,8 @@ void DomainDispatcherImpl::getExceptionDetails(const v8_crdtp::Dispatchable& dis
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     getExceptionDetailsParams params;
     if (!getExceptionDetailsParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     Maybe<protocol::Runtime::ExceptionDetails> out_exceptionDetails;
@@ -1434,34 +1605,33 @@ void DomainDispatcherImpl::getExceptionDetails(const v8_crdtp::Dispatchable& dis
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Runtime.getExceptionDetails"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("exceptionDetails"), out_exceptionDetails);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("exceptionDetails"), out_exceptionDetails);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 // This helper method (with a static map of redirects) is used from Dispatcher::wire
 // immediately below.
-const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects()
-{
-    static auto* redirects = []() {
-        auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>> {
-            { v8_crdtp::SpanFrom("Runtime.setAsyncCallStackDepth"), v8_crdtp::SpanFrom("Debugger.setAsyncCallStackDepth") },
-        };
-        return redirects;
-    }();
-    return *redirects;
+const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects() {
+  static auto* redirects = [](){
+    auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>{
+          { v8_crdtp::SpanFrom("Runtime.setAsyncCallStackDepth"), v8_crdtp::SpanFrom("Debugger.setAsyncCallStackDepth") },
+    };
+    return redirects;
+  }();
+  return *redirects;
 }
-} // namespace
+}  // namespace
 
 // static
 void Dispatcher::wire(UberDispatcher* uber, Backend* backend)

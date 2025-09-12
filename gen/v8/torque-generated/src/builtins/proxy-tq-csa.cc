@@ -79,65 +79,59 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/proxy.tq?l=28&c=1
-TNode<IntPtrT> FromConstexpr_ProxyRevokeFunctionContextSlot_constexpr_kProxySlot_0(
-    compiler::CodeAssemblerState* state_, ProxiesCodeStubAssembler::ProxyRevokeFunctionContextSlot p_o)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<IntPtrT> FromConstexpr_ProxyRevokeFunctionContextSlot_constexpr_kProxySlot_0(compiler::CodeAssemblerState* state_, ProxiesCodeStubAssembler::ProxyRevokeFunctionContextSlot p_o) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<IntPtrT> tmp0;
-    TNode<IntPtrT> tmp1;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = ca_.IntPtrConstant(CastToUnderlyingTypeIfEnum(p_o));
-        tmp1 = (TNode<IntPtrT> { tmp0 });
-        ca_.Goto(&block2);
-    }
+  TNode<IntPtrT> tmp0;
+  TNode<IntPtrT> tmp1;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = ca_.IntPtrConstant(CastToUnderlyingTypeIfEnum(p_o));
+    tmp1 = (TNode<IntPtrT>{tmp0});
+    ca_.Goto(&block2);
+  }
 
     ca_.Bind(&block2);
-    return TNode<IntPtrT> { tmp1 };
+  return TNode<IntPtrT>{tmp1};
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/proxy.tq?l=28&c=1
-TNode<IntPtrT> FromConstexpr_ProxyRevokeFunctionContextSlot_constexpr_kProxyContextLength_0(
-    compiler::CodeAssemblerState* state_, ProxiesCodeStubAssembler::ProxyRevokeFunctionContextSlot p_o)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<IntPtrT> FromConstexpr_ProxyRevokeFunctionContextSlot_constexpr_kProxyContextLength_0(compiler::CodeAssemblerState* state_, ProxiesCodeStubAssembler::ProxyRevokeFunctionContextSlot p_o) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<IntPtrT> tmp0;
-    TNode<IntPtrT> tmp1;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = ca_.IntPtrConstant(CastToUnderlyingTypeIfEnum(p_o));
-        tmp1 = (TNode<IntPtrT> { tmp0 });
-        ca_.Goto(&block2);
-    }
+  TNode<IntPtrT> tmp0;
+  TNode<IntPtrT> tmp1;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = ca_.IntPtrConstant(CastToUnderlyingTypeIfEnum(p_o));
+    tmp1 = (TNode<IntPtrT>{tmp0});
+    ca_.Goto(&block2);
+  }
 
     ca_.Bind(&block2);
-    return TNode<IntPtrT> { tmp1 };
+  return TNode<IntPtrT>{tmp1};
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/proxy.tq?l=28&c=1
-TNode<IntPtrT> kProxySlot_0(compiler::CodeAssemblerState* state_)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<IntPtrT> kProxySlot_0(compiler::CodeAssemblerState* state_) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
     ca_.Bind(&block0);
-    TNode<IntPtrT> tmp0;
+  TNode<IntPtrT> tmp0;
     tmp0 = FromConstexpr_ProxyRevokeFunctionContextSlot_constexpr_kProxySlot_0(state_, ProxiesCodeStubAssembler::ProxyRevokeFunctionContextSlot::kProxySlot);
-    TNode<IntPtrT> tmp1;
-    tmp1 = (TNode<IntPtrT> { tmp0 });
-    return TNode<IntPtrT> { tmp1 };
-}
+  TNode<IntPtrT> tmp1;
+    tmp1 = (TNode<IntPtrT>{tmp0});
+  return TNode<IntPtrT>{tmp1};}
 
 } // namespace internal
 } // namespace v8

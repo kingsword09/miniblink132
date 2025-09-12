@@ -22,12 +22,10 @@ int31_t SizeOf_intptr_0(compiler::CodeAssemblerState* state_);
 TorqueStructReference_RawPtr_int32_0 NewOffHeapReference_RawPtr_int32_0(compiler::CodeAssemblerState* state_, TNode<RawPtrT> p_ptr);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/js-to-js.tq?l=95&c=7
-TorqueStructSlice_int32_ConstReference_int32_0 NewOffHeapConstSlice_int32_0(
-    compiler::CodeAssemblerState* state_, TNode<RawPtrT> p_startPointer, TNode<IntPtrT> p_length);
+TorqueStructSlice_int32_ConstReference_int32_0 NewOffHeapConstSlice_int32_0(compiler::CodeAssemblerState* state_, TNode<RawPtrT> p_startPointer, TNode<IntPtrT> p_length);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/js-to-js.tq?l=98&c=7
-TorqueStructSlice_int32_ConstReference_int32_0 Subslice_int32_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_int32_ConstReference_int32_0 p_slice,
-    TNode<IntPtrT> p_start, TNode<IntPtrT> p_length, compiler::CodeAssemblerLabel* label_OutOfBounds);
+TorqueStructSlice_int32_ConstReference_int32_0 Subslice_int32_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_int32_ConstReference_int32_0 p_slice, TNode<IntPtrT> p_start, TNode<IntPtrT> p_length, compiler::CodeAssemblerLabel* label_OutOfBounds);
 
 } // namespace internal
 } // namespace v8

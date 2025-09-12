@@ -27,85 +27,49 @@ class ScriptCoverage;
 
 // ------------- Type and builder declarations.
 
-class ProfileNode : public ::v8_crdtp::ProtocolObject<ProfileNode> {
+class  ProfileNode : public ::v8_crdtp::ProtocolObject<ProfileNode> {
 public:
-    ~ProfileNode() override
-    {
-    }
+    ~ProfileNode() override { }
 
-    int getId()
-    {
-        return m_id;
-    }
-    void setId(int value)
-    {
-        m_id = value;
-    }
+    int getId() { return m_id; }
+    void setId(int value) { m_id = value; }
 
-    protocol::Runtime::CallFrame* getCallFrame()
-    {
-        return m_callFrame.get();
-    }
-    void setCallFrame(std::unique_ptr<protocol::Runtime::CallFrame> value)
-    {
-        m_callFrame = std::move(value);
-    }
+    protocol::Runtime::CallFrame* getCallFrame() { return m_callFrame.get(); }
+    void setCallFrame(std::unique_ptr<protocol::Runtime::CallFrame> value) { m_callFrame = std::move(value); }
 
-    bool hasHitCount()
-    {
-        return m_hitCount.has_value();
+    bool hasHitCount() { return m_hitCount.has_value(); }
+    int getHitCount(int defaultValue) const {
+       return m_hitCount.value_or(defaultValue);
     }
-    int getHitCount(int defaultValue) const
-    {
-        return m_hitCount.value_or(defaultValue);
-    }
-    void setHitCount(int value)
-    {
-        m_hitCount = value;
-    }
+    void setHitCount(int value) { m_hitCount = value; }
 
-    bool hasChildren()
-    {
-        return m_children.has_value();
+    bool hasChildren() { return m_children.has_value(); }
+    protocol::Array<int>* getChildren(protocol::Array<int>* defaultValue) {
+       return m_children.has_value() ? &m_children.value() : defaultValue;
     }
-    protocol::Array<int>* getChildren(protocol::Array<int>* defaultValue)
-    {
-        return m_children.has_value() ? &m_children.value() : defaultValue;
-    }
-    void setChildren(std::unique_ptr<protocol::Array<int>> value)
-    {
-        m_children = std::move(value);
-    }
+    void setChildren(std::unique_ptr<protocol::Array<int>> value) { m_children = std::move(value); }
 
-    bool hasDeoptReason()
-    {
-        return m_deoptReason.has_value();
+    bool hasDeoptReason() { return m_deoptReason.has_value(); }
+    String getDeoptReason(const String& defaultValue) const {
+       return m_deoptReason.value_or(defaultValue);
     }
-    String getDeoptReason(const String& defaultValue) const
-    {
-        return m_deoptReason.value_or(defaultValue);
-    }
-    void setDeoptReason(const String& value)
-    {
-        m_deoptReason = value;
-    }
+    void setDeoptReason(const String& value) { m_deoptReason = value; }
 
-    bool hasPositionTicks()
-    {
-        return m_positionTicks.has_value();
+    bool hasPositionTicks() { return m_positionTicks.has_value(); }
+    protocol::Array<protocol::Profiler::PositionTickInfo>* getPositionTicks(protocol::Array<protocol::Profiler::PositionTickInfo>* defaultValue) {
+       return m_positionTicks.has_value() ? &m_positionTicks.value() : defaultValue;
     }
-    protocol::Array<protocol::Profiler::PositionTickInfo>* getPositionTicks(protocol::Array<protocol::Profiler::PositionTickInfo>* defaultValue)
-    {
-        return m_positionTicks.has_value() ? &m_positionTicks.value() : defaultValue;
-    }
-    void setPositionTicks(std::unique_ptr<protocol::Array<protocol::Profiler::PositionTickInfo>> value)
-    {
-        m_positionTicks = std::move(value);
-    }
+    void setPositionTicks(std::unique_ptr<protocol::Array<protocol::Profiler::PositionTickInfo>> value) { m_positionTicks = std::move(value); }
 
-    template <int STATE> class ProfileNodeBuilder {
+    template<int STATE>
+    class ProfileNodeBuilder {
     public:
-        enum { NoFieldsSet = 0, IdSet = 1 << 1, CallFrameSet = 1 << 2, AllFieldsSet = (IdSet | CallFrameSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            IdSet = 1 << 1,
+            CallFrameSet = 1 << 2,
+            AllFieldsSet = (IdSet | CallFrameSet | 0)};
+
 
         ProfileNodeBuilder<STATE | IdSet>& setId(int value)
         {
@@ -153,12 +117,9 @@ public:
 
     private:
         friend class ProfileNode;
-        ProfileNodeBuilder()
-            : m_result(new ProfileNode())
-        {
-        }
+        ProfileNodeBuilder() : m_result(new ProfileNode()) { }
 
-        template <int STEP> ProfileNodeBuilder<STATE | STEP>& castState()
+        template<int STEP> ProfileNodeBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<ProfileNodeBuilder<STATE | STEP>*>(this);
         }
@@ -176,7 +137,7 @@ private:
 
     ProfileNode()
     {
-        m_id = 0;
+          m_id = 0;
     }
 
     int m_id;
@@ -187,68 +148,42 @@ private:
     Maybe<protocol::Array<protocol::Profiler::PositionTickInfo>> m_positionTicks;
 };
 
-class Profile : public ::v8_crdtp::ProtocolObject<Profile> {
+
+class  Profile : public ::v8_crdtp::ProtocolObject<Profile> {
 public:
-    ~Profile() override
-    {
-    }
+    ~Profile() override { }
 
-    protocol::Array<protocol::Profiler::ProfileNode>* getNodes()
-    {
-        return m_nodes.get();
-    }
-    void setNodes(std::unique_ptr<protocol::Array<protocol::Profiler::ProfileNode>> value)
-    {
-        m_nodes = std::move(value);
-    }
+    protocol::Array<protocol::Profiler::ProfileNode>* getNodes() { return m_nodes.get(); }
+    void setNodes(std::unique_ptr<protocol::Array<protocol::Profiler::ProfileNode>> value) { m_nodes = std::move(value); }
 
-    double getStartTime()
-    {
-        return m_startTime;
-    }
-    void setStartTime(double value)
-    {
-        m_startTime = value;
-    }
+    double getStartTime() { return m_startTime; }
+    void setStartTime(double value) { m_startTime = value; }
 
-    double getEndTime()
-    {
-        return m_endTime;
-    }
-    void setEndTime(double value)
-    {
-        m_endTime = value;
-    }
+    double getEndTime() { return m_endTime; }
+    void setEndTime(double value) { m_endTime = value; }
 
-    bool hasSamples()
-    {
-        return m_samples.has_value();
+    bool hasSamples() { return m_samples.has_value(); }
+    protocol::Array<int>* getSamples(protocol::Array<int>* defaultValue) {
+       return m_samples.has_value() ? &m_samples.value() : defaultValue;
     }
-    protocol::Array<int>* getSamples(protocol::Array<int>* defaultValue)
-    {
-        return m_samples.has_value() ? &m_samples.value() : defaultValue;
-    }
-    void setSamples(std::unique_ptr<protocol::Array<int>> value)
-    {
-        m_samples = std::move(value);
-    }
+    void setSamples(std::unique_ptr<protocol::Array<int>> value) { m_samples = std::move(value); }
 
-    bool hasTimeDeltas()
-    {
-        return m_timeDeltas.has_value();
+    bool hasTimeDeltas() { return m_timeDeltas.has_value(); }
+    protocol::Array<int>* getTimeDeltas(protocol::Array<int>* defaultValue) {
+       return m_timeDeltas.has_value() ? &m_timeDeltas.value() : defaultValue;
     }
-    protocol::Array<int>* getTimeDeltas(protocol::Array<int>* defaultValue)
-    {
-        return m_timeDeltas.has_value() ? &m_timeDeltas.value() : defaultValue;
-    }
-    void setTimeDeltas(std::unique_ptr<protocol::Array<int>> value)
-    {
-        m_timeDeltas = std::move(value);
-    }
+    void setTimeDeltas(std::unique_ptr<protocol::Array<int>> value) { m_timeDeltas = std::move(value); }
 
-    template <int STATE> class ProfileBuilder {
+    template<int STATE>
+    class ProfileBuilder {
     public:
-        enum { NoFieldsSet = 0, NodesSet = 1 << 1, StartTimeSet = 1 << 2, EndTimeSet = 1 << 3, AllFieldsSet = (NodesSet | StartTimeSet | EndTimeSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            NodesSet = 1 << 1,
+            StartTimeSet = 1 << 2,
+            EndTimeSet = 1 << 3,
+            AllFieldsSet = (NodesSet | StartTimeSet | EndTimeSet | 0)};
+
 
         ProfileBuilder<STATE | NodesSet>& setNodes(std::unique_ptr<protocol::Array<protocol::Profiler::ProfileNode>> value)
         {
@@ -291,12 +226,9 @@ public:
 
     private:
         friend class Profile;
-        ProfileBuilder()
-            : m_result(new Profile())
-        {
-        }
+        ProfileBuilder() : m_result(new Profile()) { }
 
-        template <int STEP> ProfileBuilder<STATE | STEP>& castState()
+        template<int STEP> ProfileBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<ProfileBuilder<STATE | STEP>*>(this);
         }
@@ -314,8 +246,8 @@ private:
 
     Profile()
     {
-        m_startTime = 0;
-        m_endTime = 0;
+          m_startTime = 0;
+          m_endTime = 0;
     }
 
     std::unique_ptr<protocol::Array<protocol::Profiler::ProfileNode>> m_nodes;
@@ -325,33 +257,26 @@ private:
     Maybe<protocol::Array<int>> m_timeDeltas;
 };
 
-class PositionTickInfo : public ::v8_crdtp::ProtocolObject<PositionTickInfo> {
+
+class  PositionTickInfo : public ::v8_crdtp::ProtocolObject<PositionTickInfo> {
 public:
-    ~PositionTickInfo() override
-    {
-    }
+    ~PositionTickInfo() override { }
 
-    int getLine()
-    {
-        return m_line;
-    }
-    void setLine(int value)
-    {
-        m_line = value;
-    }
+    int getLine() { return m_line; }
+    void setLine(int value) { m_line = value; }
 
-    int getTicks()
-    {
-        return m_ticks;
-    }
-    void setTicks(int value)
-    {
-        m_ticks = value;
-    }
+    int getTicks() { return m_ticks; }
+    void setTicks(int value) { m_ticks = value; }
 
-    template <int STATE> class PositionTickInfoBuilder {
+    template<int STATE>
+    class PositionTickInfoBuilder {
     public:
-        enum { NoFieldsSet = 0, LineSet = 1 << 1, TicksSet = 1 << 2, AllFieldsSet = (LineSet | TicksSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            LineSet = 1 << 1,
+            TicksSet = 1 << 2,
+            AllFieldsSet = (LineSet | TicksSet | 0)};
+
 
         PositionTickInfoBuilder<STATE | LineSet>& setLine(int value)
         {
@@ -375,12 +300,9 @@ public:
 
     private:
         friend class PositionTickInfo;
-        PositionTickInfoBuilder()
-            : m_result(new PositionTickInfo())
-        {
-        }
+        PositionTickInfoBuilder() : m_result(new PositionTickInfo()) { }
 
-        template <int STEP> PositionTickInfoBuilder<STATE | STEP>& castState()
+        template<int STEP> PositionTickInfoBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<PositionTickInfoBuilder<STATE | STEP>*>(this);
         }
@@ -398,56 +320,38 @@ private:
 
     PositionTickInfo()
     {
-        m_line = 0;
-        m_ticks = 0;
+          m_line = 0;
+          m_ticks = 0;
     }
 
     int m_line;
     int m_ticks;
 };
 
-class CoverageRange : public ::v8_crdtp::ProtocolObject<CoverageRange> {
+
+class  CoverageRange : public ::v8_crdtp::ProtocolObject<CoverageRange> {
 public:
-    ~CoverageRange() override
-    {
-    }
+    ~CoverageRange() override { }
 
-    int getStartOffset()
-    {
-        return m_startOffset;
-    }
-    void setStartOffset(int value)
-    {
-        m_startOffset = value;
-    }
+    int getStartOffset() { return m_startOffset; }
+    void setStartOffset(int value) { m_startOffset = value; }
 
-    int getEndOffset()
-    {
-        return m_endOffset;
-    }
-    void setEndOffset(int value)
-    {
-        m_endOffset = value;
-    }
+    int getEndOffset() { return m_endOffset; }
+    void setEndOffset(int value) { m_endOffset = value; }
 
-    int getCount()
-    {
-        return m_count;
-    }
-    void setCount(int value)
-    {
-        m_count = value;
-    }
+    int getCount() { return m_count; }
+    void setCount(int value) { m_count = value; }
 
-    template <int STATE> class CoverageRangeBuilder {
+    template<int STATE>
+    class CoverageRangeBuilder {
     public:
         enum {
             NoFieldsSet = 0,
             StartOffsetSet = 1 << 1,
             EndOffsetSet = 1 << 2,
             CountSet = 1 << 3,
-            AllFieldsSet = (StartOffsetSet | EndOffsetSet | CountSet | 0)
-        };
+            AllFieldsSet = (StartOffsetSet | EndOffsetSet | CountSet | 0)};
+
 
         CoverageRangeBuilder<STATE | StartOffsetSet>& setStartOffset(int value)
         {
@@ -478,12 +382,9 @@ public:
 
     private:
         friend class CoverageRange;
-        CoverageRangeBuilder()
-            : m_result(new CoverageRange())
-        {
-        }
+        CoverageRangeBuilder() : m_result(new CoverageRange()) { }
 
-        template <int STEP> CoverageRangeBuilder<STATE | STEP>& castState()
+        template<int STEP> CoverageRangeBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<CoverageRangeBuilder<STATE | STEP>*>(this);
         }
@@ -501,9 +402,9 @@ private:
 
     CoverageRange()
     {
-        m_startOffset = 0;
-        m_endOffset = 0;
-        m_count = 0;
+          m_startOffset = 0;
+          m_endOffset = 0;
+          m_count = 0;
     }
 
     int m_startOffset;
@@ -511,48 +412,30 @@ private:
     int m_count;
 };
 
-class FunctionCoverage : public ::v8_crdtp::ProtocolObject<FunctionCoverage> {
+
+class  FunctionCoverage : public ::v8_crdtp::ProtocolObject<FunctionCoverage> {
 public:
-    ~FunctionCoverage() override
-    {
-    }
+    ~FunctionCoverage() override { }
 
-    String getFunctionName()
-    {
-        return m_functionName;
-    }
-    void setFunctionName(const String& value)
-    {
-        m_functionName = value;
-    }
+    String getFunctionName() { return m_functionName; }
+    void setFunctionName(const String& value) { m_functionName = value; }
 
-    protocol::Array<protocol::Profiler::CoverageRange>* getRanges()
-    {
-        return m_ranges.get();
-    }
-    void setRanges(std::unique_ptr<protocol::Array<protocol::Profiler::CoverageRange>> value)
-    {
-        m_ranges = std::move(value);
-    }
+    protocol::Array<protocol::Profiler::CoverageRange>* getRanges() { return m_ranges.get(); }
+    void setRanges(std::unique_ptr<protocol::Array<protocol::Profiler::CoverageRange>> value) { m_ranges = std::move(value); }
 
-    bool getIsBlockCoverage()
-    {
-        return m_isBlockCoverage;
-    }
-    void setIsBlockCoverage(bool value)
-    {
-        m_isBlockCoverage = value;
-    }
+    bool getIsBlockCoverage() { return m_isBlockCoverage; }
+    void setIsBlockCoverage(bool value) { m_isBlockCoverage = value; }
 
-    template <int STATE> class FunctionCoverageBuilder {
+    template<int STATE>
+    class FunctionCoverageBuilder {
     public:
         enum {
             NoFieldsSet = 0,
             FunctionNameSet = 1 << 1,
             RangesSet = 1 << 2,
             IsBlockCoverageSet = 1 << 3,
-            AllFieldsSet = (FunctionNameSet | RangesSet | IsBlockCoverageSet | 0)
-        };
+            AllFieldsSet = (FunctionNameSet | RangesSet | IsBlockCoverageSet | 0)};
+
 
         FunctionCoverageBuilder<STATE | FunctionNameSet>& setFunctionName(const String& value)
         {
@@ -583,12 +466,9 @@ public:
 
     private:
         friend class FunctionCoverage;
-        FunctionCoverageBuilder()
-            : m_result(new FunctionCoverage())
-        {
-        }
+        FunctionCoverageBuilder() : m_result(new FunctionCoverage()) { }
 
-        template <int STEP> FunctionCoverageBuilder<STATE | STEP>& castState()
+        template<int STEP> FunctionCoverageBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<FunctionCoverageBuilder<STATE | STEP>*>(this);
         }
@@ -606,7 +486,7 @@ private:
 
     FunctionCoverage()
     {
-        m_isBlockCoverage = false;
+          m_isBlockCoverage = false;
     }
 
     String m_functionName;
@@ -614,42 +494,30 @@ private:
     bool m_isBlockCoverage;
 };
 
-class ScriptCoverage : public ::v8_crdtp::ProtocolObject<ScriptCoverage> {
+
+class  ScriptCoverage : public ::v8_crdtp::ProtocolObject<ScriptCoverage> {
 public:
-    ~ScriptCoverage() override
-    {
-    }
+    ~ScriptCoverage() override { }
 
-    String getScriptId()
-    {
-        return m_scriptId;
-    }
-    void setScriptId(const String& value)
-    {
-        m_scriptId = value;
-    }
+    String getScriptId() { return m_scriptId; }
+    void setScriptId(const String& value) { m_scriptId = value; }
 
-    String getUrl()
-    {
-        return m_url;
-    }
-    void setUrl(const String& value)
-    {
-        m_url = value;
-    }
+    String getUrl() { return m_url; }
+    void setUrl(const String& value) { m_url = value; }
 
-    protocol::Array<protocol::Profiler::FunctionCoverage>* getFunctions()
-    {
-        return m_functions.get();
-    }
-    void setFunctions(std::unique_ptr<protocol::Array<protocol::Profiler::FunctionCoverage>> value)
-    {
-        m_functions = std::move(value);
-    }
+    protocol::Array<protocol::Profiler::FunctionCoverage>* getFunctions() { return m_functions.get(); }
+    void setFunctions(std::unique_ptr<protocol::Array<protocol::Profiler::FunctionCoverage>> value) { m_functions = std::move(value); }
 
-    template <int STATE> class ScriptCoverageBuilder {
+    template<int STATE>
+    class ScriptCoverageBuilder {
     public:
-        enum { NoFieldsSet = 0, ScriptIdSet = 1 << 1, UrlSet = 1 << 2, FunctionsSet = 1 << 3, AllFieldsSet = (ScriptIdSet | UrlSet | FunctionsSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            ScriptIdSet = 1 << 1,
+            UrlSet = 1 << 2,
+            FunctionsSet = 1 << 3,
+            AllFieldsSet = (ScriptIdSet | UrlSet | FunctionsSet | 0)};
+
 
         ScriptCoverageBuilder<STATE | ScriptIdSet>& setScriptId(const String& value)
         {
@@ -680,12 +548,9 @@ public:
 
     private:
         friend class ScriptCoverage;
-        ScriptCoverageBuilder()
-            : m_result(new ScriptCoverage())
-        {
-        }
+        ScriptCoverageBuilder() : m_result(new ScriptCoverage()) { }
 
-        template <int STEP> ScriptCoverageBuilder<STATE | STEP>& castState()
+        template<int STEP> ScriptCoverageBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<ScriptCoverageBuilder<STATE | STEP>*>(this);
         }
@@ -710,62 +575,53 @@ private:
     std::unique_ptr<protocol::Array<protocol::Profiler::FunctionCoverage>> m_functions;
 };
 
+
 // ------------- Backend interface.
 
-class Backend {
+class  Backend {
 public:
-    virtual ~Backend()
-    {
-    }
+    virtual ~Backend() { }
 
     virtual DispatchResponse disable() = 0;
     virtual DispatchResponse enable() = 0;
     virtual DispatchResponse getBestEffortCoverage(std::unique_ptr<protocol::Array<protocol::Profiler::ScriptCoverage>>* out_result) = 0;
     virtual DispatchResponse setSamplingInterval(int in_interval) = 0;
     virtual DispatchResponse start() = 0;
-    virtual DispatchResponse startPreciseCoverage(
-        Maybe<bool> in_callCount, Maybe<bool> in_detailed, Maybe<bool> in_allowTriggeredUpdates, double* out_timestamp)
-        = 0;
+    virtual DispatchResponse startPreciseCoverage(Maybe<bool> in_callCount, Maybe<bool> in_detailed, Maybe<bool> in_allowTriggeredUpdates, double* out_timestamp) = 0;
     virtual DispatchResponse stop(std::unique_ptr<protocol::Profiler::Profile>* out_profile) = 0;
     virtual DispatchResponse stopPreciseCoverage() = 0;
     virtual DispatchResponse takePreciseCoverage(std::unique_ptr<protocol::Array<protocol::Profiler::ScriptCoverage>>* out_result, double* out_timestamp) = 0;
+
 };
 
 // ------------- Frontend interface.
 
-class Frontend {
+class  Frontend {
 public:
-    explicit Frontend(FrontendChannel* frontend_channel)
-        : frontend_channel_(frontend_channel)
-    {
-    }
-    void consoleProfileFinished(const String& id, std::unique_ptr<protocol::Debugger::Location> location, std::unique_ptr<protocol::Profiler::Profile> profile,
-        Maybe<String> title = Maybe<String>());
+  explicit Frontend(FrontendChannel* frontend_channel) : frontend_channel_(frontend_channel) {}
+    void consoleProfileFinished(const String& id, std::unique_ptr<protocol::Debugger::Location> location, std::unique_ptr<protocol::Profiler::Profile> profile, Maybe<String> title = Maybe<String>());
     void consoleProfileStarted(const String& id, std::unique_ptr<protocol::Debugger::Location> location, Maybe<String> title = Maybe<String>());
     void preciseCoverageDeltaUpdate(double timestamp, const String& occasion, std::unique_ptr<protocol::Array<protocol::Profiler::ScriptCoverage>> result);
 
-    void flush();
-    void sendRawNotification(std::unique_ptr<Serializable>);
-
-private:
-    FrontendChannel* frontend_channel_;
+  void flush();
+  void sendRawNotification(std::unique_ptr<Serializable>);
+ private:
+  FrontendChannel* frontend_channel_;
 };
 
 // ------------- Dispatcher.
 
-class Dispatcher {
+class  Dispatcher {
 public:
     static void wire(UberDispatcher*, Backend*);
 
 private:
-    Dispatcher()
-    {
-    }
+    Dispatcher() { }
 };
 
 // ------------- Metainfo.
 
-class Metainfo {
+class  Metainfo {
 public:
     using BackendClass = Backend;
     using FrontendClass = Frontend;

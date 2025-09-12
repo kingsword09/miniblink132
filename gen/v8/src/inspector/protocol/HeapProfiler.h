@@ -24,49 +24,24 @@ class SamplingHeapProfile;
 
 // ------------- Type and builder declarations.
 
-class SamplingHeapProfileNode : public ::v8_crdtp::ProtocolObject<SamplingHeapProfileNode> {
+class  SamplingHeapProfileNode : public ::v8_crdtp::ProtocolObject<SamplingHeapProfileNode> {
 public:
-    ~SamplingHeapProfileNode() override
-    {
-    }
+    ~SamplingHeapProfileNode() override { }
 
-    protocol::Runtime::CallFrame* getCallFrame()
-    {
-        return m_callFrame.get();
-    }
-    void setCallFrame(std::unique_ptr<protocol::Runtime::CallFrame> value)
-    {
-        m_callFrame = std::move(value);
-    }
+    protocol::Runtime::CallFrame* getCallFrame() { return m_callFrame.get(); }
+    void setCallFrame(std::unique_ptr<protocol::Runtime::CallFrame> value) { m_callFrame = std::move(value); }
 
-    double getSelfSize()
-    {
-        return m_selfSize;
-    }
-    void setSelfSize(double value)
-    {
-        m_selfSize = value;
-    }
+    double getSelfSize() { return m_selfSize; }
+    void setSelfSize(double value) { m_selfSize = value; }
 
-    int getId()
-    {
-        return m_id;
-    }
-    void setId(int value)
-    {
-        m_id = value;
-    }
+    int getId() { return m_id; }
+    void setId(int value) { m_id = value; }
 
-    protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>* getChildren()
-    {
-        return m_children.get();
-    }
-    void setChildren(std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>> value)
-    {
-        m_children = std::move(value);
-    }
+    protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>* getChildren() { return m_children.get(); }
+    void setChildren(std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>> value) { m_children = std::move(value); }
 
-    template <int STATE> class SamplingHeapProfileNodeBuilder {
+    template<int STATE>
+    class SamplingHeapProfileNodeBuilder {
     public:
         enum {
             NoFieldsSet = 0,
@@ -74,8 +49,8 @@ public:
             SelfSizeSet = 1 << 2,
             IdSet = 1 << 3,
             ChildrenSet = 1 << 4,
-            AllFieldsSet = (CallFrameSet | SelfSizeSet | IdSet | ChildrenSet | 0)
-        };
+            AllFieldsSet = (CallFrameSet | SelfSizeSet | IdSet | ChildrenSet | 0)};
+
 
         SamplingHeapProfileNodeBuilder<STATE | CallFrameSet>& setCallFrame(std::unique_ptr<protocol::Runtime::CallFrame> value)
         {
@@ -98,8 +73,7 @@ public:
             return castState<IdSet>();
         }
 
-        SamplingHeapProfileNodeBuilder<STATE | ChildrenSet>& setChildren(
-            std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>> value)
+        SamplingHeapProfileNodeBuilder<STATE | ChildrenSet>& setChildren(std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>> value)
         {
             static_assert(!(STATE & ChildrenSet), "property children should not be set yet");
             m_result->setChildren(std::move(value));
@@ -114,12 +88,9 @@ public:
 
     private:
         friend class SamplingHeapProfileNode;
-        SamplingHeapProfileNodeBuilder()
-            : m_result(new SamplingHeapProfileNode())
-        {
-        }
+        SamplingHeapProfileNodeBuilder() : m_result(new SamplingHeapProfileNode()) { }
 
-        template <int STEP> SamplingHeapProfileNodeBuilder<STATE | STEP>& castState()
+        template<int STEP> SamplingHeapProfileNodeBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<SamplingHeapProfileNodeBuilder<STATE | STEP>*>(this);
         }
@@ -137,8 +108,8 @@ private:
 
     SamplingHeapProfileNode()
     {
-        m_selfSize = 0;
-        m_id = 0;
+          m_selfSize = 0;
+          m_id = 0;
     }
 
     std::unique_ptr<protocol::Runtime::CallFrame> m_callFrame;
@@ -147,42 +118,30 @@ private:
     std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileNode>> m_children;
 };
 
-class SamplingHeapProfileSample : public ::v8_crdtp::ProtocolObject<SamplingHeapProfileSample> {
+
+class  SamplingHeapProfileSample : public ::v8_crdtp::ProtocolObject<SamplingHeapProfileSample> {
 public:
-    ~SamplingHeapProfileSample() override
-    {
-    }
+    ~SamplingHeapProfileSample() override { }
 
-    double getSize()
-    {
-        return m_size;
-    }
-    void setSize(double value)
-    {
-        m_size = value;
-    }
+    double getSize() { return m_size; }
+    void setSize(double value) { m_size = value; }
 
-    int getNodeId()
-    {
-        return m_nodeId;
-    }
-    void setNodeId(int value)
-    {
-        m_nodeId = value;
-    }
+    int getNodeId() { return m_nodeId; }
+    void setNodeId(int value) { m_nodeId = value; }
 
-    double getOrdinal()
-    {
-        return m_ordinal;
-    }
-    void setOrdinal(double value)
-    {
-        m_ordinal = value;
-    }
+    double getOrdinal() { return m_ordinal; }
+    void setOrdinal(double value) { m_ordinal = value; }
 
-    template <int STATE> class SamplingHeapProfileSampleBuilder {
+    template<int STATE>
+    class SamplingHeapProfileSampleBuilder {
     public:
-        enum { NoFieldsSet = 0, SizeSet = 1 << 1, NodeIdSet = 1 << 2, OrdinalSet = 1 << 3, AllFieldsSet = (SizeSet | NodeIdSet | OrdinalSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            SizeSet = 1 << 1,
+            NodeIdSet = 1 << 2,
+            OrdinalSet = 1 << 3,
+            AllFieldsSet = (SizeSet | NodeIdSet | OrdinalSet | 0)};
+
 
         SamplingHeapProfileSampleBuilder<STATE | SizeSet>& setSize(double value)
         {
@@ -213,12 +172,9 @@ public:
 
     private:
         friend class SamplingHeapProfileSample;
-        SamplingHeapProfileSampleBuilder()
-            : m_result(new SamplingHeapProfileSample())
-        {
-        }
+        SamplingHeapProfileSampleBuilder() : m_result(new SamplingHeapProfileSample()) { }
 
-        template <int STEP> SamplingHeapProfileSampleBuilder<STATE | STEP>& castState()
+        template<int STEP> SamplingHeapProfileSampleBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<SamplingHeapProfileSampleBuilder<STATE | STEP>*>(this);
         }
@@ -236,9 +192,9 @@ private:
 
     SamplingHeapProfileSample()
     {
-        m_size = 0;
-        m_nodeId = 0;
-        m_ordinal = 0;
+          m_size = 0;
+          m_nodeId = 0;
+          m_ordinal = 0;
     }
 
     double m_size;
@@ -246,33 +202,26 @@ private:
     double m_ordinal;
 };
 
-class SamplingHeapProfile : public ::v8_crdtp::ProtocolObject<SamplingHeapProfile> {
+
+class  SamplingHeapProfile : public ::v8_crdtp::ProtocolObject<SamplingHeapProfile> {
 public:
-    ~SamplingHeapProfile() override
-    {
-    }
+    ~SamplingHeapProfile() override { }
 
-    protocol::HeapProfiler::SamplingHeapProfileNode* getHead()
-    {
-        return m_head.get();
-    }
-    void setHead(std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfileNode> value)
-    {
-        m_head = std::move(value);
-    }
+    protocol::HeapProfiler::SamplingHeapProfileNode* getHead() { return m_head.get(); }
+    void setHead(std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfileNode> value) { m_head = std::move(value); }
 
-    protocol::Array<protocol::HeapProfiler::SamplingHeapProfileSample>* getSamples()
-    {
-        return m_samples.get();
-    }
-    void setSamples(std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileSample>> value)
-    {
-        m_samples = std::move(value);
-    }
+    protocol::Array<protocol::HeapProfiler::SamplingHeapProfileSample>* getSamples() { return m_samples.get(); }
+    void setSamples(std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileSample>> value) { m_samples = std::move(value); }
 
-    template <int STATE> class SamplingHeapProfileBuilder {
+    template<int STATE>
+    class SamplingHeapProfileBuilder {
     public:
-        enum { NoFieldsSet = 0, HeadSet = 1 << 1, SamplesSet = 1 << 2, AllFieldsSet = (HeadSet | SamplesSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            HeadSet = 1 << 1,
+            SamplesSet = 1 << 2,
+            AllFieldsSet = (HeadSet | SamplesSet | 0)};
+
 
         SamplingHeapProfileBuilder<STATE | HeadSet>& setHead(std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfileNode> value)
         {
@@ -296,12 +245,9 @@ public:
 
     private:
         friend class SamplingHeapProfile;
-        SamplingHeapProfileBuilder()
-            : m_result(new SamplingHeapProfile())
-        {
-        }
+        SamplingHeapProfileBuilder() : m_result(new SamplingHeapProfile()) { }
 
-        template <int STEP> SamplingHeapProfileBuilder<STATE | STEP>& castState()
+        template<int STEP> SamplingHeapProfileBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<SamplingHeapProfileBuilder<STATE | STEP>*>(this);
         }
@@ -325,90 +271,72 @@ private:
     std::unique_ptr<protocol::Array<protocol::HeapProfiler::SamplingHeapProfileSample>> m_samples;
 };
 
+
 // ------------- Backend interface.
 
-class Backend {
+class  Backend {
 public:
-    virtual ~Backend()
-    {
-    }
+    virtual ~Backend() { }
 
     virtual DispatchResponse addInspectedHeapObject(const String& in_heapObjectId) = 0;
-    class CollectGarbageCallback {
+    class  CollectGarbageCallback {
     public:
         virtual void sendSuccess() = 0;
         virtual void sendFailure(const DispatchResponse&) = 0;
         virtual void fallThrough() = 0;
-        virtual ~CollectGarbageCallback()
-        {
-        }
+        virtual ~CollectGarbageCallback() { }
     };
     virtual void collectGarbage(std::unique_ptr<CollectGarbageCallback> callback) = 0;
     virtual DispatchResponse disable() = 0;
     virtual DispatchResponse enable() = 0;
     virtual DispatchResponse getHeapObjectId(const String& in_objectId, String* out_heapSnapshotObjectId) = 0;
-    virtual DispatchResponse getObjectByHeapObjectId(
-        const String& in_objectId, Maybe<String> in_objectGroup, std::unique_ptr<protocol::Runtime::RemoteObject>* out_result)
-        = 0;
+    virtual DispatchResponse getObjectByHeapObjectId(const String& in_objectId, Maybe<String> in_objectGroup, std::unique_ptr<protocol::Runtime::RemoteObject>* out_result) = 0;
     virtual DispatchResponse getSamplingProfile(std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfile>* out_profile) = 0;
-    virtual DispatchResponse startSampling(
-        Maybe<double> in_samplingInterval, Maybe<bool> in_includeObjectsCollectedByMajorGC, Maybe<bool> in_includeObjectsCollectedByMinorGC)
-        = 0;
+    virtual DispatchResponse startSampling(Maybe<double> in_samplingInterval, Maybe<bool> in_includeObjectsCollectedByMajorGC, Maybe<bool> in_includeObjectsCollectedByMinorGC) = 0;
     virtual DispatchResponse startTrackingHeapObjects(Maybe<bool> in_trackAllocations) = 0;
     virtual DispatchResponse stopSampling(std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfile>* out_profile) = 0;
-    virtual DispatchResponse stopTrackingHeapObjects(
-        Maybe<bool> in_reportProgress, Maybe<bool> in_treatGlobalObjectsAsRoots, Maybe<bool> in_captureNumericValue, Maybe<bool> in_exposeInternals)
-        = 0;
-    class TakeHeapSnapshotCallback {
+    virtual DispatchResponse stopTrackingHeapObjects(Maybe<bool> in_reportProgress, Maybe<bool> in_treatGlobalObjectsAsRoots, Maybe<bool> in_captureNumericValue, Maybe<bool> in_exposeInternals) = 0;
+    class  TakeHeapSnapshotCallback {
     public:
         virtual void sendSuccess() = 0;
         virtual void sendFailure(const DispatchResponse&) = 0;
         virtual void fallThrough() = 0;
-        virtual ~TakeHeapSnapshotCallback()
-        {
-        }
+        virtual ~TakeHeapSnapshotCallback() { }
     };
-    virtual void takeHeapSnapshot(Maybe<bool> in_reportProgress, Maybe<bool> in_treatGlobalObjectsAsRoots, Maybe<bool> in_captureNumericValue,
-        Maybe<bool> in_exposeInternals, std::unique_ptr<TakeHeapSnapshotCallback> callback)
-        = 0;
+    virtual void takeHeapSnapshot(Maybe<bool> in_reportProgress, Maybe<bool> in_treatGlobalObjectsAsRoots, Maybe<bool> in_captureNumericValue, Maybe<bool> in_exposeInternals, std::unique_ptr<TakeHeapSnapshotCallback> callback) = 0;
+
 };
 
 // ------------- Frontend interface.
 
-class Frontend {
+class  Frontend {
 public:
-    explicit Frontend(FrontendChannel* frontend_channel)
-        : frontend_channel_(frontend_channel)
-    {
-    }
+  explicit Frontend(FrontendChannel* frontend_channel) : frontend_channel_(frontend_channel) {}
     void addHeapSnapshotChunk(const String& chunk);
     void heapStatsUpdate(std::unique_ptr<protocol::Array<int>> statsUpdate);
     void lastSeenObjectId(int lastSeenObjectId, double timestamp);
     void reportHeapSnapshotProgress(int done, int total, Maybe<bool> finished = Maybe<bool>());
     void resetProfiles();
 
-    void flush();
-    void sendRawNotification(std::unique_ptr<Serializable>);
-
-private:
-    FrontendChannel* frontend_channel_;
+  void flush();
+  void sendRawNotification(std::unique_ptr<Serializable>);
+ private:
+  FrontendChannel* frontend_channel_;
 };
 
 // ------------- Dispatcher.
 
-class Dispatcher {
+class  Dispatcher {
 public:
     static void wire(UberDispatcher*, Backend*);
 
 private:
-    Dispatcher()
-    {
-    }
+    Dispatcher() { }
 };
 
 // ------------- Metainfo.
 
-class Metainfo {
+class  Metainfo {
 public:
     using BackendClass = Backend;
     using FrontendClass = Frontend;

@@ -16,8 +16,7 @@ TNode<Smi> LoadPropertyArrayLengthAndHash_0(compiler::CodeAssemblerState* state_
 void StorePropertyArrayLengthAndHash_0(compiler::CodeAssemblerState* state_, TNode<PropertyArray> p_o, TNode<Smi> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-array.tq?l=5&c=1
-TNode<PropertyArray> DownCastForTorqueClass_PropertyArray_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<PropertyArray> DownCastForTorqueClass_PropertyArray_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

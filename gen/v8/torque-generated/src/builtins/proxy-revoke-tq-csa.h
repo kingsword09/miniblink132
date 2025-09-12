@@ -7,8 +7,7 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/proxy-revoke.tq?l=17&c=7
-TorqueStructReference_Null_OR_JSProxy_0 ContextSlot_ProxyRevokeFunctionContext_ProxyRevokeFunctionContext_Null_OR_JSProxy_0(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<IntPtrT> p_index);
+TorqueStructReference_Null_OR_JSProxy_0 ContextSlot_ProxyRevokeFunctionContext_ProxyRevokeFunctionContext_Null_OR_JSProxy_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<IntPtrT> p_index);
 
 } // namespace internal
 } // namespace v8

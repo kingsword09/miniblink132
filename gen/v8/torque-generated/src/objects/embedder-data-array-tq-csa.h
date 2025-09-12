@@ -16,8 +16,7 @@ TNode<Smi> LoadEmbedderDataArrayLength_0(compiler::CodeAssemblerState* state_, T
 void StoreEmbedderDataArrayLength_0(compiler::CodeAssemblerState* state_, TNode<EmbedderDataArray> p_o, TNode<Smi> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/embedder-data-array.tq?l=5&c=1
-TNode<EmbedderDataArray> DownCastForTorqueClass_EmbedderDataArray_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<EmbedderDataArray> DownCastForTorqueClass_EmbedderDataArray_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

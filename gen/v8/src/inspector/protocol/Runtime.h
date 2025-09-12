@@ -43,79 +43,62 @@ class StackTraceId;
 
 namespace ConsoleAPICalled {
 namespace TypeEnum {
-extern const char* Log;
-extern const char* Debug;
-extern const char* Info;
-extern const char* Error;
-extern const char* Warning;
-extern const char* Dir;
-extern const char* Dirxml;
-extern const char* Table;
-extern const char* Trace;
-extern const char* Clear;
-extern const char* StartGroup;
-extern const char* StartGroupCollapsed;
-extern const char* EndGroup;
-extern const char* Assert;
-extern const char* Profile;
-extern const char* ProfileEnd;
-extern const char* Count;
-extern const char* TimeEnd;
+ extern const char* Log;
+ extern const char* Debug;
+ extern const char* Info;
+ extern const char* Error;
+ extern const char* Warning;
+ extern const char* Dir;
+ extern const char* Dirxml;
+ extern const char* Table;
+ extern const char* Trace;
+ extern const char* Clear;
+ extern const char* StartGroup;
+ extern const char* StartGroupCollapsed;
+ extern const char* EndGroup;
+ extern const char* Assert;
+ extern const char* Profile;
+ extern const char* ProfileEnd;
+ extern const char* Count;
+ extern const char* TimeEnd;
 } // TypeEnum
 } // ConsoleAPICalled
 
 // ------------- Type and builder declarations.
 
-class SerializationOptions : public ::v8_crdtp::ProtocolObject<SerializationOptions> {
+class  SerializationOptions : public ::v8_crdtp::ProtocolObject<SerializationOptions> {
 public:
-    ~SerializationOptions() override
-    {
-    }
+    ~SerializationOptions() override { }
 
-    struct SerializationEnum {
+    struct  SerializationEnum {
         static const char* Deep;
         static const char* Json;
         static const char* IdOnly;
     }; // SerializationEnum
 
-    String getSerialization()
-    {
-        return m_serialization;
-    }
-    void setSerialization(const String& value)
-    {
-        m_serialization = value;
-    }
+    String getSerialization() { return m_serialization; }
+    void setSerialization(const String& value) { m_serialization = value; }
 
-    bool hasMaxDepth()
-    {
-        return m_maxDepth.has_value();
+    bool hasMaxDepth() { return m_maxDepth.has_value(); }
+    int getMaxDepth(int defaultValue) const {
+       return m_maxDepth.value_or(defaultValue);
     }
-    int getMaxDepth(int defaultValue) const
-    {
-        return m_maxDepth.value_or(defaultValue);
-    }
-    void setMaxDepth(int value)
-    {
-        m_maxDepth = value;
-    }
+    void setMaxDepth(int value) { m_maxDepth = value; }
 
-    bool hasAdditionalParameters()
-    {
-        return m_additionalParameters.has_value();
+    bool hasAdditionalParameters() { return m_additionalParameters.has_value(); }
+    protocol::DictionaryValue* getAdditionalParameters(protocol::DictionaryValue* defaultValue) {
+       return m_additionalParameters.has_value() ? &m_additionalParameters.value() : defaultValue;
     }
-    protocol::DictionaryValue* getAdditionalParameters(protocol::DictionaryValue* defaultValue)
-    {
-        return m_additionalParameters.has_value() ? &m_additionalParameters.value() : defaultValue;
-    }
-    void setAdditionalParameters(std::unique_ptr<protocol::DictionaryValue> value)
-    {
-        m_additionalParameters = std::move(value);
-    }
+    void setAdditionalParameters(std::unique_ptr<protocol::DictionaryValue> value) { m_additionalParameters = std::move(value); }
 
-    template <int STATE> class SerializationOptionsBuilder {
+    template<int STATE>
+    class SerializationOptionsBuilder {
     public:
-        enum { NoFieldsSet = 0, SerializationSet = 1 << 1, AllFieldsSet = (SerializationSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            SerializationSet = 1 << 1,
+            AllFieldsSet = (SerializationSet | 0)};
+
 
         SerializationOptionsBuilder<STATE | SerializationSet>& setSerialization(const String& value)
         {
@@ -144,12 +127,9 @@ public:
 
     private:
         friend class SerializationOptions;
-        SerializationOptionsBuilder()
-            : m_result(new SerializationOptions())
-        {
-        }
+        SerializationOptionsBuilder() : m_result(new SerializationOptions()) { }
 
-        template <int STEP> SerializationOptionsBuilder<STATE | STEP>& castState()
+        template<int STEP> SerializationOptionsBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<SerializationOptionsBuilder<STATE | STEP>*>(this);
         }
@@ -174,13 +154,12 @@ private:
     Maybe<protocol::DictionaryValue> m_additionalParameters;
 };
 
-class DeepSerializedValue : public ::v8_crdtp::ProtocolObject<DeepSerializedValue> {
-public:
-    ~DeepSerializedValue() override
-    {
-    }
 
-    struct TypeEnum {
+class  DeepSerializedValue : public ::v8_crdtp::ProtocolObject<DeepSerializedValue> {
+public:
+    ~DeepSerializedValue() override { }
+
+    struct  TypeEnum {
         static const char* Undefined;
         static const char* Null;
         static const char* String;
@@ -207,57 +186,35 @@ public:
         static const char* Generator;
     }; // TypeEnum
 
-    String getType()
-    {
-        return m_type;
-    }
-    void setType(const String& value)
-    {
-        m_type = value;
-    }
+    String getType() { return m_type; }
+    void setType(const String& value) { m_type = value; }
 
-    bool hasValue()
-    {
-        return m_value.has_value();
+    bool hasValue() { return m_value.has_value(); }
+    protocol::Value* getValue(protocol::Value* defaultValue) {
+       return m_value.has_value() ? &m_value.value() : defaultValue;
     }
-    protocol::Value* getValue(protocol::Value* defaultValue)
-    {
-        return m_value.has_value() ? &m_value.value() : defaultValue;
-    }
-    void setValue(std::unique_ptr<protocol::Value> value)
-    {
-        m_value = std::move(value);
-    }
+    void setValue(std::unique_ptr<protocol::Value> value) { m_value = std::move(value); }
 
-    bool hasObjectId()
-    {
-        return m_objectId.has_value();
+    bool hasObjectId() { return m_objectId.has_value(); }
+    String getObjectId(const String& defaultValue) const {
+       return m_objectId.value_or(defaultValue);
     }
-    String getObjectId(const String& defaultValue) const
-    {
-        return m_objectId.value_or(defaultValue);
-    }
-    void setObjectId(const String& value)
-    {
-        m_objectId = value;
-    }
+    void setObjectId(const String& value) { m_objectId = value; }
 
-    bool hasWeakLocalObjectReference()
-    {
-        return m_weakLocalObjectReference.has_value();
+    bool hasWeakLocalObjectReference() { return m_weakLocalObjectReference.has_value(); }
+    int getWeakLocalObjectReference(int defaultValue) const {
+       return m_weakLocalObjectReference.value_or(defaultValue);
     }
-    int getWeakLocalObjectReference(int defaultValue) const
-    {
-        return m_weakLocalObjectReference.value_or(defaultValue);
-    }
-    void setWeakLocalObjectReference(int value)
-    {
-        m_weakLocalObjectReference = value;
-    }
+    void setWeakLocalObjectReference(int value) { m_weakLocalObjectReference = value; }
 
-    template <int STATE> class DeepSerializedValueBuilder {
+    template<int STATE>
+    class DeepSerializedValueBuilder {
     public:
-        enum { NoFieldsSet = 0, TypeSet = 1 << 1, AllFieldsSet = (TypeSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            TypeSet = 1 << 1,
+            AllFieldsSet = (TypeSet | 0)};
+
 
         DeepSerializedValueBuilder<STATE | TypeSet>& setType(const String& value)
         {
@@ -292,12 +249,9 @@ public:
 
     private:
         friend class DeepSerializedValue;
-        DeepSerializedValueBuilder()
-            : m_result(new DeepSerializedValue())
-        {
-        }
+        DeepSerializedValueBuilder() : m_result(new DeepSerializedValue()) { }
 
-        template <int STEP> DeepSerializedValueBuilder<STATE | STEP>& castState()
+        template<int STEP> DeepSerializedValueBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<DeepSerializedValueBuilder<STATE | STEP>*>(this);
         }
@@ -323,13 +277,13 @@ private:
     Maybe<int> m_weakLocalObjectReference;
 };
 
-class RemoteObject : public ::v8_crdtp::ProtocolObject<RemoteObject>, public API::RemoteObject {
-public:
-    ~RemoteObject() override
-    {
-    }
 
-    struct TypeEnum {
+class  RemoteObject : public ::v8_crdtp::ProtocolObject<RemoteObject>,
+    public API::RemoteObject {
+public:
+    ~RemoteObject() override { }
+
+    struct  TypeEnum {
         static const char* Object;
         static const char* Function;
         static const char* Undefined;
@@ -340,16 +294,10 @@ public:
         static const char* Bigint;
     }; // TypeEnum
 
-    String getType()
-    {
-        return m_type;
-    }
-    void setType(const String& value)
-    {
-        m_type = value;
-    }
+    String getType() { return m_type; }
+    void setType(const String& value) { m_type = value; }
 
-    struct SubtypeEnum {
+    struct  SubtypeEnum {
         static const char* Array;
         static const char* Null;
         static const char* Node;
@@ -371,126 +319,68 @@ public:
         static const char* Wasmvalue;
     }; // SubtypeEnum
 
-    bool hasSubtype()
-    {
-        return m_subtype.has_value();
+    bool hasSubtype() { return m_subtype.has_value(); }
+    String getSubtype(const String& defaultValue) const {
+       return m_subtype.value_or(defaultValue);
     }
-    String getSubtype(const String& defaultValue) const
-    {
-        return m_subtype.value_or(defaultValue);
-    }
-    void setSubtype(const String& value)
-    {
-        m_subtype = value;
-    }
+    void setSubtype(const String& value) { m_subtype = value; }
 
-    bool hasClassName()
-    {
-        return m_className.has_value();
+    bool hasClassName() { return m_className.has_value(); }
+    String getClassName(const String& defaultValue) const {
+       return m_className.value_or(defaultValue);
     }
-    String getClassName(const String& defaultValue) const
-    {
-        return m_className.value_or(defaultValue);
-    }
-    void setClassName(const String& value)
-    {
-        m_className = value;
-    }
+    void setClassName(const String& value) { m_className = value; }
 
-    bool hasValue()
-    {
-        return m_value.has_value();
+    bool hasValue() { return m_value.has_value(); }
+    protocol::Value* getValue(protocol::Value* defaultValue) {
+       return m_value.has_value() ? &m_value.value() : defaultValue;
     }
-    protocol::Value* getValue(protocol::Value* defaultValue)
-    {
-        return m_value.has_value() ? &m_value.value() : defaultValue;
-    }
-    void setValue(std::unique_ptr<protocol::Value> value)
-    {
-        m_value = std::move(value);
-    }
+    void setValue(std::unique_ptr<protocol::Value> value) { m_value = std::move(value); }
 
-    bool hasUnserializableValue()
-    {
-        return m_unserializableValue.has_value();
+    bool hasUnserializableValue() { return m_unserializableValue.has_value(); }
+    String getUnserializableValue(const String& defaultValue) const {
+       return m_unserializableValue.value_or(defaultValue);
     }
-    String getUnserializableValue(const String& defaultValue) const
-    {
-        return m_unserializableValue.value_or(defaultValue);
-    }
-    void setUnserializableValue(const String& value)
-    {
-        m_unserializableValue = value;
-    }
+    void setUnserializableValue(const String& value) { m_unserializableValue = value; }
 
-    bool hasDescription()
-    {
-        return m_description.has_value();
+    bool hasDescription() { return m_description.has_value(); }
+    String getDescription(const String& defaultValue) const {
+       return m_description.value_or(defaultValue);
     }
-    String getDescription(const String& defaultValue) const
-    {
-        return m_description.value_or(defaultValue);
-    }
-    void setDescription(const String& value)
-    {
-        m_description = value;
-    }
+    void setDescription(const String& value) { m_description = value; }
 
-    bool hasDeepSerializedValue()
-    {
-        return m_deepSerializedValue.has_value();
+    bool hasDeepSerializedValue() { return m_deepSerializedValue.has_value(); }
+    protocol::Runtime::DeepSerializedValue* getDeepSerializedValue(protocol::Runtime::DeepSerializedValue* defaultValue) {
+       return m_deepSerializedValue.has_value() ? &m_deepSerializedValue.value() : defaultValue;
     }
-    protocol::Runtime::DeepSerializedValue* getDeepSerializedValue(protocol::Runtime::DeepSerializedValue* defaultValue)
-    {
-        return m_deepSerializedValue.has_value() ? &m_deepSerializedValue.value() : defaultValue;
-    }
-    void setDeepSerializedValue(std::unique_ptr<protocol::Runtime::DeepSerializedValue> value)
-    {
-        m_deepSerializedValue = std::move(value);
-    }
+    void setDeepSerializedValue(std::unique_ptr<protocol::Runtime::DeepSerializedValue> value) { m_deepSerializedValue = std::move(value); }
 
-    bool hasObjectId()
-    {
-        return m_objectId.has_value();
+    bool hasObjectId() { return m_objectId.has_value(); }
+    String getObjectId(const String& defaultValue) const {
+       return m_objectId.value_or(defaultValue);
     }
-    String getObjectId(const String& defaultValue) const
-    {
-        return m_objectId.value_or(defaultValue);
-    }
-    void setObjectId(const String& value)
-    {
-        m_objectId = value;
-    }
+    void setObjectId(const String& value) { m_objectId = value; }
 
-    bool hasPreview()
-    {
-        return m_preview.has_value();
+    bool hasPreview() { return m_preview.has_value(); }
+    protocol::Runtime::ObjectPreview* getPreview(protocol::Runtime::ObjectPreview* defaultValue) {
+       return m_preview.has_value() ? &m_preview.value() : defaultValue;
     }
-    protocol::Runtime::ObjectPreview* getPreview(protocol::Runtime::ObjectPreview* defaultValue)
-    {
-        return m_preview.has_value() ? &m_preview.value() : defaultValue;
-    }
-    void setPreview(std::unique_ptr<protocol::Runtime::ObjectPreview> value)
-    {
-        m_preview = std::move(value);
-    }
+    void setPreview(std::unique_ptr<protocol::Runtime::ObjectPreview> value) { m_preview = std::move(value); }
 
-    bool hasCustomPreview()
-    {
-        return m_customPreview.has_value();
+    bool hasCustomPreview() { return m_customPreview.has_value(); }
+    protocol::Runtime::CustomPreview* getCustomPreview(protocol::Runtime::CustomPreview* defaultValue) {
+       return m_customPreview.has_value() ? &m_customPreview.value() : defaultValue;
     }
-    protocol::Runtime::CustomPreview* getCustomPreview(protocol::Runtime::CustomPreview* defaultValue)
-    {
-        return m_customPreview.has_value() ? &m_customPreview.value() : defaultValue;
-    }
-    void setCustomPreview(std::unique_ptr<protocol::Runtime::CustomPreview> value)
-    {
-        m_customPreview = std::move(value);
-    }
+    void setCustomPreview(std::unique_ptr<protocol::Runtime::CustomPreview> value) { m_customPreview = std::move(value); }
 
-    template <int STATE> class RemoteObjectBuilder {
+    template<int STATE>
+    class RemoteObjectBuilder {
     public:
-        enum { NoFieldsSet = 0, TypeSet = 1 << 1, AllFieldsSet = (TypeSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            TypeSet = 1 << 1,
+            AllFieldsSet = (TypeSet | 0)};
+
 
         RemoteObjectBuilder<STATE | TypeSet>& setType(const String& value)
         {
@@ -561,12 +451,9 @@ public:
 
     private:
         friend class RemoteObject;
-        RemoteObjectBuilder()
-            : m_result(new RemoteObject())
-        {
-        }
+        RemoteObjectBuilder() : m_result(new RemoteObject()) { }
 
-        template <int STEP> RemoteObjectBuilder<STATE | STEP>& castState()
+        template<int STEP> RemoteObjectBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<RemoteObjectBuilder<STATE | STEP>*>(this);
         }
@@ -598,37 +485,28 @@ private:
     Maybe<protocol::Runtime::CustomPreview> m_customPreview;
 };
 
-class CustomPreview : public ::v8_crdtp::ProtocolObject<CustomPreview> {
+
+class  CustomPreview : public ::v8_crdtp::ProtocolObject<CustomPreview> {
 public:
-    ~CustomPreview() override
-    {
-    }
+    ~CustomPreview() override { }
 
-    String getHeader()
-    {
-        return m_header;
-    }
-    void setHeader(const String& value)
-    {
-        m_header = value;
-    }
+    String getHeader() { return m_header; }
+    void setHeader(const String& value) { m_header = value; }
 
-    bool hasBodyGetterId()
-    {
-        return m_bodyGetterId.has_value();
+    bool hasBodyGetterId() { return m_bodyGetterId.has_value(); }
+    String getBodyGetterId(const String& defaultValue) const {
+       return m_bodyGetterId.value_or(defaultValue);
     }
-    String getBodyGetterId(const String& defaultValue) const
-    {
-        return m_bodyGetterId.value_or(defaultValue);
-    }
-    void setBodyGetterId(const String& value)
-    {
-        m_bodyGetterId = value;
-    }
+    void setBodyGetterId(const String& value) { m_bodyGetterId = value; }
 
-    template <int STATE> class CustomPreviewBuilder {
+    template<int STATE>
+    class CustomPreviewBuilder {
     public:
-        enum { NoFieldsSet = 0, HeaderSet = 1 << 1, AllFieldsSet = (HeaderSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            HeaderSet = 1 << 1,
+            AllFieldsSet = (HeaderSet | 0)};
+
 
         CustomPreviewBuilder<STATE | HeaderSet>& setHeader(const String& value)
         {
@@ -651,12 +529,9 @@ public:
 
     private:
         friend class CustomPreview;
-        CustomPreviewBuilder()
-            : m_result(new CustomPreview())
-        {
-        }
+        CustomPreviewBuilder() : m_result(new CustomPreview()) { }
 
-        template <int STEP> CustomPreviewBuilder<STATE | STEP>& castState()
+        template<int STEP> CustomPreviewBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<CustomPreviewBuilder<STATE | STEP>*>(this);
         }
@@ -680,13 +555,12 @@ private:
     Maybe<String> m_bodyGetterId;
 };
 
-class ObjectPreview : public ::v8_crdtp::ProtocolObject<ObjectPreview> {
-public:
-    ~ObjectPreview() override
-    {
-    }
 
-    struct TypeEnum {
+class  ObjectPreview : public ::v8_crdtp::ProtocolObject<ObjectPreview> {
+public:
+    ~ObjectPreview() override { }
+
+    struct  TypeEnum {
         static const char* Object;
         static const char* Function;
         static const char* Undefined;
@@ -697,16 +571,10 @@ public:
         static const char* Bigint;
     }; // TypeEnum
 
-    String getType()
-    {
-        return m_type;
-    }
-    void setType(const String& value)
-    {
-        m_type = value;
-    }
+    String getType() { return m_type; }
+    void setType(const String& value) { m_type = value; }
 
-    struct SubtypeEnum {
+    struct  SubtypeEnum {
         static const char* Array;
         static const char* Null;
         static const char* Node;
@@ -728,66 +596,40 @@ public:
         static const char* Wasmvalue;
     }; // SubtypeEnum
 
-    bool hasSubtype()
-    {
-        return m_subtype.has_value();
+    bool hasSubtype() { return m_subtype.has_value(); }
+    String getSubtype(const String& defaultValue) const {
+       return m_subtype.value_or(defaultValue);
     }
-    String getSubtype(const String& defaultValue) const
-    {
-        return m_subtype.value_or(defaultValue);
-    }
-    void setSubtype(const String& value)
-    {
-        m_subtype = value;
-    }
+    void setSubtype(const String& value) { m_subtype = value; }
 
-    bool hasDescription()
-    {
-        return m_description.has_value();
+    bool hasDescription() { return m_description.has_value(); }
+    String getDescription(const String& defaultValue) const {
+       return m_description.value_or(defaultValue);
     }
-    String getDescription(const String& defaultValue) const
-    {
-        return m_description.value_or(defaultValue);
-    }
-    void setDescription(const String& value)
-    {
-        m_description = value;
-    }
+    void setDescription(const String& value) { m_description = value; }
 
-    bool getOverflow()
-    {
-        return m_overflow;
-    }
-    void setOverflow(bool value)
-    {
-        m_overflow = value;
-    }
+    bool getOverflow() { return m_overflow; }
+    void setOverflow(bool value) { m_overflow = value; }
 
-    protocol::Array<protocol::Runtime::PropertyPreview>* getProperties()
-    {
-        return m_properties.get();
-    }
-    void setProperties(std::unique_ptr<protocol::Array<protocol::Runtime::PropertyPreview>> value)
-    {
-        m_properties = std::move(value);
-    }
+    protocol::Array<protocol::Runtime::PropertyPreview>* getProperties() { return m_properties.get(); }
+    void setProperties(std::unique_ptr<protocol::Array<protocol::Runtime::PropertyPreview>> value) { m_properties = std::move(value); }
 
-    bool hasEntries()
-    {
-        return m_entries.has_value();
+    bool hasEntries() { return m_entries.has_value(); }
+    protocol::Array<protocol::Runtime::EntryPreview>* getEntries(protocol::Array<protocol::Runtime::EntryPreview>* defaultValue) {
+       return m_entries.has_value() ? &m_entries.value() : defaultValue;
     }
-    protocol::Array<protocol::Runtime::EntryPreview>* getEntries(protocol::Array<protocol::Runtime::EntryPreview>* defaultValue)
-    {
-        return m_entries.has_value() ? &m_entries.value() : defaultValue;
-    }
-    void setEntries(std::unique_ptr<protocol::Array<protocol::Runtime::EntryPreview>> value)
-    {
-        m_entries = std::move(value);
-    }
+    void setEntries(std::unique_ptr<protocol::Array<protocol::Runtime::EntryPreview>> value) { m_entries = std::move(value); }
 
-    template <int STATE> class ObjectPreviewBuilder {
+    template<int STATE>
+    class ObjectPreviewBuilder {
     public:
-        enum { NoFieldsSet = 0, TypeSet = 1 << 1, OverflowSet = 1 << 2, PropertiesSet = 1 << 3, AllFieldsSet = (TypeSet | OverflowSet | PropertiesSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            TypeSet = 1 << 1,
+            OverflowSet = 1 << 2,
+            PropertiesSet = 1 << 3,
+            AllFieldsSet = (TypeSet | OverflowSet | PropertiesSet | 0)};
+
 
         ObjectPreviewBuilder<STATE | TypeSet>& setType(const String& value)
         {
@@ -836,12 +678,9 @@ public:
 
     private:
         friend class ObjectPreview;
-        ObjectPreviewBuilder()
-            : m_result(new ObjectPreview())
-        {
-        }
+        ObjectPreviewBuilder() : m_result(new ObjectPreview()) { }
 
-        template <int STEP> ObjectPreviewBuilder<STATE | STEP>& castState()
+        template<int STEP> ObjectPreviewBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<ObjectPreviewBuilder<STATE | STEP>*>(this);
         }
@@ -859,7 +698,7 @@ private:
 
     ObjectPreview()
     {
-        m_overflow = false;
+          m_overflow = false;
     }
 
     String m_type;
@@ -870,22 +709,15 @@ private:
     Maybe<protocol::Array<protocol::Runtime::EntryPreview>> m_entries;
 };
 
-class PropertyPreview : public ::v8_crdtp::ProtocolObject<PropertyPreview> {
+
+class  PropertyPreview : public ::v8_crdtp::ProtocolObject<PropertyPreview> {
 public:
-    ~PropertyPreview() override
-    {
-    }
+    ~PropertyPreview() override { }
 
-    String getName()
-    {
-        return m_name;
-    }
-    void setName(const String& value)
-    {
-        m_name = value;
-    }
+    String getName() { return m_name; }
+    void setName(const String& value) { m_name = value; }
 
-    struct TypeEnum {
+    struct  TypeEnum {
         static const char* Object;
         static const char* Function;
         static const char* Undefined;
@@ -897,42 +729,22 @@ public:
         static const char* Bigint;
     }; // TypeEnum
 
-    String getType()
-    {
-        return m_type;
-    }
-    void setType(const String& value)
-    {
-        m_type = value;
-    }
+    String getType() { return m_type; }
+    void setType(const String& value) { m_type = value; }
 
-    bool hasValue()
-    {
-        return m_value.has_value();
+    bool hasValue() { return m_value.has_value(); }
+    String getValue(const String& defaultValue) const {
+       return m_value.value_or(defaultValue);
     }
-    String getValue(const String& defaultValue) const
-    {
-        return m_value.value_or(defaultValue);
-    }
-    void setValue(const String& value)
-    {
-        m_value = value;
-    }
+    void setValue(const String& value) { m_value = value; }
 
-    bool hasValuePreview()
-    {
-        return m_valuePreview.has_value();
+    bool hasValuePreview() { return m_valuePreview.has_value(); }
+    protocol::Runtime::ObjectPreview* getValuePreview(protocol::Runtime::ObjectPreview* defaultValue) {
+       return m_valuePreview.has_value() ? &m_valuePreview.value() : defaultValue;
     }
-    protocol::Runtime::ObjectPreview* getValuePreview(protocol::Runtime::ObjectPreview* defaultValue)
-    {
-        return m_valuePreview.has_value() ? &m_valuePreview.value() : defaultValue;
-    }
-    void setValuePreview(std::unique_ptr<protocol::Runtime::ObjectPreview> value)
-    {
-        m_valuePreview = std::move(value);
-    }
+    void setValuePreview(std::unique_ptr<protocol::Runtime::ObjectPreview> value) { m_valuePreview = std::move(value); }
 
-    struct SubtypeEnum {
+    struct  SubtypeEnum {
         static const char* Array;
         static const char* Null;
         static const char* Node;
@@ -954,22 +766,21 @@ public:
         static const char* Wasmvalue;
     }; // SubtypeEnum
 
-    bool hasSubtype()
-    {
-        return m_subtype.has_value();
+    bool hasSubtype() { return m_subtype.has_value(); }
+    String getSubtype(const String& defaultValue) const {
+       return m_subtype.value_or(defaultValue);
     }
-    String getSubtype(const String& defaultValue) const
-    {
-        return m_subtype.value_or(defaultValue);
-    }
-    void setSubtype(const String& value)
-    {
-        m_subtype = value;
-    }
+    void setSubtype(const String& value) { m_subtype = value; }
 
-    template <int STATE> class PropertyPreviewBuilder {
+    template<int STATE>
+    class PropertyPreviewBuilder {
     public:
-        enum { NoFieldsSet = 0, NameSet = 1 << 1, TypeSet = 1 << 2, AllFieldsSet = (NameSet | TypeSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            NameSet = 1 << 1,
+            TypeSet = 1 << 2,
+            AllFieldsSet = (NameSet | TypeSet | 0)};
+
 
         PropertyPreviewBuilder<STATE | NameSet>& setName(const String& value)
         {
@@ -1011,12 +822,9 @@ public:
 
     private:
         friend class PropertyPreview;
-        PropertyPreviewBuilder()
-            : m_result(new PropertyPreview())
-        {
-        }
+        PropertyPreviewBuilder() : m_result(new PropertyPreview()) { }
 
-        template <int STEP> PropertyPreviewBuilder<STATE | STEP>& castState()
+        template<int STEP> PropertyPreviewBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<PropertyPreviewBuilder<STATE | STEP>*>(this);
         }
@@ -1043,37 +851,28 @@ private:
     Maybe<String> m_subtype;
 };
 
-class EntryPreview : public ::v8_crdtp::ProtocolObject<EntryPreview> {
+
+class  EntryPreview : public ::v8_crdtp::ProtocolObject<EntryPreview> {
 public:
-    ~EntryPreview() override
-    {
-    }
+    ~EntryPreview() override { }
 
-    bool hasKey()
-    {
-        return m_key.has_value();
+    bool hasKey() { return m_key.has_value(); }
+    protocol::Runtime::ObjectPreview* getKey(protocol::Runtime::ObjectPreview* defaultValue) {
+       return m_key.has_value() ? &m_key.value() : defaultValue;
     }
-    protocol::Runtime::ObjectPreview* getKey(protocol::Runtime::ObjectPreview* defaultValue)
-    {
-        return m_key.has_value() ? &m_key.value() : defaultValue;
-    }
-    void setKey(std::unique_ptr<protocol::Runtime::ObjectPreview> value)
-    {
-        m_key = std::move(value);
-    }
+    void setKey(std::unique_ptr<protocol::Runtime::ObjectPreview> value) { m_key = std::move(value); }
 
-    protocol::Runtime::ObjectPreview* getValue()
-    {
-        return m_value.get();
-    }
-    void setValue(std::unique_ptr<protocol::Runtime::ObjectPreview> value)
-    {
-        m_value = std::move(value);
-    }
+    protocol::Runtime::ObjectPreview* getValue() { return m_value.get(); }
+    void setValue(std::unique_ptr<protocol::Runtime::ObjectPreview> value) { m_value = std::move(value); }
 
-    template <int STATE> class EntryPreviewBuilder {
+    template<int STATE>
+    class EntryPreviewBuilder {
     public:
-        enum { NoFieldsSet = 0, ValueSet = 1 << 1, AllFieldsSet = (ValueSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            ValueSet = 1 << 1,
+            AllFieldsSet = (ValueSet | 0)};
+
 
         EntryPreviewBuilder<STATE>& setKey(std::unique_ptr<protocol::Runtime::ObjectPreview> value)
         {
@@ -1096,12 +895,9 @@ public:
 
     private:
         friend class EntryPreview;
-        EntryPreviewBuilder()
-            : m_result(new EntryPreview())
-        {
-        }
+        EntryPreviewBuilder() : m_result(new EntryPreview()) { }
 
-        template <int STEP> EntryPreviewBuilder<STATE | STEP>& castState()
+        template<int STEP> EntryPreviewBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<EntryPreviewBuilder<STATE | STEP>*>(this);
         }
@@ -1125,139 +921,72 @@ private:
     std::unique_ptr<protocol::Runtime::ObjectPreview> m_value;
 };
 
-class PropertyDescriptor : public ::v8_crdtp::ProtocolObject<PropertyDescriptor> {
+
+class  PropertyDescriptor : public ::v8_crdtp::ProtocolObject<PropertyDescriptor> {
 public:
-    ~PropertyDescriptor() override
-    {
-    }
+    ~PropertyDescriptor() override { }
 
-    String getName()
-    {
-        return m_name;
-    }
-    void setName(const String& value)
-    {
-        m_name = value;
-    }
+    String getName() { return m_name; }
+    void setName(const String& value) { m_name = value; }
 
-    bool hasValue()
-    {
-        return m_value.has_value();
+    bool hasValue() { return m_value.has_value(); }
+    protocol::Runtime::RemoteObject* getValue(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_value.has_value() ? &m_value.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getValue(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_value.has_value() ? &m_value.value() : defaultValue;
-    }
-    void setValue(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_value = std::move(value);
-    }
+    void setValue(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_value = std::move(value); }
 
-    bool hasWritable()
-    {
-        return m_writable.has_value();
+    bool hasWritable() { return m_writable.has_value(); }
+    bool getWritable(bool defaultValue) const {
+       return m_writable.value_or(defaultValue);
     }
-    bool getWritable(bool defaultValue) const
-    {
-        return m_writable.value_or(defaultValue);
-    }
-    void setWritable(bool value)
-    {
-        m_writable = value;
-    }
+    void setWritable(bool value) { m_writable = value; }
 
-    bool hasGet()
-    {
-        return m_get.has_value();
+    bool hasGet() { return m_get.has_value(); }
+    protocol::Runtime::RemoteObject* getGet(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_get.has_value() ? &m_get.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getGet(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_get.has_value() ? &m_get.value() : defaultValue;
-    }
-    void setGet(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_get = std::move(value);
-    }
+    void setGet(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_get = std::move(value); }
 
-    bool hasSet()
-    {
-        return m_set.has_value();
+    bool hasSet() { return m_set.has_value(); }
+    protocol::Runtime::RemoteObject* getSet(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_set.has_value() ? &m_set.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getSet(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_set.has_value() ? &m_set.value() : defaultValue;
-    }
-    void setSet(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_set = std::move(value);
-    }
+    void setSet(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_set = std::move(value); }
 
-    bool getConfigurable()
-    {
-        return m_configurable;
-    }
-    void setConfigurable(bool value)
-    {
-        m_configurable = value;
-    }
+    bool getConfigurable() { return m_configurable; }
+    void setConfigurable(bool value) { m_configurable = value; }
 
-    bool getEnumerable()
-    {
-        return m_enumerable;
-    }
-    void setEnumerable(bool value)
-    {
-        m_enumerable = value;
-    }
+    bool getEnumerable() { return m_enumerable; }
+    void setEnumerable(bool value) { m_enumerable = value; }
 
-    bool hasWasThrown()
-    {
-        return m_wasThrown.has_value();
+    bool hasWasThrown() { return m_wasThrown.has_value(); }
+    bool getWasThrown(bool defaultValue) const {
+       return m_wasThrown.value_or(defaultValue);
     }
-    bool getWasThrown(bool defaultValue) const
-    {
-        return m_wasThrown.value_or(defaultValue);
-    }
-    void setWasThrown(bool value)
-    {
-        m_wasThrown = value;
-    }
+    void setWasThrown(bool value) { m_wasThrown = value; }
 
-    bool hasIsOwn()
-    {
-        return m_isOwn.has_value();
+    bool hasIsOwn() { return m_isOwn.has_value(); }
+    bool getIsOwn(bool defaultValue) const {
+       return m_isOwn.value_or(defaultValue);
     }
-    bool getIsOwn(bool defaultValue) const
-    {
-        return m_isOwn.value_or(defaultValue);
-    }
-    void setIsOwn(bool value)
-    {
-        m_isOwn = value;
-    }
+    void setIsOwn(bool value) { m_isOwn = value; }
 
-    bool hasSymbol()
-    {
-        return m_symbol.has_value();
+    bool hasSymbol() { return m_symbol.has_value(); }
+    protocol::Runtime::RemoteObject* getSymbol(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_symbol.has_value() ? &m_symbol.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getSymbol(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_symbol.has_value() ? &m_symbol.value() : defaultValue;
-    }
-    void setSymbol(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_symbol = std::move(value);
-    }
+    void setSymbol(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_symbol = std::move(value); }
 
-    template <int STATE> class PropertyDescriptorBuilder {
+    template<int STATE>
+    class PropertyDescriptorBuilder {
     public:
         enum {
             NoFieldsSet = 0,
             NameSet = 1 << 1,
             ConfigurableSet = 1 << 2,
             EnumerableSet = 1 << 3,
-            AllFieldsSet = (NameSet | ConfigurableSet | EnumerableSet | 0)
-        };
+            AllFieldsSet = (NameSet | ConfigurableSet | EnumerableSet | 0)};
+
 
         PropertyDescriptorBuilder<STATE | NameSet>& setName(const String& value)
         {
@@ -1330,12 +1059,9 @@ public:
 
     private:
         friend class PropertyDescriptor;
-        PropertyDescriptorBuilder()
-            : m_result(new PropertyDescriptor())
-        {
-        }
+        PropertyDescriptorBuilder() : m_result(new PropertyDescriptor()) { }
 
-        template <int STEP> PropertyDescriptorBuilder<STATE | STEP>& castState()
+        template<int STEP> PropertyDescriptorBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<PropertyDescriptorBuilder<STATE | STEP>*>(this);
         }
@@ -1353,8 +1079,8 @@ private:
 
     PropertyDescriptor()
     {
-        m_configurable = false;
-        m_enumerable = false;
+          m_configurable = false;
+          m_enumerable = false;
     }
 
     String m_name;
@@ -1369,37 +1095,28 @@ private:
     Maybe<protocol::Runtime::RemoteObject> m_symbol;
 };
 
-class InternalPropertyDescriptor : public ::v8_crdtp::ProtocolObject<InternalPropertyDescriptor> {
+
+class  InternalPropertyDescriptor : public ::v8_crdtp::ProtocolObject<InternalPropertyDescriptor> {
 public:
-    ~InternalPropertyDescriptor() override
-    {
-    }
+    ~InternalPropertyDescriptor() override { }
 
-    String getName()
-    {
-        return m_name;
-    }
-    void setName(const String& value)
-    {
-        m_name = value;
-    }
+    String getName() { return m_name; }
+    void setName(const String& value) { m_name = value; }
 
-    bool hasValue()
-    {
-        return m_value.has_value();
+    bool hasValue() { return m_value.has_value(); }
+    protocol::Runtime::RemoteObject* getValue(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_value.has_value() ? &m_value.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getValue(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_value.has_value() ? &m_value.value() : defaultValue;
-    }
-    void setValue(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_value = std::move(value);
-    }
+    void setValue(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_value = std::move(value); }
 
-    template <int STATE> class InternalPropertyDescriptorBuilder {
+    template<int STATE>
+    class InternalPropertyDescriptorBuilder {
     public:
-        enum { NoFieldsSet = 0, NameSet = 1 << 1, AllFieldsSet = (NameSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            NameSet = 1 << 1,
+            AllFieldsSet = (NameSet | 0)};
+
 
         InternalPropertyDescriptorBuilder<STATE | NameSet>& setName(const String& value)
         {
@@ -1422,12 +1139,9 @@ public:
 
     private:
         friend class InternalPropertyDescriptor;
-        InternalPropertyDescriptorBuilder()
-            : m_result(new InternalPropertyDescriptor())
-        {
-        }
+        InternalPropertyDescriptorBuilder() : m_result(new InternalPropertyDescriptor()) { }
 
-        template <int STEP> InternalPropertyDescriptorBuilder<STATE | STEP>& castState()
+        template<int STEP> InternalPropertyDescriptorBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<InternalPropertyDescriptorBuilder<STATE | STEP>*>(this);
         }
@@ -1451,63 +1165,40 @@ private:
     Maybe<protocol::Runtime::RemoteObject> m_value;
 };
 
-class PrivatePropertyDescriptor : public ::v8_crdtp::ProtocolObject<PrivatePropertyDescriptor> {
+
+class  PrivatePropertyDescriptor : public ::v8_crdtp::ProtocolObject<PrivatePropertyDescriptor> {
 public:
-    ~PrivatePropertyDescriptor() override
-    {
-    }
+    ~PrivatePropertyDescriptor() override { }
 
-    String getName()
-    {
-        return m_name;
-    }
-    void setName(const String& value)
-    {
-        m_name = value;
-    }
+    String getName() { return m_name; }
+    void setName(const String& value) { m_name = value; }
 
-    bool hasValue()
-    {
-        return m_value.has_value();
+    bool hasValue() { return m_value.has_value(); }
+    protocol::Runtime::RemoteObject* getValue(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_value.has_value() ? &m_value.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getValue(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_value.has_value() ? &m_value.value() : defaultValue;
-    }
-    void setValue(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_value = std::move(value);
-    }
+    void setValue(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_value = std::move(value); }
 
-    bool hasGet()
-    {
-        return m_get.has_value();
+    bool hasGet() { return m_get.has_value(); }
+    protocol::Runtime::RemoteObject* getGet(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_get.has_value() ? &m_get.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getGet(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_get.has_value() ? &m_get.value() : defaultValue;
-    }
-    void setGet(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_get = std::move(value);
-    }
+    void setGet(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_get = std::move(value); }
 
-    bool hasSet()
-    {
-        return m_set.has_value();
+    bool hasSet() { return m_set.has_value(); }
+    protocol::Runtime::RemoteObject* getSet(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_set.has_value() ? &m_set.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getSet(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_set.has_value() ? &m_set.value() : defaultValue;
-    }
-    void setSet(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_set = std::move(value);
-    }
+    void setSet(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_set = std::move(value); }
 
-    template <int STATE> class PrivatePropertyDescriptorBuilder {
+    template<int STATE>
+    class PrivatePropertyDescriptorBuilder {
     public:
-        enum { NoFieldsSet = 0, NameSet = 1 << 1, AllFieldsSet = (NameSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            NameSet = 1 << 1,
+            AllFieldsSet = (NameSet | 0)};
+
 
         PrivatePropertyDescriptorBuilder<STATE | NameSet>& setName(const String& value)
         {
@@ -1542,12 +1233,9 @@ public:
 
     private:
         friend class PrivatePropertyDescriptor;
-        PrivatePropertyDescriptorBuilder()
-            : m_result(new PrivatePropertyDescriptor())
-        {
-        }
+        PrivatePropertyDescriptorBuilder() : m_result(new PrivatePropertyDescriptor()) { }
 
-        template <int STEP> PrivatePropertyDescriptorBuilder<STATE | STEP>& castState()
+        template<int STEP> PrivatePropertyDescriptorBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<PrivatePropertyDescriptorBuilder<STATE | STEP>*>(this);
         }
@@ -1573,54 +1261,36 @@ private:
     Maybe<protocol::Runtime::RemoteObject> m_set;
 };
 
-class CallArgument : public ::v8_crdtp::ProtocolObject<CallArgument> {
+
+class  CallArgument : public ::v8_crdtp::ProtocolObject<CallArgument> {
 public:
-    ~CallArgument() override
-    {
-    }
+    ~CallArgument() override { }
 
-    bool hasValue()
-    {
-        return m_value.has_value();
+    bool hasValue() { return m_value.has_value(); }
+    protocol::Value* getValue(protocol::Value* defaultValue) {
+       return m_value.has_value() ? &m_value.value() : defaultValue;
     }
-    protocol::Value* getValue(protocol::Value* defaultValue)
-    {
-        return m_value.has_value() ? &m_value.value() : defaultValue;
-    }
-    void setValue(std::unique_ptr<protocol::Value> value)
-    {
-        m_value = std::move(value);
-    }
+    void setValue(std::unique_ptr<protocol::Value> value) { m_value = std::move(value); }
 
-    bool hasUnserializableValue()
-    {
-        return m_unserializableValue.has_value();
+    bool hasUnserializableValue() { return m_unserializableValue.has_value(); }
+    String getUnserializableValue(const String& defaultValue) const {
+       return m_unserializableValue.value_or(defaultValue);
     }
-    String getUnserializableValue(const String& defaultValue) const
-    {
-        return m_unserializableValue.value_or(defaultValue);
-    }
-    void setUnserializableValue(const String& value)
-    {
-        m_unserializableValue = value;
-    }
+    void setUnserializableValue(const String& value) { m_unserializableValue = value; }
 
-    bool hasObjectId()
-    {
-        return m_objectId.has_value();
+    bool hasObjectId() { return m_objectId.has_value(); }
+    String getObjectId(const String& defaultValue) const {
+       return m_objectId.value_or(defaultValue);
     }
-    String getObjectId(const String& defaultValue) const
-    {
-        return m_objectId.value_or(defaultValue);
-    }
-    void setObjectId(const String& value)
-    {
-        m_objectId = value;
-    }
+    void setObjectId(const String& value) { m_objectId = value; }
 
-    template <int STATE> class CallArgumentBuilder {
+    template<int STATE>
+    class CallArgumentBuilder {
     public:
-        enum { NoFieldsSet = 0, AllFieldsSet = (0) };
+        enum {
+            NoFieldsSet = 0,
+            AllFieldsSet = (0)};
+
 
         CallArgumentBuilder<STATE>& setValue(std::unique_ptr<protocol::Value> value)
         {
@@ -1648,12 +1318,9 @@ public:
 
     private:
         friend class CallArgument;
-        CallArgumentBuilder()
-            : m_result(new CallArgument())
-        {
-        }
+        CallArgumentBuilder() : m_result(new CallArgument()) { }
 
-        template <int STEP> CallArgumentBuilder<STATE | STEP>& castState()
+        template<int STEP> CallArgumentBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<CallArgumentBuilder<STATE | STEP>*>(this);
         }
@@ -1678,62 +1345,31 @@ private:
     Maybe<String> m_objectId;
 };
 
-class ExecutionContextDescription : public ::v8_crdtp::ProtocolObject<ExecutionContextDescription> {
+
+class  ExecutionContextDescription : public ::v8_crdtp::ProtocolObject<ExecutionContextDescription> {
 public:
-    ~ExecutionContextDescription() override
-    {
-    }
+    ~ExecutionContextDescription() override { }
 
-    int getId()
-    {
-        return m_id;
-    }
-    void setId(int value)
-    {
-        m_id = value;
-    }
+    int getId() { return m_id; }
+    void setId(int value) { m_id = value; }
 
-    String getOrigin()
-    {
-        return m_origin;
-    }
-    void setOrigin(const String& value)
-    {
-        m_origin = value;
-    }
+    String getOrigin() { return m_origin; }
+    void setOrigin(const String& value) { m_origin = value; }
 
-    String getName()
-    {
-        return m_name;
-    }
-    void setName(const String& value)
-    {
-        m_name = value;
-    }
+    String getName() { return m_name; }
+    void setName(const String& value) { m_name = value; }
 
-    String getUniqueId()
-    {
-        return m_uniqueId;
-    }
-    void setUniqueId(const String& value)
-    {
-        m_uniqueId = value;
-    }
+    String getUniqueId() { return m_uniqueId; }
+    void setUniqueId(const String& value) { m_uniqueId = value; }
 
-    bool hasAuxData()
-    {
-        return m_auxData.has_value();
+    bool hasAuxData() { return m_auxData.has_value(); }
+    protocol::DictionaryValue* getAuxData(protocol::DictionaryValue* defaultValue) {
+       return m_auxData.has_value() ? &m_auxData.value() : defaultValue;
     }
-    protocol::DictionaryValue* getAuxData(protocol::DictionaryValue* defaultValue)
-    {
-        return m_auxData.has_value() ? &m_auxData.value() : defaultValue;
-    }
-    void setAuxData(std::unique_ptr<protocol::DictionaryValue> value)
-    {
-        m_auxData = std::move(value);
-    }
+    void setAuxData(std::unique_ptr<protocol::DictionaryValue> value) { m_auxData = std::move(value); }
 
-    template <int STATE> class ExecutionContextDescriptionBuilder {
+    template<int STATE>
+    class ExecutionContextDescriptionBuilder {
     public:
         enum {
             NoFieldsSet = 0,
@@ -1741,8 +1377,8 @@ public:
             OriginSet = 1 << 2,
             NameSet = 1 << 3,
             UniqueIdSet = 1 << 4,
-            AllFieldsSet = (IdSet | OriginSet | NameSet | UniqueIdSet | 0)
-        };
+            AllFieldsSet = (IdSet | OriginSet | NameSet | UniqueIdSet | 0)};
+
 
         ExecutionContextDescriptionBuilder<STATE | IdSet>& setId(int value)
         {
@@ -1786,12 +1422,9 @@ public:
 
     private:
         friend class ExecutionContextDescription;
-        ExecutionContextDescriptionBuilder()
-            : m_result(new ExecutionContextDescription())
-        {
-        }
+        ExecutionContextDescriptionBuilder() : m_result(new ExecutionContextDescription()) { }
 
-        template <int STEP> ExecutionContextDescriptionBuilder<STATE | STEP>& castState()
+        template<int STEP> ExecutionContextDescriptionBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<ExecutionContextDescriptionBuilder<STATE | STEP>*>(this);
         }
@@ -1809,7 +1442,7 @@ private:
 
     ExecutionContextDescription()
     {
-        m_id = 0;
+          m_id = 0;
     }
 
     int m_id;
@@ -1819,127 +1452,61 @@ private:
     Maybe<protocol::DictionaryValue> m_auxData;
 };
 
-class ExceptionDetails : public ::v8_crdtp::ProtocolObject<ExceptionDetails> {
+
+class  ExceptionDetails : public ::v8_crdtp::ProtocolObject<ExceptionDetails> {
 public:
-    ~ExceptionDetails() override
-    {
-    }
+    ~ExceptionDetails() override { }
 
-    int getExceptionId()
-    {
-        return m_exceptionId;
-    }
-    void setExceptionId(int value)
-    {
-        m_exceptionId = value;
-    }
+    int getExceptionId() { return m_exceptionId; }
+    void setExceptionId(int value) { m_exceptionId = value; }
 
-    String getText()
-    {
-        return m_text;
-    }
-    void setText(const String& value)
-    {
-        m_text = value;
-    }
+    String getText() { return m_text; }
+    void setText(const String& value) { m_text = value; }
 
-    int getLineNumber()
-    {
-        return m_lineNumber;
-    }
-    void setLineNumber(int value)
-    {
-        m_lineNumber = value;
-    }
+    int getLineNumber() { return m_lineNumber; }
+    void setLineNumber(int value) { m_lineNumber = value; }
 
-    int getColumnNumber()
-    {
-        return m_columnNumber;
-    }
-    void setColumnNumber(int value)
-    {
-        m_columnNumber = value;
-    }
+    int getColumnNumber() { return m_columnNumber; }
+    void setColumnNumber(int value) { m_columnNumber = value; }
 
-    bool hasScriptId()
-    {
-        return m_scriptId.has_value();
+    bool hasScriptId() { return m_scriptId.has_value(); }
+    String getScriptId(const String& defaultValue) const {
+       return m_scriptId.value_or(defaultValue);
     }
-    String getScriptId(const String& defaultValue) const
-    {
-        return m_scriptId.value_or(defaultValue);
-    }
-    void setScriptId(const String& value)
-    {
-        m_scriptId = value;
-    }
+    void setScriptId(const String& value) { m_scriptId = value; }
 
-    bool hasUrl()
-    {
-        return m_url.has_value();
+    bool hasUrl() { return m_url.has_value(); }
+    String getUrl(const String& defaultValue) const {
+       return m_url.value_or(defaultValue);
     }
-    String getUrl(const String& defaultValue) const
-    {
-        return m_url.value_or(defaultValue);
-    }
-    void setUrl(const String& value)
-    {
-        m_url = value;
-    }
+    void setUrl(const String& value) { m_url = value; }
 
-    bool hasStackTrace()
-    {
-        return m_stackTrace.has_value();
+    bool hasStackTrace() { return m_stackTrace.has_value(); }
+    protocol::Runtime::StackTrace* getStackTrace(protocol::Runtime::StackTrace* defaultValue) {
+       return m_stackTrace.has_value() ? &m_stackTrace.value() : defaultValue;
     }
-    protocol::Runtime::StackTrace* getStackTrace(protocol::Runtime::StackTrace* defaultValue)
-    {
-        return m_stackTrace.has_value() ? &m_stackTrace.value() : defaultValue;
-    }
-    void setStackTrace(std::unique_ptr<protocol::Runtime::StackTrace> value)
-    {
-        m_stackTrace = std::move(value);
-    }
+    void setStackTrace(std::unique_ptr<protocol::Runtime::StackTrace> value) { m_stackTrace = std::move(value); }
 
-    bool hasException()
-    {
-        return m_exception.has_value();
+    bool hasException() { return m_exception.has_value(); }
+    protocol::Runtime::RemoteObject* getException(protocol::Runtime::RemoteObject* defaultValue) {
+       return m_exception.has_value() ? &m_exception.value() : defaultValue;
     }
-    protocol::Runtime::RemoteObject* getException(protocol::Runtime::RemoteObject* defaultValue)
-    {
-        return m_exception.has_value() ? &m_exception.value() : defaultValue;
-    }
-    void setException(std::unique_ptr<protocol::Runtime::RemoteObject> value)
-    {
-        m_exception = std::move(value);
-    }
+    void setException(std::unique_ptr<protocol::Runtime::RemoteObject> value) { m_exception = std::move(value); }
 
-    bool hasExecutionContextId()
-    {
-        return m_executionContextId.has_value();
+    bool hasExecutionContextId() { return m_executionContextId.has_value(); }
+    int getExecutionContextId(int defaultValue) const {
+       return m_executionContextId.value_or(defaultValue);
     }
-    int getExecutionContextId(int defaultValue) const
-    {
-        return m_executionContextId.value_or(defaultValue);
-    }
-    void setExecutionContextId(int value)
-    {
-        m_executionContextId = value;
-    }
+    void setExecutionContextId(int value) { m_executionContextId = value; }
 
-    bool hasExceptionMetaData()
-    {
-        return m_exceptionMetaData.has_value();
+    bool hasExceptionMetaData() { return m_exceptionMetaData.has_value(); }
+    protocol::DictionaryValue* getExceptionMetaData(protocol::DictionaryValue* defaultValue) {
+       return m_exceptionMetaData.has_value() ? &m_exceptionMetaData.value() : defaultValue;
     }
-    protocol::DictionaryValue* getExceptionMetaData(protocol::DictionaryValue* defaultValue)
-    {
-        return m_exceptionMetaData.has_value() ? &m_exceptionMetaData.value() : defaultValue;
-    }
-    void setExceptionMetaData(std::unique_ptr<protocol::DictionaryValue> value)
-    {
-        m_exceptionMetaData = std::move(value);
-    }
+    void setExceptionMetaData(std::unique_ptr<protocol::DictionaryValue> value) { m_exceptionMetaData = std::move(value); }
 
-    template <int STATE> class ExceptionDetailsBuilder {
+    template<int STATE>
+    class ExceptionDetailsBuilder {
     public:
         enum {
             NoFieldsSet = 0,
@@ -1947,8 +1514,8 @@ public:
             TextSet = 1 << 2,
             LineNumberSet = 1 << 3,
             ColumnNumberSet = 1 << 4,
-            AllFieldsSet = (ExceptionIdSet | TextSet | LineNumberSet | ColumnNumberSet | 0)
-        };
+            AllFieldsSet = (ExceptionIdSet | TextSet | LineNumberSet | ColumnNumberSet | 0)};
+
 
         ExceptionDetailsBuilder<STATE | ExceptionIdSet>& setExceptionId(int value)
         {
@@ -2022,12 +1589,9 @@ public:
 
     private:
         friend class ExceptionDetails;
-        ExceptionDetailsBuilder()
-            : m_result(new ExceptionDetails())
-        {
-        }
+        ExceptionDetailsBuilder() : m_result(new ExceptionDetails()) { }
 
-        template <int STEP> ExceptionDetailsBuilder<STATE | STEP>& castState()
+        template<int STEP> ExceptionDetailsBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<ExceptionDetailsBuilder<STATE | STEP>*>(this);
         }
@@ -2045,9 +1609,9 @@ private:
 
     ExceptionDetails()
     {
-        m_exceptionId = 0;
-        m_lineNumber = 0;
-        m_columnNumber = 0;
+          m_exceptionId = 0;
+          m_lineNumber = 0;
+          m_columnNumber = 0;
     }
 
     int m_exceptionId;
@@ -2062,58 +1626,28 @@ private:
     Maybe<protocol::DictionaryValue> m_exceptionMetaData;
 };
 
-class CallFrame : public ::v8_crdtp::ProtocolObject<CallFrame> {
+
+class  CallFrame : public ::v8_crdtp::ProtocolObject<CallFrame> {
 public:
-    ~CallFrame() override
-    {
-    }
+    ~CallFrame() override { }
 
-    String getFunctionName()
-    {
-        return m_functionName;
-    }
-    void setFunctionName(const String& value)
-    {
-        m_functionName = value;
-    }
+    String getFunctionName() { return m_functionName; }
+    void setFunctionName(const String& value) { m_functionName = value; }
 
-    String getScriptId()
-    {
-        return m_scriptId;
-    }
-    void setScriptId(const String& value)
-    {
-        m_scriptId = value;
-    }
+    String getScriptId() { return m_scriptId; }
+    void setScriptId(const String& value) { m_scriptId = value; }
 
-    String getUrl()
-    {
-        return m_url;
-    }
-    void setUrl(const String& value)
-    {
-        m_url = value;
-    }
+    String getUrl() { return m_url; }
+    void setUrl(const String& value) { m_url = value; }
 
-    int getLineNumber()
-    {
-        return m_lineNumber;
-    }
-    void setLineNumber(int value)
-    {
-        m_lineNumber = value;
-    }
+    int getLineNumber() { return m_lineNumber; }
+    void setLineNumber(int value) { m_lineNumber = value; }
 
-    int getColumnNumber()
-    {
-        return m_columnNumber;
-    }
-    void setColumnNumber(int value)
-    {
-        m_columnNumber = value;
-    }
+    int getColumnNumber() { return m_columnNumber; }
+    void setColumnNumber(int value) { m_columnNumber = value; }
 
-    template <int STATE> class CallFrameBuilder {
+    template<int STATE>
+    class CallFrameBuilder {
     public:
         enum {
             NoFieldsSet = 0,
@@ -2122,8 +1656,8 @@ public:
             UrlSet = 1 << 3,
             LineNumberSet = 1 << 4,
             ColumnNumberSet = 1 << 5,
-            AllFieldsSet = (FunctionNameSet | ScriptIdSet | UrlSet | LineNumberSet | ColumnNumberSet | 0)
-        };
+            AllFieldsSet = (FunctionNameSet | ScriptIdSet | UrlSet | LineNumberSet | ColumnNumberSet | 0)};
+
 
         CallFrameBuilder<STATE | FunctionNameSet>& setFunctionName(const String& value)
         {
@@ -2168,12 +1702,9 @@ public:
 
     private:
         friend class CallFrame;
-        CallFrameBuilder()
-            : m_result(new CallFrame())
-        {
-        }
+        CallFrameBuilder() : m_result(new CallFrame()) { }
 
-        template <int STEP> CallFrameBuilder<STATE | STEP>& castState()
+        template<int STEP> CallFrameBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<CallFrameBuilder<STATE | STEP>*>(this);
         }
@@ -2191,8 +1722,8 @@ private:
 
     CallFrame()
     {
-        m_lineNumber = 0;
-        m_columnNumber = 0;
+          m_lineNumber = 0;
+          m_columnNumber = 0;
     }
 
     String m_functionName;
@@ -2202,63 +1733,41 @@ private:
     int m_columnNumber;
 };
 
-class StackTrace : public ::v8_crdtp::ProtocolObject<StackTrace>, public API::StackTrace {
+
+class  StackTrace : public ::v8_crdtp::ProtocolObject<StackTrace>,
+    public API::StackTrace {
 public:
-    ~StackTrace() override
-    {
-    }
+    ~StackTrace() override { }
 
-    bool hasDescription()
-    {
-        return m_description.has_value();
+    bool hasDescription() { return m_description.has_value(); }
+    String getDescription(const String& defaultValue) const {
+       return m_description.value_or(defaultValue);
     }
-    String getDescription(const String& defaultValue) const
-    {
-        return m_description.value_or(defaultValue);
-    }
-    void setDescription(const String& value)
-    {
-        m_description = value;
-    }
+    void setDescription(const String& value) { m_description = value; }
 
-    protocol::Array<protocol::Runtime::CallFrame>* getCallFrames()
-    {
-        return m_callFrames.get();
-    }
-    void setCallFrames(std::unique_ptr<protocol::Array<protocol::Runtime::CallFrame>> value)
-    {
-        m_callFrames = std::move(value);
-    }
+    protocol::Array<protocol::Runtime::CallFrame>* getCallFrames() { return m_callFrames.get(); }
+    void setCallFrames(std::unique_ptr<protocol::Array<protocol::Runtime::CallFrame>> value) { m_callFrames = std::move(value); }
 
-    bool hasParent()
-    {
-        return m_parent.has_value();
+    bool hasParent() { return m_parent.has_value(); }
+    protocol::Runtime::StackTrace* getParent(protocol::Runtime::StackTrace* defaultValue) {
+       return m_parent.has_value() ? &m_parent.value() : defaultValue;
     }
-    protocol::Runtime::StackTrace* getParent(protocol::Runtime::StackTrace* defaultValue)
-    {
-        return m_parent.has_value() ? &m_parent.value() : defaultValue;
-    }
-    void setParent(std::unique_ptr<protocol::Runtime::StackTrace> value)
-    {
-        m_parent = std::move(value);
-    }
+    void setParent(std::unique_ptr<protocol::Runtime::StackTrace> value) { m_parent = std::move(value); }
 
-    bool hasParentId()
-    {
-        return m_parentId.has_value();
+    bool hasParentId() { return m_parentId.has_value(); }
+    protocol::Runtime::StackTraceId* getParentId(protocol::Runtime::StackTraceId* defaultValue) {
+       return m_parentId.has_value() ? &m_parentId.value() : defaultValue;
     }
-    protocol::Runtime::StackTraceId* getParentId(protocol::Runtime::StackTraceId* defaultValue)
-    {
-        return m_parentId.has_value() ? &m_parentId.value() : defaultValue;
-    }
-    void setParentId(std::unique_ptr<protocol::Runtime::StackTraceId> value)
-    {
-        m_parentId = std::move(value);
-    }
+    void setParentId(std::unique_ptr<protocol::Runtime::StackTraceId> value) { m_parentId = std::move(value); }
 
-    template <int STATE> class StackTraceBuilder {
+    template<int STATE>
+    class StackTraceBuilder {
     public:
-        enum { NoFieldsSet = 0, CallFramesSet = 1 << 1, AllFieldsSet = (CallFramesSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            CallFramesSet = 1 << 1,
+            AllFieldsSet = (CallFramesSet | 0)};
+
 
         StackTraceBuilder<STATE>& setDescription(const String& value)
         {
@@ -2293,12 +1802,9 @@ public:
 
     private:
         friend class StackTrace;
-        StackTraceBuilder()
-            : m_result(new StackTrace())
-        {
-        }
+        StackTraceBuilder() : m_result(new StackTrace()) { }
 
-        template <int STEP> StackTraceBuilder<STATE | STEP>& castState()
+        template<int STEP> StackTraceBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<StackTraceBuilder<STATE | STEP>*>(this);
         }
@@ -2324,37 +1830,29 @@ private:
     Maybe<protocol::Runtime::StackTraceId> m_parentId;
 };
 
-class StackTraceId : public ::v8_crdtp::ProtocolObject<StackTraceId>, public API::StackTraceId {
+
+class  StackTraceId : public ::v8_crdtp::ProtocolObject<StackTraceId>,
+    public API::StackTraceId {
 public:
-    ~StackTraceId() override
-    {
-    }
+    ~StackTraceId() override { }
 
-    String getId()
-    {
-        return m_id;
-    }
-    void setId(const String& value)
-    {
-        m_id = value;
-    }
+    String getId() { return m_id; }
+    void setId(const String& value) { m_id = value; }
 
-    bool hasDebuggerId()
-    {
-        return m_debuggerId.has_value();
+    bool hasDebuggerId() { return m_debuggerId.has_value(); }
+    String getDebuggerId(const String& defaultValue) const {
+       return m_debuggerId.value_or(defaultValue);
     }
-    String getDebuggerId(const String& defaultValue) const
-    {
-        return m_debuggerId.value_or(defaultValue);
-    }
-    void setDebuggerId(const String& value)
-    {
-        m_debuggerId = value;
-    }
+    void setDebuggerId(const String& value) { m_debuggerId = value; }
 
-    template <int STATE> class StackTraceIdBuilder {
+    template<int STATE>
+    class StackTraceIdBuilder {
     public:
-        enum { NoFieldsSet = 0, IdSet = 1 << 1, AllFieldsSet = (IdSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            IdSet = 1 << 1,
+            AllFieldsSet = (IdSet | 0)};
+
 
         StackTraceIdBuilder<STATE | IdSet>& setId(const String& value)
         {
@@ -2377,12 +1875,9 @@ public:
 
     private:
         friend class StackTraceId;
-        StackTraceIdBuilder()
-            : m_result(new StackTraceId())
-        {
-        }
+        StackTraceIdBuilder() : m_result(new StackTraceId()) { }
 
-        template <int STEP> StackTraceIdBuilder<STATE | STEP>& castState()
+        template<int STEP> StackTraceIdBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<StackTraceIdBuilder<STATE | STEP>*>(this);
         }
@@ -2406,149 +1901,106 @@ private:
     Maybe<String> m_debuggerId;
 };
 
+
 // ------------- Backend interface.
 
-class Backend {
+class  Backend {
 public:
-    virtual ~Backend()
-    {
-    }
+    virtual ~Backend() { }
 
-    class AwaitPromiseCallback {
+    class  AwaitPromiseCallback {
     public:
         virtual void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) = 0;
         virtual void sendFailure(const DispatchResponse&) = 0;
         virtual void fallThrough() = 0;
-        virtual ~AwaitPromiseCallback()
-        {
-        }
+        virtual ~AwaitPromiseCallback() { }
     };
-    virtual void awaitPromise(
-        const String& in_promiseObjectId, Maybe<bool> in_returnByValue, Maybe<bool> in_generatePreview, std::unique_ptr<AwaitPromiseCallback> callback)
-        = 0;
-    class CallFunctionOnCallback {
+    virtual void awaitPromise(const String& in_promiseObjectId, Maybe<bool> in_returnByValue, Maybe<bool> in_generatePreview, std::unique_ptr<AwaitPromiseCallback> callback) = 0;
+    class  CallFunctionOnCallback {
     public:
         virtual void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) = 0;
         virtual void sendFailure(const DispatchResponse&) = 0;
         virtual void fallThrough() = 0;
-        virtual ~CallFunctionOnCallback()
-        {
-        }
+        virtual ~CallFunctionOnCallback() { }
     };
-    virtual void callFunctionOn(const String& in_functionDeclaration, Maybe<String> in_objectId,
-        Maybe<protocol::Array<protocol::Runtime::CallArgument>> in_arguments, Maybe<bool> in_silent, Maybe<bool> in_returnByValue,
-        Maybe<bool> in_generatePreview, Maybe<bool> in_userGesture, Maybe<bool> in_awaitPromise, Maybe<int> in_executionContextId, Maybe<String> in_objectGroup,
-        Maybe<bool> in_throwOnSideEffect, Maybe<String> in_uniqueContextId, Maybe<protocol::Runtime::SerializationOptions> in_serializationOptions,
-        std::unique_ptr<CallFunctionOnCallback> callback)
-        = 0;
-    virtual DispatchResponse compileScript(const String& in_expression, const String& in_sourceURL, bool in_persistScript, Maybe<int> in_executionContextId,
-        Maybe<String>* out_scriptId, Maybe<protocol::Runtime::ExceptionDetails>* out_exceptionDetails)
-        = 0;
+    virtual void callFunctionOn(const String& in_functionDeclaration, Maybe<String> in_objectId, Maybe<protocol::Array<protocol::Runtime::CallArgument>> in_arguments, Maybe<bool> in_silent, Maybe<bool> in_returnByValue, Maybe<bool> in_generatePreview, Maybe<bool> in_userGesture, Maybe<bool> in_awaitPromise, Maybe<int> in_executionContextId, Maybe<String> in_objectGroup, Maybe<bool> in_throwOnSideEffect, Maybe<String> in_uniqueContextId, Maybe<protocol::Runtime::SerializationOptions> in_serializationOptions, std::unique_ptr<CallFunctionOnCallback> callback) = 0;
+    virtual DispatchResponse compileScript(const String& in_expression, const String& in_sourceURL, bool in_persistScript, Maybe<int> in_executionContextId, Maybe<String>* out_scriptId, Maybe<protocol::Runtime::ExceptionDetails>* out_exceptionDetails) = 0;
     virtual DispatchResponse disable() = 0;
     virtual DispatchResponse discardConsoleEntries() = 0;
     virtual DispatchResponse enable() = 0;
-    class EvaluateCallback {
+    class  EvaluateCallback {
     public:
         virtual void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) = 0;
         virtual void sendFailure(const DispatchResponse&) = 0;
         virtual void fallThrough() = 0;
-        virtual ~EvaluateCallback()
-        {
-        }
+        virtual ~EvaluateCallback() { }
     };
-    virtual void evaluate(const String& in_expression, Maybe<String> in_objectGroup, Maybe<bool> in_includeCommandLineAPI, Maybe<bool> in_silent,
-        Maybe<int> in_contextId, Maybe<bool> in_returnByValue, Maybe<bool> in_generatePreview, Maybe<bool> in_userGesture, Maybe<bool> in_awaitPromise,
-        Maybe<bool> in_throwOnSideEffect, Maybe<double> in_timeout, Maybe<bool> in_disableBreaks, Maybe<bool> in_replMode,
-        Maybe<bool> in_allowUnsafeEvalBlockedByCSP, Maybe<String> in_uniqueContextId, Maybe<protocol::Runtime::SerializationOptions> in_serializationOptions,
-        std::unique_ptr<EvaluateCallback> callback)
-        = 0;
+    virtual void evaluate(const String& in_expression, Maybe<String> in_objectGroup, Maybe<bool> in_includeCommandLineAPI, Maybe<bool> in_silent, Maybe<int> in_contextId, Maybe<bool> in_returnByValue, Maybe<bool> in_generatePreview, Maybe<bool> in_userGesture, Maybe<bool> in_awaitPromise, Maybe<bool> in_throwOnSideEffect, Maybe<double> in_timeout, Maybe<bool> in_disableBreaks, Maybe<bool> in_replMode, Maybe<bool> in_allowUnsafeEvalBlockedByCSP, Maybe<String> in_uniqueContextId, Maybe<protocol::Runtime::SerializationOptions> in_serializationOptions, std::unique_ptr<EvaluateCallback> callback) = 0;
     virtual DispatchResponse getIsolateId(String* out_id) = 0;
     virtual DispatchResponse getHeapUsage(double* out_usedSize, double* out_totalSize) = 0;
-    virtual DispatchResponse getProperties(const String& in_objectId, Maybe<bool> in_ownProperties, Maybe<bool> in_accessorPropertiesOnly,
-        Maybe<bool> in_generatePreview, Maybe<bool> in_nonIndexedPropertiesOnly,
-        std::unique_ptr<protocol::Array<protocol::Runtime::PropertyDescriptor>>* out_result,
-        Maybe<protocol::Array<protocol::Runtime::InternalPropertyDescriptor>>* out_internalProperties,
-        Maybe<protocol::Array<protocol::Runtime::PrivatePropertyDescriptor>>* out_privateProperties,
-        Maybe<protocol::Runtime::ExceptionDetails>* out_exceptionDetails)
-        = 0;
+    virtual DispatchResponse getProperties(const String& in_objectId, Maybe<bool> in_ownProperties, Maybe<bool> in_accessorPropertiesOnly, Maybe<bool> in_generatePreview, Maybe<bool> in_nonIndexedPropertiesOnly, std::unique_ptr<protocol::Array<protocol::Runtime::PropertyDescriptor>>* out_result, Maybe<protocol::Array<protocol::Runtime::InternalPropertyDescriptor>>* out_internalProperties, Maybe<protocol::Array<protocol::Runtime::PrivatePropertyDescriptor>>* out_privateProperties, Maybe<protocol::Runtime::ExceptionDetails>* out_exceptionDetails) = 0;
     virtual DispatchResponse globalLexicalScopeNames(Maybe<int> in_executionContextId, std::unique_ptr<protocol::Array<String>>* out_names) = 0;
-    virtual DispatchResponse queryObjects(
-        const String& in_prototypeObjectId, Maybe<String> in_objectGroup, std::unique_ptr<protocol::Runtime::RemoteObject>* out_objects)
-        = 0;
+    virtual DispatchResponse queryObjects(const String& in_prototypeObjectId, Maybe<String> in_objectGroup, std::unique_ptr<protocol::Runtime::RemoteObject>* out_objects) = 0;
     virtual DispatchResponse releaseObject(const String& in_objectId) = 0;
     virtual DispatchResponse releaseObjectGroup(const String& in_objectGroup) = 0;
     virtual DispatchResponse runIfWaitingForDebugger() = 0;
-    class RunScriptCallback {
+    class  RunScriptCallback {
     public:
         virtual void sendSuccess(std::unique_ptr<protocol::Runtime::RemoteObject> result, Maybe<protocol::Runtime::ExceptionDetails> exceptionDetails) = 0;
         virtual void sendFailure(const DispatchResponse&) = 0;
         virtual void fallThrough() = 0;
-        virtual ~RunScriptCallback()
-        {
-        }
+        virtual ~RunScriptCallback() { }
     };
-    virtual void runScript(const String& in_scriptId, Maybe<int> in_executionContextId, Maybe<String> in_objectGroup, Maybe<bool> in_silent,
-        Maybe<bool> in_includeCommandLineAPI, Maybe<bool> in_returnByValue, Maybe<bool> in_generatePreview, Maybe<bool> in_awaitPromise,
-        std::unique_ptr<RunScriptCallback> callback)
-        = 0;
+    virtual void runScript(const String& in_scriptId, Maybe<int> in_executionContextId, Maybe<String> in_objectGroup, Maybe<bool> in_silent, Maybe<bool> in_includeCommandLineAPI, Maybe<bool> in_returnByValue, Maybe<bool> in_generatePreview, Maybe<bool> in_awaitPromise, std::unique_ptr<RunScriptCallback> callback) = 0;
     virtual DispatchResponse setCustomObjectFormatterEnabled(bool in_enabled) = 0;
     virtual DispatchResponse setMaxCallStackSizeToCapture(int in_size) = 0;
-    class TerminateExecutionCallback {
+    class  TerminateExecutionCallback {
     public:
         virtual void sendSuccess() = 0;
         virtual void sendFailure(const DispatchResponse&) = 0;
         virtual void fallThrough() = 0;
-        virtual ~TerminateExecutionCallback()
-        {
-        }
+        virtual ~TerminateExecutionCallback() { }
     };
     virtual void terminateExecution(std::unique_ptr<TerminateExecutionCallback> callback) = 0;
     virtual DispatchResponse addBinding(const String& in_name, Maybe<int> in_executionContextId, Maybe<String> in_executionContextName) = 0;
     virtual DispatchResponse removeBinding(const String& in_name) = 0;
     virtual DispatchResponse getExceptionDetails(const String& in_errorObjectId, Maybe<protocol::Runtime::ExceptionDetails>* out_exceptionDetails) = 0;
+
 };
 
 // ------------- Frontend interface.
 
-class Frontend {
+class  Frontend {
 public:
-    explicit Frontend(FrontendChannel* frontend_channel)
-        : frontend_channel_(frontend_channel)
-    {
-    }
+  explicit Frontend(FrontendChannel* frontend_channel) : frontend_channel_(frontend_channel) {}
     void bindingCalled(const String& name, const String& payload, int executionContextId);
-    void consoleAPICalled(const String& type, std::unique_ptr<protocol::Array<protocol::Runtime::RemoteObject>> args, int executionContextId, double timestamp,
-        Maybe<protocol::Runtime::StackTrace> stackTrace = Maybe<protocol::Runtime::StackTrace>(), Maybe<String> context = Maybe<String>());
+    void consoleAPICalled(const String& type, std::unique_ptr<protocol::Array<protocol::Runtime::RemoteObject>> args, int executionContextId, double timestamp, Maybe<protocol::Runtime::StackTrace> stackTrace = Maybe<protocol::Runtime::StackTrace>(), Maybe<String> context = Maybe<String>());
     void exceptionRevoked(const String& reason, int exceptionId);
     void exceptionThrown(double timestamp, std::unique_ptr<protocol::Runtime::ExceptionDetails> exceptionDetails);
     void executionContextCreated(std::unique_ptr<protocol::Runtime::ExecutionContextDescription> context);
     void executionContextDestroyed(int executionContextId, const String& executionContextUniqueId);
     void executionContextsCleared();
-    void inspectRequested(std::unique_ptr<protocol::Runtime::RemoteObject> object, std::unique_ptr<protocol::DictionaryValue> hints,
-        Maybe<int> executionContextId = Maybe<int>());
+    void inspectRequested(std::unique_ptr<protocol::Runtime::RemoteObject> object, std::unique_ptr<protocol::DictionaryValue> hints, Maybe<int> executionContextId = Maybe<int>());
 
-    void flush();
-    void sendRawNotification(std::unique_ptr<Serializable>);
-
-private:
-    FrontendChannel* frontend_channel_;
+  void flush();
+  void sendRawNotification(std::unique_ptr<Serializable>);
+ private:
+  FrontendChannel* frontend_channel_;
 };
 
 // ------------- Dispatcher.
 
-class Dispatcher {
+class  Dispatcher {
 public:
     static void wire(UberDispatcher*, Backend*);
 
 private:
-    Dispatcher()
-    {
-    }
+    Dispatcher() { }
 };
 
 // ------------- Metainfo.
 
-class Metainfo {
+class  Metainfo {
 public:
     using BackendClass = Backend;
     using FrontendClass = Frontend;

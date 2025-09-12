@@ -26,11 +26,13 @@ const char Metainfo::commandPrefix[] = "Schema.";
 const char Metainfo::version[] = "1.3";
 
 V8_CRDTP_BEGIN_DESERIALIZER(Domain)
-V8_CRDTP_DESERIALIZE_FIELD("name", m_name), V8_CRDTP_DESERIALIZE_FIELD("version", m_version),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("name", m_name),
+    V8_CRDTP_DESERIALIZE_FIELD("version", m_version),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(Domain) V8_CRDTP_SERIALIZE_FIELD("name", m_name);
-V8_CRDTP_SERIALIZE_FIELD("version", m_version);
+V8_CRDTP_BEGIN_SERIALIZER(Domain)
+    V8_CRDTP_SERIALIZE_FIELD("name", m_name);
+    V8_CRDTP_SERIALIZE_FIELD("version", m_version);
 V8_CRDTP_END_SERIALIZER();
 
 // static
@@ -40,6 +42,7 @@ std::unique_ptr<API::Domain> API::Domain::fromBinary(const uint8_t* data, size_t
 }
 
 // ------------- Enum values from params.
+
 
 // ------------- Frontend notifications.
 
@@ -59,20 +62,15 @@ class DomainDispatcherImpl : public protocol::DomainDispatcher {
 public:
     DomainDispatcherImpl(FrontendChannel* frontendChannel, Backend* backend)
         : DomainDispatcher(frontendChannel)
-        , m_backend(backend)
-    {
-    }
-    ~DomainDispatcherImpl() override
-    {
-    }
+        , m_backend(backend) {}
+    ~DomainDispatcherImpl() override { }
 
     using CallHandler = void (DomainDispatcherImpl::*)(const v8_crdtp::Dispatchable& dispatchable);
 
     std::function<void(const v8_crdtp::Dispatchable&)> Dispatch(v8_crdtp::span<uint8_t> command_name) override;
 
     void getDomains(const v8_crdtp::Dispatchable& dispatchable);
-
-protected:
+ protected:
     Backend* m_backend;
 };
 
@@ -80,30 +78,35 @@ namespace {
 // This helper method with a static map of command methods (instance methods
 // of DomainDispatcherImpl declared just above) by their name is used immediately below,
 // in the DomainDispatcherImpl::Dispatch method.
-DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name)
-{
-    static auto* commands = []() {
-        auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>, DomainDispatcherImpl::CallHandler>> {
-            { v8_crdtp::SpanFrom("getDomains"), &DomainDispatcherImpl::getDomains },
-        };
-        return commands;
-    }();
-    return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
+DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name) {
+  static auto* commands = [](){
+    auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>,
+                              DomainDispatcherImpl::CallHandler>>{
+    {
+          v8_crdtp::SpanFrom("getDomains"),
+          &DomainDispatcherImpl::getDomains
+    },
+    };
+    return commands;
+  }();
+  return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
 }
-} // namespace
+}  // namespace
 
-std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name)
-{
-    CallHandler handler = CommandByName(command_name);
-    if (!handler)
-        return nullptr;
+std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name) {
+  CallHandler handler = CommandByName(command_name);
+  if (!handler) return nullptr;
 
-    return [this, handler](const v8_crdtp::Dispatchable& dispatchable) { (this->*handler)(dispatchable); };
+  return [this, handler](const v8_crdtp::Dispatchable& dispatchable) {
+    (this->*handler)(dispatchable);
+  };
 }
+
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::getDomains(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -117,32 +120,32 @@ void DomainDispatcherImpl::getDomains(const v8_crdtp::Dispatchable& dispatchable
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Schema.getDomains"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("domains"), out_domains);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("domains"), out_domains);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 // This helper method (with a static map of redirects) is used from Dispatcher::wire
 // immediately below.
-const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects()
-{
-    static auto* redirects = []() {
-        auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>> {};
-        return redirects;
-    }();
-    return *redirects;
+const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects() {
+  static auto* redirects = [](){
+    auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>{
+    };
+    return redirects;
+  }();
+  return *redirects;
 }
-} // namespace
+}  // namespace
 
 // static
 void Dispatcher::wire(UberDispatcher* uber, Backend* backend)

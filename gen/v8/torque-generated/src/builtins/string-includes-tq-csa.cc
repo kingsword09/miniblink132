@@ -82,117 +82,109 @@
 namespace v8 {
 namespace internal {
 
-TF_BUILTIN(StringPrototypeIncludes, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
-    TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
-    TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
-    TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
-    CodeStubArguments arguments(this, torque_arguments);
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = arguments.GetReceiver();
-    USE(parameter1);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<Smi> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<Boolean> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(StringPrototypeIncludes, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
+  TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
+  TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
+  TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
+  CodeStubArguments arguments(this, torque_arguments);
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = arguments.GetReceiver();
+  USE(parameter1);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<Smi> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<Boolean> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<IntPtrT> tmp0;
-    TNode<Object> tmp1;
-    TNode<IntPtrT> tmp2;
-    TNode<Object> tmp3;
-    TNode<String> tmp4;
-    TNode<String> tmp5;
-    TNode<BoolT> tmp6;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp1 = CodeStubAssembler(state_).GetArgumentValue(
-            TorqueStructArguments { TNode<RawPtrT> { torque_arguments.frame }, TNode<RawPtrT> { torque_arguments.base },
-                TNode<IntPtrT> { torque_arguments.length }, TNode<IntPtrT> { torque_arguments.actual_count } },
-            TNode<IntPtrT> { tmp0 });
-        tmp2 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x1ull));
-        tmp3 = CodeStubAssembler(state_).GetArgumentValue(
-            TorqueStructArguments { TNode<RawPtrT> { torque_arguments.frame }, TNode<RawPtrT> { torque_arguments.base },
-                TNode<IntPtrT> { torque_arguments.length }, TNode<IntPtrT> { torque_arguments.actual_count } },
-            TNode<IntPtrT> { tmp2 });
-        tmp4 = FromConstexpr_String_constexpr_string_0(state_, "String.prototype.includes");
-        tmp5 = CodeStubAssembler(state_).ToThisString(TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, TNode<String> { tmp4 });
-        tmp6 = IsRegExp_0(state_, TNode<Context> { parameter0 }, TNode<Object> { tmp1 });
-        ca_.Branch(tmp6, &block1, std::vector<compiler::Node*> {}, &block2, std::vector<compiler::Node*> {});
-    }
+  TNode<IntPtrT> tmp0;
+  TNode<Object> tmp1;
+  TNode<IntPtrT> tmp2;
+  TNode<Object> tmp3;
+  TNode<String> tmp4;
+  TNode<String> tmp5;
+  TNode<BoolT> tmp6;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp1 = CodeStubAssembler(state_).GetArgumentValue(TorqueStructArguments{TNode<RawPtrT>{torque_arguments.frame}, TNode<RawPtrT>{torque_arguments.base}, TNode<IntPtrT>{torque_arguments.length}, TNode<IntPtrT>{torque_arguments.actual_count}}, TNode<IntPtrT>{tmp0});
+    tmp2 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x1ull));
+    tmp3 = CodeStubAssembler(state_).GetArgumentValue(TorqueStructArguments{TNode<RawPtrT>{torque_arguments.frame}, TNode<RawPtrT>{torque_arguments.base}, TNode<IntPtrT>{torque_arguments.length}, TNode<IntPtrT>{torque_arguments.actual_count}}, TNode<IntPtrT>{tmp2});
+    tmp4 = FromConstexpr_String_constexpr_string_0(state_, "String.prototype.includes");
+    tmp5 = CodeStubAssembler(state_).ToThisString(TNode<Context>{parameter0}, TNode<Object>{parameter1}, TNode<String>{tmp4});
+    tmp6 = IsRegExp_0(state_, TNode<Context>{parameter0}, TNode<Object>{tmp1});
+    ca_.Branch(tmp6, &block1, std::vector<compiler::Node*>{}, &block2, std::vector<compiler::Node*>{});
+  }
 
-    if (block1.is_used()) {
-        ca_.Bind(&block1);
-        CodeStubAssembler(state_).ThrowTypeError(TNode<Context> { parameter0 }, MessageTemplate::kFirstArgumentNotRegExp, "String.prototype.includes");
-    }
+  if (block1.is_used()) {
+    ca_.Bind(&block1);
+    CodeStubAssembler(state_).ThrowTypeError(TNode<Context>{parameter0}, MessageTemplate::kFirstArgumentNotRegExp, "String.prototype.includes");
+  }
 
-    TNode<String> tmp7;
-    TNode<Smi> tmp8;
-    TNode<Undefined> tmp9;
-    TNode<BoolT> tmp10;
-    if (block2.is_used()) {
-        ca_.Bind(&block2);
-        tmp7 = CodeStubAssembler(state_).ToString_Inline(TNode<Context> { parameter0 }, TNode<Object> { tmp1 });
-        tmp8 = FromConstexpr_Smi_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp9 = Undefined_0(state_);
-        tmp10 = CodeStubAssembler(state_).TaggedNotEqual(TNode<Object> { tmp3 }, TNode<HeapObject> { tmp9 });
-        ca_.Branch(tmp10, &block3, std::vector<compiler::Node*> {}, &block4, std::vector<compiler::Node*> { tmp8 });
-    }
+  TNode<String> tmp7;
+  TNode<Smi> tmp8;
+  TNode<Undefined> tmp9;
+  TNode<BoolT> tmp10;
+  if (block2.is_used()) {
+    ca_.Bind(&block2);
+    tmp7 = CodeStubAssembler(state_).ToString_Inline(TNode<Context>{parameter0}, TNode<Object>{tmp1});
+    tmp8 = FromConstexpr_Smi_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp9 = Undefined_0(state_);
+    tmp10 = CodeStubAssembler(state_).TaggedNotEqual(TNode<Object>{tmp3}, TNode<HeapObject>{tmp9});
+    ca_.Branch(tmp10, &block3, std::vector<compiler::Node*>{}, &block4, std::vector<compiler::Node*>{tmp8});
+  }
 
-    TNode<UintPtrT> tmp11;
-    TNode<UintPtrT> tmp12;
-    TNode<IntPtrT> tmp13;
-    TNode<Smi> tmp14;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        tmp11 = LoadStringLengthAsUintPtr_0(state_, TNode<String> { tmp5 });
-        StaticAssertStringLengthFitsSmi_0(state_);
-        tmp12 = ClampToIndexRange_0(state_, TNode<Context> { parameter0 }, TNode<Object> { tmp3 }, TNode<UintPtrT> { tmp11 });
-        tmp13 = CodeStubAssembler(state_).Signed(TNode<UintPtrT> { tmp12 });
-        tmp14 = Convert_Smi_intptr_0(state_, TNode<IntPtrT> { tmp13 });
-        ca_.Goto(&block4, tmp14);
-    }
+  TNode<UintPtrT> tmp11;
+  TNode<UintPtrT> tmp12;
+  TNode<IntPtrT> tmp13;
+  TNode<Smi> tmp14;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    tmp11 = LoadStringLengthAsUintPtr_0(state_, TNode<String>{tmp5});
+    StaticAssertStringLengthFitsSmi_0(state_);
+    tmp12 = ClampToIndexRange_0(state_, TNode<Context>{parameter0}, TNode<Object>{tmp3}, TNode<UintPtrT>{tmp11});
+    tmp13 = CodeStubAssembler(state_).Signed(TNode<UintPtrT>{tmp12});
+    tmp14 = Convert_Smi_intptr_0(state_, TNode<IntPtrT>{tmp13});
+    ca_.Goto(&block4, tmp14);
+  }
 
-    TNode<Smi> phi_bb4_10;
-    TNode<Smi> tmp15;
-    TNode<Smi> tmp16;
-    TNode<BoolT> tmp17;
-    if (block4.is_used()) {
-        ca_.Bind(&block4, &phi_bb4_10);
-        tmp15 = ca_.CallBuiltin<Smi>(Builtin::kStringIndexOf, TNode<Object>(), tmp5, tmp7, phi_bb4_10);
-        tmp16 = FromConstexpr_Smi_constexpr_IntegerLiteral_0(state_, IntegerLiteral(true, 0x1ull));
-        tmp17 = CodeStubAssembler(state_).SmiNotEqual(TNode<Smi> { tmp15 }, TNode<Smi> { tmp16 });
-        ca_.Branch(tmp17, &block5, std::vector<compiler::Node*> {}, &block6, std::vector<compiler::Node*> {});
-    }
+  TNode<Smi> phi_bb4_10;
+  TNode<Smi> tmp15;
+  TNode<Smi> tmp16;
+  TNode<BoolT> tmp17;
+  if (block4.is_used()) {
+    ca_.Bind(&block4, &phi_bb4_10);
+    tmp15 = ca_.CallBuiltin<Smi>(Builtin::kStringIndexOf, TNode<Object>(), tmp5, tmp7, phi_bb4_10);
+    tmp16 = FromConstexpr_Smi_constexpr_IntegerLiteral_0(state_, IntegerLiteral(true, 0x1ull));
+    tmp17 = CodeStubAssembler(state_).SmiNotEqual(TNode<Smi>{tmp15}, TNode<Smi>{tmp16});
+    ca_.Branch(tmp17, &block5, std::vector<compiler::Node*>{}, &block6, std::vector<compiler::Node*>{});
+  }
 
-    TNode<True> tmp18;
-    if (block5.is_used()) {
-        ca_.Bind(&block5);
-        tmp18 = True_0(state_);
-        ca_.Goto(&block7, tmp18);
-    }
+  TNode<True> tmp18;
+  if (block5.is_used()) {
+    ca_.Bind(&block5);
+    tmp18 = True_0(state_);
+    ca_.Goto(&block7, tmp18);
+  }
 
-    TNode<False> tmp19;
-    if (block6.is_used()) {
-        ca_.Bind(&block6);
-        tmp19 = False_0(state_);
-        ca_.Goto(&block7, tmp19);
-    }
+  TNode<False> tmp19;
+  if (block6.is_used()) {
+    ca_.Bind(&block6);
+    tmp19 = False_0(state_);
+    ca_.Goto(&block7, tmp19);
+  }
 
-    TNode<Boolean> phi_bb7_12;
-    if (block7.is_used()) {
-        ca_.Bind(&block7, &phi_bb7_12);
-        arguments.PopAndReturn(phi_bb7_12);
-    }
+  TNode<Boolean> phi_bb7_12;
+  if (block7.is_used()) {
+    ca_.Bind(&block7, &phi_bb7_12);
+    arguments.PopAndReturn(phi_bb7_12);
+  }
 }
 
 } // namespace internal

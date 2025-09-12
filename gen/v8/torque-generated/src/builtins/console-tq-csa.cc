@@ -81,57 +81,52 @@
 namespace v8 {
 namespace internal {
 
-TF_BUILTIN(FastConsoleAssert, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
-    TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
-    TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
-    TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
-    CodeStubArguments arguments(this, torque_arguments);
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = arguments.GetReceiver();
-    USE(parameter1);
-    TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kJSNewTarget);
-    USE(parameter2);
-    TNode<JSFunction> parameter3 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
-    USE(parameter3);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(FastConsoleAssert, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
+  TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
+  TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
+  TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
+  CodeStubArguments arguments(this, torque_arguments);
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = arguments.GetReceiver();
+  USE(parameter1);
+  TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kJSNewTarget);
+USE(parameter2);
+  TNode<JSFunction> parameter3 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
+USE(parameter3);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<IntPtrT> tmp0;
-    TNode<Object> tmp1;
-    TNode<BoolT> tmp2;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp1 = CodeStubAssembler(state_).GetArgumentValue(
-            TorqueStructArguments { TNode<RawPtrT> { torque_arguments.frame }, TNode<RawPtrT> { torque_arguments.base },
-                TNode<IntPtrT> { torque_arguments.length }, TNode<IntPtrT> { torque_arguments.actual_count } },
-            TNode<IntPtrT> { tmp0 });
-        tmp2 = ToBoolean_0(state_, TNode<Object> { tmp1 });
-        ca_.Branch(tmp2, &block1, std::vector<compiler::Node*> {}, &block2, std::vector<compiler::Node*> {});
-    }
+  TNode<IntPtrT> tmp0;
+  TNode<Object> tmp1;
+  TNode<BoolT> tmp2;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp1 = CodeStubAssembler(state_).GetArgumentValue(TorqueStructArguments{TNode<RawPtrT>{torque_arguments.frame}, TNode<RawPtrT>{torque_arguments.base}, TNode<IntPtrT>{torque_arguments.length}, TNode<IntPtrT>{torque_arguments.actual_count}}, TNode<IntPtrT>{tmp0});
+    tmp2 = ToBoolean_0(state_, TNode<Object>{tmp1});
+    ca_.Branch(tmp2, &block1, std::vector<compiler::Node*>{}, &block2, std::vector<compiler::Node*>{});
+  }
 
-    TNode<Undefined> tmp3;
-    if (block1.is_used()) {
-        ca_.Bind(&block1);
-        tmp3 = Undefined_0(state_);
-        arguments.PopAndReturn(tmp3);
-    }
+  TNode<Undefined> tmp3;
+  if (block1.is_used()) {
+    ca_.Bind(&block1);
+    tmp3 = Undefined_0(state_);
+    arguments.PopAndReturn(tmp3);
+  }
 
-    TNode<Int32T> tmp4;
-    TNode<JSDispatchHandleT> tmp5;
-    if (block2.is_used()) {
-        ca_.Bind(&block2);
-        tmp4 = Convert_int32_intptr_0(state_, TNode<IntPtrT> { torque_arguments.actual_count });
-        tmp5 = kInvalidDispatchHandle_0(state_);
-        CodeStubAssembler(state_).TailCallJSBuiltin(Builtin::kConsoleAssert, parameter0, parameter3, parameter2, tmp4, tmp5);
-    }
+  TNode<Int32T> tmp4;
+  TNode<JSDispatchHandleT> tmp5;
+  if (block2.is_used()) {
+    ca_.Bind(&block2);
+    tmp4 = Convert_int32_intptr_0(state_, TNode<IntPtrT>{torque_arguments.actual_count});
+    tmp5 = kInvalidDispatchHandle_0(state_);
+   CodeStubAssembler(state_).TailCallJSBuiltin(Builtin::kConsoleAssert, parameter0, parameter3, parameter2, tmp4, tmp5);
+  }
 }
 
 } // namespace internal

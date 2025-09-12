@@ -7,8 +7,7 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/iterator.tq?l=107&c=1
-TorqueStructIteratorRecord GetIteratorRecordAfterCreateAsyncFromSyncIterator_0(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TorqueStructIteratorRecord p_asyncIterator);
+TorqueStructIteratorRecord GetIteratorRecordAfterCreateAsyncFromSyncIterator_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TorqueStructIteratorRecord p_asyncIterator);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/iterator.tq?l=119&c=1
 TNode<Object> GetLazyReceiver_0(compiler::CodeAssemblerState* state_, TNode<Object> p_receiver);
@@ -20,8 +19,7 @@ void IteratorCloseOnException_0(compiler::CodeAssemblerState* state_, TNode<Cont
 void IteratorClose_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TorqueStructIteratorRecord p_iterator);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/iterator.tq?l=208&c=1
-TNode<Object> SetterThatIgnoresPrototypeProperties_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_receiver,
-    TNode<JSObject> p_home, TNode<Object> p_key, TNode<Object> p_value, const char* p_methodName);
+TNode<Object> SetterThatIgnoresPrototypeProperties_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_receiver, TNode<JSObject> p_home, TNode<Object> p_key, TNode<Object> p_value, const char* p_methodName);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/iterator.tq?l=317&c=1
 intptr_t kAsyncIteratorPrototypeAsyncDisposeResolveContextLength_0(compiler::CodeAssemblerState* state_);

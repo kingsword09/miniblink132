@@ -21,33 +21,26 @@ class Domain;
 
 // ------------- Type and builder declarations.
 
-class Domain : public ::v8_crdtp::ProtocolObject<Domain>, public API::Domain {
+class  Domain : public ::v8_crdtp::ProtocolObject<Domain>,
+    public API::Domain {
 public:
-    ~Domain() override
-    {
-    }
+    ~Domain() override { }
 
-    String getName()
-    {
-        return m_name;
-    }
-    void setName(const String& value)
-    {
-        m_name = value;
-    }
+    String getName() { return m_name; }
+    void setName(const String& value) { m_name = value; }
 
-    String getVersion()
-    {
-        return m_version;
-    }
-    void setVersion(const String& value)
-    {
-        m_version = value;
-    }
+    String getVersion() { return m_version; }
+    void setVersion(const String& value) { m_version = value; }
 
-    template <int STATE> class DomainBuilder {
+    template<int STATE>
+    class DomainBuilder {
     public:
-        enum { NoFieldsSet = 0, NameSet = 1 << 1, VersionSet = 1 << 2, AllFieldsSet = (NameSet | VersionSet | 0) };
+        enum {
+            NoFieldsSet = 0,
+            NameSet = 1 << 1,
+            VersionSet = 1 << 2,
+            AllFieldsSet = (NameSet | VersionSet | 0)};
+
 
         DomainBuilder<STATE | NameSet>& setName(const String& value)
         {
@@ -71,12 +64,9 @@ public:
 
     private:
         friend class Domain;
-        DomainBuilder()
-            : m_result(new Domain())
-        {
-        }
+        DomainBuilder() : m_result(new Domain()) { }
 
-        template <int STEP> DomainBuilder<STATE | STEP>& castState()
+        template<int STEP> DomainBuilder<STATE | STEP>& castState()
         {
             return *reinterpret_cast<DomainBuilder<STATE | STEP>*>(this);
         }
@@ -100,13 +90,12 @@ private:
     String m_version;
 };
 
+
 // ------------- Backend interface.
 
-class Backend {
+class  Backend {
 public:
-    virtual ~Backend()
-    {
-    }
+    virtual ~Backend() { }
 
     virtual DispatchResponse getDomains(std::unique_ptr<protocol::Array<protocol::Schema::Domain>>* out_domains) = 0;
 
@@ -118,35 +107,29 @@ public:
 
 // ------------- Frontend interface.
 
-class Frontend {
+class  Frontend {
 public:
-    explicit Frontend(FrontendChannel* frontend_channel)
-        : frontend_channel_(frontend_channel)
-    {
-    }
+  explicit Frontend(FrontendChannel* frontend_channel) : frontend_channel_(frontend_channel) {}
 
-    void flush();
-    void sendRawNotification(std::unique_ptr<Serializable>);
-
-private:
-    FrontendChannel* frontend_channel_;
+  void flush();
+  void sendRawNotification(std::unique_ptr<Serializable>);
+ private:
+  FrontendChannel* frontend_channel_;
 };
 
 // ------------- Dispatcher.
 
-class Dispatcher {
+class  Dispatcher {
 public:
     static void wire(UberDispatcher*, Backend*);
 
 private:
-    Dispatcher()
-    {
-    }
+    Dispatcher() { }
 };
 
 // ------------- Metainfo.
 
-class Metainfo {
+class  Metainfo {
 public:
     using BackendClass = Backend;
     using FrontendClass = Frontend;

@@ -7,6 +7,7 @@
 #ifndef v8_inspector_protocol_Forward_h
 #define v8_inspector_protocol_Forward_h
 
+
 #include <memory>
 #include <vector>
 
@@ -39,37 +40,33 @@ class Value;
 using v8_crdtp::detail::PtrMaybe;
 using v8_crdtp::detail::ValueMaybe;
 
-template <typename T> using Maybe = v8_crdtp::Maybe<T>;
+template<typename T>
+using Maybe = v8_crdtp::Maybe<T>;
 
 namespace detail {
 
-template <typename T> struct ArrayTypedef {
-    typedef std::vector<std::unique_ptr<T>> type;
-};
+template <typename T>
+struct ArrayTypedef { typedef std::vector<std::unique_ptr<T>> type; };
 
-template <> struct ArrayTypedef<String> {
-    typedef std::vector<String> type;
-};
+template <>
+struct ArrayTypedef<String> { typedef std::vector<String> type; };
 
-template <> struct ArrayTypedef<int> {
-    typedef std::vector<int> type;
-};
+template <>
+struct ArrayTypedef<int> { typedef std::vector<int> type; };
 
-template <> struct ArrayTypedef<double> {
-    typedef std::vector<double> type;
-};
+template <>
+struct ArrayTypedef<double> { typedef std::vector<double> type; };
 
-template <> struct ArrayTypedef<bool> {
-    typedef std::vector<bool> type;
-};
+template <>
+struct ArrayTypedef<bool> { typedef std::vector<bool> type; };
 
-template <> struct ArrayTypedef<Binary> {
-    typedef std::vector<Binary> type;
-};
+template <>
+struct ArrayTypedef<Binary> { typedef std::vector<Binary> type; };
 
-} // namespace detail
+}  // namespace detail
 
-template <typename T> using Array = typename detail::ArrayTypedef<T>::type;
+template <typename T>
+using Array = typename detail::ArrayTypedef<T>::type;
 
 } // namespace v8_inspector
 } // namespace protocol

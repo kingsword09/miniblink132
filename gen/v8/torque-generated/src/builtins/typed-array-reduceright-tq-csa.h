@@ -9,8 +9,7 @@ namespace internal {
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/typed-array-reduceright.tq?l=8&c=1
 const char* kBuiltinNameReduceRight_0(compiler::CodeAssemblerState* state_);
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/typed-array-reduceright.tq?l=12&c=1
-TNode<Object> ReduceRightAllElements_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context,
-    TorqueStructAttachedJSTypedArrayAndLength_0 p_attachedArrayAndLength, TNode<JSReceiver> p_callbackfn, TNode<Object> p_initialValue);
+TNode<Object> ReduceRightAllElements_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TorqueStructAttachedJSTypedArrayAndLength_0 p_attachedArrayAndLength, TNode<JSReceiver> p_callbackfn, TNode<Object> p_initialValue);
 
 } // namespace internal
 } // namespace v8

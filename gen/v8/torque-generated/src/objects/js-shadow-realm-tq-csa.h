@@ -16,8 +16,7 @@ TNode<NativeContext> LoadJSShadowRealmNativeContext_0(compiler::CodeAssemblerSta
 void StoreJSShadowRealmNativeContext_0(compiler::CodeAssemblerState* state_, TNode<JSShadowRealm> p_o, TNode<NativeContext> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-shadow-realm.tq?l=5&c=1
-TNode<JSShadowRealm> DownCastForTorqueClass_JSShadowRealm_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSShadowRealm> DownCastForTorqueClass_JSShadowRealm_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

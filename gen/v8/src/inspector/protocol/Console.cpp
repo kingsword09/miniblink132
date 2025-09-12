@@ -25,6 +25,7 @@ const char Metainfo::domainName[] = "Console";
 const char Metainfo::commandPrefix[] = "Console.";
 const char Metainfo::version[] = "1.3";
 
+
 const char* ConsoleMessage::SourceEnum::Xml = "xml";
 const char* ConsoleMessage::SourceEnum::Javascript = "javascript";
 const char* ConsoleMessage::SourceEnum::Network = "network";
@@ -43,19 +44,26 @@ const char* ConsoleMessage::LevelEnum::Error = "error";
 const char* ConsoleMessage::LevelEnum::Debug = "debug";
 const char* ConsoleMessage::LevelEnum::Info = "info";
 V8_CRDTP_BEGIN_DESERIALIZER(ConsoleMessage)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("column", m_column), V8_CRDTP_DESERIALIZE_FIELD("level", m_level), V8_CRDTP_DESERIALIZE_FIELD_OPT("line", m_line),
-    V8_CRDTP_DESERIALIZE_FIELD("source", m_source), V8_CRDTP_DESERIALIZE_FIELD("text", m_text), V8_CRDTP_DESERIALIZE_FIELD_OPT("url", m_url),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("column", m_column),
+    V8_CRDTP_DESERIALIZE_FIELD("level", m_level),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("line", m_line),
+    V8_CRDTP_DESERIALIZE_FIELD("source", m_source),
+    V8_CRDTP_DESERIALIZE_FIELD("text", m_text),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("url", m_url),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(ConsoleMessage) V8_CRDTP_SERIALIZE_FIELD("source", m_source);
-V8_CRDTP_SERIALIZE_FIELD("level", m_level);
-V8_CRDTP_SERIALIZE_FIELD("text", m_text);
-V8_CRDTP_SERIALIZE_FIELD("url", m_url);
-V8_CRDTP_SERIALIZE_FIELD("line", m_line);
-V8_CRDTP_SERIALIZE_FIELD("column", m_column);
+V8_CRDTP_BEGIN_SERIALIZER(ConsoleMessage)
+    V8_CRDTP_SERIALIZE_FIELD("source", m_source);
+    V8_CRDTP_SERIALIZE_FIELD("level", m_level);
+    V8_CRDTP_SERIALIZE_FIELD("text", m_text);
+    V8_CRDTP_SERIALIZE_FIELD("url", m_url);
+    V8_CRDTP_SERIALIZE_FIELD("line", m_line);
+    V8_CRDTP_SERIALIZE_FIELD("column", m_column);
 V8_CRDTP_END_SERIALIZER();
 
+
 // ------------- Enum values from params.
+
 
 // ------------- Frontend notifications.
 
@@ -84,12 +92,8 @@ class DomainDispatcherImpl : public protocol::DomainDispatcher {
 public:
     DomainDispatcherImpl(FrontendChannel* frontendChannel, Backend* backend)
         : DomainDispatcher(frontendChannel)
-        , m_backend(backend)
-    {
-    }
-    ~DomainDispatcherImpl() override
-    {
-    }
+        , m_backend(backend) {}
+    ~DomainDispatcherImpl() override { }
 
     using CallHandler = void (DomainDispatcherImpl::*)(const v8_crdtp::Dispatchable& dispatchable);
 
@@ -98,8 +102,7 @@ public:
     void clearMessages(const v8_crdtp::Dispatchable& dispatchable);
     void disable(const v8_crdtp::Dispatchable& dispatchable);
     void enable(const v8_crdtp::Dispatchable& dispatchable);
-
-protected:
+ protected:
     Backend* m_backend;
 };
 
@@ -107,32 +110,43 @@ namespace {
 // This helper method with a static map of command methods (instance methods
 // of DomainDispatcherImpl declared just above) by their name is used immediately below,
 // in the DomainDispatcherImpl::Dispatch method.
-DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name)
-{
-    static auto* commands = []() {
-        auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>, DomainDispatcherImpl::CallHandler>> {
-            { v8_crdtp::SpanFrom("clearMessages"), &DomainDispatcherImpl::clearMessages },
-            { v8_crdtp::SpanFrom("disable"), &DomainDispatcherImpl::disable },
-            { v8_crdtp::SpanFrom("enable"), &DomainDispatcherImpl::enable },
-        };
-        return commands;
-    }();
-    return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
+DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name) {
+  static auto* commands = [](){
+    auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>,
+                              DomainDispatcherImpl::CallHandler>>{
+    {
+          v8_crdtp::SpanFrom("clearMessages"),
+          &DomainDispatcherImpl::clearMessages
+    },
+    {
+          v8_crdtp::SpanFrom("disable"),
+          &DomainDispatcherImpl::disable
+    },
+    {
+          v8_crdtp::SpanFrom("enable"),
+          &DomainDispatcherImpl::enable
+    },
+    };
+    return commands;
+  }();
+  return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
 }
-} // namespace
+}  // namespace
 
-std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name)
-{
-    CallHandler handler = CommandByName(command_name);
-    if (!handler)
-        return nullptr;
+std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name) {
+  CallHandler handler = CommandByName(command_name);
+  if (!handler) return nullptr;
 
-    return [this, handler](const v8_crdtp::Dispatchable& dispatchable) { (this->*handler)(dispatchable); };
+  return [this, handler](const v8_crdtp::Dispatchable& dispatchable) {
+    (this->*handler)(dispatchable);
+  };
 }
+
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::clearMessages(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -151,7 +165,8 @@ void DomainDispatcherImpl::clearMessages(const v8_crdtp::Dispatchable& dispatcha
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -170,7 +185,8 @@ void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::enable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -190,15 +206,15 @@ void DomainDispatcherImpl::enable(const v8_crdtp::Dispatchable& dispatchable)
 namespace {
 // This helper method (with a static map of redirects) is used from Dispatcher::wire
 // immediately below.
-const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects()
-{
-    static auto* redirects = []() {
-        auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>> {};
-        return redirects;
-    }();
-    return *redirects;
+const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects() {
+  static auto* redirects = [](){
+    auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>{
+    };
+    return redirects;
+  }();
+  return *redirects;
 }
-} // namespace
+}  // namespace
 
 // static
 void Dispatcher::wire(UberDispatcher* uber, Backend* backend)

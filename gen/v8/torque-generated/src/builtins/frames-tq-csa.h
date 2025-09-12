@@ -31,8 +31,7 @@ TNode<RawPtrT> LoadCallerFromFrame_0(compiler::CodeAssemblerState* state_, TNode
 TNode<IntPtrT> LoadArgCFromFrame_0(compiler::CodeAssemblerState* state_, TNode<RawPtrT> p_f);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/frames.tq?l=79&c=1
-TNode<Object> Cast_ContextOrFrameType_0(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<Object> Cast_ContextOrFrameType_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/frames.tq?l=97&c=1
 TNode<Object> LoadContextOrFrameTypeFromFrame_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<RawPtrT> p_f);
@@ -41,8 +40,7 @@ TNode<Object> LoadContextOrFrameTypeFromFrame_0(compiler::CodeAssemblerState* st
 TNode<BoolT> FrameTypeEquals_0(compiler::CodeAssemblerState* state_, TNode<Smi> p_f1, TNode<Smi> p_f2);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/frames.tq?l=109&c=1
-TNode<RawPtrT> Cast_FrameWithArguments_0(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<RawPtrT> p_f, compiler::CodeAssemblerLabel* label_CastError);
+TNode<RawPtrT> Cast_FrameWithArguments_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<RawPtrT> p_f, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/frames.tq?l=134&c=1
 TNode<JSFunction> LoadTargetFromFrame_0(compiler::CodeAssemblerState* state_);
@@ -51,8 +49,7 @@ TNode<JSFunction> LoadTargetFromFrame_0(compiler::CodeAssemblerState* state_);
 TNode<Object> UnsafeCast_ContextOrFrameType_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/frames.tq?l=112&c=7
-TNode<HeapObject> Cast_HeapObject_1(
-    compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<HeapObject> Cast_HeapObject_1(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

@@ -73,12 +73,10 @@ void StoreScriptOrModuleHostDefinedOptions_0(compiler::CodeAssemblerState* state
 TNode<Module> DownCastForTorqueClass_Module_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/module.tq?l=20&c=1
-TNode<JSModuleNamespace> DownCastForTorqueClass_JSModuleNamespace_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSModuleNamespace> DownCastForTorqueClass_JSModuleNamespace_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/module.tq?l=24&c=1
-TNode<ScriptOrModule> DownCastForTorqueClass_ScriptOrModule_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ScriptOrModule> DownCastForTorqueClass_ScriptOrModule_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

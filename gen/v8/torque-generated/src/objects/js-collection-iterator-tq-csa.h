@@ -7,8 +7,7 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-collection-iterator.tq?l=5&c=1
-TNode<JSCollectionIterator> Cast_JSCollectionIterator_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSCollectionIterator> Cast_JSCollectionIterator_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-collection-iterator.tq?l=8&c=3
 TNode<Object> LoadJSCollectionIteratorTable_0(compiler::CodeAssemblerState* state_, TNode<JSCollectionIterator> p_o);
@@ -23,8 +22,7 @@ TNode<Object> LoadJSCollectionIteratorIndex_0(compiler::CodeAssemblerState* stat
 void StoreJSCollectionIteratorIndex_0(compiler::CodeAssemblerState* state_, TNode<JSCollectionIterator> p_o, TNode<Object> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-collection-iterator.tq?l=5&c=1
-TNode<JSCollectionIterator> DownCastForTorqueClass_JSCollectionIterator_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSCollectionIterator> DownCastForTorqueClass_JSCollectionIterator_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

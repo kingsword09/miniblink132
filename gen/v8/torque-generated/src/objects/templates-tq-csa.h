@@ -10,20 +10,16 @@ namespace internal {
 TNode<TemplateInfo> Cast_TemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=13&c=1
-TNode<FunctionTemplateRareData> Cast_FunctionTemplateRareData_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<FunctionTemplateRareData> Cast_FunctionTemplateRareData_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=44&c=1
-TNode<FunctionTemplateInfo> Cast_FunctionTemplateInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<FunctionTemplateInfo> Cast_FunctionTemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=104&c=1
-TNode<ObjectTemplateInfo> Cast_ObjectTemplateInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ObjectTemplateInfo> Cast_ObjectTemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=110&c=1
-TNode<DictionaryTemplateInfo> Cast_DictionaryTemplateInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<DictionaryTemplateInfo> Cast_DictionaryTemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=7&c=3
 TNode<Smi> LoadTemplateInfoSerialNumber_0(compiler::CodeAssemblerState* state_, TNode<TemplateInfo> p_o);
@@ -200,24 +196,19 @@ TNode<Smi> LoadDictionaryTemplateInfoSerialNumber_0(compiler::CodeAssemblerState
 void StoreDictionaryTemplateInfoSerialNumber_0(compiler::CodeAssemblerState* state_, TNode<DictionaryTemplateInfo> p_o, TNode<Smi> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=5&c=1
-TNode<TemplateInfo> DownCastForTorqueClass_TemplateInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TemplateInfo> DownCastForTorqueClass_TemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=13&c=1
-TNode<FunctionTemplateRareData> DownCastForTorqueClass_FunctionTemplateRareData_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<FunctionTemplateRareData> DownCastForTorqueClass_FunctionTemplateRareData_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=44&c=1
-TNode<FunctionTemplateInfo> DownCastForTorqueClass_FunctionTemplateInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<FunctionTemplateInfo> DownCastForTorqueClass_FunctionTemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=104&c=1
-TNode<ObjectTemplateInfo> DownCastForTorqueClass_ObjectTemplateInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ObjectTemplateInfo> DownCastForTorqueClass_ObjectTemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=110&c=1
-TNode<DictionaryTemplateInfo> DownCastForTorqueClass_DictionaryTemplateInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<DictionaryTemplateInfo> DownCastForTorqueClass_DictionaryTemplateInfo_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

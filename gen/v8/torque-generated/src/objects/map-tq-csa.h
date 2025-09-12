@@ -100,8 +100,7 @@ TNode<MaybeObject> LoadMapTransitionsOrPrototypeInfo_0(compiler::CodeAssemblerSt
 void StoreMapTransitionsOrPrototypeInfo_0(compiler::CodeAssemblerState* state_, TNode<Map> p_o, TNode<MaybeObject> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/map.tq?l=38&c=3
-TNode<PrototypeInfo> Method_Map_PrototypeInfo_0(
-    compiler::CodeAssemblerState* state_, TNode<Map> p_this, compiler::CodeAssemblerLabel* label_HasNoPrototypeInfo);
+TNode<PrototypeInfo> Method_Map_PrototypeInfo_0(compiler::CodeAssemblerState* state_, TNode<Map> p_this, compiler::CodeAssemblerLabel* label_HasNoPrototypeInfo);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/map.tq?l=55&c=3
 TNode<BoolT> Method_Map_IsUndetectable_0(compiler::CodeAssemblerState* state_, TNode<Map> p_this);

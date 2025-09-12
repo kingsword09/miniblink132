@@ -82,58 +82,47 @@
 namespace v8 {
 namespace internal {
 
-TF_BUILTIN(AggregateErrorConstructor, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
-    TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
-    TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
-    TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
-    CodeStubArguments arguments(this, torque_arguments);
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<JSFunction> parameter1 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
-    USE(parameter1);
-    TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kJSNewTarget);
-    USE(parameter2);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(AggregateErrorConstructor, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
+  TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
+  TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
+  TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
+  CodeStubArguments arguments(this, torque_arguments);
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<JSFunction> parameter1 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
+USE(parameter1);
+  TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kJSNewTarget);
+USE(parameter2);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<IntPtrT> tmp0;
-    TNode<Object> tmp1;
-    TNode<IntPtrT> tmp2;
-    TNode<Object> tmp3;
-    TNode<JSObject> tmp4;
-    TNode<IntPtrT> tmp5;
-    TNode<Object> tmp6;
-    TNode<JSArray> tmp7;
-    TNode<String> tmp8;
-    TNode<Smi> tmp9;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x1ull));
-        tmp1 = CodeStubAssembler(state_).GetArgumentValue(
-            TorqueStructArguments { TNode<RawPtrT> { torque_arguments.frame }, TNode<RawPtrT> { torque_arguments.base },
-                TNode<IntPtrT> { torque_arguments.length }, TNode<IntPtrT> { torque_arguments.actual_count } },
-            TNode<IntPtrT> { tmp0 });
-        tmp2 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x2ull));
-        tmp3 = CodeStubAssembler(state_).GetArgumentValue(
-            TorqueStructArguments { TNode<RawPtrT> { torque_arguments.frame }, TNode<RawPtrT> { torque_arguments.base },
-                TNode<IntPtrT> { torque_arguments.length }, TNode<IntPtrT> { torque_arguments.actual_count } },
-            TNode<IntPtrT> { tmp2 });
-        tmp4 = TORQUE_CAST(CodeStubAssembler(state_).CallRuntime(Runtime::kConstructAggregateErrorHelper, parameter0, parameter1, parameter2, tmp1, tmp3));
-        tmp5 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp6 = CodeStubAssembler(state_).GetArgumentValue(
-            TorqueStructArguments { TNode<RawPtrT> { torque_arguments.frame }, TNode<RawPtrT> { torque_arguments.base },
-                TNode<IntPtrT> { torque_arguments.length }, TNode<IntPtrT> { torque_arguments.actual_count } },
-            TNode<IntPtrT> { tmp5 });
-        tmp7 = ca_.CallBuiltin<JSArray>(Builtin::kIterableToListWithSymbolLookup, parameter0, tmp6);
-        tmp8 = CodeStubAssembler(state_).ErrorsStringConstant();
-        tmp9 = CodeStubAssembler(state_).SmiConstant(PropertyAttributes::DONT_ENUM);
-        CodeStubAssembler(state_).CallRuntime(Runtime::kSetOwnPropertyIgnoreAttributes, parameter0, tmp4, tmp8, tmp7, tmp9);
-        arguments.PopAndReturn(tmp4);
-    }
+  TNode<IntPtrT> tmp0;
+  TNode<Object> tmp1;
+  TNode<IntPtrT> tmp2;
+  TNode<Object> tmp3;
+  TNode<JSObject> tmp4;
+  TNode<IntPtrT> tmp5;
+  TNode<Object> tmp6;
+  TNode<JSArray> tmp7;
+  TNode<String> tmp8;
+  TNode<Smi> tmp9;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x1ull));
+    tmp1 = CodeStubAssembler(state_).GetArgumentValue(TorqueStructArguments{TNode<RawPtrT>{torque_arguments.frame}, TNode<RawPtrT>{torque_arguments.base}, TNode<IntPtrT>{torque_arguments.length}, TNode<IntPtrT>{torque_arguments.actual_count}}, TNode<IntPtrT>{tmp0});
+    tmp2 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x2ull));
+    tmp3 = CodeStubAssembler(state_).GetArgumentValue(TorqueStructArguments{TNode<RawPtrT>{torque_arguments.frame}, TNode<RawPtrT>{torque_arguments.base}, TNode<IntPtrT>{torque_arguments.length}, TNode<IntPtrT>{torque_arguments.actual_count}}, TNode<IntPtrT>{tmp2});
+    tmp4 = TORQUE_CAST(CodeStubAssembler(state_).CallRuntime(Runtime::kConstructAggregateErrorHelper, parameter0, parameter1, parameter2, tmp1, tmp3)); 
+    tmp5 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp6 = CodeStubAssembler(state_).GetArgumentValue(TorqueStructArguments{TNode<RawPtrT>{torque_arguments.frame}, TNode<RawPtrT>{torque_arguments.base}, TNode<IntPtrT>{torque_arguments.length}, TNode<IntPtrT>{torque_arguments.actual_count}}, TNode<IntPtrT>{tmp5});
+    tmp7 = ca_.CallBuiltin<JSArray>(Builtin::kIterableToListWithSymbolLookup, parameter0, tmp6);
+    tmp8 = CodeStubAssembler(state_).ErrorsStringConstant();
+    tmp9 = CodeStubAssembler(state_).SmiConstant(PropertyAttributes::DONT_ENUM);
+    CodeStubAssembler(state_).CallRuntime(Runtime::kSetOwnPropertyIgnoreAttributes, parameter0, tmp4, tmp8, tmp7, tmp9);
+    arguments.PopAndReturn(tmp4);
+  }
 }
 
 } // namespace internal

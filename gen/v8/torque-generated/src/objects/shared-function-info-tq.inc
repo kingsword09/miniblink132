@@ -122,7 +122,7 @@ class TorqueGeneratedInterpreterData : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/shared-function-info.tq?l=13&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 12);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 16);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -435,7 +435,7 @@ class TorqueGeneratedUncompiledDataWithoutPreparseData : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/shared-function-info.tq?l=148&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 16);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 20);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -504,7 +504,7 @@ class TorqueGeneratedUncompiledDataWithPreparseData : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/shared-function-info.tq?l=152&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 20);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 24);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -571,7 +571,7 @@ class TorqueGeneratedUncompiledDataWithoutPreparseDataWithJob : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/shared-function-info.tq?l=158&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 20);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 28);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -638,7 +638,7 @@ class TorqueGeneratedUncompiledDataWithPreparseDataAndJob : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/shared-function-info.tq?l=165&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 24);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 32);
     int32_t size = kHeaderSize;
     return size;
   }

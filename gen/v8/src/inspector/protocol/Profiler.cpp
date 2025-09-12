@@ -26,73 +26,97 @@ const char Metainfo::commandPrefix[] = "Profiler.";
 const char Metainfo::version[] = "1.3";
 
 V8_CRDTP_BEGIN_DESERIALIZER(ProfileNode)
-V8_CRDTP_DESERIALIZE_FIELD("callFrame", m_callFrame), V8_CRDTP_DESERIALIZE_FIELD_OPT("children", m_children),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("deoptReason", m_deoptReason), V8_CRDTP_DESERIALIZE_FIELD_OPT("hitCount", m_hitCount),
-    V8_CRDTP_DESERIALIZE_FIELD("id", m_id), V8_CRDTP_DESERIALIZE_FIELD_OPT("positionTicks", m_positionTicks),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("callFrame", m_callFrame),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("children", m_children),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("deoptReason", m_deoptReason),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("hitCount", m_hitCount),
+    V8_CRDTP_DESERIALIZE_FIELD("id", m_id),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("positionTicks", m_positionTicks),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(ProfileNode) V8_CRDTP_SERIALIZE_FIELD("id", m_id);
-V8_CRDTP_SERIALIZE_FIELD("callFrame", m_callFrame);
-V8_CRDTP_SERIALIZE_FIELD("hitCount", m_hitCount);
-V8_CRDTP_SERIALIZE_FIELD("children", m_children);
-V8_CRDTP_SERIALIZE_FIELD("deoptReason", m_deoptReason);
-V8_CRDTP_SERIALIZE_FIELD("positionTicks", m_positionTicks);
+V8_CRDTP_BEGIN_SERIALIZER(ProfileNode)
+    V8_CRDTP_SERIALIZE_FIELD("id", m_id);
+    V8_CRDTP_SERIALIZE_FIELD("callFrame", m_callFrame);
+    V8_CRDTP_SERIALIZE_FIELD("hitCount", m_hitCount);
+    V8_CRDTP_SERIALIZE_FIELD("children", m_children);
+    V8_CRDTP_SERIALIZE_FIELD("deoptReason", m_deoptReason);
+    V8_CRDTP_SERIALIZE_FIELD("positionTicks", m_positionTicks);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(Profile)
-V8_CRDTP_DESERIALIZE_FIELD("endTime", m_endTime), V8_CRDTP_DESERIALIZE_FIELD("nodes", m_nodes), V8_CRDTP_DESERIALIZE_FIELD_OPT("samples", m_samples),
-    V8_CRDTP_DESERIALIZE_FIELD("startTime", m_startTime), V8_CRDTP_DESERIALIZE_FIELD_OPT("timeDeltas", m_timeDeltas),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("endTime", m_endTime),
+    V8_CRDTP_DESERIALIZE_FIELD("nodes", m_nodes),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("samples", m_samples),
+    V8_CRDTP_DESERIALIZE_FIELD("startTime", m_startTime),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("timeDeltas", m_timeDeltas),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(Profile) V8_CRDTP_SERIALIZE_FIELD("nodes", m_nodes);
-V8_CRDTP_SERIALIZE_FIELD("startTime", m_startTime);
-V8_CRDTP_SERIALIZE_FIELD("endTime", m_endTime);
-V8_CRDTP_SERIALIZE_FIELD("samples", m_samples);
-V8_CRDTP_SERIALIZE_FIELD("timeDeltas", m_timeDeltas);
+V8_CRDTP_BEGIN_SERIALIZER(Profile)
+    V8_CRDTP_SERIALIZE_FIELD("nodes", m_nodes);
+    V8_CRDTP_SERIALIZE_FIELD("startTime", m_startTime);
+    V8_CRDTP_SERIALIZE_FIELD("endTime", m_endTime);
+    V8_CRDTP_SERIALIZE_FIELD("samples", m_samples);
+    V8_CRDTP_SERIALIZE_FIELD("timeDeltas", m_timeDeltas);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(PositionTickInfo)
-V8_CRDTP_DESERIALIZE_FIELD("line", m_line), V8_CRDTP_DESERIALIZE_FIELD("ticks", m_ticks),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("line", m_line),
+    V8_CRDTP_DESERIALIZE_FIELD("ticks", m_ticks),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(PositionTickInfo) V8_CRDTP_SERIALIZE_FIELD("line", m_line);
-V8_CRDTP_SERIALIZE_FIELD("ticks", m_ticks);
+V8_CRDTP_BEGIN_SERIALIZER(PositionTickInfo)
+    V8_CRDTP_SERIALIZE_FIELD("line", m_line);
+    V8_CRDTP_SERIALIZE_FIELD("ticks", m_ticks);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(CoverageRange)
-V8_CRDTP_DESERIALIZE_FIELD("count", m_count), V8_CRDTP_DESERIALIZE_FIELD("endOffset", m_endOffset), V8_CRDTP_DESERIALIZE_FIELD("startOffset", m_startOffset),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("count", m_count),
+    V8_CRDTP_DESERIALIZE_FIELD("endOffset", m_endOffset),
+    V8_CRDTP_DESERIALIZE_FIELD("startOffset", m_startOffset),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(CoverageRange) V8_CRDTP_SERIALIZE_FIELD("startOffset", m_startOffset);
-V8_CRDTP_SERIALIZE_FIELD("endOffset", m_endOffset);
-V8_CRDTP_SERIALIZE_FIELD("count", m_count);
+V8_CRDTP_BEGIN_SERIALIZER(CoverageRange)
+    V8_CRDTP_SERIALIZE_FIELD("startOffset", m_startOffset);
+    V8_CRDTP_SERIALIZE_FIELD("endOffset", m_endOffset);
+    V8_CRDTP_SERIALIZE_FIELD("count", m_count);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(FunctionCoverage)
-V8_CRDTP_DESERIALIZE_FIELD("functionName", m_functionName), V8_CRDTP_DESERIALIZE_FIELD("isBlockCoverage", m_isBlockCoverage),
+    V8_CRDTP_DESERIALIZE_FIELD("functionName", m_functionName),
+    V8_CRDTP_DESERIALIZE_FIELD("isBlockCoverage", m_isBlockCoverage),
     V8_CRDTP_DESERIALIZE_FIELD("ranges", m_ranges),
-    V8_CRDTP_END_DESERIALIZER()
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(FunctionCoverage) V8_CRDTP_SERIALIZE_FIELD("functionName", m_functionName);
-V8_CRDTP_SERIALIZE_FIELD("ranges", m_ranges);
-V8_CRDTP_SERIALIZE_FIELD("isBlockCoverage", m_isBlockCoverage);
+V8_CRDTP_BEGIN_SERIALIZER(FunctionCoverage)
+    V8_CRDTP_SERIALIZE_FIELD("functionName", m_functionName);
+    V8_CRDTP_SERIALIZE_FIELD("ranges", m_ranges);
+    V8_CRDTP_SERIALIZE_FIELD("isBlockCoverage", m_isBlockCoverage);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(ScriptCoverage)
-V8_CRDTP_DESERIALIZE_FIELD("functions", m_functions), V8_CRDTP_DESERIALIZE_FIELD("scriptId", m_scriptId), V8_CRDTP_DESERIALIZE_FIELD("url", m_url),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("functions", m_functions),
+    V8_CRDTP_DESERIALIZE_FIELD("scriptId", m_scriptId),
+    V8_CRDTP_DESERIALIZE_FIELD("url", m_url),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(ScriptCoverage) V8_CRDTP_SERIALIZE_FIELD("scriptId", m_scriptId);
-V8_CRDTP_SERIALIZE_FIELD("url", m_url);
-V8_CRDTP_SERIALIZE_FIELD("functions", m_functions);
+V8_CRDTP_BEGIN_SERIALIZER(ScriptCoverage)
+    V8_CRDTP_SERIALIZE_FIELD("scriptId", m_scriptId);
+    V8_CRDTP_SERIALIZE_FIELD("url", m_url);
+    V8_CRDTP_SERIALIZE_FIELD("functions", m_functions);
 V8_CRDTP_END_SERIALIZER();
+
 
 // ------------- Enum values from params.
 
+
 // ------------- Frontend notifications.
 
-void Frontend::consoleProfileFinished(
-    const String& id, std::unique_ptr<protocol::Debugger::Location> location, std::unique_ptr<protocol::Profiler::Profile> profile, Maybe<String> title)
+void Frontend::consoleProfileFinished(const String& id, std::unique_ptr<protocol::Debugger::Location> location, std::unique_ptr<protocol::Profiler::Profile> profile, Maybe<String> title)
 {
     if (!frontend_channel_)
         return;
@@ -142,12 +166,8 @@ class DomainDispatcherImpl : public protocol::DomainDispatcher {
 public:
     DomainDispatcherImpl(FrontendChannel* frontendChannel, Backend* backend)
         : DomainDispatcher(frontendChannel)
-        , m_backend(backend)
-    {
-    }
-    ~DomainDispatcherImpl() override
-    {
-    }
+        , m_backend(backend) {}
+    ~DomainDispatcherImpl() override { }
 
     using CallHandler = void (DomainDispatcherImpl::*)(const v8_crdtp::Dispatchable& dispatchable);
 
@@ -162,8 +182,7 @@ public:
     void stop(const v8_crdtp::Dispatchable& dispatchable);
     void stopPreciseCoverage(const v8_crdtp::Dispatchable& dispatchable);
     void takePreciseCoverage(const v8_crdtp::Dispatchable& dispatchable);
-
-protected:
+ protected:
     Backend* m_backend;
 };
 
@@ -171,38 +190,67 @@ namespace {
 // This helper method with a static map of command methods (instance methods
 // of DomainDispatcherImpl declared just above) by their name is used immediately below,
 // in the DomainDispatcherImpl::Dispatch method.
-DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name)
-{
-    static auto* commands = []() {
-        auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>, DomainDispatcherImpl::CallHandler>> {
-            { v8_crdtp::SpanFrom("disable"), &DomainDispatcherImpl::disable },
-            { v8_crdtp::SpanFrom("enable"), &DomainDispatcherImpl::enable },
-            { v8_crdtp::SpanFrom("getBestEffortCoverage"), &DomainDispatcherImpl::getBestEffortCoverage },
-            { v8_crdtp::SpanFrom("setSamplingInterval"), &DomainDispatcherImpl::setSamplingInterval },
-            { v8_crdtp::SpanFrom("start"), &DomainDispatcherImpl::start },
-            { v8_crdtp::SpanFrom("startPreciseCoverage"), &DomainDispatcherImpl::startPreciseCoverage },
-            { v8_crdtp::SpanFrom("stop"), &DomainDispatcherImpl::stop },
-            { v8_crdtp::SpanFrom("stopPreciseCoverage"), &DomainDispatcherImpl::stopPreciseCoverage },
-            { v8_crdtp::SpanFrom("takePreciseCoverage"), &DomainDispatcherImpl::takePreciseCoverage },
-        };
-        return commands;
-    }();
-    return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
+DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name) {
+  static auto* commands = [](){
+    auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>,
+                              DomainDispatcherImpl::CallHandler>>{
+    {
+          v8_crdtp::SpanFrom("disable"),
+          &DomainDispatcherImpl::disable
+    },
+    {
+          v8_crdtp::SpanFrom("enable"),
+          &DomainDispatcherImpl::enable
+    },
+    {
+          v8_crdtp::SpanFrom("getBestEffortCoverage"),
+          &DomainDispatcherImpl::getBestEffortCoverage
+    },
+    {
+          v8_crdtp::SpanFrom("setSamplingInterval"),
+          &DomainDispatcherImpl::setSamplingInterval
+    },
+    {
+          v8_crdtp::SpanFrom("start"),
+          &DomainDispatcherImpl::start
+    },
+    {
+          v8_crdtp::SpanFrom("startPreciseCoverage"),
+          &DomainDispatcherImpl::startPreciseCoverage
+    },
+    {
+          v8_crdtp::SpanFrom("stop"),
+          &DomainDispatcherImpl::stop
+    },
+    {
+          v8_crdtp::SpanFrom("stopPreciseCoverage"),
+          &DomainDispatcherImpl::stopPreciseCoverage
+    },
+    {
+          v8_crdtp::SpanFrom("takePreciseCoverage"),
+          &DomainDispatcherImpl::takePreciseCoverage
+    },
+    };
+    return commands;
+  }();
+  return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
 }
-} // namespace
+}  // namespace
 
-std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name)
-{
-    CallHandler handler = CommandByName(command_name);
-    if (!handler)
-        return nullptr;
+std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name) {
+  CallHandler handler = CommandByName(command_name);
+  if (!handler) return nullptr;
 
-    return [this, handler](const v8_crdtp::Dispatchable& dispatchable) { (this->*handler)(dispatchable); };
+  return [this, handler](const v8_crdtp::Dispatchable& dispatchable) {
+    (this->*handler)(dispatchable);
+  };
 }
+
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -221,7 +269,8 @@ void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::enable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -240,7 +289,8 @@ void DomainDispatcherImpl::enable(const v8_crdtp::Dispatchable& dispatchable)
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::getBestEffortCoverage(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -254,17 +304,17 @@ void DomainDispatcherImpl::getBestEffortCoverage(const v8_crdtp::Dispatchable& d
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Profiler.getBestEffortCoverage"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -276,9 +326,10 @@ struct setSamplingIntervalParams : public v8_crdtp::DeserializableProtocolObject
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(setSamplingIntervalParams)
-V8_CRDTP_DESERIALIZE_FIELD("interval", interval), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("interval", interval),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::setSamplingInterval(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -286,8 +337,8 @@ void DomainDispatcherImpl::setSamplingInterval(const v8_crdtp::Dispatchable& dis
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     setSamplingIntervalParams params;
     if (!setSamplingIntervalParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -303,7 +354,8 @@ void DomainDispatcherImpl::setSamplingInterval(const v8_crdtp::Dispatchable& dis
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::start(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -330,10 +382,12 @@ struct startPreciseCoverageParams : public v8_crdtp::DeserializableProtocolObjec
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(startPreciseCoverageParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("allowTriggeredUpdates", allowTriggeredUpdates), V8_CRDTP_DESERIALIZE_FIELD_OPT("callCount", callCount),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("detailed", detailed), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("allowTriggeredUpdates", allowTriggeredUpdates),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("callCount", callCount),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("detailed", detailed),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::startPreciseCoverage(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -341,36 +395,36 @@ void DomainDispatcherImpl::startPreciseCoverage(const v8_crdtp::Dispatchable& di
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     startPreciseCoverageParams params;
     if (!startPreciseCoverageParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     double out_timestamp;
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
-    DispatchResponse response
-        = m_backend->startPreciseCoverage(std::move(params.callCount), std::move(params.detailed), std::move(params.allowTriggeredUpdates), &out_timestamp);
+    DispatchResponse response = m_backend->startPreciseCoverage(std::move(params.callCount), std::move(params.detailed), std::move(params.allowTriggeredUpdates), &out_timestamp);
     if (response.IsFallThrough()) {
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Profiler.startPreciseCoverage"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("timestamp"), out_timestamp);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("timestamp"), out_timestamp);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::stop(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -384,23 +438,24 @@ void DomainDispatcherImpl::stop(const v8_crdtp::Dispatchable& dispatchable)
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Profiler.stop"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("profile"), out_profile);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("profile"), out_profile);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::stopPreciseCoverage(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -419,7 +474,8 @@ void DomainDispatcherImpl::stopPreciseCoverage(const v8_crdtp::Dispatchable& dis
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::takePreciseCoverage(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -434,33 +490,33 @@ void DomainDispatcherImpl::takePreciseCoverage(const v8_crdtp::Dispatchable& dis
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("Profiler.takePreciseCoverage"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
-            serializer.AddField(v8_crdtp::MakeSpan("timestamp"), out_timestamp);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
+          serializer.AddField(v8_crdtp::MakeSpan("timestamp"), out_timestamp);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 // This helper method (with a static map of redirects) is used from Dispatcher::wire
 // immediately below.
-const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects()
-{
-    static auto* redirects = []() {
-        auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>> {};
-        return redirects;
-    }();
-    return *redirects;
+const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects() {
+  static auto* redirects = [](){
+    auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>{
+    };
+    return redirects;
+  }();
+  return *redirects;
 }
-} // namespace
+}  // namespace
 
 // static
 void Dispatcher::wire(UberDispatcher* uber, Backend* backend)

@@ -14,12 +14,10 @@ TNode<Smi> kStoreFailureArrayDetachedOrOutOfBounds_0(compiler::CodeAssemblerStat
 TorqueStructTypedArrayAccessor_0 GetTypedArrayAccessor_0(compiler::CodeAssemblerState* state_, TNode<Int32T> p_elementsKindParam);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/typed-array.tq?l=202&c=1
-TNode<JSTypedArray> EnsureAttached_0(
-    compiler::CodeAssemblerState* state_, TNode<JSTypedArray> p_array, compiler::CodeAssemblerLabel* label_DetachedOrOutOfBounds);
+TNode<JSTypedArray> EnsureAttached_0(compiler::CodeAssemblerState* state_, TNode<JSTypedArray> p_array, compiler::CodeAssemblerLabel* label_DetachedOrOutOfBounds);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/typed-array.tq?l=217&c=1
-TorqueStructAttachedJSTypedArrayAndLength_0 EnsureAttachedAndReadLength_0(
-    compiler::CodeAssemblerState* state_, TNode<JSTypedArray> p_array, compiler::CodeAssemblerLabel* label_DetachedOrOutOfBounds);
+TorqueStructAttachedJSTypedArrayAndLength_0 EnsureAttachedAndReadLength_0(compiler::CodeAssemblerState* state_, TNode<JSTypedArray> p_array, compiler::CodeAssemblerLabel* label_DetachedOrOutOfBounds);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/typed-array.tq?l=252&c=1
 TorqueStructAttachedJSTypedArrayWitness_0 NewAttachedJSTypedArrayWitness_0(compiler::CodeAssemblerState* state_, TNode<JSTypedArray> p_array);

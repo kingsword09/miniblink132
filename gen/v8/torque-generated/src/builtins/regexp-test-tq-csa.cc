@@ -82,137 +82,131 @@
 namespace v8 {
 namespace internal {
 
-TF_BUILTIN(RegExpPrototypeTest, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
-    USE(parameter1);
-    TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kString);
-    USE(parameter2);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block10(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block9(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(RegExpPrototypeTest, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
+  USE(parameter1);
+  TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kString);
+  USE(parameter2);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block10(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block9(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSReceiver> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        compiler::CodeAssemblerLabel label1(&ca_);
-        tmp0 = Cast_JSReceiver_1(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, &label1);
-        ca_.Goto(&block3);
-        if (label1.is_used()) {
-            ca_.Bind(&label1);
-            ca_.Goto(&block4);
-        }
+  TNode<JSReceiver> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    compiler::CodeAssemblerLabel label1(&ca_);
+    tmp0 = Cast_JSReceiver_1(state_, TNode<Context>{parameter0}, TNode<Object>{parameter1}, &label1);
+    ca_.Goto(&block3);
+    if (label1.is_used()) {
+      ca_.Bind(&label1);
+      ca_.Goto(&block4);
     }
+  }
 
-    TNode<Object> tmp2;
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        tmp2 = FromConstexpr_Object_constexpr_string_0(state_, "RegExp.prototype.test");
-        CodeStubAssembler(state_).ThrowTypeError(
-            TNode<Context> { parameter0 }, MessageTemplate::kIncompatibleMethodReceiver, TNode<Object> { tmp2 }, TNode<Object> { parameter1 });
-    }
+  TNode<Object> tmp2;
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    tmp2 = FromConstexpr_Object_constexpr_string_0(state_, "RegExp.prototype.test");
+    CodeStubAssembler(state_).ThrowTypeError(TNode<Context>{parameter0}, MessageTemplate::kIncompatibleMethodReceiver, TNode<Object>{tmp2}, TNode<Object>{parameter1});
+  }
 
-    TNode<String> tmp3;
-    TNode<BoolT> tmp4;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        tmp3 = CodeStubAssembler(state_).ToString_Inline(TNode<Context> { parameter0 }, TNode<Object> { parameter2 });
-        tmp4 = IsFastRegExpPermissive_0(state_, TNode<Context> { parameter0 }, TNode<HeapObject> { tmp0 });
-        ca_.Branch(tmp4, &block5, std::vector<compiler::Node*> {}, &block6, std::vector<compiler::Node*> {});
-    }
+  TNode<String> tmp3;
+  TNode<BoolT> tmp4;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    tmp3 = CodeStubAssembler(state_).ToString_Inline(TNode<Context>{parameter0}, TNode<Object>{parameter2});
+    tmp4 = IsFastRegExpPermissive_0(state_, TNode<Context>{parameter0}, TNode<HeapObject>{tmp0});
+    ca_.Branch(tmp4, &block5, std::vector<compiler::Node*>{}, &block6, std::vector<compiler::Node*>{});
+  }
 
-    TNode<JSRegExp> tmp5;
-    TNode<RegExpMatchInfo> tmp6;
-    if (block5.is_used()) {
-        ca_.Bind(&block5);
-        tmp5 = UnsafeCast_JSRegExp_0(state_, TNode<Context> { parameter0 }, TNode<Object> { tmp0 });
-        compiler::CodeAssemblerLabel label7(&ca_);
-        tmp6 = RegExpPrototypeExecBodyWithoutResultFast_0(state_, TNode<Context> { parameter0 }, TNode<JSRegExp> { tmp5 }, TNode<String> { tmp3 }, &label7);
-        ca_.Goto(&block9);
-        if (label7.is_used()) {
-            ca_.Bind(&label7);
-            ca_.Goto(&block10);
-        }
+  TNode<JSRegExp> tmp5;
+  TNode<RegExpMatchInfo> tmp6;
+  if (block5.is_used()) {
+    ca_.Bind(&block5);
+    tmp5 = UnsafeCast_JSRegExp_0(state_, TNode<Context>{parameter0}, TNode<Object>{tmp0});
+    compiler::CodeAssemblerLabel label7(&ca_);
+    tmp6 = RegExpPrototypeExecBodyWithoutResultFast_0(state_, TNode<Context>{parameter0}, TNode<JSRegExp>{tmp5}, TNode<String>{tmp3}, &label7);
+    ca_.Goto(&block9);
+    if (label7.is_used()) {
+      ca_.Bind(&label7);
+      ca_.Goto(&block10);
     }
+  }
 
-    TNode<False> tmp8;
-    if (block10.is_used()) {
-        ca_.Bind(&block10);
-        tmp8 = False_0(state_);
-        CodeStubAssembler(state_).Return(tmp8);
-    }
+  TNode<False> tmp8;
+  if (block10.is_used()) {
+    ca_.Bind(&block10);
+    tmp8 = False_0(state_);
+    CodeStubAssembler(state_).Return(tmp8);
+  }
 
-    TNode<True> tmp9;
-    if (block9.is_used()) {
-        ca_.Bind(&block9);
-        tmp9 = True_0(state_);
-        CodeStubAssembler(state_).Return(tmp9);
-    }
+  TNode<True> tmp9;
+  if (block9.is_used()) {
+    ca_.Bind(&block9);
+    tmp9 = True_0(state_);
+    CodeStubAssembler(state_).Return(tmp9);
+  }
 
-    TNode<Object> tmp10;
-    TNode<Null> tmp11;
-    TNode<BoolT> tmp12;
-    TNode<Boolean> tmp13;
-    if (block6.is_used()) {
-        ca_.Bind(&block6);
-        tmp10 = RegExpExec_0(state_, TNode<Context> { parameter0 }, TNode<JSReceiver> { tmp0 }, TNode<String> { tmp3 });
-        tmp11 = Null_0(state_);
-        tmp12 = CodeStubAssembler(state_).TaggedNotEqual(TNode<Object> { tmp10 }, TNode<HeapObject> { tmp11 });
-        tmp13 = CodeStubAssembler(state_).SelectBooleanConstant(TNode<BoolT> { tmp12 });
-        CodeStubAssembler(state_).Return(tmp13);
-    }
+  TNode<Object> tmp10;
+  TNode<Null> tmp11;
+  TNode<BoolT> tmp12;
+  TNode<Boolean> tmp13;
+  if (block6.is_used()) {
+    ca_.Bind(&block6);
+    tmp10 = RegExpExec_0(state_, TNode<Context>{parameter0}, TNode<JSReceiver>{tmp0}, TNode<String>{tmp3});
+    tmp11 = Null_0(state_);
+    tmp12 = CodeStubAssembler(state_).TaggedNotEqual(TNode<Object>{tmp10}, TNode<HeapObject>{tmp11});
+    tmp13 = CodeStubAssembler(state_).SelectBooleanConstant(TNode<BoolT>{tmp12});
+    CodeStubAssembler(state_).Return(tmp13);
+  }
 }
 
-TF_BUILTIN(RegExpPrototypeTestFast, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<Context> parameter0 = UncheckedParameter<Context>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<JSRegExp> parameter1 = UncheckedParameter<JSRegExp>(Descriptor::kReceiver);
-    USE(parameter1);
-    TNode<String> parameter2 = UncheckedParameter<String>(Descriptor::kString);
-    USE(parameter2);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(RegExpPrototypeTestFast, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<Context> parameter0 = UncheckedParameter<Context>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<JSRegExp> parameter1 = UncheckedParameter<JSRegExp>(Descriptor::kReceiver);
+  USE(parameter1);
+  TNode<String> parameter2 = UncheckedParameter<String>(Descriptor::kString);
+  USE(parameter2);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<RegExpMatchInfo> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        compiler::CodeAssemblerLabel label1(&ca_);
-        tmp0 = RegExpPrototypeExecBodyWithoutResultFast_0(
-            state_, TNode<Context> { parameter0 }, TNode<JSRegExp> { parameter1 }, TNode<String> { parameter2 }, &label1);
-        ca_.Goto(&block3);
-        if (label1.is_used()) {
-            ca_.Bind(&label1);
-            ca_.Goto(&block4);
-        }
+  TNode<RegExpMatchInfo> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    compiler::CodeAssemblerLabel label1(&ca_);
+    tmp0 = RegExpPrototypeExecBodyWithoutResultFast_0(state_, TNode<Context>{parameter0}, TNode<JSRegExp>{parameter1}, TNode<String>{parameter2}, &label1);
+    ca_.Goto(&block3);
+    if (label1.is_used()) {
+      ca_.Bind(&label1);
+      ca_.Goto(&block4);
     }
+  }
 
-    TNode<False> tmp2;
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        tmp2 = False_0(state_);
-        CodeStubAssembler(state_).Return(tmp2);
-    }
+  TNode<False> tmp2;
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    tmp2 = False_0(state_);
+    CodeStubAssembler(state_).Return(tmp2);
+  }
 
-    TNode<True> tmp3;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        tmp3 = True_0(state_);
-        CodeStubAssembler(state_).Return(tmp3);
-    }
+  TNode<True> tmp3;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    tmp3 = True_0(state_);
+    CodeStubAssembler(state_).Return(tmp3);
+  }
 }
 
 } // namespace internal

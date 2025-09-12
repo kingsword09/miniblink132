@@ -13,12 +13,10 @@ TNode<LoadHandler> Cast_LoadHandler_0(compiler::CodeAssemblerState* state_, TNod
 TNode<StoreHandler> Cast_StoreHandler_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/ic/handler-configuration.tq?l=7&c=1
-TNode<LoadHandler> DownCastForTorqueClass_LoadHandler_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<LoadHandler> DownCastForTorqueClass_LoadHandler_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/ic/handler-configuration.tq?l=8&c=1
-TNode<StoreHandler> DownCastForTorqueClass_StoreHandler_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<StoreHandler> DownCastForTorqueClass_StoreHandler_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

@@ -18,9 +18,7 @@ class V8_EXPORT Exported {
 public:
     virtual void AppendSerialized(std::vector<uint8_t>* out) const = 0;
 
-    virtual ~Exported()
-    {
-    }
+    virtual ~Exported() { }
 };
 #endif // !defined(v8_inspector_protocol_exported_api_h)
 

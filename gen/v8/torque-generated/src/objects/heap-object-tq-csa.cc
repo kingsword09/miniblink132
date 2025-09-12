@@ -79,25 +79,24 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/heap-object.tq?l=10&c=9
-TNode<Map> LoadHeapObjectMap_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<Map> LoadHeapObjectMap_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<IntPtrT> tmp0;
-    TNode<Map> tmp1;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 0);
-        tmp1 = CodeStubAssembler(state_).LoadReference<Map>(CodeStubAssembler::Reference { p_o, tmp0 });
-        ca_.Goto(&block2);
-    }
+  TNode<IntPtrT> tmp0;
+  TNode<Map> tmp1;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 0);
+    tmp1 = CodeStubAssembler(state_).LoadReference<Map>(CodeStubAssembler::Reference{p_o, tmp0});
+    ca_.Goto(&block2);
+  }
 
     ca_.Bind(&block2);
-    return TNode<Map> { tmp1 };
+  return TNode<Map>{tmp1};
 }
 
 } // namespace internal

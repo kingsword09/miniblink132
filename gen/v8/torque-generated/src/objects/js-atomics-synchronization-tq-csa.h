@@ -7,15 +7,13 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-atomics-synchronization.tq?l=5&c=1
-TNode<JSSynchronizationPrimitive> Cast_JSSynchronizationPrimitive_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSSynchronizationPrimitive> Cast_JSSynchronizationPrimitive_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-atomics-synchronization.tq?l=11&c=1
 TNode<JSAtomicsMutex> Cast_JSAtomicsMutex_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-atomics-synchronization.tq?l=15&c=1
-TNode<JSAtomicsCondition> Cast_JSAtomicsCondition_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSAtomicsCondition> Cast_JSAtomicsCondition_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-atomics-synchronization.tq?l=7&c=3
 TNode<ExternalPointerT> LoadJSSynchronizationPrimitiveWaiterQueueHead_0(compiler::CodeAssemblerState* state_, TNode<JSSynchronizationPrimitive> p_o);
@@ -36,16 +34,13 @@ TNode<Int32T> LoadJSAtomicsMutexOwnerThreadId_0(compiler::CodeAssemblerState* st
 void StoreJSAtomicsMutexOwnerThreadId_0(compiler::CodeAssemblerState* state_, TNode<JSAtomicsMutex> p_o, TNode<Int32T> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-atomics-synchronization.tq?l=5&c=1
-TNode<JSSynchronizationPrimitive> DownCastForTorqueClass_JSSynchronizationPrimitive_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSSynchronizationPrimitive> DownCastForTorqueClass_JSSynchronizationPrimitive_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-atomics-synchronization.tq?l=11&c=1
-TNode<JSAtomicsMutex> DownCastForTorqueClass_JSAtomicsMutex_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSAtomicsMutex> DownCastForTorqueClass_JSAtomicsMutex_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-atomics-synchronization.tq?l=15&c=1
-TNode<JSAtomicsCondition> DownCastForTorqueClass_JSAtomicsCondition_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSAtomicsCondition> DownCastForTorqueClass_JSAtomicsCondition_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

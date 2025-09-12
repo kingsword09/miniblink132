@@ -25,35 +25,48 @@ const char Metainfo::domainName[] = "HeapProfiler";
 const char Metainfo::commandPrefix[] = "HeapProfiler.";
 const char Metainfo::version[] = "1.3";
 
-V8_CRDTP_BEGIN_DESERIALIZER(SamplingHeapProfileNode)
-V8_CRDTP_DESERIALIZE_FIELD("callFrame", m_callFrame), V8_CRDTP_DESERIALIZE_FIELD("children", m_children), V8_CRDTP_DESERIALIZE_FIELD("id", m_id),
-    V8_CRDTP_DESERIALIZE_FIELD("selfSize", m_selfSize),
-    V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(SamplingHeapProfileNode) V8_CRDTP_SERIALIZE_FIELD("callFrame", m_callFrame);
-V8_CRDTP_SERIALIZE_FIELD("selfSize", m_selfSize);
-V8_CRDTP_SERIALIZE_FIELD("id", m_id);
-V8_CRDTP_SERIALIZE_FIELD("children", m_children);
+V8_CRDTP_BEGIN_DESERIALIZER(SamplingHeapProfileNode)
+    V8_CRDTP_DESERIALIZE_FIELD("callFrame", m_callFrame),
+    V8_CRDTP_DESERIALIZE_FIELD("children", m_children),
+    V8_CRDTP_DESERIALIZE_FIELD("id", m_id),
+    V8_CRDTP_DESERIALIZE_FIELD("selfSize", m_selfSize),
+V8_CRDTP_END_DESERIALIZER()
+
+V8_CRDTP_BEGIN_SERIALIZER(SamplingHeapProfileNode)
+    V8_CRDTP_SERIALIZE_FIELD("callFrame", m_callFrame);
+    V8_CRDTP_SERIALIZE_FIELD("selfSize", m_selfSize);
+    V8_CRDTP_SERIALIZE_FIELD("id", m_id);
+    V8_CRDTP_SERIALIZE_FIELD("children", m_children);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(SamplingHeapProfileSample)
-V8_CRDTP_DESERIALIZE_FIELD("nodeId", m_nodeId), V8_CRDTP_DESERIALIZE_FIELD("ordinal", m_ordinal), V8_CRDTP_DESERIALIZE_FIELD("size", m_size),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("nodeId", m_nodeId),
+    V8_CRDTP_DESERIALIZE_FIELD("ordinal", m_ordinal),
+    V8_CRDTP_DESERIALIZE_FIELD("size", m_size),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(SamplingHeapProfileSample) V8_CRDTP_SERIALIZE_FIELD("size", m_size);
-V8_CRDTP_SERIALIZE_FIELD("nodeId", m_nodeId);
-V8_CRDTP_SERIALIZE_FIELD("ordinal", m_ordinal);
+V8_CRDTP_BEGIN_SERIALIZER(SamplingHeapProfileSample)
+    V8_CRDTP_SERIALIZE_FIELD("size", m_size);
+    V8_CRDTP_SERIALIZE_FIELD("nodeId", m_nodeId);
+    V8_CRDTP_SERIALIZE_FIELD("ordinal", m_ordinal);
 V8_CRDTP_END_SERIALIZER();
+
 
 V8_CRDTP_BEGIN_DESERIALIZER(SamplingHeapProfile)
-V8_CRDTP_DESERIALIZE_FIELD("head", m_head), V8_CRDTP_DESERIALIZE_FIELD("samples", m_samples),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("head", m_head),
+    V8_CRDTP_DESERIALIZE_FIELD("samples", m_samples),
+V8_CRDTP_END_DESERIALIZER()
 
-        V8_CRDTP_BEGIN_SERIALIZER(SamplingHeapProfile) V8_CRDTP_SERIALIZE_FIELD("head", m_head);
-V8_CRDTP_SERIALIZE_FIELD("samples", m_samples);
+V8_CRDTP_BEGIN_SERIALIZER(SamplingHeapProfile)
+    V8_CRDTP_SERIALIZE_FIELD("head", m_head);
+    V8_CRDTP_SERIALIZE_FIELD("samples", m_samples);
 V8_CRDTP_END_SERIALIZER();
 
+
 // ------------- Enum values from params.
+
 
 // ------------- Frontend notifications.
 
@@ -119,12 +132,8 @@ class DomainDispatcherImpl : public protocol::DomainDispatcher {
 public:
     DomainDispatcherImpl(FrontendChannel* frontendChannel, Backend* backend)
         : DomainDispatcher(frontendChannel)
-        , m_backend(backend)
-    {
-    }
-    ~DomainDispatcherImpl() override
-    {
-    }
+        , m_backend(backend) {}
+    ~DomainDispatcherImpl() override { }
 
     using CallHandler = void (DomainDispatcherImpl::*)(const v8_crdtp::Dispatchable& dispatchable);
 
@@ -142,8 +151,7 @@ public:
     void stopSampling(const v8_crdtp::Dispatchable& dispatchable);
     void stopTrackingHeapObjects(const v8_crdtp::Dispatchable& dispatchable);
     void takeHeapSnapshot(const v8_crdtp::Dispatchable& dispatchable);
-
-protected:
+ protected:
     Backend* m_backend;
 };
 
@@ -151,37 +159,74 @@ namespace {
 // This helper method with a static map of command methods (instance methods
 // of DomainDispatcherImpl declared just above) by their name is used immediately below,
 // in the DomainDispatcherImpl::Dispatch method.
-DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name)
-{
-    static auto* commands = []() {
-        auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>, DomainDispatcherImpl::CallHandler>> {
-            { v8_crdtp::SpanFrom("addInspectedHeapObject"), &DomainDispatcherImpl::addInspectedHeapObject },
-            { v8_crdtp::SpanFrom("collectGarbage"), &DomainDispatcherImpl::collectGarbage },
-            { v8_crdtp::SpanFrom("disable"), &DomainDispatcherImpl::disable },
-            { v8_crdtp::SpanFrom("enable"), &DomainDispatcherImpl::enable },
-            { v8_crdtp::SpanFrom("getHeapObjectId"), &DomainDispatcherImpl::getHeapObjectId },
-            { v8_crdtp::SpanFrom("getObjectByHeapObjectId"), &DomainDispatcherImpl::getObjectByHeapObjectId },
-            { v8_crdtp::SpanFrom("getSamplingProfile"), &DomainDispatcherImpl::getSamplingProfile },
-            { v8_crdtp::SpanFrom("startSampling"), &DomainDispatcherImpl::startSampling },
-            { v8_crdtp::SpanFrom("startTrackingHeapObjects"), &DomainDispatcherImpl::startTrackingHeapObjects },
-            { v8_crdtp::SpanFrom("stopSampling"), &DomainDispatcherImpl::stopSampling },
-            { v8_crdtp::SpanFrom("stopTrackingHeapObjects"), &DomainDispatcherImpl::stopTrackingHeapObjects },
-            { v8_crdtp::SpanFrom("takeHeapSnapshot"), &DomainDispatcherImpl::takeHeapSnapshot },
-        };
-        return commands;
-    }();
-    return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
+DomainDispatcherImpl::CallHandler CommandByName(v8_crdtp::span<uint8_t> command_name) {
+  static auto* commands = [](){
+    auto* commands = new std::vector<std::pair<v8_crdtp::span<uint8_t>,
+                              DomainDispatcherImpl::CallHandler>>{
+    {
+          v8_crdtp::SpanFrom("addInspectedHeapObject"),
+          &DomainDispatcherImpl::addInspectedHeapObject
+    },
+    {
+          v8_crdtp::SpanFrom("collectGarbage"),
+          &DomainDispatcherImpl::collectGarbage
+    },
+    {
+          v8_crdtp::SpanFrom("disable"),
+          &DomainDispatcherImpl::disable
+    },
+    {
+          v8_crdtp::SpanFrom("enable"),
+          &DomainDispatcherImpl::enable
+    },
+    {
+          v8_crdtp::SpanFrom("getHeapObjectId"),
+          &DomainDispatcherImpl::getHeapObjectId
+    },
+    {
+          v8_crdtp::SpanFrom("getObjectByHeapObjectId"),
+          &DomainDispatcherImpl::getObjectByHeapObjectId
+    },
+    {
+          v8_crdtp::SpanFrom("getSamplingProfile"),
+          &DomainDispatcherImpl::getSamplingProfile
+    },
+    {
+          v8_crdtp::SpanFrom("startSampling"),
+          &DomainDispatcherImpl::startSampling
+    },
+    {
+          v8_crdtp::SpanFrom("startTrackingHeapObjects"),
+          &DomainDispatcherImpl::startTrackingHeapObjects
+    },
+    {
+          v8_crdtp::SpanFrom("stopSampling"),
+          &DomainDispatcherImpl::stopSampling
+    },
+    {
+          v8_crdtp::SpanFrom("stopTrackingHeapObjects"),
+          &DomainDispatcherImpl::stopTrackingHeapObjects
+    },
+    {
+          v8_crdtp::SpanFrom("takeHeapSnapshot"),
+          &DomainDispatcherImpl::takeHeapSnapshot
+    },
+    };
+    return commands;
+  }();
+  return v8_crdtp::FindByFirst<DomainDispatcherImpl::CallHandler>(*commands, command_name, nullptr);
 }
-} // namespace
+}  // namespace
 
-std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name)
-{
-    CallHandler handler = CommandByName(command_name);
-    if (!handler)
-        return nullptr;
+std::function<void(const v8_crdtp::Dispatchable&)> DomainDispatcherImpl::Dispatch(v8_crdtp::span<uint8_t> command_name) {
+  CallHandler handler = CommandByName(command_name);
+  if (!handler) return nullptr;
 
-    return [this, handler](const v8_crdtp::Dispatchable& dispatchable) { (this->*handler)(dispatchable); };
+  return [this, handler](const v8_crdtp::Dispatchable& dispatchable) {
+    (this->*handler)(dispatchable);
+  };
 }
+
 
 namespace {
 
@@ -191,9 +236,10 @@ struct addInspectedHeapObjectParams : public v8_crdtp::DeserializableProtocolObj
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(addInspectedHeapObjectParams)
-V8_CRDTP_DESERIALIZE_FIELD("heapObjectId", heapObjectId), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("heapObjectId", heapObjectId),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::addInspectedHeapObject(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -201,8 +247,8 @@ void DomainDispatcherImpl::addInspectedHeapObject(const v8_crdtp::Dispatchable& 
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     addInspectedHeapObjectParams params;
     if (!addInspectedHeapObjectParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -219,9 +265,8 @@ void DomainDispatcherImpl::addInspectedHeapObject(const v8_crdtp::Dispatchable& 
 class CollectGarbageCallbackImpl : public Backend::CollectGarbageCallback, public DomainDispatcher::Callback {
 public:
     CollectGarbageCallbackImpl(std::unique_ptr<DomainDispatcher::WeakPtr> backendImpl, int callId, v8_crdtp::span<uint8_t> message)
-        : DomainDispatcher::Callback(std::move(backendImpl), callId, v8_crdtp::SpanFrom("HeapProfiler.collectGarbage"), message)
-    {
-    }
+        : DomainDispatcher::Callback(std::move(backendImpl), callId,
+v8_crdtp::SpanFrom("HeapProfiler.collectGarbage"), message) { }
 
     void sendSuccess() override
     {
@@ -243,7 +288,8 @@ public:
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::collectGarbage(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -254,7 +300,8 @@ void DomainDispatcherImpl::collectGarbage(const v8_crdtp::Dispatchable& dispatch
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -273,7 +320,8 @@ void DomainDispatcherImpl::disable(const v8_crdtp::Dispatchable& dispatchable)
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::enable(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -298,9 +346,10 @@ struct getHeapObjectIdParams : public v8_crdtp::DeserializableProtocolObject<get
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(getHeapObjectIdParams)
-V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::getHeapObjectId(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -308,8 +357,8 @@ void DomainDispatcherImpl::getHeapObjectId(const v8_crdtp::Dispatchable& dispatc
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     getHeapObjectIdParams params;
     if (!getHeapObjectIdParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     String out_heapSnapshotObjectId;
@@ -320,17 +369,17 @@ void DomainDispatcherImpl::getHeapObjectId(const v8_crdtp::Dispatchable& dispatc
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("HeapProfiler.getHeapObjectId"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("heapSnapshotObjectId"), out_heapSnapshotObjectId);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("heapSnapshotObjectId"), out_heapSnapshotObjectId);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -343,9 +392,11 @@ struct getObjectByHeapObjectIdParams : public v8_crdtp::DeserializableProtocolOb
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(getObjectByHeapObjectIdParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup), V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("objectGroup", objectGroup),
+    V8_CRDTP_DESERIALIZE_FIELD("objectId", objectId),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::getObjectByHeapObjectId(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -353,8 +404,8 @@ void DomainDispatcherImpl::getObjectByHeapObjectId(const v8_crdtp::Dispatchable&
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     getObjectByHeapObjectIdParams params;
     if (!getObjectByHeapObjectIdParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
     // Declare output parameters.
     std::unique_ptr<protocol::Runtime::RemoteObject> out_result;
@@ -365,23 +416,24 @@ void DomainDispatcherImpl::getObjectByHeapObjectId(const v8_crdtp::Dispatchable&
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("HeapProfiler.getObjectByHeapObjectId"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("result"), out_result);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::getSamplingProfile(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -395,17 +447,17 @@ void DomainDispatcherImpl::getSamplingProfile(const v8_crdtp::Dispatchable& disp
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("HeapProfiler.getSamplingProfile"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("profile"), out_profile);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("profile"), out_profile);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -419,11 +471,12 @@ struct startSamplingParams : public v8_crdtp::DeserializableProtocolObject<start
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(startSamplingParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("includeObjectsCollectedByMajorGC", includeObjectsCollectedByMajorGC),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("includeObjectsCollectedByMajorGC", includeObjectsCollectedByMajorGC),
     V8_CRDTP_DESERIALIZE_FIELD_OPT("includeObjectsCollectedByMinorGC", includeObjectsCollectedByMinorGC),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("samplingInterval", samplingInterval), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("samplingInterval", samplingInterval),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::startSampling(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -431,13 +484,12 @@ void DomainDispatcherImpl::startSampling(const v8_crdtp::Dispatchable& dispatcha
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     startSamplingParams params;
     if (!startSamplingParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
-    DispatchResponse response = m_backend->startSampling(
-        std::move(params.samplingInterval), std::move(params.includeObjectsCollectedByMajorGC), std::move(params.includeObjectsCollectedByMinorGC));
+    DispatchResponse response = m_backend->startSampling(std::move(params.samplingInterval), std::move(params.includeObjectsCollectedByMajorGC), std::move(params.includeObjectsCollectedByMinorGC));
     if (response.IsFallThrough()) {
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("HeapProfiler.startSampling"), dispatchable.Serialized());
         return;
@@ -455,9 +507,10 @@ struct startTrackingHeapObjectsParams : public v8_crdtp::DeserializableProtocolO
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(startTrackingHeapObjectsParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("trackAllocations", trackAllocations), V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("trackAllocations", trackAllocations),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::startTrackingHeapObjects(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -465,8 +518,8 @@ void DomainDispatcherImpl::startTrackingHeapObjects(const v8_crdtp::Dispatchable
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     startTrackingHeapObjectsParams params;
     if (!startTrackingHeapObjectsParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
@@ -482,7 +535,8 @@ void DomainDispatcherImpl::startTrackingHeapObjects(const v8_crdtp::Dispatchable
 
 namespace {
 
-} // namespace
+
+}  // namespace
 
 void DomainDispatcherImpl::stopSampling(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -496,17 +550,17 @@ void DomainDispatcherImpl::stopSampling(const v8_crdtp::Dispatchable& dispatchab
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("HeapProfiler.stopSampling"), dispatchable.Serialized());
         return;
     }
-    if (weak->get()) {
+      if (weak->get()) {
         std::unique_ptr<v8_crdtp::Serializable> result;
         if (response.IsSuccess()) {
-            v8_crdtp::ObjectSerializer serializer;
-            serializer.AddField(v8_crdtp::MakeSpan("profile"), out_profile);
-            result = serializer.Finish();
+          v8_crdtp::ObjectSerializer serializer;
+          serializer.AddField(v8_crdtp::MakeSpan("profile"), out_profile);
+          result = serializer.Finish();
         } else {
-            result = Serializable::From({});
+          result = Serializable::From({});
         }
         weak->get()->sendResponse(dispatchable.CallId(), response, std::move(result));
-    }
+      }
     return;
 }
 
@@ -521,11 +575,13 @@ struct stopTrackingHeapObjectsParams : public v8_crdtp::DeserializableProtocolOb
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(stopTrackingHeapObjectsParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("captureNumericValue", captureNumericValue), V8_CRDTP_DESERIALIZE_FIELD_OPT("exposeInternals", exposeInternals),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("reportProgress", reportProgress), V8_CRDTP_DESERIALIZE_FIELD_OPT("treatGlobalObjectsAsRoots", treatGlobalObjectsAsRoots),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("captureNumericValue", captureNumericValue),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("exposeInternals", exposeInternals),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("reportProgress", reportProgress),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("treatGlobalObjectsAsRoots", treatGlobalObjectsAsRoots),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::stopTrackingHeapObjects(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -533,13 +589,12 @@ void DomainDispatcherImpl::stopTrackingHeapObjects(const v8_crdtp::Dispatchable&
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     stopTrackingHeapObjectsParams params;
     if (!stopTrackingHeapObjectsParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
     std::unique_ptr<DomainDispatcher::WeakPtr> weak = weakPtr();
-    DispatchResponse response = m_backend->stopTrackingHeapObjects(std::move(params.reportProgress), std::move(params.treatGlobalObjectsAsRoots),
-        std::move(params.captureNumericValue), std::move(params.exposeInternals));
+    DispatchResponse response = m_backend->stopTrackingHeapObjects(std::move(params.reportProgress), std::move(params.treatGlobalObjectsAsRoots), std::move(params.captureNumericValue), std::move(params.exposeInternals));
     if (response.IsFallThrough()) {
         channel()->FallThrough(dispatchable.CallId(), v8_crdtp::SpanFrom("HeapProfiler.stopTrackingHeapObjects"), dispatchable.Serialized());
         return;
@@ -552,9 +607,8 @@ void DomainDispatcherImpl::stopTrackingHeapObjects(const v8_crdtp::Dispatchable&
 class TakeHeapSnapshotCallbackImpl : public Backend::TakeHeapSnapshotCallback, public DomainDispatcher::Callback {
 public:
     TakeHeapSnapshotCallbackImpl(std::unique_ptr<DomainDispatcher::WeakPtr> backendImpl, int callId, v8_crdtp::span<uint8_t> message)
-        : DomainDispatcher::Callback(std::move(backendImpl), callId, v8_crdtp::SpanFrom("HeapProfiler.takeHeapSnapshot"), message)
-    {
-    }
+        : DomainDispatcher::Callback(std::move(backendImpl), callId,
+v8_crdtp::SpanFrom("HeapProfiler.takeHeapSnapshot"), message) { }
 
     void sendSuccess() override
     {
@@ -585,11 +639,13 @@ struct takeHeapSnapshotParams : public v8_crdtp::DeserializableProtocolObject<ta
 };
 
 V8_CRDTP_BEGIN_DESERIALIZER(takeHeapSnapshotParams)
-V8_CRDTP_DESERIALIZE_FIELD_OPT("captureNumericValue", captureNumericValue), V8_CRDTP_DESERIALIZE_FIELD_OPT("exposeInternals", exposeInternals),
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("reportProgress", reportProgress), V8_CRDTP_DESERIALIZE_FIELD_OPT("treatGlobalObjectsAsRoots", treatGlobalObjectsAsRoots),
-    V8_CRDTP_END_DESERIALIZER()
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("captureNumericValue", captureNumericValue),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("exposeInternals", exposeInternals),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("reportProgress", reportProgress),
+    V8_CRDTP_DESERIALIZE_FIELD_OPT("treatGlobalObjectsAsRoots", treatGlobalObjectsAsRoots),
+V8_CRDTP_END_DESERIALIZER()
 
-} // namespace
+}  // namespace
 
 void DomainDispatcherImpl::takeHeapSnapshot(const v8_crdtp::Dispatchable& dispatchable)
 {
@@ -597,26 +653,25 @@ void DomainDispatcherImpl::takeHeapSnapshot(const v8_crdtp::Dispatchable& dispat
     auto deserializer = v8_crdtp::DeferredMessage::FromSpan(dispatchable.Params())->MakeDeserializer();
     takeHeapSnapshotParams params;
     if (!takeHeapSnapshotParams::Deserialize(&deserializer, &params)) {
-        ReportInvalidParams(dispatchable, deserializer);
-        return;
+      ReportInvalidParams(dispatchable, deserializer);
+      return;
     }
 
-    m_backend->takeHeapSnapshot(std::move(params.reportProgress), std::move(params.treatGlobalObjectsAsRoots), std::move(params.captureNumericValue),
-        std::move(params.exposeInternals), std::make_unique<TakeHeapSnapshotCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
+    m_backend->takeHeapSnapshot(std::move(params.reportProgress), std::move(params.treatGlobalObjectsAsRoots), std::move(params.captureNumericValue), std::move(params.exposeInternals), std::make_unique<TakeHeapSnapshotCallbackImpl>(weakPtr(), dispatchable.CallId(), dispatchable.Serialized()));
 }
 
 namespace {
 // This helper method (with a static map of redirects) is used from Dispatcher::wire
 // immediately below.
-const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects()
-{
-    static auto* redirects = []() {
-        auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>> {};
-        return redirects;
-    }();
-    return *redirects;
+const std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>& SortedRedirects() {
+  static auto* redirects = [](){
+    auto* redirects = new std::vector<std::pair<v8_crdtp::span<uint8_t>, v8_crdtp::span<uint8_t>>>{
+    };
+    return redirects;
+  }();
+  return *redirects;
 }
-} // namespace
+}  // namespace
 
 // static
 void Dispatcher::wire(UberDispatcher* uber, Backend* backend)

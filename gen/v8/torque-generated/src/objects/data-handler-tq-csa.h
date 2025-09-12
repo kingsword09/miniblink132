@@ -40,8 +40,7 @@ TNode<MaybeObject> LoadDataHandlerData3_0(compiler::CodeAssemblerState* state_, 
 void StoreDataHandlerData3_0(compiler::CodeAssemblerState* state_, TNode<DataHandler> p_o, TNode<MaybeObject> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/data-handler.tq?l=7&c=1
-TNode<DataHandler> DownCastForTorqueClass_DataHandler_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<DataHandler> DownCastForTorqueClass_DataHandler_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

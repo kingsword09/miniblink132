@@ -84,191 +84,178 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/boolean.tq?l=6&c=1
-TNode<Boolean> ThisBooleanValue_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_receiver, const char* p_method)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<Boolean> ThisBooleanValue_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_receiver, const char* p_method) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<Object> tmp0;
-    TNode<Boolean> tmp1;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = CodeStubAssembler(state_).ToThisValue(TNode<Context> { p_context }, TNode<Object> { p_receiver }, PrimitiveType::kBoolean, p_method);
-        tmp1 = UnsafeCast_Boolean_0(state_, TNode<Context> { p_context }, TNode<Object> { tmp0 });
-        ca_.Goto(&block2);
-    }
+  TNode<Object> tmp0;
+  TNode<Boolean> tmp1;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = CodeStubAssembler(state_).ToThisValue(TNode<Context>{p_context}, TNode<Object>{p_receiver}, PrimitiveType::kBoolean, p_method);
+    tmp1 = UnsafeCast_Boolean_0(state_, TNode<Context>{p_context}, TNode<Object>{tmp0});
+    ca_.Goto(&block2);
+  }
 
     ca_.Bind(&block2);
-    return TNode<Boolean> { tmp1 };
+  return TNode<Boolean>{tmp1};
 }
 
-TF_BUILTIN(BooleanConstructor, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
-    TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
-    TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
-    TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
-    CodeStubArguments arguments(this, torque_arguments);
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = arguments.GetReceiver();
-    USE(parameter1);
-    TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kJSNewTarget);
-    USE(parameter2);
-    TNode<JSFunction> parameter3 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
-    USE(parameter3);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(BooleanConstructor, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<Word32T> argc = UncheckedParameter<Word32T>(Descriptor::kJSActualArgumentsCount);
+  TNode<IntPtrT> arguments_length(ChangeInt32ToIntPtr(UncheckedCast<Int32T>(argc)));
+  TNode<RawPtrT> arguments_frame = UncheckedCast<RawPtrT>(LoadFramePointer());
+  TorqueStructArguments torque_arguments(GetFrameArguments(arguments_frame, arguments_length, FrameArgumentsArgcType::kCountIncludesReceiver));
+  CodeStubArguments arguments(this, torque_arguments);
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = arguments.GetReceiver();
+  USE(parameter1);
+  TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kJSNewTarget);
+USE(parameter2);
+  TNode<JSFunction> parameter3 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
+USE(parameter3);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<IntPtrT> tmp0;
-    TNode<Object> tmp1;
-    TNode<BoolT> tmp2;
-    TNode<Boolean> tmp3;
-    TNode<Undefined> tmp4;
-    TNode<BoolT> tmp5;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp1 = CodeStubAssembler(state_).GetArgumentValue(
-            TorqueStructArguments { TNode<RawPtrT> { torque_arguments.frame }, TNode<RawPtrT> { torque_arguments.base },
-                TNode<IntPtrT> { torque_arguments.length }, TNode<IntPtrT> { torque_arguments.actual_count } },
-            TNode<IntPtrT> { tmp0 });
-        tmp2 = ToBoolean_0(state_, TNode<Object> { tmp1 });
-        tmp3 = CodeStubAssembler(state_).SelectBooleanConstant(TNode<BoolT> { tmp2 });
-        tmp4 = Undefined_0(state_);
-        tmp5 = CodeStubAssembler(state_).TaggedEqual(TNode<Object> { parameter2 }, TNode<HeapObject> { tmp4 });
-        ca_.Branch(tmp5, &block1, std::vector<compiler::Node*> {}, &block2, std::vector<compiler::Node*> {});
-    }
+  TNode<IntPtrT> tmp0;
+  TNode<Object> tmp1;
+  TNode<BoolT> tmp2;
+  TNode<Boolean> tmp3;
+  TNode<Undefined> tmp4;
+  TNode<BoolT> tmp5;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp1 = CodeStubAssembler(state_).GetArgumentValue(TorqueStructArguments{TNode<RawPtrT>{torque_arguments.frame}, TNode<RawPtrT>{torque_arguments.base}, TNode<IntPtrT>{torque_arguments.length}, TNode<IntPtrT>{torque_arguments.actual_count}}, TNode<IntPtrT>{tmp0});
+    tmp2 = ToBoolean_0(state_, TNode<Object>{tmp1});
+    tmp3 = CodeStubAssembler(state_).SelectBooleanConstant(TNode<BoolT>{tmp2});
+    tmp4 = Undefined_0(state_);
+    tmp5 = CodeStubAssembler(state_).TaggedEqual(TNode<Object>{parameter2}, TNode<HeapObject>{tmp4});
+    ca_.Branch(tmp5, &block1, std::vector<compiler::Node*>{}, &block2, std::vector<compiler::Node*>{});
+  }
 
-    if (block1.is_used()) {
-        ca_.Bind(&block1);
-        arguments.PopAndReturn(tmp3);
-    }
+  if (block1.is_used()) {
+    ca_.Bind(&block1);
+    arguments.PopAndReturn(tmp3);
+  }
 
-    TNode<JSReceiver> tmp6;
-    TNode<Map> tmp7;
-    TNode<JSObject> tmp8;
-    TNode<JSPrimitiveWrapper> tmp9;
-    TNode<IntPtrT> tmp10;
-    if (block2.is_used()) {
-        ca_.Bind(&block2);
-        tmp6 = UnsafeCast_JSReceiver_0(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter2 });
-        tmp7 = GetDerivedMap_0(state_, TNode<Context> { parameter0 }, TNode<JSFunction> { parameter3 }, TNode<JSReceiver> { tmp6 });
-        tmp8 = AllocateFastOrSlowJSObjectFromMap_0(state_, TNode<Context> { parameter0 }, TNode<Map> { tmp7 });
-        tmp9 = UnsafeCast_JSPrimitiveWrapper_0(state_, TNode<Context> { parameter0 }, TNode<Object> { tmp8 });
-        tmp10 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
-        CodeStubAssembler(state_).StoreReference<Object>(CodeStubAssembler::Reference { tmp9, tmp10 }, tmp3);
-        arguments.PopAndReturn(tmp9);
-    }
+  TNode<JSReceiver> tmp6;
+  TNode<Map> tmp7;
+  TNode<JSObject> tmp8;
+  TNode<JSPrimitiveWrapper> tmp9;
+  TNode<IntPtrT> tmp10;
+  if (block2.is_used()) {
+    ca_.Bind(&block2);
+    tmp6 = UnsafeCast_JSReceiver_0(state_, TNode<Context>{parameter0}, TNode<Object>{parameter2});
+    tmp7 = GetDerivedMap_0(state_, TNode<Context>{parameter0}, TNode<JSFunction>{parameter3}, TNode<JSReceiver>{tmp6});
+    tmp8 = AllocateFastOrSlowJSObjectFromMap_0(state_, TNode<Context>{parameter0}, TNode<Map>{tmp7});
+    tmp9 = UnsafeCast_JSPrimitiveWrapper_0(state_, TNode<Context>{parameter0}, TNode<Object>{tmp8});
+    tmp10 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    CodeStubAssembler(state_).StoreReference<Object>(CodeStubAssembler::Reference{tmp9, tmp10}, tmp3);
+    arguments.PopAndReturn(tmp9);
+  }
 }
 
-TF_BUILTIN(BooleanPrototypeToString, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
-    USE(parameter1);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(BooleanPrototypeToString, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
+  USE(parameter1);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<Boolean> tmp0;
-    TNode<IntPtrT> tmp1;
-    TNode<String> tmp2;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = ThisBooleanValue_0(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, "Boolean.prototype.toString");
-        tmp1 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
-        tmp2 = CodeStubAssembler(state_).LoadReference<String>(CodeStubAssembler::Reference { tmp0, tmp1 });
-        CodeStubAssembler(state_).Return(tmp2);
-    }
+  TNode<Boolean> tmp0;
+  TNode<IntPtrT> tmp1;
+  TNode<String> tmp2;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = ThisBooleanValue_0(state_, TNode<Context>{parameter0}, TNode<Object>{parameter1}, "Boolean.prototype.toString");
+    tmp1 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp2 = CodeStubAssembler(state_).LoadReference<String>(CodeStubAssembler::Reference{tmp0, tmp1});
+    CodeStubAssembler(state_).Return(tmp2);
+  }
 }
 
-TF_BUILTIN(BooleanPrototypeValueOf, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
-    USE(parameter1);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(BooleanPrototypeValueOf, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
+  USE(parameter1);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<Boolean> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = ThisBooleanValue_0(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, "Boolean.prototype.valueOf");
-        CodeStubAssembler(state_).Return(tmp0);
-    }
+  TNode<Boolean> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = ThisBooleanValue_0(state_, TNode<Context>{parameter0}, TNode<Object>{parameter1}, "Boolean.prototype.valueOf");
+    CodeStubAssembler(state_).Return(tmp0);
+  }
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/boolean.tq?l=9&c=10
-TNode<Boolean> UnsafeCast_Boolean_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<Boolean> UnsafeCast_Boolean_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<Boolean> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = TORQUE_CAST(TNode<Object> { p_o });
-        ca_.Goto(&block6);
-    }
+  TNode<Boolean> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = TORQUE_CAST(TNode<Object>{p_o});
+    ca_.Goto(&block6);
+  }
 
     ca_.Bind(&block6);
-    return TNode<Boolean> { tmp0 };
+  return TNode<Boolean>{tmp0};
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/boolean.tq?l=22&c=37
-TNode<JSReceiver> UnsafeCast_JSReceiver_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<JSReceiver> UnsafeCast_JSReceiver_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSReceiver> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = TORQUE_CAST(TNode<Object> { p_o });
-        ca_.Goto(&block6);
-    }
+  TNode<JSReceiver> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = TORQUE_CAST(TNode<Object>{p_o});
+    ca_.Goto(&block6);
+  }
 
     ca_.Bind(&block6);
-    return TNode<JSReceiver> { tmp0 };
+  return TNode<JSReceiver>{tmp0};
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/boolean.tq?l=25&c=7
-TNode<JSPrimitiveWrapper> UnsafeCast_JSPrimitiveWrapper_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<JSPrimitiveWrapper> UnsafeCast_JSPrimitiveWrapper_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSPrimitiveWrapper> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = TORQUE_CAST(TNode<Object> { p_o });
-        ca_.Goto(&block6);
-    }
+  TNode<JSPrimitiveWrapper> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = TORQUE_CAST(TNode<Object>{p_o});
+    ca_.Goto(&block6);
+  }
 
     ca_.Bind(&block6);
-    return TNode<JSPrimitiveWrapper> { tmp0 };
+  return TNode<JSPrimitiveWrapper>{tmp0};
 }
 
 } // namespace internal

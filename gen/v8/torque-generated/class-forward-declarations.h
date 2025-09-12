@@ -352,6 +352,6 @@ class WasmStruct;
 class WasmArray;
 class WasmStringViewIter;
 class WasmSuspendingObject;
-} // namespace internal
-} // namespace v8
-#endif // V8_GEN_TORQUE_GENERATED_CLASS_FORWARD_DECLARATIONS_H_
+}  // namespace internal
+}  // namespace v8
+#endif  // V8_GEN_TORQUE_GENERATED_CLASS_FORWARD_DECLARATIONS_H_

@@ -359,6 +359,19 @@ void TorqueGeneratedWasmInternalFunction<D, P>::set_call_target(Address value) {
   this->template WriteField<Address>(kCallTargetOffset, value);
 }
 
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
+template<class D, class P>
+uintptr_t TorqueGeneratedWasmInternalFunction<D, P>::signature_hash() const {
+  uintptr_t value = this->template ReadField<uintptr_t>(kSignatureHashOffset);
+  return value;
+}
+
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
+template<class D, class P>
+void TorqueGeneratedWasmInternalFunction<D, P>::set_signature_hash(uintptr_t value) {
+  this->template WriteField<uintptr_t>(kSignatureHashOffset, value);
+}
+
 template<class D, class P>
 inline TorqueGeneratedWasmInternalFunction<D, P>::TorqueGeneratedWasmInternalFunction(Address ptr)
     : P(ptr) {

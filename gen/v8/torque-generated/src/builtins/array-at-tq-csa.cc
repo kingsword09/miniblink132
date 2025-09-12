@@ -81,142 +81,138 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/array-at.tq?l=6&c=1
-TNode<Number> ConvertRelativeIndex_0(compiler::CodeAssemblerState* state_, TNode<Number> p_index, TNode<Number> p_length,
-    compiler::CodeAssemblerLabel* label_OutOfBoundsLow, compiler::CodeAssemblerLabel* label_OutOfBoundsHigh)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<Number> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block9(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block10(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block11(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block12(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<Number> ConvertRelativeIndex_0(compiler::CodeAssemblerState* state_, TNode<Number> p_index, TNode<Number> p_length, compiler::CodeAssemblerLabel* label_OutOfBoundsLow, compiler::CodeAssemblerLabel* label_OutOfBoundsHigh) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<Number> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block9(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block10(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block11(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block12(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<Number> tmp0;
-    TNode<BoolT> tmp1;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = FromConstexpr_Number_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp1 = NumberIsGreaterThanOrEqual_0(state_, TNode<Number> { p_index }, TNode<Number> { tmp0 });
-        ca_.Branch(tmp1, &block4, std::vector<compiler::Node*> {}, &block5, std::vector<compiler::Node*> {});
-    }
+  TNode<Number> tmp0;
+  TNode<BoolT> tmp1;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = FromConstexpr_Number_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp1 = NumberIsGreaterThanOrEqual_0(state_, TNode<Number>{p_index}, TNode<Number>{tmp0});
+    ca_.Branch(tmp1, &block4, std::vector<compiler::Node*>{}, &block5, std::vector<compiler::Node*>{});
+  }
 
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        ca_.Goto(&block6, p_index);
-    }
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    ca_.Goto(&block6, p_index);
+  }
 
-    TNode<Number> tmp2;
-    if (block5.is_used()) {
-        ca_.Bind(&block5);
-        tmp2 = CodeStubAssembler(state_).NumberAdd(TNode<Number> { p_length }, TNode<Number> { p_index });
-        ca_.Goto(&block6, tmp2);
-    }
+  TNode<Number> tmp2;
+  if (block5.is_used()) {
+    ca_.Bind(&block5);
+    tmp2 = CodeStubAssembler(state_).NumberAdd(TNode<Number>{p_length}, TNode<Number>{p_index});
+    ca_.Goto(&block6, tmp2);
+  }
 
-    TNode<Number> phi_bb6_2;
-    TNode<Number> tmp3;
-    TNode<BoolT> tmp4;
-    if (block6.is_used()) {
-        ca_.Bind(&block6, &phi_bb6_2);
-        tmp3 = FromConstexpr_Number_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp4 = NumberIsLessThan_0(state_, TNode<Number> { phi_bb6_2 }, TNode<Number> { tmp3 });
-        ca_.Branch(tmp4, &block8, std::vector<compiler::Node*> {}, &block9, std::vector<compiler::Node*> {});
-    }
+  TNode<Number> phi_bb6_2;
+  TNode<Number> tmp3;
+  TNode<BoolT> tmp4;
+  if (block6.is_used()) {
+    ca_.Bind(&block6, &phi_bb6_2);
+    tmp3 = FromConstexpr_Number_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp4 = NumberIsLessThan_0(state_, TNode<Number>{phi_bb6_2}, TNode<Number>{tmp3});
+    ca_.Branch(tmp4, &block8, std::vector<compiler::Node*>{}, &block9, std::vector<compiler::Node*>{});
+  }
 
-    if (block8.is_used()) {
-        ca_.Bind(&block8);
-        ca_.Goto(label_OutOfBoundsLow);
-    }
+  if (block8.is_used()) {
+    ca_.Bind(&block8);
+    ca_.Goto(label_OutOfBoundsLow);
+  }
 
-    TNode<BoolT> tmp5;
-    if (block9.is_used()) {
-        ca_.Bind(&block9);
-        tmp5 = NumberIsGreaterThanOrEqual_0(state_, TNode<Number> { phi_bb6_2 }, TNode<Number> { p_length });
-        ca_.Branch(tmp5, &block10, std::vector<compiler::Node*> {}, &block11, std::vector<compiler::Node*> {});
-    }
+  TNode<BoolT> tmp5;
+  if (block9.is_used()) {
+    ca_.Bind(&block9);
+    tmp5 = NumberIsGreaterThanOrEqual_0(state_, TNode<Number>{phi_bb6_2}, TNode<Number>{p_length});
+    ca_.Branch(tmp5, &block10, std::vector<compiler::Node*>{}, &block11, std::vector<compiler::Node*>{});
+  }
 
-    if (block10.is_used()) {
-        ca_.Bind(&block10);
-        ca_.Goto(label_OutOfBoundsHigh);
-    }
+  if (block10.is_used()) {
+    ca_.Bind(&block10);
+    ca_.Goto(label_OutOfBoundsHigh);
+  }
 
-    if (block11.is_used()) {
-        ca_.Bind(&block11);
-        ca_.Goto(&block12);
-    }
+  if (block11.is_used()) {
+    ca_.Bind(&block11);
+    ca_.Goto(&block12);
+  }
 
     ca_.Bind(&block12);
-    return TNode<Number> { phi_bb6_2 };
+  return TNode<Number>{phi_bb6_2};
 }
 
-TF_BUILTIN(ArrayPrototypeAt, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
-    USE(parameter1);
-    TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kIndex);
-    USE(parameter2);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(ArrayPrototypeAt, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
+  USE(parameter1);
+  TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kIndex);
+  USE(parameter2);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSReceiver> tmp0;
-    TNode<Number> tmp1;
-    TNode<Number> tmp2;
-    TNode<Number> tmp3;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = CodeStubAssembler(state_).ToObject_Inline(TNode<Context> { parameter0 }, TNode<Object> { parameter1 });
-        tmp1 = GetLengthProperty_0(state_, TNode<Context> { parameter0 }, TNode<Object> { tmp0 });
-        tmp2 = ToInteger_Inline_0(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter2 });
-        compiler::CodeAssemblerLabel label4(&ca_);
-        compiler::CodeAssemblerLabel label5(&ca_);
-        tmp3 = ConvertRelativeIndex_0(state_, TNode<Number> { tmp2 }, TNode<Number> { tmp1 }, &label4, &label5);
-        ca_.Goto(&block3);
-        if (label4.is_used()) {
-            ca_.Bind(&label4);
-            ca_.Goto(&block4);
-        }
-        if (label5.is_used()) {
-            ca_.Bind(&label5);
-            ca_.Goto(&block5);
-        }
+  TNode<JSReceiver> tmp0;
+  TNode<Number> tmp1;
+  TNode<Number> tmp2;
+  TNode<Number> tmp3;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = CodeStubAssembler(state_).ToObject_Inline(TNode<Context>{parameter0}, TNode<Object>{parameter1});
+    tmp1 = GetLengthProperty_0(state_, TNode<Context>{parameter0}, TNode<Object>{tmp0});
+    tmp2 = ToInteger_Inline_0(state_, TNode<Context>{parameter0}, TNode<Object>{parameter2});
+    compiler::CodeAssemblerLabel label4(&ca_);
+    compiler::CodeAssemblerLabel label5(&ca_);
+    tmp3 = ConvertRelativeIndex_0(state_, TNode<Number>{tmp2}, TNode<Number>{tmp1}, &label4, &label5);
+    ca_.Goto(&block3);
+    if (label4.is_used()) {
+      ca_.Bind(&label4);
+      ca_.Goto(&block4);
     }
+    if (label5.is_used()) {
+      ca_.Bind(&label5);
+      ca_.Goto(&block5);
+    }
+  }
 
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        ca_.Goto(&block2);
-    }
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    ca_.Goto(&block2);
+  }
 
-    if (block5.is_used()) {
-        ca_.Bind(&block5);
-        ca_.Goto(&block2);
-    }
+  if (block5.is_used()) {
+    ca_.Bind(&block5);
+    ca_.Goto(&block2);
+  }
 
-    TNode<Object> tmp6;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        tmp6 = CodeStubAssembler(state_).GetProperty(TNode<Context> { parameter0 }, TNode<Object> { tmp0 }, TNode<Object> { tmp3 });
-        CodeStubAssembler(state_).Return(tmp6);
-    }
+  TNode<Object> tmp6;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    tmp6 = CodeStubAssembler(state_).GetProperty(TNode<Context>{parameter0}, TNode<Object>{tmp0}, TNode<Object>{tmp3});
+    CodeStubAssembler(state_).Return(tmp6);
+  }
 
-    TNode<Undefined> tmp7;
-    if (block2.is_used()) {
-        ca_.Bind(&block2);
-        tmp7 = Undefined_0(state_);
-        CodeStubAssembler(state_).Return(tmp7);
-    }
+  TNode<Undefined> tmp7;
+  if (block2.is_used()) {
+    ca_.Bind(&block2);
+    tmp7 = Undefined_0(state_);
+    CodeStubAssembler(state_).Return(tmp7);
+  }
 }
 
 } // namespace internal

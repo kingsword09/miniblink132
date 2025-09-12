@@ -82,59 +82,56 @@
 namespace v8 {
 namespace internal {
 
-TF_BUILTIN(PromiseWithResolvers, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
-    USE(parameter1);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(PromiseWithResolvers, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kReceiver);
+  USE(parameter1);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSReceiver> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        compiler::CodeAssemblerLabel label1(&ca_);
-        tmp0 = Cast_JSReceiver_1(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, &label1);
-        ca_.Goto(&block3);
-        if (label1.is_used()) {
-            ca_.Bind(&label1);
-            ca_.Goto(&block4);
-        }
+  TNode<JSReceiver> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    compiler::CodeAssemblerLabel label1(&ca_);
+    tmp0 = Cast_JSReceiver_1(state_, TNode<Context>{parameter0}, TNode<Object>{parameter1}, &label1);
+    ca_.Goto(&block3);
+    if (label1.is_used()) {
+      ca_.Bind(&label1);
+      ca_.Goto(&block4);
     }
+  }
 
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        CodeStubAssembler(state_).ThrowTypeError(TNode<Context> { parameter0 }, MessageTemplate::kCalledOnNonObject, "Promise.withResolvers");
-    }
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    CodeStubAssembler(state_).ThrowTypeError(TNode<Context>{parameter0}, MessageTemplate::kCalledOnNonObject, "Promise.withResolvers");
+  }
 
-    TNode<False> tmp2;
-    TNode<PromiseCapability> tmp3;
-    TNode<IntPtrT> tmp4;
-    TNode<HeapObject> tmp5;
-    TNode<IntPtrT> tmp6;
-    TNode<Object> tmp7;
-    TNode<IntPtrT> tmp8;
-    TNode<Object> tmp9;
-    TNode<JSObject> tmp10;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        tmp2 = False_0(state_);
-        tmp3 = ca_.CallBuiltin<PromiseCapability>(Builtin::kNewPromiseCapability, parameter0, tmp0, tmp2);
-        tmp4 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
-        tmp5 = CodeStubAssembler(state_).LoadReference<HeapObject>(CodeStubAssembler::Reference { tmp3, tmp4 });
-        tmp6 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
-        tmp7 = CodeStubAssembler(state_).LoadReference<Object>(CodeStubAssembler::Reference { tmp3, tmp6 });
-        tmp8 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
-        tmp9 = CodeStubAssembler(state_).LoadReference<Object>(CodeStubAssembler::Reference { tmp3, tmp8 });
-        tmp10 = CodeStubAssembler(state_).AllocatePromiseWithResolversResult(
-            TNode<Context> { parameter0 }, TNode<Object> { tmp5 }, TNode<Object> { tmp7 }, TNode<Object> { tmp9 });
-        CodeStubAssembler(state_).Return(tmp10);
-    }
+  TNode<False> tmp2;
+  TNode<PromiseCapability> tmp3;
+  TNode<IntPtrT> tmp4;
+  TNode<HeapObject> tmp5;
+  TNode<IntPtrT> tmp6;
+  TNode<Object> tmp7;
+  TNode<IntPtrT> tmp8;
+  TNode<Object> tmp9;
+  TNode<JSObject> tmp10;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    tmp2 = False_0(state_);
+    tmp3 = ca_.CallBuiltin<PromiseCapability>(Builtin::kNewPromiseCapability, parameter0, tmp0, tmp2);
+    tmp4 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
+    tmp5 = CodeStubAssembler(state_).LoadReference<HeapObject>(CodeStubAssembler::Reference{tmp3, tmp4});
+    tmp6 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp7 = CodeStubAssembler(state_).LoadReference<Object>(CodeStubAssembler::Reference{tmp3, tmp6});
+    tmp8 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp9 = CodeStubAssembler(state_).LoadReference<Object>(CodeStubAssembler::Reference{tmp3, tmp8});
+    tmp10 = CodeStubAssembler(state_).AllocatePromiseWithResolversResult(TNode<Context>{parameter0}, TNode<Object>{tmp5}, TNode<Object>{tmp7}, TNode<Object>{tmp9});
+    CodeStubAssembler(state_).Return(tmp10);
+  }
 }
 
 } // namespace internal

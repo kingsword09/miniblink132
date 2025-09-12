@@ -19,47 +19,37 @@ TNode<Uint8T> IntlAsciiCollationWeightL3_0(compiler::CodeAssemblerState* state_,
 TNode<Uint8T> IntlAsciiCollationWeightL3_1(compiler::CodeAssemblerState* state_, TNode<Uint16T> p_c, compiler::CodeAssemblerLabel* label_Bailout);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=31&c=1
-void CheckEmptyOr1Byte_0(
-    compiler::CodeAssemblerState* state_, TorqueStructSliceIterator_char8_ConstReference_char8_0 p__it, compiler::CodeAssemblerLabel* label__Bailout);
+void CheckEmptyOr1Byte_0(compiler::CodeAssemblerState* state_, TorqueStructSliceIterator_char8_ConstReference_char8_0 p__it, compiler::CodeAssemblerLabel* label__Bailout);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=36&c=1
-void CheckEmptyOr1Byte_1(
-    compiler::CodeAssemblerState* state_, TorqueStructSliceIterator_char16_ConstReference_char16_0 p_it, compiler::CodeAssemblerLabel* label_Bailout);
+void CheckEmptyOr1Byte_1(compiler::CodeAssemblerState* state_, TorqueStructSliceIterator_char16_ConstReference_char16_0 p_it, compiler::CodeAssemblerLabel* label_Bailout);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=18&c=7
 TNode<Uint32T> Convert_uint32_char16_0(compiler::CodeAssemblerState* state_, TNode<Uint16T> p_i);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=114&c=14
-TNode<Number> LocaleCompareFastPath_char8_char8_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_left,
-    TorqueStructSlice_char8_ConstReference_char8_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
+TNode<Number> LocaleCompareFastPath_char8_char8_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_left, TorqueStructSlice_char8_ConstReference_char8_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=116&c=14
-TNode<Number> LocaleCompareFastPath_char8_char16_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_left,
-    TorqueStructSlice_char16_ConstReference_char16_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
+TNode<Number> LocaleCompareFastPath_char8_char16_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_left, TorqueStructSlice_char16_ConstReference_char16_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=123&c=14
-TNode<Number> LocaleCompareFastPath_char16_char8_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_left,
-    TorqueStructSlice_char8_ConstReference_char8_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
+TNode<Number> LocaleCompareFastPath_char16_char8_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_left, TorqueStructSlice_char8_ConstReference_char8_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=125&c=14
-TNode<Number> LocaleCompareFastPath_char16_char16_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_left,
-    TorqueStructSlice_char16_ConstReference_char16_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
+TNode<Number> LocaleCompareFastPath_char16_char16_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_left, TorqueStructSlice_char16_ConstReference_char16_0 p_right, compiler::CodeAssemblerLabel* label_Bailout);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=50&c=7
-TNode<BoolT> EqualContent_char8_char8_0(
-    compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_a, TorqueStructSlice_char8_ConstReference_char8_0 p_b);
+TNode<BoolT> EqualContent_char8_char8_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_a, TorqueStructSlice_char8_ConstReference_char8_0 p_b);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=50&c=7
-TNode<BoolT> EqualContent_char8_char16_0(
-    compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_a, TorqueStructSlice_char16_ConstReference_char16_0 p_b);
+TNode<BoolT> EqualContent_char8_char16_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char8_ConstReference_char8_0 p_a, TorqueStructSlice_char16_ConstReference_char16_0 p_b);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=50&c=7
-TNode<BoolT> EqualContent_char16_char8_0(
-    compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_a, TorqueStructSlice_char8_ConstReference_char8_0 p_b);
+TNode<BoolT> EqualContent_char16_char8_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_a, TorqueStructSlice_char8_ConstReference_char8_0 p_b);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/intl-objects.tq?l=50&c=7
-TNode<BoolT> EqualContent_char16_char16_0(
-    compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_a, TorqueStructSlice_char16_ConstReference_char16_0 p_b);
+TNode<BoolT> EqualContent_char16_char16_0(compiler::CodeAssemblerState* state_, TorqueStructSlice_char16_ConstReference_char16_0 p_a, TorqueStructSlice_char16_ConstReference_char16_0 p_b);
 
 } // namespace internal
 } // namespace v8

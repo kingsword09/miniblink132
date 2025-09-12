@@ -64,6 +64,11 @@ class TorqueGeneratedJSFunction : public P {
   using Super = P;
   using TorqueGeneratedClass = TorqueGeneratedJSFunction<D,P>;
 
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
+  inline int32_t dispatch_handle() const;
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
+  inline void set_dispatch_handle(int32_t value);
+
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=35&c=3
   inline Tagged<SharedFunctionInfo> shared_function_info() const;
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=35&c=3
@@ -100,12 +105,12 @@ class TorqueGeneratedJSFunction : public P {
   V8_EXPORT_PRIVATE void JSFunctionVerify(Isolate* isolate);
 #endif  // VERIFY_HEAP
 
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=33&c=33
-  static constexpr int kCodeOffset = P::kHeaderSize;
-  static constexpr int kCodeOffsetEnd = kCodeOffset + kTrustedPointerSize - 1;
-  static constexpr int kStartOfStrongFieldsOffset = kCodeOffsetEnd + 1;
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
+  static constexpr int kDispatchHandleOffset = P::kHeaderSize;
+  static constexpr int kDispatchHandleOffsetEnd = kDispatchHandleOffset + kInt32Size - 1;
+  static constexpr int kStartOfStrongFieldsOffset = kDispatchHandleOffsetEnd + 1;
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=35&c=3
-  static constexpr int kSharedFunctionInfoOffset = kCodeOffsetEnd + 1;
+  static constexpr int kSharedFunctionInfoOffset = kDispatchHandleOffsetEnd + 1;
   static constexpr int kSharedFunctionInfoOffsetEnd = kSharedFunctionInfoOffset + kTaggedSize - 1;
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=36&c=3
   static constexpr int kContextOffset = kSharedFunctionInfoOffsetEnd + 1;

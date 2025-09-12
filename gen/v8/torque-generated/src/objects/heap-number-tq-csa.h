@@ -16,8 +16,7 @@ TNode<Float64T> LoadHeapNumberValue_0(compiler::CodeAssemblerState* state_, TNod
 void StoreHeapNumberValue_0(compiler::CodeAssemblerState* state_, TNode<HeapNumber> p_o, TNode<Float64T> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/heap-number.tq?l=5&c=1
-TNode<HeapNumber> DownCastForTorqueClass_HeapNumber_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<HeapNumber> DownCastForTorqueClass_HeapNumber_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

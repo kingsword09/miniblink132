@@ -10,8 +10,7 @@ namespace internal {
 TNode<PropertyCell> Cast_PropertyCell_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-cell.tq?l=14&c=1
-TNode<ContextSidePropertyCell> Cast_ContextSidePropertyCell_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ContextSidePropertyCell> Cast_ContextSidePropertyCell_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-cell.tq?l=19&c=1
 TNode<IntPtrT> kContextSidePropertyOther_0(compiler::CodeAssemblerState* state_);
@@ -58,12 +57,10 @@ TNode<WeakArrayList> LoadContextSidePropertyCellDependentCode_0(compiler::CodeAs
 void StoreContextSidePropertyCellDependentCode_0(compiler::CodeAssemblerState* state_, TNode<ContextSidePropertyCell> p_o, TNode<WeakArrayList> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-cell.tq?l=6&c=1
-TNode<PropertyCell> DownCastForTorqueClass_PropertyCell_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<PropertyCell> DownCastForTorqueClass_PropertyCell_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/property-cell.tq?l=14&c=1
-TNode<ContextSidePropertyCell> DownCastForTorqueClass_ContextSidePropertyCell_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<ContextSidePropertyCell> DownCastForTorqueClass_ContextSidePropertyCell_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

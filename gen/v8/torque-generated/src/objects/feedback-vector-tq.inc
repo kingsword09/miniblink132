@@ -63,14 +63,6 @@ class TorqueGeneratedFeedbackVector : public P {
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=54&c=3
   inline void set_parent_feedback_cell(Tagged<FeedbackCell> value, WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
 
-  // Torque type: Weak<class CodeWrapper>
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
-  inline Tagged<MaybeObject> maybe_optimized_code() const;
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
-  inline Tagged<MaybeObject> maybe_optimized_code(PtrComprCageBase cage_base) const;
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
-  inline void set_maybe_optimized_code(Tagged<MaybeObject> value, WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
-
   // Torque type: MaybeObject
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=56&c=36
   inline Tagged<Union<HeapObject, MaybeObject, Smi>> raw_feedback_slots(int i, RelaxedLoadTag) const;
@@ -113,12 +105,9 @@ class TorqueGeneratedFeedbackVector : public P {
   static constexpr int kParentFeedbackCellOffsetEnd = kParentFeedbackCellOffset + kTaggedSize - 1;
   static constexpr int kEndOfStrongFieldsOffset = kParentFeedbackCellOffsetEnd + 1;
   static constexpr int kStartOfWeakFieldsOffset = kParentFeedbackCellOffsetEnd + 1;
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
-  static constexpr int kMaybeOptimizedCodeOffset = kParentFeedbackCellOffsetEnd + 1;
-  static constexpr int kMaybeOptimizedCodeOffsetEnd = kMaybeOptimizedCodeOffset + kTaggedSize - 1;
-  static constexpr int kHeaderSize = kMaybeOptimizedCodeOffsetEnd + 1;
+  static constexpr int kHeaderSize = kParentFeedbackCellOffsetEnd + 1;
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=56&c=36
-  static constexpr int kRawFeedbackSlotsOffset = kMaybeOptimizedCodeOffsetEnd + 1;
+  static constexpr int kRawFeedbackSlotsOffset = kParentFeedbackCellOffsetEnd + 1;
   static constexpr int kRawFeedbackSlotsOffsetEnd = kRawFeedbackSlotsOffset + 0 - 1;
   static constexpr int kEndOfWeakFieldsOffset = kRawFeedbackSlotsOffsetEnd + 1;
 

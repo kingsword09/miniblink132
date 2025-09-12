@@ -82,127 +82,124 @@
 namespace v8 {
 namespace internal {
 
-TF_BUILTIN(ArrayIsArray, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kArg);
-    USE(parameter1);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TF_BUILTIN(ArrayIsArray, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kArg);
+  USE(parameter1);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSArray> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        compiler::CodeAssemblerLabel label1(&ca_);
-        tmp0 = Cast_JSArray_1(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, &label1);
-        ca_.Goto(&block3);
-        if (label1.is_used()) {
-            ca_.Bind(&label1);
-            ca_.Goto(&block4);
-        }
+  TNode<JSArray> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    compiler::CodeAssemblerLabel label1(&ca_);
+    tmp0 = Cast_JSArray_1(state_, TNode<Context>{parameter0}, TNode<Object>{parameter1}, &label1);
+    ca_.Goto(&block3);
+    if (label1.is_used()) {
+      ca_.Bind(&label1);
+      ca_.Goto(&block4);
     }
+  }
 
-    TNode<JSProxy> tmp2;
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        compiler::CodeAssemblerLabel label3(&ca_);
-        tmp2 = Cast_JSProxy_1(state_, TNode<Context> { parameter0 }, TNode<Object> { ca_.UncheckedCast<Object>(parameter1) }, &label3);
-        ca_.Goto(&block7);
-        if (label3.is_used()) {
-            ca_.Bind(&label3);
-            ca_.Goto(&block8);
-        }
+  TNode<JSProxy> tmp2;
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    compiler::CodeAssemblerLabel label3(&ca_);
+    tmp2 = Cast_JSProxy_1(state_, TNode<Context>{parameter0}, TNode<Object>{ca_.UncheckedCast<Object>(parameter1)}, &label3);
+    ca_.Goto(&block7);
+    if (label3.is_used()) {
+      ca_.Bind(&label3);
+      ca_.Goto(&block8);
     }
+  }
 
-    TNode<True> tmp4;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        tmp4 = True_0(state_);
-        CodeStubAssembler(state_).Return(tmp4);
-    }
+  TNode<True> tmp4;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    tmp4 = True_0(state_);
+    CodeStubAssembler(state_).Return(tmp4);
+  }
 
-    TNode<False> tmp5;
-    if (block8.is_used()) {
-        ca_.Bind(&block8);
-        tmp5 = False_0(state_);
-        CodeStubAssembler(state_).Return(tmp5);
-    }
+  TNode<False> tmp5;
+  if (block8.is_used()) {
+    ca_.Bind(&block8);
+    tmp5 = False_0(state_);
+    CodeStubAssembler(state_).Return(tmp5);
+  }
 
-    TNode<Object> tmp6;
-    if (block7.is_used()) {
-        ca_.Bind(&block7);
-        tmp6 = CodeStubAssembler(state_).CallRuntime(Runtime::kArrayIsArray, parameter0, parameter1);
-        CodeStubAssembler(state_).Return(tmp6);
-    }
+  TNode<Object> tmp6;
+  if (block7.is_used()) {
+    ca_.Bind(&block7);
+    tmp6 = CodeStubAssembler(state_).CallRuntime(Runtime::kArrayIsArray, parameter0, parameter1); 
+    CodeStubAssembler(state_).Return(tmp6);
+  }
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/array-isarray.tq?l=18&c=5
-TNode<JSProxy> Cast_JSProxy_1(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o, compiler::CodeAssemblerLabel* label_CastError)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TNode<JSProxy> Cast_JSProxy_1(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<Object> p_o, compiler::CodeAssemblerLabel* label_CastError) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<HeapObject> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        compiler::CodeAssemblerLabel label1(&ca_);
-        tmp0 = CodeStubAssembler(state_).TaggedToHeapObject(TNode<Object> { p_o }, &label1);
-        ca_.Goto(&block3);
-        if (label1.is_used()) {
-            ca_.Bind(&label1);
-            ca_.Goto(&block4);
-        }
+  TNode<HeapObject> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    compiler::CodeAssemblerLabel label1(&ca_);
+    tmp0 = CodeStubAssembler(state_).TaggedToHeapObject(TNode<Object>{p_o}, &label1);
+    ca_.Goto(&block3);
+    if (label1.is_used()) {
+      ca_.Bind(&label1);
+      ca_.Goto(&block4);
     }
+  }
 
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        ca_.Goto(&block1);
-    }
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    ca_.Goto(&block1);
+  }
 
-    TNode<JSProxy> tmp2;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        compiler::CodeAssemblerLabel label3(&ca_);
-        tmp2 = Cast_JSProxy_0(state_, TNode<HeapObject> { tmp0 }, &label3);
-        ca_.Goto(&block5);
-        if (label3.is_used()) {
-            ca_.Bind(&label3);
-            ca_.Goto(&block6);
-        }
+  TNode<JSProxy> tmp2;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    compiler::CodeAssemblerLabel label3(&ca_);
+    tmp2 = Cast_JSProxy_0(state_, TNode<HeapObject>{tmp0}, &label3);
+    ca_.Goto(&block5);
+    if (label3.is_used()) {
+      ca_.Bind(&label3);
+      ca_.Goto(&block6);
     }
+  }
 
-    if (block6.is_used()) {
-        ca_.Bind(&block6);
-        ca_.Goto(&block1);
-    }
+  if (block6.is_used()) {
+    ca_.Bind(&block6);
+    ca_.Goto(&block1);
+  }
 
-    if (block5.is_used()) {
-        ca_.Bind(&block5);
-        ca_.Goto(&block7);
-    }
+  if (block5.is_used()) {
+    ca_.Bind(&block5);
+    ca_.Goto(&block7);
+  }
 
-    if (block1.is_used()) {
-        ca_.Bind(&block1);
-        ca_.Goto(label_CastError);
-    }
+  if (block1.is_used()) {
+    ca_.Bind(&block1);
+    ca_.Goto(label_CastError);
+  }
 
     ca_.Bind(&block7);
-    return TNode<JSProxy> { tmp2 };
+  return TNode<JSProxy>{tmp2};
 }
 
 } // namespace internal

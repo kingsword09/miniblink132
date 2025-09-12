@@ -10,8 +10,7 @@ namespace internal {
 TNode<TurbofanType> Cast_TurbofanType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=60&c=1
-TNode<TurbofanBitsetType> Cast_TurbofanBitsetType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanBitsetType> Cast_TurbofanBitsetType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=66&c=1
 TNode<TurbofanUnionType> Cast_TurbofanUnionType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
@@ -20,12 +19,10 @@ TNode<TurbofanUnionType> Cast_TurbofanUnionType_0(compiler::CodeAssemblerState* 
 TNode<TurbofanRangeType> Cast_TurbofanRangeType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=78&c=1
-TNode<TurbofanHeapConstantType> Cast_TurbofanHeapConstantType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanHeapConstantType> Cast_TurbofanHeapConstantType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=83&c=1
-TNode<TurbofanOtherNumberConstantType> Cast_TurbofanOtherNumberConstantType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanOtherNumberConstantType> Cast_TurbofanOtherNumberConstantType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=88&c=1
 TNode<BoolT> IsMinusZero_0(compiler::CodeAssemblerState* state_, TNode<Float64T> p_x);
@@ -82,28 +79,22 @@ TNode<Float64T> LoadTurbofanOtherNumberConstantTypeConstant_0(compiler::CodeAsse
 void StoreTurbofanOtherNumberConstantTypeConstant_0(compiler::CodeAssemblerState* state_, TNode<TurbofanOtherNumberConstantType> p_o, TNode<Float64T> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=12&c=1
-TNode<TurbofanType> DownCastForTorqueClass_TurbofanType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanType> DownCastForTorqueClass_TurbofanType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=60&c=1
-TNode<TurbofanBitsetType> DownCastForTorqueClass_TurbofanBitsetType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanBitsetType> DownCastForTorqueClass_TurbofanBitsetType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=66&c=1
-TNode<TurbofanUnionType> DownCastForTorqueClass_TurbofanUnionType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanUnionType> DownCastForTorqueClass_TurbofanUnionType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=72&c=1
-TNode<TurbofanRangeType> DownCastForTorqueClass_TurbofanRangeType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanRangeType> DownCastForTorqueClass_TurbofanRangeType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=78&c=1
-TNode<TurbofanHeapConstantType> DownCastForTorqueClass_TurbofanHeapConstantType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanHeapConstantType> DownCastForTorqueClass_TurbofanHeapConstantType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=83&c=1
-TNode<TurbofanOtherNumberConstantType> DownCastForTorqueClass_TurbofanOtherNumberConstantType_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<TurbofanOtherNumberConstantType> DownCastForTorqueClass_TurbofanOtherNumberConstantType_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/turbofan-types.tq?l=144&c=14
 TNode<BoolT> Is_Callable_JSProxy_0(compiler::CodeAssemblerState* state_, TNode<Context> p_context, TNode<JSProxy> p_o);

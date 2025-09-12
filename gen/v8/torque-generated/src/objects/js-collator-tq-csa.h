@@ -28,8 +28,7 @@ TNode<String> LoadJSCollatorLocale_0(compiler::CodeAssemblerState* state_, TNode
 void StoreJSCollatorLocale_0(compiler::CodeAssemblerState* state_, TNode<JSCollator> p_o, TNode<String> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-collator.tq?l=7&c=1
-TNode<JSCollator> DownCastForTorqueClass_JSCollator_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSCollator> DownCastForTorqueClass_JSCollator_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

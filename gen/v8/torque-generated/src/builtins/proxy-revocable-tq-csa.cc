@@ -82,73 +82,71 @@
 namespace v8 {
 namespace internal {
 
-TF_BUILTIN(ProxyRevocable, CodeStubAssembler)
-{
-    compiler::CodeAssemblerState* state_ = state();
-    compiler::CodeAssembler ca_(state());
-    TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
-    USE(parameter0);
-    TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kTarget);
-    USE(parameter1);
-    TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kHandler);
-    USE(parameter2);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kDeferred);
+TF_BUILTIN(ProxyRevocable, CodeStubAssembler) {
+  compiler::CodeAssemblerState* state_ = state();  compiler::CodeAssembler ca_(state());
+  TNode<NativeContext> parameter0 = UncheckedParameter<NativeContext>(Descriptor::kContext);
+  USE(parameter0);
+  TNode<Object> parameter1 = UncheckedParameter<Object>(Descriptor::kTarget);
+  USE(parameter1);
+  TNode<Object> parameter2 = UncheckedParameter<Object>(Descriptor::kHandler);
+  USE(parameter2);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kDeferred);
     ca_.Goto(&block0);
 
-    TNode<JSReceiver> tmp0;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        compiler::CodeAssemblerLabel label1(&ca_);
-        tmp0 = Cast_JSReceiver_1(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter1 }, &label1);
-        ca_.Goto(&block3);
-        if (label1.is_used()) {
-            ca_.Bind(&label1);
-            ca_.Goto(&block4);
-        }
+  TNode<JSReceiver> tmp0;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    compiler::CodeAssemblerLabel label1(&ca_);
+    tmp0 = Cast_JSReceiver_1(state_, TNode<Context>{parameter0}, TNode<Object>{parameter1}, &label1);
+    ca_.Goto(&block3);
+    if (label1.is_used()) {
+      ca_.Bind(&label1);
+      ca_.Goto(&block4);
     }
+  }
 
-    if (block4.is_used()) {
-        ca_.Bind(&block4);
-        ca_.Goto(&block2);
-    }
+  if (block4.is_used()) {
+    ca_.Bind(&block4);
+    ca_.Goto(&block2);
+  }
 
-    TNode<JSReceiver> tmp2;
-    if (block3.is_used()) {
-        ca_.Bind(&block3);
-        compiler::CodeAssemblerLabel label3(&ca_);
-        tmp2 = Cast_JSReceiver_1(state_, TNode<Context> { parameter0 }, TNode<Object> { parameter2 }, &label3);
-        ca_.Goto(&block5);
-        if (label3.is_used()) {
-            ca_.Bind(&label3);
-            ca_.Goto(&block6);
-        }
+  TNode<JSReceiver> tmp2;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    compiler::CodeAssemblerLabel label3(&ca_);
+    tmp2 = Cast_JSReceiver_1(state_, TNode<Context>{parameter0}, TNode<Object>{parameter2}, &label3);
+    ca_.Goto(&block5);
+    if (label3.is_used()) {
+      ca_.Bind(&label3);
+      ca_.Goto(&block6);
     }
+  }
 
-    if (block6.is_used()) {
-        ca_.Bind(&block6);
-        ca_.Goto(&block2);
-    }
+  if (block6.is_used()) {
+    ca_.Bind(&block6);
+    ca_.Goto(&block2);
+  }
 
-    TNode<JSProxy> tmp4;
-    TNode<JSFunction> tmp5;
-    TNode<JSObject> tmp6;
-    if (block5.is_used()) {
-        ca_.Bind(&block5);
-        tmp4 = ProxiesCodeStubAssembler(state_).AllocateProxy(TNode<Context> { parameter0 }, TNode<JSReceiver> { tmp0 }, TNode<JSReceiver> { tmp2 });
-        tmp5 = ProxiesCodeStubAssembler(state_).AllocateProxyRevokeFunction(TNode<Context> { parameter0 }, TNode<JSProxy> { tmp4 });
-        tmp6 = NewJSProxyRevocableResult_0(state_, TNode<Context> { parameter0 }, TNode<JSProxy> { tmp4 }, TNode<JSFunction> { tmp5 });
-        CodeStubAssembler(state_).Return(tmp6);
-    }
+  TNode<JSProxy> tmp4;
+  TNode<JSFunction> tmp5;
+  TNode<JSObject> tmp6;
+  if (block5.is_used()) {
+    ca_.Bind(&block5);
+    tmp4 = ProxiesCodeStubAssembler(state_).AllocateProxy(TNode<Context>{parameter0}, TNode<JSReceiver>{tmp0}, TNode<JSReceiver>{tmp2});
+    tmp5 = ProxiesCodeStubAssembler(state_).AllocateProxyRevokeFunction(TNode<Context>{parameter0}, TNode<JSProxy>{tmp4});
+    tmp6 = NewJSProxyRevocableResult_0(state_, TNode<Context>{parameter0}, TNode<JSProxy>{tmp4}, TNode<JSFunction>{tmp5});
+    CodeStubAssembler(state_).Return(tmp6);
+  }
 
-    if (block2.is_used()) {
-        ca_.Bind(&block2);
-        CodeStubAssembler(state_).ThrowTypeError(TNode<Context> { parameter0 }, MessageTemplate::kProxyNonObject, "Proxy.revocable");
-    }
+  if (block2.is_used()) {
+    ca_.Bind(&block2);
+    CodeStubAssembler(state_).ThrowTypeError(TNode<Context>{parameter0}, MessageTemplate::kProxyNonObject, "Proxy.revocable");
+  }
 }
 
 } // namespace internal

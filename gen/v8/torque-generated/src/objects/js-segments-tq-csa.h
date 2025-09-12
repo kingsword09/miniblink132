@@ -34,8 +34,7 @@ TNode<Smi> LoadJSSegmentsFlags_0(compiler::CodeAssemblerState* state_, TNode<JSS
 void StoreJSSegmentsFlags_0(compiler::CodeAssemblerState* state_, TNode<JSSegments> p_o, TNode<Smi> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-segments.tq?l=11&c=1
-TNode<JSSegments> DownCastForTorqueClass_JSSegments_0(
-    compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
+TNode<JSSegments> DownCastForTorqueClass_JSSegments_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 
 } // namespace internal
 } // namespace v8

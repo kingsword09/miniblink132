@@ -80,27 +80,26 @@ namespace v8 {
 namespace internal {
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/growable-fixed-array.tq?l=45&c=1
-TorqueStructGrowableFixedArray_0 NewGrowableFixedArray_0(compiler::CodeAssemblerState* state_)
-{
-    compiler::CodeAssembler ca_(state_);
-    compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-    compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+TorqueStructGrowableFixedArray_0 NewGrowableFixedArray_0(compiler::CodeAssemblerState* state_) {
+  compiler::CodeAssembler ca_(state_);
+  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
+  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
-    TNode<FixedArray> tmp0;
-    TNode<IntPtrT> tmp1;
-    TNode<IntPtrT> tmp2;
-    if (block0.is_used()) {
-        ca_.Bind(&block0);
-        tmp0 = kEmptyFixedArray_0(state_);
-        tmp1 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        tmp2 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
-        ca_.Goto(&block2);
-    }
+  TNode<FixedArray> tmp0;
+  TNode<IntPtrT> tmp1;
+  TNode<IntPtrT> tmp2;
+  if (block0.is_used()) {
+    ca_.Bind(&block0);
+    tmp0 = kEmptyFixedArray_0(state_);
+    tmp1 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    tmp2 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x0ull));
+    ca_.Goto(&block2);
+  }
 
     ca_.Bind(&block2);
-    return TorqueStructGrowableFixedArray_0 { TNode<FixedArray> { tmp0 }, TNode<IntPtrT> { tmp1 }, TNode<IntPtrT> { tmp2 } };
+  return TorqueStructGrowableFixedArray_0{TNode<FixedArray>{tmp0}, TNode<IntPtrT>{tmp1}, TNode<IntPtrT>{tmp2}};
 }
 
 } // namespace internal
