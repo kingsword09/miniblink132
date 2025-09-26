@@ -34,3 +34,4 @@
 
 build/
 out/tmp/
+out/win_*/
