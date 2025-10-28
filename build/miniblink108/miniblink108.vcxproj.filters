@@ -4470,7 +4470,7 @@
     <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinArm64.cpp">
       <Filter>src\content\resources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\content\resources\icudtlArm64.cpp">
+    <ClCompile Include="..\..\content\resources\icudtl.cpp">
       <Filter>src\content\resources</Filter>
     </ClCompile>
   </ItemGroup>
