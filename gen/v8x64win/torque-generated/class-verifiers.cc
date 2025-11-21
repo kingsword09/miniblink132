@@ -872,11 +872,6 @@ void TorqueGeneratedClassVerifiers::FeedbackVectorVerify(Tagged<FeedbackVector> 
     Object::VerifyPointer(isolate, parent_feedback_cell__value);
     CHECK(IsFeedbackCell(parent_feedback_cell__value));
   }
-  {
-    Tagged<MaybeObject> maybe_optimized_code__value = TaggedField<MaybeObject>::load(o, 28);
-    Object::VerifyMaybeObjectPointer(isolate, maybe_optimized_code__value);
-    CHECK(maybe_optimized_code__value.IsCleared() || (maybe_optimized_code__value.IsWeak() && IsCodeWrapper(maybe_optimized_code__value.GetHeapObjectOrSmi())));
-  }
   intptr_t raw_feedback_slots__offset, raw_feedback_slots__length;
   std::tie(std::ignore, raw_feedback_slots__offset, raw_feedback_slots__length) = TqRuntimeFieldSliceFeedbackVectorRawFeedbackSlots(o);
   CHECK_EQ(raw_feedback_slots__offset, static_cast<int>(raw_feedback_slots__offset));
@@ -2073,7 +2068,7 @@ void TorqueGeneratedClassVerifiers::SharedFunctionInfoVerify(Tagged<SharedFuncti
 void TorqueGeneratedClassVerifiers::UncompiledDataVerify(Tagged<UncompiledData> o, Isolate* isolate) {
   CHECK(IsUncompiledData(o, isolate));
   {
-    Tagged<Object> inferred_name__value = TaggedField<Object>::load(o, 4);
+    Tagged<Object> inferred_name__value = TaggedField<Object>::load(o, 8);
     Object::VerifyPointer(isolate, inferred_name__value);
     CHECK(IsString(inferred_name__value));
   }
@@ -2086,7 +2081,7 @@ void TorqueGeneratedClassVerifiers::UncompiledDataWithPreparseDataVerify(Tagged<
   o->UncompiledDataVerify(isolate);
   CHECK(IsUncompiledDataWithPreparseData(o, isolate));
   {
-    Tagged<Object> preparse_data__value = TaggedField<Object>::load(o, 16);
+    Tagged<Object> preparse_data__value = TaggedField<Object>::load(o, 20);
     Object::VerifyPointer(isolate, preparse_data__value);
     CHECK(IsPreparseData(preparse_data__value));
   }
@@ -3041,12 +3036,12 @@ void TorqueGeneratedClassVerifiers::WasmFastApiCallDataVerify(Tagged<WasmFastApi
 void TorqueGeneratedClassVerifiers::WasmInternalFunctionVerify(Tagged<WasmInternalFunction> o, Isolate* isolate) {
   CHECK(IsWasmInternalFunction(o, isolate));
   {
-    Tagged<Object> external__value = TaggedField<Object>::load(o, 8);
+    Tagged<Object> external__value = TaggedField<Object>::load(o, 12);
     Object::VerifyPointer(isolate, external__value);
     CHECK(IsUndefined(external__value) || IsJSFunction(external__value));
   }
   {
-    Tagged<Object> function_index__value = TaggedField<Object>::load(o, 12);
+    Tagged<Object> function_index__value = TaggedField<Object>::load(o, 16);
     Object::VerifyPointer(isolate, function_index__value);
     CHECK(IsSmi(function_index__value));
   }
@@ -3054,12 +3049,12 @@ void TorqueGeneratedClassVerifiers::WasmInternalFunctionVerify(Tagged<WasmIntern
 void TorqueGeneratedClassVerifiers::WasmFunctionDataVerify(Tagged<WasmFunctionData> o, Isolate* isolate) {
   CHECK(IsWasmFunctionData(o, isolate));
   {
-    Tagged<Object> func_ref__value = TaggedField<Object>::load(o, 8);
+    Tagged<Object> func_ref__value = TaggedField<Object>::load(o, 12);
     Object::VerifyPointer(isolate, func_ref__value);
     CHECK(IsWasmFuncRef(func_ref__value));
   }
   {
-    Tagged<Object> js_promise_flags__value = TaggedField<Object>::load(o, 12);
+    Tagged<Object> js_promise_flags__value = TaggedField<Object>::load(o, 16);
     Object::VerifyPointer(isolate, js_promise_flags__value);
     CHECK(IsSmi(js_promise_flags__value));
   }
@@ -3068,22 +3063,22 @@ void TorqueGeneratedClassVerifiers::WasmExportedFunctionDataVerify(Tagged<WasmEx
   o->WasmFunctionDataVerify(isolate);
   CHECK(IsWasmExportedFunctionData(o, isolate));
   {
-    Tagged<Object> function_index__value = TaggedField<Object>::load(o, 24);
+    Tagged<Object> function_index__value = TaggedField<Object>::load(o, 28);
     Object::VerifyPointer(isolate, function_index__value);
     CHECK(IsSmi(function_index__value));
   }
   {
-    Tagged<Object> wrapper_budget__value = TaggedField<Object>::load(o, 28);
+    Tagged<Object> wrapper_budget__value = TaggedField<Object>::load(o, 32);
     Object::VerifyPointer(isolate, wrapper_budget__value);
     CHECK(IsCell(wrapper_budget__value));
   }
   {
-    Tagged<Object> canonical_type_index__value = TaggedField<Object>::load(o, 32);
+    Tagged<Object> canonical_type_index__value = TaggedField<Object>::load(o, 36);
     Object::VerifyPointer(isolate, canonical_type_index__value);
     CHECK(IsSmi(canonical_type_index__value));
   }
   {
-    Tagged<Object> packed_args_size__value = TaggedField<Object>::load(o, 36);
+    Tagged<Object> packed_args_size__value = TaggedField<Object>::load(o, 40);
     Object::VerifyPointer(isolate, packed_args_size__value);
     CHECK(IsSmi(packed_args_size__value));
   }
@@ -3092,7 +3087,7 @@ void TorqueGeneratedClassVerifiers::WasmJSFunctionDataVerify(Tagged<WasmJSFuncti
   o->WasmFunctionDataVerify(isolate);
   CHECK(IsWasmJSFunctionData(o, isolate));
   {
-    Tagged<Object> canonical_sig_index__value = TaggedField<Object>::load(o, 20);
+    Tagged<Object> canonical_sig_index__value = TaggedField<Object>::load(o, 24);
     Object::VerifyPointer(isolate, canonical_sig_index__value);
     CHECK(IsSmi(canonical_sig_index__value));
   }
@@ -3101,12 +3096,12 @@ void TorqueGeneratedClassVerifiers::WasmCapiFunctionDataVerify(Tagged<WasmCapiFu
   o->WasmFunctionDataVerify(isolate);
   CHECK(IsWasmCapiFunctionData(o, isolate));
   {
-    Tagged<Object> canonical_sig_index__value = TaggedField<Object>::load(o, 20);
+    Tagged<Object> canonical_sig_index__value = TaggedField<Object>::load(o, 24);
     Object::VerifyPointer(isolate, canonical_sig_index__value);
     CHECK(IsSmi(canonical_sig_index__value));
   }
   {
-    Tagged<Object> embedder_data__value = TaggedField<Object>::load(o, 24);
+    Tagged<Object> embedder_data__value = TaggedField<Object>::load(o, 28);
     Object::VerifyPointer(isolate, embedder_data__value);
     CHECK(IsForeign(embedder_data__value));
   }
@@ -3301,7 +3296,7 @@ void TorqueGeneratedClassVerifiers::AsmWasmDataVerify(Tagged<AsmWasmData> o, Iso
 void TorqueGeneratedClassVerifiers::WasmTypeInfoVerify(Tagged<WasmTypeInfo> o, Isolate* isolate) {
   CHECK(IsWasmTypeInfo(o, isolate));
   {
-    Tagged<Object> supertypes_length__value = TaggedField<Object>::load(o, 20);
+    Tagged<Object> supertypes_length__value = TaggedField<Object>::load(o, 16);
     Object::VerifyPointer(isolate, supertypes_length__value);
     CHECK(IsSmi(supertypes_length__value));
   }

@@ -842,7 +842,7 @@ TNode<ExternalPointerT> LoadAccessorInfoSetter_0(compiler::CodeAssemblerState* s
   TNode<ExternalPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<ExternalPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -862,7 +862,7 @@ void StoreAccessorInfoSetter_0(compiler::CodeAssemblerState* state_, TNode<Acces
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<ExternalPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -882,7 +882,7 @@ TNode<Uint32T> LoadAccessorInfoFlags_0(compiler::CodeAssemblerState* state_, TNo
   TNode<Uint32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint32T>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -902,7 +902,7 @@ void StoreAccessorInfoFlags_0(compiler::CodeAssemblerState* state_, TNode<Access
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     CodeStubAssembler(state_).StoreReference<Uint32T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }

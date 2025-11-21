@@ -18,11 +18,11 @@ TNode<JSWrappedFunction> Cast_JSWrappedFunction_0(compiler::CodeAssemblerState* 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=30&c=1
 TNode<JSFunction> Cast_JSFunction_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=33&c=33
-TNode<TrustedPointerT> LoadJSFunctionCode_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o);
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
+TNode<Int32T> LoadJSFunctionDispatchHandle_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o);
 
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=33&c=33
-void StoreJSFunctionCode_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o, TNode<TrustedPointerT> p_v);
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
+void StoreJSFunctionDispatchHandle_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o, TNode<Int32T> p_v);
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=35&c=3
 TNode<SharedFunctionInfo> LoadJSFunctionSharedFunctionInfo_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o);

@@ -21,6 +21,19 @@ void TorqueGeneratedFeedbackCell<D, P>::set_value(Tagged<Union<ClosureFeedbackCe
   CONDITIONAL_WRITE_BARRIER(*this, kValueOffset, value, mode);
 }
 
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
+template<class D, class P>
+int32_t TorqueGeneratedFeedbackCell<D, P>::dispatch_handle() const {
+  int32_t value = this->template ReadField<int32_t>(kDispatchHandleOffset);
+  return value;
+}
+
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
+template<class D, class P>
+void TorqueGeneratedFeedbackCell<D, P>::set_dispatch_handle(int32_t value) {
+  this->template WriteField<int32_t>(kDispatchHandleOffset, value);
+}
+
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=8&c=3
 template<class D, class P>
 int32_t TorqueGeneratedFeedbackCell<D, P>::interrupt_budget() const {

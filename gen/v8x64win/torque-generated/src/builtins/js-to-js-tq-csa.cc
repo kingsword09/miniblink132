@@ -336,7 +336,7 @@ TF_BUILTIN(JSToJSWrapper, CodeStubAssembler) {
   USE(parameter1);
   TNode<JSFunction> parameter2 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
 USE(parameter2);
-  TNode<JSDispatchHandleT> parameter3 = InvalidDispatchHandleConstant();
+  TNode<JSDispatchHandleT> parameter3 = UncheckedParameter<JSDispatchHandleT>(Descriptor::kJSDispatchHandle);
 USE(parameter3);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
   compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);

@@ -2350,15 +2350,6 @@ struct TorqueStructReference_ScopeInfo_0 {
     return std::make_tuple(object, offset);
   }
 };
-struct TorqueStructReference_TrustedPointer_Code_0 {
-  TNode<Object> object;
-  TNode<IntPtrT> offset;
-  TorqueStructUnsafe_0 unsafeMarker;
-
-  std::tuple<TNode<Object>, TNode<IntPtrT>> Flatten() const {
-    return std::make_tuple(object, offset);
-  }
-};
 struct TorqueStructReference_ExternalPointer_0 {
   TNode<Object> object;
   TNode<IntPtrT> offset;
@@ -2584,6 +2575,15 @@ struct TorqueStructReference_SmiTagged_CallSiteInfoFlags_0 {
     return std::make_tuple(object, offset);
   }
 };
+struct TorqueStructReference_TrustedPointer_0 {
+  TNode<Object> object;
+  TNode<IntPtrT> offset;
+  TorqueStructUnsafe_0 unsafeMarker;
+
+  std::tuple<TNode<Object>, TNode<IntPtrT>> Flatten() const {
+    return std::make_tuple(object, offset);
+  }
+};
 struct TorqueStructReference_BytecodeWrapper_0 {
   TNode<Object> object;
   TNode<IntPtrT> offset;
@@ -2746,15 +2746,6 @@ struct TorqueStructReference_ClosureFeedbackCellArray_0 {
     return std::make_tuple(object, offset);
   }
 };
-struct TorqueStructReference_Weak_CodeWrapper_0 {
-  TNode<Object> object;
-  TNode<IntPtrT> offset;
-  TorqueStructUnsafe_0 unsafeMarker;
-
-  std::tuple<TNode<Object>, TNode<IntPtrT>> Flatten() const {
-    return std::make_tuple(object, offset);
-  }
-};
 struct TorqueStructReference_Smi_OR_Uninitialized_OR_FreeSpace_0 {
   TNode<Object> object;
   TNode<IntPtrT> offset;
@@ -2837,6 +2828,15 @@ struct TorqueStructReference_Undefined_OR_Smi_OR_NaN_0 {
   }
 };
 struct TorqueStructReference_RegExpDataWrapper_0 {
+  TNode<Object> object;
+  TNode<IntPtrT> offset;
+  TorqueStructUnsafe_0 unsafeMarker;
+
+  std::tuple<TNode<Object>, TNode<IntPtrT>> Flatten() const {
+    return std::make_tuple(object, offset);
+  }
+};
+struct TorqueStructReference_TrustedPointer_Code_0 {
   TNode<Object> object;
   TNode<IntPtrT> offset;
   TorqueStructUnsafe_0 unsafeMarker;

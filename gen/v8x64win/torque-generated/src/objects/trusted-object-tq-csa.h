@@ -12,6 +12,12 @@ TNode<TrustedObject> Cast_TrustedObject_0(compiler::CodeAssemblerState* state_, 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=9&c=1
 TNode<ExposedTrustedObject> Cast_ExposedTrustedObject_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_obj, compiler::CodeAssemblerLabel* label_CastError);
 
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=12&c=26
+TNode<TrustedPointerT> LoadExposedTrustedObjectSelfIndirectPointer_0(compiler::CodeAssemblerState* state_, TNode<ExposedTrustedObject> p_o);
+
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=12&c=26
+void StoreExposedTrustedObjectSelfIndirectPointer_0(compiler::CodeAssemblerState* state_, TNode<ExposedTrustedObject> p_o, TNode<TrustedPointerT> p_v);
+
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=5&c=1
 TNode<TrustedObject> DownCastForTorqueClass_TrustedObject_0(compiler::CodeAssemblerState* state_, TNode<HeapObject> p_o, compiler::CodeAssemblerLabel* label_CastError);
 

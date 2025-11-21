@@ -25,6 +25,11 @@ class TorqueGeneratedFeedbackCell : public P {
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=6&c=3
   inline void set_value(Tagged<Union<ClosureFeedbackCellArray, FeedbackVector, Undefined>> value, WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
 
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
+  inline int32_t dispatch_handle() const;
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
+  inline void set_dispatch_handle(int32_t value);
+
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=8&c=3
   inline int32_t interrupt_budget() const;
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=8&c=3
@@ -42,8 +47,11 @@ class TorqueGeneratedFeedbackCell : public P {
   static constexpr int kValueOffset = P::kHeaderSize;
   static constexpr int kValueOffsetEnd = kValueOffset + kTaggedSize - 1;
   static constexpr int kEndOfStrongFieldsOffset = kValueOffsetEnd + 1;
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
+  static constexpr int kDispatchHandleOffset = kValueOffsetEnd + 1;
+  static constexpr int kDispatchHandleOffsetEnd = kDispatchHandleOffset + kInt32Size - 1;
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=8&c=3
-  static constexpr int kInterruptBudgetOffset = kValueOffsetEnd + 1;
+  static constexpr int kInterruptBudgetOffset = kDispatchHandleOffsetEnd + 1;
   static constexpr int kInterruptBudgetOffsetEnd = kInterruptBudgetOffset + kInt32Size - 1;
   static constexpr int kStartOfWeakFieldsOffset = kInterruptBudgetOffsetEnd + 1;
   static constexpr int kEndOfWeakFieldsOffset = kInterruptBudgetOffsetEnd + 1;
@@ -52,7 +60,7 @@ class TorqueGeneratedFeedbackCell : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=5&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 12);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 16);
     int32_t size = kHeaderSize;
     return size;
   }

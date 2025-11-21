@@ -295,8 +295,8 @@ class TqJSFunction : public TqJSFunctionOrBoundFunctionOrWrappedFunction {
   const char* GetName() const override;
   void Visit(TqObjectVisitor* visitor) const override;
   bool IsSuperclassOf(const TqObject* other) const override;
-  uintptr_t GetCodeAddress() const;
-  Value<TrustedPointer_t /*Failing? Ensure constexpr type name is correct, and the necessary #include is in any .tq file*/> GetCodeValue(d::MemoryAccessor accessor ) const;
+  uintptr_t GetDispatchHandleAddress() const;
+  Value<int32_t /*Failing? Ensure constexpr type name is correct, and the necessary #include is in any .tq file*/> GetDispatchHandleValue(d::MemoryAccessor accessor ) const;
   uintptr_t GetSharedFunctionInfoAddress() const;
   Value<uintptr_t> GetSharedFunctionInfoValue(d::MemoryAccessor accessor ) const;
   uintptr_t GetContextAddress() const;
@@ -907,6 +907,8 @@ class TqExposedTrustedObject : public TqTrustedObject {
   const char* GetName() const override;
   void Visit(TqObjectVisitor* visitor) const override;
   bool IsSuperclassOf(const TqObject* other) const override;
+  uintptr_t GetSelfIndirectPointerAddress() const;
+  Value<TrustedPointer_t /*Failing? Ensure constexpr type name is correct, and the necessary #include is in any .tq file*/> GetSelfIndirectPointerValue(d::MemoryAccessor accessor ) const;
 };
 
 class TqBytecodeArray : public TqExposedTrustedObject {
@@ -1221,6 +1223,8 @@ class TqFeedbackCell : public TqStruct {
   bool IsSuperclassOf(const TqObject* other) const override;
   uintptr_t GetValueAddress() const;
   Value<uintptr_t> GetValueValue(d::MemoryAccessor accessor ) const;
+  uintptr_t GetDispatchHandleAddress() const;
+  Value<int32_t /*Failing? Ensure constexpr type name is correct, and the necessary #include is in any .tq file*/> GetDispatchHandleValue(d::MemoryAccessor accessor ) const;
   uintptr_t GetInterruptBudgetAddress() const;
   Value<int32_t /*Failing? Ensure constexpr type name is correct, and the necessary #include is in any .tq file*/> GetInterruptBudgetValue(d::MemoryAccessor accessor ) const;
 };
@@ -1263,8 +1267,6 @@ class TqFeedbackVector : public TqHeapObject {
   Value<uintptr_t> GetClosureFeedbackCellArrayValue(d::MemoryAccessor accessor ) const;
   uintptr_t GetParentFeedbackCellAddress() const;
   Value<uintptr_t> GetParentFeedbackCellValue(d::MemoryAccessor accessor ) const;
-  uintptr_t GetMaybeOptimizedCodeAddress() const;
-  Value<uintptr_t> GetMaybeOptimizedCodeValue(d::MemoryAccessor accessor ) const;
   uintptr_t GetRawFeedbackSlotsAddress() const;
   Value<uintptr_t> GetRawFeedbackSlotsValue(d::MemoryAccessor accessor , size_t offset) const;
 };
@@ -3957,6 +3959,8 @@ class TqWasmInternalFunction : public TqExposedTrustedObject {
   Value<uintptr_t> GetFunctionIndexValue(d::MemoryAccessor accessor ) const;
   uintptr_t GetCallTargetAddress() const;
   Value<Address /*Failing? Ensure constexpr type name is correct, and the necessary #include is in any .tq file*/> GetCallTargetValue(d::MemoryAccessor accessor ) const;
+  uintptr_t GetSignatureHashAddress() const;
+  Value<uintptr_t /*Failing? Ensure constexpr type name is correct, and the necessary #include is in any .tq file*/> GetSignatureHashValue(d::MemoryAccessor accessor ) const;
 };
 
 class TqWasmFunctionData : public TqExposedTrustedObject {

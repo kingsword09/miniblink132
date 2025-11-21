@@ -366,6 +366,11 @@ class TorqueGeneratedWasmInternalFunction : public P {
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=93&c=3
   inline void set_call_target(Address value);
 
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
+  inline uintptr_t signature_hash() const;
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
+  inline void set_signature_hash(uintptr_t value);
+
   DECL_PRINTER(WasmInternalFunction)
 
 #ifdef VERIFY_HEAP
@@ -392,12 +397,15 @@ class TorqueGeneratedWasmInternalFunction : public P {
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=95&c=43
   static constexpr int kOptionalPaddingOffset = kCallTargetOffsetEnd + 1;
   static constexpr int kOptionalPaddingOffsetEnd = kOptionalPaddingOffset + 0 - 1;
-  static constexpr int kHeaderSize = kOptionalPaddingOffsetEnd + 1;
-  static constexpr int kSize = kOptionalPaddingOffsetEnd + 1;
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
+  static constexpr int kSignatureHashOffset = kOptionalPaddingOffsetEnd + 1;
+  static constexpr int kSignatureHashOffsetEnd = kSignatureHashOffset + kIntptrSize - 1;
+  static constexpr int kHeaderSize = kSignatureHashOffsetEnd + 1;
+  static constexpr int kSize = kSignatureHashOffsetEnd + 1;
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=74&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 24);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 36);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -480,7 +488,7 @@ class TorqueGeneratedWasmFunctionData : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=118&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 20);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 24);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -587,7 +595,7 @@ class TorqueGeneratedWasmExportedFunctionData : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=134&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 52);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 56);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -657,7 +665,7 @@ class TorqueGeneratedWasmJSFunctionData : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=157&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 28);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 32);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -742,7 +750,7 @@ class TorqueGeneratedWasmCapiFunctionData : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=163&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 36);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 40);
     int32_t size = kHeaderSize;
     return size;
   }
@@ -895,7 +903,7 @@ class TorqueGeneratedWasmContinuationObject : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=175&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 24);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 16);
     int32_t size = kHeaderSize;
     return size;
   }

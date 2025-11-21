@@ -1297,7 +1297,7 @@ TNode<ExternalPointerT> LoadExternalStringResourceData_0(compiler::CodeAssembler
   TNode<ExternalPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<ExternalPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -1317,7 +1317,7 @@ void StoreExternalStringResourceData_0(compiler::CodeAssemblerState* state_, TNo
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<ExternalPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }

@@ -328,7 +328,7 @@ class TorqueGeneratedAccessorInfo : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/api-callbacks.tq?l=42&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 32);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 24);
     int32_t size = kHeaderSize;
     return size;
   }

@@ -232,7 +232,7 @@ class TorqueGeneratedFunctionTemplateInfo : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/templates.tq?l=44&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 68);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 64);
     int32_t size = kHeaderSize;
     return size;
   }

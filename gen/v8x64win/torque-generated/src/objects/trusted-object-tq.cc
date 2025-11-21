@@ -15,12 +15,17 @@ class TorqueGeneratedTrustedObjectAsserts {
 
 // Definition https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=9&c=1
 class TorqueGeneratedExposedTrustedObjectAsserts {
-  static constexpr int kStartOfWeakFieldsOffset = TrustedObject::kHeaderSize;
-  static constexpr int kEndOfWeakFieldsOffset = TrustedObject::kHeaderSize;
-  static constexpr int kStartOfStrongFieldsOffset = TrustedObject::kHeaderSize;
-  static constexpr int kEndOfStrongFieldsOffset = TrustedObject::kHeaderSize;
-  static constexpr int kHeaderSize = TrustedObject::kHeaderSize;
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=12&c=26
+  static constexpr int kSelfIndirectPointerOffset = TrustedObject::kHeaderSize;
+  static constexpr int kSelfIndirectPointerOffsetEnd = kSelfIndirectPointerOffset + kTrustedPointerSize - 1;
+  static constexpr int kStartOfWeakFieldsOffset = kSelfIndirectPointerOffsetEnd + 1;
+  static constexpr int kEndOfWeakFieldsOffset = kSelfIndirectPointerOffsetEnd + 1;
+  static constexpr int kStartOfStrongFieldsOffset = kSelfIndirectPointerOffsetEnd + 1;
+  static constexpr int kEndOfStrongFieldsOffset = kSelfIndirectPointerOffsetEnd + 1;
+  static constexpr int kHeaderSize = kSelfIndirectPointerOffsetEnd + 1;
 
+  static_assert(kSelfIndirectPointerOffset == ExposedTrustedObject::kSelfIndirectPointerOffset,
+                "Values of ExposedTrustedObject::kSelfIndirectPointerOffset defined in Torque and C++ do not match");
 };
 
 } // namespace internal

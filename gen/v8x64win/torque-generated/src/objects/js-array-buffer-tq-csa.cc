@@ -131,7 +131,7 @@ TNode<BoolT> IsDetachedBuffer_0(compiler::CodeAssemblerState* state_, TNode<JSAr
   TNode<BoolT> tmp2;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint32T>(CodeStubAssembler::Reference{p_buffer, tmp0});
     tmp2 = ca_.UncheckedCast<BoolT>(CodeStubAssembler(state_).DecodeWord32<base::BitField<bool, 2, 1, uint32_t>>(ca_.UncheckedCast<Word32T>(tmp1)));
     ca_.Goto(&block2);
@@ -154,7 +154,7 @@ TNode<BoolT> IsSharedArrayBuffer_0(compiler::CodeAssemblerState* state_, TNode<J
   TNode<BoolT> tmp2;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint32T>(CodeStubAssembler::Reference{p_buffer, tmp0});
     tmp2 = ca_.UncheckedCast<BoolT>(CodeStubAssembler(state_).DecodeWord32<base::BitField<bool, 4, 1, uint32_t>>(ca_.UncheckedCast<Word32T>(tmp1)));
     ca_.Goto(&block2);
@@ -177,7 +177,7 @@ TNode<BoolT> IsResizableArrayBuffer_0(compiler::CodeAssemblerState* state_, TNod
   TNode<BoolT> tmp2;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint32T>(CodeStubAssembler::Reference{p_buffer, tmp0});
     tmp2 = ca_.UncheckedCast<BoolT>(CodeStubAssembler(state_).DecodeWord32<base::BitField<bool, 5, 1, uint32_t>>(ca_.UncheckedCast<Word32T>(tmp1)));
     ca_.Goto(&block2);
@@ -1036,7 +1036,7 @@ TNode<Uint32T> LoadJSArrayBufferBitField_0(compiler::CodeAssemblerState* state_,
   TNode<Uint32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint32T>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -1056,7 +1056,7 @@ void StoreJSArrayBufferBitField_0(compiler::CodeAssemblerState* state_, TNode<JS
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
     CodeStubAssembler(state_).StoreReference<Uint32T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }

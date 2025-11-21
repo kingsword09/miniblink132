@@ -91,11 +91,9 @@ namespace internal {
 #define DEFINE_TORQUE_GENERATED_FEEDBACK_VECTOR_FLAGS() \
   using TieringStateBits = base::BitField<TieringState, 0, 3, uint16_t>; \
   using LogNextExecutionBit = base::BitField<bool, 3, 1, uint16_t>; \
-  using MaybeHasMaglevCodeBit = base::BitField<bool, 4, 1, uint16_t>; \
-  using MaybeHasTurbofanCodeBit = base::BitField<bool, 5, 1, uint16_t>; \
-  using OsrTieringInProgressBit = base::BitField<bool, 6, 1, uint16_t>; \
-  using InterruptBudgetResetByIcChangeBit = base::BitField<bool, 7, 1, uint16_t>; \
-  using AllYourBitsAreBelongToJgruberBits = base::BitField<uint32_t, 8, 8, uint16_t>; \
+  using OsrTieringInProgressBit = base::BitField<bool, 4, 1, uint16_t>; \
+  using InterruptBudgetResetByIcChangeBit = base::BitField<bool, 5, 1, uint16_t>; \
+  using AllYourBitsAreBelongToJgruberBits = base::BitField<uint32_t, 6, 10, uint16_t>; \
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=25&c=1
 #define DEFINE_TORQUE_GENERATED_OSR_STATE() \

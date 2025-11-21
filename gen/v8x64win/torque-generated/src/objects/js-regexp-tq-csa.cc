@@ -274,7 +274,7 @@ TNode<Smi> LoadRegExpDataTypeTag_0(compiler::CodeAssemblerState* state_, TNode<R
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -294,7 +294,7 @@ void StoreRegExpDataTypeTag_0(compiler::CodeAssemblerState* state_, TNode<RegExp
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -314,7 +314,7 @@ TNode<String> LoadRegExpDataSource_0(compiler::CodeAssemblerState* state_, TNode
   TNode<String> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     tmp1 = CodeStubAssembler(state_).LoadReference<String>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -334,7 +334,7 @@ void StoreRegExpDataSource_0(compiler::CodeAssemblerState* state_, TNode<RegExpD
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     CodeStubAssembler(state_).StoreReference<String>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -354,7 +354,7 @@ TNode<Smi> LoadRegExpDataFlags_0(compiler::CodeAssemblerState* state_, TNode<Reg
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -374,7 +374,7 @@ void StoreRegExpDataFlags_0(compiler::CodeAssemblerState* state_, TNode<RegExpDa
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -394,7 +394,7 @@ TNode<RegExpDataWrapper> LoadRegExpDataWrapper_0(compiler::CodeAssemblerState* s
   TNode<RegExpDataWrapper> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<RegExpDataWrapper>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -414,7 +414,7 @@ void StoreRegExpDataWrapper_0(compiler::CodeAssemblerState* state_, TNode<RegExp
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     CodeStubAssembler(state_).StoreReference<RegExpDataWrapper>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -434,7 +434,7 @@ TNode<String> LoadAtomRegExpDataPattern_0(compiler::CodeAssemblerState* state_, 
   TNode<String> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     tmp1 = CodeStubAssembler(state_).LoadReference<String>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -455,7 +455,7 @@ TNode<MaybeObject> LoadIrRegExpDataLatin1Bytecode_0(compiler::CodeAssemblerState
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -475,7 +475,7 @@ void StoreIrRegExpDataLatin1Bytecode_0(compiler::CodeAssemblerState* state_, TNo
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -495,7 +495,7 @@ TNode<MaybeObject> LoadIrRegExpDataUc16Bytecode_0(compiler::CodeAssemblerState* 
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -515,7 +515,7 @@ void StoreIrRegExpDataUc16Bytecode_0(compiler::CodeAssemblerState* state_, TNode
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -535,7 +535,7 @@ TNode<TrustedPointerT> LoadIrRegExpDataLatin1Code_0(compiler::CodeAssemblerState
   TNode<TrustedPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
     tmp1 = CodeStubAssembler(state_).LoadReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -555,7 +555,7 @@ void StoreIrRegExpDataLatin1Code_0(compiler::CodeAssemblerState* state_, TNode<I
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
     CodeStubAssembler(state_).StoreReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -575,7 +575,7 @@ TNode<TrustedPointerT> LoadIrRegExpDataUc16Code_0(compiler::CodeAssemblerState* 
   TNode<TrustedPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
     tmp1 = CodeStubAssembler(state_).LoadReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -595,7 +595,7 @@ void StoreIrRegExpDataUc16Code_0(compiler::CodeAssemblerState* state_, TNode<IrR
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
     CodeStubAssembler(state_).StoreReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -615,7 +615,7 @@ TNode<FixedArray> LoadIrRegExpDataCaptureNameMap_0(compiler::CodeAssemblerState*
   TNode<FixedArray> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
     tmp1 = CodeStubAssembler(state_).LoadReference<FixedArray>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -635,7 +635,7 @@ void StoreIrRegExpDataCaptureNameMap_0(compiler::CodeAssemblerState* state_, TNo
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
     CodeStubAssembler(state_).StoreReference<FixedArray>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -655,7 +655,7 @@ TNode<Smi> LoadIrRegExpDataMaxRegisterCount_0(compiler::CodeAssemblerState* stat
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -675,7 +675,7 @@ void StoreIrRegExpDataMaxRegisterCount_0(compiler::CodeAssemblerState* state_, T
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -695,7 +695,7 @@ TNode<Smi> LoadIrRegExpDataCaptureCount_0(compiler::CodeAssemblerState* state_, 
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -715,7 +715,7 @@ void StoreIrRegExpDataCaptureCount_0(compiler::CodeAssemblerState* state_, TNode
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -735,7 +735,7 @@ TNode<Smi> LoadIrRegExpDataTicksUntilTierUp_0(compiler::CodeAssemblerState* stat
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -755,7 +755,7 @@ void StoreIrRegExpDataTicksUntilTierUp_0(compiler::CodeAssemblerState* state_, T
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -775,7 +775,7 @@ TNode<Smi> LoadIrRegExpDataBacktrackLimit_0(compiler::CodeAssemblerState* state_
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 56);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -795,7 +795,7 @@ void StoreIrRegExpDataBacktrackLimit_0(compiler::CodeAssemblerState* state_, TNo
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 52);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 56);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }

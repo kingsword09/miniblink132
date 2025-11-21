@@ -3,6 +3,19 @@ inline TorqueGeneratedJSFunctionOrBoundFunctionOrWrappedFunction<D, P>::TorqueGe
     : P(ptr) {
   SLOW_DCHECK(IsJSFunctionOrBoundFunctionOrWrappedFunction_NonInline(*this));
 }
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
+template<class D, class P>
+int32_t TorqueGeneratedJSFunction<D, P>::dispatch_handle() const {
+  int32_t value = this->template ReadField<int32_t>(kDispatchHandleOffset);
+  return value;
+}
+
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
+template<class D, class P>
+void TorqueGeneratedJSFunction<D, P>::set_dispatch_handle(int32_t value) {
+  this->template WriteField<int32_t>(kDispatchHandleOffset, value);
+}
+
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=35&c=3
 template<class D, class P>
 Tagged<SharedFunctionInfo> TorqueGeneratedJSFunction<D, P>::shared_function_info() const {

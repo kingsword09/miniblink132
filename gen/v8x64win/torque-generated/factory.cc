@@ -20,6 +20,7 @@ Handle<UncompiledDataWithoutPreparseData> TorqueGeneratedFactory<Impl>::NewUncom
      allocation_type == AllocationType::kYoung
      ? SKIP_WRITE_BARRIER : UPDATE_WRITE_BARRIER;
   USE(write_barrier_mode);
+  result->init_self_indirect_pointer(factory()->isolate());
   result->TorqueGeneratedClass::set_inferred_name(*inferred_name, write_barrier_mode);
   result->TorqueGeneratedClass::set_start_position(start_position);
   result->TorqueGeneratedClass::set_end_position(end_position);
@@ -42,6 +43,7 @@ Handle<UncompiledDataWithPreparseData> TorqueGeneratedFactory<Impl>::NewUncompil
      allocation_type == AllocationType::kYoung
      ? SKIP_WRITE_BARRIER : UPDATE_WRITE_BARRIER;
   USE(write_barrier_mode);
+  result->init_self_indirect_pointer(factory()->isolate());
   result->TorqueGeneratedClass::set_inferred_name(*inferred_name, write_barrier_mode);
   result->TorqueGeneratedClass::set_start_position(start_position);
   result->TorqueGeneratedClass::set_end_position(end_position);
@@ -65,6 +67,7 @@ Handle<UncompiledDataWithoutPreparseDataWithJob> TorqueGeneratedFactory<Impl>::N
      allocation_type == AllocationType::kYoung
      ? SKIP_WRITE_BARRIER : UPDATE_WRITE_BARRIER;
   USE(write_barrier_mode);
+  result->init_self_indirect_pointer(factory()->isolate());
   result->TorqueGeneratedClass::set_inferred_name(*inferred_name, write_barrier_mode);
   result->TorqueGeneratedClass::set_start_position(start_position);
   result->TorqueGeneratedClass::set_end_position(end_position);
@@ -88,6 +91,7 @@ Handle<UncompiledDataWithPreparseDataAndJob> TorqueGeneratedFactory<Impl>::NewUn
      allocation_type == AllocationType::kYoung
      ? SKIP_WRITE_BARRIER : UPDATE_WRITE_BARRIER;
   USE(write_barrier_mode);
+  result->init_self_indirect_pointer(factory()->isolate());
   result->TorqueGeneratedClass::set_inferred_name(*inferred_name, write_barrier_mode);
   result->TorqueGeneratedClass::set_start_position(start_position);
   result->TorqueGeneratedClass::set_end_position(end_position);
