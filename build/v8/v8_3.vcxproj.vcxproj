@@ -192,7 +192,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8x64win;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8arm64;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4251;4275;4661;4661;4291;</DisableSpecificWarnings>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
@@ -213,7 +213,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8x64win;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8arm64;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4251;4275;4661;4661;4291;</DisableSpecificWarnings>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
@@ -234,7 +234,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8x64win;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8arm64;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4251;4275;4661;4661;4291;</DisableSpecificWarnings>
@@ -266,7 +266,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8x64win;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen/v8arm64;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4251;4275;4661;4661;4291;</DisableSpecificWarnings>
