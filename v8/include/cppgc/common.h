@@ -5,7 +5,7 @@
 #ifndef INCLUDE_CPPGC_COMMON_H_
 #define INCLUDE_CPPGC_COMMON_H_
 
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace cppgc {
 
@@ -13,16 +13,16 @@ namespace cppgc {
  *  Indicator for the stack state of the embedder.
  */
 enum class EmbedderStackState {
-    /**
+  /**
    * Stack may contain interesting heap pointers.
    */
-    kMayContainHeapPointers,
-    /**
+  kMayContainHeapPointers,
+  /**
    * Stack does not contain any interesting heap pointers.
    */
-    kNoHeapPointers,
+  kNoHeapPointers,
 };
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_COMMON_H_
+#endif  // INCLUDE_CPPGC_COMMON_H_

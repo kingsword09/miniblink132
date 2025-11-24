@@ -12,24 +12,23 @@ namespace internal {
 
 #if defined(CPPGC_POINTER_COMPRESSION)
 class CageBaseGlobalUpdater final {
-public:
-    CageBaseGlobalUpdater() = delete;
-    static void UpdateCageBase(uintptr_t cage_base)
-    {
-        CPPGC_DCHECK(CageBaseGlobal::IsBaseConsistent());
-        CPPGC_DCHECK(0u == (cage_base & CageBaseGlobal::kLowerHalfWordMask));
-        CageBaseGlobal::g_base_.base = cage_base | CageBaseGlobal::kLowerHalfWordMask;
-    }
+ public:
+  CageBaseGlobalUpdater() = delete;
+  static void UpdateCageBase(uintptr_t cage_base) {
+    CPPGC_DCHECK(CageBaseGlobal::IsBaseConsistent());
+    CPPGC_DCHECK(0u == (cage_base & CageBaseGlobal::kLowerHalfWordMask));
+    CageBaseGlobal::g_base_.base =
+        cage_base | CageBaseGlobal::kLowerHalfWordMask;
+  }
 
-    static uintptr_t GetCageBase()
-    {
-        CPPGC_DCHECK(CageBaseGlobal::IsBaseConsistent());
-        return CageBaseGlobal::g_base_.base & ~CageBaseGlobal::kLowerHalfWordMask;
-    }
+  static uintptr_t GetCageBase() {
+    CPPGC_DCHECK(CageBaseGlobal::IsBaseConsistent());
+    return CageBaseGlobal::g_base_.base & ~CageBaseGlobal::kLowerHalfWordMask;
+  }
 };
-#endif // defined(CPPGC_POINTER_COMPRESSION)
+#endif  // defined(CPPGC_POINTER_COMPRESSION)
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_MEMBER_STORAGE_H_
+#endif  // V8_HEAP_CPPGC_MEMBER_STORAGE_H_

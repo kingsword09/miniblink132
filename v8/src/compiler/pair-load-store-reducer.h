@@ -24,24 +24,23 @@ class Word64Adapter;
 // platforms (currently arm64). Stores are trivially pairable if they are next
 // to each other, write to consecutive indices and do not have a write barrier.
 // TODO(olivf, v8:13877) Add support for loads, more word sizes, and arm.
-class V8_EXPORT_PRIVATE PairLoadStoreReducer final : public NON_EXPORTED_BASE(AdvancedReducer) {
-public:
-    PairLoadStoreReducer(Editor* editor, MachineGraph* mcgraph, Isolate* isolate_);
+class V8_EXPORT_PRIVATE PairLoadStoreReducer final
+    : public NON_EXPORTED_BASE(AdvancedReducer) {
+ public:
+  PairLoadStoreReducer(Editor* editor, MachineGraph* mcgraph,
+                       Isolate* isolate_);
 
-    const char* reducer_name() const override
-    {
-        return "PairLoadStoreReducer";
-    }
+  const char* reducer_name() const override { return "PairLoadStoreReducer"; }
 
-    Reduction Reduce(Node* node) override;
+  Reduction Reduce(Node* node) override;
 
-private:
-    MachineGraph* mcgraph_;
-    Isolate* isolate_;
+ private:
+  MachineGraph* mcgraph_;
+  Isolate* isolate_;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_PAIR_LOAD_STORE_REDUCER_H_
+#endif  // V8_COMPILER_PAIR_LOAD_STORE_REDUCER_H_

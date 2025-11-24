@@ -13,9 +13,10 @@ namespace internal {
 
 using ZoneHashMap = base::PointerTemplateHashMapImpl<ZoneAllocationPolicy>;
 
-using CustomMatcherZoneHashMap = base::CustomMatcherTemplateHashMapImpl<ZoneAllocationPolicy>;
+using CustomMatcherZoneHashMap =
+    base::CustomMatcherTemplateHashMapImpl<ZoneAllocationPolicy>;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_ZONE_ZONE_HASHMAP_H_
+#endif  // V8_ZONE_ZONE_HASHMAP_H_

@@ -37,39 +37,32 @@
 namespace v8 {
 namespace internal {
 
-SpaceWithLinearArea::SpaceWithLinearArea(Heap* heap, AllocationSpace id, std::unique_ptr<FreeList> free_list)
-    : Space(heap, id, std::move(free_list))
-{
-}
+SpaceWithLinearArea::SpaceWithLinearArea(Heap* heap, AllocationSpace id,
+                                         std::unique_ptr<FreeList> free_list)
+    : Space(heap, id, std::move(free_list)) {}
 
 SpaceIterator::SpaceIterator(Heap* heap)
-    : heap_(heap)
-    , current_space_(FIRST_MUTABLE_SPACE)
-{
-}
+    : heap_(heap), current_space_(FIRST_MUTABLE_SPACE) {}
 
 SpaceIterator::~SpaceIterator() = default;
 
-bool SpaceIterator::HasNext()
-{
-    while (current_space_ <= LAST_MUTABLE_SPACE) {
-        Space* space = heap_->space(current_space_);
-        if (space)
-            return true;
-        ++current_space_;
-    }
+bool SpaceIterator::HasNext() {
+  while (current_space_ <= LAST_MUTABLE_SPACE) {
+    Space* space = heap_->space(current_space_);
+    if (space) return true;
+    ++current_space_;
+  }
 
-    // No more spaces left.
-    return false;
+  // No more spaces left.
+  return false;
 }
 
-Space* SpaceIterator::Next()
-{
-    DCHECK_LE(current_space_, LAST_MUTABLE_SPACE);
-    Space* space = heap_->space(current_space_++);
-    DCHECK_NOT_NULL(space);
-    return space;
+Space* SpaceIterator::Next() {
+  DCHECK_LE(current_space_, LAST_MUTABLE_SPACE);
+  Space* space = heap_->space(current_space_++);
+  DCHECK_NOT_NULL(space);
+  return space;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

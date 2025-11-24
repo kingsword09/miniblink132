@@ -20,34 +20,34 @@ class Isolate;
 // marking actions (start, step, finalize). The job posts regular foreground
 // tasks or delayed foreground tasks if marking progress allows.
 class IncrementalMarkingJob final {
-public:
-    explicit IncrementalMarkingJob(Heap* heap);
+ public:
+  explicit IncrementalMarkingJob(Heap* heap);
 
-    IncrementalMarkingJob(const IncrementalMarkingJob&) = delete;
-    IncrementalMarkingJob& operator=(const IncrementalMarkingJob&) = delete;
+  IncrementalMarkingJob(const IncrementalMarkingJob&) = delete;
+  IncrementalMarkingJob& operator=(const IncrementalMarkingJob&) = delete;
 
-    // Schedules a task with the given `priority`. Safe to be called from any
-    // thread.
-    void ScheduleTask(TaskPriority priority = TaskPriority::kUserBlocking);
+  // Schedules a task with the given `priority`. Safe to be called from any
+  // thread.
+  void ScheduleTask(TaskPriority priority = TaskPriority::kUserBlocking);
 
-    // Returns a weighted average of time to task. For delayed tasks the time to
-    // task is only recorded after the initial delay. In case a task is currently
-    // running, it is added to the average.
-    std::optional<v8::base::TimeDelta> AverageTimeToTask() const;
+  // Returns a weighted average of time to task. For delayed tasks the time to
+  // task is only recorded after the initial delay. In case a task is currently
+  // running, it is added to the average.
+  std::optional<v8::base::TimeDelta> AverageTimeToTask() const;
 
-    std::optional<v8::base::TimeDelta> CurrentTimeToTask() const;
+  std::optional<v8::base::TimeDelta> CurrentTimeToTask() const;
 
-private:
-    class Task;
+ private:
+  class Task;
 
-    Heap* const heap_;
-    const std::shared_ptr<v8::TaskRunner> user_blocking_task_runner_;
-    const std::shared_ptr<v8::TaskRunner> user_visible_task_runner_;
-    mutable base::Mutex mutex_;
-    v8::base::TimeTicks scheduled_time_;
-    bool pending_task_ = false;
+  Heap* const heap_;
+  const std::shared_ptr<v8::TaskRunner> user_blocking_task_runner_;
+  const std::shared_ptr<v8::TaskRunner> user_visible_task_runner_;
+  mutable base::Mutex mutex_;
+  v8::base::TimeTicks scheduled_time_;
+  bool pending_task_ = false;
 };
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_HEAP_INCREMENTAL_MARKING_JOB_H_
+#endif  // V8_HEAP_INCREMENTAL_MARKING_JOB_H_

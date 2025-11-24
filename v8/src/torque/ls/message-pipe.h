@@ -16,9 +16,9 @@ namespace ls {
 JsonValue ReadMessage();
 void WriteMessage(JsonValue message);
 
-} // namespace ls
-} // namespace torque
-} // namespace internal
-} // namespace v8
+}  // namespace ls
+}  // namespace torque
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TORQUE_LS_MESSAGE_PIPE_H_
+#endif  // V8_TORQUE_LS_MESSAGE_PIPE_H_

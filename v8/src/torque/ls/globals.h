@@ -18,55 +18,42 @@ namespace torque {
 // Log class is added, that allows writing diagnostics to a file configurable
 // via command line flag.
 class Logger : public base::ContextualClass<Logger> {
-public:
-    Logger()
-        : enabled_(false)
-    {
-    }
-    ~Logger()
-    {
-        if (enabled_)
-            logfile_.close();
-    }
+ public:
+  Logger() : enabled_(false) {}
+  ~Logger() {
+    if (enabled_) logfile_.close();
+  }
 
-    static void Enable(std::string path)
-    {
-        Get().enabled_ = true;
-        Get().logfile_.open(path);
-    }
+  static void Enable(std::string path) {
+    Get().enabled_ = true;
+    Get().logfile_.open(path);
+  }
 
-    template <class... Args> static void Log(Args&&... args)
-    {
-        if (Enabled()) {
-            USE((Stream() << std::forward<Args>(args))...);
-            Flush();
-        }
+  template <class... Args>
+  static void Log(Args&&... args) {
+    if (Enabled()) {
+      USE((Stream() << std::forward<Args>(args))...);
+      Flush();
     }
+  }
 
-private:
-    static bool Enabled()
-    {
-        return Get().enabled_;
-    }
-    static std::ofstream& Stream()
-    {
-        CHECK(Get().enabled_);
-        return Get().logfile_;
-    }
-    static void Flush()
-    {
-        Get().logfile_.flush();
-    }
+ private:
+  static bool Enabled() { return Get().enabled_; }
+  static std::ofstream& Stream() {
+    CHECK(Get().enabled_);
+    return Get().logfile_;
+  }
+  static void Flush() { Get().logfile_.flush(); }
 
-private:
-    bool enabled_;
-    std::ofstream logfile_;
+ private:
+  bool enabled_;
+  std::ofstream logfile_;
 };
 
 DECLARE_CONTEXTUAL_VARIABLE(TorqueFileList, std::vector<std::string>);
 
-} // namespace torque
-} // namespace internal
-} // namespace v8
+}  // namespace torque
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TORQUE_LS_GLOBALS_H_
+#endif  // V8_TORQUE_LS_GLOBALS_H_

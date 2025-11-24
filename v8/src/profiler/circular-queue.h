@@ -17,53 +17,52 @@ namespace internal {
 // StartEnqueue will return nullptr. The queue is designed with
 // a goal in mind to evade cache lines thrashing by preventing
 // simultaneous reads and writes to adjanced memory locations.
-template <typename T, unsigned Length> class SamplingCircularQueue {
-public:
-    // Executed on the application thread.
-    SamplingCircularQueue();
-    ~SamplingCircularQueue();
-    SamplingCircularQueue(const SamplingCircularQueue&) = delete;
-    SamplingCircularQueue& operator=(const SamplingCircularQueue&) = delete;
+template<typename T, unsigned Length>
+class SamplingCircularQueue {
+ public:
+  // Executed on the application thread.
+  SamplingCircularQueue();
+  ~SamplingCircularQueue();
+  SamplingCircularQueue(const SamplingCircularQueue&) = delete;
+  SamplingCircularQueue& operator=(const SamplingCircularQueue&) = delete;
 
-    // StartEnqueue returns a pointer to a memory location for storing the next
-    // record or nullptr if all entries are full at the moment.
-    T* StartEnqueue();
-    // Notifies the queue that the producer has complete writing data into the
-    // memory returned by StartEnqueue and it can be passed to the consumer.
-    void FinishEnqueue();
+  // StartEnqueue returns a pointer to a memory location for storing the next
+  // record or nullptr if all entries are full at the moment.
+  T* StartEnqueue();
+  // Notifies the queue that the producer has complete writing data into the
+  // memory returned by StartEnqueue and it can be passed to the consumer.
+  void FinishEnqueue();
 
-    // Executed on the consumer (analyzer) thread.
-    // Retrieves, but does not remove, the head of this queue, returning nullptr
-    // if this queue is empty. After the record had been read by a consumer,
-    // Remove must be called.
-    T* Peek();
-    void Remove();
+  // Executed on the consumer (analyzer) thread.
+  // Retrieves, but does not remove, the head of this queue, returning nullptr
+  // if this queue is empty. After the record had been read by a consumer,
+  // Remove must be called.
+  T* Peek();
+  void Remove();
 
-private:
-    // Reserved values for the entry marker.
-    enum {
-        kEmpty, // Marks clean (processed) entries.
-        kFull // Marks entries already filled by the producer but not yet
-        // completely processed by the consumer.
-    };
+ private:
+  // Reserved values for the entry marker.
+  enum {
+    kEmpty,  // Marks clean (processed) entries.
+    kFull    // Marks entries already filled by the producer but not yet
+             // completely processed by the consumer.
+  };
 
-    struct alignas(PROCESSOR_CACHE_LINE_SIZE) Entry {
-        Entry()
-            : marker(kEmpty)
-        {
-        }
-        T record;
-        base::Atomic32 marker;
-    };
+  struct alignas(PROCESSOR_CACHE_LINE_SIZE) Entry {
+    Entry() : marker(kEmpty) {}
+    T record;
+    base::Atomic32 marker;
+  };
 
-    Entry* Next(Entry* entry);
+  Entry* Next(Entry* entry);
 
-    Entry buffer_[Length];
-    alignas(PROCESSOR_CACHE_LINE_SIZE) Entry* enqueue_pos_;
-    alignas(PROCESSOR_CACHE_LINE_SIZE) Entry* dequeue_pos_;
+  Entry buffer_[Length];
+  alignas(PROCESSOR_CACHE_LINE_SIZE) Entry* enqueue_pos_;
+  alignas(PROCESSOR_CACHE_LINE_SIZE) Entry* dequeue_pos_;
 };
 
-} // namespace internal
-} // namespace v8
 
-#endif // V8_PROFILER_CIRCULAR_QUEUE_H_
+}  // namespace internal
+}  // namespace v8
+
+#endif  // V8_PROFILER_CIRCULAR_QUEUE_H_

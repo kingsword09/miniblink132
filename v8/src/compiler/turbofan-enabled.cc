@@ -15,11 +15,13 @@ namespace internal {
 namespace compiler {
 
 std::unique_ptr<TurbofanCompilationJob> NewCompilationJob(
-    Isolate* isolate, Handle<JSFunction> function, IsScriptAvailable has_script, BytecodeOffset osr_offset)
-{
-    return Pipeline::NewCompilationJob(isolate, function, CodeKind::TURBOFAN_JS, has_script == IsScriptAvailable::kYes, osr_offset);
+    Isolate* isolate, Handle<JSFunction> function, IsScriptAvailable has_script,
+    BytecodeOffset osr_offset) {
+  return Pipeline::NewCompilationJob(isolate, function, CodeKind::TURBOFAN_JS,
+                                     has_script == IsScriptAvailable::kYes,
+                                     osr_offset);
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

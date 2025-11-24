@@ -11,9 +11,9 @@
 namespace v8 {
 namespace internal {
 class AssemblerRISCVZifencei : public AssemblerRiscvBase {
-public:
-    void fence_i();
+ public:
+  void fence_i();
 };
-} // namespace internal
-} // namespace v8
-#endif // V8_CODEGEN_RISCV_EXTENSION_RISCV_ZIFENCEI_H_
+}  // namespace internal
+}  // namespace v8
+#endif  // V8_CODEGEN_RISCV_EXTENSION_RISCV_ZIFENCEI_H_

@@ -12,39 +12,38 @@ namespace internal {
 
 // Stats are used to diagnose the reasons for dropped or unnattributed frames.
 class ProfilerStats {
-public:
-    enum Reason {
-        // Reasons we fail to record a TickSample.
-        kTickBufferFull,
-        kIsolateNotLocked,
-        // These all generate a TickSample.
-        kSimulatorFillRegistersFailed,
-        kNoFrameRegion,
-        kInCallOrApply,
-        kNoSymbolizedFrames,
-        kNullPC,
+ public:
+  enum Reason {
+    // Reasons we fail to record a TickSample.
+    kTickBufferFull,
+    kIsolateNotLocked,
+    // These all generate a TickSample.
+    kSimulatorFillRegistersFailed,
+    kNoFrameRegion,
+    kInCallOrApply,
+    kNoSymbolizedFrames,
+    kNullPC,
 
-        kNumberOfReasons,
-    };
+    kNumberOfReasons,
+  };
 
-    static ProfilerStats* Instance()
-    {
-        static ProfilerStats stats;
-        return &stats;
-    }
+  static ProfilerStats* Instance() {
+    static ProfilerStats stats;
+    return &stats;
+  }
 
-    void AddReason(Reason reason);
-    void Clear();
-    void Print() const;
+  void AddReason(Reason reason);
+  void Clear();
+  void Print() const;
 
-private:
-    ProfilerStats() = default;
-    static const char* ReasonToString(Reason reason);
+ private:
+  ProfilerStats() = default;
+  static const char* ReasonToString(Reason reason);
 
-    std::atomic_int counts_[Reason::kNumberOfReasons] = {};
+  std::atomic_int counts_[Reason::kNumberOfReasons] = {};
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_PROFILER_PROFILER_STATS_H_
+#endif  // V8_PROFILER_PROFILER_STATS_H_

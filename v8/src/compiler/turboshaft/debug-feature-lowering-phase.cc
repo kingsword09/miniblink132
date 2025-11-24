@@ -9,11 +9,11 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void DebugFeatureLoweringPhase::Run(PipelineData* data, Zone* temp_zone)
-{
+void DebugFeatureLoweringPhase::Run(PipelineData* data, Zone* temp_zone) {
 #ifdef V8_ENABLE_DEBUG_CODE
-    turboshaft::CopyingPhase<turboshaft::DebugFeatureLoweringReducer>::Run(data, temp_zone);
+  turboshaft::CopyingPhase<turboshaft::DebugFeatureLoweringReducer>::Run(
+      data, temp_zone);
 #endif
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

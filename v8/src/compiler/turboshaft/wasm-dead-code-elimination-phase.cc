@@ -16,19 +16,21 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void WasmDeadCodeEliminationPhase::Run(PipelineData* data, Zone* temp_zone)
-{
-    UnparkedScopeIfNeeded scope(data->broker(), DEBUG_BOOL);
+void WasmDeadCodeEliminationPhase::Run(PipelineData* data, Zone* temp_zone) {
+  UnparkedScopeIfNeeded scope(data->broker(), DEBUG_BOOL);
 
-    // The value numbering ensures that load with similar patterns in the complex
-    // loads can share those calculations.
-    CopyingPhase<DeadCodeEliminationReducer, StackCheckLoweringReducer, LoadStoreSimplificationReducer,
-        // We make sure that DuplicationOptimizationReducer runs after
-        // LoadStoreSimplificationReducer, so that it can optimize
-        // Loads/Stores produced by LoadStoreSimplificationReducer
-        // (which, for simplificy, doesn't use the Assembler helper
-        // methods, but only calls Next::ReduceLoad/Store).
-        DuplicationOptimizationReducer, InstructionSelectionNormalizationReducer, ValueNumberingReducer>::Run(data, temp_zone);
+  // The value numbering ensures that load with similar patterns in the complex
+  // loads can share those calculations.
+  CopyingPhase<DeadCodeEliminationReducer, StackCheckLoweringReducer,
+               LoadStoreSimplificationReducer,
+               // We make sure that DuplicationOptimizationReducer runs after
+               // LoadStoreSimplificationReducer, so that it can optimize
+               // Loads/Stores produced by LoadStoreSimplificationReducer
+               // (which, for simplificy, doesn't use the Assembler helper
+               // methods, but only calls Next::ReduceLoad/Store).
+               DuplicationOptimizationReducer,
+               InstructionSelectionNormalizationReducer,
+               ValueNumberingReducer>::Run(data, temp_zone);
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

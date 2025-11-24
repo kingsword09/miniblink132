@@ -9,139 +9,138 @@
 
 namespace v8::internal::wasm {
 
-void WasmCodePointerTable::Initialize()
-{
-    Base::Initialize();
+void WasmCodePointerTable::Initialize() { Base::Initialize(); }
+
+void WasmCodePointerTable::TearDown() {
+  FreeNativeFunctionHandles();
+  SweepSegments(0);
+  DCHECK(freelist_head_.load().is_empty());
+  Base::TearDown();
 }
 
-void WasmCodePointerTable::TearDown()
-{
-    FreeNativeFunctionHandles();
-    SweepSegments(0);
-    DCHECK(freelist_head_.load().is_empty());
-    Base::TearDown();
+DEFINE_LAZY_LEAKY_OBJECT_GETTER(WasmCodePointerTable,
+                                GetProcessWideWasmCodePointerTable)
+
+std::vector<uint32_t> WasmCodePointerTable::FreelistToVector(
+    WasmCodePointerTable::FreelistHead freelist) {
+  DCHECK(!freelist.is_empty());
+  std::vector<uint32_t> entries(freelist.length());
+
+  uint32_t entry = freelist.next();
+  for (uint32_t i = 0; i < freelist.length(); i++) {
+    entries[i] = entry;
+    entry = at(entry).GetNextFreelistEntryIndex();
+  }
+
+  return entries;
 }
 
-DEFINE_LAZY_LEAKY_OBJECT_GETTER(WasmCodePointerTable, GetProcessWideWasmCodePointerTable)
+WasmCodePointerTable::FreelistHead WasmCodePointerTable::VectorToFreelist(
+    std::vector<uint32_t> entries) {
+  if (entries.empty()) {
+    return FreelistHead();
+  }
 
-std::vector<uint32_t> WasmCodePointerTable::FreelistToVector(WasmCodePointerTable::FreelistHead freelist)
-{
-    DCHECK(!freelist.is_empty());
-    std::vector<uint32_t> entries(freelist.length());
+  FreelistHead new_freelist =
+      FreelistHead(entries[0], static_cast<uint32_t>(entries.size()));
 
-    uint32_t entry = freelist.next();
-    for (uint32_t i = 0; i < freelist.length(); i++) {
-        entries[i] = entry;
-        entry = at(entry).GetNextFreelistEntryIndex();
-    }
+  WriteScope write_scope("Freelist write");
+  for (size_t i = 0; i < entries.size() - 1; i++) {
+    uint32_t entry = entries[i];
+    uint32_t next_entry = entries[i + 1];
+    at(entry).MakeFreelistEntry(next_entry);
+  }
 
-    return entries;
+  return new_freelist;
 }
 
-WasmCodePointerTable::FreelistHead WasmCodePointerTable::VectorToFreelist(std::vector<uint32_t> entries)
-{
-    if (entries.empty()) {
-        return FreelistHead();
+void WasmCodePointerTable::SweepSegments(size_t threshold) {
+  if (threshold < kEntriesPerSegment) {
+    // We need at least a whole empty segment if we want to sweep anything.
+    threshold = kEntriesPerSegment;
+  }
+
+  FreelistHead initial_head, empty_freelist;
+  do {
+    initial_head = ReadFreelistHead();
+    if (initial_head.length() < threshold) {
+      return;
     }
 
-    FreelistHead new_freelist = FreelistHead(entries[0], static_cast<uint32_t>(entries.size()));
+    // Try to unlink the freelist. If it fails, try again.
+  } while (
+      !freelist_head_.compare_exchange_strong(initial_head, empty_freelist));
 
-    WriteScope write_scope("Freelist write");
-    for (size_t i = 0; i < entries.size() - 1; i++) {
-        uint32_t entry = entries[i];
-        uint32_t next_entry = entries[i + 1];
-        at(entry).MakeFreelistEntry(next_entry);
+  // We unlinked the whole free list, so we have exclusive access to it at
+  // this point.
+
+  // Now search for empty segments (== all entries are freelist entries) and
+  // unlink them.
+
+  std::vector<uint32_t> freelist_entries = FreelistToVector(initial_head);
+  std::sort(freelist_entries.begin(), freelist_entries.end());
+
+  // The minimum threshold is kEntriesPerSegment.
+  DCHECK_GE(freelist_entries.size(), kEntriesPerSegment);
+
+  // We iterate over all freelist entries and copy them over to a new vector,
+  // while skipping and unmapping empty segments.
+  std::vector<uint32_t> new_freelist_entries;
+  for (size_t i = 0; i < freelist_entries.size(); i++) {
+    uint32_t entry = freelist_entries[i];
+    Segment segment = Segment::Containing(entry);
+
+    if (segment.first_entry() == entry &&
+        i + kEntriesPerSegment - 1 < freelist_entries.size()) {
+      uint32_t last_entry = freelist_entries[i + kEntriesPerSegment - 1];
+      if (segment.last_entry() == last_entry) {
+        // The whole segment is empty. Delete the segment and skip all
+        // entries;
+        FreeTableSegment(segment);
+        i += kEntriesPerSegment - 1;
+        continue;
+      }
     }
 
-    return new_freelist;
+    new_freelist_entries.push_back(entry);
+  }
+
+  DCHECK_LE(new_freelist_entries.size(), freelist_entries.size());
+  DCHECK(IsAligned(freelist_entries.size() - new_freelist_entries.size(),
+                   kEntriesPerSegment));
+
+  if (new_freelist_entries.empty()) {
+    return;
+  }
+
+  // Finally, add the new freelist back.
+
+  uint32_t last_element = new_freelist_entries.back();
+  FreelistHead new_freelist = VectorToFreelist(new_freelist_entries);
+
+  LinkFreelist(new_freelist, last_element);
 }
 
-void WasmCodePointerTable::SweepSegments(size_t threshold)
-{
-    if (threshold < kEntriesPerSegment) {
-        // We need at least a whole empty segment if we want to sweep anything.
-        threshold = kEntriesPerSegment;
-    }
+uint32_t WasmCodePointerTable::GetOrCreateHandleForNativeFunction(
+    Address addr) {
+  base::MutexGuard guard(&native_function_map_mutex_);
+  auto it = native_function_map_.find(addr);
+  if (it != native_function_map_.end()) {
+    return it->second;
+  }
 
-    FreelistHead initial_head, empty_freelist;
-    do {
-        initial_head = ReadFreelistHead();
-        if (initial_head.length() < threshold) {
-            return;
-        }
+  uint32_t handle = AllocateAndInitializeEntry(addr);
+  native_function_map_.insert({addr, handle});
 
-        // Try to unlink the freelist. If it fails, try again.
-    } while (!freelist_head_.compare_exchange_strong(initial_head, empty_freelist));
-
-    // We unlinked the whole free list, so we have exclusive access to it at
-    // this point.
-
-    // Now search for empty segments (== all entries are freelist entries) and
-    // unlink them.
-
-    std::vector<uint32_t> freelist_entries = FreelistToVector(initial_head);
-    std::sort(freelist_entries.begin(), freelist_entries.end());
-
-    // The minimum threshold is kEntriesPerSegment.
-    DCHECK_GE(freelist_entries.size(), kEntriesPerSegment);
-
-    // We iterate over all freelist entries and copy them over to a new vector,
-    // while skipping and unmapping empty segments.
-    std::vector<uint32_t> new_freelist_entries;
-    for (size_t i = 0; i < freelist_entries.size(); i++) {
-        uint32_t entry = freelist_entries[i];
-        Segment segment = Segment::Containing(entry);
-
-        if (segment.first_entry() == entry && i + kEntriesPerSegment - 1 < freelist_entries.size()) {
-            uint32_t last_entry = freelist_entries[i + kEntriesPerSegment - 1];
-            if (segment.last_entry() == last_entry) {
-                // The whole segment is empty. Delete the segment and skip all
-                // entries;
-                FreeTableSegment(segment);
-                i += kEntriesPerSegment - 1;
-                continue;
-            }
-        }
-
-        new_freelist_entries.push_back(entry);
-    }
-
-    DCHECK_LE(new_freelist_entries.size(), freelist_entries.size());
-    DCHECK(IsAligned(freelist_entries.size() - new_freelist_entries.size(), kEntriesPerSegment));
-
-    if (new_freelist_entries.empty()) {
-        return;
-    }
-
-    // Finally, add the new freelist back.
-
-    uint32_t last_element = new_freelist_entries.back();
-    FreelistHead new_freelist = VectorToFreelist(new_freelist_entries);
-
-    LinkFreelist(new_freelist, last_element);
+  return handle;
 }
 
-uint32_t WasmCodePointerTable::GetOrCreateHandleForNativeFunction(Address addr)
-{
-    base::MutexGuard guard(&native_function_map_mutex_);
-    auto it = native_function_map_.find(addr);
-    if (it != native_function_map_.end()) {
-        return it->second;
-    }
-
-    uint32_t handle = AllocateAndInitializeEntry(addr);
-    native_function_map_.insert({ addr, handle });
-
-    return handle;
+void WasmCodePointerTable::FreeNativeFunctionHandles() {
+  base::MutexGuard guard(&native_function_map_mutex_);
+  for (auto const& [address, handle] : native_function_map_) {
+    FreeEntry(handle);
+  }
+  native_function_map_.clear();
 }
 
-void WasmCodePointerTable::FreeNativeFunctionHandles()
-{
-    base::MutexGuard guard(&native_function_map_mutex_);
-    for (auto const& [address, handle] : native_function_map_) {
-        FreeEntry(handle);
-    }
-    native_function_map_.clear();
-}
-
-} // namespace v8::internal::wasm
+}  // namespace v8::internal::wasm

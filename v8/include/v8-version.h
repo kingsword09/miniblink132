@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_INCLUDE_VERSION_H_ // V8_VERSION_H_ conflicts with src/version.h
+#ifndef V8_INCLUDE_VERSION_H_  // V8_VERSION_H_ conflicts with src/version.h
 #define V8_INCLUDE_VERSION_H_
 
 // These macros define the version number for the current version.
@@ -17,4 +17,4 @@
 // (Boolean macro values are not supported by all preprocessors.)
 #define V8_IS_CANDIDATE_VERSION 0
 
-#endif // V8_INCLUDE_VERSION_H_
+#endif  // V8_INCLUDE_VERSION_H_

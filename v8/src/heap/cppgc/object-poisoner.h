@@ -18,22 +18,21 @@ namespace internal {
 
 // Poisons the payload of unmarked objects.
 class UnmarkedObjectsPoisoner : public HeapVisitor<UnmarkedObjectsPoisoner> {
-    friend class HeapVisitor<UnmarkedObjectsPoisoner>;
+  friend class HeapVisitor<UnmarkedObjectsPoisoner>;
 
-private:
-    bool VisitHeapObjectHeader(HeapObjectHeader& header)
-    {
-        if (header.IsFree() || header.IsMarked())
-            return true;
+ private:
+  bool VisitHeapObjectHeader(HeapObjectHeader& header) {
+    if (header.IsFree() || header.IsMarked()) return true;
 
-        ASAN_POISON_MEMORY_REGION(header.ObjectStart(), ObjectView<>(header).Size());
-        return true;
-    }
+    ASAN_POISON_MEMORY_REGION(header.ObjectStart(),
+                              ObjectView<>(header).Size());
+    return true;
+  }
 };
 
-#endif // V8_USE_ADDRESS_SANITIZER
+#endif  // V8_USE_ADDRESS_SANITIZER
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_OBJECT_POISONER_H_
+#endif  // V8_HEAP_CPPGC_OBJECT_POISONER_H_

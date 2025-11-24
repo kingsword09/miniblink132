@@ -21,9 +21,9 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(ModuleRequest)
 TQ_OBJECT_CONSTRUCTORS_IMPL(SourceTextModule)
 TQ_OBJECT_CONSTRUCTORS_IMPL(SourceTextModuleInfoEntry)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_SOURCE_TEXT_MODULE_INL_H_
+#endif  // V8_OBJECTS_SOURCE_TEXT_MODULE_INL_H_

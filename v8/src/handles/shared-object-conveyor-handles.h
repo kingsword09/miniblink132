@@ -27,31 +27,30 @@ class PersistentHandles;
 // The embedder owns the lifetime of instances of this class. See
 // v8::SharedValueConveyor.
 class SharedObjectConveyorHandles {
-public:
-    explicit SharedObjectConveyorHandles(Isolate* isolate);
+ public:
+  explicit SharedObjectConveyorHandles(Isolate* isolate);
 
-    SharedObjectConveyorHandles(const SharedObjectConveyorHandles&) = delete;
-    SharedObjectConveyorHandles& operator=(const SharedObjectConveyorHandles&) = delete;
+  SharedObjectConveyorHandles(const SharedObjectConveyorHandles&) = delete;
+  SharedObjectConveyorHandles& operator=(const SharedObjectConveyorHandles&) =
+      delete;
 
-    uint32_t Persist(Tagged<HeapObject> shared_object);
+  uint32_t Persist(Tagged<HeapObject> shared_object);
 
-    bool HasPersisted(uint32_t object_id) const
-    {
-        return object_id < shared_objects_.size();
-    }
+  bool HasPersisted(uint32_t object_id) const {
+    return object_id < shared_objects_.size();
+  }
 
-    Tagged<HeapObject> GetPersisted(uint32_t object_id) const
-    {
-        DCHECK(HasPersisted(object_id));
-        return *shared_objects_[object_id];
-    }
+  Tagged<HeapObject> GetPersisted(uint32_t object_id) const {
+    DCHECK(HasPersisted(object_id));
+    return *shared_objects_[object_id];
+  }
 
-private:
-    std::unique_ptr<PersistentHandles> persistent_handles_;
-    std::vector<Handle<HeapObject>> shared_objects_;
+ private:
+  std::unique_ptr<PersistentHandles> persistent_handles_;
+  std::vector<Handle<HeapObject>> shared_objects_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HANDLES_SHARED_OBJECT_CONVEYOR_HANDLES_H_
+#endif  // V8_HANDLES_SHARED_OBJECT_CONVEYOR_HANDLES_H_

@@ -10,10 +10,14 @@
 namespace v8 {
 namespace internal {
 
-// clang-format on
-#define GENERAL_REGISTERS(V) V(r0) V(r1) V(r2) V(r3) V(r4) V(r5) V(r6) V(r7) V(r8) V(r9) V(r10) V(fp) V(ip) V(r13) V(r14) V(sp)
+// clang-format off
+#define GENERAL_REGISTERS(V)                              \
+  V(r0)  V(r1)  V(r2)  V(r3)  V(r4)  V(r5)  V(r6)  V(r7)  \
+  V(r8)  V(r9)  V(r10) V(fp) V(ip) V(r13) V(r14) V(sp)
 
-#define ALWAYS_ALLOCATABLE_GENERAL_REGISTERS(V) V(r2) V(r3) V(r4) V(r5) V(r6) V(r7) V(r8) V(r13)
+#define ALWAYS_ALLOCATABLE_GENERAL_REGISTERS(V)                  \
+  V(r2)  V(r3)  V(r4)  V(r5)  V(r6)  V(r7)                \
+  V(r8)  V(r13)
 
 #ifdef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
 #define MAYBE_ALLOCATABLE_GENERAL_REGISTERS(V)
@@ -21,18 +25,24 @@ namespace internal {
 #define MAYBE_ALLOCATABLE_GENERAL_REGISTERS(V) V(r9)
 #endif
 
-#define ALLOCATABLE_GENERAL_REGISTERS(V)                                                                                                                       \
-    ALWAYS_ALLOCATABLE_GENERAL_REGISTERS(V)                                                                                                                    \
-    MAYBE_ALLOCATABLE_GENERAL_REGISTERS(V)
+#define ALLOCATABLE_GENERAL_REGISTERS(V)  \
+  ALWAYS_ALLOCATABLE_GENERAL_REGISTERS(V) \
+  MAYBE_ALLOCATABLE_GENERAL_REGISTERS(V)
 
-#define DOUBLE_REGISTERS(V) V(d0) V(d1) V(d2) V(d3) V(d4) V(d5) V(d6) V(d7) V(d8) V(d9) V(d10) V(d11) V(d12) V(d13) V(d14) V(d15)
+#define DOUBLE_REGISTERS(V)                               \
+  V(d0)  V(d1)  V(d2)  V(d3)  V(d4)  V(d5)  V(d6)  V(d7)  \
+  V(d8)  V(d9)  V(d10) V(d11) V(d12) V(d13) V(d14) V(d15)
 
 #define FLOAT_REGISTERS DOUBLE_REGISTERS
 #define SIMD128_REGISTERS DOUBLE_REGISTERS
 
-#define ALLOCATABLE_DOUBLE_REGISTERS(V) V(d1) V(d2) V(d3) V(d4) V(d5) V(d6) V(d7) V(d8) V(d9) V(d10) V(d11) V(d12) V(d15) V(d0)
+#define ALLOCATABLE_DOUBLE_REGISTERS(V)                   \
+  V(d1)  V(d2)  V(d3)  V(d4)  V(d5)  V(d6)  V(d7)         \
+  V(d8)  V(d9)  V(d10) V(d11) V(d12) V(d15) V(d0)
 
-#define C_REGISTERS(V) V(cr0) V(cr1) V(cr2) V(cr3) V(cr4) V(cr5) V(cr6) V(cr7) V(cr8) V(cr9) V(cr10) V(cr11) V(cr12) V(cr15)
+#define C_REGISTERS(V)                                            \
+  V(cr0)  V(cr1)  V(cr2)  V(cr3)  V(cr4)  V(cr5)  V(cr6)  V(cr7)  \
+  V(cr8)  V(cr9)  V(cr10) V(cr11) V(cr12) V(cr15)
 // clang-format on
 
 // The following constants describe the stack frame linkage area as
@@ -101,63 +111,60 @@ const int kCalleeRegisterSaveAreaSize = 160;
 
 enum RegisterCode {
 #define REGISTER_CODE(R) kRegCode_##R,
-    GENERAL_REGISTERS(REGISTER_CODE)
+  GENERAL_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kRegAfterLast
+      kRegAfterLast
 };
 
 class Register : public RegisterBase<Register, kRegAfterLast> {
-public:
+ public:
 #if V8_TARGET_LITTLE_ENDIAN
-    static constexpr int kMantissaOffset = 0;
-    static constexpr int kExponentOffset = 4;
+  static constexpr int kMantissaOffset = 0;
+  static constexpr int kExponentOffset = 4;
 #else
-    static constexpr int kMantissaOffset = 4;
-    static constexpr int kExponentOffset = 0;
+  static constexpr int kMantissaOffset = 4;
+  static constexpr int kExponentOffset = 0;
 #endif
 
-private:
-    friend class RegisterBase;
-    explicit constexpr Register(int code)
-        : RegisterBase(code)
-    {
-    }
+ private:
+  friend class RegisterBase;
+  explicit constexpr Register(int code) : RegisterBase(code) {}
 };
 
 ASSERT_TRIVIALLY_COPYABLE(Register);
-static_assert(sizeof(Register) <= sizeof(int), "Register can efficiently be passed by value");
+static_assert(sizeof(Register) <= sizeof(int),
+              "Register can efficiently be passed by value");
 
 // Assign |source| value to |no_reg| and return the |source|'s previous value.
-inline Register ReassignRegister(Register& source)
-{
-    Register result = source;
-    source = Register::no_reg();
-    return result;
+inline Register ReassignRegister(Register& source) {
+  Register result = source;
+  source = Register::no_reg();
+  return result;
 }
 
-#define DEFINE_REGISTER(R) constexpr Register R = Register::from_code(kRegCode_##R);
+#define DEFINE_REGISTER(R) \
+  constexpr Register R = Register::from_code(kRegCode_##R);
 GENERAL_REGISTERS(DEFINE_REGISTER)
 #undef DEFINE_REGISTER
 constexpr Register no_reg = Register::no_reg();
 
 // Register aliases
-constexpr Register kRootRegister = r10; // Roots array pointer.
+constexpr Register kRootRegister = r10;  // Roots array pointer.
 #ifdef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
-constexpr Register kPtrComprCageBaseRegister = r9; // callee save
+constexpr Register kPtrComprCageBaseRegister = r9;  // callee save
 #else
 constexpr Register kPtrComprCageBaseRegister = kRootRegister;
 #endif
-constexpr Register cp = r13; // JavaScript context pointer.
+constexpr Register cp = r13;             // JavaScript context pointer.
 
 // s390x calling convention
-constexpr Register kCArgRegs[] = { r2, r3, r4, r5, r6 };
+constexpr Register kCArgRegs[] = {r2, r3, r4, r5, r6};
 static const int kRegisterPassedArguments = arraysize(kCArgRegs);
 
 // Returns the number of padding slots needed for stack pointer alignment.
-constexpr int ArgumentPaddingSlots(int argument_count)
-{
-    // No argument padding required.
-    return 0;
+constexpr int ArgumentPaddingSlots(int argument_count) {
+  // No argument padding required.
+  return 0;
 }
 
 constexpr AliasingKind kFPAliasing = AliasingKind::kOverlap;
@@ -165,43 +172,42 @@ constexpr bool kSimdMaskRegisters = false;
 
 enum DoubleRegisterCode {
 #define REGISTER_CODE(R) kDoubleCode_##R,
-    DOUBLE_REGISTERS(REGISTER_CODE)
+  DOUBLE_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kDoubleAfterLast
+      kDoubleAfterLast
 };
 
 // Double word VFP register.
 class DoubleRegister : public RegisterBase<DoubleRegister, kDoubleAfterLast> {
-public:
-    // A few double registers are reserved: one as a scratch register and one to
-    // hold 0.0, that does not fit in the immediate field of vmov instructions.
-    // d14: 0.0
-    // d15: scratch register.
-    static constexpr int kSizeInBytes = 8;
+ public:
+  // A few double registers are reserved: one as a scratch register and one to
+  // hold 0.0, that does not fit in the immediate field of vmov instructions.
+  // d14: 0.0
+  // d15: scratch register.
+  static constexpr int kSizeInBytes = 8;
 
-    // This function differs from kNumRegisters by returning the number of double
-    // registers supported by the current CPU, while kNumRegisters always returns
-    // 32.
-    inline static int SupportedRegisterCount();
+  // This function differs from kNumRegisters by returning the number of double
+  // registers supported by the current CPU, while kNumRegisters always returns
+  // 32.
+  inline static int SupportedRegisterCount();
 
-private:
-    friend class RegisterBase;
+ private:
+  friend class RegisterBase;
 
-    explicit constexpr DoubleRegister(int code)
-        : RegisterBase(code)
-    {
-    }
+  explicit constexpr DoubleRegister(int code) : RegisterBase(code) {}
 };
 
 ASSERT_TRIVIALLY_COPYABLE(DoubleRegister);
-static_assert(sizeof(DoubleRegister) <= sizeof(int), "DoubleRegister can efficiently be passed by value");
+static_assert(sizeof(DoubleRegister) <= sizeof(int),
+              "DoubleRegister can efficiently be passed by value");
 
 using FloatRegister = DoubleRegister;
 
 // TODO(john.yan) Define SIMD registers.
 using Simd128Register = DoubleRegister;
 
-#define DEFINE_REGISTER(R) constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
+#define DEFINE_REGISTER(R) \
+  constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
 DOUBLE_REGISTERS(DEFINE_REGISTER)
 #undef DEFINE_REGISTER
 constexpr DoubleRegister no_dreg = DoubleRegister::no_reg();
@@ -213,22 +219,20 @@ Register ToRegister(int num);
 
 enum CRegisterCode {
 #define REGISTER_CODE(R) kCCode_##R,
-    C_REGISTERS(REGISTER_CODE)
+  C_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kCAfterLast
+      kCAfterLast
 };
 
 // Coprocessor register
 class CRegister : public RegisterBase<CRegister, kCAfterLast> {
-    friend class RegisterBase;
-    explicit constexpr CRegister(int code)
-        : RegisterBase(code)
-    {
-    }
+  friend class RegisterBase;
+  explicit constexpr CRegister(int code) : RegisterBase(code) {}
 };
 
 constexpr CRegister no_creg = CRegister::no_reg();
-#define DECLARE_C_REGISTER(R) constexpr CRegister R = CRegister::from_code(kCCode_##R);
+#define DECLARE_C_REGISTER(R) \
+  constexpr CRegister R = CRegister::from_code(kCCode_##R);
 C_REGISTERS(DECLARE_C_REGISTER)
 #undef DECLARE_C_REGISTER
 
@@ -265,7 +269,7 @@ constexpr Register kWasmCompileLazyFuncIndexRegister = r7;
 
 constexpr DoubleRegister kFPReturnRegister0 = d0;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_S390_REGISTER_S390_H_
+#endif  // V8_CODEGEN_S390_REGISTER_S390_H_

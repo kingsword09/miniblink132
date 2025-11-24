@@ -13,16 +13,16 @@ namespace cppgc {
 namespace internal {
 
 class V8_EXPORT PrefinalizerRegistration final {
-public:
-    using Callback = bool (*)(const cppgc::LivenessBroker&, void*);
+ public:
+  using Callback = bool (*)(const cppgc::LivenessBroker&, void*);
 
-    PrefinalizerRegistration(void*, Callback);
+  PrefinalizerRegistration(void*, Callback);
 
-    void* operator new(size_t, void* location) = delete;
-    void* operator new(size_t) = delete;
+  void* operator new(size_t, void* location) = delete;
+  void* operator new(size_t) = delete;
 };
 
-} // namespace internal
+}  // namespace internal
 
 /**
  * Macro must be used in the private section of `Class` and registers a
@@ -53,22 +53,23 @@ public:
  * };
  * \endcode
  */
-#define CPPGC_USING_PRE_FINALIZER(Class, PreFinalizer)                                                                                                         \
-public:                                                                                                                                                        \
-    static bool InvokePreFinalizer(const cppgc::LivenessBroker& liveness_broker, void* object)                                                                 \
-    {                                                                                                                                                          \
-        static_assert(cppgc::IsGarbageCollectedOrMixinTypeV<Class>, "Only garbage collected objects can have prefinalizers");                                  \
-        Class* self = static_cast<Class*>(object);                                                                                                             \
-        if (liveness_broker.IsHeapObjectAlive(self))                                                                                                           \
-            return false;                                                                                                                                      \
-        self->PreFinalizer();                                                                                                                                  \
-        return true;                                                                                                                                           \
-    }                                                                                                                                                          \
-                                                                                                                                                               \
-private:                                                                                                                                                       \
-    CPPGC_NO_UNIQUE_ADDRESS cppgc::internal::PrefinalizerRegistration prefinalizer_dummy_ { this, Class::InvokePreFinalizer };                                 \
-    static_assert(true, "Force semicolon.")
+#define CPPGC_USING_PRE_FINALIZER(Class, PreFinalizer)                         \
+ public:                                                                       \
+  static bool InvokePreFinalizer(const cppgc::LivenessBroker& liveness_broker, \
+                                 void* object) {                               \
+    static_assert(cppgc::IsGarbageCollectedOrMixinTypeV<Class>,                \
+                  "Only garbage collected objects can have prefinalizers");    \
+    Class* self = static_cast<Class*>(object);                                 \
+    if (liveness_broker.IsHeapObjectAlive(self)) return false;                 \
+    self->PreFinalizer();                                                      \
+    return true;                                                               \
+  }                                                                            \
+                                                                               \
+ private:                                                                      \
+  CPPGC_NO_UNIQUE_ADDRESS cppgc::internal::PrefinalizerRegistration            \
+      prefinalizer_dummy_{this, Class::InvokePreFinalizer};                    \
+  static_assert(true, "Force semicolon.")
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_PREFINALIZER_H_
+#endif  // INCLUDE_CPPGC_PREFINALIZER_H_

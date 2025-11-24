@@ -15,9 +15,9 @@ namespace internal {
 
 #include "torque-generated/src/objects/torque-defined-classes-tq-inl.inc"
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_TORQUE_DEFINED_CLASSES_INL_H_
+#endif  // V8_OBJECTS_TORQUE_DEFINED_CLASSES_INL_H_

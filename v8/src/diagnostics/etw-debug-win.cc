@@ -11,10 +11,10 @@ namespace internal {
 /*static*/
 EtwTraceDebug EtwTraceDebug::info;
 
-std::ostream& operator<<(std::ostream& os, const EtwTraceDebug&)
-{
-    os << "PID:" << ::GetCurrentProcessId() << "; TID:" << ::GetCurrentThreadId() << " ";
-    return os;
+std::ostream& operator<<(std::ostream& os, const EtwTraceDebug&) {
+  os << "PID:" << ::GetCurrentProcessId() << "; TID:" << ::GetCurrentThreadId()
+     << " ";
+  return os;
 }
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

@@ -29,11 +29,12 @@ using MessageWriter = std::function<void(JsonValue)>;
 V8_EXPORT_PRIVATE void HandleMessage(JsonValue raw_message, MessageWriter);
 
 // Called when a compilation run finishes. Exposed for testability.
-V8_EXPORT_PRIVATE void CompilationFinished(TorqueCompilerResult result, MessageWriter);
+V8_EXPORT_PRIVATE void CompilationFinished(TorqueCompilerResult result,
+                                           MessageWriter);
 
-} // namespace ls
-} // namespace torque
-} // namespace internal
-} // namespace v8
+}  // namespace ls
+}  // namespace torque
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TORQUE_LS_MESSAGE_HANDLER_H_
+#endif  // V8_TORQUE_LS_MESSAGE_HANDLER_H_

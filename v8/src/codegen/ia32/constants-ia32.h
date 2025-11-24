@@ -18,7 +18,7 @@ constexpr int kRootRegisterBias = 128;
 // between all Code objects in the range.
 constexpr size_t kMaxPCRelativeCodeRangeInMB = 0;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_IA32_CONSTANTS_IA32_H_
+#endif  // V8_CODEGEN_IA32_CONSTANTS_IA32_H_

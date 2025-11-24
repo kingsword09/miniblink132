@@ -16,27 +16,29 @@ namespace internal {
 
 #include "torque-generated/src/objects/js-regexp-string-iterator-tq.inc"
 
-class JSRegExpStringIterator : public TorqueGeneratedJSRegExpStringIterator<JSRegExpStringIterator, JSObject> {
-public:
-    // [boolean]: The [[Done]] internal property.
-    DECL_BOOLEAN_ACCESSORS(done)
+class JSRegExpStringIterator
+    : public TorqueGeneratedJSRegExpStringIterator<JSRegExpStringIterator,
+                                                   JSObject> {
+ public:
+  // [boolean]: The [[Done]] internal property.
+  DECL_BOOLEAN_ACCESSORS(done)
 
-    // [boolean]: The [[Global]] internal property.
-    DECL_BOOLEAN_ACCESSORS(global)
+  // [boolean]: The [[Global]] internal property.
+  DECL_BOOLEAN_ACCESSORS(global)
 
-    // [boolean]: The [[Unicode]] internal property.
-    DECL_BOOLEAN_ACCESSORS(unicode)
+  // [boolean]: The [[Unicode]] internal property.
+  DECL_BOOLEAN_ACCESSORS(unicode)
 
-    DECL_PRINTER(JSRegExpStringIterator)
+  DECL_PRINTER(JSRegExpStringIterator)
 
-    DEFINE_TORQUE_GENERATED_JS_REG_EXP_STRING_ITERATOR_FLAGS()
+  DEFINE_TORQUE_GENERATED_JS_REG_EXP_STRING_ITERATOR_FLAGS()
 
-    TQ_OBJECT_CONSTRUCTORS(JSRegExpStringIterator)
+  TQ_OBJECT_CONSTRUCTORS(JSRegExpStringIterator)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_REGEXP_STRING_ITERATOR_H_
+#endif  // V8_OBJECTS_JS_REGEXP_STRING_ITERATOR_H_

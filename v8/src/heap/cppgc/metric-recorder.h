@@ -19,57 +19,51 @@ class StatsCollector;
  * creation.
  */
 class MetricRecorder {
-public:
-    struct GCCycle {
-        enum class Type { kMinor, kMajor };
-        struct IncrementalPhases {
-            int64_t mark_duration_us = -1;
-            int64_t sweep_duration_us = -1;
-        };
-        struct Phases : public IncrementalPhases {
-            int64_t weak_duration_us = -1;
-            int64_t compact_duration_us = -1;
-        };
-        struct Sizes {
-            int64_t before_bytes = -1;
-            int64_t after_bytes = -1;
-            int64_t freed_bytes = -1;
-        };
-
-        Type type = Type::kMajor;
-        Phases total;
-        Phases main_thread;
-        Phases main_thread_atomic;
-        IncrementalPhases main_thread_incremental;
-        Sizes objects;
-        Sizes memory;
-        double collection_rate_in_percent;
-        double efficiency_in_bytes_per_us;
-        double main_thread_efficiency_in_bytes_per_us;
+ public:
+  struct GCCycle {
+    enum class Type { kMinor, kMajor };
+    struct IncrementalPhases {
+      int64_t mark_duration_us = -1;
+      int64_t sweep_duration_us = -1;
+    };
+    struct Phases : public IncrementalPhases {
+      int64_t weak_duration_us = -1;
+      int64_t compact_duration_us = -1;
+    };
+    struct Sizes {
+      int64_t before_bytes = -1;
+      int64_t after_bytes = -1;
+      int64_t freed_bytes = -1;
     };
 
-    struct MainThreadIncrementalMark {
-        int64_t duration_us = -1;
-    };
+    Type type = Type::kMajor;
+    Phases total;
+    Phases main_thread;
+    Phases main_thread_atomic;
+    IncrementalPhases main_thread_incremental;
+    Sizes objects;
+    Sizes memory;
+    double collection_rate_in_percent;
+    double efficiency_in_bytes_per_us;
+    double main_thread_efficiency_in_bytes_per_us;
+  };
 
-    struct MainThreadIncrementalSweep {
-        int64_t duration_us = -1;
-    };
+  struct MainThreadIncrementalMark {
+    int64_t duration_us = -1;
+  };
 
-    virtual ~MetricRecorder() = default;
+  struct MainThreadIncrementalSweep {
+    int64_t duration_us = -1;
+  };
 
-    virtual void AddMainThreadEvent(const GCCycle& event)
-    {
-    }
-    virtual void AddMainThreadEvent(const MainThreadIncrementalMark& event)
-    {
-    }
-    virtual void AddMainThreadEvent(const MainThreadIncrementalSweep& event)
-    {
-    }
+  virtual ~MetricRecorder() = default;
+
+  virtual void AddMainThreadEvent(const GCCycle& event) {}
+  virtual void AddMainThreadEvent(const MainThreadIncrementalMark& event) {}
+  virtual void AddMainThreadEvent(const MainThreadIncrementalSweep& event) {}
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_METRIC_RECORDER_H_
+#endif  // V8_HEAP_CPPGC_METRIC_RECORDER_H_

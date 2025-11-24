@@ -10,88 +10,82 @@
 namespace v8 {
 namespace internal {
 
-#define GENERAL_REGISTERS(V)                                                                                                                                   \
-    V(eax)                                                                                                                                                     \
-    V(ecx)                                                                                                                                                     \
-    V(edx)                                                                                                                                                     \
-    V(ebx)                                                                                                                                                     \
-    V(esp)                                                                                                                                                     \
-    V(ebp)                                                                                                                                                     \
-    V(esi)                                                                                                                                                     \
-    V(edi)
+#define GENERAL_REGISTERS(V) \
+  V(eax)                     \
+  V(ecx)                     \
+  V(edx)                     \
+  V(ebx)                     \
+  V(esp)                     \
+  V(ebp)                     \
+  V(esi)                     \
+  V(edi)
 
-#define ALLOCATABLE_GENERAL_REGISTERS(V)                                                                                                                       \
-    V(eax)                                                                                                                                                     \
-    V(ecx)                                                                                                                                                     \
-    V(edx)                                                                                                                                                     \
-    V(esi)                                                                                                                                                     \
-    V(edi)
+#define ALLOCATABLE_GENERAL_REGISTERS(V) \
+  V(eax)                                 \
+  V(ecx)                                 \
+  V(edx)                                 \
+  V(esi)                                 \
+  V(edi)
 
-#define DOUBLE_REGISTERS(V)                                                                                                                                    \
-    V(xmm0)                                                                                                                                                    \
-    V(xmm1)                                                                                                                                                    \
-    V(xmm2)                                                                                                                                                    \
-    V(xmm3)                                                                                                                                                    \
-    V(xmm4)                                                                                                                                                    \
-    V(xmm5)                                                                                                                                                    \
-    V(xmm6)                                                                                                                                                    \
-    V(xmm7)
+#define DOUBLE_REGISTERS(V) \
+  V(xmm0)                   \
+  V(xmm1)                   \
+  V(xmm2)                   \
+  V(xmm3)                   \
+  V(xmm4)                   \
+  V(xmm5)                   \
+  V(xmm6)                   \
+  V(xmm7)
 
 #define FLOAT_REGISTERS DOUBLE_REGISTERS
 #define SIMD128_REGISTERS DOUBLE_REGISTERS
 
-#define ALLOCATABLE_DOUBLE_REGISTERS(V)                                                                                                                        \
-    V(xmm1)                                                                                                                                                    \
-    V(xmm2)                                                                                                                                                    \
-    V(xmm3)                                                                                                                                                    \
-    V(xmm4)                                                                                                                                                    \
-    V(xmm5)                                                                                                                                                    \
-    V(xmm6)                                                                                                                                                    \
-    V(xmm7)
+#define ALLOCATABLE_DOUBLE_REGISTERS(V) \
+  V(xmm1)                               \
+  V(xmm2)                               \
+  V(xmm3)                               \
+  V(xmm4)                               \
+  V(xmm5)                               \
+  V(xmm6)                               \
+  V(xmm7)
 
 enum RegisterCode {
 #define REGISTER_CODE(R) kRegCode_##R,
-    GENERAL_REGISTERS(REGISTER_CODE)
+  GENERAL_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kRegAfterLast
+      kRegAfterLast
 };
 
 class Register : public RegisterBase<Register, kRegAfterLast> {
-public:
-    bool is_byte_register() const
-    {
-        return code() <= 3;
-    }
+ public:
+  bool is_byte_register() const { return code() <= 3; }
 
-private:
-    friend class RegisterBase<Register, kRegAfterLast>;
-    explicit constexpr Register(int code)
-        : RegisterBase(code)
-    {
-    }
+ private:
+  friend class RegisterBase<Register, kRegAfterLast>;
+  explicit constexpr Register(int code) : RegisterBase(code) {}
 };
 
 ASSERT_TRIVIALLY_COPYABLE(Register);
-static_assert(sizeof(Register) <= sizeof(int), "Register can efficiently be passed by value");
+static_assert(sizeof(Register) <= sizeof(int),
+              "Register can efficiently be passed by value");
 
 // Assign |source| value to |no_reg| and return the |source|'s previous value.
-inline Register ReassignRegister(Register& source)
-{
-    Register result = source;
-    source = Register::no_reg();
-    return result;
+inline Register ReassignRegister(Register& source) {
+  Register result = source;
+  source = Register::no_reg();
+  return result;
 }
 
-#define DEFINE_REGISTER(R) constexpr Register R = Register::from_code(kRegCode_##R);
+#define DEFINE_REGISTER(R) \
+  constexpr Register R = Register::from_code(kRegCode_##R);
 GENERAL_REGISTERS(DEFINE_REGISTER)
 #undef DEFINE_REGISTER
 constexpr Register no_reg = Register::no_reg();
 
 // Returns the number of padding slots needed for stack pointer alignment.
-constexpr int ArgumentPaddingSlots(int argument_count)
-{
-    // No argument padding required.
-    return 0;
+constexpr int ArgumentPaddingSlots(int argument_count) {
+  // No argument padding required.
+  return 0;
 }
 
 constexpr AliasingKind kFPAliasing = AliasingKind::kOverlap;
@@ -99,17 +93,14 @@ constexpr bool kSimdMaskRegisters = false;
 
 enum DoubleCode {
 #define REGISTER_CODE(R) kDoubleCode_##R,
-    DOUBLE_REGISTERS(REGISTER_CODE)
+  DOUBLE_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kDoubleAfterLast
+      kDoubleAfterLast
 };
 
 class XMMRegister : public RegisterBase<XMMRegister, kDoubleAfterLast> {
-    friend class RegisterBase<XMMRegister, kDoubleAfterLast>;
-    explicit constexpr XMMRegister(int code)
-        : RegisterBase(code)
-    {
-    }
+  friend class RegisterBase<XMMRegister, kDoubleAfterLast>;
+  explicit constexpr XMMRegister(int code) : RegisterBase(code) {}
 };
 
 using FloatRegister = XMMRegister;
@@ -118,7 +109,8 @@ using DoubleRegister = XMMRegister;
 
 using Simd128Register = XMMRegister;
 
-#define DEFINE_REGISTER(R) constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
+#define DEFINE_REGISTER(R) \
+  constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
 DOUBLE_REGISTERS(DEFINE_REGISTER)
 #undef DEFINE_REGISTER
 constexpr DoubleRegister no_dreg = DoubleRegister::no_reg();
@@ -162,9 +154,9 @@ constexpr Register kWasmCompileLazyFuncIndexRegister = edi;
 
 constexpr Register kRootRegister = ebx;
 
-constexpr DoubleRegister kFPReturnRegister0 = xmm1; // xmm0 isn't allocatable.
+constexpr DoubleRegister kFPReturnRegister0 = xmm1;  // xmm0 isn't allocatable.
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_IA32_REGISTER_IA32_H_
+#endif  // V8_CODEGEN_IA32_REGISTER_IA32_H_

@@ -32,34 +32,33 @@ namespace v8::internal::compiler::turboshaft {
 //         res = val_false
 //     }
 
-template <class Next> class SelectLoweringReducer : public Next {
-public:
-    TURBOSHAFT_REDUCER_BOILERPLATE(SelectLowering)
+template <class Next>
+class SelectLoweringReducer : public Next {
+ public:
+  TURBOSHAFT_REDUCER_BOILERPLATE(SelectLowering)
 
-    V<Any> REDUCE(Select)(V<Word32> cond, V<Any> vtrue, V<Any> vfalse, RegisterRepresentation rep, BranchHint hint, SelectOp::Implementation implem)
-    {
-        if (implem == SelectOp::Implementation::kCMove) {
-            // We do not lower Select operations that should be implemented with
-            // CMove.
-            return Next::ReduceSelect(cond, vtrue, vfalse, rep, hint, implem);
-        }
-
-        Variable result = __ NewLoopInvariantVariable(rep);
-        IF(cond)
-        {
-            __ SetVariable(result, vtrue);
-        }
-        ELSE
-        {
-            __ SetVariable(result, vfalse);
-        }
-
-        return __ GetVariable(result);
+  V<Any> REDUCE(Select)(V<Word32> cond, V<Any> vtrue, V<Any> vfalse,
+                        RegisterRepresentation rep, BranchHint hint,
+                        SelectOp::Implementation implem) {
+    if (implem == SelectOp::Implementation::kCMove) {
+      // We do not lower Select operations that should be implemented with
+      // CMove.
+      return Next::ReduceSelect(cond, vtrue, vfalse, rep, hint, implem);
     }
+
+    Variable result = __ NewLoopInvariantVariable(rep);
+    IF (cond) {
+      __ SetVariable(result, vtrue);
+    } ELSE {
+      __ SetVariable(result, vfalse);
+    }
+
+    return __ GetVariable(result);
+  }
 };
 
 #include "src/compiler/turboshaft/undef-assembler-macros.inc"
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_SELECT_LOWERING_REDUCER_H_
+#endif  // V8_COMPILER_TURBOSHAFT_SELECT_LOWERING_REDUCER_H_

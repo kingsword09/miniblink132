@@ -16,72 +16,64 @@ class HeapObjectHeader;
 class PageBackend;
 
 class VisitorFactory final {
-public:
-    static constexpr Visitor::Key CreateKey()
-    {
-        return {};
-    }
+ public:
+  static constexpr Visitor::Key CreateKey() { return {}; }
 };
 
 // Base visitor that is allowed to create a public cppgc::Visitor object and
 // use its internals.
 class VisitorBase : public cppgc::Visitor {
-public:
-    template <typename T> static void TraceRawForTesting(cppgc::Visitor* visitor, const T* t)
-    {
-        visitor->TraceImpl(t);
-    }
+ public:
+  template <typename T>
+  static void TraceRawForTesting(cppgc::Visitor* visitor, const T* t) {
+    visitor->TraceImpl(t);
+  }
 
-    VisitorBase()
-        : cppgc::Visitor(VisitorFactory::CreateKey())
-    {
-    }
-    ~VisitorBase() override = default;
+  VisitorBase() : cppgc::Visitor(VisitorFactory::CreateKey()) {}
+  ~VisitorBase() override = default;
 
-    VisitorBase(const VisitorBase&) = delete;
-    VisitorBase& operator=(const VisitorBase&) = delete;
+  VisitorBase(const VisitorBase&) = delete;
+  VisitorBase& operator=(const VisitorBase&) = delete;
 };
 
 class RootVisitorBase : public RootVisitor {
-public:
-    RootVisitorBase()
-        : RootVisitor(VisitorFactory::CreateKey())
-    {
-    }
-    ~RootVisitorBase() override = default;
+ public:
+  RootVisitorBase() : RootVisitor(VisitorFactory::CreateKey()) {}
+  ~RootVisitorBase() override = default;
 
-    RootVisitorBase(const RootVisitorBase&) = delete;
-    RootVisitorBase& operator=(const RootVisitorBase&) = delete;
+  RootVisitorBase(const RootVisitorBase&) = delete;
+  RootVisitorBase& operator=(const RootVisitorBase&) = delete;
 };
 
 // Regular visitor that additionally allows for conservative tracing.
 class V8_EXPORT_PRIVATE ConservativeTracingVisitor {
-public:
-    ConservativeTracingVisitor(HeapBase&, PageBackend&, cppgc::Visitor&);
-    virtual ~ConservativeTracingVisitor() = default;
+ public:
+  ConservativeTracingVisitor(HeapBase&, PageBackend&, cppgc::Visitor&);
+  virtual ~ConservativeTracingVisitor() = default;
 
-    ConservativeTracingVisitor(const ConservativeTracingVisitor&) = delete;
-    ConservativeTracingVisitor& operator=(const ConservativeTracingVisitor&) = delete;
+  ConservativeTracingVisitor(const ConservativeTracingVisitor&) = delete;
+  ConservativeTracingVisitor& operator=(const ConservativeTracingVisitor&) =
+      delete;
 
-    virtual void TraceConservativelyIfNeeded(const void*);
-    void TraceConservativelyIfNeeded(HeapObjectHeader&);
-    void TraceConservatively(const HeapObjectHeader&);
+  virtual void TraceConservativelyIfNeeded(const void*);
+  void TraceConservativelyIfNeeded(HeapObjectHeader&);
+  void TraceConservatively(const HeapObjectHeader&);
 
-protected:
-    using TraceConservativelyCallback = void(ConservativeTracingVisitor*, const HeapObjectHeader&);
-    virtual void VisitFullyConstructedConservatively(HeapObjectHeader&);
-    virtual void VisitInConstructionConservatively(HeapObjectHeader&, TraceConservativelyCallback)
-    {
-    }
+ protected:
+  using TraceConservativelyCallback = void(ConservativeTracingVisitor*,
+                                           const HeapObjectHeader&);
+  virtual void VisitFullyConstructedConservatively(HeapObjectHeader&);
+  virtual void VisitInConstructionConservatively(HeapObjectHeader&,
+                                                 TraceConservativelyCallback) {}
 
-    void TryTracePointerConservatively(Address address);
+  void TryTracePointerConservatively(Address address);
 
-    HeapBase& heap_;
-    PageBackend& page_backend_;
-    cppgc::Visitor& visitor_;
+  HeapBase& heap_;
+  PageBackend& page_backend_;
+  cppgc::Visitor& visitor_;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_VISITOR_H_
+#endif  // V8_HEAP_CPPGC_VISITOR_H_

@@ -23,19 +23,23 @@ class StructBodyDescriptor;
 // TemplateObjectDescription is a tuple of raw strings and cooked strings for
 // tagged template literals. Used to communicate with the runtime for template
 // object creation within the {Runtime_GetTemplateObject} method.
-class TemplateObjectDescription final : public TorqueGeneratedTemplateObjectDescription<TemplateObjectDescription, Struct> {
-public:
-    static Handle<JSArray> GetTemplateObject(Isolate* isolate, DirectHandle<NativeContext> native_context, DirectHandle<TemplateObjectDescription> description,
-        DirectHandle<SharedFunctionInfo> shared_info, int slot_id);
+class TemplateObjectDescription final
+    : public TorqueGeneratedTemplateObjectDescription<TemplateObjectDescription,
+                                                      Struct> {
+ public:
+  static Handle<JSArray> GetTemplateObject(
+      Isolate* isolate, DirectHandle<NativeContext> native_context,
+      DirectHandle<TemplateObjectDescription> description,
+      DirectHandle<SharedFunctionInfo> shared_info, int slot_id);
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(TemplateObjectDescription)
+  TQ_OBJECT_CONSTRUCTORS(TemplateObjectDescription)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_TEMPLATE_OBJECTS_H_
+#endif  // V8_OBJECTS_TEMPLATE_OBJECTS_H_

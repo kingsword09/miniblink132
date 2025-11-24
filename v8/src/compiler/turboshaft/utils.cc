@@ -9,19 +9,18 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-#ifdef V8_DEBUG
-bool ShouldSkipOptimizationStep()
-{
-    static std::atomic<uint64_t> counter { 0 };
-    uint64_t current = counter++;
-    if (current == v8_flags.turboshaft_opt_bisect_break) {
-        base::OS::DebugBreak();
-    }
-    if (current >= v8_flags.turboshaft_opt_bisect_limit) {
-        return true;
-    }
-    return false;
+#ifdef DEBUG
+bool ShouldSkipOptimizationStep() {
+  static std::atomic<uint64_t> counter{0};
+  uint64_t current = counter++;
+  if (current == v8_flags.turboshaft_opt_bisect_break) {
+    base::OS::DebugBreak();
+  }
+  if (current >= v8_flags.turboshaft_opt_bisect_limit) {
+    return true;
+  }
+  return false;
 }
-#endif // DEBUG
+#endif  // DEBUG
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

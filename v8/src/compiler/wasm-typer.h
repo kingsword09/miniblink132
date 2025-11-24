@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_COMPILER_WASM_TYPER_H_
 #define V8_COMPILER_WASM_TYPER_H_
@@ -24,23 +24,20 @@ class MachineGraph;
 // casts, and type guards are retyped.
 // Types in loops are computed to a fixed point.
 class WasmTyper final : public AdvancedReducer {
-public:
-    WasmTyper(Editor* editor, MachineGraph* mcgraph, uint32_t function_index);
+ public:
+  WasmTyper(Editor* editor, MachineGraph* mcgraph, uint32_t function_index);
 
-    const char* reducer_name() const override
-    {
-        return "WasmTyper";
-    }
+  const char* reducer_name() const override { return "WasmTyper"; }
 
-    Reduction Reduce(Node* node) final;
+  Reduction Reduce(Node* node) final;
 
-private:
-    uint32_t function_index_;
-    Zone* graph_zone_;
+ private:
+  uint32_t function_index_;
+  Zone* graph_zone_;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_WASM_TYPER_H_
+#endif  // V8_COMPILER_WASM_TYPER_H_

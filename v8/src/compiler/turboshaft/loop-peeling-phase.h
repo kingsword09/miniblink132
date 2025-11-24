@@ -10,11 +10,11 @@
 namespace v8::internal::compiler::turboshaft {
 
 struct LoopPeelingPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(LoopPeeling)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(LoopPeeling)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_LOOP_PEELING_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_LOOP_PEELING_PHASE_H_

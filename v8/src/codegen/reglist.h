@@ -33,16 +33,18 @@ namespace internal {
 static constexpr RegList kEmptyRegList = {};
 
 #define LIST_REG(V) V,
-static constexpr RegList kAllocatableGeneralRegisters = { ALLOCATABLE_GENERAL_REGISTERS(LIST_REG) Register::no_reg() };
+static constexpr RegList kAllocatableGeneralRegisters = {
+    ALLOCATABLE_GENERAL_REGISTERS(LIST_REG) Register::no_reg()};
 #undef LIST_REG
 
 static constexpr DoubleRegList kEmptyDoubleRegList = {};
 
 #define LIST_REG(V) V,
-static constexpr DoubleRegList kAllocatableDoubleRegisters = { ALLOCATABLE_DOUBLE_REGISTERS(LIST_REG) DoubleRegister::no_reg() };
+static constexpr DoubleRegList kAllocatableDoubleRegisters = {
+    ALLOCATABLE_DOUBLE_REGISTERS(LIST_REG) DoubleRegister::no_reg()};
 #undef LIST_REG
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_REGLIST_H_
+#endif  // V8_CODEGEN_REGLIST_H_

@@ -9,8 +9,8 @@
 
 #include "libplatform/libplatform-export.h"
 #include "libplatform/v8-tracing.h"
-#include "v8-platform.h" // NOLINT(build/include_directory)
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8-platform.h"  // NOLINT(build/include_directory)
+#include "v8config.h"     // NOLINT(build/include_directory)
 
 namespace v8 {
 namespace platform {
@@ -18,7 +18,10 @@ namespace platform {
 enum class IdleTaskSupport { kDisabled, kEnabled };
 enum class InProcessStackDumping { kDisabled, kEnabled };
 
-enum class MessageLoopBehavior : bool { kDoNotWait = false, kWaitForWork = true };
+enum class MessageLoopBehavior : bool {
+  kDoNotWait = false,
+  kWaitForWork = true
+};
 
 enum class PriorityMode : bool { kDontApply, kApply };
 
@@ -38,16 +41,24 @@ enum class PriorityMode : bool { kDontApply, kApply };
  * multiple task queues executed by threads different system-level priorities
  * (where available) to schedule tasks.
  */
-V8_PLATFORM_EXPORT std::unique_ptr<v8::Platform> NewDefaultPlatform(int thread_pool_size = 0, IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled,
-    InProcessStackDumping in_process_stack_dumping = InProcessStackDumping::kDisabled, std::unique_ptr<v8::TracingController> tracing_controller = {},
+V8_PLATFORM_EXPORT std::unique_ptr<v8::Platform> NewDefaultPlatform(
+    int thread_pool_size = 0,
+    IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled,
+    InProcessStackDumping in_process_stack_dumping =
+        InProcessStackDumping::kDisabled,
+    std::unique_ptr<v8::TracingController> tracing_controller = {},
     PriorityMode priority_mode = PriorityMode::kDontApply);
 
 /**
  * The same as NewDefaultPlatform but disables the worker thread pool.
  * It must be used with the --single-threaded V8 flag.
  */
-V8_PLATFORM_EXPORT std::unique_ptr<v8::Platform> NewSingleThreadedDefaultPlatform(IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled,
-    InProcessStackDumping in_process_stack_dumping = InProcessStackDumping::kDisabled, std::unique_ptr<v8::TracingController> tracing_controller = {});
+V8_PLATFORM_EXPORT std::unique_ptr<v8::Platform>
+NewSingleThreadedDefaultPlatform(
+    IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled,
+    InProcessStackDumping in_process_stack_dumping =
+        InProcessStackDumping::kDisabled,
+    std::unique_ptr<v8::TracingController> tracing_controller = {});
 
 /**
  * Returns a new instance of the default v8::JobHandle implementation.
@@ -56,7 +67,8 @@ V8_PLATFORM_EXPORT std::unique_ptr<v8::Platform> NewSingleThreadedDefaultPlatfor
  * threads on the provided |platform| with the given |priority|.
  */
 V8_PLATFORM_EXPORT std::unique_ptr<v8::JobHandle> NewDefaultJobHandle(
-    v8::Platform* platform, v8::TaskPriority priority, std::unique_ptr<v8::JobTask> job_task, size_t num_worker_threads);
+    v8::Platform* platform, v8::TaskPriority priority,
+    std::unique_ptr<v8::JobTask> job_task, size_t num_worker_threads);
 
 /**
  * Pumps the message loop for the given isolate.
@@ -68,7 +80,9 @@ V8_PLATFORM_EXPORT std::unique_ptr<v8::JobHandle> NewDefaultJobHandle(
  * the |behavior| parameter, this call does not block if no task is pending. The
  * |platform| has to be created using |NewDefaultPlatform|.
  */
-V8_PLATFORM_EXPORT bool PumpMessageLoop(v8::Platform* platform, v8::Isolate* isolate, MessageLoopBehavior behavior = MessageLoopBehavior::kDoNotWait);
+V8_PLATFORM_EXPORT bool PumpMessageLoop(
+    v8::Platform* platform, v8::Isolate* isolate,
+    MessageLoopBehavior behavior = MessageLoopBehavior::kDoNotWait);
 
 /**
  * Runs pending idle tasks for at most |idle_time_in_seconds| seconds.
@@ -77,7 +91,9 @@ V8_PLATFORM_EXPORT bool PumpMessageLoop(v8::Platform* platform, v8::Isolate* iso
  * This call does not block if no task is pending. The |platform| has to be
  * created using |NewDefaultPlatform|.
  */
-V8_PLATFORM_EXPORT void RunIdleTasks(v8::Platform* platform, v8::Isolate* isolate, double idle_time_in_seconds);
+V8_PLATFORM_EXPORT void RunIdleTasks(v8::Platform* platform,
+                                     v8::Isolate* isolate,
+                                     double idle_time_in_seconds);
 
 /**
  * Notifies the given platform about the Isolate getting deleted soon. Has to be
@@ -87,9 +103,10 @@ V8_PLATFORM_EXPORT void RunIdleTasks(v8::Platform* platform, v8::Isolate* isolat
  * The |platform| has to be created using |NewDefaultPlatform|.
  *
  */
-V8_PLATFORM_EXPORT void NotifyIsolateShutdown(v8::Platform* platform, Isolate* isolate);
+V8_PLATFORM_EXPORT void NotifyIsolateShutdown(v8::Platform* platform,
+                                              Isolate* isolate);
 
-} // namespace platform
-} // namespace v8
+}  // namespace platform
+}  // namespace v8
 
-#endif // V8_LIBPLATFORM_LIBPLATFORM_H_
+#endif  // V8_LIBPLATFORM_LIBPLATFORM_H_

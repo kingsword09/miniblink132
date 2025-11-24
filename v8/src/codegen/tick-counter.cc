@@ -11,17 +11,13 @@
 namespace v8 {
 namespace internal {
 
-void TickCounter::AttachLocalHeap(LocalHeap* local_heap)
-{
-    DCHECK_NULL(local_heap_);
-    local_heap_ = local_heap;
-    DCHECK_NOT_NULL(local_heap_);
+void TickCounter::AttachLocalHeap(LocalHeap* local_heap) {
+  DCHECK_NULL(local_heap_);
+  local_heap_ = local_heap;
+  DCHECK_NOT_NULL(local_heap_);
 }
 
-void TickCounter::DetachLocalHeap()
-{
-    local_heap_ = nullptr;
-}
+void TickCounter::DetachLocalHeap() { local_heap_ = nullptr; }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

@@ -24,15 +24,16 @@ namespace compiler {
 
 // Whether the given JSFunction has an associated Script.
 enum class IsScriptAvailable {
-    kNo,
-    kYes,
+  kNo,
+  kYes,
 };
 
 V8_EXPORT_PRIVATE std::unique_ptr<TurbofanCompilationJob> NewCompilationJob(
-    Isolate* isolate, Handle<JSFunction> function, IsScriptAvailable has_script, BytecodeOffset osr_offset = BytecodeOffset::None());
+    Isolate* isolate, Handle<JSFunction> function, IsScriptAvailable has_script,
+    BytecodeOffset osr_offset = BytecodeOffset::None());
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_TURBOFAN_H_
+#endif  // V8_COMPILER_TURBOFAN_H_

@@ -24,56 +24,54 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(FreeSpace)
 RELAXED_SMI_ACCESSORS(FreeSpace, size, kSizeOffset)
 
 // static
-inline void FreeSpace::SetSize(const WritableFreeSpace& writable_free_space, int size, RelaxedStoreTag tag)
-{
-    writable_free_space.WriteHeaderSlot<Smi, kSizeOffset>(Smi::FromInt(size), tag);
+inline void FreeSpace::SetSize(const WritableFreeSpace& writable_free_space,
+                               int size, RelaxedStoreTag tag) {
+  writable_free_space.WriteHeaderSlot<Smi, kSizeOffset>(Smi::FromInt(size),
+                                                        tag);
 }
 
-int FreeSpace::Size()
-{
-    return size(kRelaxedLoad);
-}
+int FreeSpace::Size() { return size(kRelaxedLoad); }
 
-Tagged<FreeSpace> FreeSpace::next() const
-{
-    DCHECK(IsValid());
+Tagged<FreeSpace> FreeSpace::next() const {
+  DCHECK(IsValid());
 #ifdef V8_EXTERNAL_CODE_SPACE
-    intptr_t diff_to_next = static_cast<intptr_t>(TaggedField<Smi, kNextOffset>::load(*this).value());
-    if (diff_to_next == 0) {
-        return FreeSpace();
-    }
-    Address next_ptr = ptr() + diff_to_next * kObjectAlignment;
-    return UncheckedCast<FreeSpace>(Tagged<Object>(next_ptr));
+  intptr_t diff_to_next =
+      static_cast<intptr_t>(TaggedField<Smi, kNextOffset>::load(*this).value());
+  if (diff_to_next == 0) {
+    return FreeSpace();
+  }
+  Address next_ptr = ptr() + diff_to_next * kObjectAlignment;
+  return UncheckedCast<FreeSpace>(Tagged<Object>(next_ptr));
 #else
-    return UncheckedCast<FreeSpace>(TaggedField<Object, kNextOffset>::load(*this));
-#endif // V8_EXTERNAL_CODE_SPACE
+  return UncheckedCast<FreeSpace>(
+      TaggedField<Object, kNextOffset>::load(*this));
+#endif  // V8_EXTERNAL_CODE_SPACE
 }
 
-void FreeSpace::SetNext(const WritableFreeSpace& writable_free_space, Tagged<FreeSpace> next)
-{
-    DCHECK(IsValid());
+void FreeSpace::SetNext(const WritableFreeSpace& writable_free_space,
+                        Tagged<FreeSpace> next) {
+  DCHECK(IsValid());
 
 #ifdef V8_EXTERNAL_CODE_SPACE
-    if (next.is_null()) {
-        writable_free_space.WriteHeaderSlot<Smi, kNextOffset>(Smi::zero(), kRelaxedStore);
-        return;
-    }
-    intptr_t diff_to_next = next.ptr() - ptr();
-    DCHECK(IsAligned(diff_to_next, kObjectAlignment));
-    writable_free_space.WriteHeaderSlot<Smi, kNextOffset>(Smi::FromIntptr(diff_to_next / kObjectAlignment), kRelaxedStore);
+  if (next.is_null()) {
+    writable_free_space.WriteHeaderSlot<Smi, kNextOffset>(Smi::zero(),
+                                                          kRelaxedStore);
+    return;
+  }
+  intptr_t diff_to_next = next.ptr() - ptr();
+  DCHECK(IsAligned(diff_to_next, kObjectAlignment));
+  writable_free_space.WriteHeaderSlot<Smi, kNextOffset>(
+      Smi::FromIntptr(diff_to_next / kObjectAlignment), kRelaxedStore);
 #else
-    writable_free_space.WriteHeaderSlot<Object, kNextOffset>(next, kRelaxedStore);
-#endif // V8_EXTERNAL_CODE_SPACE
+  writable_free_space.WriteHeaderSlot<Object, kNextOffset>(next, kRelaxedStore);
+#endif  // V8_EXTERNAL_CODE_SPACE
 }
 
-bool FreeSpace::IsValid() const
-{
-    return Heap::IsFreeSpaceValid(*this);
-}
+bool FreeSpace::IsValid() const { return Heap::IsFreeSpaceValid(*this); }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_FREE_SPACE_INL_H_
+#endif  // V8_OBJECTS_FREE_SPACE_INL_H_

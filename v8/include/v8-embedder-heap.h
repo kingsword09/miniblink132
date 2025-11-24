@@ -5,13 +5,13 @@
 #ifndef INCLUDE_V8_EMBEDDER_HEAP_H_
 #define INCLUDE_V8_EMBEDDER_HEAP_H_
 
-#include "v8-traced-handle.h" // NOLINT(build/include_directory)
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8-traced-handle.h"  // NOLINT(build/include_directory)
+#include "v8config.h"          // NOLINT(build/include_directory)
 
 namespace v8 {
 namespace internal {
 class TracedHandles;
-} // namespace internal
+}  // namespace internal
 
 class Isolate;
 class Value;
@@ -20,12 +20,12 @@ class Value;
  * Handler for embedder roots on non-unified heap garbage collections.
  */
 class V8_EXPORT EmbedderRootsHandler {
-public:
-    virtual ~EmbedderRootsHandler() = default;
+ public:
+  virtual ~EmbedderRootsHandler() = default;
 
-    EmbedderRootsHandler() = default;
+  EmbedderRootsHandler() = default;
 
-    /**
+  /**
    * Used in combination with |IsRoot|. Called by V8 when an
    * object that is backed by a handle is reclaimed by a non-tracing garbage
    * collection. It is up to the embedder to reset the original handle.
@@ -34,23 +34,22 @@ public:
    * for retaining the object. It is up to the embedder to find the original
    * handle via the object or class id.
    */
-    virtual void ResetRoot(const v8::TracedReference<v8::Value>& handle) = 0;
+  virtual void ResetRoot(const v8::TracedReference<v8::Value>& handle) = 0;
 
-    /**
+  /**
    * Similar to |ResetRoot()|, but opportunistic. The function is called in
    * parallel for different handles and as such must be thread-safe. In case,
    * |false| is returned, |ResetRoot()| will be recalled for the same handle.
    */
-    virtual bool TryResetRoot(const v8::TracedReference<v8::Value>& handle)
-    {
-        ResetRoot(handle);
-        return true;
-    }
+  virtual bool TryResetRoot(const v8::TracedReference<v8::Value>& handle) {
+    ResetRoot(handle);
+    return true;
+  }
 
-private:
-    friend class internal::TracedHandles;
+ private:
+  friend class internal::TracedHandles;
 };
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_EMBEDDER_HEAP_H_
+#endif  // INCLUDE_V8_EMBEDDER_HEAP_H_

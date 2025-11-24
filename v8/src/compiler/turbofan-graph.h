@@ -30,126 +30,101 @@ using Mark = uint32_t;
 using NodeId = uint32_t;
 
 class V8_EXPORT_PRIVATE Graph final : public NON_EXPORTED_BASE(ZoneObject) {
-public:
-    explicit Graph(Zone* zone);
-    Graph(const Graph&) = delete;
-    Graph& operator=(const Graph&) = delete;
+ public:
+  explicit Graph(Zone* zone);
+  Graph(const Graph&) = delete;
+  Graph& operator=(const Graph&) = delete;
 
-    // Scope used when creating a subgraph for inlining. Automatically preserves
-    // the original start and end nodes of the graph, and resets them when you
-    // leave the scope.
-    class V8_NODISCARD SubgraphScope final {
-    public:
-        explicit SubgraphScope(Graph* graph)
-            : graph_(graph)
-            , start_(graph->start())
-            , end_(graph->end())
-        {
-        }
-        ~SubgraphScope()
-        {
-            graph_->SetStart(start_);
-            graph_->SetEnd(end_);
-        }
-        SubgraphScope(const SubgraphScope&) = delete;
-        SubgraphScope& operator=(const SubgraphScope&) = delete;
-
-    private:
-        Graph* const graph_;
-        Node* const start_;
-        Node* const end_;
-    };
-
-    // Base implementation used by all factory methods.
-    Node* NewNodeUnchecked(const Operator* op, int input_count, Node* const* inputs, bool incomplete = false);
-
-    // Factory that checks the input count.
-    Node* NewNode(const Operator* op, int input_count, Node* const* inputs, bool incomplete = false);
-
-    // Factory template for nodes with static input counts.
-    // Note: Template magic below is used to ensure this method is only considered
-    // for argument types convertible to Node* during overload resolution.
-    template <typename... Nodes, typename = typename std::enable_if_t<std::conjunction_v<std::is_convertible<Nodes, Node*>...>>>
-    Node* NewNode(const Operator* op, Nodes... nodes)
-    {
-        std::array<Node*, sizeof...(nodes)> nodes_arr { { static_cast<Node*>(nodes)... } };
-        return NewNode(op, nodes_arr.size(), nodes_arr.data());
+  // Scope used when creating a subgraph for inlining. Automatically preserves
+  // the original start and end nodes of the graph, and resets them when you
+  // leave the scope.
+  class V8_NODISCARD SubgraphScope final {
+   public:
+    explicit SubgraphScope(Graph* graph)
+        : graph_(graph), start_(graph->start()), end_(graph->end()) {}
+    ~SubgraphScope() {
+      graph_->SetStart(start_);
+      graph_->SetEnd(end_);
     }
+    SubgraphScope(const SubgraphScope&) = delete;
+    SubgraphScope& operator=(const SubgraphScope&) = delete;
 
-    // Clone the {node}, and assign a new node id to the copy.
-    Node* CloneNode(const Node* node);
+   private:
+    Graph* const graph_;
+    Node* const start_;
+    Node* const end_;
+  };
 
-    Zone* zone() const
-    {
-        return zone_;
-    }
-    Node* start() const
-    {
-        return start_;
-    }
-    Node* end() const
-    {
-        return end_;
-    }
+  // Base implementation used by all factory methods.
+  Node* NewNodeUnchecked(const Operator* op, int input_count,
+                         Node* const* inputs, bool incomplete = false);
 
-    void SetStart(Node* start)
-    {
-        start_ = start;
-    }
-    void SetEnd(Node* end)
-    {
-        end_ = end;
-    }
+  // Factory that checks the input count.
+  Node* NewNode(const Operator* op, int input_count, Node* const* inputs,
+                bool incomplete = false);
 
-    size_t NodeCount() const
-    {
-        return next_node_id_;
-    }
+  // Factory template for nodes with static input counts.
+  // Note: Template magic below is used to ensure this method is only considered
+  // for argument types convertible to Node* during overload resolution.
+  template <typename... Nodes,
+            typename = typename std::enable_if_t<
+                std::conjunction_v<std::is_convertible<Nodes, Node*>...>>>
+  Node* NewNode(const Operator* op, Nodes... nodes) {
+    std::array<Node*, sizeof...(nodes)> nodes_arr{
+        {static_cast<Node*>(nodes)...}};
+    return NewNode(op, nodes_arr.size(), nodes_arr.data());
+  }
 
-    void Decorate(Node* node);
-    void AddDecorator(GraphDecorator* decorator);
-    void RemoveDecorator(GraphDecorator* decorator);
+  // Clone the {node}, and assign a new node id to the copy.
+  Node* CloneNode(const Node* node);
 
-    // Very simple print API usable in a debugger.
-    void Print() const;
+  Zone* zone() const { return zone_; }
+  Node* start() const { return start_; }
+  Node* end() const { return end_; }
 
-    bool HasSimd() const
-    {
-        return has_simd_;
-    }
-    void SetSimd(bool has_simd)
-    {
-        has_simd_ = has_simd;
-    }
+  void SetStart(Node* start) { start_ = start; }
+  void SetEnd(Node* end) { end_ = end; }
 
-    void RecordSimdStore(Node* store);
-    ZoneVector<Node*> const& GetSimdStoreNodes();
+  size_t NodeCount() const { return next_node_id_; }
 
-private:
-    friend class NodeMarkerBase;
+  void Decorate(Node* node);
+  void AddDecorator(GraphDecorator* decorator);
+  void RemoveDecorator(GraphDecorator* decorator);
 
-    inline NodeId NextNodeId();
+  // Very simple print API usable in a debugger.
+  void Print() const;
 
-    Zone* const zone_;
-    Node* start_;
-    Node* end_;
-    Mark mark_max_;
-    NodeId next_node_id_;
-    ZoneVector<GraphDecorator*> decorators_;
-    bool has_simd_;
-    ZoneVector<Node*> simd_stores_;
+  bool HasSimd() const { return has_simd_; }
+  void SetSimd(bool has_simd) { has_simd_ = has_simd; }
+
+  void RecordSimdStore(Node* store);
+  ZoneVector<Node*> const& GetSimdStoreNodes();
+
+ private:
+  friend class NodeMarkerBase;
+
+  inline NodeId NextNodeId();
+
+  Zone* const zone_;
+  Node* start_;
+  Node* end_;
+  Mark mark_max_;
+  NodeId next_node_id_;
+  ZoneVector<GraphDecorator*> decorators_;
+  bool has_simd_;
+  ZoneVector<Node*> simd_stores_;
 };
 
 // A graph decorator can be used to add behavior to the creation of nodes
 // in a graph.
 class GraphDecorator : public ZoneObject {
-public:
-    virtual ~GraphDecorator() = default;
-    virtual void Decorate(Node* node) = 0;
+ public:
+  virtual ~GraphDecorator() = default;
+  virtual void Decorate(Node* node) = 0;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_TURBOFAN_GRAPH_H_
+#endif  // V8_COMPILER_TURBOFAN_GRAPH_H_

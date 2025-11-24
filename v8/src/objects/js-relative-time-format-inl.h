@@ -4,7 +4,7 @@
 
 #ifndef V8_INTL_SUPPORT
 #error Internationalization is expected to be enabled.
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
 #ifndef V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_INL_H_
 #define V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_INL_H_
@@ -23,24 +23,23 @@ namespace internal {
 TQ_OBJECT_CONSTRUCTORS_IMPL(JSRelativeTimeFormat)
 
 // Base relative time format accessors.
-ACCESSORS(JSRelativeTimeFormat, icu_formatter, Tagged<Managed<icu::RelativeDateTimeFormatter>>, kIcuFormatterOffset)
+ACCESSORS(JSRelativeTimeFormat, icu_formatter,
+          Tagged<Managed<icu::RelativeDateTimeFormatter>>, kIcuFormatterOffset)
 
-inline void JSRelativeTimeFormat::set_numeric(Numeric numeric)
-{
-    DCHECK(NumericBit::is_valid(numeric));
-    int hints = flags();
-    hints = NumericBit::update(hints, numeric);
-    set_flags(hints);
+inline void JSRelativeTimeFormat::set_numeric(Numeric numeric) {
+  DCHECK(NumericBit::is_valid(numeric));
+  int hints = flags();
+  hints = NumericBit::update(hints, numeric);
+  set_flags(hints);
 }
 
-inline JSRelativeTimeFormat::Numeric JSRelativeTimeFormat::numeric() const
-{
-    return NumericBit::decode(flags());
+inline JSRelativeTimeFormat::Numeric JSRelativeTimeFormat::numeric() const {
+  return NumericBit::decode(flags());
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_INL_H_
+#endif  // V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_INL_H_

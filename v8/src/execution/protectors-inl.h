@@ -12,16 +12,17 @@
 namespace v8 {
 namespace internal {
 
-#define DEFINE_PROTECTOR_ON_ISOLATE_CHECK(name, root_index, unused_cell)                                                                                       \
-    bool Protectors::Is##name##Intact(Isolate* isolate)                                                                                                        \
-    {                                                                                                                                                          \
-        Tagged<PropertyCell> cell = Cast<PropertyCell>(isolate->root(RootIndex::k##root_index));                                                               \
-        return IsSmi(cell->value()) && Smi::ToInt(cell->value()) == kProtectorValid;                                                                           \
-    }
+#define DEFINE_PROTECTOR_ON_ISOLATE_CHECK(name, root_index, unused_cell) \
+  bool Protectors::Is##name##Intact(Isolate* isolate) {                  \
+    Tagged<PropertyCell> cell =                                          \
+        Cast<PropertyCell>(isolate->root(RootIndex::k##root_index));     \
+    return IsSmi(cell->value()) &&                                       \
+           Smi::ToInt(cell->value()) == kProtectorValid;                 \
+  }
 DECLARED_PROTECTORS_ON_ISOLATE(DEFINE_PROTECTOR_ON_ISOLATE_CHECK)
 #undef DEFINE_PROTECTORS_ON_ISOLATE_CHECK
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_EXECUTION_PROTECTORS_INL_H_
+#endif  // V8_EXECUTION_PROTECTORS_INL_H_

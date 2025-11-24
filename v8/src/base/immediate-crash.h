@@ -56,7 +56,7 @@
 #define TRAP_SEQUENCE2_() asm volatile("")
 #else
 #define TRAP_SEQUENCE2_() asm volatile("ud2")
-#endif // V8_OS_DARWIN
+#endif  // V8_OS_DARWIN
 
 #elif V8_HOST_ARCH_ARM
 
@@ -105,7 +105,7 @@
 #define TRAP_SEQUENCE1_() __builtin_trap()
 #define TRAP_SEQUENCE2_() asm volatile("")
 
-#endif // V8_HOST_ARCH_*
+#endif  // V8_HOST_ARCH_*
 
 #elif V8_CC_MSVC
 
@@ -130,19 +130,19 @@
 #define TRAP_SEQUENCE1_() asm volatile("int3")
 #define TRAP_SEQUENCE2_() asm volatile("ud2")
 
-#endif // __clang__
+#endif  // __clang__
 
 #else
 
 #error No supported trap sequence!
 
-#endif // V8_CC_GNU
+#endif  // V8_CC_GNU
 
-#define TRAP_SEQUENCE_()                                                                                                                                       \
-    do {                                                                                                                                                       \
-        TRAP_SEQUENCE1_();                                                                                                                                     \
-        TRAP_SEQUENCE2_();                                                                                                                                     \
-    } while (false)
+#define TRAP_SEQUENCE_() \
+  do {                   \
+    TRAP_SEQUENCE1_();   \
+    TRAP_SEQUENCE2_();   \
+  } while (false)
 
 // CHECK() and the trap sequence can be invoked from a constexpr function.
 // This could make compilation fail on GCC, as it forbids directly using inline
@@ -158,28 +158,28 @@
 
 #else
 
-#define WRAPPED_TRAP_SEQUENCE_()                                                                                                                               \
-    do {                                                                                                                                                       \
-        [] { TRAP_SEQUENCE_(); }();                                                                                                                            \
-    } while (false)
+#define WRAPPED_TRAP_SEQUENCE_() \
+  do {                           \
+    [] { TRAP_SEQUENCE_(); }();  \
+  } while (false)
 
-#endif // !V8_CC_GNU
+#endif  // !V8_CC_GNU
 
 #if defined(__clang__) || V8_CC_GNU
 
 // __builtin_unreachable() hints to the compiler that this is noreturn and can
 // be packed in the function epilogue.
-#define IMMEDIATE_CRASH()                                                                                                                                      \
-    ({                                                                                                                                                         \
-        WRAPPED_TRAP_SEQUENCE_();                                                                                                                              \
-        __builtin_unreachable();                                                                                                                               \
-    })
+#define IMMEDIATE_CRASH()     \
+  ({                          \
+    WRAPPED_TRAP_SEQUENCE_(); \
+    __builtin_unreachable();  \
+  })
 
 #else
 
 // This is supporting build with MSVC where there is no __builtin_unreachable().
 #define IMMEDIATE_CRASH() WRAPPED_TRAP_SEQUENCE_()
 
-#endif // defined(__clang__) || defined(COMPILER_GCC)
+#endif  // defined(__clang__) || defined(COMPILER_GCC)
 
-#endif // V8_BASE_IMMEDIATE_CRASH_H_
+#endif  // V8_BASE_IMMEDIATE_CRASH_H_

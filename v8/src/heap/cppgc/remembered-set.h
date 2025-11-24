@@ -24,73 +24,71 @@ class HeapBase;
 class HeapObjectHeader;
 class MutatorMarkingState;
 
-class SlotSet : public ::heap::base::BasicSlotSet<kSlotSize> { };
+class SlotSet : public ::heap::base::BasicSlotSet<kSlotSize> {};
 
 // OldToNewRememberedSet represents a per-heap set of old-to-new references.
 class V8_EXPORT_PRIVATE OldToNewRememberedSet final {
-public:
-    using WeakCallbackItem = MarkingWorklists::WeakCallbackItem;
+ public:
+  using WeakCallbackItem = MarkingWorklists::WeakCallbackItem;
 
-    explicit OldToNewRememberedSet(HeapBase& heap)
-        : heap_(heap)
-        , remembered_weak_callbacks_(compare_parameter)
-    {
-    }
+  explicit OldToNewRememberedSet(HeapBase& heap)
+      : heap_(heap), remembered_weak_callbacks_(compare_parameter) {}
 
-    OldToNewRememberedSet(const OldToNewRememberedSet&) = delete;
-    OldToNewRememberedSet& operator=(const OldToNewRememberedSet&) = delete;
+  OldToNewRememberedSet(const OldToNewRememberedSet&) = delete;
+  OldToNewRememberedSet& operator=(const OldToNewRememberedSet&) = delete;
 
-    void AddSlot(void* slot);
-    void AddUncompressedSlot(void* slot);
-    void AddSourceObject(HeapObjectHeader& source_hoh);
-    void AddWeakCallback(WeakCallbackItem);
+  void AddSlot(void* slot);
+  void AddUncompressedSlot(void* slot);
+  void AddSourceObject(HeapObjectHeader& source_hoh);
+  void AddWeakCallback(WeakCallbackItem);
 
-    // Remembers an in-construction object to be retraced on the next minor GC.
-    void AddInConstructionObjectToBeRetraced(HeapObjectHeader&);
+  // Remembers an in-construction object to be retraced on the next minor GC.
+  void AddInConstructionObjectToBeRetraced(HeapObjectHeader&);
 
-    void InvalidateRememberedSlotsInRange(void* begin, void* end);
-    void InvalidateRememberedSourceObject(HeapObjectHeader& source_hoh);
+  void InvalidateRememberedSlotsInRange(void* begin, void* end);
+  void InvalidateRememberedSourceObject(HeapObjectHeader& source_hoh);
 
-    void Visit(Visitor&, ConservativeTracingVisitor&, MutatorMarkingState&);
+  void Visit(Visitor&, ConservativeTracingVisitor&, MutatorMarkingState&);
 
-    void ExecuteCustomCallbacks(LivenessBroker);
-    void ReleaseCustomCallbacks();
+  void ExecuteCustomCallbacks(LivenessBroker);
+  void ReleaseCustomCallbacks();
 
+  void Reset();
+
+  bool IsEmpty() const;
+
+ private:
+  friend class MinorGCTest;
+
+  // The class keeps track of inconstruction objects that should be revisited.
+  struct RememberedInConstructionObjects final {
     void Reset();
 
-    bool IsEmpty() const;
+    std::set<HeapObjectHeader*> previous;
+    std::set<HeapObjectHeader*> current;
+  };
 
-private:
-    friend class MinorGCTest;
+  static constexpr struct {
+    bool operator()(const WeakCallbackItem& lhs,
+                    const WeakCallbackItem& rhs) const {
+      return lhs.parameter < rhs.parameter;
+    }
+  } compare_parameter{};
 
-    // The class keeps track of inconstruction objects that should be revisited.
-    struct RememberedInConstructionObjects final {
-        void Reset();
-
-        std::set<HeapObjectHeader*> previous;
-        std::set<HeapObjectHeader*> current;
-    };
-
-    static constexpr struct {
-        bool operator()(const WeakCallbackItem& lhs, const WeakCallbackItem& rhs) const
-        {
-            return lhs.parameter < rhs.parameter;
-        }
-    } compare_parameter {};
-
-    HeapBase& heap_;
-    std::set<HeapObjectHeader*> remembered_source_objects_;
-    std::set<WeakCallbackItem, decltype(compare_parameter)> remembered_weak_callbacks_;
-    // Compressed slots are stored in slot-sets (per-page two-level bitmaps),
-    // whereas uncompressed are stored in std::set.
-    std::set<void*> remembered_uncompressed_slots_;
-    std::set<void*> remembered_slots_for_verification_;
-    RememberedInConstructionObjects remembered_in_construction_objects_;
+  HeapBase& heap_;
+  std::set<HeapObjectHeader*> remembered_source_objects_;
+  std::set<WeakCallbackItem, decltype(compare_parameter)>
+      remembered_weak_callbacks_;
+  // Compressed slots are stored in slot-sets (per-page two-level bitmaps),
+  // whereas uncompressed are stored in std::set.
+  std::set<void*> remembered_uncompressed_slots_;
+  std::set<void*> remembered_slots_for_verification_;
+  RememberedInConstructionObjects remembered_in_construction_objects_;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // defined(CPPGC_YOUNG_GENERATION)
+#endif  // defined(CPPGC_YOUNG_GENERATION)
 
-#endif // V8_HEAP_CPPGC_REMEMBERED_SET_H_
+#endif  // V8_HEAP_CPPGC_REMEMBERED_SET_H_

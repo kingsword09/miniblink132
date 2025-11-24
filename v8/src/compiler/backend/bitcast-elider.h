@@ -19,26 +19,26 @@ class Graph;
 // MachineGraphVerifier. This avoid generating redundant move instructions in
 // instruction selection phase.
 class BitcastElider {
-public:
-    BitcastElider(Zone* zone, Graph* graph, bool is_builtin);
-    ~BitcastElider() = default;
+ public:
+  BitcastElider(Zone* zone, Graph* graph, bool is_builtin);
+  ~BitcastElider() = default;
 
-    void Reduce();
+  void Reduce();
 
-    void Enqueue(Node* node);
-    void Revisit(Node* node);
-    void VisitNode(Node* node);
-    void ProcessGraph();
+  void Enqueue(Node* node);
+  void Revisit(Node* node);
+  void VisitNode(Node* node);
+  void ProcessGraph();
 
-private:
-    Graph* const graph_;
-    ZoneQueue<Node*> to_visit_;
-    NodeMarker<bool> seen_;
-    bool is_builtin_;
+ private:
+  Graph* const graph_;
+  ZoneQueue<Node*> to_visit_;
+  NodeMarker<bool> seen_;
+  bool is_builtin_;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_BACKEND_BITCAST_ELIDER_H_
+#endif  // V8_COMPILER_BACKEND_BITCAST_ELIDER_H_

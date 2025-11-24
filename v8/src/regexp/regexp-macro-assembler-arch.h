@@ -29,4 +29,4 @@
 #error Unsupported target architecture.
 #endif
 
-#endif // V8_REGEXP_REGEXP_MACRO_ASSEMBLER_ARCH_H_
+#endif  // V8_REGEXP_REGEXP_MACRO_ASSEMBLER_ARCH_H_

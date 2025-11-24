@@ -24,8 +24,8 @@ void AddIsolate(Isolate* isolate);
 void RemoveIsolate(Isolate* isolate);
 void EventHandler(const v8::JitCodeEvent* event);
 void MaybeSetHandlerNow(Isolate* isolate);
-} // namespace ETWJITInterface
-} // namespace internal
-} // namespace v8
+}  // namespace ETWJITInterface
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_DIAGNOSTICS_ETW_JIT_WIN_H_
+#endif  // V8_DIAGNOSTICS_ETW_JIT_WIN_H_

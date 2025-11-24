@@ -16,26 +16,34 @@ class Isolate;
 
 // Deserializes the context-dependent object graph rooted at a given object.
 // The ContextDeserializer is not expected to deserialize any code objects.
-class V8_EXPORT_PRIVATE ContextDeserializer final : public Deserializer<Isolate> {
-public:
-    static MaybeDirectHandle<Context> DeserializeContext(Isolate* isolate, const SnapshotData* data, size_t context_index, bool can_rehash,
-        Handle<JSGlobalProxy> global_proxy, DeserializeEmbedderFieldsCallback embedder_fields_deserializer);
+class V8_EXPORT_PRIVATE ContextDeserializer final
+    : public Deserializer<Isolate> {
+ public:
+  static MaybeDirectHandle<Context> DeserializeContext(
+      Isolate* isolate, const SnapshotData* data, size_t context_index,
+      bool can_rehash, Handle<JSGlobalProxy> global_proxy,
+      DeserializeEmbedderFieldsCallback embedder_fields_deserializer);
 
-private:
-    explicit ContextDeserializer(Isolate* isolate, const SnapshotData* data, bool can_rehash)
-        : Deserializer(isolate, data->Payload(), data->GetMagicNumber(), false, can_rehash)
-    {
-    }
+ private:
+  explicit ContextDeserializer(Isolate* isolate, const SnapshotData* data,
+                               bool can_rehash)
+      : Deserializer(isolate, data->Payload(), data->GetMagicNumber(), false,
+                     can_rehash) {}
 
-    // Deserialize a single object and the objects reachable from it.
-    MaybeDirectHandle<Object> Deserialize(Isolate* isolate, Handle<JSGlobalProxy> global_proxy, DeserializeEmbedderFieldsCallback embedder_fields_deserializer);
+  // Deserialize a single object and the objects reachable from it.
+  MaybeDirectHandle<Object> Deserialize(
+      Isolate* isolate, Handle<JSGlobalProxy> global_proxy,
+      DeserializeEmbedderFieldsCallback embedder_fields_deserializer);
 
-    void DeserializeEmbedderFields(DirectHandle<NativeContext> context, DeserializeEmbedderFieldsCallback embedder_fields_deserializer);
+  void DeserializeEmbedderFields(
+      DirectHandle<NativeContext> context,
+      DeserializeEmbedderFieldsCallback embedder_fields_deserializer);
 
-    void DeserializeApiWrapperFields(const v8::DeserializeAPIWrapperCallback& api_wrapper_callback);
+  void DeserializeApiWrapperFields(
+      const v8::DeserializeAPIWrapperCallback& api_wrapper_callback);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SNAPSHOT_CONTEXT_DESERIALIZER_H_
+#endif  // V8_SNAPSHOT_CONTEXT_DESERIALIZER_H_

@@ -13,22 +13,23 @@ namespace internal {
 
 // Initializes an isolate with context-independent data from a given snapshot.
 class StartupDeserializer final : public Deserializer<Isolate> {
-public:
-    explicit StartupDeserializer(Isolate* isolate, const SnapshotData* startup_data, bool can_rehash)
-        : Deserializer(isolate, startup_data->Payload(), startup_data->GetMagicNumber(), false, can_rehash)
-    {
-    }
+ public:
+  explicit StartupDeserializer(Isolate* isolate,
+                               const SnapshotData* startup_data,
+                               bool can_rehash)
+      : Deserializer(isolate, startup_data->Payload(),
+                     startup_data->GetMagicNumber(), false, can_rehash) {}
 
-    // Deserialize the snapshot into an empty heap.
-    void DeserializeIntoIsolate();
+  // Deserialize the snapshot into an empty heap.
+  void DeserializeIntoIsolate();
 
-private:
-    void FlushICache();
-    void LogNewMapEvents();
-    void DeserializeAndCheckExternalReferenceTable();
+ private:
+  void FlushICache();
+  void LogNewMapEvents();
+  void DeserializeAndCheckExternalReferenceTable();
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SNAPSHOT_STARTUP_DESERIALIZER_H_
+#endif  // V8_SNAPSHOT_STARTUP_DESERIALIZER_H_

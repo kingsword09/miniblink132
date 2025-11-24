@@ -6,7 +6,6 @@ namespace v8 {
 
 struct RegisterState;
 
-void GetCalleeSavedRegistersFromEntryFrame(void* fp, RegisterState* register_state)
-{
-}
-} // namespace v8
+void GetCalleeSavedRegistersFromEntryFrame(void* fp,
+                                           RegisterState* register_state) {}
+}  // namespace v8

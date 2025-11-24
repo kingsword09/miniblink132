@@ -21,32 +21,27 @@ class LocalHeap;
 // TickAndMaybeEnterSafepoint() should be called frequently thoughout the
 // compilation.
 class TickCounter {
-public:
-    void TickAndMaybeEnterSafepoint()
-    {
-        ++ticks_;
-        // Magical number to detect performance bugs or compiler divergence.
-        // Selected as being roughly 10x of what's needed frequently.
-        constexpr size_t kMaxTicks = 100000000;
-        USE(kMaxTicks);
-        DCHECK_LT(ticks_, kMaxTicks);
+ public:
+  void TickAndMaybeEnterSafepoint() {
+    ++ticks_;
+    // Magical number to detect performance bugs or compiler divergence.
+    // Selected as being roughly 10x of what's needed frequently.
+    constexpr size_t kMaxTicks = 100000000;
+    USE(kMaxTicks);
+    DCHECK_LT(ticks_, kMaxTicks);
 
-        if (local_heap_)
-            local_heap_->Safepoint();
-    }
-    void AttachLocalHeap(LocalHeap* local_heap);
-    void DetachLocalHeap();
-    size_t CurrentTicks() const
-    {
-        return ticks_;
-    }
+    if (local_heap_) local_heap_->Safepoint();
+  }
+  void AttachLocalHeap(LocalHeap* local_heap);
+  void DetachLocalHeap();
+  size_t CurrentTicks() const { return ticks_; }
 
-private:
-    size_t ticks_ = 0;
-    LocalHeap* local_heap_ = nullptr;
+ private:
+  size_t ticks_ = 0;
+  LocalHeap* local_heap_ = nullptr;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_TICK_COUNTER_H_
+#endif  // V8_CODEGEN_TICK_COUNTER_H_

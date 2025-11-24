@@ -9,7 +9,7 @@
 // either by pointer or using Local<Type>. The full definitions can be included
 // either via v8.h or the more fine-grained headers.
 
-#include "v8-local-handle.h" // NOLINT(build/include_directory)
+#include "v8-local-handle.h"  // NOLINT(build/include_directory)
 
 namespace v8 {
 
@@ -34,7 +34,8 @@ class FixedArray;
 class Float32Array;
 class Float64Array;
 class Function;
-template <class F> class FunctionCallbackInfo;
+template <class F>
+class FunctionCallbackInfo;
 class FunctionTemplate;
 class Int16Array;
 class Int32;
@@ -76,6 +77,6 @@ class Value;
 class WasmMemoryObject;
 class WasmModuleObject;
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_FORWARD_H_
+#endif  // INCLUDE_V8_FORWARD_H_

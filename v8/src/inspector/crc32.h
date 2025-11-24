@@ -13,4 +13,4 @@ int32_t computeCrc32(const String16&);
 
 }
 
-#endif // V8_INSPECTOR_CRC32_H_
+#endif  // V8_INSPECTOR_CRC32_H_

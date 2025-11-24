@@ -15,19 +15,20 @@ namespace internal {
 
 #include "torque-generated/src/objects/megadom-handler-tq.inc"
 
-class MegaDomHandler : public TorqueGeneratedMegaDomHandler<MegaDomHandler, HeapObject> {
-public:
-    void BriefPrintDetails(std::ostream& os);
-    class BodyDescriptor;
+class MegaDomHandler
+    : public TorqueGeneratedMegaDomHandler<MegaDomHandler, HeapObject> {
+ public:
+  void BriefPrintDetails(std::ostream& os);
+  class BodyDescriptor;
 
-    DECL_RELEASE_ACQUIRE_ACCESSORS(accessor, Tagged<MaybeObject>)
+  DECL_RELEASE_ACQUIRE_ACCESSORS(accessor, Tagged<MaybeObject>)
 
-    TQ_OBJECT_CONSTRUCTORS(MegaDomHandler)
+  TQ_OBJECT_CONSTRUCTORS(MegaDomHandler)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_MEGADOM_HANDLER_H_
+#endif  // V8_OBJECTS_MEGADOM_HANDLER_H_

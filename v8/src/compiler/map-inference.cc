@@ -15,150 +15,135 @@ namespace internal {
 namespace compiler {
 
 MapInference::MapInference(JSHeapBroker* broker, Node* object, Effect effect)
-    : broker_(broker)
-    , object_(object)
-{
-    auto result = NodeProperties::InferMapsUnsafe(broker_, object_, effect, &maps_);
-    maps_state_ = (result == NodeProperties::kUnreliableMaps) ? kUnreliableDontNeedGuard : kReliableOrGuarded;
-    DCHECK_EQ(maps_.is_empty(), result == NodeProperties::kNoMaps);
+    : broker_(broker), object_(object) {
+  auto result =
+      NodeProperties::InferMapsUnsafe(broker_, object_, effect, &maps_);
+  maps_state_ = (result == NodeProperties::kUnreliableMaps)
+                    ? kUnreliableDontNeedGuard
+                    : kReliableOrGuarded;
+  DCHECK_EQ(maps_.is_empty(), result == NodeProperties::kNoMaps);
 }
 
-MapInference::~MapInference()
-{
-    CHECK(Safe());
+MapInference::~MapInference() { CHECK(Safe()); }
+
+bool MapInference::Safe() const { return maps_state_ != kUnreliableNeedGuard; }
+
+void MapInference::SetNeedGuardIfUnreliable() {
+  CHECK(HaveMaps());
+  if (maps_state_ == kUnreliableDontNeedGuard) {
+    maps_state_ = kUnreliableNeedGuard;
+  }
 }
 
-bool MapInference::Safe() const
-{
-    return maps_state_ != kUnreliableNeedGuard;
+void MapInference::SetGuarded() { maps_state_ = kReliableOrGuarded; }
+
+bool MapInference::HaveMaps() const { return !maps_.is_empty(); }
+
+bool MapInference::AllOfInstanceTypesAreJSReceiver() const {
+  return AllOfInstanceTypesUnsafe(
+      static_cast<bool (*)(InstanceType)>(&InstanceTypeChecker::IsJSReceiver));
 }
 
-void MapInference::SetNeedGuardIfUnreliable()
-{
-    CHECK(HaveMaps());
-    if (maps_state_ == kUnreliableDontNeedGuard) {
-        maps_state_ = kUnreliableNeedGuard;
-    }
+bool MapInference::AllOfInstanceTypesAre(InstanceType type) const {
+  CHECK(!InstanceTypeChecker::IsString(type));
+  return AllOfInstanceTypesUnsafe(
+      [type](InstanceType other) { return type == other; });
 }
 
-void MapInference::SetGuarded()
-{
-    maps_state_ = kReliableOrGuarded;
+bool MapInference::AnyOfInstanceTypesAre(InstanceType type) const {
+  CHECK(!InstanceTypeChecker::IsString(type));
+  return AnyOfInstanceTypesUnsafe(
+      [type](InstanceType other) { return type == other; });
 }
 
-bool MapInference::HaveMaps() const
-{
-    return !maps_.is_empty();
+bool MapInference::AllOfInstanceTypes(std::function<bool(InstanceType)> f) {
+  SetNeedGuardIfUnreliable();
+  return AllOfInstanceTypesUnsafe(f);
 }
 
-bool MapInference::AllOfInstanceTypesAreJSReceiver() const
-{
-    return AllOfInstanceTypesUnsafe(static_cast<bool (*)(InstanceType)>(&InstanceTypeChecker::IsJSReceiver));
+bool MapInference::AllOfInstanceTypesUnsafe(
+    std::function<bool(InstanceType)> f) const {
+  CHECK(HaveMaps());
+
+  auto instance_type = [f](MapRef map) { return f(map.instance_type()); };
+  return std::all_of(maps_.begin(), maps_.end(), instance_type);
 }
 
-bool MapInference::AllOfInstanceTypesAre(InstanceType type) const
-{
-    CHECK(!InstanceTypeChecker::IsString(type));
-    return AllOfInstanceTypesUnsafe([type](InstanceType other) { return type == other; });
+bool MapInference::AnyOfInstanceTypesUnsafe(
+    std::function<bool(InstanceType)> f) const {
+  CHECK(HaveMaps());
+
+  auto instance_type = [f](MapRef map) { return f(map.instance_type()); };
+
+  return std::any_of(maps_.begin(), maps_.end(), instance_type);
 }
 
-bool MapInference::AnyOfInstanceTypesAre(InstanceType type) const
-{
-    CHECK(!InstanceTypeChecker::IsString(type));
-    return AnyOfInstanceTypesUnsafe([type](InstanceType other) { return type == other; });
+ZoneRefSet<Map> const& MapInference::GetMaps() {
+  SetNeedGuardIfUnreliable();
+  return maps_;
 }
 
-bool MapInference::AllOfInstanceTypes(std::function<bool(InstanceType)> f)
-{
-    SetNeedGuardIfUnreliable();
-    return AllOfInstanceTypesUnsafe(f);
+bool MapInference::Is(MapRef expected_map) {
+  if (!HaveMaps()) return false;
+  if (maps_.size() != 1) return false;
+  return maps_.at(0).equals(expected_map);
 }
 
-bool MapInference::AllOfInstanceTypesUnsafe(std::function<bool(InstanceType)> f) const
-{
-    CHECK(HaveMaps());
-
-    auto instance_type = [f](MapRef map) { return f(map.instance_type()); };
-    return std::all_of(maps_.begin(), maps_.end(), instance_type);
+void MapInference::InsertMapChecks(JSGraph* jsgraph, Effect* effect,
+                                   Control control,
+                                   const FeedbackSource& feedback) {
+  CHECK(HaveMaps());
+  CHECK(feedback.IsValid());
+  *effect = jsgraph->graph()->NewNode(
+      jsgraph->simplified()->CheckMaps(CheckMapsFlag::kNone, maps_, feedback),
+      object_, *effect, control);
+  SetGuarded();
 }
 
-bool MapInference::AnyOfInstanceTypesUnsafe(std::function<bool(InstanceType)> f) const
-{
-    CHECK(HaveMaps());
-
-    auto instance_type = [f](MapRef map) { return f(map.instance_type()); };
-
-    return std::any_of(maps_.begin(), maps_.end(), instance_type);
-}
-
-ZoneRefSet<Map> const& MapInference::GetMaps()
-{
-    SetNeedGuardIfUnreliable();
-    return maps_;
-}
-
-bool MapInference::Is(MapRef expected_map)
-{
-    if (!HaveMaps())
-        return false;
-    if (maps_.size() != 1)
-        return false;
-    return maps_.at(0).equals(expected_map);
-}
-
-void MapInference::InsertMapChecks(JSGraph* jsgraph, Effect* effect, Control control, const FeedbackSource& feedback)
-{
-    CHECK(HaveMaps());
-    CHECK(feedback.IsValid());
-    *effect = jsgraph->graph()->NewNode(jsgraph->simplified()->CheckMaps(CheckMapsFlag::kNone, maps_, feedback), object_, *effect, control);
-    SetGuarded();
-}
-
-bool MapInference::RelyOnMapsViaStability(CompilationDependencies* dependencies)
-{
-    CHECK(HaveMaps());
-    return RelyOnMapsHelper(dependencies, nullptr, nullptr, Control { nullptr }, {});
+bool MapInference::RelyOnMapsViaStability(
+    CompilationDependencies* dependencies) {
+  CHECK(HaveMaps());
+  return RelyOnMapsHelper(dependencies, nullptr, nullptr, Control{nullptr}, {});
 }
 
 bool MapInference::RelyOnMapsPreferStability(
-    CompilationDependencies* dependencies, JSGraph* jsgraph, Effect* effect, Control control, const FeedbackSource& feedback)
-{
-    CHECK(HaveMaps());
-    if (Safe())
-        return false;
-    if (RelyOnMapsViaStability(dependencies))
-        return true;
-    CHECK(RelyOnMapsHelper(nullptr, jsgraph, effect, control, feedback));
-    return false;
+    CompilationDependencies* dependencies, JSGraph* jsgraph, Effect* effect,
+    Control control, const FeedbackSource& feedback) {
+  CHECK(HaveMaps());
+  if (Safe()) return false;
+  if (RelyOnMapsViaStability(dependencies)) return true;
+  CHECK(RelyOnMapsHelper(nullptr, jsgraph, effect, control, feedback));
+  return false;
 }
 
-bool MapInference::RelyOnMapsHelper(CompilationDependencies* dependencies, JSGraph* jsgraph, Effect* effect, Control control, const FeedbackSource& feedback)
-{
-    if (Safe())
-        return true;
+bool MapInference::RelyOnMapsHelper(CompilationDependencies* dependencies,
+                                    JSGraph* jsgraph, Effect* effect,
+                                    Control control,
+                                    const FeedbackSource& feedback) {
+  if (Safe()) return true;
 
-    auto is_stable = [](MapRef map) { return map.is_stable(); };
-    if (dependencies != nullptr && std::all_of(maps_.begin(), maps_.end(), is_stable)) {
-        for (MapRef map : maps_) {
-            dependencies->DependOnStableMap(map);
-        }
-        SetGuarded();
-        return true;
-    } else if (feedback.IsValid()) {
-        InsertMapChecks(jsgraph, effect, control, feedback);
-        return true;
-    } else {
-        return false;
+  auto is_stable = [](MapRef map) { return map.is_stable(); };
+  if (dependencies != nullptr &&
+      std::all_of(maps_.begin(), maps_.end(), is_stable)) {
+    for (MapRef map : maps_) {
+      dependencies->DependOnStableMap(map);
     }
-}
-
-Reduction MapInference::NoChange()
-{
     SetGuarded();
-    maps_.clear(); // Just to make some CHECKs fail if {this} gets used after.
-    return Reducer::NoChange();
+    return true;
+  } else if (feedback.IsValid()) {
+    InsertMapChecks(jsgraph, effect, control, feedback);
+    return true;
+  } else {
+    return false;
+  }
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+Reduction MapInference::NoChange() {
+  SetGuarded();
+  maps_.clear();  // Just to make some CHECKs fail if {this} gets used after.
+  return Reducer::NoChange();
+}
+
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

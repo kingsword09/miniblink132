@@ -11,36 +11,32 @@
 namespace v8::internal {
 
 class ExclusiveObjectLock final {
-public:
-    V8_INLINE static void Lock(Tagged<HeapObject> heap_object);
-    V8_INLINE static void Unlock(Tagged<HeapObject> heap_object);
+ public:
+  V8_INLINE static void Lock(Tagged<HeapObject> heap_object);
+  V8_INLINE static void Unlock(Tagged<HeapObject> heap_object);
 };
 
 class SharedObjectLock final {
-public:
-    V8_INLINE static void Lock(Tagged<HeapObject> heap_object);
-    V8_INLINE static void Unlock(Tagged<HeapObject> heap_object);
+ public:
+  V8_INLINE static void Lock(Tagged<HeapObject> heap_object);
+  V8_INLINE static void Unlock(Tagged<HeapObject> heap_object);
 };
 
-template <typename LockType> class ObjectLockGuard final {
-public:
-    explicit ObjectLockGuard(Tagged<HeapObject> object)
-        : raw_object_(object)
-    {
-        LockType::Lock(object);
-    }
-    ~ObjectLockGuard()
-    {
-        LockType::Unlock(raw_object_);
-    }
+template <typename LockType>
+class ObjectLockGuard final {
+ public:
+  explicit ObjectLockGuard(Tagged<HeapObject> object) : raw_object_(object) {
+    LockType::Lock(object);
+  }
+  ~ObjectLockGuard() { LockType::Unlock(raw_object_); }
 
-private:
-    Tagged<HeapObject> raw_object_;
+ private:
+  Tagged<HeapObject> raw_object_;
 };
 
 using ExclusiveObjectLockGuard = ObjectLockGuard<ExclusiveObjectLock>;
 using SharedObjectLockGuard = ObjectLockGuard<SharedObjectLock>;
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_HEAP_OBJECT_LOCK_H_
+#endif  // V8_HEAP_OBJECT_LOCK_H_

@@ -15,14 +15,20 @@ class Heap;
 class MemoryChunkMetadata;
 
 class HeapLayoutTracer : AllStatic {
-public:
-    static void GCProloguePrintHeapLayout(v8::Isolate* isolate, v8::GCType gc_type, v8::GCCallbackFlags flags, void* data);
-    static void GCEpiloguePrintHeapLayout(v8::Isolate* isolate, v8::GCType gc_type, v8::GCCallbackFlags flags, void* data);
+ public:
+  static void GCProloguePrintHeapLayout(v8::Isolate* isolate,
+                                        v8::GCType gc_type,
+                                        v8::GCCallbackFlags flags, void* data);
+  static void GCEpiloguePrintHeapLayout(v8::Isolate* isolate,
+                                        v8::GCType gc_type,
+                                        v8::GCCallbackFlags flags, void* data);
 
-private:
-    static void PrintMemoryChunk(std::ostream& os, const MemoryChunkMetadata& chunk, const char* owner_name);
-    static void PrintHeapLayout(std::ostream& os, Heap* heap);
+ private:
+  static void PrintMemoryChunk(std::ostream& os,
+                               const MemoryChunkMetadata& chunk,
+                               const char* owner_name);
+  static void PrintHeapLayout(std::ostream& os, Heap* heap);
 };
-} // namespace internal
-} // namespace v8
-#endif // V8_HEAP_HEAP_LAYOUT_TRACER_H_
+}  // namespace internal
+}  // namespace v8
+#endif  // V8_HEAP_HEAP_LAYOUT_TRACER_H_

@@ -14,7 +14,7 @@ namespace base {
 // contain a dot or a sign. It must not start with '0', and must not be empty.
 V8_BASE_EXPORT double Strtod(Vector<const char> buffer, int exponent);
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_NUMBERS_STRTOD_H_
+#endif  // V8_BASE_NUMBERS_STRTOD_H_

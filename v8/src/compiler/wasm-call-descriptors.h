@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_COMPILER_WASM_CALL_DESCRIPTORS_H_
 #define V8_COMPILER_WASM_CALL_DESCRIPTORS_H_
@@ -22,39 +22,39 @@ namespace compiler {
 class CallDescriptor;
 
 class WasmCallDescriptors {
-public:
-    explicit WasmCallDescriptors(AccountingAllocator* allocator);
+ public:
+  explicit WasmCallDescriptors(AccountingAllocator* allocator);
 
-    compiler::CallDescriptor* GetBigIntToI64Descriptor(bool needs_frame_state)
-    {
-        if (needs_frame_state) {
-            return bigint_to_i64_descriptor_with_framestate_;
-        }
-        return bigint_to_i64_descriptor_;
+  compiler::CallDescriptor* GetBigIntToI64Descriptor(bool needs_frame_state) {
+    if (needs_frame_state) {
+      return bigint_to_i64_descriptor_with_framestate_;
     }
+    return bigint_to_i64_descriptor_;
+  }
 
 #if V8_TARGET_ARCH_32_BIT
-    V8_EXPORT_PRIVATE compiler::CallDescriptor* GetLoweredCallDescriptor(const compiler::CallDescriptor* original);
+  V8_EXPORT_PRIVATE compiler::CallDescriptor* GetLoweredCallDescriptor(
+      const compiler::CallDescriptor* original);
 #else
-    V8_EXPORT_PRIVATE compiler::CallDescriptor* GetLoweredCallDescriptor(const compiler::CallDescriptor* original)
-    {
-        UNREACHABLE();
-    }
-#endif // V8_TARGET_ARCH_32_BIT
+  V8_EXPORT_PRIVATE compiler::CallDescriptor* GetLoweredCallDescriptor(
+      const compiler::CallDescriptor* original) {
+    UNREACHABLE();
+  }
+#endif  // V8_TARGET_ARCH_32_BIT
 
-private:
-    std::unique_ptr<Zone> zone_;
+ private:
+  std::unique_ptr<Zone> zone_;
 
-    compiler::CallDescriptor* bigint_to_i64_descriptor_;
-    compiler::CallDescriptor* bigint_to_i64_descriptor_with_framestate_;
+  compiler::CallDescriptor* bigint_to_i64_descriptor_;
+  compiler::CallDescriptor* bigint_to_i64_descriptor_with_framestate_;
 
 #if V8_TARGET_ARCH_32_BIT
-    compiler::CallDescriptor* bigint_to_i32pair_descriptor_;
-    compiler::CallDescriptor* bigint_to_i32pair_descriptor_with_framestate_;
-#endif // V8_TARGET_ARCH_32_BIT
+  compiler::CallDescriptor* bigint_to_i32pair_descriptor_;
+  compiler::CallDescriptor* bigint_to_i32pair_descriptor_with_framestate_;
+#endif  // V8_TARGET_ARCH_32_BIT
 };
 
-} // namespace compiler
-} // namespace v8::internal
+}  // namespace compiler
+}  // namespace v8::internal
 
-#endif // V8_COMPILER_WASM_CALL_DESCRIPTORS_H_
+#endif  // V8_COMPILER_WASM_CALL_DESCRIPTORS_H_

@@ -28,7 +28,8 @@ std::string FindKnownObjectInMapSpace(uintptr_t offset);
 
 // In builds with pointer compression enabled, sets the *_first_page members in
 // the HeapAddresses object. In other builds, does nothing.
-void FillInUnknownHeapAddresses(d::HeapAddresses* heap_addresses, uintptr_t any_uncompressed_ptr);
+void FillInUnknownHeapAddresses(d::HeapAddresses* heap_addresses,
+                                uintptr_t any_uncompressed_ptr);
 
 // Returns the instance type for the known Map, given its offset within the
 // first page of the space, or empty string on failure.
@@ -40,35 +41,32 @@ int FindKnownMapInstanceTypeInReadOnlySpace(uintptr_t offset);
 
 // Returns a descriptive string if the given address matches a known object, or
 // an empty string otherwise.
-std::string FindKnownObject(uintptr_t address, const d::HeapAddresses& heap_addresses);
+std::string FindKnownObject(uintptr_t address,
+                            const d::HeapAddresses& heap_addresses);
 
 struct KnownInstanceType {
-    enum class Confidence {
-        kLow,
-        kHigh,
-    };
-    KnownInstanceType()
-        : confidence(Confidence::kLow)
-    {
+  enum class Confidence {
+    kLow,
+    kHigh,
+  };
+  KnownInstanceType() : confidence(Confidence::kLow) {}
+  KnownInstanceType(int type) : KnownInstanceType() {
+    if (type >= 0) {
+      confidence = Confidence::kHigh;
+      types.push_back(static_cast<v8::internal::InstanceType>(type));
     }
-    KnownInstanceType(int type)
-        : KnownInstanceType()
-    {
-        if (type >= 0) {
-            confidence = Confidence::kHigh;
-            types.push_back(static_cast<v8::internal::InstanceType>(type));
-        }
-    }
-    Confidence confidence;
-    std::vector<v8::internal::InstanceType> types;
+  }
+  Confidence confidence;
+  std::vector<v8::internal::InstanceType> types;
 };
 
 // Returns information about the instance type of the Map at the given address,
 // based on the list of known Maps.
-KnownInstanceType FindKnownMapInstanceTypes(uintptr_t address, const d::HeapAddresses& heap_addresses);
+KnownInstanceType FindKnownMapInstanceTypes(
+    uintptr_t address, const d::HeapAddresses& heap_addresses);
 
-} // namespace debug_helper_internal
-} // namespace internal
-} // namespace v8
+}  // namespace debug_helper_internal
+}  // namespace internal
+}  // namespace v8
 
 #endif

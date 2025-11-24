@@ -20,19 +20,20 @@ class NativeContext;
 
 // ShadowRealm object from the JS ShadowRealm spec proposal:
 // https://github.com/tc39/proposal-shadowrealm
-class JSShadowRealm : public TorqueGeneratedJSShadowRealm<JSShadowRealm, JSObject> {
-public:
-    DECL_PRINTER(JSShadowRealm)
-    EXPORT_DECL_VERIFIER(JSShadowRealm)
+class JSShadowRealm
+    : public TorqueGeneratedJSShadowRealm<JSShadowRealm, JSObject> {
+ public:
+  DECL_PRINTER(JSShadowRealm)
+  EXPORT_DECL_VERIFIER(JSShadowRealm)
 
-    class BodyDescriptor;
+  class BodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(JSShadowRealm)
+  TQ_OBJECT_CONSTRUCTORS(JSShadowRealm)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_SHADOW_REALM_H_
+#endif  // V8_OBJECTS_JS_SHADOW_REALM_H_

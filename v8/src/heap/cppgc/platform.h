@@ -16,26 +16,25 @@ namespace cppgc::internal {
 class HeapBase;
 
 class V8_EXPORT_PRIVATE FatalOutOfMemoryHandler final {
-public:
-    using Callback = void(const std::string&, const SourceLocation&, HeapBase*);
+ public:
+  using Callback = void(const std::string&, const SourceLocation&, HeapBase*);
 
-    FatalOutOfMemoryHandler() = default;
-    explicit FatalOutOfMemoryHandler(HeapBase* heap)
-        : heap_(heap)
-    {
-    }
+  FatalOutOfMemoryHandler() = default;
+  explicit FatalOutOfMemoryHandler(HeapBase* heap) : heap_(heap) {}
 
-    [[noreturn]] void operator()(const std::string& reason = std::string(), const SourceLocation& = SourceLocation::Current()) const;
+  [[noreturn]] void operator()(
+      const std::string& reason = std::string(),
+      const SourceLocation& = SourceLocation::Current()) const;
 
-    void SetCustomHandler(Callback*);
+  void SetCustomHandler(Callback*);
 
-    // Disallow copy/move.
-    FatalOutOfMemoryHandler(const FatalOutOfMemoryHandler&) = delete;
-    FatalOutOfMemoryHandler& operator=(const FatalOutOfMemoryHandler&) = delete;
+  // Disallow copy/move.
+  FatalOutOfMemoryHandler(const FatalOutOfMemoryHandler&) = delete;
+  FatalOutOfMemoryHandler& operator=(const FatalOutOfMemoryHandler&) = delete;
 
-private:
-    HeapBase* heap_ = nullptr;
-    Callback* custom_handler_ = nullptr;
+ private:
+  HeapBase* heap_ = nullptr;
+  Callback* custom_handler_ = nullptr;
 };
 
 // Gets the global OOM handler that is not bound to any specific Heap instance.
@@ -44,6 +43,6 @@ FatalOutOfMemoryHandler& GetGlobalOOMHandler();
 // Gets the gobal PageAllocator that is not bound to any specific Heap instance.
 PageAllocator& GetGlobalPageAllocator();
 
-} // namespace cppgc::internal
+}  // namespace cppgc::internal
 
-#endif // V8_HEAP_CPPGC_PLATFORM_H_
+#endif  // V8_HEAP_CPPGC_PLATFORM_H_

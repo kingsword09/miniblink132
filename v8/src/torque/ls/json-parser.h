@@ -14,12 +14,12 @@
 namespace v8::internal::torque::ls {
 
 struct JsonParserResult {
-    JsonValue value;
-    std::optional<TorqueMessage> error;
+  JsonValue value;
+  std::optional<TorqueMessage> error;
 };
 
 V8_EXPORT_PRIVATE JsonParserResult ParseJson(const std::string& input);
 
-} // namespace v8::internal::torque::ls
+}  // namespace v8::internal::torque::ls
 
-#endif // V8_TORQUE_LS_JSON_PARSER_H_
+#endif  // V8_TORQUE_LS_JSON_PARSER_H_

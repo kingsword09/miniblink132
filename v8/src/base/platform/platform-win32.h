@@ -15,36 +15,36 @@ namespace base {
 // but on Windows 10 version 1803 and newer, this class allows much shorter
 // sleeps including sub-millisecond intervals.
 class V8_BASE_EXPORT PreciseSleepTimer {
-public:
-    PreciseSleepTimer();
-    ~PreciseSleepTimer();
+ public:
+  PreciseSleepTimer();
+  ~PreciseSleepTimer();
 
-    // Moving is supported but copying is not, because this class owns a
-    // platform handle.
-    PreciseSleepTimer(const PreciseSleepTimer& other) = delete;
-    PreciseSleepTimer& operator=(const PreciseSleepTimer& other) = delete;
-    PreciseSleepTimer(PreciseSleepTimer&& other) V8_NOEXCEPT;
-    PreciseSleepTimer& operator=(PreciseSleepTimer&& other) V8_NOEXCEPT;
+  // Moving is supported but copying is not, because this class owns a
+  // platform handle.
+  PreciseSleepTimer(const PreciseSleepTimer& other) = delete;
+  PreciseSleepTimer& operator=(const PreciseSleepTimer& other) = delete;
+  PreciseSleepTimer(PreciseSleepTimer&& other) V8_NOEXCEPT;
+  PreciseSleepTimer& operator=(PreciseSleepTimer&& other) V8_NOEXCEPT;
 
-    // Attempts to initialize this timer. Precise timers are only available on
-    // Windows 10 version 1803 and later. To check whether initialization worked,
-    // use IsInitialized.
-    void TryInit();
+  // Attempts to initialize this timer. Precise timers are only available on
+  // Windows 10 version 1803 and later. To check whether initialization worked,
+  // use IsInitialized.
+  void TryInit();
 
-    bool IsInitialized() const;
+  bool IsInitialized() const;
 
-    // Sleeps for a specified time interval. This function requires that the timer
-    // has been initialized, as can be checked with IsInitialized. A single
-    // PreciseSleepTimer instance must not be used simultaneously on multiple
-    // threads.
-    void Sleep(TimeDelta interval) const;
+  // Sleeps for a specified time interval. This function requires that the timer
+  // has been initialized, as can be checked with IsInitialized. A single
+  // PreciseSleepTimer instance must not be used simultaneously on multiple
+  // threads.
+  void Sleep(TimeDelta interval) const;
 
-private:
-    void Close();
-    HANDLE timer_;
+ private:
+  void Close();
+  HANDLE timer_;
 };
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_PLATFORM_PLATFORM_WIN32_H_
+#endif  // V8_BASE_PLATFORM_PLATFORM_WIN32_H_

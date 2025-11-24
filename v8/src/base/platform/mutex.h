@@ -52,81 +52,76 @@ class ConditionVariable;
 // while still owned by some thread. The Mutex class is non-copyable.
 
 class V8_BASE_EXPORT Mutex final {
-public:
-    Mutex();
-    Mutex(const Mutex&) = delete;
-    Mutex& operator=(const Mutex&) = delete;
-    ~Mutex();
+ public:
+  Mutex();
+  Mutex(const Mutex&) = delete;
+  Mutex& operator=(const Mutex&) = delete;
+  ~Mutex();
 
-    // Locks the given mutex. If the mutex is currently unlocked, it becomes
-    // locked and owned by the calling thread, and immediately. If the mutex
-    // is already locked by another thread, suspends the calling thread until
-    // the mutex is unlocked.
-    void Lock();
+  // Locks the given mutex. If the mutex is currently unlocked, it becomes
+  // locked and owned by the calling thread, and immediately. If the mutex
+  // is already locked by another thread, suspends the calling thread until
+  // the mutex is unlocked.
+  void Lock();
 
-    // Unlocks the given mutex. The mutex is assumed to be locked and owned by
-    // the calling thread on entrance.
-    void Unlock();
+  // Unlocks the given mutex. The mutex is assumed to be locked and owned by
+  // the calling thread on entrance.
+  void Unlock();
 
-    // Tries to lock the given mutex. Returns whether the mutex was
-    // successfully locked.
-    // Note: Instead of `DCHECK(!mutex.TryLock())` use `mutex.AssertHeld()`.
-    bool TryLock() V8_WARN_UNUSED_RESULT;
+  // Tries to lock the given mutex. Returns whether the mutex was
+  // successfully locked.
+  // Note: Instead of `DCHECK(!mutex.TryLock())` use `mutex.AssertHeld()`.
+  bool TryLock() V8_WARN_UNUSED_RESULT;
 
-    // The implementation-defined native handle type.
+  // The implementation-defined native handle type.
 #if V8_OS_POSIX
-    using NativeHandle = pthread_mutex_t;
+  using NativeHandle = pthread_mutex_t;
 #elif V8_OS_WIN
-    using NativeHandle = V8_SRWLOCK;
+  using NativeHandle = V8_SRWLOCK;
 #elif V8_OS_STARBOARD
-    using NativeHandle = SbMutex;
+  using NativeHandle = SbMutex;
 #endif
 
-    NativeHandle& native_handle()
-    {
-        return native_handle_;
-    }
-    const NativeHandle& native_handle() const
-    {
-        return native_handle_;
-    }
+  NativeHandle& native_handle() {
+    return native_handle_;
+  }
+  const NativeHandle& native_handle() const {
+    return native_handle_;
+  }
 
-    V8_INLINE void AssertHeld() const
-    {
-        // If this access results in a race condition being detected by TSan, this
-        // means that you in fact did *not* hold the mutex.
-        DCHECK_EQ(1, level_);
-    }
+  V8_INLINE void AssertHeld() const {
+    // If this access results in a race condition being detected by TSan, this
+    // means that you in fact did *not* hold the mutex.
+    DCHECK_EQ(1, level_);
+  }
 
-private:
-    NativeHandle native_handle_;
-#ifdef V8_DEBUG
-    // This is being used for Assert* methods. Accesses are only allowed if you
-    // actually hold the mutex, otherwise you would get race conditions.
-    int level_;
+ private:
+  NativeHandle native_handle_;
+#ifdef DEBUG
+  // This is being used for Assert* methods. Accesses are only allowed if you
+  // actually hold the mutex, otherwise you would get race conditions.
+  int level_;
 #endif
 
-    V8_INLINE void AssertHeldAndUnmark()
-    {
-#ifdef V8_DEBUG
-        // If this access results in a race condition being detected by TSan, this
-        // means that you in fact did *not* hold the mutex.
-        DCHECK_EQ(1, level_);
-        level_--;
+  V8_INLINE void AssertHeldAndUnmark() {
+#ifdef DEBUG
+    // If this access results in a race condition being detected by TSan, this
+    // means that you in fact did *not* hold the mutex.
+    DCHECK_EQ(1, level_);
+    level_--;
 #endif
-    }
+  }
 
-    V8_INLINE void AssertUnheldAndMark()
-    {
-#ifdef V8_DEBUG
-        // This is only invoked *after* actually getting the mutex, so should not
-        // result in race conditions.
-        DCHECK_EQ(0, level_);
-        level_++;
+  V8_INLINE void AssertUnheldAndMark() {
+#ifdef DEBUG
+    // This is only invoked *after* actually getting the mutex, so should not
+    // result in race conditions.
+    DCHECK_EQ(0, level_);
+    level_++;
 #endif
-    }
+  }
 
-    friend class ConditionVariable;
+  friend class ConditionVariable;
 };
 
 // POD Mutex initialized lazily (i.e. the first time Pointer() is called).
@@ -138,7 +133,8 @@ private:
 //     // Do something.
 //   }
 //
-using LazyMutex = LazyStaticInstance<Mutex, DefaultConstructTrait<Mutex>, ThreadSafeInitOnceTrait>::type;
+using LazyMutex = LazyStaticInstance<Mutex, DefaultConstructTrait<Mutex>,
+                                     ThreadSafeInitOnceTrait>::type;
 
 #define LAZY_MUTEX_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 
@@ -163,56 +159,56 @@ using LazyMutex = LazyStaticInstance<Mutex, DefaultConstructTrait<Mutex>, Thread
 // while still owned by some thread. The RecursiveMutex class is non-copyable.
 
 class V8_BASE_EXPORT RecursiveMutex final {
-public:
-    RecursiveMutex();
-    RecursiveMutex(const RecursiveMutex&) = delete;
-    RecursiveMutex& operator=(const RecursiveMutex&) = delete;
-    ~RecursiveMutex();
+ public:
+  RecursiveMutex();
+  RecursiveMutex(const RecursiveMutex&) = delete;
+  RecursiveMutex& operator=(const RecursiveMutex&) = delete;
+  ~RecursiveMutex();
 
-    // Locks the mutex. If another thread has already locked the mutex, a call to
-    // |Lock()| will block execution until the lock is acquired. A thread may call
-    // |Lock()| on a recursive mutex repeatedly. Ownership will only be released
-    // after the thread makes a matching number of calls to |Unlock()|.
-    // The behavior is undefined if the mutex is not unlocked before being
-    // destroyed, i.e. some thread still owns it.
-    void Lock();
+  // Locks the mutex. If another thread has already locked the mutex, a call to
+  // |Lock()| will block execution until the lock is acquired. A thread may call
+  // |Lock()| on a recursive mutex repeatedly. Ownership will only be released
+  // after the thread makes a matching number of calls to |Unlock()|.
+  // The behavior is undefined if the mutex is not unlocked before being
+  // destroyed, i.e. some thread still owns it.
+  void Lock();
 
-    // Unlocks the mutex if its level of ownership is 1 (there was exactly one
-    // more call to |Lock()| than there were calls to unlock() made by this
-    // thread), reduces the level of ownership by 1 otherwise. The mutex must be
-    // locked by the current thread of execution, otherwise, the behavior is
-    // undefined.
-    void Unlock();
+  // Unlocks the mutex if its level of ownership is 1 (there was exactly one
+  // more call to |Lock()| than there were calls to unlock() made by this
+  // thread), reduces the level of ownership by 1 otherwise. The mutex must be
+  // locked by the current thread of execution, otherwise, the behavior is
+  // undefined.
+  void Unlock();
 
-    // Tries to lock the given mutex. Returns whether the mutex was
-    // successfully locked.
-    // Note: Instead of `DCHECK(!mutex.TryLock())` use `mutex.AssertHeld()`.
-    bool TryLock() V8_WARN_UNUSED_RESULT;
+  // Tries to lock the given mutex. Returns whether the mutex was
+  // successfully locked.
+  // Note: Instead of `DCHECK(!mutex.TryLock())` use `mutex.AssertHeld()`.
+  bool TryLock() V8_WARN_UNUSED_RESULT;
 
-    V8_INLINE void AssertHeld() const
-    {
-        // If this access results in a race condition being detected by TSan, this
-        // mean that you in fact did *not* hold the mutex.
-        DCHECK_LT(0, level_);
-    }
+  V8_INLINE void AssertHeld() const {
+    // If this access results in a race condition being detected by TSan, this
+    // mean that you in fact did *not* hold the mutex.
+    DCHECK_LT(0, level_);
+  }
 
-private:
-    // The implementation-defined native handle type.
+ private:
+  // The implementation-defined native handle type.
 #if V8_OS_POSIX
-    using NativeHandle = pthread_mutex_t;
+  using NativeHandle = pthread_mutex_t;
 #elif V8_OS_WIN
-    using NativeHandle = V8_CRITICAL_SECTION;
+  using NativeHandle = V8_CRITICAL_SECTION;
 #elif V8_OS_STARBOARD
-    using NativeHandle = starboard::RecursiveMutex;
+  using NativeHandle = starboard::RecursiveMutex;
 #endif
 
-    NativeHandle native_handle_;
-#ifdef V8_DEBUG
-    // This is being used for Assert* methods. Accesses are only allowed if you
-    // actually hold the mutex, otherwise you would get race conditions.
-    int level_;
+  NativeHandle native_handle_;
+#ifdef DEBUG
+  // This is being used for Assert* methods. Accesses are only allowed if you
+  // actually hold the mutex, otherwise you would get race conditions.
+  int level_;
 #endif
 };
+
 
 // POD RecursiveMutex initialized lazily (i.e. the first time Pointer() is
 // called).
@@ -224,7 +220,9 @@ private:
 //     // Do something.
 //   }
 //
-using LazyRecursiveMutex = LazyStaticInstance<RecursiveMutex, DefaultConstructTrait<RecursiveMutex>, ThreadSafeInitOnceTrait>::type;
+using LazyRecursiveMutex =
+    LazyStaticInstance<RecursiveMutex, DefaultConstructTrait<RecursiveMutex>,
+                       ThreadSafeInitOnceTrait>::type;
 
 #define LAZY_RECURSIVE_MUTEX_INITIALIZER LAZY_STATIC_INSTANCE_INITIALIZER
 
@@ -243,71 +241,71 @@ using LazyRecursiveMutex = LazyStaticInstance<RecursiveMutex, DefaultConstructTr
 // The SharedMutex class is non-copyable.
 
 class V8_BASE_EXPORT SharedMutex final {
-public:
-    SharedMutex();
-    SharedMutex(const SharedMutex&) = delete;
-    SharedMutex& operator=(const SharedMutex&) = delete;
-    ~SharedMutex();
+ public:
+  SharedMutex();
+  SharedMutex(const SharedMutex&) = delete;
+  SharedMutex& operator=(const SharedMutex&) = delete;
+  ~SharedMutex();
 
-    // Acquires shared ownership of the {SharedMutex}. If another thread is
-    // holding the mutex in exclusive ownership, a call to {LockShared()} will
-    // block execution until shared ownership can be acquired.
-    // If {LockShared()} is called by a thread that already owns the mutex in any
-    // mode (exclusive or shared), the behavior is undefined and outright fails
-    // with dchecks on.
-    void LockShared();
+  // Acquires shared ownership of the {SharedMutex}. If another thread is
+  // holding the mutex in exclusive ownership, a call to {LockShared()} will
+  // block execution until shared ownership can be acquired.
+  // If {LockShared()} is called by a thread that already owns the mutex in any
+  // mode (exclusive or shared), the behavior is undefined and outright fails
+  // with dchecks on.
+  void LockShared();
 
-    // Locks the SharedMutex. If another thread has already locked the mutex, a
-    // call to {LockExclusive()} will block execution until the lock is acquired.
-    // If {LockExclusive()} is called by a thread that already owns the mutex in
-    // any mode (shared or exclusive), the behavior is undefined and outright
-    // fails with dchecks on.
-    void LockExclusive();
+  // Locks the SharedMutex. If another thread has already locked the mutex, a
+  // call to {LockExclusive()} will block execution until the lock is acquired.
+  // If {LockExclusive()} is called by a thread that already owns the mutex in
+  // any mode (shared or exclusive), the behavior is undefined and outright
+  // fails with dchecks on.
+  void LockExclusive();
 
-    // Releases the {SharedMutex} from shared ownership by the calling thread.
-    // The mutex must be locked by the current thread of execution in shared mode,
-    // otherwise, the behavior is undefined and outright fails with dchecks on.
-    void UnlockShared();
+  // Releases the {SharedMutex} from shared ownership by the calling thread.
+  // The mutex must be locked by the current thread of execution in shared mode,
+  // otherwise, the behavior is undefined and outright fails with dchecks on.
+  void UnlockShared();
 
-    // Unlocks the {SharedMutex}. It must be locked by the current thread of
-    // execution, otherwise, the behavior is undefined and outright fails with
-    // dchecks on.
-    void UnlockExclusive();
+  // Unlocks the {SharedMutex}. It must be locked by the current thread of
+  // execution, otherwise, the behavior is undefined and outright fails with
+  // dchecks on.
+  void UnlockExclusive();
 
-    // Tries to lock the {SharedMutex} in shared mode. Returns immediately. On
-    // successful lock acquisition returns true, otherwise returns false.
-    // This function is allowed to fail spuriously and return false even if the
-    // mutex is not currenly exclusively locked by any other thread.
-    // If it is called by a thread that already owns the mutex in any mode
-    // (shared or exclusive), the behavior is undefined, and outright fails with
-    // dchecks on.
-    bool TryLockShared() V8_WARN_UNUSED_RESULT;
+  // Tries to lock the {SharedMutex} in shared mode. Returns immediately. On
+  // successful lock acquisition returns true, otherwise returns false.
+  // This function is allowed to fail spuriously and return false even if the
+  // mutex is not currenly exclusively locked by any other thread.
+  // If it is called by a thread that already owns the mutex in any mode
+  // (shared or exclusive), the behavior is undefined, and outright fails with
+  // dchecks on.
+  bool TryLockShared() V8_WARN_UNUSED_RESULT;
 
-    // Tries to lock the {SharedMutex}. Returns immediately. On successful lock
-    // acquisition returns true, otherwise returns false.
-    // This function is allowed to fail spuriously and return false even if the
-    // mutex is not currently locked by any other thread.
-    // If it is called by a thread that already owns the mutex in any mode
-    // (shared or exclusive), the behavior is undefined, and outright fails with
-    // dchecks on.
-    bool TryLockExclusive() V8_WARN_UNUSED_RESULT;
+  // Tries to lock the {SharedMutex}. Returns immediately. On successful lock
+  // acquisition returns true, otherwise returns false.
+  // This function is allowed to fail spuriously and return false even if the
+  // mutex is not currently locked by any other thread.
+  // If it is called by a thread that already owns the mutex in any mode
+  // (shared or exclusive), the behavior is undefined, and outright fails with
+  // dchecks on.
+  bool TryLockExclusive() V8_WARN_UNUSED_RESULT;
 
-private:
-    // The implementation-defined native handle type.
+ private:
+  // The implementation-defined native handle type.
 #if V8_OS_DARWIN
-    // pthread_rwlock_t is broken on MacOS when signals are being sent to the
-    // process (see https://crbug.com/v8/11399).
-    // We thus use std::shared_mutex on MacOS, which does not have this problem.
-    using NativeHandle = std::shared_mutex;
+  // pthread_rwlock_t is broken on MacOS when signals are being sent to the
+  // process (see https://crbug.com/v8/11399).
+  // We thus use std::shared_mutex on MacOS, which does not have this problem.
+  using NativeHandle = std::shared_mutex;
 #elif V8_OS_POSIX
-    using NativeHandle = pthread_rwlock_t;
+  using NativeHandle = pthread_rwlock_t;
 #elif V8_OS_WIN
-    using NativeHandle = V8_SRWLOCK;
+  using NativeHandle = V8_SRWLOCK;
 #elif V8_OS_STARBOARD
-    using NativeHandle = starboard::RWLock;
+  using NativeHandle = starboard::RWLock;
 #endif
 
-    NativeHandle native_handle_;
+  NativeHandle native_handle_;
 };
 
 // -----------------------------------------------------------------------------
@@ -324,35 +322,29 @@ private:
 // ignore it if it's nullptr.
 enum class NullBehavior { kRequireNotNull, kIgnoreIfNull };
 
-template <typename Mutex, NullBehavior Behavior = NullBehavior::kRequireNotNull> class V8_NODISCARD LockGuard final {
-public:
-    explicit LockGuard(Mutex* mutex)
-        : mutex_(mutex)
-    {
-        DCHECK_IMPLIES(Behavior == NullBehavior::kRequireNotNull, mutex_ != nullptr);
-        if (has_mutex())
-            mutex_->Lock();
-    }
-    LockGuard(const LockGuard&) = delete;
-    LockGuard& operator=(const LockGuard&) = delete;
-    LockGuard(LockGuard&& other) V8_NOEXCEPT : mutex_(other.mutex_)
-    {
-        DCHECK_IMPLIES(Behavior == NullBehavior::kRequireNotNull, mutex_ != nullptr);
-        other.mutex_ = nullptr;
-    }
-    ~LockGuard()
-    {
-        if (has_mutex())
-            mutex_->Unlock();
-    }
+template <typename Mutex, NullBehavior Behavior = NullBehavior::kRequireNotNull>
+class V8_NODISCARD LockGuard final {
+ public:
+  explicit LockGuard(Mutex* mutex) : mutex_(mutex) {
+    DCHECK_IMPLIES(Behavior == NullBehavior::kRequireNotNull,
+                   mutex_ != nullptr);
+    if (has_mutex()) mutex_->Lock();
+  }
+  LockGuard(const LockGuard&) = delete;
+  LockGuard& operator=(const LockGuard&) = delete;
+  LockGuard(LockGuard&& other) V8_NOEXCEPT : mutex_(other.mutex_) {
+    DCHECK_IMPLIES(Behavior == NullBehavior::kRequireNotNull,
+                   mutex_ != nullptr);
+    other.mutex_ = nullptr;
+  }
+  ~LockGuard() {
+    if (has_mutex()) mutex_->Unlock();
+  }
 
-private:
-    Mutex* mutex_;
+ private:
+  Mutex* mutex_;
 
-    bool V8_INLINE has_mutex() const
-    {
-        return mutex_ != nullptr;
-    }
+  bool V8_INLINE has_mutex() const { return mutex_ != nullptr; }
 };
 
 using MutexGuard = LockGuard<Mutex>;
@@ -360,57 +352,54 @@ using RecursiveMutexGuard = LockGuard<RecursiveMutex>;
 
 enum MutexSharedType : bool { kShared = true, kExclusive = false };
 
-template <MutexSharedType kIsShared, NullBehavior Behavior = NullBehavior::kRequireNotNull> class V8_NODISCARD SharedMutexGuard final {
-public:
-    explicit SharedMutexGuard(SharedMutex* mutex)
-        : mutex_(mutex)
-    {
-        if (!has_mutex())
-            return;
-        if (kIsShared) {
-            mutex_->LockShared();
-        } else {
-            mutex_->LockExclusive();
-        }
+template <MutexSharedType kIsShared,
+          NullBehavior Behavior = NullBehavior::kRequireNotNull>
+class V8_NODISCARD SharedMutexGuard final {
+ public:
+  explicit SharedMutexGuard(SharedMutex* mutex) : mutex_(mutex) {
+    if (!has_mutex()) return;
+    if (kIsShared) {
+      mutex_->LockShared();
+    } else {
+      mutex_->LockExclusive();
     }
-    SharedMutexGuard(const SharedMutexGuard&) = delete;
-    SharedMutexGuard& operator=(const SharedMutexGuard&) = delete;
-    ~SharedMutexGuard()
-    {
-        if (!has_mutex())
-            return;
-        if (kIsShared) {
-            mutex_->UnlockShared();
-        } else {
-            mutex_->UnlockExclusive();
-        }
+  }
+  SharedMutexGuard(const SharedMutexGuard&) = delete;
+  SharedMutexGuard& operator=(const SharedMutexGuard&) = delete;
+  ~SharedMutexGuard() {
+    if (!has_mutex()) return;
+    if (kIsShared) {
+      mutex_->UnlockShared();
+    } else {
+      mutex_->UnlockExclusive();
     }
+  }
 
-private:
-    SharedMutex* const mutex_;
+ private:
+  SharedMutex* const mutex_;
 
-    bool V8_INLINE has_mutex() const
-    {
-        DCHECK_IMPLIES(Behavior == NullBehavior::kRequireNotNull, mutex_ != nullptr);
-        return Behavior == NullBehavior::kRequireNotNull || mutex_ != nullptr;
-    }
+  bool V8_INLINE has_mutex() const {
+    DCHECK_IMPLIES(Behavior == NullBehavior::kRequireNotNull,
+                   mutex_ != nullptr);
+    return Behavior == NullBehavior::kRequireNotNull || mutex_ != nullptr;
+  }
 };
 
-template <MutexSharedType kIsShared, NullBehavior Behavior = NullBehavior::kRequireNotNull> class V8_NODISCARD SharedMutexGuardIf final {
-public:
-    SharedMutexGuardIf(SharedMutex* mutex, bool enable_mutex)
-    {
-        if (enable_mutex)
-            mutex_.emplace(mutex);
-    }
-    SharedMutexGuardIf(const SharedMutexGuardIf&) = delete;
-    SharedMutexGuardIf& operator=(const SharedMutexGuardIf&) = delete;
+template <MutexSharedType kIsShared,
+          NullBehavior Behavior = NullBehavior::kRequireNotNull>
+class V8_NODISCARD SharedMutexGuardIf final {
+ public:
+  SharedMutexGuardIf(SharedMutex* mutex, bool enable_mutex) {
+    if (enable_mutex) mutex_.emplace(mutex);
+  }
+  SharedMutexGuardIf(const SharedMutexGuardIf&) = delete;
+  SharedMutexGuardIf& operator=(const SharedMutexGuardIf&) = delete;
 
-private:
-    std::optional<SharedMutexGuard<kIsShared, Behavior>> mutex_;
+ private:
+  std::optional<SharedMutexGuard<kIsShared, Behavior>> mutex_;
 };
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_PLATFORM_MUTEX_H_
+#endif  // V8_BASE_PLATFORM_MUTEX_H_

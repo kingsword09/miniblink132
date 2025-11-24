@@ -11,16 +11,16 @@ namespace v8 {
 namespace base {
 
 enum DtoaMode {
-    // Return the shortest correct representation.
-    // For example the output of 0.299999999999999988897 is (the less accurate but
-    // correct) 0.3.
-    DTOA_SHORTEST,
-    // Return a fixed number of digits after the decimal point.
-    // For instance fixed(0.1, 4) becomes 0.1000
-    // If the input number is big, the output will be big.
-    DTOA_FIXED,
-    // Return a fixed number of digits, no matter what the exponent is.
-    DTOA_PRECISION
+  // Return the shortest correct representation.
+  // For example the output of 0.299999999999999988897 is (the less accurate but
+  // correct) 0.3.
+  DTOA_SHORTEST,
+  // Return a fixed number of digits after the decimal point.
+  // For instance fixed(0.1, 4) becomes 0.1000
+  // If the input number is big, the output will be big.
+  DTOA_FIXED,
+  // Return a fixed number of digits, no matter what the exponent is.
+  DTOA_PRECISION
 };
 
 // The maximal length of digits a double can have in base 10 as returned by
@@ -61,9 +61,11 @@ const int kBase10MaximalLength = 17;
 // and a terminating null-character. In SHORTEST-mode it expects a buffer of
 // at least kBase10MaximalLength + 1. Otherwise, the size of the output is
 // limited to requested_digits digits plus the null terminator.
-V8_BASE_EXPORT void DoubleToAscii(double v, DtoaMode mode, int requested_digits, Vector<char> buffer, int* sign, int* length, int* point);
+V8_BASE_EXPORT void DoubleToAscii(double v, DtoaMode mode, int requested_digits,
+                                  Vector<char> buffer, int* sign, int* length,
+                                  int* point);
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_NUMBERS_DTOA_H_
+#endif  // V8_BASE_NUMBERS_DTOA_H_

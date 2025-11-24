@@ -26,27 +26,31 @@ class Graph;
 class PipelineData;
 
 struct BytecodeHandlerData {
-    BytecodeHandlerData(interpreter::Bytecode bytecode, interpreter::OperandScale operand_scale)
-        : bytecode(bytecode)
-        , operand_scale(operand_scale)
-    {
-    }
+  BytecodeHandlerData(interpreter::Bytecode bytecode,
+                      interpreter::OperandScale operand_scale)
+      : bytecode(bytecode), operand_scale(operand_scale) {}
 
-    interpreter::Bytecode bytecode;
-    interpreter::OperandScale operand_scale;
-    interpreter::ImplicitRegisterUse implicit_register_use = interpreter::ImplicitRegisterUse::kNone;
-    bool made_call = false;
-    bool reloaded_frame_ptr = false;
-    bool bytecode_array_valid = true;
+  interpreter::Bytecode bytecode;
+  interpreter::OperandScale operand_scale;
+  interpreter::ImplicitRegisterUse implicit_register_use =
+      interpreter::ImplicitRegisterUse::kNone;
+  bool made_call = false;
+  bool reloaded_frame_ptr = false;
+  bool bytecode_array_valid = true;
 };
 
-using TurboshaftAssemblerGenerator = void (*)(compiler::turboshaft::PipelineData*, Isolate*, compiler::turboshaft::Graph&, Zone*);
-V8_EXPORT_PRIVATE Handle<Code> BuildWithTurboshaftAssemblerImpl(Isolate* isolate, Builtin builtin, TurboshaftAssemblerGenerator generator,
-    std::function<compiler::CallDescriptor*(Zone*)> call_descriptor_builder, const char* name, const AssemblerOptions& options,
-    CodeKind code_kind = CodeKind::BUILTIN, std::optional<BytecodeHandlerData> bytecode_handler_data = {});
+using TurboshaftAssemblerGenerator =
+    void (*)(compiler::turboshaft::PipelineData*, Isolate*,
+             compiler::turboshaft::Graph&, Zone*);
+V8_EXPORT_PRIVATE Handle<Code> BuildWithTurboshaftAssemblerImpl(
+    Isolate* isolate, Builtin builtin, TurboshaftAssemblerGenerator generator,
+    std::function<compiler::CallDescriptor*(Zone*)> call_descriptor_builder,
+    const char* name, const AssemblerOptions& options,
+    CodeKind code_kind = CodeKind::BUILTIN,
+    std::optional<BytecodeHandlerData> bytecode_handler_data = {});
 
-} // namespace turboshaft
-} // namespace compiler
-} // namespace v8::internal
+}  // namespace turboshaft
+}  // namespace compiler
+}  // namespace v8::internal
 
-#endif // V8_COMPILER_TURBOSHAFT_BUILTIN_COMPILER_H_
+#endif  // V8_COMPILER_TURBOSHAFT_BUILTIN_COMPILER_H_

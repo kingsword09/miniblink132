@@ -15,9 +15,11 @@ namespace internal {
 
 inline Tagged<ClearedWeakValue> ClearedValue(PtrComprCageBase cage_base);
 
-template <typename THeapObjectSlot> inline void UpdateHeapObjectReferenceSlot(THeapObjectSlot slot, Tagged<HeapObject> value);
+template <typename THeapObjectSlot>
+inline void UpdateHeapObjectReferenceSlot(THeapObjectSlot slot,
+                                          Tagged<HeapObject> value);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_OBJECTS_MAYBE_OBJECT_H_
+#endif  // V8_OBJECTS_MAYBE_OBJECT_H_

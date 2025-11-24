@@ -35,4 +35,4 @@
 
 /* CN = 1+2**27 = '41a0000002000000' IEEE double format.  Use it to split a
    double for better accuracy.  */
-#define CN 134217729.0
+#define  CN   134217729.0

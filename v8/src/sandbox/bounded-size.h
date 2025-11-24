@@ -23,6 +23,6 @@ V8_INLINE size_t ReadBoundedLengthField(Address field_address);
 
 V8_INLINE void WriteBoundedLengthField(Address field_address, size_t value);
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_SANDBOX_BOUNDED_SIZE_H_
+#endif  // V8_SANDBOX_BOUNDED_SIZE_H_

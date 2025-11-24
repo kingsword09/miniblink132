@@ -18,10 +18,13 @@ namespace internal {
 namespace trap_handler {
 
 // X64 on Linux, Windows, MacOS, FreeBSD.
-#if V8_HOST_ARCH_X64 && V8_TARGET_ARCH_X64 && ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_WIN || V8_OS_DARWIN || V8_OS_FREEBSD)
+#if V8_HOST_ARCH_X64 && V8_TARGET_ARCH_X64 &&                        \
+    ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_WIN || V8_OS_DARWIN || \
+     V8_OS_FREEBSD)
 #define V8_TRAP_HANDLER_SUPPORTED true
 // Arm64 (non-simulator) on Linux, Windows, MacOS.
-#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_ARM64 && ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_WIN || V8_OS_DARWIN)
+#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_ARM64 && \
+    ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_WIN || V8_OS_DARWIN)
 #define V8_TRAP_HANDLER_SUPPORTED true
 // Arm64 simulator on x64 on Linux, Mac, or Windows.
 //
@@ -29,7 +32,9 @@ namespace trap_handler {
 // compiled with MSVC, so don't enable the trap handler in that case.
 // (MSVC #defines _MSC_VER, but so does Clang when targeting Windows, hence
 // the check for __clang__.)
-#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_X64 && (V8_OS_LINUX || V8_OS_DARWIN || V8_OS_WIN) && (!defined(_MSC_VER) || defined(__clang__))
+#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_X64 && \
+    (V8_OS_LINUX || V8_OS_DARWIN || V8_OS_WIN) && \
+    (!defined(_MSC_VER) || defined(__clang__))
 #define V8_TRAP_HANDLER_VIA_SIMULATOR
 #define V8_TRAP_HANDLER_SUPPORTED true
 // Loong64 (non-simulator) on Linux.
@@ -40,7 +45,8 @@ namespace trap_handler {
 #define V8_TRAP_HANDLER_VIA_SIMULATOR
 #define V8_TRAP_HANDLER_SUPPORTED true
 // RISCV64 (non-simulator) on Linux.
-#elif V8_TARGET_ARCH_RISCV64 && V8_HOST_ARCH_RISCV64 && V8_OS_LINUX && !V8_OS_ANDROID
+#elif V8_TARGET_ARCH_RISCV64 && V8_HOST_ARCH_RISCV64 && V8_OS_LINUX && \
+    !V8_OS_ANDROID
 #define V8_TRAP_HANDLER_SUPPORTED true
 // RISCV64 simulator on x64 on Linux
 #elif V8_TARGET_ARCH_RISCV64 && V8_HOST_ARCH_X64 && V8_OS_LINUX
@@ -70,10 +76,9 @@ namespace trap_handler {
 #define TH_EXPORT_PRIVATE
 #endif
 
-#define TH_CHECK(condition)                                                                                                                                    \
-    if (!(condition))                                                                                                                                          \
-        IMMEDIATE_CRASH();
-#ifdef V8_DEBUG
+#define TH_CHECK(condition) \
+  if (!(condition)) IMMEDIATE_CRASH();
+#ifdef DEBUG
 #define TH_DCHECK(condition) TH_CHECK(condition)
 #else
 #define TH_DCHECK(condition) void(0)
@@ -90,9 +95,9 @@ namespace trap_handler {
 #endif
 
 struct ProtectedInstructionData {
-    // The offset of this instruction from the start of its code object.
-    // Wasm code never grows larger than 2GB, so uint32_t is sufficient.
-    uint32_t instr_offset;
+  // The offset of this instruction from the start of its code object.
+  // Wasm code never grows larger than 2GB, so uint32_t is sufficient.
+  uint32_t instr_offset;
 };
 
 const int kInvalidIndex = -1;
@@ -102,7 +107,8 @@ const int kInvalidIndex = -1;
 /// This returns a number that can be used to identify the handler data to
 /// ReleaseHandlerData, or -1 on failure.
 int TH_EXPORT_PRIVATE RegisterHandlerData(
-    uintptr_t base, size_t size, size_t num_protected_instructions, const ProtectedInstructionData* protected_instructions);
+    uintptr_t base, size_t size, size_t num_protected_instructions,
+    const ProtectedInstructionData* protected_instructions);
 
 /// Removes the data from the master list and frees any memory, if necessary.
 /// TODO(mtrofin): We can switch to using size_t for index and not need
@@ -136,17 +142,16 @@ TH_EXPORT_PRIVATE bool EnableTrapHandler(bool use_v8_handler);
 // gets a fault at a recognised address.
 TH_EXPORT_PRIVATE void SetLandingPad(uintptr_t landing_pad);
 
-inline bool IsTrapHandlerEnabled()
-{
-    TH_DCHECK(!g_is_trap_handler_enabled || V8_TRAP_HANDLER_SUPPORTED);
-    // Disallow enabling the trap handler after retrieving the current value.
-    // Re-enabling them late can produce issues because code or objects might have
-    // been generated under the assumption that trap handlers are disabled.
-    // Note: We test before setting to avoid contention by an unconditional write.
-    if (g_can_enable_trap_handler.load(std::memory_order_relaxed)) {
-        g_can_enable_trap_handler.store(false, std::memory_order_relaxed);
-    }
-    return g_is_trap_handler_enabled;
+inline bool IsTrapHandlerEnabled() {
+  TH_DCHECK(!g_is_trap_handler_enabled || V8_TRAP_HANDLER_SUPPORTED);
+  // Disallow enabling the trap handler after retrieving the current value.
+  // Re-enabling them late can produce issues because code or objects might have
+  // been generated under the assumption that trap handlers are disabled.
+  // Note: We test before setting to avoid contention by an unconditional write.
+  if (g_can_enable_trap_handler.load(std::memory_order_relaxed)) {
+    g_can_enable_trap_handler.store(false, std::memory_order_relaxed);
+  }
+  return g_is_trap_handler_enabled;
 }
 
 #if defined(V8_OS_AIX)
@@ -165,25 +170,20 @@ V8_NOINLINE TH_EXPORT_PRIVATE int* GetThreadInWasmThreadLocalAddress();
 // On Windows, asan installs its own exception handler which maps shadow
 // memory. Since our exception handler may be executed before the asan exception
 // handler, we have to make sure that asan shadow memory is not accessed here.
-TH_DISABLE_ASAN inline bool IsThreadInWasm()
-{
-    return g_thread_in_wasm_code;
+TH_DISABLE_ASAN inline bool IsThreadInWasm() { return g_thread_in_wasm_code; }
+
+inline void SetThreadInWasm() {
+  if (IsTrapHandlerEnabled()) {
+    TH_DCHECK(!IsThreadInWasm());
+    g_thread_in_wasm_code = true;
+  }
 }
 
-inline void SetThreadInWasm()
-{
-    if (IsTrapHandlerEnabled()) {
-        TH_DCHECK(!IsThreadInWasm());
-        g_thread_in_wasm_code = true;
-    }
-}
-
-inline void ClearThreadInWasm()
-{
-    if (IsTrapHandlerEnabled()) {
-        TH_DCHECK(IsThreadInWasm());
-        g_thread_in_wasm_code = false;
-    }
+inline void ClearThreadInWasm() {
+  if (IsTrapHandlerEnabled()) {
+    TH_DCHECK(IsThreadInWasm());
+    g_thread_in_wasm_code = false;
+  }
 }
 
 bool RegisterDefaultTrapHandler();
@@ -191,8 +191,8 @@ TH_EXPORT_PRIVATE void RemoveTrapHandler();
 
 TH_EXPORT_PRIVATE size_t GetRecoveredTrapCount();
 
-} // namespace trap_handler
-} // namespace internal
-} // namespace v8
+}  // namespace trap_handler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TRAP_HANDLER_TRAP_HANDLER_H_
+#endif  // V8_TRAP_HANDLER_TRAP_HANDLER_H_

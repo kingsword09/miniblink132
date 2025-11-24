@@ -17,7 +17,7 @@
 
 #if !defined(V8_ENABLE_SYSTEM_INSTRUMENTATION)
 #error "only include this file if V8_ENABLE_SYSTEM_INSTRUMENTATION"
-#endif // V8_ENABLE_SYSTEM_INSTRUMENTATION
+#endif  // V8_ENABLE_SYSTEM_INSTRUMENTATION
 
 namespace v8 {
 namespace platform {
@@ -30,27 +30,27 @@ namespace tracing {
 // called from within SystemInstrumentationTraceWriter and replaces the
 // JSONTraceWriter for event-tracing.
 class V8_PLATFORM_EXPORT Recorder {
-public:
-    Recorder();
-    ~Recorder();
+ public:
+  Recorder();
+  ~Recorder();
 
-    bool IsEnabled();
-    bool IsEnabled(const uint8_t level);
+  bool IsEnabled();
+  bool IsEnabled(const uint8_t level);
 
-    void AddEvent(TraceObject* trace_event);
+  void AddEvent(TraceObject* trace_event);
 
-private:
+ private:
 #if V8_OS_DARWIN
-    os_log_t v8Provider;
+  os_log_t v8Provider;
 #endif
 };
 
-} // namespace tracing
-} // namespace platform
-} // namespace v8
+}  // namespace tracing
+}  // namespace platform
+}  // namespace v8
 
 #if V8_OS_DARWIN
 #pragma clang diagnostic pop
 #endif
 
-#endif // V8_LIBPLATFORM_TRACING_RECORDER_H_
+#endif  // V8_LIBPLATFORM_TRACING_RECORDER_H_

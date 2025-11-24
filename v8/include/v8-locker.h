@@ -5,13 +5,13 @@
 #ifndef INCLUDE_V8_LOCKER_H_
 #define INCLUDE_V8_LOCKER_H_
 
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace v8 {
 
 namespace internal {
 class Isolate;
-} // namespace internal
+}  // namespace internal
 
 class Isolate;
 
@@ -92,53 +92,47 @@ class Isolate;
  * \endcode
  */
 class V8_EXPORT Unlocker {
-public:
-    /**
+ public:
+  /**
    * Initialize Unlocker for a given Isolate.
    */
-    V8_INLINE explicit Unlocker(Isolate* isolate)
-    {
-        Initialize(isolate);
-    }
+  V8_INLINE explicit Unlocker(Isolate* isolate) { Initialize(isolate); }
 
-    ~Unlocker();
+  ~Unlocker();
 
-private:
-    void Initialize(Isolate* isolate);
+ private:
+  void Initialize(Isolate* isolate);
 
-    internal::Isolate* isolate_;
+  internal::Isolate* isolate_;
 };
 
 class V8_EXPORT Locker {
-public:
-    /**
+ public:
+  /**
    * Initialize Locker for a given Isolate.
    */
-    V8_INLINE explicit Locker(Isolate* isolate)
-    {
-        Initialize(isolate);
-    }
+  V8_INLINE explicit Locker(Isolate* isolate) { Initialize(isolate); }
 
-    ~Locker();
+  ~Locker();
 
-    /**
+  /**
    * Returns whether or not the locker for a given isolate, is locked by the
    * current thread.
    */
-    static bool IsLocked(Isolate* isolate);
+  static bool IsLocked(Isolate* isolate);
 
-    // Disallow copying and assigning.
-    Locker(const Locker&) = delete;
-    void operator=(const Locker&) = delete;
+  // Disallow copying and assigning.
+  Locker(const Locker&) = delete;
+  void operator=(const Locker&) = delete;
 
-private:
-    void Initialize(Isolate* isolate);
+ private:
+  void Initialize(Isolate* isolate);
 
-    bool has_lock_;
-    bool top_level_;
-    internal::Isolate* isolate_;
+  bool has_lock_;
+  bool top_level_;
+  internal::Isolate* isolate_;
 };
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_LOCKER_H_
+#endif  // INCLUDE_V8_LOCKER_H_

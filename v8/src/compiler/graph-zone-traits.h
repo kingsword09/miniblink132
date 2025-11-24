@@ -22,8 +22,8 @@ using GraphZoneTraits = ZoneTypeTraits<kCompressGraphZone>;
 // memory.
 using ZoneNodePtr = GraphZoneTraits::Ptr<Node>;
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_GRAPH_ZONE_TRAITS_H_
+#endif  // V8_COMPILER_GRAPH_ZONE_TRAITS_H_

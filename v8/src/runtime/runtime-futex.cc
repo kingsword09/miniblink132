@@ -14,49 +14,48 @@
 namespace v8 {
 namespace internal {
 
-RUNTIME_FUNCTION(Runtime_AtomicsNumWaitersForTesting)
-{
-    HandleScope scope(isolate);
-    DCHECK_EQ(2, args.length());
-    DirectHandle<JSTypedArray> sta = args.at<JSTypedArray>(0);
-    size_t index = NumberToSize(args[1]);
-    CHECK(!sta->WasDetached());
-    CHECK(sta->GetBuffer()->is_shared());
-    CHECK_LT(index, sta->GetLength());
-    CHECK_EQ(sta->type(), kExternalInt32Array);
+RUNTIME_FUNCTION(Runtime_AtomicsNumWaitersForTesting) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(2, args.length());
+  DirectHandle<JSTypedArray> sta = args.at<JSTypedArray>(0);
+  size_t index = NumberToSize(args[1]);
+  CHECK(!sta->WasDetached());
+  CHECK(sta->GetBuffer()->is_shared());
+  CHECK_LT(index, sta->GetLength());
+  CHECK_EQ(sta->type(), kExternalInt32Array);
 
-    DirectHandle<JSArrayBuffer> array_buffer = sta->GetBuffer();
-    size_t addr = (index << 2) + sta->byte_offset();
+  DirectHandle<JSArrayBuffer> array_buffer = sta->GetBuffer();
+  size_t addr = (index << 2) + sta->byte_offset();
 
-    return Smi::FromInt(FutexEmulation::NumWaitersForTesting(*array_buffer, addr));
+  return Smi::FromInt(
+      FutexEmulation::NumWaitersForTesting(*array_buffer, addr));
 }
 
-RUNTIME_FUNCTION(Runtime_AtomicsNumUnresolvedAsyncPromisesForTesting)
-{
-    HandleScope scope(isolate);
-    DCHECK_EQ(2, args.length());
-    DirectHandle<JSTypedArray> sta = args.at<JSTypedArray>(0);
-    size_t index = NumberToSize(args[1]);
-    CHECK(!sta->WasDetached());
-    CHECK(sta->GetBuffer()->is_shared());
-    CHECK_LT(index, sta->GetLength());
-    CHECK_EQ(sta->type(), kExternalInt32Array);
+RUNTIME_FUNCTION(Runtime_AtomicsNumUnresolvedAsyncPromisesForTesting) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(2, args.length());
+  DirectHandle<JSTypedArray> sta = args.at<JSTypedArray>(0);
+  size_t index = NumberToSize(args[1]);
+  CHECK(!sta->WasDetached());
+  CHECK(sta->GetBuffer()->is_shared());
+  CHECK_LT(index, sta->GetLength());
+  CHECK_EQ(sta->type(), kExternalInt32Array);
 
-    DirectHandle<JSArrayBuffer> array_buffer = sta->GetBuffer();
-    size_t addr = (index << 2) + sta->byte_offset();
+  DirectHandle<JSArrayBuffer> array_buffer = sta->GetBuffer();
+  size_t addr = (index << 2) + sta->byte_offset();
 
-    return Smi::FromInt(FutexEmulation::NumUnresolvedAsyncPromisesForTesting(*array_buffer, addr));
+  return Smi::FromInt(FutexEmulation::NumUnresolvedAsyncPromisesForTesting(
+      *array_buffer, addr));
 }
 
-RUNTIME_FUNCTION(Runtime_SetAllowAtomicsWait)
-{
-    HandleScope scope(isolate);
-    DCHECK_EQ(1, args.length());
-    bool set = Cast<Boolean>(args[0])->ToBool(isolate);
+RUNTIME_FUNCTION(Runtime_SetAllowAtomicsWait) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(1, args.length());
+  bool set = Cast<Boolean>(args[0])->ToBool(isolate);
 
-    isolate->set_allow_atomics_wait(set);
-    return ReadOnlyRoots(isolate).undefined_value();
+  isolate->set_allow_atomics_wait(set);
+  return ReadOnlyRoots(isolate).undefined_value();
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

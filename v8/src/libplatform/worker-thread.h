@@ -18,21 +18,22 @@ namespace platform {
 class TaskQueue;
 
 class V8_PLATFORM_EXPORT WorkerThread : public NON_EXPORTED_BASE(base::Thread) {
-public:
-    explicit WorkerThread(TaskQueue* queue);
-    ~WorkerThread() override;
+ public:
+  explicit WorkerThread(TaskQueue* queue);
+  ~WorkerThread() override;
 
-    WorkerThread(const WorkerThread&) = delete;
-    WorkerThread& operator=(const WorkerThread&) = delete;
+  WorkerThread(const WorkerThread&) = delete;
+  WorkerThread& operator=(const WorkerThread&) = delete;
 
-    // Thread implementation.
-    void Run() override;
+  // Thread implementation.
+  void Run() override;
 
-private:
-    TaskQueue* queue_;
+ private:
+  TaskQueue* queue_;
 };
 
-} // namespace platform
-} // namespace v8
+}  // namespace platform
+}  // namespace v8
 
-#endif // V8_LIBPLATFORM_WORKER_THREAD_H_
+
+#endif  // V8_LIBPLATFORM_WORKER_THREAD_H_

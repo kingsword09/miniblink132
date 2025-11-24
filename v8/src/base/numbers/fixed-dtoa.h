@@ -26,9 +26,11 @@ namespace base {
 //
 // This method only works for some parameters. If it can't handle the input it
 // returns false. The output is null-terminated when the function succeeds.
-V8_BASE_EXPORT bool FastFixedDtoa(double v, int fractional_count, Vector<char> buffer, int* length, int* decimal_point);
+V8_BASE_EXPORT bool FastFixedDtoa(double v, int fractional_count,
+                                  Vector<char> buffer, int* length,
+                                  int* decimal_point);
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_NUMBERS_FIXED_DTOA_H_
+#endif  // V8_BASE_NUMBERS_FIXED_DTOA_H_

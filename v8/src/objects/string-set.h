@@ -14,28 +14,31 @@ namespace v8 {
 namespace internal {
 
 class StringSetShape : public BaseShape<Tagged<String>> {
-public:
-    static inline bool IsMatch(Tagged<String> key, Tagged<Object> value);
-    static inline uint32_t Hash(ReadOnlyRoots roots, Tagged<String> key);
-    static inline uint32_t HashForObject(ReadOnlyRoots roots, Tagged<Object> object);
+ public:
+  static inline bool IsMatch(Tagged<String> key, Tagged<Object> value);
+  static inline uint32_t Hash(ReadOnlyRoots roots, Tagged<String> key);
+  static inline uint32_t HashForObject(ReadOnlyRoots roots,
+                                       Tagged<Object> object);
 
-    static const int kPrefixSize = 0;
-    static const int kEntrySize = 1;
-    static const bool kMatchNeedsHoleCheck = true;
+  static const int kPrefixSize = 0;
+  static const int kEntrySize = 1;
+  static const bool kMatchNeedsHoleCheck = true;
 };
 
 EXTERN_DECLARE_HASH_TABLE(StringSet, StringSetShape)
 
 V8_OBJECT class StringSet : public HashTable<StringSet, StringSetShape> {
-public:
-    V8_EXPORT_PRIVATE static Handle<StringSet> New(Isolate* isolate);
-    V8_EXPORT_PRIVATE static Handle<StringSet> Add(Isolate* isolate, Handle<StringSet> stringset, DirectHandle<String> name);
-    V8_EXPORT_PRIVATE bool Has(Isolate* isolate, DirectHandle<String> name);
+ public:
+  V8_EXPORT_PRIVATE static Handle<StringSet> New(Isolate* isolate);
+  V8_EXPORT_PRIVATE static Handle<StringSet> Add(Isolate* isolate,
+                                                 Handle<StringSet> stringset,
+                                                 DirectHandle<String> name);
+  V8_EXPORT_PRIVATE bool Has(Isolate* isolate, DirectHandle<String> name);
 } V8_OBJECT_END;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_STRING_SET_H_
+#endif  // V8_OBJECTS_STRING_SET_H_

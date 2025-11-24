@@ -15,34 +15,32 @@ namespace internal {
 namespace wasm {
 
 enum class WasmBranchHint : uint8_t {
-    kNoHint = 0,
-    kUnlikely = 1,
-    kLikely = 2,
+  kNoHint = 0,
+  kUnlikely = 1,
+  kLikely = 2,
 };
 
 class V8_EXPORT_PRIVATE BranchHintMap {
-public:
-    void insert(uint32_t offset, WasmBranchHint hint)
-    {
-        map_.emplace(offset, hint);
+ public:
+  void insert(uint32_t offset, WasmBranchHint hint) {
+    map_.emplace(offset, hint);
+  }
+  WasmBranchHint GetHintFor(uint32_t offset) const {
+    auto it = map_.find(offset);
+    if (it == map_.end()) {
+      return WasmBranchHint::kNoHint;
     }
-    WasmBranchHint GetHintFor(uint32_t offset) const
-    {
-        auto it = map_.find(offset);
-        if (it == map_.end()) {
-            return WasmBranchHint::kNoHint;
-        }
-        return it->second;
-    }
+    return it->second;
+  }
 
-private:
-    std::unordered_map<uint32_t, WasmBranchHint> map_;
+ private:
+  std::unordered_map<uint32_t, WasmBranchHint> map_;
 };
 
 using BranchHintInfo = std::unordered_map<uint32_t, BranchHintMap>;
 
-} // namespace wasm
-} // namespace internal
-} // namespace v8
+}  // namespace wasm
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_WASM_BRANCH_HINT_MAP_H_
+#endif  // V8_WASM_BRANCH_HINT_MAP_H_

@@ -17,31 +17,31 @@ class TracingCategoryObserver
 #else
     : public TracingController::TraceStateObserver {
 #endif
-public:
-    enum Mode {
-        ENABLED_BY_NATIVE = 1 << 0,
-        ENABLED_BY_TRACING = 1 << 1,
-        ENABLED_BY_SAMPLING = 1 << 2,
-    };
+ public:
+  enum Mode {
+    ENABLED_BY_NATIVE = 1 << 0,
+    ENABLED_BY_TRACING = 1 << 1,
+    ENABLED_BY_SAMPLING = 1 << 2,
+  };
 
-    static void SetUp();
-    static void TearDown();
+  static void SetUp();
+  static void TearDown();
 
 #if defined(V8_USE_PERFETTO)
-    // perfetto::TrackEventSessionObserver
-    void OnStart(const perfetto::DataSourceBase::StartArgs&) override;
-    void OnStop(const perfetto::DataSourceBase::StopArgs&) override;
+  // perfetto::TrackEventSessionObserver
+  void OnStart(const perfetto::DataSourceBase::StartArgs&) override;
+  void OnStop(const perfetto::DataSourceBase::StopArgs&) override;
 #else
-    // v8::TracingController::TraceStateObserver
-    void OnTraceEnabled() final;
-    void OnTraceDisabled() final;
+  // v8::TracingController::TraceStateObserver
+  void OnTraceEnabled() final;
+  void OnTraceDisabled() final;
 #endif
 
-private:
-    static TracingCategoryObserver* instance_;
+ private:
+  static TracingCategoryObserver* instance_;
 };
 
-} // namespace tracing
-} // namespace v8
+}  // namespace tracing
+}  // namespace v8
 
-#endif // V8_TRACING_TRACING_CATEGORY_OBSERVER_H_
+#endif  // V8_TRACING_TRACING_CATEGORY_OBSERVER_H_

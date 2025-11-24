@@ -15,24 +15,26 @@
 
 #ifdef V8_GN_HEADER
 #if !__has_include("v8-gn.h")
-#error Missing v8-gn.h. The configuration for v8 is missing from the include path. Add it with -I<path> to the command line
+#error Missing v8-gn.h. The configuration for v8 is missing from the include \
+path. Add it with -I<path> to the command line
 #endif
-#include "v8-gn.h" // NOLINT(build/include_directory)
+#include "v8-gn.h"  // NOLINT(build/include_directory)
 #endif
 
 #include <memory>
-// clang-format on
+// clang-format off
 
 // Platform headers for feature detection below.
 #if defined(__ANDROID__)
-#include <sys/cdefs.h>
+# include <sys/cdefs.h>
 #elif defined(__APPLE__)
-#include <TargetConditionals.h>
+# include <TargetConditionals.h>
 #elif defined(__linux__)
-#include <features.h>
+# include <features.h>
 #elif defined(__MVS__)
-#include "zos-base.h"
+# include "zos-base.h"
 #endif
+
 
 // This macro allows to test for the version of the GNU C library (or
 // a compatible C library that masquerades as glibc). It evaluates to
@@ -42,10 +44,12 @@
 //   ...
 //  #endif
 #if defined(__GLIBC__) && defined(__GLIBC_MINOR__)
-#define V8_GLIBC_PREREQ(major, minor) ((__GLIBC__ * 100 + __GLIBC_MINOR__) >= ((major)*100 + (minor)))
+# define V8_GLIBC_PREREQ(major, minor)                                    \
+    ((__GLIBC__ * 100 + __GLIBC_MINOR__) >= ((major) * 100 + (minor)))
 #else
-#define V8_GLIBC_PREREQ(major, minor) 0
+# define V8_GLIBC_PREREQ(major, minor) 0
 #endif
+
 
 // This macro allows to test for the version of the GNU C++ compiler.
 // Note that this also applies to compilers that masquerade as GCC,
@@ -55,13 +59,18 @@
 //   ...
 //  #endif
 #if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
-#define V8_GNUC_PREREQ(major, minor, patchlevel)                                                                                                               \
-    ((__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= ((major)*10000 + (minor)*100 + (patchlevel)))
+# define V8_GNUC_PREREQ(major, minor, patchlevel)                         \
+    ((__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >=   \
+     ((major) * 10000 + (minor) * 100 + (patchlevel)))
 #elif defined(__GNUC__) && defined(__GNUC_MINOR__)
-#define V8_GNUC_PREREQ(major, minor, patchlevel) ((__GNUC__ * 10000 + __GNUC_MINOR__ * 100) >= ((major)*10000 + (minor)*100 + (patchlevel)))
+# define V8_GNUC_PREREQ(major, minor, patchlevel)      \
+    ((__GNUC__ * 10000 + __GNUC_MINOR__ * 100) >=      \
+     ((major) * 10000 + (minor) * 100 + (patchlevel)))
 #else
-#define V8_GNUC_PREREQ(major, minor, patchlevel) 0
+# define V8_GNUC_PREREQ(major, minor, patchlevel) 0
 #endif
+
+
 
 // -----------------------------------------------------------------------------
 // Operating system detection (host)
@@ -87,89 +96,89 @@
 //  V8_OS_ZOS           - z/OS
 
 #if defined(__ANDROID__)
-#define V8_OS_ANDROID 1
-#define V8_OS_LINUX 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "android"
+# define V8_OS_ANDROID 1
+# define V8_OS_LINUX 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "android"
 
 #elif defined(__APPLE__)
-#define V8_OS_POSIX 1
-#define V8_OS_BSD 1
-#define V8_OS_DARWIN 1
-#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-#define V8_OS_IOS 1
-#define V8_OS_STRING "ios"
-#else
-#define V8_OS_MACOS 1
-#define V8_OS_STRING "macos"
-#endif // defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+# define V8_OS_POSIX 1
+# define V8_OS_BSD 1
+# define V8_OS_DARWIN 1
+# if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#  define V8_OS_IOS 1
+#  define V8_OS_STRING "ios"
+# else
+#  define V8_OS_MACOS 1
+#  define V8_OS_STRING "macos"
+# endif  // defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 
 #elif defined(__CYGWIN__)
-#define V8_OS_CYGWIN 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "cygwin"
+# define V8_OS_CYGWIN 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "cygwin"
 
 #elif defined(__linux__)
-#define V8_OS_LINUX 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "linux"
+# define V8_OS_LINUX 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "linux"
 
 #elif defined(__sun)
-#define V8_OS_POSIX 1
-#define V8_OS_SOLARIS 1
-#define V8_OS_STRING "sun"
+# define V8_OS_POSIX 1
+# define V8_OS_SOLARIS 1
+# define V8_OS_STRING "sun"
 
 #elif defined(STARBOARD)
-#define V8_OS_STARBOARD 1
-#define V8_OS_STRING "starboard"
+# define V8_OS_STARBOARD 1
+# define V8_OS_STRING "starboard"
 
 #elif defined(_AIX)
-#define V8_OS_POSIX 1
-#define V8_OS_AIX 1
-#define V8_OS_STRING "aix"
+# define V8_OS_POSIX 1
+# define V8_OS_AIX 1
+# define V8_OS_STRING "aix"
 
 #elif defined(__FreeBSD__)
-#define V8_OS_BSD 1
-#define V8_OS_FREEBSD 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "freebsd"
+# define V8_OS_BSD 1
+# define V8_OS_FREEBSD 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "freebsd"
 
 #elif defined(__Fuchsia__)
-#define V8_OS_FUCHSIA 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "fuchsia"
+# define V8_OS_FUCHSIA 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "fuchsia"
 
 #elif defined(__DragonFly__)
-#define V8_OS_BSD 1
-#define V8_OS_DRAGONFLYBSD 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "dragonflybsd"
+# define V8_OS_BSD 1
+# define V8_OS_DRAGONFLYBSD 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "dragonflybsd"
 
 #elif defined(__NetBSD__)
-#define V8_OS_BSD 1
-#define V8_OS_NETBSD 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "netbsd"
+# define V8_OS_BSD 1
+# define V8_OS_NETBSD 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "netbsd"
 
 #elif defined(__OpenBSD__)
-#define V8_OS_BSD 1
-#define V8_OS_OPENBSD 1
-#define V8_OS_POSIX 1
-#define V8_OS_STRING "openbsd"
+# define V8_OS_BSD 1
+# define V8_OS_OPENBSD 1
+# define V8_OS_POSIX 1
+# define V8_OS_STRING "openbsd"
 
 #elif defined(__QNXNTO__)
-#define V8_OS_POSIX 1
-#define V8_OS_QNX 1
-#define V8_OS_STRING "qnx"
+# define V8_OS_POSIX 1
+# define V8_OS_QNX 1
+# define V8_OS_STRING "qnx"
 
 #elif defined(_WIN32)
-#define V8_OS_WIN 1
-#define V8_OS_STRING "windows"
+# define V8_OS_WIN 1
+# define V8_OS_STRING "windows"
 
 #elif defined(__MVS__)
-#define V8_OS_POSIX 1
-#define V8_OS_ZOS 1
-#define V8_OS_STRING "zos"
+# define V8_OS_POSIX 1
+# define V8_OS_ZOS 1
+# define V8_OS_STRING "zos"
 #endif
 
 // -----------------------------------------------------------------------------
@@ -188,59 +197,69 @@
 #ifdef V8_HAVE_TARGET_OS
 
 // The target OS is provided, just check that at least one known value is set.
-#if !defined(V8_TARGET_OS_ANDROID) && !defined(V8_TARGET_OS_FUCHSIA) && !defined(V8_TARGET_OS_IOS) && !defined(V8_TARGET_OS_LINUX)                             \
-    && !defined(V8_TARGET_OS_MACOS) && !defined(V8_TARGET_OS_WIN) && !defined(V8_TARGET_OS_CHROMEOS)
-#error No known target OS defined.
-#endif
+# if !defined(V8_TARGET_OS_ANDROID) \
+  && !defined(V8_TARGET_OS_FUCHSIA) \
+  && !defined(V8_TARGET_OS_IOS) \
+  && !defined(V8_TARGET_OS_LINUX) \
+  && !defined(V8_TARGET_OS_MACOS) \
+  && !defined(V8_TARGET_OS_WIN) \
+  && !defined(V8_TARGET_OS_CHROMEOS)
+#  error No known target OS defined.
+# endif
 
-#else // V8_HAVE_TARGET_OS
+#else  // V8_HAVE_TARGET_OS
 
-#if defined(V8_TARGET_OS_ANDROID) || defined(V8_TARGET_OS_FUCHSIA) || defined(V8_TARGET_OS_IOS) || defined(V8_TARGET_OS_LINUX) || defined(V8_TARGET_OS_MACOS)  \
-    || defined(V8_TARGET_OS_WIN) || defined(V8_TARGET_OS_CHROMEOS)
-#error A target OS is defined but V8_HAVE_TARGET_OS is unset.
-#endif
+# if defined(V8_TARGET_OS_ANDROID) \
+  || defined(V8_TARGET_OS_FUCHSIA) \
+  || defined(V8_TARGET_OS_IOS) \
+  || defined(V8_TARGET_OS_LINUX) \
+  || defined(V8_TARGET_OS_MACOS) \
+  || defined(V8_TARGET_OS_WIN) \
+  || defined(V8_TARGET_OS_CHROMEOS)
+#  error A target OS is defined but V8_HAVE_TARGET_OS is unset.
+# endif
 
 // Fall back to the detected host OS.
 #ifdef V8_OS_ANDROID
-#define V8_TARGET_OS_ANDROID
+# define V8_TARGET_OS_ANDROID
 #endif
 
 #ifdef V8_OS_FUCHSIA
-#define V8_TARGET_OS_FUCHSIA
+# define V8_TARGET_OS_FUCHSIA
 #endif
 
 #ifdef V8_OS_IOS
-#define V8_TARGET_OS_IOS
+# define V8_TARGET_OS_IOS
 #endif
 
 #ifdef V8_OS_LINUX
-#define V8_TARGET_OS_LINUX
+# define V8_TARGET_OS_LINUX
 #endif
 
 #ifdef V8_OS_MACOS
-#define V8_TARGET_OS_MACOS
+# define V8_TARGET_OS_MACOS
 #endif
 
 #ifdef V8_OS_WIN
-#define V8_TARGET_OS_WIN
+# define V8_TARGET_OS_WIN
 #endif
 
-#endif // V8_HAVE_TARGET_OS
+#endif  // V8_HAVE_TARGET_OS
 
 #if defined(V8_TARGET_OS_ANDROID)
-#define V8_TARGET_OS_STRING "android"
+# define V8_TARGET_OS_STRING "android"
 #elif defined(V8_TARGET_OS_FUCHSIA)
-#define V8_TARGET_OS_STRING "fuchsia"
+# define V8_TARGET_OS_STRING "fuchsia"
 #elif defined(V8_TARGET_OS_IOS)
-#define V8_TARGET_OS_STRING "ios"
+# define V8_TARGET_OS_STRING "ios"
 #elif defined(V8_TARGET_OS_LINUX)
-#define V8_TARGET_OS_STRING "linux"
+# define V8_TARGET_OS_STRING "linux"
 #elif defined(V8_TARGET_OS_MACOS)
-#define V8_TARGET_OS_STRING "macos"
+# define V8_TARGET_OS_STRING "macos"
 #elif defined(V8_TARGET_OS_WINDOWS)
-#define V8_TARGET_OS_STRING "windows"
+# define V8_TARGET_OS_STRING "windows"
 #else
-#define V8_TARGET_OS_STRING "unknown"
+# define V8_TARGET_OS_STRING "unknown"
 #endif
 
 // -----------------------------------------------------------------------------
@@ -258,19 +277,20 @@
 //   ...
 //  #endif
 
-#if defined(_MSC_VER)
-#define V8_LIBC_MSVCRT 1
+#if defined (_MSC_VER)
+# define V8_LIBC_MSVCRT 1
 #elif defined(__BIONIC__)
-#define V8_LIBC_BIONIC 1
-#define V8_LIBC_BSD 1
+# define V8_LIBC_BIONIC 1
+# define V8_LIBC_BSD 1
 #elif defined(__UCLIBC__)
 // Must test for UCLIBC before GLIBC, as UCLIBC pretends to be GLIBC.
-#define V8_LIBC_UCLIBC 1
+# define V8_LIBC_UCLIBC 1
 #elif defined(__GLIBC__) || defined(__GNU_LIBRARY__)
-#define V8_LIBC_GLIBC 1
+# define V8_LIBC_GLIBC 1
 #else
-#define V8_LIBC_BSD V8_OS_BSD
+# define V8_LIBC_BSD V8_OS_BSD
 #endif
+
 
 // -----------------------------------------------------------------------------
 // Compiler detection
@@ -338,18 +358,19 @@
 
 #if defined(__clang__)
 
-#if defined(__GNUC__) // Clang in gcc mode.
-#define V8_CC_GNU 1
+#if defined(__GNUC__)  // Clang in gcc mode.
+# define V8_CC_GNU 1
 #endif
 
-#define V8_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
-#define V8_HAS_ATTRIBUTE_CONSTINIT (__has_attribute(require_constant_initialization))
-#define V8_HAS_ATTRIBUTE_CONST (__has_attribute(const))
-#define V8_HAS_ATTRIBUTE_NONNULL (__has_attribute(nonnull))
-#define V8_HAS_ATTRIBUTE_NOINLINE (__has_attribute(noinline))
-#define V8_HAS_ATTRIBUTE_UNUSED (__has_attribute(unused))
-#define V8_HAS_ATTRIBUTE_USED (__has_attribute(used))
-#define V8_HAS_ATTRIBUTE_RETAIN (__has_attribute(retain))
+# define V8_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
+# define V8_HAS_ATTRIBUTE_CONSTINIT \
+    (__has_attribute(require_constant_initialization))
+# define V8_HAS_ATTRIBUTE_CONST (__has_attribute(const))
+# define V8_HAS_ATTRIBUTE_NONNULL (__has_attribute(nonnull))
+# define V8_HAS_ATTRIBUTE_NOINLINE (__has_attribute(noinline))
+# define V8_HAS_ATTRIBUTE_UNUSED (__has_attribute(unused))
+# define V8_HAS_ATTRIBUTE_USED (__has_attribute(used))
+# define V8_HAS_ATTRIBUTE_RETAIN (__has_attribute(retain))
 // Support for the "preserve_most" attribute is limited:
 // - 32-bit platforms do not implement it,
 // - component builds fail because _dl_runtime_resolve clobbers registers,
@@ -358,61 +379,65 @@
 // Additionally, the initial implementation in clang <= 16 overwrote the return
 // register(s) in the epilogue of a preserve_most function, so we only use
 // preserve_most in clang >= 17 (see https://reviews.llvm.org/D143425).
-#if (defined(_M_X64) || defined(__x86_64__) /* x64 (everywhere) */                                                                                             \
-    || ((defined(__AARCH64EL__) || defined(_M_ARM64)) /* arm64, but ... */                                                                                     \
-        && !defined(_WIN32))) /* not on windows */                                                                                                             \
-    && !defined(COMPONENT_BUILD) /* no component build */                                                                                                      \
-    && __clang_major__ >= 17 /* clang >= 17 */
-#define V8_HAS_ATTRIBUTE_PRESERVE_MOST (__has_attribute(preserve_most))
+#if (defined(_M_X64) || defined(__x86_64__)            /* x64 (everywhere) */  \
+     || ((defined(__AARCH64EL__) || defined(_M_ARM64)) /* arm64, but ... */    \
+         && !defined(_WIN32)))                         /* not on windows */    \
+     && !defined(COMPONENT_BUILD)                      /* no component build */\
+     && __clang_major__ >= 17                          /* clang >= 17 */
+# define V8_HAS_ATTRIBUTE_PRESERVE_MOST (__has_attribute(preserve_most))
 #endif
-#define V8_HAS_ATTRIBUTE_VISIBILITY (__has_attribute(visibility))
-#define V8_HAS_ATTRIBUTE_WARN_UNUSED_RESULT (__has_attribute(warn_unused_result))
-#define V8_HAS_ATTRIBUTE_WEAK (__has_attribute(weak))
+# define V8_HAS_ATTRIBUTE_VISIBILITY (__has_attribute(visibility))
+# define V8_HAS_ATTRIBUTE_WARN_UNUSED_RESULT \
+    (__has_attribute(warn_unused_result))
+# define V8_HAS_ATTRIBUTE_WEAK (__has_attribute(weak))
 
-#define V8_HAS_CPP_ATTRIBUTE_NODISCARD (V8_HAS_CPP_ATTRIBUTE(nodiscard))
+# define V8_HAS_CPP_ATTRIBUTE_NODISCARD (V8_HAS_CPP_ATTRIBUTE(nodiscard))
 #if defined(V8_CC_MSVC)
-#define V8_HAS_CPP_ATTRIBUTE_NO_UNIQUE_ADDRESS (V8_HAS_CPP_ATTRIBUTE(msvc::no_unique_address) || V8_HAS_CPP_ATTRIBUTE(no_unique_address))
+# define V8_HAS_CPP_ATTRIBUTE_NO_UNIQUE_ADDRESS       \
+    (V8_HAS_CPP_ATTRIBUTE(msvc::no_unique_address) || \
+     V8_HAS_CPP_ATTRIBUTE(no_unique_address))
 #else
-#define V8_HAS_CPP_ATTRIBUTE_NO_UNIQUE_ADDRESS (V8_HAS_CPP_ATTRIBUTE(no_unique_address))
+# define V8_HAS_CPP_ATTRIBUTE_NO_UNIQUE_ADDRESS \
+    (V8_HAS_CPP_ATTRIBUTE(no_unique_address))
 #endif
 
-#define V8_HAS_BUILTIN_ADD_OVERFLOW (__has_builtin(__builtin_add_overflow))
-#define V8_HAS_BUILTIN_ASSUME (__has_builtin(__builtin_assume))
-#define V8_HAS_BUILTIN_ASSUME_ALIGNED (__has_builtin(__builtin_assume_aligned))
-#define V8_HAS_BUILTIN_BIT_CAST (__has_builtin(__builtin_bit_cast))
-#define V8_HAS_BUILTIN_BSWAP16 (__has_builtin(__builtin_bswap16))
-#define V8_HAS_BUILTIN_BSWAP32 (__has_builtin(__builtin_bswap32))
-#define V8_HAS_BUILTIN_BSWAP64 (__has_builtin(__builtin_bswap64))
-#define V8_HAS_BUILTIN_CLZ (__has_builtin(__builtin_clz))
-#define V8_HAS_BUILTIN_CTZ (__has_builtin(__builtin_ctz))
-#define V8_HAS_BUILTIN_EXPECT (__has_builtin(__builtin_expect))
-#define V8_HAS_BUILTIN_FRAME_ADDRESS (__has_builtin(__builtin_frame_address))
-#define V8_HAS_BUILTIN_MUL_OVERFLOW (__has_builtin(__builtin_mul_overflow))
-#define V8_HAS_BUILTIN_POPCOUNT (__has_builtin(__builtin_popcount))
-#define V8_HAS_BUILTIN_SADD_OVERFLOW (__has_builtin(__builtin_sadd_overflow))
-#define V8_HAS_BUILTIN_SMUL_OVERFLOW (__has_builtin(__builtin_smul_overflow))
-#define V8_HAS_BUILTIN_SSUB_OVERFLOW (__has_builtin(__builtin_ssub_overflow))
-#define V8_HAS_BUILTIN_SUB_OVERFLOW (__has_builtin(__builtin_sub_overflow))
-#define V8_HAS_BUILTIN_UADD_OVERFLOW (__has_builtin(__builtin_uadd_overflow))
-#define V8_HAS_BUILTIN_UNREACHABLE (__has_builtin(__builtin_unreachable))
+# define V8_HAS_BUILTIN_ADD_OVERFLOW (__has_builtin(__builtin_add_overflow))
+# define V8_HAS_BUILTIN_ASSUME (__has_builtin(__builtin_assume))
+# define V8_HAS_BUILTIN_ASSUME_ALIGNED (__has_builtin(__builtin_assume_aligned))
+# define V8_HAS_BUILTIN_BIT_CAST (__has_builtin(__builtin_bit_cast))
+# define V8_HAS_BUILTIN_BSWAP16 (__has_builtin(__builtin_bswap16))
+# define V8_HAS_BUILTIN_BSWAP32 (__has_builtin(__builtin_bswap32))
+# define V8_HAS_BUILTIN_BSWAP64 (__has_builtin(__builtin_bswap64))
+# define V8_HAS_BUILTIN_CLZ (__has_builtin(__builtin_clz))
+# define V8_HAS_BUILTIN_CTZ (__has_builtin(__builtin_ctz))
+# define V8_HAS_BUILTIN_EXPECT (__has_builtin(__builtin_expect))
+# define V8_HAS_BUILTIN_FRAME_ADDRESS (__has_builtin(__builtin_frame_address))
+# define V8_HAS_BUILTIN_MUL_OVERFLOW (__has_builtin(__builtin_mul_overflow))
+# define V8_HAS_BUILTIN_POPCOUNT (__has_builtin(__builtin_popcount))
+# define V8_HAS_BUILTIN_SADD_OVERFLOW (__has_builtin(__builtin_sadd_overflow))
+# define V8_HAS_BUILTIN_SMUL_OVERFLOW (__has_builtin(__builtin_smul_overflow))
+# define V8_HAS_BUILTIN_SSUB_OVERFLOW (__has_builtin(__builtin_ssub_overflow))
+# define V8_HAS_BUILTIN_SUB_OVERFLOW (__has_builtin(__builtin_sub_overflow))
+# define V8_HAS_BUILTIN_UADD_OVERFLOW (__has_builtin(__builtin_uadd_overflow))
+# define V8_HAS_BUILTIN_UNREACHABLE (__has_builtin(__builtin_unreachable))
 
 // Clang has no __has_feature for computed gotos.
 // GCC doc: https://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html
-#define V8_HAS_COMPUTED_GOTO 1
+# define V8_HAS_COMPUTED_GOTO 1
 
 #elif defined(__GNUC__)
 
-#define V8_CC_GNU 1
-#if defined(__INTEL_COMPILER) // Intel C++ also masquerades as GCC 3.2.0
-#define V8_CC_INTEL 1
-#endif
-#if defined(__MINGW32__)
-#define V8_CC_MINGW32 1
-#endif
-#if defined(__MINGW64__)
-#define V8_CC_MINGW64 1
-#endif
-#define V8_CC_MINGW (V8_CC_MINGW32 || V8_CC_MINGW64)
+# define V8_CC_GNU 1
+# if defined(__INTEL_COMPILER)  // Intel C++ also masquerades as GCC 3.2.0
+#  define V8_CC_INTEL 1
+# endif
+# if defined(__MINGW32__)
+#  define V8_CC_MINGW32 1
+# endif
+# if defined(__MINGW64__)
+#  define V8_CC_MINGW64 1
+# endif
+# define V8_CC_MINGW (V8_CC_MINGW32 || V8_CC_MINGW64)
 
 // FYI: __has_builtin is only available with GCC 10 and later, so explicitly
 // check GCC version numbers to enable features. TODO(leszeks): Merge feature
@@ -422,27 +447,27 @@
 // always_inline is available in gcc 4.0 but not very reliable until 4.4.
 // Works around "sorry, unimplemented: inlining failed" build errors with
 // older compilers.
-#define V8_HAS_ATTRIBUTE_ALWAYS_INLINE 1
-#define V8_HAS_ATTRIBUTE_NOINLINE 1
-#define V8_HAS_ATTRIBUTE_UNUSED 1
-#define V8_HAS_ATTRIBUTE_VISIBILITY 1
-#define V8_HAS_ATTRIBUTE_WARN_UNUSED_RESULT (!V8_CC_INTEL)
-#define V8_HAS_ATTRIBUTE_WEAK 1
+# define V8_HAS_ATTRIBUTE_ALWAYS_INLINE 1
+# define V8_HAS_ATTRIBUTE_NOINLINE 1
+# define V8_HAS_ATTRIBUTE_UNUSED 1
+# define V8_HAS_ATTRIBUTE_VISIBILITY 1
+# define V8_HAS_ATTRIBUTE_WARN_UNUSED_RESULT (!V8_CC_INTEL)
+# define V8_HAS_ATTRIBUTE_WEAK 1
 
 // [[nodiscard]] does not work together with with
 // __attribute__((visibility(""))) on GCC 7.4 which is why there is no define
 // for V8_HAS_CPP_ATTRIBUTE_NODISCARD. See https://crbug.com/v8/11707.
 
-#define V8_HAS_BUILTIN_ASSUME_ALIGNED 1
-#if __GNUC__ >= 11
-#define V8_HAS_BUILTIN_BIT_CAST 1
-#endif
-#define V8_HAS_BUILTIN_CLZ 1
-#define V8_HAS_BUILTIN_CTZ 1
-#define V8_HAS_BUILTIN_EXPECT 1
-#define V8_HAS_BUILTIN_FRAME_ADDRESS 1
-#define V8_HAS_BUILTIN_POPCOUNT 1
-#define V8_HAS_BUILTIN_UNREACHABLE 1
+# define V8_HAS_BUILTIN_ASSUME_ALIGNED 1
+# if __GNUC__ >= 11
+#  define V8_HAS_BUILTIN_BIT_CAST 1
+# endif
+# define V8_HAS_BUILTIN_CLZ 1
+# define V8_HAS_BUILTIN_CTZ 1
+# define V8_HAS_BUILTIN_EXPECT 1
+# define V8_HAS_BUILTIN_FRAME_ADDRESS 1
+# define V8_HAS_BUILTIN_POPCOUNT 1
+# define V8_HAS_BUILTIN_UNREACHABLE 1
 
 // GCC doc: https://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html
 #define V8_HAS_COMPUTED_GOTO 1
@@ -450,14 +475,15 @@
 #endif
 
 #if defined(_MSC_VER)
-#define V8_CC_MSVC 1
+# define V8_CC_MSVC 1
 
-#define V8_HAS_DECLSPEC_NOINLINE 1
-#define V8_HAS_DECLSPEC_SELECTANY 1
+# define V8_HAS_DECLSPEC_NOINLINE 1
+# define V8_HAS_DECLSPEC_SELECTANY 1
 
-#define V8_HAS___FORCEINLINE 1
+# define V8_HAS___FORCEINLINE 1
 
 #endif
+
 
 // -----------------------------------------------------------------------------
 // Helper macros
@@ -466,45 +492,46 @@
 // Use like:
 //   V8_INLINE int GetZero() { return 0; }
 #if !defined(DEBUG) && V8_HAS_ATTRIBUTE_ALWAYS_INLINE
-#define V8_INLINE inline __attribute__((always_inline))
+# define V8_INLINE inline __attribute__((always_inline))
 #elif !defined(DEBUG) && V8_HAS___FORCEINLINE
-#define V8_INLINE __forceinline
+# define V8_INLINE __forceinline
 #else
-#define V8_INLINE inline
+# define V8_INLINE inline
 #endif
 
 #if V8_HAS_BUILTIN_ASSUME
-#ifdef V8_DEBUG
+#ifdef DEBUG
 // In debug mode, check assumptions in addition to adding annotations.
 // This helps GCC (and maybe other compilers) figure out that certain
 // situations are unreachable.
-#define V8_ASSUME(condition)                                                                                                                                   \
-    do {                                                                                                                                                       \
-        DCHECK(condition);                                                                                                                                     \
-        __builtin_assume(condition);                                                                                                                           \
-    } while (false)
-#else // DEBUG
-#define V8_ASSUME __builtin_assume
-#endif // DEBUG
+# define V8_ASSUME(condition)    \
+  do {                           \
+    DCHECK(condition);           \
+    __builtin_assume(condition); \
+  } while (false)
+#else  // DEBUG
+# define V8_ASSUME __builtin_assume
+#endif  // DEBUG
 #elif V8_HAS_BUILTIN_UNREACHABLE
-#define V8_ASSUME(condition)                                                                                                                                   \
-    do {                                                                                                                                                       \
-        DCHECK(condition);                                                                                                                                     \
-        if (!(condition))                                                                                                                                      \
-            __builtin_unreachable();                                                                                                                           \
-    } while (false)
+# define V8_ASSUME(condition)                  \
+  do {                                         \
+    DCHECK(condition);                         \
+    if (!(condition)) __builtin_unreachable(); \
+  } while (false)
 #else
-#define V8_ASSUME USE
+# define V8_ASSUME USE
 #endif
 
 // Prefer c++20 std::assume_aligned. Don't use it on MSVC though, because it's
 // not happy with our large 4GB alignment values.
 #if __cplusplus >= 202002L && defined(__cpp_lib_assume_aligned) && !V8_CC_MSVC
-#define V8_ASSUME_ALIGNED(ptr, alignment) std::assume_aligned<(alignment)>(ptr)
+# define V8_ASSUME_ALIGNED(ptr, alignment) \
+  std::assume_aligned<(alignment)>(ptr)
 #elif V8_HAS_BUILTIN_ASSUME_ALIGNED
-#define V8_ASSUME_ALIGNED(ptr, alignment) __builtin_assume_aligned((ptr), (alignment))
+# define V8_ASSUME_ALIGNED(ptr, alignment) \
+  __builtin_assume_aligned((ptr), (alignment))
 #else
-#define V8_ASSUME_ALIGNED(ptr, alignment) (ptr)
+# define V8_ASSUME_ALIGNED(ptr, alignment) (ptr)
 #endif
 
 // A macro to mark functions whose values don't change (e.g. across calls)
@@ -512,39 +539,42 @@
 // Use like:
 //   V8_CONST int foo() { ... }
 #if V8_HAS_ATTRIBUTE_CONST
-#define V8_CONST __attribute__((const))
+# define V8_CONST __attribute__((const))
 #else
-#define V8_CONST
+# define V8_CONST
 #endif
 
 // A macro to mark a declaration as requiring constant initialization.
 // Use like:
 //   int* foo V8_CONSTINIT;
 #if V8_HAS_ATTRIBUTE_CONSTINIT
-#define V8_CONSTINIT __attribute__((require_constant_initialization))
+# define V8_CONSTINIT __attribute__((require_constant_initialization))
 #else
-#define V8_CONSTINIT
+# define V8_CONSTINIT
 #endif
+
 
 // A macro to mark specific arguments as non-null.
 // Use like:
 //   int add(int* x, int y, int* z) V8_NONNULL(1, 3) { return *x + y + *z; }
 #if V8_HAS_ATTRIBUTE_NONNULL
-#define V8_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
+# define V8_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
 #else
-#define V8_NONNULL(...) /* NOT SUPPORTED */
+# define V8_NONNULL(...) /* NOT SUPPORTED */
 #endif
+
 
 // A macro used to tell the compiler to never inline a particular function.
 // Use like:
 //   V8_NOINLINE int GetMinusOne() { return -1; }
 #if V8_HAS_ATTRIBUTE_NOINLINE
-#define V8_NOINLINE __attribute__((noinline))
+# define V8_NOINLINE __attribute__((noinline))
 #elif V8_HAS_DECLSPEC_NOINLINE
-#define V8_NOINLINE __declspec(noinline)
+# define V8_NOINLINE __declspec(noinline)
 #else
-#define V8_NOINLINE /* NOT SUPPORTED */
+# define V8_NOINLINE /* NOT SUPPORTED */
 #endif
+
 
 // A macro used to change the calling conventions to preserve all registers (no
 // caller-saved registers). Use this for cold functions called from hot
@@ -552,63 +582,74 @@
 // Use like:
 //   V8_NOINLINE V8_PRESERVE_MOST void UnlikelyMethod();
 #if V8_HAS_ATTRIBUTE_PRESERVE_MOST
-#define V8_PRESERVE_MOST __attribute__((preserve_most))
+# define V8_PRESERVE_MOST __attribute__((preserve_most))
 #else
-#define V8_PRESERVE_MOST /* NOT SUPPORTED */
+# define V8_PRESERVE_MOST /* NOT SUPPORTED */
 #endif
+
 
 // A macro (V8_DEPRECATED) to mark classes or functions as deprecated.
 #if defined(V8_DEPRECATION_WARNINGS)
-#define V8_DEPRECATED(message) [[deprecated(message)]]
+# define V8_DEPRECATED(message) [[deprecated(message)]]
 #else
-#define V8_DEPRECATED(message)
+# define V8_DEPRECATED(message)
 #endif
+
 
 // A macro (V8_DEPRECATE_SOON) to make it easier to see what will be deprecated.
 #if defined(V8_IMMINENT_DEPRECATION_WARNINGS)
-#define V8_DEPRECATE_SOON(message) [[deprecated(message)]]
+# define V8_DEPRECATE_SOON(message) [[deprecated(message)]]
 #else
-#define V8_DEPRECATE_SOON(message)
+# define V8_DEPRECATE_SOON(message)
 #endif
 
-#if defined(V8_IMMINENT_DEPRECATION_WARNINGS) || defined(V8_DEPRECATION_WARNINGS)
+
+#if defined(V8_IMMINENT_DEPRECATION_WARNINGS) || \
+    defined(V8_DEPRECATION_WARNINGS)
 #if defined(V8_CC_MSVC)
-#define START_ALLOW_USE_DEPRECATED() __pragma(warning(push)) __pragma(warning(disable : 4996))
-#define END_ALLOW_USE_DEPRECATED() __pragma(warning(pop))
-#else // !defined(V8_CC_MSVC)
-#define START_ALLOW_USE_DEPRECATED() _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+# define START_ALLOW_USE_DEPRECATED() \
+    __pragma(warning(push))           \
+    __pragma(warning(disable : 4996))
+# define END_ALLOW_USE_DEPRECATED() __pragma(warning(pop))
+#else  // !defined(V8_CC_MSVC)
+# define START_ALLOW_USE_DEPRECATED()                               \
+    _Pragma("GCC diagnostic push")                                  \
+    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 #define END_ALLOW_USE_DEPRECATED() _Pragma("GCC diagnostic pop")
-#endif // !defined(V8_CC_MSVC)
-#else // !(defined(V8_IMMINENT_DEPRECATION_WARNINGS) ||                                                                                                        \
-    // defined(V8_DEPRECATION_WARNINGS))
+#endif  // !defined(V8_CC_MSVC)
+#else  // !(defined(V8_IMMINENT_DEPRECATION_WARNINGS) ||
+       // defined(V8_DEPRECATION_WARNINGS))
 #define START_ALLOW_USE_DEPRECATED()
 #define END_ALLOW_USE_DEPRECATED()
-#endif // !(defined(V8_IMMINENT_DEPRECATION_WARNINGS) ||                                                                                                       \
-    // defined(V8_DEPRECATION_WARNINGS))
-#define ALLOW_COPY_AND_MOVE_WITH_DEPRECATED_FIELDS(ClassName)                                                                                                  \
-    START_ALLOW_USE_DEPRECATED()                                                                                                                               \
-    ClassName(const ClassName&) = default;                                                                                                                     \
-    ClassName(ClassName&&) = default;                                                                                                                          \
-    ClassName& operator=(const ClassName&) = default;                                                                                                          \
-    ClassName& operator=(ClassName&&) = default;                                                                                                               \
-    END_ALLOW_USE_DEPRECATED()
+#endif  // !(defined(V8_IMMINENT_DEPRECATION_WARNINGS) ||
+        // defined(V8_DEPRECATION_WARNINGS))
+#define ALLOW_COPY_AND_MOVE_WITH_DEPRECATED_FIELDS(ClassName) \
+  START_ALLOW_USE_DEPRECATED()                                \
+  ClassName(const ClassName&) = default;                      \
+  ClassName(ClassName&&) = default;                           \
+  ClassName& operator=(const ClassName&) = default;           \
+  ClassName& operator=(ClassName&&) = default;                \
+  END_ALLOW_USE_DEPRECATED()
+
 
 #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 6)
-#define V8_ENUM_DEPRECATED(message)
-#define V8_ENUM_DEPRECATE_SOON(message)
+# define V8_ENUM_DEPRECATED(message)
+# define V8_ENUM_DEPRECATE_SOON(message)
 #else
-#define V8_ENUM_DEPRECATED(message) V8_DEPRECATED(message)
-#define V8_ENUM_DEPRECATE_SOON(message) V8_DEPRECATE_SOON(message)
+# define V8_ENUM_DEPRECATED(message) V8_DEPRECATED(message)
+# define V8_ENUM_DEPRECATE_SOON(message) V8_DEPRECATE_SOON(message)
 #endif
+
 
 // A macro to provide the compiler with branch prediction information.
 #if V8_HAS_BUILTIN_EXPECT
-#define V8_UNLIKELY(condition) (__builtin_expect(!!(condition), 0))
-#define V8_LIKELY(condition) (__builtin_expect(!!(condition), 1))
+# define V8_UNLIKELY(condition) (__builtin_expect(!!(condition), 0))
+# define V8_LIKELY(condition) (__builtin_expect(!!(condition), 1))
 #else
-#define V8_UNLIKELY(condition) (condition)
-#define V8_LIKELY(condition) (condition)
+# define V8_UNLIKELY(condition) (condition)
+# define V8_LIKELY(condition) (condition)
 #endif
+
 
 // Annotate a function indicating the caller must examine the return value.
 // Use like:
@@ -619,12 +660,14 @@
 #define V8_WARN_UNUSED_RESULT /* NOT SUPPORTED */
 #endif
 
+
 // Annotate functions/variables as weak to allow overriding the symbol.
 #if V8_HAS_ATTRIBUTE_WEAK
 #define V8_WEAK __attribute__((weak))
 #else
 #define V8_WEAK /* NOT SUPPORTED */
 #endif
+
 
 // Annotate a class or constructor indicating the caller must assign the
 // constructed instances.
@@ -730,27 +773,27 @@ V8 shared library set USING_V8_SHARED.
 // static library or building a program which uses the V8 static library neither
 // BUILDING_V8_SHARED nor USING_V8_SHARED should be defined.
 #ifdef BUILDING_V8_SHARED
-#define V8_EXPORT __declspec(dllexport)
+# define V8_EXPORT __declspec(dllexport)
 #elif USING_V8_SHARED
-#define V8_EXPORT __declspec(dllimport)
+# define V8_EXPORT __declspec(dllimport)
 #else
-#define V8_EXPORT
-#endif // BUILDING_V8_SHARED
+# define V8_EXPORT
+#endif  // BUILDING_V8_SHARED
 
-#else // V8_OS_WIN
+#else  // V8_OS_WIN
 
 // Setup for Linux shared library export.
 #if V8_HAS_ATTRIBUTE_VISIBILITY
-#ifdef BUILDING_V8_SHARED
-#define V8_EXPORT __attribute__((visibility("default")))
+# ifdef BUILDING_V8_SHARED
+#  define V8_EXPORT __attribute__ ((visibility("default")))
+# else
+#  define V8_EXPORT
+# endif
 #else
-#define V8_EXPORT
-#endif
-#else
-#define V8_EXPORT
+# define V8_EXPORT
 #endif
 
-#endif // V8_OS_WIN
+#endif  // V8_OS_WIN
 
 // clang-format on
 
@@ -763,7 +806,7 @@ V8 shared library set USING_V8_SHARED.
 // on which V8 is built.
 #if defined(_M_X64) || defined(__x86_64__)
 #define V8_HOST_ARCH_X64 1
-#if defined(__x86_64__) && __SIZEOF_POINTER__ == 4 // Check for x32.
+#if defined(__x86_64__) && __SIZEOF_POINTER__ == 4  // Check for x32.
 #define V8_HOST_ARCH_32_BIT 1
 #else
 #define V8_HOST_ARCH_64_BIT 1
@@ -808,8 +851,11 @@ V8 shared library set USING_V8_SHARED.
 // The macros may be set externally. If not, detect in the same way as the host
 // architecture, that is, target the native environment as presented by the
 // compiler.
-#if !V8_TARGET_ARCH_X64 && !V8_TARGET_ARCH_IA32 && !V8_TARGET_ARCH_ARM && !V8_TARGET_ARCH_ARM64 && !V8_TARGET_ARCH_MIPS64 && !V8_TARGET_ARCH_PPC64             \
-    && !V8_TARGET_ARCH_S390X && !V8_TARGET_ARCH_RISCV64 && !V8_TARGET_ARCH_LOONG64 && !V8_TARGET_ARCH_RISCV32
+#if !V8_TARGET_ARCH_X64 && !V8_TARGET_ARCH_IA32 && !V8_TARGET_ARCH_ARM && \
+    !V8_TARGET_ARCH_ARM64 && !V8_TARGET_ARCH_MIPS64 &&                    \
+    !V8_TARGET_ARCH_PPC64 && !V8_TARGET_ARCH_S390X &&                     \
+    !V8_TARGET_ARCH_RISCV64 && !V8_TARGET_ARCH_LOONG64 &&                 \
+    !V8_TARGET_ARCH_RISCV32
 #if defined(_M_X64) || defined(__x86_64__)
 #define V8_TARGET_ARCH_X64 1
 #elif defined(_M_IX86) || defined(__i386__)
@@ -842,7 +888,7 @@ V8 shared library set USING_V8_SHARED.
 #define V8_TARGET_ARCH_32_BIT 1
 #elif V8_TARGET_ARCH_X64
 #if !V8_TARGET_ARCH_32_BIT && !V8_TARGET_ARCH_64_BIT
-#if defined(__x86_64__) && __SIZEOF_POINTER__ == 4 // Check for x32.
+#if defined(__x86_64__) && __SIZEOF_POINTER__ == 4  // Check for x32.
 #define V8_TARGET_ARCH_32_BIT 1
 #else
 #define V8_TARGET_ARCH_64_BIT 1
@@ -874,10 +920,12 @@ V8 shared library set USING_V8_SHARED.
 #if V8_TARGET_ARCH_IA32 && !V8_HOST_ARCH_IA32
 #error Target architecture ia32 is only supported on ia32 host
 #endif
-#if (V8_TARGET_ARCH_X64 && V8_TARGET_ARCH_64_BIT && !((V8_HOST_ARCH_X64 || V8_HOST_ARCH_ARM64) && V8_HOST_ARCH_64_BIT))
+#if (V8_TARGET_ARCH_X64 && V8_TARGET_ARCH_64_BIT && \
+     !((V8_HOST_ARCH_X64 || V8_HOST_ARCH_ARM64) && V8_HOST_ARCH_64_BIT))
 #error Target architecture x64 is only supported on x64 and arm64 host
 #endif
-#if (V8_TARGET_ARCH_X64 && V8_TARGET_ARCH_32_BIT && !(V8_HOST_ARCH_X64 && V8_HOST_ARCH_32_BIT))
+#if (V8_TARGET_ARCH_X64 && V8_TARGET_ARCH_32_BIT && \
+     !(V8_HOST_ARCH_X64 && V8_HOST_ARCH_32_BIT))
 #error Target architecture x32 is only supported on x64 host with x32 support
 #endif
 #if (V8_TARGET_ARCH_ARM && !(V8_HOST_ARCH_IA32 || V8_HOST_ARCH_ARM))
@@ -953,4 +1001,4 @@ V8 shared library set USING_V8_SHARED.
 #define V8_TARGET_BIG_ENDIAN_BOOL false
 #endif
 
-#endif // V8CONFIG_H_
+#endif  // V8CONFIG_H_

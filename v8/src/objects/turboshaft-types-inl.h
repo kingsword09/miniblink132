@@ -28,8 +28,8 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(TurboshaftFloat64Type)
 TQ_OBJECT_CONSTRUCTORS_IMPL(TurboshaftFloat64RangeType)
 TQ_OBJECT_CONSTRUCTORS_IMPL(TurboshaftFloat64SetType)
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_TURBOSHAFT_TYPES_INL_H_
+#endif  // V8_OBJECTS_TURBOSHAFT_TYPES_INL_H_

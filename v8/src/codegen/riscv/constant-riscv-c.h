@@ -14,10 +14,14 @@ constexpr Opcode RO_C_LW = C0 | (0b010 << kRvcFunct3Shift);
 constexpr Opcode RO_C_SW = C0 | (0b110 << kRvcFunct3Shift);
 constexpr Opcode RO_C_NOP_ADDI = C1 | (0b000 << kRvcFunct3Shift);
 constexpr Opcode RO_C_LI = C1 | (0b010 << kRvcFunct3Shift);
-constexpr Opcode RO_C_SUB = C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_0 << kRvcFunct2Shift);
-constexpr Opcode RO_C_XOR = C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_1 << kRvcFunct2Shift);
-constexpr Opcode RO_C_OR = C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_2 << kRvcFunct2Shift);
-constexpr Opcode RO_C_AND = C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_3 << kRvcFunct2Shift);
+constexpr Opcode RO_C_SUB =
+    C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_0 << kRvcFunct2Shift);
+constexpr Opcode RO_C_XOR =
+    C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_1 << kRvcFunct2Shift);
+constexpr Opcode RO_C_OR =
+    C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_2 << kRvcFunct2Shift);
+constexpr Opcode RO_C_AND =
+    C1 | (0b100011 << kRvcFunct6Shift) | (FUNCT2_3 << kRvcFunct2Shift);
 constexpr Opcode RO_C_LUI_ADD = C1 | (0b011 << kRvcFunct3Shift);
 constexpr Opcode RO_C_MISC_ALU = C1 | (0b100 << kRvcFunct3Shift);
 constexpr Opcode RO_C_J = C1 | (0b101 << kRvcFunct3Shift);
@@ -43,8 +47,10 @@ constexpr Opcode RO_C_SD = C0 | (0b111 << kRvcFunct3Shift);
 constexpr Opcode RO_C_LDSP = C2 | (0b011 << kRvcFunct3Shift);
 constexpr Opcode RO_C_SDSP = C2 | (0b111 << kRvcFunct3Shift);
 constexpr Opcode RO_C_ADDIW = C1 | (0b001 << kRvcFunct3Shift);
-constexpr Opcode RO_C_SUBW = C1 | (0b100111 << kRvcFunct6Shift) | (FUNCT2_0 << kRvcFunct2Shift);
-constexpr Opcode RO_C_ADDW = C1 | (0b100111 << kRvcFunct6Shift) | (FUNCT2_1 << kRvcFunct2Shift);
+constexpr Opcode RO_C_SUBW =
+    C1 | (0b100111 << kRvcFunct6Shift) | (FUNCT2_0 << kRvcFunct2Shift);
+constexpr Opcode RO_C_ADDW =
+    C1 | (0b100111 << kRvcFunct6Shift) | (FUNCT2_1 << kRvcFunct2Shift);
 #endif
 #ifdef V8_TARGET_ARCH_RISCV32
 constexpr Opcode RO_C_FLWSP = C2 | (0b011 << kRvcFunct3Shift);
@@ -53,6 +59,6 @@ constexpr Opcode RO_C_FLW = C0 | (0b011 << kRvcFunct3Shift);
 constexpr Opcode RO_C_FSW = C0 | (0b111 << kRvcFunct3Shift);
 #endif
 // clang-format on
-} // namespace internal
-} // namespace v8
-#endif // V8_CODEGEN_RISCV_CONSTANT_RISCV_C_H_
+}  // namespace internal
+}  // namespace v8
+#endif  // V8_CODEGEN_RISCV_CONSTANT_RISCV_C_H_

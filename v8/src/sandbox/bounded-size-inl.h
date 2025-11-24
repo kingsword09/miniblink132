@@ -12,27 +12,25 @@
 
 namespace v8::internal {
 
-V8_INLINE size_t ReadBoundedSizeField(Address field_address)
-{
+V8_INLINE size_t ReadBoundedSizeField(Address field_address) {
 #ifdef V8_ENABLE_SANDBOX
-    size_t raw_value = base::ReadUnalignedValue<size_t>(field_address);
-    return raw_value >> kBoundedSizeShift;
+  size_t raw_value = base::ReadUnalignedValue<size_t>(field_address);
+  return raw_value >> kBoundedSizeShift;
 #else
-    return ReadMaybeUnalignedValue<size_t>(field_address);
+  return ReadMaybeUnalignedValue<size_t>(field_address);
 #endif
 }
 
-V8_INLINE void WriteBoundedSizeField(Address field_address, size_t value)
-{
+V8_INLINE void WriteBoundedSizeField(Address field_address, size_t value) {
 #ifdef V8_ENABLE_SANDBOX
-    DCHECK_LE(value, kMaxSafeBufferSizeForSandbox);
-    size_t raw_value = value << kBoundedSizeShift;
-    base::WriteUnalignedValue<size_t>(field_address, raw_value);
+  DCHECK_LE(value, kMaxSafeBufferSizeForSandbox);
+  size_t raw_value = value << kBoundedSizeShift;
+  base::WriteUnalignedValue<size_t>(field_address, raw_value);
 #else
-    WriteMaybeUnalignedValue<size_t>(field_address, value);
+  WriteMaybeUnalignedValue<size_t>(field_address, value);
 #endif
 }
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_SANDBOX_BOUNDED_SIZE_INL_H_
+#endif  // V8_SANDBOX_BOUNDED_SIZE_INL_H_

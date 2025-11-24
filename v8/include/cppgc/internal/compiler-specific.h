@@ -5,7 +5,7 @@
 #ifndef INCLUDE_CPPGC_INTERNAL_COMPILER_SPECIFIC_H_
 #define INCLUDE_CPPGC_INTERNAL_COMPILER_SPECIFIC_H_
 
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace cppgc {
 
@@ -41,6 +41,6 @@ namespace cppgc {
 #define CPPGC_UNUSED
 #endif
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_INTERNAL_COMPILER_SPECIFIC_H_
+#endif  // INCLUDE_CPPGC_INTERNAL_COMPILER_SPECIFIC_H_

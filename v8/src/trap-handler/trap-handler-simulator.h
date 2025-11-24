@@ -35,8 +35,8 @@ uintptr_t ProbeMemory(uintptr_t address, uintptr_t pc)
     asm("v8_internal_simulator_ProbeMemory");
 #endif
 
-} // namespace v8::internal::trap_handler
+}  // namespace v8::internal::trap_handler
 
-#endif // V8_TRAP_HANDLER_VIA_SIMULATOR
+#endif  // V8_TRAP_HANDLER_VIA_SIMULATOR
 
-#endif // V8_TRAP_HANDLER_TRAP_HANDLER_SIMULATOR_H_
+#endif  // V8_TRAP_HANDLER_TRAP_HANDLER_SIMULATOR_H_

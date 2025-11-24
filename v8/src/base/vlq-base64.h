@@ -17,7 +17,8 @@ V8_BASE_EXPORT int8_t charToDigitDecodeForTesting(uint8_t c);
 // Decodes a VLQ-Base64-encoded string into 32bit digits. A valid return value
 // is within [-2^31+1, 2^31-1]. This function returns -2^31
 // (std::numeric_limits<int32_t>::min()) when bad input s is passed.
-V8_BASE_EXPORT int32_t VLQBase64Decode(const char* start, size_t sz, size_t* pos);
-} // namespace base
-} // namespace v8
-#endif // V8_BASE_VLQ_BASE64_H_
+V8_BASE_EXPORT int32_t VLQBase64Decode(const char* start, size_t sz,
+                                       size_t* pos);
+}  // namespace base
+}  // namespace v8
+#endif  // V8_BASE_VLQ_BASE64_H_

@@ -12,13 +12,13 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void Int64LoweringPhase::Run(PipelineData* data, Zone* temp_zone)
-{
+void Int64LoweringPhase::Run(PipelineData* data, Zone* temp_zone) {
 #if V8_TARGET_ARCH_32_BIT
-    turboshaft::CopyingPhase<turboshaft::Int64LoweringReducer>::Run(data, temp_zone);
+  turboshaft::CopyingPhase<turboshaft::Int64LoweringReducer>::Run(data,
+                                                                  temp_zone);
 #else
-    UNREACHABLE();
+  UNREACHABLE();
 #endif
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

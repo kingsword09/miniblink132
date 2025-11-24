@@ -12,290 +12,285 @@ namespace v8 {
 namespace internal {
 
 // static
-constexpr Builtin Builtins::RecordWrite(SaveFPRegsMode fp_mode)
-{
-    switch (fp_mode) {
+constexpr Builtin Builtins::RecordWrite(SaveFPRegsMode fp_mode) {
+  switch (fp_mode) {
     case SaveFPRegsMode::kIgnore:
-        return Builtin::kRecordWriteIgnoreFP;
+      return Builtin::kRecordWriteIgnoreFP;
     case SaveFPRegsMode::kSave:
-        return Builtin::kRecordWriteSaveFP;
-    }
+      return Builtin::kRecordWriteSaveFP;
+  }
 }
 
 // static
-constexpr Builtin Builtins::IndirectPointerBarrier(SaveFPRegsMode fp_mode)
-{
-    switch (fp_mode) {
+constexpr Builtin Builtins::IndirectPointerBarrier(SaveFPRegsMode fp_mode) {
+  switch (fp_mode) {
     case SaveFPRegsMode::kIgnore:
-        return Builtin::kIndirectPointerBarrierIgnoreFP;
+      return Builtin::kIndirectPointerBarrierIgnoreFP;
     case SaveFPRegsMode::kSave:
-        return Builtin::kIndirectPointerBarrierSaveFP;
-    }
+      return Builtin::kIndirectPointerBarrierSaveFP;
+  }
 }
 
 // static
-constexpr Builtin Builtins::EphemeronKeyBarrier(SaveFPRegsMode fp_mode)
-{
-    switch (fp_mode) {
+constexpr Builtin Builtins::EphemeronKeyBarrier(SaveFPRegsMode fp_mode) {
+  switch (fp_mode) {
     case SaveFPRegsMode::kIgnore:
-        return Builtin::kEphemeronKeyBarrierIgnoreFP;
+      return Builtin::kEphemeronKeyBarrierIgnoreFP;
     case SaveFPRegsMode::kSave:
-        return Builtin::kEphemeronKeyBarrierSaveFP;
-    }
+      return Builtin::kEphemeronKeyBarrierSaveFP;
+  }
 }
 
 // static
-constexpr Builtin Builtins::AdaptorWithBuiltinExitFrame(int formal_parameter_count)
-{
-    switch (formal_parameter_count) {
+constexpr Builtin Builtins::AdaptorWithBuiltinExitFrame(
+    int formal_parameter_count) {
+  switch (formal_parameter_count) {
     case kDontAdaptArgumentsSentinel:
     case JSParameterCount(0):
-        return Builtin::kAdaptorWithBuiltinExitFrame0;
+      return Builtin::kAdaptorWithBuiltinExitFrame0;
     case JSParameterCount(1):
-        return Builtin::kAdaptorWithBuiltinExitFrame1;
+      return Builtin::kAdaptorWithBuiltinExitFrame1;
     case JSParameterCount(2):
-        return Builtin::kAdaptorWithBuiltinExitFrame2;
+      return Builtin::kAdaptorWithBuiltinExitFrame2;
     case JSParameterCount(3):
-        return Builtin::kAdaptorWithBuiltinExitFrame3;
+      return Builtin::kAdaptorWithBuiltinExitFrame3;
     case JSParameterCount(4):
-        return Builtin::kAdaptorWithBuiltinExitFrame4;
+      return Builtin::kAdaptorWithBuiltinExitFrame4;
     case JSParameterCount(5):
-        return Builtin::kAdaptorWithBuiltinExitFrame5;
-    }
-    UNREACHABLE();
+      return Builtin::kAdaptorWithBuiltinExitFrame5;
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr Builtin Builtins::CallFunction(ConvertReceiverMode mode)
-{
-    switch (mode) {
+constexpr Builtin Builtins::CallFunction(ConvertReceiverMode mode) {
+  switch (mode) {
     case ConvertReceiverMode::kNullOrUndefined:
-        return Builtin::kCallFunction_ReceiverIsNullOrUndefined;
+      return Builtin::kCallFunction_ReceiverIsNullOrUndefined;
     case ConvertReceiverMode::kNotNullOrUndefined:
-        return Builtin::kCallFunction_ReceiverIsNotNullOrUndefined;
+      return Builtin::kCallFunction_ReceiverIsNotNullOrUndefined;
     case ConvertReceiverMode::kAny:
-        return Builtin::kCallFunction_ReceiverIsAny;
-    }
-    UNREACHABLE();
+      return Builtin::kCallFunction_ReceiverIsAny;
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr Builtin Builtins::Call(ConvertReceiverMode mode)
-{
-    switch (mode) {
+constexpr Builtin Builtins::Call(ConvertReceiverMode mode) {
+  switch (mode) {
     case ConvertReceiverMode::kNullOrUndefined:
-        return Builtin::kCall_ReceiverIsNullOrUndefined;
+      return Builtin::kCall_ReceiverIsNullOrUndefined;
     case ConvertReceiverMode::kNotNullOrUndefined:
-        return Builtin::kCall_ReceiverIsNotNullOrUndefined;
+      return Builtin::kCall_ReceiverIsNotNullOrUndefined;
     case ConvertReceiverMode::kAny:
-        return Builtin::kCall_ReceiverIsAny;
-    }
-    UNREACHABLE();
+      return Builtin::kCall_ReceiverIsAny;
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr bool Builtins::IsAnyCall(Builtin builtin)
-{
-    switch (builtin) {
+constexpr bool Builtins::IsAnyCall(Builtin builtin) {
+  switch (builtin) {
     case Builtin::kCallFunction_ReceiverIsNullOrUndefined:
     case Builtin::kCallFunction_ReceiverIsNotNullOrUndefined:
     case Builtin::kCallFunction_ReceiverIsAny:
     case Builtin::kCall_ReceiverIsNullOrUndefined:
     case Builtin::kCall_ReceiverIsNotNullOrUndefined:
     case Builtin::kCall_ReceiverIsAny:
-        return true;
+      return true;
     default:
-        return false;
-    }
+      return false;
+  }
 }
 
 // static
-constexpr Builtin Builtins::NonPrimitiveToPrimitive(ToPrimitiveHint hint)
-{
-    switch (hint) {
+constexpr Builtin Builtins::NonPrimitiveToPrimitive(ToPrimitiveHint hint) {
+  switch (hint) {
     case ToPrimitiveHint::kDefault:
-        return Builtin::kNonPrimitiveToPrimitive_Default;
+      return Builtin::kNonPrimitiveToPrimitive_Default;
     case ToPrimitiveHint::kNumber:
-        return Builtin::kNonPrimitiveToPrimitive_Number;
+      return Builtin::kNonPrimitiveToPrimitive_Number;
     case ToPrimitiveHint::kString:
-        return Builtin::kNonPrimitiveToPrimitive_String;
-    }
-    UNREACHABLE();
+      return Builtin::kNonPrimitiveToPrimitive_String;
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr Builtin Builtins::OrdinaryToPrimitive(OrdinaryToPrimitiveHint hint)
-{
-    switch (hint) {
+constexpr Builtin Builtins::OrdinaryToPrimitive(OrdinaryToPrimitiveHint hint) {
+  switch (hint) {
     case OrdinaryToPrimitiveHint::kNumber:
-        return Builtin::kOrdinaryToPrimitive_Number;
+      return Builtin::kOrdinaryToPrimitive_Number;
     case OrdinaryToPrimitiveHint::kString:
-        return Builtin::kOrdinaryToPrimitive_String;
-    }
-    UNREACHABLE();
+      return Builtin::kOrdinaryToPrimitive_String;
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr Builtin Builtins::StringAdd(StringAddFlags flags)
-{
-    switch (flags) {
+constexpr Builtin Builtins::StringAdd(StringAddFlags flags) {
+  switch (flags) {
     case STRING_ADD_CHECK_NONE:
-        return Builtin::kStringAdd_CheckNone;
+      return Builtin::kStringAdd_CheckNone;
     case STRING_ADD_CONVERT_LEFT:
-        return Builtin::kStringAddConvertLeft;
+      return Builtin::kStringAddConvertLeft;
     case STRING_ADD_CONVERT_RIGHT:
-        return Builtin::kStringAddConvertRight;
-    }
-    UNREACHABLE();
+      return Builtin::kStringAddConvertRight;
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr Builtin Builtins::LoadGlobalIC(TypeofMode typeof_mode)
-{
-    return typeof_mode == TypeofMode::kNotInside ? Builtin::kLoadGlobalICTrampoline : Builtin::kLoadGlobalICInsideTypeofTrampoline;
+constexpr Builtin Builtins::LoadGlobalIC(TypeofMode typeof_mode) {
+  return typeof_mode == TypeofMode::kNotInside
+             ? Builtin::kLoadGlobalICTrampoline
+             : Builtin::kLoadGlobalICInsideTypeofTrampoline;
 }
 
 // static
-constexpr Builtin Builtins::LoadGlobalICInOptimizedCode(TypeofMode typeof_mode)
-{
-    return typeof_mode == TypeofMode::kNotInside ? Builtin::kLoadGlobalIC : Builtin::kLoadGlobalICInsideTypeof;
+constexpr Builtin Builtins::LoadGlobalICInOptimizedCode(
+    TypeofMode typeof_mode) {
+  return typeof_mode == TypeofMode::kNotInside
+             ? Builtin::kLoadGlobalIC
+             : Builtin::kLoadGlobalICInsideTypeof;
 }
 
 // static
-constexpr Builtin Builtins::CEntry(int result_size, ArgvMode argv_mode, bool builtin_exit_frame, bool switch_to_central_stack)
-{
-    // Aliases for readability below.
-    const int rs = result_size;
-    const ArgvMode am = argv_mode;
-    const bool be = builtin_exit_frame;
+constexpr Builtin Builtins::CEntry(int result_size, ArgvMode argv_mode,
+                                   bool builtin_exit_frame,
+                                   bool switch_to_central_stack) {
+  // Aliases for readability below.
+  const int rs = result_size;
+  const ArgvMode am = argv_mode;
+  const bool be = builtin_exit_frame;
 
-    if (switch_to_central_stack) {
-        DCHECK_EQ(result_size, 1);
-        DCHECK_EQ(argv_mode, ArgvMode::kStack);
-        DCHECK_EQ(builtin_exit_frame, false);
-        return Builtin::kWasmCEntry;
-    }
+  if (switch_to_central_stack) {
+    DCHECK_EQ(result_size, 1);
+    DCHECK_EQ(argv_mode, ArgvMode::kStack);
+    DCHECK_EQ(builtin_exit_frame, false);
+    return Builtin::kWasmCEntry;
+  }
 
-    if (rs == 1 && am == ArgvMode::kStack && !be) {
-        return Builtin::kCEntry_Return1_ArgvOnStack_NoBuiltinExit;
-    } else if (rs == 1 && am == ArgvMode::kStack && be) {
-        return Builtin::kCEntry_Return1_ArgvOnStack_BuiltinExit;
-    } else if (rs == 1 && am == ArgvMode::kRegister && !be) {
-        return Builtin::kCEntry_Return1_ArgvInRegister_NoBuiltinExit;
-    } else if (rs == 2 && am == ArgvMode::kStack && !be) {
-        return Builtin::kCEntry_Return2_ArgvOnStack_NoBuiltinExit;
-    } else if (rs == 2 && am == ArgvMode::kStack && be) {
-        return Builtin::kCEntry_Return2_ArgvOnStack_BuiltinExit;
-    } else if (rs == 2 && am == ArgvMode::kRegister && !be) {
-        return Builtin::kCEntry_Return2_ArgvInRegister_NoBuiltinExit;
-    }
+  if (rs == 1 && am == ArgvMode::kStack && !be) {
+    return Builtin::kCEntry_Return1_ArgvOnStack_NoBuiltinExit;
+  } else if (rs == 1 && am == ArgvMode::kStack && be) {
+    return Builtin::kCEntry_Return1_ArgvOnStack_BuiltinExit;
+  } else if (rs == 1 && am == ArgvMode::kRegister && !be) {
+    return Builtin::kCEntry_Return1_ArgvInRegister_NoBuiltinExit;
+  } else if (rs == 2 && am == ArgvMode::kStack && !be) {
+    return Builtin::kCEntry_Return2_ArgvOnStack_NoBuiltinExit;
+  } else if (rs == 2 && am == ArgvMode::kStack && be) {
+    return Builtin::kCEntry_Return2_ArgvOnStack_BuiltinExit;
+  } else if (rs == 2 && am == ArgvMode::kRegister && !be) {
+    return Builtin::kCEntry_Return2_ArgvInRegister_NoBuiltinExit;
+  }
 
-    UNREACHABLE();
+  UNREACHABLE();
 }
 
 // static
-constexpr Builtin Builtins::RuntimeCEntry(int result_size, bool switch_to_central_stack)
-{
-    return CEntry(result_size, ArgvMode::kStack, false, switch_to_central_stack);
+constexpr Builtin Builtins::RuntimeCEntry(int result_size,
+                                          bool switch_to_central_stack) {
+  return CEntry(result_size, ArgvMode::kStack, false, switch_to_central_stack);
 }
 
 // static
-constexpr Builtin Builtins::InterpreterCEntry(int result_size)
-{
-    return CEntry(result_size, ArgvMode::kRegister);
+constexpr Builtin Builtins::InterpreterCEntry(int result_size) {
+  return CEntry(result_size, ArgvMode::kRegister);
 }
 
 // static
-constexpr Builtin Builtins::InterpreterPushArgsThenCall(ConvertReceiverMode receiver_mode, InterpreterPushArgsMode mode)
-{
-    switch (mode) {
+constexpr Builtin Builtins::InterpreterPushArgsThenCall(
+    ConvertReceiverMode receiver_mode, InterpreterPushArgsMode mode) {
+  switch (mode) {
     case InterpreterPushArgsMode::kArrayFunction:
-        // There is no special-case handling of calls to Array. They will all go
-        // through the kOther case below.
-        UNREACHABLE();
+      // There is no special-case handling of calls to Array. They will all go
+      // through the kOther case below.
+      UNREACHABLE();
     case InterpreterPushArgsMode::kWithFinalSpread:
-        return Builtin::kInterpreterPushArgsThenCallWithFinalSpread;
+      return Builtin::kInterpreterPushArgsThenCallWithFinalSpread;
     case InterpreterPushArgsMode::kOther:
-        switch (receiver_mode) {
+      switch (receiver_mode) {
         case ConvertReceiverMode::kNullOrUndefined:
-            return Builtin::kInterpreterPushUndefinedAndArgsThenCall;
+          return Builtin::kInterpreterPushUndefinedAndArgsThenCall;
         case ConvertReceiverMode::kNotNullOrUndefined:
         case ConvertReceiverMode::kAny:
-            return Builtin::kInterpreterPushArgsThenCall;
-        }
-    }
-    UNREACHABLE();
+          return Builtin::kInterpreterPushArgsThenCall;
+      }
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr Builtin Builtins::InterpreterPushArgsThenConstruct(InterpreterPushArgsMode mode)
-{
-    switch (mode) {
+constexpr Builtin Builtins::InterpreterPushArgsThenConstruct(
+    InterpreterPushArgsMode mode) {
+  switch (mode) {
     case InterpreterPushArgsMode::kArrayFunction:
-        return Builtin::kInterpreterPushArgsThenConstructArrayFunction;
+      return Builtin::kInterpreterPushArgsThenConstructArrayFunction;
     case InterpreterPushArgsMode::kWithFinalSpread:
-        return Builtin::kInterpreterPushArgsThenConstructWithFinalSpread;
+      return Builtin::kInterpreterPushArgsThenConstructWithFinalSpread;
     case InterpreterPushArgsMode::kOther:
-        return Builtin::kInterpreterPushArgsThenConstruct;
-    }
-    UNREACHABLE();
+      return Builtin::kInterpreterPushArgsThenConstruct;
+  }
+  UNREACHABLE();
 }
 
 // static
-Address Builtins::EntryOf(Builtin builtin, Isolate* isolate)
-{
-    return isolate->builtin_entry_table()[Builtins::ToInt(builtin)];
+Address Builtins::EntryOf(Builtin builtin, Isolate* isolate) {
+  return isolate->builtin_entry_table()[Builtins::ToInt(builtin)];
 }
 
 // static
-constexpr bool Builtins::IsJSEntryVariant(Builtin builtin)
-{
-    switch (builtin) {
+constexpr bool Builtins::IsJSEntryVariant(Builtin builtin) {
+  switch (builtin) {
     case Builtin::kJSEntry:
     case Builtin::kJSConstructEntry:
     case Builtin::kJSRunMicrotasksEntry:
-        return true;
+      return true;
     default:
-        return false;
-    }
-    UNREACHABLE();
+      return false;
+  }
+  UNREACHABLE();
 }
 
 // static
-constexpr int Builtins::GetFormalParameterCount(Builtin builtin)
-{
-#define CPP_BUILTIN(Name, Argc)                                                                                                                                \
-    case Builtin::k##Name:                                                                                                                                     \
-        return Argc;
+constexpr int Builtins::GetFormalParameterCount(Builtin builtin) {
+#define CPP_BUILTIN(Name, Argc) \
+  case Builtin::k##Name:        \
+    return Argc;
 
-    switch (builtin) {
-        BUILTIN_LIST_C(CPP_BUILTIN)
+  switch (builtin) {
+    BUILTIN_LIST_C(CPP_BUILTIN)
     default:
-        UNREACHABLE();
-    }
+      UNREACHABLE();
+  }
 #undef CPP_BUILTIN
 }
 
 #ifdef V8_ENABLE_WEBASSEMBLY
 
 // static
-template <Builtin builtin> constexpr size_t Builtins::WasmBuiltinHandleArrayIndex()
-{
-    constexpr size_t index = std::find(std::begin(Builtins::kWasmIndirectlyCallableBuiltins), std::end(Builtins::kWasmIndirectlyCallableBuiltins), builtin)
-        - std::begin(Builtins::kWasmIndirectlyCallableBuiltins);
-    static_assert(Builtins::kWasmIndirectlyCallableBuiltins[index] == builtin);
-    return index;
+template <Builtin builtin>
+constexpr size_t Builtins::WasmBuiltinHandleArrayIndex() {
+  constexpr size_t index =
+      std::find(std::begin(Builtins::kWasmIndirectlyCallableBuiltins),
+                std::end(Builtins::kWasmIndirectlyCallableBuiltins), builtin) -
+      std::begin(Builtins::kWasmIndirectlyCallableBuiltins);
+  static_assert(Builtins::kWasmIndirectlyCallableBuiltins[index] == builtin);
+  return index;
 }
 
 // static
-template <Builtin builtin> wasm::WasmCodePointerTable::Handle Builtins::WasmBuiltinHandleOf(Isolate* isolate)
-{
-    return isolate->wasm_builtin_code_handles()[WasmBuiltinHandleArrayIndex<builtin>()];
+template <Builtin builtin>
+wasm::WasmCodePointerTable::Handle Builtins::WasmBuiltinHandleOf(
+    Isolate* isolate) {
+  return isolate
+      ->wasm_builtin_code_handles()[WasmBuiltinHandleArrayIndex<builtin>()];
 }
 
-#endif // V8_ENABLE_WEBASSEMBLY
+#endif  // V8_ENABLE_WEBASSEMBLY
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BUILTINS_BUILTINS_INL_H_
+#endif  // V8_BUILTINS_BUILTINS_INL_H_

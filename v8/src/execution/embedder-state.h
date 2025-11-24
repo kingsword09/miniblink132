@@ -14,31 +14,26 @@ enum class EmbedderStateTag : uint8_t;
 
 namespace internal {
 class V8_EXPORT_PRIVATE EmbedderState {
-public:
-    EmbedderState(v8::Isolate* isolate, Local<v8::Context> context, EmbedderStateTag tag);
+ public:
+  EmbedderState(v8::Isolate* isolate, Local<v8::Context> context,
+                EmbedderStateTag tag);
 
-    ~EmbedderState();
+  ~EmbedderState();
 
-    EmbedderStateTag GetState() const
-    {
-        return tag_;
-    }
+  EmbedderStateTag GetState() const { return tag_; }
 
-    Address native_context_address() const
-    {
-        return native_context_address_;
-    }
+  Address native_context_address() const { return native_context_address_; }
 
-    void OnMoveEvent(Address from, Address to);
+  void OnMoveEvent(Address from, Address to);
 
-private:
-    Isolate* isolate_;
-    EmbedderStateTag tag_;
-    Address native_context_address_ = kNullAddress;
-    EmbedderState* previous_embedder_state_;
+ private:
+  Isolate* isolate_;
+  EmbedderStateTag tag_;
+  Address native_context_address_ = kNullAddress;
+  EmbedderState* previous_embedder_state_;
 };
-} // namespace internal
+}  // namespace internal
 
-} // namespace v8
+}  // namespace v8
 
-#endif // V8_EXECUTION_EMBEDDER_STATE_H_
+#endif  // V8_EXECUTION_EMBEDDER_STATE_H_

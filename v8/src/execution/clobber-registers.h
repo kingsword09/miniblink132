@@ -13,6 +13,6 @@ namespace internal {
 double ClobberDoubleRegisters(double x1, double x2, double x3, double x4);
 
 }
-} // namespace v8
+}  // namespace v8
 
-#endif // V8_EXECUTION_CLOBBER_REGISTERS_H_
+#endif  // V8_EXECUTION_CLOBBER_REGISTERS_H_

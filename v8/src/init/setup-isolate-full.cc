@@ -11,26 +11,26 @@
 namespace v8 {
 namespace internal {
 
-bool SetupIsolateDelegate::SetupHeap(Isolate* isolate, bool create_heap_objects)
-{
-    if (!create_heap_objects) {
-        CHECK(isolate->snapshot_available());
-        return true;
-    }
-    return SetupHeapInternal(isolate);
+bool SetupIsolateDelegate::SetupHeap(Isolate* isolate,
+                                     bool create_heap_objects) {
+  if (!create_heap_objects) {
+    CHECK(isolate->snapshot_available());
+    return true;
+  }
+  return SetupHeapInternal(isolate);
 }
 
-void SetupIsolateDelegate::SetupBuiltins(Isolate* isolate, bool compile_builtins)
-{
-    if (!compile_builtins) {
-        CHECK(isolate->snapshot_available());
-        return;
-    }
-    SetupBuiltinsInternal(isolate);
-#ifdef V8_DEBUG
-    DebugEvaluate::VerifyTransitiveBuiltins(isolate);
-#endif // DEBUG
+void SetupIsolateDelegate::SetupBuiltins(Isolate* isolate,
+                                         bool compile_builtins) {
+  if (!compile_builtins) {
+    CHECK(isolate->snapshot_available());
+    return;
+  }
+  SetupBuiltinsInternal(isolate);
+#ifdef DEBUG
+  DebugEvaluate::VerifyTransitiveBuiltins(isolate);
+#endif  // DEBUG
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

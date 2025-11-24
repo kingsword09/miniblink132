@@ -12,20 +12,22 @@ namespace v8 {
 namespace internal {
 
 class UnifiedHeapVerificationState : public cppgc::internal::VerificationState {
-public:
-    void VerifyMarkedTracedReference(const TracedReferenceBase& ref) const;
+ public:
+  void VerifyMarkedTracedReference(const TracedReferenceBase& ref) const;
 };
 
-class V8_EXPORT_PRIVATE UnifiedHeapMarkingVerifier final : public cppgc::internal::MarkingVerifierBase {
-public:
-    UnifiedHeapMarkingVerifier(cppgc::internal::HeapBase&, cppgc::internal::CollectionType);
-    ~UnifiedHeapMarkingVerifier() final = default;
+class V8_EXPORT_PRIVATE UnifiedHeapMarkingVerifier final
+    : public cppgc::internal::MarkingVerifierBase {
+ public:
+  UnifiedHeapMarkingVerifier(cppgc::internal::HeapBase&,
+                             cppgc::internal::CollectionType);
+  ~UnifiedHeapMarkingVerifier() final = default;
 
-private:
-    UnifiedHeapVerificationState state_;
+ private:
+  UnifiedHeapVerificationState state_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_CPPGC_JS_UNIFIED_HEAP_MARKING_VERIFIER_H_
+#endif  // V8_HEAP_CPPGC_JS_UNIFIED_HEAP_MARKING_VERIFIER_H_

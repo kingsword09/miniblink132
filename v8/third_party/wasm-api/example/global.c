@@ -7,214 +7,226 @@
 
 #define own
 
-wasm_global_t* get_export_global(const wasm_extern_vec_t* exports, size_t i)
-{
-    if (exports->size <= i || !wasm_extern_as_global(exports->data[i])) {
-        printf("> Error accessing global export %zu!\n", i);
-        exit(1);
-    }
-    return wasm_extern_as_global(exports->data[i]);
+wasm_global_t* get_export_global(const wasm_extern_vec_t* exports, size_t i) {
+  if (exports->size <= i || !wasm_extern_as_global(exports->data[i])) {
+    printf("> Error accessing global export %zu!\n", i);
+    exit(1);
+  }
+  return wasm_extern_as_global(exports->data[i]);
 }
 
-wasm_func_t* get_export_func(const wasm_extern_vec_t* exports, size_t i)
-{
-    if (exports->size <= i || !wasm_extern_as_func(exports->data[i])) {
-        printf("> Error accessing function export %zu!\n", i);
-        exit(1);
-    }
-    return wasm_extern_as_func(exports->data[i]);
+wasm_func_t* get_export_func(const wasm_extern_vec_t* exports, size_t i) {
+  if (exports->size <= i || !wasm_extern_as_func(exports->data[i])) {
+    printf("> Error accessing function export %zu!\n", i);
+    exit(1);
+  }
+  return wasm_extern_as_func(exports->data[i]);
 }
 
-#define check(val, type, expected)                                                                                                                             \
-    if (val.of.type != expected) {                                                                                                                             \
-        printf("> Error reading value\n");                                                                                                                     \
-        exit(1);                                                                                                                                               \
-    }
 
-#define check_global(global, type, expected)                                                                                                                   \
-    {                                                                                                                                                          \
-        wasm_val_t val;                                                                                                                                        \
-        wasm_global_get(global, &val);                                                                                                                         \
-        check(val, type, expected);                                                                                                                            \
-    }
+#define check(val, type, expected) \
+  if (val.of.type != expected) { \
+    printf("> Error reading value\n"); \
+    exit(1); \
+  }
 
-#define check_call(func, type, expected)                                                                                                                       \
-    {                                                                                                                                                          \
-        wasm_val_t results[1];                                                                                                                                 \
-        wasm_func_call(func, NULL, results);                                                                                                                   \
-        check(results[0], type, expected);                                                                                                                     \
-    }
+#define check_global(global, type, expected) \
+  { \
+    wasm_val_t val; \
+    wasm_global_get(global, &val); \
+    check(val, type, expected); \
+  }
 
-int main(int argc, const char* argv[])
-{
-    // Initialize.
-    printf("Initializing...\n");
-    wasm_engine_t* engine = wasm_engine_new();
-    wasm_store_t* store = wasm_store_new(engine);
+#define check_call(func, type, expected) \
+  { \
+    wasm_val_t results[1]; \
+    wasm_func_call(func, NULL, results); \
+    check(results[0], type, expected); \
+  }
 
-    // Load binary.
-    printf("Loading binary...\n");
-    FILE* file = fopen("global.wasm", "r");
-    if (!file) {
-        printf("> Error loading module!\n");
-        return 1;
-    }
-    fseek(file, 0L, SEEK_END);
-    size_t file_size = ftell(file);
-    fseek(file, 0L, SEEK_SET);
-    wasm_byte_vec_t binary;
-    wasm_byte_vec_new_uninitialized(&binary, file_size);
-    if (fread(binary.data, file_size, 1, file) != 1) {
-        printf("> Error loading module!\n");
-        return 1;
-    }
-    fclose(file);
 
-    // Compile.
-    printf("Compiling module...\n");
-    own wasm_module_t* module = wasm_module_new(store, &binary);
-    if (!module) {
-        printf("> Error compiling module!\n");
-        return 1;
-    }
+int main(int argc, const char* argv[]) {
+  // Initialize.
+  printf("Initializing...\n");
+  wasm_engine_t* engine = wasm_engine_new();
+  wasm_store_t* store = wasm_store_new(engine);
 
-    wasm_byte_vec_delete(&binary);
+  // Load binary.
+  printf("Loading binary...\n");
+  FILE* file = fopen("global.wasm", "r");
+  if (!file) {
+    printf("> Error loading module!\n");
+    return 1;
+  }
+  fseek(file, 0L, SEEK_END);
+  size_t file_size = ftell(file);
+  fseek(file, 0L, SEEK_SET);
+  wasm_byte_vec_t binary;
+  wasm_byte_vec_new_uninitialized(&binary, file_size);
+  if (fread(binary.data, file_size, 1, file) != 1) {
+    printf("> Error loading module!\n");
+    return 1;
+  }
+  fclose(file);
 
-    // Create external globals.
-    printf("Creating globals...\n");
-    own wasm_globaltype_t* const_f32_type = wasm_globaltype_new(wasm_valtype_new(WASM_F32), WASM_CONST);
-    own wasm_globaltype_t* const_i64_type = wasm_globaltype_new(wasm_valtype_new(WASM_I64), WASM_CONST);
-    own wasm_globaltype_t* var_f32_type = wasm_globaltype_new(wasm_valtype_new(WASM_F32), WASM_VAR);
-    own wasm_globaltype_t* var_i64_type = wasm_globaltype_new(wasm_valtype_new(WASM_I64), WASM_VAR);
+  // Compile.
+  printf("Compiling module...\n");
+  own wasm_module_t* module = wasm_module_new(store, &binary);
+  if (!module) {
+    printf("> Error compiling module!\n");
+    return 1;
+  }
 
-    wasm_val_t val_f32_1 = { .kind = WASM_F32, .of = { .f32 = 1 } };
-    own wasm_global_t* const_f32_import = wasm_global_new(store, const_f32_type, &val_f32_1);
-    wasm_val_t val_i64_2 = { .kind = WASM_I64, .of = { .i64 = 2 } };
-    own wasm_global_t* const_i64_import = wasm_global_new(store, const_i64_type, &val_i64_2);
-    wasm_val_t val_f32_3 = { .kind = WASM_F32, .of = { .f32 = 3 } };
-    own wasm_global_t* var_f32_import = wasm_global_new(store, var_f32_type, &val_f32_3);
-    wasm_val_t val_i64_4 = { .kind = WASM_I64, .of = { .i64 = 4 } };
-    own wasm_global_t* var_i64_import = wasm_global_new(store, var_i64_type, &val_i64_4);
+  wasm_byte_vec_delete(&binary);
 
-    wasm_globaltype_delete(const_f32_type);
-    wasm_globaltype_delete(const_i64_type);
-    wasm_globaltype_delete(var_f32_type);
-    wasm_globaltype_delete(var_i64_type);
+  // Create external globals.
+  printf("Creating globals...\n");
+  own wasm_globaltype_t* const_f32_type = wasm_globaltype_new(
+    wasm_valtype_new(WASM_F32), WASM_CONST);
+  own wasm_globaltype_t* const_i64_type = wasm_globaltype_new(
+    wasm_valtype_new(WASM_I64), WASM_CONST);
+  own wasm_globaltype_t* var_f32_type = wasm_globaltype_new(
+    wasm_valtype_new(WASM_F32), WASM_VAR);
+  own wasm_globaltype_t* var_i64_type = wasm_globaltype_new(
+    wasm_valtype_new(WASM_I64), WASM_VAR);
 
-    // Instantiate.
-    printf("Instantiating module...\n");
-    const wasm_extern_t* imports[] = { wasm_global_as_extern(const_f32_import), wasm_global_as_extern(const_i64_import), wasm_global_as_extern(var_f32_import),
-        wasm_global_as_extern(var_i64_import) };
-    own wasm_instance_t* instance = wasm_instance_new(store, module, imports, NULL);
-    if (!instance) {
-        printf("> Error instantiating module!\n");
-        return 1;
-    }
+  wasm_val_t val_f32_1 = {.kind = WASM_F32, .of = {.f32 = 1}};
+  own wasm_global_t* const_f32_import =
+    wasm_global_new(store, const_f32_type, &val_f32_1);
+  wasm_val_t val_i64_2 = {.kind = WASM_I64, .of = {.i64 = 2}};
+  own wasm_global_t* const_i64_import =
+    wasm_global_new(store, const_i64_type, &val_i64_2);
+  wasm_val_t val_f32_3 = {.kind = WASM_F32, .of = {.f32 = 3}};
+  own wasm_global_t* var_f32_import =
+    wasm_global_new(store, var_f32_type, &val_f32_3);
+  wasm_val_t val_i64_4 = {.kind = WASM_I64, .of = {.i64 = 4}};
+  own wasm_global_t* var_i64_import =
+    wasm_global_new(store, var_i64_type, &val_i64_4);
 
-    wasm_module_delete(module);
+  wasm_globaltype_delete(const_f32_type);
+  wasm_globaltype_delete(const_i64_type);
+  wasm_globaltype_delete(var_f32_type);
+  wasm_globaltype_delete(var_i64_type);
 
-    // Extract export.
-    printf("Extracting exports...\n");
-    own wasm_extern_vec_t exports;
-    wasm_instance_exports(instance, &exports);
-    size_t i = 0;
-    wasm_global_t* const_f32_export = get_export_global(&exports, i++);
-    wasm_global_t* const_i64_export = get_export_global(&exports, i++);
-    wasm_global_t* var_f32_export = get_export_global(&exports, i++);
-    wasm_global_t* var_i64_export = get_export_global(&exports, i++);
-    wasm_func_t* get_const_f32_import = get_export_func(&exports, i++);
-    wasm_func_t* get_const_i64_import = get_export_func(&exports, i++);
-    wasm_func_t* get_var_f32_import = get_export_func(&exports, i++);
-    wasm_func_t* get_var_i64_import = get_export_func(&exports, i++);
-    wasm_func_t* get_const_f32_export = get_export_func(&exports, i++);
-    wasm_func_t* get_const_i64_export = get_export_func(&exports, i++);
-    wasm_func_t* get_var_f32_export = get_export_func(&exports, i++);
-    wasm_func_t* get_var_i64_export = get_export_func(&exports, i++);
-    wasm_func_t* set_var_f32_import = get_export_func(&exports, i++);
-    wasm_func_t* set_var_i64_import = get_export_func(&exports, i++);
-    wasm_func_t* set_var_f32_export = get_export_func(&exports, i++);
-    wasm_func_t* set_var_i64_export = get_export_func(&exports, i++);
+  // Instantiate.
+  printf("Instantiating module...\n");
+  const wasm_extern_t* imports[] = {
+    wasm_global_as_extern(const_f32_import),
+    wasm_global_as_extern(const_i64_import),
+    wasm_global_as_extern(var_f32_import),
+    wasm_global_as_extern(var_i64_import)
+  };
+  own wasm_instance_t* instance =
+    wasm_instance_new(store, module, imports, NULL);
+  if (!instance) {
+    printf("> Error instantiating module!\n");
+    return 1;
+  }
 
-    // Try cloning.
-    own wasm_global_t* copy = wasm_global_copy(var_f32_import);
-    assert(wasm_global_same(var_f32_import, copy));
-    wasm_global_delete(copy);
+  wasm_module_delete(module);
 
-    // Interact.
-    printf("Accessing globals...\n");
+  // Extract export.
+  printf("Extracting exports...\n");
+  own wasm_extern_vec_t exports;
+  wasm_instance_exports(instance, &exports);
+  size_t i = 0;
+  wasm_global_t* const_f32_export = get_export_global(&exports, i++);
+  wasm_global_t* const_i64_export = get_export_global(&exports, i++);
+  wasm_global_t* var_f32_export = get_export_global(&exports, i++);
+  wasm_global_t* var_i64_export = get_export_global(&exports, i++);
+  wasm_func_t* get_const_f32_import = get_export_func(&exports, i++);
+  wasm_func_t* get_const_i64_import = get_export_func(&exports, i++);
+  wasm_func_t* get_var_f32_import = get_export_func(&exports, i++);
+  wasm_func_t* get_var_i64_import = get_export_func(&exports, i++);
+  wasm_func_t* get_const_f32_export = get_export_func(&exports, i++);
+  wasm_func_t* get_const_i64_export = get_export_func(&exports, i++);
+  wasm_func_t* get_var_f32_export = get_export_func(&exports, i++);
+  wasm_func_t* get_var_i64_export = get_export_func(&exports, i++);
+  wasm_func_t* set_var_f32_import = get_export_func(&exports, i++);
+  wasm_func_t* set_var_i64_import = get_export_func(&exports, i++);
+  wasm_func_t* set_var_f32_export = get_export_func(&exports, i++);
+  wasm_func_t* set_var_i64_export = get_export_func(&exports, i++);
 
-    // Check initial values.
-    check_global(const_f32_import, f32, 1);
-    check_global(const_i64_import, i64, 2);
-    check_global(var_f32_import, f32, 3);
-    check_global(var_i64_import, i64, 4);
-    check_global(const_f32_export, f32, 5);
-    check_global(const_i64_export, i64, 6);
-    check_global(var_f32_export, f32, 7);
-    check_global(var_i64_export, i64, 8);
+  // Try cloning.
+  own wasm_global_t* copy = wasm_global_copy(var_f32_import);
+  assert(wasm_global_same(var_f32_import, copy));
+  wasm_global_delete(copy);
 
-    check_call(get_const_f32_import, f32, 1);
-    check_call(get_const_i64_import, i64, 2);
-    check_call(get_var_f32_import, f32, 3);
-    check_call(get_var_i64_import, i64, 4);
-    check_call(get_const_f32_export, f32, 5);
-    check_call(get_const_i64_export, i64, 6);
-    check_call(get_var_f32_export, f32, 7);
-    check_call(get_var_i64_export, i64, 8);
+  // Interact.
+  printf("Accessing globals...\n");
 
-    // Modify variables through API and check again.
-    wasm_val_t val33 = { .kind = WASM_F32, .of = { .f32 = 33 } };
-    wasm_global_set(var_f32_import, &val33);
-    wasm_val_t val34 = { .kind = WASM_I64, .of = { .i64 = 34 } };
-    wasm_global_set(var_i64_import, &val34);
-    wasm_val_t val37 = { .kind = WASM_F32, .of = { .f32 = 37 } };
-    wasm_global_set(var_f32_export, &val37);
-    wasm_val_t val38 = { .kind = WASM_I64, .of = { .i64 = 38 } };
-    wasm_global_set(var_i64_export, &val38);
+  // Check initial values.
+  check_global(const_f32_import, f32, 1);
+  check_global(const_i64_import, i64, 2);
+  check_global(var_f32_import, f32, 3);
+  check_global(var_i64_import, i64, 4);
+  check_global(const_f32_export, f32, 5);
+  check_global(const_i64_export, i64, 6);
+  check_global(var_f32_export, f32, 7);
+  check_global(var_i64_export, i64, 8);
 
-    check_global(var_f32_import, f32, 33);
-    check_global(var_i64_import, i64, 34);
-    check_global(var_f32_export, f32, 37);
-    check_global(var_i64_export, i64, 38);
+  check_call(get_const_f32_import, f32, 1);
+  check_call(get_const_i64_import, i64, 2);
+  check_call(get_var_f32_import, f32, 3);
+  check_call(get_var_i64_import, i64, 4);
+  check_call(get_const_f32_export, f32, 5);
+  check_call(get_const_i64_export, i64, 6);
+  check_call(get_var_f32_export, f32, 7);
+  check_call(get_var_i64_export, i64, 8);
 
-    check_call(get_var_f32_import, f32, 33);
-    check_call(get_var_i64_import, i64, 34);
-    check_call(get_var_f32_export, f32, 37);
-    check_call(get_var_i64_export, i64, 38);
+  // Modify variables through API and check again.
+  wasm_val_t val33 = {.kind = WASM_F32, .of = {.f32 = 33}};
+  wasm_global_set(var_f32_import, &val33);
+  wasm_val_t val34 = {.kind = WASM_I64, .of = {.i64 = 34}};
+  wasm_global_set(var_i64_import, &val34);
+  wasm_val_t val37 = {.kind = WASM_F32, .of = {.f32 = 37}};
+  wasm_global_set(var_f32_export, &val37);
+  wasm_val_t val38 = {.kind = WASM_I64, .of = {.i64 = 38}};
+  wasm_global_set(var_i64_export, &val38);
 
-    // Modify variables through calls and check again.
-    wasm_val_t args73[] = { { .kind = WASM_F32, .of = { .f32 = 73 } } };
-    wasm_func_call(set_var_f32_import, args73, NULL);
-    wasm_val_t args74[] = { { .kind = WASM_I64, .of = { .i64 = 74 } } };
-    wasm_func_call(set_var_i64_import, args74, NULL);
-    wasm_val_t args77[] = { { .kind = WASM_F32, .of = { .f32 = 77 } } };
-    wasm_func_call(set_var_f32_export, args77, NULL);
-    wasm_val_t args78[] = { { .kind = WASM_I64, .of = { .i64 = 78 } } };
-    wasm_func_call(set_var_i64_export, args78, NULL);
+  check_global(var_f32_import, f32, 33);
+  check_global(var_i64_import, i64, 34);
+  check_global(var_f32_export, f32, 37);
+  check_global(var_i64_export, i64, 38);
 
-    check_global(var_f32_import, f32, 73);
-    check_global(var_i64_import, i64, 74);
-    check_global(var_f32_export, f32, 77);
-    check_global(var_i64_export, i64, 78);
+  check_call(get_var_f32_import, f32, 33);
+  check_call(get_var_i64_import, i64, 34);
+  check_call(get_var_f32_export, f32, 37);
+  check_call(get_var_i64_export, i64, 38);
 
-    check_call(get_var_f32_import, f32, 73);
-    check_call(get_var_i64_import, i64, 74);
-    check_call(get_var_f32_export, f32, 77);
-    check_call(get_var_i64_export, i64, 78);
+  // Modify variables through calls and check again.
+  wasm_val_t args73[] = { {.kind = WASM_F32, .of = {.f32 = 73}} };
+  wasm_func_call(set_var_f32_import, args73, NULL);
+  wasm_val_t args74[] = { {.kind = WASM_I64, .of = {.i64 = 74}} };
+  wasm_func_call(set_var_i64_import, args74, NULL);
+  wasm_val_t args77[] = { {.kind = WASM_F32, .of = {.f32 = 77}} };
+  wasm_func_call(set_var_f32_export, args77, NULL);
+  wasm_val_t args78[] = { {.kind = WASM_I64, .of = {.i64 = 78}} };
+  wasm_func_call(set_var_i64_export, args78, NULL);
 
-    wasm_global_delete(const_f32_import);
-    wasm_global_delete(const_i64_import);
-    wasm_global_delete(var_f32_import);
-    wasm_global_delete(var_i64_import);
-    wasm_extern_vec_delete(&exports);
-    wasm_instance_delete(instance);
+  check_global(var_f32_import, f32, 73);
+  check_global(var_i64_import, i64, 74);
+  check_global(var_f32_export, f32, 77);
+  check_global(var_i64_export, i64, 78);
 
-    // Shut down.
-    printf("Shutting down...\n");
-    wasm_store_delete(store);
-    wasm_engine_delete(engine);
+  check_call(get_var_f32_import, f32, 73);
+  check_call(get_var_i64_import, i64, 74);
+  check_call(get_var_f32_export, f32, 77);
+  check_call(get_var_i64_export, i64, 78);
 
-    // All done.
-    printf("Done.\n");
-    return 0;
+  wasm_global_delete(const_f32_import);
+  wasm_global_delete(const_i64_import);
+  wasm_global_delete(var_f32_import);
+  wasm_global_delete(var_i64_import);
+  wasm_extern_vec_delete(&exports);
+  wasm_instance_delete(instance);
+
+  // Shut down.
+  printf("Shutting down...\n");
+  wasm_store_delete(store);
+  wasm_engine_delete(engine);
+
+  // All done.
+  printf("Done.\n");
+  return 0;
 }

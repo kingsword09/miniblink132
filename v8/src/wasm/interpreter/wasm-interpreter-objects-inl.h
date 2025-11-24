@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_WASM_INTERPRETER_WASM_INTERPRETER_OBJECTS_INL_H_
 #define V8_WASM_INTERPRETER_WASM_INTERPRETER_OBJECTS_INL_H_
@@ -22,30 +22,31 @@ namespace v8 {
 namespace internal {
 
 // static
-inline Tagged<WasmInstanceObject> WasmInterpreterObject::get_wasm_instance(Tagged<Tuple2> interpreter_object)
-{
-    return Cast<WasmInstanceObject>(interpreter_object->value1());
+inline Tagged<WasmInstanceObject> WasmInterpreterObject::get_wasm_instance(
+    Tagged<Tuple2> interpreter_object) {
+  return Cast<WasmInstanceObject>(interpreter_object->value1());
 }
 // static
-inline void WasmInterpreterObject::set_wasm_instance(Tagged<Tuple2> interpreter_object, Tagged<WasmInstanceObject> wasm_instance)
-{
-    return interpreter_object->set_value1(wasm_instance);
-}
-
-// static
-inline Tagged<Object> WasmInterpreterObject::get_interpreter_handle(Tagged<Tuple2> interpreter_object)
-{
-    return interpreter_object->value2();
+inline void WasmInterpreterObject::set_wasm_instance(
+    Tagged<Tuple2> interpreter_object,
+    Tagged<WasmInstanceObject> wasm_instance) {
+  return interpreter_object->set_value1(wasm_instance);
 }
 
 // static
-inline void WasmInterpreterObject::set_interpreter_handle(Tagged<Tuple2> interpreter_object, Tagged<Object> interpreter_handle)
-{
-    DCHECK(IsForeign(interpreter_handle));
-    return interpreter_object->set_value2(interpreter_handle);
+inline Tagged<Object> WasmInterpreterObject::get_interpreter_handle(
+    Tagged<Tuple2> interpreter_object) {
+  return interpreter_object->value2();
 }
 
-} // namespace internal
-} // namespace v8
+// static
+inline void WasmInterpreterObject::set_interpreter_handle(
+    Tagged<Tuple2> interpreter_object, Tagged<Object> interpreter_handle) {
+  DCHECK(IsForeign(interpreter_handle));
+  return interpreter_object->set_value2(interpreter_handle);
+}
 
-#endif // V8_WASM_INTERPRETER_WASM_INTERPRETER_OBJECTS_INL_H_
+}  // namespace internal
+}  // namespace v8
+
+#endif  // V8_WASM_INTERPRETER_WASM_INTERPRETER_OBJECTS_INL_H_

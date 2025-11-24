@@ -21,9 +21,9 @@ namespace internal {
 #include "src/codegen/define-code-stub-assembler-macros.inc"
 
 // fp16_ieee_to_fp32_value()
-TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(TNode<Float16RawBitsT> value)
-{
-    /*
+TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(
+    TNode<Float16RawBitsT> value) {
+  /*
    * Extend the half-precision floating-point number to 32 bits and shift to the
    * upper part of the 32-bit word:
    *      +---+-----+------------+-------------------+
@@ -34,8 +34,9 @@ TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(TNode<Float16RawBitsT>
    * S - sign bit, E - bits of the biased exponent, M - bits of the mantissa, 0
    * - zero bits.
    */
-    TNode<Uint32T> w = ReinterpretCast<Uint32T>(Word32Shl(ReinterpretCast<Uint32T>(value), Uint32Constant(16)));
-    /*
+  TNode<Uint32T> w = ReinterpretCast<Uint32T>(
+      Word32Shl(ReinterpretCast<Uint32T>(value), Uint32Constant(16)));
+  /*
    * Extract the sign of the input number into the high bit of the 32-bit word:
    *
    *      +---+----------------------------------+
@@ -43,8 +44,8 @@ TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(TNode<Float16RawBitsT>
    *      +---+----------------------------------+
    * Bits  31                 0-31
    */
-    TNode<Word32T> sign = Word32And(w, Uint32Constant(0x80000000U));
-    /*
+  TNode<Word32T> sign = Word32And(w, Uint32Constant(0x80000000U));
+  /*
    * Extract mantissa and biased exponent of the input number into the high bits
    * of the 32-bit word:
    *
@@ -53,9 +54,9 @@ TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(TNode<Float16RawBitsT>
    *      +-----+------------+---------------------+
    * Bits  27-31    17-26            0-16
    */
-    TNode<Uint32T> two_w = Uint32Add(w, w);
+  TNode<Uint32T> two_w = Uint32Add(w, w);
 
-    /*
+  /*
    * Shift mantissa and exponent into bits 23-28 and bits 13-22 so they become
    * mantissa and exponent of a single-precision floating-point number:
    *
@@ -87,13 +88,16 @@ TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(TNode<Float16RawBitsT>
    * exponent == 0). However, they also do not operate on denormal inputs, and
    * do not produce denormal results.
    */
-    TNode<Uint32T> exp_offset = Uint32Constant(0x70000000U /* 0xE0U << 23 */);
+  TNode<Uint32T> exp_offset = Uint32Constant(0x70000000U /* 0xE0U << 23 */);
 
-    TNode<Float32T> exp_scale = Float32Constant(0x1.0p-112f);
+  TNode<Float32T> exp_scale = Float32Constant(0x1.0p-112f);
 
-    TNode<Float32T> normalized_value = Float32Mul(BitcastInt32ToFloat32(Uint32Add(Word32Shr(two_w, Uint32Constant(4)), exp_offset)), exp_scale);
+  TNode<Float32T> normalized_value =
+      Float32Mul(BitcastInt32ToFloat32(Uint32Add(
+                     Word32Shr(two_w, Uint32Constant(4)), exp_offset)),
+                 exp_scale);
 
-    /*
+  /*
    * Convert denormalized half-precision inputs into single-precision results
    * (always normalized). Zero inputs are also handled here.
    *
@@ -125,12 +129,16 @@ TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(TNode<Float16RawBitsT>
    * half-precision number.
    */
 
-    TNode<Uint32T> magic_mask = ReinterpretCast<Uint32T>(Word32Shl(Uint32Constant(126), Uint32Constant(23)));
-    TNode<Float32T> magic_bias = Float32Constant(0.5);
+  TNode<Uint32T> magic_mask = ReinterpretCast<Uint32T>(
+      Word32Shl(Uint32Constant(126), Uint32Constant(23)));
+  TNode<Float32T> magic_bias = Float32Constant(0.5);
 
-    TNode<Float32T> denormalized_value = Float32Sub(BitcastInt32ToFloat32(ReinterpretCast<Uint32T>(Word32Or(Word32Shr(two_w, 17), magic_mask))), magic_bias);
+  TNode<Float32T> denormalized_value = Float32Sub(
+      BitcastInt32ToFloat32(
+          ReinterpretCast<Uint32T>(Word32Or(Word32Shr(two_w, 17), magic_mask))),
+      magic_bias);
 
-    /*
+  /*
    * - Choose either results of conversion of input as a normalized number, or
    * as a denormalized number, depending on the input exponent. The variable
    * two_w contains input exponent in bits 27-31, therefore if its smaller than
@@ -139,84 +147,93 @@ TNode<Float32T> CodeStubAssembler::ChangeFloat16ToFloat32(TNode<Float16RawBitsT>
    * of the input number.
    */
 
-    TNode<Uint32T> denormalized_cutoff = Uint32Constant(0x8000000);
+  TNode<Uint32T> denormalized_cutoff = Uint32Constant(0x8000000);
 
-    TVARIABLE(Uint32T, var_result);
+  TVARIABLE(Uint32T, var_result);
 
-    Label is_normalized(this), is_denormalized(this), done(this);
+  Label is_normalized(this), is_denormalized(this), done(this);
 
-    Branch(Uint32LessThan(two_w, denormalized_cutoff), &is_denormalized, &is_normalized);
+  Branch(Uint32LessThan(two_w, denormalized_cutoff), &is_denormalized,
+         &is_normalized);
 
-    BIND(&is_denormalized);
-    {
-        var_result = BitcastFloat32ToInt32(denormalized_value);
-        Goto(&done);
-    }
+  BIND(&is_denormalized);
+  {
+    var_result = BitcastFloat32ToInt32(denormalized_value);
+    Goto(&done);
+  }
 
-    BIND(&is_normalized);
-    {
-        var_result = BitcastFloat32ToInt32(normalized_value);
-        Goto(&done);
-    }
+  BIND(&is_normalized);
+  {
+    var_result = BitcastFloat32ToInt32(normalized_value);
+    Goto(&done);
+  }
 
-    BIND(&done);
+  BIND(&done);
 
-    return BitcastInt32ToFloat32(Word32Or(sign, var_result.value()));
+  return BitcastInt32ToFloat32(Word32Or(sign, var_result.value()));
 }
 
 // fp16_ieee_from_fp32_value()
-TNode<Float16RawBitsT> CodeStubAssembler::TruncateFloat32ToFloat16(TNode<Float32T> value)
-{
-    TVARIABLE(Float32T, base);
+TNode<Float16RawBitsT> CodeStubAssembler::TruncateFloat32ToFloat16(
+    TNode<Float32T> value) {
+  TVARIABLE(Float32T, base);
 
-    TVARIABLE(Uint32T, bias);
-    TVARIABLE(Uint16T, result);
-    Label if_bias(this), is_nan(this), is_not_nan(this), bias_done(this), done(this);
+  TVARIABLE(Uint32T, bias);
+  TVARIABLE(Uint16T, result);
+  Label if_bias(this), is_nan(this), is_not_nan(this), bias_done(this),
+      done(this);
 
-    TNode<Float32T> scale_to_inf = Float32Constant(0x1.0p+112f);
-    TNode<Float32T> scale_to_zero = Float32Constant(0x1.0p-110f);
+  TNode<Float32T> scale_to_inf = Float32Constant(0x1.0p+112f);
+  TNode<Float32T> scale_to_zero = Float32Constant(0x1.0p-110f);
 
-    base = Float32Abs(Float32Mul(Float32Mul(value, scale_to_inf), scale_to_zero));
+  base = Float32Abs(Float32Mul(Float32Mul(value, scale_to_inf), scale_to_zero));
 
-    TNode<Uint32T> w = BitcastFloat32ToInt32(value);
-    TNode<Uint32T> shl1_w = Uint32Add(w, w);
-    TNode<Uint32T> sign = Word32And(w, Uint32Constant(0x80000000U));
-    bias = Word32And(shl1_w, Uint32Constant(0XFF000000U));
+  TNode<Uint32T> w = BitcastFloat32ToInt32(value);
+  TNode<Uint32T> shl1_w = Uint32Add(w, w);
+  TNode<Uint32T> sign = Word32And(w, Uint32Constant(0x80000000U));
+  bias = Word32And(shl1_w, Uint32Constant(0XFF000000U));
 
-    GotoIf(Uint32LessThan(bias.value(), Uint32Constant(0x71000000U)), &if_bias);
-    Goto(&bias_done);
+  GotoIf(Uint32LessThan(bias.value(), Uint32Constant(0x71000000U)), &if_bias);
+  Goto(&bias_done);
 
-    BIND(&if_bias);
-    bias = Uint32Constant(0x71000000U);
-    Goto(&bias_done);
+  BIND(&if_bias);
+  bias = Uint32Constant(0x71000000U);
+  Goto(&bias_done);
 
-    BIND(&bias_done);
-    base = Float32Add(BitcastInt32ToFloat32(Uint32Add(ReinterpretCast<Uint32T>(Word32Shr(bias.value(), 1)), Uint32Constant(0x07800000U))), base.value());
+  BIND(&bias_done);
+  base = Float32Add(BitcastInt32ToFloat32(Uint32Add(
+                        ReinterpretCast<Uint32T>(Word32Shr(bias.value(), 1)),
+                        Uint32Constant(0x07800000U))),
+                    base.value());
 
-    TNode<Uint32T> bits = BitcastFloat32ToInt32(base.value());
-    TNode<Uint32T> exp_bits = ReinterpretCast<Uint32T>(Word32And(Word32Shr(bits, 13), Uint32Constant(0x00007C00U)));
-    TNode<Uint32T> mantissa_bits = ReinterpretCast<Uint32T>(Word32And(bits, Uint32Constant(0x00000FFFU)));
+  TNode<Uint32T> bits = BitcastFloat32ToInt32(base.value());
+  TNode<Uint32T> exp_bits = ReinterpretCast<Uint32T>(
+      Word32And(Word32Shr(bits, 13), Uint32Constant(0x00007C00U)));
+  TNode<Uint32T> mantissa_bits =
+      ReinterpretCast<Uint32T>(Word32And(bits, Uint32Constant(0x00000FFFU)));
 
-    Branch(Uint32GreaterThan(shl1_w, Uint32Constant(0xFF000000U)), &is_nan, &is_not_nan);
+  Branch(Uint32GreaterThan(shl1_w, Uint32Constant(0xFF000000U)), &is_nan,
+         &is_not_nan);
 
-    BIND(&is_nan);
-    {
-        result = Uint16Constant(0x7E00);
-        Goto(&done);
-    }
-    BIND(&is_not_nan);
-    {
-        result = ReinterpretCast<Uint16T>(Uint32Add(exp_bits, mantissa_bits));
-        Goto(&done);
-    }
+  BIND(&is_nan);
+  {
+    result = Uint16Constant(0x7E00);
+    Goto(&done);
+  }
+  BIND(&is_not_nan);
+  {
+    result = ReinterpretCast<Uint16T>(Uint32Add(exp_bits, mantissa_bits));
+    Goto(&done);
+  }
 
-    BIND(&done);
-    return ReinterpretCast<Float16RawBitsT>(Word32Or(Word32Shr(sign, 16), result.value()));
+  BIND(&done);
+  return ReinterpretCast<Float16RawBitsT>(
+      Word32Or(Word32Shr(sign, 16), result.value()));
 }
 
 #include "src/codegen/undef-code-stub-assembler-macros.inc"
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // THIRD_PARTY_V8_CODEGEN_FP16_INL_H_
+#endif  // THIRD_PARTY_V8_CODEGEN_FP16_INL_H_

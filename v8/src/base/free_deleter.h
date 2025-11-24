@@ -23,13 +23,10 @@ namespace base {
 // std::unique_ptr<int, base::FreeDeleter> foo_ptr(
 //     static_cast<int*>(malloc(sizeof(int))));
 struct FreeDeleter {
-    inline void operator()(void* ptr) const
-    {
-        base::Free(ptr);
-    }
+  inline void operator()(void* ptr) const { base::Free(ptr); }
 };
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_FREE_DELETER_H_
+#endif  // V8_BASE_FREE_DELETER_H_

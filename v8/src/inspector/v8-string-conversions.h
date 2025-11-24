@@ -5,6 +5,7 @@
 #ifndef V8_INSPECTOR_V8_STRING_CONVERSIONS_H_
 #define V8_INSPECTOR_V8_STRING_CONVERSIONS_H_
 
+
 #include <cstdint>
 #include <string>
 
@@ -13,6 +14,6 @@
 namespace v8_inspector {
 std::basic_string<char16_t> UTF8ToUTF16(const char* stringStart, size_t length);
 std::string UTF16ToUTF8(const char16_t* stringStart, size_t length);
-} // namespace v8_inspector
+}  // namespace v8_inspector
 
-#endif // V8_INSPECTOR_V8_STRING_CONVERSIONS_H_
+#endif  // V8_INSPECTOR_V8_STRING_CONVERSIONS_H_

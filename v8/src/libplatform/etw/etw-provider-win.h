@@ -12,7 +12,7 @@
 #endif
 #include <TraceLoggingProvider.h>
 #include <evntprov.h>
-#include <evntrace.h> // defines TRACE_LEVEL_* and EVENT_TRACE_TYPE_*
+#include <evntrace.h>  // defines TRACE_LEVEL_* and EVENT_TRACE_TYPE_*
 
 #include <cstdint>
 #include <string>
@@ -24,11 +24,14 @@
 #endif
 
 #ifndef V8_ETW_GUID
-#define V8_ETW_GUID 0x57277741, 0x3638, 0x4A4B, 0xBD, 0xBA, 0x0A, 0xC6, 0xE4, 0x5D, 0xA5, 0x6C
-#endif // V8_ETW_GUID
+#define V8_ETW_GUID \
+  0x57277741, 0x3638, 0x4A4B, 0xBD, 0xBA, 0x0A, 0xC6, 0xE4, 0x5D, 0xA5, 0x6C
+#endif  // V8_ETW_GUID
 
-#define V8_DECLARE_TRACELOGGING_PROVIDER(v8Provider) TRACELOGGING_DECLARE_PROVIDER(v8Provider);
+#define V8_DECLARE_TRACELOGGING_PROVIDER(v8Provider) \
+  TRACELOGGING_DECLARE_PROVIDER(v8Provider);
 
-#define V8_DEFINE_TRACELOGGING_PROVIDER(v8Provider) TRACELOGGING_DEFINE_PROVIDER(v8Provider, "V8.js", (V8_ETW_GUID));
+#define V8_DEFINE_TRACELOGGING_PROVIDER(v8Provider) \
+  TRACELOGGING_DEFINE_PROVIDER(v8Provider, "V8.js", (V8_ETW_GUID));
 
-#endif // V8_LIBPLATFORM_ETW_ETW_PROVIDER_WIN_H_
+#endif  // V8_LIBPLATFORM_ETW_ETW_PROVIDER_WIN_H_

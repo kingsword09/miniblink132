@@ -23,352 +23,398 @@
 
 #if V8_ENABLE_WEBASSEMBLY
 #include "src/debug/debug-wasm-objects.h"
-#endif // V8_ENABLE_WEBASSEMBLY
+#endif  // V8_ENABLE_WEBASSEMBLY
 
 namespace v8 {
 namespace internal {
 
 namespace {
-static MaybeDirectHandle<SharedFunctionInfo> GetFunctionInfo(Isolate* isolate, Handle<String> source, REPLMode repl_mode)
-{
-    ScriptDetails script_details(isolate->factory()->empty_string(), ScriptOriginOptions(true, true));
-    script_details.repl_mode = repl_mode;
-    ScriptCompiler::CompilationDetails compilation_details;
-    return Compiler::GetSharedFunctionInfoForScript(
-        isolate, source, script_details, ScriptCompiler::kNoCompileOptions, ScriptCompiler::kNoCacheNoReason, NOT_NATIVES_CODE, &compilation_details);
+static MaybeDirectHandle<SharedFunctionInfo> GetFunctionInfo(
+    Isolate* isolate, Handle<String> source, REPLMode repl_mode) {
+  ScriptDetails script_details(isolate->factory()->empty_string(),
+                               ScriptOriginOptions(true, true));
+  script_details.repl_mode = repl_mode;
+  ScriptCompiler::CompilationDetails compilation_details;
+  return Compiler::GetSharedFunctionInfoForScript(
+      isolate, source, script_details, ScriptCompiler::kNoCompileOptions,
+      ScriptCompiler::kNoCacheNoReason, NOT_NATIVES_CODE, &compilation_details);
 }
-} // namespace
+}  // namespace
 
-MaybeHandle<Object> DebugEvaluate::Global(Isolate* isolate, Handle<String> source, debug::EvaluateGlobalMode mode, REPLMode repl_mode)
-{
-    DirectHandle<SharedFunctionInfo> shared_info;
-    if (!GetFunctionInfo(isolate, source, repl_mode).ToHandle(&shared_info)) {
-        return MaybeHandle<Object>();
-    }
+MaybeHandle<Object> DebugEvaluate::Global(Isolate* isolate,
+                                          Handle<String> source,
+                                          debug::EvaluateGlobalMode mode,
+                                          REPLMode repl_mode) {
+  DirectHandle<SharedFunctionInfo> shared_info;
+  if (!GetFunctionInfo(isolate, source, repl_mode).ToHandle(&shared_info)) {
+    return MaybeHandle<Object>();
+  }
 
-    Handle<NativeContext> context = isolate->native_context();
-    Handle<JSFunction> function = Factory::JSFunctionBuilder { isolate, shared_info, context }.Build();
+  Handle<NativeContext> context = isolate->native_context();
+  Handle<JSFunction> function =
+      Factory::JSFunctionBuilder{isolate, shared_info, context}.Build();
 
-    DisableBreak disable_break_scope(
-        isolate->debug(), mode == debug::EvaluateGlobalMode::kDisableBreaks || mode == debug::EvaluateGlobalMode::kDisableBreaksAndThrowOnSideEffect);
+  DisableBreak disable_break_scope(
+      isolate->debug(),
+      mode == debug::EvaluateGlobalMode::kDisableBreaks ||
+          mode ==
+              debug::EvaluateGlobalMode::kDisableBreaksAndThrowOnSideEffect);
 
-    if (mode == debug::EvaluateGlobalMode::kDisableBreaksAndThrowOnSideEffect) {
-        isolate->debug()->StartSideEffectCheckMode();
-    }
-    // TODO(cbruni, 1244145): Use host-defined options from script context.
-    Handle<FixedArray> host_defined_options(Cast<Script>(function->shared()->script())->host_defined_options(), isolate);
-    MaybeHandle<Object> result = Execution::CallScript(isolate, function, Handle<JSObject>(context->global_proxy(), isolate), host_defined_options);
-    if (mode == debug::EvaluateGlobalMode::kDisableBreaksAndThrowOnSideEffect) {
-        isolate->debug()->StopSideEffectCheckMode();
-    }
-    return result;
+  if (mode == debug::EvaluateGlobalMode::kDisableBreaksAndThrowOnSideEffect) {
+    isolate->debug()->StartSideEffectCheckMode();
+  }
+  // TODO(cbruni, 1244145): Use host-defined options from script context.
+  Handle<FixedArray> host_defined_options(
+      Cast<Script>(function->shared()->script())->host_defined_options(),
+      isolate);
+  MaybeHandle<Object> result = Execution::CallScript(
+      isolate, function, Handle<JSObject>(context->global_proxy(), isolate),
+      host_defined_options);
+  if (mode == debug::EvaluateGlobalMode::kDisableBreaksAndThrowOnSideEffect) {
+    isolate->debug()->StopSideEffectCheckMode();
+  }
+  return result;
 }
 
-MaybeHandle<Object> DebugEvaluate::Local(Isolate* isolate, StackFrameId frame_id, int inlined_jsframe_index, Handle<String> source, bool throw_on_side_effect)
-{
-    // Handle the processing of break.
-    DisableBreak disable_break_scope(isolate->debug());
+MaybeHandle<Object> DebugEvaluate::Local(Isolate* isolate,
+                                         StackFrameId frame_id,
+                                         int inlined_jsframe_index,
+                                         Handle<String> source,
+                                         bool throw_on_side_effect) {
+  // Handle the processing of break.
+  DisableBreak disable_break_scope(isolate->debug());
 
-    // Get the frame where the debugging is performed.
-    DebuggableStackFrameIterator it(isolate, frame_id);
+  // Get the frame where the debugging is performed.
+  DebuggableStackFrameIterator it(isolate, frame_id);
 #if V8_ENABLE_WEBASSEMBLY
-    if (it.is_wasm()) {
+  if (it.is_wasm()) {
 #if V8_ENABLE_DRUMBRAKE
-        // TODO(paolosev@microsoft.com) - Not supported by Wasm interpreter.
-        if (it.is_wasm_interpreter_entry())
-            return {};
-#endif // V8_ENABLE_DRUMBRAKE
-        WasmFrame* frame = WasmFrame::cast(it.frame());
-        Handle<SharedFunctionInfo> outer_info(isolate->native_context()->empty_function()->shared(), isolate);
-        Handle<JSObject> context_extension = GetWasmDebugProxy(frame);
-        DirectHandle<ScopeInfo> scope_info = ScopeInfo::CreateForWithScope(isolate, Handle<ScopeInfo>::null());
-        Handle<Context> context = isolate->factory()->NewWithContext(isolate->native_context(), scope_info, context_extension);
-        return Evaluate(isolate, outer_info, context, context_extension, source, throw_on_side_effect);
-    }
-#endif // V8_ENABLE_WEBASSEMBLY
+    // TODO(paolosev@microsoft.com) - Not supported by Wasm interpreter.
+    if (it.is_wasm_interpreter_entry()) return {};
+#endif  // V8_ENABLE_DRUMBRAKE
+    WasmFrame* frame = WasmFrame::cast(it.frame());
+    Handle<SharedFunctionInfo> outer_info(
+        isolate->native_context()->empty_function()->shared(), isolate);
+    Handle<JSObject> context_extension = GetWasmDebugProxy(frame);
+    DirectHandle<ScopeInfo> scope_info =
+        ScopeInfo::CreateForWithScope(isolate, Handle<ScopeInfo>::null());
+    Handle<Context> context = isolate->factory()->NewWithContext(
+        isolate->native_context(), scope_info, context_extension);
+    return Evaluate(isolate, outer_info, context, context_extension, source,
+                    throw_on_side_effect);
+  }
+#endif  // V8_ENABLE_WEBASSEMBLY
 
-    CHECK(it.is_javascript());
-    JavaScriptFrame* frame = it.javascript_frame();
-    // This is not a lot different than DebugEvaluate::Global, except that
-    // variables accessible by the function we are evaluating from are
-    // materialized and included on top of the native context. Changes to
-    // the materialized object are written back afterwards.
-    // Note that the native context is taken from the original context chain,
-    // which may not be the current native context of the isolate.
-    ContextBuilder context_builder(isolate, frame, inlined_jsframe_index);
-    if (isolate->has_exception())
-        return {};
+  CHECK(it.is_javascript());
+  JavaScriptFrame* frame = it.javascript_frame();
+  // This is not a lot different than DebugEvaluate::Global, except that
+  // variables accessible by the function we are evaluating from are
+  // materialized and included on top of the native context. Changes to
+  // the materialized object are written back afterwards.
+  // Note that the native context is taken from the original context chain,
+  // which may not be the current native context of the isolate.
+  ContextBuilder context_builder(isolate, frame, inlined_jsframe_index);
+  if (isolate->has_exception()) return {};
 
-    Handle<Context> context = context_builder.evaluation_context();
-    Handle<JSObject> receiver(context->global_proxy(), isolate);
-    MaybeHandle<Object> maybe_result = Evaluate(isolate, context_builder.outer_info(), context, receiver, source, throw_on_side_effect);
-    if (!maybe_result.is_null())
-        context_builder.UpdateValues();
-    return maybe_result;
+  Handle<Context> context = context_builder.evaluation_context();
+  Handle<JSObject> receiver(context->global_proxy(), isolate);
+  MaybeHandle<Object> maybe_result =
+      Evaluate(isolate, context_builder.outer_info(), context, receiver, source,
+               throw_on_side_effect);
+  if (!maybe_result.is_null()) context_builder.UpdateValues();
+  return maybe_result;
 }
 
-MaybeHandle<Object> DebugEvaluate::WithTopmostArguments(Isolate* isolate, Handle<String> source)
-{
-    // Handle the processing of break.
-    DisableBreak disable_break_scope(isolate->debug());
-    Factory* factory = isolate->factory();
-    JavaScriptStackFrameIterator it(isolate);
+MaybeHandle<Object> DebugEvaluate::WithTopmostArguments(Isolate* isolate,
+                                                        Handle<String> source) {
+  // Handle the processing of break.
+  DisableBreak disable_break_scope(isolate->debug());
+  Factory* factory = isolate->factory();
+  JavaScriptStackFrameIterator it(isolate);
 
-    // Get context and receiver.
-    DirectHandle<Context> native_context(Cast<Context>(it.frame()->context())->native_context(), isolate);
+  // Get context and receiver.
+  DirectHandle<Context> native_context(
+      Cast<Context>(it.frame()->context())->native_context(), isolate);
 
-    // Materialize arguments as property on an extension object.
-    Handle<JSObject> materialized = factory->NewSlowJSObjectWithNullProto();
-    Handle<String> arguments_str = factory->arguments_string();
-    JSObject::SetOwnPropertyIgnoreAttributes(materialized, arguments_str, Accessors::FunctionGetArguments(it.frame(), 0), NONE).Check();
+  // Materialize arguments as property on an extension object.
+  Handle<JSObject> materialized = factory->NewSlowJSObjectWithNullProto();
+  Handle<String> arguments_str = factory->arguments_string();
+  JSObject::SetOwnPropertyIgnoreAttributes(
+      materialized, arguments_str,
+      Accessors::FunctionGetArguments(it.frame(), 0), NONE)
+      .Check();
 
-    // Materialize receiver.
-    Handle<Object> this_value(it.frame()->receiver(), isolate);
-    DCHECK_EQ(it.frame()->IsConstructor(), IsTheHole(*this_value, isolate));
-    if (!IsTheHole(*this_value, isolate)) {
-        Handle<String> this_str = factory->this_string();
-        JSObject::SetOwnPropertyIgnoreAttributes(materialized, this_str, this_value, NONE).Check();
-    }
+  // Materialize receiver.
+  Handle<Object> this_value(it.frame()->receiver(), isolate);
+  DCHECK_EQ(it.frame()->IsConstructor(), IsTheHole(*this_value, isolate));
+  if (!IsTheHole(*this_value, isolate)) {
+    Handle<String> this_str = factory->this_string();
+    JSObject::SetOwnPropertyIgnoreAttributes(materialized, this_str, this_value,
+                                             NONE)
+        .Check();
+  }
 
-    // Use extension object in a debug-evaluate scope.
-    DirectHandle<ScopeInfo> scope_info = ScopeInfo::CreateForWithScope(isolate, Handle<ScopeInfo>::null());
-    scope_info->SetIsDebugEvaluateScope();
-    Handle<Context> evaluation_context = factory->NewDebugEvaluateContext(native_context, scope_info, materialized, Handle<Context>());
-    Handle<SharedFunctionInfo> outer_info(native_context->empty_function()->shared(), isolate);
-    Handle<JSObject> receiver(native_context->global_proxy(), isolate);
-    const bool throw_on_side_effect = false;
-    MaybeHandle<Object> maybe_result = Evaluate(isolate, outer_info, evaluation_context, receiver, source, throw_on_side_effect);
-    return maybe_result;
+  // Use extension object in a debug-evaluate scope.
+  DirectHandle<ScopeInfo> scope_info =
+      ScopeInfo::CreateForWithScope(isolate, Handle<ScopeInfo>::null());
+  scope_info->SetIsDebugEvaluateScope();
+  Handle<Context> evaluation_context = factory->NewDebugEvaluateContext(
+      native_context, scope_info, materialized, Handle<Context>());
+  Handle<SharedFunctionInfo> outer_info(
+      native_context->empty_function()->shared(), isolate);
+  Handle<JSObject> receiver(native_context->global_proxy(), isolate);
+  const bool throw_on_side_effect = false;
+  MaybeHandle<Object> maybe_result =
+      Evaluate(isolate, outer_info, evaluation_context, receiver, source,
+               throw_on_side_effect);
+  return maybe_result;
 }
 
 // Compile and evaluate source for the given context.
 MaybeHandle<Object> DebugEvaluate::Evaluate(
-    Isolate* isolate, Handle<SharedFunctionInfo> outer_info, Handle<Context> context, Handle<Object> receiver, Handle<String> source, bool throw_on_side_effect)
-{
-    Handle<JSFunction> eval_fun;
-    ASSIGN_RETURN_ON_EXCEPTION(isolate, eval_fun,
-        Compiler::GetFunctionFromEval(
-            source, outer_info, context, LanguageMode::kSloppy, NO_PARSE_RESTRICTION, kNoSourcePosition, kNoSourcePosition, ParsingWhileDebugging::kYes));
+    Isolate* isolate, Handle<SharedFunctionInfo> outer_info,
+    Handle<Context> context, Handle<Object> receiver, Handle<String> source,
+    bool throw_on_side_effect) {
+  Handle<JSFunction> eval_fun;
+  ASSIGN_RETURN_ON_EXCEPTION(
+      isolate, eval_fun,
+      Compiler::GetFunctionFromEval(source, outer_info, context,
+                                    LanguageMode::kSloppy, NO_PARSE_RESTRICTION,
+                                    kNoSourcePosition, kNoSourcePosition,
+                                    ParsingWhileDebugging::kYes));
 
-    Handle<Object> result;
-    bool success = false;
-    if (throw_on_side_effect)
-        isolate->debug()->StartSideEffectCheckMode();
-    success = Execution::Call(isolate, eval_fun, receiver, 0, nullptr).ToHandle(&result);
-    if (throw_on_side_effect)
-        isolate->debug()->StopSideEffectCheckMode();
-    if (!success)
-        DCHECK(isolate->has_exception());
-    return success ? result : MaybeHandle<Object>();
+  Handle<Object> result;
+  bool success = false;
+  if (throw_on_side_effect) isolate->debug()->StartSideEffectCheckMode();
+  success = Execution::Call(isolate, eval_fun, receiver, 0, nullptr)
+                .ToHandle(&result);
+  if (throw_on_side_effect) isolate->debug()->StopSideEffectCheckMode();
+  if (!success) DCHECK(isolate->has_exception());
+  return success ? result : MaybeHandle<Object>();
 }
 
-Handle<SharedFunctionInfo> DebugEvaluate::ContextBuilder::outer_info() const
-{
-    return handle(frame_inspector_.GetFunction()->shared(), isolate_);
+Handle<SharedFunctionInfo> DebugEvaluate::ContextBuilder::outer_info() const {
+  return handle(frame_inspector_.GetFunction()->shared(), isolate_);
 }
 
-DebugEvaluate::ContextBuilder::ContextBuilder(Isolate* isolate, JavaScriptFrame* frame, int inlined_jsframe_index)
-    : isolate_(isolate)
-    , frame_inspector_(frame, inlined_jsframe_index, isolate)
-    , scope_iterator_(isolate, &frame_inspector_, ScopeIterator::ReparseStrategy::kScriptIfNeeded)
-{
-    Handle<Context> outer_context(frame_inspector_.GetFunction()->context(), isolate);
-    evaluation_context_ = outer_context;
-    Factory* factory = isolate->factory();
+DebugEvaluate::ContextBuilder::ContextBuilder(Isolate* isolate,
+                                              JavaScriptFrame* frame,
+                                              int inlined_jsframe_index)
+    : isolate_(isolate),
+      frame_inspector_(frame, inlined_jsframe_index, isolate),
+      scope_iterator_(isolate, &frame_inspector_,
+                      ScopeIterator::ReparseStrategy::kScriptIfNeeded) {
+  Handle<Context> outer_context(frame_inspector_.GetFunction()->context(),
+                                isolate);
+  evaluation_context_ = outer_context;
+  Factory* factory = isolate->factory();
 
-    if (scope_iterator_.Done())
-        return;
+  if (scope_iterator_.Done()) return;
 
-    // To evaluate as if we were running eval at the point of the debug break,
-    // we reconstruct the context chain as follows:
-    //  - To make stack-allocated variables visible, we materialize them and
-    //    use a debug-evaluate context to wrap both the materialized object and
-    //    the original context.
-    //  - Each scope from the break position up to the function scope is wrapped
-    //    in a debug-evaluate context.
-    //  - Between the function scope and the native context, we only resolve
-    //    variable names that are guaranteed to not be shadowed by stack-allocated
-    //    variables. ScopeInfos between the function scope and the native
-    //    context have a blocklist attached to implement that.
-    //  - The various block lists are calculated by the ScopeIterator during
-    //    iteration.
-    // Context::Lookup has special handling for debug-evaluate contexts:
-    //  - Look up in the materialized stack variables.
-    //  - Look up in the original context.
-    //  - Once we have seen a debug-evaluate context we start to take the
-    //    block lists into account before moving up the context chain.
-    for (; scope_iterator_.InInnerScope(); scope_iterator_.Next()) {
-        ScopeIterator::ScopeType scope_type = scope_iterator_.Type();
-        if (scope_type == ScopeIterator::ScopeTypeScript)
-            break;
-        ContextChainElement context_chain_element;
-        if (scope_type == ScopeIterator::ScopeTypeLocal || scope_iterator_.DeclaresLocals(ScopeIterator::Mode::STACK)) {
-            context_chain_element.materialized_object = scope_iterator_.ScopeObject(ScopeIterator::Mode::STACK);
-        }
-        if (scope_iterator_.HasContext()) {
-            context_chain_element.wrapped_context = scope_iterator_.CurrentContext();
-        }
-        context_chain_.push_back(context_chain_element);
+  // To evaluate as if we were running eval at the point of the debug break,
+  // we reconstruct the context chain as follows:
+  //  - To make stack-allocated variables visible, we materialize them and
+  //    use a debug-evaluate context to wrap both the materialized object and
+  //    the original context.
+  //  - Each scope from the break position up to the function scope is wrapped
+  //    in a debug-evaluate context.
+  //  - Between the function scope and the native context, we only resolve
+  //    variable names that are guaranteed to not be shadowed by stack-allocated
+  //    variables. ScopeInfos between the function scope and the native
+  //    context have a blocklist attached to implement that.
+  //  - The various block lists are calculated by the ScopeIterator during
+  //    iteration.
+  // Context::Lookup has special handling for debug-evaluate contexts:
+  //  - Look up in the materialized stack variables.
+  //  - Look up in the original context.
+  //  - Once we have seen a debug-evaluate context we start to take the
+  //    block lists into account before moving up the context chain.
+  for (; scope_iterator_.InInnerScope(); scope_iterator_.Next()) {
+    ScopeIterator::ScopeType scope_type = scope_iterator_.Type();
+    if (scope_type == ScopeIterator::ScopeTypeScript) break;
+    ContextChainElement context_chain_element;
+    if (scope_type == ScopeIterator::ScopeTypeLocal ||
+        scope_iterator_.DeclaresLocals(ScopeIterator::Mode::STACK)) {
+      context_chain_element.materialized_object =
+          scope_iterator_.ScopeObject(ScopeIterator::Mode::STACK);
+    }
+    if (scope_iterator_.HasContext()) {
+      context_chain_element.wrapped_context = scope_iterator_.CurrentContext();
+    }
+    context_chain_.push_back(context_chain_element);
+  }
+
+  Handle<ScopeInfo> scope_info =
+      IsNativeContext(*evaluation_context_)
+          ? Handle<ScopeInfo>::null()
+          : handle(evaluation_context_->scope_info(), isolate);
+  for (auto rit = context_chain_.rbegin(); rit != context_chain_.rend();
+       rit++) {
+    ContextChainElement element = *rit;
+    scope_info = ScopeInfo::CreateForWithScope(isolate, scope_info);
+    scope_info->SetIsDebugEvaluateScope();
+
+    // In the case where the "paused function scope" is the script scope
+    // itself, we don't need (and don't have) a blocklist.
+    const bool paused_scope_is_script_scope =
+        scope_iterator_.Done() || scope_iterator_.InInnerScope();
+    if (rit == context_chain_.rbegin() && !paused_scope_is_script_scope) {
+      // The DebugEvaluateContext we create for the closure scope is the only
+      // DebugEvaluateContext with a block list. This means we'll retrieve
+      // the existing block list from the paused function scope
+      // and also associate the temporary scope_info we create here with that
+      // blocklist.
+      Handle<ScopeInfo> function_scope_info = handle(
+          frame_inspector_.GetFunction()->shared()->scope_info(), isolate_);
+      Handle<Object> block_list = handle(
+          isolate_->LocalsBlockListCacheGet(function_scope_info), isolate_);
+      CHECK(IsStringSet(*block_list));
+      isolate_->LocalsBlockListCacheSet(scope_info, Handle<ScopeInfo>::null(),
+                                        Cast<StringSet>(block_list));
     }
 
-    Handle<ScopeInfo> scope_info = IsNativeContext(*evaluation_context_) ? Handle<ScopeInfo>::null() : handle(evaluation_context_->scope_info(), isolate);
-    for (auto rit = context_chain_.rbegin(); rit != context_chain_.rend(); rit++) {
-        ContextChainElement element = *rit;
-        scope_info = ScopeInfo::CreateForWithScope(isolate, scope_info);
-        scope_info->SetIsDebugEvaluateScope();
-
-        // In the case where the "paused function scope" is the script scope
-        // itself, we don't need (and don't have) a blocklist.
-        const bool paused_scope_is_script_scope = scope_iterator_.Done() || scope_iterator_.InInnerScope();
-        if (rit == context_chain_.rbegin() && !paused_scope_is_script_scope) {
-            // The DebugEvaluateContext we create for the closure scope is the only
-            // DebugEvaluateContext with a block list. This means we'll retrieve
-            // the existing block list from the paused function scope
-            // and also associate the temporary scope_info we create here with that
-            // blocklist.
-            Handle<ScopeInfo> function_scope_info = handle(frame_inspector_.GetFunction()->shared()->scope_info(), isolate_);
-            Handle<Object> block_list = handle(isolate_->LocalsBlockListCacheGet(function_scope_info), isolate_);
-            CHECK(IsStringSet(*block_list));
-            isolate_->LocalsBlockListCacheSet(scope_info, Handle<ScopeInfo>::null(), Cast<StringSet>(block_list));
-        }
-
-        evaluation_context_ = factory->NewDebugEvaluateContext(evaluation_context_, scope_info, element.materialized_object, element.wrapped_context);
-    }
+    evaluation_context_ = factory->NewDebugEvaluateContext(
+        evaluation_context_, scope_info, element.materialized_object,
+        element.wrapped_context);
+  }
 }
 
-void DebugEvaluate::ContextBuilder::UpdateValues()
-{
-    scope_iterator_.Restart();
-    for (ContextChainElement& element : context_chain_) {
-        if (!element.materialized_object.is_null()) {
-            DirectHandle<FixedArray> keys
-                = KeyAccumulator::GetKeys(isolate_, element.materialized_object, KeyCollectionMode::kOwnOnly, ENUMERABLE_STRINGS).ToHandleChecked();
+void DebugEvaluate::ContextBuilder::UpdateValues() {
+  scope_iterator_.Restart();
+  for (ContextChainElement& element : context_chain_) {
+    if (!element.materialized_object.is_null()) {
+      DirectHandle<FixedArray> keys =
+          KeyAccumulator::GetKeys(isolate_, element.materialized_object,
+                                  KeyCollectionMode::kOwnOnly,
+                                  ENUMERABLE_STRINGS)
+              .ToHandleChecked();
 
-            for (int i = 0; i < keys->length(); i++) {
-                DCHECK(IsString(keys->get(i)));
-                Handle<String> key(Cast<String>(keys->get(i)), isolate_);
-                Handle<Object> value = JSReceiver::GetDataProperty(isolate_, element.materialized_object, key);
-                scope_iterator_.SetVariableValue(key, value);
-            }
-        }
-        scope_iterator_.Next();
+      for (int i = 0; i < keys->length(); i++) {
+        DCHECK(IsString(keys->get(i)));
+        Handle<String> key(Cast<String>(keys->get(i)), isolate_);
+        Handle<Object> value = JSReceiver::GetDataProperty(
+            isolate_, element.materialized_object, key);
+        scope_iterator_.SetVariableValue(key, value);
+      }
     }
+    scope_iterator_.Next();
+  }
 }
 
 // static
-bool DebugEvaluate::IsSideEffectFreeIntrinsic(Runtime::FunctionId id)
-{
+bool DebugEvaluate::IsSideEffectFreeIntrinsic(Runtime::FunctionId id) {
 // Use macro to include only the non-inlined version of an intrinsic.
-#define INTRINSIC_ALLOWLIST(V)                                                                                                                                 \
-    /* Conversions */                                                                                                                                          \
-    V(NumberToStringSlow)                                                                                                                                      \
-    V(ToBigInt)                                                                                                                                                \
-    V(ToLength)                                                                                                                                                \
-    V(ToNumber)                                                                                                                                                \
-    V(ToObject)                                                                                                                                                \
-    V(ToString)                                                                                                                                                \
-    /* Type checks */                                                                                                                                          \
-    V(IsArray)                                                                                                                                                 \
-    V(IsJSProxy)                                                                                                                                               \
-    V(IsJSReceiver)                                                                                                                                            \
-    V(IsSmi)                                                                                                                                                   \
-    /* Loads */                                                                                                                                                \
-    V(LoadLookupSlotForCall)                                                                                                                                   \
-    V(GetPrivateMember)                                                                                                                                        \
-    V(GetProperty)                                                                                                                                             \
-    /* Arrays */                                                                                                                                               \
-    V(ArraySpeciesConstructor)                                                                                                                                 \
-    V(HasFastPackedElements)                                                                                                                                   \
-    V(NewArray)                                                                                                                                                \
-    V(NormalizeElements)                                                                                                                                       \
-    V(TypedArrayGetBuffer)                                                                                                                                     \
-    /* Errors */                                                                                                                                               \
-    V(NewTypeError)                                                                                                                                            \
-    V(ReThrow)                                                                                                                                                 \
-    V(ThrowCalledNonCallable)                                                                                                                                  \
-    V(ThrowInvalidStringLength)                                                                                                                                \
-    V(ThrowIteratorError)                                                                                                                                      \
-    V(ThrowIteratorResultNotAnObject)                                                                                                                          \
-    V(ThrowPatternAssignmentNonCoercible)                                                                                                                      \
-    V(ThrowReferenceError)                                                                                                                                     \
-    V(ThrowSymbolIteratorInvalid)                                                                                                                              \
-    /* Strings */                                                                                                                                              \
-    V(StringReplaceOneCharWithString)                                                                                                                          \
-    V(StringSubstring)                                                                                                                                         \
-    V(StringToNumber)                                                                                                                                          \
-    /* BigInts */                                                                                                                                              \
-    V(BigIntEqualToBigInt)                                                                                                                                     \
-    V(BigIntToNumber)                                                                                                                                          \
-    /* Literals */                                                                                                                                             \
-    V(CreateArrayLiteral)                                                                                                                                      \
-    V(CreateObjectLiteral)                                                                                                                                     \
-    V(CreateRegExpLiteral)                                                                                                                                     \
-    V(DefineClass)                                                                                                                                             \
-    /* Called from builtins */                                                                                                                                 \
-    V(AllocateInYoungGeneration)                                                                                                                               \
-    V(AllocateInOldGeneration)                                                                                                                                 \
-    V(ArrayIncludes_Slow)                                                                                                                                      \
-    V(ArrayIndexOf)                                                                                                                                            \
-    V(ArrayIsArray)                                                                                                                                            \
-    V(GetFunctionName)                                                                                                                                         \
-    V(GlobalPrint)                                                                                                                                             \
-    V(HasProperty)                                                                                                                                             \
-    V(ObjectCreate)                                                                                                                                            \
-    V(ObjectEntries)                                                                                                                                           \
-    V(ObjectEntriesSkipFastPath)                                                                                                                               \
-    V(ObjectHasOwnProperty)                                                                                                                                    \
-    V(ObjectKeys)                                                                                                                                              \
-    V(ObjectValues)                                                                                                                                            \
-    V(ObjectValuesSkipFastPath)                                                                                                                                \
-    V(ObjectGetOwnPropertyNames)                                                                                                                               \
-    V(ObjectGetOwnPropertyNamesTryFast)                                                                                                                        \
-    V(ObjectIsExtensible)                                                                                                                                      \
-    V(RegExpInitializeAndCompile)                                                                                                                              \
-    V(StackGuard)                                                                                                                                              \
-    V(HandleNoHeapWritesInterrupts)                                                                                                                            \
-    V(StringAdd)                                                                                                                                               \
-    V(StringCharCodeAt)                                                                                                                                        \
-    V(StringEqual)                                                                                                                                             \
-    V(StringParseFloat)                                                                                                                                        \
-    V(StringParseInt)                                                                                                                                          \
-    V(SymbolDescriptiveString)                                                                                                                                 \
-    V(ThrowRangeError)                                                                                                                                         \
-    V(ThrowTypeError)                                                                                                                                          \
-    V(ToName)                                                                                                                                                  \
-    V(TransitionElementsKind)                                                                                                                                  \
-    /* Misc. */                                                                                                                                                \
-    V(Call)                                                                                                                                                    \
-    V(CompleteInobjectSlackTrackingForMap)                                                                                                                     \
-    V(HasInPrototypeChain)                                                                                                                                     \
-    V(IncrementUseCounter)                                                                                                                                     \
-    V(MaxSmi)                                                                                                                                                  \
-    V(NewObject)                                                                                                                                               \
-    V(StringMaxLength)                                                                                                                                         \
-    V(StringToArray)                                                                                                                                           \
-    V(AsyncFunctionEnter)                                                                                                                                      \
-    V(AsyncFunctionResolve)                                                                                                                                    \
-    /* Test */                                                                                                                                                 \
-    V(GetOptimizationStatus)                                                                                                                                   \
-    V(OptimizeFunctionOnNextCall)                                                                                                                              \
-    V(OptimizeOsr)
+#define INTRINSIC_ALLOWLIST(V)           \
+  /* Conversions */                      \
+  V(NumberToStringSlow)                  \
+  V(ToBigInt)                            \
+  V(ToLength)                            \
+  V(ToNumber)                            \
+  V(ToObject)                            \
+  V(ToString)                            \
+  /* Type checks */                      \
+  V(IsArray)                             \
+  V(IsJSProxy)                           \
+  V(IsJSReceiver)                        \
+  V(IsSmi)                               \
+  /* Loads */                            \
+  V(LoadLookupSlotForCall)               \
+  V(GetPrivateMember)                    \
+  V(GetProperty)                         \
+  /* Arrays */                           \
+  V(ArraySpeciesConstructor)             \
+  V(HasFastPackedElements)               \
+  V(NewArray)                            \
+  V(NormalizeElements)                   \
+  V(TypedArrayGetBuffer)                 \
+  /* Errors */                           \
+  V(NewTypeError)                        \
+  V(ReThrow)                             \
+  V(ThrowCalledNonCallable)              \
+  V(ThrowInvalidStringLength)            \
+  V(ThrowIteratorError)                  \
+  V(ThrowIteratorResultNotAnObject)      \
+  V(ThrowPatternAssignmentNonCoercible)  \
+  V(ThrowReferenceError)                 \
+  V(ThrowSymbolIteratorInvalid)          \
+  /* Strings */                          \
+  V(StringReplaceOneCharWithString)      \
+  V(StringSubstring)                     \
+  V(StringToNumber)                      \
+  /* BigInts */                          \
+  V(BigIntEqualToBigInt)                 \
+  V(BigIntToNumber)                      \
+  /* Literals */                         \
+  V(CreateArrayLiteral)                  \
+  V(CreateObjectLiteral)                 \
+  V(CreateRegExpLiteral)                 \
+  V(DefineClass)                         \
+  /* Called from builtins */             \
+  V(AllocateInYoungGeneration)           \
+  V(AllocateInOldGeneration)             \
+  V(ArrayIncludes_Slow)                  \
+  V(ArrayIndexOf)                        \
+  V(ArrayIsArray)                        \
+  V(GetFunctionName)                     \
+  V(GlobalPrint)                         \
+  V(HasProperty)                         \
+  V(ObjectCreate)                        \
+  V(ObjectEntries)                       \
+  V(ObjectEntriesSkipFastPath)           \
+  V(ObjectHasOwnProperty)                \
+  V(ObjectKeys)                          \
+  V(ObjectValues)                        \
+  V(ObjectValuesSkipFastPath)            \
+  V(ObjectGetOwnPropertyNames)           \
+  V(ObjectGetOwnPropertyNamesTryFast)    \
+  V(ObjectIsExtensible)                  \
+  V(RegExpInitializeAndCompile)          \
+  V(StackGuard)                          \
+  V(HandleNoHeapWritesInterrupts)        \
+  V(StringAdd)                           \
+  V(StringCharCodeAt)                    \
+  V(StringEqual)                         \
+  V(StringParseFloat)                    \
+  V(StringParseInt)                      \
+  V(SymbolDescriptiveString)             \
+  V(ThrowRangeError)                     \
+  V(ThrowTypeError)                      \
+  V(ToName)                              \
+  V(TransitionElementsKind)              \
+  /* Misc. */                            \
+  V(Call)                                \
+  V(CompleteInobjectSlackTrackingForMap) \
+  V(HasInPrototypeChain)                 \
+  V(IncrementUseCounter)                 \
+  V(MaxSmi)                              \
+  V(NewObject)                           \
+  V(StringMaxLength)                     \
+  V(StringToArray)                       \
+  V(AsyncFunctionEnter)                  \
+  V(AsyncFunctionResolve)                \
+  /* Test */                             \
+  V(GetOptimizationStatus)               \
+  V(OptimizeFunctionOnNextCall)          \
+  V(OptimizeOsr)
 
 // Intrinsics with inline versions have to be allowlisted here a second time.
-#define INLINE_INTRINSIC_ALLOWLIST(V)                                                                                                                          \
-    V(AsyncFunctionEnter)                                                                                                                                      \
-    V(AsyncFunctionResolve)
+#define INLINE_INTRINSIC_ALLOWLIST(V) \
+  V(AsyncFunctionEnter)               \
+  V(AsyncFunctionResolve)
 
 #define CASE(Name) case Runtime::k##Name:
 #define INLINE_CASE(Name) case Runtime::kInline##Name:
-    switch (id) {
-        INTRINSIC_ALLOWLIST(CASE)
-        INLINE_INTRINSIC_ALLOWLIST(INLINE_CASE)
-        return true;
+  switch (id) {
+    INTRINSIC_ALLOWLIST(CASE)
+    INLINE_INTRINSIC_ALLOWLIST(INLINE_CASE)
+    return true;
     default:
-        if (v8_flags.trace_side_effect_free_debug_evaluate) {
-            PrintF("[debug-evaluate] intrinsic %s may cause side effect.\n", Runtime::FunctionForId(id)->name);
-        }
-        return false;
-    }
+      if (v8_flags.trace_side_effect_free_debug_evaluate) {
+        PrintF("[debug-evaluate] intrinsic %s may cause side effect.\n",
+               Runtime::FunctionForId(id)->name);
+      }
+      return false;
+  }
 
 #undef CASE
 #undef INLINE_CASE
@@ -378,19 +424,14 @@ bool DebugEvaluate::IsSideEffectFreeIntrinsic(Runtime::FunctionId id)
 
 namespace {
 
-bool BytecodeHasNoSideEffect(interpreter::Bytecode bytecode)
-{
-    using interpreter::Bytecode;
-    using interpreter::Bytecodes;
-    if (Bytecodes::IsWithoutExternalSideEffects(bytecode))
-        return true;
-    if (Bytecodes::IsCallOrConstruct(bytecode))
-        return true;
-    if (Bytecodes::IsJumpIfToBoolean(bytecode))
-        return true;
-    if (Bytecodes::IsPrefixScalingBytecode(bytecode))
-        return true;
-    switch (bytecode) {
+bool BytecodeHasNoSideEffect(interpreter::Bytecode bytecode) {
+  using interpreter::Bytecode;
+  using interpreter::Bytecodes;
+  if (Bytecodes::IsWithoutExternalSideEffects(bytecode)) return true;
+  if (Bytecodes::IsCallOrConstruct(bytecode)) return true;
+  if (Bytecodes::IsJumpIfToBoolean(bytecode)) return true;
+  if (Bytecodes::IsPrefixScalingBytecode(bytecode)) return true;
+  switch (bytecode) {
     // Allowlist for bytecodes.
     // Loads.
     case Bytecode::kLdaLookupSlot:
@@ -471,7 +512,7 @@ bool BytecodeHasNoSideEffect(interpreter::Bytecode bytecode)
     case Bytecode::kToString:
     case Bytecode::kToBoolean:
     // Misc.
-    case Bytecode::kIncBlockCounter: // Coverage counters.
+    case Bytecode::kIncBlockCounter:  // Coverage counters.
     case Bytecode::kForInEnumerate:
     case Bytecode::kForInPrepare:
     case Bytecode::kForInNext:
@@ -486,15 +527,14 @@ bool BytecodeHasNoSideEffect(interpreter::Bytecode bytecode)
     case Bytecode::kCallJSRuntime:
     case Bytecode::kReturn:
     case Bytecode::kSetPendingMessage:
-        return true;
+      return true;
     default:
-        return false;
-    }
+      return false;
+  }
 }
 
-DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id)
-{
-    switch (id) {
+DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id) {
+  switch (id) {
     // Allowlist for builtins.
     // Object builtins.
     case Builtin::kObjectConstructor:
@@ -849,11 +889,11 @@ DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id)
 #if V8_ENABLE_WEBASSEMBLY
     case Builtin::kWasmAllocateInYoungGeneration:
     case Builtin::kWasmAllocateInOldGeneration:
-#endif // V8_ENABLE_WEBASSEMBLY
+#endif  // V8_ENABLE_WEBASSEMBLY
 #ifdef V8_ENABLE_CONTINUATION_PRESERVED_EMBEDDER_DATA
     case Builtin::kGetContinuationPreservedEmbedderData:
-#endif // V8_ENABLE_CONTINUATION_PRESERVED_EMBEDDER_DATA
-        return DebugInfo::kHasNoSideEffect;
+#endif  // V8_ENABLE_CONTINUATION_PRESERVED_EMBEDDER_DATA
+      return DebugInfo::kHasNoSideEffect;
 
 #ifdef V8_INTL_SUPPORT
     // Intl builtins.
@@ -932,8 +972,8 @@ DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id)
     case Builtin::kRelativeTimeFormatPrototypeFormatToParts:
     case Builtin::kRelativeTimeFormatPrototypeResolvedOptions:
     case Builtin::kRelativeTimeFormatSupportedLocalesOf:
-        return DebugInfo::kHasNoSideEffect;
-#endif // V8_INTL_SUPPORT
+      return DebugInfo::kHasNoSideEffect;
+#endif  // V8_INTL_SUPPORT
 
     // Set builtins.
     case Builtin::kSetIteratorPrototypeNext:
@@ -1002,94 +1042,100 @@ DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id)
     case Builtin::kRegExpPrototypeStickyGetter:
     case Builtin::kRegExpPrototypeReplace:
     case Builtin::kRegExpPrototypeSearch:
-        return DebugInfo::kRequiresRuntimeChecks;
+      return DebugInfo::kRequiresRuntimeChecks;
 
     // Debugging builtins.
     case Builtin::kDebugPrintFloat64:
     case Builtin::kDebugPrintWordPtr:
-        return DebugInfo::kHasNoSideEffect;
+      return DebugInfo::kHasNoSideEffect;
 
     default:
-        if (v8_flags.trace_side_effect_free_debug_evaluate) {
-            PrintF("[debug-evaluate] built-in %s may cause side effect.\n", Builtins::name(id));
-        }
-        return DebugInfo::kHasSideEffects;
-    }
+      if (v8_flags.trace_side_effect_free_debug_evaluate) {
+        PrintF("[debug-evaluate] built-in %s may cause side effect.\n",
+               Builtins::name(id));
+      }
+      return DebugInfo::kHasSideEffects;
+  }
 }
 
-bool BytecodeRequiresRuntimeCheck(interpreter::Bytecode bytecode)
-{
-    using interpreter::Bytecode;
-    switch (bytecode) {
+bool BytecodeRequiresRuntimeCheck(interpreter::Bytecode bytecode) {
+  using interpreter::Bytecode;
+  switch (bytecode) {
     case Bytecode::kSetNamedProperty:
     case Bytecode::kDefineNamedOwnProperty:
     case Bytecode::kSetKeyedProperty:
     case Bytecode::kStaInArrayLiteral:
     case Bytecode::kDefineKeyedOwnPropertyInLiteral:
     case Bytecode::kStaCurrentContextSlot:
-        return true;
+      return true;
     default:
-        return interpreter::Bytecodes::IsCallRuntime(bytecode);
-    }
+      return interpreter::Bytecodes::IsCallRuntime(bytecode);
+  }
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
 // static
-DebugInfo::SideEffectState DebugEvaluate::FunctionGetSideEffectState(Isolate* isolate, DirectHandle<SharedFunctionInfo> info)
-{
+DebugInfo::SideEffectState DebugEvaluate::FunctionGetSideEffectState(
+    Isolate* isolate, DirectHandle<SharedFunctionInfo> info) {
+  if (v8_flags.trace_side_effect_free_debug_evaluate) {
+    PrintF("[debug-evaluate] Checking function %s for side effect.\n",
+           info->DebugNameCStr().get());
+  }
+
+  DCHECK(info->is_compiled());
+  DCHECK(!info->needs_script_context());
+  if (info->HasBytecodeArray()) {
+    // Check bytecodes against allowlist.
+    Handle<BytecodeArray> bytecode_array(info->GetBytecodeArray(isolate),
+                                         isolate);
     if (v8_flags.trace_side_effect_free_debug_evaluate) {
-        PrintF("[debug-evaluate] Checking function %s for side effect.\n", info->DebugNameCStr().get());
+      Print(*bytecode_array);
     }
+    bool requires_runtime_checks = false;
+    for (interpreter::BytecodeArrayIterator it(bytecode_array); !it.done();
+         it.Advance()) {
+      interpreter::Bytecode bytecode = it.current_bytecode();
+      if (BytecodeHasNoSideEffect(bytecode)) continue;
+      if (BytecodeRequiresRuntimeCheck(bytecode)) {
+        requires_runtime_checks = true;
+        continue;
+      }
 
-    DCHECK(info->is_compiled());
-    DCHECK(!info->needs_script_context());
-    if (info->HasBytecodeArray()) {
-        // Check bytecodes against allowlist.
-        Handle<BytecodeArray> bytecode_array(info->GetBytecodeArray(isolate), isolate);
-        if (v8_flags.trace_side_effect_free_debug_evaluate) {
-            Print(*bytecode_array);
-        }
-        bool requires_runtime_checks = false;
-        for (interpreter::BytecodeArrayIterator it(bytecode_array); !it.done(); it.Advance()) {
-            interpreter::Bytecode bytecode = it.current_bytecode();
-            if (BytecodeHasNoSideEffect(bytecode))
-                continue;
-            if (BytecodeRequiresRuntimeCheck(bytecode)) {
-                requires_runtime_checks = true;
-                continue;
-            }
+      if (v8_flags.trace_side_effect_free_debug_evaluate) {
+        PrintF("[debug-evaluate] bytecode %s may cause side effect.\n",
+               interpreter::Bytecodes::ToString(bytecode));
+      }
 
-            if (v8_flags.trace_side_effect_free_debug_evaluate) {
-                PrintF("[debug-evaluate] bytecode %s may cause side effect.\n", interpreter::Bytecodes::ToString(bytecode));
-            }
-
-            // Did not match allowlist.
-            return DebugInfo::kHasSideEffects;
-        }
-        return requires_runtime_checks ? DebugInfo::kRequiresRuntimeChecks : DebugInfo::kHasNoSideEffect;
-    } else if (info->IsApiFunction()) {
-        Tagged<Code> code = info->GetCode(isolate);
-        if (code->is_builtin()) {
-            return code->builtin_id() == Builtin::kHandleApiCallOrConstruct ? DebugInfo::kHasNoSideEffect : DebugInfo::kHasSideEffects;
-        }
-    } else {
-        // Check built-ins against allowlist.
-        Builtin builtin = info->HasBuiltinId() ? info->builtin_id() : Builtin::kNoBuiltinId;
-        if (!Builtins::IsBuiltinId(builtin))
-            return DebugInfo::kHasSideEffects;
-        DebugInfo::SideEffectState state = BuiltinGetSideEffectState(builtin);
-        return state;
+      // Did not match allowlist.
+      return DebugInfo::kHasSideEffects;
     }
+    return requires_runtime_checks ? DebugInfo::kRequiresRuntimeChecks
+                                   : DebugInfo::kHasNoSideEffect;
+  } else if (info->IsApiFunction()) {
+    Tagged<Code> code = info->GetCode(isolate);
+    if (code->is_builtin()) {
+      return code->builtin_id() == Builtin::kHandleApiCallOrConstruct
+                 ? DebugInfo::kHasNoSideEffect
+                 : DebugInfo::kHasSideEffects;
+    }
+  } else {
+    // Check built-ins against allowlist.
+    Builtin builtin =
+        info->HasBuiltinId() ? info->builtin_id() : Builtin::kNoBuiltinId;
+    if (!Builtins::IsBuiltinId(builtin)) return DebugInfo::kHasSideEffects;
+    DebugInfo::SideEffectState state = BuiltinGetSideEffectState(builtin);
+    return state;
+  }
 
-    return DebugInfo::kHasSideEffects;
+  return DebugInfo::kHasSideEffects;
 }
 
-#ifdef V8_DEBUG
-static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller, Builtin callee)
-{
-    switch (callee) {
-        // Transitively called Builtins:
+#ifdef DEBUG
+static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller,
+                                                     Builtin callee) {
+  switch (callee) {
+      // Transitively called Builtins:
     case Builtin::kAbort:
     case Builtin::kAbortCSADcheck:
     case Builtin::kAdaptorWithBuiltinExitFrame0:
@@ -1199,117 +1245,119 @@ static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller, Builtin cal
     case Builtin::kTSANRelaxedLoad32SaveFP:
     case Builtin::kTSANRelaxedLoad64IgnoreFP:
     case Builtin::kTSANRelaxedLoad64SaveFP:
-#endif // V8_IS_TSAN
+#endif  // V8_IS_TSAN
     case Builtin::kWeakMapLookupHashIndex:
-        return true;
+      return true;
     case Builtin::kJoinStackPop:
     case Builtin::kJoinStackPush:
-        switch (caller) {
+      switch (caller) {
         case Builtin::kArrayPrototypeJoin:
         case Builtin::kArrayPrototypeToLocaleString:
         case Builtin::kTypedArrayPrototypeJoin:
         case Builtin::kTypedArrayPrototypeToLocaleString:
-            return true;
+          return true;
         default:
-            return false;
-        }
+          return false;
+      }
     case Builtin::kFastCreateDataProperty:
-        switch (caller) {
+      switch (caller) {
         case Builtin::kArrayOf:
         case Builtin::kArrayPrototypeSlice:
         case Builtin::kArrayPrototypeToSpliced:
         case Builtin::kArrayPrototypeWith:
         case Builtin::kArrayFilter:
         case Builtin::kArrayFrom:
-            return true;
+          return true;
         default:
-            return false;
-        }
+          return false;
+      }
     case Builtin::kSetProperty:
-        switch (caller) {
+      switch (caller) {
         case Builtin::kArrayOf:
         case Builtin::kArrayPrototypeSlice:
         case Builtin::kArrayPrototypeToSorted:
         case Builtin::kArrayFrom:
         case Builtin::kTypedArrayPrototypeMap:
         case Builtin::kStringPrototypeMatchAll:
-            return true;
+          return true;
         default:
-            return false;
-        }
+          return false;
+      }
     case Builtin::kRegExpMatchFast:
-        // This is not a problem. We force String.prototype.match to take the
-        // slow path so that this call is not made.
-        return caller == Builtin::kStringPrototypeMatch;
+      // This is not a problem. We force String.prototype.match to take the
+      // slow path so that this call is not made.
+      return caller == Builtin::kStringPrototypeMatch;
     case Builtin::kRegExpReplace:
-        // This is not a problem. We force String.prototype.replace to take the
-        // slow path so that this call is not made.
-        return caller == Builtin::kStringPrototypeReplace;
+      // This is not a problem. We force String.prototype.replace to take the
+      // slow path so that this call is not made.
+      return caller == Builtin::kStringPrototypeReplace;
     case Builtin::kRegExpSplit:
-        // This is not a problem. We force String.prototype.split to take the
-        // slow path so that this call is not made.
-        return caller == Builtin::kStringPrototypeSplit;
+      // This is not a problem. We force String.prototype.split to take the
+      // slow path so that this call is not made.
+      return caller == Builtin::kStringPrototypeSplit;
     case Builtin::kRegExpSearchFast:
-        // This is not a problem. We force String.prototype.split to take the
-        // slow path so that this call is not made.
-        return caller == Builtin::kStringPrototypeSearch;
+      // This is not a problem. We force String.prototype.split to take the
+      // slow path so that this call is not made.
+      return caller == Builtin::kStringPrototypeSearch;
     default:
-        return false;
-    }
+      return false;
+  }
 }
 
 // static
-void DebugEvaluate::VerifyTransitiveBuiltins(Isolate* isolate)
-{
-    // TODO(yangguo): also check runtime calls.
-    bool failed = false;
-    bool sanity_check = false;
-    for (Builtin caller = Builtins::kFirst; caller <= Builtins::kLast; ++caller) {
-        DebugInfo::SideEffectState state = BuiltinGetSideEffectState(caller);
-        if (state != DebugInfo::kHasNoSideEffect)
-            continue;
-        Tagged<Code> code = isolate->builtins()->code(caller);
-        int mode = RelocInfo::ModeMask(RelocInfo::CODE_TARGET) | RelocInfo::ModeMask(RelocInfo::RELATIVE_CODE_TARGET);
+void DebugEvaluate::VerifyTransitiveBuiltins(Isolate* isolate) {
+  // TODO(yangguo): also check runtime calls.
+  bool failed = false;
+  bool sanity_check = false;
+  for (Builtin caller = Builtins::kFirst; caller <= Builtins::kLast; ++caller) {
+    DebugInfo::SideEffectState state = BuiltinGetSideEffectState(caller);
+    if (state != DebugInfo::kHasNoSideEffect) continue;
+    Tagged<Code> code = isolate->builtins()->code(caller);
+    int mode = RelocInfo::ModeMask(RelocInfo::CODE_TARGET) |
+               RelocInfo::ModeMask(RelocInfo::RELATIVE_CODE_TARGET);
 
-        for (RelocIterator it(code, mode); !it.done(); it.next()) {
-            RelocInfo* rinfo = it.rinfo();
-            DCHECK(RelocInfo::IsCodeTargetMode(rinfo->rmode()));
-            Tagged<Code> lookup_result = isolate->heap()->FindCodeForInnerPointer(rinfo->target_address());
-            Builtin callee = lookup_result->builtin_id();
-            if (BuiltinGetSideEffectState(callee) == DebugInfo::kHasNoSideEffect) {
-                continue;
-            }
-            if (TransitivelyCalledBuiltinHasNoSideEffect(caller, callee)) {
-                sanity_check = true;
-                continue;
-            }
-            PrintF("Allowlisted builtin %s calls non-allowlisted builtin %s\n", Builtins::name(caller), Builtins::name(callee));
-            failed = true;
-        }
+    for (RelocIterator it(code, mode); !it.done(); it.next()) {
+      RelocInfo* rinfo = it.rinfo();
+      DCHECK(RelocInfo::IsCodeTargetMode(rinfo->rmode()));
+      Tagged<Code> lookup_result =
+          isolate->heap()->FindCodeForInnerPointer(rinfo->target_address());
+      Builtin callee = lookup_result->builtin_id();
+      if (BuiltinGetSideEffectState(callee) == DebugInfo::kHasNoSideEffect) {
+        continue;
+      }
+      if (TransitivelyCalledBuiltinHasNoSideEffect(caller, callee)) {
+        sanity_check = true;
+        continue;
+      }
+      PrintF("Allowlisted builtin %s calls non-allowlisted builtin %s\n",
+             Builtins::name(caller), Builtins::name(callee));
+      failed = true;
     }
-    CHECK(!failed);
-#if defined(V8_TARGET_ARCH_PPC64) || defined(V8_TARGET_ARCH_MIPS64) || defined(V8_TARGET_ARCH_RISCV32) || defined(V8_TARGET_ARCH_RISCV64)
-    // Isolate-independent builtin calls and jumps do not emit reloc infos
-    // on PPC. We try to avoid using PC relative code due to performance
-    // issue with especially older hardwares.
-    // MIPS64 doesn't have PC relative code currently.
-    // TODO(mips): Add PC relative code to MIPS64.
-    USE(sanity_check);
+  }
+  CHECK(!failed);
+#if defined(V8_TARGET_ARCH_PPC64) || defined(V8_TARGET_ARCH_MIPS64) || \
+    defined(V8_TARGET_ARCH_RISCV32) || defined(V8_TARGET_ARCH_RISCV64)
+  // Isolate-independent builtin calls and jumps do not emit reloc infos
+  // on PPC. We try to avoid using PC relative code due to performance
+  // issue with especially older hardwares.
+  // MIPS64 doesn't have PC relative code currently.
+  // TODO(mips): Add PC relative code to MIPS64.
+  USE(sanity_check);
 #else
-    CHECK(sanity_check);
+  CHECK(sanity_check);
 #endif
 }
-#endif // DEBUG
+#endif  // DEBUG
 
 // static
-void DebugEvaluate::ApplySideEffectChecks(Handle<BytecodeArray> bytecode_array)
-{
-    for (interpreter::BytecodeArrayIterator it(bytecode_array); !it.done(); it.Advance()) {
-        interpreter::Bytecode bytecode = it.current_bytecode();
-        if (BytecodeRequiresRuntimeCheck(bytecode))
-            it.ApplyDebugBreak();
-    }
+void DebugEvaluate::ApplySideEffectChecks(
+    Handle<BytecodeArray> bytecode_array) {
+  for (interpreter::BytecodeArrayIterator it(bytecode_array); !it.done();
+       it.Advance()) {
+    interpreter::Bytecode bytecode = it.current_bytecode();
+    if (BytecodeRequiresRuntimeCheck(bytecode)) it.ApplyDebugBreak();
+  }
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

@@ -18,7 +18,7 @@ namespace internal {
 void InitializeExternalStartupData(const char* directory_path);
 void InitializeExternalStartupDataFromFile(const char* snapshot_blob);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_INIT_STARTUP_DATA_UTIL_H_
+#endif  // V8_INIT_STARTUP_DATA_UTIL_H_

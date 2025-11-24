@@ -12,15 +12,16 @@ namespace internal {
 
 namespace compiler {
 class Node;
-} // namespace compiler
+}  // namespace compiler
 
 namespace interpreter {
 
 extern TNode<Object> GenerateInvokeIntrinsic(
-    InterpreterAssembler* assembler, TNode<Uint32T> function_id, TNode<Context> context, const InterpreterAssembler::RegListNodePair& args);
+    InterpreterAssembler* assembler, TNode<Uint32T> function_id,
+    TNode<Context> context, const InterpreterAssembler::RegListNodePair& args);
 
-} // namespace interpreter
-} // namespace internal
-} // namespace v8
+}  // namespace interpreter
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_INTERPRETER_INTERPRETER_INTRINSICS_GENERATOR_H_
+#endif  // V8_INTERPRETER_INTERPRETER_INTRINSICS_GENERATOR_H_

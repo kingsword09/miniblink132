@@ -9,5 +9,5 @@ namespace v8 {
 namespace internal {
 constexpr Opcode RO_FENCE_I = MISC_MEM | (0b001 << kFunct3Shift);
 }
-} // namespace v8
-#endif // V8_CODEGEN_RISCV_CONSTANT_RISCV_ZIFENCEI_H_
+}  // namespace v8
+#endif  // V8_CODEGEN_RISCV_CONSTANT_RISCV_ZIFENCEI_H_

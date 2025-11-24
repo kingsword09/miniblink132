@@ -29,4 +29,4 @@
 #error Unknown architecture.
 #endif
 
-#endif // V8_CODEGEN_ASSEMBLER_INL_H_
+#endif  // V8_CODEGEN_ASSEMBLER_INL_H_

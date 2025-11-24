@@ -9,8 +9,6 @@
 namespace v8::internal::wasm {
 
 CodeSpaceWriteScope::CodeSpaceWriteScope()
-    : rwx_write_scope_("For wasm::CodeSpaceWriteScope.")
-{
-}
+    : rwx_write_scope_("For wasm::CodeSpaceWriteScope.") {}
 
-} // namespace v8::internal::wasm
+}  // namespace v8::internal::wasm

@@ -13,24 +13,21 @@
 namespace v8 {
 namespace base {
 
-int VSNPrintF(Vector<char> str, const char* format, va_list args)
-{
-    return OS::VSNPrintF(str.begin(), str.length(), format, args);
+int VSNPrintF(Vector<char> str, const char* format, va_list args) {
+  return OS::VSNPrintF(str.begin(), str.length(), format, args);
 }
 
-int SNPrintF(Vector<char> str, const char* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    int result = VSNPrintF(str, format, args);
-    va_end(args);
-    return result;
+int SNPrintF(Vector<char> str, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  int result = VSNPrintF(str, format, args);
+  va_end(args);
+  return result;
 }
 
-void StrNCpy(base::Vector<char> dest, const char* src, size_t n)
-{
-    base::OS::StrNCpy(dest.begin(), dest.length(), src, n);
+void StrNCpy(base::Vector<char> dest, const char* src, size_t n) {
+  base::OS::StrNCpy(dest.begin(), dest.length(), src, n);
 }
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8

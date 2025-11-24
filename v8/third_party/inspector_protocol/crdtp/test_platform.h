@@ -21,6 +21,6 @@ std::string UTF16ToUTF8(span<uint16_t> in);
 
 std::vector<uint16_t> UTF8ToUTF16(span<uint8_t> in);
 
-} // namespace v8_crdtp
+}  // namespace v8_crdtp
 
-#endif // V8_INSPECTOR_PROTOCOL_CRDTP_TEST_PLATFORM_H_
+#endif  // V8_INSPECTOR_PROTOCOL_CRDTP_TEST_PLATFORM_H_

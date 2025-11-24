@@ -15,50 +15,43 @@ namespace internal {
 class NormalPageSpace;
 
 class V8_EXPORT_PRIVATE Compactor final {
-    using CompactableSpaceHandling = SweepingConfig::CompactableSpaceHandling;
+  using CompactableSpaceHandling = SweepingConfig::CompactableSpaceHandling;
 
-public:
-    explicit Compactor(RawHeap&);
-    ~Compactor()
-    {
-        DCHECK(!is_enabled_);
-    }
+ public:
+  explicit Compactor(RawHeap&);
+  ~Compactor() { DCHECK(!is_enabled_); }
 
-    Compactor(const Compactor&) = delete;
-    Compactor& operator=(const Compactor&) = delete;
+  Compactor(const Compactor&) = delete;
+  Compactor& operator=(const Compactor&) = delete;
 
-    void InitializeIfShouldCompact(GCConfig::MarkingType, StackState);
-    void CancelIfShouldNotCompact(GCConfig::MarkingType, StackState);
-    // Returns whether spaces need to be processed by the Sweeper after
-    // compaction.
-    CompactableSpaceHandling CompactSpacesIfEnabled();
+  void InitializeIfShouldCompact(GCConfig::MarkingType, StackState);
+  void CancelIfShouldNotCompact(GCConfig::MarkingType, StackState);
+  // Returns whether spaces need to be processed by the Sweeper after
+  // compaction.
+  CompactableSpaceHandling CompactSpacesIfEnabled();
 
-    CompactionWorklists* compaction_worklists()
-    {
-        return compaction_worklists_.get();
-    }
+  CompactionWorklists* compaction_worklists() {
+    return compaction_worklists_.get();
+  }
 
-    void EnableForNextGCForTesting();
-    bool IsEnabledForTesting() const
-    {
-        return is_enabled_;
-    }
+  void EnableForNextGCForTesting();
+  bool IsEnabledForTesting() const { return is_enabled_; }
 
-private:
-    bool ShouldCompact(GCConfig::MarkingType, StackState) const;
+ private:
+  bool ShouldCompact(GCConfig::MarkingType, StackState) const;
 
-    RawHeap& heap_;
-    // Compactor does not own the compactable spaces. The heap owns all spaces.
-    std::vector<NormalPageSpace*> compactable_spaces_;
+  RawHeap& heap_;
+  // Compactor does not own the compactable spaces. The heap owns all spaces.
+  std::vector<NormalPageSpace*> compactable_spaces_;
 
-    std::unique_ptr<CompactionWorklists> compaction_worklists_;
+  std::unique_ptr<CompactionWorklists> compaction_worklists_;
 
-    bool is_enabled_ = false;
-    bool is_cancelled_ = false;
-    bool enable_for_next_gc_for_testing_ = false;
+  bool is_enabled_ = false;
+  bool is_cancelled_ = false;
+  bool enable_for_next_gc_for_testing_ = false;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_COMPACTOR_H_
+#endif  // V8_HEAP_CPPGC_COMPACTOR_H_

@@ -16,9 +16,10 @@ namespace internal {
 // at least 2x the size of `size_of_val`. Additionally, `size_of_val` should be
 // less than 0x20000000. If either of these invariants is violated, a CHECK will
 // occur.
-void FormatBytesToHex(char* formatted, size_t size_of_formatted, const uint8_t* val, size_t size_of_val);
+void FormatBytesToHex(char* formatted, size_t size_of_formatted,
+                      const uint8_t* val, size_t size_of_val);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_UTILS_HEX_FORMAT_H_
+#endif  // V8_UTILS_HEX_FORMAT_H_

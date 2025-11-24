@@ -25,9 +25,9 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(PromiseResolveThenableJobTask)
 TQ_OBJECT_CONSTRUCTORS_IMPL(PromiseCapability)
 TQ_OBJECT_CONSTRUCTORS_IMPL(PromiseReaction)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_PROMISE_INL_H_
+#endif  // V8_OBJECTS_PROMISE_INL_H_

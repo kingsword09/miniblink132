@@ -149,100 +149,95 @@ namespace v8::internal::compiler::turboshaft {
 // isn't much evidence that this optimization would be often useful in practice.
 
 class PretenuringPropagationAnalyzer {
-public:
-    PretenuringPropagationAnalyzer(Zone* phase_zone, Graph& mutable_input_graph)
-        : zone_(phase_zone)
-        , input_graph_(mutable_input_graph)
-        , old_allocs_(phase_zone)
-        , store_graph_(phase_zone)
-        , old_phis_(phase_zone)
-        , queue_(phase_zone)
-    {
-    }
+ public:
+  PretenuringPropagationAnalyzer(Zone* phase_zone, Graph& mutable_input_graph)
+      : zone_(phase_zone),
+        input_graph_(mutable_input_graph),
+        old_allocs_(phase_zone),
+        store_graph_(phase_zone),
+        old_phis_(phase_zone),
+        queue_(phase_zone) {}
 
-    void Run();
+  void Run();
 
-private:
-    void ProcessStore(const StoreOp& store);
-    void ProcessPhi(const PhiOp& phi);
-    void ProcessAllocate(const AllocateOp& allocate);
+ private:
+  void ProcessStore(const StoreOp& store);
+  void ProcessPhi(const PhiOp& phi);
+  void ProcessAllocate(const AllocateOp& allocate);
 
-    bool PushContainedValues(OpIndex base);
-    void OldifySubgraph(OpIndex old_alloc);
+  bool PushContainedValues(OpIndex base);
+  void OldifySubgraph(OpIndex old_alloc);
 
-    void BuildStoreInputGraph();
-    void PropagateAllocationTypes();
+  void BuildStoreInputGraph();
+  void PropagateAllocationTypes();
 
-    ZoneVector<OpIndex>* FindOrCreate(OpIndex idx)
-    {
-        auto it = store_graph_.find(idx);
-        if (it != store_graph_.end())
-            return it->second;
-        return Create(idx);
-    }
+  ZoneVector<OpIndex>* FindOrCreate(OpIndex idx) {
+    auto it = store_graph_.find(idx);
+    if (it != store_graph_.end()) return it->second;
+    return Create(idx);
+  }
 
-    ZoneVector<OpIndex>* Create(OpIndex idx)
-    {
-        DCHECK_EQ(store_graph_.count(idx), 0);
-        ZoneVector<OpIndex>* stored_items = zone_->New<ZoneVector<OpIndex>>(zone_);
-        store_graph_.insert({ idx, stored_items });
-        return stored_items;
-    }
+  ZoneVector<OpIndex>* Create(OpIndex idx) {
+    DCHECK_EQ(store_graph_.count(idx), 0);
+    ZoneVector<OpIndex>* stored_items = zone_->New<ZoneVector<OpIndex>>(zone_);
+    store_graph_.insert({idx, stored_items});
+    return stored_items;
+  }
 
-    ZoneVector<OpIndex>* TryFind(OpIndex idx)
-    {
-        auto it = store_graph_.find(idx);
-        if (it != store_graph_.end())
-            return it->second;
-        return nullptr;
-    }
+  ZoneVector<OpIndex>* TryFind(OpIndex idx) {
+    auto it = store_graph_.find(idx);
+    if (it != store_graph_.end()) return it->second;
+    return nullptr;
+  }
 
-    Zone* zone_;
-    Graph& input_graph_;
-    ZoneVector<OpIndex> old_allocs_;
+  Zone* zone_;
+  Graph& input_graph_;
+  ZoneVector<OpIndex> old_allocs_;
 
-    // (see main comment at the begining of this file for the role of
-    // `store_graph_`)
-    // `store_graph_` contains mapping from OpIndex to vector<OpIndex>. If for an
-    // entry `a` it contains a vector `v`, it means that `a` has edges to all of
-    // the values in `v`.
-    ZoneAbslFlatHashMap<OpIndex, ZoneVector<OpIndex>*> store_graph_;
+  // (see main comment at the begining of this file for the role of
+  // `store_graph_`)
+  // `store_graph_` contains mapping from OpIndex to vector<OpIndex>. If for an
+  // entry `a` it contains a vector `v`, it means that `a` has edges to all of
+  // the values in `v`.
+  ZoneAbslFlatHashMap<OpIndex, ZoneVector<OpIndex>*> store_graph_;
 
-    // AllocateOp have an AllocationType field, which is set to kOld once they've
-    // been visited, thus ensuring that recursion ends. However, PhiOp don't have
-    // such a field. Thus, once we've visited a Phi, we store it in {old_phis_} to
-    // prevent revisiting it.
-    ZoneAbslFlatHashSet<OpIndex> old_phis_;
+  // AllocateOp have an AllocationType field, which is set to kOld once they've
+  // been visited, thus ensuring that recursion ends. However, PhiOp don't have
+  // such a field. Thus, once we've visited a Phi, we store it in {old_phis_} to
+  // prevent revisiting it.
+  ZoneAbslFlatHashSet<OpIndex> old_phis_;
 
-    // Used in the final phase to do DFS in the graph from each old store. It
-    // could be a local variable, but we instead use an instance variable to reuse
-    // memory.
-    ZoneVector<OpIndex> queue_;
+  // Used in the final phase to do DFS in the graph from each old store. It
+  // could be a local variable, but we instead use an instance variable to reuse
+  // memory.
+  ZoneVector<OpIndex> queue_;
 };
 
 // Forward delcaration
-template <class Next> class MemoryOptimizationReducer;
+template <class Next>
+class MemoryOptimizationReducer;
 
-template <class Next> class PretenuringPropagationReducer : public Next {
+template <class Next>
+class PretenuringPropagationReducer : public Next {
 #if defined(__clang__)
-    // PretenuringPropagationReducer should run before MemoryOptimizationReducer
-    // (because once young allocations are marked for folding, they can't be
-    // oldified anymore). We enforce this by making PretenuringPropagationReducer
-    // run in the same phase as MemoryOptimizationReducer, but before.
-    static_assert(next_contains_reducer<Next, MemoryOptimizationReducer>::value);
+  // PretenuringPropagationReducer should run before MemoryOptimizationReducer
+  // (because once young allocations are marked for folding, they can't be
+  // oldified anymore). We enforce this by making PretenuringPropagationReducer
+  // run in the same phase as MemoryOptimizationReducer, but before.
+  static_assert(next_contains_reducer<Next, MemoryOptimizationReducer>::value);
 #endif
 
-public:
-    TURBOSHAFT_REDUCER_BOILERPLATE(PretenuringPropagation)
+ public:
+  TURBOSHAFT_REDUCER_BOILERPLATE(PretenuringPropagation)
 
-    void Analyze()
-    {
-        PretenuringPropagationAnalyzer analyzer(Asm().phase_zone(), Asm().modifiable_input_graph());
-        analyzer.Run();
-        Next::Analyze();
-    }
+  void Analyze() {
+    PretenuringPropagationAnalyzer analyzer(Asm().phase_zone(),
+                                            Asm().modifiable_input_graph());
+    analyzer.Run();
+    Next::Analyze();
+  }
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_PRETENURING_PROPAGATION_REDUCER_H_
+#endif  // V8_COMPILER_TURBOSHAFT_PRETENURING_PROPAGATION_REDUCER_H_

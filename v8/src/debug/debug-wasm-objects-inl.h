@@ -21,9 +21,9 @@ OBJECT_CONSTRUCTORS_IMPL(WasmValueObject, JSObject)
 ACCESSORS(WasmValueObject, type, Tagged<String>, kTypeOffset)
 ACCESSORS(WasmValueObject, value, Tagged<Object>, kValueOffset)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_DEBUG_DEBUG_WASM_OBJECTS_INL_H_
+#endif  // V8_DEBUG_DEBUG_WASM_OBJECTS_INL_H_

@@ -17,22 +17,26 @@ class HeapHandle;
 
 namespace subtle {
 
-template <typename T> void FreeUnreferencedObject(HeapHandle& heap_handle, T& object);
-template <typename T> bool Resize(T& object, AdditionalBytes additional_bytes);
+template <typename T>
+void FreeUnreferencedObject(HeapHandle& heap_handle, T& object);
+template <typename T>
+bool Resize(T& object, AdditionalBytes additional_bytes);
 
-} // namespace subtle
+}  // namespace subtle
 
 namespace internal {
 
 class ExplicitManagementImpl final {
-private:
-    V8_EXPORT static void FreeUnreferencedObject(HeapHandle&, void*);
-    V8_EXPORT static bool Resize(void*, size_t);
+ private:
+  V8_EXPORT static void FreeUnreferencedObject(HeapHandle&, void*);
+  V8_EXPORT static bool Resize(void*, size_t);
 
-    template <typename T> friend void subtle::FreeUnreferencedObject(HeapHandle&, T&);
-    template <typename T> friend bool subtle::Resize(T&, AdditionalBytes);
+  template <typename T>
+  friend void subtle::FreeUnreferencedObject(HeapHandle&, T&);
+  template <typename T>
+  friend bool subtle::Resize(T&, AdditionalBytes);
 };
-} // namespace internal
+}  // namespace internal
 
 namespace subtle {
 
@@ -53,10 +57,12 @@ namespace subtle {
  * \param object Reference to an object that is of type `GarbageCollected` and
  *   should be immediately reclaimed.
  */
-template <typename T> void FreeUnreferencedObject(HeapHandle& heap_handle, T& object)
-{
-    static_assert(IsGarbageCollectedTypeV<T>, "Object must be of type GarbageCollected.");
-    internal::ExplicitManagementImpl::FreeUnreferencedObject(heap_handle, &object);
+template <typename T>
+void FreeUnreferencedObject(HeapHandle& heap_handle, T& object) {
+  static_assert(IsGarbageCollectedTypeV<T>,
+                "Object must be of type GarbageCollected.");
+  internal::ExplicitManagementImpl::FreeUnreferencedObject(heap_handle,
+                                                           &object);
 }
 
 /**
@@ -80,13 +86,15 @@ template <typename T> void FreeUnreferencedObject(HeapHandle& heap_handle, T& ob
  * \returns true when the operation was successful and the result can be relied
  *   on, and false otherwise.
  */
-template <typename T> bool Resize(T& object, AdditionalBytes additional_bytes)
-{
-    static_assert(IsGarbageCollectedTypeV<T>, "Object must be of type GarbageCollected.");
-    return internal::ExplicitManagementImpl::Resize(&object, sizeof(T) + additional_bytes.value);
+template <typename T>
+bool Resize(T& object, AdditionalBytes additional_bytes) {
+  static_assert(IsGarbageCollectedTypeV<T>,
+                "Object must be of type GarbageCollected.");
+  return internal::ExplicitManagementImpl::Resize(
+      &object, sizeof(T) + additional_bytes.value);
 }
 
-} // namespace subtle
-} // namespace cppgc
+}  // namespace subtle
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_EXPLICIT_MANAGEMENT_H_
+#endif  // INCLUDE_CPPGC_EXPLICIT_MANAGEMENT_H_

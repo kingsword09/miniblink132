@@ -16,25 +16,33 @@ namespace internal {
 
 #include "torque-generated/src/objects/property-descriptor-object-tq.inc"
 
-class PropertyDescriptorObject : public TorqueGeneratedPropertyDescriptorObject<PropertyDescriptorObject, Struct> {
-public:
-    DEFINE_TORQUE_GENERATED_PROPERTY_DESCRIPTOR_OBJECT_FLAGS()
+class PropertyDescriptorObject
+    : public TorqueGeneratedPropertyDescriptorObject<PropertyDescriptorObject,
+                                                     Struct> {
+ public:
+  DEFINE_TORQUE_GENERATED_PROPERTY_DESCRIPTOR_OBJECT_FLAGS()
 
-    static const int kRegularAccessorPropertyBits = HasEnumerableBit::kMask | HasConfigurableBit::kMask | HasGetBit::kMask | HasSetBit::kMask;
+  static const int kRegularAccessorPropertyBits =
+      HasEnumerableBit::kMask | HasConfigurableBit::kMask | HasGetBit::kMask |
+      HasSetBit::kMask;
 
-    static const int kRegularDataPropertyBits = HasEnumerableBit::kMask | HasConfigurableBit::kMask | HasWritableBit::kMask | HasValueBit::kMask;
+  static const int kRegularDataPropertyBits =
+      HasEnumerableBit::kMask | HasConfigurableBit::kMask |
+      HasWritableBit::kMask | HasValueBit::kMask;
 
-    static const int kHasMask
-        = HasEnumerableBit::kMask | HasConfigurableBit::kMask | HasWritableBit::kMask | HasValueBit::kMask | HasGetBit::kMask | HasSetBit::kMask;
+  static const int kHasMask = HasEnumerableBit::kMask |
+                              HasConfigurableBit::kMask |
+                              HasWritableBit::kMask | HasValueBit::kMask |
+                              HasGetBit::kMask | HasSetBit::kMask;
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(PropertyDescriptorObject)
+  TQ_OBJECT_CONSTRUCTORS(PropertyDescriptorObject)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_PROPERTY_DESCRIPTOR_OBJECT_H_
+#endif  // V8_OBJECTS_PROPERTY_DESCRIPTOR_OBJECT_H_

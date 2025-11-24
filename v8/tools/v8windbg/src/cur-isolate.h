@@ -20,10 +20,15 @@ HRESULT GetCurrentIsolate(WRL::ComPtr<IModelObject>& sp_result);
 constexpr wchar_t kIsolateOffset[] = L"v8::internal::g_current_isolate_";
 constexpr wchar_t kIsolate[] = L"v8::internal::Isolate *";
 
-class CurrIsolateAlias : public WRL::RuntimeClass<WRL::RuntimeClassFlags<WRL::RuntimeClassType::ClassicCom>, IModelMethod> {
-public:
-    IFACEMETHOD(Call)
-    (IModelObject* p_context_object, ULONG64 arg_count, _In_reads_(arg_count) IModelObject** pp_arguments, IModelObject** pp_result, IKeyStore** pp_metadata);
+class CurrIsolateAlias
+    : public WRL::RuntimeClass<
+          WRL::RuntimeClassFlags<WRL::RuntimeClassType::ClassicCom>,
+          IModelMethod> {
+ public:
+  IFACEMETHOD(Call)
+  (IModelObject* p_context_object, ULONG64 arg_count,
+   _In_reads_(arg_count) IModelObject** pp_arguments, IModelObject** pp_result,
+   IKeyStore** pp_metadata);
 };
 
-#endif // V8_TOOLS_V8WINDBG_SRC_CUR_ISOLATE_H_
+#endif  // V8_TOOLS_V8WINDBG_SRC_CUR_ISOLATE_H_

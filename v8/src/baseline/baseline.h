@@ -14,13 +14,15 @@ class Code;
 class SharedFunctionInfo;
 class MacroAssembler;
 
-bool CanCompileWithBaseline(Isolate* isolate, Tagged<SharedFunctionInfo> shared);
+bool CanCompileWithBaseline(Isolate* isolate,
+                            Tagged<SharedFunctionInfo> shared);
 
-MaybeHandle<Code> GenerateBaselineCode(Isolate* isolate, Handle<SharedFunctionInfo> shared);
+MaybeHandle<Code> GenerateBaselineCode(Isolate* isolate,
+                                       Handle<SharedFunctionInfo> shared);
 
 void EmitReturnBaseline(MacroAssembler* masm);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BASELINE_BASELINE_H_
+#endif  // V8_BASELINE_BASELINE_H_

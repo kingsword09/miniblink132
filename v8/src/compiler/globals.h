@@ -24,81 +24,75 @@ namespace compiler {
 //
 // TODO(jgruber): Remove once we've made a decision whether to collect feedback
 // unconditionally.
-inline bool CollectFeedbackInGenericLowering()
-{
-    return v8_flags.turbo_collect_feedback_in_generic_lowering;
+inline bool CollectFeedbackInGenericLowering() {
+  return v8_flags.turbo_collect_feedback_in_generic_lowering;
 }
 
 enum class StackCheckKind : uint8_t {
-    kJSFunctionEntry = 0,
-    kJSIterationBody,
-    kCodeStubAssembler,
-    kWasm,
+  kJSFunctionEntry = 0,
+  kJSIterationBody,
+  kCodeStubAssembler,
+  kWasm,
 };
 
-inline Runtime::FunctionId GetBuiltinForStackCheckKind(StackCheckKind kind)
-{
-    if (kind == StackCheckKind::kJSFunctionEntry) {
-        return Runtime::kStackGuardWithGap;
-    } else if (kind == StackCheckKind::kJSIterationBody) {
-        return Runtime::kHandleNoHeapWritesInterrupts;
-    } else {
-        return Runtime::kStackGuard;
-    }
+inline Runtime::FunctionId GetBuiltinForStackCheckKind(StackCheckKind kind) {
+  if (kind == StackCheckKind::kJSFunctionEntry) {
+    return Runtime::kStackGuardWithGap;
+  } else if (kind == StackCheckKind::kJSIterationBody) {
+    return Runtime::kHandleNoHeapWritesInterrupts;
+  } else {
+    return Runtime::kStackGuard;
+  }
 }
 
 enum class CanThrow : uint8_t { kNo, kYes };
 enum class LazyDeoptOnThrow : uint8_t { kNo, kYes };
 
-inline std::ostream& operator<<(std::ostream& os, LazyDeoptOnThrow lazy_deopt_on_throw)
-{
-    switch (lazy_deopt_on_throw) {
+inline std::ostream& operator<<(std::ostream& os,
+                                LazyDeoptOnThrow lazy_deopt_on_throw) {
+  switch (lazy_deopt_on_throw) {
     case LazyDeoptOnThrow::kYes:
-        return os << "LazyDeoptOnThrow";
+      return os << "LazyDeoptOnThrow";
     case LazyDeoptOnThrow::kNo:
-        return os << "DoNOTLazyDeoptOnThrow";
-    }
+      return os << "DoNOTLazyDeoptOnThrow";
+  }
 }
 
-inline std::ostream& operator<<(std::ostream& os, StackCheckKind kind)
-{
-    switch (kind) {
+inline std::ostream& operator<<(std::ostream& os, StackCheckKind kind) {
+  switch (kind) {
     case StackCheckKind::kJSFunctionEntry:
-        return os << "JSFunctionEntry";
+      return os << "JSFunctionEntry";
     case StackCheckKind::kJSIterationBody:
-        return os << "JSIterationBody";
+      return os << "JSIterationBody";
     case StackCheckKind::kCodeStubAssembler:
-        return os << "CodeStubAssembler";
+      return os << "CodeStubAssembler";
     case StackCheckKind::kWasm:
-        return os << "Wasm";
-    }
-    UNREACHABLE();
+      return os << "Wasm";
+  }
+  UNREACHABLE();
 }
 
-inline size_t hash_value(StackCheckKind kind)
-{
-    return static_cast<size_t>(kind);
+inline size_t hash_value(StackCheckKind kind) {
+  return static_cast<size_t>(kind);
 }
 
 enum class CheckForMinusZeroMode : uint8_t {
-    kCheckForMinusZero,
-    kDontCheckForMinusZero,
+  kCheckForMinusZero,
+  kDontCheckForMinusZero,
 };
 
-inline size_t hash_value(CheckForMinusZeroMode mode)
-{
-    return static_cast<size_t>(mode);
+inline size_t hash_value(CheckForMinusZeroMode mode) {
+  return static_cast<size_t>(mode);
 }
 
-inline std::ostream& operator<<(std::ostream& os, CheckForMinusZeroMode mode)
-{
-    switch (mode) {
+inline std::ostream& operator<<(std::ostream& os, CheckForMinusZeroMode mode) {
+  switch (mode) {
     case CheckForMinusZeroMode::kCheckForMinusZero:
-        return os << "check-for-minus-zero";
+      return os << "check-for-minus-zero";
     case CheckForMinusZeroMode::kDontCheckForMinusZero:
-        return os << "dont-check-for-minus-zero";
-    }
-    UNREACHABLE();
+      return os << "dont-check-for-minus-zero";
+  }
+  UNREACHABLE();
 }
 
 // The CallFeedbackRelation provides the meaning of the call feedback for a
@@ -112,17 +106,17 @@ inline std::ostream& operator<<(std::ostream& os, CheckForMinusZeroMode mode)
 //   unrelated.
 enum class CallFeedbackRelation { kReceiver, kTarget, kUnrelated };
 
-inline std::ostream& operator<<(std::ostream& os, CallFeedbackRelation call_feedback_relation)
-{
-    switch (call_feedback_relation) {
+inline std::ostream& operator<<(std::ostream& os,
+                                CallFeedbackRelation call_feedback_relation) {
+  switch (call_feedback_relation) {
     case CallFeedbackRelation::kReceiver:
-        return os << "CallFeedbackRelation::kReceiver";
+      return os << "CallFeedbackRelation::kReceiver";
     case CallFeedbackRelation::kTarget:
-        return os << "CallFeedbackRelation::kTarget";
+      return os << "CallFeedbackRelation::kTarget";
     case CallFeedbackRelation::kUnrelated:
-        return os << "CallFeedbackRelation::kUnrelated";
-    }
-    UNREACHABLE();
+      return os << "CallFeedbackRelation::kUnrelated";
+  }
+  UNREACHABLE();
 }
 
 // Maximum depth and total number of elements and properties for literal
@@ -136,53 +130,52 @@ const int kMaxFastLiteralProperties = JSObject::kMaxInObjectProperties;
 enum BaseTaggedness : uint8_t { kUntaggedBase, kTaggedBase };
 
 enum class MemoryAccessKind : uint8_t {
-    kNormal,
-    kUnaligned,
-    kProtected,
+  kNormal,
+  kUnaligned,
+  kProtected,
 };
 
 size_t hash_value(MemoryAccessKind);
 
 V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream&, MemoryAccessKind);
 
-inline ExternalArrayType GetArrayTypeFromElementsKind(ElementsKind kind)
-{
-    switch (kind) {
-#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype)                                                                                                              \
-    case TYPE##_ELEMENTS:                                                                                                                                      \
-    case RAB_GSAB_##TYPE##_ELEMENTS:                                                                                                                           \
-        return kExternal##Type##Array;
-        TYPED_ARRAYS(TYPED_ARRAY_CASE)
+inline ExternalArrayType GetArrayTypeFromElementsKind(ElementsKind kind) {
+  switch (kind) {
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype) \
+  case TYPE##_ELEMENTS:                           \
+  case RAB_GSAB_##TYPE##_ELEMENTS:                \
+    return kExternal##Type##Array;
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
 #undef TYPED_ARRAY_CASE
     default:
-        break;
-    }
-    UNREACHABLE();
+      break;
+  }
+  UNREACHABLE();
 }
 
-inline int ExternalArrayElementSize(const ExternalArrayType element_type)
-{
-    switch (element_type) {
-#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype)                                                                                                              \
-    case kExternal##Type##Array:                                                                                                                               \
-        DCHECK_LE(sizeof(ctype), 8);                                                                                                                           \
-        return sizeof(ctype);
-        TYPED_ARRAYS(TYPED_ARRAY_CASE)
+inline int ExternalArrayElementSize(const ExternalArrayType element_type) {
+  switch (element_type) {
+#define TYPED_ARRAY_CASE(Type, type, TYPE, ctype) \
+  case kExternal##Type##Array:                    \
+    DCHECK_LE(sizeof(ctype), 8);                  \
+    return sizeof(ctype);
+    TYPED_ARRAYS(TYPED_ARRAY_CASE)
     default:
-        UNREACHABLE();
+      UNREACHABLE();
 #undef TYPED_ARRAY_CASE
-    }
+  }
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
 // The biggest double value that fits within the int64_t/uint64_t value range.
 // This is different from safe integer range in that there are gaps of integers
 // in-between that cannot be represented as a double.
 constexpr double kMaxDoubleRepresentableInt64 = 9223372036854774784.0;
-constexpr double kMinDoubleRepresentableInt64 = std::numeric_limits<int64_t>::min();
+constexpr double kMinDoubleRepresentableInt64 =
+    std::numeric_limits<int64_t>::min();
 constexpr double kMaxDoubleRepresentableUint64 = 18446744073709549568.0;
 
 // There is no (currently) available constexpr version of base::bit_cast, so
@@ -191,6 +184,7 @@ constexpr double kMaxDoubleRepresentableUint64 = 18446744073709549568.0;
 // TODO(leszeks): Revisit when upgrading to C++20.
 constexpr int32_t kMinusZeroLoBits = static_cast<int32_t>(0);
 constexpr int32_t kMinusZeroHiBits = static_cast<int32_t>(1) << 31;
-constexpr int64_t kMinusZeroBits = (static_cast<uint64_t>(kMinusZeroHiBits) << 32) | kMinusZeroLoBits;
+constexpr int64_t kMinusZeroBits =
+    (static_cast<uint64_t>(kMinusZeroHiBits) << 32) | kMinusZeroLoBits;
 
-#endif // V8_COMPILER_GLOBALS_H_
+#endif  // V8_COMPILER_GLOBALS_H_

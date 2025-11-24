@@ -8,11 +8,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "v8-callbacks.h" // NOLINT(build/include_directory)
-#include "v8-internal.h" // NOLINT(build/include_directory)
-#include "v8-isolate.h" // NOLINT(build/include_directory)
-#include "v8-platform.h" // NOLINT(build/include_directory)
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8-callbacks.h"  // NOLINT(build/include_directory)
+#include "v8-internal.h"   // NOLINT(build/include_directory)
+#include "v8-isolate.h"    // NOLINT(build/include_directory)
+#include "v8-platform.h"   // NOLINT(build/include_directory)
+#include "v8config.h"      // NOLINT(build/include_directory)
 
 // We reserve the V8_* prefix for macros defined in V8 public API and
 // assume there are no name conflicts with the embedder's code.
@@ -24,7 +24,8 @@ namespace v8 {
 
 class PageAllocator;
 class Platform;
-template <class K, class V, class T> class PersistentValueMapBase;
+template <class K, class V, class T>
+class PersistentValueMapBase;
 
 /**
  * EntropySource is used as a callback function when v8 needs a source
@@ -45,18 +46,21 @@ using EntropySource = bool (*)(unsigned char* buffer, size_t length);
  *
  * \note The resolver function must not cause garbage collection.
  */
-using ReturnAddressLocationResolver = uintptr_t (*)(uintptr_t return_addr_location);
+using ReturnAddressLocationResolver =
+    uintptr_t (*)(uintptr_t return_addr_location);
 
-using DcheckErrorCallback = void (*)(const char* file, int line, const char* message);
+using DcheckErrorCallback = void (*)(const char* file, int line,
+                                     const char* message);
 
-using V8FatalErrorCallback = void (*)(const char* file, int line, const char* message);
+using V8FatalErrorCallback = void (*)(const char* file, int line,
+                                      const char* message);
 
 /**
  * Container class for static utility functions.
  */
 class V8_EXPORT V8 {
-public:
-    /**
+ public:
+  /**
    * Hand startup data to V8, in case the embedder has chosen to build
    * V8 with external startup data.
    *
@@ -71,67 +75,72 @@ public:
    *   handled entirely on the embedders' side.
    * - The call will abort if the data is invalid.
    */
-    static void SetSnapshotDataBlob(StartupData* startup_blob);
+  static void SetSnapshotDataBlob(StartupData* startup_blob);
 
-    /** Set the callback to invoke in case of Dcheck failures. */
-    static void SetDcheckErrorHandler(DcheckErrorCallback that);
+  /** Set the callback to invoke in case of Dcheck failures. */
+  static void SetDcheckErrorHandler(DcheckErrorCallback that);
 
-    /** Set the callback to invoke in the case of CHECK failures or fatal
+  /** Set the callback to invoke in the case of CHECK failures or fatal
    * errors. This is distinct from Isolate::SetFatalErrorHandler, which
    * is invoked in response to API usage failures.
    * */
-    static void SetFatalErrorHandler(V8FatalErrorCallback that);
+  static void SetFatalErrorHandler(V8FatalErrorCallback that);
 
-    /**
+  /**
    * Sets V8 flags from a string.
    */
-    static void SetFlagsFromString(const char* str);
-    static void SetFlagsFromString(const char* str, size_t length);
+  static void SetFlagsFromString(const char* str);
+  static void SetFlagsFromString(const char* str, size_t length);
 
-    /**
+  /**
    * Sets V8 flags from the command line.
    */
-    static void SetFlagsFromCommandLine(int* argc, char** argv, bool remove_flags);
+  static void SetFlagsFromCommandLine(int* argc, char** argv,
+                                      bool remove_flags);
 
-    /** Get the version string. */
-    static const char* GetVersion();
+  /** Get the version string. */
+  static const char* GetVersion();
 
-    /**
+  /**
    * Initializes V8. This function needs to be called before the first Isolate
    * is created. It always returns true.
    */
-    V8_INLINE static bool Initialize()
-    {
+  V8_INLINE static bool Initialize() {
 #ifdef V8_TARGET_OS_ANDROID
-        const bool kV8TargetOsIsAndroid = true;
+    const bool kV8TargetOsIsAndroid = true;
 #else
-        const bool kV8TargetOsIsAndroid = false;
+    const bool kV8TargetOsIsAndroid = false;
 #endif
 
 #ifdef V8_ENABLE_CHECKS
-        const bool kV8EnableChecks = true;
+    const bool kV8EnableChecks = true;
 #else
-        const bool kV8EnableChecks = false;
+    const bool kV8EnableChecks = false;
 #endif
 
-        const int kBuildConfiguration = (internal::PointerCompressionIsEnabled() ? kPointerCompression : 0) | (internal::SmiValuesAre31Bits() ? k31BitSmis : 0)
-            | (internal::SandboxIsEnabled() ? kSandbox : 0) | (kV8TargetOsIsAndroid ? kTargetOsIsAndroid : 0) | (kV8EnableChecks ? kEnableChecks : 0);
-        return Initialize(kBuildConfiguration);
-    }
+    const int kBuildConfiguration =
+        (internal::PointerCompressionIsEnabled() ? kPointerCompression : 0) |
+        (internal::SmiValuesAre31Bits() ? k31BitSmis : 0) |
+        (internal::SandboxIsEnabled() ? kSandbox : 0) |
+        (kV8TargetOsIsAndroid ? kTargetOsIsAndroid : 0) |
+        (kV8EnableChecks ? kEnableChecks : 0);
+    return Initialize(kBuildConfiguration);
+  }
 
-    /**
+  /**
    * Allows the host application to provide a callback which can be used
    * as a source of entropy for random number generators.
    */
-    static void SetEntropySource(EntropySource source);
+  static void SetEntropySource(EntropySource source);
 
-    /**
+  /**
    * Allows the host application to provide a callback that allows v8 to
    * cooperate with a profiler that rewrites return addresses on stack.
    */
-    static void SetReturnAddressLocationResolver(ReturnAddressLocationResolver return_address_resolver);
+  static void SetReturnAddressLocationResolver(
+      ReturnAddressLocationResolver return_address_resolver);
 
-    /**
+  /**
    * Releases any resources used by v8 and stops any utility threads
    * that may be running.  Note that disposing v8 is permanent, it
    * cannot be reinitialized.
@@ -140,18 +149,18 @@ public:
    * a process, this should happen automatically.  It is only necessary
    * to use if the process needs the resources taken up by v8.
    */
-    static bool Dispose();
+  static bool Dispose();
 
-    /**
+  /**
    * Initialize the ICU library bundled with V8. The embedder should only
    * invoke this method when using the bundled ICU. Returns true on success.
    *
    * If V8 was compiled with the ICU data in an external file, the location
    * of the data file has to be provided.
    */
-    static bool InitializeICU(const char* icu_data_file = nullptr);
+  static bool InitializeICU(const char* icu_data_file = nullptr);
 
-    /**
+  /**
    * Initialize the ICU library bundled with V8. The embedder should only
    * invoke this method when using the bundled ICU. If V8 was compiled with
    * the ICU data in an external file and when the default location of that
@@ -163,9 +172,10 @@ public:
    * Optionally, the location of the data file can be provided to override the
    * default.
    */
-    static bool InitializeICUDefaultLocation(const char* exec_path, const char* icu_data_file = nullptr);
+  static bool InitializeICUDefaultLocation(const char* exec_path,
+                                           const char* icu_data_file = nullptr);
 
-    /**
+  /**
    * Initialize the external startup data. The embedder only needs to
    * invoke this method when external startup data was enabled in a build.
    *
@@ -180,23 +190,23 @@ public:
    *   This will read the blobs from the given data structure and will
    *   not perform any file IO.
    */
-    static void InitializeExternalStartupData(const char* directory_path);
-    static void InitializeExternalStartupDataFromFile(const char* snapshot_blob);
+  static void InitializeExternalStartupData(const char* directory_path);
+  static void InitializeExternalStartupDataFromFile(const char* snapshot_blob);
 
-    /**
+  /**
    * Sets the v8::Platform to use. This should be invoked before V8 is
    * initialized.
    */
-    static void InitializePlatform(Platform* platform);
+  static void InitializePlatform(Platform* platform);
 
-    /**
+  /**
    * Clears all references to the v8::Platform. This should be invoked after
    * V8 was disposed.
    */
-    static void DisposePlatform();
+  static void DisposePlatform();
 
 #if defined(V8_ENABLE_SANDBOX)
-    /**
+  /**
    * Returns true if the sandbox is configured securely.
    *
    * There are currently two reasons why this may return false:
@@ -212,9 +222,9 @@ public:
    *    certain issues where a Smi is treated as a pointer and dereferenced,
    *    causing an access somewhere in the 32-bit address range.
    */
-    static bool IsSandboxConfiguredSecurely();
+  static bool IsSandboxConfiguredSecurely();
 
-    /**
+  /**
    * Provides access to the virtual address subspace backing the sandbox.
    *
    * This can be used to allocate pages inside the sandbox, for example to
@@ -226,17 +236,17 @@ public:
    * address space, arbitrarily and concurrently. Due to this, it is
    * recommended to to only place pure data buffers in them.
    */
-    static VirtualAddressSpace* GetSandboxAddressSpace();
+  static VirtualAddressSpace* GetSandboxAddressSpace();
 
-    /**
+  /**
    * Returns the size of the sandbox in bytes.
    *
    * This represents the size of the address space that V8 can directly address
    * and in which it allocates its objects.
    */
-    static size_t GetSandboxSizeInBytes();
+  static size_t GetSandboxSizeInBytes();
 
-    /**
+  /**
    * Returns the size of the address space reservation backing the sandbox.
    *
    * This may be larger than the sandbox (i.e. |GetSandboxSizeInBytes()|) due
@@ -246,19 +256,19 @@ public:
    * |GetSandboxAddressSpace()->size()| as that will cover a larger part of the
    * address space than what has actually been reserved.
    */
-    static size_t GetSandboxReservationSizeInBytes();
-#endif // V8_ENABLE_SANDBOX
+  static size_t GetSandboxReservationSizeInBytes();
+#endif  // V8_ENABLE_SANDBOX
 
-    /**
+  /**
    * Activate trap-based bounds checking for WebAssembly.
    *
    * \param use_v8_signal_handler Whether V8 should install its own signal
    * handler or rely on the embedder's.
    */
-    static bool EnableWebAssemblyTrapHandler(bool use_v8_signal_handler);
+  static bool EnableWebAssemblyTrapHandler(bool use_v8_signal_handler);
 
 #if defined(V8_OS_WIN)
-    /**
+  /**
    * On Win64, by default V8 does not emit unwinding data for jitted code,
    * which means the OS cannot walk the stack frames and the system Structured
    * Exception Handling (SEH) cannot unwind through V8-generated code:
@@ -267,42 +277,44 @@ public:
    * This function allows embedders to register a custom exception handler for
    * exceptions in V8-generated code.
    */
-    static void SetUnhandledExceptionCallback(UnhandledExceptionCallback callback);
+  static void SetUnhandledExceptionCallback(
+      UnhandledExceptionCallback callback);
 #endif
 
-    /**
+  /**
    * Allows the host application to provide a callback that will be called when
    * v8 has encountered a fatal failure to allocate memory and is about to
    * terminate.
    */
-    static void SetFatalMemoryErrorCallback(OOMErrorCallback callback);
+  static void SetFatalMemoryErrorCallback(OOMErrorCallback callback);
 
-    /**
+  /**
    * Get statistics about the shared memory usage.
    */
-    static void GetSharedMemoryStatistics(SharedMemoryStatistics* statistics);
+  static void GetSharedMemoryStatistics(SharedMemoryStatistics* statistics);
 
-private:
-    V8();
+ private:
+  V8();
 
-    enum BuildConfigurationFeatures {
-        kPointerCompression = 1 << 0,
-        k31BitSmis = 1 << 1,
-        kSandbox = 1 << 2,
-        kTargetOsIsAndroid = 1 << 3,
-        kEnableChecks = 1 << 4,
-    };
+  enum BuildConfigurationFeatures {
+    kPointerCompression = 1 << 0,
+    k31BitSmis = 1 << 1,
+    kSandbox = 1 << 2,
+    kTargetOsIsAndroid = 1 << 3,
+    kEnableChecks = 1 << 4,
+  };
 
-    /**
+  /**
    * Checks that the embedder build configuration is compatible with
    * the V8 binary and if so initializes V8.
    */
-    static bool Initialize(int build_config);
+  static bool Initialize(int build_config);
 
-    friend class Context;
-    template <class K, class V, class T> friend class PersistentValueMapBase;
+  friend class Context;
+  template <class K, class V, class T>
+  friend class PersistentValueMapBase;
 };
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_INITIALIZATION_H_
+#endif  // INCLUDE_V8_INITIALIZATION_H_

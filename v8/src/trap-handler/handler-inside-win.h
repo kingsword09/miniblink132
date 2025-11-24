@@ -7,7 +7,7 @@
 
 #include <windows.h>
 
-#include "src/trap-handler/trap-handler.h" // For TH_DISABLE_ASAN.
+#include "src/trap-handler/trap-handler.h"  // For TH_DISABLE_ASAN.
 
 namespace v8 {
 namespace internal {
@@ -20,8 +20,8 @@ LONG WINAPI HandleWasmTrap(EXCEPTION_POINTERS* exception);
 // handler, we have to make sure that asan shadow memory is not accessed here.
 TH_DISABLE_ASAN bool TryHandleWasmTrap(EXCEPTION_POINTERS* exception);
 
-} // namespace trap_handler
-} // namespace internal
-} // namespace v8
+}  // namespace trap_handler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TRAP_HANDLER_HANDLER_INSIDE_WIN_H_
+#endif  // V8_TRAP_HANDLER_HANDLER_INSIDE_WIN_H_

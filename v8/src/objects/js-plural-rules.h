@@ -4,7 +4,7 @@
 
 #ifndef V8_INTL_SUPPORT
 #error Internationalization is expected to be enabled.
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
 #ifndef V8_OBJECTS_JS_PLURAL_RULES_H_
 #define V8_OBJECTS_JS_PLURAL_RULES_H_
@@ -27,51 +27,60 @@ class PluralRules;
 namespace number {
 class LocalizedNumberFormatter;
 class LocalizedNumberRangeFormatter;
-} // namespace number
-} // namespace U_ICU_NAMESPACE
+}  // namespace number
+}  // namespace U_ICU_NAMESPACE
 
 namespace v8 {
 namespace internal {
 
 #include "torque-generated/src/objects/js-plural-rules-tq.inc"
 
-class JSPluralRules : public TorqueGeneratedJSPluralRules<JSPluralRules, JSObject> {
-public:
-    V8_WARN_UNUSED_RESULT static MaybeHandle<JSPluralRules> New(Isolate* isolate, DirectHandle<Map> map, Handle<Object> locales, Handle<Object> options);
+class JSPluralRules
+    : public TorqueGeneratedJSPluralRules<JSPluralRules, JSObject> {
+ public:
+  V8_WARN_UNUSED_RESULT static MaybeHandle<JSPluralRules> New(
+      Isolate* isolate, DirectHandle<Map> map, Handle<Object> locales,
+      Handle<Object> options);
 
-    static Handle<JSObject> ResolvedOptions(Isolate* isolate, DirectHandle<JSPluralRules> plural_rules);
+  static Handle<JSObject> ResolvedOptions(
+      Isolate* isolate, DirectHandle<JSPluralRules> plural_rules);
 
-    V8_WARN_UNUSED_RESULT static MaybeHandle<String> ResolvePlural(Isolate* isolate, DirectHandle<JSPluralRules> plural_rules, double number);
+  V8_WARN_UNUSED_RESULT static MaybeHandle<String> ResolvePlural(
+      Isolate* isolate, DirectHandle<JSPluralRules> plural_rules,
+      double number);
 
-    V8_WARN_UNUSED_RESULT static MaybeHandle<String> ResolvePluralRange(Isolate* isolate, DirectHandle<JSPluralRules> plural_rules, double x, double y);
+  V8_WARN_UNUSED_RESULT static MaybeHandle<String> ResolvePluralRange(
+      Isolate* isolate, DirectHandle<JSPluralRules> plural_rules, double x,
+      double y);
 
-    V8_EXPORT_PRIVATE static const std::set<std::string>& GetAvailableLocales();
+  V8_EXPORT_PRIVATE static const std::set<std::string>& GetAvailableLocales();
 
-    // [[Type]] is one of the values "cardinal" or "ordinal",
-    // identifying the plural rules used.
-    enum class Type { CARDINAL, ORDINAL };
-    inline void set_type(Type type);
-    inline Type type() const;
+  // [[Type]] is one of the values "cardinal" or "ordinal",
+  // identifying the plural rules used.
+  enum class Type { CARDINAL, ORDINAL };
+  inline void set_type(Type type);
+  inline Type type() const;
 
-    Handle<String> TypeAsString() const;
+  Handle<String> TypeAsString() const;
 
-    DECL_PRINTER(JSPluralRules)
+  DECL_PRINTER(JSPluralRules)
 
-    // Bit positions in |flags|.
-    DEFINE_TORQUE_GENERATED_JS_PLURAL_RULES_FLAGS()
+  // Bit positions in |flags|.
+  DEFINE_TORQUE_GENERATED_JS_PLURAL_RULES_FLAGS()
 
-    static_assert(TypeBit::is_valid(Type::CARDINAL));
-    static_assert(TypeBit::is_valid(Type::ORDINAL));
+  static_assert(TypeBit::is_valid(Type::CARDINAL));
+  static_assert(TypeBit::is_valid(Type::ORDINAL));
 
-    DECL_ACCESSORS(icu_plural_rules, Tagged<Managed<icu::PluralRules>>)
-    DECL_ACCESSORS(icu_number_formatter, Tagged<Managed<icu::number::LocalizedNumberFormatter>>)
+  DECL_ACCESSORS(icu_plural_rules, Tagged<Managed<icu::PluralRules>>)
+  DECL_ACCESSORS(icu_number_formatter,
+                 Tagged<Managed<icu::number::LocalizedNumberFormatter>>)
 
-    TQ_OBJECT_CONSTRUCTORS(JSPluralRules)
+  TQ_OBJECT_CONSTRUCTORS(JSPluralRules)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_PLURAL_RULES_H_
+#endif  // V8_OBJECTS_JS_PLURAL_RULES_H_

@@ -19,51 +19,45 @@ namespace internal {
 // Allocator encapsulating thread-local allocation durning collection. Assumes
 // that all other allocations also go through EvacuationAllocator.
 class EvacuationAllocator {
-public:
-    EvacuationAllocator(Heap* heap, CompactionSpaceKind compaction_space_kind);
+ public:
+  EvacuationAllocator(Heap* heap, CompactionSpaceKind compaction_space_kind);
 
-    // Needs to be called from the main thread to finalize this
-    // EvacuationAllocator.
-    void Finalize();
+  // Needs to be called from the main thread to finalize this
+  // EvacuationAllocator.
+  void Finalize();
 
-    inline AllocationResult Allocate(AllocationSpace space, int object_size, AllocationAlignment alignment);
-    void FreeLast(AllocationSpace space, Tagged<HeapObject> object, int object_size);
+  inline AllocationResult Allocate(AllocationSpace space, int object_size,
+                                   AllocationAlignment alignment);
+  void FreeLast(AllocationSpace space, Tagged<HeapObject> object,
+                int object_size);
 
-private:
-    void FreeLastInMainAllocator(MainAllocator* allocator, Tagged<HeapObject> object, int object_size);
+ private:
+  void FreeLastInMainAllocator(MainAllocator* allocator,
+                               Tagged<HeapObject> object, int object_size);
 
-    MainAllocator* new_space_allocator()
-    {
-        return &new_space_allocator_.value();
-    }
-    MainAllocator* old_space_allocator()
-    {
-        return &old_space_allocator_.value();
-    }
-    MainAllocator* code_space_allocator()
-    {
-        return &code_space_allocator_.value();
-    }
-    MainAllocator* shared_space_allocator()
-    {
-        return &shared_space_allocator_.value();
-    }
-    MainAllocator* trusted_space_allocator()
-    {
-        return &trusted_space_allocator_.value();
-    }
+  MainAllocator* new_space_allocator() { return &new_space_allocator_.value(); }
+  MainAllocator* old_space_allocator() { return &old_space_allocator_.value(); }
+  MainAllocator* code_space_allocator() {
+    return &code_space_allocator_.value();
+  }
+  MainAllocator* shared_space_allocator() {
+    return &shared_space_allocator_.value();
+  }
+  MainAllocator* trusted_space_allocator() {
+    return &trusted_space_allocator_.value();
+  }
 
-    Heap* const heap_;
-    NewSpace* const new_space_;
-    CompactionSpaceCollection compaction_spaces_;
-    std::optional<MainAllocator> new_space_allocator_;
-    std::optional<MainAllocator> old_space_allocator_;
-    std::optional<MainAllocator> code_space_allocator_;
-    std::optional<MainAllocator> shared_space_allocator_;
-    std::optional<MainAllocator> trusted_space_allocator_;
+  Heap* const heap_;
+  NewSpace* const new_space_;
+  CompactionSpaceCollection compaction_spaces_;
+  std::optional<MainAllocator> new_space_allocator_;
+  std::optional<MainAllocator> old_space_allocator_;
+  std::optional<MainAllocator> code_space_allocator_;
+  std::optional<MainAllocator> shared_space_allocator_;
+  std::optional<MainAllocator> trusted_space_allocator_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_EVACUATION_ALLOCATOR_H_
+#endif  // V8_HEAP_EVACUATION_ALLOCATOR_H_

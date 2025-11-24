@@ -10,11 +10,11 @@
 namespace v8::internal::compiler::turboshaft {
 
 struct BlockInstrumentationPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(BlockInstrumentation)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(BlockInstrumentation)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_BLOCK_INSTRUMENTATION_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_BLOCK_INSTRUMENTATION_PHASE_H_

@@ -106,47 +106,48 @@ namespace v8::internal::compiler::turboshaft {
 // OutputGraph                                    OpA                    OpB
 //
 //
-template <template <typename> typename Reducer, typename Next> class UniformReducerAdapter : public Next {
-public:
-    template <Opcode opcode, typename Continuation, typename... Args> auto ReduceOperation(Args... args)
-    {
-        return Continuation { this }.Reduce(args...);
-    }
+template <template <typename> typename Reducer, typename Next>
+class UniformReducerAdapter : public Next {
+ public:
+  template <Opcode opcode, typename Continuation, typename... Args>
+  auto ReduceOperation(Args... args) {
+    return Continuation{this}.Reduce(args...);
+  }
 
-    template <typename Op, typename Continuation> auto ReduceInputGraphOperation(OpIndex ig_index, const Op& operation)
-    {
-        return Continuation { this }.ReduceInputGraph(ig_index, operation);
-    }
+  template <typename Op, typename Continuation>
+  auto ReduceInputGraphOperation(OpIndex ig_index, const Op& operation) {
+    return Continuation{this}.ReduceInputGraph(ig_index, operation);
+  }
 
-#define REDUCE(op)                                                                                                                                             \
-    struct Reduce##op##Continuation final {                                                                                                                    \
-        explicit Reduce##op##Continuation(Next* _this)                                                                                                         \
-            : this_(_this)                                                                                                                                     \
-        {                                                                                                                                                      \
-        }                                                                                                                                                      \
-        using Op = op##Op;                                                                                                                                     \
-        auto ReduceInputGraph(OpIndex ig_index, const op##Op& operation)                                                                                       \
-        {                                                                                                                                                      \
-            return this_->ReduceInputGraph##op(ig_index, operation);                                                                                           \
-        }                                                                                                                                                      \
-        template <typename... Args> auto Reduce(Args... args) const                                                                                            \
-        {                                                                                                                                                      \
-            return this_->Reduce##op(args...);                                                                                                                 \
-        }                                                                                                                                                      \
-        Next* this_;                                                                                                                                           \
-    };                                                                                                                                                         \
-    auto ReduceInputGraph##op(OpIndex ig_index, const op##Op& operation)                                                                                       \
-    {                                                                                                                                                          \
-        return static_cast<Reducer<Next>*>(this)->template ReduceInputGraphOperation<op##Op, Reduce##op##Continuation>(ig_index, operation);                   \
-    }                                                                                                                                                          \
-    template <typename... Args> auto Reduce##op(Args... args)                                                                                                  \
-    {                                                                                                                                                          \
-        return static_cast<Reducer<Next>*>(this)->template ReduceOperation<Opcode::k##op, Reduce##op##Continuation>(args...);                                  \
-    }
-    TURBOSHAFT_OPERATION_LIST(REDUCE)
+#define REDUCE(op)                                                           \
+  struct Reduce##op##Continuation final {                                    \
+    explicit Reduce##op##Continuation(Next* _this) : this_(_this) {}         \
+    using Op = op##Op;                                                       \
+    auto ReduceInputGraph(OpIndex ig_index, const op##Op& operation) {       \
+      return this_->ReduceInputGraph##op(ig_index, operation);               \
+    }                                                                        \
+    template <typename... Args>                                              \
+    auto Reduce(Args... args) const {                                        \
+      return this_->Reduce##op(args...);                                     \
+    }                                                                        \
+    Next* this_;                                                             \
+  };                                                                         \
+  auto ReduceInputGraph##op(OpIndex ig_index, const op##Op& operation) {     \
+    return static_cast<Reducer<Next>*>(this)                                 \
+        ->template ReduceInputGraphOperation<op##Op,                         \
+                                             Reduce##op##Continuation>(      \
+            ig_index, operation);                                            \
+  }                                                                          \
+  template <typename... Args>                                                \
+  auto Reduce##op(Args... args) {                                            \
+    return static_cast<Reducer<Next>*>(this)                                 \
+        ->template ReduceOperation<Opcode::k##op, Reduce##op##Continuation>( \
+            args...);                                                        \
+  }
+  TURBOSHAFT_OPERATION_LIST(REDUCE)
 #undef REDUCE
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_UNIFORM_REDUCER_ADAPTER_H_
+#endif  // V8_COMPILER_TURBOSHAFT_UNIFORM_REDUCER_ADAPTER_H_

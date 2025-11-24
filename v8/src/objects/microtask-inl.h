@@ -24,9 +24,9 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(Microtask)
 TQ_OBJECT_CONSTRUCTORS_IMPL(CallbackTask)
 TQ_OBJECT_CONSTRUCTORS_IMPL(CallableTask)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_MICROTASK_INL_H_
+#endif  // V8_OBJECTS_MICROTASK_INL_H_

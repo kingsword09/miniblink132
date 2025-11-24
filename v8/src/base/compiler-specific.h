@@ -24,7 +24,8 @@
 // For v*printf functions (which take a va_list), pass 0 for dots_param.
 // (This is undocumented but matches what the system C headers do.)
 #if defined(__GNUC__)
-#define PRINTF_FORMAT(format_param, dots_param) __attribute__((format(printf, format_param, dots_param)))
+#define PRINTF_FORMAT(format_param, dots_param) \
+  __attribute__((format(printf, format_param, dots_param)))
 #else
 #define PRINTF_FORMAT(format_param, dots_param)
 #endif
@@ -82,24 +83,25 @@
 // Note that this is intended to be used only when no access to the base class'
 // static data is done through derived classes or inline methods. For more info,
 // see http://msdn.microsoft.com/en-us/library/3tdb471s(VS.80).aspx
-#define NON_EXPORTED_BASE(code)                                                                                                                                \
-    MSVC_SUPPRESS_WARNING(4275)                                                                                                                                \
-    code
+#define NON_EXPORTED_BASE(code) \
+  MSVC_SUPPRESS_WARNING(4275)   \
+  code
 
-#else // Not MSVC
+#else  // Not MSVC
 
 #define MSVC_SUPPRESS_WARNING(n)
 #define NON_EXPORTED_BASE(code) code
 
-#endif // V8_CC_MSVC
+#endif  // V8_CC_MSVC
 
 // Allowing the use of noexcept by removing the keyword on older compilers that
 // do not support adding noexcept to default members.
 // Disabled on MSVC because constructors of standard containers are not noexcept
 // there.
-#if ((!defined(V8_CC_GNU) && !defined(V8_CC_MSVC) && !defined(V8_TARGET_ARCH_MIPS64) && !defined(V8_TARGET_ARCH_PPC64) && !defined(V8_TARGET_ARCH_RISCV64)     \
-         && !defined(V8_TARGET_ARCH_RISCV32))                                                                                                                  \
-    || defined(__clang__))
+#if ((!defined(V8_CC_GNU) && !defined(V8_CC_MSVC) &&                           \
+      !defined(V8_TARGET_ARCH_MIPS64) && !defined(V8_TARGET_ARCH_PPC64) &&     \
+      !defined(V8_TARGET_ARCH_RISCV64) && !defined(V8_TARGET_ARCH_RISCV32)) || \
+     defined(__clang__))
 #define V8_NOEXCEPT noexcept
 #else
 #define V8_NOEXCEPT
@@ -143,4 +145,4 @@
 #define HAS_CPP_CLASS_TYPES_AS_TEMPLATE_ARGS 1
 #endif
 
-#endif // V8_BASE_COMPILER_SPECIFIC_H_
+#endif  // V8_BASE_COMPILER_SPECIFIC_H_

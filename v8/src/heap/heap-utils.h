@@ -13,11 +13,11 @@ namespace v8::internal {
 // This class provides heap-internal helper functions to provide
 // data/information about heap objects.
 class HeapUtils final : public AllStatic {
-public:
-    // Returns the Heap (or nullptr) which owns the page of this object.
-    static V8_INLINE Heap* GetOwnerHeap(Tagged<HeapObject> object);
+ public:
+  // Returns the Heap (or nullptr) which owns the page of this object.
+  static V8_INLINE Heap* GetOwnerHeap(Tagged<HeapObject> object);
 };
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_HEAP_HEAP_UTILS_H_
+#endif  // V8_HEAP_HEAP_UTILS_H_

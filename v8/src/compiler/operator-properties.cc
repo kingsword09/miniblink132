@@ -14,26 +14,24 @@ namespace internal {
 namespace compiler {
 
 // static
-bool OperatorProperties::HasContextInput(const Operator* op)
-{
-    IrOpcode::Value opcode = static_cast<IrOpcode::Value>(op->opcode());
-    return IrOpcode::IsJsOpcode(opcode);
+bool OperatorProperties::HasContextInput(const Operator* op) {
+  IrOpcode::Value opcode = static_cast<IrOpcode::Value>(op->opcode());
+  return IrOpcode::IsJsOpcode(opcode);
 }
 
 // static
-bool OperatorProperties::NeedsExactContext(const Operator* op)
-{
-    DCHECK(HasContextInput(op));
-    IrOpcode::Value const opcode = static_cast<IrOpcode::Value>(op->opcode());
-    switch (opcode) {
+bool OperatorProperties::NeedsExactContext(const Operator* op) {
+  DCHECK(HasContextInput(op));
+  IrOpcode::Value const opcode = static_cast<IrOpcode::Value>(op->opcode());
+  switch (opcode) {
 #define CASE(Name, ...) case IrOpcode::k##Name:
-        // Binary/unary operators, calls and constructor calls only
-        // need the context to generate exceptions or lookup fields
-        // on the native context, so passing any context is fine.
-        JS_SIMPLE_BINOP_LIST(CASE)
-        JS_CALL_OP_LIST(CASE)
-        JS_CONSTRUCT_OP_LIST(CASE)
-        JS_SIMPLE_UNOP_LIST(CASE)
+    // Binary/unary operators, calls and constructor calls only
+    // need the context to generate exceptions or lookup fields
+    // on the native context, so passing any context is fine.
+    JS_SIMPLE_BINOP_LIST(CASE)
+    JS_CALL_OP_LIST(CASE)
+    JS_CONSTRUCT_OP_LIST(CASE)
+    JS_SIMPLE_UNOP_LIST(CASE)
 #undef CASE
     case IrOpcode::kJSCloneObject:
     case IrOpcode::kJSCreate:
@@ -57,15 +55,15 @@ bool OperatorProperties::NeedsExactContext(const Operator* op)
     case IrOpcode::kJSStackCheck:
     case IrOpcode::kJSStoreMessage:
     case IrOpcode::kJSGetIterator:
-        return false;
+      return false;
 
     case IrOpcode::kJSCallRuntime:
-        return Runtime::NeedsExactContext(CallRuntimeParametersOf(op).id());
+      return Runtime::NeedsExactContext(CallRuntimeParametersOf(op).id());
 
     case IrOpcode::kJSCreateArguments:
-        // For mapped arguments we need to access slots of context-allocated
-        // variables if there's aliasing with formal parameters.
-        return CreateArgumentsTypeOf(op) == CreateArgumentsType::kMappedArguments;
+      // For mapped arguments we need to access slots of context-allocated
+      // variables if there's aliasing with formal parameters.
+      return CreateArgumentsTypeOf(op) == CreateArgumentsType::kMappedArguments;
 
     case IrOpcode::kJSCreateBlockContext:
     case IrOpcode::kJSCreateClosure:
@@ -96,7 +94,7 @@ bool OperatorProperties::NeedsExactContext(const Operator* op)
     case IrOpcode::kJSDefineNamedOwnProperty:
     case IrOpcode::kJSSetKeyedProperty:
     case IrOpcode::kJSFindNonDefaultConstructorOrConstruct:
-        return true;
+      return true;
 
     case IrOpcode::kJSAsyncFunctionEnter:
     case IrOpcode::kJSAsyncFunctionReject:
@@ -120,45 +118,44 @@ bool OperatorProperties::NeedsExactContext(const Operator* op)
     case IrOpcode::kJSRegExpTest:
     case IrOpcode::kJSRejectPromise:
     case IrOpcode::kJSResolvePromise:
-        // These operators aren't introduced by BytecodeGraphBuilder and
-        // thus we don't bother checking them. If you ever introduce one
-        // of these early in the BytecodeGraphBuilder make sure to check
-        // whether they are context-sensitive.
-        break;
+      // These operators aren't introduced by BytecodeGraphBuilder and
+      // thus we don't bother checking them. If you ever introduce one
+      // of these early in the BytecodeGraphBuilder make sure to check
+      // whether they are context-sensitive.
+      break;
 
 #define CASE(Name) case IrOpcode::k##Name:
-        // Non-JavaScript operators don't have a notion of "context".
-        COMMON_OP_LIST(CASE)
-        CONTROL_OP_LIST(CASE)
-        MACHINE_OP_LIST(CASE)
-        MACHINE_SIMD128_OP_LIST(CASE)
-        IF_WASM(MACHINE_SIMD256_OP_LIST, CASE)
-        SIMPLIFIED_OP_LIST(CASE)
-        break;
+      // Non-JavaScript operators don't have a notion of "context".
+      COMMON_OP_LIST(CASE)
+      CONTROL_OP_LIST(CASE)
+      MACHINE_OP_LIST(CASE)
+      MACHINE_SIMD128_OP_LIST(CASE)
+      IF_WASM(MACHINE_SIMD256_OP_LIST, CASE)
+      SIMPLIFIED_OP_LIST(CASE)
+      break;
 #undef CASE
-    }
-    UNREACHABLE();
+  }
+  UNREACHABLE();
 }
 
 // static
-bool OperatorProperties::HasFrameStateInput(const Operator* op)
-{
-    switch (op->opcode()) {
+bool OperatorProperties::HasFrameStateInput(const Operator* op) {
+  switch (op->opcode()) {
     case IrOpcode::kCheckpoint:
     case IrOpcode::kFrameState:
-        return true;
+      return true;
     case IrOpcode::kJSCallRuntime: {
-        const CallRuntimeParameters& p = CallRuntimeParametersOf(op);
-        return Linkage::NeedsFrameStateInput(p.id());
+      const CallRuntimeParameters& p = CallRuntimeParametersOf(op);
+      return Linkage::NeedsFrameStateInput(p.id());
     }
 
     // Strict equality cannot lazily deoptimize.
     case IrOpcode::kJSStrictEqual:
-        return false;
+      return false;
 
     // Generator creation cannot call back into arbitrary JavaScript.
     case IrOpcode::kJSCreateGeneratorObject:
-        return false;
+      return false;
 
     // Binary operations
     case IrOpcode::kJSAdd:
@@ -239,7 +236,7 @@ bool OperatorProperties::HasFrameStateInput(const Operator* op)
     case IrOpcode::kJSCallWithSpread:
 #if V8_ENABLE_WEBASSEMBLY
     case IrOpcode::kJSWasmCall:
-#endif // V8_ENABLE_WEBASSEMBLY
+#endif  // V8_ENABLE_WEBASSEMBLY
 
     // Misc operations
     case IrOpcode::kJSAsyncFunctionEnter:
@@ -265,28 +262,33 @@ bool OperatorProperties::HasFrameStateInput(const Operator* op)
 
     // Iterator protocol operations
     case IrOpcode::kJSGetIterator:
-        return true;
+      return true;
 
     default:
-        return false;
-    }
+      return false;
+  }
 }
+
 
 // static
-int OperatorProperties::GetTotalInputCount(const Operator* op)
-{
-    return op->ValueInputCount() + GetContextInputCount(op) + GetFrameStateInputCount(op) + op->EffectInputCount() + op->ControlInputCount();
+int OperatorProperties::GetTotalInputCount(const Operator* op) {
+  return op->ValueInputCount() + GetContextInputCount(op) +
+         GetFrameStateInputCount(op) + op->EffectInputCount() +
+         op->ControlInputCount();
 }
+
 
 // static
-bool OperatorProperties::IsBasicBlockBegin(const Operator* op)
-{
-    Operator::Opcode const opcode = op->opcode();
-    return opcode == IrOpcode::kStart || opcode == IrOpcode::kEnd || opcode == IrOpcode::kDead || opcode == IrOpcode::kLoop || opcode == IrOpcode::kMerge
-        || opcode == IrOpcode::kIfTrue || opcode == IrOpcode::kIfFalse || opcode == IrOpcode::kIfSuccess || opcode == IrOpcode::kIfException
-        || opcode == IrOpcode::kIfValue || opcode == IrOpcode::kIfDefault;
+bool OperatorProperties::IsBasicBlockBegin(const Operator* op) {
+  Operator::Opcode const opcode = op->opcode();
+  return opcode == IrOpcode::kStart || opcode == IrOpcode::kEnd ||
+         opcode == IrOpcode::kDead || opcode == IrOpcode::kLoop ||
+         opcode == IrOpcode::kMerge || opcode == IrOpcode::kIfTrue ||
+         opcode == IrOpcode::kIfFalse || opcode == IrOpcode::kIfSuccess ||
+         opcode == IrOpcode::kIfException || opcode == IrOpcode::kIfValue ||
+         opcode == IrOpcode::kIfDefault;
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

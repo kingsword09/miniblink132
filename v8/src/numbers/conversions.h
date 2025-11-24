@@ -26,11 +26,14 @@ class SharedStringAccessGuardIfNeeded;
 constexpr int kFP64ExponentBits = 11;
 constexpr int kFP64MantissaBits = 52;
 constexpr uint64_t kFP64ExponentBias = 1023;
-constexpr uint64_t kFP64SignMask = uint64_t { 1 } << (kFP64ExponentBits + kFP64MantissaBits);
-constexpr uint64_t kFP64Infinity = uint64_t { 2047 } << kFP64MantissaBits;
-constexpr uint64_t kFP16InfinityAndNaNInfimum = (kFP64ExponentBias + 16) << kFP64MantissaBits;
+constexpr uint64_t kFP64SignMask = uint64_t{1}
+                                   << (kFP64ExponentBits + kFP64MantissaBits);
+constexpr uint64_t kFP64Infinity = uint64_t{2047} << kFP64MantissaBits;
+constexpr uint64_t kFP16InfinityAndNaNInfimum = (kFP64ExponentBias + 16)
+                                                << kFP64MantissaBits;
 constexpr uint64_t kFP16MinExponent = kFP64ExponentBias - 14;
-constexpr uint64_t kFP16DenormalThreshold = kFP16MinExponent << kFP64MantissaBits;
+constexpr uint64_t kFP16DenormalThreshold = kFP16MinExponent
+                                            << kFP64MantissaBits;
 
 constexpr int kFP16MantissaBits = 10;
 constexpr uint16_t kFP16qNaN = 0x7e00;
@@ -39,17 +42,22 @@ constexpr uint16_t kFP16Infinity = 0x7c00;
 // A value that, when added, has the effect that if any of the lower 41 bits of
 // the mantissa are set, the 11th mantissa bit from the front becomes set. Used
 // for rounding when converting from double to half-precision.
-constexpr uint64_t kFP64To16RoundingAddend = (uint64_t { 1 } << ((kFP64MantissaBits - kFP16MantissaBits) - 1)) - 1;
+constexpr uint64_t kFP64To16RoundingAddend =
+    (uint64_t{1} << ((kFP64MantissaBits - kFP16MantissaBits) - 1)) - 1;
 // A value that, when added, rebiases the exponent of a double to the range of
 // the half precision and performs rounding as described above in
 // kFP64To16RoundingAddend. Note that 15-kFP64ExponentBias overflows into the
 // sign bit, but that bit is implicitly cut off when assigning the 64-bit double
 // to a 16-bit output.
-constexpr uint64_t kFP64To16RebiasExponentAndRound = ((uint64_t { 15 } - kFP64ExponentBias) << kFP64MantissaBits) + kFP64To16RoundingAddend;
+constexpr uint64_t kFP64To16RebiasExponentAndRound =
+    ((uint64_t{15} - kFP64ExponentBias) << kFP64MantissaBits) +
+    kFP64To16RoundingAddend;
 // A magic value that aligns 10 mantissa bits at the bottom of the double when
 // added to a double using floating point addition. Depends on floating point
 // addition being round-to-nearest-even.
-constexpr uint64_t kFP64To16DenormalMagic = (kFP16MinExponent + (kFP64MantissaBits - kFP16MantissaBits)) << kFP64MantissaBits;
+constexpr uint64_t kFP64To16DenormalMagic =
+    (kFP16MinExponent + (kFP64MantissaBits - kFP16MantissaBits))
+    << kFP64MantissaBits;
 
 constexpr uint32_t kFP32WithoutSignMask = 0x7fffffff;
 constexpr uint32_t kFP32MinFP16ZeroRepresentable = 0x33000000;
@@ -64,42 +72,36 @@ const int kMaxFractionDigits = 100;
 // rounding towards zero.
 // If x is NaN, the result is INT_MIN.  Otherwise the result is the argument x,
 // clamped to [INT_MIN, INT_MAX] and then rounded to an integer.
-inline int FastD2IChecked(double x)
-{
-    if (!(x >= INT_MIN))
-        return INT_MIN; // Negation to catch NaNs.
-    if (x > INT_MAX)
-        return INT_MAX;
-    return static_cast<int>(x);
+inline int FastD2IChecked(double x) {
+  if (!(x >= INT_MIN)) return INT_MIN;  // Negation to catch NaNs.
+  if (x > INT_MAX) return INT_MAX;
+  return static_cast<int>(x);
 }
 
 // The fast double-to-(unsigned-)int conversion routine does not guarantee
 // rounding towards zero.
 // The result is undefined if x is infinite or NaN, or if the rounded
 // integer value is outside the range of type int.
-inline int FastD2I(double x)
-{
-    DCHECK(x <= INT_MAX);
-    DCHECK(x >= INT_MIN);
-    return static_cast<int32_t>(x);
+inline int FastD2I(double x) {
+  DCHECK(x <= INT_MAX);
+  DCHECK(x >= INT_MIN);
+  return static_cast<int32_t>(x);
 }
 
 inline unsigned int FastD2UI(double x);
 
-inline double FastI2D(int x)
-{
-    // There is no rounding involved in converting an integer to a
-    // double, so this code should compile to a few instructions without
-    // any FPU pipeline stalls.
-    return static_cast<double>(x);
+inline double FastI2D(int x) {
+  // There is no rounding involved in converting an integer to a
+  // double, so this code should compile to a few instructions without
+  // any FPU pipeline stalls.
+  return static_cast<double>(x);
 }
 
-inline double FastUI2D(unsigned x)
-{
-    // There is no rounding involved in converting an unsigned integer to a
-    // double, so this code should compile to a few instructions without
-    // any FPU pipeline stalls.
-    return static_cast<double>(x);
+inline double FastUI2D(unsigned x) {
+  // There is no rounding involved in converting an unsigned integer to a
+  // double, so this code should compile to a few instructions without
+  // any FPU pipeline stalls.
+  return static_cast<double>(x);
 }
 
 // This function should match the exact semantics of ECMA-262 20.2.2.17.
@@ -127,13 +129,20 @@ inline uint64_t DoubleToUint64(double x);
 
 // Enumeration for allowing radix prefixes or ignoring junk when converting
 // strings to numbers. We never need to be able to allow both.
-enum ConversionFlag { NO_CONVERSION_FLAG, ALLOW_NON_DECIMAL_PREFIX, ALLOW_TRAILING_JUNK };
+enum ConversionFlag {
+  NO_CONVERSION_FLAG,
+  ALLOW_NON_DECIMAL_PREFIX,
+  ALLOW_TRAILING_JUNK
+};
 
 // Converts a string into a double value according to ECMA-262 9.3.1
-double StringToDouble(base::Vector<const uint8_t> str, ConversionFlag flag, double empty_string_val = 0);
-double StringToDouble(base::Vector<const base::uc16> str, ConversionFlag flag, double empty_string_val = 0);
+double StringToDouble(base::Vector<const uint8_t> str, ConversionFlag flag,
+                      double empty_string_val = 0);
+double StringToDouble(base::Vector<const base::uc16> str, ConversionFlag flag,
+                      double empty_string_val = 0);
 // This version expects a zero-terminated character array.
-double V8_EXPORT_PRIVATE StringToDouble(const char* str, ConversionFlag flag, double empty_string_val = 0);
+double V8_EXPORT_PRIVATE StringToDouble(const char* str, ConversionFlag flag,
+                                        double empty_string_val = 0);
 
 // Converts a binary string (of the form `0b[0-1]*`) into a double value
 // according to https://tc39.es/ecma262/#sec-numericvalue
@@ -150,7 +159,8 @@ double V8_EXPORT_PRIVATE HexStringToDouble(base::Vector<const uint8_t> str);
 // Converts an implicit octal string (a.k.a. LegacyOctalIntegerLiteral, of the
 // form `0[0-7]*`) into a double value according to
 // https://tc39.es/ecma262/#sec-numericvalue
-double V8_EXPORT_PRIVATE ImplicitOctalStringToDouble(base::Vector<const uint8_t> str);
+double V8_EXPORT_PRIVATE
+ImplicitOctalStringToDouble(base::Vector<const uint8_t> str);
 
 double StringToInt(Isolate* isolate, Handle<String> string, int radix);
 
@@ -163,16 +173,20 @@ MaybeHandle<BigInt> StringToBigInt(Isolate* isolate, Handle<String> string);
 //   0x -> hex
 //   0o -> octal
 //   0b -> binary
-template <typename IsolateT> EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) MaybeHandle<BigInt> BigIntLiteral(IsolateT* isolate, const char* string);
+template <typename IsolateT>
+EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
+MaybeHandle<BigInt> BigIntLiteral(IsolateT* isolate, const char* string);
 
 const int kDoubleToCStringMinBufferSize = 100;
 
 // Converts a double to a string value according to ECMA-262 9.8.1.
 // The buffer should be large enough for any floating point number.
 // 100 characters is enough.
-V8_EXPORT_PRIVATE const char* DoubleToCString(double value, base::Vector<char> buffer);
+V8_EXPORT_PRIVATE const char* DoubleToCString(double value,
+                                              base::Vector<char> buffer);
 
-V8_EXPORT_PRIVATE std::unique_ptr<char[]> BigIntLiteralToDecimal(LocalIsolate* isolate, base::Vector<const uint8_t> literal);
+V8_EXPORT_PRIVATE std::unique_ptr<char[]> BigIntLiteralToDecimal(
+    LocalIsolate* isolate, base::Vector<const uint8_t> literal);
 // Convert an int to a null-terminated string. The returned string is
 // located inside the buffer, but not necessarily at the start.
 V8_EXPORT_PRIVATE const char* IntToCString(int n, base::Vector<char> buffer);
@@ -184,9 +198,8 @@ char* DoubleToExponentialCString(double value, int f);
 char* DoubleToPrecisionCString(double value, int f);
 char* DoubleToRadixCString(double value, int radix);
 
-static inline bool IsMinusZero(double value)
-{
-    return base::bit_cast<int64_t>(value) == base::bit_cast<int64_t>(-0.0);
+static inline bool IsMinusZero(double value) {
+  return base::bit_cast<int64_t>(value) == base::bit_cast<int64_t>(-0.0);
 }
 
 // Returns true if value can be converted to a SMI, and returns the resulting
@@ -219,17 +232,22 @@ inline uint32_t NumberToUint32(Tagged<Object> number);
 inline int64_t NumberToInt64(Tagged<Object> number);
 inline uint64_t PositiveNumberToUint64(Tagged<Object> number);
 
-double StringToDouble(Isolate* isolate, Handle<String> string, ConversionFlag flags, double empty_string_val = 0.0);
-double FlatStringToDouble(Tagged<String> string, ConversionFlag flags, double empty_string_val);
+double StringToDouble(Isolate* isolate, Handle<String> string,
+                      ConversionFlag flags, double empty_string_val = 0.0);
+double FlatStringToDouble(Tagged<String> string, ConversionFlag flags,
+                          double empty_string_val);
 
 // String to double helper without heap allocation.
 // Returns std::nullopt if the string is longer than
 // {max_length_for_conversion}. 23 was chosen because any representable double
 // can be represented using a string of length 23.
-V8_EXPORT_PRIVATE std::optional<double> TryStringToDouble(LocalIsolate* isolate, DirectHandle<String> object, uint32_t max_length_for_conversion = 23);
+V8_EXPORT_PRIVATE std::optional<double> TryStringToDouble(
+    LocalIsolate* isolate, DirectHandle<String> object,
+    uint32_t max_length_for_conversion = 23);
 
 // Return std::nullopt if the string is longer than 20.
-V8_EXPORT_PRIVATE std::optional<double> TryStringToInt(LocalIsolate* isolate, DirectHandle<String> object, int radix);
+V8_EXPORT_PRIVATE std::optional<double> TryStringToInt(
+    LocalIsolate* isolate, DirectHandle<String> object, int radix);
 
 inline bool TryNumberToSize(Tagged<Object> number, size_t* result);
 
@@ -237,10 +255,11 @@ inline bool TryNumberToSize(Tagged<Object> number, size_t* result);
 inline size_t NumberToSize(Tagged<Object> number);
 
 // returns DoubleToString(StringToDouble(string)) == string
-V8_EXPORT_PRIVATE bool IsSpecialIndex(Tagged<String> string, SharedStringAccessGuardIfNeeded& access_guard);
+V8_EXPORT_PRIVATE bool IsSpecialIndex(
+    Tagged<String> string, SharedStringAccessGuardIfNeeded& access_guard);
 V8_EXPORT_PRIVATE bool IsSpecialIndex(Tagged<String> string);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_NUMBERS_CONVERSIONS_H_
+#endif  // V8_NUMBERS_CONVERSIONS_H_

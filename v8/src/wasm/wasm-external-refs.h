@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_WASM_WASM_EXTERNAL_REFS_H_
 #define V8_WASM_WASM_EXTERNAL_REFS_H_
@@ -158,22 +158,31 @@ V8_EXPORT_PRIVATE void f16x8_qfms_wrapper(Address data);
 
 // The return type is {int32_t} instead of {bool} to enforce the compiler to
 // zero-extend the result in the return register.
-int32_t memory_init_wrapper(Address instance_addr, uint32_t mem_index, uintptr_t dst, uint32_t src, uint32_t seg_index, uint32_t size);
+int32_t memory_init_wrapper(Address instance_addr, uint32_t mem_index,
+                            uintptr_t dst, uint32_t src, uint32_t seg_index,
+                            uint32_t size);
 
 // The return type is {int32_t} instead of {bool} to enforce the compiler to
 // zero-extend the result in the return register.
-int32_t memory_copy_wrapper(Address instance_addr, uint32_t dst_mem_index, uint32_t src_mem_index, uintptr_t dst, uintptr_t src, uintptr_t size);
+int32_t memory_copy_wrapper(Address instance_addr, uint32_t dst_mem_index,
+                            uint32_t src_mem_index, uintptr_t dst,
+                            uintptr_t src, uintptr_t size);
 
 // The return type is {int32_t} instead of {bool} to enforce the compiler to
 // zero-extend the result in the return register.
-int32_t memory_fill_wrapper(Address instance_addr, uint32_t mem_index, uintptr_t dst, uint8_t value, uintptr_t size);
+int32_t memory_fill_wrapper(Address instance_addr, uint32_t mem_index,
+                            uintptr_t dst, uint8_t value, uintptr_t size);
 
 // Assumes copy ranges are in-bounds and length > 0.
-void array_copy_wrapper(Address raw_dst_array, uint32_t dst_index, Address raw_src_array, uint32_t src_index, uint32_t length);
+void array_copy_wrapper(Address raw_dst_array, uint32_t dst_index,
+                        Address raw_src_array, uint32_t src_index,
+                        uint32_t length);
 
 // The initial value is passed as an int64_t on the stack. Cannot handle s128
 // other than 0.
-void array_fill_wrapper(Address raw_array, uint32_t index, uint32_t length, uint32_t emit_write_barrier, uint32_t raw_type, Address initial_value_addr);
+void array_fill_wrapper(Address raw_array, uint32_t index, uint32_t length,
+                        uint32_t emit_write_barrier, uint32_t raw_type,
+                        Address initial_value_addr);
 
 double flat_string_to_f64(Address string_address);
 
@@ -188,12 +197,13 @@ intptr_t switch_to_the_central_stack(Isolate* isolate, uintptr_t sp);
 void switch_from_the_central_stack(Isolate* isolate);
 intptr_t switch_to_the_central_stack_for_js(Isolate* isolate, Address fp);
 void switch_from_the_central_stack_for_js(Isolate* isolate);
-Address grow_stack(Isolate* isolate, void* current_sp, size_t frame_size, size_t gap, Address current_fp);
+Address grow_stack(Isolate* isolate, void* current_sp, size_t frame_size,
+                   size_t gap, Address current_fp);
 Address shrink_stack(Isolate* isolate);
 Address load_old_fp(Isolate* isolate);
 
-} // namespace wasm
-} // namespace internal
-} // namespace v8
+}  // namespace wasm
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_WASM_WASM_EXTERNAL_REFS_H_
+#endif  // V8_WASM_WASM_EXTERNAL_REFS_H_

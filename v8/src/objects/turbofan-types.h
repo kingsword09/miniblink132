@@ -20,18 +20,18 @@ namespace internal {
 #include "torque-generated/src/objects/turbofan-types-tq.inc"
 
 class TurbofanTypeLowBits {
-public:
-    DEFINE_TORQUE_GENERATED_TURBOFAN_TYPE_LOW_BITS()
+ public:
+  DEFINE_TORQUE_GENERATED_TURBOFAN_TYPE_LOW_BITS()
 };
 
 class TurbofanTypeHighBits {
-public:
-    DEFINE_TORQUE_GENERATED_TURBOFAN_TYPE_HIGH_BITS()
+ public:
+  DEFINE_TORQUE_GENERATED_TURBOFAN_TYPE_HIGH_BITS()
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_TURBOFAN_TYPES_H_
+#endif  // V8_OBJECTS_TURBOFAN_TYPES_H_

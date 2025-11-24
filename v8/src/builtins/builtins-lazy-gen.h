@@ -11,24 +11,27 @@ namespace v8 {
 namespace internal {
 
 class LazyBuiltinsAssembler : public CodeStubAssembler {
-public:
-    using Descriptor = JSTrampolineDescriptor;
+ public:
+  using Descriptor = JSTrampolineDescriptor;
 
-    explicit LazyBuiltinsAssembler(compiler::CodeAssemblerState* state)
-        : CodeStubAssembler(state)
-    {
-    }
+  explicit LazyBuiltinsAssembler(compiler::CodeAssemblerState* state)
+      : CodeStubAssembler(state) {}
 
-    void GenerateTailCallToJSCode(TNode<Code> code, TNode<JSFunction> function);
+  void GenerateTailCallToJSCode(TNode<Code> code, TNode<JSFunction> function);
 
-    void GenerateTailCallToReturnedCode(Runtime::FunctionId function_id, TNode<JSFunction> function);
-    void TailCallRuntimeIfStateEquals(TNode<Uint32T> state, TieringState expected_state, Runtime::FunctionId function_id, TNode<JSFunction> function);
+  void GenerateTailCallToReturnedCode(Runtime::FunctionId function_id,
+                                      TNode<JSFunction> function);
+  void TailCallRuntimeIfStateEquals(TNode<Uint32T> state,
+                                    TieringState expected_state,
+                                    Runtime::FunctionId function_id,
+                                    TNode<JSFunction> function);
 
-    void MaybeTailCallOptimizedCodeSlot(TNode<JSFunction> function, TNode<FeedbackVector> feedback_vector);
-    void CompileLazy(TNode<JSFunction> function);
+  void MaybeTailCallOptimizedCodeSlot(TNode<JSFunction> function,
+                                      TNode<FeedbackVector> feedback_vector);
+  void CompileLazy(TNode<JSFunction> function);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BUILTINS_BUILTINS_LAZY_GEN_H_
+#endif  // V8_BUILTINS_BUILTINS_LAZY_GEN_H_

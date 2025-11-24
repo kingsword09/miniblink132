@@ -9,15 +9,17 @@
 #include "src/common/globals.h"
 #include "src/flags/flags.h"
 
-#ifdef V8_DEBUG
-#define UNIMPLEMENTED_RISCV() v8::internal::PrintF("%s, \tline %d: \tfunction %s  not implemented. \n", __FILE__, __LINE__, __func__);
+#ifdef DEBUG
+#define UNIMPLEMENTED_RISCV()                                               \
+  v8::internal::PrintF("%s, \tline %d: \tfunction %s  not implemented. \n", \
+                       __FILE__, __LINE__, __func__);
 #else
 #define UNIMPLEMENTED_RISCV()
 #endif
 
-#define UNSUPPORTED_RISCV()                                                                                                                                    \
-    v8::internal::PrintF("Unsupported instruction %d.\n", __LINE__);                                                                                           \
-    UNIMPLEMENTED();
+#define UNSUPPORTED_RISCV()                                        \
+  v8::internal::PrintF("Unsupported instruction %d.\n", __LINE__); \
+  UNIMPLEMENTED();
 
 enum Endianness { kLittle, kBig };
 
@@ -58,34 +60,34 @@ using Opcode = uint32_t;
 // to take advantage of negative displacement values.
 constexpr int kRootRegisterBias = 256;
 
-#define RVV_LMUL(V)                                                                                                                                            \
-    V(m1)                                                                                                                                                      \
-    V(m2)                                                                                                                                                      \
-    V(m4)                                                                                                                                                      \
-    V(m8)                                                                                                                                                      \
-    V(RESERVERD)                                                                                                                                               \
-    V(mf8)                                                                                                                                                     \
-    V(mf4)                                                                                                                                                     \
-    V(mf2)
+#define RVV_LMUL(V) \
+  V(m1)             \
+  V(m2)             \
+  V(m4)             \
+  V(m8)             \
+  V(RESERVERD)      \
+  V(mf8)            \
+  V(mf4)            \
+  V(mf2)
 
 enum Vlmul {
 #define DEFINE_FLAG(name) name,
-    RVV_LMUL(DEFINE_FLAG)
+  RVV_LMUL(DEFINE_FLAG)
 #undef DEFINE_FLAG
-        kVlInvalid
+      kVlInvalid
 };
 
-#define RVV_SEW(V)                                                                                                                                             \
-    V(E8)                                                                                                                                                      \
-    V(E16)                                                                                                                                                     \
-    V(E32)                                                                                                                                                     \
-    V(E64)
+#define RVV_SEW(V) \
+  V(E8)            \
+  V(E16)           \
+  V(E32)           \
+  V(E64)
 
 #define DEFINE_FLAG(name) name,
 enum VSew {
-    RVV_SEW(DEFINE_FLAG)
+  RVV_SEW(DEFINE_FLAG)
 #undef DEFINE_FLAG
-        kVsInvalid
+      kVsInvalid
 };
 
 // RISC-V can perform PC-relative jumps within a 32-bit range using the
@@ -134,58 +136,58 @@ const int32_t kPrefHintPrepareForStore = 30;
 
 // Helper functions for converting between register numbers and names.
 class Registers {
-public:
-    // Return the name of the register.
-    static const char* Name(int reg);
+ public:
+  // Return the name of the register.
+  static const char* Name(int reg);
 
-    // Lookup the register number for the name provided.
-    static int Number(const char* name);
+  // Lookup the register number for the name provided.
+  static int Number(const char* name);
 
-    struct RegisterAlias {
-        int reg;
-        const char* name;
-    };
+  struct RegisterAlias {
+    int reg;
+    const char* name;
+  };
 
-private:
-    static const char* names_[kNumSimuRegisters];
-    static const RegisterAlias aliases_[];
+ private:
+  static const char* names_[kNumSimuRegisters];
+  static const RegisterAlias aliases_[];
 };
 
 // Helper functions for converting between register numbers and names.
 class FPURegisters {
-public:
-    // Return the name of the register.
-    static const char* Name(int reg);
+ public:
+  // Return the name of the register.
+  static const char* Name(int reg);
 
-    // Lookup the register number for the name provided.
-    static int Number(const char* name);
+  // Lookup the register number for the name provided.
+  static int Number(const char* name);
 
-    struct RegisterAlias {
-        int creg;
-        const char* name;
-    };
+  struct RegisterAlias {
+    int creg;
+    const char* name;
+  };
 
-private:
-    static const char* names_[kNumFPURegisters];
-    static const RegisterAlias aliases_[];
+ private:
+  static const char* names_[kNumFPURegisters];
+  static const RegisterAlias aliases_[];
 };
 
 class VRegisters {
-public:
-    // Return the name of the register.
-    static const char* Name(int reg);
+ public:
+  // Return the name of the register.
+  static const char* Name(int reg);
 
-    // Lookup the register number for the name provided.
-    static int Number(const char* name);
+  // Lookup the register number for the name provided.
+  static int Number(const char* name);
 
-    struct RegisterAlias {
-        int creg;
-        const char* name;
-    };
+  struct RegisterAlias {
+    int creg;
+    const char* name;
+  };
 
-private:
-    static const char* names_[kNumVRegisters];
-    static const RegisterAlias aliases_[];
+ private:
+  static const char* names_[kNumVRegisters];
+  static const RegisterAlias aliases_[];
 };
 
 // -----------------------------------------------------------------------------
@@ -198,8 +200,8 @@ using ShortInstr = int16_t;
 // Special Software Interrupt codes when used in the presence of the RISC-V
 // simulator.
 enum SoftwareInterruptCodes {
-    // Transition to C code.
-    call_rt_redirected = 0xfffff
+  // Transition to C code.
+  call_rt_redirected = 0xfffff
 };
 
 // On RISC-V Simulator breakpoints can have different codes:
@@ -230,14 +232,14 @@ static_assert(kMaxTracepointCode < kMaxStopCode);
 // stops tracing: set v8_flags.trace-sim is false.
 const unsigned kDebuggerTracingDirectivesMask = 0b111 << 3;
 enum DebugParameters : uint32_t {
-    NO_PARAM = 1 << 5,
-    BREAK = 1 << 0,
-    LOG_TRACE = 1 << 1,
-    LOG_REGS = 1 << 2,
-    LOG_ALL = LOG_TRACE,
-    // Trace control.
-    TRACE_ENABLE = 1 << 3 | NO_PARAM,
-    TRACE_DISABLE = 1 << 4 | NO_PARAM,
+  NO_PARAM = 1 << 5,
+  BREAK = 1 << 0,
+  LOG_TRACE = 1 << 1,
+  LOG_REGS = 1 << 2,
+  LOG_ALL = LOG_TRACE,
+  // Trace control.
+  TRACE_ENABLE = 1 << 3 | NO_PARAM,
+  TRACE_DISABLE = 1 << 4 | NO_PARAM,
 };
 
 // ----- Fields offset and length.
@@ -310,12 +312,18 @@ const int kRvcFunct2Bits = 2;
 const int kRvcFunct6Shift = 10;
 const int kRvcFunct6Bits = 6;
 
-const uint32_t kRvcOpcodeMask = 0b11 | (((1 << kRvcFunct3Bits) - 1) << kRvcFunct3Shift);
-const uint32_t kRvcFunct3Mask = (((1 << kRvcFunct3Bits) - 1) << kRvcFunct3Shift);
-const uint32_t kRvcFunct4Mask = (((1 << kRvcFunct4Bits) - 1) << kRvcFunct4Shift);
-const uint32_t kRvcFunct6Mask = (((1 << kRvcFunct6Bits) - 1) << kRvcFunct6Shift);
-const uint32_t kRvcFunct2Mask = (((1 << kRvcFunct2Bits) - 1) << kRvcFunct2Shift);
-const uint32_t kRvcFunct2BMask = (((1 << kRvcFunct2Bits) - 1) << kRvcFunct2BShift);
+const uint32_t kRvcOpcodeMask =
+    0b11 | (((1 << kRvcFunct3Bits) - 1) << kRvcFunct3Shift);
+const uint32_t kRvcFunct3Mask =
+    (((1 << kRvcFunct3Bits) - 1) << kRvcFunct3Shift);
+const uint32_t kRvcFunct4Mask =
+    (((1 << kRvcFunct4Bits) - 1) << kRvcFunct4Shift);
+const uint32_t kRvcFunct6Mask =
+    (((1 << kRvcFunct6Bits) - 1) << kRvcFunct6Shift);
+const uint32_t kRvcFunct2Mask =
+    (((1 << kRvcFunct2Bits) - 1) << kRvcFunct2Shift);
+const uint32_t kRvcFunct2BMask =
+    (((1 << kRvcFunct2Bits) - 1) << kRvcFunct2BShift);
 const uint32_t kCRTypeMask = kRvcOpcodeMask | kRvcFunct4Mask;
 const uint32_t kCSTypeMask = kRvcOpcodeMask | kRvcFunct6Mask;
 const uint32_t kCATypeMask = kRvcOpcodeMask | kRvcFunct6Mask | kRvcFunct2Mask;
@@ -326,7 +334,9 @@ constexpr int kRvvELEN = 64;
 #ifdef RVV_VLEN
 constexpr int kRvvVLEN = RVV_VLEN;
 // TODO(riscv): support rvv 256/512/1024
-static_assert(kRvvVLEN == 128, "RVV extension only supports 128bit wide VLEN at current RISC-V backend.");
+static_assert(
+    kRvvVLEN == 128,
+    "RVV extension only supports 128bit wide VLEN at current RISC-V backend.");
 #else
 constexpr int kRvvVLEN = 128;
 #endif
@@ -334,7 +344,8 @@ constexpr int kRvvSLEN = kRvvVLEN;
 
 const int kRvvFunct6Shift = 26;
 const int kRvvFunct6Bits = 6;
-const uint32_t kRvvFunct6Mask = (((1 << kRvvFunct6Bits) - 1) << kRvvFunct6Shift);
+const uint32_t kRvvFunct6Mask =
+    (((1 << kRvvFunct6Bits) - 1) << kRvvFunct6Shift);
 
 const int kRvvVmBits = 1;
 const int kRvvVmShift = 25;
@@ -393,7 +404,8 @@ const int kRvvNfShift = 29;
 const uint32_t kRvvNfMask = (((1 << kRvvNfBits) - 1) << kRvvNfShift);
 
 // RISCV Instruction bit masks
-const uint32_t kBaseOpcodeMask = ((1 << kBaseOpcodeBits) - 1) << kBaseOpcodeShift;
+const uint32_t kBaseOpcodeMask = ((1 << kBaseOpcodeBits) - 1)
+                                 << kBaseOpcodeShift;
 const uint32_t kFunct3Mask = ((1 << kFunct3Bits) - 1) << kFunct3Shift;
 const uint32_t kFunct5Mask = ((1 << kFunct5Bits) - 1) << kFunct5Shift;
 const uint32_t kFunct6Mask = ((1 << kFunct6Bits) - 1) << kFunct6Shift;
@@ -431,99 +443,100 @@ const uint32_t kImm16Mask = ((1 << kImm16Bits) - 1) << kImm16Shift;
 // The 'U' prefix is used to specify unsigned comparisons.
 // Opposite conditions must be paired as odd/even numbers
 // because 'NegateCondition' function flips LSB to negate condition.
-enum Condition : int { // Any value < 0 is considered no_condition.
-    overflow = 0,
-    no_overflow = 1,
-    Uless = 2,
-    Ugreater_equal = 3,
-    Uless_equal = 4,
-    Ugreater = 5,
-    equal = 6,
-    not_equal = 7, // Unordered or Not Equal.
-    less = 8,
-    greater_equal = 9,
-    less_equal = 10,
-    greater = 11,
-    cc_always = 12,
+enum Condition : int {  // Any value < 0 is considered no_condition.
+  overflow = 0,
+  no_overflow = 1,
+  Uless = 2,
+  Ugreater_equal = 3,
+  Uless_equal = 4,
+  Ugreater = 5,
+  equal = 6,
+  not_equal = 7,  // Unordered or Not Equal.
+  less = 8,
+  greater_equal = 9,
+  less_equal = 10,
+  greater = 11,
+  cc_always = 12,
 
-    // Aliases.
-    eq = equal,
-    ne = not_equal,
-    ge = greater_equal,
-    lt = less,
-    gt = greater,
-    le = less_equal,
-    al = cc_always,
-    ult = Uless,
-    uge = Ugreater_equal,
-    ule = Uless_equal,
-    ugt = Ugreater,
+  // Aliases.
+  eq = equal,
+  ne = not_equal,
+  ge = greater_equal,
+  lt = less,
+  gt = greater,
+  le = less_equal,
+  al = cc_always,
+  ult = Uless,
+  uge = Ugreater_equal,
+  ule = Uless_equal,
+  ugt = Ugreater,
 
-    // Unified cross-platform condition names/aliases.
-    kEqual = equal,
-    kNotEqual = not_equal,
-    kLessThan = less,
-    kGreaterThan = greater,
-    kLessThanEqual = less_equal,
-    kGreaterThanEqual = greater_equal,
-    kUnsignedLessThan = Uless,
-    kUnsignedGreaterThan = Ugreater,
-    kUnsignedLessThanEqual = Uless_equal,
-    kUnsignedGreaterThanEqual = Ugreater_equal,
-    kOverflow = overflow,
-    kNoOverflow = no_overflow,
-    kZero = equal,
-    kNotZero = not_equal,
+  // Unified cross-platform condition names/aliases.
+  kEqual = equal,
+  kNotEqual = not_equal,
+  kLessThan = less,
+  kGreaterThan = greater,
+  kLessThanEqual = less_equal,
+  kGreaterThanEqual = greater_equal,
+  kUnsignedLessThan = Uless,
+  kUnsignedGreaterThan = Ugreater,
+  kUnsignedLessThanEqual = Uless_equal,
+  kUnsignedGreaterThanEqual = Ugreater_equal,
+  kOverflow = overflow,
+  kNoOverflow = no_overflow,
+  kZero = equal,
+  kNotZero = not_equal,
 };
 
 // Returns the equivalent of !cc.
-inline Condition NegateCondition(Condition cc)
-{
-    DCHECK(cc != cc_always);
-    return static_cast<Condition>(cc ^ 1);
+inline Condition NegateCondition(Condition cc) {
+  DCHECK(cc != cc_always);
+  return static_cast<Condition>(cc ^ 1);
 }
 
-inline Condition NegateFpuCondition(Condition cc)
-{
-    DCHECK(cc != cc_always);
-    switch (cc) {
+inline Condition NegateFpuCondition(Condition cc) {
+  DCHECK(cc != cc_always);
+  switch (cc) {
     case ult:
-        return ge;
+      return ge;
     case ugt:
-        return le;
+      return le;
     case uge:
-        return lt;
+      return lt;
     case ule:
-        return gt;
+      return gt;
     case lt:
-        return uge;
+      return uge;
     case gt:
-        return ule;
+      return ule;
     case ge:
-        return ult;
+      return ult;
     case le:
-        return ugt;
+      return ugt;
     case eq:
-        return ne;
+      return ne;
     case ne:
-        return eq;
+      return eq;
     default:
-        return cc;
-    }
+      return cc;
+  }
 }
 
 // ----- Coprocessor conditions.
 enum FPUCondition {
-    kNoFPUCondition = -1,
-    EQ = 0x02, // Ordered and Equal
-    NE = 0x03, // Unordered or Not Equal
-    LT = 0x04, // Ordered and Less Than
-    GE = 0x05, // Ordered and Greater Than or Equal
-    LE = 0x06, // Ordered and Less Than or Equal
-    GT = 0x07, // Ordered and Greater Than
+  kNoFPUCondition = -1,
+  EQ = 0x02,  // Ordered and Equal
+  NE = 0x03,  // Unordered or Not Equal
+  LT = 0x04,  // Ordered and Less Than
+  GE = 0x05,  // Ordered and Greater Than or Equal
+  LE = 0x06,  // Ordered and Less Than or Equal
+  GT = 0x07,  // Ordered and Greater Than
 };
 
-enum CheckForInexactConversion { kCheckForInexactConversion, kDontCheckForInexactConversion };
+enum CheckForInexactConversion {
+  kCheckForInexactConversion,
+  kDontCheckForInexactConversion
+};
 
 enum class MaxMinKind : int { kMin = 0, kMax = 1 };
 
@@ -531,41 +544,41 @@ enum class MaxMinKind : int { kMin = 0, kMax = 1 };
 // RISCV flags
 
 enum ControlStatusReg {
-    csr_fflags = 0x001, // Floating-Point Accrued Exceptions (RW)
-    csr_frm = 0x002, // Floating-Point Dynamic Rounding Mode (RW)
-    csr_fcsr = 0x003, // Floating-Point Control and Status Register (RW)
-    csr_cycle = 0xc00, // Cycle counter for RDCYCLE instruction (RO)
-    csr_time = 0xc01, // Timer for RDTIME instruction (RO)
-    csr_instret = 0xc02, // Insns-retired counter for RDINSTRET instruction (RO)
-    csr_cycleh = 0xc80, // Upper 32 bits of cycle, RV32I only (RO)
-    csr_timeh = 0xc81, // Upper 32 bits of time, RV32I only (RO)
-    csr_instreth = 0xc82 // Upper 32 bits of instret, RV32I only (RO)
+  csr_fflags = 0x001,   // Floating-Point Accrued Exceptions (RW)
+  csr_frm = 0x002,      // Floating-Point Dynamic Rounding Mode (RW)
+  csr_fcsr = 0x003,     // Floating-Point Control and Status Register (RW)
+  csr_cycle = 0xc00,    // Cycle counter for RDCYCLE instruction (RO)
+  csr_time = 0xc01,     // Timer for RDTIME instruction (RO)
+  csr_instret = 0xc02,  // Insns-retired counter for RDINSTRET instruction (RO)
+  csr_cycleh = 0xc80,   // Upper 32 bits of cycle, RV32I only (RO)
+  csr_timeh = 0xc81,    // Upper 32 bits of time, RV32I only (RO)
+  csr_instreth = 0xc82  // Upper 32 bits of instret, RV32I only (RO)
 };
 
 enum FFlagsMask {
-    kInvalidOperation = 0b10000, // NV: Invalid
-    kDivideByZero = 0b1000, // DZ:  Divide by Zero
-    kFPUOverflow = 0b100, // OF: Overflow
-    kUnderflow = 0b10, // UF: Underflow
-    kInexact = 0b1 // NX:  Inexact
+  kInvalidOperation = 0b10000,  // NV: Invalid
+  kDivideByZero = 0b1000,       // DZ:  Divide by Zero
+  kFPUOverflow = 0b100,         // OF: Overflow
+  kUnderflow = 0b10,            // UF: Underflow
+  kInexact = 0b1                // NX:  Inexact
 };
 
 enum FPURoundingMode {
-    RNE = 0b000, // Round to Nearest, ties to Even
-    RTZ = 0b001, // Round towards Zero
-    RDN = 0b010, // Round Down (towards -infinity)
-    RUP = 0b011, // Round Up (towards +infinity)
-    RMM = 0b100, // Round to Nearest, tiest to Max Magnitude
-    DYN = 0b111 // In instruction's rm field, selects dynamic rounding mode;
-    // In Rounding Mode register, Invalid
+  RNE = 0b000,  // Round to Nearest, ties to Even
+  RTZ = 0b001,  // Round towards Zero
+  RDN = 0b010,  // Round Down (towards -infinity)
+  RUP = 0b011,  // Round Up (towards +infinity)
+  RMM = 0b100,  // Round to Nearest, tiest to Max Magnitude
+  DYN = 0b111   // In instruction's rm field, selects dynamic rounding mode;
+                // In Rounding Mode register, Invalid
 };
 
 enum MemoryOdering {
-    PSI = 0b1000, // PI or SI
-    PSO = 0b0100, // PO or SO
-    PSR = 0b0010, // PR or SR
-    PSW = 0b0001, // PW or SW
-    PSIORW = PSI | PSO | PSR | PSW
+  PSI = 0b1000,  // PI or SI
+  PSO = 0b0100,  // PO or SO
+  PSR = 0b0010,  // PR or SR
+  PSW = 0b0001,  // PW or SW
+  PSIORW = PSI | PSO | PSR | PSW
 };
 
 const int kFloat32ExponentBias = 127;
@@ -576,30 +589,30 @@ const int kFloat64MantissaBits = 52;
 const int kFloat64ExponentBits = 11;
 
 enum FClassFlag {
-    kNegativeInfinity = 1,
-    kNegativeNormalNumber = 1 << 1,
-    kNegativeSubnormalNumber = 1 << 2,
-    kNegativeZero = 1 << 3,
-    kPositiveZero = 1 << 4,
-    kPositiveSubnormalNumber = 1 << 5,
-    kPositiveNormalNumber = 1 << 6,
-    kPositiveInfinity = 1 << 7,
-    kSignalingNaN = 1 << 8,
-    kQuietNaN = 1 << 9
+  kNegativeInfinity = 1,
+  kNegativeNormalNumber = 1 << 1,
+  kNegativeSubnormalNumber = 1 << 2,
+  kNegativeZero = 1 << 3,
+  kPositiveZero = 1 << 4,
+  kPositiveSubnormalNumber = 1 << 5,
+  kPositiveNormalNumber = 1 << 6,
+  kPositiveInfinity = 1 << 7,
+  kSignalingNaN = 1 << 8,
+  kQuietNaN = 1 << 9
 };
 
 enum TailAgnosticType {
-    ta = 0x1, // Tail agnostic
-    tu = 0x0, // Tail undisturbed
+  ta = 0x1,  // Tail agnostic
+  tu = 0x0,  // Tail undisturbed
 };
 
 enum MaskAgnosticType {
-    ma = 0x1, // Mask agnostic
-    mu = 0x0, // Mask undisturbed
+  ma = 0x1,  // Mask agnostic
+  mu = 0x0,  // Mask undisturbed
 };
 enum MaskType {
-    Mask = 0x0, // use the mask
-    NoMask = 0x1,
+  Mask = 0x0,  // use the mask
+  NoMask = 0x1,
 };
 
 // -----------------------------------------------------------------------------
@@ -610,45 +623,42 @@ enum MaskType {
 // implementations.
 enum Hint { no_hint = 0 };
 
-inline Hint NegateHint(Hint hint)
-{
-    return no_hint;
-}
+inline Hint NegateHint(Hint hint) { return no_hint; }
 
 enum BaseOpcode : uint32_t {
-    LOAD = 0b0000011, // I form: LB LH LW LBU LHU
-    LOAD_FP = 0b0000111, // I form: FLW FLD FLQ
-    MISC_MEM = 0b0001111, // I special form: FENCE FENCE.I
-    OP_IMM = 0b0010011, // I form: ADDI SLTI SLTIU XORI ORI ANDI SLLI SRLI SRAI
-    // Note: SLLI/SRLI/SRAI I form first, then func3 001/101 => R type
-    AUIPC = 0b0010111, // U form: AUIPC
-    OP_IMM_32 = 0b0011011, // I form: ADDIW SLLIW SRLIW SRAIW
-    // Note:  SRLIW SRAIW I form first, then func3 101 special shift encoding
-    STORE = 0b0100011, // S form: SB SH SW SD
-    STORE_FP = 0b0100111, // S form: FSW FSD FSQ
-    AMO = 0b0101111, // R form: All A instructions
-    OP = 0b0110011, // R: ADD SUB SLL SLT SLTU XOR SRL SRA OR AND and 32M set
-    LUI = 0b0110111, // U form: LUI
-    OP_32 = 0b0111011, // R: ADDW SUBW SLLW SRLW SRAW MULW DIVW DIVUW REMW REMUW
-    MADD = 0b1000011, // R4 type: FMADD.S FMADD.D FMADD.Q
-    MSUB = 0b1000111, // R4 type: FMSUB.S FMSUB.D FMSUB.Q
-    NMSUB = 0b1001011, // R4 type: FNMSUB.S FNMSUB.D FNMSUB.Q
-    NMADD = 0b1001111, // R4 type: FNMADD.S FNMADD.D FNMADD.Q
-    OP_FP = 0b1010011, // R type: Q ext
-    BRANCH = 0b1100011, // B form: BEQ BNE, BLT, BGE, BLTU BGEU
-    JALR = 0b1100111, // I form: JALR
-    JAL = 0b1101111, // J form: JAL
-    SYSTEM = 0b1110011, // I form: ECALL EBREAK Zicsr ext
-    OP_V = 0b1010111, // V form: RVV
+  LOAD = 0b0000011,      // I form: LB LH LW LBU LHU
+  LOAD_FP = 0b0000111,   // I form: FLW FLD FLQ
+  MISC_MEM = 0b0001111,  // I special form: FENCE FENCE.I
+  OP_IMM = 0b0010011,    // I form: ADDI SLTI SLTIU XORI ORI ANDI SLLI SRLI SRAI
+  // Note: SLLI/SRLI/SRAI I form first, then func3 001/101 => R type
+  AUIPC = 0b0010111,      // U form: AUIPC
+  OP_IMM_32 = 0b0011011,  // I form: ADDIW SLLIW SRLIW SRAIW
+  // Note:  SRLIW SRAIW I form first, then func3 101 special shift encoding
+  STORE = 0b0100011,     // S form: SB SH SW SD
+  STORE_FP = 0b0100111,  // S form: FSW FSD FSQ
+  AMO = 0b0101111,       // R form: All A instructions
+  OP = 0b0110011,      // R: ADD SUB SLL SLT SLTU XOR SRL SRA OR AND and 32M set
+  LUI = 0b0110111,     // U form: LUI
+  OP_32 = 0b0111011,   // R: ADDW SUBW SLLW SRLW SRAW MULW DIVW DIVUW REMW REMUW
+  MADD = 0b1000011,    // R4 type: FMADD.S FMADD.D FMADD.Q
+  MSUB = 0b1000111,    // R4 type: FMSUB.S FMSUB.D FMSUB.Q
+  NMSUB = 0b1001011,   // R4 type: FNMSUB.S FNMSUB.D FNMSUB.Q
+  NMADD = 0b1001111,   // R4 type: FNMADD.S FNMADD.D FNMADD.Q
+  OP_FP = 0b1010011,   // R type: Q ext
+  BRANCH = 0b1100011,  // B form: BEQ BNE, BLT, BGE, BLTU BGEU
+  JALR = 0b1100111,    // I form: JALR
+  JAL = 0b1101111,     // J form: JAL
+  SYSTEM = 0b1110011,  // I form: ECALL EBREAK Zicsr ext
+  OP_V = 0b1010111,    // V form: RVV
 
-    // C extension
-    C0 = 0b00,
-    C1 = 0b01,
-    C2 = 0b10,
-    FUNCT2_0 = 0b00,
-    FUNCT2_1 = 0b01,
-    FUNCT2_2 = 0b10,
-    FUNCT2_3 = 0b11,
+  // C extension
+  C0 = 0b00,
+  C1 = 0b01,
+  C2 = 0b10,
+  FUNCT2_0 = 0b00,
+  FUNCT2_1 = 0b01,
+  FUNCT2_2 = 0b10,
+  FUNCT2_3 = 0b11,
 };
 
 // -----------------------------------------------------------------------------
@@ -657,648 +667,607 @@ enum BaseOpcode : uint32_t {
 // registers and other constants.
 
 // An Illegal instruction
-const Instr kIllegalInstr = 0; // All other bits are 0s (i.e., ecall)
+const Instr kIllegalInstr = 0;  // All other bits are 0s (i.e., ecall)
 // An ECALL instruction, used for redirected real time call
-const Instr rtCallRedirInstr = SYSTEM; // All other bits are 0s (i.e., ecall)
+const Instr rtCallRedirInstr = SYSTEM;  // All other bits are 0s (i.e., ecall)
 // An EBreak instruction, used for debugging and semi-hosting
-const Instr kBreakInstr = SYSTEM | 1 << kImm12Shift; // ebreak
+const Instr kBreakInstr = SYSTEM | 1 << kImm12Shift;  // ebreak
 
 constexpr uint8_t kInstrSize = 4;
 constexpr uint8_t kShortInstrSize = 2;
 constexpr uint8_t kInstrSizeLog2 = 2;
 
 class InstructionBase {
-public:
-    enum {
-        // On RISC-V, PC cannot actually be directly accessed. We behave as if PC
-        // was always the value of the current instruction being executed.
-        kPCReadOffset = 0
-    };
+ public:
+  enum {
+    // On RISC-V, PC cannot actually be directly accessed. We behave as if PC
+    // was always the value of the current instruction being executed.
+    kPCReadOffset = 0
+  };
 
-    // Instruction type.
-    enum Type {
-        kRType,
-        kR4Type, // Special R4 for Q extension
-        kIType,
-        kSType,
-        kBType,
-        kUType,
-        kJType,
-        // C extension
-        kCRType,
-        kCIType,
-        kCSSType,
-        kCIWType,
-        kCLType,
-        kCSType,
-        kCAType,
-        kCBType,
-        kCJType,
-        // V extension
-        kVType,
-        kVLType,
-        kVSType,
-        kVAMOType,
-        kVIVVType,
-        kVFVVType,
-        kVMVVType,
-        kVIVIType,
-        kVIVXType,
-        kVFVFType,
-        kVMVXType,
-        kVSETType,
-        kUnsupported = -1
-    };
+  // Instruction type.
+  enum Type {
+    kRType,
+    kR4Type,  // Special R4 for Q extension
+    kIType,
+    kSType,
+    kBType,
+    kUType,
+    kJType,
+    // C extension
+    kCRType,
+    kCIType,
+    kCSSType,
+    kCIWType,
+    kCLType,
+    kCSType,
+    kCAType,
+    kCBType,
+    kCJType,
+    // V extension
+    kVType,
+    kVLType,
+    kVSType,
+    kVAMOType,
+    kVIVVType,
+    kVFVVType,
+    kVMVVType,
+    kVIVIType,
+    kVIVXType,
+    kVFVFType,
+    kVMVXType,
+    kVSETType,
+    kUnsupported = -1
+  };
 
-    inline bool IsIllegalInstruction() const
-    {
-        uint16_t FirstHalfWord = *reinterpret_cast<const uint16_t*>(this);
-        return FirstHalfWord == 0;
+  inline bool IsIllegalInstruction() const {
+    uint16_t FirstHalfWord = *reinterpret_cast<const uint16_t*>(this);
+    return FirstHalfWord == 0;
+  }
+
+  bool IsShortInstruction() const;
+
+  inline uint8_t InstructionSize() const {
+    return (v8_flags.riscv_c_extension && this->IsShortInstruction())
+               ? kShortInstrSize
+               : kInstrSize;
+  }
+
+  // Get the raw instruction bits.
+  inline Instr InstructionBits() const {
+    if (v8_flags.riscv_c_extension && this->IsShortInstruction()) {
+      return 0x0000FFFF & (*reinterpret_cast<const ShortInstr*>(this));
     }
+    return *reinterpret_cast<const Instr*>(this);
+  }
 
-    bool IsShortInstruction() const;
+  // Set the raw instruction bits to value.
+  inline void SetInstructionBits(Instr value) {
+    *reinterpret_cast<Instr*>(this) = value;
+  }
 
-    inline uint8_t InstructionSize() const
-    {
-        return (v8_flags.riscv_c_extension && this->IsShortInstruction()) ? kShortInstrSize : kInstrSize;
+  // Read one particular bit out of the instruction bits.
+  inline int Bit(int nr) const { return (InstructionBits() >> nr) & 1; }
+
+  // Read a bit field out of the instruction bits.
+  inline int Bits(int hi, int lo) const {
+    return (InstructionBits() >> lo) & ((2U << (hi - lo)) - 1);
+  }
+
+  // Accessors for the different named fields used in the RISC-V encoding.
+  inline BaseOpcode BaseOpcodeValue() const {
+    return static_cast<BaseOpcode>(
+        Bits(kBaseOpcodeShift + kBaseOpcodeBits - 1, kBaseOpcodeShift));
+  }
+
+  // Return the fields at their original place in the instruction encoding.
+  inline BaseOpcode BaseOpcodeFieldRaw() const {
+    return static_cast<BaseOpcode>(InstructionBits() & kBaseOpcodeMask);
+  }
+
+  // Safe to call within R-type instructions
+  inline int Funct7FieldRaw() const { return InstructionBits() & kFunct7Mask; }
+
+  // Safe to call within R-type instructions
+  inline int Funct6FieldRaw() const { return InstructionBits() & kFunct6Mask; }
+
+  // Safe to call within R-, I-, S-, or B-type instructions
+  inline int Funct3FieldRaw() const { return InstructionBits() & kFunct3Mask; }
+
+  // Safe to call within R-, I-, S-, or B-type instructions
+  inline int Rs1FieldRawNoAssert() const {
+    return InstructionBits() & kRs1FieldMask;
+  }
+
+  // Safe to call within R-, S-, or B-type instructions
+  inline int Rs2FieldRawNoAssert() const {
+    return InstructionBits() & kRs2FieldMask;
+  }
+
+  // Safe to call within R4-type instructions
+  inline int Rs3FieldRawNoAssert() const {
+    return InstructionBits() & kRs3FieldMask;
+  }
+
+  inline int32_t ITypeBits() const { return InstructionBits() & kITypeMask; }
+
+  inline int32_t InstructionOpcodeType() const {
+    if (IsShortInstruction()) {
+      return InstructionBits() & kRvcOpcodeMask;
+    } else {
+      return InstructionBits() & kBaseOpcodeMask;
     }
+  }
 
-    // Get the raw instruction bits.
-    inline Instr InstructionBits() const
-    {
-        if (v8_flags.riscv_c_extension && this->IsShortInstruction()) {
-            return 0x0000FFFF & (*reinterpret_cast<const ShortInstr*>(this));
-        }
-        return *reinterpret_cast<const Instr*>(this);
-    }
+  // Get the encoding type of the instruction.
+  Type InstructionType() const;
 
-    // Set the raw instruction bits to value.
-    inline void SetInstructionBits(Instr value)
-    {
-        *reinterpret_cast<Instr*>(this) = value;
-    }
-
-    // Read one particular bit out of the instruction bits.
-    inline int Bit(int nr) const
-    {
-        return (InstructionBits() >> nr) & 1;
-    }
-
-    // Read a bit field out of the instruction bits.
-    inline int Bits(int hi, int lo) const
-    {
-        return (InstructionBits() >> lo) & ((2U << (hi - lo)) - 1);
-    }
-
-    // Accessors for the different named fields used in the RISC-V encoding.
-    inline BaseOpcode BaseOpcodeValue() const
-    {
-        return static_cast<BaseOpcode>(Bits(kBaseOpcodeShift + kBaseOpcodeBits - 1, kBaseOpcodeShift));
-    }
-
-    // Return the fields at their original place in the instruction encoding.
-    inline BaseOpcode BaseOpcodeFieldRaw() const
-    {
-        return static_cast<BaseOpcode>(InstructionBits() & kBaseOpcodeMask);
-    }
-
-    // Safe to call within R-type instructions
-    inline int Funct7FieldRaw() const
-    {
-        return InstructionBits() & kFunct7Mask;
-    }
-
-    // Safe to call within R-type instructions
-    inline int Funct6FieldRaw() const
-    {
-        return InstructionBits() & kFunct6Mask;
-    }
-
-    // Safe to call within R-, I-, S-, or B-type instructions
-    inline int Funct3FieldRaw() const
-    {
-        return InstructionBits() & kFunct3Mask;
-    }
-
-    // Safe to call within R-, I-, S-, or B-type instructions
-    inline int Rs1FieldRawNoAssert() const
-    {
-        return InstructionBits() & kRs1FieldMask;
-    }
-
-    // Safe to call within R-, S-, or B-type instructions
-    inline int Rs2FieldRawNoAssert() const
-    {
-        return InstructionBits() & kRs2FieldMask;
-    }
-
-    // Safe to call within R4-type instructions
-    inline int Rs3FieldRawNoAssert() const
-    {
-        return InstructionBits() & kRs3FieldMask;
-    }
-
-    inline int32_t ITypeBits() const
-    {
-        return InstructionBits() & kITypeMask;
-    }
-
-    inline int32_t InstructionOpcodeType() const
-    {
-        if (IsShortInstruction()) {
-            return InstructionBits() & kRvcOpcodeMask;
-        } else {
-            return InstructionBits() & kBaseOpcodeMask;
-        }
-    }
-
-    // Get the encoding type of the instruction.
-    Type InstructionType() const;
-
-protected:
-    InstructionBase()
-    {
-    }
+ protected:
+  InstructionBase() {}
 };
 
-template <class T> class InstructionGetters : public T {
-public:
-    uint32_t OperandFunct3() const
-    {
-        return this->InstructionBits() & (kBaseOpcodeMask | kFunct3Mask);
+template <class T>
+class InstructionGetters : public T {
+ public:
+  uint32_t OperandFunct3() const {
+    return this->InstructionBits() & (kBaseOpcodeMask | kFunct3Mask);
+  }
+  bool IsLoad();
+  bool IsStore();
+  inline int BaseOpcode() const {
+    return this->InstructionBits() & kBaseOpcodeMask;
+  }
+
+  inline int RvcOpcode() const {
+    DCHECK(this->IsShortInstruction());
+    return this->InstructionBits() & kRvcOpcodeMask;
+  }
+
+  inline int Rs1Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kRType ||
+           this->InstructionType() == InstructionBase::kR4Type ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kSType ||
+           this->InstructionType() == InstructionBase::kBType ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kVType);
+    return this->Bits(kRs1Shift + kRs1Bits - 1, kRs1Shift);
+  }
+
+  inline int Rs2Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kRType ||
+           this->InstructionType() == InstructionBase::kR4Type ||
+           this->InstructionType() == InstructionBase::kSType ||
+           this->InstructionType() == InstructionBase::kBType ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kVType);
+    return this->Bits(kRs2Shift + kRs2Bits - 1, kRs2Shift);
+  }
+
+  inline int Rs3Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kR4Type);
+    return this->Bits(kRs3Shift + kRs3Bits - 1, kRs3Shift);
+  }
+
+  inline int Vs1Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kVType ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kSType);
+    return this->Bits(kVs1Shift + kVs1Bits - 1, kVs1Shift);
+  }
+
+  inline int Vs2Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kVType ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kSType);
+    return this->Bits(kVs2Shift + kVs2Bits - 1, kVs2Shift);
+  }
+
+  inline int VdValue() const {
+    DCHECK(this->InstructionType() == InstructionBase::kVType ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kSType);
+    return this->Bits(kVdShift + kVdBits - 1, kVdShift);
+  }
+
+  inline int RdValue() const {
+    DCHECK(this->InstructionType() == InstructionBase::kRType ||
+           this->InstructionType() == InstructionBase::kR4Type ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kSType ||
+           this->InstructionType() == InstructionBase::kUType ||
+           this->InstructionType() == InstructionBase::kJType ||
+           this->InstructionType() == InstructionBase::kVType);
+    return this->Bits(kRdShift + kRdBits - 1, kRdShift);
+  }
+
+  inline int RvcRs1Value() const { return this->RvcRdValue(); }
+
+  int RvcRdValue() const;
+
+  int RvcRs2Value() const;
+
+  int RvcRs1sValue() const;
+
+  int RvcRs2sValue() const;
+
+  int Funct7Value() const;
+
+  inline int Funct3Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kRType ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kSType ||
+           this->InstructionType() == InstructionBase::kBType);
+    return this->Bits(kFunct3Shift + kFunct3Bits - 1, kFunct3Shift);
+  }
+
+  inline int Funct5Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kRType &&
+           this->BaseOpcode() == OP_FP);
+    return this->Bits(kFunct5Shift + kFunct5Bits - 1, kFunct5Shift);
+  }
+
+  int RvcFunct6Value() const;
+
+  int RvcFunct4Value() const;
+
+  int RvcFunct3Value() const;
+
+  int RvcFunct2Value() const;
+
+  int RvcFunct2BValue() const;
+
+  inline int CsrValue() const {
+    DCHECK(this->InstructionType() == InstructionBase::kIType &&
+           this->BaseOpcode() == SYSTEM);
+    return (this->Bits(kCsrShift + kCsrBits - 1, kCsrShift));
+  }
+
+  inline int RoundMode() const {
+    DCHECK((this->InstructionType() == InstructionBase::kRType ||
+            this->InstructionType() == InstructionBase::kR4Type) &&
+           this->BaseOpcode() == OP_FP);
+    return this->Bits(kFunct3Shift + kFunct3Bits - 1, kFunct3Shift);
+  }
+
+  inline int MemoryOrder(bool is_pred) const {
+    DCHECK((this->InstructionType() == InstructionBase::kIType &&
+            this->BaseOpcode() == MISC_MEM));
+    if (is_pred) {
+      return this->Bits(kPredOrderShift + kMemOrderBits - 1, kPredOrderShift);
+    } else {
+      return this->Bits(kSuccOrderShift + kMemOrderBits - 1, kSuccOrderShift);
     }
-    bool IsLoad();
-    bool IsStore();
-    inline int BaseOpcode() const
-    {
-        return this->InstructionBits() & kBaseOpcodeMask;
-    }
+  }
 
-    inline int RvcOpcode() const
-    {
-        DCHECK(this->IsShortInstruction());
-        return this->InstructionBits() & kRvcOpcodeMask;
-    }
+  inline int Imm12Value() const {
+    DCHECK(this->InstructionType() == InstructionBase::kIType);
+    int Value = this->Bits(kImm12Shift + kImm12Bits - 1, kImm12Shift);
+    return Value << 20 >> 20;
+  }
 
-    inline int Rs1Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kRType || this->InstructionType() == InstructionBase::kR4Type
-            || this->InstructionType() == InstructionBase::kIType || this->InstructionType() == InstructionBase::kSType
-            || this->InstructionType() == InstructionBase::kBType || this->InstructionType() == InstructionBase::kIType
-            || this->InstructionType() == InstructionBase::kVType);
-        return this->Bits(kRs1Shift + kRs1Bits - 1, kRs1Shift);
-    }
+  inline int32_t Imm12SExtValue() const {
+    int32_t Value = this->Imm12Value() << 20 >> 20;
+    return Value;
+  }
 
-    inline int Rs2Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kRType || this->InstructionType() == InstructionBase::kR4Type
-            || this->InstructionType() == InstructionBase::kSType || this->InstructionType() == InstructionBase::kBType
-            || this->InstructionType() == InstructionBase::kIType || this->InstructionType() == InstructionBase::kVType);
-        return this->Bits(kRs2Shift + kRs2Bits - 1, kRs2Shift);
-    }
+  inline int BranchOffset() const {
+    DCHECK(this->InstructionType() == InstructionBase::kBType);
+    // | imm[12|10:5] | rs2 | rs1 | funct3 | imm[4:1|11] | opcode |
+    //  31          25                      11          7
+    uint32_t Bits = this->InstructionBits();
+    int16_t imm13 = ((Bits & 0xf00) >> 7) | ((Bits & 0x7e000000) >> 20) |
+                    ((Bits & 0x80) << 4) | ((Bits & 0x80000000) >> 19);
+    return imm13 << 19 >> 19;
+  }
 
-    inline int Rs3Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kR4Type);
-        return this->Bits(kRs3Shift + kRs3Bits - 1, kRs3Shift);
-    }
+  inline int StoreOffset() const {
+    DCHECK(this->InstructionType() == InstructionBase::kSType);
+    // | imm[11:5] | rs2 | rs1 | funct3 | imm[4:0] | opcode |
+    //  31       25                      11       7
+    uint32_t Bits = this->InstructionBits();
+    int16_t imm12 = ((Bits & 0xf80) >> 7) | ((Bits & 0xfe000000) >> 20);
+    return imm12 << 20 >> 20;
+  }
 
-    inline int Vs1Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kVType || this->InstructionType() == InstructionBase::kIType
-            || this->InstructionType() == InstructionBase::kSType);
-        return this->Bits(kVs1Shift + kVs1Bits - 1, kVs1Shift);
-    }
+  inline int Imm20UValue() const {
+    DCHECK(this->InstructionType() == InstructionBase::kUType);
+    // | imm[31:12] | rd | opcode |
+    //  31        12
+    int32_t Bits = this->InstructionBits();
+    return Bits >> 12;
+  }
 
-    inline int Vs2Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kVType || this->InstructionType() == InstructionBase::kIType
-            || this->InstructionType() == InstructionBase::kSType);
-        return this->Bits(kVs2Shift + kVs2Bits - 1, kVs2Shift);
-    }
+  inline int Imm20JValue() const {
+    DCHECK(this->InstructionType() == InstructionBase::kJType);
+    // | imm[20|10:1|11|19:12] | rd | opcode |
+    //  31                   12
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm20 = ((Bits & 0x7fe00000) >> 20) | ((Bits & 0x100000) >> 9) |
+                    (Bits & 0xff000) | ((Bits & 0x80000000) >> 11);
+    return imm20 << 11 >> 11;
+  }
 
-    inline int VdValue() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kVType || this->InstructionType() == InstructionBase::kIType
-            || this->InstructionType() == InstructionBase::kSType);
-        return this->Bits(kVdShift + kVdBits - 1, kVdShift);
-    }
+  inline bool IsArithShift() const {
+    // Valid only for right shift operations
+    DCHECK((this->BaseOpcode() == OP || this->BaseOpcode() == OP_32 ||
+            this->BaseOpcode() == OP_IMM || this->BaseOpcode() == OP_IMM_32) &&
+           this->Funct3Value() == 0b101);
+    return this->InstructionBits() & 0x40000000;
+  }
 
-    inline int RdValue() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kRType || this->InstructionType() == InstructionBase::kR4Type
-            || this->InstructionType() == InstructionBase::kIType || this->InstructionType() == InstructionBase::kSType
-            || this->InstructionType() == InstructionBase::kUType || this->InstructionType() == InstructionBase::kJType
-            || this->InstructionType() == InstructionBase::kVType);
-        return this->Bits(kRdShift + kRdBits - 1, kRdShift);
-    }
+  inline int Shamt() const {
+    // Valid only for shift instructions (SLLI, SRLI, SRAI)
+    DCHECK(((this->InstructionBits() & kBaseOpcodeMask) == OP_IMM ||
+            (this->InstructionBits() & kBaseOpcodeMask) == OP_IMM_32) &&
+           (this->Funct3Value() == 0b001 || this->Funct3Value() == 0b101));
+    // | 0A0000 | shamt | rs1 | funct3 | rd | opcode |
+    //  31       25    20
+    return this->Bits(kImm12Shift + 5, kImm12Shift);
+  }
 
-    inline int RvcRs1Value() const
-    {
-        return this->RvcRdValue();
-    }
-
-    int RvcRdValue() const;
-
-    int RvcRs2Value() const;
-
-    int RvcRs1sValue() const;
-
-    int RvcRs2sValue() const;
-
-    int Funct7Value() const;
-
-    inline int Funct3Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kRType || this->InstructionType() == InstructionBase::kIType
-            || this->InstructionType() == InstructionBase::kSType || this->InstructionType() == InstructionBase::kBType);
-        return this->Bits(kFunct3Shift + kFunct3Bits - 1, kFunct3Shift);
-    }
-
-    inline int Funct5Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kRType && this->BaseOpcode() == OP_FP);
-        return this->Bits(kFunct5Shift + kFunct5Bits - 1, kFunct5Shift);
-    }
-
-    int RvcFunct6Value() const;
-
-    int RvcFunct4Value() const;
-
-    int RvcFunct3Value() const;
-
-    int RvcFunct2Value() const;
-
-    int RvcFunct2BValue() const;
-
-    inline int CsrValue() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kIType && this->BaseOpcode() == SYSTEM);
-        return (this->Bits(kCsrShift + kCsrBits - 1, kCsrShift));
-    }
-
-    inline int RoundMode() const
-    {
-        DCHECK((this->InstructionType() == InstructionBase::kRType || this->InstructionType() == InstructionBase::kR4Type) && this->BaseOpcode() == OP_FP);
-        return this->Bits(kFunct3Shift + kFunct3Bits - 1, kFunct3Shift);
-    }
-
-    inline int MemoryOrder(bool is_pred) const
-    {
-        DCHECK((this->InstructionType() == InstructionBase::kIType && this->BaseOpcode() == MISC_MEM));
-        if (is_pred) {
-            return this->Bits(kPredOrderShift + kMemOrderBits - 1, kPredOrderShift);
-        } else {
-            return this->Bits(kSuccOrderShift + kMemOrderBits - 1, kSuccOrderShift);
-        }
-    }
-
-    inline int Imm12Value() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kIType);
-        int Value = this->Bits(kImm12Shift + kImm12Bits - 1, kImm12Shift);
-        return Value << 20 >> 20;
-    }
-
-    inline int32_t Imm12SExtValue() const
-    {
-        int32_t Value = this->Imm12Value() << 20 >> 20;
-        return Value;
-    }
-
-    inline int BranchOffset() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kBType);
-        // | imm[12|10:5] | rs2 | rs1 | funct3 | imm[4:1|11] | opcode |
-        //  31          25                      11          7
-        uint32_t Bits = this->InstructionBits();
-        int16_t imm13 = ((Bits & 0xf00) >> 7) | ((Bits & 0x7e000000) >> 20) | ((Bits & 0x80) << 4) | ((Bits & 0x80000000) >> 19);
-        return imm13 << 19 >> 19;
-    }
-
-    inline int StoreOffset() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kSType);
-        // | imm[11:5] | rs2 | rs1 | funct3 | imm[4:0] | opcode |
-        //  31       25                      11       7
-        uint32_t Bits = this->InstructionBits();
-        int16_t imm12 = ((Bits & 0xf80) >> 7) | ((Bits & 0xfe000000) >> 20);
-        return imm12 << 20 >> 20;
-    }
-
-    inline int Imm20UValue() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kUType);
-        // | imm[31:12] | rd | opcode |
-        //  31        12
-        int32_t Bits = this->InstructionBits();
-        return Bits >> 12;
-    }
-
-    inline int Imm20JValue() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kJType);
-        // | imm[20|10:1|11|19:12] | rd | opcode |
-        //  31                   12
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm20 = ((Bits & 0x7fe00000) >> 20) | ((Bits & 0x100000) >> 9) | (Bits & 0xff000) | ((Bits & 0x80000000) >> 11);
-        return imm20 << 11 >> 11;
-    }
-
-    inline bool IsArithShift() const
-    {
-        // Valid only for right shift operations
-        DCHECK((this->BaseOpcode() == OP || this->BaseOpcode() == OP_32 || this->BaseOpcode() == OP_IMM || this->BaseOpcode() == OP_IMM_32)
-            && this->Funct3Value() == 0b101);
-        return this->InstructionBits() & 0x40000000;
-    }
-
-    inline int Shamt() const
-    {
-        // Valid only for shift instructions (SLLI, SRLI, SRAI)
-        DCHECK(((this->InstructionBits() & kBaseOpcodeMask) == OP_IMM || (this->InstructionBits() & kBaseOpcodeMask) == OP_IMM_32)
-            && (this->Funct3Value() == 0b001 || this->Funct3Value() == 0b101));
-        // | 0A0000 | shamt | rs1 | funct3 | rd | opcode |
-        //  31       25    20
-        return this->Bits(kImm12Shift + 5, kImm12Shift);
-    }
-
-    inline int Shamt32() const
-    {
-        // Valid only for shift instructions (SLLIW, SRLIW, SRAIW)
+  inline int Shamt32() const {
+    // Valid only for shift instructions (SLLIW, SRLIW, SRAIW)
 #ifdef V8_TARGET_ARCH_RISCV32
-        DCHECK(((this->InstructionBits() & kBaseOpcodeMask) == OP_IMM_32 || (this->InstructionBits() & kBaseOpcodeMask) == OP_IMM)
-            && (this->Funct3Value() == 0b001 || this->Funct3Value() == 0b101));
+    DCHECK(((this->InstructionBits() & kBaseOpcodeMask) == OP_IMM_32 ||
+            (this->InstructionBits() & kBaseOpcodeMask) == OP_IMM) &&
+           (this->Funct3Value() == 0b001 || this->Funct3Value() == 0b101));
 #else
-        DCHECK((this->InstructionBits() & kBaseOpcodeMask) == OP_IMM_32 && (this->Funct3Value() == 0b001 || this->Funct3Value() == 0b101));
+    DCHECK((this->InstructionBits() & kBaseOpcodeMask) == OP_IMM_32 &&
+           (this->Funct3Value() == 0b001 || this->Funct3Value() == 0b101));
 #endif
-        // | 0A00000 | shamt | rs1 | funct3 | rd | opcode |
-        //  31        24   20
-        return this->Bits(kImm12Shift + 4, kImm12Shift);
+    // | 0A00000 | shamt | rs1 | funct3 | rd | opcode |
+    //  31        24   20
+    return this->Bits(kImm12Shift + 4, kImm12Shift);
+  }
+
+  inline int RvcImm6Value() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | imm[5] | rs1/rd | imm[4:0] | opcode |
+    //  15         12              6        2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm6 = ((Bits & 0x1000) >> 7) | ((Bits & 0x7c) >> 2);
+    return imm6 << 26 >> 26;
+  }
+
+  inline int RvcImm6Addi16spValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | nzimm[9] | 2 | nzimm[4|6|8:7|5] | opcode |
+    //  15         12           6                2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm10 = ((Bits & 0x1000) >> 3) | ((Bits & 0x40) >> 2) |
+                    ((Bits & 0x20) << 1) | ((Bits & 0x18) << 4) |
+                    ((Bits & 0x4) << 3);
+    DCHECK_NE(imm10, 0);
+    return imm10 << 22 >> 22;
+  }
+
+  inline int RvcImm8Addi4spnValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | nzimm[11]  | rd' | opcode |
+    //  15      13           5     2
+    uint32_t Bits = this->InstructionBits();
+    int32_t uimm10 = ((Bits & 0x20) >> 2) | ((Bits & 0x40) >> 4) |
+                     ((Bits & 0x780) >> 1) | ((Bits & 0x1800) >> 7);
+    DCHECK_NE(uimm10, 0);
+    return uimm10;
+  }
+
+  inline int RvcShamt6() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | nzuimm[5] | rs1/rd | nzuimm[4:0] | opcode |
+    //  15         12                 6           2
+    int32_t imm6 = this->RvcImm6Value();
+    return imm6 & 0x3f;
+  }
+
+  inline int RvcImm6LwspValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | uimm[5] | rs1 | uimm[4:2|7:6] | opcode |
+    //  15         12            6             2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm8 =
+        ((Bits & 0x1000) >> 7) | ((Bits & 0x70) >> 2) | ((Bits & 0xc) << 4);
+    return imm8;
+  }
+
+  inline int RvcImm6LdspValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | uimm[5] | rs1 | uimm[4:3|8:6] | opcode |
+    //  15         12            6             2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm9 =
+        ((Bits & 0x1000) >> 7) | ((Bits & 0x60) >> 2) | ((Bits & 0x1c) << 4);
+    return imm9;
+  }
+
+  inline int RvcImm6SwspValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | uimm[5:2|7:6] | rs2 | opcode |
+    //  15       12            7
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm8 = ((Bits & 0x1e00) >> 7) | ((Bits & 0x180) >> 1);
+    return imm8;
+  }
+
+  inline int RvcImm6SdspValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | uimm[5:3|8:6] | rs2 | opcode |
+    //  15       12            7
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm9 = ((Bits & 0x1c00) >> 7) | ((Bits & 0x380) >> 1);
+    return imm9;
+  }
+
+  inline int RvcImm5WValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | imm[5:3] | rs1 | imm[2|6] | rd | opcode |
+    //  15       12       10     6          4     2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm7 =
+        ((Bits & 0x1c00) >> 7) | ((Bits & 0x40) >> 4) | ((Bits & 0x20) << 1);
+    return imm7;
+  }
+
+  inline int RvcImm5DValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | imm[5:3] | rs1 | imm[7:6] | rd | opcode |
+    //  15       12        10    6          4     2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm8 = ((Bits & 0x1c00) >> 7) | ((Bits & 0x60) << 1);
+    return imm8;
+  }
+
+  inline int RvcImm11CJValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | [11|4|9:8|10|6|7|3:1|5] | opcode |
+    //  15      12                        2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm12 = ((Bits & 0x4) << 3) | ((Bits & 0x38) >> 2) |
+                    ((Bits & 0x40) << 1) | ((Bits & 0x80) >> 1) |
+                    ((Bits & 0x100) << 2) | ((Bits & 0x600) >> 1) |
+                    ((Bits & 0x800) >> 7) | ((Bits & 0x1000) >> 1);
+    return imm12 << 20 >> 20;
+  }
+
+  inline int RvcImm8BValue() const {
+    DCHECK(this->IsShortInstruction());
+    // | funct3 | imm[8|4:3] | rs1` | imm[7:6|2:1|5]  | opcode |
+    //  15       12        10       7                 2
+    uint32_t Bits = this->InstructionBits();
+    int32_t imm9 = ((Bits & 0x4) << 3) | ((Bits & 0x18) >> 2) |
+                   ((Bits & 0x60) << 1) | ((Bits & 0xc00) >> 7) |
+                   ((Bits & 0x1000) >> 4);
+    return imm9 << 23 >> 23;
+  }
+
+  inline int vl_vs_width() {
+    int width = 0;
+    if ((this->InstructionBits() & kBaseOpcodeMask) != LOAD_FP &&
+        (this->InstructionBits() & kBaseOpcodeMask) != STORE_FP)
+      return -1;
+    switch (this->InstructionBits() & (kRvvWidthMask | kRvvMewMask)) {
+      case 0x0:
+        width = 8;
+        break;
+      case 0x00005000:
+        width = 16;
+        break;
+      case 0x00006000:
+        width = 32;
+        break;
+      case 0x00007000:
+        width = 64;
+        break;
+      case 0x10000000:
+        width = 128;
+        break;
+      case 0x10005000:
+        width = 256;
+        break;
+      case 0x10006000:
+        width = 512;
+        break;
+      case 0x10007000:
+        width = 1024;
+        break;
+      default:
+        width = -1;
+        break;
     }
+    return width;
+  }
 
-    inline int RvcImm6Value() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | imm[5] | rs1/rd | imm[4:0] | opcode |
-        //  15         12              6        2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm6 = ((Bits & 0x1000) >> 7) | ((Bits & 0x7c) >> 2);
-        return imm6 << 26 >> 26;
-    }
+  uint32_t Rvvzimm() const;
 
-    inline int RvcImm6Addi16spValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | nzimm[9] | 2 | nzimm[4|6|8:7|5] | opcode |
-        //  15         12           6                2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm10 = ((Bits & 0x1000) >> 3) | ((Bits & 0x40) >> 2) | ((Bits & 0x20) << 1) | ((Bits & 0x18) << 4) | ((Bits & 0x4) << 3);
-        DCHECK_NE(imm10, 0);
-        return imm10 << 22 >> 22;
-    }
+  uint32_t Rvvuimm() const;
 
-    inline int RvcImm8Addi4spnValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | nzimm[11]  | rd' | opcode |
-        //  15      13           5     2
-        uint32_t Bits = this->InstructionBits();
-        int32_t uimm10 = ((Bits & 0x20) >> 2) | ((Bits & 0x40) >> 4) | ((Bits & 0x780) >> 1) | ((Bits & 0x1800) >> 7);
-        DCHECK_NE(uimm10, 0);
-        return uimm10;
-    }
+  inline uint32_t RvvVsew() const {
+    uint32_t zimm = this->Rvvzimm();
+    uint32_t vsew = (zimm >> 3) & 0x7;
+    return vsew;
+  }
 
-    inline int RvcShamt6() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | nzuimm[5] | rs1/rd | nzuimm[4:0] | opcode |
-        //  15         12                 6           2
-        int32_t imm6 = this->RvcImm6Value();
-        return imm6 & 0x3f;
-    }
+  inline uint32_t RvvVlmul() const {
+    uint32_t zimm = this->Rvvzimm();
+    uint32_t vlmul = zimm & 0x7;
+    return vlmul;
+  }
 
-    inline int RvcImm6LwspValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | uimm[5] | rs1 | uimm[4:2|7:6] | opcode |
-        //  15         12            6             2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm8 = ((Bits & 0x1000) >> 7) | ((Bits & 0x70) >> 2) | ((Bits & 0xc) << 4);
-        return imm8;
-    }
+  inline uint8_t RvvVM() const {
+    DCHECK(this->InstructionType() == InstructionBase::kVType ||
+           this->InstructionType() == InstructionBase::kIType ||
+           this->InstructionType() == InstructionBase::kSType);
+    return this->Bits(kRvvVmShift + kRvvVmBits - 1, kRvvVmShift);
+  }
 
-    inline int RvcImm6LdspValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | uimm[5] | rs1 | uimm[4:3|8:6] | opcode |
-        //  15         12            6             2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm9 = ((Bits & 0x1000) >> 7) | ((Bits & 0x60) >> 2) | ((Bits & 0x1c) << 4);
-        return imm9;
-    }
-
-    inline int RvcImm6SwspValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | uimm[5:2|7:6] | rs2 | opcode |
-        //  15       12            7
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm8 = ((Bits & 0x1e00) >> 7) | ((Bits & 0x180) >> 1);
-        return imm8;
-    }
-
-    inline int RvcImm6SdspValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | uimm[5:3|8:6] | rs2 | opcode |
-        //  15       12            7
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm9 = ((Bits & 0x1c00) >> 7) | ((Bits & 0x380) >> 1);
-        return imm9;
-    }
-
-    inline int RvcImm5WValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | imm[5:3] | rs1 | imm[2|6] | rd | opcode |
-        //  15       12       10     6          4     2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm7 = ((Bits & 0x1c00) >> 7) | ((Bits & 0x40) >> 4) | ((Bits & 0x20) << 1);
-        return imm7;
-    }
-
-    inline int RvcImm5DValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | imm[5:3] | rs1 | imm[7:6] | rd | opcode |
-        //  15       12        10    6          4     2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm8 = ((Bits & 0x1c00) >> 7) | ((Bits & 0x60) << 1);
-        return imm8;
-    }
-
-    inline int RvcImm11CJValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | [11|4|9:8|10|6|7|3:1|5] | opcode |
-        //  15      12                        2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm12 = ((Bits & 0x4) << 3) | ((Bits & 0x38) >> 2) | ((Bits & 0x40) << 1) | ((Bits & 0x80) >> 1) | ((Bits & 0x100) << 2) | ((Bits & 0x600) >> 1)
-            | ((Bits & 0x800) >> 7) | ((Bits & 0x1000) >> 1);
-        return imm12 << 20 >> 20;
-    }
-
-    inline int RvcImm8BValue() const
-    {
-        DCHECK(this->IsShortInstruction());
-        // | funct3 | imm[8|4:3] | rs1` | imm[7:6|2:1|5]  | opcode |
-        //  15       12        10       7                 2
-        uint32_t Bits = this->InstructionBits();
-        int32_t imm9 = ((Bits & 0x4) << 3) | ((Bits & 0x18) >> 2) | ((Bits & 0x60) << 1) | ((Bits & 0xc00) >> 7) | ((Bits & 0x1000) >> 4);
-        return imm9 << 23 >> 23;
-    }
-
-    inline int vl_vs_width()
-    {
-        int width = 0;
-        if ((this->InstructionBits() & kBaseOpcodeMask) != LOAD_FP && (this->InstructionBits() & kBaseOpcodeMask) != STORE_FP)
-            return -1;
-        switch (this->InstructionBits() & (kRvvWidthMask | kRvvMewMask)) {
-        case 0x0:
-            width = 8;
-            break;
-        case 0x00005000:
-            width = 16;
-            break;
-        case 0x00006000:
-            width = 32;
-            break;
-        case 0x00007000:
-            width = 64;
-            break;
-        case 0x10000000:
-            width = 128;
-            break;
-        case 0x10005000:
-            width = 256;
-            break;
-        case 0x10006000:
-            width = 512;
-            break;
-        case 0x10007000:
-            width = 1024;
-            break;
-        default:
-            width = -1;
-            break;
-        }
-        return width;
-    }
-
-    uint32_t Rvvzimm() const;
-
-    uint32_t Rvvuimm() const;
-
-    inline uint32_t RvvVsew() const
-    {
-        uint32_t zimm = this->Rvvzimm();
-        uint32_t vsew = (zimm >> 3) & 0x7;
-        return vsew;
-    }
-
-    inline uint32_t RvvVlmul() const
-    {
-        uint32_t zimm = this->Rvvzimm();
-        uint32_t vlmul = zimm & 0x7;
-        return vlmul;
-    }
-
-    inline uint8_t RvvVM() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kVType || this->InstructionType() == InstructionBase::kIType
-            || this->InstructionType() == InstructionBase::kSType);
-        return this->Bits(kRvvVmShift + kRvvVmBits - 1, kRvvVmShift);
-    }
-
-    inline const char* RvvSEW() const
-    {
-        uint32_t vsew = this->RvvVsew();
-        switch (vsew) {
-#define CAST_VSEW(name)                                                                                                                                        \
-    case name:                                                                                                                                                 \
-        return #name;
-            RVV_SEW(CAST_VSEW)
-        default:
-            return "unknown";
+  inline const char* RvvSEW() const {
+    uint32_t vsew = this->RvvVsew();
+    switch (vsew) {
+#define CAST_VSEW(name) \
+  case name:            \
+    return #name;
+      RVV_SEW(CAST_VSEW)
+      default:
+        return "unknown";
 #undef CAST_VSEW
-        }
     }
+  }
 
-    inline const char* RvvLMUL() const
-    {
-        uint32_t vlmul = this->RvvVlmul();
-        switch (vlmul) {
-#define CAST_VLMUL(name)                                                                                                                                       \
-    case name:                                                                                                                                                 \
-        return #name;
-            RVV_LMUL(CAST_VLMUL)
-        default:
-            return "unknown";
+  inline const char* RvvLMUL() const {
+    uint32_t vlmul = this->RvvVlmul();
+    switch (vlmul) {
+#define CAST_VLMUL(name) \
+  case name:             \
+    return #name;
+      RVV_LMUL(CAST_VLMUL)
+      default:
+        return "unknown";
 #undef CAST_VLMUL
-        }
     }
+  }
 
 #define sext(x, len) (((int32_t)(x) << (32 - len)) >> (32 - len))
 #define zext(x, len) (((uint32_t)(x) << (32 - len)) >> (32 - len))
 
-    inline int32_t RvvSimm5() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kVType);
-        return sext(this->Bits(kRvvImm5Shift + kRvvImm5Bits - 1, kRvvImm5Shift), kRvvImm5Bits);
-    }
+  inline int32_t RvvSimm5() const {
+    DCHECK(this->InstructionType() == InstructionBase::kVType);
+    return sext(this->Bits(kRvvImm5Shift + kRvvImm5Bits - 1, kRvvImm5Shift),
+                kRvvImm5Bits);
+  }
 
-    inline uint32_t RvvUimm5() const
-    {
-        DCHECK(this->InstructionType() == InstructionBase::kVType);
-        uint32_t imm = this->Bits(kRvvImm5Shift + kRvvImm5Bits - 1, kRvvImm5Shift);
-        return zext(imm, kRvvImm5Bits);
-    }
+  inline uint32_t RvvUimm5() const {
+    DCHECK(this->InstructionType() == InstructionBase::kVType);
+    uint32_t imm = this->Bits(kRvvImm5Shift + kRvvImm5Bits - 1, kRvvImm5Shift);
+    return zext(imm, kRvvImm5Bits);
+  }
 #undef sext
 #undef zext
-    inline bool AqValue() const
-    {
-        return this->Bits(kAqShift, kAqShift);
-    }
+  inline bool AqValue() const { return this->Bits(kAqShift, kAqShift); }
 
-    inline bool RlValue() const
-    {
-        return this->Bits(kRlShift, kRlShift);
-    }
+  inline bool RlValue() const { return this->Bits(kRlShift, kRlShift); }
 
-    // Say if the instruction is a break or a trap.
-    bool IsTrap() const;
+  // Say if the instruction is a break or a trap.
+  bool IsTrap() const;
 
-    bool IsAUIPC() const
-    {
-        return (this->InstructionBits() & kBaseOpcodeMask) == AUIPC;
-    }
+  bool IsAUIPC() const {
+    return (this->InstructionBits() & kBaseOpcodeMask) == AUIPC;
+  }
 };
 
 class Instruction : public InstructionGetters<InstructionBase> {
-public:
-    // Instructions are read of out a code stream. The only way to get a
-    // reference to an instruction is to convert a pointer. There is no way
-    // to allocate or create instances of class Instruction.
-    // Use the At(pc) function to create references to Instruction.
-    static Instruction* At(uint8_t* pc)
-    {
-        return reinterpret_cast<Instruction*>(pc);
-    }
+ public:
+  // Instructions are read of out a code stream. The only way to get a
+  // reference to an instruction is to convert a pointer. There is no way
+  // to allocate or create instances of class Instruction.
+  // Use the At(pc) function to create references to Instruction.
+  static Instruction* At(uint8_t* pc) {
+    return reinterpret_cast<Instruction*>(pc);
+  }
 
-private:
-    // We need to prevent the creation of instances of class Instruction.
-    DISALLOW_IMPLICIT_CONSTRUCTORS(Instruction);
+ private:
+  // We need to prevent the creation of instances of class Instruction.
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Instruction);
 };
 
 // -----------------------------------------------------------------------------
@@ -1319,12 +1288,12 @@ static const int kNegOffset = 0x00008000;
 // -----------------------------------------------------------------------------
 // Instructions.
 
-template <class P> bool InstructionGetters<P>::IsTrap() const
-{
-    return (this->InstructionBits() == kBreakInstr);
+template <class P>
+bool InstructionGetters<P>::IsTrap() const {
+  return (this->InstructionBits() == kBreakInstr);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_RISCV_BASE_CONSTANTS_RISCV_H_
+#endif  // V8_CODEGEN_RISCV_BASE_CONSTANTS_RISCV_H_

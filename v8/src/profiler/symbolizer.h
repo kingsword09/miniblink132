@@ -15,32 +15,30 @@ class CodeEntry;
 class InstructionStreamMap;
 
 class V8_EXPORT_PRIVATE Symbolizer {
-public:
-    explicit Symbolizer(InstructionStreamMap* instruction_stream_map);
-    Symbolizer(const Symbolizer&) = delete;
-    Symbolizer& operator=(const Symbolizer&) = delete;
+ public:
+  explicit Symbolizer(InstructionStreamMap* instruction_stream_map);
+  Symbolizer(const Symbolizer&) = delete;
+  Symbolizer& operator=(const Symbolizer&) = delete;
 
-    struct SymbolizedSample {
-        ProfileStackTrace stack_trace;
-        int src_line;
-    };
+  struct SymbolizedSample {
+    ProfileStackTrace stack_trace;
+    int src_line;
+  };
 
-    // Use the InstructionStreamMap to turn the raw addresses recorded in the
-    // sample into code/function names.
-    SymbolizedSample SymbolizeTickSample(const TickSample& sample);
+  // Use the InstructionStreamMap to turn the raw addresses recorded in the
+  // sample into code/function names.
+  SymbolizedSample SymbolizeTickSample(const TickSample& sample);
 
-    InstructionStreamMap* instruction_stream_map()
-    {
-        return code_map_;
-    }
+  InstructionStreamMap* instruction_stream_map() { return code_map_; }
 
-private:
-    CodeEntry* FindEntry(Address address, Address* out_instruction_start = nullptr);
+ private:
+  CodeEntry* FindEntry(Address address,
+                       Address* out_instruction_start = nullptr);
 
-    InstructionStreamMap* const code_map_;
+  InstructionStreamMap* const code_map_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_PROFILER_SYMBOLIZER_H_
+#endif  // V8_PROFILER_SYMBOLIZER_H_

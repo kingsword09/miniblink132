@@ -11,48 +11,45 @@
 namespace v8 {
 namespace internal {
 
-void ProfilerStats::AddReason(Reason reason)
-{
-    counts_[reason].fetch_add(1, std::memory_order_relaxed);
+void ProfilerStats::AddReason(Reason reason) {
+  counts_[reason].fetch_add(1, std::memory_order_relaxed);
 }
 
-void ProfilerStats::Clear()
-{
-    for (int i = 0; i < Reason::kNumberOfReasons; i++) {
-        counts_[i].store(0, std::memory_order_relaxed);
-    }
+void ProfilerStats::Clear() {
+  for (int i = 0; i < Reason::kNumberOfReasons; i++) {
+    counts_[i].store(0, std::memory_order_relaxed);
+  }
 }
 
-void ProfilerStats::Print() const
-{
-    base::OS::Print("ProfilerStats:\n");
-    for (int i = 0; i < Reason::kNumberOfReasons; i++) {
-        base::OS::Print("  %-30s\t\t %d\n", ReasonToString(static_cast<Reason>(i)), counts_[i].load(std::memory_order_relaxed));
-    }
+void ProfilerStats::Print() const {
+  base::OS::Print("ProfilerStats:\n");
+  for (int i = 0; i < Reason::kNumberOfReasons; i++) {
+    base::OS::Print("  %-30s\t\t %d\n", ReasonToString(static_cast<Reason>(i)),
+                    counts_[i].load(std::memory_order_relaxed));
+  }
 }
 
 // static
-const char* ProfilerStats::ReasonToString(Reason reason)
-{
-    switch (reason) {
+const char* ProfilerStats::ReasonToString(Reason reason) {
+  switch (reason) {
     case kTickBufferFull:
-        return "kTickBufferFull";
+      return "kTickBufferFull";
     case kIsolateNotLocked:
-        return "kIsolateNotLocked";
+      return "kIsolateNotLocked";
     case kSimulatorFillRegistersFailed:
-        return "kSimulatorFillRegistersFailed";
+      return "kSimulatorFillRegistersFailed";
     case kNoFrameRegion:
-        return "kNoFrameRegion";
+      return "kNoFrameRegion";
     case kInCallOrApply:
-        return "kInCallOrApply";
+      return "kInCallOrApply";
     case kNoSymbolizedFrames:
-        return "kNoSymbolizedFrames";
+      return "kNoSymbolizedFrames";
     case kNullPC:
-        return "kNullPC";
+      return "kNullPC";
     case kNumberOfReasons:
-        return "kNumberOfReasons";
-    }
+      return "kNumberOfReasons";
+  }
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

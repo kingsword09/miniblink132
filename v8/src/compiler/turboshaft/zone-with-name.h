@@ -27,60 +27,49 @@ namespace v8::internal::compiler::turboshaft {
 // possible, even when `foo`'s arguments expects raw types. NOTE: In release
 // builds, `ZoneWithNamePointer<T, Name>` is merely an alias to `T*`.
 #if defined(DEBUG) && defined(HAS_CPP_CLASS_TYPES_AS_TEMPLATE_ARGS)
-template <typename T, base::tmp::StringLiteral Name> class ZoneWithNamePointerImpl final {
-public:
-    using pointer_type = T*;
+template <typename T, base::tmp::StringLiteral Name>
+class ZoneWithNamePointerImpl final {
+ public:
+  using pointer_type = T*;
 
-    ZoneWithNamePointerImpl() = default;
-    ZoneWithNamePointerImpl(std::nullptr_t) // NOLINT(runtime/explicit)
-        : ptr_(nullptr)
-    {
-    }
-    explicit ZoneWithNamePointerImpl(pointer_type ptr)
-        : ptr_(ptr)
-    {
-    }
+  ZoneWithNamePointerImpl() = default;
+  ZoneWithNamePointerImpl(std::nullptr_t)  // NOLINT(runtime/explicit)
+      : ptr_(nullptr) {}
+  explicit ZoneWithNamePointerImpl(pointer_type ptr) : ptr_(ptr) {}
 
-    ZoneWithNamePointerImpl(const ZoneWithNamePointerImpl&) V8_NOEXCEPT = default;
-    ZoneWithNamePointerImpl(ZoneWithNamePointerImpl&&) V8_NOEXCEPT = default;
-    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U*, pointer_type>>>
-    ZoneWithNamePointerImpl(const ZoneWithNamePointerImpl<U, Name>& other) V8_NOEXCEPT // NOLINT(runtime/explicit)
-        : ptr_(static_cast<U*>(other))
-    {
-    }
-    ZoneWithNamePointerImpl& operator=(const ZoneWithNamePointerImpl&) V8_NOEXCEPT = default;
-    ZoneWithNamePointerImpl& operator=(ZoneWithNamePointerImpl&&) V8_NOEXCEPT = default;
-    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U*, pointer_type>>>
-    ZoneWithNamePointerImpl& operator=(const ZoneWithNamePointerImpl<U, Name>& other) V8_NOEXCEPT
-    {
-        ptr_ = static_cast<U*>(other);
-    }
+  ZoneWithNamePointerImpl(const ZoneWithNamePointerImpl&) V8_NOEXCEPT = default;
+  ZoneWithNamePointerImpl(ZoneWithNamePointerImpl&&) V8_NOEXCEPT = default;
+  template <typename U, typename = std::enable_if_t<
+                            std::is_convertible_v<U*, pointer_type>>>
+  ZoneWithNamePointerImpl(const ZoneWithNamePointerImpl<U, Name>& other)
+      V8_NOEXCEPT  // NOLINT(runtime/explicit)
+      : ptr_(static_cast<U*>(other)) {}
+  ZoneWithNamePointerImpl& operator=(const ZoneWithNamePointerImpl&)
+      V8_NOEXCEPT = default;
+  ZoneWithNamePointerImpl& operator=(ZoneWithNamePointerImpl&&)
+      V8_NOEXCEPT = default;
+  template <typename U, typename = std::enable_if_t<
+                            std::is_convertible_v<U*, pointer_type>>>
+  ZoneWithNamePointerImpl& operator=(
+      const ZoneWithNamePointerImpl<U, Name>& other) V8_NOEXCEPT {
+    ptr_ = static_cast<U*>(other);
+  }
 
-    operator pointer_type() const
-    {
-        return get();
-    } // NOLINT(runtime/explicit)
-    T& operator*() const
-    {
-        return *get();
-    }
-    pointer_type operator->()
-    {
-        return get();
-    }
+  operator pointer_type() const { return get(); }  // NOLINT(runtime/explicit)
+  T& operator*() const { return *get(); }
+  pointer_type operator->() { return get(); }
 
-private:
-    pointer_type get() const
-    {
-        return ptr_;
-    }
+ private:
+  pointer_type get() const { return ptr_; }
 
-    pointer_type ptr_ = pointer_type {};
+  pointer_type ptr_ = pointer_type{};
 };
 
-template <typename T, base::tmp::StringLiteral Name> using ZoneWithNamePointer = ZoneWithNamePointerImpl<T, Name>;
+template <typename T, base::tmp::StringLiteral Name>
+using ZoneWithNamePointer = ZoneWithNamePointerImpl<T, Name>;
 #else
-template <typename T, auto> using ZoneWithNamePointer = T*;
+template <typename T, auto>
+using ZoneWithNamePointer = T*;
 #endif
 
 #ifdef HAS_CPP_CLASS_TYPES_AS_TEMPLATE_ARGS
@@ -89,59 +78,47 @@ template <base::tmp::StringLiteral Name>
 template <auto Name>
 #endif
 class ZoneWithName final {
-public:
-    ZoneWithName(ZoneStats* pool, const char* name, bool support_zone_compression = false)
-        : scope_(pool, name, support_zone_compression)
-    {
+ public:
+  ZoneWithName(ZoneStats* pool, const char* name,
+               bool support_zone_compression = false)
+      : scope_(pool, name, support_zone_compression) {
 #ifdef HAS_CPP_CLASS_TYPES_AS_TEMPLATE_ARGS
-        DCHECK_EQ(std::strcmp(name, Name.c_str()), 0);
+    DCHECK_EQ(std::strcmp(name, Name.c_str()), 0);
 #endif
-    }
+  }
 
-    ZoneWithName(const ZoneWithName&) = delete;
-    ZoneWithName(ZoneWithName&& other) V8_NOEXCEPT : scope_(std::move(other.scope_))
-    {
-    }
-    ZoneWithName& operator=(const ZoneWithName&) = delete;
-    ZoneWithName& operator=(ZoneWithName&& other) V8_NOEXCEPT
-    {
-        scope_ = std::move(other.scope_);
-        return *this;
-    }
+  ZoneWithName(const ZoneWithName&) = delete;
+  ZoneWithName(ZoneWithName&& other) V8_NOEXCEPT
+      : scope_(std::move(other.scope_)) {}
+  ZoneWithName& operator=(const ZoneWithName&) = delete;
+  ZoneWithName& operator=(ZoneWithName&& other) V8_NOEXCEPT {
+    scope_ = std::move(other.scope_);
+    return *this;
+  }
 
-    template <typename T, typename... Args> ZoneWithNamePointer<T, Name> New(Args&&... args)
-    {
-        return ZoneWithNamePointer<T, Name> { get()->template New<T>(std::forward<Args>(args)...) };
-    }
+  template <typename T, typename... Args>
+  ZoneWithNamePointer<T, Name> New(Args&&... args) {
+    return ZoneWithNamePointer<T, Name>{
+        get()->template New<T>(std::forward<Args>(args)...)};
+  }
 
-    template <typename T> ZoneWithNamePointer<T, Name> AllocateArray(size_t length)
-    {
-        return ZoneWithNamePointer<T, Name> { get()->template AllocateArray<T>(length) };
-    }
+  template <typename T>
+  ZoneWithNamePointer<T, Name> AllocateArray(size_t length) {
+    return ZoneWithNamePointer<T, Name>{
+        get()->template AllocateArray<T>(length)};
+  }
 
-    Zone* get()
-    {
-        return scope_.zone();
-    }
-    operator Zone*()
-    {
-        return get();
-    } // NOLINT(runtime/explicit)
-    Zone* operator->()
-    {
-        return get();
-    }
+  Zone* get() { return scope_.zone(); }
+  operator Zone*() { return get(); }  // NOLINT(runtime/explicit)
+  Zone* operator->() { return get(); }
 
-    void Destroy()
-    {
-        scope_.Destroy();
-    }
+  void Destroy() { scope_.Destroy(); }
 
-private:
-    // NOTE: `ZoneStats::Scope` actually allocates a new zone.
-    ZoneStats::Scope scope_;
+ private:
+  // NOTE: `ZoneStats::Scope` actually allocates a new zone.
+  ZoneStats::Scope scope_;
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_ZONE_WITH_NAME_H_
+#endif  // V8_COMPILER_TURBOSHAFT_ZONE_WITH_NAME_H_

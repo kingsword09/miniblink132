@@ -13,11 +13,10 @@ const char* const kRegExpErrorStrings[] = {
 #undef TEMPLATE
 };
 
-const char* RegExpErrorString(RegExpError error)
-{
-    DCHECK_LT(error, RegExpError::NumErrors);
-    return kRegExpErrorStrings[static_cast<int>(error)];
+const char* RegExpErrorString(RegExpError error) {
+  DCHECK_LT(error, RegExpError::NumErrors);
+  return kRegExpErrorStrings[static_cast<int>(error)];
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

@@ -19,7 +19,8 @@ static const char* const NEVER_TYPE_STRING = "never";
 static const char* const CONSTEXPR_BOOL_TYPE_STRING = "constexpr bool";
 static const char* const CONSTEXPR_STRING_TYPE_STRING = "constexpr string";
 static const char* const CONSTEXPR_INTPTR_TYPE_STRING = "constexpr intptr";
-static const char* const CONSTEXPR_INSTANCE_TYPE_TYPE_STRING = "constexpr InstanceType";
+static const char* const CONSTEXPR_INSTANCE_TYPE_TYPE_STRING =
+    "constexpr InstanceType";
 static const char* const BOOL_TYPE_STRING = "bool";
 static const char* const VOID_TYPE_STRING = "void";
 static const char* const ARGUMENTS_TYPE_STRING = "Arguments";
@@ -37,7 +38,8 @@ static const char* const SMI_TYPE_STRING = "Smi";
 static const char* const TAGGED_TYPE_STRING = "Tagged";
 static const char* const STRONG_TAGGED_TYPE_STRING = "StrongTagged";
 static const char* const UNINITIALIZED_TYPE_STRING = "Uninitialized";
-static const char* const UNINITIALIZED_HEAP_OBJECT_TYPE_STRING = "UninitializedHeapObject";
+static const char* const UNINITIALIZED_HEAP_OBJECT_TYPE_STRING =
+    "UninitializedHeapObject";
 static const char* const RAWPTR_TYPE_STRING = "RawPtr";
 static const char* const EXTERNALPTR_TYPE_STRING = "ExternalPointer";
 static const char* const CPPHEAPPTR_TYPE_STRING = "CppHeapPointer";
@@ -70,7 +72,8 @@ static const char* const FLOAT64_OR_HOLE_TYPE_STRING = "float64_or_hole";
 static const char* const CONST_INT31_TYPE_STRING = "constexpr int31";
 static const char* const CONST_INT32_TYPE_STRING = "constexpr int32";
 static const char* const CONST_FLOAT64_TYPE_STRING = "constexpr float64";
-static const char* const INTEGER_LITERAL_TYPE_STRING = "constexpr IntegerLiteral";
+static const char* const INTEGER_LITERAL_TYPE_STRING =
+    "constexpr IntegerLiteral";
 static const char* const TORQUE_INTERNAL_NAMESPACE_STRING = "torque_internal";
 static const char* const MUTABLE_REFERENCE_TYPE_STRING = "MutableReference";
 static const char* const CONST_REFERENCE_TYPE_STRING = "ConstReference";
@@ -79,31 +82,44 @@ static const char* const CONST_SLICE_TYPE_STRING = "ConstSlice";
 static const char* const WEAK_TYPE_STRING = "Weak";
 static const char* const SMI_TAGGED_TYPE_STRING = "SmiTagged";
 static const char* const LAZY_TYPE_STRING = "Lazy";
-static const char* const UNINITIALIZED_ITERATOR_TYPE_STRING = "UninitializedIterator";
-static const char* const GENERIC_TYPE_INSTANTIATION_NAMESPACE_STRING = "_generic_type_instantiation_namespace";
+static const char* const UNINITIALIZED_ITERATOR_TYPE_STRING =
+    "UninitializedIterator";
+static const char* const GENERIC_TYPE_INSTANTIATION_NAMESPACE_STRING =
+    "_generic_type_instantiation_namespace";
 static const char* const FIXED_ARRAY_BASE_TYPE_STRING = "FixedArrayBase";
 static const char* const WEAK_HEAP_OBJECT = "WeakHeapObject";
 static const char* const STATIC_ASSERT_MACRO_STRING = "StaticAssert";
 
 static const char* const ANNOTATION_ABSTRACT = "@abstract";
-static const char* const ANNOTATION_HAS_SAME_INSTANCE_TYPE_AS_PARENT = "@hasSameInstanceTypeAsParent";
-static const char* const ANNOTATION_DO_NOT_GENERATE_CPP_CLASS = "@doNotGenerateCppClass";
+static const char* const ANNOTATION_HAS_SAME_INSTANCE_TYPE_AS_PARENT =
+    "@hasSameInstanceTypeAsParent";
+static const char* const ANNOTATION_DO_NOT_GENERATE_CPP_CLASS =
+    "@doNotGenerateCppClass";
 static const char* const ANNOTATION_CUSTOM_MAP = "@customMap";
 static const char* const ANNOTATION_CUSTOM_CPP_CLASS = "@customCppClass";
-static const char* const ANNOTATION_HIGHEST_INSTANCE_TYPE_WITHIN_PARENT = "@highestInstanceTypeWithinParentClassRange";
-static const char* const ANNOTATION_LOWEST_INSTANCE_TYPE_WITHIN_PARENT = "@lowestInstanceTypeWithinParentClassRange";
-static const char* const ANNOTATION_RESERVE_BITS_IN_INSTANCE_TYPE = "@reserveBitsInInstanceType";
-static const char* const ANNOTATION_INSTANCE_TYPE_VALUE = "@apiExposedInstanceTypeValue";
+static const char* const ANNOTATION_HIGHEST_INSTANCE_TYPE_WITHIN_PARENT =
+    "@highestInstanceTypeWithinParentClassRange";
+static const char* const ANNOTATION_LOWEST_INSTANCE_TYPE_WITHIN_PARENT =
+    "@lowestInstanceTypeWithinParentClassRange";
+static const char* const ANNOTATION_RESERVE_BITS_IN_INSTANCE_TYPE =
+    "@reserveBitsInInstanceType";
+static const char* const ANNOTATION_INSTANCE_TYPE_VALUE =
+    "@apiExposedInstanceTypeValue";
 static const char* const ANNOTATION_IF = "@if";
 static const char* const ANNOTATION_IFNOT = "@ifnot";
-static const char* const ANNOTATION_GENERATE_BODY_DESCRIPTOR = "@generateBodyDescriptor";
+static const char* const ANNOTATION_GENERATE_BODY_DESCRIPTOR =
+    "@generateBodyDescriptor";
 static const char* const ANNOTATION_GENERATE_UNIQUE_MAP = "@generateUniqueMap";
-static const char* const ANNOTATION_GENERATE_FACTORY_FUNCTION = "@generateFactoryFunction";
+static const char* const ANNOTATION_GENERATE_FACTORY_FUNCTION =
+    "@generateFactoryFunction";
 static const char* const ANNOTATION_EXPORT = "@export";
 static const char* const ANNOTATION_DO_NOT_GENERATE_CAST = "@doNotGenerateCast";
-static const char* const ANNOTATION_USE_PARENT_TYPE_CHECKER = "@useParentTypeChecker";
-static const char* const ANNOTATION_CPP_OBJECT_DEFINITION = "@cppObjectDefinition";
-static const char* const ANNOTATION_CPP_OBJECT_LAYOUT_DEFINITION = "@cppObjectLayoutDefinition";
+static const char* const ANNOTATION_USE_PARENT_TYPE_CHECKER =
+    "@useParentTypeChecker";
+static const char* const ANNOTATION_CPP_OBJECT_DEFINITION =
+    "@cppObjectDefinition";
+static const char* const ANNOTATION_CPP_OBJECT_LAYOUT_DEFINITION =
+    "@cppObjectLayoutDefinition";
 static const char* const ANNOTATION_SAME_ENUM_VALUE_AS = "@sameEnumValueAs";
 // Generate C++ accessors with relaxed store semantics.
 // Weak<T> and Tagged<MaybeObject> fields always use relaxed store.
@@ -117,53 +133,50 @@ static const char* const ANNOTATION_CPP_ACQUIRE_LOAD = "@cppAcquireLoad";
 // Generate BodyDescriptor using IterateCustomWeakPointers.
 static const char* const ANNOTATION_CUSTOM_WEAK_MARKING = "@customWeakMarking";
 // Do not generate an interface descriptor for this builtin.
-static const char* const ANNOTATION_CUSTOM_INTERFACE_DESCRIPTOR = "@customInterfaceDescriptor";
+static const char* const ANNOTATION_CUSTOM_INTERFACE_DESCRIPTOR =
+    "@customInterfaceDescriptor";
 
-inline bool IsConstexprName(const std::string& name)
-{
-    return name.substr(0, std::strlen(CONSTEXPR_TYPE_PREFIX)) == CONSTEXPR_TYPE_PREFIX;
+inline bool IsConstexprName(const std::string& name) {
+  return name.substr(0, std::strlen(CONSTEXPR_TYPE_PREFIX)) ==
+         CONSTEXPR_TYPE_PREFIX;
 }
 
-inline std::string GetNonConstexprName(const std::string& name)
-{
-    if (!IsConstexprName(name))
-        return name;
-    return name.substr(std::strlen(CONSTEXPR_TYPE_PREFIX));
+inline std::string GetNonConstexprName(const std::string& name) {
+  if (!IsConstexprName(name)) return name;
+  return name.substr(std::strlen(CONSTEXPR_TYPE_PREFIX));
 }
 
-inline std::string GetConstexprName(const std::string& name)
-{
-    if (IsConstexprName(name))
-        return name;
-    return CONSTEXPR_TYPE_PREFIX + name;
+inline std::string GetConstexprName(const std::string& name) {
+  if (IsConstexprName(name)) return name;
+  return CONSTEXPR_TYPE_PREFIX + name;
 }
 
 enum class AbstractTypeFlag {
-    kNone = 0,
-    kTransient = 1 << 0,
-    kConstexpr = 1 << 1,
-    kUseParentTypeChecker = 1 << 2,
+  kNone = 0,
+  kTransient = 1 << 0,
+  kConstexpr = 1 << 1,
+  kUseParentTypeChecker = 1 << 2,
 };
 using AbstractTypeFlags = base::Flags<AbstractTypeFlag>;
 
 enum class ClassFlag {
-    kNone = 0,
-    kExtern = 1 << 0,
-    kTransient = 1 << 1,
-    kAbstract = 1 << 2,
-    kIsShape = 1 << 3,
-    kHasSameInstanceTypeAsParent = 1 << 4,
-    kGenerateCppClassDefinitions = 1 << 5,
-    kHighestInstanceTypeWithinParent = 1 << 6,
-    kLowestInstanceTypeWithinParent = 1 << 7,
-    kUndefinedLayout = 1 << 8,
-    kGenerateBodyDescriptor = 1 << 9,
-    kExport = 1 << 10,
-    kDoNotGenerateCast = 1 << 11,
-    kGenerateUniqueMap = 1 << 12,
-    kGenerateFactoryFunction = 1 << 13,
-    kCppObjectDefinition = 1 << 14,
-    kCppObjectLayoutDefinition = 1 << 15,
+  kNone = 0,
+  kExtern = 1 << 0,
+  kTransient = 1 << 1,
+  kAbstract = 1 << 2,
+  kIsShape = 1 << 3,
+  kHasSameInstanceTypeAsParent = 1 << 4,
+  kGenerateCppClassDefinitions = 1 << 5,
+  kHighestInstanceTypeWithinParent = 1 << 6,
+  kLowestInstanceTypeWithinParent = 1 << 7,
+  kUndefinedLayout = 1 << 8,
+  kGenerateBodyDescriptor = 1 << 9,
+  kExport = 1 << 10,
+  kDoNotGenerateCast = 1 << 11,
+  kGenerateUniqueMap = 1 << 12,
+  kGenerateFactoryFunction = 1 << 13,
+  kCppObjectDefinition = 1 << 14,
+  kCppObjectLayoutDefinition = 1 << 15,
 };
 using ClassFlags = base::Flags<ClassFlag>;
 
@@ -171,13 +184,13 @@ enum class StructFlag { kNone = 0, kExport = 1 << 0 };
 using StructFlags = base::Flags<StructFlag>;
 
 enum class FieldSynchronization {
-    kNone,
-    kRelaxed,
-    kAcquireRelease,
+  kNone,
+  kRelaxed,
+  kAcquireRelease,
 };
 
-} // namespace torque
-} // namespace internal
-} // namespace v8
+}  // namespace torque
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TORQUE_CONSTANTS_H_
+#endif  // V8_TORQUE_CONSTANTS_H_

@@ -11,10 +11,10 @@
 #include <string>
 
 #include "cppgc/common.h"
-#include "v8-data.h" // NOLINT(build/include_directory)
-#include "v8-local-handle.h" // NOLINT(build/include_directory)
-#include "v8-promise.h" // NOLINT(build/include_directory)
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8-data.h"          // NOLINT(build/include_directory)
+#include "v8-local-handle.h"  // NOLINT(build/include_directory)
+#include "v8-promise.h"       // NOLINT(build/include_directory)
+#include "v8config.h"         // NOLINT(build/include_directory)
 
 #if defined(V8_OS_WIN)
 struct _EXCEPTION_POINTERS;
@@ -22,7 +22,8 @@ struct _EXCEPTION_POINTERS;
 
 namespace v8 {
 
-template <typename T> class FunctionCallbackInfo;
+template <typename T>
+class FunctionCallbackInfo;
 class Isolate;
 class Message;
 class Module;
@@ -39,89 +40,96 @@ class Value;
  * \note removal events are not currently issued.
  */
 struct JitCodeEvent {
-    enum EventType { CODE_ADDED, CODE_MOVED, CODE_REMOVED, CODE_ADD_LINE_POS_INFO, CODE_START_LINE_INFO_RECORDING, CODE_END_LINE_INFO_RECORDING };
-    // Definition of the code position type. The "POSITION" type means the place
-    // in the source code which are of interest when making stack traces to
-    // pin-point the source location of a stack frame as close as possible.
-    // The "STATEMENT_POSITION" means the place at the beginning of each
-    // statement, and is used to indicate possible break locations.
-    enum PositionType { POSITION, STATEMENT_POSITION };
+  enum EventType {
+    CODE_ADDED,
+    CODE_MOVED,
+    CODE_REMOVED,
+    CODE_ADD_LINE_POS_INFO,
+    CODE_START_LINE_INFO_RECORDING,
+    CODE_END_LINE_INFO_RECORDING
+  };
+  // Definition of the code position type. The "POSITION" type means the place
+  // in the source code which are of interest when making stack traces to
+  // pin-point the source location of a stack frame as close as possible.
+  // The "STATEMENT_POSITION" means the place at the beginning of each
+  // statement, and is used to indicate possible break locations.
+  enum PositionType { POSITION, STATEMENT_POSITION };
 
-    // There are three different kinds of CodeType, one for JIT code generated
-    // by the optimizing compiler, one for byte code generated for the
-    // interpreter, and one for code generated from Wasm. For JIT_CODE and
-    // WASM_CODE, |code_start| points to the beginning of jitted assembly code,
-    // while for BYTE_CODE events, |code_start| points to the first bytecode of
-    // the interpreted function.
-    enum CodeType { BYTE_CODE, JIT_CODE, WASM_CODE };
+  // There are three different kinds of CodeType, one for JIT code generated
+  // by the optimizing compiler, one for byte code generated for the
+  // interpreter, and one for code generated from Wasm. For JIT_CODE and
+  // WASM_CODE, |code_start| points to the beginning of jitted assembly code,
+  // while for BYTE_CODE events, |code_start| points to the first bytecode of
+  // the interpreted function.
+  enum CodeType { BYTE_CODE, JIT_CODE, WASM_CODE };
 
-    // Type of event.
-    EventType type;
-    CodeType code_type;
-    // Start of the instructions.
-    void* code_start;
-    // Size of the instructions.
-    size_t code_len;
-    // Script info for CODE_ADDED event.
-    Local<UnboundScript> script;
-    // User-defined data for *_LINE_INFO_* event. It's used to hold the source
-    // code line information which is returned from the
-    // CODE_START_LINE_INFO_RECORDING event. And it's passed to subsequent
-    // CODE_ADD_LINE_POS_INFO and CODE_END_LINE_INFO_RECORDING events.
-    void* user_data;
+  // Type of event.
+  EventType type;
+  CodeType code_type;
+  // Start of the instructions.
+  void* code_start;
+  // Size of the instructions.
+  size_t code_len;
+  // Script info for CODE_ADDED event.
+  Local<UnboundScript> script;
+  // User-defined data for *_LINE_INFO_* event. It's used to hold the source
+  // code line information which is returned from the
+  // CODE_START_LINE_INFO_RECORDING event. And it's passed to subsequent
+  // CODE_ADD_LINE_POS_INFO and CODE_END_LINE_INFO_RECORDING events.
+  void* user_data;
 
-    struct name_t {
-        // Name of the object associated with the code, note that the string is not
-        // zero-terminated.
-        const char* str;
-        // Number of chars in str.
-        size_t len;
-    };
+  struct name_t {
+    // Name of the object associated with the code, note that the string is not
+    // zero-terminated.
+    const char* str;
+    // Number of chars in str.
+    size_t len;
+  };
 
-    struct line_info_t {
-        // PC offset
-        size_t offset;
-        // Code position
-        size_t pos;
-        // The position type.
-        PositionType position_type;
-    };
+  struct line_info_t {
+    // PC offset
+    size_t offset;
+    // Code position
+    size_t pos;
+    // The position type.
+    PositionType position_type;
+  };
 
-    struct wasm_source_info_t {
-        // Source file name.
-        const char* filename;
-        // Length of filename.
-        size_t filename_size;
-        // Line number table, which maps offsets of JITted code to line numbers of
-        // source file.
-        const line_info_t* line_number_table;
-        // Number of entries in the line number table.
-        size_t line_number_table_size;
-    };
+  struct wasm_source_info_t {
+    // Source file name.
+    const char* filename;
+    // Length of filename.
+    size_t filename_size;
+    // Line number table, which maps offsets of JITted code to line numbers of
+    // source file.
+    const line_info_t* line_number_table;
+    // Number of entries in the line number table.
+    size_t line_number_table_size;
+  };
 
-    wasm_source_info_t* wasm_source_info = nullptr;
+  wasm_source_info_t* wasm_source_info = nullptr;
 
-    union {
-        // Only valid for CODE_ADDED.
-        struct name_t name;
+  union {
+    // Only valid for CODE_ADDED.
+    struct name_t name;
 
-        // Only valid for CODE_ADD_LINE_POS_INFO
-        struct line_info_t line_info;
+    // Only valid for CODE_ADD_LINE_POS_INFO
+    struct line_info_t line_info;
 
-        // New location of instructions. Only valid for CODE_MOVED.
-        void* new_code_start;
-    };
+    // New location of instructions. Only valid for CODE_MOVED.
+    void* new_code_start;
+  };
 
-    Isolate* isolate;
+  Isolate* isolate;
 };
 
 /**
  * Option flags passed to the SetJitCodeEventHandler function.
  */
 enum JitCodeEventOptions {
-    kJitCodeEventDefault = 0,
-    // Generate callbacks for already existent code.
-    kJitCodeEventEnumExisting = 1
+  kJitCodeEventDefault = 0,
+  // Generate callbacks for already existent code.
+  kJitCodeEventEnumExisting = 1
 };
 
 /**
@@ -142,12 +150,14 @@ using JitCodeEventHandler = void (*)(const JitCodeEvent* event);
  * TODO(v8:12612): Deprecate kGCTypeMinorMarkSweep after updating blink.
  */
 enum GCType {
-    kGCTypeScavenge = 1 << 0,
-    kGCTypeMinorMarkSweep = 1 << 1,
-    kGCTypeMarkSweepCompact = 1 << 2,
-    kGCTypeIncrementalMarking = 1 << 3,
-    kGCTypeProcessWeakCallbacks = 1 << 4,
-    kGCTypeAll = kGCTypeScavenge | kGCTypeMinorMarkSweep | kGCTypeMarkSweepCompact | kGCTypeIncrementalMarking | kGCTypeProcessWeakCallbacks
+  kGCTypeScavenge = 1 << 0,
+  kGCTypeMinorMarkSweep = 1 << 1,
+  kGCTypeMarkSweepCompact = 1 << 2,
+  kGCTypeIncrementalMarking = 1 << 3,
+  kGCTypeProcessWeakCallbacks = 1 << 4,
+  kGCTypeAll = kGCTypeScavenge | kGCTypeMinorMarkSweep |
+               kGCTypeMarkSweepCompact | kGCTypeIncrementalMarking |
+               kGCTypeProcessWeakCallbacks
 };
 
 /**
@@ -165,13 +175,13 @@ enum GCType {
  *     trigger an idle garbage collection.
  */
 enum GCCallbackFlags {
-    kNoGCCallbackFlags = 0,
-    kGCCallbackFlagConstructRetainedObjectInfos = 1 << 1,
-    kGCCallbackFlagForced = 1 << 2,
-    kGCCallbackFlagSynchronousPhantomCallbackProcessing = 1 << 3,
-    kGCCallbackFlagCollectAllAvailableGarbage = 1 << 4,
-    kGCCallbackFlagCollectAllExternalMemory = 1 << 5,
-    kGCCallbackScheduleIdleGarbageCollection = 1 << 6,
+  kNoGCCallbackFlags = 0,
+  kGCCallbackFlagConstructRetainedObjectInfos = 1 << 1,
+  kGCCallbackFlagForced = 1 << 2,
+  kGCCallbackFlagSynchronousPhantomCallbackProcessing = 1 << 3,
+  kGCCallbackFlagCollectAllAvailableGarbage = 1 << 4,
+  kGCCallbackFlagCollectAllExternalMemory = 1 << 5,
+  kGCCallbackScheduleIdleGarbageCollection = 1 << 6,
 };
 
 using GCCallback = void (*)(GCType type, GCCallbackFlags flags);
@@ -185,20 +195,23 @@ using InterruptCallback = void (*)(Isolate* isolate, void* data);
  * than the current_heap_limit. The initial heap limit is the limit that was
  * set after heap setup.
  */
-using NearHeapLimitCallback = size_t (*)(void* data, size_t current_heap_limit, size_t initial_heap_limit);
+using NearHeapLimitCallback = size_t (*)(void* data, size_t current_heap_limit,
+                                         size_t initial_heap_limit);
 
 /**
  * Callback function passed to SetUnhandledExceptionCallback.
  */
 #if defined(V8_OS_WIN)
-using UnhandledExceptionCallback = int (*)(_EXCEPTION_POINTERS* exception_pointers);
+using UnhandledExceptionCallback =
+    int (*)(_EXCEPTION_POINTERS* exception_pointers);
 #endif
 
 // --- Counters Callbacks ---
 
 using CounterLookupCallback = int* (*)(const char* name);
 
-using CreateHistogramCallback = void* (*)(const char* name, int min, int max, size_t buckets);
+using CreateHistogramCallback = void* (*)(const char* name, int min, int max,
+                                          size_t buckets);
 
 using AddHistogramSampleCallback = void (*)(void* histogram, int sample);
 
@@ -207,30 +220,32 @@ using AddHistogramSampleCallback = void (*)(void* histogram, int sample);
 using FatalErrorCallback = void (*)(const char* location, const char* message);
 
 struct OOMDetails {
-    bool is_heap_oom = false;
-    const char* detail = nullptr;
+  bool is_heap_oom = false;
+  const char* detail = nullptr;
 };
 
-using OOMErrorCallback = void (*)(const char* location, const OOMDetails& details);
+using OOMErrorCallback = void (*)(const char* location,
+                                  const OOMDetails& details);
 
 using MessageCallback = void (*)(Local<Message> message, Local<Value> data);
 
 // --- Tracing ---
 
 enum LogEventStatus : int { kStart = 0, kEnd = 1, kLog = 2 };
-using LogEventCallback = void (*)(const char* name, int /* LogEventStatus */ status);
+using LogEventCallback = void (*)(const char* name,
+                                  int /* LogEventStatus */ status);
 
 // --- Crashkeys Callback ---
 enum class CrashKeyId {
-    kIsolateAddress,
-    kReadonlySpaceFirstPageAddress,
-    kMapSpaceFirstPageAddress V8_ENUM_DEPRECATE_SOON("Map space got removed"),
-    kOldSpaceFirstPageAddress,
-    kCodeRangeBaseAddress,
-    kCodeSpaceFirstPageAddress,
-    kDumpType,
-    kSnapshotChecksumCalculated,
-    kSnapshotChecksumExpected,
+  kIsolateAddress,
+  kReadonlySpaceFirstPageAddress,
+  kMapSpaceFirstPageAddress V8_ENUM_DEPRECATE_SOON("Map space got removed"),
+  kOldSpaceFirstPageAddress,
+  kCodeRangeBaseAddress,
+  kCodeSpaceFirstPageAddress,
+  kDumpType,
+  kSnapshotChecksumCalculated,
+  kSnapshotChecksumExpected,
 };
 
 using AddCrashKeyCallback = void (*)(CrashKeyId id, const std::string& value);
@@ -241,34 +256,47 @@ using CallCompletedCallback = void (*)(Isolate*);
 
 // --- Modify Code Generation From Strings Callback ---
 struct ModifyCodeGenerationFromStringsResult {
-    // If true, proceed with the codegen algorithm. Otherwise, block it.
-    bool codegen_allowed = false;
-    // Overwrite the original source with this string, if present.
-    // Use the original source if empty.
-    // This field is considered only if codegen_allowed is true.
-    MaybeLocal<String> modified_source;
+  // If true, proceed with the codegen algorithm. Otherwise, block it.
+  bool codegen_allowed = false;
+  // Overwrite the original source with this string, if present.
+  // Use the original source if empty.
+  // This field is considered only if codegen_allowed is true.
+  MaybeLocal<String> modified_source;
 };
 
 /**
  * Callback to check if codegen is allowed from a source object, and convert
  * the source to string if necessary. See: ModifyCodeGenerationFromStrings.
  */
-using ModifyCodeGenerationFromStringsCallback = ModifyCodeGenerationFromStringsResult (*)(Local<Context> context, Local<Value> source);
-using ModifyCodeGenerationFromStringsCallback2 = ModifyCodeGenerationFromStringsResult (*)(Local<Context> context, Local<Value> source, bool is_code_like);
+using ModifyCodeGenerationFromStringsCallback =
+    ModifyCodeGenerationFromStringsResult (*)(Local<Context> context,
+                                              Local<Value> source);
+using ModifyCodeGenerationFromStringsCallback2 =
+    ModifyCodeGenerationFromStringsResult (*)(Local<Context> context,
+                                              Local<Value> source,
+                                              bool is_code_like);
 
 // --- Failed Access Check Callback ---
 
 /**
  * Access type specification.
  */
-enum AccessType { ACCESS_GET, ACCESS_SET, ACCESS_HAS, ACCESS_DELETE, ACCESS_KEYS };
+enum AccessType {
+  ACCESS_GET,
+  ACCESS_SET,
+  ACCESS_HAS,
+  ACCESS_DELETE,
+  ACCESS_KEYS
+};
 
-using FailedAccessCheckCallback = void (*)(Local<Object> target, AccessType type, Local<Value> data);
+using FailedAccessCheckCallback = void (*)(Local<Object> target,
+                                           AccessType type, Local<Value> data);
 
 // --- WebAssembly compilation callbacks ---
 using ExtensionCallback = bool (*)(const FunctionCallbackInfo<Value>&);
 
-using AllowWasmCodeGenerationCallback = bool (*)(Local<Context> context, Local<String> source);
+using AllowWasmCodeGenerationCallback = bool (*)(Local<Context> context,
+                                                 Local<String> source);
 
 // --- Callback for APIs defined on v8-supported objects, but implemented
 // by the embedder. Example: WebAssembly.{compile|instantiate}Streaming ---
@@ -280,20 +308,24 @@ using WasmStreamingCallback = void (*)(const FunctionCallbackInfo<Value>&);
 enum class WasmAsyncSuccess { kSuccess, kFail };
 
 // --- Callback called when async WebAssembly operations finish ---
-using WasmAsyncResolvePromiseCallback
-    = void (*)(Isolate* isolate, Local<Context> context, Local<Promise::Resolver> resolver, Local<Value> result, WasmAsyncSuccess success);
+using WasmAsyncResolvePromiseCallback = void (*)(
+    Isolate* isolate, Local<Context> context, Local<Promise::Resolver> resolver,
+    Local<Value> result, WasmAsyncSuccess success);
 
 // --- Callback for loading source map file for Wasm profiling support
-using WasmLoadSourceMapCallback = Local<String> (*)(Isolate* isolate, const char* name);
+using WasmLoadSourceMapCallback = Local<String> (*)(Isolate* isolate,
+                                                    const char* name);
 
 // --- Callback for checking if WebAssembly imported strings are enabled ---
 using WasmImportedStringsEnabledCallback = bool (*)(Local<Context> context);
 
 // --- Callback for checking if the SharedArrayBuffer constructor is enabled ---
-using SharedArrayBufferConstructorEnabledCallback = bool (*)(Local<Context> context);
+using SharedArrayBufferConstructorEnabledCallback =
+    bool (*)(Local<Context> context);
 
 // --- Callback for checking if the compile hints magic comments are enabled ---
-using JavaScriptCompileHintsMagicEnabledCallback = bool (*)(Local<Context> context);
+using JavaScriptCompileHintsMagicEnabledCallback =
+    bool (*)(Local<Context> context);
 
 // --- Callback for checking if WebAssembly JSPI is enabled ---
 using WasmJSPIEnabledCallback = bool (*)(Local<Context> context);
@@ -302,8 +334,8 @@ using WasmJSPIEnabledCallback = bool (*)(Local<Context> context);
  * Import phases in import requests.
  */
 enum class ModuleImportPhase {
-    kSource,
-    kEvaluation,
+  kSource,
+  kEvaluation,
 };
 
 /**
@@ -333,7 +365,9 @@ enum class ModuleImportPhase {
  * that exception by returning an empty MaybeLocal.
  */
 using HostImportModuleDynamicallyCallback = MaybeLocal<Promise> (*)(
-    Local<Context> context, Local<Data> host_defined_options, Local<Value> resource_name, Local<String> specifier, Local<FixedArray> import_attributes);
+    Local<Context> context, Local<Data> host_defined_options,
+    Local<Value> resource_name, Local<String> specifier,
+    Local<FixedArray> import_attributes);
 
 /**
  * HostImportModuleWithPhaseDynamicallyCallback is called when we
@@ -371,8 +405,10 @@ using HostImportModuleDynamicallyCallback = MaybeLocal<Promise> (*)(
  * This callback is still experimental and is only invoked for source phase
  * imports.
  */
-using HostImportModuleWithPhaseDynamicallyCallback = MaybeLocal<Promise> (*)(Local<Context> context, Local<Data> host_defined_options,
-    Local<Value> resource_name, Local<String> specifier, ModuleImportPhase phase, Local<FixedArray> import_attributes);
+using HostImportModuleWithPhaseDynamicallyCallback = MaybeLocal<Promise> (*)(
+    Local<Context> context, Local<Data> host_defined_options,
+    Local<Value> resource_name, Local<String> specifier,
+    ModuleImportPhase phase, Local<FixedArray> import_attributes);
 
 /**
  * Callback for requesting a compile hint for a function from the embedder. The
@@ -391,7 +427,9 @@ using CompileHintCallback = bool (*)(int, void*);
  * The embedder should use v8::Object::CreateDataProperty to add properties on
  * the meta object.
  */
-using HostInitializeImportMetaObjectCallback = void (*)(Local<Context> context, Local<Module> module, Local<Object> meta);
+using HostInitializeImportMetaObjectCallback = void (*)(Local<Context> context,
+                                                        Local<Module> module,
+                                                        Local<Object> meta);
 
 /**
  * HostCreateShadowRealmContextCallback is called each time a ShadowRealm is
@@ -404,7 +442,8 @@ using HostInitializeImportMetaObjectCallback = void (*)(Local<Context> context, 
  * create a new context. If the creation fails, the embedder must propagate
  * that exception by returning an empty MaybeLocal.
  */
-using HostCreateShadowRealmContextCallback = MaybeLocal<Context> (*)(Local<Context> initiator_context);
+using HostCreateShadowRealmContextCallback =
+    MaybeLocal<Context> (*)(Local<Context> initiator_context);
 
 /**
  * PrepareStackTraceCallback is called when the stack property of an error is
@@ -413,7 +452,9 @@ using HostCreateShadowRealmContextCallback = MaybeLocal<Context> (*)(Local<Conte
  * |sites| is an array of call sites, specified in
  * https://v8.dev/docs/stack-trace-api
  */
-using PrepareStackTraceCallback = MaybeLocal<Value> (*)(Local<Context> context, Local<Value> error, Local<Array> sites);
+using PrepareStackTraceCallback = MaybeLocal<Value> (*)(Local<Context> context,
+                                                        Local<Value> error,
+                                                        Local<Array> sites);
 
 #if defined(V8_OS_WIN)
 /**
@@ -450,9 +491,10 @@ using PrepareStackTraceCallback = MaybeLocal<Value> (*)(Local<Context> context, 
  *     ]
  *  }
  */
-using FilterETWSessionByURLCallback = bool (*)(Local<Context> context, const std::string& etw_filter_payload);
-#endif // V8_OS_WIN
+using FilterETWSessionByURLCallback =
+    bool (*)(Local<Context> context, const std::string& etw_filter_payload);
+#endif  // V8_OS_WIN
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_ISOLATE_CALLBACKS_H_
+#endif  // INCLUDE_V8_ISOLATE_CALLBACKS_H_

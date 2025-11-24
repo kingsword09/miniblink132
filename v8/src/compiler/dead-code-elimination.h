@@ -35,61 +35,52 @@ class CommonOperatorBuilder;
 // Since phi nodes are the only remaining use of {DeadValue}, this
 // representation is only adjusted for uses by phi nodes.
 // In contrast to {DeadValue}, {Dead} can never remain in the graph.
-class V8_EXPORT_PRIVATE DeadCodeElimination final : public NON_EXPORTED_BASE(AdvancedReducer) {
-public:
-    DeadCodeElimination(Editor* editor, Graph* graph, CommonOperatorBuilder* common, Zone* temp_zone);
-    ~DeadCodeElimination() final = default;
-    DeadCodeElimination(const DeadCodeElimination&) = delete;
-    DeadCodeElimination& operator=(const DeadCodeElimination&) = delete;
+class V8_EXPORT_PRIVATE DeadCodeElimination final
+    : public NON_EXPORTED_BASE(AdvancedReducer) {
+ public:
+  DeadCodeElimination(Editor* editor, Graph* graph,
+                      CommonOperatorBuilder* common, Zone* temp_zone);
+  ~DeadCodeElimination() final = default;
+  DeadCodeElimination(const DeadCodeElimination&) = delete;
+  DeadCodeElimination& operator=(const DeadCodeElimination&) = delete;
 
-    const char* reducer_name() const override
-    {
-        return "DeadCodeElimination";
-    }
+  const char* reducer_name() const override { return "DeadCodeElimination"; }
 
-    Reduction Reduce(Node* node) final;
+  Reduction Reduce(Node* node) final;
 
-private:
-    Reduction ReduceEnd(Node* node);
-    Reduction ReduceLoopOrMerge(Node* node);
-    Reduction ReduceLoopExit(Node* node);
-    Reduction ReduceNode(Node* node);
-    Reduction ReducePhi(Node* node);
-    Reduction ReduceEffectPhi(Node* node);
-    Reduction ReducePureNode(Node* node);
-    Reduction ReduceUnreachableOrIfException(Node* node);
-    Reduction ReduceEffectNode(Node* node);
-    Reduction ReduceDeoptimizeOrReturnOrTerminateOrTailCall(Node* node);
-    Reduction ReduceBranchOrSwitch(Node* node);
+ private:
+  Reduction ReduceEnd(Node* node);
+  Reduction ReduceLoopOrMerge(Node* node);
+  Reduction ReduceLoopExit(Node* node);
+  Reduction ReduceNode(Node* node);
+  Reduction ReducePhi(Node* node);
+  Reduction ReduceEffectPhi(Node* node);
+  Reduction ReducePureNode(Node* node);
+  Reduction ReduceUnreachableOrIfException(Node* node);
+  Reduction ReduceEffectNode(Node* node);
+  Reduction ReduceDeoptimizeOrReturnOrTerminateOrTailCall(Node* node);
+  Reduction ReduceBranchOrSwitch(Node* node);
 
-    Reduction RemoveLoopExit(Node* node);
-    Reduction PropagateDeadControl(Node* node);
+  Reduction RemoveLoopExit(Node* node);
+  Reduction PropagateDeadControl(Node* node);
 
-    void TrimMergeOrPhi(Node* node, int size);
+  void TrimMergeOrPhi(Node* node, int size);
 
-    Node* DeadValue(Node* none_node, MachineRepresentation rep = MachineRepresentation::kNone);
+  Node* DeadValue(Node* none_node,
+                  MachineRepresentation rep = MachineRepresentation::kNone);
 
-    Graph* graph() const
-    {
-        return graph_;
-    }
-    CommonOperatorBuilder* common() const
-    {
-        return common_;
-    }
-    Node* dead() const
-    {
-        return dead_;
-    }
+  Graph* graph() const { return graph_; }
+  CommonOperatorBuilder* common() const { return common_; }
+  Node* dead() const { return dead_; }
 
-    Graph* const graph_;
-    CommonOperatorBuilder* const common_;
-    Node* const dead_;
-    Zone* zone_;
+  Graph* const graph_;
+  CommonOperatorBuilder* const common_;
+  Node* const dead_;
+  Zone* zone_;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_DEAD_CODE_ELIMINATION_H_
+#endif  // V8_COMPILER_DEAD_CODE_ELIMINATION_H_

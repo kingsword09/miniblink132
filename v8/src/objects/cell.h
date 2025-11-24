@@ -16,23 +16,20 @@ namespace internal {
 #include "torque-generated/src/objects/cell-tq.inc"
 
 class Cell : public TorqueGeneratedCell<Cell, HeapObject> {
-public:
-    inline Address ValueAddress()
-    {
-        return address() + kValueOffset;
-    }
+ public:
+  inline Address ValueAddress() { return address() + kValueOffset; }
 
-    using TorqueGeneratedCell::value;
-    DECL_RELAXED_GETTER(value, Tagged<Object>)
+  using TorqueGeneratedCell::value;
+  DECL_RELAXED_GETTER(value, Tagged<Object>)
 
-    using BodyDescriptor = FixedBodyDescriptor<kValueOffset, kSize, kSize>;
+  using BodyDescriptor = FixedBodyDescriptor<kValueOffset, kSize, kSize>;
 
-    TQ_OBJECT_CONSTRUCTORS(Cell)
+  TQ_OBJECT_CONSTRUCTORS(Cell)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_CELL_H_
+#endif  // V8_OBJECTS_CELL_H_

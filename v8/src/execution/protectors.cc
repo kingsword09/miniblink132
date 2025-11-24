@@ -18,47 +18,46 @@ namespace internal {
 
 namespace {
 
-void TraceProtectorInvalidation(const char* protector_name)
-{
-    DCHECK(v8_flags.trace_protector_invalidation);
-    static constexpr char kInvalidateProtectorTracingCategory[] = "V8.InvalidateProtector";
-    static constexpr char kInvalidateProtectorTracingArg[] = "protector-name";
+void TraceProtectorInvalidation(const char* protector_name) {
+  DCHECK(v8_flags.trace_protector_invalidation);
+  static constexpr char kInvalidateProtectorTracingCategory[] =
+      "V8.InvalidateProtector";
+  static constexpr char kInvalidateProtectorTracingArg[] = "protector-name";
 
-    DCHECK(v8_flags.trace_protector_invalidation);
+  DCHECK(v8_flags.trace_protector_invalidation);
 
-    // TODO(jgruber): Remove the PrintF once tracing can output to stdout.
-    i::PrintF("Invalidating protector cell %s\n", protector_name);
-    TRACE_EVENT_INSTANT1("v8", kInvalidateProtectorTracingCategory, TRACE_EVENT_SCOPE_THREAD, kInvalidateProtectorTracingArg, protector_name);
+  // TODO(jgruber): Remove the PrintF once tracing can output to stdout.
+  i::PrintF("Invalidating protector cell %s\n", protector_name);
+  TRACE_EVENT_INSTANT1("v8", kInvalidateProtectorTracingCategory,
+                       TRACE_EVENT_SCOPE_THREAD, kInvalidateProtectorTracingArg,
+                       protector_name);
 }
 
 // Static asserts to ensure we have a use counter for every protector. If this
 // fails, add the use counter in V8 and chromium. Note: IsDefined is not
 // strictly needed but clarifies the intent of the static assert.
-constexpr bool IsDefined(v8::Isolate::UseCounterFeature)
-{
-    return true;
-}
-#define V(Name, ...) static_assert(IsDefined(v8::Isolate::kInvalidated##Name##Protector));
+constexpr bool IsDefined(v8::Isolate::UseCounterFeature) { return true; }
+#define V(Name, ...) \
+  static_assert(IsDefined(v8::Isolate::kInvalidated##Name##Protector));
 
 DECLARED_PROTECTORS_ON_ISOLATE(V)
 #undef V
 
-} // namespace
+}  // namespace
 
-#define INVALIDATE_PROTECTOR_ON_ISOLATE_DEFINITION(name, unused_index, cell)                                                                                   \
-    void Protectors::Invalidate##name(Isolate* isolate)                                                                                                        \
-    {                                                                                                                                                          \
-        DCHECK(IsSmi(isolate->factory()->cell()->value()));                                                                                                    \
-        DCHECK(Is##name##Intact(isolate));                                                                                                                     \
-        if (v8_flags.trace_protector_invalidation) {                                                                                                           \
-            TraceProtectorInvalidation(#name);                                                                                                                 \
-        }                                                                                                                                                      \
-        isolate->CountUsage(v8::Isolate::kInvalidated##name##Protector);                                                                                       \
-        isolate->factory()->cell()->InvalidateProtector();                                                                                                     \
-        DCHECK(!Is##name##Intact(isolate));                                                                                                                    \
-    }
+#define INVALIDATE_PROTECTOR_ON_ISOLATE_DEFINITION(name, unused_index, cell) \
+  void Protectors::Invalidate##name(Isolate* isolate) {                      \
+    DCHECK(IsSmi(isolate->factory()->cell()->value()));                      \
+    DCHECK(Is##name##Intact(isolate));                                       \
+    if (v8_flags.trace_protector_invalidation) {                             \
+      TraceProtectorInvalidation(#name);                                     \
+    }                                                                        \
+    isolate->CountUsage(v8::Isolate::kInvalidated##name##Protector);         \
+    isolate->factory()->cell()->InvalidateProtector();                       \
+    DCHECK(!Is##name##Intact(isolate));                                      \
+  }
 DECLARED_PROTECTORS_ON_ISOLATE(INVALIDATE_PROTECTOR_ON_ISOLATE_DEFINITION)
 #undef INVALIDATE_PROTECTOR_ON_ISOLATE_DEFINITION
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

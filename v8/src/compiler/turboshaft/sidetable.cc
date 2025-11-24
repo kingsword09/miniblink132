@@ -9,11 +9,10 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-#ifdef V8_DEBUG
-bool OpIndexBelongsToTableGraph(const Graph* graph, OpIndex index)
-{
-    return graph->BelongsToThisGraph(index);
+#ifdef DEBUG
+bool OpIndexBelongsToTableGraph(const Graph* graph, OpIndex index) {
+  return graph->BelongsToThisGraph(index);
 }
 #endif
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

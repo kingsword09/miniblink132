@@ -12,32 +12,38 @@ namespace internal {
 
 namespace compiler {
 class CodeAssemblerState;
-} // namespace compiler
+}  // namespace compiler
 
 class UnaryOpAssembler final {
-public:
-    explicit UnaryOpAssembler(compiler::CodeAssemblerState* state)
-        : state_(state)
-    {
-    }
+ public:
+  explicit UnaryOpAssembler(compiler::CodeAssemblerState* state)
+      : state_(state) {}
 
-    TNode<Object> Generate_BitwiseNotWithFeedback(
-        TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot, TNode<HeapObject> maybe_feedback_vector, UpdateFeedbackMode update_feedback_mode);
+  TNode<Object> Generate_BitwiseNotWithFeedback(
+      TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot,
+      TNode<HeapObject> maybe_feedback_vector,
+      UpdateFeedbackMode update_feedback_mode);
 
-    TNode<Object> Generate_DecrementWithFeedback(
-        TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot, TNode<HeapObject> maybe_feedback_vector, UpdateFeedbackMode update_feedback_mode);
+  TNode<Object> Generate_DecrementWithFeedback(
+      TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot,
+      TNode<HeapObject> maybe_feedback_vector,
+      UpdateFeedbackMode update_feedback_mode);
 
-    TNode<Object> Generate_IncrementWithFeedback(
-        TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot, TNode<HeapObject> maybe_feedback_vector, UpdateFeedbackMode update_feedback_mode);
+  TNode<Object> Generate_IncrementWithFeedback(
+      TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot,
+      TNode<HeapObject> maybe_feedback_vector,
+      UpdateFeedbackMode update_feedback_mode);
 
-    TNode<Object> Generate_NegateWithFeedback(
-        TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot, TNode<HeapObject> maybe_feedback_vector, UpdateFeedbackMode update_feedback_mode);
+  TNode<Object> Generate_NegateWithFeedback(
+      TNode<Context> context, TNode<Object> value, TNode<UintPtrT> slot,
+      TNode<HeapObject> maybe_feedback_vector,
+      UpdateFeedbackMode update_feedback_mode);
 
-private:
-    compiler::CodeAssemblerState* const state_;
+ private:
+  compiler::CodeAssemblerState* const state_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_IC_UNARY_OP_ASSEMBLER_H_
+#endif  // V8_IC_UNARY_OP_ASSEMBLER_H_

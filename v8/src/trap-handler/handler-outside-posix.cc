@@ -38,61 +38,62 @@ struct sigaction g_old_handler;
 // V8 chooses not to handle the signal.
 bool g_is_default_signal_handler_registered;
 
-} // namespace
+}  // namespace
 
-bool RegisterDefaultTrapHandler()
-{
-    TH_CHECK(!g_is_default_signal_handler_registered);
+bool RegisterDefaultTrapHandler() {
+  TH_CHECK(!g_is_default_signal_handler_registered);
 
-    struct sigaction action;
-    action.sa_sigaction = HandleSignal;
-    // Use SA_ONSTACK so that iff an alternate signal stack was registered via
-    // sigaltstack, that one is used for handling the signal instead of the
-    // default stack. This can be useful if for example the stack pointer is
-    // corrupted or a stack overflow is triggered as that may cause the trap
-    // handler to crash if it runs on the default stack. We assume that other
-    // parts, e.g. Asan or the v8 sandbox testing infrastructure, will register
-    // the alternate stack if necessary.
-    action.sa_flags = SA_SIGINFO | SA_ONSTACK;
-    sigemptyset(&action.sa_mask);
-    // {sigaction} installs a new custom segfault handler. On success, it returns
-    // 0. If we get a nonzero value, we report an error to the caller by returning
-    // false.
-    if (sigaction(kOobSignal, &action, &g_old_handler) != 0) {
-        return false;
-    }
+  struct sigaction action;
+  action.sa_sigaction = HandleSignal;
+  // Use SA_ONSTACK so that iff an alternate signal stack was registered via
+  // sigaltstack, that one is used for handling the signal instead of the
+  // default stack. This can be useful if for example the stack pointer is
+  // corrupted or a stack overflow is triggered as that may cause the trap
+  // handler to crash if it runs on the default stack. We assume that other
+  // parts, e.g. Asan or the v8 sandbox testing infrastructure, will register
+  // the alternate stack if necessary.
+  action.sa_flags = SA_SIGINFO | SA_ONSTACK;
+  sigemptyset(&action.sa_mask);
+  // {sigaction} installs a new custom segfault handler. On success, it returns
+  // 0. If we get a nonzero value, we report an error to the caller by returning
+  // false.
+  if (sigaction(kOobSignal, &action, &g_old_handler) != 0) {
+    return false;
+  }
 
 // Sanitizers often prevent us from installing our own signal handler. Attempt
 // to detect this and if so, refuse to enable trap handling.
 //
 // TODO(chromium:830894): Remove this once all bots support custom signal
 // handlers.
-#if defined(ADDRESS_SANITIZER) || defined(MEMORY_SANITIZER) || defined(THREAD_SANITIZER) || defined(LEAK_SANITIZER) || defined(UNDEFINED_SANITIZER)
-    struct sigaction installed_handler;
-    TH_CHECK(sigaction(kOobSignal, NULL, &installed_handler) == 0);
-    // If the installed handler does not point to HandleSignal, then
-    // allow_user_segv_handler is 0.
-    if (installed_handler.sa_sigaction != HandleSignal) {
-        printf("WARNING: sanitizers are preventing signal handler installation. "
-               "Trap handlers are disabled.\n");
-        return false;
-    }
+#if defined(ADDRESS_SANITIZER) || defined(MEMORY_SANITIZER) || \
+    defined(THREAD_SANITIZER) || defined(LEAK_SANITIZER) ||    \
+    defined(UNDEFINED_SANITIZER)
+  struct sigaction installed_handler;
+  TH_CHECK(sigaction(kOobSignal, NULL, &installed_handler) == 0);
+  // If the installed handler does not point to HandleSignal, then
+  // allow_user_segv_handler is 0.
+  if (installed_handler.sa_sigaction != HandleSignal) {
+    printf(
+        "WARNING: sanitizers are preventing signal handler installation. "
+        "Trap handlers are disabled.\n");
+    return false;
+  }
 #endif
 
-    g_is_default_signal_handler_registered = true;
-    return true;
+  g_is_default_signal_handler_registered = true;
+  return true;
 }
 
-void RemoveTrapHandler()
-{
-    if (g_is_default_signal_handler_registered) {
-        if (sigaction(kOobSignal, &g_old_handler, nullptr) == 0) {
-            g_is_default_signal_handler_registered = false;
-        }
+void RemoveTrapHandler() {
+  if (g_is_default_signal_handler_registered) {
+    if (sigaction(kOobSignal, &g_old_handler, nullptr) == 0) {
+      g_is_default_signal_handler_registered = false;
     }
+  }
 }
-#endif // V8_TRAP_HANDLER_SUPPORTED
+#endif  // V8_TRAP_HANDLER_SUPPORTED
 
-} // namespace trap_handler
-} // namespace internal
-} // namespace v8
+}  // namespace trap_handler
+}  // namespace internal
+}  // namespace v8

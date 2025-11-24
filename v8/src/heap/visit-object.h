@@ -12,12 +12,17 @@ namespace v8::internal {
 class Isolate;
 class ObjectVisitor;
 
-void VisitObject(Isolate* isolate, Tagged<HeapObject> object, ObjectVisitor* visitor);
-void VisitObject(LocalIsolate* isolate, Tagged<HeapObject> object, ObjectVisitor* visitor);
-void VisitObjectBody(Isolate* isolate, Tagged<HeapObject> object, ObjectVisitor* visitor);
-void VisitObjectBody(Isolate* isolate, Tagged<Map> map, Tagged<HeapObject> object, ObjectVisitor* visitor);
-void VisitObjectBody(LocalIsolate* isolate, Tagged<HeapObject> object, ObjectVisitor* visitor);
+void VisitObject(Isolate* isolate, Tagged<HeapObject> object,
+                 ObjectVisitor* visitor);
+void VisitObject(LocalIsolate* isolate, Tagged<HeapObject> object,
+                 ObjectVisitor* visitor);
+void VisitObjectBody(Isolate* isolate, Tagged<HeapObject> object,
+                     ObjectVisitor* visitor);
+void VisitObjectBody(Isolate* isolate, Tagged<Map> map,
+                     Tagged<HeapObject> object, ObjectVisitor* visitor);
+void VisitObjectBody(LocalIsolate* isolate, Tagged<HeapObject> object,
+                     ObjectVisitor* visitor);
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_HEAP_VISIT_OBJECT_H_
+#endif  // V8_HEAP_VISIT_OBJECT_H_

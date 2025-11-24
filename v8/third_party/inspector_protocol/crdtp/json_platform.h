@@ -19,8 +19,8 @@ bool StrToD(const char* str, double* result);
 
 // Prints |value| in a format suitable for JSON.
 std::string DToStr(double value);
-} // namespace platform
-} // namespace json
-} // namespace v8_crdtp
+}  // namespace platform
+}  // namespace json
+}  // namespace v8_crdtp
 
-#endif // V8_CRDTP_JSON_PLATFORM_H_
+#endif  // V8_CRDTP_JSON_PLATFORM_H_

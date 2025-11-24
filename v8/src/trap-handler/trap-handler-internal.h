@@ -22,21 +22,21 @@ namespace trap_handler {
 // protected memory access instructions and an offset to a landing pad to handle
 // faults on that instruction.
 struct CodeProtectionInfo {
-    uintptr_t base;
-    size_t size;
-    size_t num_protected_instructions;
-    ProtectedInstructionData instructions[1];
+  uintptr_t base;
+  size_t size;
+  size_t num_protected_instructions;
+  ProtectedInstructionData instructions[1];
 };
 
 class MetadataLock {
-    static std::atomic_flag spinlock_;
+  static std::atomic_flag spinlock_;
 
-public:
-    MetadataLock();
-    ~MetadataLock();
+ public:
+  MetadataLock();
+  ~MetadataLock();
 
-    MetadataLock(const MetadataLock&) = delete;
-    void operator=(const MetadataLock&) = delete;
+  MetadataLock(const MetadataLock&) = delete;
+  void operator=(const MetadataLock&) = delete;
 };
 
 // To enable constant time registration of handler data, we keep a free list of
@@ -47,8 +47,8 @@ public:
 // the next entry is known to be free. If {next_entry} is greater than zero,
 // then {next_entry - 1} is the index that we should insert into next.
 struct CodeProtectionInfoListEntry {
-    CodeProtectionInfo* code_info;
-    size_t next_free;
+  CodeProtectionInfo* code_info;
+  size_t next_free;
 };
 
 extern size_t gNumCodeObjects;
@@ -71,8 +71,8 @@ bool IsFaultAddressCovered(uintptr_t fault_addr);
 // objects are inside the sandbox.
 bool IsAccessedMemoryCovered(uintptr_t accessed_addr);
 
-} // namespace trap_handler
-} // namespace internal
-} // namespace v8
+}  // namespace trap_handler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TRAP_HANDLER_TRAP_HANDLER_INTERNAL_H_
+#endif  // V8_TRAP_HANDLER_TRAP_HANDLER_INTERNAL_H_

@@ -13,14 +13,18 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void TypeAssertionsPhase::Run(PipelineData* data, Zone* temp_zone)
-{
-    UnparkedScopeIfNeeded scope(data->broker());
+void TypeAssertionsPhase::Run(PipelineData* data, Zone* temp_zone) {
+  UnparkedScopeIfNeeded scope(data->broker());
 
-    turboshaft::TypeInferenceReducerArgs::Scope typing_args { turboshaft::TypeInferenceReducerArgs::InputGraphTyping::kPrecise,
-        turboshaft::TypeInferenceReducerArgs::OutputGraphTyping::kPreserveFromInputGraph };
+  turboshaft::TypeInferenceReducerArgs::Scope typing_args{
+      turboshaft::TypeInferenceReducerArgs::InputGraphTyping::kPrecise,
+      turboshaft::TypeInferenceReducerArgs::OutputGraphTyping::
+          kPreserveFromInputGraph};
 
-    turboshaft::CopyingPhase<turboshaft::AssertTypesReducer, turboshaft::ValueNumberingReducer, turboshaft::TypeInferenceReducer>::Run(data, temp_zone);
+  turboshaft::CopyingPhase<turboshaft::AssertTypesReducer,
+                           turboshaft::ValueNumberingReducer,
+                           turboshaft::TypeInferenceReducer>::Run(data,
+                                                                  temp_zone);
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

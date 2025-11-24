@@ -22,7 +22,8 @@ namespace json {
 // Except for calling the HandleError routine at any time, the client
 // code must call the Handle* methods in an order in which they'd occur
 // in valid JSON; otherwise we may crash (the code uses assert).
-std::unique_ptr<ParserHandler> NewJSONEncoder(std::vector<uint8_t>* out, Status* status);
+std::unique_ptr<ParserHandler> NewJSONEncoder(std::vector<uint8_t>* out,
+                                              Status* status);
 
 std::unique_ptr<ParserHandler> NewJSONEncoder(std::string* out, Status* status);
 
@@ -45,7 +46,7 @@ Status ConvertCBORToJSON(span<uint8_t> cbor, std::vector<uint8_t>* json);
 Status ConvertJSONToCBOR(span<uint8_t> json, std::vector<uint8_t>* cbor);
 
 Status ConvertJSONToCBOR(span<uint16_t> json, std::vector<uint8_t>* cbor);
-} // namespace json
-} // namespace v8_crdtp
+}  // namespace json
+}  // namespace v8_crdtp
 
-#endif // V8_CRDTP_JSON_H_
+#endif  // V8_CRDTP_JSON_H_

@@ -29,125 +29,111 @@ namespace v8::internal::compiler::turboshaft {
 // Note a simple RPO traversal satisfies (1) but not (2).
 // TODO(nicohartmann@): Investigate faster and simpler alternatives.
 class V8_EXPORT_PRIVATE TurboshaftSpecialRPONumberer {
-public:
-    // Numbering for BasicBlock::rpo_number for this block traversal:
-    static const int kBlockOnStack = -2;
-    static const int kBlockVisited1 = -3;
-    static const int kBlockVisited2 = -4;
-    static const int kBlockUnvisited = -1;
+ public:
+  // Numbering for BasicBlock::rpo_number for this block traversal:
+  static const int kBlockOnStack = -2;
+  static const int kBlockVisited1 = -3;
+  static const int kBlockVisited2 = -4;
+  static const int kBlockUnvisited = -1;
 
-    using Backedge = std::pair<const Block*, size_t>;
+  using Backedge = std::pair<const Block*, size_t>;
 
-    struct SpecialRPOStackFrame {
-        const Block* block = nullptr;
-        size_t index = 0;
-        base::SmallVector<Block*, 4> successors;
+  struct SpecialRPOStackFrame {
+    const Block* block = nullptr;
+    size_t index = 0;
+    base::SmallVector<Block*, 4> successors;
 
-        SpecialRPOStackFrame(const Block* block, size_t index, base::SmallVector<Block*, 4> successors)
-            : block(block)
-            , index(index)
-            , successors(std::move(successors))
-        {
-        }
-    };
+    SpecialRPOStackFrame(const Block* block, size_t index,
+                         base::SmallVector<Block*, 4> successors)
+        : block(block), index(index), successors(std::move(successors)) {}
+  };
 
-    struct LoopInfo {
-        const Block* header;
-        base::SmallVector<Block const*, 4> outgoing;
-        SparseBitVector* members;
-        LoopInfo* prev;
-        const Block* end;
-        const Block* start;
+  struct LoopInfo {
+    const Block* header;
+    base::SmallVector<Block const*, 4> outgoing;
+    SparseBitVector* members;
+    LoopInfo* prev;
+    const Block* end;
+    const Block* start;
 
-        void AddOutgoing(Zone* zone, const Block* block)
-        {
-            outgoing.push_back(block);
-        }
-    };
-
-    struct BlockData {
-        static constexpr size_t kNoLoopNumber = std::numeric_limits<size_t>::max();
-        int32_t rpo_number = kBlockUnvisited;
-        size_t loop_number = kNoLoopNumber;
-        const Block* rpo_next = nullptr;
-    };
-
-    TurboshaftSpecialRPONumberer(const Graph& graph, Zone* zone)
-        : graph_(&graph)
-        , block_data_(graph.block_count(), zone)
-        , loops_(zone)
-    {
+    void AddOutgoing(Zone* zone, const Block* block) {
+      outgoing.push_back(block);
     }
+  };
 
-    ZoneVector<uint32_t> ComputeSpecialRPO();
+  struct BlockData {
+    static constexpr size_t kNoLoopNumber = std::numeric_limits<size_t>::max();
+    int32_t rpo_number = kBlockUnvisited;
+    size_t loop_number = kNoLoopNumber;
+    const Block* rpo_next = nullptr;
+  };
 
-private:
-    void ComputeLoopInfo(size_t num_loops, ZoneVector<Backedge>& backedges);
-    ZoneVector<uint32_t> ComputeBlockPermutation(const Block* entry);
+  TurboshaftSpecialRPONumberer(const Graph& graph, Zone* zone)
+      : graph_(&graph), block_data_(graph.block_count(), zone), loops_(zone) {}
 
-    int32_t rpo_number(const Block* block) const
-    {
-        return block_data_[block->index()].rpo_number;
-    }
+  ZoneVector<uint32_t> ComputeSpecialRPO();
 
-    void set_rpo_number(const Block* block, int32_t rpo_number)
-    {
-        block_data_[block->index()].rpo_number = rpo_number;
-    }
+ private:
+  void ComputeLoopInfo(size_t num_loops, ZoneVector<Backedge>& backedges);
+  ZoneVector<uint32_t> ComputeBlockPermutation(const Block* entry);
 
-    bool has_loop_number(const Block* block) const
-    {
-        return block_data_[block->index()].loop_number != BlockData::kNoLoopNumber;
-    }
+  int32_t rpo_number(const Block* block) const {
+    return block_data_[block->index()].rpo_number;
+  }
 
-    size_t loop_number(const Block* block) const
-    {
-        DCHECK(has_loop_number(block));
-        return block_data_[block->index()].loop_number;
-    }
+  void set_rpo_number(const Block* block, int32_t rpo_number) {
+    block_data_[block->index()].rpo_number = rpo_number;
+  }
 
-    void set_loop_number(const Block* block, size_t loop_number)
-    {
-        block_data_[block->index()].loop_number = loop_number;
-    }
+  bool has_loop_number(const Block* block) const {
+    return block_data_[block->index()].loop_number != BlockData::kNoLoopNumber;
+  }
 
-    const Block* PushFront(const Block* head, const Block* block)
-    {
-        block_data_[block->index()].rpo_next = head;
-        return block;
-    }
+  size_t loop_number(const Block* block) const {
+    DCHECK(has_loop_number(block));
+    return block_data_[block->index()].loop_number;
+  }
 
-    Zone* zone() const
-    {
-        return loops_.zone();
-    }
+  void set_loop_number(const Block* block, size_t loop_number) {
+    block_data_[block->index()].loop_number = loop_number;
+  }
 
-    const Graph* graph_;
-    FixedBlockSidetable<BlockData> block_data_;
-    ZoneVector<LoopInfo> loops_;
+  const Block* PushFront(const Block* head, const Block* block) {
+    block_data_[block->index()].rpo_next = head;
+    return block;
+  }
+
+  Zone* zone() const { return loops_.zone(); }
+
+  const Graph* graph_;
+  FixedBlockSidetable<BlockData> block_data_;
+  ZoneVector<LoopInfo> loops_;
 };
 
 V8_EXPORT_PRIVATE void PropagateDeferred(Graph& graph);
 
 struct ProfileApplicationPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(ProfileApplication)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(ProfileApplication)
 
-    void Run(PipelineData* data, Zone* temp_zone, const ProfileDataFromFile* profile);
+  void Run(PipelineData* data, Zone* temp_zone,
+           const ProfileDataFromFile* profile);
 };
 
 struct SpecialRPOSchedulingPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(SpecialRPOScheduling)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(SpecialRPOScheduling)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
 struct InstructionSelectionPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(InstructionSelection)
-    static constexpr bool kOutputIsTraceableGraph = false;
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(InstructionSelection)
+  static constexpr bool kOutputIsTraceableGraph = false;
 
-    std::optional<BailoutReason> Run(PipelineData* data, Zone* temp_zone, const CallDescriptor* call_descriptor, Linkage* linkage, CodeTracer* code_tracer);
+  std::optional<BailoutReason> Run(PipelineData* data, Zone* temp_zone,
+                                   const CallDescriptor* call_descriptor,
+                                   Linkage* linkage, CodeTracer* code_tracer);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_INSTRUCTION_SELECTION_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_INSTRUCTION_SELECTION_PHASE_H_

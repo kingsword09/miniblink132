@@ -4,7 +4,7 @@
 
 #ifndef V8_INTL_SUPPORT
 #error Internationalization is expected to be enabled.
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
 #ifndef V8_OBJECTS_JS_PLURAL_RULES_INL_H_
 #define V8_OBJECTS_JS_PLURAL_RULES_INL_H_
@@ -23,25 +23,26 @@ namespace internal {
 
 TQ_OBJECT_CONSTRUCTORS_IMPL(JSPluralRules)
 
-ACCESSORS(JSPluralRules, icu_plural_rules, Tagged<Managed<icu::PluralRules>>, kIcuPluralRulesOffset)
-ACCESSORS(JSPluralRules, icu_number_formatter, Tagged<Managed<icu::number::LocalizedNumberFormatter>>, kIcuNumberFormatterOffset)
+ACCESSORS(JSPluralRules, icu_plural_rules, Tagged<Managed<icu::PluralRules>>,
+          kIcuPluralRulesOffset)
+ACCESSORS(JSPluralRules, icu_number_formatter,
+          Tagged<Managed<icu::number::LocalizedNumberFormatter>>,
+          kIcuNumberFormatterOffset)
 
-inline void JSPluralRules::set_type(Type type)
-{
-    DCHECK(TypeBit::is_valid(type));
-    int hints = flags();
-    hints = TypeBit::update(hints, type);
-    set_flags(hints);
+inline void JSPluralRules::set_type(Type type) {
+  DCHECK(TypeBit::is_valid(type));
+  int hints = flags();
+  hints = TypeBit::update(hints, type);
+  set_flags(hints);
 }
 
-inline JSPluralRules::Type JSPluralRules::type() const
-{
-    return TypeBit::decode(flags());
+inline JSPluralRules::Type JSPluralRules::type() const {
+  return TypeBit::decode(flags());
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_PLURAL_RULES_INL_H_
+#endif  // V8_OBJECTS_JS_PLURAL_RULES_INL_H_

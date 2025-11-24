@@ -17,18 +17,21 @@ class Schedule;
 class Graph;
 class CallDescriptor;
 class TFPipelineData;
-} // namespace v8::internal::compiler
+}  // namespace v8::internal::compiler
 namespace v8::internal::compiler::turboshaft {
 class Graph;
 class PipelineData;
 
 struct RecreateScheduleResult {
-    compiler::Graph* graph;
-    Schedule* schedule;
+  compiler::Graph* graph;
+  Schedule* schedule;
 };
 
-RecreateScheduleResult RecreateSchedule(PipelineData* data, compiler::TFPipelineData* turbofan_data, CallDescriptor* call_descriptor, Zone* phase_zone);
+RecreateScheduleResult RecreateSchedule(PipelineData* data,
+                                        compiler::TFPipelineData* turbofan_data,
+                                        CallDescriptor* call_descriptor,
+                                        Zone* phase_zone);
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_RECREATE_SCHEDULE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_RECREATE_SCHEDULE_H_

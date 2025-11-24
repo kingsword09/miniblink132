@@ -12,61 +12,53 @@ namespace cppgc {
 namespace subtle {
 
 // static
-bool DisallowGarbageCollectionScope::IsGarbageCollectionAllowed(cppgc::HeapHandle& heap_handle)
-{
-    auto& heap_base = internal::HeapBase::From(heap_handle);
-    return !heap_base.IsGCForbidden();
+bool DisallowGarbageCollectionScope::IsGarbageCollectionAllowed(
+    cppgc::HeapHandle& heap_handle) {
+  auto& heap_base = internal::HeapBase::From(heap_handle);
+  return !heap_base.IsGCForbidden();
 }
 
 // static
-void DisallowGarbageCollectionScope::Enter(cppgc::HeapHandle& heap_handle)
-{
-    auto& heap_base = internal::HeapBase::From(heap_handle);
-    heap_base.EnterDisallowGCScope();
+void DisallowGarbageCollectionScope::Enter(cppgc::HeapHandle& heap_handle) {
+  auto& heap_base = internal::HeapBase::From(heap_handle);
+  heap_base.EnterDisallowGCScope();
 }
 
 // static
-void DisallowGarbageCollectionScope::Leave(cppgc::HeapHandle& heap_handle)
-{
-    auto& heap_base = internal::HeapBase::From(heap_handle);
-    heap_base.LeaveDisallowGCScope();
+void DisallowGarbageCollectionScope::Leave(cppgc::HeapHandle& heap_handle) {
+  auto& heap_base = internal::HeapBase::From(heap_handle);
+  heap_base.LeaveDisallowGCScope();
 }
 
-DisallowGarbageCollectionScope::DisallowGarbageCollectionScope(cppgc::HeapHandle& heap_handle)
-    : heap_handle_(heap_handle)
-{
-    Enter(heap_handle);
+DisallowGarbageCollectionScope::DisallowGarbageCollectionScope(
+    cppgc::HeapHandle& heap_handle)
+    : heap_handle_(heap_handle) {
+  Enter(heap_handle);
 }
 
-DisallowGarbageCollectionScope::~DisallowGarbageCollectionScope()
-{
-    Leave(heap_handle_);
-}
-
-// static
-void NoGarbageCollectionScope::Enter(cppgc::HeapHandle& heap_handle)
-{
-    auto& heap_base = internal::HeapBase::From(heap_handle);
-    heap_base.EnterNoGCScope();
+DisallowGarbageCollectionScope::~DisallowGarbageCollectionScope() {
+  Leave(heap_handle_);
 }
 
 // static
-void NoGarbageCollectionScope::Leave(cppgc::HeapHandle& heap_handle)
-{
-    auto& heap_base = internal::HeapBase::From(heap_handle);
-    heap_base.LeaveNoGCScope();
+void NoGarbageCollectionScope::Enter(cppgc::HeapHandle& heap_handle) {
+  auto& heap_base = internal::HeapBase::From(heap_handle);
+  heap_base.EnterNoGCScope();
 }
 
-NoGarbageCollectionScope::NoGarbageCollectionScope(cppgc::HeapHandle& heap_handle)
-    : heap_handle_(heap_handle)
-{
-    Enter(heap_handle);
+// static
+void NoGarbageCollectionScope::Leave(cppgc::HeapHandle& heap_handle) {
+  auto& heap_base = internal::HeapBase::From(heap_handle);
+  heap_base.LeaveNoGCScope();
 }
 
-NoGarbageCollectionScope::~NoGarbageCollectionScope()
-{
-    Leave(heap_handle_);
+NoGarbageCollectionScope::NoGarbageCollectionScope(
+    cppgc::HeapHandle& heap_handle)
+    : heap_handle_(heap_handle) {
+  Enter(heap_handle);
 }
 
-} // namespace subtle
-} // namespace cppgc
+NoGarbageCollectionScope::~NoGarbageCollectionScope() { Leave(heap_handle_); }
+
+}  // namespace subtle
+}  // namespace cppgc

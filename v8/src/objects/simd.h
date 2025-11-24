@@ -12,10 +12,15 @@
 namespace v8 {
 namespace internal {
 
-uintptr_t ArrayIndexOfIncludesSmiOrObject(Address array_start, uintptr_t array_len, uintptr_t from_index, Address search_element);
-uintptr_t ArrayIndexOfIncludesDouble(Address array_start, uintptr_t array_len, uintptr_t from_index, Address search_element);
+uintptr_t ArrayIndexOfIncludesSmiOrObject(Address array_start,
+                                          uintptr_t array_len,
+                                          uintptr_t from_index,
+                                          Address search_element);
+uintptr_t ArrayIndexOfIncludesDouble(Address array_start, uintptr_t array_len,
+                                     uintptr_t from_index,
+                                     Address search_element);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_OBJECTS_SIMD_H_
+#endif  // V8_OBJECTS_SIMD_H_

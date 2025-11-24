@@ -12,12 +12,11 @@ namespace v8 {
 namespace internal {
 
 // static
-LargePageMetadata* LargePageMetadata::FromHeapObject(Tagged<HeapObject> o)
-{
-    return cast(MutablePageMetadata::FromHeapObject(o));
+LargePageMetadata* LargePageMetadata::FromHeapObject(Tagged<HeapObject> o) {
+  return cast(MutablePageMetadata::FromHeapObject(o));
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_LARGE_PAGE_METADATA_INL_H_
+#endif  // V8_HEAP_LARGE_PAGE_METADATA_INL_H_

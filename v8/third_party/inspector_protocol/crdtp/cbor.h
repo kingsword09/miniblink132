@@ -109,52 +109,40 @@ void EncodeDouble(double value, std::vector<uint8_t>* out);
 // so the maximal structure that we can wrap is 2^32 bits long.
 // See also: https://tools.ietf.org/html/rfc7049#section-2.4.4.1
 class EnvelopeEncoder {
-public:
-    // Emits the envelope start bytes and records the position for the
-    // byte size in |byte_size_pos_|. Also emits empty bytes for the
-    // byte sisze so that encoding can continue.
-    void EncodeStart(std::vector<uint8_t>* out);
-    // This records the current size in |out| at position byte_size_pos_.
-    // Returns true iff successful.
-    bool EncodeStop(std::vector<uint8_t>* out);
+ public:
+  // Emits the envelope start bytes and records the position for the
+  // byte size in |byte_size_pos_|. Also emits empty bytes for the
+  // byte sisze so that encoding can continue.
+  void EncodeStart(std::vector<uint8_t>* out);
+  // This records the current size in |out| at position byte_size_pos_.
+  // Returns true iff successful.
+  bool EncodeStop(std::vector<uint8_t>* out);
 
-private:
-    size_t byte_size_pos_ = 0;
+ private:
+  size_t byte_size_pos_ = 0;
 };
 
 class EnvelopeHeader {
-public:
-    EnvelopeHeader() = default;
-    ~EnvelopeHeader() = default;
+ public:
+  EnvelopeHeader() = default;
+  ~EnvelopeHeader() = default;
 
-    // Parse envelope. Implies that `in` accomodates the entire size of envelope.
-    static StatusOr<EnvelopeHeader> Parse(span<uint8_t> in);
-    // Parse envelope, but allow `in` to only include the beginning of the
-    // envelope.
-    static StatusOr<EnvelopeHeader> ParseFromFragment(span<uint8_t> in);
+  // Parse envelope. Implies that `in` accomodates the entire size of envelope.
+  static StatusOr<EnvelopeHeader> Parse(span<uint8_t> in);
+  // Parse envelope, but allow `in` to only include the beginning of the
+  // envelope.
+  static StatusOr<EnvelopeHeader> ParseFromFragment(span<uint8_t> in);
 
-    size_t header_size() const
-    {
-        return header_size_;
-    }
-    size_t content_size() const
-    {
-        return content_size_;
-    }
-    size_t outer_size() const
-    {
-        return header_size_ + content_size_;
-    }
+  size_t header_size() const { return header_size_; }
+  size_t content_size() const { return content_size_; }
+  size_t outer_size() const { return header_size_ + content_size_; }
 
-private:
-    EnvelopeHeader(size_t header_size, size_t content_size)
-        : header_size_(header_size)
-        , content_size_(content_size)
-    {
-    }
+ private:
+  EnvelopeHeader(size_t header_size, size_t content_size)
+      : header_size_(header_size), content_size_(content_size) {}
 
-    size_t header_size_ = 0;
-    size_t content_size_ = 0;
+  size_t header_size_ = 0;
+  size_t content_size_ = 0;
 };
 
 // =============================================================================
@@ -165,7 +153,8 @@ private:
 // that drives it. The handler will encode into |out|, and iff an error occurs
 // it will set |status| to an error and clear |out|. Otherwise, |status.ok()|
 // will be |true|.
-std::unique_ptr<ParserHandler> NewCBOREncoder(std::vector<uint8_t>* out, Status* status);
+std::unique_ptr<ParserHandler> NewCBOREncoder(std::vector<uint8_t>* out,
+                                              Status* status);
 
 // =============================================================================
 // cbor::CBORTokenizer - for parsing individual CBOR items
@@ -176,121 +165,130 @@ std::unique_ptr<ParserHandler> NewCBOREncoder(std::vector<uint8_t>* out, Status*
 // but rather, our adaptation. For instance, we lump unsigned and signed
 // major type into INT32 here (and disallow values outside the int32_t range).
 enum class CBORTokenTag {
-    // Encountered an error in the structure of the message. Consult
-    // status() for details.
-    ERROR_VALUE,
-    // Booleans and NULL.
-    TRUE_VALUE,
-    FALSE_VALUE,
-    NULL_VALUE,
-    // An int32_t (signed 32 bit integer).
-    INT32,
-    // A double (64 bit floating point).
-    DOUBLE,
-    // A UTF8 string.
-    STRING8,
-    // A UTF16 string.
-    STRING16,
-    // A binary string.
-    BINARY,
-    // Starts an indefinite length map; after the map start we expect
-    // alternating keys and values, followed by STOP.
-    MAP_START,
-    // Starts an indefinite length array; after the array start we
-    // expect values, followed by STOP.
-    ARRAY_START,
-    // Ends a map or an array.
-    STOP,
-    // An envelope indicator, wrapping a map or array.
-    // Internally this carries the byte length of the wrapped
-    // map or array. While CBORTokenizer::Next() will read / skip the entire
-    // envelope, CBORTokenizer::EnterEnvelope() reads the tokens
-    // inside of it.
-    ENVELOPE,
-    // We've reached the end there is nothing else to read.
-    DONE,
+  // Encountered an error in the structure of the message. Consult
+  // status() for details.
+  ERROR_VALUE,
+  // Booleans and NULL.
+  TRUE_VALUE,
+  FALSE_VALUE,
+  NULL_VALUE,
+  // An int32_t (signed 32 bit integer).
+  INT32,
+  // A double (64 bit floating point).
+  DOUBLE,
+  // A UTF8 string.
+  STRING8,
+  // A UTF16 string.
+  STRING16,
+  // A binary string.
+  BINARY,
+  // Starts an indefinite length map; after the map start we expect
+  // alternating keys and values, followed by STOP.
+  MAP_START,
+  // Starts an indefinite length array; after the array start we
+  // expect values, followed by STOP.
+  ARRAY_START,
+  // Ends a map or an array.
+  STOP,
+  // An envelope indicator, wrapping a map or array.
+  // Internally this carries the byte length of the wrapped
+  // map or array. While CBORTokenizer::Next() will read / skip the entire
+  // envelope, CBORTokenizer::EnterEnvelope() reads the tokens
+  // inside of it.
+  ENVELOPE,
+  // We've reached the end there is nothing else to read.
+  DONE,
 };
 
 // The major types from RFC 7049 Section 2.1.
-enum class MajorType { UNSIGNED = 0, NEGATIVE = 1, BYTE_STRING = 2, STRING = 3, ARRAY = 4, MAP = 5, TAG = 6, SIMPLE_VALUE = 7 };
+enum class MajorType {
+  UNSIGNED = 0,
+  NEGATIVE = 1,
+  BYTE_STRING = 2,
+  STRING = 3,
+  ARRAY = 4,
+  MAP = 5,
+  TAG = 6,
+  SIMPLE_VALUE = 7
+};
 
 // CBORTokenizer segments a CBOR message, presenting the tokens therein as
 // numbers, strings, etc. This is not a complete CBOR parser, but makes it much
 // easier to implement one (e.g. ParseCBOR, above). It can also be used to parse
 // messages partially.
 class CBORTokenizer {
-public:
-    explicit CBORTokenizer(span<uint8_t> bytes);
-    ~CBORTokenizer();
+ public:
+  explicit CBORTokenizer(span<uint8_t> bytes);
+  ~CBORTokenizer();
 
-    // Identifies the current token that we're looking at,
-    // or ERROR_VALUE (in which ase ::Status() has details)
-    // or DONE (if we're past the last token).
-    CBORTokenTag TokenTag() const;
+  // Identifies the current token that we're looking at,
+  // or ERROR_VALUE (in which ase ::Status() has details)
+  // or DONE (if we're past the last token).
+  CBORTokenTag TokenTag() const;
 
-    // Advances to the next token.
-    void Next();
-    // Can only be called if TokenTag() == CBORTokenTag::ENVELOPE.
-    // While Next() would skip past the entire envelope / what it's
-    // wrapping, EnterEnvelope positions the cursor inside of the envelope,
-    // letting the client explore the nested structure.
-    void EnterEnvelope();
+  // Advances to the next token.
+  void Next();
+  // Can only be called if TokenTag() == CBORTokenTag::ENVELOPE.
+  // While Next() would skip past the entire envelope / what it's
+  // wrapping, EnterEnvelope positions the cursor inside of the envelope,
+  // letting the client explore the nested structure.
+  void EnterEnvelope();
 
-    // If TokenTag() is CBORTokenTag::ERROR_VALUE, then Status().error describes
-    // the error more precisely; otherwise it'll be set to Error::OK.
-    // In either case, Status().pos is the current position.
-    struct Status Status() const;
+  // If TokenTag() is CBORTokenTag::ERROR_VALUE, then Status().error describes
+  // the error more precisely; otherwise it'll be set to Error::OK.
+  // In either case, Status().pos is the current position.
+  struct Status Status() const;
 
-    // The following methods retrieve the token values. They can only
-    // be called if TokenTag() matches.
+  // The following methods retrieve the token values. They can only
+  // be called if TokenTag() matches.
 
-    // To be called only if ::TokenTag() == CBORTokenTag::INT32.
-    int32_t GetInt32() const;
+  // To be called only if ::TokenTag() == CBORTokenTag::INT32.
+  int32_t GetInt32() const;
 
-    // To be called only if ::TokenTag() == CBORTokenTag::DOUBLE.
-    double GetDouble() const;
+  // To be called only if ::TokenTag() == CBORTokenTag::DOUBLE.
+  double GetDouble() const;
 
-    // To be called only if ::TokenTag() == CBORTokenTag::STRING8.
-    span<uint8_t> GetString8() const;
+  // To be called only if ::TokenTag() == CBORTokenTag::STRING8.
+  span<uint8_t> GetString8() const;
 
-    // Wire representation for STRING16 is low byte first (little endian).
-    // To be called only if ::TokenTag() == CBORTokenTag::STRING16. The result is
-    // guaranteed to have even length.
-    span<uint8_t> GetString16WireRep() const;
+  // Wire representation for STRING16 is low byte first (little endian).
+  // To be called only if ::TokenTag() == CBORTokenTag::STRING16. The result is
+  // guaranteed to have even length.
+  span<uint8_t> GetString16WireRep() const;
 
-    // To be called only if ::TokenTag() == CBORTokenTag::BINARY.
-    span<uint8_t> GetBinary() const;
+  // To be called only if ::TokenTag() == CBORTokenTag::BINARY.
+  span<uint8_t> GetBinary() const;
 
-    // To be called only if ::TokenTag() == CBORTokenTag::ENVELOPE.
-    // Returns the envelope including its payload; message which
-    // can be passed to the CBORTokenizer constructor, which will
-    // then see the envelope token first (looking at it a second time,
-    // basically).
-    span<uint8_t> GetEnvelope() const;
+  // To be called only if ::TokenTag() == CBORTokenTag::ENVELOPE.
+  // Returns the envelope including its payload; message which
+  // can be passed to the CBORTokenizer constructor, which will
+  // then see the envelope token first (looking at it a second time,
+  // basically).
+  span<uint8_t> GetEnvelope() const;
 
-    // To be called only if ::TokenTag() == CBORTokenTag::ENVELOPE.
-    // Returns only the payload inside the envelope, e.g., a map
-    // or an array. This is not a complete message by our
-    // IsCBORMessage definition, since it doesn't include the
-    // enclosing envelope (the header, basically).
-    span<uint8_t> GetEnvelopeContents() const;
+  // To be called only if ::TokenTag() == CBORTokenTag::ENVELOPE.
+  // Returns only the payload inside the envelope, e.g., a map
+  // or an array. This is not a complete message by our
+  // IsCBORMessage definition, since it doesn't include the
+  // enclosing envelope (the header, basically).
+  span<uint8_t> GetEnvelopeContents() const;
 
-    // To be called only if ::TokenTag() == CBORTokenTag::ENVELOPE.
-    // Returns the envelope header.
-    const EnvelopeHeader& GetEnvelopeHeader() const;
+  // To be called only if ::TokenTag() == CBORTokenTag::ENVELOPE.
+  // Returns the envelope header.
+  const EnvelopeHeader& GetEnvelopeHeader() const;
 
-private:
-    void ReadNextToken();
-    void SetToken(CBORTokenTag token, size_t token_byte_length);
-    void SetError(Error error);
+ private:
+  void ReadNextToken();
+  void SetToken(CBORTokenTag token, size_t token_byte_length);
+  void SetError(Error error);
 
-    const span<uint8_t> bytes_;
-    CBORTokenTag token_tag_;
-    struct Status status_;
-    size_t token_byte_length_ = 0;
-    MajorType token_start_type_;
-    uint64_t token_start_internal_value_;
-    EnvelopeHeader envelope_header_;
+  const span<uint8_t> bytes_;
+  CBORTokenTag token_tag_;
+  struct Status status_;
+  size_t token_byte_length_ = 0;
+  MajorType token_start_type_;
+  uint64_t token_start_internal_value_;
+  EnvelopeHeader envelope_header_;
 };
 
 // =============================================================================
@@ -310,14 +308,20 @@ void ParseCBOR(span<uint8_t> bytes, ParserHandler* out);
 // Modifies the |cbor| message by appending a new key/value entry at the end
 // of the map. Patches up the envelope size; Status.ok() iff successful.
 // If not successful, |cbor| may be corrupted after this call.
-Status AppendString8EntryToCBORMap(span<uint8_t> string8_key, span<uint8_t> string8_value, std::vector<uint8_t>* cbor);
+Status AppendString8EntryToCBORMap(span<uint8_t> string8_key,
+                                   span<uint8_t> string8_value,
+                                   std::vector<uint8_t>* cbor);
 
-namespace internals { // Exposed only for writing tests.
-size_t ReadTokenStart(span<uint8_t> bytes, cbor::MajorType* type, uint64_t* value);
+namespace internals {  // Exposed only for writing tests.
+size_t ReadTokenStart(span<uint8_t> bytes,
+                      cbor::MajorType* type,
+                      uint64_t* value);
 
-void WriteTokenStart(cbor::MajorType type, uint64_t value, std::vector<uint8_t>* encoded);
-} // namespace internals
-} // namespace cbor
-} // namespace v8_crdtp
+void WriteTokenStart(cbor::MajorType type,
+                     uint64_t value,
+                     std::vector<uint8_t>* encoded);
+}  // namespace internals
+}  // namespace cbor
+}  // namespace v8_crdtp
 
-#endif // V8_CRDTP_CBOR_H_
+#endif  // V8_CRDTP_CBOR_H_

@@ -25,21 +25,34 @@ namespace v8_crdtp {
 
 // In this variant, the template parameter |T| is a value type and a
 // |default_value| is provided.
-template <typename T> T FindByFirst(const std::vector<std::pair<span<uint8_t>, T>>& sorted_by_first, span<uint8_t> key, T default_value)
-{
-    auto it = std::lower_bound(sorted_by_first.begin(), sorted_by_first.end(), key,
-        [](const std::pair<span<uint8_t>, T>& left, span<uint8_t> right) { return SpanLessThan(left.first, right); });
-    return (it != sorted_by_first.end() && SpanEquals(it->first, key)) ? it->second : default_value;
+template <typename T>
+T FindByFirst(const std::vector<std::pair<span<uint8_t>, T>>& sorted_by_first,
+              span<uint8_t> key,
+              T default_value) {
+  auto it = std::lower_bound(
+      sorted_by_first.begin(), sorted_by_first.end(), key,
+      [](const std::pair<span<uint8_t>, T>& left, span<uint8_t> right) {
+        return SpanLessThan(left.first, right);
+      });
+  return (it != sorted_by_first.end() && SpanEquals(it->first, key))
+             ? it->second
+             : default_value;
 }
 
 // In this variant, the template parameter |T| is a class or struct that's
 // instantiated in std::unique_ptr, and we return either a T* or a nullptr.
-template <typename T> T* FindByFirst(const std::vector<std::pair<span<uint8_t>, std::unique_ptr<T>>>& sorted_by_first, span<uint8_t> key)
-{
-    auto it = std::lower_bound(sorted_by_first.begin(), sorted_by_first.end(), key,
-        [](const std::pair<span<uint8_t>, std::unique_ptr<T>>& left, span<uint8_t> right) { return SpanLessThan(left.first, right); });
-    return (it != sorted_by_first.end() && SpanEquals(it->first, key)) ? it->second.get() : nullptr;
+template <typename T>
+T* FindByFirst(const std::vector<std::pair<span<uint8_t>, std::unique_ptr<T>>>&
+                   sorted_by_first,
+               span<uint8_t> key) {
+  auto it = std::lower_bound(
+      sorted_by_first.begin(), sorted_by_first.end(), key,
+      [](const std::pair<span<uint8_t>, std::unique_ptr<T>>& left,
+         span<uint8_t> right) { return SpanLessThan(left.first, right); });
+  return (it != sorted_by_first.end() && SpanEquals(it->first, key))
+             ? it->second.get()
+             : nullptr;
 }
-} // namespace v8_crdtp
+}  // namespace v8_crdtp
 
-#endif // V8_CRDTP_FIND_BY_FIRST_H_
+#endif  // V8_CRDTP_FIND_BY_FIRST_H_

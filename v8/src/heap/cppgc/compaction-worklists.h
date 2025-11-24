@@ -13,28 +13,28 @@ namespace cppgc {
 namespace internal {
 
 class CompactionWorklists final {
-public:
-    CompactionWorklists() = default;
+ public:
+  CompactionWorklists() = default;
 
-    CompactionWorklists(const CompactionWorklists&) = delete;
-    CompactionWorklists& operator=(const CompactionWorklists&) = delete;
+  CompactionWorklists(const CompactionWorklists&) = delete;
+  CompactionWorklists& operator=(const CompactionWorklists&) = delete;
 
-    using MovableReference = const void*;
+  using MovableReference = const void*;
 
-    using MovableReferencesWorklist = heap::base::Worklist<MovableReference*, 256 /* local entries */>;
+  using MovableReferencesWorklist =
+      heap::base::Worklist<MovableReference*, 256 /* local entries */>;
 
-    MovableReferencesWorklist* movable_slots_worklist()
-    {
-        return &movable_slots_worklist_;
-    }
+  MovableReferencesWorklist* movable_slots_worklist() {
+    return &movable_slots_worklist_;
+  }
 
-    void ClearForTesting();
+  void ClearForTesting();
 
-private:
-    MovableReferencesWorklist movable_slots_worklist_;
+ private:
+  MovableReferencesWorklist movable_slots_worklist_;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_COMPACTION_WORKLISTS_H_
+#endif  // V8_HEAP_CPPGC_COMPACTION_WORKLISTS_H_

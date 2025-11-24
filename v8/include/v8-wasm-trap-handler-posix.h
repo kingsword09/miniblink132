@@ -7,7 +7,7 @@
 
 #include <signal.h>
 
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace v8 {
 /**
@@ -24,7 +24,8 @@ namespace v8 {
  * \param context A pointer to a ucontext_t struct provided to the signal
  * handler.
  */
-V8_EXPORT bool TryHandleWebAssemblyTrapPosix(int sig_code, siginfo_t* info, void* context);
+V8_EXPORT bool TryHandleWebAssemblyTrapPosix(int sig_code, siginfo_t* info,
+                                             void* context);
 
-} // namespace v8
-#endif // V8_WASM_TRAP_HANDLER_POSIX_H_
+}  // namespace v8
+#endif  // V8_WASM_TRAP_HANDLER_POSIX_H_

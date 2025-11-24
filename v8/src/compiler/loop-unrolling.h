@@ -23,21 +23,22 @@ static constexpr uint32_t kMaximumUnrollingCount = 5;
 // A simple heuristic to decide how many times to unroll a loop. Favors small
 // and deeply nested loops.
 // TODO(manoskouk): Investigate how this can be improved.
-V8_INLINE uint32_t unrolling_count_heuristic(uint32_t size, uint32_t depth)
-{
-    return std::min((depth + 1) * kMaximumUnnestedSize / size, kMaximumUnrollingCount);
+V8_INLINE uint32_t unrolling_count_heuristic(uint32_t size, uint32_t depth) {
+  return std::min((depth + 1) * kMaximumUnnestedSize / size,
+                  kMaximumUnrollingCount);
 }
 
-V8_INLINE uint32_t maximum_unrollable_size(uint32_t depth)
-{
-    return (depth + 1) * kMaximumUnnestedSize;
+V8_INLINE uint32_t maximum_unrollable_size(uint32_t depth) {
+  return (depth + 1) * kMaximumUnnestedSize;
 }
 
-void UnrollLoop(Node* loop_node, ZoneUnorderedSet<Node*>* loop, uint32_t depth, Graph* graph, CommonOperatorBuilder* common, Zone* tmp_zone,
-    SourcePositionTable* source_positions, NodeOriginTable* node_origins);
+void UnrollLoop(Node* loop_node, ZoneUnorderedSet<Node*>* loop, uint32_t depth,
+                Graph* graph, CommonOperatorBuilder* common, Zone* tmp_zone,
+                SourcePositionTable* source_positions,
+                NodeOriginTable* node_origins);
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_LOOP_UNROLLING_H_
+#endif  // V8_COMPILER_LOOP_UNROLLING_H_

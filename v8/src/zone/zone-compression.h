@@ -28,44 +28,41 @@ namespace internal {
 //    the fly from an arbitrary address pointing somewhere to the "zone cage".
 // 5) decompression requires special casing for nullptr.
 struct ZoneCompression {
-    static const size_t kReservationSize = size_t { 2 } * GB;
-    static const size_t kReservationAlignment = COMPRESS_ZONES_BOOL ? size_t { 4 } * GB : 1;
+  static const size_t kReservationSize = size_t{2} * GB;
+  static const size_t kReservationAlignment =
+      COMPRESS_ZONES_BOOL ? size_t{4} * GB : 1;
 
-    static_assert(base::bits::IsPowerOfTwo(kReservationAlignment), "Bad zone alignment");
+  static_assert(base::bits::IsPowerOfTwo(kReservationAlignment),
+                "Bad zone alignment");
 
-    static const size_t kOffsetMask = kReservationAlignment - 1;
+  static const size_t kOffsetMask = kReservationAlignment - 1;
 
-    inline static Address base_of(const void* zone_pointer)
-    {
-        return reinterpret_cast<Address>(zone_pointer) & ~kOffsetMask;
-    }
+  inline static Address base_of(const void* zone_pointer) {
+    return reinterpret_cast<Address>(zone_pointer) & ~kOffsetMask;
+  }
 
-    inline static bool CheckSameBase(const void* p1, const void* p2)
-    {
-        if (p1 == nullptr || p2 == nullptr)
-            return true;
-        CHECK_EQ(base_of(p1), base_of(p2));
-        return true;
-    }
+  inline static bool CheckSameBase(const void* p1, const void* p2) {
+    if (p1 == nullptr || p2 == nullptr) return true;
+    CHECK_EQ(base_of(p1), base_of(p2));
+    return true;
+  }
 
-    inline static uint32_t Compress(const void* value)
-    {
-        Address raw_value = reinterpret_cast<Address>(value);
-        uint32_t compressed_value = static_cast<uint32_t>(raw_value & kOffsetMask);
-        DCHECK_IMPLIES(compressed_value == 0, value == nullptr);
-        DCHECK_LT(compressed_value, kReservationSize);
-        return compressed_value;
-    }
+  inline static uint32_t Compress(const void* value) {
+    Address raw_value = reinterpret_cast<Address>(value);
+    uint32_t compressed_value = static_cast<uint32_t>(raw_value & kOffsetMask);
+    DCHECK_IMPLIES(compressed_value == 0, value == nullptr);
+    DCHECK_LT(compressed_value, kReservationSize);
+    return compressed_value;
+  }
 
-    inline static Address Decompress(const void* zone_pointer, uint32_t compressed_value)
-    {
-        if (compressed_value == 0)
-            return kNullAddress;
-        return base_of(zone_pointer) + compressed_value;
-    }
+  inline static Address Decompress(const void* zone_pointer,
+                                   uint32_t compressed_value) {
+    if (compressed_value == 0) return kNullAddress;
+    return base_of(zone_pointer) + compressed_value;
+  }
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_ZONE_ZONE_COMPRESSION_H_
+#endif  // V8_ZONE_ZONE_COMPRESSION_H_

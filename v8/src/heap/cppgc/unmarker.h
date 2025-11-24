@@ -12,37 +12,31 @@ namespace cppgc {
 namespace internal {
 
 class SequentialUnmarker final : private HeapVisitor<SequentialUnmarker> {
-    friend class HeapVisitor<SequentialUnmarker>;
+  friend class HeapVisitor<SequentialUnmarker>;
 
-public:
-    explicit SequentialUnmarker(RawHeap& heap)
-    {
-        Traverse(heap);
-    }
+ public:
+  explicit SequentialUnmarker(RawHeap& heap) { Traverse(heap); }
 
-    bool VisitNormalPage(NormalPage& page)
-    {
-        page.ResetMarkedBytes();
-        return false;
-    }
+  bool VisitNormalPage(NormalPage& page) {
+    page.ResetMarkedBytes();
+    return false;
+  }
 
-    bool VisitLargePage(LargePage& page)
-    {
-        page.ResetMarkedBytes();
-        return false;
-    }
+  bool VisitLargePage(LargePage& page) {
+    page.ResetMarkedBytes();
+    return false;
+  }
 
-private:
-    bool VisitHeapObjectHeader(HeapObjectHeader& header)
-    {
-        if (header.IsMarked()) {
-            header.Unmark();
-        }
-        return true;
+ private:
+  bool VisitHeapObjectHeader(HeapObjectHeader& header) {
+    if (header.IsMarked()) {
+      header.Unmark();
     }
+    return true;
+  }
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_UNMARKER_H_
+#endif  // V8_HEAP_CPPGC_UNMARKER_H_

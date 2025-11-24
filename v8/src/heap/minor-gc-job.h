@@ -17,26 +17,25 @@ class Isolate;
 // The scavenge job uses platform tasks to perform a young generation
 // Scavenge garbage collection. The job posts a foreground task.
 class MinorGCJob {
-public:
-    explicit MinorGCJob(Heap* heap) V8_NOEXCEPT : heap_(heap)
-    {
-    }
+ public:
+  explicit MinorGCJob(Heap* heap) V8_NOEXCEPT : heap_(heap) {}
 
-    void ScheduleTask();
+  void ScheduleTask();
 
-    void CancelTaskIfScheduled();
+  void CancelTaskIfScheduled();
 
-    static size_t YoungGenerationTaskTriggerSize(Heap* heap);
+  static size_t YoungGenerationTaskTriggerSize(Heap* heap);
 
-private:
-    class Task;
+ private:
+  class Task;
 
-    static bool YoungGenerationSizeTaskTriggerReached(Heap* heap);
+  static bool YoungGenerationSizeTaskTriggerReached(Heap* heap);
 
-    Heap* const heap_;
-    CancelableTaskManager::Id current_task_id_ = CancelableTaskManager::kInvalidTaskId;
+  Heap* const heap_;
+  CancelableTaskManager::Id current_task_id_ =
+      CancelableTaskManager::kInvalidTaskId;
 };
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_MINOR_GC_JOB_H_
+#endif  // V8_HEAP_MINOR_GC_JOB_H_

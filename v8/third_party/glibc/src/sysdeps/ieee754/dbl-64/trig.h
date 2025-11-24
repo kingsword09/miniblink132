@@ -10,5 +10,5 @@ double glibc_cos(double x);
 double glibc_sin(double x);
 
 #ifdef __cplusplus
-} // extern "C"
+}  // extern "C"
 #endif

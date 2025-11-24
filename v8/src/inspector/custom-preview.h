@@ -14,9 +14,11 @@ namespace v8_inspector {
 
 const int kMaxCustomPreviewDepth = 20;
 
-void generateCustomPreview(v8::Isolate* isolate, int sessionId, const String16& groupName, v8::Local<v8::Object> object, v8::MaybeLocal<v8::Value> config,
+void generateCustomPreview(
+    v8::Isolate* isolate, int sessionId, const String16& groupName,
+    v8::Local<v8::Object> object, v8::MaybeLocal<v8::Value> config,
     int maxDepth, std::unique_ptr<protocol::Runtime::CustomPreview>* preview);
 
-} // namespace v8_inspector
+}  // namespace v8_inspector
 
-#endif // V8_INSPECTOR_CUSTOM_PREVIEW_H_
+#endif  // V8_INSPECTOR_CUSTOM_PREVIEW_H_

@@ -18,58 +18,59 @@ namespace maglev {
 class MaglevGraphBuilder;
 class StoreDoubleField;
 class StoreScriptContextSlotWithWriteBarrier;
-} // namespace maglev
+}  // namespace maglev
 
 namespace compiler {
 class GraphAssembler;
-} // namespace compiler
+}  // namespace compiler
 
 // The HeapNumber class describes heap allocated numbers that cannot be
 // represented in a Smi (small integer).
 V8_OBJECT class HeapNumber : public PrimitiveHeapObject {
-public:
-    inline double value() const;
-    inline void set_value(double value);
+ public:
+  inline double value() const;
+  inline void set_value(double value);
 
-    inline uint64_t value_as_bits() const;
-    inline void set_value_as_bits(uint64_t bits);
+  inline uint64_t value_as_bits() const;
+  inline void set_value_as_bits(uint64_t bits);
 
-    static const uint32_t kSignMask = 0x80000000u;
-    static const uint32_t kExponentMask = 0x7ff00000u;
-    static const uint32_t kMantissaMask = 0xfffffu;
-    static const int kMantissaBits = 52;
-    static const int kExponentBits = 11;
-    static const int kExponentBias = 1023;
-    static const int kExponentShift = 20;
-    static const int kInfinityOrNanExponent = (kExponentMask >> kExponentShift) - kExponentBias;
-    static const int kMantissaBitsInTopWord = 20;
-    static const int kNonMantissaBitsInTopWord = 12;
+  static const uint32_t kSignMask = 0x80000000u;
+  static const uint32_t kExponentMask = 0x7ff00000u;
+  static const uint32_t kMantissaMask = 0xfffffu;
+  static const int kMantissaBits = 52;
+  static const int kExponentBits = 11;
+  static const int kExponentBias = 1023;
+  static const int kExponentShift = 20;
+  static const int kInfinityOrNanExponent =
+      (kExponentMask >> kExponentShift) - kExponentBias;
+  static const int kMantissaBitsInTopWord = 20;
+  static const int kNonMantissaBitsInTopWord = 12;
 
-    DECL_PRINTER(HeapNumber)
-    DECL_VERIFIER(HeapNumber)
-    V8_EXPORT_PRIVATE void HeapNumberShortPrint(std::ostream& os);
+  DECL_PRINTER(HeapNumber)
+  DECL_VERIFIER(HeapNumber)
+  V8_EXPORT_PRIVATE void HeapNumberShortPrint(std::ostream& os);
 
-    class BodyDescriptor;
+  class BodyDescriptor;
 
-private:
-    friend struct OffsetsForDebug;
-    friend class CodeStubAssembler;
-    friend class AccessorAssembler;
-    friend class maglev::MaglevAssembler;
-    friend class maglev::MaglevGraphBuilder;
-    friend class maglev::StoreDoubleField;
-    friend class maglev::StoreScriptContextSlotWithWriteBarrier;
-    friend class compiler::AccessBuilder;
-    friend class compiler::GraphAssembler;
-    friend class TorqueGeneratedHeapNumberAsserts;
-    friend AllocationAlignment HeapObject::RequiredAlignment(Tagged<Map> map);
+ private:
+  friend struct OffsetsForDebug;
+  friend class CodeStubAssembler;
+  friend class AccessorAssembler;
+  friend class maglev::MaglevAssembler;
+  friend class maglev::MaglevGraphBuilder;
+  friend class maglev::StoreDoubleField;
+  friend class maglev::StoreScriptContextSlotWithWriteBarrier;
+  friend class compiler::AccessBuilder;
+  friend class compiler::GraphAssembler;
+  friend class TorqueGeneratedHeapNumberAsserts;
+  friend AllocationAlignment HeapObject::RequiredAlignment(Tagged<Map> map);
 
-    UnalignedDoubleMember value_;
+  UnalignedDoubleMember value_;
 } V8_OBJECT_END;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_HEAP_NUMBER_H_
+#endif  // V8_OBJECTS_HEAP_NUMBER_H_

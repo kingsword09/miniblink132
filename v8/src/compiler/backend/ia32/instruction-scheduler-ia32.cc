@@ -1,7 +1,6 @@
 // Copyright 2015 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-#if V8_TARGET_ARCH_IA32
 
 #include "src/base/logging.h"
 #include "src/compiler/backend/instruction-codes.h"
@@ -12,14 +11,11 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-bool InstructionScheduler::SchedulerSupported()
-{
-    return true;
-}
+bool InstructionScheduler::SchedulerSupported() { return true; }
 
-int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) const
-{
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetTargetInstructionFlags(
+    const Instruction* instr) const {
+  switch (instr->arch_opcode()) {
     case kIA32Add:
     case kIA32And:
     case kIA32Cmp:
@@ -342,11 +338,15 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kIA32I32x4AllTrue:
     case kIA32I16x8AllTrue:
     case kIA32I8x16AllTrue:
-        return (instr->addressing_mode() == kMode_None) ? kNoOpcodeFlags : kIsLoadOperation | kHasSideEffect;
+      return (instr->addressing_mode() == kMode_None)
+                 ? kNoOpcodeFlags
+                 : kIsLoadOperation | kHasSideEffect;
 
     case kIA32Idiv:
     case kIA32Udiv:
-        return (instr->addressing_mode() == kMode_None) ? kMayNeedDeoptOrTrapCheck : kMayNeedDeoptOrTrapCheck | kIsLoadOperation | kHasSideEffect;
+      return (instr->addressing_mode() == kMode_None)
+                 ? kMayNeedDeoptOrTrapCheck
+                 : kMayNeedDeoptOrTrapCheck | kIsLoadOperation | kHasSideEffect;
 
     case kIA32Movsxbl:
     case kIA32Movzxbl:
@@ -371,19 +371,19 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kIA32S128Load16x4U:
     case kIA32S128Load32x2S:
     case kIA32S128Load32x2U:
-        return instr->HasOutput() ? kIsLoadOperation : kHasSideEffect;
+      return instr->HasOutput() ? kIsLoadOperation : kHasSideEffect;
 
     case kIA32Peek:
-        return kIsLoadOperation;
+      return kIsLoadOperation;
 
     case kIA32Push:
     case kIA32Poke:
     case kIA32MFence:
     case kIA32LFence:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
     case kIA32Word32AtomicPairLoad:
-        return kIsLoadOperation;
+      return kIsLoadOperation;
 
     case kIA32Word32ReleasePairStore:
     case kIA32Word32SeqCstPairStore:
@@ -394,31 +394,30 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kIA32Word32AtomicPairXor:
     case kIA32Word32AtomicPairExchange:
     case kIA32Word32AtomicPairCompareExchange:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
 #define CASE(Name) case k##Name:
-        COMMON_ARCH_OPCODE_LIST(CASE)
+      COMMON_ARCH_OPCODE_LIST(CASE)
 #undef CASE
-        // Already covered in architecture independent code.
-        UNREACHABLE();
-    }
+      // Already covered in architecture independent code.
+      UNREACHABLE();
+  }
 
-    UNREACHABLE();
+  UNREACHABLE();
 }
 
-int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
-{
-    // Basic latency modeling for ia32 instructions. They have been determined
-    // in an empirical way.
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetInstructionLatency(const Instruction* instr) {
+  // Basic latency modeling for ia32 instructions. They have been determined
+  // in an empirical way.
+  switch (instr->arch_opcode()) {
     case kFloat64Mul:
-        return 5;
+      return 5;
     case kIA32Imul:
     case kIA32ImulHigh:
-        return 5;
+      return 5;
     case kIA32Float32Cmp:
     case kIA32Float64Cmp:
-        return 9;
+      return 9;
     case kFloat32Add:
     case kFloat32Sub:
     case kFloat64Add:
@@ -429,43 +428,41 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kIA32Float64Min:
     case kFloat64Abs:
     case kFloat64Neg:
-        return 5;
+      return 5;
     case kFloat32Mul:
-        return 4;
+      return 4;
     case kIA32Float32ToFloat64:
     case kIA32Float64ToFloat32:
-        return 6;
+      return 6;
     case kIA32Float32Round:
     case kIA32Float64Round:
     case kIA32Float32ToInt32:
     case kIA32Float64ToInt32:
-        return 8;
+      return 8;
     case kIA32Float32ToUint32:
-        return 21;
+      return 21;
     case kIA32Float64ToUint32:
-        return 15;
+      return 15;
     case kIA32Idiv:
-        return 33;
+      return 33;
     case kIA32Udiv:
-        return 26;
+      return 26;
     case kFloat32Div:
-        return 35;
+      return 35;
     case kFloat64Div:
-        return 63;
+      return 63;
     case kIA32Float32Sqrt:
     case kIA32Float64Sqrt:
-        return 25;
+      return 25;
     case kIA32Float64Mod:
-        return 50;
+      return 50;
     case kArchTruncateDoubleToI:
-        return 9;
+      return 9;
     default:
-        return 1;
-    }
+      return 1;
+  }
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
-
-#endif // V8_TARGET_ARCH_IA32
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

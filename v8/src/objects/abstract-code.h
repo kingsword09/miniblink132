@@ -23,37 +23,38 @@ class Code;
 // profiling. Perhaps methods should be specialized instead of this wrapper
 // class?
 class AbstractCode : public HeapObject {
-public:
-    int SourcePosition(Isolate* isolate, int offset);
-    int SourceStatementPosition(Isolate* isolate, int offset);
+ public:
+  int SourcePosition(Isolate* isolate, int offset);
+  int SourceStatementPosition(Isolate* isolate, int offset);
 
-    inline Address InstructionStart(PtrComprCageBase cage_base);
-    inline Address InstructionEnd(PtrComprCageBase cage_base);
-    inline int InstructionSize(PtrComprCageBase cage_base);
+  inline Address InstructionStart(PtrComprCageBase cage_base);
+  inline Address InstructionEnd(PtrComprCageBase cage_base);
+  inline int InstructionSize(PtrComprCageBase cage_base);
 
-    // Return the source position table for interpreter code.
-    inline Tagged<TrustedByteArray> SourcePositionTable(Isolate* isolate, Tagged<SharedFunctionInfo> sfi);
+  // Return the source position table for interpreter code.
+  inline Tagged<TrustedByteArray> SourcePositionTable(
+      Isolate* isolate, Tagged<SharedFunctionInfo> sfi);
 
-    void DropStackFrameCache(PtrComprCageBase cage_base);
+  void DropStackFrameCache(PtrComprCageBase cage_base);
 
-    // Returns the size of instructions and the metadata.
-    inline int SizeIncludingMetadata(PtrComprCageBase cage_base);
+  // Returns the size of instructions and the metadata.
+  inline int SizeIncludingMetadata(PtrComprCageBase cage_base);
 
-    // Returns true if pc is inside this object's instructions.
-    inline bool contains(Isolate* isolate, Address pc);
+  // Returns true if pc is inside this object's instructions.
+  inline bool contains(Isolate* isolate, Address pc);
 
-    // Returns the kind of the code.
-    inline CodeKind kind(PtrComprCageBase cage_base);
+  // Returns the kind of the code.
+  inline CodeKind kind(PtrComprCageBase cage_base);
 
-    inline Builtin builtin_id(PtrComprCageBase cage_base);
+  inline Builtin builtin_id(PtrComprCageBase cage_base);
 
-    inline bool has_instruction_stream(PtrComprCageBase cage_base);
+  inline bool has_instruction_stream(PtrComprCageBase cage_base);
 
-    inline Tagged<Code> GetCode();
-    inline Tagged<BytecodeArray> GetBytecodeArray();
+  inline Tagged<Code> GetCode();
+  inline Tagged<BytecodeArray> GetBytecodeArray();
 
-private:
-    OBJECT_CONSTRUCTORS(AbstractCode, HeapObject);
+ private:
+  OBJECT_CONSTRUCTORS(AbstractCode, HeapObject);
 };
 
 // Currently we must use full-pointer comparisons (instead of
@@ -62,14 +63,14 @@ private:
 // trusted space (outside of the main pointer compression cage) while the
 // former still lives inside of the sandbox.
 static_assert(!kAllCodeObjectsLiveInTrustedSpace);
-constexpr bool operator==(const Tagged<AbstractCode> lhs, const Tagged<AbstractCode> rhs)
-{
-    return lhs->ptr() == rhs->ptr();
+constexpr bool operator==(const Tagged<AbstractCode> lhs,
+                          const Tagged<AbstractCode> rhs) {
+  return lhs->ptr() == rhs->ptr();
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_ABSTRACT_CODE_H_
+#endif  // V8_OBJECTS_ABSTRACT_CODE_H_

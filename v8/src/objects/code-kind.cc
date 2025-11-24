@@ -7,33 +7,31 @@
 namespace v8 {
 namespace internal {
 
-const char* CodeKindToString(CodeKind kind)
-{
-    switch (kind) {
-#define CASE(name)                                                                                                                                             \
-    case CodeKind::name:                                                                                                                                       \
-        return #name;
-        CODE_KIND_LIST(CASE)
+const char* CodeKindToString(CodeKind kind) {
+  switch (kind) {
+#define CASE(name)     \
+  case CodeKind::name: \
+    return #name;
+    CODE_KIND_LIST(CASE)
 #undef CASE
-    }
-    UNREACHABLE();
+  }
+  UNREACHABLE();
 }
 
-const char* CodeKindToMarker(CodeKind kind)
-{
-    switch (kind) {
+const char* CodeKindToMarker(CodeKind kind) {
+  switch (kind) {
     case CodeKind::INTERPRETED_FUNCTION:
-        return "~";
+      return "~";
     case CodeKind::BASELINE:
-        return "^";
+      return "^";
     case CodeKind::MAGLEV:
-        return "+";
+      return "+";
     case CodeKind::TURBOFAN_JS:
-        return "*";
+      return "*";
     default:
-        return "";
-    }
+      return "";
+  }
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

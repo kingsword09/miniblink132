@@ -18,40 +18,37 @@ class HeapBase;
 extern v8::base::LazyMutex g_process_mutex;
 
 class V8_EXPORT_PRIVATE HeapRegistry final {
-public:
-    using Storage = std::vector<HeapBase*>;
+ public:
+  using Storage = std::vector<HeapBase*>;
 
-    class Subscription final {
-    public:
-        inline explicit Subscription(HeapBase&);
-        inline ~Subscription();
+  class Subscription final {
+   public:
+    inline explicit Subscription(HeapBase&);
+    inline ~Subscription();
 
-    private:
-        HeapBase& heap_;
-    };
+   private:
+    HeapBase& heap_;
+  };
 
-    static HeapBase* TryFromManagedPointer(const void* needle);
+  static HeapBase* TryFromManagedPointer(const void* needle);
 
-    // Does not take the registry mutex and is thus only useful for testing.
-    static const Storage& GetRegisteredHeapsForTesting();
+  // Does not take the registry mutex and is thus only useful for testing.
+  static const Storage& GetRegisteredHeapsForTesting();
 
-private:
-    static void RegisterHeap(HeapBase&);
-    static void UnregisterHeap(HeapBase&);
+ private:
+  static void RegisterHeap(HeapBase&);
+  static void UnregisterHeap(HeapBase&);
 };
 
-HeapRegistry::Subscription::Subscription(HeapBase& heap)
-    : heap_(heap)
-{
-    HeapRegistry::RegisterHeap(heap_);
+HeapRegistry::Subscription::Subscription(HeapBase& heap) : heap_(heap) {
+  HeapRegistry::RegisterHeap(heap_);
 }
 
-HeapRegistry::Subscription::~Subscription()
-{
-    HeapRegistry::UnregisterHeap(heap_);
+HeapRegistry::Subscription::~Subscription() {
+  HeapRegistry::UnregisterHeap(heap_);
 }
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_PROCESS_HEAP_H_
+#endif  // V8_HEAP_CPPGC_PROCESS_HEAP_H_

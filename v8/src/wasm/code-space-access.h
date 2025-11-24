@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_WASM_CODE_SPACE_ACCESS_H_
 #define V8_WASM_CODE_SPACE_ACCESS_H_
@@ -41,18 +41,18 @@ class NativeModule;
 // and for PKU we would need multiple keys, so both of them also switch
 // permissions for all code pages.
 class V8_NODISCARD CodeSpaceWriteScope final {
-public:
-    explicit V8_EXPORT_PRIVATE CodeSpaceWriteScope();
+ public:
+  explicit V8_EXPORT_PRIVATE CodeSpaceWriteScope();
 
-    // Disable copy constructor and copy-assignment operator, since this manages
-    // a resource and implicit copying of the scope can yield surprising errors.
-    CodeSpaceWriteScope(const CodeSpaceWriteScope&) = delete;
-    CodeSpaceWriteScope& operator=(const CodeSpaceWriteScope&) = delete;
+  // Disable copy constructor and copy-assignment operator, since this manages
+  // a resource and implicit copying of the scope can yield surprising errors.
+  CodeSpaceWriteScope(const CodeSpaceWriteScope&) = delete;
+  CodeSpaceWriteScope& operator=(const CodeSpaceWriteScope&) = delete;
 
-private:
-    RwxMemoryWriteScope rwx_write_scope_;
+ private:
+  RwxMemoryWriteScope rwx_write_scope_;
 };
 
-} // namespace v8::internal::wasm
+}  // namespace v8::internal::wasm
 
-#endif // V8_WASM_CODE_SPACE_ACCESS_H_
+#endif  // V8_WASM_CODE_SPACE_ACCESS_H_

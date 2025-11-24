@@ -14,16 +14,17 @@ class SnapshotData;
 
 // Deserializes the read-only blob and creates the read-only roots table.
 class ReadOnlyDeserializer final : public Deserializer<Isolate> {
-public:
-    ReadOnlyDeserializer(Isolate* isolate, const SnapshotData* data, bool can_rehash);
+ public:
+  ReadOnlyDeserializer(Isolate* isolate, const SnapshotData* data,
+                       bool can_rehash);
 
-    void DeserializeIntoIsolate();
+  void DeserializeIntoIsolate();
 
-private:
-    void PostProcessNewObjects();
+ private:
+  void PostProcessNewObjects();
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SNAPSHOT_READ_ONLY_DESERIALIZER_H_
+#endif  // V8_SNAPSHOT_READ_ONLY_DESERIALIZER_H_

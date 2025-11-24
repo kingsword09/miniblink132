@@ -15,28 +15,19 @@ class InstructionStream;
 
 // Associates a body of code with an interface descriptor.
 class Callable final {
-public:
-    Callable(Handle<Code> code, CallInterfaceDescriptor descriptor)
-        : code_(code)
-        , descriptor_(descriptor)
-    {
-    }
+ public:
+  Callable(Handle<Code> code, CallInterfaceDescriptor descriptor)
+      : code_(code), descriptor_(descriptor) {}
 
-    Handle<Code> code() const
-    {
-        return code_;
-    }
-    CallInterfaceDescriptor descriptor() const
-    {
-        return descriptor_;
-    }
+  Handle<Code> code() const { return code_; }
+  CallInterfaceDescriptor descriptor() const { return descriptor_; }
 
-private:
-    const Handle<Code> code_;
-    const CallInterfaceDescriptor descriptor_;
+ private:
+  const Handle<Code> code_;
+  const CallInterfaceDescriptor descriptor_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_CALLABLE_H_
+#endif  // V8_CODEGEN_CALLABLE_H_

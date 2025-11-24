@@ -16,79 +16,83 @@ namespace internal {
 
 namespace {
 
-constexpr const char* TypeToCollectorName(v8::GCType gc_type)
-{
-    switch (gc_type) {
+constexpr const char* TypeToCollectorName(v8::GCType gc_type) {
+  switch (gc_type) {
     case kGCTypeScavenge:
-        return "Scavenger";
+      return "Scavenger";
     case kGCTypeMarkSweepCompact:
-        return "Mark-Compact";
+      return "Mark-Compact";
     case kGCTypeMinorMarkSweep:
-        return "Minor Mark-Sweep";
+      return "Minor Mark-Sweep";
     default:
-        break;
-    }
-    return "Unknown collector";
+      break;
+  }
+  return "Unknown collector";
 }
 
-} // namespace
+}  // namespace
 
 // static
-void HeapLayoutTracer::GCProloguePrintHeapLayout(v8::Isolate* isolate, v8::GCType gc_type, v8::GCCallbackFlags flags, void* data)
-{
-    Heap* heap = reinterpret_cast<i::Isolate*>(isolate)->heap();
-    // gc_count_ will increase after this callback, manually add 1.
-    PrintF("Before GC:%d,", heap->gc_count() + 1);
-    PrintF("collector_name:%s\n", TypeToCollectorName(gc_type));
-    PrintHeapLayout(std::cout, heap);
-}
-
-// static
-void HeapLayoutTracer::GCEpiloguePrintHeapLayout(v8::Isolate* isolate, v8::GCType gc_type, v8::GCCallbackFlags flags, void* data)
-{
-    Heap* heap = reinterpret_cast<i::Isolate*>(isolate)->heap();
-    PrintF("After GC:%d,", heap->gc_count());
-    PrintF("collector_name:%s\n", TypeToCollectorName(gc_type));
-    PrintHeapLayout(std::cout, heap);
+void HeapLayoutTracer::GCProloguePrintHeapLayout(v8::Isolate* isolate,
+                                                 v8::GCType gc_type,
+                                                 v8::GCCallbackFlags flags,
+                                                 void* data) {
+  Heap* heap = reinterpret_cast<i::Isolate*>(isolate)->heap();
+  // gc_count_ will increase after this callback, manually add 1.
+  PrintF("Before GC:%d,", heap->gc_count() + 1);
+  PrintF("collector_name:%s\n", TypeToCollectorName(gc_type));
+  PrintHeapLayout(std::cout, heap);
 }
 
 // static
-void HeapLayoutTracer::PrintMemoryChunk(std::ostream& os, const MemoryChunkMetadata& chunk, const char* owner_name)
-{
-    os << "{owner:" << owner_name << ","
-       << "address:" << &chunk << ","
-       << "size:" << chunk.size() << ","
-       << "allocated_bytes:" << chunk.allocated_bytes() << ","
-       << "wasted_memory:" << chunk.wasted_memory() << "}" << std::endl;
+void HeapLayoutTracer::GCEpiloguePrintHeapLayout(v8::Isolate* isolate,
+                                                 v8::GCType gc_type,
+                                                 v8::GCCallbackFlags flags,
+                                                 void* data) {
+  Heap* heap = reinterpret_cast<i::Isolate*>(isolate)->heap();
+  PrintF("After GC:%d,", heap->gc_count());
+  PrintF("collector_name:%s\n", TypeToCollectorName(gc_type));
+  PrintHeapLayout(std::cout, heap);
 }
 
 // static
-void HeapLayoutTracer::PrintHeapLayout(std::ostream& os, Heap* heap)
-{
-    if (v8_flags.minor_ms) {
-        for (const PageMetadata* page : *heap->paged_new_space()) {
-            PrintMemoryChunk(os, *page, "new_space");
-        }
-    } else {
-        const SemiSpaceNewSpace* semi_space_new_space = SemiSpaceNewSpace::From(heap->new_space());
-        for (const PageMetadata* page : semi_space_new_space->to_space()) {
-            PrintMemoryChunk(os, *page, "to_space");
-        }
-
-        for (const PageMetadata* page : semi_space_new_space->from_space()) {
-            PrintMemoryChunk(os, *page, "from_space");
-        }
-    }
-
-    OldGenerationMemoryChunkIterator it(heap);
-    MutablePageMetadata* chunk;
-    while ((chunk = it.next()) != nullptr) {
-        PrintMemoryChunk(os, *chunk, ToString(chunk->owner()->identity()));
-    }
-
-    for (ReadOnlyPageMetadata* page : heap->read_only_space()->pages()) {
-        PrintMemoryChunk(os, *page, "ro_space");
-    }
+void HeapLayoutTracer::PrintMemoryChunk(std::ostream& os,
+                                        const MemoryChunkMetadata& chunk,
+                                        const char* owner_name) {
+  os << "{owner:" << owner_name << ","
+     << "address:" << &chunk << ","
+     << "size:" << chunk.size() << ","
+     << "allocated_bytes:" << chunk.allocated_bytes() << ","
+     << "wasted_memory:" << chunk.wasted_memory() << "}" << std::endl;
 }
-} // namespace internal
-} // namespace v8
+
+// static
+void HeapLayoutTracer::PrintHeapLayout(std::ostream& os, Heap* heap) {
+  if (v8_flags.minor_ms) {
+    for (const PageMetadata* page : *heap->paged_new_space()) {
+      PrintMemoryChunk(os, *page, "new_space");
+    }
+  } else {
+    const SemiSpaceNewSpace* semi_space_new_space =
+        SemiSpaceNewSpace::From(heap->new_space());
+    for (const PageMetadata* page : semi_space_new_space->to_space()) {
+      PrintMemoryChunk(os, *page, "to_space");
+    }
+
+    for (const PageMetadata* page : semi_space_new_space->from_space()) {
+      PrintMemoryChunk(os, *page, "from_space");
+    }
+  }
+
+  OldGenerationMemoryChunkIterator it(heap);
+  MutablePageMetadata* chunk;
+  while ((chunk = it.next()) != nullptr) {
+    PrintMemoryChunk(os, *chunk, ToString(chunk->owner()->identity()));
+  }
+
+  for (ReadOnlyPageMetadata* page : heap->read_only_space()->pages()) {
+    PrintMemoryChunk(os, *page, "ro_space");
+  }
+}
+}  // namespace internal
+}  // namespace v8

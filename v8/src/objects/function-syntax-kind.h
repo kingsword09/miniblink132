@@ -11,38 +11,36 @@ namespace v8 {
 namespace internal {
 
 enum class FunctionSyntaxKind : uint8_t {
-    kAnonymousExpression,
-    kNamedExpression,
-    kDeclaration,
-    kAccessorOrMethod,
-    kWrapped,
+  kAnonymousExpression,
+  kNamedExpression,
+  kDeclaration,
+  kAccessorOrMethod,
+  kWrapped,
 
-    kLastFunctionSyntaxKind = kWrapped,
+  kLastFunctionSyntaxKind = kWrapped,
 };
 
-inline const char* FunctionSyntaxKind2String(FunctionSyntaxKind kind)
-{
-    switch (kind) {
+inline const char* FunctionSyntaxKind2String(FunctionSyntaxKind kind) {
+  switch (kind) {
     case FunctionSyntaxKind::kAnonymousExpression:
-        return "AnonymousExpression";
+      return "AnonymousExpression";
     case FunctionSyntaxKind::kNamedExpression:
-        return "NamedExpression";
+      return "NamedExpression";
     case FunctionSyntaxKind::kDeclaration:
-        return "Declaration";
+      return "Declaration";
     case FunctionSyntaxKind::kAccessorOrMethod:
-        return "AccessorOrMethod";
+      return "AccessorOrMethod";
     case FunctionSyntaxKind::kWrapped:
-        return "Wrapped";
-    }
-    UNREACHABLE();
+      return "Wrapped";
+  }
+  UNREACHABLE();
 }
 
-inline std::ostream& operator<<(std::ostream& os, FunctionSyntaxKind kind)
-{
-    return os << FunctionSyntaxKind2String(kind);
+inline std::ostream& operator<<(std::ostream& os, FunctionSyntaxKind kind) {
+  return os << FunctionSyntaxKind2String(kind);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_OBJECTS_FUNCTION_SYNTAX_KIND_H_
+#endif  // V8_OBJECTS_FUNCTION_SYNTAX_KIND_H_

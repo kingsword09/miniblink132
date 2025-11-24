@@ -39,94 +39,78 @@ namespace internal {
 // }
 //
 class V8_EXPORT_PRIVATE OperationsBarrier {
-public:
-    // The owner of a Token which evaluates to true can safely perform an
-    // operation while being certain it happens-before CancelAndWait(). Releasing
-    // this Token relinquishes this right.
-    //
-    // This class is thread-safe.
-    class Token {
-    public:
-        Token() = default;
-        ~Token()
-        {
-            if (outer_)
-                outer_->Release();
-        }
-        Token(const Token&) = delete;
-        Token(Token&& other) V8_NOEXCEPT : outer_(other.outer_)
-        {
-            other.outer_ = nullptr;
-        }
-
-        Token& operator=(const Token&) = delete;
-        Token& operator=(Token&& other) V8_NOEXCEPT
-        {
-            DCHECK_NE(this, &other);
-            if (outer_)
-                outer_->Release();
-            outer_ = other.outer_;
-            other.outer_ = nullptr;
-            return *this;
-        }
-
-        operator bool() const
-        {
-            return !!outer_;
-        }
-
-    private:
-        friend class OperationsBarrier;
-        explicit Token(OperationsBarrier* outer)
-            : outer_(outer)
-        {
-            DCHECK_NOT_NULL(outer_);
-        }
-        OperationsBarrier* outer_ = nullptr;
-    };
-
-    OperationsBarrier() = default;
-
-    // Users must call CancelAndWait() before destroying an instance of this
-    // class.
-    ~OperationsBarrier()
-    {
-        DCHECK(cancelled_);
+ public:
+  // The owner of a Token which evaluates to true can safely perform an
+  // operation while being certain it happens-before CancelAndWait(). Releasing
+  // this Token relinquishes this right.
+  //
+  // This class is thread-safe.
+  class Token {
+   public:
+    Token() = default;
+    ~Token() {
+      if (outer_) outer_->Release();
+    }
+    Token(const Token&) = delete;
+    Token(Token&& other) V8_NOEXCEPT : outer_(other.outer_) {
+      other.outer_ = nullptr;
     }
 
-    OperationsBarrier(const OperationsBarrier&) = delete;
-    OperationsBarrier& operator=(const OperationsBarrier&) = delete;
-
-    // Returns a RAII like object that implicitly converts to true if operations
-    // are allowed i.e. if this call happens-before CancelAndWait(), otherwise the
-    // object will convert to false. On successful return, this OperationsBarrier
-    // will keep track of the operation until the returned object goes out of
-    // scope.
-    Token TryLock();
-
-    // Prevents further calls to TryLock() from succeeding and waits for
-    // all the ongoing operations to complete.
-    //
-    // Attention: Can only be called once.
-    void CancelAndWait();
-
-    bool cancelled() const
-    {
-        return cancelled_;
+    Token& operator=(const Token&) = delete;
+    Token& operator=(Token&& other) V8_NOEXCEPT {
+      DCHECK_NE(this, &other);
+      if (outer_) outer_->Release();
+      outer_ = other.outer_;
+      other.outer_ = nullptr;
+      return *this;
     }
 
-private:
-    void Release();
+    operator bool() const { return !!outer_; }
 
-    // Mutex and condition variable enabling concurrent register and removing, as
-    // well as waiting for background tasks on {CancelAndWait}.
-    base::Mutex mutex_;
-    base::ConditionVariable release_condition_;
-    bool cancelled_ = false;
-    size_t operations_count_ { 0 };
+   private:
+    friend class OperationsBarrier;
+    explicit Token(OperationsBarrier* outer) : outer_(outer) {
+      DCHECK_NOT_NULL(outer_);
+    }
+    OperationsBarrier* outer_ = nullptr;
+  };
+
+  OperationsBarrier() = default;
+
+  // Users must call CancelAndWait() before destroying an instance of this
+  // class.
+  ~OperationsBarrier() { DCHECK(cancelled_); }
+
+  OperationsBarrier(const OperationsBarrier&) = delete;
+  OperationsBarrier& operator=(const OperationsBarrier&) = delete;
+
+  // Returns a RAII like object that implicitly converts to true if operations
+  // are allowed i.e. if this call happens-before CancelAndWait(), otherwise the
+  // object will convert to false. On successful return, this OperationsBarrier
+  // will keep track of the operation until the returned object goes out of
+  // scope.
+  Token TryLock();
+
+  // Prevents further calls to TryLock() from succeeding and waits for
+  // all the ongoing operations to complete.
+  //
+  // Attention: Can only be called once.
+  void CancelAndWait();
+
+  bool cancelled() const { return cancelled_; }
+
+ private:
+  void Release();
+
+  // Mutex and condition variable enabling concurrent register and removing, as
+  // well as waiting for background tasks on {CancelAndWait}.
+  base::Mutex mutex_;
+  base::ConditionVariable release_condition_;
+  bool cancelled_ = false;
+  size_t operations_count_{0};
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TASKS_OPERATIONS_BARRIER_H_
+#endif  // V8_TASKS_OPERATIONS_BARRIER_H_

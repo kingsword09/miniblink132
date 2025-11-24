@@ -10,11 +10,14 @@
 namespace v8 {
 namespace internal {
 
-V8_INLINE Address ReadSandboxedPointerField(Address field_address, PtrComprCageBase cage_base);
+V8_INLINE Address ReadSandboxedPointerField(Address field_address,
+                                            PtrComprCageBase cage_base);
 
-V8_INLINE void WriteSandboxedPointerField(Address field_address, PtrComprCageBase cage_base, Address value);
+V8_INLINE void WriteSandboxedPointerField(Address field_address,
+                                          PtrComprCageBase cage_base,
+                                          Address value);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SANDBOX_SANDBOXED_POINTER_H_
+#endif  // V8_SANDBOX_SANDBOXED_POINTER_H_

@@ -15,26 +15,23 @@ namespace internal {
  * throughput of malloc/free operations.
  */
 class HighAllocationThroughputScope final {
-public:
-    explicit HighAllocationThroughputScope(Platform* platform)
-        : observer_(platform->GetHighAllocationThroughputObserver())
-    {
-        observer_->LeaveSection();
-    }
+ public:
+  explicit HighAllocationThroughputScope(Platform* platform)
+      : observer_(platform->GetHighAllocationThroughputObserver()) {
+    observer_->LeaveSection();
+  }
 
-    HighAllocationThroughputScope(const HighAllocationThroughputScope&) = delete;
-    HighAllocationThroughputScope& operator=(const HighAllocationThroughputScope&) = delete;
+  HighAllocationThroughputScope(const HighAllocationThroughputScope&) = delete;
+  HighAllocationThroughputScope& operator=(
+      const HighAllocationThroughputScope&) = delete;
 
-    ~HighAllocationThroughputScope()
-    {
-        observer_->EnterSection();
-    }
+  ~HighAllocationThroughputScope() { observer_->EnterSection(); }
 
-private:
-    HighAllocationThroughputObserver* observer_;
+ private:
+  HighAllocationThroughputObserver* observer_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMMON_HIGH_ALLOCATION_THROUGHPUT_SCOPE_H_
+#endif  // V8_COMMON_HIGH_ALLOCATION_THROUGHPUT_SCOPE_H_

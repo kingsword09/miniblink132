@@ -20,10 +20,12 @@
 
 #define LSAN_IGNORE_OBJECT(ptr) __lsan_ignore_object(ptr)
 
-#else // defined(V8_USE_ADDRESS_SANITIZER) && !defined(V8_OS_WIN)
+#else  // defined(V8_USE_ADDRESS_SANITIZER) && !defined(V8_OS_WIN)
 
-#define LSAN_IGNORE_OBJECT(ptr) static_assert(std::is_convertible<decltype(ptr), const void*>::value, "LSAN_IGNORE_OBJECT can only be used with pointer types")
+#define LSAN_IGNORE_OBJECT(ptr)                                         \
+  static_assert(std::is_convertible<decltype(ptr), const void*>::value, \
+                "LSAN_IGNORE_OBJECT can only be used with pointer types")
 
-#endif // defined(V8_USE_ADDRESS_SANITIZER) && !defined(V8_OS_WIN)
+#endif  // defined(V8_USE_ADDRESS_SANITIZER) && !defined(V8_OS_WIN)
 
-#endif // V8_BASE_SANITIZER_LSAN_H_
+#endif  // V8_BASE_SANITIZER_LSAN_H_

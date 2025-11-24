@@ -12,58 +12,65 @@ namespace v8 {
 namespace internal {
 namespace {
 
-Handle<Object> GetValueForDebugger(TranslatedFrame::iterator it, Isolate* isolate)
-{
-    if (it->GetRawValue() == ReadOnlyRoots(isolate).arguments_marker() && !it->IsMaterializableByDebugger()) {
-        return isolate->factory()->optimized_out();
-    }
-    return it->GetValue();
+Handle<Object> GetValueForDebugger(TranslatedFrame::iterator it,
+                                   Isolate* isolate) {
+  if (it->GetRawValue() == ReadOnlyRoots(isolate).arguments_marker() &&
+      !it->IsMaterializableByDebugger()) {
+    return isolate->factory()->optimized_out();
+  }
+  return it->GetValue();
 }
 
-} // namespace
+}  // namespace
 
-DeoptimizedFrameInfo::DeoptimizedFrameInfo(TranslatedState* state, TranslatedState::iterator frame_it, Isolate* isolate)
-{
-    int parameter_count = frame_it->shared_info()->internal_formal_parameter_count_without_receiver();
-    TranslatedFrame::iterator stack_it = frame_it->begin();
+DeoptimizedFrameInfo::DeoptimizedFrameInfo(TranslatedState* state,
+                                           TranslatedState::iterator frame_it,
+                                           Isolate* isolate) {
+  int parameter_count =
+      frame_it->shared_info()
+          ->internal_formal_parameter_count_without_receiver();
+  TranslatedFrame::iterator stack_it = frame_it->begin();
 
-    // Get the function. Note that this might materialize the function.
-    // In case the debugger mutates this value, we should deoptimize
-    // the function and remember the value in the materialized value store.
-    DCHECK_EQ(parameter_count, Cast<JSFunction>(stack_it->GetValue())->shared()->internal_formal_parameter_count_without_receiver());
+  // Get the function. Note that this might materialize the function.
+  // In case the debugger mutates this value, we should deoptimize
+  // the function and remember the value in the materialized value store.
+  DCHECK_EQ(parameter_count,
+            Cast<JSFunction>(stack_it->GetValue())
+                ->shared()
+                ->internal_formal_parameter_count_without_receiver());
 
-    stack_it++; // Skip the function.
-    stack_it++; // Skip the receiver.
+  stack_it++;  // Skip the function.
+  stack_it++;  // Skip the receiver.
 
-    DCHECK_EQ(TranslatedFrame::kUnoptimizedFunction, frame_it->kind());
+  DCHECK_EQ(TranslatedFrame::kUnoptimizedFunction, frame_it->kind());
 
-    parameters_.resize(static_cast<size_t>(parameter_count));
-    for (int i = 0; i < parameter_count; i++) {
-        Handle<Object> parameter = GetValueForDebugger(stack_it, isolate);
-        SetParameter(i, parameter);
-        stack_it++;
-    }
-
-    // Get the context.
-    context_ = GetValueForDebugger(stack_it, isolate);
+  parameters_.resize(static_cast<size_t>(parameter_count));
+  for (int i = 0; i < parameter_count; i++) {
+    Handle<Object> parameter = GetValueForDebugger(stack_it, isolate);
+    SetParameter(i, parameter);
     stack_it++;
+  }
 
-    // Get the expression stack.
-    DCHECK_EQ(TranslatedFrame::kUnoptimizedFunction, frame_it->kind());
-    const int stack_height = frame_it->height(); // Accumulator *not* included.
+  // Get the context.
+  context_ = GetValueForDebugger(stack_it, isolate);
+  stack_it++;
 
-    expression_stack_.resize(static_cast<size_t>(stack_height));
-    for (int i = 0; i < stack_height; i++) {
-        Handle<Object> expression = GetValueForDebugger(stack_it, isolate);
-        SetExpression(i, expression);
-        stack_it++;
-    }
+  // Get the expression stack.
+  DCHECK_EQ(TranslatedFrame::kUnoptimizedFunction, frame_it->kind());
+  const int stack_height = frame_it->height();  // Accumulator *not* included.
 
-    DCHECK_EQ(TranslatedFrame::kUnoptimizedFunction, frame_it->kind());
-    stack_it++; // Skip the accumulator.
+  expression_stack_.resize(static_cast<size_t>(stack_height));
+  for (int i = 0; i < stack_height; i++) {
+    Handle<Object> expression = GetValueForDebugger(stack_it, isolate);
+    SetExpression(i, expression);
+    stack_it++;
+  }
 
-    CHECK(stack_it == frame_it->end());
+  DCHECK_EQ(TranslatedFrame::kUnoptimizedFunction, frame_it->kind());
+  stack_it++;  // Skip the accumulator.
+
+  CHECK(stack_it == frame_it->end());
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

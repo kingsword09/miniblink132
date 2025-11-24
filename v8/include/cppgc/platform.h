@@ -8,8 +8,8 @@
 #include <memory>
 
 #include "cppgc/source-location.h"
-#include "v8-platform.h" // NOLINT(build/include_directory)
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8-platform.h"  // NOLINT(build/include_directory)
+#include "v8config.h"     // NOLINT(build/include_directory)
 
 namespace cppgc {
 
@@ -29,43 +29,42 @@ using TracingController = v8::TracingController;
  * Platform interface used by Heap. Contains allocators and executors.
  */
 class V8_EXPORT Platform {
-public:
-    virtual ~Platform() = default;
+ public:
+  virtual ~Platform() = default;
 
-    /**
+  /**
    * \returns the allocator used by cppgc to allocate its heap and various
    * support structures. Returning nullptr results in using the `PageAllocator`
    * provided by `cppgc::InitializeProcess()` instead.
    */
-    virtual PageAllocator* GetPageAllocator() = 0;
+  virtual PageAllocator* GetPageAllocator() = 0;
 
-    /**
+  /**
    * Monotonically increasing time in seconds from an arbitrary fixed point in
    * the past. This function is expected to return at least
    * millisecond-precision values. For this reason,
    * it is recommended that the fixed point be no further in the past than
    * the epoch.
    **/
-    virtual double MonotonicallyIncreasingTime() = 0;
+  virtual double MonotonicallyIncreasingTime() = 0;
 
-    /**
+  /**
    * Foreground task runner that should be used by a Heap.
    */
-    virtual std::shared_ptr<TaskRunner> GetForegroundTaskRunner()
-    {
-        return GetForegroundTaskRunner(TaskPriority::kUserBlocking);
-    }
+  virtual std::shared_ptr<TaskRunner> GetForegroundTaskRunner() {
+    return GetForegroundTaskRunner(TaskPriority::kUserBlocking);
+  }
 
-    /**
+  /**
    * Returns a TaskRunner with a specific |priority| which can be used to post a
    * task on the foreground thread.
    */
-    virtual std::shared_ptr<TaskRunner> GetForegroundTaskRunner(TaskPriority priority)
-    {
-        return nullptr;
-    }
+  virtual std::shared_ptr<TaskRunner> GetForegroundTaskRunner(
+      TaskPriority priority) {
+    return nullptr;
+  }
 
-    /**
+  /**
    * Posts `job_task` to run in parallel. Returns a `JobHandle` associated with
    * the `Job`, which can be joined or canceled.
    * This avoids degenerate cases:
@@ -124,17 +123,17 @@ public:
    * }
    * \endcode
    */
-    virtual std::unique_ptr<JobHandle> PostJob(TaskPriority priority, std::unique_ptr<JobTask> job_task)
-    {
-        return nullptr;
-    }
+  virtual std::unique_ptr<JobHandle> PostJob(
+      TaskPriority priority, std::unique_ptr<JobTask> job_task) {
+    return nullptr;
+  }
 
-    /**
+  /**
    * Returns an instance of a `TracingController`. This must be non-nullptr. The
    * default implementation returns an empty `TracingController` that consumes
    * trace data without effect.
    */
-    virtual TracingController* GetTracingController();
+  virtual TracingController* GetTracingController();
 };
 
 /**
@@ -151,7 +150,8 @@ public:
  *   values based on compile-time settings and may be rounded up. If this
  *   parameter is zero, a default value will be used.
  */
-V8_EXPORT void InitializeProcess(PageAllocator* page_allocator = nullptr, size_t desired_heap_size = 0);
+V8_EXPORT void InitializeProcess(PageAllocator* page_allocator = nullptr,
+                                 size_t desired_heap_size = 0);
 
 /**
  * Must be called after destroying the last used heap. Some process-global
@@ -162,10 +162,11 @@ V8_EXPORT void ShutdownProcess();
 
 namespace internal {
 
-V8_EXPORT void Fatal(const std::string& reason = std::string(), const SourceLocation& = SourceLocation::Current());
+V8_EXPORT void Fatal(const std::string& reason = std::string(),
+                     const SourceLocation& = SourceLocation::Current());
 
-} // namespace internal
+}  // namespace internal
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_PLATFORM_H_
+#endif  // INCLUDE_CPPGC_PLATFORM_H_

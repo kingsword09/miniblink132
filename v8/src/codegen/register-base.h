@@ -25,81 +25,68 @@ namespace internal {
 // such that we use an enum in optimized mode, and the class in debug
 // mode. This way we get the compile-time error checking in debug mode
 // and best performance in optimized code.
-template <typename SubType, int kAfterLastRegister> class RegisterBase {
-public:
-    static constexpr int8_t kCode_no_reg = -1;
-    static constexpr int8_t kNumRegisters = kAfterLastRegister;
+template <typename SubType, int kAfterLastRegister>
+class RegisterBase {
+ public:
+  static constexpr int8_t kCode_no_reg = -1;
+  static constexpr int8_t kNumRegisters = kAfterLastRegister;
 
-    static constexpr SubType no_reg()
-    {
-        return SubType { kCode_no_reg };
-    }
+  static constexpr SubType no_reg() { return SubType{kCode_no_reg}; }
 
-    static constexpr SubType from_code(int8_t code)
-    {
-        V8_ASSUME(code >= 0 && code < kNumRegisters);
-        return SubType { code };
-    }
+  static constexpr SubType from_code(int8_t code) {
+    V8_ASSUME(code >= 0 && code < kNumRegisters);
+    return SubType{code};
+  }
 
-    constexpr bool is_valid() const
-    {
-        return reg_code_ != kCode_no_reg;
-    }
+  constexpr bool is_valid() const { return reg_code_ != kCode_no_reg; }
 
-    constexpr int8_t code() const
-    {
+  constexpr int8_t code() const {
 #if V8_TARGET_ARCH_ARM64
-        // Arm64 uses kSPRegInternalCode which is > kNumRegisters.
-        V8_ASSUME(reg_code_ >= 0);
+    // Arm64 uses kSPRegInternalCode which is > kNumRegisters.
+    V8_ASSUME(reg_code_ >= 0);
 #else
-        V8_ASSUME(reg_code_ >= 0 && reg_code_ < kNumRegisters);
+    V8_ASSUME(reg_code_ >= 0 && reg_code_ < kNumRegisters);
 #endif
-        return reg_code_;
-    }
+    return reg_code_;
+  }
 
-    inline constexpr bool operator==(const RegisterBase<SubType, kAfterLastRegister>& other) const
-    {
-        return reg_code_ == other.reg_code_;
-    }
-    inline constexpr bool operator!=(const RegisterBase<SubType, kAfterLastRegister>& other) const
-    {
-        return reg_code_ != other.reg_code_;
-    }
+  inline constexpr bool operator==(
+      const RegisterBase<SubType, kAfterLastRegister>& other) const {
+    return reg_code_ == other.reg_code_;
+  }
+  inline constexpr bool operator!=(
+      const RegisterBase<SubType, kAfterLastRegister>& other) const {
+    return reg_code_ != other.reg_code_;
+  }
 
-    // Used to print the name of some special registers.
-    static const char* GetSpecialRegisterName(int code)
-    {
-        return "UNKNOWN";
-    }
+  // Used to print the name of some special registers.
+  static const char* GetSpecialRegisterName(int code) { return "UNKNOWN"; }
 
-protected:
-    explicit constexpr RegisterBase(int code)
-        : reg_code_(code)
-    {
-    }
+ protected:
+  explicit constexpr RegisterBase(int code) : reg_code_(code) {}
 
-private:
-    int8_t reg_code_;
-    static_assert(kAfterLastRegister <= kMaxInt8);
+ private:
+  int8_t reg_code_;
+  static_assert(kAfterLastRegister <= kMaxInt8);
 };
 
-template <typename RegType, typename = decltype(RegisterName(std::declval<RegType>()))> inline std::ostream& operator<<(std::ostream& os, RegType reg)
-{
-    return os << RegisterName(reg);
+template <typename RegType,
+          typename = decltype(RegisterName(std::declval<RegType>()))>
+inline std::ostream& operator<<(std::ostream& os, RegType reg) {
+  return os << RegisterName(reg);
 }
 
 // Helper macros to define a {RegisterName} method based on a macro list
 // containing all names.
 #define DEFINE_REGISTER_NAMES_NAME(name) #name,
-#define DEFINE_REGISTER_NAMES(RegType, LIST)                                                                                                                   \
-    inline const char* RegisterName(RegType reg)                                                                                                               \
-    {                                                                                                                                                          \
-        static constexpr const char* Names[] = { LIST(DEFINE_REGISTER_NAMES_NAME) };                                                                           \
-        static_assert(arraysize(Names) == RegType::kNumRegisters);                                                                                             \
-        return reg.is_valid() ? Names[reg.code()] : "invalid";                                                                                                 \
-    }
+#define DEFINE_REGISTER_NAMES(RegType, LIST)                                   \
+  inline const char* RegisterName(RegType reg) {                               \
+    static constexpr const char* Names[] = {LIST(DEFINE_REGISTER_NAMES_NAME)}; \
+    static_assert(arraysize(Names) == RegType::kNumRegisters);                 \
+    return reg.is_valid() ? Names[reg.code()] : "invalid";                     \
+  }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_REGISTER_BASE_H_
+#endif  // V8_CODEGEN_REGISTER_BASE_H_

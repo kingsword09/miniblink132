@@ -14,23 +14,28 @@
 namespace v8 {
 namespace internal {
 
-V8_WARN_UNUSED_RESULT inline ExceptionStatus ElementsAccessor::CollectElementIndices(Handle<JSObject> object, KeyAccumulator* keys)
-{
-    return CollectElementIndices(object, handle(object->elements(), keys->isolate()), keys);
+V8_WARN_UNUSED_RESULT inline ExceptionStatus
+ElementsAccessor::CollectElementIndices(Handle<JSObject> object,
+                                        KeyAccumulator* keys) {
+  return CollectElementIndices(
+      object, handle(object->elements(), keys->isolate()), keys);
 }
 
 inline MaybeHandle<FixedArray> ElementsAccessor::PrependElementIndices(
-    Isolate* isolate, Handle<JSObject> object, Handle<FixedArray> keys, GetKeysConversion convert, PropertyFilter filter)
-{
-    return PrependElementIndices(isolate, object, handle(object->elements(), isolate), keys, convert, filter);
+    Isolate* isolate, Handle<JSObject> object, Handle<FixedArray> keys,
+    GetKeysConversion convert, PropertyFilter filter) {
+  return PrependElementIndices(isolate, object,
+                               handle(object->elements(), isolate), keys,
+                               convert, filter);
 }
 
-inline bool ElementsAccessor::HasElement(Tagged<JSObject> holder, uint32_t index, PropertyFilter filter)
-{
-    return HasElement(holder, index, holder->elements(), filter);
+inline bool ElementsAccessor::HasElement(Tagged<JSObject> holder,
+                                         uint32_t index,
+                                         PropertyFilter filter) {
+  return HasElement(holder, index, holder->elements(), filter);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_OBJECTS_ELEMENTS_INL_H_
+#endif  // V8_OBJECTS_ELEMENTS_INL_H_

@@ -64,6 +64,8 @@ namespace vTune {
 
 v8::JitCodeEventHandler GetVtuneCodeEventHandler();
 
-} // namespace vTune
+}  // namespace vTune
 
-#endif // V8_VTUNE_H_
+
+#endif  // V8_VTUNE_H_
+

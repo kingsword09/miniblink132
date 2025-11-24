@@ -10,11 +10,11 @@
 namespace v8::internal::compiler::turboshaft {
 
 struct MachineLoweringPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(MachineLowering)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(MachineLowering)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_MACHINE_LOWERING_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_MACHINE_LOWERING_PHASE_H_

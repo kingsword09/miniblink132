@@ -17,41 +17,36 @@ namespace internal {
 // modified after V8 instance is initialized.
 
 struct TracingFlags {
-    static V8_EXPORT_PRIVATE std::atomic_uint runtime_stats;
-    static V8_EXPORT_PRIVATE std::atomic_uint gc;
-    static V8_EXPORT_PRIVATE std::atomic_uint gc_stats;
-    static V8_EXPORT_PRIVATE std::atomic_uint ic_stats;
-    static V8_EXPORT_PRIVATE std::atomic_uint zone_stats;
+  static V8_EXPORT_PRIVATE std::atomic_uint runtime_stats;
+  static V8_EXPORT_PRIVATE std::atomic_uint gc;
+  static V8_EXPORT_PRIVATE std::atomic_uint gc_stats;
+  static V8_EXPORT_PRIVATE std::atomic_uint ic_stats;
+  static V8_EXPORT_PRIVATE std::atomic_uint zone_stats;
 
 #ifdef V8_RUNTIME_CALL_STATS
-    static bool is_runtime_stats_enabled()
-    {
-        return runtime_stats.load(std::memory_order_relaxed) != 0;
-    }
+  static bool is_runtime_stats_enabled() {
+    return runtime_stats.load(std::memory_order_relaxed) != 0;
+  }
 #endif
 
-    static bool is_gc_enabled()
-    {
-        return gc.load(std::memory_order_relaxed) != 0;
-    }
+  static bool is_gc_enabled() {
+    return gc.load(std::memory_order_relaxed) != 0;
+  }
 
-    static bool is_gc_stats_enabled()
-    {
-        return gc_stats.load(std::memory_order_relaxed) != 0;
-    }
+  static bool is_gc_stats_enabled() {
+    return gc_stats.load(std::memory_order_relaxed) != 0;
+  }
 
-    static bool is_ic_stats_enabled()
-    {
-        return ic_stats.load(std::memory_order_relaxed) != 0;
-    }
+  static bool is_ic_stats_enabled() {
+    return ic_stats.load(std::memory_order_relaxed) != 0;
+  }
 
-    static bool is_zone_stats_enabled()
-    {
-        return zone_stats.load(std::memory_order_relaxed) != 0;
-    }
+  static bool is_zone_stats_enabled() {
+    return zone_stats.load(std::memory_order_relaxed) != 0;
+  }
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_LOGGING_TRACING_FLAGS_H_
+#endif  // V8_LOGGING_TRACING_FLAGS_H_

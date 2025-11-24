@@ -13,41 +13,36 @@ namespace cppgc {
 namespace internal {
 
 class WriteBarrier::FlagUpdater final {
-public:
-    static void Enter()
-    {
-        write_barrier_enabled_.Enter();
-    }
-    static void Exit()
-    {
-        write_barrier_enabled_.Exit();
-    }
+ public:
+  static void Enter() { write_barrier_enabled_.Enter(); }
+  static void Exit() { write_barrier_enabled_.Exit(); }
 
-private:
-    FlagUpdater() = delete;
+ private:
+  FlagUpdater() = delete;
 };
 
 #if defined(CPPGC_YOUNG_GENERATION)
 class V8_EXPORT_PRIVATE YoungGenerationEnabler final {
-public:
-    static void Enable();
-    static void Disable();
+ public:
+  static void Enable();
+  static void Disable();
 
-    static bool IsEnabled();
+  static bool IsEnabled();
 
-private:
-    template <typename T> friend class v8::base::LeakyObject;
+ private:
+  template <typename T>
+  friend class v8::base::LeakyObject;
 
-    static YoungGenerationEnabler& Instance();
+  static YoungGenerationEnabler& Instance();
 
-    YoungGenerationEnabler() = default;
+  YoungGenerationEnabler() = default;
 
-    size_t is_enabled_;
-    v8::base::Mutex mutex_;
+  size_t is_enabled_;
+  v8::base::Mutex mutex_;
 };
-#endif // defined(CPPGC_YOUNG_GENERATION)
+#endif  // defined(CPPGC_YOUNG_GENERATION)
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_WRITE_BARRIER_H_
+#endif  // V8_HEAP_CPPGC_WRITE_BARRIER_H_

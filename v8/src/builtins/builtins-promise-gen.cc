@@ -19,17 +19,18 @@
 namespace v8 {
 namespace internal {
 
-void PromiseBuiltinsAssembler::ZeroOutEmbedderOffsets(TNode<JSPromise> promise)
-{
-    for (int offset = JSPromise::kHeaderSize; offset < JSPromise::kSizeWithEmbedderFields; offset += kTaggedSize) {
-        StoreObjectFieldNoWriteBarrier(promise, offset, SmiConstant(Smi::zero()));
-    }
+void PromiseBuiltinsAssembler::ZeroOutEmbedderOffsets(
+    TNode<JSPromise> promise) {
+  for (int offset = JSPromise::kHeaderSize;
+       offset < JSPromise::kSizeWithEmbedderFields; offset += kTaggedSize) {
+    StoreObjectFieldNoWriteBarrier(promise, offset, SmiConstant(Smi::zero()));
+  }
 }
 
-TNode<HeapObject> PromiseBuiltinsAssembler::AllocateJSPromise(TNode<Context> context)
-{
-    return Allocate(JSPromise::kSizeWithEmbedderFields);
+TNode<HeapObject> PromiseBuiltinsAssembler::AllocateJSPromise(
+    TNode<Context> context) {
+  return Allocate(JSPromise::kSizeWithEmbedderFields);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

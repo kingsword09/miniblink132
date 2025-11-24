@@ -5,7 +5,7 @@
 #include "src/common/globals.h"
 #ifndef V8_INTL_SUPPORT
 #error Internationalization is expected to be enabled.
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
 #ifndef V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_H_
 #define V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_H_
@@ -25,63 +25,70 @@
 
 namespace U_ICU_NAMESPACE {
 class RelativeDateTimeFormatter;
-} // namespace U_ICU_NAMESPACE
+}  // namespace U_ICU_NAMESPACE
 
 namespace v8 {
 namespace internal {
 
 #include "torque-generated/src/objects/js-relative-time-format-tq.inc"
 
-class JSRelativeTimeFormat : public TorqueGeneratedJSRelativeTimeFormat<JSRelativeTimeFormat, JSObject> {
-public:
-    // Creates relative time format object with properties derived from input
-    // locales and options.
-    V8_WARN_UNUSED_RESULT static MaybeHandle<JSRelativeTimeFormat> New(Isolate* isolate, DirectHandle<Map> map, Handle<Object> locales, Handle<Object> options);
+class JSRelativeTimeFormat
+    : public TorqueGeneratedJSRelativeTimeFormat<JSRelativeTimeFormat,
+                                                 JSObject> {
+ public:
+  // Creates relative time format object with properties derived from input
+  // locales and options.
+  V8_WARN_UNUSED_RESULT static MaybeHandle<JSRelativeTimeFormat> New(
+      Isolate* isolate, DirectHandle<Map> map, Handle<Object> locales,
+      Handle<Object> options);
 
-    V8_WARN_UNUSED_RESULT static Handle<JSObject> ResolvedOptions(Isolate* isolate, DirectHandle<JSRelativeTimeFormat> format_holder);
+  V8_WARN_UNUSED_RESULT static Handle<JSObject> ResolvedOptions(
+      Isolate* isolate, DirectHandle<JSRelativeTimeFormat> format_holder);
 
-    Handle<String> NumericAsString() const;
+  Handle<String> NumericAsString() const;
 
-    // ecma402/#sec-Intl.RelativeTimeFormat.prototype.format
-    V8_WARN_UNUSED_RESULT static MaybeHandle<String> Format(
-        Isolate* isolate, Handle<Object> value_obj, Handle<Object> unit_obj, DirectHandle<JSRelativeTimeFormat> format);
+  // ecma402/#sec-Intl.RelativeTimeFormat.prototype.format
+  V8_WARN_UNUSED_RESULT static MaybeHandle<String> Format(
+      Isolate* isolate, Handle<Object> value_obj, Handle<Object> unit_obj,
+      DirectHandle<JSRelativeTimeFormat> format);
 
-    // ecma402/#sec-Intl.RelativeTimeFormat.prototype.formatToParts
-    V8_WARN_UNUSED_RESULT static MaybeHandle<JSArray> FormatToParts(
-        Isolate* isolate, Handle<Object> value_obj, Handle<Object> unit_obj, DirectHandle<JSRelativeTimeFormat> format);
+  // ecma402/#sec-Intl.RelativeTimeFormat.prototype.formatToParts
+  V8_WARN_UNUSED_RESULT static MaybeHandle<JSArray> FormatToParts(
+      Isolate* isolate, Handle<Object> value_obj, Handle<Object> unit_obj,
+      DirectHandle<JSRelativeTimeFormat> format);
 
-    V8_EXPORT_PRIVATE static const std::set<std::string>& GetAvailableLocales();
+  V8_EXPORT_PRIVATE static const std::set<std::string>& GetAvailableLocales();
 
-    // RelativeTimeFormat accessors.
-    DECL_ACCESSORS(icu_formatter, Tagged<Managed<icu::RelativeDateTimeFormatter>>)
+  // RelativeTimeFormat accessors.
+  DECL_ACCESSORS(icu_formatter, Tagged<Managed<icu::RelativeDateTimeFormatter>>)
 
-    // Numeric: identifying whether numerical descriptions are always used, or
-    // used only when no more specific version is available (e.g., "1 day ago" vs
-    // "yesterday").
-    //
-    // ecma402/#sec-properties-of-intl-relativetimeformat-instances
-    enum class Numeric {
-        ALWAYS, // numerical descriptions are always used ("1 day ago")
-        AUTO // numerical descriptions are used only when no more specific
-        // version is available ("yesterday")
-    };
-    inline void set_numeric(Numeric numeric);
-    inline Numeric numeric() const;
+  // Numeric: identifying whether numerical descriptions are always used, or
+  // used only when no more specific version is available (e.g., "1 day ago" vs
+  // "yesterday").
+  //
+  // ecma402/#sec-properties-of-intl-relativetimeformat-instances
+  enum class Numeric {
+    ALWAYS,  // numerical descriptions are always used ("1 day ago")
+    AUTO     // numerical descriptions are used only when no more specific
+             // version is available ("yesterday")
+  };
+  inline void set_numeric(Numeric numeric);
+  inline Numeric numeric() const;
 
-    // Bit positions in |flags|.
-    DEFINE_TORQUE_GENERATED_JS_RELATIVE_TIME_FORMAT_FLAGS()
+  // Bit positions in |flags|.
+  DEFINE_TORQUE_GENERATED_JS_RELATIVE_TIME_FORMAT_FLAGS()
 
-    static_assert(NumericBit::is_valid(Numeric::AUTO));
-    static_assert(NumericBit::is_valid(Numeric::ALWAYS));
+  static_assert(NumericBit::is_valid(Numeric::AUTO));
+  static_assert(NumericBit::is_valid(Numeric::ALWAYS));
 
-    DECL_PRINTER(JSRelativeTimeFormat)
+  DECL_PRINTER(JSRelativeTimeFormat)
 
-    TQ_OBJECT_CONSTRUCTORS(JSRelativeTimeFormat)
+  TQ_OBJECT_CONSTRUCTORS(JSRelativeTimeFormat)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_H_
+#endif  // V8_OBJECTS_JS_RELATIVE_TIME_FORMAT_H_

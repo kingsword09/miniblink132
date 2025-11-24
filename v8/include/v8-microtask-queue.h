@@ -9,9 +9,9 @@
 
 #include <memory>
 
-#include "v8-local-handle.h" // NOLINT(build/include_directory)
-#include "v8-microtask.h" // NOLINT(build/include_directory)
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8-local-handle.h"  // NOLINT(build/include_directory)
+#include "v8-microtask.h"     // NOLINT(build/include_directory)
+#include "v8config.h"         // NOLINT(build/include_directory)
 
 namespace v8 {
 
@@ -20,7 +20,7 @@ class Function;
 namespace internal {
 class Isolate;
 class MicrotaskQueue;
-} // namespace internal
+}  // namespace internal
 
 /**
  * Represents the microtask queue, where microtasks are stored and processed.
@@ -38,25 +38,29 @@ class MicrotaskQueue;
  * origins that share the same URL scheme and eTLD+1.
  */
 class V8_EXPORT MicrotaskQueue {
-public:
-    /**
+ public:
+  /**
    * Creates an empty MicrotaskQueue instance.
    */
-    static std::unique_ptr<MicrotaskQueue> New(Isolate* isolate, MicrotasksPolicy policy = MicrotasksPolicy::kAuto);
+  static std::unique_ptr<MicrotaskQueue> New(
+      Isolate* isolate, MicrotasksPolicy policy = MicrotasksPolicy::kAuto);
 
-    virtual ~MicrotaskQueue() = default;
+  virtual ~MicrotaskQueue() = default;
 
-    /**
+  /**
    * Enqueues the callback to the queue.
    */
-    virtual void EnqueueMicrotask(Isolate* isolate, Local<Function> microtask) = 0;
+  virtual void EnqueueMicrotask(Isolate* isolate,
+                                Local<Function> microtask) = 0;
 
-    /**
+  /**
    * Enqueues the callback to the queue.
    */
-    virtual void EnqueueMicrotask(v8::Isolate* isolate, MicrotaskCallback callback, void* data = nullptr) = 0;
+  virtual void EnqueueMicrotask(v8::Isolate* isolate,
+                                MicrotaskCallback callback,
+                                void* data = nullptr) = 0;
 
-    /**
+  /**
    * Adds a callback to notify the embedder after microtasks were run. The
    * callback is triggered by explicit RunMicrotasks call or automatic
    * microtasks execution (see Isolate::SetMicrotasksPolicy).
@@ -68,35 +72,37 @@ public:
    * Executing scripts inside the callback will not re-trigger microtasks and
    * the callback.
    */
-    virtual void AddMicrotasksCompletedCallback(MicrotasksCompletedCallbackWithData callback, void* data = nullptr) = 0;
+  virtual void AddMicrotasksCompletedCallback(
+      MicrotasksCompletedCallbackWithData callback, void* data = nullptr) = 0;
 
-    /**
+  /**
    * Removes callback that was installed by AddMicrotasksCompletedCallback.
    */
-    virtual void RemoveMicrotasksCompletedCallback(MicrotasksCompletedCallbackWithData callback, void* data = nullptr) = 0;
+  virtual void RemoveMicrotasksCompletedCallback(
+      MicrotasksCompletedCallbackWithData callback, void* data = nullptr) = 0;
 
-    /**
+  /**
    * Runs microtasks if no microtask is running on this MicrotaskQueue instance.
    */
-    virtual void PerformCheckpoint(Isolate* isolate) = 0;
+  virtual void PerformCheckpoint(Isolate* isolate) = 0;
 
-    /**
+  /**
    * Returns true if a microtask is running on this MicrotaskQueue instance.
    */
-    virtual bool IsRunningMicrotasks() const = 0;
+  virtual bool IsRunningMicrotasks() const = 0;
 
-    /**
+  /**
    * Returns the current depth of nested MicrotasksScope that has
    * kRunMicrotasks.
    */
-    virtual int GetMicrotasksScopeDepth() const = 0;
+  virtual int GetMicrotasksScopeDepth() const = 0;
 
-    MicrotaskQueue(const MicrotaskQueue&) = delete;
-    MicrotaskQueue& operator=(const MicrotaskQueue&) = delete;
+  MicrotaskQueue(const MicrotaskQueue&) = delete;
+  MicrotaskQueue& operator=(const MicrotaskQueue&) = delete;
 
-private:
-    friend class internal::MicrotaskQueue;
-    MicrotaskQueue() = default;
+ private:
+  friend class internal::MicrotaskQueue;
+  MicrotaskQueue() = default;
 };
 
 /**
@@ -109,38 +115,38 @@ private:
  * microtasks.
  */
 class V8_EXPORT V8_NODISCARD MicrotasksScope {
-public:
-    enum Type { kRunMicrotasks, kDoNotRunMicrotasks };
+ public:
+  enum Type { kRunMicrotasks, kDoNotRunMicrotasks };
 
-    MicrotasksScope(Local<Context> context, Type type);
-    MicrotasksScope(Isolate* isolate, MicrotaskQueue* microtask_queue, Type type);
-    ~MicrotasksScope();
+  MicrotasksScope(Local<Context> context, Type type);
+  MicrotasksScope(Isolate* isolate, MicrotaskQueue* microtask_queue, Type type);
+  ~MicrotasksScope();
 
-    /**
+  /**
    * Runs microtasks if no kRunMicrotasks scope is currently active.
    */
-    static void PerformCheckpoint(Isolate* isolate);
+  static void PerformCheckpoint(Isolate* isolate);
 
-    /**
+  /**
    * Returns current depth of nested kRunMicrotasks scopes.
    */
-    static int GetCurrentDepth(Isolate* isolate);
+  static int GetCurrentDepth(Isolate* isolate);
 
-    /**
+  /**
    * Returns true while microtasks are being executed.
    */
-    static bool IsRunningMicrotasks(Isolate* isolate);
+  static bool IsRunningMicrotasks(Isolate* isolate);
 
-    // Prevent copying.
-    MicrotasksScope(const MicrotasksScope&) = delete;
-    MicrotasksScope& operator=(const MicrotasksScope&) = delete;
+  // Prevent copying.
+  MicrotasksScope(const MicrotasksScope&) = delete;
+  MicrotasksScope& operator=(const MicrotasksScope&) = delete;
 
-private:
-    internal::Isolate* const i_isolate_;
-    internal::MicrotaskQueue* const microtask_queue_;
-    bool run_;
+ private:
+  internal::Isolate* const i_isolate_;
+  internal::MicrotaskQueue* const microtask_queue_;
+  bool run_;
 };
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_MICROTASKS_QUEUE_H_
+#endif  // INCLUDE_V8_MICROTASKS_QUEUE_H_

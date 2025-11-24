@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_WASM_COMPILATION_ENVIRONMENT_H_
 #define V8_WASM_COMPILATION_ENVIRONMENT_H_
@@ -33,16 +33,19 @@ class WasmCode;
 class WasmEngine;
 class WasmError;
 
-enum DynamicTiering : bool { kDynamicTiering = true, kNoDynamicTiering = false };
+enum DynamicTiering : bool {
+  kDynamicTiering = true,
+  kNoDynamicTiering = false
+};
 
 // Further information about a location for a deopt: A call_ref can either be
 // just an inline call (that didn't cause a deopt) with a deopt happening within
 // the inlinee or it could be the deopt point itself. This changes whether the
 // relevant stackstate is the one before the call or after the call.
 enum class LocationKindForDeopt : uint8_t {
-    kNone,
-    kEagerDeopt, // The location is the point of an eager deopt.
-    kInlinedCall, // The loation is an inlined call, not a deopt.
+  kNone,
+  kEagerDeopt,   // The location is the point of an eager deopt.
+  kInlinedCall,  // The loation is an inlined call, not a deopt.
 };
 
 // The Arm architecture does not specify the results in memory of
@@ -60,149 +63,152 @@ constexpr bool kPartialOOBWritesAreNoops = true;
 // The {CompilationEnv} encapsulates the module data that is used during
 // compilation. CompilationEnvs are shareable across multiple compilations.
 struct CompilationEnv {
-    // A pointer to the decoded module's static representation.
-    const WasmModule* const module;
+  // A pointer to the decoded module's static representation.
+  const WasmModule* const module;
 
-    // Features enabled for this compilation.
-    const WasmEnabledFeatures enabled_features;
+  // Features enabled for this compilation.
+  const WasmEnabledFeatures enabled_features;
 
-    const DynamicTiering dynamic_tiering;
+  const DynamicTiering dynamic_tiering;
 
-    const std::atomic<Address>* fast_api_targets;
+  const std::atomic<Address>* fast_api_targets;
 
-    std::atomic<const MachineSignature*>* fast_api_signatures;
+  std::atomic<const MachineSignature*>* fast_api_signatures;
 
-    uint32_t deopt_info_bytecode_offset = std::numeric_limits<uint32_t>::max();
-    LocationKindForDeopt deopt_location_kind = LocationKindForDeopt::kNone;
+  uint32_t deopt_info_bytecode_offset = std::numeric_limits<uint32_t>::max();
+  LocationKindForDeopt deopt_location_kind = LocationKindForDeopt::kNone;
 
-    // Create a {CompilationEnv} object for compilation. The caller has to ensure
-    // that the {WasmModule} pointer stays valid while the {CompilationEnv} is
-    // being used.
-    static inline CompilationEnv ForModule(const NativeModule* native_module);
+  // Create a {CompilationEnv} object for compilation. The caller has to ensure
+  // that the {WasmModule} pointer stays valid while the {CompilationEnv} is
+  // being used.
+  static inline CompilationEnv ForModule(const NativeModule* native_module);
 
-    static constexpr CompilationEnv NoModuleAllFeaturesForTesting();
+  static constexpr CompilationEnv NoModuleAllFeaturesForTesting();
 
-private:
-    constexpr CompilationEnv(const WasmModule* module, WasmEnabledFeatures enabled_features, DynamicTiering dynamic_tiering,
-        std::atomic<Address>* fast_api_targets, std::atomic<const MachineSignature*>* fast_api_signatures)
-        : module(module)
-        , enabled_features(enabled_features)
-        , dynamic_tiering(dynamic_tiering)
-        , fast_api_targets(fast_api_targets)
-        , fast_api_signatures(fast_api_signatures)
-    {
-    }
+ private:
+  constexpr CompilationEnv(
+      const WasmModule* module, WasmEnabledFeatures enabled_features,
+      DynamicTiering dynamic_tiering, std::atomic<Address>* fast_api_targets,
+      std::atomic<const MachineSignature*>* fast_api_signatures)
+      : module(module),
+        enabled_features(enabled_features),
+        dynamic_tiering(dynamic_tiering),
+        fast_api_targets(fast_api_targets),
+        fast_api_signatures(fast_api_signatures) {}
 };
 
 // The wire bytes are either owned by the StreamingDecoder, or (after streaming)
 // by the NativeModule. This class abstracts over the storage location.
 class WireBytesStorage {
-public:
-    virtual ~WireBytesStorage() = default;
-    virtual base::Vector<const uint8_t> GetCode(WireBytesRef) const = 0;
-    // Returns the ModuleWireBytes corresponding to the underlying module if
-    // available. Not supported if the wire bytes are owned by a StreamingDecoder.
-    virtual std::optional<ModuleWireBytes> GetModuleBytes() const = 0;
+ public:
+  virtual ~WireBytesStorage() = default;
+  virtual base::Vector<const uint8_t> GetCode(WireBytesRef) const = 0;
+  // Returns the ModuleWireBytes corresponding to the underlying module if
+  // available. Not supported if the wire bytes are owned by a StreamingDecoder.
+  virtual std::optional<ModuleWireBytes> GetModuleBytes() const = 0;
 };
 
 // Callbacks will receive either {kFailedCompilation} or
 // {kFinishedBaselineCompilation}.
 enum class CompilationEvent : uint8_t {
-    kFinishedBaselineCompilation,
-    kFinishedCompilationChunk,
-    kFailedCompilation,
+  kFinishedBaselineCompilation,
+  kFinishedCompilationChunk,
+  kFailedCompilation,
 };
 
 class V8_EXPORT_PRIVATE CompilationEventCallback {
-public:
-    virtual ~CompilationEventCallback() = default;
+ public:
+  virtual ~CompilationEventCallback() = default;
 
-    virtual void call(CompilationEvent event) = 0;
+  virtual void call(CompilationEvent event) = 0;
 
-    enum ReleaseAfterFinalEvent : bool { kReleaseAfterFinalEvent = true, kKeepAfterFinalEvent = false };
+  enum ReleaseAfterFinalEvent : bool {
+    kReleaseAfterFinalEvent = true,
+    kKeepAfterFinalEvent = false
+  };
 
-    // Tells the module compiler whether to keep or to release a callback when the
-    // compilation state finishes all compilation units. Most callbacks should be
-    // released, that's why there is a default implementation, but the callback
-    // for code caching with dynamic tiering has to stay alive.
-    virtual ReleaseAfterFinalEvent release_after_final_event()
-    {
-        return kReleaseAfterFinalEvent;
-    }
+  // Tells the module compiler whether to keep or to release a callback when the
+  // compilation state finishes all compilation units. Most callbacks should be
+  // released, that's why there is a default implementation, but the callback
+  // for code caching with dynamic tiering has to stay alive.
+  virtual ReleaseAfterFinalEvent release_after_final_event() {
+    return kReleaseAfterFinalEvent;
+  }
 };
 
 // The implementation of {CompilationState} lives in module-compiler.cc.
 // This is the PIMPL interface to that private class.
 class V8_EXPORT_PRIVATE CompilationState {
-public:
-    ~CompilationState();
+ public:
+  ~CompilationState();
 
-    // Override {operator delete} to avoid implicit instantiation of {operator
-    // delete} with {size_t} argument. The {size_t} argument would be incorrect.
-    void operator delete(void* ptr)
-    {
-        ::operator delete(ptr);
-    }
+  // Override {operator delete} to avoid implicit instantiation of {operator
+  // delete} with {size_t} argument. The {size_t} argument would be incorrect.
+  void operator delete(void* ptr) { ::operator delete(ptr); }
 
-    CompilationState() = delete;
+  CompilationState() = delete;
 
-    void InitCompileJob();
+  void InitCompileJob();
 
-    void CancelCompilation();
+  void CancelCompilation();
 
-    void CancelInitialCompilation();
+  void CancelInitialCompilation();
 
-    void SetError();
+  void SetError();
 
-    void SetWireBytesStorage(std::shared_ptr<WireBytesStorage>);
+  void SetWireBytesStorage(std::shared_ptr<WireBytesStorage>);
 
-    std::shared_ptr<WireBytesStorage> GetWireBytesStorage() const;
+  std::shared_ptr<WireBytesStorage> GetWireBytesStorage() const;
 
-    void AddCallback(std::unique_ptr<CompilationEventCallback> callback);
+  void AddCallback(std::unique_ptr<CompilationEventCallback> callback);
 
-    void InitializeAfterDeserialization(base::Vector<const int> lazy_functions, base::Vector<const int> eager_functions);
+  void InitializeAfterDeserialization(base::Vector<const int> lazy_functions,
+                                      base::Vector<const int> eager_functions);
 
-    // Set a higher priority for the compilation job.
-    void SetHighPriority();
+  // Set a higher priority for the compilation job.
+  void SetHighPriority();
 
-    void TierUpAllFunctions();
+  void TierUpAllFunctions();
 
-    // By default, only one top-tier compilation task will be executed for each
-    // function. These functions allow resetting that counter, to be used when
-    // optimized code is intentionally thrown away and should be re-created.
-    void AllowAnotherTopTierJob(uint32_t func_index);
-    void AllowAnotherTopTierJobForAllFunctions();
+  // By default, only one top-tier compilation task will be executed for each
+  // function. These functions allow resetting that counter, to be used when
+  // optimized code is intentionally thrown away and should be re-created.
+  void AllowAnotherTopTierJob(uint32_t func_index);
+  void AllowAnotherTopTierJobForAllFunctions();
 
-    bool failed() const;
-    bool baseline_compilation_finished() const;
+  bool failed() const;
+  bool baseline_compilation_finished() const;
 
-    void set_compilation_id(int compilation_id);
+  void set_compilation_id(int compilation_id);
 
-    DynamicTiering dynamic_tiering() const;
+  DynamicTiering dynamic_tiering() const;
 
-    size_t EstimateCurrentMemoryConsumption() const;
+  size_t EstimateCurrentMemoryConsumption() const;
 
-    std::vector<WasmCode*> PublishCode(base::Vector<std::unique_ptr<WasmCode>> unpublished_code);
+  std::vector<WasmCode*> PublishCode(
+      base::Vector<std::unique_ptr<WasmCode>> unpublished_code);
 
-    WasmDetectedFeatures detected_features() const;
+  WasmDetectedFeatures detected_features() const;
 
-    // Update the set of detected features. Returns any features that were not
-    // detected previously.
-    V8_WARN_UNUSED_RESULT WasmDetectedFeatures UpdateDetectedFeatures(WasmDetectedFeatures);
+  // Update the set of detected features. Returns any features that were not
+  // detected previously.
+  V8_WARN_UNUSED_RESULT WasmDetectedFeatures
+      UpdateDetectedFeatures(WasmDetectedFeatures);
 
-private:
-    // NativeModule is allowed to call the static {New} method.
-    friend class NativeModule;
+ private:
+  // NativeModule is allowed to call the static {New} method.
+  friend class NativeModule;
 
-    // The CompilationState keeps a {std::weak_ptr} back to the {NativeModule}
-    // such that it can keep it alive (by regaining a {std::shared_ptr}) in
-    // certain scopes.
-    static std::unique_ptr<CompilationState> New(
-        const std::shared_ptr<NativeModule>&, std::shared_ptr<Counters>, DynamicTiering dynamic_tiering, WasmDetectedFeatures detected_features);
+  // The CompilationState keeps a {std::weak_ptr} back to the {NativeModule}
+  // such that it can keep it alive (by regaining a {std::shared_ptr}) in
+  // certain scopes.
+  static std::unique_ptr<CompilationState> New(
+      const std::shared_ptr<NativeModule>&, std::shared_ptr<Counters>,
+      DynamicTiering dynamic_tiering, WasmDetectedFeatures detected_features);
 };
 
-} // namespace wasm
-} // namespace internal
-} // namespace v8
+}  // namespace wasm
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_WASM_COMPILATION_ENVIRONMENT_H_
+#endif  // V8_WASM_COMPILATION_ENVIRONMENT_H_

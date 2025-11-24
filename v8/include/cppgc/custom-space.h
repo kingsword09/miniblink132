@@ -13,11 +13,8 @@ namespace cppgc {
  * Index identifying a custom space.
  */
 struct CustomSpaceIndex {
-    constexpr CustomSpaceIndex(size_t value)
-        : value(value)
-    {
-    } // NOLINT
-    size_t value;
+  constexpr CustomSpaceIndex(size_t value) : value(value) {}  // NOLINT
+  size_t value;
 };
 
 /**
@@ -25,10 +22,10 @@ struct CustomSpaceIndex {
  * below.
  */
 class CustomSpaceBase {
-public:
-    virtual ~CustomSpaceBase() = default;
-    virtual CustomSpaceIndex GetCustomSpaceIndex() const = 0;
-    virtual bool IsCompactable() const = 0;
+ public:
+  virtual ~CustomSpaceBase() = default;
+  virtual CustomSpaceIndex GetCustomSpaceIndex() const = 0;
+  virtual bool IsCompactable() const = 0;
 };
 
 /**
@@ -48,49 +45,53 @@ public:
  * };
  * \endcode
  */
-template <typename ConcreteCustomSpace> class CustomSpace : public CustomSpaceBase {
-public:
-    /**
+template <typename ConcreteCustomSpace>
+class CustomSpace : public CustomSpaceBase {
+ public:
+  /**
    * Compaction is only supported on spaces that manually manage slots
    * recording.
    */
-    static constexpr bool kSupportsCompaction = false;
+  static constexpr bool kSupportsCompaction = false;
 
-    CustomSpaceIndex GetCustomSpaceIndex() const final
-    {
-        return ConcreteCustomSpace::kSpaceIndex;
-    }
-    bool IsCompactable() const final
-    {
-        return ConcreteCustomSpace::kSupportsCompaction;
-    }
+  CustomSpaceIndex GetCustomSpaceIndex() const final {
+    return ConcreteCustomSpace::kSpaceIndex;
+  }
+  bool IsCompactable() const final {
+    return ConcreteCustomSpace::kSupportsCompaction;
+  }
 };
 
 /**
  * User-overridable trait that allows pinning types to custom spaces.
  */
-template <typename T, typename = void> struct SpaceTrait {
-    using Space = void;
+template <typename T, typename = void>
+struct SpaceTrait {
+  using Space = void;
 };
 
 namespace internal {
 
-template <typename CustomSpace> struct IsAllocatedOnCompactableSpaceImpl {
-    static constexpr bool value = CustomSpace::kSupportsCompaction;
+template <typename CustomSpace>
+struct IsAllocatedOnCompactableSpaceImpl {
+  static constexpr bool value = CustomSpace::kSupportsCompaction;
 };
 
-template <> struct IsAllocatedOnCompactableSpaceImpl<void> {
-    // Non-custom spaces are by default not compactable.
-    static constexpr bool value = false;
+template <>
+struct IsAllocatedOnCompactableSpaceImpl<void> {
+  // Non-custom spaces are by default not compactable.
+  static constexpr bool value = false;
 };
 
-template <typename T> struct IsAllocatedOnCompactableSpace {
-public:
-    static constexpr bool value = IsAllocatedOnCompactableSpaceImpl<typename SpaceTrait<T>::Space>::value;
+template <typename T>
+struct IsAllocatedOnCompactableSpace {
+ public:
+  static constexpr bool value =
+      IsAllocatedOnCompactableSpaceImpl<typename SpaceTrait<T>::Space>::value;
 };
 
-} // namespace internal
+}  // namespace internal
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_CUSTOM_SPACE_H_
+#endif  // INCLUDE_CPPGC_CUSTOM_SPACE_H_

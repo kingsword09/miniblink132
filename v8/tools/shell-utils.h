@@ -34,35 +34,37 @@
 namespace v8 {
 namespace internal {
 
-enum Encoding { LATIN1, UTF8, UTF16 };
+enum Encoding {
+  LATIN1,
+  UTF8,
+  UTF16
+};
 
-const uint8_t* ReadFileAndRepeat(const char* name, int* size, int repeat)
-{
-    FILE* file = fopen(name, "rb");
-    *size = 0;
-    if (file == NULL)
-        return NULL;
+const uint8_t* ReadFileAndRepeat(const char* name, int* size, int repeat) {
+  FILE* file = fopen(name, "rb");
+  *size = 0;
+  if (file == NULL) return NULL;
 
-    fseek(file, 0, SEEK_END);
-    int file_size = static_cast<int>(ftell(file));
-    rewind(file);
+  fseek(file, 0, SEEK_END);
+  int file_size = static_cast<int>(ftell(file));
+  rewind(file);
 
-    *size = file_size * repeat;
+  *size = file_size * repeat;
 
-    uint8_t* chars = new uint8_t[*size + 1];
-    for (int i = 0; i < file_size;) {
-        int read = static_cast<int>(fread(&chars[i], 1, file_size - i, file));
-        i += read;
-    }
-    fclose(file);
+  uint8_t* chars = new uint8_t[*size + 1];
+  for (int i = 0; i < file_size;) {
+    int read = static_cast<int>(fread(&chars[i], 1, file_size - i, file));
+    i += read;
+  }
+  fclose(file);
 
-    for (int i = file_size; i < *size; i++) {
-        chars[i] = chars[i - file_size];
-    }
-    chars[*size] = 0;
+  for (int i = file_size; i < *size; i++) {
+    chars[i] = chars[i - file_size];
+  }
+  chars[*size] = 0;
 
-    return chars;
+  return chars;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

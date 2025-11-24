@@ -6,7 +6,7 @@
 #define V8_OBJECTS_MEGADOM_HANDLER_INL_H_
 
 #include "src/objects/megadom-handler.h"
-#include "src/objects/objects-inl.h" // Needed for write barriers
+#include "src/objects/objects-inl.h"  // Needed for write barriers
 
 // Has to be the last include (doesn't have include guards):
 #include "src/objects/object-macros.h"
@@ -18,11 +18,12 @@ namespace internal {
 
 TQ_OBJECT_CONSTRUCTORS_IMPL(MegaDomHandler)
 
-RELEASE_ACQUIRE_ACCESSORS(MegaDomHandler, accessor, Tagged<MaybeObject>, kAccessorOffset)
+RELEASE_ACQUIRE_ACCESSORS(MegaDomHandler, accessor, Tagged<MaybeObject>,
+                          kAccessorOffset)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_MEGADOM_HANDLER_INL_H_
+#endif  // V8_OBJECTS_MEGADOM_HANDLER_INL_H_

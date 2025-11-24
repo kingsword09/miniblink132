@@ -26,49 +26,47 @@ class Assembler;
 // └ 4              target of entry as int32_t
 
 struct BuiltinJumpTableInfoEntry {
-    constexpr BuiltinJumpTableInfoEntry(uint32_t pc_offset, int32_t target)
-        : pc_offset(pc_offset)
-        , target(target)
-    {
-    }
-    uint32_t pc_offset;
-    int32_t target;
+  constexpr BuiltinJumpTableInfoEntry(uint32_t pc_offset, int32_t target)
+      : pc_offset(pc_offset), target(target) {}
+  uint32_t pc_offset;
+  int32_t target;
 
-    static constexpr int kPCOffsetSize = kUInt32Size;
-    static constexpr int kTargetSize = kInt32Size;
-    static constexpr int kSize = kPCOffsetSize + kTargetSize;
+  static constexpr int kPCOffsetSize = kUInt32Size;
+  static constexpr int kTargetSize = kInt32Size;
+  static constexpr int kSize = kPCOffsetSize + kTargetSize;
 };
-static_assert(sizeof(BuiltinJumpTableInfoEntry) == BuiltinJumpTableInfoEntry::kSize);
+static_assert(sizeof(BuiltinJumpTableInfoEntry) ==
+              BuiltinJumpTableInfoEntry::kSize);
 
 // Used during codegen.
 class BuiltinJumpTableInfoWriter {
-public:
-    V8_EXPORT_PRIVATE void Add(uint32_t pc_offset, int32_t target);
-    void Emit(Assembler* assm);
+ public:
+  V8_EXPORT_PRIVATE void Add(uint32_t pc_offset, int32_t target);
+  void Emit(Assembler* assm);
 
-    size_t entry_count() const;
-    uint32_t size_in_bytes() const;
+  size_t entry_count() const;
+  uint32_t size_in_bytes() const;
 
-private:
-    std::vector<BuiltinJumpTableInfoEntry> entries_;
+ private:
+  std::vector<BuiltinJumpTableInfoEntry> entries_;
 };
 
 // Used during disassembly.
 class V8_EXPORT_PRIVATE BuiltinJumpTableInfoIterator {
-public:
-    BuiltinJumpTableInfoIterator(Address start, uint32_t size);
-    uint32_t GetPCOffset() const;
-    int32_t GetTarget() const;
-    void Next();
-    bool HasCurrent() const;
+ public:
+  BuiltinJumpTableInfoIterator(Address start, uint32_t size);
+  uint32_t GetPCOffset() const;
+  int32_t GetTarget() const;
+  void Next();
+  bool HasCurrent() const;
 
-private:
-    const Address start_;
-    const uint32_t size_;
-    Address cursor_;
+ private:
+  const Address start_;
+  const uint32_t size_;
+  Address cursor_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_X64_BUILTIN_JUMP_TABLE_INFO_X64_H_
+#endif  // V8_CODEGEN_X64_BUILTIN_JUMP_TABLE_INFO_X64_H_

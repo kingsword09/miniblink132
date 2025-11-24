@@ -11,10 +11,10 @@
 
 #define DISABLE_UBSAN __attribute__((no_sanitize("undefined")))
 
-#else // !defined(UNDEFINED_SANITIZER)
+#else  // !defined(UNDEFINED_SANITIZER)
 
 #define DISABLE_UBSAN
 
-#endif // !defined(UNDEFINED_SANITIZER)
+#endif  // !defined(UNDEFINED_SANITIZER)
 
-#endif // V8_BASE_SANITIZER_UBSAN_H_
+#endif  // V8_BASE_SANITIZER_UBSAN_H_

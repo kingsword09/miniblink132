@@ -20,22 +20,22 @@ namespace internal {
 // compression cage inside of which compressed pointers can be used to
 // reference objects.
 class TrustedRange final : public VirtualMemoryCage {
-public:
-    bool InitReservation(size_t requested);
+ public:
+  bool InitReservation(size_t requested);
 
-    // Initializes the process-wide TrustedRange if it hasn't been initialized
-    // yet. Returns the (initialized) TrustedRange or terminates the process if
-    // the virtual memory cannot be reserved.
-    static TrustedRange* EnsureProcessWideTrustedRange(size_t requested_size);
+  // Initializes the process-wide TrustedRange if it hasn't been initialized
+  // yet. Returns the (initialized) TrustedRange or terminates the process if
+  // the virtual memory cannot be reserved.
+  static TrustedRange* EnsureProcessWideTrustedRange(size_t requested_size);
 
-    // Returns the process-wide TrustedRange if it has been initialized (via
-    // EnsureProcessWideTrustedRange), otherwise nullptr.
-    V8_EXPORT_PRIVATE static TrustedRange* GetProcessWideTrustedRange();
+  // Returns the process-wide TrustedRange if it has been initialized (via
+  // EnsureProcessWideTrustedRange), otherwise nullptr.
+  V8_EXPORT_PRIVATE static TrustedRange* GetProcessWideTrustedRange();
 };
 
-#endif // V8_ENABLE_SANDBOX
+#endif  // V8_ENABLE_SANDBOX
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_TRUSTED_RANGE_H_
+#endif  // V8_HEAP_TRUSTED_RANGE_H_

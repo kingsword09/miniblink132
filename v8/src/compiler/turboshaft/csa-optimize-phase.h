@@ -10,35 +10,35 @@
 namespace v8::internal::compiler::turboshaft {
 
 struct CsaEarlyMachineOptimizationPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaEarlyMachineOptimization)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaEarlyMachineOptimization)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
 struct CsaLoadEliminationPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaLoadElimination)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaLoadElimination)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
 struct CsaLateEscapeAnalysisPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaLateEscapeAnalysis)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaLateEscapeAnalysis)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
 struct CsaBranchEliminationPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaBranchElimination)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaBranchElimination)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
 struct CsaOptimizePhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaOptimize)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(CsaOptimize)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_CSA_OPTIMIZE_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_CSA_OPTIMIZE_PHASE_H_

@@ -15,22 +15,20 @@
 namespace v8::internal::heap {
 
 // Zapping is needed for verify heap, and always done in debug builds.
-inline bool ShouldZapGarbage()
-{
-#ifdef V8_DEBUG
-    return true;
+inline bool ShouldZapGarbage() {
+#ifdef DEBUG
+  return true;
 #else
 #ifdef VERIFY_HEAP
-    return v8_flags.verify_heap;
+  return v8_flags.verify_heap;
 #else
-    return false;
+  return false;
 #endif
 #endif
 }
 
-inline uintptr_t ZapValue()
-{
-    return v8_flags.clear_free_memory ? kClearedFreeMemoryValue : kZapValue;
+inline uintptr_t ZapValue() {
+  return v8_flags.clear_free_memory ? kClearedFreeMemoryValue : kZapValue;
 }
 
 // Zaps a contiguous block of regular memory [start..(start+size_in_bytes)[ with
@@ -41,6 +39,6 @@ void ZapBlock(Address start, size_t size_in_bytes, uintptr_t zap_value);
 // kCodeZapValue.
 V8_EXPORT_PRIVATE void ZapCodeBlock(Address start, int size_in_bytes);
 
-} // namespace v8::internal::heap
+}  // namespace v8::internal::heap
 
-#endif // V8_HEAP_ZAPPING_H_
+#endif  // V8_HEAP_ZAPPING_H_

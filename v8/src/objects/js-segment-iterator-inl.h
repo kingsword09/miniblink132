@@ -6,7 +6,7 @@
 
 #ifndef V8_INTL_SUPPORT
 #error Internationalization is expected to be enabled.
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
 #include "src/objects/js-segment-iterator.h"
 #include "src/objects/objects-inl.h"
@@ -24,26 +24,27 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(JSSegmentDataObject)
 TQ_OBJECT_CONSTRUCTORS_IMPL(JSSegmentDataObjectWithIsWordLike)
 
 // Base segment iterator accessors.
-ACCESSORS(JSSegmentIterator, icu_break_iterator, Tagged<Managed<icu::BreakIterator>>, kIcuBreakIteratorOffset)
+ACCESSORS(JSSegmentIterator, icu_break_iterator,
+          Tagged<Managed<icu::BreakIterator>>, kIcuBreakIteratorOffset)
 ACCESSORS(JSSegmentIterator, raw_string, Tagged<String>, kRawStringOffset)
-ACCESSORS(JSSegmentIterator, unicode_string, Tagged<Managed<icu::UnicodeString>>, kUnicodeStringOffset)
+ACCESSORS(JSSegmentIterator, unicode_string,
+          Tagged<Managed<icu::UnicodeString>>, kUnicodeStringOffset)
 
-inline void JSSegmentIterator::set_granularity(JSSegmenter::Granularity granularity)
-{
-    DCHECK(GranularityBits::is_valid(granularity));
-    int hints = flags();
-    hints = GranularityBits::update(hints, granularity);
-    set_flags(hints);
+inline void JSSegmentIterator::set_granularity(
+    JSSegmenter::Granularity granularity) {
+  DCHECK(GranularityBits::is_valid(granularity));
+  int hints = flags();
+  hints = GranularityBits::update(hints, granularity);
+  set_flags(hints);
 }
 
-inline JSSegmenter::Granularity JSSegmentIterator::granularity() const
-{
-    return GranularityBits::decode(flags());
+inline JSSegmenter::Granularity JSSegmentIterator::granularity() const {
+  return GranularityBits::decode(flags());
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_SEGMENT_ITERATOR_INL_H_
+#endif  // V8_OBJECTS_JS_SEGMENT_ITERATOR_INL_H_

@@ -11,11 +11,11 @@ namespace internal {
 class Isolate;
 
 class StaticRootsTableGen {
-public:
-    static void write(Isolate* isolate, const char* file);
+ public:
+  static void write(Isolate* isolate, const char* file);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SNAPSHOT_STATIC_ROOTS_GEN_H_
+#endif  // V8_SNAPSHOT_STATIC_ROOTS_GEN_H_

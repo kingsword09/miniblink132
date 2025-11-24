@@ -13,44 +13,49 @@
 namespace v8::internal::compiler::turboshaft {
 
 struct TurboshaftGraphAsJSON {
-    const Graph& turboshaft_graph;
-    NodeOriginTable* origins;
-    Zone* temp_zone;
+  const Graph& turboshaft_graph;
+  NodeOriginTable* origins;
+  Zone* temp_zone;
 };
 
-V8_INLINE V8_EXPORT_PRIVATE TurboshaftGraphAsJSON AsJSON(const Graph& graph, NodeOriginTable* origins, Zone* temp_zone)
-{
-    return TurboshaftGraphAsJSON { graph, origins, temp_zone };
+V8_INLINE V8_EXPORT_PRIVATE TurboshaftGraphAsJSON
+AsJSON(const Graph& graph, NodeOriginTable* origins, Zone* temp_zone) {
+  return TurboshaftGraphAsJSON{graph, origins, temp_zone};
 }
 
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os, const TurboshaftGraphAsJSON& ad);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+                                           const TurboshaftGraphAsJSON& ad);
 
 class JSONTurboshaftGraphWriter {
-public:
-    JSONTurboshaftGraphWriter(std::ostream& os, const Graph& turboshaft_graph, NodeOriginTable* origins, Zone* zone);
+ public:
+  JSONTurboshaftGraphWriter(std::ostream& os, const Graph& turboshaft_graph,
+                            NodeOriginTable* origins, Zone* zone);
 
-    JSONTurboshaftGraphWriter(const JSONTurboshaftGraphWriter&) = delete;
-    JSONTurboshaftGraphWriter& operator=(const JSONTurboshaftGraphWriter&) = delete;
+  JSONTurboshaftGraphWriter(const JSONTurboshaftGraphWriter&) = delete;
+  JSONTurboshaftGraphWriter& operator=(const JSONTurboshaftGraphWriter&) =
+      delete;
 
-    void Print();
+  void Print();
 
-protected:
-    void PrintNodes();
-    void PrintEdges();
-    void PrintBlocks();
+ protected:
+  void PrintNodes();
+  void PrintEdges();
+  void PrintBlocks();
 
-protected:
-    std::ostream& os_;
-    Zone* zone_;
-    const Graph& turboshaft_graph_;
-    NodeOriginTable* origins_;
+ protected:
+  std::ostream& os_;
+  Zone* zone_;
+  const Graph& turboshaft_graph_;
+  NodeOriginTable* origins_;
 };
 
 void PrintTurboshaftCustomDataPerOperation(
-    std::ofstream& stream, const char* data_name, const Graph& graph, std::function<bool(std::ostream&, const Graph&, OpIndex)> printer);
+    std::ofstream& stream, const char* data_name, const Graph& graph,
+    std::function<bool(std::ostream&, const Graph&, OpIndex)> printer);
 void PrintTurboshaftCustomDataPerBlock(
-    std::ofstream& stream, const char* data_name, const Graph& graph, std::function<bool(std::ostream&, const Graph&, BlockIndex)> printer);
+    std::ofstream& stream, const char* data_name, const Graph& graph,
+    std::function<bool(std::ostream&, const Graph&, BlockIndex)> printer);
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_GRAPH_VISUALIZER_H_
+#endif  // V8_COMPILER_TURBOSHAFT_GRAPH_VISUALIZER_H_

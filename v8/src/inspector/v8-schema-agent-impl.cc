@@ -9,18 +9,19 @@
 
 namespace v8_inspector {
 
-V8SchemaAgentImpl::V8SchemaAgentImpl(V8InspectorSessionImpl* session, protocol::FrontendChannel* frontendChannel, protocol::DictionaryValue* state)
-    : m_session(session)
-    , m_frontend(frontendChannel)
-{
-}
+V8SchemaAgentImpl::V8SchemaAgentImpl(V8InspectorSessionImpl* session,
+                                     protocol::FrontendChannel* frontendChannel,
+                                     protocol::DictionaryValue* state)
+    : m_session(session), m_frontend(frontendChannel) {}
 
 V8SchemaAgentImpl::~V8SchemaAgentImpl() = default;
 
-Response V8SchemaAgentImpl::getDomains(std::unique_ptr<protocol::Array<protocol::Schema::Domain>>* result)
-{
-    *result = std::make_unique<std::vector<std::unique_ptr<protocol::Schema::Domain>>>(m_session->supportedDomainsImpl());
-    return Response::Success();
+Response V8SchemaAgentImpl::getDomains(
+    std::unique_ptr<protocol::Array<protocol::Schema::Domain>>* result) {
+  *result =
+      std::make_unique<std::vector<std::unique_ptr<protocol::Schema::Domain>>>(
+          m_session->supportedDomainsImpl());
+  return Response::Success();
 }
 
-} // namespace v8_inspector
+}  // namespace v8_inspector

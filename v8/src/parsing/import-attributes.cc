@@ -9,10 +9,10 @@
 namespace v8 {
 namespace internal {
 
-bool ImportAttributesKeyComparer::operator()(const AstRawString* lhs, const AstRawString* rhs) const
-{
-    return AstRawString::Compare(lhs, rhs) < 0;
+bool ImportAttributesKeyComparer::operator()(const AstRawString* lhs,
+                                             const AstRawString* rhs) const {
+  return AstRawString::Compare(lhs, rhs) < 0;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

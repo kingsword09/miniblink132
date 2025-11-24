@@ -22,37 +22,39 @@ class StructBodyDescriptor;
 // microtask queue. This class merely serves the purpose of a marker
 // interface.
 class Microtask : public TorqueGeneratedMicrotask<Microtask, Struct> {
-public:
-    TQ_OBJECT_CONSTRUCTORS(Microtask)
+ public:
+  TQ_OBJECT_CONSTRUCTORS(Microtask)
 };
 
 // A CallbackTask is a special Microtask that allows us to schedule
 // C++ microtask callbacks on the microtask queue. This is heavily
 // used by Blink for example.
-class CallbackTask : public TorqueGeneratedCallbackTask<CallbackTask, Microtask> {
-public:
-    using BodyDescriptor = StructBodyDescriptor;
+class CallbackTask
+    : public TorqueGeneratedCallbackTask<CallbackTask, Microtask> {
+ public:
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(CallbackTask)
+  TQ_OBJECT_CONSTRUCTORS(CallbackTask)
 };
 
 // A CallableTask is a special (internal) Microtask that allows us to
 // schedule arbitrary callables on the microtask queue. We use this
 // for various tests of the microtask queue.
-class CallableTask : public TorqueGeneratedCallableTask<CallableTask, Microtask> {
-public:
-    // Dispatched behavior.
-    DECL_VERIFIER(CallableTask)
-    void BriefPrintDetails(std::ostream& os);
+class CallableTask
+    : public TorqueGeneratedCallableTask<CallableTask, Microtask> {
+ public:
+  // Dispatched behavior.
+  DECL_VERIFIER(CallableTask)
+  void BriefPrintDetails(std::ostream& os);
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(CallableTask)
+  TQ_OBJECT_CONSTRUCTORS(CallableTask)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_MICROTASK_H_
+#endif  // V8_OBJECTS_MICROTASK_H_

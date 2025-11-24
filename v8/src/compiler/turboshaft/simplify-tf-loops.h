@@ -14,24 +14,18 @@ class MachineGraph;
 // Constrain loop nodes to have at most two inputs, by introducing additional
 // merges as needed.
 class SimplifyTFLoops final : public AdvancedReducer {
-public:
-    SimplifyTFLoops(Editor* editor, MachineGraph* mcgraph)
-        : AdvancedReducer(editor)
-        , mcgraph_(mcgraph)
-    {
-    }
+ public:
+  SimplifyTFLoops(Editor* editor, MachineGraph* mcgraph)
+      : AdvancedReducer(editor), mcgraph_(mcgraph) {}
 
-    const char* reducer_name() const override
-    {
-        return "SimplifyTFLoops";
-    }
+  const char* reducer_name() const override { return "SimplifyTFLoops"; }
 
-    Reduction Reduce(Node* node) final;
+  Reduction Reduce(Node* node) final;
 
-private:
-    MachineGraph* const mcgraph_;
+ private:
+  MachineGraph* const mcgraph_;
 };
 
-} // namespace v8::internal::compiler
+}  // namespace v8::internal::compiler
 
-#endif // V8_COMPILER_TURBOSHAFT_SIMPLIFY_TF_LOOPS_H_
+#endif  // V8_COMPILER_TURBOSHAFT_SIMPLIFY_TF_LOOPS_H_

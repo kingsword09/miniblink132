@@ -21,53 +21,47 @@ struct ScriptDetails;
 // compiled code for scripts and evals, we use separate sub-caches for different
 // compilation modes, to avoid retrieving the wrong result.
 class CompilationCacheEvalOrScript {
-public:
-    explicit CompilationCacheEvalOrScript(Isolate* isolate)
-        : isolate_(isolate)
-    {
-    }
+ public:
+  explicit CompilationCacheEvalOrScript(Isolate* isolate) : isolate_(isolate) {}
 
-    // Allocates the table if it didn't yet exist.
-    Handle<CompilationCacheTable> GetTable();
+  // Allocates the table if it didn't yet exist.
+  Handle<CompilationCacheTable> GetTable();
 
-    // GC support.
-    void Iterate(RootVisitor* v);
+  // GC support.
+  void Iterate(RootVisitor* v);
 
-    // Clears this sub-cache evicting all its content.
-    void Clear();
+  // Clears this sub-cache evicting all its content.
+  void Clear();
 
-    // Removes given shared function info from sub-cache.
-    void Remove(DirectHandle<SharedFunctionInfo> function_info);
+  // Removes given shared function info from sub-cache.
+  void Remove(DirectHandle<SharedFunctionInfo> function_info);
 
-protected:
-    Isolate* isolate() const
-    {
-        return isolate_;
-    }
+ protected:
+  Isolate* isolate() const { return isolate_; }
 
-    Isolate* const isolate_;
-    Tagged<Object> table_;
+  Isolate* const isolate_;
+  Tagged<Object> table_;
 
-    DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheEvalOrScript);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheEvalOrScript);
 };
 
 // Sub-cache for scripts.
 class CompilationCacheScript : public CompilationCacheEvalOrScript {
-public:
-    explicit CompilationCacheScript(Isolate* isolate)
-        : CompilationCacheEvalOrScript(isolate)
-    {
-    }
+ public:
+  explicit CompilationCacheScript(Isolate* isolate)
+      : CompilationCacheEvalOrScript(isolate) {}
 
-    using LookupResult = CompilationCacheScriptLookupResult;
-    LookupResult Lookup(Handle<String> source, const ScriptDetails& script_details);
+  using LookupResult = CompilationCacheScriptLookupResult;
+  LookupResult Lookup(Handle<String> source,
+                      const ScriptDetails& script_details);
 
-    void Put(Handle<String> source, DirectHandle<SharedFunctionInfo> function_info);
+  void Put(Handle<String> source,
+           DirectHandle<SharedFunctionInfo> function_info);
 
-    void Age();
+  void Age();
 
-private:
-    DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheScript);
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheScript);
 };
 
 // Sub-cache for eval scripts. Two caches for eval are used. One for eval calls
@@ -83,63 +77,60 @@ private:
 //    DebugEvaluateGlobal runtime functions.
 // 4. The start position of the calling scope.
 class CompilationCacheEval : public CompilationCacheEvalOrScript {
-public:
-    explicit CompilationCacheEval(Isolate* isolate)
-        : CompilationCacheEvalOrScript(isolate)
-    {
-    }
+ public:
+  explicit CompilationCacheEval(Isolate* isolate)
+      : CompilationCacheEvalOrScript(isolate) {}
 
-    InfoCellPair Lookup(
-        Handle<String> source, Handle<SharedFunctionInfo> outer_info, DirectHandle<NativeContext> native_context, LanguageMode language_mode, int position);
+  InfoCellPair Lookup(Handle<String> source,
+                      Handle<SharedFunctionInfo> outer_info,
+                      DirectHandle<NativeContext> native_context,
+                      LanguageMode language_mode, int position);
 
-    void Put(Handle<String> source, Handle<SharedFunctionInfo> outer_info, DirectHandle<SharedFunctionInfo> function_info,
-        DirectHandle<NativeContext> native_context, DirectHandle<FeedbackCell> feedback_cell, int position);
+  void Put(Handle<String> source, Handle<SharedFunctionInfo> outer_info,
+           DirectHandle<SharedFunctionInfo> function_info,
+           DirectHandle<NativeContext> native_context,
+           DirectHandle<FeedbackCell> feedback_cell, int position);
 
-    void Age();
+  void Age();
 
-private:
-    DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheEval);
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheEval);
 };
 
 // Sub-cache for regular expressions.
 class CompilationCacheRegExp {
-public:
-    CompilationCacheRegExp(Isolate* isolate)
-        : isolate_(isolate)
-    {
-    }
+ public:
+  CompilationCacheRegExp(Isolate* isolate) : isolate_(isolate) {}
 
-    MaybeHandle<RegExpData> Lookup(Handle<String> source, JSRegExp::Flags flags);
+  MaybeHandle<RegExpData> Lookup(Handle<String> source, JSRegExp::Flags flags);
 
-    void Put(Handle<String> source, JSRegExp::Flags flags, DirectHandle<RegExpData> data);
+  void Put(Handle<String> source, JSRegExp::Flags flags,
+           DirectHandle<RegExpData> data);
 
-    // The number of generations for the RegExp sub cache.
-    static const int kGenerations = 2;
+  // The number of generations for the RegExp sub cache.
+  static const int kGenerations = 2;
 
-    // Gets the compilation cache tables for a specific generation. Allocates the
-    // table if it does not yet exist.
-    Handle<CompilationCacheTable> GetTable(int generation);
+  // Gets the compilation cache tables for a specific generation. Allocates the
+  // table if it does not yet exist.
+  Handle<CompilationCacheTable> GetTable(int generation);
 
-    // Ages the sub-cache by evicting the oldest generation and creating a new
-    // young generation.
-    void Age();
+  // Ages the sub-cache by evicting the oldest generation and creating a new
+  // young generation.
+  void Age();
 
-    // GC support.
-    void Iterate(RootVisitor* v);
+  // GC support.
+  void Iterate(RootVisitor* v);
 
-    // Clears this sub-cache evicting all its content.
-    void Clear();
+  // Clears this sub-cache evicting all its content.
+  void Clear();
 
-private:
-    Isolate* isolate() const
-    {
-        return isolate_;
-    }
+ private:
+  Isolate* isolate() const { return isolate_; }
 
-    Isolate* const isolate_;
-    Tagged<Object> tables_[kGenerations]; // One for each generation.
+  Isolate* const isolate_;
+  Tagged<Object> tables_[kGenerations];  // One for each generation.
 
-    DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheRegExp);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationCacheRegExp);
 };
 
 // The compilation cache keeps shared function infos for compiled
@@ -147,98 +138,102 @@ private:
 // the source string as the key. For regular expressions the
 // compilation data is cached.
 class V8_EXPORT_PRIVATE CompilationCache {
-public:
-    CompilationCache(const CompilationCache&) = delete;
-    CompilationCache& operator=(const CompilationCache&) = delete;
+ public:
+  CompilationCache(const CompilationCache&) = delete;
+  CompilationCache& operator=(const CompilationCache&) = delete;
 
-    // Finds the Script and root SharedFunctionInfo for a script source string.
-    // Returns empty handles if the cache doesn't contain a script for the given
-    // source string with the right origin.
-    CompilationCacheScript::LookupResult LookupScript(Handle<String> source, const ScriptDetails& script_details, LanguageMode language_mode);
+  // Finds the Script and root SharedFunctionInfo for a script source string.
+  // Returns empty handles if the cache doesn't contain a script for the given
+  // source string with the right origin.
+  CompilationCacheScript::LookupResult LookupScript(
+      Handle<String> source, const ScriptDetails& script_details,
+      LanguageMode language_mode);
 
-    // Finds the shared function info for a source string for eval in a
-    // given context.  Returns an empty handle if the cache doesn't
-    // contain a script for the given source string.
-    InfoCellPair LookupEval(
-        Handle<String> source, Handle<SharedFunctionInfo> outer_info, DirectHandle<Context> context, LanguageMode language_mode, int position);
+  // Finds the shared function info for a source string for eval in a
+  // given context.  Returns an empty handle if the cache doesn't
+  // contain a script for the given source string.
+  InfoCellPair LookupEval(Handle<String> source,
+                          Handle<SharedFunctionInfo> outer_info,
+                          DirectHandle<Context> context,
+                          LanguageMode language_mode, int position);
 
-    // Returns the regexp data associated with the given regexp if it
-    // is in cache, otherwise an empty handle.
-    MaybeHandle<RegExpData> LookupRegExp(Handle<String> source, JSRegExp::Flags flags);
+  // Returns the regexp data associated with the given regexp if it
+  // is in cache, otherwise an empty handle.
+  MaybeHandle<RegExpData> LookupRegExp(Handle<String> source,
+                                       JSRegExp::Flags flags);
 
-    // Associate the (source, kind) pair to the shared function
-    // info. This may overwrite an existing mapping.
-    void PutScript(Handle<String> source, LanguageMode language_mode, DirectHandle<SharedFunctionInfo> function_info);
+  // Associate the (source, kind) pair to the shared function
+  // info. This may overwrite an existing mapping.
+  void PutScript(Handle<String> source, LanguageMode language_mode,
+                 DirectHandle<SharedFunctionInfo> function_info);
 
-    // Associate the (source, context->closure()->shared(), kind) triple
-    // with the shared function info. This may overwrite an existing mapping.
-    void PutEval(Handle<String> source, Handle<SharedFunctionInfo> outer_info, DirectHandle<Context> context, DirectHandle<SharedFunctionInfo> function_info,
-        DirectHandle<FeedbackCell> feedback_cell, int position);
+  // Associate the (source, context->closure()->shared(), kind) triple
+  // with the shared function info. This may overwrite an existing mapping.
+  void PutEval(Handle<String> source, Handle<SharedFunctionInfo> outer_info,
+               DirectHandle<Context> context,
+               DirectHandle<SharedFunctionInfo> function_info,
+               DirectHandle<FeedbackCell> feedback_cell, int position);
 
-    // Associate the (source, flags) pair to the given regexp data.
-    // This may overwrite an existing mapping.
-    void PutRegExp(Handle<String> source, JSRegExp::Flags flags, DirectHandle<RegExpData> data);
+  // Associate the (source, flags) pair to the given regexp data.
+  // This may overwrite an existing mapping.
+  void PutRegExp(Handle<String> source, JSRegExp::Flags flags,
+                 DirectHandle<RegExpData> data);
 
-    // Clear the cache - also used to initialize the cache at startup.
-    void Clear();
+  // Clear the cache - also used to initialize the cache at startup.
+  void Clear();
 
-    // Remove given shared function info from all caches.
-    void Remove(DirectHandle<SharedFunctionInfo> function_info);
+  // Remove given shared function info from all caches.
+  void Remove(DirectHandle<SharedFunctionInfo> function_info);
 
-    // GC support.
-    void Iterate(RootVisitor* v);
+  // GC support.
+  void Iterate(RootVisitor* v);
 
-    // Notify the cache that a mark-sweep garbage collection is about to
-    // take place. This is used to retire entries from the cache to
-    // avoid keeping them alive too long without using them.
-    void MarkCompactPrologue();
+  // Notify the cache that a mark-sweep garbage collection is about to
+  // take place. This is used to retire entries from the cache to
+  // avoid keeping them alive too long without using them.
+  void MarkCompactPrologue();
 
-    // Enable/disable compilation cache. Used by debugger to disable compilation
-    // cache during debugging so that eval and new scripts are always compiled.
-    // TODO(bmeurer, chromium:992277): The RegExp cache cannot be enabled and/or
-    // disabled, since it doesn't affect debugging. However ideally the other
-    // caches should also be always on, even in the presence of the debugger,
-    // but at this point there are too many unclear invariants, and so I decided
-    // to just fix the pressing performance problem for RegExp individually first.
-    void EnableScriptAndEval();
-    void DisableScriptAndEval();
+  // Enable/disable compilation cache. Used by debugger to disable compilation
+  // cache during debugging so that eval and new scripts are always compiled.
+  // TODO(bmeurer, chromium:992277): The RegExp cache cannot be enabled and/or
+  // disabled, since it doesn't affect debugging. However ideally the other
+  // caches should also be always on, even in the presence of the debugger,
+  // but at this point there are too many unclear invariants, and so I decided
+  // to just fix the pressing performance problem for RegExp individually first.
+  void EnableScriptAndEval();
+  void DisableScriptAndEval();
 
-private:
-    explicit CompilationCache(Isolate* isolate);
-    ~CompilationCache() = default;
+ private:
+  explicit CompilationCache(Isolate* isolate);
+  ~CompilationCache() = default;
 
-    base::HashMap* EagerOptimizingSet();
+  base::HashMap* EagerOptimizingSet();
 
-    bool IsEnabledScriptAndEval() const
-    {
-        return v8_flags.compilation_cache && enabled_script_and_eval_;
-    }
-    bool IsEnabledScript(LanguageMode language_mode)
-    {
-        // Tests can change v8_flags.use_strict at runtime. The compilation cache
-        // only contains scripts which were compiled with the default language mode.
-        return IsEnabledScriptAndEval() && language_mode == LanguageMode::kSloppy;
-    }
+  bool IsEnabledScriptAndEval() const {
+    return v8_flags.compilation_cache && enabled_script_and_eval_;
+  }
+  bool IsEnabledScript(LanguageMode language_mode) {
+    // Tests can change v8_flags.use_strict at runtime. The compilation cache
+    // only contains scripts which were compiled with the default language mode.
+    return IsEnabledScriptAndEval() && language_mode == LanguageMode::kSloppy;
+  }
 
-    Isolate* isolate() const
-    {
-        return isolate_;
-    }
+  Isolate* isolate() const { return isolate_; }
 
-    Isolate* isolate_;
+  Isolate* isolate_;
 
-    CompilationCacheScript script_;
-    CompilationCacheEval eval_global_;
-    CompilationCacheEval eval_contextual_;
-    CompilationCacheRegExp reg_exp_;
+  CompilationCacheScript script_;
+  CompilationCacheEval eval_global_;
+  CompilationCacheEval eval_contextual_;
+  CompilationCacheRegExp reg_exp_;
 
-    // Current enable state of the compilation cache for scripts and eval.
-    bool enabled_script_and_eval_;
+  // Current enable state of the compilation cache for scripts and eval.
+  bool enabled_script_and_eval_;
 
-    friend class Isolate;
+  friend class Isolate;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_COMPILATION_CACHE_H_
+#endif  // V8_CODEGEN_COMPILATION_CACHE_H_

@@ -13,20 +13,20 @@ namespace v8 {
 namespace internal {
 
 class EtwTraceDebug {
-public:
-    static EtwTraceDebug info;
+ public:
+  static EtwTraceDebug info;
 };
 
 std::ostream& operator<<(std::ostream& os, const EtwTraceDebug&);
 
 #undef ETWTRACEDBG
-#ifdef V8_DEBUG
+#ifdef DEBUG
 #define ETWTRACEDBG v8_flags.etw_trace_debug&& std::cout << EtwTraceDebug::info
 #else
 #define ETWTRACEDBG 0 && std::cout
 #endif
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_DIAGNOSTICS_ETW_DEBUG_WIN_H_
+#endif  // V8_DIAGNOSTICS_ETW_DEBUG_WIN_H_

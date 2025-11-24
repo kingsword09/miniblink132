@@ -31,74 +31,69 @@ namespace internal {
 namespace {
 char* g_icu_data_ptr = nullptr;
 
-void free_icu_data_ptr()
-{
-    delete[] g_icu_data_ptr;
-}
+void free_icu_data_ptr() { delete[] g_icu_data_ptr; }
 
-} // namespace
+}  // namespace
 #endif
 
-bool InitializeICUDefaultLocation(const char* exec_path, const char* icu_data_file)
-{
+bool InitializeICUDefaultLocation(const char* exec_path,
+                                  const char* icu_data_file) {
 #if !defined(V8_INTL_SUPPORT)
-    return true;
+  return true;
 #elif ICU_UTIL_DATA_IMPL == ICU_UTIL_DATA_FILE
-    if (icu_data_file) {
-        return InitializeICU(icu_data_file);
-    }
+  if (icu_data_file) {
+    return InitializeICU(icu_data_file);
+  }
 #if defined(V8_TARGET_LITTLE_ENDIAN)
-    std::unique_ptr<char[]> icu_data_file_default = base::RelativePath(exec_path, "icudtl.dat");
+  std::unique_ptr<char[]> icu_data_file_default =
+      base::RelativePath(exec_path, "icudtl.dat");
 #elif defined(V8_TARGET_BIG_ENDIAN)
-    std::unique_ptr<char[]> icu_data_file_default = base::RelativePath(exec_path, "icudtb.dat");
+  std::unique_ptr<char[]> icu_data_file_default =
+      base::RelativePath(exec_path, "icudtb.dat");
 #else
 #error Unknown byte ordering
 #endif
-    return InitializeICU(icu_data_file_default.get());
+  return InitializeICU(icu_data_file_default.get());
 #else
-    return InitializeICU(nullptr);
+  return InitializeICU(nullptr);
 #endif
 }
 
-bool InitializeICU(const char* icu_data_file)
-{
+bool InitializeICU(const char* icu_data_file) {
 #if !defined(V8_INTL_SUPPORT)
-    return true;
+  return true;
 #else
 #if ICU_UTIL_DATA_IMPL == ICU_UTIL_DATA_STATIC
-    // Use bundled ICU data.
-    return true;
+  // Use bundled ICU data.
+  return true;
 #elif ICU_UTIL_DATA_IMPL == ICU_UTIL_DATA_FILE
-    if (!icu_data_file)
-        return false;
+  if (!icu_data_file) return false;
 
-    if (g_icu_data_ptr)
-        return true;
+  if (g_icu_data_ptr) return true;
 
-    FILE* inf = base::Fopen(icu_data_file, "rb");
-    if (!inf)
-        return false;
+  FILE* inf = base::Fopen(icu_data_file, "rb");
+  if (!inf) return false;
 
-    fseek(inf, 0, SEEK_END);
-    size_t size = ftell(inf);
-    rewind(inf);
+  fseek(inf, 0, SEEK_END);
+  size_t size = ftell(inf);
+  rewind(inf);
 
-    g_icu_data_ptr = new char[size];
-    if (fread(g_icu_data_ptr, 1, size, inf) != size) {
-        delete[] g_icu_data_ptr;
-        g_icu_data_ptr = nullptr;
-        base::Fclose(inf);
-        return false;
-    }
+  g_icu_data_ptr = new char[size];
+  if (fread(g_icu_data_ptr, 1, size, inf) != size) {
+    delete[] g_icu_data_ptr;
+    g_icu_data_ptr = nullptr;
     base::Fclose(inf);
+    return false;
+  }
+  base::Fclose(inf);
 
-    atexit(free_icu_data_ptr);
+  atexit(free_icu_data_ptr);
 
-    UErrorCode err = U_ZERO_ERROR;
-    udata_setCommonData(reinterpret_cast<void*>(g_icu_data_ptr), &err);
-    // Never try to load ICU data from files.
-    udata_setFileAccess(UDATA_ONLY_PACKAGES, &err);
-    return err == U_ZERO_ERROR;
+  UErrorCode err = U_ZERO_ERROR;
+  udata_setCommonData(reinterpret_cast<void*>(g_icu_data_ptr), &err);
+  // Never try to load ICU data from files.
+  udata_setFileAccess(UDATA_ONLY_PACKAGES, &err);
+  return err == U_ZERO_ERROR;
 #endif
 #endif
 }
@@ -106,5 +101,5 @@ bool InitializeICU(const char* icu_data_file)
 #undef ICU_UTIL_DATA_FILE
 #undef ICU_UTIL_DATA_STATIC
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

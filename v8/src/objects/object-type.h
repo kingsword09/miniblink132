@@ -16,14 +16,14 @@ namespace internal {
 #define ENUM_ELEMENT(Name) k##Name,
 #define ENUM_STRUCT_ELEMENT(NAME, Name, name) k##Name,
 enum class ObjectType {
-    ENUM_ELEMENT(Object) //
-    ENUM_ELEMENT(Smi) //
-    ENUM_ELEMENT(TaggedIndex) //
-    ENUM_ELEMENT(HeapObject) //
-    ENUM_ELEMENT(HeapObjectReference) //
-    OBJECT_TYPE_LIST(ENUM_ELEMENT) //
-    HEAP_OBJECT_TYPE_LIST(ENUM_ELEMENT) //
-    STRUCT_LIST(ENUM_STRUCT_ELEMENT) //
+  ENUM_ELEMENT(Object)                 //
+  ENUM_ELEMENT(Smi)                    //
+  ENUM_ELEMENT(TaggedIndex)            //
+  ENUM_ELEMENT(HeapObject)             //
+  ENUM_ELEMENT(HeapObjectReference)    //
+  OBJECT_TYPE_LIST(ENUM_ELEMENT)       //
+  HEAP_OBJECT_TYPE_LIST(ENUM_ELEMENT)  //
+  STRUCT_LIST(ENUM_STRUCT_ELEMENT)     //
 };
 #undef ENUM_ELEMENT
 #undef ENUM_STRUCT_ELEMENT
@@ -32,9 +32,10 @@ enum class ObjectType {
 // {raw_type} must be a tagged Smi.
 // {raw_location} must be a tagged String.
 // Returns a tagged Smi.
-V8_EXPORT_PRIVATE Address CheckObjectType(Address raw_value, Address raw_type, Address raw_location);
+V8_EXPORT_PRIVATE Address CheckObjectType(Address raw_value, Address raw_type,
+                                          Address raw_location);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_OBJECTS_OBJECT_TYPE_H_
+#endif  // V8_OBJECTS_OBJECT_TYPE_H_

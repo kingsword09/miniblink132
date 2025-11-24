@@ -24,67 +24,67 @@ namespace internal {
  */
 
 class PrototypeIterator {
-public:
-    enum WhereToEnd { END_AT_NULL, END_AT_NON_HIDDEN };
+ public:
+  enum WhereToEnd { END_AT_NULL, END_AT_NON_HIDDEN };
 
-    inline PrototypeIterator(
-        Isolate* isolate, Handle<JSReceiver> receiver, WhereToStart where_to_start = kStartAtPrototype, WhereToEnd where_to_end = END_AT_NULL);
+  inline PrototypeIterator(Isolate* isolate, Handle<JSReceiver> receiver,
+                           WhereToStart where_to_start = kStartAtPrototype,
+                           WhereToEnd where_to_end = END_AT_NULL);
 
-    inline PrototypeIterator(
-        Isolate* isolate, Tagged<JSReceiver> receiver, WhereToStart where_to_start = kStartAtPrototype, WhereToEnd where_to_end = END_AT_NULL);
+  inline PrototypeIterator(Isolate* isolate, Tagged<JSReceiver> receiver,
+                           WhereToStart where_to_start = kStartAtPrototype,
+                           WhereToEnd where_to_end = END_AT_NULL);
 
-    inline explicit PrototypeIterator(Isolate* isolate, Tagged<Map> receiver_map, WhereToEnd where_to_end = END_AT_NULL);
+  inline explicit PrototypeIterator(Isolate* isolate, Tagged<Map> receiver_map,
+                                    WhereToEnd where_to_end = END_AT_NULL);
 
-    inline explicit PrototypeIterator(Isolate* isolate, DirectHandle<Map> receiver_map, WhereToEnd where_to_end = END_AT_NULL);
+  inline explicit PrototypeIterator(Isolate* isolate,
+                                    DirectHandle<Map> receiver_map,
+                                    WhereToEnd where_to_end = END_AT_NULL);
 
-    ~PrototypeIterator() = default;
-    PrototypeIterator(const PrototypeIterator&) = delete;
-    PrototypeIterator& operator=(const PrototypeIterator&) = delete;
+  ~PrototypeIterator() = default;
+  PrototypeIterator(const PrototypeIterator&) = delete;
+  PrototypeIterator& operator=(const PrototypeIterator&) = delete;
 
-    inline bool HasAccess() const;
+  inline bool HasAccess() const;
 
-    template <typename T = JSPrototype> Tagged<T> GetCurrent() const
-    {
-        DCHECK(handle_.is_null());
-        return Cast<T>(object_);
-    }
+  template <typename T = JSPrototype>
+  Tagged<T> GetCurrent() const {
+    DCHECK(handle_.is_null());
+    return Cast<T>(object_);
+  }
 
-    template <typename T = JSPrototype> static Handle<T> GetCurrent(const PrototypeIterator& iterator)
-    {
-        DCHECK(!iterator.handle_.is_null());
-        DCHECK_EQ(iterator.object_, Tagged<HeapObject>());
-        return Cast<T>(iterator.handle_);
-    }
+  template <typename T = JSPrototype>
+  static Handle<T> GetCurrent(const PrototypeIterator& iterator) {
+    DCHECK(!iterator.handle_.is_null());
+    DCHECK_EQ(iterator.object_, Tagged<HeapObject>());
+    return Cast<T>(iterator.handle_);
+  }
 
-    inline void Advance();
+  inline void Advance();
 
-    inline void AdvanceIgnoringProxies();
+  inline void AdvanceIgnoringProxies();
 
-    // Returns false iff a call to JSProxy::GetPrototype throws.
-    V8_WARN_UNUSED_RESULT inline bool AdvanceFollowingProxies();
+  // Returns false iff a call to JSProxy::GetPrototype throws.
+  V8_WARN_UNUSED_RESULT inline bool AdvanceFollowingProxies();
 
-    V8_WARN_UNUSED_RESULT inline bool AdvanceFollowingProxiesIgnoringAccessChecks();
+  V8_WARN_UNUSED_RESULT inline bool
+  AdvanceFollowingProxiesIgnoringAccessChecks();
 
-    bool IsAtEnd() const
-    {
-        return is_at_end_;
-    }
-    Isolate* isolate() const
-    {
-        return isolate_;
-    }
+  bool IsAtEnd() const { return is_at_end_; }
+  Isolate* isolate() const { return isolate_; }
 
-private:
-    Isolate* isolate_;
-    Tagged<JSPrototype> object_ = {};
-    Handle<JSPrototype> handle_;
-    WhereToEnd where_to_end_;
-    bool is_at_end_;
-    int seen_proxies_;
+ private:
+  Isolate* isolate_;
+  Tagged<JSPrototype> object_ = {};
+  Handle<JSPrototype> handle_;
+  WhereToEnd where_to_end_;
+  bool is_at_end_;
+  int seen_proxies_;
 };
 
-} // namespace internal
+}  // namespace internal
 
-} // namespace v8
+}  // namespace v8
 
-#endif // V8_OBJECTS_PROTOTYPE_H_
+#endif  // V8_OBJECTS_PROTOTYPE_H_

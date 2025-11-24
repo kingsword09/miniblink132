@@ -24,48 +24,39 @@ namespace internal {
 // The progress bar starts as disabled. After enabling (through `Enable()`), it
 // can never be disabled again.
 class ProgressBar final {
-public:
-    ProgressBar()
-        : value_(kDisabledSentinel)
-    {
-    }
+ public:
+  ProgressBar() : value_(kDisabledSentinel) {}
 
-    void Enable()
-    {
-        value_ = 0;
-    }
-    bool IsEnabled() const
-    {
-        return value_.load(std::memory_order_acquire) != kDisabledSentinel;
-    }
+  void Enable() { value_ = 0; }
+  bool IsEnabled() const {
+    return value_.load(std::memory_order_acquire) != kDisabledSentinel;
+  }
 
-    size_t Value() const
-    {
-        DCHECK(IsEnabled());
-        return value_.load(std::memory_order_acquire);
+  size_t Value() const {
+    DCHECK(IsEnabled());
+    return value_.load(std::memory_order_acquire);
+  }
+
+  bool TrySetNewValue(size_t old_value, size_t new_value) {
+    DCHECK(IsEnabled());
+    DCHECK_NE(kDisabledSentinel, new_value);
+    return value_.compare_exchange_strong(old_value, new_value,
+                                          std::memory_order_acq_rel);
+  }
+
+  void ResetIfEnabled() {
+    if (IsEnabled()) {
+      value_.store(0, std::memory_order_release);
     }
+  }
 
-    bool TrySetNewValue(size_t old_value, size_t new_value)
-    {
-        DCHECK(IsEnabled());
-        DCHECK_NE(kDisabledSentinel, new_value);
-        return value_.compare_exchange_strong(old_value, new_value, std::memory_order_acq_rel);
-    }
+ private:
+  static constexpr size_t kDisabledSentinel = SIZE_MAX;
 
-    void ResetIfEnabled()
-    {
-        if (IsEnabled()) {
-            value_.store(0, std::memory_order_release);
-        }
-    }
-
-private:
-    static constexpr size_t kDisabledSentinel = SIZE_MAX;
-
-    std::atomic<size_t> value_;
+  std::atomic<size_t> value_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_PROGRESS_BAR_H_
+#endif  // V8_HEAP_PROGRESS_BAR_H_

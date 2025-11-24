@@ -17,29 +17,30 @@ namespace internal {
 // Algorithms" by M. Scott and M. Michael.
 // See:
 // https://www.cs.rochester.edu/research/synchronization/pseudocode/queues.html
-template <typename Record> class LockedQueue final {
-public:
-    inline LockedQueue();
-    LockedQueue(const LockedQueue&) = delete;
-    LockedQueue& operator=(const LockedQueue&) = delete;
-    inline ~LockedQueue();
-    inline void Enqueue(Record record);
-    inline bool Dequeue(Record* record);
-    inline bool IsEmpty() const;
-    inline bool Peek(Record* record) const;
-    inline size_t size() const;
+template <typename Record>
+class LockedQueue final {
+ public:
+  inline LockedQueue();
+  LockedQueue(const LockedQueue&) = delete;
+  LockedQueue& operator=(const LockedQueue&) = delete;
+  inline ~LockedQueue();
+  inline void Enqueue(Record record);
+  inline bool Dequeue(Record* record);
+  inline bool IsEmpty() const;
+  inline bool Peek(Record* record) const;
+  inline size_t size() const;
 
-private:
-    struct Node;
+ private:
+  struct Node;
 
-    mutable base::Mutex head_mutex_;
-    base::Mutex tail_mutex_;
-    Node* head_;
-    Node* tail_;
-    std::atomic<size_t> size_;
+  mutable base::Mutex head_mutex_;
+  base::Mutex tail_mutex_;
+  Node* head_;
+  Node* tail_;
+  std::atomic<size_t> size_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_UTILS_LOCKED_QUEUE_H_
+#endif  // V8_UTILS_LOCKED_QUEUE_H_

@@ -12,12 +12,14 @@ namespace v8 {
 namespace internal {
 
 class SnapshotCompression : public AllStatic {
-public:
-    V8_EXPORT_PRIVATE static SnapshotData Compress(const SnapshotData* uncompressed_data);
-    V8_EXPORT_PRIVATE static SnapshotData Decompress(base::Vector<const uint8_t> compressed_data);
+ public:
+  V8_EXPORT_PRIVATE static SnapshotData Compress(
+      const SnapshotData* uncompressed_data);
+  V8_EXPORT_PRIVATE static SnapshotData Decompress(
+      base::Vector<const uint8_t> compressed_data);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SNAPSHOT_SNAPSHOT_COMPRESSION_H_
+#endif  // V8_SNAPSHOT_SNAPSHOT_COMPRESSION_H_

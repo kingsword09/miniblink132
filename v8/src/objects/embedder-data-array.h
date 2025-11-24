@@ -21,50 +21,49 @@ namespace internal {
 // It's basically an "array of EmbedderDataSlots".
 // Note, if the pointer compression is enabled the embedder data slot also
 // contains a raw data part in addition to tagged part.
-class EmbedderDataArray : public TorqueGeneratedEmbedderDataArray<EmbedderDataArray, HeapObject> {
-public:
-    // TODO(v8:8989): [torque] Support marker constants.
-    static const int kHeaderSize = kSize;
+class EmbedderDataArray
+    : public TorqueGeneratedEmbedderDataArray<EmbedderDataArray, HeapObject> {
+ public:
+  // TODO(v8:8989): [torque] Support marker constants.
+  static const int kHeaderSize = kSize;
 
-    // Garbage collection support.
-    static constexpr int SizeFor(int length)
-    {
-        return kHeaderSize + length * kEmbedderDataSlotSize;
-    }
+  // Garbage collection support.
+  static constexpr int SizeFor(int length) {
+    return kHeaderSize + length * kEmbedderDataSlotSize;
+  }
 
-    // Returns a grown copy if the index is bigger than the array's length.
-    static Handle<EmbedderDataArray> EnsureCapacity(Isolate* isolate, Handle<EmbedderDataArray> array, int index);
+  // Returns a grown copy if the index is bigger than the array's length.
+  static Handle<EmbedderDataArray> EnsureCapacity(
+      Isolate* isolate, Handle<EmbedderDataArray> array, int index);
 
-    // Code Generation support.
-    static constexpr int OffsetOfElementAt(int index)
-    {
-        return SizeFor(index);
-    }
+  // Code Generation support.
+  static constexpr int OffsetOfElementAt(int index) { return SizeFor(index); }
 
-    // Address of the first slot.
-    V8_INLINE Address slots_start();
+  // Address of the first slot.
+  V8_INLINE Address slots_start();
 
-    // Address of the one past last slot.
-    V8_INLINE Address slots_end();
+  // Address of the one past last slot.
+  V8_INLINE Address slots_end();
 
-    // Dispatched behavior.
-    DECL_PRINTER(EmbedderDataArray)
-    DECL_VERIFIER(EmbedderDataArray)
+  // Dispatched behavior.
+  DECL_PRINTER(EmbedderDataArray)
+  DECL_VERIFIER(EmbedderDataArray)
 
-    class BodyDescriptor;
+  class BodyDescriptor;
 
-    static const int kMaxSize = kMaxRegularHeapObjectSize;
-    static constexpr int kMaxLength = (kMaxSize - kHeaderSize) / kEmbedderDataSlotSize;
+  static const int kMaxSize = kMaxRegularHeapObjectSize;
+  static constexpr int kMaxLength =
+      (kMaxSize - kHeaderSize) / kEmbedderDataSlotSize;
 
-private:
-    static_assert(kHeaderSize == Internals::kFixedArrayHeaderSize);
+ private:
+  static_assert(kHeaderSize == Internals::kFixedArrayHeaderSize);
 
-    TQ_OBJECT_CONSTRUCTORS(EmbedderDataArray)
+  TQ_OBJECT_CONSTRUCTORS(EmbedderDataArray)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_EMBEDDER_DATA_ARRAY_H_
+#endif  // V8_OBJECTS_EMBEDDER_DATA_ARRAY_H_

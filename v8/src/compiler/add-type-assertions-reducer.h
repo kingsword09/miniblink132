@@ -18,8 +18,8 @@ class Schedule;
 
 void AddTypeAssertions(JSGraph* jsgraph, Schedule* schedule, Zone* phase_zone);
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_ADD_TYPE_ASSERTIONS_REDUCER_H_
+#endif  // V8_COMPILER_ADD_TYPE_ASSERTIONS_REDUCER_H_

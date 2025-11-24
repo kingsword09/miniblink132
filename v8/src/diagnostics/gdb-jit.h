@@ -41,11 +41,12 @@ void EventHandler(const v8::JitCodeEvent* event);
 // touch the actual JITCodeEntry at all.
 V8_EXPORT_PRIVATE void AddRegionForTesting(const base::AddressRegion region);
 V8_EXPORT_PRIVATE void ClearCodeMapForTesting();
-V8_EXPORT_PRIVATE size_t NumOverlapEntriesForTesting(const base::AddressRegion region);
+V8_EXPORT_PRIVATE size_t
+NumOverlapEntriesForTesting(const base::AddressRegion region);
 
 #endif
-} // namespace GDBJITInterface
-} // namespace internal
-} // namespace v8
+}  // namespace GDBJITInterface
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_DIAGNOSTICS_GDB_JIT_H_
+#endif  // V8_DIAGNOSTICS_GDB_JIT_H_

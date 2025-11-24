@@ -18,30 +18,31 @@ namespace internal {
 #include "torque-generated/src/objects/hole-tq.inc"
 
 class Hole : public HeapObject {
-public:
-    inline void set_raw_numeric_value(uint64_t bits);
+ public:
+  inline void set_raw_numeric_value(uint64_t bits);
 
-    DECL_VERIFIER(Hole)
+  DECL_VERIFIER(Hole)
 
-    static inline void Initialize(Isolate* isolate, DirectHandle<Hole> hole, DirectHandle<HeapNumber> numeric_value);
+  static inline void Initialize(Isolate* isolate, DirectHandle<Hole> hole,
+                                DirectHandle<HeapNumber> numeric_value);
 
-    // Currently, we allow optimized code to treat holes as HeapNumbers to avoid
-    // conditional branching. This works by making Hole::kRawNumericValueOffset
-    // the same as offsetof(HeapNumber, value_) and storing NaN at that offset in
-    // Holes. This way, a hole will look like a NaN HeapNumber to optimized code.
-    DECL_FIELD_OFFSET_TQ(RawNumericValue, HeapObject::kHeaderSize, "float64")
-    static constexpr int kSize = kRawNumericValueOffset + kDoubleSize;
+  // Currently, we allow optimized code to treat holes as HeapNumbers to avoid
+  // conditional branching. This works by making Hole::kRawNumericValueOffset
+  // the same as offsetof(HeapNumber, value_) and storing NaN at that offset in
+  // Holes. This way, a hole will look like a NaN HeapNumber to optimized code.
+  DECL_FIELD_OFFSET_TQ(RawNumericValue, HeapObject::kHeaderSize, "float64")
+  static constexpr int kSize = kRawNumericValueOffset + kDoubleSize;
 
-    using BodyDescriptor = FixedBodyDescriptor<kSize, kSize, kSize>;
+  using BodyDescriptor = FixedBodyDescriptor<kSize, kSize, kSize>;
 
-    DECL_PRINTER(Hole)
+  DECL_PRINTER(Hole)
 
-    OBJECT_CONSTRUCTORS(Hole, HeapObject);
+  OBJECT_CONSTRUCTORS(Hole, HeapObject);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_HOLE_H_
+#endif  // V8_OBJECTS_HOLE_H_

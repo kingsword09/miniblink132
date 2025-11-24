@@ -74,63 +74,61 @@ namespace v8::internal::compiler::turboshaft {
 // time we visited this block, so we should revisit it as well.
 
 class V8_EXPORT_PRIVATE AnalyzerIterator {
-public:
-    AnalyzerIterator(Zone* phase_zone, const Graph& graph, const LoopFinder& loop_finder)
-        : graph_(graph)
-        , loop_finder_(loop_finder)
-        , visited_(graph.block_count(), kNotVisitedGeneration, phase_zone)
-        , stack_(phase_zone)
-    {
-        stack_.push_back({ &graph.StartBlock(), kGenerationForFirstVisit });
-    }
+ public:
+  AnalyzerIterator(Zone* phase_zone, const Graph& graph,
+                   const LoopFinder& loop_finder)
+      : graph_(graph),
+        loop_finder_(loop_finder),
+        visited_(graph.block_count(), kNotVisitedGeneration, phase_zone),
+        stack_(phase_zone) {
+    stack_.push_back({&graph.StartBlock(), kGenerationForFirstVisit});
+  }
 
-    bool HasNext() const
-    {
-        DCHECK_IMPLIES(!stack_.empty(), !IsOutdated(stack_.back()));
-        return !stack_.empty();
-    }
-    const Block* Next();
-    // Schedule the loop pointed to by the current block (as a backedge)
-    // to be revisited on the next iteration.
-    void MarkLoopForRevisit();
-    // Schedule the loop pointed to by the current block (as a backedge) to be
-    // revisited on the next iteration but skip the loop header.
-    void MarkLoopForRevisitSkipHeader();
+  bool HasNext() const {
+    DCHECK_IMPLIES(!stack_.empty(), !IsOutdated(stack_.back()));
+    return !stack_.empty();
+  }
+  const Block* Next();
+  // Schedule the loop pointed to by the current block (as a backedge)
+  // to be revisited on the next iteration.
+  void MarkLoopForRevisit();
+  // Schedule the loop pointed to by the current block (as a backedge) to be
+  // revisited on the next iteration but skip the loop header.
+  void MarkLoopForRevisitSkipHeader();
 
-private:
-    struct StackNode {
-        const Block* block;
-        uint64_t generation;
-    };
-    static constexpr uint64_t kNotVisitedGeneration = 0;
-    static constexpr uint64_t kGenerationForFirstVisit = 1;
+ private:
+  struct StackNode {
+    const Block* block;
+    uint64_t generation;
+  };
+  static constexpr uint64_t kNotVisitedGeneration = 0;
+  static constexpr uint64_t kGenerationForFirstVisit = 1;
 
-    void PopOutdated();
-    bool IsOutdated(StackNode node) const
-    {
-        return visited_[node.block->index()] >= node.generation;
-    }
+  void PopOutdated();
+  bool IsOutdated(StackNode node) const {
+    return visited_[node.block->index()] >= node.generation;
+  }
 
-    const Graph& graph_;
-    const LoopFinder& loop_finder_;
+  const Graph& graph_;
+  const LoopFinder& loop_finder_;
 
-    uint64_t current_generation_ = kGenerationForFirstVisit;
+  uint64_t current_generation_ = kGenerationForFirstVisit;
 
-    // The last block returned by Next.
-    StackNode curr_ = { nullptr, 0 };
+  // The last block returned by Next.
+  StackNode curr_ = {nullptr, 0};
 
-    // {visited_} maps BlockIndex to the generation they were visited with. If a
-    // Block has been visited with a generation `n`, then we never want to revisit
-    // it with a generation `k` when `k <= n`.
-    FixedBlockSidetable<uint64_t> visited_;
+  // {visited_} maps BlockIndex to the generation they were visited with. If a
+  // Block has been visited with a generation `n`, then we never want to revisit
+  // it with a generation `k` when `k <= n`.
+  FixedBlockSidetable<uint64_t> visited_;
 
-    // The stack of blocks that are left to visit. We maintain the invariant that
-    // the .back() of {stack_} is never out-dated (ie, its generation is always
-    // greater than the generation for its node recorded in {visited_}), so that
-    // "Next" can simply check whether {stack_} is empty or not.
-    ZoneVector<StackNode> stack_;
+  // The stack of blocks that are left to visit. We maintain the invariant that
+  // the .back() of {stack_} is never out-dated (ie, its generation is always
+  // greater than the generation for its node recorded in {visited_}), so that
+  // "Next" can simply check whether {stack_} is empty or not.
+  ZoneVector<StackNode> stack_;
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_ANALYZER_ITERATOR_H_
+#endif  // V8_COMPILER_TURBOSHAFT_ANALYZER_ITERATOR_H_

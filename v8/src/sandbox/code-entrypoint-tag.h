@@ -34,25 +34,28 @@ namespace internal {
 // into the pointer. This may be more efficient.
 constexpr int kCodeEntrypointTagShift = 48;
 enum CodeEntrypointTag : uint64_t {
-    // TODO(saelo): eventually, we'll probably want to remove the default tag.
-    kDefaultCodeEntrypointTag = 0,
-    // TODO(saelo): give these unique tags.
-    kJSEntrypointTag = kDefaultCodeEntrypointTag,
-    kWasmEntrypointTag = uint64_t { 1 } << kCodeEntrypointTagShift,
-    kBytecodeHandlerEntrypointTag = uint64_t { 2 } << kCodeEntrypointTagShift,
-    kLoadWithVectorICHandlerEntrypointTag = uint64_t { 3 } << kCodeEntrypointTagShift,
-    kStoreWithVectorICHandlerEntrypointTag = uint64_t { 4 } << kCodeEntrypointTagShift,
-    kStoreTransitionICHandlerEntrypointTag = uint64_t { 5 } << kCodeEntrypointTagShift,
-    kRegExpEntrypointTag = uint64_t { 6 } << kCodeEntrypointTagShift,
-    // TODO(saelo): create more of these tags.
+  // TODO(saelo): eventually, we'll probably want to remove the default tag.
+  kDefaultCodeEntrypointTag = 0,
+  // TODO(saelo): give these unique tags.
+  kJSEntrypointTag = kDefaultCodeEntrypointTag,
+  kWasmEntrypointTag = uint64_t{1} << kCodeEntrypointTagShift,
+  kBytecodeHandlerEntrypointTag = uint64_t{2} << kCodeEntrypointTagShift,
+  kLoadWithVectorICHandlerEntrypointTag = uint64_t{3}
+                                          << kCodeEntrypointTagShift,
+  kStoreWithVectorICHandlerEntrypointTag = uint64_t{4}
+                                           << kCodeEntrypointTagShift,
+  kStoreTransitionICHandlerEntrypointTag = uint64_t{5}
+                                           << kCodeEntrypointTagShift,
+  kRegExpEntrypointTag = uint64_t{6} << kCodeEntrypointTagShift,
+  // TODO(saelo): create more of these tags.
 
-    // Tag to use for code that will never be called indirectly via the CPT.
-    kInvalidEntrypointTag = uint64_t { 0xff } << kCodeEntrypointTagShift,
-    // Tag used internally by the code pointer table to mark free entries.
-    kFreeCodePointerTableEntryTag = uint64_t { 0xffff } << kCodeEntrypointTagShift,
+  // Tag to use for code that will never be called indirectly via the CPT.
+  kInvalidEntrypointTag = uint64_t{0xff} << kCodeEntrypointTagShift,
+  // Tag used internally by the code pointer table to mark free entries.
+  kFreeCodePointerTableEntryTag = uint64_t{0xffff} << kCodeEntrypointTagShift,
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SANDBOX_CODE_ENTRYPOINT_TAG_H_
+#endif  // V8_SANDBOX_CODE_ENTRYPOINT_TAG_H_

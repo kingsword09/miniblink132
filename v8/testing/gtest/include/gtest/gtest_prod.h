@@ -8,6 +8,5 @@
 // third_party/googletest.
 
 #if !defined(GOOGLE3)
-//#include "third_party/googletest/src/googletest/include/gtest/gtest_prod.h"
-#define FRIEND_TEST(a, b) 
+#include "third_party/googletest/src/googletest/include/gtest/gtest_prod.h"
 #endif

@@ -17,78 +17,56 @@
 namespace v8 {
 namespace internal {
 
-double Oddball::to_number_raw() const
-{
-    return to_number_raw_.value();
-}
-void Oddball::set_to_number_raw(double value)
-{
-    to_number_raw_.set_value(value);
+double Oddball::to_number_raw() const { return to_number_raw_.value(); }
+void Oddball::set_to_number_raw(double value) {
+  to_number_raw_.set_value(value);
 }
 
-void Oddball::set_to_number_raw_as_bits(uint64_t bits)
-{
-    // Bug(v8:8875): HeapNumber's double may be unaligned.
-    to_number_raw_.set_value_as_bits(bits);
+void Oddball::set_to_number_raw_as_bits(uint64_t bits) {
+  // Bug(v8:8875): HeapNumber's double may be unaligned.
+  to_number_raw_.set_value_as_bits(bits);
 }
 
-Tagged<String> Oddball::to_string() const
-{
-    return to_string_.load();
-}
-void Oddball::set_to_string(Tagged<String> value, WriteBarrierMode mode)
-{
-    to_string_.store(this, value);
+Tagged<String> Oddball::to_string() const { return to_string_.load(); }
+void Oddball::set_to_string(Tagged<String> value, WriteBarrierMode mode) {
+  to_string_.store(this, value);
 }
 
-Tagged<Number> Oddball::to_number() const
-{
-    return to_number_.load();
-}
-void Oddball::set_to_number(Tagged<Number> value, WriteBarrierMode mode)
-{
-    to_number_.store(this, value);
+Tagged<Number> Oddball::to_number() const { return to_number_.load(); }
+void Oddball::set_to_number(Tagged<Number> value, WriteBarrierMode mode) {
+  to_number_.store(this, value);
 }
 
-Tagged<String> Oddball::type_of() const
-{
-    return type_of_.load();
-}
-void Oddball::set_type_of(Tagged<String> value, WriteBarrierMode mode)
-{
-    type_of_.store(this, value);
+Tagged<String> Oddball::type_of() const { return type_of_.load(); }
+void Oddball::set_type_of(Tagged<String> value, WriteBarrierMode mode) {
+  type_of_.store(this, value);
 }
 
-uint8_t Oddball::kind() const
-{
-    return kind_.load().value();
-}
+uint8_t Oddball::kind() const { return kind_.load().value(); }
 
-void Oddball::set_kind(uint8_t value)
-{
-    kind_.store(this, Smi::FromInt(value));
+void Oddball::set_kind(uint8_t value) {
+  kind_.store(this, Smi::FromInt(value));
 }
 
 // static
-Handle<Number> Oddball::ToNumber(Isolate* isolate, DirectHandle<Oddball> input)
-{
-    return handle(input->to_number(), isolate);
+Handle<Number> Oddball::ToNumber(Isolate* isolate,
+                                 DirectHandle<Oddball> input) {
+  return handle(input->to_number(), isolate);
 }
 
-DEF_HEAP_OBJECT_PREDICATE(HeapObject, IsBoolean)
-{
-    return IsOddball(obj, cage_base) && ((Cast<Oddball>(obj)->kind() & Oddball::kNotBooleanMask) == 0);
+DEF_HEAP_OBJECT_PREDICATE(HeapObject, IsBoolean) {
+  return IsOddball(obj, cage_base) &&
+         ((Cast<Oddball>(obj)->kind() & Oddball::kNotBooleanMask) == 0);
 }
 
-bool Boolean::ToBool(Isolate* isolate) const
-{
-    DCHECK(IsBoolean(this, isolate));
-    return IsTrue(this, isolate);
+bool Boolean::ToBool(Isolate* isolate) const {
+  DCHECK(IsBoolean(this, isolate));
+  return IsTrue(this, isolate);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_ODDBALL_INL_H_
+#endif  // V8_OBJECTS_ODDBALL_INL_H_

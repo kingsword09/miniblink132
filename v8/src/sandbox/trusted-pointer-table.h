@@ -28,95 +28,93 @@ class Counters;
  * Each entry contains an (absolute) pointer to a TrustedObject.
  */
 struct TrustedPointerTableEntry {
-    // Make this entry a "regular" entry, containing an absolute pointer to a
-    // TrustedObject.
-    inline void MakeTrustedPointerEntry(Address pointer, IndirectPointerTag tag, bool mark_as_alive);
+  // Make this entry a "regular" entry, containing an absolute pointer to a
+  // TrustedObject.
+  inline void MakeTrustedPointerEntry(Address pointer, IndirectPointerTag tag,
+                                      bool mark_as_alive);
 
-    // Make this entry a freelist entry, containing the index of the next entry
-    // on the freelist.
-    inline void MakeFreelistEntry(uint32_t next_entry_index);
+  // Make this entry a freelist entry, containing the index of the next entry
+  // on the freelist.
+  inline void MakeFreelistEntry(uint32_t next_entry_index);
 
-    // Make this entry a zapped entry. Zapped entries contain invalid pointers.
-    inline void MakeZappedEntry();
+  // Make this entry a zapped entry. Zapped entries contain invalid pointers.
+  inline void MakeZappedEntry();
 
-    // Retrieve the pointer stored in this entry. This entry must be tagged with
-    // the given tag, otherwise an inaccessible pointer will be returned.
-    // This entry must not be a freelist entry.
-    inline Address GetPointer(IndirectPointerTag tag) const;
+  // Retrieve the pointer stored in this entry. This entry must be tagged with
+  // the given tag, otherwise an inaccessible pointer will be returned.
+  // This entry must not be a freelist entry.
+  inline Address GetPointer(IndirectPointerTag tag) const;
 
-    // Store the given pointer in this entry while preserving the marking state.
-    // This entry must not be a freelist entry.
-    inline void SetPointer(Address pointer, IndirectPointerTag tag);
+  // Store the given pointer in this entry while preserving the marking state.
+  // This entry must not be a freelist entry.
+  inline void SetPointer(Address pointer, IndirectPointerTag tag);
 
-    // Returns true if this entry contains a pointer with the given tag.
-    inline bool HasPointer(IndirectPointerTag tag) const;
+  // Returns true if this entry contains a pointer with the given tag.
+  inline bool HasPointer(IndirectPointerTag tag) const;
 
-    // Returns true if this entry is a freelist entry.
-    inline bool IsFreelistEntry() const;
+  // Returns true if this entry is a freelist entry.
+  inline bool IsFreelistEntry() const;
 
-    // Get the index of the next entry on the freelist. This method may be
-    // called even when the entry is not a freelist entry. However, the result
-    // is only valid if this is a freelist entry. This behaviour is required
-    // for efficient entry allocation, see TryAllocateEntryFromFreelist.
-    inline uint32_t GetNextFreelistEntryIndex() const;
+  // Get the index of the next entry on the freelist. This method may be
+  // called even when the entry is not a freelist entry. However, the result
+  // is only valid if this is a freelist entry. This behaviour is required
+  // for efficient entry allocation, see TryAllocateEntryFromFreelist.
+  inline uint32_t GetNextFreelistEntryIndex() const;
 
-    // Mark this entry as alive during garbage collection.
-    inline void Mark();
+  // Mark this entry as alive during garbage collection.
+  inline void Mark();
 
-    // Unmark this entry during sweeping.
-    inline void Unmark();
+  // Unmark this entry during sweeping.
+  inline void Unmark();
 
-    // Test whether this entry is currently marked as alive.
-    inline bool IsMarked() const;
+  // Test whether this entry is currently marked as alive.
+  inline bool IsMarked() const;
 
-    static constexpr bool IsWriteProtected = false;
+  static constexpr bool IsWriteProtected = false;
 
-private:
-    friend class TrustedPointerTable;
+ private:
+  friend class TrustedPointerTable;
 
-    // TrustedPointerTable entries consist of a single pointer-sized word
-    // containing a tag and marking bit together with the actual pointer.
-    struct TrustedPointerTaggingScheme {
-        using TagType = IndirectPointerTag;
-        static constexpr uint64_t kMarkBit = kTrustedPointerTableMarkBit;
-        static constexpr uint64_t kTagMask = kIndirectPointerTagMask;
-        static constexpr TagType kFreeEntryTag = kFreeTrustedPointerTableEntryTag;
-        static constexpr bool kSupportsEvacuation = false;
-        static constexpr bool kSupportsZapping = false;
-    };
+  // TrustedPointerTable entries consist of a single pointer-sized word
+  // containing a tag and marking bit together with the actual pointer.
+  struct TrustedPointerTaggingScheme {
+    using TagType = IndirectPointerTag;
+    static constexpr uint64_t kMarkBit = kTrustedPointerTableMarkBit;
+    static constexpr uint64_t kTagMask = kIndirectPointerTagMask;
+    static constexpr TagType kFreeEntryTag = kFreeTrustedPointerTableEntryTag;
+    static constexpr bool kSupportsEvacuation = false;
+    static constexpr bool kSupportsZapping = false;
+  };
 
-    struct Payload : TaggedPayload<TrustedPointerTaggingScheme> {
-        static Payload ForTrustedPointerEntry(Address pointer, IndirectPointerTag tag)
-        {
-            // We expect to only store references to (trusted) HeapObjects in the
-            // TrustedPointerTable, so the HeapObject tag bit must be set.
-            DCHECK_EQ(pointer & kHeapObjectTag, kHeapObjectTag);
-            DCHECK_EQ(pointer & kTrustedPointerTableMarkBit, 0);
-            DCHECK_EQ(pointer & kIndirectPointerTagMask, 0);
-            return Payload(pointer, tag);
-        }
+  struct Payload : TaggedPayload<TrustedPointerTaggingScheme> {
+    static Payload ForTrustedPointerEntry(Address pointer,
+                                          IndirectPointerTag tag) {
+      // We expect to only store references to (trusted) HeapObjects in the
+      // TrustedPointerTable, so the HeapObject tag bit must be set.
+      DCHECK_EQ(pointer & kHeapObjectTag, kHeapObjectTag);
+      DCHECK_EQ(pointer & kTrustedPointerTableMarkBit, 0);
+      DCHECK_EQ(pointer & kIndirectPointerTagMask, 0);
+      return Payload(pointer, tag);
+    }
 
-        static Payload ForFreelistEntry(uint32_t next_entry)
-        {
-            return Payload(next_entry, kFreeTrustedPointerTableEntryTag);
-        }
+    static Payload ForFreelistEntry(uint32_t next_entry) {
+      return Payload(next_entry, kFreeTrustedPointerTableEntryTag);
+    }
 
-        static Payload ForZappedEntry()
-        {
-            return Payload(0, kIndirectPointerNullTag);
-        }
+    static Payload ForZappedEntry() {
+      return Payload(0, kIndirectPointerNullTag);
+    }
 
-    private:
-        Payload(Address pointer, IndirectPointerTag tag)
-            : TaggedPayload(pointer, tag)
-        {
-        }
-    };
+   private:
+    Payload(Address pointer, IndirectPointerTag tag)
+        : TaggedPayload(pointer, tag) {}
+  };
 
-    std::atomic<Payload> payload_;
+  std::atomic<Payload> payload_;
 };
 
-static_assert(sizeof(TrustedPointerTableEntry) == kTrustedPointerTableEntrySize);
+static_assert(sizeof(TrustedPointerTableEntry) ==
+              kTrustedPointerTableEntrySize);
 
 /**
  * A table containing (full) pointers to TrustedObjects.
@@ -132,80 +130,84 @@ static_assert(sizeof(TrustedPointerTableEntry) == kTrustedPointerTableEntrySize)
  * (typically located on one of the system heaps). As such, the garbage
  * collector needs to be aware of the table indirection.
  */
-class V8_EXPORT_PRIVATE TrustedPointerTable : public ExternalEntityTable<TrustedPointerTableEntry, kTrustedPointerTableReservationSize> {
-public:
-    // Size of a TrustedPointerTable, for layout computation in IsolateData.
-    static constexpr int kSize = 2 * kSystemPointerSize;
+class V8_EXPORT_PRIVATE TrustedPointerTable
+    : public ExternalEntityTable<TrustedPointerTableEntry,
+                                 kTrustedPointerTableReservationSize> {
+ public:
+  // Size of a TrustedPointerTable, for layout computation in IsolateData.
+  static constexpr int kSize = 2 * kSystemPointerSize;
 
-    static_assert(kMaxTrustedPointers == kMaxCapacity);
-    static_assert(!kSupportsCompaction);
+  static_assert(kMaxTrustedPointers == kMaxCapacity);
+  static_assert(!kSupportsCompaction);
 
-    TrustedPointerTable() = default;
-    TrustedPointerTable(const TrustedPointerTable&) = delete;
-    TrustedPointerTable& operator=(const TrustedPointerTable&) = delete;
+  TrustedPointerTable() = default;
+  TrustedPointerTable(const TrustedPointerTable&) = delete;
+  TrustedPointerTable& operator=(const TrustedPointerTable&) = delete;
 
-    // The Spaces used by a TrustedPointerTable.
-    using Space = ExternalEntityTable<TrustedPointerTableEntry, kTrustedPointerTableReservationSize>::SpaceWithBlackAllocationSupport;
+  // The Spaces used by a TrustedPointerTable.
+  using Space = ExternalEntityTable<
+      TrustedPointerTableEntry,
+      kTrustedPointerTableReservationSize>::SpaceWithBlackAllocationSupport;
 
-    // Retrieves the content of the entry referenced by the given handle.
-    //
-    // This method is atomic and can be called from background threads.
-    inline Address Get(TrustedPointerHandle handle, IndirectPointerTag tag) const;
+  // Retrieves the content of the entry referenced by the given handle.
+  //
+  // This method is atomic and can be called from background threads.
+  inline Address Get(TrustedPointerHandle handle, IndirectPointerTag tag) const;
 
-    // Sets the content of the entry referenced by the given handle.
-    //
-    // This method is atomic and can be called from background threads.
-    inline void Set(TrustedPointerHandle handle, Address pointer, IndirectPointerTag tag);
+  // Sets the content of the entry referenced by the given handle.
+  //
+  // This method is atomic and can be called from background threads.
+  inline void Set(TrustedPointerHandle handle, Address pointer,
+                  IndirectPointerTag tag);
 
-    // Allocates a new entry in the table and initialize it.
-    //
-    // This method is atomic and can be called from background threads.
-    inline TrustedPointerHandle AllocateAndInitializeEntry(Space* space, Address pointer, IndirectPointerTag tag);
+  // Allocates a new entry in the table and initialize it.
+  //
+  // This method is atomic and can be called from background threads.
+  inline TrustedPointerHandle AllocateAndInitializeEntry(
+      Space* space, Address pointer, IndirectPointerTag tag);
 
-    // Marks the specified entry as alive.
-    //
-    // This method is atomic and can be called from background threads.
-    inline void Mark(Space* space, TrustedPointerHandle handle);
+  // Marks the specified entry as alive.
+  //
+  // This method is atomic and can be called from background threads.
+  inline void Mark(Space* space, TrustedPointerHandle handle);
 
-    // Frees all unmarked entries in the given space.
-    //
-    // This method must only be called while mutator threads are stopped as it is
-    // not safe to allocate table entries while a space is being swept.
-    //
-    // Returns the number of live entries after sweeping.
-    uint32_t Sweep(Space* space, Counters* counters);
+  // Frees all unmarked entries in the given space.
+  //
+  // This method must only be called while mutator threads are stopped as it is
+  // not safe to allocate table entries while a space is being swept.
+  //
+  // Returns the number of live entries after sweeping.
+  uint32_t Sweep(Space* space, Counters* counters);
 
-    // Zaps the content of the entry referenced by the given handle.
-    //
-    // Accessing a zapped entry will return an invalid pointer.
-    inline void Zap(TrustedPointerHandle handle);
+  // Zaps the content of the entry referenced by the given handle.
+  //
+  // Accessing a zapped entry will return an invalid pointer.
+  inline void Zap(TrustedPointerHandle handle);
 
-    // Iterate over all active entries in the given space.
-    //
-    // The callback function will be invoked once for every entry that is
-    // currently in use, i.e. has been allocated and not yet freed, and will
-    // receive the handle and content of that entry.
-    template <typename Callback> void IterateActiveEntriesIn(Space* space, Callback callback);
+  // Iterate over all active entries in the given space.
+  //
+  // The callback function will be invoked once for every entry that is
+  // currently in use, i.e. has been allocated and not yet freed, and will
+  // receive the handle and content of that entry.
+  template <typename Callback>
+  void IterateActiveEntriesIn(Space* space, Callback callback);
 
-    // The base address of this table, for use in JIT compilers.
-    Address base_address() const
-    {
-        return base();
-    }
+  // The base address of this table, for use in JIT compilers.
+  Address base_address() const { return base(); }
 
-private:
-    inline uint32_t HandleToIndex(TrustedPointerHandle handle) const;
-    inline TrustedPointerHandle IndexToHandle(uint32_t index) const;
+ private:
+  inline uint32_t HandleToIndex(TrustedPointerHandle handle) const;
+  inline TrustedPointerHandle IndexToHandle(uint32_t index) const;
 
-    // Ensure that the value is valid before storing it into this table.
-    inline void Validate(Address pointer, IndirectPointerTag tag);
+  // Ensure that the value is valid before storing it into this table.
+  inline void Validate(Address pointer, IndirectPointerTag tag);
 };
 
 static_assert(sizeof(TrustedPointerTable) == TrustedPointerTable::kSize);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_ENABLE_SANDBOX
+#endif  // V8_ENABLE_SANDBOX
 
-#endif // V8_SANDBOX_TRUSTED_POINTER_TABLE_H_
+#endif  // V8_SANDBOX_TRUSTED_POINTER_TABLE_H_

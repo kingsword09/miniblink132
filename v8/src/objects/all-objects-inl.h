@@ -110,6 +110,6 @@
 #include "src/objects/js-segment-iterator-inl.h"
 #include "src/objects/js-segmenter-inl.h"
 #include "src/objects/js-segments-inl.h"
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
-#endif // V8_OBJECTS_ALL_OBJECTS_INL_H_
+#endif  // V8_OBJECTS_ALL_OBJECTS_INL_H_

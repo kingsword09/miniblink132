@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_COMPILER_WASM_LOOP_PEELING_H_
 #define V8_COMPILER_WASM_LOOP_PEELING_H_
@@ -22,11 +22,13 @@ namespace compiler {
 // first iteration. It enables a kind of loop hoisting: repeated computations
 // without side-effects in the body of the loop can be computed in the first
 // iteration only and reused in the next iterations.
-void PeelWasmLoop(Node* loop_node, ZoneUnorderedSet<Node*>* loop, Graph* graph, CommonOperatorBuilder* common, Zone* tmp_zone,
-    SourcePositionTable* source_positions, NodeOriginTable* node_origins);
+void PeelWasmLoop(Node* loop_node, ZoneUnorderedSet<Node*>* loop, Graph* graph,
+                  CommonOperatorBuilder* common, Zone* tmp_zone,
+                  SourcePositionTable* source_positions,
+                  NodeOriginTable* node_origins);
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_WASM_LOOP_PEELING_H_
+#endif  // V8_COMPILER_WASM_LOOP_PEELING_H_

@@ -11,27 +11,27 @@ namespace v8 {
 namespace internal {
 
 class ParallelWorkItem {
-public:
-    ParallelWorkItem() = default;
+ public:
+  ParallelWorkItem() = default;
 
-    bool TryAcquire()
-    {
-        // memory_order_relaxed is sufficient as the work item's state itself hasn't
-        // been modified since the beginning of its associated job. This is only
-        // atomically acquiring the right to work on it.
-        return reinterpret_cast<std::atomic<bool>*>(&acquire_)->exchange(true, std::memory_order_relaxed) == false;
-    }
+  bool TryAcquire() {
+    // memory_order_relaxed is sufficient as the work item's state itself hasn't
+    // been modified since the beginning of its associated job. This is only
+    // atomically acquiring the right to work on it.
+    return reinterpret_cast<std::atomic<bool>*>(&acquire_)->exchange(
+               true, std::memory_order_relaxed) == false;
+  }
 
-    bool IsAcquired() const
-    {
-        return reinterpret_cast<const std::atomic<bool>*>(&acquire_)->load(std::memory_order_relaxed);
-    }
+  bool IsAcquired() const {
+    return reinterpret_cast<const std::atomic<bool>*>(&acquire_)->load(
+        std::memory_order_relaxed);
+  }
 
-private:
-    bool acquire_ { false };
+ private:
+  bool acquire_{false};
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_PARALLEL_WORK_ITEM_H_
+#endif  // V8_HEAP_PARALLEL_WORK_ITEM_H_

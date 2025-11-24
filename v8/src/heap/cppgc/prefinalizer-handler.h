@@ -16,52 +16,48 @@ namespace internal {
 class HeapBase;
 
 struct PreFinalizer final {
-    using Callback = PrefinalizerRegistration::Callback;
+  using Callback = PrefinalizerRegistration::Callback;
 
-    void* object;
-    Callback callback;
+  void* object;
+  Callback callback;
 
-    bool operator==(const PreFinalizer& other) const;
+  bool operator==(const PreFinalizer& other) const;
 };
 
 class PreFinalizerHandler final {
-public:
-    explicit PreFinalizerHandler(HeapBase& heap);
+ public:
+  explicit PreFinalizerHandler(HeapBase& heap);
 
-    void RegisterPrefinalizer(PreFinalizer pre_finalizer);
+  void RegisterPrefinalizer(PreFinalizer pre_finalizer);
 
-    void InvokePreFinalizers();
+  void InvokePreFinalizers();
 
-    bool IsInvokingPreFinalizers() const
-    {
-        return is_invoking_;
-    }
+  bool IsInvokingPreFinalizers() const { return is_invoking_; }
 
-    void NotifyAllocationInPrefinalizer(size_t);
-    size_t ExtractBytesAllocatedInPrefinalizers()
-    {
-        return std::exchange(bytes_allocated_in_prefinalizers, 0);
-    }
+  void NotifyAllocationInPrefinalizer(size_t);
+  size_t ExtractBytesAllocatedInPrefinalizers() {
+    return std::exchange(bytes_allocated_in_prefinalizers, 0);
+  }
 
-private:
-    // Checks that the current thread is the thread that created the heap.
-    bool CurrentThreadIsCreationThread();
+ private:
+  // Checks that the current thread is the thread that created the heap.
+  bool CurrentThreadIsCreationThread();
 
-    // Pre-finalizers are called in the reverse order in which they are
-    // registered by the constructors (including constructors of Mixin
-    // objects) for an object, by processing the ordered_pre_finalizers_
-    // back-to-front.
-    std::vector<PreFinalizer> ordered_pre_finalizers_;
-    std::vector<PreFinalizer>* current_ordered_pre_finalizers_;
+  // Pre-finalizers are called in the reverse order in which they are
+  // registered by the constructors (including constructors of Mixin
+  // objects) for an object, by processing the ordered_pre_finalizers_
+  // back-to-front.
+  std::vector<PreFinalizer> ordered_pre_finalizers_;
+  std::vector<PreFinalizer>* current_ordered_pre_finalizers_;
 
-    HeapBase& heap_;
-    bool is_invoking_ = false;
+  HeapBase& heap_;
+  bool is_invoking_ = false;
 
-    // Counter of bytes allocated during prefinalizers.
-    size_t bytes_allocated_in_prefinalizers = 0u;
+  // Counter of bytes allocated during prefinalizers.
+  size_t bytes_allocated_in_prefinalizers = 0u;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_PREFINALIZER_HANDLER_H_
+#endif  // V8_HEAP_CPPGC_PREFINALIZER_HANDLER_H_

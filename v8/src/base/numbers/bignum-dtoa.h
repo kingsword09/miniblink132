@@ -11,16 +11,16 @@ namespace v8 {
 namespace base {
 
 enum BignumDtoaMode {
-    // Return the shortest correct representation.
-    // For example the output of 0.299999999999999988897 is (the less accurate but
-    // correct) 0.3.
-    BIGNUM_DTOA_SHORTEST,
-    // Return a fixed number of digits after the decimal point.
-    // For instance fixed(0.1, 4) becomes 0.1000
-    // If the input number is big, the output will be big.
-    BIGNUM_DTOA_FIXED,
-    // Return a fixed number of digits, no matter what the exponent is.
-    BIGNUM_DTOA_PRECISION
+  // Return the shortest correct representation.
+  // For example the output of 0.299999999999999988897 is (the less accurate but
+  // correct) 0.3.
+  BIGNUM_DTOA_SHORTEST,
+  // Return a fixed number of digits after the decimal point.
+  // For instance fixed(0.1, 4) becomes 0.1000
+  // If the input number is big, the output will be big.
+  BIGNUM_DTOA_FIXED,
+  // Return a fixed number of digits, no matter what the exponent is.
+  BIGNUM_DTOA_PRECISION
 };
 
 // Converts the given double 'v' to ASCII.
@@ -52,9 +52,11 @@ enum BignumDtoaMode {
 //   Halfway cases are again rounded up.
 // 'BignumDtoa' expects the given buffer to be big enough to hold all digits
 // and a terminating null-character.
-V8_BASE_EXPORT void BignumDtoa(double v, BignumDtoaMode mode, int requested_digits, Vector<char> buffer, int* length, int* point);
+V8_BASE_EXPORT void BignumDtoa(double v, BignumDtoaMode mode,
+                               int requested_digits, Vector<char> buffer,
+                               int* length, int* point);
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_NUMBERS_BIGNUM_DTOA_H_
+#endif  // V8_BASE_NUMBERS_BIGNUM_DTOA_H_

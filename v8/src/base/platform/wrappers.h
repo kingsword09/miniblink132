@@ -11,24 +11,22 @@
 
 namespace v8::base {
 
-inline FILE* Fopen(const char* filename, const char* mode)
-{
+inline FILE* Fopen(const char* filename, const char* mode) {
 #if V8_OS_STARBOARD
-    return NULL;
+  return NULL;
 #else
-    return fopen(filename, mode);
+  return fopen(filename, mode);
 #endif
 }
 
-inline int Fclose(FILE* stream)
-{
+inline int Fclose(FILE* stream) {
 #if V8_OS_STARBOARD
-    return -1;
+  return -1;
 #else
-    return fclose(stream);
+  return fclose(stream);
 #endif
 }
 
-} // namespace v8::base
+}  // namespace v8::base
 
-#endif // V8_BASE_PLATFORM_WRAPPERS_H_
+#endif  // V8_BASE_PLATFORM_WRAPPERS_H_

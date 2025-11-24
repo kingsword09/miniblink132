@@ -11,34 +11,37 @@ namespace v8 {
 namespace internal {
 
 class WasmBuiltinsAssembler : public CodeStubAssembler {
-public:
-    explicit WasmBuiltinsAssembler(compiler::CodeAssemblerState* state)
-        : CodeStubAssembler(state)
-    {
-    }
+ public:
+  explicit WasmBuiltinsAssembler(compiler::CodeAssemblerState* state)
+      : CodeStubAssembler(state) {}
 
-    TNode<WasmTrustedInstanceData> LoadInstanceDataFromFrame();
+  TNode<WasmTrustedInstanceData> LoadInstanceDataFromFrame();
 
-    TNode<WasmTrustedInstanceData> LoadTrustedDataFromInstance(TNode<WasmInstanceObject>);
+  TNode<WasmTrustedInstanceData> LoadTrustedDataFromInstance(
+      TNode<WasmInstanceObject>);
 
-    TNode<NativeContext> LoadContextFromWasmOrJsFrame();
+  TNode<NativeContext> LoadContextFromWasmOrJsFrame();
 
-    TNode<NativeContext> LoadContextFromInstanceData(TNode<WasmTrustedInstanceData>);
+  TNode<NativeContext> LoadContextFromInstanceData(
+      TNode<WasmTrustedInstanceData>);
 
-    TNode<WasmTrustedInstanceData> LoadSharedPartFromInstanceData(TNode<WasmTrustedInstanceData>);
+  TNode<WasmTrustedInstanceData> LoadSharedPartFromInstanceData(
+      TNode<WasmTrustedInstanceData>);
 
-    TNode<FixedArray> LoadTablesFromInstanceData(TNode<WasmTrustedInstanceData>);
+  TNode<FixedArray> LoadTablesFromInstanceData(TNode<WasmTrustedInstanceData>);
 
-    TNode<FixedArray> LoadFuncRefsFromInstanceData(TNode<WasmTrustedInstanceData>);
+  TNode<FixedArray> LoadFuncRefsFromInstanceData(
+      TNode<WasmTrustedInstanceData>);
 
-    TNode<FixedArray> LoadManagedObjectMapsFromInstanceData(TNode<WasmTrustedInstanceData>);
+  TNode<FixedArray> LoadManagedObjectMapsFromInstanceData(
+      TNode<WasmTrustedInstanceData>);
 
-    TNode<Float64T> StringToFloat64(TNode<String>);
+  TNode<Float64T> StringToFloat64(TNode<String>);
 
-    TNode<Smi> SignatureCheckFail(TNode<WasmInternalFunction>, TNode<UintPtrT>);
+  TNode<Smi> SignatureCheckFail(TNode<WasmInternalFunction>, TNode<UintPtrT>);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BUILTINS_BUILTINS_WASM_GEN_H_
+#endif  // V8_BUILTINS_BUILTINS_WASM_GEN_H_

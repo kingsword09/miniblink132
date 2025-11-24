@@ -69,173 +69,183 @@ namespace v8::internal::compiler::turboshaft {
 
 #include "src/compiler/turboshaft/define-assembler-macros.inc"
 
-template <class Next> class DuplicationOptimizationReducer : public Next {
-public:
-    TURBOSHAFT_REDUCER_BOILERPLATE(DuplucationOptimization)
+template <class Next>
+class DuplicationOptimizationReducer : public Next {
+ public:
+  TURBOSHAFT_REDUCER_BOILERPLATE(DuplucationOptimization)
 
-    OpIndex REDUCE_INPUT_GRAPH(Branch)(OpIndex ig_index, const BranchOp& branch)
-    {
-        LABEL_BLOCK(no_change)
-        {
-            return Next::ReduceInputGraphBranch(ig_index, branch);
-        }
-        if (ShouldSkipOptimizationStep())
-            goto no_change;
+  OpIndex REDUCE_INPUT_GRAPH(Branch)(OpIndex ig_index, const BranchOp& branch) {
+    LABEL_BLOCK(no_change) {
+      return Next::ReduceInputGraphBranch(ig_index, branch);
+    }
+    if (ShouldSkipOptimizationStep()) goto no_change;
 
-        const Operation& cond = __ input_graph().Get(branch.condition());
-        V<Word32> new_cond;
-        if (!MaybeDuplicateCond(cond, branch.condition(), &new_cond)) {
-            goto no_change;
-        }
-
-        DCHECK(new_cond.valid());
-        __ Branch(new_cond, __ MapToNewGraph(branch.if_true), __ MapToNewGraph(branch.if_false), branch.hint);
-        return OpIndex::Invalid();
+    const Operation& cond = __ input_graph().Get(branch.condition());
+    V<Word32> new_cond;
+    if (!MaybeDuplicateCond(cond, branch.condition(), &new_cond)) {
+      goto no_change;
     }
 
-    V<Any> REDUCE_INPUT_GRAPH(Select)(V<Any> ig_index, const SelectOp& select)
-    {
-        LABEL_BLOCK(no_change)
-        {
-            return Next::ReduceInputGraphSelect(ig_index, select);
-        }
-        if (ShouldSkipOptimizationStep())
-            goto no_change;
+    DCHECK(new_cond.valid());
+    __ Branch(new_cond, __ MapToNewGraph(branch.if_true),
+              __ MapToNewGraph(branch.if_false), branch.hint);
+    return OpIndex::Invalid();
+  }
 
-        const Operation& cond = __ input_graph().Get(select.cond());
-        V<Word32> new_cond;
-        if (!MaybeDuplicateCond(cond, select.cond(), &new_cond))
-            goto no_change;
-
-        DCHECK(new_cond.valid());
-        return __ Select(new_cond, __ MapToNewGraph(select.vtrue()), __ MapToNewGraph(select.vfalse()), select.rep, select.hint, select.implem);
+  V<Any> REDUCE_INPUT_GRAPH(Select)(V<Any> ig_index, const SelectOp& select) {
+    LABEL_BLOCK(no_change) {
+      return Next::ReduceInputGraphSelect(ig_index, select);
     }
+    if (ShouldSkipOptimizationStep()) goto no_change;
+
+    const Operation& cond = __ input_graph().Get(select.cond());
+    V<Word32> new_cond;
+    if (!MaybeDuplicateCond(cond, select.cond(), &new_cond)) goto no_change;
+
+    DCHECK(new_cond.valid());
+    return __ Select(new_cond, __ MapToNewGraph(select.vtrue()),
+                     __ MapToNewGraph(select.vfalse()), select.rep, select.hint,
+                     select.implem);
+  }
 
 #if V8_TARGET_ARCH_ARM64
-    // TODO(dmercadier): duplicating a shift to use a flexible second operand is
-    // not always worth it; this depends mostly on the CPU, the kind of shift, and
-    // the size of the loaded/stored data. Ideally, we would have cost models for
-    // all the CPUs we target, and use those to decide to duplicate shifts or not.
-    OpIndex REDUCE(Load)(OpIndex base, OptionalOpIndex index, LoadOp::Kind kind, MemoryRepresentation loaded_rep, RegisterRepresentation result_rep,
-        int32_t offset, uint8_t element_size_log2)
-    {
-        if (offset == 0 && element_size_log2 == 0 && index.valid()) {
-            index = MaybeDuplicateOutputGraphShift(index.value());
-        }
-        return Next::ReduceLoad(base, index, kind, loaded_rep, result_rep, offset, element_size_log2);
+  // TODO(dmercadier): duplicating a shift to use a flexible second operand is
+  // not always worth it; this depends mostly on the CPU, the kind of shift, and
+  // the size of the loaded/stored data. Ideally, we would have cost models for
+  // all the CPUs we target, and use those to decide to duplicate shifts or not.
+  OpIndex REDUCE(Load)(OpIndex base, OptionalOpIndex index, LoadOp::Kind kind,
+                       MemoryRepresentation loaded_rep,
+                       RegisterRepresentation result_rep, int32_t offset,
+                       uint8_t element_size_log2) {
+    if (offset == 0 && element_size_log2 == 0 && index.valid()) {
+      index = MaybeDuplicateOutputGraphShift(index.value());
     }
+    return Next::ReduceLoad(base, index, kind, loaded_rep, result_rep, offset,
+                            element_size_log2);
+  }
 
-    OpIndex REDUCE(Store)(OpIndex base, OptionalOpIndex index, OpIndex value, StoreOp::Kind kind, MemoryRepresentation stored_rep,
-        WriteBarrierKind write_barrier, int32_t offset, uint8_t element_size_log2, bool maybe_initializing_or_transitioning,
-        IndirectPointerTag maybe_indirect_pointer_tag)
-    {
-        if (offset == 0 && element_size_log2 == 0 && index.valid()) {
-            index = MaybeDuplicateOutputGraphShift(index.value());
-        }
-        return Next::ReduceStore(
-            base, index, value, kind, stored_rep, write_barrier, offset, element_size_log2, maybe_initializing_or_transitioning, maybe_indirect_pointer_tag);
+  OpIndex REDUCE(Store)(OpIndex base, OptionalOpIndex index, OpIndex value,
+                        StoreOp::Kind kind, MemoryRepresentation stored_rep,
+                        WriteBarrierKind write_barrier, int32_t offset,
+                        uint8_t element_size_log2,
+                        bool maybe_initializing_or_transitioning,
+                        IndirectPointerTag maybe_indirect_pointer_tag) {
+    if (offset == 0 && element_size_log2 == 0 && index.valid()) {
+      index = MaybeDuplicateOutputGraphShift(index.value());
     }
+    return Next::ReduceStore(base, index, value, kind, stored_rep,
+                             write_barrier, offset, element_size_log2,
+                             maybe_initializing_or_transitioning,
+                             maybe_indirect_pointer_tag);
+  }
 #endif
 
-private:
-    bool MaybeDuplicateCond(const Operation& cond, OpIndex input_idx, V<Word32>* new_cond)
-    {
-        if (cond.saturated_use_count.IsOne())
-            return false;
+ private:
+  bool MaybeDuplicateCond(const Operation& cond, OpIndex input_idx,
+                          V<Word32>* new_cond) {
+    if (cond.saturated_use_count.IsOne()) return false;
 
-        switch (cond.opcode) {
-        case Opcode::kComparison:
-            *new_cond = MaybeDuplicateComparison(cond.Cast<ComparisonOp>(), input_idx);
-            break;
-        case Opcode::kWordBinop:
-            *new_cond = MaybeDuplicateWordBinop(cond.Cast<WordBinopOp>(), input_idx);
-            break;
-        case Opcode::kShift:
-            *new_cond = MaybeDuplicateShift(cond.Cast<ShiftOp>(), input_idx);
-            break;
-        default:
-            return false;
-        }
-        return new_cond->valid();
+    switch (cond.opcode) {
+      case Opcode::kComparison:
+        *new_cond =
+            MaybeDuplicateComparison(cond.Cast<ComparisonOp>(), input_idx);
+        break;
+      case Opcode::kWordBinop:
+        *new_cond =
+            MaybeDuplicateWordBinop(cond.Cast<WordBinopOp>(), input_idx);
+        break;
+      case Opcode::kShift:
+        *new_cond = MaybeDuplicateShift(cond.Cast<ShiftOp>(), input_idx);
+        break;
+      default:
+        return false;
+    }
+    return new_cond->valid();
+  }
+
+  bool MaybeCanDuplicateGenericBinop(OpIndex input_idx, OpIndex left,
+                                     OpIndex right) {
+    if (__ input_graph().Get(left).saturated_use_count.IsOne() &&
+        __ input_graph().Get(right).saturated_use_count.IsOne()) {
+      // We don't duplicate binops when all of their inputs are used a single
+      // time (this would increase register pressure by keeping 2 values alive
+      // instead of 1).
+      return false;
+    }
+    OpIndex binop_output_idx = __ MapToNewGraph(input_idx);
+    if (__ Get(binop_output_idx).saturated_use_count.IsZero()) {
+      // This is the 1st use of {binop} in the output graph, so there is no need
+      // to duplicate it just yet.
+      return false;
+    }
+    return true;
+  }
+
+  OpIndex MaybeDuplicateWordBinop(const WordBinopOp& binop, OpIndex input_idx) {
+    if (!MaybeCanDuplicateGenericBinop(input_idx, binop.left(),
+                                       binop.right())) {
+      return OpIndex::Invalid();
     }
 
-    bool MaybeCanDuplicateGenericBinop(OpIndex input_idx, OpIndex left, OpIndex right)
-    {
-        if (__ input_graph().Get(left).saturated_use_count.IsOne() && __ input_graph().Get(right).saturated_use_count.IsOne()) {
-            // We don't duplicate binops when all of their inputs are used a single
-            // time (this would increase register pressure by keeping 2 values alive
-            // instead of 1).
-            return false;
-        }
-        OpIndex binop_output_idx = __ MapToNewGraph(input_idx);
-        if (__ Get(binop_output_idx).saturated_use_count.IsZero()) {
-            // This is the 1st use of {binop} in the output graph, so there is no need
-            // to duplicate it just yet.
-            return false;
-        }
-        return true;
+    switch (binop.kind) {
+      case WordBinopOp::Kind::kSignedDiv:
+      case WordBinopOp::Kind::kUnsignedDiv:
+      case WordBinopOp::Kind::kSignedMod:
+      case WordBinopOp::Kind::kUnsignedMod:
+        // These operations are somewhat expensive, and duplicating them is
+        // probably not worth it.
+        return OpIndex::Invalid();
+      default:
+        break;
     }
 
-    OpIndex MaybeDuplicateWordBinop(const WordBinopOp& binop, OpIndex input_idx)
-    {
-        if (!MaybeCanDuplicateGenericBinop(input_idx, binop.left(), binop.right())) {
-            return OpIndex::Invalid();
-        }
+    DisableValueNumbering disable_gvn(this);
+    return __ WordBinop(__ MapToNewGraph(binop.left()),
+                        __ MapToNewGraph(binop.right()), binop.kind, binop.rep);
+  }
 
-        switch (binop.kind) {
-        case WordBinopOp::Kind::kSignedDiv:
-        case WordBinopOp::Kind::kUnsignedDiv:
-        case WordBinopOp::Kind::kSignedMod:
-        case WordBinopOp::Kind::kUnsignedMod:
-            // These operations are somewhat expensive, and duplicating them is
-            // probably not worth it.
-            return OpIndex::Invalid();
-        default:
-            break;
-        }
-
-        DisableValueNumbering disable_gvn(this);
-        return __ WordBinop(__ MapToNewGraph(binop.left()), __ MapToNewGraph(binop.right()), binop.kind, binop.rep);
+  V<Word32> MaybeDuplicateComparison(const ComparisonOp& comp,
+                                     OpIndex input_idx) {
+    if (!MaybeCanDuplicateGenericBinop(input_idx, comp.left(), comp.right())) {
+      return {};
     }
 
-    V<Word32> MaybeDuplicateComparison(const ComparisonOp& comp, OpIndex input_idx)
-    {
-        if (!MaybeCanDuplicateGenericBinop(input_idx, comp.left(), comp.right())) {
-            return {};
-        }
+    DisableValueNumbering disable_gvn(this);
+    return __ Comparison(__ MapToNewGraph(comp.left()),
+                         __ MapToNewGraph(comp.right()), comp.kind, comp.rep);
+  }
 
-        DisableValueNumbering disable_gvn(this);
-        return __ Comparison(__ MapToNewGraph(comp.left()), __ MapToNewGraph(comp.right()), comp.kind, comp.rep);
+  OpIndex MaybeDuplicateShift(const ShiftOp& shift, OpIndex input_idx) {
+    if (!MaybeCanDuplicateGenericBinop(input_idx, shift.left(),
+                                       shift.right())) {
+      return OpIndex::Invalid();
     }
 
-    OpIndex MaybeDuplicateShift(const ShiftOp& shift, OpIndex input_idx)
-    {
-        if (!MaybeCanDuplicateGenericBinop(input_idx, shift.left(), shift.right())) {
-            return OpIndex::Invalid();
-        }
+    DisableValueNumbering disable_gvn(this);
+    return __ Shift(__ MapToNewGraph(shift.left()),
+                    __ MapToNewGraph(shift.right()), shift.kind, shift.rep);
+  }
 
-        DisableValueNumbering disable_gvn(this);
-        return __ Shift(__ MapToNewGraph(shift.left()), __ MapToNewGraph(shift.right()), shift.kind, shift.rep);
+  OpIndex MaybeDuplicateOutputGraphShift(OpIndex index) {
+    OpIndex shifted;
+    int shifted_by;
+    ShiftOp::Kind shift_kind;
+    WordRepresentation shift_rep;
+    if (__ matcher().MatchConstantShift(index, &shifted, &shift_kind,
+                                        &shift_rep, &shifted_by) &&
+        !__ matcher().Get(index).saturated_use_count.IsZero()) {
+      // We don't check the use count of {shifted}, because it might have uses
+      // in the future that haven't been emitted yet.
+      DisableValueNumbering disable_gvn(this);
+      return __ Shift(shifted, __ Word32Constant(shifted_by), shift_kind,
+                      shift_rep);
     }
-
-    OpIndex MaybeDuplicateOutputGraphShift(OpIndex index)
-    {
-        OpIndex shifted;
-        int shifted_by;
-        ShiftOp::Kind shift_kind;
-        WordRepresentation shift_rep;
-        if (__ matcher().MatchConstantShift(index, &shifted, &shift_kind, &shift_rep, &shifted_by) && !__ matcher().Get(index).saturated_use_count.IsZero()) {
-            // We don't check the use count of {shifted}, because it might have uses
-            // in the future that haven't been emitted yet.
-            DisableValueNumbering disable_gvn(this);
-            return __ Shift(shifted, __ Word32Constant(shifted_by), shift_kind, shift_rep);
-        }
-        return index;
-    }
+    return index;
+  }
 };
 
 #include "src/compiler/turboshaft/undef-assembler-macros.inc"
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_DUPLICATION_OPTIMIZATION_REDUCER_H_
+#endif  // V8_COMPILER_TURBOSHAFT_DUPLICATION_OPTIMIZATION_REDUCER_H_

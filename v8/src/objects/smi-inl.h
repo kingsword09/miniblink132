@@ -15,9 +15,9 @@ namespace internal {
 
 // TODO(ishell): remove this file
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_SMI_INL_H_
+#endif  // V8_OBJECTS_SMI_INL_H_

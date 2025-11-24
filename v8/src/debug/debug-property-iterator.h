@@ -22,50 +22,56 @@ namespace internal {
 class JSReceiver;
 
 class DebugPropertyIterator final : public debug::PropertyIterator {
-public:
-    V8_WARN_UNUSED_RESULT static std::unique_ptr<DebugPropertyIterator> Create(Isolate* isolate, Handle<JSReceiver> receiver, bool skip_indices);
-    ~DebugPropertyIterator() override = default;
-    DebugPropertyIterator(const DebugPropertyIterator&) = delete;
-    DebugPropertyIterator& operator=(const DebugPropertyIterator&) = delete;
+ public:
+  V8_WARN_UNUSED_RESULT static std::unique_ptr<DebugPropertyIterator> Create(
+      Isolate* isolate, Handle<JSReceiver> receiver, bool skip_indices);
+  ~DebugPropertyIterator() override = default;
+  DebugPropertyIterator(const DebugPropertyIterator&) = delete;
+  DebugPropertyIterator& operator=(const DebugPropertyIterator&) = delete;
 
-    bool Done() const override;
-    V8_WARN_UNUSED_RESULT Maybe<bool> Advance() override;
+  bool Done() const override;
+  V8_WARN_UNUSED_RESULT Maybe<bool> Advance() override;
 
-    v8::Local<v8::Name> name() const override;
-    bool is_native_accessor() override;
-    bool has_native_getter() override;
-    bool has_native_setter() override;
-    v8::Maybe<v8::PropertyAttribute> attributes() override;
-    v8::Maybe<v8::debug::PropertyDescriptor> descriptor() override;
+  v8::Local<v8::Name> name() const override;
+  bool is_native_accessor() override;
+  bool has_native_getter() override;
+  bool has_native_setter() override;
+  v8::Maybe<v8::PropertyAttribute> attributes() override;
+  v8::Maybe<v8::debug::PropertyDescriptor> descriptor() override;
 
-    bool is_own() override;
-    bool is_array_index() override;
+  bool is_own() override;
+  bool is_array_index() override;
 
-private:
-    DebugPropertyIterator(Isolate* isolate, Handle<JSReceiver> receiver, bool skip_indices);
+ private:
+  DebugPropertyIterator(Isolate* isolate, Handle<JSReceiver> receiver,
+                        bool skip_indices);
 
-    V8_WARN_UNUSED_RESULT bool FillKeysForCurrentPrototypeAndStage();
-    bool should_move_to_next_stage() const;
-    void CalculateNativeAccessorFlags();
-    Handle<Name> raw_name() const;
-    void AdvanceToPrototype();
-    V8_WARN_UNUSED_RESULT bool AdvanceInternal();
+  V8_WARN_UNUSED_RESULT bool FillKeysForCurrentPrototypeAndStage();
+  bool should_move_to_next_stage() const;
+  void CalculateNativeAccessorFlags();
+  Handle<Name> raw_name() const;
+  void AdvanceToPrototype();
+  V8_WARN_UNUSED_RESULT bool AdvanceInternal();
 
-    Isolate* isolate_;
-    PrototypeIterator prototype_iterator_;
-    enum { kExoticIndices = 0, kEnumerableStrings = 1, kAllProperties = 2 } stage_ = kExoticIndices;
-    bool skip_indices_;
+  Isolate* isolate_;
+  PrototypeIterator prototype_iterator_;
+  enum {
+    kExoticIndices = 0,
+    kEnumerableStrings = 1,
+    kAllProperties = 2
+  } stage_ = kExoticIndices;
+  bool skip_indices_;
 
-    size_t current_key_index_;
-    Handle<FixedArray> current_keys_;
-    size_t current_keys_length_;
+  size_t current_key_index_;
+  Handle<FixedArray> current_keys_;
+  size_t current_keys_length_;
 
-    bool calculated_native_accessor_flags_ = false;
-    int native_accessor_flags_ = 0;
-    bool is_own_ = true;
-    bool is_done_ = false;
+  bool calculated_native_accessor_flags_ = false;
+  int native_accessor_flags_ = 0;
+  bool is_own_ = true;
+  bool is_done_ = false;
 };
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_DEBUG_DEBUG_PROPERTY_ITERATOR_H_
+#endif  // V8_DEBUG_DEBUG_PROPERTY_ITERATOR_H_

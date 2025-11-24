@@ -25,103 +25,104 @@ base::Mutex* SimulatorBase::i_cache_mutex_ = nullptr;
 base::CustomMatcherHashMap* SimulatorBase::i_cache_ = nullptr;
 
 // static
-void SimulatorBase::InitializeOncePerProcess()
-{
-    DCHECK_NULL(redirection_mutex_);
-    redirection_mutex_ = new base::Mutex();
+void SimulatorBase::InitializeOncePerProcess() {
+  DCHECK_NULL(redirection_mutex_);
+  redirection_mutex_ = new base::Mutex();
 
-    DCHECK_NULL(i_cache_mutex_);
-    i_cache_mutex_ = new base::Mutex();
+  DCHECK_NULL(i_cache_mutex_);
+  i_cache_mutex_ = new base::Mutex();
 
-    DCHECK_NULL(i_cache_);
-    i_cache_ = new base::CustomMatcherHashMap(&Simulator::ICacheMatch);
+  DCHECK_NULL(i_cache_);
+  i_cache_ = new base::CustomMatcherHashMap(&Simulator::ICacheMatch);
 }
 
 // static
-void SimulatorBase::GlobalTearDown()
-{
-    delete redirection_mutex_;
-    redirection_mutex_ = nullptr;
+void SimulatorBase::GlobalTearDown() {
+  delete redirection_mutex_;
+  redirection_mutex_ = nullptr;
 
-    Redirection::DeleteChain(redirection_);
-    redirection_ = nullptr;
+  Redirection::DeleteChain(redirection_);
+  redirection_ = nullptr;
 
-    delete i_cache_mutex_;
-    i_cache_mutex_ = nullptr;
+  delete i_cache_mutex_;
+  i_cache_mutex_ = nullptr;
 
-    if (i_cache_ != nullptr) {
-        for (base::HashMap::Entry* entry = i_cache_->Start(); entry != nullptr; entry = i_cache_->Next(entry)) {
-            delete static_cast<CachePage*>(entry->value);
-        }
+  if (i_cache_ != nullptr) {
+    for (base::HashMap::Entry* entry = i_cache_->Start(); entry != nullptr;
+         entry = i_cache_->Next(entry)) {
+      delete static_cast<CachePage*>(entry->value);
     }
-    delete i_cache_;
-    i_cache_ = nullptr;
+  }
+  delete i_cache_;
+  i_cache_ = nullptr;
 }
 
 // static
-Address SimulatorBase::RedirectExternalReference(Address external_function, ExternalReference::Type type)
-{
-    base::MutexGuard lock_guard(Simulator::redirection_mutex());
-    Redirection* redirection = Redirection::Get(external_function, type);
-    return redirection->address_of_instruction();
+Address SimulatorBase::RedirectExternalReference(Address external_function,
+                                                 ExternalReference::Type type) {
+  base::MutexGuard lock_guard(Simulator::redirection_mutex());
+  Redirection* redirection = Redirection::Get(external_function, type);
+  return redirection->address_of_instruction();
 }
 
 // static
-Address SimulatorBase::UnwrapRedirection(Address redirection_trampoline)
-{
-    return reinterpret_cast<Address>(Redirection::UnwrapRedirection(redirection_trampoline));
+Address SimulatorBase::UnwrapRedirection(Address redirection_trampoline) {
+  return reinterpret_cast<Address>(
+      Redirection::UnwrapRedirection(redirection_trampoline));
 }
 
-Redirection::Redirection(Address external_function, ExternalReference::Type type)
-    : external_function_(external_function)
-    , type_(type)
-    , next_(nullptr)
-{
-    next_ = Simulator::redirection();
-    base::MutexGuard lock_guard(Simulator::i_cache_mutex());
-    Simulator::SetRedirectInstruction(reinterpret_cast<Instruction*>(address_of_instruction()));
-    Simulator::FlushICache(Simulator::i_cache(), reinterpret_cast<void*>(&instruction_), sizeof(instruction_));
-    Simulator::set_redirection(this);
+Redirection::Redirection(Address external_function,
+                         ExternalReference::Type type)
+    : external_function_(external_function), type_(type), next_(nullptr) {
+  next_ = Simulator::redirection();
+  base::MutexGuard lock_guard(Simulator::i_cache_mutex());
+  Simulator::SetRedirectInstruction(
+      reinterpret_cast<Instruction*>(address_of_instruction()));
+  Simulator::FlushICache(Simulator::i_cache(),
+                         reinterpret_cast<void*>(&instruction_),
+                         sizeof(instruction_));
+  Simulator::set_redirection(this);
 #if ABI_USES_FUNCTION_DESCRIPTORS
-    function_descriptor_[0] = reinterpret_cast<intptr_t>(&instruction_);
-    function_descriptor_[1] = 0;
-    function_descriptor_[2] = 0;
+  function_descriptor_[0] = reinterpret_cast<intptr_t>(&instruction_);
+  function_descriptor_[1] = 0;
+  function_descriptor_[2] = 0;
 #endif
 }
 
 // static
-Redirection* Redirection::Get(Address external_function, ExternalReference::Type type)
-{
-    Redirection* current = Simulator::redirection();
-    for (; current != nullptr; current = current->next_) {
-        if (current->external_function_ == external_function && current->type_ == type) {
-            return current;
-        }
+Redirection* Redirection::Get(Address external_function,
+                              ExternalReference::Type type) {
+  Redirection* current = Simulator::redirection();
+  for (; current != nullptr; current = current->next_) {
+    if (current->external_function_ == external_function &&
+        current->type_ == type) {
+      return current;
     }
-    return new Redirection(external_function, type);
+  }
+  return new Redirection(external_function, type);
 }
 
-void SimulatorData::RegisterFunctionsAndSignatures(Address* c_functions, const CFunctionInfo* const* c_signatures, unsigned num_functions)
-{
-    base::MutexGuard guard(&signature_map_mutex_);
-    for (unsigned i = 0; i < num_functions; ++i) {
-        EncodedCSignature sig(c_signatures[i]);
-        AddSignatureForTarget(c_functions[i], sig);
-    }
+void SimulatorData::RegisterFunctionsAndSignatures(
+    Address* c_functions, const CFunctionInfo* const* c_signatures,
+    unsigned num_functions) {
+  base::MutexGuard guard(&signature_map_mutex_);
+  for (unsigned i = 0; i < num_functions; ++i) {
+    EncodedCSignature sig(c_signatures[i]);
+    AddSignatureForTarget(c_functions[i], sig);
+  }
 }
 
-const EncodedCSignature& SimulatorData::GetSignatureForTarget(Address target)
-{
-    base::MutexGuard guard(&signature_map_mutex_);
-    auto entry = target_to_signature_table_.find(target);
-    if (entry != target_to_signature_table_.end()) {
-        const EncodedCSignature& sig = entry->second;
-        return sig;
-    }
-    return EncodedCSignature::Invalid();
+const EncodedCSignature& SimulatorData::GetSignatureForTarget(Address target) {
+  base::MutexGuard guard(&signature_map_mutex_);
+  auto entry = target_to_signature_table_.find(target);
+  if (entry != target_to_signature_table_.end()) {
+    const EncodedCSignature& sig = entry->second;
+    return sig;
+  }
+  return EncodedCSignature::Invalid();
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // defined(USE_SIMULATOR)
+#endif  // defined(USE_SIMULATOR)

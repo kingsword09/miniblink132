@@ -15,43 +15,41 @@ namespace compiler {
 
 // Write barrier kinds supported by compiler.
 enum WriteBarrierKind : uint8_t {
-    kNoWriteBarrier,
-    kAssertNoWriteBarrier,
-    kMapWriteBarrier,
-    kPointerWriteBarrier,
-    kIndirectPointerWriteBarrier,
-    kEphemeronKeyWriteBarrier,
-    kFullWriteBarrier
+  kNoWriteBarrier,
+  kAssertNoWriteBarrier,
+  kMapWriteBarrier,
+  kPointerWriteBarrier,
+  kIndirectPointerWriteBarrier,
+  kEphemeronKeyWriteBarrier,
+  kFullWriteBarrier
 };
 
-inline size_t hash_value(WriteBarrierKind kind)
-{
-    return static_cast<uint8_t>(kind);
+inline size_t hash_value(WriteBarrierKind kind) {
+  return static_cast<uint8_t>(kind);
 }
 
-inline std::ostream& operator<<(std::ostream& os, WriteBarrierKind kind)
-{
-    switch (kind) {
+inline std::ostream& operator<<(std::ostream& os, WriteBarrierKind kind) {
+  switch (kind) {
     case kNoWriteBarrier:
-        return os << "NoWriteBarrier";
+      return os << "NoWriteBarrier";
     case kAssertNoWriteBarrier:
-        return os << "AssertNoWriteBarrier";
+      return os << "AssertNoWriteBarrier";
     case kMapWriteBarrier:
-        return os << "MapWriteBarrier";
+      return os << "MapWriteBarrier";
     case kPointerWriteBarrier:
-        return os << "PointerWriteBarrier";
+      return os << "PointerWriteBarrier";
     case kIndirectPointerWriteBarrier:
-        return os << "IndirectPointerWriteBarrier";
+      return os << "IndirectPointerWriteBarrier";
     case kEphemeronKeyWriteBarrier:
-        return os << "EphemeronKeyWriteBarrier";
+      return os << "EphemeronKeyWriteBarrier";
     case kFullWriteBarrier:
-        return os << "FullWriteBarrier";
-    }
-    UNREACHABLE();
+      return os << "FullWriteBarrier";
+  }
+  UNREACHABLE();
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_WRITE_BARRIER_KIND_H_
+#endif  // V8_COMPILER_WRITE_BARRIER_KIND_H_

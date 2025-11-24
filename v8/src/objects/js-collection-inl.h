@@ -29,37 +29,33 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(JSWeakMap)
 TQ_OBJECT_CONSTRUCTORS_IMPL(JSWeakSet)
 
 template <class Derived, class TableType>
-OrderedHashTableIterator<Derived, TableType>::OrderedHashTableIterator(Address ptr)
-    : JSCollectionIterator(ptr)
-{
-}
+OrderedHashTableIterator<Derived, TableType>::OrderedHashTableIterator(
+    Address ptr)
+    : JSCollectionIterator(ptr) {}
 
 JSMapIterator::JSMapIterator(Address ptr)
-    : OrderedHashTableIterator<JSMapIterator, OrderedHashMap>(ptr)
-{
-    SLOW_DCHECK(IsJSMapIterator(*this));
+    : OrderedHashTableIterator<JSMapIterator, OrderedHashMap>(ptr) {
+  SLOW_DCHECK(IsJSMapIterator(*this));
 }
 
 JSSetIterator::JSSetIterator(Address ptr)
-    : OrderedHashTableIterator<JSSetIterator, OrderedHashSet>(ptr)
-{
-    SLOW_DCHECK(IsJSSetIterator(*this));
+    : OrderedHashTableIterator<JSSetIterator, OrderedHashSet>(ptr) {
+  SLOW_DCHECK(IsJSSetIterator(*this));
 }
 
-Tagged<Object> JSMapIterator::CurrentValue()
-{
-    Tagged<OrderedHashMap> table = Cast<OrderedHashMap>(this->table());
-    int index = Smi::ToInt(this->index());
-    DCHECK_GE(index, 0);
-    InternalIndex entry(index);
-    Tagged<Object> value = table->ValueAt(entry);
-    DCHECK(!IsHashTableHole(value));
-    return value;
+Tagged<Object> JSMapIterator::CurrentValue() {
+  Tagged<OrderedHashMap> table = Cast<OrderedHashMap>(this->table());
+  int index = Smi::ToInt(this->index());
+  DCHECK_GE(index, 0);
+  InternalIndex entry(index);
+  Tagged<Object> value = table->ValueAt(entry);
+  DCHECK(!IsHashTableHole(value));
+  return value;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_COLLECTION_INL_H_
+#endif  // V8_OBJECTS_JS_COLLECTION_INL_H_

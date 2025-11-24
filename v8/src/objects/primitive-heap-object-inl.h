@@ -17,9 +17,9 @@ namespace internal {
 
 #include "torque-generated/src/objects/primitive-heap-object-tq-inl.inc"
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_PRIMITIVE_HEAP_OBJECT_INL_H_
+#endif  // V8_OBJECTS_PRIMITIVE_HEAP_OBJECT_INL_H_

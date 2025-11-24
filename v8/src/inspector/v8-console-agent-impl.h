@@ -17,31 +17,32 @@ class V8InspectorSessionImpl;
 using protocol::Response;
 
 class V8ConsoleAgentImpl : public protocol::Console::Backend {
-public:
-    V8ConsoleAgentImpl(V8InspectorSessionImpl*, protocol::FrontendChannel*, protocol::DictionaryValue* state);
-    ~V8ConsoleAgentImpl() override;
-    V8ConsoleAgentImpl(const V8ConsoleAgentImpl&) = delete;
-    V8ConsoleAgentImpl& operator=(const V8ConsoleAgentImpl&) = delete;
+ public:
+  V8ConsoleAgentImpl(V8InspectorSessionImpl*, protocol::FrontendChannel*,
+                     protocol::DictionaryValue* state);
+  ~V8ConsoleAgentImpl() override;
+  V8ConsoleAgentImpl(const V8ConsoleAgentImpl&) = delete;
+  V8ConsoleAgentImpl& operator=(const V8ConsoleAgentImpl&) = delete;
 
-    Response enable() override;
-    Response disable() override;
-    Response clearMessages() override;
+  Response enable() override;
+  Response disable() override;
+  Response clearMessages() override;
 
-    void restore();
-    void messageAdded(V8ConsoleMessage*);
-    void reset();
-    bool enabled();
+  void restore();
+  void messageAdded(V8ConsoleMessage*);
+  void reset();
+  bool enabled();
 
-private:
-    void reportAllMessages();
-    bool reportMessage(V8ConsoleMessage*, bool generatePreview);
+ private:
+  void reportAllMessages();
+  bool reportMessage(V8ConsoleMessage*, bool generatePreview);
 
-    V8InspectorSessionImpl* m_session;
-    protocol::DictionaryValue* m_state;
-    protocol::Console::Frontend m_frontend;
-    bool m_enabled;
+  V8InspectorSessionImpl* m_session;
+  protocol::DictionaryValue* m_state;
+  protocol::Console::Frontend m_frontend;
+  bool m_enabled;
 };
 
-} // namespace v8_inspector
+}  // namespace v8_inspector
 
-#endif // V8_INSPECTOR_V8_CONSOLE_AGENT_IMPL_H_
+#endif  // V8_INSPECTOR_V8_CONSOLE_AGENT_IMPL_H_

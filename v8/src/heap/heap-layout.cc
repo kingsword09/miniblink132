@@ -12,27 +12,29 @@ namespace v8::internal {
 // here. Fix it and make the call inlined.
 //
 // static
-bool HeapLayout::InYoungGenerationForStickyMarkbits(const MemoryChunk* chunk, Tagged<HeapObject> object)
-{
-    CHECK(v8_flags.sticky_mark_bits.value());
-    return !chunk->IsOnlyOldOrMajorMarkingOn() && !MarkingBitmap::MarkBitFromAddress(object.address()).template Get<AccessMode::ATOMIC>();
+bool HeapLayout::InYoungGenerationForStickyMarkbits(const MemoryChunk* chunk,
+                                                    Tagged<HeapObject> object) {
+  CHECK(v8_flags.sticky_mark_bits.value());
+  return !chunk->IsOnlyOldOrMajorMarkingOn() &&
+         !MarkingBitmap::MarkBitFromAddress(object.address())
+              .template Get<AccessMode::ATOMIC>();
 }
 
 // static
-void HeapLayout::CheckYoungGenerationConsistency(const MemoryChunk* chunk)
-{
-    // Young generation objects should only be found in to space when the GC is
-    // not currently running.
+void HeapLayout::CheckYoungGenerationConsistency(const MemoryChunk* chunk) {
+  // Young generation objects should only be found in to space when the GC is
+  // not currently running.
 
-    // If the object is in the young generation, then it is safe to get to the
-    // containing Heap.
-#ifdef V8_DEBUG
-    const MemoryChunkMetadata* metadata = chunk->Metadata();
-    SLOW_DCHECK(metadata->IsWritable());
-    Heap* heap = metadata->heap();
-    SLOW_DCHECK(heap != nullptr);
-    DCHECK_IMPLIES(heap->gc_state() == Heap::NOT_IN_GC, chunk->IsFlagSet(MemoryChunk::TO_PAGE));
-#endif // DEBUG
+  // If the object is in the young generation, then it is safe to get to the
+  // containing Heap.
+#ifdef DEBUG
+  const MemoryChunkMetadata* metadata = chunk->Metadata();
+  SLOW_DCHECK(metadata->IsWritable());
+  Heap* heap = metadata->heap();
+  SLOW_DCHECK(heap != nullptr);
+  DCHECK_IMPLIES(heap->gc_state() == Heap::NOT_IN_GC,
+                 chunk->IsFlagSet(MemoryChunk::TO_PAGE));
+#endif  // DEBUG
 }
 
-} // namespace v8::internal
+}  // namespace v8::internal

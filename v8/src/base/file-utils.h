@@ -17,7 +17,7 @@ namespace base {
 V8_BASE_EXPORT
 std::unique_ptr<char[]> RelativePath(const char* exec_path, const char* name);
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_FILE_UTILS_H_
+#endif  // V8_BASE_FILE_UTILS_H_

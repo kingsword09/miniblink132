@@ -11,11 +11,11 @@ namespace v8::internal::compiler::turboshaft {
 
 namespace detail {
 
-Handle<HeapObject> CreateCountersArray(Isolate* isolate)
-{
-    return Handle<HeapObject>::New(ReadOnlyRoots(isolate).basic_block_counters_marker(), isolate);
+Handle<HeapObject> CreateCountersArray(Isolate* isolate) {
+  return Handle<HeapObject>::New(
+      ReadOnlyRoots(isolate).basic_block_counters_marker(), isolate);
 }
 
-} // namespace detail
+}  // namespace detail
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

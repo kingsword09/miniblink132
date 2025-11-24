@@ -15,28 +15,26 @@
 namespace v8 {
 namespace internal {
 
-#define TYPE_CHECKER(type, ...)                                                                                                                                \
-    bool Is##type(Tagged<HeapObject> obj)                                                                                                                      \
-    {                                                                                                                                                          \
-        /* IsBlah() predicates needs to load the map and thus they require the */                                                                              \
-        /* main cage base. */                                                                                                                                  \
-        PtrComprCageBase cage_base = GetPtrComprCageBase();                                                                                                    \
-        return Is##type(obj, cage_base);                                                                                                                       \
-    }                                                                                                                                                          \
-    /* The cage_base passed here must be the base of the main pointer */                                                                                       \
-    /* compression cage, i.e. the one where the Map space is allocated. */                                                                                     \
-    bool Is##type(Tagged<HeapObject> obj, PtrComprCageBase cage_base)                                                                                          \
-    {                                                                                                                                                          \
-        Tagged<Map> map_object = obj->map(cage_base);                                                                                                          \
-        return InstanceTypeChecker::Is##type(map_object);                                                                                                      \
-    }
+#define TYPE_CHECKER(type, ...)                                               \
+  bool Is##type(Tagged<HeapObject> obj) {                                     \
+    /* IsBlah() predicates needs to load the map and thus they require the */ \
+    /* main cage base. */                                                     \
+    PtrComprCageBase cage_base = GetPtrComprCageBase();                       \
+    return Is##type(obj, cage_base);                                          \
+  }                                                                           \
+  /* The cage_base passed here must be the base of the main pointer */        \
+  /* compression cage, i.e. the one where the Map space is allocated. */      \
+  bool Is##type(Tagged<HeapObject> obj, PtrComprCageBase cage_base) {         \
+    Tagged<Map> map_object = obj->map(cage_base);                             \
+    return InstanceTypeChecker::Is##type(map_object);                         \
+  }
 
 INSTANCE_TYPE_CHECKERS(TYPE_CHECKER)
 #undef TYPE_CHECKER
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_HEAP_OBJECT_INL_H_
+#endif  // V8_OBJECTS_HEAP_OBJECT_INL_H_

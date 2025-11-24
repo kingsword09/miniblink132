@@ -14,25 +14,23 @@
 namespace v8 {
 namespace internal {
 
-bool StringSetShape::IsMatch(Tagged<String> key, Tagged<Object> value)
-{
-    DCHECK(IsString(value));
-    return key->Equals(Cast<String>(value));
+bool StringSetShape::IsMatch(Tagged<String> key, Tagged<Object> value) {
+  DCHECK(IsString(value));
+  return key->Equals(Cast<String>(value));
 }
 
-uint32_t StringSetShape::Hash(ReadOnlyRoots roots, Tagged<String> key)
-{
-    return key->EnsureHash();
+uint32_t StringSetShape::Hash(ReadOnlyRoots roots, Tagged<String> key) {
+  return key->EnsureHash();
 }
 
-uint32_t StringSetShape::HashForObject(ReadOnlyRoots roots, Tagged<Object> object)
-{
-    return Cast<String>(object)->EnsureHash();
+uint32_t StringSetShape::HashForObject(ReadOnlyRoots roots,
+                                       Tagged<Object> object) {
+  return Cast<String>(object)->EnsureHash();
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_STRING_SET_INL_H_
+#endif  // V8_OBJECTS_STRING_SET_INL_H_

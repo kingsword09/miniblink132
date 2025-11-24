@@ -16,24 +16,23 @@ namespace internal {
 // (e.g.: rehashability, serialization statistics, blob creation).
 // Consider removing this inheritance.
 class V8_EXPORT_PRIVATE ReadOnlySerializer : public RootsSerializer {
-public:
-    ReadOnlySerializer(Isolate* isolate, Snapshot::SerializerFlags flags);
-    ~ReadOnlySerializer() override;
+ public:
+  ReadOnlySerializer(Isolate* isolate, Snapshot::SerializerFlags flags);
+  ~ReadOnlySerializer() override;
 
-    // Serializes the entire ReadOnlySpace as well as the ReadOnlyRoots table.
-    void Serialize();
+  // Serializes the entire ReadOnlySpace as well as the ReadOnlyRoots table.
+  void Serialize();
 
-private:
-    void SerializeObjectImpl(Handle<HeapObject> o, SlotType slot_type) override
-    {
-        UNREACHABLE();
-    }
+ private:
+  void SerializeObjectImpl(Handle<HeapObject> o, SlotType slot_type) override {
+    UNREACHABLE();
+  }
 
-    ReadOnlySerializer(const ReadOnlySerializer&) = delete;
-    ReadOnlySerializer& operator=(const ReadOnlySerializer&) = delete;
+  ReadOnlySerializer(const ReadOnlySerializer&) = delete;
+  ReadOnlySerializer& operator=(const ReadOnlySerializer&) = delete;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SNAPSHOT_READ_ONLY_SERIALIZER_H_
+#endif  // V8_SNAPSHOT_READ_ONLY_SERIALIZER_H_

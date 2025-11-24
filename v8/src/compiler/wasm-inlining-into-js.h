@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_COMPILER_WASM_INLINING_INTO_JS_H_
 #define V8_COMPILER_WASM_INLINING_INTO_JS_H_
@@ -18,7 +18,7 @@ class Zone;
 namespace wasm {
 struct FunctionBody;
 struct WasmModule;
-} // namespace wasm
+}  // namespace wasm
 
 namespace compiler {
 class MachineGraph;
@@ -28,12 +28,15 @@ class SourcePositionTable;
 // The WasmIntoJsInliner provides support for inlining very small wasm functions
 // which only contain very specific supported instructions into JS.
 class WasmIntoJSInliner {
-public:
-    static bool TryInlining(Zone* zone, const wasm::WasmModule* module, MachineGraph* mcgraph, const wasm::FunctionBody& body,
-        base::Vector<const uint8_t> bytes, SourcePositionTable* source_position_table, int inlining_id);
+ public:
+  static bool TryInlining(Zone* zone, const wasm::WasmModule* module,
+                          MachineGraph* mcgraph, const wasm::FunctionBody& body,
+                          base::Vector<const uint8_t> bytes,
+                          SourcePositionTable* source_position_table,
+                          int inlining_id);
 };
 
-} // namespace compiler
-} // namespace v8::internal
+}  // namespace compiler
+}  // namespace v8::internal
 
-#endif // V8_COMPILER_WASM_INLINING_INTO_JS_H_
+#endif  // V8_COMPILER_WASM_INLINING_INTO_JS_H_

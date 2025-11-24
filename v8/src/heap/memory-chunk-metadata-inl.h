@@ -12,40 +12,38 @@ namespace v8 {
 namespace internal {
 
 // static
-MemoryChunkMetadata* MemoryChunkMetadata::FromAddress(Address a)
-{
-    return MemoryChunk::FromAddress(a)->Metadata();
+MemoryChunkMetadata* MemoryChunkMetadata::FromAddress(Address a) {
+  return MemoryChunk::FromAddress(a)->Metadata();
 }
 
 // static
-MemoryChunkMetadata* MemoryChunkMetadata::FromHeapObject(Tagged<HeapObject> o)
-{
-    return FromAddress(o.ptr());
+MemoryChunkMetadata* MemoryChunkMetadata::FromHeapObject(Tagged<HeapObject> o) {
+  return FromAddress(o.ptr());
 }
 
 // static
-MemoryChunkMetadata* MemoryChunkMetadata::FromHeapObject(const HeapObjectLayout* o)
-{
-    return FromAddress(reinterpret_cast<Address>(o));
+MemoryChunkMetadata* MemoryChunkMetadata::FromHeapObject(
+    const HeapObjectLayout* o) {
+  return FromAddress(reinterpret_cast<Address>(o));
 }
 
 // static
-void MemoryChunkMetadata::UpdateHighWaterMark(Address mark)
-{
-    if (mark == kNullAddress)
-        return;
-    // Need to subtract one from the mark because when a chunk is full the
-    // top points to the next address after the chunk, which effectively belongs
-    // to another chunk. See the comment to
-    // PageMetadata::FromAllocationAreaAddress.
-    MemoryChunkMetadata* chunk = MemoryChunkMetadata::FromAddress(mark - 1);
-    intptr_t new_mark = static_cast<intptr_t>(mark - chunk->ChunkAddress());
-    intptr_t old_mark = chunk->high_water_mark_.load(std::memory_order_relaxed);
-    while ((new_mark > old_mark) && !chunk->high_water_mark_.compare_exchange_weak(old_mark, new_mark, std::memory_order_acq_rel)) {
-    }
+void MemoryChunkMetadata::UpdateHighWaterMark(Address mark) {
+  if (mark == kNullAddress) return;
+  // Need to subtract one from the mark because when a chunk is full the
+  // top points to the next address after the chunk, which effectively belongs
+  // to another chunk. See the comment to
+  // PageMetadata::FromAllocationAreaAddress.
+  MemoryChunkMetadata* chunk = MemoryChunkMetadata::FromAddress(mark - 1);
+  intptr_t new_mark = static_cast<intptr_t>(mark - chunk->ChunkAddress());
+  intptr_t old_mark = chunk->high_water_mark_.load(std::memory_order_relaxed);
+  while ((new_mark > old_mark) &&
+         !chunk->high_water_mark_.compare_exchange_weak(
+             old_mark, new_mark, std::memory_order_acq_rel)) {
+  }
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_MEMORY_CHUNK_METADATA_INL_H_
+#endif  // V8_HEAP_MEMORY_CHUNK_METADATA_INL_H_

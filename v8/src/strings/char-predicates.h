@@ -40,10 +40,9 @@ inline bool IsIdentifierStart(base::uc32 c);
 #ifdef V8_INTL_SUPPORT
 V8_EXPORT_PRIVATE bool IsIdentifierStartSlow(base::uc32 c);
 #else
-inline bool IsIdentifierStartSlow(base::uc32 c)
-{
-    // Non-BMP characters are not supported without I18N.
-    return (c <= 0xFFFF) ? unibrow::ID_Start::Is(c) : false;
+inline bool IsIdentifierStartSlow(base::uc32 c) {
+  // Non-BMP characters are not supported without I18N.
+  return (c <= 0xFFFF) ? unibrow::ID_Start::Is(c) : false;
 }
 #endif
 
@@ -56,13 +55,12 @@ inline bool IsIdentifierPart(base::uc32 c);
 #ifdef V8_INTL_SUPPORT
 V8_EXPORT_PRIVATE bool IsIdentifierPartSlow(base::uc32 c);
 #else
-inline bool IsIdentifierPartSlow(base::uc32 c)
-{
-    // Non-BMP charaacters are not supported without I18N.
-    if (c <= 0xFFFF) {
-        return unibrow::ID_Start::Is(c) || unibrow::ID_Continue::Is(c);
-    }
-    return false;
+inline bool IsIdentifierPartSlow(base::uc32 c) {
+  // Non-BMP charaacters are not supported without I18N.
+  if (c <= 0xFFFF) {
+    return unibrow::ID_Start::Is(c) || unibrow::ID_Continue::Is(c);
+  }
+  return false;
 }
 #endif
 
@@ -73,9 +71,8 @@ inline bool IsWhiteSpace(base::uc32 c);
 #ifdef V8_INTL_SUPPORT
 V8_EXPORT_PRIVATE bool IsWhiteSpaceSlow(base::uc32 c);
 #else
-inline bool IsWhiteSpaceSlow(base::uc32 c)
-{
-    return unibrow::WhiteSpace::Is(c);
+inline bool IsWhiteSpaceSlow(base::uc32 c) {
+  return unibrow::WhiteSpace::Is(c);
 }
 #endif
 
@@ -83,14 +80,13 @@ inline bool IsWhiteSpaceSlow(base::uc32 c)
 // This includes all the characters with Unicode category 'Z' (= Zs+Zl+Zp)
 // as well as \u0009 - \u000d and \ufeff.
 inline bool IsWhiteSpaceOrLineTerminator(base::uc32 c);
-inline bool IsWhiteSpaceOrLineTerminatorSlow(base::uc32 c)
-{
-    return IsWhiteSpaceSlow(c) || unibrow::IsLineTerminator(c);
+inline bool IsWhiteSpaceOrLineTerminatorSlow(base::uc32 c) {
+  return IsWhiteSpaceSlow(c) || unibrow::IsLineTerminator(c);
 }
 
 inline bool IsLineTerminatorSequence(base::uc32 c, base::uc32 next);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_STRINGS_CHAR_PREDICATES_H_
+#endif  // V8_STRINGS_CHAR_PREDICATES_H_

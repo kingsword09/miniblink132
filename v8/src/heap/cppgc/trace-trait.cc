@@ -10,15 +10,19 @@
 namespace cppgc {
 namespace internal {
 
-TraceDescriptor TraceTraitFromInnerAddressImpl::GetTraceDescriptor(const void* address)
-{
-    // address is guaranteed to be on a normal page because this is used only for
-    // mixins.
-    const BasePage* page = BasePage::FromPayload(address);
-    page->SynchronizedLoad();
-    const HeapObjectHeader& header = page->ObjectHeaderFromInnerAddress<AccessMode::kAtomic>(address);
-    return { header.ObjectStart(), GlobalGCInfoTable::GCInfoFromIndex(header.GetGCInfoIndex<AccessMode::kAtomic>()).trace };
+TraceDescriptor TraceTraitFromInnerAddressImpl::GetTraceDescriptor(
+    const void* address) {
+  // address is guaranteed to be on a normal page because this is used only for
+  // mixins.
+  const BasePage* page = BasePage::FromPayload(address);
+  page->SynchronizedLoad();
+  const HeapObjectHeader& header =
+      page->ObjectHeaderFromInnerAddress<AccessMode::kAtomic>(address);
+  return {header.ObjectStart(),
+          GlobalGCInfoTable::GCInfoFromIndex(
+              header.GetGCInfoIndex<AccessMode::kAtomic>())
+              .trace};
 }
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc

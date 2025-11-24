@@ -16,81 +16,102 @@ namespace internal {
 
 #include "torque-generated/src/objects/js-struct-tq.inc"
 
-class AlwaysSharedSpaceJSObject : public TorqueGeneratedAlwaysSharedSpaceJSObject<AlwaysSharedSpaceJSObject, JSObject> {
-public:
-    // Prepare a Map to be used as the instance map for shared JS objects.
-    static void PrepareMapNoEnumerableProperties(Tagged<Map> map);
-    static void PrepareMapNoEnumerableProperties(Isolate* isolate, Tagged<Map> map, Tagged<DescriptorArray> descriptors);
-    static void PrepareMapWithEnumerableProperties(Isolate* isolate, DirectHandle<Map> map, DirectHandle<DescriptorArray> descriptors, int enum_length);
+class AlwaysSharedSpaceJSObject
+    : public TorqueGeneratedAlwaysSharedSpaceJSObject<AlwaysSharedSpaceJSObject,
+                                                      JSObject> {
+ public:
+  // Prepare a Map to be used as the instance map for shared JS objects.
+  static void PrepareMapNoEnumerableProperties(Tagged<Map> map);
+  static void PrepareMapNoEnumerableProperties(
+      Isolate* isolate, Tagged<Map> map, Tagged<DescriptorArray> descriptors);
+  static void PrepareMapWithEnumerableProperties(
+      Isolate* isolate, DirectHandle<Map> map,
+      DirectHandle<DescriptorArray> descriptors, int enum_length);
 
-    V8_WARN_UNUSED_RESULT static Maybe<bool> DefineOwnProperty(
-        Isolate* isolate, Handle<AlwaysSharedSpaceJSObject> shared_obj, Handle<Object> key, PropertyDescriptor* desc, Maybe<ShouldThrow> should_throw);
+  V8_WARN_UNUSED_RESULT static Maybe<bool> DefineOwnProperty(
+      Isolate* isolate, Handle<AlwaysSharedSpaceJSObject> shared_obj,
+      Handle<Object> key, PropertyDescriptor* desc,
+      Maybe<ShouldThrow> should_throw);
 
-    // This is a generic `HasInstance` that checks the constructor's initial map
-    // against the object's map. It is on `AlwaysSharedSpaceJSObject` because this
-    // kind of instanceof resolution resolution is used only for shared objects.
-    static Maybe<bool> HasInstance(Isolate* isolate, DirectHandle<JSFunction> constructor, Handle<Object> object);
+  // This is a generic `HasInstance` that checks the constructor's initial map
+  // against the object's map. It is on `AlwaysSharedSpaceJSObject` because this
+  // kind of instanceof resolution resolution is used only for shared objects.
+  static Maybe<bool> HasInstance(Isolate* isolate,
+                                 DirectHandle<JSFunction> constructor,
+                                 Handle<Object> object);
 
-    static_assert(kHeaderSize == JSObject::kHeaderSize);
-    TQ_OBJECT_CONSTRUCTORS(AlwaysSharedSpaceJSObject)
+  static_assert(kHeaderSize == JSObject::kHeaderSize);
+  TQ_OBJECT_CONSTRUCTORS(AlwaysSharedSpaceJSObject)
 };
 
-class JSSharedStruct : public TorqueGeneratedJSSharedStruct<JSSharedStruct, AlwaysSharedSpaceJSObject> {
-public:
-    static Handle<Map> CreateInstanceMap(
-        Isolate* isolate, const std::vector<Handle<Name>>& field_names, const std::set<uint32_t>& element_names, MaybeHandle<String> maybe_registry_key);
+class JSSharedStruct
+    : public TorqueGeneratedJSSharedStruct<JSSharedStruct,
+                                           AlwaysSharedSpaceJSObject> {
+ public:
+  static Handle<Map> CreateInstanceMap(
+      Isolate* isolate, const std::vector<Handle<Name>>& field_names,
+      const std::set<uint32_t>& element_names,
+      MaybeHandle<String> maybe_registry_key);
 
-    static MaybeHandle<String> GetRegistryKey(Isolate* isolate, Tagged<Map> instance_map);
+  static MaybeHandle<String> GetRegistryKey(Isolate* isolate,
+                                            Tagged<Map> instance_map);
 
-    static bool IsRegistryKeyDescriptor(Isolate* isolate, Tagged<Map> instance_map, InternalIndex i);
+  static bool IsRegistryKeyDescriptor(Isolate* isolate,
+                                      Tagged<Map> instance_map,
+                                      InternalIndex i);
 
-    static MaybeHandle<NumberDictionary> GetElementsTemplate(Isolate* isolate, Tagged<Map> instance_map);
+  static MaybeHandle<NumberDictionary> GetElementsTemplate(
+      Isolate* isolate, Tagged<Map> instance_map);
 
-    static bool IsElementsTemplateDescriptor(Isolate* isolate, Tagged<Map> instance_map, InternalIndex i);
+  static bool IsElementsTemplateDescriptor(Isolate* isolate,
+                                           Tagged<Map> instance_map,
+                                           InternalIndex i);
 
-    DECL_PRINTER(JSSharedStruct)
-    EXPORT_DECL_VERIFIER(JSSharedStruct)
+  DECL_PRINTER(JSSharedStruct)
+  EXPORT_DECL_VERIFIER(JSSharedStruct)
 
-    class BodyDescriptor;
+  class BodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(JSSharedStruct)
+  TQ_OBJECT_CONSTRUCTORS(JSSharedStruct)
 };
 
 class SharedStructTypeRegistry final {
-public:
-    static constexpr Tagged<Smi> deleted_element()
-    {
-        return Smi::FromInt(1);
-    }
+ public:
+  static constexpr Tagged<Smi> deleted_element() { return Smi::FromInt(1); }
 
-    SharedStructTypeRegistry();
-    ~SharedStructTypeRegistry();
+  SharedStructTypeRegistry();
+  ~SharedStructTypeRegistry();
 
-    MaybeHandle<Map> Register(Isolate* isolate, Handle<String> key, const std::vector<Handle<Name>>& field_names, const std::set<uint32_t>& element_names);
+  MaybeHandle<Map> Register(Isolate* isolate, Handle<String> key,
+                            const std::vector<Handle<Name>>& field_names,
+                            const std::set<uint32_t>& element_names);
 
-    void IterateElements(Isolate* isolate, RootVisitor* visitor);
-    void NotifyElementsRemoved(int count);
+  void IterateElements(Isolate* isolate, RootVisitor* visitor);
+  void NotifyElementsRemoved(int count);
 
-private:
-    class Data;
+ private:
+  class Data;
 
-    MaybeHandle<Map> RegisterNoThrow(
-        Isolate* isolate, Handle<String> key, const std::vector<Handle<Name>>& field_names, const std::set<uint32_t>& element_names);
+  MaybeHandle<Map> RegisterNoThrow(Isolate* isolate, Handle<String> key,
+                                   const std::vector<Handle<Name>>& field_names,
+                                   const std::set<uint32_t>& element_names);
 
-    MaybeHandle<Map> CheckIfEntryMatches(
-        Isolate* isolate, InternalIndex entry, DirectHandle<String> key, const std::vector<Handle<Name>>& field_names, const std::set<uint32_t>& element_names);
+  MaybeHandle<Map> CheckIfEntryMatches(
+      Isolate* isolate, InternalIndex entry, DirectHandle<String> key,
+      const std::vector<Handle<Name>>& field_names,
+      const std::set<uint32_t>& element_names);
 
-    void EnsureCapacity(PtrComprCageBase cage_base, int additional_elements);
+  void EnsureCapacity(PtrComprCageBase cage_base, int additional_elements);
 
-    std::unique_ptr<Data> data_;
+  std::unique_ptr<Data> data_;
 
-    // Protects all access to the registry.
-    base::Mutex data_mutex_;
+  // Protects all access to the registry.
+  base::Mutex data_mutex_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_STRUCT_H_
+#endif  // V8_OBJECTS_JS_STRUCT_H_

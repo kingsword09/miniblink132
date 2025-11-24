@@ -16,11 +16,15 @@ enum class Builtin;
 
 namespace interpreter {
 
-extern Handle<Code> GenerateBytecodeHandler(
-    Isolate* isolate, const char* debug_name, Bytecode bytecode, OperandScale operand_scale, Builtin builtin, const AssemblerOptions& options);
+extern Handle<Code> GenerateBytecodeHandler(Isolate* isolate,
+                                            const char* debug_name,
+                                            Bytecode bytecode,
+                                            OperandScale operand_scale,
+                                            Builtin builtin,
+                                            const AssemblerOptions& options);
 
-} // namespace interpreter
-} // namespace internal
-} // namespace v8
+}  // namespace interpreter
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_INTERPRETER_INTERPRETER_GENERATOR_H_
+#endif  // V8_INTERPRETER_INTERPRETER_GENERATOR_H_

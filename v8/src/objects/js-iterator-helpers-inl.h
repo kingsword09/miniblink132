@@ -23,9 +23,9 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(JSIteratorTakeHelper)
 TQ_OBJECT_CONSTRUCTORS_IMPL(JSIteratorDropHelper)
 TQ_OBJECT_CONSTRUCTORS_IMPL(JSIteratorFlatMapHelper)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_ITERATOR_HELPERS_INL_H_
+#endif  // V8_OBJECTS_JS_ITERATOR_HELPERS_INL_H_

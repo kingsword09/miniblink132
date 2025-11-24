@@ -10,35 +10,35 @@
 namespace v8 {
 namespace internal {
 
-void AssemblerRISCVZicsr::csrrw(Register rd, ControlStatusReg csr, Register rs1)
-{
-    GenInstrCSR_ir(0b001, rd, csr, rs1);
+void AssemblerRISCVZicsr::csrrw(Register rd, ControlStatusReg csr,
+                                Register rs1) {
+  GenInstrCSR_ir(0b001, rd, csr, rs1);
 }
 
-void AssemblerRISCVZicsr::csrrs(Register rd, ControlStatusReg csr, Register rs1)
-{
-    GenInstrCSR_ir(0b010, rd, csr, rs1);
+void AssemblerRISCVZicsr::csrrs(Register rd, ControlStatusReg csr,
+                                Register rs1) {
+  GenInstrCSR_ir(0b010, rd, csr, rs1);
 }
 
-void AssemblerRISCVZicsr::csrrc(Register rd, ControlStatusReg csr, Register rs1)
-{
-    GenInstrCSR_ir(0b011, rd, csr, rs1);
+void AssemblerRISCVZicsr::csrrc(Register rd, ControlStatusReg csr,
+                                Register rs1) {
+  GenInstrCSR_ir(0b011, rd, csr, rs1);
 }
 
-void AssemblerRISCVZicsr::csrrwi(Register rd, ControlStatusReg csr, uint8_t imm5)
-{
-    GenInstrCSR_ii(0b101, rd, csr, imm5);
+void AssemblerRISCVZicsr::csrrwi(Register rd, ControlStatusReg csr,
+                                 uint8_t imm5) {
+  GenInstrCSR_ii(0b101, rd, csr, imm5);
 }
 
-void AssemblerRISCVZicsr::csrrsi(Register rd, ControlStatusReg csr, uint8_t imm5)
-{
-    GenInstrCSR_ii(0b110, rd, csr, imm5);
+void AssemblerRISCVZicsr::csrrsi(Register rd, ControlStatusReg csr,
+                                 uint8_t imm5) {
+  GenInstrCSR_ii(0b110, rd, csr, imm5);
 }
 
-void AssemblerRISCVZicsr::csrrci(Register rd, ControlStatusReg csr, uint8_t imm5)
-{
-    GenInstrCSR_ii(0b111, rd, csr, imm5);
+void AssemblerRISCVZicsr::csrrci(Register rd, ControlStatusReg csr,
+                                 uint8_t imm5) {
+  GenInstrCSR_ii(0b111, rd, csr, imm5);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

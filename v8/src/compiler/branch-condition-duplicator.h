@@ -60,26 +60,26 @@ class Graph;
 // before each branch without worrying about breaking SSA.
 
 class V8_EXPORT_PRIVATE BranchConditionDuplicator final {
-public:
-    BranchConditionDuplicator(Zone* zone, Graph* graph);
-    ~BranchConditionDuplicator() = default;
+ public:
+  BranchConditionDuplicator(Zone* zone, Graph* graph);
+  ~BranchConditionDuplicator() = default;
 
-    void Reduce();
+  void Reduce();
 
-    Node* DuplicateNode(Node* node);
-    void DuplicateConditionIfNeeded(Node* node);
-    void Enqueue(Node* node);
-    void VisitNode(Node* node);
-    void ProcessGraph();
+  Node* DuplicateNode(Node* node);
+  void DuplicateConditionIfNeeded(Node* node);
+  void Enqueue(Node* node);
+  void VisitNode(Node* node);
+  void ProcessGraph();
 
-private:
-    Graph* const graph_;
-    ZoneQueue<Node*> to_visit_;
-    NodeMarker<bool> seen_;
+ private:
+  Graph* const graph_;
+  ZoneQueue<Node*> to_visit_;
+  NodeMarker<bool> seen_;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_BRANCH_CONDITION_DUPLICATOR_H_
+#endif  // V8_COMPILER_BRANCH_CONDITION_DUPLICATOR_H_

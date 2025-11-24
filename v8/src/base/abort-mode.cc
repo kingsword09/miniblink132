@@ -9,5 +9,5 @@ namespace base {
 
 AbortMode g_abort_mode = AbortMode::kDefault;
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8

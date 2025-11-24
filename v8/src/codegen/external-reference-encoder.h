@@ -17,59 +17,46 @@ namespace internal {
 class Isolate;
 
 class ExternalReferenceEncoder {
-public:
-    class Value {
-    public:
-        explicit Value(uint32_t raw)
-            : value_(raw)
-        {
-        }
-        Value()
-            : value_(0)
-        {
-        }
-        static uint32_t Encode(uint32_t index, bool is_from_api)
-        {
-            return Index::encode(index) | IsFromAPI::encode(is_from_api);
-        }
+ public:
+  class Value {
+   public:
+    explicit Value(uint32_t raw) : value_(raw) {}
+    Value() : value_(0) {}
+    static uint32_t Encode(uint32_t index, bool is_from_api) {
+      return Index::encode(index) | IsFromAPI::encode(is_from_api);
+    }
 
-        bool is_from_api() const
-        {
-            return IsFromAPI::decode(value_);
-        }
-        uint32_t index() const
-        {
-            return Index::decode(value_);
-        }
+    bool is_from_api() const { return IsFromAPI::decode(value_); }
+    uint32_t index() const { return Index::decode(value_); }
 
-    private:
-        using Index = base::BitField<uint32_t, 0, 31>;
-        using IsFromAPI = base::BitField<bool, 31, 1>;
-        uint32_t value_;
-    };
+   private:
+    using Index = base::BitField<uint32_t, 0, 31>;
+    using IsFromAPI = base::BitField<bool, 31, 1>;
+    uint32_t value_;
+  };
 
-    explicit ExternalReferenceEncoder(Isolate* isolate);
-    ExternalReferenceEncoder(const ExternalReferenceEncoder&) = delete;
-    ExternalReferenceEncoder& operator=(const ExternalReferenceEncoder&) = delete;
-#ifdef V8_DEBUG
-    ~ExternalReferenceEncoder();
-#endif // DEBUG
+  explicit ExternalReferenceEncoder(Isolate* isolate);
+  ExternalReferenceEncoder(const ExternalReferenceEncoder&) = delete;
+  ExternalReferenceEncoder& operator=(const ExternalReferenceEncoder&) = delete;
+#ifdef DEBUG
+  ~ExternalReferenceEncoder();
+#endif  // DEBUG
 
-    Value Encode(Address key);
-    Maybe<Value> TryEncode(Address key);
+  Value Encode(Address key);
+  Maybe<Value> TryEncode(Address key);
 
-    const char* NameOfAddress(Isolate* isolate, Address address) const;
+  const char* NameOfAddress(Isolate* isolate, Address address) const;
 
-private:
-    AddressToIndexHashMap* map_;
+ private:
+  AddressToIndexHashMap* map_;
 
-#ifdef V8_DEBUG
-    std::vector<int> count_;
-    const intptr_t* api_references_;
-#endif // DEBUG
+#ifdef DEBUG
+  std::vector<int> count_;
+  const intptr_t* api_references_;
+#endif  // DEBUG
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_EXTERNAL_REFERENCE_ENCODER_H_
+#endif  // V8_CODEGEN_EXTERNAL_REFERENCE_ENCODER_H_

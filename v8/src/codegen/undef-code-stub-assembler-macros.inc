@@ -11,7 +11,7 @@
 
 #undef CSA_CHECK
 #undef CSA_HOLE_SECURITY_CHECK
-#ifdef V8_DEBUG
+#ifdef DEBUG
 #undef CSA_DCHECK_0_ARGS
 #undef CSA_DCHECK_1_ARG
 #undef CSA_DCHECK_2_ARGS

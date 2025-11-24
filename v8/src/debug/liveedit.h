@@ -13,7 +13,7 @@
 namespace v8 {
 namespace debug {
 struct LiveEditResult;
-} // namespace debug
+}  // namespace debug
 namespace internal {
 
 class Script;
@@ -22,10 +22,10 @@ class Debug;
 class JavaScriptFrame;
 
 struct SourceChangeRange {
-    int start_position;
-    int end_position;
-    int new_start_position;
-    int new_end_position;
+  int start_position;
+  int end_position;
+  int new_start_position;
+  int new_end_position;
 };
 
 /**
@@ -55,13 +55,18 @@ struct SourceChangeRange {
  */
 
 class V8_EXPORT_PRIVATE LiveEdit : AllStatic {
-public:
-    static void CompareStrings(Isolate* isolate, Handle<String> a, Handle<String> b, std::vector<SourceChangeRange>* diffs);
-    static int TranslatePosition(const std::vector<SourceChangeRange>& changed, int position);
-    static void PatchScript(
-        Isolate* isolate, Handle<Script> script, Handle<String> source, bool preview, bool allow_top_frame_live_editing, debug::LiveEditResult* result);
+ public:
+  static void CompareStrings(Isolate* isolate, Handle<String> a,
+                             Handle<String> b,
+                             std::vector<SourceChangeRange>* diffs);
+  static int TranslatePosition(const std::vector<SourceChangeRange>& changed,
+                               int position);
+  static void PatchScript(Isolate* isolate, Handle<Script> script,
+                          Handle<String> source, bool preview,
+                          bool allow_top_frame_live_editing,
+                          debug::LiveEditResult* result);
 };
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_DEBUG_LIVEEDIT_H_
+#endif  // V8_DEBUG_LIVEEDIT_H_

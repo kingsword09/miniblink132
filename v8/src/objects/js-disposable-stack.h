@@ -39,64 +39,83 @@ enum class DisposeMethodHint { kSyncDispose = 0, kAsyncDispose = 1 };
 // Types of disposable resources in a DisposableStack.
 enum class DisposableStackResourcesType { kAllSync, kAtLeastOneAsync };
 
-using DisposeCallTypeBit = base::BitField<DisposeMethodCallType, 0, 1, uint32_t>;
+using DisposeCallTypeBit =
+    base::BitField<DisposeMethodCallType, 0, 1, uint32_t>;
 using DisposeHintBit = DisposeCallTypeBit::Next<DisposeMethodHint, 1>;
 
-class JSDisposableStackBase : public TorqueGeneratedJSDisposableStackBase<JSDisposableStackBase, JSObject> {
-public:
-    DECL_PRINTER(JSDisposableStackBase)
-    DECL_VERIFIER(JSDisposableStackBase)
+class JSDisposableStackBase
+    : public TorqueGeneratedJSDisposableStackBase<JSDisposableStackBase,
+                                                  JSObject> {
+ public:
+  DECL_PRINTER(JSDisposableStackBase)
+  DECL_VERIFIER(JSDisposableStackBase)
 
-    DEFINE_TORQUE_GENERATED_DISPOSABLE_STACK_STATUS()
-    inline DisposableStackState state() const;
-    inline void set_state(DisposableStackState value);
-    DECL_BOOLEAN_ACCESSORS(needsAwait)
-    DECL_BOOLEAN_ACCESSORS(hasAwaited)
-    DECL_INT_ACCESSORS(length)
+  DEFINE_TORQUE_GENERATED_DISPOSABLE_STACK_STATUS()
+  inline DisposableStackState state() const;
+  inline void set_state(DisposableStackState value);
+  DECL_BOOLEAN_ACCESSORS(needsAwait)
+  DECL_BOOLEAN_ACCESSORS(hasAwaited)
+  DECL_INT_ACCESSORS(length)
 
-    enum class AsyncDisposableStackContextSlots {
-        kStack = Context::MIN_CONTEXT_SLOTS,
-        kOuterPromise,
-        kLength,
-    };
+  enum class AsyncDisposableStackContextSlots {
+    kStack = Context::MIN_CONTEXT_SLOTS,
+    kOuterPromise,
+    kLength,
+  };
 
-    enum class AsyncDisposeFromSyncDisposeContextSlots {
-        kMethod = Context::MIN_CONTEXT_SLOTS,
-        kLength,
-    };
+  enum class AsyncDisposeFromSyncDisposeContextSlots {
+    kMethod = Context::MIN_CONTEXT_SLOTS,
+    kLength,
+  };
 
-    static void InitializeJSDisposableStackBase(Isolate* isolate, DirectHandle<JSDisposableStackBase> stack);
-    static void Add(Isolate* isolate, DirectHandle<JSDisposableStackBase> disposable_stack, DirectHandle<Object> value, DirectHandle<Object> method,
-        DisposeMethodCallType type, DisposeMethodHint hint);
-    static MaybeHandle<Object> CheckValueAndGetDisposeMethod(Isolate* isolate, Handle<JSAny> value, DisposeMethodHint hint);
-    static MaybeHandle<Object> DisposeResources(Isolate* isolate, DirectHandle<JSDisposableStackBase> disposable_stack,
-        MaybeHandle<Object> maybe_continuation_error, DisposableStackResourcesType resources_type);
-    static MaybeHandle<JSReceiver> ResolveAPromiseWithValueAndReturnIt(Isolate* isolate, Handle<Object> value);
-    static void HandleErrorInDisposal(Isolate* isolate, DirectHandle<JSDisposableStackBase> disposable_stack, Handle<Object> current_error);
+  static void InitializeJSDisposableStackBase(
+      Isolate* isolate, DirectHandle<JSDisposableStackBase> stack);
+  static void Add(Isolate* isolate,
+                  DirectHandle<JSDisposableStackBase> disposable_stack,
+                  DirectHandle<Object> value, DirectHandle<Object> method,
+                  DisposeMethodCallType type, DisposeMethodHint hint);
+  static MaybeHandle<Object> CheckValueAndGetDisposeMethod(
+      Isolate* isolate, Handle<JSAny> value, DisposeMethodHint hint);
+  static MaybeHandle<Object> DisposeResources(
+      Isolate* isolate, DirectHandle<JSDisposableStackBase> disposable_stack,
+      MaybeHandle<Object> maybe_continuation_error,
+      DisposableStackResourcesType resources_type);
+  static MaybeHandle<JSReceiver> ResolveAPromiseWithValueAndReturnIt(
+      Isolate* isolate, Handle<Object> value);
+  static void HandleErrorInDisposal(
+      Isolate* isolate, DirectHandle<JSDisposableStackBase> disposable_stack,
+      Handle<Object> current_error);
 
-    TQ_OBJECT_CONSTRUCTORS(JSDisposableStackBase)
+  TQ_OBJECT_CONSTRUCTORS(JSDisposableStackBase)
 };
 
-class JSSyncDisposableStack : public TorqueGeneratedJSSyncDisposableStack<JSSyncDisposableStack, JSDisposableStackBase> {
-public:
-    DECL_VERIFIER(JSSyncDisposableStack)
+class JSSyncDisposableStack
+    : public TorqueGeneratedJSSyncDisposableStack<JSSyncDisposableStack,
+                                                  JSDisposableStackBase> {
+ public:
+  DECL_VERIFIER(JSSyncDisposableStack)
 
-    TQ_OBJECT_CONSTRUCTORS(JSSyncDisposableStack)
+  TQ_OBJECT_CONSTRUCTORS(JSSyncDisposableStack)
 };
 
-class JSAsyncDisposableStack : public TorqueGeneratedJSAsyncDisposableStack<JSAsyncDisposableStack, JSDisposableStackBase> {
-public:
-    DECL_PRINTER(JSAsyncDisposableStack)
-    DECL_VERIFIER(JSAsyncDisposableStack)
+class JSAsyncDisposableStack
+    : public TorqueGeneratedJSAsyncDisposableStack<JSAsyncDisposableStack,
+                                                   JSDisposableStackBase> {
+ public:
+  DECL_PRINTER(JSAsyncDisposableStack)
+  DECL_VERIFIER(JSAsyncDisposableStack)
 
-    static Maybe<bool> NextDisposeAsyncIteration(Isolate* isolate, DirectHandle<JSDisposableStackBase> async_disposable_stack, Handle<JSPromise> outer_promise);
+  static Maybe<bool> NextDisposeAsyncIteration(
+      Isolate* isolate,
+      DirectHandle<JSDisposableStackBase> async_disposable_stack,
+      Handle<JSPromise> outer_promise);
 
-    TQ_OBJECT_CONSTRUCTORS(JSAsyncDisposableStack)
+  TQ_OBJECT_CONSTRUCTORS(JSAsyncDisposableStack)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_DISPOSABLE_STACK_H_
+#endif  // V8_OBJECTS_JS_DISPOSABLE_STACK_H_

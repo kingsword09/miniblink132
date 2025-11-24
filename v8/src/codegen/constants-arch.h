@@ -27,4 +27,4 @@
 #error Unsupported target architecture.
 #endif
 
-#endif // V8_CODEGEN_CONSTANTS_ARCH_H_
+#endif  // V8_CODEGEN_CONSTANTS_ARCH_H_

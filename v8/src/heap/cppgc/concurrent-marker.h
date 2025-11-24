@@ -15,68 +15,66 @@ namespace cppgc {
 namespace internal {
 
 class V8_EXPORT_PRIVATE ConcurrentMarkerBase {
-public:
-    ConcurrentMarkerBase(HeapBase&, MarkingWorklists&, heap::base::IncrementalMarkingSchedule&, cppgc::Platform*);
-    virtual ~ConcurrentMarkerBase();
+ public:
+  ConcurrentMarkerBase(HeapBase&, MarkingWorklists&,
+                       heap::base::IncrementalMarkingSchedule&,
+                       cppgc::Platform*);
+  virtual ~ConcurrentMarkerBase();
 
-    ConcurrentMarkerBase(const ConcurrentMarkerBase&) = delete;
-    ConcurrentMarkerBase& operator=(const ConcurrentMarkerBase&) = delete;
+  ConcurrentMarkerBase(const ConcurrentMarkerBase&) = delete;
+  ConcurrentMarkerBase& operator=(const ConcurrentMarkerBase&) = delete;
 
-    void Start();
-    // Returns whether the job has been joined.
-    bool Join();
-    // Returns whether the job has been cancelled.
-    bool Cancel();
+  void Start();
+  // Returns whether the job has been joined.
+  bool Join();
+  // Returns whether the job has been cancelled.
+  bool Cancel();
 
-    void NotifyIncrementalMutatorStepCompleted();
-    void NotifyOfWorkIfNeeded(cppgc::TaskPriority priority);
+  void NotifyIncrementalMutatorStepCompleted();
+  void NotifyOfWorkIfNeeded(cppgc::TaskPriority priority);
 
-    bool IsActive() const;
+  bool IsActive() const;
 
-    HeapBase& heap() const
-    {
-        return heap_;
-    }
-    MarkingWorklists& marking_worklists() const
-    {
-        return marking_worklists_;
-    }
-    heap::base::IncrementalMarkingSchedule& incremental_marking_schedule() const
-    {
-        return incremental_marking_schedule_;
-    }
+  HeapBase& heap() const { return heap_; }
+  MarkingWorklists& marking_worklists() const { return marking_worklists_; }
+  heap::base::IncrementalMarkingSchedule& incremental_marking_schedule() const {
+    return incremental_marking_schedule_;
+  }
 
-    virtual std::unique_ptr<Visitor> CreateConcurrentMarkingVisitor(ConcurrentMarkingState&) const = 0;
+  virtual std::unique_ptr<Visitor> CreateConcurrentMarkingVisitor(
+      ConcurrentMarkingState&) const = 0;
 
-protected:
-    void IncreaseMarkingPriorityIfNeeded();
+ protected:
+  void IncreaseMarkingPriorityIfNeeded();
 
-private:
-    HeapBase& heap_;
-    MarkingWorklists& marking_worklists_;
-    heap::base::IncrementalMarkingSchedule& incremental_marking_schedule_;
-    cppgc::Platform* const platform_;
+ private:
+  HeapBase& heap_;
+  MarkingWorklists& marking_worklists_;
+  heap::base::IncrementalMarkingSchedule& incremental_marking_schedule_;
+  cppgc::Platform* const platform_;
 
-    // The job handle doubles as flag to denote concurrent marking was started.
-    std::unique_ptr<JobHandle> concurrent_marking_handle_ { nullptr };
+  // The job handle doubles as flag to denote concurrent marking was started.
+  std::unique_ptr<JobHandle> concurrent_marking_handle_{nullptr};
 
-    size_t last_concurrently_marked_bytes_ = 0;
-    v8::base::TimeTicks last_concurrently_marked_bytes_update_;
-    bool concurrent_marking_priority_increased_ { false };
+  size_t last_concurrently_marked_bytes_ = 0;
+  v8::base::TimeTicks last_concurrently_marked_bytes_update_;
+  bool concurrent_marking_priority_increased_{false};
 };
 
 class V8_EXPORT_PRIVATE ConcurrentMarker : public ConcurrentMarkerBase {
-public:
-    ConcurrentMarker(
-        HeapBase& heap, MarkingWorklists& marking_worklists, heap::base::IncrementalMarkingSchedule& incremental_marking_schedule, cppgc::Platform* platform)
-        : ConcurrentMarkerBase(heap, marking_worklists, incremental_marking_schedule, platform)
-    {
-    }
+ public:
+  ConcurrentMarker(
+      HeapBase& heap, MarkingWorklists& marking_worklists,
+      heap::base::IncrementalMarkingSchedule& incremental_marking_schedule,
+      cppgc::Platform* platform)
+      : ConcurrentMarkerBase(heap, marking_worklists,
+                             incremental_marking_schedule, platform) {}
 
-    std::unique_ptr<Visitor> CreateConcurrentMarkingVisitor(ConcurrentMarkingState&) const final;
+  std::unique_ptr<Visitor> CreateConcurrentMarkingVisitor(
+      ConcurrentMarkingState&) const final;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_CONCURRENT_MARKER_H_
+#endif  // V8_HEAP_CPPGC_CONCURRENT_MARKER_H_

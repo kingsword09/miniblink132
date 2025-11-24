@@ -16,52 +16,48 @@ static const int kSpDwarfCode = 31;
 const int EhFrameConstants::kCodeAlignmentFactor = 4;
 const int EhFrameConstants::kDataAlignmentFactor = -8;
 
-void EhFrameWriter::WriteReturnAddressRegisterCode()
-{
-    WriteULeb128(kLrDwarfCode);
+void EhFrameWriter::WriteReturnAddressRegisterCode() {
+  WriteULeb128(kLrDwarfCode);
 }
 
-void EhFrameWriter::WriteInitialStateInCie()
-{
-    SetBaseAddressRegisterAndOffset(x29, 0);
-    RecordRegisterNotModified(x30);
+void EhFrameWriter::WriteInitialStateInCie() {
+  SetBaseAddressRegisterAndOffset(x29, 0);
+  RecordRegisterNotModified(x30);
 }
 
 // static
-int EhFrameWriter::RegisterToDwarfCode(Register name)
-{
-    switch (name.code()) {
+int EhFrameWriter::RegisterToDwarfCode(Register name) {
+  switch (name.code()) {
     case kRegCode_x29:
-        return kFpDwarfCode;
+      return kFpDwarfCode;
     case kRegCode_x30:
-        return kLrDwarfCode;
+      return kLrDwarfCode;
     case kSPRegInternalCode:
-        return kSpDwarfCode;
+      return kSpDwarfCode;
     case kRegCode_x0:
-        return kX0DwarfCode;
+      return kX0DwarfCode;
     default:
-        UNIMPLEMENTED();
-    }
+      UNIMPLEMENTED();
+  }
 }
 
 #ifdef ENABLE_DISASSEMBLER
 
 // static
-const char* EhFrameDisassembler::DwarfRegisterCodeToString(int code)
-{
-    switch (code) {
+const char* EhFrameDisassembler::DwarfRegisterCodeToString(int code) {
+  switch (code) {
     case kFpDwarfCode:
-        return "fp";
+      return "fp";
     case kLrDwarfCode:
-        return "lr";
+      return "lr";
     case kSpDwarfCode:
-        return "sp"; // This could be zr as well
+      return "sp";  // This could be zr as well
     default:
-        UNIMPLEMENTED();
-    }
+      UNIMPLEMENTED();
+  }
 }
 
 #endif
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

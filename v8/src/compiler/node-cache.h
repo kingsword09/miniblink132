@@ -15,46 +15,43 @@ namespace internal {
 
 // Forward declarations.
 class Zone;
-template <typename> class ZoneVector;
+template <typename>
+class ZoneVector;
+
 
 namespace compiler {
 
 // Forward declarations.
 class Node;
 
+
 // A cache for nodes based on a key. Useful for implementing canonicalization of
 // nodes such as constants, parameters, etc.
-template <typename Key, typename Hash = base::hash<Key>, typename Pred = std::equal_to<Key>> class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) NodeCache final {
-public:
-    explicit NodeCache(Zone* zone)
-        : map_(zone)
-    {
-    }
-    ~NodeCache() = default;
-    NodeCache(const NodeCache&) = delete;
-    NodeCache& operator=(const NodeCache&) = delete;
+template <typename Key, typename Hash = base::hash<Key>,
+          typename Pred = std::equal_to<Key> >
+class EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE) NodeCache final {
+ public:
+  explicit NodeCache(Zone* zone) : map_(zone) {}
+  ~NodeCache() = default;
+  NodeCache(const NodeCache&) = delete;
+  NodeCache& operator=(const NodeCache&) = delete;
 
-    // Search for node associated with {key} and return a pointer to a memory
-    // location in this cache that stores an entry for the key. If the location
-    // returned by this method contains a non-nullptr node, the caller can use
-    // that node. Otherwise it is the responsibility of the caller to fill the
-    // entry with a new node.
-    Node** Find(Key key)
-    {
-        return &(map_[key]);
-    }
+  // Search for node associated with {key} and return a pointer to a memory
+  // location in this cache that stores an entry for the key. If the location
+  // returned by this method contains a non-nullptr node, the caller can use
+  // that node. Otherwise it is the responsibility of the caller to fill the
+  // entry with a new node.
+  Node** Find(Key key) { return &(map_[key]); }
 
-    // Appends all nodes from this cache to {nodes}.
-    void GetCachedNodes(ZoneVector<Node*>* nodes)
-    {
-        for (const auto& entry : map_) {
-            if (entry.second)
-                nodes->push_back(entry.second);
-        }
+  // Appends all nodes from this cache to {nodes}.
+  void GetCachedNodes(ZoneVector<Node*>* nodes) {
+    for (const auto& entry : map_) {
+      if (entry.second) nodes->push_back(entry.second);
     }
+  }
 
-private:
-    ZoneUnorderedMap<Key, Node*, Hash, Pred> map_;
+ private:
+  ZoneUnorderedMap<Key, Node*, Hash, Pred> map_;
 };
 
 // Various default cache types.
@@ -74,8 +71,8 @@ using IntPtrNodeCache = Int32NodeCache;
 using IntPtrNodeCache = Int64NodeCache;
 #endif
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_NODE_CACHE_H_
+#endif  // V8_COMPILER_NODE_CACHE_H_

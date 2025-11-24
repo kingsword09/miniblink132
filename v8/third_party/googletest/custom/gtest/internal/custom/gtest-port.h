@@ -20,8 +20,8 @@ using std::get;
 using std::make_tuple;
 using std::tuple;
 
-} // namespace tr1
+}  // namespace tr1
 
-} // namespace std
+}  // namespace std
 
-#endif // THIRD_PARTY_GOOGLETEST_CUSTOM_GTEST_INTERNAL_CUSTOM_GTEST_PORT_H_
+#endif  // THIRD_PARTY_GOOGLETEST_CUSTOM_GTEST_INTERNAL_CUSTOM_GTEST_PORT_H_

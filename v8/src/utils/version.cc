@@ -26,34 +26,36 @@ const char* Version::soname_ = SONAME;
 const char* Version::version_string_ = V8_VERSION_STRING;
 
 // Calculate the V8 version string.
-void Version::GetString(base::Vector<char> str)
-{
-    const char* candidate = IsCandidate() ? " (candidate)" : "";
-    if (GetPatch() > 0) {
-        base::SNPrintF(str, "%d.%d.%d.%d%s%s", GetMajor(), GetMinor(), GetBuild(), GetPatch(), GetEmbedder(), candidate);
-    } else {
-        base::SNPrintF(str, "%d.%d.%d%s%s", GetMajor(), GetMinor(), GetBuild(), GetEmbedder(), candidate);
-    }
+void Version::GetString(base::Vector<char> str) {
+  const char* candidate = IsCandidate() ? " (candidate)" : "";
+  if (GetPatch() > 0) {
+    base::SNPrintF(str, "%d.%d.%d.%d%s%s", GetMajor(), GetMinor(), GetBuild(),
+                   GetPatch(), GetEmbedder(), candidate);
+  } else {
+    base::SNPrintF(str, "%d.%d.%d%s%s", GetMajor(), GetMinor(), GetBuild(),
+                   GetEmbedder(), candidate);
+  }
 }
 
 // Calculate the SONAME for the V8 shared library.
-void Version::GetSONAME(base::Vector<char> str)
-{
-    if (soname_ == nullptr || *soname_ == '\0') {
-        // Generate generic SONAME if no specific SONAME is defined.
-        const char* candidate = IsCandidate() ? "-candidate" : "";
-        if (GetPatch() > 0) {
-            SNPrintF(str, "libv8-%d.%d.%d.%d%s%s.so", GetMajor(), GetMinor(), GetBuild(), GetPatch(), GetEmbedder(), candidate);
-        } else {
-            SNPrintF(str, "libv8-%d.%d.%d%s%s.so", GetMajor(), GetMinor(), GetBuild(), GetEmbedder(), candidate);
-        }
+void Version::GetSONAME(base::Vector<char> str) {
+  if (soname_ == nullptr || *soname_ == '\0') {
+    // Generate generic SONAME if no specific SONAME is defined.
+    const char* candidate = IsCandidate() ? "-candidate" : "";
+    if (GetPatch() > 0) {
+      SNPrintF(str, "libv8-%d.%d.%d.%d%s%s.so", GetMajor(), GetMinor(),
+               GetBuild(), GetPatch(), GetEmbedder(), candidate);
     } else {
-        // Use specific SONAME.
-        SNPrintF(str, "%s", soname_);
+      SNPrintF(str, "libv8-%d.%d.%d%s%s.so", GetMajor(), GetMinor(), GetBuild(),
+               GetEmbedder(), candidate);
     }
+  } else {
+    // Use specific SONAME.
+    SNPrintF(str, "%s", soname_);
+  }
 }
 
 #undef SONAME
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

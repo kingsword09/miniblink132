@@ -8,31 +8,29 @@
 #include <atomic>
 #include <cstddef>
 
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace cppgc {
 namespace internal {
 class ProcessHeapStatisticsUpdater;
-} // namespace internal
+}  // namespace internal
 
 class V8_EXPORT ProcessHeapStatistics final {
-public:
-    static size_t TotalAllocatedObjectSize()
-    {
-        return total_allocated_object_size_.load(std::memory_order_relaxed);
-    }
-    static size_t TotalAllocatedSpace()
-    {
-        return total_allocated_space_.load(std::memory_order_relaxed);
-    }
+ public:
+  static size_t TotalAllocatedObjectSize() {
+    return total_allocated_object_size_.load(std::memory_order_relaxed);
+  }
+  static size_t TotalAllocatedSpace() {
+    return total_allocated_space_.load(std::memory_order_relaxed);
+  }
 
-private:
-    static std::atomic_size_t total_allocated_space_;
-    static std::atomic_size_t total_allocated_object_size_;
+ private:
+  static std::atomic_size_t total_allocated_space_;
+  static std::atomic_size_t total_allocated_object_size_;
 
-    friend class internal::ProcessHeapStatisticsUpdater;
+  friend class internal::ProcessHeapStatisticsUpdater;
 };
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_PROCESS_HEAP_STATISTICS_H_
+#endif  // INCLUDE_CPPGC_PROCESS_HEAP_STATISTICS_H_

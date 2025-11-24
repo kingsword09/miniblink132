@@ -25,8 +25,8 @@ void HandleSignal(int signum, siginfo_t* info, void* context);
 
 bool TryHandleSignal(int signum, siginfo_t* info, void* context);
 
-} // namespace trap_handler
-} // namespace internal
-} // namespace v8
+}  // namespace trap_handler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TRAP_HANDLER_HANDLER_INSIDE_POSIX_H_
+#endif  // V8_TRAP_HANDLER_HANDLER_INSIDE_POSIX_H_

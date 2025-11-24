@@ -28,99 +28,86 @@ namespace internal {
 // to simplify CodeDesc initialization.
 
 class CodeDesc {
-public:
-    static void Initialize(CodeDesc* desc, Assembler* assembler, int safepoint_table_offset, int handler_table_offset, int constant_pool_offset,
-        int code_comments_offset, int builtin_jump_table_info_offset, int reloc_info_offset);
+ public:
+  static void Initialize(CodeDesc* desc, Assembler* assembler,
+                         int safepoint_table_offset, int handler_table_offset,
+                         int constant_pool_offset, int code_comments_offset,
+                         int builtin_jump_table_info_offset,
+                         int reloc_info_offset);
 
-#ifdef V8_DEBUG
-    static void Verify(const CodeDesc* desc);
+#ifdef DEBUG
+  static void Verify(const CodeDesc* desc);
 #else
-    inline static void Verify(const CodeDesc* desc)
-    {
-    }
+  inline static void Verify(const CodeDesc* desc) {}
 #endif
 
-public:
-    uint8_t* buffer = nullptr;
-    int buffer_size = 0;
+ public:
+  uint8_t* buffer = nullptr;
+  int buffer_size = 0;
 
-    // The instruction area contains executable code plus inlined metadata.
+  // The instruction area contains executable code plus inlined metadata.
 
-    int instr_size = 0;
+  int instr_size = 0;
 
-    // Metadata packed into the instructions area.
+  // Metadata packed into the instructions area.
 
-    int safepoint_table_offset = 0;
-    int safepoint_table_size = 0;
+  int safepoint_table_offset = 0;
+  int safepoint_table_size = 0;
 
-    int handler_table_offset = 0;
-    int handler_table_size = 0;
+  int handler_table_offset = 0;
+  int handler_table_size = 0;
 
-    int constant_pool_offset = 0;
-    int constant_pool_size = 0;
+  int constant_pool_offset = 0;
+  int constant_pool_size = 0;
 
-    int code_comments_offset = 0;
-    int code_comments_size = 0;
+  int code_comments_offset = 0;
+  int code_comments_size = 0;
 
-    int builtin_jump_table_info_offset = 0;
-    int builtin_jump_table_info_size = 0;
+  int builtin_jump_table_info_offset = 0;
+  int builtin_jump_table_info_size = 0;
 
-    // TODO(jgruber,v8:11036): Remove these functions once CodeDesc fields have
-    // been made consistent with InstructionStream layout.
-    int body_size() const
-    {
-        return instr_size + unwinding_info_size;
-    }
-    int instruction_size() const
-    {
-        return safepoint_table_offset;
-    }
-    int metadata_size() const
-    {
-        return body_size() - instruction_size();
-    }
-    int safepoint_table_offset_relative() const
-    {
-        return safepoint_table_offset - instruction_size();
-    }
-    int handler_table_offset_relative() const
-    {
-        return handler_table_offset - instruction_size();
-    }
-    int constant_pool_offset_relative() const
-    {
-        return constant_pool_offset - instruction_size();
-    }
-    int code_comments_offset_relative() const
-    {
-        return code_comments_offset - instruction_size();
-    }
-    int builtin_jump_table_info_offset_relative() const
-    {
-        return builtin_jump_table_info_offset - instruction_size();
-    }
+  // TODO(jgruber,v8:11036): Remove these functions once CodeDesc fields have
+  // been made consistent with InstructionStream layout.
+  int body_size() const { return instr_size + unwinding_info_size; }
+  int instruction_size() const { return safepoint_table_offset; }
+  int metadata_size() const { return body_size() - instruction_size(); }
+  int safepoint_table_offset_relative() const {
+    return safepoint_table_offset - instruction_size();
+  }
+  int handler_table_offset_relative() const {
+    return handler_table_offset - instruction_size();
+  }
+  int constant_pool_offset_relative() const {
+    return constant_pool_offset - instruction_size();
+  }
+  int code_comments_offset_relative() const {
+    return code_comments_offset - instruction_size();
+  }
+  int builtin_jump_table_info_offset_relative() const {
+    return builtin_jump_table_info_offset - instruction_size();
+  }
 
-    // Relocation info is located at the end of the buffer and not part of the
-    // instructions area.
+  // Relocation info is located at the end of the buffer and not part of the
+  // instructions area.
 
-    int reloc_offset = 0;
-    int reloc_size = 0;
+  int reloc_offset = 0;
+  int reloc_size = 0;
 
-    // Unwinding information.
+  // Unwinding information.
 
-    uint8_t* unwinding_info = nullptr;
-    int unwinding_info_size = 0;
-    int unwinding_info_offset_relative() const
-    {
-        // TODO(jgruber,v8:11036): Remove this function once unwinding_info setup
-        // is more consistent with other metadata tables.
-        return builtin_jump_table_info_offset_relative() + builtin_jump_table_info_size;
-    }
+  uint8_t* unwinding_info = nullptr;
+  int unwinding_info_size = 0;
+  int unwinding_info_offset_relative() const {
+    // TODO(jgruber,v8:11036): Remove this function once unwinding_info setup
+    // is more consistent with other metadata tables.
+    return builtin_jump_table_info_offset_relative() +
+           builtin_jump_table_info_size;
+  }
 
-    Assembler* origin = nullptr;
+  Assembler* origin = nullptr;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_CODE_DESC_H_
+#endif  // V8_CODEGEN_CODE_DESC_H_

@@ -12,7 +12,8 @@ namespace internal {
 
 class Builtins;
 enum class Builtin : int32_t;
-template <typename T> class Tagged;
+template <typename T>
+class Tagged;
 class Code;
 class Heap;
 class Isolate;
@@ -31,23 +32,24 @@ class Isolate;
 // setup-builtins-internal.cc and setup-interpreter-internal.cc, and is
 // linked in by the latter two Delegate implementations.
 class V8_EXPORT_PRIVATE SetupIsolateDelegate {
-public:
-    SetupIsolateDelegate() = default;
-    virtual ~SetupIsolateDelegate() = default;
+ public:
+  SetupIsolateDelegate() = default;
+  virtual ~SetupIsolateDelegate() = default;
 
-    virtual bool SetupHeap(Isolate* isolate, bool create_heap_objects);
-    virtual void SetupBuiltins(Isolate* isolate, bool compile_builtins);
+  virtual bool SetupHeap(Isolate* isolate, bool create_heap_objects);
+  virtual void SetupBuiltins(Isolate* isolate, bool compile_builtins);
 
-protected:
-    static void SetupBuiltinsInternal(Isolate* isolate);
-    static void AddBuiltin(Builtins* builtins, Builtin builtin, Tagged<Code> code);
-    static void PopulateWithPlaceholders(Isolate* isolate);
-    static void ReplacePlaceholders(Isolate* isolate);
+ protected:
+  static void SetupBuiltinsInternal(Isolate* isolate);
+  static void AddBuiltin(Builtins* builtins, Builtin builtin,
+                         Tagged<Code> code);
+  static void PopulateWithPlaceholders(Isolate* isolate);
+  static void ReplacePlaceholders(Isolate* isolate);
 
-    static bool SetupHeapInternal(Isolate* isolate);
+  static bool SetupHeapInternal(Isolate* isolate);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_INIT_SETUP_ISOLATE_H_
+#endif  // V8_INIT_SETUP_ISOLATE_H_

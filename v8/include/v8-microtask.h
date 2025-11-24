@@ -23,6 +23,6 @@ using MicrotaskCallback = void (*)(void* data);
  */
 enum class MicrotasksPolicy { kExplicit, kScoped, kAuto };
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_MICROTASK_H_
+#endif  // INCLUDE_V8_MICROTASK_H_

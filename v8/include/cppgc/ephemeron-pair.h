@@ -14,22 +14,17 @@ namespace cppgc {
  * An ephemeron pair is used to conditionally retain an object.
  * The `value` will be kept alive only if the `key` is alive.
  */
-template <typename K, typename V> struct EphemeronPair {
-    EphemeronPair(K* k, V* v)
-        : key(k)
-        , value(v)
-    {
-    }
-    WeakMember<K> key;
-    Member<V> value;
+template <typename K, typename V>
+struct EphemeronPair {
+  EphemeronPair(K* k, V* v) : key(k), value(v) {}
+  WeakMember<K> key;
+  Member<V> value;
 
-    void ClearValueIfKeyIsDead(const LivenessBroker& broker)
-    {
-        if (!broker.IsHeapObjectAlive(key))
-            value = nullptr;
-    }
+  void ClearValueIfKeyIsDead(const LivenessBroker& broker) {
+    if (!broker.IsHeapObjectAlive(key)) value = nullptr;
+  }
 };
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_EPHEMERON_PAIR_H_
+#endif  // INCLUDE_CPPGC_EPHEMERON_PAIR_H_

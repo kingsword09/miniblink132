@@ -11,31 +11,41 @@
 namespace v8 {
 namespace internal {
 
-// clang-format on
-#define GENERAL_REGISTERS(V)                                                                                                                                   \
-    V(zero_reg)                                                                                                                                                \
-    V(at) V(v0) V(v1) V(a0) V(a1) V(a2) V(a3) V(a4) V(a5) V(a6) V(a7) V(t0) V(t1) V(t2) V(t3) V(s0) V(s1) V(s2) V(s3) V(s4) V(s5) V(s6) V(s7) V(t8) V(t9)      \
-        V(k0) V(k1) V(gp) V(sp) V(fp) V(ra)
+// clang-format off
+#define GENERAL_REGISTERS(V)                              \
+  V(zero_reg)  V(at)  V(v0)  V(v1)  V(a0)  V(a1)  V(a2)  V(a3)  \
+  V(a4)  V(a5)  V(a6)  V(a7)  V(t0)  V(t1)  V(t2)  V(t3)  \
+  V(s0)  V(s1)  V(s2)  V(s3)  V(s4)  V(s5)  V(s6)  V(s7)  V(t8)  V(t9) \
+  V(k0)  V(k1)  V(gp)  V(sp)  V(fp)  V(ra)
 
-#define ALLOCATABLE_GENERAL_REGISTERS(V) V(a0) V(a1) V(a2) V(a3) V(a4) V(a5) V(a6) V(a7) V(t0) V(t1) V(t2) V(t3) V(s7) V(v0) V(v1)
+#define ALLOCATABLE_GENERAL_REGISTERS(V) \
+  V(a0)  V(a1)  V(a2)  V(a3) \
+  V(a4)  V(a5)  V(a6)  V(a7)  V(t0)  V(t1)  V(t2)  V(t3)  V(s7) \
+  V(v0)  V(v1)
 
-#define DOUBLE_REGISTERS(V)                                                                                                                                    \
-    V(f0)                                                                                                                                                      \
-    V(f1) V(f2) V(f3) V(f4) V(f5) V(f6) V(f7) V(f8) V(f9) V(f10) V(f11) V(f12) V(f13) V(f14) V(f15) V(f16) V(f17) V(f18) V(f19) V(f20) V(f21) V(f22) V(f23)    \
-        V(f24) V(f25) V(f26) V(f27) V(f28) V(f29) V(f30) V(f31)
+#define DOUBLE_REGISTERS(V)                               \
+  V(f0)  V(f1)  V(f2)  V(f3)  V(f4)  V(f5)  V(f6)  V(f7)  \
+  V(f8)  V(f9)  V(f10) V(f11) V(f12) V(f13) V(f14) V(f15) \
+  V(f16) V(f17) V(f18) V(f19) V(f20) V(f21) V(f22) V(f23) \
+  V(f24) V(f25) V(f26) V(f27) V(f28) V(f29) V(f30) V(f31)
 
 // Currently, MIPS64 just use even float point register, except
 // for C function param registers.
-#define DOUBLE_USE_REGISTERS(V)                                                                                                                                \
-    V(f0) V(f2) V(f4) V(f6) V(f8) V(f10) V(f12) V(f13) V(f14) V(f15) V(f16) V(f17) V(f18) V(f19) V(f20) V(f22) V(f24) V(f26) V(f28) V(f30)
+#define DOUBLE_USE_REGISTERS(V)                           \
+  V(f0)  V(f2)  V(f4)  V(f6)  V(f8)  V(f10) V(f12) V(f13) \
+  V(f14) V(f15) V(f16) V(f17) V(f18) V(f19) V(f20) V(f22) \
+  V(f24) V(f26) V(f28) V(f30)
 
 #define FLOAT_REGISTERS DOUBLE_REGISTERS
-#define SIMD128_REGISTERS(V)                                                                                                                                   \
-    V(w0)                                                                                                                                                      \
-    V(w1) V(w2) V(w3) V(w4) V(w5) V(w6) V(w7) V(w8) V(w9) V(w10) V(w11) V(w12) V(w13) V(w14) V(w15) V(w16) V(w17) V(w18) V(w19) V(w20) V(w21) V(w22) V(w23)    \
-        V(w24) V(w25) V(w26) V(w27) V(w28) V(w29) V(w30) V(w31)
+#define SIMD128_REGISTERS(V)                              \
+  V(w0)  V(w1)  V(w2)  V(w3)  V(w4)  V(w5)  V(w6)  V(w7)  \
+  V(w8)  V(w9)  V(w10) V(w11) V(w12) V(w13) V(w14) V(w15) \
+  V(w16) V(w17) V(w18) V(w19) V(w20) V(w21) V(w22) V(w23) \
+  V(w24) V(w25) V(w26) V(w27) V(w28) V(w29) V(w30) V(w31)
 
-#define ALLOCATABLE_DOUBLE_REGISTERS(V) V(f0) V(f2) V(f4) V(f6) V(f8) V(f10) V(f12) V(f14) V(f16) V(f18) V(f20) V(f22) V(f24) V(f26)
+#define ALLOCATABLE_DOUBLE_REGISTERS(V)                   \
+  V(f0)  V(f2)  V(f4)  V(f6)  V(f8)  V(f10) V(f12) V(f14) \
+  V(f16) V(f18) V(f20) V(f22) V(f24) V(f26)
 // clang-format on
 
 // Note that the bit values must match those used in actual instruction
@@ -68,35 +78,33 @@ const int kNumRegs = 32;
 
 enum RegisterCode {
 #define REGISTER_CODE(R) kRegCode_##R,
-    GENERAL_REGISTERS(REGISTER_CODE)
+  GENERAL_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kRegAfterLast
+      kRegAfterLast
 };
 
 class Register : public RegisterBase<Register, kRegAfterLast> {
-public:
+ public:
 #if defined(V8_TARGET_LITTLE_ENDIAN)
-    static constexpr int kMantissaOffset = 0;
-    static constexpr int kExponentOffset = 4;
+  static constexpr int kMantissaOffset = 0;
+  static constexpr int kExponentOffset = 4;
 #elif defined(V8_TARGET_BIG_ENDIAN)
-    static constexpr int kMantissaOffset = 4;
-    static constexpr int kExponentOffset = 0;
+  static constexpr int kMantissaOffset = 4;
+  static constexpr int kExponentOffset = 0;
 #else
 #error Unknown endianness
 #endif
 
-private:
-    friend class RegisterBase;
-    explicit constexpr Register(int code)
-        : RegisterBase(code)
-    {
-    }
+ private:
+  friend class RegisterBase;
+  explicit constexpr Register(int code) : RegisterBase(code) {}
 };
 
 // s7: context register
 // s3: scratch register
 // s4: scratch register 2
-#define DECLARE_REGISTER(R) constexpr Register R = Register::from_code(kRegCode_##R);
+#define DECLARE_REGISTER(R) \
+  constexpr Register R = Register::from_code(kRegCode_##R);
 GENERAL_REGISTERS(DECLARE_REGISTER)
 #undef DECLARE_REGISTER
 
@@ -107,18 +115,16 @@ int ToNumber(Register reg);
 Register ToRegister(int num);
 
 // Assign |source| value to |no_reg| and return the |source|'s previous value.
-inline Register ReassignRegister(Register& source)
-{
-    Register result = source;
-    source = Register::no_reg();
-    return result;
+inline Register ReassignRegister(Register& source) {
+  Register result = source;
+  source = Register::no_reg();
+  return result;
 }
 
 // Returns the number of padding slots needed for stack pointer alignment.
-constexpr int ArgumentPaddingSlots(int argument_count)
-{
-    // No argument padding required.
-    return 0;
+constexpr int ArgumentPaddingSlots(int argument_count) {
+  // No argument padding required.
+  return 0;
 }
 
 constexpr AliasingKind kFPAliasing = AliasingKind::kOverlap;
@@ -126,60 +132,49 @@ constexpr bool kSimdMaskRegisters = false;
 
 enum MSARegisterCode {
 #define REGISTER_CODE(R) kMsaCode_##R,
-    SIMD128_REGISTERS(REGISTER_CODE)
+  SIMD128_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kMsaAfterLast
+      kMsaAfterLast
 };
 
 // MIPS SIMD (MSA) register
 class MSARegister : public RegisterBase<MSARegister, kMsaAfterLast> {
-    friend class RegisterBase;
-    explicit constexpr MSARegister(int code)
-        : RegisterBase(code)
-    {
-    }
+  friend class RegisterBase;
+  explicit constexpr MSARegister(int code) : RegisterBase(code) {}
 };
 
 enum DoubleRegisterCode {
 #define REGISTER_CODE(R) kDoubleCode_##R,
-    DOUBLE_REGISTERS(REGISTER_CODE)
+  DOUBLE_REGISTERS(REGISTER_CODE)
 #undef REGISTER_CODE
-        kDoubleAfterLast
+      kDoubleAfterLast
 };
 
 // Coprocessor register.
 class FPURegister : public RegisterBase<FPURegister, kDoubleAfterLast> {
-public:
-    // TODO(plind): Warning, inconsistent numbering here. kNumFPURegisters refers
-    // to number of 32-bit FPU regs, but kNumAllocatableRegisters refers to
-    // number of Double regs (64-bit regs, or FPU-reg-pairs).
+ public:
+  // TODO(plind): Warning, inconsistent numbering here. kNumFPURegisters refers
+  // to number of 32-bit FPU regs, but kNumAllocatableRegisters refers to
+  // number of Double regs (64-bit regs, or FPU-reg-pairs).
 
-    FPURegister low() const
-    {
-        // TODO(plind): Create DCHECK for FR=0 mode. This usage suspect for FR=1.
-        // Find low reg of a Double-reg pair, which is the reg itself.
-        DCHECK_EQ(code() % 2, 0); // Specified Double reg must be even.
-        return FPURegister::from_code(code());
-    }
-    FPURegister high() const
-    {
-        // TODO(plind): Create DCHECK for FR=0 mode. This usage illegal in FR=1.
-        // Find high reg of a Doubel-reg pair, which is reg + 1.
-        DCHECK_EQ(code() % 2, 0); // Specified Double reg must be even.
-        return FPURegister::from_code(code() + 1);
-    }
+  FPURegister low() const {
+    // TODO(plind): Create DCHECK for FR=0 mode. This usage suspect for FR=1.
+    // Find low reg of a Double-reg pair, which is the reg itself.
+    DCHECK_EQ(code() % 2, 0);  // Specified Double reg must be even.
+    return FPURegister::from_code(code());
+  }
+  FPURegister high() const {
+    // TODO(plind): Create DCHECK for FR=0 mode. This usage illegal in FR=1.
+    // Find high reg of a Doubel-reg pair, which is reg + 1.
+    DCHECK_EQ(code() % 2, 0);  // Specified Double reg must be even.
+    return FPURegister::from_code(code() + 1);
+  }
 
-    MSARegister toW() const
-    {
-        return MSARegister::from_code(code());
-    }
+  MSARegister toW() const { return MSARegister::from_code(code()); }
 
-private:
-    friend class RegisterBase;
-    explicit constexpr FPURegister(int code)
-        : RegisterBase(code)
-    {
-    }
+ private:
+  friend class RegisterBase;
+  explicit constexpr FPURegister(int code) : RegisterBase(code) {}
 };
 
 // A few double registers are reserved: one as a scratch register and one to
@@ -200,7 +195,8 @@ using FloatRegister = FPURegister;
 
 using DoubleRegister = FPURegister;
 
-#define DECLARE_DOUBLE_REGISTER(R) constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
+#define DECLARE_DOUBLE_REGISTER(R) \
+  constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
 DOUBLE_REGISTERS(DECLARE_DOUBLE_REGISTER)
 #undef DECLARE_DOUBLE_REGISTER
 
@@ -209,7 +205,8 @@ constexpr DoubleRegister no_dreg = DoubleRegister::no_reg();
 // SIMD registers.
 using Simd128Register = MSARegister;
 
-#define DECLARE_SIMD128_REGISTER(R) constexpr Simd128Register R = Simd128Register::from_code(kMsaCode_##R);
+#define DECLARE_SIMD128_REGISTER(R) \
+  constexpr Simd128Register R = Simd128Register::from_code(kMsaCode_##R);
 SIMD128_REGISTERS(DECLARE_SIMD128_REGISTER)
 #undef DECLARE_SIMD128_REGISTER
 
@@ -235,75 +232,59 @@ constexpr Simd128Register kSimd128ScratchReg = w30;
 // FPU (coprocessor 1) control registers.
 // Currently only FCSR (#31) is implemented.
 struct FPUControlRegister {
-    bool is_valid() const
-    {
-        return reg_code == kFCSRRegister;
-    }
-    bool is(FPUControlRegister creg) const
-    {
-        return reg_code == creg.reg_code;
-    }
-    int code() const
-    {
-        DCHECK(is_valid());
-        return reg_code;
-    }
-    int bit() const
-    {
-        DCHECK(is_valid());
-        return 1 << reg_code;
-    }
-    void setcode(int f)
-    {
-        reg_code = f;
-        DCHECK(is_valid());
-    }
-    // Unfortunately we can't make this private in a struct.
-    int reg_code;
+  bool is_valid() const { return reg_code == kFCSRRegister; }
+  bool is(FPUControlRegister creg) const { return reg_code == creg.reg_code; }
+  int code() const {
+    DCHECK(is_valid());
+    return reg_code;
+  }
+  int bit() const {
+    DCHECK(is_valid());
+    return 1 << reg_code;
+  }
+  void setcode(int f) {
+    reg_code = f;
+    DCHECK(is_valid());
+  }
+  // Unfortunately we can't make this private in a struct.
+  int reg_code;
 };
 
-constexpr FPUControlRegister no_fpucreg = { kInvalidFPUControlRegister };
-constexpr FPUControlRegister FCSR = { kFCSRRegister };
+constexpr FPUControlRegister no_fpucreg = {kInvalidFPUControlRegister};
+constexpr FPUControlRegister FCSR = {kFCSRRegister};
 
 // MSA control registers
 struct MSAControlRegister {
-    bool is_valid() const
-    {
-        return (reg_code == kMSAIRRegister) || (reg_code == kMSACSRRegister);
-    }
-    bool is(MSAControlRegister creg) const
-    {
-        return reg_code == creg.reg_code;
-    }
-    int code() const
-    {
-        DCHECK(is_valid());
-        return reg_code;
-    }
-    int bit() const
-    {
-        DCHECK(is_valid());
-        return 1 << reg_code;
-    }
-    void setcode(int f)
-    {
-        reg_code = f;
-        DCHECK(is_valid());
-    }
-    // Unfortunately we can't make this private in a struct.
-    int reg_code;
+  bool is_valid() const {
+    return (reg_code == kMSAIRRegister) || (reg_code == kMSACSRRegister);
+  }
+  bool is(MSAControlRegister creg) const { return reg_code == creg.reg_code; }
+  int code() const {
+    DCHECK(is_valid());
+    return reg_code;
+  }
+  int bit() const {
+    DCHECK(is_valid());
+    return 1 << reg_code;
+  }
+  void setcode(int f) {
+    reg_code = f;
+    DCHECK(is_valid());
+  }
+  // Unfortunately we can't make this private in a struct.
+  int reg_code;
 };
 
-constexpr MSAControlRegister no_msacreg = { kInvalidMSAControlRegister };
-constexpr MSAControlRegister MSAIR = { kMSAIRRegister };
-constexpr MSAControlRegister MSACSR = { kMSACSRRegister };
+constexpr MSAControlRegister no_msacreg = {kInvalidMSAControlRegister};
+constexpr MSAControlRegister MSAIR = {kMSAIRRegister};
+constexpr MSAControlRegister MSACSR = {kMSACSRRegister};
 
 // Define {RegisterName} methods for the register types.
 DEFINE_REGISTER_NAMES(Register, GENERAL_REGISTERS)
 DEFINE_REGISTER_NAMES(FPURegister, DOUBLE_REGISTERS)
 DEFINE_REGISTER_NAMES(MSARegister, SIMD128_REGISTERS)
 
-constexpr Register kCArgRegs[] = { a0, a1, a2, a3, a4, a5, a6, a7 };
+constexpr Register kCArgRegs[] = {a0, a1, a2, a3, a4, a5, a6, a7};
 constexpr int kRegisterPassedArguments = arraysize(kCArgRegs);
 constexpr int kFPRegisterPassedArguments = 8;
 
@@ -334,7 +315,7 @@ constexpr Register kWasmCompileLazyFuncIndexRegister = t0;
 
 constexpr DoubleRegister kFPReturnRegister0 = f0;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_MIPS64_REGISTER_MIPS64_H_
+#endif  // V8_CODEGEN_MIPS64_REGISTER_MIPS64_H_

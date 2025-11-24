@@ -18,21 +18,21 @@ namespace internal {
 // A thread-safe data structure that generates heuristic starting points in a
 // range to process items in parallel.
 class V8_EXPORT_PRIVATE IndexGenerator {
-public:
-    explicit IndexGenerator(size_t size);
-    IndexGenerator(const IndexGenerator&) = delete;
-    IndexGenerator& operator=(const IndexGenerator&) = delete;
+ public:
+  explicit IndexGenerator(size_t size);
+  IndexGenerator(const IndexGenerator&) = delete;
+  IndexGenerator& operator=(const IndexGenerator&) = delete;
 
-    std::optional<size_t> GetNext();
+  std::optional<size_t> GetNext();
 
-private:
-    base::Mutex lock_;
-    bool first_use_;
-    // Pending [start, end) ranges to split and hand out indices from.
-    std::queue<std::pair<size_t, size_t>> ranges_to_split_;
+ private:
+  base::Mutex lock_;
+  bool first_use_;
+  // Pending [start, end) ranges to split and hand out indices from.
+  std::queue<std::pair<size_t, size_t>> ranges_to_split_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_INDEX_GENERATOR_H_
+#endif  // V8_HEAP_INDEX_GENERATOR_H_

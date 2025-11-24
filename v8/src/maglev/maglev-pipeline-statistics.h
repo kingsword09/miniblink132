@@ -17,25 +17,29 @@ namespace v8 {
 namespace internal {
 namespace maglev {
 
-class MaglevPipelineStatistics : public compiler::PipelineStatisticsBase, public Malloced {
-public:
-    MaglevPipelineStatistics(maglev::MaglevCompilationInfo* info, std::shared_ptr<CompilationStatistics> stats, compiler::ZoneStats* zone_stats);
-    ~MaglevPipelineStatistics();
-    MaglevPipelineStatistics(const MaglevPipelineStatistics&) = delete;
-    MaglevPipelineStatistics& operator=(const MaglevPipelineStatistics&) = delete;
+class MaglevPipelineStatistics : public compiler::PipelineStatisticsBase,
+                                 public Malloced {
+ public:
+  MaglevPipelineStatistics(maglev::MaglevCompilationInfo* info,
+                           std::shared_ptr<CompilationStatistics> stats,
+                           compiler::ZoneStats* zone_stats);
+  ~MaglevPipelineStatistics();
+  MaglevPipelineStatistics(const MaglevPipelineStatistics&) = delete;
+  MaglevPipelineStatistics& operator=(const MaglevPipelineStatistics&) = delete;
 
-    static constexpr char kTraceCategory[] = TRACE_DISABLED_BY_DEFAULT("v8.maglev");
+  static constexpr char kTraceCategory[] =
+      TRACE_DISABLED_BY_DEFAULT("v8.maglev");
 
-    void BeginPhaseKind(const char* name);
-    void EndPhaseKind();
-    void BeginPhase(const char* name);
-    void EndPhase();
+  void BeginPhaseKind(const char* name);
+  void EndPhaseKind();
+  void BeginPhase(const char* name);
+  void EndPhase();
 };
 
-} // namespace maglev
-} // namespace internal
-} // namespace v8
+}  // namespace maglev
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_ENABLE_MAGLEV
+#endif  // V8_ENABLE_MAGLEV
 
-#endif // V8_MAGLEV_MAGLEV_PIPELINE_STATISTICS_H_
+#endif  // V8_MAGLEV_MAGLEV_PIPELINE_STATISTICS_H_

@@ -93,210 +93,189 @@ namespace internal {
 // Currently very simple fixed-size: The opcode is encoded in the first 4
 // bytes, the payload takes another 4 bytes.
 struct RegExpInstruction {
-    enum Opcode : int32_t {
-        ACCEPT,
-        ASSERTION,
-        CLEAR_REGISTER,
-        CONSUME_RANGE,
-        FORK,
-        JMP,
-        SET_REGISTER_TO_CP,
-        SET_QUANTIFIER_TO_CLOCK,
-        FILTER_QUANTIFIER,
-        FILTER_GROUP,
-        FILTER_CHILD,
-        BEGIN_LOOP,
-        END_LOOP,
-        WRITE_LOOKBEHIND_TABLE,
-        READ_LOOKBEHIND_TABLE,
-    };
+  enum Opcode : int32_t {
+    ACCEPT,
+    ASSERTION,
+    CLEAR_REGISTER,
+    CONSUME_RANGE,
+    FORK,
+    JMP,
+    SET_REGISTER_TO_CP,
+    SET_QUANTIFIER_TO_CLOCK,
+    FILTER_QUANTIFIER,
+    FILTER_GROUP,
+    FILTER_CHILD,
+    BEGIN_LOOP,
+    END_LOOP,
+    WRITE_LOOKBEHIND_TABLE,
+    READ_LOOKBEHIND_TABLE,
+  };
 
-    struct Uc16Range {
-        base::uc16 min; // Inclusive.
-        base::uc16 max; // Inclusive.
-    };
-    class ReadLookbehindTablePayload {
-    public:
-        ReadLookbehindTablePayload() = default;
-        ReadLookbehindTablePayload(int32_t lookbehind_index, bool is_positive)
-            : payload_(IsPositive::update(LookbehindIndex::encode(lookbehind_index), is_positive))
-        {
-        }
+  struct Uc16Range {
+    base::uc16 min;  // Inclusive.
+    base::uc16 max;  // Inclusive.
+  };
+  class ReadLookbehindTablePayload {
+   public:
+    ReadLookbehindTablePayload() = default;
+    ReadLookbehindTablePayload(int32_t lookbehind_index, bool is_positive)
+        : payload_(IsPositive::update(LookbehindIndex::encode(lookbehind_index),
+                                      is_positive)) {}
 
-        int32_t lookbehind_index() const
-        {
-            return LookbehindIndex::decode(payload_);
-        }
-        bool is_positive() const
-        {
-            return IsPositive::decode(payload_);
-        }
-
-    private:
-        using IsPositive = base::BitField<bool, 0, 1>;
-        using LookbehindIndex = base::BitField<int32_t, 1, 31>;
-        uint32_t payload_;
-    };
-
-    static RegExpInstruction ConsumeRange(base::uc16 min, base::uc16 max)
-    {
-        RegExpInstruction result;
-        result.opcode = CONSUME_RANGE;
-        result.payload.consume_range = Uc16Range { min, max };
-        return result;
+    int32_t lookbehind_index() const {
+      return LookbehindIndex::decode(payload_);
     }
+    bool is_positive() const { return IsPositive::decode(payload_); }
 
-    static RegExpInstruction ConsumeAnyChar()
-    {
-        return ConsumeRange(0x0000, 0xFFFF);
-    }
+   private:
+    using IsPositive = base::BitField<bool, 0, 1>;
+    using LookbehindIndex = base::BitField<int32_t, 1, 31>;
+    uint32_t payload_;
+  };
 
-    static RegExpInstruction Fail()
-    {
-        // This is encoded as the empty CONSUME_RANGE of characters 0xFFFF <= c <=
-        // 0x0000.
-        return ConsumeRange(0xFFFF, 0x0000);
-    }
+  static RegExpInstruction ConsumeRange(base::uc16 min, base::uc16 max) {
+    RegExpInstruction result;
+    result.opcode = CONSUME_RANGE;
+    result.payload.consume_range = Uc16Range{min, max};
+    return result;
+  }
 
-    static RegExpInstruction Fork(int32_t alt_index)
-    {
-        RegExpInstruction result;
-        result.opcode = FORK;
-        result.payload.pc = alt_index;
-        return result;
-    }
+  static RegExpInstruction ConsumeAnyChar() {
+    return ConsumeRange(0x0000, 0xFFFF);
+  }
 
-    static RegExpInstruction Jmp(int32_t alt_index)
-    {
-        RegExpInstruction result;
-        result.opcode = JMP;
-        result.payload.pc = alt_index;
-        return result;
-    }
+  static RegExpInstruction Fail() {
+    // This is encoded as the empty CONSUME_RANGE of characters 0xFFFF <= c <=
+    // 0x0000.
+    return ConsumeRange(0xFFFF, 0x0000);
+  }
 
-    static RegExpInstruction Accept()
-    {
-        RegExpInstruction result;
-        result.opcode = ACCEPT;
-        return result;
-    }
+  static RegExpInstruction Fork(int32_t alt_index) {
+    RegExpInstruction result;
+    result.opcode = FORK;
+    result.payload.pc = alt_index;
+    return result;
+  }
 
-    static RegExpInstruction SetRegisterToCp(int32_t register_index)
-    {
-        RegExpInstruction result;
-        result.opcode = SET_REGISTER_TO_CP;
-        result.payload.register_index = register_index;
-        return result;
-    }
+  static RegExpInstruction Jmp(int32_t alt_index) {
+    RegExpInstruction result;
+    result.opcode = JMP;
+    result.payload.pc = alt_index;
+    return result;
+  }
 
-    static RegExpInstruction Assertion(RegExpAssertion::Type t)
-    {
-        RegExpInstruction result;
-        result.opcode = ASSERTION;
-        result.payload.assertion_type = t;
-        return result;
-    }
+  static RegExpInstruction Accept() {
+    RegExpInstruction result;
+    result.opcode = ACCEPT;
+    return result;
+  }
 
-    static RegExpInstruction ClearRegister(int32_t register_index)
-    {
-        RegExpInstruction result;
-        result.opcode = CLEAR_REGISTER;
-        result.payload.register_index = register_index;
-        return result;
-    }
+  static RegExpInstruction SetRegisterToCp(int32_t register_index) {
+    RegExpInstruction result;
+    result.opcode = SET_REGISTER_TO_CP;
+    result.payload.register_index = register_index;
+    return result;
+  }
 
-    static RegExpInstruction SetQuantifierToClock(int32_t quantifier_id)
-    {
-        RegExpInstruction result;
-        result.opcode = SET_QUANTIFIER_TO_CLOCK;
-        result.payload.quantifier_id = quantifier_id;
-        return result;
-    }
+  static RegExpInstruction Assertion(RegExpAssertion::Type t) {
+    RegExpInstruction result;
+    result.opcode = ASSERTION;
+    result.payload.assertion_type = t;
+    return result;
+  }
 
-    static RegExpInstruction FilterQuantifier(int32_t quantifier_id)
-    {
-        RegExpInstruction result;
-        result.opcode = FILTER_QUANTIFIER;
-        result.payload.quantifier_id = quantifier_id;
-        return result;
-    }
+  static RegExpInstruction ClearRegister(int32_t register_index) {
+    RegExpInstruction result;
+    result.opcode = CLEAR_REGISTER;
+    result.payload.register_index = register_index;
+    return result;
+  }
 
-    static RegExpInstruction FilterGroup(int32_t group_id)
-    {
-        RegExpInstruction result;
-        result.opcode = FILTER_GROUP;
-        result.payload.group_id = group_id;
-        return result;
-    }
+  static RegExpInstruction SetQuantifierToClock(int32_t quantifier_id) {
+    RegExpInstruction result;
+    result.opcode = SET_QUANTIFIER_TO_CLOCK;
+    result.payload.quantifier_id = quantifier_id;
+    return result;
+  }
 
-    static RegExpInstruction FilterChild(int32_t pc)
-    {
-        RegExpInstruction result;
-        result.opcode = FILTER_CHILD;
-        result.payload.pc = pc;
-        return result;
-    }
+  static RegExpInstruction FilterQuantifier(int32_t quantifier_id) {
+    RegExpInstruction result;
+    result.opcode = FILTER_QUANTIFIER;
+    result.payload.quantifier_id = quantifier_id;
+    return result;
+  }
 
-    static RegExpInstruction BeginLoop()
-    {
-        RegExpInstruction result;
-        result.opcode = BEGIN_LOOP;
-        return result;
-    }
+  static RegExpInstruction FilterGroup(int32_t group_id) {
+    RegExpInstruction result;
+    result.opcode = FILTER_GROUP;
+    result.payload.group_id = group_id;
+    return result;
+  }
 
-    static RegExpInstruction EndLoop()
-    {
-        RegExpInstruction result;
-        result.opcode = END_LOOP;
-        return result;
-    }
+  static RegExpInstruction FilterChild(int32_t pc) {
+    RegExpInstruction result;
+    result.opcode = FILTER_CHILD;
+    result.payload.pc = pc;
+    return result;
+  }
 
-    static RegExpInstruction WriteLookTable(int32_t index)
-    {
-        RegExpInstruction result;
-        result.opcode = WRITE_LOOKBEHIND_TABLE;
-        result.payload.looktable_index = index;
-        return result;
-    }
+  static RegExpInstruction BeginLoop() {
+    RegExpInstruction result;
+    result.opcode = BEGIN_LOOP;
+    return result;
+  }
 
-    static RegExpInstruction ReadLookTable(int32_t index, bool is_positive)
-    {
-        RegExpInstruction result;
-        result.opcode = READ_LOOKBEHIND_TABLE;
+  static RegExpInstruction EndLoop() {
+    RegExpInstruction result;
+    result.opcode = END_LOOP;
+    return result;
+  }
 
-        result.payload.read_lookbehind = ReadLookbehindTablePayload(index, is_positive);
-        return result;
-    }
+  static RegExpInstruction WriteLookTable(int32_t index) {
+    RegExpInstruction result;
+    result.opcode = WRITE_LOOKBEHIND_TABLE;
+    result.payload.looktable_index = index;
+    return result;
+  }
 
-    // Returns whether an instruction is `FILTER_GROUP`, `FILTER_QUANTIFIER` or
-    // `FILTER_CHILD`.
-    static bool IsFilter(const RegExpInstruction& instruction)
-    {
-        return instruction.opcode == RegExpInstruction::Opcode::FILTER_GROUP || instruction.opcode == RegExpInstruction::Opcode::FILTER_QUANTIFIER
-            || instruction.opcode == RegExpInstruction::Opcode::FILTER_CHILD;
-    }
+  static RegExpInstruction ReadLookTable(int32_t index, bool is_positive) {
+    RegExpInstruction result;
+    result.opcode = READ_LOOKBEHIND_TABLE;
 
-    Opcode opcode;
-    union {
-        // Payload of CONSUME_RANGE:
-        Uc16Range consume_range;
-        // Payload of FORK, JMP and FILTER_CHILD, the next/forked program counter
-        // (pc):
-        int32_t pc;
-        // Payload of SET_REGISTER_TO_CP and CLEAR_REGISTER:
-        int32_t register_index;
-        // Payload of ASSERTION:
-        RegExpAssertion::Type assertion_type;
-        // Payload of SET_QUANTIFIER_TO_CLOCK and FILTER_QUANTIFIER:
-        int32_t quantifier_id;
-        // Payload of FILTER_GROUP:
-        int32_t group_id;
-        // Payload of WRITE_LOOKBEHIND_TABLE:
-        int32_t looktable_index;
-        // Payload of READ_LOOKBEHIND_TABLE:
-        ReadLookbehindTablePayload read_lookbehind;
-    } payload;
-    static_assert(sizeof(payload) == 4);
+    result.payload.read_lookbehind =
+        ReadLookbehindTablePayload(index, is_positive);
+    return result;
+  }
+
+  // Returns whether an instruction is `FILTER_GROUP`, `FILTER_QUANTIFIER` or
+  // `FILTER_CHILD`.
+  static bool IsFilter(const RegExpInstruction& instruction) {
+    return instruction.opcode == RegExpInstruction::Opcode::FILTER_GROUP ||
+           instruction.opcode == RegExpInstruction::Opcode::FILTER_QUANTIFIER ||
+           instruction.opcode == RegExpInstruction::Opcode::FILTER_CHILD;
+  }
+
+  Opcode opcode;
+  union {
+    // Payload of CONSUME_RANGE:
+    Uc16Range consume_range;
+    // Payload of FORK, JMP and FILTER_CHILD, the next/forked program counter
+    // (pc):
+    int32_t pc;
+    // Payload of SET_REGISTER_TO_CP and CLEAR_REGISTER:
+    int32_t register_index;
+    // Payload of ASSERTION:
+    RegExpAssertion::Type assertion_type;
+    // Payload of SET_QUANTIFIER_TO_CLOCK and FILTER_QUANTIFIER:
+    int32_t quantifier_id;
+    // Payload of FILTER_GROUP:
+    int32_t group_id;
+    // Payload of WRITE_LOOKBEHIND_TABLE:
+    int32_t looktable_index;
+    // Payload of READ_LOOKBEHIND_TABLE:
+    ReadLookbehindTablePayload read_lookbehind;
+  } payload;
+  static_assert(sizeof(payload) == 4);
 };
 static_assert(sizeof(RegExpInstruction) == 8);
 // TODO(mbid,v8:10765): This is rather wasteful.  We can fit the opcode in 2-3
@@ -322,9 +301,10 @@ static_assert(sizeof(RegExpInstruction) == 8);
 // zero-width assertions and captures.
 
 std::ostream& operator<<(std::ostream& os, const RegExpInstruction& inst);
-std::ostream& operator<<(std::ostream& os, base::Vector<const RegExpInstruction> insts);
+std::ostream& operator<<(std::ostream& os,
+                         base::Vector<const RegExpInstruction> insts);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_REGEXP_EXPERIMENTAL_EXPERIMENTAL_BYTECODE_H_
+#endif  // V8_REGEXP_EXPERIMENTAL_EXPERIMENTAL_BYTECODE_H_

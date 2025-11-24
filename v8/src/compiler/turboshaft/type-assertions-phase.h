@@ -10,11 +10,11 @@
 namespace v8::internal::compiler::turboshaft {
 
 struct TypeAssertionsPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(TypeAssertions)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(TypeAssertions)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_TYPE_ASSERTIONS_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_TYPE_ASSERTIONS_PHASE_H_

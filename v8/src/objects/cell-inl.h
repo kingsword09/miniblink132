@@ -20,14 +20,13 @@ namespace internal {
 
 TQ_OBJECT_CONSTRUCTORS_IMPL(Cell)
 
-DEF_RELAXED_GETTER(Cell, value, Tagged<Object>)
-{
-    return TaggedField<Object, kValueOffset>::Relaxed_Load(cage_base, *this);
+DEF_RELAXED_GETTER(Cell, value, Tagged<Object>) {
+  return TaggedField<Object, kValueOffset>::Relaxed_Load(cage_base, *this);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_CELL_INL_H_
+#endif  // V8_OBJECTS_CELL_INL_H_

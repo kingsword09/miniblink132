@@ -12,20 +12,23 @@ namespace cppgc {
 namespace internal {
 
 // static
-size_t BaseObjectSizeTrait::GetObjectSizeForGarbageCollected(const void* object)
-{
-    return ObjectView<AccessMode::kAtomic>(HeapObjectHeader::FromObject(object)).Size();
+size_t BaseObjectSizeTrait::GetObjectSizeForGarbageCollected(
+    const void* object) {
+  return ObjectView<AccessMode::kAtomic>(HeapObjectHeader::FromObject(object))
+      .Size();
 }
 
 // static
-size_t BaseObjectSizeTrait::GetObjectSizeForGarbageCollectedMixin(const void* address)
-{
-    // `address` is guaranteed to be on a normal page because large object mixins
-    // are not supported.
-    const auto& header = BasePage::FromPayload(address)->ObjectHeaderFromInnerAddress<AccessMode::kAtomic>(address);
-    DCHECK(!header.IsLargeObject<AccessMode::kAtomic>());
-    return header.ObjectSize<AccessMode::kAtomic>();
+size_t BaseObjectSizeTrait::GetObjectSizeForGarbageCollectedMixin(
+    const void* address) {
+  // `address` is guaranteed to be on a normal page because large object mixins
+  // are not supported.
+  const auto& header =
+      BasePage::FromPayload(address)
+          ->ObjectHeaderFromInnerAddress<AccessMode::kAtomic>(address);
+  DCHECK(!header.IsLargeObject<AccessMode::kAtomic>());
+  return header.ObjectSize<AccessMode::kAtomic>();
 }
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc

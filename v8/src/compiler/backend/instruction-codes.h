@@ -39,254 +39,255 @@ namespace compiler {
 
 // Modes for ArchStoreWithWriteBarrier below.
 enum class RecordWriteMode {
-    kValueIsMap,
-    kValueIsPointer,
-    kValueIsIndirectPointer,
-    kValueIsEphemeronKey,
-    kValueIsAny,
+  kValueIsMap,
+  kValueIsPointer,
+  kValueIsIndirectPointer,
+  kValueIsEphemeronKey,
+  kValueIsAny,
 };
 
-inline RecordWriteMode WriteBarrierKindToRecordWriteMode(WriteBarrierKind write_barrier_kind)
-{
-    switch (write_barrier_kind) {
+inline RecordWriteMode WriteBarrierKindToRecordWriteMode(
+    WriteBarrierKind write_barrier_kind) {
+  switch (write_barrier_kind) {
     case kMapWriteBarrier:
-        return RecordWriteMode::kValueIsMap;
+      return RecordWriteMode::kValueIsMap;
     case kPointerWriteBarrier:
-        return RecordWriteMode::kValueIsPointer;
+      return RecordWriteMode::kValueIsPointer;
     case kIndirectPointerWriteBarrier:
-        return RecordWriteMode::kValueIsIndirectPointer;
+      return RecordWriteMode::kValueIsIndirectPointer;
     case kEphemeronKeyWriteBarrier:
-        return RecordWriteMode::kValueIsEphemeronKey;
+      return RecordWriteMode::kValueIsEphemeronKey;
     case kFullWriteBarrier:
-        return RecordWriteMode::kValueIsAny;
+      return RecordWriteMode::kValueIsAny;
     case kNoWriteBarrier:
     // Should not be passed as argument.
     default:
-        break;
-    }
-    UNREACHABLE();
+      break;
+  }
+  UNREACHABLE();
 }
 
-#define COMMON_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(V)                                                                                                     \
-    V(AtomicExchangeInt8)                                                                                                                                      \
-    V(AtomicExchangeUint8)                                                                                                                                     \
-    V(AtomicExchangeInt16)                                                                                                                                     \
-    V(AtomicExchangeUint16)                                                                                                                                    \
-    V(AtomicExchangeWord32)                                                                                                                                    \
-    V(AtomicCompareExchangeInt8)                                                                                                                               \
-    V(AtomicCompareExchangeUint8)                                                                                                                              \
-    V(AtomicCompareExchangeInt16)                                                                                                                              \
-    V(AtomicCompareExchangeUint16)                                                                                                                             \
-    V(AtomicCompareExchangeWord32)                                                                                                                             \
-    V(AtomicAddInt8)                                                                                                                                           \
-    V(AtomicAddUint8)                                                                                                                                          \
-    V(AtomicAddInt16)                                                                                                                                          \
-    V(AtomicAddUint16)                                                                                                                                         \
-    V(AtomicAddWord32)                                                                                                                                         \
-    V(AtomicSubInt8)                                                                                                                                           \
-    V(AtomicSubUint8)                                                                                                                                          \
-    V(AtomicSubInt16)                                                                                                                                          \
-    V(AtomicSubUint16)                                                                                                                                         \
-    V(AtomicSubWord32)                                                                                                                                         \
-    V(AtomicAndInt8)                                                                                                                                           \
-    V(AtomicAndUint8)                                                                                                                                          \
-    V(AtomicAndInt16)                                                                                                                                          \
-    V(AtomicAndUint16)                                                                                                                                         \
-    V(AtomicAndWord32)                                                                                                                                         \
-    V(AtomicOrInt8)                                                                                                                                            \
-    V(AtomicOrUint8)                                                                                                                                           \
-    V(AtomicOrInt16)                                                                                                                                           \
-    V(AtomicOrUint16)                                                                                                                                          \
-    V(AtomicOrWord32)                                                                                                                                          \
-    V(AtomicXorInt8)                                                                                                                                           \
-    V(AtomicXorUint8)                                                                                                                                          \
-    V(AtomicXorInt16)                                                                                                                                          \
-    V(AtomicXorUint16)                                                                                                                                         \
-    V(AtomicXorWord32)                                                                                                                                         \
-    V(ArchStoreWithWriteBarrier)                                                                                                                               \
-    V(ArchAtomicStoreWithWriteBarrier)                                                                                                                         \
-    V(ArchStoreIndirectWithWriteBarrier)                                                                                                                       \
-    V(AtomicLoadInt8)                                                                                                                                          \
-    V(AtomicLoadUint8)                                                                                                                                         \
-    V(AtomicLoadInt16)                                                                                                                                         \
-    V(AtomicLoadUint16)                                                                                                                                        \
-    V(AtomicLoadWord32)                                                                                                                                        \
-    V(AtomicStoreWord8)                                                                                                                                        \
-    V(AtomicStoreWord16)                                                                                                                                       \
-    V(AtomicStoreWord32)
+#define COMMON_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(V) \
+  V(AtomicExchangeInt8)                                    \
+  V(AtomicExchangeUint8)                                   \
+  V(AtomicExchangeInt16)                                   \
+  V(AtomicExchangeUint16)                                  \
+  V(AtomicExchangeWord32)                                  \
+  V(AtomicCompareExchangeInt8)                             \
+  V(AtomicCompareExchangeUint8)                            \
+  V(AtomicCompareExchangeInt16)                            \
+  V(AtomicCompareExchangeUint16)                           \
+  V(AtomicCompareExchangeWord32)                           \
+  V(AtomicAddInt8)                                         \
+  V(AtomicAddUint8)                                        \
+  V(AtomicAddInt16)                                        \
+  V(AtomicAddUint16)                                       \
+  V(AtomicAddWord32)                                       \
+  V(AtomicSubInt8)                                         \
+  V(AtomicSubUint8)                                        \
+  V(AtomicSubInt16)                                        \
+  V(AtomicSubUint16)                                       \
+  V(AtomicSubWord32)                                       \
+  V(AtomicAndInt8)                                         \
+  V(AtomicAndUint8)                                        \
+  V(AtomicAndInt16)                                        \
+  V(AtomicAndUint16)                                       \
+  V(AtomicAndWord32)                                       \
+  V(AtomicOrInt8)                                          \
+  V(AtomicOrUint8)                                         \
+  V(AtomicOrInt16)                                         \
+  V(AtomicOrUint16)                                        \
+  V(AtomicOrWord32)                                        \
+  V(AtomicXorInt8)                                         \
+  V(AtomicXorUint8)                                        \
+  V(AtomicXorInt16)                                        \
+  V(AtomicXorUint16)                                       \
+  V(AtomicXorWord32)                                       \
+  V(ArchStoreWithWriteBarrier)                             \
+  V(ArchAtomicStoreWithWriteBarrier)                       \
+  V(ArchStoreIndirectWithWriteBarrier)                     \
+  V(AtomicLoadInt8)                                        \
+  V(AtomicLoadUint8)                                       \
+  V(AtomicLoadInt16)                                       \
+  V(AtomicLoadUint16)                                      \
+  V(AtomicLoadWord32)                                      \
+  V(AtomicStoreWord8)                                      \
+  V(AtomicStoreWord16)                                     \
+  V(AtomicStoreWord32)
 
 // Target-specific opcodes that specify which assembly sequence to emit.
 // Most opcodes specify a single instruction.
-#define COMMON_ARCH_OPCODE_LIST(V)                                                                                                                             \
-    /* Tail call opcodes are grouped together to make IsTailCall fast */                                                                                       \
-    /* and Arch call opcodes are grouped together to make */                                                                                                   \
-    /* IsCallWithDescriptorFlags fast */                                                                                                                       \
-    V(ArchTailCallCodeObject)                                                                                                                                  \
-    V(ArchTailCallAddress)                                                                                                                                     \
-    IF_WASM(V, ArchTailCallWasm)                                                                                                                               \
-    /* Update IsTailCall if further TailCall opcodes are added */                                                                                              \
-                                                                                                                                                               \
-    V(ArchCallCodeObject)                                                                                                                                      \
-    V(ArchCallJSFunction)                                                                                                                                      \
-    IF_WASM(V, ArchCallWasmFunction)                                                                                                                           \
-    V(ArchCallBuiltinPointer)                                                                                                                                  \
-    /* Update IsCallWithDescriptorFlags if further Call opcodes are added */                                                                                   \
-                                                                                                                                                               \
-    V(ArchPrepareCallCFunction)                                                                                                                                \
-    V(ArchSaveCallerRegisters)                                                                                                                                 \
-    V(ArchRestoreCallerRegisters)                                                                                                                              \
-    V(ArchCallCFunction)                                                                                                                                       \
-    V(ArchCallCFunctionWithFrameState)                                                                                                                         \
-    V(ArchPrepareTailCall)                                                                                                                                     \
-    V(ArchJmp)                                                                                                                                                 \
-    V(ArchBinarySearchSwitch)                                                                                                                                  \
-    V(ArchTableSwitch)                                                                                                                                         \
-    V(ArchNop)                                                                                                                                                 \
-    V(ArchAbortCSADcheck)                                                                                                                                      \
-    V(ArchDebugBreak)                                                                                                                                          \
-    V(ArchComment)                                                                                                                                             \
-    V(ArchThrowTerminator)                                                                                                                                     \
-    V(ArchDeoptimize)                                                                                                                                          \
-    V(ArchRet)                                                                                                                                                 \
-    V(ArchFramePointer)                                                                                                                                        \
-    IF_WASM(V, ArchStackPointer)                                                                                                                               \
-    IF_WASM(V, ArchSetStackPointer)                                                                                                                            \
-    V(ArchParentFramePointer)                                                                                                                                  \
-    V(ArchTruncateDoubleToI)                                                                                                                                   \
-    V(ArchStackSlot)                                                                                                                                           \
-    V(ArchStackPointerGreaterThan)                                                                                                                             \
-    V(ArchStackCheckOffset)                                                                                                                                    \
-    V(Ieee754Float64Acos)                                                                                                                                      \
-    V(Ieee754Float64Acosh)                                                                                                                                     \
-    V(Ieee754Float64Asin)                                                                                                                                      \
-    V(Ieee754Float64Asinh)                                                                                                                                     \
-    V(Ieee754Float64Atan)                                                                                                                                      \
-    V(Ieee754Float64Atanh)                                                                                                                                     \
-    V(Ieee754Float64Atan2)                                                                                                                                     \
-    V(Ieee754Float64Cbrt)                                                                                                                                      \
-    V(Ieee754Float64Cos)                                                                                                                                       \
-    V(Ieee754Float64Cosh)                                                                                                                                      \
-    V(Ieee754Float64Exp)                                                                                                                                       \
-    V(Ieee754Float64Expm1)                                                                                                                                     \
-    V(Ieee754Float64Log)                                                                                                                                       \
-    V(Ieee754Float64Log1p)                                                                                                                                     \
-    V(Ieee754Float64Log10)                                                                                                                                     \
-    V(Ieee754Float64Log2)                                                                                                                                      \
-    V(Ieee754Float64Pow)                                                                                                                                       \
-    V(Ieee754Float64Sin)                                                                                                                                       \
-    V(Ieee754Float64Sinh)                                                                                                                                      \
-    V(Ieee754Float64Tan)                                                                                                                                       \
-    V(Ieee754Float64Tanh)                                                                                                                                      \
-    COMMON_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(V)
+#define COMMON_ARCH_OPCODE_LIST(V)                                         \
+  /* Tail call opcodes are grouped together to make IsTailCall fast */     \
+  /* and Arch call opcodes are grouped together to make */                 \
+  /* IsCallWithDescriptorFlags fast */                                     \
+  V(ArchTailCallCodeObject)                                                \
+  V(ArchTailCallAddress)                                                   \
+  IF_WASM(V, ArchTailCallWasm)                                             \
+  /* Update IsTailCall if further TailCall opcodes are added */            \
+                                                                           \
+  V(ArchCallCodeObject)                                                    \
+  V(ArchCallJSFunction)                                                    \
+  IF_WASM(V, ArchCallWasmFunction)                                         \
+  V(ArchCallBuiltinPointer)                                                \
+  /* Update IsCallWithDescriptorFlags if further Call opcodes are added */ \
+                                                                           \
+  V(ArchPrepareCallCFunction)                                              \
+  V(ArchSaveCallerRegisters)                                               \
+  V(ArchRestoreCallerRegisters)                                            \
+  V(ArchCallCFunction)                                                     \
+  V(ArchCallCFunctionWithFrameState)                                       \
+  V(ArchPrepareTailCall)                                                   \
+  V(ArchJmp)                                                               \
+  V(ArchBinarySearchSwitch)                                                \
+  V(ArchTableSwitch)                                                       \
+  V(ArchNop)                                                               \
+  V(ArchAbortCSADcheck)                                                    \
+  V(ArchDebugBreak)                                                        \
+  V(ArchComment)                                                           \
+  V(ArchThrowTerminator)                                                   \
+  V(ArchDeoptimize)                                                        \
+  V(ArchRet)                                                               \
+  V(ArchFramePointer)                                                      \
+  IF_WASM(V, ArchStackPointer)                                             \
+  IF_WASM(V, ArchSetStackPointer)                                          \
+  V(ArchParentFramePointer)                                                \
+  V(ArchTruncateDoubleToI)                                                 \
+  V(ArchStackSlot)                                                         \
+  V(ArchStackPointerGreaterThan)                                           \
+  V(ArchStackCheckOffset)                                                  \
+  V(Ieee754Float64Acos)                                                    \
+  V(Ieee754Float64Acosh)                                                   \
+  V(Ieee754Float64Asin)                                                    \
+  V(Ieee754Float64Asinh)                                                   \
+  V(Ieee754Float64Atan)                                                    \
+  V(Ieee754Float64Atanh)                                                   \
+  V(Ieee754Float64Atan2)                                                   \
+  V(Ieee754Float64Cbrt)                                                    \
+  V(Ieee754Float64Cos)                                                     \
+  V(Ieee754Float64Cosh)                                                    \
+  V(Ieee754Float64Exp)                                                     \
+  V(Ieee754Float64Expm1)                                                   \
+  V(Ieee754Float64Log)                                                     \
+  V(Ieee754Float64Log1p)                                                   \
+  V(Ieee754Float64Log10)                                                   \
+  V(Ieee754Float64Log2)                                                    \
+  V(Ieee754Float64Pow)                                                     \
+  V(Ieee754Float64Sin)                                                     \
+  V(Ieee754Float64Sinh)                                                    \
+  V(Ieee754Float64Tan)                                                     \
+  V(Ieee754Float64Tanh)                                                    \
+  COMMON_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(V)
 
-#define ARCH_OPCODE_LIST(V)                                                                                                                                    \
-    COMMON_ARCH_OPCODE_LIST(V)                                                                                                                                 \
-    TARGET_ARCH_OPCODE_LIST(V)
+#define ARCH_OPCODE_LIST(V)  \
+  COMMON_ARCH_OPCODE_LIST(V) \
+  TARGET_ARCH_OPCODE_LIST(V)
 
 enum ArchOpcode {
 #define DECLARE_ARCH_OPCODE(Name) k##Name,
-    ARCH_OPCODE_LIST(DECLARE_ARCH_OPCODE)
+  ARCH_OPCODE_LIST(DECLARE_ARCH_OPCODE)
 #undef DECLARE_ARCH_OPCODE
 #define COUNT_ARCH_OPCODE(Name) +1
-        kLastArchOpcode
-    = -1 ARCH_OPCODE_LIST(COUNT_ARCH_OPCODE)
+      kLastArchOpcode = -1 ARCH_OPCODE_LIST(COUNT_ARCH_OPCODE)
 #undef COUNT_ARCH_OPCODE
 };
 
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os, const ArchOpcode& ao);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+                                           const ArchOpcode& ao);
 
 // Addressing modes represent the "shape" of inputs to an instruction.
 // Many instructions support multiple addressing modes. Addressing modes
 // are encoded into the InstructionCode of the instruction and tell the
 // code generator after register allocation which assembler method to call.
-#define ADDRESSING_MODE_LIST(V)                                                                                                                                \
-    V(None)                                                                                                                                                    \
-    TARGET_ADDRESSING_MODE_LIST(V)
+#define ADDRESSING_MODE_LIST(V) \
+  V(None)                       \
+  TARGET_ADDRESSING_MODE_LIST(V)
 
 enum AddressingMode : uint8_t {
 #define DECLARE_ADDRESSING_MODE(Name) kMode_##Name,
-    ADDRESSING_MODE_LIST(DECLARE_ADDRESSING_MODE)
+  ADDRESSING_MODE_LIST(DECLARE_ADDRESSING_MODE)
 #undef DECLARE_ADDRESSING_MODE
 #define COUNT_ADDRESSING_MODE(Name) +1
-        kLastAddressingMode
-    = -1 ADDRESSING_MODE_LIST(COUNT_ADDRESSING_MODE)
+      kLastAddressingMode = -1 ADDRESSING_MODE_LIST(COUNT_ADDRESSING_MODE)
 #undef COUNT_ADDRESSING_MODE
 };
 
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os, const AddressingMode& am);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+                                           const AddressingMode& am);
 
 // The mode of the flags continuation (see below).
 enum FlagsMode {
-    kFlags_none = 0,
-    kFlags_branch = 1,
-    kFlags_deoptimize = 2,
-    kFlags_set = 3,
-    kFlags_trap = 4,
-    kFlags_select = 5,
-    kFlags_conditional_set = 6,
-    kFlags_conditional_branch = 7,
+  kFlags_none = 0,
+  kFlags_branch = 1,
+  kFlags_deoptimize = 2,
+  kFlags_set = 3,
+  kFlags_trap = 4,
+  kFlags_select = 5,
+  kFlags_conditional_set = 6,
+  kFlags_conditional_branch = 7,
 };
 
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os, const FlagsMode& fm);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+                                           const FlagsMode& fm);
 
 // The condition of flags continuation (see below).
 enum FlagsCondition : uint8_t {
-    kEqual,
-    kNotEqual,
-    kSignedLessThan,
-    kSignedGreaterThanOrEqual,
-    kSignedLessThanOrEqual,
-    kSignedGreaterThan,
-    kUnsignedLessThan,
-    kUnsignedGreaterThanOrEqual,
-    kUnsignedLessThanOrEqual,
-    kUnsignedGreaterThan,
-    kFloatLessThanOrUnordered,
-    kFloatGreaterThanOrEqual,
-    kFloatLessThanOrEqual,
-    kFloatGreaterThanOrUnordered,
-    kFloatLessThan,
-    kFloatGreaterThanOrEqualOrUnordered,
-    kFloatLessThanOrEqualOrUnordered,
-    kFloatGreaterThan,
-    kUnorderedEqual,
-    kUnorderedNotEqual,
-    kOverflow,
-    kNotOverflow,
-    kPositiveOrZero,
-    kNegative,
-    kIsNaN,
-    kIsNotNaN,
+  kEqual,
+  kNotEqual,
+  kSignedLessThan,
+  kSignedGreaterThanOrEqual,
+  kSignedLessThanOrEqual,
+  kSignedGreaterThan,
+  kUnsignedLessThan,
+  kUnsignedGreaterThanOrEqual,
+  kUnsignedLessThanOrEqual,
+  kUnsignedGreaterThan,
+  kFloatLessThanOrUnordered,
+  kFloatGreaterThanOrEqual,
+  kFloatLessThanOrEqual,
+  kFloatGreaterThanOrUnordered,
+  kFloatLessThan,
+  kFloatGreaterThanOrEqualOrUnordered,
+  kFloatLessThanOrEqualOrUnordered,
+  kFloatGreaterThan,
+  kUnorderedEqual,
+  kUnorderedNotEqual,
+  kOverflow,
+  kNotOverflow,
+  kPositiveOrZero,
+  kNegative,
+  kIsNaN,
+  kIsNotNaN,
 };
 
-static constexpr FlagsCondition kStackPointerGreaterThanCondition = kUnsignedGreaterThan;
+static constexpr FlagsCondition kStackPointerGreaterThanCondition =
+    kUnsignedGreaterThan;
 
-inline FlagsCondition NegateFlagsCondition(FlagsCondition condition)
-{
-    return static_cast<FlagsCondition>(condition ^ 1);
+inline FlagsCondition NegateFlagsCondition(FlagsCondition condition) {
+  return static_cast<FlagsCondition>(condition ^ 1);
 }
 
 FlagsCondition CommuteFlagsCondition(FlagsCondition condition);
 
-V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os, const FlagsCondition& fc);
+V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+                                           const FlagsCondition& fc);
 
 enum MemoryAccessMode {
-    kMemoryAccessDirect = 0,
-    kMemoryAccessProtectedMemOutOfBounds = 1,
-    kMemoryAccessProtectedNullDereference = 2,
+  kMemoryAccessDirect = 0,
+  kMemoryAccessProtectedMemOutOfBounds = 1,
+  kMemoryAccessProtectedNullDereference = 2,
 };
 
 enum class AtomicWidth { kWord32, kWord64 };
 
-inline size_t AtomicWidthSize(AtomicWidth width)
-{
-    switch (width) {
+inline size_t AtomicWidthSize(AtomicWidth width) {
+  switch (width) {
     case AtomicWidth::kWord32:
-        return 4;
+      return 4;
     case AtomicWidth::kWord64:
-        return 8;
-    }
-    UNREACHABLE();
+      return 8;
+  }
+  UNREACHABLE();
 }
 
 static constexpr int kLazyDeoptOnThrowSentinel = -1;
@@ -323,9 +324,12 @@ using InstructionCode = uint32_t;
 // Notably, AccessModeField can follow any of several sequences of fields.
 
 using ArchOpcodeField = base::BitField<ArchOpcode, 0, 9>;
-static_assert(ArchOpcodeField::is_valid(kLastArchOpcode), "All opcodes must fit in the 9-bit ArchOpcodeField.");
+static_assert(ArchOpcodeField::is_valid(kLastArchOpcode),
+              "All opcodes must fit in the 9-bit ArchOpcodeField.");
 using AddressingModeField = ArchOpcodeField::Next<AddressingMode, 5>;
-static_assert(AddressingModeField::is_valid(kLastAddressingMode), "All addressing modes must fit in the 5-bit AddressingModeField.");
+static_assert(
+    AddressingModeField::is_valid(kLastAddressingMode),
+    "All addressing modes must fit in the 5-bit AddressingModeField.");
 using FlagsModeField = AddressingModeField::Next<FlagsMode, 3>;
 using FlagsConditionField = FlagsModeField::Next<FlagsCondition, 5>;
 
@@ -337,7 +341,8 @@ using AtomicWidthField = FlagsConditionField::Next<AtomicWidth, 2>;
 // not used on all architectures. It is used on architectures where the codegen
 // for kSeqCst and kAcqRel differ only by emitting fences.
 using AtomicMemoryOrderField = AtomicWidthField::Next<AtomicMemoryOrder, 2>;
-using AtomicStoreRecordWriteModeField = AtomicMemoryOrderField::Next<RecordWriteMode, 4>;
+using AtomicStoreRecordWriteModeField =
+    AtomicMemoryOrderField::Next<RecordWriteMode, 4>;
 
 // Write modes for writes with barrier.
 using RecordWriteModeField = FlagsConditionField::Next<RecordWriteMode, 3>;
@@ -351,19 +356,23 @@ using LaneSizeField = FlagsConditionField::Next<LaneSize, 2>;
 using VectorLengthField = LaneSizeField::Next<VectorLength, 2>;
 #else
 using LaneSizeField = FlagsConditionField::Next<int, 8>;
-#endif // V8_TARGET_ARCH_X64
+#endif  // V8_TARGET_ARCH_X64
 
 // Denotes whether the instruction needs to emit an accompanying landing pad for
 // the trap handler.
-using AccessModeField = AtomicStoreRecordWriteModeField::Next<MemoryAccessMode, 2>;
+using AccessModeField =
+    AtomicStoreRecordWriteModeField::Next<MemoryAccessMode, 2>;
 
 // Since AccessModeField is defined in terms of atomics, this assert ensures it
 // does not overlap with other fields it is used with.
-static_assert(AtomicStoreRecordWriteModeField::kLastUsedBit >= RecordWriteModeField::kLastUsedBit);
+static_assert(AtomicStoreRecordWriteModeField::kLastUsedBit >=
+              RecordWriteModeField::kLastUsedBit);
 #ifdef V8_TARGET_ARCH_X64
-static_assert(AtomicStoreRecordWriteModeField::kLastUsedBit >= VectorLengthField::kLastUsedBit);
+static_assert(AtomicStoreRecordWriteModeField::kLastUsedBit >=
+              VectorLengthField::kLastUsedBit);
 #else
-static_assert(AtomicStoreRecordWriteModeField::kLastUsedBit >= LaneSizeField::kLastUsedBit);
+static_assert(AtomicStoreRecordWriteModeField::kLastUsedBit >=
+              LaneSizeField::kLastUsedBit);
 #endif
 
 // TODO(turbofan): {HasMemoryAccessMode} is currently only used to guard
@@ -373,21 +382,20 @@ static_assert(AtomicStoreRecordWriteModeField::kLastUsedBit >= LaneSizeField::kL
 // doesn't care to consume it (e.g. kArm64LdrDecompressTaggedSigned). This is
 // scary. {HasMemoryAccessMode} does not include these instructions, so they can
 // be easily found by guarding encoding.
-inline bool HasMemoryAccessMode(ArchOpcode opcode)
-{
+inline bool HasMemoryAccessMode(ArchOpcode opcode) {
 #if defined(TARGET_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST)
-    switch (opcode) {
-#define CASE(Name)                                                                                                                                             \
-    case k##Name:                                                                                                                                              \
-        return true;
-        COMMON_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(CASE)
-        TARGET_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(CASE)
+  switch (opcode) {
+#define CASE(Name) \
+  case k##Name:    \
+    return true;
+    COMMON_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(CASE)
+    TARGET_ARCH_OPCODE_WITH_MEMORY_ACCESS_MODE_LIST(CASE)
 #undef CASE
     default:
-        return false;
-    }
+      return false;
+  }
 #else
-    return false;
+  return false;
 #endif
 }
 
@@ -415,10 +423,11 @@ using MiscField = FlagsConditionField::Next<int, 10>;
 // back fixes that add new opcodes.
 // It is OK to temporarily reduce the required slack if we have a tracking bug
 // to reduce the number of used opcodes again.
-static_assert(ArchOpcodeField::kMax - kLastArchOpcode >= 16, "We are running close to the number of available opcodes.");
+static_assert(ArchOpcodeField::kMax - kLastArchOpcode >= 16,
+              "We are running close to the number of available opcodes.");
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_BACKEND_INSTRUCTION_CODES_H_
+#endif  // V8_COMPILER_BACKEND_INSTRUCTION_CODES_H_

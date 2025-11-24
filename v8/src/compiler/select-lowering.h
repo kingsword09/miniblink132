@@ -16,35 +16,26 @@ class JSGraphAssembler;
 
 // Lowers Select nodes to diamonds.
 class SelectLowering final : public Reducer {
-public:
-    SelectLowering(JSGraphAssembler* graph_assembler, Graph* graph);
-    ~SelectLowering() override;
+ public:
+  SelectLowering(JSGraphAssembler* graph_assembler, Graph* graph);
+  ~SelectLowering() override;
 
-    const char* reducer_name() const override
-    {
-        return "SelectLowering";
-    }
+  const char* reducer_name() const override { return "SelectLowering"; }
 
-    Reduction Reduce(Node* node) override;
+  Reduction Reduce(Node* node) override;
 
-private:
-    Reduction LowerSelect(Node* node);
+ private:
+  Reduction LowerSelect(Node* node);
 
-    JSGraphAssembler* gasm() const
-    {
-        return graph_assembler_;
-    }
-    Node* start() const
-    {
-        return start_;
-    }
+  JSGraphAssembler* gasm() const { return graph_assembler_; }
+  Node* start() const { return start_; }
 
-    JSGraphAssembler* graph_assembler_;
-    Node* start_;
+  JSGraphAssembler* graph_assembler_;
+  Node* start_;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_SELECT_LOWERING_H_
+#endif  // V8_COMPILER_SELECT_LOWERING_H_

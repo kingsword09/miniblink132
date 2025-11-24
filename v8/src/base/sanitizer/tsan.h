@@ -11,10 +11,10 @@
 
 #define DISABLE_TSAN __attribute__((no_sanitize_thread))
 
-#else // !defined(THREAD_SANITIZER)
+#else  // !defined(THREAD_SANITIZER)
 
 #define DISABLE_TSAN
 
-#endif // !defined(THREAD_SANITIZER)
+#endif  // !defined(THREAD_SANITIZER)
 
-#endif // V8_BASE_SANITIZER_TSAN_H_
+#endif  // V8_BASE_SANITIZER_TSAN_H_

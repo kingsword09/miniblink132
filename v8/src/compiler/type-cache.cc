@@ -12,6 +12,6 @@ namespace compiler {
 
 DEFINE_LAZY_LEAKY_OBJECT_GETTER(const TypeCache, TypeCache::Get)
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

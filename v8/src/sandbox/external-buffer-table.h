@@ -35,77 +35,78 @@ class Counters;
  *    algorithm overview for more details about these entries.
  */
 struct ExternalBufferTableEntry {
-    // Make this entry an external buffer entry containing the given pointer
-    // tagged with the given tag and the given buffer size.
-    inline void MakeExternalBufferEntry(std::pair<Address, size_t> buffer, ExternalBufferTag tag);
+  // Make this entry an external buffer entry containing the given pointer
+  // tagged with the given tag and the given buffer size.
+  inline void MakeExternalBufferEntry(std::pair<Address, size_t> buffer,
+                                      ExternalBufferTag tag);
 
-    // Load and untag the external buffer stored in this entry.
-    // This entry must be an external buffer entry.
-    // If the specified tag doesn't match the actual tag of this entry, the
-    // resulting pointer will be invalid and cannot be dereferenced.
-    inline std::pair<Address, size_t> GetExternalBuffer(ExternalBufferTag tag) const;
+  // Load and untag the external buffer stored in this entry.
+  // This entry must be an external buffer entry.
+  // If the specified tag doesn't match the actual tag of this entry, the
+  // resulting pointer will be invalid and cannot be dereferenced.
+  inline std::pair<Address, size_t> GetExternalBuffer(
+      ExternalBufferTag tag) const;
 
-    // Returns true if this entry contains an external buffer with the given tag.
-    inline bool HasExternalBuffer(ExternalBufferTag tag) const;
+  // Returns true if this entry contains an external buffer with the given tag.
+  inline bool HasExternalBuffer(ExternalBufferTag tag) const;
 
-    // Make this entry a freelist entry, containing the index of the next entry
-    // on the freelist.
-    inline void MakeFreelistEntry(uint32_t next_entry_index);
+  // Make this entry a freelist entry, containing the index of the next entry
+  // on the freelist.
+  inline void MakeFreelistEntry(uint32_t next_entry_index);
 
-    // Get the index of the next entry on the freelist. This method may be
-    // called even when the entry is not a freelist entry. However, the result
-    // is only valid if this is a freelist entry. This behaviour is required
-    // for efficient entry allocation, see TryAllocateEntryFromFreelist.
-    inline uint32_t GetNextFreelistEntryIndex() const;
+  // Get the index of the next entry on the freelist. This method may be
+  // called even when the entry is not a freelist entry. However, the result
+  // is only valid if this is a freelist entry. This behaviour is required
+  // for efficient entry allocation, see TryAllocateEntryFromFreelist.
+  inline uint32_t GetNextFreelistEntryIndex() const;
 
-    // Make this entry an evacuation entry containing the address of the handle to
-    // the entry being evacuated.
-    inline void MakeEvacuationEntry(Address handle_location);
+  // Make this entry an evacuation entry containing the address of the handle to
+  // the entry being evacuated.
+  inline void MakeEvacuationEntry(Address handle_location);
 
-    // Returns true if this entry contains an evacuation entry.
-    inline bool HasEvacuationEntry() const;
+  // Returns true if this entry contains an evacuation entry.
+  inline bool HasEvacuationEntry() const;
 
-    // Move the content of this entry into the provided entry.
-    // Used during table compaction. This invalidates the entry.
-    inline void MigrateInto(ExternalBufferTableEntry& other);
+  // Move the content of this entry into the provided entry.
+  // Used during table compaction. This invalidates the entry.
+  inline void MigrateInto(ExternalBufferTableEntry& other);
 
-    // Mark this entry as alive during table garbage collection.
-    inline void Mark();
+  // Mark this entry as alive during table garbage collection.
+  inline void Mark();
 
-    static constexpr bool IsWriteProtected = false;
+  static constexpr bool IsWriteProtected = false;
 
-private:
-    friend class ExternalBufferTable;
+ private:
+  friend class ExternalBufferTable;
 
-    struct ExternalBufferTaggingScheme {
-        using TagType = ExternalBufferTag;
-        static constexpr uint64_t kMarkBit = kExternalBufferMarkBit;
-        static constexpr uint64_t kTagMask = kExternalBufferTagMask;
-        static constexpr TagType kFreeEntryTag = kExternalBufferFreeEntryTag;
-        static constexpr TagType kEvacuationEntryTag = kExternalBufferEvacuationEntryTag;
-        static constexpr bool kSupportsEvacuation = true;
-        static constexpr bool kSupportsZapping = false;
-    };
+  struct ExternalBufferTaggingScheme {
+    using TagType = ExternalBufferTag;
+    static constexpr uint64_t kMarkBit = kExternalBufferMarkBit;
+    static constexpr uint64_t kTagMask = kExternalBufferTagMask;
+    static constexpr TagType kFreeEntryTag = kExternalBufferFreeEntryTag;
+    static constexpr TagType kEvacuationEntryTag =
+        kExternalBufferEvacuationEntryTag;
+    static constexpr bool kSupportsEvacuation = true;
+    static constexpr bool kSupportsZapping = false;
+  };
 
-    using Payload = TaggedPayload<ExternalBufferTaggingScheme>;
+  using Payload = TaggedPayload<ExternalBufferTaggingScheme>;
 
-    inline Payload GetRawPayload()
-    {
-        return payload_.load(std::memory_order_relaxed);
-    }
-    inline void SetRawPayload(Payload new_payload)
-    {
-        return payload_.store(new_payload, std::memory_order_relaxed);
-    }
+  inline Payload GetRawPayload() {
+    return payload_.load(std::memory_order_relaxed);
+  }
+  inline void SetRawPayload(Payload new_payload) {
+    return payload_.store(new_payload, std::memory_order_relaxed);
+  }
 
-    // ExternalBufferTable entries consist of two pointer-sized words where the
-    // first word contains a tag and marking bit together with the actual content
-    // (e.g. an external pointer) and the second word contains the buffer size.
-    std::atomic<Payload> payload_;
+  // ExternalBufferTable entries consist of two pointer-sized words where the
+  // first word contains a tag and marking bit together with the actual content
+  // (e.g. an external pointer) and the second word contains the buffer size.
+  std::atomic<Payload> payload_;
 
-    // The size is not part of the payload since the compiler fails to generate
-    // 128-bit atomic operations on x86_64 platforms.
-    std::atomic<size_t> size_;
+  // The size is not part of the payload since the compiler fails to generate
+  // 128-bit atomic operations on x86_64 platforms.
+  std::atomic<size_t> size_;
 };
 
 //  We expect ExternalBufferTable entries to consist of two 64-bit word.
@@ -142,75 +143,85 @@ static_assert(sizeof(ExternalBufferTableEntry) == 16);
  * For details about the compaction algorithm see the
  * CompactibleExternalEntityTable class.
  */
-class V8_EXPORT_PRIVATE ExternalBufferTable : public CompactibleExternalEntityTable<ExternalBufferTableEntry, kExternalBufferTableReservationSize> {
-    using Base = CompactibleExternalEntityTable<ExternalBufferTableEntry, kExternalBufferTableReservationSize>;
+class V8_EXPORT_PRIVATE ExternalBufferTable
+    : public CompactibleExternalEntityTable<
+          ExternalBufferTableEntry, kExternalBufferTableReservationSize> {
+  using Base =
+      CompactibleExternalEntityTable<ExternalBufferTableEntry,
+                                     kExternalBufferTableReservationSize>;
 
-public:
-    // Size of a ExternalBufferTable, for layout computation in IsolateData.
-    static int constexpr kSize = 2 * kSystemPointerSize;
-    static_assert(kMaxExternalBufferPointers == kMaxCapacity);
+ public:
+  // Size of a ExternalBufferTable, for layout computation in IsolateData.
+  static int constexpr kSize = 2 * kSystemPointerSize;
+  static_assert(kMaxExternalBufferPointers == kMaxCapacity);
 
-    ExternalBufferTable() = default;
-    ExternalBufferTable(const ExternalBufferTable&) = delete;
-    ExternalBufferTable& operator=(const ExternalBufferTable&) = delete;
+  ExternalBufferTable() = default;
+  ExternalBufferTable(const ExternalBufferTable&) = delete;
+  ExternalBufferTable& operator=(const ExternalBufferTable&) = delete;
 
-    // The Spaces used by an ExternalBufferTable also contain the state related
-    // to compaction.
-    struct Space : public Base::Space {
-    public:
-        // During table compaction, we may record the addresses of fields
-        // containing external pointer handles (if they are evacuation candidates).
-        // As such, if such a field is invalidated (for example because the host
-        // object is converted to another object type), we need to be notified of
-        // that. Note that we do not need to care about "re-validated" fields here:
-        // if an external pointer field is first converted to different kind of
-        // field, then again converted to a external pointer field, then it will be
-        // re-initialized, at which point it will obtain a new entry in the
-        // external pointer table which cannot be a candidate for evacuation.
-        inline void NotifyExternalPointerFieldInvalidated(Address field_address);
-    };
+  // The Spaces used by an ExternalBufferTable also contain the state related
+  // to compaction.
+  struct Space : public Base::Space {
+   public:
+    // During table compaction, we may record the addresses of fields
+    // containing external pointer handles (if they are evacuation candidates).
+    // As such, if such a field is invalidated (for example because the host
+    // object is converted to another object type), we need to be notified of
+    // that. Note that we do not need to care about "re-validated" fields here:
+    // if an external pointer field is first converted to different kind of
+    // field, then again converted to a external pointer field, then it will be
+    // re-initialized, at which point it will obtain a new entry in the
+    // external pointer table which cannot be a candidate for evacuation.
+    inline void NotifyExternalPointerFieldInvalidated(Address field_address);
+  };
 
-    // Note: The table currently does not support a setter method since
-    // we cannot guarantee atomicity of the method with the getter.
+  // Note: The table currently does not support a setter method since
+  // we cannot guarantee atomicity of the method with the getter.
 
-    // Retrieves the entry referenced by the given handle.
-    inline std::pair<Address, size_t> Get(ExternalBufferHandle handle, ExternalBufferTag tag) const;
+  // Retrieves the entry referenced by the given handle.
+  inline std::pair<Address, size_t> Get(ExternalBufferHandle handle,
+                                        ExternalBufferTag tag) const;
 
-    // Allocates a new entry in the given space. The caller must provide the
-    // initial value and tag for the entry.
-    inline ExternalBufferHandle AllocateAndInitializeEntry(Space* space, std::pair<Address, size_t> initial_buffer, ExternalBufferTag tag);
+  // Allocates a new entry in the given space. The caller must provide the
+  // initial value and tag for the entry.
+  inline ExternalBufferHandle AllocateAndInitializeEntry(
+      Space* space, std::pair<Address, size_t> initial_buffer,
+      ExternalBufferTag tag);
 
-    // Marks the specified entry as alive.
-    //
-    // If the space to which the entry belongs is currently being compacted, this
-    // may also mark the entry for evacuation for which the location of the
-    // handle is required. See the comments about the compaction algorithm for
-    // more details.
-    //
-    // This method is atomic and can be called from background threads.
-    inline void Mark(Space* space, ExternalBufferHandle handle, Address handle_location);
+  // Marks the specified entry as alive.
+  //
+  // If the space to which the entry belongs is currently being compacted, this
+  // may also mark the entry for evacuation for which the location of the
+  // handle is required. See the comments about the compaction algorithm for
+  // more details.
+  //
+  // This method is atomic and can be called from background threads.
+  inline void Mark(Space* space, ExternalBufferHandle handle,
+                   Address handle_location);
 
-    // Frees unmarked entries and finishes space compaction (if running).
-    //
-    // This method must only be called while mutator threads are stopped as it is
-    // not safe to allocate table entries while the table is being swept.
-    //
-    // Returns the number of live entries after sweeping.
-    uint32_t SweepAndCompact(Space* space, Counters* counters);
+  // Frees unmarked entries and finishes space compaction (if running).
+  //
+  // This method must only be called while mutator threads are stopped as it is
+  // not safe to allocate table entries while the table is being swept.
+  //
+  // Returns the number of live entries after sweeping.
+  uint32_t SweepAndCompact(Space* space, Counters* counters);
 
-private:
-    static inline bool IsValidHandle(ExternalBufferHandle handle);
-    static inline uint32_t HandleToIndex(ExternalBufferHandle handle);
-    static inline ExternalBufferHandle IndexToHandle(uint32_t index);
+ private:
+  static inline bool IsValidHandle(ExternalBufferHandle handle);
+  static inline uint32_t HandleToIndex(ExternalBufferHandle handle);
+  static inline ExternalBufferHandle IndexToHandle(uint32_t index);
 
-    bool TryResolveEvacuationEntryDuringSweeping(uint32_t index, ExternalBufferHandle* handle_location, uint32_t start_of_evacuation_area);
+  bool TryResolveEvacuationEntryDuringSweeping(
+      uint32_t index, ExternalBufferHandle* handle_location,
+      uint32_t start_of_evacuation_area);
 };
 
 static_assert(sizeof(ExternalBufferTable) == ExternalBufferTable::kSize);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_ENABLE_SANDBOX
+#endif  // V8_ENABLE_SANDBOX
 
-#endif // V8_SANDBOX_EXTERNAL_BUFFER_TABLE_H_
+#endif  // V8_SANDBOX_EXTERNAL_BUFFER_TABLE_H_

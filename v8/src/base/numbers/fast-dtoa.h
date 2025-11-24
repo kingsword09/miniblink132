@@ -11,13 +11,13 @@ namespace v8 {
 namespace base {
 
 enum FastDtoaMode {
-    // Computes the shortest representation of the given input. The returned
-    // result will be the most accurate number of this length. Longer
-    // representations might be more accurate.
-    FAST_DTOA_SHORTEST,
-    // Computes a representation where the precision (number of digits) is
-    // given as input. The precision is independent of the decimal point.
-    FAST_DTOA_PRECISION
+  // Computes the shortest representation of the given input. The returned
+  // result will be the most accurate number of this length. Longer
+  // representations might be more accurate.
+  FAST_DTOA_SHORTEST,
+  // Computes a representation where the precision (number of digits) is
+  // given as input. The precision is independent of the decimal point.
+  FAST_DTOA_PRECISION
 };
 
 // FastDtoa will produce at most kFastDtoaMaximalLength digits. This does not
@@ -50,9 +50,11 @@ const int kFastDtoaMaximalLength = 17;
 //     If there are two values that are equally close, then FastDtoa returns
 //     false.
 // For both modes the buffer must be large enough to hold the result.
-V8_BASE_EXPORT bool FastDtoa(double d, FastDtoaMode mode, int requested_digits, Vector<char> buffer, int* length, int* decimal_point);
+V8_BASE_EXPORT bool FastDtoa(double d, FastDtoaMode mode, int requested_digits,
+                             Vector<char> buffer, int* length,
+                             int* decimal_point);
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_NUMBERS_FAST_DTOA_H_
+#endif  // V8_BASE_NUMBERS_FAST_DTOA_H_

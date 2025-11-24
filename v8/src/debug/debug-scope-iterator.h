@@ -13,30 +13,31 @@ namespace v8 {
 namespace internal {
 
 class DebugScopeIterator final : public debug::ScopeIterator {
-public:
-    DebugScopeIterator(Isolate* isolate, FrameInspector* frame_inspector);
-    DebugScopeIterator(Isolate* isolate, DirectHandle<JSFunction> function);
-    DebugScopeIterator(Isolate* isolate, Handle<JSGeneratorObject> generator);
+ public:
+  DebugScopeIterator(Isolate* isolate, FrameInspector* frame_inspector);
+  DebugScopeIterator(Isolate* isolate, DirectHandle<JSFunction> function);
+  DebugScopeIterator(Isolate* isolate, Handle<JSGeneratorObject> generator);
 
-    bool Done() override;
-    void Advance() override;
-    ScopeType GetType() override;
-    v8::Local<v8::Object> GetObject() override;
-    v8::Local<v8::Value> GetFunctionDebugName() override;
-    int GetScriptId() override;
-    bool HasLocationInfo() override;
-    debug::Location GetStartLocation() override;
-    debug::Location GetEndLocation() override;
+  bool Done() override;
+  void Advance() override;
+  ScopeType GetType() override;
+  v8::Local<v8::Object> GetObject() override;
+  v8::Local<v8::Value> GetFunctionDebugName() override;
+  int GetScriptId() override;
+  bool HasLocationInfo() override;
+  debug::Location GetStartLocation() override;
+  debug::Location GetEndLocation() override;
 
-    bool SetVariableValue(v8::Local<v8::String> name, v8::Local<v8::Value> value) override;
+  bool SetVariableValue(v8::Local<v8::String> name,
+                        v8::Local<v8::Value> value) override;
 
-private:
-    bool ShouldIgnore();
+ private:
+  bool ShouldIgnore();
 
-    v8::internal::ScopeIterator iterator_;
+  v8::internal::ScopeIterator iterator_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_DEBUG_DEBUG_SCOPE_ITERATOR_H_
+#endif  // V8_DEBUG_DEBUG_SCOPE_ITERATOR_H_

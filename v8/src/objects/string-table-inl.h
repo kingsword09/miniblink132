@@ -14,24 +14,19 @@ namespace v8 {
 namespace internal {
 
 StringTableKey::StringTableKey(uint32_t raw_hash_field, uint32_t length)
-    : raw_hash_field_(raw_hash_field)
-    , length_(length)
-{
+    : raw_hash_field_(raw_hash_field), length_(length) {}
+
+void StringTableKey::set_raw_hash_field(uint32_t raw_hash_field) {
+  raw_hash_field_ = raw_hash_field;
 }
 
-void StringTableKey::set_raw_hash_field(uint32_t raw_hash_field)
-{
-    raw_hash_field_ = raw_hash_field;
+uint32_t StringTableKey::hash() const {
+  return Name::HashBits::decode(raw_hash_field_);
 }
 
-uint32_t StringTableKey::hash() const
-{
-    return Name::HashBits::decode(raw_hash_field_);
-}
-
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_STRING_TABLE_INL_H_
+#endif  // V8_OBJECTS_STRING_TABLE_INL_H_

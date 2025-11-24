@@ -2,24 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef V8_TARGET_ARCH_X64
-
 #include "src/compiler/backend/instruction-scheduler.h"
 
 namespace v8 {
 namespace internal {
 namespace compiler {
 
-bool InstructionScheduler::SchedulerSupported()
-{
-    return true;
-}
+bool InstructionScheduler::SchedulerSupported() { return true; }
 
-int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) const
-{
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetTargetInstructionFlags(
+    const Instruction* instr) const {
+  switch (instr->arch_opcode()) {
     case kX64TraceInstruction:
-        return kHasSideEffect;
+      return kHasSideEffect;
     case kX64Add:
     case kX64Add32:
     case kX64And:
@@ -341,13 +336,17 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kX64Pblendvb:
     case kX64ExtractF128:
     case kX64InsertI128:
-        return (instr->addressing_mode() == kMode_None) ? kNoOpcodeFlags : kIsLoadOperation | kHasSideEffect;
+      return (instr->addressing_mode() == kMode_None)
+                 ? kNoOpcodeFlags
+                 : kIsLoadOperation | kHasSideEffect;
 
     case kX64Idiv:
     case kX64Idiv32:
     case kX64Udiv:
     case kX64Udiv32:
-        return (instr->addressing_mode() == kMode_None) ? kMayNeedDeoptOrTrapCheck : kMayNeedDeoptOrTrapCheck | kIsLoadOperation | kHasSideEffect;
+      return (instr->addressing_mode() == kMode_None)
+                 ? kMayNeedDeoptOrTrapCheck
+                 : kMayNeedDeoptOrTrapCheck | kIsLoadOperation | kHasSideEffect;
 
     case kX64Movsxbl:
     case kX64Movzxbl:
@@ -358,24 +357,26 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kX64Movsxwq:
     case kX64Movzxwq:
     case kX64Movsxlq:
-        DCHECK_LE(1, instr->InputCount());
-        return instr->InputAt(0)->IsRegister() ? kNoOpcodeFlags : kIsLoadOperation;
+      DCHECK_LE(1, instr->InputCount());
+      return instr->InputAt(0)->IsRegister() ? kNoOpcodeFlags
+                                             : kIsLoadOperation;
 
     case kX64Movb:
     case kX64Movw:
     case kX64S128Store32Lane:
     case kX64S128Store64Lane:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
     case kX64Pextrb:
     case kX64Pextrw:
     case kX64Movl:
-        if (instr->HasOutput()) {
-            DCHECK_LE(1, instr->InputCount());
-            return instr->InputAt(0)->IsRegister() ? kNoOpcodeFlags : kIsLoadOperation;
-        } else {
-            return kHasSideEffect;
-        }
+      if (instr->HasOutput()) {
+        DCHECK_LE(1, instr->InputCount());
+        return instr->InputAt(0)->IsRegister() ? kNoOpcodeFlags
+                                               : kIsLoadOperation;
+      } else {
+        return kHasSideEffect;
+      }
 
     case kX64MovqDecompressTaggedSigned:
     case kX64MovqDecompressTagged:
@@ -411,18 +412,18 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kX64S256Load16x8U:
     case kX64S256Load32x4S:
     case kX64S256Load32x4U:
-        return instr->HasOutput() ? kIsLoadOperation : kHasSideEffect;
+      return instr->HasOutput() ? kIsLoadOperation : kHasSideEffect;
 
     case kX64Peek:
-        return kIsLoadOperation;
+      return kIsLoadOperation;
 
     case kX64Push:
     case kX64Poke:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
     case kX64MFence:
     case kX64LFence:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
     case kX64Word64AtomicStoreWord64:
     case kX64Word64AtomicAddUint64:
@@ -432,25 +433,24 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kX64Word64AtomicXorUint64:
     case kX64Word64AtomicExchangeUint64:
     case kX64Word64AtomicCompareExchangeUint64:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
 #define CASE(Name) case k##Name:
-        COMMON_ARCH_OPCODE_LIST(CASE)
+      COMMON_ARCH_OPCODE_LIST(CASE)
 #undef CASE
-        // Already covered in architecture independent code.
-        UNREACHABLE();
-    }
+      // Already covered in architecture independent code.
+      UNREACHABLE();
+  }
 
-    UNREACHABLE();
+  UNREACHABLE();
 }
 
-int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
-{
-    // Basic latency modeling for x64 instructions. They have been determined
-    // in an empirical way.
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetInstructionLatency(const Instruction* instr) {
+  // Basic latency modeling for x64 instructions. They have been determined
+  // in an empirical way.
+  switch (instr->arch_opcode()) {
     case kSSEFloat64Mul:
-        return 5;
+      return 5;
     case kX64Imul:
     case kX64Imul32:
     case kX64ImulHigh32:
@@ -469,7 +469,7 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kSSEFloat64Sub:
     case kSSEFloat64Max:
     case kSSEFloat64Min:
-        return 3;
+      return 3;
     case kSSEFloat32Mul:
     case kSSEFloat32ToFloat64:
     case kSSEFloat64ToFloat32:
@@ -479,37 +479,35 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kSSEFloat32ToUint32:
     case kSSEFloat64ToInt32:
     case kSSEFloat64ToUint32:
-        return 4;
+      return 4;
     case kX64Idiv:
-        return 49;
+      return 49;
     case kX64Idiv32:
-        return 35;
+      return 35;
     case kX64Udiv:
-        return 38;
+      return 38;
     case kX64Udiv32:
-        return 26;
+      return 26;
     case kSSEFloat32Div:
     case kSSEFloat64Div:
     case kSSEFloat32Sqrt:
     case kSSEFloat64Sqrt:
-        return 13;
+      return 13;
     case kSSEFloat32ToInt64:
     case kSSEFloat64ToInt64:
     case kSSEFloat32ToUint64:
     case kSSEFloat64ToUint64:
     case kSSEFloat64ToFloat16:
-        return 10;
+      return 10;
     case kSSEFloat64Mod:
-        return 50;
+      return 50;
     case kArchTruncateDoubleToI:
-        return 6;
+      return 6;
     default:
-        return 1;
-    }
+      return 1;
+  }
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
-
-#endif // V8_TARGET_ARCH_X64
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

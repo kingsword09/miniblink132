@@ -27,49 +27,58 @@ class StructBodyDescriptor;
 //
 // classes, which are used to represent either reactions, and we distinguish
 // them by their instance types.
-class PromiseReactionJobTask : public TorqueGeneratedPromiseReactionJobTask<PromiseReactionJobTask, Microtask> {
-public:
-    static const int kSizeOfAllPromiseReactionJobTasks = kHeaderSize;
+class PromiseReactionJobTask
+    : public TorqueGeneratedPromiseReactionJobTask<PromiseReactionJobTask,
+                                                   Microtask> {
+ public:
+  static const int kSizeOfAllPromiseReactionJobTasks = kHeaderSize;
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(PromiseReactionJobTask)
+  TQ_OBJECT_CONSTRUCTORS(PromiseReactionJobTask)
 };
 
 // Struct to hold state required for a PromiseReactionJob of type "Fulfill".
-class PromiseFulfillReactionJobTask : public TorqueGeneratedPromiseFulfillReactionJobTask<PromiseFulfillReactionJobTask, PromiseReactionJobTask> {
-public:
-    static_assert(kSize == kSizeOfAllPromiseReactionJobTasks);
+class PromiseFulfillReactionJobTask
+    : public TorqueGeneratedPromiseFulfillReactionJobTask<
+          PromiseFulfillReactionJobTask, PromiseReactionJobTask> {
+ public:
+  static_assert(kSize == kSizeOfAllPromiseReactionJobTasks);
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(PromiseFulfillReactionJobTask)
+  TQ_OBJECT_CONSTRUCTORS(PromiseFulfillReactionJobTask)
 };
 
 // Struct to hold state required for a PromiseReactionJob of type "Reject".
-class PromiseRejectReactionJobTask : public TorqueGeneratedPromiseRejectReactionJobTask<PromiseRejectReactionJobTask, PromiseReactionJobTask> {
-public:
-    static_assert(kSize == kSizeOfAllPromiseReactionJobTasks);
+class PromiseRejectReactionJobTask
+    : public TorqueGeneratedPromiseRejectReactionJobTask<
+          PromiseRejectReactionJobTask, PromiseReactionJobTask> {
+ public:
+  static_assert(kSize == kSizeOfAllPromiseReactionJobTasks);
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(PromiseRejectReactionJobTask)
+  TQ_OBJECT_CONSTRUCTORS(PromiseRejectReactionJobTask)
 };
 
 // A container struct to hold state required for PromiseResolveThenableJob.
-class PromiseResolveThenableJobTask : public TorqueGeneratedPromiseResolveThenableJobTask<PromiseResolveThenableJobTask, Microtask> {
-public:
-    using BodyDescriptor = StructBodyDescriptor;
+class PromiseResolveThenableJobTask
+    : public TorqueGeneratedPromiseResolveThenableJobTask<
+          PromiseResolveThenableJobTask, Microtask> {
+ public:
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(PromiseResolveThenableJobTask)
+  TQ_OBJECT_CONSTRUCTORS(PromiseResolveThenableJobTask)
 };
 
 // Struct to hold the state of a PromiseCapability.
-class PromiseCapability : public TorqueGeneratedPromiseCapability<PromiseCapability, Struct> {
-public:
-    using BodyDescriptor = StructBodyDescriptor;
+class PromiseCapability
+    : public TorqueGeneratedPromiseCapability<PromiseCapability, Struct> {
+ public:
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(PromiseCapability)
+  TQ_OBJECT_CONSTRUCTORS(PromiseCapability)
 };
 
 // A representation of promise reaction. This differs from the specification
@@ -89,18 +98,19 @@ public:
 // Smi 0. On the JSPromise instance they are linked in reverse order,
 // and are turned into the proper order again when scheduling them on
 // the microtask queue.
-class PromiseReaction : public TorqueGeneratedPromiseReaction<PromiseReaction, Struct> {
-public:
-    enum Type { kFulfill, kReject };
+class PromiseReaction
+    : public TorqueGeneratedPromiseReaction<PromiseReaction, Struct> {
+ public:
+  enum Type { kFulfill, kReject };
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(PromiseReaction)
+  TQ_OBJECT_CONSTRUCTORS(PromiseReaction)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_PROMISE_H_
+#endif  // V8_OBJECTS_PROMISE_H_

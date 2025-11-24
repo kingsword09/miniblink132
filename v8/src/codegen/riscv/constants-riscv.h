@@ -16,7 +16,6 @@
 #include "src/codegen/riscv/constant-riscv-zicsr.h"
 #include "src/codegen/riscv/constant-riscv-zifencei.h"
 namespace v8 {
-namespace internal {
-} // namespace internal
-} // namespace v8
-#endif // V8_CODEGEN_RISCV_CONSTANTS_RISCV_H_
+namespace internal {}  // namespace internal
+}  // namespace v8
+#endif  // V8_CODEGEN_RISCV_CONSTANTS_RISCV_H_

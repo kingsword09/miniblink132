@@ -20,60 +20,67 @@ class StructBodyDescriptor;
 
 #include "torque-generated/src/objects/js-generator-tq.inc"
 
-class JSGeneratorObject : public TorqueGeneratedJSGeneratorObject<JSGeneratorObject, JSObject> {
-public:
-    enum ResumeMode { kNext, kReturn, kThrow, kRethrow };
+class JSGeneratorObject
+    : public TorqueGeneratedJSGeneratorObject<JSGeneratorObject, JSObject> {
+ public:
+  enum ResumeMode { kNext, kReturn, kThrow, kRethrow };
 
-    inline bool is_closed() const;
-    inline bool is_executing() const;
-    inline bool is_suspended() const;
+  inline bool is_closed() const;
+  inline bool is_executing() const;
+  inline bool is_suspended() const;
 
-    // For suspended generators: the source position at which the generator
-    // is suspended.
-    int source_position() const;
-    int code_offset() const;
+  // For suspended generators: the source position at which the generator
+  // is suspended.
+  int source_position() const;
+  int code_offset() const;
 
-    // Dispatched behavior.
-    DECL_PRINTER(JSGeneratorObject)
+  // Dispatched behavior.
+  DECL_PRINTER(JSGeneratorObject)
 
-    // Magic sentinel values for the continuation.
-    static const int kGeneratorExecuting = -2;
-    static const int kGeneratorClosed = -1;
+  // Magic sentinel values for the continuation.
+  static const int kGeneratorExecuting = -2;
+  static const int kGeneratorClosed = -1;
 
-    TQ_OBJECT_CONSTRUCTORS(JSGeneratorObject)
+  TQ_OBJECT_CONSTRUCTORS(JSGeneratorObject)
 };
 
-class JSAsyncFunctionObject : public TorqueGeneratedJSAsyncFunctionObject<JSAsyncFunctionObject, JSGeneratorObject> {
-public:
-    // Dispatched behavior.
-    DECL_VERIFIER(JSAsyncFunctionObject)
-    DECL_PRINTER(JSAsyncFunctionObject)
+class JSAsyncFunctionObject
+    : public TorqueGeneratedJSAsyncFunctionObject<JSAsyncFunctionObject,
+                                                  JSGeneratorObject> {
+ public:
+  // Dispatched behavior.
+  DECL_VERIFIER(JSAsyncFunctionObject)
+  DECL_PRINTER(JSAsyncFunctionObject)
 
-    TQ_OBJECT_CONSTRUCTORS(JSAsyncFunctionObject)
+  TQ_OBJECT_CONSTRUCTORS(JSAsyncFunctionObject)
 };
 
-class JSAsyncGeneratorObject : public TorqueGeneratedJSAsyncGeneratorObject<JSAsyncGeneratorObject, JSGeneratorObject> {
-public:
-    // Dispatched behavior.
-    DECL_VERIFIER(JSAsyncGeneratorObject)
-    DECL_PRINTER(JSAsyncGeneratorObject)
+class JSAsyncGeneratorObject
+    : public TorqueGeneratedJSAsyncGeneratorObject<JSAsyncGeneratorObject,
+                                                   JSGeneratorObject> {
+ public:
+  // Dispatched behavior.
+  DECL_VERIFIER(JSAsyncGeneratorObject)
+  DECL_PRINTER(JSAsyncGeneratorObject)
 
-    TQ_OBJECT_CONSTRUCTORS(JSAsyncGeneratorObject)
+  TQ_OBJECT_CONSTRUCTORS(JSAsyncGeneratorObject)
 };
 
-class AsyncGeneratorRequest : public TorqueGeneratedAsyncGeneratorRequest<AsyncGeneratorRequest, Struct> {
-public:
-    DECL_PRINTER(AsyncGeneratorRequest)
-    DECL_VERIFIER(AsyncGeneratorRequest)
+class AsyncGeneratorRequest
+    : public TorqueGeneratedAsyncGeneratorRequest<AsyncGeneratorRequest,
+                                                  Struct> {
+ public:
+  DECL_PRINTER(AsyncGeneratorRequest)
+  DECL_VERIFIER(AsyncGeneratorRequest)
 
-    using BodyDescriptor = StructBodyDescriptor;
+  using BodyDescriptor = StructBodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(AsyncGeneratorRequest)
+  TQ_OBJECT_CONSTRUCTORS(AsyncGeneratorRequest)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_GENERATOR_H_
+#endif  // V8_OBJECTS_JS_GENERATOR_H_

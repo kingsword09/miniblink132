@@ -14,27 +14,29 @@ namespace v8 {
 namespace internal {
 
 // https://tc39.es/proposal-json-parse-with-source/#sec-json.rawjson
-MaybeHandle<JSRawJson> JSRawJson::Create(Isolate* isolate, Handle<Object> text)
-{
-    Handle<String> json_string;
-    ASSIGN_RETURN_ON_EXCEPTION(isolate, json_string, Object::ToString(isolate, text));
-    Handle<String> flat = String::Flatten(isolate, json_string);
-    if (String::IsOneByteRepresentationUnderneath(*flat)) {
-        if (!JsonParser<uint8_t>::CheckRawJson(isolate, flat)) {
-            DCHECK(isolate->has_exception());
-            return MaybeHandle<JSRawJson>();
-        }
-    } else {
-        if (!JsonParser<uint16_t>::CheckRawJson(isolate, flat)) {
-            DCHECK(isolate->has_exception());
-            return MaybeHandle<JSRawJson>();
-        }
+MaybeHandle<JSRawJson> JSRawJson::Create(Isolate* isolate,
+                                         Handle<Object> text) {
+  Handle<String> json_string;
+  ASSIGN_RETURN_ON_EXCEPTION(isolate, json_string,
+                             Object::ToString(isolate, text));
+  Handle<String> flat = String::Flatten(isolate, json_string);
+  if (String::IsOneByteRepresentationUnderneath(*flat)) {
+    if (!JsonParser<uint8_t>::CheckRawJson(isolate, flat)) {
+      DCHECK(isolate->has_exception());
+      return MaybeHandle<JSRawJson>();
     }
-    Handle<JSObject> result = isolate->factory()->NewJSObjectFromMap(isolate->js_raw_json_map());
-    result->InObjectPropertyAtPut(JSRawJson::kRawJsonInitialIndex, *flat);
-    JSObject::SetIntegrityLevel(isolate, result, FROZEN, kThrowOnError).Check();
-    return Cast<JSRawJson>(result);
+  } else {
+    if (!JsonParser<uint16_t>::CheckRawJson(isolate, flat)) {
+      DCHECK(isolate->has_exception());
+      return MaybeHandle<JSRawJson>();
+    }
+  }
+  Handle<JSObject> result =
+      isolate->factory()->NewJSObjectFromMap(isolate->js_raw_json_map());
+  result->InObjectPropertyAtPut(JSRawJson::kRawJsonInitialIndex, *flat);
+  JSObject::SetIntegrityLevel(isolate, result, FROZEN, kThrowOnError).Check();
+  return Cast<JSRawJson>(result);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

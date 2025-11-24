@@ -40,107 +40,108 @@ namespace internal {
 
 // Linux perf tool logging support.
 class LinuxPerfJitLogger : public CodeEventLogger {
-public:
-    explicit LinuxPerfJitLogger(Isolate* isolate);
-    ~LinuxPerfJitLogger() override;
+ public:
+  explicit LinuxPerfJitLogger(Isolate* isolate);
+  ~LinuxPerfJitLogger() override;
 
-    void CodeMoveEvent(Tagged<InstructionStream> from, Tagged<InstructionStream> to) override
-    {
-        UNREACHABLE(); // Unsupported.
-    }
-    void BytecodeMoveEvent(Tagged<BytecodeArray> from, Tagged<BytecodeArray> to) override
-    {
-    }
-    void CodeDisableOptEvent(Handle<AbstractCode> code, Handle<SharedFunctionInfo> shared) override
-    {
-    }
+  void CodeMoveEvent(Tagged<InstructionStream> from,
+                     Tagged<InstructionStream> to) override {
+    UNREACHABLE();  // Unsupported.
+  }
+  void BytecodeMoveEvent(Tagged<BytecodeArray> from,
+                         Tagged<BytecodeArray> to) override {}
+  void CodeDisableOptEvent(Handle<AbstractCode> code,
+                           Handle<SharedFunctionInfo> shared) override {}
 
-private:
-    void OpenJitDumpFile();
-    void CloseJitDumpFile();
-    void* OpenMarkerFile(int fd);
-    void CloseMarkerFile(void* marker_address);
+ private:
+  void OpenJitDumpFile();
+  void CloseJitDumpFile();
+  void* OpenMarkerFile(int fd);
+  void CloseMarkerFile(void* marker_address);
 
-    uint64_t GetTimestamp();
-    void LogRecordedBuffer(Tagged<AbstractCode> code, MaybeHandle<SharedFunctionInfo> maybe_shared, const char* name, int length) override;
+  uint64_t GetTimestamp();
+  void LogRecordedBuffer(Tagged<AbstractCode> code,
+                         MaybeHandle<SharedFunctionInfo> maybe_shared,
+                         const char* name, int length) override;
 #if V8_ENABLE_WEBASSEMBLY
-    void LogRecordedBuffer(const wasm::WasmCode* code, const char* name, int length) override;
-#endif // V8_ENABLE_WEBASSEMBLY
+  void LogRecordedBuffer(const wasm::WasmCode* code, const char* name,
+                         int length) override;
+#endif  // V8_ENABLE_WEBASSEMBLY
 
-    // Extension added to V8 log file name to get the low-level log name.
-    static const char kFilenameFormatString[];
-    static const int kFilenameBufferPadding;
+  // Extension added to V8 log file name to get the low-level log name.
+  static const char kFilenameFormatString[];
+  static const int kFilenameBufferPadding;
 
-    // File buffer size of the low-level log. We don't use the default to
-    // minimize the associated overhead.
-    static const int kLogBufferSize = 2 * MB;
+  // File buffer size of the low-level log. We don't use the default to
+  // minimize the associated overhead.
+  static const int kLogBufferSize = 2 * MB;
 
-    void WriteJitCodeLoadEntry(const uint8_t* code_pointer, uint32_t code_size, const char* name, int name_length);
+  void WriteJitCodeLoadEntry(const uint8_t* code_pointer, uint32_t code_size,
+                             const char* name, int name_length);
 
-    void LogWriteBytes(const char* bytes, int size);
-    void LogWriteHeader();
-    void LogWriteDebugInfo(Tagged<Code> code, Handle<SharedFunctionInfo> shared);
+  void LogWriteBytes(const char* bytes, int size);
+  void LogWriteHeader();
+  void LogWriteDebugInfo(Tagged<Code> code, Handle<SharedFunctionInfo> shared);
 #if V8_ENABLE_WEBASSEMBLY
-    void LogWriteDebugInfo(const wasm::WasmCode* code);
-#endif // V8_ENABLE_WEBASSEMBLY
-    void LogWriteUnwindingInfo(Tagged<Code> code);
+  void LogWriteDebugInfo(const wasm::WasmCode* code);
+#endif  // V8_ENABLE_WEBASSEMBLY
+  void LogWriteUnwindingInfo(Tagged<Code> code);
 
-    static const uint32_t kElfMachIA32 = 3;
-    static const uint32_t kElfMachX64 = 62;
-    static const uint32_t kElfMachARM = 40;
-    static const uint32_t kElfMachMIPS64 = 8;
-    static const uint32_t kElfMachLOONG64 = 258;
-    static const uint32_t kElfMachARM64 = 183;
-    static const uint32_t kElfMachS390x = 22;
-    static const uint32_t kElfMachPPC64 = 21;
-    static const uint32_t kElfMachRISCV = 243;
+  static const uint32_t kElfMachIA32 = 3;
+  static const uint32_t kElfMachX64 = 62;
+  static const uint32_t kElfMachARM = 40;
+  static const uint32_t kElfMachMIPS64 = 8;
+  static const uint32_t kElfMachLOONG64 = 258;
+  static const uint32_t kElfMachARM64 = 183;
+  static const uint32_t kElfMachS390x = 22;
+  static const uint32_t kElfMachPPC64 = 21;
+  static const uint32_t kElfMachRISCV = 243;
 
-    uint32_t GetElfMach()
-    {
+  uint32_t GetElfMach() {
 #if V8_TARGET_ARCH_IA32
-        return kElfMachIA32;
+    return kElfMachIA32;
 #elif V8_TARGET_ARCH_X64
-        return kElfMachX64;
+    return kElfMachX64;
 #elif V8_TARGET_ARCH_ARM
-        return kElfMachARM;
+    return kElfMachARM;
 #elif V8_TARGET_ARCH_MIPS64
-        return kElfMachMIPS64;
+    return kElfMachMIPS64;
 #elif V8_TARGET_ARCH_LOONG64
-        return kElfMachLOONG64;
+    return kElfMachLOONG64;
 #elif V8_TARGET_ARCH_ARM64
-        return kElfMachARM64;
+    return kElfMachARM64;
 #elif V8_TARGET_ARCH_S390X
-        return kElfMachS390x;
+    return kElfMachS390x;
 #elif V8_TARGET_ARCH_PPC64
-        return kElfMachPPC64;
+    return kElfMachPPC64;
 #elif V8_TARGET_ARCH_RISCV32 || V8_TARGET_ARCH_RISCV64
-        return kElfMachRISCV;
+    return kElfMachRISCV;
 #else
-        UNIMPLEMENTED();
-        return 0;
+    UNIMPLEMENTED();
+    return 0;
 #endif
-    }
+  }
 
 #if V8_TARGET_ARCH_32_BIT
-    static const int kElfHeaderSize = 0x34;
+  static const int kElfHeaderSize = 0x34;
 #elif V8_TARGET_ARCH_64_BIT
-    static const int kElfHeaderSize = 0x40;
+  static const int kElfHeaderSize = 0x40;
 #else
 #error Unknown target architecture pointer size
 #endif
 
-    // Per-process singleton file. We assume that there is one main isolate;
-    // to determine when it goes away, we keep reference count.
-    static FILE* perf_output_handle_;
-    static uint64_t reference_count_;
-    static void* marker_address_;
-    static uint64_t code_index_;
-    static int process_id_;
+  // Per-process singleton file. We assume that there is one main isolate;
+  // to determine when it goes away, we keep reference count.
+  static FILE* perf_output_handle_;
+  static uint64_t reference_count_;
+  static void* marker_address_;
+  static uint64_t code_index_;
+  static int process_id_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_OS_LINUX
+#endif  // V8_OS_LINUX
 
-#endif // V8_DIAGNOSTICS_PERF_JIT_H_
+#endif  // V8_DIAGNOSTICS_PERF_JIT_H_

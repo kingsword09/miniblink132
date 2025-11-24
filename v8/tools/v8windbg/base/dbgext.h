@@ -34,4 +34,4 @@ extern WRL::ComPtr<IDebugHostExtensibility> sp_debug_host_extensibility;
 HRESULT CreateExtension();
 void DestroyExtension();
 
-#endif // V8_TOOLS_V8WINDBG_BASE_DBGEXT_H_
+#endif  // V8_TOOLS_V8WINDBG_BASE_DBGEXT_H_

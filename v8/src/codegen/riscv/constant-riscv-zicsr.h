@@ -23,6 +23,6 @@ constexpr Opcode RO_CSRRC = SYSTEM | (0b011 << kFunct3Shift);
 constexpr Opcode RO_CSRRWI = SYSTEM | (0b101 << kFunct3Shift);
 constexpr Opcode RO_CSRRSI = SYSTEM | (0b110 << kFunct3Shift);
 constexpr Opcode RO_CSRRCI = SYSTEM | (0b111 << kFunct3Shift);
-} // namespace internal
-} // namespace v8
-#endif // V8_CODEGEN_RISCV_CONSTANT_RISCV_ZICSR_H_
+}  // namespace internal
+}  // namespace v8
+#endif  // V8_CODEGEN_RISCV_CONSTANT_RISCV_ZICSR_H_

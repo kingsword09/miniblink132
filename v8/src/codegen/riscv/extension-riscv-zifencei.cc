@@ -9,9 +9,8 @@
 namespace v8 {
 namespace internal {
 
-void AssemblerRISCVZifencei::fence_i()
-{
-    GenInstrI(0b001, MISC_MEM, ToRegister(0), ToRegister(0), 0);
+void AssemblerRISCVZifencei::fence_i() {
+  GenInstrI(0b001, MISC_MEM, ToRegister(0), ToRegister(0), 0);
 }
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

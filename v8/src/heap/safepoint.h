@@ -25,225 +25,219 @@ class RootVisitor;
 // Used to bring all threads with heap access in an isolate to a safepoint such
 // that e.g. a garbage collection can be performed.
 class IsolateSafepoint final {
-public:
-    explicit IsolateSafepoint(Heap* heap);
+ public:
+  explicit IsolateSafepoint(Heap* heap);
 
-    // Iterate handles in local heaps
-    void Iterate(RootVisitor* visitor);
+  // Iterate handles in local heaps
+  void Iterate(RootVisitor* visitor);
 
-    // Iterate local heaps
-    template <typename Callback> void IterateLocalHeaps(Callback callback)
-    {
-        AssertActive();
-        for (LocalHeap* current = local_heaps_head_; current; current = current->next_) {
-            callback(current);
-        }
+  // Iterate local heaps
+  template <typename Callback>
+  void IterateLocalHeaps(Callback callback) {
+    AssertActive();
+    for (LocalHeap* current = local_heaps_head_; current;
+         current = current->next_) {
+      callback(current);
     }
+  }
 
-    void AssertActive()
-    {
-        local_heaps_mutex_.AssertHeld();
-    }
+  void AssertActive() { local_heaps_mutex_.AssertHeld(); }
 
-    V8_EXPORT_PRIVATE void AssertMainThreadIsOnlyThread();
+  V8_EXPORT_PRIVATE void AssertMainThreadIsOnlyThread();
 
-private:
-    class Barrier {
-        base::Mutex mutex_;
-        base::ConditionVariable cv_resume_;
-        base::ConditionVariable cv_stopped_;
-        bool armed_;
+ private:
+  class Barrier {
+    base::Mutex mutex_;
+    base::ConditionVariable cv_resume_;
+    base::ConditionVariable cv_stopped_;
+    bool armed_;
 
-        size_t stopped_ = 0;
+    size_t stopped_ = 0;
 
-        bool IsArmed()
-        {
-            return armed_;
-        }
+    bool IsArmed() { return armed_; }
 
-    public:
-        Barrier()
-            : armed_(false)
-            , stopped_(0)
-        {
-        }
+   public:
+    Barrier() : armed_(false), stopped_(0) {}
 
-        void Arm();
-        void Disarm();
-        void WaitUntilRunningThreadsInSafepoint(size_t running);
+    void Arm();
+    void Disarm();
+    void WaitUntilRunningThreadsInSafepoint(size_t running);
 
-        void WaitInSafepoint();
-        void WaitInUnpark();
-        void NotifyPark();
-    };
-
-    enum class IncludeMainThread { kYes, kNo };
-
-    // Wait until unpark operation is safe again.
-    void WaitInUnpark();
-
-    // Enter the safepoint from a running thread.
     void WaitInSafepoint();
-
-    // Running thread reached a safepoint by parking itself.
+    void WaitInUnpark();
     void NotifyPark();
+  };
 
-    // Methods for entering/leaving local safepoint scopes.
-    void EnterLocalSafepointScope();
-    void LeaveLocalSafepointScope();
+  enum class IncludeMainThread { kYes, kNo };
 
-    // Methods for entering/leaving global safepoint scopes.
-    void TryInitiateGlobalSafepointScope(Isolate* initiator, PerClientSafepointData* client_data);
-    void InitiateGlobalSafepointScope(Isolate* initiator, PerClientSafepointData* client_data);
-    void InitiateGlobalSafepointScopeRaw(Isolate* initiator, PerClientSafepointData* client_data);
-    void LeaveGlobalSafepointScope(Isolate* initiator);
+  // Wait until unpark operation is safe again.
+  void WaitInUnpark();
 
-    // Blocks until all running threads reached a safepoint.
-    void WaitUntilRunningThreadsInSafepoint(const PerClientSafepointData* client_data);
+  // Enter the safepoint from a running thread.
+  void WaitInSafepoint();
 
-    IncludeMainThread ShouldIncludeMainThread(Isolate* initiator);
+  // Running thread reached a safepoint by parking itself.
+  void NotifyPark();
 
-    void LockMutex(LocalHeap* local_heap);
+  // Methods for entering/leaving local safepoint scopes.
+  void EnterLocalSafepointScope();
+  void LeaveLocalSafepointScope();
 
-    size_t SetSafepointRequestedFlags(IncludeMainThread include_main_thread);
-    void ClearSafepointRequestedFlags(IncludeMainThread include_main_thread);
+  // Methods for entering/leaving global safepoint scopes.
+  void TryInitiateGlobalSafepointScope(Isolate* initiator,
+                                       PerClientSafepointData* client_data);
+  void InitiateGlobalSafepointScope(Isolate* initiator,
+                                    PerClientSafepointData* client_data);
+  void InitiateGlobalSafepointScopeRaw(Isolate* initiator,
+                                       PerClientSafepointData* client_data);
+  void LeaveGlobalSafepointScope(Isolate* initiator);
 
-    template <typename Callback> void AddLocalHeap(LocalHeap* local_heap, Callback callback)
-    {
-        // Safepoint holds this lock in order to stop threads from starting or
-        // stopping.
-        base::RecursiveMutexGuard guard(&local_heaps_mutex_);
+  // Blocks until all running threads reached a safepoint.
+  void WaitUntilRunningThreadsInSafepoint(
+      const PerClientSafepointData* client_data);
 
-        // Additional code protected from safepoint
-        callback();
+  IncludeMainThread ShouldIncludeMainThread(Isolate* initiator);
 
-        // Add list to doubly-linked list
-        if (local_heaps_head_)
-            local_heaps_head_->prev_ = local_heap;
-        local_heap->prev_ = nullptr;
-        local_heap->next_ = local_heaps_head_;
-        local_heaps_head_ = local_heap;
-    }
+  void LockMutex(LocalHeap* local_heap);
 
-    template <typename Callback> void RemoveLocalHeap(LocalHeap* local_heap, Callback callback)
-    {
-        base::RecursiveMutexGuard guard(&local_heaps_mutex_);
+  size_t SetSafepointRequestedFlags(IncludeMainThread include_main_thread);
+  void ClearSafepointRequestedFlags(IncludeMainThread include_main_thread);
 
-        // Additional code protected from safepoint
-        callback();
+  template <typename Callback>
+  void AddLocalHeap(LocalHeap* local_heap, Callback callback) {
+    // Safepoint holds this lock in order to stop threads from starting or
+    // stopping.
+    base::RecursiveMutexGuard guard(&local_heaps_mutex_);
 
-        // Remove list from doubly-linked list
-        if (local_heap->next_)
-            local_heap->next_->prev_ = local_heap->prev_;
-        if (local_heap->prev_)
-            local_heap->prev_->next_ = local_heap->next_;
-        else
-            local_heaps_head_ = local_heap->next_;
-    }
+    // Additional code protected from safepoint
+    callback();
 
-    Isolate* isolate() const;
-    Isolate* shared_space_isolate() const;
+    // Add list to doubly-linked list
+    if (local_heaps_head_) local_heaps_head_->prev_ = local_heap;
+    local_heap->prev_ = nullptr;
+    local_heap->next_ = local_heaps_head_;
+    local_heaps_head_ = local_heap;
+  }
 
-    Barrier barrier_;
-    Heap* heap_;
+  template <typename Callback>
+  void RemoveLocalHeap(LocalHeap* local_heap, Callback callback) {
+    base::RecursiveMutexGuard guard(&local_heaps_mutex_);
 
-    // Mutex is used both for safepointing and adding/removing threads. A
-    // RecursiveMutex is needed since we need to support nested SafepointScopes.
-    base::RecursiveMutex local_heaps_mutex_;
-    LocalHeap* local_heaps_head_ = nullptr;
+    // Additional code protected from safepoint
+    callback();
 
-    int active_safepoint_scopes_ = 0;
+    // Remove list from doubly-linked list
+    if (local_heap->next_) local_heap->next_->prev_ = local_heap->prev_;
+    if (local_heap->prev_)
+      local_heap->prev_->next_ = local_heap->next_;
+    else
+      local_heaps_head_ = local_heap->next_;
+  }
 
-    friend class GlobalSafepoint;
-    friend class GlobalSafepointScope;
-    friend class Isolate;
-    friend class IsolateSafepointScope;
-    friend class LocalHeap;
+  Isolate* isolate() const;
+  Isolate* shared_space_isolate() const;
+
+  Barrier barrier_;
+  Heap* heap_;
+
+  // Mutex is used both for safepointing and adding/removing threads. A
+  // RecursiveMutex is needed since we need to support nested SafepointScopes.
+  base::RecursiveMutex local_heaps_mutex_;
+  LocalHeap* local_heaps_head_ = nullptr;
+
+  int active_safepoint_scopes_ = 0;
+
+  friend class GlobalSafepoint;
+  friend class GlobalSafepointScope;
+  friend class Isolate;
+  friend class IsolateSafepointScope;
+  friend class LocalHeap;
 };
 
 class V8_NODISCARD IsolateSafepointScope {
-public:
-    V8_EXPORT_PRIVATE explicit IsolateSafepointScope(Heap* heap);
-    V8_EXPORT_PRIVATE ~IsolateSafepointScope();
+ public:
+  V8_EXPORT_PRIVATE explicit IsolateSafepointScope(Heap* heap);
+  V8_EXPORT_PRIVATE ~IsolateSafepointScope();
 
-private:
-    IsolateSafepoint* safepoint_;
+ private:
+  IsolateSafepoint* safepoint_;
 };
 
 // Used for reaching a global safepoint, a safepoint across all client isolates
 // of the shared isolate.
 class GlobalSafepoint final {
-public:
-    explicit GlobalSafepoint(Isolate* isolate);
+ public:
+  explicit GlobalSafepoint(Isolate* isolate);
 
-    void AppendClient(Isolate* client);
-    void RemoveClient(Isolate* client);
+  void AppendClient(Isolate* client);
+  void RemoveClient(Isolate* client);
 
-    template <typename Callback> void IterateClientIsolates(Callback callback)
-    {
-        AssertActive();
-        for (Isolate* current = clients_head_; current; current = current->global_safepoint_next_client_isolate_) {
-            DCHECK(!current->is_shared_space_isolate());
-            callback(current);
-        }
+  template <typename Callback>
+  void IterateClientIsolates(Callback callback) {
+    AssertActive();
+    for (Isolate* current = clients_head_; current;
+         current = current->global_safepoint_next_client_isolate_) {
+      DCHECK(!current->is_shared_space_isolate());
+      callback(current);
     }
+  }
 
-    template <typename Callback> void IterateSharedSpaceAndClientIsolates(Callback callback)
-    {
-        callback(shared_space_isolate_);
-        IterateClientIsolates(callback);
-    }
+  template <typename Callback>
+  void IterateSharedSpaceAndClientIsolates(Callback callback) {
+    callback(shared_space_isolate_);
+    IterateClientIsolates(callback);
+  }
 
-    void AssertNoClientsOnTearDown();
+  void AssertNoClientsOnTearDown();
 
-    void AssertActive()
-    {
-        clients_mutex_.AssertHeld();
-    }
+  void AssertActive() { clients_mutex_.AssertHeld(); }
 
-    V8_EXPORT_PRIVATE bool IsRequestedForTesting();
+  V8_EXPORT_PRIVATE bool IsRequestedForTesting();
 
-private:
-    void EnterGlobalSafepointScope(Isolate* initiator);
-    void LeaveGlobalSafepointScope(Isolate* initiator);
+ private:
+  void EnterGlobalSafepointScope(Isolate* initiator);
+  void LeaveGlobalSafepointScope(Isolate* initiator);
 
-    Isolate* const shared_space_isolate_;
-    // RecursiveMutex is needed since we need to support nested
-    // GlobalSafepointScopes.
-    base::RecursiveMutex clients_mutex_;
-    Isolate* clients_head_ = nullptr;
-    int active_safepoint_scopes_ = 0;
+  Isolate* const shared_space_isolate_;
+  // RecursiveMutex is needed since we need to support nested
+  // GlobalSafepointScopes.
+  base::RecursiveMutex clients_mutex_;
+  Isolate* clients_head_ = nullptr;
+  int active_safepoint_scopes_ = 0;
 
-    friend class GlobalSafepointScope;
-    friend class Isolate;
+  friend class GlobalSafepointScope;
+  friend class Isolate;
 };
 
 class V8_NODISCARD GlobalSafepointScope {
-public:
-    V8_EXPORT_PRIVATE explicit GlobalSafepointScope(Isolate* initiator);
-    V8_EXPORT_PRIVATE ~GlobalSafepointScope();
+ public:
+  V8_EXPORT_PRIVATE explicit GlobalSafepointScope(Isolate* initiator);
+  V8_EXPORT_PRIVATE ~GlobalSafepointScope();
 
-private:
-    Isolate* const initiator_;
-    Isolate* const shared_space_isolate_;
+ private:
+  Isolate* const initiator_;
+  Isolate* const shared_space_isolate_;
 };
 
 enum class SafepointKind { kIsolate, kGlobal };
-struct GlobalSafepointForSharedSpaceIsolateTag { };
+struct GlobalSafepointForSharedSpaceIsolateTag {};
 
-static constexpr GlobalSafepointForSharedSpaceIsolateTag kGlobalSafepointForSharedSpaceIsolate;
+static constexpr GlobalSafepointForSharedSpaceIsolateTag
+    kGlobalSafepointForSharedSpaceIsolate;
 
 class V8_NODISCARD SafepointScope {
-public:
-    V8_EXPORT_PRIVATE explicit SafepointScope(Isolate* initiator, SafepointKind kind);
-    V8_EXPORT_PRIVATE explicit SafepointScope(Isolate* initiator, GlobalSafepointForSharedSpaceIsolateTag);
+ public:
+  V8_EXPORT_PRIVATE explicit SafepointScope(Isolate* initiator,
+                                            SafepointKind kind);
+  V8_EXPORT_PRIVATE explicit SafepointScope(
+      Isolate* initiator, GlobalSafepointForSharedSpaceIsolateTag);
 
-private:
-    std::optional<IsolateSafepointScope> isolate_safepoint_;
-    std::optional<GlobalSafepointScope> global_safepoint_;
+ private:
+  std::optional<IsolateSafepointScope> isolate_safepoint_;
+  std::optional<GlobalSafepointScope> global_safepoint_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_SAFEPOINT_H_
+#endif  // V8_HEAP_SAFEPOINT_H_

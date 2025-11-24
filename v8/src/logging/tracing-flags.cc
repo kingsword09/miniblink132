@@ -7,11 +7,11 @@
 namespace v8 {
 namespace internal {
 
-std::atomic_uint TracingFlags::runtime_stats { 0 };
-std::atomic_uint TracingFlags::gc { 0 };
-std::atomic_uint TracingFlags::gc_stats { 0 };
-std::atomic_uint TracingFlags::ic_stats { 0 };
-std::atomic_uint TracingFlags::zone_stats { 0 };
+std::atomic_uint TracingFlags::runtime_stats{0};
+std::atomic_uint TracingFlags::gc{0};
+std::atomic_uint TracingFlags::gc_stats{0};
+std::atomic_uint TracingFlags::ic_stats{0};
+std::atomic_uint TracingFlags::zone_stats{0};
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

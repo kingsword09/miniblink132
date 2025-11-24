@@ -13,11 +13,11 @@ namespace internal {
 class RegExpNode;
 
 class DotPrinter final : public AllStatic {
-public:
-    static void DotPrint(const char* label, RegExpNode* node);
+ public:
+  static void DotPrint(const char* label, RegExpNode* node);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_REGEXP_REGEXP_DOTPRINTER_H_
+#endif  // V8_REGEXP_REGEXP_DOTPRINTER_H_

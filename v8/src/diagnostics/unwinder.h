@@ -11,6 +11,6 @@ namespace v8 {
 
 internal::Address Load(internal::Address address);
 
-} // namespace v8
+}  // namespace v8
 
-#endif // V8_DIAGNOSTICS_UNWINDER_H_
+#endif  // V8_DIAGNOSTICS_UNWINDER_H_

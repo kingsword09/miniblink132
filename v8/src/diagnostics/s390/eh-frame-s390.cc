@@ -9,59 +9,55 @@ namespace v8 {
 namespace internal {
 
 static const int kR0DwarfCode = 0;
-static const int kFpDwarfCode = 11; // frame-pointer
-static const int kR14DwarfCode = 14; // return-address(lr)
-static const int kSpDwarfCode = 15; // stack-pointer
+static const int kFpDwarfCode = 11;   // frame-pointer
+static const int kR14DwarfCode = 14;  // return-address(lr)
+static const int kSpDwarfCode = 15;   // stack-pointer
 
-const int EhFrameConstants::kCodeAlignmentFactor = 2; // 1 or 2 in s390
+const int EhFrameConstants::kCodeAlignmentFactor = 2;  // 1 or 2 in s390
 const int EhFrameConstants::kDataAlignmentFactor = -8;
 
-void EhFrameWriter::WriteReturnAddressRegisterCode()
-{
-    WriteULeb128(kR14DwarfCode);
+void EhFrameWriter::WriteReturnAddressRegisterCode() {
+  WriteULeb128(kR14DwarfCode);
 }
 
-void EhFrameWriter::WriteInitialStateInCie()
-{
-    SetBaseAddressRegisterAndOffset(fp, 0);
-    RecordRegisterNotModified(r14);
+void EhFrameWriter::WriteInitialStateInCie() {
+  SetBaseAddressRegisterAndOffset(fp, 0);
+  RecordRegisterNotModified(r14);
 }
 
 // static
-int EhFrameWriter::RegisterToDwarfCode(Register name)
-{
-    switch (name.code()) {
+int EhFrameWriter::RegisterToDwarfCode(Register name) {
+  switch (name.code()) {
     case kRegCode_fp:
-        return kFpDwarfCode;
+      return kFpDwarfCode;
     case kRegCode_r14:
-        return kR14DwarfCode;
+      return kR14DwarfCode;
     case kRegCode_sp:
-        return kSpDwarfCode;
+      return kSpDwarfCode;
     case kRegCode_r0:
-        return kR0DwarfCode;
+      return kR0DwarfCode;
     default:
-        UNIMPLEMENTED();
-    }
+      UNIMPLEMENTED();
+  }
 }
 
 #ifdef ENABLE_DISASSEMBLER
 
 // static
-const char* EhFrameDisassembler::DwarfRegisterCodeToString(int code)
-{
-    switch (code) {
+const char* EhFrameDisassembler::DwarfRegisterCodeToString(int code) {
+  switch (code) {
     case kFpDwarfCode:
-        return "fp";
+      return "fp";
     case kR14DwarfCode:
-        return "lr";
+      return "lr";
     case kSpDwarfCode:
-        return "sp";
+      return "sp";
     default:
-        UNIMPLEMENTED();
-    }
+      UNIMPLEMENTED();
+  }
 }
 
 #endif
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

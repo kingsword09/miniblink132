@@ -20,11 +20,13 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void WasmOptimizePhase::Run(PipelineData* data, Zone* temp_zone)
-{
-    UnparkedScopeIfNeeded scope(data->broker(), v8_flags.turboshaft_trace_reduction);
-    CopyingPhase<LateEscapeAnalysisReducer, MachineOptimizationReducer, MemoryOptimizationReducer, BranchEliminationReducer, LateLoadEliminationReducer,
-        ValueNumberingReducer>::Run(data, temp_zone);
+void WasmOptimizePhase::Run(PipelineData* data, Zone* temp_zone) {
+  UnparkedScopeIfNeeded scope(data->broker(),
+                              v8_flags.turboshaft_trace_reduction);
+  CopyingPhase<LateEscapeAnalysisReducer, MachineOptimizationReducer,
+               MemoryOptimizationReducer, BranchEliminationReducer,
+               LateLoadEliminationReducer,
+               ValueNumberingReducer>::Run(data, temp_zone);
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

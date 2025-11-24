@@ -11,13 +11,16 @@
 namespace v8_inspector {
 
 class V8DeepSerializer {
-public:
-    static protocol::Response serializeV8Value(v8::Local<v8::Object> value, v8::Local<v8::Context> context, int maxDepth,
-        v8::Local<v8::Object> additionalParameters, V8SerializationDuplicateTracker& duplicateTracker, protocol::DictionaryValue& result);
+ public:
+  static protocol::Response serializeV8Value(
+      v8::Local<v8::Object> value, v8::Local<v8::Context> context, int maxDepth,
+      v8::Local<v8::Object> additionalParameters,
+      V8SerializationDuplicateTracker& duplicateTracker,
+      protocol::DictionaryValue& result);
 
-    V8_EXPORT explicit V8DeepSerializer(v8::Isolate* isolate);
+  V8_EXPORT explicit V8DeepSerializer(v8::Isolate* isolate);
 };
 
-} // namespace v8_inspector
+}  // namespace v8_inspector
 
-#endif // V8_INSPECTOR_V8_DEEP_SERIALIZER_H_
+#endif  // V8_INSPECTOR_V8_DEEP_SERIALIZER_H_

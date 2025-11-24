@@ -14,35 +14,38 @@
 namespace v8 {
 namespace internal {
 
-V8_INLINE Address ReadCodeEntrypointViaCodePointerField(Address field_address, CodeEntrypointTag tag)
-{
+V8_INLINE Address ReadCodeEntrypointViaCodePointerField(Address field_address,
+                                                        CodeEntrypointTag tag) {
 #ifdef V8_ENABLE_SANDBOX
-    // Handles may be written to objects from other threads so the handle needs
-    // to be loaded atomically. We assume that the load from the table cannot
-    // be reordered before the load of the handle due to the data dependency
-    // between the two loads and therefore use relaxed memory ordering, but
-    // technically we should use memory_order_consume here.
-    auto location = reinterpret_cast<CodePointerHandle*>(field_address);
-    CodePointerHandle handle = base::AsAtomic32::Relaxed_Load(location);
-    return IsolateGroup::current()->code_pointer_table()->GetEntrypoint(handle, tag);
+  // Handles may be written to objects from other threads so the handle needs
+  // to be loaded atomically. We assume that the load from the table cannot
+  // be reordered before the load of the handle due to the data dependency
+  // between the two loads and therefore use relaxed memory ordering, but
+  // technically we should use memory_order_consume here.
+  auto location = reinterpret_cast<CodePointerHandle*>(field_address);
+  CodePointerHandle handle = base::AsAtomic32::Relaxed_Load(location);
+  return IsolateGroup::current()->code_pointer_table()->GetEntrypoint(handle,
+                                                                      tag);
 #else
-    UNREACHABLE();
-#endif // V8_ENABLE_SANDBOX
+  UNREACHABLE();
+#endif  // V8_ENABLE_SANDBOX
 }
 
-V8_INLINE void WriteCodeEntrypointViaCodePointerField(Address field_address, Address value, CodeEntrypointTag tag)
-{
+V8_INLINE void WriteCodeEntrypointViaCodePointerField(Address field_address,
+                                                      Address value,
+                                                      CodeEntrypointTag tag) {
 #ifdef V8_ENABLE_SANDBOX
-    // See comment above for why this is a Relaxed_Load.
-    auto location = reinterpret_cast<CodePointerHandle*>(field_address);
-    CodePointerHandle handle = base::AsAtomic32::Relaxed_Load(location);
-    IsolateGroup::current()->code_pointer_table()->SetEntrypoint(handle, value, tag);
+  // See comment above for why this is a Relaxed_Load.
+  auto location = reinterpret_cast<CodePointerHandle*>(field_address);
+  CodePointerHandle handle = base::AsAtomic32::Relaxed_Load(location);
+  IsolateGroup::current()->code_pointer_table()->SetEntrypoint(handle, value,
+                                                               tag);
 #else
-    UNREACHABLE();
-#endif // V8_ENABLE_SANDBOX
+  UNREACHABLE();
+#endif  // V8_ENABLE_SANDBOX
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SANDBOX_CODE_POINTER_INL_H_
+#endif  // V8_SANDBOX_CODE_POINTER_INL_H_

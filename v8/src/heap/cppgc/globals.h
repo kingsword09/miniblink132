@@ -33,9 +33,9 @@ enum class AccessMode : uint8_t { kNonAtomic, kAtomic };
 // objects.
 #if defined(V8_HOST_ARCH_64_BIT)
 constexpr size_t kAllocationGranularity = 8;
-#else // !V8_HOST_ARCH_64_BIT
+#else   // !V8_HOST_ARCH_64_BIT
 constexpr size_t kAllocationGranularity = 4;
-#endif // !V8_HOST_ARCH_64_BIT
+#endif  // !V8_HOST_ARCH_64_BIT
 constexpr size_t kAllocationMask = kAllocationGranularity - 1;
 
 constexpr size_t kPageSizeLog2 = 17;
@@ -81,11 +81,11 @@ constexpr size_t kFreeListEntrySize = 2 * sizeof(uintptr_t);
 
 #if defined(CPPGC_POINTER_COMPRESSION)
 constexpr size_t kSlotSize = sizeof(uint32_t);
-#else // !defined(CPPGC_POINTER_COMPRESSION)
+#else   // !defined(CPPGC_POINTER_COMPRESSION)
 constexpr size_t kSlotSize = sizeof(uintptr_t);
-#endif // !defined(CPPGC_POINTER_COMPRESSION)
+#endif  // !defined(CPPGC_POINTER_COMPRESSION)
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_GLOBALS_H_
+#endif  // V8_HEAP_CPPGC_GLOBALS_H_

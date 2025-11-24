@@ -10,9 +10,10 @@
 namespace v8 {
 namespace internal {
 
-template <typename IsolateT, base::MutexSharedType kIsShared> class SharedMutexGuardIfOffThread;
+template <typename IsolateT, base::MutexSharedType kIsShared>
+class SharedMutexGuardIfOffThread;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_EXECUTION_SHARED_MUTEX_GUARD_IF_OFF_THREAD_H_
+#endif  // V8_EXECUTION_SHARED_MUTEX_GUARD_IF_OFF_THREAD_H_

@@ -20,9 +20,9 @@ class Histogram;
 // Outcome of external pointer table compaction to use for the
 // ExternalPointerTableCompactionOutcome histogram.
 enum class ExternalEntityTableCompactionOutcome {
-    kSuccess = 0, // Compaction was successful.
-    // Outcome 1, partial success, is no longer supported.
-    kAborted = 2, // Compaction was aborted because the freelist grew too short.
+  kSuccess = 0,  // Compaction was successful.
+  // Outcome 1, partial success, is no longer supported.
+  kAborted = 2,  // Compaction was aborted because the freelist grew too short.
 };
 
 /**
@@ -80,101 +80,104 @@ enum class ExternalEntityTableCompactionOutcome {
  * become necessary, setting pointer handles would have to be guarded by
  * write barriers to avoid this scenario.
  */
-template <typename Entry, size_t size> class V8_EXPORT_PRIVATE CompactibleExternalEntityTable : public ExternalEntityTable<Entry, size> {
-    using Base = ExternalEntityTable<Entry, size>;
+template <typename Entry, size_t size>
+class V8_EXPORT_PRIVATE CompactibleExternalEntityTable
+    : public ExternalEntityTable<Entry, size> {
+  using Base = ExternalEntityTable<Entry, size>;
 
-public:
-    static constexpr bool kSupportsCompaction = true;
+ public:
+  static constexpr bool kSupportsCompaction = true;
 
-    struct CompactionResult {
-        uint32_t start_of_evacuation_area;
-        bool success;
-    };
+  struct CompactionResult {
+    uint32_t start_of_evacuation_area;
+    bool success;
+  };
 
-    CompactibleExternalEntityTable() = default;
-    CompactibleExternalEntityTable(const CompactibleExternalEntityTable&) = delete;
-    CompactibleExternalEntityTable& operator=(const CompactibleExternalEntityTable&) = delete;
+  CompactibleExternalEntityTable() = default;
+  CompactibleExternalEntityTable(const CompactibleExternalEntityTable&) =
+      delete;
+  CompactibleExternalEntityTable& operator=(
+      const CompactibleExternalEntityTable&) = delete;
 
-    // The Spaces used by pointer tables also contain the state related
-    // to compaction.
-    struct Space : public Base::Space {
-    public:
-        Space()
-            : start_of_evacuation_area_(kNotCompactingMarker)
-        {
-        }
+  // The Spaces used by pointer tables also contain the state related
+  // to compaction.
+  struct Space : public Base::Space {
+   public:
+    Space() : start_of_evacuation_area_(kNotCompactingMarker) {}
 
-        // Determine if compaction is needed and if so start the compaction.
-        // This is expected to be called at the start of the GC marking phase.
-        void StartCompactingIfNeeded();
+    // Determine if compaction is needed and if so start the compaction.
+    // This is expected to be called at the start of the GC marking phase.
+    void StartCompactingIfNeeded();
 
-    private:
-        friend class CompactibleExternalEntityTable<Entry, size>;
-        friend class ExternalPointerTable;
-        friend class ExternalBufferTable;
-        friend class CppHeapPointerTable;
+   private:
+    friend class CompactibleExternalEntityTable<Entry, size>;
+    friend class ExternalPointerTable;
+    friend class ExternalBufferTable;
+    friend class CppHeapPointerTable;
 
-        // Routines for compaction. See the comment about table compaction above.
-        inline bool IsCompacting();
-        inline void StartCompacting(uint32_t start_of_evacuation_area);
-        inline void StopCompacting();
-        inline void AbortCompacting(uint32_t start_of_evacuation_area);
-        inline bool CompactingWasAborted();
+    // Routines for compaction. See the comment about table compaction above.
+    inline bool IsCompacting();
+    inline void StartCompacting(uint32_t start_of_evacuation_area);
+    inline void StopCompacting();
+    inline void AbortCompacting(uint32_t start_of_evacuation_area);
+    inline bool CompactingWasAborted();
 
-        inline bool FieldWasInvalidated(Address field_address) const;
-        inline void ClearInvalidatedFields();
-        inline void AddInvalidatedField(Address field_address);
+    inline bool FieldWasInvalidated(Address field_address) const;
+    inline void ClearInvalidatedFields();
+    inline void AddInvalidatedField(Address field_address);
 
-        // This value indicates that this space is not currently being compacted. It
-        // is set to uint32_t max so that determining whether an entry should be
-        // evacuated becomes a single comparison:
-        // `bool should_be_evacuated = index >= start_of_evacuation_area`.
-        static constexpr uint32_t kNotCompactingMarker = std::numeric_limits<uint32_t>::max();
+    // This value indicates that this space is not currently being compacted. It
+    // is set to uint32_t max so that determining whether an entry should be
+    // evacuated becomes a single comparison:
+    // `bool should_be_evacuated = index >= start_of_evacuation_area`.
+    static constexpr uint32_t kNotCompactingMarker =
+        std::numeric_limits<uint32_t>::max();
 
-        // This value may be ORed into the start of evacuation area threshold
-        // during the GC marking phase to indicate that compaction has been
-        // aborted because the freelist grew too short and so evacuation entry
-        // allocation is no longer possible. This will prevent any further
-        // evacuation attempts as entries will be evacuated if their index is at or
-        // above the start of the evacuation area, which is now a huge value.
-        static constexpr uint32_t kCompactionAbortedMarker = 0xf0000000;
+    // This value may be ORed into the start of evacuation area threshold
+    // during the GC marking phase to indicate that compaction has been
+    // aborted because the freelist grew too short and so evacuation entry
+    // allocation is no longer possible. This will prevent any further
+    // evacuation attempts as entries will be evacuated if their index is at or
+    // above the start of the evacuation area, which is now a huge value.
+    static constexpr uint32_t kCompactionAbortedMarker = 0xf0000000;
 
-        // When compacting this space, this field contains the index of the first
-        // entry in the evacuation area. The evacuation area then consists of all
-        // segments above this threshold, and the goal of compaction is to move all
-        // live entries out of these segments so that they can be deallocated after
-        // sweeping. The field can have the following values:
-        // - kNotCompactingMarker: compaction is not currently running.
-        // - A kEntriesPerSegment aligned value within: compaction is running and
-        //   all entries after this value should be evacuated.
-        // - A value that has kCompactionAbortedMarker in its top bits:
-        //   compaction has been aborted during marking. The original start of the
-        //   evacuation area is still contained in the lower bits.
-        std::atomic<uint32_t> start_of_evacuation_area_;
+    // When compacting this space, this field contains the index of the first
+    // entry in the evacuation area. The evacuation area then consists of all
+    // segments above this threshold, and the goal of compaction is to move all
+    // live entries out of these segments so that they can be deallocated after
+    // sweeping. The field can have the following values:
+    // - kNotCompactingMarker: compaction is not currently running.
+    // - A kEntriesPerSegment aligned value within: compaction is running and
+    //   all entries after this value should be evacuated.
+    // - A value that has kCompactionAbortedMarker in its top bits:
+    //   compaction has been aborted during marking. The original start of the
+    //   evacuation area is still contained in the lower bits.
+    std::atomic<uint32_t> start_of_evacuation_area_;
 
-        // List of external pointer fields that have been invalidated.
-        // Only used when table compaction is running.
-        // We expect very few (usually none at all) fields to be invalidated during
-        // a GC, so a std::vector is probably better than a std::set or similar.
-        std::vector<Address> invalidated_fields_;
+    // List of external pointer fields that have been invalidated.
+    // Only used when table compaction is running.
+    // We expect very few (usually none at all) fields to be invalidated during
+    // a GC, so a std::vector is probably better than a std::set or similar.
+    std::vector<Address> invalidated_fields_;
 
-        // Mutex guarding access to the invalidated_fields_ set.
-        base::Mutex invalidated_fields_mutex_;
-    };
+    // Mutex guarding access to the invalidated_fields_ set.
+    base::Mutex invalidated_fields_mutex_;
+  };
 
-    // Allocate an EPT entry from the space's freelist, or add a freshly-allocated
-    // segment to the space and allocate there.  If the space is compacting but
-    // the new index is above the evacuation threshold, abort compaction.
-    inline uint32_t AllocateEntry(Space* space);
+  // Allocate an EPT entry from the space's freelist, or add a freshly-allocated
+  // segment to the space and allocate there.  If the space is compacting but
+  // the new index is above the evacuation threshold, abort compaction.
+  inline uint32_t AllocateEntry(Space* space);
 
-    CompactionResult FinishCompaction(Space* space, Histogram* counter);
+  CompactionResult FinishCompaction(Space* space, Histogram* counter);
 
-    inline void MaybeCreateEvacuationEntry(Space* space, uint32_t index, Address handle_location);
+  inline void MaybeCreateEvacuationEntry(Space* space, uint32_t index,
+                                         Address handle_location);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPRESS_POINTERS
+#endif  // V8_COMPRESS_POINTERS
 
-#endif // V8_SANDBOX_COMPACTIBLE_EXTERNAL_ENTITY_TABLE_H_
+#endif  // V8_SANDBOX_COMPACTIBLE_EXTERNAL_ENTITY_TABLE_H_

@@ -25,30 +25,33 @@ class StatsCollector;
 // Implements a fixed-ratio growing strategy with an initial heap size that the
 // GC can ignore to avoid excessive GCs for smaller heaps.
 class V8_EXPORT_PRIVATE HeapGrowing final {
-public:
-    // Constant growing factor for growing the heap limit.
-    static constexpr double kGrowingFactor = 1.5;
-    // For smaller heaps, allow allocating at least LAB in each regular space
-    // before triggering GC again.
-    static constexpr size_t kMinLimitIncrease = kPageSize * RawHeap::kNumberOfRegularSpaces;
+ public:
+  // Constant growing factor for growing the heap limit.
+  static constexpr double kGrowingFactor = 1.5;
+  // For smaller heaps, allow allocating at least LAB in each regular space
+  // before triggering GC again.
+  static constexpr size_t kMinLimitIncrease =
+      kPageSize * RawHeap::kNumberOfRegularSpaces;
 
-    HeapGrowing(GarbageCollector*, StatsCollector*, cppgc::Heap::ResourceConstraints, cppgc::Heap::MarkingType, cppgc::Heap::SweepingType);
-    ~HeapGrowing();
+  HeapGrowing(GarbageCollector*, StatsCollector*,
+              cppgc::Heap::ResourceConstraints, cppgc::Heap::MarkingType,
+              cppgc::Heap::SweepingType);
+  ~HeapGrowing();
 
-    HeapGrowing(const HeapGrowing&) = delete;
-    HeapGrowing& operator=(const HeapGrowing&) = delete;
+  HeapGrowing(const HeapGrowing&) = delete;
+  HeapGrowing& operator=(const HeapGrowing&) = delete;
 
-    size_t limit_for_atomic_gc() const;
-    size_t limit_for_incremental_gc() const;
+  size_t limit_for_atomic_gc() const;
+  size_t limit_for_incremental_gc() const;
 
-    void DisableForTesting();
+  void DisableForTesting();
 
-private:
-    class HeapGrowingImpl;
-    std::unique_ptr<HeapGrowingImpl> impl_;
+ private:
+  class HeapGrowingImpl;
+  std::unique_ptr<HeapGrowingImpl> impl_;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_HEAP_GROWING_H_
+#endif  // V8_HEAP_CPPGC_HEAP_GROWING_H_

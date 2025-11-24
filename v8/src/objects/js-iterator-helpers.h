@@ -50,61 +50,72 @@ class Boolean;
 // [1] https://tc39.es/ecma262/#sec-generatorresume
 
 // The superclass of all iterator helpers.
-class JSIteratorHelper : public TorqueGeneratedJSIteratorHelper<JSIteratorHelper, JSObject> {
-public:
-    void JSIteratorHelperPrintHeader(std::ostream& os, const char* helper_name);
+class JSIteratorHelper
+    : public TorqueGeneratedJSIteratorHelper<JSIteratorHelper, JSObject> {
+ public:
+  void JSIteratorHelperPrintHeader(std::ostream& os, const char* helper_name);
 
-    TQ_OBJECT_CONSTRUCTORS(JSIteratorHelper)
+  TQ_OBJECT_CONSTRUCTORS(JSIteratorHelper)
 };
 
 // The iterator helper returned by Iterator.prototype.map.
-class JSIteratorMapHelper : public TorqueGeneratedJSIteratorMapHelper<JSIteratorMapHelper, JSIteratorHelper> {
-public:
-    DECL_PRINTER(JSIteratorMapHelper)
-    DECL_VERIFIER(JSIteratorMapHelper)
+class JSIteratorMapHelper
+    : public TorqueGeneratedJSIteratorMapHelper<JSIteratorMapHelper,
+                                                JSIteratorHelper> {
+ public:
+  DECL_PRINTER(JSIteratorMapHelper)
+  DECL_VERIFIER(JSIteratorMapHelper)
 
-    TQ_OBJECT_CONSTRUCTORS(JSIteratorMapHelper)
+  TQ_OBJECT_CONSTRUCTORS(JSIteratorMapHelper)
 };
 
 // The iterator helper returned by Iterator.prototype.filter.
-class JSIteratorFilterHelper : public TorqueGeneratedJSIteratorFilterHelper<JSIteratorFilterHelper, JSIteratorHelper> {
-public:
-    DECL_PRINTER(JSIteratorFilterHelper)
-    DECL_VERIFIER(JSIteratorFilterHelper)
+class JSIteratorFilterHelper
+    : public TorqueGeneratedJSIteratorFilterHelper<JSIteratorFilterHelper,
+                                                   JSIteratorHelper> {
+ public:
+  DECL_PRINTER(JSIteratorFilterHelper)
+  DECL_VERIFIER(JSIteratorFilterHelper)
 
-    TQ_OBJECT_CONSTRUCTORS(JSIteratorFilterHelper)
+  TQ_OBJECT_CONSTRUCTORS(JSIteratorFilterHelper)
 };
 
 // The iterator helper returned by Iterator.prototype.take.
-class JSIteratorTakeHelper : public TorqueGeneratedJSIteratorTakeHelper<JSIteratorTakeHelper, JSIteratorHelper> {
-public:
-    DECL_PRINTER(JSIteratorTakeHelper)
-    DECL_VERIFIER(JSIteratorTakeHelper)
+class JSIteratorTakeHelper
+    : public TorqueGeneratedJSIteratorTakeHelper<JSIteratorTakeHelper,
+                                                 JSIteratorHelper> {
+ public:
+  DECL_PRINTER(JSIteratorTakeHelper)
+  DECL_VERIFIER(JSIteratorTakeHelper)
 
-    TQ_OBJECT_CONSTRUCTORS(JSIteratorTakeHelper)
+  TQ_OBJECT_CONSTRUCTORS(JSIteratorTakeHelper)
 };
 
 // The iterator helper returned by Iterator.prototype.drop.
-class JSIteratorDropHelper : public TorqueGeneratedJSIteratorDropHelper<JSIteratorDropHelper, JSIteratorHelper> {
-public:
-    DECL_PRINTER(JSIteratorDropHelper)
-    DECL_VERIFIER(JSIteratorDropHelper)
+class JSIteratorDropHelper
+    : public TorqueGeneratedJSIteratorDropHelper<JSIteratorDropHelper,
+                                                 JSIteratorHelper> {
+ public:
+  DECL_PRINTER(JSIteratorDropHelper)
+  DECL_VERIFIER(JSIteratorDropHelper)
 
-    TQ_OBJECT_CONSTRUCTORS(JSIteratorDropHelper)
+  TQ_OBJECT_CONSTRUCTORS(JSIteratorDropHelper)
 };
 
 // The iterator helper returned by Iterator.prototype.flatMap.
-class JSIteratorFlatMapHelper : public TorqueGeneratedJSIteratorFlatMapHelper<JSIteratorFlatMapHelper, JSIteratorHelper> {
-public:
-    DECL_PRINTER(JSIteratorFlatMapHelper)
-    DECL_VERIFIER(JSIteratorFlatMapHelper)
+class JSIteratorFlatMapHelper
+    : public TorqueGeneratedJSIteratorFlatMapHelper<JSIteratorFlatMapHelper,
+                                                    JSIteratorHelper> {
+ public:
+  DECL_PRINTER(JSIteratorFlatMapHelper)
+  DECL_VERIFIER(JSIteratorFlatMapHelper)
 
-    TQ_OBJECT_CONSTRUCTORS(JSIteratorFlatMapHelper)
+  TQ_OBJECT_CONSTRUCTORS(JSIteratorFlatMapHelper)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_ITERATOR_HELPERS_H_
+#endif  // V8_OBJECTS_JS_ITERATOR_HELPERS_H_

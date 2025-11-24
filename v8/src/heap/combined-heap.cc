@@ -8,20 +8,18 @@
 namespace v8 {
 namespace internal {
 
-CombinedHeapObjectIterator::CombinedHeapObjectIterator(Heap* heap, HeapObjectIterator::HeapObjectsFiltering filtering)
-    : heap_iterator_(heap, filtering)
-    , ro_heap_iterator_(heap->isolate()->read_only_heap())
-{
+CombinedHeapObjectIterator::CombinedHeapObjectIterator(
+    Heap* heap, HeapObjectIterator::HeapObjectsFiltering filtering)
+    : heap_iterator_(heap, filtering),
+      ro_heap_iterator_(heap->isolate()->read_only_heap()) {}
+
+Tagged<HeapObject> CombinedHeapObjectIterator::Next() {
+  Tagged<HeapObject> object = ro_heap_iterator_.Next();
+  if (!object.is_null()) {
+    return object;
+  }
+  return heap_iterator_.Next();
 }
 
-Tagged<HeapObject> CombinedHeapObjectIterator::Next()
-{
-    Tagged<HeapObject> object = ro_heap_iterator_.Next();
-    if (!object.is_null()) {
-        return object;
-    }
-    return heap_iterator_.Next();
-}
-
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

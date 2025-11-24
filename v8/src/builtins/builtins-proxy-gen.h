@@ -12,32 +12,37 @@ namespace v8 {
 namespace internal {
 
 class ProxiesCodeStubAssembler : public CodeStubAssembler {
-public:
-    explicit ProxiesCodeStubAssembler(compiler::CodeAssemblerState* state)
-        : CodeStubAssembler(state)
-    {
-    }
+ public:
+  explicit ProxiesCodeStubAssembler(compiler::CodeAssemblerState* state)
+      : CodeStubAssembler(state) {}
 
-    TNode<JSProxy> AllocateProxy(TNode<Context> context, TNode<JSReceiver> target, TNode<JSReceiver> handler);
-    TNode<JSFunction> AllocateProxyRevokeFunction(TNode<Context> context, TNode<JSProxy> proxy);
+  TNode<JSProxy> AllocateProxy(TNode<Context> context, TNode<JSReceiver> target,
+                               TNode<JSReceiver> handler);
+  TNode<JSFunction> AllocateProxyRevokeFunction(TNode<Context> context,
+                                                TNode<JSProxy> proxy);
 
-    void CheckGetSetTrapResult(
-        TNode<Context> context, TNode<JSReceiver> target, TNode<JSProxy> proxy, TNode<Name> name, TNode<Object> trap_result, JSProxy::AccessKind access_kind);
+  void CheckGetSetTrapResult(TNode<Context> context, TNode<JSReceiver> target,
+                             TNode<JSProxy> proxy, TNode<Name> name,
+                             TNode<Object> trap_result,
+                             JSProxy::AccessKind access_kind);
 
-    void CheckHasTrapResult(TNode<Context> context, TNode<JSReceiver> target, TNode<JSProxy> proxy, TNode<Name> name);
+  void CheckHasTrapResult(TNode<Context> context, TNode<JSReceiver> target,
+                          TNode<JSProxy> proxy, TNode<Name> name);
 
-    void CheckDeleteTrapResult(TNode<Context> context, TNode<JSReceiver> target, TNode<JSProxy> proxy, TNode<Name> name);
+  void CheckDeleteTrapResult(TNode<Context> context, TNode<JSReceiver> target,
+                             TNode<JSProxy> proxy, TNode<Name> name);
 
-    enum ProxyRevokeFunctionContextSlot {
-        kProxySlot = Context::MIN_CONTEXT_SLOTS,
-        kProxyContextLength,
-    };
+  enum ProxyRevokeFunctionContextSlot {
+    kProxySlot = Context::MIN_CONTEXT_SLOTS,
+    kProxyContextLength,
+  };
 
-private:
-    TNode<Context> CreateProxyRevokeFunctionContext(TNode<JSProxy> proxy, TNode<NativeContext> native_context);
+ private:
+  TNode<Context> CreateProxyRevokeFunctionContext(
+      TNode<JSProxy> proxy, TNode<NativeContext> native_context);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BUILTINS_BUILTINS_PROXY_GEN_H_
+#endif  // V8_BUILTINS_BUILTINS_PROXY_GEN_H_

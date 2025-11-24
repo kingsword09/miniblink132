@@ -73,47 +73,46 @@ namespace internal {
 // match at least one other character are added to SpecialAddSet.
 
 class RegExpCaseFolding final : public AllStatic {
-public:
-    static const icu::UnicodeSet& IgnoreSet();
-    static const icu::UnicodeSet& SpecialAddSet();
+ public:
+  static const icu::UnicodeSet& IgnoreSet();
+  static const icu::UnicodeSet& SpecialAddSet();
 
-    // This implements ECMAScript 2020 21.2.2.8.2 (Runtime Semantics:
-    // Canonicalize) step 3, which is used to determine whether
-    // characters match when ignoreCase is true and unicode is false.
-    static UChar32 Canonicalize(UChar32 ch)
-    {
-        // a. Assert: ch is a UTF-16 code unit.
-        CHECK_LE(ch, 0xffff);
+  // This implements ECMAScript 2020 21.2.2.8.2 (Runtime Semantics:
+  // Canonicalize) step 3, which is used to determine whether
+  // characters match when ignoreCase is true and unicode is false.
+  static UChar32 Canonicalize(UChar32 ch) {
+    // a. Assert: ch is a UTF-16 code unit.
+    CHECK_LE(ch, 0xffff);
 
-        // b. Let s be the String value consisting of the single code unit ch.
-        icu::UnicodeString s(ch);
+    // b. Let s be the String value consisting of the single code unit ch.
+    icu::UnicodeString s(ch);
 
-        // c. Let u be the same result produced as if by performing the algorithm
-        // for String.prototype.toUpperCase using s as the this value.
-        // d. Assert: Type(u) is String.
-        icu::UnicodeString& u = s.toUpper();
+    // c. Let u be the same result produced as if by performing the algorithm
+    // for String.prototype.toUpperCase using s as the this value.
+    // d. Assert: Type(u) is String.
+    icu::UnicodeString& u = s.toUpper();
 
-        // e. If u does not consist of a single code unit, return ch.
-        if (u.length() != 1) {
-            return ch;
-        }
-
-        // f. Let cu be u's single code unit element.
-        UChar32 cu = u.char32At(0);
-
-        // g. If the value of ch >= 128 and the value of cu < 128, return ch.
-        if (ch >= 128 && cu < 128) {
-            return ch;
-        }
-
-        // h. Return cu.
-        return cu;
+    // e. If u does not consist of a single code unit, return ch.
+    if (u.length() != 1) {
+      return ch;
     }
+
+    // f. Let cu be u's single code unit element.
+    UChar32 cu = u.char32At(0);
+
+    // g. If the value of ch >= 128 and the value of cu < 128, return ch.
+    if (ch >= 128 && cu < 128) {
+      return ch;
+    }
+
+    // h. Return cu.
+    return cu;
+  }
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
-#endif // V8_REGEXP_SPECIAL_CASE_H_
+#endif  // V8_REGEXP_SPECIAL_CASE_H_

@@ -13,12 +13,13 @@ namespace internal {
 namespace compiler {
 
 std::unique_ptr<TurbofanCompilationJob> NewCompilationJob(
-    Isolate* isolate, Handle<JSFunction> function, IsScriptAvailable has_script, BytecodeOffset osr_offset)
-{
-    FATAL("compiler::NewCompilationJob must not be called when Turbofan is "
-          "disabled (`v8_enable_turbofan = false`)");
+    Isolate* isolate, Handle<JSFunction> function, IsScriptAvailable has_script,
+    BytecodeOffset osr_offset) {
+  FATAL(
+      "compiler::NewCompilationJob must not be called when Turbofan is "
+      "disabled (`v8_enable_turbofan = false`)");
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

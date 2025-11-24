@@ -24,52 +24,40 @@ class ObjectData;
 // to be serialized in each compilation job. See JSHeapBroker::InitializeRefsMap
 // for details.
 class PerIsolateCompilerCache : public ZoneObject {
-public:
-    explicit PerIsolateCompilerCache(Zone* zone)
-        : zone_(zone)
-        , refs_snapshot_(nullptr)
-    {
-    }
+ public:
+  explicit PerIsolateCompilerCache(Zone* zone)
+      : zone_(zone), refs_snapshot_(nullptr) {}
 
-    bool HasSnapshot() const
-    {
-        return refs_snapshot_ != nullptr;
-    }
-    RefsMap* GetSnapshot()
-    {
-        DCHECK(HasSnapshot());
-        return refs_snapshot_;
-    }
-    void SetSnapshot(RefsMap* refs)
-    {
-        DCHECK(!HasSnapshot());
-        DCHECK(!refs->IsEmpty());
-        refs_snapshot_ = zone_->New<RefsMap>(refs, zone_);
-        DCHECK(HasSnapshot());
-    }
+  bool HasSnapshot() const { return refs_snapshot_ != nullptr; }
+  RefsMap* GetSnapshot() {
+    DCHECK(HasSnapshot());
+    return refs_snapshot_;
+  }
+  void SetSnapshot(RefsMap* refs) {
+    DCHECK(!HasSnapshot());
+    DCHECK(!refs->IsEmpty());
+    refs_snapshot_ = zone_->New<RefsMap>(refs, zone_);
+    DCHECK(HasSnapshot());
+  }
 
-    Zone* zone() const
-    {
-        return zone_;
-    }
+  Zone* zone() const { return zone_; }
 
-    static void Setup(Isolate* isolate)
-    {
-        if (isolate->compiler_cache() == nullptr) {
-            Zone* zone = new Zone(isolate->allocator(), "Compiler zone");
-            PerIsolateCompilerCache* cache = zone->New<PerIsolateCompilerCache>(zone);
-            isolate->set_compiler_utils(cache, zone);
-        }
-        DCHECK_NOT_NULL(isolate->compiler_cache());
+  static void Setup(Isolate* isolate) {
+    if (isolate->compiler_cache() == nullptr) {
+      Zone* zone = new Zone(isolate->allocator(), "Compiler zone");
+      PerIsolateCompilerCache* cache = zone->New<PerIsolateCompilerCache>(zone);
+      isolate->set_compiler_utils(cache, zone);
     }
+    DCHECK_NOT_NULL(isolate->compiler_cache());
+  }
 
-private:
-    Zone* const zone_;
-    RefsMap* refs_snapshot_;
+ private:
+  Zone* const zone_;
+  RefsMap* refs_snapshot_;
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_PER_ISOLATE_COMPILER_CACHE_H_
+#endif  // V8_COMPILER_PER_ISOLATE_COMPILER_CACHE_H_

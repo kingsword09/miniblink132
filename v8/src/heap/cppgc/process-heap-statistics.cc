@@ -6,7 +6,7 @@
 
 namespace cppgc {
 
-std::atomic_size_t ProcessHeapStatistics::total_allocated_space_ { 0 };
-std::atomic_size_t ProcessHeapStatistics::total_allocated_object_size_ { 0 };
+std::atomic_size_t ProcessHeapStatistics::total_allocated_space_{0};
+std::atomic_size_t ProcessHeapStatistics::total_allocated_object_size_{0};
 
-} // namespace cppgc
+}  // namespace cppgc

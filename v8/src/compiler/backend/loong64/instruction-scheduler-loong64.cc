@@ -10,21 +10,17 @@ namespace internal {
 namespace compiler {
 
 // TODO(LOONG_dev): LOONG64 Support instruction scheduler.
-bool InstructionScheduler::SchedulerSupported()
-{
-    return false;
+bool InstructionScheduler::SchedulerSupported() { return false; }
+
+int InstructionScheduler::GetTargetInstructionFlags(
+    const Instruction* instr) const {
+  UNREACHABLE();
 }
 
-int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) const
-{
-    UNREACHABLE();
+int InstructionScheduler::GetInstructionLatency(const Instruction* instr) {
+  UNREACHABLE();
 }
 
-int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
-{
-    UNREACHABLE();
-}
-
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

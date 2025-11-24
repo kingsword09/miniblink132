@@ -30,40 +30,44 @@ constexpr uint64_t kExternalBufferTagMask = 0x40ff000000000000;
 constexpr uint64_t kExternalBufferTagMaskWithoutMarkBit = 0xff000000000000;
 constexpr uint64_t kExternalBufferTagShift = 48;
 
-#define TAG(i) ((kAllTagsForAndBasedTypeChecking[i] << kExternalBufferTagShift) | kExternalBufferMarkBit)
+#define TAG(i)                                                       \
+  ((kAllTagsForAndBasedTypeChecking[i] << kExternalBufferTagShift) | \
+   kExternalBufferMarkBit)
 
-// clang-format on
+// clang-format off
 
 // Shared external buffers are owned by the shared Isolate and stored in the
 // shared external buffer table associated with that Isolate, where they can
 // be accessed from multiple threads at the same time. The objects referenced
 // in this way must therefore always be thread-safe.
-#define SHARED_EXTERNAL_BUFFER_TAGS(V)                                                                                                                         \
-    V(kFirstSharedBufferTag, TAG(0))                                                                                                                           \
-    V(kLastSharedBufferTag, TAG(0))
+#define SHARED_EXTERNAL_BUFFER_TAGS(V) \
+  V(kFirstSharedBufferTag, TAG(0))     \
+  V(kLastSharedBufferTag, TAG(0))
 
 // External buffers using these tags are kept in a per-Isolate external
 // buffer table and can only be accessed when this Isolate is active.
 #define PER_ISOLATE_EXTERNAL_BUFFER_TAGS(V)
 
 // All external buffer tags.
-#define ALL_EXTERNAL_BUFFER_TAGS(V)                                                                                                                            \
-    SHARED_EXTERNAL_BUFFER_TAGS(V)                                                                                                                             \
-    PER_ISOLATE_EXTERNAL_BUFFER_TAGS(V)
+#define ALL_EXTERNAL_BUFFER_TAGS(V) \
+  SHARED_EXTERNAL_BUFFER_TAGS(V)    \
+  PER_ISOLATE_EXTERNAL_BUFFER_TAGS(V)
 
 #define EXTERNAL_BUFFER_TAG_ENUM(Name, Tag) Name = Tag,
-#define MAKE_TAG(HasMarkBit, TypeTag) ((static_cast<uint64_t>(TypeTag) << kExternalBufferTagShift) | (HasMarkBit ? kExternalBufferMarkBit : 0))
+#define MAKE_TAG(HasMarkBit, TypeTag)                            \
+  ((static_cast<uint64_t>(TypeTag) << kExternalBufferTagShift) | \
+  (HasMarkBit ? kExternalBufferMarkBit : 0))
 enum ExternalBufferTag : uint64_t {
-    // Empty tag value. Mostly used as placeholder.
-    kExternalBufferNullTag = MAKE_TAG(1, 0b00000000),
-    // The free entry tag has all type bits set so every type check with a
-    // different type fails. It also doesn't have the mark bit set as free
-    // entries are (by definition) not alive.
-    kExternalBufferFreeEntryTag = MAKE_TAG(0, 0b11111111),
-    // Evacuation entries are used during external buffer table compaction.
-    kExternalBufferEvacuationEntryTag = MAKE_TAG(1, 0b11111110),
+  // Empty tag value. Mostly used as placeholder.
+  kExternalBufferNullTag = MAKE_TAG(1, 0b00000000),
+  // The free entry tag has all type bits set so every type check with a
+  // different type fails. It also doesn't have the mark bit set as free
+  // entries are (by definition) not alive.
+  kExternalBufferFreeEntryTag = MAKE_TAG(0, 0b11111111),
+  // Evacuation entries are used during external buffer table compaction.
+  kExternalBufferEvacuationEntryTag = MAKE_TAG(1, 0b11111110),
 
-    ALL_EXTERNAL_BUFFER_TAGS(EXTERNAL_BUFFER_TAG_ENUM)
+  ALL_EXTERNAL_BUFFER_TAGS(EXTERNAL_BUFFER_TAG_ENUM)
 };
 
 #undef MAKE_TAG
@@ -73,12 +77,12 @@ enum ExternalBufferTag : uint64_t {
 // clang-format on
 
 // True if the external pointer must be accessed from external buffer table.
-V8_INLINE static constexpr bool IsSharedExternalBufferType(ExternalBufferTag tag)
-{
-    return tag >= kFirstSharedBufferTag && tag <= kLastSharedBufferTag;
+V8_INLINE static constexpr bool IsSharedExternalBufferType(
+    ExternalBufferTag tag) {
+  return tag >= kFirstSharedBufferTag && tag <= kLastSharedBufferTag;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SANDBOX_EXTERNAL_BUFFER_TAG_H_
+#endif  // V8_SANDBOX_EXTERNAL_BUFFER_TAG_H_

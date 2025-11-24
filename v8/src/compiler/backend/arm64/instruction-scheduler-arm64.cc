@@ -8,14 +8,11 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-bool InstructionScheduler::SchedulerSupported()
-{
-    return true;
-}
+bool InstructionScheduler::SchedulerSupported() { return true; }
 
-int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) const
-{
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetTargetInstructionFlags(
+    const Instruction* instr) const {
+  switch (instr->arch_opcode()) {
     case kArm64Add:
     case kArm64Add32:
     case kArm64And:
@@ -323,12 +320,12 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kArm64ISubSatS:
     case kArm64IAddSatU:
     case kArm64ISubSatU:
-#endif // V8_ENABLE_WEBASSEMBLY
+#endif  // V8_ENABLE_WEBASSEMBLY
     case kArm64TestAndBranch32:
     case kArm64TestAndBranch:
     case kArm64CompareAndBranch32:
     case kArm64CompareAndBranch:
-        return kNoOpcodeFlags;
+      return kNoOpcodeFlags;
 
     case kArm64LdrH:
     case kArm64LdrS:
@@ -359,8 +356,8 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kArm64S128Load16x4U:
     case kArm64S128Load32x2S:
     case kArm64S128Load32x2U:
-#endif // V8_ENABLE_WEBASSEMBLY
-        return kIsLoadOperation;
+#endif  // V8_ENABLE_WEBASSEMBLY
+      return kIsLoadOperation;
 
     case kArm64Claim:
     case kArm64Poke:
@@ -383,11 +380,11 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kArm64DsbIsb:
 #if V8_ENABLE_WEBASSEMBLY
     case kArm64StoreLane:
-#endif // V8_ENABLE_WEBASSEMBLY
-        return kHasSideEffect;
+#endif  // V8_ENABLE_WEBASSEMBLY
+      return kHasSideEffect;
 
     case kArm64Word64AtomicLoadUint64:
-        return kIsLoadOperation;
+      return kIsLoadOperation;
 
     case kArm64Word64AtomicStoreWord64:
     case kArm64Word64AtomicAddUint64:
@@ -397,23 +394,22 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kArm64Word64AtomicXorUint64:
     case kArm64Word64AtomicExchangeUint64:
     case kArm64Word64AtomicCompareExchangeUint64:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
 #define CASE(Name) case k##Name:
-        COMMON_ARCH_OPCODE_LIST(CASE)
+      COMMON_ARCH_OPCODE_LIST(CASE)
 #undef CASE
-        // Already covered in architecture independent code.
-        UNREACHABLE();
-    }
+      // Already covered in architecture independent code.
+      UNREACHABLE();
+  }
 
-    UNREACHABLE();
+  UNREACHABLE();
 }
 
-int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
-{
-    // Basic latency modeling for arm64 instructions. They have been determined
-    // in an empirical way.
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetInstructionLatency(const Instruction* instr) {
+  // Basic latency modeling for arm64 instructions. They have been determined
+  // in an empirical way.
+  switch (instr->arch_opcode()) {
     case kArm64Add:
     case kArm64Add32:
     case kArm64And:
@@ -438,11 +434,11 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64Sub32:
     case kArm64Tst:
     case kArm64Tst32:
-        if (instr->addressing_mode() != kMode_None) {
-            return 3;
-        } else {
-            return 1;
-        }
+      if (instr->addressing_mode() != kMode_None) {
+        return 3;
+      } else {
+        return 1;
+      }
 
     case kArm64Clz:
     case kArm64Clz32:
@@ -455,7 +451,7 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64Sbfiz:
     case kArm64Ubfx:
     case kArm64Ubfx32:
-        return 1;
+      return 1;
 
     case kArm64Lsl:
     case kArm64Lsl32:
@@ -465,7 +461,7 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64Asr32:
     case kArm64Ror:
     case kArm64Ror32:
-        return 1;
+      return 1;
 
     case kArm64LdrDecompressTaggedSigned:
     case kArm64LdrDecompressTagged:
@@ -479,7 +475,7 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64Ldrsb:
     case kArm64Ldrsh:
     case kArm64Ldrsw:
-        return 11;
+      return 11;
 
     case kArm64Str:
     case kArm64StrD:
@@ -487,33 +483,33 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64StrW:
     case kArm64Strb:
     case kArm64Strh:
-        return 1;
+      return 1;
 
     case kArm64Madd32:
     case kArm64Mneg32:
     case kArm64Msub32:
     case kArm64Mul32:
-        return 3;
+      return 3;
 
     case kArm64Madd:
     case kArm64Mneg:
     case kArm64Msub:
     case kArm64Mul:
-        return 5;
+      return 5;
 
     case kArm64Idiv32:
     case kArm64Udiv32:
-        return 12;
+      return 12;
 
     case kArm64Idiv:
     case kArm64Udiv:
-        return 20;
+      return 20;
 
     case kArm64Float32Add:
     case kArm64Float32Sub:
     case kArm64Float64Add:
     case kArm64Float64Sub:
-        return 5;
+      return 5;
 
     case kArm64Float32Abs:
     case kArm64Float32Cmp:
@@ -521,15 +517,15 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64Float64Abs:
     case kArm64Float64Cmp:
     case kArm64Float64Neg:
-        return 3;
+      return 3;
 
     case kArm64Float32Div:
     case kArm64Float32Sqrt:
-        return 12;
+      return 12;
 
     case kArm64Float64Div:
     case kArm64Float64Sqrt:
-        return 19;
+      return 19;
 
     case kArm64Float32RoundDown:
     case kArm64Float32RoundTiesEven:
@@ -540,7 +536,7 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64Float64RoundTiesEven:
     case kArm64Float64RoundTruncate:
     case kArm64Float64RoundUp:
-        return 5;
+      return 5;
 
     case kArm64Float32ToFloat64:
     case kArm64Float64ToFloat32:
@@ -557,13 +553,13 @@ int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
     case kArm64Uint32ToFloat64:
     case kArm64Uint64ToFloat32:
     case kArm64Uint64ToFloat64:
-        return 5;
+      return 5;
 
     default:
-        return 2;
-    }
+      return 2;
+  }
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

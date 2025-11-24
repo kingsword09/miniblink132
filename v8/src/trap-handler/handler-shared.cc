@@ -29,41 +29,40 @@ namespace trap_handler {
 thread_local int g_thread_in_wasm_code;
 
 static_assert(sizeof(g_thread_in_wasm_code) > 1,
-    "sizeof(thread_local_var) must be > 1, see "
-    "https://sourceware.org/bugzilla/show_bug.cgi?id=14898");
+              "sizeof(thread_local_var) must be > 1, see "
+              "https://sourceware.org/bugzilla/show_bug.cgi?id=14898");
 
 size_t gNumCodeObjects = 0;
 CodeProtectionInfoListEntry* gCodeObjects = nullptr;
 uintptr_t gV8SandboxBase = 0;
 size_t gV8SandboxSize = 0;
-std::atomic_size_t gRecoveredTrapCount = { 0 };
-std::atomic<uintptr_t> gLandingPad = { 0 };
+std::atomic_size_t gRecoveredTrapCount = {0};
+std::atomic<uintptr_t> gLandingPad = {0};
 
-#if !defined(__cpp_lib_atomic_value_initialization) || __cpp_lib_atomic_value_initialization < 201911L
+#if !defined(__cpp_lib_atomic_value_initialization) || \
+    __cpp_lib_atomic_value_initialization < 201911L
 std::atomic_flag MetadataLock::spinlock_ = ATOMIC_FLAG_INIT;
 #else
 std::atomic_flag MetadataLock::spinlock_;
 #endif
 
-MetadataLock::MetadataLock()
-{
-    if (g_thread_in_wasm_code) {
-        abort();
-    }
+MetadataLock::MetadataLock() {
+  if (g_thread_in_wasm_code) {
+    abort();
+  }
 
-    while (spinlock_.test_and_set(std::memory_order_acquire)) {
-    }
+  while (spinlock_.test_and_set(std::memory_order_acquire)) {
+  }
 }
 
-MetadataLock::~MetadataLock()
-{
-    if (g_thread_in_wasm_code) {
-        abort();
-    }
+MetadataLock::~MetadataLock() {
+  if (g_thread_in_wasm_code) {
+    abort();
+  }
 
-    spinlock_.clear(std::memory_order_release);
+  spinlock_.clear(std::memory_order_release);
 }
 
-} // namespace trap_handler
-} // namespace internal
-} // namespace v8
+}  // namespace trap_handler
+}  // namespace internal
+}  // namespace v8

@@ -22,26 +22,27 @@
 // corrupt memory inside the sandbox, but otherwise holds true.
 #ifdef V8_ENABLE_SANDBOX
 
-#ifdef V8_DEBUG
+#ifdef DEBUG
 // It's unsafe to access sandbox memory during a SBXCHECK since such an access
 // will be inherently racy. If sandbox hardware support is enabled, we'll block
 // these accesses temporarily in debug builds.
-#define BLOCK_SANDBOX_ACCESS_IN_DEBUG_MODE auto block_access = v8::internal::SandboxHardwareSupport::MaybeBlockAccess()
+#define BLOCK_SANDBOX_ACCESS_IN_DEBUG_MODE \
+  auto block_access = v8::internal::SandboxHardwareSupport::MaybeBlockAccess()
 #else
 #define BLOCK_SANDBOX_ACCESS_IN_DEBUG_MODE
 #endif
 
-#define SBXCHECK(condition)                                                                                                                                    \
-    do {                                                                                                                                                       \
-        BLOCK_SANDBOX_ACCESS_IN_DEBUG_MODE;                                                                                                                    \
-        CHECK(condition);                                                                                                                                      \
-    } while (false)
+#define SBXCHECK(condition)             \
+  do {                                  \
+    BLOCK_SANDBOX_ACCESS_IN_DEBUG_MODE; \
+    CHECK(condition);                   \
+  } while (false)
 
-#define SBXCHECK_WRAPPED(CONDITION, lhs, rhs)                                                                                                                  \
-    do {                                                                                                                                                       \
-        BLOCK_SANDBOX_ACCESS_IN_DEBUG_MODE;                                                                                                                    \
-        CHECK_##CONDITION(lhs, rhs);                                                                                                                           \
-    } while (false)
+#define SBXCHECK_WRAPPED(CONDITION, lhs, rhs) \
+  do {                                        \
+    BLOCK_SANDBOX_ACCESS_IN_DEBUG_MODE;       \
+    CHECK_##CONDITION(lhs, rhs);              \
+  } while (false)
 
 #define SBXCHECK_EQ(lhs, rhs) SBXCHECK_WRAPPED(EQ, lhs, rhs)
 #define SBXCHECK_NE(lhs, rhs) SBXCHECK_WRAPPED(NE, lhs, rhs)
@@ -61,4 +62,4 @@
 #define SBXCHECK_BOUNDS(index, limit) DCHECK_BOUNDS(index, limit)
 #endif
 
-#endif // V8_SANDBOX_CHECK_H_
+#endif  // V8_SANDBOX_CHECK_H_

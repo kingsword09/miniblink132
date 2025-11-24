@@ -15,20 +15,21 @@ namespace internal {
 // non-empty. The task processes a single FinalizationRegistry and posts another
 // cleanup task if there are remaining dirty FinalizationRegistries on the list.
 class FinalizationRegistryCleanupTask : public CancelableTask {
-public:
-    explicit FinalizationRegistryCleanupTask(Heap* heap);
-    ~FinalizationRegistryCleanupTask() override = default;
-    FinalizationRegistryCleanupTask(const FinalizationRegistryCleanupTask&) = delete;
-    void operator=(const FinalizationRegistryCleanupTask&) = delete;
+ public:
+  explicit FinalizationRegistryCleanupTask(Heap* heap);
+  ~FinalizationRegistryCleanupTask() override = default;
+  FinalizationRegistryCleanupTask(const FinalizationRegistryCleanupTask&) =
+      delete;
+  void operator=(const FinalizationRegistryCleanupTask&) = delete;
 
-private:
-    void RunInternal() override;
-    void SlowAssertNoActiveJavaScript();
+ private:
+  void RunInternal() override;
+  void SlowAssertNoActiveJavaScript();
 
-    Heap* heap_;
+  Heap* heap_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_FINALIZATION_REGISTRY_CLEANUP_TASK_H_
+#endif  // V8_HEAP_FINALIZATION_REGISTRY_CLEANUP_TASK_H_

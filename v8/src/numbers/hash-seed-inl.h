@@ -24,8 +24,8 @@ inline uint64_t HashSeed(Isolate* isolate);
 inline uint64_t HashSeed(LocalIsolate* isolate);
 inline uint64_t HashSeed(ReadOnlyRoots roots);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 // See comment above for why this isn't at the top of the file.
 #include "src/objects/fixed-array-inl.h"
@@ -34,24 +34,21 @@ inline uint64_t HashSeed(ReadOnlyRoots roots);
 namespace v8 {
 namespace internal {
 
-inline uint64_t HashSeed(Isolate* isolate)
-{
-    return HashSeed(ReadOnlyRoots(isolate));
+inline uint64_t HashSeed(Isolate* isolate) {
+  return HashSeed(ReadOnlyRoots(isolate));
 }
 
-inline uint64_t HashSeed(LocalIsolate* isolate)
-{
-    return HashSeed(ReadOnlyRoots(isolate));
+inline uint64_t HashSeed(LocalIsolate* isolate) {
+  return HashSeed(ReadOnlyRoots(isolate));
 }
 
-inline uint64_t HashSeed(ReadOnlyRoots roots)
-{
-    uint64_t seed;
-    MemCopy(&seed, roots.hash_seed()->begin(), sizeof(seed));
-    return seed;
+inline uint64_t HashSeed(ReadOnlyRoots roots) {
+  uint64_t seed;
+  MemCopy(&seed, roots.hash_seed()->begin(), sizeof(seed));
+  return seed;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_NUMBERS_HASH_SEED_INL_H_
+#endif  // V8_NUMBERS_HASH_SEED_INL_H_

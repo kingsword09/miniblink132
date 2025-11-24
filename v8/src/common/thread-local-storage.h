@@ -45,22 +45,17 @@
 
 #if V8_TLS_LIBRARY_MODE
 
-#define V8_TLS_DECLARE_GETTER(Name, Type, Member) static V8_NOINLINE Type Name();
-#define V8_TLS_DEFINE_GETTER(Name, Type, Member)                                                                                                               \
-    V8_NOINLINE Type Name()                                                                                                                                    \
-    {                                                                                                                                                          \
-        return Member;                                                                                                                                         \
-    }
+#define V8_TLS_DECLARE_GETTER(Name, Type, Member) \
+  static V8_NOINLINE Type Name();
+#define V8_TLS_DEFINE_GETTER(Name, Type, Member) \
+  V8_NOINLINE Type Name() { return Member; }
 
-#else // !V8_TLS_LIBRARY_MODE
+#else  // !V8_TLS_LIBRARY_MODE
 
-#define V8_TLS_DECLARE_GETTER(Name, Type, Member)                                                                                                              \
-    static V8_INLINE Type Name()                                                                                                                               \
-    {                                                                                                                                                          \
-        return Member;                                                                                                                                         \
-    }
+#define V8_TLS_DECLARE_GETTER(Name, Type, Member) \
+  static V8_INLINE Type Name() { return Member; }
 #define V8_TLS_DEFINE_GETTER(Name, Type, Member)
 
-#endif // V8_TLS_LIBRARY_MODE
+#endif  // V8_TLS_LIBRARY_MODE
 
-#endif // V8_COMMON_THREAD_LOCAL_STORAGE_H_
+#endif  // V8_COMMON_THREAD_LOCAL_STORAGE_H_

@@ -14,15 +14,19 @@
 namespace v8 {
 namespace internal {
 
-template <typename T> class ZoneList;
+template <typename T>
+class ZoneList;
 
 // ZonePtrList is a ZoneList of pointers to ZoneObjects allocated in the same
 // zone as the list object.
-template <typename T> using ZonePtrList = ZoneList<T*>;
+template <typename T>
+using ZonePtrList = ZoneList<T*>;
 
-template <typename T> using FullZonePtr = T*;
+template <typename T>
+using FullZonePtr = T*;
 
-template <typename T> class CompressedZonePtr;
+template <typename T>
+class CompressedZonePtr;
 
 //
 // ZoneTypeTraits provides type aliases for compressed or full pointer
@@ -36,14 +40,19 @@ template <typename T> class CompressedZonePtr;
 //   template <typename T>
 //   using AstZonePtr = typename ZoneTypeTraits<kCompressAstZone>::Ptr<T>;
 //
-template <bool kEnableCompression> struct ZoneTypeTraits;
+template <bool kEnableCompression>
+struct ZoneTypeTraits;
 
-template <> struct ZoneTypeTraits<false> {
-    template <typename T> using Ptr = FullZonePtr<T>;
+template <>
+struct ZoneTypeTraits<false> {
+  template <typename T>
+  using Ptr = FullZonePtr<T>;
 };
 
-template <> struct ZoneTypeTraits<true> {
-    template <typename T> using Ptr = CompressedZonePtr<T>;
+template <>
+struct ZoneTypeTraits<true> {
+  template <typename T>
+  using Ptr = CompressedZonePtr<T>;
 };
 
 // This requirement is necessary for being able to use memcopy in containers
@@ -59,13 +68,16 @@ template <> struct ZoneTypeTraits<true> {
 // is_compressed_pointer<T> predicate can be used for checking if T is a
 // compressed pointer.
 //
-template <typename> struct is_compressed_pointer : std::false_type { };
+template <typename>
+struct is_compressed_pointer : std::false_type {};
 
-template <typename T> struct is_compressed_pointer<CompressedZonePtr<T>> : std::true_type { };
+template <typename T>
+struct is_compressed_pointer<CompressedZonePtr<T>> : std::true_type {};
 
-template <typename T> struct is_compressed_pointer<const CompressedZonePtr<T>> : std::true_type { };
+template <typename T>
+struct is_compressed_pointer<const CompressedZonePtr<T>> : std::true_type {};
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_ZONE_ZONE_TYPE_TRAITS_H_
+#endif  // V8_ZONE_ZONE_TYPE_TRAITS_H_

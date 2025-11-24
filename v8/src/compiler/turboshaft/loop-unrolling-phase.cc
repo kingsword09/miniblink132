@@ -16,20 +16,21 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void LoopUnrollingPhase::Run(PipelineData* data, Zone* temp_zone)
-{
-    LoopUnrollingAnalyzer analyzer(temp_zone, &data->graph(), data->is_wasm());
-    if (analyzer.CanUnrollAtLeastOneLoop()) {
-        data->graph().set_loop_unrolling_analyzer(&analyzer);
-        turboshaft::CopyingPhase<LoopStackCheckElisionReducer, LoopUnrollingReducer, MachineOptimizationReducer, ValueNumberingReducer>::Run(data, temp_zone);
-        // When the CopyingPhase finishes, it calls SwapWithCompanion, which resets
-        // the current graph's LoopUnrollingAnalyzer (since the old input_graph is
-        // now somewhat out-dated).
-        DCHECK(!data->graph().has_loop_unrolling_analyzer());
-        // The LoopUnrollingAnalyzer should not be copied to the output_graph during
-        // CopyingPhase, since it's refering to the input_graph.
-        DCHECK(!data->graph().GetOrCreateCompanion().has_loop_unrolling_analyzer());
-    }
+void LoopUnrollingPhase::Run(PipelineData* data, Zone* temp_zone) {
+  LoopUnrollingAnalyzer analyzer(temp_zone, &data->graph(), data->is_wasm());
+  if (analyzer.CanUnrollAtLeastOneLoop()) {
+    data->graph().set_loop_unrolling_analyzer(&analyzer);
+    turboshaft::CopyingPhase<LoopStackCheckElisionReducer, LoopUnrollingReducer,
+                             MachineOptimizationReducer,
+                             ValueNumberingReducer>::Run(data, temp_zone);
+    // When the CopyingPhase finishes, it calls SwapWithCompanion, which resets
+    // the current graph's LoopUnrollingAnalyzer (since the old input_graph is
+    // now somewhat out-dated).
+    DCHECK(!data->graph().has_loop_unrolling_analyzer());
+    // The LoopUnrollingAnalyzer should not be copied to the output_graph during
+    // CopyingPhase, since it's refering to the input_graph.
+    DCHECK(!data->graph().GetOrCreateCompanion().has_loop_unrolling_analyzer());
+  }
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

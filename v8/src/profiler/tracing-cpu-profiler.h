@@ -25,33 +25,33 @@ class TracingCpuProfilerImpl final
 #else
     : private v8::TracingController::TraceStateObserver {
 #endif
-public:
-    explicit TracingCpuProfilerImpl(Isolate*);
-    ~TracingCpuProfilerImpl() override;
-    TracingCpuProfilerImpl(const TracingCpuProfilerImpl&) = delete;
-    TracingCpuProfilerImpl& operator=(const TracingCpuProfilerImpl&) = delete;
+ public:
+  explicit TracingCpuProfilerImpl(Isolate*);
+  ~TracingCpuProfilerImpl() override;
+  TracingCpuProfilerImpl(const TracingCpuProfilerImpl&) = delete;
+  TracingCpuProfilerImpl& operator=(const TracingCpuProfilerImpl&) = delete;
 
 #if defined(V8_USE_PERFETTO)
-    // perfetto::TrackEventSessionObserver
-    void OnStart(const perfetto::DataSourceBase::StartArgs&) override;
-    void OnStop(const perfetto::DataSourceBase::StopArgs&) override;
+  // perfetto::TrackEventSessionObserver
+  void OnStart(const perfetto::DataSourceBase::StartArgs&) override;
+  void OnStop(const perfetto::DataSourceBase::StopArgs&) override;
 #else
-    // v8::TracingController::TraceStateObserver
-    void OnTraceEnabled() final;
-    void OnTraceDisabled() final;
+  // v8::TracingController::TraceStateObserver
+  void OnTraceEnabled() final;
+  void OnTraceDisabled() final;
 #endif
 
-private:
-    void StartProfiling();
-    void StopProfiling();
+ private:
+  void StartProfiling();
+  void StopProfiling();
 
-    Isolate* isolate_;
-    std::unique_ptr<CpuProfiler> profiler_;
-    bool profiling_enabled_;
-    base::Mutex mutex_;
+  Isolate* isolate_;
+  std::unique_ptr<CpuProfiler> profiler_;
+  bool profiling_enabled_;
+  base::Mutex mutex_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_PROFILER_TRACING_CPU_PROFILER_H_
+#endif  // V8_PROFILER_TRACING_CPU_PROFILER_H_

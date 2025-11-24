@@ -30,135 +30,91 @@ class Zone;
 // UnoptimizedCompilationInfo encapsulates the information needed to compile
 // unoptimized code for a given function, and the results of the compilation.
 class V8_EXPORT_PRIVATE UnoptimizedCompilationInfo final {
-public:
-    UnoptimizedCompilationInfo(Zone* zone, ParseInfo* parse_info, FunctionLiteral* literal);
+ public:
+  UnoptimizedCompilationInfo(Zone* zone, ParseInfo* parse_info,
+                             FunctionLiteral* literal);
 
-    const UnoptimizedCompileFlags& flags() const
-    {
-        return flags_;
-    }
-    LazyCompileDispatcher* dispatcher()
-    {
-        return dispatcher_;
-    }
-    const Utf16CharacterStream* character_stream() const
-    {
-        return character_stream_;
-    }
+  const UnoptimizedCompileFlags& flags() const { return flags_; }
+  LazyCompileDispatcher* dispatcher() { return dispatcher_; }
+  const Utf16CharacterStream* character_stream() const {
+    return character_stream_;
+  }
 
-    // Accessors for the input data of the function being compiled.
+  // Accessors for the input data of the function being compiled.
 
-    FunctionLiteral* literal() const
-    {
-        return literal_;
-    }
-    void set_literal(FunctionLiteral* literal)
-    {
-        DCHECK_NOT_NULL(literal);
-        literal_ = literal;
-    }
-    void ClearLiteral()
-    {
-        literal_ = nullptr;
-    }
+  FunctionLiteral* literal() const { return literal_; }
+  void set_literal(FunctionLiteral* literal) {
+    DCHECK_NOT_NULL(literal);
+    literal_ = literal;
+  }
+  void ClearLiteral() { literal_ = nullptr; }
 
-    DeclarationScope* scope() const;
+  DeclarationScope* scope() const;
 
-    int num_parameters() const;
-    int num_parameters_including_this() const;
+  int num_parameters() const;
+  int num_parameters_including_this() const;
 
-    // Accessors for optional compilation features.
+  // Accessors for optional compilation features.
 
-    SourcePositionTableBuilder::RecordingMode SourcePositionRecordingMode() const;
+  SourcePositionTableBuilder::RecordingMode SourcePositionRecordingMode() const;
 
-    bool has_source_range_map() const
-    {
-        return source_range_map_ != nullptr;
-    }
-    SourceRangeMap* source_range_map() const
-    {
-        return source_range_map_;
-    }
-    void set_source_range_map(SourceRangeMap* source_range_map)
-    {
-        source_range_map_ = source_range_map;
-    }
+  bool has_source_range_map() const { return source_range_map_ != nullptr; }
+  SourceRangeMap* source_range_map() const { return source_range_map_; }
+  void set_source_range_map(SourceRangeMap* source_range_map) {
+    source_range_map_ = source_range_map;
+  }
 
-    bool has_coverage_info() const
-    {
-        return !coverage_info_.is_null();
-    }
-    Handle<CoverageInfo> coverage_info() const
-    {
-        return coverage_info_;
-    }
-    void set_coverage_info(Handle<CoverageInfo> coverage_info)
-    {
-        coverage_info_ = coverage_info;
-    }
+  bool has_coverage_info() const { return !coverage_info_.is_null(); }
+  Handle<CoverageInfo> coverage_info() const { return coverage_info_; }
+  void set_coverage_info(Handle<CoverageInfo> coverage_info) {
+    coverage_info_ = coverage_info;
+  }
 
-    // Accessors for the output of compilation.
+  // Accessors for the output of compilation.
 
-    bool has_bytecode_array() const
-    {
-        return !bytecode_array_.is_null();
-    }
-    Handle<BytecodeArray> bytecode_array() const
-    {
-        return bytecode_array_;
-    }
-    void SetBytecodeArray(Handle<BytecodeArray> bytecode_array)
-    {
-        bytecode_array_ = bytecode_array;
-    }
+  bool has_bytecode_array() const { return !bytecode_array_.is_null(); }
+  Handle<BytecodeArray> bytecode_array() const { return bytecode_array_; }
+  void SetBytecodeArray(Handle<BytecodeArray> bytecode_array) {
+    bytecode_array_ = bytecode_array;
+  }
 
-    bool has_asm_wasm_data() const
-    {
-        return !asm_wasm_data_.is_null();
-    }
-    Handle<AsmWasmData> asm_wasm_data() const
-    {
-        return asm_wasm_data_;
-    }
-    void SetAsmWasmData(Handle<AsmWasmData> asm_wasm_data)
-    {
-        asm_wasm_data_ = asm_wasm_data;
-    }
+  bool has_asm_wasm_data() const { return !asm_wasm_data_.is_null(); }
+  Handle<AsmWasmData> asm_wasm_data() const { return asm_wasm_data_; }
+  void SetAsmWasmData(Handle<AsmWasmData> asm_wasm_data) {
+    asm_wasm_data_ = asm_wasm_data;
+  }
 
-    FeedbackVectorSpec* feedback_vector_spec()
-    {
-        return &feedback_vector_spec_;
-    }
+  FeedbackVectorSpec* feedback_vector_spec() { return &feedback_vector_spec_; }
 
-private:
-    // Compilation flags.
-    const UnoptimizedCompileFlags flags_;
+ private:
+  // Compilation flags.
+  const UnoptimizedCompileFlags flags_;
 
-    // For dispatching eager compilation of lazily compiled functions.
-    LazyCompileDispatcher* dispatcher_;
-    const Utf16CharacterStream* character_stream_;
+  // For dispatching eager compilation of lazily compiled functions.
+  LazyCompileDispatcher* dispatcher_;
+  const Utf16CharacterStream* character_stream_;
 
-    // The root AST node of the function literal being compiled.
-    FunctionLiteral* literal_;
+  // The root AST node of the function literal being compiled.
+  FunctionLiteral* literal_;
 
-    // Used when block coverage is enabled.
-    SourceRangeMap* source_range_map_;
+  // Used when block coverage is enabled.
+  SourceRangeMap* source_range_map_;
 
-    // Encapsulates coverage information gathered by the bytecode generator.
-    // Needs to be stored on the shared function info once compilation completes.
-    IndirectHandle<CoverageInfo> coverage_info_;
+  // Encapsulates coverage information gathered by the bytecode generator.
+  // Needs to be stored on the shared function info once compilation completes.
+  IndirectHandle<CoverageInfo> coverage_info_;
 
-    // Holds the bytecode array generated by the interpreter.
-    IndirectHandle<BytecodeArray> bytecode_array_;
+  // Holds the bytecode array generated by the interpreter.
+  IndirectHandle<BytecodeArray> bytecode_array_;
 
-    // Holds the asm_wasm data struct generated by the asmjs compiler.
-    IndirectHandle<AsmWasmData> asm_wasm_data_;
+  // Holds the asm_wasm data struct generated by the asmjs compiler.
+  IndirectHandle<AsmWasmData> asm_wasm_data_;
 
-    // Holds the feedback vector spec generated during compilation
-    FeedbackVectorSpec feedback_vector_spec_;
+  // Holds the feedback vector spec generated during compilation
+  FeedbackVectorSpec feedback_vector_spec_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_UNOPTIMIZED_COMPILATION_INFO_H_
+#endif  // V8_CODEGEN_UNOPTIMIZED_COMPILATION_INFO_H_

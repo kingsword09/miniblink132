@@ -11,7 +11,8 @@
 
 namespace v8 {
 
-template <typename T> class FunctionCallbackInfo;
+template <typename T>
+class FunctionCallbackInfo;
 
 namespace internal {
 
@@ -50,25 +51,25 @@ namespace internal {
 // 4. Synchronous last resort GC:
 //   `gc({type:'major',execution:'sync',flavor:'last-resort'})`
 class GCExtension : public v8::Extension {
-public:
-    explicit GCExtension(const char* fun_name)
-        : v8::Extension("v8/gc", BuildSource(buffer_, sizeof(buffer_), fun_name))
-    {
-    }
-    v8::Local<v8::FunctionTemplate> GetNativeFunctionTemplate(v8::Isolate* isolate, v8::Local<v8::String> name) override;
-    static void GC(const v8::FunctionCallbackInfo<v8::Value>& info);
+ public:
+  explicit GCExtension(const char* fun_name)
+      : v8::Extension("v8/gc",
+                      BuildSource(buffer_, sizeof(buffer_), fun_name)) {}
+  v8::Local<v8::FunctionTemplate> GetNativeFunctionTemplate(
+      v8::Isolate* isolate, v8::Local<v8::String> name) override;
+  static void GC(const v8::FunctionCallbackInfo<v8::Value>& info);
 
-private:
-    static const char* BuildSource(char* buf, size_t size, const char* fun_name)
-    {
-        base::SNPrintF(base::VectorOf(buf, size), "native function %s();", fun_name);
-        return buf;
-    }
+ private:
+  static const char* BuildSource(char* buf, size_t size, const char* fun_name) {
+    base::SNPrintF(base::VectorOf(buf, size), "native function %s();",
+                   fun_name);
+    return buf;
+  }
 
-    char buffer_[50];
+  char buffer_[50];
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_EXTENSIONS_GC_EXTENSION_H_
+#endif  // V8_EXTENSIONS_GC_EXTENSION_H_

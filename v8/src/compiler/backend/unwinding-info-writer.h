@@ -34,41 +34,28 @@ namespace compiler {
 class InstructionBlock;
 
 static_assert(!v8_flags.perf_prof_unwinding_info.value(),
-    "--perf-prof-unwinding-info should be statically disabled if not "
-    "supported");
+              "--perf-prof-unwinding-info should be statically disabled if not "
+              "supported");
 
 class UnwindingInfoWriter {
-public:
-    explicit UnwindingInfoWriter(Zone*)
-    {
-    }
+ public:
+  explicit UnwindingInfoWriter(Zone*) {}
 
-    void SetNumberOfInstructionBlocks(int number)
-    {
-    }
+  void SetNumberOfInstructionBlocks(int number) {}
 
-    void BeginInstructionBlock(int pc_offset, const InstructionBlock*)
-    {
-    }
+  void BeginInstructionBlock(int pc_offset, const InstructionBlock*) {}
 
-    void EndInstructionBlock(const InstructionBlock*)
-    {
-    }
+  void EndInstructionBlock(const InstructionBlock*) {}
 
-    void Finish(int code_size)
-    {
-    }
+  void Finish(int code_size) {}
 
-    EhFrameWriter* eh_frame_writer()
-    {
-        return nullptr;
-    }
+  EhFrameWriter* eh_frame_writer() { return nullptr; }
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
 #endif
 
-#endif // V8_COMPILER_BACKEND_UNWINDING_INFO_WRITER_H_
+#endif  // V8_COMPILER_BACKEND_UNWINDING_INFO_WRITER_H_

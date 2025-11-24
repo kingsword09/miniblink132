@@ -34,43 +34,40 @@ namespace internal {
 // 2) since the TaggedIndex values are already properly sign-extended it's
 //   safe to use them as indices in offset-computation functions.
 class TaggedIndex : public AllStatic {
-public:
-    // Convert a value to a TaggedIndex object.
-    static inline Tagged<TaggedIndex> FromIntptr(intptr_t value)
-    {
-        DCHECK(TaggedIndex::IsValid(value));
-        return Tagged<TaggedIndex>((static_cast<Address>(value) << kSmiTagSize) | kSmiTag);
-    }
+ public:
+  // Convert a value to a TaggedIndex object.
+  static inline Tagged<TaggedIndex> FromIntptr(intptr_t value) {
+    DCHECK(TaggedIndex::IsValid(value));
+    return Tagged<TaggedIndex>((static_cast<Address>(value) << kSmiTagSize) |
+                               kSmiTag);
+  }
 
-    // Returns whether value can be represented in a TaggedIndex.
-    static inline bool constexpr IsValid(intptr_t value)
-    {
-        return kMinValue <= value && value <= kMaxValue;
-    }
+  // Returns whether value can be represented in a TaggedIndex.
+  static inline bool constexpr IsValid(intptr_t value) {
+    return kMinValue <= value && value <= kMaxValue;
+  }
 
-    // Dispatched behavior.
-    DECL_STATIC_VERIFIER(TaggedIndex)
+  // Dispatched behavior.
+  DECL_STATIC_VERIFIER(TaggedIndex)
 
-    static_assert(kSmiTagSize == 1);
-    static constexpr int kTaggedValueSize = 31;
-    static constexpr intptr_t kMinValue = static_cast<intptr_t>(kUintptrAllBitsSet << (kTaggedValueSize - 1));
-    static constexpr intptr_t kMaxValue = -(kMinValue + 1);
+  static_assert(kSmiTagSize == 1);
+  static constexpr int kTaggedValueSize = 31;
+  static constexpr intptr_t kMinValue =
+      static_cast<intptr_t>(kUintptrAllBitsSet << (kTaggedValueSize - 1));
+  static constexpr intptr_t kMaxValue = -(kMinValue + 1);
 };
 
-template <> struct CastTraits<TaggedIndex> {
-    static inline bool AllowFrom(Tagged<Object> value)
-    {
-        return HAS_SMI_TAG(value.ptr());
-    }
-    static inline bool AllowFrom(Tagged<HeapObject> value)
-    {
-        return false;
-    }
+template <>
+struct CastTraits<TaggedIndex> {
+  static inline bool AllowFrom(Tagged<Object> value) {
+    return HAS_SMI_TAG(value.ptr());
+  }
+  static inline bool AllowFrom(Tagged<HeapObject> value) { return false; }
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_TAGGED_INDEX_H_
+#endif  // V8_OBJECTS_TAGGED_INDEX_H_

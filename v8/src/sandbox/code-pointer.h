@@ -14,14 +14,17 @@ namespace internal {
 // Read the pointer to a Code's entrypoint via a code pointer.
 // Only available when the sandbox is enabled as it requires the code pointer
 // table.
-V8_INLINE Address ReadCodeEntrypointViaCodePointerField(Address field_address, CodeEntrypointTag tag);
+V8_INLINE Address ReadCodeEntrypointViaCodePointerField(Address field_address,
+                                                        CodeEntrypointTag tag);
 
 // Writes the pointer to a Code's entrypoint via a code pointer.
 // Only available when the sandbox is enabled as it requires the code pointer
 // table.
-V8_INLINE void WriteCodeEntrypointViaCodePointerField(Address field_address, Address value, CodeEntrypointTag tag);
+V8_INLINE void WriteCodeEntrypointViaCodePointerField(Address field_address,
+                                                      Address value,
+                                                      CodeEntrypointTag tag);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SANDBOX_CODE_POINTER_H_
+#endif  // V8_SANDBOX_CODE_POINTER_H_

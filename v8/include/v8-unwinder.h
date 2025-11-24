@@ -7,8 +7,8 @@
 
 #include <memory>
 
-#include "v8-embedder-state-scope.h" // NOLINT(build/include_directory)
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8-embedder-state-scope.h"  // NOLINT(build/include_directory)
+#include "v8config.h"                 // NOLINT(build/include_directory)
 
 namespace v8 {
 // Holds the callee saved registers needed for the stack unwinder. It is the
@@ -19,57 +19,57 @@ struct CalleeSavedRegisters;
 // A RegisterState represents the current state of registers used
 // by the sampling profiler API.
 struct V8_EXPORT RegisterState {
-    RegisterState();
-    ~RegisterState();
-    RegisterState(const RegisterState& other);
-    RegisterState& operator=(const RegisterState& other);
+  RegisterState();
+  ~RegisterState();
+  RegisterState(const RegisterState& other);
+  RegisterState& operator=(const RegisterState& other);
 
-    void* pc; // Instruction pointer.
-    void* sp; // Stack pointer.
-    void* fp; // Frame pointer.
-    void* lr; // Link register (or nullptr on platforms without a link register).
-    // Callee saved registers (or null if no callee saved registers were stored)
-    std::unique_ptr<CalleeSavedRegisters> callee_saved;
+  void* pc;  // Instruction pointer.
+  void* sp;  // Stack pointer.
+  void* fp;  // Frame pointer.
+  void* lr;  // Link register (or nullptr on platforms without a link register).
+  // Callee saved registers (or null if no callee saved registers were stored)
+  std::unique_ptr<CalleeSavedRegisters> callee_saved;
 };
 
 // A StateTag represents a possible state of the VM.
 enum StateTag : uint16_t {
-    JS,
-    GC,
-    PARSER,
-    BYTECODE_COMPILER,
-    COMPILER,
-    OTHER,
-    EXTERNAL,
-    ATOMICS_WAIT,
-    IDLE,
-    LOGGING,
+  JS,
+  GC,
+  PARSER,
+  BYTECODE_COMPILER,
+  COMPILER,
+  OTHER,
+  EXTERNAL,
+  ATOMICS_WAIT,
+  IDLE,
+  LOGGING,
 };
 
 // The output structure filled up by GetStackSample API function.
 struct SampleInfo {
-    size_t frames_count; // Number of frames collected.
-    void* external_callback_entry; // External callback address if VM is
-        // executing an external callback.
-    void* context; // Incumbent native context address.
-    void* embedder_context; // Native context address for embedder state
-    StateTag vm_state; // Current VM state.
-    EmbedderStateTag embedder_state; // Current Embedder state
+  size_t frames_count;              // Number of frames collected.
+  void* external_callback_entry;    // External callback address if VM is
+                                    // executing an external callback.
+  void* context;                    // Incumbent native context address.
+  void* embedder_context;           // Native context address for embedder state
+  StateTag vm_state;                // Current VM state.
+  EmbedderStateTag embedder_state;  // Current Embedder state
 };
 
 struct MemoryRange {
-    const void* start = nullptr;
-    size_t length_in_bytes = 0;
+  const void* start = nullptr;
+  size_t length_in_bytes = 0;
 };
 
 struct JSEntryStub {
-    MemoryRange code;
+  MemoryRange code;
 };
 
 struct JSEntryStubs {
-    JSEntryStub js_entry_stub;
-    JSEntryStub js_construct_entry_stub;
-    JSEntryStub js_run_microtasks_entry_stub;
+  JSEntryStub js_entry_stub;
+  JSEntryStub js_construct_entry_stub;
+  JSEntryStub js_run_microtasks_entry_stub;
 };
 
 /**
@@ -78,8 +78,8 @@ struct JSEntryStubs {
  * The unwinder API is only supported on the x64, ARM64 and ARM32 architectures.
  */
 class V8_EXPORT Unwinder {
-public:
-    /**
+ public:
+  /**
    * Attempt to unwind the stack to the most recent C++ frame. This function is
    * signal-safe and does not access any V8 state and thus doesn't require an
    * Isolate.
@@ -109,10 +109,13 @@ public:
    *
    * \return True on success.
    */
-    static bool TryUnwindV8Frames(
-        const JSEntryStubs& entry_stubs, size_t code_pages_length, const MemoryRange* code_pages, RegisterState* register_state, const void* stack_base);
+  static bool TryUnwindV8Frames(const JSEntryStubs& entry_stubs,
+                                size_t code_pages_length,
+                                const MemoryRange* code_pages,
+                                RegisterState* register_state,
+                                const void* stack_base);
 
-    /**
+  /**
    * Whether the PC is within the V8 code range represented by code_pages.
    *
    * If this returns false, then calling UnwindV8Frames() with the same PC
@@ -121,9 +124,10 @@ public:
    *
    * Available on x64, ARM64 and ARM32
    */
-    static bool PCIsInV8(size_t code_pages_length, const MemoryRange* code_pages, void* pc);
+  static bool PCIsInV8(size_t code_pages_length, const MemoryRange* code_pages,
+                       void* pc);
 };
 
-} // namespace v8
+}  // namespace v8
 
-#endif // INCLUDE_V8_UNWINDER_H_
+#endif  // INCLUDE_V8_UNWINDER_H_

@@ -8,14 +8,11 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-bool InstructionScheduler::SchedulerSupported()
-{
-    return true;
-}
+bool InstructionScheduler::SchedulerSupported() { return true; }
 
-int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) const
-{
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetTargetInstructionFlags(
+    const Instruction* instr) const {
+  switch (instr->arch_opcode()) {
     case kArmAdd:
     case kArmAnd:
     case kArmBic:
@@ -325,7 +322,7 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kArmI16x8AllTrue:
     case kArmV128AnyTrue:
     case kArmI8x16AllTrue:
-        return kNoOpcodeFlags;
+      return kNoOpcodeFlags;
 
     case kArmVldrF32:
     case kArmVldrF64:
@@ -352,7 +349,7 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kArmS128Load64Zero:
     case kArmS128LoadLaneLow:
     case kArmS128LoadLaneHigh:
-        return kIsLoadOperation;
+      return kIsLoadOperation;
 
     case kArmVstrF32:
     case kArmVstrF64:
@@ -375,24 +372,23 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kArmWord32AtomicPairCompareExchange:
     case kArmS128StoreLaneLow:
     case kArmS128StoreLaneHigh:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
 #define CASE(Name) case k##Name:
-        COMMON_ARCH_OPCODE_LIST(CASE)
+      COMMON_ARCH_OPCODE_LIST(CASE)
 #undef CASE
-        // Already covered in architecture independent code.
-        UNREACHABLE();
-    }
+      // Already covered in architecture independent code.
+      UNREACHABLE();
+  }
 
-    UNREACHABLE();
+  UNREACHABLE();
 }
 
-int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
-{
-    // TODO(all): Add instruction cost modeling.
-    return 1;
+int InstructionScheduler::GetInstructionLatency(const Instruction* instr) {
+  // TODO(all): Add instruction cost modeling.
+  return 1;
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

@@ -15,11 +15,13 @@ class Isolate;
 class SafepointScope;
 
 class ReadOnlyPromotion final : public AllStatic {
-public:
-    V8_EXPORT_PRIVATE static void Promote(Isolate* isolate, const SafepointScope& safepoint_scope, const DisallowGarbageCollection& no_gc);
+ public:
+  V8_EXPORT_PRIVATE static void Promote(Isolate* isolate,
+                                        const SafepointScope& safepoint_scope,
+                                        const DisallowGarbageCollection& no_gc);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_READ_ONLY_PROMOTION_H_
+#endif  // V8_HEAP_READ_ONLY_PROMOTION_H_

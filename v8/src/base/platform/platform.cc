@@ -12,23 +12,22 @@ namespace {
 // A pointer to current thread's stack beginning.
 thread_local void* thread_stack_start = nullptr;
 
-} // namespace
+}  // namespace
 
 // static
-Stack::StackSlot Stack::GetStackStartUnchecked()
-{
-    if (!thread_stack_start) {
-        thread_stack_start = ObtainCurrentThreadStackStart();
-    }
-    return thread_stack_start;
+Stack::StackSlot Stack::GetStackStartUnchecked() {
+  if (!thread_stack_start) {
+    thread_stack_start = ObtainCurrentThreadStackStart();
+  }
+  return thread_stack_start;
 }
 
 // static
-Stack::StackSlot Stack::GetStackStart()
-{
-    DCHECK_IMPLIES(thread_stack_start, thread_stack_start == ObtainCurrentThreadStackStart());
-    return GetStackStartUnchecked();
+Stack::StackSlot Stack::GetStackStart() {
+  DCHECK_IMPLIES(thread_stack_start,
+                 thread_stack_start == ObtainCurrentThreadStackStart());
+  return GetStackStartUnchecked();
 }
 
-} // namespace base
-} // namespace v8
+}  // namespace base
+}  // namespace v8

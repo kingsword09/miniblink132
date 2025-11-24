@@ -17,22 +17,24 @@ namespace internal {
 // `TracedHandles`. The visitor assumes that pointers (on stack, or
 // conservatively scanned on-heap) may point into traced handle nodes which
 // requires them to be kept alive.
-class ConservativeTracedHandlesMarkingVisitor final : public ::heap::base::StackVisitor {
-public:
-    ConservativeTracedHandlesMarkingVisitor(Heap&, MarkingWorklists::Local&, cppgc::internal::CollectionType);
-    ~ConservativeTracedHandlesMarkingVisitor() override = default;
+class ConservativeTracedHandlesMarkingVisitor final
+    : public ::heap::base::StackVisitor {
+ public:
+  ConservativeTracedHandlesMarkingVisitor(Heap&, MarkingWorklists::Local&,
+                                          cppgc::internal::CollectionType);
+  ~ConservativeTracedHandlesMarkingVisitor() override = default;
 
-    void VisitPointer(const void*) override;
+  void VisitPointer(const void*) override;
 
-private:
-    Heap& heap_;
-    MarkingState& marking_state_;
-    MarkingWorklists::Local& local_marking_worklist_;
-    const TracedHandles::NodeBounds traced_node_bounds_;
-    const TracedHandles::MarkMode mark_mode_;
+ private:
+  Heap& heap_;
+  MarkingState& marking_state_;
+  MarkingWorklists::Local& local_marking_worklist_;
+  const TracedHandles::NodeBounds traced_node_bounds_;
+  const TracedHandles::MarkMode mark_mode_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_TRACED_HANDLES_MARKING_VISITOR_H_
+#endif  // V8_HEAP_TRACED_HANDLES_MARKING_VISITOR_H_

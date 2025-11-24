@@ -8,15 +8,12 @@
 
 namespace v8_inspector {
 
-V8DebuggerBarrier::V8DebuggerBarrier(V8InspectorClient* client, int contextGroupId)
-    : m_client(client)
-    , m_contextGroupId(contextGroupId)
-{
+V8DebuggerBarrier::V8DebuggerBarrier(V8InspectorClient* client,
+                                     int contextGroupId)
+    : m_client(client), m_contextGroupId(contextGroupId) {}
+
+V8DebuggerBarrier::~V8DebuggerBarrier() {
+  m_client->runIfWaitingForDebugger(m_contextGroupId);
 }
 
-V8DebuggerBarrier::~V8DebuggerBarrier()
-{
-    m_client->runIfWaitingForDebugger(m_contextGroupId);
-}
-
-} // namespace v8_inspector
+}  // namespace v8_inspector

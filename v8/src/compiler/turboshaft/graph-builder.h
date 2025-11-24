@@ -19,7 +19,8 @@ class SourcePositionTable;
 namespace v8::internal::compiler::turboshaft {
 class PipelineData;
 std::optional<BailoutReason> BuildGraph(
-    PipelineData* data, Schedule* schedule, Zone* phase_zone, Linkage* linkage, JsWasmCallsSidetable* js_wasm_calls_sidetable);
+    PipelineData* data, Schedule* schedule, Zone* phase_zone, Linkage* linkage,
+    JsWasmCallsSidetable* js_wasm_calls_sidetable);
 }
 
-#endif // V8_COMPILER_TURBOSHAFT_GRAPH_BUILDER_H_
+#endif  // V8_COMPILER_TURBOSHAFT_GRAPH_BUILDER_H_

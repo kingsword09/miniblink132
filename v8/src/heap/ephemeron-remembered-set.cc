@@ -9,25 +9,25 @@
 
 namespace v8::internal {
 
-void EphemeronRememberedSet::RecordEphemeronKeyWrite(Tagged<EphemeronHashTable> table, Address slot)
-{
-    DCHECK(HeapLayout::InYoungGeneration(HeapObjectSlot(slot).ToHeapObject()));
-    int slot_index = EphemeronHashTable::SlotToIndex(table.address(), slot);
-    InternalIndex entry = EphemeronHashTable::IndexToEntry(slot_index);
-    base::MutexGuard guard(&insertion_mutex_);
-    auto it = tables_.insert({ table, IndicesSet() });
-    it.first->second.insert(entry.as_int());
+void EphemeronRememberedSet::RecordEphemeronKeyWrite(
+    Tagged<EphemeronHashTable> table, Address slot) {
+  DCHECK(HeapLayout::InYoungGeneration(HeapObjectSlot(slot).ToHeapObject()));
+  int slot_index = EphemeronHashTable::SlotToIndex(table.address(), slot);
+  InternalIndex entry = EphemeronHashTable::IndexToEntry(slot_index);
+  base::MutexGuard guard(&insertion_mutex_);
+  auto it = tables_.insert({table, IndicesSet()});
+  it.first->second.insert(entry.as_int());
 }
 
-void EphemeronRememberedSet::RecordEphemeronKeyWrites(Tagged<EphemeronHashTable> table, IndicesSet indices)
-{
-    base::MutexGuard guard(&insertion_mutex_);
-    auto it = tables_.find(table);
-    if (it != tables_.end()) {
-        it->second.merge(std::move(indices));
-    } else {
-        tables_.insert({ table, std::move(indices) });
-    }
+void EphemeronRememberedSet::RecordEphemeronKeyWrites(
+    Tagged<EphemeronHashTable> table, IndicesSet indices) {
+  base::MutexGuard guard(&insertion_mutex_);
+  auto it = tables_.find(table);
+  if (it != tables_.end()) {
+    it->second.merge(std::move(indices));
+  } else {
+    tables_.insert({table, std::move(indices)});
+  }
 }
 
-} // namespace v8::internal
+}  // namespace v8::internal

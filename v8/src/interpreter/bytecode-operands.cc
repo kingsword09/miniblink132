@@ -12,90 +12,83 @@ namespace interpreter {
 
 namespace {
 
-const char* ImplicitRegisterUseToString(ImplicitRegisterUse implicit_register_use)
-{
-    switch (implicit_register_use) {
+const char* ImplicitRegisterUseToString(
+    ImplicitRegisterUse implicit_register_use) {
+  switch (implicit_register_use) {
     case ImplicitRegisterUse::kNone:
-        return "None";
+      return "None";
     case ImplicitRegisterUse::kReadAccumulator:
-        return "ReadAccumulator";
+      return "ReadAccumulator";
     case ImplicitRegisterUse::kWriteAccumulator:
-        return "WriteAccumulator";
+      return "WriteAccumulator";
     case ImplicitRegisterUse::kClobberAccumulator:
-        return "ClobberAccumulator";
+      return "ClobberAccumulator";
     case ImplicitRegisterUse::kWriteShortStar:
-        return "WriteShortStar";
+      return "WriteShortStar";
     case ImplicitRegisterUse::kReadAndClobberAccumulator:
-        return "ReadAndClobberAccumulator";
+      return "ReadAndClobberAccumulator";
     case ImplicitRegisterUse::kReadWriteAccumulator:
-        return "ReadWriteAccumulator";
+      return "ReadWriteAccumulator";
     case ImplicitRegisterUse::kReadAccumulatorWriteShortStar:
-        return "ReadAccumulatorWriteShortStar";
-    }
-    UNREACHABLE();
+      return "ReadAccumulatorWriteShortStar";
+  }
+  UNREACHABLE();
 }
 
-const char* OperandTypeToString(OperandType operand_type)
-{
-    switch (operand_type) {
-#define CASE(Name, _)                                                                                                                                          \
-    case OperandType::k##Name:                                                                                                                                 \
-        return #Name;
-        OPERAND_TYPE_LIST(CASE)
+const char* OperandTypeToString(OperandType operand_type) {
+  switch (operand_type) {
+#define CASE(Name, _)        \
+  case OperandType::k##Name: \
+    return #Name;
+    OPERAND_TYPE_LIST(CASE)
 #undef CASE
-    }
-    UNREACHABLE();
+  }
+  UNREACHABLE();
 }
 
-const char* OperandScaleToString(OperandScale operand_scale)
-{
-    switch (operand_scale) {
-#define CASE(Name, _)                                                                                                                                          \
-    case OperandScale::k##Name:                                                                                                                                \
-        return #Name;
-        OPERAND_SCALE_LIST(CASE)
+const char* OperandScaleToString(OperandScale operand_scale) {
+  switch (operand_scale) {
+#define CASE(Name, _)         \
+  case OperandScale::k##Name: \
+    return #Name;
+    OPERAND_SCALE_LIST(CASE)
 #undef CASE
-    }
-    UNREACHABLE();
+  }
+  UNREACHABLE();
 }
 
-const char* OperandSizeToString(OperandSize operand_size)
-{
-    switch (operand_size) {
+const char* OperandSizeToString(OperandSize operand_size) {
+  switch (operand_size) {
     case OperandSize::kNone:
-        return "None";
+      return "None";
     case OperandSize::kByte:
-        return "Byte";
+      return "Byte";
     case OperandSize::kShort:
-        return "Short";
+      return "Short";
     case OperandSize::kQuad:
-        return "Quad";
-    }
-    UNREACHABLE();
+      return "Quad";
+  }
+  UNREACHABLE();
 }
 
-} // namespace
+}  // namespace
 
-std::ostream& operator<<(std::ostream& os, const ImplicitRegisterUse& use)
-{
-    return os << ImplicitRegisterUseToString(use);
+std::ostream& operator<<(std::ostream& os, const ImplicitRegisterUse& use) {
+  return os << ImplicitRegisterUseToString(use);
 }
 
-std::ostream& operator<<(std::ostream& os, const OperandSize& operand_size)
-{
-    return os << OperandSizeToString(operand_size);
+std::ostream& operator<<(std::ostream& os, const OperandSize& operand_size) {
+  return os << OperandSizeToString(operand_size);
 }
 
-std::ostream& operator<<(std::ostream& os, const OperandScale& operand_scale)
-{
-    return os << OperandScaleToString(operand_scale);
+std::ostream& operator<<(std::ostream& os, const OperandScale& operand_scale) {
+  return os << OperandScaleToString(operand_scale);
 }
 
-std::ostream& operator<<(std::ostream& os, const OperandType& operand_type)
-{
-    return os << OperandTypeToString(operand_type);
+std::ostream& operator<<(std::ostream& os, const OperandType& operand_type) {
+  return os << OperandTypeToString(operand_type);
 }
 
-} // namespace interpreter
-} // namespace internal
-} // namespace v8
+}  // namespace interpreter
+}  // namespace internal
+}  // namespace v8

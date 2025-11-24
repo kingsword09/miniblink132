@@ -27,41 +27,42 @@ class Assembler;
 // └ <variable length>     characters of the comment including terminating '\0'
 
 struct CodeCommentEntry {
-    uint32_t pc_offset;
-    std::string comment;
-    uint32_t comment_length() const;
-    uint32_t size() const;
+  uint32_t pc_offset;
+  std::string comment;
+  uint32_t comment_length() const;
+  uint32_t size() const;
 };
 
 class CodeCommentsWriter {
-public:
-    V8_EXPORT_PRIVATE void Add(uint32_t pc_offset, std::string comment);
-    void Emit(Assembler* assm);
-    size_t entry_count() const;
-    uint32_t section_size() const;
+ public:
+  V8_EXPORT_PRIVATE void Add(uint32_t pc_offset, std::string comment);
+  void Emit(Assembler* assm);
+  size_t entry_count() const;
+  uint32_t section_size() const;
 
-private:
-    uint32_t byte_count_ = 0;
-    std::vector<CodeCommentEntry> comments_;
+ private:
+  uint32_t byte_count_ = 0;
+  std::vector<CodeCommentEntry> comments_;
 };
 
 class V8_EXPORT_PRIVATE CodeCommentsIterator {
-public:
-    CodeCommentsIterator(Address code_comments_start, uint32_t code_comments_size);
-    uint32_t size() const;
-    const char* GetComment() const;
-    uint32_t GetCommentSize() const;
-    uint32_t GetPCOffset() const;
-    void Next();
-    bool HasCurrent() const;
+ public:
+  CodeCommentsIterator(Address code_comments_start,
+                       uint32_t code_comments_size);
+  uint32_t size() const;
+  const char* GetComment() const;
+  uint32_t GetCommentSize() const;
+  uint32_t GetPCOffset() const;
+  void Next();
+  bool HasCurrent() const;
 
-private:
-    Address code_comments_start_;
-    uint32_t code_comments_size_;
-    Address current_entry_;
+ private:
+  Address code_comments_start_;
+  uint32_t code_comments_size_;
+  Address current_entry_;
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_CODE_COMMENTS_H_
+#endif  // V8_CODEGEN_CODE_COMMENTS_H_

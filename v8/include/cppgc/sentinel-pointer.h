@@ -16,29 +16,24 @@ namespace internal {
 // sentinel is defined by the embedder.
 struct SentinelPointer {
 #if defined(CPPGC_POINTER_COMPRESSION)
-    static constexpr intptr_t kSentinelValue = 1 << api_constants::kPointerCompressionShift;
-#else // !defined(CPPGC_POINTER_COMPRESSION)
-    static constexpr intptr_t kSentinelValue = 0b10;
-#endif // !defined(CPPGC_POINTER_COMPRESSION)
-    template <typename T> operator T*() const
-    {
-        return reinterpret_cast<T*>(kSentinelValue);
-    }
-    // Hidden friends.
-    friend bool operator==(SentinelPointer, SentinelPointer)
-    {
-        return true;
-    }
-    friend bool operator!=(SentinelPointer, SentinelPointer)
-    {
-        return false;
-    }
+  static constexpr intptr_t kSentinelValue =
+      1 << api_constants::kPointerCompressionShift;
+#else   // !defined(CPPGC_POINTER_COMPRESSION)
+  static constexpr intptr_t kSentinelValue = 0b10;
+#endif  // !defined(CPPGC_POINTER_COMPRESSION)
+  template <typename T>
+  operator T*() const {
+    return reinterpret_cast<T*>(kSentinelValue);
+  }
+  // Hidden friends.
+  friend bool operator==(SentinelPointer, SentinelPointer) { return true; }
+  friend bool operator!=(SentinelPointer, SentinelPointer) { return false; }
 };
 
-} // namespace internal
+}  // namespace internal
 
 constexpr internal::SentinelPointer kSentinelPointer;
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_SENTINEL_POINTER_H_
+#endif  // INCLUDE_CPPGC_SENTINEL_POINTER_H_

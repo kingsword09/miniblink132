@@ -12,7 +12,7 @@ namespace v8windbg_test {
 void RunTests();
 
 }
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TOOLS_V8WINDBG_TEST_V8WINDBG_TEST_H_
+#endif  // V8_TOOLS_V8WINDBG_TEST_V8WINDBG_TEST_H_

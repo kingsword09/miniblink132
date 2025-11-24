@@ -13,65 +13,67 @@ namespace disasm {
 // register-numbers to text.  The default implementation is machine
 // specific.
 class V8_EXPORT_PRIVATE NameConverter {
-public:
-    virtual ~NameConverter() = default;
-    virtual const char* NameOfCPURegister(int reg) const;
-    virtual const char* NameOfByteCPURegister(int reg) const;
-    virtual const char* NameOfXMMRegister(int reg) const;
-    virtual const char* NameOfAddress(uint8_t* addr) const;
-    virtual const char* NameOfConstant(uint8_t* addr) const;
-    virtual const char* NameInCode(uint8_t* addr) const;
+ public:
+  virtual ~NameConverter() = default;
+  virtual const char* NameOfCPURegister(int reg) const;
+  virtual const char* NameOfByteCPURegister(int reg) const;
+  virtual const char* NameOfXMMRegister(int reg) const;
+  virtual const char* NameOfAddress(uint8_t* addr) const;
+  virtual const char* NameOfConstant(uint8_t* addr) const;
+  virtual const char* NameInCode(uint8_t* addr) const;
 
-    // Given a root-register-relative offset, returns either a name or nullptr if
-    // none is found.
-    // TODO(jgruber,v8:7989): This is a temporary solution until we can preserve
-    // code comments through snapshotting.
-    virtual const char* RootRelativeName(int offset) const
-    {
-        UNREACHABLE();
-    }
+  // Given a root-register-relative offset, returns either a name or nullptr if
+  // none is found.
+  // TODO(jgruber,v8:7989): This is a temporary solution until we can preserve
+  // code comments through snapshotting.
+  virtual const char* RootRelativeName(int offset) const { UNREACHABLE(); }
 
-protected:
-    v8::base::EmbeddedVector<char, 128> tmp_buffer_;
+ protected:
+  v8::base::EmbeddedVector<char, 128> tmp_buffer_;
 };
 
 // A generic Disassembler interface
 class Disassembler {
-public:
-    enum UnimplementedOpcodeAction : int8_t { kContinueOnUnimplementedOpcode, kAbortOnUnimplementedOpcode };
+ public:
+  enum UnimplementedOpcodeAction : int8_t {
+    kContinueOnUnimplementedOpcode,
+    kAbortOnUnimplementedOpcode
+  };
 
-    // Caller deallocates converter.
-    explicit Disassembler(const NameConverter& converter, UnimplementedOpcodeAction unimplemented_opcode_action = kAbortOnUnimplementedOpcode)
-        : converter_(converter)
-        , unimplemented_opcode_action_(unimplemented_opcode_action)
-    {
-    }
+  // Caller deallocates converter.
+  explicit Disassembler(const NameConverter& converter,
+                        UnimplementedOpcodeAction unimplemented_opcode_action =
+                            kAbortOnUnimplementedOpcode)
+      : converter_(converter),
+        unimplemented_opcode_action_(unimplemented_opcode_action) {}
 
-    UnimplementedOpcodeAction unimplemented_opcode_action() const
-    {
-        return unimplemented_opcode_action_;
-    }
+  UnimplementedOpcodeAction unimplemented_opcode_action() const {
+    return unimplemented_opcode_action_;
+  }
 
-    // Writes one disassembled instruction into 'buffer' (0-terminated).
-    // Returns the length of the disassembled machine instruction in bytes.
-    V8_EXPORT_PRIVATE int InstructionDecode(v8::base::Vector<char> buffer, uint8_t* instruction);
+  // Writes one disassembled instruction into 'buffer' (0-terminated).
+  // Returns the length of the disassembled machine instruction in bytes.
+  V8_EXPORT_PRIVATE int InstructionDecode(v8::base::Vector<char> buffer,
+                                          uint8_t* instruction);
 
-    // Returns -1 if instruction does not mark the beginning of a constant pool,
-    // or the number of entries in the constant pool beginning here.
-    int ConstantPoolSizeAt(uint8_t* instruction);
+  // Returns -1 if instruction does not mark the beginning of a constant pool,
+  // or the number of entries in the constant pool beginning here.
+  int ConstantPoolSizeAt(uint8_t* instruction);
 
-    // Write disassembly into specified file 'f' using specified NameConverter
-    // (see constructor).
-    V8_EXPORT_PRIVATE static void Disassemble(
-        FILE* f, uint8_t* begin, uint8_t* end, UnimplementedOpcodeAction unimplemented_action = kAbortOnUnimplementedOpcode);
+  // Write disassembly into specified file 'f' using specified NameConverter
+  // (see constructor).
+  V8_EXPORT_PRIVATE static void Disassemble(
+      FILE* f, uint8_t* begin, uint8_t* end,
+      UnimplementedOpcodeAction unimplemented_action =
+          kAbortOnUnimplementedOpcode);
 
-private:
-    const NameConverter& converter_;
-    const UnimplementedOpcodeAction unimplemented_opcode_action_;
+ private:
+  const NameConverter& converter_;
+  const UnimplementedOpcodeAction unimplemented_opcode_action_;
 
-    DISALLOW_IMPLICIT_CONSTRUCTORS(Disassembler);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Disassembler);
 };
 
-} // namespace disasm
+}  // namespace disasm
 
-#endif // V8_DIAGNOSTICS_DISASM_H_
+#endif  // V8_DIAGNOSTICS_DISASM_H_

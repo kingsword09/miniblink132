@@ -14,17 +14,15 @@ namespace internal {
 using CodeAssemblerState = compiler::CodeAssemblerState;
 
 class V8_EXPORT_PRIVATE PromiseBuiltinsAssembler : public CodeStubAssembler {
-public:
-    explicit PromiseBuiltinsAssembler(compiler::CodeAssemblerState* state)
-        : CodeStubAssembler(state)
-    {
-    }
-    void ZeroOutEmbedderOffsets(TNode<JSPromise> promise);
+ public:
+  explicit PromiseBuiltinsAssembler(compiler::CodeAssemblerState* state)
+      : CodeStubAssembler(state) {}
+  void ZeroOutEmbedderOffsets(TNode<JSPromise> promise);
 
-    TNode<HeapObject> AllocateJSPromise(TNode<Context> context);
+  TNode<HeapObject> AllocateJSPromise(TNode<Context> context);
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BUILTINS_BUILTINS_PROMISE_GEN_H_
+#endif  // V8_BUILTINS_BUILTINS_PROMISE_GEN_H_

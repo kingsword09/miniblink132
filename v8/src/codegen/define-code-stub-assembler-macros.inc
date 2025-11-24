@@ -11,7 +11,7 @@
 
 #define V8_CODEGEN_CODE_STUB_ASSEMBLER_MACROS_DEFINED 1
 
-#ifdef V8_DEBUG
+#ifdef DEBUG
 #define CSA_CHECK(csa, x) \
   (csa)->Check([&]() -> TNode<BoolT> { return x; }, #x, __FILE__, __LINE__)
 #else
@@ -23,7 +23,7 @@
 #define CSA_HOLE_SECURITY_CHECK(csa, x) \
   (csa)->Check([&]() -> TNode<BoolT> { return x; }, #x, __FILE__, __LINE__)
 
-#ifdef V8_DEBUG
+#ifdef DEBUG
 // CSA_DCHECK_ARGS generates an
 // std::initializer_list<CodeStubAssembler::ExtraNode> from __VA_ARGS__. It
 // currently supports between 0 and 2 arguments.

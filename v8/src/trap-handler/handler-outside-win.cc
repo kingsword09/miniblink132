@@ -36,28 +36,25 @@ namespace {
 // again later.
 void* g_registered_handler = nullptr;
 
-} // namespace
+}  // namespace
 
-bool RegisterDefaultTrapHandler()
-{
-    constexpr ULONG first = TRUE;
-    TH_CHECK(g_registered_handler == nullptr);
-    g_registered_handler = AddVectoredExceptionHandler(first, HandleWasmTrap);
+bool RegisterDefaultTrapHandler() {
+  constexpr ULONG first = TRUE;
+  TH_CHECK(g_registered_handler == nullptr);
+  g_registered_handler = AddVectoredExceptionHandler(first, HandleWasmTrap);
 
-    return nullptr != g_registered_handler;
+  return nullptr != g_registered_handler;
 }
 
-void RemoveTrapHandler()
-{
-    if (!g_registered_handler)
-        return;
+void RemoveTrapHandler() {
+  if (!g_registered_handler) return;
 
-    RemoveVectoredExceptionHandler(g_registered_handler);
-    g_registered_handler = nullptr;
+  RemoveVectoredExceptionHandler(g_registered_handler);
+  g_registered_handler = nullptr;
 }
 
-#endif // V8_TRAP_HANDLER_SUPPORTED
+#endif  // V8_TRAP_HANDLER_SUPPORTED
 
-} // namespace trap_handler
-} // namespace internal
-} // namespace v8
+}  // namespace trap_handler
+}  // namespace internal
+}  // namespace v8

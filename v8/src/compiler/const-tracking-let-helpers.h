@@ -17,10 +17,14 @@ class Node;
 
 int ConstTrackingLetSideDataIndexForAccess(size_t access_index);
 
-void GenerateCheckConstTrackingLetSideData(Node* context, Node** effect, Node** control, int side_data_index, JSGraph* jsgraph);
+void GenerateCheckConstTrackingLetSideData(Node* context, Node** effect,
+                                           Node** control, int side_data_index,
+                                           JSGraph* jsgraph);
 
-bool IsConstTrackingLetVariableSurelyNotConstant(OptionalContextRef maybe_context, size_t depth, int side_data_index, JSHeapBroker* broker);
+bool IsConstTrackingLetVariableSurelyNotConstant(
+    OptionalContextRef maybe_context, size_t depth, int side_data_index,
+    JSHeapBroker* broker);
 
-} // namespace v8::internal::compiler
+}  // namespace v8::internal::compiler
 
-#endif // V8_COMPILER_CONST_TRACKING_LET_HELPERS_H_
+#endif  // V8_COMPILER_CONST_TRACKING_LET_HELPERS_H_

@@ -13,14 +13,13 @@
 namespace v8 {
 namespace internal {
 
-uint32_t TrustedPointerTable::Sweep(Space* space, Counters* counters)
-{
-    uint32_t num_live_entries = GenericSweep(space);
-    counters->trusted_pointers_count()->AddSample(num_live_entries);
-    return num_live_entries;
+uint32_t TrustedPointerTable::Sweep(Space* space, Counters* counters) {
+  uint32_t num_live_entries = GenericSweep(space);
+  counters->trusted_pointers_count()->AddSample(num_live_entries);
+  return num_live_entries;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_ENABLE_SANDBOX
+#endif  // V8_ENABLE_SANDBOX

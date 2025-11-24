@@ -8,10 +8,7 @@
 namespace cppgc {
 namespace internal {
 
-void CompactionWorklists::ClearForTesting()
-{
-    movable_slots_worklist_.Clear();
-}
+void CompactionWorklists::ClearForTesting() { movable_slots_worklist_.Clear(); }
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc

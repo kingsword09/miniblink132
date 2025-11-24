@@ -32,14 +32,17 @@ namespace internal {
 
 #endif
 
-#else // !V8_CC_MSVC
+#else  // !V8_CC_MSVC
 
-#if (V8_HOST_ARCH_X64 && V8_TARGET_ARCH_X64) || (V8_HOST_ARCH_IA32 && V8_TARGET_ARCH_IA32)
-#define CLOBBER_REGISTER(R)                                                                                                                                    \
-    __asm__ volatile("xorps "                                                                                                                                  \
-                     "%%" #R ","                                                                                                                               \
-                     "%%" #R ::                                                                                                                                \
-                         :);
+#if (V8_HOST_ARCH_X64 && V8_TARGET_ARCH_X64) || \
+    (V8_HOST_ARCH_IA32 && V8_TARGET_ARCH_IA32)
+#define CLOBBER_REGISTER(R) \
+  __asm__ volatile(         \
+      "xorps "              \
+      "%%" #R               \
+      ","                   \
+      "%%" #R ::            \
+          :);
 
 #elif V8_HOST_ARCH_ARM64 && V8_TARGET_ARCH_ARM64
 #define CLOBBER_REGISTER(R) __asm__ volatile("fmov " #R ",xzr" :::);
@@ -50,31 +53,30 @@ namespace internal {
 #elif V8_HOST_ARCH_MIPS64 && V8_TARGET_ARCH_MIPS64
 #define CLOBBER_USE_REGISTER(R) __asm__ volatile("dmtc1 $zero,$" #R :::);
 
-#endif // V8_HOST_ARCH_XXX && V8_TARGET_ARCH_XXX
+#endif  // V8_HOST_ARCH_XXX && V8_TARGET_ARCH_XXX
 
-#endif // V8_CC_MSVC
+#endif  // V8_CC_MSVC
 
-double ClobberDoubleRegisters(double x1, double x2, double x3, double x4)
-{
-    // clobber all double registers
+double ClobberDoubleRegisters(double x1, double x2, double x3, double x4) {
+  // clobber all double registers
 
 #if defined(CLOBBER_REGISTER)
-    DOUBLE_REGISTERS(CLOBBER_REGISTER)
+  DOUBLE_REGISTERS(CLOBBER_REGISTER)
 #undef CLOBBER_REGISTER
-    return 0;
+  return 0;
 
 #elif defined(CLOBBER_USE_REGISTER)
-    DOUBLE_USE_REGISTERS(CLOBBER_USE_REGISTER)
+  DOUBLE_USE_REGISTERS(CLOBBER_USE_REGISTER)
 #undef CLOBBER_USE_REGISTER
-    return 0;
+  return 0;
 
 #else
-    // TODO(v8:11798): This clobbers only subset of registers depending on
-    // compiler, Rewrite this in assembly to really clobber all registers. GCC for
-    // ia32 uses the FPU and does not touch XMM registers.
-    return x1 * 1.01 + x2 * 2.02 + x3 * 3.03 + x4 * 4.04;
-#endif // CLOBBER_REGISTER
+  // TODO(v8:11798): This clobbers only subset of registers depending on
+  // compiler, Rewrite this in assembly to really clobber all registers. GCC for
+  // ia32 uses the FPU and does not touch XMM registers.
+  return x1 * 1.01 + x2 * 2.02 + x3 * 3.03 + x4 * 4.04;
+#endif  // CLOBBER_REGISTER
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

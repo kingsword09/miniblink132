@@ -19,9 +19,9 @@ namespace internal {
 
 TQ_OBJECT_CONSTRUCTORS_IMPL(SyntheticModule)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_SYNTHETIC_MODULE_INL_H_
+#endif  // V8_OBJECTS_SYNTHETIC_MODULE_INL_H_

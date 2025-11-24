@@ -12,27 +12,33 @@
 namespace v8 {
 namespace internal {
 
-AllocationResult EvacuationAllocator::Allocate(AllocationSpace space, int object_size, AllocationAlignment alignment)
-{
-    DCHECK_IMPLIES(!shared_space_allocator_, space != SHARED_SPACE);
-    object_size = ALIGN_TO_ALLOCATION_ALIGNMENT(object_size);
-    switch (space) {
+AllocationResult EvacuationAllocator::Allocate(AllocationSpace space,
+                                               int object_size,
+                                               AllocationAlignment alignment) {
+  DCHECK_IMPLIES(!shared_space_allocator_, space != SHARED_SPACE);
+  object_size = ALIGN_TO_ALLOCATION_ALIGNMENT(object_size);
+  switch (space) {
     case NEW_SPACE:
-        return new_space_allocator()->AllocateRaw(object_size, alignment, AllocationOrigin::kGC);
+      return new_space_allocator()->AllocateRaw(object_size, alignment,
+                                                AllocationOrigin::kGC);
     case OLD_SPACE:
-        return old_space_allocator()->AllocateRaw(object_size, alignment, AllocationOrigin::kGC);
+      return old_space_allocator()->AllocateRaw(object_size, alignment,
+                                                AllocationOrigin::kGC);
     case CODE_SPACE:
-        return code_space_allocator()->AllocateRaw(object_size, alignment, AllocationOrigin::kGC);
+      return code_space_allocator()->AllocateRaw(object_size, alignment,
+                                                 AllocationOrigin::kGC);
     case SHARED_SPACE:
-        return shared_space_allocator()->AllocateRaw(object_size, alignment, AllocationOrigin::kGC);
+      return shared_space_allocator()->AllocateRaw(object_size, alignment,
+                                                   AllocationOrigin::kGC);
     case TRUSTED_SPACE:
-        return trusted_space_allocator()->AllocateRaw(object_size, alignment, AllocationOrigin::kGC);
+      return trusted_space_allocator()->AllocateRaw(object_size, alignment,
+                                                    AllocationOrigin::kGC);
     default:
-        UNREACHABLE();
-    }
+      UNREACHABLE();
+  }
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_EVACUATION_ALLOCATOR_INL_H_
+#endif  // V8_HEAP_EVACUATION_ALLOCATOR_INL_H_

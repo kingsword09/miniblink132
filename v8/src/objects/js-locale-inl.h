@@ -4,7 +4,7 @@
 
 #ifndef V8_INTL_SUPPORT
 #error Internationalization is expected to be enabled.
-#endif // V8_INTL_SUPPORT
+#endif  // V8_INTL_SUPPORT
 
 #ifndef V8_OBJECTS_JS_LOCALE_INL_H_
 #define V8_OBJECTS_JS_LOCALE_INL_H_
@@ -25,9 +25,9 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(JSLocale)
 
 ACCESSORS(JSLocale, icu_locale, Tagged<Managed<icu::Locale>>, kIcuLocaleOffset)
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_LOCALE_INL_H_
+#endif  // V8_OBJECTS_JS_LOCALE_INL_H_

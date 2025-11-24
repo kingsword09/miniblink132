@@ -11,16 +11,16 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void WasmInJSInliningPhase::Run(PipelineData* data, Zone* temp_zone)
-{
-    UnparkedScopeIfNeeded scope(data->broker(), DEBUG_BOOL);
+void WasmInJSInliningPhase::Run(PipelineData* data, Zone* temp_zone) {
+  UnparkedScopeIfNeeded scope(data->broker(), DEBUG_BOOL);
 
-    // We need the `WasmLoweringReducer` for lowering, e.g., `global.get` etc.
-    // TODO(dlehmann,353475584): Add Wasm GC (typed) optimizations also, see
-    // `WasmGCTypedOptimizationReducer`.
-    // This might need a separate phase due to the analysis in the input graph,
-    // which is expensive, which is why we should enable this only conditionally.
-    CopyingPhase<WasmInJSInliningReducer, WasmLoweringReducer>::Run(data, temp_zone);
+  // We need the `WasmLoweringReducer` for lowering, e.g., `global.get` etc.
+  // TODO(dlehmann,353475584): Add Wasm GC (typed) optimizations also, see
+  // `WasmGCTypedOptimizationReducer`.
+  // This might need a separate phase due to the analysis in the input graph,
+  // which is expensive, which is why we should enable this only conditionally.
+  CopyingPhase<WasmInJSInliningReducer, WasmLoweringReducer>::Run(data,
+                                                                  temp_zone);
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

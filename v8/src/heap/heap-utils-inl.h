@@ -11,11 +11,10 @@
 namespace v8::internal {
 
 // static
-Heap* HeapUtils::GetOwnerHeap(Tagged<HeapObject> object)
-{
-    return MemoryChunk::FromHeapObject(object)->GetHeap();
+Heap* HeapUtils::GetOwnerHeap(Tagged<HeapObject> object) {
+  return MemoryChunk::FromHeapObject(object)->GetHeap();
 }
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_HEAP_HEAP_UTILS_INL_H_
+#endif  // V8_HEAP_HEAP_UTILS_INL_H_

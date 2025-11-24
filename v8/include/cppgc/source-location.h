@@ -11,6 +11,6 @@ namespace cppgc {
 
 using SourceLocation = v8::SourceLocation;
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_SOURCE_LOCATION_H_
+#endif  // INCLUDE_CPPGC_SOURCE_LOCATION_H_

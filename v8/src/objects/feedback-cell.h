@@ -24,46 +24,50 @@ class Undefined;
 // context. There's at most one FeedbackCell for each function in
 // a native context.
 class FeedbackCell : public TorqueGeneratedFeedbackCell<FeedbackCell, Struct> {
-public:
-    // Dispatched behavior.
-    DECL_PRINTER(FeedbackCell)
+ public:
+  // Dispatched behavior.
+  DECL_PRINTER(FeedbackCell)
 
-    static const int kUnalignedSize = kSize;
-    static const int kAlignedSize = RoundUp<kObjectAlignment>(int { kSize });
+  static const int kUnalignedSize = kSize;
+  static const int kAlignedSize = RoundUp<kObjectAlignment>(int{kSize});
 
-    using TorqueGeneratedFeedbackCell<FeedbackCell, Struct>::value;
-    using TorqueGeneratedFeedbackCell<FeedbackCell, Struct>::set_value;
+  using TorqueGeneratedFeedbackCell<FeedbackCell, Struct>::value;
+  using TorqueGeneratedFeedbackCell<FeedbackCell, Struct>::set_value;
 
-    DECL_RELEASE_ACQUIRE_ACCESSORS(value, Tagged<HeapObject>)
+  DECL_RELEASE_ACQUIRE_ACCESSORS(value, Tagged<HeapObject>)
 
-    inline void clear_interrupt_budget();
+  inline void clear_interrupt_budget();
 
 #ifdef V8_ENABLE_LEAPTIERING
-    inline void allocate_dispatch_handle(
-        IsolateForSandbox isolate, uint16_t parameter_count, Tagged<Code> code, WriteBarrierMode mode = WriteBarrierMode::UPDATE_WRITE_BARRIER);
-    inline void clear_dispatch_handle();
-    inline JSDispatchHandle dispatch_handle() const;
-    inline void set_dispatch_handle(JSDispatchHandle new_handle);
-#endif // V8_ENABLE_LEAPTIERING
+  inline void allocate_dispatch_handle(
+      IsolateForSandbox isolate, uint16_t parameter_count, Tagged<Code> code,
+      WriteBarrierMode mode = WriteBarrierMode::UPDATE_WRITE_BARRIER);
+  inline void clear_dispatch_handle();
+  inline JSDispatchHandle dispatch_handle() const;
+  inline void set_dispatch_handle(JSDispatchHandle new_handle);
+#endif  // V8_ENABLE_LEAPTIERING
 
-    inline void clear_padding();
-    inline void reset_feedback_vector(
-        std::optional<std::function<void(Tagged<HeapObject> object, ObjectSlot slot, Tagged<HeapObject> target)>> gc_notify_updated_slot = std::nullopt);
+  inline void clear_padding();
+  inline void reset_feedback_vector(
+      std::optional<
+          std::function<void(Tagged<HeapObject> object, ObjectSlot slot,
+                             Tagged<HeapObject> target)>>
+          gc_notify_updated_slot = std::nullopt);
 
-    // The closure count is encoded in the cell's map, which distinguishes
-    // between zero, one, or many closures. This function records a new closure
-    // creation by updating the map.
-    inline void IncrementClosureCount(Isolate* isolate);
+  // The closure count is encoded in the cell's map, which distinguishes
+  // between zero, one, or many closures. This function records a new closure
+  // creation by updating the map.
+  inline void IncrementClosureCount(Isolate* isolate);
 
-    DECL_VERIFIER(FeedbackCell)
+  DECL_VERIFIER(FeedbackCell)
 
-    class BodyDescriptor;
+  class BodyDescriptor;
 
-    TQ_OBJECT_CONSTRUCTORS(FeedbackCell)
+  TQ_OBJECT_CONSTRUCTORS(FeedbackCell)
 };
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_FEEDBACK_CELL_H_
+#endif  // V8_OBJECTS_FEEDBACK_CELL_H_

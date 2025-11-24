@@ -8,7 +8,7 @@
 #include "src/objects/js-generator.h"
 #include "src/objects/js-promise-inl.h"
 
-#include "src/objects/objects-inl.h" // Needed for write barriers
+#include "src/objects/objects-inl.h"  // Needed for write barriers
 
 // Has to be the last include (doesn't have include guards):
 #include "src/objects/object-macros.h"
@@ -23,26 +23,23 @@ TQ_OBJECT_CONSTRUCTORS_IMPL(JSAsyncFunctionObject)
 TQ_OBJECT_CONSTRUCTORS_IMPL(JSAsyncGeneratorObject)
 TQ_OBJECT_CONSTRUCTORS_IMPL(AsyncGeneratorRequest)
 
-bool JSGeneratorObject::is_suspended() const
-{
-    DCHECK_LT(kGeneratorExecuting, 0);
-    DCHECK_LT(kGeneratorClosed, 0);
-    return continuation() >= 0;
+bool JSGeneratorObject::is_suspended() const {
+  DCHECK_LT(kGeneratorExecuting, 0);
+  DCHECK_LT(kGeneratorClosed, 0);
+  return continuation() >= 0;
 }
 
-bool JSGeneratorObject::is_closed() const
-{
-    return continuation() == kGeneratorClosed;
+bool JSGeneratorObject::is_closed() const {
+  return continuation() == kGeneratorClosed;
 }
 
-bool JSGeneratorObject::is_executing() const
-{
-    return continuation() == kGeneratorExecuting;
+bool JSGeneratorObject::is_executing() const {
+  return continuation() == kGeneratorExecuting;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_JS_GENERATOR_INL_H_
+#endif  // V8_OBJECTS_JS_GENERATOR_INL_H_

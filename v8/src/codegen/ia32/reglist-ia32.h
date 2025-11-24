@@ -17,16 +17,17 @@ ASSERT_TRIVIALLY_COPYABLE(RegList);
 ASSERT_TRIVIALLY_COPYABLE(DoubleRegList);
 
 // Caller-saved registers
-constexpr RegList kJSCallerSaved = { eax, ecx, edx,
-    ebx, // used as caller-saved register in JavaScript code
-    edi }; // callee function
+constexpr RegList kJSCallerSaved = {
+    eax, ecx, edx,
+    ebx,   // used as caller-saved register in JavaScript code
+    edi};  // callee function
 
 // Caller-saved registers according to the x86 ABI
-constexpr RegList kCallerSaved = { eax, ecx, edx };
+constexpr RegList kCallerSaved = {eax, ecx, edx};
 
 constexpr int kNumJSCallerSaved = 5;
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_IA32_REGLIST_IA32_H_
+#endif  // V8_CODEGEN_IA32_REGLIST_IA32_H_

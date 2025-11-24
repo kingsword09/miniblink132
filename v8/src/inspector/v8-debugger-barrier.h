@@ -14,15 +14,15 @@ class V8InspectorClient;
 // `runIfWaitingForDebugger` method is only invoked when all
 // sessions have invoked `Runtime.runIfWaitingForDebugger`.
 class V8DebuggerBarrier {
-public:
-    V8DebuggerBarrier(V8InspectorClient* client, int contextGroupId);
-    ~V8DebuggerBarrier();
+ public:
+  V8DebuggerBarrier(V8InspectorClient* client, int contextGroupId);
+  ~V8DebuggerBarrier();
 
-private:
-    V8InspectorClient* const m_client;
-    int m_contextGroupId;
+ private:
+  V8InspectorClient* const m_client;
+  int m_contextGroupId;
 };
 
-} // namespace v8_inspector
+}  // namespace v8_inspector
 
-#endif // V8_INSPECTOR_V8_DEBUGGER_BARRIER_H_
+#endif  // V8_INSPECTOR_V8_DEBUGGER_BARRIER_H_

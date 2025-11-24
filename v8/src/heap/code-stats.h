@@ -14,36 +14,41 @@ class HeapObject;
 class Isolate;
 class OldLargeObjectSpace;
 class PagedSpace;
-template <typename T> class Tagged;
+template <typename T>
+class Tagged;
 
 class CodeStatistics {
-public:
-    // Collect statistics related to code size.
-    static void CollectCodeStatistics(PagedSpace* space, Isolate* isolate);
+ public:
+  // Collect statistics related to code size.
+  static void CollectCodeStatistics(PagedSpace* space, Isolate* isolate);
 
-    // Collect statistics related to code size from large object space.
-    static void CollectCodeStatistics(OldLargeObjectSpace* space, Isolate* isolate);
+  // Collect statistics related to code size from large object space.
+  static void CollectCodeStatistics(OldLargeObjectSpace* space,
+                                    Isolate* isolate);
 
-    // Reset code size related statistics
-    static void ResetCodeAndMetadataStatistics(Isolate* isolate);
+  // Reset code size related statistics
+  static void ResetCodeAndMetadataStatistics(Isolate* isolate);
 
-#ifdef V8_DEBUG
-    // Report statistics about code kind, code+metadata and code comments.
-    static void ReportCodeStatistics(Isolate* isolate);
+#ifdef DEBUG
+  // Report statistics about code kind, code+metadata and code comments.
+  static void ReportCodeStatistics(Isolate* isolate);
 #endif
 
-private:
-    static void RecordCodeAndMetadataStatistics(Tagged<HeapObject> object, Isolate* isolate);
+ private:
+  static void RecordCodeAndMetadataStatistics(Tagged<HeapObject> object,
+                                              Isolate* isolate);
 
-#ifdef V8_DEBUG
-    static void CollectCommentStatistics(Isolate* isolate, CodeCommentsIterator* it);
-    static void CollectCodeCommentStatistics(Tagged<AbstractCode> obj, Isolate* isolate);
-    static void EnterComment(Isolate* isolate, const char* comment, int delta);
-    static void ResetCodeStatistics(Isolate* isolate);
+#ifdef DEBUG
+  static void CollectCommentStatistics(Isolate* isolate,
+                                       CodeCommentsIterator* it);
+  static void CollectCodeCommentStatistics(Tagged<AbstractCode> obj,
+                                           Isolate* isolate);
+  static void EnterComment(Isolate* isolate, const char* comment, int delta);
+  static void ResetCodeStatistics(Isolate* isolate);
 #endif
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_CODE_STATS_H_
+#endif  // V8_HEAP_CODE_STATS_H_

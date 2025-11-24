@@ -12,34 +12,31 @@ namespace internal {
 
 // TODO(leszeks): Add support for logging from off-thread.
 LocalLogger::LocalLogger(Isolate* isolate)
-    : v8_file_logger_(isolate->v8_file_logger())
-    , is_logging_(v8_file_logger_->is_logging())
-    , is_listening_to_code_events_(v8_file_logger_->is_listening_to_code_events())
-{
+    : v8_file_logger_(isolate->v8_file_logger()),
+      is_logging_(v8_file_logger_->is_logging()),
+      is_listening_to_code_events_(
+          v8_file_logger_->is_listening_to_code_events()) {}
+
+void LocalLogger::ScriptDetails(Tagged<Script> script) {
+  v8_file_logger_->ScriptDetails(script);
+}
+void LocalLogger::ScriptEvent(ScriptEventType type, int script_id) {
+  v8_file_logger_->ScriptEvent(type, script_id);
+}
+void LocalLogger::CodeLinePosInfoRecordEvent(
+    Address code_start, Tagged<TrustedByteArray> source_position_table,
+    JitCodeEvent::CodeType code_type) {
+  v8_file_logger_->CodeLinePosInfoRecordEvent(code_start, source_position_table,
+                                              code_type);
 }
 
-void LocalLogger::ScriptDetails(Tagged<Script> script)
-{
-    v8_file_logger_->ScriptDetails(script);
-}
-void LocalLogger::ScriptEvent(ScriptEventType type, int script_id)
-{
-    v8_file_logger_->ScriptEvent(type, script_id);
-}
-void LocalLogger::CodeLinePosInfoRecordEvent(Address code_start, Tagged<TrustedByteArray> source_position_table, JitCodeEvent::CodeType code_type)
-{
-    v8_file_logger_->CodeLinePosInfoRecordEvent(code_start, source_position_table, code_type);
+void LocalLogger::MapCreate(Tagged<Map> map) {
+  v8_file_logger_->MapCreate(map);
 }
 
-void LocalLogger::MapCreate(Tagged<Map> map)
-{
-    v8_file_logger_->MapCreate(map);
+void LocalLogger::MapDetails(Tagged<Map> map) {
+  v8_file_logger_->MapDetails(map);
 }
 
-void LocalLogger::MapDetails(Tagged<Map> map)
-{
-    v8_file_logger_->MapDetails(map);
-}
-
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

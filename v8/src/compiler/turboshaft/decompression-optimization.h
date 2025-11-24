@@ -20,6 +20,6 @@ class Graph;
 // between compressed and uncompressed pointers.
 void RunDecompressionOptimization(Graph& graph, Zone* phase_zone);
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_DECOMPRESSION_OPTIMIZATION_H_
+#endif  // V8_COMPILER_TURBOSHAFT_DECOMPRESSION_OPTIMIZATION_H_

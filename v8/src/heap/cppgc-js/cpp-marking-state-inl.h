@@ -10,12 +10,12 @@
 namespace v8 {
 namespace internal {
 
-void CppMarkingState::MarkAndPush(void* instance)
-{
-    marking_state_.MarkAndPush(cppgc::internal::HeapObjectHeader::FromObject(instance));
+void CppMarkingState::MarkAndPush(void* instance) {
+  marking_state_.MarkAndPush(
+      cppgc::internal::HeapObjectHeader::FromObject(instance));
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_HEAP_CPPGC_JS_CPP_MARKING_STATE_INL_H_
+#endif  // V8_HEAP_CPPGC_JS_CPP_MARKING_STATE_INL_H_

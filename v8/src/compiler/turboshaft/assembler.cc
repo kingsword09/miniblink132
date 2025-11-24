@@ -9,9 +9,8 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-Handle<Code> BuiltinCodeHandle(Builtin builtin, Isolate* isolate)
-{
-    return isolate->builtins()->code_handle(builtin);
+Handle<Code> BuiltinCodeHandle(Builtin builtin, Isolate* isolate) {
+  return isolate->builtins()->code_handle(builtin);
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

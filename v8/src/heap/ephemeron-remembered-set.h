@@ -20,26 +20,27 @@ namespace v8::internal {
 // strongifying keys in such hash tables in young generation garbage
 // collections.
 class EphemeronRememberedSet final {
-public:
-    static constexpr int kEphemeronTableListSegmentSize = 128;
-    using TableList = ::heap::base::Worklist<Tagged<EphemeronHashTable>, kEphemeronTableListSegmentSize>;
+ public:
+  static constexpr int kEphemeronTableListSegmentSize = 128;
+  using TableList = ::heap::base::Worklist<Tagged<EphemeronHashTable>,
+                                           kEphemeronTableListSegmentSize>;
 
-    using IndicesSet = std::unordered_set<int>;
-    using TableMap = std::unordered_map<Tagged<EphemeronHashTable>, IndicesSet, Object::Hasher>;
+  using IndicesSet = std::unordered_set<int>;
+  using TableMap = std::unordered_map<Tagged<EphemeronHashTable>, IndicesSet,
+                                      Object::Hasher>;
 
-    void RecordEphemeronKeyWrite(Tagged<EphemeronHashTable> table, Address key_slot);
-    void RecordEphemeronKeyWrites(Tagged<EphemeronHashTable> table, IndicesSet indices);
+  void RecordEphemeronKeyWrite(Tagged<EphemeronHashTable> table,
+                               Address key_slot);
+  void RecordEphemeronKeyWrites(Tagged<EphemeronHashTable> table,
+                                IndicesSet indices);
 
-    TableMap* tables()
-    {
-        return &tables_;
-    }
+  TableMap* tables() { return &tables_; }
 
-private:
-    base::Mutex insertion_mutex_;
-    TableMap tables_;
+ private:
+  base::Mutex insertion_mutex_;
+  TableMap tables_;
 };
 
-} // namespace v8::internal
+}  // namespace v8::internal
 
-#endif // V8_HEAP_EPHEMERON_REMEMBERED_SET_H_
+#endif  // V8_HEAP_EPHEMERON_REMEMBERED_SET_H_

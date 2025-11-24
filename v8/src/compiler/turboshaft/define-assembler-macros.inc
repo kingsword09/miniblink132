@@ -153,7 +153,7 @@
 
 #define Assert(condition) AssertImpl(condition, #condition, __FILE__, __LINE__)
 
-#ifdef V8_DEBUG
+#ifdef DEBUG
 // In debug builds, `REDUCE(operation)` makes sure that `operation##Op` exists
 // by using this name in an expression. This will detect typos in the name which
 // would otherwise stay unnoticed potentially.

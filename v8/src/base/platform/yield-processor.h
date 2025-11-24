@@ -19,7 +19,7 @@
 // YIELD_PROCESSOR sleep the process for 1ms.
 #define YIELD_PROCESSOR base::OS::Sleep(base::TimeDelta::FromMilliseconds(1))
 
-#else // !THREAD_SANITIZER
+#else  // !THREAD_SANITIZER
 
 #if defined(V8_CC_MSVC)
 // MSVC does not support inline assembly via __asm__ and provides compiler
@@ -30,16 +30,18 @@
 #if defined(V8_HOST_ARCH_IA32) || defined(V8_HOST_ARCH_X64)
 #include <intrin.h>
 #define YIELD_PROCESSOR _mm_pause()
-#elif defined(V8_HOST_ARCH_ARM64) || (defined(V8_HOST_ARCH_ARM) && __ARM_ARCH >= 6)
+#elif defined(V8_HOST_ARCH_ARM64) || \
+    (defined(V8_HOST_ARCH_ARM) && __ARM_ARCH >= 6)
 #include <intrin.h>
 #define YIELD_PROCESSOR __yield()
-#endif // V8_HOST_ARCH
+#endif  // V8_HOST_ARCH
 
-#else // !V8_CC_MSVC
+#else  // !V8_CC_MSVC
 
 #if defined(V8_HOST_ARCH_IA32) || defined(V8_HOST_ARCH_X64)
 #define YIELD_PROCESSOR __asm__ __volatile__("pause")
-#elif defined(V8_HOST_ARCH_ARM64) || (defined(V8_HOST_ARCH_ARM) && __ARM_ARCH >= 6)
+#elif defined(V8_HOST_ARCH_ARM64) || \
+    (defined(V8_HOST_ARCH_ARM) && __ARM_ARCH >= 6)
 #define YIELD_PROCESSOR __asm__ __volatile__("yield")
 #elif defined(V8_HOST_ARCH_MIPS64EL) && __mips_isa_rev >= 2
 // Don't bother doing using .word here since r2 is the lowest supported mips64
@@ -47,14 +49,14 @@
 #define YIELD_PROCESSOR __asm__ __volatile__("pause")
 #elif defined(V8_HOST_ARCH_PPC64)
 #define YIELD_PROCESSOR __asm__ __volatile__("or 31,31,31")
-#endif // V8_HOST_ARCH
+#endif  // V8_HOST_ARCH
 
-#endif // V8_CC_MSVC
+#endif  // V8_CC_MSVC
 
-#endif // THREAD_SANITIZER
+#endif  // THREAD_SANITIZER
 
 #ifndef YIELD_PROCESSOR
 #define YIELD_PROCESSOR ((void)0)
 #endif
 
-#endif // V8_BASE_PLATFORM_YIELD_PROCESSOR_H_
+#endif  // V8_BASE_PLATFORM_YIELD_PROCESSOR_H_

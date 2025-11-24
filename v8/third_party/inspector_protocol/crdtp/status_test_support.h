@@ -27,6 +27,6 @@ testing::Matcher<Status> StatusIsOk();
 
 // Matches any status with |error| and |pos|.
 testing::Matcher<Status> StatusIs(Error error, size_t pos);
-} // namespace v8_crdtp
+}  // namespace v8_crdtp
 
-#endif // V8_CRDTP_STATUS_TEST_SUPPORT_H_
+#endif  // V8_CRDTP_STATUS_TEST_SUPPORT_H_

@@ -13,38 +13,26 @@
 namespace v8 {
 namespace internal {
 
-Register JavaScriptFrame::fp_register()
-{
-    return v8::internal::fp;
-}
-Register JavaScriptFrame::context_register()
-{
-    return cp;
-}
-Register JavaScriptFrame::constant_pool_pointer_register()
-{
-    UNREACHABLE();
+Register JavaScriptFrame::fp_register() { return v8::internal::fp; }
+Register JavaScriptFrame::context_register() { return cp; }
+Register JavaScriptFrame::constant_pool_pointer_register() { UNREACHABLE(); }
+
+int UnoptimizedFrameConstants::RegisterStackSlotCount(int register_count) {
+  return register_count;
 }
 
-int UnoptimizedFrameConstants::RegisterStackSlotCount(int register_count)
-{
-    return register_count;
-}
-
-int BuiltinContinuationFrameConstants::PaddingSlotCount(int register_count)
-{
-    USE(register_count);
-    return 0;
+int BuiltinContinuationFrameConstants::PaddingSlotCount(int register_count) {
+  USE(register_count);
+  return 0;
 }
 
 // static
-intptr_t MaglevFrame::StackGuardFrameSize(int register_input_count)
-{
-    USE(register_input_count);
-    UNREACHABLE();
+intptr_t MaglevFrame::StackGuardFrameSize(int register_input_count) {
+  USE(register_input_count);
+  UNREACHABLE();
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TARGET_ARCH_ARM
+#endif  // V8_TARGET_ARCH_ARM

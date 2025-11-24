@@ -12,15 +12,13 @@
 namespace v8 {
 namespace internal {
 
-void AssemblerRISCVZicond::czero_eqz(Register rd, Register rs1, Register rs2)
-{
-    GenInstrALU_rr(0b0000111, 0b101, rd, rs1, rs2);
+void AssemblerRISCVZicond::czero_eqz(Register rd, Register rs1, Register rs2) {
+  GenInstrALU_rr(0b0000111, 0b101, rd, rs1, rs2);
 }
 
-void AssemblerRISCVZicond::czero_nez(Register rd, Register rs1, Register rs2)
-{
-    GenInstrALU_rr(0b0000111, 0b111, rd, rs1, rs2);
+void AssemblerRISCVZicond::czero_nez(Register rd, Register rs1, Register rs2) {
+  GenInstrALU_rr(0b0000111, 0b111, rd, rs1, rs2);
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

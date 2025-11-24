@@ -11,11 +11,8 @@
 namespace v8::internal::wasm {
 
 ParallelMove::ParallelMove(LiftoffAssembler* wasm_asm)
-    : asm_(wasm_asm)
-    , last_spill_offset_(asm_->TopSpillOffset())
-{
-}
+    : asm_(wasm_asm), last_spill_offset_(asm_->TopSpillOffset()) {}
 
-} // namespace v8::internal::wasm
+}  // namespace v8::internal::wasm
 
-#endif // V8_WASM_BASELINE_PARALLEL_MOVE_INL_H_
+#endif  // V8_WASM_BASELINE_PARALLEL_MOVE_INL_H_

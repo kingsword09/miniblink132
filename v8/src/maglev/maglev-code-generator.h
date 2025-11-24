@@ -20,69 +20,61 @@ class Graph;
 class MaglevCompilationInfo;
 
 class MaglevCodeGenerator final {
-public:
-    MaglevCodeGenerator(LocalIsolate* isolate, MaglevCompilationInfo* compilation_info, Graph* graph);
+ public:
+  MaglevCodeGenerator(LocalIsolate* isolate,
+                      MaglevCompilationInfo* compilation_info, Graph* graph);
 
-    V8_NODISCARD bool Assemble();
+  V8_NODISCARD bool Assemble();
 
-    MaybeHandle<Code> Generate(Isolate* isolate);
+  MaybeHandle<Code> Generate(Isolate* isolate);
 
-    GlobalHandleVector<Map> RetainedMaps(Isolate* isolate);
+  GlobalHandleVector<Map> RetainedMaps(Isolate* isolate);
 
-private:
-    V8_NODISCARD bool EmitCode();
-    void EmitDeferredCode();
-    V8_NODISCARD bool EmitDeopts();
-    void EmitExceptionHandlerTrampolines();
-    void EmitMetadata();
-    void RecordInlinedFunctions();
+ private:
+  V8_NODISCARD bool EmitCode();
+  void EmitDeferredCode();
+  V8_NODISCARD bool EmitDeopts();
+  void EmitExceptionHandlerTrampolines();
+  void EmitMetadata();
+  void RecordInlinedFunctions();
 
-    GlobalHandleVector<Map> CollectRetainedMaps(DirectHandle<Code> code);
-    Handle<DeoptimizationData> GenerateDeoptimizationData(LocalIsolate* local_isolate);
-    MaybeHandle<Code> BuildCodeObject(LocalIsolate* local_isolate);
+  GlobalHandleVector<Map> CollectRetainedMaps(DirectHandle<Code> code);
+  Handle<DeoptimizationData> GenerateDeoptimizationData(
+      LocalIsolate* local_isolate);
+  MaybeHandle<Code> BuildCodeObject(LocalIsolate* local_isolate);
 
-    int stack_slot_count() const
-    {
-        return code_gen_state_.stack_slots();
-    }
-    int stack_slot_count_with_fixed_frame() const
-    {
-        return stack_slot_count() + StandardFrameConstants::kFixedSlotCount;
-    }
-    uint16_t parameter_count() const
-    {
-        return code_gen_state_.parameter_count();
-    }
+  int stack_slot_count() const { return code_gen_state_.stack_slots(); }
+  int stack_slot_count_with_fixed_frame() const {
+    return stack_slot_count() + StandardFrameConstants::kFixedSlotCount;
+  }
+  uint16_t parameter_count() const { return code_gen_state_.parameter_count(); }
 
-    MaglevAssembler* masm()
-    {
-        return &masm_;
-    }
+  MaglevAssembler* masm() { return &masm_; }
 
-    LocalIsolate* local_isolate_;
-    MaglevSafepointTableBuilder safepoint_table_builder_;
-    FrameTranslationBuilder frame_translation_builder_;
-    MaglevCodeGenState code_gen_state_;
-    MaglevAssembler masm_;
-    Graph* const graph_;
+  LocalIsolate* local_isolate_;
+  MaglevSafepointTableBuilder safepoint_table_builder_;
+  FrameTranslationBuilder frame_translation_builder_;
+  MaglevCodeGenState code_gen_state_;
+  MaglevAssembler masm_;
+  Graph* const graph_;
 
-    IdentityMap<int, base::DefaultAllocationPolicy> protected_deopt_literals_;
-    IdentityMap<int, base::DefaultAllocationPolicy> deopt_literals_;
-    int deopt_exit_start_offset_ = -1;
-    int handler_table_offset_ = 0;
-    int inlined_function_count_ = 0;
+  IdentityMap<int, base::DefaultAllocationPolicy> protected_deopt_literals_;
+  IdentityMap<int, base::DefaultAllocationPolicy> deopt_literals_;
+  int deopt_exit_start_offset_ = -1;
+  int handler_table_offset_ = 0;
+  int inlined_function_count_ = 0;
 
-    bool code_gen_succeeded_ = false;
+  bool code_gen_succeeded_ = false;
 
-    IndirectHandle<DeoptimizationData> deopt_data_;
-    MaybeIndirectHandle<Code> code_;
-    GlobalHandleVector<Map> retained_maps_;
-    bool is_context_specialized_;
-    Zone* zone_;
+  IndirectHandle<DeoptimizationData> deopt_data_;
+  MaybeIndirectHandle<Code> code_;
+  GlobalHandleVector<Map> retained_maps_;
+  bool is_context_specialized_;
+  Zone* zone_;
 };
 
-} // namespace maglev
-} // namespace internal
-} // namespace v8
+}  // namespace maglev
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_MAGLEV_MAGLEV_CODE_GENERATOR_H_
+#endif  // V8_MAGLEV_MAGLEV_CODE_GENERATOR_H_

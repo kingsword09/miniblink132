@@ -14,14 +14,13 @@
 namespace v8 {
 namespace internal {
 
-uint32_t CodePointerTable::Sweep(Space* space, Counters* counters)
-{
-    uint32_t num_live_entries = GenericSweep(space);
-    counters->code_pointers_count()->AddSample(num_live_entries);
-    return num_live_entries;
+uint32_t CodePointerTable::Sweep(Space* space, Counters* counters) {
+  uint32_t num_live_entries = GenericSweep(space);
+  counters->code_pointers_count()->AddSample(num_live_entries);
+  return num_live_entries;
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPRESS_POINTERS
+#endif  // V8_COMPRESS_POINTERS

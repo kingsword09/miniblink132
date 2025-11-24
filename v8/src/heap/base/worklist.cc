@@ -10,19 +10,15 @@ namespace heap::base {
 bool WorklistBase::predictable_order_ = false;
 
 // static
-void WorklistBase::EnforcePredictableOrder()
-{
-    predictable_order_ = true;
-}
+void WorklistBase::EnforcePredictableOrder() { predictable_order_ = true; }
 
 namespace internal {
 
 // static
-SegmentBase* SegmentBase::GetSentinelSegmentAddress()
-{
-    static SegmentBase sentinel_segment(0);
-    return &sentinel_segment;
+SegmentBase* SegmentBase::GetSentinelSegmentAddress() {
+  static SegmentBase sentinel_segment(0);
+  return &sentinel_segment;
 }
 
-} // namespace internal
-} // namespace heap::base
+}  // namespace internal
+}  // namespace heap::base

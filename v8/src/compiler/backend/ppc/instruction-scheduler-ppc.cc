@@ -8,14 +8,11 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-bool InstructionScheduler::SchedulerSupported()
-{
-    return true;
-}
+bool InstructionScheduler::SchedulerSupported() { return true; }
 
-int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) const
-{
-    switch (instr->arch_opcode()) {
+int InstructionScheduler::GetTargetInstructionFlags(
+    const Instruction* instr) const {
+  switch (instr->arch_opcode()) {
     case kPPC_And:
     case kPPC_AndComplement:
     case kPPC_Or:
@@ -313,7 +310,7 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kPPC_FReplaceLane:
     case kPPC_IReplaceLane:
     case kPPC_LoadReverseSimd128RR:
-        return kNoOpcodeFlags;
+      return kNoOpcodeFlags;
 
     case kPPC_LoadWordS8:
     case kPPC_LoadWordU8:
@@ -347,7 +344,7 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kPPC_S128Load16Lane:
     case kPPC_S128Load32Lane:
     case kPPC_S128Load64Lane:
-        return kIsLoadOperation;
+      return kIsLoadOperation;
 
     case kPPC_StoreWord8:
     case kPPC_StoreWord16:
@@ -369,7 +366,7 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kPPC_S128Store16Lane:
     case kPPC_S128Store32Lane:
     case kPPC_S128Store64Lane:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
     case kPPC_AtomicExchangeUint8:
     case kPPC_AtomicExchangeUint16:
@@ -419,24 +416,23 @@ int InstructionScheduler::GetTargetInstructionFlags(const Instruction* instr) co
     case kPPC_AtomicXorInt16:
     case kPPC_AtomicXorInt32:
     case kPPC_AtomicXorInt64:
-        return kHasSideEffect;
+      return kHasSideEffect;
 
 #define CASE(Name) case k##Name:
-        COMMON_ARCH_OPCODE_LIST(CASE)
+      COMMON_ARCH_OPCODE_LIST(CASE)
 #undef CASE
-        // Already covered in architecture independent code.
-        UNREACHABLE();
-    }
+      // Already covered in architecture independent code.
+      UNREACHABLE();
+  }
 
-    UNREACHABLE();
+  UNREACHABLE();
 }
 
-int InstructionScheduler::GetInstructionLatency(const Instruction* instr)
-{
-    // TODO(all): Add instruction cost modeling.
-    return 1;
+int InstructionScheduler::GetInstructionLatency(const Instruction* instr) {
+  // TODO(all): Add instruction cost modeling.
+  return 1;
 }
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8

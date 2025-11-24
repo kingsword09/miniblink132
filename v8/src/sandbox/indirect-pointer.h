@@ -29,7 +29,10 @@ namespace internal {
 // this will allocate an entry in the trusted pointer table.
 //
 // Only available when the sandbox is enabled.
-V8_INLINE void InitSelfIndirectPointerField(Address field_address, IsolateForSandbox isolate, Tagged<HeapObject> host, IndirectPointerTag tag);
+V8_INLINE void InitSelfIndirectPointerField(Address field_address,
+                                            IsolateForSandbox isolate,
+                                            Tagged<HeapObject> host,
+                                            IndirectPointerTag tag);
 
 // Reads the IndirectPointerHandle from the field and loads the Object
 // referenced by this handle from the appropriate pointer table. The given
@@ -38,16 +41,22 @@ V8_INLINE void InitSelfIndirectPointerField(Address field_address, IsolateForSan
 // trusted pointer table for all other trusted objects.
 //
 // Only available when the sandbox is enabled.
-template <IndirectPointerTag tag> V8_INLINE Tagged<Object> ReadIndirectPointerField(Address field_address, IsolateForSandbox isolate, AcquireLoadTag);
+template <IndirectPointerTag tag>
+V8_INLINE Tagged<Object> ReadIndirectPointerField(Address field_address,
+                                                  IsolateForSandbox isolate,
+                                                  AcquireLoadTag);
 
 // Loads the 'self' IndirectPointerHandle from the given object and stores it
 // into the indirect pointer field. In this way, the field becomes a (indirect)
 // reference to the given object.
 //
 // Only available when the sandbox is enabled.
-template <IndirectPointerTag tag> V8_INLINE void WriteIndirectPointerField(Address field_address, Tagged<ExposedTrustedObject> value, ReleaseStoreTag);
+template <IndirectPointerTag tag>
+V8_INLINE void WriteIndirectPointerField(Address field_address,
+                                         Tagged<ExposedTrustedObject> value,
+                                         ReleaseStoreTag);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_SANDBOX_INDIRECT_POINTER_H_
+#endif  // V8_SANDBOX_INDIRECT_POINTER_H_

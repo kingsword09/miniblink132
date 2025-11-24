@@ -8,19 +8,19 @@
 #include <cstddef>
 
 #include "cppgc/type-traits.h"
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace cppgc {
 
 namespace internal {
 
 struct V8_EXPORT BaseObjectSizeTrait {
-protected:
-    static size_t GetObjectSizeForGarbageCollected(const void*);
-    static size_t GetObjectSizeForGarbageCollectedMixin(const void*);
+ protected:
+  static size_t GetObjectSizeForGarbageCollected(const void*);
+  static size_t GetObjectSizeForGarbageCollectedMixin(const void*);
 };
 
-} // namespace internal
+}  // namespace internal
 
 namespace subtle {
 
@@ -29,28 +29,30 @@ namespace subtle {
  * `MakeGarbageCollected()`. Also supports querying the size with an inner
  * pointer to a mixin.
  */
-template <typename T, bool = IsGarbageCollectedMixinTypeV<T>> struct ObjectSizeTrait;
+template <typename T, bool = IsGarbageCollectedMixinTypeV<T>>
+struct ObjectSizeTrait;
 
-template <typename T> struct ObjectSizeTrait<T, false> : cppgc::internal::BaseObjectSizeTrait {
-    static_assert(sizeof(T), "T must be fully defined");
-    static_assert(IsGarbageCollectedTypeV<T>, "T must be of type GarbageCollected or GarbageCollectedMixin");
+template <typename T>
+struct ObjectSizeTrait<T, false> : cppgc::internal::BaseObjectSizeTrait {
+  static_assert(sizeof(T), "T must be fully defined");
+  static_assert(IsGarbageCollectedTypeV<T>,
+                "T must be of type GarbageCollected or GarbageCollectedMixin");
 
-    static size_t GetSize(const T& object)
-    {
-        return GetObjectSizeForGarbageCollected(&object);
-    }
+  static size_t GetSize(const T& object) {
+    return GetObjectSizeForGarbageCollected(&object);
+  }
 };
 
-template <typename T> struct ObjectSizeTrait<T, true> : cppgc::internal::BaseObjectSizeTrait {
-    static_assert(sizeof(T), "T must be fully defined");
+template <typename T>
+struct ObjectSizeTrait<T, true> : cppgc::internal::BaseObjectSizeTrait {
+  static_assert(sizeof(T), "T must be fully defined");
 
-    static size_t GetSize(const T& object)
-    {
-        return GetObjectSizeForGarbageCollectedMixin(&object);
-    }
+  static size_t GetSize(const T& object) {
+    return GetObjectSizeForGarbageCollectedMixin(&object);
+  }
 };
 
-} // namespace subtle
-} // namespace cppgc
+}  // namespace subtle
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_OBJECT_SIZE_TRAIT_H_
+#endif  // INCLUDE_CPPGC_OBJECT_SIZE_TRAIT_H_

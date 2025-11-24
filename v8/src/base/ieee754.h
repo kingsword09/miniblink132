@@ -8,7 +8,7 @@
 #include "src/base/base-export.h"
 
 #if defined(V8_USE_LIBM_TRIG_FUNCTIONS)
-#include "third_party/glibc/src/sysdeps/ieee754/dbl-64/trig.h" // nogncheck
+#include "third_party/glibc/src/sysdeps/ieee754/dbl-64/trig.h"  // nogncheck
 #endif
 
 namespace v8 {
@@ -45,14 +45,8 @@ V8_BASE_EXPORT double fdlibm_sin(double x);
 V8_BASE_EXPORT double fdlibm_cos(double x);
 
 #if !defined(BUILDING_V8_BASE_SHARED) && !defined(USING_V8_BASE_SHARED)
-inline double libm_sin(double x)
-{
-    return glibc_sin(x);
-}
-inline double libm_cos(double x)
-{
-    return glibc_cos(x);
-}
+inline double libm_sin(double x) { return glibc_sin(x); }
+inline double libm_cos(double x) { return glibc_cos(x); }
 #else
 V8_BASE_EXPORT double libm_sin(double x);
 V8_BASE_EXPORT double libm_cos(double x);
@@ -106,8 +100,8 @@ V8_BASE_EXPORT double sinh(double x);
 // Returns the hyperbolic tangent of |x|, where |x| is given radians.
 V8_BASE_EXPORT double tanh(double x);
 
-} // namespace ieee754
-} // namespace base
-} // namespace v8
+}  // namespace ieee754
+}  // namespace base
+}  // namespace v8
 
-#endif // V8_BASE_IEEE754_H_
+#endif  // V8_BASE_IEEE754_H_

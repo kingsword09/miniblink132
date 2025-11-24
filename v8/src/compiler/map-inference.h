@@ -31,65 +31,78 @@ class Node;
 // stability dependencies (or do nothing if the information was already
 // reliable).
 class MapInference {
-public:
-    MapInference(JSHeapBroker* broker, Node* object, Effect effect);
+ public:
+  MapInference(JSHeapBroker* broker, Node* object, Effect effect);
 
-    // The destructor checks that the information has been made reliable (if
-    // necessary) and force-crashes if not.
-    ~MapInference();
+  // The destructor checks that the information has been made reliable (if
+  // necessary) and force-crashes if not.
+  ~MapInference();
 
-    // Is there any information at all?
-    V8_WARN_UNUSED_RESULT bool HaveMaps() const;
+  // Is there any information at all?
+  V8_WARN_UNUSED_RESULT bool HaveMaps() const;
 
-    // These queries don't require a guard.
-    //
-    V8_WARN_UNUSED_RESULT bool AllOfInstanceTypesAreJSReceiver() const;
-    // Here, {type} must not be a String type.
-    V8_WARN_UNUSED_RESULT bool AllOfInstanceTypesAre(InstanceType type) const;
-    V8_WARN_UNUSED_RESULT bool AnyOfInstanceTypesAre(InstanceType type) const;
+  // These queries don't require a guard.
+  //
+  V8_WARN_UNUSED_RESULT bool AllOfInstanceTypesAreJSReceiver() const;
+  // Here, {type} must not be a String type.
+  V8_WARN_UNUSED_RESULT bool AllOfInstanceTypesAre(InstanceType type) const;
+  V8_WARN_UNUSED_RESULT bool AnyOfInstanceTypesAre(InstanceType type) const;
 
-    // These queries require a guard. (Even instance types are generally not
-    // reliable because of how the representation of a string can change.)
-    V8_WARN_UNUSED_RESULT ZoneRefSet<Map> const& GetMaps();
-    V8_WARN_UNUSED_RESULT bool AllOfInstanceTypes(std::function<bool(InstanceType)> f);
-    V8_WARN_UNUSED_RESULT bool Is(MapRef expected_map);
+  // These queries require a guard. (Even instance types are generally not
+  // reliable because of how the representation of a string can change.)
+  V8_WARN_UNUSED_RESULT ZoneRefSet<Map> const& GetMaps();
+  V8_WARN_UNUSED_RESULT bool AllOfInstanceTypes(
+      std::function<bool(InstanceType)> f);
+  V8_WARN_UNUSED_RESULT bool Is(MapRef expected_map);
 
-    // These methods provide a guard.
-    //
-    // Returns true iff maps were already reliable or stability dependencies were
-    // successfully recorded.
-    V8_WARN_UNUSED_RESULT bool RelyOnMapsViaStability(CompilationDependencies* dependencies);
-    // Records stability dependencies if possible, otherwise it inserts map
-    // checks. Does nothing if maps were already reliable. Returns true iff
-    // dependencies were taken.
-    bool RelyOnMapsPreferStability(CompilationDependencies* dependencies, JSGraph* jsgraph, Effect* effect, Control control, const FeedbackSource& feedback);
-    // Inserts map checks even if maps were already reliable.
-    void InsertMapChecks(JSGraph* jsgraph, Effect* effect, Control control, const FeedbackSource& feedback);
+  // These methods provide a guard.
+  //
+  // Returns true iff maps were already reliable or stability dependencies were
+  // successfully recorded.
+  V8_WARN_UNUSED_RESULT bool RelyOnMapsViaStability(
+      CompilationDependencies* dependencies);
+  // Records stability dependencies if possible, otherwise it inserts map
+  // checks. Does nothing if maps were already reliable. Returns true iff
+  // dependencies were taken.
+  bool RelyOnMapsPreferStability(CompilationDependencies* dependencies,
+                                 JSGraph* jsgraph, Effect* effect,
+                                 Control control,
+                                 const FeedbackSource& feedback);
+  // Inserts map checks even if maps were already reliable.
+  void InsertMapChecks(JSGraph* jsgraph, Effect* effect, Control control,
+                       const FeedbackSource& feedback);
 
-    // Internally marks the maps as reliable (thus bypassing the safety check) and
-    // returns the NoChange reduction. USE THIS ONLY WHEN RETURNING, e.g.:
-    //   if (foo) return inference.NoChange();
-    V8_WARN_UNUSED_RESULT Reduction NoChange();
+  // Internally marks the maps as reliable (thus bypassing the safety check) and
+  // returns the NoChange reduction. USE THIS ONLY WHEN RETURNING, e.g.:
+  //   if (foo) return inference.NoChange();
+  V8_WARN_UNUSED_RESULT Reduction NoChange();
 
-private:
-    JSHeapBroker* const broker_;
-    Node* const object_;
+ private:
+  JSHeapBroker* const broker_;
+  Node* const object_;
 
-    ZoneRefSet<Map> maps_;
-    enum { kReliableOrGuarded, kUnreliableDontNeedGuard, kUnreliableNeedGuard } maps_state_;
+  ZoneRefSet<Map> maps_;
+  enum {
+    kReliableOrGuarded,
+    kUnreliableDontNeedGuard,
+    kUnreliableNeedGuard
+  } maps_state_;
 
-    bool Safe() const;
-    void SetNeedGuardIfUnreliable();
-    void SetGuarded();
+  bool Safe() const;
+  void SetNeedGuardIfUnreliable();
+  void SetGuarded();
 
-    V8_WARN_UNUSED_RESULT bool AllOfInstanceTypesUnsafe(std::function<bool(InstanceType)> f) const;
-    V8_WARN_UNUSED_RESULT bool AnyOfInstanceTypesUnsafe(std::function<bool(InstanceType)> f) const;
-    V8_WARN_UNUSED_RESULT bool RelyOnMapsHelper(
-        CompilationDependencies* dependencies, JSGraph* jsgraph, Effect* effect, Control control, const FeedbackSource& feedback);
+  V8_WARN_UNUSED_RESULT bool AllOfInstanceTypesUnsafe(
+      std::function<bool(InstanceType)> f) const;
+  V8_WARN_UNUSED_RESULT bool AnyOfInstanceTypesUnsafe(
+      std::function<bool(InstanceType)> f) const;
+  V8_WARN_UNUSED_RESULT bool RelyOnMapsHelper(
+      CompilationDependencies* dependencies, JSGraph* jsgraph, Effect* effect,
+      Control control, const FeedbackSource& feedback);
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_MAP_INFERENCE_H_
+#endif  // V8_COMPILER_MAP_INFERENCE_H_

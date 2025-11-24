@@ -52,34 +52,28 @@ namespace v8::internal::torque {
 // type expressions are resolved during matching, so TypeArgumentInference
 // should be instantiated in the appropriate scope.
 class TypeArgumentInference {
-public:
-    TypeArgumentInference(const GenericParameters& type_parameters, const TypeVector& explicit_type_arguments,
-        const std::vector<TypeExpression*>& term_parameters, const std::vector<std::optional<const Type*>>& term_argument_types);
+ public:
+  TypeArgumentInference(
+      const GenericParameters& type_parameters,
+      const TypeVector& explicit_type_arguments,
+      const std::vector<TypeExpression*>& term_parameters,
+      const std::vector<std::optional<const Type*>>& term_argument_types);
 
-    bool HasFailed() const
-    {
-        return failure_reason_.has_value();
-    }
-    const std::string& GetFailureReason()
-    {
-        return *failure_reason_;
-    }
-    TypeVector GetResult() const;
-    void Fail(std::string reason)
-    {
-        failure_reason_ = { reason };
-    }
+  bool HasFailed() const { return failure_reason_.has_value(); }
+  const std::string& GetFailureReason() { return *failure_reason_; }
+  TypeVector GetResult() const;
+  void Fail(std::string reason) { failure_reason_ = {reason}; }
 
-private:
-    void Match(TypeExpression* parameter, const Type* argument_type);
-    void MatchGeneric(BasicTypeExpression* parameter, const Type* argument_type);
+ private:
+  void Match(TypeExpression* parameter, const Type* argument_type);
+  void MatchGeneric(BasicTypeExpression* parameter, const Type* argument_type);
 
-    size_t num_explicit_;
-    std::unordered_map<std::string, size_t> type_parameter_from_name_;
-    std::vector<std::optional<const Type*>> inferred_;
-    std::optional<std::string> failure_reason_;
+  size_t num_explicit_;
+  std::unordered_map<std::string, size_t> type_parameter_from_name_;
+  std::vector<std::optional<const Type*>> inferred_;
+  std::optional<std::string> failure_reason_;
 };
 
-} // namespace v8::internal::torque
+}  // namespace v8::internal::torque
 
-#endif // V8_TORQUE_TYPE_INFERENCE_H_
+#endif  // V8_TORQUE_TYPE_INFERENCE_H_

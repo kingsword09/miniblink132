@@ -13,12 +13,12 @@ namespace v8 {
 namespace internal {
 
 class AssemblerRISCVZicond : public AssemblerRiscvBase {
-public:
-    // CSR
-    void czero_eqz(Register rd, Register rs1, Register rs2);
-    void czero_nez(Register rd, Register rs1, Register rs2);
+ public:
+  // CSR
+  void czero_eqz(Register rd, Register rs1, Register rs2);
+  void czero_nez(Register rd, Register rs1, Register rs2);
 };
 
-} // namespace internal
-} // namespace v8
-#endif // V8_CODEGEN_RISCV_EXTENSION_RISCV_ZICOND_H_
+}  // namespace internal
+}  // namespace v8
+#endif  // V8_CODEGEN_RISCV_EXTENSION_RISCV_ZICOND_H_

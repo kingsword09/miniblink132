@@ -15,79 +15,90 @@ namespace tracing {
 
 TracingCategoryObserver* TracingCategoryObserver::instance_ = nullptr;
 
-void TracingCategoryObserver::SetUp()
-{
-    TracingCategoryObserver::instance_ = new TracingCategoryObserver();
+void TracingCategoryObserver::SetUp() {
+  TracingCategoryObserver::instance_ = new TracingCategoryObserver();
 #if defined(V8_USE_PERFETTO)
-    TrackEvent::AddSessionObserver(instance_);
-    // Fire the observer if tracing is already in progress.
-    if (TrackEvent::IsEnabled())
-        instance_->OnStart({});
+  TrackEvent::AddSessionObserver(instance_);
+  // Fire the observer if tracing is already in progress.
+  if (TrackEvent::IsEnabled()) instance_->OnStart({});
 #else
-    i::V8::GetCurrentPlatform()->GetTracingController()->AddTraceStateObserver(TracingCategoryObserver::instance_);
+  i::V8::GetCurrentPlatform()->GetTracingController()->AddTraceStateObserver(
+      TracingCategoryObserver::instance_);
 #endif
 }
 
-void TracingCategoryObserver::TearDown()
-{
+void TracingCategoryObserver::TearDown() {
 #if defined(V8_USE_PERFETTO)
-    TrackEvent::RemoveSessionObserver(TracingCategoryObserver::instance_);
+  TrackEvent::RemoveSessionObserver(TracingCategoryObserver::instance_);
 #else
-    i::V8::GetCurrentPlatform()->GetTracingController()->RemoveTraceStateObserver(TracingCategoryObserver::instance_);
+  i::V8::GetCurrentPlatform()->GetTracingController()->RemoveTraceStateObserver(
+      TracingCategoryObserver::instance_);
 #endif
-    delete TracingCategoryObserver::instance_;
+  delete TracingCategoryObserver::instance_;
 }
 
 #if defined(V8_USE_PERFETTO)
-void TracingCategoryObserver::OnStart(const perfetto::DataSourceBase::StartArgs&)
-{
+void TracingCategoryObserver::OnStart(
+    const perfetto::DataSourceBase::StartArgs&) {
 #else
-void TracingCategoryObserver::OnTraceEnabled()
-{
+void TracingCategoryObserver::OnTraceEnabled() {
 #endif
-    bool enabled = false;
-    TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.runtime_stats"), &enabled);
-    if (enabled) {
-        i::TracingFlags::runtime_stats.fetch_or(ENABLED_BY_TRACING, std::memory_order_relaxed);
-    }
-    TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.runtime_stats_sampling"), &enabled);
-    if (enabled) {
-        i::TracingFlags::runtime_stats.fetch_or(ENABLED_BY_SAMPLING, std::memory_order_relaxed);
-    }
-    TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.gc"), &enabled);
-    if (enabled) {
-        i::TracingFlags::gc.fetch_or(ENABLED_BY_TRACING, std::memory_order_relaxed);
-    }
-    TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.gc_stats"), &enabled);
-    if (enabled) {
-        i::TracingFlags::gc_stats.fetch_or(ENABLED_BY_TRACING, std::memory_order_relaxed);
-    }
-    TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.ic_stats"), &enabled);
-    if (enabled) {
-        i::TracingFlags::ic_stats.fetch_or(ENABLED_BY_TRACING, std::memory_order_relaxed);
-    }
+  bool enabled = false;
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(
+      TRACE_DISABLED_BY_DEFAULT("v8.runtime_stats"), &enabled);
+  if (enabled) {
+    i::TracingFlags::runtime_stats.fetch_or(ENABLED_BY_TRACING,
+                                            std::memory_order_relaxed);
+  }
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(
+      TRACE_DISABLED_BY_DEFAULT("v8.runtime_stats_sampling"), &enabled);
+  if (enabled) {
+    i::TracingFlags::runtime_stats.fetch_or(ENABLED_BY_SAMPLING,
+                                            std::memory_order_relaxed);
+  }
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.gc"),
+                                     &enabled);
+  if (enabled) {
+    i::TracingFlags::gc.fetch_or(ENABLED_BY_TRACING, std::memory_order_relaxed);
+  }
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.gc_stats"),
+                                     &enabled);
+  if (enabled) {
+    i::TracingFlags::gc_stats.fetch_or(ENABLED_BY_TRACING,
+                                       std::memory_order_relaxed);
+  }
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.ic_stats"),
+                                     &enabled);
+  if (enabled) {
+    i::TracingFlags::ic_stats.fetch_or(ENABLED_BY_TRACING,
+                                       std::memory_order_relaxed);
+  }
 
-    TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.zone_stats"), &enabled);
-    if (enabled) {
-        i::TracingFlags::zone_stats.fetch_or(ENABLED_BY_TRACING, std::memory_order_relaxed);
-    }
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(TRACE_DISABLED_BY_DEFAULT("v8.zone_stats"),
+                                     &enabled);
+  if (enabled) {
+    i::TracingFlags::zone_stats.fetch_or(ENABLED_BY_TRACING,
+                                         std::memory_order_relaxed);
+  }
 }
 
 #if defined(V8_USE_PERFETTO)
-void TracingCategoryObserver::OnStop(const perfetto::DataSourceBase::StopArgs&)
-{
+void TracingCategoryObserver::OnStop(
+    const perfetto::DataSourceBase::StopArgs&) {
 #else
-void TracingCategoryObserver::OnTraceDisabled()
-{
+void TracingCategoryObserver::OnTraceDisabled() {
 #endif
-    i::TracingFlags::runtime_stats.fetch_and(~(ENABLED_BY_TRACING | ENABLED_BY_SAMPLING), std::memory_order_relaxed);
+  i::TracingFlags::runtime_stats.fetch_and(
+      ~(ENABLED_BY_TRACING | ENABLED_BY_SAMPLING), std::memory_order_relaxed);
 
-    i::TracingFlags::gc.fetch_and(~ENABLED_BY_TRACING, std::memory_order_relaxed);
+  i::TracingFlags::gc.fetch_and(~ENABLED_BY_TRACING, std::memory_order_relaxed);
 
-    i::TracingFlags::gc_stats.fetch_and(~ENABLED_BY_TRACING, std::memory_order_relaxed);
+  i::TracingFlags::gc_stats.fetch_and(~ENABLED_BY_TRACING,
+                                      std::memory_order_relaxed);
 
-    i::TracingFlags::ic_stats.fetch_and(~ENABLED_BY_TRACING, std::memory_order_relaxed);
+  i::TracingFlags::ic_stats.fetch_and(~ENABLED_BY_TRACING,
+                                      std::memory_order_relaxed);
 }
 
-} // namespace tracing
-} // namespace v8
+}  // namespace tracing
+}  // namespace v8

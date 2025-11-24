@@ -12,11 +12,11 @@ namespace cppgc {
 namespace internal {
 
 class V8_EXPORT_PRIVATE LivenessBrokerFactory {
-public:
-    static LivenessBroker Create();
+ public:
+  static LivenessBroker Create();
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_LIVENESS_BROKER_H_
+#endif  // V8_HEAP_CPPGC_LIVENESS_BROKER_H_

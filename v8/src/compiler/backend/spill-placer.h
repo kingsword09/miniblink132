@@ -74,96 +74,95 @@ class RegisterAllocationData;
 // The operations described in those steps are simple Boolean logic, so we can
 // easily process a batch of values at the same time as an optimization.
 class SpillPlacer {
-public:
-    SpillPlacer(RegisterAllocationData* data, Zone* zone);
+ public:
+  SpillPlacer(RegisterAllocationData* data, Zone* zone);
 
-    ~SpillPlacer();
+  ~SpillPlacer();
 
-    SpillPlacer(const SpillPlacer&) = delete;
-    SpillPlacer& operator=(const SpillPlacer&) = delete;
+  SpillPlacer(const SpillPlacer&) = delete;
+  SpillPlacer& operator=(const SpillPlacer&) = delete;
 
-    // Adds the given TopLevelLiveRange to the SpillPlacer's state. Will
-    // eventually commit spill moves for that range and mark the range to indicate
-    // whether its value is spilled at the definition or some later point, so that
-    // subsequent phases can know whether to assume the value is always on-stack.
-    // However, those steps may happen during a later call to Add or during the
-    // destructor.
-    void Add(TopLevelLiveRange* range);
+  // Adds the given TopLevelLiveRange to the SpillPlacer's state. Will
+  // eventually commit spill moves for that range and mark the range to indicate
+  // whether its value is spilled at the definition or some later point, so that
+  // subsequent phases can know whether to assume the value is always on-stack.
+  // However, those steps may happen during a later call to Add or during the
+  // destructor.
+  void Add(TopLevelLiveRange* range);
 
-private:
-    RegisterAllocationData* data() const
-    {
-        return data_;
-    }
+ private:
+  RegisterAllocationData* data() const { return data_; }
 
-    // While initializing data for a range, returns the index within each Entry
-    // where data about that range should be stored. May cause data about previous
-    // ranges to be committed to make room if the table is full.
-    int GetOrCreateIndexForLatestVreg(int vreg);
+  // While initializing data for a range, returns the index within each Entry
+  // where data about that range should be stored. May cause data about previous
+  // ranges to be committed to make room if the table is full.
+  int GetOrCreateIndexForLatestVreg(int vreg);
 
-    bool IsLatestVreg(int vreg) const
-    {
-        return assigned_indices_ > 0 && vreg_numbers_[assigned_indices_ - 1] == vreg;
-    }
+  bool IsLatestVreg(int vreg) const {
+    return assigned_indices_ > 0 &&
+           vreg_numbers_[assigned_indices_ - 1] == vreg;
+  }
 
-    // Processes all of the ranges which have been added, inserts spill moves for
-    // them to the instruction sequence, and marks the ranges with whether they
-    // are spilled at the definition or later.
-    void CommitSpills();
+  // Processes all of the ranges which have been added, inserts spill moves for
+  // them to the instruction sequence, and marks the ranges with whether they
+  // are spilled at the definition or later.
+  void CommitSpills();
 
-    void ClearData();
+  void ClearData();
 
-    // Updates the iteration bounds first_block_ and last_block_ so that they
-    // include the new value.
-    void ExpandBoundsToInclude(RpoNumber block);
+  // Updates the iteration bounds first_block_ and last_block_ so that they
+  // include the new value.
+  void ExpandBoundsToInclude(RpoNumber block);
 
-    void SetSpillRequired(InstructionBlock* block, int vreg, RpoNumber top_start_block);
+  void SetSpillRequired(InstructionBlock* block, int vreg,
+                        RpoNumber top_start_block);
 
-    void SetDefinition(RpoNumber block, int vreg);
+  void SetDefinition(RpoNumber block, int vreg);
 
-    // The first backward pass is responsible for marking blocks which do not
-    // themselves need the value to be on the stack, but which do have successors
-    // requiring the value to be on the stack.
-    void FirstBackwardPass();
+  // The first backward pass is responsible for marking blocks which do not
+  // themselves need the value to be on the stack, but which do have successors
+  // requiring the value to be on the stack.
+  void FirstBackwardPass();
 
-    // The forward pass is responsible for selecting merge points that should
-    // require the value to be on the stack.
-    void ForwardPass();
+  // The forward pass is responsible for selecting merge points that should
+  // require the value to be on the stack.
+  void ForwardPass();
 
-    // The second backward pass is responsible for propagating the spill
-    // requirements to the earliest block where all successors can agree a spill
-    // is required. It also emits the actual spill instructions.
-    void SecondBackwardPass();
+  // The second backward pass is responsible for propagating the spill
+  // requirements to the earliest block where all successors can agree a spill
+  // is required. It also emits the actual spill instructions.
+  void SecondBackwardPass();
 
-    void CommitSpill(int vreg, InstructionBlock* predecessor, InstructionBlock* successor);
+  void CommitSpill(int vreg, InstructionBlock* predecessor,
+                   InstructionBlock* successor);
 
-    // Each Entry represents the state for 64 values at a block, so that we can
-    // compute a batch of values in parallel.
-    class Entry;
-    static constexpr int kValueIndicesPerEntry = 64;
+  // Each Entry represents the state for 64 values at a block, so that we can
+  // compute a batch of values in parallel.
+  class Entry;
+  static constexpr int kValueIndicesPerEntry = 64;
 
-    // Objects provided to the constructor, which all outlive this SpillPlacer.
-    RegisterAllocationData* data_;
-    Zone* zone_;
+  // Objects provided to the constructor, which all outlive this SpillPlacer.
+  RegisterAllocationData* data_;
+  Zone* zone_;
 
-    // An array of one Entry per block, where blocks are in reverse post-order.
-    Entry* entries_ = nullptr;
+  // An array of one Entry per block, where blocks are in reverse post-order.
+  Entry* entries_ = nullptr;
 
-    // An array representing which TopLevelLiveRange is in each bit.
-    int* vreg_numbers_ = nullptr;
+  // An array representing which TopLevelLiveRange is in each bit.
+  int* vreg_numbers_ = nullptr;
 
-    // The number of vreg_numbers_ that have been assigned.
-    int assigned_indices_ = 0;
+  // The number of vreg_numbers_ that have been assigned.
+  int assigned_indices_ = 0;
 
-    // The first and last block that have any definitions or uses in the current
-    // batch of values. In large functions, tracking these bounds can help prevent
-    // additional work.
-    RpoNumber first_block_ = RpoNumber::Invalid();
-    RpoNumber last_block_ = RpoNumber::Invalid();
+  // The first and last block that have any definitions or uses in the current
+  // batch of values. In large functions, tracking these bounds can help prevent
+  // additional work.
+  RpoNumber first_block_ = RpoNumber::Invalid();
+  RpoNumber last_block_ = RpoNumber::Invalid();
 };
 
-} // namespace compiler
-} // namespace internal
-} // namespace v8
+}  // namespace compiler
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_COMPILER_BACKEND_SPILL_PLACER_H_
+#endif  // V8_COMPILER_BACKEND_SPILL_PLACER_H_

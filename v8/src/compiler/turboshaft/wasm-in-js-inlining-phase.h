@@ -4,7 +4,7 @@
 
 #if !V8_ENABLE_WEBASSEMBLY
 #error This header should only be included if WebAssembly is enabled.
-#endif // !V8_ENABLE_WEBASSEMBLY
+#endif  // !V8_ENABLE_WEBASSEMBLY
 
 #ifndef V8_COMPILER_TURBOSHAFT_WASM_IN_JS_INLINING_PHASE_H_
 #define V8_COMPILER_TURBOSHAFT_WASM_IN_JS_INLINING_PHASE_H_
@@ -16,11 +16,11 @@ namespace v8::internal::compiler::turboshaft {
 // This reducer is part of the JavaScript pipeline and inlines the code of
 // sufficiently small/hot Wasm functions into the caller JS function.
 struct WasmInJSInliningPhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(WasmInJSInlining)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(WasmInJSInlining)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_WASM_IN_JS_INLINING_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_WASM_IN_JS_INLINING_PHASE_H_

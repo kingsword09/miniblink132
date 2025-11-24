@@ -9,12 +9,12 @@
 namespace v8 {
 namespace internal {
 
-RUNTIME_FUNCTION(Runtime_DateCurrentTime)
-{
-    HandleScope scope(isolate);
-    DCHECK_EQ(0, args.length());
-    return *isolate->factory()->NewNumberFromInt64(JSDate::CurrentTimeValue(isolate));
+RUNTIME_FUNCTION(Runtime_DateCurrentTime) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(0, args.length());
+  return *isolate->factory()->NewNumberFromInt64(
+      JSDate::CurrentTimeValue(isolate));
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

@@ -6,24 +6,21 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-int CountDecimalDigits(uint32_t value)
-{
-    int result = 1;
-    while (value > 9) {
-        result++;
-        value = value / 10;
-    }
-    return result;
+int CountDecimalDigits(uint32_t value) {
+  int result = 1;
+  while (value > 9) {
+    result++;
+    value = value / 10;
+  }
+  return result;
 }
 
-std::ostream& operator<<(std::ostream& os, PaddingSpace padding)
-{
-    if (padding.spaces > 10000)
-        return os;
-    for (int i = 0; i < padding.spaces; ++i) {
-        os << ' ';
-    }
-    return os;
+std::ostream& operator<<(std::ostream& os, PaddingSpace padding) {
+  if (padding.spaces > 10000) return os;
+  for (int i = 0; i < padding.spaces; ++i) {
+    os << ' ';
+  }
+  return os;
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

@@ -15,28 +15,18 @@
 namespace v8 {
 namespace internal {
 
-double HeapNumber::value() const
-{
-    return value_.value();
-}
-void HeapNumber::set_value(double value)
-{
-    value_.set_value(value);
+double HeapNumber::value() const { return value_.value(); }
+void HeapNumber::set_value(double value) { value_.set_value(value); }
+
+uint64_t HeapNumber::value_as_bits() const { return value_.value_as_bits(); }
+
+void HeapNumber::set_value_as_bits(uint64_t bits) {
+  value_.set_value_as_bits(bits);
 }
 
-uint64_t HeapNumber::value_as_bits() const
-{
-    return value_.value_as_bits();
-}
-
-void HeapNumber::set_value_as_bits(uint64_t bits)
-{
-    value_.set_value_as_bits(bits);
-}
-
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_HEAP_NUMBER_INL_H_
+#endif  // V8_OBJECTS_HEAP_NUMBER_INL_H_

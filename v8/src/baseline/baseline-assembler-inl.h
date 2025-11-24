@@ -44,170 +44,132 @@ namespace baseline {
 
 #define __ masm_->
 
-void BaselineAssembler::GetCode(LocalIsolate* isolate, CodeDesc* desc)
-{
-    __ GetCode(isolate, desc);
+void BaselineAssembler::GetCode(LocalIsolate* isolate, CodeDesc* desc) {
+  __ GetCode(isolate, desc);
 }
-int BaselineAssembler::pc_offset() const
-{
-    return __ pc_offset();
+int BaselineAssembler::pc_offset() const { return __ pc_offset(); }
+void BaselineAssembler::CodeEntry() const { __ CodeEntry(); }
+void BaselineAssembler::ExceptionHandler() const { __ ExceptionHandler(); }
+void BaselineAssembler::RecordComment(const char* string) {
+  if (!v8_flags.code_comments) return;
+  __ RecordComment(string);
 }
-void BaselineAssembler::CodeEntry() const
-{
-    __ CodeEntry();
-}
-void BaselineAssembler::ExceptionHandler() const
-{
-    __ ExceptionHandler();
-}
-void BaselineAssembler::RecordComment(const char* string)
-{
-    if (!v8_flags.code_comments)
-        return;
-    __ RecordComment(string);
-}
-void BaselineAssembler::Trap()
-{
-    __ Trap();
-}
-void BaselineAssembler::DebugBreak()
-{
-    __ DebugBreak();
-}
-void BaselineAssembler::CallRuntime(Runtime::FunctionId function, int nargs)
-{
-    __ CallRuntime(function, nargs);
+void BaselineAssembler::Trap() { __ Trap(); }
+void BaselineAssembler::DebugBreak() { __ DebugBreak(); }
+void BaselineAssembler::CallRuntime(Runtime::FunctionId function, int nargs) {
+  __ CallRuntime(function, nargs);
 }
 
-void BaselineAssembler::CallBuiltin(Builtin builtin)
-{
-    // BaselineAssemblerOptions defines how builtin calls are generated.
-    __ CallBuiltin(builtin);
+void BaselineAssembler::CallBuiltin(Builtin builtin) {
+  // BaselineAssemblerOptions defines how builtin calls are generated.
+  __ CallBuiltin(builtin);
 }
 
-void BaselineAssembler::TailCallBuiltin(Builtin builtin)
-{
-    // BaselineAssemblerOptions defines how builtin tail calls are generated.
-    __ TailCallBuiltin(builtin);
+void BaselineAssembler::TailCallBuiltin(Builtin builtin) {
+  // BaselineAssemblerOptions defines how builtin tail calls are generated.
+  __ TailCallBuiltin(builtin);
 }
 
-MemOperand BaselineAssembler::ContextOperand()
-{
-    return RegisterFrameOperand(interpreter::Register::current_context());
+MemOperand BaselineAssembler::ContextOperand() {
+  return RegisterFrameOperand(interpreter::Register::current_context());
 }
-MemOperand BaselineAssembler::FunctionOperand()
-{
-    return RegisterFrameOperand(interpreter::Register::function_closure());
+MemOperand BaselineAssembler::FunctionOperand() {
+  return RegisterFrameOperand(interpreter::Register::function_closure());
 }
 
-void BaselineAssembler::LoadMap(Register output, Register value)
-{
-    __ LoadMap(output, value);
+void BaselineAssembler::LoadMap(Register output, Register value) {
+  __ LoadMap(output, value);
 }
-void BaselineAssembler::LoadRoot(Register output, RootIndex index)
-{
-    __ LoadRoot(output, index);
+void BaselineAssembler::LoadRoot(Register output, RootIndex index) {
+  __ LoadRoot(output, index);
 }
-void BaselineAssembler::LoadNativeContextSlot(Register output, uint32_t index)
-{
-    __ LoadNativeContextSlot(output, index);
+void BaselineAssembler::LoadNativeContextSlot(Register output, uint32_t index) {
+  __ LoadNativeContextSlot(output, index);
 }
 
-void BaselineAssembler::Move(Register output, interpreter::Register source)
-{
-    return __ Move(output, RegisterFrameOperand(source));
+void BaselineAssembler::Move(Register output, interpreter::Register source) {
+  return __ Move(output, RegisterFrameOperand(source));
 }
-void BaselineAssembler::Move(Register output, RootIndex source)
-{
-    return __ LoadRoot(output, source);
+void BaselineAssembler::Move(Register output, RootIndex source) {
+  return __ LoadRoot(output, source);
 }
-void BaselineAssembler::Move(Register output, Register source)
-{
-    __ Move(output, source);
+void BaselineAssembler::Move(Register output, Register source) {
+  __ Move(output, source);
 }
-void BaselineAssembler::Move(Register output, MemOperand operand)
-{
-    __ Move(output, operand);
+void BaselineAssembler::Move(Register output, MemOperand operand) {
+  __ Move(output, operand);
 }
-void BaselineAssembler::Move(Register output, Tagged<Smi> value)
-{
-    __ Move(output, value);
+void BaselineAssembler::Move(Register output, Tagged<Smi> value) {
+  __ Move(output, value);
 }
 
-void BaselineAssembler::SmiUntag(Register reg)
-{
-    __ SmiUntag(reg);
-}
-void BaselineAssembler::SmiUntag(Register output, Register value)
-{
-    __ SmiUntag(output, value);
+void BaselineAssembler::SmiUntag(Register reg) { __ SmiUntag(reg); }
+void BaselineAssembler::SmiUntag(Register output, Register value) {
+  __ SmiUntag(output, value);
 }
 
-void BaselineAssembler::LoadFixedArrayElement(Register output, Register array, int32_t index)
-{
-    LoadTaggedField(output, array, OFFSET_OF_DATA_START(FixedArray) + index * kTaggedSize);
+void BaselineAssembler::LoadFixedArrayElement(Register output, Register array,
+                                              int32_t index) {
+  LoadTaggedField(output, array,
+                  OFFSET_OF_DATA_START(FixedArray) + index * kTaggedSize);
 }
 
-void BaselineAssembler::LoadPrototype(Register prototype, Register object)
-{
-    __ LoadMap(prototype, object);
-    LoadTaggedField(prototype, prototype, Map::kPrototypeOffset);
+void BaselineAssembler::LoadPrototype(Register prototype, Register object) {
+  __ LoadMap(prototype, object);
+  LoadTaggedField(prototype, prototype, Map::kPrototypeOffset);
 }
-void BaselineAssembler::LoadContext(Register output)
-{
-    LoadRegister(output, interpreter::Register::current_context());
+void BaselineAssembler::LoadContext(Register output) {
+  LoadRegister(output, interpreter::Register::current_context());
 }
-void BaselineAssembler::LoadFunction(Register output)
-{
-    LoadRegister(output, interpreter::Register::function_closure());
+void BaselineAssembler::LoadFunction(Register output) {
+  LoadRegister(output, interpreter::Register::function_closure());
 }
-void BaselineAssembler::StoreContext(Register context)
-{
-    StoreRegister(interpreter::Register::current_context(), context);
+void BaselineAssembler::StoreContext(Register context) {
+  StoreRegister(interpreter::Register::current_context(), context);
 }
-void BaselineAssembler::LoadRegister(Register output, interpreter::Register source)
-{
-    Move(output, source);
+void BaselineAssembler::LoadRegister(Register output,
+                                     interpreter::Register source) {
+  Move(output, source);
 }
-void BaselineAssembler::StoreRegister(interpreter::Register output, Register value)
-{
-    Move(output, value);
+void BaselineAssembler::StoreRegister(interpreter::Register output,
+                                      Register value) {
+  Move(output, value);
 }
 
-void BaselineAssembler::LoadFeedbackCell(Register output)
-{
-    Move(output, FeedbackCellOperand());
-    ScratchRegisterScope scratch_scope(this);
-    Register scratch = scratch_scope.AcquireScratch();
-    __ AssertFeedbackCell(output, scratch);
+void BaselineAssembler::LoadFeedbackCell(Register output) {
+  Move(output, FeedbackCellOperand());
+  ScratchRegisterScope scratch_scope(this);
+  Register scratch = scratch_scope.AcquireScratch();
+  __ AssertFeedbackCell(output, scratch);
 }
 
-template <typename Field> void BaselineAssembler::DecodeField(Register reg)
-{
-    __ DecodeField<Field>(reg);
+template <typename Field>
+void BaselineAssembler::DecodeField(Register reg) {
+  __ DecodeField<Field>(reg);
 }
 
-EnsureAccumulatorPreservedScope::EnsureAccumulatorPreservedScope(BaselineAssembler* assembler)
+EnsureAccumulatorPreservedScope::EnsureAccumulatorPreservedScope(
+    BaselineAssembler* assembler)
     : assembler_(assembler)
 #ifdef V8_CODE_COMMENTS
-    , comment_(assembler->masm(), "EnsureAccumulatorPreservedScope")
+      ,
+      comment_(assembler->masm(), "EnsureAccumulatorPreservedScope")
 #endif
 {
-    assembler_->Push(kInterpreterAccumulatorRegister);
+  assembler_->Push(kInterpreterAccumulatorRegister);
 }
 
-EnsureAccumulatorPreservedScope::~EnsureAccumulatorPreservedScope()
-{
-    BaselineAssembler::ScratchRegisterScope scratch(assembler_);
-    Register reg = scratch.AcquireScratch();
-    assembler_->Pop(reg);
-    AssertEqualToAccumulator(reg);
+EnsureAccumulatorPreservedScope::~EnsureAccumulatorPreservedScope() {
+  BaselineAssembler::ScratchRegisterScope scratch(assembler_);
+  Register reg = scratch.AcquireScratch();
+  assembler_->Pop(reg);
+  AssertEqualToAccumulator(reg);
 }
 
 #undef __
 
-} // namespace baseline
-} // namespace internal
-} // namespace v8
+}  // namespace baseline
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BASELINE_BASELINE_ASSEMBLER_INL_H_
+#endif  // V8_BASELINE_BASELINE_ASSEMBLER_INL_H_

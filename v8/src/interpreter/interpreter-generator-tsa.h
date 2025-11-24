@@ -11,6 +11,6 @@ namespace v8::internal::interpreter {
 
 using BytecodeHandlerData = compiler::turboshaft::BytecodeHandlerData;
 
-} // namespace v8::internal::interpreter
+}  // namespace v8::internal::interpreter
 
-#endif // V8_INTERPRETER_INTERPRETER_GENERATOR_TSA_H_
+#endif  // V8_INTERPRETER_INTERPRETER_GENERATOR_TSA_H_

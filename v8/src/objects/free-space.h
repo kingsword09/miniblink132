@@ -31,30 +31,32 @@ namespace internal {
 // b) it's independent of the pointer compression base and pointer compression
 //    scheme.
 class FreeSpace : public TorqueGeneratedFreeSpace<FreeSpace, HeapObject> {
-public:
-    // [size]: size of the free space including the header.
-    DECL_RELAXED_INT_ACCESSORS(size)
-    static inline void SetSize(const WritableFreeSpace& writable_free_space, int size, RelaxedStoreTag);
-    inline int Size();
+ public:
+  // [size]: size of the free space including the header.
+  DECL_RELAXED_INT_ACCESSORS(size)
+  static inline void SetSize(const WritableFreeSpace& writable_free_space,
+                             int size, RelaxedStoreTag);
+  inline int Size();
 
-    // Accessors for the next field.
-    inline Tagged<FreeSpace> next() const;
-    inline void SetNext(const WritableFreeSpace& writable_free_space, Tagged<FreeSpace> next);
+  // Accessors for the next field.
+  inline Tagged<FreeSpace> next() const;
+  inline void SetNext(const WritableFreeSpace& writable_free_space,
+                      Tagged<FreeSpace> next);
 
-    // Dispatched behavior.
-    DECL_PRINTER(FreeSpace)
+  // Dispatched behavior.
+  DECL_PRINTER(FreeSpace)
 
-    class BodyDescriptor;
+  class BodyDescriptor;
 
-private:
-    inline bool IsValid() const;
+ private:
+  inline bool IsValid() const;
 
-    TQ_OBJECT_CONSTRUCTORS(FreeSpace)
+  TQ_OBJECT_CONSTRUCTORS(FreeSpace)
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
 #include "src/objects/object-macros-undef.h"
 
-#endif // V8_OBJECTS_FREE_SPACE_H_
+#endif  // V8_OBJECTS_FREE_SPACE_H_

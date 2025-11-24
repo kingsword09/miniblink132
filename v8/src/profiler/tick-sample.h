@@ -16,16 +16,14 @@ class Isolate;
 
 // TickSample captures the information collected for each sample.
 struct V8_EXPORT TickSample {
-    // Internal profiling (with --prof + tools/$OS-tick-processor) wants to
-    // include the runtime function we're calling. Externally exposed tick
-    // samples don't care.
-    enum RecordCEntryFrame { kIncludeCEntryFrame, kSkipCEntryFrame };
+  // Internal profiling (with --prof + tools/$OS-tick-processor) wants to
+  // include the runtime function we're calling. Externally exposed tick
+  // samples don't care.
+  enum RecordCEntryFrame { kIncludeCEntryFrame, kSkipCEntryFrame };
 
-    TickSample()
-    {
-    }
+  TickSample() {}
 
-    /**
+  /**
    * Initialize a tick sample from the isolate.
    * \param isolate The isolate.
    * \param state Execution state.
@@ -37,9 +35,11 @@ struct V8_EXPORT TickSample {
    *                                with |state| argument. Otherwise the method
    *                                will use provided register |state| as is.
    */
-    void Init(Isolate* isolate, const v8::RegisterState& state, RecordCEntryFrame record_c_entry_frame, bool update_stats, bool use_simulator_reg_state = true,
-        base::TimeDelta sampling_interval = base::TimeDelta());
-    /**
+  void Init(Isolate* isolate, const v8::RegisterState& state,
+            RecordCEntryFrame record_c_entry_frame, bool update_stats,
+            bool use_simulator_reg_state = true,
+            base::TimeDelta sampling_interval = base::TimeDelta());
+  /**
    * Get a call stack sample from the isolate.
    * \param isolate The isolate.
    * \param state Register state.
@@ -66,38 +66,42 @@ struct V8_EXPORT TickSample {
    *                      when the JS thread is paused or interrupted.
    *                      Otherwise the behavior is undefined.
    */
-    static bool GetStackSample(Isolate* isolate, v8::RegisterState* state, RecordCEntryFrame record_c_entry_frame, void** frames, size_t frames_limit,
-        v8::SampleInfo* sample_info, StateTag* out_state = nullptr, bool use_simulator_reg_state = true);
+  static bool GetStackSample(Isolate* isolate, v8::RegisterState* state,
+                             RecordCEntryFrame record_c_entry_frame,
+                             void** frames, size_t frames_limit,
+                             v8::SampleInfo* sample_info,
+                             StateTag* out_state = nullptr,
+                             bool use_simulator_reg_state = true);
 
-    void print() const;
+  void print() const;
 
-    static constexpr unsigned kMaxFramesCountLog2 = 8;
-    static constexpr unsigned kMaxFramesCount = (1 << kMaxFramesCountLog2) - 1;
+  static constexpr unsigned kMaxFramesCountLog2 = 8;
+  static constexpr unsigned kMaxFramesCount = (1 << kMaxFramesCountLog2) - 1;
 
-    void* pc = nullptr; // Instruction pointer.
-    union {
-        void* tos; // Top stack value (*sp).
-        void* external_callback_entry = nullptr;
-    };
-    void* context = nullptr; // Address of the incumbent native context.
-    void* embedder_context = nullptr; // Address of the embedder native context.
+  void* pc = nullptr;  // Instruction pointer.
+  union {
+    void* tos;  // Top stack value (*sp).
+    void* external_callback_entry = nullptr;
+  };
+  void* context = nullptr;          // Address of the incumbent native context.
+  void* embedder_context = nullptr;  // Address of the embedder native context.
 
-    base::TimeTicks timestamp;
-    base::TimeDelta sampling_interval_; // Sampling interval used to capture.
+  base::TimeTicks timestamp;
+  base::TimeDelta sampling_interval_;  // Sampling interval used to capture.
 
-    StateTag state = OTHER; // The state of the VM.
-    EmbedderStateTag embedder_state = EmbedderStateTag::EMPTY;
+  StateTag state = OTHER;  // The state of the VM.
+  EmbedderStateTag embedder_state = EmbedderStateTag::EMPTY;
 
-    uint16_t frames_count = 0; // Number of captured frames.
-    static_assert(sizeof(frames_count) * kBitsPerByte >= kMaxFramesCountLog2);
-    bool has_external_callback = false;
-    // Whether the sample should update aggregated stats.
-    bool update_stats_ = true;
+  uint16_t frames_count = 0;  // Number of captured frames.
+  static_assert(sizeof(frames_count) * kBitsPerByte >= kMaxFramesCountLog2);
+  bool has_external_callback = false;
+  // Whether the sample should update aggregated stats.
+  bool update_stats_ = true;
 
-    void* stack[kMaxFramesCount]; // Call stack.
+  void* stack[kMaxFramesCount];  // Call stack.
 };
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_PROFILER_TICK_SAMPLE_H_
+#endif  // V8_PROFILER_TICK_SAMPLE_H_

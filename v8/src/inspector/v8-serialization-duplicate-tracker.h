@@ -13,24 +13,28 @@
 namespace v8_inspector {
 
 class V8SerializationDuplicateTracker {
-public:
-    // Returns a `protocol::DictionaryValue` value either empty if the V8 value
-    // was not serialized yet, or filled in as a reference to previousely
-    // serialized protocol value.
-    V8_EXPORT std::unique_ptr<protocol::DictionaryValue> LinkExistingOrCreate(v8::Local<v8::Value> v8Value, bool* isKnown);
+ public:
+  // Returns a `protocol::DictionaryValue` value either empty if the V8 value
+  // was not serialized yet, or filled in as a reference to previousely
+  // serialized protocol value.
+  V8_EXPORT std::unique_ptr<protocol::DictionaryValue> LinkExistingOrCreate(
+      v8::Local<v8::Value> v8Value, bool* isKnown);
 
-    V8_EXPORT explicit V8SerializationDuplicateTracker(v8::Local<v8::Context> context);
+  V8_EXPORT explicit V8SerializationDuplicateTracker(
+      v8::Local<v8::Context> context);
 
-private:
-    v8::Local<v8::Context> m_context;
-    int m_counter;
-    // Maps v8 value to corresponding serialized value.
-    v8::Local<v8::Map> m_v8ObjectToSerializedDictionary;
+ private:
+  v8::Local<v8::Context> m_context;
+  int m_counter;
+  // Maps v8 value to corresponding serialized value.
+  v8::Local<v8::Map> m_v8ObjectToSerializedDictionary;
 
-    V8_EXPORT protocol::DictionaryValue* FindKnownSerializedValue(v8::Local<v8::Value> v8Value);
+  V8_EXPORT protocol::DictionaryValue* FindKnownSerializedValue(
+      v8::Local<v8::Value> v8Value);
 
-    V8_EXPORT void SetKnownSerializedValue(v8::Local<v8::Value> v8Value, protocol::DictionaryValue* serializedValue);
+  V8_EXPORT void SetKnownSerializedValue(
+      v8::Local<v8::Value> v8Value, protocol::DictionaryValue* serializedValue);
 };
-} // namespace v8_inspector
+}  // namespace v8_inspector
 
-#endif // V8_INSPECTOR_V8_SERIALIZATION_DUPLICATE_TRACKER_H_
+#endif  // V8_INSPECTOR_V8_SERIALIZATION_DUPLICATE_TRACKER_H_

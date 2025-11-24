@@ -14,19 +14,27 @@
 namespace v8 {
 namespace internal {
 
-v8::Local<v8::FunctionTemplate> IgnitionStatisticsExtension::GetNativeFunctionTemplate(v8::Isolate* isolate, v8::Local<v8::String> name)
-{
-    DCHECK_EQ(strcmp(*v8::String::Utf8Value(isolate, name), "getIgnitionDispatchCounters"), 0);
-    return v8::FunctionTemplate::New(isolate, IgnitionStatisticsExtension::GetIgnitionDispatchCounters);
+v8::Local<v8::FunctionTemplate>
+IgnitionStatisticsExtension::GetNativeFunctionTemplate(
+    v8::Isolate* isolate, v8::Local<v8::String> name) {
+  DCHECK_EQ(strcmp(*v8::String::Utf8Value(isolate, name),
+                   "getIgnitionDispatchCounters"),
+            0);
+  return v8::FunctionTemplate::New(
+      isolate, IgnitionStatisticsExtension::GetIgnitionDispatchCounters);
 }
 
-const char* const IgnitionStatisticsExtension::kSource = "native function getIgnitionDispatchCounters();";
+const char* const IgnitionStatisticsExtension::kSource =
+    "native function getIgnitionDispatchCounters();";
 
-void IgnitionStatisticsExtension::GetIgnitionDispatchCounters(const v8::FunctionCallbackInfo<v8::Value>& info)
-{
-    DCHECK(ValidateCallbackInfo(info));
-    info.GetReturnValue().Set(Utils::ToLocal(reinterpret_cast<Isolate*>(info.GetIsolate())->interpreter()->GetDispatchCountersObject()));
+void IgnitionStatisticsExtension::GetIgnitionDispatchCounters(
+    const v8::FunctionCallbackInfo<v8::Value>& info) {
+  DCHECK(ValidateCallbackInfo(info));
+  info.GetReturnValue().Set(
+      Utils::ToLocal(reinterpret_cast<Isolate*>(info.GetIsolate())
+                         ->interpreter()
+                         ->GetDispatchCountersObject()));
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8

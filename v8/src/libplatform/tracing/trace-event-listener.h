@@ -19,13 +19,13 @@ namespace tracing {
 // to process traces, e.g. to write them to a file as JSON or for testing
 // purposes.
 class V8_PLATFORM_EXPORT TraceEventListener {
-public:
-    virtual ~TraceEventListener() = default;
-    virtual void ParseFromArray(const std::vector<char>& array) = 0;
+ public:
+  virtual ~TraceEventListener() = default;
+  virtual void ParseFromArray(const std::vector<char>& array) = 0;
 };
 
-} // namespace tracing
-} // namespace platform
-} // namespace v8
+}  // namespace tracing
+}  // namespace platform
+}  // namespace v8
 
-#endif // V8_LIBPLATFORM_TRACING_TRACE_EVENT_LISTENER_H_
+#endif  // V8_LIBPLATFORM_TRACING_TRACE_EVENT_LISTENER_H_

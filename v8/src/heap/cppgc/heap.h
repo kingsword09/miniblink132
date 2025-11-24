@@ -18,84 +18,66 @@
 namespace cppgc {
 namespace internal {
 
-class V8_EXPORT_PRIVATE Heap final : public HeapBase, public cppgc::Heap, public GarbageCollector {
-public:
-    static Heap* From(cppgc::Heap* heap)
-    {
-        return static_cast<Heap*>(heap);
-    }
-    static const Heap* From(const cppgc::Heap* heap)
-    {
-        return static_cast<const Heap*>(heap);
-    }
+class V8_EXPORT_PRIVATE Heap final : public HeapBase,
+                                     public cppgc::Heap,
+                                     public GarbageCollector {
+ public:
+  static Heap* From(cppgc::Heap* heap) { return static_cast<Heap*>(heap); }
+  static const Heap* From(const cppgc::Heap* heap) {
+    return static_cast<const Heap*>(heap);
+  }
 
-    Heap(std::shared_ptr<cppgc::Platform> platform, cppgc::Heap::HeapOptions options);
-    ~Heap() final;
+  Heap(std::shared_ptr<cppgc::Platform> platform,
+       cppgc::Heap::HeapOptions options);
+  ~Heap() final;
 
-    HeapBase& AsBase()
-    {
-        return *this;
-    }
-    const HeapBase& AsBase() const
-    {
-        return *this;
-    }
+  HeapBase& AsBase() { return *this; }
+  const HeapBase& AsBase() const { return *this; }
 
-    void CollectGarbage(GCConfig) final;
-    void StartIncrementalGarbageCollection(GCConfig) final;
-    void FinalizeIncrementalGarbageCollectionIfRunning(GCConfig);
+  void CollectGarbage(GCConfig) final;
+  void StartIncrementalGarbageCollection(GCConfig) final;
+  void FinalizeIncrementalGarbageCollectionIfRunning(GCConfig);
 
-    size_t epoch() const final
-    {
-        return epoch_;
-    }
+  size_t epoch() const final { return epoch_; }
 
-    std::optional<EmbedderStackState> overridden_stack_state() const final
-    {
-        return override_stack_state_;
-    }
-    void set_override_stack_state(EmbedderStackState state) final
-    {
-        CHECK(!override_stack_state_);
-        override_stack_state_ = state;
-    }
-    void clear_overridden_stack_state() final
-    {
-        override_stack_state_.reset();
-    }
+  std::optional<EmbedderStackState> overridden_stack_state() const final {
+    return override_stack_state_;
+  }
+  void set_override_stack_state(EmbedderStackState state) final {
+    CHECK(!override_stack_state_);
+    override_stack_state_ = state;
+  }
+  void clear_overridden_stack_state() final { override_stack_state_.reset(); }
 
 #ifdef V8_ENABLE_ALLOCATION_TIMEOUT
-    std::optional<int> UpdateAllocationTimeout() final
-    {
-        return std::nullopt;
-    }
-#endif // V8_ENABLE_ALLOCATION_TIMEOUT
+  std::optional<int> UpdateAllocationTimeout() final { return std::nullopt; }
+#endif  // V8_ENABLE_ALLOCATION_TIMEOUT
 
-    void EnableGenerationalGC();
+  void EnableGenerationalGC();
 
-    void DisableHeapGrowingForTesting();
+  void DisableHeapGrowingForTesting();
 
-private:
-    void StartGarbageCollection(GCConfig);
-    void FinalizeGarbageCollection(StackState);
-    void FinalizeGarbageCollectionImpl(StackState);
+ private:
+  void StartGarbageCollection(GCConfig);
+  void FinalizeGarbageCollection(StackState);
+  void FinalizeGarbageCollectionImpl(StackState);
 
-    void FinalizeIncrementalGarbageCollectionIfNeeded(StackState) final;
+  void FinalizeIncrementalGarbageCollectionIfNeeded(StackState) final;
 
-    void StartIncrementalGarbageCollectionForTesting() final;
-    void FinalizeIncrementalGarbageCollectionForTesting(EmbedderStackState) final;
+  void StartIncrementalGarbageCollectionForTesting() final;
+  void FinalizeIncrementalGarbageCollectionForTesting(EmbedderStackState) final;
 
-    GCConfig config_;
-    GCInvoker gc_invoker_;
-    HeapGrowing growing_;
-    bool generational_gc_enabled_ = false;
+  GCConfig config_;
+  GCInvoker gc_invoker_;
+  HeapGrowing growing_;
+  bool generational_gc_enabled_ = false;
 
-    size_t epoch_ = 0;
+  size_t epoch_ = 0;
 
-    std::optional<cppgc::EmbedderStackState> override_stack_state_;
+  std::optional<cppgc::EmbedderStackState> override_stack_state_;
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // V8_HEAP_CPPGC_HEAP_H_
+#endif  // V8_HEAP_CPPGC_HEAP_H_

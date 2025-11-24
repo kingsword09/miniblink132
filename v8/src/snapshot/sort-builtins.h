@@ -38,26 +38,23 @@ namespace internal {
 
 class Cluster;
 struct CallProbability {
-    CallProbability(int32_t incoming = 0, int32_t outgoing = 0)
-        : incoming_(incoming)
-        , outgoing_(outgoing)
-    {
-    }
+  CallProbability(int32_t incoming = 0, int32_t outgoing = 0)
+      : incoming_(incoming), outgoing_(outgoing) {}
 
-    // There are a caller and a callee, we assume caller was invoked
-    // "caller-count" times, it calls callee "call-count" times, the callee was
-    // invoked "callee-count" times. imcoming_ means the possibity the callee
-    // calls from caller, it was calculted by call-count / callee-count. If
-    // callee-count is 0 (may not be compiled by TurboFan or normalized as 0 due
-    // to too small), we set imcoming_ as -1.
-    int32_t incoming_;
-    // outgoing_ means the possibity the caller
-    // calls to callee, it was calculted by call-count / caller-count. If
-    // caller-count is 0 (may not be compiled by TurboFan or normalized as 0 due
-    // to too small), we set outgoing_ as -1. We didn't use outgoing_ as condition
-    // for reordering builtins yet, but we could try to do some experiments with
-    // it later for obtaining a better order of builtins.
-    int32_t outgoing_;
+  // There are a caller and a callee, we assume caller was invoked
+  // "caller-count" times, it calls callee "call-count" times, the callee was
+  // invoked "callee-count" times. imcoming_ means the possibity the callee
+  // calls from caller, it was calculted by call-count / callee-count. If
+  // callee-count is 0 (may not be compiled by TurboFan or normalized as 0 due
+  // to too small), we set imcoming_ as -1.
+  int32_t incoming_;
+  // outgoing_ means the possibity the caller
+  // calls to callee, it was calculted by call-count / caller-count. If
+  // caller-count is 0 (may not be compiled by TurboFan or normalized as 0 due
+  // to too small), we set outgoing_ as -1. We didn't use outgoing_ as condition
+  // for reordering builtins yet, but we could try to do some experiments with
+  // it later for obtaining a better order of builtins.
+  int32_t outgoing_;
 };
 // The key is the callee builtin, the value is call probabilities in percent
 // (mostly range in 0 ~ 100, except one call happend in a loop block which was
@@ -74,73 +71,77 @@ using BuiltinSize = std::vector<uint32_t>;
 using BuiltinClusterMap = std::unordered_map<Builtin, Cluster*>;
 
 class BuiltinsSorter {
-    const int32_t kMinEdgeProbabilityThreshold = 10;
-    const uint32_t kMaxClusterSize = 1 * MB;
-    const uint32_t kMaxDensityDecreaseThreshold = 8;
+  const int32_t kMinEdgeProbabilityThreshold = 10;
+  const uint32_t kMaxClusterSize = 1 * MB;
+  const uint32_t kMaxDensityDecreaseThreshold = 8;
 
-    const std::string kBuiltinCallBlockDensityMarker = "block_count";
-    const std::string kBuiltinDensityMarker = "builtin_count";
+  const std::string kBuiltinCallBlockDensityMarker = "block_count";
+  const std::string kBuiltinDensityMarker = "builtin_count";
 
-    // Pair of denstity of builtin and builtin id.
-    struct BuiltinDensitySlot {
-        BuiltinDensitySlot(uint32_t density, Builtin builtin)
-            : density_(density)
-            , builtin_(builtin)
-        {
-        }
+  // Pair of denstity of builtin and builtin id.
+  struct BuiltinDensitySlot {
+    BuiltinDensitySlot(uint32_t density, Builtin builtin)
+        : density_(density), builtin_(builtin) {}
 
-        uint32_t density_;
-        Builtin builtin_;
-    };
+    uint32_t density_;
+    Builtin builtin_;
+  };
 
-public:
-    BuiltinsSorter();
-    ~BuiltinsSorter();
-    std::vector<Builtin> SortBuiltins(const char* profiling_file, const std::vector<uint32_t>& builtin_size);
+ public:
+  BuiltinsSorter();
+  ~BuiltinsSorter();
+  std::vector<Builtin> SortBuiltins(const char* profiling_file,
+                                    const std::vector<uint32_t>& builtin_size);
 
-private:
-    void InitializeCallGraph(const char* profiling_file, const std::vector<uint32_t>& size);
-    void InitializeClusters();
-    void MergeBestPredecessors();
-    void SortClusters();
-    Builtin FindBestPredecessorOf(Builtin callee);
-    void ProcessBlockCountLineInfo(std::istringstream& line_stream, std::unordered_map<std::string, Builtin>& name2id);
-    void ProcessBuiltinDensityLineInfo(std::istringstream& line_stream, std::unordered_map<std::string, Builtin>& name2id);
+ private:
+  void InitializeCallGraph(const char* profiling_file,
+                           const std::vector<uint32_t>& size);
+  void InitializeClusters();
+  void MergeBestPredecessors();
+  void SortClusters();
+  Builtin FindBestPredecessorOf(Builtin callee);
+  void ProcessBlockCountLineInfo(
+      std::istringstream& line_stream,
+      std::unordered_map<std::string, Builtin>& name2id);
+  void ProcessBuiltinDensityLineInfo(
+      std::istringstream& line_stream,
+      std::unordered_map<std::string, Builtin>& name2id);
 
-    std::vector<Cluster*> clusters_;
+  std::vector<Cluster*> clusters_;
 
-    std::vector<BuiltinDensitySlot> builtin_density_order_;
+  std::vector<BuiltinDensitySlot> builtin_density_order_;
 
-    CallGraph call_graph_;
+  CallGraph call_graph_;
 
-    BuiltinDensityMap builtin_density_map_;
+  BuiltinDensityMap builtin_density_map_;
 
-    BuiltinSize builtin_size_;
+  BuiltinSize builtin_size_;
 
-    BuiltinClusterMap builtin_cluster_map_;
+  BuiltinClusterMap builtin_cluster_map_;
 
-    friend class Cluster;
+  friend class Cluster;
 };
 
 class Cluster {
-public:
-    Cluster(uint32_t density, uint32_t size, Builtin target, BuiltinsSorter* sorter);
-    void Merge(Cluster* other);
-    uint64_t time_approximation();
+ public:
+  Cluster(uint32_t density, uint32_t size, Builtin target,
+          BuiltinsSorter* sorter);
+  void Merge(Cluster* other);
+  uint64_t time_approximation();
 
-private:
-    // Max initialized density was normalized as 10000.
-    uint32_t density_;
-    // Size of the cluster in bytes.
-    uint32_t size_;
-    std::vector<Builtin> targets_;
-    BuiltinsSorter* sorter_;
+ private:
+  // Max initialized density was normalized as 10000.
+  uint32_t density_;
+  // Size of the cluster in bytes.
+  uint32_t size_;
+  std::vector<Builtin> targets_;
+  BuiltinsSorter* sorter_;
 
-    friend class BuiltinsSorter;
+  friend class BuiltinsSorter;
 };
 
-} // namespace internal
+}  // namespace internal
 
-} // namespace v8
+}  // namespace v8
 
-#endif // V8_SNAPSHOT_SORT_BUILTINS_H_
+#endif  // V8_SNAPSHOT_SORT_BUILTINS_H_

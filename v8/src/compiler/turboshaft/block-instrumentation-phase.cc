@@ -10,9 +10,9 @@
 
 namespace v8::internal::compiler::turboshaft {
 
-void BlockInstrumentationPhase::Run(PipelineData* data, Zone* temp_zone)
-{
-    CopyingPhase<BlockInstrumentationReducer, ValueNumberingReducer>::Run(data, temp_zone);
+void BlockInstrumentationPhase::Run(PipelineData* data, Zone* temp_zone) {
+  CopyingPhase<BlockInstrumentationReducer, ValueNumberingReducer>::Run(
+      data, temp_zone);
 }
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft

@@ -14,8 +14,8 @@ namespace torque {
 // Adds the parsed input to {CurrentAst}
 void ParseTorque(const std::string& input);
 
-} // namespace torque
-} // namespace internal
-} // namespace v8
+}  // namespace torque
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_TORQUE_TORQUE_PARSER_H_
+#endif  // V8_TORQUE_TORQUE_PARSER_H_

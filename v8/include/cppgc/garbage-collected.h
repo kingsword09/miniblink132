@@ -49,26 +49,27 @@ class Visitor;
  * };
  * \endcode
  */
-template <typename T> class GarbageCollected {
-public:
-    using IsGarbageCollectedTypeMarker = void;
-    using ParentMostGarbageCollectedType = T;
+template <typename T>
+class GarbageCollected {
+ public:
+  using IsGarbageCollectedTypeMarker = void;
+  using ParentMostGarbageCollectedType = T;
 
-    // Must use MakeGarbageCollected.
-    void* operator new(size_t) = delete;
-    void* operator new[](size_t) = delete;
-    // The garbage collector is taking care of reclaiming the object. Also,
-    // virtual destructor requires an unambiguous, accessible 'operator delete'.
-    void operator delete(void*)
-    {
+  // Must use MakeGarbageCollected.
+  void* operator new(size_t) = delete;
+  void* operator new[](size_t) = delete;
+  // The garbage collector is taking care of reclaiming the object. Also,
+  // virtual destructor requires an unambiguous, accessible 'operator delete'.
+  void operator delete(void*) {
 #ifdef V8_ENABLE_CHECKS
-        internal::Fatal("Manually deleting a garbage collected object is not allowed");
-#endif // V8_ENABLE_CHECKS
-    }
-    void operator delete[](void*) = delete;
+    internal::Fatal(
+        "Manually deleting a garbage collected object is not allowed");
+#endif  // V8_ENABLE_CHECKS
+  }
+  void operator delete[](void*) = delete;
 
-protected:
-    GarbageCollected() = default;
+ protected:
+  GarbageCollected() = default;
 };
 
 /**
@@ -90,26 +91,24 @@ protected:
  * \endcode
  */
 class GarbageCollectedMixin {
-public:
-    using IsGarbageCollectedMixinTypeMarker = void;
+ public:
+  using IsGarbageCollectedMixinTypeMarker = void;
 
-    // Must use MakeGarbageCollected.
-    void* operator new(size_t) = delete;
-    void* operator new[](size_t) = delete;
-    // The garbage collector is taking care of reclaiming the object.
-    // Not override the non-array varaint of `delete` to not conflict with the
-    // operator in GarbageCollected above.
-    void operator delete[](void*) = delete;
+  // Must use MakeGarbageCollected.
+  void* operator new(size_t) = delete;
+  void* operator new[](size_t) = delete;
+  // The garbage collector is taking care of reclaiming the object.
+  // Not override the non-array varaint of `delete` to not conflict with the
+  // operator in GarbageCollected above.
+  void operator delete[](void*) = delete;
 
-    /**
+  /**
    * This Trace method must be overriden by objects inheriting from
    * GarbageCollectedMixin.
    */
-    virtual void Trace(cppgc::Visitor*) const
-    {
-    }
+  virtual void Trace(cppgc::Visitor*) const {}
 };
 
-} // namespace cppgc
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_GARBAGE_COLLECTED_H_
+#endif  // INCLUDE_CPPGC_GARBAGE_COLLECTED_H_

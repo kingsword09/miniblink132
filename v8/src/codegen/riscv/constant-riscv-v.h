@@ -22,62 +22,111 @@ constexpr Opcode RO_V_VSETIVLI = OP_V | (0b111 << kFunct3Shift) | 0b11 << 30;
 constexpr Opcode RO_V_VSETVL = OP_V | (0b111 << kFunct3Shift) | 0b1 << 31;
 
 // RVV LOAD/STORE
-constexpr Opcode RO_V_VL = LOAD_FP | (0b00 << kRvvMopShift) | (0b000 << kRvvNfShift);
-constexpr Opcode RO_V_VLS = LOAD_FP | (0b10 << kRvvMopShift) | (0b000 << kRvvNfShift);
-constexpr Opcode RO_V_VLX = LOAD_FP | (0b11 << kRvvMopShift) | (0b000 << kRvvNfShift);
+constexpr Opcode RO_V_VL =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b000 << kRvvNfShift);
+constexpr Opcode RO_V_VLS =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b000 << kRvvNfShift);
+constexpr Opcode RO_V_VLX =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b000 << kRvvNfShift);
 
-constexpr Opcode RO_V_VS = STORE_FP | (0b00 << kRvvMopShift) | (0b000 << kRvvNfShift);
-constexpr Opcode RO_V_VSS = STORE_FP | (0b10 << kRvvMopShift) | (0b000 << kRvvNfShift);
-constexpr Opcode RO_V_VSX = STORE_FP | (0b11 << kRvvMopShift) | (0b000 << kRvvNfShift);
-constexpr Opcode RO_V_VSU = STORE_FP | (0b01 << kRvvMopShift) | (0b000 << kRvvNfShift);
+constexpr Opcode RO_V_VS =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b000 << kRvvNfShift);
+constexpr Opcode RO_V_VSS =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b000 << kRvvNfShift);
+constexpr Opcode RO_V_VSX =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b000 << kRvvNfShift);
+constexpr Opcode RO_V_VSU =
+    STORE_FP | (0b01 << kRvvMopShift) | (0b000 << kRvvNfShift);
 // THE kFunct6Shift is mop
-constexpr Opcode RO_V_VLSEG2 = LOAD_FP | (0b00 << kRvvMopShift) | (0b001 << kRvvNfShift);
-constexpr Opcode RO_V_VLSEG3 = LOAD_FP | (0b00 << kRvvMopShift) | (0b010 << kRvvNfShift);
-constexpr Opcode RO_V_VLSEG4 = LOAD_FP | (0b00 << kRvvMopShift) | (0b011 << kRvvNfShift);
-constexpr Opcode RO_V_VLSEG5 = LOAD_FP | (0b00 << kRvvMopShift) | (0b100 << kRvvNfShift);
-constexpr Opcode RO_V_VLSEG6 = LOAD_FP | (0b00 << kRvvMopShift) | (0b101 << kRvvNfShift);
-constexpr Opcode RO_V_VLSEG7 = LOAD_FP | (0b00 << kRvvMopShift) | (0b110 << kRvvNfShift);
-constexpr Opcode RO_V_VLSEG8 = LOAD_FP | (0b00 << kRvvMopShift) | (0b111 << kRvvNfShift);
+constexpr Opcode RO_V_VLSEG2 =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b001 << kRvvNfShift);
+constexpr Opcode RO_V_VLSEG3 =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b010 << kRvvNfShift);
+constexpr Opcode RO_V_VLSEG4 =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b011 << kRvvNfShift);
+constexpr Opcode RO_V_VLSEG5 =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b100 << kRvvNfShift);
+constexpr Opcode RO_V_VLSEG6 =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b101 << kRvvNfShift);
+constexpr Opcode RO_V_VLSEG7 =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b110 << kRvvNfShift);
+constexpr Opcode RO_V_VLSEG8 =
+    LOAD_FP | (0b00 << kRvvMopShift) | (0b111 << kRvvNfShift);
 
-constexpr Opcode RO_V_VSSEG2 = STORE_FP | (0b00 << kRvvMopShift) | (0b001 << kRvvNfShift);
-constexpr Opcode RO_V_VSSEG3 = STORE_FP | (0b00 << kRvvMopShift) | (0b010 << kRvvNfShift);
-constexpr Opcode RO_V_VSSEG4 = STORE_FP | (0b00 << kRvvMopShift) | (0b011 << kRvvNfShift);
-constexpr Opcode RO_V_VSSEG5 = STORE_FP | (0b00 << kRvvMopShift) | (0b100 << kRvvNfShift);
-constexpr Opcode RO_V_VSSEG6 = STORE_FP | (0b00 << kRvvMopShift) | (0b101 << kRvvNfShift);
-constexpr Opcode RO_V_VSSEG7 = STORE_FP | (0b00 << kRvvMopShift) | (0b110 << kRvvNfShift);
-constexpr Opcode RO_V_VSSEG8 = STORE_FP | (0b00 << kRvvMopShift) | (0b111 << kRvvNfShift);
+constexpr Opcode RO_V_VSSEG2 =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b001 << kRvvNfShift);
+constexpr Opcode RO_V_VSSEG3 =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b010 << kRvvNfShift);
+constexpr Opcode RO_V_VSSEG4 =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b011 << kRvvNfShift);
+constexpr Opcode RO_V_VSSEG5 =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b100 << kRvvNfShift);
+constexpr Opcode RO_V_VSSEG6 =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b101 << kRvvNfShift);
+constexpr Opcode RO_V_VSSEG7 =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b110 << kRvvNfShift);
+constexpr Opcode RO_V_VSSEG8 =
+    STORE_FP | (0b00 << kRvvMopShift) | (0b111 << kRvvNfShift);
 
-constexpr Opcode RO_V_VLSSEG2 = LOAD_FP | (0b10 << kRvvMopShift) | (0b001 << kRvvNfShift);
-constexpr Opcode RO_V_VLSSEG3 = LOAD_FP | (0b10 << kRvvMopShift) | (0b010 << kRvvNfShift);
-constexpr Opcode RO_V_VLSSEG4 = LOAD_FP | (0b10 << kRvvMopShift) | (0b011 << kRvvNfShift);
-constexpr Opcode RO_V_VLSSEG5 = LOAD_FP | (0b10 << kRvvMopShift) | (0b100 << kRvvNfShift);
-constexpr Opcode RO_V_VLSSEG6 = LOAD_FP | (0b10 << kRvvMopShift) | (0b101 << kRvvNfShift);
-constexpr Opcode RO_V_VLSSEG7 = LOAD_FP | (0b10 << kRvvMopShift) | (0b110 << kRvvNfShift);
-constexpr Opcode RO_V_VLSSEG8 = LOAD_FP | (0b10 << kRvvMopShift) | (0b111 << kRvvNfShift);
+constexpr Opcode RO_V_VLSSEG2 =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b001 << kRvvNfShift);
+constexpr Opcode RO_V_VLSSEG3 =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b010 << kRvvNfShift);
+constexpr Opcode RO_V_VLSSEG4 =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b011 << kRvvNfShift);
+constexpr Opcode RO_V_VLSSEG5 =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b100 << kRvvNfShift);
+constexpr Opcode RO_V_VLSSEG6 =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b101 << kRvvNfShift);
+constexpr Opcode RO_V_VLSSEG7 =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b110 << kRvvNfShift);
+constexpr Opcode RO_V_VLSSEG8 =
+    LOAD_FP | (0b10 << kRvvMopShift) | (0b111 << kRvvNfShift);
 
-constexpr Opcode RO_V_VSSSEG2 = STORE_FP | (0b10 << kRvvMopShift) | (0b001 << kRvvNfShift);
-constexpr Opcode RO_V_VSSSEG3 = STORE_FP | (0b10 << kRvvMopShift) | (0b010 << kRvvNfShift);
-constexpr Opcode RO_V_VSSSEG4 = STORE_FP | (0b10 << kRvvMopShift) | (0b011 << kRvvNfShift);
-constexpr Opcode RO_V_VSSSEG5 = STORE_FP | (0b10 << kRvvMopShift) | (0b100 << kRvvNfShift);
-constexpr Opcode RO_V_VSSSEG6 = STORE_FP | (0b10 << kRvvMopShift) | (0b101 << kRvvNfShift);
-constexpr Opcode RO_V_VSSSEG7 = STORE_FP | (0b10 << kRvvMopShift) | (0b110 << kRvvNfShift);
-constexpr Opcode RO_V_VSSSEG8 = STORE_FP | (0b10 << kRvvMopShift) | (0b111 << kRvvNfShift);
+constexpr Opcode RO_V_VSSSEG2 =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b001 << kRvvNfShift);
+constexpr Opcode RO_V_VSSSEG3 =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b010 << kRvvNfShift);
+constexpr Opcode RO_V_VSSSEG4 =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b011 << kRvvNfShift);
+constexpr Opcode RO_V_VSSSEG5 =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b100 << kRvvNfShift);
+constexpr Opcode RO_V_VSSSEG6 =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b101 << kRvvNfShift);
+constexpr Opcode RO_V_VSSSEG7 =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b110 << kRvvNfShift);
+constexpr Opcode RO_V_VSSSEG8 =
+    STORE_FP | (0b10 << kRvvMopShift) | (0b111 << kRvvNfShift);
 
-constexpr Opcode RO_V_VLXSEG2 = LOAD_FP | (0b11 << kRvvMopShift) | (0b001 << kRvvNfShift);
-constexpr Opcode RO_V_VLXSEG3 = LOAD_FP | (0b11 << kRvvMopShift) | (0b010 << kRvvNfShift);
-constexpr Opcode RO_V_VLXSEG4 = LOAD_FP | (0b11 << kRvvMopShift) | (0b011 << kRvvNfShift);
-constexpr Opcode RO_V_VLXSEG5 = LOAD_FP | (0b11 << kRvvMopShift) | (0b100 << kRvvNfShift);
-constexpr Opcode RO_V_VLXSEG6 = LOAD_FP | (0b11 << kRvvMopShift) | (0b101 << kRvvNfShift);
-constexpr Opcode RO_V_VLXSEG7 = LOAD_FP | (0b11 << kRvvMopShift) | (0b110 << kRvvNfShift);
-constexpr Opcode RO_V_VLXSEG8 = LOAD_FP | (0b11 << kRvvMopShift) | (0b111 << kRvvNfShift);
+constexpr Opcode RO_V_VLXSEG2 =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b001 << kRvvNfShift);
+constexpr Opcode RO_V_VLXSEG3 =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b010 << kRvvNfShift);
+constexpr Opcode RO_V_VLXSEG4 =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b011 << kRvvNfShift);
+constexpr Opcode RO_V_VLXSEG5 =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b100 << kRvvNfShift);
+constexpr Opcode RO_V_VLXSEG6 =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b101 << kRvvNfShift);
+constexpr Opcode RO_V_VLXSEG7 =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b110 << kRvvNfShift);
+constexpr Opcode RO_V_VLXSEG8 =
+    LOAD_FP | (0b11 << kRvvMopShift) | (0b111 << kRvvNfShift);
 
-constexpr Opcode RO_V_VSXSEG2 = STORE_FP | (0b11 << kRvvMopShift) | (0b001 << kRvvNfShift);
-constexpr Opcode RO_V_VSXSEG3 = STORE_FP | (0b11 << kRvvMopShift) | (0b010 << kRvvNfShift);
-constexpr Opcode RO_V_VSXSEG4 = STORE_FP | (0b11 << kRvvMopShift) | (0b011 << kRvvNfShift);
-constexpr Opcode RO_V_VSXSEG5 = STORE_FP | (0b11 << kRvvMopShift) | (0b100 << kRvvNfShift);
-constexpr Opcode RO_V_VSXSEG6 = STORE_FP | (0b11 << kRvvMopShift) | (0b101 << kRvvNfShift);
-constexpr Opcode RO_V_VSXSEG7 = STORE_FP | (0b11 << kRvvMopShift) | (0b110 << kRvvNfShift);
-constexpr Opcode RO_V_VSXSEG8 = STORE_FP | (0b11 << kRvvMopShift) | (0b111 << kRvvNfShift);
+constexpr Opcode RO_V_VSXSEG2 =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b001 << kRvvNfShift);
+constexpr Opcode RO_V_VSXSEG3 =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b010 << kRvvNfShift);
+constexpr Opcode RO_V_VSXSEG4 =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b011 << kRvvNfShift);
+constexpr Opcode RO_V_VSXSEG5 =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b100 << kRvvNfShift);
+constexpr Opcode RO_V_VSXSEG6 =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b101 << kRvvNfShift);
+constexpr Opcode RO_V_VSXSEG7 =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b110 << kRvvNfShift);
+constexpr Opcode RO_V_VSXSEG8 =
+    STORE_FP | (0b11 << kRvvMopShift) | (0b111 << kRvvNfShift);
 
 // RVV Vector Arithmetic Instruction
 constexpr Opcode VADD_FUNCT6 = 0b000000;
@@ -142,7 +191,8 @@ constexpr Opcode RO_V_VWADDUW_VX = OP_MVX | (VWADDUW_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VWADDUW_VV = OP_MVV | (VWADDUW_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VCOMPRESS_FUNCT6 = 0b010111;
-constexpr Opcode RO_V_VCOMPRESS_VV = OP_MVV | (VCOMPRESS_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VCOMPRESS_VV =
+    OP_MVV | (VCOMPRESS_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VSADDU_FUNCT6 = 0b100000;
 constexpr Opcode RO_V_VSADDU_VI = OP_IVI | (VSADDU_FUNCT6 << kRvvFunct6Shift);
@@ -198,9 +248,12 @@ constexpr Opcode RO_V_VXOR_VV = OP_IVV | (VXOR_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VXOR_VX = OP_IVX | (VXOR_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VRGATHER_FUNCT6 = 0b001100;
-constexpr Opcode RO_V_VRGATHER_VI = OP_IVI | (VRGATHER_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VRGATHER_VV = OP_IVV | (VRGATHER_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VRGATHER_VX = OP_IVX | (VRGATHER_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VRGATHER_VI =
+    OP_IVI | (VRGATHER_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VRGATHER_VV =
+    OP_IVV | (VRGATHER_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VRGATHER_VX =
+    OP_IVX | (VRGATHER_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VMV_FUNCT6 = 0b010111;
 constexpr Opcode RO_V_VMV_VI = OP_IVI | (VMV_FUNCT6 << kRvvFunct6Shift);
@@ -250,16 +303,24 @@ constexpr Opcode RO_V_VMSGT_VI = OP_IVI | (VMSGT_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VMSGT_VX = OP_IVX | (VMSGT_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VSLIDEUP_FUNCT6 = 0b001110;
-constexpr Opcode RO_V_VSLIDEUP_VI = OP_IVI | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VSLIDEUP_VX = OP_IVX | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VSLIDE1UP_VX = OP_MVX | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VFSLIDE1UP_VF = OP_FVF | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VSLIDEUP_VI =
+    OP_IVI | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VSLIDEUP_VX =
+    OP_IVX | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VSLIDE1UP_VX =
+    OP_MVX | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFSLIDE1UP_VF =
+    OP_FVF | (VSLIDEUP_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VSLIDEDOWN_FUNCT6 = 0b001111;
-constexpr Opcode RO_V_VSLIDEDOWN_VI = OP_IVI | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VSLIDEDOWN_VX = OP_IVX | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VSLIDE1DOWN_VX = OP_MVX | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VFSLIDE1DOWN_VF = OP_FVF | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VSLIDEDOWN_VI =
+    OP_IVI | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VSLIDEDOWN_VX =
+    OP_IVX | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VSLIDE1DOWN_VX =
+    OP_MVX | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFSLIDE1DOWN_VF =
+    OP_FVF | (VSLIDEDOWN_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VSRL_FUNCT6 = 0b101000;
 constexpr Opcode RO_V_VSRL_VI = OP_IVI | (VSRL_FUNCT6 << kRvvFunct6Shift);
@@ -294,8 +355,10 @@ constexpr Opcode VWXUNARY0_FUNCT6 = 0b010000;
 constexpr Opcode VRXUNARY0_FUNCT6 = 0b010000;
 constexpr Opcode VMUNARY0_FUNCT6 = 0b010100;
 
-constexpr Opcode RO_V_VWXUNARY0 = OP_MVV | (VWXUNARY0_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VRXUNARY0 = OP_MVX | (VRXUNARY0_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VWXUNARY0 =
+    OP_MVV | (VWXUNARY0_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VRXUNARY0 =
+    OP_MVX | (VRXUNARY0_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VMUNARY0 = OP_MVV | (VMUNARY0_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VID_V = 0b10001;
@@ -368,19 +431,25 @@ constexpr Opcode RO_V_VFWSUB_VV = OP_FVV | (VFWSUB_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VFWSUB_VF = OP_FVF | (VFWSUB_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFWADD_W_FUNCT6 = 0b110100;
-constexpr Opcode RO_V_VFWADD_W_VV = OP_FVV | (VFWADD_W_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VFWADD_W_VF = OP_FVF | (VFWADD_W_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWADD_W_VV =
+    OP_FVV | (VFWADD_W_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWADD_W_VF =
+    OP_FVF | (VFWADD_W_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFWSUB_W_FUNCT6 = 0b110110;
-constexpr Opcode RO_V_VFWSUB_W_VV = OP_FVV | (VFWSUB_W_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VFWSUB_W_VF = OP_FVF | (VFWSUB_W_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWSUB_W_VV =
+    OP_FVV | (VFWSUB_W_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWSUB_W_VF =
+    OP_FVF | (VFWSUB_W_FUNCT6 << kRvvFunct6Shift);
 
 // Vector Widening Floating-Point Reduction Instructions
 constexpr Opcode VFWREDUSUM_FUNCT6 = 0b110001;
-constexpr Opcode RO_V_VFWREDUSUM_VS = OP_FVV | (VFWREDUSUM_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWREDUSUM_VS =
+    OP_FVV | (VFWREDUSUM_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFWREDOSUM_FUNCT6 = 0b110011;
-constexpr Opcode RO_V_VFWREDOSUM_VS = OP_FVV | (VFWREDOSUM_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWREDOSUM_VS =
+    OP_FVV | (VFWREDOSUM_FUNCT6 << kRvvFunct6Shift);
 
 // Vector Widening Floating-Point Multiply
 constexpr Opcode VFWMUL_FUNCT6 = 0b111000;
@@ -414,7 +483,8 @@ constexpr Opcode RO_V_VFMAX_VV = OP_FVV | (VFMAX_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VFMAX_VF = OP_FVF | (VFMAX_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFREDMAX_FUNCT6 = 0b0001111;
-constexpr Opcode RO_V_VFREDMAX_VV = OP_FVV | (VFREDMAX_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFREDMAX_VV =
+    OP_FVV | (VFREDMAX_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFMIN_FUNCT6 = 0b000100;
 constexpr Opcode RO_V_VFMIN_VV = OP_FVV | (VFMIN_FUNCT6 << kRvvFunct6Shift);
@@ -470,16 +540,20 @@ constexpr Opcode RO_V_VFWMACC_VV = OP_FVV | (VFWMACC_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VFWMACC_VF = OP_FVF | (VFWMACC_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFWNMACC_FUNCT6 = 0b111101;
-constexpr Opcode RO_V_VFWNMACC_VV = OP_FVV | (VFWNMACC_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VFWNMACC_VF = OP_FVF | (VFWNMACC_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWNMACC_VV =
+    OP_FVV | (VFWNMACC_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWNMACC_VF =
+    OP_FVF | (VFWNMACC_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFWMSAC_FUNCT6 = 0b111110;
 constexpr Opcode RO_V_VFWMSAC_VV = OP_FVV | (VFWMSAC_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VFWMSAC_VF = OP_FVF | (VFWMSAC_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VFWNMSAC_FUNCT6 = 0b111111;
-constexpr Opcode RO_V_VFWNMSAC_VV = OP_FVV | (VFWNMSAC_FUNCT6 << kRvvFunct6Shift);
-constexpr Opcode RO_V_VFWNMSAC_VF = OP_FVF | (VFWNMSAC_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWNMSAC_VV =
+    OP_FVV | (VFWNMSAC_FUNCT6 << kRvvFunct6Shift);
+constexpr Opcode RO_V_VFWNMSAC_VF =
+    OP_FVF | (VFWNMSAC_FUNCT6 << kRvvFunct6Shift);
 
 constexpr Opcode VNCLIP_FUNCT6 = 0b101111;
 constexpr Opcode RO_V_VNCLIP_WV = OP_IVV | (VNCLIP_FUNCT6 << kRvvFunct6Shift);
@@ -491,7 +565,7 @@ constexpr Opcode RO_V_VNCLIPU_WV = OP_IVV | (VNCLIPU_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VNCLIPU_WX = OP_IVX | (VNCLIPU_FUNCT6 << kRvvFunct6Shift);
 constexpr Opcode RO_V_VNCLIPU_WI = OP_IVI | (VNCLIPU_FUNCT6 << kRvvFunct6Shift);
 // clang-format on
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_CODEGEN_RISCV_CONSTANT_RISCV_V_H_
+#endif  // V8_CODEGEN_RISCV_CONSTANT_RISCV_V_H_

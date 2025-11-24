@@ -20,7 +20,8 @@ namespace internal {
 namespace win64_unwindinfo {
 
 #define CRASH_HANDLER_FUNCTION_NAME CrashForExceptionInNonABICompliantCodeRange
-#define CRASH_HANDLER_FUNCTION_NAME_STRING "CrashForExceptionInNonABICompliantCodeRange"
+#define CRASH_HANDLER_FUNCTION_NAME_STRING \
+  "CrashForExceptionInNonABICompliantCodeRange"
 
 static const int kOSPageSize = 4096;
 
@@ -44,7 +45,8 @@ bool CanRegisterUnwindInfoForNonABICompliantCodeRange();
 /**
  * Registers a custom exception handler for exceptions in V8-generated code.
  */
-void SetUnhandledExceptionCallback(v8::UnhandledExceptionCallback unhandled_exception_callback);
+void SetUnhandledExceptionCallback(
+    v8::UnhandledExceptionCallback unhandled_exception_callback);
 
 void RegisterNonABICompliantCodeRange(void* start, size_t size_in_bytes);
 void UnregisterNonABICompliantCodeRange(void* start);
@@ -64,7 +66,8 @@ static const uint32_t kDefaultRuntimeFunctionCount = 1;
 static const int kPushRbpInstructionLength = 1;
 static const int kMovRbpRspInstructionLength = 3;
 static const int kRbpPrefixCodes = 2;
-static const int kRbpPrefixLength = kPushRbpInstructionLength + kMovRbpRspInstructionLength;
+static const int kRbpPrefixLength =
+    kPushRbpInstructionLength + kMovRbpRspInstructionLength;
 
 /**
  * Returns a vector of bytes that contains the Win X64 unwind data used for all
@@ -73,51 +76,35 @@ static const int kRbpPrefixLength = kPushRbpInstructionLength + kMovRbpRspInstru
 std::vector<uint8_t> GetUnwindInfoForBuiltinFunctions();
 
 class BuiltinUnwindInfo {
-public:
-    BuiltinUnwindInfo()
-        : is_leaf_function_(true)
-    {
-    }
-    explicit BuiltinUnwindInfo(const std::vector<int>& fp_offsets)
-        : is_leaf_function_(false)
-        , fp_offsets_(fp_offsets)
-    {
-    }
+ public:
+  BuiltinUnwindInfo() : is_leaf_function_(true) {}
+  explicit BuiltinUnwindInfo(const std::vector<int>& fp_offsets)
+      : is_leaf_function_(false), fp_offsets_(fp_offsets) {}
 
-    bool is_leaf_function() const
-    {
-        return is_leaf_function_;
-    }
-    const std::vector<int>& fp_offsets() const
-    {
-        return fp_offsets_;
-    }
+  bool is_leaf_function() const { return is_leaf_function_; }
+  const std::vector<int>& fp_offsets() const { return fp_offsets_; }
 
-private:
-    bool is_leaf_function_;
-    std::vector<int> fp_offsets_;
+ private:
+  bool is_leaf_function_;
+  std::vector<int> fp_offsets_;
 };
 
 class XdataEncoder {
-public:
-    explicit XdataEncoder(const Assembler& assembler)
-        : assembler_(assembler)
-        , current_frame_code_offset_(-1)
-    {
-    }
+ public:
+  explicit XdataEncoder(const Assembler& assembler)
+      : assembler_(assembler), current_frame_code_offset_(-1) {}
 
-    void onPushRbp();
-    void onMovRbpRsp();
+  void onPushRbp();
+  void onMovRbpRsp();
 
-    BuiltinUnwindInfo unwinding_info() const
-    {
-        return BuiltinUnwindInfo(fp_offsets_);
-    }
+  BuiltinUnwindInfo unwinding_info() const {
+    return BuiltinUnwindInfo(fp_offsets_);
+  }
 
-private:
-    const Assembler& assembler_;
-    std::vector<int> fp_offsets_;
-    int current_frame_code_offset_;
+ private:
+  const Assembler& assembler_;
+  std::vector<int> fp_offsets_;
+  int current_frame_code_offset_;
 };
 
 #elif defined(V8_OS_WIN_ARM64)
@@ -130,10 +117,10 @@ private:
 static const int kMaxFunctionLength = ((1 << 18) - 1) << 2;
 
 struct FrameOffsets {
-    FrameOffsets();
-    bool IsDefault() const;
-    int fp_to_saved_caller_fp;
-    int fp_to_caller_sp;
+  FrameOffsets();
+  bool IsDefault() const;
+  int fp_to_saved_caller_fp;
+  int fp_to_caller_sp;
 };
 
 /**
@@ -145,70 +132,56 @@ struct FrameOffsets {
  *                this is necessary to encode unwind data for Windows stack
  *                unwinder to find correct caller's fp.
  */
-std::vector<uint8_t> GetUnwindInfoForBuiltinFunction(uint32_t func_len, FrameOffsets fp_adjustment);
+std::vector<uint8_t> GetUnwindInfoForBuiltinFunction(
+    uint32_t func_len, FrameOffsets fp_adjustment);
 class BuiltinUnwindInfo {
-public:
-    BuiltinUnwindInfo()
-        : is_leaf_function_(true)
-    {
-    }
-    explicit BuiltinUnwindInfo(const std::vector<int>& fp_offsets, const std::vector<FrameOffsets>& fp_adjustments)
-        : is_leaf_function_(false)
-        , fp_offsets_(fp_offsets)
-        , fp_adjustments_(fp_adjustments)
-    {
-    }
+ public:
+  BuiltinUnwindInfo() : is_leaf_function_(true) {}
+  explicit BuiltinUnwindInfo(const std::vector<int>& fp_offsets,
+                             const std::vector<FrameOffsets>& fp_adjustments)
+      : is_leaf_function_(false),
+        fp_offsets_(fp_offsets),
+        fp_adjustments_(fp_adjustments) {}
 
-    const std::vector<FrameOffsets>& fp_adjustments() const
-    {
-        return fp_adjustments_;
-    }
+  const std::vector<FrameOffsets>& fp_adjustments() const {
+    return fp_adjustments_;
+  }
 
-    bool is_leaf_function() const
-    {
-        return is_leaf_function_;
-    }
-    const std::vector<int>& fp_offsets() const
-    {
-        return fp_offsets_;
-    }
+  bool is_leaf_function() const { return is_leaf_function_; }
+  const std::vector<int>& fp_offsets() const { return fp_offsets_; }
 
-private:
-    bool is_leaf_function_;
-    std::vector<int> fp_offsets_;
-    std::vector<FrameOffsets> fp_adjustments_;
+ private:
+  bool is_leaf_function_;
+  std::vector<int> fp_offsets_;
+  std::vector<FrameOffsets> fp_adjustments_;
 };
 
 class XdataEncoder {
-public:
-    explicit XdataEncoder(const Assembler& assembler)
-        : assembler_(assembler)
-        , current_frame_code_offset_(-1)
-    {
-    }
+ public:
+  explicit XdataEncoder(const Assembler& assembler)
+      : assembler_(assembler), current_frame_code_offset_(-1) {}
 
-    void onSaveFpLr();
-    void onFramePointerAdjustment(int fp_to_saved_caller_fp, int fp_to_caller_sp);
+  void onSaveFpLr();
+  void onFramePointerAdjustment(int fp_to_saved_caller_fp, int fp_to_caller_sp);
 
-    BuiltinUnwindInfo unwinding_info() const
-    {
-        return BuiltinUnwindInfo(fp_offsets_, fp_adjustments_);
-    }
+  BuiltinUnwindInfo unwinding_info() const {
+    return BuiltinUnwindInfo(fp_offsets_, fp_adjustments_);
+  }
 
-private:
-    const Assembler& assembler_;
-    std::vector<int> fp_offsets_;
-    int current_frame_code_offset_;
-    FrameOffsets current_frame_adjustment_;
-    std::vector<FrameOffsets> fp_adjustments_;
+ private:
+  const Assembler& assembler_;
+  std::vector<int> fp_offsets_;
+  int current_frame_code_offset_;
+  FrameOffsets current_frame_adjustment_;
+  std::vector<FrameOffsets> fp_adjustments_;
 };
 
 #endif
 
-} // namespace win64_unwindinfo
-} // namespace internal
-} // namespace v8
+}  // namespace win64_unwindinfo
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_OS_WIN64
+#endif  // V8_OS_WIN64
 
-#endif // V8_DIAGNOSTICS_UNWINDING_INFO_WIN64_H_
+#endif  // V8_DIAGNOSTICS_UNWINDING_INFO_WIN64_H_

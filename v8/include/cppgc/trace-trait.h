@@ -8,7 +8,7 @@
 #include <type_traits>
 
 #include "cppgc/type-traits.h"
-#include "v8config.h" // NOLINT(build/include_directory)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace cppgc {
 
@@ -22,9 +22,12 @@ using TraceRootCallback = void (*)(RootVisitor&, const void* object);
 
 // Implementation of the default TraceTrait handling GarbageCollected and
 // GarbageCollectedMixin.
-template <typename T, bool = IsGarbageCollectedMixinTypeV<typename std::remove_const<T>::type>> struct TraceTraitImpl;
+template <typename T,
+          bool =
+              IsGarbageCollectedMixinTypeV<typename std::remove_const<T>::type>>
+struct TraceTraitImpl;
 
-} // namespace internal
+}  // namespace internal
 
 /**
  * Callback for invoking tracing on a given object.
@@ -39,15 +42,15 @@ using TraceCallback = void (*)(Visitor* visitor, const void* object);
  * fields of an object.
  */
 struct TraceDescriptor {
-    /**
+  /**
    * Adjusted base pointer, i.e., the pointer to the class inheriting directly
    * from GarbageCollected, of the object that is being traced.
    */
-    const void* base_object_payload;
-    /**
+  const void* base_object_payload;
+  /**
    * Callback for tracing the object.
    */
-    TraceCallback callback;
+  TraceCallback callback;
 };
 
 /**
@@ -61,7 +64,7 @@ using TraceDescriptorCallback = TraceDescriptor (*)(const void* address);
 namespace internal {
 
 struct V8_EXPORT TraceTraitFromInnerAddressImpl {
-    static TraceDescriptor GetTraceDescriptor(const void* address);
+  static TraceDescriptor GetTraceDescriptor(const void* address);
 };
 
 /**
@@ -70,54 +73,56 @@ struct V8_EXPORT TraceTraitFromInnerAddressImpl {
  * Advanced users may override handling by creating a specialization for their
  * type.
  */
-template <typename T> struct TraceTraitBase {
-    static_assert(internal::IsTraceableV<T>, "T must have a Trace() method");
+template <typename T>
+struct TraceTraitBase {
+  static_assert(internal::IsTraceableV<T>, "T must have a Trace() method");
 
-    /**
+  /**
    * Accessor for retrieving a TraceDescriptor to process an object of type T.
    *
    * \param self The object to be processed.
    * \returns a TraceDescriptor to process the object.
    */
-    static TraceDescriptor GetTraceDescriptor(const void* self)
-    {
-        return internal::TraceTraitImpl<T>::GetTraceDescriptor(static_cast<const T*>(self));
-    }
+  static TraceDescriptor GetTraceDescriptor(const void* self) {
+    return internal::TraceTraitImpl<T>::GetTraceDescriptor(
+        static_cast<const T*>(self));
+  }
 
-    /**
+  /**
    * Function invoking the tracing for an object of type T.
    *
    * \param visitor The visitor to dispatch to.
    * \param self The object to invoke tracing on.
    */
-    static void Trace(Visitor* visitor, const void* self)
-    {
-        static_cast<const T*>(self)->Trace(visitor);
-    }
+  static void Trace(Visitor* visitor, const void* self) {
+    static_cast<const T*>(self)->Trace(visitor);
+  }
 };
 
-} // namespace internal
+}  // namespace internal
 
-template <typename T> struct TraceTrait : public internal::TraceTraitBase<T> { };
+template <typename T>
+struct TraceTrait : public internal::TraceTraitBase<T> {};
 
 namespace internal {
 
-template <typename T> struct TraceTraitImpl<T, false> {
-    static_assert(IsGarbageCollectedTypeV<T>, "T must be of type GarbageCollected or GarbageCollectedMixin");
-    static TraceDescriptor GetTraceDescriptor(const void* self)
-    {
-        return { self, TraceTrait<T>::Trace };
-    }
+template <typename T>
+struct TraceTraitImpl<T, false> {
+  static_assert(IsGarbageCollectedTypeV<T>,
+                "T must be of type GarbageCollected or GarbageCollectedMixin");
+  static TraceDescriptor GetTraceDescriptor(const void* self) {
+    return {self, TraceTrait<T>::Trace};
+  }
 };
 
-template <typename T> struct TraceTraitImpl<T, true> {
-    static TraceDescriptor GetTraceDescriptor(const void* self)
-    {
-        return internal::TraceTraitFromInnerAddressImpl::GetTraceDescriptor(self);
-    }
+template <typename T>
+struct TraceTraitImpl<T, true> {
+  static TraceDescriptor GetTraceDescriptor(const void* self) {
+    return internal::TraceTraitFromInnerAddressImpl::GetTraceDescriptor(self);
+  }
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_TRACE_TRAIT_H_
+#endif  // INCLUDE_CPPGC_TRACE_TRAIT_H_

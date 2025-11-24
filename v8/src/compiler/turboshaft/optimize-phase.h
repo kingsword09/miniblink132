@@ -10,11 +10,11 @@
 namespace v8::internal::compiler::turboshaft {
 
 struct OptimizePhase {
-    DECL_TURBOSHAFT_PHASE_CONSTANTS(Optimize)
+  DECL_TURBOSHAFT_PHASE_CONSTANTS(Optimize)
 
-    void Run(PipelineData* data, Zone* temp_zone);
+  void Run(PipelineData* data, Zone* temp_zone);
 };
 
-} // namespace v8::internal::compiler::turboshaft
+}  // namespace v8::internal::compiler::turboshaft
 
-#endif // V8_COMPILER_TURBOSHAFT_OPTIMIZE_PHASE_H_
+#endif  // V8_COMPILER_TURBOSHAFT_OPTIMIZE_PHASE_H_

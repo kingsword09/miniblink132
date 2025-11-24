@@ -13,12 +13,12 @@ namespace heap::base {
 // SuspendTagCheckingScope stops checking MTE tags whilst it's alive. This is
 // useful for traversing the stack during garbage collection.
 class V8_EXPORT SuspendTagCheckingScope final {
-public:
-    // MTE only works on AArch64 Android and Linux.
-    SuspendTagCheckingScope() noexcept;
-    ~SuspendTagCheckingScope();
+ public:
+  // MTE only works on AArch64 Android and Linux.
+  SuspendTagCheckingScope() noexcept;
+  ~SuspendTagCheckingScope();
 };
 
-} // namespace heap::base
+}  // namespace heap::base
 
-#endif // V8_HEAP_BASE_MEMORY_TAGGING_H_
+#endif  // V8_HEAP_BASE_MEMORY_TAGGING_H_

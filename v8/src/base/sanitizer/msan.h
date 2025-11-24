@@ -15,20 +15,26 @@
 #include <sanitizer/msan_interface.h>
 
 // Marks a memory range as uninitialized, as if it was allocated here.
-#define MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start, size) __msan_allocated_memory(reinterpret_cast<const void*>(start), (size))
+#define MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start, size) \
+  __msan_allocated_memory(reinterpret_cast<const void*>(start), (size))
 
 // Marks a memory range as initialized.
-#define MSAN_MEMORY_IS_INITIALIZED(start, size) __msan_unpoison(reinterpret_cast<const void*>(start), (size))
+#define MSAN_MEMORY_IS_INITIALIZED(start, size) \
+  __msan_unpoison(reinterpret_cast<const void*>(start), (size))
 
-#else // !V8_USE_MEMORY_SANITIZER
+#else  // !V8_USE_MEMORY_SANITIZER
 
-#define MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start, size)                                                                                                       \
-    static_assert((std::is_pointer<decltype(start)>::value || std::is_same<v8::base::Address, decltype(start)>::value), "static type violation");              \
-    static_assert(std::is_convertible<decltype(size), size_t>::value, "static type violation");                                                                \
-    USE(start, size)
+#define MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start, size)                   \
+  static_assert((std::is_pointer<decltype(start)>::value ||                \
+                 std::is_same<v8::base::Address, decltype(start)>::value), \
+                "static type violation");                                  \
+  static_assert(std::is_convertible<decltype(size), size_t>::value,        \
+                "static type violation");                                  \
+  USE(start, size)
 
-#define MSAN_MEMORY_IS_INITIALIZED(start, size) MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start, size)
+#define MSAN_MEMORY_IS_INITIALIZED(start, size) \
+  MSAN_ALLOCATED_UNINITIALIZED_MEMORY(start, size)
 
-#endif // V8_USE_MEMORY_SANITIZER
+#endif  // V8_USE_MEMORY_SANITIZER
 
-#endif // V8_BASE_SANITIZER_MSAN_H_
+#endif  // V8_BASE_SANITIZER_MSAN_H_

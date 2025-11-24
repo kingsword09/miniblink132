@@ -10,9 +10,11 @@
 namespace v8 {
 namespace internal {
 
-template <bool is_lower> uint32_t FastAsciiConvert(char* dst, const char* src, uint32_t length, bool* changed_out);
+template <bool is_lower>
+uint32_t FastAsciiConvert(char* dst, const char* src, uint32_t length,
+                          bool* changed_out);
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_STRINGS_STRING_CASE_H_
+#endif  // V8_STRINGS_STRING_CASE_H_

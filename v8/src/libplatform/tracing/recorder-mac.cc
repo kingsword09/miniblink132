@@ -13,36 +13,31 @@ namespace v8 {
 namespace platform {
 namespace tracing {
 
-Recorder::Recorder()
-{
-    v8Provider = os_log_create("v8", "");
+Recorder::Recorder() { v8Provider = os_log_create("v8", ""); }
+Recorder::~Recorder() {}
+
+bool Recorder::IsEnabled() {
+  return os_log_type_enabled(v8Provider, OS_LOG_TYPE_DEFAULT);
 }
-Recorder::~Recorder()
-{
+bool Recorder::IsEnabled(const uint8_t level) {
+  if (level == OS_LOG_TYPE_DEFAULT || level == OS_LOG_TYPE_INFO ||
+      level == OS_LOG_TYPE_DEBUG || level == OS_LOG_TYPE_ERROR ||
+      level == OS_LOG_TYPE_FAULT) {
+    return os_log_type_enabled(v8Provider, static_cast<os_log_type_t>(level));
+  }
+  return false;
 }
 
-bool Recorder::IsEnabled()
-{
-    return os_log_type_enabled(v8Provider, OS_LOG_TYPE_DEFAULT);
-}
-bool Recorder::IsEnabled(const uint8_t level)
-{
-    if (level == OS_LOG_TYPE_DEFAULT || level == OS_LOG_TYPE_INFO || level == OS_LOG_TYPE_DEBUG || level == OS_LOG_TYPE_ERROR || level == OS_LOG_TYPE_FAULT) {
-        return os_log_type_enabled(v8Provider, static_cast<os_log_type_t>(level));
-    }
-    return false;
+void Recorder::AddEvent(TraceObject* trace_event) {
+  os_signpost_event_emit(v8Provider, OS_SIGNPOST_ID_EXCLUSIVE, "",
+                         "%s, cpu_duration: %d", trace_event->name(),
+                         static_cast<int>(trace_event->cpu_duration()));
 }
 
-void Recorder::AddEvent(TraceObject* trace_event)
-{
-    os_signpost_event_emit(
-        v8Provider, OS_SIGNPOST_ID_EXCLUSIVE, "", "%s, cpu_duration: %d", trace_event->name(), static_cast<int>(trace_event->cpu_duration()));
-}
-
-} // namespace tracing
-} // namespace platform
-} // namespace v8
+}  // namespace tracing
+}  // namespace platform
+}  // namespace v8
 
 #pragma clang diagnostic pop
 
-#endif // V8_LIBPLATFORM_TRACING_RECORDER_MAC_H_
+#endif  // V8_LIBPLATFORM_TRACING_RECORDER_MAC_H_

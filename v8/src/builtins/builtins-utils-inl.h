@@ -12,30 +12,27 @@
 namespace v8 {
 namespace internal {
 
-Handle<Object> BuiltinArguments::atOrUndefined(Isolate* isolate, int index) const
-{
-    if (index >= length()) {
-        return isolate->factory()->undefined_value();
-    }
-    return at<Object>(index);
+Handle<Object> BuiltinArguments::atOrUndefined(Isolate* isolate,
+                                               int index) const {
+  if (index >= length()) {
+    return isolate->factory()->undefined_value();
+  }
+  return at<Object>(index);
 }
 
-Handle<JSAny> BuiltinArguments::receiver() const
-{
-    return Handle<JSAny>(address_of_arg_at(kReceiverIndex));
+Handle<JSAny> BuiltinArguments::receiver() const {
+  return Handle<JSAny>(address_of_arg_at(kReceiverIndex));
 }
 
-Handle<JSFunction> BuiltinArguments::target() const
-{
-    return Handle<JSFunction>(address_of_arg_at(kTargetIndex));
+Handle<JSFunction> BuiltinArguments::target() const {
+  return Handle<JSFunction>(address_of_arg_at(kTargetIndex));
 }
 
-Handle<HeapObject> BuiltinArguments::new_target() const
-{
-    return Handle<JSFunction>(address_of_arg_at(kNewTargetIndex));
+Handle<HeapObject> BuiltinArguments::new_target() const {
+  return Handle<JSFunction>(address_of_arg_at(kNewTargetIndex));
 }
 
-} // namespace internal
-} // namespace v8
+}  // namespace internal
+}  // namespace v8
 
-#endif // V8_BUILTINS_BUILTINS_UTILS_INL_H_
+#endif  // V8_BUILTINS_BUILTINS_UTILS_INL_H_

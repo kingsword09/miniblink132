@@ -27,29 +27,22 @@ namespace internal {
 // And so if a thread observes zero, it must be because it has observed an equal
 // number of exits as entries.
 class AtomicEntryFlag final {
-public:
-    void Enter()
-    {
-        entries_.fetch_add(1, std::memory_order_relaxed);
-    }
-    void Exit()
-    {
-        entries_.fetch_sub(1, std::memory_order_relaxed);
-    }
+ public:
+  void Enter() { entries_.fetch_add(1, std::memory_order_relaxed); }
+  void Exit() { entries_.fetch_sub(1, std::memory_order_relaxed); }
 
-    // Returns false only if the current thread is not between a call to Enter
-    // and a call to Exit. Returns true if this thread or another thread may
-    // currently be in the scope guarded by this flag.
-    bool MightBeEntered() const
-    {
-        return entries_.load(std::memory_order_relaxed) != 0;
-    }
+  // Returns false only if the current thread is not between a call to Enter
+  // and a call to Exit. Returns true if this thread or another thread may
+  // currently be in the scope guarded by this flag.
+  bool MightBeEntered() const {
+    return entries_.load(std::memory_order_relaxed) != 0;
+  }
 
-private:
-    std::atomic_int entries_ { 0 };
+ private:
+  std::atomic_int entries_{0};
 };
 
-} // namespace internal
-} // namespace cppgc
+}  // namespace internal
+}  // namespace cppgc
 
-#endif // INCLUDE_CPPGC_INTERNAL_ATOMIC_ENTRY_FLAG_H_
+#endif  // INCLUDE_CPPGC_INTERNAL_ATOMIC_ENTRY_FLAG_H_
