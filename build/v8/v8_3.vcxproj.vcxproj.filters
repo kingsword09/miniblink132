@@ -2660,9 +2660,6 @@
     <ClCompile Include="..\..\v8\src\compiler\late-escape-analysis.cc">
       <Filter>src\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\linear-scheduler.cc">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\compiler\linkage.cc">
       <Filter>src\compiler</Filter>
     </ClCompile>
@@ -2757,9 +2754,6 @@
       <Filter>src\compiler</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\compiler\representation-change.cc">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\revectorizer.cc">
       <Filter>src\compiler</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\compiler\schedule.cc">
@@ -3038,17 +3032,8 @@
     <ClCompile Include="..\..\v8\src\compiler\turboshaft\wasm-optimize-phase.cc">
       <Filter>src\compiler\turboshaft</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\turboshaft\wasm-revec-phase.cc">
-      <Filter>src\compiler\turboshaft</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\compiler\turboshaft\wasm-revec-reducer.cc">
-      <Filter>src\compiler\turboshaft</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\compiler\turboshaft\wasm-turboshaft-compiler.cc">
       <Filter>src\compiler\turboshaft</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\codegen\assembler-codegen.cc">
-      <Filter>src\codegen</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\codegen\arm64\assembler-arm64.cc">
       <Filter>src\codegen\arm64</Filter>

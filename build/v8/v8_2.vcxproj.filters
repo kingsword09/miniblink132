@@ -1502,9 +1502,6 @@
     <ClCompile Include="..\..\v8\src\trap-handler\handler-inside.cc">
       <Filter>src\trap-handler</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\trap-handler\handler-outside-simulator.cc">
-      <Filter>src\trap-handler</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\trap-handler\handler-outside-win.cc">
       <Filter>src\trap-handler</Filter>
     </ClCompile>

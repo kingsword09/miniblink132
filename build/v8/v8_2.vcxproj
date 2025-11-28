@@ -992,7 +992,6 @@
     <ClCompile Include="..\..\v8\src\tracing\tracing-category-observer.cc" />
     <ClCompile Include="..\..\v8\src\trap-handler\handler-inside-win.cc" />
     <ClCompile Include="..\..\v8\src\trap-handler\handler-inside.cc" />
-    <ClCompile Include="..\..\v8\src\trap-handler\handler-outside-simulator.cc" />
     <ClCompile Include="..\..\v8\src\trap-handler\handler-outside-win.cc" />
     <ClCompile Include="..\..\v8\src\trap-handler\handler-outside.cc" />
     <ClCompile Include="..\..\v8\src\trap-handler\handler-shared.cc" />
