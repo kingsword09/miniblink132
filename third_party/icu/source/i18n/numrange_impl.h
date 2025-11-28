@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -17,64 +17,71 @@
 #include "formattedval_impl.h"
 #include "pluralranges.h"
 
-U_NAMESPACE_BEGIN namespace number
-{
-    namespace impl {
+U_NAMESPACE_BEGIN namespace number {
+namespace impl {
 
-    /**
-     * Class similar to UFormattedNumberData.
-     *
-     * Has incomplete magic number logic that will need to be finished
-     * if this is to be exposed as C API in the future.
-     *
-     * Possible magic number: 0x46445200
-     * Reads in ASCII as "FDR" (FormatteDnumberRange with room at the end)
-     */
-    class UFormattedNumberRangeData : public FormattedValueStringBuilderImpl {
-    public:
-        UFormattedNumberRangeData()
-            : FormattedValueStringBuilderImpl(kUndefinedField)
-        {
-        }
-        virtual ~UFormattedNumberRangeData();
 
-        DecimalQuantity quantity1;
-        DecimalQuantity quantity2;
-        UNumberRangeIdentityResult identityResult = UNUM_IDENTITY_RESULT_COUNT;
-    };
+/**
+ * Class similar to UFormattedNumberData.
+ *
+ * Has incomplete magic number logic that will need to be finished
+ * if this is to be exposed as C API in the future.
+ *
+ * Possible magic number: 0x46445200
+ * Reads in ASCII as "FDR" (FormatteDnumberRange with room at the end)
+ */
+class UFormattedNumberRangeData : public FormattedValueStringBuilderImpl {
+public:
+    UFormattedNumberRangeData() : FormattedValueStringBuilderImpl(kUndefinedField) {}
+    virtual ~UFormattedNumberRangeData();
 
-    class NumberRangeFormatterImpl : public UMemory {
-    public:
-        NumberRangeFormatterImpl(const RangeMacroProps& macros, UErrorCode& status);
+    DecimalQuantity quantity1;
+    DecimalQuantity quantity2;
+    UNumberRangeIdentityResult identityResult = UNUM_IDENTITY_RESULT_COUNT;
+};
 
-        void format(UFormattedNumberRangeData& data, bool equalBeforeRounding, UErrorCode& status) const;
 
-    private:
-        NumberFormatterImpl formatterImpl1;
-        NumberFormatterImpl formatterImpl2;
-        bool fSameFormatters;
+class NumberRangeFormatterImpl : public UMemory {
+  public:
+    NumberRangeFormatterImpl(const RangeMacroProps& macros, UErrorCode& status);
 
-        UNumberRangeCollapse fCollapse;
-        UNumberRangeIdentityFallback fIdentityFallback;
+    void format(UFormattedNumberRangeData& data, bool equalBeforeRounding, UErrorCode& status) const;
 
-        SimpleFormatter fRangeFormatter;
-        NumberFormatterImpl fApproximatelyFormatter;
+  private:
+    NumberFormatterImpl formatterImpl1;
+    NumberFormatterImpl formatterImpl2;
+    bool fSameFormatters;
 
-        StandardPluralRanges fPluralRanges;
+    UNumberRangeCollapse fCollapse;
+    UNumberRangeIdentityFallback fIdentityFallback;
 
-        void formatSingleValue(UFormattedNumberRangeData& data, MicroProps& micros1, MicroProps& micros2, UErrorCode& status) const;
+    SimpleFormatter fRangeFormatter;
+    NumberFormatterImpl fApproximatelyFormatter;
 
-        void formatApproximately(UFormattedNumberRangeData& data, MicroProps& micros1, MicroProps& micros2, UErrorCode& status) const;
+    StandardPluralRanges fPluralRanges;
 
-        void formatRange(UFormattedNumberRangeData& data, MicroProps& micros1, MicroProps& micros2, UErrorCode& status) const;
+    void formatSingleValue(UFormattedNumberRangeData& data,
+                           MicroProps& micros1, MicroProps& micros2,
+                           UErrorCode& status) const;
 
-        const Modifier& resolveModifierPlurals(const Modifier& first, const Modifier& second) const;
-    };
+    void formatApproximately(UFormattedNumberRangeData& data,
+                             MicroProps& micros1, MicroProps& micros2,
+                             UErrorCode& status) const;
 
-    /** Helper function used in upluralrules.cpp */
-    const UFormattedNumberRangeData* validateUFormattedNumberRange(const UFormattedNumberRange* uresult, UErrorCode& status);
+    void formatRange(UFormattedNumberRangeData& data,
+                     MicroProps& micros1, MicroProps& micros2,
+                     UErrorCode& status) const;
 
-    } // namespace impl
+    const Modifier& resolveModifierPlurals(const Modifier& first, const Modifier& second) const;
+};
+
+
+/** Helper function used in upluralrules.cpp */
+const UFormattedNumberRangeData* validateUFormattedNumberRange(
+    const UFormattedNumberRange* uresult, UErrorCode& status);
+
+
+} // namespace impl
 } // namespace number
 U_NAMESPACE_END
 

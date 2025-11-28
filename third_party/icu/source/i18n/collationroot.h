@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -15,6 +15,7 @@
 #define __COLLATIONROOT_H__
 
 #include "unicode/utypes.h"
+#include "unicode/udata.h"
 
 #if !UCONFIG_NO_COLLATION
 
@@ -28,18 +29,20 @@ struct CollationTailoring;
 /**
  * Collation root provider.
  */
-class U_I18N_API CollationRoot { // purely static
+class U_I18N_API CollationRoot {  // purely static
 public:
-    static const CollationCacheEntry* getRootCacheEntry(UErrorCode& errorCode);
-    static const CollationTailoring* getRoot(UErrorCode& errorCode);
-    static const CollationData* getData(UErrorCode& errorCode);
-    static const CollationSettings* getSettings(UErrorCode& errorCode);
+    static const CollationCacheEntry *getRootCacheEntry(UErrorCode &errorCode);
+    static const CollationTailoring *getRoot(UErrorCode &errorCode);
+    static const CollationData *getData(UErrorCode &errorCode);
+    static const CollationSettings *getSettings(UErrorCode &errorCode);
+    static void U_EXPORT2 forceLoadFromFile(const char* ucadataPath, UErrorCode &errorCode);
 
 private:
-    static void U_CALLCONV load(UErrorCode& errorCode);
+    static void U_CALLCONV load(const char* ucadataPath, UErrorCode &errorCode);
+    static UDataMemory* loadFromFile(const char* ucadataPath, UErrorCode &errorCode);
 };
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __COLLATIONROOT_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __COLLATIONROOT_H__

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -36,7 +36,8 @@ class TransliterationRuleData;
  */
 class StringReplacer : public UnicodeFunctor, public UnicodeReplacer {
 
-private:
+ private:
+
     /**
      * Output text, possibly containing stand-in characters that
      * represent nested UnicodeReplacers.
@@ -68,7 +69,8 @@ private:
      */
     const TransliterationRuleData* data;
 
-public:
+ public:
+
     /**
      * Construct a StringReplacer that sets the emits the given output
      * text and sets the cursor to the given position.
@@ -80,7 +82,9 @@ public:
      * @param theData transliterator context object that translates
      * stand-in characters to UnicodeReplacer objects
      */
-    StringReplacer(const UnicodeString& theOutput, int32_t theCursorPos, const TransliterationRuleData* theData);
+    StringReplacer(const UnicodeString& theOutput,
+                   int32_t theCursorPos,
+                   const TransliterationRuleData* theData);
 
     /**
      * Construct a StringReplacer that sets the emits the given output
@@ -91,7 +95,8 @@ public:
      * @param theData transliterator context object that translates
      * stand-in characters to UnicodeReplacer objects
      */
-    StringReplacer(const UnicodeString& theOutput, const TransliterationRuleData* theData);
+    StringReplacer(const UnicodeString& theOutput,
+                   const TransliterationRuleData* theData);
 
     /**
      * Copy constructor.
@@ -117,12 +122,16 @@ public:
     /**
      * UnicodeReplacer API
      */
-    virtual int32_t replace(Replaceable& text, int32_t start, int32_t limit, int32_t& cursor) override;
+    virtual int32_t replace(Replaceable& text,
+                            int32_t start,
+                            int32_t limit,
+                            int32_t& cursor) override;
 
     /**
      * UnicodeReplacer API
      */
-    virtual UnicodeString& toReplacerPattern(UnicodeString& result, UBool escapeUnprintable) const override;
+    virtual UnicodeString& toReplacerPattern(UnicodeString& result,
+                                             UBool escapeUnprintable) const override;
 
     /**
      * Implement UnicodeReplacer
@@ -151,4 +160,4 @@ U_NAMESPACE_END
 
 #endif
 
-// eof
+//eof

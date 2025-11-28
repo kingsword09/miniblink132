@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -39,7 +39,7 @@ class RuleCharacterIterator : public UMemory {
 private:
     /**
      * Text being iterated.
-     */
+     */    
     const UnicodeString& text;
 
     /**
@@ -51,7 +51,7 @@ private:
      * Symbol table used to parse and dereference variables.  May be 0.
      */
     const SymbolTable* sym;
-
+    
     /**
      * Current variable expansion, or 0 if none.
      */
@@ -80,7 +80,7 @@ public:
      * PARSE_ESCAPES) != 0, then an embedded escape sequence will be expanded
      * to its value.  Escapes are parsed using Utility.unescapeAt().
      */
-    static constexpr int32_t PARSE_ESCAPES = 2;
+    static constexpr int32_t PARSE_ESCAPES   = 2;
 
     /**
      * Bitmask option to enable skipping of whitespace.  If (options &
@@ -100,8 +100,9 @@ public:
      * variable has been dereferenced, then pos will <em>not</em> increment as
      * characters of the variable value are iterated.
      */
-    RuleCharacterIterator(const UnicodeString& text, const SymbolTable* sym, ParsePosition& pos);
-
+    RuleCharacterIterator(const UnicodeString& text, const SymbolTable* sym,
+                          ParsePosition& pos);
+    
     /**
      * Returns true if this iterator has no more characters to return.
      */
@@ -205,8 +206,8 @@ public:
      * @param result output parameter to receive a string
      * representation of this object
      */
-    //    UnicodeString& toString(UnicodeString& result) const;
-
+//    UnicodeString& toString(UnicodeString& result) const;
+    
 private:
     /**
      * Returns the current 32-bit code point without parsing escapes, parsing
@@ -214,7 +215,7 @@ private:
      * @return the current 32-bit code point
      */
     UChar32 _current() const;
-
+    
     /**
      * Advances the position by the given amount.
      * @param count the number of 16-bit code units to advance past
@@ -222,12 +223,11 @@ private:
     void _advance(int32_t count);
 };
 
-inline UBool RuleCharacterIterator::inVariable() const
-{
+inline UBool RuleCharacterIterator::inVariable() const {
     return buf != 0;
 }
 
 U_NAMESPACE_END
 
 #endif // _RULEITER_H_
-// eof
+//eof

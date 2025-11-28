@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -37,22 +37,18 @@ icu::UInitOnce gNumberSkeletonsInitOnce {};
 
 char16_t* kSerializedStemTrie = nullptr;
 
-UBool U_CALLCONV cleanupNumberSkeletons()
-{
+UBool U_CALLCONV cleanupNumberSkeletons() {
     uprv_free(kSerializedStemTrie);
     kSerializedStemTrie = nullptr;
     gNumberSkeletonsInitOnce.reset();
-    return TRUE;
+    return true;
 }
 
-void U_CALLCONV initNumberSkeletons(UErrorCode& status)
-{
+void U_CALLCONV initNumberSkeletons(UErrorCode& status) {
     ucln_i18n_registerCleanup(UCLN_I18N_NUMBER_SKELETONS, cleanupNumberSkeletons);
 
     UCharsTrieBuilder b(status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Section 1:
     b.add(u"compact-short", STEM_COMPACT_SHORT, status);
@@ -103,9 +99,7 @@ void U_CALLCONV initNumberSkeletons(UErrorCode& status)
     b.add(u"sign-accounting-negative", STEM_SIGN_ACCOUNTING_NEGATIVE, status);
     b.add(u"decimal-auto", STEM_DECIMAL_AUTO, status);
     b.add(u"decimal-always", STEM_DECIMAL_ALWAYS, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Section 2:
     b.add(u"precision-increment", STEM_PRECISION_INCREMENT, status);
@@ -117,9 +111,7 @@ void U_CALLCONV initNumberSkeletons(UErrorCode& status)
     b.add(u"integer-width", STEM_INTEGER_WIDTH, status);
     b.add(u"numbering-system", STEM_NUMBERING_SYSTEM, status);
     b.add(u"scale", STEM_SCALE, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Section 3 (concise tokens):
     b.add(u"K", STEM_COMPACT_SHORT, status);
@@ -137,17 +129,13 @@ void U_CALLCONV initNumberSkeletons(UErrorCode& status)
     b.add(u"()?", STEM_SIGN_ACCOUNTING_EXCEPT_ZERO, status);
     b.add(u"+-", STEM_SIGN_NEGATIVE, status);
     b.add(u"()-", STEM_SIGN_ACCOUNTING_NEGATIVE, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Build the CharsTrie
     // TODO: Use SLOW or FAST here?
     UnicodeString result;
     b.buildUnicodeString(USTRINGTRIE_BUILD_FAST, result, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Copy the result into the global constant pointer
     size_t numBytes = result.length() * sizeof(char16_t);
@@ -155,327 +143,317 @@ void U_CALLCONV initNumberSkeletons(UErrorCode& status)
     uprv_memcpy(kSerializedStemTrie, result.getBuffer(), numBytes);
 }
 
-inline void appendMultiple(UnicodeString& sb, UChar32 cp, int32_t count)
-{
+
+inline void appendMultiple(UnicodeString& sb, UChar32 cp, int32_t count) {
     for (int i = 0; i < count; i++) {
         sb.append(cp);
     }
 }
 
-#define CHECK_NULL(seen, field, status)                                                                                                                        \
-    (void)(seen); /* for auto-format line wrapping */                                                                                                          \
-    UPRV_BLOCK_MACRO_BEGIN                                                                                                                                     \
-    {                                                                                                                                                          \
-        if ((seen).field) {                                                                                                                                    \
-            (status) = U_NUMBER_SKELETON_SYNTAX_ERROR;                                                                                                         \
-            return STATE_NULL;                                                                                                                                 \
-        }                                                                                                                                                      \
-        (seen).field = true;                                                                                                                                   \
-    }                                                                                                                                                          \
-    UPRV_BLOCK_MACRO_END
+
+#define CHECK_NULL(seen, field, status) (void)(seen); /* for auto-format line wrapping */ \
+UPRV_BLOCK_MACRO_BEGIN { \
+    if ((seen).field) { \
+        (status) = U_NUMBER_SKELETON_SYNTAX_ERROR; \
+        return STATE_NULL; \
+    } \
+    (seen).field = true; \
+} UPRV_BLOCK_MACRO_END
+
 
 } // anonymous namespace
 
-Notation stem_to_object::notation(skeleton::StemEnum stem)
-{
+
+Notation stem_to_object::notation(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_COMPACT_SHORT:
-        return Notation::compactShort();
-    case STEM_COMPACT_LONG:
-        return Notation::compactLong();
-    case STEM_SCIENTIFIC:
-        return Notation::scientific();
-    case STEM_ENGINEERING:
-        return Notation::engineering();
-    case STEM_NOTATION_SIMPLE:
-        return Notation::simple();
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case STEM_COMPACT_SHORT:
+            return Notation::compactShort();
+        case STEM_COMPACT_LONG:
+            return Notation::compactLong();
+        case STEM_SCIENTIFIC:
+            return Notation::scientific();
+        case STEM_ENGINEERING:
+            return Notation::engineering();
+        case STEM_NOTATION_SIMPLE:
+            return Notation::simple();
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-MeasureUnit stem_to_object::unit(skeleton::StemEnum stem)
-{
+MeasureUnit stem_to_object::unit(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_BASE_UNIT:
-        return MeasureUnit();
-    case STEM_PERCENT:
-        return MeasureUnit::getPercent();
-    case STEM_PERMILLE:
-        return MeasureUnit::getPermille();
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case STEM_BASE_UNIT:
+            return MeasureUnit();
+        case STEM_PERCENT:
+            return MeasureUnit::getPercent();
+        case STEM_PERMILLE:
+            return MeasureUnit::getPermille();
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-Precision stem_to_object::precision(skeleton::StemEnum stem)
-{
+Precision stem_to_object::precision(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_PRECISION_INTEGER:
-        return Precision::integer();
-    case STEM_PRECISION_UNLIMITED:
-        return Precision::unlimited();
-    case STEM_PRECISION_CURRENCY_STANDARD:
-        return Precision::currency(UCURR_USAGE_STANDARD);
-    case STEM_PRECISION_CURRENCY_CASH:
-        return Precision::currency(UCURR_USAGE_CASH);
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case STEM_PRECISION_INTEGER:
+            return Precision::integer();
+        case STEM_PRECISION_UNLIMITED:
+            return Precision::unlimited();
+        case STEM_PRECISION_CURRENCY_STANDARD:
+            return Precision::currency(UCURR_USAGE_STANDARD);
+        case STEM_PRECISION_CURRENCY_CASH:
+            return Precision::currency(UCURR_USAGE_CASH);
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-UNumberFormatRoundingMode stem_to_object::roundingMode(skeleton::StemEnum stem)
-{
+UNumberFormatRoundingMode stem_to_object::roundingMode(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_ROUNDING_MODE_CEILING:
-        return UNUM_ROUND_CEILING;
-    case STEM_ROUNDING_MODE_FLOOR:
-        return UNUM_ROUND_FLOOR;
-    case STEM_ROUNDING_MODE_DOWN:
-        return UNUM_ROUND_DOWN;
-    case STEM_ROUNDING_MODE_UP:
-        return UNUM_ROUND_UP;
-    case STEM_ROUNDING_MODE_HALF_EVEN:
-        return UNUM_ROUND_HALFEVEN;
-    case STEM_ROUNDING_MODE_HALF_ODD:
-        return UNUM_ROUND_HALF_ODD;
-    case STEM_ROUNDING_MODE_HALF_CEILING:
-        return UNUM_ROUND_HALF_CEILING;
-    case STEM_ROUNDING_MODE_HALF_FLOOR:
-        return UNUM_ROUND_HALF_FLOOR;
-    case STEM_ROUNDING_MODE_HALF_DOWN:
-        return UNUM_ROUND_HALFDOWN;
-    case STEM_ROUNDING_MODE_HALF_UP:
-        return UNUM_ROUND_HALFUP;
-    case STEM_ROUNDING_MODE_UNNECESSARY:
-        return UNUM_ROUND_UNNECESSARY;
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case STEM_ROUNDING_MODE_CEILING:
+            return UNUM_ROUND_CEILING;
+        case STEM_ROUNDING_MODE_FLOOR:
+            return UNUM_ROUND_FLOOR;
+        case STEM_ROUNDING_MODE_DOWN:
+            return UNUM_ROUND_DOWN;
+        case STEM_ROUNDING_MODE_UP:
+            return UNUM_ROUND_UP;
+        case STEM_ROUNDING_MODE_HALF_EVEN:
+            return UNUM_ROUND_HALFEVEN;
+        case STEM_ROUNDING_MODE_HALF_ODD:
+            return UNUM_ROUND_HALF_ODD;
+        case STEM_ROUNDING_MODE_HALF_CEILING:
+            return UNUM_ROUND_HALF_CEILING;
+        case STEM_ROUNDING_MODE_HALF_FLOOR:
+            return UNUM_ROUND_HALF_FLOOR;
+        case STEM_ROUNDING_MODE_HALF_DOWN:
+            return UNUM_ROUND_HALFDOWN;
+        case STEM_ROUNDING_MODE_HALF_UP:
+            return UNUM_ROUND_HALFUP;
+        case STEM_ROUNDING_MODE_UNNECESSARY:
+            return UNUM_ROUND_UNNECESSARY;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-UNumberGroupingStrategy stem_to_object::groupingStrategy(skeleton::StemEnum stem)
-{
+UNumberGroupingStrategy stem_to_object::groupingStrategy(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_GROUP_OFF:
-        return UNUM_GROUPING_OFF;
-    case STEM_GROUP_MIN2:
-        return UNUM_GROUPING_MIN2;
-    case STEM_GROUP_AUTO:
-        return UNUM_GROUPING_AUTO;
-    case STEM_GROUP_ON_ALIGNED:
-        return UNUM_GROUPING_ON_ALIGNED;
-    case STEM_GROUP_THOUSANDS:
-        return UNUM_GROUPING_THOUSANDS;
-    default:
-        return UNUM_GROUPING_COUNT; // for objects, throw; for enums, return COUNT
+        case STEM_GROUP_OFF:
+            return UNUM_GROUPING_OFF;
+        case STEM_GROUP_MIN2:
+            return UNUM_GROUPING_MIN2;
+        case STEM_GROUP_AUTO:
+            return UNUM_GROUPING_AUTO;
+        case STEM_GROUP_ON_ALIGNED:
+            return UNUM_GROUPING_ON_ALIGNED;
+        case STEM_GROUP_THOUSANDS:
+            return UNUM_GROUPING_THOUSANDS;
+        default:
+            return UNUM_GROUPING_COUNT; // for objects, throw; for enums, return COUNT
     }
 }
 
-UNumberUnitWidth stem_to_object::unitWidth(skeleton::StemEnum stem)
-{
+UNumberUnitWidth stem_to_object::unitWidth(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_UNIT_WIDTH_NARROW:
-        return UNUM_UNIT_WIDTH_NARROW;
-    case STEM_UNIT_WIDTH_SHORT:
-        return UNUM_UNIT_WIDTH_SHORT;
-    case STEM_UNIT_WIDTH_FULL_NAME:
-        return UNUM_UNIT_WIDTH_FULL_NAME;
-    case STEM_UNIT_WIDTH_ISO_CODE:
-        return UNUM_UNIT_WIDTH_ISO_CODE;
-    case STEM_UNIT_WIDTH_FORMAL:
-        return UNUM_UNIT_WIDTH_FORMAL;
-    case STEM_UNIT_WIDTH_VARIANT:
-        return UNUM_UNIT_WIDTH_VARIANT;
-    case STEM_UNIT_WIDTH_HIDDEN:
-        return UNUM_UNIT_WIDTH_HIDDEN;
-    default:
-        return UNUM_UNIT_WIDTH_COUNT; // for objects, throw; for enums, return COUNT
+        case STEM_UNIT_WIDTH_NARROW:
+            return UNUM_UNIT_WIDTH_NARROW;
+        case STEM_UNIT_WIDTH_SHORT:
+            return UNUM_UNIT_WIDTH_SHORT;
+        case STEM_UNIT_WIDTH_FULL_NAME:
+            return UNUM_UNIT_WIDTH_FULL_NAME;
+        case STEM_UNIT_WIDTH_ISO_CODE:
+            return UNUM_UNIT_WIDTH_ISO_CODE;
+        case STEM_UNIT_WIDTH_FORMAL:
+            return UNUM_UNIT_WIDTH_FORMAL;
+        case STEM_UNIT_WIDTH_VARIANT:
+            return UNUM_UNIT_WIDTH_VARIANT;
+        case STEM_UNIT_WIDTH_HIDDEN:
+            return UNUM_UNIT_WIDTH_HIDDEN;
+        default:
+            return UNUM_UNIT_WIDTH_COUNT; // for objects, throw; for enums, return COUNT
     }
 }
 
-UNumberSignDisplay stem_to_object::signDisplay(skeleton::StemEnum stem)
-{
+UNumberSignDisplay stem_to_object::signDisplay(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_SIGN_AUTO:
-        return UNUM_SIGN_AUTO;
-    case STEM_SIGN_ALWAYS:
-        return UNUM_SIGN_ALWAYS;
-    case STEM_SIGN_NEVER:
-        return UNUM_SIGN_NEVER;
-    case STEM_SIGN_ACCOUNTING:
-        return UNUM_SIGN_ACCOUNTING;
-    case STEM_SIGN_ACCOUNTING_ALWAYS:
-        return UNUM_SIGN_ACCOUNTING_ALWAYS;
-    case STEM_SIGN_EXCEPT_ZERO:
-        return UNUM_SIGN_EXCEPT_ZERO;
-    case STEM_SIGN_ACCOUNTING_EXCEPT_ZERO:
-        return UNUM_SIGN_ACCOUNTING_EXCEPT_ZERO;
-    case STEM_SIGN_NEGATIVE:
-        return UNUM_SIGN_NEGATIVE;
-    case STEM_SIGN_ACCOUNTING_NEGATIVE:
-        return UNUM_SIGN_ACCOUNTING_NEGATIVE;
-    default:
-        return UNUM_SIGN_COUNT; // for objects, throw; for enums, return COUNT
+        case STEM_SIGN_AUTO:
+            return UNUM_SIGN_AUTO;
+        case STEM_SIGN_ALWAYS:
+            return UNUM_SIGN_ALWAYS;
+        case STEM_SIGN_NEVER:
+            return UNUM_SIGN_NEVER;
+        case STEM_SIGN_ACCOUNTING:
+            return UNUM_SIGN_ACCOUNTING;
+        case STEM_SIGN_ACCOUNTING_ALWAYS:
+            return UNUM_SIGN_ACCOUNTING_ALWAYS;
+        case STEM_SIGN_EXCEPT_ZERO:
+            return UNUM_SIGN_EXCEPT_ZERO;
+        case STEM_SIGN_ACCOUNTING_EXCEPT_ZERO:
+            return UNUM_SIGN_ACCOUNTING_EXCEPT_ZERO;
+        case STEM_SIGN_NEGATIVE:
+            return UNUM_SIGN_NEGATIVE;
+        case STEM_SIGN_ACCOUNTING_NEGATIVE:
+            return UNUM_SIGN_ACCOUNTING_NEGATIVE;
+        default:
+            return UNUM_SIGN_COUNT; // for objects, throw; for enums, return COUNT
     }
 }
 
-UNumberDecimalSeparatorDisplay stem_to_object::decimalSeparatorDisplay(skeleton::StemEnum stem)
-{
+UNumberDecimalSeparatorDisplay stem_to_object::decimalSeparatorDisplay(skeleton::StemEnum stem) {
     switch (stem) {
-    case STEM_DECIMAL_AUTO:
-        return UNUM_DECIMAL_SEPARATOR_AUTO;
-    case STEM_DECIMAL_ALWAYS:
-        return UNUM_DECIMAL_SEPARATOR_ALWAYS;
-    default:
-        return UNUM_DECIMAL_SEPARATOR_COUNT; // for objects, throw; for enums, return COUNT
+        case STEM_DECIMAL_AUTO:
+            return UNUM_DECIMAL_SEPARATOR_AUTO;
+        case STEM_DECIMAL_ALWAYS:
+            return UNUM_DECIMAL_SEPARATOR_ALWAYS;
+        default:
+            return UNUM_DECIMAL_SEPARATOR_COUNT; // for objects, throw; for enums, return COUNT
     }
 }
 
-void enum_to_stem_string::roundingMode(UNumberFormatRoundingMode value, UnicodeString& sb)
-{
+
+void enum_to_stem_string::roundingMode(UNumberFormatRoundingMode value, UnicodeString& sb) {
     switch (value) {
-    case UNUM_ROUND_CEILING:
-        sb.append(u"rounding-mode-ceiling", -1);
-        break;
-    case UNUM_ROUND_FLOOR:
-        sb.append(u"rounding-mode-floor", -1);
-        break;
-    case UNUM_ROUND_DOWN:
-        sb.append(u"rounding-mode-down", -1);
-        break;
-    case UNUM_ROUND_UP:
-        sb.append(u"rounding-mode-up", -1);
-        break;
-    case UNUM_ROUND_HALFEVEN:
-        sb.append(u"rounding-mode-half-even", -1);
-        break;
-    case UNUM_ROUND_HALF_ODD:
-        sb.append(u"rounding-mode-half-odd", -1);
-        break;
-    case UNUM_ROUND_HALF_CEILING:
-        sb.append(u"rounding-mode-half-ceiling", -1);
-        break;
-    case UNUM_ROUND_HALF_FLOOR:
-        sb.append(u"rounding-mode-half-floor", -1);
-        break;
-    case UNUM_ROUND_HALFDOWN:
-        sb.append(u"rounding-mode-half-down", -1);
-        break;
-    case UNUM_ROUND_HALFUP:
-        sb.append(u"rounding-mode-half-up", -1);
-        break;
-    case UNUM_ROUND_UNNECESSARY:
-        sb.append(u"rounding-mode-unnecessary", -1);
-        break;
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case UNUM_ROUND_CEILING:
+            sb.append(u"rounding-mode-ceiling", -1);
+            break;
+        case UNUM_ROUND_FLOOR:
+            sb.append(u"rounding-mode-floor", -1);
+            break;
+        case UNUM_ROUND_DOWN:
+            sb.append(u"rounding-mode-down", -1);
+            break;
+        case UNUM_ROUND_UP:
+            sb.append(u"rounding-mode-up", -1);
+            break;
+        case UNUM_ROUND_HALFEVEN:
+            sb.append(u"rounding-mode-half-even", -1);
+            break;
+        case UNUM_ROUND_HALF_ODD:
+            sb.append(u"rounding-mode-half-odd", -1);
+            break;
+        case UNUM_ROUND_HALF_CEILING:
+            sb.append(u"rounding-mode-half-ceiling", -1);
+            break;
+        case UNUM_ROUND_HALF_FLOOR:
+            sb.append(u"rounding-mode-half-floor", -1);
+            break;
+        case UNUM_ROUND_HALFDOWN:
+            sb.append(u"rounding-mode-half-down", -1);
+            break;
+        case UNUM_ROUND_HALFUP:
+            sb.append(u"rounding-mode-half-up", -1);
+            break;
+        case UNUM_ROUND_UNNECESSARY:
+            sb.append(u"rounding-mode-unnecessary", -1);
+            break;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-void enum_to_stem_string::groupingStrategy(UNumberGroupingStrategy value, UnicodeString& sb)
-{
+void enum_to_stem_string::groupingStrategy(UNumberGroupingStrategy value, UnicodeString& sb) {
     switch (value) {
-    case UNUM_GROUPING_OFF:
-        sb.append(u"group-off", -1);
-        break;
-    case UNUM_GROUPING_MIN2:
-        sb.append(u"group-min2", -1);
-        break;
-    case UNUM_GROUPING_AUTO:
-        sb.append(u"group-auto", -1);
-        break;
-    case UNUM_GROUPING_ON_ALIGNED:
-        sb.append(u"group-on-aligned", -1);
-        break;
-    case UNUM_GROUPING_THOUSANDS:
-        sb.append(u"group-thousands", -1);
-        break;
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case UNUM_GROUPING_OFF:
+            sb.append(u"group-off", -1);
+            break;
+        case UNUM_GROUPING_MIN2:
+            sb.append(u"group-min2", -1);
+            break;
+        case UNUM_GROUPING_AUTO:
+            sb.append(u"group-auto", -1);
+            break;
+        case UNUM_GROUPING_ON_ALIGNED:
+            sb.append(u"group-on-aligned", -1);
+            break;
+        case UNUM_GROUPING_THOUSANDS:
+            sb.append(u"group-thousands", -1);
+            break;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-void enum_to_stem_string::unitWidth(UNumberUnitWidth value, UnicodeString& sb)
-{
+void enum_to_stem_string::unitWidth(UNumberUnitWidth value, UnicodeString& sb) {
     switch (value) {
-    case UNUM_UNIT_WIDTH_NARROW:
-        sb.append(u"unit-width-narrow", -1);
-        break;
-    case UNUM_UNIT_WIDTH_SHORT:
-        sb.append(u"unit-width-short", -1);
-        break;
-    case UNUM_UNIT_WIDTH_FULL_NAME:
-        sb.append(u"unit-width-full-name", -1);
-        break;
-    case UNUM_UNIT_WIDTH_ISO_CODE:
-        sb.append(u"unit-width-iso-code", -1);
-        break;
-    case UNUM_UNIT_WIDTH_FORMAL:
-        sb.append(u"unit-width-formal", -1);
-        break;
-    case UNUM_UNIT_WIDTH_VARIANT:
-        sb.append(u"unit-width-variant", -1);
-        break;
-    case UNUM_UNIT_WIDTH_HIDDEN:
-        sb.append(u"unit-width-hidden", -1);
-        break;
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case UNUM_UNIT_WIDTH_NARROW:
+            sb.append(u"unit-width-narrow", -1);
+            break;
+        case UNUM_UNIT_WIDTH_SHORT:
+            sb.append(u"unit-width-short", -1);
+            break;
+        case UNUM_UNIT_WIDTH_FULL_NAME:
+            sb.append(u"unit-width-full-name", -1);
+            break;
+        case UNUM_UNIT_WIDTH_ISO_CODE:
+            sb.append(u"unit-width-iso-code", -1);
+            break;
+        case UNUM_UNIT_WIDTH_FORMAL:
+            sb.append(u"unit-width-formal", -1);
+            break;
+        case UNUM_UNIT_WIDTH_VARIANT:
+            sb.append(u"unit-width-variant", -1);
+            break;
+        case UNUM_UNIT_WIDTH_HIDDEN:
+            sb.append(u"unit-width-hidden", -1);
+            break;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-void enum_to_stem_string::signDisplay(UNumberSignDisplay value, UnicodeString& sb)
-{
+void enum_to_stem_string::signDisplay(UNumberSignDisplay value, UnicodeString& sb) {
     switch (value) {
-    case UNUM_SIGN_AUTO:
-        sb.append(u"sign-auto", -1);
-        break;
-    case UNUM_SIGN_ALWAYS:
-        sb.append(u"sign-always", -1);
-        break;
-    case UNUM_SIGN_NEVER:
-        sb.append(u"sign-never", -1);
-        break;
-    case UNUM_SIGN_ACCOUNTING:
-        sb.append(u"sign-accounting", -1);
-        break;
-    case UNUM_SIGN_ACCOUNTING_ALWAYS:
-        sb.append(u"sign-accounting-always", -1);
-        break;
-    case UNUM_SIGN_EXCEPT_ZERO:
-        sb.append(u"sign-except-zero", -1);
-        break;
-    case UNUM_SIGN_ACCOUNTING_EXCEPT_ZERO:
-        sb.append(u"sign-accounting-except-zero", -1);
-        break;
-    case UNUM_SIGN_NEGATIVE:
-        sb.append(u"sign-negative", -1);
-        break;
-    case UNUM_SIGN_ACCOUNTING_NEGATIVE:
-        sb.append(u"sign-accounting-negative", -1);
-        break;
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case UNUM_SIGN_AUTO:
+            sb.append(u"sign-auto", -1);
+            break;
+        case UNUM_SIGN_ALWAYS:
+            sb.append(u"sign-always", -1);
+            break;
+        case UNUM_SIGN_NEVER:
+            sb.append(u"sign-never", -1);
+            break;
+        case UNUM_SIGN_ACCOUNTING:
+            sb.append(u"sign-accounting", -1);
+            break;
+        case UNUM_SIGN_ACCOUNTING_ALWAYS:
+            sb.append(u"sign-accounting-always", -1);
+            break;
+        case UNUM_SIGN_EXCEPT_ZERO:
+            sb.append(u"sign-except-zero", -1);
+            break;
+        case UNUM_SIGN_ACCOUNTING_EXCEPT_ZERO:
+            sb.append(u"sign-accounting-except-zero", -1);
+            break;
+        case UNUM_SIGN_NEGATIVE:
+            sb.append(u"sign-negative", -1);
+            break;
+        case UNUM_SIGN_ACCOUNTING_NEGATIVE:
+            sb.append(u"sign-accounting-negative", -1);
+            break;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-void enum_to_stem_string::decimalSeparatorDisplay(UNumberDecimalSeparatorDisplay value, UnicodeString& sb)
-{
+void
+enum_to_stem_string::decimalSeparatorDisplay(UNumberDecimalSeparatorDisplay value, UnicodeString& sb) {
     switch (value) {
-    case UNUM_DECIMAL_SEPARATOR_AUTO:
-        sb.append(u"decimal-auto", -1);
-        break;
-    case UNUM_DECIMAL_SEPARATOR_ALWAYS:
-        sb.append(u"decimal-always", -1);
-        break;
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        case UNUM_DECIMAL_SEPARATOR_AUTO:
+            sb.append(u"decimal-auto", -1);
+            break;
+        case UNUM_DECIMAL_SEPARATOR_ALWAYS:
+            sb.append(u"decimal-always", -1);
+            break;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-UnlocalizedNumberFormatter skeleton::create(const UnicodeString& skeletonString, UParseError* perror, UErrorCode& status)
-{
+
+UnlocalizedNumberFormatter skeleton::create(
+        const UnicodeString& skeletonString, UParseError* perror, UErrorCode& status) {
 
     // Initialize perror
     if (perror != nullptr) {
@@ -511,16 +489,15 @@ UnlocalizedNumberFormatter skeleton::create(const UnicodeString& skeletonString,
     return {};
 }
 
-UnicodeString skeleton::generate(const MacroProps& macros, UErrorCode& status)
-{
+UnicodeString skeleton::generate(const MacroProps& macros, UErrorCode& status) {
     umtx_initOnce(gNumberSkeletonsInitOnce, &initNumberSkeletons, status);
     UnicodeString sb;
     GeneratorHelpers::generateSkeleton(macros, sb, status);
     return sb;
 }
 
-MacroProps skeleton::parseSkeleton(const UnicodeString& skeletonString, int32_t& errOffset, UErrorCode& status)
-{
+MacroProps skeleton::parseSkeleton(
+        const UnicodeString& skeletonString, int32_t& errOffset, UErrorCode& status) {
     U_ASSERT(U_SUCCESS(status));
     U_ASSERT(kSerializedStemTrie != nullptr);
 
@@ -599,22 +576,22 @@ MacroProps skeleton::parseSkeleton(const UnicodeString& skeletonString, int32_t&
         // Does the current stem require an option?
         if (isTokenSeparator && stem != STATE_NULL) {
             switch (stem) {
-            case STATE_INCREMENT_PRECISION:
-            case STATE_MEASURE_UNIT:
-            case STATE_PER_MEASURE_UNIT:
-            case STATE_IDENTIFIER_UNIT:
-            case STATE_UNIT_USAGE:
-            case STATE_CURRENCY_UNIT:
-            case STATE_INTEGER_WIDTH:
-            case STATE_NUMBERING_SYSTEM:
-            case STATE_SCALE:
-                // segment.setLength(U16_LENGTH(cp)); // for error message
-                // throw new SkeletonSyntaxException("Stem requires an option", segment);
-                status = U_NUMBER_SKELETON_SYNTAX_ERROR;
-                errOffset = segment.getOffset();
-                return macros;
-            default:
-                break;
+                case STATE_INCREMENT_PRECISION:
+                case STATE_MEASURE_UNIT:
+                case STATE_PER_MEASURE_UNIT:
+                case STATE_IDENTIFIER_UNIT:
+                case STATE_UNIT_USAGE:
+                case STATE_CURRENCY_UNIT:
+                case STATE_INTEGER_WIDTH:
+                case STATE_NUMBERING_SYSTEM:
+                case STATE_SCALE:
+                    // segment.setLength(U16_LENGTH(cp)); // for error message
+                    // throw new SkeletonSyntaxException("Stem requires an option", segment);
+                    status = U_NUMBER_SKELETON_SYNTAX_ERROR;
+                    errOffset = segment.getOffset();
+                    return macros;
+                default:
+                    break;
             }
             stem = STATE_NULL;
         }
@@ -626,30 +603,31 @@ MacroProps skeleton::parseSkeleton(const UnicodeString& skeletonString, int32_t&
     return macros;
 }
 
-ParseState skeleton::parseStem(const StringSegment& segment, const UCharsTrie& stemTrie, SeenMacroProps& seen, MacroProps& macros, UErrorCode& status)
-{
+ParseState
+skeleton::parseStem(const StringSegment& segment, const UCharsTrie& stemTrie, SeenMacroProps& seen,
+                    MacroProps& macros, UErrorCode& status) {
     U_ASSERT(U_SUCCESS(status));
 
     // First check for "blueprint" stems, which start with a "signal char"
     switch (segment.charAt(0)) {
-    case u'.':
-        CHECK_NULL(seen, precision, status);
-        blueprint_helpers::parseFractionStem(segment, macros, status);
-        return STATE_FRACTION_PRECISION;
-    case u'@':
-        CHECK_NULL(seen, precision, status);
-        blueprint_helpers::parseDigitsStem(segment, macros, status);
-        return STATE_PRECISION;
-    case u'E':
-        CHECK_NULL(seen, notation, status);
-        blueprint_helpers::parseScientificStem(segment, macros, status);
-        return STATE_NULL;
-    case u'0':
-        CHECK_NULL(seen, integerWidth, status);
-        blueprint_helpers::parseIntegerStem(segment, macros, status);
-        return STATE_NULL;
-    default:
-        break;
+        case u'.':
+            CHECK_NULL(seen, precision, status);
+            blueprint_helpers::parseFractionStem(segment, macros, status);
+            return STATE_FRACTION_PRECISION;
+        case u'@':
+            CHECK_NULL(seen, precision, status);
+            blueprint_helpers::parseDigitsStem(segment, macros, status);
+            return STATE_PRECISION;
+        case u'E':
+            CHECK_NULL(seen, notation, status);
+            blueprint_helpers::parseScientificStem(segment, macros, status);
+            return STATE_NULL;
+        case u'0':
+            CHECK_NULL(seen, integerWidth, status);
+            blueprint_helpers::parseIntegerStem(segment, macros, status);
+            return STATE_NULL;
+        default:
+            break;
     }
 
     // Now look at the stemsTrie, which is already be pointing at our stem.
@@ -666,245 +644,245 @@ ParseState skeleton::parseStem(const StringSegment& segment, const UCharsTrie& s
 
         // Stems with meaning on their own, not requiring an option:
 
-    case STEM_COMPACT_SHORT:
-    case STEM_COMPACT_LONG:
-    case STEM_SCIENTIFIC:
-    case STEM_ENGINEERING:
-    case STEM_NOTATION_SIMPLE:
-        CHECK_NULL(seen, notation, status);
-        macros.notation = stem_to_object::notation(stem);
-        switch (stem) {
+        case STEM_COMPACT_SHORT:
+        case STEM_COMPACT_LONG:
         case STEM_SCIENTIFIC:
         case STEM_ENGINEERING:
-            return STATE_SCIENTIFIC; // allows for scientific options
-        default:
+        case STEM_NOTATION_SIMPLE:
+            CHECK_NULL(seen, notation, status);
+            macros.notation = stem_to_object::notation(stem);
+            switch (stem) {
+                case STEM_SCIENTIFIC:
+                case STEM_ENGINEERING:
+                    return STATE_SCIENTIFIC; // allows for scientific options
+                default:
+                    return STATE_NULL;
+            }
+
+        case STEM_BASE_UNIT:
+        case STEM_PERCENT:
+        case STEM_PERMILLE:
+            CHECK_NULL(seen, unit, status);
+            macros.unit = stem_to_object::unit(stem);
             return STATE_NULL;
-        }
 
-    case STEM_BASE_UNIT:
-    case STEM_PERCENT:
-    case STEM_PERMILLE:
-        CHECK_NULL(seen, unit, status);
-        macros.unit = stem_to_object::unit(stem);
-        return STATE_NULL;
+        case STEM_PERCENT_100:
+            CHECK_NULL(seen, scale, status);
+            CHECK_NULL(seen, unit, status);
+            macros.scale = Scale::powerOfTen(2);
+            macros.unit = NoUnit::percent();
+            return STATE_NULL;
 
-    case STEM_PERCENT_100:
-        CHECK_NULL(seen, scale, status);
-        CHECK_NULL(seen, unit, status);
-        macros.scale = Scale::powerOfTen(2);
-        macros.unit = NoUnit::percent();
-        return STATE_NULL;
-
-    case STEM_PRECISION_INTEGER:
-    case STEM_PRECISION_UNLIMITED:
-    case STEM_PRECISION_CURRENCY_STANDARD:
-    case STEM_PRECISION_CURRENCY_CASH:
-        CHECK_NULL(seen, precision, status);
-        macros.precision = stem_to_object::precision(stem);
-        switch (stem) {
         case STEM_PRECISION_INTEGER:
-            return STATE_FRACTION_PRECISION; // allows for "precision-integer/@##"
-        default:
-            return STATE_PRECISION;
-        }
+        case STEM_PRECISION_UNLIMITED:
+        case STEM_PRECISION_CURRENCY_STANDARD:
+        case STEM_PRECISION_CURRENCY_CASH:
+            CHECK_NULL(seen, precision, status);
+            macros.precision = stem_to_object::precision(stem);
+            switch (stem) {
+                case STEM_PRECISION_INTEGER:
+                    return STATE_FRACTION_PRECISION; // allows for "precision-integer/@##"
+                default:
+                    return STATE_PRECISION;
+            }
 
-    case STEM_ROUNDING_MODE_CEILING:
-    case STEM_ROUNDING_MODE_FLOOR:
-    case STEM_ROUNDING_MODE_DOWN:
-    case STEM_ROUNDING_MODE_UP:
-    case STEM_ROUNDING_MODE_HALF_EVEN:
-    case STEM_ROUNDING_MODE_HALF_ODD:
-    case STEM_ROUNDING_MODE_HALF_CEILING:
-    case STEM_ROUNDING_MODE_HALF_FLOOR:
-    case STEM_ROUNDING_MODE_HALF_DOWN:
-    case STEM_ROUNDING_MODE_HALF_UP:
-    case STEM_ROUNDING_MODE_UNNECESSARY:
-        CHECK_NULL(seen, roundingMode, status);
-        macros.roundingMode = stem_to_object::roundingMode(stem);
-        return STATE_NULL;
+        case STEM_ROUNDING_MODE_CEILING:
+        case STEM_ROUNDING_MODE_FLOOR:
+        case STEM_ROUNDING_MODE_DOWN:
+        case STEM_ROUNDING_MODE_UP:
+        case STEM_ROUNDING_MODE_HALF_EVEN:
+        case STEM_ROUNDING_MODE_HALF_ODD:
+        case STEM_ROUNDING_MODE_HALF_CEILING:
+        case STEM_ROUNDING_MODE_HALF_FLOOR:
+        case STEM_ROUNDING_MODE_HALF_DOWN:
+        case STEM_ROUNDING_MODE_HALF_UP:
+        case STEM_ROUNDING_MODE_UNNECESSARY:
+            CHECK_NULL(seen, roundingMode, status);
+            macros.roundingMode = stem_to_object::roundingMode(stem);
+            return STATE_NULL;
 
-    case STEM_INTEGER_WIDTH_TRUNC:
-        CHECK_NULL(seen, integerWidth, status);
-        macros.integerWidth = IntegerWidth::zeroFillTo(0).truncateAt(0);
-        return STATE_NULL;
+        case STEM_INTEGER_WIDTH_TRUNC:
+            CHECK_NULL(seen, integerWidth, status);
+            macros.integerWidth = IntegerWidth::zeroFillTo(0).truncateAt(0);
+            return STATE_NULL;
 
-    case STEM_GROUP_OFF:
-    case STEM_GROUP_MIN2:
-    case STEM_GROUP_AUTO:
-    case STEM_GROUP_ON_ALIGNED:
-    case STEM_GROUP_THOUSANDS:
-        CHECK_NULL(seen, grouper, status);
-        macros.grouper = Grouper::forStrategy(stem_to_object::groupingStrategy(stem));
-        return STATE_NULL;
+        case STEM_GROUP_OFF:
+        case STEM_GROUP_MIN2:
+        case STEM_GROUP_AUTO:
+        case STEM_GROUP_ON_ALIGNED:
+        case STEM_GROUP_THOUSANDS:
+            CHECK_NULL(seen, grouper, status);
+            macros.grouper = Grouper::forStrategy(stem_to_object::groupingStrategy(stem));
+            return STATE_NULL;
 
-    case STEM_LATIN:
-        CHECK_NULL(seen, symbols, status);
-        macros.symbols.setTo(NumberingSystem::createInstanceByName("latn", status));
-        return STATE_NULL;
+        case STEM_LATIN:
+            CHECK_NULL(seen, symbols, status);
+            macros.symbols.setTo(NumberingSystem::createInstanceByName("latn", status));
+            return STATE_NULL;
 
-    case STEM_UNIT_WIDTH_NARROW:
-    case STEM_UNIT_WIDTH_SHORT:
-    case STEM_UNIT_WIDTH_FULL_NAME:
-    case STEM_UNIT_WIDTH_ISO_CODE:
-    case STEM_UNIT_WIDTH_FORMAL:
-    case STEM_UNIT_WIDTH_VARIANT:
-    case STEM_UNIT_WIDTH_HIDDEN:
-        CHECK_NULL(seen, unitWidth, status);
-        macros.unitWidth = stem_to_object::unitWidth(stem);
-        return STATE_NULL;
+        case STEM_UNIT_WIDTH_NARROW:
+        case STEM_UNIT_WIDTH_SHORT:
+        case STEM_UNIT_WIDTH_FULL_NAME:
+        case STEM_UNIT_WIDTH_ISO_CODE:
+        case STEM_UNIT_WIDTH_FORMAL:
+        case STEM_UNIT_WIDTH_VARIANT:
+        case STEM_UNIT_WIDTH_HIDDEN:
+            CHECK_NULL(seen, unitWidth, status);
+            macros.unitWidth = stem_to_object::unitWidth(stem);
+            return STATE_NULL;
 
-    case STEM_SIGN_AUTO:
-    case STEM_SIGN_ALWAYS:
-    case STEM_SIGN_NEVER:
-    case STEM_SIGN_ACCOUNTING:
-    case STEM_SIGN_ACCOUNTING_ALWAYS:
-    case STEM_SIGN_EXCEPT_ZERO:
-    case STEM_SIGN_ACCOUNTING_EXCEPT_ZERO:
-    case STEM_SIGN_NEGATIVE:
-    case STEM_SIGN_ACCOUNTING_NEGATIVE:
-        CHECK_NULL(seen, sign, status);
-        macros.sign = stem_to_object::signDisplay(stem);
-        return STATE_NULL;
+        case STEM_SIGN_AUTO:
+        case STEM_SIGN_ALWAYS:
+        case STEM_SIGN_NEVER:
+        case STEM_SIGN_ACCOUNTING:
+        case STEM_SIGN_ACCOUNTING_ALWAYS:
+        case STEM_SIGN_EXCEPT_ZERO:
+        case STEM_SIGN_ACCOUNTING_EXCEPT_ZERO:
+        case STEM_SIGN_NEGATIVE:
+        case STEM_SIGN_ACCOUNTING_NEGATIVE:
+            CHECK_NULL(seen, sign, status);
+            macros.sign = stem_to_object::signDisplay(stem);
+            return STATE_NULL;
 
-    case STEM_DECIMAL_AUTO:
-    case STEM_DECIMAL_ALWAYS:
-        CHECK_NULL(seen, decimal, status);
-        macros.decimal = stem_to_object::decimalSeparatorDisplay(stem);
-        return STATE_NULL;
+        case STEM_DECIMAL_AUTO:
+        case STEM_DECIMAL_ALWAYS:
+            CHECK_NULL(seen, decimal, status);
+            macros.decimal = stem_to_object::decimalSeparatorDisplay(stem);
+            return STATE_NULL;
 
         // Stems requiring an option:
 
-    case STEM_PRECISION_INCREMENT:
-        CHECK_NULL(seen, precision, status);
-        return STATE_INCREMENT_PRECISION;
+        case STEM_PRECISION_INCREMENT:
+            CHECK_NULL(seen, precision, status);
+            return STATE_INCREMENT_PRECISION;
 
-    case STEM_MEASURE_UNIT:
-        CHECK_NULL(seen, unit, status);
-        return STATE_MEASURE_UNIT;
+        case STEM_MEASURE_UNIT:
+            CHECK_NULL(seen, unit, status);
+            return STATE_MEASURE_UNIT;
 
-    case STEM_PER_MEASURE_UNIT:
-        CHECK_NULL(seen, perUnit, status);
-        return STATE_PER_MEASURE_UNIT;
+        case STEM_PER_MEASURE_UNIT:
+            CHECK_NULL(seen, perUnit, status);
+            return STATE_PER_MEASURE_UNIT;
 
-    case STEM_UNIT:
-        CHECK_NULL(seen, unit, status);
-        CHECK_NULL(seen, perUnit, status);
-        return STATE_IDENTIFIER_UNIT;
+        case STEM_UNIT:
+            CHECK_NULL(seen, unit, status);
+            CHECK_NULL(seen, perUnit, status);
+            return STATE_IDENTIFIER_UNIT;
 
-    case STEM_UNIT_USAGE:
-        CHECK_NULL(seen, usage, status);
-        return STATE_UNIT_USAGE;
+        case STEM_UNIT_USAGE:
+            CHECK_NULL(seen, usage, status);
+            return STATE_UNIT_USAGE;
 
-    case STEM_CURRENCY:
-        CHECK_NULL(seen, unit, status);
-        CHECK_NULL(seen, perUnit, status);
-        return STATE_CURRENCY_UNIT;
+        case STEM_CURRENCY:
+            CHECK_NULL(seen, unit, status);
+            CHECK_NULL(seen, perUnit, status);
+            return STATE_CURRENCY_UNIT;
 
-    case STEM_INTEGER_WIDTH:
-        CHECK_NULL(seen, integerWidth, status);
-        return STATE_INTEGER_WIDTH;
+        case STEM_INTEGER_WIDTH:
+            CHECK_NULL(seen, integerWidth, status);
+            return STATE_INTEGER_WIDTH;
 
-    case STEM_NUMBERING_SYSTEM:
-        CHECK_NULL(seen, symbols, status);
-        return STATE_NUMBERING_SYSTEM;
+        case STEM_NUMBERING_SYSTEM:
+            CHECK_NULL(seen, symbols, status);
+            return STATE_NUMBERING_SYSTEM;
 
-    case STEM_SCALE:
-        CHECK_NULL(seen, scale, status);
-        return STATE_SCALE;
+        case STEM_SCALE:
+            CHECK_NULL(seen, scale, status);
+            return STATE_SCALE;
 
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-ParseState skeleton::parseOption(ParseState stem, const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+ParseState skeleton::parseOption(ParseState stem, const StringSegment& segment, MacroProps& macros,
+                                 UErrorCode& status) {
     U_ASSERT(U_SUCCESS(status));
 
     ///// Required options: /////
 
     switch (stem) {
-    case STATE_CURRENCY_UNIT:
-        blueprint_helpers::parseCurrencyOption(segment, macros, status);
-        return STATE_NULL;
-    case STATE_MEASURE_UNIT:
-        blueprint_helpers::parseMeasureUnitOption(segment, macros, status);
-        return STATE_NULL;
-    case STATE_PER_MEASURE_UNIT:
-        blueprint_helpers::parseMeasurePerUnitOption(segment, macros, status);
-        return STATE_NULL;
-    case STATE_IDENTIFIER_UNIT:
-        blueprint_helpers::parseIdentifierUnitOption(segment, macros, status);
-        return STATE_NULL;
-    case STATE_UNIT_USAGE:
-        blueprint_helpers::parseUnitUsageOption(segment, macros, status);
-        return STATE_NULL;
-    case STATE_INCREMENT_PRECISION:
-        blueprint_helpers::parseIncrementOption(segment, macros, status);
-        return STATE_PRECISION;
-    case STATE_INTEGER_WIDTH:
-        blueprint_helpers::parseIntegerWidthOption(segment, macros, status);
-        return STATE_NULL;
-    case STATE_NUMBERING_SYSTEM:
-        blueprint_helpers::parseNumberingSystemOption(segment, macros, status);
-        return STATE_NULL;
-    case STATE_SCALE:
-        blueprint_helpers::parseScaleOption(segment, macros, status);
-        return STATE_NULL;
-    default:
-        break;
+        case STATE_CURRENCY_UNIT:
+            blueprint_helpers::parseCurrencyOption(segment, macros, status);
+            return STATE_NULL;
+        case STATE_MEASURE_UNIT:
+            blueprint_helpers::parseMeasureUnitOption(segment, macros, status);
+            return STATE_NULL;
+        case STATE_PER_MEASURE_UNIT:
+            blueprint_helpers::parseMeasurePerUnitOption(segment, macros, status);
+            return STATE_NULL;
+        case STATE_IDENTIFIER_UNIT:
+            blueprint_helpers::parseIdentifierUnitOption(segment, macros, status);
+            return STATE_NULL;
+        case STATE_UNIT_USAGE:
+            blueprint_helpers::parseUnitUsageOption(segment, macros, status);
+            return STATE_NULL;
+        case STATE_INCREMENT_PRECISION:
+            blueprint_helpers::parseIncrementOption(segment, macros, status);
+            return STATE_PRECISION;
+        case STATE_INTEGER_WIDTH:
+            blueprint_helpers::parseIntegerWidthOption(segment, macros, status);
+            return STATE_NULL;
+        case STATE_NUMBERING_SYSTEM:
+            blueprint_helpers::parseNumberingSystemOption(segment, macros, status);
+            return STATE_NULL;
+        case STATE_SCALE:
+            blueprint_helpers::parseScaleOption(segment, macros, status);
+            return STATE_NULL;
+        default:
+            break;
     }
 
     ///// Non-required options: /////
 
     // Scientific options
     switch (stem) {
-    case STATE_SCIENTIFIC:
-        if (blueprint_helpers::parseExponentWidthOption(segment, macros, status)) {
-            return STATE_SCIENTIFIC;
-        }
-        if (U_FAILURE(status)) {
-            return {};
-        }
-        if (blueprint_helpers::parseExponentSignOption(segment, macros, status)) {
-            return STATE_SCIENTIFIC;
-        }
-        if (U_FAILURE(status)) {
-            return {};
-        }
-        break;
-    default:
-        break;
+        case STATE_SCIENTIFIC:
+            if (blueprint_helpers::parseExponentWidthOption(segment, macros, status)) {
+                return STATE_SCIENTIFIC;
+            }
+            if (U_FAILURE(status)) {
+                return {};
+            }
+            if (blueprint_helpers::parseExponentSignOption(segment, macros, status)) {
+                return STATE_SCIENTIFIC;
+            }
+            if (U_FAILURE(status)) {
+                return {};
+            }
+            break;
+        default:
+            break;
     }
 
     // Frac-sig option
     switch (stem) {
-    case STATE_FRACTION_PRECISION:
-        if (blueprint_helpers::parseFracSigOption(segment, macros, status)) {
-            return STATE_PRECISION;
-        }
-        if (U_FAILURE(status)) {
-            return {};
-        }
-        // If the fracSig option was not found, try normal precision options.
-        stem = STATE_PRECISION;
-        break;
-    default:
-        break;
+        case STATE_FRACTION_PRECISION:
+            if (blueprint_helpers::parseFracSigOption(segment, macros, status)) {
+                return STATE_PRECISION;
+            }
+            if (U_FAILURE(status)) {
+                return {};
+            }
+            // If the fracSig option was not found, try normal precision options.
+            stem = STATE_PRECISION;
+            break;
+        default:
+            break;
     }
 
     // Trailing zeros option
     switch (stem) {
-    case STATE_PRECISION:
-        if (blueprint_helpers::parseTrailingZeroOption(segment, macros, status)) {
-            return STATE_NULL;
-        }
-        if (U_FAILURE(status)) {
-            return {};
-        }
-        break;
-    default:
-        break;
+        case STATE_PRECISION:
+            if (blueprint_helpers::parseTrailingZeroOption(segment, macros, status)) {
+                return STATE_NULL;
+            }
+            if (U_FAILURE(status)) {
+                return {};
+            }
+            break;
+        default:
+            break;
     }
 
     // Unknown option
@@ -913,85 +891,58 @@ ParseState skeleton::parseOption(ParseState stem, const StringSegment& segment, 
     return STATE_NULL;
 }
 
-void GeneratorHelpers::generateSkeleton(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
+void GeneratorHelpers::generateSkeleton(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
+    if (U_FAILURE(status)) { return; }
 
     // Supported options
     if (GeneratorHelpers::notation(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::unit(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::usage(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::precision(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::roundingMode(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::grouping(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::integerWidth(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::symbols(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::unitWidth(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::sign(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::decimal(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (GeneratorHelpers::scale(macros, sb, status)) {
         sb.append(u' ');
     }
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Unsupported options
     if (!macros.padder.isBogus()) {
@@ -1017,8 +968,9 @@ void GeneratorHelpers::generateSkeleton(const MacroProps& macros, UnicodeString&
     }
 }
 
-bool blueprint_helpers::parseExponentWidthOption(const StringSegment& segment, MacroProps& macros, UErrorCode&)
-{
+
+bool blueprint_helpers::parseExponentWidthOption(const StringSegment& segment, MacroProps& macros,
+                                                 UErrorCode&) {
     if (!isWildcardChar(segment.charAt(0))) {
         return false;
     }
@@ -1039,17 +991,19 @@ bool blueprint_helpers::parseExponentWidthOption(const StringSegment& segment, M
     return true;
 }
 
-void blueprint_helpers::generateExponentWidthOption(int32_t minExponentDigits, UnicodeString& sb, UErrorCode&)
-{
+void
+blueprint_helpers::generateExponentWidthOption(int32_t minExponentDigits, UnicodeString& sb, UErrorCode&) {
     sb.append(kWildcardChar);
     appendMultiple(sb, u'e', minExponentDigits);
 }
 
-bool blueprint_helpers::parseExponentSignOption(const StringSegment& segment, MacroProps& macros, UErrorCode&)
-{
+bool
+blueprint_helpers::parseExponentSignOption(const StringSegment& segment, MacroProps& macros, UErrorCode&) {
     // Get the sign display type out of the CharsTrie data structure.
     UCharsTrie tempStemTrie(kSerializedStemTrie);
-    UStringTrieResult result = tempStemTrie.next(segment.toTempUnicodeString().getBuffer(), segment.length());
+    UStringTrieResult result = tempStemTrie.next(
+            segment.toTempUnicodeString().getBuffer(),
+            segment.length());
     if (result != USTRINGTRIE_INTERMEDIATE_VALUE && result != USTRINGTRIE_FINAL_VALUE) {
         return false;
     }
@@ -1061,14 +1015,14 @@ bool blueprint_helpers::parseExponentSignOption(const StringSegment& segment, Ma
     return true;
 }
 
-void blueprint_helpers::parseCurrencyOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseCurrencyOption(const StringSegment& segment, MacroProps& macros,
+                                            UErrorCode& status) {
     // Unlike ICU4J, have to check length manually because ICU4C CurrencyUnit does not check it for us
     if (segment.length() != 3) {
         status = U_NUMBER_SKELETON_SYNTAX_ERROR;
         return;
     }
-    const UChar* currencyCode = segment.toTempUnicodeString().getBuffer();
+    const char16_t* currencyCode = segment.toTempUnicodeString().getBuffer();
     UErrorCode localStatus = U_ZERO_ERROR;
     CurrencyUnit currency(currencyCode, localStatus);
     if (U_FAILURE(localStatus)) {
@@ -1081,13 +1035,13 @@ void blueprint_helpers::parseCurrencyOption(const StringSegment& segment, MacroP
     macros.unit = currency; // NOLINT
 }
 
-void blueprint_helpers::generateCurrencyOption(const CurrencyUnit& currency, UnicodeString& sb, UErrorCode&)
-{
+void
+blueprint_helpers::generateCurrencyOption(const CurrencyUnit& currency, UnicodeString& sb, UErrorCode&) {
     sb.append(currency.getISOCurrency(), -1);
 }
 
-void blueprint_helpers::parseMeasureUnitOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseMeasureUnitOption(const StringSegment& segment, MacroProps& macros,
+                                               UErrorCode& status) {
     U_ASSERT(U_SUCCESS(status));
     const UnicodeString stemString = segment.toTempUnicodeString();
 
@@ -1103,7 +1057,7 @@ void blueprint_helpers::parseMeasureUnitOption(const StringSegment& segment, Mac
         return;
     }
 
-    // Need to do char <-> UChar conversion...
+    // Need to do char <-> char16_t conversion...
     CharString type;
     SKELETON_UCHAR_TO_CHAR(type, stemString, 0, firstHyphen, status);
     CharString subType;
@@ -1131,22 +1085,20 @@ void blueprint_helpers::parseMeasureUnitOption(const StringSegment& segment, Mac
     status = U_NUMBER_SKELETON_SYNTAX_ERROR;
 }
 
-void blueprint_helpers::parseMeasurePerUnitOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseMeasurePerUnitOption(const StringSegment& segment, MacroProps& macros,
+                                                  UErrorCode& status) {
     // A little bit of a hack: save the current unit (numerator), call the main measure unit
     // parsing code, put back the numerator unit, and put the new unit into per-unit.
     MeasureUnit numerator = macros.unit;
     parseMeasureUnitOption(segment, macros, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     macros.perUnit = macros.unit;
     macros.unit = numerator;
 }
 
-void blueprint_helpers::parseIdentifierUnitOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
-    // Need to do char <-> UChar conversion...
+void blueprint_helpers::parseIdentifierUnitOption(const StringSegment& segment, MacroProps& macros,
+                                                  UErrorCode& status) {
+    // Need to do char <-> char16_t conversion...
     U_ASSERT(U_SUCCESS(status));
     CharString buffer;
     SKELETON_UCHAR_TO_CHAR(buffer, segment.toTempUnicodeString(), 0, segment.length(), status);
@@ -1160,9 +1112,9 @@ void blueprint_helpers::parseIdentifierUnitOption(const StringSegment& segment, 
     }
 }
 
-void blueprint_helpers::parseUnitUsageOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
-    // Need to do char <-> UChar conversion...
+void blueprint_helpers::parseUnitUsageOption(const StringSegment &segment, MacroProps &macros,
+                                             UErrorCode &status) {
+    // Need to do char <-> char16_t conversion...
     U_ASSERT(U_SUCCESS(status));
     CharString buffer;
     SKELETON_UCHAR_TO_CHAR(buffer, segment.toTempUnicodeString(), 0, segment.length(), status);
@@ -1171,8 +1123,8 @@ void blueprint_helpers::parseUnitUsageOption(const StringSegment& segment, Macro
     // unitPreferenceData in the units resources.
 }
 
-void blueprint_helpers::parseFractionStem(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseFractionStem(const StringSegment& segment, MacroProps& macros,
+                                          UErrorCode& status) {
     U_ASSERT(segment.charAt(0) == u'.');
     int32_t offset = 1;
     int32_t minFrac = 0;
@@ -1218,8 +1170,8 @@ void blueprint_helpers::parseFractionStem(const StringSegment& segment, MacroPro
     }
 }
 
-void blueprint_helpers::generateFractionStem(int32_t minFrac, int32_t maxFrac, UnicodeString& sb, UErrorCode&)
-{
+void
+blueprint_helpers::generateFractionStem(int32_t minFrac, int32_t maxFrac, UnicodeString& sb, UErrorCode&) {
     if (minFrac == 0 && maxFrac == 0) {
         sb.append(u"precision-integer", -1);
         return;
@@ -1233,8 +1185,8 @@ void blueprint_helpers::generateFractionStem(int32_t minFrac, int32_t maxFrac, U
     }
 }
 
-void blueprint_helpers::parseDigitsStem(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void
+blueprint_helpers::parseDigitsStem(const StringSegment& segment, MacroProps& macros, UErrorCode& status) {
     U_ASSERT(segment.charAt(0) == u'@');
     int32_t offset = 0;
     int32_t minSig = 0;
@@ -1276,8 +1228,8 @@ void blueprint_helpers::parseDigitsStem(const StringSegment& segment, MacroProps
     }
 }
 
-void blueprint_helpers::generateDigitsStem(int32_t minSig, int32_t maxSig, UnicodeString& sb, UErrorCode&)
-{
+void
+blueprint_helpers::generateDigitsStem(int32_t minSig, int32_t maxSig, UnicodeString& sb, UErrorCode&) {
     appendMultiple(sb, u'@', minSig);
     if (maxSig == -1) {
         sb.append(kWildcardChar);
@@ -1286,8 +1238,7 @@ void blueprint_helpers::generateDigitsStem(int32_t minSig, int32_t maxSig, Unico
     }
 }
 
-void blueprint_helpers::parseScientificStem(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseScientificStem(const StringSegment& segment, MacroProps& macros, UErrorCode& status) {
     U_ASSERT(segment.charAt(0) == u'E');
     {
         int32_t offset = 1;
@@ -1328,19 +1279,18 @@ void blueprint_helpers::parseScientificStem(const StringSegment& segment, MacroP
             }
             minDigits++;
         }
-        macros.notation
-            = (isEngineering ? Notation::engineering() : Notation::scientific()).withExponentSignDisplay(signDisplay).withMinExponentDigits(minDigits);
+        macros.notation = (isEngineering ? Notation::engineering() : Notation::scientific())
+            .withExponentSignDisplay(signDisplay)
+            .withMinExponentDigits(minDigits);
         return;
     }
-fail:
-    void();
+    fail: void();
     // throw new SkeletonSyntaxException("Invalid scientific stem", segment);
     status = U_NUMBER_SKELETON_SYNTAX_ERROR;
     return;
 }
 
-void blueprint_helpers::parseIntegerStem(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseIntegerStem(const StringSegment& segment, MacroProps& macros, UErrorCode& status) {
     U_ASSERT(segment.charAt(0) == u'0');
     int32_t offset = 1;
     for (; offset < segment.length(); offset++) {
@@ -1358,8 +1308,8 @@ void blueprint_helpers::parseIntegerStem(const StringSegment& segment, MacroProp
     return;
 }
 
-bool blueprint_helpers::parseFracSigOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+bool blueprint_helpers::parseFracSigOption(const StringSegment& segment, MacroProps& macros,
+                                           UErrorCode& status) {
     if (segment.charAt(0) != u'@') {
         return false;
     }
@@ -1434,8 +1384,7 @@ bool blueprint_helpers::parseFracSigOption(const StringSegment& segment, MacroPr
     return true;
 }
 
-bool blueprint_helpers::parseTrailingZeroOption(const StringSegment& segment, MacroProps& macros, UErrorCode&)
-{
+bool blueprint_helpers::parseTrailingZeroOption(const StringSegment& segment, MacroProps& macros, UErrorCode&) {
     if (segment == u"w") {
         macros.precision = macros.precision.trailingZeroDisplay(UNUM_TRAILING_ZERO_HIDE_IF_WHOLE);
         return true;
@@ -1443,13 +1392,17 @@ bool blueprint_helpers::parseTrailingZeroOption(const StringSegment& segment, Ma
     return false;
 }
 
-void blueprint_helpers::parseIncrementOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseIncrementOption(const StringSegment &segment, MacroProps &macros,
+                                             UErrorCode &status) {
     number::impl::parseIncrementOption(segment, macros.precision, status);
 }
 
-void blueprint_helpers::generateIncrementOption(uint32_t increment, digits_t incrementMagnitude, int32_t minFrac, UnicodeString& sb, UErrorCode&)
-{
+void blueprint_helpers::generateIncrementOption(
+        uint32_t increment,
+        digits_t incrementMagnitude,
+        int32_t minFrac,
+        UnicodeString& sb,
+        UErrorCode&) {
     // Utilize DecimalQuantity/double_conversion to format this for us.
     DecimalQuantity dq;
     dq.setToLong(increment);
@@ -1458,8 +1411,8 @@ void blueprint_helpers::generateIncrementOption(uint32_t increment, digits_t inc
     sb.append(dq.toPlainString());
 }
 
-void blueprint_helpers::parseIntegerWidthOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
+void blueprint_helpers::parseIntegerWidthOption(const StringSegment& segment, MacroProps& macros,
+                                                UErrorCode& status) {
     int32_t offset = 0;
     int32_t minInt = 0;
     int32_t maxInt;
@@ -1501,8 +1454,8 @@ void blueprint_helpers::parseIntegerWidthOption(const StringSegment& segment, Ma
     }
 }
 
-void blueprint_helpers::generateIntegerWidthOption(int32_t minInt, int32_t maxInt, UnicodeString& sb, UErrorCode&)
-{
+void blueprint_helpers::generateIntegerWidthOption(int32_t minInt, int32_t maxInt, UnicodeString& sb,
+                                                   UErrorCode&) {
     if (maxInt == -1) {
         sb.append(kWildcardChar);
     } else {
@@ -1511,9 +1464,9 @@ void blueprint_helpers::generateIntegerWidthOption(int32_t minInt, int32_t maxIn
     appendMultiple(sb, u'0', minInt);
 }
 
-void blueprint_helpers::parseNumberingSystemOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
-    // Need to do char <-> UChar conversion...
+void blueprint_helpers::parseNumberingSystemOption(const StringSegment& segment, MacroProps& macros,
+                                                   UErrorCode& status) {
+    // Need to do char <-> char16_t conversion...
     U_ASSERT(U_SUCCESS(status));
     CharString buffer;
     SKELETON_UCHAR_TO_CHAR(buffer, segment.toTempUnicodeString(), 0, segment.length(), status);
@@ -1528,24 +1481,22 @@ void blueprint_helpers::parseNumberingSystemOption(const StringSegment& segment,
     macros.symbols.setTo(ns);
 }
 
-void blueprint_helpers::generateNumberingSystemOption(const NumberingSystem& ns, UnicodeString& sb, UErrorCode&)
-{
-    // Need to do char <-> UChar conversion...
+void blueprint_helpers::generateNumberingSystemOption(const NumberingSystem& ns, UnicodeString& sb,
+                                                      UErrorCode&) {
+    // Need to do char <-> char16_t conversion...
     sb.append(UnicodeString(ns.getName(), -1, US_INV));
 }
 
-void blueprint_helpers::parseScaleOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status)
-{
-    // Need to do char <-> UChar conversion...
+void blueprint_helpers::parseScaleOption(const StringSegment& segment, MacroProps& macros,
+                                              UErrorCode& status) {
+    // Need to do char <-> char16_t conversion...
     U_ASSERT(U_SUCCESS(status));
     CharString buffer;
     SKELETON_UCHAR_TO_CHAR(buffer, segment.toTempUnicodeString(), 0, segment.length(), status);
 
     LocalPointer<DecNum> decnum(new DecNum(), status);
-    if (U_FAILURE(status)) {
-        return;
-    }
-    decnum->setTo({ buffer.data(), buffer.length() }, status);
+    if (U_FAILURE(status)) { return; }
+    decnum->setTo({buffer.data(), buffer.length()}, status);
     if (U_FAILURE(status) || decnum->isSpecial()) {
         // This is a skeleton syntax error; don't let the low-level decnum error bubble up
         status = U_NUMBER_SKELETON_SYNTAX_ERROR;
@@ -1553,18 +1504,16 @@ void blueprint_helpers::parseScaleOption(const StringSegment& segment, MacroProp
     }
 
     // NOTE: The constructor will optimize the decnum for us if possible.
-    macros.scale = { 0, decnum.orphan() };
+    macros.scale = {0, decnum.orphan()};
 }
 
-void blueprint_helpers::generateScaleOption(int32_t magnitude, const DecNum* arbitrary, UnicodeString& sb, UErrorCode& status)
-{
+void blueprint_helpers::generateScaleOption(int32_t magnitude, const DecNum* arbitrary, UnicodeString& sb,
+                                            UErrorCode& status) {
     // Utilize DecimalQuantity/double_conversion to format this for us.
     DecimalQuantity dq;
     if (arbitrary != nullptr) {
         dq.setToDecNum(*arbitrary, status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
     } else {
         dq.setToInt(1);
     }
@@ -1573,8 +1522,8 @@ void blueprint_helpers::generateScaleOption(int32_t magnitude, const DecNum* arb
     sb.append(dq.toPlainString());
 }
 
-bool GeneratorHelpers::notation(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
+
+bool GeneratorHelpers::notation(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
     if (macros.notation.fType == Notation::NTN_COMPACT) {
         UNumberCompactStyle style = macros.notation.fUnion.compactStyle;
         if (style == UNumberCompactStyle::UNUM_LONG) {
@@ -1614,8 +1563,7 @@ bool GeneratorHelpers::notation(const MacroProps& macros, UnicodeString& sb, UEr
     }
 }
 
-bool GeneratorHelpers::unit(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
+bool GeneratorHelpers::unit(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
     MeasureUnit unit = macros.unit;
     if (!utils::unitIsBaseUnit(macros.perUnit)) {
         if (utils::unitIsCurrency(macros.unit) || utils::unitIsCurrency(macros.perUnit)) {
@@ -1649,8 +1597,7 @@ bool GeneratorHelpers::unit(const MacroProps& macros, UnicodeString& sb, UErrorC
     }
 }
 
-bool GeneratorHelpers::usage(const MacroProps& macros, UnicodeString& sb, UErrorCode& /* status */)
-{
+bool GeneratorHelpers::usage(const MacroProps& macros, UnicodeString& sb, UErrorCode& /* status */) {
     if (macros.usage.isSet()) {
         sb.append(u"usage/", -1);
         sb.append(UnicodeString(macros.usage.fValue, -1, US_INV));
@@ -1659,8 +1606,7 @@ bool GeneratorHelpers::usage(const MacroProps& macros, UnicodeString& sb, UError
     return false;
 }
 
-bool GeneratorHelpers::precision(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
+bool GeneratorHelpers::precision(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
     if (macros.precision.fType == Precision::RND_NONE) {
         sb.append(u"precision-unlimited", -1);
     } else if (macros.precision.fType == Precision::RND_FRACTION) {
@@ -1689,11 +1635,17 @@ bool GeneratorHelpers::precision(const MacroProps& macros, UnicodeString& sb, UE
                 sb.append(u's');
             }
         }
-    } else if (macros.precision.fType == Precision::RND_INCREMENT || macros.precision.fType == Precision::RND_INCREMENT_ONE
-        || macros.precision.fType == Precision::RND_INCREMENT_FIVE) {
+    } else if (macros.precision.fType == Precision::RND_INCREMENT
+            || macros.precision.fType == Precision::RND_INCREMENT_ONE
+            || macros.precision.fType == Precision::RND_INCREMENT_FIVE) {
         const Precision::IncrementSettings& impl = macros.precision.fUnion.increment;
         sb.append(u"precision-increment/", -1);
-        blueprint_helpers::generateIncrementOption(impl.fIncrement, impl.fIncrementMagnitude, impl.fMinFrac, sb, status);
+        blueprint_helpers::generateIncrementOption(
+                impl.fIncrement,
+                impl.fIncrementMagnitude,
+                impl.fMinFrac,
+                sb,
+                status);
     } else if (macros.precision.fType == Precision::RND_CURRENCY) {
         UCurrencyUsage usage = macros.precision.fUnion.currencyUsage;
         if (usage == UCURR_USAGE_STANDARD) {
@@ -1714,8 +1666,7 @@ bool GeneratorHelpers::precision(const MacroProps& macros, UnicodeString& sb, UE
     return true;
 }
 
-bool GeneratorHelpers::roundingMode(const MacroProps& macros, UnicodeString& sb, UErrorCode&)
-{
+bool GeneratorHelpers::roundingMode(const MacroProps& macros, UnicodeString& sb, UErrorCode&) {
     if (macros.roundingMode == kDefaultMode) {
         return false; // Default
     }
@@ -1723,8 +1674,7 @@ bool GeneratorHelpers::roundingMode(const MacroProps& macros, UnicodeString& sb,
     return true;
 }
 
-bool GeneratorHelpers::grouping(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
+bool GeneratorHelpers::grouping(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
     if (macros.grouper.isBogus()) {
         return false; // No value
     } else if (macros.grouper.fStrategy == UNUM_GROUPING_COUNT) {
@@ -1738,9 +1688,9 @@ bool GeneratorHelpers::grouping(const MacroProps& macros, UnicodeString& sb, UEr
     }
 }
 
-bool GeneratorHelpers::integerWidth(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
-    if (macros.integerWidth.fHasError || macros.integerWidth.isBogus() || macros.integerWidth == IntegerWidth::standard()) {
+bool GeneratorHelpers::integerWidth(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
+    if (macros.integerWidth.fHasError || macros.integerWidth.isBogus() ||
+        macros.integerWidth == IntegerWidth::standard()) {
         // Error or Default
         return false;
     }
@@ -1750,12 +1700,15 @@ bool GeneratorHelpers::integerWidth(const MacroProps& macros, UnicodeString& sb,
         return true;
     }
     sb.append(u"integer-width/", -1);
-    blueprint_helpers::generateIntegerWidthOption(minMaxInt.fMinInt, minMaxInt.fMaxInt, sb, status);
+    blueprint_helpers::generateIntegerWidthOption(
+            minMaxInt.fMinInt,
+            minMaxInt.fMaxInt,
+            sb,
+            status);
     return true;
 }
 
-bool GeneratorHelpers::symbols(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
+bool GeneratorHelpers::symbols(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
     if (macros.symbols.isNumberingSystem()) {
         const NumberingSystem& ns = *macros.symbols.getNumberingSystem();
         if (uprv_strcmp(ns.getName(), "latn") == 0) {
@@ -1774,8 +1727,7 @@ bool GeneratorHelpers::symbols(const MacroProps& macros, UnicodeString& sb, UErr
     }
 }
 
-bool GeneratorHelpers::unitWidth(const MacroProps& macros, UnicodeString& sb, UErrorCode&)
-{
+bool GeneratorHelpers::unitWidth(const MacroProps& macros, UnicodeString& sb, UErrorCode&) {
     if (macros.unitWidth == UNUM_UNIT_WIDTH_SHORT || macros.unitWidth == UNUM_UNIT_WIDTH_COUNT) {
         return false; // Default or Bogus
     }
@@ -1783,8 +1735,7 @@ bool GeneratorHelpers::unitWidth(const MacroProps& macros, UnicodeString& sb, UE
     return true;
 }
 
-bool GeneratorHelpers::sign(const MacroProps& macros, UnicodeString& sb, UErrorCode&)
-{
+bool GeneratorHelpers::sign(const MacroProps& macros, UnicodeString& sb, UErrorCode&) {
     if (macros.sign == UNUM_SIGN_AUTO || macros.sign == UNUM_SIGN_COUNT) {
         return false; // Default or Bogus
     }
@@ -1792,8 +1743,7 @@ bool GeneratorHelpers::sign(const MacroProps& macros, UnicodeString& sb, UErrorC
     return true;
 }
 
-bool GeneratorHelpers::decimal(const MacroProps& macros, UnicodeString& sb, UErrorCode&)
-{
+bool GeneratorHelpers::decimal(const MacroProps& macros, UnicodeString& sb, UErrorCode&) {
     if (macros.decimal == UNUM_DECIMAL_SEPARATOR_AUTO || macros.decimal == UNUM_DECIMAL_SEPARATOR_COUNT) {
         return false; // Default or Bogus
     }
@@ -1801,15 +1751,19 @@ bool GeneratorHelpers::decimal(const MacroProps& macros, UnicodeString& sb, UErr
     return true;
 }
 
-bool GeneratorHelpers::scale(const MacroProps& macros, UnicodeString& sb, UErrorCode& status)
-{
+bool GeneratorHelpers::scale(const MacroProps& macros, UnicodeString& sb, UErrorCode& status) {
     if (!macros.scale.isValid()) {
         return false; // Default or Bogus
     }
     sb.append(u"scale/", -1);
-    blueprint_helpers::generateScaleOption(macros.scale.fMagnitude, macros.scale.fArbitrary, sb, status);
+    blueprint_helpers::generateScaleOption(
+            macros.scale.fMagnitude,
+            macros.scale.fArbitrary,
+            sb,
+            status);
     return true;
 }
+
 
 // Definitions of public API methods (put here for dependency disentanglement)
 
@@ -1820,11 +1774,11 @@ bool GeneratorHelpers::scale(const MacroProps& macros, UnicodeString& sb, UError
 // fully defined. However, since each translation unit explicitly instantiates all the necessary template classes,
 // they will all be passed to the linker, and the linker will still find and export all the class members.
 #pragma warning(push)
-#pragma warning(disable : 4661)
+#pragma warning(disable: 4661)
 #endif
 
-template <typename Derived> UnicodeString NumberFormatterSettings<Derived>::toSkeleton(UErrorCode& status) const
-{
+template<typename Derived>
+UnicodeString NumberFormatterSettings<Derived>::toSkeleton(UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return ICU_Utility::makeBogusString();
     }
@@ -1836,16 +1790,18 @@ template <typename Derived> UnicodeString NumberFormatterSettings<Derived>::toSk
 
 // Declare all classes that implement NumberFormatterSettings
 // See https://stackoverflow.com/a/495056/1407170
-template class icu::number::NumberFormatterSettings<icu::number::UnlocalizedNumberFormatter>;
-template class icu::number::NumberFormatterSettings<icu::number::LocalizedNumberFormatter>;
+template
+class icu::number::NumberFormatterSettings<icu::number::UnlocalizedNumberFormatter>;
+template
+class icu::number::NumberFormatterSettings<icu::number::LocalizedNumberFormatter>;
 
-UnlocalizedNumberFormatter NumberFormatter::forSkeleton(const UnicodeString& skeleton, UErrorCode& status)
-{
+UnlocalizedNumberFormatter
+NumberFormatter::forSkeleton(const UnicodeString& skeleton, UErrorCode& status) {
     return skeleton::create(skeleton, nullptr, status);
 }
 
-UnlocalizedNumberFormatter NumberFormatter::forSkeleton(const UnicodeString& skeleton, UParseError& perror, UErrorCode& status)
-{
+UnlocalizedNumberFormatter
+NumberFormatter::forSkeleton(const UnicodeString& skeleton, UParseError& perror, UErrorCode& status) {
     return skeleton::create(skeleton, &perror, status);
 }
 

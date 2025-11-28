@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -33,37 +33,37 @@ typedef enum UTimeZoneNameType {
      * Unknown display name type.
      * @stable ICU 50
      */
-    UTZNM_UNKNOWN = 0x00,
+    UTZNM_UNKNOWN           = 0x00,
     /**
      * Long display name, such as "Eastern Time".
      * @stable ICU 50
      */
-    UTZNM_LONG_GENERIC = 0x01,
+    UTZNM_LONG_GENERIC      = 0x01,
     /**
      * Long display name for standard time, such as "Eastern Standard Time".
      * @stable ICU 50
      */
-    UTZNM_LONG_STANDARD = 0x02,
+    UTZNM_LONG_STANDARD     = 0x02,
     /**
      * Long display name for daylight saving time, such as "Eastern Daylight Time".
      * @stable ICU 50
      */
-    UTZNM_LONG_DAYLIGHT = 0x04,
+    UTZNM_LONG_DAYLIGHT     = 0x04,
     /**
      * Short display name, such as "ET".
      * @stable ICU 50
      */
-    UTZNM_SHORT_GENERIC = 0x08,
+    UTZNM_SHORT_GENERIC     = 0x08,
     /**
      * Short display name for standard time, such as "EST".
      * @stable ICU 50
      */
-    UTZNM_SHORT_STANDARD = 0x10,
+    UTZNM_SHORT_STANDARD    = 0x10,
     /**
      * Short display name for daylight saving time, such as "EDT".
      * @stable ICU 50
      */
-    UTZNM_SHORT_DAYLIGHT = 0x20,
+    UTZNM_SHORT_DAYLIGHT    = 0x20,
     /**
      * Exemplar location name, such as "Los Angeles".
      * @stable ICU 51
@@ -151,10 +151,7 @@ public:
      * @return Return true if the given Format objects are not semantically equal.
      * @stable ICU 50
      */
-    bool operator!=(const TimeZoneNames& other) const
-    {
-        return !operator==(other);
-    }
+    bool operator!=(const TimeZoneNames& other) const { return !operator==(other); }
 
     /**
      * Clone this object polymorphically.  The caller is responsible
@@ -184,7 +181,7 @@ public:
      * all other regions). The zone names returned by this instance are not localized.
      * @stable ICU 54
      */
-    static TimeZoneNames* U_EXPORT2 createTZDBInstance(const Locale& locale, UErrorCode& status);
+     static TimeZoneNames* U_EXPORT2 createTZDBInstance(const Locale& locale, UErrorCode& status);
 
     /**
      * Returns an enumeration of all available meta zone IDs.
@@ -303,8 +300,7 @@ public:
     /**
      * @internal ICU internal only, for specific users only until proposed publicly.
      */
-    virtual void getDisplayNames(
-        const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const;
+    virtual void getDisplayNames(const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const;
 
     /**
      * <code>MatchInfoCollection</code> represents a collection of time zone name matches used by
@@ -333,7 +329,8 @@ public:
          * @param status Receives the status
          * @internal
          */
-        void addZone(UTimeZoneNameType nameType, int32_t matchLength, const UnicodeString& tzID, UErrorCode& status);
+        void addZone(UTimeZoneNameType nameType, int32_t matchLength,
+            const UnicodeString& tzID, UErrorCode& status);
 
         /**
          * Adds a meata zone match.
@@ -343,7 +340,8 @@ public:
          * @param status Receives the status
          * @internal
          */
-        void addMetaZone(UTimeZoneNameType nameType, int32_t matchLength, const UnicodeString& mzID, UErrorCode& status);
+        void addMetaZone(UTimeZoneNameType nameType, int32_t matchLength,
+            const UnicodeString& mzID, UErrorCode& status);
 
         /**
          * Returns the number of entries available in this object.
@@ -388,10 +386,10 @@ public:
          * @internal
          */
         UBool getMetaZoneIDAt(int32_t idx, UnicodeString& mzID) const;
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
     private:
-        UVector* fMatches; // vector of MatchEntry
+        UVector* fMatches;  // vector of MatchEntry
 
         UVector* matches(UErrorCode& status);
     };
@@ -404,7 +402,7 @@ public:
      * @param types The set of name types represented by bitwise flags of UTimeZoneNameType enums,
      *              or UTZNM_UNKNOWN for all name types.
      * @param status Receives the status.
-     * @return A collection of matches (owned by the caller), or NULL if no matches are found.
+     * @return A collection of matches (owned by the caller), or nullptr if no matches are found.
      * @see UTimeZoneNameType
      * @see MatchInfoCollection
      * @internal

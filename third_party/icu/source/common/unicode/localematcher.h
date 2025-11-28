@@ -1,4 +1,4 @@
-﻿// © 2019 and later: Unicode, Inc. and others.
+// © 2019 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // localematcher.h
@@ -198,7 +198,7 @@ public:
          * @param src Result to move contents from.
          * @stable ICU 65
          */
-        Result(Result&& src) U_NOEXCEPT;
+        Result(Result &&src) noexcept;
 
         /**
          * Destructor.
@@ -214,7 +214,7 @@ public:
          * @param src Result to move contents from.
          * @stable ICU 65
          */
-        Result& operator=(Result&& src) U_NOEXCEPT;
+        Result &operator=(Result &&src) noexcept;
 
         /**
          * Returns the best-matching desired locale.
@@ -223,10 +223,7 @@ public:
          * @return the best-matching desired locale, or nullptr.
          * @stable ICU 65
          */
-        inline const Locale* getDesiredLocale() const
-        {
-            return desiredLocale;
-        }
+        inline const Locale *getDesiredLocale() const { return desiredLocale; }
 
         /**
          * Returns the best-matching supported locale.
@@ -237,10 +234,7 @@ public:
          * @return the best-matching supported locale, or nullptr.
          * @stable ICU 65
          */
-        inline const Locale* getSupportedLocale() const
-        {
-            return supportedLocale;
-        }
+        inline const Locale *getSupportedLocale() const { return supportedLocale; }
 
         /**
          * Returns the index of the best-matching desired locale in the input Iterable order.
@@ -249,10 +243,7 @@ public:
          * @return the index of the best-matching desired locale, or -1.
          * @stable ICU 65
          */
-        inline int32_t getDesiredIndex() const
-        {
-            return desiredIndex;
-        }
+        inline int32_t getDesiredIndex() const { return desiredIndex; }
 
         /**
          * Returns the index of the best-matching supported locale in the
@@ -264,10 +255,7 @@ public:
          * @return the index of the best-matching supported locale, or -1.
          * @stable ICU 65
          */
-        inline int32_t getSupportedIndex() const
-        {
-            return supportedIndex;
-        }
+        inline int32_t getSupportedIndex() const { return supportedIndex; }
 
         /**
          * Takes the best-matching supported locale and adds relevant fields of the
@@ -281,23 +269,20 @@ public:
          * @return a locale combining the best-matching desired and supported locales.
          * @stable ICU 65
          */
-        Locale makeResolvedLocale(UErrorCode& errorCode) const;
+        Locale makeResolvedLocale(UErrorCode &errorCode) const;
 
     private:
-        Result(const Locale* desired, const Locale* supported, int32_t desIndex, int32_t suppIndex, UBool owned)
-            : desiredLocale(desired)
-            , supportedLocale(supported)
-            , desiredIndex(desIndex)
-            , supportedIndex(suppIndex)
-            , desiredIsOwned(owned)
-        {
-        }
+        Result(const Locale *desired, const Locale *supported,
+               int32_t desIndex, int32_t suppIndex, UBool owned) :
+                desiredLocale(desired), supportedLocale(supported),
+                desiredIndex(desIndex), supportedIndex(suppIndex),
+                desiredIsOwned(owned) {}
 
-        Result(const Result& other) = delete;
-        Result& operator=(const Result& other) = delete;
+        Result(const Result &other) = delete;
+        Result &operator=(const Result &other) = delete;
 
-        const Locale* desiredLocale;
-        const Locale* supportedLocale;
+        const Locale *desiredLocale;
+        const Locale *supportedLocale;
         int32_t desiredIndex;
         int32_t supportedIndex;
         UBool desiredIsOwned;
@@ -319,9 +304,7 @@ public:
          * @return a new Builder object
          * @stable ICU 65
          */
-        Builder()
-        {
-        }
+        Builder() {}
 
         /**
          * Move constructor; might modify the source.
@@ -330,7 +313,7 @@ public:
          * @param src Builder to move contents from.
          * @stable ICU 65
          */
-        Builder(Builder&& src) U_NOEXCEPT;
+        Builder(Builder &&src) noexcept;
 
         /**
          * Destructor.
@@ -346,7 +329,7 @@ public:
          * @param src Builder to move contents from.
          * @stable ICU 65
          */
-        Builder& operator=(Builder&& src) U_NOEXCEPT;
+        Builder &operator=(Builder &&src) noexcept;
 
         /**
          * Parses an Accept-Language string
@@ -359,7 +342,7 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        Builder& setSupportedLocalesFromListString(StringPiece locales);
+        Builder &setSupportedLocalesFromListString(StringPiece locales);
 
         /**
          * Copies the supported locales, preserving iteration order.
@@ -370,7 +353,7 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        Builder& setSupportedLocales(Locale::Iterator& locales);
+        Builder &setSupportedLocales(Locale::Iterator &locales);
 
         /**
          * Copies the supported locales from the begin/end range, preserving iteration order.
@@ -385,11 +368,9 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        template <typename Iter> Builder& setSupportedLocales(Iter begin, Iter end)
-        {
-            if (U_FAILURE(errorCode_)) {
-                return *this;
-            }
+        template<typename Iter>
+        Builder &setSupportedLocales(Iter begin, Iter end) {
+            if (U_FAILURE(errorCode_)) { return *this; }
             clearSupportedLocales();
             while (begin != end) {
                 addSupportedLocale(*begin++);
@@ -412,11 +393,9 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        template <typename Iter, typename Conv> Builder& setSupportedLocalesViaConverter(Iter begin, Iter end, Conv converter)
-        {
-            if (U_FAILURE(errorCode_)) {
-                return *this;
-            }
+        template<typename Iter, typename Conv>
+        Builder &setSupportedLocalesViaConverter(Iter begin, Iter end, Conv converter) {
+            if (U_FAILURE(errorCode_)) { return *this; }
             clearSupportedLocales();
             while (begin != end) {
                 addSupportedLocale(converter(*begin++));
@@ -432,7 +411,7 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        Builder& addSupportedLocale(const Locale& locale);
+        Builder &addSupportedLocale(const Locale &locale);
 
         /**
          * Sets no default locale.
@@ -442,7 +421,7 @@ public:
          *
          * @stable ICU 68
          */
-        Builder& setNoDefaultLocale();
+        Builder &setNoDefaultLocale();
 
         /**
          * Sets the default locale; if nullptr, or if it is not set explicitly,
@@ -454,7 +433,7 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        Builder& setDefaultLocale(const Locale* defaultLocale);
+        Builder &setDefaultLocale(const Locale *defaultLocale);
 
         /**
          * If ULOCMATCH_FAVOR_SCRIPT, then the language differences are smaller than script
@@ -466,7 +445,7 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        Builder& setFavorSubtag(ULocMatchFavorSubtag subtag);
+        Builder &setFavorSubtag(ULocMatchFavorSubtag subtag);
 
         /**
          * Option for whether all desired locales are treated equally or
@@ -476,7 +455,7 @@ public:
          * @return this Builder object
          * @stable ICU 65
          */
-        Builder& setDemotionPerDesiredLocale(ULocMatchDemotion demotion);
+        Builder &setDemotionPerDesiredLocale(ULocMatchDemotion demotion);
 
         /**
          * Option for whether to include or ignore one-way (fallback) match data.
@@ -486,8 +465,7 @@ public:
          * @return this Builder object
          * @stable ICU 67
          */
-        Builder& setDirection(ULocMatchDirection matchDirection)
-        {
+        Builder &setDirection(ULocMatchDirection matchDirection) {
             if (U_SUCCESS(errorCode_)) {
                 direction_ = matchDirection;
             }
@@ -515,7 +493,7 @@ public:
          * @return this Builder object
          * @stable ICU 68
          */
-        Builder& setMaxDistance(const Locale& desired, const Locale& supported);
+        Builder &setMaxDistance(const Locale &desired, const Locale &supported);
 
         /**
          * Sets the UErrorCode if an error occurred while setting parameters.
@@ -527,7 +505,7 @@ public:
          * @return true if U_FAILURE(outErrorCode)
          * @stable ICU 65
          */
-        UBool copyErrorTo(UErrorCode& outErrorCode) const;
+        UBool copyErrorTo(UErrorCode &outErrorCode) const;
 
         /**
          * Builds and returns a new locale matcher.
@@ -539,27 +517,27 @@ public:
          * @return LocaleMatcher
          * @stable ICU 65
          */
-        LocaleMatcher build(UErrorCode& errorCode) const;
+        LocaleMatcher build(UErrorCode &errorCode) const;
 
     private:
         friend class LocaleMatcher;
 
-        Builder(const Builder& other) = delete;
-        Builder& operator=(const Builder& other) = delete;
+        Builder(const Builder &other) = delete;
+        Builder &operator=(const Builder &other) = delete;
 
         void clearSupportedLocales();
         bool ensureSupportedLocaleVector();
 
         UErrorCode errorCode_ = U_ZERO_ERROR;
-        UVector* supportedLocales_ = nullptr;
+        UVector *supportedLocales_ = nullptr;
         int32_t thresholdDistance_ = -1;
         ULocMatchDemotion demotion_ = ULOCMATCH_DEMOTION_REGION;
-        Locale* defaultLocale_ = nullptr;
+        Locale *defaultLocale_ = nullptr;
         bool withDefault_ = true;
         ULocMatchFavorSubtag favor_ = ULOCMATCH_FAVOR_LANGUAGE;
         ULocMatchDirection direction_ = ULOCMATCH_DIRECTION_WITH_ONE_WAY;
-        Locale* maxDistanceDesired_ = nullptr;
-        Locale* maxDistanceSupported_ = nullptr;
+        Locale *maxDistanceDesired_ = nullptr;
+        Locale *maxDistanceSupported_ = nullptr;
     };
 
     // FYI No public LocaleMatcher constructors in C++; use the Builder.
@@ -570,7 +548,7 @@ public:
      * @param src source matcher
      * @stable ICU 65
      */
-    LocaleMatcher(LocaleMatcher&& src) U_NOEXCEPT;
+    LocaleMatcher(LocaleMatcher &&src) noexcept;
 
     /**
      * Destructor.
@@ -586,7 +564,7 @@ public:
      * @return *this
      * @stable ICU 65
      */
-    LocaleMatcher& operator=(LocaleMatcher&& src) U_NOEXCEPT;
+    LocaleMatcher &operator=(LocaleMatcher &&src) noexcept;
 
     /**
      * Returns the supported locale which best matches the desired locale.
@@ -598,7 +576,7 @@ public:
      * @return the best-matching supported locale.
      * @stable ICU 65
      */
-    const Locale* getBestMatch(const Locale& desiredLocale, UErrorCode& errorCode) const;
+    const Locale *getBestMatch(const Locale &desiredLocale, UErrorCode &errorCode) const;
 
     /**
      * Returns the supported locale which best matches one of the desired locales.
@@ -610,7 +588,7 @@ public:
      * @return the best-matching supported locale.
      * @stable ICU 65
      */
-    const Locale* getBestMatch(Locale::Iterator& desiredLocales, UErrorCode& errorCode) const;
+    const Locale *getBestMatch(Locale::Iterator &desiredLocales, UErrorCode &errorCode) const;
 
     /**
      * Parses an Accept-Language string
@@ -626,7 +604,7 @@ public:
      * @return the best-matching supported locale.
      * @stable ICU 65
      */
-    const Locale* getBestMatchForListString(StringPiece desiredLocaleList, UErrorCode& errorCode) const;
+    const Locale *getBestMatchForListString(StringPiece desiredLocaleList, UErrorCode &errorCode) const;
 
     /**
      * Returns the best match between the desired locale and the supported locales.
@@ -640,7 +618,7 @@ public:
      * @return the best-matching pair of the desired and a supported locale.
      * @stable ICU 65
      */
-    Result getBestMatchResult(const Locale& desiredLocale, UErrorCode& errorCode) const;
+    Result getBestMatchResult(const Locale &desiredLocale, UErrorCode &errorCode) const;
 
     /**
      * Returns the best match between the desired and supported locales.
@@ -654,7 +632,7 @@ public:
      * @return the best-matching pair of a desired and a supported locale.
      * @stable ICU 65
      */
-    Result getBestMatchResult(Locale::Iterator& desiredLocales, UErrorCode& errorCode) const;
+    Result getBestMatchResult(Locale::Iterator &desiredLocales, UErrorCode &errorCode) const;
 
     /**
      * Returns true if the pair of locales matches acceptably.
@@ -669,7 +647,7 @@ public:
      * @return true if the pair of locales matches acceptably.
      * @stable ICU 68
      */
-    UBool isMatch(const Locale& desired, const Locale& supported, UErrorCode& errorCode) const;
+    UBool isMatch(const Locale &desired, const Locale &supported, UErrorCode &errorCode) const;
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -690,41 +668,41 @@ public:
      * @return value between 0 and 1, inclusive.
      * @internal (has a known user)
      */
-    double internalMatch(const Locale& desired, const Locale& supported, UErrorCode& errorCode) const;
-#endif // U_HIDE_INTERNAL_API
+    double internalMatch(const Locale &desired, const Locale &supported, UErrorCode &errorCode) const;
+#endif  // U_HIDE_INTERNAL_API
 
 private:
-    LocaleMatcher(const Builder& builder, UErrorCode& errorCode);
-    LocaleMatcher(const LocaleMatcher& other) = delete;
-    LocaleMatcher& operator=(const LocaleMatcher& other) = delete;
+    LocaleMatcher(const Builder &builder, UErrorCode &errorCode);
+    LocaleMatcher(const LocaleMatcher &other) = delete;
+    LocaleMatcher &operator=(const LocaleMatcher &other) = delete;
 
-    int32_t putIfAbsent(const LSR& lsr, int32_t i, int32_t suppLength, UErrorCode& errorCode);
+    int32_t putIfAbsent(const LSR &lsr, int32_t i, int32_t suppLength, UErrorCode &errorCode);
 
-    int32_t getBestSuppIndex(LSR desiredLSR, LocaleLsrIterator* remainingIter, UErrorCode& errorCode) const;
+    int32_t getBestSuppIndex(LSR desiredLSR, LocaleLsrIterator *remainingIter, UErrorCode &errorCode) const;
 
-    const XLikelySubtags& likelySubtags;
-    const LocaleDistance& localeDistance;
+    const XLikelySubtags &likelySubtags;
+    const LocaleDistance &localeDistance;
     int32_t thresholdDistance;
     int32_t demotionPerDesiredLocale;
     ULocMatchFavorSubtag favorSubtag;
     ULocMatchDirection direction;
 
     // These are in input order.
-    const Locale** supportedLocales;
-    LSR* lsrs;
+    const Locale ** supportedLocales;
+    LSR *lsrs;
     int32_t supportedLocalesLength;
     // These are in preference order: 1. Default locale 2. paradigm locales 3. others.
-    UHashtable* supportedLsrToIndex; // Map<LSR, Integer>
+    UHashtable *supportedLsrToIndex;  // Map<LSR, Integer>
     // Array versions of the supportedLsrToIndex keys and values.
     // The distance lookup loops over the supportedLSRs and returns the index of the best match.
-    const LSR** supportedLSRs;
-    int32_t* supportedIndexes;
+    const LSR **supportedLSRs;
+    int32_t *supportedIndexes;
     int32_t supportedLSRsLength;
-    Locale* ownedDefaultLocale;
-    const Locale* defaultLocale;
+    Locale *ownedDefaultLocale;
+    const Locale *defaultLocale;
 };
 
 U_NAMESPACE_END
 
-#endif // U_SHOW_CPLUSPLUS_API
-#endif // __LOCALEMATCHER_H__
+#endif  // U_SHOW_CPLUSPLUS_API
+#endif  // __LOCALEMATCHER_H__

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -37,72 +37,55 @@ protected:
     NFRule** fStuff;
     uint32_t fCount;
     uint32_t fCapacity;
-
 public:
-    NFRuleList(uint32_t capacity = 10)
-        : fStuff(capacity ? (NFRule**)uprv_malloc(capacity * sizeof(NFRule*)) : NULL)
+    NFRuleList(uint32_t capacity = 10) 
+        : fStuff(capacity ? (NFRule**)uprv_malloc(capacity * sizeof(NFRule*)) : nullptr)
         , fCount(0)
-        , fCapacity(capacity)
-    {
-    }
-    ~NFRuleList()
-    {
+        , fCapacity(capacity) {}
+    ~NFRuleList() {
         if (fStuff) {
-            for (uint32_t i = 0; i < fCount; ++i) {
+            for(uint32_t i = 0; i < fCount; ++i) {
                 delete fStuff[i];
             }
             uprv_free(fStuff);
         }
     }
-    NFRule* operator[](uint32_t index) const
-    {
-        return fStuff != NULL ? fStuff[index] : NULL;
-    }
-    NFRule* remove(uint32_t index)
-    {
-        if (fStuff == NULL) {
-            return NULL;
-        }
+    NFRule* operator[](uint32_t index) const { return fStuff != nullptr ? fStuff[index] : nullptr; }
+    NFRule* remove(uint32_t index) {
+    	if (fStuff == nullptr) {
+    		return nullptr;
+    	}
         NFRule* result = fStuff[index];
         fCount -= 1;
         for (uint32_t i = index; i < fCount; ++i) { // assumes small arrays
-            fStuff[i] = fStuff[i + 1];
+            fStuff[i] = fStuff[i+1];
         }
         return result;
     }
-    void add(NFRule* thing)
-    {
+    void add(NFRule* thing) {
         if (fCount == fCapacity) {
             fCapacity += 10;
             fStuff = (NFRule**)uprv_realloc(fStuff, fCapacity * sizeof(NFRule*)); // assume success
         }
-        if (fStuff != NULL) {
-            fStuff[fCount++] = thing;
+        if (fStuff != nullptr) {
+        	fStuff[fCount++] = thing;
         } else {
-            fCapacity = 0;
-            fCount = 0;
+        	fCapacity = 0;
+        	fCount = 0;
         }
     }
-    uint32_t size() const
-    {
-        return fCount;
-    }
-    NFRule* last() const
-    {
-        return (fCount > 0 && fStuff != NULL) ? fStuff[fCount - 1] : NULL;
-    }
-    NFRule** release()
-    {
-        add(NULL); // ensure null termination
+    uint32_t size() const { return fCount; }
+    NFRule* last() const { return (fCount > 0 && fStuff != nullptr) ? fStuff[fCount-1] : nullptr; }
+    NFRule** release() {
+        add(nullptr); // ensure null termination
         NFRule** result = fStuff;
-        fStuff = NULL;
+        fStuff = nullptr;
         fCount = 0;
         fCapacity = 0;
         return result;
     }
-    void deleteAll()
-    {
-        NFRule** tmp = NULL;
+    void deleteAll() {
+        NFRule** tmp = nullptr;
         int32_t size = fCount;
         if (size > 0) {
             tmp = release();
@@ -116,8 +99,8 @@ public:
     }
 
 private:
-    NFRuleList(const NFRuleList& other); // forbid copying of this class
-    NFRuleList& operator=(const NFRuleList& other); // forbid copying of this class
+    NFRuleList(const NFRuleList &other); // forbid copying of this class
+    NFRuleList &operator=(const NFRuleList &other); // forbid copying of this class
 };
 
 U_NAMESPACE_END

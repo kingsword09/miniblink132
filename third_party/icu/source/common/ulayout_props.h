@@ -1,4 +1,4 @@
-﻿// © 2019 and later: Unicode, Inc. and others.
+// © 2019 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // ulayout_props.h
@@ -43,4 +43,4 @@ constexpr int32_t ULAYOUT_MAX_INPC_SHIFT = 24;
 constexpr int32_t ULAYOUT_MAX_INSC_SHIFT = 16;
 constexpr int32_t ULAYOUT_MAX_VO_SHIFT = 8;
 
-#endif // __ULAYOUT_PROPS_H__
+#endif  // __ULAYOUT_PROPS_H__

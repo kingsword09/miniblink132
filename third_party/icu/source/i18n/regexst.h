@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 //  regexst.h
@@ -29,28 +29,32 @@
 
 U_NAMESPACE_BEGIN
 
-class UnicodeSet;
+class  UnicodeSet;
+
 
 class RegexStaticSets : public UMemory {
 public:
-    static RegexStaticSets* gStaticSets; // Ptr to all lazily initialized constant
-        //   shared sets.
+    static RegexStaticSets *gStaticSets;  // Ptr to all lazily initialized constant
+                                          //   shared sets.
 
-    RegexStaticSets(UErrorCode* status);
+    RegexStaticSets(UErrorCode *status);         
     ~RegexStaticSets();
-    static void initGlobals(UErrorCode* status);
+    static void    initGlobals(UErrorCode *status);
 
-    UnicodeSet fPropSets[URX_LAST_SET] {}; // The sets for common regex items, e.g. \s
-    Regex8BitSet fPropSets8[URX_LAST_SET] {}; // Fast bitmap sets for latin-1 range for above.
+    UnicodeSet    fPropSets[URX_LAST_SET] {};      // The sets for common regex items, e.g. \s
+    Regex8BitSet  fPropSets8[URX_LAST_SET] {};     // Fast bitmap sets for latin-1 range for above.
 
-    UnicodeSet fRuleSets[kRuleSet_count] {}; // Sets used while parsing regexp patterns.
-    UnicodeSet fUnescapeCharSet {}; // Set of chars handled by unescape when
-        //   encountered with a \ in a pattern.
-    UnicodeSet* fRuleDigitsAlias {};
-    UText* fEmptyText {}; // An empty string, to be used when a matcher
-        //   is created with no input.
+    UnicodeSet    fRuleSets[kRuleSet_count] {};    // Sets used while parsing regexp patterns.
+    UnicodeSet    fUnescapeCharSet {};             // Set of chars handled by unescape when
+                                                   //   encountered with a \ in a pattern.
+    UnicodeSet    *fRuleDigitsAlias {};
+    UText         *fEmptyText {};                  // An empty string, to be used when a matcher
+                                                   //   is created with no input.
+
 };
 
+
 U_NAMESPACE_END
-#endif // !UCONFIG_NO_REGULAR_EXPRESSIONS
-#endif // REGEXST_H
+#endif   // !UCONFIG_NO_REGULAR_EXPRESSIONS
+#endif   // REGEXST_H
+

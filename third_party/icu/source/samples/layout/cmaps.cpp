@@ -1,4 +1,4 @@
-﻿/*
+/*
  *******************************************************************************
  *
  *   © 2016 and later: Unicode, Inc. and others.
@@ -23,8 +23,8 @@
 #include "sfnt.h"
 #include "cmaps.h"
 
-#define SWAPU16(code) ((LEUnicode16)SWAPW(code))
-#define SWAPU32(code) ((LEUnicode32)SWAPL(code))
+#define SWAPU16(code) ((LEUnicode16) SWAPW(code))
+#define SWAPU32(code) ((LEUnicode32) SWAPL(code))
 
 //
 // Finds the high bit by binary searching
@@ -62,15 +62,15 @@ le_uint8 highBit(le_uint32 value)
     return bit;
 }
 
-CMAPMapper* CMAPMapper::createUnicodeMapper(const CMAPTable* cmap)
+CMAPMapper *CMAPMapper::createUnicodeMapper(const CMAPTable *cmap)
 {
     le_uint16 i;
     le_uint16 nSubtables = SWAPW(cmap->numberSubtables);
-    const CMAPEncodingSubtable* subtable = NULL;
+    const CMAPEncodingSubtable *subtable = nullptr;
     le_uint32 offset1 = 0, offset10 = 0;
 
     for (i = 0; i < nSubtables; i += 1) {
-        const CMAPEncodingSubtableHeader* esh = &cmap->encodingSubtableHeaders[i];
+        const CMAPEncodingSubtableHeader *esh = &cmap->encodingSubtableHeaders[i];
 
         if (SWAPW(esh->platformID) == 3) {
             switch (SWAPW(esh->platformSpecificID)) {
@@ -85,20 +85,23 @@ CMAPMapper* CMAPMapper::createUnicodeMapper(const CMAPTable* cmap)
         }
     }
 
-    if (offset10 != 0) {
-        subtable = (const CMAPEncodingSubtable*)((const char*)cmap + offset10);
+
+    if (offset10 != 0)
+    {
+        subtable = (const CMAPEncodingSubtable *) ((const char *) cmap + offset10);
     } else if (offset1 != 0) {
-        subtable = (const CMAPEncodingSubtable*)((const char*)cmap + offset1);
+        subtable = (const CMAPEncodingSubtable *) ((const char *) cmap + offset1);
     } else {
-        return NULL;
+        return nullptr;
     }
 
     switch (SWAPW(subtable->format)) {
     case 4:
-        return new CMAPFormat4Mapper(cmap, (const CMAPFormat4Encoding*)subtable);
+        return new CMAPFormat4Mapper(cmap, (const CMAPFormat4Encoding *) subtable);
 
-    case 12: {
-        const CMAPFormat12Encoding* encoding = (const CMAPFormat12Encoding*)subtable;
+    case 12:
+    {
+        const CMAPFormat12Encoding *encoding = (const CMAPFormat12Encoding *) subtable;
 
         return new CMAPGroupMapper(cmap, encoding->groups, SWAPL(encoding->nGroups));
     }
@@ -107,10 +110,10 @@ CMAPMapper* CMAPMapper::createUnicodeMapper(const CMAPTable* cmap)
         break;
     }
 
-    return NULL;
+    return nullptr;
 }
 
-CMAPFormat4Mapper::CMAPFormat4Mapper(const CMAPTable* cmap, const CMAPFormat4Encoding* header)
+CMAPFormat4Mapper::CMAPFormat4Mapper(const CMAPTable *cmap, const CMAPFormat4Encoding *header)
     : CMAPMapper(cmap)
 {
     le_uint16 segCount = SWAPW(header->segCountX2) / 2;
@@ -129,7 +132,7 @@ LEGlyphID CMAPFormat4Mapper::unicodeToGlyph(LEUnicode32 unicode32) const
         return 0;
     }
 
-    LEUnicode16 unicode = (LEUnicode16)unicode32;
+    LEUnicode16 unicode = (LEUnicode16) unicode32;
     le_uint16 index = 0;
     le_uint16 probe = 1 << fEntrySelector;
     TTGlyphID result = 0;
@@ -148,11 +151,11 @@ LEGlyphID CMAPFormat4Mapper::unicodeToGlyph(LEUnicode32 unicode32) const
 
     if (unicode >= SWAPU16(fStartCodes[index]) && unicode <= SWAPU16(fEndCodes[index])) {
         if (fIdRangeOffset[index] == 0) {
-            result = (TTGlyphID)unicode;
+            result = (TTGlyphID) unicode;
         } else {
             le_uint16 offset = unicode - SWAPU16(fStartCodes[index]);
             le_uint16 rangeOffset = SWAPW(fIdRangeOffset[index]);
-            le_uint16* glyphIndexTable = (le_uint16*)((char*)&fIdRangeOffset[index] + rangeOffset);
+            le_uint16 *glyphIndexTable = (le_uint16 *) ((char *) &fIdRangeOffset[index] + rangeOffset);
 
             result = SWAPW(glyphIndexTable[offset]);
         }
@@ -170,9 +173,8 @@ CMAPFormat4Mapper::~CMAPFormat4Mapper()
     // parent destructor does it all
 }
 
-CMAPGroupMapper::CMAPGroupMapper(const CMAPTable* cmap, const CMAPGroup* groups, le_uint32 nGroups)
-    : CMAPMapper(cmap)
-    , fGroups(groups)
+CMAPGroupMapper::CMAPGroupMapper(const CMAPTable *cmap, const CMAPGroup *groups, le_uint32 nGroups)
+    : CMAPMapper(cmap), fGroups(groups)
 {
     le_uint8 bit = highBit(nGroups);
     fPower = 1 << bit;
@@ -197,7 +199,7 @@ LEGlyphID CMAPGroupMapper::unicodeToGlyph(LEUnicode32 unicode32) const
     }
 
     if (SWAPU32(fGroups[range].startCharCode) <= unicode32 && SWAPU32(fGroups[range].endCharCode) >= unicode32) {
-        return (LEGlyphID)(SWAPU32(fGroups[range].startGlyphCode) + unicode32 - SWAPU32(fGroups[range].startCharCode));
+        return (LEGlyphID) (SWAPU32(fGroups[range].startGlyphCode) + unicode32 - SWAPU32(fGroups[range].startCharCode));
     }
 
     return 0;
@@ -207,3 +209,4 @@ CMAPGroupMapper::~CMAPGroupMapper()
 {
     // parent destructor does it all
 }
+

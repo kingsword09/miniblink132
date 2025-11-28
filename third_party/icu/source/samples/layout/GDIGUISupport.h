@@ -1,4 +1,4 @@
-﻿/*
+/*
  *******************************************************************************
  *
  *   © 2016 and later: Unicode, Inc. and others.
@@ -22,12 +22,13 @@
 
 #include "GUISupport.h"
 
-class GDIGUISupport : public GUISupport {
+class GDIGUISupport : public GUISupport
+{
 public:
     GDIGUISupport() {};
     virtual ~GDIGUISupport() {};
 
-    virtual void postErrorMessage(const char* message, const char* title);
+    virtual void postErrorMessage(const char *message, const char *title);
 };
 
 #endif

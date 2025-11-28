@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -23,13 +23,6 @@
 
 #include "unicode/utypes.h"
 
-#ifndef TRUE
-#define TRUE 1
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
-
 #ifdef __cplusplus
 
 #include "unicode/errorcode.h"
@@ -45,17 +38,12 @@ public:
     /**
      * @param loc A short string describing where the IcuToolErrorCode is used.
      */
-    IcuToolErrorCode(const char* loc)
-        : location(loc)
-    {
-    }
+    IcuToolErrorCode(const char *loc) : location(loc) {}
     virtual ~IcuToolErrorCode();
-
 protected:
     virtual void handleFailure() const override;
-
 private:
-    const char* location;
+    const char *location;
 };
 
 U_NAMESPACE_END
@@ -77,7 +65,8 @@ U_NAMESPACE_END
  * This function is especially useful in tools that are called
  * by a batch file for loop, which yields short pathnames on Win9x.
  */
-U_CAPI const char* U_EXPORT2 getLongPathname(const char* pathname);
+U_CAPI const char * U_EXPORT2
+getLongPathname(const char *pathname);
 
 /**
  * Find the basename at the end of a pathname, i.e., the part
@@ -86,43 +75,48 @@ U_CAPI const char* U_EXPORT2 getLongPathname(const char* pathname);
  * If the pathname only contains a basename and no file separator,
  * then the pathname pointer itself is returned.
  **/
-U_CAPI const char* U_EXPORT2 findBasename(const char* filename);
+U_CAPI const char * U_EXPORT2
+findBasename(const char *filename);
 
 /**
  * Find the directory name of a pathname, that is, everything
- * up to but not including the last file separator.
+ * up to but not including the last file separator. 
  *
  * If successful, copies the directory name into the output buffer along with
- * a terminating NULL.
+ * a terminating NULL. 
  *
  * If there isn't a directory name in the path, it returns an empty string.
- * @param path the full pathname to inspect.
+ * @param path the full pathname to inspect. 
  * @param buffer the output buffer
  * @param bufLen the output buffer length
  * @param status error code- may return U_BUFFER_OVERFLOW_ERROR if bufLen is too small.
  * @return If successful, a pointer to the output buffer. If failure or bufLen is too small, NULL.
  **/
-U_CAPI const char* U_EXPORT2 findDirname(const char* path, char* buffer, int32_t bufLen, UErrorCode* status);
+U_CAPI const char * U_EXPORT2
+findDirname(const char *path, char *buffer, int32_t bufLen, UErrorCode* status);
 
 /*
  * Return the current year in the Gregorian calendar. Used for copyright generation.
  */
-U_CAPI int32_t U_EXPORT2 getCurrentYear(void);
+U_CAPI int32_t U_EXPORT2
+getCurrentYear();
 
 /*
  * Creates a directory with pathname.
  *
  * @param status Set to an error code when mkdir failed.
  */
-U_CAPI void U_EXPORT2 uprv_mkdir(const char* pathname, UErrorCode* status);
+U_CAPI void U_EXPORT2
+uprv_mkdir(const char *pathname, UErrorCode *status);
 
 #if !UCONFIG_NO_FILE_IO
 /**
- * Return TRUE if the named item exists
+ * Return true if the named item exists
  * @param file filename
- * @return TRUE if named item (file, dir, etc) exists, FALSE otherwise
+ * @return true if named item (file, dir, etc) exists, false otherwise
  */
-U_CAPI UBool U_EXPORT2 uprv_fileExists(const char* file);
+U_CAPI UBool U_EXPORT2
+uprv_fileExists(const char *file);
 #endif
 
 /**
@@ -131,10 +125,14 @@ U_CAPI UBool U_EXPORT2 uprv_fileExists(const char* file);
  *
  * Pass the value of the -G flag to "overwrite"; if true, new goldens will be
  * written to the filesystem.
- *
+ * 
  * @return The first index at which the files differ, or -1 if they are the same.
  */
-U_CAPI int32_t U_EXPORT2 uprv_compareGoldenFiles(const char* buffer, int32_t bufferLen, const char* goldenFilePath, bool overwrite);
+U_CAPI int32_t U_EXPORT2
+uprv_compareGoldenFiles(
+    const char* buffer, int32_t bufferLen,
+    const char* goldenFilePath,
+    bool overwrite);
 
 /**
  * Return the modification date for the specified file or directory.
@@ -166,32 +164,38 @@ typedef struct UToolMemory UToolMemory;
  * Open a UToolMemory object for allocation of initialCapacity to maxCapacity
  * items with size bytes each.
  */
-U_CAPI UToolMemory* U_EXPORT2 utm_open(const char* name, int32_t initialCapacity, int32_t maxCapacity, int32_t size);
+U_CAPI UToolMemory * U_EXPORT2
+utm_open(const char *name, int32_t initialCapacity, int32_t maxCapacity, int32_t size);
 
 /**
  * Close a UToolMemory object.
  */
-U_CAPI void U_EXPORT2 utm_close(UToolMemory* mem);
+U_CAPI void U_EXPORT2
+utm_close(UToolMemory *mem);
 
 /**
  * Get the pointer to the beginning of the array of items.
  * The pointer becomes invalid after allocation of new items.
  */
-U_CAPI void* U_EXPORT2 utm_getStart(UToolMemory* mem);
+U_CAPI void * U_EXPORT2
+utm_getStart(UToolMemory *mem);
 
 /**
  * Get the current number of items.
  */
-U_CAPI int32_t U_EXPORT2 utm_countItems(UToolMemory* mem);
+U_CAPI int32_t U_EXPORT2
+utm_countItems(UToolMemory *mem);
 
 /**
  * Allocate one more item and return the pointer to its start in the array.
  */
-U_CAPI void* U_EXPORT2 utm_alloc(UToolMemory* mem);
+U_CAPI void * U_EXPORT2
+utm_alloc(UToolMemory *mem);
 
 /**
  * Allocate n items and return the pointer to the start of the first one in the array.
  */
-U_CAPI void* U_EXPORT2 utm_allocN(UToolMemory* mem, int32_t n);
+U_CAPI void * U_EXPORT2
+utm_allocN(UToolMemory *mem, int32_t n);
 
 #endif

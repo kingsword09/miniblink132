@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -84,75 +84,75 @@ U_NAMESPACE_BEGIN
  */
 class U_I18N_API HebrewCalendar : public Calendar {
 public:
-    /**
-     * Useful constants for HebrewCalendar.
-     * @internal
+  /**
+   * Useful constants for HebrewCalendar.
+   * @internal
+   */
+  enum Month {
+    /** 
+     * Constant for Tishri, the 1st month of the Hebrew year. 
      */
-    enum EEras {
-        /**
-         * Constant for Tishri, the 1st month of the Hebrew year.
-         */
-        TISHRI,
-        /**
-         * Constant for Heshvan, the 2nd month of the Hebrew year.
-         */
-        HESHVAN,
-        /**
-         * Constant for Kislev, the 3rd month of the Hebrew year.
-         */
-        KISLEV,
+      TISHRI,
+      /**
+     * Constant for Heshvan, the 2nd month of the Hebrew year. 
+     */
+      HESHVAN,
+      /**
+     * Constant for Kislev, the 3rd month of the Hebrew year. 
+     */
+      KISLEV,
 
-        /**
-         * Constant for Tevet, the 4th month of the Hebrew year.
-         */
-        TEVET,
+    /**
+     * Constant for Tevet, the 4th month of the Hebrew year. 
+     */
+      TEVET,
 
-        /**
-         * Constant for Shevat, the 5th month of the Hebrew year.
-         */
-        SHEVAT,
+    /**
+     * Constant for Shevat, the 5th month of the Hebrew year. 
+     */
+      SHEVAT,
 
-        /**
-         * Constant for Adar I, the 6th month of the Hebrew year
-         * (present in leap years only). In non-leap years, the calendar
-         * jumps from Shevat (5th month) to Adar (7th month).
-         */
-        ADAR_1,
+    /**
+     * Constant for Adar I, the 6th month of the Hebrew year
+     * (present in leap years only). In non-leap years, the calendar
+     * jumps from Shevat (5th month) to Adar (7th month).
+     */
+      ADAR_1,
 
-        /**
-         * Constant for the Adar, the 7th month of the Hebrew year.
-         */
-        ADAR,
+    /** 
+     * Constant for the Adar, the 7th month of the Hebrew year. 
+     */
+      ADAR,
 
-        /**
-         * Constant for Nisan, the 8th month of the Hebrew year.
-         */
-        NISAN,
+    /**
+     * Constant for Nisan, the 8th month of the Hebrew year. 
+     */
+      NISAN,
 
-        /**
-         * Constant for Iyar, the 9th month of the Hebrew year.
-         */
-        IYAR,
+    /**
+     * Constant for Iyar, the 9th month of the Hebrew year. 
+     */
+      IYAR,
 
-        /**
-         * Constant for Sivan, the 10th month of the Hebrew year.
-         */
-        SIVAN,
+    /**
+     * Constant for Sivan, the 10th month of the Hebrew year. 
+     */
+      SIVAN,
 
-        /**
-         * Constant for Tammuz, the 11th month of the Hebrew year.
-         */
-        TAMUZ,
+    /**
+     * Constant for Tammuz, the 11th month of the Hebrew year. 
+     */
+      TAMUZ,
 
-        /**
-         * Constant for Av, the 12th month of the Hebrew year.
-         */
-        AV,
+    /**
+     * Constant for Av, the 12th month of the Hebrew year. 
+     */
+      AV,
 
-        /**
-         * Constant for Elul, the 13th month of the Hebrew year.
-         */
-        ELUL
+    /**
+     * Constant for Elul, the 13th month of the Hebrew year. 
+     */
+      ELUL
     };
 
     /**
@@ -165,6 +165,7 @@ public:
      * @internal
      */
     HebrewCalendar(const Locale& aLocale, UErrorCode& success);
+
 
     /**
      * Destructor
@@ -180,19 +181,12 @@ public:
     HebrewCalendar(const HebrewCalendar& source);
 
     /**
-     * Default assignment operator
-     * @param right    the object to be copied.
-     * @internal
-     */
-    HebrewCalendar& operator=(const HebrewCalendar& right);
-
-    /**
      * Create and return a polymorphic copy of this calendar.
      * @return    return a polymorphic copy of this calendar.
      * @internal
      */
     virtual HebrewCalendar* clone() const override;
-
+    
 public:
     /**
      * Override Calendar Returns a unique class ID POLYMORPHICALLY. Pure virtual
@@ -204,7 +198,7 @@ public:
      *           same class ID. Objects of other classes have different class IDs.
      * @internal
      */
-    virtual UClassID getDynamicClassID(void) const override;
+    virtual UClassID getDynamicClassID() const override;
 
     /**
      * Return the class ID for this class. This is useful only for comparing to a return
@@ -217,7 +211,7 @@ public:
      * @return   The class ID for all objects of this class.
      * @internal
      */
-    static UClassID U_EXPORT2 getStaticClassID(void);
+    static UClassID U_EXPORT2 getStaticClassID();
 
     /**
      * return the calendar type, "hebrew".
@@ -225,10 +219,11 @@ public:
      * @return calendar type
      * @internal
      */
-    virtual const char* getType() const override;
+    virtual const char * getType() const override;
+
 
     // Calendar API
-public:
+ public:
     /**
      * (Overrides Calendar) UDate Arithmetic function. Adds the specified (signed) amount
      * of time to the given time field, based on the calendar's rules.  For more
@@ -245,6 +240,7 @@ public:
      * @deprecated ICU 2.6 use UCalendarDateFields instead of EDateFields
      */
     virtual void add(EDateFields field, int32_t amount, UErrorCode& status) override;
+
 
     /**
      * (Overrides Calendar) Rolls up or down by the given amount in the specified field.
@@ -273,11 +269,26 @@ public:
     virtual void roll(EDateFields field, int32_t amount, UErrorCode& status) override;
 
     /**
+     * @internal 
+     */
+    static UBool isLeapYear(int32_t year) ;
+
+    /**
+     * @return      The related Gregorian year; will be obtained by modifying the value
+     *              obtained by get from UCAL_EXTENDED_YEAR field
      * @internal
      */
-    static UBool isLeapYear(int32_t year);
+    virtual int32_t getRelatedYear(UErrorCode &status) const override;
 
-protected:
+    /**
+     * @param year  The related Gregorian year to set; will be modified as necessary then
+     *              set in UCAL_EXTENDED_YEAR field
+     * @internal
+     */
+    virtual void setRelatedYear(int32_t year) override;
+
+ protected:
+
     /**
      * Subclass API for defining limits of different types.
      * Subclasses must implement this method to return limits for the
@@ -333,7 +344,7 @@ protected:
      * a calendar with the specified Julian/Gregorian cutover date.
      * @internal
      */
-    virtual void handleComputeFields(int32_t julianDay, UErrorCode& status) override;
+    virtual void handleComputeFields(int32_t julianDay, UErrorCode &status) override;
     /**
      * Return the extended year defined by the current fields.  This will
      * use the UCAL_EXTENDED_YEAR field or the UCAL_YEAR and supra-year fields (such
@@ -356,7 +367,9 @@ protected:
      * day of the given month and year
      * @internal
      */
-    virtual int32_t handleComputeMonthStart(int32_t eyear, int32_t month, UBool useMonth) const override;
+    virtual int32_t handleComputeMonthStart(int32_t eyear, int32_t month,
+                                                   UBool useMonth) const override;
+
 
     /**
      * Validate a single field of this calendar.
@@ -364,40 +377,74 @@ protected:
      * special handling for month validation for Hebrew calendar.
      * @internal
      */
-    virtual void validateField(UCalendarDateFields field, UErrorCode& status) override;
+    virtual void validateField(UCalendarDateFields field, UErrorCode &status) override;
 
-protected:
-    /**
-     * (Overrides Calendar) Return true if the current date for this Calendar is in
-     * Daylight Savings Time. Recognizes DST_OFFSET, if it is set.
-     *
-     * @param status Fill-in parameter which receives the status of this operation.
-     * @return   True if the current date for this Calendar is in Daylight Savings Time,
-     *           false, otherwise.
-     * @internal
-     */
-    virtual UBool inDaylightTime(UErrorCode& status) const override;
+ protected:
+  /**
+   * Returns true because the Hebrew Calendar does have a default century
+   * @internal
+   */
+  virtual UBool haveDefaultCentury() const override;
 
-    /**
-     * Returns true because the Hebrew Calendar does have a default century
-     * @internal
-     */
-    virtual UBool haveDefaultCentury() const override;
+  /**
+   * Returns the date of the start of the default century
+   * @return start of century - in milliseconds since epoch, 1970
+   * @internal
+   */
+  virtual UDate defaultCenturyStart() const override;
 
-    /**
-     * Returns the date of the start of the default century
-     * @return start of century - in milliseconds since epoch, 1970
-     * @internal
-     */
-    virtual UDate defaultCenturyStart() const override;
+  /**
+   * Returns the year in which the default century begins
+   * @internal
+   */
+  virtual int32_t defaultCenturyStartYear() const override;
 
-    /**
-     * Returns the year in which the default century begins
-     * @internal
-     */
-    virtual int32_t defaultCenturyStartYear() const override;
+ public:
+  /**
+   * Returns true if the date is in a leap year.
+   *
+   * @param status        ICU Error Code
+   * @return       True if the date in the fields is in a Temporal proposal
+   *               defined leap year. False otherwise.
+   */
+  virtual bool inTemporalLeapYear(UErrorCode& status) const override;
 
-private: // Calendar-specific implementation
+  /**
+   * Gets The Temporal monthCode value corresponding to the month for the date.
+   * The value is a string identifier that starts with the literal grapheme
+   * "M" followed by two graphemes representing the zero-padded month number
+   * of the current month in a normal (non-leap) year and suffixed by an
+   * optional literal grapheme "L" if this is a leap month in a lunisolar
+   * calendar. For the Hebrew calendar, the values are "M01" .. "M12" for
+   * non-leap year, and "M01" .. "M05", "M05L", "M06" .. "M12" for leap year.
+   *
+   * @param status        ICU Error Code
+   * @return       One of 13 possible strings in {"M01".. "M05", "M05L",
+   * "M06" .. "M12"}.
+   * @draft ICU 73
+   */
+  virtual const char* getTemporalMonthCode(UErrorCode& status) const override;
+
+  /**
+   * Sets The Temporal monthCode which is a string identifier that starts
+   * with the literal grapheme "M" followed by two graphemes representing
+   * the zero-padded month number of the current month in a normal
+   * (non-leap) year and suffixed by an optional literal grapheme "L" if this
+   * is a leap month in a lunisolar calendar. For Hebrew calendar, the values
+   * are "M01" .. "M12" for non-leap years, and "M01" .. "M05", "M05L", "M06"
+   * .. "M12" for leap year.
+   *
+   * @param temporalMonth  The value to be set for temporal monthCode.
+   * @param status        ICU Error Code
+   *
+   * @draft ICU 73
+   */
+  virtual void setTemporalMonthCode(const char* code, UErrorCode& status ) override;
+
+ protected:
+   virtual int32_t internalGetMonth() const override;
+
+ private: // Calendar-specific implementation
     /**
      * Finds the day # of the first day in the given Hebrew year.
      * To do this, we want to calculate the time of the Tishri 1 new moon
@@ -423,22 +470,23 @@ private: // Calendar-specific implementation
      */
     static int32_t startOfYear(int32_t year, UErrorCode& status);
 
-    static int32_t absoluteDayToDayOfWeek(int32_t day);
-
+    static int32_t absoluteDayToDayOfWeek(int32_t day) ;
+    
     /**
-     * @internal
+     * @internal 
      */
     int32_t yearType(int32_t year) const;
 
     /**
-     * @internal
+     * @internal 
      */
-    static int32_t monthsInYear(int32_t year);
+    static int32_t monthsInYear(int32_t year) ;
 };
 
 U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
-#endif
-// eof
+#endif 
+//eof
+

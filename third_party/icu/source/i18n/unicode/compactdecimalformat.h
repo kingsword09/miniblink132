@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
@@ -62,31 +62,33 @@ class PluralRules;
  */
 class U_I18N_API CompactDecimalFormat : public DecimalFormat {
 public:
-    /**
-     * Returns a compact decimal instance for specified locale.
-     *
-     * **NOTE:** New users are strongly encouraged to use
-     * `number::NumberFormatter` instead of NumberFormat.
-     * @param inLocale the given locale.
-     * @param style whether to use short or long style.
-     * @param status error code returned  here.
-     * @stable ICU 51
-     */
-    static CompactDecimalFormat* U_EXPORT2 createInstance(const Locale& inLocale, UNumberCompactStyle style, UErrorCode& status);
+
+     /**
+      * Returns a compact decimal instance for specified locale.
+      *
+      * **NOTE:** New users are strongly encouraged to use
+      * `number::NumberFormatter` instead of NumberFormat.
+      * @param inLocale the given locale.
+      * @param style whether to use short or long style.
+      * @param status error code returned  here.
+      * @stable ICU 51
+      */
+     static CompactDecimalFormat* U_EXPORT2 createInstance(
+          const Locale& inLocale, UNumberCompactStyle style, UErrorCode& status);
 
     /**
      * Copy constructor.
      *
      * @param source    the DecimalFormat object to be copied from.
      * @stable ICU 51
-     */
+      */
     CompactDecimalFormat(const CompactDecimalFormat& source);
 
     /**
      * Destructor.
      * @stable ICU 51
      */
-    ~CompactDecimalFormat() U_OVERRIDE;
+    ~CompactDecimalFormat() override;
 
     /**
      * Assignment operator.
@@ -103,7 +105,7 @@ public:
      * @return    a polymorphic copy of this CompactDecimalFormat.
      * @stable ICU 51
      */
-    CompactDecimalFormat* clone() const U_OVERRIDE;
+    CompactDecimalFormat* clone() const override;
 
     using DecimalFormat::format;
 
@@ -116,7 +118,8 @@ public:
      * @see Formattable
      * @stable ICU 51
      */
-    void parse(const UnicodeString& text, Formattable& result, ParsePosition& parsePosition) const U_OVERRIDE;
+    void parse(const UnicodeString& text, Formattable& result,
+               ParsePosition& parsePosition) const override;
 
     /**
      * CompactDecimalFormat does not support parsing. This implementation
@@ -127,7 +130,7 @@ public:
      * @param status    Always set to U_UNSUPPORTED_ERROR.
      * @stable ICU 51
      */
-    void parse(const UnicodeString& text, Formattable& result, UErrorCode& status) const U_OVERRIDE;
+    void parse(const UnicodeString& text, Formattable& result, UErrorCode& status) const override;
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -138,7 +141,7 @@ public:
      * This method will fail if this format is not a currency format,
      * that is, if it does not contain the currency pattern symbol
      * (U+00A4) in its prefix or suffix. This implementation always returns
-     * NULL.
+     * nullptr.
      *
      * @param text the string to parse
      * @param pos  input-output position; on input, the position within text
@@ -147,11 +150,11 @@ public:
      *             If the parse fails, the position in unchanged upon output.
      * @return     if parse succeeds, a pointer to a newly-created CurrencyAmount
      *             object (owned by the caller) containing information about
-     *             the parsed currency; if parse fails, this is NULL.
+     *             the parsed currency; if parse fails, this is nullptr.
      * @internal
      */
-    CurrencyAmount* parseCurrency(const UnicodeString& text, ParsePosition& pos) const U_OVERRIDE;
-#endif /* U_HIDE_INTERNAL_API */
+    CurrencyAmount* parseCurrency(const UnicodeString& text, ParsePosition& pos) const override;
+#endif  /* U_HIDE_INTERNAL_API */
 
     /**
      * Return the class ID for this class.  This is useful only for
@@ -177,9 +180,9 @@ public:
      *                  other classes have different class IDs.
      * @stable ICU 51
      */
-    UClassID getDynamicClassID() const U_OVERRIDE;
+    UClassID getDynamicClassID() const override;
 
-private:
+  private:
     CompactDecimalFormat(const Locale& inLocale, UNumberCompactStyle style, UErrorCode& status);
 };
 
@@ -190,4 +193,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // __COMPACT_DECIMAL_FORMAT_H__
-// eof
+//eof

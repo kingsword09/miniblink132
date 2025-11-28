@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -32,50 +32,47 @@ U_NAMESPACE_BEGIN
  * @stable ICU 68
  */
 namespace NoUnit {
-/**
- * Returns an instance for the base unit (dimensionless and no scaling).
- *
- * Prior to ICU 68, this function returned a NoUnit by value.
- *
- * Since ICU 68, this function returns the same value as the default MeasureUnit constructor.
- *
- * @return               a MeasureUnit instance
- * @stable ICU 68
- */
-static inline MeasureUnit U_EXPORT2 base()
-{
-    return MeasureUnit();
-}
+    /**
+     * Returns an instance for the base unit (dimensionless and no scaling).
+     *
+     * Prior to ICU 68, this function returned a NoUnit by value.
+     *
+     * Since ICU 68, this function returns the same value as the default MeasureUnit constructor.
+     *
+     * @return               a MeasureUnit instance
+     * @stable ICU 68
+     */
+    static inline MeasureUnit U_EXPORT2 base() {
+        return MeasureUnit();
+    }
 
-/**
- * Returns an instance for percent, or 1/100 of a base unit.
- *
- * Prior to ICU 68, this function returned a NoUnit by value.
- *
- * Since ICU 68, this function returns the same value as MeasureUnit::getPercent().
- *
- * @return               a MeasureUnit instance
- * @stable ICU 68
- */
-static inline MeasureUnit U_EXPORT2 percent()
-{
-    return MeasureUnit::getPercent();
-}
+    /**
+     * Returns an instance for percent, or 1/100 of a base unit.
+     *
+     * Prior to ICU 68, this function returned a NoUnit by value.
+     *
+     * Since ICU 68, this function returns the same value as MeasureUnit::getPercent().
+     *
+     * @return               a MeasureUnit instance
+     * @stable ICU 68
+     */
+    static inline MeasureUnit U_EXPORT2 percent() {
+        return MeasureUnit::getPercent();
+    }
 
-/**
- * Returns an instance for permille, or 1/1000 of a base unit.
- *
- * Prior to ICU 68, this function returned a NoUnit by value.
- *
- * Since ICU 68, this function returns the same value as MeasureUnit::getPermille().
- *
- * @return               a MeasureUnit instance
- * @stable ICU 68
- */
-static inline MeasureUnit U_EXPORT2 permille()
-{
-    return MeasureUnit::getPermille();
-}
+    /**
+     * Returns an instance for permille, or 1/1000 of a base unit.
+     *
+     * Prior to ICU 68, this function returned a NoUnit by value.
+     *
+     * Since ICU 68, this function returns the same value as MeasureUnit::getPermille().
+     *
+     * @return               a MeasureUnit instance
+     * @stable ICU 68
+     */
+    static inline MeasureUnit U_EXPORT2 permille() {
+        return MeasureUnit::getPermille();
+    }
 }
 
 U_NAMESPACE_END
@@ -85,5 +82,5 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // __NOUNIT_H__
-// eof
+//eof
 //

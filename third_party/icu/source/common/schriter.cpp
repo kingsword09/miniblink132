@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -15,7 +15,7 @@
 ******************************************************************************
 */
 
-#include "utypeinfo.h" // for 'typeid' to work
+#include "utypeinfo.h"  // for 'typeid' to work
 
 #include "unicode/chariter.h"
 #include "unicode/schriter.h"
@@ -25,50 +25,53 @@ U_NAMESPACE_BEGIN
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringCharacterIterator)
 
 StringCharacterIterator::StringCharacterIterator()
-    : UCharCharacterIterator()
-    , text()
+  : UCharCharacterIterator(),
+    text()
 {
-    // NEVER DEFAULT CONSTRUCT!
+  // NEVER DEFAULT CONSTRUCT!
 }
 
 StringCharacterIterator::StringCharacterIterator(const UnicodeString& textStr)
-    : UCharCharacterIterator(textStr.getBuffer(), textStr.length())
-    , text(textStr)
+  : UCharCharacterIterator(textStr.getBuffer(), textStr.length()),
+    text(textStr)
 {
     // we had set the input parameter's array, now we need to set our copy's array
     UCharCharacterIterator::text = this->text.getBuffer();
 }
 
-StringCharacterIterator::StringCharacterIterator(const UnicodeString& textStr, int32_t textPos)
-    : UCharCharacterIterator(textStr.getBuffer(), textStr.length(), textPos)
-    , text(textStr)
+StringCharacterIterator::StringCharacterIterator(const UnicodeString& textStr,
+                                                 int32_t textPos)
+  : UCharCharacterIterator(textStr.getBuffer(), textStr.length(), textPos),
+    text(textStr)
 {
     // we had set the input parameter's array, now we need to set our copy's array
     UCharCharacterIterator::text = this->text.getBuffer();
 }
 
-StringCharacterIterator::StringCharacterIterator(const UnicodeString& textStr, int32_t textBegin, int32_t textEnd, int32_t textPos)
-    : UCharCharacterIterator(textStr.getBuffer(), textStr.length(), textBegin, textEnd, textPos)
-    , text(textStr)
+StringCharacterIterator::StringCharacterIterator(const UnicodeString& textStr,
+                                                 int32_t textBegin,
+                                                 int32_t textEnd,
+                                                 int32_t textPos)
+  : UCharCharacterIterator(textStr.getBuffer(), textStr.length(), textBegin, textEnd, textPos),
+    text(textStr)
 {
     // we had set the input parameter's array, now we need to set our copy's array
     UCharCharacterIterator::text = this->text.getBuffer();
 }
 
 StringCharacterIterator::StringCharacterIterator(const StringCharacterIterator& that)
-    : UCharCharacterIterator(that)
-    , text(that.text)
+  : UCharCharacterIterator(that),
+    text(that.text)
 {
     // we had set the input parameter's array, now we need to set our copy's array
     UCharCharacterIterator::text = this->text.getBuffer();
 }
 
-StringCharacterIterator::~StringCharacterIterator()
-{
+StringCharacterIterator::~StringCharacterIterator() {
 }
 
-StringCharacterIterator& StringCharacterIterator::operator=(const StringCharacterIterator& that)
-{
+StringCharacterIterator&
+StringCharacterIterator::operator=(const StringCharacterIterator& that) {
     UCharCharacterIterator::operator=(that);
     text = that.text;
     // we had set the input parameter's array, now we need to set our copy's array
@@ -76,8 +79,8 @@ StringCharacterIterator& StringCharacterIterator::operator=(const StringCharacte
     return *this;
 }
 
-bool StringCharacterIterator::operator==(const ForwardCharacterIterator& that) const
-{
+bool
+StringCharacterIterator::operator==(const ForwardCharacterIterator& that) const {
     if (this == &that) {
         return true;
     }
@@ -90,24 +93,27 @@ bool StringCharacterIterator::operator==(const ForwardCharacterIterator& that) c
         return false;
     }
 
-    StringCharacterIterator& realThat = (StringCharacterIterator&)that;
+    const StringCharacterIterator&    realThat = static_cast<const StringCharacterIterator&>(that);
 
-    return text == realThat.text && pos == realThat.pos && begin == realThat.begin && end == realThat.end;
+    return text == realThat.text
+        && pos == realThat.pos
+        && begin == realThat.begin
+        && end == realThat.end;
 }
 
-StringCharacterIterator* StringCharacterIterator::clone() const
-{
+StringCharacterIterator*
+StringCharacterIterator::clone() const {
     return new StringCharacterIterator(*this);
 }
 
-void StringCharacterIterator::setText(const UnicodeString& newText)
-{
+void
+StringCharacterIterator::setText(const UnicodeString& newText) {
     text = newText;
     UCharCharacterIterator::setText(text.getBuffer(), text.length());
 }
 
-void StringCharacterIterator::getText(UnicodeString& result)
-{
+void
+StringCharacterIterator::getText(UnicodeString& result) {
     result = text;
 }
 U_NAMESPACE_END

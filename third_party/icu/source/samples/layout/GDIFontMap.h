@@ -1,4 +1,4 @@
-﻿/*
+/*
  ******************************************************************************
  * © 2016 and later: Unicode, Inc. and others.                    *
  * License & terms of use: http://www.unicode.org/copyright.html      *
@@ -25,17 +25,18 @@
 
 #define BUFFER_SIZE 128
 
-class GDIFontMap : public FontMap {
+class GDIFontMap : public FontMap
+{
 public:
-    GDIFontMap(GDISurface* surface, const char* fileName, le_int16 pointSize, GUISupport* guiSupport, LEErrorCode& status);
+    GDIFontMap(GDISurface *surface, const char *fileName, le_int16 pointSize, GUISupport *guiSupport, LEErrorCode &status);
 
     virtual ~GDIFontMap();
 
 protected:
-    virtual const LEFontInstance* openFont(const char* fontName, le_int16 pointSize, LEErrorCode& status);
+    virtual const LEFontInstance *openFont(const char *fontName, le_int16 pointSize, LEErrorCode &status);
 
 private:
-    GDISurface* fSurface;
+    GDISurface *fSurface;
 };
 
 #endif

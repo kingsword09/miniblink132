@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  ********************************************************************************
@@ -44,11 +44,15 @@ U_NAMESPACE_BEGIN
  */
 class TaiwanCalendar : public GregorianCalendar {
 public:
+
     /**
      * Useful constants for TaiwanCalendar.  Only one Era.
      * @internal
      */
-    enum EEras { BEFORE_MINGUO = 0, MINGUO = 1 };
+    enum EEras {
+       BEFORE_MINGUO = 0,
+       MINGUO  = 1
+    };
 
     /**
      * Constructs a TaiwanCalendar based on the current time in the default time zone
@@ -60,6 +64,7 @@ public:
      * @internal
      */
     TaiwanCalendar(const Locale& aLocale, UErrorCode& success);
+
 
     /**
      * Destructor
@@ -99,7 +104,7 @@ public:
      *           same class ID. Objects of other classes have different class IDs.
      * @internal
      */
-    virtual UClassID getDynamicClassID(void) const override;
+    virtual UClassID getDynamicClassID() const override;
 
     /**
      * Return the class ID for this class. This is useful only for comparing to a return
@@ -112,7 +117,7 @@ public:
      * @return   The class ID for all objects of this class.
      * @internal
      */
-    U_I18N_API static UClassID U_EXPORT2 getStaticClassID(void);
+    U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
     /**
      * return the calendar type, "Taiwan".
@@ -120,13 +125,13 @@ public:
      * @return calendar type
      * @internal
      */
-    virtual const char* getType() const override;
+    virtual const char * getType() const override;
 
 private:
     TaiwanCalendar(); // default constructor not implemented
 
-protected:
-    /**
+ protected:
+     /**
      * Return the extended year defined by the current fields.  This will
      * use the UCAL_EXTENDED_YEAR field or the UCAL_YEAR and supra-year fields (such
      * as UCAL_ERA) specific to the calendar system, depending on which set of
@@ -137,7 +142,7 @@ protected:
     virtual int32_t handleGetExtendedYear() override;
     /**
      * Subclasses may override this method to compute several fields
-     * specific to each calendar system.
+     * specific to each calendar system.  
      * @internal
      */
     virtual void handleComputeFields(int32_t julianDay, UErrorCode& status) override;
@@ -175,4 +180,5 @@ U_NAMESPACE_END
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _TAIWNCAL
-// eof
+//eof
+

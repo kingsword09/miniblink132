@@ -1,27 +1,27 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
- * Copyright (C) 1997-2016, International Business Machines Corporation and
- * others. All Rights Reserved.
- *******************************************************************************
- *
- * File SMPDTFMT.H
- *
- * Modification History:
- *
- *   Date        Name        Description
- *   02/19/97    aliu        Converted from java.
- *   07/09/97    helena      Make ParsePosition into a class.
- *   07/21/98    stephen     Added GMT_PLUS, GMT_MINUS
- *                            Changed setTwoDigitStartDate to set2DigitYearStart
- *                            Changed getTwoDigitStartDate to get2DigitYearStart
- *                            Removed subParseLong
- *                            Removed getZoneIndex (added in DateFormatSymbols)
- *   06/14/99    stephen     Removed fgTimeZoneDataSuffix
- *   10/14/99    aliu        Updated class doc to describe 2-digit year parsing
- *                           {j28 4182066}.
- *******************************************************************************
- */
+* Copyright (C) 1997-2016, International Business Machines Corporation and
+* others. All Rights Reserved.
+*******************************************************************************
+*
+* File SMPDTFMT.H
+*
+* Modification History:
+*
+*   Date        Name        Description
+*   02/19/97    aliu        Converted from java.
+*   07/09/97    helena      Make ParsePosition into a class.
+*   07/21/98    stephen     Added GMT_PLUS, GMT_MINUS
+*                            Changed setTwoDigitStartDate to set2DigitYearStart
+*                            Changed getTwoDigitStartDate to get2DigitYearStart
+*                            Removed subParseLong
+*                            Removed getZoneIndex (added in DateFormatSymbols)
+*   06/14/99    stephen     Removed fgTimeZoneDataSuffix
+*   10/14/99    aliu        Updated class doc to describe 2-digit year parsing
+*                           {j28 4182066}.
+*******************************************************************************
+*/
 
 #ifndef SMPDTFMT_H
 #define SMPDTFMT_H
@@ -39,7 +39,7 @@
 
 #include "unicode/datefmt.h"
 #include "unicode/udisplaycontext.h"
-#include "unicode/tzfmt.h" /* for UTimeZoneFormatTimeType */
+#include "unicode/tzfmt.h"  /* for UTimeZoneFormatTimeType */
 #include "unicode/brkiter.h"
 
 U_NAMESPACE_BEGIN
@@ -55,6 +55,7 @@ class DateIntervalFormat;
 
 namespace number {
 class LocalizedNumberFormatter;
+class SimpleNumberFormatter;
 }
 
 /**
@@ -723,7 +724,7 @@ class LocalizedNumberFormatter;
  * subclasses, such code will not necessarily work and will not be
  * guaranteed to work stably from release to release.
  */
-class U_I18N_API SimpleDateFormat : public DateFormat {
+class U_I18N_API SimpleDateFormat: public DateFormat {
 public:
     /**
      * Construct a SimpleDateFormat using the default pattern for the default
@@ -747,7 +748,8 @@ public:
      * @param status     Output param set to success/failure code.
      * @stable ICU 2.0
      */
-    SimpleDateFormat(const UnicodeString& pattern, UErrorCode& status);
+    SimpleDateFormat(const UnicodeString& pattern,
+                     UErrorCode& status);
 
     /**
      * Construct a SimpleDateFormat using the given pattern, numbering system override, and the default locale.
@@ -770,7 +772,9 @@ public:
      * @param status     Output param set to success/failure code.
      * @stable ICU 4.2
      */
-    SimpleDateFormat(const UnicodeString& pattern, const UnicodeString& override, UErrorCode& status);
+    SimpleDateFormat(const UnicodeString& pattern,
+                     const UnicodeString& override,
+                     UErrorCode& status);
 
     /**
      * Construct a SimpleDateFormat using the given pattern and locale.
@@ -784,7 +788,9 @@ public:
      * @param status     Output param set to success/failure code.
      * @stable ICU 2.0
      */
-    SimpleDateFormat(const UnicodeString& pattern, const Locale& locale, UErrorCode& status);
+    SimpleDateFormat(const UnicodeString& pattern,
+                     const Locale& locale,
+                     UErrorCode& status);
 
     /**
      * Construct a SimpleDateFormat using the given pattern, numbering system override, and locale.
@@ -807,7 +813,10 @@ public:
      * @param status     Output param set to success/failure code.
      * @stable ICU 4.2
      */
-    SimpleDateFormat(const UnicodeString& pattern, const UnicodeString& override, const Locale& locale, UErrorCode& status);
+    SimpleDateFormat(const UnicodeString& pattern,
+                     const UnicodeString& override,
+                     const Locale& locale,
+                     UErrorCode& status);
 
     /**
      * Construct a SimpleDateFormat using the given pattern and locale-specific
@@ -818,7 +827,9 @@ public:
      * @param status            Output param set to success/faulure code.
      * @stable ICU 2.0
      */
-    SimpleDateFormat(const UnicodeString& pattern, DateFormatSymbols* formatDataToAdopt, UErrorCode& status);
+    SimpleDateFormat(const UnicodeString& pattern,
+                     DateFormatSymbols* formatDataToAdopt,
+                     UErrorCode& status);
 
     /**
      * Construct a SimpleDateFormat using the given pattern and locale-specific
@@ -829,7 +840,9 @@ public:
      * @param status            Output param set to success/faulure code.
      * @stable ICU 2.0
      */
-    SimpleDateFormat(const UnicodeString& pattern, const DateFormatSymbols& formatData, UErrorCode& status);
+    SimpleDateFormat(const UnicodeString& pattern,
+                     const DateFormatSymbols& formatData,
+                     UErrorCode& status);
 
     /**
      * Copy constructor.
@@ -866,6 +879,7 @@ public:
      */
     virtual bool operator==(const Format& other) const override;
 
+
     using DateFormat::format;
 
     /**
@@ -884,7 +898,9 @@ public:
      * @return          Reference to 'appendTo' parameter.
      * @stable ICU 2.1
      */
-    virtual UnicodeString& format(Calendar& cal, UnicodeString& appendTo, FieldPosition& pos) const override;
+    virtual UnicodeString& format(  Calendar& cal,
+                                    UnicodeString& appendTo,
+                                    FieldPosition& pos) const override;
 
     /**
      * Format a date or time, which is the standard millis since 24:00 GMT, Jan
@@ -904,7 +920,10 @@ public:
      * @return          Reference to 'appendTo' parameter.
      * @stable ICU 4.4
      */
-    virtual UnicodeString& format(Calendar& cal, UnicodeString& appendTo, FieldPositionIterator* posIter, UErrorCode& status) const override;
+    virtual UnicodeString& format(  Calendar& cal,
+                                    UnicodeString& appendTo,
+                                    FieldPositionIterator* posIter,
+                                    UErrorCode& status) const override;
 
     using DateFormat::parse;
 
@@ -934,7 +953,10 @@ public:
      *              start position if the parse failed.
      * @stable ICU 2.1
      */
-    virtual void parse(const UnicodeString& text, Calendar& cal, ParsePosition& pos) const override;
+    virtual void parse( const UnicodeString& text,
+                        Calendar& cal,
+                        ParsePosition& pos) const override;
+
 
     /**
      * Set the start UDate used to interpret two-digit year strings.
@@ -1001,7 +1023,8 @@ public:
      * @return          A reference to 'result'.
      * @stable ICU 2.0
      */
-    virtual UnicodeString& toLocalizedPattern(UnicodeString& result, UErrorCode& status) const;
+    virtual UnicodeString& toLocalizedPattern(UnicodeString& result,
+                                              UErrorCode& status) const;
 
     /**
      * Apply the given unlocalized pattern string to this date format.
@@ -1023,7 +1046,8 @@ public:
      *                  set to a failure result.
      * @stable ICU 2.0
      */
-    virtual void applyLocalizedPattern(const UnicodeString& pattern, UErrorCode& status);
+    virtual void applyLocalizedPattern(const UnicodeString& pattern,
+                                       UErrorCode& status);
 
     /**
      * Gets the date/time formatting symbols (this is an object carrying
@@ -1130,7 +1154,7 @@ public:
      * @param formatToAdopt the NumbeferFormat used
      * @stable ICU 54
      */
-    void adoptNumberFormat(NumberFormat* formatToAdopt) override;
+    void adoptNumberFormat(NumberFormat *formatToAdopt) override;
 
     /**
      * Allow the user to set the NumberFormat for several fields
@@ -1147,14 +1171,14 @@ public:
      *                if the operation succeeds.
      * @stable ICU 54
      */
-    void adoptNumberFormat(const UnicodeString& fields, NumberFormat* formatToAdopt, UErrorCode& status);
+    void adoptNumberFormat(const UnicodeString& fields, NumberFormat *formatToAdopt, UErrorCode &status);
 
     /**
      * Get the numbering system to be used for a particular field.
      * @param field The UDateFormatField to get
      * @stable ICU 54
      */
-    const NumberFormat* getNumberFormatForField(char16_t field) const;
+    const NumberFormat * getNumberFormatForField(char16_t field) const;
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -1169,6 +1193,7 @@ public:
      */
     UBool isFieldUnitIgnored(UCalendarDateFields field) const;
 
+
     /**
      * This is for ICU internal use only. Please do not use.
      * Check whether the 'field' is smaller than all the fields covered in
@@ -1180,7 +1205,8 @@ public:
      *                 covered in pattern. false otherwise.
      * @internal ICU 4.0
      */
-    static UBool isFieldUnitIgnored(const UnicodeString& pattern, UCalendarDateFields field);
+    static UBool isFieldUnitIgnored(const UnicodeString& pattern,
+                                    UCalendarDateFields field);
 
     /**
      * This is for ICU internal use only. Please do not use.
@@ -1191,7 +1217,7 @@ public:
      * @internal ICU 4.0
      */
     const Locale& getSmpFmtLocale(void) const;
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
 private:
     friend class DateFormat;
@@ -1201,7 +1227,7 @@ private:
 
     void initializeBooleanAttributes(void);
 
-    SimpleDateFormat(); // default constructor not implemented
+    SimpleDateFormat() = delete; // default constructor not implemented
 
     /**
      * Used by the DateFormat factory methods to construct a SimpleDateFormat.
@@ -1244,9 +1270,15 @@ private:
      * @param status    Receives a status code, which will be U_ZERO_ERROR if the operation
      *                  succeeds.
      */
-    void subFormat(UnicodeString& appendTo, char16_t ch, int32_t count, UDisplayContext capitalizationContext, int32_t fieldNum, char16_t fieldToOutput,
-        FieldPositionHandler& handler, Calendar& cal,
-        UErrorCode& status) const; // in case of illegal argument
+    void subFormat(UnicodeString &appendTo,
+                   char16_t ch,
+                   int32_t count,
+                   UDisplayContext capitalizationContext,
+                   int32_t fieldNum,
+                   char16_t fieldToOutput,
+                   FieldPositionHandler& handler,
+                   Calendar& cal,
+                   UErrorCode& status) const; // in case of illegal argument
 
     /**
      * Used by subFormat() to format a numeric value.
@@ -1261,7 +1293,11 @@ private:
      * @param minDigits Minimum number of digits the result should have
      * @param maxDigits Maximum number of digits the result should have
      */
-    void zeroPaddingNumber(const NumberFormat* currentNumberFormat, UnicodeString& appendTo, int32_t value, int32_t minDigits, int32_t maxDigits) const;
+    void zeroPaddingNumber(const NumberFormat *currentNumberFormat,
+                           UnicodeString &appendTo,
+                           int32_t value,
+                           int32_t minDigits,
+                           int32_t maxDigits) const;
 
     /**
      * Return true if the given format character, occurring count
@@ -1272,21 +1308,21 @@ private:
     /**
      * Returns true if the patternOffset is at the start of a numeric field.
      */
-    static UBool isAtNumericField(const UnicodeString& pattern, int32_t patternOffset);
+    static UBool isAtNumericField(const UnicodeString &pattern, int32_t patternOffset);
 
     /**
      * Returns true if the patternOffset is right after a non-numeric field.
      */
-    static UBool isAfterNonNumericField(const UnicodeString& pattern, int32_t patternOffset);
+    static UBool isAfterNonNumericField(const UnicodeString &pattern, int32_t patternOffset);
 
     /**
      * initializes fCalendar from parameters.  Returns fCalendar as a convenience.
-     * @param adoptZone  Zone to be adopted, or NULL for TimeZone::createDefault().
+     * @param adoptZone  Zone to be adopted, or nullptr for TimeZone::createDefault().
      * @param locale Locale of the calendar
      * @param status Error code
      * @return the newly constructed fCalendar
      */
-    Calendar* initializeCalendar(TimeZone* adoptZone, const Locale& locale, UErrorCode& status);
+    Calendar *initializeCalendar(TimeZone* adoptZone, const Locale& locale, UErrorCode& status);
 
     /**
      * Called by several of the constructors to load pattern data and formatting symbols
@@ -1314,14 +1350,31 @@ private:
      * @param field the date field being parsed.
      * @param stringArray the string array to parsed.
      * @param stringArrayCount the size of the array.
-     * @param monthPattern pointer to leap month pattern, or NULL if none.
+     * @param monthPattern pointer to leap month pattern, or nullptr if none.
      * @param cal a Calendar set to the date and time to be formatted
      *            into a date/time string.
      * @return the new start position if matching succeeded; a negative number
      * indicating matching failure, otherwise.
      */
-    int32_t matchString(const UnicodeString& text, int32_t start, UCalendarDateFields field, const UnicodeString* stringArray, int32_t stringArrayCount,
-        const UnicodeString* monthPattern, Calendar& cal) const;
+    int32_t matchString(const UnicodeString& text, int32_t start, UCalendarDateFields field,
+                        const UnicodeString* stringArray, int32_t stringArrayCount,
+                        const UnicodeString* monthPattern, Calendar& cal) const;
+
+    /**
+     * Private code-size reduction function used by subParse. Only for UCAL_MONTH
+     * @param text the time text being parsed.
+     * @param start where to start parsing.
+     * @param wideStringArray the wide string array to parsed.
+     * @param shortStringArray the short string array to parsed.
+     * @param stringArrayCount the size of the string arrays.
+     * @param cal a Calendar set to the date and time to be formatted
+     *            into a date/time string.
+     * @return the new start position if matching succeeded; a negative number
+     * indicating matching failure, otherwise.
+     */
+    int32_t matchAlphaMonthStrings(const UnicodeString& text, int32_t start,
+                        const UnicodeString* wideStringArray, const UnicodeString* shortStringArray,
+                        int32_t stringArrayCount, Calendar& cal) const;
 
     /**
      * Private code-size reduction function used by subParse.
@@ -1335,14 +1388,15 @@ private:
      * @return the new start position if matching succeeded; a negative number
      * indicating matching failure, otherwise.
      */
-    int32_t matchQuarterString(
-        const UnicodeString& text, int32_t start, UCalendarDateFields field, const UnicodeString* stringArray, int32_t stringArrayCount, Calendar& cal) const;
+    int32_t matchQuarterString(const UnicodeString& text, int32_t start, UCalendarDateFields field,
+                               const UnicodeString* stringArray, int32_t stringArrayCount, Calendar& cal) const;
 
     /**
      * Used by subParse() to match localized day period strings.
      */
-    int32_t matchDayPeriodStrings(
-        const UnicodeString& text, int32_t start, const UnicodeString* stringArray, int32_t stringArrayCount, int32_t& dayPeriod) const;
+    int32_t matchDayPeriodStrings(const UnicodeString& text, int32_t start,
+                                  const UnicodeString* stringArray, int32_t stringArrayCount,
+                                  int32_t &dayPeriod) const;
 
     /**
      * Private function used by subParse to match literal pattern text.
@@ -1359,8 +1413,9 @@ private:
      *
      * @return <code>true</code> if the literal text could be matched, <code>false</code> otherwise.
      */
-    static UBool matchLiterals(const UnicodeString& pattern, int32_t& patternOffset, const UnicodeString& text, int32_t& textOffset, UBool whitespaceLenient,
-        UBool partialMatchLenient, UBool oldLeniency);
+    static UBool matchLiterals(const UnicodeString &pattern, int32_t &patternOffset,
+                               const UnicodeString &text, int32_t &textOffset,
+                               UBool whitespaceLenient, UBool partialMatchLenient, UBool oldLeniency);
 
     /**
      * Private member function that converts the parsed date strings into
@@ -1378,19 +1433,30 @@ private:
      * @param patLoc
      * @param numericLeapMonthFormatter If non-null, used to parse numeric leap months.
      * @param tzTimeType the type of parsed time zone - standard, daylight or unknown (output).
-     *      This parameter can be NULL if caller does not need the information.
+     *      This parameter can be nullptr if caller does not need the information.
      * @return the new start position if matching succeeded; a negative number
      * indicating matching failure, otherwise.
      */
-    int32_t subParse(const UnicodeString& text, int32_t& start, char16_t ch, int32_t count, UBool obeyCount, UBool allowNegative, UBool ambiguousYear[],
-        int32_t& saveHebrewMonth, Calendar& cal, int32_t patLoc, MessageFormat* numericLeapMonthFormatter, UTimeZoneFormatTimeType* tzTimeType,
-        int32_t* dayPeriod = NULL) const;
+    int32_t subParse(const UnicodeString& text, int32_t& start, char16_t ch, int32_t count,
+                     UBool obeyCount, UBool allowNegative, UBool ambiguousYear[], int32_t& saveHebrewMonth, Calendar& cal,
+                     int32_t patLoc, MessageFormat * numericLeapMonthFormatter, UTimeZoneFormatTimeType *tzTimeType,
+                     int32_t *dayPeriod=nullptr) const;
 
-    void parseInt(const UnicodeString& text, Formattable& number, ParsePosition& pos, UBool allowNegative, const NumberFormat* fmt) const;
+    void parseInt(const UnicodeString& text,
+                  Formattable& number,
+                  ParsePosition& pos,
+                  UBool allowNegative,
+                  const NumberFormat *fmt) const;
 
-    void parseInt(const UnicodeString& text, Formattable& number, int32_t maxDigits, ParsePosition& pos, UBool allowNegative, const NumberFormat* fmt) const;
+    void parseInt(const UnicodeString& text,
+                  Formattable& number,
+                  int32_t maxDigits,
+                  ParsePosition& pos,
+                  UBool allowNegative,
+                  const NumberFormat *fmt) const;
 
-    int32_t checkIntSuffix(const UnicodeString& text, int32_t start, int32_t patLoc, UBool isNegative) const;
+    int32_t checkIntSuffix(const UnicodeString& text, int32_t start,
+                           int32_t patLoc, UBool isNegative) const;
 
     /**
      * Counts number of digit code points in the specified text.
@@ -1399,7 +1465,7 @@ private:
      * @param start start index, inclusive
      * @param end   end index, exclusive
      * @return  number of digits found in the text in the specified range.
-     */
+    */
     int32_t countDigits(const UnicodeString& text, int32_t start, int32_t end) const;
 
     /**
@@ -1414,8 +1480,11 @@ private:
      * @param status            Receives a status code, which will be U_ZERO_ERROR
      *                          if the operation succeeds.
      */
-    static void translatePattern(
-        const UnicodeString& originalPattern, UnicodeString& translatedPattern, const UnicodeString& from, const UnicodeString& to, UErrorCode& status);
+    static void translatePattern(const UnicodeString& originalPattern,
+                                UnicodeString& translatedPattern,
+                                const UnicodeString& from,
+                                const UnicodeString& to,
+                                UErrorCode& status);
 
     /**
      * Sets the starting date of the 100-year window that dates with 2-digit years
@@ -1424,7 +1493,7 @@ private:
      * @param status    Receives a status code, which will be U_ZERO_ERROR
      *                  if the operation succeeds.
      */
-    void parseAmbiguousDatesAsAfter(UDate startDate, UErrorCode& status);
+    void         parseAmbiguousDatesAsAfter(UDate startDate, UErrorCode& status);
 
     /**
      * Return the length matched by the given affix, or -1 if none.
@@ -1435,7 +1504,9 @@ private:
      * @param pos offset into input at which to begin matching
      * @return length of input that matches, or -1 if match failure
      */
-    int32_t compareSimpleAffix(const UnicodeString& affix, const UnicodeString& input, int32_t pos) const;
+    int32_t compareSimpleAffix(const UnicodeString& affix,
+                   const UnicodeString& input,
+                   int32_t pos) const;
 
     /**
      * Skip over a run of zero or more Pattern_White_Space characters at
@@ -1450,24 +1521,19 @@ private:
     int32_t skipUWhiteSpace(const UnicodeString& text, int32_t pos) const;
 
     /**
-     * Initialize LocalizedNumberFormatter instances used for speedup.
+     * Initialize SimpleNumberFormat instance
      */
-    void initFastNumberFormatters(UErrorCode& status);
-
-    /**
-     * Delete the LocalizedNumberFormatter instances used for speedup.
-     */
-    void freeFastNumberFormatters();
+    void initSimpleNumberFormatter(UErrorCode &status);
 
     /**
      * Initialize NumberFormat instances used for numbering system overrides.
      */
-    void initNumberFormatters(const Locale& locale, UErrorCode& status);
+    void initNumberFormatters(const Locale &locale,UErrorCode &status);
 
     /**
      * Parse the given override string and set up structures for number formats
      */
-    void processOverrideString(const Locale& locale, const UnicodeString& str, int8_t type, UErrorCode& status);
+    void processOverrideString(const Locale &locale, const UnicodeString &str, int8_t type, UErrorCode &status);
 
     /**
      * Used to map pattern characters to Calendar field identifiers.
@@ -1482,7 +1548,7 @@ private:
     /**
      * Lazy TimeZoneFormat instantiation, semantically const
      */
-    TimeZoneFormat* tzFormat(UErrorCode& status) const;
+    TimeZoneFormat *tzFormat(UErrorCode &status) const;
 
     const NumberFormat* getNumberFormatByIndex(UDateFormatField index) const;
 
@@ -1507,33 +1573,34 @@ private:
     /**
      * The formatting pattern for this formatter.
      */
-    UnicodeString fPattern;
+    UnicodeString       fPattern;
 
     /**
      * The numbering system override for dates.
      */
-    UnicodeString fDateOverride;
+    UnicodeString       fDateOverride;
 
     /**
      * The numbering system override for times.
      */
-    UnicodeString fTimeOverride;
+    UnicodeString       fTimeOverride;
+
 
     /**
      * The original locale used (for reloading symbols)
      */
-    Locale fLocale;
+    Locale              fLocale;
 
     /**
      * A pointer to an object containing the strings to use in formatting (e.g.,
      * month and day names, AM and PM strings, time zone names, etc.)
      */
-    DateFormatSymbols* fSymbols; // Owned
+    DateFormatSymbols*  fSymbols = nullptr;   // Owned
 
     /**
      * The time zone formatter
      */
-    TimeZoneFormat* fTimeZoneFormat;
+    TimeZoneFormat* fTimeZoneFormat = nullptr;
 
     /**
      * If dates have ambiguous years, we map them into the century starting
@@ -1543,55 +1610,54 @@ private:
      * defaultCenturyStartYear are only used if explicitly set by the user
      * through the API method parseAmbiguousDatesAsAfter().
      */
-    UDate fDefaultCenturyStart;
+    UDate                fDefaultCenturyStart;
 
-    UBool fHasMinute;
-    UBool fHasSecond;
-    UBool fHasHanYearChar; // pattern contains the Han year character \u5E74
+    UBool                fHasMinute;
+    UBool                fHasSecond;
+    UBool                fHasHanYearChar; // pattern contains the Han year character \u5E74
 
     /**
      * Sets fHasMinutes and fHasSeconds.
      */
-    void parsePattern();
+    void                 parsePattern();
 
     /**
      * See documentation for defaultCenturyStart.
      */
-    /*transient*/ int32_t fDefaultCenturyStartYear;
+    /*transient*/ int32_t   fDefaultCenturyStartYear;
 
     struct NSOverride : public UMemory {
-        const SharedNumberFormat* snf;
+        const SharedNumberFormat *snf;
         int32_t hash;
-        NSOverride* next;
+        NSOverride *next;
         void free();
-        NSOverride()
-            : snf(NULL)
-            , hash(0)
-            , next(NULL)
-        {
+        NSOverride() : snf(nullptr), hash(0), next(nullptr) {
         }
         ~NSOverride();
     };
 
     /**
-     * The number format in use for each date field. NULL means fall back
+     * The number format in use for each date field. nullptr means fall back
      * to fNumberFormat in DateFormat.
      */
-    const SharedNumberFormat** fSharedNumberFormatters;
-
-    enum NumberFormatterKey { SMPDTFMT_NF_1x10, SMPDTFMT_NF_2x10, SMPDTFMT_NF_3x10, SMPDTFMT_NF_4x10, SMPDTFMT_NF_2x2, SMPDTFMT_NF_COUNT };
+    const SharedNumberFormat    **fSharedNumberFormatters = nullptr;
 
     /**
-     * Number formatters pre-allocated for fast performance on the most common integer lengths.
+     * Number formatter pre-allocated for fast performance
+     * 
+     * This references the decimal symbols from fNumberFormatter if it is an instance
+     * of DecimalFormat (and is otherwise null). This should always be cleaned up before
+     * destroying fNumberFormatter.
      */
-    const number::LocalizedNumberFormatter* fFastNumberFormatters[SMPDTFMT_NF_COUNT] = {};
+    const number::SimpleNumberFormatter* fSimpleNumberFormatter = nullptr;
 
     UBool fHaveDefaultCentury;
 
-    const BreakIterator* fCapitalizationBrkIter;
+    const BreakIterator* fCapitalizationBrkIter = nullptr;
 };
 
-inline UDate SimpleDateFormat::get2DigitYearStart(UErrorCode& /*status*/) const
+inline UDate
+SimpleDateFormat::get2DigitYearStart(UErrorCode& /*status*/) const
 {
     return fDefaultCenturyStart;
 }
@@ -1603,4 +1669,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // _SMPDTFMT
-// eof
+//eof

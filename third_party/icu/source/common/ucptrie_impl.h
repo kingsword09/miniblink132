@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // ucptrie_impl.h (modified from utrie2_impl.h)
@@ -14,8 +14,8 @@
 
 // UCPTrie signature values, in platform endianness and opposite endianness.
 // The UCPTrie signature ASCII byte values spell "Tri3".
-#define UCPTRIE_SIG 0x54726933
-#define UCPTRIE_OE_SIG 0x33697254
+#define UCPTRIE_SIG     0x54726933
+#define UCPTRIE_OE_SIG  0x33697254
 
 /**
  * Header data for the binary, memory-mappable representation of a UCPTrie/CodePointTrie.
@@ -124,15 +124,22 @@ constexpr int32_t UCPTRIE_SMALL_DATA_BLOCK_LENGTH = 1 << UCPTRIE_SHIFT_3;
 /** Mask for getting the lower bits for the in-small-data-block offset. */
 constexpr int32_t UCPTRIE_SMALL_DATA_MASK = UCPTRIE_SMALL_DATA_BLOCK_LENGTH - 1;
 
-typedef UChar32 UCPTrieGetRange(const void* trie, UChar32 start, UCPMapValueFilter* filter, const void* context, uint32_t* pValue);
 
-U_CFUNC UChar32 ucptrie_internalGetRange(UCPTrieGetRange* getRange, const void* trie, UChar32 start, UCPMapRangeOption option, uint32_t surrogateValue,
-    UCPMapValueFilter* filter, const void* context, uint32_t* pValue);
+typedef UChar32
+UCPTrieGetRange(const void *trie, UChar32 start,
+                UCPMapValueFilter *filter, const void *context, uint32_t *pValue);
+
+U_CFUNC UChar32
+ucptrie_internalGetRange(UCPTrieGetRange *getRange,
+                         const void *trie, UChar32 start,
+                         UCPMapRangeOption option, uint32_t surrogateValue,
+                         UCPMapValueFilter *filter, const void *context, uint32_t *pValue);
 
 #ifdef UCPTRIE_DEBUG
-U_CFUNC void ucptrie_printLengths(const UCPTrie* trie, const char* which);
+U_CFUNC void
+ucptrie_printLengths(const UCPTrie *trie, const char *which);
 
-U_CFUNC void umutablecptrie_setName(UMutableCPTrie* builder, const char* name);
+U_CFUNC void umutablecptrie_setName(UMutableCPTrie *builder, const char *name);
 #endif
 
 /*

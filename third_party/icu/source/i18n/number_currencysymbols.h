@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -11,53 +11,59 @@
 #include "charstr.h"
 #include "number_decimfmtprops.h"
 
-U_NAMESPACE_BEGIN namespace number
-{
-    namespace impl {
+U_NAMESPACE_BEGIN namespace number {
+namespace impl {
 
-    // Exported as U_I18N_API for tests
-    class U_I18N_API CurrencySymbols : public UMemory {
-    public:
-        CurrencySymbols() = default; // default constructor: leaves class in valid but undefined state
 
-        /** Creates an instance in which all symbols are loaded from data. */
-        CurrencySymbols(CurrencyUnit currency, const Locale& locale, UErrorCode& status);
+// Exported as U_I18N_API for tests
+class U_I18N_API CurrencySymbols : public UMemory {
+  public:
+    CurrencySymbols() = default; // default constructor: leaves class in valid but undefined state
 
-        /** Creates an instance in which some symbols might be pre-populated. */
-        CurrencySymbols(CurrencyUnit currency, const Locale& locale, const DecimalFormatSymbols& symbols, UErrorCode& status);
+    /** Creates an instance in which all symbols are loaded from data. */
+    CurrencySymbols(CurrencyUnit currency, const Locale& locale, UErrorCode& status);
 
-        const char16_t* getIsoCode() const;
+    /** Creates an instance in which some symbols might be pre-populated. */
+    CurrencySymbols(CurrencyUnit currency, const Locale& locale, const DecimalFormatSymbols& symbols,
+                    UErrorCode& status);
 
-        UnicodeString getNarrowCurrencySymbol(UErrorCode& status) const;
+    const char16_t* getIsoCode() const;
 
-        UnicodeString getFormalCurrencySymbol(UErrorCode& status) const;
+    UnicodeString getNarrowCurrencySymbol(UErrorCode& status) const;
 
-        UnicodeString getVariantCurrencySymbol(UErrorCode& status) const;
+    UnicodeString getFormalCurrencySymbol(UErrorCode& status) const;
 
-        UnicodeString getCurrencySymbol(UErrorCode& status) const;
+    UnicodeString getVariantCurrencySymbol(UErrorCode& status) const;
 
-        UnicodeString getIntlCurrencySymbol(UErrorCode& status) const;
+    UnicodeString getCurrencySymbol(UErrorCode& status) const;
 
-        UnicodeString getPluralName(StandardPlural::Form plural, UErrorCode& status) const;
+    UnicodeString getIntlCurrencySymbol(UErrorCode& status) const;
 
-    protected:
-        // Required fields:
-        CurrencyUnit fCurrency;
-        CharString fLocaleName;
+    UnicodeString getPluralName(StandardPlural::Form plural, UErrorCode& status) const;
 
-        // Optional fields:
-        UnicodeString fCurrencySymbol;
-        UnicodeString fIntlCurrencySymbol;
+    bool hasEmptyCurrencySymbol() const;
 
-        UnicodeString loadSymbol(UCurrNameStyle selector, UErrorCode& status) const;
-    };
+  protected:
+    // Required fields:
+    CurrencyUnit fCurrency;
+    CharString fLocaleName;
 
-    /**
-     * Resolves the effective currency from the property bag.
-     */
-    CurrencyUnit resolveCurrency(const DecimalFormatProperties& properties, const Locale& locale, UErrorCode& status);
+    // Optional fields:
+    UnicodeString fCurrencySymbol;
+    UnicodeString fIntlCurrencySymbol;
 
-    } // namespace impl
+    UnicodeString loadSymbol(UCurrNameStyle selector, UErrorCode& status) const;
+};
+
+
+/**
+ * Resolves the effective currency from the property bag.
+ */
+CurrencyUnit
+resolveCurrency(const DecimalFormatProperties& properties, const Locale& locale, UErrorCode& status);
+
+
+} // namespace impl
 } // namespace numparse
 U_NAMESPACE_END
 

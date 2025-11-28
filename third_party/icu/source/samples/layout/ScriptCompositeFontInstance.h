@@ -1,4 +1,4 @@
-﻿/*
+/*
  * %W% %E%
  *
  * © 2016 and later: Unicode, Inc. and others.
@@ -18,13 +18,15 @@
 
 // U_NAMESPACE_BEGIN
 
-class ScriptCompositeFontInstance : public LEFontInstance {
+class ScriptCompositeFontInstance : public LEFontInstance
+{
 public:
-    ScriptCompositeFontInstance(FontMap* fontMap);
+
+    ScriptCompositeFontInstance(FontMap *fontMap);
 
     virtual ~ScriptCompositeFontInstance();
 
-    /**
+      /**
      * Get a physical font which can render the given text. For composite fonts,
      * if there is no single physical font which can render all of the text,
      * return a physical font which can render an initial substring of the text,
@@ -41,7 +43,7 @@ public:
      * <code>this</code> and indicates that the entire string can be rendered.
      *
      * This method will return a valid <code>LEFontInstance</code> unless you
-     * have passed illegal parameters, or an internal error has been encountered.
+     * have passed illegal parameters, or an internal error has been encountered. 
      * For composite fonts, it may return the warning <code>LE_NO_SUBFONT_WARNING</code>
      * to indicate that the returned font may not be able to render all of
      * the text. Whenever a valid font is returned, the <code>offset</code> parameter
@@ -69,11 +71,11 @@ public:
      *                  was returned cannot render all of the text.
      *
      * @return an <code>LEFontInstance</code> for the sub font which can render the characters, or
-     *         <code>NULL</code> if there is an error.
+     *         <code>nullptr</code> if there is an error.
      *
      * @see LEScripts.h
      */
-    virtual const LEFontInstance* getSubFont(const LEUnicode chars[], le_int32* offset, le_int32 limit, le_int32 script, LEErrorCode& success) const;
+    virtual const LEFontInstance *getSubFont(const LEUnicode chars[], le_int32 *offset, le_int32 limit, le_int32 script, LEErrorCode &success) const;
 
     /**
      * This method maps a single character to a glyph index, using the
@@ -85,7 +87,7 @@ public:
      */
     virtual LEGlyphID mapCharToGlyph(LEUnicode32 ch) const;
 
-    virtual const void* getFontTable(LETag tableTag) const;
+    virtual const void *getFontTable(LETag tableTag) const;
 
     virtual le_int32 getUnitsPerEM() const;
 
@@ -95,9 +97,9 @@ public:
 
     virtual le_int32 getLeading() const;
 
-    virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint& advance) const;
+    virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const;
 
-    virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint& point) const;
+    virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const;
 
     float getXPixelsPerEm() const;
 
@@ -110,23 +112,18 @@ public:
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      */
-    virtual inline UClassID getDynamicClassID() const
-    {
-        return getStaticClassID();
-    }
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      */
-    static inline UClassID getStaticClassID()
-    {
-        return (UClassID)&fgClassID;
-    }
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 protected:
-    FontMap* fFontMap;
+    FontMap *fFontMap;
 
 private:
+
     /**
      * The address of this static class variable serves as this class's ID
      * for ICU "poor man's RTTI".
@@ -134,9 +131,9 @@ private:
     static const char fgClassID;
 };
 
-inline const void* ScriptCompositeFontInstance::getFontTable(LETag /*tableTag*/) const
+inline const void *ScriptCompositeFontInstance::getFontTable(LETag /*tableTag*/) const
 {
-    return NULL;
+    return nullptr;
 }
 
 // Can't get units per EM without knowing which sub-font, so

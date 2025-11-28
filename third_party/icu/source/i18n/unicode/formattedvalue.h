@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __FORMATTEDVALUE_H__
@@ -20,7 +20,7 @@ U_NAMESPACE_BEGIN
 /**
  * \file
  * \brief C++ API: Abstract operations for localized strings.
- *
+ * 
  * This file contains declarations for classes that deal with formatted strings. A number
  * of APIs throughout ICU use these classes for expressing their localized output.
  */
@@ -39,7 +39,8 @@ U_NAMESPACE_BEGIN
  * @stable ICU 64
  */
 class U_I18N_API ConstrainedFieldPosition : public UMemory {
-public:
+  public:
+
     /**
      * Initializes a ConstrainedFieldPosition.
      *
@@ -64,7 +65,7 @@ public:
 
     /**
      * Sets a constraint on the field category.
-     *
+     * 
      * When this instance of ConstrainedFieldPosition is passed to FormattedValue#nextPosition,
      * positions are skipped unless they have the given category.
      *
@@ -88,7 +89,7 @@ public:
 
     /**
      * Sets a constraint on the category and field.
-     *
+     * 
      * When this instance of ConstrainedFieldPosition is passed to FormattedValue#nextPosition,
      * positions are skipped unless they have the given category and field.
      *
@@ -120,8 +121,7 @@ public:
      * @return The field category saved in the instance.
      * @stable ICU 64
      */
-    inline int32_t getCategory() const
-    {
+    inline int32_t getCategory() const {
         return fCategory;
     }
 
@@ -134,8 +134,7 @@ public:
      * @return The field saved in the instance.
      * @stable ICU 64
      */
-    inline int32_t getField() const
-    {
+    inline int32_t getField() const {
         return fField;
     }
 
@@ -147,8 +146,7 @@ public:
      * @return The start index saved in the instance.
      * @stable ICU 64
      */
-    inline int32_t getStart() const
-    {
+    inline int32_t getStart() const {
         return fStart;
     }
 
@@ -160,8 +158,7 @@ public:
      * @return The end index saved in the instance.
      * @stable ICU 64
      */
-    inline int32_t getLimit() const
-    {
+    inline int32_t getLimit() const {
         return fLimit;
     }
 
@@ -180,8 +177,7 @@ public:
      * @return The current iteration context from {@link #setInt64IterationContext}.
      * @stable ICU 64
      */
-    inline int64_t getInt64IterationContext() const
-    {
+    inline int64_t getInt64IterationContext() const {
         return fContext;
     }
 
@@ -221,9 +217,13 @@ public:
      * @param limit The new exclusive end index.
      * @stable ICU 64
      */
-    void setState(int32_t category, int32_t field, int32_t start, int32_t limit);
+    void setState(
+        int32_t category,
+        int32_t field,
+        int32_t start,
+        int32_t limit);
 
-private:
+  private:
     int64_t fContext = 0LL;
     int32_t fField = 0;
     int32_t fStart = 0;
@@ -239,7 +239,7 @@ private:
  * @stable ICU 64
  */
 class U_I18N_API FormattedValue /* not : public UObject because this is an interface/mixin class */ {
-public:
+  public:
     /** @stable ICU 64 */
     virtual ~FormattedValue();
 

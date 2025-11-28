@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -22,16 +22,16 @@
 
 U_NAMESPACE_BEGIN
 
-static const char* gKeywords[StandardPlural::COUNT] = { "zero", "one", "two", "few", "many", "other", "=0", "=1" };
+static const char *gKeywords[StandardPlural::COUNT] = {
+    "zero", "one", "two", "few", "many", "other", "=0", "=1"
+};
 
-const char* StandardPlural::getKeyword(Form p)
-{
+const char *StandardPlural::getKeyword(Form p) {
     U_ASSERT(ZERO <= p && p < COUNT);
     return gKeywords[p];
 }
 
-int32_t StandardPlural::indexOrNegativeFromString(const char* keyword)
-{
+int32_t StandardPlural::indexOrNegativeFromString(const char *keyword) {
     switch (*keyword++) {
     case 'f':
         if (uprv_strcmp(keyword, "ew") == 0) {
@@ -84,17 +84,16 @@ int32_t StandardPlural::indexOrNegativeFromString(const char* keyword)
     return -1;
 }
 
-static const UChar gZero[] = u"zero";
-static const UChar gOne[] = u"one";
-static const UChar gTwo[] = u"two";
-static const UChar gFew[] = u"few";
-static const UChar gMany[] = u"many";
-static const UChar gOther[] = u"other";
-static const UChar gEq0[] = u"=0";
-static const UChar gEq1[] = u"=1";
+static const char16_t gZero[] = u"zero";
+static const char16_t gOne[] = u"one";
+static const char16_t gTwo[] = u"two";
+static const char16_t gFew[] = u"few";
+static const char16_t gMany[] = u"many";
+static const char16_t gOther[] = u"other";
+static const char16_t gEq0[] = u"=0";
+static const char16_t gEq1[] = u"=1";
 
-int32_t StandardPlural::indexOrNegativeFromString(const UnicodeString& keyword)
-{
+int32_t StandardPlural::indexOrNegativeFromString(const UnicodeString &keyword) {
     switch (keyword.length()) {
     case 1:
         if (keyword.charAt(0) == '0') {
@@ -137,11 +136,8 @@ int32_t StandardPlural::indexOrNegativeFromString(const UnicodeString& keyword)
     return -1;
 }
 
-int32_t StandardPlural::indexFromString(const char* keyword, UErrorCode& errorCode)
-{
-    if (U_FAILURE(errorCode)) {
-        return OTHER;
-    }
+int32_t StandardPlural::indexFromString(const char *keyword, UErrorCode &errorCode) {
+    if (U_FAILURE(errorCode)) { return OTHER; }
     int32_t i = indexOrNegativeFromString(keyword);
     if (i >= 0) {
         return i;
@@ -151,11 +147,8 @@ int32_t StandardPlural::indexFromString(const char* keyword, UErrorCode& errorCo
     }
 }
 
-int32_t StandardPlural::indexFromString(const UnicodeString& keyword, UErrorCode& errorCode)
-{
-    if (U_FAILURE(errorCode)) {
-        return OTHER;
-    }
+int32_t StandardPlural::indexFromString(const UnicodeString &keyword, UErrorCode &errorCode) {
+    if (U_FAILURE(errorCode)) { return OTHER; }
     int32_t i = indexOrNegativeFromString(keyword);
     if (i >= 0) {
         return i;
@@ -167,4 +160,4 @@ int32_t StandardPlural::indexFromString(const UnicodeString& keyword, UErrorCode
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_FORMATTING
+#endif  // !UCONFIG_NO_FORMATTING

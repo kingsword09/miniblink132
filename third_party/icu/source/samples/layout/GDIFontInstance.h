@@ -1,4 +1,4 @@
-﻿
+
 /*
  *******************************************************************************
  *
@@ -31,21 +31,22 @@
 
 class GDIFontInstance;
 
-class GDISurface : public RenderingSurface {
+class GDISurface : public RenderingSurface
+{
 public:
     GDISurface(HDC theHDC);
     virtual ~GDISurface();
 
-    virtual void drawGlyphs(
-        const LEFontInstance* font, const LEGlyphID* glyphs, le_int32 count, const float* positions, le_int32 x, le_int32 y, le_int32 width, le_int32 height);
+    virtual void drawGlyphs(const LEFontInstance *font, const LEGlyphID *glyphs, le_int32 count,
+        const float *positions, le_int32 x, le_int32 y, le_int32 width, le_int32 height);
 
-    void setFont(const GDIFontInstance* font);
-    HDC getHDC() const;
+    void setFont(const GDIFontInstance *font);
+    HDC  getHDC() const;
     void setHDC(HDC theHDC);
 
 private:
     HDC fHdc;
-    const GDIFontInstance* fCurrentFont;
+    const GDIFontInstance *fCurrentFont;
 };
 
 inline HDC GDISurface::getHDC() const
@@ -53,9 +54,10 @@ inline HDC GDISurface::getHDC() const
     return fHdc;
 }
 
-class GDIFontInstance : public LEFontInstance, protected FontTableCache {
+class GDIFontInstance : public LEFontInstance, protected FontTableCache
+{
 protected:
-    GDISurface* fSurface;
+    GDISurface *fSurface;
     HFONT fFont;
 
     le_int32 fPointSize;
@@ -67,22 +69,22 @@ protected:
     float fDeviceScaleX;
     float fDeviceScaleY;
 
-    CMAPMapper* fMapper;
+    CMAPMapper *fMapper;
 
-    virtual const void* readFontTable(LETag tableTag) const;
+    virtual const void *readFontTable(LETag tableTag) const;
 
     virtual LEErrorCode initMapper();
 
 public:
-    GDIFontInstance(GDISurface* surface, TCHAR* faceName, le_int16 pointSize, LEErrorCode& status);
-    GDIFontInstance(GDISurface* surface, const char* faceName, le_int16 pointSize, LEErrorCode& status);
-    // GDIFontInstance(GDISurface *surface, le_int16 pointSize);
+    GDIFontInstance(GDISurface *surface, TCHAR *faceName, le_int16 pointSize, LEErrorCode &status);
+    GDIFontInstance(GDISurface *surface, const char *faceName, le_int16 pointSize, LEErrorCode &status);
+    //GDIFontInstance(GDISurface *surface, le_int16 pointSize);
 
     virtual ~GDIFontInstance();
 
     HFONT getFont() const;
 
-    virtual const void* getFontTable(LETag tableTag) const;
+    virtual const void *getFontTable(LETag tableTag) const;
 
     virtual le_int32 getUnitsPerEM() const;
 
@@ -94,9 +96,9 @@ public:
 
     virtual LEGlyphID mapCharToGlyph(LEUnicode32 ch) const;
 
-    virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint& advance) const;
+    virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const;
 
-    virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint& point) const;
+    virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const;
 
     float getXPixelsPerEm() const;
 
@@ -139,12 +141,12 @@ inline LEGlyphID GDIFontInstance::mapCharToGlyph(LEUnicode32 ch) const
 
 inline float GDIFontInstance::getXPixelsPerEm() const
 {
-    return (float)fPointSize;
+    return (float) fPointSize;
 }
 
 inline float GDIFontInstance::getYPixelsPerEm() const
 {
-    return (float)fPointSize;
+    return  (float) fPointSize;
 }
 
 inline float GDIFontInstance::getScaleFactorX() const

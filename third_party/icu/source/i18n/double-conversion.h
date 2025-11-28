@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 // From the double-conversion library. Original license:
@@ -42,5 +42,5 @@
 #include "double-conversion-string-to-double.h"
 #include "double-conversion-double-to-string.h"
 
-#endif // DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
+#endif  // DOUBLE_CONVERSION_DOUBLE_CONVERSION_H_
 #endif // ICU PATCH: close #if !UCONFIG_NO_FORMATTING

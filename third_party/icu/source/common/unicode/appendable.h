@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -79,12 +79,12 @@ public:
     /**
      * Appends a string.
      * The default implementation calls appendCodeUnit(char16_t) for each code unit.
-     * @param s string, must not be NULL if length!=0
+     * @param s string, must not be nullptr if length!=0
      * @param length string length, or -1 if NUL-terminated
      * @return true if the operation succeeded
      * @stable ICU 4.8
      */
-    virtual UBool appendString(const char16_t* s, int32_t length);
+    virtual UBool appendString(const char16_t *s, int32_t length);
 
     /**
      * Tells the object that the caller is going to append roughly
@@ -141,7 +141,10 @@ public:
      * @return a buffer with *resultCapacity>=minCapacity
      * @stable ICU 4.8
      */
-    virtual char16_t* getAppendBuffer(int32_t minCapacity, int32_t desiredCapacityHint, char16_t* scratch, int32_t scratchCapacity, int32_t* resultCapacity);
+    virtual char16_t *getAppendBuffer(int32_t minCapacity,
+                                   int32_t desiredCapacityHint,
+                                   char16_t *scratch, int32_t scratchCapacity,
+                                   int32_t *resultCapacity);
 };
 
 /**
@@ -157,10 +160,7 @@ public:
      * @param s The UnicodeString to which this Appendable will write.
      * @stable ICU 4.8
      */
-    explicit UnicodeStringAppendable(UnicodeString& s)
-        : str(s)
-    {
-    }
+    explicit UnicodeStringAppendable(UnicodeString &s) : str(s) {}
 
     /**
      * Destructor.
@@ -186,12 +186,12 @@ public:
 
     /**
      * Appends a string to the UnicodeString.
-     * @param s string, must not be NULL if length!=0
+     * @param s string, must not be nullptr if length!=0
      * @param length string length, or -1 if NUL-terminated
      * @return true if the operation succeeded
      * @stable ICU 4.8
      */
-    virtual UBool appendString(const char16_t* s, int32_t length) override;
+    virtual UBool appendString(const char16_t *s, int32_t length) override;
 
     /**
      * Tells the UnicodeString that the caller is going to append roughly
@@ -223,15 +223,17 @@ public:
      * @return a buffer with *resultCapacity>=minCapacity
      * @stable ICU 4.8
      */
-    virtual char16_t* getAppendBuffer(
-        int32_t minCapacity, int32_t desiredCapacityHint, char16_t* scratch, int32_t scratchCapacity, int32_t* resultCapacity) override;
+    virtual char16_t *getAppendBuffer(int32_t minCapacity,
+                                   int32_t desiredCapacityHint,
+                                   char16_t *scratch, int32_t scratchCapacity,
+                                   int32_t *resultCapacity) override;
 
 private:
-    UnicodeString& str;
+    UnicodeString &str;
 };
 
 U_NAMESPACE_END
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
-#endif // __APPENDABLE_H__
+#endif  // __APPENDABLE_H__

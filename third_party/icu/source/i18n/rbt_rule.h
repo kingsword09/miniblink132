@@ -1,12 +1,12 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
- * Copyright (C) {1999-2001}, International Business Machines Corporation and others. All Rights Reserved.
- **********************************************************************
- *   Date        Name        Description
- *   11/17/99    aliu        Creation.
- **********************************************************************
- */
+* Copyright (C) {1999-2001}, International Business Machines Corporation and others. All Rights Reserved.
+**********************************************************************
+*   Date        Name        Description
+*   11/17/99    aliu        Creation.
+**********************************************************************
+*/
 #ifndef RBT_RULE_H
 #define RBT_RULE_H
 
@@ -57,6 +57,7 @@ class UnicodeFunctor;
 class TransliterationRule : public UMemory {
 
 private:
+
     // TODO Eliminate the pattern and keyLength data members.  They
     // are used only by masks() and getIndexValue() which are called
     // only during build time, not during run-time.  Perhaps these
@@ -67,18 +68,18 @@ private:
      * The match that must occur before the key, or null if there is no
      * preceding context.
      */
-    StringMatcher* anteContext;
+    StringMatcher *anteContext;
 
     /**
      * The matcher object for the key.  If null, then the key is empty.
      */
-    StringMatcher* key;
+    StringMatcher *key;
 
     /**
      * The match that must occur after the key, or null if there is no
      * following context.
      */
-    StringMatcher* postContext;
+    StringMatcher *postContext;
 
     /**
      * The object that performs the replacement if the key,
@@ -107,7 +108,7 @@ private:
     UnicodeFunctor** segments;
 
     /**
-     * The number of elements in segments[] or zero if segments is NULL.
+     * The number of elements in segments[] or zero if segments is nullptr.
      */
     int32_t segmentsCount;
 
@@ -133,7 +134,10 @@ private:
     /**
      * Flag attributes.
      */
-    enum { ANCHOR_START = 1, ANCHOR_END = 2 };
+    enum {
+        ANCHOR_START = 1,
+        ANCHOR_END   = 2
+    };
 
     /**
      * An alias pointer to the data for this rule.  The data provides
@@ -142,6 +146,7 @@ private:
     const TransliterationRuleData* data;
 
 public:
+
     /**
      * Construct a new rule with the given input, output text, and other
      * attributes.  A cursor position may be specified for the output text.
@@ -174,9 +179,15 @@ public:
      * @param data           the rule data.
      * @param status         Output parameter filled in with success or failure status.
      */
-    TransliterationRule(const UnicodeString& input, int32_t anteContextPos, int32_t postContextPos, const UnicodeString& outputStr, int32_t cursorPosition,
-        int32_t cursorOffset, UnicodeFunctor** segs, int32_t segsCount, UBool anchorStart, UBool anchorEnd, const TransliterationRuleData* data,
-        UErrorCode& status);
+    TransliterationRule(const UnicodeString& input,
+                        int32_t anteContextPos, int32_t postContextPos,
+                        const UnicodeString& outputStr,
+                        int32_t cursorPosition, int32_t cursorOffset,
+                        UnicodeFunctor** segs,
+                        int32_t segsCount,
+                        UBool anchorStart, UBool anchorEnd,
+                        const TransliterationRuleData* data,
+                        UErrorCode& status);
 
     /**
      * Copy constructor.
@@ -206,7 +217,7 @@ public:
      * anchors work.
      * @return    the preceding context length.
      */
-    virtual int32_t getContextLength(void) const;
+    virtual int32_t getContextLength() const;
 
     /**
      * Internal method.  Returns 8-bit index value for this rule.
@@ -250,10 +261,10 @@ public:
      * context and key characters match, but the text is not long
      * enough to match all of them.  A full match means all context
      * and key characters match.
-     *
+     * 
      * If a full match is obtained, perform a replacement, update pos,
      * and return U_MATCH.  Otherwise both text and pos are unchanged.
-     *
+     * 
      * @param text the text
      * @param pos the position indices
      * @param incremental if true, test for partial matches that may
@@ -262,13 +273,16 @@ public:
      * <code>U_PARTIAL_MATCH</code>, or <code>U_MATCH</code>.  If
      * incremental is false then U_PARTIAL_MATCH will not be returned.
      */
-    UMatchDegree matchAndReplace(Replaceable& text, UTransPosition& pos, UBool incremental) const;
+    UMatchDegree matchAndReplace(Replaceable& text,
+                                 UTransPosition& pos,
+                                 UBool incremental) const;
 
     /**
      * Create a rule string that represents this rule object.  Append
      * it to the given string.
      */
-    virtual UnicodeString& toRule(UnicodeString& pat, UBool escapeUnprintable) const;
+    virtual UnicodeString& toRule(UnicodeString& pat,
+                                  UBool escapeUnprintable) const;
 
     /**
      * Union the set of all characters that may be modified by this rule
@@ -282,10 +296,11 @@ public:
      */
     void addTargetSetTo(UnicodeSet& toUnionTo) const;
 
-private:
+ private:
+
     friend class StringMatcher;
 
-    TransliterationRule& operator=(const TransliterationRule& other); // forbid copying of this class
+    TransliterationRule &operator=(const TransliterationRule &other); // forbid copying of this class
 };
 
 U_NAMESPACE_END

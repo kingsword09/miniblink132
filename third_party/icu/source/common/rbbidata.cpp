@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ***************************************************************************
@@ -22,6 +22,7 @@
 
 #include "uassert.h"
 
+
 U_NAMESPACE_BEGIN
 
 //-----------------------------------------------------------------------------
@@ -29,44 +30,46 @@ U_NAMESPACE_BEGIN
 //    Constructors.
 //
 //-----------------------------------------------------------------------------
-RBBIDataWrapper::RBBIDataWrapper(const RBBIDataHeader* data, UErrorCode& status)
-{
+RBBIDataWrapper::RBBIDataWrapper(const RBBIDataHeader *data, UErrorCode &status) {
     init0();
     init(data, status);
 }
 
-RBBIDataWrapper::RBBIDataWrapper(const RBBIDataHeader* data, enum EDontAdopt, UErrorCode& status)
-{
+RBBIDataWrapper::RBBIDataWrapper(const RBBIDataHeader *data, enum EDontAdopt, UErrorCode &status) {
     init0();
     init(data, status);
-    fDontFreeData = TRUE;
+    fDontFreeData = true;
 }
 
-RBBIDataWrapper::RBBIDataWrapper(UDataMemory* udm, UErrorCode& status)
-{
+RBBIDataWrapper::RBBIDataWrapper(UDataMemory* udm, UErrorCode &status) {
     init0();
     if (U_FAILURE(status)) {
         return;
     }
-    const DataHeader* dh = udm->pHeader;
+    const DataHeader *dh = udm->pHeader;
     int32_t headerSize = dh->dataHeader.headerSize;
-    if (!(headerSize >= 20 && dh->info.isBigEndian == U_IS_BIG_ENDIAN && dh->info.charsetFamily == U_CHARSET_FAMILY && dh->info.dataFormat[0] == 0x42
-            && // dataFormat="Brk "
-            dh->info.dataFormat[1] == 0x72 && dh->info.dataFormat[2] == 0x6b && dh->info.dataFormat[3] == 0x20
-            && isDataVersionAcceptable(dh->info.formatVersion))) {
+    if (  !(headerSize >= 20 &&
+            dh->info.isBigEndian == U_IS_BIG_ENDIAN &&
+            dh->info.charsetFamily == U_CHARSET_FAMILY &&
+            dh->info.dataFormat[0] == 0x42 &&  // dataFormat="Brk "
+            dh->info.dataFormat[1] == 0x72 &&
+            dh->info.dataFormat[2] == 0x6b &&
+            dh->info.dataFormat[3] == 0x20 &&
+            isDataVersionAcceptable(dh->info.formatVersion))
+        ) {
         status = U_INVALID_FORMAT_ERROR;
         return;
     }
-    const char* dataAsBytes = reinterpret_cast<const char*>(dh);
-    const RBBIDataHeader* rbbidh = reinterpret_cast<const RBBIDataHeader*>(dataAsBytes + headerSize);
+    const char *dataAsBytes = reinterpret_cast<const char *>(dh);
+    const RBBIDataHeader *rbbidh = reinterpret_cast<const RBBIDataHeader *>(dataAsBytes + headerSize);
     init(rbbidh, status);
     fUDataMem = udm;
 }
 
-UBool RBBIDataWrapper::isDataVersionAcceptable(const UVersionInfo version)
-{
+UBool RBBIDataWrapper::isDataVersionAcceptable(const UVersionInfo version) {
     return RBBI_DATA_FORMAT_VERSION[0] == version[0];
 }
+
 
 //-----------------------------------------------------------------------------
 //
@@ -74,21 +77,19 @@ UBool RBBIDataWrapper::isDataVersionAcceptable(const UVersionInfo version)
 //              constructors.
 //
 //-----------------------------------------------------------------------------
-void RBBIDataWrapper::init0()
-{
-    fHeader = NULL;
-    fForwardTable = NULL;
-    fReverseTable = NULL;
-    fRuleSource = NULL;
-    fRuleStatusTable = NULL;
-    fTrie = NULL;
-    fUDataMem = NULL;
-    fRefCount = 0;
-    fDontFreeData = TRUE;
+void RBBIDataWrapper::init0() {
+    fHeader = nullptr;
+    fForwardTable = nullptr;
+    fReverseTable = nullptr;
+    fRuleSource   = nullptr;
+    fRuleStatusTable = nullptr;
+    fTrie         = nullptr;
+    fUDataMem     = nullptr;
+    fRefCount     = 0;
+    fDontFreeData = true;
 }
 
-void RBBIDataWrapper::init(const RBBIDataHeader* data, UErrorCode& status)
-{
+void RBBIDataWrapper::init(const RBBIDataHeader *data, UErrorCode &status) {
     if (U_FAILURE(status)) {
         return;
     }
@@ -101,17 +102,20 @@ void RBBIDataWrapper::init(const RBBIDataHeader* data, UErrorCode& status)
     //       that is no longer supported.  At that time fFormatVersion was
     //       an int32_t field, rather than an array of 4 bytes.
 
-    fDontFreeData = FALSE;
+    fDontFreeData = false;
     if (data->fFTableLen != 0) {
-        fForwardTable = (RBBIStateTable*)((char*)data + fHeader->fFTable);
+        fForwardTable = (RBBIStateTable *)((char *)data + fHeader->fFTable);
     }
     if (data->fRTableLen != 0) {
-        fReverseTable = (RBBIStateTable*)((char*)data + fHeader->fRTable);
+        fReverseTable = (RBBIStateTable *)((char *)data + fHeader->fRTable);
     }
 
-    fTrie = ucptrie_openFromBinary(UCPTRIE_TYPE_FAST, UCPTRIE_VALUE_BITS_ANY, (uint8_t*)data + fHeader->fTrie, fHeader->fTrieLen,
-        nullptr, // *actual length
-        &status);
+    fTrie = ucptrie_openFromBinary(UCPTRIE_TYPE_FAST,
+                                   UCPTRIE_VALUE_BITS_ANY,
+                                   (uint8_t *)data + fHeader->fTrie,
+                                   fHeader->fTrieLen,
+                                   nullptr,           // *actual length
+                                   &status);
     if (U_FAILURE(status)) {
         return;
     }
@@ -122,39 +126,39 @@ void RBBIDataWrapper::init(const RBBIDataHeader* data, UErrorCode& status)
         return;
     }
 
-    fRuleSource = ((char*)data + fHeader->fRuleSource);
+    fRuleSource   = ((char *)data + fHeader->fRuleSource);
     fRuleString = UnicodeString::fromUTF8(StringPiece(fRuleSource, fHeader->fRuleSourceLen));
     U_ASSERT(data->fRuleSourceLen > 0);
 
-    fRuleStatusTable = (int32_t*)((char*)data + fHeader->fStatusTable);
-    fStatusMaxIdx = data->fStatusTableLen / sizeof(int32_t);
+    fRuleStatusTable = (int32_t *)((char *)data + fHeader->fStatusTable);
+    fStatusMaxIdx    = data->fStatusTableLen / sizeof(int32_t);
 
     fRefCount = 1;
 
 #ifdef RBBI_DEBUG
-    char* debugEnv = getenv("U_RBBIDEBUG");
-    if (debugEnv && uprv_strstr(debugEnv, "data")) {
-        this->printData();
-    }
+    char *debugEnv = getenv("U_RBBIDEBUG");
+    if (debugEnv && uprv_strstr(debugEnv, "data")) {this->printData();}
 #endif
 }
+
 
 //-----------------------------------------------------------------------------
 //
 //    Destructor.     Don't call this - use removeReference() instead.
 //
 //-----------------------------------------------------------------------------
-RBBIDataWrapper::~RBBIDataWrapper()
-{
+RBBIDataWrapper::~RBBIDataWrapper() {
     U_ASSERT(fRefCount == 0);
     ucptrie_close(fTrie);
     fTrie = nullptr;
     if (fUDataMem) {
         udata_close(fUDataMem);
     } else if (!fDontFreeData) {
-        uprv_free((void*)fHeader);
+        uprv_free((void *)fHeader);
     }
 }
+
+
 
 //-----------------------------------------------------------------------------
 //
@@ -166,8 +170,7 @@ RBBIDataWrapper::~RBBIDataWrapper()
 //                  should still be ==.
 //
 //-----------------------------------------------------------------------------
-bool RBBIDataWrapper::operator==(const RBBIDataWrapper& other) const
-{
+bool RBBIDataWrapper::operator ==(const RBBIDataWrapper &other) const {
     if (fHeader == other.fHeader) {
         return true;
     }
@@ -180,10 +183,11 @@ bool RBBIDataWrapper::operator==(const RBBIDataWrapper& other) const
     return false;
 }
 
-int32_t RBBIDataWrapper::hashCode()
-{
+int32_t  RBBIDataWrapper::hashCode() {
     return fHeader->fFTableLen;
 }
+
+
 
 //-----------------------------------------------------------------------------
 //
@@ -192,28 +196,29 @@ int32_t RBBIDataWrapper::hashCode()
 //                          referencing the same data.
 //
 //-----------------------------------------------------------------------------
-void RBBIDataWrapper::removeReference()
-{
+void RBBIDataWrapper::removeReference() {
     if (umtx_atomic_dec(&fRefCount) == 0) {
         delete this;
     }
 }
 
-RBBIDataWrapper* RBBIDataWrapper::addReference()
-{
-    umtx_atomic_inc(&fRefCount);
-    return this;
+
+RBBIDataWrapper *RBBIDataWrapper::addReference() {
+   umtx_atomic_inc(&fRefCount);
+   return this;
 }
+
+
 
 //-----------------------------------------------------------------------------
 //
 //  getRuleSourceString
 //
 //-----------------------------------------------------------------------------
-const UnicodeString& RBBIDataWrapper::getRuleSourceString() const
-{
+const UnicodeString &RBBIDataWrapper::getRuleSourceString() const {
     return fRuleString;
 }
+
 
 //-----------------------------------------------------------------------------
 //
@@ -221,42 +226,42 @@ const UnicodeString& RBBIDataWrapper::getRuleSourceString() const
 //
 //-----------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBIDataWrapper::printTable(const char* heading, const RBBIStateTable* table)
-{
-    uint32_t c;
-    uint32_t s;
+void  RBBIDataWrapper::printTable(const char *heading, const RBBIStateTable *table) {
+    uint32_t   c;
+    uint32_t   s;
 
     RBBIDebugPrintf("%s\n", heading);
 
     RBBIDebugPrintf("   fDictCategoriesStart: %d\n", table->fDictCategoriesStart);
     RBBIDebugPrintf("   fLookAheadResultsSize: %d\n", table->fLookAheadResultsSize);
-    RBBIDebugPrintf("   Flags: %4x RBBI_LOOKAHEAD_HARD_BREAK=%s RBBI_BOF_REQUIRED=%s  RBBI_8BITS_ROWS=%s\n", table->fFlags,
-        table->fFlags & RBBI_LOOKAHEAD_HARD_BREAK ? "T" : "F", table->fFlags & RBBI_BOF_REQUIRED ? "T" : "F", table->fFlags & RBBI_8BITS_ROWS ? "T" : "F");
+    RBBIDebugPrintf("   Flags: %4x RBBI_LOOKAHEAD_HARD_BREAK=%s RBBI_BOF_REQUIRED=%s  RBBI_8BITS_ROWS=%s\n",
+                    table->fFlags,
+                    table->fFlags & RBBI_LOOKAHEAD_HARD_BREAK ? "T" : "F",
+                    table->fFlags & RBBI_BOF_REQUIRED ? "T" : "F",
+                    table->fFlags & RBBI_8BITS_ROWS ? "T" : "F");
     RBBIDebugPrintf("\nState |  Acc  LA TagIx");
-    for (c = 0; c < fHeader->fCatCount; c++) {
-        RBBIDebugPrintf("%3d ", c);
-    }
-    RBBIDebugPrintf("\n------|---------------");
-    for (c = 0; c < fHeader->fCatCount; c++) {
+    for (c=0; c<fHeader->fCatCount; c++) {RBBIDebugPrintf("%3d ", c);}
+    RBBIDebugPrintf("\n------|---------------"); for (c=0;c<fHeader->fCatCount; c++) {
         RBBIDebugPrintf("----");
     }
     RBBIDebugPrintf("\n");
 
-    if (table == NULL) {
+    if (table == nullptr) {
         RBBIDebugPrintf("         N U L L   T A B L E\n\n");
         return;
     }
     UBool use8Bits = table->fFlags & RBBI_8BITS_ROWS;
-    for (s = 0; s < table->fNumStates; s++) {
-        RBBIStateTableRow* row = (RBBIStateTableRow*)(table->fTableData + (table->fRowLen * s));
+    for (s=0; s<table->fNumStates; s++) {
+        RBBIStateTableRow *row = (RBBIStateTableRow *)
+                                  (table->fTableData + (table->fRowLen * s));
         if (use8Bits) {
             RBBIDebugPrintf("%4d  |  %3d %3d %3d ", s, row->r8.fAccepting, row->r8.fLookAhead, row->r8.fTagsIdx);
-            for (c = 0; c < fHeader->fCatCount; c++) {
+            for (c=0; c<fHeader->fCatCount; c++)  {
                 RBBIDebugPrintf("%3d ", row->r8.fNextState[c]);
             }
         } else {
             RBBIDebugPrintf("%4d  |  %3d %3d %3d ", s, row->r16.fAccepting, row->r16.fLookAhead, row->r16.fTagsIdx);
-            for (c = 0; c < fHeader->fCatCount; c++) {
+            for (c=0; c<fHeader->fCatCount; c++)  {
                 RBBIDebugPrintf("%3d ", row->r16.fNextState[c]);
             }
         }
@@ -266,12 +271,12 @@ void RBBIDataWrapper::printTable(const char* heading, const RBBIStateTable* tabl
 }
 #endif
 
-void RBBIDataWrapper::printData()
-{
+
+void  RBBIDataWrapper::printData() {
 #ifdef RBBI_DEBUG
-    RBBIDebugPrintf("RBBI Data at %p\n", (void*)fHeader);
-    RBBIDebugPrintf(
-        "   Version = {%d %d %d %d}\n", fHeader->fFormatVersion[0], fHeader->fFormatVersion[1], fHeader->fFormatVersion[2], fHeader->fFormatVersion[3]);
+    RBBIDebugPrintf("RBBI Data at %p\n", (void *)fHeader);
+    RBBIDebugPrintf("   Version = {%d %d %d %d}\n", fHeader->fFormatVersion[0], fHeader->fFormatVersion[1],
+                                                    fHeader->fFormatVersion[2], fHeader->fFormatVersion[3]);
     RBBIDebugPrintf("   total length of data  = %d\n", fHeader->fLength);
     RBBIDebugPrintf("   number of character categories = %d\n\n", fHeader->fCatCount);
 
@@ -279,12 +284,13 @@ void RBBIDataWrapper::printData()
     printTable("Reverse State Transition Table", fReverseTable);
 
     RBBIDebugPrintf("\nOriginal Rules source:\n");
-    for (int32_t c = 0; fRuleSource[c] != 0; c++) {
+    for (int32_t c=0; fRuleSource[c] != 0; c++) {
         RBBIDebugPrintf("%c", fRuleSource[c]);
     }
     RBBIDebugPrintf("\n\n");
 #endif
 }
+
 
 U_NAMESPACE_END
 U_NAMESPACE_USE
@@ -295,14 +301,15 @@ U_NAMESPACE_USE
 //
 //-----------------------------------------------------------------------------
 
-U_CAPI int32_t U_EXPORT2 ubrk_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* status)
-{
+U_CAPI int32_t U_EXPORT2
+ubrk_swap(const UDataSwapper *ds, const void *inData, int32_t length, void *outData,
+           UErrorCode *status) {
 
-    if (status == NULL || U_FAILURE(*status)) {
+    if (status == nullptr || U_FAILURE(*status)) {
         return 0;
     }
-    if (ds == NULL || inData == NULL || length < -1 || (length > 0 && outData == NULL)) {
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
+    if(ds==nullptr || inData==nullptr || length<-1 || (length>0 && outData==nullptr)) {
+        *status=U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
     }
 
@@ -310,13 +317,17 @@ U_CAPI int32_t U_EXPORT2 ubrk_swap(const UDataSwapper* ds, const void* inData, i
     //  Check that the data header is for for break data.
     //    (Header contents are defined in genbrk.cpp)
     //
-    const UDataInfo* pInfo = (const UDataInfo*)((const char*)inData + 4);
-    if (!(pInfo->dataFormat[0] == 0x42 && /* dataFormat="Brk " */
-            pInfo->dataFormat[1] == 0x72 && pInfo->dataFormat[2] == 0x6b && pInfo->dataFormat[3] == 0x20
-            && RBBIDataWrapper::isDataVersionAcceptable(pInfo->formatVersion))) {
-        udata_printError(ds, "ubrk_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized\n", pInfo->dataFormat[0],
-            pInfo->dataFormat[1], pInfo->dataFormat[2], pInfo->dataFormat[3], pInfo->formatVersion[0]);
-        *status = U_UNSUPPORTED_ERROR;
+    const UDataInfo *pInfo = (const UDataInfo *)((const char *)inData+4);
+    if(!(  pInfo->dataFormat[0]==0x42 &&   /* dataFormat="Brk " */
+           pInfo->dataFormat[1]==0x72 &&
+           pInfo->dataFormat[2]==0x6b &&
+           pInfo->dataFormat[3]==0x20 &&
+           RBBIDataWrapper::isDataVersionAcceptable(pInfo->formatVersion) )) {
+        udata_printError(ds, "ubrk_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized\n",
+                         pInfo->dataFormat[0], pInfo->dataFormat[1],
+                         pInfo->dataFormat[2], pInfo->dataFormat[3],
+                         pInfo->formatVersion[0]);
+        *status=U_UNSUPPORTED_ERROR;
         return 0;
     }
 
@@ -326,17 +337,19 @@ U_CAPI int32_t U_EXPORT2 ubrk_swap(const UDataSwapper* ds, const void* inData, i
     //                         the size of the ICU d.h., which lets us locate the start
     //                         of the RBBI specific data.
     //
-    int32_t headerSize = udata_swapDataHeader(ds, inData, length, outData, status);
+    int32_t headerSize=udata_swapDataHeader(ds, inData, length, outData, status);
+
 
     //
     // Get the RRBI Data Header, and check that it appears to be OK.
     //
-    const uint8_t* inBytes = (const uint8_t*)inData + headerSize;
-    RBBIDataHeader* rbbiDH = (RBBIDataHeader*)inBytes;
-    if (ds->readUInt32(rbbiDH->fMagic) != 0xb1a0 || !RBBIDataWrapper::isDataVersionAcceptable(rbbiDH->fFormatVersion)
-        || ds->readUInt32(rbbiDH->fLength) < sizeof(RBBIDataHeader)) {
+    const uint8_t  *inBytes =(const uint8_t *)inData+headerSize;
+    RBBIDataHeader *rbbiDH = (RBBIDataHeader *)inBytes;
+    if (ds->readUInt32(rbbiDH->fMagic) != 0xb1a0 || 
+            !RBBIDataWrapper::isDataVersionAcceptable(rbbiDH->fFormatVersion) ||
+            ds->readUInt32(rbbiDH->fLength)  <  sizeof(RBBIDataHeader)) {
         udata_printError(ds, "ubrk_swap(): RBBI Data header is invalid.\n");
-        *status = U_UNSUPPORTED_ERROR;
+        *status=U_UNSUPPORTED_ERROR;
         return 0;
     }
 
@@ -353,21 +366,23 @@ U_CAPI int32_t U_EXPORT2 ubrk_swap(const UDataSwapper* ds, const void* inData, i
     // Check that length passed in is consistent with length from RBBI data header.
     //
     if (length < totalSize) {
-        udata_printError(ds, "ubrk_swap(): too few bytes (%d after ICU Data header) for break data.\n", breakDataLength);
-        *status = U_INDEX_OUTOFBOUNDS_ERROR;
+        udata_printError(ds, "ubrk_swap(): too few bytes (%d after ICU Data header) for break data.\n",
+                            breakDataLength);
+        *status=U_INDEX_OUTOFBOUNDS_ERROR;
         return 0;
-    }
+        }
+
 
     //
     // Swap the Data.  Do the data itself first, then the RBBI Data Header, because
     //                 we need to reference the header to locate the data, and an
     //                 inplace swap of the header leaves it unusable.
     //
-    uint8_t* outBytes = (uint8_t*)outData + headerSize;
-    RBBIDataHeader* outputDH = (RBBIDataHeader*)outBytes;
+    uint8_t         *outBytes = (uint8_t *)outData + headerSize;
+    RBBIDataHeader  *outputDH = (RBBIDataHeader *)outBytes;
 
-    int32_t tableStartOffset;
-    int32_t tableLength;
+    int32_t   tableStartOffset;
+    int32_t   tableLength;
 
     //
     // If not swapping in place, zero out the output buffer before starting.
@@ -382,59 +397,70 @@ U_CAPI int32_t U_EXPORT2 ubrk_swap(const UDataSwapper* ds, const void* inData, i
     // Each state table begins with several 32 bit fields.  Calculate the size
     //   in bytes of these.
     //
-    int32_t topSize = offsetof(RBBIStateTable, fTableData);
+    int32_t         topSize = offsetof(RBBIStateTable, fTableData);
 
     // Forward state table.
     tableStartOffset = ds->readUInt32(rbbiDH->fFTable);
-    tableLength = ds->readUInt32(rbbiDH->fFTableLen);
+    tableLength      = ds->readUInt32(rbbiDH->fFTableLen);
 
     if (tableLength > 0) {
-        RBBIStateTable* rbbiST = (RBBIStateTable*)(inBytes + tableStartOffset);
+        RBBIStateTable *rbbiST = (RBBIStateTable *)(inBytes+tableStartOffset);
         UBool use8Bits = ds->readUInt32(rbbiST->fFlags) & RBBI_8BITS_ROWS;
 
-        ds->swapArray32(ds, inBytes + tableStartOffset, topSize, outBytes + tableStartOffset, status);
+        ds->swapArray32(ds, inBytes+tableStartOffset, topSize,
+                            outBytes+tableStartOffset, status);
 
         // Swap the state table if the table is in 16 bits.
         if (use8Bits) {
             if (outBytes != inBytes) {
-                uprv_memmove(outBytes + tableStartOffset + topSize, inBytes + tableStartOffset + topSize, tableLength - topSize);
+                uprv_memmove(outBytes+tableStartOffset+topSize,
+                             inBytes+tableStartOffset+topSize,
+                             tableLength-topSize);
             }
         } else {
-            ds->swapArray16(ds, inBytes + tableStartOffset + topSize, tableLength - topSize, outBytes + tableStartOffset + topSize, status);
+            ds->swapArray16(ds, inBytes+tableStartOffset+topSize, tableLength-topSize,
+                                outBytes+tableStartOffset+topSize, status);
         }
     }
 
     // Reverse state table.  Same layout as forward table, above.
     tableStartOffset = ds->readUInt32(rbbiDH->fRTable);
-    tableLength = ds->readUInt32(rbbiDH->fRTableLen);
+    tableLength      = ds->readUInt32(rbbiDH->fRTableLen);
 
     if (tableLength > 0) {
-        RBBIStateTable* rbbiST = (RBBIStateTable*)(inBytes + tableStartOffset);
+        RBBIStateTable *rbbiST = (RBBIStateTable *)(inBytes+tableStartOffset);
         UBool use8Bits = ds->readUInt32(rbbiST->fFlags) & RBBI_8BITS_ROWS;
 
-        ds->swapArray32(ds, inBytes + tableStartOffset, topSize, outBytes + tableStartOffset, status);
+        ds->swapArray32(ds, inBytes+tableStartOffset, topSize,
+                            outBytes+tableStartOffset, status);
 
         // Swap the state table if the table is in 16 bits.
         if (use8Bits) {
             if (outBytes != inBytes) {
-                uprv_memmove(outBytes + tableStartOffset + topSize, inBytes + tableStartOffset + topSize, tableLength - topSize);
+                uprv_memmove(outBytes+tableStartOffset+topSize,
+                             inBytes+tableStartOffset+topSize,
+                             tableLength-topSize);
             }
         } else {
-            ds->swapArray16(ds, inBytes + tableStartOffset + topSize, tableLength - topSize, outBytes + tableStartOffset + topSize, status);
+            ds->swapArray16(ds, inBytes+tableStartOffset+topSize, tableLength-topSize,
+                                outBytes+tableStartOffset+topSize, status);
         }
     }
 
     // Trie table for character categories
-    ucptrie_swap(ds, inBytes + ds->readUInt32(rbbiDH->fTrie), ds->readUInt32(rbbiDH->fTrieLen), outBytes + ds->readUInt32(rbbiDH->fTrie), status);
+    ucptrie_swap(ds, inBytes+ds->readUInt32(rbbiDH->fTrie), ds->readUInt32(rbbiDH->fTrieLen),
+                     outBytes+ds->readUInt32(rbbiDH->fTrie), status);
 
     // Source Rules Text.  It's UTF8 data
     if (outBytes != inBytes) {
-        uprv_memmove(outBytes + ds->readUInt32(rbbiDH->fRuleSource), inBytes + ds->readUInt32(rbbiDH->fRuleSource), ds->readUInt32(rbbiDH->fRuleSourceLen));
+        uprv_memmove(outBytes+ds->readUInt32(rbbiDH->fRuleSource),
+                     inBytes+ds->readUInt32(rbbiDH->fRuleSource),
+                     ds->readUInt32(rbbiDH->fRuleSourceLen));
     }
 
     // Table of rule status values.  It's all int_32 values
-    ds->swapArray32(
-        ds, inBytes + ds->readUInt32(rbbiDH->fStatusTable), ds->readUInt32(rbbiDH->fStatusTableLen), outBytes + ds->readUInt32(rbbiDH->fStatusTable), status);
+    ds->swapArray32(ds, inBytes+ds->readUInt32(rbbiDH->fStatusTable), ds->readUInt32(rbbiDH->fStatusTableLen),
+                        outBytes+ds->readUInt32(rbbiDH->fStatusTable), status);
 
     // And, last, the header.
     //   It is all int32_t values except for fFormataVersion, which is an array of four bytes.
@@ -445,5 +471,6 @@ U_CAPI int32_t U_EXPORT2 ubrk_swap(const UDataSwapper* ds, const void* inData, i
 
     return totalSize;
 }
+
 
 #endif /* #if !UCONFIG_NO_BREAK_ITERATION */

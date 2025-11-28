@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -29,8 +29,9 @@ U_CDECL_BEGIN
 void initParser();
 
 /* Parse a ResourceBundle text file */
-struct SRBRoot* parse(
-    UCHARBUF* buf, const char* inputDir, const char* outputDir, const char* filename, UBool makeBinaryCollation, UBool omitCollationRules, UErrorCode* status);
+struct SRBRoot* parse(UCHARBUF *buf, const char* inputDir, const char* outputDir,
+                      const char *filename,
+                      UBool makeBinaryCollation, UBool omitCollationRules, UBool icu4xMode, UErrorCode *status);
 
 U_CDECL_END
 

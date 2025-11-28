@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -32,7 +32,8 @@ U_NAMESPACE_BEGIN
  */
 class UnescapeTransliterator : public Transliterator {
 
-private:
+ private:
+
     /**
      * The encoded pattern specification.  The pattern consists of
      * zero or more forms.  Each form consists of a prefix, suffix,
@@ -45,9 +46,10 @@ private:
      * and suffix.  The end is marked by a header of length one
      * consisting of the character END.
      */
-    UChar* spec; // owned; may not be NULL
+    char16_t* spec; // owned; may not be nullptr
 
-public:
+ public:
+
     /**
      * Registers standard variants with the system.  Called by
      * Transliterator during initialization.
@@ -59,7 +61,8 @@ public:
      * @param ID   the string identifier for this transliterator
      * @param spec the encoded spec array
      */
-    UnescapeTransliterator(const UnicodeString& ID, const UChar* spec);
+    UnescapeTransliterator(const UnicodeString& ID,
+                           const char16_t *spec);
 
     /**
      * Copy constructor.
@@ -86,7 +89,8 @@ public:
      */
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
-protected:
+ protected:
+
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      * @param text        the buffer holding transliterated and
@@ -96,7 +100,9 @@ protected:
      * @param incremental if true, assume more text may be coming after
      *                    pos.contextLimit.  Otherwise, assume the text is complete.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset, UBool isIncremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset,
+                             UBool isIncremental) const override;
+
 };
 
 U_NAMESPACE_END

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -22,9 +22,7 @@
 
 U_NAMESPACE_BEGIN
 
-UnicodeReplacer::~UnicodeReplacer()
-{
-}
+UnicodeReplacer::~UnicodeReplacer() {}
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringReplacer)
 
 /**
@@ -38,13 +36,14 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringReplacer)
  * @param theData transliterator context object that translates
  * stand-in characters to UnicodeReplacer objects
  */
-StringReplacer::StringReplacer(const UnicodeString& theOutput, int32_t theCursorPos, const TransliterationRuleData* theData)
-{
+StringReplacer::StringReplacer(const UnicodeString& theOutput,
+                               int32_t theCursorPos,
+                               const TransliterationRuleData* theData) {
     output = theOutput;
     cursorPos = theCursorPos;
-    hasCursor = TRUE;
+    hasCursor = true;
     data = theData;
-    isComplex = TRUE;
+    isComplex = true;
 }
 
 /**
@@ -56,21 +55,21 @@ StringReplacer::StringReplacer(const UnicodeString& theOutput, int32_t theCursor
  * @param theData transliterator context object that translates
  * stand-in characters to UnicodeReplacer objects
  */
-StringReplacer::StringReplacer(const UnicodeString& theOutput, const TransliterationRuleData* theData)
-{
+StringReplacer::StringReplacer(const UnicodeString& theOutput,
+                               const TransliterationRuleData* theData) {
     output = theOutput;
     cursorPos = 0;
-    hasCursor = FALSE;
+    hasCursor = false;
     data = theData;
-    isComplex = TRUE;
+    isComplex = true;
 }
 
 /**
  * Copy constructor.
  */
-StringReplacer::StringReplacer(const StringReplacer& other)
-    : UnicodeFunctor(other)
-    , UnicodeReplacer(other)
+StringReplacer::StringReplacer(const StringReplacer& other) :
+    UnicodeFunctor(other),
+    UnicodeReplacer(other)
 {
     output = other.output;
     cursorPos = other.cursorPos;
@@ -82,31 +81,30 @@ StringReplacer::StringReplacer(const StringReplacer& other)
 /**
  * Destructor
  */
-StringReplacer::~StringReplacer()
-{
+StringReplacer::~StringReplacer() {
 }
 
 /**
  * Implement UnicodeFunctor
  */
-StringReplacer* StringReplacer::clone() const
-{
+StringReplacer* StringReplacer::clone() const {
     return new StringReplacer(*this);
 }
 
 /**
  * Implement UnicodeFunctor
  */
-UnicodeReplacer* StringReplacer::toReplacer() const
-{
-    return const_cast<StringReplacer*>(this);
+UnicodeReplacer* StringReplacer::toReplacer() const {
+  return const_cast<StringReplacer *>(this);
 }
 
 /**
  * UnicodeReplacer API
  */
-int32_t StringReplacer::replace(Replaceable& text, int32_t start, int32_t limit, int32_t& cursor)
-{
+int32_t StringReplacer::replace(Replaceable& text,
+                                int32_t start,
+                                int32_t limit,
+                                int32_t& cursor) {
     int32_t outLen;
     int32_t newStart = 0;
 
@@ -133,7 +131,7 @@ int32_t StringReplacer::replace(Replaceable& text, int32_t start, int32_t limit,
          */
         UnicodeString buf;
         int32_t oOutput; // offset into 'output'
-        isComplex = FALSE;
+        isComplex = false;
 
         // The temporary buffer starts at tempStart, and extends
         // to destLimit.  The start of the buffer has a single
@@ -147,28 +145,28 @@ int32_t StringReplacer::replace(Replaceable& text, int32_t start, int32_t limit,
         int32_t tempStart = text.length(); // start of temp buffer
         int32_t destStart = tempStart; // copy new text to here
         if (start > 0) {
-            int32_t len = U16_LENGTH(text.char32At(start - 1));
-            text.copy(start - len, start, tempStart);
+            int32_t len = U16_LENGTH(text.char32At(start-1));
+            text.copy(start-len, start, tempStart);
             destStart += len;
         } else {
-            UnicodeString str((UChar)0xFFFF);
+            UnicodeString str((char16_t) 0xFFFF);
             text.handleReplaceBetween(tempStart, tempStart, str);
             destStart++;
         }
         int32_t destLimit = destStart;
 
-        for (oOutput = 0; oOutput < output.length();) {
+        for (oOutput=0; oOutput<output.length(); ) {
             if (oOutput == cursorPos) {
                 // Record the position of the cursor
                 newStart = destLimit - destStart; // relative to start
             }
             UChar32 c = output.char32At(oOutput);
             UnicodeReplacer* r = data->lookupReplacer(c);
-            if (r == NULL) {
+            if (r == nullptr) {
                 // Accumulate straight (non-segment) text.
                 buf.append(c);
             } else {
-                isComplex = TRUE;
+                isComplex = true;
 
                 // Insert any accumulated straight text.
                 if (buf.length() > 0) {
@@ -201,7 +199,7 @@ int32_t StringReplacer::replace(Replaceable& text, int32_t start, int32_t limit,
 
         // Delete the old text (the key)
         text.handleReplaceBetween(start + outLen, limit + outLen, UnicodeString());
-    }
+    }        
 
     if (hasCursor) {
         // Adjust the cursor for positions outside the key.  These
@@ -213,7 +211,7 @@ int32_t StringReplacer::replace(Replaceable& text, int32_t start, int32_t limit,
             int32_t n = cursorPos;
             // Outside the output string, cursorPos counts code points
             while (n < 0 && newStart > 0) {
-                newStart -= U16_LENGTH(text.char32At(newStart - 1));
+                newStart -= U16_LENGTH(text.char32At(newStart-1));
                 ++n;
             }
             newStart += n;
@@ -241,8 +239,8 @@ int32_t StringReplacer::replace(Replaceable& text, int32_t start, int32_t limit,
 /**
  * UnicodeReplacer API
  */
-UnicodeString& StringReplacer::toReplacerPattern(UnicodeString& rule, UBool escapeUnprintable) const
-{
+UnicodeString& StringReplacer::toReplacerPattern(UnicodeString& rule,
+                                                 UBool escapeUnprintable) const {
     rule.truncate(0);
     UnicodeString quoteBuf;
 
@@ -251,26 +249,27 @@ UnicodeString& StringReplacer::toReplacerPattern(UnicodeString& rule, UBool esca
     // Handle a cursor preceding the output
     if (hasCursor && cursor < 0) {
         while (cursor++ < 0) {
-            ICU_Utility::appendToRule(rule, (UChar)0x0040 /*@*/, TRUE, escapeUnprintable, quoteBuf);
+            ICU_Utility::appendToRule(rule, (char16_t)0x0040 /*@*/, true, escapeUnprintable, quoteBuf);
         }
         // Fall through and append '|' below
     }
 
-    for (int32_t i = 0; i < output.length(); ++i) {
+    for (int32_t i=0; i<output.length(); ++i) {
         if (hasCursor && i == cursor) {
-            ICU_Utility::appendToRule(rule, (UChar)0x007C /*|*/, TRUE, escapeUnprintable, quoteBuf);
+            ICU_Utility::appendToRule(rule, (char16_t)0x007C /*|*/, true, escapeUnprintable, quoteBuf);
         }
-        UChar c = output.charAt(i); // Ok to use 16-bits here
+        char16_t c = output.charAt(i); // Ok to use 16-bits here
 
         UnicodeReplacer* r = data->lookupReplacer(c);
-        if (r == NULL) {
-            ICU_Utility::appendToRule(rule, c, FALSE, escapeUnprintable, quoteBuf);
+        if (r == nullptr) {
+            ICU_Utility::appendToRule(rule, c, false, escapeUnprintable, quoteBuf);
         } else {
             UnicodeString buf;
             r->toReplacerPattern(buf, escapeUnprintable);
-            buf.insert(0, (UChar)0x20);
-            buf.append((UChar)0x20);
-            ICU_Utility::appendToRule(rule, buf, TRUE, escapeUnprintable, quoteBuf);
+            buf.insert(0, (char16_t)0x20);
+            buf.append((char16_t)0x20);
+            ICU_Utility::appendToRule(rule, buf,
+                                      true, escapeUnprintable, quoteBuf);
         }
     }
 
@@ -280,12 +279,13 @@ UnicodeString& StringReplacer::toReplacerPattern(UnicodeString& rule, UBool esca
     if (hasCursor && cursor > output.length()) {
         cursor -= output.length();
         while (cursor-- > 0) {
-            ICU_Utility::appendToRule(rule, (UChar)0x0040 /*@*/, TRUE, escapeUnprintable, quoteBuf);
+            ICU_Utility::appendToRule(rule, (char16_t)0x0040 /*@*/, true, escapeUnprintable, quoteBuf);
         }
-        ICU_Utility::appendToRule(rule, (UChar)0x007C /*|*/, TRUE, escapeUnprintable, quoteBuf);
+        ICU_Utility::appendToRule(rule, (char16_t)0x007C /*|*/, true, escapeUnprintable, quoteBuf);
     }
     // Flush quoteBuf out to result
-    ICU_Utility::appendToRule(rule, -1, TRUE, escapeUnprintable, quoteBuf);
+    ICU_Utility::appendToRule(rule, -1,
+                              true, escapeUnprintable, quoteBuf);
 
     return rule;
 }
@@ -293,31 +293,29 @@ UnicodeString& StringReplacer::toReplacerPattern(UnicodeString& rule, UBool esca
 /**
  * Implement UnicodeReplacer
  */
-void StringReplacer::addReplacementSetTo(UnicodeSet& toUnionTo) const
-{
+void StringReplacer::addReplacementSetTo(UnicodeSet& toUnionTo) const {
     UChar32 ch;
-    for (int32_t i = 0; i < output.length(); i += U16_LENGTH(ch)) {
-        ch = output.char32At(i);
-        UnicodeReplacer* r = data->lookupReplacer(ch);
-        if (r == NULL) {
-            toUnionTo.add(ch);
-        } else {
-            r->addReplacementSetTo(toUnionTo);
-        }
+    for (int32_t i=0; i<output.length(); i+=U16_LENGTH(ch)) {
+    ch = output.char32At(i);
+    UnicodeReplacer* r = data->lookupReplacer(ch);
+    if (r == nullptr) {
+        toUnionTo.add(ch);
+    } else {
+        r->addReplacementSetTo(toUnionTo);
+    }
     }
 }
 
 /**
  * UnicodeFunctor API
  */
-void StringReplacer::setData(const TransliterationRuleData* d)
-{
+void StringReplacer::setData(const TransliterationRuleData* d) {
     data = d;
     int32_t i = 0;
-    while (i < output.length()) {
+    while (i<output.length()) {
         UChar32 c = output.char32At(i);
         UnicodeFunctor* f = data->lookup(c);
-        if (f != NULL) {
+        if (f != nullptr) {
             f->setData(data);
         }
         i += U16_LENGTH(c);
@@ -328,4 +326,4 @@ U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
-// eof
+//eof

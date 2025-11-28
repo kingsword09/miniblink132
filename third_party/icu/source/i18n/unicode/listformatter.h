@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -54,21 +54,18 @@ struct ListFormatData : public UMemory {
     UnicodeString endPattern;
     Locale locale;
 
-    ListFormatData(const UnicodeString& two, const UnicodeString& start, const UnicodeString& middle, const UnicodeString& end, const Locale& loc)
-        : twoPattern(two)
-        , startPattern(start)
-        , middlePattern(middle)
-        , endPattern(end)
-        , locale(loc)
-    {
-    }
+  ListFormatData(const UnicodeString& two, const UnicodeString& start, const UnicodeString& middle, const UnicodeString& end,
+                 const Locale& loc) :
+      twoPattern(two), startPattern(start), middlePattern(middle), endPattern(end), locale(loc) {}
 };
 /** \endcond */
+
 
 /**
  * \file
  * \brief C++ API: API for formatting a list.
  */
+
 
 /**
  * An immutable class containing the result of a list formatting operation.
@@ -87,28 +84,24 @@ struct ListFormatData : public UMemory {
  * @stable ICU 64
  */
 class U_I18N_API FormattedList : public UMemory, public FormattedValue {
-public:
+  public:
     /**
      * Default constructor; makes an empty FormattedList.
      * @stable ICU 64
      */
-    FormattedList()
-        : fData(nullptr)
-        , fErrorCode(U_INVALID_STATE_ERROR)
-    {
-    }
+    FormattedList() : fData(nullptr), fErrorCode(U_INVALID_STATE_ERROR) {}
 
     /**
      * Move constructor: Leaves the source FormattedList in an undefined state.
      * @stable ICU 64
      */
-    FormattedList(FormattedList&& src) U_NOEXCEPT;
+    FormattedList(FormattedList&& src) noexcept;
 
     /**
      * Destruct an instance of FormattedList.
      * @stable ICU 64
      */
-    virtual ~FormattedList() U_OVERRIDE;
+    virtual ~FormattedList() override;
 
     /** Copying not supported; use move constructor instead. */
     FormattedList(const FormattedList&) = delete;
@@ -120,35 +113,30 @@ public:
      * Move assignment: Leaves the source FormattedList in an undefined state.
      * @stable ICU 64
      */
-    FormattedList& operator=(FormattedList&& src) U_NOEXCEPT;
+    FormattedList& operator=(FormattedList&& src) noexcept;
 
     /** @copydoc FormattedValue::toString() */
-    UnicodeString toString(UErrorCode& status) const U_OVERRIDE;
+    UnicodeString toString(UErrorCode& status) const override;
 
     /** @copydoc FormattedValue::toTempString() */
-    UnicodeString toTempString(UErrorCode& status) const U_OVERRIDE;
+    UnicodeString toTempString(UErrorCode& status) const override;
 
     /** @copydoc FormattedValue::appendTo() */
-    Appendable& appendTo(Appendable& appendable, UErrorCode& status) const U_OVERRIDE;
+    Appendable &appendTo(Appendable& appendable, UErrorCode& status) const override;
 
     /** @copydoc FormattedValue::nextPosition() */
-    UBool nextPosition(ConstrainedFieldPosition& cfpos, UErrorCode& status) const U_OVERRIDE;
+    UBool nextPosition(ConstrainedFieldPosition& cfpos, UErrorCode& status) const override;
 
-private:
-    FormattedListData* fData;
+  private:
+    FormattedListData *fData;
     UErrorCode fErrorCode;
-    explicit FormattedList(FormattedListData* results)
-        : fData(results)
-        , fErrorCode(U_ZERO_ERROR)
-    {
-    }
+    explicit FormattedList(FormattedListData *results)
+        : fData(results), fErrorCode(U_ZERO_ERROR) {}
     explicit FormattedList(UErrorCode errorCode)
-        : fData(nullptr)
-        , fErrorCode(errorCode)
-    {
-    }
+        : fData(nullptr), fErrorCode(errorCode) {}
     friend class ListFormatter;
 };
+
 
 /**
  * An immutable class for formatting a list, using data from CLDR (or supplied
@@ -160,9 +148,10 @@ private:
  * The ListFormatter class is not intended for public subclassing.
  * @stable ICU 50
  */
-class U_I18N_API ListFormatter : public UObject {
+class U_I18N_API ListFormatter : public UObject{
 
-public:
+  public:
+
     /**
      * Copy constructor.
      * @stable ICU 52
@@ -206,7 +195,8 @@ public:
      * @return A ListFormatter object created from internal data derived from CLDR data.
      * @stable ICU 67
      */
-    static ListFormatter* createInstance(const Locale& locale, UListFormatterType type, UListFormatterWidth width, UErrorCode& errorCode);
+    static ListFormatter* createInstance(
+      const Locale& locale, UListFormatterType type, UListFormatterWidth width, UErrorCode& errorCode);
 
     /**
      * Destructor.
@@ -214,6 +204,7 @@ public:
      * @stable ICU 50
      */
     virtual ~ListFormatter();
+
 
     /**
      * Formats a list of strings.
@@ -225,7 +216,8 @@ public:
      * @return Formatted string combining the elements of items, appended to appendTo.
      * @stable ICU 50
      */
-    UnicodeString& format(const UnicodeString items[], int32_t n_items, UnicodeString& appendTo, UErrorCode& errorCode) const;
+    UnicodeString& format(const UnicodeString items[], int32_t n_items,
+        UnicodeString& appendTo, UErrorCode& errorCode) const;
 
     /**
      * Formats a list of strings to a FormattedList, which exposes field
@@ -238,24 +230,34 @@ public:
      * @return          A FormattedList containing field information.
      * @stable ICU 64
      */
-    FormattedList formatStringsToValue(const UnicodeString items[], int32_t n_items, UErrorCode& errorCode) const;
+    FormattedList formatStringsToValue(
+        const UnicodeString items[],
+        int32_t n_items,
+        UErrorCode& errorCode) const;
 
 #ifndef U_HIDE_INTERNAL_API
     /**
       @internal for MeasureFormat
     */
-    UnicodeString& format(const UnicodeString items[], int32_t n_items, UnicodeString& appendTo, int32_t index, int32_t& offset, UErrorCode& errorCode) const;
+    UnicodeString& format(
+            const UnicodeString items[],
+            int32_t n_items,
+            UnicodeString& appendTo,
+            int32_t index,
+            int32_t &offset,
+            UErrorCode& errorCode) const;
     /**
      * @internal constructor made public for testing.
      */
-    ListFormatter(const ListFormatData& data, UErrorCode& errorCode);
+    ListFormatter(const ListFormatData &data, UErrorCode &errorCode);
     /**
      * @internal constructor made public for testing.
      */
     ListFormatter(const ListFormatInternal* listFormatterInternal);
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
-private:
+  private:
+  
     /**
      * Creates a ListFormatter appropriate for a locale and style.
      *
@@ -265,14 +267,11 @@ private:
     static ListFormatter* createInstance(const Locale& locale, const char* style, UErrorCode& errorCode);
 
     static void initializeHash(UErrorCode& errorCode);
-    static const ListFormatInternal* getListFormatInternal(const Locale& locale, const char* style, UErrorCode& errorCode);
-    struct ListPatternsSink;
+    static const ListFormatInternal* getListFormatInternal(const Locale& locale, const char *style, UErrorCode& errorCode);
+    struct U_HIDDEN ListPatternsSink;
     static ListFormatInternal* loadListFormatInternal(const Locale& locale, const char* style, UErrorCode& errorCode);
 
-    UnicodeString& format_(const UnicodeString items[], int32_t n_items, UnicodeString& appendTo, int32_t index, int32_t& offset, FieldPositionHandler* handler,
-        UErrorCode& errorCode) const;
-
-    ListFormatter();
+    ListFormatter() = delete;
 
     ListFormatInternal* owned;
     const ListFormatInternal* data;

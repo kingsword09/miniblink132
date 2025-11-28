@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -34,6 +34,7 @@ typedef enum ECleanupIOType {
 
 /* Main library cleanup registration function. */
 /* See common/ucln.h for details on adding a cleanup function. */
-U_CFUNC void U_EXPORT2 ucln_io_registerCleanup(ECleanupIOType type, cleanupFunc* func);
+U_CFUNC void U_EXPORT2 ucln_io_registerCleanup(ECleanupIOType type,
+                                                 cleanupFunc *func);
 
 #endif

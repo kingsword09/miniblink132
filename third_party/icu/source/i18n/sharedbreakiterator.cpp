@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -17,14 +17,11 @@
 
 U_NAMESPACE_BEGIN
 
-SharedBreakIterator::SharedBreakIterator(BreakIterator* biToAdopt)
-    : ptr(biToAdopt)
-{
-}
+SharedBreakIterator::SharedBreakIterator(
+        BreakIterator *biToAdopt) : ptr(biToAdopt) { }
 
-SharedBreakIterator::~SharedBreakIterator()
-{
-    delete ptr;
+SharedBreakIterator::~SharedBreakIterator() {
+  delete ptr;
 }
 
 U_NAMESPACE_END

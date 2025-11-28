@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __NUMBERRANGEFORMATTER_H__
@@ -44,12 +44,13 @@
  * @author Shane Carr
  */
 
+
 U_NAMESPACE_BEGIN
 
 // Forward declarations:
 class PluralRules;
 
-namespace number { // icu::number
+namespace number {  // icu::number
 
 // Forward declarations:
 class UnlocalizedNumberRangeFormatter;
@@ -66,6 +67,7 @@ class NumberRangeFormatterImpl;
 struct UFormattedNumberRangeImpl;
 
 } // namespace impl
+
 
 #if 0
 
@@ -89,7 +91,7 @@ namespace number {  // icu::number
 
 // Other helper classes would go here, but there are none.
 
-namespace impl { // icu::number::impl
+namespace impl {  // icu::number::impl
 
 // Do not enclose entire MacroProps with #ifndef U_HIDE_INTERNAL_API, needed for a protected field
 /** @internal */
@@ -118,8 +120,7 @@ struct U_I18N_API RangeMacroProps : public UMemory {
      * Check all members for errors.
      * @internal
      */
-    bool copyErrorTo(UErrorCode& status) const
-    {
+    bool copyErrorTo(UErrorCode &status) const {
         return formatter1.copyErrorTo(status) || formatter2.copyErrorTo(status);
     }
 };
@@ -131,8 +132,9 @@ struct U_I18N_API RangeMacroProps : public UMemory {
  * {@link UnlocalizedNumberRangeFormatter} and {@link LocalizedNumberRangeFormatter}. This class is not intended for
  * public subclassing.
  */
-template <typename Derived> class U_I18N_API NumberRangeFormatterSettings {
-public:
+template<typename Derived>
+class U_I18N_API NumberRangeFormatterSettings {
+  public:
     /**
      * Sets the NumberFormatter instance to use for the numbers in the range. The same formatter is applied to both
      * sides of the range.
@@ -145,7 +147,7 @@ public:
      * @return The fluent chain.
      * @stable ICU 63
      */
-    Derived numberFormatterBoth(const UnlocalizedNumberFormatter& formatter) const&;
+    Derived numberFormatterBoth(const UnlocalizedNumberFormatter &formatter) const &;
 
     /**
      * Overload of numberFormatterBoth() for use on an rvalue reference.
@@ -156,7 +158,7 @@ public:
      * @see #numberFormatterBoth
      * @stable ICU 63
      */
-    Derived numberFormatterBoth(const UnlocalizedNumberFormatter& formatter) &&;
+    Derived numberFormatterBoth(const UnlocalizedNumberFormatter &formatter) &&;
 
     /**
      * Overload of numberFormatterBoth() for use on an rvalue reference.
@@ -167,7 +169,7 @@ public:
      * @see #numberFormatterBoth
      * @stable ICU 63
      */
-    Derived numberFormatterBoth(UnlocalizedNumberFormatter&& formatter) const&;
+    Derived numberFormatterBoth(UnlocalizedNumberFormatter &&formatter) const &;
 
     /**
      * Overload of numberFormatterBoth() for use on an rvalue reference.
@@ -178,7 +180,7 @@ public:
      * @see #numberFormatterBoth
      * @stable ICU 63
      */
-    Derived numberFormatterBoth(UnlocalizedNumberFormatter&& formatter) &&;
+    Derived numberFormatterBoth(UnlocalizedNumberFormatter &&formatter) &&;
 
     /**
      * Sets the NumberFormatter instance to use for the first number in the range.
@@ -191,7 +193,7 @@ public:
      * @return The fluent chain.
      * @stable ICU 63
      */
-    Derived numberFormatterFirst(const UnlocalizedNumberFormatter& formatterFirst) const&;
+    Derived numberFormatterFirst(const UnlocalizedNumberFormatter &formatterFirst) const &;
 
     /**
      * Overload of numberFormatterFirst() for use on an rvalue reference.
@@ -202,7 +204,7 @@ public:
      * @see #numberFormatterFirst
      * @stable ICU 63
      */
-    Derived numberFormatterFirst(const UnlocalizedNumberFormatter& formatterFirst) &&;
+    Derived numberFormatterFirst(const UnlocalizedNumberFormatter &formatterFirst) &&;
 
     /**
      * Overload of numberFormatterFirst() for use on an rvalue reference.
@@ -213,7 +215,7 @@ public:
      * @see #numberFormatterFirst
      * @stable ICU 63
      */
-    Derived numberFormatterFirst(UnlocalizedNumberFormatter&& formatterFirst) const&;
+    Derived numberFormatterFirst(UnlocalizedNumberFormatter &&formatterFirst) const &;
 
     /**
      * Overload of numberFormatterFirst() for use on an rvalue reference.
@@ -224,7 +226,7 @@ public:
      * @see #numberFormatterFirst
      * @stable ICU 63
      */
-    Derived numberFormatterFirst(UnlocalizedNumberFormatter&& formatterFirst) &&;
+    Derived numberFormatterFirst(UnlocalizedNumberFormatter &&formatterFirst) &&;
 
     /**
      * Sets the NumberFormatter instance to use for the second number in the range.
@@ -237,7 +239,7 @@ public:
      * @return The fluent chain.
      * @stable ICU 63
      */
-    Derived numberFormatterSecond(const UnlocalizedNumberFormatter& formatterSecond) const&;
+    Derived numberFormatterSecond(const UnlocalizedNumberFormatter &formatterSecond) const &;
 
     /**
      * Overload of numberFormatterSecond() for use on an rvalue reference.
@@ -248,7 +250,7 @@ public:
      * @see #numberFormatterSecond
      * @stable ICU 63
      */
-    Derived numberFormatterSecond(const UnlocalizedNumberFormatter& formatterSecond) &&;
+    Derived numberFormatterSecond(const UnlocalizedNumberFormatter &formatterSecond) &&;
 
     /**
      * Overload of numberFormatterSecond() for use on an rvalue reference.
@@ -259,7 +261,7 @@ public:
      * @see #numberFormatterSecond
      * @stable ICU 63
      */
-    Derived numberFormatterSecond(UnlocalizedNumberFormatter&& formatterSecond) const&;
+    Derived numberFormatterSecond(UnlocalizedNumberFormatter &&formatterSecond) const &;
 
     /**
      * Overload of numberFormatterSecond() for use on an rvalue reference.
@@ -270,7 +272,7 @@ public:
      * @see #numberFormatterSecond
      * @stable ICU 63
      */
-    Derived numberFormatterSecond(UnlocalizedNumberFormatter&& formatterSecond) &&;
+    Derived numberFormatterSecond(UnlocalizedNumberFormatter &&formatterSecond) &&;
 
     /**
      * Sets the aggressiveness of "collapsing" fields across the range separator. Possible values:
@@ -289,7 +291,7 @@ public:
      * @return The fluent chain.
      * @stable ICU 63
      */
-    Derived collapse(UNumberRangeCollapse collapse) const&;
+    Derived collapse(UNumberRangeCollapse collapse) const &;
 
     /**
      * Overload of collapse() for use on an rvalue reference.
@@ -322,7 +324,7 @@ public:
      * @return The fluent chain.
      * @stable ICU 63
      */
-    Derived identityFallback(UNumberRangeIdentityFallback identityFallback) const&;
+    Derived identityFallback(UNumberRangeIdentityFallback identityFallback) const &;
 
     /**
      * Overload of identityFallback() for use on an rvalue reference.
@@ -346,7 +348,7 @@ public:
      *         nullptr on failure.
      * @stable ICU 64
      */
-    LocalPointer<Derived> clone() const&;
+    LocalPointer<Derived> clone() const &;
 
     /**
      * Overload of clone for use on an rvalue reference.
@@ -363,8 +365,7 @@ public:
      * @return true if U_FAILURE(outErrorCode)
      * @stable ICU 63
      */
-    UBool copyErrorTo(UErrorCode& outErrorCode) const
-    {
+    UBool copyErrorTo(UErrorCode &outErrorCode) const {
         if (U_FAILURE(outErrorCode)) {
             // Do not overwrite the older error code
             return true;
@@ -375,7 +376,7 @@ public:
 
     // NOTE: Uses default copy and move constructors.
 
-private:
+  private:
     impl::RangeMacroProps fMacros;
 
     // Don't construct me directly!  Use (Un)LocalizedNumberFormatter.
@@ -385,6 +386,13 @@ private:
     friend class UnlocalizedNumberRangeFormatter;
 };
 
+// Explicit instantiations in source/i18n/numrange_fluent.cpp.
+// (MSVC treats imports/exports of explicit instantiations differently.)
+#ifndef _MSC_VER
+extern template class NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>;
+extern template class NumberRangeFormatterSettings<LocalizedNumberRangeFormatter>;
+#endif
+
 /**
  * A NumberRangeFormatter that does not yet have a locale. In order to format, a locale must be specified.
  *
@@ -393,9 +401,10 @@ private:
  * @see NumberRangeFormatter
  * @stable ICU 63
  */
-class U_I18N_API UnlocalizedNumberRangeFormatter : public NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>, public UMemory {
+class U_I18N_API UnlocalizedNumberRangeFormatter
+        : public NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>, public UMemory {
 
-public:
+  public:
     /**
      * Associate the given locale with the number range formatter. The locale is used for picking the
      * appropriate symbols, formats, and other data for number display.
@@ -405,7 +414,7 @@ public:
      * @return The fluent chain.
      * @stable ICU 63
      */
-    LocalizedNumberRangeFormatter locale(const icu::Locale& locale) const&;
+    LocalizedNumberRangeFormatter locale(const icu::Locale &locale) const &;
 
     /**
      * Overload of locale() for use on an rvalue reference.
@@ -416,7 +425,7 @@ public:
      * @see #locale
      * @stable ICU 63
      */
-    LocalizedNumberRangeFormatter locale(const icu::Locale& locale) &&;
+    LocalizedNumberRangeFormatter locale(const icu::Locale &locale) &&;
 
     /**
      * Default constructor: puts the formatter into a valid but undefined state.
@@ -429,14 +438,14 @@ public:
      * Returns a copy of this UnlocalizedNumberRangeFormatter.
      * @stable ICU 63
      */
-    UnlocalizedNumberRangeFormatter(const UnlocalizedNumberRangeFormatter& other);
+    UnlocalizedNumberRangeFormatter(const UnlocalizedNumberRangeFormatter &other);
 
     /**
      * Move constructor:
      * The source UnlocalizedNumberRangeFormatter will be left in a valid but undefined state.
      * @stable ICU 63
      */
-    UnlocalizedNumberRangeFormatter(UnlocalizedNumberRangeFormatter&& src) U_NOEXCEPT;
+    UnlocalizedNumberRangeFormatter(UnlocalizedNumberRangeFormatter&& src) noexcept;
 
     /**
      * Copy assignment operator.
@@ -449,12 +458,14 @@ public:
      * The source UnlocalizedNumberRangeFormatter will be left in a valid but undefined state.
      * @stable ICU 63
      */
-    UnlocalizedNumberRangeFormatter& operator=(UnlocalizedNumberRangeFormatter&& src) U_NOEXCEPT;
+    UnlocalizedNumberRangeFormatter& operator=(UnlocalizedNumberRangeFormatter&& src) noexcept;
 
-private:
-    explicit UnlocalizedNumberRangeFormatter(const NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>& other);
+  private:
+    explicit UnlocalizedNumberRangeFormatter(
+            const NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>& other);
 
-    explicit UnlocalizedNumberRangeFormatter(NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>&& src) U_NOEXCEPT;
+    explicit UnlocalizedNumberRangeFormatter(
+            NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>&& src) noexcept;
 
     // To give the fluent setters access to this class's constructor:
     friend class NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>;
@@ -471,8 +482,9 @@ private:
  * @see NumberFormatter
  * @stable ICU 63
  */
-class U_I18N_API LocalizedNumberRangeFormatter : public NumberRangeFormatterSettings<LocalizedNumberRangeFormatter>, public UMemory {
-public:
+class U_I18N_API LocalizedNumberRangeFormatter
+        : public NumberRangeFormatterSettings<LocalizedNumberRangeFormatter>, public UMemory {
+  public:
     /**
      * Format the given Formattables to a string using the settings specified in the NumberRangeFormatter fluent setting
      * chain.
@@ -486,7 +498,8 @@ public:
      * @return A FormattedNumberRange object; call .toString() to get the string.
      * @stable ICU 63
      */
-    FormattedNumberRange formatFormattableRange(const Formattable& first, const Formattable& second, UErrorCode& status) const;
+    FormattedNumberRange formatFormattableRange(
+        const Formattable& first, const Formattable& second, UErrorCode& status) const;
 
     /**
      * Default constructor: puts the formatter into a valid but undefined state.
@@ -499,14 +512,14 @@ public:
      * Returns a copy of this LocalizedNumberRangeFormatter.
      * @stable ICU 63
      */
-    LocalizedNumberRangeFormatter(const LocalizedNumberRangeFormatter& other);
+    LocalizedNumberRangeFormatter(const LocalizedNumberRangeFormatter &other);
 
     /**
      * Move constructor:
      * The source LocalizedNumberRangeFormatter will be left in a valid but undefined state.
      * @stable ICU 63
      */
-    LocalizedNumberRangeFormatter(LocalizedNumberRangeFormatter&& src) U_NOEXCEPT;
+    LocalizedNumberRangeFormatter(LocalizedNumberRangeFormatter&& src) noexcept;
 
     /**
      * Copy assignment operator.
@@ -519,7 +532,7 @@ public:
      * The source LocalizedNumberRangeFormatter will be left in a valid but undefined state.
      * @stable ICU 63
      */
-    LocalizedNumberRangeFormatter& operator=(LocalizedNumberRangeFormatter&& src) U_NOEXCEPT;
+    LocalizedNumberRangeFormatter& operator=(LocalizedNumberRangeFormatter&& src) noexcept;
 
 #ifndef U_HIDE_INTERNAL_API
 
@@ -533,9 +546,10 @@ public:
      *            Set if an error occurs while formatting.
      * @internal
      */
-    void formatImpl(impl::UFormattedNumberRangeData& results, bool equalBeforeRounding, UErrorCode& status) const;
+    void formatImpl(impl::UFormattedNumberRangeData& results, bool equalBeforeRounding,
+                    UErrorCode& status) const;
 
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
     /**
      * Destruct this LocalizedNumberRangeFormatter, cleaning up any memory it might own.
@@ -543,20 +557,20 @@ public:
      */
     ~LocalizedNumberRangeFormatter();
 
-private:
+  private:
     std::atomic<impl::NumberRangeFormatterImpl*> fAtomicFormatter = {};
 
     const impl::NumberRangeFormatterImpl* getFormatter(UErrorCode& stauts) const;
 
-    explicit LocalizedNumberRangeFormatter(const NumberRangeFormatterSettings<LocalizedNumberRangeFormatter>& other);
+    explicit LocalizedNumberRangeFormatter(
+        const NumberRangeFormatterSettings<LocalizedNumberRangeFormatter>& other);
 
-    explicit LocalizedNumberRangeFormatter(NumberRangeFormatterSettings<LocalizedNumberRangeFormatter>&& src) U_NOEXCEPT;
+    explicit LocalizedNumberRangeFormatter(
+        NumberRangeFormatterSettings<LocalizedNumberRangeFormatter>&& src) noexcept;
 
-    LocalizedNumberRangeFormatter(const impl::RangeMacroProps& macros, const Locale& locale);
+    LocalizedNumberRangeFormatter(const impl::RangeMacroProps &macros, const Locale &locale);
 
-    LocalizedNumberRangeFormatter(impl::RangeMacroProps&& macros, const Locale& locale);
-
-    void clear();
+    LocalizedNumberRangeFormatter(impl::RangeMacroProps &&macros, const Locale &locale);
 
     // To give the fluent setters access to this class's constructor:
     friend class NumberRangeFormatterSettings<UnlocalizedNumberRangeFormatter>;
@@ -575,7 +589,7 @@ private:
  * @stable ICU 63
  */
 class U_I18N_API FormattedNumberRange : public UMemory, public FormattedValue {
-public:
+  public:
     // Copybrief: this method is older than the parent method
     /**
      * @copybrief FormattedValue::toString()
@@ -584,11 +598,11 @@ public:
      *
      * @stable ICU 63
      */
-    UnicodeString toString(UErrorCode& status) const U_OVERRIDE;
+    UnicodeString toString(UErrorCode& status) const override;
 
     // Copydoc: this method is new in ICU 64
     /** @copydoc FormattedValue::toTempString() */
-    UnicodeString toTempString(UErrorCode& status) const U_OVERRIDE;
+    UnicodeString toTempString(UErrorCode& status) const override;
 
     // Copybrief: this method is older than the parent method
     /**
@@ -598,17 +612,17 @@ public:
      *
      * @stable ICU 63
      */
-    Appendable& appendTo(Appendable& appendable, UErrorCode& status) const U_OVERRIDE;
+    Appendable &appendTo(Appendable &appendable, UErrorCode& status) const override;
 
     // Copydoc: this method is new in ICU 64
     /** @copydoc FormattedValue::nextPosition() */
-    UBool nextPosition(ConstrainedFieldPosition& cfpos, UErrorCode& status) const U_OVERRIDE;
+    UBool nextPosition(ConstrainedFieldPosition& cfpos, UErrorCode& status) const override;
 
     /**
      * Extracts the formatted range as a pair of decimal numbers. This endpoint
      * is useful for obtaining the exact number being printed after scaling
      * and rounding have been applied by the number range formatting pipeline.
-     *
+     * 
      * The syntax of the unformatted numbers is a "numeric string"
      * as defined in the Decimal Arithmetic Specification, available at
      * http://speleotrove.com/decimal
@@ -623,7 +637,8 @@ public:
      * @return A pair of StringClasses containing the numeric strings.
      * @stable ICU 68
      */
-    template <typename StringClass> inline std::pair<StringClass, StringClass> getDecimalNumbers(UErrorCode& status) const;
+    template<typename StringClass>
+    inline std::pair<StringClass, StringClass> getDecimalNumbers(UErrorCode& status) const;
 
     /**
      * Returns whether the pair of numbers was successfully formatted as a range or whether an identity fallback was
@@ -636,17 +651,12 @@ public:
      */
     UNumberRangeIdentityResult getIdentityResult(UErrorCode& status) const;
 
-#ifndef U_HIDE_DRAFT_API
     /**
      * Default constructor; makes an empty FormattedNumberRange.
-     * @draft ICU 70
+     * @stable ICU 70
      */
     FormattedNumberRange()
-        : fData(nullptr)
-        , fErrorCode(U_INVALID_STATE_ERROR)
-    {
-    }
-#endif /* U_HIDE_DRAFT_API */
+        : fData(nullptr), fErrorCode(U_INVALID_STATE_ERROR) {}
 
     /**
      * Copying not supported; use move constructor instead.
@@ -663,14 +673,14 @@ public:
      * Leaves the source FormattedNumberRange in an undefined state.
      * @stable ICU 63
      */
-    FormattedNumberRange(FormattedNumberRange&& src) U_NOEXCEPT;
+    FormattedNumberRange(FormattedNumberRange&& src) noexcept;
 
     /**
      * Move assignment:
      * Leaves the source FormattedNumberRange in an undefined state.
      * @stable ICU 63
      */
-    FormattedNumberRange& operator=(FormattedNumberRange&& src) U_NOEXCEPT;
+    FormattedNumberRange& operator=(FormattedNumberRange&& src) noexcept;
 
     /**
      * Destruct an instance of FormattedNumberRange, cleaning up any memory it might own.
@@ -678,9 +688,9 @@ public:
      */
     ~FormattedNumberRange();
 
-private:
+  private:
     // Can't use LocalPointer because UFormattedNumberRangeData is forward-declared
-    const impl::UFormattedNumberRangeData* fData;
+    const impl::UFormattedNumberRangeData *fData;
 
     // Error code for the terminal methods
     UErrorCode fErrorCode;
@@ -688,19 +698,11 @@ private:
     /**
      * Internal constructor from data type. Adopts the data pointer.
      */
-    explicit FormattedNumberRange(impl::UFormattedNumberRangeData* results)
-        : fData(results)
-        , fErrorCode(U_ZERO_ERROR)
-    {
-    }
+    explicit FormattedNumberRange(impl::UFormattedNumberRangeData *results)
+        : fData(results), fErrorCode(U_ZERO_ERROR) {}
 
     explicit FormattedNumberRange(UErrorCode errorCode)
-        : fData(nullptr)
-        , fErrorCode(errorCode)
-    {
-    }
-
-    void getAllFieldPositionsImpl(FieldPositionIteratorHandler& fpih, UErrorCode& status) const;
+        : fData(nullptr), fErrorCode(errorCode) {}
 
     void getDecimalNumbers(ByteSink& sink1, ByteSink& sink2, UErrorCode& status) const;
 
@@ -717,8 +719,8 @@ private:
 };
 
 // inline impl of @stable ICU 68 method
-template <typename StringClass> std::pair<StringClass, StringClass> FormattedNumberRange::getDecimalNumbers(UErrorCode& status) const
-{
+template<typename StringClass>
+std::pair<StringClass, StringClass> FormattedNumberRange::getDecimalNumbers(UErrorCode& status) const {
     StringClass str1;
     StringClass str2;
     StringByteSink<StringClass> sink1(&str1);
@@ -733,7 +735,7 @@ template <typename StringClass> std::pair<StringClass, StringClass> FormattedNum
  * @stable ICU 63
  */
 class U_I18N_API NumberRangeFormatter final {
-public:
+  public:
     /**
      * Call this method at the beginning of a NumberRangeFormatter fluent chain in which the locale is not currently
      * known at the call site.
@@ -752,7 +754,7 @@ public:
      * @return A {@link LocalizedNumberRangeFormatter}, to be used for chaining.
      * @stable ICU 63
      */
-    static LocalizedNumberRangeFormatter withLocale(const Locale& locale);
+    static LocalizedNumberRangeFormatter withLocale(const Locale &locale);
 
     /**
      * Use factory methods instead of the constructor to create a NumberFormatter.
@@ -760,7 +762,7 @@ public:
     NumberRangeFormatter() = delete;
 };
 
-} // namespace number
+}  // namespace number
 U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
@@ -768,3 +770,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // __NUMBERRANGEFORMATTER_H__
+

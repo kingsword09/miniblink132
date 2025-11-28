@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -11,7 +11,7 @@
 * Modification History:
 *
 * Date        Name        Description
-* 02/15/2001  synwee      Modified all methods to process its own function
+* 02/15/2001  synwee      Modified all methods to process its own function 
 *                         instead of calling the equivalent c++ api (coleitr.h)
 *******************************************************************************/
 
@@ -22,16 +22,16 @@
 
 #if !UCONFIG_NO_COLLATION
 
-/**
- * This indicates an error has occurred during processing or if no more CEs is
+/**  
+ * This indicates an error has occurred during processing or if no more CEs is 
  * to be returned.
  * @stable ICU 2.0
  */
-#define UCOL_NULLORDER ((int32_t)0xFFFFFFFF)
+#define UCOL_NULLORDER        ((int32_t)0xFFFFFFFF)
 
 #include "unicode/ucol.h"
 
-/**
+/** 
  * The UCollationElements struct.
  * For usage in C programs.
  * @stable ICU 2.0
@@ -42,10 +42,10 @@ typedef struct UCollationElements UCollationElements;
  * \file
  * \brief C API: UCollationElements
  *
- * The UCollationElements API is used as an iterator to walk through each
+ * The UCollationElements API is used as an iterator to walk through each 
  * character of an international string. Use the iterator to return the
- * ordering priority of the positioned character. The ordering priority of a
- * character, which we refer to as a key, defines how a character is collated
+ * ordering priority of the positioned character. The ordering priority of a 
+ * character, which we refer to as a key, defines how a character is collated 
  * in the given collation object.
  * For example, consider the following in Slovak and in traditional Spanish collation:
  * <pre>
@@ -82,19 +82,19 @@ typedef struct UCollationElements UCollationElements;
  * ucol_next() returns the collation order of the next.
  * ucol_prev() returns the collation order of the previous character.
  * The Collation Element Iterator moves only in one direction between calls to
- * ucol_reset. That is, ucol_next() and ucol_prev can not be inter-used.
- * Whenever ucol_prev is to be called after ucol_next() or vice versa,
- * ucol_reset has to be called first to reset the status, shifting pointers to
- * either the end or the start of the string. Hence at the next call of
- * ucol_prev or ucol_next, the first or last collation order will be returned.
- * If a change of direction is done without a ucol_reset, the result is
+ * ucol_reset. That is, ucol_next() and ucol_prev can not be inter-used. 
+ * Whenever ucol_prev is to be called after ucol_next() or vice versa, 
+ * ucol_reset has to be called first to reset the status, shifting pointers to 
+ * either the end or the start of the string. Hence at the next call of 
+ * ucol_prev or ucol_next, the first or last collation order will be returned. 
+ * If a change of direction is done without a ucol_reset, the result is 
  * undefined.
- * The result of a forward iterate (ucol_next) and reversed result of the
- * backward iterate (ucol_prev) on the same string are equivalent, if
+ * The result of a forward iterate (ucol_next) and reversed result of the  
+ * backward iterate (ucol_prev) on the same string are equivalent, if 
  * collation orders with the value 0 are ignored.
- * Character based on the comparison level of the collator.  A collation order
- * consists of primary order, secondary order and tertiary order.  The data
- * type of the collation order is <strong>int32_t</strong>.
+ * Character based on the comparison level of the collator.  A collation order 
+ * consists of primary order, secondary order and tertiary order.  The data 
+ * type of the collation order is <strong>int32_t</strong>. 
  *
  * @see UCollator
  */
@@ -113,7 +113,11 @@ typedef struct UCollationElements UCollationElements;
  * @return a struct containing collation element information
  * @stable ICU 2.0
  */
-U_CAPI UCollationElements* U_EXPORT2 ucol_openElements(const UCollator* coll, const UChar* text, int32_t textLength, UErrorCode* status);
+U_CAPI UCollationElements* U_EXPORT2 
+ucol_openElements(const UCollator  *coll,
+                  const UChar      *text,
+                        int32_t    textLength,
+                        UErrorCode *status);
 
 /**
  * get a hash code for a key... Not very useful!
@@ -122,7 +126,8 @@ U_CAPI UCollationElements* U_EXPORT2 ucol_openElements(const UCollator* coll, co
  * @return       the hash code.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 ucol_keyHashCode(const uint8_t* key, int32_t length);
+U_CAPI int32_t U_EXPORT2 
+ucol_keyHashCode(const uint8_t* key, int32_t length);
 
 /**
  * Close a UCollationElements.
@@ -130,7 +135,8 @@ U_CAPI int32_t U_EXPORT2 ucol_keyHashCode(const uint8_t* key, int32_t length);
  * @param elems The UCollationElements to close.
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 ucol_closeElements(UCollationElements* elems);
+U_CAPI void U_EXPORT2 
+ucol_closeElements(UCollationElements *elems);
 
 /**
  * Reset the collation elements to their initial state.
@@ -141,46 +147,50 @@ U_CAPI void U_EXPORT2 ucol_closeElements(UCollationElements* elems);
  * @see ucol_previous
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 ucol_reset(UCollationElements* elems);
+U_CAPI void U_EXPORT2 
+ucol_reset(UCollationElements *elems);
 
 /**
  * Get the ordering priority of the next collation element in the text.
  * A single character may contain more than one collation element.
  * @param elems The UCollationElements containing the text.
  * @param status A pointer to a UErrorCode to receive any errors.
- * @return The next collation elements ordering, otherwise returns UCOL_NULLORDER
+ * @return The next collation elements ordering, otherwise returns UCOL_NULLORDER 
  *         if an error has occurred or if the end of string has been reached
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 ucol_next(UCollationElements* elems, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2 
+ucol_next(UCollationElements *elems, UErrorCode *status);
 
 /**
  * Get the ordering priority of the previous collation element in the text.
  * A single character may contain more than one collation element.
- * Note that internally a stack is used to store buffered collation elements.
+ * Note that internally a stack is used to store buffered collation elements. 
  * @param elems The UCollationElements containing the text.
- * @param status A pointer to a UErrorCode to receive any errors. Notably
+ * @param status A pointer to a UErrorCode to receive any errors. Notably 
  *               a U_BUFFER_OVERFLOW_ERROR is returned if the internal stack
  *               buffer has been exhausted.
- * @return The previous collation elements ordering, otherwise returns
- *         UCOL_NULLORDER if an error has occurred or if the start of string has
+ * @return The previous collation elements ordering, otherwise returns 
+ *         UCOL_NULLORDER if an error has occurred or if the start of string has 
  *         been reached.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 ucol_previous(UCollationElements* elems, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2 
+ucol_previous(UCollationElements *elems, UErrorCode *status);
 
 /**
- * Get the maximum length of any expansion sequences that end with the
+ * Get the maximum length of any expansion sequences that end with the 
  * specified comparison order.
  * This is useful for .... ?
  * @param elems The UCollationElements containing the text.
  * @param order A collation order returned by previous or next.
- * @return maximum size of the expansion sequences ending with the collation
- *         element or 1 if collation element does not occur at the end of any
+ * @return maximum size of the expansion sequences ending with the collation 
+ *         element or 1 if collation element does not occur at the end of any 
  *         expansion sequence
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 ucol_getMaxExpansion(const UCollationElements* elems, int32_t order);
+U_CAPI int32_t U_EXPORT2 
+ucol_getMaxExpansion(const UCollationElements *elems, int32_t order);
 
 /**
  * Set the text containing the collation elements.
@@ -199,7 +209,11 @@ U_CAPI int32_t U_EXPORT2 ucol_getMaxExpansion(const UCollationElements* elems, i
  * @see ucol_getText
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 ucol_setText(UCollationElements* elems, const UChar* text, int32_t textLength, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+ucol_setText(      UCollationElements *elems,
+             const UChar              *text,
+                   int32_t            textLength,
+                   UErrorCode         *status);
 
 /**
  * Get the offset of the current source character.
@@ -210,7 +224,8 @@ U_CAPI void U_EXPORT2 ucol_setText(UCollationElements* elems, const UChar* text,
  * @see ucol_setOffset
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 ucol_getOffset(const UCollationElements* elems);
+U_CAPI int32_t U_EXPORT2 
+ucol_getOffset(const UCollationElements *elems);
 
 /**
  * Set the offset of the current source character.
@@ -224,31 +239,37 @@ U_CAPI int32_t U_EXPORT2 ucol_getOffset(const UCollationElements* elems);
  * @see ucol_getOffset
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 ucol_setOffset(UCollationElements* elems, int32_t offset, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+ucol_setOffset(UCollationElements *elems,
+               int32_t             offset,
+               UErrorCode         *status);
 
 /**
- * Get the primary order of a collation order.
- * @param order the collation order
- * @return the primary order of a collation order.
- * @stable ICU 2.6
- */
-U_CAPI int32_t U_EXPORT2 ucol_primaryOrder(int32_t order);
+* Get the primary order of a collation order.
+* @param order the collation order
+* @return the primary order of a collation order.
+* @stable ICU 2.6
+*/
+U_CAPI int32_t U_EXPORT2
+ucol_primaryOrder (int32_t order); 
 
 /**
- * Get the secondary order of a collation order.
- * @param order the collation order
- * @return the secondary order of a collation order.
- * @stable ICU 2.6
- */
-U_CAPI int32_t U_EXPORT2 ucol_secondaryOrder(int32_t order);
+* Get the secondary order of a collation order.
+* @param order the collation order
+* @return the secondary order of a collation order.
+* @stable ICU 2.6
+*/
+U_CAPI int32_t U_EXPORT2
+ucol_secondaryOrder (int32_t order); 
 
 /**
- * Get the tertiary order of a collation order.
- * @param order the collation order
- * @return the tertiary order of a collation order.
- * @stable ICU 2.6
- */
-U_CAPI int32_t U_EXPORT2 ucol_tertiaryOrder(int32_t order);
+* Get the tertiary order of a collation order.
+* @param order the collation order
+* @return the tertiary order of a collation order.
+* @stable ICU 2.6
+*/
+U_CAPI int32_t U_EXPORT2
+ucol_tertiaryOrder (int32_t order); 
 
 #endif /* #if !UCONFIG_NO_COLLATION */
 

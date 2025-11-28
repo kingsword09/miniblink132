@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -37,8 +37,8 @@ U_NAMESPACE_BEGIN
  */
 class BMPSet : public UMemory {
 public:
-    BMPSet(const int32_t* parentList, int32_t parentListLength);
-    BMPSet(const BMPSet& otherBMPSet, const int32_t* newParentList, int32_t newParentListLength);
+    BMPSet(const int32_t *parentList, int32_t parentListLength);
+    BMPSet(const BMPSet &otherBMPSet, const int32_t *newParentList, int32_t newParentListLength);
     virtual ~BMPSet();
 
     virtual UBool contains(UChar32 c) const;
@@ -48,28 +48,28 @@ public:
      * It must be s<limit and spanCondition==0 or 1.
      * @return The string pointer which limits the span.
      */
-    const UChar* span(const UChar* s, const UChar* limit, USetSpanCondition spanCondition) const;
+    const char16_t *span(const char16_t *s, const char16_t *limit, USetSpanCondition spanCondition) const;
 
     /*
      * Span the trailing substring for which each character c has spanCondition==contains(c).
      * It must be s<limit and spanCondition==0 or 1.
      * @return The string pointer which starts the span.
      */
-    const UChar* spanBack(const UChar* s, const UChar* limit, USetSpanCondition spanCondition) const;
+    const char16_t *spanBack(const char16_t *s, const char16_t *limit, USetSpanCondition spanCondition) const;
 
     /*
      * Span the initial substring for which each character c has spanCondition==contains(c).
      * It must be length>0 and spanCondition==0 or 1.
      * @return The string pointer which limits the span.
      */
-    const uint8_t* spanUTF8(const uint8_t* s, int32_t length, USetSpanCondition spanCondition) const;
+    const uint8_t *spanUTF8(const uint8_t *s, int32_t length, USetSpanCondition spanCondition) const;
 
     /*
      * Span the trailing substring for which each character c has spanCondition==contains(c).
      * It must be length>0 and spanCondition==0 or 1.
      * @return The start of the span.
      */
-    int32_t spanBackUTF8(const uint8_t* s, int32_t length, USetSpanCondition spanCondition) const;
+    int32_t spanBackUTF8(const uint8_t *s, int32_t length, USetSpanCondition spanCondition) const;
 
 private:
     void initBits();
@@ -151,12 +151,11 @@ private:
      * for mixed BMP blocks and for supplementary code points.
      * The list is terminated with list[listLength-1]=0x110000.
      */
-    const int32_t* list;
+    const int32_t *list;
     int32_t listLength;
 };
 
-inline UBool BMPSet::containsSlow(UChar32 c, int32_t lo, int32_t hi) const
-{
+inline UBool BMPSet::containsSlow(UChar32 c, int32_t lo, int32_t hi) const {
     return (UBool)(findCodePoint(c, lo, hi) & 1);
 }
 

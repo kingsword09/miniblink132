@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -49,13 +49,13 @@ public:
      */
     virtual int32_t count(UErrorCode& status) const override;
 
-    virtual const char* next(int32_t* resultLength, UErrorCode& status) override;
+    virtual const char* next(int32_t *resultLength, UErrorCode& status) override;
 
     /**
      * Returns the next element a UnicodeString*.  If there are no
-     * more elements, returns NULL.
+     * more elements, returns nullptr.
      * @param status the error code.
-     * @return a pointer to the string, or NULL.
+     * @return a pointer to the string, or nullptr.
      */
     virtual const UnicodeString* snext(UErrorCode& status) override;
 
@@ -75,12 +75,13 @@ public:
      */
     static UClassID U_EXPORT2 getStaticClassID();
 
-    static UStringEnumeration* U_EXPORT2 fromUEnumeration(UEnumeration* enumToAdopt, UErrorCode& status);
-
+    static UStringEnumeration * U_EXPORT2 fromUEnumeration(
+            UEnumeration *enumToAdopt, UErrorCode &status);
 private:
-    UEnumeration* uenum; // owned
+    UEnumeration *uenum; // owned
 };
 
 U_NAMESPACE_END
 
 #endif
+

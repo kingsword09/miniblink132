@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /**
  ************************************************************************************
@@ -10,6 +10,7 @@
 #ifndef BRKENG_H
 #define BRKENG_H
 
+#include "unicode/umisc.h"
 #include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "unicode/utext.h"
@@ -21,6 +22,7 @@ class UnicodeSet;
 class UStack;
 class UVector32;
 class DictionaryMatcher;
+class ExternalBreakEngine;
 
 /*******************************************************************
  * LanguageBreakEngine
@@ -35,42 +37,79 @@ class DictionaryMatcher;
  * <p>LanguageBreakEngines should normally be implemented so as to
  * be shared between threads without locking.</p>
  */
-class LanguageBreakEngine : public UMemory {
-public:
-    /**
-     * <p>Default constructor.</p>
-     *
-     */
-    LanguageBreakEngine();
+class LanguageBreakEngine : public UObject {
+ public:
 
-    /**
-     * <p>Virtual destructor.</p>
-     */
-    virtual ~LanguageBreakEngine();
+  /**
+   * <p>Default constructor.</p>
+   *
+   */
+  LanguageBreakEngine();
 
-    /**
-     * <p>Indicate whether this engine handles a particular character for
-     * a particular kind of break.</p>
-     *
-     * @param c A character which begins a run that the engine might handle
-     * @return true if this engine handles the particular character and break
-     * type.
-     */
-    virtual UBool handles(UChar32 c) const = 0;
+  /**
+   * <p>Virtual destructor.</p>
+   */
+  virtual ~LanguageBreakEngine();
 
-    /**
-     * <p>Find any breaks within a run in the supplied text.</p>
-     *
-     * @param text A UText representing the text. The
-     * iterator is left at the end of the run of characters which the engine
-     * is capable of handling.
-     * @param startPos The start of the run within the supplied text.
-     * @param endPos The end of the run within the supplied text.
-     * @param foundBreaks A Vector of int32_t to receive the breaks.
-     * @param status Information on any errors encountered.
-     * @return The number of breaks found.
-     */
-    virtual int32_t findBreaks(UText* text, int32_t startPos, int32_t endPos, UVector32& foundBreaks, UBool isPhraseBreaking, UErrorCode& status) const = 0;
+ /**
+  * <p>Indicate whether this engine handles a particular character for
+  * a particular kind of break.</p>
+  *
+  * @param c A character which begins a run that the engine might handle
+  * @param locale The locale.
+  * @return true if this engine handles the particular character and break
+  * type.
+  */
+  virtual UBool handles(UChar32 c, const char* locale) const = 0;
+
+ /**
+  * <p>Find any breaks within a run in the supplied text.</p>
+  *
+  * @param text A UText representing the text. The
+  * iterator is left at the end of the run of characters which the engine
+  * is capable of handling.
+  * @param startPos The start of the run within the supplied text.
+  * @param endPos The end of the run within the supplied text.
+  * @param foundBreaks A Vector of int32_t to receive the breaks.
+  * @param status Information on any errors encountered.
+  * @return The number of breaks found.
+  */
+  virtual int32_t findBreaks( UText *text,
+                              int32_t startPos,
+                              int32_t endPos,
+                              UVector32 &foundBreaks,
+                              UBool isPhraseBreaking,
+                              UErrorCode &status) const = 0;
+
+};
+
+/*******************************************************************
+ * BreakEngineWrapper
+ */
+
+/**
+ * <p>BreakEngineWrapper implement LanguageBreakEngine by
+ * a thin wrapper that delegate the task to ExternalBreakEngine
+ * </p>
+ */
+class BreakEngineWrapper : public  LanguageBreakEngine {
+ public:
+
+  BreakEngineWrapper(ExternalBreakEngine* engine, UErrorCode &status);
+
+  virtual ~BreakEngineWrapper();
+
+  virtual UBool handles(UChar32 c, const char* locale) const override;
+
+  virtual int32_t findBreaks( UText *text,
+                              int32_t startPos,
+                              int32_t endPos,
+                              UVector32 &foundBreaks,
+                              UBool isPhraseBreaking,
+                              UErrorCode &status) const override;
+
+ private:
+  LocalPointer<ExternalBreakEngine> delegate;
 };
 
 /*******************************************************************
@@ -97,29 +136,32 @@ public:
  * longer needed.</p>
  */
 class LanguageBreakFactory : public UMemory {
-public:
-    /**
-     * <p>Default constructor.</p>
-     *
-     */
-    LanguageBreakFactory();
+ public:
 
-    /**
-     * <p>Virtual destructor.</p>
-     */
-    virtual ~LanguageBreakFactory();
+  /**
+   * <p>Default constructor.</p>
+   *
+   */
+  LanguageBreakFactory();
 
-    /**
-     * <p>Find and return a LanguageBreakEngine that can find the desired
-     * kind of break for the set of characters to which the supplied
-     * character belongs. It is up to the set of available engines to
-     * determine what the sets of characters are.</p>
-     *
-     * @param c A character that begins a run for which a LanguageBreakEngine is
-     * sought.
-     * @return A LanguageBreakEngine with the desired characteristics, or 0.
-     */
-    virtual const LanguageBreakEngine* getEngineFor(UChar32 c) = 0;
+  /**
+   * <p>Virtual destructor.</p>
+   */
+  virtual ~LanguageBreakFactory();
+
+ /**
+  * <p>Find and return a LanguageBreakEngine that can find the desired
+  * kind of break for the set of characters to which the supplied
+  * character belongs. It is up to the set of available engines to
+  * determine what the sets of characters are.</p>
+  *
+  * @param c A character that begins a run for which a LanguageBreakEngine is
+  * sought.
+  * @param locale The locale.
+  * @return A LanguageBreakEngine with the desired characteristics, or 0.
+  */
+  virtual const LanguageBreakEngine *getEngineFor(UChar32 c, const char* locale) = 0;
+
 };
 
 /*******************************************************************
@@ -138,57 +180,65 @@ public:
  */
 
 class UnhandledEngine : public LanguageBreakEngine {
-private:
+ private:
+
     /**
      * The sets of characters handled.
      * @internal
      */
 
-    UnicodeSet* fHandled;
+  UnicodeSet    *fHandled;
 
-public:
-    /**
-     * <p>Default constructor.</p>
-     *
-     */
-    UnhandledEngine(UErrorCode& status);
+ public:
 
-    /**
-     * <p>Virtual destructor.</p>
-     */
-    virtual ~UnhandledEngine();
+  /**
+   * <p>Default constructor.</p>
+   *
+   */
+  UnhandledEngine(UErrorCode &status);
 
-    /**
-     * <p>Indicate whether this engine handles a particular character for
-     * a particular kind of break.</p>
-     *
-     * @param c A character which begins a run that the engine might handle
-     * @return true if this engine handles the particular character and break
-     * type.
-     */
-    virtual UBool handles(UChar32 c) const override;
+  /**
+   * <p>Virtual destructor.</p>
+   */
+  virtual ~UnhandledEngine();
 
-    /**
-     * <p>Find any breaks within a run in the supplied text.</p>
-     *
-     * @param text A UText representing the text (TODO: UText). The
-     * iterator is left at the end of the run of characters which the engine
-     * is capable of handling.
-     * @param startPos The start of the run within the supplied text.
-     * @param endPos The end of the run within the supplied text.
-     * @param foundBreaks An allocated C array of the breaks found, if any
-     * @param status Information on any errors encountered.
-     * @return The number of breaks found.
-     */
-    virtual int32_t findBreaks(
-        UText* text, int32_t startPos, int32_t endPos, UVector32& foundBreaks, UBool isPhraseBreaking, UErrorCode& status) const override;
+ /**
+  * <p>Indicate whether this engine handles a particular character for
+  * a particular kind of break.</p>
+  *
+  * @param c A character which begins a run that the engine might handle
+  * @param locale The locale.
+  * @return true if this engine handles the particular character and break
+  * type.
+  */
+  virtual UBool handles(UChar32 c, const char* locale) const override;
 
-    /**
-     * <p>Tell the engine to handle a particular character and break type.</p>
-     *
-     * @param c A character which the engine should handle
-     */
-    virtual void handleCharacter(UChar32 c);
+ /**
+  * <p>Find any breaks within a run in the supplied text.</p>
+  *
+  * @param text A UText representing the text (TODO: UText). The
+  * iterator is left at the end of the run of characters which the engine
+  * is capable of handling.
+  * @param startPos The start of the run within the supplied text.
+  * @param endPos The end of the run within the supplied text.
+  * @param foundBreaks An allocated C array of the breaks found, if any
+  * @param status Information on any errors encountered.
+  * @return The number of breaks found.
+  */
+  virtual int32_t findBreaks( UText *text,
+                              int32_t startPos,
+                              int32_t endPos,
+                              UVector32 &foundBreaks,
+                              UBool isPhraseBreaking,
+                              UErrorCode &status) const override;
+
+ /**
+  * <p>Tell the engine to handle a particular character and break type.</p>
+  *
+  * @param c A character which the engine should handle
+  */
+  virtual void handleCharacter(UChar32 c);
+
 };
 
 /*******************************************************************
@@ -201,59 +251,74 @@ public:
  * data in the ICU data file.</p>
  */
 class ICULanguageBreakFactory : public LanguageBreakFactory {
-private:
+ private:
+
     /**
      * The stack of break engines created by this factory
      * @internal
      */
 
-    UStack* fEngines;
+  UStack    *fEngines;
 
-public:
-    /**
-     * <p>Standard constructor.</p>
-     *
-     */
-    ICULanguageBreakFactory(UErrorCode& status);
+ public:
 
-    /**
-     * <p>Virtual destructor.</p>
-     */
-    virtual ~ICULanguageBreakFactory();
+  /**
+   * <p>Standard constructor.</p>
+   *
+   */
+  ICULanguageBreakFactory(UErrorCode &status);
 
-    /**
-     * <p>Find and return a LanguageBreakEngine that can find the desired
-     * kind of break for the set of characters to which the supplied
-     * character belongs. It is up to the set of available engines to
-     * determine what the sets of characters are.</p>
-     *
-     * @param c A character that begins a run for which a LanguageBreakEngine is
-     * sought.
-     * @return A LanguageBreakEngine with the desired characteristics, or 0.
-     */
-    virtual const LanguageBreakEngine* getEngineFor(UChar32 c) override;
+  /**
+   * <p>Virtual destructor.</p>
+   */
+  virtual ~ICULanguageBreakFactory();
+
+ /**
+  * <p>Find and return a LanguageBreakEngine that can find the desired
+  * kind of break for the set of characters to which the supplied
+  * character belongs. It is up to the set of available engines to
+  * determine what the sets of characters are.</p>
+  *
+  * @param c A character that begins a run for which a LanguageBreakEngine is
+  * sought.
+  * @param locale The locale.
+  * @return A LanguageBreakEngine with the desired characteristics, or 0.
+  */
+  virtual const LanguageBreakEngine *getEngineFor(UChar32 c, const char* locale) override;
+
+  /**
+   * Add and adopt the engine and return an URegistryKey.
+   * @param engine The ExternalBreakEngine to be added and adopt. The caller
+   *     pass the ownership and should not release the memory after this.
+   * @param status the error code.
+   */
+  virtual void addExternalEngine(ExternalBreakEngine* engine, UErrorCode& status);
 
 protected:
-    /**
-     * <p>Create a LanguageBreakEngine for the set of characters to which
-     * the supplied character belongs, for the specified break type.</p>
-     *
-     * @param c A character that begins a run for which a LanguageBreakEngine is
-     * sought.
-     * @return A LanguageBreakEngine with the desired characteristics, or 0.
-     */
-    virtual const LanguageBreakEngine* loadEngineFor(UChar32 c);
+ /**
+  * <p>Create a LanguageBreakEngine for the set of characters to which
+  * the supplied character belongs, for the specified break type.</p>
+  *
+  * @param c A character that begins a run for which a LanguageBreakEngine is
+  * sought.
+  * @param locale The locale.
+  * @return A LanguageBreakEngine with the desired characteristics, or 0.
+  */
+  virtual const LanguageBreakEngine *loadEngineFor(UChar32 c, const char* locale);
 
-    /**
-     * <p>Create a DictionaryMatcher for the specified script and break type.</p>
-     * @param script An ISO 15924 script code that identifies the dictionary to be
-     * created.
-     * @return A DictionaryMatcher with the desired characteristics, or NULL.
-     */
-    virtual DictionaryMatcher* loadDictionaryMatcherFor(UScriptCode script);
+  /**
+   * <p>Create a DictionaryMatcher for the specified script and break type.</p>
+   * @param script An ISO 15924 script code that identifies the dictionary to be
+   * created.
+   * @return A DictionaryMatcher with the desired characteristics, or nullptr.
+   */
+  virtual DictionaryMatcher *loadDictionaryMatcherFor(UScriptCode script);
+
+ private:
+  void ensureEngines(UErrorCode& status);
 };
 
 U_NAMESPACE_END
 
-/* BRKENG_H */
+    /* BRKENG_H */
 #endif

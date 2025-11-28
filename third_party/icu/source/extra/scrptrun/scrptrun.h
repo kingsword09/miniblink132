@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -22,13 +22,15 @@
 
 U_NAMESPACE_BEGIN
 
-struct ScriptRecord {
+struct ScriptRecord
+{
     UChar32 startChar;
     UChar32 endChar;
     UScriptCode scriptCode;
 };
 
-struct ParenStackEntry {
+struct ParenStackEntry
+{
     int32_t pairIndex;
     UScriptCode scriptCode;
 };
@@ -37,15 +39,15 @@ class ScriptRun : public UObject {
 public:
     ScriptRun();
 
-    ScriptRun(const UChar chars[], int32_t length);
+    ScriptRun(const char16_t chars[], int32_t length);
 
-    ScriptRun(const UChar chars[], int32_t start, int32_t length);
+    ScriptRun(const char16_t chars[], int32_t start, int32_t length);
 
     void reset();
 
     void reset(int32_t start, int32_t count);
 
-    void reset(const UChar chars[], int32_t start, int32_t length);
+    void reset(const char16_t chars[], int32_t start, int32_t length);
 
     int32_t getScriptStart();
 
@@ -60,27 +62,22 @@ public:
      *
      * @stable ICU 2.2
      */
-    virtual inline UClassID getDynamicClassID() const override
-    {
-        return getStaticClassID();
-    }
+    virtual inline UClassID getDynamicClassID() const override { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @stable ICU 2.2
      */
-    static inline UClassID getStaticClassID()
-    {
-        return (UClassID)&fgClassID;
-    }
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
+
     static UBool sameScript(int32_t scriptOne, int32_t scriptTwo);
 
     int32_t charStart;
     int32_t charLimit;
-    const UChar* charArray;
+    const char16_t *charArray;
 
     int32_t scriptStart;
     int32_t scriptEnd;
@@ -106,15 +103,15 @@ private:
 
 inline ScriptRun::ScriptRun()
 {
-    reset(NULL, 0, 0);
+    reset(nullptr, 0, 0);
 }
 
-inline ScriptRun::ScriptRun(const UChar chars[], int32_t length)
+inline ScriptRun::ScriptRun(const char16_t chars[], int32_t length)
 {
     reset(chars, 0, length);
 }
 
-inline ScriptRun::ScriptRun(const UChar chars[], int32_t start, int32_t length)
+inline ScriptRun::ScriptRun(const char16_t chars[], int32_t start, int32_t length)
 {
     reset(chars, start, length);
 }
@@ -137,9 +134,9 @@ inline UScriptCode ScriptRun::getScriptCode()
 inline void ScriptRun::reset()
 {
     scriptStart = charStart;
-    scriptEnd = charStart;
-    scriptCode = USCRIPT_INVALID_CODE;
-    parenSP = -1;
+    scriptEnd   = charStart;
+    scriptCode  = USCRIPT_INVALID_CODE;
+    parenSP     = -1;
 }
 
 inline void ScriptRun::reset(int32_t start, int32_t length)
@@ -150,7 +147,7 @@ inline void ScriptRun::reset(int32_t start, int32_t length)
     reset();
 }
 
-inline void ScriptRun::reset(const UChar chars[], int32_t start, int32_t length)
+inline void ScriptRun::reset(const char16_t chars[], int32_t start, int32_t length)
 {
     charArray = chars;
 

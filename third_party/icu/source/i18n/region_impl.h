@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -17,11 +17,12 @@
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_FORMATTING
-
+    
 #include "uvector.h"
 #include "unicode/strenum.h"
 
 U_NAMESPACE_BEGIN
+
 
 class RegionNameEnumeration : public StringEnumeration {
 public:
@@ -29,17 +30,16 @@ public:
      * Construct an string enumeration over the supplied name list.
      * Makes a copy of the supplied input name list; does not retain a reference to the original.
      */
-    RegionNameEnumeration(UVector* nameList, UErrorCode& status);
+    RegionNameEnumeration(UVector *nameList, UErrorCode& status);
     virtual ~RegionNameEnumeration();
-    static UClassID U_EXPORT2 getStaticClassID(void);
-    virtual UClassID getDynamicClassID(void) const override;
+    static UClassID U_EXPORT2 getStaticClassID();
+    virtual UClassID getDynamicClassID() const override;
     virtual const UnicodeString* snext(UErrorCode& status) override;
     virtual void reset(UErrorCode& status) override;
     virtual int32_t count(UErrorCode& status) const override;
-
 private:
     int32_t pos;
-    UVector* fRegionNames;
+    UVector *fRegionNames;
 };
 
 U_NAMESPACE_END

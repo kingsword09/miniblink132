@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -65,13 +65,14 @@ typedef enum ECleanupCommonType {
     */
     UCLN_COMMON_UNIFIED_CACHE,
     UCLN_COMMON_URES,
-    UCLN_COMMON_MUTEX, // Mutexes should be the last to be cleaned up.
+    UCLN_COMMON_MUTEX,    // Mutexes should be the last to be cleaned up.
     UCLN_COMMON_COUNT /* This must be last */
 } ECleanupCommonType;
 
 /* Main library cleanup registration function. */
 /* See common/ucln.h for details on adding a cleanup function. */
 /* Note: the global mutex must not be held when calling this function. */
-U_CFUNC void U_EXPORT2 ucln_common_registerCleanup(ECleanupCommonType type, cleanupFunc* func);
+U_CFUNC void U_EXPORT2 ucln_common_registerCleanup(ECleanupCommonType type,
+                                                   cleanupFunc *func);
 
 #endif

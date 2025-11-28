@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -64,6 +64,7 @@ class TransliterationRuleSet : public UMemory {
     int32_t maxContextLength;
 
 public:
+
     /**
      * Construct a new empty rule set.
      * @param status    Output parameter filled in with success or failure status.
@@ -91,7 +92,7 @@ public:
      * Return the maximum context length.
      * @return the length of the longest preceding context.
      */
-    virtual int32_t getMaximumContextLength(void) const;
+    virtual int32_t getMaximumContextLength() const;
 
     /**
      * Add a rule to this set.  Rules are added in order, and order is
@@ -102,7 +103,8 @@ public:
      *
      * @param adoptedRule the rule to add
      */
-    virtual void addRule(TransliterationRule* adoptedRule, UErrorCode& status);
+    virtual void addRule(TransliterationRule* adoptedRule,
+                         UErrorCode& status);
 
     /**
      * Check this for masked rules and index it to optimize performance.
@@ -118,7 +120,7 @@ public:
      * @param status     Output parameter filled in with success or failure status.
      */
     virtual void freeze(UParseError& parseError, UErrorCode& status);
-
+    
     /**
      * Transliterate the given text with the given UTransPosition
      * indices.  Return true if the transliteration should continue
@@ -132,7 +134,9 @@ public:
      * indicating that transliteration should stop until more text
      * arrives.
      */
-    UBool transliterate(Replaceable& text, UTransPosition& index, UBool isIncremental);
+    UBool transliterate(Replaceable& text,
+                        UTransPosition& index,
+                        UBool isIncremental);
 
     /**
      * Create rule strings that represents this rule set.
@@ -141,16 +145,19 @@ public:
      * @param escapeUnprintable  True, will escape the unprintable characters
      * @return    A reference to 'result'.
      */
-    virtual UnicodeString& toRules(UnicodeString& result, UBool escapeUnprintable) const;
+    virtual UnicodeString& toRules(UnicodeString& result,
+                                   UBool escapeUnprintable) const;
 
     /**
      * Return the set of all characters that may be modified
      * (getTarget=false) or emitted (getTarget=true) by this set.
      */
-    UnicodeSet& getSourceTargetSet(UnicodeSet& result, UBool getTarget) const;
+    UnicodeSet& getSourceTargetSet(UnicodeSet& result,
+                   UBool getTarget) const;
 
 private:
-    TransliterationRuleSet& operator=(const TransliterationRuleSet& other); // forbid copying of this class
+
+    TransliterationRuleSet &operator=(const TransliterationRuleSet &other); // forbid copying of this class
 };
 
 U_NAMESPACE_END

@@ -1,19 +1,19 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
- * Copyright (C) 1997-2005, International Business Machines Corporation and others. All Rights Reserved.
- *******************************************************************************
- *
- * File PARSEPOS.H
- *
- * Modification History:
- *
- *   Date        Name        Description
- *   07/09/97    helena      Converted from java.
- *   07/17/98    stephen     Added errorIndex support.
- *   05/11/99    stephen     Cleaned up.
- *******************************************************************************
- */
+* Copyright (C) 1997-2005, International Business Machines Corporation and others. All Rights Reserved.
+*******************************************************************************
+*
+* File PARSEPOS.H
+*
+* Modification History:
+*
+*   Date        Name        Description
+*   07/09/97    helena      Converted from java.
+*   07/17/98    stephen     Added errorIndex support.
+*   05/11/99    stephen     Cleaned up.
+*******************************************************************************
+*/
 
 #ifndef PARSEPOS_H
 #define PARSEPOS_H
@@ -24,13 +24,14 @@
 
 #include "unicode/uobject.h"
 
+ 
 U_NAMESPACE_BEGIN
 
 /**
  * \file
  * \brief C++ API: Canonical Iterator
  */
-/**
+/** 
  * <code>ParsePosition</code> is a simple class used by <code>Format</code>
  * and its subclasses to keep track of the current position during parsing.
  * The <code>parseObject</code> method in the various <code>Format</code>
@@ -55,11 +56,10 @@ public:
      * @stable ICU 2.0
      */
     ParsePosition()
-        : UObject()
-        , index(0)
-        , errorIndex(-1)
-    {
-    }
+        : UObject(),
+        index(0),
+        errorIndex(-1)
+      {}
 
     /**
      * Create a new ParsePosition with the given initial index.
@@ -67,11 +67,10 @@ public:
      * @stable ICU 2.0
      */
     ParsePosition(int32_t newIndex)
-        : UObject()
-        , index(newIndex)
-        , errorIndex(-1)
-    {
-    }
+        : UObject(),
+        index(newIndex),
+        errorIndex(-1)
+      {}
 
     /**
      * Copy constructor
@@ -79,11 +78,10 @@ public:
      * @stable ICU 2.0
      */
     ParsePosition(const ParsePosition& copy)
-        : UObject(copy)
-        , index(copy.index)
-        , errorIndex(copy.errorIndex)
-    {
-    }
+        : UObject(copy),
+        index(copy.index),
+        errorIndex(copy.errorIndex)
+      {}
 
     /**
      * Destructor
@@ -95,26 +93,26 @@ public:
      * Assignment operator
      * @stable ICU 2.0
      */
-    inline ParsePosition& operator=(const ParsePosition& copy);
+    inline ParsePosition&      operator=(const ParsePosition& copy);
 
     /**
      * Equality operator.
      * @return true if the two parse positions are equal, false otherwise.
      * @stable ICU 2.0
      */
-    inline bool operator==(const ParsePosition& that) const;
+    inline bool               operator==(const ParsePosition& that) const;
 
     /**
      * Equality operator.
      * @return true if the two parse positions are not equal, false otherwise.
      * @stable ICU 2.0
      */
-    inline bool operator!=(const ParsePosition& that) const;
+    inline bool               operator!=(const ParsePosition& that) const;
 
     /**
      * Clone this object.
      * Clones can be used concurrently in multiple threads.
-     * If an error occurs, then NULL is returned.
+     * If an error occurs, then nullptr is returned.
      * The caller must delete the clone.
      *
      * @return a clone of this object
@@ -122,7 +120,7 @@ public:
      * @see getDynamicClassID
      * @stable ICU 2.8
      */
-    ParsePosition* clone() const;
+    ParsePosition *clone() const;
 
     /**
      * Retrieve the current parse position.  On input to a parse method, this
@@ -183,46 +181,54 @@ private:
      * The index at which a parse error occurred.
      */
     int32_t errorIndex;
+
 };
 
-inline ParsePosition& ParsePosition::operator=(const ParsePosition& copy)
+inline ParsePosition&
+ParsePosition::operator=(const ParsePosition& copy)
 {
-    index = copy.index;
-    errorIndex = copy.errorIndex;
-    return *this;
+  index = copy.index;
+  errorIndex = copy.errorIndex;
+  return *this;
 }
 
-inline bool ParsePosition::operator==(const ParsePosition& copy) const
+inline bool
+ParsePosition::operator==(const ParsePosition& copy) const
 {
-    if (index != copy.index || errorIndex != copy.errorIndex)
-        return false;
-    else
-        return true;
+  if(index != copy.index || errorIndex != copy.errorIndex)
+  return false;
+  else
+  return true;
 }
 
-inline bool ParsePosition::operator!=(const ParsePosition& copy) const
+inline bool
+ParsePosition::operator!=(const ParsePosition& copy) const
 {
-    return !operator==(copy);
+  return !operator==(copy);
 }
 
-inline int32_t ParsePosition::getIndex() const
+inline int32_t
+ParsePosition::getIndex() const
 {
-    return index;
+  return index;
 }
 
-inline void ParsePosition::setIndex(int32_t offset)
+inline void
+ParsePosition::setIndex(int32_t offset)
 {
-    this->index = offset;
+  this->index = offset;
 }
 
-inline int32_t ParsePosition::getErrorIndex() const
+inline int32_t
+ParsePosition::getErrorIndex() const
 {
-    return errorIndex;
+  return errorIndex;
 }
 
-inline void ParsePosition::setErrorIndex(int32_t ei)
+inline void
+ParsePosition::setErrorIndex(int32_t ei)
 {
-    this->errorIndex = ei;
+  this->errorIndex = ei;
 }
 U_NAMESPACE_END
 

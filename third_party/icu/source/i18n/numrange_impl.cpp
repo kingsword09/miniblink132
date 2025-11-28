@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -23,10 +23,10 @@ using namespace icu::number::impl;
 namespace {
 
 // Helper function for 2-dimensional switch statement
-constexpr int8_t identity2d(UNumberRangeIdentityFallback a, UNumberRangeIdentityResult b)
-{
+constexpr int8_t identity2d(UNumberRangeIdentityFallback a, UNumberRangeIdentityResult b) {
     return static_cast<int8_t>(a) | (static_cast<int8_t>(b) << 4);
 }
+
 
 struct NumberRangeData {
     SimpleFormatter rangePattern;
@@ -35,24 +35,18 @@ struct NumberRangeData {
 };
 
 class NumberRangeDataSink : public ResourceSink {
-public:
-    NumberRangeDataSink(NumberRangeData& data)
-        : fData(data)
-    {
-    }
+  public:
+    NumberRangeDataSink(NumberRangeData& data) : fData(data) {}
 
-    void put(const char* key, ResourceValue& value, UBool /*noFallback*/, UErrorCode& status) U_OVERRIDE
-    {
+    void put(const char* key, ResourceValue& value, UBool /*noFallback*/, UErrorCode& status) override {
         ResourceTable miscTable = value.getTable(status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
         for (int i = 0; miscTable.getKeyAndValue(i, key, value); i++) {
             if (uprv_strcmp(key, "range") == 0) {
                 if (hasRangeData()) {
                     continue; // have already seen this pattern
                 }
-                fData.rangePattern = { value.getUnicodeString(status), status };
+                fData.rangePattern = {value.getUnicodeString(status), status};
             }
             /*
             // Note: approximatelyPattern is unused since ICU 69.
@@ -66,8 +60,7 @@ public:
         }
     }
 
-    bool hasRangeData()
-    {
+    bool hasRangeData() {
         return fData.rangePattern.getArgumentLimit() != 0;
     }
 
@@ -78,15 +71,13 @@ public:
     }
     */
 
-    bool isComplete()
-    {
+    bool isComplete() {
         return hasRangeData() /* && hasApproxData() */;
     }
 
-    void fillInDefaults(UErrorCode& status)
-    {
+    void fillInDefaults(UErrorCode& status) {
         if (!hasRangeData()) {
-            fData.rangePattern = { u"{0}–{1}", status };
+            fData.rangePattern = {u"{0}–{1}", status};
         }
         /*
         if (!hasApproxData()) {
@@ -95,28 +86,21 @@ public:
         */
     }
 
-private:
+  private:
     NumberRangeData& fData;
 };
 
-void getNumberRangeData(const char* localeName, const char* nsName, NumberRangeData& data, UErrorCode& status)
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
-    LocalUResourceBundlePointer rb(ures_open(NULL, localeName, &status));
-    if (U_FAILURE(status)) {
-        return;
-    }
+void getNumberRangeData(const char* localeName, const char* nsName, NumberRangeData& data, UErrorCode& status) {
+    if (U_FAILURE(status)) { return; }
+    LocalUResourceBundlePointer rb(ures_open(nullptr, localeName, &status));
+    if (U_FAILURE(status)) { return; }
     NumberRangeDataSink sink(data);
 
     CharString dataPath;
     dataPath.append("NumberElements/", -1, status);
     dataPath.append(nsName, -1, status);
     dataPath.append("/miscPatterns", -1, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     UErrorCode localStatus = U_ZERO_ERROR;
     ures_getAllItemsWithFallback(rb.getAlias(), dataPath.data(), sink, localStatus);
@@ -135,14 +119,15 @@ void getNumberRangeData(const char* localeName, const char* nsName, NumberRangeD
 
 } // namespace
 
+
+
 NumberRangeFormatterImpl::NumberRangeFormatterImpl(const RangeMacroProps& macros, UErrorCode& status)
-    : formatterImpl1(macros.formatter1.fMacros, status)
-    , formatterImpl2(macros.formatter2.fMacros, status)
-    , fSameFormatters(macros.singleFormatter)
-    , fCollapse(macros.collapse)
-    , fIdentityFallback(macros.identityFallback)
-    , fApproximatelyFormatter(status)
-{
+    : formatterImpl1(macros.formatter1.fMacros, status),
+      formatterImpl2(macros.formatter2.fMacros, status),
+      fSameFormatters(macros.singleFormatter),
+      fCollapse(macros.collapse),
+      fIdentityFallback(macros.identityFallback),
+      fApproximatelyFormatter(status) {
 
     const char* nsName = formatterImpl1.getRawMicroProps().nsName;
     if (!fSameFormatters && uprv_strcmp(nsName, formatterImpl2.getRawMicroProps().nsName) != 0) {
@@ -152,13 +137,12 @@ NumberRangeFormatterImpl::NumberRangeFormatterImpl(const RangeMacroProps& macros
 
     NumberRangeData data;
     getNumberRangeData(macros.locale.getName(), nsName, data, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     fRangeFormatter = data.rangePattern;
 
-    if (fSameFormatters
-        && (fIdentityFallback == UNUM_IDENTITY_FALLBACK_APPROXIMATELY || fIdentityFallback == UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE)) {
+    if (fSameFormatters && (
+            fIdentityFallback == UNUM_IDENTITY_FALLBACK_APPROXIMATELY ||
+            fIdentityFallback == UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE)) {
         MacroProps approximatelyMacros(macros.formatter1.fMacros);
         approximatelyMacros.approximately = true;
         // Use in-place construction because NumberFormatterImpl has internal self-pointers
@@ -168,13 +152,10 @@ NumberRangeFormatterImpl::NumberRangeFormatterImpl(const RangeMacroProps& macros
 
     // TODO: Get locale from PluralRules instead?
     fPluralRanges = StandardPluralRanges::forLocale(macros.locale, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 }
 
-void NumberRangeFormatterImpl::format(UFormattedNumberRangeData& data, bool equalBeforeRounding, UErrorCode& status) const
-{
+void NumberRangeFormatterImpl::format(UFormattedNumberRangeData& data, bool equalBeforeRounding, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -196,8 +177,9 @@ void NumberRangeFormatterImpl::format(UFormattedNumberRangeData& data, bool equa
     // TODO: Write this as MicroProps operator==() ?
     // TODO: Avoid the redundancy of these equality operations with the
     // ones in formatRange?
-    if (!micros1.modInner->semanticallyEquivalent(*micros2.modInner) || !micros1.modMiddle->semanticallyEquivalent(*micros2.modMiddle)
-        || !micros1.modOuter->semanticallyEquivalent(*micros2.modOuter)) {
+    if (!micros1.modInner->semanticallyEquivalent(*micros2.modInner)
+            || !micros1.modMiddle->semanticallyEquivalent(*micros2.modMiddle)
+            || !micros1.modOuter->semanticallyEquivalent(*micros2.modOuter)) {
         formatRange(data, micros1, micros2, status);
         data.identityResult = UNUM_IDENTITY_RESULT_NOT_EQUAL;
         return;
@@ -213,56 +195,68 @@ void NumberRangeFormatterImpl::format(UFormattedNumberRangeData& data, bool equa
     }
 
     switch (identity2d(fIdentityFallback, data.identityResult)) {
-    case identity2d(UNUM_IDENTITY_FALLBACK_RANGE, UNUM_IDENTITY_RESULT_NOT_EQUAL):
-    case identity2d(UNUM_IDENTITY_FALLBACK_RANGE, UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
-    case identity2d(UNUM_IDENTITY_FALLBACK_RANGE, UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
-    case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY, UNUM_IDENTITY_RESULT_NOT_EQUAL):
-    case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE, UNUM_IDENTITY_RESULT_NOT_EQUAL):
-    case identity2d(UNUM_IDENTITY_FALLBACK_SINGLE_VALUE, UNUM_IDENTITY_RESULT_NOT_EQUAL):
-        formatRange(data, micros1, micros2, status);
-        break;
+        case identity2d(UNUM_IDENTITY_FALLBACK_RANGE,
+                        UNUM_IDENTITY_RESULT_NOT_EQUAL):
+        case identity2d(UNUM_IDENTITY_FALLBACK_RANGE,
+                        UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
+        case identity2d(UNUM_IDENTITY_FALLBACK_RANGE,
+                        UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
+        case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY,
+                        UNUM_IDENTITY_RESULT_NOT_EQUAL):
+        case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE,
+                        UNUM_IDENTITY_RESULT_NOT_EQUAL):
+        case identity2d(UNUM_IDENTITY_FALLBACK_SINGLE_VALUE,
+                        UNUM_IDENTITY_RESULT_NOT_EQUAL):
+            formatRange(data, micros1, micros2, status);
+            break;
 
-    case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY, UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
-    case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY, UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
-    case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE, UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
-        formatApproximately(data, micros1, micros2, status);
-        break;
+        case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY,
+                        UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
+        case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY,
+                        UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
+        case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE,
+                        UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
+            formatApproximately(data, micros1, micros2, status);
+            break;
 
-    case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE, UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
-    case identity2d(UNUM_IDENTITY_FALLBACK_SINGLE_VALUE, UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
-    case identity2d(UNUM_IDENTITY_FALLBACK_SINGLE_VALUE, UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
-        formatSingleValue(data, micros1, micros2, status);
-        break;
+        case identity2d(UNUM_IDENTITY_FALLBACK_APPROXIMATELY_OR_SINGLE_VALUE,
+                        UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
+        case identity2d(UNUM_IDENTITY_FALLBACK_SINGLE_VALUE,
+                        UNUM_IDENTITY_RESULT_EQUAL_AFTER_ROUNDING):
+        case identity2d(UNUM_IDENTITY_FALLBACK_SINGLE_VALUE,
+                        UNUM_IDENTITY_RESULT_EQUAL_BEFORE_ROUNDING):
+            formatSingleValue(data, micros1, micros2, status);
+            break;
 
-    default:
-        UPRV_UNREACHABLE_EXIT;
+        default:
+            UPRV_UNREACHABLE_EXIT;
     }
 }
 
-void NumberRangeFormatterImpl::formatSingleValue(UFormattedNumberRangeData& data, MicroProps& micros1, MicroProps& micros2, UErrorCode& status) const
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
+
+void NumberRangeFormatterImpl::formatSingleValue(UFormattedNumberRangeData& data,
+                                                 MicroProps& micros1, MicroProps& micros2,
+                                                 UErrorCode& status) const {
+    if (U_FAILURE(status)) { return; }
     if (fSameFormatters) {
-        int32_t length = NumberFormatterImpl::writeNumber(micros1, data.quantity1, data.getStringRef(), 0, status);
+        int32_t length = NumberFormatterImpl::writeNumber(micros1.simple, data.quantity1, data.getStringRef(), 0, status);
         NumberFormatterImpl::writeAffixes(micros1, data.getStringRef(), 0, length, status);
     } else {
         formatRange(data, micros1, micros2, status);
     }
 }
 
-void NumberRangeFormatterImpl::formatApproximately(UFormattedNumberRangeData& data, MicroProps& micros1, MicroProps& micros2, UErrorCode& status) const
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
+
+void NumberRangeFormatterImpl::formatApproximately (UFormattedNumberRangeData& data,
+                                                    MicroProps& micros1, MicroProps& micros2,
+                                                    UErrorCode& status) const {
+    if (U_FAILURE(status)) { return; }
     if (fSameFormatters) {
         // Re-format using the approximately formatter:
         MicroProps microsAppx;
         data.quantity1.resetExponent();
         fApproximatelyFormatter.preProcess(data.quantity1, microsAppx, status);
-        int32_t length = NumberFormatterImpl::writeNumber(microsAppx, data.quantity1, data.getStringRef(), 0, status);
+        int32_t length = NumberFormatterImpl::writeNumber(microsAppx.simple, data.quantity1, data.getStringRef(), 0, status);
         length += microsAppx.modInner->apply(data.getStringRef(), 0, length, status);
         length += microsAppx.modMiddle->apply(data.getStringRef(), 0, length, status);
         microsAppx.modOuter->apply(data.getStringRef(), 0, length, status);
@@ -271,11 +265,11 @@ void NumberRangeFormatterImpl::formatApproximately(UFormattedNumberRangeData& da
     }
 }
 
-void NumberRangeFormatterImpl::formatRange(UFormattedNumberRangeData& data, MicroProps& micros1, MicroProps& micros2, UErrorCode& status) const
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
+
+void NumberRangeFormatterImpl::formatRange(UFormattedNumberRangeData& data,
+                                           MicroProps& micros1, MicroProps& micros2,
+                                           UErrorCode& status) const {
+    if (U_FAILURE(status)) { return; }
 
     // modInner is always notation (scientific); collapsable in ALL.
     // modOuter is always units; collapsable in ALL, AUTO, and UNIT.
@@ -283,63 +277,65 @@ void NumberRangeFormatterImpl::formatRange(UFormattedNumberRangeData& data, Micr
     // Never collapse an outer mod but not an inner mod.
     bool collapseOuter, collapseMiddle, collapseInner;
     switch (fCollapse) {
-    case UNUM_RANGE_COLLAPSE_ALL:
-    case UNUM_RANGE_COLLAPSE_AUTO:
-    case UNUM_RANGE_COLLAPSE_UNIT: {
-        // OUTER MODIFIER
-        collapseOuter = micros1.modOuter->semanticallyEquivalent(*micros2.modOuter);
+        case UNUM_RANGE_COLLAPSE_ALL:
+        case UNUM_RANGE_COLLAPSE_AUTO:
+        case UNUM_RANGE_COLLAPSE_UNIT:
+        {
+            // OUTER MODIFIER
+            collapseOuter = micros1.modOuter->semanticallyEquivalent(*micros2.modOuter);
 
-        if (!collapseOuter) {
-            // Never collapse inner mods if outer mods are not collapsable
+            if (!collapseOuter) {
+                // Never collapse inner mods if outer mods are not collapsable
+                collapseMiddle = false;
+                collapseInner = false;
+                break;
+            }
+
+            // MIDDLE MODIFIER
+            collapseMiddle = micros1.modMiddle->semanticallyEquivalent(*micros2.modMiddle);
+
+            if (!collapseMiddle) {
+                // Never collapse inner mods if outer mods are not collapsable
+                collapseInner = false;
+                break;
+            }
+
+            // MIDDLE MODIFIER HEURISTICS
+            // (could disable collapsing of the middle modifier)
+            // The modifiers are equal by this point, so we can look at just one of them.
+            const Modifier* mm = micros1.modMiddle;
+            if (fCollapse == UNUM_RANGE_COLLAPSE_UNIT) {
+                // Only collapse if the modifier is a unit.
+                // TODO: Make a better way to check for a unit?
+                // TODO: Handle case where the modifier has both notation and unit (compact currency)?
+                if (!mm->containsField({UFIELD_CATEGORY_NUMBER, UNUM_CURRENCY_FIELD})
+                        && !mm->containsField({UFIELD_CATEGORY_NUMBER, UNUM_PERCENT_FIELD})) {
+                    collapseMiddle = false;
+                }
+            } else if (fCollapse == UNUM_RANGE_COLLAPSE_AUTO) {
+                // Heuristic as of ICU 63: collapse only if the modifier is more than one code point.
+                if (mm->getCodePointCount() <= 1) {
+                    collapseMiddle = false;
+                }
+            }
+
+            if (!collapseMiddle || fCollapse != UNUM_RANGE_COLLAPSE_ALL) {
+                collapseInner = false;
+                break;
+            }
+
+            // INNER MODIFIER
+            collapseInner = micros1.modInner->semanticallyEquivalent(*micros2.modInner);
+
+            // All done checking for collapsibility.
+            break;
+        }
+
+        default:
+            collapseOuter = false;
             collapseMiddle = false;
             collapseInner = false;
             break;
-        }
-
-        // MIDDLE MODIFIER
-        collapseMiddle = micros1.modMiddle->semanticallyEquivalent(*micros2.modMiddle);
-
-        if (!collapseMiddle) {
-            // Never collapse inner mods if outer mods are not collapsable
-            collapseInner = false;
-            break;
-        }
-
-        // MIDDLE MODIFIER HEURISTICS
-        // (could disable collapsing of the middle modifier)
-        // The modifiers are equal by this point, so we can look at just one of them.
-        const Modifier* mm = micros1.modMiddle;
-        if (fCollapse == UNUM_RANGE_COLLAPSE_UNIT) {
-            // Only collapse if the modifier is a unit.
-            // TODO: Make a better way to check for a unit?
-            // TODO: Handle case where the modifier has both notation and unit (compact currency)?
-            if (!mm->containsField({ UFIELD_CATEGORY_NUMBER, UNUM_CURRENCY_FIELD }) && !mm->containsField({ UFIELD_CATEGORY_NUMBER, UNUM_PERCENT_FIELD })) {
-                collapseMiddle = false;
-            }
-        } else if (fCollapse == UNUM_RANGE_COLLAPSE_AUTO) {
-            // Heuristic as of ICU 63: collapse only if the modifier is more than one code point.
-            if (mm->getCodePointCount() <= 1) {
-                collapseMiddle = false;
-            }
-        }
-
-        if (!collapseMiddle || fCollapse != UNUM_RANGE_COLLAPSE_ALL) {
-            collapseInner = false;
-            break;
-        }
-
-        // INNER MODIFIER
-        collapseInner = micros1.modInner->semanticallyEquivalent(*micros2.modInner);
-
-        // All done checking for collapsibility.
-        break;
-    }
-
-    default:
-        collapseOuter = false;
-        collapseMiddle = false;
-        collapseInner = false;
-        break;
     }
 
     FormattedStringBuilder& string = data.getStringRef();
@@ -349,17 +345,22 @@ void NumberRangeFormatterImpl::formatRange(UFormattedNumberRangeData& data, Micr
     int32_t length2 = 0;
     int32_t lengthSuffix = 0;
 
-// Use #define so that these are evaluated at the call site.
-#define UPRV_INDEX_0 (lengthPrefix)
-#define UPRV_INDEX_1 (lengthPrefix + length1)
-#define UPRV_INDEX_2 (lengthPrefix + length1 + lengthInfix)
-#define UPRV_INDEX_3 (lengthPrefix + length1 + lengthInfix + length2)
-#define UPRV_INDEX_4 (lengthPrefix + length1 + lengthInfix + length2 + lengthSuffix)
+    // Use #define so that these are evaluated at the call site.
+    #define UPRV_INDEX_0 (lengthPrefix)
+    #define UPRV_INDEX_1 (lengthPrefix + length1)
+    #define UPRV_INDEX_2 (lengthPrefix + length1 + lengthInfix)
+    #define UPRV_INDEX_3 (lengthPrefix + length1 + lengthInfix + length2)
+    #define UPRV_INDEX_4 (lengthPrefix + length1 + lengthInfix + length2 + lengthSuffix)
 
-    int32_t lengthRange = SimpleModifier::formatTwoArgPattern(fRangeFormatter, string, 0, &lengthPrefix, &lengthSuffix, kUndefinedField, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    int32_t lengthRange = SimpleModifier::formatTwoArgPattern(
+        fRangeFormatter,
+        string,
+        0,
+        &lengthPrefix,
+        &lengthSuffix,
+        kUndefinedField,
+        status);
+    if (U_FAILURE(status)) { return; }
     lengthInfix = lengthRange - lengthPrefix - lengthSuffix;
     U_ASSERT(lengthInfix > 0);
 
@@ -383,10 +384,10 @@ void NumberRangeFormatterImpl::formatRange(UFormattedNumberRangeData& data, Micr
         }
     }
 
-    length1 += NumberFormatterImpl::writeNumber(micros1, data.quantity1, string, UPRV_INDEX_0, status);
+    length1 += NumberFormatterImpl::writeNumber(micros1.simple, data.quantity1, string, UPRV_INDEX_0, status);
     // ICU-21684: Write the second number to a temp string to avoid repeated insert operations
     FormattedStringBuilder tempString;
-    NumberFormatterImpl::writeNumber(micros2, data.quantity2, tempString, 0, status);
+    NumberFormatterImpl::writeNumber(micros2.simple, data.quantity2, tempString, 0, status);
     length2 += string.insert(UPRV_INDEX_2, tempString, status);
 
     // TODO: Support padding?
@@ -426,8 +427,9 @@ void NumberRangeFormatterImpl::formatRange(UFormattedNumberRangeData& data, Micr
     data.appendSpanInfo(UFIELD_CATEGORY_NUMBER_RANGE_SPAN, 1, UPRV_INDEX_2, length2, status);
 }
 
-const Modifier& NumberRangeFormatterImpl::resolveModifierPlurals(const Modifier& first, const Modifier& second) const
-{
+
+const Modifier&
+NumberRangeFormatterImpl::resolveModifierPlurals(const Modifier& first, const Modifier& second) const {
     Modifier::Parameters parameters;
     first.getParameters(parameters);
     if (parameters.obj == nullptr) {
@@ -451,5 +453,7 @@ const Modifier& NumberRangeFormatterImpl::resolveModifierPlurals(const Modifier&
     U_ASSERT(mod != nullptr);
     return *mod;
 }
+
+
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -41,10 +41,10 @@ class MutablePatternModifier;
 
 // Exported as U_I18N_API because it is needed for the unit test PatternModifierTest
 class U_I18N_API ImmutablePatternModifier : public MicroPropsGenerator, public UMemory {
-public:
-    ~ImmutablePatternModifier() U_OVERRIDE = default;
+  public:
+    ~ImmutablePatternModifier() override = default;
 
-    void processQuantity(DecimalQuantity&, MicroProps& micros, UErrorCode& status) const U_OVERRIDE;
+    void processQuantity(DecimalQuantity&, MicroProps& micros, UErrorCode& status) const override;
 
     void applyToMicros(MicroProps& micros, const DecimalQuantity& quantity, UErrorCode& status) const;
 
@@ -53,7 +53,7 @@ public:
     // Non-const method:
     void addToChain(const MicroPropsGenerator* parent);
 
-private:
+  private:
     ImmutablePatternModifier(AdoptingModifierStore* pm, const PluralRules* rules);
 
     const LocalPointer<AdoptingModifierStore> pm;
@@ -82,9 +82,14 @@ private:
  * {@link MutablePatternModifier#createImmutable}, in effect treating this instance as a builder for the immutable
  * variant.
  */
-class U_I18N_API MutablePatternModifier : public MicroPropsGenerator, public Modifier, public SymbolProvider, public UMemory {
-public:
-    ~MutablePatternModifier() U_OVERRIDE = default;
+class U_I18N_API MutablePatternModifier
+        : public MicroPropsGenerator,
+          public Modifier,
+          public SymbolProvider,
+          public UMemory {
+  public:
+
+    ~MutablePatternModifier() override = default;
 
     /**
      * @param isStrong
@@ -102,7 +107,7 @@ public:
      * @param field
      *            Which field to use for literal characters in the pattern.
      */
-    void setPatternInfo(const AffixPatternProvider* patternInfo, Field field);
+    void setPatternInfo(const AffixPatternProvider *patternInfo, Field field);
 
     /**
      * Sets attributes that imply changes to the literal interpretation of the pattern string affixes.
@@ -131,8 +136,8 @@ public:
      * @param status
      *            Set if an error occurs while loading currency data.
      */
-    void setSymbols(
-        const DecimalFormatSymbols* symbols, const CurrencyUnit& currency, UNumberUnitWidth unitWidth, const PluralRules* rules, UErrorCode& status);
+    void setSymbols(const DecimalFormatSymbols* symbols, const CurrencyUnit& currency,
+                    UNumberUnitWidth unitWidth, const PluralRules* rules, UErrorCode& status);
 
     /**
      * Sets attributes of the current number being processed.
@@ -151,6 +156,9 @@ public:
      */
     bool needsPlurals() const;
 
+    /** Creates a quantity-dependent Modifier for the specified plural form. */
+    AdoptingSignumModifierStore createImmutableForPlural(StandardPlural::Form plural, UErrorCode& status);
+
     /**
      * Creates a new quantity-dependent Modifier that behaves the same as the current instance, but which is immutable
      * and can be saved for future use. The number properties in the current instance are mutated; all other properties
@@ -164,30 +172,31 @@ public:
      *
      * @return An immutable that supports both positive and negative numbers.
      */
-    ImmutablePatternModifier* createImmutable(UErrorCode& status);
+    ImmutablePatternModifier *createImmutable(UErrorCode &status);
 
-    MicroPropsGenerator& addToChain(const MicroPropsGenerator* parent);
+    MicroPropsGenerator &addToChain(const MicroPropsGenerator *parent);
 
-    void processQuantity(DecimalQuantity&, MicroProps& micros, UErrorCode& status) const U_OVERRIDE;
+    void processQuantity(DecimalQuantity &, MicroProps &micros, UErrorCode &status) const override;
 
-    int32_t apply(FormattedStringBuilder& output, int32_t leftIndex, int32_t rightIndex, UErrorCode& status) const U_OVERRIDE;
+    int32_t apply(FormattedStringBuilder &output, int32_t leftIndex, int32_t rightIndex,
+                  UErrorCode &status) const override;
 
-    int32_t getPrefixLength() const U_OVERRIDE;
+    int32_t getPrefixLength() const override;
 
-    int32_t getCodePointCount() const U_OVERRIDE;
+    int32_t getCodePointCount() const override;
 
-    bool isStrong() const U_OVERRIDE;
+    bool isStrong() const override;
 
-    bool containsField(Field field) const U_OVERRIDE;
+    bool containsField(Field field) const override;
 
-    void getParameters(Parameters& output) const U_OVERRIDE;
+    void getParameters(Parameters& output) const override;
 
-    bool semanticallyEquivalent(const Modifier& other) const U_OVERRIDE;
+    bool semanticallyEquivalent(const Modifier& other) const override;
 
     /**
      * Returns the string that substitutes a given symbol type in a pattern.
      */
-    UnicodeString getSymbol(AffixPatternType type) const U_OVERRIDE;
+    UnicodeString getSymbol(AffixPatternType type) const override;
 
     /**
      * Returns the currency symbol for the unit width specified in setSymbols()
@@ -196,29 +205,29 @@ public:
 
     UnicodeString toUnicodeString() const;
 
-private:
+  private:
     // Modifier details (initialized in constructor)
     const bool fStrong;
 
     // Pattern details (initialized in setPatternInfo and setPatternAttributes)
-    const AffixPatternProvider* fPatternInfo;
+    const AffixPatternProvider *fPatternInfo;
     Field fField;
     UNumberSignDisplay fSignDisplay;
     bool fPerMilleReplacesPercent;
     bool fApproximately;
 
     // Symbol details (initialized in setSymbols)
-    const DecimalFormatSymbols* fSymbols;
+    const DecimalFormatSymbols *fSymbols;
     UNumberUnitWidth fUnitWidth;
     CurrencySymbols fCurrencySymbols;
-    const PluralRules* fRules;
+    const PluralRules *fRules;
 
     // Number details (initialized in setNumberProperties)
     Signum fSignum;
     StandardPlural::Form fPlural;
 
     // QuantityChain details (initialized in addToChain)
-    const MicroPropsGenerator* fParent;
+    const MicroPropsGenerator *fParent;
 
     // Transient fields for rendering
     UnicodeString currentAffix;
@@ -237,17 +246,18 @@ private:
      *            Another working FormattedStringBuilder object.
      * @return The constant modifier object.
      */
-    ConstantMultiFieldModifier* createConstantModifier(UErrorCode& status);
+    ConstantMultiFieldModifier *createConstantModifier(UErrorCode &status);
 
-    int32_t insertPrefix(FormattedStringBuilder& sb, int position, UErrorCode& status);
+    int32_t insertPrefix(FormattedStringBuilder &sb, int position, UErrorCode &status);
 
-    int32_t insertSuffix(FormattedStringBuilder& sb, int position, UErrorCode& status);
+    int32_t insertSuffix(FormattedStringBuilder &sb, int position, UErrorCode &status);
 
     void prepareAffix(bool isPrefix);
 };
 
-} // namespace impl
-} // namespace number
+
+}  // namespace impl
+}  // namespace number
 U_NAMESPACE_END
 
 #endif //__NUMBER_PATTERNMODIFIER_H__

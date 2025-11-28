@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -17,72 +17,57 @@
 
 U_NAMESPACE_BEGIN
 
-StringSegment::StringSegment(const UnicodeString& str, bool ignoreCase)
-    : fStr(str)
-    , fStart(0)
-    , fEnd(str.length())
-    , fFoldCase(ignoreCase)
-{
-}
 
-int32_t StringSegment::getOffset() const
-{
+StringSegment::StringSegment(const UnicodeString& str, bool ignoreCase)
+        : fStr(str), fStart(0), fEnd(str.length()),
+          fFoldCase(ignoreCase) {}
+
+int32_t StringSegment::getOffset() const {
     return fStart;
 }
 
-void StringSegment::setOffset(int32_t start)
-{
+void StringSegment::setOffset(int32_t start) {
     fStart = start;
 }
 
-void StringSegment::adjustOffset(int32_t delta)
-{
+void StringSegment::adjustOffset(int32_t delta) {
     fStart += delta;
 }
 
-void StringSegment::adjustOffsetByCodePoint()
-{
+void StringSegment::adjustOffsetByCodePoint() {
     fStart += U16_LENGTH(getCodePoint());
 }
 
-void StringSegment::setLength(int32_t length)
-{
+void StringSegment::setLength(int32_t length) {
     fEnd = fStart + length;
 }
 
-void StringSegment::resetLength()
-{
+void StringSegment::resetLength() {
     fEnd = fStr.length();
 }
 
-int32_t StringSegment::length() const
-{
+int32_t StringSegment::length() const {
     return fEnd - fStart;
 }
 
-char16_t StringSegment::charAt(int32_t index) const
-{
+char16_t StringSegment::charAt(int32_t index) const {
     return fStr.charAt(index + fStart);
 }
 
-UChar32 StringSegment::codePointAt(int32_t index) const
-{
+UChar32 StringSegment::codePointAt(int32_t index) const {
     return fStr.char32At(index + fStart);
 }
 
-UnicodeString StringSegment::toUnicodeString() const
-{
+UnicodeString StringSegment::toUnicodeString() const {
     return UnicodeString(fStr.getBuffer() + fStart, fEnd - fStart);
 }
 
-const UnicodeString StringSegment::toTempUnicodeString() const
-{
+const UnicodeString StringSegment::toTempUnicodeString() const {
     // Use the readonly-aliasing constructor for efficiency.
-    return UnicodeString(FALSE, fStr.getBuffer() + fStart, fEnd - fStart);
+    return UnicodeString(false, fStr.getBuffer() + fStart, fEnd - fStart);
 }
 
-UChar32 StringSegment::getCodePoint() const
-{
+UChar32 StringSegment::getCodePoint() const {
     char16_t lead = fStr.charAt(fStart);
     if (U16_IS_LEAD(lead) && fStart + 1 < fEnd) {
         return fStr.char32At(fStart);
@@ -93,13 +78,11 @@ UChar32 StringSegment::getCodePoint() const
     }
 }
 
-bool StringSegment::startsWith(UChar32 otherCp) const
-{
+bool StringSegment::startsWith(UChar32 otherCp) const {
     return codePointsEqual(getCodePoint(), otherCp, fFoldCase);
 }
 
-bool StringSegment::startsWith(const UnicodeSet& uniset) const
-{
+bool StringSegment::startsWith(const UnicodeSet& uniset) const {
     // TODO: Move UnicodeSet case-folding logic here.
     // TODO: Handle string matches here instead of separately.
     UChar32 cp = getCodePoint();
@@ -109,8 +92,7 @@ bool StringSegment::startsWith(const UnicodeSet& uniset) const
     return uniset.contains(cp);
 }
 
-bool StringSegment::startsWith(const UnicodeString& other) const
-{
+bool StringSegment::startsWith(const UnicodeString& other) const {
     if (other.isBogus() || other.length() == 0 || length() == 0) {
         return false;
     }
@@ -119,18 +101,15 @@ bool StringSegment::startsWith(const UnicodeString& other) const
     return codePointsEqual(cp1, cp2, fFoldCase);
 }
 
-int32_t StringSegment::getCommonPrefixLength(const UnicodeString& other)
-{
+int32_t StringSegment::getCommonPrefixLength(const UnicodeString& other) {
     return getPrefixLengthInternal(other, fFoldCase);
 }
 
-int32_t StringSegment::getCaseSensitivePrefixLength(const UnicodeString& other)
-{
+int32_t StringSegment::getCaseSensitivePrefixLength(const UnicodeString& other) {
     return getPrefixLengthInternal(other, false);
 }
 
-int32_t StringSegment::getPrefixLengthInternal(const UnicodeString& other, bool foldCase)
-{
+int32_t StringSegment::getPrefixLengthInternal(const UnicodeString& other, bool foldCase) {
     U_ASSERT(other.length() > 0);
     int32_t offset = 0;
     for (; offset < uprv_min(length(), other.length());) {
@@ -145,23 +124,22 @@ int32_t StringSegment::getPrefixLengthInternal(const UnicodeString& other, bool 
     return offset;
 }
 
-bool StringSegment::codePointsEqual(UChar32 cp1, UChar32 cp2, bool foldCase)
-{
+bool StringSegment::codePointsEqual(UChar32 cp1, UChar32 cp2, bool foldCase) {
     if (cp1 == cp2) {
         return true;
     }
     if (!foldCase) {
         return false;
     }
-    cp1 = u_foldCase(cp1, TRUE);
-    cp2 = u_foldCase(cp2, TRUE);
+    cp1 = u_foldCase(cp1, true);
+    cp2 = u_foldCase(cp2, true);
     return cp1 == cp2;
 }
 
-bool StringSegment::operator==(const UnicodeString& other) const
-{
+bool StringSegment::operator==(const UnicodeString& other) const {
     return toTempUnicodeString() == other;
 }
+
 
 U_NAMESPACE_END
 #endif /* #if !UCONFIG_NO_FORMATTING */

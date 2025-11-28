@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -17,7 +17,7 @@
 #include "unicode/unistr.h"
 
 /**
- * \file
+ * \file 
  * \brief C++ API: UnicodeSetIterator iterates over the contents of a UnicodeSet.
  */
 
@@ -64,7 +64,7 @@ class UnicodeString;
  * @author M. Davis
  * @stable ICU 2.4
  */
-class U_COMMON_API UnicodeSetIterator U_FINAL : public UObject {
+class U_COMMON_API UnicodeSetIterator final : public UObject {
     /**
      * Value of <tt>codepoint</tt> if the iterator points to a string.
      * If <tt>codepoint == IS_STRING</tt>, then examine
@@ -95,7 +95,8 @@ class U_COMMON_API UnicodeSetIterator U_FINAL : public UObject {
      */
     const UnicodeString* string;
 
-public:
+ public:
+
     /**
      * Create an iterator over the given set.  The iterator is valid
      * only so long as <tt>set</tt> is valid.
@@ -158,34 +159,31 @@ public:
      * Ownership of the returned string remains with the iterator.
      * The string is guaranteed to remain valid only until the iterator is
      *   advanced to the next item, or until the iterator is deleted.
-     *
+     * 
      * @stable ICU 2.4
      */
     const UnicodeString& getString();
 
-#ifndef U_HIDE_DRAFT_API
     /**
      * Skips over the remaining code points/ranges, if any.
      * A following call to next() or nextRange() will yield a string, if there is one.
      * No-op if next() would return false, or if it would yield a string anyway.
      *
      * @return *this
-     * @draft ICU 70
+     * @stable ICU 70
      * @see UnicodeSet#strings()
      */
-    inline UnicodeSetIterator& skipToStrings()
-    {
+    inline UnicodeSetIterator &skipToStrings() {
         // Finish code point/range iteration.
         range = endRange;
         endElement = -1;
         nextElement = 0;
         return *this;
     }
-#endif // U_HIDE_DRAFT_API
 
     /**
-     * Advances the iteration position to the next element in the set,
-     * which can be either a single code point or a string.
+     * Advances the iteration position to the next element in the set, 
+     * which can be either a single code point or a string.  
      * If there are no more elements in the set, return false.
      *
      * <p>
@@ -260,6 +258,7 @@ public:
     // ======================= PRIVATES ===========================
 
 private:
+
     // endElement and nextElements are really UChar32's, but we keep
     // them as signed int32_t's so we can do comparisons with
     // endElement set to -1.  Leave them as int32_t's.
@@ -289,7 +288,7 @@ private:
      *  Points to the string to use when the caller asks for a
      *  string and the current iteration item is a code point, not a string.
      */
-    UnicodeString* cpString;
+    UnicodeString *cpString;
 
     /** Copy constructor. Disallowed.
      */
@@ -304,20 +303,18 @@ private:
     void loadRange(int32_t range);
 };
 
-inline UBool UnicodeSetIterator::isString() const
-{
+inline UBool UnicodeSetIterator::isString() const {
     return codepoint < 0;
 }
 
-inline UChar32 UnicodeSetIterator::getCodepoint() const
-{
+inline UChar32 UnicodeSetIterator::getCodepoint() const {
     return codepoint;
 }
 
-inline UChar32 UnicodeSetIterator::getCodepointEnd() const
-{
+inline UChar32 UnicodeSetIterator::getCodepointEnd() const {
     return codepointEnd;
 }
+
 
 U_NAMESPACE_END
 

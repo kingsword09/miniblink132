@@ -7,6 +7,8 @@
  *
  */
 
+#include <stdbool.h>
+
 #include "unicode/utypes.h"
 #include "unicode/uchar.h"
 #include "unicode/ubidi.h"
@@ -39,31 +41,33 @@
 #define CH_LSEP 0x2028
 #define CH_PSEP 0x2029
 
-struct pf_object {
-    pl_paragraph** fParagraphLayout;
+struct pf_object
+{
+    pl_paragraph    **fParagraphLayout;
 
-    le_int32 fParagraphCount;
-    le_int32 fParagraphMax;
-    le_int32 fParagraphGrow;
+    le_int32          fParagraphCount;
+    le_int32          fParagraphMax;
+    le_int32          fParagraphGrow;
+    
+    le_int32          fLineCount;
+    le_int32          fLinesMax;
+    le_int32          fLinesGrow;
 
-    le_int32 fLineCount;
-    le_int32 fLinesMax;
-    le_int32 fLinesGrow;
+    pl_line         **fLines;
 
-    pl_line** fLines;
+   LEUnicode         *fChars;
 
-    LEUnicode* fChars;
-
-    le_int32 fLineHeight;
-    le_int32 fAscent;
-    le_int32 fWidth;
-    le_int32 fHeight;
-    UBiDiLevel fParagraphLevel;
+    le_int32          fLineHeight;
+    le_int32          fAscent;
+    le_int32          fWidth;
+    le_int32          fHeight;
+    UBiDiLevel        fParagraphLevel;
 };
 
 typedef struct pf_object pf_object;
 
-static LEUnicode* skipLineEnd(LEUnicode* ptr)
+
+static LEUnicode *skipLineEnd(LEUnicode *ptr)
 {
     if (ptr[0] == CH_CR && ptr[1] == CH_LF) {
         ptr += 1;
@@ -72,7 +76,7 @@ static LEUnicode* skipLineEnd(LEUnicode* ptr)
     return ptr + 1;
 }
 
-static le_int32 findFontRun(const pl_fontRuns* fontRuns, le_int32 offset)
+static le_int32 findFontRun(const pl_fontRuns *fontRuns, le_int32 offset)
 {
     le_int32 runCount = pl_getFontRunCount(fontRuns);
     le_int32 run;
@@ -86,16 +90,16 @@ static le_int32 findFontRun(const pl_fontRuns* fontRuns, le_int32 offset)
     return -1;
 }
 
-static void subsetFontRuns(const pl_fontRuns* fontRuns, le_int32 start, le_int32 limit, pl_fontRuns* sub)
+static void subsetFontRuns(const pl_fontRuns *fontRuns, le_int32 start, le_int32 limit, pl_fontRuns *sub)
 {
     le_int32 startRun = findFontRun(fontRuns, start);
-    le_int32 endRun = findFontRun(fontRuns, limit - 1);
+    le_int32 endRun   = findFontRun(fontRuns, limit - 1);
     le_int32 run;
 
     pl_resetFontRuns(sub);
 
     for (run = startRun; run <= endRun; run += 1) {
-        const le_font* runFont = pl_getFontRunFont(fontRuns, run);
+        const le_font *runFont = pl_getFontRunFont(fontRuns, run);
         le_int32 runLimit = pl_getFontRunLimit(fontRuns, run) - start;
 
         if (run == endRun) {
@@ -106,37 +110,37 @@ static void subsetFontRuns(const pl_fontRuns* fontRuns, le_int32 start, le_int32
     }
 }
 
-pf_flow* pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRuns* fontRuns, LEErrorCode* status)
+pf_flow *pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRuns *fontRuns, LEErrorCode *status)
 {
-    pf_object* flow;
-    le_int32 ascent = 0;
+    pf_object *flow;
+    le_int32 ascent  = 0;
     le_int32 descent = 0;
     le_int32 leading = 0;
-    pl_localeRuns* locales = NULL;
-    pl_fontRuns* fr;
-    LEUnicode* pStart;
-    static const LEUnicode separators[] = { CH_LF, CH_CR, CH_LSEP, CH_PSEP, 0x0000 };
+	pl_localeRuns *locales = NULL;
+    pl_fontRuns *fr;
+    LEUnicode *pStart;
+    static const LEUnicode separators[] = {CH_LF, CH_CR, CH_LSEP, CH_PSEP, 0x0000};
 
-    if (LE_FAILURE(*status)) {
-        return NULL;
-    }
+	if (LE_FAILURE(*status)) {
+		return NULL;
+	}
 
     flow = NEW_ARRAY(pf_object, 1);
 
     flow->fParagraphLayout = NULL;
-    flow->fParagraphCount = 0;
-    flow->fParagraphMax = PARA_GROW;
-    flow->fParagraphGrow = PARA_GROW;
-    flow->fLineCount = 0;
-    flow->fLinesMax = LINE_GROW;
-    flow->fLinesGrow = LINE_GROW;
-    flow->fLines = NULL;
-    flow->fChars = NULL;
-    flow->fLineHeight = -1;
-    flow->fAscent = -1;
-    flow->fWidth = -1;
-    flow->fHeight = -1;
-    flow->fParagraphLevel = UBIDI_DEFAULT_LTR;
+    flow->fParagraphCount  = 0;
+    flow->fParagraphMax    = PARA_GROW;
+    flow->fParagraphGrow   = PARA_GROW;
+    flow->fLineCount       = 0;
+    flow->fLinesMax        = LINE_GROW;
+    flow->fLinesGrow       = LINE_GROW;
+    flow->fLines           = NULL;
+    flow->fChars           = NULL;
+    flow->fLineHeight      = -1;
+    flow->fAscent          = -1;
+    flow->fWidth           = -1;
+    flow->fHeight          = -1;
+    flow->fParagraphLevel  = UBIDI_DEFAULT_LTR;
 
     fr = pl_openEmptyFontRuns(0);
 
@@ -144,8 +148,8 @@ pf_flow* pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRun
     locales = pl_openEmptyLocaleRuns(0);
 #endif
 
-    flow->fLines = NEW_ARRAY(pl_line*, flow->fLinesMax);
-    flow->fParagraphLayout = NEW_ARRAY(pl_paragraph*, flow->fParagraphMax);
+    flow->fLines = NEW_ARRAY(pl_line *, flow->fLinesMax);
+    flow->fParagraphLayout = NEW_ARRAY(pl_paragraph *, flow->fParagraphMax);
 
     flow->fChars = NEW_ARRAY(LEUnicode, charCount + 1);
     LE_ARRAY_COPY(flow->fChars, chars, charCount);
@@ -154,9 +158,9 @@ pf_flow* pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRun
     pStart = &flow->fChars[0];
 
     while (*pStart != 0) {
-        LEUnicode* pEnd = u_strpbrk(pStart, separators);
+        LEUnicode *pEnd = u_strpbrk(pStart, separators);
         le_int32 pAscent, pDescent, pLeading;
-        pl_paragraph* paragraphLayout = NULL;
+        pl_paragraph *paragraphLayout = NULL;
 
         if (pEnd == NULL) {
             pEnd = &flow->fChars[charCount];
@@ -170,7 +174,7 @@ pf_flow* pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRun
             pl_addLocaleRun(locales, TEST_LOCALE, pEnd - pStart);
 #endif
 
-            paragraphLayout = pl_create(pStart, pEnd - pStart, fr, NULL, NULL, locales, flow->fParagraphLevel, FALSE, status);
+            paragraphLayout = pl_create(pStart, pEnd - pStart, fr, NULL, NULL, locales, flow->fParagraphLevel, false, status);
 
             if (LE_FAILURE(*status)) {
                 break; /* return? something else? */
@@ -180,7 +184,7 @@ pf_flow* pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRun
                 flow->fParagraphLevel = pl_getParagraphLevel(paragraphLayout);
             }
 
-            pAscent = pl_getAscent(paragraphLayout);
+            pAscent  = pl_getAscent(paragraphLayout);
             pDescent = pl_getDescent(paragraphLayout);
             pLeading = pl_getLeading(paragraphLayout);
 
@@ -198,7 +202,7 @@ pf_flow* pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRun
         }
 
         if (flow->fParagraphCount >= flow->fParagraphMax) {
-            flow->fParagraphLayout = (pl_paragraph**)GROW_ARRAY(flow->fParagraphLayout, flow->fParagraphMax + flow->fParagraphGrow);
+            flow->fParagraphLayout = (pl_paragraph **) GROW_ARRAY(flow->fParagraphLayout, flow->fParagraphMax + flow->fParagraphGrow);
             flow->fParagraphMax += flow->fParagraphGrow;
         }
 
@@ -212,17 +216,17 @@ pf_flow* pf_create(const LEUnicode chars[], le_int32 charCount, const pl_fontRun
     }
 
     flow->fLineHeight = ascent + descent + leading;
-    flow->fAscent = ascent;
+    flow->fAscent     = ascent;
 
     pl_closeLocaleRuns(locales);
     pl_closeFontRuns(fr);
 
-    return (pf_flow*)flow;
+    return (pf_flow *) flow;
 }
 
-void pf_close(pf_flow* flow)
+void pf_close(pf_flow *flow)
 {
-    pf_object* obj = (pf_object*)flow;
+    pf_object *obj = (pf_object *) flow;
     le_int32 i;
 
     for (i = 0; i < obj->fLineCount; i += 1) {
@@ -242,43 +246,44 @@ void pf_close(pf_flow* flow)
     DELETE_ARRAY(obj);
 }
 
-le_int32 pf_getAscent(pf_flow* flow)
+
+le_int32 pf_getAscent(pf_flow *flow)
 {
-    pf_object* obj = (pf_object*)flow;
+    pf_object *obj = (pf_object *) flow;
 
     return obj->fAscent;
 }
 
-le_int32 pf_getLineHeight(pf_flow* flow)
+le_int32 pf_getLineHeight(pf_flow *flow)
 {
-    pf_object* obj = (pf_object*)flow;
+    pf_object *obj = (pf_object *) flow;
 
     return obj->fLineHeight;
 }
 
-le_int32 pf_getLineCount(pf_flow* flow)
+le_int32 pf_getLineCount(pf_flow *flow)
 {
-    pf_object* obj = (pf_object*)flow;
+    pf_object *obj = (pf_object *) flow;
 
     return obj->fLineCount;
 }
 
-static void addLine(pf_object* obj, pl_line* line)
+static void addLine(pf_object *obj, pl_line *line)
 {
     if (obj->fLineCount >= obj->fLinesMax) {
-        obj->fLines = (pl_line**)GROW_ARRAY(obj->fLines, obj->fLinesMax + obj->fLinesGrow);
+        obj->fLines = (pl_line **) GROW_ARRAY(obj->fLines, obj->fLinesMax + obj->fLinesGrow);
         obj->fLinesMax += obj->fLinesGrow;
     }
 
     obj->fLines[obj->fLineCount++] = line;
 }
 
-void pf_breakLines(pf_flow* flow, le_int32 width, le_int32 height)
+void pf_breakLines(pf_flow *flow, le_int32 width, le_int32 height)
 {
-    pf_object* obj = (pf_object*)flow;
+    pf_object *obj = (pf_object *) flow;
     le_int32 li, p;
     float lineWidth;
-    pl_line* line;
+    pl_line *line;
 
     obj->fHeight = height;
 
@@ -287,9 +292,9 @@ void pf_breakLines(pf_flow* flow, le_int32 width, le_int32 height)
         return;
     }
 
-    obj->fWidth = width;
+    obj->fWidth  = width;
 
-    lineWidth = (float)(width - 2 * MARGIN);
+    lineWidth = (float) (width - 2 * MARGIN);
 
     /* Free the old Lines... */
     for (li = 0; li < obj->fLineCount; li += 1) {
@@ -299,7 +304,7 @@ void pf_breakLines(pf_flow* flow, le_int32 width, le_int32 height)
     obj->fLineCount = 0;
 
     for (p = 0; p < obj->fParagraphCount; p += 1) {
-        pl_paragraph* paragraphLayout = obj->fParagraphLayout[p];
+        pl_paragraph *paragraphLayout = obj->fParagraphLayout[p];
 
         if (paragraphLayout != NULL) {
             pl_reflow(paragraphLayout);
@@ -312,33 +317,34 @@ void pf_breakLines(pf_flow* flow, le_int32 width, le_int32 height)
     }
 }
 
-void pf_draw(pf_flow* flow, rs_surface* surface, le_int32 firstLine, le_int32 lastLine)
+void pf_draw(pf_flow *flow, rs_surface *surface, le_int32 firstLine, le_int32 lastLine)
 {
-    pf_object* obj = (pf_object*)flow;
+    pf_object *obj = (pf_object *) flow;
     le_int32 li, x, y;
 
     x = MARGIN;
     y = obj->fAscent;
 
     for (li = firstLine; li <= lastLine; li += 1) {
-        const pl_line* line = obj->fLines[li];
+        const pl_line *line = obj->fLines[li];
 
         if (line != NULL) {
             le_int32 runCount = pl_countLineRuns(line);
             le_int32 run;
 
-            if (obj->fParagraphLevel == UBIDI_RTL) {
-                le_int32 lastX = pl_getLineWidth(line);
+		    if (obj->fParagraphLevel == UBIDI_RTL) {
+			    le_int32 lastX = pl_getLineWidth(line);
 
-                x = (obj->fWidth - lastX - MARGIN);
-            }
+			    x = (obj->fWidth - lastX - MARGIN);
+		    }
+
 
             for (run = 0; run < runCount; run += 1) {
-                const pl_visualRun* visualRun = pl_getLineVisualRun(line, run);
+                const pl_visualRun *visualRun = pl_getLineVisualRun(line, run);
                 le_int32 glyphCount = pl_getVisualRunGlyphCount(visualRun);
-                const le_font* font = pl_getVisualRunFont(visualRun);
-                const LEGlyphID* glyphs = pl_getVisualRunGlyphs(visualRun);
-                const float* positions = pl_getVisualRunPositions(visualRun);
+                const le_font *font = pl_getVisualRunFont(visualRun);
+                const LEGlyphID *glyphs = pl_getVisualRunGlyphs(visualRun);
+                const float *positions = pl_getVisualRunPositions(visualRun);
 
                 rs_drawGlyphs(surface, font, glyphs, glyphCount, positions, x, y, obj->fWidth, obj->fHeight);
             }
@@ -348,13 +354,13 @@ void pf_draw(pf_flow* flow, rs_surface* surface, le_int32 firstLine, le_int32 la
     }
 }
 
-pf_flow* pf_factory(const char* fileName, const le_font* font, gs_guiSupport* guiSupport)
+pf_flow *pf_factory(const char *fileName, const le_font *font, gs_guiSupport *guiSupport)
 {
-    LEErrorCode status = LE_NO_ERROR;
+    LEErrorCode status  = LE_NO_ERROR;
     le_int32 charCount;
-    const UChar* text = uc_readFile(fileName, guiSupport, &charCount);
-    pl_fontRuns* fontRuns;
-    pf_flow* result = NULL;
+    const UChar *text = uc_readFile(fileName, guiSupport, &charCount);
+    pl_fontRuns *fontRuns;
+    pf_flow *result = NULL;
 
     if (text == NULL) {
         return NULL;
@@ -366,14 +372,15 @@ pf_flow* pf_factory(const char* fileName, const le_font* font, gs_guiSupport* gu
 
     result = pf_create(text, charCount, fontRuns, &status);
 
-    if (LE_FAILURE(status)) {
-        pf_close(result);
-        result = NULL;
-    }
+	if (LE_FAILURE(status)) {
+		pf_close(result);
+		result = NULL;
+	}
 
     pl_closeFontRuns(fontRuns);
 
     DELETE_ARRAY(text);
 
-    return result;
+    return result;    
 }
+

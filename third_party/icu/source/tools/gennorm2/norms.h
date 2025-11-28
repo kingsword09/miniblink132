@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // norms.h
@@ -27,45 +27,21 @@ U_NAMESPACE_BEGIN
 
 class BuilderReorderingBuffer {
 public:
-    BuilderReorderingBuffer()
-        : fLength(0)
-        , fLastStarterIndex(-1)
-        , fDidReorder(FALSE)
-    {
+    BuilderReorderingBuffer() : fLength(0), fLastStarterIndex(-1), fDidReorder(false) {}
+    void reset() {
+        fLength=0;
+        fLastStarterIndex=-1;
+        fDidReorder=false;
     }
-    void reset()
-    {
-        fLength = 0;
-        fLastStarterIndex = -1;
-        fDidReorder = FALSE;
-    }
-    int32_t length() const
-    {
-        return fLength;
-    }
-    UBool isEmpty() const
-    {
-        return fLength == 0;
-    }
-    int32_t lastStarterIndex() const
-    {
-        return fLastStarterIndex;
-    }
-    UChar32 charAt(int32_t i) const
-    {
-        return fArray[i] >> 8;
-    }
-    uint8_t ccAt(int32_t i) const
-    {
-        return (uint8_t)fArray[i];
-    }
-    UBool didReorder() const
-    {
-        return fDidReorder;
-    }
+    int32_t length() const { return fLength; }
+    UBool isEmpty() const { return fLength==0; }
+    int32_t lastStarterIndex() const { return fLastStarterIndex; }
+    UChar32 charAt(int32_t i) const { return fArray[i]>>8; }
+    uint8_t ccAt(int32_t i) const { return (uint8_t)fArray[i]; }
+    UBool didReorder() const { return fDidReorder; }
 
     void append(UChar32 c, uint8_t cc);
-    void toString(UnicodeString& dest) const;
+    void toString(UnicodeString &dest) const;
 
 private:
     int32_t fArray[Normalizer2Impl::MAPPING_LENGTH_MASK];
@@ -75,52 +51,43 @@ private:
 };
 
 struct CompositionPair {
-    CompositionPair(UChar32 t, UChar32 c)
-        : trail(t)
-        , composite(c)
-    {
-    }
+    CompositionPair(UChar32 t, UChar32 c) : trail(t), composite(c) {}
     UChar32 trail, composite;
 };
 
 struct Norm {
     enum MappingType { NONE, REMOVED, ROUND_TRIP, ONE_WAY };
 
-    UBool hasMapping() const
-    {
-        return mappingType > REMOVED;
-    }
+    UBool hasMapping() const { return mappingType>REMOVED; }
 
     // Requires hasMapping() and well-formed mapping.
-    void setMappingCP()
-    {
+    void setMappingCP() {
         UChar32 c;
-        if (!mapping->isEmpty() && mapping->length() == U16_LENGTH(c = mapping->char32At(0))) {
-            mappingCP = c;
+        if(!mapping->isEmpty() && mapping->length()==U16_LENGTH(c=mapping->char32At(0))) {
+            mappingCP=c;
         } else {
-            mappingCP = U_SENTINEL;
+            mappingCP=U_SENTINEL;
         }
     }
 
-    const CompositionPair* getCompositionPairs(int32_t& length) const
-    {
-        if (compositions == nullptr) {
-            length = 0;
+    const CompositionPair *getCompositionPairs(int32_t &length) const {
+        if(compositions==nullptr) {
+            length=0;
             return nullptr;
         } else {
-            length = compositions->size() / 2;
-            return reinterpret_cast<const CompositionPair*>(compositions->getBuffer());
+            length=compositions->size()/2;
+            return reinterpret_cast<const CompositionPair *>(compositions->getBuffer());
         }
     }
     UChar32 combine(UChar32 trail) const;
 
-    UnicodeString* mapping;
-    UnicodeString* rawMapping; // non-nullptr if the mapping is further decomposed
-    UChar32 mappingCP; // >=0 if mapping to 1 code point
+    UnicodeString *mapping;
+    UnicodeString *rawMapping;  // non-nullptr if the mapping is further decomposed
+    UChar32 mappingCP;  // >=0 if mapping to 1 code point
     int32_t mappingPhase;
     MappingType mappingType;
 
-    UVector32* compositions; // (trail, composite) pairs
+    UVector32 *compositions;  // (trail, composite) pairs
     uint8_t cc, leadCC, trailCC;
     UBool combinesBack;
     UBool hasCompBoundaryBefore, hasCompBoundaryAfter;
@@ -173,95 +140,71 @@ struct Norm {
      * Error string set by processing functions that do not have access
      * to the code point, deferred for readable reporting.
      */
-    const char* error;
+    const char *error;
 };
 
 class Norms {
 public:
-    Norms(UErrorCode& errorCode);
+    Norms(UErrorCode &errorCode);
     ~Norms();
 
-    int32_t length() const
-    {
-        return utm_countItems(normMem);
-    }
-    const Norm& getNormRefByIndex(int32_t i) const
-    {
-        return norms[i];
-    }
-    Norm& getNormRefByIndex(int32_t i)
-    {
-        return norms[i];
-    }
+    int32_t length() const { return utm_countItems(normMem); }
+    const Norm &getNormRefByIndex(int32_t i) const { return norms[i]; }
+    Norm &getNormRefByIndex(int32_t i) { return norms[i]; }
 
-    Norm* allocNorm();
+    Norm *allocNorm();
     /** Returns an existing Norm unit, or nullptr if c has no data. */
-    Norm* getNorm(UChar32 c);
-    const Norm* getNorm(UChar32 c) const;
+    Norm *getNorm(UChar32 c);
+    const Norm *getNorm(UChar32 c) const;
     /** Returns a Norm unit, creating a new one if necessary. */
-    Norm* createNorm(UChar32 c);
+    Norm *createNorm(UChar32 c);
     /** Returns an existing Norm unit, or an immutable empty object if c has no data. */
-    const Norm& getNormRef(UChar32 c) const;
-    uint8_t getCC(UChar32 c) const
-    {
-        return getNormRef(c).cc;
-    }
-    UBool combinesBack(UChar32 c) const
-    {
+    const Norm &getNormRef(UChar32 c) const;
+    uint8_t getCC(UChar32 c) const { return getNormRef(c).cc; }
+    UBool combinesBack(UChar32 c) const {
         return Hangul::isJamoV(c) || Hangul::isJamoT(c) || getNormRef(c).combinesBack;
     }
 
-    void reorder(UnicodeString& mapping, BuilderReorderingBuffer& buffer) const;
+    void reorder(UnicodeString &mapping, BuilderReorderingBuffer &buffer) const;
 
     // int32_t highCC not uint8_t so that we can pass in 256 as the upper limit.
-    UBool combinesWithCCBetween(const Norm& norm, uint8_t lowCC, int32_t highCC) const;
+    UBool combinesWithCCBetween(const Norm &norm, uint8_t lowCC, int32_t highCC) const;
 
     class Enumerator {
     public:
-        Enumerator(Norms& n)
-            : norms(n)
-        {
-        }
+        Enumerator(Norms &n) : norms(n) {}
         virtual ~Enumerator();
         /** Called for enumerated value!=0. */
-        virtual void rangeHandler(UChar32 start, UChar32 end, Norm& norm) = 0;
-
+        virtual void rangeHandler(UChar32 start, UChar32 end, Norm &norm) = 0;
     protected:
-        Norms& norms;
+        Norms &norms;
     };
 
-    void enumRanges(Enumerator& e);
+    void enumRanges(Enumerator &e);
 
     UnicodeSet ccSet, mappingSet;
 
 private:
-    Norms(const Norms& other) = delete;
-    Norms& operator=(const Norms& other) = delete;
+    Norms(const Norms &other) = delete;
+    Norms &operator=(const Norms &other) = delete;
 
-    UMutableCPTrie* normTrie;
-    UToolMemory* normMem;
-    Norm* norms;
+    UMutableCPTrie *normTrie;
+    UToolMemory *normMem;
+    Norm *norms;
 };
 
 class CompositionBuilder : public Norms::Enumerator {
 public:
-    CompositionBuilder(Norms& n)
-        : Norms::Enumerator(n)
-    {
-    }
+    CompositionBuilder(Norms &n) : Norms::Enumerator(n) {}
     /** Adds a composition mapping for the first character in a round-trip mapping. */
-    void rangeHandler(UChar32 start, UChar32 end, Norm& norm) U_OVERRIDE;
+    void rangeHandler(UChar32 start, UChar32 end, Norm &norm) override;
 };
 
 class Decomposer : public Norms::Enumerator {
 public:
-    Decomposer(Norms& n)
-        : Norms::Enumerator(n)
-        , didDecompose(FALSE)
-    {
-    }
+    Decomposer(Norms &n) : Norms::Enumerator(n), didDecompose(false) {}
     /** Decomposes each character of the current mapping. Sets didDecompose if any. */
-    void rangeHandler(UChar32 start, UChar32 end, Norm& norm) U_OVERRIDE;
+    void rangeHandler(UChar32 start, UChar32 end, Norm &norm) override;
     UBool didDecompose;
 };
 
@@ -269,4 +212,4 @@ U_NAMESPACE_END
 
 #endif // #if !UCONFIG_NO_NORMALIZATION
 
-#endif // __NORMS_H__
+#endif  // __NORMS_H__

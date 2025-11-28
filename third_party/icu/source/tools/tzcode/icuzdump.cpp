@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -44,20 +44,17 @@ using namespace icu;
 
 class DumpFormatter {
 public:
-    DumpFormatter()
-    {
+    DumpFormatter() {
         UErrorCode status = U_ZERO_ERROR;
         stz = new SimpleTimeZone(0, "");
-        sdf = new SimpleDateFormat((UnicodeString) "yyyy-MM-dd EEE HH:mm:ss", Locale::getEnglish(), status);
-        DecimalFormatSymbols* symbols = new DecimalFormatSymbols(Locale::getEnglish(), status);
+        sdf = new SimpleDateFormat((UnicodeString)"yyyy-MM-dd EEE HH:mm:ss", Locale::getEnglish(), status);
+        DecimalFormatSymbols *symbols = new DecimalFormatSymbols(Locale::getEnglish(), status);
         decf = new DecimalFormat("00", symbols, status);
     }
-    ~DumpFormatter()
-    {
+    ~DumpFormatter() {
     }
 
-    UnicodeString& format(UDate time, int32_t offset, UBool isDst, UnicodeString& appendTo)
-    {
+    UnicodeString& format(UDate time, int32_t offset, UBool isDst, UnicodeString& appendTo) {
         stz->setRawOffset(offset);
         sdf->setTimeZone(*stz);
         UnicodeString str = sdf->format(time, appendTo);
@@ -88,60 +85,50 @@ public:
         appendTo += "]";
         return appendTo;
     }
-
 private:
-    SimpleTimeZone* stz;
-    SimpleDateFormat* sdf;
-    DecimalFormat* decf;
+    SimpleTimeZone*     stz;
+    SimpleDateFormat*   sdf;
+    DecimalFormat*      decf;
 };
 
 class ICUZDump {
 public:
-    ICUZDump()
-    {
+    ICUZDump() {
         formatter = new DumpFormatter();
         loyear = 1902;
         hiyear = 2050;
         tick = 1000;
-        linesep = NULL;
+        linesep = nullptr;
     }
 
-    ~ICUZDump()
-    {
+    ~ICUZDump() {
     }
 
-    void setLowYear(int32_t lo)
-    {
+    void setLowYear(int32_t lo) {
         loyear = lo;
     }
 
-    void setHighYear(int32_t hi)
-    {
+    void setHighYear(int32_t hi) {
         hiyear = hi;
     }
 
-    void setTick(int32_t t)
-    {
+    void setTick(int32_t t) {
         tick = t;
     }
 
-    void setTimeZone(TimeZone* tz)
-    {
+    void setTimeZone(TimeZone* tz) {
         timezone = tz;
     }
 
-    void setDumpFormatter(DumpFormatter* fmt)
-    {
+    void setDumpFormatter(DumpFormatter* fmt) {
         formatter = fmt;
     }
 
-    void setLineSeparator(const char* sep)
-    {
+    void setLineSeparator(const char* sep) {
         linesep = sep;
     }
 
-    void dump(ostream& out)
-    {
+    void dump(ostream& out) {
         UErrorCode status = U_ZERO_ERROR;
         UDate SEARCH_INCREMENT = 12 * 60 * 60 * 1000; // half day
         UDate t, cutlo, cuthi;
@@ -189,7 +176,7 @@ public:
                 str.remove();
                 formatter->format(hit, newRawOffset + newDstOffset, (newDstOffset == 0 ? false : true), str);
                 out << str;
-                if (linesep != NULL) {
+                if (linesep != nullptr) {
                     out << linesep;
                 } else {
                     out << endl;
@@ -203,8 +190,7 @@ public:
     }
 
 private:
-    void getCutOverTimes(UDate& lo, UDate& hi)
-    {
+    void getCutOverTimes(UDate& lo, UDate& hi) {
         UErrorCode status = U_ZERO_ERROR;
         GregorianCalendar* gcal = new GregorianCalendar(timezone, Locale::getEnglish(), status);
         gcal->clear();
@@ -214,60 +200,59 @@ private:
         hi = gcal->getTime(status);
     }
 
-    TimeZone* timezone;
-    int32_t loyear;
-    int32_t hiyear;
-    int32_t tick;
+    TimeZone*   timezone;
+    int32_t     loyear;
+    int32_t     hiyear;
+    int32_t     tick;
 
-    DumpFormatter* formatter;
-    const char* linesep;
+    DumpFormatter*  formatter;
+    const char*  linesep;
 };
 
 class ZoneIterator {
 public:
-    ZoneIterator(UBool bAll = false)
-    {
+    ZoneIterator(UBool bAll = false) {
         if (bAll) {
             UErrorCode status = U_ZERO_ERROR;
             zenum = TimeZone::createEnumeration(status);
             // TODO: Add error case handling later.
-        } else {
-            zenum = NULL;
-            zids = NULL;
+        }
+        else {
+            zenum = nullptr;
+            zids = nullptr;
             idx = 0;
             numids = 1;
         }
     }
 
-    ZoneIterator(const char** ids, int32_t num)
-    {
-        zenum = NULL;
+    ZoneIterator(const char** ids, int32_t num) {
+        zenum = nullptr;
         zids = ids;
         idx = 0;
         numids = num;
     }
 
-    ~ZoneIterator()
-    {
-        if (zenum != NULL) {
+    ~ZoneIterator() {
+        if (zenum != nullptr) {
             delete zenum;
         }
     }
 
-    TimeZone* next()
-    {
-        TimeZone* tz = NULL;
-        if (zenum != NULL) {
+    TimeZone* next() {
+        TimeZone* tz = nullptr;
+        if (zenum != nullptr) {
             UErrorCode status = U_ZERO_ERROR;
             const UnicodeString* zid = zenum->snext(status);
-            if (zid != NULL) {
+            if (zid != nullptr) {
                 tz = TimeZone::createTimeZone(*zid);
             }
-        } else {
+        }
+        else {
             if (idx < numids) {
-                if (zids != NULL) {
+                if (zids != nullptr) {
                     tz = TimeZone::createTimeZone((const UnicodeString&)zids[idx]);
-                } else {
+                }
+                else {
                     tz = TimeZone::createDefault();
                 }
                 idx++;
@@ -283,18 +268,31 @@ private:
     int32_t numids;
 };
 
-enum { kOptHelpH = 0, kOptHelpQuestionMark, kOptAllZones, kOptCutover, kOptDestDir, kOptLineSep };
+enum { 
+  kOptHelpH = 0,
+  kOptHelpQuestionMark,
+  kOptAllZones,
+  kOptCutover,
+  kOptDestDir,
+  kOptLineSep
+};
 
-static UOption options[] = { UOPTION_HELP_H, UOPTION_HELP_QUESTION_MARK, UOPTION_DEF("allzones", 'a', UOPT_NO_ARG),
-    UOPTION_DEF("cutover", 'c', UOPT_REQUIRES_ARG), UOPTION_DEF("destdir", 'd', UOPT_REQUIRES_ARG), UOPTION_DEF("linesep", 'l', UOPT_REQUIRES_ARG) };
+static UOption options[]={
+    UOPTION_HELP_H,
+    UOPTION_HELP_QUESTION_MARK,
+    UOPTION_DEF("allzones", 'a', UOPT_NO_ARG),
+    UOPTION_DEF("cutover", 'c', UOPT_REQUIRES_ARG),
+    UOPTION_DEF("destdir", 'd', UOPT_REQUIRES_ARG),
+    UOPTION_DEF("linesep", 'l', UOPT_REQUIRES_ARG)
+};
 
-extern int main(int argc, char* argv[])
-{
+extern int
+main(int argc, char *argv[]) {
     int32_t low = 1902;
     int32_t high = 2038;
     UBool bAll = false;
-    const char* dir = NULL;
-    const char* linesep = NULL;
+    const char *dir = nullptr;
+    const char *linesep = nullptr;
 
     U_MAIN_INIT_ARGS(argc, argv);
     argc = u_parseArgs(argc, argv, UPRV_LENGTHOF(options), options);
@@ -304,20 +302,21 @@ extern int main(int argc, char* argv[])
     }
 
     if (argc < 0 || options[kOptHelpH].doesOccur || options[kOptHelpQuestionMark].doesOccur) {
-        cerr << "Usage: icuzdump [-options] [zoneid1 zoneid2 ...]" << endl
-             << endl
-             << "\tDump all offset transitions for the specified zones." << endl
-             << endl
-             << "Options:" << endl
-             << "\t-a       : Dump all available zones." << endl
-             << "\t-d <dir> : When specified, write transitions in a file under" << endl
-             << "\t           the directory for each zone." << endl
-             << "\t-l <sep> : New line code type used in file outputs. CR or LF (default)"
-             << "\t           or CRLF." << endl
-             << "\t-c [<low_year>,]<high_year>" << endl
-             << "\t         : When specified, dump transitions starting <low_year>" << endl
-             << "\t           (inclusive) up to <high_year> (exclusive).  The default" << endl
-             << "\t           values are 1902(low) and 2038(high)." << endl;
+        cerr
+            << "Usage: icuzdump [-options] [zoneid1 zoneid2 ...]" << endl
+            << endl
+            << "\tDump all offset transitions for the specified zones." << endl
+            << endl
+            << "Options:" << endl
+            << "\t-a       : Dump all available zones." << endl
+            << "\t-d <dir> : When specified, write transitions in a file under" << endl
+            << "\t           the directory for each zone." << endl
+            << "\t-l <sep> : New line code type used in file outputs. CR or LF (default)"
+            << "\t           or CRLF." << endl
+            << "\t-c [<low_year>,]<high_year>" << endl
+            << "\t         : When specified, dump transitions starting <low_year>" << endl
+            << "\t           (inclusive) up to <high_year> (exclusive).  The default" << endl
+            << "\t           values are 1902(low) and 2038(high)." << endl;
         return argc < 0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
@@ -339,7 +338,7 @@ extern int main(int argc, char* argv[])
 
     if (options[kOptCutover].doesOccur) {
         char* comma = (char*)strchr(options[kOptCutover].value, ',');
-        if (comma == NULL) {
+        if (comma == nullptr) {
             high = atoi(options[kOptCutover].value);
         } else {
             *comma = 0;
@@ -351,7 +350,7 @@ extern int main(int argc, char* argv[])
     ICUZDump dumper;
     dumper.setLowYear(low);
     dumper.setHighYear(high);
-    if (dir != NULL && linesep != NULL) {
+    if (dir != nullptr && linesep != nullptr) {
         // use the specified line separator only for file output
         dumper.setLineSeparator((const char*)linesep);
     }
@@ -368,16 +367,16 @@ extern int main(int argc, char* argv[])
     }
 
     UnicodeString id;
-    if (dir != NULL) {
+    if (dir != nullptr) {
         // file output
         ostringstream path;
         ios::openmode mode = ios::out;
-        if (linesep != NULL) {
+        if (linesep != nullptr) {
             mode |= ios::binary;
         }
         for (;;) {
             TimeZone* tz = zit->next();
-            if (tz == NULL) {
+            if (tz == nullptr) {
                 break;
             }
             dumper.setTimeZone(tz);
@@ -408,7 +407,7 @@ extern int main(int argc, char* argv[])
         UBool bFirst = true;
         for (;;) {
             TimeZone* tz = zit->next();
-            if (tz == NULL) {
+            if (tz == nullptr) {
                 break;
             }
             dumper.setTimeZone(tz);

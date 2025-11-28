@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -9,7 +9,7 @@
 #include "unicode/ures.h"
 #include "cstring.h"
 #include "charstr.h"
-#include "icu_resource.h"
+#include "resource.h"
 #include "number_compact.h"
 #include "number_microprops.h"
 #include "uresimp.h"
@@ -22,11 +22,11 @@ namespace {
 
 // A dummy object used when a "0" compact decimal entry is encountered. This is necessary
 // in order to prevent falling back to root. Object equality ("==") is intended.
-const UChar* USE_FALLBACK = u"<USE FALLBACK>";
+const char16_t *USE_FALLBACK = u"<USE FALLBACK>";
 
 /** Produces a string like "NumberElements/latn/patternsShort/decimalFormat". */
-void getResourceBundleKey(const char* nsName, CompactStyle compactStyle, CompactType compactType, CharString& sb, UErrorCode& status)
-{
+void getResourceBundleKey(const char *nsName, CompactStyle compactStyle, CompactType compactType,
+                                 CharString &sb, UErrorCode &status) {
     sb.clear();
     sb.append("NumberElements/", status);
     sb.append(nsName, status);
@@ -34,13 +34,11 @@ void getResourceBundleKey(const char* nsName, CompactStyle compactStyle, Compact
     sb.append(compactType == CompactType::TYPE_DECIMAL ? "/decimalFormat" : "/currencyFormat", status);
 }
 
-int32_t getIndex(int32_t magnitude, StandardPlural::Form plural)
-{
+int32_t getIndex(int32_t magnitude, StandardPlural::Form plural) {
     return magnitude * StandardPlural::COUNT + plural;
 }
 
-int32_t countZeros(const UChar* patternString, int32_t patternLength)
-{
+int32_t countZeros(const char16_t *patternString, int32_t patternLength) {
     // NOTE: This strategy for computing the number of zeros is a hack for efficiency.
     // It could break if there are any 0s that aren't part of the main pattern.
     int32_t numZeros = 0;
@@ -57,21 +55,14 @@ int32_t countZeros(const UChar* patternString, int32_t patternLength)
 } // namespace
 
 // NOTE: patterns and multipliers both get zero-initialized.
-CompactData::CompactData()
-    : patterns()
-    , multipliers()
-    , largestMagnitude(0)
-    , isEmpty(true)
-{
+CompactData::CompactData() : patterns(), multipliers(), largestMagnitude(0), isEmpty(true) {
 }
 
-void CompactData::populate(const Locale& locale, const char* nsName, CompactStyle compactStyle, CompactType compactType, UErrorCode& status)
-{
+void CompactData::populate(const Locale &locale, const char *nsName, CompactStyle compactStyle,
+                           CompactType compactType, UErrorCode &status) {
     CompactDataSink sink(*this);
     LocalUResourceBundlePointer rb(ures_open(nullptr, locale.getName(), &status));
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     bool nsIsLatn = strcmp(nsName, "latn") == 0;
     bool compactIsShort = compactStyle == CompactStyle::UNUM_SHORT;
@@ -103,8 +94,7 @@ void CompactData::populate(const Locale& locale, const char* nsName, CompactStyl
     }
 }
 
-int32_t CompactData::getMultiplier(int32_t magnitude) const
-{
+int32_t CompactData::getMultiplier(int32_t magnitude) const {
     if (magnitude < 0) {
         return 0;
     }
@@ -114,15 +104,17 @@ int32_t CompactData::getMultiplier(int32_t magnitude) const
     return multipliers[magnitude];
 }
 
-const UChar* CompactData::getPattern(int32_t magnitude, const PluralRules* rules, const DecimalQuantity& dq) const
-{
+const char16_t *CompactData::getPattern(
+        int32_t magnitude,
+        const PluralRules *rules,
+        const DecimalQuantity &dq) const {
     if (magnitude < 0) {
         return nullptr;
     }
     if (magnitude > largestMagnitude) {
         magnitude = largestMagnitude;
     }
-    const UChar* patternString = nullptr;
+    const char16_t *patternString = nullptr;
     if (dq.hasIntegerValue()) {
         int64_t i = dq.toLong(true);
         if (i == 0) {
@@ -147,8 +139,7 @@ const UChar* CompactData::getPattern(int32_t magnitude, const PluralRules* rules
     return patternString;
 }
 
-void CompactData::getUniquePatterns(UVector& output, UErrorCode& status) const
-{
+void CompactData::getUniquePatterns(UVector &output, UErrorCode &status) const {
     U_ASSERT(output.isEmpty());
     // NOTE: In C++, this is done more manually with a UVector.
     // In Java, we can take advantage of JDK HashSet.
@@ -160,47 +151,45 @@ void CompactData::getUniquePatterns(UVector& output, UErrorCode& status) const
         // Insert pattern into the UVector if the UVector does not already contain the pattern.
         // Search the UVector from the end since identical patterns are likely to be adjacent.
         for (int32_t i = output.size() - 1; i >= 0; i--) {
-            if (u_strcmp(pattern, static_cast<const UChar*>(output[i])) == 0) {
+            if (u_strcmp(pattern, static_cast<const char16_t *>(output[i])) == 0) {
                 goto continue_outer;
             }
         }
 
         // The string was not found; add it to the UVector.
         // Note: must cast off const from pattern to store it in a UVector, which expects (void *)
-        output.addElement(const_cast<UChar*>(pattern), status);
+        output.addElement(const_cast<char16_t *>(pattern), status);
 
-    continue_outer:
+        continue_outer:
         continue;
     }
 }
 
-void CompactData::CompactDataSink::put(const char* key, ResourceValue& value, UBool /*noFallback*/, UErrorCode& status)
-{
+void CompactData::CompactDataSink::put(const char *key, ResourceValue &value, UBool /*noFallback*/,
+                                       UErrorCode &status) {
     // traverse into the table of powers of ten
     ResourceTable powersOfTenTable = value.getTable(status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     for (int i3 = 0; powersOfTenTable.getKeyAndValue(i3, key, value); ++i3) {
 
         // Assumes that the keys are always of the form "10000" where the magnitude is the
-        // length of the key minus one.  We expect magnitudes to be less than MAX_DIGITS.
-        auto magnitude = static_cast<int8_t>(strlen(key) - 1);
+        // length of the key minus one.  We only support magnitudes less than COMPACT_MAX_DIGITS;
+        // ignore entries that have greater magnitude.
+        auto magnitude = static_cast<int8_t> (strlen(key) - 1);
+        U_ASSERT(magnitude < COMPACT_MAX_DIGITS); // debug assert
+        if (magnitude >= COMPACT_MAX_DIGITS) { // skip in production
+            continue;
+        }
         int8_t multiplier = data.multipliers[magnitude];
-        U_ASSERT(magnitude < COMPACT_MAX_DIGITS);
 
         // Iterate over the plural variants ("one", "other", etc)
         ResourceTable pluralVariantsTable = value.getTable(status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
         for (int i4 = 0; pluralVariantsTable.getKeyAndValue(i4, key, value); ++i4) {
             // Skip this magnitude/plural if we already have it from a child locale.
             // Note: This also skips USE_FALLBACK entries.
             StandardPlural::Form plural = StandardPlural::fromString(key, status);
-            if (U_FAILURE(status)) {
-                return;
-            }
+            if (U_FAILURE(status)) { return; }
             if (data.patterns[getIndex(magnitude, plural)] != nullptr) {
                 continue;
             }
@@ -208,10 +197,8 @@ void CompactData::CompactDataSink::put(const char* key, ResourceValue& value, UB
             // The value "0" means that we need to use the default pattern and not fall back
             // to parent locales. Example locale where this is relevant: 'it'.
             int32_t patternLength;
-            const UChar* patternString = value.getString(patternLength, status);
-            if (U_FAILURE(status)) {
-                return;
-            }
+            const char16_t *patternString = value.getString(patternLength, status);
+            if (U_FAILURE(status)) { return; }
             if (u_strcmp(patternString, u"0") == 0) {
                 patternString = USE_FALLBACK;
                 patternLength = 0;
@@ -225,7 +212,7 @@ void CompactData::CompactDataSink::put(const char* key, ResourceValue& value, UB
             if (multiplier == 0) {
                 int32_t numZeros = countZeros(patternString, patternLength);
                 if (numZeros > 0) { // numZeros==0 in certain cases, like Somali "Kun"
-                    multiplier = static_cast<int8_t>(numZeros - magnitude - 1);
+                    multiplier = static_cast<int8_t> (numZeros - magnitude - 1);
                 }
             }
         }
@@ -247,12 +234,17 @@ void CompactData::CompactDataSink::put(const char* key, ResourceValue& value, UB
 /// END OF CompactData.java; BEGIN CompactNotation.java ///
 ///////////////////////////////////////////////////////////
 
-CompactHandler::CompactHandler(CompactStyle compactStyle, const Locale& locale, const char* nsName, CompactType compactType, const PluralRules* rules,
-    MutablePatternModifier* buildReference, bool safe, const MicroPropsGenerator* parent, UErrorCode& status)
-    : rules(rules)
-    , parent(parent)
-    , safe(safe)
-{
+CompactHandler::CompactHandler(
+        CompactStyle compactStyle,
+        const Locale &locale,
+        const char *nsName,
+        CompactType compactType,
+        const PluralRules *rules,
+        MutablePatternModifier *buildReference,
+        bool safe,
+        const MicroPropsGenerator *parent,
+        UErrorCode &status)
+        : rules(rules), parent(parent), safe(safe) {
     data.populate(locale, nsName, compactStyle, compactType, status);
     if (safe) {
         // Safe code path
@@ -264,62 +256,46 @@ CompactHandler::CompactHandler(CompactStyle compactStyle, const Locale& locale, 
     }
 }
 
-CompactHandler::~CompactHandler()
-{
+CompactHandler::~CompactHandler() {
     for (int32_t i = 0; i < precomputedModsLength; i++) {
         delete precomputedMods[i].mod;
     }
 }
 
-void CompactHandler::precomputeAllModifiers(MutablePatternModifier& buildReference, UErrorCode& status)
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
+void CompactHandler::precomputeAllModifiers(MutablePatternModifier &buildReference, UErrorCode &status) {
+    if (U_FAILURE(status)) { return; }
 
     // Initial capacity of 12 for 0K, 00K, 000K, ...M, ...B, and ...T
     UVector allPatterns(12, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     data.getUniquePatterns(allPatterns, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // C++ only: ensure that precomputedMods has room.
     precomputedModsLength = allPatterns.size();
     if (precomputedMods.getCapacity() < precomputedModsLength) {
         precomputedMods.resize(allPatterns.size(), status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
     }
 
     for (int32_t i = 0; i < precomputedModsLength; i++) {
-        auto patternString = static_cast<const UChar*>(allPatterns[i]);
+        auto patternString = static_cast<const char16_t *>(allPatterns[i]);
         UnicodeString hello(patternString);
-        CompactModInfo& info = precomputedMods[i];
+        CompactModInfo &info = precomputedMods[i];
         ParsedPatternInfo patternInfo;
         PatternParser::parseToPatternInfo(UnicodeString(patternString), patternInfo, status);
-        if (U_FAILURE(status)) {
-            return;
-        }
-        buildReference.setPatternInfo(&patternInfo, { UFIELD_CATEGORY_NUMBER, UNUM_COMPACT_FIELD });
+        if (U_FAILURE(status)) { return; }
+        buildReference.setPatternInfo(&patternInfo, {UFIELD_CATEGORY_NUMBER, UNUM_COMPACT_FIELD});
         info.mod = buildReference.createImmutable(status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
         info.patternString = patternString;
     }
 }
 
-void CompactHandler::processQuantity(DecimalQuantity& quantity, MicroProps& micros, UErrorCode& status) const
-{
+void CompactHandler::processQuantity(DecimalQuantity &quantity, MicroProps &micros,
+                                     UErrorCode &status) const {
     parent->processQuantity(quantity, micros, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Treat zero, NaN, and infinity as if they had magnitude 0
     int32_t magnitude;
@@ -334,7 +310,7 @@ void CompactHandler::processQuantity(DecimalQuantity& quantity, MicroProps& micr
         magnitude -= multiplier;
     }
 
-    const UChar* patternString = data.getPattern(magnitude, rules, quantity);
+    const char16_t *patternString = data.getPattern(magnitude, rules, quantity);
     if (patternString == nullptr) {
         // Use the default (non-compact) modifier.
         // No need to take any action.
@@ -344,7 +320,7 @@ void CompactHandler::processQuantity(DecimalQuantity& quantity, MicroProps& micr
         // TODO: Benchmark this and maybe change to a binary search or hash table.
         int32_t i = 0;
         for (; i < precomputedModsLength; i++) {
-            const CompactModInfo& info = precomputedMods[i];
+            const CompactModInfo &info = precomputedMods[i];
             if (u_strcmp(patternString, info.patternString) == 0) {
                 info.mod->applyToMicros(micros, quantity, status);
                 break;
@@ -356,9 +332,11 @@ void CompactHandler::processQuantity(DecimalQuantity& quantity, MicroProps& micr
         // Unsafe code path.
         // Overwrite the PatternInfo in the existing modMiddle.
         // C++ Note: Use unsafePatternInfo for proper lifecycle.
-        ParsedPatternInfo& patternInfo = const_cast<CompactHandler*>(this)->unsafePatternInfo;
+        ParsedPatternInfo &patternInfo = const_cast<CompactHandler *>(this)->unsafePatternInfo;
         PatternParser::parseToPatternInfo(UnicodeString(patternString), patternInfo, status);
-        unsafePatternModifier->setPatternInfo(&unsafePatternInfo, { UFIELD_CATEGORY_NUMBER, UNUM_COMPACT_FIELD });
+        unsafePatternModifier->setPatternInfo(
+            &unsafePatternInfo,
+            {UFIELD_CATEGORY_NUMBER, UNUM_COMPACT_FIELD});
         unsafePatternModifier->setNumberProperties(quantity.signum(), StandardPlural::Form::COUNT);
         micros.modMiddle = unsafePatternModifier;
     }

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -46,6 +46,7 @@ class U_I18N_API CompoundTransliterator : public Transliterator {
     int32_t numAnonymousRBTs;
 
 public:
+
     /**
      * Constructs a new compound transliterator given an array of
      * transliterators.  The array of transliterators may be of any
@@ -60,22 +61,30 @@ public:
      * altered by this transliterator.  If <tt>filter</tt> is
      * <tt>null</tt> then no filtering is applied.
      */
-    CompoundTransliterator(Transliterator* const transliterators[], int32_t transliteratorCount, UnicodeFilter* adoptedFilter = 0);
+    CompoundTransliterator(Transliterator* const transliterators[],
+                           int32_t transliteratorCount,
+                           UnicodeFilter* adoptedFilter = 0);
 
     /**
      * Constructs a new compound transliterator.
      * @param id compound ID
      * @param dir either UTRANS_FORWARD or UTRANS_REVERSE
      * @param adoptedFilter a global filter for this compound transliterator
-     * or NULL
+     * or nullptr
      */
-    CompoundTransliterator(const UnicodeString& id, UTransDirection dir, UnicodeFilter* adoptedFilter, UParseError& parseError, UErrorCode& status);
+    CompoundTransliterator(const UnicodeString& id,
+                           UTransDirection dir,
+                           UnicodeFilter* adoptedFilter,
+                           UParseError& parseError,
+                           UErrorCode& status);
 
     /**
      * Constructs a new compound transliterator in the FORWARD
-     * direction with a NULL filter.
+     * direction with a nullptr filter.
      */
-    CompoundTransliterator(const UnicodeString& id, UParseError& parseError, UErrorCode& status);
+    CompoundTransliterator(const UnicodeString& id,
+                           UParseError& parseError,
+                           UErrorCode& status);
     /**
      * Destructor.
      */
@@ -95,7 +104,7 @@ public:
      * Returns the number of transliterators in this chain.
      * @return number of transliterators in this chain.
      */
-    virtual int32_t getCount(void) const;
+    virtual int32_t getCount() const;
 
     /**
      * Returns the transliterator at the given index in this chain.
@@ -107,12 +116,14 @@ public:
     /**
      * Sets the transliterators.
      */
-    void setTransliterators(Transliterator* const transliterators[], int32_t count);
+    void setTransliterators(Transliterator* const transliterators[],
+                            int32_t count);
 
     /**
      * Adopts the transliterators.
      */
-    void adoptTransliterators(Transliterator* adoptedTransliterators[], int32_t count);
+    void adoptTransliterators(Transliterator* adoptedTransliterators[],
+                              int32_t count);
 
     /**
      * Override Transliterator:
@@ -125,15 +136,16 @@ public:
      * \Uxxxxxxxx.  Unprintable characters are those other than
      * U+000A, U+0020..U+007E.
      */
-    virtual UnicodeString& toRules(UnicodeString& result, UBool escapeUnprintable) const override;
+    virtual UnicodeString& toRules(UnicodeString& result,
+                                   UBool escapeUnprintable) const override;
 
-protected:
+ protected:
     /**
      * Implement Transliterator framework
      */
     virtual void handleGetSourceSet(UnicodeSet& result) const override;
 
-public:
+ public:
     /**
      * Override Transliterator framework
      */
@@ -143,9 +155,11 @@ protected:
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& idx, UBool incremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& idx,
+                                     UBool incremental) const override;
 
 public:
+
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      */
@@ -157,9 +171,10 @@ public:
     static UClassID U_EXPORT2 getStaticClassID();
 
     /* @internal */
-    static const UChar PASS_STRING[];
+    static const char16_t PASS_STRING[];
 
 private:
+
     friend class Transliterator;
     friend class TransliteratorAlias; // to access private ct
 
@@ -171,27 +186,43 @@ private:
     /**
      * Private constructor for Transliterator.
      */
-    CompoundTransliterator(
-        const UnicodeString& ID, UVector& list, UnicodeFilter* adoptedFilter, int32_t numAnonymousRBTs, UParseError& parseError, UErrorCode& status);
+    CompoundTransliterator(const UnicodeString& ID,
+                           UVector& list,
+                           UnicodeFilter* adoptedFilter,
+                           int32_t numAnonymousRBTs,
+                           UParseError& parseError,
+                           UErrorCode& status);
+    
+    CompoundTransliterator(UVector& list,
+                           UParseError& parseError,
+                           UErrorCode& status);
 
-    CompoundTransliterator(UVector& list, UParseError& parseError, UErrorCode& status);
+    CompoundTransliterator(UVector& list,
+                           int32_t anonymousRBTs,
+                           UParseError& parseError,
+                           UErrorCode& status);
 
-    CompoundTransliterator(UVector& list, int32_t anonymousRBTs, UParseError& parseError, UErrorCode& status);
+    void init(const UnicodeString& id,
+              UTransDirection direction,
+              UBool fixReverseID,
+              UErrorCode& status);
 
-    void init(const UnicodeString& id, UTransDirection direction, UBool fixReverseID, UErrorCode& status);
-
-    void init(UVector& list, UTransDirection direction, UBool fixReverseID, UErrorCode& status);
+    void init(UVector& list,
+              UTransDirection direction,
+              UBool fixReverseID,
+              UErrorCode& status);
 
     /**
      * Return the IDs of the given list of transliterators, concatenated
      * with ';' delimiting them.  Equivalent to the perlish expression
      * join(';', map($_.getID(), transliterators).
      */
-    UnicodeString joinIDs(Transliterator* const transliterators[], int32_t transCount);
+    UnicodeString joinIDs(Transliterator* const transliterators[],
+                          int32_t transCount);
 
-    void freeTransliterators(void);
+    void freeTransliterators();
 
-    void computeMaximumContextLength(void);
+    void computeMaximumContextLength();
 };
 
 U_NAMESPACE_END

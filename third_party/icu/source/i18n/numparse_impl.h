@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -34,13 +34,15 @@ namespace impl {
 
 // Exported as U_I18N_API for tests
 class U_I18N_API NumberParserImpl : public MutableMatcherCollection, public UMemory {
-public:
+  public:
     virtual ~NumberParserImpl();
 
-    static NumberParserImpl* createSimpleParser(const Locale& locale, const UnicodeString& patternString, parse_flags_t parseFlags, UErrorCode& status);
+    static NumberParserImpl* createSimpleParser(const Locale& locale, const UnicodeString& patternString,
+                                                parse_flags_t parseFlags, UErrorCode& status);
 
     static NumberParserImpl* createParserFromProperties(
-        const number::impl::DecimalFormatProperties& properties, const DecimalFormatSymbols& symbols, bool parseCurrency, UErrorCode& status);
+            const number::impl::DecimalFormatProperties& properties, const DecimalFormatSymbols& symbols,
+            bool parseCurrency, UErrorCode& status);
 
     /**
      * Does NOT take ownership of the matcher. The matcher MUST remain valid for the lifespan of the
@@ -55,11 +57,12 @@ public:
 
     void parse(const UnicodeString& input, bool greedy, ParsedNumber& result, UErrorCode& status) const;
 
-    void parse(const UnicodeString& input, int32_t start, bool greedy, ParsedNumber& result, UErrorCode& status) const;
+    void parse(const UnicodeString& input, int32_t start, bool greedy, ParsedNumber& result,
+               UErrorCode& status) const;
 
     UnicodeString toString() const;
 
-private:
+  private:
     parse_flags_t fParseFlags;
     int32_t fNumMatchers = 0;
     // NOTE: The stack capacity for fMatchers and fLeads should be the same
@@ -95,8 +98,10 @@ private:
 
     void parseGreedy(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const;
 
-    void parseLongestRecursive(StringSegment& segment, ParsedNumber& result, int32_t recursionLevels, UErrorCode& status) const;
+    void parseLongestRecursive(
+        StringSegment& segment, ParsedNumber& result, int32_t recursionLevels, UErrorCode& status) const;
 };
+
 
 } // namespace impl
 } // namespace numparse

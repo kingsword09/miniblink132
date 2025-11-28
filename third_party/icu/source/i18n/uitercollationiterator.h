@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -34,11 +34,8 @@ U_NAMESPACE_BEGIN
  */
 class U_I18N_API UIterCollationIterator : public CollationIterator {
 public:
-    UIterCollationIterator(const CollationData* d, UBool numeric, UCharIterator& ui)
-        : CollationIterator(d, numeric)
-        , iter(ui)
-    {
-    }
+    UIterCollationIterator(const CollationData *d, UBool numeric, UCharIterator &ui)
+            : CollationIterator(d, numeric), iter(ui) {}
 
     virtual ~UIterCollationIterator();
 
@@ -46,20 +43,20 @@ public:
 
     virtual int32_t getOffset() const override;
 
-    virtual UChar32 nextCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 nextCodePoint(UErrorCode &errorCode) override;
 
-    virtual UChar32 previousCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 previousCodePoint(UErrorCode &errorCode) override;
 
 protected:
-    virtual uint32_t handleNextCE32(UChar32& c, UErrorCode& errorCode) override;
+    virtual uint32_t handleNextCE32(UChar32 &c, UErrorCode &errorCode) override;
 
-    virtual UChar handleGetTrailSurrogate() override;
+    virtual char16_t handleGetTrailSurrogate() override;
 
-    virtual void forwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
+    virtual void forwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
 
-    virtual void backwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
+    virtual void backwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
 
-    UCharIterator& iter;
+    UCharIterator &iter;
 };
 
 /**
@@ -67,13 +64,10 @@ protected:
  */
 class U_I18N_API FCDUIterCollationIterator : public UIterCollationIterator {
 public:
-    FCDUIterCollationIterator(const CollationData* data, UBool numeric, UCharIterator& ui, int32_t startIndex)
-        : UIterCollationIterator(data, numeric, ui)
-        , state(ITER_CHECK_FWD)
-        , start(startIndex)
-        , nfcImpl(data->nfcImpl)
-    {
-    }
+    FCDUIterCollationIterator(const CollationData *data, UBool numeric, UCharIterator &ui, int32_t startIndex)
+            : UIterCollationIterator(data, numeric, ui),
+              state(ITER_CHECK_FWD), start(startIndex),
+              nfcImpl(data->nfcImpl) {}
 
     virtual ~FCDUIterCollationIterator();
 
@@ -81,18 +75,19 @@ public:
 
     virtual int32_t getOffset() const override;
 
-    virtual UChar32 nextCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 nextCodePoint(UErrorCode &errorCode) override;
 
-    virtual UChar32 previousCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 previousCodePoint(UErrorCode &errorCode) override;
 
 protected:
-    virtual uint32_t handleNextCE32(UChar32& c, UErrorCode& errorCode) override;
+    virtual uint32_t handleNextCE32(UChar32 &c, UErrorCode &errorCode) override;
 
-    virtual UChar handleGetTrailSurrogate() override;
+    virtual char16_t handleGetTrailSurrogate() override;
 
-    virtual void forwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
 
-    virtual void backwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
+    virtual void forwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
+
+    virtual void backwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
 
 private:
     /**
@@ -104,7 +99,7 @@ private:
      * Extends the FCD text segment forward or normalizes around pos.
      * @return true if success
      */
-    UBool nextSegment(UErrorCode& errorCode);
+    UBool nextSegment(UErrorCode &errorCode);
 
     /**
      * Switches to backward checking.
@@ -115,9 +110,9 @@ private:
      * Extends the FCD text segment backward or normalizes around pos.
      * @return true if success
      */
-    UBool previousSegment(UErrorCode& errorCode);
+    UBool previousSegment(UErrorCode &errorCode);
 
-    UBool normalize(const UnicodeString& s, UErrorCode& errorCode);
+    UBool normalize(const UnicodeString &s, UErrorCode &errorCode);
 
     enum State {
         /**
@@ -157,11 +152,11 @@ private:
     int32_t pos;
     int32_t limit;
 
-    const Normalizer2Impl& nfcImpl;
+    const Normalizer2Impl &nfcImpl;
     UnicodeString normalized;
 };
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __UITERCOLLATIONITERATOR_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __UITERCOLLATIONITERATOR_H__

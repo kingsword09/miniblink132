@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -65,7 +65,11 @@ http://www.nicemice.net/amc/
  *
  * @see u_strFromPunycode
  */
-U_CAPI int32_t u_strToPunycode(const UChar* src, int32_t srcLength, UChar* dest, int32_t destCapacity, const UBool* caseFlags, UErrorCode* pErrorCode);
+U_CAPI int32_t
+u_strToPunycode(const UChar *src, int32_t srcLength,
+                UChar *dest, int32_t destCapacity,
+                const UBool *caseFlags,
+                UErrorCode *pErrorCode);
 
 /**
  * u_strFromPunycode() converts Punycode to Unicode.
@@ -96,7 +100,11 @@ U_CAPI int32_t u_strToPunycode(const UChar* src, int32_t srcLength, UChar* dest,
  *
  * @see u_strToPunycode
  */
-U_CAPI int32_t u_strFromPunycode(const UChar* src, int32_t srcLength, UChar* dest, int32_t destCapacity, UBool* caseFlags, UErrorCode* pErrorCode);
+U_CAPI int32_t
+u_strFromPunycode(const UChar *src, int32_t srcLength,
+                  UChar *dest, int32_t destCapacity,
+                  UBool *caseFlags,
+                  UErrorCode *pErrorCode);
 
 #endif /* #if !UCONFIG_NO_IDNA */
 

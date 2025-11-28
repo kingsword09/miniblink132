@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ************************************************************************
@@ -23,18 +23,18 @@ enum UDebugEnumType {
     UDBG_UDateFormatStyle, /* Count = UDAT_SHORT=1 */
 #endif
 #if UCONFIG_ENABLE_PLUGINS
-    UDBG_UPlugReason, /* Count = UPLUG_REASON_COUNT */
-    UDBG_UPlugLevel, /* COUNT = UPLUG_LEVEL_COUNT */
+    UDBG_UPlugReason,   /* Count = UPLUG_REASON_COUNT */
+    UDBG_UPlugLevel,    /* COUNT = UPLUG_LEVEL_COUNT */
 #endif
     UDBG_UAcceptResult, /* Count = ULOC_ACCEPT_FALLBACK+1=3 */
 
-/* All following enums may be discontiguous. */
+    /* All following enums may be discontiguous. */
 
 #if !UCONFIG_NO_COLLATION
-    UDBG_UColAttributeValue, /* UCOL_ATTRIBUTE_VALUE_COUNT */
+    UDBG_UColAttributeValue,  /* UCOL_ATTRIBUTE_VALUE_COUNT */
 #endif
     UDBG_ENUM_COUNT,
-    UDBG_HIGHEST_CONTIGUOUS_ENUM = UDBG_UAcceptResult, /**< last enum in this list with contiguous (testable) values. */
+    UDBG_HIGHEST_CONTIGUOUS_ENUM = UDBG_UAcceptResult,  /**< last enum in this list with contiguous (testable) values. */
     UDBG_INVALID_ENUM = -1 /** Invalid enum value **/
 };
 
@@ -53,7 +53,7 @@ U_CAPI int32_t U_EXPORT2 udbg_enumCount(UDebugEnumType type);
  * @param field field number
  * @return string of the format "ERA", "YEAR", etc, or NULL if out of range or unsupported
  */
-U_CAPI const char* U_EXPORT2 udbg_enumName(UDebugEnumType type, int32_t field);
+U_CAPI const char * U_EXPORT2 udbg_enumName(UDebugEnumType type, int32_t field);
 
 /**
  * for consistency checking
@@ -77,12 +77,13 @@ U_CAPI int32_t U_EXPORT2 udbg_enumArrayValue(UDebugEnumType type, int32_t field)
  * @param name name of string (case sensitive)
  * @return should be a field value or -1 if not found.
  */
-U_CAPI int32_t U_EXPORT2 udbg_enumByName(UDebugEnumType type, const char* name);
+U_CAPI int32_t U_EXPORT2 udbg_enumByName(UDebugEnumType type, const char *name);
+
 
 /**
  * Return the Platform (U_PLATFORM) as a string
  */
-U_CAPI const char* udbg_getPlatform(void);
+U_CAPI const char *udbg_getPlatform(void);
 
 /**
  * Get the nth system parameter's name
@@ -90,7 +91,7 @@ U_CAPI const char* udbg_getPlatform(void);
  * @return name, or NULL if off the end
  * @see udbg_getSystemParameterValue
  */
-U_CAPI const char* udbg_getSystemParameterNameByIndex(int32_t i);
+U_CAPI const char *udbg_getSystemParameterNameByIndex(int32_t i);
 
 /**
  * Get the nth system parameter's value, in a user supplied buffer
@@ -99,12 +100,12 @@ U_CAPI const char* udbg_getSystemParameterNameByIndex(int32_t i);
  * @return length written (standard termination rules)
  * @see udbg_getSystemParameterName
  */
-U_CAPI int32_t udbg_getSystemParameterValueByIndex(int32_t i, char* buffer, int32_t bufferCapacity, UErrorCode* status);
+U_CAPI int32_t udbg_getSystemParameterValueByIndex(int32_t i, char *buffer, int32_t bufferCapacity, UErrorCode *status);
 
 /**
  * Write ICU info as XML
  */
-U_CAPI void udbg_writeIcuInfo(FILE* f);
+U_CAPI void udbg_writeIcuInfo(FILE *f);
 
 /**
  * \def UDBG_KNOWNISSUE_LEN
@@ -117,26 +118,30 @@ U_CAPI void udbg_writeIcuInfo(FILE* f);
  * @param ptr pointer to 'table'. Opaque.
  * @return new or existing ptr
  */
-U_CAPI void* udbg_knownIssue_openU(void* ptr, const char* ticket, char* where, const UChar* msg, UBool* firstForTicket, UBool* firstForWhere);
+U_CAPI void *udbg_knownIssue_openU(void *ptr, const char *ticket, char *where, const UChar *msg, UBool *firstForTicket,
+                                   UBool *firstForWhere);
+
 
 /**
  * Open (or reopen) a 'known issue' table.
  * @param ptr pointer to 'table'. Opaque.
  * @return new or existing ptr
  */
-U_CAPI void* udbg_knownIssue_open(void* ptr, const char* ticket, char* where, const char* msg, UBool* firstForTicket, UBool* firstForWhere);
+U_CAPI void *udbg_knownIssue_open(void *ptr, const char *ticket, char *where, const char *msg, UBool *firstForTicket,
+                                   UBool *firstForWhere);
 
 /**
  * Print 'known issue' table, to std::cout.
  * @param ptr pointer from udbg_knownIssue
- * @return TRUE if there were any issues.
+ * @return true if there were any issues.
  */
-U_CAPI UBool udbg_knownIssue_print(void* ptr);
+U_CAPI UBool udbg_knownIssue_print(void *ptr);
 
 /**
  * Close 'known issue' table.
  * @param ptr
  */
-U_CAPI void udbg_knownIssue_close(void* ptr);
+U_CAPI void udbg_knownIssue_close(void *ptr);
+
 
 #endif

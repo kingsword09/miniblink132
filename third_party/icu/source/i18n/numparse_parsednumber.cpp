@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -21,13 +21,12 @@ using namespace icu::number::impl;
 using namespace icu::numparse;
 using namespace icu::numparse::impl;
 
-ParsedNumber::ParsedNumber()
-{
+
+ParsedNumber::ParsedNumber() {
     clear();
 }
 
-void ParsedNumber::clear()
-{
+void ParsedNumber::clear() {
     quantity.bogus = true;
     charEnd = 0;
     flags = 0;
@@ -36,30 +35,25 @@ void ParsedNumber::clear()
     currencyCode[0] = 0;
 }
 
-void ParsedNumber::setCharsConsumed(const StringSegment& segment)
-{
+void ParsedNumber::setCharsConsumed(const StringSegment& segment) {
     charEnd = segment.getOffset();
 }
 
-void ParsedNumber::postProcess()
-{
+void ParsedNumber::postProcess() {
     if (!quantity.bogus && 0 != (flags & FLAG_NEGATIVE)) {
         quantity.negate();
     }
 }
 
-bool ParsedNumber::success() const
-{
+bool ParsedNumber::success() const {
     return charEnd > 0 && 0 == (flags & FLAG_FAIL);
 }
 
-bool ParsedNumber::seenNumber() const
-{
+bool ParsedNumber::seenNumber() const {
     return !quantity.bogus || 0 != (flags & FLAG_NAN) || 0 != (flags & FLAG_INFINITY);
 }
 
-double ParsedNumber::getDouble(UErrorCode& status) const
-{
+double ParsedNumber::getDouble(UErrorCode& status) const {
     bool sawNaN = 0 != (flags & FLAG_NAN);
     bool sawInfinity = 0 != (flags & FLAG_INFINITY);
 
@@ -91,8 +85,7 @@ double ParsedNumber::getDouble(UErrorCode& status) const
     }
 }
 
-void ParsedNumber::populateFormattable(Formattable& output, parse_flags_t parseFlags) const
-{
+void ParsedNumber::populateFormattable(Formattable& output, parse_flags_t parseFlags) const {
     bool sawNaN = 0 != (flags & FLAG_NAN);
     bool sawInfinity = 0 != (flags & FLAG_INFINITY);
     bool integerOnly = 0 != (parseFlags & PARSE_FLAG_INTEGER_ONLY);
@@ -123,10 +116,11 @@ void ParsedNumber::populateFormattable(Formattable& output, parse_flags_t parseF
     output.adoptDecimalQuantity(new DecimalQuantity(quantity));
 }
 
-bool ParsedNumber::isBetterThan(const ParsedNumber& other)
-{
+bool ParsedNumber::isBetterThan(const ParsedNumber& other) {
     // Favor results with strictly more characters consumed.
     return charEnd > other.charEnd;
 }
+
+
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

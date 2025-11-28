@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // ucpmap.h
@@ -13,8 +13,7 @@ U_CDECL_BEGIN
 
 /**
  * \file
- *
- * This file defines an abstract map from Unicode code points to integer values.
+ * \brief C API: This file defines an abstract map from Unicode code points to integer values.
  *
  * @see UCPMap
  * @see UCPTrie
@@ -93,7 +92,8 @@ typedef enum UCPMapRangeOption UCPMapRangeOption;
  *         or an implementation-defined error value if the code point is not in the range 0..U+10FFFF
  * @stable ICU 63
  */
-U_CAPI uint32_t U_EXPORT2 ucpmap_get(const UCPMap* map, UChar32 c);
+U_CAPI uint32_t U_EXPORT2
+ucpmap_get(const UCPMap *map, UChar32 c);
 
 /**
  * Callback function type: Modifies a map value.
@@ -109,7 +109,8 @@ U_CAPI uint32_t U_EXPORT2 ucpmap_get(const UCPMap* map, UChar32 c);
  * @return the modified value
  * @stable ICU 63
  */
-typedef uint32_t U_CALLCONV UCPMapValueFilter(const void* context, uint32_t value);
+typedef uint32_t U_CALLCONV
+UCPMapValueFilter(const void *context, uint32_t value);
 
 /**
  * Returns the last code point such that all those from start to there have the same value.
@@ -147,8 +148,10 @@ typedef uint32_t U_CALLCONV UCPMapValueFilter(const void* context, uint32_t valu
  * @return the range end code point, or -1 if start is not a valid code point
  * @stable ICU 63
  */
-U_CAPI UChar32 U_EXPORT2 ucpmap_getRange(
-    const UCPMap* map, UChar32 start, UCPMapRangeOption option, uint32_t surrogateValue, UCPMapValueFilter* filter, const void* context, uint32_t* pValue);
+U_CAPI UChar32 U_EXPORT2
+ucpmap_getRange(const UCPMap *map, UChar32 start,
+                UCPMapRangeOption option, uint32_t surrogateValue,
+                UCPMapValueFilter *filter, const void *context, uint32_t *pValue);
 
 U_CDECL_END
 

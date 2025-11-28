@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __FILTERRB_H__
@@ -11,6 +11,7 @@
 #include <string>
 
 #include "unicode/utypes.h"
+
 
 /**
  * Represents an absolute path into a resource bundle.
@@ -29,11 +30,12 @@ public:
 
     const std::list<std::string>& pieces() const;
 
-private:
+  private:
     std::list<std::string> fPath;
 };
 
 std::ostream& operator<<(std::ostream& out, const ResKeyPath& value);
+
 
 /**
  * Interface used to determine whether to include or reject pieces of a
@@ -41,7 +43,11 @@ std::ostream& operator<<(std::ostream& out, const ResKeyPath& value);
  */
 class PathFilter {
 public:
-    enum EInclusion { INCLUDE, PARTIAL, EXCLUDE };
+    enum EInclusion {
+        INCLUDE,
+        PARTIAL,
+        EXCLUDE
+    };
 
     static const char* kEInclusionNames[];
 
@@ -56,6 +62,7 @@ public:
      */
     virtual EInclusion match(const ResKeyPath& path) const = 0;
 };
+
 
 /**
  * Implementation of PathFilter for a list of inclusion/exclusion rules.
@@ -153,7 +160,11 @@ private:
         std::map<std::string, Tree> fChildren;
         std::unique_ptr<Tree> fWildcard;
 
-        void applyRule(const ResKeyPath& path, std::list<std::string>::const_iterator it, bool inclusionRule, UErrorCode& status);
+        void applyRule(
+            const ResKeyPath& path,
+            std::list<std::string>::const_iterator it,
+            bool inclusionRule,
+            UErrorCode& status);
 
         bool isLeaf() const;
 
@@ -164,5 +175,6 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& out, const SimpleRuleBasedPathFilter& value);
+
 
 #endif //__FILTERRB_H__

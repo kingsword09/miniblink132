@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -35,22 +35,22 @@
 
 /* set of property starts for UnicodeSet ------------------------------------ */
 
-static UBool U_CALLCONV _enumPropertyStartsRange(const void* context, UChar32 start, UChar32 /*end*/, uint32_t /*value*/)
-{
+static UBool U_CALLCONV
+_enumPropertyStartsRange(const void *context, UChar32 start, UChar32 /*end*/, uint32_t /*value*/) {
     /* add the start code point to the USet */
-    const USetAdder* sa = (const USetAdder*)context;
+    const USetAdder *sa=(const USetAdder *)context;
     sa->add(sa->set, start);
-    return TRUE;
+    return true;
 }
 
-U_CFUNC void U_EXPORT2 ucase_addPropertyStarts(const USetAdder* sa, UErrorCode* pErrorCode)
-{
-    if (U_FAILURE(*pErrorCode)) {
+U_CFUNC void U_EXPORT2
+ucase_addPropertyStarts(const USetAdder *sa, UErrorCode *pErrorCode) {
+    if(U_FAILURE(*pErrorCode)) {
         return;
     }
 
     /* add the start code point of each same-value range of the trie */
-    utrie2_enum(&ucase_props_singleton.trie, NULL, _enumPropertyStartsRange, sa);
+    utrie2_enum(&ucase_props_singleton.trie, nullptr, _enumPropertyStartsRange, sa);
 
     /* add code points with hardcoded properties, plus the ones following them */
 
@@ -64,30 +64,42 @@ U_CFUNC void U_EXPORT2 ucase_addPropertyStarts(const USetAdder* sa, UErrorCode* 
 
 /* data access primitives --------------------------------------------------- */
 
-U_CAPI const struct UCaseProps* U_EXPORT2 ucase_getSingleton(int32_t* pExceptionsLength, int32_t* pUnfoldLength)
-{
+U_CAPI const struct UCaseProps * U_EXPORT2
+ucase_getSingleton(int32_t *pExceptionsLength, int32_t *pUnfoldLength) {
     *pExceptionsLength = UPRV_LENGTHOF(ucase_props_exceptions);
     *pUnfoldLength = UPRV_LENGTHOF(ucase_props_unfold);
     return &ucase_props_singleton;
 }
 
-U_CFUNC const UTrie2* U_EXPORT2 ucase_getTrie()
-{
+U_CFUNC const UTrie2 * U_EXPORT2
+ucase_getTrie() {
     return &ucase_props_singleton.trie;
 }
 
-#define GET_EXCEPTIONS(csp, props) ((csp)->exceptions + ((props) >> UCASE_EXC_SHIFT))
+#define GET_EXCEPTIONS(csp, props) ((csp)->exceptions+((props)>>UCASE_EXC_SHIFT))
 
 /* number of bits in an 8-bit integer value */
-static const uint8_t flagsOffset[256] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3,
-    4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4,
-    5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4,
-    5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3,
-    4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6,
-    7, 5, 6, 6, 7, 6, 7, 7, 8 };
+static const uint8_t flagsOffset[256]={
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+};
 
-#define HAS_SLOT(flags, idx) ((flags) & (1 << (idx)))
-#define SLOT_OFFSET(flags, idx) flagsOffset[(flags) & ((1 << (idx)) - 1)]
+#define HAS_SLOT(flags, idx) ((flags)&(1<<(idx)))
+#define SLOT_OFFSET(flags, idx) flagsOffset[(flags)&((1<<(idx))-1)]
 
 /*
  * Get the value of an optional-value slot where HAS_SLOT(excWord, idx).
@@ -98,86 +110,83 @@ static const uint8_t flagsOffset[256] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2,
  *               moved to the last uint16_t of the value, use +1 for beginning of next slot
  * @param value (out) int32_t or uint32_t output if hasSlot, otherwise not modified
  */
-#define GET_SLOT_VALUE(excWord, idx, pExc16, value)                                                                                                            \
-    UPRV_BLOCK_MACRO_BEGIN                                                                                                                                     \
-    {                                                                                                                                                          \
-        if (((excWord)&UCASE_EXC_DOUBLE_SLOTS) == 0) {                                                                                                         \
-            (pExc16) += SLOT_OFFSET(excWord, idx);                                                                                                             \
-            (value) = *pExc16;                                                                                                                                 \
-        } else {                                                                                                                                               \
-            (pExc16) += 2 * SLOT_OFFSET(excWord, idx);                                                                                                         \
-            (value) = *pExc16++;                                                                                                                               \
-            (value) = ((value) << 16) | *pExc16;                                                                                                               \
-        }                                                                                                                                                      \
-    }                                                                                                                                                          \
-    UPRV_BLOCK_MACRO_END
+#define GET_SLOT_VALUE(excWord, idx, pExc16, value) UPRV_BLOCK_MACRO_BEGIN { \
+    if(((excWord)&UCASE_EXC_DOUBLE_SLOTS)==0) { \
+        (pExc16)+=SLOT_OFFSET(excWord, idx); \
+        (value)=*pExc16; \
+    } else { \
+        (pExc16)+=2*SLOT_OFFSET(excWord, idx); \
+        (value)=*pExc16++; \
+        (value)=((value)<<16)|*pExc16; \
+    } \
+} UPRV_BLOCK_MACRO_END
 
 /* simple case mappings ----------------------------------------------------- */
 
-U_CAPI UChar32 U_EXPORT2 ucase_tolower(UChar32 c)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_IS_UPPER_OR_TITLE(props)) {
-            c += UCASE_GET_DELTA(props);
+U_CAPI UChar32 U_EXPORT2
+ucase_tolower(UChar32 c) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_IS_UPPER_OR_TITLE(props)) {
+            c+=UCASE_GET_DELTA(props);
         }
     } else {
-        const uint16_t* pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        uint16_t excWord = *pe++;
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        uint16_t excWord=*pe++;
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe, delta);
-            return (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            return (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
+        if(HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
             GET_SLOT_VALUE(excWord, UCASE_EXC_LOWER, pe, c);
         }
     }
     return c;
 }
 
-U_CAPI UChar32 U_EXPORT2 ucase_toupper(UChar32 c)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_GET_TYPE(props) == UCASE_LOWER) {
-            c += UCASE_GET_DELTA(props);
+U_CAPI UChar32 U_EXPORT2
+ucase_toupper(UChar32 c) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_GET_TYPE(props)==UCASE_LOWER) {
+            c+=UCASE_GET_DELTA(props);
         }
     } else {
-        const uint16_t* pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        uint16_t excWord = *pe++;
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_GET_TYPE(props) == UCASE_LOWER) {
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        uint16_t excWord=*pe++;
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_GET_TYPE(props)==UCASE_LOWER) {
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe, delta);
-            return (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            return (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_UPPER)) {
+        if(HAS_SLOT(excWord, UCASE_EXC_UPPER)) {
             GET_SLOT_VALUE(excWord, UCASE_EXC_UPPER, pe, c);
         }
     }
     return c;
 }
 
-U_CAPI UChar32 U_EXPORT2 ucase_totitle(UChar32 c)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_GET_TYPE(props) == UCASE_LOWER) {
-            c += UCASE_GET_DELTA(props);
+U_CAPI UChar32 U_EXPORT2
+ucase_totitle(UChar32 c) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_GET_TYPE(props)==UCASE_LOWER) {
+            c+=UCASE_GET_DELTA(props);
         }
     } else {
-        const uint16_t* pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        uint16_t excWord = *pe++;
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_GET_TYPE(props) == UCASE_LOWER) {
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        uint16_t excWord=*pe++;
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_GET_TYPE(props)==UCASE_LOWER) {
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe, delta);
-            return (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            return (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
         }
         int32_t idx;
-        if (HAS_SLOT(excWord, UCASE_EXC_TITLE)) {
-            idx = UCASE_EXC_TITLE;
-        } else if (HAS_SLOT(excWord, UCASE_EXC_UPPER)) {
-            idx = UCASE_EXC_UPPER;
+        if(HAS_SLOT(excWord, UCASE_EXC_TITLE)) {
+            idx=UCASE_EXC_TITLE;
+        } else if(HAS_SLOT(excWord, UCASE_EXC_UPPER)) {
+            idx=UCASE_EXC_UPPER;
         } else {
             return c;
         }
@@ -186,52 +195,23 @@ U_CAPI UChar32 U_EXPORT2 ucase_totitle(UChar32 c)
     return c;
 }
 
-static const UChar iDot[2] = { 0x69, 0x307 };
-static const UChar jDot[2] = { 0x6a, 0x307 };
-static const UChar iOgonekDot[3] = { 0x12f, 0x307 };
-static const UChar iDotGrave[3] = { 0x69, 0x307, 0x300 };
-static const UChar iDotAcute[3] = { 0x69, 0x307, 0x301 };
-static const UChar iDotTilde[3] = { 0x69, 0x307, 0x303 };
+static const char16_t iDot[2] = { 0x69, 0x307 };
+static const char16_t jDot[2] = { 0x6a, 0x307 };
+static const char16_t iOgonekDot[3] = { 0x12f, 0x307 };
+static const char16_t iDotGrave[3] = { 0x69, 0x307, 0x300 };
+static const char16_t iDotAcute[3] = { 0x69, 0x307, 0x301 };
+static const char16_t iDotTilde[3] = { 0x69, 0x307, 0x303 };
 
-U_CFUNC void U_EXPORT2 ucase_addCaseClosure(UChar32 c, const USetAdder* sa)
-{
-    uint16_t props;
 
-    /*
-     * Hardcode the case closure of i and its relatives and ignore the
-     * data file data for these characters.
-     * The Turkic dotless i and dotted I with their case mapping conditions
-     * and case folding option make the related characters behave specially.
-     * This code matches their closure behavior to their case folding behavior.
-     */
-
-    switch (c) {
-    case 0x49:
-        /* regular i and I are in one equivalence class */
-        sa->add(sa->set, 0x69);
-        return;
-    case 0x69:
-        sa->add(sa->set, 0x49);
-        return;
-    case 0x130:
-        /* dotted I is in a class with <0069 0307> (for canonical equivalence with <0049 0307>) */
-        sa->addString(sa->set, iDot, 2);
-        return;
-    case 0x131:
-        /* dotless i is in a class by itself */
-        return;
-    default:
-        /* otherwise use the data file data */
-        break;
-    }
-
-    props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_GET_TYPE(props) != UCASE_NONE) {
+U_CFUNC void U_EXPORT2
+ucase_addCaseClosure(UChar32 c, const USetAdder *sa) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_GET_TYPE(props)!=UCASE_NONE) {
             /* add the one simple case mapping, no matter what type it is */
-            int32_t delta = UCASE_GET_DELTA(props);
-            if (delta != 0) {
-                sa->add(sa->set, c + delta);
+            int32_t delta=UCASE_GET_DELTA(props);
+            if(delta!=0) {
+                sa->add(sa->set, c+delta);
             }
         }
     } else {
@@ -239,98 +219,124 @@ U_CFUNC void U_EXPORT2 ucase_addCaseClosure(UChar32 c, const USetAdder* sa)
          * c has exceptions, so there may be multiple simple and/or
          * full case mappings. Add them all.
          */
-        const uint16_t *pe0, *pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        const UChar* closure;
-        uint16_t excWord = *pe++;
-        int32_t idx, closureLength, fullLength, length;
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        uint16_t excWord=*pe++;
+        const uint16_t *pe0=pe;
 
-        pe0 = pe;
+        // Hardcode the case closure of i and its relatives and ignore the
+        // data file data for these characters.
+        // The Turkic dotless i and dotted I with their case mapping conditions
+        // and case folding option make the related characters behave specially.
+        // This code matches their closure behavior to their case folding behavior.
+        if (excWord&UCASE_EXC_CONDITIONAL_FOLD) {
+            // These characters have Turkic case foldings. Hardcode their closure.
+            if (c == 0x49) {
+                // Regular i and I are in one equivalence class.
+                sa->add(sa->set, 0x69);
+                return;
+            } else if (c == 0x130) {
+                // Dotted I is in a class with <0069 0307>
+                // (for canonical equivalence with <0049 0307>).
+                sa->addString(sa->set, iDot, 2);
+                return;
+            }
+        } else if (c == 0x69) {
+            sa->add(sa->set, 0x49);
+            return;
+        } else if (c == 0x131) {
+            // Dotless i is in a class by itself.
+            return;
+        }
 
         /* add all simple case mappings */
-        for (idx = UCASE_EXC_LOWER; idx <= UCASE_EXC_TITLE; ++idx) {
-            if (HAS_SLOT(excWord, idx)) {
-                pe = pe0;
-                GET_SLOT_VALUE(excWord, idx, pe, c);
-                sa->add(sa->set, c);
+        for(int32_t idx=UCASE_EXC_LOWER; idx<=UCASE_EXC_TITLE; ++idx) {
+            if(HAS_SLOT(excWord, idx)) {
+                pe=pe0;
+                UChar32 mapping;
+                GET_SLOT_VALUE(excWord, idx, pe, mapping);
+                sa->add(sa->set, mapping);
             }
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA)) {
-            pe = pe0;
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA)) {
+            pe=pe0;
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe, delta);
-            sa->add(sa->set, (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta);
+            sa->add(sa->set, (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta);
         }
 
         /* get the closure string pointer & length */
-        if (HAS_SLOT(excWord, UCASE_EXC_CLOSURE)) {
-            pe = pe0;
+        const char16_t *closure;
+        int32_t closureLength;
+        if(HAS_SLOT(excWord, UCASE_EXC_CLOSURE)) {
+            pe=pe0;
             GET_SLOT_VALUE(excWord, UCASE_EXC_CLOSURE, pe, closureLength);
-            closureLength &= UCASE_CLOSURE_MAX_LENGTH; /* higher bits are reserved */
-            closure = (const UChar*)pe + 1; /* behind this slot, unless there are full case mappings */
+            closureLength&=UCASE_CLOSURE_MAX_LENGTH; /* higher bits are reserved */
+            closure=(const char16_t *)pe+1; /* behind this slot, unless there are full case mappings */
         } else {
-            closureLength = 0;
-            closure = NULL;
+            closureLength=0;
+            closure=nullptr;
         }
 
         /* add the full case folding */
-        if (HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
-            pe = pe0;
+        if(HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
+            pe=pe0;
+            int32_t fullLength;
             GET_SLOT_VALUE(excWord, UCASE_EXC_FULL_MAPPINGS, pe, fullLength);
 
             /* start of full case mapping strings */
             ++pe;
 
-            fullLength &= 0xffff; /* bits 16 and higher are reserved */
+            fullLength&=0xffff; /* bits 16 and higher are reserved */
 
             /* skip the lowercase result string */
-            pe += fullLength & UCASE_FULL_LOWER;
-            fullLength >>= 4;
+            pe+=fullLength&UCASE_FULL_LOWER;
+            fullLength>>=4;
 
             /* add the full case folding string */
-            length = fullLength & 0xf;
-            if (length != 0) {
-                sa->addString(sa->set, (const UChar*)pe, length);
-                pe += length;
+            int32_t length=fullLength&0xf;
+            if(length!=0) {
+                sa->addString(sa->set, (const char16_t *)pe, length);
+                pe+=length;
             }
 
             /* skip the uppercase and titlecase strings */
-            fullLength >>= 4;
-            pe += fullLength & 0xf;
-            fullLength >>= 4;
-            pe += fullLength;
+            fullLength>>=4;
+            pe+=fullLength&0xf;
+            fullLength>>=4;
+            pe+=fullLength;
 
-            closure = (const UChar*)pe; /* behind full case mappings */
+            closure=(const char16_t *)pe; /* behind full case mappings */
         }
 
         /* add each code point in the closure string */
-        for (idx = 0; idx < closureLength;) {
-            U16_NEXT_UNSAFE(closure, idx, c);
-            sa->add(sa->set, c);
+        for(int32_t idx=0; idx<closureLength;) {
+            UChar32 mapping;
+            U16_NEXT_UNSAFE(closure, idx, mapping);
+            sa->add(sa->set, mapping);
         }
     }
 }
 
 U_CFUNC void U_EXPORT2
-ucase_addSimpleCaseClosure(UChar32 c, const USetAdder* sa)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_GET_TYPE(props) != UCASE_NONE) {
+ucase_addSimpleCaseClosure(UChar32 c, const USetAdder *sa) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_GET_TYPE(props)!=UCASE_NONE) {
             /* add the one simple case mapping, no matter what type it is */
-            int32_t delta = UCASE_GET_DELTA(props);
-            if (delta != 0) {
-                sa->add(sa->set, c + delta);
+            int32_t delta=UCASE_GET_DELTA(props);
+            if(delta!=0) {
+                sa->add(sa->set, c+delta);
             }
         }
     } else {
         // c has exceptions. Add the mappings relevant for scf=Simple_Case_Folding.
-        const uint16_t* pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        uint16_t excWord = *pe++;
-        const uint16_t* pe0 = pe;
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        uint16_t excWord=*pe++;
+        const uint16_t *pe0=pe;
 
         // Hardcode the case closure of i and its relatives and ignore the
         // data file data for these characters, like in ucase_addCaseClosure().
-        if (excWord & UCASE_EXC_CONDITIONAL_FOLD) {
+        if (excWord&UCASE_EXC_CONDITIONAL_FOLD) {
             // These characters have Turkic case foldings. Hardcode their closure.
             if (c == 0x49) {
                 // Regular i and I are in one equivalence class.
@@ -349,60 +355,60 @@ ucase_addSimpleCaseClosure(UChar32 c, const USetAdder* sa)
         }
 
         // Add all simple case mappings.
-        for (int32_t idx = UCASE_EXC_LOWER; idx <= UCASE_EXC_TITLE; ++idx) {
-            if (HAS_SLOT(excWord, idx)) {
-                pe = pe0;
+        for(int32_t idx=UCASE_EXC_LOWER; idx<=UCASE_EXC_TITLE; ++idx) {
+            if(HAS_SLOT(excWord, idx)) {
+                pe=pe0;
                 UChar32 mapping;
                 GET_SLOT_VALUE(excWord, idx, pe, mapping);
                 sa->add(sa->set, mapping);
             }
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA)) {
-            pe = pe0;
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA)) {
+            pe=pe0;
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe, delta);
-            UChar32 mapping = (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            UChar32 mapping = (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
             sa->add(sa->set, mapping);
         }
 
         /* get the closure string pointer & length */
-        const char16_t* closure;
+        const char16_t *closure;
         int32_t closureLength;
-        if (HAS_SLOT(excWord, UCASE_EXC_CLOSURE)) {
-            pe = pe0;
+        if(HAS_SLOT(excWord, UCASE_EXC_CLOSURE)) {
+            pe=pe0;
             GET_SLOT_VALUE(excWord, UCASE_EXC_CLOSURE, pe, closureLength);
-            closureLength &= UCASE_CLOSURE_MAX_LENGTH; /* higher bits are reserved */
-            closure = (const char16_t*)pe + 1; /* behind this slot, unless there are full case mappings */
+            closureLength&=UCASE_CLOSURE_MAX_LENGTH; /* higher bits are reserved */
+            closure=(const char16_t *)pe+1; /* behind this slot, unless there are full case mappings */
         } else {
-            closureLength = 0;
-            closure = nullptr;
+            closureLength=0;
+            closure=nullptr;
         }
 
         // Skip the full case mappings.
-        if (closureLength > 0 && HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
-            pe = pe0;
+        if(closureLength > 0 && HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
+            pe=pe0;
             int32_t fullLength;
             GET_SLOT_VALUE(excWord, UCASE_EXC_FULL_MAPPINGS, pe, fullLength);
 
             /* start of full case mapping strings */
             ++pe;
 
-            fullLength &= 0xffff; /* bits 16 and higher are reserved */
+            fullLength&=0xffff; /* bits 16 and higher are reserved */
 
             // Skip all 4 full case mappings.
-            pe += fullLength & UCASE_FULL_LOWER;
-            fullLength >>= 4;
-            pe += fullLength & 0xf;
-            fullLength >>= 4;
-            pe += fullLength & 0xf;
-            fullLength >>= 4;
-            pe += fullLength;
+            pe+=fullLength&UCASE_FULL_LOWER;
+            fullLength>>=4;
+            pe+=fullLength&0xf;
+            fullLength>>=4;
+            pe+=fullLength&0xf;
+            fullLength>>=4;
+            pe+=fullLength;
 
-            closure = (const char16_t*)pe; /* behind full case mappings */
+            closure=(const char16_t *)pe; /* behind full case mappings */
         }
 
         // Add each code point in the closure string whose scf maps back to c.
-        for (int32_t idx = 0; idx < closureLength;) {
+        for(int32_t idx=0; idx<closureLength;) {
             UChar32 mapping;
             U16_NEXT_UNSAFE(closure, idx, mapping);
             sa->add(sa->set, mapping);
@@ -414,39 +420,39 @@ ucase_addSimpleCaseClosure(UChar32 c, const USetAdder* sa)
  * compare s, which has a length, with t, which has a maximum length or is NUL-terminated
  * must be length>0 and max>0 and length<=max
  */
-static inline int32_t strcmpMax(const UChar* s, int32_t length, const UChar* t, int32_t max)
-{
+static inline int32_t
+strcmpMax(const char16_t *s, int32_t length, const char16_t *t, int32_t max) {
     int32_t c1, c2;
 
-    max -= length; /* we require length<=max, so no need to decrement max in the loop */
+    max-=length; /* we require length<=max, so no need to decrement max in the loop */
     do {
-        c1 = *s++;
-        c2 = *t++;
-        if (c2 == 0) {
+        c1=*s++;
+        c2=*t++;
+        if(c2==0) {
             return 1; /* reached the end of t but not of s */
         }
-        c1 -= c2;
-        if (c1 != 0) {
+        c1-=c2;
+        if(c1!=0) {
             return c1; /* return difference result */
         }
-    } while (--length > 0);
+    } while(--length>0);
     /* ends with length==0 */
 
-    if (max == 0 || *t == 0) {
+    if(max==0 || *t==0) {
         return 0; /* equal to length of both strings */
     } else {
         return -max; /* return length difference */
     }
 }
 
-U_CFUNC UBool U_EXPORT2 ucase_addStringCaseClosure(const UChar* s, int32_t length, const USetAdder* sa)
-{
+U_CFUNC UBool U_EXPORT2
+ucase_addStringCaseClosure(const char16_t *s, int32_t length, const USetAdder *sa) {
     int32_t i, start, limit, result, unfoldRows, unfoldRowWidth, unfoldStringWidth;
 
-    if (ucase_props_singleton.unfold == NULL || s == NULL) {
-        return FALSE; /* no reverse case folding data, or no string */
+    if(ucase_props_singleton.unfold==nullptr || s==nullptr) {
+        return false; /* no reverse case folding data, or no string */
     }
-    if (length <= 1) {
+    if(length<=1) {
         /* the string is too short to find any match */
         /*
          * more precise would be:
@@ -454,79 +460,74 @@ U_CFUNC UBool U_EXPORT2 ucase_addStringCaseClosure(const UChar* s, int32_t lengt
          * but this does not make much practical difference because
          * a single supplementary code point would just not be found
          */
-        return FALSE;
+        return false;
     }
 
-    const uint16_t* unfold = ucase_props_singleton.unfold;
-    unfoldRows = unfold[UCASE_UNFOLD_ROWS];
-    unfoldRowWidth = unfold[UCASE_UNFOLD_ROW_WIDTH];
-    unfoldStringWidth = unfold[UCASE_UNFOLD_STRING_WIDTH];
-    unfold += unfoldRowWidth;
+    const uint16_t *unfold=ucase_props_singleton.unfold;
+    unfoldRows=unfold[UCASE_UNFOLD_ROWS];
+    unfoldRowWidth=unfold[UCASE_UNFOLD_ROW_WIDTH];
+    unfoldStringWidth=unfold[UCASE_UNFOLD_STRING_WIDTH];
+    unfold+=unfoldRowWidth;
 
-    if (length > unfoldStringWidth) {
+    if(length>unfoldStringWidth) {
         /* the string is too long to find any match */
-        return FALSE;
+        return false;
     }
 
     /* do a binary search for the string */
-    start = 0;
-    limit = unfoldRows;
-    while (start < limit) {
-        i = (start + limit) / 2;
-        const UChar* p = reinterpret_cast<const UChar*>(unfold + (i * unfoldRowWidth));
-        result = strcmpMax(s, length, p, unfoldStringWidth);
+    start=0;
+    limit=unfoldRows;
+    while(start<limit) {
+        i=(start+limit)/2;
+        const char16_t *p=reinterpret_cast<const char16_t *>(unfold+(i*unfoldRowWidth));
+        result=strcmpMax(s, length, p, unfoldStringWidth);
 
-        if (result == 0) {
+        if(result==0) {
             /* found the string: add each code point, and its case closure */
             UChar32 c;
 
-            for (i = unfoldStringWidth; i < unfoldRowWidth && p[i] != 0;) {
+            for(i=unfoldStringWidth; i<unfoldRowWidth && p[i]!=0;) {
                 U16_NEXT_UNSAFE(p, i, c);
                 sa->add(sa->set, c);
                 ucase_addCaseClosure(c, sa);
             }
-            return TRUE;
-        } else if (result < 0) {
-            limit = i;
+            return true;
+        } else if(result<0) {
+            limit=i;
         } else /* result>0 */ {
-            start = i + 1;
+            start=i+1;
         }
     }
 
-    return FALSE; /* string not found */
+    return false; /* string not found */
 }
 
 U_NAMESPACE_BEGIN
 
 FullCaseFoldingIterator::FullCaseFoldingIterator()
-    : unfold(reinterpret_cast<const UChar*>(ucase_props_singleton.unfold))
-    , unfoldRows(unfold[UCASE_UNFOLD_ROWS])
-    , unfoldRowWidth(unfold[UCASE_UNFOLD_ROW_WIDTH])
-    , unfoldStringWidth(unfold[UCASE_UNFOLD_STRING_WIDTH])
-    , currentRow(0)
-    , rowCpIndex(unfoldStringWidth)
-{
-    unfold += unfoldRowWidth;
+        : unfold(reinterpret_cast<const char16_t *>(ucase_props_singleton.unfold)),
+          unfoldRows(unfold[UCASE_UNFOLD_ROWS]),
+          unfoldRowWidth(unfold[UCASE_UNFOLD_ROW_WIDTH]),
+          unfoldStringWidth(unfold[UCASE_UNFOLD_STRING_WIDTH]),
+          currentRow(0),
+          rowCpIndex(unfoldStringWidth) {
+    unfold+=unfoldRowWidth;
 }
 
-UChar32 FullCaseFoldingIterator::next(UnicodeString& full)
-{
+UChar32
+FullCaseFoldingIterator::next(UnicodeString &full) {
     // Advance past the last-delivered code point.
-    const UChar* p = unfold + (currentRow * unfoldRowWidth);
-    if (rowCpIndex >= unfoldRowWidth || p[rowCpIndex] == 0) {
+    const char16_t *p=unfold+(currentRow*unfoldRowWidth);
+    if(rowCpIndex>=unfoldRowWidth || p[rowCpIndex]==0) {
         ++currentRow;
-        p += unfoldRowWidth;
-        rowCpIndex = unfoldStringWidth;
+        p+=unfoldRowWidth;
+        rowCpIndex=unfoldStringWidth;
     }
-    if (currentRow >= unfoldRows) {
-        return U_SENTINEL;
-    }
+    if(currentRow>=unfoldRows) { return U_SENTINEL; }
     // Set "full" to the NUL-terminated string in the first unfold column.
-    int32_t length = unfoldStringWidth;
-    while (length > 0 && p[length - 1] == 0) {
-        --length;
-    }
-    full.setTo(FALSE, p, length);
+    int32_t length=unfoldStringWidth;
+    while(length>0 && p[length-1]==0) { --length; }
+    full.setTo(false, p, length);
     // Return the code point.
     UChar32 c;
     U16_NEXT_UNSAFE(p, rowCpIndex, c);
@@ -535,121 +536,177 @@ UChar32 FullCaseFoldingIterator::next(UnicodeString& full)
 
 namespace LatinCase {
 
-const int8_t TO_LOWER_NORMAL[LIMIT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+const int8_t TO_LOWER_NORMAL[LIMIT] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 32, 32, 32, 32, 32, 32, 32, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
+    32, 32, 32, 32, 32, 32, 32, 0, 32, 32, 32, 32, 32, 32, 32, EXC,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, EXC, 0, 1,
-    0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    EXC, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
 
-    0, 1, 0, 1, 0, 1, 0, 1, 0, EXC, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-    0, 1, 0, 1, 0, -121, 1, 0, 1, 0, 1, 0, EXC };
+    0, 1, 0, 1, 0, 1, 0, 1, 0, EXC, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, -121, 1, 0, 1, 0, 1, 0, EXC
+};
 
-const int8_t TO_LOWER_TR_LT[LIMIT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+const int8_t TO_LOWER_TR_LT[LIMIT] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 32, 32, 32, 32, 32, 32, 32, 32, EXC, EXC, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 32, 32, 32, 32, 32, 32, 32, 32, EXC, EXC, 32, 32, 32, 32, 32,
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, EXC, EXC, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 32, 32, 32, 32, 32, 32, 32, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, EXC, EXC, 32, 32,
+    32, 32, 32, 32, 32, 32, 32, 0, 32, 32, 32, 32, 32, 32, 32, EXC,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, EXC, 0, 1, 0, 1, 0, EXC, 0, EXC, 0,
-    1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, EXC, 0, 1, 0, 1, 0, EXC, 0,
+    EXC, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
 
-    0, 1, 0, 1, 0, 1, 0, 1, 0, EXC, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-    0, 1, 0, 1, 0, -121, 1, 0, 1, 0, 1, 0, EXC };
+    0, 1, 0, 1, 0, 1, 0, 1, 0, EXC, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, -121, 1, 0, 1, 0, 1, 0, EXC
+};
 
-const int8_t TO_UPPER_NORMAL[LIMIT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+const int8_t TO_UPPER_NORMAL[LIMIT] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,
-    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,
+    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, EXC, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,
-    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, 0, -32, -32, -32, -32, -32, -32, -32, 121,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, EXC,
+    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,
+    -32, -32, -32, -32, -32, -32, -32, 0, -32, -32, -32, -32, -32, -32, -32, 121,
 
-    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0,
-    -1, 0, -1, 0, EXC, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, 0,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, EXC, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, 0,
 
-    -1, 0, -1, 0, -1, 0, -1, 0, -1, EXC, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
-    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, EXC };
+    -1, 0, -1, 0, -1, 0, -1, 0, -1, EXC, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, EXC
+};
 
-const int8_t TO_UPPER_TR[LIMIT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+const int8_t TO_UPPER_TR[LIMIT] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -32, -32, -32, -32, -32, -32, -32, -32, EXC, -32, -32,
-    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, -32, -32, -32, -32, -32, -32, -32, -32, EXC, -32, -32, -32, -32, -32, -32,
+    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, EXC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, EXC, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,
-    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, 0, -32, -32, -32, -32, -32, -32, -32, 121,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, EXC,
+    -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,
+    -32, -32, -32, -32, -32, -32, -32, 0, -32, -32, -32, -32, -32, -32, -32, 121,
 
-    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0,
-    -1, 0, -1, 0, EXC, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, 0,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, EXC, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, 0,
 
-    -1, 0, -1, 0, -1, 0, -1, 0, -1, EXC, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
-    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, EXC };
+    -1, 0, -1, 0, -1, 0, -1, 0, -1, EXC, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,
+    0, -1, 0, -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, EXC
+};
 
-} // namespace LatinCase
+}  // namespace LatinCase
 
 U_NAMESPACE_END
 
 /** @return UCASE_NONE, UCASE_LOWER, UCASE_UPPER, UCASE_TITLE */
-U_CAPI int32_t U_EXPORT2 ucase_getType(UChar32 c)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
+U_CAPI int32_t U_EXPORT2
+ucase_getType(UChar32 c) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
     return UCASE_GET_TYPE(props);
 }
 
 /** @return same as ucase_getType() and set bit 2 if c is case-ignorable */
-U_CAPI int32_t U_EXPORT2 ucase_getTypeOrIgnorable(UChar32 c)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
+U_CAPI int32_t U_EXPORT2
+ucase_getTypeOrIgnorable(UChar32 c) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
     return UCASE_GET_TYPE_AND_IGNORABLE(props);
 }
 
 /** @return UCASE_NO_DOT, UCASE_SOFT_DOTTED, UCASE_ABOVE, UCASE_OTHER_ACCENT */
-static inline int32_t getDotType(UChar32 c)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        return props & UCASE_DOT_MASK;
+static inline int32_t
+getDotType(UChar32 c) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        return props&UCASE_DOT_MASK;
     } else {
-        const uint16_t* pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        return (*pe >> UCASE_EXC_DOT_SHIFT) & UCASE_DOT_MASK;
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        return (*pe>>UCASE_EXC_DOT_SHIFT)&UCASE_DOT_MASK;
     }
 }
 
-U_CAPI UBool U_EXPORT2 ucase_isSoftDotted(UChar32 c)
-{
-    return (UBool)(getDotType(c) == UCASE_SOFT_DOTTED);
+U_CAPI UBool U_EXPORT2
+ucase_isSoftDotted(UChar32 c) {
+    return (UBool)(getDotType(c)==UCASE_SOFT_DOTTED);
 }
 
-U_CAPI UBool U_EXPORT2 ucase_isCaseSensitive(UChar32 c)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        return (UBool)((props & UCASE_SENSITIVE) != 0);
+U_CAPI UBool U_EXPORT2
+ucase_isCaseSensitive(UChar32 c) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        return (UBool)((props&UCASE_SENSITIVE)!=0);
     } else {
-        const uint16_t* pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        return (UBool)((*pe & UCASE_EXC_SENSITIVE) != 0);
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        return (UBool)((*pe&UCASE_EXC_SENSITIVE)!=0);
     }
 }
 
@@ -733,26 +790,26 @@ U_CAPI UBool U_EXPORT2 ucase_isCaseSensitive(UChar32 c)
  *     zero or more case-ignorable characters.
  */
 
-#define is_d(c) ((c) == 'd' || (c) == 'D')
-#define is_e(c) ((c) == 'e' || (c) == 'E')
-#define is_i(c) ((c) == 'i' || (c) == 'I')
-#define is_l(c) ((c) == 'l' || (c) == 'L')
-#define is_r(c) ((c) == 'r' || (c) == 'R')
-#define is_t(c) ((c) == 't' || (c) == 'T')
-#define is_u(c) ((c) == 'u' || (c) == 'U')
-#define is_y(c) ((c) == 'y' || (c) == 'Y')
-#define is_z(c) ((c) == 'z' || (c) == 'Z')
+#define is_d(c) ((c)=='d' || (c)=='D')
+#define is_e(c) ((c)=='e' || (c)=='E')
+#define is_i(c) ((c)=='i' || (c)=='I')
+#define is_l(c) ((c)=='l' || (c)=='L')
+#define is_r(c) ((c)=='r' || (c)=='R')
+#define is_t(c) ((c)=='t' || (c)=='T')
+#define is_u(c) ((c)=='u' || (c)=='U')
+#define is_y(c) ((c)=='y' || (c)=='Y')
+#define is_z(c) ((c)=='z' || (c)=='Z')
 
 /* separator? */
-#define is_sep(c) ((c) == '_' || (c) == '-' || (c) == 0)
+#define is_sep(c) ((c)=='_' || (c)=='-' || (c)==0)
 
 /**
- * Requires non-NULL locale ID but otherwise does the equivalent of
+ * Requires non-nullptr locale ID but otherwise does the equivalent of
  * checking for language codes as if uloc_getLanguage() were called:
  * Accepts both 2- and 3-letter codes and accepts case variants.
  */
-U_CFUNC int32_t ucase_getCaseLocale(const char* locale)
-{
+U_CFUNC int32_t
+ucase_getCaseLocale(const char *locale) {
     /*
      * This function used to use uloc_getLanguage(), but the current code
      * removes the dependency of this low-level code on uloc implementation code
@@ -760,93 +817,93 @@ U_CFUNC int32_t ucase_getCaseLocale(const char* locale)
      * examined and copied/transformed.
      *
      * Because this code does not want to depend on uloc, the caller must
-     * pass in a non-NULL locale, i.e., may need to call uloc_getDefault().
+     * pass in a non-nullptr locale, i.e., may need to call uloc_getDefault().
      */
-    char c = *locale++;
+    char c=*locale++;
     // Fastpath for English "en" which is often used for default (=root locale) case mappings,
     // and for Chinese "zh": Very common but no special case mapping behavior.
     // Then check lowercase vs. uppercase to reduce the number of comparisons
     // for other locales without special behavior.
-    if (c == 'e') {
+    if(c=='e') {
         /* el or ell? */
-        c = *locale++;
-        if (is_l(c)) {
-            c = *locale++;
-            if (is_l(c)) {
-                c = *locale;
+        c=*locale++;
+        if(is_l(c)) {
+            c=*locale++;
+            if(is_l(c)) {
+                c=*locale;
             }
-            if (is_sep(c)) {
+            if(is_sep(c)) {
                 return UCASE_LOC_GREEK;
             }
         }
         // en, es, ... -> root
-    } else if (c == 'z') {
+    } else if(c=='z') {
         return UCASE_LOC_ROOT;
-#if U_CHARSET_FAMILY == U_ASCII_FAMILY
-    } else if (c >= 'a') { // ASCII a-z = 0x61..0x7a, after A-Z
-#elif U_CHARSET_FAMILY == U_EBCDIC_FAMILY
-    } else if (c <= 'z') { // EBCDIC a-z = 0x81..0xa9 with two gaps, before A-Z
+#if U_CHARSET_FAMILY==U_ASCII_FAMILY
+    } else if(c>='a') {  // ASCII a-z = 0x61..0x7a, after A-Z
+#elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
+    } else if(c<='z') {  // EBCDIC a-z = 0x81..0xa9 with two gaps, before A-Z
 #else
-#error Unknown charset family!
+#   error Unknown charset family!
 #endif
         // lowercase c
-        if (c == 't') {
+        if(c=='t') {
             /* tr or tur? */
-            c = *locale++;
-            if (is_u(c)) {
-                c = *locale++;
+            c=*locale++;
+            if(is_u(c)) {
+                c=*locale++;
             }
-            if (is_r(c)) {
-                c = *locale;
-                if (is_sep(c)) {
+            if(is_r(c)) {
+                c=*locale;
+                if(is_sep(c)) {
                     return UCASE_LOC_TURKISH;
                 }
             }
-        } else if (c == 'a') {
+        } else if(c=='a') {
             /* az or aze? */
-            c = *locale++;
-            if (is_z(c)) {
-                c = *locale++;
-                if (is_e(c)) {
-                    c = *locale;
+            c=*locale++;
+            if(is_z(c)) {
+                c=*locale++;
+                if(is_e(c)) {
+                    c=*locale;
                 }
-                if (is_sep(c)) {
+                if(is_sep(c)) {
                     return UCASE_LOC_TURKISH;
                 }
             }
-        } else if (c == 'l') {
+        } else if(c=='l') {
             /* lt or lit? */
-            c = *locale++;
-            if (is_i(c)) {
-                c = *locale++;
+            c=*locale++;
+            if(is_i(c)) {
+                c=*locale++;
             }
-            if (is_t(c)) {
-                c = *locale;
-                if (is_sep(c)) {
+            if(is_t(c)) {
+                c=*locale;
+                if(is_sep(c)) {
                     return UCASE_LOC_LITHUANIAN;
                 }
             }
-        } else if (c == 'n') {
+        } else if(c=='n') {
             /* nl or nld? */
-            c = *locale++;
-            if (is_l(c)) {
-                c = *locale++;
-                if (is_d(c)) {
-                    c = *locale;
+            c=*locale++;
+            if(is_l(c)) {
+                c=*locale++;
+                if(is_d(c)) {
+                    c=*locale;
                 }
-                if (is_sep(c)) {
+                if(is_sep(c)) {
                     return UCASE_LOC_DUTCH;
                 }
             }
-        } else if (c == 'h') {
+        } else if(c=='h') {
             /* hy or hye? *not* hyw */
-            c = *locale++;
-            if (is_y(c)) {
-                c = *locale++;
-                if (is_e(c)) {
-                    c = *locale;
+            c=*locale++;
+            if(is_y(c)) {
+                c=*locale++;
+                if(is_e(c)) {
+                    c=*locale;
                 }
-                if (is_sep(c)) {
+                if(is_sep(c)) {
                     return UCASE_LOC_ARMENIAN;
                 }
             }
@@ -854,75 +911,75 @@ U_CFUNC int32_t ucase_getCaseLocale(const char* locale)
     } else {
         // uppercase c
         // Same code as for lowercase c but also check for 'E'.
-        if (c == 'T') {
+        if(c=='T') {
             /* tr or tur? */
-            c = *locale++;
-            if (is_u(c)) {
-                c = *locale++;
+            c=*locale++;
+            if(is_u(c)) {
+                c=*locale++;
             }
-            if (is_r(c)) {
-                c = *locale;
-                if (is_sep(c)) {
+            if(is_r(c)) {
+                c=*locale;
+                if(is_sep(c)) {
                     return UCASE_LOC_TURKISH;
                 }
             }
-        } else if (c == 'A') {
+        } else if(c=='A') {
             /* az or aze? */
-            c = *locale++;
-            if (is_z(c)) {
-                c = *locale++;
-                if (is_e(c)) {
-                    c = *locale;
+            c=*locale++;
+            if(is_z(c)) {
+                c=*locale++;
+                if(is_e(c)) {
+                    c=*locale;
                 }
-                if (is_sep(c)) {
+                if(is_sep(c)) {
                     return UCASE_LOC_TURKISH;
                 }
             }
-        } else if (c == 'L') {
+        } else if(c=='L') {
             /* lt or lit? */
-            c = *locale++;
-            if (is_i(c)) {
-                c = *locale++;
+            c=*locale++;
+            if(is_i(c)) {
+                c=*locale++;
             }
-            if (is_t(c)) {
-                c = *locale;
-                if (is_sep(c)) {
+            if(is_t(c)) {
+                c=*locale;
+                if(is_sep(c)) {
                     return UCASE_LOC_LITHUANIAN;
                 }
             }
-        } else if (c == 'E') {
+        } else if(c=='E') {
             /* el or ell? */
-            c = *locale++;
-            if (is_l(c)) {
-                c = *locale++;
-                if (is_l(c)) {
-                    c = *locale;
+            c=*locale++;
+            if(is_l(c)) {
+                c=*locale++;
+                if(is_l(c)) {
+                    c=*locale;
                 }
-                if (is_sep(c)) {
+                if(is_sep(c)) {
                     return UCASE_LOC_GREEK;
                 }
             }
-        } else if (c == 'N') {
+        } else if(c=='N') {
             /* nl or nld? */
-            c = *locale++;
-            if (is_l(c)) {
-                c = *locale++;
-                if (is_d(c)) {
-                    c = *locale;
+            c=*locale++;
+            if(is_l(c)) {
+                c=*locale++;
+                if(is_d(c)) {
+                    c=*locale;
                 }
-                if (is_sep(c)) {
+                if(is_sep(c)) {
                     return UCASE_LOC_DUTCH;
                 }
             }
-        } else if (c == 'H') {
+        } else if(c=='H') {
             /* hy or hye? *not* hyw */
-            c = *locale++;
-            if (is_y(c)) {
-                c = *locale++;
-                if (is_e(c)) {
-                    c = *locale;
+            c=*locale++;
+            if(is_y(c)) {
+                c=*locale++;
+                if(is_e(c)) {
+                    c=*locale;
                 }
-                if (is_sep(c)) {
+                if(is_sep(c)) {
                     return UCASE_LOC_ARMENIAN;
                 }
             }
@@ -939,49 +996,49 @@ U_CFUNC int32_t ucase_getCaseLocale(const char* locale)
  * If a character is case-ignorable, it is skipped regardless of whether
  * it is also cased or not.
  */
-static UBool isFollowedByCasedLetter(UCaseContextIterator* iter, void* context, int8_t dir)
-{
+static UBool
+isFollowedByCasedLetter(UCaseContextIterator *iter, void *context, int8_t dir) {
     UChar32 c;
 
-    if (iter == NULL) {
-        return FALSE;
+    if(iter==nullptr) {
+        return false;
     }
 
-    for (/* dir!=0 sets direction */; (c = iter(context, dir)) >= 0; dir = 0) {
-        int32_t type = ucase_getTypeOrIgnorable(c);
-        if (type & 4) {
+    for(/* dir!=0 sets direction */; (c=iter(context, dir))>=0; dir=0) {
+        int32_t type=ucase_getTypeOrIgnorable(c);
+        if(type&4) {
             /* case-ignorable, continue with the loop */
-        } else if (type != UCASE_NONE) {
-            return TRUE; /* followed by cased letter */
+        } else if(type!=UCASE_NONE) {
+            return true; /* followed by cased letter */
         } else {
-            return FALSE; /* uncased and not case-ignorable */
+            return false; /* uncased and not case-ignorable */
         }
     }
 
-    return FALSE; /* not followed by cased letter */
+    return false; /* not followed by cased letter */
 }
 
 /* Is preceded by Soft_Dotted character with no intervening cc=230 ? */
-static UBool isPrecededBySoftDotted(UCaseContextIterator* iter, void* context)
-{
+static UBool
+isPrecededBySoftDotted(UCaseContextIterator *iter, void *context) {
     UChar32 c;
     int32_t dotType;
     int8_t dir;
 
-    if (iter == NULL) {
-        return FALSE;
+    if(iter==nullptr) {
+        return false;
     }
 
-    for (dir = -1; (c = iter(context, dir)) >= 0; dir = 0) {
-        dotType = getDotType(c);
-        if (dotType == UCASE_SOFT_DOTTED) {
-            return TRUE; /* preceded by TYPE_i */
-        } else if (dotType != UCASE_OTHER_ACCENT) {
-            return FALSE; /* preceded by different base character (not TYPE_i), or intervening cc==230 */
+    for(dir=-1; (c=iter(context, dir))>=0; dir=0) {
+        dotType=getDotType(c);
+        if(dotType==UCASE_SOFT_DOTTED) {
+            return true; /* preceded by TYPE_i */
+        } else if(dotType!=UCASE_OTHER_ACCENT) {
+            return false; /* preceded by different base character (not TYPE_i), or intervening cc==230 */
         }
     }
 
-    return FALSE; /* not preceded by TYPE_i */
+    return false; /* not preceded by TYPE_i */
 }
 
 /*
@@ -1019,96 +1076,99 @@ static UBool isPrecededBySoftDotted(UCaseContextIterator* iter, void* context)
  */
 
 /* Is preceded by base character 'I' with no intervening cc=230 ? */
-static UBool isPrecededBy_I(UCaseContextIterator* iter, void* context)
-{
+static UBool
+isPrecededBy_I(UCaseContextIterator *iter, void *context) {
     UChar32 c;
     int32_t dotType;
     int8_t dir;
 
-    if (iter == NULL) {
-        return FALSE;
+    if(iter==nullptr) {
+        return false;
     }
 
-    for (dir = -1; (c = iter(context, dir)) >= 0; dir = 0) {
-        if (c == 0x49) {
-            return TRUE; /* preceded by I */
+    for(dir=-1; (c=iter(context, dir))>=0; dir=0) {
+        if(c==0x49) {
+            return true; /* preceded by I */
         }
-        dotType = getDotType(c);
-        if (dotType != UCASE_OTHER_ACCENT) {
-            return FALSE; /* preceded by different base character (not I), or intervening cc==230 */
+        dotType=getDotType(c);
+        if(dotType!=UCASE_OTHER_ACCENT) {
+            return false; /* preceded by different base character (not I), or intervening cc==230 */
         }
     }
 
-    return FALSE; /* not preceded by I */
+    return false; /* not preceded by I */
 }
 
 /* Is followed by one or more cc==230 ? */
-static UBool isFollowedByMoreAbove(UCaseContextIterator* iter, void* context)
-{
+static UBool
+isFollowedByMoreAbove(UCaseContextIterator *iter, void *context) {
     UChar32 c;
     int32_t dotType;
     int8_t dir;
 
-    if (iter == NULL) {
-        return FALSE;
+    if(iter==nullptr) {
+        return false;
     }
 
-    for (dir = 1; (c = iter(context, dir)) >= 0; dir = 0) {
-        dotType = getDotType(c);
-        if (dotType == UCASE_ABOVE) {
-            return TRUE; /* at least one cc==230 following */
-        } else if (dotType != UCASE_OTHER_ACCENT) {
-            return FALSE; /* next base character, no more cc==230 following */
+    for(dir=1; (c=iter(context, dir))>=0; dir=0) {
+        dotType=getDotType(c);
+        if(dotType==UCASE_ABOVE) {
+            return true; /* at least one cc==230 following */
+        } else if(dotType!=UCASE_OTHER_ACCENT) {
+            return false; /* next base character, no more cc==230 following */
         }
     }
 
-    return FALSE; /* no more cc==230 following */
+    return false; /* no more cc==230 following */
 }
 
 /* Is followed by a dot above (without cc==230 in between) ? */
-static UBool isFollowedByDotAbove(UCaseContextIterator* iter, void* context)
-{
+static UBool
+isFollowedByDotAbove(UCaseContextIterator *iter, void *context) {
     UChar32 c;
     int32_t dotType;
     int8_t dir;
 
-    if (iter == NULL) {
-        return FALSE;
+    if(iter==nullptr) {
+        return false;
     }
 
-    for (dir = 1; (c = iter(context, dir)) >= 0; dir = 0) {
-        if (c == 0x307) {
-            return TRUE;
+    for(dir=1; (c=iter(context, dir))>=0; dir=0) {
+        if(c==0x307) {
+            return true;
         }
-        dotType = getDotType(c);
-        if (dotType != UCASE_OTHER_ACCENT) {
-            return FALSE; /* next base character or cc==230 in between */
+        dotType=getDotType(c);
+        if(dotType!=UCASE_OTHER_ACCENT) {
+            return false; /* next base character or cc==230 in between */
         }
     }
 
-    return FALSE; /* no dot above following */
+    return false; /* no dot above following */
 }
 
-U_CAPI int32_t U_EXPORT2 ucase_toFullLower(UChar32 c, UCaseContextIterator* iter, void* context, const UChar** pString, int32_t loc)
-{
+U_CAPI int32_t U_EXPORT2
+ucase_toFullLower(UChar32 c,
+                  UCaseContextIterator *iter, void *context,
+                  const char16_t **pString,
+                  int32_t loc) {
     // The sign of the result has meaning, input must be non-negative so that it can be returned as is.
     U_ASSERT(c >= 0);
-    UChar32 result = c;
+    UChar32 result=c;
     // Reset the output pointer in case it was uninitialized.
-    *pString = nullptr;
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_IS_UPPER_OR_TITLE(props)) {
-            result = c + UCASE_GET_DELTA(props);
+    *pString=nullptr;
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_IS_UPPER_OR_TITLE(props)) {
+            result=c+UCASE_GET_DELTA(props);
         }
     } else {
-        const uint16_t *pe = GET_EXCEPTIONS(&ucase_props_singleton, props), *pe2;
-        uint16_t excWord = *pe++;
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props), *pe2;
+        uint16_t excWord=*pe++;
         int32_t full;
 
-        pe2 = pe;
+        pe2=pe;
 
-        if (excWord & UCASE_EXC_CONDITIONAL_SPECIAL) {
+        if(excWord&UCASE_EXC_CONDITIONAL_SPECIAL) {
             /* use hardcoded conditions and mappings */
 
             /*
@@ -1117,11 +1177,13 @@ U_CAPI int32_t U_EXPORT2 ucase_toFullLower(UChar32 c, UCaseContextIterator* iter
              * then test for characters that have unconditional mappings in SpecialCasing.txt,
              * then get the UnicodeData.txt mappings.
              */
-            if (loc == UCASE_LOC_LITHUANIAN &&
-                /* base characters, find accents above */
-                (((c == 0x49 || c == 0x4a || c == 0x12e) && isFollowedByMoreAbove(iter, context)) ||
+            if( loc==UCASE_LOC_LITHUANIAN &&
+                    /* base characters, find accents above */
+                    (((c==0x49 || c==0x4a || c==0x12e) &&
+                        isFollowedByMoreAbove(iter, context)) ||
                     /* precomposed with accent above, no need to find one */
-                    (c == 0xcc || c == 0xcd || c == 0x128))) {
+                    (c==0xcc || c==0xcd || c==0x128))
+            ) {
                 /*
                     # Lithuanian
 
@@ -1138,30 +1200,30 @@ U_CAPI int32_t U_EXPORT2 ucase_toFullLower(UChar32 c, UCaseContextIterator* iter
                     00CD; 0069 0307 0301; 00CD; 00CD; lt; # LATIN CAPITAL LETTER I WITH ACUTE
                     0128; 0069 0307 0303; 0128; 0128; lt; # LATIN CAPITAL LETTER I WITH TILDE
                  */
-                switch (c) {
-                case 0x49: /* LATIN CAPITAL LETTER I */
-                    *pString = iDot;
+                switch(c) {
+                case 0x49:  /* LATIN CAPITAL LETTER I */
+                    *pString=iDot;
                     return 2;
-                case 0x4a: /* LATIN CAPITAL LETTER J */
-                    *pString = jDot;
+                case 0x4a:  /* LATIN CAPITAL LETTER J */
+                    *pString=jDot;
                     return 2;
                 case 0x12e: /* LATIN CAPITAL LETTER I WITH OGONEK */
-                    *pString = iOgonekDot;
+                    *pString=iOgonekDot;
                     return 2;
-                case 0xcc: /* LATIN CAPITAL LETTER I WITH GRAVE */
-                    *pString = iDotGrave;
+                case 0xcc:  /* LATIN CAPITAL LETTER I WITH GRAVE */
+                    *pString=iDotGrave;
                     return 3;
-                case 0xcd: /* LATIN CAPITAL LETTER I WITH ACUTE */
-                    *pString = iDotAcute;
+                case 0xcd:  /* LATIN CAPITAL LETTER I WITH ACUTE */
+                    *pString=iDotAcute;
                     return 3;
                 case 0x128: /* LATIN CAPITAL LETTER I WITH TILDE */
-                    *pString = iDotTilde;
+                    *pString=iDotTilde;
                     return 3;
                 default:
                     return 0; /* will not occur */
                 }
-                /* # Turkish and Azeri */
-            } else if (loc == UCASE_LOC_TURKISH && c == 0x130) {
+            /* # Turkish and Azeri */
+            } else if(loc==UCASE_LOC_TURKISH && c==0x130) {
                 /*
                     # I and i-dotless; I-dot and i are case pairs in Turkish and Azeri
                     # The following rules handle those cases.
@@ -1170,7 +1232,7 @@ U_CAPI int32_t U_EXPORT2 ucase_toFullLower(UChar32 c, UCaseContextIterator* iter
                     0130; 0069; 0130; 0130; az # LATIN CAPITAL LETTER I WITH DOT ABOVE
                  */
                 return 0x69;
-            } else if (loc == UCASE_LOC_TURKISH && c == 0x307 && isPrecededBy_I(iter, context)) {
+            } else if(loc==UCASE_LOC_TURKISH && c==0x307 && isPrecededBy_I(iter, context)) {
                 /*
                     # When lowercasing, remove dot_above in the sequence I + dot_above, which will turn into i.
                     # This matches the behavior of the canonically equivalent I-dot_above
@@ -1179,7 +1241,7 @@ U_CAPI int32_t U_EXPORT2 ucase_toFullLower(UChar32 c, UCaseContextIterator* iter
                     0307; ; 0307; 0307; az After_I; # COMBINING DOT ABOVE
                  */
                 return 0; /* remove the dot (continue without output) */
-            } else if (loc == UCASE_LOC_TURKISH && c == 0x49 && !isFollowedByDotAbove(iter, context)) {
+            } else if(loc==UCASE_LOC_TURKISH && c==0x49 && !isFollowedByDotAbove(iter, context)) {
                 /*
                     # When lowercasing, unless an I is before a dot_above, it turns into a dotless i.
 
@@ -1187,15 +1249,17 @@ U_CAPI int32_t U_EXPORT2 ucase_toFullLower(UChar32 c, UCaseContextIterator* iter
                     0049; 0131; 0049; 0049; az Not_Before_Dot; # LATIN CAPITAL LETTER I
                  */
                 return 0x131;
-            } else if (c == 0x130) {
+            } else if(c==0x130) {
                 /*
                     # Preserve canonical equivalence for I with dot. Turkic is handled below.
 
                     0130; 0069 0307; 0130; 0130; # LATIN CAPITAL LETTER I WITH DOT ABOVE
                  */
-                *pString = iDot;
+                *pString=iDot;
                 return 2;
-            } else if (c == 0x3a3 && !isFollowedByCasedLetter(iter, context, 1) && isFollowedByCasedLetter(iter, context, -1) /* -1=preceded */
+            } else if(  c==0x3a3 &&
+                        !isFollowedByCasedLetter(iter, context, 1) &&
+                        isFollowedByCasedLetter(iter, context, -1) /* -1=preceded */
             ) {
                 /* greek capital sigma maps depending on surrounding cased letters (see SpecialCasing.txt) */
                 /*
@@ -1207,54 +1271,58 @@ U_CAPI int32_t U_EXPORT2 ucase_toFullLower(UChar32 c, UCaseContextIterator* iter
             } else {
                 /* no known conditional special case mapping, use a normal mapping */
             }
-        } else if (HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
+        } else if(HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
             GET_SLOT_VALUE(excWord, UCASE_EXC_FULL_MAPPINGS, pe, full);
-            full &= UCASE_FULL_LOWER;
-            if (full != 0) {
+            full&=UCASE_FULL_LOWER;
+            if(full!=0) {
                 /* set the output pointer to the lowercase mapping */
-                *pString = reinterpret_cast<const UChar*>(pe + 1);
+                *pString=reinterpret_cast<const char16_t *>(pe+1);
 
                 /* return the string length */
                 return full;
             }
         }
 
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe2, delta);
-            return (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            return (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
+        if(HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
             GET_SLOT_VALUE(excWord, UCASE_EXC_LOWER, pe2, result);
         }
     }
 
-    return (result == c) ? ~result : result;
+    return (result==c) ? ~result : result;
 }
 
 /* internal */
-static int32_t toUpperOrTitle(UChar32 c, UCaseContextIterator* iter, void* context, const UChar** pString, int32_t loc, UBool upperNotTitle)
-{
+static int32_t
+toUpperOrTitle(UChar32 c,
+               UCaseContextIterator *iter, void *context,
+               const char16_t **pString,
+               int32_t loc,
+               UBool upperNotTitle) {
     // The sign of the result has meaning, input must be non-negative so that it can be returned as is.
     U_ASSERT(c >= 0);
-    UChar32 result = c;
+    UChar32 result=c;
     // Reset the output pointer in case it was uninitialized.
-    *pString = nullptr;
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_GET_TYPE(props) == UCASE_LOWER) {
-            result = c + UCASE_GET_DELTA(props);
+    *pString=nullptr;
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_GET_TYPE(props)==UCASE_LOWER) {
+            result=c+UCASE_GET_DELTA(props);
         }
     } else {
-        const uint16_t *pe = GET_EXCEPTIONS(&ucase_props_singleton, props), *pe2;
-        uint16_t excWord = *pe++;
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props), *pe2;
+        uint16_t excWord=*pe++;
         int32_t full, idx;
 
-        pe2 = pe;
+        pe2=pe;
 
-        if (excWord & UCASE_EXC_CONDITIONAL_SPECIAL) {
+        if(excWord&UCASE_EXC_CONDITIONAL_SPECIAL) {
             /* use hardcoded conditions and mappings */
-            if (loc == UCASE_LOC_TURKISH && c == 0x69) {
+            if(loc==UCASE_LOC_TURKISH && c==0x69) {
                 /*
                     # Turkish and Azeri
 
@@ -1267,7 +1335,7 @@ static int32_t toUpperOrTitle(UChar32 c, UCaseContextIterator* iter, void* conte
                     0069; 0069; 0130; 0130; az; # LATIN SMALL LETTER I
                 */
                 return 0x130;
-            } else if (loc == UCASE_LOC_LITHUANIAN && c == 0x307 && isPrecededBySoftDotted(iter, context)) {
+            } else if(loc==UCASE_LOC_LITHUANIAN && c==0x307 && isPrecededBySoftDotted(iter, context)) {
                 /*
                     # Lithuanian
 
@@ -1278,76 +1346,82 @@ static int32_t toUpperOrTitle(UChar32 c, UCaseContextIterator* iter, void* conte
                     0307; 0307; ; ; lt After_Soft_Dotted; # COMBINING DOT ABOVE
                  */
                 return 0; /* remove the dot (continue without output) */
-            } else if (c == 0x0587) {
+            } else if(c==0x0587) {
                 // See ICU-13416:
                 // և ligature ech-yiwn
                 // uppercases to ԵՒ=ech+yiwn by default and in Western Armenian,
                 // but to ԵՎ=ech+vew in Eastern Armenian.
-                if (loc == UCASE_LOC_ARMENIAN) {
-                    *pString = upperNotTitle ? u"ԵՎ" : u"Եվ";
+                if(loc==UCASE_LOC_ARMENIAN) {
+                    *pString=upperNotTitle ? u"ԵՎ" : u"Եվ";
                 } else {
-                    *pString = upperNotTitle ? u"ԵՒ" : u"Եւ";
+                    *pString=upperNotTitle ? u"ԵՒ" : u"Եւ";
                 }
                 return 2;
             } else {
                 /* no known conditional special case mapping, use a normal mapping */
             }
-        } else if (HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
+        } else if(HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
             GET_SLOT_VALUE(excWord, UCASE_EXC_FULL_MAPPINGS, pe, full);
 
             /* start of full case mapping strings */
             ++pe;
 
             /* skip the lowercase and case-folding result strings */
-            pe += full & UCASE_FULL_LOWER;
-            full >>= 4;
-            pe += full & 0xf;
-            full >>= 4;
+            pe+=full&UCASE_FULL_LOWER;
+            full>>=4;
+            pe+=full&0xf;
+            full>>=4;
 
-            if (upperNotTitle) {
-                full &= 0xf;
+            if(upperNotTitle) {
+                full&=0xf;
             } else {
                 /* skip the uppercase result string */
-                pe += full & 0xf;
-                full = (full >> 4) & 0xf;
+                pe+=full&0xf;
+                full=(full>>4)&0xf;
             }
 
-            if (full != 0) {
+            if(full!=0) {
                 /* set the output pointer to the result string */
-                *pString = reinterpret_cast<const UChar*>(pe);
+                *pString=reinterpret_cast<const char16_t *>(pe);
 
                 /* return the string length */
                 return full;
             }
         }
 
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_GET_TYPE(props) == UCASE_LOWER) {
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_GET_TYPE(props)==UCASE_LOWER) {
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe2, delta);
-            return (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            return (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
         }
-        if (!upperNotTitle && HAS_SLOT(excWord, UCASE_EXC_TITLE)) {
-            idx = UCASE_EXC_TITLE;
-        } else if (HAS_SLOT(excWord, UCASE_EXC_UPPER)) {
+        if(!upperNotTitle && HAS_SLOT(excWord, UCASE_EXC_TITLE)) {
+            idx=UCASE_EXC_TITLE;
+        } else if(HAS_SLOT(excWord, UCASE_EXC_UPPER)) {
             /* here, titlecase is same as uppercase */
-            idx = UCASE_EXC_UPPER;
+            idx=UCASE_EXC_UPPER;
         } else {
             return ~c;
         }
         GET_SLOT_VALUE(excWord, idx, pe2, result);
     }
 
-    return (result == c) ? ~result : result;
+    return (result==c) ? ~result : result;
 }
 
-U_CAPI int32_t U_EXPORT2 ucase_toFullUpper(UChar32 c, UCaseContextIterator* iter, void* context, const UChar** pString, int32_t caseLocale)
-{
-    return toUpperOrTitle(c, iter, context, pString, caseLocale, TRUE);
+U_CAPI int32_t U_EXPORT2
+ucase_toFullUpper(UChar32 c,
+                  UCaseContextIterator *iter, void *context,
+                  const char16_t **pString,
+                  int32_t caseLocale) {
+    return toUpperOrTitle(c, iter, context, pString, caseLocale, true);
 }
 
-U_CAPI int32_t U_EXPORT2 ucase_toFullTitle(UChar32 c, UCaseContextIterator* iter, void* context, const UChar** pString, int32_t caseLocale)
-{
-    return toUpperOrTitle(c, iter, context, pString, caseLocale, FALSE);
+U_CAPI int32_t U_EXPORT2
+ucase_toFullTitle(UChar32 c,
+                  UCaseContextIterator *iter, void *context,
+                  const char16_t **pString,
+                  int32_t caseLocale) {
+    return toUpperOrTitle(c, iter, context, pString, caseLocale, false);
 }
 
 /* case folding ------------------------------------------------------------- */
@@ -1392,51 +1466,51 @@ U_CAPI int32_t U_EXPORT2 ucase_toFullTitle(UChar32 c, UCaseContextIterator* iter
  */
 
 /* return the simple case folding mapping for c */
-U_CAPI UChar32 U_EXPORT2 ucase_fold(UChar32 c, uint32_t options)
-{
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_IS_UPPER_OR_TITLE(props)) {
-            c += UCASE_GET_DELTA(props);
+U_CAPI UChar32 U_EXPORT2
+ucase_fold(UChar32 c, uint32_t options) {
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_IS_UPPER_OR_TITLE(props)) {
+            c+=UCASE_GET_DELTA(props);
         }
     } else {
-        const uint16_t* pe = GET_EXCEPTIONS(&ucase_props_singleton, props);
-        uint16_t excWord = *pe++;
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props);
+        uint16_t excWord=*pe++;
         int32_t idx;
-        if (excWord & UCASE_EXC_CONDITIONAL_FOLD) {
+        if(excWord&UCASE_EXC_CONDITIONAL_FOLD) {
             /* special case folding mappings, hardcoded */
-            if ((options & _FOLD_CASE_OPTIONS_MASK) == U_FOLD_CASE_DEFAULT) {
+            if((options&_FOLD_CASE_OPTIONS_MASK)==U_FOLD_CASE_DEFAULT) {
                 /* default mappings */
-                if (c == 0x49) {
+                if(c==0x49) {
                     /* 0049; C; 0069; # LATIN CAPITAL LETTER I */
                     return 0x69;
-                } else if (c == 0x130) {
+                } else if(c==0x130) {
                     /* no simple case folding for U+0130 */
                     return c;
                 }
             } else {
                 /* Turkic mappings */
-                if (c == 0x49) {
+                if(c==0x49) {
                     /* 0049; T; 0131; # LATIN CAPITAL LETTER I */
                     return 0x131;
-                } else if (c == 0x130) {
+                } else if(c==0x130) {
                     /* 0130; T; 0069; # LATIN CAPITAL LETTER I WITH DOT ABOVE */
                     return 0x69;
                 }
             }
         }
-        if ((excWord & UCASE_EXC_NO_SIMPLE_CASE_FOLDING) != 0) {
+        if((excWord&UCASE_EXC_NO_SIMPLE_CASE_FOLDING)!=0) {
             return c;
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe, delta);
-            return (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            return (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_FOLD)) {
-            idx = UCASE_EXC_FOLD;
-        } else if (HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
-            idx = UCASE_EXC_LOWER;
+        if(HAS_SLOT(excWord, UCASE_EXC_FOLD)) {
+            idx=UCASE_EXC_FOLD;
+        } else if(HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
+            idx=UCASE_EXC_LOWER;
         } else {
             return c;
         }
@@ -1460,142 +1534,144 @@ U_CAPI UChar32 U_EXPORT2 ucase_fold(UChar32 c, uint32_t options)
  * together in a way that they still fold to common result strings.
  */
 
-U_CAPI int32_t U_EXPORT2 ucase_toFullFolding(UChar32 c, const UChar** pString, uint32_t options)
-{
+U_CAPI int32_t U_EXPORT2
+ucase_toFullFolding(UChar32 c,
+                    const char16_t **pString,
+                    uint32_t options) {
     // The sign of the result has meaning, input must be non-negative so that it can be returned as is.
     U_ASSERT(c >= 0);
-    UChar32 result = c;
+    UChar32 result=c;
     // Reset the output pointer in case it was uninitialized.
-    *pString = nullptr;
-    uint16_t props = UTRIE2_GET16(&ucase_props_singleton.trie, c);
-    if (!UCASE_HAS_EXCEPTION(props)) {
-        if (UCASE_IS_UPPER_OR_TITLE(props)) {
-            result = c + UCASE_GET_DELTA(props);
+    *pString=nullptr;
+    uint16_t props=UTRIE2_GET16(&ucase_props_singleton.trie, c);
+    if(!UCASE_HAS_EXCEPTION(props)) {
+        if(UCASE_IS_UPPER_OR_TITLE(props)) {
+            result=c+UCASE_GET_DELTA(props);
         }
     } else {
-        const uint16_t *pe = GET_EXCEPTIONS(&ucase_props_singleton, props), *pe2;
-        uint16_t excWord = *pe++;
+        const uint16_t *pe=GET_EXCEPTIONS(&ucase_props_singleton, props), *pe2;
+        uint16_t excWord=*pe++;
         int32_t full, idx;
 
-        pe2 = pe;
+        pe2=pe;
 
-        if (excWord & UCASE_EXC_CONDITIONAL_FOLD) {
+        if(excWord&UCASE_EXC_CONDITIONAL_FOLD) {
             /* use hardcoded conditions and mappings */
-            if ((options & _FOLD_CASE_OPTIONS_MASK) == U_FOLD_CASE_DEFAULT) {
+            if((options&_FOLD_CASE_OPTIONS_MASK)==U_FOLD_CASE_DEFAULT) {
                 /* default mappings */
-                if (c == 0x49) {
+                if(c==0x49) {
                     /* 0049; C; 0069; # LATIN CAPITAL LETTER I */
                     return 0x69;
-                } else if (c == 0x130) {
+                } else if(c==0x130) {
                     /* 0130; F; 0069 0307; # LATIN CAPITAL LETTER I WITH DOT ABOVE */
-                    *pString = iDot;
+                    *pString=iDot;
                     return 2;
                 }
             } else {
                 /* Turkic mappings */
-                if (c == 0x49) {
+                if(c==0x49) {
                     /* 0049; T; 0131; # LATIN CAPITAL LETTER I */
                     return 0x131;
-                } else if (c == 0x130) {
+                } else if(c==0x130) {
                     /* 0130; T; 0069; # LATIN CAPITAL LETTER I WITH DOT ABOVE */
                     return 0x69;
                 }
             }
-        } else if (HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
+        } else if(HAS_SLOT(excWord, UCASE_EXC_FULL_MAPPINGS)) {
             GET_SLOT_VALUE(excWord, UCASE_EXC_FULL_MAPPINGS, pe, full);
 
             /* start of full case mapping strings */
             ++pe;
 
             /* skip the lowercase result string */
-            pe += full & UCASE_FULL_LOWER;
-            full = (full >> 4) & 0xf;
+            pe+=full&UCASE_FULL_LOWER;
+            full=(full>>4)&0xf;
 
-            if (full != 0) {
+            if(full!=0) {
                 /* set the output pointer to the result string */
-                *pString = reinterpret_cast<const UChar*>(pe);
+                *pString=reinterpret_cast<const char16_t *>(pe);
 
                 /* return the string length */
                 return full;
             }
         }
 
-        if ((excWord & UCASE_EXC_NO_SIMPLE_CASE_FOLDING) != 0) {
+        if((excWord&UCASE_EXC_NO_SIMPLE_CASE_FOLDING)!=0) {
             return ~c;
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
+        if(HAS_SLOT(excWord, UCASE_EXC_DELTA) && UCASE_IS_UPPER_OR_TITLE(props)) {
             int32_t delta;
             GET_SLOT_VALUE(excWord, UCASE_EXC_DELTA, pe2, delta);
-            return (excWord & UCASE_EXC_DELTA_IS_NEGATIVE) == 0 ? c + delta : c - delta;
+            return (excWord&UCASE_EXC_DELTA_IS_NEGATIVE)==0 ? c+delta : c-delta;
         }
-        if (HAS_SLOT(excWord, UCASE_EXC_FOLD)) {
-            idx = UCASE_EXC_FOLD;
-        } else if (HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
-            idx = UCASE_EXC_LOWER;
+        if(HAS_SLOT(excWord, UCASE_EXC_FOLD)) {
+            idx=UCASE_EXC_FOLD;
+        } else if(HAS_SLOT(excWord, UCASE_EXC_LOWER)) {
+            idx=UCASE_EXC_LOWER;
         } else {
             return ~c;
         }
         GET_SLOT_VALUE(excWord, idx, pe2, result);
     }
 
-    return (result == c) ? ~result : result;
+    return (result==c) ? ~result : result;
 }
 
 /* case mapping properties API ---------------------------------------------- */
 
 /* public API (see uchar.h) */
 
-U_CAPI UBool U_EXPORT2 u_isULowercase(UChar32 c)
-{
-    return (UBool)(UCASE_LOWER == ucase_getType(c));
+U_CAPI UBool U_EXPORT2
+u_isULowercase(UChar32 c) {
+    return (UBool)(UCASE_LOWER==ucase_getType(c));
 }
 
-U_CAPI UBool U_EXPORT2 u_isUUppercase(UChar32 c)
-{
-    return (UBool)(UCASE_UPPER == ucase_getType(c));
+U_CAPI UBool U_EXPORT2
+u_isUUppercase(UChar32 c) {
+    return (UBool)(UCASE_UPPER==ucase_getType(c));
 }
 
 /* Transforms the Unicode character to its lower case equivalent.*/
-U_CAPI UChar32 U_EXPORT2 u_tolower(UChar32 c)
-{
+U_CAPI UChar32 U_EXPORT2
+u_tolower(UChar32 c) {
     return ucase_tolower(c);
 }
 
 /* Transforms the Unicode character to its upper case equivalent.*/
-U_CAPI UChar32 U_EXPORT2 u_toupper(UChar32 c)
-{
+U_CAPI UChar32 U_EXPORT2
+u_toupper(UChar32 c) {
     return ucase_toupper(c);
 }
 
 /* Transforms the Unicode character to its title case equivalent.*/
-U_CAPI UChar32 U_EXPORT2 u_totitle(UChar32 c)
-{
+U_CAPI UChar32 U_EXPORT2
+u_totitle(UChar32 c) {
     return ucase_totitle(c);
 }
 
 /* return the simple case folding mapping for c */
-U_CAPI UChar32 U_EXPORT2 u_foldCase(UChar32 c, uint32_t options)
-{
+U_CAPI UChar32 U_EXPORT2
+u_foldCase(UChar32 c, uint32_t options) {
     return ucase_fold(c, options);
 }
 
-U_CFUNC int32_t U_EXPORT2 ucase_hasBinaryProperty(UChar32 c, UProperty which)
-{
+U_CFUNC int32_t U_EXPORT2
+ucase_hasBinaryProperty(UChar32 c, UProperty which) {
     /* case mapping properties */
-    const UChar* resultString;
-    switch (which) {
+    const char16_t *resultString;
+    switch(which) {
     case UCHAR_LOWERCASE:
-        return (UBool)(UCASE_LOWER == ucase_getType(c));
+        return (UBool)(UCASE_LOWER==ucase_getType(c));
     case UCHAR_UPPERCASE:
-        return (UBool)(UCASE_UPPER == ucase_getType(c));
+        return (UBool)(UCASE_UPPER==ucase_getType(c));
     case UCHAR_SOFT_DOTTED:
         return ucase_isSoftDotted(c);
     case UCHAR_CASE_SENSITIVE:
         return ucase_isCaseSensitive(c);
     case UCHAR_CASED:
-        return (UBool)(UCASE_NONE != ucase_getType(c));
+        return (UBool)(UCASE_NONE!=ucase_getType(c));
     case UCHAR_CASE_IGNORABLE:
-        return (UBool)(ucase_getTypeOrIgnorable(c) >> 2);
+        return (UBool)(ucase_getTypeOrIgnorable(c)>>2);
     /*
      * Note: The following Changes_When_Xyz are defined as testing whether
      * the NFD form of the input changes when Xyz-case-mapped.
@@ -1609,16 +1685,18 @@ U_CFUNC int32_t U_EXPORT2 ucase_hasBinaryProperty(UChar32 c, UProperty which)
      * start sets for normalization and case mappings.
      */
     case UCHAR_CHANGES_WHEN_LOWERCASED:
-        return (UBool)(ucase_toFullLower(c, NULL, NULL, &resultString, UCASE_LOC_ROOT) >= 0);
+        return (UBool)(ucase_toFullLower(c, nullptr, nullptr, &resultString, UCASE_LOC_ROOT)>=0);
     case UCHAR_CHANGES_WHEN_UPPERCASED:
-        return (UBool)(ucase_toFullUpper(c, NULL, NULL, &resultString, UCASE_LOC_ROOT) >= 0);
+        return (UBool)(ucase_toFullUpper(c, nullptr, nullptr, &resultString, UCASE_LOC_ROOT)>=0);
     case UCHAR_CHANGES_WHEN_TITLECASED:
-        return (UBool)(ucase_toFullTitle(c, NULL, NULL, &resultString, UCASE_LOC_ROOT) >= 0);
+        return (UBool)(ucase_toFullTitle(c, nullptr, nullptr, &resultString, UCASE_LOC_ROOT)>=0);
     /* case UCHAR_CHANGES_WHEN_CASEFOLDED: -- in uprops.c */
     case UCHAR_CHANGES_WHEN_CASEMAPPED:
-        return (UBool)(ucase_toFullLower(c, NULL, NULL, &resultString, UCASE_LOC_ROOT) >= 0
-            || ucase_toFullUpper(c, NULL, NULL, &resultString, UCASE_LOC_ROOT) >= 0 || ucase_toFullTitle(c, NULL, NULL, &resultString, UCASE_LOC_ROOT) >= 0);
+        return (UBool)(
+            ucase_toFullLower(c, nullptr, nullptr, &resultString, UCASE_LOC_ROOT)>=0 ||
+            ucase_toFullUpper(c, nullptr, nullptr, &resultString, UCASE_LOC_ROOT)>=0 ||
+            ucase_toFullTitle(c, nullptr, nullptr, &resultString, UCASE_LOC_ROOT)>=0);
     default:
-        return FALSE;
+        return false;
     }
 }

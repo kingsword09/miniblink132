@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -47,6 +47,7 @@ class UnicodeReplacer;
 class TransliterationRuleData : public UMemory {
 
 public:
+
     // PUBLIC DATA MEMBERS
 
     /**
@@ -66,7 +67,7 @@ public:
     Hashtable variableNames;
 
     /**
-     * Map category variable (UChar) to set (UnicodeFunctor).
+     * Map category variable (char16_t) to set (UnicodeFunctor).
      * Variables that correspond to a set of characters are mapped
      * from variable name to a stand-in character in data.variableNames.
      * The stand-in then serves as a key in this hash to lookup the
@@ -90,7 +91,7 @@ public:
      * variablesBase through variablesBase +
      * variablesLength - 1 represent UnicodeFunctor objects.
      */
-    UChar variablesBase;
+    char16_t variablesBase;
 
     /**
      * The length of variables.
@@ -98,6 +99,7 @@ public:
     int32_t variablesLength;
 
 public:
+
     /**
      * Constructor
      * @param status Output param set to success/failure code on exit.
@@ -116,7 +118,7 @@ public:
 
     /**
      * Given a stand-in character, return the UnicodeFunctor that it
-     * represents, or NULL if it doesn't represent anything.
+     * represents, or nullptr if it doesn't represent anything.
      * @param standIn    the given stand-in character.
      * @return           the UnicodeFunctor that 'standIn' represents
      */
@@ -124,7 +126,7 @@ public:
 
     /**
      * Given a stand-in character, return the UnicodeMatcher that it
-     * represents, or NULL if it doesn't represent anything or if it
+     * represents, or nullptr if it doesn't represent anything or if it
      * represents something that is not a matcher.
      * @param standIn    the given stand-in character.
      * @return           return the UnicodeMatcher that 'standIn' represents
@@ -133,15 +135,16 @@ public:
 
     /**
      * Given a stand-in character, return the UnicodeReplacer that it
-     * represents, or NULL if it doesn't represent anything or if it
+     * represents, or nullptr if it doesn't represent anything or if it
      * represents something that is not a replacer.
      * @param standIn    the given stand-in character.
      * @return           return the UnicodeReplacer that 'standIn' represents
      */
     UnicodeReplacer* lookupReplacer(UChar32 standIn) const;
 
+
 private:
-    TransliterationRuleData& operator=(const TransliterationRuleData& other); // forbid copying of this class
+    TransliterationRuleData &operator=(const TransliterationRuleData &other); // forbid copying of this class
 };
 
 U_NAMESPACE_END

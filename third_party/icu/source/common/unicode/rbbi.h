@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ***************************************************************************
@@ -37,11 +37,74 @@ struct UCPTrie;
 U_NAMESPACE_BEGIN
 
 /** @internal */
-class LanguageBreakEngine;
+class  LanguageBreakEngine;
 struct RBBIDataHeader;
-class RBBIDataWrapper;
-class UnhandledEngine;
-class UStack;
+class  RBBIDataWrapper;
+class  UnhandledEngine;
+class  UStack;
+
+
+#ifndef U_HIDE_DRAFT_API
+/**
+ * The ExternalBreakEngine class define an abstract interface for the host environment
+ * to provide a low level facility to break text for unicode text in script that the text boundary
+ * cannot be handled by upper level rule based logic, for example, for Chinese and Japanese
+ * word breaking, Thai, Khmer, Burmese, Lao and other Southeast Asian scripts.
+ * The host environment implement one or more subclass of ExternalBreakEngine and
+ * register them in the initialization time by calling
+ * RuleBasedBreakIterator::registerExternalBreakEngine(). ICU adopt and own the engine and will
+ * delete the registered external engine in proper time during the clean up
+ * event.
+ * @internal ICU 74 technology preview
+ */
+class ExternalBreakEngine : public UObject {
+  public:
+    /**
+     * destructor
+     * @internal ICU 74 technology preview
+     */
+    virtual ~ExternalBreakEngine() {}
+
+    /**
+     * <p>Indicate whether this engine handles a particular character when
+     * the RuleBasedBreakIterator is used for a particular locale. This method is used
+     * by the RuleBasedBreakIterator to find a break engine.</p>
+     * @param c A character which begins a run that the engine might handle.
+     * @param locale    The locale.
+     * @return true if this engine handles the particular character for that locale.
+     * @internal ICU 74 technology preview
+     */
+    virtual bool isFor(UChar32 c, const char* locale) const = 0;
+
+    /**
+     * <p>Indicate whether this engine handles a particular character.This method is
+     * used by the RuleBasedBreakIterator after it already find a break engine to see which
+     * characters after the first one can be handled by this break engine.</p>
+     * @param c A character that the engine might handle.
+     * @return true if this engine handles the particular character.
+     * @internal ICU 74 technology preview
+     */
+    virtual bool handles(UChar32 c) const = 0;
+
+    /**
+     * <p>Divide up a range of text handled by this break engine.</p>
+     *
+     * @param text A UText representing the text
+     * @param start The start of the range of known characters
+     * @param end The end of the range of known characters
+     * @param foundBreaks Output of C array of int32_t break positions, or
+     * nullptr
+     * @param foundBreaksCapacity The capacity of foundBreaks
+     * @param status Information on any errors encountered.
+     * @return The number of breaks found
+     * @internal ICU 74 technology preview
+     */
+     virtual int32_t fillBreaks(UText* text,  int32_t start, int32_t end,
+                               int32_t* foundBreaks, int32_t foundBreaksCapacity,
+                               UErrorCode& status) const = 0;
+};
+#endif  /* U_HIDE_DRAFT_API */
+
 
 /**
  *
@@ -54,14 +117,14 @@ class UStack;
  *
  * <p>This class is not intended to be subclassed.</p>
  */
-class U_COMMON_API RuleBasedBreakIterator /*U_FINAL*/ : public BreakIterator {
+class U_COMMON_API RuleBasedBreakIterator /*final*/ : public BreakIterator {
 
 private:
     /**
      * The UText through which this BreakIterator accesses the text
      * @internal (private)
      */
-    UText fText;
+    UText  fText = UTEXT_INITIALIZER;
 
 #ifndef U_HIDE_INTERNAL_API
 public:
@@ -71,32 +134,38 @@ public:
      * Not for general use; Public only for testing purposes.
      * @internal
      */
-    RBBIDataWrapper* fData;
+    RBBIDataWrapper    *fData = nullptr;
 
 private:
     /**
-     * The current  position of the iterator. Pinned, 0 < fPosition <= text.length.
-     * Never has the value UBRK_DONE (-1).
-     */
-    int32_t fPosition;
+      * The saved error code associated with this break iterator.
+      * This is the value to be returned by copyErrorTo().
+      */
+    UErrorCode      fErrorCode = U_ZERO_ERROR;
 
     /**
-     * TODO:
-     */
-    int32_t fRuleStatusIndex;
+      * The current  position of the iterator. Pinned, 0 < fPosition <= text.length.
+      * Never has the value UBRK_DONE (-1).
+      */
+    int32_t         fPosition = 0;
+
+    /**
+      * TODO:
+      */
+    int32_t         fRuleStatusIndex = 0;
 
     /**
      *   Cache of previously determined boundary positions.
      */
     class BreakCache;
-    BreakCache* fBreakCache;
+    BreakCache         *fBreakCache = nullptr;
 
     /**
      *  Cache of boundary positions within a region of text that has been
      *  sub-divided by dictionary based breaking.
      */
     class DictionaryCache;
-    DictionaryCache* fDictionaryCache;
+    DictionaryCache *fDictionaryCache = nullptr;
 
     /**
      *
@@ -105,7 +174,7 @@ private:
      * handle a given character.
      * @internal (private)
      */
-    UStack* fLanguageBreakEngines;
+    UStack              *fLanguageBreakEngines = nullptr;
 
     /**
      *
@@ -114,43 +183,43 @@ private:
      * LanguageBreakEngine.
      * @internal (private)
      */
-    UnhandledEngine* fUnhandledBreakEngine;
+    UnhandledEngine     *fUnhandledBreakEngine = nullptr;
 
     /**
      * Counter for the number of characters encountered with the "dictionary"
      *   flag set.
      * @internal (private)
      */
-    uint32_t fDictionaryCharCount;
+    uint32_t            fDictionaryCharCount = 0;
 
     /**
      *   A character iterator that refers to the same text as the UText, above.
      *   Only included for compatibility with old API, which was based on CharacterIterators.
      *   Value may be adopted from outside, or one of fSCharIter or fDCharIter, below.
      */
-    CharacterIterator* fCharIter;
+    CharacterIterator  *fCharIter = &fSCharIter;
 
     /**
      *   When the input text is provided by a UnicodeString, this will point to
      *    a characterIterator that wraps that data.  Needed only for the
      *    implementation of getText(), a backwards compatibility issue.
      */
-    StringCharacterIterator fSCharIter;
+    UCharCharacterIterator fSCharIter {u"", 0};
 
     /**
-     * True when iteration has run off the end, and iterator functions should return UBRK_DONE.
-     */
-    UBool fDone;
+      * True when iteration has run off the end, and iterator functions should return UBRK_DONE.
+      */
+    bool           fDone = false;
 
     /**
      *  Array of look-ahead tentative results.
      */
-    int32_t* fLookAheadMatches;
+    int32_t *fLookAheadMatches = nullptr;
 
     /**
      *  A flag to indicate if phrase based breaking is enabled.
      */
-    UBool fIsPhraseBreaking;
+    UBool fIsPhraseBreaking = false;
 
     //=======================================================================
     // constructors
@@ -166,7 +235,7 @@ private:
      *             free it when done.
      * @internal (private)
      */
-    RuleBasedBreakIterator(RBBIDataHeader* data, UErrorCode& status);
+    RuleBasedBreakIterator(RBBIDataHeader* data, UErrorCode &status);
 
     /**
      * This constructor uses the udata interface to create a BreakIterator
@@ -181,16 +250,26 @@ private:
      * @see #getBinaryRules
      * @internal (private)
      */
-    RuleBasedBreakIterator(UDataMemory* image, UBool isPhraseBreaking, UErrorCode& status);
+    RuleBasedBreakIterator(UDataMemory* image, UBool isPhraseBreaking, UErrorCode &status);
 
     /** @internal */
     friend class RBBIRuleBuilder;
     /** @internal */
     friend class BreakIterator;
 
+    /**
+     * Default constructor with an error code parameter.
+     * Aside from error handling, otherwise identical to the default constructor.
+     * Internally, handles common initialization for other constructors.
+     * @internal (private)
+     */
+    RuleBasedBreakIterator(UErrorCode *status);
+
 public:
+
     /** Default constructor.  Creates an empty shell of an iterator, with no
-     *  rules or text to iterate over.   Object can subsequently be assigned to.
+     *  rules or text to iterate over.   Object can subsequently be assigned to,
+     *  but is otherwise unusable.
      *  @stable ICU 2.2
      */
     RuleBasedBreakIterator();
@@ -211,7 +290,9 @@ public:
      * @param status Information on any errors encountered.
      * @stable ICU 2.2
      */
-    RuleBasedBreakIterator(const UnicodeString& rules, UParseError& parseError, UErrorCode& status);
+    RuleBasedBreakIterator( const UnicodeString    &rules,
+                             UParseError           &parseError,
+                             UErrorCode            &status);
 
     /**
      * Construct a RuleBasedBreakIterator from a set of precompiled binary rules.
@@ -236,7 +317,9 @@ public:
      *   binary rules.
      * @stable ICU 4.8
      */
-    RuleBasedBreakIterator(const uint8_t* compiledRules, uint32_t ruleLength, UErrorCode& status);
+    RuleBasedBreakIterator(const uint8_t *compiledRules,
+                           uint32_t       ruleLength,
+                           UErrorCode    &status);
 
     /**
      * This constructor uses the udata interface to create a BreakIterator
@@ -250,7 +333,7 @@ public:
      * @see #getBinaryRules
      * @stable ICU 2.8
      */
-    RuleBasedBreakIterator(UDataMemory* image, UErrorCode& status);
+    RuleBasedBreakIterator(UDataMemory* image, UErrorCode &status);
 
     /**
      * Destructor
@@ -284,7 +367,9 @@ public:
      * @return true if both BreakIterators are not same.
      *  @stable ICU 2.0
      */
-    inline bool operator!=(const BreakIterator& that) const;
+    inline bool operator!=(const BreakIterator& that) const {
+        return !operator==(that);
+    }
 
     /**
      * Returns a newly-constructed RuleBasedBreakIterator with the same
@@ -330,8 +415,7 @@ public:
      * </p>
      * <p>
      * When the break iterator is operating on text supplied via a UText,
-     * this function will fail.  Lacking any way to signal failures, it
-     * returns an CharacterIterator containing no text.
+     * this function will fail, returning a CharacterIterator containing no text.
      * The function getUText() provides similar functionality,
      * is reliable, and is more efficient.
      * </p>
@@ -341,23 +425,24 @@ public:
      * @return An iterator over the text being analyzed.
      * @stable ICU 2.0
      */
-    virtual CharacterIterator& getText(void) const override;
+    virtual  CharacterIterator& getText(void) const override;
+
 
     /**
-     *  Get a UText for the text being analyzed.
-     *  The returned UText is a shallow clone of the UText used internally
-     *  by the break iterator implementation.  It can safely be used to
-     *  access the text without impacting any break iterator operations,
-     *  but the underlying text itself must not be altered.
-     *
-     * @param fillIn A UText to be filled in.  If NULL, a new UText will be
-     *           allocated to hold the result.
-     * @param status receives any error codes.
-     * @return   The current UText for this break iterator.  If an input
-     *           UText was provided, it will always be returned.
-     * @stable ICU 3.4
-     */
-    virtual UText* getUText(UText* fillIn, UErrorCode& status) const override;
+      *  Get a UText for the text being analyzed.
+      *  The returned UText is a shallow clone of the UText used internally
+      *  by the break iterator implementation.  It can safely be used to
+      *  access the text without impacting any break iterator operations,
+      *  but the underlying text itself must not be altered.
+      *
+      * @param fillIn A UText to be filled in.  If nullptr, a new UText will be
+      *           allocated to hold the result.
+      * @param status receives any error codes.
+      * @return   The current UText for this break iterator.  If an input
+      *           UText was provided, it will always be returned.
+      * @stable ICU 3.4
+      */
+     virtual UText *getUText(UText *fillIn, UErrorCode &status) const override;
 
     /**
      * Set the iterator to analyze a new piece of text.  This function resets
@@ -394,7 +479,7 @@ public:
      * @param status  Receives any error codes.
      * @stable ICU 3.4
      */
-    virtual void setText(UText* text, UErrorCode& status) override;
+    virtual void  setText(UText *text, UErrorCode &status) override;
 
     /**
      * Sets the current iteration position to the beginning of the text, position zero.
@@ -474,6 +559,7 @@ public:
      */
     virtual int32_t current(void) const override;
 
+
     /**
      * Return the status tag from the break rule that determined the boundary at
      * the current iteration position.  For break rules that do not specify a
@@ -507,30 +593,30 @@ public:
      */
     virtual int32_t getRuleStatus() const override;
 
-    /**
-     * Get the status (tag) values from the break rule(s) that determined the boundary
-     * at the current iteration position.
-     * <p>
-     * The returned status value(s) are stored into an array provided by the caller.
-     * The values are stored in sorted (ascending) order.
-     * If the capacity of the output array is insufficient to hold the data,
-     *  the output will be truncated to the available length, and a
-     *  U_BUFFER_OVERFLOW_ERROR will be signaled.
-     *
-     * @param fillInVec an array to be filled in with the status values.
-     * @param capacity  the length of the supplied vector.  A length of zero causes
-     *                  the function to return the number of status values, in the
-     *                  normal way, without attempting to store any values.
-     * @param status    receives error codes.
-     * @return          The number of rule status values from the rules that determined
-     *                  the boundary at the current iteration position.
-     *                  In the event of a U_BUFFER_OVERFLOW_ERROR, the return value
-     *                  is the total number of status values that were available,
-     *                  not the reduced number that were actually returned.
-     * @see getRuleStatus
-     * @stable ICU 3.0
-     */
-    virtual int32_t getRuleStatusVec(int32_t* fillInVec, int32_t capacity, UErrorCode& status) override;
+   /**
+    * Get the status (tag) values from the break rule(s) that determined the boundary
+    * at the current iteration position.
+    * <p>
+    * The returned status value(s) are stored into an array provided by the caller.
+    * The values are stored in sorted (ascending) order.
+    * If the capacity of the output array is insufficient to hold the data,
+    *  the output will be truncated to the available length, and a
+    *  U_BUFFER_OVERFLOW_ERROR will be signaled.
+    *
+    * @param fillInVec an array to be filled in with the status values.
+    * @param capacity  the length of the supplied vector.  A length of zero causes
+    *                  the function to return the number of status values, in the
+    *                  normal way, without attempting to store any values.
+    * @param status    receives error codes.
+    * @return          The number of rule status values from the rules that determined
+    *                  the boundary at the current iteration position.
+    *                  In the event of a U_BUFFER_OVERFLOW_ERROR, the return value
+    *                  is the total number of status values that were available,
+    *                  not the reduced number that were actually returned.
+    * @see getRuleStatus
+    * @stable ICU 3.0
+    */
+    virtual int32_t getRuleStatusVec(int32_t *fillInVec, int32_t capacity, UErrorCode &status) override;
 
     /**
      * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
@@ -569,7 +655,7 @@ public:
      *  tricky.  Use clone() instead.
      *
      * @param stackBuffer  The pointer to the memory into which the cloned object
-     *                     should be placed.  If NULL,  allocate heap memory
+     *                     should be placed.  If nullptr,  allocate heap memory
      *                     for the cloned object.
      * @param BufferSize   The size of the buffer.  If zero, return the required
      *                     buffer size, but do not clone the object.  If the
@@ -585,8 +671,10 @@ public:
      *          or if the stackBuffer was too small to hold the clone.
      * @deprecated ICU 52. Use clone() instead.
      */
-    virtual RuleBasedBreakIterator* createBufferClone(void* stackBuffer, int32_t& BufferSize, UErrorCode& status) override;
-#endif // U_FORCE_HIDE_DEPRECATED_API
+    virtual RuleBasedBreakIterator *createBufferClone(void *stackBuffer,
+                                                      int32_t &BufferSize,
+                                                      UErrorCode &status) override;
+#endif  // U_FORCE_HIDE_DEPRECATED_API
 
     /**
      * Return the binary form of compiled break rules,
@@ -605,7 +693,7 @@ public:
      *           caller, and must not be modified or deleted.
      * @stable ICU 4.8
      */
-    virtual const uint8_t* getBinaryRules(uint32_t& length);
+    virtual const uint8_t *getBinaryRules(uint32_t &length);
 
     /**
      *  Set the subject text string upon which the break iterator is operating
@@ -632,25 +720,13 @@ public:
      *
      * @stable ICU 49
      */
-    virtual RuleBasedBreakIterator& refreshInputText(UText* input, UErrorCode& status) override;
+    virtual RuleBasedBreakIterator &refreshInputText(UText *input, UErrorCode &status) override;
+
 
 private:
     //=======================================================================
     // implementation
     //=======================================================================
-    /**
-     * Dumps caches and performs other actions associated with a complete change
-     * in text or iteration position.
-     * @internal (private)
-     */
-    void reset(void);
-
-    /**
-     * Common initialization function, used by constructors and bufferClone.
-     * @internal (private)
-     */
-    void init(UErrorCode& status);
-
     /**
      * Iterate backwards from an arbitrary position in the input text using the
      * synthesized Safe Reverse rules.
@@ -690,46 +766,55 @@ private:
      * signature)
      */
 
-    typedef uint16_t (*PTrieFunc)(const UCPTrie*, UChar32);
+    typedef uint16_t (*PTrieFunc)(const UCPTrie *, UChar32);
 
-    template <typename RowType, PTrieFunc trieFunc> int32_t handleSafePrevious(int32_t fromPosition);
+    template<typename RowType, PTrieFunc trieFunc>
+    int32_t handleSafePrevious(int32_t fromPosition);
 
-    template <typename RowType, PTrieFunc trieFunc> int32_t handleNext();
+    template<typename RowType, PTrieFunc trieFunc>
+    int32_t handleNext();
+
 
     /**
      * This function returns the appropriate LanguageBreakEngine for a
      * given character c.
      * @param c         A character in the dictionary set
+     * @param locale    The locale.
      * @internal (private)
      */
-    const LanguageBreakEngine* getLanguageBreakEngine(UChar32 c);
+    const LanguageBreakEngine *getLanguageBreakEngine(UChar32 c, const char* locale);
 
-public:
+  public:
 #ifndef U_HIDE_INTERNAL_API
     /**
      *   Debugging function only.
      *   @internal
      */
-    void dumpCache();
+     void dumpCache();
 
     /**
      * Debugging function only.
      * @internal
      */
     void dumpTables();
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
+
+#ifndef U_HIDE_DRAFT_API
+    /**
+     * Register a new external break engine. The external break engine will be adopted.
+     * Because ICU may choose to cache break engine internally, this must
+     * be called at application startup, prior to any calls to
+     * object methods of RuleBasedBreakIterator to avoid undefined behavior.
+     * @param toAdopt the ExternalBreakEngine instance to be adopted
+     * @param status the in/out status code, no special meanings are assigned
+     * @internal ICU 74 technology preview
+     */
+    static void U_EXPORT2 registerExternalBreakEngine(
+                  ExternalBreakEngine* toAdopt, UErrorCode& status);
+#endif  /* U_HIDE_DRAFT_API */
+
 };
 
-//------------------------------------------------------------------------------
-//
-//   Inline Functions Definitions ...
-//
-//------------------------------------------------------------------------------
-
-inline bool RuleBasedBreakIterator::operator!=(const BreakIterator& that) const
-{
-    return !operator==(that);
-}
 
 U_NAMESPACE_END
 

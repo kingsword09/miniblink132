@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -23,10 +23,12 @@ U_NAMESPACE_BEGIN
 
 class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
 
-public:
+ public:
+
     enum { MAX = 0x7FFFFFFF };
 
-    Quantifier(UnicodeFunctor* adoptedMatcher, uint32_t minCount, uint32_t maxCount);
+    Quantifier(UnicodeFunctor *adoptedMatcher,
+               uint32_t minCount, uint32_t maxCount);
 
     Quantifier(const Quantifier& o);
 
@@ -67,7 +69,10 @@ public:
      * match, or a mismatch.  If incremental is false then
      * U_PARTIAL_MATCH should never be returned.
      */
-    virtual UMatchDegree matches(const Replaceable& text, int32_t& offset, int32_t limit, UBool incremental) override;
+    virtual UMatchDegree matches(const Replaceable& text,
+                                 int32_t& offset,
+                                 int32_t limit,
+                                 UBool incremental) override;
 
     /**
      * Implement UnicodeMatcher
@@ -75,7 +80,8 @@ public:
      * @param escapeUnprintable if True then escape the unprintable characters.
      * @return                  A reference to 'result'.
      */
-    virtual UnicodeString& toPattern(UnicodeString& result, UBool escapeUnprintable = false) const override;
+    virtual UnicodeString& toPattern(UnicodeString& result,
+                                     UBool escapeUnprintable = false) const override;
 
     /**
      * Implement UnicodeMatcher
@@ -104,7 +110,8 @@ public:
      */
     static UClassID U_EXPORT2 getStaticClassID();
 
-private:
+ private:
+
     UnicodeFunctor* matcher; // owned
 
     uint32_t minCount;

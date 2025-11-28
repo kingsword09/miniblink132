@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *****************************************************************************************
@@ -18,13 +18,13 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif // U_SHOW_CPLUSPLUS_API
+#endif   // U_SHOW_CPLUSPLUS_API
 
 /**
  * \file
  * \brief C API: UNumberingSystem, information about numbering systems
  *
- * Defines numbering systems. A numbering system describes the scheme by which
+ * Defines numbering systems. A numbering system describes the scheme by which 
  * numbers are to be presented to the end user. In its simplest form, a numbering
  * system describes the set of digit characters that are to be used to display
  * numbers, such as Western digits, Thai digits, Arabic-Indic digits, etc., in a
@@ -44,7 +44,7 @@
  * @stable ICU 52
  */
 struct UNumberingSystem;
-typedef struct UNumberingSystem UNumberingSystem; /**< C typedef for struct UNumberingSystem. @stable ICU 52 */
+typedef struct UNumberingSystem UNumberingSystem;  /**< C typedef for struct UNumberingSystem. @stable ICU 52 */
 
 /**
  * Opens a UNumberingSystem object using the default numbering system for the specified
@@ -57,7 +57,8 @@ typedef struct UNumberingSystem UNumberingSystem; /**< C typedef for struct UNum
  *                  occurred.
  * @stable ICU 52
  */
-U_CAPI UNumberingSystem* U_EXPORT2 unumsys_open(const char* locale, UErrorCode* status);
+U_CAPI UNumberingSystem * U_EXPORT2
+unumsys_open(const char *locale, UErrorCode *status);
 
 /**
  * Opens a UNumberingSystem object using the name of one of the predefined numbering
@@ -77,14 +78,16 @@ U_CAPI UNumberingSystem* U_EXPORT2 unumsys_open(const char* locale, UErrorCode* 
  *                  occurred.
  * @stable ICU 52
  */
-U_CAPI UNumberingSystem* U_EXPORT2 unumsys_openByName(const char* name, UErrorCode* status);
+U_CAPI UNumberingSystem * U_EXPORT2
+unumsys_openByName(const char *name, UErrorCode *status);
 
 /**
  * Close a UNumberingSystem object. Once closed it may no longer be used.
  * @param unumsys   The UNumberingSystem object to close.
  * @stable ICU 52
  */
-U_CAPI void U_EXPORT2 unumsys_close(UNumberingSystem* unumsys);
+U_CAPI void U_EXPORT2
+unumsys_close(UNumberingSystem *unumsys);
 
 #if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN
@@ -111,7 +114,8 @@ U_NAMESPACE_END
  *                  or NULL if an error occurred.
  * @stable ICU 52
  */
-U_CAPI UEnumeration* U_EXPORT2 unumsys_openAvailableNames(UErrorCode* status);
+U_CAPI UEnumeration * U_EXPORT2
+unumsys_openAvailableNames(UErrorCode *status);
 
 /**
  * Returns the name of the specified UNumberingSystem object (if it is one of the
@@ -122,7 +126,8 @@ U_CAPI UEnumeration* U_EXPORT2 unumsys_openAvailableNames(UErrorCode* status);
  *                  is only valid for the lifetime of the UNumberingSystem object.
  * @stable ICU 52
  */
-U_CAPI const char* U_EXPORT2 unumsys_getName(const UNumberingSystem* unumsys);
+U_CAPI const char * U_EXPORT2
+unumsys_getName(const UNumberingSystem *unumsys);
 
 /**
  * Returns whether the given UNumberingSystem object is for an algorithmic (not purely
@@ -132,7 +137,8 @@ U_CAPI const char* U_EXPORT2 unumsys_getName(const UNumberingSystem* unumsys);
  *                  system.
  * @stable ICU 52
  */
-U_CAPI UBool U_EXPORT2 unumsys_isAlgorithmic(const UNumberingSystem* unumsys);
+U_CAPI UBool U_EXPORT2
+unumsys_isAlgorithmic(const UNumberingSystem *unumsys);
 
 /**
  * Returns the radix of the specified UNumberingSystem object. Simple positional
@@ -142,7 +148,8 @@ U_CAPI UBool U_EXPORT2 unumsys_isAlgorithmic(const UNumberingSystem* unumsys);
  * @return          The radix of the specified UNumberingSystem object.
  * @stable ICU 52
  */
-U_CAPI int32_t U_EXPORT2 unumsys_getRadix(const UNumberingSystem* unumsys);
+U_CAPI int32_t U_EXPORT2
+unumsys_getRadix(const UNumberingSystem *unumsys);
 
 /**
  * Get the description string of the specified UNumberingSystem object. For simple
@@ -160,7 +167,9 @@ U_CAPI int32_t U_EXPORT2 unumsys_getRadix(const UNumberingSystem* unumsys);
  *                  output was truncated.
  * @stable ICU 52
  */
-U_CAPI int32_t U_EXPORT2 unumsys_getDescription(const UNumberingSystem* unumsys, UChar* result, int32_t resultLength, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2
+unumsys_getDescription(const UNumberingSystem *unumsys, UChar *result,
+                       int32_t resultLength, UErrorCode *status);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

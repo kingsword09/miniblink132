@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -21,31 +21,33 @@ using namespace icu;
 using namespace icu::number;
 using namespace icu::number::impl;
 
-void PatternParser::parseToPatternInfo(const UnicodeString& patternString, ParsedPatternInfo& patternInfo, UErrorCode& status)
-{
+
+void PatternParser::parseToPatternInfo(const UnicodeString& patternString, ParsedPatternInfo& patternInfo,
+                                       UErrorCode& status) {
     patternInfo.consumePattern(patternString, status);
 }
 
-DecimalFormatProperties PatternParser::parseToProperties(const UnicodeString& pattern, IgnoreRounding ignoreRounding, UErrorCode& status)
-{
+DecimalFormatProperties
+PatternParser::parseToProperties(const UnicodeString& pattern, IgnoreRounding ignoreRounding,
+                                 UErrorCode& status) {
     DecimalFormatProperties properties;
     parseToExistingPropertiesImpl(pattern, properties, ignoreRounding, status);
     return properties;
 }
 
-DecimalFormatProperties PatternParser::parseToProperties(const UnicodeString& pattern, UErrorCode& status)
-{
+DecimalFormatProperties PatternParser::parseToProperties(const UnicodeString& pattern,
+                                                         UErrorCode& status) {
     return parseToProperties(pattern, IGNORE_ROUNDING_NEVER, status);
 }
 
-void PatternParser::parseToExistingProperties(
-    const UnicodeString& pattern, DecimalFormatProperties& properties, IgnoreRounding ignoreRounding, UErrorCode& status)
-{
+void
+PatternParser::parseToExistingProperties(const UnicodeString& pattern, DecimalFormatProperties& properties,
+                                         IgnoreRounding ignoreRounding, UErrorCode& status) {
     parseToExistingPropertiesImpl(pattern, properties, ignoreRounding, status);
 }
 
-char16_t ParsedPatternInfo::charAt(int32_t flags, int32_t index) const
-{
+
+char16_t ParsedPatternInfo::charAt(int32_t flags, int32_t index) const {
     const Endpoints& endpoints = getEndpoints(flags);
     if (index < 0 || index >= endpoints.end - endpoints.start) {
         UPRV_UNREACHABLE_EXIT;
@@ -53,18 +55,15 @@ char16_t ParsedPatternInfo::charAt(int32_t flags, int32_t index) const
     return pattern.charAt(endpoints.start + index);
 }
 
-int32_t ParsedPatternInfo::length(int32_t flags) const
-{
+int32_t ParsedPatternInfo::length(int32_t flags) const {
     return getLengthFromEndpoints(getEndpoints(flags));
 }
 
-int32_t ParsedPatternInfo::getLengthFromEndpoints(const Endpoints& endpoints)
-{
+int32_t ParsedPatternInfo::getLengthFromEndpoints(const Endpoints& endpoints) {
     return endpoints.end - endpoints.start;
 }
 
-UnicodeString ParsedPatternInfo::getString(int32_t flags) const
-{
+UnicodeString ParsedPatternInfo::getString(int32_t flags) const {
     const Endpoints& endpoints = getEndpoints(flags);
     if (endpoints.start == endpoints.end) {
         return UnicodeString();
@@ -73,8 +72,7 @@ UnicodeString ParsedPatternInfo::getString(int32_t flags) const
     return UnicodeString(pattern, endpoints.start, endpoints.end - endpoints.start);
 }
 
-const Endpoints& ParsedPatternInfo::getEndpoints(int32_t flags) const
-{
+const Endpoints& ParsedPatternInfo::getEndpoints(int32_t flags) const {
     bool prefix = (flags & AFFIX_PREFIX) != 0;
     bool isNegative = (flags & AFFIX_NEGATIVE_SUBPATTERN) != 0;
     bool padding = (flags & AFFIX_PADDING) != 0;
@@ -93,38 +91,31 @@ const Endpoints& ParsedPatternInfo::getEndpoints(int32_t flags) const
     }
 }
 
-bool ParsedPatternInfo::positiveHasPlusSign() const
-{
+bool ParsedPatternInfo::positiveHasPlusSign() const {
     return positive.hasPlusSign;
 }
 
-bool ParsedPatternInfo::hasNegativeSubpattern() const
-{
+bool ParsedPatternInfo::hasNegativeSubpattern() const {
     return fHasNegativeSubpattern;
 }
 
-bool ParsedPatternInfo::negativeHasMinusSign() const
-{
+bool ParsedPatternInfo::negativeHasMinusSign() const {
     return negative.hasMinusSign;
 }
 
-bool ParsedPatternInfo::hasCurrencySign() const
-{
+bool ParsedPatternInfo::hasCurrencySign() const {
     return positive.hasCurrencySign || (fHasNegativeSubpattern && negative.hasCurrencySign);
 }
 
-bool ParsedPatternInfo::containsSymbolType(AffixPatternType type, UErrorCode& status) const
-{
+bool ParsedPatternInfo::containsSymbolType(AffixPatternType type, UErrorCode& status) const {
     return AffixUtils::containsType(pattern, type, status);
 }
 
-bool ParsedPatternInfo::hasBody() const
-{
+bool ParsedPatternInfo::hasBody() const {
     return positive.integerTotal > 0;
 }
 
-bool ParsedPatternInfo::currencyAsDecimal() const
-{
+bool ParsedPatternInfo::currencyAsDecimal() const {
     return positive.hasCurrencyDecimal;
 }
 
@@ -132,8 +123,7 @@ bool ParsedPatternInfo::currencyAsDecimal() const
 /// BEGIN RECURSIVE DESCENT PARSER IMPLEMENTATION ///
 /////////////////////////////////////////////////////
 
-UChar32 ParsedPatternInfo::ParserState::peek()
-{
+UChar32 ParsedPatternInfo::ParserState::peek() {
     if (offset == pattern.length()) {
         return -1;
     } else {
@@ -141,8 +131,7 @@ UChar32 ParsedPatternInfo::ParserState::peek()
     }
 }
 
-UChar32 ParsedPatternInfo::ParserState::peek2()
-{
+UChar32 ParsedPatternInfo::ParserState::peek2() {
     if (offset == pattern.length()) {
         return -1;
     }
@@ -154,18 +143,14 @@ UChar32 ParsedPatternInfo::ParserState::peek2()
     return pattern.char32At(offset2);
 }
 
-UChar32 ParsedPatternInfo::ParserState::next()
-{
+UChar32 ParsedPatternInfo::ParserState::next() {
     int32_t codePoint = peek();
     offset += U16_LENGTH(codePoint);
     return codePoint;
 }
 
-void ParsedPatternInfo::consumePattern(const UnicodeString& patternString, UErrorCode& status)
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
+void ParsedPatternInfo::consumePattern(const UnicodeString& patternString, UErrorCode& status) {
+    if (U_FAILURE(status)) { return; }
     this->pattern = patternString;
 
     // This class is not intended for writing twice!
@@ -175,9 +160,7 @@ void ParsedPatternInfo::consumePattern(const UnicodeString& patternString, UErro
     // pattern := subpattern (';' subpattern)?
     currentSubpattern = &positive;
     consumeSubpattern(status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (state.peek() == u';') {
         state.next(); // consume the ';'
         // Don't consume the negative subpattern if it is empty (trailing ';')
@@ -185,9 +168,7 @@ void ParsedPatternInfo::consumePattern(const UnicodeString& patternString, UErro
             fHasNegativeSubpattern = true;
             currentSubpattern = &negative;
             consumeSubpattern(status);
-            if (U_FAILURE(status)) {
-                return;
-            }
+            if (U_FAILURE(status)) { return; }
         }
     }
     if (state.peek() != -1) {
@@ -196,45 +177,27 @@ void ParsedPatternInfo::consumePattern(const UnicodeString& patternString, UErro
     }
 }
 
-void ParsedPatternInfo::consumeSubpattern(UErrorCode& status)
-{
+void ParsedPatternInfo::consumeSubpattern(UErrorCode& status) {
     // subpattern := literals? number exponent? literals?
     consumePadding(PadPosition::UNUM_PAD_BEFORE_PREFIX, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     consumeAffix(currentSubpattern->prefixEndpoints, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     consumePadding(PadPosition::UNUM_PAD_AFTER_PREFIX, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     consumeFormat(status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     consumeExponent(status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     consumePadding(PadPosition::UNUM_PAD_BEFORE_SUFFIX, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     consumeAffix(currentSubpattern->suffixEndpoints, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     consumePadding(PadPosition::UNUM_PAD_AFTER_SUFFIX, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 }
 
-void ParsedPatternInfo::consumePadding(PadPosition paddingLocation, UErrorCode& status)
-{
+void ParsedPatternInfo::consumePadding(PadPosition paddingLocation, UErrorCode& status) {
     if (state.peek() != u'*') {
         return;
     }
@@ -251,67 +214,63 @@ void ParsedPatternInfo::consumePadding(PadPosition paddingLocation, UErrorCode& 
     currentSubpattern->paddingEndpoints.end = state.offset;
 }
 
-void ParsedPatternInfo::consumeAffix(Endpoints& endpoints, UErrorCode& status)
-{
+void ParsedPatternInfo::consumeAffix(Endpoints& endpoints, UErrorCode& status) {
     // literals := { literal }
     endpoints.start = state.offset;
     while (true) {
         switch (state.peek()) {
-        case u'#':
-        case u'@':
-        case u';':
-        case u'*':
-        case u'.':
-        case u',':
-        case u'0':
-        case u'1':
-        case u'2':
-        case u'3':
-        case u'4':
-        case u'5':
-        case u'6':
-        case u'7':
-        case u'8':
-        case u'9':
-        case -1:
-            // Characters that cannot appear unquoted in a literal
-            // break outer;
-            goto after_outer;
+            case u'#':
+            case u'@':
+            case u';':
+            case u'*':
+            case u'.':
+            case u',':
+            case u'0':
+            case u'1':
+            case u'2':
+            case u'3':
+            case u'4':
+            case u'5':
+            case u'6':
+            case u'7':
+            case u'8':
+            case u'9':
+            case -1:
+                // Characters that cannot appear unquoted in a literal
+                // break outer;
+                goto after_outer;
 
-        case u'%':
-            currentSubpattern->hasPercentSign = true;
-            break;
+            case u'%':
+                currentSubpattern->hasPercentSign = true;
+                break;
 
-        case u'‰':
-            currentSubpattern->hasPerMilleSign = true;
-            break;
+            case u'‰':
+                currentSubpattern->hasPerMilleSign = true;
+                break;
 
-        case u'¤':
-            currentSubpattern->hasCurrencySign = true;
-            break;
+            case u'¤':
+                currentSubpattern->hasCurrencySign = true;
+                break;
 
-        case u'-':
-            currentSubpattern->hasMinusSign = true;
-            break;
+            case u'-':
+                currentSubpattern->hasMinusSign = true;
+                break;
 
-        case u'+':
-            currentSubpattern->hasPlusSign = true;
-            break;
+            case u'+':
+                currentSubpattern->hasPlusSign = true;
+                break;
 
-        default:
-            break;
+            default:
+                break;
         }
         consumeLiteral(status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
     }
-after_outer:
+    after_outer:
     endpoints.end = state.offset;
 }
 
-void ParsedPatternInfo::consumeLiteral(UErrorCode& status)
-{
+void ParsedPatternInfo::consumeLiteral(UErrorCode& status) {
     if (state.peek() == -1) {
         state.toParseException(u"Expected unquoted literal but found EOL");
         status = U_PATTERN_SYNTAX_ERROR;
@@ -334,39 +293,34 @@ void ParsedPatternInfo::consumeLiteral(UErrorCode& status)
     }
 }
 
-void ParsedPatternInfo::consumeFormat(UErrorCode& status)
-{
+void ParsedPatternInfo::consumeFormat(UErrorCode& status) {
     consumeIntegerFormat(status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     if (state.peek() == u'.') {
         state.next(); // consume the decimal point
         currentSubpattern->hasDecimal = true;
         currentSubpattern->widthExceptAffixes += 1;
         consumeFractionFormat(status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
     } else if (state.peek() == u'¤') {
         // Check if currency is a decimal separator
         switch (state.peek2()) {
-        case u'#':
-        case u'0':
-        case u'1':
-        case u'2':
-        case u'3':
-        case u'4':
-        case u'5':
-        case u'6':
-        case u'7':
-        case u'8':
-        case u'9':
-            break;
-        default:
-            // Currency symbol followed by a non-numeric character;
-            // treat as a normal affix.
-            return;
+            case u'#':
+            case u'0':
+            case u'1':
+            case u'2':
+            case u'3':
+            case u'4':
+            case u'5':
+            case u'6':
+            case u'7':
+            case u'8':
+            case u'9':
+                break;
+            default:
+                // Currency symbol followed by a non-numeric character;
+                // treat as a normal affix.
+                return;
         }
         // Currency symbol is followed by a numeric character;
         // treat as a decimal separator.
@@ -376,92 +330,89 @@ void ParsedPatternInfo::consumeFormat(UErrorCode& status)
         currentSubpattern->widthExceptAffixes += 1;
         state.next(); // consume the symbol
         consumeFractionFormat(status);
-        if (U_FAILURE(status)) {
-            return;
-        }
+        if (U_FAILURE(status)) { return; }
     }
 }
 
-void ParsedPatternInfo::consumeIntegerFormat(UErrorCode& status)
-{
+void ParsedPatternInfo::consumeIntegerFormat(UErrorCode& status) {
     // Convenience reference:
     ParsedSubpatternInfo& result = *currentSubpattern;
 
     while (true) {
         switch (state.peek()) {
-        case u',':
-            result.widthExceptAffixes += 1;
-            result.groupingSizes <<= 16;
-            break;
+            case u',':
+                result.widthExceptAffixes += 1;
+                result.groupingSizes <<= 16;
+                break;
 
-        case u'#':
-            if (result.integerNumerals > 0) {
-                state.toParseException(u"# cannot follow 0 before decimal point");
-                status = U_UNEXPECTED_TOKEN;
-                return;
-            }
-            result.widthExceptAffixes += 1;
-            result.groupingSizes += 1;
-            if (result.integerAtSigns > 0) {
-                result.integerTrailingHashSigns += 1;
-            } else {
-                result.integerLeadingHashSigns += 1;
-            }
-            result.integerTotal += 1;
-            break;
+            case u'#':
+                if (result.integerNumerals > 0) {
+                    state.toParseException(u"# cannot follow 0 before decimal point");
+                    status = U_UNEXPECTED_TOKEN;
+                    return;
+                }
+                result.widthExceptAffixes += 1;
+                result.groupingSizes += 1;
+                if (result.integerAtSigns > 0) {
+                    result.integerTrailingHashSigns += 1;
+                } else {
+                    result.integerLeadingHashSigns += 1;
+                }
+                result.integerTotal += 1;
+                break;
 
-        case u'@':
-            if (result.integerNumerals > 0) {
-                state.toParseException(u"Cannot mix 0 and @");
-                status = U_UNEXPECTED_TOKEN;
-                return;
-            }
-            if (result.integerTrailingHashSigns > 0) {
-                state.toParseException(u"Cannot nest # inside of a run of @");
-                status = U_UNEXPECTED_TOKEN;
-                return;
-            }
-            result.widthExceptAffixes += 1;
-            result.groupingSizes += 1;
-            result.integerAtSigns += 1;
-            result.integerTotal += 1;
-            break;
+            case u'@':
+                if (result.integerNumerals > 0) {
+                    state.toParseException(u"Cannot mix 0 and @");
+                    status = U_UNEXPECTED_TOKEN;
+                    return;
+                }
+                if (result.integerTrailingHashSigns > 0) {
+                    state.toParseException(u"Cannot nest # inside of a run of @");
+                    status = U_UNEXPECTED_TOKEN;
+                    return;
+                }
+                result.widthExceptAffixes += 1;
+                result.groupingSizes += 1;
+                result.integerAtSigns += 1;
+                result.integerTotal += 1;
+                break;
 
-        case u'0':
-        case u'1':
-        case u'2':
-        case u'3':
-        case u'4':
-        case u'5':
-        case u'6':
-        case u'7':
-        case u'8':
-        case u'9':
-            if (result.integerAtSigns > 0) {
-                state.toParseException(u"Cannot mix @ and 0");
-                status = U_UNEXPECTED_TOKEN;
-                return;
-            }
-            result.widthExceptAffixes += 1;
-            result.groupingSizes += 1;
-            result.integerNumerals += 1;
-            result.integerTotal += 1;
-            if (!result.rounding.isZeroish() || state.peek() != u'0') {
-                result.rounding.appendDigit(static_cast<int8_t>(state.peek() - u'0'), 0, true);
-            }
-            break;
+            case u'0':
+            case u'1':
+            case u'2':
+            case u'3':
+            case u'4':
+            case u'5':
+            case u'6':
+            case u'7':
+            case u'8':
+            case u'9':
+                if (result.integerAtSigns > 0) {
+                    state.toParseException(u"Cannot mix @ and 0");
+                    status = U_UNEXPECTED_TOKEN;
+                    return;
+                }
+                result.widthExceptAffixes += 1;
+                result.groupingSizes += 1;
+                result.integerNumerals += 1;
+                result.integerTotal += 1;
+                if (!result.rounding.isZeroish() || state.peek() != u'0') {
+                    result.rounding.appendDigit(static_cast<int8_t>(state.peek() - u'0'), 0, true);
+                }
+                break;
 
-        default:
-            goto after_outer;
+            default:
+                goto after_outer;
         }
         state.next(); // consume the symbol
     }
 
-after_outer:
+    after_outer:
     // Disallow patterns with a trailing ',' or with two ',' next to each other
-    auto grouping1 = static_cast<int16_t>(result.groupingSizes & 0xffff);
-    auto grouping2 = static_cast<int16_t>((result.groupingSizes >> 16) & 0xffff);
-    auto grouping3 = static_cast<int16_t>((result.groupingSizes >> 32) & 0xffff);
+    auto grouping1 = static_cast<int16_t> (result.groupingSizes & 0xffff);
+    auto grouping2 = static_cast<int16_t> ((result.groupingSizes >> 16) & 0xffff);
+    auto grouping3 = static_cast<int16_t> ((result.groupingSizes >> 32) & 0xffff);
     if (grouping1 == 0 && grouping2 != -1) {
         state.toParseException(u"Trailing grouping separator is invalid");
         status = U_UNEXPECTED_TOKEN;
@@ -474,56 +425,55 @@ after_outer:
     }
 }
 
-void ParsedPatternInfo::consumeFractionFormat(UErrorCode& status)
-{
+void ParsedPatternInfo::consumeFractionFormat(UErrorCode& status) {
     // Convenience reference:
     ParsedSubpatternInfo& result = *currentSubpattern;
 
     int32_t zeroCounter = 0;
     while (true) {
         switch (state.peek()) {
-        case u'#':
-            result.widthExceptAffixes += 1;
-            result.fractionHashSigns += 1;
-            result.fractionTotal += 1;
-            zeroCounter++;
-            break;
-
-        case u'0':
-        case u'1':
-        case u'2':
-        case u'3':
-        case u'4':
-        case u'5':
-        case u'6':
-        case u'7':
-        case u'8':
-        case u'9':
-            if (result.fractionHashSigns > 0) {
-                state.toParseException(u"0 cannot follow # after decimal point");
-                status = U_UNEXPECTED_TOKEN;
-                return;
-            }
-            result.widthExceptAffixes += 1;
-            result.fractionNumerals += 1;
-            result.fractionTotal += 1;
-            if (state.peek() == u'0') {
+            case u'#':
+                result.widthExceptAffixes += 1;
+                result.fractionHashSigns += 1;
+                result.fractionTotal += 1;
                 zeroCounter++;
-            } else {
-                result.rounding.appendDigit(static_cast<int8_t>(state.peek() - u'0'), zeroCounter, false);
-                zeroCounter = 0;
-            }
-            break;
+                break;
 
-        default:
-            return;
+            case u'0':
+            case u'1':
+            case u'2':
+            case u'3':
+            case u'4':
+            case u'5':
+            case u'6':
+            case u'7':
+            case u'8':
+            case u'9':
+                if (result.fractionHashSigns > 0) {
+                    state.toParseException(u"0 cannot follow # after decimal point");
+                    status = U_UNEXPECTED_TOKEN;
+                    return;
+                }
+                result.widthExceptAffixes += 1;
+                result.fractionNumerals += 1;
+                result.fractionTotal += 1;
+                if (state.peek() == u'0') {
+                    zeroCounter++;
+                } else {
+                    result.rounding
+                            .appendDigit(static_cast<int8_t>(state.peek() - u'0'), zeroCounter, false);
+                    zeroCounter = 0;
+                }
+                break;
+
+            default:
+                return;
         }
         state.next(); // consume the symbol
     }
 }
 
-void ParsedPatternInfo::consumeExponent(UErrorCode& status)
-{
+void ParsedPatternInfo::consumeExponent(UErrorCode& status) {
     // Convenience reference:
     ParsedSubpatternInfo& result = *currentSubpattern;
 
@@ -553,9 +503,9 @@ void ParsedPatternInfo::consumeExponent(UErrorCode& status)
 /// END RECURSIVE DESCENT PARSER IMPLEMENTATION ///
 ///////////////////////////////////////////////////
 
-void PatternParser::parseToExistingPropertiesImpl(
-    const UnicodeString& pattern, DecimalFormatProperties& properties, IgnoreRounding ignoreRounding, UErrorCode& status)
-{
+void PatternParser::parseToExistingPropertiesImpl(const UnicodeString& pattern,
+                                                  DecimalFormatProperties& properties,
+                                                  IgnoreRounding ignoreRounding, UErrorCode& status) {
     if (pattern.length() == 0) {
         // Backwards compatibility requires that we reset to the default values.
         // TODO: Only overwrite the properties that "saveToProperties" normally touches?
@@ -565,15 +515,13 @@ void PatternParser::parseToExistingPropertiesImpl(
 
     ParsedPatternInfo patternInfo;
     parseToPatternInfo(pattern, patternInfo, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     patternInfoToProperties(properties, patternInfo, ignoreRounding, status);
 }
 
-void PatternParser::patternInfoToProperties(
-    DecimalFormatProperties& properties, ParsedPatternInfo& patternInfo, IgnoreRounding _ignoreRounding, UErrorCode& status)
-{
+void
+PatternParser::patternInfoToProperties(DecimalFormatProperties& properties, ParsedPatternInfo& patternInfo,
+                                       IgnoreRounding _ignoreRounding, UErrorCode& status) {
     // Translate from PatternParseResult to Properties.
     // Note that most data from "negative" is ignored per the specification of DecimalFormat.
 
@@ -590,9 +538,9 @@ void PatternParser::patternInfoToProperties(
     }
 
     // Grouping settings
-    auto grouping1 = static_cast<int16_t>(positive.groupingSizes & 0xffff);
-    auto grouping2 = static_cast<int16_t>((positive.groupingSizes >> 16) & 0xffff);
-    auto grouping3 = static_cast<int16_t>((positive.groupingSizes >> 32) & 0xffff);
+    auto grouping1 = static_cast<int16_t> (positive.groupingSizes & 0xffff);
+    auto grouping2 = static_cast<int16_t> ((positive.groupingSizes >> 16) & 0xffff);
+    auto grouping3 = static_cast<int16_t> ((positive.groupingSizes >> 32) & 0xffff);
     if (grouping2 != -1) {
         properties.groupingSize = grouping1;
         properties.groupingUsed = true;
@@ -692,7 +640,9 @@ void PatternParser::patternInfoToProperties(
     // Padding settings
     if (positive.hasPadding) {
         // The width of the positive prefix and suffix templates are included in the padding
-        int paddingWidth = positive.widthExceptAffixes + AffixUtils::estimateLength(posPrefix, status) + AffixUtils::estimateLength(posSuffix, status);
+        int paddingWidth = positive.widthExceptAffixes +
+                           AffixUtils::estimateLength(posPrefix, status) +
+                           AffixUtils::estimateLength(posSuffix, status);
         properties.formatWidth = paddingWidth;
         UnicodeString rawPaddingString = patternInfo.getString(AffixPatternProvider::AFFIX_PADDING);
         if (rawPaddingString.length() == 1) {
@@ -719,8 +669,10 @@ void PatternParser::patternInfoToProperties(
     properties.positivePrefixPattern = posPrefix;
     properties.positiveSuffixPattern = posSuffix;
     if (patternInfo.fHasNegativeSubpattern) {
-        properties.negativePrefixPattern = patternInfo.getString(AffixPatternProvider::AFFIX_NEGATIVE_SUBPATTERN | AffixPatternProvider::AFFIX_PREFIX);
-        properties.negativeSuffixPattern = patternInfo.getString(AffixPatternProvider::AFFIX_NEGATIVE_SUBPATTERN);
+        properties.negativePrefixPattern = patternInfo.getString(
+                AffixPatternProvider::AFFIX_NEGATIVE_SUBPATTERN | AffixPatternProvider::AFFIX_PREFIX);
+        properties.negativeSuffixPattern = patternInfo.getString(
+                AffixPatternProvider::AFFIX_NEGATIVE_SUBPATTERN);
     } else {
         properties.negativePrefixPattern.setToBogus();
         properties.negativeSuffixPattern.setToBogus();
@@ -749,20 +701,18 @@ void PatternParser::patternInfoToProperties(
 // 0.005 is treated like 0.001 for significance). This is the reason for the
 // initial doubling below.
 // roundIncr must be non-zero.
-bool PatternStringUtils::ignoreRoundingIncrement(double roundIncr, int32_t maxFrac)
-{
+bool PatternStringUtils::ignoreRoundingIncrement(double roundIncr, int32_t maxFrac) {
     if (maxFrac < 0) {
         return false;
     }
     int32_t frac = 0;
     roundIncr *= 2.0;
-    for (frac = 0; frac <= maxFrac && roundIncr <= 1.0; frac++, roundIncr *= 10.0)
-        ;
+    for (frac = 0; frac <= maxFrac && roundIncr <= 1.0; frac++, roundIncr *= 10.0);
     return (frac > maxFrac);
 }
 
-UnicodeString PatternStringUtils::propertiesToPatternString(const DecimalFormatProperties& properties, UErrorCode& status)
-{
+UnicodeString PatternStringUtils::propertiesToPatternString(const DecimalFormatProperties& properties,
+                                                            UErrorCode& status) {
     UnicodeString sb;
 
     // Convenience references
@@ -811,7 +761,7 @@ UnicodeString PatternStringUtils::propertiesToPatternString(const DecimalFormatP
         while (digitsString.length() < maxSig) {
             digitsString.append(u'#');
         }
-    } else if (increment != 0.0 && !ignoreRoundingIncrement(increment, maxFrac)) {
+    } else if (increment != 0.0 && !ignoreRoundingIncrement(increment,maxFrac)) {
         // Rounding Increment.
         DecimalQuantity incrementQuantity;
         incrementQuantity.setToDouble(increment);
@@ -890,30 +840,28 @@ UnicodeString PatternStringUtils::propertiesToPatternString(const DecimalFormatP
         }
         int32_t addedLength;
         switch (paddingLocation.get(status)) {
-        case PadPosition::UNUM_PAD_BEFORE_PREFIX:
-            addedLength = escapePaddingString(paddingString, sb, 0, status);
-            sb.insert(0, u'*');
-            afterPrefixPos += addedLength + 1;
-            beforeSuffixPos += addedLength + 1;
-            break;
-        case PadPosition::UNUM_PAD_AFTER_PREFIX:
-            addedLength = escapePaddingString(paddingString, sb, afterPrefixPos, status);
-            sb.insert(afterPrefixPos, u'*');
-            afterPrefixPos += addedLength + 1;
-            beforeSuffixPos += addedLength + 1;
-            break;
-        case PadPosition::UNUM_PAD_BEFORE_SUFFIX:
-            escapePaddingString(paddingString, sb, beforeSuffixPos, status);
-            sb.insert(beforeSuffixPos, u'*');
-            break;
-        case PadPosition::UNUM_PAD_AFTER_SUFFIX:
-            sb.append(u'*');
-            escapePaddingString(paddingString, sb, sb.length(), status);
-            break;
+            case PadPosition::UNUM_PAD_BEFORE_PREFIX:
+                addedLength = escapePaddingString(paddingString, sb, 0, status);
+                sb.insert(0, u'*');
+                afterPrefixPos += addedLength + 1;
+                beforeSuffixPos += addedLength + 1;
+                break;
+            case PadPosition::UNUM_PAD_AFTER_PREFIX:
+                addedLength = escapePaddingString(paddingString, sb, afterPrefixPos, status);
+                sb.insert(afterPrefixPos, u'*');
+                afterPrefixPos += addedLength + 1;
+                beforeSuffixPos += addedLength + 1;
+                break;
+            case PadPosition::UNUM_PAD_BEFORE_SUFFIX:
+                escapePaddingString(paddingString, sb, beforeSuffixPos, status);
+                sb.insert(beforeSuffixPos, u'*');
+                break;
+            case PadPosition::UNUM_PAD_AFTER_SUFFIX:
+                sb.append(u'*');
+                escapePaddingString(paddingString, sb, sb.length(), status);
+                break;
         }
-        if (U_FAILURE(status)) {
-            return sb;
-        }
+        if (U_FAILURE(status)) { return sb; }
     }
 
     // Negative affixes
@@ -933,9 +881,9 @@ UnicodeString PatternStringUtils::propertiesToPatternString(const DecimalFormatP
     return sb;
 }
 
-int PatternStringUtils::escapePaddingString(UnicodeString input, UnicodeString& output, int startIndex, UErrorCode& status)
-{
-    (void)status;
+int PatternStringUtils::escapePaddingString(UnicodeString input, UnicodeString& output, int startIndex,
+                                            UErrorCode& status) {
+    (void) status;
     if (input.length() == 0) {
         input.setTo(kFallbackPaddingString, -1);
     }
@@ -965,8 +913,9 @@ int PatternStringUtils::escapePaddingString(UnicodeString input, UnicodeString& 
     return output.length() - startLength;
 }
 
-UnicodeString PatternStringUtils::convertLocalized(const UnicodeString& input, const DecimalFormatSymbols& symbols, bool toLocalized, UErrorCode& status)
-{
+UnicodeString
+PatternStringUtils::convertLocalized(const UnicodeString& input, const DecimalFormatSymbols& symbols,
+                                     bool toLocalized, UErrorCode& status) {
     // Construct a table of strings to be converted between localized and standard.
     static constexpr int32_t LEN = 21;
     UnicodeString table[LEN][2];
@@ -1019,7 +968,7 @@ UnicodeString PatternStringUtils::convertLocalized(const UnicodeString& input, c
     UnicodeString result;
     int state = 0;
     for (int offset = 0; offset < input.length(); offset++) {
-        UChar ch = input.charAt(offset);
+        char16_t ch = input.charAt(offset);
 
         // Handle a quote character (state shift)
         if (ch == u'\'') {
@@ -1089,7 +1038,7 @@ UnicodeString PatternStringUtils::convertLocalized(const UnicodeString& input, c
             result.append(ch);
             state = 2;
         }
-    continue_outer:;
+        continue_outer:;
     }
     // Resolve final quotes
     if (state == 3 || state == 4) {
@@ -1103,17 +1052,23 @@ UnicodeString PatternStringUtils::convertLocalized(const UnicodeString& input, c
     return result;
 }
 
-void PatternStringUtils::patternInfoToStringBuilder(const AffixPatternProvider& patternInfo, bool isPrefix, PatternSignType patternSignType, bool approximately,
-    StandardPlural::Form plural, bool perMilleReplacesPercent, UnicodeString& output)
-{
+void PatternStringUtils::patternInfoToStringBuilder(const AffixPatternProvider& patternInfo, bool isPrefix,
+                                                    PatternSignType patternSignType,
+                                                    bool approximately,
+                                                    StandardPlural::Form plural,
+                                                    bool perMilleReplacesPercent,
+                                                    bool dropCurrencySymbols,
+                                                    UnicodeString& output) {
 
     // Should the output render '+' where '-' would normally appear in the pattern?
-    bool plusReplacesMinusSign = (patternSignType == PATTERN_SIGN_TYPE_POS_SIGN) && !patternInfo.positiveHasPlusSign();
+    bool plusReplacesMinusSign = (patternSignType == PATTERN_SIGN_TYPE_POS_SIGN)
+        && !patternInfo.positiveHasPlusSign();
 
     // Should we use the affix from the negative subpattern?
     // (If not, we will use the positive subpattern.)
     bool useNegativeAffixPattern = patternInfo.hasNegativeSubpattern()
-        && (patternSignType == PATTERN_SIGN_TYPE_NEG || (patternInfo.negativeHasMinusSign() && (plusReplacesMinusSign || approximately)));
+        && (patternSignType == PATTERN_SIGN_TYPE_NEG
+            || (patternInfo.negativeHasMinusSign() && (plusReplacesMinusSign || approximately)));
 
     // Resolve the flags for the affix pattern.
     int flags = 0;
@@ -1177,75 +1132,77 @@ void PatternStringUtils::patternInfoToStringBuilder(const AffixPatternProvider& 
         if (perMilleReplacesPercent && candidate == u'%') {
             candidate = u'‰';
         }
+        if (dropCurrencySymbols && candidate == u'\u00A4') {
+            continue;
+        }
         output.append(candidate);
     }
 }
 
-PatternSignType PatternStringUtils::resolveSignDisplay(UNumberSignDisplay signDisplay, Signum signum)
-{
+PatternSignType PatternStringUtils::resolveSignDisplay(UNumberSignDisplay signDisplay, Signum signum) {
     switch (signDisplay) {
-    case UNUM_SIGN_AUTO:
-    case UNUM_SIGN_ACCOUNTING:
-        switch (signum) {
-        case SIGNUM_NEG:
-        case SIGNUM_NEG_ZERO:
-            return PATTERN_SIGN_TYPE_NEG;
-        case SIGNUM_POS_ZERO:
-        case SIGNUM_POS:
+        case UNUM_SIGN_AUTO:
+        case UNUM_SIGN_ACCOUNTING:
+            switch (signum) {
+                case SIGNUM_NEG:
+                case SIGNUM_NEG_ZERO:
+                    return PATTERN_SIGN_TYPE_NEG;
+                case SIGNUM_POS_ZERO:
+                case SIGNUM_POS:
+                    return PATTERN_SIGN_TYPE_POS;
+                default:
+                    break;
+            }
+            break;
+
+        case UNUM_SIGN_ALWAYS:
+        case UNUM_SIGN_ACCOUNTING_ALWAYS:
+            switch (signum) {
+                case SIGNUM_NEG:
+                case SIGNUM_NEG_ZERO:
+                    return PATTERN_SIGN_TYPE_NEG;
+                case SIGNUM_POS_ZERO:
+                case SIGNUM_POS:
+                    return PATTERN_SIGN_TYPE_POS_SIGN;
+                default:
+                    break;
+            }
+            break;
+
+        case UNUM_SIGN_EXCEPT_ZERO:
+        case UNUM_SIGN_ACCOUNTING_EXCEPT_ZERO:
+            switch (signum) {
+                case SIGNUM_NEG:
+                    return PATTERN_SIGN_TYPE_NEG;
+                case SIGNUM_NEG_ZERO:
+                case SIGNUM_POS_ZERO:
+                    return PATTERN_SIGN_TYPE_POS;
+                case SIGNUM_POS:
+                    return PATTERN_SIGN_TYPE_POS_SIGN;
+                default:
+                    break;
+            }
+            break;
+
+        case UNUM_SIGN_NEGATIVE:
+        case UNUM_SIGN_ACCOUNTING_NEGATIVE:
+            switch (signum) {
+                case SIGNUM_NEG:
+                    return PATTERN_SIGN_TYPE_NEG;
+                case SIGNUM_NEG_ZERO:
+                case SIGNUM_POS_ZERO:
+                case SIGNUM_POS:
+                    return PATTERN_SIGN_TYPE_POS;
+                default:
+                    break;
+            }
+            break;
+
+        case UNUM_SIGN_NEVER:
             return PATTERN_SIGN_TYPE_POS;
+
         default:
             break;
-        }
-        break;
-
-    case UNUM_SIGN_ALWAYS:
-    case UNUM_SIGN_ACCOUNTING_ALWAYS:
-        switch (signum) {
-        case SIGNUM_NEG:
-        case SIGNUM_NEG_ZERO:
-            return PATTERN_SIGN_TYPE_NEG;
-        case SIGNUM_POS_ZERO:
-        case SIGNUM_POS:
-            return PATTERN_SIGN_TYPE_POS_SIGN;
-        default:
-            break;
-        }
-        break;
-
-    case UNUM_SIGN_EXCEPT_ZERO:
-    case UNUM_SIGN_ACCOUNTING_EXCEPT_ZERO:
-        switch (signum) {
-        case SIGNUM_NEG:
-            return PATTERN_SIGN_TYPE_NEG;
-        case SIGNUM_NEG_ZERO:
-        case SIGNUM_POS_ZERO:
-            return PATTERN_SIGN_TYPE_POS;
-        case SIGNUM_POS:
-            return PATTERN_SIGN_TYPE_POS_SIGN;
-        default:
-            break;
-        }
-        break;
-
-    case UNUM_SIGN_NEGATIVE:
-    case UNUM_SIGN_ACCOUNTING_NEGATIVE:
-        switch (signum) {
-        case SIGNUM_NEG:
-            return PATTERN_SIGN_TYPE_NEG;
-        case SIGNUM_NEG_ZERO:
-        case SIGNUM_POS_ZERO:
-        case SIGNUM_POS:
-            return PATTERN_SIGN_TYPE_POS;
-        default:
-            break;
-        }
-        break;
-
-    case UNUM_SIGN_NEVER:
-        return PATTERN_SIGN_TYPE_POS;
-
-    default:
-        break;
     }
 
     UPRV_UNREACHABLE_EXIT;

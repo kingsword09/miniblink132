@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -34,7 +34,8 @@ class Transliterator;
  */
 class FunctionReplacer : public UnicodeFunctor, public UnicodeReplacer {
 
-private:
+ private:
+
     /**
      * The transliterator.  Must not be null.  OWNED.
      */
@@ -46,13 +47,15 @@ private:
      */
     UnicodeFunctor* replacer;
 
-public:
+ public:
+
     /**
      * Construct a replacer that takes the output of the given
      * replacer, passes it through the given transliterator, and emits
      * the result as output.
      */
-    FunctionReplacer(Transliterator* adoptedTranslit, UnicodeFunctor* adoptedReplacer);
+    FunctionReplacer(Transliterator* adoptedTranslit,
+                     UnicodeFunctor* adoptedReplacer);
 
     /**
      * Copy constructor.
@@ -78,12 +81,16 @@ public:
     /**
      * UnicodeReplacer API
      */
-    virtual int32_t replace(Replaceable& text, int32_t start, int32_t limit, int32_t& cursor) override;
+    virtual int32_t replace(Replaceable& text,
+                            int32_t start,
+                            int32_t limit,
+                            int32_t& cursor) override;
 
     /**
      * UnicodeReplacer API
      */
-    virtual UnicodeString& toReplacerPattern(UnicodeString& rule, UBool escapeUnprintable) const override;
+    virtual UnicodeString& toReplacerPattern(UnicodeString& rule,
+                                             UBool escapeUnprintable) const override;
 
     /**
      * Implement UnicodeReplacer
@@ -111,4 +118,4 @@ U_NAMESPACE_END
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 #endif
 
-// eof
+//eof

@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -27,78 +27,84 @@ using namespace icu::number::impl;
 // In C++, MicroProps provides a pre-allocated ScientificModifier, and ScientificHandler simply populates
 // the state (the exponent) into that ScientificModifier. There is no difference between safe and unsafe.
 
-ScientificModifier::ScientificModifier()
-    : fExponent(0)
-    , fHandler(nullptr)
-{
-}
+ScientificModifier::ScientificModifier() : fExponent(0), fHandler(nullptr) {}
 
-void ScientificModifier::set(int32_t exponent, const ScientificHandler* handler)
-{
+void ScientificModifier::set(int32_t exponent, const ScientificHandler *handler) {
     // ScientificModifier should be set only once.
     U_ASSERT(fHandler == nullptr);
     fExponent = exponent;
     fHandler = handler;
 }
 
-int32_t ScientificModifier::apply(FormattedStringBuilder& output, int32_t /*leftIndex*/, int32_t rightIndex, UErrorCode& status) const
-{
+int32_t ScientificModifier::apply(FormattedStringBuilder &output, int32_t /*leftIndex*/, int32_t rightIndex,
+                                  UErrorCode &status) const {
     // FIXME: Localized exponent separator location.
     int i = rightIndex;
     // Append the exponent separator and sign
-    i += output.insert(i, fHandler->fSymbols->getSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kExponentialSymbol),
-        { UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_SYMBOL_FIELD }, status);
+    i += output.insert(
+            i,
+            fHandler->fSymbols->getSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kExponentialSymbol),
+            {UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_SYMBOL_FIELD},
+            status);
     if (fExponent < 0 && fHandler->fSettings.fExponentSignDisplay != UNUM_SIGN_NEVER) {
-        i += output.insert(i, fHandler->fSymbols->getSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kMinusSignSymbol),
-            { UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_SIGN_FIELD }, status);
+        i += output.insert(
+                i,
+                fHandler->fSymbols
+                        ->getSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kMinusSignSymbol),
+                {UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_SIGN_FIELD},
+                status);
     } else if (fExponent >= 0 && fHandler->fSettings.fExponentSignDisplay == UNUM_SIGN_ALWAYS) {
-        i += output.insert(i, fHandler->fSymbols->getSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kPlusSignSymbol),
-            { UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_SIGN_FIELD }, status);
+        i += output.insert(
+                i,
+                fHandler->fSymbols
+                        ->getSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kPlusSignSymbol),
+                {UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_SIGN_FIELD},
+                status);
     }
     // Append the exponent digits (using a simple inline algorithm)
     int32_t disp = std::abs(fExponent);
     for (int j = 0; j < fHandler->fSettings.fMinExponentDigits || disp > 0; j++, disp /= 10) {
         auto d = static_cast<int8_t>(disp % 10);
-        i += utils::insertDigitFromSymbols(output, i - j, d, *fHandler->fSymbols, { UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_FIELD }, status);
+        i += utils::insertDigitFromSymbols(
+                output,
+                i - j,
+                d,
+                *fHandler->fSymbols,
+                {UFIELD_CATEGORY_NUMBER, UNUM_EXPONENT_FIELD},
+                status);
     }
     return i - rightIndex;
 }
 
-int32_t ScientificModifier::getPrefixLength() const
-{
+int32_t ScientificModifier::getPrefixLength() const {
     // TODO: Localized exponent separator location.
     return 0;
 }
 
-int32_t ScientificModifier::getCodePointCount() const
-{
+int32_t ScientificModifier::getCodePointCount() const {
     // NOTE: This method is only called one place, NumberRangeFormatterImpl.
     // The call site only cares about != 0 and != 1.
     // Return a very large value so that if this method is used elsewhere, we should notice.
     return 999;
 }
 
-bool ScientificModifier::isStrong() const
-{
+bool ScientificModifier::isStrong() const {
     // Scientific is always strong
     return true;
 }
 
-bool ScientificModifier::containsField(Field field) const
-{
+bool ScientificModifier::containsField(Field field) const {
     (void)field;
     // This method is not used for inner modifiers.
     UPRV_UNREACHABLE_EXIT;
 }
 
-void ScientificModifier::getParameters(Parameters& output) const
-{
+void ScientificModifier::getParameters(Parameters& output) const {
     // Not part of any plural sets
     output.obj = nullptr;
 }
 
-bool ScientificModifier::semanticallyEquivalent(const Modifier& other) const
-{
+bool ScientificModifier::semanticallyEquivalent(const Modifier& other) const {
     auto* _other = dynamic_cast<const ScientificModifier*>(&other);
     if (_other == nullptr) {
         return false;
@@ -108,19 +114,14 @@ bool ScientificModifier::semanticallyEquivalent(const Modifier& other) const
 }
 
 // Note: Visual Studio does not compile this function without full name space. Why?
-icu::number::impl::ScientificHandler::ScientificHandler(const Notation* notation, const DecimalFormatSymbols* symbols, const MicroPropsGenerator* parent)
-    : fSettings(notation->fUnion.scientific)
-    , fSymbols(symbols)
-    , fParent(parent)
-{
-}
+icu::number::impl::ScientificHandler::ScientificHandler(const Notation *notation, const DecimalFormatSymbols *symbols,
+	const MicroPropsGenerator *parent) : 
+	fSettings(notation->fUnion.scientific), fSymbols(symbols), fParent(parent) {}
 
-void ScientificHandler::processQuantity(DecimalQuantity& quantity, MicroProps& micros, UErrorCode& status) const
-{
+void ScientificHandler::processQuantity(DecimalQuantity &quantity, MicroProps &micros,
+                                        UErrorCode &status) const {
     fParent->processQuantity(quantity, micros, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
 
     // Do not apply scientific notation to special doubles
     if (quantity.isInfinite() || quantity.isNaN()) {
@@ -144,7 +145,7 @@ void ScientificHandler::processQuantity(DecimalQuantity& quantity, MicroProps& m
     }
 
     // Use MicroProps's helper ScientificModifier and save it as the modInner.
-    ScientificModifier& mod = micros.helpers.scientificModifier;
+    ScientificModifier &mod = micros.helpers.scientificModifier;
     mod.set(exponent, this);
     micros.modInner = &mod;
 
@@ -157,8 +158,7 @@ void ScientificHandler::processQuantity(DecimalQuantity& quantity, MicroProps& m
     micros.rounder = RoundingImpl::passThrough();
 }
 
-int32_t ScientificHandler::getMultiplier(int32_t magnitude) const
-{
+int32_t ScientificHandler::getMultiplier(int32_t magnitude) const {
     int32_t interval = fSettings.fEngineeringInterval;
     int32_t digitsShown;
     if (fSettings.fRequireMinInt) {

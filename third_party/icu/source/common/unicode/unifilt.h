@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -20,7 +20,7 @@
 #include "unicode/unimatch.h"
 
 /**
- * \file
+ * \file 
  * \brief C++ API: Unicode Filter
  */
 
@@ -99,7 +99,10 @@ public:
      * Implement UnicodeMatcher API.
      * @stable ICU 2.4
      */
-    virtual UMatchDegree matches(const Replaceable& text, int32_t& offset, int32_t limit, UBool incremental) override;
+    virtual UMatchDegree matches(const Replaceable& text,
+                                 int32_t& offset,
+                                 int32_t limit,
+                                 UBool incremental) override;
 
     /**
      * UnicodeFunctor API.  Nothing to do.
@@ -115,12 +118,13 @@ public:
     static UClassID U_EXPORT2 getStaticClassID();
 
 protected:
+
     /*
      * Since this class has pure virtual functions,
      * a constructor can't be used.
      * @stable ICU 2.0
      */
-    /*    UnicodeFilter();*/
+/*    UnicodeFilter();*/
 };
 
 /*inline UnicodeFilter::UnicodeFilter() {}*/

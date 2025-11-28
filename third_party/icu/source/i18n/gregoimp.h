@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -28,7 +28,7 @@ U_NAMESPACE_BEGIN
  * @internal
  */
 class ClockMath {
-public:
+ public:
     /**
      * Divide two integers, returning the floor of the quotient.
      * Unlike the built-in division, this is mathematically
@@ -77,7 +77,8 @@ public:
      * |denominator|)</code>.
      * @return the floor of the quotient
      */
-    static int32_t floorDivide(double numerator, int32_t denominator, int32_t* remainder);
+    static int32_t floorDivide(double numerator, int32_t denominator,
+                               int32_t* remainder);
 
     /**
      * For a positive divisor, return the quotient and remainder
@@ -89,27 +90,29 @@ public:
      *
      * Calling with a divisor <= 0 is disallowed.
      */
-    static double floorDivide(double dividend, double divisor, double* remainder);
+    static double floorDivide(double dividend, double divisor,
+                              double* remainder);
 };
 
 // Useful millisecond constants
-#define kOneDay (1.0 * U_MILLIS_PER_DAY) //  86,400,000
-#define kOneHour (60 * 60 * 1000)
+#define kOneDay    (1.0 * U_MILLIS_PER_DAY)       //  86,400,000
+#define kOneHour   (60*60*1000)
 #define kOneMinute 60000
 #define kOneSecond 1000
-#define kOneMillisecond 1
-#define kOneWeek (7.0 * kOneDay) // 604,800,000
+#define kOneMillisecond  1
+#define kOneWeek   (7.0 * kOneDay) // 604,800,000
 
 // Epoch constants
-#define kJan1_1JulianDay 1721426 // January 1, year 1 (Gregorian)
+#define kJan1_1JulianDay  1721426 // January 1, year 1 (Gregorian)
 
-#define kEpochStartAsJulianDay 2440588 // January 1, 1970 (Gregorian)
+#define kEpochStartAsJulianDay  2440588 // January 1, 1970 (Gregorian)
 
-#define kEpochYear 1970
+#define kEpochYear              1970
 
-#define kEarliestViableMillis -185331720384000000.0 // minimum representable by julian day  -1e17
 
-#define kLatestViableMillis 185753453990400000.0 // max representable by julian day      +1e17
+#define kEarliestViableMillis  -185331720384000000.0  // minimum representable by julian day  -1e17
+
+#define kLatestViableMillis     185753453990400000.0  // max representable by julian day      +1e17
 
 /**
  * The minimum supported Julian day.  This value is equivalent to
@@ -143,7 +146,7 @@ public:
  * class occur in the pure proleptic GregorianCalendar.
  */
 class Grego {
-public:
+ public:
     /**
      * Return true if the given year is a leap year.
      * @param year Gregorian year, with 0 == 1 BCE, -1 == 2 BCE, etc.
@@ -176,7 +179,7 @@ public:
      * @return the day number, with day 0 == Jan 1 1970
      */
     static double fieldsToDay(int32_t year, int32_t month, int32_t dom);
-
+    
     /**
      * Convert a 1970-epoch day number to proleptic Gregorian year,
      * month, day-of-month, and day-of-week.
@@ -186,8 +189,10 @@ public:
      * @param dom output parameter to receive day-of-month (1-based)
      * @param dow output parameter to receive day-of-week (1-based, 1==Sun)
      * @param doy output parameter to receive day-of-year (1-based)
+     * @param status error code.
      */
-    static void dayToFields(double day, int32_t& year, int32_t& month, int32_t& dom, int32_t& dow, int32_t& doy);
+    static void dayToFields(double day, int32_t& year, int32_t& month,
+                            int32_t& dom, int32_t& dow, int32_t& doy, UErrorCode& status);
 
     /**
      * Convert a 1970-epoch day number to proleptic Gregorian year,
@@ -197,8 +202,10 @@ public:
      * @param month output parameter to receive month (0-based, 0==Jan)
      * @param dom output parameter to receive day-of-month (1-based)
      * @param dow output parameter to receive day-of-week (1-based, 1==Sun)
+     * @param status error code.
      */
-    static inline void dayToFields(double day, int32_t& year, int32_t& month, int32_t& dom, int32_t& dow);
+    static inline void dayToFields(double day, int32_t& year, int32_t& month,
+                                   int32_t& dom, int32_t& dow, UErrorCode& status);
 
     /**
      * Convert a 1970-epoch milliseconds to proleptic Gregorian year,
@@ -210,8 +217,10 @@ public:
      * @param dow output parameter to receive day-of-week (1-based, 1==Sun)
      * @param doy output parameter to receive day-of-year (1-based)
      * @param mid output parameter to receive millis-in-day
+     * @param status error code.
      */
-    static void timeToFields(UDate time, int32_t& year, int32_t& month, int32_t& dom, int32_t& dow, int32_t& doy, int32_t& mid);
+    static void timeToFields(UDate time, int32_t& year, int32_t& month,
+                            int32_t& dom, int32_t& dow, int32_t& doy, int32_t& mid, UErrorCode& status);
 
     /**
      * Return the day of week on the 1970-epoch day
@@ -246,60 +255,56 @@ public:
      */
     static inline int32_t millisToJulianDay(double millis);
 
-    /**
+    /** 
      * Calculates the Gregorian day shift value for an extended year.
-     * @param eyear Extended year
+     * @param eyear Extended year 
      * @returns number of days to ADD to Julian in order to convert from J->G
      */
     static inline int32_t gregorianShift(int32_t eyear);
 
-private:
+ private:
     static const int16_t DAYS_BEFORE[24];
     static const int8_t MONTH_LENGTH[24];
 };
 
-inline double ClockMath::floorDivide(double numerator, double denominator)
-{
+inline double ClockMath::floorDivide(double numerator, double denominator) {
     return uprv_floor(numerator / denominator);
 }
 
-inline UBool Grego::isLeapYear(int32_t year)
-{
+inline UBool Grego::isLeapYear(int32_t year) {
     // year&0x3 == year%4
-    return ((year & 0x3) == 0) && ((year % 100 != 0) || (year % 400 == 0));
+    return ((year&0x3) == 0) && ((year%100 != 0) || (year%400 == 0));
 }
 
-inline int8_t Grego::monthLength(int32_t year, int32_t month)
-{
+inline int8_t
+Grego::monthLength(int32_t year, int32_t month) {
     return MONTH_LENGTH[month + (isLeapYear(year) ? 12 : 0)];
 }
 
-inline int8_t Grego::previousMonthLength(int y, int m)
-{
-    return (m > 0) ? monthLength(y, m - 1) : 31;
+inline int8_t
+Grego::previousMonthLength(int y, int m) {
+  return (m > 0) ? monthLength(y, m-1) : 31;
 }
 
-inline void Grego::dayToFields(double day, int32_t& year, int32_t& month, int32_t& dom, int32_t& dow)
-{
-    int32_t doy_unused;
-    dayToFields(day, year, month, dom, dow, doy_unused);
+inline void Grego::dayToFields(double day, int32_t& year, int32_t& month,
+                               int32_t& dom, int32_t& dow, UErrorCode& status) {
+  int32_t doy_unused;
+  dayToFields(day,year,month,dom,dow,doy_unused, status);
 }
 
 inline double Grego::julianDayToMillis(int32_t julian)
 {
-    return (julian - kEpochStartAsJulianDay) * kOneDay;
+  return (julian - kEpochStartAsJulianDay) * kOneDay;
 }
 
-inline int32_t Grego::millisToJulianDay(double millis)
-{
-    return (int32_t)(kEpochStartAsJulianDay + ClockMath::floorDivide(millis, (double)kOneDay));
+inline int32_t Grego::millisToJulianDay(double millis) {
+  return (int32_t) (kEpochStartAsJulianDay + ClockMath::floorDivide(millis, (double)kOneDay));
 }
 
-inline int32_t Grego::gregorianShift(int32_t eyear)
-{
-    int64_t y = (int64_t)eyear - 1;
-    int32_t gregShift = static_cast<int32_t>(ClockMath::floorDivide(y, (int64_t)400) - ClockMath::floorDivide(y, (int64_t)100) + 2);
-    return gregShift;
+inline int32_t Grego::gregorianShift(int32_t eyear) {
+  int64_t y = (int64_t)eyear-1;
+  int32_t gregShift = static_cast<int32_t>(ClockMath::floorDivide(y, (int64_t)400) - ClockMath::floorDivide(y, (int64_t)100) + 2);
+  return gregShift;
 }
 
 U_NAMESPACE_END
@@ -307,4 +312,4 @@ U_NAMESPACE_END
 #endif // !UCONFIG_NO_FORMATTING
 #endif // GREGOIMP_H
 
-// eof
+//eof

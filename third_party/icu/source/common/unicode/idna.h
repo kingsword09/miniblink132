@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -90,7 +90,8 @@ public:
      * @return the UTS #46 IDNA instance, if successful
      * @stable ICU 4.6
      */
-    static IDNA* createUTS46Instance(uint32_t options, UErrorCode& errorCode);
+    static IDNA *
+    createUTS46Instance(uint32_t options, UErrorCode &errorCode);
 
     /**
      * Converts a single domain name label into its ASCII form for DNS lookup.
@@ -112,7 +113,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual UnicodeString& labelToASCII(const UnicodeString& label, UnicodeString& dest, IDNAInfo& info, UErrorCode& errorCode) const = 0;
+    virtual UnicodeString &
+    labelToASCII(const UnicodeString &label, UnicodeString &dest,
+                 IDNAInfo &info, UErrorCode &errorCode) const = 0;
 
     /**
      * Converts a single domain name label into its Unicode form for human-readable display.
@@ -132,7 +135,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual UnicodeString& labelToUnicode(const UnicodeString& label, UnicodeString& dest, IDNAInfo& info, UErrorCode& errorCode) const = 0;
+    virtual UnicodeString &
+    labelToUnicode(const UnicodeString &label, UnicodeString &dest,
+                   IDNAInfo &info, UErrorCode &errorCode) const = 0;
 
     /**
      * Converts a whole domain name into its ASCII form for DNS lookup.
@@ -154,7 +159,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual UnicodeString& nameToASCII(const UnicodeString& name, UnicodeString& dest, IDNAInfo& info, UErrorCode& errorCode) const = 0;
+    virtual UnicodeString &
+    nameToASCII(const UnicodeString &name, UnicodeString &dest,
+                IDNAInfo &info, UErrorCode &errorCode) const = 0;
 
     /**
      * Converts a whole domain name into its Unicode form for human-readable display.
@@ -174,7 +181,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual UnicodeString& nameToUnicode(const UnicodeString& name, UnicodeString& dest, IDNAInfo& info, UErrorCode& errorCode) const = 0;
+    virtual UnicodeString &
+    nameToUnicode(const UnicodeString &name, UnicodeString &dest,
+                  IDNAInfo &info, UErrorCode &errorCode) const = 0;
 
     // UTF-8 versions of the processing methods ---------------------------- ***
 
@@ -192,7 +201,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual void labelToASCII_UTF8(StringPiece label, ByteSink& dest, IDNAInfo& info, UErrorCode& errorCode) const;
+    virtual void
+    labelToASCII_UTF8(StringPiece label, ByteSink &dest,
+                      IDNAInfo &info, UErrorCode &errorCode) const;
 
     /**
      * Converts a single domain name label into its Unicode form for human-readable display.
@@ -208,7 +219,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual void labelToUnicodeUTF8(StringPiece label, ByteSink& dest, IDNAInfo& info, UErrorCode& errorCode) const;
+    virtual void
+    labelToUnicodeUTF8(StringPiece label, ByteSink &dest,
+                       IDNAInfo &info, UErrorCode &errorCode) const;
 
     /**
      * Converts a whole domain name into its ASCII form for DNS lookup.
@@ -224,7 +237,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual void nameToASCII_UTF8(StringPiece name, ByteSink& dest, IDNAInfo& info, UErrorCode& errorCode) const;
+    virtual void
+    nameToASCII_UTF8(StringPiece name, ByteSink &dest,
+                     IDNAInfo &info, UErrorCode &errorCode) const;
 
     /**
      * Converts a whole domain name into its Unicode form for human-readable display.
@@ -240,7 +255,9 @@ public:
      * @return dest
      * @stable ICU 4.6
      */
-    virtual void nameToUnicodeUTF8(StringPiece name, ByteSink& dest, IDNAInfo& info, UErrorCode& errorCode) const;
+    virtual void
+    nameToUnicodeUTF8(StringPiece name, ByteSink &dest,
+                      IDNAInfo &info, UErrorCode &errorCode) const;
 };
 
 class UTS46;
@@ -256,33 +273,20 @@ public:
      * Constructor for stack allocation.
      * @stable ICU 4.6
      */
-    IDNAInfo()
-        : errors(0)
-        , labelErrors(0)
-        , isTransDiff(false)
-        , isBiDi(false)
-        , isOkBiDi(true)
-    {
-    }
+    IDNAInfo() : errors(0), labelErrors(0), isTransDiff(false), isBiDi(false), isOkBiDi(true) {}
     /**
      * Were there IDNA processing errors?
      * @return true if there were processing errors
      * @stable ICU 4.6
      */
-    UBool hasErrors() const
-    {
-        return errors != 0;
-    }
+    UBool hasErrors() const { return errors!=0; }
     /**
      * Returns a bit set indicating IDNA processing errors.
      * See UIDNA_ERROR_... constants in uidna.h.
      * @return bit set of processing errors
      * @stable ICU 4.6
      */
-    uint32_t getErrors() const
-    {
-        return errors;
-    }
+    uint32_t getErrors() const { return errors; }
     /**
      * Returns true if transitional and nontransitional processing produce different results.
      * This is the case when the input label or domain name contains
@@ -296,23 +300,19 @@ public:
      * @return true if transitional and nontransitional processing produce different results
      * @stable ICU 4.6
      */
-    UBool isTransitionalDifferent() const
-    {
-        return isTransDiff;
-    }
+    UBool isTransitionalDifferent() const { return isTransDiff; }
 
 private:
     friend class UTS46;
 
-    IDNAInfo(const IDNAInfo& other); // no copying
-    IDNAInfo& operator=(const IDNAInfo& other); // no copying
+    IDNAInfo(const IDNAInfo &other) = delete;  // no copying
+    IDNAInfo &operator=(const IDNAInfo &other) = delete;  // no copying
 
-    void reset()
-    {
-        errors = labelErrors = 0;
-        isTransDiff = false;
-        isBiDi = false;
-        isOkBiDi = true;
+    void reset() {
+        errors=labelErrors=0;
+        isTransDiff=false;
+        isBiDi=false;
+        isOkBiDi=true;
     }
 
     uint32_t errors, labelErrors;
@@ -323,8 +323,8 @@ private:
 
 U_NAMESPACE_END
 
-#endif // UCONFIG_NO_IDNA
+#endif  // UCONFIG_NO_IDNA
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
-#endif // __IDNA_H__
+#endif  // __IDNA_H__

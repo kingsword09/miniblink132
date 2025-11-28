@@ -1,4 +1,4 @@
-﻿// © 2020 and later: Unicode, Inc. and others.
+// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -32,8 +32,9 @@ namespace impl {
  * NumberFormatterSettings::usage().
  */
 class U_I18N_API UsagePrefsHandler : public MicroPropsGenerator, public UMemory {
-public:
-    UsagePrefsHandler(const Locale& locale, const MeasureUnit& inputUnit, const StringPiece usage, const MicroPropsGenerator* parent, UErrorCode& status);
+  public:
+    UsagePrefsHandler(const Locale &locale, const MeasureUnit &inputUnit, const StringPiece usage,
+                      const MicroPropsGenerator *parent, UErrorCode &status);
 
     /**
      * Obtains the appropriate output value, MeasureUnit and
@@ -42,7 +43,8 @@ public:
      * The output unit is passed on to the LongNameHandler via
      * micros.outputUnit.
      */
-    void processQuantity(DecimalQuantity& quantity, MicroProps& micros, UErrorCode& status) const U_OVERRIDE;
+    void processQuantity(DecimalQuantity &quantity, MicroProps &micros,
+                         UErrorCode &status) const override;
 
     /**
      * Returns the list of possible output units, i.e. the full set of
@@ -51,14 +53,13 @@ public:
      * The returned pointer should be valid for the lifetime of the
      * UsagePrefsHandler instance.
      */
-    const MaybeStackVector<MeasureUnit>* getOutputUnits() const
-    {
+    const MaybeStackVector<MeasureUnit> *getOutputUnits() const {
         return fUnitsRouter.getOutputUnits();
     }
 
-private:
+  private:
     UnitsRouter fUnitsRouter;
-    const MicroPropsGenerator* fParent;
+    const MicroPropsGenerator *fParent;
 };
 
 } // namespace impl
@@ -74,7 +75,7 @@ private:
 #if defined(_MSC_VER)
 // Ignore warning 4661 as LocalPointerBase does not use operator== or operator!=
 #pragma warning(push)
-#pragma warning(disable : 4661)
+#pragma warning(disable: 4661)
 #endif
 template class U_I18N_API LocalPointerBase<ComplexUnitsConverter>;
 template class U_I18N_API LocalPointer<ComplexUnitsConverter>;
@@ -92,7 +93,7 @@ namespace impl {
  * input unit may not be a mixed unit.)
  */
 class U_I18N_API UnitConversionHandler : public MicroPropsGenerator, public UMemory {
-public:
+  public:
     /**
      * Constructor.
      *
@@ -103,17 +104,18 @@ public:
      * @param parent The parent MicroPropsGenerator.
      * @param status Receives status.
      */
-    UnitConversionHandler(const MeasureUnit& targetUnit, const MicroPropsGenerator* parent, UErrorCode& status);
+    UnitConversionHandler(const MeasureUnit &targetUnit, const MicroPropsGenerator *parent,
+                          UErrorCode &status);
 
     /**
      * Obtains the appropriate output values from the Unit Converter.
      */
-    void processQuantity(DecimalQuantity& quantity, MicroProps& micros, UErrorCode& status) const U_OVERRIDE;
-
-private:
+    void processQuantity(DecimalQuantity &quantity, MicroProps &micros,
+                         UErrorCode &status) const override;
+  private:
     MeasureUnit fOutputUnit;
     LocalPointer<ComplexUnitsConverter> fUnitConverter;
-    const MicroPropsGenerator* fParent;
+    const MicroPropsGenerator *fParent;
 };
 
 } // namespace impl

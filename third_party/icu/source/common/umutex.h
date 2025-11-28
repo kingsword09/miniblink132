@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -31,48 +31,36 @@
 
 #include "putilimp.h"
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#define VC_EXTRALEAN
-#define NOUSER
-#define NOSERVICE
-#define NOIME
-#define NOMCX
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <windows.h>
-
 #if defined(U_USER_ATOMICS_H) || defined(U_USER_MUTEX_H)
 // Support for including an alternate implementation of atomic & mutex operations has been withdrawn.
 // See issue ICU-20185.
 #error U_USER_ATOMICS and U_USER_MUTEX_H are not supported
 #endif
 
-// Export an explicit template instantiation of std::atomic<int32_t>.
+// Export an explicit template instantiation of std::atomic<int32_t>. 
 // When building DLLs for Windows this is required as it is used as a data member of the exported SharedObject class.
 // See digitlst.h, pluralaffix.h, datefmt.h, and others for similar examples.
 //
 // Similar story for std::atomic<std::mutex *>, and the exported UMutex class.
 #if U_PF_WINDOWS <= U_PLATFORM && U_PLATFORM <= U_PF_CYGWIN && !defined(U_IN_DOXYGEN)
 #if defined(__clang__) || defined(_MSC_VER)
-#if defined(__clang__)
-// Suppress the warning that the explicit instantiation after explicit specialization has no effect.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winstantiation-after-specialization"
-#endif
+  #if defined(__clang__)
+    // Suppress the warning that the explicit instantiation after explicit specialization has no effect.
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Winstantiation-after-specialization"
+  #endif
 template struct U_COMMON_API std::atomic<int32_t>;
-template struct U_COMMON_API std::atomic<std::mutex*>;
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
+template struct U_COMMON_API std::atomic<std::mutex *>;
+  #if defined(__clang__)
+    #pragma clang diagnostic pop
+  #endif
 #elif defined(__GNUC__)
 // For GCC this class is already exported/visible, so no need for U_COMMON_API.
 template struct std::atomic<int32_t>;
-template struct std::atomic<std::mutex*>;
+template struct std::atomic<std::mutex *>;
 #endif
 #endif
+
 
 U_NAMESPACE_BEGIN
 
@@ -84,25 +72,22 @@ U_NAMESPACE_BEGIN
 
 typedef std::atomic<int32_t> u_atomic_int32_t;
 
-inline int32_t umtx_loadAcquire(u_atomic_int32_t& var)
-{
+inline int32_t umtx_loadAcquire(u_atomic_int32_t &var) {
     return var.load(std::memory_order_acquire);
 }
 
-inline void umtx_storeRelease(u_atomic_int32_t& var, int32_t val)
-{
+inline void umtx_storeRelease(u_atomic_int32_t &var, int32_t val) {
     var.store(val, std::memory_order_release);
 }
 
-inline int32_t umtx_atomic_inc(u_atomic_int32_t* var)
-{
+inline int32_t umtx_atomic_inc(u_atomic_int32_t *var) {
     return var->fetch_add(1) + 1;
 }
 
-inline int32_t umtx_atomic_dec(u_atomic_int32_t* var)
-{
+inline int32_t umtx_atomic_dec(u_atomic_int32_t *var) {
     return var->fetch_sub(1) - 1;
 }
+
 
 /*************************************************************************************************
  *
@@ -111,25 +96,18 @@ inline int32_t umtx_atomic_dec(u_atomic_int32_t* var)
  *************************************************************************************************/
 
 struct U_COMMON_API UInitOnce {
-    u_atomic_int32_t fState { 0 };
-    UErrorCode fErrCode { U_ZERO_ERROR };
-    void reset()
-    {
-        fState = 0;
-    }
-    UBool isReset()
-    {
-        return umtx_loadAcquire(fState) == 0;
-    }
-    // Note: isReset() is used by service registration code.
-    //                 Thread safety of this usage needs review.
+    u_atomic_int32_t   fState {0};
+    UErrorCode       fErrCode {U_ZERO_ERROR};
+    void reset() {fState = 0;}
+    UBool isReset() {return umtx_loadAcquire(fState) == 0;}
+// Note: isReset() is used by service registration code.
+//                 Thread safety of this usage needs review.
 };
 
-U_COMMON_API UBool U_EXPORT2 umtx_initImplPreInit(UInitOnce&);
-U_COMMON_API void U_EXPORT2 umtx_initImplPostInit(UInitOnce&);
+U_COMMON_API UBool U_EXPORT2 umtx_initImplPreInit(UInitOnce &);
+U_COMMON_API void  U_EXPORT2 umtx_initImplPostInit(UInitOnce &);
 
-template <class T> void umtx_initOnce(UInitOnce& uio, T* obj, void (U_CALLCONV T::*fp)())
-{
+template<class T> void umtx_initOnce(UInitOnce &uio, T *obj, void (U_CALLCONV T::*fp)()) {
     if (umtx_loadAcquire(uio.fState) == 2) {
         return;
     }
@@ -139,10 +117,10 @@ template <class T> void umtx_initOnce(UInitOnce& uio, T* obj, void (U_CALLCONV T
     }
 }
 
+
 // umtx_initOnce variant for plain functions, or static class functions.
 //               No context parameter.
-inline void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)())
-{
+inline void umtx_initOnce(UInitOnce &uio, void (U_CALLCONV *fp)()) {
     if (umtx_loadAcquire(uio.fState) == 2) {
         return;
     }
@@ -154,8 +132,7 @@ inline void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)())
 
 // umtx_initOnce variant for plain functions, or static class functions.
 //               With ErrorCode, No context parameter.
-inline void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)(UErrorCode&), UErrorCode& errCode)
-{
+inline void umtx_initOnce(UInitOnce &uio, void (U_CALLCONV *fp)(UErrorCode &), UErrorCode &errCode) {
     if (U_FAILURE(errCode)) {
         return;
     }
@@ -174,8 +151,7 @@ inline void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)(UErrorCode&), UEr
 
 // umtx_initOnce variant for plain functions, or static class functions,
 //               with a context parameter.
-template <class T> void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)(T), T context)
-{
+template<class T> void umtx_initOnce(UInitOnce &uio, void (U_CALLCONV *fp)(T), T context) {
     if (umtx_loadAcquire(uio.fState) == 2) {
         return;
     }
@@ -187,8 +163,7 @@ template <class T> void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)(T), T
 
 // umtx_initOnce variant for plain functions, or static class functions,
 //               with a context parameter and an error code.
-template <class T> void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)(T, UErrorCode&), T context, UErrorCode& errCode)
-{
+template<class T> void umtx_initOnce(UInitOnce &uio, void (U_CALLCONV *fp)(T, UErrorCode &), T context, UErrorCode &errCode) {
     if (U_FAILURE(errCode)) {
         return;
     }
@@ -208,11 +183,12 @@ template <class T> void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)(T, UE
 // UMutex should be constexpr-constructible, so that no initialization code
 // is run during startup.
 // This works on all C++ libraries except MS VS before VS2019.
-#if (defined(_CPPLIB_VER) && !defined(_MSVC_STL_VERSION)) || (defined(_MSVC_STL_VERSION) && _MSVC_STL_VERSION < 142)
-// (VS std lib older than VS2017) || (VS std lib version < VS2019)
-#define UMUTEX_CONSTEXPR
+#if (defined(_CPPLIB_VER) && !defined(_MSVC_STL_VERSION)) || \
+    (defined(_MSVC_STL_VERSION) && _MSVC_STL_VERSION < 142)
+    // (VS std lib older than VS2017) || (VS std lib version < VS2019)
+#   define UMUTEX_CONSTEXPR
 #else
-#define UMUTEX_CONSTEXPR constexpr
+#   define UMUTEX_CONSTEXPR constexpr
 #endif
 
 /**
@@ -242,58 +218,40 @@ template <class T> void umtx_initOnce(UInitOnce& uio, void(U_CALLCONV* fp)(T, UE
 
 class U_COMMON_API UMutex {
 public:
-    /*UMUTEX_CONSTEXPR*/ UMutex()
-    {
-    }
+    UMUTEX_CONSTEXPR UMutex() {}
     ~UMutex() = default;
 
-    UMutex(const UMutex& other) = delete;
-    UMutex& operator=(const UMutex& other) = delete;
-    void* operator new(size_t) = delete;
+    UMutex(const UMutex &other) = delete;
+    UMutex &operator =(const UMutex &other) = delete;
+    void *operator new(size_t) = delete;
 
-#if 0 // ndef SUPPORT_XP_CODE
     // requirements for C++ BasicLockable, allows UMutex to work with std::lock_guard
-    void lock()
-    {
-        std::mutex* m = fMutex.load(std::memory_order_acquire);
-        if (m == nullptr) {
-            m = getMutex();
-        }
+    void lock() {
+        std::mutex *m = fMutex.load(std::memory_order_acquire);
+        if (m == nullptr) { m = getMutex(); }
         m->lock();
     }
-    void unlock()
-    {
-        fMutex.load(std::memory_order_relaxed)->unlock();
-    }
-#endif
+    void unlock() { fMutex.load(std::memory_order_relaxed)->unlock(); }
 
     static void cleanup();
 
 private:
-#if 0 // ndef SUPPORT_XP_CODE
     alignas(std::mutex) char fStorage[sizeof(std::mutex)] {};
-    std::atomic<std::mutex*> fMutex { nullptr };
-#else
-public:
-    UInitOnce fInitOnce;
-    CRITICAL_SECTION fCS;
+    std::atomic<std::mutex *> fMutex { nullptr };
 
-private:
-#endif
     /** All initialized UMutexes are kept in a linked list, so that they can be found,
      * and the underlying std::mutex destructed, by u_cleanup().
      */
-    UMutex* fListLink { nullptr };
-    static UMutex* gListHead;
+    UMutex *fListLink { nullptr };
+    static UMutex *gListHead;
 
     /** Out-of-line function to lazily initialize a UMutex on first use.
      * Initial fast check is inline, in lock().  The returned value may never
      * be nullptr.
      */
-#if 0 // ndef SUPPORT_XP_CODE
-    std::mutex* getMutex();
-#endif
+    std::mutex *getMutex();
 };
+
 
 /* Lock a mutex.
  * @param mutex The given mutex to be locked.  Pass NULL to specify
@@ -306,7 +264,8 @@ U_CAPI void U_EXPORT2 umtx_lock(UMutex* mutex);
  * @param mutex The given mutex to be unlocked.  Pass NULL to specify
  *              the global ICU mutex.
  */
-U_CAPI void U_EXPORT2 umtx_unlock(UMutex* mutex);
+U_CAPI void U_EXPORT2 umtx_unlock (UMutex* mutex);
+
 
 U_NAMESPACE_END
 

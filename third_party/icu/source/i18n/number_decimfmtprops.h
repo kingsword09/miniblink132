@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -24,7 +24,7 @@ U_NAMESPACE_BEGIN
 #if defined(_MSC_VER)
 // Ignore warning 4661 as LocalPointerBase does not use operator== or operator!=
 #pragma warning(push)
-#pragma warning(disable : 4661)
+#pragma warning(disable: 4661)
 #endif
 template class U_I18N_API LocalPointerBase<CurrencyPluralInfo>;
 template class U_I18N_API LocalPointer<CurrencyPluralInfo>;
@@ -45,17 +45,15 @@ public:
 
     CurrencyPluralInfoWrapper() = default;
 
-    CurrencyPluralInfoWrapper(const CurrencyPluralInfoWrapper& other)
-    {
+    CurrencyPluralInfoWrapper(const CurrencyPluralInfoWrapper& other) {
         if (!other.fPtr.isNull()) {
             fPtr.adoptInstead(new CurrencyPluralInfo(*other.fPtr));
         }
     }
 
-    CurrencyPluralInfoWrapper& operator=(const CurrencyPluralInfoWrapper& other)
-    {
-        if (this != &other && // self-assignment: no-op
-            !other.fPtr.isNull()) {
+    CurrencyPluralInfoWrapper& operator=(const CurrencyPluralInfoWrapper& other) {
+        if (this != &other &&  // self-assignment: no-op
+                !other.fPtr.isNull()) {
             fPtr.adoptInstead(new CurrencyPluralInfo(*other.fPtr));
         }
         return *this;
@@ -68,7 +66,7 @@ enum ParseMode {
      * Lenient mode should be used if you want to accept malformed user input. It will use heuristics
      * to attempt to parse through typographical errors in the string.
      */
-    PARSE_MODE_LENIENT,
+            PARSE_MODE_LENIENT,
 
     /**
      * Strict mode should be used if you want to require that the input is well-formed. More
@@ -93,13 +91,13 @@ enum ParseMode {
      * fail to match.
      * </ul>
      */
-    PARSE_MODE_STRICT,
+            PARSE_MODE_STRICT,
 };
 
 // Exported as U_I18N_API because it is needed for the unit test PatternStringTest
 struct U_I18N_API DecimalFormatProperties : public UMemory {
 
-public:
+  public:
     NullableValue<UNumberCompactStyle> compactStyle;
     NullableValue<CurrencyUnit> currency;
     CurrencyPluralInfoWrapper currencyPluralInfo;
@@ -135,7 +133,7 @@ public:
     bool parseNoExponent;
     bool parseToBigDecimal; // TODO: Not needed in ICU4C?
     UNumberFormatAttributeValue parseAllInput; // ICU4C-only
-    // PluralRules pluralRules;
+    //PluralRules pluralRules;
     UnicodeString positivePrefix;
     UnicodeString positivePrefixPattern;
     UnicodeString positiveSuffix;
@@ -147,8 +145,7 @@ public:
 
     DecimalFormatProperties();
 
-    inline bool operator==(const DecimalFormatProperties& other) const
-    {
+    inline bool operator==(const DecimalFormatProperties& other) const {
         return _equals(other, false);
     }
 
@@ -165,13 +162,14 @@ public:
      */
     static const DecimalFormatProperties& getDefault();
 
-private:
+  private:
     bool _equals(const DecimalFormatProperties& other, bool ignoreForFastFormat) const;
 };
 
 } // namespace impl
 } // namespace number
 U_NAMESPACE_END
+
 
 #endif //__NUMBER_DECIMFMTPROPS_H__
 

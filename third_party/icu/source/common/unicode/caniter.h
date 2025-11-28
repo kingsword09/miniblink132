@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -23,7 +23,7 @@
  * \file
  * \brief C++ API: Canonical Iterator
  */
-
+ 
 /** Should permutation skip characters with combining class zero
  *  Should be either true or false. This is a compile time option
  *  @stable ICU 2.4
@@ -73,7 +73,7 @@ Results for: {LATIN CAPITAL LETTER A WITH RING ABOVE}{LATIN SMALL LETTER D}{COMB
  * @author C++ port by V. Weinstein
  * @stable ICU 2.4
  */
-class U_COMMON_API CanonicalIterator U_FINAL : public UObject {
+class U_COMMON_API CanonicalIterator final : public UObject {
 public:
     /**
      * Construct a CanonicalIterator object
@@ -81,7 +81,7 @@ public:
      * @param status    Fill-in parameter which receives the status of this operation.
      * @stable ICU 2.4
      */
-    CanonicalIterator(const UnicodeString& source, UErrorCode& status);
+    CanonicalIterator(const UnicodeString &source, UErrorCode &status);
 
     /** Destructor
      *  Cleans pieces
@@ -118,7 +118,7 @@ public:
      * @param status        Fill-in parameter which receives the status of this operation.
      * @stable ICU 2.4
      */
-    void setSource(const UnicodeString& newSource, UErrorCode& status);
+    void setSource(const UnicodeString &newSource, UErrorCode &status);
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -130,8 +130,8 @@ public:
      * @param status       Fill-in parameter which receives the status of this operation.
      * @internal
      */
-    static void U_EXPORT2 permute(UnicodeString& source, UBool skipZeros, Hashtable* result, UErrorCode& status);
-#endif /* U_HIDE_INTERNAL_API */
+    static void U_EXPORT2 permute(UnicodeString &source, UBool skipZeros, Hashtable *result, UErrorCode &status);
+#endif  /* U_HIDE_INTERNAL_API */
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
@@ -150,19 +150,20 @@ public:
 private:
     // ===================== PRIVATES ==============================
     // private default constructor
-    CanonicalIterator();
+    CanonicalIterator() = delete;
+
 
     /**
      * Copy constructor. Private for now.
      * @internal (private)
      */
-    CanonicalIterator(const CanonicalIterator& other);
+    CanonicalIterator(const CanonicalIterator& other) = delete;
 
     /**
      * Assignment operator. Private for now.
      * @internal (private)
      */
-    CanonicalIterator& operator=(const CanonicalIterator& other);
+    CanonicalIterator& operator=(const CanonicalIterator& other) = delete;
 
     // fields
     UnicodeString source;
@@ -170,37 +171,38 @@ private:
 
     // 2 dimensional array holds the pieces of the string with
     // their different canonically equivalent representations
-    UnicodeString** pieces;
+    UnicodeString **pieces;
     int32_t pieces_length;
-    int32_t* pieces_lengths;
+    int32_t *pieces_lengths;
 
     // current is used in iterating to combine pieces
-    int32_t* current;
+    int32_t *current;
     int32_t current_length;
 
     // transient fields
     UnicodeString buffer;
 
-    const Normalizer2& nfd;
-    const Normalizer2Impl& nfcImpl;
+    const Normalizer2 &nfd;
+    const Normalizer2Impl &nfcImpl;
 
     // we have a segment, in NFD. Find all the strings that are canonically equivalent to it.
-    UnicodeString* getEquivalents(const UnicodeString& segment, int32_t& result_len, UErrorCode& status); // private String[] getEquivalents(String segment)
+    UnicodeString *getEquivalents(const UnicodeString &segment, int32_t &result_len, UErrorCode &status); //private String[] getEquivalents(String segment)
 
-    // Set getEquivalents2(String segment);
-    Hashtable* getEquivalents2(Hashtable* fillinResult, const char16_t* segment, int32_t segLen, UErrorCode& status);
-    // Hashtable *getEquivalents2(const UnicodeString &segment, int32_t segLen, UErrorCode &status);
+    //Set getEquivalents2(String segment);
+    Hashtable *getEquivalents2(Hashtable *fillinResult, const char16_t *segment, int32_t segLen, UErrorCode &status);
+    //Hashtable *getEquivalents2(const UnicodeString &segment, int32_t segLen, UErrorCode &status);
 
     /**
      * See if the decomposition of cp2 is at segment starting at segmentPos
      * (with canonical rearrangement!)
      * If so, take the remainder, and return the equivalents
      */
-    // Set extract(int comp, String segment, int segmentPos, StringBuffer buffer);
-    Hashtable* extract(Hashtable* fillinResult, UChar32 comp, const char16_t* segment, int32_t segLen, int32_t segmentPos, UErrorCode& status);
-    // Hashtable *extract(UChar32 comp, const UnicodeString &segment, int32_t segLen, int32_t segmentPos, UErrorCode &status);
+    //Set extract(int comp, String segment, int segmentPos, StringBuffer buffer);
+    Hashtable *extract(Hashtable *fillinResult, UChar32 comp, const char16_t *segment, int32_t segLen, int32_t segmentPos, UErrorCode &status);
+    //Hashtable *extract(UChar32 comp, const UnicodeString &segment, int32_t segLen, int32_t segmentPos, UErrorCode &status);
 
     void cleanPieces();
+
 };
 
 U_NAMESPACE_END

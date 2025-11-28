@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -29,18 +29,18 @@
 
 U_NAMESPACE_BEGIN
 
-UnicodeString& UnicodeString::toTitle(BreakIterator* iter)
-{
+UnicodeString &
+UnicodeString::toTitle(BreakIterator *iter) {
     return toTitle(iter, Locale::getDefault(), 0);
 }
 
-UnicodeString& UnicodeString::toTitle(BreakIterator* iter, const Locale& locale)
-{
+UnicodeString &
+UnicodeString::toTitle(BreakIterator *iter, const Locale &locale) {
     return toTitle(iter, locale, 0);
 }
 
-UnicodeString& UnicodeString::toTitle(BreakIterator* iter, const Locale& locale, uint32_t options)
-{
+UnicodeString &
+UnicodeString::toTitle(BreakIterator *iter, const Locale &locale, uint32_t options) {
     LocalPointer<BreakIterator> ownedIter;
     UErrorCode errorCode = U_ZERO_ERROR;
     iter = ustrcase_getTitleBreakIterator(&locale, "", options, iter, ownedIter, errorCode);
@@ -54,4 +54,4 @@ UnicodeString& UnicodeString::toTitle(BreakIterator* iter, const Locale& locale,
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_BREAK_ITERATION
+#endif  // !UCONFIG_NO_BREAK_ITERATION

@@ -1,4 +1,4 @@
-﻿// © 2021 and later: Unicode, Inc. and others.
+// © 2021 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef LSTMBE_H
@@ -38,14 +38,14 @@ public:
     /**
      * <p>Constructor.</p>
      */
-    LSTMBreakEngine(const LSTMData* data, const UnicodeSet& set, UErrorCode& status);
+    LSTMBreakEngine(const LSTMData* data, const UnicodeSet& set, UErrorCode &status);
 
     /**
      * <p>Virtual destructor.</p>
      */
     virtual ~LSTMBreakEngine();
 
-    virtual const UChar* name() const;
+    virtual const char16_t* name() const;
 
 protected:
     /**
@@ -58,25 +58,31 @@ protected:
      * @param status Information on any errors encountered.
      * @return The number of breaks found
      */
-    virtual int32_t divideUpDictionaryRange(
-        UText* text, int32_t rangeStart, int32_t rangeEnd, UVector32& foundBreaks, UBool isPhraseBreaking, UErrorCode& status) const override;
-
+     virtual int32_t divideUpDictionaryRange(UText *text,
+                                             int32_t rangeStart,
+                                             int32_t rangeEnd,
+                                             UVector32 &foundBreaks,
+                                             UBool isPhraseBreaking,
+                                             UErrorCode& status) const override;
 private:
     const LSTMData* fData;
     const Vectorizer* fVectorizer;
 };
 
-U_CAPI const LanguageBreakEngine* U_EXPORT2 CreateLSTMBreakEngine(UScriptCode script, const LSTMData* data, UErrorCode& status);
+U_CAPI const LanguageBreakEngine* U_EXPORT2 CreateLSTMBreakEngine(
+    UScriptCode script, const LSTMData* data, UErrorCode& status);
 
-U_CAPI const LSTMData* U_EXPORT2 CreateLSTMData(UResourceBundle* rb, UErrorCode& status);
+U_CAPI const LSTMData* U_EXPORT2 CreateLSTMData(
+    UResourceBundle* rb, UErrorCode& status);
 
-U_CAPI const LSTMData* U_EXPORT2 CreateLSTMDataForScript(UScriptCode script, UErrorCode& status);
+U_CAPI const LSTMData* U_EXPORT2 CreateLSTMDataForScript(
+    UScriptCode script, UErrorCode& status);
 
 U_CAPI void U_EXPORT2 DeleteLSTMData(const LSTMData* data);
-U_CAPI const UChar* U_EXPORT2 LSTMDataName(const LSTMData* data);
+U_CAPI const char16_t* U_EXPORT2 LSTMDataName(const LSTMData* data);
 
 U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_BREAK_ITERATION */
 
-#endif /* LSTMBE_H */
+#endif  /* LSTMBE_H */

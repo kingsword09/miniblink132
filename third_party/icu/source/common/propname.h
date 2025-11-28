@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -50,16 +50,18 @@ U_CDECL_BEGIN
  * @internal
  */
 
-U_CAPI int32_t U_EXPORT2 uprv_compareASCIIPropertyNames(const char* name1, const char* name2);
+U_CAPI int32_t U_EXPORT2
+uprv_compareASCIIPropertyNames(const char *name1, const char *name2);
 
-U_CAPI int32_t U_EXPORT2 uprv_compareEBCDICPropertyNames(const char* name1, const char* name2);
+U_CAPI int32_t U_EXPORT2
+uprv_compareEBCDICPropertyNames(const char *name1, const char *name2);
 
-#if U_CHARSET_FAMILY == U_ASCII_FAMILY
-#define uprv_comparePropertyNames uprv_compareASCIIPropertyNames
-#elif U_CHARSET_FAMILY == U_EBCDIC_FAMILY
-#define uprv_comparePropertyNames uprv_compareEBCDICPropertyNames
+#if U_CHARSET_FAMILY==U_ASCII_FAMILY
+#   define uprv_comparePropertyNames uprv_compareASCIIPropertyNames
+#elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
+#   define uprv_comparePropertyNames uprv_compareEBCDICPropertyNames
 #else
-#error U_CHARSET_FAMILY is not valid
+#   error U_CHARSET_FAMILY is not valid
 #endif
 
 U_CDECL_END
@@ -96,19 +98,19 @@ public:
         IX_COUNT
     };
 
-    static const char* getPropertyName(int32_t property, int32_t nameChoice);
-    static const char* getPropertyValueName(int32_t property, int32_t value, int32_t nameChoice);
+    static const char *getPropertyName(int32_t property, int32_t nameChoice);
+    static const char *getPropertyValueName(int32_t property, int32_t value, int32_t nameChoice);
 
-    static int32_t getPropertyEnum(const char* alias);
-    static int32_t getPropertyValueEnum(int32_t property, const char* alias);
+    static int32_t getPropertyEnum(const char *alias);
+    static int32_t getPropertyValueEnum(int32_t property, const char *alias);
 
 private:
     static int32_t findProperty(int32_t property);
     static int32_t findPropertyValueNameGroup(int32_t valueMapIndex, int32_t value);
-    static const char* getName(const char* nameGroup, int32_t nameIndex);
-    static UBool containsName(BytesTrie& trie, const char* name);
+    static const char *getName(const char *nameGroup, int32_t nameIndex);
+    static UBool containsName(BytesTrie &trie, const char *name);
 
-    static int32_t getPropertyOrValueEnum(int32_t bytesTrieOffset, const char* alias);
+    static int32_t getPropertyOrValueEnum(int32_t bytesTrieOffset, const char *alias);
 
     static const int32_t indexes[];
     static const int32_t valueMaps[];

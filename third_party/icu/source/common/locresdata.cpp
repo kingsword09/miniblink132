@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -24,6 +24,8 @@
 #include "unicode/putil.h"
 #include "unicode/uloc.h"
 #include "unicode/ures.h"
+#include "bytesinkutil.h"
+#include "charstr.h"
 #include "cstring.h"
 #include "ulocimp.h"
 #include "uresimp.h"
@@ -41,100 +43,106 @@
  * default locale because that would result in a mix of languages that is
  * unpredictable to the programmer and most likely useless.
  */
-U_CAPI const UChar* U_EXPORT2 uloc_getTableStringWithFallback(
-    const char* path, const char* locale, const char* tableKey, const char* subTableKey, const char* itemKey, int32_t* pLength, UErrorCode* pErrorCode)
+U_CAPI const char16_t * U_EXPORT2
+uloc_getTableStringWithFallback(const char *path, const char *locale,
+                              const char *tableKey, const char *subTableKey,
+                              const char *itemKey,
+                              int32_t *pLength,
+                              UErrorCode *pErrorCode)
 {
-    /*    char localeBuffer[ULOC_FULLNAME_CAPACITY*4];*/
-    const UChar* item = NULL;
+/*    char localeBuffer[ULOC_FULLNAME_CAPACITY*4];*/
+    const char16_t *item=nullptr;
     UErrorCode errorCode;
-    char explicitFallbackName[ULOC_FULLNAME_CAPACITY] = { 0 };
+    char explicitFallbackName[ULOC_FULLNAME_CAPACITY] = {0};
 
     /*
      * open the bundle for the current locale
      * this falls back through the locale's chain to root
      */
-    errorCode = U_ZERO_ERROR;
+    errorCode=U_ZERO_ERROR;
     icu::LocalUResourceBundlePointer rb(ures_open(path, locale, &errorCode));
 
-    if (U_FAILURE(errorCode)) {
+    if(U_FAILURE(errorCode)) {
         /* total failure, not even root could be opened */
-        *pErrorCode = errorCode;
-        return NULL;
-    } else if (errorCode == U_USING_DEFAULT_WARNING || (errorCode == U_USING_FALLBACK_WARNING && *pErrorCode != U_USING_DEFAULT_WARNING)) {
+        *pErrorCode=errorCode;
+        return nullptr;
+    } else if(errorCode==U_USING_DEFAULT_WARNING ||
+                (errorCode==U_USING_FALLBACK_WARNING && *pErrorCode!=U_USING_DEFAULT_WARNING)
+    ) {
         /* set the "strongest" error code (success->fallback->default->failure) */
-        *pErrorCode = errorCode;
+        *pErrorCode=errorCode;
     }
 
-    for (;;) {
+    for(;;){
         icu::StackUResourceBundle table;
         icu::StackUResourceBundle subTable;
         ures_getByKeyWithFallback(rb.getAlias(), tableKey, table.getAlias(), &errorCode);
 
-        if (subTableKey != NULL) {
+        if (subTableKey != nullptr) {
             /*
             ures_getByKeyWithFallback(table.getAlias(), subTableKey, subTable.getAlias(), &errorCode);
             item = ures_getStringByKeyWithFallback(subTable.getAlias(), itemKey, pLength, &errorCode);
             if(U_FAILURE(errorCode)){
                 *pErrorCode = errorCode;
             }
-
+            
             break;*/
-
+            
             ures_getByKeyWithFallback(table.getAlias(), subTableKey, table.getAlias(), &errorCode);
         }
-        if (U_SUCCESS(errorCode)) {
+        if(U_SUCCESS(errorCode)){
             item = ures_getStringByKeyWithFallback(table.getAlias(), itemKey, pLength, &errorCode);
-            if (U_FAILURE(errorCode)) {
-                const char* replacement = NULL;
+            if(U_FAILURE(errorCode)){
+                const char* replacement = nullptr;
                 *pErrorCode = errorCode; /*save the errorCode*/
                 errorCode = U_ZERO_ERROR;
                 /* may be a deprecated code */
-                if (uprv_strcmp(tableKey, "Countries") == 0) {
-                    replacement = uloc_getCurrentCountryID(itemKey);
-                } else if (uprv_strcmp(tableKey, "Languages") == 0) {
-                    replacement = uloc_getCurrentLanguageID(itemKey);
+                if(uprv_strcmp(tableKey, "Countries")==0){
+                    replacement =  uloc_getCurrentCountryID(itemKey);
+                }else if(uprv_strcmp(tableKey, "Languages")==0){
+                    replacement =  uloc_getCurrentLanguageID(itemKey);
                 }
                 /*pointer comparison is ok since uloc_getCurrentCountryID & uloc_getCurrentLanguageID return the key itself is replacement is not found*/
-                if (replacement != NULL && itemKey != replacement) {
+                if(replacement!=nullptr && itemKey != replacement){
                     item = ures_getStringByKeyWithFallback(table.getAlias(), replacement, pLength, &errorCode);
-                    if (U_SUCCESS(errorCode)) {
+                    if(U_SUCCESS(errorCode)){
                         *pErrorCode = errorCode;
                         break;
                     }
                 }
-            } else {
+            }else{
                 break;
             }
         }
-
-        if (U_FAILURE(errorCode)) {
+        
+        if(U_FAILURE(errorCode)){    
 
             /* still can't figure out ?.. try the fallback mechanism */
             int32_t len = 0;
-            const UChar* fallbackLocale = NULL;
+            const char16_t* fallbackLocale =  nullptr;
             *pErrorCode = errorCode;
             errorCode = U_ZERO_ERROR;
 
             fallbackLocale = ures_getStringByKeyWithFallback(table.getAlias(), "Fallback", &len, &errorCode);
-            if (U_FAILURE(errorCode)) {
-                *pErrorCode = errorCode;
+            if(U_FAILURE(errorCode)){
+               *pErrorCode = errorCode;
                 break;
             }
-
+            
             u_UCharsToChars(fallbackLocale, explicitFallbackName, len);
-
+            
             /* guard against recursive fallback */
-            if (uprv_strcmp(explicitFallbackName, locale) == 0) {
+            if(uprv_strcmp(explicitFallbackName, locale)==0){
                 *pErrorCode = U_INTERNAL_PROGRAM_ERROR;
                 break;
             }
             rb.adoptInstead(ures_open(path, explicitFallbackName, &errorCode));
-            if (U_FAILURE(errorCode)) {
+            if(U_FAILURE(errorCode)){
                 *pErrorCode = errorCode;
                 break;
             }
             /* succeeded in opening the fallback bundle .. continue and try to fetch the item */
-        } else {
+        }else{
             break;
         }
     }
@@ -142,21 +150,35 @@ U_CAPI const UChar* U_EXPORT2 uloc_getTableStringWithFallback(
     return item;
 }
 
-static ULayoutType _uloc_getOrientationHelper(const char* localeId, const char* key, UErrorCode* status)
+static ULayoutType
+_uloc_getOrientationHelper(const char* localeId,
+                           const char* key,
+                           UErrorCode *status)
 {
     ULayoutType result = ULOC_LAYOUT_UNKNOWN;
 
     if (!U_FAILURE(*status)) {
-        int32_t length = 0;
-        char localeBuffer[ULOC_FULLNAME_CAPACITY];
-
-        uloc_canonicalize(localeId, localeBuffer, sizeof(localeBuffer), status);
+        icu::CharString localeBuffer;
+        {
+            icu::CharStringByteSink sink(&localeBuffer);
+            ulocimp_canonicalize(localeId, sink, status);
+        }
 
         if (!U_FAILURE(*status)) {
-            const UChar* const value = uloc_getTableStringWithFallback(NULL, localeBuffer, "layout", NULL, key, &length, status);
+            int32_t length = 0;
+            const char16_t* const value =
+                uloc_getTableStringWithFallback(
+                    nullptr,
+                    localeBuffer.data(),
+                    "layout",
+                    nullptr,
+                    key,
+                    &length,
+                    status);
 
             if (!U_FAILURE(*status) && length != 0) {
-                switch (value[0]) {
+                switch(value[0])
+                {
                 case 0x0062: /* 'b' */
                     result = ULOC_LAYOUT_BTT;
                     break;
@@ -180,19 +202,23 @@ static ULayoutType _uloc_getOrientationHelper(const char* localeId, const char* 
     return result;
 }
 
-U_CAPI ULayoutType U_EXPORT2 uloc_getCharacterOrientation(const char* localeId, UErrorCode* status)
+U_CAPI ULayoutType U_EXPORT2
+uloc_getCharacterOrientation(const char* localeId,
+                             UErrorCode *status)
 {
     return _uloc_getOrientationHelper(localeId, "characters", status);
 }
 
 /**
  * Get the layout line orientation for the specified locale.
- *
+ * 
  * @param localeID locale name
  * @param status Error status
  * @return an enum indicating the layout orientation for lines.
  */
-U_CAPI ULayoutType U_EXPORT2 uloc_getLineOrientation(const char* localeId, UErrorCode* status)
+U_CAPI ULayoutType U_EXPORT2
+uloc_getLineOrientation(const char* localeId,
+                        UErrorCode *status)
 {
     return _uloc_getOrientationHelper(localeId, "lines", status);
 }

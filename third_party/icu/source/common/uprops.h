@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -46,73 +46,76 @@ enum {
     UPROPS_DATA_TOP_INDEX,
 
     /* maximum values for code values in vector word 0 */
-    UPROPS_MAX_VALUES_INDEX = 10,
+    UPROPS_MAX_VALUES_INDEX=10,
     /* maximum values for code values in vector word 2 */
     UPROPS_MAX_VALUES_2_INDEX,
 
-    UPROPS_INDEX_COUNT = 16
+    UPROPS_INDEX_COUNT=16
 };
 
 /* definitions for the main properties words */
 enum {
     /* general category shift==0                                0 (5 bits) */
     /* reserved                                                 5 (1 bit) */
-    UPROPS_NUMERIC_TYPE_VALUE_SHIFT = 6 /*  6 (10 bits) */
+    UPROPS_NUMERIC_TYPE_VALUE_SHIFT=6                       /*  6 (10 bits) */
 };
 
 #define GET_CATEGORY(props) ((props)&0x1f)
 #define CAT_MASK(props) U_MASK(GET_CATEGORY(props))
 
-#define GET_NUMERIC_TYPE_VALUE(props) ((props) >> UPROPS_NUMERIC_TYPE_VALUE_SHIFT)
+#define GET_NUMERIC_TYPE_VALUE(props) ((props)>>UPROPS_NUMERIC_TYPE_VALUE_SHIFT)
 
 /* constants for the storage form of numeric types and values */
 enum {
     /** No numeric value. */
-    UPROPS_NTV_NONE = 0,
+    UPROPS_NTV_NONE=0,
     /** Decimal digits: nv=0..9 */
-    UPROPS_NTV_DECIMAL_START = 1,
+    UPROPS_NTV_DECIMAL_START=1,
     /** Other digits: nv=0..9 */
-    UPROPS_NTV_DIGIT_START = 11,
+    UPROPS_NTV_DIGIT_START=11,
     /** Small integers: nv=0..154 */
-    UPROPS_NTV_NUMERIC_START = 21,
+    UPROPS_NTV_NUMERIC_START=21,
     /** Fractions: ((ntv>>4)-12) / ((ntv&0xf)+1) = -1..17 / 1..16 */
-    UPROPS_NTV_FRACTION_START = 0xb0,
+    UPROPS_NTV_FRACTION_START=0xb0,
     /**
      * Large integers:
      * ((ntv>>5)-14) * 10^((ntv&0x1f)+2) = (1..9)*(10^2..10^33)
      * (only one significant decimal digit)
      */
-    UPROPS_NTV_LARGE_START = 0x1e0,
+    UPROPS_NTV_LARGE_START=0x1e0,
     /**
      * Sexagesimal numbers:
      * ((ntv>>2)-0xbf) * 60^((ntv&3)+1) = (1..9)*(60^1..60^4)
      */
-    UPROPS_NTV_BASE60_START = 0x300,
+    UPROPS_NTV_BASE60_START=0x300,
     /**
      * Fraction-20 values:
      * frac20 = ntv-0x324 = 0..0x17 -> 1|3|5|7 / 20|40|80|160|320|640
      * numerator: num = 2*(frac20&3)+1
      * denominator: den = 20<<(frac20>>2)
      */
-    UPROPS_NTV_FRACTION20_START = UPROPS_NTV_BASE60_START + 36, // 0x300+9*4=0x324
+    UPROPS_NTV_FRACTION20_START=UPROPS_NTV_BASE60_START+36,  // 0x300+9*4=0x324
     /**
      * Fraction-32 values:
      * frac32 = ntv-0x34c = 0..15 -> 1|3|5|7 / 32|64|128|256
      * numerator: num = 2*(frac32&3)+1
      * denominator: den = 32<<(frac32>>2)
      */
-    UPROPS_NTV_FRACTION32_START = UPROPS_NTV_FRACTION20_START + 24, // 0x324+6*4=0x34c
+    UPROPS_NTV_FRACTION32_START=UPROPS_NTV_FRACTION20_START+24,  // 0x324+6*4=0x34c
     /** No numeric value (yet). */
-    UPROPS_NTV_RESERVED_START = UPROPS_NTV_FRACTION32_START + 16, // 0x34c+4*4=0x35c
+    UPROPS_NTV_RESERVED_START=UPROPS_NTV_FRACTION32_START+16,  // 0x34c+4*4=0x35c
 
-    UPROPS_NTV_MAX_SMALL_INT = UPROPS_NTV_FRACTION_START - UPROPS_NTV_NUMERIC_START - 1
+    UPROPS_NTV_MAX_SMALL_INT=UPROPS_NTV_FRACTION_START-UPROPS_NTV_NUMERIC_START-1
 };
 
-#define UPROPS_NTV_GET_TYPE(ntv)                                                                                                                               \
-    ((ntv == UPROPS_NTV_NONE) ? U_NT_NONE : (ntv < UPROPS_NTV_DIGIT_START) ? U_NT_DECIMAL : (ntv < UPROPS_NTV_NUMERIC_START) ? U_NT_DIGIT : U_NT_NUMERIC)
+#define UPROPS_NTV_GET_TYPE(ntv) \
+    ((ntv==UPROPS_NTV_NONE) ? U_NT_NONE : \
+    (ntv<UPROPS_NTV_DIGIT_START) ?  U_NT_DECIMAL : \
+    (ntv<UPROPS_NTV_NUMERIC_START) ? U_NT_DIGIT : \
+    U_NT_NUMERIC)
 
 /* number of properties vector words */
-#define UPROPS_VECTOR_WORDS 3
+#define UPROPS_VECTOR_WORDS     3
 
 /*
  * Properties in vector word 0
@@ -130,45 +133,46 @@ enum {
  */
 
 /* derived age: one nibble each for major and minor version numbers */
-#define UPROPS_AGE_MASK 0xff000000
-#define UPROPS_AGE_SHIFT 24
+#define UPROPS_AGE_MASK         0xff000000
+#define UPROPS_AGE_SHIFT        24
 
 /* Script_Extensions: mask includes Script */
-#define UPROPS_SCRIPT_X_MASK 0x00f000ff
-#define UPROPS_SCRIPT_X_SHIFT 22
+#define UPROPS_SCRIPT_X_MASK    0x00f000ff
+#define UPROPS_SCRIPT_X_SHIFT   22
 
 // The UScriptCode or Script_Extensions index is split across two bit fields.
 // (Starting with Unicode 13/ICU 66/2019 due to more varied Script_Extensions.)
 // Shift the high bits right by 12 to assemble the full value.
-#define UPROPS_SCRIPT_HIGH_MASK 0x00300000
-#define UPROPS_SCRIPT_HIGH_SHIFT 12
-#define UPROPS_MAX_SCRIPT 0x3ff
+#define UPROPS_SCRIPT_HIGH_MASK    0x00300000
+#define UPROPS_SCRIPT_HIGH_SHIFT   12
+#define UPROPS_MAX_SCRIPT          0x3ff
 
-#define UPROPS_EA_MASK 0x000e0000
-#define UPROPS_EA_SHIFT 17
+#define UPROPS_EA_MASK          0x000e0000
+#define UPROPS_EA_SHIFT         17
 
-#define UPROPS_BLOCK_MASK 0x0001ff00
-#define UPROPS_BLOCK_SHIFT 8
+#define UPROPS_BLOCK_MASK       0x0001ff00
+#define UPROPS_BLOCK_SHIFT      8
 
-#define UPROPS_SCRIPT_LOW_MASK 0x000000ff
+#define UPROPS_SCRIPT_LOW_MASK  0x000000ff
 
 /* UPROPS_SCRIPT_X_WITH_COMMON must be the lowest value that involves Script_Extensions. */
-#define UPROPS_SCRIPT_X_WITH_COMMON 0x400000
-#define UPROPS_SCRIPT_X_WITH_INHERITED 0x800000
-#define UPROPS_SCRIPT_X_WITH_OTHER 0xc00000
+#define UPROPS_SCRIPT_X_WITH_COMMON     0x400000
+#define UPROPS_SCRIPT_X_WITH_INHERITED  0x800000
+#define UPROPS_SCRIPT_X_WITH_OTHER      0xc00000
 
 #ifdef __cplusplus
 
 namespace {
 
-inline uint32_t uprops_mergeScriptCodeOrIndex(uint32_t scriptX)
-{
-    return ((scriptX & UPROPS_SCRIPT_HIGH_MASK) >> UPROPS_SCRIPT_HIGH_SHIFT) | (scriptX & UPROPS_SCRIPT_LOW_MASK);
+inline uint32_t uprops_mergeScriptCodeOrIndex(uint32_t scriptX) {
+    return
+        ((scriptX & UPROPS_SCRIPT_HIGH_MASK) >> UPROPS_SCRIPT_HIGH_SHIFT) |
+        (scriptX & UPROPS_SCRIPT_LOW_MASK);
 }
 
-} // namespace
+}  // namespace
 
-#endif // __cplusplus
+#endif  // __cplusplus
 
 /*
  * Properties in vector word 1
@@ -206,15 +210,15 @@ enum {
     UPROPS_LOGICAL_ORDER_EXCEPTION,
     UPROPS_XID_START,
     UPROPS_XID_CONTINUE,
-    UPROPS_ID_START, /* ICU 2.6, uprops format version 3.2 */
+    UPROPS_ID_START,                            /* ICU 2.6, uprops format version 3.2 */
     UPROPS_ID_CONTINUE,
     UPROPS_GRAPHEME_BASE,
-    UPROPS_S_TERM, /* new in ICU 3.0 and Unicode 4.0.1 */
+    UPROPS_S_TERM,                              /* new in ICU 3.0 and Unicode 4.0.1 */
     UPROPS_VARIATION_SELECTOR,
-    UPROPS_PATTERN_SYNTAX, /* new in ICU 3.4 and Unicode 4.1 */
+    UPROPS_PATTERN_SYNTAX,                      /* new in ICU 3.4 and Unicode 4.1 */
     UPROPS_PATTERN_WHITE_SPACE,
-    UPROPS_PREPENDED_CONCATENATION_MARK, // new in ICU 60 and Unicode 10
-    UPROPS_BINARY_1_TOP /* ==32 - full! */
+    UPROPS_PREPENDED_CONCATENATION_MARK,        // new in ICU 60 and Unicode 10
+    UPROPS_BINARY_1_TOP                         /* ==32 - full! */
 };
 
 /*
@@ -229,40 +233,42 @@ enum {
  *  4.. 0   Decomposition Type
  */
 enum {
-    UPROPS_2_UNUSED_WAS_EXTENDED_PICTOGRAPHIC = 26, // ICU 62..69
-    UPROPS_2_UNUSED_WAS_EMOJI_COMPONENT, // ICU 60..69
-    UPROPS_2_UNUSED_WAS_EMOJI, // ICU 57..69
-    UPROPS_2_UNUSED_WAS_EMOJI_PRESENTATION, // ICU 57..69
-    UPROPS_2_UNUSED_WAS_EMOJI_MODIFIER, // ICU 57..69
-    UPROPS_2_UNUSED_WAS_EMOJI_MODIFIER_BASE // ICU 57..69
+    UPROPS_2_UNUSED_WAS_EXTENDED_PICTOGRAPHIC=26,  // ICU 62..69
+    UPROPS_2_UNUSED_WAS_EMOJI_COMPONENT,  // ICU 60..69
+    UPROPS_2_UNUSED_WAS_EMOJI,  // ICU 57..69
+    UPROPS_2_UNUSED_WAS_EMOJI_PRESENTATION,  // ICU 57..69
+    UPROPS_2_UNUSED_WAS_EMOJI_MODIFIER,  // ICU 57..69
+    UPROPS_2_UNUSED_WAS_EMOJI_MODIFIER_BASE  // ICU 57..69
 };
 
-#define UPROPS_LB_MASK 0x03f00000
-#define UPROPS_LB_SHIFT 20
+#define UPROPS_LB_MASK          0x03f00000
+#define UPROPS_LB_SHIFT         20
 
-#define UPROPS_SB_MASK 0x000f8000
-#define UPROPS_SB_SHIFT 15
+#define UPROPS_SB_MASK          0x000f8000
+#define UPROPS_SB_SHIFT         15
 
-#define UPROPS_WB_MASK 0x00007c00
-#define UPROPS_WB_SHIFT 10
+#define UPROPS_WB_MASK          0x00007c00
+#define UPROPS_WB_SHIFT         10
 
-#define UPROPS_GCB_MASK 0x000003e0
-#define UPROPS_GCB_SHIFT 5
+#define UPROPS_GCB_MASK         0x000003e0
+#define UPROPS_GCB_SHIFT        5
 
-#define UPROPS_DT_MASK 0x0000001f
+#define UPROPS_DT_MASK          0x0000001f
 
 /**
  * Gets the main properties value for a code point.
  * Implemented in uchar.c for uprops.cpp.
  */
-U_CFUNC uint32_t u_getMainProperties(UChar32 c);
+U_CFUNC uint32_t
+u_getMainProperties(UChar32 c);
 
 /**
  * Get a properties vector word for a code point.
  * Implemented in uchar.c for uprops.cpp.
  * @return 0 if no data or illegal argument
  */
-U_CFUNC uint32_t u_getUnicodeProperties(UChar32 c, int32_t column);
+U_CFUNC uint32_t
+u_getUnicodeProperties(UChar32 c, int32_t column);
 
 /**
  * Get the the maximum values for some enum/int properties.
@@ -277,13 +283,15 @@ U_CFUNC uint32_t u_getUnicodeProperties(UChar32 c, int32_t column);
  *
  * @internal
  */
-U_CFUNC int32_t uprv_getMaxValues(int32_t column);
+U_CFUNC int32_t
+uprv_getMaxValues(int32_t column);
 
 /**
  * Checks if c is alphabetic, or a decimal digit; implements UCHAR_POSIX_ALNUM.
  * @internal
  */
-U_CFUNC UBool u_isalnumPOSIX(UChar32 c);
+U_CFUNC UBool
+u_isalnumPOSIX(UChar32 c);
 
 /**
  * Checks if c is in
@@ -292,37 +300,40 @@ U_CFUNC UBool u_isalnumPOSIX(UChar32 c);
  * Implements UCHAR_POSIX_GRAPH.
  * @internal
  */
-U_CFUNC UBool u_isgraphPOSIX(UChar32 c);
+U_CFUNC UBool
+u_isgraphPOSIX(UChar32 c);
 
 /**
  * Checks if c is in \p{graph}\p{blank} - \p{cntrl}.
  * Implements UCHAR_POSIX_PRINT.
  * @internal
  */
-U_CFUNC UBool u_isprintPOSIX(UChar32 c);
+U_CFUNC UBool
+u_isprintPOSIX(UChar32 c);
 
 /** Some code points. @internal */
 enum {
-    TAB = 0x0009,
-    LF = 0x000a,
-    FF = 0x000c,
-    CR = 0x000d,
-    NBSP = 0x00a0,
-    CGJ = 0x034f,
-    FIGURESP = 0x2007,
-    HAIRSP = 0x200a,
-    ZWNJ = 0x200c,
-    ZWJ = 0x200d,
-    RLM = 0x200f,
-    NNBSP = 0x202f,
-    ZWNBSP = 0xfeff
+    TAB     =0x0009,
+    LF      =0x000a,
+    FF      =0x000c,
+    CR      =0x000d,
+    NBSP    =0x00a0,
+    CGJ     =0x034f,
+    FIGURESP=0x2007,
+    HAIRSP  =0x200a,
+    ZWNJ    =0x200c,
+    ZWJ     =0x200d,
+    RLM     =0x200f,
+    NNBSP   =0x202f,
+    ZWNBSP  =0xfeff
 };
 
 /**
  * Get the maximum length of a (regular/1.0/extended) character name.
  * @return 0 if no character names available.
  */
-U_CAPI int32_t U_EXPORT2 uprv_getMaxCharNameLength(void);
+U_CAPI int32_t U_EXPORT2
+uprv_getMaxCharNameLength(void);
 
 /**
  * Fills set with characters that are used in Unicode character names.
@@ -330,7 +341,8 @@ U_CAPI int32_t U_EXPORT2 uprv_getMaxCharNameLength(void);
  * Just empties the set if no character names are available.
  * @param sa USetAdder to receive characters.
  */
-U_CAPI void U_EXPORT2 uprv_getCharNameCharacters(const USetAdder* sa);
+U_CAPI void U_EXPORT2
+uprv_getCharNameCharacters(const USetAdder *sa);
 
 /**
  * Constants for which data and implementation files provide which properties.
@@ -367,6 +379,8 @@ enum UPropertySource {
     UPROPS_SRC_INSC,
     UPROPS_SRC_VO,
     UPROPS_SRC_EMOJI,
+    UPROPS_SRC_IDSU,
+    UPROPS_SRC_ID_COMPAT_MATH,
     /** One more than the highest UPropertySource (UPROPS_SRC_) constant. */
     UPROPS_SRC_COUNT
 };
@@ -376,23 +390,27 @@ typedef enum UPropertySource UPropertySource;
  * @see UPropertySource
  * @internal
  */
-U_CFUNC UPropertySource U_EXPORT2 uprops_getSource(UProperty which);
+U_CFUNC UPropertySource U_EXPORT2
+uprops_getSource(UProperty which);
 
 /**
  * Enumerate uprops.icu's main data trie and add the
  * start of each range of same properties to the set.
  * @internal
  */
-U_CFUNC void U_EXPORT2 uchar_addPropertyStarts(const USetAdder* sa, UErrorCode* pErrorCode);
+U_CFUNC void U_EXPORT2
+uchar_addPropertyStarts(const USetAdder *sa, UErrorCode *pErrorCode);
 
 /**
  * Enumerate uprops.icu's properties vectors trie and add the
  * start of each range of same properties to the set.
  * @internal
  */
-U_CFUNC void U_EXPORT2 upropsvec_addPropertyStarts(const USetAdder* sa, UErrorCode* pErrorCode);
+U_CFUNC void U_EXPORT2
+upropsvec_addPropertyStarts(const USetAdder *sa, UErrorCode *pErrorCode);
 
-U_CFUNC void U_EXPORT2 uprops_addPropertyStarts(UPropertySource src, const USetAdder* sa, UErrorCode* pErrorCode);
+U_CFUNC void U_EXPORT2
+uprops_addPropertyStarts(UPropertySource src, const USetAdder *sa, UErrorCode *pErrorCode);
 
 /**
  * Return a set of characters for property enumeration.
@@ -410,7 +428,10 @@ uprv_getInclusions(const USetAdder *sa, UErrorCode *pErrorCode);
  * Swap the ICU Unicode character names file. See uchar.c.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 uchar_swapNames(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+uchar_swapNames(const UDataSwapper *ds,
+                const void *inData, int32_t length, void *outData,
+                UErrorCode *pErrorCode);
 
 #ifdef __cplusplus
 
@@ -421,11 +442,13 @@ class UnicodeSet;
 class CharacterProperties {
 public:
     CharacterProperties() = delete;
-    static const UnicodeSet* getInclusionsForProperty(UProperty prop, UErrorCode& errorCode);
+    static const UnicodeSet *getInclusionsForProperty(UProperty prop, UErrorCode &errorCode);
+    static const UnicodeSet *getBinaryPropertySet(UProperty property, UErrorCode &errorCode);
 };
 
 // implemented in uniset_props.cpp
-U_CFUNC UnicodeSet* uniset_getUnicode32Instance(UErrorCode& errorCode);
+U_CFUNC UnicodeSet *
+uniset_getUnicode32Instance(UErrorCode &errorCode);
 
 U_NAMESPACE_END
 

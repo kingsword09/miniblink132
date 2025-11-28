@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -20,6 +20,7 @@
 
 #include "unicode/localpointer.h"
 
+
 U_NAMESPACE_BEGIN
 
 class UVector32;
@@ -27,11 +28,12 @@ class UVector32;
 /**
  * A transliterator that pInserts the specified characters at word breaks.
  * To restrict it to particular characters, use a filter.
- * TODO: this is an internal class, and only temporary.
+ * TODO: this is an internal class, and only temporary. 
  * Remove it once we have \b notation in Transliterator.
  */
 class BreakTransliterator : public Transliterator {
 public:
+
     /**
      * Constructs a transliterator.
      * @param adoptedFilter    the filter for this transliterator.
@@ -54,9 +56,9 @@ public:
      */
     virtual BreakTransliterator* clone() const override;
 
-    virtual const UnicodeString& getInsertion() const;
+    virtual const UnicodeString &getInsertion() const;
 
-    virtual void setInsertion(const UnicodeString& insertion);
+    virtual void setInsertion(const UnicodeString &insertion);
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
@@ -68,7 +70,8 @@ public:
      */
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
-protected:
+ protected:
+
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      * @param text          the buffer holding transliterated and
@@ -78,14 +81,15 @@ protected:
      * @param incremental   if true, assume more text may be coming after
      *                      pos.contextLimit. Otherwise, assume the text is complete.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset, UBool isIncremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset,
+                                     UBool isIncremental) const override;
 
-private:
-    LocalPointer<BreakIterator> cachedBI;
-    LocalPointer<UVector32> cachedBoundaries;
-    UnicodeString fInsertion;
+ private:
+     LocalPointer<BreakIterator> cachedBI;
+     LocalPointer<UVector32>     cachedBoundaries;
+     UnicodeString               fInsertion;
 
-    static UnicodeString replaceableAsString(Replaceable& r);
+     static UnicodeString replaceableAsString(Replaceable &r);
 
     /**
      * Assignment operator.

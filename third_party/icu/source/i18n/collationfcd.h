@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -56,41 +56,40 @@ U_NAMESPACE_BEGIN
  */
 class U_I18N_API CollationFCD {
 public:
-    static inline UBool hasLccc(UChar32 c)
-    {
+    static inline UBool hasLccc(UChar32 c) {
         // assert c <= 0xffff
         // c can be negative, e.g., U_SENTINEL from UCharIterator;
         // that is handled in the first test.
         int32_t i;
         return
             // U+0300 is the first character with lccc!=0.
-            c >= 0x300 && (i = lcccIndex[c >> 5]) != 0 && (lcccBits[i] & ((uint32_t)1 << (c & 0x1f))) != 0;
+            c >= 0x300 &&
+            (i = lcccIndex[c >> 5]) != 0 &&
+            (lcccBits[i] & ((uint32_t)1 << (c & 0x1f))) != 0;
     }
 
-    static inline UBool hasTccc(UChar32 c)
-    {
+    static inline UBool hasTccc(UChar32 c) {
         // assert c <= 0xffff
         // c can be negative, e.g., U_SENTINEL from UCharIterator;
         // that is handled in the first test.
         int32_t i;
         return
             // U+00C0 is the first character with tccc!=0.
-            c >= 0xc0 && (i = tcccIndex[c >> 5]) != 0 && (tcccBits[i] & ((uint32_t)1 << (c & 0x1f))) != 0;
+            c >= 0xc0 &&
+            (i = tcccIndex[c >> 5]) != 0 &&
+            (tcccBits[i] & ((uint32_t)1 << (c & 0x1f))) != 0;
     }
 
-    static inline UBool mayHaveLccc(UChar32 c)
-    {
+    static inline UBool mayHaveLccc(UChar32 c) {
         // Handles all of Unicode 0..10FFFF.
         // c can be negative, e.g., U_SENTINEL.
         // U+0300 is the first character with lccc!=0.
-        if (c < 0x300) {
-            return false;
-        }
-        if (c > 0xffff) {
-            c = U16_LEAD(c);
-        }
+        if(c < 0x300) { return false; }
+        if(c > 0xffff) { c = U16_LEAD(c); }
         int32_t i;
-        return (i = lcccIndex[c >> 5]) != 0 && (lcccBits[i] & ((uint32_t)1 << (c & 0x1f))) != 0;
+        return
+            (i = lcccIndex[c >> 5]) != 0 &&
+            (lcccBits[i] & ((uint32_t)1 << (c & 0x1f))) != 0;
     }
 
     /**
@@ -104,8 +103,7 @@ public:
      * @param c a code point
      * @return true if c is U+0F73, U+0F75 or U+0F81 or one of several other Tibetan characters
      */
-    static inline UBool maybeTibetanCompositeVowel(UChar32 c)
-    {
+    static inline UBool maybeTibetanCompositeVowel(UChar32 c) {
         return (c & 0x1fff01) == 0xf01;
     }
 
@@ -120,13 +118,12 @@ public:
      * @param fcd16 the FCD value (lccc/tccc combination) of a code point
      * @return true if fcd16 is from U+0F73, U+0F75 or U+0F81
      */
-    static inline UBool isFCD16OfTibetanCompositeVowel(uint16_t fcd16)
-    {
+    static inline UBool isFCD16OfTibetanCompositeVowel(uint16_t fcd16) {
         return fcd16 == 0x8182 || fcd16 == 0x8184;
     }
 
 private:
-    CollationFCD(); // No instantiation.
+    CollationFCD() = delete;  // No instantiation.
 
     static const uint8_t lcccIndex[2048];
     static const uint8_t tcccIndex[2048];
@@ -136,5 +133,5 @@ private:
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __COLLATIONFCD_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __COLLATIONFCD_H__

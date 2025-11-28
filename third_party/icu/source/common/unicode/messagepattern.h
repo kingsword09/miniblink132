@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -269,7 +269,8 @@ typedef enum UMessagePatternArgType UMessagePatternArgType;
  * for example UMSGPAT_ARG_TYPE_PLURAL and UMSGPAT_ARG_TYPE_SELECTORDINAL.
  * @stable ICU 50
  */
-#define UMSGPAT_ARG_TYPE_HAS_PLURAL_STYLE(argType) ((argType) == UMSGPAT_ARG_TYPE_PLURAL || (argType) == UMSGPAT_ARG_TYPE_SELECTORDINAL)
+#define UMSGPAT_ARG_TYPE_HAS_PLURAL_STYLE(argType) \
+    ((argType)==UMSGPAT_ARG_TYPE_PLURAL || (argType)==UMSGPAT_ARG_TYPE_SELECTORDINAL)
 
 enum {
     /**
@@ -277,7 +278,7 @@ enum {
      * the string is a valid "pattern identifier" but not a number.
      * @stable ICU 4.8
      */
-    UMSGPAT_ARG_NAME_NOT_NUMBER = -1,
+    UMSGPAT_ARG_NAME_NOT_NUMBER=-1,
 
     /**
      * Return value from MessagePattern.validateArgumentName() for when
@@ -286,7 +287,7 @@ enum {
      * or it have only ASCII digits but there is a leading zero or the number is too large.
      * @stable ICU 4.8
      */
-    UMSGPAT_ARG_NAME_NOT_VALID = -2
+    UMSGPAT_ARG_NAME_NOT_VALID=-2
 };
 
 /**
@@ -368,7 +369,7 @@ public:
      *                  function chaining. (See User Guide for details.)
      * @stable ICU 4.8
      */
-    MessagePattern(UErrorCode& errorCode);
+    MessagePattern(UErrorCode &errorCode);
 
     /**
      * Constructs an empty MessagePattern.
@@ -379,7 +380,7 @@ public:
      *                  function chaining. (See User Guide for details.)
      * @stable ICU 4.8
      */
-    MessagePattern(UMessagePatternApostropheMode mode, UErrorCode& errorCode);
+    MessagePattern(UMessagePatternApostropheMode mode, UErrorCode &errorCode);
 
     /**
      * Constructs a MessagePattern with default UMessagePatternApostropheMode and
@@ -387,7 +388,7 @@ public:
      * @param pattern a MessageFormat pattern string
      * @param parseError Struct to receive information on the position
      *                   of an error within the pattern.
-     *                   Can be NULL.
+     *                   Can be nullptr.
      * @param errorCode Standard ICU error code. Its input value must
      *                  pass the U_SUCCESS() test, or else the function returns
      *                  immediately. Check for U_FAILURE() on output or use with
@@ -399,14 +400,14 @@ public:
      * @throws NumberFormatException if a number could not be parsed
      * @stable ICU 4.8
      */
-    MessagePattern(const UnicodeString& pattern, UParseError* parseError, UErrorCode& errorCode);
+    MessagePattern(const UnicodeString &pattern, UParseError *parseError, UErrorCode &errorCode);
 
     /**
      * Copy constructor.
      * @param other Object to copy.
      * @stable ICU 4.8
      */
-    MessagePattern(const MessagePattern& other);
+    MessagePattern(const MessagePattern &other);
 
     /**
      * Assignment operator.
@@ -414,7 +415,7 @@ public:
      * @return *this=other
      * @stable ICU 4.8
      */
-    MessagePattern& operator=(const MessagePattern& other);
+    MessagePattern &operator=(const MessagePattern &other);
 
     /**
      * Destructor.
@@ -427,7 +428,7 @@ public:
      * @param pattern a MessageFormat pattern string
      * @param parseError Struct to receive information on the position
      *                   of an error within the pattern.
-     *                   Can be NULL.
+     *                   Can be nullptr.
      * @param errorCode Standard ICU error code. Its input value must
      *                  pass the U_SUCCESS() test, or else the function returns
      *                  immediately. Check for U_FAILURE() on output or use with
@@ -439,14 +440,15 @@ public:
      * @throws NumberFormatException if a number could not be parsed
      * @stable ICU 4.8
      */
-    MessagePattern& parse(const UnicodeString& pattern, UParseError* parseError, UErrorCode& errorCode);
+    MessagePattern &parse(const UnicodeString &pattern,
+                          UParseError *parseError, UErrorCode &errorCode);
 
     /**
      * Parses a ChoiceFormat pattern string.
      * @param pattern a ChoiceFormat pattern string
      * @param parseError Struct to receive information on the position
      *                   of an error within the pattern.
-     *                   Can be NULL.
+     *                   Can be nullptr.
      * @param errorCode Standard ICU error code. Its input value must
      *                  pass the U_SUCCESS() test, or else the function returns
      *                  immediately. Check for U_FAILURE() on output or use with
@@ -458,14 +460,15 @@ public:
      * @throws NumberFormatException if a number could not be parsed
      * @stable ICU 4.8
      */
-    MessagePattern& parseChoiceStyle(const UnicodeString& pattern, UParseError* parseError, UErrorCode& errorCode);
+    MessagePattern &parseChoiceStyle(const UnicodeString &pattern,
+                                     UParseError *parseError, UErrorCode &errorCode);
 
     /**
      * Parses a PluralFormat pattern string.
      * @param pattern a PluralFormat pattern string
      * @param parseError Struct to receive information on the position
      *                   of an error within the pattern.
-     *                   Can be NULL.
+     *                   Can be nullptr.
      * @param errorCode Standard ICU error code. Its input value must
      *                  pass the U_SUCCESS() test, or else the function returns
      *                  immediately. Check for U_FAILURE() on output or use with
@@ -477,14 +480,15 @@ public:
      * @throws NumberFormatException if a number could not be parsed
      * @stable ICU 4.8
      */
-    MessagePattern& parsePluralStyle(const UnicodeString& pattern, UParseError* parseError, UErrorCode& errorCode);
+    MessagePattern &parsePluralStyle(const UnicodeString &pattern,
+                                     UParseError *parseError, UErrorCode &errorCode);
 
     /**
      * Parses a SelectFormat pattern string.
      * @param pattern a SelectFormat pattern string
      * @param parseError Struct to receive information on the position
      *                   of an error within the pattern.
-     *                   Can be NULL.
+     *                   Can be nullptr.
      * @param errorCode Standard ICU error code. Its input value must
      *                  pass the U_SUCCESS() test, or else the function returns
      *                  immediately. Check for U_FAILURE() on output or use with
@@ -496,7 +500,8 @@ public:
      * @throws NumberFormatException if a number could not be parsed
      * @stable ICU 4.8
      */
-    MessagePattern& parseSelectStyle(const UnicodeString& pattern, UParseError* parseError, UErrorCode& errorCode);
+    MessagePattern &parseSelectStyle(const UnicodeString &pattern,
+                                     UParseError *parseError, UErrorCode &errorCode);
 
     /**
      * Clears this MessagePattern.
@@ -511,10 +516,9 @@ public:
      * @param mode The new UMessagePatternApostropheMode.
      * @stable ICU 4.8
      */
-    void clearPatternAndSetApostropheMode(UMessagePatternApostropheMode mode)
-    {
+    void clearPatternAndSetApostropheMode(UMessagePatternApostropheMode mode) {
         clear();
-        aposMode = mode;
+        aposMode=mode;
     }
 
     /**
@@ -522,15 +526,14 @@ public:
      * @return true if this object is equivalent to the other one.
      * @stable ICU 4.8
      */
-    bool operator==(const MessagePattern& other) const;
+    bool operator==(const MessagePattern &other) const;
 
     /**
      * @param other another object to compare with.
      * @return false if this object is equivalent to the other one.
      * @stable ICU 4.8
      */
-    inline bool operator!=(const MessagePattern& other) const
-    {
+    inline bool operator!=(const MessagePattern &other) const {
         return !operator==(other);
     }
 
@@ -544,8 +547,7 @@ public:
      * @return this instance's UMessagePatternApostropheMode.
      * @stable ICU 4.8
      */
-    UMessagePatternApostropheMode getApostropheMode() const
-    {
+    UMessagePatternApostropheMode getApostropheMode() const {
         return aposMode;
     }
 
@@ -556,8 +558,7 @@ public:
      * @return the parsed pattern string (null if none was parsed).
      * @stable ICU 4.8
      */
-    const UnicodeString& getPatternString() const
-    {
+    const UnicodeString &getPatternString() const {
         return msg;
     }
 
@@ -566,8 +567,7 @@ public:
      * @return true if the parsed pattern has at least one named argument.
      * @stable ICU 4.8
      */
-    UBool hasNamedArguments() const
-    {
+    UBool hasNamedArguments() const {
         return hasArgNames;
     }
 
@@ -576,8 +576,7 @@ public:
      * @return true if the parsed pattern has at least one numbered argument.
      * @stable ICU 4.8
      */
-    UBool hasNumberedArguments() const
-    {
+    UBool hasNumberedArguments() const {
         return hasArgNumbers;
     }
 
@@ -592,7 +591,7 @@ public:
      *         ARG_NAME_NOT_VALID (-2) if it is neither.
      * @stable ICU 4.8
      */
-    static int32_t validateArgumentName(const UnicodeString& name);
+    static int32_t validateArgumentName(const UnicodeString &name);
 
     /**
      * Returns a version of the parsed pattern string where each ASCII apostrophe
@@ -614,8 +613,7 @@ public:
      * @return the number of pattern parts.
      * @stable ICU 4.8
      */
-    int32_t countParts() const
-    {
+    int32_t countParts() const {
         return partsLength;
     }
 
@@ -625,8 +623,7 @@ public:
      * @return the i-th pattern "part".
      * @stable ICU 4.8
      */
-    const Part& getPart(int32_t i) const
-    {
+    const Part &getPart(int32_t i) const {
         return parts[i];
     }
 
@@ -637,8 +634,7 @@ public:
      * @return The UMessagePatternPartType of the i-th Part.
      * @stable ICU 4.8
      */
-    UMessagePatternPartType getPartType(int32_t i) const
-    {
+    UMessagePatternPartType getPartType(int32_t i) const {
         return getPart(i).type;
     }
 
@@ -649,8 +645,7 @@ public:
      * @return The pattern index of this Part.
      * @stable ICU 4.8
      */
-    int32_t getPatternIndex(int32_t partIndex) const
-    {
+    int32_t getPatternIndex(int32_t partIndex) const {
         return getPart(partIndex).index;
     }
 
@@ -661,8 +656,7 @@ public:
      * @return the substring associated with part.
      * @stable ICU 4.8
      */
-    UnicodeString getSubstring(const Part& part) const
-    {
+    UnicodeString getSubstring(const Part &part) const {
         return msg.tempSubString(part.index, part.length);
     }
 
@@ -673,9 +667,8 @@ public:
      * @return true if getSubstring(part).equals(s).
      * @stable ICU 4.8
      */
-    UBool partSubstringMatches(const Part& part, const UnicodeString& s) const
-    {
-        return 0 == msg.compare(part.index, part.length, s);
+    UBool partSubstringMatches(const Part &part, const UnicodeString &s) const {
+        return 0==msg.compare(part.index, part.length, s);
     }
 
     /**
@@ -684,7 +677,7 @@ public:
      * @return the part's numeric value, or UMSGPAT_NO_NUMERIC_VALUE if this is not a numeric part.
      * @stable ICU 4.8
      */
-    double getNumericValue(const Part& part) const;
+    double getNumericValue(const Part &part) const;
 
     /**
      * Returns the "offset:" value of a PluralFormat argument, or 0 if none is specified.
@@ -702,10 +695,9 @@ public:
      *         or start itself if getPartType(msgStart)!=ARG|MSG_START.
      * @stable ICU 4.8
      */
-    int32_t getLimitPartIndex(int32_t start) const
-    {
-        int32_t limit = getPart(start).limitPartIndex;
-        if (limit < start) {
+    int32_t getLimitPartIndex(int32_t start) const {
+        int32_t limit=getPart(start).limitPartIndex;
+        if(limit<start) {
             return start;
         }
         return limit;
@@ -724,17 +716,14 @@ public:
          * Default constructor, do not use.
          * @internal
          */
-        Part()
-        {
-        }
+        Part() {}
 
         /**
          * Returns the type of this part.
          * @return the part type.
          * @stable ICU 4.8
          */
-        UMessagePatternPartType getType() const
-        {
+        UMessagePatternPartType getType() const {
             return type;
         }
 
@@ -743,8 +732,7 @@ public:
          * @return this part's pattern string index.
          * @stable ICU 4.8
          */
-        int32_t getIndex() const
-        {
+        int32_t getIndex() const {
             return index;
         }
 
@@ -754,8 +742,7 @@ public:
          * @return this part's pattern substring length.
          * @stable ICU 4.8
          */
-        int32_t getLength() const
-        {
+        int32_t getLength() const {
             return length;
         }
 
@@ -765,9 +752,8 @@ public:
          * @return this part's pattern string limit index, same as getIndex()+getLength().
          * @stable ICU 4.8
          */
-        int32_t getLimit() const
-        {
-            return index + length;
+        int32_t getLimit() const {
+            return index+length;
         }
 
         /**
@@ -776,8 +762,7 @@ public:
          * @return the part value.
          * @stable ICU 4.8
          */
-        int32_t getValue() const
-        {
+        int32_t getValue() const {
             return value;
         }
 
@@ -787,10 +772,9 @@ public:
          * @return the argument type for this part.
          * @stable ICU 4.8
          */
-        UMessagePatternArgType getArgType() const
-        {
-            UMessagePatternPartType msgType = getType();
-            if (msgType == UMSGPAT_PART_TYPE_ARG_START || msgType == UMSGPAT_PART_TYPE_ARG_LIMIT) {
+        UMessagePatternArgType getArgType() const {
+            UMessagePatternPartType msgType=getType();
+            if(msgType ==UMSGPAT_PART_TYPE_ARG_START || msgType ==UMSGPAT_PART_TYPE_ARG_LIMIT) {
                 return (UMessagePatternArgType)value;
             } else {
                 return UMSGPAT_ARG_TYPE_NONE;
@@ -804,9 +788,8 @@ public:
          * @return true if the Part type has a numeric value.
          * @stable ICU 4.8
          */
-        static UBool hasNumericValue(UMessagePatternPartType type)
-        {
-            return type == UMSGPAT_PART_TYPE_ARG_INT || type == UMSGPAT_PART_TYPE_ARG_DOUBLE;
+        static UBool hasNumericValue(UMessagePatternPartType type) {
+            return type==UMSGPAT_PART_TYPE_ARG_INT || type==UMSGPAT_PART_TYPE_ARG_DOUBLE;
         }
 
         /**
@@ -814,15 +797,14 @@ public:
          * @return true if this object is equivalent to the other one.
          * @stable ICU 4.8
          */
-        bool operator==(const Part& other) const;
+        bool operator==(const Part &other) const;
 
         /**
          * @param other another object to compare with.
          * @return false if this object is equivalent to the other one.
          * @stable ICU 4.8
          */
-        inline bool operator!=(const Part& other) const
-        {
+        inline bool operator!=(const Part &other) const {
             return !operator==(other);
         }
 
@@ -830,16 +812,16 @@ public:
          * @return A hash code for this object.
          * @stable ICU 4.8
          */
-        int32_t hashCode() const
-        {
-            return ((type * 37 + index) * 37 + length) * 37 + value;
+        int32_t hashCode() const {
+            return ((type*37+index)*37+length)*37+value;
         }
 
     private:
         friend class MessagePattern;
 
-        static const int32_t MAX_LENGTH = 0xffff;
-        static const int32_t MAX_VALUE = 0x7fff;
+        static const int32_t MAX_LENGTH=0xffff;
+        static const int32_t MAX_VALUE=0x7fff;
+        static const int32_t MAX_NESTED_LEVELS=0x03ff;
 
         // Some fields are not final because they are modified during pattern parsing.
         // After pattern parsing, the parts are effectively immutable.
@@ -851,20 +833,24 @@ public:
     };
 
 private:
-    void preParse(const UnicodeString& pattern, UParseError* parseError, UErrorCode& errorCode);
+    void preParse(const UnicodeString &pattern, UParseError *parseError, UErrorCode &errorCode);
 
     void postParse();
 
-    int32_t parseMessage(
-        int32_t index, int32_t msgStartLength, int32_t nestingLevel, UMessagePatternArgType parentType, UParseError* parseError, UErrorCode& errorCode);
+    int32_t parseMessage(int32_t index, int32_t msgStartLength,
+                         int32_t nestingLevel, UMessagePatternArgType parentType,
+                         UParseError *parseError, UErrorCode &errorCode);
 
-    int32_t parseArg(int32_t index, int32_t argStartLength, int32_t nestingLevel, UParseError* parseError, UErrorCode& errorCode);
+    int32_t parseArg(int32_t index, int32_t argStartLength, int32_t nestingLevel,
+                     UParseError *parseError, UErrorCode &errorCode);
 
-    int32_t parseSimpleStyle(int32_t index, UParseError* parseError, UErrorCode& errorCode);
+    int32_t parseSimpleStyle(int32_t index, UParseError *parseError, UErrorCode &errorCode);
 
-    int32_t parseChoiceStyle(int32_t index, int32_t nestingLevel, UParseError* parseError, UErrorCode& errorCode);
+    int32_t parseChoiceStyle(int32_t index, int32_t nestingLevel,
+                             UParseError *parseError, UErrorCode &errorCode);
 
-    int32_t parsePluralOrSelectStyle(UMessagePatternArgType argType, int32_t index, int32_t nestingLevel, UParseError* parseError, UErrorCode& errorCode);
+    int32_t parsePluralOrSelectStyle(UMessagePatternArgType argType, int32_t index, int32_t nestingLevel,
+                                     UParseError *parseError, UErrorCode &errorCode);
 
     /**
      * Validates and parses an argument name or argument number string.
@@ -874,10 +860,9 @@ private:
      *         ARG_NAME_NOT_VALID (-2) if it is neither.
      * @see #validateArgumentName(String)
      */
-    static int32_t parseArgNumber(const UnicodeString& s, int32_t start, int32_t limit);
+    static int32_t parseArgNumber(const UnicodeString &s, int32_t start, int32_t limit);
 
-    int32_t parseArgNumber(int32_t start, int32_t limit)
-    {
+    int32_t parseArgNumber(int32_t start, int32_t limit) {
         return parseArgNumber(msg, start, limit);
     }
 
@@ -889,7 +874,8 @@ private:
      * @param parseError
      * @param errorCode
      */
-    void parseDouble(int32_t start, int32_t limit, UBool allowInfinity, UParseError* parseError, UErrorCode& errorCode);
+    void parseDouble(int32_t start, int32_t limit, UBool allowInfinity,
+                     UParseError *parseError, UErrorCode &errorCode);
 
     // Java has package-private appendReducedApostrophes() here.
     // In C++, this is declared in the MessageImpl class.
@@ -926,26 +912,29 @@ private:
      */
     UBool inTopLevelChoiceMessage(int32_t nestingLevel, UMessagePatternArgType parentType);
 
-    void addPart(UMessagePatternPartType type, int32_t index, int32_t length, int32_t value, UErrorCode& errorCode);
+    void addPart(UMessagePatternPartType type, int32_t index, int32_t length,
+                 int32_t value, UErrorCode &errorCode);
 
-    void addLimitPart(int32_t start, UMessagePatternPartType type, int32_t index, int32_t length, int32_t value, UErrorCode& errorCode);
+    void addLimitPart(int32_t start,
+                      UMessagePatternPartType type, int32_t index, int32_t length,
+                      int32_t value, UErrorCode &errorCode);
 
-    void addArgDoublePart(double numericValue, int32_t start, int32_t length, UErrorCode& errorCode);
+    void addArgDoublePart(double numericValue, int32_t start, int32_t length, UErrorCode &errorCode);
 
-    void setParseError(UParseError* parseError, int32_t index);
+    void setParseError(UParseError *parseError, int32_t index);
 
-    UBool init(UErrorCode& errorCode);
-    UBool copyStorage(const MessagePattern& other, UErrorCode& errorCode);
+    UBool init(UErrorCode &errorCode);
+    UBool copyStorage(const MessagePattern &other, UErrorCode &errorCode);
 
     UMessagePatternApostropheMode aposMode;
     UnicodeString msg;
     // ArrayList<Part> parts=new ArrayList<Part>();
-    MessagePatternPartsList* partsList;
-    Part* parts;
+    MessagePatternPartsList *partsList;
+    Part *parts;
     int32_t partsLength;
     // ArrayList<Double> numericValues;
-    MessagePatternDoubleList* numericValuesList;
-    double* numericValues;
+    MessagePatternDoubleList *numericValuesList;
+    double *numericValues;
     int32_t numericValuesLength;
     UBool hasArgNames;
     UBool hasArgNumbers;
@@ -954,8 +943,8 @@ private:
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_FORMATTING
+#endif  // !UCONFIG_NO_FORMATTING
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
-#endif // __MESSAGEPATTERN_H__
+#endif  // __MESSAGEPATTERN_H__

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -51,6 +51,7 @@ private:
     UBool isDataOwned;
 
 public:
+
     /**
      * Constructs a new transliterator from the given rules.
      * @param rules rules, separated by ';'
@@ -58,8 +59,12 @@ public:
      * @exception IllegalArgumentException if rules are malformed.
      * @internal Use transliterator factory methods instead since this class will be removed in that release.
      */
-    RuleBasedTransliterator(const UnicodeString& id, const UnicodeString& rules, UTransDirection direction, UnicodeFilter* adoptedFilter,
-        UParseError& parseError, UErrorCode& status);
+    RuleBasedTransliterator(const UnicodeString& id,
+                            const UnicodeString& rules,
+                            UTransDirection direction,
+                            UnicodeFilter* adoptedFilter,
+                            UParseError& parseError,
+                            UErrorCode& status);
 
     /**
      * Constructs a new transliterator from the given rules.
@@ -100,14 +105,18 @@ public:
                             UnicodeFilter* adoptedFilter,
                             UErrorCode& status);*/
 private:
-    friend class TransliteratorRegistry; // to access TransliterationRuleData convenience ctor
+
+     friend class TransliteratorRegistry; // to access TransliterationRuleData convenience ctor
     /**
      * Convenience constructor.
      * @param id            the id for the transliterator.
      * @param theData       the rule data for the transliterator.
      * @param adoptedFilter the filter for the transliterator
      */
-    RuleBasedTransliterator(const UnicodeString& id, const TransliterationRuleData* theData, UnicodeFilter* adoptedFilter = 0);
+    RuleBasedTransliterator(const UnicodeString& id,
+                            const TransliterationRuleData* theData,
+                            UnicodeFilter* adoptedFilter = 0);
+
 
     friend class Transliterator; // to access following ct
 
@@ -117,9 +126,12 @@ private:
      * @param theData       the rule data for the transliterator.
      * @param isDataAdopted determine who will own the 'data' object. True, the caller should not delete 'data'.
      */
-    RuleBasedTransliterator(const UnicodeString& id, TransliterationRuleData* data, UBool isDataAdopted);
+    RuleBasedTransliterator(const UnicodeString& id,
+                            TransliterationRuleData* data,
+                            UBool isDataAdopted);
 
 public:
+
     /**
      * Copy constructor.
      * @internal Use transliterator factory methods instead since this class will be removed in that release.
@@ -139,7 +151,8 @@ protected:
      * Implements {@link Transliterator#handleTransliterate}.
      * @internal Use transliterator factory methods instead since this class will be removed in that release.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offsets, UBool isIncremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offsets,
+                                     UBool isIncremental) const override;
 
 public:
     /**
@@ -154,7 +167,8 @@ public:
      * U+000A, U+0020..U+007E.
      * @internal Use transliterator factory methods instead since this class will be removed in that release.
      */
-    virtual UnicodeString& toRules(UnicodeString& result, UBool escapeUnprintable) const override;
+    virtual UnicodeString& toRules(UnicodeString& result,
+                                   UBool escapeUnprintable) const override;
 
 protected:
     /**
@@ -179,23 +193,28 @@ public:
      * @return          The class ID for all objects of this class.
      * @internal Use transliterator factory methods instead since this class will be removed in that release.
      */
-    U_I18N_API static UClassID U_EXPORT2 getStaticClassID(void);
+    U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
     /**
      * Returns a unique class ID <b>polymorphically</b>.  This method
      * is to implement a simple version of RTTI, since not all C++
      * compilers support genuine RTTI.  Polymorphic operator==() and
      * clone() methods call this method.
-     *
+     * 
      * @return The class ID for this object. All objects of a given
      * class have the same class ID.  Objects of other classes have
      * different class IDs.
      */
-    virtual UClassID getDynamicClassID(void) const override;
+    virtual UClassID getDynamicClassID() const override;
 
 private:
-    void _construct(const UnicodeString& rules, UTransDirection direction, UParseError& parseError, UErrorCode& status);
+
+    void _construct(const UnicodeString& rules,
+                    UTransDirection direction,
+                    UParseError& parseError,
+                    UErrorCode& status);
 };
+
 
 U_NAMESPACE_END
 

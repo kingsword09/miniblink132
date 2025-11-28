@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -27,8 +27,12 @@
 
 #include "unicode/ustdio.h"
 
-U_CFUNC int32_t u_scanf_parse(UFILE* f, const UChar* patternSpecification, va_list ap);
+U_CFUNC int32_t
+u_scanf_parse(UFILE     *f,
+            const UChar *patternSpecification,
+            va_list     ap);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif
+

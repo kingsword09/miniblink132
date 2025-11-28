@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -37,7 +37,7 @@ U_CDECL_BEGIN
  * integer, we pass it around by value.
  */
 union UElement {
-    void* pointer;
+    void*   pointer;
     int32_t integer;
 };
 typedef union UElement UElement;
@@ -67,7 +67,7 @@ typedef int32_t U_CALLCONV UElementComparator(UElement e1, UElement e2);
  * @param dst The element to be assigned to
  * @param src The element to assign from
  */
-typedef void U_CALLCONV UElementAssigner(UElement* dst, UElement* src);
+typedef void U_CALLCONV UElementAssigner(UElement *dst, UElement *src);
 
 U_CDECL_END
 
@@ -77,7 +77,8 @@ U_CDECL_END
  * @param key2 The string for comparison
  * @return true if key1 and key2 are equal, return false otherwise.
  */
-U_CAPI UBool U_EXPORT2 uhash_compareUnicodeString(const UElement key1, const UElement key2);
+U_CAPI UBool U_EXPORT2 
+uhash_compareUnicodeString(const UElement key1, const UElement key2);
 
 /**
  * Comparator function for UnicodeString* keys (case insensitive).
@@ -87,6 +88,7 @@ U_CAPI UBool U_EXPORT2 uhash_compareUnicodeString(const UElement key1, const UEl
  * @param key2 The string for comparison
  * @return true if key1 and key2 are equal, return false otherwise.
  */
-U_CAPI UBool U_EXPORT2 uhash_compareCaselessUnicodeString(const UElement key1, const UElement key2);
+U_CAPI UBool U_EXPORT2 
+uhash_compareCaselessUnicodeString(const UElement key1, const UElement key2);
 
-#endif /* __UELEMENT_H__ */
+#endif  /* __UELEMENT_H__ */

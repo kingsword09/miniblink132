@@ -1,4 +1,4 @@
-﻿/*
+/*
 *******************************************************************************
 *
 *   © 2016 and later: Unicode, Inc. and others.
@@ -31,13 +31,13 @@
 #include "unicode/uchar.h"
 #include "unicode/uclean.h"
 
-static void printProps(UChar32 codePoint)
-{
+static void
+printProps(UChar32 codePoint) {
     char buffer[100];
     UErrorCode errorCode;
 
     /* get the character name */
-    errorCode = U_ZERO_ERROR;
+    errorCode=U_ZERO_ERROR;
     u_charName(codePoint, U_UNICODE_CHAR_NAME, buffer, sizeof(buffer), &errorCode);
 
     /* print the code point and the character name */
@@ -56,12 +56,15 @@ static void printProps(UChar32 codePoint)
 
 /* Note: In ICU 2.0, the Unicode class is deprecated - it is a pure wrapper around the C APIs above. */
 
-extern int main(int argc, const char* argv[])
-{
-    static const UChar32 codePoints[] = { 0xd, 0x20, 0x2d, 0x35, 0x65, 0x284, 0x665, 0x5678, 0x23456, 0x10317, 0x1D01F, 0x10fffd };
+extern int
+main(int argc, const char *argv[]) {
+    static const UChar32
+    codePoints[]={
+        0xd, 0x20, 0x2d, 0x35, 0x65, 0x284, 0x665, 0x5678, 0x23456, 0x10317, 0x1D01F, 0x10fffd
+    };
     int i;
 
-    for (i = 0; i < sizeof(codePoints) / sizeof(codePoints[0]); ++i) {
+    for(i=0; i<sizeof(codePoints)/sizeof(codePoints[0]); ++i) {
         printProps(codePoints[i]);
         puts("");
     }

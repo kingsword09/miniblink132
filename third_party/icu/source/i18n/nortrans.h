@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -26,9 +26,10 @@ U_NAMESPACE_BEGIN
  * @author Alan Liu
  */
 class NormalizationTransliterator : public Transliterator {
-    const Normalizer2& fNorm2;
+    const Normalizer2 &fNorm2;
 
-public:
+ public:
+
     /**
      * Destructor.
      */
@@ -55,7 +56,8 @@ public:
      */
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
-protected:
+ protected:
+
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      * @param text          the buffer holding transliterated and
@@ -65,23 +67,26 @@ protected:
      * @param incremental   if true, assume more text may be coming after
      *                      pos.contextLimit. Otherwise, assume the text is complete.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset, UBool isIncremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset,
+                             UBool isIncremental) const override;
+ public:
 
-public:
     /**
      * System registration hook.  Public to Transliterator only.
      */
     static void registerIDs();
 
-private:
+ private:
+
     // Transliterator::Factory methods
-    static Transliterator* _create(const UnicodeString& ID, Token context);
+    static Transliterator* _create(const UnicodeString& ID,
+                                   Token context);
 
     /**
      * Constructs a transliterator.  This method is private.
      * Public users must use the factory method createInstance().
      */
-    NormalizationTransliterator(const UnicodeString& id, const Normalizer2& norm2);
+    NormalizationTransliterator(const UnicodeString& id, const Normalizer2 &norm2);
 
 private:
     /**

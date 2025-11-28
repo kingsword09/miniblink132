@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -28,8 +28,8 @@ namespace impl {
 /** A very thin C++ wrapper around decNumber.h */
 // Exported as U_I18N_API for tests
 class U_I18N_API DecNum : public UMemory {
-public:
-    DecNum(); // leaves object in valid but undefined state
+  public:
+    DecNum();  // leaves object in valid but undefined state
 
     // Copy-like constructor; use the default move operators.
     DecNum(const DecNum& other, UErrorCode& status);
@@ -65,20 +65,18 @@ public:
 
     void toString(ByteSink& output, UErrorCode& status) const;
 
-    inline CharString toCharString(UErrorCode& status) const
-    {
-        CharString cstr;
-        CharStringByteSink sink(&cstr);
-        toString(sink, status);
-        return cstr;
+    inline CharString toCharString(UErrorCode& status) const {
+      CharString cstr;
+      CharStringByteSink sink(&cstr);
+      toString(sink, status);
+      return cstr;
     }
 
-    inline const decNumber* getRawDecNumber() const
-    {
+    inline const decNumber* getRawDecNumber() const {
         return fData.getAlias();
     }
 
-private:
+  private:
     static constexpr int32_t kDefaultDigits = DECNUM_INITIAL_CAPACITY;
     MaybeStackHeaderAndArray<decNumber, char, kDefaultDigits> fData;
     decContext fContext;

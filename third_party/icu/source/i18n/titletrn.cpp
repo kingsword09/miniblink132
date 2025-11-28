@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -27,8 +27,8 @@ U_NAMESPACE_BEGIN
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(TitlecaseTransliterator)
 
-TitlecaseTransliterator::TitlecaseTransliterator()
-    : CaseMapTransliterator(UNICODE_STRING("Any-Title", 9), NULL)
+TitlecaseTransliterator::TitlecaseTransliterator() :
+    CaseMapTransliterator(UNICODE_STRING("Any-Title", 9), nullptr)
 {
     // Need to look back 2 characters in the case of "can't"
     setMaximumContextLength(2);
@@ -37,15 +37,14 @@ TitlecaseTransliterator::TitlecaseTransliterator()
 /**
  * Destructor.
  */
-TitlecaseTransliterator::~TitlecaseTransliterator()
-{
+TitlecaseTransliterator::~TitlecaseTransliterator() {
 }
 
 /**
  * Copy constructor.
  */
-TitlecaseTransliterator::TitlecaseTransliterator(const TitlecaseTransliterator& o)
-    : CaseMapTransliterator(o)
+TitlecaseTransliterator::TitlecaseTransliterator(const TitlecaseTransliterator& o) :
+    CaseMapTransliterator(o)
 {
 }
 
@@ -61,15 +60,16 @@ TitlecaseTransliterator::TitlecaseTransliterator(const TitlecaseTransliterator& 
 /**
  * Transliterator API.
  */
-TitlecaseTransliterator* TitlecaseTransliterator::clone() const
-{
+TitlecaseTransliterator* TitlecaseTransliterator::clone() const {
     return new TitlecaseTransliterator(*this);
 }
 
 /**
  * Implements {@link Transliterator#handleTransliterate}.
  */
-void TitlecaseTransliterator::handleTransliterate(Replaceable& text, UTransPosition& offsets, UBool isIncremental) const
+void TitlecaseTransliterator::handleTransliterate(
+                                  Replaceable& text, UTransPosition& offsets,
+                                  UBool isIncremental) const
 {
     // TODO reimplement, see ustrcase.c
     // using a real word break iterator
@@ -87,8 +87,8 @@ void TitlecaseTransliterator::handleTransliterate(Replaceable& text, UTransPosit
 
     // Our mode; we are either converting letter toTitle or
     // toLower.
-    UBool doTitle = TRUE;
-
+    UBool doTitle = true;
+    
     // Determine if there is a preceding context of cased case-ignorable*,
     // in which case we want to start in toLower mode.  If the
     // prior context is anything else (including empty) then start
@@ -97,16 +97,16 @@ void TitlecaseTransliterator::handleTransliterate(Replaceable& text, UTransPosit
     int32_t start;
     for (start = offsets.start - 1; start >= offsets.contextStart; start -= U16_LENGTH(c)) {
         c = text.char32At(start);
-        type = ucase_getTypeOrIgnorable(c);
-        if (type > 0) { // cased
-            doTitle = FALSE;
+        type=ucase_getTypeOrIgnorable(c);
+        if(type>0) { // cased
+            doTitle=false;
             break;
-        } else if (type == 0) { // uncased but not ignorable
+        } else if(type==0) { // uncased but not ignorable
             break;
         }
         // else (type<0) case-ignorable: continue
     }
-
+    
     // Convert things after a cased character toLower; things
     // after an uncased, non-case-ignorable character toTitle.  Case-ignorable
     // characters are copied directly and do not change the mode.
@@ -117,52 +117,52 @@ void TitlecaseTransliterator::handleTransliterate(Replaceable& text, UTransPosit
     csc.limit = offsets.contextLimit;
 
     UnicodeString tmp;
-    const UChar* s;
+    const char16_t *s;
     int32_t textPos, delta, result;
 
-    for (textPos = offsets.start; textPos < offsets.limit;) {
-        csc.cpStart = textPos;
-        c = text.char32At(textPos);
-        csc.cpLimit = textPos += U16_LENGTH(c);
+    for(textPos=offsets.start; textPos<offsets.limit;) {
+        csc.cpStart=textPos;
+        c=text.char32At(textPos);
+        csc.cpLimit=textPos+=U16_LENGTH(c);
 
-        type = ucase_getTypeOrIgnorable(c);
-        if (type >= 0) { // not case-ignorable
-            if (doTitle) {
-                result = ucase_toFullTitle(c, utrans_rep_caseContextIterator, &csc, &s, UCASE_LOC_ROOT);
+        type=ucase_getTypeOrIgnorable(c);
+        if(type>=0) { // not case-ignorable
+            if(doTitle) {
+                result=ucase_toFullTitle(c, utrans_rep_caseContextIterator, &csc, &s, UCASE_LOC_ROOT);
             } else {
-                result = ucase_toFullLower(c, utrans_rep_caseContextIterator, &csc, &s, UCASE_LOC_ROOT);
+                result=ucase_toFullLower(c, utrans_rep_caseContextIterator, &csc, &s, UCASE_LOC_ROOT);
             }
-            doTitle = (UBool)(type == 0); // doTitle=isUncased
+            doTitle = (UBool)(type==0); // doTitle=isUncased
 
-            if (csc.b1 && isIncremental) {
+            if(csc.b1 && isIncremental) {
                 // fMap() tried to look beyond the context limit
                 // wait for more input
-                offsets.start = csc.cpStart;
+                offsets.start=csc.cpStart;
                 return;
             }
 
-            if (result >= 0) {
+            if(result>=0) {
                 // replace the current code point with its full case mapping result
                 // see UCASE_MAX_STRING_LENGTH
-                if (result <= UCASE_MAX_STRING_LENGTH) {
+                if(result<=UCASE_MAX_STRING_LENGTH) {
                     // string s[result]
-                    tmp.setTo(FALSE, s, result);
-                    delta = result - U16_LENGTH(c);
+                    tmp.setTo(false, s, result);
+                    delta=result-U16_LENGTH(c);
                 } else {
                     // single code point
                     tmp.setTo(result);
-                    delta = tmp.length() - U16_LENGTH(c);
+                    delta=tmp.length()-U16_LENGTH(c);
                 }
                 text.handleReplaceBetween(csc.cpStart, textPos, tmp);
-                if (delta != 0) {
-                    textPos += delta;
-                    csc.limit = offsets.contextLimit += delta;
-                    offsets.limit += delta;
+                if(delta!=0) {
+                    textPos+=delta;
+                    csc.limit=offsets.contextLimit+=delta;
+                    offsets.limit+=delta;
                 }
             }
         }
     }
-    offsets.start = textPos;
+    offsets.start=textPos;
 }
 
 U_NAMESPACE_END

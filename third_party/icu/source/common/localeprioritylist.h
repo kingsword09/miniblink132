@@ -1,4 +1,4 @@
-﻿// © 2019 and later: Unicode, Inc. and others.
+// © 2019 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // localeprioritylist.h
@@ -58,15 +58,11 @@ class U_COMMON_API LocalePriorityList : public UMemory {
 public:
     class Iterator : public Locale::Iterator {
     public:
-        UBool hasNext() const override
-        {
-            return count < length;
-        }
+        UBool hasNext() const override { return count < length; }
 
-        const Locale& next() override
-        {
-            for (;;) {
-                const Locale* locale = list.localeAt(index++);
+        const Locale &next() override {
+            for(;;) {
+                const Locale *locale = list.localeAt(index++);
                 if (locale != nullptr) {
                     ++count;
                     return *locale;
@@ -77,56 +73,43 @@ public:
     private:
         friend class LocalePriorityList;
 
-        Iterator(const LocalePriorityList& list)
-            : list(list)
-            , length(list.getLength())
-        {
-        }
+        Iterator(const LocalePriorityList &list) : list(list), length(list.getLength()) {}
 
-        const LocalePriorityList& list;
+        const LocalePriorityList &list;
         int32_t index = 0;
         int32_t count = 0;
         const int32_t length;
     };
 
-    LocalePriorityList(StringPiece s, UErrorCode& errorCode);
+    LocalePriorityList(StringPiece s, UErrorCode &errorCode);
 
     ~LocalePriorityList();
 
-    int32_t getLength() const
-    {
-        return listLength - numRemoved;
-    }
+    int32_t getLength() const { return listLength - numRemoved; }
 
-    int32_t getLengthIncludingRemoved() const
-    {
-        return listLength;
-    }
+    int32_t getLengthIncludingRemoved() const { return listLength; }
 
-    Iterator iterator() const
-    {
-        return Iterator(*this);
-    }
+    Iterator iterator() const { return Iterator(*this); }
 
-    const Locale* localeAt(int32_t i) const;
+    const Locale *localeAt(int32_t i) const;
 
-    Locale* orphanLocaleAt(int32_t i);
+    Locale *orphanLocaleAt(int32_t i);
 
 private:
-    LocalePriorityList(const LocalePriorityList&) = delete;
-    LocalePriorityList& operator=(const LocalePriorityList&) = delete;
+    LocalePriorityList(const LocalePriorityList &) = delete;
+    LocalePriorityList &operator=(const LocalePriorityList &) = delete;
 
-    bool add(const Locale& locale, int32_t weight, UErrorCode& errorCode);
+    bool add(const Locale &locale, int32_t weight, UErrorCode &errorCode);
 
-    void sort(UErrorCode& errorCode);
+    void sort(UErrorCode &errorCode);
 
-    LocaleAndWeightArray* list = nullptr;
+    LocaleAndWeightArray *list = nullptr;
     int32_t listLength = 0;
     int32_t numRemoved = 0;
-    bool hasWeights = false; // other than 1.0
-    UHashtable* map = nullptr;
+    bool hasWeights = false;  // other than 1.0
+    UHashtable *map = nullptr;
 };
 
 U_NAMESPACE_END
 
-#endif // __LOCALEPRIORITYLIST_H__
+#endif  // __LOCALEPRIORITYLIST_H__

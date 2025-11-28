@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -138,8 +138,7 @@ constexpr char16_t kWildcardChar = u'*';
 constexpr char16_t kAltWildcardChar = u'+';
 
 /** Checks whether the char is a wildcard on input */
-inline bool isWildcardChar(char16_t c)
-{
+inline bool isWildcardChar(char16_t c) {
     return c == kWildcardChar || c == kAltWildcardChar;
 }
 
@@ -150,7 +149,8 @@ inline bool isWildcardChar(char16_t c)
  *            A number skeleton string, possibly not in its shortest form.
  * @return An UnlocalizedNumberFormatter with behavior defined by the given skeleton string.
  */
-UnlocalizedNumberFormatter create(const UnicodeString& skeletonString, UParseError* perror, UErrorCode& status);
+UnlocalizedNumberFormatter create(
+    const UnicodeString& skeletonString, UParseError* perror, UErrorCode& status);
 
 /**
  * Create a skeleton string corresponding to the given NumberFormatter.
@@ -173,7 +173,8 @@ MacroProps parseSkeleton(const UnicodeString& skeletonString, int32_t& errOffset
  *
  * @return The next state after parsing this stem, corresponding to what subset of options to expect.
  */
-ParseState parseStem(const StringSegment& segment, const UCharsTrie& stemTrie, SeenMacroProps& seen, MacroProps& macros, UErrorCode& status);
+ParseState parseStem(const StringSegment& segment, const UCharsTrie& stemTrie, SeenMacroProps& seen,
+                     MacroProps& macros, UErrorCode& status);
 
 /**
  * Given that the current segment represents an option, parse it and save the result.
@@ -181,9 +182,11 @@ ParseState parseStem(const StringSegment& segment, const UCharsTrie& stemTrie, S
  * @return The next state after parsing this option, corresponding to what subset of options to
  *         expect next.
  */
-ParseState parseOption(ParseState stem, const StringSegment& segment, MacroProps& macros, UErrorCode& status);
+ParseState
+parseOption(ParseState stem, const StringSegment& segment, MacroProps& macros, UErrorCode& status);
 
 } // namespace skeleton
+
 
 /**
  * Namespace for utility methods that convert from StemEnum to corresponding objects or enums. This
@@ -282,7 +285,8 @@ bool parseTrailingZeroOption(const StringSegment& segment, MacroProps& macros, U
 
 void parseIncrementOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status);
 
-void generateIncrementOption(uint32_t increment, digits_t incrementMagnitude, int32_t minFrac, UnicodeString& sb, UErrorCode& status);
+void
+generateIncrementOption(uint32_t increment, digits_t incrementMagnitude, int32_t minFrac, UnicodeString& sb, UErrorCode& status);
 
 void parseIntegerWidthOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status);
 
@@ -294,7 +298,8 @@ void generateNumberingSystemOption(const NumberingSystem& ns, UnicodeString& sb,
 
 void parseScaleOption(const StringSegment& segment, MacroProps& macros, UErrorCode& status);
 
-void generateScaleOption(int32_t magnitude, const DecNum* arbitrary, UnicodeString& sb, UErrorCode& status);
+void generateScaleOption(int32_t magnitude, const DecNum* arbitrary, UnicodeString& sb,
+                              UErrorCode& status);
 
 } // namespace blueprint_helpers
 
@@ -305,7 +310,7 @@ void generateScaleOption(int32_t magnitude, const DecNum* arbitrary, UnicodeStri
  * This needs to be a class, not a namespace, so it can be friended.
  */
 class GeneratorHelpers {
-public:
+  public:
     /**
      * Main skeleton generator function. Appends the normalized skeleton for the MacroProps to the given
      * StringBuilder.
@@ -314,7 +319,7 @@ public:
      */
     static void generateSkeleton(const MacroProps& macros, UnicodeString& sb, UErrorCode& status);
 
-private:
+  private:
     static bool notation(const MacroProps& macros, UnicodeString& sb, UErrorCode& status);
 
     static bool unit(const MacroProps& macros, UnicodeString& sb, UErrorCode& status);
@@ -338,6 +343,7 @@ private:
     static bool decimal(const MacroProps& macros, UnicodeString& sb, UErrorCode& status);
 
     static bool scale(const MacroProps& macros, UnicodeString& sb, UErrorCode& status);
+
 };
 
 /**
@@ -363,22 +369,19 @@ struct SeenMacroProps {
 
 namespace {
 
-#define SKELETON_UCHAR_TO_CHAR(dest, src, start, end, status)                                                                                                  \
-    (void)(dest);                                                                                                                                              \
-    UPRV_BLOCK_MACRO_BEGIN                                                                                                                                     \
-    {                                                                                                                                                          \
-        UErrorCode conversionStatus = U_ZERO_ERROR;                                                                                                            \
-        (dest).appendInvariantChars({ false, (src).getBuffer() + (start), (end) - (start) }, conversionStatus);                                                \
-        if (conversionStatus == U_INVARIANT_CONVERSION_ERROR) {                                                                                                \
-            /* Don't propagate the invariant conversion error; it is a skeleton syntax error */                                                                \
-            (status) = U_NUMBER_SKELETON_SYNTAX_ERROR;                                                                                                         \
-            return;                                                                                                                                            \
-        } else if (U_FAILURE(conversionStatus)) {                                                                                                              \
-            (status) = conversionStatus;                                                                                                                       \
-            return;                                                                                                                                            \
-        }                                                                                                                                                      \
-    }                                                                                                                                                          \
-    UPRV_BLOCK_MACRO_END
+#define SKELETON_UCHAR_TO_CHAR(dest, src, start, end, status) (void)(dest); \
+UPRV_BLOCK_MACRO_BEGIN { \
+    UErrorCode conversionStatus = U_ZERO_ERROR; \
+    (dest).appendInvariantChars({false, (src).getBuffer() + (start), (end) - (start)}, conversionStatus); \
+    if (conversionStatus == U_INVARIANT_CONVERSION_ERROR) { \
+        /* Don't propagate the invariant conversion error; it is a skeleton syntax error */ \
+        (status) = U_NUMBER_SKELETON_SYNTAX_ERROR; \
+        return; \
+    } else if (U_FAILURE(conversionStatus)) { \
+        (status) = conversionStatus; \
+        return; \
+    } \
+} UPRV_BLOCK_MACRO_END
 
 } // namespace
 

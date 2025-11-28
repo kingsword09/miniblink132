@@ -1,4 +1,4 @@
-﻿/**********************************************************************
+/**********************************************************************
  * © 2016 and later: Unicode, Inc. and others.
  * License & terms of use: http://www.unicode.org/copyright.html
  ***********************************************************************
@@ -17,11 +17,12 @@
 
 // The message format pattern.  It takes a single argument, an integer,
 // and formats it as "no", "one", or a number, using a NumberFormat.
-static UnicodeString PATTERN("Received {0,choice,0#no|1#one|1& {0,number,integer}} arguments"
-                             " on {1,date,long}.");
+static UnicodeString PATTERN(
+    "Received {0,choice,0#no|1#one|1& {0,number,integer}} arguments"
+    " on {1,date,long}."
+);
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
 
     UErrorCode status = U_ZERO_ERROR;
     UnicodeString str;
@@ -33,7 +34,7 @@ int main(int argc, char** argv)
 
     // Create the argument list
     Formattable msgArgs[2];
-    msgArgs[0].setLong(argc - 1);
+    msgArgs[0].setLong(argc-1);
     msgArgs[1].setDate(Calendar::getNow());
 
     // Format the arguments

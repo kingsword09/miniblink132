@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -10,7 +10,7 @@
 #define __TZGNAMES_H
 
 /**
- * \file
+ * \file 
  * \brief C API: Time zone generic names classes
  */
 
@@ -25,7 +25,12 @@
 
 U_CDECL_BEGIN
 
-typedef enum UTimeZoneGenericNameType { UTZGNM_UNKNOWN = 0x00, UTZGNM_LOCATION = 0x01, UTZGNM_LONG = 0x02, UTZGNM_SHORT = 0x04 } UTimeZoneGenericNameType;
+typedef enum UTimeZoneGenericNameType {
+    UTZGNM_UNKNOWN      = 0x00,
+    UTZGNM_LOCATION     = 0x01,
+    UTZGNM_LONG         = 0x02,
+    UTZGNM_SHORT        = 0x04
+} UTimeZoneGenericNameType;
 
 U_CDECL_END
 
@@ -41,18 +46,16 @@ public:
     static TimeZoneGenericNames* createInstance(const Locale& locale, UErrorCode& status);
 
     virtual bool operator==(const TimeZoneGenericNames& other) const;
-    virtual bool operator!=(const TimeZoneGenericNames& other) const
-    {
-        return !operator==(other);
-    }
+    virtual bool operator!=(const TimeZoneGenericNames& other) const {return !operator==(other);}
     virtual TimeZoneGenericNames* clone() const;
 
-    UnicodeString& getDisplayName(const TimeZone& tz, UTimeZoneGenericNameType type, UDate date, UnicodeString& name) const;
+    UnicodeString& getDisplayName(const TimeZone& tz, UTimeZoneGenericNameType type,
+                        UDate date, UnicodeString& name) const;
 
     UnicodeString& getGenericLocationName(const UnicodeString& tzCanonicalID, UnicodeString& name) const;
 
-    int32_t findBestMatch(
-        const UnicodeString& text, int32_t start, uint32_t types, UnicodeString& tzID, UTimeZoneFormatTimeType& timeType, UErrorCode& status) const;
+    int32_t findBestMatch(const UnicodeString& text, int32_t start, uint32_t types,
+        UnicodeString& tzID, UTimeZoneFormatTimeType& timeType, UErrorCode& status) const;
 
 private:
     TimeZoneGenericNames();

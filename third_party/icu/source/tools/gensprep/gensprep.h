@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -31,27 +31,36 @@
  * code point(s) at build time
  */
 
+ 
 /* global flags */
 extern UBool beVerbose, haveCopyright;
 
 /* prototypes */
 
-extern void setUnicodeVersion(const char* v);
+extern void
+setUnicodeVersion(const char *v);
 
-extern void setUnicodeVersionNC(UVersionInfo version);
+extern void
+setUnicodeVersionNC(UVersionInfo version);
 
-extern void init(void);
+extern void
+init(void);
 
 #if !UCONFIG_NO_IDNA
-extern void storeMapping(uint32_t codepoint, uint32_t* mapping, int32_t length, UStringPrepType type, UErrorCode* status);
-extern void storeRange(uint32_t start, uint32_t end, UStringPrepType type, UErrorCode* status);
+extern void
+storeMapping(uint32_t codepoint, uint32_t* mapping,int32_t length, UStringPrepType type, UErrorCode* status);
+extern void
+storeRange(uint32_t start, uint32_t end, UStringPrepType type,UErrorCode* status);
 #endif
 
-extern void generateData(const char* dataDir, const char* bundleName);
+extern void
+generateData(const char *dataDir, const char* bundleName);
 
-extern void setOptions(int32_t options);
+extern void
+setOptions(int32_t options);
 
-extern void cleanUpData(void);
+extern void
+cleanUpData(void);
 
 /*
 extern void

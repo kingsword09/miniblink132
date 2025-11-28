@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -95,129 +95,119 @@ struct U_I18N_API CollationSettings : public SharedObject {
     static const int32_t STRENGTH_MASK = 0xf000;
 
     /** maxVariable values */
-    enum MaxVariable { MAX_VAR_SPACE, MAX_VAR_PUNCT, MAX_VAR_SYMBOL, MAX_VAR_CURRENCY };
+    enum MaxVariable {
+        MAX_VAR_SPACE,
+        MAX_VAR_PUNCT,
+        MAX_VAR_SYMBOL,
+        MAX_VAR_CURRENCY
+    };
 
     CollationSettings()
-        : options((UCOL_DEFAULT_STRENGTH << STRENGTH_SHIFT) | (MAX_VAR_PUNCT << MAX_VARIABLE_SHIFT))
-        , variableTop(0)
-        , reorderTable(NULL)
-        , minHighNoReorder(0)
-        , reorderRanges(NULL)
-        , reorderRangesLength(0)
-        , reorderCodes(NULL)
-        , reorderCodesLength(0)
-        , reorderCodesCapacity(0)
-        , fastLatinOptions(-1)
-    {
-    }
+            : options((UCOL_DEFAULT_STRENGTH << STRENGTH_SHIFT) |
+                      (MAX_VAR_PUNCT << MAX_VARIABLE_SHIFT)),
+              variableTop(0),
+              reorderTable(nullptr),
+              minHighNoReorder(0),
+              reorderRanges(nullptr), reorderRangesLength(0),
+              reorderCodes(nullptr), reorderCodesLength(0), reorderCodesCapacity(0),
+              fastLatinOptions(-1) {}
 
-    CollationSettings(const CollationSettings& other);
+    CollationSettings(const CollationSettings &other);
     virtual ~CollationSettings();
 
-    bool operator==(const CollationSettings& other) const;
+    bool operator==(const CollationSettings &other) const;
 
-    inline bool operator!=(const CollationSettings& other) const
-    {
+    inline bool operator!=(const CollationSettings &other) const {
         return !operator==(other);
     }
 
     int32_t hashCode() const;
 
     void resetReordering();
-    void aliasReordering(const CollationData& data, const int32_t* codes, int32_t length, const uint32_t* ranges, int32_t rangesLength, const uint8_t* table,
-        UErrorCode& errorCode);
-    void setReordering(const CollationData& data, const int32_t* codes, int32_t codesLength, UErrorCode& errorCode);
-    void copyReorderingFrom(const CollationSettings& other, UErrorCode& errorCode);
+    void aliasReordering(const CollationData &data, const int32_t *codes, int32_t length,
+                         const uint32_t *ranges, int32_t rangesLength,
+                         const uint8_t *table, UErrorCode &errorCode);
+    void setReordering(const CollationData &data, const int32_t *codes, int32_t codesLength,
+                       UErrorCode &errorCode);
+    void copyReorderingFrom(const CollationSettings &other, UErrorCode &errorCode);
 
-    inline UBool hasReordering() const
-    {
-        return reorderTable != NULL;
-    }
+    inline UBool hasReordering() const { return reorderTable != nullptr; }
     static UBool reorderTableHasSplitBytes(const uint8_t table[256]);
-    inline uint32_t reorder(uint32_t p) const
-    {
+    inline uint32_t reorder(uint32_t p) const {
         uint8_t b = reorderTable[p >> 24];
-        if (b != 0 || p <= Collation::NO_CE_PRIMARY) {
+        if(b != 0 || p <= Collation::NO_CE_PRIMARY) {
             return ((uint32_t)b << 24) | (p & 0xffffff);
         } else {
             return reorderEx(p);
         }
     }
 
-    void setStrength(int32_t value, int32_t defaultOptions, UErrorCode& errorCode);
+    void setStrength(int32_t value, int32_t defaultOptions, UErrorCode &errorCode);
 
-    static int32_t getStrength(int32_t options)
-    {
+    static int32_t getStrength(int32_t options) {
         return options >> STRENGTH_SHIFT;
     }
 
-    int32_t getStrength() const
-    {
+    int32_t getStrength() const {
         return getStrength(options);
     }
 
     /** Sets the options bit for an on/off attribute. */
-    void setFlag(int32_t bit, UColAttributeValue value, int32_t defaultOptions, UErrorCode& errorCode);
+    void setFlag(int32_t bit, UColAttributeValue value,
+                 int32_t defaultOptions, UErrorCode &errorCode);
 
-    UColAttributeValue getFlag(int32_t bit) const
-    {
+    UColAttributeValue getFlag(int32_t bit) const {
         return ((options & bit) != 0) ? UCOL_ON : UCOL_OFF;
     }
 
-    void setCaseFirst(UColAttributeValue value, int32_t defaultOptions, UErrorCode& errorCode);
+    void setCaseFirst(UColAttributeValue value, int32_t defaultOptions, UErrorCode &errorCode);
 
-    UColAttributeValue getCaseFirst() const
-    {
+    UColAttributeValue getCaseFirst() const {
         int32_t option = options & CASE_FIRST_AND_UPPER_MASK;
-        return (option == 0) ? UCOL_OFF : (option == CASE_FIRST) ? UCOL_LOWER_FIRST : UCOL_UPPER_FIRST;
+        return (option == 0) ? UCOL_OFF :
+                (option == CASE_FIRST) ? UCOL_LOWER_FIRST : UCOL_UPPER_FIRST;
     }
 
-    void setAlternateHandling(UColAttributeValue value, int32_t defaultOptions, UErrorCode& errorCode);
+    void setAlternateHandling(UColAttributeValue value,
+                              int32_t defaultOptions, UErrorCode &errorCode);
 
-    UColAttributeValue getAlternateHandling() const
-    {
+    UColAttributeValue getAlternateHandling() const {
         return ((options & ALTERNATE_MASK) == 0) ? UCOL_NON_IGNORABLE : UCOL_SHIFTED;
     }
 
-    void setMaxVariable(int32_t value, int32_t defaultOptions, UErrorCode& errorCode);
+    void setMaxVariable(int32_t value, int32_t defaultOptions, UErrorCode &errorCode);
 
-    MaxVariable getMaxVariable() const
-    {
+    MaxVariable getMaxVariable() const {
         return (MaxVariable)((options & MAX_VARIABLE_MASK) >> MAX_VARIABLE_SHIFT);
     }
 
     /**
      * Include case bits in the tertiary level if caseLevel=off and caseFirst!=off.
      */
-    static inline UBool isTertiaryWithCaseBits(int32_t options)
-    {
+    static inline UBool isTertiaryWithCaseBits(int32_t options) {
         return (options & (CASE_LEVEL | CASE_FIRST)) == CASE_FIRST;
     }
-    static uint32_t getTertiaryMask(int32_t options)
-    {
+    static uint32_t getTertiaryMask(int32_t options) {
         // Remove the case bits from the tertiary weight when caseLevel is on or caseFirst is off.
-        return isTertiaryWithCaseBits(options) ? Collation::CASE_AND_TERTIARY_MASK : Collation::ONLY_TERTIARY_MASK;
+        return isTertiaryWithCaseBits(options) ?
+                Collation::CASE_AND_TERTIARY_MASK : Collation::ONLY_TERTIARY_MASK;
     }
 
-    static UBool sortsTertiaryUpperCaseFirst(int32_t options)
-    {
+    static UBool sortsTertiaryUpperCaseFirst(int32_t options) {
         // On tertiary level, consider case bits and sort uppercase first
         // if caseLevel is off and caseFirst==upperFirst.
         return (options & (CASE_LEVEL | CASE_FIRST_AND_UPPER_MASK)) == CASE_FIRST_AND_UPPER_MASK;
     }
 
-    inline UBool dontCheckFCD() const
-    {
+    inline UBool dontCheckFCD() const {
         return (options & CHECK_FCD) == 0;
     }
 
-    inline UBool hasBackwardSecondary() const
-    {
+    inline UBool hasBackwardSecondary() const {
         return (options & BACKWARD_SECONDARY) != 0;
     }
 
-    inline UBool isNumeric() const
-    {
+    inline UBool isNumeric() const {
         return (options & NUMERIC) != 0;
     }
 
@@ -226,12 +216,12 @@ struct U_I18N_API CollationSettings : public SharedObject {
     /** Variable-top primary weight. */
     uint32_t variableTop;
     /**
-     * 256-byte table for reordering permutation of primary lead bytes; NULL if no reordering.
+     * 256-byte table for reordering permutation of primary lead bytes; nullptr if no reordering.
      * A 0 entry at a non-zero index means that the primary lead byte is "split"
      * (there are different offsets for primaries that share that lead byte)
      * and the reordering offset must be determined via the reorderRanges.
      */
-    const uint8_t* reorderTable;
+    const uint8_t *reorderTable;
     /** Limit of last reordered range. 0 if no reordering or no split bytes. */
     uint32_t minHighNoReorder;
     /**
@@ -253,10 +243,10 @@ struct U_I18N_API CollationSettings : public SharedObject {
      * are omitted for efficiency; they are handled by reorder(p) via the reorderTable.
      * If there are no split-reordered lead bytes, then no ranges are needed.
      */
-    const uint32_t* reorderRanges;
+    const uint32_t *reorderRanges;
     int32_t reorderRangesLength;
     /** Array of reorder codes; ignored if reorderCodesLength == 0. */
-    const int32_t* reorderCodes;
+    const int32_t *reorderCodes;
     /** Number of reorder codes; 0 if no reordering. */
     int32_t reorderCodesLength;
     /**
@@ -272,11 +262,13 @@ struct U_I18N_API CollationSettings : public SharedObject {
     uint16_t fastLatinPrimaries[0x180];
 
 private:
-    void setReorderArrays(const int32_t* codes, int32_t codesLength, const uint32_t* ranges, int32_t rangesLength, const uint8_t* table, UErrorCode& errorCode);
+    void setReorderArrays(const int32_t *codes, int32_t codesLength,
+                          const uint32_t *ranges, int32_t rangesLength,
+                          const uint8_t *table, UErrorCode &errorCode);
     uint32_t reorderEx(uint32_t p) const;
 };
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __COLLATIONSETTINGS_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __COLLATIONSETTINGS_H__

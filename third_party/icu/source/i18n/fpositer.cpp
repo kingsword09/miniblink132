@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -20,103 +20,95 @@
 
 U_NAMESPACE_BEGIN
 
-FieldPositionIterator::~FieldPositionIterator()
-{
-    delete data;
-    data = NULL;
-    pos = -1;
+FieldPositionIterator::~FieldPositionIterator() {
+  delete data;
+  data = nullptr;
+  pos = -1;
 }
 
 FieldPositionIterator::FieldPositionIterator()
-    : data(NULL)
-    , pos(-1)
-{
+    : data(nullptr), pos(-1) {
 }
 
-FieldPositionIterator::FieldPositionIterator(const FieldPositionIterator& rhs)
-    : UObject(rhs)
-    , data(NULL)
-    , pos(rhs.pos)
-{
+FieldPositionIterator::FieldPositionIterator(const FieldPositionIterator &rhs)
+  : UObject(rhs), data(nullptr), pos(rhs.pos) {
 
-    if (rhs.data) {
-        UErrorCode status = U_ZERO_ERROR;
-        data = new UVector32(status);
-        data->assign(*rhs.data, status);
-        if (status != U_ZERO_ERROR) {
-            delete data;
-            data = NULL;
-            pos = -1;
-        }
+  if (rhs.data) {
+    UErrorCode status = U_ZERO_ERROR;
+    data = new UVector32(status);
+    data->assign(*rhs.data, status);
+    if (status != U_ZERO_ERROR) {
+      delete data;
+      data = nullptr;
+      pos = -1;
     }
+  }
 }
 
-bool FieldPositionIterator::operator==(const FieldPositionIterator& rhs) const
-{
-    if (&rhs == this) {
-        return true;
-    }
-    if (pos != rhs.pos) {
-        return false;
-    }
-    if (!data) {
-        return rhs.data == NULL;
-    }
-    return rhs.data ? data->operator==(*rhs.data) : false;
+bool FieldPositionIterator::operator==(const FieldPositionIterator &rhs) const {
+  if (&rhs == this) {
+    return true;
+  }
+  if (pos != rhs.pos) {
+    return false;
+  }
+  if (!data) {
+    return rhs.data == nullptr;
+  }
+  return rhs.data ? data->operator==(*rhs.data) : false;
 }
 
-void FieldPositionIterator::setData(UVector32* adopt, UErrorCode& status)
-{
-    // Verify that adopt has valid data, and update status if it doesn't.
-    if (U_SUCCESS(status)) {
-        if (adopt) {
-            if (adopt->size() == 0) {
-                delete adopt;
-                adopt = NULL;
-            } else if ((adopt->size() % 4) != 0) {
-                status = U_ILLEGAL_ARGUMENT_ERROR;
-            } else {
-                for (int i = 2; i < adopt->size(); i += 4) {
-                    if (adopt->elementAti(i) >= adopt->elementAti(i + 1)) {
-                        status = U_ILLEGAL_ARGUMENT_ERROR;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // We own the data, even if status is in error, so we need to delete it now
-    // if we're not keeping track of it.
-    if (!U_SUCCESS(status)) {
+void FieldPositionIterator::setData(UVector32 *adopt, UErrorCode& status) {
+  // Verify that adopt has valid data, and update status if it doesn't.
+  if (U_SUCCESS(status)) {
+    if (adopt) {
+      if (adopt->size() == 0) {
         delete adopt;
-        return;
+        adopt = nullptr;
+      } else if ((adopt->size() % 4) != 0) {
+        status = U_ILLEGAL_ARGUMENT_ERROR;
+      } else {
+        for (int i = 2; i < adopt->size(); i += 4) {
+          if (adopt->elementAti(i) >= adopt->elementAti(i+1)) {
+            status = U_ILLEGAL_ARGUMENT_ERROR;
+            break;
+          }
+        }
+      }
     }
+  }
 
-    delete data;
-    data = adopt;
-    pos = adopt == NULL ? -1 : 0;
+  // We own the data, even if status is in error, so we need to delete it now
+  // if we're not keeping track of it.
+  if (!U_SUCCESS(status)) {
+    delete adopt;
+    return;
+  }
+
+  delete data;
+  data = adopt;
+  pos = adopt == nullptr ? -1 : 0;
 }
 
-UBool FieldPositionIterator::next(FieldPosition& fp)
-{
-    if (pos == -1) {
-        return FALSE;
-    }
+UBool FieldPositionIterator::next(FieldPosition& fp) {
+  if (pos == -1) {
+    return false;
+  }
 
-    // Ignore the first element of the tetrad: used for field category
-    pos++;
-    fp.setField(data->elementAti(pos++));
-    fp.setBeginIndex(data->elementAti(pos++));
-    fp.setEndIndex(data->elementAti(pos++));
+  // Ignore the first element of the tetrad: used for field category
+  pos++;
+  fp.setField(data->elementAti(pos++));
+  fp.setBeginIndex(data->elementAti(pos++));
+  fp.setEndIndex(data->elementAti(pos++));
 
-    if (pos == data->size()) {
-        pos = -1;
-    }
+  if (pos == data->size()) {
+    pos = -1;
+  }
 
-    return TRUE;
+  return true;
 }
 
 U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
+

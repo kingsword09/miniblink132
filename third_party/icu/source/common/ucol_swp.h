@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -31,19 +31,27 @@
  * Does the data look like a collation binary?
  * @internal
  */
-U_CAPI UBool U_EXPORT2 ucol_looksLikeCollationBinary(const UDataSwapper* ds, const void* inData, int32_t length);
+U_CAPI UBool U_EXPORT2
+ucol_looksLikeCollationBinary(const UDataSwapper *ds,
+                              const void *inData, int32_t length);
 
 /**
  * Swap ICU collation data like ucadata.icu. See udataswp.h.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 ucol_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+ucol_swap(const UDataSwapper *ds,
+          const void *inData, int32_t length, void *outData,
+          UErrorCode *pErrorCode);
 
 /**
  * Swap inverse UCA collation data (invuca.icu). See udataswp.h.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 ucol_swapInverseUCA(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+ucol_swapInverseUCA(const UDataSwapper *ds,
+                    const void *inData, int32_t length, void *outData,
+                    UErrorCode *pErrorCode);
 
 #endif /* #if !UCONFIG_NO_COLLATION */
 

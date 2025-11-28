@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -11,6 +11,7 @@
 #include "unicode/uniset.h"
 
 U_NAMESPACE_BEGIN
+
 
 /**
  * A mutable UnicodeString wrapper with a variable offset and length and
@@ -26,7 +27,7 @@ U_NAMESPACE_BEGIN
  */
 // Exported as U_I18N_API for tests
 class U_I18N_API StringSegment : public UMemory {
-public:
+  public:
     StringSegment(const UnicodeString& str, bool ignoreCase);
 
     int32_t getOffset() const;
@@ -115,7 +116,7 @@ public:
 
     bool operator==(const UnicodeString& other) const;
 
-private:
+  private:
     const UnicodeString& fStr;
     int32_t fStart;
     int32_t fEnd;
@@ -125,6 +126,7 @@ private:
 
     static bool codePointsEqual(UChar32 cp1, UChar32 cp2, bool foldCase);
 };
+
 
 U_NAMESPACE_END
 

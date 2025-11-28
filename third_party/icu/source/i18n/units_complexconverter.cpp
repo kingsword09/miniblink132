@@ -1,4 +1,4 @@
-﻿// © 2020 and later: Unicode, Inc. and others.
+// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -22,18 +22,19 @@
 
 U_NAMESPACE_BEGIN
 namespace units {
-ComplexUnitsConverter::ComplexUnitsConverter(const MeasureUnitImpl& targetUnit, const ConversionRates& ratesInfo, UErrorCode& status)
-    : units_(targetUnit.extractIndividualUnitsWithIndices(status))
-{
+ComplexUnitsConverter::ComplexUnitsConverter(const MeasureUnitImpl &targetUnit,
+                                             const ConversionRates &ratesInfo, UErrorCode &status)
+    : units_(targetUnit.extractIndividualUnitsWithIndices(status)) {
     if (U_FAILURE(status)) {
         return;
     }
     U_ASSERT(units_.length() != 0);
 
     // Just borrowing a pointer to the instance
-    MeasureUnitImpl* biggestUnit = &units_[0]->unitImpl;
+    MeasureUnitImpl *biggestUnit = &units_[0]->unitImpl;
     for (int32_t i = 1; i < units_.length(); i++) {
-        if (UnitsConverter::compareTwoUnits(units_[i]->unitImpl, *biggestUnit, ratesInfo, status) > 0 && U_SUCCESS(status)) {
+        if (UnitsConverter::compareTwoUnits(units_[i]->unitImpl, *biggestUnit, ratesInfo, status) > 0 &&
+            U_SUCCESS(status)) {
             biggestUnit = &units_[i]->unitImpl;
         }
 
@@ -45,8 +46,8 @@ ComplexUnitsConverter::ComplexUnitsConverter(const MeasureUnitImpl& targetUnit, 
     this->init(*biggestUnit, ratesInfo, status);
 }
 
-ComplexUnitsConverter::ComplexUnitsConverter(StringPiece inputUnitIdentifier, StringPiece outputUnitsIdentifier, UErrorCode& status)
-{
+ComplexUnitsConverter::ComplexUnitsConverter(StringPiece inputUnitIdentifier,
+                                             StringPiece outputUnitsIdentifier, UErrorCode &status) {
     if (U_FAILURE(status)) {
         return;
     }
@@ -59,10 +60,10 @@ ComplexUnitsConverter::ComplexUnitsConverter(StringPiece inputUnitIdentifier, St
     this->init(inputUnit, ConversionRates(status), status);
 }
 
-ComplexUnitsConverter::ComplexUnitsConverter(
-    const MeasureUnitImpl& inputUnit, const MeasureUnitImpl& outputUnits, const ConversionRates& ratesInfo, UErrorCode& status)
-    : units_(outputUnits.extractIndividualUnitsWithIndices(status))
-{
+ComplexUnitsConverter::ComplexUnitsConverter(const MeasureUnitImpl &inputUnit,
+                                             const MeasureUnitImpl &outputUnits,
+                                             const ConversionRates &ratesInfo, UErrorCode &status)
+    : units_(outputUnits.extractIndividualUnitsWithIndices(status)) {
     if (U_FAILURE(status)) {
         return;
     }
@@ -72,31 +73,31 @@ ComplexUnitsConverter::ComplexUnitsConverter(
     this->init(inputUnit, ratesInfo, status);
 }
 
-void ComplexUnitsConverter::init(const MeasureUnitImpl& inputUnit, const ConversionRates& ratesInfo, UErrorCode& status)
-{
+void ComplexUnitsConverter::init(const MeasureUnitImpl &inputUnit,
+                                 const ConversionRates &ratesInfo,
+                                 UErrorCode &status) {
     // Sorts units in descending order. Therefore, we return -1 if
     // the left is bigger than right and so on.
-    auto descendingCompareUnits = [](const void* context, const void* left, const void* right) {
+    auto descendingCompareUnits = [](const void *context, const void *left, const void *right) {
         UErrorCode status = U_ZERO_ERROR;
 
-        const auto* leftPointer = static_cast<const MeasureUnitImplWithIndex* const*>(left);
-        const auto* rightPointer = static_cast<const MeasureUnitImplWithIndex* const*>(right);
+        const auto *leftPointer = static_cast<const MeasureUnitImplWithIndex *const *>(left);
+        const auto *rightPointer = static_cast<const MeasureUnitImplWithIndex *const *>(right);
 
         // Multiply by -1 to sort in descending order
-        return (-1)
-            * UnitsConverter::compareTwoUnits((**leftPointer).unitImpl, //
-                (**rightPointer).unitImpl, //
-                *static_cast<const ConversionRates*>(context), //
-                status);
+        return (-1) * UnitsConverter::compareTwoUnits((**leftPointer).unitImpl,                       //
+                                                      (**rightPointer).unitImpl,                      //
+                                                      *static_cast<const ConversionRates *>(context), //
+                                                      status);
     };
 
-    uprv_sortArray(units_.getAlias(), //
-        units_.length(), //
-        sizeof units_[0], /* NOTE: we have already asserted that the units_ is not empty.*/ //
-        descendingCompareUnits, //
-        &ratesInfo, //
-        false, //
-        &status //
+    uprv_sortArray(units_.getAlias(),                                                                  //
+                   units_.length(),                                                                    //
+                   sizeof units_[0], /* NOTE: we have already asserted that the units_ is not empty.*/ //
+                   descendingCompareUnits,                                                             //
+                   &ratesInfo,                                                                         //
+                   false,                                                                              //
+                   &status                                                                             //
     );
 
     // In case the `outputUnits` are `UMEASURE_UNIT_MIXED` such as `foot+inch`. In this case we need more
@@ -115,9 +116,11 @@ void ComplexUnitsConverter::init(const MeasureUnitImpl& inputUnit, const Convers
     //              3. then, the final result will be (6 feet and 6.74016 inches)
     for (int i = 0, n = units_.length(); i < n; i++) {
         if (i == 0) { // first element
-            unitsConverters_.emplaceBackAndCheckErrorCode(status, inputUnit, units_[i]->unitImpl, ratesInfo, status);
+            unitsConverters_.emplaceBackAndCheckErrorCode(status, inputUnit, units_[i]->unitImpl,
+                                                          ratesInfo, status);
         } else {
-            unitsConverters_.emplaceBackAndCheckErrorCode(status, units_[i - 1]->unitImpl, units_[i]->unitImpl, ratesInfo, status);
+            unitsConverters_.emplaceBackAndCheckErrorCode(status, units_[i - 1]->unitImpl,
+                                                          units_[i]->unitImpl, ratesInfo, status);
         }
 
         if (U_FAILURE(status)) {
@@ -126,8 +129,7 @@ void ComplexUnitsConverter::init(const MeasureUnitImpl& inputUnit, const Convers
     }
 }
 
-UBool ComplexUnitsConverter::greaterThanOrEqual(double quantity, double limit) const
-{
+UBool ComplexUnitsConverter::greaterThanOrEqual(double quantity, double limit) const {
     U_ASSERT(unitsConverters_.length() > 0);
 
     // First converter converts to the biggest quantity.
@@ -135,12 +137,13 @@ UBool ComplexUnitsConverter::greaterThanOrEqual(double quantity, double limit) c
     return newQuantity >= limit;
 }
 
-MaybeStackVector<Measure> ComplexUnitsConverter::convert(double quantity, icu::number::impl::RoundingImpl* rounder, UErrorCode& status) const
-{
+MaybeStackVector<Measure> ComplexUnitsConverter::convert(double quantity,
+                                                         icu::number::impl::RoundingImpl *rounder,
+                                                         UErrorCode &status) const {
     // TODO: return an error for "foot-and-foot"?
     MaybeStackVector<Measure> result;
     int sign = 1;
-    if (quantity < 0) {
+    if (quantity < 0 && unitsConverters_.length() > 1) {
         quantity *= -1;
         sign = -1;
     }
@@ -161,12 +164,14 @@ MaybeStackVector<Measure> ComplexUnitsConverter::convert(double quantity, icu::n
         if (i < n - 1) {
             // If quantity is at the limits of double's precision from an
             // integer value, we take that integer value.
-            int64_t flooredQuantity = static_cast<int64_t>(floor(quantity * (1 + DBL_EPSILON)));
+            int64_t flooredQuantity;
             if (uprv_isNaN(quantity)) {
                 // With clang on Linux: floor does not support NaN, resulting in
                 // a giant negative number. For now, we produce "0 feet, NaN
                 // inches". TODO(icu-units#131): revisit desired output.
                 flooredQuantity = 0;
+            } else {
+                flooredQuantity = static_cast<int64_t>(floor(quantity * (1 + DBL_EPSILON)));
             }
             intValues[i] = flooredQuantity;
 
@@ -187,7 +192,7 @@ MaybeStackVector<Measure> ComplexUnitsConverter::convert(double quantity, icu::n
 
     // Initialize empty result. We use a MaybeStackArray directly so we can
     // assign pointers - for this privilege we have to take care of cleanup.
-    MaybeStackArray<Measure*, 4> tmpResult(unitsConverters_.length(), status);
+    MaybeStackArray<Measure *, 4> tmpResult(unitsConverters_.length(), status);
     if (U_FAILURE(status)) {
         return result;
     }
@@ -197,18 +202,18 @@ MaybeStackVector<Measure> ComplexUnitsConverter::convert(double quantity, icu::n
         if (i < n - 1) {
             Formattable formattableQuantity(intValues[i] * sign);
             // Measure takes ownership of the MeasureUnit*
-            MeasureUnit* type = new MeasureUnit(units_[i]->unitImpl.copy(status).build(status));
+            MeasureUnit *type = new MeasureUnit(units_[i]->unitImpl.copy(status).build(status));
             tmpResult[units_[i]->index] = new Measure(formattableQuantity, type, status);
         } else { // LAST ELEMENT
             Formattable formattableQuantity(quantity * sign);
             // Measure takes ownership of the MeasureUnit*
-            MeasureUnit* type = new MeasureUnit(units_[i]->unitImpl.copy(status).build(status));
+            MeasureUnit *type = new MeasureUnit(units_[i]->unitImpl.copy(status).build(status));
             tmpResult[units_[i]->index] = new Measure(formattableQuantity, type, status);
         }
     }
 
     // Transfer values into result and return:
-    for (int32_t i = 0, n = unitsConverters_.length(); i < n; ++i) {
+    for(int32_t i = 0, n = unitsConverters_.length(); i < n; ++i) {
         U_ASSERT(tmpResult[i] != nullptr);
         result.emplaceBackAndCheckErrorCode(status, *tmpResult[i]);
         delete tmpResult[i];
@@ -217,9 +222,9 @@ MaybeStackVector<Measure> ComplexUnitsConverter::convert(double quantity, icu::n
     return result;
 }
 
-void ComplexUnitsConverter::applyRounder(
-    MaybeStackArray<int64_t, 5>& intValues, double& quantity, icu::number::impl::RoundingImpl* rounder, UErrorCode& status) const
-{
+void ComplexUnitsConverter::applyRounder(MaybeStackArray<int64_t, 5> &intValues, double &quantity,
+                                         icu::number::impl::RoundingImpl *rounder,
+                                         UErrorCode &status) const {
     if (uprv_isInfinite(quantity) || uprv_isNaN(quantity)) {
         // Inf and NaN can't be rounded, and calculating `carry` below is known
         // to fail on Gentoo on HPPA and OpenSUSE on riscv64. Nothing to do.

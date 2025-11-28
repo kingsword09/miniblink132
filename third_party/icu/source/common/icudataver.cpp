@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -14,16 +14,15 @@
 #include "unicode/ures.h"
 #include "uresimp.h" /* for ures_getVersionByKey */
 
-U_CAPI void U_EXPORT2 u_getDataVersion(UVersionInfo dataVersionFillin, UErrorCode* status)
-{
-    UResourceBundle* icudatares = NULL;
-
+U_CAPI void U_EXPORT2 u_getDataVersion(UVersionInfo dataVersionFillin, UErrorCode *status) {
+    UResourceBundle *icudatares = nullptr;
+    
     if (U_FAILURE(*status)) {
         return;
     }
-
-    if (dataVersionFillin != NULL) {
-        icudatares = ures_openDirect(NULL, U_ICU_VERSION_BUNDLE, status);
+    
+    if (dataVersionFillin != nullptr) {
+        icudatares = ures_openDirect(nullptr, U_ICU_VERSION_BUNDLE , status);
         if (U_SUCCESS(*status)) {
             ures_getVersionByKey(icudatares, U_ICU_DATA_KEY, dataVersionFillin, status);
         }

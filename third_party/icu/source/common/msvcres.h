@@ -1,18 +1,18 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //{{NO_DEPENDENCIES}}
 // Copyright (c) 2003-2010 International Business Machines
 // Corporation and others. All Rights Reserved.
 //
 // Used by common.rc and other .rc files.
-// Do not edit with Microsoft Developer Studio because it will modify this
-// header the wrong way. This is here to prevent Visual Studio .NET from
-// unnessarily building the resource files when it's not needed.
+//Do not edit with Microsoft Developer Studio because it will modify this
+//header the wrong way. This is here to prevent Visual Studio .NET from
+//unnessarily building the resource files when it's not needed.
 //
 
 /*
-These are defined before unicode/uversion.h in order to prevent
-STLPort's broken stddef.h from being used when rc.exe parses this file.
+These are defined before unicode/uversion.h in order to prevent 
+STLPort's broken stddef.h from being used when rc.exe parses this file. 
 */
 #define _STLP_OUTERMOST_HEADER_ID 0
 #define _STLP_WINCE 1

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -29,11 +29,13 @@
 
 U_NAMESPACE_BEGIN
 
+
 #if defined(U_USER_MUTEX_CPP)
 // Support for including an alternate implementation of mutexes has been withdrawn.
 // See issue ICU-20185.
 #error U_USER_MUTEX_CPP not supported
 #endif
+
 
 /*************************************************************************************************
  *
@@ -42,24 +44,20 @@ U_NAMESPACE_BEGIN
  *************************************************************************************************/
 
 namespace {
-std::mutex* initMutex;
-std::condition_variable* initCondition;
+std::mutex *initMutex;
+std::condition_variable *initCondition;
 
 // The ICU global mutex.
 // Used when ICU implementation code passes nullptr for the mutex pointer.
 UMutex globalMutex;
 
-#if 0 // ndef SUPPORT_XP_CODE
 std::once_flag initFlag;
-std::once_flag* pInitFlag = &initFlag;
-#endif
+std::once_flag *pInitFlag = &initFlag;
 
-} // Anonymous namespace
+}  // Anonymous namespace
 
 U_CDECL_BEGIN
-static UBool U_CALLCONV umtx_cleanup()
-{
-#if 0 // ndef SUPPORT_XP_CODE
+static UBool U_CALLCONV umtx_cleanup() {
     initMutex->~mutex();
     initCondition->~condition_variable();
     UMutex::cleanup();
@@ -67,29 +65,26 @@ static UBool U_CALLCONV umtx_cleanup()
     // Reset the once_flag, by destructing it and creating a fresh one in its place.
     // Do not use this trick anywhere else in ICU; use umtx_initOnce, not std::call_once().
     pInitFlag->~once_flag();
-    pInitFlag = new (&initFlag) std::once_flag();
-#endif
+    pInitFlag = new(&initFlag) std::once_flag();
     return true;
 }
 
-static void U_CALLCONV umtx_init()
-{
+static void U_CALLCONV umtx_init() {
     initMutex = STATIC_NEW(std::mutex);
     initCondition = STATIC_NEW(std::condition_variable);
     ucln_common_registerCleanup(UCLN_COMMON_MUTEX, umtx_cleanup);
 }
 U_CDECL_END
 
-#if 0 // ndef SUPPORT_XP_CODE
-std::mutex* UMutex::getMutex()
-{
-    std::mutex* retPtr = fMutex.load(std::memory_order_acquire);
+
+std::mutex *UMutex::getMutex() {
+    std::mutex *retPtr = fMutex.load(std::memory_order_acquire);
     if (retPtr == nullptr) {
         std::call_once(*pInitFlag, umtx_init);
         std::lock_guard<std::mutex> guard(*initMutex);
         retPtr = fMutex.load(std::memory_order_acquire);
         if (retPtr == nullptr) {
-            fMutex = new (fStorage) std::mutex();
+            fMutex = new(fStorage) std::mutex();
             retPtr = fMutex;
             fListLink = gListHead;
             gListHead = this;
@@ -98,55 +93,39 @@ std::mutex* UMutex::getMutex()
     U_ASSERT(retPtr != nullptr);
     return retPtr;
 }
-#endif
 
-UMutex* UMutex::gListHead = nullptr;
+UMutex *UMutex::gListHead = nullptr;
 
-void UMutex::cleanup()
-{
-    UMutex* next = nullptr;
-    for (UMutex* m = gListHead; m != nullptr; m = next) {
-#if 0 // ndef SUPPORT_XP_CODE
+void UMutex::cleanup() {
+    UMutex *next = nullptr;
+    for (UMutex *m = gListHead; m != nullptr; m = next) {
         (*m->fMutex).~mutex();
         m->fMutex = nullptr;
-#endif
         next = m->fListLink;
         m->fListLink = nullptr;
     }
     gListHead = nullptr;
 }
 
-static void winMutexInit(CRITICAL_SECTION* cs)
-{
-    InitializeCriticalSection(cs);
-    return;
-}
 
-U_CAPI void U_EXPORT2 umtx_lock(UMutex* mutex)
-{
+U_CAPI void  U_EXPORT2
+umtx_lock(UMutex *mutex) {
     if (mutex == nullptr) {
         mutex = &globalMutex;
     }
-#if 0 // ndef SUPPORT_XP_CODE
     mutex->lock();
-#else
-    CRITICAL_SECTION* cs = &mutex->fCS;
-    umtx_initOnce(mutex->fInitOnce, winMutexInit, cs);
-    EnterCriticalSection(cs);
-#endif
 }
 
-U_CAPI void U_EXPORT2 umtx_unlock(UMutex* mutex)
+
+U_CAPI void  U_EXPORT2
+umtx_unlock(UMutex* mutex)
 {
     if (mutex == nullptr) {
         mutex = &globalMutex;
     }
-#if 0 // ndef SUPPORT_XP_CODE
     mutex->unlock();
-#else
-    LeaveCriticalSection(&mutex->fCS);
-#endif
 }
+
 
 /*************************************************************************************************
  *
@@ -162,14 +141,13 @@ U_CAPI void U_EXPORT2 umtx_unlock(UMutex* mutex)
 //   that knows the C++ types involved. This function returns true if
 //   the caller needs to call the Init function.
 //
-U_COMMON_API UBool U_EXPORT2 umtx_initImplPreInit(UInitOnce& uio)
-{
-#if 0 // ndef SUPPORT_XP_CODE
+U_COMMON_API UBool U_EXPORT2
+umtx_initImplPreInit(UInitOnce &uio) {
     std::call_once(*pInitFlag, umtx_init);
     std::unique_lock<std::mutex> lock(*initMutex);
     if (umtx_loadAcquire(uio.fState) == 0) {
         umtx_storeRelease(uio.fState, 1);
-        return true; // Caller will next call the init function.
+        return true;      // Caller will next call the init function.
     } else {
         while (umtx_loadAcquire(uio.fState) == 1) {
             // Another thread is currently running the initialization.
@@ -179,32 +157,8 @@ U_COMMON_API UBool U_EXPORT2 umtx_initImplPreInit(UInitOnce& uio)
         U_ASSERT(uio.fState == 2);
         return false;
     }
-#else
-    for (;;) {
-        int32_t previousState = _InterlockedCompareExchange((LONG volatile*) // this is the type given in the API doc for this function.
-                                                            &uio.fState, //  Destination
-            1, //  Exchange Value
-            0); //  Compare value
-
-        if (previousState == 0) {
-            return true; // Caller will next call the init function.
-                // Current state == 1.
-        } else if (previousState == 2) {
-            // Another thread already completed the initialization.
-            //   We can simply return FALSE, indicating no
-            //   further action is needed by the caller.
-            return FALSE;
-        } else {
-            // Another thread is currently running the initialization.
-            // Wait until it completes.
-            do {
-                Sleep(1);
-                previousState = umtx_loadAcquire(uio.fState);
-            } while (previousState == 1);
-        }
-    }
-#endif
 }
+
 
 // This function is called by the thread that ran an initialization function,
 // just after completing the function.
@@ -212,17 +166,13 @@ U_COMMON_API UBool U_EXPORT2 umtx_initImplPreInit(UInitOnce& uio)
 //   Some threads may be racing to test the fState variable outside of the mutex,
 //   requiring the use of store/release when changing its value.
 
-U_COMMON_API void U_EXPORT2 umtx_initImplPostInit(UInitOnce& uio)
-{
-#if 0 // ndef SUPPORT_XP_CODE
+U_COMMON_API void U_EXPORT2
+umtx_initImplPostInit(UInitOnce &uio) {
     {
         std::unique_lock<std::mutex> lock(*initMutex);
         umtx_storeRelease(uio.fState, 2);
     }
     initCondition->notify_all();
-#else
-    umtx_storeRelease(uio.fState, 2);
-#endif
 }
 
 U_NAMESPACE_END
@@ -233,16 +183,20 @@ U_NAMESPACE_END
  *
  *************************************************************************************************/
 
-U_DEPRECATED void U_EXPORT2 u_setMutexFunctions(const void* /*context */, UMtxInitFn*, UMtxFn*, UMtxFn*, UMtxFn*, UErrorCode* status)
-{
+U_DEPRECATED void U_EXPORT2
+u_setMutexFunctions(const void * /*context */, UMtxInitFn *, UMtxFn *,
+                    UMtxFn *,  UMtxFn *, UErrorCode *status) {
     if (U_SUCCESS(*status)) {
         *status = U_UNSUPPORTED_ERROR;
     }
     return;
 }
 
-U_DEPRECATED void U_EXPORT2 u_setAtomicIncDecFunctions(const void* /*context */, UMtxAtomicFn*, UMtxAtomicFn*, UErrorCode* status)
-{
+
+
+U_DEPRECATED void U_EXPORT2
+u_setAtomicIncDecFunctions(const void * /*context */, UMtxAtomicFn *, UMtxAtomicFn *,
+                           UErrorCode *status) {
     if (U_SUCCESS(*status)) {
         *status = U_UNSUPPORTED_ERROR;
     }

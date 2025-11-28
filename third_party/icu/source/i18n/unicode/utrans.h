@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -24,7 +24,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif // U_SHOW_CPLUSPLUS_API
+#endif   // U_SHOW_CPLUSPLUS_API
 
 /********************************************************************
  * General Notes
@@ -81,7 +81,7 @@ typedef void* UTransliterator;
  * @stable ICU 2.0
  */
 typedef enum UTransDirection {
-
+    
     /**
      * UTRANS_FORWARD means from &lt;source&gt; to &lt;target&gt; for a
      * transliterator with ID &lt;source&gt;-&lt;target&gt;.  For a transliterator
@@ -133,7 +133,7 @@ typedef struct UTransPosition {
      * @stable ICU 2.4
      */
     int32_t contextStart;
-
+    
     /**
      * Ending index, exclusive, of the context to be considered for a
      * transliteration operation.  The transliterator will ignore
@@ -143,7 +143,7 @@ typedef struct UTransPosition {
      * @stable ICU 2.4
      */
     int32_t contextLimit;
-
+    
     /**
      * Beginning index, inclusive, of the text to be transliterated.
      * INPUT/OUTPUT parameter: This parameter is advanced past
@@ -152,7 +152,7 @@ typedef struct UTransPosition {
      * @stable ICU 2.4
      */
     int32_t start;
-
+    
     /**
      * Ending index, exclusive, of the text to be transliterated.
      * INPUT/OUTPUT parameter: This parameter is updated to reflect
@@ -169,9 +169,9 @@ typedef struct UTransPosition {
  ********************************************************************/
 
 /**
- * Open a custom transliterator, given a custom rules string
- * OR
- * a system transliterator, given its ID.
+ * Open a custom transliterator, given a custom rules string 
+ * OR 
+ * a system transliterator, given its ID.  
  * Any non-NULL result from this function should later be closed with
  * utrans_close().
  *
@@ -191,8 +191,14 @@ typedef struct UTransPosition {
  *         utrans_xxx() functions, or NULL if the open call fails.
  * @stable ICU 2.8
  */
-U_CAPI UTransliterator* U_EXPORT2 utrans_openU(
-    const UChar* id, int32_t idLength, UTransDirection dir, const UChar* rules, int32_t rulesLength, UParseError* parseError, UErrorCode* pErrorCode);
+U_CAPI UTransliterator* U_EXPORT2
+utrans_openU(const UChar *id,
+             int32_t idLength,
+             UTransDirection dir,
+             const UChar *rules,
+             int32_t rulesLength,
+             UParseError *parseError,
+             UErrorCode *pErrorCode);
 
 /**
  * Open an inverse of an existing transliterator.  For this to work,
@@ -209,7 +215,9 @@ U_CAPI UTransliterator* U_EXPORT2 utrans_openU(
  * inverse of trans, or NULL if the open call fails.
  * @stable ICU 2.0
  */
-U_CAPI UTransliterator* U_EXPORT2 utrans_openInverse(const UTransliterator* trans, UErrorCode* status);
+U_CAPI UTransliterator* U_EXPORT2 
+utrans_openInverse(const UTransliterator* trans,
+                   UErrorCode* status);
 
 /**
  * Create a copy of a transliterator.  Any non-NULL result from this
@@ -221,7 +229,9 @@ U_CAPI UTransliterator* U_EXPORT2 utrans_openInverse(const UTransliterator* tran
  * utrans_xxx() functions, or NULL if the clone call fails.
  * @stable ICU 2.0
  */
-U_CAPI UTransliterator* U_EXPORT2 utrans_clone(const UTransliterator* trans, UErrorCode* status);
+U_CAPI UTransliterator* U_EXPORT2 
+utrans_clone(const UTransliterator* trans,
+             UErrorCode* status);
 
 /**
  * Close a transliterator.  Any non-NULL pointer returned by
@@ -229,7 +239,8 @@ U_CAPI UTransliterator* U_EXPORT2 utrans_clone(const UTransliterator* trans, UEr
  * @param trans the transliterator to be closed.
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 utrans_close(UTransliterator* trans);
+U_CAPI void U_EXPORT2 
+utrans_close(UTransliterator* trans);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -264,7 +275,9 @@ U_NAMESPACE_END
  *
  * @stable ICU 2.8
  */
-U_CAPI const UChar* U_EXPORT2 utrans_getUnicodeID(const UTransliterator* trans, int32_t* resultLength);
+U_CAPI const UChar * U_EXPORT2
+utrans_getUnicodeID(const UTransliterator *trans,
+                    int32_t *resultLength);
 
 /**
  * Register an open transliterator with the system.  When
@@ -280,7 +293,9 @@ U_CAPI const UChar* U_EXPORT2 utrans_getUnicodeID(const UTransliterator* trans, 
  * @param status a pointer to the UErrorCode
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 utrans_register(UTransliterator* adoptedTrans, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+utrans_register(UTransliterator* adoptedTrans,
+                UErrorCode* status);
 
 /**
  * Unregister a transliterator from the system.  After this call the
@@ -291,7 +306,8 @@ U_CAPI void U_EXPORT2 utrans_register(UTransliterator* adoptedTrans, UErrorCode*
  * @param idLength the length of id, or -1 if id is zero-terminated
  * @stable ICU 2.8
  */
-U_CAPI void U_EXPORT2 utrans_unregisterID(const UChar* id, int32_t idLength);
+U_CAPI void U_EXPORT2
+utrans_unregisterID(const UChar* id, int32_t idLength);
 
 /**
  * Set the filter used by a transliterator.  A filter can be used to
@@ -311,7 +327,11 @@ U_CAPI void U_EXPORT2 utrans_unregisterID(const UChar* id, int32_t idLength);
  * @see UnicodeSet
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 utrans_setFilter(UTransliterator* trans, const UChar* filterPattern, int32_t filterPatternLen, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+utrans_setFilter(UTransliterator* trans,
+                 const UChar* filterPattern,
+                 int32_t filterPatternLen,
+                 UErrorCode* status);
 
 /**
  * Return the number of system transliterators.
@@ -320,7 +340,8 @@ U_CAPI void U_EXPORT2 utrans_setFilter(UTransliterator* trans, const UChar* filt
  * @return the number of system transliterators.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 utrans_countAvailableIDs(void);
+U_CAPI int32_t U_EXPORT2 
+utrans_countAvailableIDs(void);
 
 /**
  * Return a UEnumeration for the available transliterators.
@@ -331,7 +352,8 @@ U_CAPI int32_t U_EXPORT2 utrans_countAvailableIDs(void);
  *
  * @stable ICU 2.8
  */
-U_CAPI UEnumeration* U_EXPORT2 utrans_openIDs(UErrorCode* pErrorCode);
+U_CAPI UEnumeration * U_EXPORT2
+utrans_openIDs(UErrorCode *pErrorCode);
 
 /********************************************************************
  * Transliteration API
@@ -360,8 +382,13 @@ U_CAPI UEnumeration* U_EXPORT2 utrans_openIDs(UErrorCode* pErrorCode);
  * @param status a pointer to the UErrorCode
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 utrans_trans(
-    const UTransliterator* trans, UReplaceable* rep, const UReplaceableCallbacks* repFunc, int32_t start, int32_t* limit, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+utrans_trans(const UTransliterator* trans,
+             UReplaceable* rep,
+             const UReplaceableCallbacks* repFunc,
+             int32_t start,
+             int32_t* limit,
+             UErrorCode* status);
 
 /**
  * Transliterate the portion of the UReplaceable text buffer that can
@@ -406,8 +433,12 @@ U_CAPI void U_EXPORT2 utrans_trans(
  * @param status a pointer to the UErrorCode
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 utrans_transIncremental(
-    const UTransliterator* trans, UReplaceable* rep, const UReplaceableCallbacks* repFunc, UTransPosition* pos, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+utrans_transIncremental(const UTransliterator* trans,
+                        UReplaceable* rep,
+                        const UReplaceableCallbacks* repFunc,
+                        UTransPosition* pos,
+                        UErrorCode* status);
 
 /**
  * Transliterate a segment of a UChar* string.  The string is passed
@@ -439,8 +470,14 @@ U_CAPI void U_EXPORT2 utrans_transIncremental(
  * @param status a pointer to the UErrorCode
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 utrans_transUChars(
-    const UTransliterator* trans, UChar* text, int32_t* textLength, int32_t textCapacity, int32_t start, int32_t* limit, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+utrans_transUChars(const UTransliterator* trans,
+                   UChar* text,
+                   int32_t* textLength,
+                   int32_t textCapacity,
+                   int32_t start,
+                   int32_t* limit,
+                   UErrorCode* status);
 
 /**
  * Transliterate the portion of the UChar* text buffer that can be
@@ -468,8 +505,13 @@ U_CAPI void U_EXPORT2 utrans_transUChars(
  * @see utrans_transIncremental
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2 utrans_transIncrementalUChars(
-    const UTransliterator* trans, UChar* text, int32_t* textLength, int32_t textCapacity, UTransPosition* pos, UErrorCode* status);
+U_CAPI void U_EXPORT2 
+utrans_transIncrementalUChars(const UTransliterator* trans,
+                              UChar* text,
+                              int32_t* textLength,
+                              int32_t textCapacity,
+                              UTransPosition* pos,
+                              UErrorCode* status);
 
 /**
  * Create a rule string that can be passed to utrans_openU to recreate this
@@ -488,7 +530,11 @@ U_CAPI void U_EXPORT2 utrans_transIncrementalUChars(
  *                  in which case an error is returned).
  * @stable ICU 53
  */
-U_CAPI int32_t U_EXPORT2 utrans_toRules(const UTransliterator* trans, UBool escapeUnprintable, UChar* result, int32_t resultLength, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2
+utrans_toRules(     const UTransliterator* trans,
+                    UBool escapeUnprintable,
+                    UChar* result, int32_t resultLength,
+                    UErrorCode* status);
 
 /**
  * Returns the set of all characters that may be modified in the input text by
@@ -509,7 +555,11 @@ U_CAPI int32_t U_EXPORT2 utrans_toRules(const UTransliterator* trans, UBool esca
  *                  error, NULL is returned.
  * @stable ICU 53
  */
-U_CAPI USet* U_EXPORT2 utrans_getSourceSet(const UTransliterator* trans, UBool ignoreFilter, USet* fillIn, UErrorCode* status);
+U_CAPI USet* U_EXPORT2
+utrans_getSourceSet(const UTransliterator* trans,
+                    UBool ignoreFilter,
+                    USet* fillIn,
+                    UErrorCode* status);
 
 /* deprecated API ----------------------------------------------------------- */
 
@@ -519,16 +569,16 @@ U_CAPI USet* U_EXPORT2 utrans_getSourceSet(const UTransliterator* trans, UBool i
 
 /**
  * Deprecated, use utrans_openU() instead.
- * Open a custom transliterator, given a custom rules string
- * OR
- * a system transliterator, given its ID.
+ * Open a custom transliterator, given a custom rules string 
+ * OR 
+ * a system transliterator, given its ID.  
  * Any non-NULL result from this function should later be closed with
  * utrans_close().
  *
  * @param id a valid ID, as returned by utrans_getAvailableID()
  * @param dir the desired direction
  * @param rules the transliterator rules.  See the C++ header rbt.h
- * for rules syntax. If NULL then a system transliterator matching
+ * for rules syntax. If NULL then a system transliterator matching 
  * the ID is returned.
  * @param rulesLength the length of the rules, or -1 if the rules
  * are zero-terminated.
@@ -540,10 +590,13 @@ U_CAPI USet* U_EXPORT2 utrans_getSourceSet(const UTransliterator* trans, UBool i
  * utrans_xxx() functions, or NULL if the open call fails.
  * @deprecated ICU 2.8 Use utrans_openU() instead, see utrans.h
  */
-U_DEPRECATED UTransliterator* U_EXPORT2 utrans_open(const char* id, UTransDirection dir, const UChar* rules, /* may be Null */
-    int32_t rulesLength, /* -1 if null-terminated */
-    UParseError* parseError, /* may be Null */
-    UErrorCode* status);
+U_DEPRECATED UTransliterator* U_EXPORT2 
+utrans_open(const char* id,
+            UTransDirection dir,
+            const UChar* rules,         /* may be Null */
+            int32_t rulesLength,        /* -1 if null-terminated */ 
+            UParseError* parseError,    /* may be Null */
+            UErrorCode* status);
 
 /**
  * Deprecated, use utrans_getUnicodeID() instead.
@@ -560,7 +613,10 @@ U_DEPRECATED UTransliterator* U_EXPORT2 utrans_open(const char* id, UTransDirect
  * zero-termination.  This may be greater than bufCapacity.
  * @deprecated ICU 2.8 Use utrans_getUnicodeID() instead, see utrans.h
  */
-U_DEPRECATED int32_t U_EXPORT2 utrans_getID(const UTransliterator* trans, char* buf, int32_t bufCapacity);
+U_DEPRECATED int32_t U_EXPORT2 
+utrans_getID(const UTransliterator* trans,
+             char* buf,
+             int32_t bufCapacity);
 
 /**
  * Deprecated, use utrans_unregisterID() instead.
@@ -571,7 +627,8 @@ U_DEPRECATED int32_t U_EXPORT2 utrans_getID(const UTransliterator* trans, char* 
  * @param id a zero-terminated ID
  * @deprecated ICU 2.8 Use utrans_unregisterID() instead, see utrans.h
  */
-U_DEPRECATED void U_EXPORT2 utrans_unregister(const char* id);
+U_DEPRECATED void U_EXPORT2 
+utrans_unregister(const char* id);
 
 /**
  * Deprecated, use utrans_openIDs() instead.
@@ -591,9 +648,12 @@ U_DEPRECATED void U_EXPORT2 utrans_unregister(const char* id);
  * zero-termination.  This may be greater than bufCapacity.
  * @deprecated ICU 2.8 Use utrans_openIDs() instead, see utrans.h
  */
-U_DEPRECATED int32_t U_EXPORT2 utrans_getAvailableID(int32_t index, char* buf, int32_t bufCapacity);
+U_DEPRECATED int32_t U_EXPORT2 
+utrans_getAvailableID(int32_t index,
+                      char* buf,
+                      int32_t bufCapacity);
 
-#endif /* U_HIDE_DEPRECATED_API */
+#endif  /* U_HIDE_DEPRECATED_API */
 
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 

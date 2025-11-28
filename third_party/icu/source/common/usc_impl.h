@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -77,7 +77,8 @@ typedef struct UScriptRun UScriptRun;
  * @return the address of <code>UScriptRun</code> object which will iterate over the text,
  *         or <code>NULL</code> if the operation failed.
  */
-U_CAPI UScriptRun* U_EXPORT2 uscript_openRun(const UChar* src, int32_t length, UErrorCode* pErrorCode);
+U_CAPI UScriptRun * U_EXPORT2
+uscript_openRun(const UChar *src, int32_t length, UErrorCode *pErrorCode);
 
 /**
  * Frees the given <code>UScriptRun</code> object and any storage associated with it.
@@ -85,7 +86,8 @@ U_CAPI UScriptRun* U_EXPORT2 uscript_openRun(const UChar* src, int32_t length, U
  *
  * @param scriptRun is the <code>UScriptRun</code> object which will be freed.
  */
-U_CAPI void U_EXPORT2 uscript_closeRun(UScriptRun* scriptRun);
+U_CAPI void U_EXPORT2
+uscript_closeRun(UScriptRun *scriptRun);
 
 /**
  * Reset the <code>UScriptRun</code> object so that it will start iterating from
@@ -93,7 +95,8 @@ U_CAPI void U_EXPORT2 uscript_closeRun(UScriptRun* scriptRun);
  *
  * @param scriptRun is the address of the <code>UScriptRun</code> object to be reset.
  */
-U_CAPI void U_EXPORT2 uscript_resetRun(UScriptRun* scriptRun);
+U_CAPI void U_EXPORT2
+uscript_resetRun(UScriptRun *scriptRun);
 
 /**
  * Change the text over which the given <code>UScriptRun</code> object iterates.
@@ -110,7 +113,8 @@ U_CAPI void U_EXPORT2 uscript_resetRun(UScriptRun* scriptRun);
  *        indicates a failure on entry, the function will immediately return.
  *        On exit the value will indicate the success of the operation.
  */
-U_CAPI void U_EXPORT2 uscript_setRunText(UScriptRun* scriptRun, const UChar* src, int32_t length, UErrorCode* pErrorCode);
+U_CAPI void U_EXPORT2
+uscript_setRunText(UScriptRun *scriptRun, const UChar *src, int32_t length, UErrorCode *pErrorCode);
 
 /**
  * Advance the <code>UScriptRun</code> object to the next script run, return the start and limit
@@ -129,6 +133,7 @@ U_CAPI void U_EXPORT2 uscript_setRunText(UScriptRun* scriptRun, const UChar* src
  *
  * @return true if there was another script run.
  */
-U_CAPI UBool U_EXPORT2 uscript_nextRun(UScriptRun* scriptRun, int32_t* pRunStart, int32_t* pRunLimit, UScriptCode* pRunScript);
+U_CAPI UBool U_EXPORT2
+uscript_nextRun(UScriptRun *scriptRun, int32_t *pRunStart, int32_t *pRunLimit, UScriptCode *pRunScript);
 
 #endif

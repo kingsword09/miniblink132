@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
@@ -132,7 +132,7 @@ public:
      *                decimal number.
      * @stable ICU 4.4
      */
-    Formattable(StringPiece number, UErrorCode& status);
+    Formattable(StringPiece number, UErrorCode &status);
 
     /**
      * Creates a Formattable object with a UnicodeString object to copy from.
@@ -174,7 +174,7 @@ public:
      * @param rhs   The Formattable object to copy into this object.
      * @stable ICU 2.0
      */
-    Formattable& operator=(const Formattable& rhs);
+    Formattable&    operator=(const Formattable &rhs);
 
     /**
      * Equality comparison.
@@ -182,7 +182,7 @@ public:
      * @return        true if other are equal to this, false otherwise.
      * @stable ICU 2.0
      */
-    bool operator==(const Formattable& other) const;
+    bool           operator==(const Formattable &other) const;
 
     /**
      * Equality operator.
@@ -190,21 +190,19 @@ public:
      * @return        true if other are unequal to this, false otherwise.
      * @stable ICU 2.0
      */
-    bool operator!=(const Formattable& other) const
-    {
-        return !operator==(other);
-    }
+    bool           operator!=(const Formattable& other) const
+      { return !operator==(other); }
 
     /**
      * Destructor.
      * @stable ICU 2.0
      */
-    virtual ~Formattable();
+    virtual         ~Formattable();
 
     /**
      * Clone this object.
      * Clones can be used concurrently in multiple threads.
-     * If an error occurs, then NULL is returned.
+     * If an error occurs, then nullptr is returned.
      * The caller must delete the clone.
      *
      * @return a clone of this object
@@ -212,7 +210,7 @@ public:
      * @see getDynamicClassID
      * @stable ICU 2.8
      */
-    Formattable* clone() const;
+    Formattable *clone() const;
 
     /**
      * Selector for flavor of data type contained within a
@@ -269,14 +267,14 @@ public:
          * @stable ICU 3.0
          */
         kObject
-    };
+   };
 
     /**
      * Gets the data type of this Formattable object.
      * @return    the data type of this Formattable object.
      * @stable ICU 2.0
      */
-    Type getType(void) const;
+    Type            getType(void) const;
 
     /**
      * Returns true if the data type of this Formattable object
@@ -284,7 +282,7 @@ public:
      * @return true if this is a pure numeric object
      * @stable ICU 3.0
      */
-    UBool isNumeric() const;
+    UBool           isNumeric() const;
 
     /**
      * Gets the double value of this object. If this object is not of type
@@ -292,10 +290,7 @@ public:
      * @return    the double value of this object.
      * @stable ICU 2.0
      */
-    double getDouble(void) const
-    {
-        return fValue.fDouble;
-    }
+    double          getDouble(void) const { return fValue.fDouble; }
 
     /**
      * Gets the double value of this object. If this object is of type
@@ -309,7 +304,7 @@ public:
      * @return the double value of this object.
      * @stable ICU 3.0
      */
-    double getDouble(UErrorCode& status) const;
+    double          getDouble(UErrorCode& status) const;
 
     /**
      * Gets the long value of this object. If this object is not of type
@@ -317,10 +312,7 @@ public:
      * @return    the long value of this object.
      * @stable ICU 2.0
      */
-    int32_t getLong(void) const
-    {
-        return (int32_t)fValue.fInt64;
-    }
+    int32_t         getLong(void) const { return (int32_t)fValue.fInt64; }
 
     /**
      * Gets the long value of this object. If the magnitude is too
@@ -338,7 +330,7 @@ public:
      * @return    the long value of this object.
      * @stable ICU 3.0
      */
-    int32_t getLong(UErrorCode& status) const;
+    int32_t         getLong(UErrorCode& status) const;
 
     /**
      * Gets the int64 value of this object. If this object is not of type
@@ -346,10 +338,7 @@ public:
      * @return    the int64 value of this object.
      * @stable ICU 2.8
      */
-    int64_t getInt64(void) const
-    {
-        return fValue.fInt64;
-    }
+    int64_t         getInt64(void) const { return fValue.fInt64; }
 
     /**
      * Gets the int64 value of this object. If this object is of a numeric
@@ -366,7 +355,7 @@ public:
      * @return    the int64 value of this object.
      * @stable ICU 3.0
      */
-    int64_t getInt64(UErrorCode& status) const;
+    int64_t         getInt64(UErrorCode& status) const;
 
     /**
      * Gets the Date value of this object. If this object is not of type
@@ -374,10 +363,7 @@ public:
      * @return    the Date value of this object.
      * @stable ICU 2.0
      */
-    UDate getDate() const
-    {
-        return fValue.fDate;
-    }
+    UDate           getDate() const { return fValue.fDate; }
 
     /**
      * Gets the Date value of this object.  If the type is not a date,
@@ -387,7 +373,7 @@ public:
      * @return    the Date value of this object.
      * @stable ICU 3.0
      */
-    UDate getDate(UErrorCode& status) const;
+     UDate          getDate(UErrorCode& status) const;
 
     /**
      * Gets the string value of this object. If this object is not of type
@@ -396,11 +382,8 @@ public:
      * @return          A reference to 'result'.
      * @stable ICU 2.0
      */
-    UnicodeString& getString(UnicodeString& result) const
-    {
-        result = *fValue.fString;
-        return result;
-    }
+    UnicodeString&  getString(UnicodeString& result) const
+      { result=*fValue.fString; return result; }
 
     /**
      * Gets the string value of this object. If the type is not a
@@ -411,7 +394,7 @@ public:
      * @return          A reference to 'result'.
      * @stable ICU 3.0
      */
-    UnicodeString& getString(UnicodeString& result, UErrorCode& status) const;
+    UnicodeString&  getString(UnicodeString& result, UErrorCode& status) const;
 
     /**
      * Gets a const reference to the string value of this object. If
@@ -458,15 +441,12 @@ public:
      * @stable ICU 2.0
      */
     const Formattable* getArray(int32_t& count) const
-    {
-        count = fValue.fArrayAndCount.fCount;
-        return fValue.fArrayAndCount.fArray;
-    }
+      { count=fValue.fArrayAndCount.fCount; return fValue.fArrayAndCount.fArray; }
 
     /**
      * Gets the array value and count of this object. If the type is
      * not an array, status is set to U_INVALID_FORMAT_ERROR, count is
-     * set to 0, and the result is NULL.
+     * set to 0, and the result is nullptr.
      * @param count    fill-in with the count of this object.
      * @param status the error code.
      * @return         the array value of this object.
@@ -482,22 +462,19 @@ public:
      * @return the accessed element in the array.
      * @stable ICU 2.0
      */
-    Formattable& operator[](int32_t index)
-    {
-        return fValue.fArrayAndCount.fArray[index];
-    }
+    Formattable&    operator[](int32_t index) { return fValue.fArrayAndCount.fArray[index]; }
 
     /**
      * Returns a pointer to the UObject contained within this
-     * formattable, or NULL if this object does not contain a UObject.
-     * @return a UObject pointer, or NULL
+     * formattable, or nullptr if this object does not contain a UObject.
+     * @return a UObject pointer, or nullptr
      * @stable ICU 3.0
      */
-    const UObject* getObject() const;
+    const UObject*  getObject() const;
 
     /**
      * Returns a numeric string representation of the number contained within this
-     * formattable, or NULL if this object does not contain numeric type.
+     * formattable, or nullptr if this object does not contain numeric type.
      * For values obtained by parsing, the returned decimal number retains
      * the full precision and range of the original input, unconstrained by
      * the limits of a double floating point or a 64 bit int.
@@ -513,15 +490,15 @@ public:
      * @return the unformatted string representation of a number.
      * @stable ICU 4.4
      */
-    StringPiece getDecimalNumber(UErrorCode& status);
+    StringPiece getDecimalNumber(UErrorCode &status);
 
-    /**
+     /**
      * Sets the double value of this object and changes the type to
      * kDouble.
      * @param d    the new double value to be set.
      * @stable ICU 2.0
      */
-    void setDouble(double d);
+    void            setDouble(double d);
 
     /**
      * Sets the long value of this object and changes the type to
@@ -529,7 +506,7 @@ public:
      * @param l    the new long value to be set.
      * @stable ICU 2.0
      */
-    void setLong(int32_t l);
+    void            setLong(int32_t l);
 
     /**
      * Sets the int64 value of this object and changes the type to
@@ -537,7 +514,7 @@ public:
      * @param ll    the new int64 value to be set.
      * @stable ICU 2.8
      */
-    void setInt64(int64_t ll);
+    void            setInt64(int64_t ll);
 
     /**
      * Sets the Date value of this object and changes the type to
@@ -545,7 +522,7 @@ public:
      * @param d    the new Date value to be set.
      * @stable ICU 2.0
      */
-    void setDate(UDate d);
+    void            setDate(UDate d);
 
     /**
      * Sets the string value of this object and changes the type to
@@ -553,7 +530,7 @@ public:
      * @param stringToCopy    the new string value to be set.
      * @stable ICU 2.0
      */
-    void setString(const UnicodeString& stringToCopy);
+    void            setString(const UnicodeString& stringToCopy);
 
     /**
      * Sets the array value and count of this object and changes the
@@ -562,7 +539,7 @@ public:
      * @param count    the number of array elements to be copied.
      * @stable ICU 2.0
      */
-    void setArray(const Formattable* array, int32_t count);
+    void            setArray(const Formattable* array, int32_t count);
 
     /**
      * Sets and adopts the string value and count of this object and
@@ -570,14 +547,14 @@ public:
      * @param stringToAdopt    the new string value to be adopted.
      * @stable ICU 2.0
      */
-    void adoptString(UnicodeString* stringToAdopt);
+    void            adoptString(UnicodeString* stringToAdopt);
 
     /**
      * Sets and adopts the array value and count of this object and
      * changes the type to kArray.
      * @stable ICU 2.0
      */
-    void adoptArray(Formattable* array, int32_t count);
+    void            adoptArray(Formattable* array, int32_t count);
 
     /**
      * Sets and adopts the UObject value of this object and changes
@@ -586,7 +563,7 @@ public:
      * @param objectToAdopt the UObject value to be adopted
      * @stable ICU 3.0
      */
-    void adoptObject(UObject* objectToAdopt);
+    void            adoptObject(UObject* objectToAdopt);
 
     /**
      * Sets the the numeric value from a decimal number string, and changes
@@ -602,7 +579,8 @@ public:
      *                      incoming string is not a valid decimal number.
      * @stable ICU 4.4
      */
-    void setDecimalNumber(StringPiece numberString, UErrorCode& status);
+    void             setDecimalNumber(StringPiece numberString,
+                                      UErrorCode &status);
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
@@ -625,7 +603,7 @@ public:
      * UFormattable, and so is only valid while the original argument remains in scope.
      * @stable ICU 52
      */
-    static inline Formattable* fromUFormattable(UFormattable* fmt);
+    static inline Formattable *fromUFormattable(UFormattable *fmt);
 
     /**
      * Convert the const UFormattable to a const Formattable.  Internally, this is a reinterpret_cast.
@@ -634,7 +612,7 @@ public:
      * UFormattable, and so is only valid while the original argument remains in scope.
      * @stable ICU 52
      */
-    static inline const Formattable* fromUFormattable(const UFormattable* fmt);
+    static inline const Formattable *fromUFormattable(const UFormattable *fmt);
 
     /**
      * Convert this object pointer to a UFormattable.
@@ -642,7 +620,7 @@ public:
      * and so is only valid while this object remains in scope.
      * @stable ICU 52
      */
-    inline UFormattable* toUFormattable();
+    inline UFormattable *toUFormattable();
 
     /**
      * Convert this object pointer to a UFormattable.
@@ -650,7 +628,7 @@ public:
      * and so is only valid while this object remains in scope.
      * @stable ICU 52
      */
-    inline const UFormattable* toUFormattable() const;
+    inline const UFormattable *toUFormattable() const;
 
 #ifndef U_HIDE_DEPRECATED_API
     /**
@@ -660,7 +638,7 @@ public:
      * @deprecated ICU 3.0 use getLong(UErrorCode&) instead
      */
     inline int32_t getLong(UErrorCode* status) const;
-#endif /* U_HIDE_DEPRECATED_API */
+#endif  /* U_HIDE_DEPRECATED_API */
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -671,10 +649,7 @@ public:
      *        big decimal formatting.
      *  @internal
      */
-    number::impl::DecimalQuantity* getDecimalQuantity() const
-    {
-        return fDecimalQuantity;
-    }
+    number::impl::DecimalQuantity *getDecimalQuantity() const { return fDecimalQuantity;}
 
     /**
      * Export the value of this Formattable to a DecimalQuantity.
@@ -688,7 +663,7 @@ public:
      *  @param dq the DecimalQuantity to be adopted
      *  @internal
      */
-    void adoptDecimalQuantity(number::impl::DecimalQuantity* dq);
+    void adoptDecimalQuantity(number::impl::DecimalQuantity *dq);
 
     /**
      * Internal function to return the CharString pointer.
@@ -696,46 +671,45 @@ public:
      * @return pointer to the CharString - may become invalid if the object is modified
      * @internal
      */
-    CharString* internalGetCharString(UErrorCode& status);
+    CharString *internalGetCharString(UErrorCode &status);
 
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
 private:
     /**
      * Cleans up the memory for unwanted values.  For example, the adopted
      * string or array objects.
      */
-    void dispose(void);
+    void            dispose(void);
 
     /**
      * Common initialization, for use by constructors.
      */
-    void init();
+    void            init();
 
     UnicodeString* getBogus() const;
 
     union {
-        UObject* fObject;
-        UnicodeString* fString;
-        double fDouble;
-        int64_t fInt64;
-        UDate fDate;
+        UObject*        fObject;
+        UnicodeString*  fString;
+        double          fDouble;
+        int64_t         fInt64;
+        UDate           fDate;
         struct {
-            Formattable* fArray;
-            int32_t fCount;
-        } fArrayAndCount;
+          Formattable*  fArray;
+          int32_t       fCount;
+        }               fArrayAndCount;
     } fValue;
 
-    CharString* fDecimalStr;
+    CharString           *fDecimalStr;
 
-    number::impl::DecimalQuantity* fDecimalQuantity;
+    number::impl::DecimalQuantity *fDecimalQuantity;
 
-    Type fType;
-    UnicodeString fBogus; // Bogus string when it's needed.
+    Type                fType;
+    UnicodeString       fBogus; // Bogus string when it's needed.
 };
 
-inline UDate Formattable::getDate(UErrorCode& status) const
-{
+inline UDate Formattable::getDate(UErrorCode& status) const {
     if (fType != kDate) {
         if (U_SUCCESS(status)) {
             status = U_INVALID_FORMAT_ERROR;
@@ -745,41 +719,34 @@ inline UDate Formattable::getDate(UErrorCode& status) const
     return fValue.fDate;
 }
 
-inline const UnicodeString& Formattable::getString(void) const
-{
+inline const UnicodeString& Formattable::getString(void) const {
     return *fValue.fString;
 }
 
-inline UnicodeString& Formattable::getString(void)
-{
+inline UnicodeString& Formattable::getString(void) {
     return *fValue.fString;
 }
 
 #ifndef U_HIDE_DEPRECATED_API
-inline int32_t Formattable::getLong(UErrorCode* status) const
-{
+inline int32_t Formattable::getLong(UErrorCode* status) const {
     return getLong(*status);
 }
-#endif /* U_HIDE_DEPRECATED_API */
+#endif  /* U_HIDE_DEPRECATED_API */
 
-inline UFormattable* Formattable::toUFormattable()
-{
-    return reinterpret_cast<UFormattable*>(this);
+inline UFormattable* Formattable::toUFormattable() {
+  return reinterpret_cast<UFormattable*>(this);
 }
 
-inline const UFormattable* Formattable::toUFormattable() const
-{
-    return reinterpret_cast<const UFormattable*>(this);
+inline const UFormattable* Formattable::toUFormattable() const {
+  return reinterpret_cast<const UFormattable*>(this);
 }
 
-inline Formattable* Formattable::fromUFormattable(UFormattable* fmt)
-{
-    return reinterpret_cast<Formattable*>(fmt);
+inline Formattable* Formattable::fromUFormattable(UFormattable *fmt) {
+  return reinterpret_cast<Formattable *>(fmt);
 }
 
-inline const Formattable* Formattable::fromUFormattable(const UFormattable* fmt)
-{
-    return reinterpret_cast<const Formattable*>(fmt);
+inline const Formattable* Formattable::fromUFormattable(const UFormattable *fmt) {
+  return reinterpret_cast<const Formattable *>(fmt);
 }
 
 U_NAMESPACE_END
@@ -789,4 +756,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif //_FMTABLE
-// eof
+//eof

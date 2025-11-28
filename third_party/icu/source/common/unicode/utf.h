@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -107,7 +107,7 @@
  *
  * <em>Usage:</em>
  * ICU coding guidelines for if() statements should be followed when using these macros.
- * Compound statements (curly braces {}) must be used  for if-else-while...
+ * Compound statements (curly braces {}) must be used  for if-else-while... 
  * bodies and all macro statements should be terminated with semicolon.
  *
  * @stable ICU 2.4
@@ -127,7 +127,9 @@
  * @return true or false
  * @stable ICU 2.4
  */
-#define U_IS_UNICODE_NONCHAR(c) ((c) >= 0xfdd0 && ((c) <= 0xfdef || ((c)&0xfffe) == 0xfffe) && (c) <= 0x10ffff)
+#define U_IS_UNICODE_NONCHAR(c) \
+    ((c)>=0xfdd0 && \
+     ((c)<=0xfdef || ((c)&0xfffe)==0xfffe) && (c)<=0x10ffff)
 
 /**
  * Is c a Unicode code point value (0..U+10ffff)
@@ -146,7 +148,9 @@
  * @return true or false
  * @stable ICU 2.4
  */
-#define U_IS_UNICODE_CHAR(c) ((uint32_t)(c) < 0xd800 || (0xdfff < (c) && (c) <= 0x10ffff && !U_IS_UNICODE_NONCHAR(c)))
+#define U_IS_UNICODE_CHAR(c) \
+    ((uint32_t)(c)<0xd800 || \
+        (0xdfff<(c) && (c)<=0x10ffff && !U_IS_UNICODE_NONCHAR(c)))
 
 /**
  * Is this code point a BMP code point (U+0000..U+ffff)?
@@ -154,7 +158,7 @@
  * @return true or false
  * @stable ICU 2.8
  */
-#define U_IS_BMP(c) ((uint32_t)(c) <= 0xffff)
+#define U_IS_BMP(c) ((uint32_t)(c)<=0xffff)
 
 /**
  * Is this code point a supplementary code point (U+10000..U+10ffff)?
@@ -162,15 +166,15 @@
  * @return true or false
  * @stable ICU 2.8
  */
-#define U_IS_SUPPLEMENTARY(c) ((uint32_t)((c)-0x10000) <= 0xfffff)
-
+#define U_IS_SUPPLEMENTARY(c) ((uint32_t)((c)-0x10000)<=0xfffff)
+ 
 /**
  * Is this code point a lead surrogate (U+d800..U+dbff)?
  * @param c 32-bit code point
  * @return true or false
  * @stable ICU 2.4
  */
-#define U_IS_LEAD(c) (((c)&0xfffffc00) == 0xd800)
+#define U_IS_LEAD(c) (((c)&0xfffffc00)==0xd800)
 
 /**
  * Is this code point a trail surrogate (U+dc00..U+dfff)?
@@ -178,7 +182,7 @@
  * @return true or false
  * @stable ICU 2.4
  */
-#define U_IS_TRAIL(c) (((c)&0xfffffc00) == 0xdc00)
+#define U_IS_TRAIL(c) (((c)&0xfffffc00)==0xdc00)
 
 /**
  * Is this code point a surrogate (U+d800..U+dfff)?
@@ -186,7 +190,7 @@
  * @return true or false
  * @stable ICU 2.4
  */
-#define U_IS_SURROGATE(c) (((c)&0xfffff800) == 0xd800)
+#define U_IS_SURROGATE(c) (((c)&0xfffff800)==0xd800)
 
 /**
  * Assuming c is a surrogate code point (U_IS_SURROGATE(c)),
@@ -195,7 +199,7 @@
  * @return true or false
  * @stable ICU 2.4
  */
-#define U_IS_SURROGATE_LEAD(c) (((c)&0x400) == 0)
+#define U_IS_SURROGATE_LEAD(c) (((c)&0x400)==0)
 
 /**
  * Assuming c is a surrogate code point (U_IS_SURROGATE(c)),
@@ -204,7 +208,7 @@
  * @return true or false
  * @stable ICU 4.2
  */
-#define U_IS_SURROGATE_TRAIL(c) (((c)&0x400) != 0)
+#define U_IS_SURROGATE_TRAIL(c) (((c)&0x400)!=0)
 
 /* include the utfXX.h ------------------------------------------------------ */
 
@@ -216,6 +220,6 @@
 /* utf_old.h contains deprecated, pre-ICU 2.4 definitions */
 #include "unicode/utf_old.h"
 
-#endif /* !U_NO_DEFAULT_INCLUDE_UTF_HEADERS */
+#endif  /* !U_NO_DEFAULT_INCLUDE_UTF_HEADERS */
 
-#endif /* __UTF_H__ */
+#endif  /* __UTF_H__ */

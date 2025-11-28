@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -31,23 +31,15 @@ struct CollationSettings;
 
 class SortKeyByteSink : public ByteSink {
 public:
-    SortKeyByteSink(char* dest, int32_t destCapacity)
-        : buffer_(dest)
-        , capacity_(destCapacity)
-        , appended_(0)
-        , ignore_(0)
-    {
-    }
+    SortKeyByteSink(char *dest, int32_t destCapacity)
+            : buffer_(dest), capacity_(destCapacity),
+              appended_(0), ignore_(0) {}
     virtual ~SortKeyByteSink();
 
-    void IgnoreBytes(int32_t numIgnore)
-    {
-        ignore_ = numIgnore;
-    }
+    void IgnoreBytes(int32_t numIgnore) { ignore_ = numIgnore; }
 
-    virtual void Append(const char* bytes, int32_t n) override;
-    void Append(uint32_t b)
-    {
+    virtual void Append(const char *bytes, int32_t n) override;
+    void Append(uint32_t b) {
         if (ignore_ > 0) {
             --ignore_;
         } else {
@@ -57,51 +49,42 @@ public:
             ++appended_;
         }
     }
-    virtual char* GetAppendBuffer(
-        int32_t min_capacity, int32_t desired_capacity_hint, char* scratch, int32_t scratch_capacity, int32_t* result_capacity) override;
-    int32_t NumberOfBytesAppended() const
-    {
-        return appended_;
-    }
+    virtual char *GetAppendBuffer(int32_t min_capacity,
+                                  int32_t desired_capacity_hint,
+                                  char *scratch, int32_t scratch_capacity,
+                                  int32_t *result_capacity) override;
+    int32_t NumberOfBytesAppended() const { return appended_; }
 
     /**
      * @return how many bytes can be appended (including ignored ones)
      *         without reallocation
      */
-    int32_t GetRemainingCapacity() const
-    {
+    int32_t GetRemainingCapacity() const {
         // Either ignore_ or appended_ should be 0.
         return ignore_ + capacity_ - appended_;
     }
 
-    UBool Overflowed() const
-    {
-        return appended_ > capacity_;
-    }
+    UBool Overflowed() const { return appended_ > capacity_; }
     /** @return false if memory allocation failed */
-    UBool IsOk() const
-    {
-        return buffer_ != NULL;
-    }
+    UBool IsOk() const { return buffer_ != nullptr; }
 
 protected:
-    virtual void AppendBeyondCapacity(const char* bytes, int32_t n, int32_t length) = 0;
+    virtual void AppendBeyondCapacity(const char *bytes, int32_t n, int32_t length) = 0;
     virtual UBool Resize(int32_t appendCapacity, int32_t length) = 0;
 
-    void SetNotOk()
-    {
-        buffer_ = NULL;
+    void SetNotOk() {
+        buffer_ = nullptr;
         capacity_ = 0;
     }
 
-    char* buffer_;
+    char *buffer_;
     int32_t capacity_;
     int32_t appended_;
     int32_t ignore_;
 
 private:
-    SortKeyByteSink(const SortKeyByteSink&); // copy constructor not implemented
-    SortKeyByteSink& operator=(const SortKeyByteSink&); // assignment operator not implemented
+    SortKeyByteSink(const SortKeyByteSink &); // copy constructor not implemented
+    SortKeyByteSink &operator=(const SortKeyByteSink &); // assignment operator not implemented
 };
 
 class U_I18N_API CollationKeys /* not : public UObject because all methods are static */ {
@@ -124,13 +107,16 @@ public:
      * Separates levels with the LEVEL_SEPARATOR_BYTE
      * but does not write a TERMINATOR_BYTE.
      */
-    static void writeSortKeyUpToQuaternary(CollationIterator& iter, const UBool* compressibleBytes, const CollationSettings& settings, SortKeyByteSink& sink,
-        Collation::Level minLevel, LevelCallback& callback, UBool preflight, UErrorCode& errorCode);
-
+    static void writeSortKeyUpToQuaternary(CollationIterator &iter,
+                                           const UBool *compressibleBytes,
+                                           const CollationSettings &settings,
+                                           SortKeyByteSink &sink,
+                                           Collation::Level minLevel, LevelCallback &callback,
+                                           UBool preflight, UErrorCode &errorCode);
 private:
     friend struct CollationDataReader;
 
-    CollationKeys(); // no instantiation
+    CollationKeys() = delete;  // no instantiation
 
     // Secondary level: Compress up to 33 common weights as 05..25 or 25..45.
     static const uint32_t SEC_COMMON_LOW = Collation::COMMON_BYTE;
@@ -174,10 +160,10 @@ private:
     static const int32_t QUAT_COMMON_MAX_COUNT = 0x71;
     // Primary weights shifted to quaternary level must be encoded with
     // a lead byte below the common-weight compression range.
-    static const uint32_t QUAT_SHIFTED_LIMIT_BYTE = QUAT_COMMON_LOW - 1; // 0x1b
+    static const uint32_t QUAT_SHIFTED_LIMIT_BYTE = QUAT_COMMON_LOW - 1;  // 0x1b
 };
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __COLLATIONKEYS_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __COLLATIONKEYS_H__

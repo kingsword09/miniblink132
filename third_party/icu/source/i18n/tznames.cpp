@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -25,12 +25,13 @@
 #include "umutex.h"
 #include "uvector.h"
 
+
 U_NAMESPACE_BEGIN
 
 // TimeZoneNames object cache handling
 static UMutex gTimeZoneNamesLock;
-static UHashtable* gTimeZoneNamesCache = NULL;
-static UBool gTimeZoneNamesCacheInitialized = FALSE;
+static UHashtable *gTimeZoneNamesCache = nullptr;
+static UBool gTimeZoneNamesCacheInitialized = false;
 
 // Access count - incremented every time up to SWEEP_INTERVAL,
 // then reset to 0
@@ -46,32 +47,32 @@ static int32_t gAccessCount = 0;
 #define CACHE_EXPIRATION 180000.0
 
 typedef struct TimeZoneNamesCacheEntry {
-    TimeZoneNames* names;
-    int32_t refCount;
-    double lastAccess;
+    TimeZoneNames*  names;
+    int32_t         refCount;
+    double          lastAccess;
 } TimeZoneNamesCacheEntry;
 
 U_CDECL_BEGIN
 /**
  * Cleanup callback func
  */
-static UBool U_CALLCONV timeZoneNames_cleanup(void)
+static UBool U_CALLCONV timeZoneNames_cleanup()
 {
-    if (gTimeZoneNamesCache != NULL) {
+    if (gTimeZoneNamesCache != nullptr) {
         uhash_close(gTimeZoneNamesCache);
-        gTimeZoneNamesCache = NULL;
+        gTimeZoneNamesCache = nullptr;
     }
-    gTimeZoneNamesCacheInitialized = FALSE;
-    return TRUE;
+    gTimeZoneNamesCacheInitialized = false;
+    return true;
 }
 
 /**
  * Deleter for TimeZoneNamesCacheEntry
  */
-static void U_CALLCONV deleteTimeZoneNamesCacheEntry(void* obj)
-{
-    icu::TimeZoneNamesCacheEntry* entry = (icu::TimeZoneNamesCacheEntry*)obj;
-    delete (icu::TimeZoneNamesImpl*)entry->names;
+static void U_CALLCONV
+deleteTimeZoneNamesCacheEntry(void *obj) {
+    icu::TimeZoneNamesCacheEntry *entry = (icu::TimeZoneNamesCacheEntry*)obj;
+    delete (icu::TimeZoneNamesImpl*) entry->names;
     uprv_free(entry);
 }
 U_CDECL_END
@@ -81,14 +82,13 @@ U_CDECL_END
  * the expiration time. This function must be called with in the mutex
  * block.
  */
-static void sweepCache()
-{
+static void sweepCache() {
     int32_t pos = UHASH_FIRST;
     const UHashElement* elem;
     double now = (double)uprv_getUTCtime();
 
     while ((elem = uhash_nextElement(gTimeZoneNamesCache, &pos)) != 0) {
-        TimeZoneNamesCacheEntry* entry = (TimeZoneNamesCacheEntry*)elem->value.pointer;
+        TimeZoneNamesCacheEntry *entry = (TimeZoneNamesCacheEntry *)elem->value.pointer;
         if (entry->refCount <= 0 && (now - entry->lastAccess) > CACHE_EXPIRATION) {
             // delete this entry
             uhash_removeElement(gTimeZoneNamesCache, elem);
@@ -105,10 +105,7 @@ public:
     virtual ~TimeZoneNamesDelegate();
 
     virtual bool operator==(const TimeZoneNames& other) const override;
-    virtual bool operator!=(const TimeZoneNames& other) const
-    {
-        return !operator==(other);
-    }
+    virtual bool operator!=(const TimeZoneNames& other) const {return !operator==(other);}
     virtual TimeZoneNamesDelegate* clone() const override;
 
     StringEnumeration* getAvailableMetaZoneIDs(UErrorCode& status) const override;
@@ -122,31 +119,27 @@ public:
     UnicodeString& getExemplarLocationName(const UnicodeString& tzID, UnicodeString& name) const override;
 
     void loadAllDisplayNames(UErrorCode& status) override;
-    void getDisplayNames(
-        const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const override;
+    void getDisplayNames(const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const override;
 
     MatchInfoCollection* find(const UnicodeString& text, int32_t start, uint32_t types, UErrorCode& status) const override;
-
 private:
     TimeZoneNamesDelegate();
-    TimeZoneNamesCacheEntry* fTZnamesCacheEntry;
+    TimeZoneNamesCacheEntry*    fTZnamesCacheEntry;
 };
 
 TimeZoneNamesDelegate::TimeZoneNamesDelegate()
-    : fTZnamesCacheEntry(0)
-{
+: fTZnamesCacheEntry(0) {
 }
 
-TimeZoneNamesDelegate::TimeZoneNamesDelegate(const Locale& locale, UErrorCode& status)
-{
+TimeZoneNamesDelegate::TimeZoneNamesDelegate(const Locale& locale, UErrorCode& status) {
     Mutex lock(&gTimeZoneNamesLock);
     if (!gTimeZoneNamesCacheInitialized) {
         // Create empty hashtable if it is not already initialized.
-        gTimeZoneNamesCache = uhash_open(uhash_hashChars, uhash_compareChars, NULL, &status);
+        gTimeZoneNamesCache = uhash_open(uhash_hashChars, uhash_compareChars, nullptr, &status);
         if (U_SUCCESS(status)) {
             uhash_setKeyDeleter(gTimeZoneNamesCache, uprv_free);
             uhash_setValueDeleter(gTimeZoneNamesCache, deleteTimeZoneNamesCacheEntry);
-            gTimeZoneNamesCacheInitialized = TRUE;
+            gTimeZoneNamesCacheInitialized = true;
             ucln_i18n_registerCleanup(UCLN_I18N_TIMEZONENAMES, timeZoneNames_cleanup);
         }
     }
@@ -156,29 +149,29 @@ TimeZoneNamesDelegate::TimeZoneNamesDelegate(const Locale& locale, UErrorCode& s
     }
 
     // Check the cache, if not available, create new one and cache
-    TimeZoneNamesCacheEntry* cacheEntry = NULL;
+    TimeZoneNamesCacheEntry *cacheEntry = nullptr;
 
-    const char* key = locale.getName();
-    cacheEntry = (TimeZoneNamesCacheEntry*)uhash_get(gTimeZoneNamesCache, key);
-    if (cacheEntry == NULL) {
-        TimeZoneNames* tznames = NULL;
-        char* newKey = NULL;
+    const char *key = locale.getName();
+    cacheEntry = (TimeZoneNamesCacheEntry *)uhash_get(gTimeZoneNamesCache, key);
+    if (cacheEntry == nullptr) {
+        TimeZoneNames *tznames = nullptr;
+        char *newKey = nullptr;
 
         tznames = new TimeZoneNamesImpl(locale, status);
-        if (tznames == NULL) {
+        if (tznames == nullptr) {
             status = U_MEMORY_ALLOCATION_ERROR;
         }
         if (U_SUCCESS(status)) {
-            newKey = (char*)uprv_malloc(uprv_strlen(key) + 1);
-            if (newKey == NULL) {
+            newKey = (char *)uprv_malloc(uprv_strlen(key) + 1);
+            if (newKey == nullptr) {
                 status = U_MEMORY_ALLOCATION_ERROR;
             } else {
                 uprv_strcpy(newKey, key);
             }
         }
         if (U_SUCCESS(status)) {
-            cacheEntry = (TimeZoneNamesCacheEntry*)uprv_malloc(sizeof(TimeZoneNamesCacheEntry));
-            if (cacheEntry == NULL) {
+            cacheEntry = (TimeZoneNamesCacheEntry *)uprv_malloc(sizeof(TimeZoneNamesCacheEntry));
+            if (cacheEntry == nullptr) {
                 status = U_MEMORY_ALLOCATION_ERROR;
             } else {
                 cacheEntry->names = tznames;
@@ -189,16 +182,16 @@ TimeZoneNamesDelegate::TimeZoneNamesDelegate(const Locale& locale, UErrorCode& s
             }
         }
         if (U_FAILURE(status)) {
-            if (tznames != NULL) {
+            if (tznames != nullptr) {
                 delete tznames;
             }
-            if (newKey != NULL) {
+            if (newKey != nullptr) {
                 uprv_free(newKey);
             }
-            if (cacheEntry != NULL) {
+            if (cacheEntry != nullptr) {
                 uprv_free(cacheEntry);
             }
-            cacheEntry = NULL;
+            cacheEntry = nullptr;
         }
     } else {
         // Update the reference count
@@ -214,8 +207,7 @@ TimeZoneNamesDelegate::TimeZoneNamesDelegate(const Locale& locale, UErrorCode& s
     fTZnamesCacheEntry = cacheEntry;
 }
 
-TimeZoneNamesDelegate::~TimeZoneNamesDelegate()
-{
+TimeZoneNamesDelegate::~TimeZoneNamesDelegate() {
     umtx_lock(&gTimeZoneNamesLock);
     {
         if (fTZnamesCacheEntry) {
@@ -227,8 +219,8 @@ TimeZoneNamesDelegate::~TimeZoneNamesDelegate()
     umtx_unlock(&gTimeZoneNamesLock);
 }
 
-bool TimeZoneNamesDelegate::operator==(const TimeZoneNames& other) const
-{
+bool
+TimeZoneNamesDelegate::operator==(const TimeZoneNames& other) const {
     if (this == &other) {
         return true;
     }
@@ -241,10 +233,10 @@ bool TimeZoneNamesDelegate::operator==(const TimeZoneNames& other) const
     return false;
 }
 
-TimeZoneNamesDelegate* TimeZoneNamesDelegate::clone() const
-{
+TimeZoneNamesDelegate*
+TimeZoneNamesDelegate::clone() const {
     TimeZoneNamesDelegate* other = new TimeZoneNamesDelegate();
-    if (other != NULL) {
+    if (other != nullptr) {
         umtx_lock(&gTimeZoneNamesLock);
         {
             // Just increment the reference count
@@ -256,98 +248,96 @@ TimeZoneNamesDelegate* TimeZoneNamesDelegate::clone() const
     return other;
 }
 
-StringEnumeration* TimeZoneNamesDelegate::getAvailableMetaZoneIDs(UErrorCode& status) const
-{
+StringEnumeration*
+TimeZoneNamesDelegate::getAvailableMetaZoneIDs(UErrorCode& status) const {
     return fTZnamesCacheEntry->names->getAvailableMetaZoneIDs(status);
 }
 
-StringEnumeration* TimeZoneNamesDelegate::getAvailableMetaZoneIDs(const UnicodeString& tzID, UErrorCode& status) const
-{
+StringEnumeration*
+TimeZoneNamesDelegate::getAvailableMetaZoneIDs(const UnicodeString& tzID, UErrorCode& status) const {
     return fTZnamesCacheEntry->names->getAvailableMetaZoneIDs(tzID, status);
 }
 
-UnicodeString& TimeZoneNamesDelegate::getMetaZoneID(const UnicodeString& tzID, UDate date, UnicodeString& mzID) const
-{
+UnicodeString&
+TimeZoneNamesDelegate::getMetaZoneID(const UnicodeString& tzID, UDate date, UnicodeString& mzID) const {
     return fTZnamesCacheEntry->names->getMetaZoneID(tzID, date, mzID);
 }
 
-UnicodeString& TimeZoneNamesDelegate::getReferenceZoneID(const UnicodeString& mzID, const char* region, UnicodeString& tzID) const
-{
+UnicodeString&
+TimeZoneNamesDelegate::getReferenceZoneID(const UnicodeString& mzID, const char* region, UnicodeString& tzID) const {
     return fTZnamesCacheEntry->names->getReferenceZoneID(mzID, region, tzID);
 }
 
-UnicodeString& TimeZoneNamesDelegate::getMetaZoneDisplayName(const UnicodeString& mzID, UTimeZoneNameType type, UnicodeString& name) const
-{
+UnicodeString&
+TimeZoneNamesDelegate::getMetaZoneDisplayName(const UnicodeString& mzID, UTimeZoneNameType type, UnicodeString& name) const {
     return fTZnamesCacheEntry->names->getMetaZoneDisplayName(mzID, type, name);
 }
 
-UnicodeString& TimeZoneNamesDelegate::getTimeZoneDisplayName(const UnicodeString& tzID, UTimeZoneNameType type, UnicodeString& name) const
-{
+UnicodeString&
+TimeZoneNamesDelegate::getTimeZoneDisplayName(const UnicodeString& tzID, UTimeZoneNameType type, UnicodeString& name) const {
     return fTZnamesCacheEntry->names->getTimeZoneDisplayName(tzID, type, name);
 }
 
-UnicodeString& TimeZoneNamesDelegate::getExemplarLocationName(const UnicodeString& tzID, UnicodeString& name) const
-{
+UnicodeString&
+TimeZoneNamesDelegate::getExemplarLocationName(const UnicodeString& tzID, UnicodeString& name) const {
     return fTZnamesCacheEntry->names->getExemplarLocationName(tzID, name);
 }
 
-void TimeZoneNamesDelegate::loadAllDisplayNames(UErrorCode& status)
-{
+void
+TimeZoneNamesDelegate::loadAllDisplayNames(UErrorCode& status) {
     fTZnamesCacheEntry->names->loadAllDisplayNames(status);
 }
 
-void TimeZoneNamesDelegate::getDisplayNames(
-    const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const
-{
+void
+TimeZoneNamesDelegate::getDisplayNames(const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const {
     fTZnamesCacheEntry->names->getDisplayNames(tzID, types, numTypes, date, dest, status);
 }
 
-TimeZoneNames::MatchInfoCollection* TimeZoneNamesDelegate::find(const UnicodeString& text, int32_t start, uint32_t types, UErrorCode& status) const
-{
+TimeZoneNames::MatchInfoCollection*
+TimeZoneNamesDelegate::find(const UnicodeString& text, int32_t start, uint32_t types, UErrorCode& status) const {
     return fTZnamesCacheEntry->names->find(text, start, types, status);
 }
 
 // ---------------------------------------------------
 // TimeZoneNames base class
 // ---------------------------------------------------
-TimeZoneNames::~TimeZoneNames()
-{
+TimeZoneNames::~TimeZoneNames() {
 }
 
-TimeZoneNames* TimeZoneNames::createInstance(const Locale& locale, UErrorCode& status)
-{
-    TimeZoneNames* instance = NULL;
+TimeZoneNames*
+TimeZoneNames::createInstance(const Locale& locale, UErrorCode& status) {
+    TimeZoneNames *instance = nullptr;
     if (U_SUCCESS(status)) {
         instance = new TimeZoneNamesDelegate(locale, status);
-        if (instance == NULL && U_SUCCESS(status)) {
+        if (instance == nullptr && U_SUCCESS(status)) {
             status = U_MEMORY_ALLOCATION_ERROR;
         }
     }
     return instance;
 }
 
-TimeZoneNames* TimeZoneNames::createTZDBInstance(const Locale& locale, UErrorCode& status)
-{
-    TimeZoneNames* instance = NULL;
+TimeZoneNames*
+TimeZoneNames::createTZDBInstance(const Locale& locale, UErrorCode& status) {
+    TimeZoneNames *instance = nullptr;
     if (U_SUCCESS(status)) {
         instance = new TZDBTimeZoneNames(locale);
-        if (instance == NULL && U_SUCCESS(status)) {
+        if (instance == nullptr && U_SUCCESS(status)) {
             status = U_MEMORY_ALLOCATION_ERROR;
         }
     }
     return instance;
 }
 
-UnicodeString& TimeZoneNames::getExemplarLocationName(const UnicodeString& tzID, UnicodeString& name) const
-{
+UnicodeString&
+TimeZoneNames::getExemplarLocationName(const UnicodeString& tzID, UnicodeString& name) const {
     return TimeZoneNamesImpl::getDefaultExemplarLocationName(tzID, name);
 }
 
-UnicodeString& TimeZoneNames::getDisplayName(const UnicodeString& tzID, UTimeZoneNameType type, UDate date, UnicodeString& name) const
-{
+UnicodeString&
+TimeZoneNames::getDisplayName(const UnicodeString& tzID, UTimeZoneNameType type, UDate date, UnicodeString& name) const {
     getTimeZoneDisplayName(tzID, type, name);
     if (name.isEmpty()) {
-        UChar mzIDBuf[32];
+        char16_t mzIDBuf[32];
         UnicodeString mzID(mzIDBuf, 0, UPRV_LENGTHOF(mzIDBuf));
         getMetaZoneID(tzID, date, mzID);
         getMetaZoneDisplayName(mzID, type, name);
@@ -356,21 +346,16 @@ UnicodeString& TimeZoneNames::getDisplayName(const UnicodeString& tzID, UTimeZon
 }
 
 // Empty default implementation, to be overridden in tznames_impl.cpp.
-void TimeZoneNames::loadAllDisplayNames(UErrorCode& /*status*/)
-{
+void
+TimeZoneNames::loadAllDisplayNames(UErrorCode& /*status*/) {
 }
 
 // A default, lightweight implementation of getDisplayNames.
 // Overridden in tznames_impl.cpp.
-void TimeZoneNames::getDisplayNames(
-    const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
-    if (tzID.isEmpty()) {
-        return;
-    }
+void
+TimeZoneNames::getDisplayNames(const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const {
+    if (U_FAILURE(status)) { return; }
+    if (tzID.isEmpty()) { return; }
     UnicodeString mzID;
     for (int i = 0; i < numTypes; i++) {
         getTimeZoneDisplayName(tzID, types[i], dest[i]);
@@ -383,30 +368,30 @@ void TimeZoneNames::getDisplayNames(
     }
 }
 
+
 struct MatchInfo : UMemory {
     UTimeZoneNameType nameType;
     UnicodeString id;
     int32_t matchLength;
     UBool isTZID;
 
-    MatchInfo(UTimeZoneNameType nameType, int32_t matchLength, const UnicodeString* tzID, const UnicodeString* mzID)
-    {
+    MatchInfo(UTimeZoneNameType nameType, int32_t matchLength, const UnicodeString* tzID, const UnicodeString* mzID) {
         this->nameType = nameType;
         this->matchLength = matchLength;
-        if (tzID != NULL) {
+        if (tzID != nullptr) {
             this->id.setTo(*tzID);
-            this->isTZID = TRUE;
+            this->isTZID = true;
         } else {
             this->id.setTo(*mzID);
-            this->isTZID = FALSE;
+            this->isTZID = false;
         }
     }
 };
 
 U_CDECL_BEGIN
-static void U_CALLCONV deleteMatchInfo(void* obj)
-{
-    delete static_cast<MatchInfo*>(obj);
+static void U_CALLCONV
+deleteMatchInfo(void *obj) {
+    delete static_cast<MatchInfo *>(obj);
 }
 U_CDECL_END
 
@@ -414,53 +399,53 @@ U_CDECL_END
 // MatchInfoCollection class
 // ---------------------------------------------------
 TimeZoneNames::MatchInfoCollection::MatchInfoCollection()
-    : fMatches(NULL)
-{
+: fMatches(nullptr) {
 }
 
-TimeZoneNames::MatchInfoCollection::~MatchInfoCollection()
-{
-    if (fMatches != NULL) {
+TimeZoneNames::MatchInfoCollection::~MatchInfoCollection() {
+    if (fMatches != nullptr) {
         delete fMatches;
     }
 }
 
-void TimeZoneNames::MatchInfoCollection::addZone(UTimeZoneNameType nameType, int32_t matchLength, const UnicodeString& tzID, UErrorCode& status)
-{
+void
+TimeZoneNames::MatchInfoCollection::addZone(UTimeZoneNameType nameType, int32_t matchLength,
+            const UnicodeString& tzID, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return;
     }
-    LocalPointer<MatchInfo> matchInfo(new MatchInfo(nameType, matchLength, &tzID, NULL), status);
-    UVector* matchesVec = matches(status);
-    if (U_FAILURE(status)) {
-        return;
-    }
-    matchesVec->adoptElement(matchInfo.orphan(), status);
-}
-
-void TimeZoneNames::MatchInfoCollection::addMetaZone(UTimeZoneNameType nameType, int32_t matchLength, const UnicodeString& mzID, UErrorCode& status)
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
-    LocalPointer<MatchInfo> matchInfo(new MatchInfo(nameType, matchLength, NULL, &mzID), status);
-    UVector* matchesVec = matches(status);
+    LocalPointer <MatchInfo> matchInfo(new MatchInfo(nameType, matchLength, &tzID, nullptr), status);
+    UVector *matchesVec = matches(status);
     if (U_FAILURE(status)) {
         return;
     }
     matchesVec->adoptElement(matchInfo.orphan(), status);
 }
 
-int32_t TimeZoneNames::MatchInfoCollection::size() const
-{
-    if (fMatches == NULL) {
+void
+TimeZoneNames::MatchInfoCollection::addMetaZone(UTimeZoneNameType nameType, int32_t matchLength,
+            const UnicodeString& mzID, UErrorCode& status) {
+    if (U_FAILURE(status)) {
+        return;
+    }
+    LocalPointer<MatchInfo> matchInfo(new MatchInfo(nameType, matchLength, nullptr, &mzID), status);
+    UVector *matchesVec = matches(status);
+    if (U_FAILURE(status)) {
+        return;
+    }
+    matchesVec->adoptElement(matchInfo.orphan(), status);
+}
+
+int32_t
+TimeZoneNames::MatchInfoCollection::size() const {
+    if (fMatches == nullptr) {
         return 0;
     }
     return fMatches->size();
 }
 
-UTimeZoneNameType TimeZoneNames::MatchInfoCollection::getNameTypeAt(int32_t idx) const
-{
+UTimeZoneNameType
+TimeZoneNames::MatchInfoCollection::getNameTypeAt(int32_t idx) const {
     const MatchInfo* match = (const MatchInfo*)fMatches->elementAt(idx);
     if (match) {
         return match->nameType;
@@ -468,8 +453,8 @@ UTimeZoneNameType TimeZoneNames::MatchInfoCollection::getNameTypeAt(int32_t idx)
     return UTZNM_UNKNOWN;
 }
 
-int32_t TimeZoneNames::MatchInfoCollection::getMatchLengthAt(int32_t idx) const
-{
+int32_t
+TimeZoneNames::MatchInfoCollection::getMatchLengthAt(int32_t idx) const {
     const MatchInfo* match = (const MatchInfo*)fMatches->elementAt(idx);
     if (match) {
         return match->matchLength;
@@ -477,45 +462,46 @@ int32_t TimeZoneNames::MatchInfoCollection::getMatchLengthAt(int32_t idx) const
     return 0;
 }
 
-UBool TimeZoneNames::MatchInfoCollection::getTimeZoneIDAt(int32_t idx, UnicodeString& tzID) const
-{
+UBool
+TimeZoneNames::MatchInfoCollection::getTimeZoneIDAt(int32_t idx, UnicodeString& tzID) const {
     tzID.remove();
     const MatchInfo* match = (const MatchInfo*)fMatches->elementAt(idx);
     if (match && match->isTZID) {
         tzID.setTo(match->id);
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
-UBool TimeZoneNames::MatchInfoCollection::getMetaZoneIDAt(int32_t idx, UnicodeString& mzID) const
-{
+UBool
+TimeZoneNames::MatchInfoCollection::getMetaZoneIDAt(int32_t idx, UnicodeString& mzID) const {
     mzID.remove();
     const MatchInfo* match = (const MatchInfo*)fMatches->elementAt(idx);
     if (match && !match->isTZID) {
         mzID.setTo(match->id);
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
-UVector* TimeZoneNames::MatchInfoCollection::matches(UErrorCode& status)
-{
+UVector*
+TimeZoneNames::MatchInfoCollection::matches(UErrorCode& status) {
     if (U_FAILURE(status)) {
-        return NULL;
+        return nullptr;
     }
-    if (fMatches != NULL) {
+    if (fMatches != nullptr) {
         return fMatches;
     }
-    fMatches = new UVector(deleteMatchInfo, NULL, status);
-    if (fMatches == NULL) {
+    fMatches = new UVector(deleteMatchInfo, nullptr, status);
+    if (fMatches == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
     } else if (U_FAILURE(status)) {
         delete fMatches;
-        fMatches = NULL;
+        fMatches = nullptr;
     }
     return fMatches;
 }
+
 
 U_NAMESPACE_END
 #endif

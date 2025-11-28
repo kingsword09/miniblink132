@@ -33,31 +33,33 @@
 #define BUF_SIZE 128
 
 /* Print a ustring to the specified FILE* in the default codepage */
-static void uprint(const UChar* s, int32_t sourceLen, FILE* f, UErrorCode* status)
+static void
+uprint(const UChar *s,
+       int32_t sourceLen,
+       FILE *f,
+       UErrorCode *status)
 {
     /* converter */
-    UConverter* converter;
-    char buf[BUF_SIZE];
-    const UChar* mySource;
-    const UChar* mySourceEnd;
-    char* myTarget;
+    UConverter *converter;
+    char buf [BUF_SIZE];
+    const UChar *mySource;
+    const UChar *mySourceEnd;
+    char *myTarget;
     int32_t arraySize;
 
-    if (s == 0)
-        return;
+    if(s == 0) return;
 
     /* set up the conversion parameters */
-    mySource = s;
-    mySourceEnd = mySource + sourceLen;
-    myTarget = buf;
-    arraySize = BUF_SIZE;
+    mySource     = s;
+    mySourceEnd  = mySource + sourceLen;
+    myTarget     = buf;
+    arraySize    = BUF_SIZE;
 
     /* open a default converter */
     converter = ucnv_open(0, status);
 
     /* if we failed, clean up and exit */
-    if (U_FAILURE(*status))
-        goto finish;
+    if(U_FAILURE(*status)) goto finish;
 
     /* perform the conversion */
     do {
@@ -65,15 +67,18 @@ static void uprint(const UChar* s, int32_t sourceLen, FILE* f, UErrorCode* statu
         *status = U_ZERO_ERROR;
 
         /* perform the conversion */
-        ucnv_fromUnicode(converter, &myTarget, myTarget + arraySize, &mySource, mySourceEnd, NULL, true, status);
+        ucnv_fromUnicode(converter, &myTarget,  myTarget + arraySize,
+            &mySource, mySourceEnd, NULL,
+            true, status);
 
         /* Write the converted data to the FILE* */
         fwrite(buf, sizeof(char), myTarget - buf, f);
 
         /* update the conversion parameters*/
-        myTarget = buf;
-        arraySize = BUF_SIZE;
-    } while (*status == U_BUFFER_OVERFLOW_ERROR);
+        myTarget     = buf;
+        arraySize    = BUF_SIZE;
+    }
+    while(*status == U_BUFFER_OVERFLOW_ERROR); 
 
 finish:
 
@@ -81,47 +86,53 @@ finish:
     ucnv_close(converter);
 }
 
-static UResourceBundle* gBundle = NULL;
+static UResourceBundle *gBundle = NULL;
 
 U_STRING_DECL(gNoFormatting, " (UCONFIG_NO_FORMATTING see uconfig.h)", 38);
 
-U_CFUNC UResourceBundle* u_wmsg_setPath(const char* path, UErrorCode* err)
+U_CFUNC UResourceBundle *u_wmsg_setPath(const char *path, UErrorCode *err)
 {
-    if (U_FAILURE(*err)) {
-        return 0;
+  if(U_FAILURE(*err))
+  {
+    return 0;
+  }
+
+  if(gBundle != NULL)
+  {
+    *err = U_ILLEGAL_ARGUMENT_ERROR;
+    return 0;
+  }
+  else
+  {
+    UResourceBundle *b = NULL;
+    b = ures_open(path, NULL, err);
+    if(U_FAILURE(*err))
+    {
+         return 0;
     }
 
-    if (gBundle != NULL) {
-        *err = U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    } else {
-        UResourceBundle* b = NULL;
-        b = ures_open(path, NULL, err);
-        if (U_FAILURE(*err)) {
-            return 0;
-        }
+    gBundle = b;
 
-        gBundle = b;
-
-        U_STRING_INIT(gNoFormatting, " (UCONFIG_NO_FORMATTING see uconfig.h)", 38);
-    }
-
-    return gBundle;
+    U_STRING_INIT(gNoFormatting, " (UCONFIG_NO_FORMATTING see uconfig.h)", 38);
+  }
+  
+  return gBundle;
 }
 
 /* Format a message and print it's output to fp */
-U_CFUNC int u_wmsg(FILE* fp, const char* tag, ...)
+U_CFUNC int u_wmsg(FILE *fp, const char *tag, ... )
 {
-    const UChar* msg;
-    int32_t msgLen;
-    UErrorCode err = U_ZERO_ERROR;
+    const UChar *msg;
+    int32_t      msgLen;
+    UErrorCode  err = U_ZERO_ERROR;
 #if !UCONFIG_NO_FORMATTING
     va_list ap;
 #endif
-    UChar result[4096];
+    UChar   result[4096];
     int32_t resultLength = UPRV_LENGTHOF(result);
 
-    if (gBundle == NULL) {
+    if(gBundle == NULL)
+    {
 #if 0
         fprintf(stderr, "u_wmsg: No path set!!\n"); /* FIXME: codepage?? */
 #endif
@@ -130,29 +141,31 @@ U_CFUNC int u_wmsg(FILE* fp, const char* tag, ...)
 
     msg = ures_getStringByKey(gBundle, tag, &msgLen, &err);
 
-    if (U_FAILURE(err)) {
+    if(U_FAILURE(err))
+    {
         return -1;
     }
 
 #if UCONFIG_NO_FORMATTING
     resultLength = UPRV_LENGTHOF(gNoFormatting);
-    if ((msgLen + resultLength) <= UPRV_LENGTHOF(result)) {
+    if((msgLen + resultLength) <= UPRV_LENGTHOF(result)) {
         memcpy(result, msg, msgLen * U_SIZEOF_UCHAR);
         memcpy(result + msgLen, gNoFormatting, resultLength);
         resultLength += msgLen;
         uprint(result, resultLength, fp, &err);
     } else {
-        uprint(msg, msgLen, fp, &err);
+        uprint(msg,msgLen, fp, &err);
     }
 #else
-    (void)gNoFormatting; // suppress -Wunused-variable
+    (void)gNoFormatting;  // suppress -Wunused-variable
     va_start(ap, tag);
 
     resultLength = u_vformatMessage(uloc_getDefault(), msg, msgLen, result, resultLength, ap, &err);
 
     va_end(ap);
 
-    if (U_FAILURE(err)) {
+    if(U_FAILURE(err))
+    {
 #if 0
         fprintf(stderr, "u_wmsg: failed to format %s:%s, err %s\n",
             uloc_getDefault(),
@@ -160,14 +173,15 @@ U_CFUNC int u_wmsg(FILE* fp, const char* tag, ...)
             u_errorName(err));
 #endif
         err = U_ZERO_ERROR;
-        uprint(msg, msgLen, fp, &err);
+        uprint(msg,msgLen, fp, &err);
         return -1;
     }
 
     uprint(result, resultLength, fp, &err);
 #endif
 
-    if (U_FAILURE(err)) {
+    if(U_FAILURE(err))
+    {
 #if 0
         fprintf(stderr, "u_wmsg: failed to print %s: %s, err %s\n",
             uloc_getDefault(),
@@ -181,53 +195,58 @@ U_CFUNC int u_wmsg(FILE* fp, const char* tag, ...)
 }
 
 /* these will break if the # of messages change. simply add or remove 0's .. */
-UChar** gInfoMessages = NULL;
+UChar **gInfoMessages = NULL;
 
-UChar** gErrMessages = NULL;
+UChar **gErrMessages = NULL;
 
-static const UChar* fetchErrorName(UErrorCode err)
+static const UChar *fetchErrorName(UErrorCode err)
 {
     if (!gInfoMessages) {
-        gInfoMessages = (UChar**)malloc((U_ERROR_WARNING_LIMIT - U_ERROR_WARNING_START) * sizeof(UChar*));
-        memset(gInfoMessages, 0, (U_ERROR_WARNING_LIMIT - U_ERROR_WARNING_START) * sizeof(UChar*));
+        gInfoMessages = (UChar **)malloc((U_ERROR_WARNING_LIMIT-U_ERROR_WARNING_START)*sizeof(UChar*));
+        memset(gInfoMessages, 0, (U_ERROR_WARNING_LIMIT-U_ERROR_WARNING_START)*sizeof(UChar*));
     }
     if (!gErrMessages) {
-        gErrMessages = (UChar**)malloc(U_ERROR_LIMIT * sizeof(UChar*));
-        memset(gErrMessages, 0, U_ERROR_LIMIT * sizeof(UChar*));
+        gErrMessages = (UChar **)malloc(U_ERROR_LIMIT*sizeof(UChar*));
+        memset(gErrMessages, 0, U_ERROR_LIMIT*sizeof(UChar*));
     }
-    if (err >= 0)
+    if(err>=0)
         return gErrMessages[err];
     else
-        return gInfoMessages[err - U_ERROR_WARNING_START];
+        return gInfoMessages[err-U_ERROR_WARNING_START];
 }
 
-U_CFUNC const UChar* u_wmsg_errorName(UErrorCode err)
+U_CFUNC const UChar *u_wmsg_errorName(UErrorCode err)
 {
-    UChar* msg;
+    UChar *msg;
     int32_t msgLen;
     UErrorCode subErr = U_ZERO_ERROR;
-    const char* textMsg = NULL;
+    const char *textMsg = NULL;
 
     /* try the cache */
     msg = (UChar*)fetchErrorName(err);
 
-    if (msg) {
+    if(msg)
+    {
         return msg;
     }
 
-    if (gBundle == NULL) {
+    if(gBundle == NULL)
+    {
         msg = NULL;
-    } else {
-        const char* errname = u_errorName(err);
+    }
+    else
+    {
+        const char *errname = u_errorName(err);
         if (errname) {
             msg = (UChar*)ures_getStringByKey(gBundle, errname, &msgLen, &subErr);
-            if (U_FAILURE(subErr)) {
+            if(U_FAILURE(subErr))
+            {
                 msg = NULL;
             }
         }
     }
 
-    if (msg == NULL) /* Couldn't find it anywhere.. */
+    if(msg == NULL)  /* Couldn't find it anywhere.. */
     {
         char error[128];
         textMsg = u_errorName(err);
@@ -235,14 +254,14 @@ U_CFUNC const UChar* u_wmsg_errorName(UErrorCode err)
             sprintf(error, "UNDOCUMENTED ICU ERROR %d", err);
             textMsg = error;
         }
-        msg = (UChar*)malloc((strlen(textMsg) + 1) * sizeof(msg[0]));
-        u_charsToUChars(textMsg, msg, (int32_t)(strlen(textMsg) + 1));
+        msg = (UChar*)malloc((strlen(textMsg)+1)*sizeof(msg[0]));
+        u_charsToUChars(textMsg, msg, (int32_t)(strlen(textMsg)+1));
     }
 
-    if (err >= 0)
+    if(err>=0)
         gErrMessages[err] = msg;
     else
-        gInfoMessages[err - U_ERROR_WARNING_START] = msg;
+        gInfoMessages[err-U_ERROR_WARNING_START] = msg;
 
     return msg;
 }

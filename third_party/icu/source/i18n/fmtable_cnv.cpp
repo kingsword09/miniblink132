@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -41,4 +41,4 @@ U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING || !UCONFIG_NO_CONVERSION */
 
-// eof
+//eof

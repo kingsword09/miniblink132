@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -10,7 +10,7 @@
 #define TZRULE_H
 
 /**
- * \file
+ * \file 
  * \brief C++ API: Time zone rule classes
  */
 
@@ -30,7 +30,7 @@ U_NAMESPACE_BEGIN
  * <code>TimeZoneRule</code> is a class representing a rule for time zone.
  * <code>TimeZoneRule</code> has a set of time zone attributes, such as zone name,
  * raw offset (UTC offset for standard time) and daylight saving time offset.
- *
+ * 
  * @stable ICU 3.8
  */
 class U_I18N_API TimeZoneRule : public UObject {
@@ -140,7 +140,8 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const = 0;
+    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const = 0;
 
     /**
      * Gets the most recent time when this rule takes effect before the specified time.
@@ -156,9 +157,11 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const = 0;
+    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const = 0;
 
 protected:
+
     /**
      * Constructs a <code>TimeZoneRule</code> with the name, the GMT offset of its
      * standard time and the amount of daylight saving offset adjustment.
@@ -186,7 +189,7 @@ protected:
 
 private:
     UnicodeString fName; // time name
-    int32_t fRawOffset; // UTC offset of the standard time in milliseconds
+    int32_t fRawOffset;  // UTC offset of the standard time in milliseconds
     int32_t fDSTSavings; // DST saving amount in milliseconds
 };
 
@@ -256,20 +259,6 @@ public:
     virtual bool operator!=(const TimeZoneRule& that) const override;
 
     /**
-     * Gets the time when this rule takes effect in the given year.
-     * @param year              The Gregorian year, with 0 == 1 BCE, -1 == 2 BCE, etc.
-     * @param prevRawOffset     The standard time offset from UTC before this rule
-     *                          takes effect in milliseconds.
-     * @param prevDSTSavings    The amount of daylight saving offset from the
-     *                          standard time.
-     * @param result            Receives the start time in the year.
-     * @return  true if this rule takes effect in the year and the result is set to
-     *          "result".
-     * @stable ICU 3.8
-     */
-    UBool getStartInYear(int32_t year, int32_t prevRawOffset, int32_t prevDSTSavings, UDate& result) const;
-
-    /**
      * Returns if this rule represents the same rule and offsets as another.
      * When two <code>TimeZoneRule</code> objects differ only its names, this method
      * returns true.
@@ -319,7 +308,8 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const override;
+    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const override;
 
     /**
      * Gets the most recent time when this rule takes effect before the specified time.
@@ -335,7 +325,8 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const override;
+    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const override;
 
 public:
     /**
@@ -369,7 +360,7 @@ public:
  * <code>AnnualTimeZoneRule</code> is a class used for representing a time zone
  * rule which takes effect annually.  The calendar system used for the rule is
  * is based on Gregorian calendar
- *
+ * 
  * @stable ICU 3.8
  */
 class U_I18N_API AnnualTimeZoneRule : public TimeZoneRule {
@@ -396,7 +387,8 @@ public:
      *                      rule is effective forever in future, specify MAX_YEAR.
      * @stable ICU 3.8
      */
-    AnnualTimeZoneRule(const UnicodeString& name, int32_t rawOffset, int32_t dstSavings, const DateTimeRule& dateTimeRule, int32_t startYear, int32_t endYear);
+    AnnualTimeZoneRule(const UnicodeString& name, int32_t rawOffset, int32_t dstSavings,
+            const DateTimeRule& dateTimeRule, int32_t startYear, int32_t endYear);
 
     /**
      * Constructs a <code>AnnualTimeZoneRule</code> with the name, the GMT offset of its
@@ -414,7 +406,8 @@ public:
      *                      rule is effective forever in future, specify MAX_YEAR.
      * @stable ICU 3.8
      */
-    AnnualTimeZoneRule(const UnicodeString& name, int32_t rawOffset, int32_t dstSavings, DateTimeRule* dateTimeRule, int32_t startYear, int32_t endYear);
+    AnnualTimeZoneRule(const UnicodeString& name, int32_t rawOffset, int32_t dstSavings,
+            DateTimeRule* dateTimeRule, int32_t startYear, int32_t endYear);
 
     /**
      * Copy constructor.
@@ -550,7 +543,8 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const override;
+    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const override;
 
     /**
      * Gets the most recent time when this rule takes effect before the specified time.
@@ -566,7 +560,9 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const override;
+    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const override;
+
 
 private:
     DateTimeRule* fDateTimeRule;
@@ -604,7 +600,7 @@ public:
 /**
  * <code>TimeArrayTimeZoneRule</code> represents a time zone rule whose start times are
  * defined by an array of milliseconds since the standard base time.
- *
+ * 
  * @stable ICU 3.8
  */
 class U_I18N_API TimeArrayTimeZoneRule : public TimeZoneRule {
@@ -626,8 +622,8 @@ public:
      *                      and <code>UTC_TIME</code>.
      * @stable ICU 3.8
      */
-    TimeArrayTimeZoneRule(const UnicodeString& name, int32_t rawOffset, int32_t dstSavings, const UDate* startTimes, int32_t numStartTimes,
-        DateTimeRule::TimeRuleType timeRuleType);
+    TimeArrayTimeZoneRule(const UnicodeString& name, int32_t rawOffset, int32_t dstSavings,
+        const UDate* startTimes, int32_t numStartTimes, DateTimeRule::TimeRuleType timeRuleType);
 
     /**
      * Copy constructor.
@@ -679,7 +675,7 @@ public:
      * Gets the time type of the start times used by this rule.  The return value
      * is either <code>DateTimeRule::WALL_TIME</code> or <code>STANDARD_TIME</code>
      * or <code>UTC_TIME</code>.
-     *
+     * 
      * @return The time type used of the start times used by this rule.
      * @stable ICU 3.8
      */
@@ -753,7 +749,8 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const override;
+    virtual UBool getNextStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const override;
 
     /**
      * Gets the most recent time when this rule takes effect before the specified time.
@@ -769,17 +766,19 @@ public:
      *          "result" is unchanged.
      * @stable ICU 3.8
      */
-    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result) const override;
+    virtual UBool getPreviousStart(UDate base, int32_t prevRawOffset, int32_t prevDSTSavings,
+        UBool inclusive, UDate& result) const override;
+
 
 private:
     enum { TIMEARRAY_STACK_BUFFER_SIZE = 32 };
     UBool initStartTimes(const UDate source[], int32_t size, UErrorCode& ec);
     UDate getUTC(UDate time, int32_t raw, int32_t dst) const;
 
-    DateTimeRule::TimeRuleType fTimeRuleType;
+    DateTimeRule::TimeRuleType  fTimeRuleType;
     int32_t fNumStartTimes;
-    UDate* fStartTimes;
-    UDate fLocalStartTimes[TIMEARRAY_STACK_BUFFER_SIZE];
+    UDate*  fStartTimes;
+    UDate   fLocalStartTimes[TIMEARRAY_STACK_BUFFER_SIZE];
 
 public:
     /**
@@ -809,6 +808,7 @@ public:
     virtual UClassID getDynamicClassID(void) const override;
 };
 
+
 U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
@@ -817,4 +817,4 @@ U_NAMESPACE_END
 
 #endif // TZRULE_H
 
-// eof
+//eof

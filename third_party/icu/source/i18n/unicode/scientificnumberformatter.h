@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -15,10 +15,11 @@
 
 #if !UCONFIG_NO_FORMATTING
 
+
 #include "unicode/unistr.h"
 
 /**
- * \file
+ * \file 
  * \brief C++ API: Formats in scientific notation.
  */
 
@@ -50,6 +51,7 @@ class Formattable;
  */
 class U_I18N_API ScientificNumberFormatter : public UObject {
 public:
+
     /**
      * Creates a ScientificNumberFormatter instance that uses
      * superscript characters for exponents.
@@ -60,7 +62,8 @@ public:
      *
      * @stable ICU 55
      */
-    static ScientificNumberFormatter* createSuperscriptInstance(DecimalFormat* fmtToAdopt, UErrorCode& status);
+    static ScientificNumberFormatter *createSuperscriptInstance(
+            DecimalFormat *fmtToAdopt, UErrorCode &status);
 
     /**
      * Creates a ScientificNumberFormatter instance that uses
@@ -71,7 +74,9 @@ public:
      *
      * @stable ICU 55
      */
-    static ScientificNumberFormatter* createSuperscriptInstance(const Locale& locale, UErrorCode& status);
+    static ScientificNumberFormatter *createSuperscriptInstance(
+            const Locale &locale, UErrorCode &status);
+
 
     /**
      * Creates a ScientificNumberFormatter instance that uses
@@ -85,8 +90,11 @@ public:
      *
      * @stable ICU 55
      */
-    static ScientificNumberFormatter* createMarkupInstance(
-        DecimalFormat* fmtToAdopt, const UnicodeString& beginMarkup, const UnicodeString& endMarkup, UErrorCode& status);
+    static ScientificNumberFormatter *createMarkupInstance(
+            DecimalFormat *fmtToAdopt,
+            const UnicodeString &beginMarkup,
+            const UnicodeString &endMarkup,
+            UErrorCode &status);
 
     /**
      * Creates a ScientificNumberFormatter instance that uses
@@ -99,15 +107,18 @@ public:
      *
      * @stable ICU 55
      */
-    static ScientificNumberFormatter* createMarkupInstance(
-        const Locale& locale, const UnicodeString& beginMarkup, const UnicodeString& endMarkup, UErrorCode& status);
+    static ScientificNumberFormatter *createMarkupInstance(
+            const Locale &locale,
+            const UnicodeString &beginMarkup,
+            const UnicodeString &endMarkup,
+            UErrorCode &status);
+
 
     /**
      * Returns a copy of this object. Caller must free returned copy.
      * @stable ICU 55
      */
-    ScientificNumberFormatter* clone() const
-    {
+    ScientificNumberFormatter *clone() const {
         return new ScientificNumberFormatter(*this);
     }
 
@@ -127,68 +138,85 @@ public:
      *
      * @stable ICU 55
      */
-    UnicodeString& format(const Formattable& number, UnicodeString& appendTo, UErrorCode& status) const;
-
-private:
+    UnicodeString &format(
+            const Formattable &number,
+            UnicodeString &appendTo,
+            UErrorCode &status) const;
+ private:
     class U_I18N_API Style : public UObject {
     public:
-        virtual Style* clone() const = 0;
-
+        virtual Style *clone() const = 0;
     protected:
-        virtual UnicodeString& format(
-            const UnicodeString& original, FieldPositionIterator& fpi, const UnicodeString& preExponent, UnicodeString& appendTo, UErrorCode& status) const
-            = 0;
-
+        virtual UnicodeString &format(
+                const UnicodeString &original,
+                FieldPositionIterator &fpi,
+                const UnicodeString &preExponent,
+                UnicodeString &appendTo,
+                UErrorCode &status) const = 0;
     private:
         friend class ScientificNumberFormatter;
     };
 
     class U_I18N_API SuperscriptStyle : public Style {
     public:
-        virtual SuperscriptStyle* clone() const override;
-
+        virtual SuperscriptStyle *clone() const override;
     protected:
-        virtual UnicodeString& format(const UnicodeString& original, FieldPositionIterator& fpi, const UnicodeString& preExponent, UnicodeString& appendTo,
-            UErrorCode& status) const override;
+        virtual UnicodeString &format(
+                const UnicodeString &original,
+                FieldPositionIterator &fpi,
+                const UnicodeString &preExponent,
+                UnicodeString &appendTo,
+                UErrorCode &status) const override;
     };
 
     class U_I18N_API MarkupStyle : public Style {
     public:
-        MarkupStyle(const UnicodeString& beginMarkup, const UnicodeString& endMarkup)
-            : Style()
-            , fBeginMarkup(beginMarkup)
-            , fEndMarkup(endMarkup)
-        {
-        }
-        virtual MarkupStyle* clone() const override;
-
+        MarkupStyle(
+                const UnicodeString &beginMarkup,
+                const UnicodeString &endMarkup)
+                : Style(),
+                  fBeginMarkup(beginMarkup),
+                  fEndMarkup(endMarkup) { }
+        virtual MarkupStyle *clone() const override;
     protected:
-        virtual UnicodeString& format(const UnicodeString& original, FieldPositionIterator& fpi, const UnicodeString& preExponent, UnicodeString& appendTo,
-            UErrorCode& status) const override;
-
+        virtual UnicodeString &format(
+                const UnicodeString &original,
+                FieldPositionIterator &fpi,
+                const UnicodeString &preExponent,
+                UnicodeString &appendTo,
+                UErrorCode &status) const override;
     private:
         UnicodeString fBeginMarkup;
         UnicodeString fEndMarkup;
     };
 
-    ScientificNumberFormatter(DecimalFormat* fmtToAdopt, Style* styleToAdopt, UErrorCode& status);
+    ScientificNumberFormatter(
+            DecimalFormat *fmtToAdopt,
+            Style *styleToAdopt,
+            UErrorCode &status);
 
-    ScientificNumberFormatter(const ScientificNumberFormatter& other);
-    ScientificNumberFormatter& operator=(const ScientificNumberFormatter&);
+    ScientificNumberFormatter(const ScientificNumberFormatter &other);
+    ScientificNumberFormatter &operator=(const ScientificNumberFormatter &) = delete;
 
-    static void getPreExponent(const DecimalFormatSymbols& dfs, UnicodeString& preExponent);
+    static void getPreExponent(
+            const DecimalFormatSymbols &dfs, UnicodeString &preExponent);
 
-    static ScientificNumberFormatter* createInstance(DecimalFormat* fmtToAdopt, Style* styleToAdopt, UErrorCode& status);
+    static ScientificNumberFormatter *createInstance(
+            DecimalFormat *fmtToAdopt,
+            Style *styleToAdopt,
+            UErrorCode &status);
 
     UnicodeString fPreExponent;
-    DecimalFormat* fDecimalFormat;
-    Style* fStyle;
+    DecimalFormat *fDecimalFormat;
+    Style *fStyle;
+
 };
 
 U_NAMESPACE_END
+
 
 #endif /* !UCONFIG_NO_FORMATTING */
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
-#endif
+#endif 

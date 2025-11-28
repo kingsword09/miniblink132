@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -23,17 +23,19 @@ U_NAMESPACE_BEGIN
  *
  * @internal
  */
-class CharsetRecog_UTF8 : public CharsetRecognizer {
+class CharsetRecog_UTF8: public CharsetRecognizer {
 
-public:
-    virtual ~CharsetRecog_UTF8();
+ public:
+		
+    virtual ~CharsetRecog_UTF8();		 
 
-    const char* getName() const override;
+    const char *getName() const override;
 
     /* (non-Javadoc)
      * @see com.ibm.icu.text.CharsetRecognizer#match(com.ibm.icu.text.CharsetDetector)
      */
-    UBool match(InputText* input, CharsetMatch* results) const override;
+    UBool match(InputText *input, CharsetMatch *results) const override;
+	
 };
 
 U_NAMESPACE_END

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -27,7 +27,8 @@ U_NAMESPACE_BEGIN
 class UnicodeMatcher;
 
 class U_COMMON_API ICU_Utility /* not : public UObject because all methods are static */ {
-public:
+ public:
+
     /**
      * Append a number to the given UnicodeString in the given radix.
      * Standard digits '0'-'9' are used and letters 'A'-'Z' for
@@ -41,11 +42,12 @@ public:
      * digit is always emitted regardless of this parameter.
      * @return a reference to result
      */
-    static UnicodeString& appendNumber(UnicodeString& result, int32_t n, int32_t radix = 10, int32_t minDigits = 1);
+    static UnicodeString& appendNumber(UnicodeString& result, int32_t n,
+                                       int32_t radix = 10,
+                                       int32_t minDigits = 1);
 
     /** Returns a bogus UnicodeString by value. */
-    static inline UnicodeString makeBogusString()
-    {
+    static inline UnicodeString makeBogusString() {
         UnicodeString result;
         result.setToBogus();
         return result;
@@ -75,7 +77,7 @@ public:
      * for U+0000 to U+FFFF and \Uxxxxxxxx for U+10000 and above.
      * @return result
      */
-    static UnicodeString& escape(UnicodeString& result, UChar32 c);
+    static UnicodeString &escape(UnicodeString& result, UChar32 c);
 
     /**
      * Returns the index of a character, ignoring quoted text.
@@ -89,10 +91,10 @@ public:
      * @param c character to search for
      * @return Offset of the first instance of c, or -1 if not found.
      */
-    //?FOR FUTURE USE.  DISABLE FOR NOW for coverage reasons.
-    //    static int32_t quotedIndexOf(const UnicodeString& text,
-    //                                 int32_t start, int32_t limit,
-    //                                 UChar c);
+//?FOR FUTURE USE.  DISABLE FOR NOW for coverage reasons.
+//    static int32_t quotedIndexOf(const UnicodeString& text,
+//                                 int32_t start, int32_t limit,
+//                                 char16_t c);
 
     /**
      * Skip over a sequence of zero or more white space characters at pos.
@@ -102,7 +104,8 @@ public:
      * @return the index of the first non-white-space character at or
      * after pos, or str.length(), if there is none.
      */
-    static int32_t skipWhitespace(const UnicodeString& str, int32_t& pos, UBool advance = false);
+    static int32_t skipWhitespace(const UnicodeString& str, int32_t& pos,
+                                  UBool advance = false);
 
     /**
      * Skip over Pattern_White_Space in a Replaceable.
@@ -121,9 +124,9 @@ public:
      * @return the new start or limit, depending on what was passed in to
      * 'pos'
      */
-    //?FOR FUTURE USE.  DISABLE FOR NOW for coverage reasons.
-    //?    static int32_t skipWhitespace(const Replaceable& text,
-    //?                                  int32_t pos, int32_t stop);
+//?FOR FUTURE USE.  DISABLE FOR NOW for coverage reasons.
+//?    static int32_t skipWhitespace(const Replaceable& text,
+//?                                  int32_t pos, int32_t stop);
 
     /**
      * Parse a single non-whitespace character 'ch', optionally
@@ -137,7 +140,7 @@ public:
      * @return true if 'ch' is seen preceded by zero or more
      * whitespace characters.
      */
-    static UBool parseChar(const UnicodeString& id, int32_t& pos, UChar ch);
+    static UBool parseChar(const UnicodeString& id, int32_t& pos, char16_t ch);
 
     /**
      * Parse a pattern string starting at offset pos.  Keywords are
@@ -158,8 +161,9 @@ public:
      * @return the position after the last character parsed, or -1 if
      * the parse failed
      */
-    static int32_t parsePattern(const UnicodeString& rule, int32_t pos, int32_t limit, const UnicodeString& pattern, int32_t* parsedInts);
-
+    static int32_t parsePattern(const UnicodeString& rule, int32_t pos, int32_t limit,
+                                const UnicodeString& pattern, int32_t* parsedInts);
+        
     /**
      * Parse a pattern string within the given Replaceable and a parsing
      * pattern.  Characters are matched literally and case-sensitively
@@ -176,7 +180,10 @@ public:
      * @param limit offset after last character to parse
      * @return index after last parsed character, or -1 on parse failure.
      */
-    static int32_t parsePattern(const UnicodeString& pat, const Replaceable& text, int32_t index, int32_t limit);
+    static int32_t parsePattern(const UnicodeString& pat,
+                                const Replaceable& text,
+                                int32_t index,
+                                int32_t limit);
 
     /**
      * Parse an integer at pos, either of the form \d+ or of the form
@@ -229,20 +236,32 @@ public:
      * point to a valid digit on entry, or if the number to be parsed
      * does not fit into a 31-bit unsigned integer.
      */
-    static int32_t parseNumber(const UnicodeString& text, int32_t& pos, int8_t radix);
+    static int32_t parseNumber(const UnicodeString& text,
+                               int32_t& pos, int8_t radix);
 
-    static void appendToRule(UnicodeString& rule, UChar32 c, UBool isLiteral, UBool escapeUnprintable, UnicodeString& quoteBuf);
+    static void appendToRule(UnicodeString& rule,
+                             UChar32 c,
+                             UBool isLiteral,
+                             UBool escapeUnprintable,
+                             UnicodeString& quoteBuf);
+    
+    static void appendToRule(UnicodeString& rule,
+                             const UnicodeString& text,
+                             UBool isLiteral,
+                             UBool escapeUnprintable,
+                             UnicodeString& quoteBuf);
 
-    static void appendToRule(UnicodeString& rule, const UnicodeString& text, UBool isLiteral, UBool escapeUnprintable, UnicodeString& quoteBuf);
-
-    static void appendToRule(UnicodeString& rule, const UnicodeMatcher* matcher, UBool escapeUnprintable, UnicodeString& quoteBuf);
+    static void appendToRule(UnicodeString& rule,
+                             const UnicodeMatcher* matcher,
+                             UBool escapeUnprintable,
+                             UnicodeString& quoteBuf);
 
 private:
     // do not instantiate
-    ICU_Utility();
+    ICU_Utility() = delete;
 };
 
 U_NAMESPACE_END
 
 #endif
-// eof
+//eof

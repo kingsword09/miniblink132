@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -21,31 +21,31 @@ CharsetRecog_UTF8::~CharsetRecog_UTF8()
     // nothing to do
 }
 
-const char* CharsetRecog_UTF8::getName() const
+const char *CharsetRecog_UTF8::getName() const
 {
     return "UTF-8";
 }
 
-UBool CharsetRecog_UTF8::match(InputText* input, CharsetMatch* results) const
-{
-    bool hasBOM = FALSE;
+UBool CharsetRecog_UTF8::match(InputText* input, CharsetMatch *results) const {
+    bool hasBOM = false;
     int32_t numValid = 0;
     int32_t numInvalid = 0;
-    const uint8_t* inputBytes = input->fRawInput;
+    const uint8_t *inputBytes = input->fRawInput;
     int32_t i;
     int32_t trailBytes = 0;
     int32_t confidence;
 
-    if (input->fRawLength >= 3 && inputBytes[0] == 0xEF && inputBytes[1] == 0xBB && inputBytes[2] == 0xBF) {
-        hasBOM = TRUE;
+    if (input->fRawLength >= 3 && 
+        inputBytes[0] == 0xEF && inputBytes[1] == 0xBB && inputBytes[2] == 0xBF) {
+            hasBOM = true;
     }
 
     // Scan for multi-byte sequences
-    for (i = 0; i < input->fRawLength; i += 1) {
+    for (i=0; i < input->fRawLength; i += 1) {
         int32_t b = inputBytes[i];
 
         if ((b & 0x80) == 0) {
-            continue; // ASCII
+            continue;   // ASCII
         }
 
         // Hi bit on char found.  Figure out how long the sequence should be
@@ -80,6 +80,7 @@ UBool CharsetRecog_UTF8::match(InputText* input, CharsetMatch* results) const
                 break;
             }
         }
+
     }
 
     // Cook up some sort of confidence score, based on presence of a BOM
@@ -87,7 +88,7 @@ UBool CharsetRecog_UTF8::match(InputText* input, CharsetMatch* results) const
     confidence = 0;
     if (hasBOM && numInvalid == 0) {
         confidence = 100;
-    } else if (hasBOM && numValid > numInvalid * 10) {
+    } else if (hasBOM && numValid > numInvalid*10) {
         confidence = 80;
     } else if (numValid > 3 && numInvalid == 0) {
         confidence = 100;
@@ -97,7 +98,7 @@ UBool CharsetRecog_UTF8::match(InputText* input, CharsetMatch* results) const
         // Plain ASCII. Confidence must be > 10, it's more likely than UTF-16, which
         //              accepts ASCII with confidence = 10.
         confidence = 15;
-    } else if (numValid > numInvalid * 10) {
+    } else if (numValid > numInvalid*10) {
         // Probably corrupt utf-8 data.  Valid sequences aren't likely by chance.
         confidence = 25;
     }

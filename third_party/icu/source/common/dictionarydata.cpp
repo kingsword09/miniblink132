@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -21,52 +21,49 @@
 
 U_NAMESPACE_BEGIN
 
-const int32_t DictionaryData::TRIE_TYPE_BYTES = 0;
-const int32_t DictionaryData::TRIE_TYPE_UCHARS = 1;
-const int32_t DictionaryData::TRIE_TYPE_MASK = 7;
-const int32_t DictionaryData::TRIE_HAS_VALUES = 8;
+const int32_t  DictionaryData::TRIE_TYPE_BYTES = 0;
+const int32_t  DictionaryData::TRIE_TYPE_UCHARS = 1;
+const int32_t  DictionaryData::TRIE_TYPE_MASK = 7;
+const int32_t  DictionaryData::TRIE_HAS_VALUES = 8;
 
-const int32_t DictionaryData::TRANSFORM_NONE = 0;
-const int32_t DictionaryData::TRANSFORM_TYPE_OFFSET = 0x1000000;
-const int32_t DictionaryData::TRANSFORM_TYPE_MASK = 0x7f000000;
-const int32_t DictionaryData::TRANSFORM_OFFSET_MASK = 0x1fffff;
-
-DictionaryMatcher::~DictionaryMatcher()
-{
+const int32_t  DictionaryData::TRANSFORM_NONE = 0;
+const int32_t  DictionaryData::TRANSFORM_TYPE_OFFSET = 0x1000000;
+const int32_t  DictionaryData::TRANSFORM_TYPE_MASK = 0x7f000000;
+const int32_t  DictionaryData::TRANSFORM_OFFSET_MASK = 0x1fffff;
+    
+DictionaryMatcher::~DictionaryMatcher() {
 }
 
-UCharsDictionaryMatcher::~UCharsDictionaryMatcher()
-{
+UCharsDictionaryMatcher::~UCharsDictionaryMatcher() {
     udata_close(file);
 }
 
-int32_t UCharsDictionaryMatcher::getType() const
-{
+int32_t UCharsDictionaryMatcher::getType() const {
     return DictionaryData::TRIE_TYPE_UCHARS;
 }
 
-int32_t UCharsDictionaryMatcher::matches(
-    UText* text, int32_t maxLength, int32_t limit, int32_t* lengths, int32_t* cpLengths, int32_t* values, int32_t* prefix) const
-{
+int32_t UCharsDictionaryMatcher::matches(UText *text, int32_t maxLength, int32_t limit,
+                            int32_t *lengths, int32_t *cpLengths, int32_t *values,
+                            int32_t *prefix) const {
 
     UCharsTrie uct(characters);
     int32_t startingTextIndex = (int32_t)utext_getNativeIndex(text);
     int32_t wordCount = 0;
     int32_t codePointsMatched = 0;
 
-    for (UChar32 c = utext_next32(text); c >= 0; c = utext_next32(text)) {
+    for (UChar32 c = utext_next32(text); c >= 0; c=utext_next32(text)) {
         UStringTrieResult result = (codePointsMatched == 0) ? uct.first(c) : uct.next(c);
         int32_t lengthMatched = (int32_t)utext_getNativeIndex(text) - startingTextIndex;
         codePointsMatched += 1;
         if (USTRINGTRIE_HAS_VALUE(result)) {
             if (wordCount < limit) {
-                if (values != NULL) {
+                if (values != nullptr) {
                     values[wordCount] = uct.getValue();
                 }
-                if (lengths != NULL) {
+                if (lengths != nullptr) {
                     lengths[wordCount] = lengthMatched;
                 }
-                if (cpLengths != NULL) {
+                if (cpLengths != nullptr) {
                     cpLengths[wordCount] = codePointsMatched;
                 }
                 ++wordCount;
@@ -74,7 +71,8 @@ int32_t UCharsDictionaryMatcher::matches(
             if (result == USTRINGTRIE_FINAL_VALUE) {
                 break;
             }
-        } else if (result == USTRINGTRIE_NO_MATCH) {
+        }
+        else if (result == USTRINGTRIE_NO_MATCH) {
             break;
         }
         if (lengthMatched >= maxLength) {
@@ -82,19 +80,17 @@ int32_t UCharsDictionaryMatcher::matches(
         }
     }
 
-    if (prefix != NULL) {
+    if (prefix != nullptr) {
         *prefix = codePointsMatched;
     }
     return wordCount;
 }
 
-BytesDictionaryMatcher::~BytesDictionaryMatcher()
-{
+BytesDictionaryMatcher::~BytesDictionaryMatcher() {
     udata_close(file);
 }
 
-UChar32 BytesDictionaryMatcher::transform(UChar32 c) const
-{
+UChar32 BytesDictionaryMatcher::transform(UChar32 c) const {
     if ((transformConstant & DictionaryData::TRANSFORM_TYPE_MASK) == DictionaryData::TRANSFORM_TYPE_OFFSET) {
         if (c == 0x200D) {
             return 0xFF;
@@ -110,32 +106,31 @@ UChar32 BytesDictionaryMatcher::transform(UChar32 c) const
     return c;
 }
 
-int32_t BytesDictionaryMatcher::getType() const
-{
+int32_t BytesDictionaryMatcher::getType() const {
     return DictionaryData::TRIE_TYPE_BYTES;
 }
 
-int32_t BytesDictionaryMatcher::matches(
-    UText* text, int32_t maxLength, int32_t limit, int32_t* lengths, int32_t* cpLengths, int32_t* values, int32_t* prefix) const
-{
+int32_t BytesDictionaryMatcher::matches(UText *text, int32_t maxLength, int32_t limit,
+                            int32_t *lengths, int32_t *cpLengths, int32_t *values,
+                            int32_t *prefix) const {
     BytesTrie bt(characters);
     int32_t startingTextIndex = (int32_t)utext_getNativeIndex(text);
     int32_t wordCount = 0;
     int32_t codePointsMatched = 0;
 
-    for (UChar32 c = utext_next32(text); c >= 0; c = utext_next32(text)) {
+    for (UChar32 c = utext_next32(text); c >= 0; c=utext_next32(text)) {
         UStringTrieResult result = (codePointsMatched == 0) ? bt.first(transform(c)) : bt.next(transform(c));
         int32_t lengthMatched = (int32_t)utext_getNativeIndex(text) - startingTextIndex;
         codePointsMatched += 1;
         if (USTRINGTRIE_HAS_VALUE(result)) {
             if (wordCount < limit) {
-                if (values != NULL) {
+                if (values != nullptr) {
                     values[wordCount] = bt.getValue();
                 }
-                if (lengths != NULL) {
+                if (lengths != nullptr) {
                     lengths[wordCount] = lengthMatched;
                 }
-                if (cpLengths != NULL) {
+                if (cpLengths != nullptr) {
                     cpLengths[wordCount] = codePointsMatched;
                 }
                 ++wordCount;
@@ -143,7 +138,8 @@ int32_t BytesDictionaryMatcher::matches(
             if (result == USTRINGTRIE_FINAL_VALUE) {
                 break;
             }
-        } else if (result == USTRINGTRIE_NO_MATCH) {
+        }
+        else if (result == USTRINGTRIE_NO_MATCH) {
             break;
         }
         if (lengthMatched >= maxLength) {
@@ -151,42 +147,46 @@ int32_t BytesDictionaryMatcher::matches(
         }
     }
 
-    if (prefix != NULL) {
+    if (prefix != nullptr) {
         *prefix = codePointsMatched;
     }
     return wordCount;
 }
 
+
 U_NAMESPACE_END
 
 U_NAMESPACE_USE
 
-U_CAPI int32_t U_EXPORT2 udict_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode)
-{
-    const UDataInfo* pInfo;
+U_CAPI int32_t U_EXPORT2
+udict_swap(const UDataSwapper *ds, const void *inData, int32_t length,
+           void *outData, UErrorCode *pErrorCode) {
+    const UDataInfo *pInfo;
     int32_t headerSize;
-    const uint8_t* inBytes;
-    uint8_t* outBytes;
-    const int32_t* inIndexes;
+    const uint8_t *inBytes;
+    uint8_t *outBytes;
+    const int32_t *inIndexes;
     int32_t indexes[DictionaryData::IX_COUNT];
     int32_t i, offset, size;
 
     headerSize = udata_swapDataHeader(ds, inData, length, outData, pErrorCode);
-    if (pErrorCode == NULL || U_FAILURE(*pErrorCode))
-        return 0;
-    pInfo = (const UDataInfo*)((const char*)inData + 4);
-    if (!(pInfo->dataFormat[0] == 0x44 && pInfo->dataFormat[1] == 0x69 && pInfo->dataFormat[2] == 0x63 && pInfo->dataFormat[3] == 0x74
-            && pInfo->formatVersion[0] == 1)) {
-        udata_printError(ds, "udict_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized as dictionary data\n", pInfo->dataFormat[0],
-            pInfo->dataFormat[1], pInfo->dataFormat[2], pInfo->dataFormat[3], pInfo->formatVersion[0]);
+    if (pErrorCode == nullptr || U_FAILURE(*pErrorCode)) return 0;
+    pInfo = (const UDataInfo *)((const char *)inData + 4);
+    if (!(pInfo->dataFormat[0] == 0x44 && 
+          pInfo->dataFormat[1] == 0x69 && 
+          pInfo->dataFormat[2] == 0x63 && 
+          pInfo->dataFormat[3] == 0x74 && 
+          pInfo->formatVersion[0] == 1)) {
+        udata_printError(ds, "udict_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized as dictionary data\n",
+                         pInfo->dataFormat[0], pInfo->dataFormat[1], pInfo->dataFormat[2], pInfo->dataFormat[3], pInfo->formatVersion[0]);
         *pErrorCode = U_UNSUPPORTED_ERROR;
         return 0;
     }
 
-    inBytes = (const uint8_t*)inData + headerSize;
-    outBytes = (uint8_t*)outData + headerSize;
+    inBytes = (const uint8_t *)inData + headerSize;
+    outBytes = (outData == nullptr) ? nullptr : (uint8_t *)outData + headerSize;
 
-    inIndexes = (const int32_t*)inBytes;
+    inIndexes = (const int32_t *)inBytes;
     if (length >= 0) {
         length -= headerSize;
         if (length < (int32_t)(sizeof(indexes))) {

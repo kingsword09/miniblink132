@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -7,7 +7,7 @@
 *******************************************************************************
 */
 
-#include "utypeinfo.h" // for 'typeid' to work
+#include "utypeinfo.h"  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -25,62 +25,62 @@
 U_NAMESPACE_BEGIN
 
 // Smybol characters used by RFC2445 VTIMEZONE
-static const UChar COLON = 0x3A; /* : */
-static const UChar SEMICOLON = 0x3B; /* ; */
-static const UChar EQUALS_SIGN = 0x3D; /* = */
-static const UChar COMMA = 0x2C; /* , */
-static const UChar PLUS = 0x2B; /* + */
-static const UChar MINUS = 0x2D; /* - */
+static const char16_t COLON = 0x3A; /* : */
+static const char16_t SEMICOLON = 0x3B; /* ; */
+static const char16_t EQUALS_SIGN = 0x3D; /* = */
+static const char16_t COMMA = 0x2C; /* , */
+static const char16_t PLUS = 0x2B; /* + */
+static const char16_t MINUS = 0x2D; /* - */
 
 // RFC2445 VTIMEZONE tokens
-static const UChar ICAL_BEGIN_VTIMEZONE[]
-    = { 0x42, 0x45, 0x47, 0x49, 0x4E, 0x3A, 0x56, 0x54, 0x49, 0x4D, 0x45, 0x5A, 0x4F, 0x4E, 0x45, 0 }; /* "BEGIN:VTIMEZONE" */
-static const UChar ICAL_END_VTIMEZONE[] = { 0x45, 0x4E, 0x44, 0x3A, 0x56, 0x54, 0x49, 0x4D, 0x45, 0x5A, 0x4F, 0x4E, 0x45, 0 }; /* "END:VTIMEZONE" */
-static const UChar ICAL_BEGIN[] = { 0x42, 0x45, 0x47, 0x49, 0x4E, 0 }; /* "BEGIN" */
-static const UChar ICAL_END[] = { 0x45, 0x4E, 0x44, 0 }; /* "END" */
-static const UChar ICAL_VTIMEZONE[] = { 0x56, 0x54, 0x49, 0x4D, 0x45, 0x5A, 0x4F, 0x4E, 0x45, 0 }; /* "VTIMEZONE" */
-static const UChar ICAL_TZID[] = { 0x54, 0x5A, 0x49, 0x44, 0 }; /* "TZID" */
-static const UChar ICAL_STANDARD[] = { 0x53, 0x54, 0x41, 0x4E, 0x44, 0x41, 0x52, 0x44, 0 }; /* "STANDARD" */
-static const UChar ICAL_DAYLIGHT[] = { 0x44, 0x41, 0x59, 0x4C, 0x49, 0x47, 0x48, 0x54, 0 }; /* "DAYLIGHT" */
-static const UChar ICAL_DTSTART[] = { 0x44, 0x54, 0x53, 0x54, 0x41, 0x52, 0x54, 0 }; /* "DTSTART" */
-static const UChar ICAL_TZOFFSETFROM[] = { 0x54, 0x5A, 0x4F, 0x46, 0x46, 0x53, 0x45, 0x54, 0x46, 0x52, 0x4F, 0x4D, 0 }; /* "TZOFFSETFROM" */
-static const UChar ICAL_TZOFFSETTO[] = { 0x54, 0x5A, 0x4F, 0x46, 0x46, 0x53, 0x45, 0x54, 0x54, 0x4F, 0 }; /* "TZOFFSETTO" */
-static const UChar ICAL_RDATE[] = { 0x52, 0x44, 0x41, 0x54, 0x45, 0 }; /* "RDATE" */
-static const UChar ICAL_RRULE[] = { 0x52, 0x52, 0x55, 0x4C, 0x45, 0 }; /* "RRULE" */
-static const UChar ICAL_TZNAME[] = { 0x54, 0x5A, 0x4E, 0x41, 0x4D, 0x45, 0 }; /* "TZNAME" */
-static const UChar ICAL_TZURL[] = { 0x54, 0x5A, 0x55, 0x52, 0x4C, 0 }; /* "TZURL" */
-static const UChar ICAL_LASTMOD[] = { 0x4C, 0x41, 0x53, 0x54, 0x2D, 0x4D, 0x4F, 0x44, 0x49, 0x46, 0x49, 0x45, 0x44, 0 }; /* "LAST-MODIFIED" */
+static const char16_t ICAL_BEGIN_VTIMEZONE[] = {0x42, 0x45, 0x47, 0x49, 0x4E, 0x3A, 0x56, 0x54, 0x49, 0x4D, 0x45, 0x5A, 0x4F, 0x4E, 0x45, 0}; /* "BEGIN:VTIMEZONE" */
+static const char16_t ICAL_END_VTIMEZONE[] = {0x45, 0x4E, 0x44, 0x3A, 0x56, 0x54, 0x49, 0x4D, 0x45, 0x5A, 0x4F, 0x4E, 0x45, 0}; /* "END:VTIMEZONE" */
+static const char16_t ICAL_BEGIN[] = {0x42, 0x45, 0x47, 0x49, 0x4E, 0}; /* "BEGIN" */
+static const char16_t ICAL_END[] = {0x45, 0x4E, 0x44, 0}; /* "END" */
+static const char16_t ICAL_VTIMEZONE[] = {0x56, 0x54, 0x49, 0x4D, 0x45, 0x5A, 0x4F, 0x4E, 0x45, 0}; /* "VTIMEZONE" */
+static const char16_t ICAL_TZID[] = {0x54, 0x5A, 0x49, 0x44, 0}; /* "TZID" */
+static const char16_t ICAL_STANDARD[] = {0x53, 0x54, 0x41, 0x4E, 0x44, 0x41, 0x52, 0x44, 0}; /* "STANDARD" */
+static const char16_t ICAL_DAYLIGHT[] = {0x44, 0x41, 0x59, 0x4C, 0x49, 0x47, 0x48, 0x54, 0}; /* "DAYLIGHT" */
+static const char16_t ICAL_DTSTART[] = {0x44, 0x54, 0x53, 0x54, 0x41, 0x52, 0x54, 0}; /* "DTSTART" */
+static const char16_t ICAL_TZOFFSETFROM[] = {0x54, 0x5A, 0x4F, 0x46, 0x46, 0x53, 0x45, 0x54, 0x46, 0x52, 0x4F, 0x4D, 0}; /* "TZOFFSETFROM" */
+static const char16_t ICAL_TZOFFSETTO[] = {0x54, 0x5A, 0x4F, 0x46, 0x46, 0x53, 0x45, 0x54, 0x54, 0x4F, 0}; /* "TZOFFSETTO" */
+static const char16_t ICAL_RDATE[] = {0x52, 0x44, 0x41, 0x54, 0x45, 0}; /* "RDATE" */
+static const char16_t ICAL_RRULE[] = {0x52, 0x52, 0x55, 0x4C, 0x45, 0}; /* "RRULE" */
+static const char16_t ICAL_TZNAME[] = {0x54, 0x5A, 0x4E, 0x41, 0x4D, 0x45, 0}; /* "TZNAME" */
+static const char16_t ICAL_TZURL[] = {0x54, 0x5A, 0x55, 0x52, 0x4C, 0}; /* "TZURL" */
+static const char16_t ICAL_LASTMOD[] = {0x4C, 0x41, 0x53, 0x54, 0x2D, 0x4D, 0x4F, 0x44, 0x49, 0x46, 0x49, 0x45, 0x44, 0}; /* "LAST-MODIFIED" */
 
-static const UChar ICAL_FREQ[] = { 0x46, 0x52, 0x45, 0x51, 0 }; /* "FREQ" */
-static const UChar ICAL_UNTIL[] = { 0x55, 0x4E, 0x54, 0x49, 0x4C, 0 }; /* "UNTIL" */
-static const UChar ICAL_YEARLY[] = { 0x59, 0x45, 0x41, 0x52, 0x4C, 0x59, 0 }; /* "YEARLY" */
-static const UChar ICAL_BYMONTH[] = { 0x42, 0x59, 0x4D, 0x4F, 0x4E, 0x54, 0x48, 0 }; /* "BYMONTH" */
-static const UChar ICAL_BYDAY[] = { 0x42, 0x59, 0x44, 0x41, 0x59, 0 }; /* "BYDAY" */
-static const UChar ICAL_BYMONTHDAY[] = { 0x42, 0x59, 0x4D, 0x4F, 0x4E, 0x54, 0x48, 0x44, 0x41, 0x59, 0 }; /* "BYMONTHDAY" */
+static const char16_t ICAL_FREQ[] = {0x46, 0x52, 0x45, 0x51, 0}; /* "FREQ" */
+static const char16_t ICAL_UNTIL[] = {0x55, 0x4E, 0x54, 0x49, 0x4C, 0}; /* "UNTIL" */
+static const char16_t ICAL_YEARLY[] = {0x59, 0x45, 0x41, 0x52, 0x4C, 0x59, 0}; /* "YEARLY" */
+static const char16_t ICAL_BYMONTH[] = {0x42, 0x59, 0x4D, 0x4F, 0x4E, 0x54, 0x48, 0}; /* "BYMONTH" */
+static const char16_t ICAL_BYDAY[] = {0x42, 0x59, 0x44, 0x41, 0x59, 0}; /* "BYDAY" */
+static const char16_t ICAL_BYMONTHDAY[] = {0x42, 0x59, 0x4D, 0x4F, 0x4E, 0x54, 0x48, 0x44, 0x41, 0x59, 0}; /* "BYMONTHDAY" */
 
-static const UChar ICAL_NEWLINE[] = { 0x0D, 0x0A, 0 }; /* CRLF */
+static const char16_t ICAL_NEWLINE[] = {0x0D, 0x0A, 0}; /* CRLF */
 
-static const UChar ICAL_DOW_NAMES[7][3] = { { 0x53, 0x55, 0 }, /* "SU" */
-    { 0x4D, 0x4F, 0 }, /* "MO" */
-    { 0x54, 0x55, 0 }, /* "TU" */
-    { 0x57, 0x45, 0 }, /* "WE" */
-    { 0x54, 0x48, 0 }, /* "TH" */
-    { 0x46, 0x52, 0 }, /* "FR" */
-    { 0x53, 0x41, 0 } /* "SA" */ };
+static const char16_t ICAL_DOW_NAMES[7][3] = {
+    {0x53, 0x55, 0}, /* "SU" */
+    {0x4D, 0x4F, 0}, /* "MO" */
+    {0x54, 0x55, 0}, /* "TU" */
+    {0x57, 0x45, 0}, /* "WE" */
+    {0x54, 0x48, 0}, /* "TH" */
+    {0x46, 0x52, 0}, /* "FR" */
+    {0x53, 0x41, 0}  /* "SA" */};
 
 // Month length for non-leap year
-static const int32_t MONTHLENGTH[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+static const int32_t MONTHLENGTH[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 // ICU custom property
-static const UChar ICU_TZINFO_PROP[] = { 0x58, 0x2D, 0x54, 0x5A, 0x49, 0x4E, 0x46, 0x4F, 0x3A, 0 }; /* "X-TZINFO:" */
-static const UChar ICU_TZINFO_PARTIAL[] = { 0x2F, 0x50, 0x61, 0x72, 0x74, 0x69, 0x61, 0x6C, 0x40, 0 }; /* "/Partial@" */
-static const UChar ICU_TZINFO_SIMPLE[] = { 0x2F, 0x53, 0x69, 0x6D, 0x70, 0x6C, 0x65, 0x40, 0 }; /* "/Simple@" */
+static const char16_t ICU_TZINFO_PROP[] = {0x58, 0x2D, 0x54, 0x5A, 0x49, 0x4E, 0x46, 0x4F, 0x3A, 0}; /* "X-TZINFO:" */
+static const char16_t ICU_TZINFO_PARTIAL[] = {0x2F, 0x50, 0x61, 0x72, 0x74, 0x69, 0x61, 0x6C, 0x40, 0}; /* "/Partial@" */
+static const char16_t ICU_TZINFO_SIMPLE[] = {0x2F, 0x53, 0x69, 0x6D, 0x70, 0x6C, 0x65, 0x40, 0}; /* "/Simple@" */
+
 
 /*
  * Simple fixed digit ASCII number to integer converter
  */
-static int32_t parseAsciiDigits(const UnicodeString& str, int32_t start, int32_t length, UErrorCode& status)
-{
+static int32_t parseAsciiDigits(const UnicodeString& str, int32_t start, int32_t length, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return 0;
     }
@@ -106,17 +106,16 @@ static int32_t parseAsciiDigits(const UnicodeString& str, int32_t start, int32_t
         }
         num = 10 * num + digit;
     }
-    return sign * num;
+    return sign * num;    
 }
 
-static UnicodeString& appendAsciiDigits(int32_t number, uint8_t length, UnicodeString& str)
-{
-    UBool negative = FALSE;
+static UnicodeString& appendAsciiDigits(int32_t number, uint8_t length, UnicodeString& str) {
+    UBool negative = false;
     int32_t digits[10]; // max int32_t is 10 decimal digits
     int32_t i;
 
     if (number < 0) {
-        negative = TRUE;
+        negative = true;
         number *= -1;
     }
 
@@ -132,22 +131,21 @@ static UnicodeString& appendAsciiDigits(int32_t number, uint8_t length, UnicodeS
     } else {
         // fixed digits
         for (i = 0; i < length; i++) {
-            digits[i] = number % 10;
-            number /= 10;
+           digits[i] = number % 10;
+           number /= 10;
         }
     }
     if (negative) {
         str.append(MINUS);
     }
     for (i = length - 1; i >= 0; i--) {
-        str.append((UChar)(digits[i] + 0x0030));
+        str.append((char16_t)(digits[i] + 0x0030));
     }
     return str;
 }
 
-static UnicodeString& appendMillis(UDate date, UnicodeString& str)
-{
-    UBool negative = FALSE;
+static UnicodeString& appendMillis(UDate date, UnicodeString& str) {
+    UBool negative = false;
     int32_t digits[20]; // max int64_t is 20 decimal digits
     int32_t i;
     int64_t number;
@@ -160,7 +158,7 @@ static UnicodeString& appendMillis(UDate date, UnicodeString& str)
         number = (int64_t)date;
     }
     if (number < 0) {
-        negative = TRUE;
+        negative = true;
         number *= -1;
     }
     i = 0;
@@ -174,7 +172,7 @@ static UnicodeString& appendMillis(UDate date, UnicodeString& str)
     }
     i--;
     while (i >= 0) {
-        str.append((UChar)(digits[i--] + 0x0030));
+        str.append((char16_t)(digits[i--] + 0x0030));
     }
     return str;
 }
@@ -182,16 +180,17 @@ static UnicodeString& appendMillis(UDate date, UnicodeString& str)
 /*
  * Convert date/time to RFC2445 Date-Time form #1 DATE WITH LOCAL TIME
  */
-static UnicodeString& getDateTimeString(UDate time, UnicodeString& str)
-{
+static UnicodeString& getDateTimeString(UDate time, UnicodeString& str, UErrorCode& status) {
+    if (U_FAILURE(status)) {return str;}
     int32_t year, month, dom, dow, doy, mid;
-    Grego::timeToFields(time, year, month, dom, dow, doy, mid);
+    Grego::timeToFields(time, year, month, dom, dow, doy, mid, status);
+    if (U_FAILURE(status)) {return str;}
 
     str.remove();
     appendAsciiDigits(year, 4, str);
     appendAsciiDigits(month + 1, 2, str);
     appendAsciiDigits(dom, 2, str);
-    str.append((UChar)0x0054 /*'T'*/);
+    str.append((char16_t)0x0054 /*'T'*/);
 
     int32_t t = mid;
     int32_t hour = t / U_MILLIS_PER_HOUR;
@@ -209,10 +208,9 @@ static UnicodeString& getDateTimeString(UDate time, UnicodeString& str)
 /*
  * Convert date/time to RFC2445 Date-Time form #2 DATE WITH UTC TIME
  */
-static UnicodeString& getUTCDateTimeString(UDate time, UnicodeString& str)
-{
-    getDateTimeString(time, str);
-    str.append((UChar)0x005A /*'Z'*/);
+static UnicodeString& getUTCDateTimeString(UDate time, UnicodeString& str, UErrorCode& status) {
+    getDateTimeString(time, str, status);
+    str.append((char16_t)0x005A /*'Z'*/);
     return str;
 }
 
@@ -220,15 +218,14 @@ static UnicodeString& getUTCDateTimeString(UDate time, UnicodeString& str)
  * Parse RFC2445 Date-Time form #1 DATE WITH LOCAL TIME and
  * #2 DATE WITH UTC TIME
  */
-static UDate parseDateTimeString(const UnicodeString& str, int32_t offset, UErrorCode& status)
-{
+static UDate parseDateTimeString(const UnicodeString& str, int32_t offset, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return 0.0;
     }
 
     int32_t year = 0, month = 0, day = 0, hour = 0, min = 0, sec = 0;
-    UBool isUTC = FALSE;
-    UBool isValid = FALSE;
+    UBool isUTC = false;
+    UBool isValid = false;
     do {
         int length = str.length();
         if (length != 15 && length != 16) {
@@ -245,11 +242,11 @@ static UDate parseDateTimeString(const UnicodeString& str, int32_t offset, UErro
                 // invalid format
                 break;
             }
-            isUTC = TRUE;
+            isUTC = true;
         }
 
         year = parseAsciiDigits(str, 0, 4, status);
-        month = parseAsciiDigits(str, 4, 2, status) - 1; // 0-based
+        month = parseAsciiDigits(str, 4, 2, status) - 1;  // 0-based
         day = parseAsciiDigits(str, 6, 2, status);
         hour = parseAsciiDigits(str, 9, 2, status);
         min = parseAsciiDigits(str, 11, 2, status);
@@ -261,12 +258,13 @@ static UDate parseDateTimeString(const UnicodeString& str, int32_t offset, UErro
 
         // check valid range
         int32_t maxDayOfMonth = Grego::monthLength(year, month);
-        if (year < 0 || month < 0 || month > 11 || day < 1 || day > maxDayOfMonth || hour < 0 || hour >= 24 || min < 0 || min >= 60 || sec < 0 || sec >= 60) {
+        if (year < 0 || month < 0 || month > 11 || day < 1 || day > maxDayOfMonth ||
+                hour < 0 || hour >= 24 || min < 0 || min >= 60 || sec < 0 || sec >= 60) {
             break;
         }
 
-        isValid = TRUE;
-    } while (false);
+        isValid = true;
+    } while(false);
 
     if (!isValid) {
         status = U_INVALID_FORMAT_ERROR;
@@ -284,13 +282,12 @@ static UDate parseDateTimeString(const UnicodeString& str, int32_t offset, UErro
 /*
  * Convert RFC2445 utc-offset string to milliseconds
  */
-static int32_t offsetStrToMillis(const UnicodeString& str, UErrorCode& status)
-{
+static int32_t offsetStrToMillis(const UnicodeString& str, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return 0;
     }
 
-    UBool isValid = FALSE;
+    UBool isValid = false;
     int32_t sign = 0, hour = 0, min = 0, sec = 0;
 
     do {
@@ -300,7 +297,7 @@ static int32_t offsetStrToMillis(const UnicodeString& str, UErrorCode& status)
             break;
         }
         // sign
-        UChar s = str.charAt(0);
+        char16_t s = str.charAt(0);
         if (s == PLUS) {
             sign = 1;
         } else if (s == MINUS) {
@@ -318,7 +315,7 @@ static int32_t offsetStrToMillis(const UnicodeString& str, UErrorCode& status)
             break;
         }
         isValid = true;
-    } while (false);
+    } while(false);
 
     if (!isValid) {
         status = U_INVALID_FORMAT_ERROR;
@@ -331,8 +328,7 @@ static int32_t offsetStrToMillis(const UnicodeString& str, UErrorCode& status)
 /*
  * Convert milliseconds to RFC2445 utc-offset string
  */
-static void millisToOffset(int32_t millis, UnicodeString& str)
-{
+static void millisToOffset(int32_t millis, UnicodeString& str) {
     str.remove();
     if (millis >= 0) {
         str.append(PLUS);
@@ -356,8 +352,7 @@ static void millisToOffset(int32_t millis, UnicodeString& str)
 /*
  * Create a default TZNAME from TZID
  */
-static void getDefaultTZName(const UnicodeString& tzid, UBool isDST, UnicodeString& zonename)
-{
+static void getDefaultTZName(const UnicodeString &tzid, UBool isDST, UnicodeString& zonename) {
     zonename = tzid;
     if (isDST) {
         zonename += UNICODE_STRING_SIMPLE("(DST)");
@@ -368,9 +363,9 @@ static void getDefaultTZName(const UnicodeString& tzid, UBool isDST, UnicodeStri
 
 /*
  * Parse individual RRULE
- *
+ * 
  * On return -
- *
+ * 
  * month    calculated by BYMONTH-1, or -1 when not found
  * dow      day of week in BYDAY, or 0 when not found
  * wim      day of week ordinal number in BYDAY, or 0 when not found
@@ -378,9 +373,8 @@ static void getDefaultTZName(const UnicodeString& tzid, UBool isDST, UnicodeStri
  * domCount number of available days in dom (domCount is specifying the size of dom on input)
  * until    time defined by UNTIL attribute or MIN_MILLIS if not available
  */
-static void parseRRULE(
-    const UnicodeString& rrule, int32_t& month, int32_t& dow, int32_t& wim, int32_t* dom, int32_t& domCount, UDate& until, UErrorCode& status)
-{
+static void parseRRULE(const UnicodeString& rrule, int32_t& month, int32_t& dow, int32_t& wim,
+                       int32_t* dom, int32_t& domCount, UDate& until, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return;
     }
@@ -391,19 +385,19 @@ static void parseRRULE(
     wim = 0;
     until = MIN_MILLIS;
 
-    UBool yearly = FALSE;
-    // UBool parseError = FALSE;
+    UBool yearly = false;
+    //UBool parseError = false;
 
     int32_t prop_start = 0;
     int32_t prop_end;
     UnicodeString prop, attr, value;
-    UBool nextProp = TRUE;
+    UBool nextProp = true;
 
     while (nextProp) {
         prop_end = rrule.indexOf(SEMICOLON, prop_start);
         if (prop_end == -1) {
             prop.setTo(rrule, prop_start);
-            nextProp = FALSE;
+            nextProp = false;
         } else {
             prop.setTo(rrule, prop_start, prop_end - prop_start);
             prop_start = prop_end + 1;
@@ -419,7 +413,7 @@ static void parseRRULE(
         if (attr.compare(ICAL_FREQ, -1) == 0) {
             // only support YEARLY frequency type
             if (value.compare(ICAL_YEARLY, -1) == 0) {
-                yearly = TRUE;
+                yearly = true;
             } else {
                 goto rruleParseError;
             }
@@ -486,12 +480,12 @@ static void parseRRULE(
             int32_t dom_idx = 0;
             int32_t dom_start = 0;
             int32_t dom_end;
-            UBool nextDOM = TRUE;
+            UBool nextDOM = true;
             while (nextDOM) {
                 dom_end = value.indexOf(COMMA, dom_start);
                 if (dom_end == -1) {
                     dom_end = value.length();
-                    nextDOM = FALSE;
+                    nextDOM = false;
                 }
                 if (dom_idx < domCount) {
                     dom[dom_idx] = parseAsciiDigits(value, dom_start, dom_end - dom_start, status);
@@ -523,9 +517,8 @@ rruleParseError:
     }
 }
 
-static TimeZoneRule* createRuleByRRULE(
-    const UnicodeString& zonename, int rawOffset, int dstSavings, UDate start, UVector* dates, int fromOffset, UErrorCode& status)
-{
+static TimeZoneRule* createRuleByRRULE(const UnicodeString& zonename, int rawOffset, int dstSavings, UDate start,
+                                       UVector* dates, int fromOffset, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return nullptr;
     }
@@ -535,7 +528,7 @@ static TimeZoneRule* createRuleByRRULE(
     }
 
     int32_t i, j;
-    DateTimeRule* adtr = nullptr;
+    DateTimeRule *adtr = nullptr;
 
     // Parse the first rule
     UnicodeString rrule = *((UnicodeString*)dates->elementAt(0));
@@ -572,10 +565,10 @@ static TimeZoneRule* createRuleByRRULE(
             }
             // Make sure days are continuous
             for (i = 1; i < 7; i++) {
-                UBool found = FALSE;
+                UBool found = false;
                 for (j = 0; j < 7; j++) {
                     if (days[j] == firstDay + i) {
-                        found = TRUE;
+                        found = true;
                         break;
                     }
                 }
@@ -627,7 +620,7 @@ static TimeZoneRule* createRuleByRRULE(
             if (tmp_until > until) {
                 until = tmp_until;
             }
-
+            
             // Check if BYMONTH + BYMONTHDAY + BYDAY rule
             if (tmp_month == -1 || tmp_dayOfWeek == 0 || tmp_daysCount == 0) {
                 goto unsupportedRRule;
@@ -683,7 +676,11 @@ static TimeZoneRule* createRuleByRRULE(
 
     // Calculate start/end year and missing fields
     int32_t startYear, startMonth, startDOM, startDOW, startDOY, startMID;
-    Grego::timeToFields(start + fromOffset, startYear, startMonth, startDOM, startDOW, startDOY, startMID);
+    Grego::timeToFields(start + fromOffset, startYear, startMonth, startDOM,
+        startDOW, startDOY, startMID, status);
+    if (U_FAILURE(status)) {
+        return nullptr;
+    }
     if (month == -1) {
         // If BYMONTH is not set, use the month of DTSTART
         month = startMonth;
@@ -696,7 +693,8 @@ static TimeZoneRule* createRuleByRRULE(
     int32_t endYear;
     if (until != MIN_MILLIS) {
         int32_t endMonth, endDOM, endDOW, endDOY, endMID;
-        Grego::timeToFields(until, endYear, endMonth, endDOM, endDOW, endDOY, endMID);
+        Grego::timeToFields(until, endYear, endMonth, endDOM, endDOW, endDOY, endMID, status);
+        if (U_FAILURE(status)) return nullptr;
     } else {
         endYear = AnnualTimeZoneRule::MAX_YEAR;
     }
@@ -711,7 +709,7 @@ static TimeZoneRule* createRuleByRRULE(
     } else if (dayOfWeek != 0 && nthDayOfWeek == 0 && dayOfMonth != 0) {
         // First day of week after day of month rule, for example,
         // first Sunday after 15th day in the month
-        adtr = new DateTimeRule(month, dayOfMonth, dayOfWeek, TRUE, startMID, DateTimeRule::WALL_TIME);
+        adtr = new DateTimeRule(month, dayOfMonth, dayOfWeek, true, startMID, DateTimeRule::WALL_TIME);
     }
     if (adtr == nullptr) {
         goto unsupportedRRule;
@@ -726,13 +724,12 @@ unsupportedRRule:
 /*
  * Create a TimeZoneRule by the RDATE definition
  */
-static TimeZoneRule* createRuleByRDATE(
-    const UnicodeString& zonename, int32_t rawOffset, int32_t dstSavings, UDate start, UVector* dates, int32_t fromOffset, UErrorCode& status)
-{
+static TimeZoneRule* createRuleByRDATE(const UnicodeString& zonename, int32_t rawOffset, int32_t dstSavings,
+                                       UDate start, UVector* dates, int32_t fromOffset, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return nullptr;
     }
-    TimeArrayTimeZoneRule* retVal = nullptr;
+    TimeArrayTimeZoneRule *retVal = nullptr;
     if (dates == nullptr || dates->size() == 0) {
         // When no RDATE line is provided, use start (DTSTART)
         // as the transition time
@@ -746,7 +743,7 @@ static TimeZoneRule* createRuleByRDATE(
             return nullptr;
         }
         for (int32_t i = 0; i < size; i++) {
-            UnicodeString* datestr = (UnicodeString*)dates->elementAt(i);
+            UnicodeString *datestr = (UnicodeString*)dates->elementAt(i);
             times[i] = parseDateTimeString(*datestr, fromOffset, status);
             if (U_FAILURE(status)) {
                 uprv_free(times);
@@ -766,36 +763,38 @@ static TimeZoneRule* createRuleByRDATE(
  * Check if the DOW rule specified by month, weekInMonth and dayOfWeek is equivalent
  * to the DateTimerule.
  */
-static UBool isEquivalentDateRule(int32_t month, int32_t weekInMonth, int32_t dayOfWeek, const DateTimeRule* dtrule)
-{
+static UBool isEquivalentDateRule(int32_t month, int32_t weekInMonth, int32_t dayOfWeek, const DateTimeRule *dtrule) {
     if (month != dtrule->getRuleMonth() || dayOfWeek != dtrule->getRuleDayOfWeek()) {
-        return FALSE;
+        return false;
     }
     if (dtrule->getTimeRuleType() != DateTimeRule::WALL_TIME) {
         // Do not try to do more intelligent comparison for now.
-        return FALSE;
+        return false;
     }
-    if (dtrule->getDateRuleType() == DateTimeRule::DOW && dtrule->getRuleWeekInMonth() == weekInMonth) {
-        return TRUE;
+    if (dtrule->getDateRuleType() == DateTimeRule::DOW
+            && dtrule->getRuleWeekInMonth() == weekInMonth) {
+        return true;
     }
     int32_t ruleDOM = dtrule->getRuleDayOfMonth();
     if (dtrule->getDateRuleType() == DateTimeRule::DOW_GEQ_DOM) {
-        if (ruleDOM % 7 == 1 && (ruleDOM + 6) / 7 == weekInMonth) {
-            return TRUE;
+        if (ruleDOM%7 == 1 && (ruleDOM + 6)/7 == weekInMonth) {
+            return true;
         }
-        if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - ruleDOM) % 7 == 6 && weekInMonth == -1 * ((MONTHLENGTH[month] - ruleDOM + 1) / 7)) {
-            return TRUE;
+        if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - ruleDOM)%7 == 6
+                && weekInMonth == -1*((MONTHLENGTH[month]-ruleDOM+1)/7)) {
+            return true;
         }
     }
     if (dtrule->getDateRuleType() == DateTimeRule::DOW_LEQ_DOM) {
-        if (ruleDOM % 7 == 0 && ruleDOM / 7 == weekInMonth) {
-            return TRUE;
+        if (ruleDOM%7 == 0 && ruleDOM/7 == weekInMonth) {
+            return true;
         }
-        if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - ruleDOM) % 7 == 0 && weekInMonth == -1 * ((MONTHLENGTH[month] - ruleDOM) / 7 + 1)) {
-            return TRUE;
+        if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - ruleDOM)%7 == 0
+                && weekInMonth == -1*((MONTHLENGTH[month] - ruleDOM)/7 + 1)) {
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
 /*
@@ -803,8 +802,7 @@ static UBool isEquivalentDateRule(int32_t month, int32_t weekInMonth, int32_t da
  * This function returns nullptr when the specified DateTimeRule is already
  * using WALL_TIME mode.
  */
-static DateTimeRule* toWallTimeRule(const DateTimeRule* rule, int32_t rawOffset, int32_t dstSavings, UErrorCode& status)
-{
+static DateTimeRule *toWallTimeRule(const DateTimeRule *rule, int32_t rawOffset, int32_t dstSavings, UErrorCode &status) {
     if (U_FAILURE(status)) {
         return nullptr;
     }
@@ -868,7 +866,7 @@ static DateTimeRule* toWallTimeRule(const DateTimeRule* rule, int32_t rawOffset,
         }
     }
     // Create a new rule
-    DateTimeRule* modifiedRule = nullptr;
+    DateTimeRule *modifiedRule = nullptr;
     if (dtype == DateTimeRule::DOM) {
         modifiedRule = new DateTimeRule(month, dom, wallt, DateTimeRule::WALL_TIME);
     } else {
@@ -893,40 +891,38 @@ public:
     ~VTZWriter();
 
     void write(const UnicodeString& str);
-    void write(UChar ch);
-    void write(const UChar* str);
-    // void write(const UChar* str, int32_t length);
+    void write(char16_t ch);
+    void write(const char16_t* str);
+    //void write(const char16_t* str, int32_t length);
 private:
     UnicodeString* out;
 };
 
-VTZWriter::VTZWriter(UnicodeString& output)
-{
+VTZWriter::VTZWriter(UnicodeString& output) {
     out = &output;
 }
 
-VTZWriter::~VTZWriter()
-{
+VTZWriter::~VTZWriter() {
 }
 
-void VTZWriter::write(const UnicodeString& str)
-{
+void
+VTZWriter::write(const UnicodeString& str) {
     out->append(str);
 }
 
-void VTZWriter::write(UChar ch)
-{
+void
+VTZWriter::write(char16_t ch) {
     out->append(ch);
 }
 
-void VTZWriter::write(const UChar* str)
-{
+void
+VTZWriter::write(const char16_t* str) {
     out->append(str, -1);
 }
 
 /*
 void
-VTZWriter::write(const UChar* str, int32_t length) {
+VTZWriter::write(const char16_t* str, int32_t length) {
     out->append(str, length);
 }
 */
@@ -936,26 +932,23 @@ public:
     VTZReader(const UnicodeString& input);
     ~VTZReader();
 
-    UChar read(void);
-
+    char16_t read();
 private:
     const UnicodeString* in;
     int32_t index;
 };
 
-VTZReader::VTZReader(const UnicodeString& input)
-{
+VTZReader::VTZReader(const UnicodeString& input) {
     in = &input;
     index = 0;
 }
 
-VTZReader::~VTZReader()
-{
+VTZReader::~VTZReader() {
 }
 
-UChar VTZReader::read(void)
-{
-    UChar ch = 0xFFFF;
+char16_t
+VTZReader::read() {
+    char16_t ch = 0xFFFF;
     if (index < in->length()) {
         ch = in->charAt(index);
     }
@@ -963,37 +956,31 @@ UChar VTZReader::read(void)
     return ch;
 }
 
+
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(VTimeZone)
 
 VTimeZone::VTimeZone()
-    : BasicTimeZone()
-    , tz(nullptr)
-    , vtzlines(nullptr)
-    , lastmod(MAX_MILLIS)
-{
+:   BasicTimeZone(), tz(nullptr), vtzlines(nullptr),
+    lastmod(MAX_MILLIS) {
 }
 
 VTimeZone::VTimeZone(const VTimeZone& source)
-    : BasicTimeZone(source)
-    , tz(nullptr)
-    , vtzlines(nullptr)
-    , tzurl(source.tzurl)
-    , lastmod(source.lastmod)
-    , olsonzid(source.olsonzid)
-    , icutzver(source.icutzver)
-{
+:   BasicTimeZone(source), tz(nullptr), vtzlines(nullptr),
+    tzurl(source.tzurl), lastmod(source.lastmod),
+    olsonzid(source.olsonzid), icutzver(source.icutzver) {
     if (source.tz != nullptr) {
         tz = source.tz->clone();
     }
     if (source.vtzlines != nullptr) {
         UErrorCode status = U_ZERO_ERROR;
         int32_t size = source.vtzlines->size();
-        LocalPointer<UVector> lpVtzLines(new UVector(uprv_deleteUObject, uhash_compareUnicodeString, size, status), status);
+        LocalPointer<UVector> lpVtzLines(
+            new UVector(uprv_deleteUObject, uhash_compareUnicodeString, size, status), status);
         if (U_FAILURE(status)) {
             return;
         }
         for (int32_t i = 0; i < size; i++) {
-            UnicodeString* line = ((UnicodeString*)source.vtzlines->elementAt(i))->clone();
+            UnicodeString *line = ((UnicodeString*)source.vtzlines->elementAt(i))->clone();
             lpVtzLines->adoptElement(line, status);
             if (U_FAILURE(status) || line == nullptr) {
                 return;
@@ -1003,8 +990,7 @@ VTimeZone::VTimeZone(const VTimeZone& source)
     }
 }
 
-VTimeZone::~VTimeZone()
-{
+VTimeZone::~VTimeZone() {
     if (tz != nullptr) {
         delete tz;
     }
@@ -1013,8 +999,8 @@ VTimeZone::~VTimeZone()
     }
 }
 
-VTimeZone& VTimeZone::operator=(const VTimeZone& right)
-{
+VTimeZone&
+VTimeZone::operator=(const VTimeZone& right) {
     if (this == &right) {
         return *this;
     }
@@ -1034,10 +1020,12 @@ VTimeZone& VTimeZone::operator=(const VTimeZone& right)
         if (right.vtzlines != nullptr) {
             UErrorCode status = U_ZERO_ERROR;
             int32_t size = right.vtzlines->size();
-            LocalPointer<UVector> lpVtzLines(new UVector(uprv_deleteUObject, uhash_compareUnicodeString, size, status), status);
+            LocalPointer<UVector> lpVtzLines(
+                new UVector(uprv_deleteUObject, uhash_compareUnicodeString, size, status), status);
             if (U_SUCCESS(status)) {
                 for (int32_t i = 0; i < size; i++) {
-                    LocalPointer<UnicodeString> line(((UnicodeString*)right.vtzlines->elementAt(i))->clone(), status);
+                    LocalPointer<UnicodeString> line(
+                        ((UnicodeString*)right.vtzlines->elementAt(i))->clone(), status);
                     lpVtzLines->adoptElement(line.orphan(), status);
                     if (U_FAILURE(status)) {
                         break;
@@ -1056,16 +1044,18 @@ VTimeZone& VTimeZone::operator=(const VTimeZone& right)
     return *this;
 }
 
-bool VTimeZone::operator==(const TimeZone& that) const
-{
+bool
+VTimeZone::operator==(const TimeZone& that) const {
     if (this == &that) {
         return true;
     }
     if (typeid(*this) != typeid(that) || !BasicTimeZone::operator==(that)) {
         return false;
     }
-    VTimeZone* vtz = (VTimeZone*)&that;
-    if (*tz == *(vtz->tz) && tzurl == vtz->tzurl && lastmod == vtz->lastmod
+    VTimeZone *vtz = (VTimeZone*)&that;
+    if (*tz == *(vtz->tz)
+        && tzurl == vtz->tzurl
+        && lastmod == vtz->lastmod
         /* && olsonzid = that.olsonzid */
         /* && icutzver = that.icutzver */) {
         return true;
@@ -1073,14 +1063,14 @@ bool VTimeZone::operator==(const TimeZone& that) const
     return false;
 }
 
-bool VTimeZone::operator!=(const TimeZone& that) const
-{
+bool
+VTimeZone::operator!=(const TimeZone& that) const {
     return !operator==(that);
 }
 
-VTimeZone* VTimeZone::createVTimeZoneByID(const UnicodeString& ID)
-{
-    VTimeZone* vtz = new VTimeZone();
+VTimeZone*
+VTimeZone::createVTimeZoneByID(const UnicodeString& ID) {
+    VTimeZone *vtz = new VTimeZone();
     if (vtz == nullptr) {
         return nullptr;
     }
@@ -1089,8 +1079,8 @@ VTimeZone* VTimeZone::createVTimeZoneByID(const UnicodeString& ID)
 
     // Set ICU tzdata version
     UErrorCode status = U_ZERO_ERROR;
-    UResourceBundle* bundle = nullptr;
-    const UChar* versionStr = nullptr;
+    UResourceBundle *bundle = nullptr;
+    const char16_t* versionStr = nullptr;
     int32_t len = 0;
     bundle = ures_openDirect(nullptr, "zoneinfo64", &status);
     versionStr = ures_getStringByKey(bundle, "TZVersion", &len, &status);
@@ -1101,12 +1091,12 @@ VTimeZone* VTimeZone::createVTimeZoneByID(const UnicodeString& ID)
     return vtz;
 }
 
-VTimeZone* VTimeZone::createVTimeZoneFromBasicTimeZone(const BasicTimeZone& basic_time_zone, UErrorCode& status)
-{
+VTimeZone*
+VTimeZone::createVTimeZoneFromBasicTimeZone(const BasicTimeZone& basic_time_zone, UErrorCode &status) {
     if (U_FAILURE(status)) {
         return nullptr;
     }
-    VTimeZone* vtz = new VTimeZone();
+    VTimeZone *vtz = new VTimeZone();
     if (vtz == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return nullptr;
@@ -1120,8 +1110,8 @@ VTimeZone* VTimeZone::createVTimeZoneFromBasicTimeZone(const BasicTimeZone& basi
     vtz->tz->getID(vtz->olsonzid);
 
     // Set ICU tzdata version
-    UResourceBundle* bundle = nullptr;
-    const UChar* versionStr = nullptr;
+    UResourceBundle *bundle = nullptr;
+    const char16_t* versionStr = nullptr;
     int32_t len = 0;
     bundle = ures_openDirect(nullptr, "zoneinfo64", &status);
     versionStr = ures_getStringByKey(bundle, "TZVersion", &len, &status);
@@ -1132,13 +1122,13 @@ VTimeZone* VTimeZone::createVTimeZoneFromBasicTimeZone(const BasicTimeZone& basi
     return vtz;
 }
 
-VTimeZone* VTimeZone::createVTimeZone(const UnicodeString& vtzdata, UErrorCode& status)
-{
+VTimeZone*
+VTimeZone::createVTimeZone(const UnicodeString& vtzdata, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return nullptr;
     }
     VTZReader reader(vtzdata);
-    VTimeZone* vtz = new VTimeZone();
+    VTimeZone *vtz = new VTimeZone();
     if (vtz == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return nullptr;
@@ -1151,141 +1141,147 @@ VTimeZone* VTimeZone::createVTimeZone(const UnicodeString& vtzdata, UErrorCode& 
     return vtz;
 }
 
-UBool VTimeZone::getTZURL(UnicodeString& url) const
-{
+UBool
+VTimeZone::getTZURL(UnicodeString& url) const {
     if (tzurl.length() > 0) {
         url = tzurl;
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
-void VTimeZone::setTZURL(const UnicodeString& url)
-{
+void
+VTimeZone::setTZURL(const UnicodeString& url) {
     tzurl = url;
 }
 
-UBool VTimeZone::getLastModified(UDate& lastModified) const
-{
+UBool
+VTimeZone::getLastModified(UDate& lastModified) const {
     if (lastmod != MAX_MILLIS) {
         lastModified = lastmod;
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
-void VTimeZone::setLastModified(UDate lastModified)
-{
+void
+VTimeZone::setLastModified(UDate lastModified) {
     lastmod = lastModified;
 }
 
-void VTimeZone::write(UnicodeString& result, UErrorCode& status) const
-{
+void
+VTimeZone::write(UnicodeString& result, UErrorCode& status) const {
     result.remove();
     VTZWriter writer(result);
     write(writer, status);
 }
 
-void VTimeZone::write(UDate start, UnicodeString& result, UErrorCode& status) const
-{
+void
+VTimeZone::write(UDate start, UnicodeString& result, UErrorCode& status) const {
     result.remove();
     VTZWriter writer(result);
     write(start, writer, status);
 }
 
-void VTimeZone::writeSimple(UDate time, UnicodeString& result, UErrorCode& status) const
-{
+void
+VTimeZone::writeSimple(UDate time, UnicodeString& result, UErrorCode& status) const {
     result.remove();
     VTZWriter writer(result);
     writeSimple(time, writer, status);
 }
 
-VTimeZone* VTimeZone::clone() const
-{
+VTimeZone*
+VTimeZone::clone() const {
     return new VTimeZone(*this);
 }
 
-int32_t VTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const
-{
+int32_t
+VTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
+                     uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const {
     return tz->getOffset(era, year, month, day, dayOfWeek, millis, status);
 }
 
-int32_t VTimeZone::getOffset(
-    uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t millis, int32_t monthLength, UErrorCode& status) const
-{
+int32_t
+VTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
+                     uint8_t dayOfWeek, int32_t millis,
+                     int32_t monthLength, UErrorCode& status) const {
     return tz->getOffset(era, year, month, day, dayOfWeek, millis, monthLength, status);
 }
 
-void VTimeZone::getOffset(UDate date, UBool local, int32_t& rawOffset, int32_t& dstOffset, UErrorCode& status) const
-{
+void
+VTimeZone::getOffset(UDate date, UBool local, int32_t& rawOffset,
+                     int32_t& dstOffset, UErrorCode& status) const {
     return tz->getOffset(date, local, rawOffset, dstOffset, status);
 }
 
-void VTimeZone::getOffsetFromLocal(UDate date, UTimeZoneLocalOption nonExistingTimeOpt, UTimeZoneLocalOption duplicatedTimeOpt, int32_t& rawOffset,
-    int32_t& dstOffset, UErrorCode& status) const
-{
+void VTimeZone::getOffsetFromLocal(UDate date, UTimeZoneLocalOption nonExistingTimeOpt,
+                                   UTimeZoneLocalOption duplicatedTimeOpt,
+                                   int32_t& rawOffset, int32_t& dstOffset, UErrorCode& status) const {
     tz->getOffsetFromLocal(date, nonExistingTimeOpt, duplicatedTimeOpt, rawOffset, dstOffset, status);
 }
 
-void VTimeZone::setRawOffset(int32_t offsetMillis)
-{
+void
+VTimeZone::setRawOffset(int32_t offsetMillis) {
     tz->setRawOffset(offsetMillis);
 }
 
-int32_t VTimeZone::getRawOffset(void) const
-{
+int32_t
+VTimeZone::getRawOffset() const {
     return tz->getRawOffset();
 }
 
-UBool VTimeZone::useDaylightTime(void) const
-{
+UBool
+VTimeZone::useDaylightTime() const {
     return tz->useDaylightTime();
 }
 
-UBool VTimeZone::inDaylightTime(UDate date, UErrorCode& status) const
-{
+UBool
+VTimeZone::inDaylightTime(UDate date, UErrorCode& status) const {
     return tz->inDaylightTime(date, status);
 }
 
-UBool VTimeZone::hasSameRules(const TimeZone& other) const
-{
+UBool
+VTimeZone::hasSameRules(const TimeZone& other) const {
     return tz->hasSameRules(other);
 }
 
-UBool VTimeZone::getNextTransition(UDate base, UBool inclusive, TimeZoneTransition& result) const
-{
+UBool
+VTimeZone::getNextTransition(UDate base, UBool inclusive, TimeZoneTransition& result) const {
     return tz->getNextTransition(base, inclusive, result);
 }
 
-UBool VTimeZone::getPreviousTransition(UDate base, UBool inclusive, TimeZoneTransition& result) const
-{
+UBool
+VTimeZone::getPreviousTransition(UDate base, UBool inclusive, TimeZoneTransition& result) const {
     return tz->getPreviousTransition(base, inclusive, result);
 }
 
-int32_t VTimeZone::countTransitionRules(UErrorCode& status) const
-{
+int32_t
+VTimeZone::countTransitionRules(UErrorCode& status) const {
     return tz->countTransitionRules(status);
 }
 
-void VTimeZone::getTimeZoneRules(const InitialTimeZoneRule*& initial, const TimeZoneRule* trsrules[], int32_t& trscount, UErrorCode& status) const
-{
+void
+VTimeZone::getTimeZoneRules(const InitialTimeZoneRule*& initial,
+                            const TimeZoneRule* trsrules[], int32_t& trscount,
+                            UErrorCode& status) const {
     tz->getTimeZoneRules(initial, trsrules, trscount, status);
 }
 
-void VTimeZone::load(VTZReader& reader, UErrorCode& status)
-{
+void
+VTimeZone::load(VTZReader& reader, UErrorCode& status) {
     U_ASSERT(vtzlines == nullptr);
-    LocalPointer<UVector> lpVtzLines(new UVector(uprv_deleteUObject, uhash_compareUnicodeString, DEFAULT_VTIMEZONE_LINES, status), status);
+    LocalPointer<UVector> lpVtzLines(
+        new UVector(uprv_deleteUObject, uhash_compareUnicodeString, DEFAULT_VTIMEZONE_LINES, status), status);
     if (U_FAILURE(status)) {
         return;
     }
-    UBool eol = FALSE;
-    UBool start = FALSE;
-    UBool success = FALSE;
+    UBool eol = false;
+    UBool start = false;
+    UBool success = false;
     UnicodeString line;
 
-    while (TRUE) {
-        UChar ch = reader.read();
+    while (true) {
+        char16_t ch = reader.read();
         if (ch == 0xFFFF) {
             // end of file
             if (start && line.startsWith(ICAL_END_VTIMEZONE, -1)) {
@@ -1294,7 +1290,7 @@ void VTimeZone::load(VTZReader& reader, UErrorCode& status)
                 if (U_FAILURE(status)) {
                     return;
                 }
-                success = TRUE;
+                success = true;
             }
             break;
         }
@@ -1319,11 +1315,11 @@ void VTimeZone::load(VTZReader& reader, UErrorCode& status)
                     line.append(ch);
                 }
             }
-            eol = FALSE;
+            eol = false;
         } else {
             if (ch == 0x000A) {
                 // LF
-                eol = TRUE;
+                eol = true;
                 if (start) {
                     if (line.startsWith(ICAL_END_VTIMEZONE, -1)) {
                         LocalPointer<UnicodeString> element(new UnicodeString(line), status);
@@ -1331,7 +1327,7 @@ void VTimeZone::load(VTZReader& reader, UErrorCode& status)
                         if (U_FAILURE(status)) {
                             return;
                         }
-                        success = TRUE;
+                        success = true;
                         break;
                     }
                 } else {
@@ -1342,8 +1338,8 @@ void VTimeZone::load(VTZReader& reader, UErrorCode& status)
                             return;
                         }
                         line.remove();
-                        start = TRUE;
-                        eol = FALSE;
+                        start = true;
+                        eol = false;
                     }
                 }
             } else {
@@ -1362,15 +1358,15 @@ void VTimeZone::load(VTZReader& reader, UErrorCode& status)
 }
 
 // parser state
-#define INI 0 // Initial state
-#define VTZ 1 // In VTIMEZONE
-#define TZI 2 // In STANDARD or DAYLIGHT
+#define INI 0   // Initial state
+#define VTZ 1   // In VTIMEZONE
+#define TZI 2   // In STANDARD or DAYLIGHT
 
-#define DEF_DSTSAVINGS (60 * 60 * 1000)
+#define DEF_DSTSAVINGS (60*60*1000)
 #define DEF_TZSTARTTIME (0.0)
 
-void VTimeZone::parse(UErrorCode& status)
-{
+void
+VTimeZone::parse(UErrorCode& status) {
     if (U_FAILURE(status)) {
         return;
     }
@@ -1384,32 +1380,32 @@ void VTimeZone::parse(UErrorCode& status)
 
     int32_t state = INI;
     int32_t n = 0;
-    UBool dst = FALSE; // current zone type
-    UnicodeString from; // current zone from offset
-    UnicodeString to; // current zone offset
-    UnicodeString zonename; // current zone name
-    UnicodeString dtstart; // current zone starts
-    UBool isRRULE = FALSE; // true if the rule is described by RRULE
-    int32_t initialRawOffset = 0; // initial offset
-    int32_t initialDSTSavings = 0; // initial offset
-    UDate firstStart = MAX_MILLIS; // the earliest rule start time
-    UnicodeString name; // RFC2445 prop name
-    UnicodeString value; // RFC2445 prop value
+    UBool dst = false;      // current zone type
+    UnicodeString from;     // current zone from offset
+    UnicodeString to;       // current zone offset
+    UnicodeString zonename;   // current zone name
+    UnicodeString dtstart;  // current zone starts
+    UBool isRRULE = false;  // true if the rule is described by RRULE
+    int32_t initialRawOffset = 0;   // initial offset
+    int32_t initialDSTSavings = 0;  // initial offset
+    UDate firstStart = MAX_MILLIS;  // the earliest rule start time
+    UnicodeString name;     // RFC2445 prop name
+    UnicodeString value;    // RFC2445 prop value
 
     int32_t finalRuleIdx = -1;
     int32_t finalRuleCount = 0;
 
     // Set the deleter on rules to remove TimeZoneRule vectors to avoid memory leaks due to unowned TimeZoneRules.
     UVector rules(uprv_deleteUObject, nullptr, status);
-
+    
     // list of RDATE or RRULE strings
     UVector dates(uprv_deleteUObject, uhash_compareUnicodeString, status);
     if (U_FAILURE(status)) {
         return;
     }
-
+    
     for (n = 0; n < vtzlines->size(); n++) {
-        UnicodeString* line = (UnicodeString*)vtzlines->elementAt(n);
+        UnicodeString *line = (UnicodeString*)vtzlines->elementAt(n);
         int32_t valueSep = line->indexOf(COLON);
         if (valueSep < 0) {
             continue;
@@ -1419,7 +1415,8 @@ void VTimeZone::parse(UErrorCode& status)
 
         switch (state) {
         case INI:
-            if (name.compare(ICAL_BEGIN, -1) == 0 && value.compare(ICAL_VTIMEZONE, -1) == 0) {
+            if (name.compare(ICAL_BEGIN, -1) == 0
+                && value.compare(ICAL_VTIMEZONE, -1) == 0) {
                 state = VTZ;
             }
             break;
@@ -1447,7 +1444,7 @@ void VTimeZone::parse(UErrorCode& status)
                     if (dates.size() != 0) {
                         dates.removeAllElements();
                     }
-                    isRRULE = FALSE;
+                    isRRULE = false;
                     from.remove();
                     to.remove();
                     zonename.remove();
@@ -1478,14 +1475,14 @@ void VTimeZone::parse(UErrorCode& status)
                 }
                 // RDATE value may contain multiple date delimited
                 // by comma
-                UBool nextDate = TRUE;
+                UBool nextDate = true;
                 int32_t dstart = 0;
                 LocalPointer<UnicodeString> dstr;
                 while (nextDate) {
                     int32_t dend = value.indexOf(COMMA, dstart);
                     if (dend == -1) {
                         dstr.adoptInsteadAndCheckErrorCode(new UnicodeString(value, dstart), status);
-                        nextDate = FALSE;
+                        nextDate = false;
                     } else {
                         dstr.adoptInsteadAndCheckErrorCode(new UnicodeString(value, dstart, dend - dstart), status);
                     }
@@ -1539,7 +1536,7 @@ void VTimeZone::parse(UErrorCode& status)
                     } else {
                         // This is rare case..  just use 1 hour DST savings
                         rawOffset = toOffset - DEF_DSTSAVINGS;
-                        dstSavings = DEF_DSTSAVINGS;
+                        dstSavings = DEF_DSTSAVINGS;                                
                     }
                 } else {
                     rawOffset = toOffset;
@@ -1555,9 +1552,11 @@ void VTimeZone::parse(UErrorCode& status)
                 // Create the rule
                 UDate actualStart = MAX_MILLIS;
                 if (isRRULE) {
-                    rule.adoptInsteadAndCheckErrorCode(createRuleByRRULE(zonename, rawOffset, dstSavings, start, &dates, fromOffset, status), status);
+                    rule.adoptInsteadAndCheckErrorCode(
+                        createRuleByRRULE(zonename, rawOffset, dstSavings, start, &dates, fromOffset, status), status);
                 } else {
-                    rule.adoptInsteadAndCheckErrorCode(createRuleByRDATE(zonename, rawOffset, dstSavings, start, &dates, fromOffset, status), status);
+                    rule.adoptInsteadAndCheckErrorCode(
+                        createRuleByRDATE(zonename, rawOffset, dstSavings, start, &dates, fromOffset, status), status);
                 }
                 if (U_FAILURE(status)) {
                     return;
@@ -1598,8 +1597,9 @@ void VTimeZone::parse(UErrorCode& status)
     }
 
     // Create a initial rule
-    getDefaultTZName(tzid, FALSE, zonename);
-    LocalPointer<InitialTimeZoneRule> initialRule(new InitialTimeZoneRule(zonename, initialRawOffset, initialDSTSavings), status);
+    getDefaultTZName(tzid, false, zonename);
+    LocalPointer<InitialTimeZoneRule> initialRule(
+        new InitialTimeZoneRule(zonename, initialRawOffset, initialDSTSavings), status);
     if (U_FAILURE(status)) {
         return;
     }
@@ -1607,7 +1607,8 @@ void VTimeZone::parse(UErrorCode& status)
     // Finally, create the RuleBasedTimeZone
     // C++ awkwardness on memory allocation failure: the constructor wont be run, meaning
     // that initialRule wont be adopted/deleted, as it normally would be.
-    LocalPointer<RuleBasedTimeZone> rbtz(new RuleBasedTimeZone(tzid, initialRule.getAlias()), status);
+    LocalPointer<RuleBasedTimeZone> rbtz(
+        new RuleBasedTimeZone(tzid, initialRule.getAlias()), status);
     if (U_SUCCESS(status)) {
         initialRule.orphan();
     } else {
@@ -1615,8 +1616,8 @@ void VTimeZone::parse(UErrorCode& status)
     }
 
     for (n = 0; n < rules.size(); n++) {
-        TimeZoneRule* r = (TimeZoneRule*)rules.elementAt(n);
-        AnnualTimeZoneRule* atzrule = dynamic_cast<AnnualTimeZoneRule*>(r);
+        TimeZoneRule *r = (TimeZoneRule*)rules.elementAt(n);
+        AnnualTimeZoneRule *atzrule = dynamic_cast<AnnualTimeZoneRule *>(r);
         if (atzrule != nullptr) {
             if (atzrule->getEndYear() == AnnualTimeZoneRule::MAX_YEAR) {
                 finalRuleCount++;
@@ -1638,7 +1639,7 @@ void VTimeZone::parse(UErrorCode& status)
             rules.removeAllElements();
         } else {
             // Normalize the final rule
-            AnnualTimeZoneRule* finalRule = (AnnualTimeZoneRule*)rules.elementAt(finalRuleIdx);
+            AnnualTimeZoneRule *finalRule = (AnnualTimeZoneRule*)rules.elementAt(finalRuleIdx);
             int32_t tmpRaw = finalRule->getRawOffset();
             int32_t tmpDST = finalRule->getDSTSavings();
 
@@ -1650,11 +1651,15 @@ void VTimeZone::parse(UErrorCode& status)
                 if (finalRuleIdx == n) {
                     continue;
                 }
-                TimeZoneRule* r = (TimeZoneRule*)rules.elementAt(n);
+                TimeZoneRule *r = (TimeZoneRule*)rules.elementAt(n);
                 UDate lastStart;
                 r->getFinalStart(tmpRaw, tmpDST, lastStart);
                 if (lastStart > start) {
-                    finalRule->getNextStart(lastStart, r->getRawOffset(), r->getDSTSavings(), FALSE, start);
+                    finalRule->getNextStart(lastStart,
+                        r->getRawOffset(),
+                        r->getDSTSavings(),
+                        false,
+                        start);
                 }
             }
 
@@ -1662,15 +1667,28 @@ void VTimeZone::parse(UErrorCode& status)
             UnicodeString tznam;
             if (start == finalStart) {
                 // Transform this into a single transition
-                newRule.adoptInsteadAndCheckErrorCode(new TimeArrayTimeZoneRule(finalRule->getName(tznam), finalRule->getRawOffset(),
-                                                          finalRule->getDSTSavings(), &finalStart, 1, DateTimeRule::UTC_TIME),
+                newRule.adoptInsteadAndCheckErrorCode(
+                    new TimeArrayTimeZoneRule(
+                            finalRule->getName(tznam),
+                            finalRule->getRawOffset(),
+                            finalRule->getDSTSavings(),
+                            &finalStart,
+                            1,
+                            DateTimeRule::UTC_TIME),
                     status);
             } else {
                 // Update the end year
                 int32_t y, m, d, dow, doy, mid;
-                Grego::timeToFields(start, y, m, d, dow, doy, mid);
-                newRule.adoptInsteadAndCheckErrorCode(new AnnualTimeZoneRule(finalRule->getName(tznam), finalRule->getRawOffset(), finalRule->getDSTSavings(),
-                                                          *(finalRule->getRule()), finalRule->getStartYear(), y),
+                Grego::timeToFields(start, y, m, d, dow, doy, mid, status);
+                if (U_FAILURE(status)) return;
+                newRule.adoptInsteadAndCheckErrorCode(
+                    new AnnualTimeZoneRule(
+                            finalRule->getName(tznam),
+                            finalRule->getRawOffset(),
+                            finalRule->getDSTSavings(),
+                            *(finalRule->getRule()),
+                            finalRule->getStartYear(),
+                            y),
                     status);
             }
             if (U_FAILURE(status)) {
@@ -1685,7 +1703,7 @@ void VTimeZone::parse(UErrorCode& status)
     }
 
     while (!rules.isEmpty()) {
-        TimeZoneRule* tzr = (TimeZoneRule*)rules.orphanElementAt(0);
+        TimeZoneRule *tzr = (TimeZoneRule*)rules.orphanElementAt(0);
         rbtz->addTransitionRule(tzr, status);
         if (U_FAILURE(status)) {
             return;
@@ -1700,21 +1718,25 @@ void VTimeZone::parse(UErrorCode& status)
     setID(tzid);
 }
 
-void VTimeZone::write(VTZWriter& writer, UErrorCode& status) const
-{
+void
+VTimeZone::write(VTZWriter& writer, UErrorCode& status) const {
+    if (U_FAILURE(status)) return;
     if (vtzlines != nullptr) {
         for (int32_t i = 0; i < vtzlines->size(); i++) {
-            UnicodeString* line = (UnicodeString*)vtzlines->elementAt(i);
-            if (line->startsWith(ICAL_TZURL, -1) && line->charAt(u_strlen(ICAL_TZURL)) == COLON) {
+            UnicodeString *line = (UnicodeString*)vtzlines->elementAt(i);
+            if (line->startsWith(ICAL_TZURL, -1)
+                && line->charAt(u_strlen(ICAL_TZURL)) == COLON) {
                 writer.write(ICAL_TZURL);
                 writer.write(COLON);
                 writer.write(tzurl);
                 writer.write(ICAL_NEWLINE);
-            } else if (line->startsWith(ICAL_LASTMOD, -1) && line->charAt(u_strlen(ICAL_LASTMOD)) == COLON) {
+            } else if (line->startsWith(ICAL_LASTMOD, -1)
+                && line->charAt(u_strlen(ICAL_LASTMOD)) == COLON) {
                 UnicodeString utcString;
                 writer.write(ICAL_LASTMOD);
                 writer.write(COLON);
-                writer.write(getUTCDateTimeString(lastmod, utcString));
+                writer.write(getUTCDateTimeString(lastmod, utcString, status));
+                if (U_FAILURE(status)) return;
                 writer.write(ICAL_NEWLINE);
             } else {
                 writer.write(*line);
@@ -1735,13 +1757,13 @@ void VTimeZone::write(VTZWriter& writer, UErrorCode& status) const
     }
 }
 
-void VTimeZone::write(UDate start, VTZWriter& writer, UErrorCode& status) const
-{
+void
+VTimeZone::write(UDate start, VTZWriter& writer, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
-    InitialTimeZoneRule* initial = nullptr;
-    UVector* transitionRules = nullptr;
+    InitialTimeZoneRule *initial = nullptr;
+    UVector *transitionRules = nullptr;
     UVector customProps(uprv_deleteUObject, uhash_compareUnicodeString, status);
     UnicodeString tzid;
 
@@ -1757,9 +1779,9 @@ void VTimeZone::write(UDate start, VTZWriter& writer, UErrorCode& status) const
     getID(tzid);
     RuleBasedTimeZone rbtz(tzid, lpInitial.orphan());
     if (lpTransitionRules.isValid()) {
-        U_ASSERT(transitionRules->hasDeleter()); // Assumed for U_FAILURE early return, below.
+        U_ASSERT(transitionRules->hasDeleter());  // Assumed for U_FAILURE early return, below.
         while (!lpTransitionRules->isEmpty()) {
-            TimeZoneRule* tr = (TimeZoneRule*)lpTransitionRules->orphanElementAt(0);
+            TimeZoneRule *tr = (TimeZoneRule*)lpTransitionRules->orphanElementAt(0);
             rbtz.addTransitionRule(tr, status);
             if (U_FAILURE(status)) {
                 return;
@@ -1772,17 +1794,17 @@ void VTimeZone::write(UDate start, VTZWriter& writer, UErrorCode& status) const
     }
 
     if (olsonzid.length() > 0 && icutzver.length() > 0) {
-        UnicodeString* icutzprop = new UnicodeString(ICU_TZINFO_PROP);
+        UnicodeString *icutzprop = new UnicodeString(ICU_TZINFO_PROP);
         if (icutzprop == nullptr) {
             status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
         icutzprop->append(olsonzid);
-        icutzprop->append((UChar)0x005B /*'['*/);
+        icutzprop->append((char16_t)0x005B/*'['*/);
         icutzprop->append(icutzver);
         icutzprop->append(ICU_TZINFO_PARTIAL, -1);
         appendMillis(start, *icutzprop);
-        icutzprop->append((UChar)0x005D /*']'*/);
+        icutzprop->append((char16_t)0x005D/*']'*/);
         customProps.adoptElement(icutzprop, status);
         if (U_FAILURE(status)) {
             return;
@@ -1791,8 +1813,8 @@ void VTimeZone::write(UDate start, VTZWriter& writer, UErrorCode& status) const
     writeZone(writer, rbtz, &customProps, status);
 }
 
-void VTimeZone::writeSimple(UDate time, VTZWriter& writer, UErrorCode& status) const
-{
+void
+VTimeZone::writeSimple(UDate time, VTZWriter& writer, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -1801,7 +1823,7 @@ void VTimeZone::writeSimple(UDate time, VTZWriter& writer, UErrorCode& status) c
     UnicodeString tzid;
 
     // Extract simple rules
-    InitialTimeZoneRule* initial = nullptr;
+    InitialTimeZoneRule *initial = nullptr;
     AnnualTimeZoneRule *std = nullptr, *dst = nullptr;
     getSimpleRulesNear(time, initial, std, dst, status);
     LocalPointer<InitialTimeZoneRule> lpInitial(initial);
@@ -1822,22 +1844,23 @@ void VTimeZone::writeSimple(UDate time, VTZWriter& writer, UErrorCode& status) c
         if (olsonzid.length() > 0 && icutzver.length() > 0) {
             LocalPointer<UnicodeString> icutzprop(new UnicodeString(ICU_TZINFO_PROP), status);
             if (U_FAILURE(status)) {
-                return;
+               return;
             }
             icutzprop->append(olsonzid);
-            icutzprop->append((UChar)0x005B /*'['*/);
+            icutzprop->append((char16_t)0x005B/*'['*/);
             icutzprop->append(icutzver);
             icutzprop->append(ICU_TZINFO_SIMPLE, -1);
             appendMillis(time, *icutzprop);
-            icutzprop->append((UChar)0x005D /*']'*/);
+            icutzprop->append((char16_t)0x005D/*']'*/);
             customProps.adoptElement(icutzprop.orphan(), status);
         }
         writeZone(writer, rbtz, &customProps, status);
     }
 }
 
-void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customProps, UErrorCode& status) const
-{
+void
+VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz,
+                     UVector* customProps, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -1848,7 +1871,7 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
 
     if (customProps != nullptr) {
         for (int32_t i = 0; i < customProps->size(); i++) {
-            UnicodeString* custprop = (UnicodeString*)customProps->elementAt(i);
+            UnicodeString *custprop = (UnicodeString*)customProps->elementAt(i);
             w.write(*custprop);
             w.write(ICAL_NEWLINE);
         }
@@ -1867,7 +1890,7 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
     UDate dstStartTime = 0.0;
     UDate dstUntilTime = 0.0;
     int32_t dstCount = 0;
-    AnnualTimeZoneRule* finalDstRule = nullptr;
+    AnnualTimeZoneRule *finalDstRule = nullptr;
 
     UnicodeString stdName;
     int32_t stdFromOffset = 0;
@@ -1881,57 +1904,67 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
     UDate stdStartTime = 0.0;
     UDate stdUntilTime = 0.0;
     int32_t stdCount = 0;
-    AnnualTimeZoneRule* finalStdRule = nullptr;
+    AnnualTimeZoneRule *finalStdRule = nullptr;
 
     int32_t year, month, dom, dow, doy, mid;
-    UBool hasTransitions = FALSE;
+    UBool hasTransitions = false;
     TimeZoneTransition tzt;
     UBool tztAvail;
     UnicodeString name;
     UBool isDst;
 
     // Going through all transitions
-    while (TRUE) {
-        tztAvail = basictz.getNextTransition(t, FALSE, tzt);
+    while (true) {
+        tztAvail = basictz.getNextTransition(t, false, tzt);
         if (!tztAvail) {
             break;
         }
-        hasTransitions = TRUE;
+        hasTransitions = true;
         t = tzt.getTime();
         tzt.getTo()->getName(name);
         isDst = (tzt.getTo()->getDSTSavings() != 0);
         int32_t fromOffset = tzt.getFrom()->getRawOffset() + tzt.getFrom()->getDSTSavings();
         int32_t fromDSTSavings = tzt.getFrom()->getDSTSavings();
         int32_t toOffset = tzt.getTo()->getRawOffset() + tzt.getTo()->getDSTSavings();
-        Grego::timeToFields(tzt.getTime() + fromOffset, year, month, dom, dow, doy, mid);
+        Grego::timeToFields(tzt.getTime() + fromOffset, year, month, dom, dow, doy, mid, status);
+        if (U_FAILURE(status)) return;
         int32_t weekInMonth = Grego::dayOfWeekInMonth(year, month, dom);
-        UBool sameRule = FALSE;
-        const AnnualTimeZoneRule* atzrule;
+        UBool sameRule = false;
+        const AnnualTimeZoneRule *atzrule;
         if (isDst) {
-            if (finalDstRule == nullptr && (atzrule = dynamic_cast<const AnnualTimeZoneRule*>(tzt.getTo())) != nullptr
-                && atzrule->getEndYear() == AnnualTimeZoneRule::MAX_YEAR) {
+            if (finalDstRule == nullptr
+                && (atzrule = dynamic_cast<const AnnualTimeZoneRule *>(tzt.getTo())) != nullptr
+                && atzrule->getEndYear() == AnnualTimeZoneRule::MAX_YEAR
+            ) {
                 finalDstRule = atzrule->clone();
             }
             if (dstCount > 0) {
-                if (year == dstStartYear + dstCount && name.compare(dstName) == 0 && dstFromOffset == fromOffset && dstToOffset == toOffset && dstMonth == month
-                    && dstDayOfWeek == dow && dstWeekInMonth == weekInMonth && dstMillisInDay == mid) {
+                if (year == dstStartYear + dstCount
+                        && name.compare(dstName) == 0
+                        && dstFromOffset == fromOffset
+                        && dstToOffset == toOffset
+                        && dstMonth == month
+                        && dstDayOfWeek == dow
+                        && dstWeekInMonth == weekInMonth
+                        && dstMillisInDay == mid) {
                     // Update until time
                     dstUntilTime = t;
                     dstCount++;
-                    sameRule = TRUE;
+                    sameRule = true;
                 }
                 if (!sameRule) {
                     if (dstCount == 1) {
-                        writeZonePropsByTime(w, TRUE, dstName, dstFromOffset, dstToOffset, dstStartTime, TRUE, status);
+                        writeZonePropsByTime(w, true, dstName, dstFromOffset, dstToOffset, dstStartTime,
+                                true, status);
                     } else {
-                        writeZonePropsByDOW(
-                            w, TRUE, dstName, dstFromOffset, dstToOffset, dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, dstUntilTime, status);
+                        writeZonePropsByDOW(w, true, dstName, dstFromOffset, dstToOffset,
+                                dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, dstUntilTime, status);
                     }
                     if (U_FAILURE(status)) {
                         goto cleanupWriteZone;
                     }
                 }
-            }
+            } 
             if (!sameRule) {
                 // Reset this DST information
                 dstName = name;
@@ -1950,24 +1983,33 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
                 break;
             }
         } else {
-            if (finalStdRule == nullptr && (atzrule = dynamic_cast<const AnnualTimeZoneRule*>(tzt.getTo())) != nullptr
-                && atzrule->getEndYear() == AnnualTimeZoneRule::MAX_YEAR) {
+            if (finalStdRule == nullptr
+                && (atzrule = dynamic_cast<const AnnualTimeZoneRule *>(tzt.getTo())) != nullptr
+                && atzrule->getEndYear() == AnnualTimeZoneRule::MAX_YEAR
+            ) {
                 finalStdRule = atzrule->clone();
             }
             if (stdCount > 0) {
-                if (year == stdStartYear + stdCount && name.compare(stdName) == 0 && stdFromOffset == fromOffset && stdToOffset == toOffset && stdMonth == month
-                    && stdDayOfWeek == dow && stdWeekInMonth == weekInMonth && stdMillisInDay == mid) {
+                if (year == stdStartYear + stdCount
+                        && name.compare(stdName) == 0
+                        && stdFromOffset == fromOffset
+                        && stdToOffset == toOffset
+                        && stdMonth == month
+                        && stdDayOfWeek == dow
+                        && stdWeekInMonth == weekInMonth
+                        && stdMillisInDay == mid) {
                     // Update until time
                     stdUntilTime = t;
                     stdCount++;
-                    sameRule = TRUE;
+                    sameRule = true;
                 }
                 if (!sameRule) {
                     if (stdCount == 1) {
-                        writeZonePropsByTime(w, FALSE, stdName, stdFromOffset, stdToOffset, stdStartTime, TRUE, status);
+                        writeZonePropsByTime(w, false, stdName, stdFromOffset, stdToOffset, stdStartTime,
+                                true, status);
                     } else {
-                        writeZonePropsByDOW(
-                            w, FALSE, stdName, stdFromOffset, stdToOffset, stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, stdUntilTime, status);
+                        writeZonePropsByDOW(w, false, stdName, stdFromOffset, stdToOffset,
+                                stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, stdUntilTime, status);
                     }
                     if (U_FAILURE(status)) {
                         goto cleanupWriteZone;
@@ -1996,7 +2038,7 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
     if (!hasTransitions) {
         // No transition - put a single non transition RDATE
         int32_t raw, dst, offset;
-        basictz.getOffset(0.0 /*any time*/, FALSE, raw, dst, status);
+        basictz.getOffset(0.0/*any time*/, false, raw, dst, status);
         if (U_FAILURE(status)) {
             goto cleanupWriteZone;
         }
@@ -2004,8 +2046,9 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
         isDst = (dst != 0);
         UnicodeString tzid;
         basictz.getID(tzid);
-        getDefaultTZName(tzid, isDst, name);
-        writeZonePropsByTime(w, isDst, name, offset, offset, DEF_TZSTARTTIME - offset, FALSE, status);
+        getDefaultTZName(tzid, isDst, name);        
+        writeZonePropsByTime(w, isDst, name,
+                offset, offset, DEF_TZSTARTTIME - offset, false, status);    
         if (U_FAILURE(status)) {
             goto cleanupWriteZone;
         }
@@ -2013,26 +2056,28 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
         if (dstCount > 0) {
             if (finalDstRule == nullptr) {
                 if (dstCount == 1) {
-                    writeZonePropsByTime(w, TRUE, dstName, dstFromOffset, dstToOffset, dstStartTime, TRUE, status);
+                    writeZonePropsByTime(w, true, dstName, dstFromOffset, dstToOffset, dstStartTime,
+                            true, status);
                 } else {
-                    writeZonePropsByDOW(
-                        w, TRUE, dstName, dstFromOffset, dstToOffset, dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, dstUntilTime, status);
+                    writeZonePropsByDOW(w, true, dstName, dstFromOffset, dstToOffset,
+                            dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, dstUntilTime, status);
                 }
                 if (U_FAILURE(status)) {
                     goto cleanupWriteZone;
                 }
             } else {
                 if (dstCount == 1) {
-                    writeFinalRule(w, TRUE, finalDstRule, dstFromOffset - dstFromDSTSavings, dstFromDSTSavings, dstStartTime, status);
+                    writeFinalRule(w, true, finalDstRule,
+                            dstFromOffset - dstFromDSTSavings, dstFromDSTSavings, dstStartTime, status);
                 } else {
                     // Use a single rule if possible
                     if (isEquivalentDateRule(dstMonth, dstWeekInMonth, dstDayOfWeek, finalDstRule->getRule())) {
-                        writeZonePropsByDOW(
-                            w, TRUE, dstName, dstFromOffset, dstToOffset, dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, MAX_MILLIS, status);
+                        writeZonePropsByDOW(w, true, dstName, dstFromOffset, dstToOffset,
+                                dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, MAX_MILLIS, status);
                     } else {
                         // Not equivalent rule - write out two different rules
-                        writeZonePropsByDOW(
-                            w, TRUE, dstName, dstFromOffset, dstToOffset, dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, dstUntilTime, status);
+                        writeZonePropsByDOW(w, true, dstName, dstFromOffset, dstToOffset,
+                                dstMonth, dstWeekInMonth, dstDayOfWeek, dstStartTime, dstUntilTime, status);
                         if (U_FAILURE(status)) {
                             goto cleanupWriteZone;
                         }
@@ -2040,7 +2085,8 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
                         UBool nextStartAvail = finalDstRule->getNextStart(dstUntilTime, dstFromOffset - dstFromDSTSavings, dstFromDSTSavings, false, nextStart);
                         U_ASSERT(nextStartAvail);
                         if (nextStartAvail) {
-                            writeFinalRule(w, TRUE, finalDstRule, dstFromOffset - dstFromDSTSavings, dstFromDSTSavings, nextStart, status);
+                            writeFinalRule(w, true, finalDstRule,
+                                    dstFromOffset - dstFromDSTSavings, dstFromDSTSavings, nextStart, status);
                         }
                     }
                 }
@@ -2052,26 +2098,28 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
         if (stdCount > 0) {
             if (finalStdRule == nullptr) {
                 if (stdCount == 1) {
-                    writeZonePropsByTime(w, FALSE, stdName, stdFromOffset, stdToOffset, stdStartTime, TRUE, status);
+                    writeZonePropsByTime(w, false, stdName, stdFromOffset, stdToOffset, stdStartTime,
+                            true, status);
                 } else {
-                    writeZonePropsByDOW(
-                        w, FALSE, stdName, stdFromOffset, stdToOffset, stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, stdUntilTime, status);
+                    writeZonePropsByDOW(w, false, stdName, stdFromOffset, stdToOffset,
+                            stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, stdUntilTime, status);
                 }
                 if (U_FAILURE(status)) {
                     goto cleanupWriteZone;
                 }
             } else {
                 if (stdCount == 1) {
-                    writeFinalRule(w, FALSE, finalStdRule, stdFromOffset - stdFromDSTSavings, stdFromDSTSavings, stdStartTime, status);
+                    writeFinalRule(w, false, finalStdRule,
+                            stdFromOffset - stdFromDSTSavings, stdFromDSTSavings, stdStartTime, status);
                 } else {
                     // Use a single rule if possible
                     if (isEquivalentDateRule(stdMonth, stdWeekInMonth, stdDayOfWeek, finalStdRule->getRule())) {
-                        writeZonePropsByDOW(
-                            w, FALSE, stdName, stdFromOffset, stdToOffset, stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, MAX_MILLIS, status);
+                        writeZonePropsByDOW(w, false, stdName, stdFromOffset, stdToOffset,
+                                stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, MAX_MILLIS, status);
                     } else {
                         // Not equivalent rule - write out two different rules
-                        writeZonePropsByDOW(
-                            w, FALSE, stdName, stdFromOffset, stdToOffset, stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, stdUntilTime, status);
+                        writeZonePropsByDOW(w, false, stdName, stdFromOffset, stdToOffset,
+                                stdMonth, stdWeekInMonth, stdDayOfWeek, stdStartTime, stdUntilTime, status);
                         if (U_FAILURE(status)) {
                             goto cleanupWriteZone;
                         }
@@ -2079,7 +2127,8 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
                         UBool nextStartAvail = finalStdRule->getNextStart(stdUntilTime, stdFromOffset - stdFromDSTSavings, stdFromDSTSavings, false, nextStart);
                         U_ASSERT(nextStartAvail);
                         if (nextStartAvail) {
-                            writeFinalRule(w, FALSE, finalStdRule, stdFromOffset - stdFromDSTSavings, stdFromDSTSavings, nextStart, status);
+                            writeFinalRule(w, false, finalStdRule,
+                                    stdFromOffset - stdFromDSTSavings, stdFromDSTSavings, nextStart, status);
                         }
                     }
                 }
@@ -2087,7 +2136,7 @@ void VTimeZone::writeZone(VTZWriter& w, BasicTimeZone& basictz, UVector* customP
                     goto cleanupWriteZone;
                 }
             }
-        }
+        }            
     }
     writeFooter(w, status);
 
@@ -2101,8 +2150,8 @@ cleanupWriteZone:
     }
 }
 
-void VTimeZone::writeHeaders(VTZWriter& writer, UErrorCode& status) const
-{
+void
+VTimeZone::writeHeaders(VTZWriter& writer, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2127,7 +2176,7 @@ void VTimeZone::writeHeaders(VTZWriter& writer, UErrorCode& status) const
         UnicodeString lastmodStr;
         writer.write(ICAL_LASTMOD);
         writer.write(COLON);
-        writer.write(getUTCDateTimeString(lastmod, lastmodStr));
+        writer.write(getUTCDateTimeString(lastmod, lastmodStr, status));
         writer.write(ICAL_NEWLINE);
     }
 }
@@ -2135,8 +2184,8 @@ void VTimeZone::writeHeaders(VTZWriter& writer, UErrorCode& status) const
 /*
  * Write the closing section of the VTIMEZONE definition block
  */
-void VTimeZone::writeFooter(VTZWriter& writer, UErrorCode& status) const
-{
+void
+VTimeZone::writeFooter(VTZWriter& writer, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2149,9 +2198,10 @@ void VTimeZone::writeFooter(VTZWriter& writer, UErrorCode& status) const
 /*
  * Write a single start time
  */
-void VTimeZone::writeZonePropsByTime(
-    VTZWriter& writer, UBool isDst, const UnicodeString& zonename, int32_t fromOffset, int32_t toOffset, UDate time, UBool withRDATE, UErrorCode& status) const
-{
+void
+VTimeZone::writeZonePropsByTime(VTZWriter& writer, UBool isDst, const UnicodeString& zonename,
+                                int32_t fromOffset, int32_t toOffset, UDate time, UBool withRDATE,
+                                UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2163,8 +2213,11 @@ void VTimeZone::writeZonePropsByTime(
         writer.write(ICAL_RDATE);
         writer.write(COLON);
         UnicodeString timestr;
-        writer.write(getDateTimeString(time + fromOffset, timestr));
+        writer.write(getDateTimeString(time + fromOffset, timestr, status));
         writer.write(ICAL_NEWLINE);
+        if (U_FAILURE(status)) {
+            return;
+        }
     }
     endZoneProps(writer, isDst, status);
     if (U_FAILURE(status)) {
@@ -2175,9 +2228,11 @@ void VTimeZone::writeZonePropsByTime(
 /*
  * Write start times defined by a DOM rule using VTIMEZONE RRULE
  */
-void VTimeZone::writeZonePropsByDOM(VTZWriter& writer, UBool isDst, const UnicodeString& zonename, int32_t fromOffset, int32_t toOffset, int32_t month,
-    int32_t dayOfMonth, UDate startTime, UDate untilTime, UErrorCode& status) const
-{
+void
+VTimeZone::writeZonePropsByDOM(VTZWriter& writer, UBool isDst, const UnicodeString& zonename,
+                               int32_t fromOffset, int32_t toOffset,
+                               int32_t month, int32_t dayOfMonth, UDate startTime, UDate untilTime,
+                               UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2195,7 +2250,7 @@ void VTimeZone::writeZonePropsByDOM(VTZWriter& writer, UBool isDst, const Unicod
     appendAsciiDigits(dayOfMonth, 0, dstr);
     writer.write(dstr);
     if (untilTime != MAX_MILLIS) {
-        appendUNTIL(writer, getDateTimeString(untilTime + fromOffset, dstr), status);
+        appendUNTIL(writer, getDateTimeString(untilTime + fromOffset, dstr, status), status);
         if (U_FAILURE(status)) {
             return;
         }
@@ -2207,9 +2262,11 @@ void VTimeZone::writeZonePropsByDOM(VTZWriter& writer, UBool isDst, const Unicod
 /*
  * Write start times defined by a DOW rule using VTIMEZONE RRULE
  */
-void VTimeZone::writeZonePropsByDOW(VTZWriter& writer, UBool isDst, const UnicodeString& zonename, int32_t fromOffset, int32_t toOffset, int32_t month,
-    int32_t weekInMonth, int32_t dayOfWeek, UDate startTime, UDate untilTime, UErrorCode& status) const
-{
+void
+VTimeZone::writeZonePropsByDOW(VTZWriter& writer, UBool isDst, const UnicodeString& zonename,
+                               int32_t fromOffset, int32_t toOffset,
+                               int32_t month, int32_t weekInMonth, int32_t dayOfWeek,
+                               UDate startTime, UDate untilTime, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2225,11 +2282,11 @@ void VTimeZone::writeZonePropsByDOW(VTZWriter& writer, UBool isDst, const Unicod
     writer.write(EQUALS_SIGN);
     UnicodeString dstr;
     appendAsciiDigits(weekInMonth, 0, dstr);
-    writer.write(dstr); // -4, -3, -2, -1, 1, 2, 3, 4
-    writer.write(ICAL_DOW_NAMES[dayOfWeek - 1]); // SU, MO, TU...
+    writer.write(dstr);    // -4, -3, -2, -1, 1, 2, 3, 4
+    writer.write(ICAL_DOW_NAMES[dayOfWeek - 1]);    // SU, MO, TU...
 
     if (untilTime != MAX_MILLIS) {
-        appendUNTIL(writer, getDateTimeString(untilTime + fromOffset, dstr), status);
+        appendUNTIL(writer, getDateTimeString(untilTime + fromOffset, dstr, status), status);
         if (U_FAILURE(status)) {
             return;
         }
@@ -2241,23 +2298,26 @@ void VTimeZone::writeZonePropsByDOW(VTZWriter& writer, UBool isDst, const Unicod
 /*
  * Write start times defined by a DOW_GEQ_DOM rule using VTIMEZONE RRULE
  */
-void VTimeZone::writeZonePropsByDOW_GEQ_DOM(VTZWriter& writer, UBool isDst, const UnicodeString& zonename, int32_t fromOffset, int32_t toOffset, int32_t month,
-    int32_t dayOfMonth, int32_t dayOfWeek, UDate startTime, UDate untilTime, UErrorCode& status) const
-{
+void
+VTimeZone::writeZonePropsByDOW_GEQ_DOM(VTZWriter& writer, UBool isDst, const UnicodeString& zonename,
+                                       int32_t fromOffset, int32_t toOffset,
+                                       int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
+                                       UDate startTime, UDate untilTime, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
     // Check if this rule can be converted to DOW rule
-    if (dayOfMonth % 7 == 1) {
+    if (dayOfMonth%7 == 1) {
         // Can be represented by DOW rule
-        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset, month, (dayOfMonth + 6) / 7, dayOfWeek, startTime, untilTime, status);
+        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset,
+                month, (dayOfMonth + 6)/7, dayOfWeek, startTime, untilTime, status);
         if (U_FAILURE(status)) {
             return;
         }
-    } else if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - dayOfMonth) % 7 == 6) {
+    } else if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - dayOfMonth)%7 == 6) {
         // Can be represented by DOW rule with negative week number
-        writeZonePropsByDOW(
-            writer, isDst, zonename, fromOffset, toOffset, month, -1 * ((MONTHLENGTH[month] - dayOfMonth + 1) / 7), dayOfWeek, startTime, untilTime, status);
+        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset,
+                month, -1*((MONTHLENGTH[month] - dayOfMonth + 1)/7), dayOfWeek, startTime, untilTime, status);
         if (U_FAILURE(status)) {
             return;
         }
@@ -2270,7 +2330,7 @@ void VTimeZone::writeZonePropsByDOW_GEQ_DOM(VTZWriter& writer, UBool isDst, cons
         // Check if all days are in the same month
         int32_t startDay = dayOfMonth;
         int32_t currentMonthDays = 7;
-
+    
         if (dayOfMonth <= 0) {
             // The start day is in previous month
             int32_t prevMonthDays = 1 - dayOfMonth;
@@ -2281,7 +2341,8 @@ void VTimeZone::writeZonePropsByDOW_GEQ_DOM(VTZWriter& writer, UBool isDst, cons
             // Note: When a rule is separated into two, UNTIL attribute needs to be
             // calculated for each of them.  For now, we skip this, because we basically use this method
             // only for final rules, which does not have the UNTIL attribute
-            writeZonePropsByDOW_GEQ_DOM_sub(writer, prevMonth, -prevMonthDays, dayOfWeek, prevMonthDays, MAX_MILLIS /* Do not use UNTIL */, fromOffset, status);
+            writeZonePropsByDOW_GEQ_DOM_sub(writer, prevMonth, -prevMonthDays, dayOfWeek, prevMonthDays,
+                MAX_MILLIS /* Do not use UNTIL */, fromOffset, status);
             if (U_FAILURE(status)) {
                 return;
             }
@@ -2295,13 +2356,15 @@ void VTimeZone::writeZonePropsByDOW_GEQ_DOM(VTZWriter& writer, UBool isDst, cons
             currentMonthDays -= nextMonthDays;
 
             int32_t nextMonth = (month + 1) > 11 ? 0 : month + 1;
-
-            writeZonePropsByDOW_GEQ_DOM_sub(writer, nextMonth, 1, dayOfWeek, nextMonthDays, MAX_MILLIS /* Do not use UNTIL */, fromOffset, status);
+            
+            writeZonePropsByDOW_GEQ_DOM_sub(writer, nextMonth, 1, dayOfWeek, nextMonthDays,
+                MAX_MILLIS /* Do not use UNTIL */, fromOffset, status);
             if (U_FAILURE(status)) {
                 return;
             }
         }
-        writeZonePropsByDOW_GEQ_DOM_sub(writer, month, startDay, dayOfWeek, currentMonthDays, untilTime, fromOffset, status);
+        writeZonePropsByDOW_GEQ_DOM_sub(writer, month, startDay, dayOfWeek, currentMonthDays,
+            untilTime, fromOffset, status);
         if (U_FAILURE(status)) {
             return;
         }
@@ -2312,9 +2375,10 @@ void VTimeZone::writeZonePropsByDOW_GEQ_DOM(VTZWriter& writer, UBool isDst, cons
 /*
  * Called from writeZonePropsByDOW_GEQ_DOM
  */
-void VTimeZone::writeZonePropsByDOW_GEQ_DOM_sub(
-    VTZWriter& writer, int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, int32_t numDays, UDate untilTime, int32_t fromOffset, UErrorCode& status) const
-{
+void
+VTimeZone::writeZonePropsByDOW_GEQ_DOM_sub(VTZWriter& writer, int32_t month, int32_t dayOfMonth,
+                                           int32_t dayOfWeek, int32_t numDays,
+                                           UDate untilTime, int32_t fromOffset, UErrorCode& status) const {
 
     if (U_FAILURE(status)) {
         return;
@@ -2331,7 +2395,7 @@ void VTimeZone::writeZonePropsByDOW_GEQ_DOM_sub(
     }
     writer.write(ICAL_BYDAY);
     writer.write(EQUALS_SIGN);
-    writer.write(ICAL_DOW_NAMES[dayOfWeek - 1]); // SU, MO, TU...
+    writer.write(ICAL_DOW_NAMES[dayOfWeek - 1]);    // SU, MO, TU...
     writer.write(SEMICOLON);
     writer.write(ICAL_BYMONTHDAY);
     writer.write(EQUALS_SIGN);
@@ -2347,7 +2411,7 @@ void VTimeZone::writeZonePropsByDOW_GEQ_DOM_sub(
     }
 
     if (untilTime != MAX_MILLIS) {
-        appendUNTIL(writer, getDateTimeString(untilTime + fromOffset, dstr), status);
+        appendUNTIL(writer, getDateTimeString(untilTime + fromOffset, dstr, status), status);
         if (U_FAILURE(status)) {
             return;
         }
@@ -2358,45 +2422,51 @@ void VTimeZone::writeZonePropsByDOW_GEQ_DOM_sub(
 /*
  * Write start times defined by a DOW_LEQ_DOM rule using VTIMEZONE RRULE
  */
-void VTimeZone::writeZonePropsByDOW_LEQ_DOM(VTZWriter& writer, UBool isDst, const UnicodeString& zonename, int32_t fromOffset, int32_t toOffset, int32_t month,
-    int32_t dayOfMonth, int32_t dayOfWeek, UDate startTime, UDate untilTime, UErrorCode& status) const
-{
+void
+VTimeZone::writeZonePropsByDOW_LEQ_DOM(VTZWriter& writer, UBool isDst, const UnicodeString& zonename,
+                                       int32_t fromOffset, int32_t toOffset,
+                                       int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
+                                       UDate startTime, UDate untilTime, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
     // Check if this rule can be converted to DOW rule
-    if (dayOfMonth % 7 == 0) {
+    if (dayOfMonth%7 == 0) {
         // Can be represented by DOW rule
-        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset, month, dayOfMonth / 7, dayOfWeek, startTime, untilTime, status);
-    } else if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - dayOfMonth) % 7 == 0) {
+        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset,
+                month, dayOfMonth/7, dayOfWeek, startTime, untilTime, status);
+    } else if (month != UCAL_FEBRUARY && (MONTHLENGTH[month] - dayOfMonth)%7 == 0){
         // Can be represented by DOW rule with negative week number
-        writeZonePropsByDOW(
-            writer, isDst, zonename, fromOffset, toOffset, month, -1 * ((MONTHLENGTH[month] - dayOfMonth) / 7 + 1), dayOfWeek, startTime, untilTime, status);
+        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset,
+                month, -1*((MONTHLENGTH[month] - dayOfMonth)/7 + 1), dayOfWeek, startTime, untilTime, status);
     } else if (month == UCAL_FEBRUARY && dayOfMonth == 29) {
         // Special case for February
-        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset, UCAL_FEBRUARY, -1, dayOfWeek, startTime, untilTime, status);
+        writeZonePropsByDOW(writer, isDst, zonename, fromOffset, toOffset,
+                UCAL_FEBRUARY, -1, dayOfWeek, startTime, untilTime, status);
     } else {
         // Otherwise, convert this to DOW_GEQ_DOM rule
-        writeZonePropsByDOW_GEQ_DOM(writer, isDst, zonename, fromOffset, toOffset, month, dayOfMonth - 6, dayOfWeek, startTime, untilTime, status);
+        writeZonePropsByDOW_GEQ_DOM(writer, isDst, zonename, fromOffset, toOffset,
+                month, dayOfMonth - 6, dayOfWeek, startTime, untilTime, status);
     }
 }
 
 /*
  * Write the final time zone rule using RRULE, with no UNTIL attribute
  */
-void VTimeZone::writeFinalRule(
-    VTZWriter& writer, UBool isDst, const AnnualTimeZoneRule* rule, int32_t fromRawOffset, int32_t fromDSTSavings, UDate startTime, UErrorCode& status) const
-{
+void
+VTimeZone::writeFinalRule(VTZWriter& writer, UBool isDst, const AnnualTimeZoneRule* rule,
+                          int32_t fromRawOffset, int32_t fromDSTSavings,
+                          UDate startTime, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
-    UBool modifiedRule = TRUE;
-    const DateTimeRule* dtrule = toWallTimeRule(rule->getRule(), fromRawOffset, fromDSTSavings, status);
+    UBool modifiedRule = true;
+    const DateTimeRule *dtrule = toWallTimeRule(rule->getRule(), fromRawOffset, fromDSTSavings, status);
     if (U_FAILURE(status)) {
         return;
     }
     if (dtrule == nullptr) {
-        modifiedRule = FALSE;
+        modifiedRule = false;
         dtrule = rule->getRule();
     }
 
@@ -2416,20 +2486,20 @@ void VTimeZone::writeFinalRule(
     rule->getName(name);
     switch (dtrule->getDateRuleType()) {
     case DateTimeRule::DOM:
-        writeZonePropsByDOM(
-            writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset, dtrule->getRuleMonth(), dtrule->getRuleDayOfMonth(), startTime, MAX_MILLIS, status);
+        writeZonePropsByDOM(writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset,
+                dtrule->getRuleMonth(), dtrule->getRuleDayOfMonth(), startTime, MAX_MILLIS, status);
         break;
     case DateTimeRule::DOW:
-        writeZonePropsByDOW(writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset, dtrule->getRuleMonth(), dtrule->getRuleWeekInMonth(),
-            dtrule->getRuleDayOfWeek(), startTime, MAX_MILLIS, status);
+        writeZonePropsByDOW(writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset,
+                dtrule->getRuleMonth(), dtrule->getRuleWeekInMonth(), dtrule->getRuleDayOfWeek(), startTime, MAX_MILLIS, status);
         break;
     case DateTimeRule::DOW_GEQ_DOM:
-        writeZonePropsByDOW_GEQ_DOM(writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset, dtrule->getRuleMonth(), dtrule->getRuleDayOfMonth(),
-            dtrule->getRuleDayOfWeek(), startTime, MAX_MILLIS, status);
+        writeZonePropsByDOW_GEQ_DOM(writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset,
+                dtrule->getRuleMonth(), dtrule->getRuleDayOfMonth(), dtrule->getRuleDayOfWeek(), startTime, MAX_MILLIS, status);
         break;
     case DateTimeRule::DOW_LEQ_DOM:
-        writeZonePropsByDOW_LEQ_DOM(writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset, dtrule->getRuleMonth(), dtrule->getRuleDayOfMonth(),
-            dtrule->getRuleDayOfWeek(), startTime, MAX_MILLIS, status);
+        writeZonePropsByDOW_LEQ_DOM(writer, isDst, name, fromRawOffset + fromDSTSavings, toOffset,
+                dtrule->getRuleMonth(), dtrule->getRuleDayOfMonth(), dtrule->getRuleDayOfWeek(), startTime, MAX_MILLIS, status);
         break;
     }
     if (modifiedRule) {
@@ -2440,9 +2510,9 @@ void VTimeZone::writeFinalRule(
 /*
  * Write the opening section of zone properties
  */
-void VTimeZone::beginZoneProps(
-    VTZWriter& writer, UBool isDst, const UnicodeString& zonename, int32_t fromOffset, int32_t toOffset, UDate startTime, UErrorCode& status) const
-{
+void
+VTimeZone::beginZoneProps(VTZWriter& writer, UBool isDst, const UnicodeString& zonename,
+                          int32_t fromOffset, int32_t toOffset, UDate startTime, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2476,19 +2546,22 @@ void VTimeZone::beginZoneProps(
     writer.write(COLON);
     writer.write(zonename);
     writer.write(ICAL_NEWLINE);
-
+    
     // DTSTART
     writer.write(ICAL_DTSTART);
     writer.write(COLON);
-    writer.write(getDateTimeString(startTime + fromOffset, dstr));
-    writer.write(ICAL_NEWLINE);
+    writer.write(getDateTimeString(startTime + fromOffset, dstr, status));
+    if (U_FAILURE(status)) {
+        return;
+    }
+    writer.write(ICAL_NEWLINE);        
 }
 
 /*
  * Writes the closing section of zone properties
  */
-void VTimeZone::endZoneProps(VTZWriter& writer, UBool isDst, UErrorCode& status) const
-{
+void
+VTimeZone::endZoneProps(VTZWriter& writer, UBool isDst, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2506,8 +2579,8 @@ void VTimeZone::endZoneProps(VTZWriter& writer, UBool isDst, UErrorCode& status)
 /*
  * Write the beginning part of RRULE line
  */
-void VTimeZone::beginRRULE(VTZWriter& writer, int32_t month, UErrorCode& status) const
-{
+void
+VTimeZone::beginRRULE(VTZWriter& writer, int32_t month, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2528,8 +2601,8 @@ void VTimeZone::beginRRULE(VTZWriter& writer, int32_t month, UErrorCode& status)
 /*
  * Append the UNTIL attribute after RRULE line
  */
-void VTimeZone::appendUNTIL(VTZWriter& writer, const UnicodeString& until, UErrorCode& status) const
-{
+void
+VTimeZone::appendUNTIL(VTZWriter& writer, const UnicodeString& until,  UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }
@@ -2545,4 +2618,4 @@ U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
-// eof
+//eof

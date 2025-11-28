@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -27,7 +27,11 @@
 #define UCNV_NUM_RESERVED_TAGS 2
 #define UCNV_NUM_HIDDEN_TAGS 1
 
-enum { UCNV_IO_UNNORMALIZED, UCNV_IO_STD_NORMALIZED, UCNV_IO_NORM_TYPE_COUNT };
+enum {
+    UCNV_IO_UNNORMALIZED,
+    UCNV_IO_STD_NORMALIZED,
+    UCNV_IO_NORM_TYPE_COUNT
+};
 
 typedef struct {
     uint16_t stringNormalizationType;
@@ -35,15 +39,15 @@ typedef struct {
 } UConverterAliasOptions;
 
 typedef struct UConverterAlias {
-    const uint16_t* converterList;
-    const uint16_t* tagList;
-    const uint16_t* aliasList;
-    const uint16_t* untaggedConvArray;
-    const uint16_t* taggedAliasArray;
-    const uint16_t* taggedAliasLists;
-    const UConverterAliasOptions* optionTable;
-    const uint16_t* stringTable;
-    const uint16_t* normalizedStringTable;
+    const uint16_t *converterList;
+    const uint16_t *tagList;
+    const uint16_t *aliasList;
+    const uint16_t *untaggedConvArray;
+    const uint16_t *taggedAliasArray;
+    const uint16_t *taggedAliasLists;
+    const UConverterAliasOptions *optionTable;
+    const uint16_t *stringTable;
+    const uint16_t *normalizedStringTable;
 
     uint32_t converterListSize;
     uint32_t tagListSize;
@@ -65,17 +69,19 @@ typedef struct UConverterAlias {
  * @see ucnv_compareNames
  * @return the destination buffer.
  */
-#if U_CHARSET_FAMILY == U_ASCII_FAMILY
-#define ucnv_io_stripForCompare ucnv_io_stripASCIIForCompare
-#elif U_CHARSET_FAMILY == U_EBCDIC_FAMILY
-#define ucnv_io_stripForCompare ucnv_io_stripEBCDICForCompare
+#if U_CHARSET_FAMILY==U_ASCII_FAMILY
+#   define ucnv_io_stripForCompare ucnv_io_stripASCIIForCompare
+#elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
+#   define ucnv_io_stripForCompare ucnv_io_stripEBCDICForCompare
 #else
-#error U_CHARSET_FAMILY is not valid
+#   error U_CHARSET_FAMILY is not valid
 #endif
 
-U_CAPI char* U_CALLCONV ucnv_io_stripASCIIForCompare(char* dst, const char* name);
+U_CAPI char * U_CALLCONV
+ucnv_io_stripASCIIForCompare(char *dst, const char *name);
 
-U_CAPI char* U_CALLCONV ucnv_io_stripEBCDICForCompare(char* dst, const char* name);
+U_CAPI char * U_CALLCONV
+ucnv_io_stripEBCDICForCompare(char *dst, const char *name);
 
 /**
  * Map a converter alias name to a canonical converter name.
@@ -87,20 +93,25 @@ U_CAPI char* U_CALLCONV ucnv_io_stripEBCDICForCompare(char* dst, const char* nam
  * @param pErrorCode The error code
  * @return the converter name in mixed-case, return NULL if the alias is not found.
  */
-U_CAPI const char* ucnv_io_getConverterName(const char* alias, UBool* containsOption, UErrorCode* pErrorCode);
+U_CAPI const char *
+ucnv_io_getConverterName(const char *alias, UBool *containsOption, UErrorCode *pErrorCode);
 
 /**
  * Return the number of all known converter names (no aliases).
  * @param pErrorCode The error code
  * @return the number of all aliases
  */
-U_CAPI uint16_t ucnv_io_countKnownConverters(UErrorCode* pErrorCode);
+U_CAPI uint16_t
+ucnv_io_countKnownConverters(UErrorCode *pErrorCode);
 
 /**
  * Swap an ICU converter alias table. See implementation for details.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 ucnv_swapAliases(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+ucnv_swapAliases(const UDataSwapper *ds,
+                 const void *inData, int32_t length, void *outData,
+                 UErrorCode *pErrorCode);
 
 #endif
 

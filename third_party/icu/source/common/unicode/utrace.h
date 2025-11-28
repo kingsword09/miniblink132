@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -27,15 +27,15 @@
 
 /**
  * \file
- * \brief C API:  Definitions for ICU tracing/logging.
+ * \brief C API:  Definitions for ICU tracing/logging. 
  *
  * This provides API for debugging the internals of ICU without the use of
  * a traditional debugger.
  *
- * By default, tracing is disabled in ICU. If you need to debug ICU with
+ * By default, tracing is disabled in ICU. If you need to debug ICU with 
  * tracing, please compile ICU with the --enable-tracing configure option.
  */
-
+ 
 U_CDECL_BEGIN
 
 /**
@@ -45,17 +45,17 @@ U_CDECL_BEGIN
  */
 typedef enum UTraceLevel {
     /** Disable all tracing  @stable ICU 2.8*/
-    UTRACE_OFF = -1,
+    UTRACE_OFF=-1,
     /** Trace error conditions only  @stable ICU 2.8*/
-    UTRACE_ERROR = 0,
+    UTRACE_ERROR=0,
     /** Trace errors and warnings  @stable ICU 2.8*/
-    UTRACE_WARNING = 3,
+    UTRACE_WARNING=3,
     /** Trace opens and closes of ICU services  @stable ICU 2.8*/
-    UTRACE_OPEN_CLOSE = 5,
+    UTRACE_OPEN_CLOSE=5,
     /** Trace an intermediate number of ICU operations  @stable ICU 2.8*/
-    UTRACE_INFO = 7,
+    UTRACE_INFO=7,
     /** Trace the maximum number of ICU operations  @stable ICU 2.8*/
-    UTRACE_VERBOSE = 9
+    UTRACE_VERBOSE=9
 } UTraceLevel;
 
 /**
@@ -63,8 +63,8 @@ typedef enum UTraceLevel {
  *  @stable ICU 2.8
  */
 typedef enum UTraceFunctionNumber {
-    UTRACE_FUNCTION_START = 0,
-    UTRACE_U_INIT = UTRACE_FUNCTION_START,
+    UTRACE_FUNCTION_START=0,
+    UTRACE_U_INIT=UTRACE_FUNCTION_START,
     UTRACE_U_CLEANUP,
 
 #ifndef U_HIDE_DEPRECATED_API
@@ -73,10 +73,10 @@ typedef enum UTraceFunctionNumber {
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     UTRACE_FUNCTION_LIMIT,
-#endif // U_HIDE_DEPRECATED_API
+#endif  // U_HIDE_DEPRECATED_API
 
-    UTRACE_CONVERSION_START = 0x1000,
-    UTRACE_UCNV_OPEN = UTRACE_CONVERSION_START,
+    UTRACE_CONVERSION_START=0x1000,
+    UTRACE_UCNV_OPEN=UTRACE_CONVERSION_START,
     UTRACE_UCNV_OPEN_PACKAGE,
     UTRACE_UCNV_OPEN_ALGORITHMIC,
     UTRACE_UCNV_CLONE,
@@ -91,10 +91,10 @@ typedef enum UTraceFunctionNumber {
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     UTRACE_CONVERSION_LIMIT,
-#endif // U_HIDE_DEPRECATED_API
+#endif  // U_HIDE_DEPRECATED_API
 
-    UTRACE_COLLATION_START = 0x2000,
-    UTRACE_UCOL_OPEN = UTRACE_COLLATION_START,
+    UTRACE_COLLATION_START=0x2000,
+    UTRACE_UCOL_OPEN=UTRACE_COLLATION_START,
     UTRACE_UCOL_CLOSE,
     UTRACE_UCOL_STRCOLL,
     UTRACE_UCOL_GET_SORTKEY,
@@ -110,13 +110,13 @@ typedef enum UTraceFunctionNumber {
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     UTRACE_COLLATION_LIMIT,
-#endif // U_HIDE_DEPRECATED_API
+#endif  // U_HIDE_DEPRECATED_API
 
     /**
      * The lowest resource/data location.
      * @stable ICU 65
      */
-    UTRACE_UDATA_START = 0x3000,
+    UTRACE_UDATA_START=0x3000,
 
     /**
      * Indicates that a value was read from a resource bundle. Provides three
@@ -133,7 +133,7 @@ typedef enum UTraceFunctionNumber {
      *
      * @stable ICU 65
      */
-    UTRACE_UDATA_RESOURCE = UTRACE_UDATA_START,
+    UTRACE_UDATA_RESOURCE=UTRACE_UDATA_START,
 
     /**
      * Indicates that a resource bundle was opened.
@@ -171,13 +171,13 @@ typedef enum UTraceFunctionNumber {
      * @internal The numeric value may change over time, see ICU ticket #12420.
      */
     UTRACE_RES_DATA_LIMIT,
-#endif // U_HIDE_INTERNAL_API
+#endif  // U_HIDE_INTERNAL_API
 
     /**
      * The lowest break iterator location.
      * @stable ICU 67
      */
-    UTRACE_UBRK_START = 0x4000,
+    UTRACE_UBRK_START=0x4000,
 
     /**
      * Indicates that a character instance of break iterator was created.
@@ -233,7 +233,7 @@ typedef enum UTraceFunctionNumber {
      * @internal The numeric value may change over time, see ICU ticket #12420.
      */
     UTRACE_UBRK_LIMIT,
-#endif // U_HIDE_INTERNAL_API
+#endif  // U_HIDE_INTERNAL_API
 
 } UTraceFunctionNumber;
 
@@ -242,94 +242,107 @@ typedef enum UTraceFunctionNumber {
  * @param traceLevel A UTraceLevel value.
  * @stable ICU 2.8
  */
-U_CAPI void U_EXPORT2 utrace_setLevel(int32_t traceLevel);
+U_CAPI void U_EXPORT2
+utrace_setLevel(int32_t traceLevel);
 
 /**
  * Getter for the trace level.
  * @return The UTraceLevel value being used by ICU.
  * @stable ICU 2.8
  */
-U_CAPI int32_t U_EXPORT2 utrace_getLevel(void);
+U_CAPI int32_t U_EXPORT2
+utrace_getLevel(void);
 
 /* Trace function pointers types  ----------------------------- */
 
 /**
- *  Type signature for the trace function to be called when entering a function.
- *  @param context value supplied at the time the trace functions are set.
- *  @param fnNumber Enum value indicating the ICU function being entered.
- *  @stable ICU 2.8
- */
-typedef void U_CALLCONV UTraceEntry(const void* context, int32_t fnNumber);
+  *  Type signature for the trace function to be called when entering a function.
+  *  @param context value supplied at the time the trace functions are set.
+  *  @param fnNumber Enum value indicating the ICU function being entered.
+  *  @stable ICU 2.8
+  */
+typedef void U_CALLCONV
+UTraceEntry(const void *context, int32_t fnNumber);
 
 /**
- *  Type signature for the trace function to be called when exiting from a function.
- *  @param context value supplied at the time the trace functions are set.
- *  @param fnNumber Enum value indicating the ICU function being exited.
- *  @param fmt     A formatting string that describes the number and types
- *                 of arguments included with the variable args.  The fmt
- *                 string has the same form as the utrace_vformat format
- *                 string.
- *  @param args    A variable arguments list.  Contents are described by
- *                 the fmt parameter.
- *  @see   utrace_vformat
- *  @stable ICU 2.8
- */
-typedef void U_CALLCONV UTraceExit(const void* context, int32_t fnNumber, const char* fmt, va_list args);
+  *  Type signature for the trace function to be called when exiting from a function.
+  *  @param context value supplied at the time the trace functions are set.
+  *  @param fnNumber Enum value indicating the ICU function being exited.
+  *  @param fmt     A formatting string that describes the number and types
+  *                 of arguments included with the variable args.  The fmt
+  *                 string has the same form as the utrace_vformat format
+  *                 string.
+  *  @param args    A variable arguments list.  Contents are described by
+  *                 the fmt parameter.
+  *  @see   utrace_vformat
+  *  @stable ICU 2.8
+  */
+typedef void U_CALLCONV
+UTraceExit(const void *context, int32_t fnNumber, 
+           const char *fmt, va_list args);
 
 /**
- *  Type signature for the trace function to be called from within an ICU function
- *  to display data or messages.
- *  @param context  value supplied at the time the trace functions are set.
- *  @param fnNumber Enum value indicating the ICU function being exited.
- *  @param level    The current tracing level
- *  @param fmt      A format string describing the tracing data that is supplied
- *                  as variable args
- *  @param args     The data being traced, passed as variable args.
- *  @stable ICU 2.8
- */
-typedef void U_CALLCONV UTraceData(const void* context, int32_t fnNumber, int32_t level, const char* fmt, va_list args);
+  *  Type signature for the trace function to be called from within an ICU function
+  *  to display data or messages.
+  *  @param context  value supplied at the time the trace functions are set.
+  *  @param fnNumber Enum value indicating the ICU function being exited.
+  *  @param level    The current tracing level
+  *  @param fmt      A format string describing the tracing data that is supplied
+  *                  as variable args
+  *  @param args     The data being traced, passed as variable args.
+  *  @stable ICU 2.8
+  */
+typedef void U_CALLCONV
+UTraceData(const void *context, int32_t fnNumber, int32_t level,
+           const char *fmt, va_list args);
 
 /**
- *  Set ICU Tracing functions.  Installs application-provided tracing
- *  functions into ICU.  After doing this, subsequent ICU operations
- *  will call back to the installed functions, providing a trace
- *  of the use of ICU.  Passing a NULL pointer for a tracing function
- *  is allowed, and inhibits tracing action at points where that function
- *  would be called.
- *  <p>
- *  Tracing and Threads:  Tracing functions are global to a process, and
- *  will be called in response to ICU operations performed by any
- *  thread.  If tracing of an individual thread is desired, the
- *  tracing functions must themselves filter by checking that the
- *  current thread is the desired thread.
- *
- *  @param context an uninterpreted pointer.  Whatever is passed in
- *                 here will in turn be passed to each of the tracing
- *                 functions UTraceEntry, UTraceExit and UTraceData.
- *                 ICU does not use or alter this pointer.
- *  @param e       Callback function to be called on entry to a
- *                 a traced ICU function.
- *  @param x       Callback function to be called on exit from a
- *                 traced ICU function.
- *  @param d       Callback function to be called from within a
- *                 traced ICU function, for the purpose of providing
- *                 data to the trace.
- *
- *  @stable ICU 2.8
- */
-U_CAPI void U_EXPORT2 utrace_setFunctions(const void* context, UTraceEntry* e, UTraceExit* x, UTraceData* d);
+  *  Set ICU Tracing functions.  Installs application-provided tracing
+  *  functions into ICU.  After doing this, subsequent ICU operations
+  *  will call back to the installed functions, providing a trace
+  *  of the use of ICU.  Passing a NULL pointer for a tracing function
+  *  is allowed, and inhibits tracing action at points where that function
+  *  would be called.
+  *  <p>
+  *  Tracing and Threads:  Tracing functions are global to a process, and
+  *  will be called in response to ICU operations performed by any
+  *  thread.  If tracing of an individual thread is desired, the
+  *  tracing functions must themselves filter by checking that the
+  *  current thread is the desired thread.
+  *
+  *  @param context an uninterpreted pointer.  Whatever is passed in
+  *                 here will in turn be passed to each of the tracing
+  *                 functions UTraceEntry, UTraceExit and UTraceData.
+  *                 ICU does not use or alter this pointer.
+  *  @param e       Callback function to be called on entry to a 
+  *                 a traced ICU function.
+  *  @param x       Callback function to be called on exit from a
+  *                 traced ICU function.
+  *  @param d       Callback function to be called from within a 
+  *                 traced ICU function, for the purpose of providing
+  *                 data to the trace.
+  *
+  *  @stable ICU 2.8
+  */
+U_CAPI void U_EXPORT2
+utrace_setFunctions(const void *context,
+                    UTraceEntry *e, UTraceExit *x, UTraceData *d);
 
 /**
- * Get the currently installed ICU tracing functions.   Note that a null function
- *   pointer will be returned if no trace function has been set.
- *
- * @param context  The currently installed tracing context.
- * @param e        The currently installed UTraceEntry function.
- * @param x        The currently installed UTraceExit function.
- * @param d        The currently installed UTraceData function.
- * @stable ICU 2.8
- */
-U_CAPI void U_EXPORT2 utrace_getFunctions(const void** context, UTraceEntry** e, UTraceExit** x, UTraceData** d);
+  * Get the currently installed ICU tracing functions.   Note that a null function
+  *   pointer will be returned if no trace function has been set.
+  *
+  * @param context  The currently installed tracing context.
+  * @param e        The currently installed UTraceEntry function.
+  * @param x        The currently installed UTraceExit function.
+  * @param d        The currently installed UTraceData function.
+  * @stable ICU 2.8
+  */
+U_CAPI void U_EXPORT2
+utrace_getFunctions(const void **context,
+                    UTraceEntry **e, UTraceExit **x, UTraceData **d);
+
+
 
 /*
  *
@@ -373,7 +386,7 @@ U_CAPI void U_EXPORT2 utrace_getFunctions(const void** context, UTraceEntry** e,
  * - S A UChar * string.  Requires two params, (ptr, length).  Length=-1 for nul term.
  * - b A byte (8-bit integer).
  * - h A 16-bit integer.  Also a 16 bit Unicode code unit.
- * - d A 32-bit integer.  Also a 20 bit Unicode code point value.
+ * - d A 32-bit integer.  Also a 20 bit Unicode code point value. 
  * - l A 64-bit integer.
  * - p A data pointer.
  *
@@ -405,7 +418,7 @@ U_CAPI void U_EXPORT2 utrace_getFunctions(const void** context, UTraceEntry** e,
  *   the type casts will not be necessary in actual code
  *
  * UTraceDataFunc(context, fnNumber, level,
- *              "There is a character %c in the string %s.",   // Format String
+ *              "There is a character %c in the string %s.",   // Format String 
  *              (char)c, (const char *)s);                     // varargs parameters
  * ->   There is a character 0x42 'B' in the string "Bravo".
  *
@@ -426,45 +439,53 @@ U_CAPI void U_EXPORT2 utrace_getFunctions(const void** context, UTraceEntry** e,
  *
  */
 
-/**
- *  Trace output Formatter.  An application's UTraceData tracing functions may call
- *                 back to this function to format the trace output in a
- *                 human readable form.  Note that a UTraceData function may choose
- *                 to not format the data;  it could, for example, save it in
- *                 in the raw form it was received (more compact), leaving
- *                 formatting for a later trace analysis tool.
- *  @param outBuf  pointer to a buffer to receive the formatted output.  Output
- *                 will be nul terminated if there is space in the buffer -
- *                 if the length of the requested output < the output buffer size.
- *  @param capacity  Length of the output buffer.
- *  @param indent  Number of spaces to indent the output.  Intended to allow
- *                 data displayed from nested functions to be indented for readability.
- *  @param fmt     Format specification for the data to output
- *  @param args    Data to be formatted.
- *  @return        Length of formatted output, including the terminating NUL.
- *                 If buffer capacity is insufficient, the required capacity is returned.
- *  @stable ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2 utrace_vformat(char* outBuf, int32_t capacity, int32_t indent, const char* fmt, va_list args);
+
 
 /**
- *  Trace output Formatter.  An application's UTraceData tracing functions may call
- *                 this function to format any additional trace data, beyond that
- *                 provided by default, in human readable form with the same
- *                 formatting conventions used by utrace_vformat().
- *  @param outBuf  pointer to a buffer to receive the formatted output.  Output
- *                 will be nul terminated if there is space in the buffer -
- *                 if the length of the requested output < the output buffer size.
- *  @param capacity  Length of the output buffer.
- *  @param indent  Number of spaces to indent the output.  Intended to allow
- *                 data displayed from nested functions to be indented for readability.
- *  @param fmt     Format specification for the data to output
- *  @param ...     Data to be formatted.
- *  @return        Length of formatted output, including the terminating NUL.
- *                 If buffer capacity is insufficient, the required capacity is returned.
- *  @stable ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2 utrace_format(char* outBuf, int32_t capacity, int32_t indent, const char* fmt, ...);
+  *  Trace output Formatter.  An application's UTraceData tracing functions may call
+  *                 back to this function to format the trace output in a
+  *                 human readable form.  Note that a UTraceData function may choose
+  *                 to not format the data;  it could, for example, save it in
+  *                 in the raw form it was received (more compact), leaving
+  *                 formatting for a later trace analysis tool.
+  *  @param outBuf  pointer to a buffer to receive the formatted output.  Output
+  *                 will be nul terminated if there is space in the buffer -
+  *                 if the length of the requested output < the output buffer size.
+  *  @param capacity  Length of the output buffer.
+  *  @param indent  Number of spaces to indent the output.  Intended to allow
+  *                 data displayed from nested functions to be indented for readability.
+  *  @param fmt     Format specification for the data to output
+  *  @param args    Data to be formatted.
+  *  @return        Length of formatted output, including the terminating NUL.
+  *                 If buffer capacity is insufficient, the required capacity is returned. 
+  *  @stable ICU 2.8
+  */
+U_CAPI int32_t U_EXPORT2
+utrace_vformat(char *outBuf, int32_t capacity,
+              int32_t indent, const char *fmt,  va_list args);
+
+/**
+  *  Trace output Formatter.  An application's UTraceData tracing functions may call
+  *                 this function to format any additional trace data, beyond that
+  *                 provided by default, in human readable form with the same
+  *                 formatting conventions used by utrace_vformat().
+  *  @param outBuf  pointer to a buffer to receive the formatted output.  Output
+  *                 will be nul terminated if there is space in the buffer -
+  *                 if the length of the requested output < the output buffer size.
+  *  @param capacity  Length of the output buffer.
+  *  @param indent  Number of spaces to indent the output.  Intended to allow
+  *                 data displayed from nested functions to be indented for readability.
+  *  @param fmt     Format specification for the data to output
+  *  @param ...     Data to be formatted.
+  *  @return        Length of formatted output, including the terminating NUL.
+  *                 If buffer capacity is insufficient, the required capacity is returned. 
+  *  @stable ICU 2.8
+  */
+U_CAPI int32_t U_EXPORT2
+utrace_format(char *outBuf, int32_t capacity,
+              int32_t indent, const char *fmt,  ...);
+
+
 
 /* Trace function numbers --------------------------------------------------- */
 
@@ -477,7 +498,8 @@ U_CAPI int32_t U_EXPORT2 utrace_format(char* outBuf, int32_t capacity, int32_t i
  * @see UTraceFunctionNumber
  * @stable ICU 2.8
  */
-U_CAPI const char* U_EXPORT2 utrace_functionName(int32_t fnNumber);
+U_CAPI const char * U_EXPORT2
+utrace_functionName(int32_t fnNumber);
 
 U_CDECL_END
 

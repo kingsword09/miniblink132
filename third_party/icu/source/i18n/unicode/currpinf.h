@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -29,13 +29,13 @@ class PluralRules;
 class Hashtable;
 
 /**
- * This class represents the information needed by
- * DecimalFormat to format currency plural,
- * such as "3.00 US dollars" or "1.00 US dollar".
+ * This class represents the information needed by 
+ * DecimalFormat to format currency plural, 
+ * such as "3.00 US dollars" or "1.00 US dollar". 
  * DecimalFormat creates for itself an instance of
- * CurrencyPluralInfo from its locale data.
+ * CurrencyPluralInfo from its locale data.  
  * If you need to change any of these symbols, you can get the
- * CurrencyPluralInfo object from your
+ * CurrencyPluralInfo object from your 
  * DecimalFormat and modify it.
  *
  * Following are the information needed for currency plural format and parse:
@@ -45,8 +45,9 @@ class Hashtable;
  *
  * @stable ICU 4.2
  */
-class U_I18N_API CurrencyPluralInfo : public UObject {
+class  U_I18N_API CurrencyPluralInfo : public UObject {
 public:
+
     /**
      * Create a CurrencyPluralInfo object for the default locale.
      * @param status output param set to success/failure code on exit
@@ -60,7 +61,7 @@ public:
      * @param status output param set to success/failure code on exit
      * @stable ICU 4.2
      */
-    CurrencyPluralInfo(const Locale& locale, UErrorCode& status);
+    CurrencyPluralInfo(const Locale& locale, UErrorCode& status); 
 
     /**
      * Copy constructor
@@ -69,12 +70,14 @@ public:
      */
     CurrencyPluralInfo(const CurrencyPluralInfo& info);
 
+
     /**
      * Assignment operator
      *
      * @stable ICU 4.2
      */
     CurrencyPluralInfo& operator=(const CurrencyPluralInfo& info);
+
 
     /**
      * Destructor
@@ -83,12 +86,14 @@ public:
      */
     virtual ~CurrencyPluralInfo();
 
+
     /**
      * Equal operator.
      *
      * @stable ICU 4.2
      */
     bool operator==(const CurrencyPluralInfo& info) const;
+
 
     /**
      * Not equal operator
@@ -97,12 +102,14 @@ public:
      */
     bool operator!=(const CurrencyPluralInfo& info) const;
 
+
     /**
      * Clone
      *
      * @stable ICU 4.2
      */
     CurrencyPluralInfo* clone() const;
+
 
     /**
      * Gets plural rules of this locale, used for currency plural format
@@ -113,7 +120,7 @@ public:
     const PluralRules* getPluralRules() const;
 
     /**
-     * Given a plural count, gets currency plural pattern of this locale,
+     * Given a plural count, gets currency plural pattern of this locale, 
      * used for currency plural format
      *
      * @param  pluralCount currency plural count
@@ -121,10 +128,11 @@ public:
      * @return a currency plural pattern based on plural count
      * @stable ICU 4.2
      */
-    UnicodeString& getCurrencyPluralPattern(const UnicodeString& pluralCount, UnicodeString& result) const;
+    UnicodeString& getCurrencyPluralPattern(const UnicodeString& pluralCount,
+                                            UnicodeString& result) const; 
 
     /**
-     * Get locale
+     * Get locale 
      *
      * @return locale
      * @stable ICU 4.2
@@ -142,22 +150,25 @@ public:
      * @param status output param set to success/failure code on exit
      * @stable ICU 4.2
      */
-    void setPluralRules(const UnicodeString& ruleDescription, UErrorCode& status);
+    void setPluralRules(const UnicodeString& ruleDescription,
+                        UErrorCode& status);
 
     /**
      * Set currency plural pattern.
      * The currency plural pattern is set when CurrencyPluralInfo
      * instance is created.
-     * You can call this method to reset currency plural pattern only if
+     * You can call this method to reset currency plural pattern only if 
      * you want to modify the default currency plural pattern of the locale.
      *
-     * @param pluralCount the plural count for which the currency pattern will
+     * @param pluralCount the plural count for which the currency pattern will 
      *                    be overridden.
      * @param pattern     the new currency plural pattern
      * @param status      output param set to success/failure code on exit
      * @stable ICU 4.2
      */
-    void setCurrencyPluralPattern(const UnicodeString& pluralCount, const UnicodeString& pattern, UErrorCode& status);
+    void setCurrencyPluralPattern(const UnicodeString& pluralCount, 
+                                  const UnicodeString& pattern,
+                                  UErrorCode& status);
 
     /**
      * Set locale
@@ -187,7 +198,7 @@ private:
     friend class DecimalFormatImpl;
 
     void initialize(const Locale& loc, UErrorCode& status);
-
+   
     void setupCurrencyPluralPattern(const Locale& loc, UErrorCode& status);
 
     /*
@@ -197,6 +208,7 @@ private:
      */
     void deleteHash(Hashtable* hTable);
 
+
     /*
      * initialize hash table
      *
@@ -204,6 +216,8 @@ private:
      * @return         hash table initialized
      */
     Hashtable* initHash(UErrorCode& status);
+
+
 
     /**
      * copy hash table
@@ -238,16 +252,17 @@ private:
 
 private:
     /**
-     * An internal status variable used to indicate that the object is in an 'invalid' state.
-     * Used by copy constructor, the assignment operator and the clone method.
-     */
+    * An internal status variable used to indicate that the object is in an 'invalid' state.
+    * Used by copy constructor, the assignment operator and the clone method.
+    */
     UErrorCode fInternalStatus;
 };
 
-inline bool CurrencyPluralInfo::operator!=(const CurrencyPluralInfo& info) const
-{
+
+inline bool
+CurrencyPluralInfo::operator!=(const CurrencyPluralInfo& info) const {
     return !operator==(info);
-}
+}  
 
 U_NAMESPACE_END
 
@@ -256,4 +271,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // _CURRPINFO
-// eof
+//eof

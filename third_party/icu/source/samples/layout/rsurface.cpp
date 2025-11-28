@@ -1,4 +1,4 @@
-﻿/*
+/*
  *
  * © 2016 and later: Unicode, Inc. and others.
  * License & terms of use: http://www.unicode.org/copyright.html
@@ -16,12 +16,12 @@
 
 U_CDECL_BEGIN
 
-void rs_drawGlyphs(rs_surface* surface, const le_font* font, const LEGlyphID* glyphs, le_int32 count, const float* positions, le_int32 x, le_int32 y,
-    le_int32 width, le_int32 height)
+void rs_drawGlyphs(rs_surface *surface, const le_font *font, const LEGlyphID *glyphs, le_int32 count,
+                   const float *positions, le_int32 x, le_int32 y, le_int32 width, le_int32 height)
 {
-    RenderingSurface* rs = (RenderingSurface*)surface;
+    RenderingSurface *rs = (RenderingSurface *) surface;
 
-    rs->drawGlyphs((const LEFontInstance*)font, glyphs, count, positions, x, y, width, height);
+    rs->drawGlyphs((const LEFontInstance *) font, glyphs, count, positions, x, y, width, height);
 }
 
 U_CDECL_END

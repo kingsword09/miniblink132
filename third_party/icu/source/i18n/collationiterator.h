@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -55,33 +55,26 @@ private:
     private:
         /** Large enough for CEs of most short strings. */
         static const int32_t INITIAL_CAPACITY = CEBUFFER_INITIAL_CAPACITY;
-
     public:
-        CEBuffer()
-            : length(0)
-        {
-        }
+        CEBuffer() : length(0) {}
         ~CEBuffer();
 
-        inline void append(int64_t ce, UErrorCode& errorCode)
-        {
-            if (length < INITIAL_CAPACITY || ensureAppendCapacity(1, errorCode)) {
+        inline void append(int64_t ce, UErrorCode &errorCode) {
+            if(length < INITIAL_CAPACITY || ensureAppendCapacity(1, errorCode)) {
                 buffer[length++] = ce;
             }
         }
 
-        inline void appendUnsafe(int64_t ce)
-        {
+        inline void appendUnsafe(int64_t ce) {
             buffer[length++] = ce;
         }
 
-        UBool ensureAppendCapacity(int32_t appCap, UErrorCode& errorCode);
+        UBool ensureAppendCapacity(int32_t appCap, UErrorCode &errorCode);
 
-        inline UBool incLength(UErrorCode& errorCode)
-        {
+        inline UBool incLength(UErrorCode &errorCode) {
             // Use INITIAL_CAPACITY for a very simple fastpath.
             // (Rather than buffer.getCapacity().)
-            if (length < INITIAL_CAPACITY || ensureAppendCapacity(1, errorCode)) {
+            if(length < INITIAL_CAPACITY || ensureAppendCapacity(1, errorCode)) {
                 ++length;
                 return true;
             } else {
@@ -89,45 +82,35 @@ private:
             }
         }
 
-        inline int64_t set(int32_t i, int64_t ce)
-        {
+        inline int64_t set(int32_t i, int64_t ce) {
             return buffer[i] = ce;
         }
-        inline int64_t get(int32_t i) const
-        {
-            return buffer[i];
-        }
+        inline int64_t get(int32_t i) const { return buffer[i]; }
 
-        const int64_t* getCEs() const
-        {
-            return buffer.getAlias();
-        }
+        const int64_t *getCEs() const { return buffer.getAlias(); }
 
         int32_t length;
 
     private:
-        CEBuffer(const CEBuffer&);
-        void operator=(const CEBuffer&);
+        CEBuffer(const CEBuffer &) = delete;
+        void operator=(const CEBuffer &) = delete;
 
         MaybeStackArray<int64_t, INITIAL_CAPACITY> buffer;
     };
 
 public:
-    CollationIterator(const CollationData* d, UBool numeric)
-        : trie(d->trie)
-        , data(d)
-        , cesIndex(0)
-        , skipped(NULL)
-        , numCpFwd(-1)
-        , isNumeric(numeric)
-    {
-    }
+    CollationIterator(const CollationData *d, UBool numeric)
+            : trie(d->trie),
+              data(d),
+              cesIndex(0),
+              skipped(nullptr),
+              numCpFwd(-1),
+              isNumeric(numeric) {}
 
     virtual ~CollationIterator();
 
-    virtual bool operator==(const CollationIterator& other) const;
-    inline bool operator!=(const CollationIterator& other) const
-    {
+    virtual bool operator==(const CollationIterator &other) const;
+    inline bool operator!=(const CollationIterator &other) const {
         return !operator==(other);
     }
 
@@ -143,44 +126,46 @@ public:
     /**
      * Returns the next collation element.
      */
-    inline int64_t nextCE(UErrorCode& errorCode)
-    {
-        if (cesIndex < ceBuffer.length) {
+    inline int64_t nextCE(UErrorCode &errorCode) {
+        if(cesIndex < ceBuffer.length) {
             // Return the next buffered CE.
             return ceBuffer.get(cesIndex++);
         }
         // assert cesIndex == ceBuffer.length;
-        if (!ceBuffer.incLength(errorCode)) {
+        if(!ceBuffer.incLength(errorCode)) {
             return Collation::NO_CE;
         }
         UChar32 c;
         uint32_t ce32 = handleNextCE32(c, errorCode);
         uint32_t t = ce32 & 0xff;
-        if (t < Collation::SPECIAL_CE32_LOW_BYTE) { // Forced-inline of isSpecialCE32(ce32).
+        if(t < Collation::SPECIAL_CE32_LOW_BYTE) {  // Forced-inline of isSpecialCE32(ce32).
             // Normal CE from the main data.
             // Forced-inline of ceFromSimpleCE32(ce32).
-            return ceBuffer.set(cesIndex++, ((int64_t)(ce32 & 0xffff0000) << 32) | ((ce32 & 0xff00) << 16) | (t << 8));
+            return ceBuffer.set(cesIndex++,
+                    ((int64_t)(ce32 & 0xffff0000) << 32) | ((ce32 & 0xff00) << 16) | (t << 8));
         }
-        const CollationData* d;
+        const CollationData *d;
         // The compiler should be able to optimize the previous and the following
         // comparisons of t with the same constant.
-        if (t == Collation::SPECIAL_CE32_LOW_BYTE) {
-            if (c < 0) {
+        if(t == Collation::SPECIAL_CE32_LOW_BYTE) {
+            if(c < 0) {
                 return ceBuffer.set(cesIndex++, Collation::NO_CE);
             }
             d = data->base;
             ce32 = d->getCE32(c);
             t = ce32 & 0xff;
-            if (t < Collation::SPECIAL_CE32_LOW_BYTE) {
+            if(t < Collation::SPECIAL_CE32_LOW_BYTE) {
                 // Normal CE from the base data.
-                return ceBuffer.set(cesIndex++, ((int64_t)(ce32 & 0xffff0000) << 32) | ((ce32 & 0xff00) << 16) | (t << 8));
+                return ceBuffer.set(cesIndex++,
+                        ((int64_t)(ce32 & 0xffff0000) << 32) | ((ce32 & 0xff00) << 16) | (t << 8));
             }
         } else {
             d = data;
         }
-        if (t == Collation::LONG_PRIMARY_CE32_LOW_BYTE) {
+        if(t == Collation::LONG_PRIMARY_CE32_LOW_BYTE) {
             // Forced-inline of ceFromLongPrimaryCE32(ce32).
-            return ceBuffer.set(cesIndex++, ((int64_t)(ce32 - t) << 32) | Collation::COMMON_SEC_AND_TER_CE);
+            return ceBuffer.set(cesIndex++,
+                    ((int64_t)(ce32 - t) << 32) | Collation::COMMON_SEC_AND_TER_CE);
         }
         return nextCEFromCE32(d, c, ce32, errorCode);
     }
@@ -189,13 +174,12 @@ public:
      * Fetches all CEs.
      * @return getCEsLength()
      */
-    int32_t fetchCEs(UErrorCode& errorCode);
+    int32_t fetchCEs(UErrorCode &errorCode);
 
     /**
      * Overwrites the current CE (the last one returned by nextCE()).
      */
-    void setCurrentCE(int64_t ce)
-    {
+    void setCurrentCE(int64_t ce) {
         // assert cesIndex > 0;
         ceBuffer.set(cesIndex - 1, ce);
     }
@@ -203,49 +187,42 @@ public:
     /**
      * Returns the previous collation element.
      */
-    int64_t previousCE(UVector32& offsets, UErrorCode& errorCode);
+    int64_t previousCE(UVector32 &offsets, UErrorCode &errorCode);
 
-    inline int32_t getCEsLength() const
-    {
+    inline int32_t getCEsLength() const {
         return ceBuffer.length;
     }
 
-    inline int64_t getCE(int32_t i) const
-    {
+    inline int64_t getCE(int32_t i) const {
         return ceBuffer.get(i);
     }
 
-    const int64_t* getCEs() const
-    {
+    const int64_t *getCEs() const {
         return ceBuffer.getCEs();
     }
 
-    void clearCEs()
-    {
+    void clearCEs() {
         cesIndex = ceBuffer.length = 0;
     }
 
-    void clearCEsIfNoneRemaining()
-    {
-        if (cesIndex == ceBuffer.length) {
-            clearCEs();
-        }
+    void clearCEsIfNoneRemaining() {
+        if(cesIndex == ceBuffer.length) { clearCEs(); }
     }
 
     /**
      * Returns the next code point (with post-increment).
      * Public for identical-level comparison and for testing.
      */
-    virtual UChar32 nextCodePoint(UErrorCode& errorCode) = 0;
+    virtual UChar32 nextCodePoint(UErrorCode &errorCode) = 0;
 
     /**
      * Returns the previous code point (with pre-decrement).
      * Public for identical-level comparison and for testing.
      */
-    virtual UChar32 previousCodePoint(UErrorCode& errorCode) = 0;
+    virtual UChar32 previousCodePoint(UErrorCode &errorCode) = 0;
 
 protected:
-    CollationIterator(const CollationIterator& other);
+    CollationIterator(const CollationIterator &other);
 
     void reset();
 
@@ -257,7 +234,7 @@ protected:
      * The code point is used for fallbacks, context and implicit weights.
      * It is ignored when the returned CE32 is not special (e.g., FFFD_CE32).
      */
-    virtual uint32_t handleNextCE32(UChar32& c, UErrorCode& errorCode);
+    virtual uint32_t handleNextCE32(UChar32 &c, UErrorCode &errorCode);
 
     /**
      * Called when handleNextCE32() returns a LEAD_SURROGATE_TAG for a lead surrogate code unit.
@@ -265,7 +242,7 @@ protected:
      * if a trail surrogate follows the lead surrogate.
      * Otherwise returns any other code unit and does not advance.
      */
-    virtual UChar handleGetTrailSurrogate();
+    virtual char16_t handleGetTrailSurrogate();
 
     /**
      * Called when handleNextCE32() returns with c==0, to see whether it is a NUL terminator.
@@ -280,9 +257,9 @@ protected:
      */
     virtual UBool forbidSurrogateCodePoints() const;
 
-    virtual void forwardNumCodePoints(int32_t num, UErrorCode& errorCode) = 0;
+    virtual void forwardNumCodePoints(int32_t num, UErrorCode &errorCode) = 0;
 
-    virtual void backwardNumCodePoints(int32_t num, UErrorCode& errorCode) = 0;
+    virtual void backwardNumCodePoints(int32_t num, UErrorCode &errorCode) = 0;
 
     /**
      * Returns the CE32 from the data trie.
@@ -291,32 +268,40 @@ protected:
      */
     virtual uint32_t getDataCE32(UChar32 c) const;
 
-    virtual uint32_t getCE32FromBuilderData(uint32_t ce32, UErrorCode& errorCode);
+    virtual uint32_t getCE32FromBuilderData(uint32_t ce32, UErrorCode &errorCode);
 
-    void appendCEsFromCE32(const CollationData* d, UChar32 c, uint32_t ce32, UBool forward, UErrorCode& errorCode);
+    void appendCEsFromCE32(const CollationData *d, UChar32 c, uint32_t ce32,
+                           UBool forward, UErrorCode &errorCode);
 
     // Main lookup trie of the data object.
-    const UTrie2* trie;
-    const CollationData* data;
+    const UTrie2 *trie;
+    const CollationData *data;
 
 private:
-    int64_t nextCEFromCE32(const CollationData* d, UChar32 c, uint32_t ce32, UErrorCode& errorCode);
+    int64_t nextCEFromCE32(const CollationData *d, UChar32 c, uint32_t ce32,
+                           UErrorCode &errorCode);
 
-    uint32_t getCE32FromPrefix(const CollationData* d, uint32_t ce32, UErrorCode& errorCode);
+    uint32_t getCE32FromPrefix(const CollationData *d, uint32_t ce32,
+                               UErrorCode &errorCode);
 
-    UChar32 nextSkippedCodePoint(UErrorCode& errorCode);
+    UChar32 nextSkippedCodePoint(UErrorCode &errorCode);
 
-    void backwardNumSkipped(int32_t n, UErrorCode& errorCode);
+    void backwardNumSkipped(int32_t n, UErrorCode &errorCode);
 
-    uint32_t nextCE32FromContraction(const CollationData* d, uint32_t contractionCE32, const UChar* p, uint32_t ce32, UChar32 c, UErrorCode& errorCode);
+    uint32_t nextCE32FromContraction(
+            const CollationData *d, uint32_t contractionCE32,
+            const char16_t *p, uint32_t ce32, UChar32 c,
+            UErrorCode &errorCode);
 
     uint32_t nextCE32FromDiscontiguousContraction(
-        const CollationData* d, UCharsTrie& suffixes, uint32_t ce32, int32_t lookAhead, UChar32 c, UErrorCode& errorCode);
+            const CollationData *d, UCharsTrie &suffixes, uint32_t ce32,
+            int32_t lookAhead, UChar32 c,
+            UErrorCode &errorCode);
 
     /**
      * Returns the previous CE when data->isUnsafeBackward(c, isNumeric).
      */
-    int64_t previousCEUnsafe(UChar32 c, UVector32& offsets, UErrorCode& errorCode);
+    int64_t previousCEUnsafe(UChar32 c, UVector32 &offsets, UErrorCode &errorCode);
 
     /**
      * Turns a string of digits (bytes 0..9)
@@ -325,18 +310,18 @@ private:
      * Starts from this ce32's digit value and consumes the following/preceding digits.
      * The digits string must not be empty and must not have leading zeros.
      */
-    void appendNumericCEs(uint32_t ce32, UBool forward, UErrorCode& errorCode);
+    void appendNumericCEs(uint32_t ce32, UBool forward, UErrorCode &errorCode);
 
     /**
      * Turns 1..254 digits into a sequence of CEs.
      * Called by appendNumericCEs() for each segment of at most 254 digits.
      */
-    void appendNumericSegmentCEs(const char* digits, int32_t length, UErrorCode& errorCode);
+    void appendNumericSegmentCEs(const char *digits, int32_t length, UErrorCode &errorCode);
 
     CEBuffer ceBuffer;
     int32_t cesIndex;
 
-    SkippedState* skipped;
+    SkippedState *skipped;
 
     // Number of code points to read forward, or -1.
     // Used as a forward iteration limit in previousCEUnsafe().
@@ -347,5 +332,5 @@ private:
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __COLLATIONITERATOR_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __COLLATIONITERATOR_H__

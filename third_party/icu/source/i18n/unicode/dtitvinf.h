@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -150,8 +150,8 @@ U_NAMESPACE_BEGIN
  * Through ICU 4.4, date interval patterns are only supported in the Gregorian
  * calendar; non-Gregorian calendars are supported from ICU 4.4.1.
  * @stable ICU 4.0
- **/
-class U_I18N_API DateIntervalInfo U_FINAL : public UObject {
+**/
+class U_I18N_API DateIntervalInfo final : public UObject {
 public:
     /**
      * Default constructor.
@@ -168,6 +168,7 @@ public:
      */
     DateIntervalInfo(UErrorCode& status);
 
+
     /**
      * Construct DateIntervalInfo for the given locale,
      * @param locale  the interval patterns are loaded from the appropriate calendar
@@ -176,6 +177,7 @@ public:
      * @stable ICU 4.0
      */
     DateIntervalInfo(const Locale& locale, UErrorCode& status);
+
 
     /**
      * Copy constructor.
@@ -204,6 +206,7 @@ public:
      */
     virtual ~DateIntervalInfo();
 
+
     /**
      * Return true if another object is semantically equal to this one.
      *
@@ -221,6 +224,8 @@ public:
      * @stable ICU 4.0
      */
     bool operator!=(const DateIntervalInfo& other) const;
+
+
 
     /**
      * Provides a way for client to build interval patterns.
@@ -254,7 +259,10 @@ public:
      * @param status           output param set to success/failure code on exit
      * @stable ICU 4.0
      */
-    void setIntervalPattern(const UnicodeString& skeleton, UCalendarDateFields lrgDiffCalUnit, const UnicodeString& intervalPattern, UErrorCode& status);
+    void setIntervalPattern(const UnicodeString& skeleton,
+                            UCalendarDateFields lrgDiffCalUnit,
+                            const UnicodeString& intervalPattern,
+                            UErrorCode& status);
 
     /**
      * Get the interval pattern given skeleton and
@@ -266,7 +274,10 @@ public:
      * @return a reference to 'result'
      * @stable ICU 4.0
      */
-    UnicodeString& getIntervalPattern(const UnicodeString& skeleton, UCalendarDateFields field, UnicodeString& result, UErrorCode& status) const;
+    UnicodeString& getIntervalPattern(const UnicodeString& skeleton,
+                                      UCalendarDateFields field,
+                                      UnicodeString& result,
+                                      UErrorCode& status) const;
 
     /**
      * Get the fallback interval pattern.
@@ -275,6 +286,7 @@ public:
      * @stable ICU 4.0
      */
     UnicodeString& getFallbackIntervalPattern(UnicodeString& result) const;
+
 
     /**
      * Re-set the fallback interval pattern.
@@ -289,7 +301,9 @@ public:
      * @param status           output param set to success/failure code on exit
      * @stable ICU 4.0
      */
-    void setFallbackIntervalPattern(const UnicodeString& fallbackPattern, UErrorCode& status);
+    void setFallbackIntervalPattern(const UnicodeString& fallbackPattern,
+                                    UErrorCode& status);
+
 
     /** Get default order -- whether the first date in pattern is later date
                              or not.
@@ -298,6 +312,7 @@ public:
      * @stable ICU 4.0
      */
     UBool getDefaultOrder() const;
+
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
@@ -313,6 +328,7 @@ public:
      */
     static UClassID U_EXPORT2 getStaticClassID();
 
+
 private:
     /**
      * DateIntervalFormat will need access to
@@ -327,30 +343,46 @@ private:
     /**
      * Internal struct used to load resource bundle data.
      */
-    struct DateIntervalSink;
+    struct U_HIDDEN DateIntervalSink;
 
     /**
      * Following is for saving the interval patterns.
      * We only support interval patterns on
      * ERA, YEAR, MONTH, DAY, AM_PM, HOUR, MINUTE, SECOND and MILLISECOND.
      */
-    enum IntervalPatternIndex { kIPI_ERA, kIPI_YEAR, kIPI_MONTH, kIPI_DATE, kIPI_AM_PM, kIPI_HOUR, kIPI_MINUTE, kIPI_SECOND, kIPI_MILLISECOND, kIPI_MAX_INDEX };
-
+    enum IntervalPatternIndex
+    {
+        kIPI_ERA,
+        kIPI_YEAR,
+        kIPI_MONTH,
+        kIPI_DATE,
+        kIPI_AM_PM,
+        kIPI_HOUR,
+        kIPI_MINUTE,
+        kIPI_SECOND,
+        kIPI_MILLISECOND,
+        kIPI_MAX_INDEX
+    };
 public:
 #ifndef U_HIDE_INTERNAL_API
     /**
      * Max index for stored interval patterns
      * @internal ICU 4.4
      */
-    enum { kMaxIntervalPatternIndex = kIPI_MAX_INDEX };
-#endif /* U_HIDE_INTERNAL_API */
+     enum {
+         kMaxIntervalPatternIndex = kIPI_MAX_INDEX
+     };
+#endif  /* U_HIDE_INTERNAL_API */
 private:
+
+
     /**
      * Initialize the DateIntervalInfo from locale
      * @param locale   the given locale.
      * @param status   output param set to success/failure code on exit
      */
     void initializeData(const Locale& locale, UErrorCode& status);
+
 
     /* Set Interval pattern.
      *
@@ -362,8 +394,11 @@ private:
      *                         calendar unit.
      * @param status           output param set to success/failure code on exit
      */
-    void setIntervalPatternInternally(
-        const UnicodeString& skeleton, UCalendarDateFields lrgDiffCalUnit, const UnicodeString& intervalPattern, UErrorCode& status);
+    void setIntervalPatternInternally(const UnicodeString& skeleton,
+                                      UCalendarDateFields lrgDiffCalUnit,
+                                      const UnicodeString& intervalPattern,
+                                      UErrorCode& status);
+
 
     /**given an input skeleton, get the best match skeleton
      * which has pre-defined interval pattern in resource file.
@@ -383,7 +418,9 @@ private:
      *            the best match and the input skeleton
      * @return                        best match skeleton
      */
-    const UnicodeString* getBestSkeleton(const UnicodeString& skeleton, int8_t& bestMatchDistanceInfo) const;
+    const UnicodeString* getBestSkeleton(const UnicodeString& skeleton,
+                                         int8_t& bestMatchDistanceInfo) const;
+
 
     /**
      * Parse skeleton, save each field's width.
@@ -392,7 +429,9 @@ private:
      * @param skeleton            skeleton to be parsed
      * @param skeletonFieldWidth  parsed skeleton field width
      */
-    static void U_EXPORT2 parseSkeleton(const UnicodeString& skeleton, int32_t* skeletonFieldWidth);
+    static void U_EXPORT2 parseSkeleton(const UnicodeString& skeleton,
+                                        int32_t* skeletonFieldWidth);
+
 
     /**
      * Check whether one field width is numeric while the other is string.
@@ -405,7 +444,10 @@ private:
      * @return true if one field width is numeric and the other is string,
      *         false otherwise.
      */
-    static UBool U_EXPORT2 stringNumeric(int32_t fieldWidth, int32_t anotherFieldWidth, char patternLetter);
+    static UBool U_EXPORT2 stringNumeric(int32_t fieldWidth,
+                                         int32_t anotherFieldWidth,
+                                         char patternLetter);
+
 
     /**
      * Convert calendar field to the interval pattern index in
@@ -420,7 +462,10 @@ private:
      * @param status   output param set to success/failure code on exit
      * @return  interval pattern index in hash table
      */
-    static IntervalPatternIndex U_EXPORT2 calendarFieldToIntervalIndex(UCalendarDateFields field, UErrorCode& status);
+    static IntervalPatternIndex U_EXPORT2 calendarFieldToIntervalIndex(
+                                                      UCalendarDateFields field,
+                                                      UErrorCode& status);
+
 
     /**
      * delete hash table (of type fIntervalPatterns).
@@ -428,6 +473,7 @@ private:
      * @param hTable  hash table to be deleted
      */
     void deleteHash(Hashtable* hTable);
+
 
     /**
      * initialize hash table (of type fIntervalPatterns).
@@ -437,6 +483,8 @@ private:
      */
     Hashtable* initHash(UErrorCode& status);
 
+
+
     /**
      * copy hash table (of type fIntervalPatterns).
      *
@@ -445,6 +493,7 @@ private:
      * @param status   output param set to success/failure code on exit
      */
     void copyHash(const Hashtable* source, Hashtable* target, UErrorCode& status);
+
 
     // data members
     // fallback interval pattern
@@ -456,12 +505,14 @@ private:
     // HashMap( skeleton, pattern[largest_different_field] )
     Hashtable* fIntervalPatterns;
 
-}; // end class DateIntervalInfo
+};// end class DateIntervalInfo
 
-inline bool DateIntervalInfo::operator!=(const DateIntervalInfo& other) const
-{
+
+inline bool
+DateIntervalInfo::operator!=(const DateIntervalInfo& other) const {
     return !operator==(other);
 }
+
 
 U_NAMESPACE_END
 
@@ -470,3 +521,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif
+

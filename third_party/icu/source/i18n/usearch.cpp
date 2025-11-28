@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -28,21 +28,24 @@ U_NAMESPACE_USE
 
 // internal definition ---------------------------------------------------
 
-#define LAST_BYTE_MASK_ 0xFF
-#define SECOND_LAST_BYTE_SHIFT_ 8
+#define LAST_BYTE_MASK_          0xFF
+#define SECOND_LAST_BYTE_SHIFT_  8
 #define SUPPLEMENTARY_MIN_VALUE_ 0x10000
 
-static const Normalizer2Impl* g_nfcImpl = nullptr;
+static const Normalizer2Impl *g_nfcImpl = nullptr;
 
 // internal methods -------------------------------------------------
 
 /**
- * Fast collation element iterator setOffset.
- * This function does not check for bounds.
- * @param coleiter collation element iterator
- * @param offset to set
- */
-static inline void setColEIterOffset(UCollationElements* elems, int32_t offset, UErrorCode& status)
+* Fast collation element iterator setOffset.
+* This function does not check for bounds.
+* @param coleiter collation element iterator
+* @param offset to set
+*/
+static
+inline void setColEIterOffset(UCollationElements *elems,
+                              int32_t offset,
+                              UErrorCode &status)
 {
     // Note: Not "fast" any more after the 2013 collation rewrite.
     // We do not want to expose more internals than necessary.
@@ -50,37 +53,41 @@ static inline void setColEIterOffset(UCollationElements* elems, int32_t offset, 
 }
 
 /**
- * Getting the mask for collation strength
- * @param strength collation strength
- * @return collation element mask
- */
-static inline uint32_t getMask(UCollationStrength strength)
+* Getting the mask for collation strength
+* @param strength collation strength
+* @return collation element mask
+*/
+static
+inline uint32_t getMask(UCollationStrength strength)
 {
-    switch (strength) {
+    switch (strength)
+    {
     case UCOL_PRIMARY:
         return UCOL_PRIMARYORDERMASK;
     case UCOL_SECONDARY:
         return UCOL_SECONDARYORDERMASK | UCOL_PRIMARYORDERMASK;
     default:
-        return UCOL_TERTIARYORDERMASK | UCOL_SECONDARYORDERMASK | UCOL_PRIMARYORDERMASK;
+        return UCOL_TERTIARYORDERMASK | UCOL_SECONDARYORDERMASK |
+               UCOL_PRIMARYORDERMASK;
     }
 }
 
 U_CDECL_BEGIN
-static UBool U_CALLCONV usearch_cleanup(void)
-{
+static UBool U_CALLCONV
+usearch_cleanup() {
     g_nfcImpl = nullptr;
-    return TRUE;
+    return true;
 }
 U_CDECL_END
 
 /**
- * Initializing the fcd tables.
- * Internal method, status assumed to be a success.
- * @param status output error if any, caller to check status before calling
- *               method, status assumed to be success when passed in.
- */
-static inline void initializeFCD(UErrorCode* status)
+* Initializing the fcd tables.
+* Internal method, status assumed to be a success.
+* @param status output error if any, caller to check status before calling
+*               method, status assumed to be success when passed in.
+*/
+static
+inline void initializeFCD(UErrorCode *status)
 {
     if (g_nfcImpl == nullptr) {
         g_nfcImpl = Normalizer2Factory::getNFCImpl(*status);
@@ -89,31 +96,34 @@ static inline void initializeFCD(UErrorCode* status)
 }
 
 /**
- * Gets the fcd value for a character at the argument index.
- * This method takes into accounts of the supplementary characters.
- * @param str UTF16 string where character for fcd retrieval resides
- * @param offset position of the character whose fcd is to be retrieved, to be
- *               overwritten with the next character position, taking
- *               surrogate characters into consideration.
- * @param strlength length of the argument string
- * @return fcd value
- */
-static uint16_t getFCD(const UChar* str, int32_t* offset, int32_t strlength)
+* Gets the fcd value for a character at the argument index.
+* This method takes into accounts of the supplementary characters.
+* @param str UTF16 string where character for fcd retrieval resides
+* @param offset position of the character whose fcd is to be retrieved, to be
+*               overwritten with the next character position, taking
+*               surrogate characters into consideration.
+* @param strlength length of the argument string
+* @return fcd value
+*/
+static
+uint16_t getFCD(const char16_t   *str, int32_t *offset,
+                             int32_t  strlength)
 {
-    const UChar* temp = str + *offset;
-    uint16_t result = g_nfcImpl->nextFCD16(temp, str + strlength);
+    const char16_t *temp = str + *offset;
+    uint16_t    result = g_nfcImpl->nextFCD16(temp, str + strlength);
     *offset = (int32_t)(temp - str);
     return result;
 }
 
 /**
- * Getting the modified collation elements taking into account the collation
- * attributes
- * @param strsrch string search data
- * @param sourcece
- * @return the modified collation element
- */
-static inline int32_t getCE(const UStringSearch* strsrch, uint32_t sourcece)
+* Getting the modified collation elements taking into account the collation
+* attributes
+* @param strsrch string search data
+* @param sourcece
+* @return the modified collation element
+*/
+static
+inline int32_t getCE(const UStringSearch *strsrch, uint32_t sourcece)
 {
     // note for tertiary we can't use the collator->tertiaryMask, that
     // is a preprocessed mask that takes into account case options. since
@@ -129,7 +139,8 @@ static inline int32_t getCE(const UStringSearch* strsrch, uint32_t sourcece)
         if (strsrch->variableTop > sourcece) {
             if (strsrch->strength >= UCOL_QUATERNARY) {
                 sourcece &= UCOL_PRIMARYORDERMASK;
-            } else {
+            }
+            else {
                 sourcece = UCOL_IGNORABLE;
             }
         }
@@ -141,16 +152,17 @@ static inline int32_t getCE(const UStringSearch* strsrch, uint32_t sourcece)
 }
 
 /**
- * Allocate a memory and returns nullptr if it failed.
- * Internal method, status assumed to be a success.
- * @param size to allocate
- * @param status output error if any, caller to check status before calling
- *               method, status assumed to be success when passed in.
- * @return newly allocated array, nullptr otherwise
- */
-static inline void* allocateMemory(uint32_t size, UErrorCode* status)
+* Allocate a memory and returns nullptr if it failed.
+* Internal method, status assumed to be a success.
+* @param size to allocate
+* @param status output error if any, caller to check status before calling
+*               method, status assumed to be success when passed in.
+* @return newly allocated array, nullptr otherwise
+*/
+static
+inline void * allocateMemory(uint32_t size, UErrorCode *status)
 {
-    uint32_t* result = (uint32_t*)uprv_malloc(size);
+    uint32_t *result = (uint32_t *)uprv_malloc(size);
     if (result == nullptr) {
         *status = U_MEMORY_ALLOCATION_ERROR;
     }
@@ -158,62 +170,74 @@ static inline void* allocateMemory(uint32_t size, UErrorCode* status)
 }
 
 /**
- * Adds a uint32_t value to a destination array.
- * Creates a new array if we run out of space. The caller will have to
- * manually deallocate the newly allocated array.
- * Internal method, status assumed to be success, caller has to check status
- * before calling this method. destination not to be nullptr and has at least
- * size destinationlength.
- * @param destination target array
- * @param offset destination offset to add value
- * @param destinationlength target array size, return value for the new size
- * @param value to be added
- * @param increments incremental size expected
- * @param status output error if any, caller to check status before calling
- *               method, status assumed to be success when passed in.
- * @return new destination array, destination if there was no new allocation
- */
-static inline int32_t* addTouint32_tArray(
-    int32_t* destination, uint32_t offset, uint32_t* destinationlength, uint32_t value, uint32_t increments, UErrorCode* status)
+* Adds a uint32_t value to a destination array.
+* Creates a new array if we run out of space. The caller will have to
+* manually deallocate the newly allocated array.
+* Internal method, status assumed to be success, caller has to check status
+* before calling this method. destination not to be nullptr and has at least
+* size destinationlength.
+* @param destination target array
+* @param offset destination offset to add value
+* @param destinationlength target array size, return value for the new size
+* @param value to be added
+* @param increments incremental size expected
+* @param status output error if any, caller to check status before calling
+*               method, status assumed to be success when passed in.
+* @return new destination array, destination if there was no new allocation
+*/
+static
+inline int32_t * addTouint32_tArray(int32_t    *destination,
+                                    uint32_t    offset,
+                                    uint32_t   *destinationlength,
+                                    uint32_t    value,
+                                    uint32_t    increments,
+                                    UErrorCode *status)
 {
     uint32_t newlength = *destinationlength;
     if (offset + 1 == newlength) {
         newlength += increments;
-        int32_t* temp = (int32_t*)allocateMemory(sizeof(int32_t) * newlength, status);
+        int32_t *temp = (int32_t *)allocateMemory(
+                                         sizeof(int32_t) * newlength, status);
         if (U_FAILURE(*status)) {
             return nullptr;
         }
         uprv_memcpy(temp, destination, sizeof(int32_t) * (size_t)offset);
         *destinationlength = newlength;
-        destination = temp;
+        destination        = temp;
     }
     destination[offset] = value;
     return destination;
 }
 
 /**
- * Adds a uint64_t value to a destination array.
- * Creates a new array if we run out of space. The caller will have to
- * manually deallocate the newly allocated array.
- * Internal method, status assumed to be success, caller has to check status
- * before calling this method. destination not to be nullptr and has at least
- * size destinationlength.
- * @param destination target array
- * @param offset destination offset to add value
- * @param destinationlength target array size, return value for the new size
- * @param value to be added
- * @param increments incremental size expected
- * @param status output error if any, caller to check status before calling
- *               method, status assumed to be success when passed in.
- * @return new destination array, destination if there was no new allocation
- */
-static inline int64_t* addTouint64_tArray(
-    int64_t* destination, uint32_t offset, uint32_t* destinationlength, uint64_t value, uint32_t increments, UErrorCode* status)
+* Adds a uint64_t value to a destination array.
+* Creates a new array if we run out of space. The caller will have to
+* manually deallocate the newly allocated array.
+* Internal method, status assumed to be success, caller has to check status
+* before calling this method. destination not to be nullptr and has at least
+* size destinationlength.
+* @param destination target array
+* @param offset destination offset to add value
+* @param destinationlength target array size, return value for the new size
+* @param value to be added
+* @param increments incremental size expected
+* @param status output error if any, caller to check status before calling
+*               method, status assumed to be success when passed in.
+* @return new destination array, destination if there was no new allocation
+*/
+static
+inline int64_t * addTouint64_tArray(int64_t    *destination,
+                                    uint32_t    offset,
+                                    uint32_t   *destinationlength,
+                                    uint64_t    value,
+                                    uint32_t    increments,
+                                    UErrorCode *status)
 {
     uint32_t newlength = *destinationlength;
     if (offset + 1 == newlength) {
         newlength += increments;
-        int64_t* temp = (int64_t*)allocateMemory(sizeof(int64_t) * newlength, status);
+        int64_t *temp = (int64_t *)allocateMemory(
+                                         sizeof(int64_t) * newlength, status);
 
         if (U_FAILURE(*status)) {
             return nullptr;
@@ -221,7 +245,7 @@ static inline int64_t* addTouint64_tArray(
 
         uprv_memcpy(temp, destination, sizeof(int64_t) * (size_t)offset);
         *destinationlength = newlength;
-        destination = temp;
+        destination        = temp;
     }
 
     destination[offset] = value;
@@ -230,34 +254,37 @@ static inline int64_t* addTouint64_tArray(
 }
 
 /**
- * Initializing the ce table for a pattern.
- * Stores non-ignorable collation keys.
- * Table size will be estimated by the size of the pattern text. Table
- * expansion will be perform as we go along. Adding 1 to ensure that the table
- * size definitely increases.
- * Internal method, status assumed to be a success.
- * @param strsrch string search data
- * @param status output error if any, caller to check status before calling
- *               method, status assumed to be success when passed in.
- */
-static inline void initializePatternCETable(UStringSearch* strsrch, UErrorCode* status)
+* Initializing the ce table for a pattern.
+* Stores non-ignorable collation keys.
+* Table size will be estimated by the size of the pattern text. Table
+* expansion will be perform as we go along. Adding 1 to ensure that the table
+* size definitely increases.
+* Internal method, status assumed to be a success.
+* @param strsrch string search data
+* @param status output error if any, caller to check status before calling
+*               method, status assumed to be success when passed in.
+*/
+static
+inline void initializePatternCETable(UStringSearch *strsrch, UErrorCode *status)
 {
-    UPattern* pattern = &(strsrch->pattern);
-    uint32_t cetablesize = INITIAL_ARRAY_SIZE_;
-    int32_t* cetable = pattern->cesBuffer;
-    uint32_t patternlength = pattern->textLength;
-    UCollationElements* coleiter = strsrch->utilIter;
+    UPattern *pattern            = &(strsrch->pattern);
+    uint32_t  cetablesize        = INITIAL_ARRAY_SIZE_;
+    int32_t  *cetable            = pattern->cesBuffer;
+    uint32_t  patternlength      = pattern->textLength;
+    UCollationElements *coleiter = strsrch->utilIter;
 
     if (coleiter == nullptr) {
-        coleiter = ucol_openElements(strsrch->collator, pattern->text, patternlength, status);
+        coleiter = ucol_openElements(strsrch->collator, pattern->text,
+                                     patternlength, status);
         // status will be checked in ucol_next(..) later and if it is an
         // error UCOL_NULLORDER the result of ucol_next(..) and 0 will be
         // returned.
         strsrch->utilIter = coleiter;
-    } else {
+    }
+    else {
         ucol_setText(coleiter, pattern->text, pattern->textLength, status);
     }
-    if (U_FAILURE(*status)) {
+    if(U_FAILURE(*status)) {
         return;
     }
 
@@ -265,17 +292,21 @@ static inline void initializePatternCETable(UStringSearch* strsrch, UErrorCode* 
         uprv_free(pattern->ces);
     }
 
-    uint32_t offset = 0;
-    int32_t ce;
+    uint32_t  offset      = 0;
+    int32_t   ce;
 
-    while ((ce = ucol_next(coleiter, status)) != UCOL_NULLORDER && U_SUCCESS(*status)) {
+    while ((ce = ucol_next(coleiter, status)) != UCOL_NULLORDER &&
+           U_SUCCESS(*status)) {
         uint32_t newce = getCE(strsrch, ce);
         if (newce) {
-            int32_t* temp = addTouint32_tArray(cetable, offset, &cetablesize, newce, patternlength - ucol_getOffset(coleiter) + 1, status);
+            int32_t *temp = addTouint32_tArray(cetable, offset, &cetablesize,
+                                  newce,
+                                  patternlength - ucol_getOffset(coleiter) + 1,
+                                  status);
             if (U_FAILURE(*status)) {
                 return;
             }
-            offset++;
+            offset ++;
             if (cetable != temp && cetable != pattern->cesBuffer) {
                 uprv_free(cetable);
             }
@@ -283,32 +314,35 @@ static inline void initializePatternCETable(UStringSearch* strsrch, UErrorCode* 
         }
     }
 
-    cetable[offset] = 0;
-    pattern->ces = cetable;
+    cetable[offset]   = 0;
+    pattern->ces       = cetable;
     pattern->cesLength = offset;
 }
 
 /**
- * Initializing the pce table for a pattern.
- * Stores non-ignorable collation keys.
- * Table size will be estimated by the size of the pattern text. Table
- * expansion will be perform as we go along. Adding 1 to ensure that the table
- * size definitely increases.
- * Internal method, status assumed to be a success.
- * @param strsrch string search data
- * @param status output error if any, caller to check status before calling
- *               method, status assumed to be success when passed in.
- */
-static inline void initializePatternPCETable(UStringSearch* strsrch, UErrorCode* status)
+* Initializing the pce table for a pattern.
+* Stores non-ignorable collation keys.
+* Table size will be estimated by the size of the pattern text. Table
+* expansion will be perform as we go along. Adding 1 to ensure that the table
+* size definitely increases.
+* Internal method, status assumed to be a success.
+* @param strsrch string search data
+* @param status output error if any, caller to check status before calling
+*               method, status assumed to be success when passed in.
+*/
+static
+inline void initializePatternPCETable(UStringSearch *strsrch,
+                                      UErrorCode    *status)
 {
-    UPattern* pattern = &(strsrch->pattern);
-    uint32_t pcetablesize = INITIAL_ARRAY_SIZE_;
-    int64_t* pcetable = pattern->pcesBuffer;
-    uint32_t patternlength = pattern->textLength;
-    UCollationElements* coleiter = strsrch->utilIter;
+    UPattern *pattern            = &(strsrch->pattern);
+    uint32_t  pcetablesize       = INITIAL_ARRAY_SIZE_;
+    int64_t  *pcetable           = pattern->pcesBuffer;
+    uint32_t  patternlength      = pattern->textLength;
+    UCollationElements *coleiter = strsrch->utilIter;
 
     if (coleiter == nullptr) {
-        coleiter = ucol_openElements(strsrch->collator, pattern->text, patternlength, status);
+        coleiter = ucol_openElements(strsrch->collator, pattern->text,
+                                     patternlength, status);
         // status will be checked in nextProcessed(..) later and if it is an error
         // then UCOL_PROCESSED_NULLORDER is returned by nextProcessed(..), so 0 will be
         // returned.
@@ -316,7 +350,7 @@ static inline void initializePatternPCETable(UStringSearch* strsrch, UErrorCode*
     } else {
         ucol_setText(coleiter, pattern->text, pattern->textLength, status);
     }
-    if (U_FAILURE(*status)) {
+    if(U_FAILURE(*status)) {
         return;
     }
 
@@ -324,16 +358,20 @@ static inline void initializePatternPCETable(UStringSearch* strsrch, UErrorCode*
         uprv_free(pattern->pces);
     }
 
-    uint32_t offset = 0;
-    int64_t pce;
+    uint32_t  offset = 0;
+    int64_t   pce;
 
     icu::UCollationPCE iter(coleiter);
 
     // ** Should processed CEs be signed or unsigned?
     // ** (the rest of the code in this file seems to play fast-and-loose with
     // **  whether a CE is signed or unsigned. For example, look at routine above this one.)
-    while ((pce = iter.nextProcessed(nullptr, nullptr, status)) != UCOL_PROCESSED_NULLORDER && U_SUCCESS(*status)) {
-        int64_t* temp = addTouint64_tArray(pcetable, offset, &pcetablesize, pce, patternlength - ucol_getOffset(coleiter) + 1, status);
+    while ((pce = iter.nextProcessed(nullptr, nullptr, status)) != UCOL_PROCESSED_NULLORDER &&
+           U_SUCCESS(*status)) {
+        int64_t *temp = addTouint64_tArray(pcetable, offset, &pcetablesize,
+                              pce,
+                              patternlength - ucol_getOffset(coleiter) + 1,
+                              status);
 
         if (U_FAILURE(*status)) {
             return;
@@ -348,37 +386,38 @@ static inline void initializePatternPCETable(UStringSearch* strsrch, UErrorCode*
         pcetable = temp;
     }
 
-    pcetable[offset] = 0;
-    pattern->pces = pcetable;
+    pcetable[offset]   = 0;
+    pattern->pces       = pcetable;
     pattern->pcesLength = offset;
 }
 
 /**
- * Initializes the pattern struct.
- * @param strsrch UStringSearch data storage
- * @param status output error if any, caller to check status before calling
- *               method, status assumed to be success when passed in.
- */
-static inline void initializePattern(UStringSearch* strsrch, UErrorCode* status)
+* Initializes the pattern struct.
+* @param strsrch UStringSearch data storage
+* @param status output error if any, caller to check status before calling
+*               method, status assumed to be success when passed in.
+*/
+static
+inline void initializePattern(UStringSearch *strsrch, UErrorCode *status)
 {
-    if (U_FAILURE(*status)) {
-        return;
-    }
+    if (U_FAILURE(*status)) { return; }
 
-    UPattern* pattern = &(strsrch->pattern);
-    const UChar* patterntext = pattern->text;
-    int32_t length = pattern->textLength;
-    int32_t index = 0;
+          UPattern   *pattern     = &(strsrch->pattern);
+    const char16_t   *patterntext = pattern->text;
+          int32_t     length      = pattern->textLength;
+          int32_t index       = 0;
 
     // Since the strength is primary, accents are ignored in the pattern.
     if (strsrch->strength == UCOL_PRIMARY) {
         pattern->hasPrefixAccents = 0;
         pattern->hasSuffixAccents = 0;
     } else {
-        pattern->hasPrefixAccents = getFCD(patterntext, &index, length) >> SECOND_LAST_BYTE_SHIFT_;
+        pattern->hasPrefixAccents = getFCD(patterntext, &index, length) >>
+                                                         SECOND_LAST_BYTE_SHIFT_;
         index = length;
         U16_BACK_1(patterntext, 0, index);
-        pattern->hasSuffixAccents = getFCD(patterntext, &index, length) & LAST_BYTE_MASK_;
+        pattern->hasSuffixAccents = getFCD(patterntext, &index, length) &
+                                                                 LAST_BYTE_MASK_;
     }
 
     // ** HACK **
@@ -394,20 +433,21 @@ static inline void initializePattern(UStringSearch* strsrch, UErrorCode* status)
 }
 
 /**
- * Initializes the pattern struct and builds the pattern collation element table.
- * @param strsrch UStringSearch data storage
- * @param status  for output errors if it occurs, status is assumed to be a
- *                success when it is passed in.
- */
-static inline void initialize(UStringSearch* strsrch, UErrorCode* status)
+* Initializes the pattern struct and builds the pattern collation element table.
+* @param strsrch UStringSearch data storage
+* @param status  for output errors if it occurs, status is assumed to be a
+*                success when it is passed in.
+*/
+static
+inline void initialize(UStringSearch *strsrch, UErrorCode *status)
 {
     initializePattern(strsrch, status);
 }
 
 #if !UCONFIG_NO_BREAK_ITERATION
 // If the caller provided a character breakiterator we'll return that,
-// otherwise we lazily create the internal break iterator.
-static UBreakIterator* getBreakIterator(UStringSearch* strsrch, UErrorCode& status)
+// otherwise we lazily create the internal break iterator. 
+static UBreakIterator* getBreakIterator(UStringSearch *strsrch, UErrorCode &status)
 {
     if (U_FAILURE(status)) {
         return nullptr;
@@ -422,21 +462,23 @@ static UBreakIterator* getBreakIterator(UStringSearch* strsrch, UErrorCode& stat
     }
 
     // Need to create the internal break iterator.
-    strsrch->search->internalBreakIter = ubrk_open(
-        UBRK_CHARACTER, ucol_getLocaleByType(strsrch->collator, ULOC_VALID_LOCALE, &status), strsrch->search->text, strsrch->search->textLength, &status);
+    strsrch->search->internalBreakIter = ubrk_open(UBRK_CHARACTER,
+        ucol_getLocaleByType(strsrch->collator, ULOC_VALID_LOCALE, &status),
+        strsrch->search->text, strsrch->search->textLength, &status);
 
     return strsrch->search->internalBreakIter;
 }
 #endif
 
 /**
- * Sets the match result to "not found", regardless of the incoming error status.
- * If an error occurs while setting the result, it is reported back.
- *
- * @param strsrch string search data
- * @param status  for output errors, if they occur.
- */
-static inline void setMatchNotFound(UStringSearch* strsrch, UErrorCode& status)
+* Sets the match result to "not found", regardless of the incoming error status.
+* If an error occurs while setting the result, it is reported back.
+* 
+* @param strsrch string search data
+* @param status  for output errors, if they occur.
+*/
+static
+inline void setMatchNotFound(UStringSearch *strsrch, UErrorCode &status)
 {
     UErrorCode localStatus = U_ZERO_ERROR;
 
@@ -444,7 +486,8 @@ static inline void setMatchNotFound(UStringSearch* strsrch, UErrorCode& status)
     strsrch->search->matchedLength = 0;
     if (strsrch->search->isForwardSearching) {
         setColEIterOffset(strsrch->textIter, strsrch->search->textLength, localStatus);
-    } else {
+    }
+    else {
         setColEIterOffset(strsrch->textIter, 0, localStatus);
     }
 
@@ -456,43 +499,52 @@ static inline void setMatchNotFound(UStringSearch* strsrch, UErrorCode& status)
 }
 
 /**
- * Checks if the offset runs out of the text string
- * @param offset
- * @param textlength of the text string
- * @return TRUE if offset is out of bounds, FALSE otherwise
- */
-static inline UBool isOutOfBounds(int32_t textlength, int32_t offset)
+* Checks if the offset runs out of the text string
+* @param offset
+* @param textlength of the text string
+* @return true if offset is out of bounds, false otherwise
+*/
+static
+inline UBool isOutOfBounds(int32_t textlength, int32_t offset)
 {
     return offset < 0 || offset > textlength;
 }
 
 /**
- * Checks for identical match
- * @param strsrch string search data
- * @param start offset of possible match
- * @param end offset of possible match
- * @return TRUE if identical match is found
- */
-static inline UBool checkIdentical(const UStringSearch* strsrch, int32_t start, int32_t end)
+* Checks for identical match
+* @param strsrch string search data
+* @param start offset of possible match
+* @param end offset of possible match
+* @return true if identical match is found
+*/
+static
+inline UBool checkIdentical(const UStringSearch *strsrch, int32_t start, int32_t end)
 {
     if (strsrch->strength != UCOL_IDENTICAL) {
-        return TRUE;
+        return true;
     }
 
     // Note: We could use Normalizer::compare() or similar, but for short strings
     // which may not be in FCD it might be faster to just NFD them.
     UErrorCode status = U_ZERO_ERROR;
     UnicodeString t2, p2;
-    strsrch->nfd->normalize(UnicodeString(FALSE, strsrch->search->text + start, end - start), t2, status);
-    strsrch->nfd->normalize(UnicodeString(FALSE, strsrch->pattern.text, strsrch->pattern.textLength), p2, status);
-    // return FALSE if NFD failed
+    strsrch->nfd->normalize(
+        UnicodeString(false, strsrch->search->text + start, end - start), t2, status);
+    strsrch->nfd->normalize(
+        UnicodeString(false, strsrch->pattern.text, strsrch->pattern.textLength), p2, status);
+    // return false if NFD failed
     return U_SUCCESS(status) && t2 == p2;
 }
 
 // constructors and destructor -------------------------------------------
 
-U_CAPI UStringSearch* U_EXPORT2 usearch_open(
-    const UChar* pattern, int32_t patternlength, const UChar* text, int32_t textlength, const char* locale, UBreakIterator* breakiter, UErrorCode* status)
+U_CAPI UStringSearch * U_EXPORT2 usearch_open(const char16_t *pattern,
+                                          int32_t         patternlength,
+                                    const char16_t       *text,
+                                          int32_t         textlength,
+                                    const char           *locale,
+                                          UBreakIterator *breakiter,
+                                          UErrorCode     *status)
 {
     if (U_FAILURE(*status)) {
         return nullptr;
@@ -505,17 +557,20 @@ U_CAPI UStringSearch* U_EXPORT2 usearch_open(
 #endif
     if (locale) {
         // ucol_open internally checks for status
-        UCollator* collator = ucol_open(locale, status);
+        UCollator     *collator = ucol_open(locale, status);
         // pattern, text checks are done in usearch_openFromCollator
-        UStringSearch* result = usearch_openFromCollator(pattern, patternlength, text, textlength, collator, breakiter, status);
+        UStringSearch *result   = usearch_openFromCollator(pattern,
+                                              patternlength, text, textlength,
+                                              collator, breakiter, status);
 
         if (result == nullptr || U_FAILURE(*status)) {
             if (collator) {
                 ucol_close(collator);
             }
             return nullptr;
-        } else {
-            result->ownCollator = TRUE;
+        }
+        else {
+            result->ownCollator = true;
         }
         return result;
     }
@@ -523,8 +578,14 @@ U_CAPI UStringSearch* U_EXPORT2 usearch_open(
     return nullptr;
 }
 
-U_CAPI UStringSearch* U_EXPORT2 usearch_openFromCollator(const UChar* pattern, int32_t patternlength, const UChar* text, int32_t textlength,
-    const UCollator* collator, UBreakIterator* breakiter, UErrorCode* status)
+U_CAPI UStringSearch * U_EXPORT2 usearch_openFromCollator(
+                                  const char16_t       *pattern,
+                                        int32_t         patternlength,
+                                  const char16_t       *text,
+                                        int32_t         textlength,
+                                  const UCollator      *collator,
+                                        UBreakIterator *breakiter,
+                                        UErrorCode     *status)
 {
     if (U_FAILURE(*status)) {
         return nullptr;
@@ -541,7 +602,7 @@ U_CAPI UStringSearch* U_EXPORT2 usearch_openFromCollator(const UChar* pattern, i
     }
 
     // string search does not really work when numeric collation is turned on
-    if (ucol_getAttribute(collator, UCOL_NUMERIC_COLLATION, status) == UCOL_ON) {
+    if(ucol_getAttribute(collator, UCOL_NUMERIC_COLLATION, status) == UCOL_ON) {
         *status = U_UNSUPPORTED_ERROR;
         return nullptr;
     }
@@ -552,7 +613,7 @@ U_CAPI UStringSearch* U_EXPORT2 usearch_openFromCollator(const UChar* pattern, i
             return nullptr;
         }
 
-        UStringSearch* result;
+        UStringSearch *result;
         if (textlength == -1) {
             textlength = u_strlen(text);
         }
@@ -564,41 +625,43 @@ U_CAPI UStringSearch* U_EXPORT2 usearch_openFromCollator(const UChar* pattern, i
             return nullptr;
         }
 
-        result = (UStringSearch*)uprv_malloc(sizeof(UStringSearch));
+        result = (UStringSearch *)uprv_malloc(sizeof(UStringSearch));
         if (result == nullptr) {
             *status = U_MEMORY_ALLOCATION_ERROR;
             return nullptr;
         }
 
-        result->collator = collator;
-        result->strength = ucol_getStrength(collator);
-        result->ceMask = getMask(result->strength);
-        result->toShift = ucol_getAttribute(collator, UCOL_ALTERNATE_HANDLING, status) == UCOL_SHIFTED;
+        result->collator    = collator;
+        result->strength    = ucol_getStrength(collator);
+        result->ceMask      = getMask(result->strength);
+        result->toShift     =
+             ucol_getAttribute(collator, UCOL_ALTERNATE_HANDLING, status) ==
+                                                            UCOL_SHIFTED;
         result->variableTop = ucol_getVariableTop(collator, status);
 
-        result->nfd = Normalizer2::getNFDInstance(*status);
+        result->nfd         = Normalizer2::getNFDInstance(*status);
 
         if (U_FAILURE(*status)) {
             uprv_free(result);
             return nullptr;
         }
 
-        result->search = (USearch*)uprv_malloc(sizeof(USearch));
+        result->search             = (USearch *)uprv_malloc(sizeof(USearch));
         if (result->search == nullptr) {
             *status = U_MEMORY_ALLOCATION_ERROR;
             uprv_free(result);
             return nullptr;
         }
 
-        result->search->text = text;
+        result->search->text       = text;
         result->search->textLength = textlength;
 
-        result->pattern.text = pattern;
+        result->pattern.text       = pattern;
         result->pattern.textLength = patternlength;
-        result->pattern.ces = nullptr;
-        result->pattern.pces = nullptr;
+        result->pattern.ces         = nullptr;
+        result->pattern.pces        = nullptr;
 
-        result->search->breakIter = breakiter;
+        result->search->breakIter  = breakiter;
 #if !UCONFIG_NO_BREAK_ITERATION
         result->search->internalBreakIter = nullptr; // Lazily created.
         if (breakiter) {
@@ -606,22 +669,23 @@ U_CAPI UStringSearch* U_EXPORT2 usearch_openFromCollator(const UChar* pattern, i
         }
 #endif
 
-        result->ownCollator = FALSE;
+        result->ownCollator           = false;
         result->search->matchedLength = 0;
-        result->search->matchedIndex = USEARCH_DONE;
-        result->utilIter = nullptr;
-        result->textIter = ucol_openElements(collator, text, textlength, status);
-        result->textProcessedIter = nullptr;
+        result->search->matchedIndex  = USEARCH_DONE;
+        result->utilIter              = nullptr;
+        result->textIter              = ucol_openElements(collator, text,
+                                                          textlength, status);
+        result->textProcessedIter     = nullptr;
         if (U_FAILURE(*status)) {
             usearch_close(result);
             return nullptr;
         }
 
-        result->search->isOverlap = FALSE;
-        result->search->isCanonicalMatch = FALSE;
+        result->search->isOverlap          = false;
+        result->search->isCanonicalMatch   = false;
         result->search->elementComparisonType = 0;
-        result->search->isForwardSearching = TRUE;
-        result->search->reset = TRUE;
+        result->search->isForwardSearching = true;
+        result->search->reset              = true;
 
         initialize(result, status);
 
@@ -635,14 +699,16 @@ U_CAPI UStringSearch* U_EXPORT2 usearch_openFromCollator(const UChar* pattern, i
     return nullptr;
 }
 
-U_CAPI void U_EXPORT2 usearch_close(UStringSearch* strsrch)
+U_CAPI void U_EXPORT2 usearch_close(UStringSearch *strsrch)
 {
     if (strsrch) {
-        if (strsrch->pattern.ces != strsrch->pattern.cesBuffer && strsrch->pattern.ces) {
+        if (strsrch->pattern.ces != strsrch->pattern.cesBuffer &&
+            strsrch->pattern.ces) {
             uprv_free(strsrch->pattern.ces);
         }
 
-        if (strsrch->pattern.pces != nullptr && strsrch->pattern.pces != strsrch->pattern.pcesBuffer) {
+        if (strsrch->pattern.pces != nullptr &&
+            strsrch->pattern.pces != strsrch->pattern.pcesBuffer) {
             uprv_free(strsrch->pattern.pces);
         }
 
@@ -651,7 +717,7 @@ U_CAPI void U_EXPORT2 usearch_close(UStringSearch* strsrch)
         ucol_closeElements(strsrch->utilIter);
 
         if (strsrch->ownCollator && strsrch->collator) {
-            ucol_close((UCollator*)strsrch->collator);
+            ucol_close((UCollator *)strsrch->collator);
         }
 
 #if !UCONFIG_NO_BREAK_ITERATION
@@ -667,42 +733,42 @@ U_CAPI void U_EXPORT2 usearch_close(UStringSearch* strsrch)
 
 namespace {
 
-UBool initTextProcessedIter(UStringSearch* strsrch, UErrorCode* status)
-{
-    if (U_FAILURE(*status)) {
-        return FALSE;
-    }
+UBool initTextProcessedIter(UStringSearch *strsrch, UErrorCode *status) {
+    if (U_FAILURE(*status)) { return false; }
     if (strsrch->textProcessedIter == nullptr) {
         strsrch->textProcessedIter = new icu::UCollationPCE(strsrch->textIter);
         if (strsrch->textProcessedIter == nullptr) {
             *status = U_MEMORY_ALLOCATION_ERROR;
-            return FALSE;
+            return false;
         }
     } else {
         strsrch->textProcessedIter->init(strsrch->textIter);
     }
-    return TRUE;
+    return true;
 }
 
 }
 
 // set and get methods --------------------------------------------------
 
-U_CAPI void U_EXPORT2 usearch_setOffset(UStringSearch* strsrch, int32_t position, UErrorCode* status)
+U_CAPI void U_EXPORT2 usearch_setOffset(UStringSearch *strsrch,
+                                        int32_t        position,
+                                        UErrorCode    *status)
 {
     if (U_SUCCESS(*status) && strsrch) {
         if (isOutOfBounds(strsrch->search->textLength, position)) {
             *status = U_INDEX_OUTOFBOUNDS_ERROR;
-        } else {
+        }
+        else {
             setColEIterOffset(strsrch->textIter, position, *status);
         }
-        strsrch->search->matchedIndex = USEARCH_DONE;
+        strsrch->search->matchedIndex  = USEARCH_DONE;
         strsrch->search->matchedLength = 0;
-        strsrch->search->reset = FALSE;
+        strsrch->search->reset         = false;
     }
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_getOffset(const UStringSearch* strsrch)
+U_CAPI int32_t U_EXPORT2 usearch_getOffset(const UStringSearch *strsrch)
 {
     if (strsrch) {
         int32_t result = ucol_getOffset(strsrch->textIter);
@@ -714,24 +780,29 @@ U_CAPI int32_t U_EXPORT2 usearch_getOffset(const UStringSearch* strsrch)
     return USEARCH_DONE;
 }
 
-U_CAPI void U_EXPORT2 usearch_setAttribute(UStringSearch* strsrch, USearchAttribute attribute, USearchAttributeValue value, UErrorCode* status)
+U_CAPI void U_EXPORT2 usearch_setAttribute(UStringSearch        *strsrch,
+                                           USearchAttribute      attribute,
+                                           USearchAttributeValue value,
+                                           UErrorCode           *status)
 {
     if (U_SUCCESS(*status) && strsrch) {
-        switch (attribute) {
-        case USEARCH_OVERLAP:
-            strsrch->search->isOverlap = (value == USEARCH_ON ? TRUE : FALSE);
+        switch (attribute)
+        {
+        case USEARCH_OVERLAP :
+            strsrch->search->isOverlap = (value == USEARCH_ON ? true : false);
             break;
-        case USEARCH_CANONICAL_MATCH:
-            strsrch->search->isCanonicalMatch = (value == USEARCH_ON ? TRUE : FALSE);
+        case USEARCH_CANONICAL_MATCH :
+            strsrch->search->isCanonicalMatch = (value == USEARCH_ON ? true :
+                                                                      false);
             break;
-        case USEARCH_ELEMENT_COMPARISON:
+        case USEARCH_ELEMENT_COMPARISON :
             if (value == USEARCH_PATTERN_BASE_WEIGHT_IS_WILDCARD || value == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD) {
                 strsrch->search->elementComparisonType = (int16_t)value;
             } else {
                 strsrch->search->elementComparisonType = 0;
             }
             break;
-        case USEARCH_ATTRIBUTE_COUNT:
+        case USEARCH_ATTRIBUTE_COUNT :
         default:
             *status = U_ILLEGAL_ARGUMENT_ERROR;
         }
@@ -741,30 +812,34 @@ U_CAPI void U_EXPORT2 usearch_setAttribute(UStringSearch* strsrch, USearchAttrib
     }
 }
 
-U_CAPI USearchAttributeValue U_EXPORT2 usearch_getAttribute(const UStringSearch* strsrch, USearchAttribute attribute)
+U_CAPI USearchAttributeValue U_EXPORT2 usearch_getAttribute(
+                                                const UStringSearch *strsrch,
+                                                USearchAttribute attribute)
 {
     if (strsrch) {
         switch (attribute) {
-        case USEARCH_OVERLAP:
-            return (strsrch->search->isOverlap == TRUE ? USEARCH_ON : USEARCH_OFF);
-        case USEARCH_CANONICAL_MATCH:
-            return (strsrch->search->isCanonicalMatch == TRUE ? USEARCH_ON : USEARCH_OFF);
-        case USEARCH_ELEMENT_COMPARISON: {
-            int16_t value = strsrch->search->elementComparisonType;
-            if (value == USEARCH_PATTERN_BASE_WEIGHT_IS_WILDCARD || value == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD) {
-                return (USearchAttributeValue)value;
-            } else {
-                return USEARCH_STANDARD_ELEMENT_COMPARISON;
+        case USEARCH_OVERLAP :
+            return (strsrch->search->isOverlap ? USEARCH_ON : USEARCH_OFF);
+        case USEARCH_CANONICAL_MATCH :
+            return (strsrch->search->isCanonicalMatch ? USEARCH_ON : USEARCH_OFF);
+        case USEARCH_ELEMENT_COMPARISON :
+            {
+                int16_t value = strsrch->search->elementComparisonType;
+                if (value == USEARCH_PATTERN_BASE_WEIGHT_IS_WILDCARD || value == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD) {
+                    return (USearchAttributeValue)value;
+                } else {
+                    return USEARCH_STANDARD_ELEMENT_COMPARISON;
+                }
             }
-        }
-        case USEARCH_ATTRIBUTE_COUNT:
+        case USEARCH_ATTRIBUTE_COUNT :
             return USEARCH_DEFAULT;
         }
     }
     return USEARCH_DEFAULT;
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_getMatchedStart(const UStringSearch* strsrch)
+U_CAPI int32_t U_EXPORT2 usearch_getMatchedStart(
+                                                const UStringSearch *strsrch)
 {
     if (strsrch == nullptr) {
         return USEARCH_DONE;
@@ -772,18 +847,23 @@ U_CAPI int32_t U_EXPORT2 usearch_getMatchedStart(const UStringSearch* strsrch)
     return strsrch->search->matchedIndex;
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_getMatchedText(const UStringSearch* strsrch, UChar* result, int32_t resultCapacity, UErrorCode* status)
+
+U_CAPI int32_t U_EXPORT2 usearch_getMatchedText(const UStringSearch *strsrch,
+                                            char16_t      *result,
+                                            int32_t        resultCapacity,
+                                            UErrorCode    *status)
 {
     if (U_FAILURE(*status)) {
         return USEARCH_DONE;
     }
-    if (strsrch == nullptr || resultCapacity < 0 || (resultCapacity > 0 && result == nullptr)) {
+    if (strsrch == nullptr || resultCapacity < 0 || (resultCapacity > 0 &&
+        result == nullptr)) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
         return USEARCH_DONE;
     }
 
-    int32_t copylength = strsrch->search->matchedLength;
-    int32_t copyindex = strsrch->search->matchedIndex;
+    int32_t     copylength = strsrch->search->matchedLength;
+    int32_t copyindex  = strsrch->search->matchedIndex;
     if (copyindex == USEARCH_DONE) {
         u_terminateUChars(result, resultCapacity, 0, status);
         return USEARCH_DONE;
@@ -793,12 +873,15 @@ U_CAPI int32_t U_EXPORT2 usearch_getMatchedText(const UStringSearch* strsrch, UC
         copylength = resultCapacity;
     }
     if (copylength > 0) {
-        uprv_memcpy(result, strsrch->search->text + copyindex, copylength * sizeof(UChar));
+        uprv_memcpy(result, strsrch->search->text + copyindex,
+                    copylength * sizeof(char16_t));
     }
-    return u_terminateUChars(result, resultCapacity, strsrch->search->matchedLength, status);
+    return u_terminateUChars(result, resultCapacity,
+                             strsrch->search->matchedLength, status);
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_getMatchedLength(const UStringSearch* strsrch)
+U_CAPI int32_t U_EXPORT2 usearch_getMatchedLength(
+                                              const UStringSearch *strsrch)
 {
     if (strsrch) {
         return strsrch->search->matchedLength;
@@ -808,17 +891,21 @@ U_CAPI int32_t U_EXPORT2 usearch_getMatchedLength(const UStringSearch* strsrch)
 
 #if !UCONFIG_NO_BREAK_ITERATION
 
-U_CAPI void U_EXPORT2 usearch_setBreakIterator(UStringSearch* strsrch, UBreakIterator* breakiter, UErrorCode* status)
+U_CAPI void U_EXPORT2 usearch_setBreakIterator(UStringSearch  *strsrch,
+                                               UBreakIterator *breakiter,
+                                               UErrorCode     *status)
 {
     if (U_SUCCESS(*status) && strsrch) {
         strsrch->search->breakIter = breakiter;
         if (breakiter) {
-            ubrk_setText(breakiter, strsrch->search->text, strsrch->search->textLength, status);
+            ubrk_setText(breakiter, strsrch->search->text,
+                         strsrch->search->textLength, status);
         }
     }
 }
 
-U_CAPI const UBreakIterator* U_EXPORT2 usearch_getBreakIterator(const UStringSearch* strsrch)
+U_CAPI const UBreakIterator* U_EXPORT2
+usearch_getBreakIterator(const UStringSearch *strsrch)
 {
     if (strsrch) {
         return strsrch->search->breakIter;
@@ -828,24 +915,30 @@ U_CAPI const UBreakIterator* U_EXPORT2 usearch_getBreakIterator(const UStringSea
 
 #endif
 
-U_CAPI void U_EXPORT2 usearch_setText(UStringSearch* strsrch, const UChar* text, int32_t textlength, UErrorCode* status)
+U_CAPI void U_EXPORT2 usearch_setText(      UStringSearch *strsrch,
+                                      const char16_t      *text,
+                                            int32_t        textlength,
+                                            UErrorCode    *status)
 {
     if (U_SUCCESS(*status)) {
-        if (strsrch == nullptr || text == nullptr || textlength < -1 || textlength == 0) {
+        if (strsrch == nullptr || text == nullptr || textlength < -1 ||
+            textlength == 0) {
             *status = U_ILLEGAL_ARGUMENT_ERROR;
-        } else {
+        }
+        else {
             if (textlength == -1) {
                 textlength = u_strlen(text);
             }
-            strsrch->search->text = text;
+            strsrch->search->text       = text;
             strsrch->search->textLength = textlength;
             ucol_setText(strsrch->textIter, text, textlength, status);
-            strsrch->search->matchedIndex = USEARCH_DONE;
+            strsrch->search->matchedIndex  = USEARCH_DONE;
             strsrch->search->matchedLength = 0;
-            strsrch->search->reset = TRUE;
+            strsrch->search->reset         = true;
 #if !UCONFIG_NO_BREAK_ITERATION
             if (strsrch->search->breakIter != nullptr) {
-                ubrk_setText(strsrch->search->breakIter, text, textlength, status);
+                ubrk_setText(strsrch->search->breakIter, text,
+                             textlength, status);
             }
             if (strsrch->search->internalBreakIter != nullptr) {
                 ubrk_setText(strsrch->search->internalBreakIter, text, textlength, status);
@@ -855,7 +948,8 @@ U_CAPI void U_EXPORT2 usearch_setText(UStringSearch* strsrch, const UChar* text,
     }
 }
 
-U_CAPI const UChar* U_EXPORT2 usearch_getText(const UStringSearch* strsrch, int32_t* length)
+U_CAPI const char16_t * U_EXPORT2 usearch_getText(const UStringSearch *strsrch,
+                                                     int32_t       *length)
 {
     if (strsrch) {
         *length = strsrch->search->textLength;
@@ -864,7 +958,9 @@ U_CAPI const UChar* U_EXPORT2 usearch_getText(const UStringSearch* strsrch, int3
     return nullptr;
 }
 
-U_CAPI void U_EXPORT2 usearch_setCollator(UStringSearch* strsrch, const UCollator* collator, UErrorCode* status)
+U_CAPI void U_EXPORT2 usearch_setCollator(      UStringSearch *strsrch,
+                                          const UCollator     *collator,
+                                                UErrorCode    *status)
 {
     if (U_SUCCESS(*status)) {
         if (collator == nullptr) {
@@ -879,24 +975,30 @@ U_CAPI void U_EXPORT2 usearch_setCollator(UStringSearch* strsrch, const UCollato
             ucol_closeElements(strsrch->utilIter);
             strsrch->textIter = strsrch->utilIter = nullptr;
             if (strsrch->ownCollator && (strsrch->collator != collator)) {
-                ucol_close((UCollator*)strsrch->collator);
-                strsrch->ownCollator = FALSE;
+                ucol_close((UCollator *)strsrch->collator);
+                strsrch->ownCollator = false;
             }
-            strsrch->collator = collator;
-            strsrch->strength = ucol_getStrength(collator);
-            strsrch->ceMask = getMask(strsrch->strength);
+            strsrch->collator    = collator;
+            strsrch->strength    = ucol_getStrength(collator);
+            strsrch->ceMask      = getMask(strsrch->strength);
 #if !UCONFIG_NO_BREAK_ITERATION
             if (strsrch->search->internalBreakIter != nullptr) {
                 ubrk_close(strsrch->search->internalBreakIter);
-                strsrch->search->internalBreakIter = nullptr; // Lazily created.
+                strsrch->search->internalBreakIter = nullptr;   // Lazily created.
             }
 #endif
             // if status is a failure, ucol_getAttribute returns UCOL_DEFAULT
-            strsrch->toShift = ucol_getAttribute(collator, UCOL_ALTERNATE_HANDLING, status) == UCOL_SHIFTED;
+            strsrch->toShift     =
+               ucol_getAttribute(collator, UCOL_ALTERNATE_HANDLING, status) ==
+                                                                UCOL_SHIFTED;
             // if status is a failure, ucol_getVariableTop returns 0
             strsrch->variableTop = ucol_getVariableTop(collator, status);
-            strsrch->textIter = ucol_openElements(collator, strsrch->search->text, strsrch->search->textLength, status);
-            strsrch->utilIter = ucol_openElements(collator, strsrch->pattern.text, strsrch->pattern.textLength, status);
+            strsrch->textIter = ucol_openElements(collator,
+                                      strsrch->search->text,
+                                      strsrch->search->textLength,
+                                      status);
+            strsrch->utilIter = ucol_openElements(
+                    collator, strsrch->pattern.text, strsrch->pattern.textLength, status);
             // initialize() _after_ setting the iterators for the new collator.
             initialize(strsrch, status);
         }
@@ -911,20 +1013,24 @@ U_CAPI void U_EXPORT2 usearch_setCollator(UStringSearch* strsrch, const UCollato
     }
 }
 
-U_CAPI UCollator* U_EXPORT2 usearch_getCollator(const UStringSearch* strsrch)
+U_CAPI UCollator * U_EXPORT2 usearch_getCollator(const UStringSearch *strsrch)
 {
     if (strsrch) {
-        return (UCollator*)strsrch->collator;
+        return (UCollator *)strsrch->collator;
     }
     return nullptr;
 }
 
-U_CAPI void U_EXPORT2 usearch_setPattern(UStringSearch* strsrch, const UChar* pattern, int32_t patternlength, UErrorCode* status)
+U_CAPI void U_EXPORT2 usearch_setPattern(      UStringSearch *strsrch,
+                                         const char16_t      *pattern,
+                                               int32_t        patternlength,
+                                               UErrorCode    *status)
 {
     if (U_SUCCESS(*status)) {
         if (strsrch == nullptr || pattern == nullptr) {
             *status = U_ILLEGAL_ARGUMENT_ERROR;
-        } else {
+        }
+        else {
             if (patternlength == -1) {
                 patternlength = u_strlen(pattern);
             }
@@ -932,14 +1038,16 @@ U_CAPI void U_EXPORT2 usearch_setPattern(UStringSearch* strsrch, const UChar* pa
                 *status = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }
-            strsrch->pattern.text = pattern;
+            strsrch->pattern.text       = pattern;
             strsrch->pattern.textLength = patternlength;
             initialize(strsrch, status);
         }
     }
 }
 
-U_CAPI const UChar* U_EXPORT2 usearch_getPattern(const UStringSearch* strsrch, int32_t* length)
+U_CAPI const char16_t* U_EXPORT2
+usearch_getPattern(const UStringSearch *strsrch,
+                   int32_t             *length)
 {
     if (strsrch) {
         *length = strsrch->pattern.textLength;
@@ -950,10 +1058,11 @@ U_CAPI const UChar* U_EXPORT2 usearch_getPattern(const UStringSearch* strsrch, i
 
 // miscellaneous methods --------------------------------------------------
 
-U_CAPI int32_t U_EXPORT2 usearch_first(UStringSearch* strsrch, UErrorCode* status)
+U_CAPI int32_t U_EXPORT2 usearch_first(UStringSearch *strsrch,
+                                       UErrorCode    *status)
 {
     if (strsrch && U_SUCCESS(*status)) {
-        strsrch->search->isForwardSearching = TRUE;
+        strsrch->search->isForwardSearching = true;
         usearch_setOffset(strsrch, 0, status);
         if (U_SUCCESS(*status)) {
             return usearch_next(strsrch, status);
@@ -962,10 +1071,12 @@ U_CAPI int32_t U_EXPORT2 usearch_first(UStringSearch* strsrch, UErrorCode* statu
     return USEARCH_DONE;
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_following(UStringSearch* strsrch, int32_t position, UErrorCode* status)
+U_CAPI int32_t U_EXPORT2 usearch_following(UStringSearch *strsrch,
+                                           int32_t        position,
+                                           UErrorCode    *status)
 {
     if (strsrch && U_SUCCESS(*status)) {
-        strsrch->search->isForwardSearching = TRUE;
+        strsrch->search->isForwardSearching = true;
         // position checked in usearch_setOffset
         usearch_setOffset(strsrch, position, status);
         if (U_SUCCESS(*status)) {
@@ -975,10 +1086,11 @@ U_CAPI int32_t U_EXPORT2 usearch_following(UStringSearch* strsrch, int32_t posit
     return USEARCH_DONE;
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_last(UStringSearch* strsrch, UErrorCode* status)
+U_CAPI int32_t U_EXPORT2 usearch_last(UStringSearch *strsrch,
+                                      UErrorCode    *status)
 {
     if (strsrch && U_SUCCESS(*status)) {
-        strsrch->search->isForwardSearching = FALSE;
+        strsrch->search->isForwardSearching = false;
         usearch_setOffset(strsrch, strsrch->search->textLength, status);
         if (U_SUCCESS(*status)) {
             return usearch_previous(strsrch, status);
@@ -987,10 +1099,12 @@ U_CAPI int32_t U_EXPORT2 usearch_last(UStringSearch* strsrch, UErrorCode* status
     return USEARCH_DONE;
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_preceding(UStringSearch* strsrch, int32_t position, UErrorCode* status)
+U_CAPI int32_t U_EXPORT2 usearch_preceding(UStringSearch *strsrch,
+                                           int32_t        position,
+                                           UErrorCode    *status)
 {
     if (strsrch && U_SUCCESS(*status)) {
-        strsrch->search->isForwardSearching = FALSE;
+        strsrch->search->isForwardSearching = false;
         // position checked in usearch_setOffset
         usearch_setOffset(strsrch, position, status);
         if (U_SUCCESS(*status)) {
@@ -1001,49 +1115,54 @@ U_CAPI int32_t U_EXPORT2 usearch_preceding(UStringSearch* strsrch, int32_t posit
 }
 
 /**
- * If a direction switch is required, we'll count the number of ces till the
- * beginning of the collation element iterator and iterate forwards that
- * number of times. This is so that we get to the correct point within the
- * string to continue the search in. Imagine when we are in the middle of the
- * normalization buffer when the change in direction is request. arrrgghh....
- * After searching the offset within the collation element iterator will be
- * shifted to the start of the match. If a match is not found, the offset would
- * have been set to the end of the text string in the collation element
- * iterator.
- * Okay, here's my take on normalization buffer. The only time when there can
- * be 2 matches within the same normalization is when the pattern is consists
- * of all accents. But since the offset returned is from the text string, we
- * should not confuse the caller by returning the second match within the
- * same normalization buffer. If we do, the 2 results will have the same match
- * offsets, and that'll be confusing. I'll return the next match that doesn't
- * fall within the same normalization buffer. Note this does not affect the
- * results of matches spanning the text and the normalization buffer.
- * The position to start searching is taken from the collation element
- * iterator. Callers of this API would have to set the offset in the collation
- * element iterator before using this method.
- */
-U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch* strsrch, UErrorCode* status)
+* If a direction switch is required, we'll count the number of ces till the
+* beginning of the collation element iterator and iterate forwards that
+* number of times. This is so that we get to the correct point within the
+* string to continue the search in. Imagine when we are in the middle of the
+* normalization buffer when the change in direction is request. arrrgghh....
+* After searching the offset within the collation element iterator will be
+* shifted to the start of the match. If a match is not found, the offset would
+* have been set to the end of the text string in the collation element
+* iterator.
+* Okay, here's my take on normalization buffer. The only time when there can
+* be 2 matches within the same normalization is when the pattern is consists
+* of all accents. But since the offset returned is from the text string, we
+* should not confuse the caller by returning the second match within the
+* same normalization buffer. If we do, the 2 results will have the same match
+* offsets, and that'll be confusing. I'll return the next match that doesn't
+* fall within the same normalization buffer. Note this does not affect the
+* results of matches spanning the text and the normalization buffer.
+* The position to start searching is taken from the collation element
+* iterator. Callers of this API would have to set the offset in the collation
+* element iterator before using this method.
+*/
+U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch *strsrch,
+                                      UErrorCode    *status)
 {
     if (U_SUCCESS(*status) && strsrch) {
         // note offset is either equivalent to the start of the previous match
         // or is set by the user
-        int32_t offset = usearch_getOffset(strsrch);
-        USearch* search = strsrch->search;
-        search->reset = FALSE;
-        int32_t textlength = search->textLength;
+        int32_t      offset       = usearch_getOffset(strsrch);
+        USearch     *search       = strsrch->search;
+        search->reset             = false;
+        int32_t      textlength   = search->textLength;
         if (search->isForwardSearching) {
-            if (offset == textlength || (!search->isOverlap && (search->matchedIndex != USEARCH_DONE && offset + search->matchedLength > textlength))) {
-                // not enough characters to match
-                setMatchNotFound(strsrch, *status);
-                return USEARCH_DONE;
+            if (offset == textlength ||
+                (! search->isOverlap &&
+                (search->matchedIndex != USEARCH_DONE &&
+                offset + search->matchedLength > textlength))) {
+                    // not enough characters to match
+                    setMatchNotFound(strsrch, *status);
+                    return USEARCH_DONE;
             }
-        } else {
+        }
+        else {
             // switching direction.
             // if matchedIndex == USEARCH_DONE, it means that either a
             // setOffset has been called or that previous ran off the text
             // string. the iterator would have been set to offset 0 if a
             // match is not found.
-            search->isForwardSearching = TRUE;
+            search->isForwardSearching = true;
             if (search->matchedIndex != USEARCH_DONE) {
                 // there's no need to set the collation element iterator
                 // the next call to next will set the offset.
@@ -1055,7 +1174,8 @@ U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch* strsrch, UErrorCode* status
             if (strsrch->pattern.cesLength == 0) {
                 if (search->matchedIndex == USEARCH_DONE) {
                     search->matchedIndex = offset;
-                } else { // moves by codepoints
+                }
+                else { // moves by codepoints
                     U16_FWD_1(search->text, search->matchedIndex, textlength);
                 }
 
@@ -1065,15 +1185,19 @@ U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch* strsrch, UErrorCode* status
                 if (search->matchedIndex == textlength) {
                     search->matchedIndex = USEARCH_DONE;
                 }
-            } else {
+            }
+            else {
                 if (search->matchedLength > 0) {
                     // if matchlength is 0 we are at the start of the iteration
                     if (search->isOverlap) {
                         ucol_setOffset(strsrch->textIter, offset + 1, status);
-                    } else {
-                        ucol_setOffset(strsrch->textIter, offset + search->matchedLength, status);
                     }
-                } else {
+                    else {
+                        ucol_setOffset(strsrch->textIter,
+                                       offset + search->matchedLength, status);
+                    }
+                }
+                else {
                     // for boundary check purposes. this will ensure that the
                     // next match will not precede the current offset
                     // note search->matchedIndex will always be set to something
@@ -1084,7 +1208,8 @@ U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch* strsrch, UErrorCode* status
                 if (search->isCanonicalMatch) {
                     // can't use exact here since extra accents are allowed.
                     usearch_handleNextCanonical(strsrch, status);
-                } else {
+                }
+                else {
                     usearch_handleNextExact(strsrch, status);
                 }
             }
@@ -1105,32 +1230,35 @@ U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch* strsrch, UErrorCode* status
     return USEARCH_DONE;
 }
 
-U_CAPI int32_t U_EXPORT2 usearch_previous(UStringSearch* strsrch, UErrorCode* status)
+U_CAPI int32_t U_EXPORT2 usearch_previous(UStringSearch *strsrch,
+                                          UErrorCode    *status)
 {
     if (U_SUCCESS(*status) && strsrch) {
         int32_t offset;
-        USearch* search = strsrch->search;
+        USearch *search = strsrch->search;
         if (search->reset) {
-            offset = search->textLength;
-            search->isForwardSearching = FALSE;
-            search->reset = FALSE;
+            offset                     = search->textLength;
+            search->isForwardSearching = false;
+            search->reset              = false;
             setColEIterOffset(strsrch->textIter, offset, *status);
-        } else {
+        }
+        else {
             offset = usearch_getOffset(strsrch);
         }
 
         int32_t matchedindex = search->matchedIndex;
-        if (search->isForwardSearching == TRUE) {
+        if (search->isForwardSearching) {
             // switching direction.
             // if matchedIndex == USEARCH_DONE, it means that either a
             // setOffset has been called or that next ran off the text
             // string. the iterator would have been set to offset textLength if
             // a match is not found.
-            search->isForwardSearching = FALSE;
+            search->isForwardSearching = false;
             if (matchedindex != USEARCH_DONE) {
                 return matchedindex;
             }
-        } else {
+        }
+        else {
 
             // Could check pattern length, but the
             // linear search will do the right thing
@@ -1142,22 +1270,26 @@ U_CAPI int32_t U_EXPORT2 usearch_previous(UStringSearch* strsrch, UErrorCode* st
 
         if (U_SUCCESS(*status)) {
             if (strsrch->pattern.cesLength == 0) {
-                search->matchedIndex = (matchedindex == USEARCH_DONE ? offset : matchedindex);
+                search->matchedIndex =
+                      (matchedindex == USEARCH_DONE ? offset : matchedindex);
                 if (search->matchedIndex == 0) {
                     setMatchNotFound(strsrch, *status);
                     // status checked below
-                } else { // move by codepoints
+                }
+                else { // move by codepoints
                     U16_BACK_1(search->text, 0, search->matchedIndex);
                     setColEIterOffset(strsrch->textIter, search->matchedIndex, *status);
                     // status checked below
                     search->matchedLength = 0;
                 }
-            } else {
+            }
+            else {
                 if (strsrch->search->isCanonicalMatch) {
                     // can't use exact here since extra accents are allowed.
                     usearch_handlePreviousCanonical(strsrch, status);
                     // status checked below
-                } else {
+                }
+                else {
                     usearch_handlePreviousExact(strsrch, status);
                     // status checked below
                 }
@@ -1173,7 +1305,9 @@ U_CAPI int32_t U_EXPORT2 usearch_previous(UStringSearch* strsrch, UErrorCode* st
     return USEARCH_DONE;
 }
 
-U_CAPI void U_EXPORT2 usearch_reset(UStringSearch* strsrch)
+
+
+U_CAPI void U_EXPORT2 usearch_reset(UStringSearch *strsrch)
 {
     /*
     reset is setting the attributes that are already in
@@ -1181,50 +1315,53 @@ U_CAPI void U_EXPORT2 usearch_reset(UStringSearch* strsrch)
     be retrieved without any problems
     */
     if (strsrch) {
-        UErrorCode status = U_ZERO_ERROR;
-        UBool sameCollAttribute = TRUE;
-        uint32_t ceMask;
-        UBool shift;
-        uint32_t varTop;
+        UErrorCode status            = U_ZERO_ERROR;
+        UBool      sameCollAttribute = true;
+        uint32_t   ceMask;
+        UBool      shift;
+        uint32_t   varTop;
 
         // **** hack to deal w/ how processed CEs encode quaternary ****
         UCollationStrength newStrength = ucol_getStrength(strsrch->collator);
-        if ((strsrch->strength < UCOL_QUATERNARY && newStrength >= UCOL_QUATERNARY)
-            || (strsrch->strength >= UCOL_QUATERNARY && newStrength < UCOL_QUATERNARY)) {
-            sameCollAttribute = FALSE;
+        if ((strsrch->strength < UCOL_QUATERNARY && newStrength >= UCOL_QUATERNARY) ||
+            (strsrch->strength >= UCOL_QUATERNARY && newStrength < UCOL_QUATERNARY)) {
+                sameCollAttribute = false;
         }
 
-        strsrch->strength = ucol_getStrength(strsrch->collator);
+        strsrch->strength    = ucol_getStrength(strsrch->collator);
         ceMask = getMask(strsrch->strength);
         if (strsrch->ceMask != ceMask) {
             strsrch->ceMask = ceMask;
-            sameCollAttribute = FALSE;
+            sameCollAttribute = false;
         }
 
         // if status is a failure, ucol_getAttribute returns UCOL_DEFAULT
-        shift = ucol_getAttribute(strsrch->collator, UCOL_ALTERNATE_HANDLING, &status) == UCOL_SHIFTED;
+        shift = ucol_getAttribute(strsrch->collator, UCOL_ALTERNATE_HANDLING,
+                                  &status) == UCOL_SHIFTED;
         if (strsrch->toShift != shift) {
-            strsrch->toShift = shift;
-            sameCollAttribute = FALSE;
+            strsrch->toShift  = shift;
+            sameCollAttribute = false;
         }
 
         // if status is a failure, ucol_getVariableTop returns 0
         varTop = ucol_getVariableTop(strsrch->collator, &status);
         if (strsrch->variableTop != varTop) {
             strsrch->variableTop = varTop;
-            sameCollAttribute = FALSE;
+            sameCollAttribute    = false;
         }
         if (!sameCollAttribute) {
             initialize(strsrch, &status);
         }
-        ucol_setText(strsrch->textIter, strsrch->search->text, strsrch->search->textLength, &status);
-        strsrch->search->matchedLength = 0;
-        strsrch->search->matchedIndex = USEARCH_DONE;
-        strsrch->search->isOverlap = FALSE;
-        strsrch->search->isCanonicalMatch = FALSE;
+        ucol_setText(strsrch->textIter, strsrch->search->text,
+                              strsrch->search->textLength,
+                              &status);
+        strsrch->search->matchedLength      = 0;
+        strsrch->search->matchedIndex       = USEARCH_DONE;
+        strsrch->search->isOverlap          = false;
+        strsrch->search->isCanonicalMatch   = false;
         strsrch->search->elementComparisonType = 0;
-        strsrch->search->isForwardSearching = TRUE;
-        strsrch->search->reset = TRUE;
+        strsrch->search->isForwardSearching = true;
+        strsrch->search->reset              = true;
     }
 }
 
@@ -1232,7 +1369,7 @@ U_CAPI void U_EXPORT2 usearch_reset(UStringSearch* strsrch)
 //  CEI  Collation Element + source text index.
 //       These structs are kept in the circular buffer.
 //
-struct CEI {
+struct  CEI {
     int64_t ce;
     int32_t lowIndex;
     int32_t highIndex;
@@ -1244,39 +1381,41 @@ namespace {
 //
 //  CEIBuffer   A circular buffer of CEs-with-index from the text being searched.
 //
-#define DEFAULT_CEBUFFER_SIZE 96
-#define CEBUFFER_EXTRA 32
+#define   DEFAULT_CEBUFFER_SIZE 96
+#define   CEBUFFER_EXTRA 32
 // Some typical max values to make buffer size more reasonable for asymmetric search.
 // #8694 is for a better long-term solution to allocation of this buffer.
-#define MAX_TARGET_IGNORABLES_PER_PAT_JAMO_L 8
-#define MAX_TARGET_IGNORABLES_PER_PAT_OTHER 3
-#define MIGHT_BE_JAMO_L(c) ((c >= 0x1100 && c <= 0x115E) || (c >= 0x3131 && c <= 0x314E) || (c >= 0x3165 && c <= 0x3186))
+#define   MAX_TARGET_IGNORABLES_PER_PAT_JAMO_L 8
+#define   MAX_TARGET_IGNORABLES_PER_PAT_OTHER 3
+#define   MIGHT_BE_JAMO_L(c) ((c >= 0x1100 && c <= 0x115E) || (c >= 0x3131 && c <= 0x314E) || (c >= 0x3165 && c <= 0x3186))
 struct CEIBuffer {
-    CEI defBuf[DEFAULT_CEBUFFER_SIZE];
-    CEI* buf;
-    int32_t bufSize;
-    int32_t firstIx;
-    int32_t limitIx;
-    UCollationElements* ceIter;
-    UStringSearch* strSearch;
+    CEI                  defBuf[DEFAULT_CEBUFFER_SIZE];
+    CEI                 *buf;
+    int32_t              bufSize;
+    int32_t              firstIx;
+    int32_t              limitIx;
+    UCollationElements  *ceIter;
+    UStringSearch       *strSearch;
 
-    CEIBuffer(UStringSearch* ss, UErrorCode* status);
-    ~CEIBuffer();
-    const CEI* get(int32_t index);
-    const CEI* getPrevious(int32_t index);
+
+
+               CEIBuffer(UStringSearch *ss, UErrorCode *status);
+               ~CEIBuffer();
+   const CEI   *get(int32_t index);
+   const CEI   *getPrevious(int32_t index);
 };
 
-CEIBuffer::CEIBuffer(UStringSearch* ss, UErrorCode* status)
-{
+
+CEIBuffer::CEIBuffer(UStringSearch *ss, UErrorCode *status) {
     buf = defBuf;
     strSearch = ss;
     bufSize = ss->pattern.pcesLength + CEBUFFER_EXTRA;
     if (ss->search->elementComparisonType != 0) {
-        const UChar* patText = ss->pattern.text;
+        const char16_t * patText = ss->pattern.text;
         if (patText) {
-            const UChar* patTextLimit = patText + ss->pattern.textLength;
-            while (patText < patTextLimit) {
-                UChar c = *patText++;
+            const char16_t * patTextLimit = patText + ss->pattern.textLength;
+            while ( patText < patTextLimit ) {
+                char16_t c = *patText++;
                 if (MIGHT_BE_JAMO_L(c)) {
                     bufSize += MAX_TARGET_IGNORABLES_PER_PAT_JAMO_L;
                 } else {
@@ -1286,16 +1425,14 @@ CEIBuffer::CEIBuffer(UStringSearch* ss, UErrorCode* status)
             }
         }
     }
-    ceIter = ss->textIter;
+    ceIter    = ss->textIter;
     firstIx = 0;
     limitIx = 0;
 
-    if (!initTextProcessedIter(ss, status)) {
-        return;
-    }
+    if (!initTextProcessedIter(ss, status)) { return; }
 
-    if (bufSize > DEFAULT_CEBUFFER_SIZE) {
-        buf = (CEI*)uprv_malloc(bufSize * sizeof(CEI));
+    if (bufSize>DEFAULT_CEBUFFER_SIZE) {
+        buf = (CEI *)uprv_malloc(bufSize * sizeof(CEI));
         if (buf == nullptr) {
             *status = U_MEMORY_ALLOCATION_ERROR;
         }
@@ -1305,12 +1442,12 @@ CEIBuffer::CEIBuffer(UStringSearch* ss, UErrorCode* status)
 // TODO: add a reset or init function so that allocated
 //       buffers can be retained & reused.
 
-CEIBuffer::~CEIBuffer()
-{
+CEIBuffer::~CEIBuffer() {
     if (buf != defBuf) {
         uprv_free(buf);
     }
 }
+
 
 // Get the CE with the specified index.
 //   Index must be in the range
@@ -1318,11 +1455,10 @@ CEIBuffer::~CEIBuffer()
 //   where n is the largest index to have been fetched by some previous call to this function.
 //   The CE value will be UCOL__PROCESSED_NULLORDER at end of input.
 //
-const CEI* CEIBuffer::get(int32_t index)
-{
+const CEI *CEIBuffer::get(int32_t index) {
     int i = index % bufSize;
 
-    if (index >= firstIx && index < limitIx) {
+    if (index>=firstIx && index<limitIx) {
         // The request was for an entry already in our buffer.
         //  Just return it.
         return &buf[i];
@@ -1362,11 +1498,10 @@ const CEI* CEIBuffer::get(int32_t index)
 //   where n is the largest index to have been fetched by some previous call to this function.
 //   The CE value will be UCOL__PROCESSED_NULLORDER at end of input.
 //
-const CEI* CEIBuffer::getPrevious(int32_t index)
-{
+const CEI *CEIBuffer::getPrevious(int32_t index) {
     int i = index % bufSize;
 
-    if (index >= firstIx && index < limitIx) {
+    if (index>=firstIx && index<limitIx) {
         // The request was for an entry already in our buffer.
         //  Just return it.
         return &buf[i];
@@ -1404,6 +1539,7 @@ const CEI* CEIBuffer::getPrevious(int32_t index)
 
 U_NAMESPACE_END
 
+
 // #define USEARCH_DEBUG
 
 #ifdef USEARCH_DEBUG
@@ -1416,13 +1552,12 @@ U_NAMESPACE_END
  * has an external break iterator, use that. Otherwise use the internal character
  * break iterator.
  */
-static int32_t nextBoundaryAfter(UStringSearch* strsrch, int32_t startIndex, UErrorCode& status)
-{
+static int32_t nextBoundaryAfter(UStringSearch *strsrch, int32_t startIndex, UErrorCode &status) {
     if (U_FAILURE(status)) {
         return startIndex;
     }
 #if 0
-    const UChar *text = strsrch->search->text;
+    const char16_t *text = strsrch->search->text;
     int32_t textLen   = strsrch->search->textLength;
 
     U_ASSERT(startIndex>=0);
@@ -1459,7 +1594,7 @@ static int32_t nextBoundaryAfter(UStringSearch* strsrch, int32_t startIndex, UEr
     }
     return indexOfLastCharChecked;
 #elif !UCONFIG_NO_BREAK_ITERATION
-    UBreakIterator* breakiterator = getBreakIterator(strsrch, status);
+    UBreakIterator *breakiterator = getBreakIterator(strsrch, status);
     if (U_FAILURE(status)) {
         return startIndex;
     }
@@ -1469,27 +1604,27 @@ static int32_t nextBoundaryAfter(UStringSearch* strsrch, int32_t startIndex, UEr
     // **** or should we use the original code? ****
     return startIndex;
 #endif
+
 }
 
 /*
- * Returns TRUE if index is on a break boundary. If the UStringSearch
+ * Returns true if index is on a break boundary. If the UStringSearch
  * has an external break iterator, test using that, otherwise test
  * using the internal character break iterator.
  */
-static UBool isBreakBoundary(UStringSearch* strsrch, int32_t index, UErrorCode& status)
-{
+static UBool isBreakBoundary(UStringSearch *strsrch, int32_t index, UErrorCode &status) {
     if (U_FAILURE(status)) {
-        return TRUE;
+        return true;
     }
 #if 0
-    const UChar *text = strsrch->search->text;
+    const char16_t *text = strsrch->search->text;
     int32_t textLen   = strsrch->search->textLength;
 
     U_ASSERT(index>=0);
     U_ASSERT(index<=textLen);
 
     if (index>=textLen || index<=0) {
-        return TRUE;
+        return true;
     }
 
     // If the character at the current index is not a GRAPHEME_EXTEND
@@ -1498,7 +1633,7 @@ static UBool isBreakBoundary(UStringSearch* strsrch, int32_t index, UErrorCode& 
     U16_GET(text, 0, index, textLen, c);
     int32_t gcProperty = u_getIntPropertyValue(c, UCHAR_GRAPHEME_CLUSTER_BREAK);
     if (gcProperty != U_GCB_EXTEND && gcProperty != U_GCB_SPACING_MARK) {
-        return TRUE;
+        return true;
     }
 
     // We are at a combining mark.  If the preceding character is anything
@@ -1508,15 +1643,15 @@ static UBool isBreakBoundary(UStringSearch* strsrch, int32_t index, UErrorCode& 
     UBool combining =  !(gcProperty==U_GCB_CONTROL || gcProperty==U_GCB_LF || gcProperty==U_GCB_CR);
     return !combining;
 #elif !UCONFIG_NO_BREAK_ITERATION
-    UBreakIterator* breakiterator = getBreakIterator(strsrch, status);
+    UBreakIterator *breakiterator = getBreakIterator(strsrch, status);
     if (U_FAILURE(status)) {
-        return TRUE;
+        return true;
     }
 
     return ubrk_isBoundary(breakiterator, index);
 #else
     // **** or use the original code? ****
-    return TRUE;
+    return true;
 #endif
 }
 
@@ -1524,7 +1659,7 @@ static UBool isBreakBoundary(UStringSearch* strsrch, int32_t index, UErrorCode& 
 static UBool onBreakBoundaries(const UStringSearch *strsrch, int32_t start, int32_t end, UErrorCode &status)
 {
     if (U_FAILURE(status)) {
-        return TRUE;
+        return true;
     }
 
 #if !UCONFIG_NO_BREAK_ITERATION
@@ -1536,7 +1671,7 @@ static UBool onBreakBoundaries(const UStringSearch *strsrch, int32_t start, int3
         // out-of-range indexes are never boundary positions
         if (start < startindex || start > endindex ||
             end < startindex || end > endindex) {
-            return FALSE;
+            return false;
         }
 
         return ubrk_isBoundary(breakiterator, start) &&
@@ -1544,23 +1679,27 @@ static UBool onBreakBoundaries(const UStringSearch *strsrch, int32_t start, int3
     }
 #endif
 
-    return TRUE;
+    return true;
 }
 #endif
 
-typedef enum { U_CE_MATCH = -1, U_CE_NO_MATCH = 0, U_CE_SKIP_TARG, U_CE_SKIP_PATN } UCompareCEsResult;
+typedef enum {
+    U_CE_MATCH = -1,
+    U_CE_NO_MATCH = 0,
+    U_CE_SKIP_TARG,
+    U_CE_SKIP_PATN
+} UCompareCEsResult;
 #define U_CE_LEVEL2_BASE 0x00000005
 #define U_CE_LEVEL3_BASE 0x00050000
 
-static UCompareCEsResult compareCE64s(int64_t targCE, int64_t patCE, int16_t compareType)
-{
+static UCompareCEsResult compareCE64s(int64_t targCE, int64_t patCE, int16_t compareType) {
     if (targCE == patCE) {
         return U_CE_MATCH;
     }
     if (compareType == 0) {
         return U_CE_NO_MATCH;
     }
-
+    
     int64_t targCEshifted = targCE >> 32;
     int64_t patCEshifted = patCE >> 32;
     int64_t mask;
@@ -1568,11 +1707,11 @@ static UCompareCEsResult compareCE64s(int64_t targCE, int64_t patCE, int16_t com
     mask = 0xFFFF0000;
     int32_t targLev1 = (int32_t)(targCEshifted & mask);
     int32_t patLev1 = (int32_t)(patCEshifted & mask);
-    if (targLev1 != patLev1) {
-        if (targLev1 == 0) {
+    if ( targLev1 != patLev1 ) {
+        if ( targLev1 == 0 ) {
             return U_CE_SKIP_TARG;
         }
-        if (patLev1 == 0 && compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD) {
+        if ( patLev1 == 0 && compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD ) {
             return U_CE_SKIP_PATN;
         }
         return U_CE_NO_MATCH;
@@ -1581,32 +1720,31 @@ static UCompareCEsResult compareCE64s(int64_t targCE, int64_t patCE, int16_t com
     mask = 0x0000FFFF;
     int32_t targLev2 = (int32_t)(targCEshifted & mask);
     int32_t patLev2 = (int32_t)(patCEshifted & mask);
-    if (targLev2 != patLev2) {
-        if (targLev2 == 0) {
+    if ( targLev2 != patLev2 ) {
+        if ( targLev2 == 0 ) {
             return U_CE_SKIP_TARG;
         }
-        if (patLev2 == 0 && compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD) {
+        if ( patLev2 == 0 && compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD ) {
             return U_CE_SKIP_PATN;
         }
-        return (patLev2 == U_CE_LEVEL2_BASE || (compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD && targLev2 == U_CE_LEVEL2_BASE)) ? U_CE_MATCH
-                                                                                                                                     : U_CE_NO_MATCH;
+        return (patLev2 == U_CE_LEVEL2_BASE || (compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD && targLev2 == U_CE_LEVEL2_BASE) )?
+            U_CE_MATCH: U_CE_NO_MATCH;
     }
-
+    
     mask = 0xFFFF0000;
     int32_t targLev3 = (int32_t)(targCE & mask);
     int32_t patLev3 = (int32_t)(patCE & mask);
-    if (targLev3 != patLev3) {
-        return (patLev3 == U_CE_LEVEL3_BASE || (compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD && targLev3 == U_CE_LEVEL3_BASE)) ? U_CE_MATCH
-                                                                                                                                     : U_CE_NO_MATCH;
-    }
+    if ( targLev3 != patLev3 ) {
+        return (patLev3 == U_CE_LEVEL3_BASE || (compareType == USEARCH_ANY_BASE_WEIGHT_IS_WILDCARD && targLev3 == U_CE_LEVEL3_BASE) )?
+            U_CE_MATCH: U_CE_NO_MATCH;
+   }
 
     return U_CE_MATCH;
 }
 
 namespace {
 
-UChar32 codePointAt(const USearch& search, int32_t index)
-{
+UChar32 codePointAt(const USearch &search, int32_t index) {
     if (index < search.textLength) {
         UChar32 c;
         U16_NEXT(search.text, index, search.textLength, c);
@@ -1615,8 +1753,7 @@ UChar32 codePointAt(const USearch& search, int32_t index)
     return U_SENTINEL;
 }
 
-UChar32 codePointBefore(const USearch& search, int32_t index)
-{
+UChar32 codePointBefore(const USearch &search, int32_t index) {
     if (0 < index) {
         UChar32 c;
         U16_PREV(search.text, 0, index, c);
@@ -1625,12 +1762,16 @@ UChar32 codePointBefore(const USearch& search, int32_t index)
     return U_SENTINEL;
 }
 
-} // namespace
+}  // namespace
 
-U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, int32_t* matchStart, int32_t* matchLimit, UErrorCode* status)
+U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch  *strsrch,
+                                       int32_t        startIdx,
+                                       int32_t        *matchStart,
+                                       int32_t        *matchLimit,
+                                       UErrorCode     *status)
 {
     if (U_FAILURE(*status)) {
-        return FALSE;
+        return false;
     }
 
     // TODO:  reject search patterns beginning with a combining char.
@@ -1638,7 +1779,7 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
 #ifdef USEARCH_DEBUG
     if (getenv("USEARCH_DEBUG") != nullptr) {
         printf("Pattern CEs\n");
-        for (int ii = 0; ii < strsrch->pattern.cesLength; ii++) {
+        for (int ii=0; ii<strsrch->pattern.cesLength; ii++) {
             printf(" %8x", strsrch->pattern.ces[ii]);
         }
         printf("\n");
@@ -1648,9 +1789,12 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
     // Input parameter sanity check.
     //  TODO:  should input indices clip to the text length
     //         in the same way that UText does.
-    if (strsrch->pattern.cesLength == 0 || startIdx < 0 || startIdx > strsrch->search->textLength || strsrch->pattern.ces == nullptr) {
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return FALSE;
+    if(strsrch->pattern.cesLength == 0         ||
+       startIdx < 0                           ||
+       startIdx > strsrch->search->textLength ||
+       strsrch->pattern.ces == nullptr) {
+           *status = U_ILLEGAL_ARGUMENT_ERROR;
+           return false;
     }
 
     if (strsrch->pattern.pces == nullptr) {
@@ -1663,18 +1807,20 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
     // An out-of-memory (OOM) failure can occur in the initializePatternPCETable function
     // or CEIBuffer constructor above, so we need to check the status.
     if (U_FAILURE(*status)) {
-        return FALSE;
+        return false;
     }
 
-    int32_t targetIx = 0;
-    const CEI* targetCEI = nullptr;
-    int32_t patIx;
-    UBool found;
+    int32_t    targetIx = 0;
+    const CEI *targetCEI = nullptr;
+    int32_t    patIx;
+    UBool      found;
 
-    int32_t mStart = -1;
-    int32_t mLimit = -1;
-    int32_t minLimit;
-    int32_t maxLimit;
+    int32_t  mStart = -1;
+    int32_t  mLimit = -1;
+    int32_t  minLimit;
+    int32_t  maxLimit;
+
+
 
     // Outer loop moves over match starting positions in the
     //      target CE space.
@@ -1690,8 +1836,9 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
     // If lowIndex==highIndex, either the CE resulted from an expansion/decomposition of one of the original text
     // characters, or the CE marks the limit of the target text (in which case the CE weight is UCOL_PROCESSED_NULLORDER).
     //
-    for (targetIx = 0;; targetIx++) {
-        found = TRUE;
+    for(targetIx=0; ; targetIx++)
+    {
+        found = true;
         //  Inner loop checks for a match beginning at each
         //  position from the outer loop.
         int32_t targetIxOffset = 0;
@@ -1699,25 +1846,25 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
         // For targetIx > 0, this ceb.get gets a CE that is as far back in the ring buffer
         // (compared to the last CE fetched for the previous targetIx value) as we need to go
         // for this targetIx value, so if it is non-nullptr then other ceb.get calls should be OK.
-        const CEI* firstCEI = ceb.get(targetIx);
+        const CEI *firstCEI = ceb.get(targetIx);
         if (firstCEI == nullptr) {
             *status = U_INTERNAL_PROGRAM_ERROR;
-            found = FALSE;
+            found = false;
             break;
         }
-
-        for (patIx = 0; patIx < strsrch->pattern.pcesLength; patIx++) {
+        
+        for (patIx=0; patIx<strsrch->pattern.pcesLength; patIx++) {
             patCE = strsrch->pattern.pces[patIx];
-            targetCEI = ceb.get(targetIx + patIx + targetIxOffset);
+            targetCEI = ceb.get(targetIx+patIx+targetIxOffset);
             //  Compare CE from target string with CE from the pattern.
             //    Note that the target CE will be UCOL_PROCESSED_NULLORDER if we reach the end of input,
             //    which will fail the compare, below.
             UCompareCEsResult ceMatch = compareCE64s(targetCEI->ce, patCE, strsrch->search->elementComparisonType);
-            if (ceMatch == U_CE_NO_MATCH) {
-                found = FALSE;
+            if ( ceMatch == U_CE_NO_MATCH ) {
+                found = false;
                 break;
-            } else if (ceMatch > U_CE_NO_MATCH) {
-                if (ceMatch == U_CE_SKIP_TARG) {
+            } else if ( ceMatch > U_CE_NO_MATCH ) {
+                if ( ceMatch == U_CE_SKIP_TARG ) {
                     // redo with same patCE, next targCE
                     patIx--;
                     targetIxOffset++;
@@ -1739,14 +1886,15 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
             break;
         }
 
+
         // We have found a match in CE space.
         // Now determine the bounds in string index space.
         //  There still is a chance of match failure if the CE range not correspond to
         //     an acceptable character range.
         //
-        const CEI* lastCEI = ceb.get(targetIx + targetIxOffset - 1);
+        const CEI *lastCEI  = ceb.get(targetIx + targetIxOffset - 1);
 
-        mStart = firstCEI->lowIndex;
+        mStart   = firstCEI->lowIndex;
         minLimit = lastCEI->lowIndex;
 
         // Look at the CE following the match.  If it is UCOL_NULLORDER the match
@@ -1757,41 +1905,42 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
         //    1. The match extended to the last CE from the target text, which is OK, or
         //    2. The last CE that was part of the match is in an expansion that extends
         //       to the first CE after the match. In this case, we reject the match.
-        const CEI* nextCEI = 0;
+        const CEI *nextCEI = 0;
         if (strsrch->search->elementComparisonType == 0) {
-            nextCEI = ceb.get(targetIx + targetIxOffset);
+            nextCEI  = ceb.get(targetIx + targetIxOffset);
             maxLimit = nextCEI->lowIndex;
             if (nextCEI->lowIndex == nextCEI->highIndex && nextCEI->ce != UCOL_PROCESSED_NULLORDER) {
-                found = FALSE;
+                found = false;
             }
         } else {
-            for (;; ++targetIxOffset) {
+            for ( ; ; ++targetIxOffset ) {
                 nextCEI = ceb.get(targetIx + targetIxOffset);
                 maxLimit = nextCEI->lowIndex;
                 // If we are at the end of the target too, match succeeds
-                if (nextCEI->ce == UCOL_PROCESSED_NULLORDER) {
+                if (  nextCEI->ce == UCOL_PROCESSED_NULLORDER ) {
                     break;
                 }
                 // As long as the next CE has primary weight of 0,
                 // it is part of the last target element matched by the pattern;
                 // make sure it can be part of a match with the last patCE
-                if ((((nextCEI->ce) >> 32) & 0xFFFF0000UL) == 0) {
+                if ( (((nextCEI->ce) >> 32) & 0xFFFF0000UL) == 0 ) {
                     UCompareCEsResult ceMatch = compareCE64s(nextCEI->ce, patCE, strsrch->search->elementComparisonType);
-                    if (ceMatch == U_CE_NO_MATCH || ceMatch == U_CE_SKIP_PATN) {
-                        found = FALSE;
+                    if ( ceMatch == U_CE_NO_MATCH || ceMatch == U_CE_SKIP_PATN ) {
+                        found = false;
                         break;
                     }
-                    // If lowIndex == highIndex, this target CE is part of an expansion of the last matched
-                    // target element, but it has non-zero primary weight => match fails
-                } else if (nextCEI->lowIndex == nextCEI->highIndex) {
+                // If lowIndex == highIndex, this target CE is part of an expansion of the last matched
+                // target element, but it has non-zero primary weight => match fails
+                } else if ( nextCEI->lowIndex == nextCEI->highIndex ) {
                     found = false;
                     break;
-                    // Else the target CE is not part of an expansion of the last matched element, match succeeds
+                // Else the target CE is not part of an expansion of the last matched element, match succeeds
                 } else {
                     break;
                 }
             }
         }
+
 
         // Check for the start of the match being within a combining sequence.
         //   This can happen if the pattern itself begins with a combining char, and
@@ -1800,7 +1949,7 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
         //   This type of match should be rejected for not completely consuming a
         //   combining sequence.
         if (!isBreakBoundary(strsrch, mStart, *status)) {
-            found = FALSE;
+            found = false;
         }
         if (U_FAILURE(*status)) {
             break;
@@ -1813,7 +1962,7 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
         //    _following_ character.
         int32_t secondIx = firstCEI->highIndex;
         if (mStart == secondIx) {
-            found = FALSE;
+            found = false;
         }
 
         // Allow matches to end in the middle of a grapheme cluster if the following
@@ -1827,12 +1976,14 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
         //   subsequent check for normalization boundary; however they are likely much faster
         //   tests in any case)
         // * the match limit is a normalization boundary
-        UBool allowMidclusterMatch = FALSE;
+        UBool allowMidclusterMatch = false;
         if (strsrch->search->text != nullptr && strsrch->search->textLength > maxLimit) {
-            allowMidclusterMatch = strsrch->search->breakIter == nullptr && nextCEI != nullptr && (((nextCEI->ce) >> 32) & 0xFFFF0000UL) != 0
-                && maxLimit >= lastCEI->highIndex && nextCEI->highIndex > maxLimit
-                && (strsrch->nfd->hasBoundaryBefore(codePointAt(*strsrch->search, maxLimit))
-                    || strsrch->nfd->hasBoundaryAfter(codePointBefore(*strsrch->search, maxLimit)));
+            allowMidclusterMatch =
+                    strsrch->search->breakIter == nullptr &&
+                    nextCEI != nullptr && (((nextCEI->ce) >> 32) & 0xFFFF0000UL) != 0 &&
+                    maxLimit >= lastCEI->highIndex && nextCEI->highIndex > maxLimit &&
+                    (strsrch->nfd->hasBoundaryBefore(codePointAt(*strsrch->search, maxLimit)) ||
+                        strsrch->nfd->hasBoundaryAfter(codePointBefore(*strsrch->search, maxLimit)));
         }
         // If those conditions are met, then:
         // * do NOT advance the candidate match limit (mLimit) to a break boundary; however
@@ -1869,29 +2020,29 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
             break;
         }
 
-#ifdef USEARCH_DEBUG
+    #ifdef USEARCH_DEBUG
         if (getenv("USEARCH_DEBUG") != nullptr) {
             printf("minLimit, maxLimit, mLimit = %d, %d, %d\n", minLimit, maxLimit, mLimit);
         }
-#endif
+    #endif
 
         if (!allowMidclusterMatch) {
             // If advancing to the end of a combining sequence in character indexing space
             //   advanced us beyond the end of the match in CE space, reject this match.
             if (mLimit > maxLimit) {
-                found = FALSE;
+                found = false;
             }
 
             if (!isBreakBoundary(strsrch, mLimit, *status)) {
-                found = FALSE;
+                found = false;
             }
             if (U_FAILURE(*status)) {
                 break;
             }
         }
 
-        if (!checkIdentical(strsrch, mStart, mLimit)) {
-            found = FALSE;
+        if (! checkIdentical(strsrch, mStart, mLimit)) {
+            found = false;
         }
 
         if (found) {
@@ -1899,31 +2050,31 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
         }
     }
 
-#ifdef USEARCH_DEBUG
+    #ifdef USEARCH_DEBUG
     if (getenv("USEARCH_DEBUG") != nullptr) {
         printf("Target CEs [%d .. %d]\n", ceb.firstIx, ceb.limitIx);
-        int32_t lastToPrint = ceb.limitIx + 2;
-        for (int ii = ceb.firstIx; ii < lastToPrint; ii++) {
+        int32_t  lastToPrint = ceb.limitIx+2;
+        for (int ii=ceb.firstIx; ii<lastToPrint; ii++) {
             printf("%8x@%d ", ceb.get(ii)->ce, ceb.get(ii)->srcIndex);
         }
-        printf("\n%s\n", found ? "match found" : "no match");
+        printf("\n%s\n", found? "match found" : "no match");
     }
-#endif
+    #endif
 
     // All Done.  Store back the match bounds to the caller.
     //
 
     if (U_FAILURE(*status)) {
-        found = FALSE; // No match if a failure occured.
+        found = false; // No match if a failure occured.
     }
 
-    if (found == FALSE) {
+    if (found==false) {
         mLimit = -1;
         mStart = -1;
     }
 
     if (matchStart != nullptr) {
-        *matchStart = mStart;
+        *matchStart= mStart;
     }
 
     if (matchLimit != nullptr) {
@@ -1933,10 +2084,14 @@ U_CAPI UBool U_EXPORT2 usearch_search(UStringSearch* strsrch, int32_t startIdx, 
     return found;
 }
 
-U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t startIdx, int32_t* matchStart, int32_t* matchLimit, UErrorCode* status)
+U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch  *strsrch,
+                                                int32_t        startIdx,
+                                                int32_t        *matchStart,
+                                                int32_t        *matchLimit,
+                                                UErrorCode     *status)
 {
     if (U_FAILURE(*status)) {
-        return FALSE;
+        return false;
     }
 
     // TODO:  reject search patterns beginning with a combining char.
@@ -1944,7 +2099,7 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
 #ifdef USEARCH_DEBUG
     if (getenv("USEARCH_DEBUG") != nullptr) {
         printf("Pattern CEs\n");
-        for (int ii = 0; ii < strsrch->pattern.cesLength; ii++) {
+        for (int ii=0; ii<strsrch->pattern.cesLength; ii++) {
             printf(" %8x", strsrch->pattern.ces[ii]);
         }
         printf("\n");
@@ -1954,9 +2109,12 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
     // Input parameter sanity check.
     //  TODO:  should input indices clip to the text length
     //         in the same way that UText does.
-    if (strsrch->pattern.cesLength == 0 || startIdx < 0 || startIdx > strsrch->search->textLength || strsrch->pattern.ces == nullptr) {
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return FALSE;
+    if(strsrch->pattern.cesLength == 0        ||
+       startIdx < 0                           ||
+       startIdx > strsrch->search->textLength ||
+       strsrch->pattern.ces == nullptr) {
+           *status = U_ILLEGAL_ARGUMENT_ERROR;
+           return false;
     }
 
     if (strsrch->pattern.pces == nullptr) {
@@ -1964,7 +2122,7 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
     }
 
     CEIBuffer ceb(strsrch, status);
-    int32_t targetIx = 0;
+    int32_t    targetIx = 0;
 
     /*
      * Pre-load the buffer with the CE's for the grapheme
@@ -1976,15 +2134,15 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
      * consider for the match.
      */
     if (startIdx < strsrch->search->textLength) {
-        UBreakIterator* breakiterator = getBreakIterator(strsrch, *status);
+        UBreakIterator *breakiterator = getBreakIterator(strsrch, *status);
         if (U_FAILURE(*status)) {
-            return FALSE;
+            return false;
         }
         int32_t next = ubrk_following(breakiterator, startIdx);
 
         ucol_setOffset(strsrch->textIter, next, status);
 
-        for (targetIx = 0;; targetIx += 1) {
+        for (targetIx = 0; ; targetIx += 1) {
             if (ceb.getPrevious(targetIx)->lowIndex < startIdx) {
                 break;
             }
@@ -1995,18 +2153,20 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
 
     // An out-of-memory (OOM) failure can occur above, so we need to check the status.
     if (U_FAILURE(*status)) {
-        return FALSE;
+        return false;
     }
 
-    const CEI* targetCEI = nullptr;
-    int32_t patIx;
-    UBool found;
+    const CEI *targetCEI = nullptr;
+    int32_t    patIx;
+    UBool      found;
 
-    int32_t limitIx = targetIx;
-    int32_t mStart = -1;
-    int32_t mLimit = -1;
-    int32_t minLimit;
-    int32_t maxLimit;
+    int32_t  limitIx = targetIx;
+    int32_t  mStart = -1;
+    int32_t  mLimit = -1;
+    int32_t  minLimit;
+    int32_t  maxLimit;
+
+
 
     // Outer loop moves over match starting positions in the
     //      target CE space.
@@ -2014,16 +2174,17 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
     // But  patIx is 0 at the beginning of the pattern and increases toward the end.
     // So this loop performs a comparison starting with the end of pattern, and prcessd toward the beginning of the pattern
     // and the beginning of the base text.
-    for (targetIx = limitIx;; targetIx += 1) {
-        found = TRUE;
+    for(targetIx = limitIx; ; targetIx += 1)
+    {
+        found = true;
         // For targetIx > limitIx, this ceb.getPrevious gets a CE that is as far back in the ring buffer
         // (compared to the last CE fetched for the previous targetIx value) as we need to go
         // for this targetIx value, so if it is non-nullptr then other ceb.getPrevious calls should be OK.
-        const CEI* lastCEI = ceb.getPrevious(targetIx);
+        const CEI *lastCEI  = ceb.getPrevious(targetIx);
         if (lastCEI == nullptr) {
             *status = U_INTERNAL_PROGRAM_ERROR;
-            found = FALSE;
-            break;
+            found = false;
+             break;
         }
         //  Inner loop checks for a match beginning at each
         //  position from the outer loop.
@@ -2036,11 +2197,11 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
             //    Note that the target CE will be UCOL_NULLORDER if we reach the end of input,
             //    which will fail the compare, below.
             UCompareCEsResult ceMatch = compareCE64s(targetCEI->ce, patCE, strsrch->search->elementComparisonType);
-            if (ceMatch == U_CE_NO_MATCH) {
-                found = FALSE;
+            if ( ceMatch == U_CE_NO_MATCH ) {
+                found = false;
                 break;
-            } else if (ceMatch > U_CE_NO_MATCH) {
-                if (ceMatch == U_CE_SKIP_TARG) {
+            } else if ( ceMatch > U_CE_NO_MATCH ) {
+                if ( ceMatch == U_CE_SKIP_TARG ) {
                     // redo with same patCE, next targCE
                     patIx++;
                     targetIxOffset++;
@@ -2061,13 +2222,14 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
             break;
         }
 
+
         // We have found a match in CE space.
         // Now determine the bounds in string index space.
         //  There still is a chance of match failure if the CE range not correspond to
         //     an acceptable character range.
         //
-        const CEI* firstCEI = ceb.getPrevious(targetIx + strsrch->pattern.pcesLength - 1 + targetIxOffset);
-        mStart = firstCEI->lowIndex;
+        const CEI *firstCEI = ceb.getPrevious(targetIx + strsrch->pattern.pcesLength - 1 + targetIxOffset);
+        mStart   = firstCEI->lowIndex;
 
         // Check for the start of the match being within a combining sequence.
         //   This can happen if the pattern itself begins with a combining char, and
@@ -2076,7 +2238,7 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
         //   This type of match should be rejected for not completely consuming a
         //   combining sequence.
         if (!isBreakBoundary(strsrch, mStart, *status)) {
-            found = FALSE;
+            found = false;
         }
         if (U_FAILURE(*status)) {
             break;
@@ -2085,8 +2247,9 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
         // Look at the high index of the first CE in the match. If it's the same as the
         // low index, the first CE in the match is in the middle of an expansion.
         if (mStart == firstCEI->highIndex) {
-            found = FALSE;
+            found = false;
         }
+
 
         minLimit = lastCEI->lowIndex;
 
@@ -2099,10 +2262,10 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
             //    1. The match extended to the last CE from the target text, which is OK, or
             //    2. The last CE that was part of the match is in an expansion that extends
             //       to the first CE after the match. In this case, we reject the match.
-            const CEI* nextCEI = ceb.getPrevious(targetIx - 1);
+            const CEI *nextCEI  = ceb.getPrevious(targetIx - 1);
 
             if (nextCEI->lowIndex == nextCEI->highIndex && nextCEI->ce != UCOL_PROCESSED_NULLORDER) {
-                found = FALSE;
+                found = false;
             }
 
             mLimit = maxLimit = nextCEI->lowIndex;
@@ -2118,12 +2281,14 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
             //   subsequent check for normalization boundary; however they are likely much faster
             //   tests in any case)
             // * the match limit is a normalization boundary
-            UBool allowMidclusterMatch = FALSE;
+            UBool allowMidclusterMatch = false;
             if (strsrch->search->text != nullptr && strsrch->search->textLength > maxLimit) {
-                allowMidclusterMatch = strsrch->search->breakIter == nullptr && nextCEI != nullptr && (((nextCEI->ce) >> 32) & 0xFFFF0000UL) != 0
-                    && maxLimit >= lastCEI->highIndex && nextCEI->highIndex > maxLimit
-                    && (strsrch->nfd->hasBoundaryBefore(codePointAt(*strsrch->search, maxLimit))
-                        || strsrch->nfd->hasBoundaryAfter(codePointBefore(*strsrch->search, maxLimit)));
+                allowMidclusterMatch =
+                        strsrch->search->breakIter == nullptr &&
+                        nextCEI != nullptr && (((nextCEI->ce) >> 32) & 0xFFFF0000UL) != 0 &&
+                        maxLimit >= lastCEI->highIndex && nextCEI->highIndex > maxLimit &&
+                        (strsrch->nfd->hasBoundaryBefore(codePointAt(*strsrch->search, maxLimit)) ||
+                            strsrch->nfd->hasBoundaryAfter(codePointBefore(*strsrch->search, maxLimit)));
             }
             // If those conditions are met, then:
             // * do NOT advance the candidate match limit (mLimit) to a break boundary; however
@@ -2149,12 +2314,12 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
                 // If advancing to the end of a combining sequence in character indexing space
                 //   advanced us beyond the end of the match in CE space, reject this match.
                 if (mLimit > maxLimit) {
-                    found = FALSE;
+                    found = false;
                 }
 
                 // Make sure the end of the match is on a break boundary
                 if (!isBreakBoundary(strsrch, mLimit, *status)) {
-                    found = FALSE;
+                    found = false;
                 }
                 if (U_FAILURE(*status)) {
                     break;
@@ -2170,14 +2335,15 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
             mLimit = maxLimit = (nba > 0) && (startIdx > nba) ? nba : startIdx;
         }
 
-#ifdef USEARCH_DEBUG
+    #ifdef USEARCH_DEBUG
         if (getenv("USEARCH_DEBUG") != nullptr) {
             printf("minLimit, maxLimit, mLimit = %d, %d, %d\n", minLimit, maxLimit, mLimit);
         }
-#endif
+    #endif
 
-        if (!checkIdentical(strsrch, mStart, mLimit)) {
-            found = FALSE;
+
+        if (! checkIdentical(strsrch, mStart, mLimit)) {
+            found = false;
         }
 
         if (found) {
@@ -2185,31 +2351,31 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
         }
     }
 
-#ifdef USEARCH_DEBUG
+    #ifdef USEARCH_DEBUG
     if (getenv("USEARCH_DEBUG") != nullptr) {
         printf("Target CEs [%d .. %d]\n", ceb.firstIx, ceb.limitIx);
-        int32_t lastToPrint = ceb.limitIx + 2;
-        for (int ii = ceb.firstIx; ii < lastToPrint; ii++) {
+        int32_t  lastToPrint = ceb.limitIx+2;
+        for (int ii=ceb.firstIx; ii<lastToPrint; ii++) {
             printf("%8x@%d ", ceb.get(ii)->ce, ceb.get(ii)->srcIndex);
         }
-        printf("\n%s\n", found ? "match found" : "no match");
+        printf("\n%s\n", found? "match found" : "no match");
     }
-#endif
+    #endif
 
     // All Done.  Store back the match bounds to the caller.
     //
 
     if (U_FAILURE(*status)) {
-        found = FALSE; // No match if a failure occured.
+        found = false; // No match if a failure occured.
     }
 
-    if (found == FALSE) {
+    if (found==false) {
         mLimit = -1;
         mStart = -1;
     }
 
     if (matchStart != nullptr) {
-        *matchStart = mStart;
+        *matchStart= mStart;
     }
 
     if (matchLimit != nullptr) {
@@ -2221,11 +2387,11 @@ U_CAPI UBool U_EXPORT2 usearch_searchBackwards(UStringSearch* strsrch, int32_t s
 
 // internal use methods declared in usrchimp.h -----------------------------
 
-UBool usearch_handleNextExact(UStringSearch* strsrch, UErrorCode* status)
+UBool usearch_handleNextExact(UStringSearch *strsrch, UErrorCode *status)
 {
     if (U_FAILURE(*status)) {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 
     int32_t textOffset = ucol_getOffset(strsrch->textIter);
@@ -2233,20 +2399,20 @@ UBool usearch_handleNextExact(UStringSearch* strsrch, UErrorCode* status)
     int32_t end = -1;
 
     if (usearch_search(strsrch, textOffset, &start, &end, status)) {
-        strsrch->search->matchedIndex = start;
+        strsrch->search->matchedIndex  = start;
         strsrch->search->matchedLength = end - start;
-        return TRUE;
+        return true;
     } else {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 }
 
-UBool usearch_handleNextCanonical(UStringSearch* strsrch, UErrorCode* status)
+UBool usearch_handleNextCanonical(UStringSearch *strsrch, UErrorCode *status)
 {
     if (U_FAILURE(*status)) {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 
     int32_t textOffset = ucol_getOffset(strsrch->textIter);
@@ -2254,20 +2420,20 @@ UBool usearch_handleNextCanonical(UStringSearch* strsrch, UErrorCode* status)
     int32_t end = -1;
 
     if (usearch_search(strsrch, textOffset, &start, &end, status)) {
-        strsrch->search->matchedIndex = start;
+        strsrch->search->matchedIndex  = start;
         strsrch->search->matchedLength = end - start;
-        return TRUE;
+        return true;
     } else {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 }
 
-UBool usearch_handlePreviousExact(UStringSearch* strsrch, UErrorCode* status)
+UBool usearch_handlePreviousExact(UStringSearch *strsrch, UErrorCode *status)
 {
     if (U_FAILURE(*status)) {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 
     int32_t textOffset;
@@ -2280,7 +2446,7 @@ UBool usearch_handlePreviousExact(UStringSearch* strsrch, UErrorCode* status)
             initializePatternPCETable(strsrch, status);
             if (!initTextProcessedIter(strsrch, status)) {
                 setMatchNotFound(strsrch, *status);
-                return FALSE;
+                return false;
             }
             for (int32_t nPCEs = 0; nPCEs < strsrch->pattern.pcesLength - 1; nPCEs++) {
                 int64_t pce = strsrch->textProcessedIter->nextProcessed(nullptr, nullptr, status);
@@ -2291,7 +2457,7 @@ UBool usearch_handlePreviousExact(UStringSearch* strsrch, UErrorCode* status)
             }
             if (U_FAILURE(*status)) {
                 setMatchNotFound(strsrch, *status);
-                return FALSE;
+                return false;
             }
             textOffset = ucol_getOffset(strsrch->textIter);
         }
@@ -2305,18 +2471,19 @@ UBool usearch_handlePreviousExact(UStringSearch* strsrch, UErrorCode* status)
     if (usearch_searchBackwards(strsrch, textOffset, &start, &end, status)) {
         strsrch->search->matchedIndex = start;
         strsrch->search->matchedLength = end - start;
-        return TRUE;
+        return true;
     } else {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 }
 
-UBool usearch_handlePreviousCanonical(UStringSearch* strsrch, UErrorCode* status)
+UBool usearch_handlePreviousCanonical(UStringSearch *strsrch,
+                                      UErrorCode    *status)
 {
     if (U_FAILURE(*status)) {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 
     int32_t textOffset;
@@ -2329,7 +2496,7 @@ UBool usearch_handlePreviousCanonical(UStringSearch* strsrch, UErrorCode* status
             initializePatternPCETable(strsrch, status);
             if (!initTextProcessedIter(strsrch, status)) {
                 setMatchNotFound(strsrch, *status);
-                return FALSE;
+                return false;
             }
             for (int32_t nPCEs = 0; nPCEs < strsrch->pattern.pcesLength - 1; nPCEs++) {
                 int64_t pce = strsrch->textProcessedIter->nextProcessed(nullptr, nullptr, status);
@@ -2340,7 +2507,7 @@ UBool usearch_handlePreviousCanonical(UStringSearch* strsrch, UErrorCode* status
             }
             if (U_FAILURE(*status)) {
                 setMatchNotFound(strsrch, *status);
-                return FALSE;
+                return false;
             }
             textOffset = ucol_getOffset(strsrch->textIter);
         }
@@ -2354,10 +2521,10 @@ UBool usearch_handlePreviousCanonical(UStringSearch* strsrch, UErrorCode* status
     if (usearch_searchBackwards(strsrch, textOffset, &start, &end, status)) {
         strsrch->search->matchedIndex = start;
         strsrch->search->matchedLength = end - start;
-        return TRUE;
+        return true;
     } else {
         setMatchNotFound(strsrch, *status);
-        return FALSE;
+        return false;
     }
 }
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
 *******************************************************************************
 *
 *   © 2016 and later: Unicode, Inc. and others.
@@ -29,6 +29,7 @@
 #include "unicode/utypes.h"
 #include "unicode/uiter.h"
 
-U_CAPI void U_EXPORT2 uiter_setLenient8(UCharIterator* iter, const char* s, int32_t length);
+U_CAPI void U_EXPORT2
+uiter_setLenient8(UCharIterator *iter, const char *s, int32_t length);
 
 #endif

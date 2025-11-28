@@ -1,4 +1,4 @@
-﻿/*
+/*
  ******************************************************************************
  * © 2016 and later: Unicode, Inc. and others.                    *
  * License & terms of use: http://www.unicode.org/copyright.html      *
@@ -21,32 +21,32 @@
 #include "GUISupport.h"
 #include "UnicodeReader.h"
 
-#define BYTE(b) (((int)b) & 0xFF)
+#define BYTE(b) (((int) b) & 0xFF)
 
 /*
  * Read the text from a file. The text must start with a Unicode Byte
  * Order Mark (BOM) so that we know what order to read the bytes in.
  */
-const UChar* UnicodeReader::readFile(const char* fileName, GUISupport* guiSupport, int32_t& charCount)
+const char16_t *UnicodeReader::readFile(const char *fileName, GUISupport *guiSupport, int32_t &charCount)
 {
-    FILE* f;
+    FILE *f;
     int32_t fileSize;
-
-    UChar* charBuffer;
-    char* byteBuffer;
-    char startBytes[4] = { '\xA5', '\xA5', '\xA5', '\xA5' };
+    
+    char16_t *charBuffer;
+    char *byteBuffer;
+    char startBytes[4] = {'\xA5', '\xA5', '\xA5', '\xA5'};
     char errorMessage[128];
-    const char* cp = "";
+    const char *cp = "";
     int32_t signatureLength = 0;
-
+    
     f = fopen(fileName, "rb");
-
-    if (f == NULL) {
-        sprintf(errorMessage, "Couldn't open %s: %s \n", fileName, strerror(errno));
+    
+    if( f == nullptr ) {
+        sprintf(errorMessage,"Couldn't open %s: %s \n", fileName, strerror(errno));
         guiSupport->postErrorMessage(errorMessage, "Text File Error");
         return 0;
     }
-
+    
     fseek(f, 0, SEEK_END);
     fileSize = ftell(f);
 
@@ -70,52 +70,54 @@ const UChar* UnicodeReader::readFile(const char* fileName, GUISupport* guiSuppor
     } else if (startBytes[0] == '\x0E' && startBytes[1] == '\xFE' && startBytes[2] == '\xFF') {
         cp = "SCSU";
         signatureLength = 3;
-    } else if (startBytes[0] == '\x00' && startBytes[1] == '\x00' && startBytes[2] == '\xFE' && startBytes[3] == '\xFF') {
+    } else if (startBytes[0] == '\x00' && startBytes[1] == '\x00' &&
+        startBytes[2] == '\xFE' && startBytes[3] == '\xFF') {
         cp = "UTF-32BE";
         signatureLength = 4;
     } else {
-        sprintf(errorMessage, "Couldn't detect the encoding of %s: (%2.2X, %2.2X, %2.2X, %2.2X)\n", fileName, BYTE(startBytes[0]), BYTE(startBytes[1]),
-            BYTE(startBytes[2]), BYTE(startBytes[3]));
+        sprintf(errorMessage, "Couldn't detect the encoding of %s: (%2.2X, %2.2X, %2.2X, %2.2X)\n", fileName,
+                    BYTE(startBytes[0]), BYTE(startBytes[1]), BYTE(startBytes[2]), BYTE(startBytes[3]));
         guiSupport->postErrorMessage(errorMessage, "Text File Error");
         fclose(f);
         return 0;
     }
-
+        
     fileSize -= signatureLength;
     fseek(f, signatureLength, SEEK_SET);
     byteBuffer = new char[fileSize];
-
-    if (byteBuffer == 0) {
-        sprintf(errorMessage, "Couldn't get memory for reading %s: %s \n", fileName, strerror(errno));
+    
+    if(byteBuffer == 0) {
+        sprintf(errorMessage,"Couldn't get memory for reading %s: %s \n", fileName, strerror(errno));
         guiSupport->postErrorMessage(errorMessage, "Text File Error");
         fclose(f);
         return 0;
     }
-
+    
     fread(byteBuffer, sizeof(char), fileSize, f);
-    if (ferror(f)) {
-        sprintf(errorMessage, "Couldn't read %s: %s \n", fileName, strerror(errno));
+    if( ferror(f) ) {
+        sprintf(errorMessage,"Couldn't read %s: %s \n", fileName, strerror(errno));
         guiSupport->postErrorMessage(errorMessage, "Text File Error");
         fclose(f);
         delete[] byteBuffer;
         return 0;
     }
     fclose(f);
-
+    
     UnicodeString myText(byteBuffer, fileSize, cp);
 
     delete[] byteBuffer;
-
+    
     charCount = myText.length();
-    charBuffer = LE_NEW_ARRAY(UChar, charCount + 1);
-    if (charBuffer == 0) {
-        sprintf(errorMessage, "Couldn't get memory for reading %s: %s \n", fileName, strerror(errno));
+    charBuffer = LE_NEW_ARRAY(char16_t, charCount + 1);
+    if(charBuffer == 0) {
+        sprintf(errorMessage,"Couldn't get memory for reading %s: %s \n", fileName, strerror(errno));
         guiSupport->postErrorMessage(errorMessage, "Text File Error");
         return 0;
     }
-
+    
     myText.extract(0, myText.length(), charBuffer);
-    charBuffer[charCount] = 0; // NULL terminate for easier reading in the debugger
-
+    charBuffer[charCount] = 0;    // NUL terminate for easier reading in the debugger
+    
     return charBuffer;
 }
+

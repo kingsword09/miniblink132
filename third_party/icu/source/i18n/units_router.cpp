@@ -1,4 +1,4 @@
-﻿// © 2020 and later: Unicode, Inc. and others.
+// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -11,7 +11,7 @@
 #include "measunit_impl.h"
 #include "number_decimalquantity.h"
 #include "number_roundingutils.h"
-#include "icu_resource.h"
+#include "resource.h"
 #include "unicode/measure.h"
 #include "units_data.h"
 #include "units_router.h"
@@ -23,8 +23,8 @@ namespace units {
 using number::Precision;
 using number::impl::parseIncrementOption;
 
-Precision UnitsRouter::parseSkeletonToPrecision(icu::UnicodeString precisionSkeleton, UErrorCode& status)
-{
+Precision UnitsRouter::parseSkeletonToPrecision(icu::UnicodeString precisionSkeleton,
+                                                UErrorCode &status) {
     if (U_FAILURE(status)) {
         // As a member of UsagePrefsHandler, which is a friend of Precision, we
         // get access to the default constructor.
@@ -43,18 +43,18 @@ Precision UnitsRouter::parseSkeletonToPrecision(icu::UnicodeString precisionSkel
     return result;
 }
 
-UnitsRouter::UnitsRouter(StringPiece inputUnitIdentifier, StringPiece region, StringPiece usage, UErrorCode& status)
-{
-    this->init(MeasureUnit::forIdentifier(inputUnitIdentifier, status), region, usage, status);
+UnitsRouter::UnitsRouter(StringPiece inputUnitIdentifier, const Locale &locale, StringPiece usage,
+                         UErrorCode &status) {
+    this->init(MeasureUnit::forIdentifier(inputUnitIdentifier, status), locale, usage, status);
 }
 
-UnitsRouter::UnitsRouter(const MeasureUnit& inputUnit, StringPiece region, StringPiece usage, UErrorCode& status)
-{
-    this->init(std::move(inputUnit), region, usage, status);
+UnitsRouter::UnitsRouter(const MeasureUnit &inputUnit, const Locale &locale, StringPiece usage,
+                         UErrorCode &status) {
+    this->init(std::move(inputUnit), locale, usage, status);
 }
 
-void UnitsRouter::init(const MeasureUnit& inputUnit, StringPiece region, StringPiece usage, UErrorCode& status)
-{
+void UnitsRouter::init(const MeasureUnit &inputUnit, const Locale &locale, StringPiece usage,
+                       UErrorCode &status) {
 
     if (U_FAILURE(status)) {
         return;
@@ -66,26 +66,26 @@ void UnitsRouter::init(const MeasureUnit& inputUnit, StringPiece region, StringP
     UnitPreferences prefs(status);
 
     MeasureUnitImpl inputUnitImpl = MeasureUnitImpl::forMeasureUnitMaybeCopy(inputUnit, status);
-    MeasureUnitImpl baseUnitImpl = (extractCompoundBaseUnit(inputUnitImpl, conversionRates, status));
+    MeasureUnitImpl baseUnitImpl =
+        (extractCompoundBaseUnit(inputUnitImpl, conversionRates, status));
     CharString category = getUnitQuantity(baseUnitImpl, status);
     if (U_FAILURE(status)) {
         return;
     }
 
-    const UnitPreference* const* unitPreferences;
-    int32_t preferencesCount = 0;
-    prefs.getPreferencesFor(category.toStringPiece(), usage, region, unitPreferences, preferencesCount, status);
+    const MaybeStackVector<UnitPreference> unitPrefs =
+        prefs.getPreferencesFor(category.toStringPiece(), usage, locale, status);
+    for (int32_t i = 0, n = unitPrefs.length(); i < n; ++i) {
+        U_ASSERT(unitPrefs[i] != nullptr);
+        const auto preference = unitPrefs[i];
 
-    for (int i = 0; i < preferencesCount; ++i) {
-        U_ASSERT(unitPreferences[i] != nullptr);
-        const auto& preference = *unitPreferences[i];
-
-        MeasureUnitImpl complexTargetUnitImpl = MeasureUnitImpl::forIdentifier(preference.unit.data(), status);
+        MeasureUnitImpl complexTargetUnitImpl =
+            MeasureUnitImpl::forIdentifier(preference->unit.data(), status);
         if (U_FAILURE(status)) {
             return;
         }
 
-        UnicodeString precision = preference.skeleton;
+        UnicodeString precision = preference->skeleton;
 
         // For now, we only have "precision-increment" in Units Preferences skeleton.
         // Therefore, we check if the skeleton starts with "precision-increment" and force the program to
@@ -97,9 +97,11 @@ void UnitsRouter::init(const MeasureUnit& inputUnit, StringPiece region, StringP
             return;
         }
 
-        outputUnits_.emplaceBackAndCheckErrorCode(status, complexTargetUnitImpl.copy(status).build(status));
-        converterPreferences_.emplaceBackAndCheckErrorCode(
-            status, inputUnitImpl, complexTargetUnitImpl, preference.geq, std::move(precision), conversionRates, status);
+        outputUnits_.emplaceBackAndCheckErrorCode(status,
+                                                  complexTargetUnitImpl.copy(status).build(status));
+        converterPreferences_.emplaceBackAndCheckErrorCode(status, inputUnitImpl, complexTargetUnitImpl,
+                                                           preference->geq, std::move(precision),
+                                                           conversionRates, status);
 
         if (U_FAILURE(status)) {
             return;
@@ -107,13 +109,13 @@ void UnitsRouter::init(const MeasureUnit& inputUnit, StringPiece region, StringP
     }
 }
 
-RouteResult UnitsRouter::route(double quantity, icu::number::impl::RoundingImpl* rounder, UErrorCode& status) const
-{
+RouteResult UnitsRouter::route(double quantity, icu::number::impl::RoundingImpl *rounder, UErrorCode &status) const {
     // Find the matching preference
-    const ConverterPreference* converterPreference = nullptr;
+    const ConverterPreference *converterPreference = nullptr;
     for (int32_t i = 0, n = converterPreferences_.length(); i < n; i++) {
         converterPreference = converterPreferences_[i];
-        if (converterPreference->converter.greaterThanOrEqual(std::abs(quantity) * (1 + DBL_EPSILON), converterPreference->limit)) {
+        if (converterPreference->converter.greaterThanOrEqual(std::abs(quantity) * (1 + DBL_EPSILON),
+                                                              converterPreference->limit)) {
             break;
         }
     }
@@ -131,11 +133,11 @@ RouteResult UnitsRouter::route(double quantity, icu::number::impl::RoundingImpl*
         }
     }
 
-    return RouteResult(converterPreference->converter.convert(quantity, rounder, status), converterPreference->targetUnit.copy(status));
+    return RouteResult(converterPreference->converter.convert(quantity, rounder, status),
+                       converterPreference->targetUnit.copy(status));
 }
 
-const MaybeStackVector<MeasureUnit>* UnitsRouter::getOutputUnits() const
-{
+const MaybeStackVector<MeasureUnit> *UnitsRouter::getOutputUnits() const {
     // TODO: consider pulling this from converterPreferences_ and dropping
     // outputUnits_?
     return &outputUnits_;

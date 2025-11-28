@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -24,13 +24,13 @@
 
 /**
  * \def UBRK_TYPEDEF_UBREAK_ITERATOR
- * @internal
+ * @internal 
  */
 
 #ifndef UBRK_TYPEDEF_UBREAK_ITERATOR
-#define UBRK_TYPEDEF_UBREAK_ITERATOR
+#   define UBRK_TYPEDEF_UBREAK_ITERATOR
 /** Simple declaration for u_strToTitle() to avoid including unicode/ubrk.h. @stable ICU 2.1*/
-typedef struct UBreakIterator UBreakIterator;
+    typedef struct UBreakIterator UBreakIterator;
 #endif
 
 /**
@@ -89,7 +89,8 @@ typedef struct UBreakIterator UBreakIterator;
  * @return The number of UChars in <code>chars</code>, minus the terminator.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strlen(const UChar* s);
+U_CAPI int32_t U_EXPORT2
+u_strlen(const UChar *s);
 /*@}*/
 
 /**
@@ -105,7 +106,8 @@ U_CAPI int32_t U_EXPORT2 u_strlen(const UChar* s);
  * @return The number of code points in the specified code units.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_countChar32(const UChar* s, int32_t length);
+U_CAPI int32_t U_EXPORT2
+u_countChar32(const UChar *s, int32_t length);
 
 /**
  * Check if the string contains more Unicode code points than a certain number.
@@ -125,7 +127,8 @@ U_CAPI int32_t U_EXPORT2 u_countChar32(const UChar* s, int32_t length);
  *         than 'number'. Same as (u_countChar32(s, length)>number).
  * @stable ICU 2.4
  */
-U_CAPI UBool U_EXPORT2 u_strHasMoreChar32Than(const UChar* s, int32_t length, int32_t number);
+U_CAPI UBool U_EXPORT2
+u_strHasMoreChar32Than(const UChar *s, int32_t length, int32_t number);
 
 /**
  * Concatenate two ustrings.  Appends a copy of <code>src</code>,
@@ -137,10 +140,12 @@ U_CAPI UBool U_EXPORT2 u_strHasMoreChar32Than(const UChar* s, int32_t length, in
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strcat(UChar* dst, const UChar* src);
+U_CAPI UChar* U_EXPORT2
+u_strcat(UChar     *dst, 
+    const UChar     *src);
 
 /**
- * Concatenate two ustrings.
+ * Concatenate two ustrings.  
  * Appends at most <code>n</code> characters from <code>src</code> to <code>dst</code>.
  * Adds a terminating NUL.
  * If src is too long, then only <code>n-1</code> characters will be copied
@@ -153,7 +158,10 @@ U_CAPI UChar* U_EXPORT2 u_strcat(UChar* dst, const UChar* src);
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strncat(UChar* dst, const UChar* src, int32_t n);
+U_CAPI UChar* U_EXPORT2
+u_strncat(UChar     *dst, 
+     const UChar     *src, 
+     int32_t     n);
 
 /**
  * Find the first occurrence of a substring in a string.
@@ -175,7 +183,8 @@ U_CAPI UChar* U_EXPORT2 u_strncat(UChar* dst, const UChar* src, int32_t n);
  * @see u_strFindFirst
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_strstr(const UChar* s, const UChar* substring);
+U_CAPI UChar * U_EXPORT2
+u_strstr(const UChar *s, const UChar *substring);
 
 /**
  * Find the first occurrence of a substring in a string.
@@ -198,7 +207,8 @@ U_CAPI UChar* U_EXPORT2 u_strstr(const UChar* s, const UChar* substring);
  * @see u_strstr
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_strFindFirst(const UChar* s, int32_t length, const UChar* substring, int32_t subLength);
+U_CAPI UChar * U_EXPORT2
+u_strFindFirst(const UChar *s, int32_t length, const UChar *substring, int32_t subLength);
 
 /**
  * Find the first occurrence of a BMP code point in a string.
@@ -217,7 +227,8 @@ U_CAPI UChar* U_EXPORT2 u_strFindFirst(const UChar* s, int32_t length, const UCh
  * @see u_strstr
  * @see u_strFindFirst
  */
-U_CAPI UChar* U_EXPORT2 u_strchr(const UChar* s, UChar c);
+U_CAPI UChar * U_EXPORT2
+u_strchr(const UChar *s, UChar c);
 
 /**
  * Find the first occurrence of a code point in a string.
@@ -236,7 +247,8 @@ U_CAPI UChar* U_EXPORT2 u_strchr(const UChar* s, UChar c);
  * @see u_strstr
  * @see u_strFindFirst
  */
-U_CAPI UChar* U_EXPORT2 u_strchr32(const UChar* s, UChar32 c);
+U_CAPI UChar * U_EXPORT2
+u_strchr32(const UChar *s, UChar32 c);
 
 /**
  * Find the last occurrence of a substring in a string.
@@ -258,7 +270,8 @@ U_CAPI UChar* U_EXPORT2 u_strchr32(const UChar* s, UChar32 c);
  * @see u_strFindFirst
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_strrstr(const UChar* s, const UChar* substring);
+U_CAPI UChar * U_EXPORT2
+u_strrstr(const UChar *s, const UChar *substring);
 
 /**
  * Find the last occurrence of a substring in a string.
@@ -281,7 +294,8 @@ U_CAPI UChar* U_EXPORT2 u_strrstr(const UChar* s, const UChar* substring);
  * @see u_strstr
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_strFindLast(const UChar* s, int32_t length, const UChar* substring, int32_t subLength);
+U_CAPI UChar * U_EXPORT2
+u_strFindLast(const UChar *s, int32_t length, const UChar *substring, int32_t subLength);
 
 /**
  * Find the last occurrence of a BMP code point in a string.
@@ -300,7 +314,8 @@ U_CAPI UChar* U_EXPORT2 u_strFindLast(const UChar* s, int32_t length, const UCha
  * @see u_strrstr
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_strrchr(const UChar* s, UChar c);
+U_CAPI UChar * U_EXPORT2
+u_strrchr(const UChar *s, UChar c);
 
 /**
  * Find the last occurrence of a code point in a string.
@@ -319,7 +334,8 @@ U_CAPI UChar* U_EXPORT2 u_strrchr(const UChar* s, UChar c);
  * @see u_strrstr
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_strrchr32(const UChar* s, UChar32 c);
+U_CAPI UChar * U_EXPORT2
+u_strrchr32(const UChar *s, UChar32 c);
 
 /**
  * Locates the first occurrence in the string <code>string</code> of any of the characters
@@ -333,7 +349,8 @@ U_CAPI UChar* U_EXPORT2 u_strrchr32(const UChar* s, UChar32 c);
  *         characters in <code>matchSet</code>, or NULL if no such character is found.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strpbrk(const UChar* string, const UChar* matchSet);
+U_CAPI UChar * U_EXPORT2
+u_strpbrk(const UChar *string, const UChar *matchSet);
 
 /**
  * Returns the number of consecutive characters in <code>string</code>,
@@ -348,7 +365,8 @@ U_CAPI UChar* U_EXPORT2 u_strpbrk(const UChar* string, const UChar* matchSet);
  * @see u_strspn
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strcspn(const UChar* string, const UChar* matchSet);
+U_CAPI int32_t U_EXPORT2
+u_strcspn(const UChar *string, const UChar *matchSet);
 
 /**
  * Returns the number of consecutive characters in <code>string</code>,
@@ -363,7 +381,8 @@ U_CAPI int32_t U_EXPORT2 u_strcspn(const UChar* string, const UChar* matchSet);
  * @see u_strcspn
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strspn(const UChar* string, const UChar* matchSet);
+U_CAPI int32_t U_EXPORT2
+u_strspn(const UChar *string, const UChar *matchSet);
 
 /**
  * The string tokenizer API allows an application to break a string into
@@ -390,7 +409,10 @@ U_CAPI int32_t U_EXPORT2 u_strspn(const UChar* string, const UChar* matchSet);
  *         when there are no more tokens.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strtok_r(UChar* src, const UChar* delim, UChar** saveState);
+U_CAPI UChar * U_EXPORT2
+u_strtok_r(UChar    *src, 
+     const UChar    *delim,
+           UChar   **saveState);
 
 /**
  * Compare two Unicode strings for bitwise equality (code unit order).
@@ -402,7 +424,9 @@ U_CAPI UChar* U_EXPORT2 u_strtok_r(UChar* src, const UChar* delim, UChar** saveS
  * value if <code>s1</code> is bitwise greater than <code>s2</code>.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strcmp(const UChar* s1, const UChar* s2);
+U_CAPI int32_t  U_EXPORT2
+u_strcmp(const UChar     *s1, 
+         const UChar     *s2);
 
 /**
  * Compare two Unicode strings in code point order.
@@ -415,7 +439,8 @@ U_CAPI int32_t U_EXPORT2 u_strcmp(const UChar* s1, const UChar* s2);
  * in code point order
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strcmpCodePointOrder(const UChar* s1, const UChar* s2);
+U_CAPI int32_t U_EXPORT2
+u_strcmpCodePointOrder(const UChar *s1, const UChar *s2);
 
 /**
  * Compare two Unicode strings (binary order).
@@ -444,7 +469,10 @@ U_CAPI int32_t U_EXPORT2 u_strcmpCodePointOrder(const UChar* s1, const UChar* s2
  *
  * @stable ICU 2.2
  */
-U_CAPI int32_t U_EXPORT2 u_strCompare(const UChar* s1, int32_t length1, const UChar* s2, int32_t length2, UBool codePointOrder);
+U_CAPI int32_t U_EXPORT2
+u_strCompare(const UChar *s1, int32_t length1,
+             const UChar *s2, int32_t length2,
+             UBool codePointOrder);
 
 /**
  * Compare two Unicode strings (binary order)
@@ -466,7 +494,8 @@ U_CAPI int32_t U_EXPORT2 u_strCompare(const UChar* s1, int32_t length1, const UC
  *
  * @stable ICU 2.6
  */
-U_CAPI int32_t U_EXPORT2 u_strCompareIter(UCharIterator* iter1, UCharIterator* iter2, UBool codePointOrder);
+U_CAPI int32_t U_EXPORT2
+u_strCompareIter(UCharIterator *iter1, UCharIterator *iter2, UBool codePointOrder);
 
 /**
  * Compare two strings case-insensitively using full case folding.
@@ -508,10 +537,14 @@ U_CAPI int32_t U_EXPORT2 u_strCompareIter(UCharIterator* iter1, UCharIterator* i
  *
  * @stable ICU 2.2
  */
-U_CAPI int32_t U_EXPORT2 u_strCaseCompare(const UChar* s1, int32_t length1, const UChar* s2, int32_t length2, uint32_t options, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+u_strCaseCompare(const UChar *s1, int32_t length1,
+                 const UChar *s2, int32_t length2,
+                 uint32_t options,
+                 UErrorCode *pErrorCode);
 
 /**
- * Compare two ustrings for bitwise equality.
+ * Compare two ustrings for bitwise equality. 
  * Compares at most <code>n</code> characters.
  *
  * @param ucs1 A string to compare (can be NULL/invalid if n<=0).
@@ -522,7 +555,10 @@ U_CAPI int32_t U_EXPORT2 u_strCaseCompare(const UChar* s1, int32_t length1, cons
  * value if <code>s1</code> is bitwise greater than <code>s2</code>.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strncmp(const UChar* ucs1, const UChar* ucs2, int32_t n);
+U_CAPI int32_t U_EXPORT2
+u_strncmp(const UChar     *ucs1, 
+     const UChar     *ucs2, 
+     int32_t     n);
 
 /**
  * Compare two Unicode strings in code point order.
@@ -537,7 +573,8 @@ U_CAPI int32_t U_EXPORT2 u_strncmp(const UChar* ucs1, const UChar* ucs2, int32_t
  * in code point order
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strncmpCodePointOrder(const UChar* s1, const UChar* s2, int32_t n);
+U_CAPI int32_t U_EXPORT2
+u_strncmpCodePointOrder(const UChar *s1, const UChar *s2, int32_t n);
 
 /**
  * Compare two strings case-insensitively using full case folding.
@@ -558,7 +595,8 @@ U_CAPI int32_t U_EXPORT2 u_strncmpCodePointOrder(const UChar* s1, const UChar* s
  * @return A negative, zero, or positive integer indicating the comparison result.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strcasecmp(const UChar* s1, const UChar* s2, uint32_t options);
+U_CAPI int32_t U_EXPORT2
+u_strcasecmp(const UChar *s1, const UChar *s2, uint32_t options);
 
 /**
  * Compare two strings case-insensitively using full case folding.
@@ -581,7 +619,8 @@ U_CAPI int32_t U_EXPORT2 u_strcasecmp(const UChar* s1, const UChar* s2, uint32_t
  * @return A negative, zero, or positive integer indicating the comparison result.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strncasecmp(const UChar* s1, const UChar* s2, int32_t n, uint32_t options);
+U_CAPI int32_t U_EXPORT2
+u_strncasecmp(const UChar *s1, const UChar *s2, int32_t n, uint32_t options);
 
 /**
  * Compare two strings case-insensitively using full case folding.
@@ -604,7 +643,8 @@ U_CAPI int32_t U_EXPORT2 u_strncasecmp(const UChar* s1, const UChar* s2, int32_t
  * @return A negative, zero, or positive integer indicating the comparison result.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_memcasecmp(const UChar* s1, const UChar* s2, int32_t length, uint32_t options);
+U_CAPI int32_t U_EXPORT2
+u_memcasecmp(const UChar *s1, const UChar *s2, int32_t length, uint32_t options);
 
 /**
  * Copy a ustring. Adds a null terminator.
@@ -614,7 +654,9 @@ U_CAPI int32_t U_EXPORT2 u_memcasecmp(const UChar* s1, const UChar* s2, int32_t 
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strcpy(UChar* dst, const UChar* src);
+U_CAPI UChar* U_EXPORT2
+u_strcpy(UChar     *dst, 
+    const UChar     *src);
 
 /**
  * Copy a ustring.
@@ -627,7 +669,10 @@ U_CAPI UChar* U_EXPORT2 u_strcpy(UChar* dst, const UChar* src);
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strncpy(UChar* dst, const UChar* src, int32_t n);
+U_CAPI UChar* U_EXPORT2
+u_strncpy(UChar     *dst, 
+     const UChar     *src, 
+     int32_t     n);
 
 #if !UCONFIG_NO_CONVERSION
 
@@ -641,7 +686,8 @@ U_CAPI UChar* U_EXPORT2 u_strncpy(UChar* dst, const UChar* src, int32_t n);
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_uastrcpy(UChar* dst, const char* src);
+U_CAPI UChar* U_EXPORT2 u_uastrcpy(UChar *dst,
+               const char *src );
 
 /**
  * Copy a byte string encoded in the default codepage to a ustring.
@@ -655,7 +701,9 @@ U_CAPI UChar* U_EXPORT2 u_uastrcpy(UChar* dst, const char* src);
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_uastrncpy(UChar* dst, const char* src, int32_t n);
+U_CAPI UChar* U_EXPORT2 u_uastrncpy(UChar *dst,
+            const char *src,
+            int32_t n);
 
 /**
  * Copy ustring to a byte string encoded in the default codepage.
@@ -667,7 +715,8 @@ U_CAPI UChar* U_EXPORT2 u_uastrncpy(UChar* dst, const char* src, int32_t n);
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI char* U_EXPORT2 u_austrcpy(char* dst, const UChar* src);
+U_CAPI char* U_EXPORT2 u_austrcpy(char *dst,
+            const UChar *src );
 
 /**
  * Copy ustring to a byte string encoded in the default codepage.
@@ -681,7 +730,9 @@ U_CAPI char* U_EXPORT2 u_austrcpy(char* dst, const UChar* src);
  * @return A pointer to <code>dst</code>.
  * @stable ICU 2.0
  */
-U_CAPI char* U_EXPORT2 u_austrncpy(char* dst, const UChar* src, int32_t n);
+U_CAPI char* U_EXPORT2 u_austrncpy(char *dst,
+            const UChar *src,
+            int32_t n );
 
 #endif
 
@@ -693,7 +744,8 @@ U_CAPI char* U_EXPORT2 u_austrncpy(char* dst, const UChar* src, int32_t n);
  * @return A pointer to <code>dest</code>
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_memcpy(UChar* dest, const UChar* src, int32_t count);
+U_CAPI UChar* U_EXPORT2
+u_memcpy(UChar *dest, const UChar *src, int32_t count);
 
 /**
  * Synonym for memmove(), but with UChars only.
@@ -703,7 +755,8 @@ U_CAPI UChar* U_EXPORT2 u_memcpy(UChar* dest, const UChar* src, int32_t count);
  * @return A pointer to <code>dest</code>
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_memmove(UChar* dest, const UChar* src, int32_t count);
+U_CAPI UChar* U_EXPORT2
+u_memmove(UChar *dest, const UChar *src, int32_t count);
 
 /**
  * Initialize <code>count</code> characters of <code>dest</code> to <code>c</code>.
@@ -714,7 +767,8 @@ U_CAPI UChar* U_EXPORT2 u_memmove(UChar* dest, const UChar* src, int32_t count);
  * @return A pointer to <code>dest</code>.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_memset(UChar* dest, UChar c, int32_t count);
+U_CAPI UChar* U_EXPORT2
+u_memset(UChar *dest, UChar c, int32_t count);
 
 /**
  * Compare the first <code>count</code> UChars of each buffer.
@@ -727,7 +781,8 @@ U_CAPI UChar* U_EXPORT2 u_memset(UChar* dest, UChar c, int32_t count);
  *      When buf1 > buf2, a positive number is returned.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_memcmp(const UChar* buf1, const UChar* buf2, int32_t count);
+U_CAPI int32_t U_EXPORT2
+u_memcmp(const UChar *buf1, const UChar *buf2, int32_t count);
 
 /**
  * Compare two Unicode strings in code point order.
@@ -742,7 +797,8 @@ U_CAPI int32_t U_EXPORT2 u_memcmp(const UChar* buf1, const UChar* buf2, int32_t 
  * in code point order
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_memcmpCodePointOrder(const UChar* s1, const UChar* s2, int32_t count);
+U_CAPI int32_t U_EXPORT2
+u_memcmpCodePointOrder(const UChar *s1, const UChar *s2, int32_t count);
 
 /**
  * Find the first occurrence of a BMP code point in a string.
@@ -761,7 +817,8 @@ U_CAPI int32_t U_EXPORT2 u_memcmpCodePointOrder(const UChar* s1, const UChar* s2
  * @see u_memchr32
  * @see u_strFindFirst
  */
-U_CAPI UChar* U_EXPORT2 u_memchr(const UChar* s, UChar c, int32_t count);
+U_CAPI UChar* U_EXPORT2
+u_memchr(const UChar *s, UChar c, int32_t count);
 
 /**
  * Find the first occurrence of a code point in a string.
@@ -780,7 +837,8 @@ U_CAPI UChar* U_EXPORT2 u_memchr(const UChar* s, UChar c, int32_t count);
  * @see u_memchr
  * @see u_strFindFirst
  */
-U_CAPI UChar* U_EXPORT2 u_memchr32(const UChar* s, UChar32 c, int32_t count);
+U_CAPI UChar* U_EXPORT2
+u_memchr32(const UChar *s, UChar32 c, int32_t count);
 
 /**
  * Find the last occurrence of a BMP code point in a string.
@@ -799,7 +857,8 @@ U_CAPI UChar* U_EXPORT2 u_memchr32(const UChar* s, UChar32 c, int32_t count);
  * @see u_memrchr32
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_memrchr(const UChar* s, UChar c, int32_t count);
+U_CAPI UChar* U_EXPORT2
+u_memrchr(const UChar *s, UChar c, int32_t count);
 
 /**
  * Find the last occurrence of a code point in a string.
@@ -818,7 +877,8 @@ U_CAPI UChar* U_EXPORT2 u_memrchr(const UChar* s, UChar c, int32_t count);
  * @see u_memrchr
  * @see u_strFindLast
  */
-U_CAPI UChar* U_EXPORT2 u_memrchr32(const UChar* s, UChar32 c, int32_t count);
+U_CAPI UChar* U_EXPORT2
+u_memrchr32(const UChar *s, UChar32 c, int32_t count);
 
 /**
  * Unicode String literals in C.
@@ -853,10 +913,10 @@ U_CAPI UChar* U_EXPORT2 u_memrchr32(const UChar* s, UChar32 c, int32_t count);
  *         }
  *         return u_strcmp(ustringVar1, ustringVar2);
  *     }
- *
+ * 
  * Note that the macros will NOT consistently work if their argument is another #`define`.
  * The following will not work on all platforms, don't use it.
- *
+ * 
  *     #define GLUCK "Mr. Gluck"
  *     U_STRING_DECL(var, GLUCK, 9)
  *     U_STRING_INIT(var, GLUCK, 9)
@@ -868,21 +928,17 @@ U_CAPI UChar* U_EXPORT2 u_memrchr32(const UChar* s, UChar32 c, int32_t count);
  * @stable ICU 2.0
  */
 #if defined(U_DECLARE_UTF16)
-#define U_STRING_DECL(var, cs, length) static const UChar* var = (const UChar*)U_DECLARE_UTF16(cs)
-/**@stable ICU 2.0 */
-#define U_STRING_INIT(var, cs, length)
-#elif U_SIZEOF_WCHAR_T == U_SIZEOF_UCHAR && (U_CHARSET_FAMILY == U_ASCII_FAMILY || (U_SIZEOF_UCHAR == 2 && defined(U_WCHAR_IS_UTF16)))
-#define U_STRING_DECL(var, cs, length) static const UChar var[(length) + 1] = L##cs
-/**@stable ICU 2.0 */
-#define U_STRING_INIT(var, cs, length)
-#elif U_SIZEOF_UCHAR == 1 && U_CHARSET_FAMILY == U_ASCII_FAMILY
-#define U_STRING_DECL(var, cs, length) static const UChar var[(length) + 1] = cs
-/**@stable ICU 2.0 */
-#define U_STRING_INIT(var, cs, length)
+#   define U_STRING_DECL(var, cs, length) static const UChar *var=(const UChar *)U_DECLARE_UTF16(cs)
+    /**@stable ICU 2.0 */
+#   define U_STRING_INIT(var, cs, length)
+#elif U_SIZEOF_WCHAR_T==U_SIZEOF_UCHAR && (U_CHARSET_FAMILY==U_ASCII_FAMILY || defined(U_WCHAR_IS_UTF16))
+#   define U_STRING_DECL(var, cs, length) static const UChar var[(length)+1]=L ## cs
+    /**@stable ICU 2.0 */
+#   define U_STRING_INIT(var, cs, length)
 #else
-#define U_STRING_DECL(var, cs, length) static UChar var[(length) + 1]
-/**@stable ICU 2.0 */
-#define U_STRING_INIT(var, cs, length) u_charsToUChars(cs, var, length + 1)
+#   define U_STRING_DECL(var, cs, length) static UChar var[(length)+1]
+    /**@stable ICU 2.0 */
+#   define U_STRING_INIT(var, cs, length) u_charsToUChars(cs, var, length+1)
 #endif
 
 /**
@@ -932,7 +988,9 @@ U_CAPI UChar* U_EXPORT2 u_memrchr32(const UChar* s, UChar32 c, int32_t count);
  * @see UnicodeString#unescapeAt()
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_unescape(const char* src, UChar* dest, int32_t destCapacity);
+U_CAPI int32_t U_EXPORT2
+u_unescape(const char *src,
+           UChar *dest, int32_t destCapacity);
 
 U_CDECL_BEGIN
 /**
@@ -947,7 +1005,7 @@ U_CDECL_BEGIN
  * @see u_unescapeAt
  * @stable ICU 2.0
  */
-typedef UChar(U_CALLCONV* UNESCAPE_CHAR_AT)(int32_t offset, void* context);
+typedef UChar (U_CALLCONV *UNESCAPE_CHAR_AT)(int32_t offset, void *context);
 U_CDECL_END
 
 /**
@@ -978,7 +1036,11 @@ U_CDECL_END
  * @see UnicodeString#unescapeAt()
  * @stable ICU 2.0
  */
-U_CAPI UChar32 U_EXPORT2 u_unescapeAt(UNESCAPE_CHAR_AT charAt, int32_t* offset, int32_t length, void* context);
+U_CAPI UChar32 U_EXPORT2
+u_unescapeAt(UNESCAPE_CHAR_AT charAt,
+             int32_t *offset,
+             int32_t length,
+             void *context);
 
 /**
  * Uppercase the characters in a string.
@@ -1000,7 +1062,11 @@ U_CAPI UChar32 U_EXPORT2 u_unescapeAt(UNESCAPE_CHAR_AT charAt, int32_t* offset, 
  *         only some of the result was written to the destination buffer.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strToUpper(UChar* dest, int32_t destCapacity, const UChar* src, int32_t srcLength, const char* locale, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+u_strToUpper(UChar *dest, int32_t destCapacity,
+             const UChar *src, int32_t srcLength,
+             const char *locale,
+             UErrorCode *pErrorCode);
 
 /**
  * Lowercase the characters in a string.
@@ -1022,7 +1088,11 @@ U_CAPI int32_t U_EXPORT2 u_strToUpper(UChar* dest, int32_t destCapacity, const U
  *         only some of the result was written to the destination buffer.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strToLower(UChar* dest, int32_t destCapacity, const UChar* src, int32_t srcLength, const char* locale, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+u_strToLower(UChar *dest, int32_t destCapacity,
+             const UChar *src, int32_t srcLength,
+             const char *locale,
+             UErrorCode *pErrorCode);
 
 #if !UCONFIG_NO_BREAK_ITERATION
 
@@ -1064,8 +1134,12 @@ U_CAPI int32_t U_EXPORT2 u_strToLower(UChar* dest, int32_t destCapacity, const U
  *         only some of the result was written to the destination buffer.
  * @stable ICU 2.1
  */
-U_CAPI int32_t U_EXPORT2 u_strToTitle(
-    UChar* dest, int32_t destCapacity, const UChar* src, int32_t srcLength, UBreakIterator* titleIter, const char* locale, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+u_strToTitle(UChar *dest, int32_t destCapacity,
+             const UChar *src, int32_t srcLength,
+             UBreakIterator *titleIter,
+             const char *locale,
+             UErrorCode *pErrorCode);
 
 #endif
 
@@ -1093,7 +1167,11 @@ U_CAPI int32_t U_EXPORT2 u_strToTitle(
  *         only some of the result was written to the destination buffer.
  * @stable ICU 2.0
  */
-U_CAPI int32_t U_EXPORT2 u_strFoldCase(UChar* dest, int32_t destCapacity, const UChar* src, int32_t srcLength, uint32_t options, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+u_strFoldCase(UChar *dest, int32_t destCapacity,
+              const UChar *src, int32_t srcLength,
+              uint32_t options,
+              UErrorCode *pErrorCode);
 
 #if defined(U_WCHAR_IS_UTF16) || defined(U_WCHAR_IS_UTF32) || !UCONFIG_NO_CONVERSION
 /**
@@ -1105,11 +1183,11 @@ U_CAPI int32_t U_EXPORT2 u_strFoldCase(UChar* dest, int32_t destCapacity, const 
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of wchar_t's). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1118,7 +1196,13 @@ U_CAPI int32_t U_EXPORT2 u_strFoldCase(UChar* dest, int32_t destCapacity, const 
  * @return The pointer to destination buffer.
  * @stable ICU 2.0
  */
-U_CAPI wchar_t* U_EXPORT2 u_strToWCS(wchar_t* dest, int32_t destCapacity, int32_t* pDestLength, const UChar* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI wchar_t* U_EXPORT2
+u_strToWCS(wchar_t *dest, 
+           int32_t destCapacity,
+           int32_t *pDestLength,
+           const UChar *src, 
+           int32_t srcLength,
+           UErrorCode *pErrorCode);
 /**
  * Convert a wchar_t string to UTF-16.
  * If it is known at compile time that wchar_t strings are in UTF-16 or UTF-32, then
@@ -1128,11 +1212,11 @@ U_CAPI wchar_t* U_EXPORT2 u_strToWCS(wchar_t* dest, int32_t destCapacity, int32_
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of UChars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1141,7 +1225,13 @@ U_CAPI wchar_t* U_EXPORT2 u_strToWCS(wchar_t* dest, int32_t destCapacity, int32_
  * @return The pointer to destination buffer.
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strFromWCS(UChar* dest, int32_t destCapacity, int32_t* pDestLength, const wchar_t* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI UChar* U_EXPORT2
+u_strFromWCS(UChar   *dest,
+             int32_t destCapacity, 
+             int32_t *pDestLength,
+             const wchar_t *src,
+             int32_t srcLength,
+             UErrorCode *pErrorCode);
 #endif /* defined(U_WCHAR_IS_UTF16) || defined(U_WCHAR_IS_UTF32) || !UCONFIG_NO_CONVERSION */
 
 /**
@@ -1151,11 +1241,11 @@ U_CAPI UChar* U_EXPORT2 u_strFromWCS(UChar* dest, int32_t destCapacity, int32_t*
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of chars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1166,7 +1256,13 @@ U_CAPI UChar* U_EXPORT2 u_strFromWCS(UChar* dest, int32_t destCapacity, int32_t*
  * @see u_strToUTF8WithSub
  * @see u_strFromUTF8
  */
-U_CAPI char* U_EXPORT2 u_strToUTF8(char* dest, int32_t destCapacity, int32_t* pDestLength, const UChar* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI char* U_EXPORT2 
+u_strToUTF8(char *dest,           
+            int32_t destCapacity,
+            int32_t *pDestLength,
+            const UChar *src, 
+            int32_t srcLength,
+            UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-8 string to UTF-16.
@@ -1175,11 +1271,11 @@ U_CAPI char* U_EXPORT2 u_strToUTF8(char* dest, int32_t destCapacity, int32_t* pD
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of UChars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1190,7 +1286,13 @@ U_CAPI char* U_EXPORT2 u_strToUTF8(char* dest, int32_t destCapacity, int32_t* pD
  * @see u_strFromUTF8WithSub
  * @see u_strFromUTF8Lenient
  */
-U_CAPI UChar* U_EXPORT2 u_strFromUTF8(UChar* dest, int32_t destCapacity, int32_t* pDestLength, const char* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI UChar* U_EXPORT2
+u_strFromUTF8(UChar *dest,             
+              int32_t destCapacity,
+              int32_t *pDestLength,
+              const char *src, 
+              int32_t srcLength,
+              UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-16 string to UTF-8.
@@ -1202,11 +1304,11 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF8(UChar* dest, int32_t destCapacity, int32_t
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of chars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1227,8 +1329,14 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF8(UChar* dest, int32_t destCapacity, int32_t
  * @see u_strFromUTF8WithSub
  * @stable ICU 3.6
  */
-U_CAPI char* U_EXPORT2 u_strToUTF8WithSub(char* dest, int32_t destCapacity, int32_t* pDestLength, const UChar* src, int32_t srcLength, UChar32 subchar,
-    int32_t* pNumSubstitutions, UErrorCode* pErrorCode);
+U_CAPI char* U_EXPORT2
+u_strToUTF8WithSub(char *dest,
+            int32_t destCapacity,
+            int32_t *pDestLength,
+            const UChar *src,
+            int32_t srcLength,
+            UChar32 subchar, int32_t *pNumSubstitutions,
+            UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-8 string to UTF-16.
@@ -1240,11 +1348,11 @@ U_CAPI char* U_EXPORT2 u_strToUTF8WithSub(char* dest, int32_t destCapacity, int3
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of UChars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1266,8 +1374,14 @@ U_CAPI char* U_EXPORT2 u_strToUTF8WithSub(char* dest, int32_t destCapacity, int3
  * @see u_strToUTF8WithSub
  * @stable ICU 3.6
  */
-U_CAPI UChar* U_EXPORT2 u_strFromUTF8WithSub(UChar* dest, int32_t destCapacity, int32_t* pDestLength, const char* src, int32_t srcLength, UChar32 subchar,
-    int32_t* pNumSubstitutions, UErrorCode* pErrorCode);
+U_CAPI UChar* U_EXPORT2
+u_strFromUTF8WithSub(UChar *dest,
+              int32_t destCapacity,
+              int32_t *pDestLength,
+              const char *src,
+              int32_t srcLength,
+              UChar32 subchar, int32_t *pNumSubstitutions,
+              UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-8 string to UTF-16.
@@ -1296,13 +1410,13 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF8WithSub(UChar* dest, int32_t destCapacity, 
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of UChars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
  *                      Unlike for other ICU functions, if srcLength>=0 then it
  *                      must be destCapacity>=srcLength.
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  *                      Unlike for other ICU functions, if srcLength>=0 but
  *                      destCapacity<srcLength, then *pDestLength will be set to srcLength
@@ -1320,8 +1434,13 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF8WithSub(UChar* dest, int32_t destCapacity, 
  * @see u_strToUTF8WithSub
  * @stable ICU 3.6
  */
-U_CAPI UChar* U_EXPORT2 u_strFromUTF8Lenient(
-    UChar* dest, int32_t destCapacity, int32_t* pDestLength, const char* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI UChar * U_EXPORT2
+u_strFromUTF8Lenient(UChar *dest,
+                     int32_t destCapacity,
+                     int32_t *pDestLength,
+                     const char *src,
+                     int32_t srcLength,
+                     UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-16 string to UTF-32.
@@ -1330,11 +1449,11 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF8Lenient(
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of UChar32s). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1345,7 +1464,13 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF8Lenient(
  * @see u_strFromUTF32
  * @stable ICU 2.0
  */
-U_CAPI UChar32* U_EXPORT2 u_strToUTF32(UChar32* dest, int32_t destCapacity, int32_t* pDestLength, const UChar* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI UChar32* U_EXPORT2 
+u_strToUTF32(UChar32 *dest, 
+             int32_t  destCapacity,
+             int32_t  *pDestLength,
+             const UChar *src, 
+             int32_t  srcLength,
+             UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-32 string to UTF-16.
@@ -1354,11 +1479,11 @@ U_CAPI UChar32* U_EXPORT2 u_strToUTF32(UChar32* dest, int32_t destCapacity, int3
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of UChars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1369,7 +1494,13 @@ U_CAPI UChar32* U_EXPORT2 u_strToUTF32(UChar32* dest, int32_t destCapacity, int3
  * @see u_strToUTF32
  * @stable ICU 2.0
  */
-U_CAPI UChar* U_EXPORT2 u_strFromUTF32(UChar* dest, int32_t destCapacity, int32_t* pDestLength, const UChar32* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI UChar* U_EXPORT2 
+u_strFromUTF32(UChar   *dest,
+               int32_t destCapacity, 
+               int32_t *pDestLength,
+               const UChar32 *src,
+               int32_t srcLength,
+               UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-16 string to UTF-32.
@@ -1406,8 +1537,14 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF32(UChar* dest, int32_t destCapacity, int32_
  * @see u_strFromUTF32WithSub
  * @stable ICU 4.2
  */
-U_CAPI UChar32* U_EXPORT2 u_strToUTF32WithSub(UChar32* dest, int32_t destCapacity, int32_t* pDestLength, const UChar* src, int32_t srcLength, UChar32 subchar,
-    int32_t* pNumSubstitutions, UErrorCode* pErrorCode);
+U_CAPI UChar32* U_EXPORT2
+u_strToUTF32WithSub(UChar32 *dest,
+             int32_t destCapacity,
+             int32_t *pDestLength,
+             const UChar *src,
+             int32_t srcLength,
+             UChar32 subchar, int32_t *pNumSubstitutions,
+             UErrorCode *pErrorCode);
 
 /**
  * Convert a UTF-32 string to UTF-16.
@@ -1444,8 +1581,14 @@ U_CAPI UChar32* U_EXPORT2 u_strToUTF32WithSub(UChar32* dest, int32_t destCapacit
  * @see u_strToUTF32WithSub
  * @stable ICU 4.2
  */
-U_CAPI UChar* U_EXPORT2 u_strFromUTF32WithSub(UChar* dest, int32_t destCapacity, int32_t* pDestLength, const UChar32* src, int32_t srcLength, UChar32 subchar,
-    int32_t* pNumSubstitutions, UErrorCode* pErrorCode);
+U_CAPI UChar* U_EXPORT2
+u_strFromUTF32WithSub(UChar *dest,
+               int32_t destCapacity,
+               int32_t *pDestLength,
+               const UChar32 *src,
+               int32_t srcLength,
+               UChar32 subchar, int32_t *pNumSubstitutions,
+               UErrorCode *pErrorCode);
 
 /**
  * Convert a 16-bit Unicode string to Java Modified UTF-8.
@@ -1462,11 +1605,11 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF32WithSub(UChar* dest, int32_t destCapacity,
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of chars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1479,12 +1622,18 @@ U_CAPI UChar* U_EXPORT2 u_strFromUTF32WithSub(UChar* dest, int32_t destCapacity,
  * @see u_strToUTF8WithSub
  * @see u_strFromJavaModifiedUTF8WithSub
  */
-U_CAPI char* U_EXPORT2 u_strToJavaModifiedUTF8(
-    char* dest, int32_t destCapacity, int32_t* pDestLength, const UChar* src, int32_t srcLength, UErrorCode* pErrorCode);
+U_CAPI char* U_EXPORT2 
+u_strToJavaModifiedUTF8(
+        char *dest,
+        int32_t destCapacity,
+        int32_t *pDestLength,
+        const UChar *src, 
+        int32_t srcLength,
+        UErrorCode *pErrorCode);
 
 /**
  * Convert a Java Modified UTF-8 string to a 16-bit Unicode string.
- * If the input string is not well-formed and no substitution char is specified,
+ * If the input string is not well-formed and no substitution char is specified, 
  * then the U_INVALID_CHAR_FOUND error code is set.
  *
  * This function behaves according to the documentation for Java DataInput.readUTF()
@@ -1497,11 +1646,11 @@ U_CAPI char* U_EXPORT2 u_strToJavaModifiedUTF8(
  * @param dest          A buffer for the result string. The result will be zero-terminated if
  *                      the buffer is large enough.
  * @param destCapacity  The size of the buffer (number of UChars). If it is 0, then
- *                      dest may be NULL and the function will only return the length of the
+ *                      dest may be NULL and the function will only return the length of the 
  *                      result without writing any of the result string (pre-flighting).
- * @param pDestLength   A pointer to receive the number of units written to the destination. If
- *                      pDestLength!=NULL then *pDestLength is always set to the
- *                      number of output units corresponding to the transformation of
+ * @param pDestLength   A pointer to receive the number of units written to the destination. If 
+ *                      pDestLength!=NULL then *pDestLength is always set to the 
+ *                      number of output units corresponding to the transformation of 
  *                      all the input units, even in case of a buffer overflow.
  * @param src           The original source string
  * @param srcLength     The length of the original string. If -1, then src must be zero-terminated.
@@ -1523,7 +1672,14 @@ U_CAPI char* U_EXPORT2 u_strToJavaModifiedUTF8(
  * @see u_strToJavaModifiedUTF8
  * @stable ICU 4.4
  */
-U_CAPI UChar* U_EXPORT2 u_strFromJavaModifiedUTF8WithSub(UChar* dest, int32_t destCapacity, int32_t* pDestLength, const char* src, int32_t srcLength,
-    UChar32 subchar, int32_t* pNumSubstitutions, UErrorCode* pErrorCode);
+U_CAPI UChar* U_EXPORT2
+u_strFromJavaModifiedUTF8WithSub(
+        UChar *dest,
+        int32_t destCapacity,
+        int32_t *pDestLength,
+        const char *src,
+        int32_t srcLength,
+        UChar32 subchar, int32_t *pNumSubstitutions,
+        UErrorCode *pErrorCode);
 
 #endif

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -36,39 +36,41 @@
 
 U_NAMESPACE_BEGIN
 
-U_IO_API STD_OSTREAM& U_EXPORT2 operator<<(STD_OSTREAM& stream, const UnicodeString& str)
+U_IO_API STD_OSTREAM & U_EXPORT2
+operator<<(STD_OSTREAM& stream, const UnicodeString& str)
 {
-    if (str.length() > 0) {
+    if(str.length() > 0) {
         char buffer[200];
-        UConverter* converter;
+        UConverter *converter;
         UErrorCode errorCode = U_ZERO_ERROR;
 
         // use the default converter to convert chunks of text
         converter = u_getDefaultConverter(&errorCode);
-        if (U_SUCCESS(errorCode)) {
-            const UChar* us = str.getBuffer();
-            const UChar* uLimit = us + str.length();
+        if(U_SUCCESS(errorCode)) {
+            const char16_t *us = str.getBuffer();
+            const char16_t *uLimit = us + str.length();
             char *s, *sLimit = buffer + (sizeof(buffer) - 1);
             do {
                 errorCode = U_ZERO_ERROR;
                 s = buffer;
-                ucnv_fromUnicode(converter, &s, sLimit, &us, uLimit, 0, FALSE, &errorCode);
+                ucnv_fromUnicode(converter, &s, sLimit, &us, uLimit, 0, false, &errorCode);
                 *s = 0;
 
                 // write this chunk
-                if (s > buffer) {
+                if(s > buffer) {
                     stream << buffer;
                 }
-            } while (errorCode == U_BUFFER_OVERFLOW_ERROR);
+            } while(errorCode == U_BUFFER_OVERFLOW_ERROR);
             u_releaseDefaultConverter(converter);
         }
     }
 
-    /*    stream.flush();*/
+/*    stream.flush();*/
     return stream;
 }
 
-U_IO_API STD_ISTREAM& U_EXPORT2 operator>>(STD_ISTREAM& stream, UnicodeString& str)
+U_IO_API STD_ISTREAM & U_EXPORT2
+operator>>(STD_ISTREAM& stream, UnicodeString& str)
 {
     // This is like ICU status checking.
     if (stream.fail()) {
@@ -76,22 +78,22 @@ U_IO_API STD_ISTREAM& U_EXPORT2 operator>>(STD_ISTREAM& stream, UnicodeString& s
     }
 
     /* ipfx should eat whitespace when ios::skipws is set */
-    UChar uBuffer[16];
+    char16_t uBuffer[16];
     char buffer[16];
     int32_t idx = 0;
-    UConverter* converter;
+    UConverter *converter;
     UErrorCode errorCode = U_ZERO_ERROR;
 
     // use the default converter to convert chunks of text
     converter = u_getDefaultConverter(&errorCode);
-    if (U_SUCCESS(errorCode)) {
-        UChar* us = uBuffer;
-        const UChar* uLimit = uBuffer + UPRV_LENGTHOF(uBuffer);
+    if(U_SUCCESS(errorCode)) {
+        char16_t *us = uBuffer;
+        const char16_t *uLimit = uBuffer + UPRV_LENGTHOF(uBuffer);
         const char *s, *sLimit;
         char ch;
-        UChar ch32;
-        UBool initialWhitespace = TRUE;
-        UBool continueReading = TRUE;
+        char16_t ch32;
+        UBool initialWhitespace = true;
+        UBool continueReading = true;
 
         /* We need to consume one byte at a time to see what is considered whitespace. */
         while (continueReading) {
@@ -101,7 +103,7 @@ U_IO_API STD_ISTREAM& U_EXPORT2 operator>>(STD_ISTREAM& stream, UnicodeString& s
                 if (!initialWhitespace) {
                     stream.clear(stream.eofbit);
                 }
-                continueReading = FALSE;
+                continueReading = false;
             }
             sLimit = &ch + (int)continueReading;
             us = uBuffer;
@@ -113,7 +115,7 @@ U_IO_API STD_ISTREAM& U_EXPORT2 operator>>(STD_ISTREAM& stream, UnicodeString& s
             We flush on the last byte to ensure that we output truncated multibyte characters.
             */
             ucnv_toUnicode(converter, &us, uLimit, &s, sLimit, 0, !continueReading, &errorCode);
-            if (U_FAILURE(errorCode)) {
+            if(U_FAILURE(errorCode)) {
                 /* Something really bad happened. setstate() isn't always an available API */
                 stream.clear(stream.failbit);
                 goto STOP_READING;
@@ -121,7 +123,7 @@ U_IO_API STD_ISTREAM& U_EXPORT2 operator>>(STD_ISTREAM& stream, UnicodeString& s
             /* Was the character consumed? */
             if (us != uBuffer) {
                 /* Reminder: ibm-1390 & JISX0213 can output 2 Unicode code points */
-                int32_t uBuffSize = static_cast<int32_t>(us - uBuffer);
+                int32_t uBuffSize = static_cast<int32_t>(us-uBuffer);
                 int32_t uBuffIdx = 0;
                 while (uBuffIdx < uBuffSize) {
                     U16_NEXT(uBuffer, uBuffIdx, uBuffSize, ch32);
@@ -134,30 +136,32 @@ U_IO_API STD_ISTREAM& U_EXPORT2 operator>>(STD_ISTREAM& stream, UnicodeString& s
                             goto STOP_READING;
                         }
                         /* else skip intialWhitespace */
-                    } else {
+                    }
+                    else {
                         if (initialWhitespace) {
                             /*
-                            When initialWhitespace is TRUE, we haven't appended any
+                            When initialWhitespace is true, we haven't appended any
                             character yet.  This is where we truncate the string,
                             to avoid modifying the string before we know if we can
                             actually read from the stream.
                             */
                             str.truncate(0);
-                            initialWhitespace = FALSE;
+                            initialWhitespace = false;
                         }
                         str.append(ch32);
                     }
                 }
                 idx = 0;
-            } else {
+            }
+            else {
                 buffer[idx++] = ch;
             }
         }
-    STOP_READING:
+STOP_READING:
         u_releaseDefaultConverter(converter);
     }
 
-    /*    stream.flush();*/
+/*    stream.flush();*/
     return stream;
 }
 

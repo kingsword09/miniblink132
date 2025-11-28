@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -138,26 +138,26 @@
  * @deprecated ICU 56 Use unorm2.h instead.
  */
 typedef enum {
-    /** No decomposition/composition. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_NONE = 1,
-    /** Canonical decomposition. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_NFD = 2,
-    /** Compatibility decomposition. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_NFKD = 3,
-    /** Canonical decomposition followed by canonical composition. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_NFC = 4,
-    /** Default normalization. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_DEFAULT = UNORM_NFC,
-    /** Compatibility decomposition followed by canonical composition. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_NFKC = 5,
-    /** "Fast C or D" form. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_FCD = 6,
+  /** No decomposition/composition. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_NONE = 1,
+  /** Canonical decomposition. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_NFD = 2,
+  /** Compatibility decomposition. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_NFKD = 3,
+  /** Canonical decomposition followed by canonical composition. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_NFC = 4,
+  /** Default normalization. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_DEFAULT = UNORM_NFC,
+  /** Compatibility decomposition followed by canonical composition. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_NFKC =5,
+  /** "Fast C or D" form. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_FCD = 6,
 
-    /** One more than the highest normalization mode constant. @deprecated ICU 56 Use unorm2.h instead. */
-    UNORM_MODE_COUNT
+  /** One more than the highest normalization mode constant. @deprecated ICU 56 Use unorm2.h instead. */
+  UNORM_MODE_COUNT
 } UNormalizationMode;
 
-#endif // U_FORCE_HIDE_DEPRECATED_API
+#endif  // U_FORCE_HIDE_DEPRECATED_API
 
 #ifndef U_HIDE_DEPRECATED_API
 
@@ -175,7 +175,7 @@ enum {
      * At most one Unicode version can be selected at a time.
      * @deprecated ICU 56 Use unorm2.h instead.
      */
-    UNORM_UNICODE_3_2 = 0x20
+    UNORM_UNICODE_3_2=0x20
 };
 
 /**
@@ -214,8 +214,11 @@ enum {
  *         the output was truncated, and the error code is set to U_BUFFER_OVERFLOW_ERROR.
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED int32_t U_EXPORT2 unorm_normalize(
-    const UChar* source, int32_t sourceLength, UNormalizationMode mode, int32_t options, UChar* result, int32_t resultLength, UErrorCode* status);
+U_DEPRECATED int32_t U_EXPORT2
+unorm_normalize(const UChar *source, int32_t sourceLength,
+                UNormalizationMode mode, int32_t options,
+                UChar *result, int32_t resultLength,
+                UErrorCode *status);
 
 /**
  * Performing quick check on a string, to quickly determine if the string is
@@ -237,7 +240,10 @@ U_DEPRECATED int32_t U_EXPORT2 unorm_normalize(
  * @see unorm_isNormalized
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED UNormalizationCheckResult U_EXPORT2 unorm_quickCheck(const UChar* source, int32_t sourcelength, UNormalizationMode mode, UErrorCode* status);
+U_DEPRECATED UNormalizationCheckResult U_EXPORT2
+unorm_quickCheck(const UChar *source, int32_t sourcelength,
+                 UNormalizationMode mode,
+                 UErrorCode *status);
 
 /**
  * Performing quick check on a string; same as unorm_quickCheck but
@@ -255,8 +261,10 @@ U_DEPRECATED UNormalizationCheckResult U_EXPORT2 unorm_quickCheck(const UChar* s
  * @see unorm_isNormalized
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED UNormalizationCheckResult U_EXPORT2 unorm_quickCheckWithOptions(
-    const UChar* src, int32_t srcLength, UNormalizationMode mode, int32_t options, UErrorCode* pErrorCode);
+U_DEPRECATED UNormalizationCheckResult U_EXPORT2
+unorm_quickCheckWithOptions(const UChar *src, int32_t srcLength,
+                            UNormalizationMode mode, int32_t options,
+                            UErrorCode *pErrorCode);
 
 /**
  * Test if a string is in a given normalization form.
@@ -279,7 +287,10 @@ U_DEPRECATED UNormalizationCheckResult U_EXPORT2 unorm_quickCheckWithOptions(
  * @see unorm_quickCheck
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED UBool U_EXPORT2 unorm_isNormalized(const UChar* src, int32_t srcLength, UNormalizationMode mode, UErrorCode* pErrorCode);
+U_DEPRECATED UBool U_EXPORT2
+unorm_isNormalized(const UChar *src, int32_t srcLength,
+                   UNormalizationMode mode,
+                   UErrorCode *pErrorCode);
 
 /**
  * Test if a string is in a given normalization form; same as unorm_isNormalized but
@@ -298,8 +309,10 @@ U_DEPRECATED UBool U_EXPORT2 unorm_isNormalized(const UChar* src, int32_t srcLen
  * @see unorm_isNormalized
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED UBool U_EXPORT2 unorm_isNormalizedWithOptions(
-    const UChar* src, int32_t srcLength, UNormalizationMode mode, int32_t options, UErrorCode* pErrorCode);
+U_DEPRECATED UBool U_EXPORT2
+unorm_isNormalizedWithOptions(const UChar *src, int32_t srcLength,
+                              UNormalizationMode mode, int32_t options,
+                              UErrorCode *pErrorCode);
 
 /**
  * Iterative normalization forward.
@@ -374,8 +387,12 @@ U_DEPRECATED UBool U_EXPORT2 unorm_isNormalizedWithOptions(
  *
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED int32_t U_EXPORT2 unorm_next(UCharIterator* src, UChar* dest, int32_t destCapacity, UNormalizationMode mode, int32_t options, UBool doNormalize,
-    UBool* pNeededToNormalize, UErrorCode* pErrorCode);
+U_DEPRECATED int32_t U_EXPORT2
+unorm_next(UCharIterator *src,
+           UChar *dest, int32_t destCapacity,
+           UNormalizationMode mode, int32_t options,
+           UBool doNormalize, UBool *pNeededToNormalize,
+           UErrorCode *pErrorCode);
 
 /**
  * Iterative normalization backward.
@@ -403,8 +420,12 @@ U_DEPRECATED int32_t U_EXPORT2 unorm_next(UCharIterator* src, UChar* dest, int32
  *
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED int32_t U_EXPORT2 unorm_previous(UCharIterator* src, UChar* dest, int32_t destCapacity, UNormalizationMode mode, int32_t options,
-    UBool doNormalize, UBool* pNeededToNormalize, UErrorCode* pErrorCode);
+U_DEPRECATED int32_t U_EXPORT2
+unorm_previous(UCharIterator *src,
+               UChar *dest, int32_t destCapacity,
+               UNormalizationMode mode, int32_t options,
+               UBool doNormalize, UBool *pNeededToNormalize,
+               UErrorCode *pErrorCode);
 
 /**
  * Concatenate normalized strings, making sure that the result is normalized as well.
@@ -443,9 +464,13 @@ U_DEPRECATED int32_t U_EXPORT2 unorm_previous(UCharIterator* src, UChar* dest, i
  *
  * @deprecated ICU 56 Use unorm2.h instead.
  */
-U_DEPRECATED int32_t U_EXPORT2 unorm_concatenate(const UChar* left, int32_t leftLength, const UChar* right, int32_t rightLength, UChar* dest,
-    int32_t destCapacity, UNormalizationMode mode, int32_t options, UErrorCode* pErrorCode);
+U_DEPRECATED int32_t U_EXPORT2
+unorm_concatenate(const UChar *left, int32_t leftLength,
+                  const UChar *right, int32_t rightLength,
+                  UChar *dest, int32_t destCapacity,
+                  UNormalizationMode mode, int32_t options,
+                  UErrorCode *pErrorCode);
 
-#endif /* U_HIDE_DEPRECATED_API */
+#endif  /* U_HIDE_DEPRECATED_API */
 #endif /* #if !UCONFIG_NO_NORMALIZATION */
 #endif

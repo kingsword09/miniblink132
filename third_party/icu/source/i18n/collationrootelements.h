@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -32,11 +32,8 @@ U_NAMESPACE_BEGIN
  */
 class U_I18N_API CollationRootElements : public UMemory {
 public:
-    CollationRootElements(const uint32_t* rootElements, int32_t rootElementsLength)
-        : elements(rootElements)
-        , length(rootElementsLength)
-    {
-    }
+    CollationRootElements(const uint32_t *rootElements, int32_t rootElementsLength)
+            : elements(rootElements), length(rootElementsLength) {}
 
     /**
      * Higher than any root primary.
@@ -92,24 +89,21 @@ public:
      * This is the upper limit for tertiaries of primary/secondary CEs.
      * This minus one is the lower limit for tertiaries of tertiary CEs.
      */
-    uint32_t getTertiaryBoundary() const
-    {
+    uint32_t getTertiaryBoundary() const {
         return (elements[IX_SEC_TER_BOUNDARIES] << 8) & 0xff00;
     }
 
     /**
      * Returns the first assigned tertiary CE.
      */
-    uint32_t getFirstTertiaryCE() const
-    {
+    uint32_t getFirstTertiaryCE() const {
         return elements[elements[IX_FIRST_TERTIARY_INDEX]] & ~SEC_TER_DELTA_FLAG;
     }
 
     /**
      * Returns the last assigned tertiary CE.
      */
-    uint32_t getLastTertiaryCE() const
-    {
+    uint32_t getLastTertiaryCE() const {
         return elements[elements[IX_FIRST_SECONDARY_INDEX] - 1] & ~SEC_TER_DELTA_FLAG;
     }
 
@@ -117,8 +111,7 @@ public:
      * Returns the last common secondary weight.
      * This is the lower limit for secondaries of primary CEs.
      */
-    uint32_t getLastCommonSecondary() const
-    {
+    uint32_t getLastCommonSecondary() const {
         return (elements[IX_SEC_TER_BOUNDARIES] >> 16) & 0xff00;
     }
 
@@ -128,40 +121,35 @@ public:
      * This is the upper limit for secondaries of primary CEs.
      * This minus one is the lower limit for secondaries of secondary CEs.
      */
-    uint32_t getSecondaryBoundary() const
-    {
+    uint32_t getSecondaryBoundary() const {
         return (elements[IX_SEC_TER_BOUNDARIES] >> 8) & 0xff00;
     }
 
     /**
      * Returns the first assigned secondary CE.
      */
-    uint32_t getFirstSecondaryCE() const
-    {
+    uint32_t getFirstSecondaryCE() const {
         return elements[elements[IX_FIRST_SECONDARY_INDEX]] & ~SEC_TER_DELTA_FLAG;
     }
 
     /**
      * Returns the last assigned secondary CE.
      */
-    uint32_t getLastSecondaryCE() const
-    {
+    uint32_t getLastSecondaryCE() const {
         return elements[elements[IX_FIRST_PRIMARY_INDEX] - 1] & ~SEC_TER_DELTA_FLAG;
     }
 
     /**
      * Returns the first assigned primary weight.
      */
-    uint32_t getFirstPrimary() const
-    {
-        return elements[elements[IX_FIRST_PRIMARY_INDEX]]; // step=0: cannot be a range end
+    uint32_t getFirstPrimary() const {
+        return elements[elements[IX_FIRST_PRIMARY_INDEX]];  // step=0: cannot be a range end
     }
 
     /**
      * Returns the first assigned primary CE.
      */
-    int64_t getFirstPrimaryCE() const
-    {
+    int64_t getFirstPrimaryCE() const {
         return Collation::makeCE(getFirstPrimary());
     }
 
@@ -236,8 +224,7 @@ private:
      */
     int32_t findP(uint32_t p) const;
 
-    static inline UBool isEndOfPrimaryRange(uint32_t q)
-    {
+    static inline UBool isEndOfPrimaryRange(uint32_t q) {
         return (q & SEC_TER_DELTA_FLAG) == 0 && (q & PRIMARY_STEP_MASK) != 0;
     }
 
@@ -279,11 +266,11 @@ private:
      * There are no elements for unassigned-implicit primary CEs.
      * All primaries stored here are at most 3 bytes long.
      */
-    const uint32_t* elements;
+    const uint32_t *elements;
     int32_t length;
 };
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __COLLATIONROOTELEMENTS_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __COLLATIONROOTELEMENTS_H__

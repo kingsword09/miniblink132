@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -33,58 +33,50 @@ U_NAMESPACE_BEGIN
  */
 class U_I18N_API UTF16CollationIterator : public CollationIterator {
 public:
-    UTF16CollationIterator(const CollationData* d, UBool numeric, const UChar* s, const UChar* p, const UChar* lim)
-        : CollationIterator(d, numeric)
-        , start(s)
-        , pos(p)
-        , limit(lim)
-    {
-    }
+    UTF16CollationIterator(const CollationData *d, UBool numeric,
+                           const char16_t *s, const char16_t *p, const char16_t *lim)
+            : CollationIterator(d, numeric),
+              start(s), pos(p), limit(lim) {}
 
-    UTF16CollationIterator(const UTF16CollationIterator& other, const UChar* newText);
+    UTF16CollationIterator(const UTF16CollationIterator &other, const char16_t *newText);
 
     virtual ~UTF16CollationIterator();
 
-    virtual bool operator==(const CollationIterator& other) const override;
+    virtual bool operator==(const CollationIterator &other) const override;
 
     virtual void resetToOffset(int32_t newOffset) override;
 
     virtual int32_t getOffset() const override;
 
-    void setText(const UChar* s, const UChar* lim)
-    {
+    void setText(const char16_t *s, const char16_t *lim) {
         reset();
         start = pos = s;
         limit = lim;
     }
 
-    virtual UChar32 nextCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 nextCodePoint(UErrorCode &errorCode) override;
 
-    virtual UChar32 previousCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 previousCodePoint(UErrorCode &errorCode) override;
 
 protected:
     // Copy constructor only for subclasses which set the pointers.
-    UTF16CollationIterator(const UTF16CollationIterator& other)
-        : CollationIterator(other)
-        , start(NULL)
-        , pos(NULL)
-        , limit(NULL)
-    {
-    }
+    UTF16CollationIterator(const UTF16CollationIterator &other)
+            : CollationIterator(other),
+              start(nullptr), pos(nullptr), limit(nullptr) {}
 
-    virtual uint32_t handleNextCE32(UChar32& c, UErrorCode& errorCode) override;
+    virtual uint32_t handleNextCE32(UChar32 &c, UErrorCode &errorCode) override;
 
-    virtual UChar handleGetTrailSurrogate() override;
+    virtual char16_t handleGetTrailSurrogate() override;
 
     virtual UBool foundNULTerminator() override;
 
-    virtual void forwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
+    virtual void forwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
 
-    virtual void backwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
+    virtual void backwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
 
     // UTF-16 string pointers.
-    // limit can be NULL for NUL-terminated strings.
-    const UChar *start, *pos, *limit;
+    // limit can be nullptr for NUL-terminated strings.
+    const char16_t *start, *pos, *limit;
 };
 
 /**
@@ -92,39 +84,35 @@ protected:
  */
 class U_I18N_API FCDUTF16CollationIterator : public UTF16CollationIterator {
 public:
-    FCDUTF16CollationIterator(const CollationData* data, UBool numeric, const UChar* s, const UChar* p, const UChar* lim)
-        : UTF16CollationIterator(data, numeric, s, p, lim)
-        , rawStart(s)
-        , segmentStart(p)
-        , segmentLimit(NULL)
-        , rawLimit(lim)
-        , nfcImpl(data->nfcImpl)
-        , checkDir(1)
-    {
-    }
+    FCDUTF16CollationIterator(const CollationData *data, UBool numeric,
+                              const char16_t *s, const char16_t *p, const char16_t *lim)
+            : UTF16CollationIterator(data, numeric, s, p, lim),
+              rawStart(s), segmentStart(p), segmentLimit(nullptr), rawLimit(lim),
+              nfcImpl(data->nfcImpl),
+              checkDir(1) {}
 
-    FCDUTF16CollationIterator(const FCDUTF16CollationIterator& other, const UChar* newText);
+    FCDUTF16CollationIterator(const FCDUTF16CollationIterator &other, const char16_t *newText);
 
     virtual ~FCDUTF16CollationIterator();
 
-    virtual bool operator==(const CollationIterator& other) const override;
+    virtual bool operator==(const CollationIterator &other) const override;
 
     virtual void resetToOffset(int32_t newOffset) override;
 
     virtual int32_t getOffset() const override;
 
-    virtual UChar32 nextCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 nextCodePoint(UErrorCode &errorCode) override;
 
-    virtual UChar32 previousCodePoint(UErrorCode& errorCode) override;
+    virtual UChar32 previousCodePoint(UErrorCode &errorCode) override;
 
 protected:
-    virtual uint32_t handleNextCE32(UChar32& c, UErrorCode& errorCode) override;
+    virtual uint32_t handleNextCE32(UChar32 &c, UErrorCode &errorCode) override;
 
     virtual UBool foundNULTerminator() override;
 
-    virtual void forwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
+    virtual void forwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
 
-    virtual void backwardNumCodePoints(int32_t num, UErrorCode& errorCode) override;
+    virtual void backwardNumCodePoints(int32_t num, UErrorCode &errorCode) override;
 
 private:
     /**
@@ -139,7 +127,7 @@ private:
      * To be called when checkDir > 0 && pos != limit.
      * @return true if success, checkDir == 0 and pos != limit
      */
-    UBool nextSegment(UErrorCode& errorCode);
+    UBool nextSegment(UErrorCode &errorCode);
 
     /**
      * Switches to backward checking.
@@ -153,12 +141,12 @@ private:
      * To be called when checkDir < 0 && pos != start.
      * @return true if success, checkDir == 0 and pos != start
      */
-    UBool previousSegment(UErrorCode& errorCode);
+    UBool previousSegment(UErrorCode &errorCode);
 
-    UBool normalize(const UChar* from, const UChar* to, UErrorCode& errorCode);
+    UBool normalize(const char16_t *from, const char16_t *to, UErrorCode &errorCode);
 
     // Text pointers: The input text is [rawStart, rawLimit[
-    // where rawLimit can be NULL for NUL-terminated text.
+    // where rawLimit can be nullptr for NUL-terminated text.
     //
     // checkDir > 0:
     //
@@ -180,13 +168,13 @@ private:
     // or the current segment had to be normalized so that
     // [segmentStart..segmentLimit[ turned into the normalized string,
     // corresponding to normalized.getBuffer()==start<=pos<=limit==start+normalized.length().
-    const UChar* rawStart;
-    const UChar* segmentStart;
-    const UChar* segmentLimit;
-    // rawLimit==NULL for a NUL-terminated string.
-    const UChar* rawLimit;
+    const char16_t *rawStart;
+    const char16_t *segmentStart;
+    const char16_t *segmentLimit;
+    // rawLimit==nullptr for a NUL-terminated string.
+    const char16_t *rawLimit;
 
-    const Normalizer2Impl& nfcImpl;
+    const Normalizer2Impl &nfcImpl;
     UnicodeString normalized;
     // Direction of incremental FCD check. See comments before rawStart.
     int8_t checkDir;
@@ -194,5 +182,5 @@ private:
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __UTF16COLLATIONITERATOR_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __UTF16COLLATIONITERATOR_H__

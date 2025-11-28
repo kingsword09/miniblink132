@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -28,10 +28,12 @@ using namespace icu::number::impl;
 
 using icu::double_conversion::DoubleToStringConverter;
 
+
 namespace {
 
-const char16_t* doGetPattern(UResourceBundle* res, const char* nsName, const char* patternKey, UErrorCode& publicStatus, UErrorCode& localStatus)
-{
+const char16_t*
+doGetPattern(UResourceBundle* res, const char* nsName, const char* patternKey, UErrorCode& publicStatus,
+             UErrorCode& localStatus) {
     // Construct the path into the resource bundle
     CharString key;
     key.append("NumberElements/", publicStatus);
@@ -46,64 +48,58 @@ const char16_t* doGetPattern(UResourceBundle* res, const char* nsName, const cha
 
 }
 
-const char16_t* utils::getPatternForStyle(const Locale& locale, const char* nsName, CldrPatternStyle style, UErrorCode& status)
-{
+
+const char16_t* utils::getPatternForStyle(const Locale& locale, const char* nsName, CldrPatternStyle style,
+                                          UErrorCode& status) {
     const char* patternKey;
     switch (style) {
-    case CLDR_PATTERN_STYLE_DECIMAL:
-        patternKey = "decimalFormat";
-        break;
-    case CLDR_PATTERN_STYLE_CURRENCY:
-        patternKey = "currencyFormat";
-        break;
-    case CLDR_PATTERN_STYLE_ACCOUNTING:
-        patternKey = "accountingFormat";
-        break;
-    case CLDR_PATTERN_STYLE_PERCENT:
-        patternKey = "percentFormat";
-        break;
-    case CLDR_PATTERN_STYLE_SCIENTIFIC:
-        patternKey = "scientificFormat";
-        break;
-    default:
-        patternKey = "decimalFormat"; // silence compiler error
-        UPRV_UNREACHABLE_EXIT;
+        case CLDR_PATTERN_STYLE_DECIMAL:
+            patternKey = "decimalFormat";
+            break;
+        case CLDR_PATTERN_STYLE_CURRENCY:
+            patternKey = "currencyFormat";
+            break;
+        case CLDR_PATTERN_STYLE_ACCOUNTING:
+            patternKey = "accountingFormat";
+            break;
+        case CLDR_PATTERN_STYLE_PERCENT:
+            patternKey = "percentFormat";
+            break;
+        case CLDR_PATTERN_STYLE_SCIENTIFIC:
+            patternKey = "scientificFormat";
+            break;
+        default:
+            patternKey = "decimalFormat"; // silence compiler error
+            UPRV_UNREACHABLE_EXIT;
     }
     LocalUResourceBundlePointer res(ures_open(nullptr, locale.getName(), &status));
-    if (U_FAILURE(status)) {
-        return u"";
-    }
+    if (U_FAILURE(status)) { return u""; }
 
     // Attempt to get the pattern with the native numbering system.
     UErrorCode localStatus = U_ZERO_ERROR;
     const char16_t* pattern;
     pattern = doGetPattern(res.getAlias(), nsName, patternKey, status, localStatus);
-    if (U_FAILURE(status)) {
-        return u"";
-    }
+    if (U_FAILURE(status)) { return u""; }
 
     // Fall back to latn if native numbering system does not have the right pattern
     if (U_FAILURE(localStatus) && uprv_strcmp("latn", nsName) != 0) {
         localStatus = U_ZERO_ERROR;
         pattern = doGetPattern(res.getAlias(), "latn", patternKey, status, localStatus);
-        if (U_FAILURE(status)) {
-            return u"";
-        }
+        if (U_FAILURE(status)) { return u""; }
     }
 
     return pattern;
 }
 
-DecNum::DecNum()
-{
+
+DecNum::DecNum() {
     uprv_decContextDefault(&fContext, DEC_INIT_BASE);
     uprv_decContextSetRounding(&fContext, DEC_ROUND_HALF_EVEN);
     fContext.traps = 0; // no traps, thank you (what does this even mean?)
 }
 
 DecNum::DecNum(const DecNum& other, UErrorCode& status)
-    : fContext(other.fContext)
-{
+        : fContext(other.fContext) {
     // Allocate memory for the new DecNum.
     U_ASSERT(fContext.digits == other.fData.getCapacity());
     if (fContext.digits > kDefaultDigits) {
@@ -116,26 +112,23 @@ DecNum::DecNum(const DecNum& other, UErrorCode& status)
 
     // Copy the data from the old DecNum to the new one.
     uprv_memcpy(fData.getAlias(), other.fData.getAlias(), sizeof(decNumber));
-    uprv_memcpy(fData.getArrayStart(), other.fData.getArrayStart(), other.fData.getArrayLimit() - other.fData.getArrayStart());
+    uprv_memcpy(fData.getArrayStart(),
+            other.fData.getArrayStart(),
+            other.fData.getArrayLimit() - other.fData.getArrayStart());
 }
 
-void DecNum::setTo(StringPiece str, UErrorCode& status)
-{
+void DecNum::setTo(StringPiece str, UErrorCode& status) {
     // We need NUL-terminated for decNumber; CharString guarantees this, but not StringPiece.
     CharString cstr(str, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
+    if (U_FAILURE(status)) { return; }
     _setTo(cstr.data(), str.length(), status);
 }
 
-void DecNum::setTo(const char* str, UErrorCode& status)
-{
+void DecNum::setTo(const char* str, UErrorCode& status) {
     _setTo(str, static_cast<int32_t>(uprv_strlen(str)), status);
 }
 
-void DecNum::setTo(double d, UErrorCode& status)
-{
+void DecNum::setTo(double d, UErrorCode& status) {
     // Need to check for NaN and Infinity before going into DoubleToStringConverter
     if (std::isnan(d) != 0 || std::isfinite(d) == 0) {
         status = U_UNSUPPORTED_ERROR;
@@ -148,7 +141,16 @@ void DecNum::setTo(double d, UErrorCode& status)
     bool sign; // unused; always positive
     int32_t length;
     int32_t point;
-    DoubleToStringConverter::DoubleToAscii(d, DoubleToStringConverter::DtoaMode::SHORTEST, 0, buffer, sizeof(buffer), &sign, &length, &point);
+    DoubleToStringConverter::DoubleToAscii(
+            d,
+            DoubleToStringConverter::DtoaMode::SHORTEST,
+            0,
+            buffer,
+            sizeof(buffer),
+            &sign,
+            &length,
+            &point
+    );
 
     // Read initial result as a string.
     _setTo(buffer, length, status);
@@ -158,8 +160,7 @@ void DecNum::setTo(double d, UErrorCode& status)
     fData.getAlias()->bits |= static_cast<uint8_t>(std::signbit(d) ? DECNEG : 0);
 }
 
-void DecNum::_setTo(const char* str, int32_t maxDigits, UErrorCode& status)
-{
+void DecNum::_setTo(const char* str, int32_t maxDigits, UErrorCode& status) {
     if (maxDigits > kDefaultDigits) {
         fData.resize(maxDigits, 0);
         fContext.digits = maxDigits;
@@ -181,8 +182,8 @@ void DecNum::_setTo(const char* str, int32_t maxDigits, UErrorCode& status)
     }
 }
 
-void DecNum::setTo(const uint8_t* bcd, int32_t length, int32_t scale, bool isNegative, UErrorCode& status)
-{
+void
+DecNum::setTo(const uint8_t* bcd, int32_t length, int32_t scale, bool isNegative, UErrorCode& status) {
     if (length > kDefaultDigits) {
         fData.resize(length, 0);
         fContext.digits = length;
@@ -217,21 +218,18 @@ void DecNum::setTo(const uint8_t* bcd, int32_t length, int32_t scale, bool isNeg
     }
 }
 
-void DecNum::normalize()
-{
+void DecNum::normalize() {
     uprv_decNumberReduce(fData, fData, &fContext);
 }
 
-void DecNum::multiplyBy(const DecNum& rhs, UErrorCode& status)
-{
+void DecNum::multiplyBy(const DecNum& rhs, UErrorCode& status) {
     uprv_decNumberMultiply(fData, fData, rhs.fData, &fContext);
     if (fContext.status != 0) {
         status = U_INTERNAL_PROGRAM_ERROR;
     }
 }
 
-void DecNum::divideBy(const DecNum& rhs, UErrorCode& status)
-{
+void DecNum::divideBy(const DecNum& rhs, UErrorCode& status) {
     uprv_decNumberDivide(fData, fData, rhs.fData, &fContext);
     if ((fContext.status & DEC_Inexact) != 0) {
         // Ignore.
@@ -240,33 +238,27 @@ void DecNum::divideBy(const DecNum& rhs, UErrorCode& status)
     }
 }
 
-bool DecNum::isNegative() const
-{
+bool DecNum::isNegative() const {
     return decNumberIsNegative(fData.getAlias());
 }
 
-bool DecNum::isZero() const
-{
+bool DecNum::isZero() const {
     return decNumberIsZero(fData.getAlias());
 }
 
-bool DecNum::isSpecial() const
-{
+bool DecNum::isSpecial() const {
     return decNumberIsSpecial(fData.getAlias());
 }
 
-bool DecNum::isInfinity() const
-{
+bool DecNum::isInfinity() const {
     return decNumberIsInfinite(fData.getAlias());
 }
 
-bool DecNum::isNaN() const
-{
+bool DecNum::isNaN() const {
     return decNumberIsNaN(fData.getAlias());
 }
 
-void DecNum::toString(ByteSink& output, UErrorCode& status) const
-{
+void DecNum::toString(ByteSink& output, UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return;
     }

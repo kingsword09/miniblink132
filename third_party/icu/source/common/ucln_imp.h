@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -15,6 +15,7 @@
 *   This file contains the platform specific implementation of per-library cleanup.
 *
 */
+
 
 #ifndef __UCLN_IMP_H__
 #define __UCLN_IMP_H__
@@ -57,9 +58,9 @@
 /*static void ucln_unRegisterAutomaticCleanup();*/
 
 #ifdef UCLN_TYPE_IS_COMMON
-#define UCLN_CLEAN_ME_UP u_cleanup()
+#   define UCLN_CLEAN_ME_UP u_cleanup()
 #else
-#define UCLN_CLEAN_ME_UP ucln_cleanupOne(UCLN_TYPE)
+#   define UCLN_CLEAN_ME_UP ucln_cleanupOne(UCLN_TYPE)
 #endif
 
 /* ------------ automatic cleanup: registration. Choose ONE ------- */
@@ -86,50 +87,49 @@ static void ucln_atexit_handler()
 
 static void ucln_registerAutomaticCleanup()
 {
-    if (!gAutoCleanRegistered) {
+    if(!gAutoCleanRegistered) {
         gAutoCleanRegistered = true;
         atexit(&ucln_atexit_handler);
     }
 }
 
-static void ucln_unRegisterAutomaticCleanup()
-{
+static void ucln_unRegisterAutomaticCleanup () {
 }
 /* ------------end of automatic cleanup: registration. ------- */
 
-#elif defined(UCLN_FINI)
+#elif defined (UCLN_FINI)
 /**
  * If UCLN_FINI is defined, it is the (versioned, etc) name of a cleanup
  * entrypoint. Add a stub to call ucln_cleanupOne
  * Used on AIX, Solaris, and HP-UX
  */
-U_CAPI void U_EXPORT2 UCLN_FINI(void);
+U_CAPI void U_EXPORT2 UCLN_FINI (void);
 
-U_CAPI void U_EXPORT2 UCLN_FINI()
+U_CAPI void U_EXPORT2 UCLN_FINI ()
 {
     /* This function must be defined, if UCLN_FINI is defined, else link error. */
-    UCLN_CLEAN_ME_UP;
+     UCLN_CLEAN_ME_UP;
 }
 
 /* Windows: DllMain */
 #elif U_PLATFORM_HAS_WIN32_API
-/*
+/* 
  * ICU's own DllMain.
  */
 
 /* these are from putil.c */
 /* READ READ READ READ!    Are you getting compilation errors from windows.h?
-          Any source file which includes this (ucln_imp.h) header MUST
+          Any source file which includes this (ucln_imp.h) header MUST 
           be defined with language extensions ON. */
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+#   define WIN32_LEAN_AND_MEAN
 #endif
-#define VC_EXTRALEAN
-#define NOUSER
-#define NOSERVICE
-#define NOIME
-#define NOMCX
-#include <windows.h>
+#   define VC_EXTRALEAN
+#   define NOUSER
+#   define NOSERVICE
+#   define NOIME
+#   define NOMCX
+#   include <windows.h>
 /*
  * This is a stub DllMain function with icu specific process handling code.
  */
@@ -137,37 +137,38 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     BOOL status = true;
 
-    switch (fdwReason) {
-    case DLL_PROCESS_ATTACH:
-        /* ICU does not trap process attach, but must pass these through properly. */
-        /* ICU specific process attach could go here */
-        break;
+    switch(fdwReason) {
+        case DLL_PROCESS_ATTACH:
+             /* ICU does not trap process attach, but must pass these through properly. */
+            /* ICU specific process attach could go here */
+            break;
 
-    case DLL_PROCESS_DETACH:
-        /* Here is the one we actually care about. */
+        case DLL_PROCESS_DETACH:
+            /* Here is the one we actually care about. */
 
-        UCLN_CLEAN_ME_UP;
+            UCLN_CLEAN_ME_UP;
 
-        break;
+            break;
 
-    case DLL_THREAD_ATTACH:
-        /* ICU does not trap thread attach, but must pass these through properly. */
-        /* ICU specific thread attach could go here */
-        break;
+        case DLL_THREAD_ATTACH:
+            /* ICU does not trap thread attach, but must pass these through properly. */
+            /* ICU specific thread attach could go here */
+            break;
 
-    case DLL_THREAD_DETACH:
-        /* ICU does not trap thread detach, but must pass these through properly. */
-        /* ICU specific thread detach could go here */
-        break;
+        case DLL_THREAD_DETACH:
+            /* ICU does not trap thread detach, but must pass these through properly. */
+            /* ICU specific thread detach could go here */
+            break;
+
     }
     return status;
 }
 
 #elif defined(__GNUC__)
 /* GCC - use __attribute((destructor)) */
-static void ucln_destructor() __attribute__((destructor));
+static void ucln_destructor()   __attribute__((destructor)) ;
 
-static void ucln_destructor()
+static void ucln_destructor() 
 {
     UCLN_CLEAN_ME_UP;
 }

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -33,18 +33,18 @@ U_NAMESPACE_USE
 //|         TESTCASE(0,TestSomething);
 //|         TESTCASE(1,TestSomethingElse);
 //|         TESTCASE(2,TestAnotherThing);
-//|         default:
+//|         default: 
 //|             name = "";
 //|             break;
 //|     }
-//|     return NULL;
+//|     return nullptr;
 //| }
-#define TESTCASE(id, test)                                                                                                                                     \
-    case id:                                                                                                                                                   \
-        name = #test;                                                                                                                                          \
-        if (exec) {                                                                                                                                            \
-            return test();                                                                                                                                     \
-        }                                                                                                                                                      \
+#define TESTCASE(id,test)                       \
+    case id:                                    \
+        name = #test;                           \
+        if (exec) {                             \
+            return test();                      \
+        }                                       \
         break
 
 // More convenient macros. These allow easy reordering of the test cases.
@@ -57,24 +57,24 @@ U_NAMESPACE_USE
 //|     TESTCASE_AUTO(TestSomethingElse);
 //|     TESTCASE_AUTO(TestAnotherThing);
 //|     TESTCASE_AUTO_END;
-//|     return NULL;
+//|     return nullptr;
 //| }
-#define TESTCASE_AUTO_BEGIN                                                                                                                                    \
-    for (;;) {                                                                                                                                                 \
+#define TESTCASE_AUTO_BEGIN \
+    for(;;) { \
         int32_t testCaseAutoNumber = 0
 
-#define TESTCASE_AUTO(test)                                                                                                                                    \
-    if (index == testCaseAutoNumber++) {                                                                                                                       \
-        name = #test;                                                                                                                                          \
-        if (exec) {                                                                                                                                            \
-            return test();                                                                                                                                     \
-        }                                                                                                                                                      \
-        break;                                                                                                                                                 \
-    }
+#define TESTCASE_AUTO(test) \
+        if (index == testCaseAutoNumber++) { \
+            name = #test; \
+            if (exec) { \
+                return test(); \
+            } \
+            break; \
+        }
 
-#define TESTCASE_AUTO_END                                                                                                                                      \
-    name = "";                                                                                                                                                 \
-    break;                                                                                                                                                     \
+#define TESTCASE_AUTO_END \
+        name = ""; \
+        break; \
     }
 
 /**
@@ -94,22 +94,21 @@ public:
      * Subclasses must implement this method to do the action to be
      * measured.
      */
-    virtual void call(UErrorCode* status) = 0;
+    virtual void call(UErrorCode* status)=0;
 
     /**
      * Subclasses must implement this method to return positive
      * integer indicating the number of operations in a single
      * call to this object's call() method.
      */
-    virtual long getOperationsPerIteration() = 0;
+    virtual long getOperationsPerIteration()=0;
     /**
      * Subclasses should override this method to return either positive
      * or negative integer indicating the number of events in a single
      * call to this object's call() method, if applicable
      * e.g: Number of breaks / iterations for break iterator
      */
-    virtual long getEventsPerIteration()
-    {
+    virtual long getEventsPerIteration(){
         return -1;
     }
     /**
@@ -118,75 +117,79 @@ public:
      * result may be zero.  Small return values have limited
      * meaningfulness, depending on the underlying CPU and OS.
      */
-    virtual double time(int32_t n, UErrorCode* status)
-    {
+     virtual double time(int32_t n, UErrorCode* status) {
         UTimer start, stop;
-        utimer_getTime(&start);
+        utimer_getTime(&start); 
         while (n-- > 0) {
             call(status);
         }
         utimer_getTime(&stop);
-        return utimer_getDeltaSeconds(&start, &stop); // ms
+        return utimer_getDeltaSeconds(&start,&stop); // ms
     }
+
 };
+
 
 class T_CTEST_EXPORT_API UPerfTest {
 public:
     UBool run();
-    UBool runTest(char* name = NULL, char* par = NULL); // not to be overridden
-
-    virtual void usage(void);
-
+    UBool runTest( char* name = nullptr, char* par = nullptr ); // not to be overridden
+        
+    virtual void usage() ;
+    
     virtual ~UPerfTest();
 
-    void setCaller(UPerfTest* callingTest); // for internal use only
-
-    void setPath(char* path); // for internal use only
-
+    void setCaller( UPerfTest* callingTest ); // for internal use only
+    
+    void setPath( char* path ); // for internal use only
+    
     ULine* getLines(UErrorCode& status);
 
-    const UChar* getBuffer(int32_t& len, UErrorCode& status);
+    const char16_t* getBuffer(int32_t& len,UErrorCode& status);
 
 protected:
     UPerfTest(int32_t argc, const char* argv[], UErrorCode& status);
 
-    UPerfTest(int32_t argc, const char* argv[], UOption addOptions[], int32_t addOptionsCount, const char* addUsage, UErrorCode& status);
+    UPerfTest(int32_t argc, const char* argv[],
+              UOption addOptions[], int32_t addOptionsCount,
+              const char *addUsage,
+              UErrorCode& status);
 
-    void init(UOption addOptions[], int32_t addOptionsCount, UErrorCode& status);
+    void init(UOption addOptions[], int32_t addOptionsCount,
+              UErrorCode& status);
 
-    virtual UPerfFunction* runIndexedTest(int32_t index, UBool exec, const char*& name, char* par = NULL); // override !
+    virtual UPerfFunction* runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = nullptr ); // override !
 
-    virtual UBool runTestLoop(char* testname, char* par);
+    virtual UBool runTestLoop( char* testname, char* par );
 
-    virtual UBool callTest(UPerfTest& testToBeCalled, char* par);
+    virtual UBool callTest( UPerfTest& testToBeCalled, char* par );
 
-    int32_t _argc;
+    int32_t      _argc;
     const char** _argv;
-    const char* _addUsage;
-    char* resolvedFileName;
-    UCHARBUF* ucharBuf;
-    const char* encoding;
-    UBool uselen;
-    const char* fileName;
-    const char* sourceDir;
-    int32_t _remainingArgc;
-    ULine* lines;
-    int32_t numLines;
-    UBool line_mode;
-    UChar* buffer;
-    int32_t bufferLen;
-    UBool verbose;
-    UBool bulk_mode;
-    int32_t passes;
-    int32_t iterations;
-    int32_t time;
-    const char* locale;
-
+    const char * _addUsage;
+    char*        resolvedFileName;
+    UCHARBUF*    ucharBuf;
+    const char*  encoding;
+    UBool        uselen;
+    const char*  fileName;
+    const char*  sourceDir;
+    int32_t      _remainingArgc;
+    ULine*       lines;
+    int32_t      numLines;
+    UBool        line_mode;
+    char16_t* buffer;
+    int32_t      bufferLen;
+    UBool        verbose;
+    UBool        bulk_mode;
+    int32_t      passes;
+    int32_t      iterations;
+    int32_t      time;
+    const char*  locale;
 private:
-    UPerfTest* caller;
-    char* path; // specifies subtests
+    UPerfTest*   caller;
+    char*        path;           // specifies subtests
 
-    // static members
+// static members
 public:
     static UPerfTest* gTest;
     static const char gUsageString[];
@@ -194,3 +197,4 @@ public:
 
 #endif
 #endif
+

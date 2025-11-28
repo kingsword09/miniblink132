@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -19,18 +19,18 @@ U_NAMESPACE_BEGIN
 namespace number {
 namespace impl {
 
+
 class AutoAffixPatternProvider;
 class CurrencyPluralInfoAffixProvider;
 
+
 class PropertiesAffixPatternProvider : public AffixPatternProvider, public UMemory {
-public:
-    bool isBogus() const
-    {
+  public:
+    bool isBogus() const {
         return fBogus;
     }
 
-    void setToBogus()
-    {
+    void setToBogus() {
         fBogus = true;
     }
 
@@ -38,27 +38,27 @@ public:
 
     // AffixPatternProvider Methods:
 
-    char16_t charAt(int32_t flags, int32_t i) const U_OVERRIDE;
+    char16_t charAt(int32_t flags, int32_t i) const override;
 
-    int32_t length(int32_t flags) const U_OVERRIDE;
+    int32_t length(int32_t flags) const override;
 
-    UnicodeString getString(int32_t flags) const U_OVERRIDE;
+    UnicodeString getString(int32_t flags) const override;
 
-    bool hasCurrencySign() const U_OVERRIDE;
+    bool hasCurrencySign() const override;
 
-    bool positiveHasPlusSign() const U_OVERRIDE;
+    bool positiveHasPlusSign() const override;
 
-    bool hasNegativeSubpattern() const U_OVERRIDE;
+    bool hasNegativeSubpattern() const override;
 
-    bool negativeHasMinusSign() const U_OVERRIDE;
+    bool negativeHasMinusSign() const override;
 
-    bool containsSymbolType(AffixPatternType, UErrorCode&) const U_OVERRIDE;
+    bool containsSymbolType(AffixPatternType, UErrorCode&) const override;
 
-    bool hasBody() const U_OVERRIDE;
+    bool hasBody() const override;
 
-    bool currencyAsDecimal() const U_OVERRIDE;
+    bool currencyAsDecimal() const override;
 
-private:
+  private:
     UnicodeString posPrefix;
     UnicodeString posSuffix;
     UnicodeString negPrefix;
@@ -70,69 +70,68 @@ private:
 
     const UnicodeString& getStringInternal(int32_t flags) const;
 
-    bool fBogus { true };
+    bool fBogus{true};
 
     friend class AutoAffixPatternProvider;
     friend class CurrencyPluralInfoAffixProvider;
 };
 
+
 class CurrencyPluralInfoAffixProvider : public AffixPatternProvider, public UMemory {
-public:
-    bool isBogus() const
-    {
+  public:
+    bool isBogus() const {
         return fBogus;
     }
 
-    void setToBogus()
-    {
+    void setToBogus() {
         fBogus = true;
     }
 
-    void setTo(const CurrencyPluralInfo& cpi, const DecimalFormatProperties& properties, UErrorCode& status);
+    void setTo(const CurrencyPluralInfo& cpi, const DecimalFormatProperties& properties,
+               UErrorCode& status);
 
     // AffixPatternProvider Methods:
 
-    char16_t charAt(int32_t flags, int32_t i) const U_OVERRIDE;
+    char16_t charAt(int32_t flags, int32_t i) const override;
 
-    int32_t length(int32_t flags) const U_OVERRIDE;
+    int32_t length(int32_t flags) const override;
 
-    UnicodeString getString(int32_t flags) const U_OVERRIDE;
+    UnicodeString getString(int32_t flags) const override;
 
-    bool hasCurrencySign() const U_OVERRIDE;
+    bool hasCurrencySign() const override;
 
-    bool positiveHasPlusSign() const U_OVERRIDE;
+    bool positiveHasPlusSign() const override;
 
-    bool hasNegativeSubpattern() const U_OVERRIDE;
+    bool hasNegativeSubpattern() const override;
 
-    bool negativeHasMinusSign() const U_OVERRIDE;
+    bool negativeHasMinusSign() const override;
 
-    bool containsSymbolType(AffixPatternType, UErrorCode&) const U_OVERRIDE;
+    bool containsSymbolType(AffixPatternType, UErrorCode&) const override;
 
-    bool hasBody() const U_OVERRIDE;
+    bool hasBody() const override;
 
-    bool currencyAsDecimal() const U_OVERRIDE;
+    bool currencyAsDecimal() const override;
 
-private:
+  private:
     PropertiesAffixPatternProvider affixesByPlural[StandardPlural::COUNT];
 
     CurrencyPluralInfoAffixProvider() = default;
 
-    bool fBogus { true };
+    bool fBogus{true};
 
     friend class AutoAffixPatternProvider;
 };
 
+
 class AutoAffixPatternProvider {
-public:
+  public:
     inline AutoAffixPatternProvider() = default;
 
-    inline AutoAffixPatternProvider(const DecimalFormatProperties& properties, UErrorCode& status)
-    {
+    inline AutoAffixPatternProvider(const DecimalFormatProperties& properties, UErrorCode& status) {
         setTo(properties, status);
     }
 
-    inline void setTo(const DecimalFormatProperties& properties, UErrorCode& status)
-    {
+    inline void setTo(const DecimalFormatProperties& properties, UErrorCode& status) {
         if (properties.currencyPluralInfo.fPtr.isNull()) {
             propertiesAPP.setTo(properties, status);
             currencyPluralInfoAPP.setToBogus();
@@ -142,8 +141,7 @@ public:
         }
     }
 
-    inline void setTo(const AffixPatternProvider* provider, UErrorCode& status)
-    {
+    inline void setTo(const AffixPatternProvider* provider, UErrorCode& status) {
         if (auto ptr = dynamic_cast<const PropertiesAffixPatternProvider*>(provider)) {
             propertiesAPP = *ptr;
         } else if (auto ptr = dynamic_cast<const CurrencyPluralInfoAffixProvider*>(provider)) {
@@ -153,19 +151,19 @@ public:
         }
     }
 
-    inline const AffixPatternProvider& get() const
-    {
-        if (!currencyPluralInfoAPP.isBogus()) {
-            return currencyPluralInfoAPP;
-        } else {
-            return propertiesAPP;
-        }
+    inline const AffixPatternProvider& get() const {
+      if (!currencyPluralInfoAPP.isBogus()) {
+        return currencyPluralInfoAPP;
+      } else {
+        return propertiesAPP;
+      }
     }
 
-private:
+  private:
     PropertiesAffixPatternProvider propertiesAPP;
     CurrencyPluralInfoAffixProvider currencyPluralInfoAPP;
 };
+
 
 /**
  * A struct for ownership of a few objects needed for formatting.
@@ -175,20 +173,17 @@ struct DecimalFormatWarehouse : public UMemory {
     LocalPointer<PluralRules> rules;
 };
 
+
 /**
- * Internal fields for DecimalFormat.
- * TODO: Make some of these fields by value instead of by LocalPointer?
- */
+* Internal fields for DecimalFormat.
+* TODO: Make some of these fields by value instead of by LocalPointer?
+*/
 struct DecimalFormatFields : public UMemory {
 
-    DecimalFormatFields()
-    {
-    }
+    DecimalFormatFields() {}
 
     DecimalFormatFields(const DecimalFormatProperties& propsToCopy)
-        : properties(propsToCopy)
-    {
-    }
+        : properties(propsToCopy) {}
 
     /** The property bag corresponding to user-specified settings and settings from the pattern string. */
     DecimalFormatProperties properties;
@@ -197,9 +192,9 @@ struct DecimalFormatFields : public UMemory {
     LocalPointer<const DecimalFormatSymbols> symbols;
 
     /**
-     * The pre-computed formatter object. Setters cause this to be re-computed atomically. The {@link
-     * #format} method uses the formatter directly without needing to synchronize.
-     */
+    * The pre-computed formatter object. Setters cause this to be re-computed atomically. The {@link
+    * #format} method uses the formatter directly without needing to synchronize.
+    */
     LocalizedNumberFormatter formatter;
 
     /** The lazy-computed parser for .parse() */
@@ -225,18 +220,23 @@ struct DecimalFormatFields : public UMemory {
     } fastData;
 };
 
+
 /**
  * Utilities for converting between a DecimalFormatProperties and a MacroProps.
  */
 class NumberPropertyMapper {
-public:
+  public:
     /** Convenience method to create a NumberFormatter directly from Properties. */
-    static UnlocalizedNumberFormatter create(
-        const DecimalFormatProperties& properties, const DecimalFormatSymbols& symbols, DecimalFormatWarehouse& warehouse, UErrorCode& status);
+    static UnlocalizedNumberFormatter create(const DecimalFormatProperties& properties,
+                                             const DecimalFormatSymbols& symbols,
+                                             DecimalFormatWarehouse& warehouse, UErrorCode& status);
 
     /** Convenience method to create a NumberFormatter directly from Properties. */
-    static UnlocalizedNumberFormatter create(const DecimalFormatProperties& properties, const DecimalFormatSymbols& symbols, DecimalFormatWarehouse& warehouse,
-        DecimalFormatProperties& exportedProperties, UErrorCode& status);
+    static UnlocalizedNumberFormatter create(const DecimalFormatProperties& properties,
+                                             const DecimalFormatSymbols& symbols,
+                                             DecimalFormatWarehouse& warehouse,
+                                             DecimalFormatProperties& exportedProperties,
+                                             UErrorCode& status);
 
     /**
      * Creates a new {@link MacroProps} object based on the content of a {@link DecimalFormatProperties}
@@ -252,9 +252,11 @@ public:
      *            getters.
      * @return A new MacroProps containing all of the information in the Properties.
      */
-    static MacroProps oldToNew(const DecimalFormatProperties& properties, const DecimalFormatSymbols& symbols, DecimalFormatWarehouse& warehouse,
-        DecimalFormatProperties* exportedProperties, UErrorCode& status);
+    static MacroProps oldToNew(const DecimalFormatProperties& properties,
+                               const DecimalFormatSymbols& symbols, DecimalFormatWarehouse& warehouse,
+                               DecimalFormatProperties* exportedProperties, UErrorCode& status);
 };
+
 
 } // namespace impl
 } // namespace numparse

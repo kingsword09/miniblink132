@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -27,14 +27,14 @@
  * By default, U_ASSERT just wraps the C library assert macro.
  * By changing the definition here, the assert behavior for ICU can be changed
  * without affecting other non - ICU uses of the C library assert().
- */
+*/
 #if U_DEBUG
-#include <assert.h>
-#define U_ASSERT(exp) assert(exp)
+#   include <assert.h>
+#   define U_ASSERT(exp) assert(exp)
 #elif U_CPLUSPLUS_VERSION
-#define U_ASSERT(exp) (void)0
+#   define U_ASSERT(exp) (void)0
 #else
-#define U_ASSERT(exp)
+#   define U_ASSERT(exp)
 #endif
 
 /**
@@ -45,27 +45,27 @@
  * of unconditionally calling abort(). However we also allow redefinition as
  * with UPRV_UNREACHABLE_EXIT.
  * @internal
- */
+*/
 #if defined(UPRV_UNREACHABLE_ASSERT)
-// Use the predefined value.
+    // Use the predefined value.
 #elif U_DEBUG
-#include <assert.h>
-#define UPRV_UNREACHABLE_ASSERT assert(false)
+#   include <assert.h>
+#   define UPRV_UNREACHABLE_ASSERT assert(false)
 #elif U_CPLUSPLUS_VERSION
-#define UPRV_UNREACHABLE_ASSERT (void)0
+#   define UPRV_UNREACHABLE_ASSERT (void)0
 #else
-#define UPRV_UNREACHABLE_ASSERT
+#   define UPRV_UNREACHABLE_ASSERT
 #endif
 
 /**
  * \def UPRV_UNREACHABLE_EXIT
  * This macro is used to unconditionally abort if unreachable code is ever executed.
  * @internal
- */
+*/
 #if defined(UPRV_UNREACHABLE_EXIT)
-// Use the predefined value.
+    // Use the predefined value.
 #else
-#define UPRV_UNREACHABLE_EXIT abort()
+#   define UPRV_UNREACHABLE_EXIT abort()
 #endif
 
 #endif

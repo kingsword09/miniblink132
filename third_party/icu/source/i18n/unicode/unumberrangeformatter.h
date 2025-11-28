@@ -1,4 +1,4 @@
-﻿// © 2020 and later: Unicode, Inc. and others.
+// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __UNUMBERRANGEFORMATTER_H__
@@ -14,9 +14,10 @@
 #include "unicode/uformattedvalue.h"
 #include "unicode/uformattable.h"
 
+
 /**
  * \file
- * \brief C-compatible API for localized number range formatting.
+ * \brief C API: Localized number range formatting
  *
  * This is the C-compatible version of the NumberRangeFormatter API. C++ users
  * should include unicode/numberrangeformatter.h and use the proper C++ APIs.
@@ -192,9 +193,10 @@ typedef enum UNumberRangeIdentityResult {
      * @internal
      */
     UNUM_IDENTITY_RESULT_COUNT
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
 } UNumberRangeIdentityResult;
+
 
 struct UNumberRangeFormatter;
 /**
@@ -206,6 +208,7 @@ struct UNumberRangeFormatter;
  */
 typedef struct UNumberRangeFormatter UNumberRangeFormatter;
 
+
 struct UFormattedNumberRange;
 /**
  * C-compatible version of icu::number::FormattedNumberRange.
@@ -215,6 +218,7 @@ struct UFormattedNumberRange;
  * @stable ICU 68
  */
 typedef struct UFormattedNumberRange UFormattedNumberRange;
+
 
 /**
  * Creates a new UNumberFormatter for the given skeleton string, collapse option, identity fallback
@@ -237,8 +241,16 @@ typedef struct UFormattedNumberRange UFormattedNumberRange;
  * @param ec Set if an error occurs.
  * @stable ICU 68
  */
-U_CAPI UNumberRangeFormatter* U_EXPORT2 unumrf_openForSkeletonWithCollapseAndIdentityFallback(const UChar* skeleton, int32_t skeletonLen,
-    UNumberRangeCollapse collapse, UNumberRangeIdentityFallback identityFallback, const char* locale, UParseError* perror, UErrorCode* ec);
+U_CAPI UNumberRangeFormatter* U_EXPORT2
+unumrf_openForSkeletonWithCollapseAndIdentityFallback(
+    const UChar* skeleton,
+    int32_t skeletonLen,
+    UNumberRangeCollapse collapse,
+    UNumberRangeIdentityFallback identityFallback,
+    const char* locale,
+    UParseError* perror,
+    UErrorCode* ec);
+
 
 /**
  * Creates an object to hold the result of a UNumberRangeFormatter
@@ -248,7 +260,9 @@ U_CAPI UNumberRangeFormatter* U_EXPORT2 unumrf_openForSkeletonWithCollapseAndIde
  * @param ec Set if an error occurs.
  * @stable ICU 68
  */
-U_CAPI UFormattedNumberRange* U_EXPORT2 unumrf_openResult(UErrorCode* ec);
+U_CAPI UFormattedNumberRange* U_EXPORT2
+unumrf_openResult(UErrorCode* ec);
+
 
 /**
  * Uses a UNumberRangeFormatter to format a range of doubles.
@@ -265,8 +279,14 @@ U_CAPI UFormattedNumberRange* U_EXPORT2 unumrf_openResult(UErrorCode* ec);
  * @param ec Set if an error occurs.
  * @stable ICU 68
  */
-U_CAPI void U_EXPORT2 unumrf_formatDoubleRange(
-    const UNumberRangeFormatter* uformatter, double first, double second, UFormattedNumberRange* uresult, UErrorCode* ec);
+U_CAPI void U_EXPORT2
+unumrf_formatDoubleRange(
+    const UNumberRangeFormatter* uformatter,
+    double first,
+    double second,
+    UFormattedNumberRange* uresult,
+    UErrorCode* ec);
+
 
 /**
  * Uses a UNumberRangeFormatter to format a range of decimal numbers.
@@ -287,8 +307,16 @@ U_CAPI void U_EXPORT2 unumrf_formatDoubleRange(
  * @param ec Set if an error occurs.
  * @stable ICU 68
  */
-U_CAPI void U_EXPORT2 unumrf_formatDecimalRange(const UNumberRangeFormatter* uformatter, const char* first, int32_t firstLen, const char* second,
-    int32_t secondLen, UFormattedNumberRange* uresult, UErrorCode* ec);
+U_CAPI void U_EXPORT2
+unumrf_formatDecimalRange(
+    const UNumberRangeFormatter* uformatter,
+    const char* first,
+    int32_t firstLen,
+    const char* second,
+    int32_t secondLen,
+    UFormattedNumberRange* uresult,
+    UErrorCode* ec);
+
 
 /**
  * Returns a representation of a UFormattedNumberRange as a UFormattedValue,
@@ -304,7 +332,9 @@ U_CAPI void U_EXPORT2 unumrf_formatDecimalRange(const UNumberRangeFormatter* ufo
  * @return A UFormattedValue owned by the input object.
  * @stable ICU 68
  */
-U_CAPI const UFormattedValue* U_EXPORT2 unumrf_resultAsValue(const UFormattedNumberRange* uresult, UErrorCode* ec);
+U_CAPI const UFormattedValue* U_EXPORT2
+unumrf_resultAsValue(const UFormattedNumberRange* uresult, UErrorCode* ec);
+
 
 /**
  * Extracts the identity result from a UFormattedNumberRange.
@@ -316,13 +346,17 @@ U_CAPI const UFormattedValue* U_EXPORT2 unumrf_resultAsValue(const UFormattedNum
  * @return The identity result; see UNumberRangeIdentityResult.
  * @stable ICU 68
  */
-U_CAPI UNumberRangeIdentityResult U_EXPORT2 unumrf_resultGetIdentityResult(const UFormattedNumberRange* uresult, UErrorCode* ec);
+U_CAPI UNumberRangeIdentityResult U_EXPORT2
+unumrf_resultGetIdentityResult(
+    const UFormattedNumberRange* uresult,
+    UErrorCode* ec);
+
 
 /**
  * Extracts the first formatted number as a decimal number. This endpoint
  * is useful for obtaining the exact number being printed after scaling
  * and rounding have been applied by the number range formatting pipeline.
- *
+ * 
  * The syntax of the unformatted number is a "numeric string"
  * as defined in the Decimal Arithmetic Specification, available at
  * http://speleotrove.com/decimal
@@ -337,13 +371,19 @@ U_CAPI UNumberRangeIdentityResult U_EXPORT2 unumrf_resultGetIdentityResult(const
  * @return Number of chars in the data.  Does not include a trailing NUL.
  * @stable ICU 68
  */
-U_CAPI int32_t U_EXPORT2 unumrf_resultGetFirstDecimalNumber(const UFormattedNumberRange* uresult, char* dest, int32_t destCapacity, UErrorCode* ec);
+U_CAPI int32_t U_EXPORT2
+unumrf_resultGetFirstDecimalNumber(
+    const UFormattedNumberRange* uresult,
+    char* dest,
+    int32_t destCapacity,
+    UErrorCode* ec);
+
 
 /**
  * Extracts the second formatted number as a decimal number. This endpoint
  * is useful for obtaining the exact number being printed after scaling
  * and rounding have been applied by the number range formatting pipeline.
- *
+ * 
  * The syntax of the unformatted number is a "numeric string"
  * as defined in the Decimal Arithmetic Specification, available at
  * http://speleotrove.com/decimal
@@ -358,7 +398,13 @@ U_CAPI int32_t U_EXPORT2 unumrf_resultGetFirstDecimalNumber(const UFormattedNumb
  * @return Number of chars in the data.  Does not include a trailing NUL.
  * @stable ICU 68
  */
-U_CAPI int32_t U_EXPORT2 unumrf_resultGetSecondDecimalNumber(const UFormattedNumberRange* uresult, char* dest, int32_t destCapacity, UErrorCode* ec);
+U_CAPI int32_t U_EXPORT2
+unumrf_resultGetSecondDecimalNumber(
+    const UFormattedNumberRange* uresult,
+    char* dest,
+    int32_t destCapacity,
+    UErrorCode* ec);
+
 
 /**
  * Releases the UNumberFormatter created by unumf_openForSkeletonAndLocale().
@@ -366,7 +412,9 @@ U_CAPI int32_t U_EXPORT2 unumrf_resultGetSecondDecimalNumber(const UFormattedNum
  * @param uformatter An object created by unumf_openForSkeletonAndLocale().
  * @stable ICU 68
  */
-U_CAPI void U_EXPORT2 unumrf_close(UNumberRangeFormatter* uformatter);
+U_CAPI void U_EXPORT2
+unumrf_close(UNumberRangeFormatter* uformatter);
+
 
 /**
  * Releases the UFormattedNumber created by unumf_openResult().
@@ -374,7 +422,9 @@ U_CAPI void U_EXPORT2 unumrf_close(UNumberRangeFormatter* uformatter);
  * @param uresult An object created by unumf_openResult().
  * @stable ICU 68
  */
-U_CAPI void U_EXPORT2 unumrf_closeResult(UFormattedNumberRange* uresult);
+U_CAPI void U_EXPORT2
+unumrf_closeResult(UFormattedNumberRange* uresult);
+
 
 #if U_SHOW_CPLUSPLUS_API
 U_NAMESPACE_BEGIN

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -44,9 +44,9 @@
  * The central function is _uhash_find().  This function looks for a
  * slot matching the given key and hashcode.  If one is found, it
  * returns a pointer to that slot.  If the table is full, and no match
- * is found, it returns NULL -- in theory.  This would make the code
+ * is found, it returns nullptr -- in theory.  This would make the code
  * more complicated, since all callers of _uhash_find() would then
- * have to check for a NULL result.  To keep this from happening, we
+ * have to check for a nullptr result.  To keep this from happening, we
  * don't allow the table to fill.  When there is only one
  * empty/deleted slot left, uhash_put() will refuse to increase the
  * count, and fail.  This simplifies the code.  In practice, one will
@@ -79,8 +79,10 @@
  * prime number while being less than a power of two.
  */
 static const int32_t PRIMES[] = {
-    7, 13, 31, 61, 127, 251, 509, 1021, 2039, 4093, 8191, 16381, 32749, 65521, 131071, 262139, 524287, 1048573, 2097143, 4194301, 8388593, 16777213, 33554393,
-    67108859, 134217689, 268435399, 536870909, 1073741789, 2147483647 /*, 4294967291 */
+    7, 13, 31, 61, 127, 251, 509, 1021, 2039, 4093, 8191, 16381, 32749,
+    65521, 131071, 262139, 524287, 1048573, 2097143, 4194301, 8388593,
+    16777213, 33554393, 67108859, 134217689, 268435399, 536870909,
+    1073741789, 2147483647 /*, 4294967291 */
 };
 
 #define PRIMES_LENGTH UPRV_LENGTHOF(PRIMES)
@@ -96,7 +98,7 @@ static const float RESIZE_POLICY_RATIO_TABLE[6] = {
     /* low, high water ratio */
     0.0F, 0.5F, /* U_GROW: Grow on demand, do not shrink */
     0.1F, 0.5F, /* U_GROW_AND_SHRINK: Grow and shrink on demand */
-    0.0F, 1.0F /* U_FIXED: Never change size */
+    0.0F, 1.0F  /* U_FIXED: Never change size */
 };
 
 /*
@@ -110,24 +112,21 @@ static const float RESIZE_POLICY_RATIO_TABLE[6] = {
   adjusted so that they are always positive.  We assume 32-bit
   hashcodes; adjust these constants for other hashcode sizes.
 */
-#define HASH_DELETED ((int32_t)0x80000000)
-#define HASH_EMPTY ((int32_t)HASH_DELETED + 1)
+#define HASH_DELETED    ((int32_t) 0x80000000)
+#define HASH_EMPTY      ((int32_t) HASH_DELETED + 1)
 
 #define IS_EMPTY_OR_DELETED(x) ((x) < 0)
 
 /* This macro expects a UHashTok.pointer as its keypointer and
    valuepointer parameters */
-#define HASH_DELETE_KEY_VALUE(hash, keypointer, valuepointer)                                                                                                  \
-    UPRV_BLOCK_MACRO_BEGIN                                                                                                                                     \
-    {                                                                                                                                                          \
-        if (hash->keyDeleter != NULL && keypointer != NULL) {                                                                                                  \
-            (*hash->keyDeleter)(keypointer);                                                                                                                   \
-        }                                                                                                                                                      \
-        if (hash->valueDeleter != NULL && valuepointer != NULL) {                                                                                              \
-            (*hash->valueDeleter)(valuepointer);                                                                                                               \
-        }                                                                                                                                                      \
-    }                                                                                                                                                          \
-    UPRV_BLOCK_MACRO_END
+#define HASH_DELETE_KEY_VALUE(hash, keypointer, valuepointer) UPRV_BLOCK_MACRO_BEGIN { \
+    if (hash->keyDeleter != nullptr && keypointer != nullptr) { \
+        (*hash->keyDeleter)(keypointer); \
+    } \
+    if (hash->valueDeleter != nullptr && valuepointer != nullptr) { \
+        (*hash->valueDeleter)(valuepointer); \
+    } \
+} UPRV_BLOCK_MACRO_END
 
 /*
  * Constants for hinting whether a key or value is an integer
@@ -135,26 +134,30 @@ static const float RESIZE_POLICY_RATIO_TABLE[6] = {
  * token is assumed to be an integer.
  */
 #define HINT_BOTH_INTEGERS (0)
-#define HINT_KEY_POINTER (1)
+#define HINT_KEY_POINTER   (1)
 #define HINT_VALUE_POINTER (2)
-#define HINT_ALLOW_ZERO (4)
+#define HINT_ALLOW_ZERO    (4)
 
 /********************************************************************
  * PRIVATE Implementation
  ********************************************************************/
 
-static UHashTok _uhash_setElement(UHashtable* hash, UHashElement* e, int32_t hashcode, UHashTok key, UHashTok value, int8_t hint)
-{
+static UHashTok
+_uhash_setElement(UHashtable *hash, UHashElement* e,
+                  int32_t hashcode,
+                  UHashTok key, UHashTok value, int8_t hint) {
 
     UHashTok oldValue = e->value;
-    if (hash->keyDeleter != NULL && e->key.pointer != NULL && e->key.pointer != key.pointer) { /* Avoid double deletion */
+    if (hash->keyDeleter != nullptr && e->key.pointer != nullptr &&
+        e->key.pointer != key.pointer) { /* Avoid double deletion */
         (*hash->keyDeleter)(e->key.pointer);
     }
-    if (hash->valueDeleter != NULL) {
-        if (oldValue.pointer != NULL && oldValue.pointer != value.pointer) { /* Avoid double deletion */
+    if (hash->valueDeleter != nullptr) {
+        if (oldValue.pointer != nullptr &&
+            oldValue.pointer != value.pointer) { /* Avoid double deletion */
             (*hash->valueDeleter)(oldValue.pointer);
         }
-        oldValue.pointer = NULL;
+        oldValue.pointer = nullptr;
     }
     /* Compilers should copy the UHashTok union correctly, but even if
      * they do, memory heap tools (e.g. BoundsChecker) can get
@@ -179,22 +182,21 @@ static UHashTok _uhash_setElement(UHashtable* hash, UHashElement* e, int32_t has
 /**
  * Assumes that the given element is not empty or deleted.
  */
-static UHashTok _uhash_internalRemoveElement(UHashtable* hash, UHashElement* e)
-{
+static UHashTok
+_uhash_internalRemoveElement(UHashtable *hash, UHashElement* e) {
     UHashTok empty;
     U_ASSERT(!IS_EMPTY_OR_DELETED(e->hashcode));
     --hash->count;
-    empty.pointer = NULL;
-    empty.integer = 0;
+    empty.pointer = nullptr; empty.integer = 0;
     return _uhash_setElement(hash, e, HASH_DELETED, empty, empty, 0);
 }
 
-static void _uhash_internalSetResizePolicy(UHashtable* hash, enum UHashResizePolicy policy)
-{
-    U_ASSERT(hash != NULL);
+static void
+_uhash_internalSetResizePolicy(UHashtable *hash, enum UHashResizePolicy policy) {
+    U_ASSERT(hash != nullptr);
     U_ASSERT(((int32_t)policy) >= 0);
     U_ASSERT(((int32_t)policy) < 3);
-    hash->lowWaterRatio = RESIZE_POLICY_RATIO_TABLE[policy * 2];
+    hash->lowWaterRatio  = RESIZE_POLICY_RATIO_TABLE[policy * 2];
     hash->highWaterRatio = RESIZE_POLICY_RATIO_TABLE[policy * 2 + 1];
 }
 
@@ -207,29 +209,31 @@ static void _uhash_internalSetResizePolicy(UHashtable* hash, enum UHashResizePol
  *
  * Caller must ensure primeIndex is in range 0..PRIME_LENGTH-1.
  */
-static void _uhash_allocate(UHashtable* hash, int32_t primeIndex, UErrorCode* status)
-{
+static void
+_uhash_allocate(UHashtable *hash,
+                int32_t primeIndex,
+                UErrorCode *status) {
 
     UHashElement *p, *limit;
     UHashTok emptytok;
 
-    if (U_FAILURE(*status))
-        return;
+    if (U_FAILURE(*status)) return;
 
     U_ASSERT(primeIndex >= 0 && primeIndex < PRIMES_LENGTH);
 
     hash->primeIndex = static_cast<int8_t>(primeIndex);
     hash->length = PRIMES[primeIndex];
 
-    p = hash->elements = (UHashElement*)uprv_malloc(sizeof(UHashElement) * hash->length);
+    p = hash->elements = (UHashElement*)
+        uprv_malloc(sizeof(UHashElement) * hash->length);
 
-    if (hash->elements == NULL) {
+    if (hash->elements == nullptr) {
         *status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
 
-    emptytok.pointer = NULL; /* Only one of these two is needed */
-    emptytok.integer = 0; /* but we don't know which one. */
+    emptytok.pointer = nullptr; /* Only one of these two is needed */
+    emptytok.integer = 0;    /* but we don't know which one. */
 
     limit = p + hash->length;
     while (p < limit) {
@@ -244,50 +248,57 @@ static void _uhash_allocate(UHashtable* hash, int32_t primeIndex, UErrorCode* st
     hash->highWaterMark = (int32_t)(hash->length * hash->highWaterRatio);
 }
 
-static UHashtable* _uhash_init(
-    UHashtable* result, UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, int32_t primeIndex, UErrorCode* status)
+static UHashtable*
+_uhash_init(UHashtable *result,
+              UHashFunction *keyHash,
+              UKeyComparator *keyComp,
+              UValueComparator *valueComp,
+              int32_t primeIndex,
+              UErrorCode *status)
 {
-    if (U_FAILURE(*status))
-        return NULL;
-    U_ASSERT(keyHash != NULL);
-    U_ASSERT(keyComp != NULL);
+    if (U_FAILURE(*status)) return nullptr;
+    U_ASSERT(keyHash != nullptr);
+    U_ASSERT(keyComp != nullptr);
 
-    result->keyHasher = keyHash;
-    result->keyComparator = keyComp;
+    result->keyHasher       = keyHash;
+    result->keyComparator   = keyComp;
     result->valueComparator = valueComp;
-    result->keyDeleter = NULL;
-    result->valueDeleter = NULL;
-    result->allocated = FALSE;
+    result->keyDeleter      = nullptr;
+    result->valueDeleter    = nullptr;
+    result->allocated       = false;
     _uhash_internalSetResizePolicy(result, U_GROW);
 
     _uhash_allocate(result, primeIndex, status);
 
     if (U_FAILURE(*status)) {
-        return NULL;
+        return nullptr;
     }
 
     return result;
 }
 
-static UHashtable* _uhash_create(UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, int32_t primeIndex, UErrorCode* status)
-{
-    UHashtable* result;
+static UHashtable*
+_uhash_create(UHashFunction *keyHash,
+              UKeyComparator *keyComp,
+              UValueComparator *valueComp,
+              int32_t primeIndex,
+              UErrorCode *status) {
+    UHashtable *result;
 
-    if (U_FAILURE(*status))
-        return NULL;
+    if (U_FAILURE(*status)) return nullptr;
 
-    result = (UHashtable*)uprv_malloc(sizeof(UHashtable));
-    if (result == NULL) {
+    result = (UHashtable*) uprv_malloc(sizeof(UHashtable));
+    if (result == nullptr) {
         *status = U_MEMORY_ALLOCATION_ERROR;
-        return NULL;
+        return nullptr;
     }
 
     _uhash_init(result, keyHash, keyComp, valueComp, primeIndex, status);
-    result->allocated = TRUE;
+    result->allocated       = true;
 
     if (U_FAILURE(*status)) {
         uprv_free(result);
-        return NULL;
+        return nullptr;
     }
 
     return result;
@@ -312,7 +323,7 @@ static UHashtable* _uhash_create(UHashFunction* keyHash, UKeyComparator* keyComp
  * values so that the searches stop within a reasonable amount of time.
  * This can be changed by changing the high/low water marks.
  *
- * In theory, this function can return NULL, if it is full (no empty
+ * In theory, this function can return nullptr, if it is full (no empty
  * or deleted slots) and if no matching key is found.  In practice, we
  * prevent this elsewhere (in uhash_put) by making sure the last slot
  * in the table is never filled.
@@ -321,21 +332,22 @@ static UHashtable* _uhash_create(UHashFunction* keyHash, UKeyComparator* keyComp
  * otherwise we are not guaranteed that the jump value (the secondary
  * hash) is relatively prime to the table length.
  */
-static UHashElement* _uhash_find(const UHashtable* hash, UHashTok key, int32_t hashcode)
-{
+static UHashElement*
+_uhash_find(const UHashtable *hash, UHashTok key,
+            int32_t hashcode) {
 
-    int32_t firstDeleted = -1; /* assume invalid index */
+    int32_t firstDeleted = -1;  /* assume invalid index */
     int32_t theIndex, startIndex;
     int32_t jump = 0; /* lazy evaluate */
     int32_t tableHash;
-    UHashElement* elements = hash->elements;
+    UHashElement *elements = hash->elements;
 
     hashcode &= 0x7FFFFFFF; /* must be positive */
     startIndex = theIndex = (hashcode ^ 0x4000000) % hash->length;
 
     do {
         tableHash = elements[theIndex].hashcode;
-        if (tableHash == hashcode) { /* quick check */
+        if (tableHash == hashcode) {          /* quick check */
             if ((*hash->keyComparator)(key, elements[theIndex].key)) {
                 return &(elements[theIndex]);
             }
@@ -381,10 +393,10 @@ static UHashElement* _uhash_find(const UHashtable* hash, UHashTok key, int32_t h
  * already at the low or high limit.  In any case, upon return the
  * arrays will be valid.
  */
-static void _uhash_rehash(UHashtable* hash, UErrorCode* status)
-{
+static void
+_uhash_rehash(UHashtable *hash, UErrorCode *status) {
 
-    UHashElement* old = hash->elements;
+    UHashElement *old = hash->elements;
     int32_t oldLength = hash->length;
     int32_t newPrimeIndex = hash->primeIndex;
     int32_t i;
@@ -411,8 +423,8 @@ static void _uhash_rehash(UHashtable* hash, UErrorCode* status)
 
     for (i = oldLength - 1; i >= 0; --i) {
         if (!IS_EMPTY_OR_DELETED(old[i].hashcode)) {
-            UHashElement* e = _uhash_find(hash, old[i].key, old[i].hashcode);
-            U_ASSERT(e != NULL);
+            UHashElement *e = _uhash_find(hash, old[i].key, old[i].hashcode);
+            U_ASSERT(e != nullptr);
             U_ASSERT(e->hashcode == HASH_EMPTY);
             e->key = old[i].key;
             e->value = old[i].value;
@@ -424,8 +436,9 @@ static void _uhash_rehash(UHashtable* hash, UErrorCode* status)
     uprv_free(old);
 }
 
-static UHashTok _uhash_remove(UHashtable* hash, UHashTok key)
-{
+static UHashTok
+_uhash_remove(UHashtable *hash,
+              UHashTok key) {
     /* First find the position of the key in the table.  If the object
      * has not been removed already, remove it.  If the user wanted
      * keys deleted, then delete it also.  We have to put a special
@@ -435,8 +448,8 @@ static UHashTok _uhash_remove(UHashtable* hash, UHashTok key)
      */
     UHashTok result;
     UHashElement* e = _uhash_find(hash, key, hash->keyHasher(key));
-    U_ASSERT(e != NULL);
-    result.pointer = NULL;
+    U_ASSERT(e != nullptr);
+    result.pointer = nullptr;
     result.integer = 0;
     if (!IS_EMPTY_OR_DELETED(e->hashcode)) {
         result = _uhash_internalRemoveElement(hash, e);
@@ -448,12 +461,16 @@ static UHashTok _uhash_remove(UHashtable* hash, UHashTok key)
     return result;
 }
 
-static UHashTok _uhash_put(UHashtable* hash, UHashTok key, UHashTok value, int8_t hint, UErrorCode* status)
-{
+static UHashTok
+_uhash_put(UHashtable *hash,
+           UHashTok key,
+           UHashTok value,
+           int8_t hint,
+           UErrorCode *status) {
 
     /* Put finds the position in the table for the new value.  If the
      * key is already in the table, it is deleted, if there is a
-     * non-NULL keyDeleter.  Then the key, the hash and the value are
+     * non-nullptr keyDeleter.  Then the key, the hash and the value are
      * all put at the position in their respective arrays.
      */
     int32_t hashcode;
@@ -463,10 +480,12 @@ static UHashTok _uhash_put(UHashtable* hash, UHashTok key, UHashTok value, int8_
     if (U_FAILURE(*status)) {
         goto err;
     }
-    U_ASSERT(hash != NULL);
-    if ((hint & HINT_VALUE_POINTER) ? value.pointer == NULL : value.integer == 0 && (hint & HINT_ALLOW_ZERO) == 0) {
-        /* Disallow storage of NULL values, since NULL is returned by
-         * get() to indicate an absent key.  Storing NULL == removing.
+    U_ASSERT(hash != nullptr);
+    if ((hint & HINT_VALUE_POINTER) ?
+            value.pointer == nullptr :
+            value.integer == 0 && (hint & HINT_ALLOW_ZERO) == 0) {
+        /* Disallow storage of nullptr values, since nullptr is returned by
+         * get() to indicate an absent key.  Storing nullptr == removing.
          */
         return _uhash_remove(hash, key);
     }
@@ -479,12 +498,12 @@ static UHashTok _uhash_put(UHashtable* hash, UHashTok key, UHashTok value, int8_
 
     hashcode = (*hash->keyHasher)(key);
     e = _uhash_find(hash, key, hashcode);
-    U_ASSERT(e != NULL);
+    U_ASSERT(e != nullptr);
 
     if (IS_EMPTY_OR_DELETED(e->hashcode)) {
         /* Important: We must never actually fill the table up.  If we
-         * do so, then _uhash_find() will return NULL, and we'll have
-         * to check for NULL after every call to _uhash_find().  To
+         * do so, then _uhash_find() will return nullptr, and we'll have
+         * to check for nullptr after every call to _uhash_find().  To
          * avoid this we make sure there is always at least one empty
          * or deleted slot in the table.  This only is a problem if we
          * are out of memory and rehash isn't working.
@@ -499,272 +518,330 @@ static UHashTok _uhash_put(UHashtable* hash, UHashTok key, UHashTok value, int8_
     }
 
     /* We must in all cases handle storage properly.  If there was an
-     * old key, then it must be deleted (if the deleter != NULL).
+     * old key, then it must be deleted (if the deleter != nullptr).
      * Make hashcodes stored in table positive.
      */
     return _uhash_setElement(hash, e, hashcode & 0x7FFFFFFF, key, value, hint);
 
-err:
-    /* If the deleters are non-NULL, this method adopts its key and/or
+ err:
+    /* If the deleters are non-nullptr, this method adopts its key and/or
      * value arguments, and we must be sure to delete the key and/or
      * value in all cases, even upon failure.
      */
     HASH_DELETE_KEY_VALUE(hash, key.pointer, value.pointer);
-    emptytok.pointer = NULL;
-    emptytok.integer = 0;
+    emptytok.pointer = nullptr; emptytok.integer = 0;
     return emptytok;
 }
+
 
 /********************************************************************
  * PUBLIC API
  ********************************************************************/
 
-U_CAPI UHashtable* U_EXPORT2 uhash_open(UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, UErrorCode* status)
-{
+U_CAPI UHashtable* U_EXPORT2
+uhash_open(UHashFunction *keyHash,
+           UKeyComparator *keyComp,
+           UValueComparator *valueComp,
+           UErrorCode *status) {
 
     return _uhash_create(keyHash, keyComp, valueComp, DEFAULT_PRIME_INDEX, status);
 }
 
-U_CAPI UHashtable* U_EXPORT2 uhash_openSize(UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, int32_t size, UErrorCode* status)
-{
+U_CAPI UHashtable* U_EXPORT2
+uhash_openSize(UHashFunction *keyHash,
+               UKeyComparator *keyComp,
+               UValueComparator *valueComp,
+               int32_t size,
+               UErrorCode *status) {
 
     /* Find the smallest index i for which PRIMES[i] >= size. */
     int32_t i = 0;
-    while (i < (PRIMES_LENGTH - 1) && PRIMES[i] < size) {
+    while (i<(PRIMES_LENGTH-1) && PRIMES[i]<size) {
         ++i;
     }
 
     return _uhash_create(keyHash, keyComp, valueComp, i, status);
 }
 
-U_CAPI UHashtable* U_EXPORT2 uhash_init(
-    UHashtable* fillinResult, UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, UErrorCode* status)
-{
+U_CAPI UHashtable* U_EXPORT2
+uhash_init(UHashtable *fillinResult,
+           UHashFunction *keyHash,
+           UKeyComparator *keyComp,
+           UValueComparator *valueComp,
+           UErrorCode *status) {
 
     return _uhash_init(fillinResult, keyHash, keyComp, valueComp, DEFAULT_PRIME_INDEX, status);
 }
 
-U_CAPI UHashtable* U_EXPORT2 uhash_initSize(
-    UHashtable* fillinResult, UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, int32_t size, UErrorCode* status)
-{
+U_CAPI UHashtable* U_EXPORT2
+uhash_initSize(UHashtable *fillinResult,
+               UHashFunction *keyHash,
+               UKeyComparator *keyComp,
+               UValueComparator *valueComp,
+               int32_t size,
+               UErrorCode *status) {
 
     // Find the smallest index i for which PRIMES[i] >= size.
     int32_t i = 0;
-    while (i < (PRIMES_LENGTH - 1) && PRIMES[i] < size) {
+    while (i<(PRIMES_LENGTH-1) && PRIMES[i]<size) {
         ++i;
     }
     return _uhash_init(fillinResult, keyHash, keyComp, valueComp, i, status);
 }
 
-U_CAPI void U_EXPORT2 uhash_close(UHashtable* hash)
-{
-    if (hash == NULL) {
+U_CAPI void U_EXPORT2
+uhash_close(UHashtable *hash) {
+    if (hash == nullptr) {
         return;
     }
-    if (hash->elements != NULL) {
-        if (hash->keyDeleter != NULL || hash->valueDeleter != NULL) {
-            int32_t pos = UHASH_FIRST;
-            UHashElement* e;
-            while ((e = (UHashElement*)uhash_nextElement(hash, &pos)) != NULL) {
+    if (hash->elements != nullptr) {
+        if (hash->keyDeleter != nullptr || hash->valueDeleter != nullptr) {
+            int32_t pos=UHASH_FIRST;
+            UHashElement *e;
+            while ((e = (UHashElement*) uhash_nextElement(hash, &pos)) != nullptr) {
                 HASH_DELETE_KEY_VALUE(hash, e->key.pointer, e->value.pointer);
             }
         }
         uprv_free(hash->elements);
-        hash->elements = NULL;
+        hash->elements = nullptr;
     }
     if (hash->allocated) {
         uprv_free(hash);
     }
 }
 
-U_CAPI UHashFunction* U_EXPORT2 uhash_setKeyHasher(UHashtable* hash, UHashFunction* fn)
-{
-    UHashFunction* result = hash->keyHasher;
+U_CAPI UHashFunction *U_EXPORT2
+uhash_setKeyHasher(UHashtable *hash, UHashFunction *fn) {
+    UHashFunction *result = hash->keyHasher;
     hash->keyHasher = fn;
     return result;
 }
 
-U_CAPI UKeyComparator* U_EXPORT2 uhash_setKeyComparator(UHashtable* hash, UKeyComparator* fn)
-{
-    UKeyComparator* result = hash->keyComparator;
+U_CAPI UKeyComparator *U_EXPORT2
+uhash_setKeyComparator(UHashtable *hash, UKeyComparator *fn) {
+    UKeyComparator *result = hash->keyComparator;
     hash->keyComparator = fn;
     return result;
 }
-U_CAPI UValueComparator* U_EXPORT2 uhash_setValueComparator(UHashtable* hash, UValueComparator* fn)
-{
-    UValueComparator* result = hash->valueComparator;
+U_CAPI UValueComparator *U_EXPORT2
+uhash_setValueComparator(UHashtable *hash, UValueComparator *fn){
+    UValueComparator *result = hash->valueComparator;
     hash->valueComparator = fn;
     return result;
 }
 
-U_CAPI UObjectDeleter* U_EXPORT2 uhash_setKeyDeleter(UHashtable* hash, UObjectDeleter* fn)
-{
-    UObjectDeleter* result = hash->keyDeleter;
+U_CAPI UObjectDeleter *U_EXPORT2
+uhash_setKeyDeleter(UHashtable *hash, UObjectDeleter *fn) {
+    UObjectDeleter *result = hash->keyDeleter;
     hash->keyDeleter = fn;
     return result;
 }
 
-U_CAPI UObjectDeleter* U_EXPORT2 uhash_setValueDeleter(UHashtable* hash, UObjectDeleter* fn)
-{
-    UObjectDeleter* result = hash->valueDeleter;
+U_CAPI UObjectDeleter *U_EXPORT2
+uhash_setValueDeleter(UHashtable *hash, UObjectDeleter *fn) {
+    UObjectDeleter *result = hash->valueDeleter;
     hash->valueDeleter = fn;
     return result;
 }
 
-U_CAPI void U_EXPORT2 uhash_setResizePolicy(UHashtable* hash, enum UHashResizePolicy policy)
-{
+U_CAPI void U_EXPORT2
+uhash_setResizePolicy(UHashtable *hash, enum UHashResizePolicy policy) {
     UErrorCode status = U_ZERO_ERROR;
     _uhash_internalSetResizePolicy(hash, policy);
-    hash->lowWaterMark = (int32_t)(hash->length * hash->lowWaterRatio);
+    hash->lowWaterMark  = (int32_t)(hash->length * hash->lowWaterRatio);
     hash->highWaterMark = (int32_t)(hash->length * hash->highWaterRatio);
     _uhash_rehash(hash, &status);
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_count(const UHashtable* hash)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_count(const UHashtable *hash) {
     return hash->count;
 }
 
-U_CAPI void* U_EXPORT2 uhash_get(const UHashtable* hash, const void* key)
-{
+U_CAPI void* U_EXPORT2
+uhash_get(const UHashtable *hash,
+          const void* key) {
     UHashTok keyholder;
-    keyholder.pointer = (void*)key;
+    keyholder.pointer = (void*) key;
     return _uhash_find(hash, keyholder, hash->keyHasher(keyholder))->value.pointer;
 }
 
-U_CAPI void* U_EXPORT2 uhash_iget(const UHashtable* hash, int32_t key)
-{
+U_CAPI void* U_EXPORT2
+uhash_iget(const UHashtable *hash,
+           int32_t key) {
     UHashTok keyholder;
     keyholder.integer = key;
     return _uhash_find(hash, keyholder, hash->keyHasher(keyholder))->value.pointer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_geti(const UHashtable* hash, const void* key)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_geti(const UHashtable *hash,
+           const void* key) {
     UHashTok keyholder;
-    keyholder.pointer = (void*)key;
+    keyholder.pointer = (void*) key;
     return _uhash_find(hash, keyholder, hash->keyHasher(keyholder))->value.integer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_igeti(const UHashtable* hash, int32_t key)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_igeti(const UHashtable *hash,
+           int32_t key) {
     UHashTok keyholder;
     keyholder.integer = key;
     return _uhash_find(hash, keyholder, hash->keyHasher(keyholder))->value.integer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_getiAndFound(const UHashtable* hash, const void* key, UBool* found)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_getiAndFound(const UHashtable *hash,
+                   const void *key,
+                   UBool *found) {
     UHashTok keyholder;
-    keyholder.pointer = (void*)key;
-    const UHashElement* e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
+    keyholder.pointer = (void *)key;
+    const UHashElement *e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
     *found = !IS_EMPTY_OR_DELETED(e->hashcode);
     return e->value.integer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_igetiAndFound(const UHashtable* hash, int32_t key, UBool* found)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_igetiAndFound(const UHashtable *hash,
+                    int32_t key,
+                    UBool *found) {
     UHashTok keyholder;
     keyholder.integer = key;
-    const UHashElement* e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
+    const UHashElement *e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
     *found = !IS_EMPTY_OR_DELETED(e->hashcode);
     return e->value.integer;
 }
 
-U_CAPI void* U_EXPORT2 uhash_put(UHashtable* hash, void* key, void* value, UErrorCode* status)
-{
+U_CAPI void* U_EXPORT2
+uhash_put(UHashtable *hash,
+          void* key,
+          void* value,
+          UErrorCode *status) {
     UHashTok keyholder, valueholder;
     keyholder.pointer = key;
     valueholder.pointer = value;
-    return _uhash_put(hash, keyholder, valueholder, HINT_KEY_POINTER | HINT_VALUE_POINTER, status).pointer;
+    return _uhash_put(hash, keyholder, valueholder,
+                      HINT_KEY_POINTER | HINT_VALUE_POINTER,
+                      status).pointer;
 }
 
-U_CAPI void* U_EXPORT2 uhash_iput(UHashtable* hash, int32_t key, void* value, UErrorCode* status)
-{
+U_CAPI void* U_EXPORT2
+uhash_iput(UHashtable *hash,
+           int32_t key,
+           void* value,
+           UErrorCode *status) {
     UHashTok keyholder, valueholder;
     keyholder.integer = key;
     valueholder.pointer = value;
-    return _uhash_put(hash, keyholder, valueholder, HINT_VALUE_POINTER, status).pointer;
+    return _uhash_put(hash, keyholder, valueholder,
+                      HINT_VALUE_POINTER,
+                      status).pointer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_puti(UHashtable* hash, void* key, int32_t value, UErrorCode* status)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_puti(UHashtable *hash,
+           void* key,
+           int32_t value,
+           UErrorCode *status) {
     UHashTok keyholder, valueholder;
     keyholder.pointer = key;
     valueholder.integer = value;
-    return _uhash_put(hash, keyholder, valueholder, HINT_KEY_POINTER, status).integer;
+    return _uhash_put(hash, keyholder, valueholder,
+                      HINT_KEY_POINTER,
+                      status).integer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_iputi(UHashtable* hash, int32_t key, int32_t value, UErrorCode* status)
-{
+
+U_CAPI int32_t U_EXPORT2
+uhash_iputi(UHashtable *hash,
+           int32_t key,
+           int32_t value,
+           UErrorCode *status) {
     UHashTok keyholder, valueholder;
     keyholder.integer = key;
     valueholder.integer = value;
-    return _uhash_put(hash, keyholder, valueholder, HINT_BOTH_INTEGERS, status).integer;
+    return _uhash_put(hash, keyholder, valueholder,
+                      HINT_BOTH_INTEGERS,
+                      status).integer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_putiAllowZero(UHashtable* hash, void* key, int32_t value, UErrorCode* status)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_putiAllowZero(UHashtable *hash,
+                    void *key,
+                    int32_t value,
+                    UErrorCode *status) {
     UHashTok keyholder, valueholder;
     keyholder.pointer = key;
     valueholder.integer = value;
-    return _uhash_put(hash, keyholder, valueholder, HINT_KEY_POINTER | HINT_ALLOW_ZERO, status).integer;
+    return _uhash_put(hash, keyholder, valueholder,
+                      HINT_KEY_POINTER | HINT_ALLOW_ZERO,
+                      status).integer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_iputiAllowZero(UHashtable* hash, int32_t key, int32_t value, UErrorCode* status)
-{
+
+U_CAPI int32_t U_EXPORT2
+uhash_iputiAllowZero(UHashtable *hash,
+                     int32_t key,
+                     int32_t value,
+                     UErrorCode *status) {
     UHashTok keyholder, valueholder;
     keyholder.integer = key;
     valueholder.integer = value;
-    return _uhash_put(hash, keyholder, valueholder, HINT_BOTH_INTEGERS | HINT_ALLOW_ZERO, status).integer;
+    return _uhash_put(hash, keyholder, valueholder,
+                      HINT_BOTH_INTEGERS | HINT_ALLOW_ZERO,
+                      status).integer;
 }
 
-U_CAPI void* U_EXPORT2 uhash_remove(UHashtable* hash, const void* key)
-{
+U_CAPI void* U_EXPORT2
+uhash_remove(UHashtable *hash,
+             const void* key) {
     UHashTok keyholder;
-    keyholder.pointer = (void*)key;
+    keyholder.pointer = (void*) key;
     return _uhash_remove(hash, keyholder).pointer;
 }
 
-U_CAPI void* U_EXPORT2 uhash_iremove(UHashtable* hash, int32_t key)
-{
+U_CAPI void* U_EXPORT2
+uhash_iremove(UHashtable *hash,
+              int32_t key) {
     UHashTok keyholder;
     keyholder.integer = key;
     return _uhash_remove(hash, keyholder).pointer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_removei(UHashtable* hash, const void* key)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_removei(UHashtable *hash,
+              const void* key) {
     UHashTok keyholder;
-    keyholder.pointer = (void*)key;
+    keyholder.pointer = (void*) key;
     return _uhash_remove(hash, keyholder).integer;
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_iremovei(UHashtable* hash, int32_t key)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_iremovei(UHashtable *hash,
+               int32_t key) {
     UHashTok keyholder;
     keyholder.integer = key;
     return _uhash_remove(hash, keyholder).integer;
 }
 
-U_CAPI void U_EXPORT2 uhash_removeAll(UHashtable* hash)
-{
+U_CAPI void U_EXPORT2
+uhash_removeAll(UHashtable *hash) {
     int32_t pos = UHASH_FIRST;
-    const UHashElement* e;
-    U_ASSERT(hash != NULL);
+    const UHashElement *e;
+    U_ASSERT(hash != nullptr);
     if (hash->count != 0) {
-        while ((e = uhash_nextElement(hash, &pos)) != NULL) {
+        while ((e = uhash_nextElement(hash, &pos)) != nullptr) {
             uhash_removeElement(hash, e);
         }
     }
     U_ASSERT(hash->count == 0);
 }
 
-U_CAPI UBool U_EXPORT2 uhash_containsKey(const UHashtable* hash, const void* key)
-{
+U_CAPI UBool U_EXPORT2
+uhash_containsKey(const UHashtable *hash, const void *key) {
     UHashTok keyholder;
-    keyholder.pointer = (void*)key;
-    const UHashElement* e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
+    keyholder.pointer = (void *)key;
+    const UHashElement *e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
     return !IS_EMPTY_OR_DELETED(e->hashcode);
 }
 
@@ -775,30 +852,30 @@ U_CAPI UBool U_EXPORT2 uhash_containsKey(const UHashtable* hash, const void* key
  * @param key An integer key stored in a hashtable
  * @return true if the key is found.
  */
-U_CAPI UBool U_EXPORT2 uhash_icontainsKey(const UHashtable* hash, int32_t key)
-{
+U_CAPI UBool U_EXPORT2
+uhash_icontainsKey(const UHashtable *hash, int32_t key) {
     UHashTok keyholder;
     keyholder.integer = key;
-    const UHashElement* e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
+    const UHashElement *e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
     return !IS_EMPTY_OR_DELETED(e->hashcode);
 }
 
-U_CAPI const UHashElement* U_EXPORT2 uhash_find(const UHashtable* hash, const void* key)
-{
+U_CAPI const UHashElement* U_EXPORT2
+uhash_find(const UHashtable *hash, const void* key) {
     UHashTok keyholder;
-    const UHashElement* e;
-    keyholder.pointer = (void*)key;
+    const UHashElement *e;
+    keyholder.pointer = (void*) key;
     e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
-    return IS_EMPTY_OR_DELETED(e->hashcode) ? NULL : e;
+    return IS_EMPTY_OR_DELETED(e->hashcode) ? nullptr : e;
 }
 
-U_CAPI const UHashElement* U_EXPORT2 uhash_nextElement(const UHashtable* hash, int32_t* pos)
-{
+U_CAPI const UHashElement* U_EXPORT2
+uhash_nextElement(const UHashtable *hash, int32_t *pos) {
     /* Walk through the array until we find an element that is not
      * EMPTY and not DELETED.
      */
     int32_t i;
-    U_ASSERT(hash != NULL);
+    U_ASSERT(hash != nullptr);
     for (i = *pos + 1; i < hash->length; ++i) {
         if (!IS_EMPTY_OR_DELETED(hash->elements[i].hashcode)) {
             *pos = i;
@@ -807,18 +884,18 @@ U_CAPI const UHashElement* U_EXPORT2 uhash_nextElement(const UHashtable* hash, i
     }
 
     /* No more elements */
-    return NULL;
+    return nullptr;
 }
 
-U_CAPI void* U_EXPORT2 uhash_removeElement(UHashtable* hash, const UHashElement* e)
-{
-    U_ASSERT(hash != NULL);
-    U_ASSERT(e != NULL);
+U_CAPI void* U_EXPORT2
+uhash_removeElement(UHashtable *hash, const UHashElement* e) {
+    U_ASSERT(hash != nullptr);
+    U_ASSERT(e != nullptr);
     if (!IS_EMPTY_OR_DELETED(e->hashcode)) {
-        UHashElement* nce = (UHashElement*)e;
+        UHashElement *nce = (UHashElement *)e;
         return _uhash_internalRemoveElement(hash, nce).pointer;
     }
-    return NULL;
+    return nullptr;
 }
 
 /********************************************************************
@@ -849,30 +926,30 @@ uhash_tokp(void* p) {
  * PUBLIC Key Hash Functions
  ********************************************************************/
 
-U_CAPI int32_t U_EXPORT2 uhash_hashUChars(const UHashTok key)
-{
-    const UChar* s = (const UChar*)key.pointer;
-    return s == NULL ? 0 : ustr_hashUCharsN(s, u_strlen(s));
+U_CAPI int32_t U_EXPORT2
+uhash_hashUChars(const UHashTok key) {
+    const char16_t *s = (const char16_t *)key.pointer;
+    return s == nullptr ? 0 : ustr_hashUCharsN(s, u_strlen(s));
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_hashChars(const UHashTok key)
-{
-    const char* s = (const char*)key.pointer;
-    return s == NULL ? 0 : static_cast<int32_t>(ustr_hashCharsN(s, static_cast<int32_t>(uprv_strlen(s))));
+U_CAPI int32_t U_EXPORT2
+uhash_hashChars(const UHashTok key) {
+    const char *s = (const char *)key.pointer;
+    return s == nullptr ? 0 : static_cast<int32_t>(ustr_hashCharsN(s, static_cast<int32_t>(uprv_strlen(s))));
 }
 
-U_CAPI int32_t U_EXPORT2 uhash_hashIChars(const UHashTok key)
-{
-    const char* s = (const char*)key.pointer;
-    return s == NULL ? 0 : ustr_hashICharsN(s, static_cast<int32_t>(uprv_strlen(s)));
+U_CAPI int32_t U_EXPORT2
+uhash_hashIChars(const UHashTok key) {
+    const char *s = (const char *)key.pointer;
+    return s == nullptr ? 0 : ustr_hashICharsN(s, static_cast<int32_t>(uprv_strlen(s)));
 }
 
-U_CAPI UBool U_EXPORT2 uhash_equals(const UHashtable* hash1, const UHashtable* hash2)
-{
+U_CAPI UBool U_EXPORT2
+uhash_equals(const UHashtable* hash1, const UHashtable* hash2){
     int32_t count1, count2, pos, i;
 
-    if (hash1 == hash2) {
-        return TRUE;
+    if(hash1==hash2){
+        return true;
     }
 
     /*
@@ -883,23 +960,26 @@ U_CAPI UBool U_EXPORT2 uhash_equals(const UHashtable* hash1, const UHashtable* h
      * with 64-bit pointers and 32-bit integer hashes.
      * A valueComparator is normally optional.
      */
-    if (hash1 == NULL || hash2 == NULL || hash1->keyComparator != hash2->keyComparator || hash1->valueComparator != hash2->valueComparator
-        || hash1->valueComparator == NULL) {
+    if (hash1==nullptr || hash2==nullptr ||
+        hash1->keyComparator != hash2->keyComparator ||
+        hash1->valueComparator != hash2->valueComparator ||
+        hash1->valueComparator == nullptr)
+    {
         /*
         Normally we would return an error here about incompatible hash tables,
-        but we return FALSE instead.
+        but we return false instead.
         */
-        return FALSE;
+        return false;
     }
 
     count1 = uhash_count(hash1);
     count2 = uhash_count(hash2);
-    if (count1 != count2) {
-        return FALSE;
+    if(count1!=count2){
+        return false;
     }
 
-    pos = UHASH_FIRST;
-    for (i = 0; i < count1; i++) {
+    pos=UHASH_FIRST;
+    for(i=0; i<count1; i++){
         const UHashElement* elem1 = uhash_nextElement(hash1, &pos);
         const UHashTok key1 = elem1->key;
         const UHashTok val1 = elem1->value;
@@ -909,26 +989,26 @@ U_CAPI UBool U_EXPORT2 uhash_equals(const UHashtable* hash1, const UHashtable* h
          */
         const UHashElement* elem2 = _uhash_find(hash2, key1, hash2->keyHasher(key1));
         const UHashTok val2 = elem2->value;
-        if (hash1->valueComparator(val1, val2) == FALSE) {
-            return FALSE;
+        if(hash1->valueComparator(val1, val2)==false){
+            return false;
         }
     }
-    return TRUE;
+    return true;
 }
 
 /********************************************************************
  * PUBLIC Comparator Functions
  ********************************************************************/
 
-U_CAPI UBool U_EXPORT2 uhash_compareUChars(const UHashTok key1, const UHashTok key2)
-{
-    const UChar* p1 = (const UChar*)key1.pointer;
-    const UChar* p2 = (const UChar*)key2.pointer;
+U_CAPI UBool U_EXPORT2
+uhash_compareUChars(const UHashTok key1, const UHashTok key2) {
+    const char16_t *p1 = (const char16_t*) key1.pointer;
+    const char16_t *p2 = (const char16_t*) key2.pointer;
     if (p1 == p2) {
-        return TRUE;
+        return true;
     }
-    if (p1 == NULL || p2 == NULL) {
-        return FALSE;
+    if (p1 == nullptr || p2 == nullptr) {
+        return false;
     }
     while (*p1 != 0 && *p1 == *p2) {
         ++p1;
@@ -937,15 +1017,15 @@ U_CAPI UBool U_EXPORT2 uhash_compareUChars(const UHashTok key1, const UHashTok k
     return (UBool)(*p1 == *p2);
 }
 
-U_CAPI UBool U_EXPORT2 uhash_compareChars(const UHashTok key1, const UHashTok key2)
-{
-    const char* p1 = (const char*)key1.pointer;
-    const char* p2 = (const char*)key2.pointer;
+U_CAPI UBool U_EXPORT2
+uhash_compareChars(const UHashTok key1, const UHashTok key2) {
+    const char *p1 = (const char*) key1.pointer;
+    const char *p2 = (const char*) key2.pointer;
     if (p1 == p2) {
-        return TRUE;
+        return true;
     }
-    if (p1 == NULL || p2 == NULL) {
-        return FALSE;
+    if (p1 == nullptr || p2 == nullptr) {
+        return false;
     }
     while (*p1 != 0 && *p1 == *p2) {
         ++p1;
@@ -954,15 +1034,15 @@ U_CAPI UBool U_EXPORT2 uhash_compareChars(const UHashTok key1, const UHashTok ke
     return (UBool)(*p1 == *p2);
 }
 
-U_CAPI UBool U_EXPORT2 uhash_compareIChars(const UHashTok key1, const UHashTok key2)
-{
-    const char* p1 = (const char*)key1.pointer;
-    const char* p2 = (const char*)key2.pointer;
+U_CAPI UBool U_EXPORT2
+uhash_compareIChars(const UHashTok key1, const UHashTok key2) {
+    const char *p1 = (const char*) key1.pointer;
+    const char *p2 = (const char*) key2.pointer;
     if (p1 == p2) {
-        return TRUE;
+        return true;
     }
-    if (p1 == NULL || p2 == NULL) {
-        return FALSE;
+    if (p1 == nullptr || p2 == nullptr) {
+        return false;
     }
     while (*p1 != 0 && uprv_tolower(*p1) == uprv_tolower(*p2)) {
         ++p1;
@@ -975,12 +1055,12 @@ U_CAPI UBool U_EXPORT2 uhash_compareIChars(const UHashTok key1, const UHashTok k
  * PUBLIC int32_t Support Functions
  ********************************************************************/
 
-U_CAPI int32_t U_EXPORT2 uhash_hashLong(const UHashTok key)
-{
+U_CAPI int32_t U_EXPORT2
+uhash_hashLong(const UHashTok key) {
     return key.integer;
 }
 
-U_CAPI UBool U_EXPORT2 uhash_compareLong(const UHashTok key1, const UHashTok key2)
-{
+U_CAPI UBool U_EXPORT2
+uhash_compareLong(const UHashTok key1, const UHashTok key2) {
     return (UBool)(key1.integer == key2.integer);
 }

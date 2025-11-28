@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -54,39 +54,36 @@ enum ParseFlags {
     PARSE_FLAG_STRICT_IGNORABLES = 0x8000,
 };
 
+
 // TODO: Is this class worthwhile?
-template <int32_t stackCapacity> class CompactUnicodeString {
-public:
-    CompactUnicodeString()
-    {
+template<int32_t stackCapacity>
+class CompactUnicodeString {
+  public:
+    CompactUnicodeString() {
         static_assert(stackCapacity > 0, "cannot have zero space on stack");
         fBuffer[0] = 0;
     }
 
     CompactUnicodeString(const UnicodeString& text, UErrorCode& status)
-        : fBuffer(text.length() + 1, status)
-    {
-        if (U_FAILURE(status)) {
-            return;
-        }
-        uprv_memcpy(fBuffer.getAlias(), text.getBuffer(), sizeof(UChar) * text.length());
+            : fBuffer(text.length() + 1, status) {
+        if (U_FAILURE(status)) { return; }
+        uprv_memcpy(fBuffer.getAlias(), text.getBuffer(), sizeof(char16_t) * text.length());
         fBuffer[text.length()] = 0;
     }
 
-    inline UnicodeString toAliasedUnicodeString() const
-    {
+    inline UnicodeString toAliasedUnicodeString() const {
         return UnicodeString(true, fBuffer.getAlias(), -1);
     }
 
-    bool operator==(const CompactUnicodeString& other) const
-    {
+    bool operator==(const CompactUnicodeString& other) const {
         // Use the alias-only constructor and then call UnicodeString operator==
         return toAliasedUnicodeString() == other.toAliasedUnicodeString();
     }
 
-private:
-    MaybeStackArray<UChar, stackCapacity> fBuffer;
+  private:
+    MaybeStackArray<char16_t, stackCapacity> fBuffer;
 };
+
 
 /**
  * Struct-like class to hold the results of a parsing routine.
@@ -95,7 +92,8 @@ private:
  */
 // Exported as U_I18N_API for tests
 class U_I18N_API ParsedNumber {
-public:
+  public:
+
     /**
      * The numerical value that was parsed.
      */
@@ -127,7 +125,7 @@ public:
     /**
      * The currency that got consumed.
      */
-    UChar currencyCode[4];
+    char16_t currencyCode[4];
 
     ParsedNumber();
 
@@ -173,6 +171,7 @@ public:
     bool isBetterThan(const ParsedNumber& other);
 };
 
+
 /**
  * The core interface implemented by all matchers used for number parsing.
  *
@@ -190,15 +189,14 @@ public:
  */
 // Exported as U_I18N_API for tests
 class U_I18N_API NumberParseMatcher {
-public:
+  public:
     virtual ~NumberParseMatcher();
 
     /**
      * Matchers can override this method to return true to indicate that they are optional and can be run
      * repeatedly. Used by SeriesMatcher, primarily in the context of IgnorablesMatcher.
      */
-    virtual bool isFlexible() const
-    {
+    virtual bool isFlexible() const {
         return false;
     }
 
@@ -241,29 +239,30 @@ public:
      * @param result
      *            The data structure to store results.
      */
-    virtual void postProcess(ParsedNumber&) const
-    {
+    virtual void postProcess(ParsedNumber&) const {
         // Default implementation: no-op
     }
 
     // String for debugging
     virtual UnicodeString toString() const = 0;
 
-protected:
+  protected:
     // No construction except by subclasses!
     NumberParseMatcher() = default;
 };
+
 
 /**
  * Interface for use in arguments.
  */
 // Exported as U_I18N_API for tests
 class U_I18N_API MutableMatcherCollection {
-public:
+  public:
     virtual ~MutableMatcherCollection() = default;
 
     virtual void addMatcher(NumberParseMatcher& matcher) = 0;
 };
+
 
 } // namespace impl
 } // namespace numparse

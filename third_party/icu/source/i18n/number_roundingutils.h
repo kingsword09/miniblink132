@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -15,7 +15,13 @@ namespace number {
 namespace impl {
 namespace roundingutils {
 
-enum Section { SECTION_LOWER_EDGE = -1, SECTION_UPPER_EDGE = -2, SECTION_LOWER = 1, SECTION_MIDPOINT = 2, SECTION_UPPER = 3 };
+enum Section {
+    SECTION_LOWER_EDGE = -1,
+    SECTION_UPPER_EDGE = -2,
+    SECTION_LOWER = 1,
+    SECTION_MIDPOINT = 2,
+    SECTION_UPPER = 3
+};
 
 /**
  * Converts a rounding mode and metadata about the quantity being rounded to a boolean determining
@@ -36,108 +42,109 @@ enum Section { SECTION_LOWER_EDGE = -1, SECTION_UPPER_EDGE = -2, SECTION_LOWER =
  * @return true if the number should be rounded toward zero; false if it should be rounded toward
  *     infinity.
  */
-inline bool getRoundingDirection(bool isEven, bool isNegative, Section section, RoundingMode roundingMode, UErrorCode& status)
-{
+inline bool
+getRoundingDirection(bool isEven, bool isNegative, Section section, RoundingMode roundingMode,
+                     UErrorCode &status) {
     if (U_FAILURE(status)) {
         return false;
     }
     switch (roundingMode) {
-    case RoundingMode::UNUM_ROUND_UP:
-        // round away from zero
-        return false;
-
-    case RoundingMode::UNUM_ROUND_DOWN:
-        // round toward zero
-        return true;
-
-    case RoundingMode::UNUM_ROUND_CEILING:
-        // round toward positive infinity
-        return isNegative;
-
-    case RoundingMode::UNUM_ROUND_FLOOR:
-        // round toward negative infinity
-        return !isNegative;
-
-    case RoundingMode::UNUM_ROUND_HALFUP:
-        switch (section) {
-        case SECTION_MIDPOINT:
+        case RoundingMode::UNUM_ROUND_UP:
+            // round away from zero
             return false;
-        case SECTION_LOWER:
-            return true;
-        case SECTION_UPPER:
-            return false;
-        default:
-            break;
-        }
-        break;
 
-    case RoundingMode::UNUM_ROUND_HALFDOWN:
-        switch (section) {
-        case SECTION_MIDPOINT:
+        case RoundingMode::UNUM_ROUND_DOWN:
+            // round toward zero
             return true;
-        case SECTION_LOWER:
-            return true;
-        case SECTION_UPPER:
-            return false;
-        default:
-            break;
-        }
-        break;
 
-    case RoundingMode::UNUM_ROUND_HALFEVEN:
-        switch (section) {
-        case SECTION_MIDPOINT:
-            return isEven;
-        case SECTION_LOWER:
-            return true;
-        case SECTION_UPPER:
-            return false;
-        default:
-            break;
-        }
-        break;
-
-    case RoundingMode::UNUM_ROUND_HALF_ODD:
-        switch (section) {
-        case SECTION_MIDPOINT:
-            return !isEven;
-        case SECTION_LOWER:
-            return true;
-        case SECTION_UPPER:
-            return false;
-        default:
-            break;
-        }
-        break;
-
-    case RoundingMode::UNUM_ROUND_HALF_CEILING:
-        switch (section) {
-        case SECTION_MIDPOINT:
+        case RoundingMode::UNUM_ROUND_CEILING:
+            // round toward positive infinity
             return isNegative;
-        case SECTION_LOWER:
-            return true;
-        case SECTION_UPPER:
-            return false;
-        default:
-            break;
-        }
-        break;
 
-    case RoundingMode::UNUM_ROUND_HALF_FLOOR:
-        switch (section) {
-        case SECTION_MIDPOINT:
+        case RoundingMode::UNUM_ROUND_FLOOR:
+            // round toward negative infinity
             return !isNegative;
-        case SECTION_LOWER:
-            return true;
-        case SECTION_UPPER:
-            return false;
+
+        case RoundingMode::UNUM_ROUND_HALFUP:
+            switch (section) {
+                case SECTION_MIDPOINT:
+                    return false;
+                case SECTION_LOWER:
+                    return true;
+                case SECTION_UPPER:
+                    return false;
+                default:
+                    break;
+            }
+            break;
+
+        case RoundingMode::UNUM_ROUND_HALFDOWN:
+            switch (section) {
+                case SECTION_MIDPOINT:
+                    return true;
+                case SECTION_LOWER:
+                    return true;
+                case SECTION_UPPER:
+                    return false;
+                default:
+                    break;
+            }
+            break;
+
+        case RoundingMode::UNUM_ROUND_HALFEVEN:
+            switch (section) {
+                case SECTION_MIDPOINT:
+                    return isEven;
+                case SECTION_LOWER:
+                    return true;
+                case SECTION_UPPER:
+                    return false;
+                default:
+                    break;
+            }
+            break;
+
+        case RoundingMode::UNUM_ROUND_HALF_ODD:
+            switch (section) {
+                case SECTION_MIDPOINT:
+                    return !isEven;
+                case SECTION_LOWER:
+                    return true;
+                case SECTION_UPPER:
+                    return false;
+                default:
+                    break;
+            }
+            break;
+
+        case RoundingMode::UNUM_ROUND_HALF_CEILING:
+            switch (section) {
+                case SECTION_MIDPOINT:
+                    return isNegative;
+                case SECTION_LOWER:
+                    return true;
+                case SECTION_UPPER:
+                    return false;
+                default:
+                    break;
+            }
+            break;
+
+        case RoundingMode::UNUM_ROUND_HALF_FLOOR:
+            switch (section) {
+                case SECTION_MIDPOINT:
+                    return !isNegative;
+                case SECTION_LOWER:
+                    return true;
+                case SECTION_UPPER:
+                    return false;
+                default:
+                    break;
+            }
+            break;
+
         default:
             break;
-        }
-        break;
-
-    default:
-        break;
     }
 
     status = U_FORMAT_INEXACT_ERROR;
@@ -154,21 +161,21 @@ inline bool getRoundingDirection(bool isEven, bool isNegative, Section section, 
  * @param roundingMode The integer version of the {@link RoundingMode}.
  * @return true if rounding mode is HALF_EVEN, HALF_UP, or HALF_DOWN; false otherwise.
  */
-inline bool roundsAtMidpoint(int roundingMode)
-{
+inline bool roundsAtMidpoint(int roundingMode) {
     switch (roundingMode) {
-    case RoundingMode::UNUM_ROUND_UP:
-    case RoundingMode::UNUM_ROUND_DOWN:
-    case RoundingMode::UNUM_ROUND_CEILING:
-    case RoundingMode::UNUM_ROUND_FLOOR:
-        return false;
+        case RoundingMode::UNUM_ROUND_UP:
+        case RoundingMode::UNUM_ROUND_DOWN:
+        case RoundingMode::UNUM_ROUND_CEILING:
+        case RoundingMode::UNUM_ROUND_FLOOR:
+            return false;
 
-    default:
-        return true;
+        default:
+            return true;
     }
 }
 
 } // namespace roundingutils
+
 
 /**
  * Encapsulates a Precision and a RoundingMode and performs rounding on a DecimalQuantity.
@@ -176,10 +183,11 @@ inline bool roundsAtMidpoint(int roundingMode)
  * This class does not exist in Java: instead, the base Precision class is used.
  */
 class RoundingImpl {
-public:
-    RoundingImpl() = default; // defaults to pass-through rounder
+  public:
+    RoundingImpl() = default;  // defaults to pass-through rounder
 
-    RoundingImpl(const Precision& precision, UNumberFormatRoundingMode roundingMode, const CurrencyUnit& currency, UErrorCode& status);
+    RoundingImpl(const Precision& precision, UNumberFormatRoundingMode roundingMode,
+                 const CurrencyUnit& currency, UErrorCode& status);
 
     static RoundingImpl passThrough();
 
@@ -200,17 +208,19 @@ public:
      * @param producer Function to call to return a multiplier based on a magnitude.
      * @return The number of orders of magnitude the input was adjusted by this method.
      */
-    int32_t chooseMultiplierAndApply(impl::DecimalQuantity& input, const impl::MultiplierProducer& producer, UErrorCode& status);
+    int32_t
+    chooseMultiplierAndApply(impl::DecimalQuantity &input, const impl::MultiplierProducer &producer,
+                             UErrorCode &status);
 
-    void apply(impl::DecimalQuantity& value, UErrorCode& status) const;
+    void apply(impl::DecimalQuantity &value, UErrorCode &status) const;
 
     /** Version of {@link #apply} that obeys minInt constraints. Used for scientific notation compatibility mode. */
-    void apply(impl::DecimalQuantity& value, int32_t minInt, UErrorCode status);
+    void apply(impl::DecimalQuantity &value, int32_t minInt, UErrorCode status);
 
-private:
+  private:
     Precision fPrecision;
     UNumberFormatRoundingMode fRoundingMode;
-    bool fPassThrough = true; // default value
+    bool fPassThrough = true;  // default value
 
     // Permits access to fPrecision.
     friend class units::UnitsRouter;
@@ -226,7 +236,7 @@ private:
  * Referencing MacroProps means needing to pull in the .o files that have the
  * destructors for the SymbolsWrapper, StringProp, and Scale classes.
  */
-void parseIncrementOption(const StringSegment& segment, Precision& outPrecision, UErrorCode& status);
+void parseIncrementOption(const StringSegment &segment, Precision &outPrecision, UErrorCode &status);
 
 } // namespace impl
 } // namespace number

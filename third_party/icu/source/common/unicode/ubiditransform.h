@@ -1,4 +1,4 @@
-﻿/*
+/*
 ******************************************************************************
 *
 * © 2016 and later: Unicode, Inc. and others.
@@ -24,11 +24,11 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif // U_SHOW_CPLUSPLUS_API
+#endif   // U_SHOW_CPLUSPLUS_API
 
 /**
  * \file
- * \brief Bidi Transformations
+ * \brief C API: Bidi Transformations
  */
 
 /**
@@ -70,14 +70,14 @@
  */
 typedef enum {
     /** 0: Constant indicating a logical order.
-     * This is the default for input text.
-     * @stable ICU 58
-     */
+      * This is the default for input text.
+      * @stable ICU 58
+      */
     UBIDI_LOGICAL = 0,
     /** 1: Constant indicating a visual order.
-     * This is a default for output text.
-     * @stable ICU 58
-     */
+      * This is a default for output text.
+      * @stable ICU 58
+      */
     UBIDI_VISUAL
 } UBiDiOrder;
 
@@ -93,17 +93,17 @@ typedef enum {
  */
 typedef enum {
     /** 0: Constant indicating that character mirroring should not be
-     * performed.
-     * This is the default.
-     * @stable ICU 58
-     */
+      * performed.
+      * This is the default.
+      * @stable ICU 58
+      */
     UBIDI_MIRRORING_OFF = 0,
     /** 1: Constant indicating that character mirroring should be performed.
-     * This corresponds to calling <code>ubidi_writeReordered</code> or
-     * <code>ubidi_writeReverse</code> with the
-     * <code>UBIDI_DO_MIRRORING</code> option bit set.
-     * @stable ICU 58
-     */
+      * This corresponds to calling <code>ubidi_writeReordered</code> or
+      * <code>ubidi_writeReverse</code> with the
+      * <code>UBIDI_DO_MIRRORING</code> option bit set.
+      * @stable ICU 58
+      */
     UBIDI_MIRRORING_ON
 } UBiDiMirroring;
 
@@ -248,9 +248,14 @@ typedef struct UBiDiTransform UBiDiTransform;
  * @see u_shapeArabic
  * @stable ICU 58
  */
-U_CAPI uint32_t U_EXPORT2 ubiditransform_transform(UBiDiTransform* pBiDiTransform, const UChar* src, int32_t srcLength, UChar* dest, int32_t destSize,
-    UBiDiLevel inParaLevel, UBiDiOrder inOrder, UBiDiLevel outParaLevel, UBiDiOrder outOrder, UBiDiMirroring doMirroring, uint32_t shapingOptions,
-    UErrorCode* pErrorCode);
+U_CAPI uint32_t U_EXPORT2
+ubiditransform_transform(UBiDiTransform *pBiDiTransform,
+            const UChar *src, int32_t srcLength,
+            UChar *dest, int32_t destSize,
+            UBiDiLevel inParaLevel, UBiDiOrder inOrder,
+            UBiDiLevel outParaLevel, UBiDiOrder outOrder,
+            UBiDiMirroring doMirroring, uint32_t shapingOptions,
+            UErrorCode *pErrorCode);
 
 /**
  * Allocates a <code>UBiDiTransform</code> object. This object can be reused,
@@ -289,13 +294,15 @@ U_CAPI uint32_t U_EXPORT2 ubiditransform_transform(UBiDiTransform* pBiDiTransfor
  * @return An empty <code>UBiDiTransform</code> object.
  * @stable ICU 58
  */
-U_CAPI UBiDiTransform* U_EXPORT2 ubiditransform_open(UErrorCode* pErrorCode);
+U_CAPI UBiDiTransform* U_EXPORT2
+ubiditransform_open(UErrorCode *pErrorCode);
 
 /**
  * Deallocates the given <code>UBiDiTransform</code> object.
  * @stable ICU 58
  */
-U_CAPI void U_EXPORT2 ubiditransform_close(UBiDiTransform* pBidiTransform);
+U_CAPI void U_EXPORT2
+ubiditransform_close(UBiDiTransform *pBidiTransform);
 
 #if U_SHOW_CPLUSPLUS_API
 

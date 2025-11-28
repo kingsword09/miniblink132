@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ***********************************************************************
@@ -52,6 +52,7 @@ class AnyTransliterator : public Transliterator {
     UScriptCode targetScript;
 
 public:
+
     /**
      * Destructor.
      */
@@ -70,7 +71,8 @@ public:
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& index, UBool incremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& index,
+                                     UBool incremental) const override;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
@@ -83,6 +85,7 @@ public:
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
 private:
+
     /**
      * Private constructor
      * @param id the ID of the form S-T or S-T/V, where T is theTarget
@@ -96,11 +99,15 @@ private:
      * @param ec error code, fails if the internal hashtable cannot be
      * allocated
      */
-    AnyTransliterator(const UnicodeString& id, const UnicodeString& theTarget, const UnicodeString& theVariant, UScriptCode theTargetScript, UErrorCode& ec);
+    AnyTransliterator(const UnicodeString& id,
+                      const UnicodeString& theTarget,
+                      const UnicodeString& theVariant,
+                      UScriptCode theTargetScript,
+                      UErrorCode& ec);
 
     /**
      * Returns a transliterator from the given source to our target or
-     * target/variant.  Returns NULL if the source is the same as our
+     * target/variant.  Returns nullptr if the source is the same as our
      * target script, or if the source is USCRIPT_INVALID_CODE.
      * Caches the result and returns the same transliterator the next
      * time.  The caller does NOT own the result and must not delete

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -86,31 +86,38 @@ typedef struct UDataSwapper UDataSwapper;
  * @see UDataSwapper
  * @internal ICU 2.8
  */
-typedef int32_t U_CALLCONV UDataSwapFn(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+typedef int32_t U_CALLCONV
+UDataSwapFn(const UDataSwapper *ds,
+            const void *inData, int32_t length, void *outData,
+            UErrorCode *pErrorCode);
 
 /**
  * Convert one uint16_t from input to platform endianness.
  * @internal ICU 2.8
  */
-typedef uint16_t U_CALLCONV UDataReadUInt16(uint16_t x);
+typedef uint16_t U_CALLCONV
+UDataReadUInt16(uint16_t x);
 
 /**
  * Convert one uint32_t from input to platform endianness.
  * @internal ICU 2.8
  */
-typedef uint32_t U_CALLCONV UDataReadUInt32(uint32_t x);
+typedef uint32_t U_CALLCONV
+UDataReadUInt32(uint32_t x);
 
 /**
  * Convert one uint16_t from platform to input endianness.
  * @internal ICU 2.8
  */
-typedef void U_CALLCONV UDataWriteUInt16(uint16_t* p, uint16_t x);
+typedef void U_CALLCONV
+UDataWriteUInt16(uint16_t *p, uint16_t x);
 
 /**
  * Convert one uint32_t from platform to input endianness.
  * @internal ICU 2.8
  */
-typedef void U_CALLCONV UDataWriteUInt32(uint32_t* p, uint32_t x);
+typedef void U_CALLCONV
+UDataWriteUInt32(uint32_t *p, uint32_t x);
 
 /**
  * Compare invariant-character strings, one in the output data and the
@@ -122,8 +129,10 @@ typedef void U_CALLCONV UDataWriteUInt32(uint32_t* p, uint32_t x);
  * Returns Unicode code point order for invariant characters.
  * @internal ICU 2.8
  */
-typedef int32_t U_CALLCONV UDataCompareInvChars(
-    const UDataSwapper* ds, const char* outString, int32_t outLength, const UChar* localString, int32_t localLength);
+typedef int32_t U_CALLCONV
+UDataCompareInvChars(const UDataSwapper *ds,
+                     const char *outString, int32_t outLength,
+                     const UChar *localString, int32_t localLength);
 
 /**
  * Function for message output when an error occurs during data swapping.
@@ -136,7 +145,8 @@ typedef int32_t U_CALLCONV UDataCompareInvChars(
  *
  * @internal ICU 2.8
  */
-typedef void U_CALLCONV UDataPrintError(void* context, const char* fmt, va_list args);
+typedef void U_CALLCONV
+UDataPrintError(void *context, const char *fmt, va_list args);
 
 struct UDataSwapper {
     /** Input endianness. @internal ICU 2.8 */
@@ -151,43 +161,46 @@ struct UDataSwapper {
     /* basic functions for reading data values */
 
     /** Convert one uint16_t from input to platform endianness. @internal ICU 2.8 */
-    UDataReadUInt16* readUInt16;
+    UDataReadUInt16 *readUInt16;
     /** Convert one uint32_t from input to platform endianness. @internal ICU 2.8 */
-    UDataReadUInt32* readUInt32;
+    UDataReadUInt32 *readUInt32;
     /** Compare an invariant-character output string with a local one. @internal ICU 2.8 */
-    UDataCompareInvChars* compareInvChars;
+    UDataCompareInvChars *compareInvChars;
 
     /* basic functions for writing data values */
 
     /** Convert one uint16_t from platform to input endianness. @internal ICU 2.8 */
-    UDataWriteUInt16* writeUInt16;
+    UDataWriteUInt16 *writeUInt16;
     /** Convert one uint32_t from platform to input endianness. @internal ICU 2.8 */
-    UDataWriteUInt32* writeUInt32;
+    UDataWriteUInt32 *writeUInt32;
 
     /* basic functions for data transformations */
 
     /** Transform an array of 16-bit integers. @internal ICU 2.8 */
-    UDataSwapFn* swapArray16;
+    UDataSwapFn *swapArray16;
     /** Transform an array of 32-bit integers. @internal ICU 2.8 */
-    UDataSwapFn* swapArray32;
+    UDataSwapFn *swapArray32;
     /** Transform an array of 64-bit integers. @internal ICU 53 */
-    UDataSwapFn* swapArray64;
+    UDataSwapFn *swapArray64;
     /** Transform an invariant-character string. @internal ICU 2.8 */
-    UDataSwapFn* swapInvChars;
+    UDataSwapFn *swapInvChars;
 
     /**
      * Function for message output when an error occurs during data swapping.
      * Can be NULL.
      * @internal ICU 2.8
      */
-    UDataPrintError* printError;
+    UDataPrintError *printError;
     /** Context pointer for printError. @internal ICU 2.8 */
-    void* printErrorContext;
+    void *printErrorContext;
 };
 
 U_CDECL_END
 
-U_CAPI UDataSwapper* U_EXPORT2 udata_openSwapper(UBool inIsBigEndian, uint8_t inCharset, UBool outIsBigEndian, uint8_t outCharset, UErrorCode* pErrorCode);
+U_CAPI UDataSwapper * U_EXPORT2
+udata_openSwapper(UBool inIsBigEndian, uint8_t inCharset,
+                  UBool outIsBigEndian, uint8_t outCharset,
+                  UErrorCode *pErrorCode);
 
 /**
  * Open a UDataSwapper for the given input data and the specified output
@@ -198,10 +211,13 @@ U_CAPI UDataSwapper* U_EXPORT2 udata_openSwapper(UBool inIsBigEndian, uint8_t in
  * @see udata_swap
  * @internal ICU 2.8
  */
-U_CAPI UDataSwapper* U_EXPORT2 udata_openSwapperForInputData(
-    const void* data, int32_t length, UBool outIsBigEndian, uint8_t outCharset, UErrorCode* pErrorCode);
+U_CAPI UDataSwapper * U_EXPORT2
+udata_openSwapperForInputData(const void *data, int32_t length,
+                              UBool outIsBigEndian, uint8_t outCharset,
+                              UErrorCode *pErrorCode);
 
-U_CAPI void U_EXPORT2 udata_closeSwapper(UDataSwapper* ds);
+U_CAPI void U_EXPORT2
+udata_closeSwapper(UDataSwapper *ds);
 
 /**
  * Read the beginning of an ICU data piece, recognize magic bytes,
@@ -212,28 +228,39 @@ U_CAPI void U_EXPORT2 udata_closeSwapper(UDataSwapper* ds);
  *
  * @internal ICU 2.8
  */
-U_CAPI int32_t U_EXPORT2 udata_swapDataHeader(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+udata_swapDataHeader(const UDataSwapper *ds,
+                     const void *inData, int32_t length, void *outData,
+                     UErrorCode *pErrorCode);
 
 /**
  * Convert one int16_t from input to platform endianness.
  * @internal ICU 2.8
  */
-U_CAPI int16_t U_EXPORT2 udata_readInt16(const UDataSwapper* ds, int16_t x);
+U_CAPI int16_t U_EXPORT2
+udata_readInt16(const UDataSwapper *ds, int16_t x);
 
 /**
  * Convert one int32_t from input to platform endianness.
  * @internal ICU 2.8
  */
-U_CAPI int32_t U_EXPORT2 udata_readInt32(const UDataSwapper* ds, int32_t x);
+U_CAPI int32_t U_EXPORT2
+udata_readInt32(const UDataSwapper *ds, int32_t x);
 
 /**
  * Swap a block of invariant, NUL-terminated strings, but not padding
  * bytes after the last string.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 udata_swapInvStringBlock(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+udata_swapInvStringBlock(const UDataSwapper *ds,
+                         const void *inData, int32_t length, void *outData,
+                         UErrorCode *pErrorCode);
 
-U_CAPI void U_EXPORT2 udata_printError(const UDataSwapper* ds, const char* fmt, ...);
+U_CAPI void U_EXPORT2
+udata_printError(const UDataSwapper *ds,
+                 const char *fmt,
+                 ...);
 
 /* internal exports from putil.c -------------------------------------------- */
 
@@ -243,49 +270,67 @@ U_CAPI void U_EXPORT2 udata_printError(const UDataSwapper* ds, const char* fmt, 
  * Swap invariant char * strings ASCII->EBCDIC.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 uprv_ebcdicFromAscii(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+uprv_ebcdicFromAscii(const UDataSwapper *ds,
+                     const void *inData, int32_t length, void *outData,
+                     UErrorCode *pErrorCode);
 
 /**
  * Copy invariant ASCII char * strings and verify they are invariant.
  * @internal
  */
-U_CFUNC int32_t uprv_copyAscii(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CFUNC int32_t
+uprv_copyAscii(const UDataSwapper *ds,
+               const void *inData, int32_t length, void *outData,
+               UErrorCode *pErrorCode);
 
 /**
  * Swap invariant char * strings EBCDIC->ASCII.
  * @internal
  */
-U_CFUNC int32_t uprv_asciiFromEbcdic(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CFUNC int32_t
+uprv_asciiFromEbcdic(const UDataSwapper *ds,
+                     const void *inData, int32_t length, void *outData,
+                     UErrorCode *pErrorCode);
 
 /**
  * Copy invariant EBCDIC char * strings and verify they are invariant.
  * @internal
  */
-U_CFUNC int32_t uprv_copyEbcdic(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CFUNC int32_t
+uprv_copyEbcdic(const UDataSwapper *ds,
+                const void *inData, int32_t length, void *outData,
+                UErrorCode *pErrorCode);
 
 /**
  * Compare ASCII invariant char * with Unicode invariant UChar *
  * @internal
  */
-U_CFUNC int32_t uprv_compareInvAscii(const UDataSwapper* ds, const char* outString, int32_t outLength, const UChar* localString, int32_t localLength);
+U_CFUNC int32_t
+uprv_compareInvAscii(const UDataSwapper *ds,
+                     const char *outString, int32_t outLength,
+                     const UChar *localString, int32_t localLength);
 
 /**
  * Compare EBCDIC invariant char * with Unicode invariant UChar *
  * @internal
  */
-U_CFUNC int32_t uprv_compareInvEbcdic(const UDataSwapper* ds, const char* outString, int32_t outLength, const UChar* localString, int32_t localLength);
+U_CFUNC int32_t
+uprv_compareInvEbcdic(const UDataSwapper *ds,
+                      const char *outString, int32_t outLength,
+                      const UChar *localString, int32_t localLength);
 
 /**
  * \def uprv_compareInvWithUChar
  * Compare an invariant-character strings with a UChar string
  * @internal
  */
-#if U_CHARSET_FAMILY == U_ASCII_FAMILY
-#define uprv_compareInvWithUChar uprv_compareInvAscii
-#elif U_CHARSET_FAMILY == U_EBCDIC_FAMILY
-#define uprv_compareInvWithUChar uprv_compareInvEbcdic
+#if U_CHARSET_FAMILY==U_ASCII_FAMILY
+#   define uprv_compareInvWithUChar uprv_compareInvAscii
+#elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
+#   define uprv_compareInvWithUChar uprv_compareInvEbcdic
 #else
-#error Unknown charset family!
+#   error Unknown charset family!
 #endif
 
 // utrie_swap.cpp -----------------------------------------------------------***
@@ -294,25 +339,37 @@ U_CFUNC int32_t uprv_compareInvEbcdic(const UDataSwapper* ds, const char* outStr
  * Swaps a serialized UTrie.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 utrie_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+utrie_swap(const UDataSwapper *ds,
+           const void *inData, int32_t length, void *outData,
+           UErrorCode *pErrorCode);
 
 /**
  * Swaps a serialized UTrie2.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 utrie2_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+utrie2_swap(const UDataSwapper *ds,
+            const void *inData, int32_t length, void *outData,
+            UErrorCode *pErrorCode);
 
 /**
  * Swaps a serialized UCPTrie.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 ucptrie_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+ucptrie_swap(const UDataSwapper *ds,
+             const void *inData, int32_t length, void *outData,
+             UErrorCode *pErrorCode);
 
 /**
  * Swaps a serialized UTrie, UTrie2, or UCPTrie.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 utrie_swapAnyVersion(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+utrie_swapAnyVersion(const UDataSwapper *ds,
+                     const void *inData, int32_t length, void *outData,
+                     UErrorCode *pErrorCode);
 
 /* material... -------------------------------------------------------------- */
 

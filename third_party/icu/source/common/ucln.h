@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -54,8 +54,8 @@
  */
 typedef enum ECleanupLibraryType {
     UCLN_START = -1,
-    UCLN_UPLUG, /* ICU plugins */
-    UCLN_CUSTOM, /* Custom is for anyone else. */
+    UCLN_UPLUG,     /* ICU plugins */
+    UCLN_CUSTOM,    /* Custom is for anyone else. */
     UCLN_CTESTFW,
     UCLN_TOOLUTIL,
     UCLN_LAYOUTEX,
@@ -70,7 +70,7 @@ typedef enum ECleanupLibraryType {
  */
 U_CDECL_BEGIN
 typedef UBool U_CALLCONV cleanupFunc(void);
-typedef void U_CALLCONV initFunc(UErrorCode*);
+typedef void U_CALLCONV initFunc(UErrorCode *);
 U_CDECL_END
 
 /**
@@ -78,7 +78,8 @@ U_CDECL_END
  * @param type which library to register for.
  * @param func the function pointer
  */
-U_CAPI void U_EXPORT2 ucln_registerCleanup(ECleanupLibraryType type, cleanupFunc* func);
+U_CAPI void U_EXPORT2 ucln_registerCleanup(ECleanupLibraryType type,
+                                           cleanupFunc *func);
 
 /**
  * Request cleanup for one specific library.

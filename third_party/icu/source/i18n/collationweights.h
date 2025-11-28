@@ -1,6 +1,6 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
-/*
+/*  
 *******************************************************************************
 *
 *   Copyright (C) 1999-2014, International Business Machines
@@ -35,13 +35,12 @@ class U_I18N_API CollationWeights : public UMemory {
 public:
     CollationWeights();
 
-    static inline int32_t lengthOfWeight(uint32_t weight)
-    {
-        if ((weight & 0xffffff) == 0) {
+    static inline int32_t lengthOfWeight(uint32_t weight) {
+        if((weight&0xffffff)==0) {
             return 1;
-        } else if ((weight & 0xffff) == 0) {
+        } else if((weight&0xffff)==0) {
             return 2;
-        } else if ((weight & 0xff) == 0) {
+        } else if((weight&0xff)==0) {
             return 3;
         } else {
             return 4;
@@ -84,14 +83,13 @@ public:
 
 private:
     /** @return number of usable byte values for byte idx */
-    inline int32_t countBytes(int32_t idx) const
-    {
+    inline int32_t countBytes(int32_t idx) const {
         return (int32_t)(maxBytes[idx] - minBytes[idx] + 1);
     }
 
     uint32_t incWeight(uint32_t weight, int32_t length) const;
     uint32_t incWeightByOffset(uint32_t weight, int32_t length, int32_t offset) const;
-    void lengthenRange(WeightRange& range) const;
+    void lengthenRange(WeightRange &range) const;
     /**
      * Takes two CE weights and calculates the
      * possible ranges of weights between the two limits, excluding them.
@@ -102,7 +100,7 @@ private:
     UBool allocWeightsInMinLengthRanges(int32_t n, int32_t minLength);
 
     int32_t middleLength;
-    uint32_t minBytes[5]; // for byte 1, 2, 3, 4
+    uint32_t minBytes[5];  // for byte 1, 2, 3, 4
     uint32_t maxBytes[5];
     WeightRange ranges[7];
     int32_t rangeIndex;
@@ -111,5 +109,5 @@ private:
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_COLLATION
-#endif // __COLLATIONWEIGHTS_H__
+#endif  // !UCONFIG_NO_COLLATION
+#endif  // __COLLATIONWEIGHTS_H__

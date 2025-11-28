@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -62,37 +62,37 @@ public:
      * Skips over Pattern_White_Space starting at s.
      * @return The smallest pointer at or after s with a non-white space character.
      */
-    static const UChar* skipWhiteSpace(const UChar* s, int32_t length);
+    static const char16_t *skipWhiteSpace(const char16_t *s, int32_t length);
 
     /**
      * Skips over Pattern_White_Space starting at index start in s.
      * @return The smallest index at or after start with a non-white space character.
      */
-    static int32_t skipWhiteSpace(const UnicodeString& s, int32_t start);
+    static int32_t skipWhiteSpace(const UnicodeString &s, int32_t start);
 
     /**
      * @return s except with leading and trailing Pattern_White_Space removed and length adjusted.
      */
-    static const UChar* trimWhiteSpace(const UChar* s, int32_t& length);
+    static const char16_t *trimWhiteSpace(const char16_t *s, int32_t &length);
 
     /**
      * Tests whether the string contains a "pattern identifier", that is,
      * whether it contains only non-Pattern_White_Space, non-Pattern_Syntax characters.
      * @return true if there are no Pattern_White_Space or Pattern_Syntax characters in s.
      */
-    static UBool isIdentifier(const UChar* s, int32_t length);
+    static UBool isIdentifier(const char16_t *s, int32_t length);
 
     /**
      * Skips over a "pattern identifier" starting at index s.
      * @return The smallest pointer at or after s with
      *         a Pattern_White_Space or Pattern_Syntax character.
      */
-    static const UChar* skipIdentifier(const UChar* s, int32_t length);
+    static const char16_t *skipIdentifier(const char16_t *s, int32_t length);
 
 private:
-    PatternProps(); // no constructor: all static methods
+    PatternProps() = delete;  // no constructor: all static methods
 };
 
 U_NAMESPACE_END
 
-#endif // __PATTERNPROPS_H__
+#endif  // __PATTERNPROPS_H__

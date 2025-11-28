@@ -1,4 +1,4 @@
-﻿/*
+/*
  ******************************************************************************
  * © 2016 and later: Unicode, Inc. and others.                    *
  * License & terms of use: http://www.unicode.org/copyright.html      *
@@ -20,13 +20,14 @@
 
 #define BUFFER_SIZE 128
 
-class FontMap {
+class FontMap
+{
 public:
-    FontMap(const char* fileName, le_int16 pointSize, GUISupport* guiSupport, LEErrorCode& status);
+    FontMap(const char *fileName, le_int16 pointSize, GUISupport *guiSupport, LEErrorCode &status);
 
     virtual ~FontMap();
 
-    virtual const LEFontInstance* getScriptFont(le_int32 scriptCode, LEErrorCode& status);
+    virtual const LEFontInstance *getScriptFont(le_int32 scriptCode, LEErrorCode &status);
 
     virtual le_int16 getPointSize() const;
 
@@ -37,13 +38,13 @@ public:
     virtual le_int32 getLeading() const;
 
 protected:
-    virtual const LEFontInstance* openFont(const char* fontName, le_int16 pointSize, LEErrorCode& status) = 0;
+    virtual const LEFontInstance *openFont(const char *fontName, le_int16 pointSize, LEErrorCode &status) = 0;
 
     char errorMessage[256];
 
 private:
-    static char* strip(char* s);
-    le_int32 getFontIndex(const char* fontName);
+    static char *strip(char *s);
+    le_int32 getFontIndex(const char *fontName);
     void getMaxMetrics();
 
     le_int16 fPointSize;
@@ -53,10 +54,10 @@ private:
     le_int32 fDescent;
     le_int32 fLeading;
 
-    GUISupport* fGUISupport;
+    GUISupport *fGUISupport;
 
-    const LEFontInstance* fFontInstances[scriptCodeCount];
-    const char* fFontNames[scriptCodeCount];
+    const LEFontInstance *fFontInstances[scriptCodeCount];
+    const char *fFontNames[scriptCodeCount];
     le_int32 fFontIndices[scriptCodeCount];
 };
 
@@ -66,3 +67,4 @@ inline le_int16 FontMap::getPointSize() const
 }
 
 #endif
+

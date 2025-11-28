@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -41,7 +41,7 @@ class UnicodeString;
  * the registry code and the transliterator code that deadlocks.
  */
 class TransliteratorAlias : public UMemory {
-public:
+ public:
     /**
      * Construct a simple alias (type == SIMPLE)
      * @param aliasID the given id.
@@ -51,12 +51,16 @@ public:
     /**
      * Construct a compound RBT alias (type == COMPOUND)
      */
-    TransliteratorAlias(const UnicodeString& ID, const UnicodeString& idBlocks, UVector* adoptedTransliterators, const UnicodeSet* compoundFilter);
+    TransliteratorAlias(const UnicodeString& ID, const UnicodeString& idBlocks,
+                        UVector* adoptedTransliterators,
+                        const UnicodeSet* compoundFilter);
 
     /**
      * Construct a rules alias (type = RULES)
      */
-    TransliteratorAlias(const UnicodeString& theID, const UnicodeString& rules, UTransDirection dir);
+    TransliteratorAlias(const UnicodeString& theID,
+                        const UnicodeString& rules,
+                        UTransDirection dir);
 
     ~TransliteratorAlias();
 
@@ -89,9 +93,10 @@ public:
      * mutex, because it can instantiate Transliterators embedded in
      * the rules via the "&Latin-Arabic()" syntax.
      */
-    void parse(TransliteratorParser& parser, UParseError& pe, UErrorCode& ec) const;
+    void parse(TransliteratorParser& parser,
+               UParseError& pe, UErrorCode& ec) const;
 
-private:
+ private:
     // We actually come in three flavors:
     // 1. Simple alias
     //    Here aliasID is the alias string.  Everything else is
@@ -111,9 +116,10 @@ private:
     UTransDirection direction;
     enum { SIMPLE, COMPOUND, RULES } type;
 
-    TransliteratorAlias(const TransliteratorAlias& other); // forbid copying of this class
-    TransliteratorAlias& operator=(const TransliteratorAlias& other); // forbid copying of this class
+    TransliteratorAlias(const TransliteratorAlias &other); // forbid copying of this class
+    TransliteratorAlias &operator=(const TransliteratorAlias &other); // forbid copying of this class
 };
+
 
 /**
  * A registry of system transliterators.  This is the data structure
@@ -135,7 +141,8 @@ private:
  */
 class TransliteratorRegistry : public UMemory {
 
-public:
+ public:
+
     /**
      * Constructor
      * @param status Output param set to success/failure code.
@@ -156,18 +163,20 @@ public:
      * compound) attempt to instantiate it from the registry.  Return
      * 0 on failure.
      *
-     * Return a non-NULL aliasReturn value if the ID points to an alias.
+     * Return a non-nullptr aliasReturn value if the ID points to an alias.
      * We cannot instantiate it ourselves because the alias may contain
      * filters or compounds, which we do not understand.  Caller should
-     * make aliasReturn NULL before calling.
+     * make aliasReturn nullptr before calling.
      * @param ID          the given ID
      * @param aliasReturn output param to receive TransliteratorAlias;
-     *                    should be NULL on entry
+     *                    should be nullptr on entry
      * @param parseError  Struct to receive information on position
      *                    of error if an error is encountered
      * @param status      Output param set to success/failure code.
      */
-    Transliterator* get(const UnicodeString& ID, TransliteratorAlias*& aliasReturn, UErrorCode& status);
+    Transliterator* get(const UnicodeString& ID,
+                        TransliteratorAlias*& aliasReturn,
+                        UErrorCode& status);
 
     /**
      * The caller must call this after calling get(), if [a] calling get()
@@ -182,37 +191,55 @@ public:
      * from within the TransliteratorRegistry mutex.
      *
      * @param aliasReturn output param to receive TransliteratorAlias;
-     *                    should be NULL on entry
+     *                    should be nullptr on entry
      */
-    Transliterator* reget(const UnicodeString& ID, TransliteratorParser& parser, TransliteratorAlias*& aliasReturn, UErrorCode& status);
+    Transliterator* reget(const UnicodeString& ID,
+                          TransliteratorParser& parser,
+                          TransliteratorAlias*& aliasReturn,
+                          UErrorCode& status);
 
     /**
      * Register a prototype (adopted).  This adds an entry to the
      * dynamic store, or replaces an existing entry.  Any entry in the
      * underlying static locale resource store is masked.
      */
-    void put(Transliterator* adoptedProto, UBool visible, UErrorCode& ec);
+    void put(Transliterator* adoptedProto,
+             UBool visible,
+             UErrorCode& ec);
 
     /**
      * Register an ID and a factory function pointer.  This adds an
      * entry to the dynamic store, or replaces an existing entry.  Any
      * entry in the underlying static locale resource store is masked.
      */
-    void put(const UnicodeString& ID, Transliterator::Factory factory, Transliterator::Token context, UBool visible, UErrorCode& ec);
+    void put(const UnicodeString& ID,
+             Transliterator::Factory factory,
+             Transliterator::Token context,
+             UBool visible,
+             UErrorCode& ec);
 
     /**
      * Register an ID and a resource name.  This adds an entry to the
      * dynamic store, or replaces an existing entry.  Any entry in the
      * underlying static locale resource store is masked.
      */
-    void put(const UnicodeString& ID, const UnicodeString& resourceName, UTransDirection dir, UBool readonlyResourceAlias, UBool visible, UErrorCode& ec);
+    void put(const UnicodeString& ID,
+             const UnicodeString& resourceName,
+             UTransDirection dir,
+             UBool readonlyResourceAlias,
+             UBool visible,
+             UErrorCode& ec);
 
     /**
      * Register an ID and an alias ID.  This adds an entry to the
      * dynamic store, or replaces an existing entry.  Any entry in the
      * underlying static locale resource store is masked.
      */
-    void put(const UnicodeString& ID, const UnicodeString& alias, UBool readonlyAliasAlias, UBool visible, UErrorCode& ec);
+    void put(const UnicodeString& ID,
+             const UnicodeString& alias,
+             UBool readonlyAliasAlias,
+             UBool visible,
+             UErrorCode& ec);
 
     /**
      * Unregister an ID.  This removes an entry from the dynamic store
@@ -241,7 +268,7 @@ public:
      * @return the number of IDs currently registered with the system.
      * @internal
      */
-    int32_t countAvailableIDs(void) const;
+    int32_t countAvailableIDs() const;
 
     /**
      * == OBSOLETE - remove in ICU 3.4 ==
@@ -260,7 +287,7 @@ public:
      * Return the number of registered source specifiers.
      * @return the number of registered source specifiers.
      */
-    int32_t countAvailableSources(void) const;
+    int32_t countAvailableSources() const;
 
     /**
      * Return a registered source specifier.
@@ -270,7 +297,8 @@ public:
      * If index is out of range, result will be empty.
      * @return reference to result
      */
-    UnicodeString& getAvailableSource(int32_t index, UnicodeString& result) const;
+    UnicodeString& getAvailableSource(int32_t index,
+                                      UnicodeString& result) const;
 
     /**
      * Return the number of registered target specifiers for a given
@@ -291,7 +319,9 @@ public:
      * be empty.
      * @return reference to result
      */
-    UnicodeString& getAvailableTarget(int32_t index, const UnicodeString& source, UnicodeString& result) const;
+    UnicodeString& getAvailableTarget(int32_t index,
+                                      const UnicodeString& source,
+                                      UnicodeString& result) const;
 
     /**
      * Return the number of registered variant specifiers for a given
@@ -304,7 +334,8 @@ public:
      * @return the number of registered variant specifiers for a given
      *         source-target pair.
      */
-    int32_t countAvailableVariants(const UnicodeString& source, const UnicodeString& target) const;
+    int32_t countAvailableVariants(const UnicodeString& source,
+                                   const UnicodeString& target) const;
 
     /**
      * Return a registered variant specifier for a given source-target
@@ -319,36 +350,65 @@ public:
      * index is out of range, result will be empty.
      * @return reference to result
      */
-    UnicodeString& getAvailableVariant(int32_t index, const UnicodeString& source, const UnicodeString& target, UnicodeString& result) const;
+    UnicodeString& getAvailableVariant(int32_t index,
+                                       const UnicodeString& source,
+                                       const UnicodeString& target,
+                                       UnicodeString& result) const;
 
-private:
+ private:
+
     //----------------------------------------------------------------
     // Private implementation
     //----------------------------------------------------------------
 
     TransliteratorEntry* find(const UnicodeString& ID);
 
-    TransliteratorEntry* find(UnicodeString& source, UnicodeString& target, UnicodeString& variant);
+    TransliteratorEntry* find(UnicodeString& source,
+                UnicodeString& target,
+                UnicodeString& variant);
 
-    TransliteratorEntry* findInDynamicStore(const TransliteratorSpec& src, const TransliteratorSpec& trg, const UnicodeString& variant) const;
+    TransliteratorEntry* findInDynamicStore(const TransliteratorSpec& src,
+                              const TransliteratorSpec& trg,
+                              const UnicodeString& variant) const;
 
-    TransliteratorEntry* findInStaticStore(const TransliteratorSpec& src, const TransliteratorSpec& trg, const UnicodeString& variant);
+    TransliteratorEntry* findInStaticStore(const TransliteratorSpec& src,
+                             const TransliteratorSpec& trg,
+                             const UnicodeString& variant);
 
-    static TransliteratorEntry* findInBundle(
-        const TransliteratorSpec& specToOpen, const TransliteratorSpec& specToFind, const UnicodeString& variant, UTransDirection direction);
+    static TransliteratorEntry* findInBundle(const TransliteratorSpec& specToOpen,
+                               const TransliteratorSpec& specToFind,
+                               const UnicodeString& variant,
+                               UTransDirection direction);
 
-    void registerEntry(const UnicodeString& source, const UnicodeString& target, const UnicodeString& variant, TransliteratorEntry* adopted, UBool visible);
+    void registerEntry(const UnicodeString& source,
+                       const UnicodeString& target,
+                       const UnicodeString& variant,
+                       TransliteratorEntry* adopted,
+                       UBool visible);
 
-    void registerEntry(const UnicodeString& ID, TransliteratorEntry* adopted, UBool visible);
+    void registerEntry(const UnicodeString& ID,
+                       TransliteratorEntry* adopted,
+                       UBool visible);
 
-    void registerEntry(const UnicodeString& ID, const UnicodeString& source, const UnicodeString& target, const UnicodeString& variant,
-        TransliteratorEntry* adopted, UBool visible);
+    void registerEntry(const UnicodeString& ID,
+                       const UnicodeString& source,
+                       const UnicodeString& target,
+                       const UnicodeString& variant,
+                       TransliteratorEntry* adopted,
+                       UBool visible);
 
-    void registerSTV(const UnicodeString& source, const UnicodeString& target, const UnicodeString& variant);
+    void registerSTV(const UnicodeString& source,
+                     const UnicodeString& target,
+                     const UnicodeString& variant);
 
-    void removeSTV(const UnicodeString& source, const UnicodeString& target, const UnicodeString& variant);
+    void removeSTV(const UnicodeString& source,
+                   const UnicodeString& target,
+                   const UnicodeString& variant);
 
-    Transliterator* instantiateEntry(const UnicodeString& ID, TransliteratorEntry* entry, TransliteratorAlias*& aliasReturn, UErrorCode& status);
+    Transliterator* instantiateEntry(const UnicodeString& ID,
+                                     TransliteratorEntry *entry,
+                                     TransliteratorAlias*& aliasReturn,
+                                     UErrorCode& status);
 
     /**
      * A StringEnumeration over the registered IDs in this object.
@@ -362,14 +422,15 @@ private:
         virtual void reset(UErrorCode& status) override;
         static UClassID U_EXPORT2 getStaticClassID();
         virtual UClassID getDynamicClassID() const override;
-
     private:
-        int32_t index;
+        int32_t pos;
+        int32_t size;
         const TransliteratorRegistry& reg;
     };
     friend class Enumeration;
 
-private:
+ private:
+
     /**
      * Dynamic registry mapping full IDs to Entry objects.  This
      * contains both public and internal entities.  The visibility is
@@ -392,17 +453,17 @@ private:
     /**
      * Vector of public full IDs.
      */
-    UVector availableIDs;
+    Hashtable availableIDs;
 
-    TransliteratorRegistry(const TransliteratorRegistry& other); // forbid copying of this class
-    TransliteratorRegistry& operator=(const TransliteratorRegistry& other); // forbid copying of this class
+    TransliteratorRegistry(const TransliteratorRegistry &other); // forbid copying of this class
+    TransliteratorRegistry &operator=(const TransliteratorRegistry &other); // forbid copying of this class
 };
 
 U_NAMESPACE_END
 
-U_CFUNC UBool utrans_transliterator_cleanup(void);
+U_CFUNC UBool utrans_transliterator_cleanup();
 
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif
-// eof
+//eof

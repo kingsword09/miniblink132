@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -10,7 +10,7 @@
 #define __ZRULE_H
 
 /**
- * \file
+ * \file 
  * \brief C API: Time zone rule classes
  */
 
@@ -19,8 +19,6 @@
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/uobject.h"
-
-#ifndef UCNV_H
 
 /**
  * A TimeZoneRule.  Use the zrule_* API to manipulate.  Create with
@@ -43,8 +41,6 @@ typedef struct IZRule IZRule;
 struct AZRule;
 typedef struct AZRule AZRule;
 
-#endif
-
 /*********************************************************************
  * ZRule API
  *********************************************************************/
@@ -54,7 +50,8 @@ typedef struct AZRule AZRule;
  * be called exactly once for objects returned by zrule_open*.
  * @param set the object to dispose of
  */
-U_CAPI void U_EXPORT2 zrule_close(ZRule* rule);
+U_CAPI void U_EXPORT2
+zrule_close(ZRule* rule);
 
 /**
  * Returns true if rule1 is identical to rule2
@@ -63,7 +60,8 @@ U_CAPI void U_EXPORT2 zrule_close(ZRule* rule);
  * @param rule2 to be checked for containment
  * @return true if the test condition is met
  */
-U_CAPI UBool U_EXPORT2 zrule_equals(const ZRule* rule1, const ZRule* rule2);
+U_CAPI UBool U_EXPORT2
+zrule_equals(const ZRule* rule1, const ZRule* rule2);
 
 /**
  * Fills in "name" with the name of this time zone.
@@ -71,14 +69,16 @@ U_CAPI UBool U_EXPORT2 zrule_equals(const ZRule* rule1, const ZRule* rule2);
  * @param name  Receives the name of this time zone.
  * @param nameLength, length of the returned name
  */
-U_CAPI void U_EXPORT2 zrule_getName(ZRule* rule, UChar* name, int32_t nameLength);
+U_CAPI void U_EXPORT2
+zrule_getName(ZRule* rule, UChar* name, int32_t nameLength);
 
 /**
  * Gets the standard time offset.
  * @param rule, the Zrule to use
  * @return  The standard time offset from UTC in milliseconds.
  */
-U_CAPI int32_t U_EXPORT2 zrule_getRawOffset(ZRule* rule);
+U_CAPI int32_t U_EXPORT2
+zrule_getRawOffset(ZRule* rule);
 
 /**
  * Gets the amount of daylight saving delta time from the standard time.
@@ -86,7 +86,8 @@ U_CAPI int32_t U_EXPORT2 zrule_getRawOffset(ZRule* rule);
  * @return  The amount of daylight saving offset used by this rule
  *          in milliseconds.
  */
-U_CAPI int32_t U_EXPORT2 zrule_getDSTSavings(ZRule* rule);
+U_CAPI int32_t U_EXPORT2
+zrule_getDSTSavings(ZRule* rule);
 
 /**
  * Returns if this rule represents the same rule and offsets as another.
@@ -96,7 +97,8 @@ U_CAPI int32_t U_EXPORT2 zrule_getDSTSavings(ZRule* rule);
  * @param rule2 to be checked for containment
  * @return  true if the other <code>TimeZoneRule</code> is the same as this one.
  */
-U_CAPI UBool U_EXPORT2 zrule_isEquivalentTo(ZRule* rule1, ZRule* rule2);
+U_CAPI UBool U_EXPORT2
+zrule_isEquivalentTo(ZRule* rule1,  ZRule* rule2);
 
 /*********************************************************************
  * IZRule API
@@ -111,21 +113,24 @@ U_CAPI UBool U_EXPORT2 zrule_isEquivalentTo(ZRule* rule1, ZRule* rule2);
  * @param dstSavings    The amount of daylight saving offset adjustment in milliseconds.
  *                      If this ia a rule for standard time, the value of this argument is 0.
  */
-U_CAPI IZRule* U_EXPORT2 izrule_open(const UChar* name, int32_t nameLength, int32_t rawOffset, int32_t dstSavings);
+U_CAPI IZRule* U_EXPORT2
+izrule_open(const UChar* name, int32_t nameLength, int32_t rawOffset, int32_t dstSavings);
 
 /**
  * Disposes of the storage used by a IZRule object.  This function should
  * be called exactly once for objects returned by izrule_open*.
  * @param set the object to dispose of
  */
-U_CAPI void U_EXPORT2 izrule_close(IZRule* rule);
+U_CAPI void U_EXPORT2
+izrule_close(IZRule* rule);
 
 /**
  * Returns a copy of this object.
  * @param rule the original IZRule
  * @return the newly allocated copy of the IZRule
  */
-U_CAPI IZRule* U_EXPORT2 izrule_clone(IZRule* rule);
+U_CAPI IZRule* U_EXPORT2
+izrule_clone(IZRule *rule);
 
 /**
  * Returns true if rule1 is identical to rule2
@@ -134,7 +139,8 @@ U_CAPI IZRule* U_EXPORT2 izrule_clone(IZRule* rule);
  * @param rule2 to be checked for containment
  * @return true if the test condition is met
  */
-U_CAPI UBool U_EXPORT2 izrule_equals(const IZRule* rule1, const IZRule* rule2);
+U_CAPI UBool U_EXPORT2
+izrule_equals(const IZRule* rule1, const IZRule* rule2);
 
 /**
  * Fills in "name" with the name of this time zone.
@@ -142,14 +148,16 @@ U_CAPI UBool U_EXPORT2 izrule_equals(const IZRule* rule1, const IZRule* rule2);
  * @param name  Receives the name of this time zone.
  * @param nameLength, length of the returned name
  */
-U_CAPI void U_EXPORT2 izrule_getName(IZRule* rule, UChar*& name, int32_t& nameLength);
+U_CAPI void U_EXPORT2
+izrule_getName(IZRule* rule, UChar* & name, int32_t & nameLength);
 
 /**
  * Gets the standard time offset.
  * @param rule, the IZrule to use
  * @return  The standard time offset from UTC in milliseconds.
  */
-U_CAPI int32_t U_EXPORT2 izrule_getRawOffset(IZRule* rule);
+U_CAPI int32_t U_EXPORT2
+izrule_getRawOffset(IZRule* rule);
 
 /**
  * Gets the amount of daylight saving delta time from the standard time.
@@ -157,7 +165,8 @@ U_CAPI int32_t U_EXPORT2 izrule_getRawOffset(IZRule* rule);
  * @return  The amount of daylight saving offset used by this rule
  *          in milliseconds.
  */
-U_CAPI int32_t U_EXPORT2 izrule_getDSTSavings(IZRule* rule);
+U_CAPI int32_t U_EXPORT2
+izrule_getDSTSavings(IZRule* rule);
 
 /**
  * Returns if this rule represents the same rule and offsets as another.
@@ -167,7 +176,8 @@ U_CAPI int32_t U_EXPORT2 izrule_getDSTSavings(IZRule* rule);
  * @param rule2 to be checked for containment
  * @return  true if the other <code>TimeZoneRule</code> is the same as this one.
  */
-U_CAPI UBool U_EXPORT2 izrule_isEquivalentTo(IZRule* rule1, IZRule* rule2);
+U_CAPI UBool U_EXPORT2
+izrule_isEquivalentTo(IZRule* rule1,  IZRule* rule2);
 
 /**
  * Gets the very first time when this rule takes effect.
@@ -180,11 +190,13 @@ U_CAPI UBool U_EXPORT2 izrule_isEquivalentTo(IZRule* rule1, IZRule* rule2);
  * @return  true if the start time is available.  When false is returned, output parameter
  *          "result" is unchanged.
  */
-U_CAPI UBool U_EXPORT2 izrule_getFirstStart(IZRule* rule, int32_t prevRawOffset, int32_t prevDSTSavings, UDate& result);
+U_CAPI UBool U_EXPORT2
+izrule_getFirstStart(IZRule* rule, int32_t prevRawOffset, int32_t prevDSTSavings, 
+                    UDate& result);
 
 /**
  * Gets the final time when this rule takes effect.
- * @param rule              The IZrule to use
+ * @param rule              The IZrule to use     
  * @param prevRawOffset     The standard time offset from UTC before this rule
  *                          takes effect in milliseconds.
  * @param prevDSTSavings    The amount of daylight saving offset from the
@@ -193,7 +205,9 @@ U_CAPI UBool U_EXPORT2 izrule_getFirstStart(IZRule* rule, int32_t prevRawOffset,
  * @return  true if the start time is available.  When false is returned, output parameter
  *          "result" is unchanged.
  */
-U_CAPI UBool U_EXPORT2 izrule_getFinalStart(IZRule* rule, int32_t prevRawOffset, int32_t prevDSTSavings, UDate& result);
+U_CAPI UBool U_EXPORT2
+izrule_getFinalStart(IZRule* rule, int32_t prevRawOffset, int32_t prevDSTSavings, 
+                    UDate& result);
 
 /**
  * Gets the first time when this rule takes effect after the specified time.
@@ -209,7 +223,9 @@ U_CAPI UBool U_EXPORT2 izrule_getFinalStart(IZRule* rule, int32_t prevRawOffset,
  * @return  true if the start time is available.  When false is returned, output parameter
  *          "result" is unchanged.
  */
-U_CAPI UBool U_EXPORT2 izrule_getNextStart(IZRule* rule, UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result);
+U_CAPI UBool U_EXPORT2
+izrule_getNextStart(IZRule* rule, UDate base, int32_t prevRawOffset, 
+                   int32_t prevDSTSavings, UBool inclusive, UDate& result);
 
 /**
  * Gets the most recent time when this rule takes effect before the specified time.
@@ -225,7 +241,10 @@ U_CAPI UBool U_EXPORT2 izrule_getNextStart(IZRule* rule, UDate base, int32_t pre
  * @return  true if the start time is available.  When false is returned, output parameter
  *          "result" is unchanged.
  */
-U_CAPI UBool U_EXPORT2 izrule_getPreviousStart(IZRule* rule, UDate base, int32_t prevRawOffset, int32_t prevDSTSavings, UBool inclusive, UDate& result);
+U_CAPI UBool U_EXPORT2
+izrule_getPreviousStart(IZRule* rule, UDate base, int32_t prevRawOffset, 
+                       int32_t prevDSTSavings, UBool inclusive, UDate& result);
+
 
 /**
  * Return the class ID for this class. This is useful only for comparing to
@@ -238,7 +257,8 @@ U_CAPI UBool U_EXPORT2 izrule_getPreviousStart(IZRule* rule, UDate base, int32_t
  * @param rule              The IZrule to use
  * @return          The class ID for all objects of this class.
  */
-U_CAPI UClassID U_EXPORT2 izrule_getStaticClassID(IZRule* rule);
+U_CAPI UClassID U_EXPORT2
+izrule_getStaticClassID(IZRule* rule);
 
 /**
  * Returns a unique class ID POLYMORPHICALLY. Pure virtual override. This
@@ -251,7 +271,8 @@ U_CAPI UClassID U_EXPORT2 izrule_getStaticClassID(IZRule* rule);
  *                  given class have the same class ID.  Objects of
  *                  other classes have different class IDs.
  */
-U_CAPI UClassID U_EXPORT2 izrule_getDynamicClassID(IZRule* rule);
+U_CAPI UClassID U_EXPORT2
+izrule_getDynamicClassID(IZRule* rule);
 
 #endif
 

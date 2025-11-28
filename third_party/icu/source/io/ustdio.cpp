@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  ******************************************************************************
@@ -43,61 +43,79 @@
 
 /* TODO: is this correct for all codepages? Should we just use \n and let the converter handle it? */
 #if U_PLATFORM_USES_ONLY_WIN32_API
-static const UChar DELIMITERS[] = { DELIM_CR, DELIM_LF, 0x0000 };
+static const char16_t DELIMITERS [] = { DELIM_CR, DELIM_LF, 0x0000 };
 static const uint32_t DELIMITERS_LEN = 2;
 /* TODO: Default newline writing should be detected based upon the converter being used. */
 #else
-static const UChar DELIMITERS[] = { DELIM_LF, 0x0000 };
+static const char16_t DELIMITERS [] = { DELIM_LF, 0x0000 };
 static const uint32_t DELIMITERS_LEN = 1;
 #endif
 
-#define IS_FIRST_STRING_DELIMITER(c1) (UBool)((DELIM_LF <= (c1) && (c1) <= DELIM_CR) || (c1) == DELIM_NEL || (c1) == DELIM_LS || (c1) == DELIM_PS)
+#define IS_FIRST_STRING_DELIMITER(c1) \
+ (UBool)((DELIM_LF <= (c1) && (c1) <= DELIM_CR) \
+        || (c1) == DELIM_NEL \
+        || (c1) == DELIM_LS \
+        || (c1) == DELIM_PS)
 #define CAN_HAVE_COMBINED_STRING_DELIMITER(c1) (UBool)((c1) == DELIM_CR)
-#define IS_COMBINED_STRING_DELIMITER(c1, c2) (UBool)((c1) == DELIM_CR && (c2) == DELIM_LF)
+#define IS_COMBINED_STRING_DELIMITER(c1, c2) \
+ (UBool)((c1) == DELIM_CR && (c2) == DELIM_LF)
+
 
 #if !UCONFIG_NO_TRANSLITERATION
 
-U_CAPI UTransliterator* U_EXPORT2 u_fsettransliterator(UFILE* file, UFileDirection direction, UTransliterator* adopt, UErrorCode* status)
+U_CAPI UTransliterator* U_EXPORT2
+u_fsettransliterator(UFILE *file, UFileDirection direction,
+                     UTransliterator *adopt, UErrorCode *status)
 {
-    UTransliterator* old = NULL;
+    UTransliterator *old = nullptr;
 
-    if (U_FAILURE(*status)) {
+    if(U_FAILURE(*status))
+    {
         return adopt;
     }
 
-    if (!file) {
+    if(!file)
+    {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
         return adopt;
     }
 
-    if (direction & U_READ) {
+    if(direction & U_READ)
+    {
         /** TODO: implement */
         *status = U_UNSUPPORTED_ERROR;
         return adopt;
     }
 
-    if (adopt == NULL) /* they are clearing it */
+    if(adopt == nullptr) /* they are clearing it */
     {
-        if (file->fTranslit != NULL) {
+        if(file->fTranslit != nullptr)
+        {
             /* TODO: Check side */
             old = file->fTranslit->translit;
             uprv_free(file->fTranslit->buffer);
-            file->fTranslit->buffer = NULL;
+            file->fTranslit->buffer=nullptr;
             uprv_free(file->fTranslit);
-            file->fTranslit = NULL;
+            file->fTranslit=nullptr;
         }
-    } else {
-        if (file->fTranslit == NULL) {
-            file->fTranslit = (UFILETranslitBuffer*)uprv_malloc(sizeof(UFILETranslitBuffer));
-            if (!file->fTranslit) {
+    }
+    else
+    {
+        if(file->fTranslit == nullptr)
+        {
+            file->fTranslit = (UFILETranslitBuffer*) uprv_malloc(sizeof(UFILETranslitBuffer));
+            if(!file->fTranslit)
+            {
                 *status = U_MEMORY_ALLOCATION_ERROR;
                 return adopt;
             }
             file->fTranslit->capacity = 0;
             file->fTranslit->length = 0;
             file->fTranslit->pos = 0;
-            file->fTranslit->buffer = NULL;
-        } else {
+            file->fTranslit->buffer = nullptr;
+        }
+        else
+        {
             old = file->fTranslit->translit;
             ufile_flush_translit(file);
         }
@@ -108,7 +126,7 @@ U_CAPI UTransliterator* U_EXPORT2 u_fsettransliterator(UFILE* file, UFileDirecti
     return old;
 }
 
-static const UChar* u_file_translit(UFILE* f, const UChar* src, int32_t* count, UBool flush)
+static const char16_t * u_file_translit(UFILE *f, const char16_t *src, int32_t *count, UBool flush)
 {
     int32_t newlen;
     int32_t junkCount = 0;
@@ -117,18 +135,22 @@ static const UChar* u_file_translit(UFILE* f, const UChar* src, int32_t* count, 
     UTransPosition pos;
     UErrorCode status = U_ZERO_ERROR;
 
-    if (count == NULL) {
+    if(count == nullptr)
+    {
         count = &junkCount;
     }
 
-    if ((!f) || (!f->fTranslit) || (!f->fTranslit->translit)) {
+    if ((!f)||(!f->fTranslit)||(!f->fTranslit->translit))
+    {
         /* fast path */
         return src;
     }
 
     /* First: slide over everything */
-    if (f->fTranslit->length > f->fTranslit->pos) {
-        memmove(f->fTranslit->buffer, f->fTranslit->buffer + f->fTranslit->pos, (f->fTranslit->length - f->fTranslit->pos) * sizeof(UChar));
+    if(f->fTranslit->length > f->fTranslit->pos)
+    {
+        memmove(f->fTranslit->buffer, f->fTranslit->buffer + f->fTranslit->pos,
+            (f->fTranslit->length - f->fTranslit->pos)*sizeof(char16_t));
     }
     f->fTranslit->length -= f->fTranslit->pos; /* always */
     f->fTranslit->pos = 0;
@@ -136,46 +158,65 @@ static const UChar* u_file_translit(UFILE* f, const UChar* src, int32_t* count, 
     /* Calculate new buffer size needed */
     newlen = (*count + f->fTranslit->length) * 4;
 
-    if (newlen > f->fTranslit->capacity) {
-        if (f->fTranslit->buffer == NULL) {
-            f->fTranslit->buffer = (UChar*)uprv_malloc(newlen * sizeof(UChar));
-        } else {
-            f->fTranslit->buffer = (UChar*)uprv_realloc(f->fTranslit->buffer, newlen * sizeof(UChar));
+    if(newlen > f->fTranslit->capacity)
+    {
+        if(f->fTranslit->buffer == nullptr)
+        {
+            f->fTranslit->buffer = (char16_t*)uprv_malloc(newlen * sizeof(char16_t));
+        }
+        else
+        {
+            f->fTranslit->buffer = (char16_t*)uprv_realloc(f->fTranslit->buffer, newlen * sizeof(char16_t));
         }
         /* Check for malloc/realloc failure. */
-        if (f->fTranslit->buffer == NULL) {
-            return NULL;
+        if (f->fTranslit->buffer == nullptr) {
+        	return nullptr;
         }
         f->fTranslit->capacity = newlen;
     }
 
     /* Now, copy any data over */
-    u_strncpy(f->fTranslit->buffer + f->fTranslit->length, src, *count);
+    u_strncpy(f->fTranslit->buffer + f->fTranslit->length,
+        src,
+        *count);
     f->fTranslit->length += *count;
 
     /* Now, translit in place as much as we can  */
-    if (flush == FALSE) {
+    if(flush == false)
+    {
         textLength = f->fTranslit->length;
         pos.contextStart = 0;
         pos.contextLimit = textLength;
-        pos.start = 0;
-        pos.limit = textLength;
+        pos.start        = 0;
+        pos.limit        = textLength;
 
-        utrans_transIncrementalUChars(f->fTranslit->translit, f->fTranslit->buffer, /* because we shifted */
-            &textLength, f->fTranslit->capacity, &pos, &status);
+        utrans_transIncrementalUChars(f->fTranslit->translit,
+            f->fTranslit->buffer, /* because we shifted */
+            &textLength,
+            f->fTranslit->capacity,
+            &pos,
+            &status);
 
         /* now: start/limit point to the transliterated text */
         /* Transliterated is [buffer..pos.start) */
-        *count = pos.start;
+        *count            = pos.start;
         f->fTranslit->pos = pos.start;
         f->fTranslit->length = pos.limit;
 
         return f->fTranslit->buffer;
-    } else {
+    }
+    else
+    {
         textLength = f->fTranslit->length;
         textLimit = f->fTranslit->length;
 
-        utrans_transUChars(f->fTranslit->translit, f->fTranslit->buffer, &textLength, f->fTranslit->capacity, 0, &textLimit, &status);
+        utrans_transUChars(f->fTranslit->translit,
+            f->fTranslit->buffer,
+            &textLength,
+            f->fTranslit->capacity,
+            0,
+            &textLimit,
+            &status);
 
         /* out: converted len */
         *count = textLimit;
@@ -190,51 +231,59 @@ static const UChar* u_file_translit(UFILE* f, const UChar* src, int32_t* count, 
 
 #endif
 
-void ufile_flush_translit(UFILE* f)
+void
+ufile_flush_translit(UFILE *f)
 {
 #if !UCONFIG_NO_TRANSLITERATION
-    if ((!f) || (!f->fTranslit))
+    if((!f)||(!f->fTranslit))
         return;
 #endif
 
-    u_file_write_flush(NULL, 0, f, FALSE, TRUE);
+    u_file_write_flush(nullptr, 0, f, false, true);
 }
 
-void ufile_flush_io(UFILE* f)
+
+void
+ufile_flush_io(UFILE *f)
 {
-    if ((!f) || (!f->fFile)) {
-        return; /* skip if no file */
-    }
+  if((!f) || (!f->fFile)) {
+    return; /* skip if no file */
+  }
 
-    u_file_write_flush(NULL, 0, f, TRUE, FALSE);
+  u_file_write_flush(nullptr, 0, f, true, false);
 }
 
-void ufile_close_translit(UFILE* f)
+
+void
+ufile_close_translit(UFILE *f)
 {
 #if !UCONFIG_NO_TRANSLITERATION
-    if ((!f) || (!f->fTranslit))
+    if((!f)||(!f->fTranslit))
         return;
 #endif
 
     ufile_flush_translit(f);
 
 #if !UCONFIG_NO_TRANSLITERATION
-    if (f->fTranslit->translit)
+    if(f->fTranslit->translit)
         utrans_close(f->fTranslit->translit);
 
-    if (f->fTranslit->buffer) {
+    if(f->fTranslit->buffer)
+    {
         uprv_free(f->fTranslit->buffer);
     }
 
     uprv_free(f->fTranslit);
-    f->fTranslit = NULL;
+    f->fTranslit = nullptr;
 #endif
 }
+
 
 /* Input/output */
 
 U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fputs(const UChar* s, UFILE* f)
+u_fputs(const char16_t *s,
+        UFILE        *f)
 {
     int32_t count = u_file_write(s, u_strlen(s), f);
     count += u_file_write(DELIMITERS, DELIMITERS_LEN, f);
@@ -242,11 +291,12 @@ u_fputs(const UChar* s, UFILE* f)
 }
 
 U_CAPI UChar32 U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fputc(UChar32 uc, UFILE* f)
+u_fputc(UChar32      uc,
+        UFILE        *f)
 {
-    UChar buf[2];
+    char16_t buf[2];
     int32_t idx = 0;
-    UBool isError = FALSE;
+    UBool isError = false;
 
     U16_APPEND(buf, idx, UPRV_LENGTHOF(buf), uc, isError);
     if (isError) {
@@ -255,24 +305,31 @@ u_fputc(UChar32 uc, UFILE* f)
     return u_file_write(buf, idx, f) == idx ? uc : U_EOF;
 }
 
-U_CFUNC int32_t U_EXPORT2 u_file_write_flush(const UChar* chars, int32_t count, UFILE* f, UBool flushIO, UBool flushTranslit)
+
+U_CFUNC int32_t U_EXPORT2
+u_file_write_flush(const char16_t *chars,
+                   int32_t     count,
+                   UFILE       *f,
+                   UBool       flushIO,
+                   UBool       flushTranslit)
 {
     /* Set up conversion parameters */
-    UErrorCode status = U_ZERO_ERROR;
-    const UChar* mySource = chars;
-    const UChar* mySourceBegin;
-    const UChar* mySourceEnd;
-    char charBuffer[UFILE_CHARBUFFER_SIZE];
-    char* myTarget = charBuffer;
-    int32_t written = 0;
-    int32_t numConverted = 0;
+    UErrorCode  status       = U_ZERO_ERROR;
+    const char16_t *mySource    = chars;
+    const char16_t *mySourceBegin;
+    const char16_t *mySourceEnd;
+    char        charBuffer[UFILE_CHARBUFFER_SIZE];
+    char        *myTarget   = charBuffer;
+    int32_t     written      = 0;
+    int32_t     numConverted = 0;
 
     if (count < 0) {
         count = u_strlen(chars);
     }
 
 #if !UCONFIG_NO_TRANSLITERATION
-    if ((f->fTranslit) && (f->fTranslit->translit)) {
+    if((f->fTranslit) && (f->fTranslit->translit))
+    {
         /* Do the transliteration */
         mySource = u_file_translit(f, chars, &count, flushTranslit);
     }
@@ -295,56 +352,71 @@ U_CFUNC int32_t U_EXPORT2 u_file_write_flush(const UChar* chars, int32_t count, 
     /* Perform the conversion in a loop */
     do {
         mySourceBegin = mySource; /* beginning location for this loop */
-        status = U_ZERO_ERROR;
-        if (f->fConverter != NULL) { /* We have a valid converter */
-            ucnv_fromUnicode(f->fConverter, &myTarget, charBuffer + UFILE_CHARBUFFER_SIZE, &mySource, mySourceEnd, NULL, flushIO, &status);
+        status     = U_ZERO_ERROR;
+        if(f->fConverter != nullptr) { /* We have a valid converter */
+            ucnv_fromUnicode(f->fConverter,
+                &myTarget,
+                charBuffer + UFILE_CHARBUFFER_SIZE,
+                &mySource,
+                mySourceEnd,
+                nullptr,
+                flushIO,
+                &status);
         } else { /*weiv: do the invariant conversion */
-            int32_t convertChars = (int32_t)(mySourceEnd - mySource);
-            if (convertChars > UFILE_CHARBUFFER_SIZE) {
-                convertChars = UFILE_CHARBUFFER_SIZE;
-                status = U_BUFFER_OVERFLOW_ERROR;
-            }
-            u_UCharsToChars(mySource, myTarget, convertChars);
-            mySource += convertChars;
-            myTarget += convertChars;
+            int32_t convertChars = (int32_t) (mySourceEnd - mySource); 
+            if (convertChars > UFILE_CHARBUFFER_SIZE) { 
+                convertChars = UFILE_CHARBUFFER_SIZE; 
+                status = U_BUFFER_OVERFLOW_ERROR; 
+            } 
+            u_UCharsToChars(mySource, myTarget, convertChars); 
+            mySource += convertChars; 
+            myTarget += convertChars; 
         }
         numConverted = (int32_t)(myTarget - charBuffer);
 
         if (numConverted > 0) {
             /* write the converted bytes */
-            fwrite(charBuffer, sizeof(char), numConverted, f->fFile);
+            fwrite(charBuffer,
+                sizeof(char),
+                numConverted,
+                f->fFile);
 
-            written += (int32_t)(mySource - mySourceBegin);
+            written     += (int32_t) (mySource - mySourceBegin);
         }
-        myTarget = charBuffer;
-    } while (status == U_BUFFER_OVERFLOW_ERROR);
+        myTarget     = charBuffer;
+    }
+    while(status == U_BUFFER_OVERFLOW_ERROR);
 
     /* return # of chars written */
     return written;
 }
 
 U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_file_write(const UChar* chars, int32_t count, UFILE* f)
+u_file_write(    const char16_t  *chars,
+             int32_t        count,
+             UFILE         *f)
 {
-    return u_file_write_flush(chars, count, f, FALSE, FALSE);
+    return u_file_write_flush(chars,count,f,false,false);
 }
 
-/* private function used for buffering input */
-void ufile_fill_uchar_buffer(UFILE* f)
-{
-    UErrorCode status;
-    const char* mySource;
-    const char* mySourceEnd;
-    UChar* myTarget;
-    int32_t bufferSize;
-    int32_t maxCPBytes;
-    int32_t bytesRead;
-    int32_t availLength;
-    int32_t dataSize;
-    char charBuffer[UFILE_CHARBUFFER_SIZE];
-    u_localized_string* str;
 
-    if (f->fFile == NULL) {
+/* private function used for buffering input */
+void
+ufile_fill_uchar_buffer(UFILE *f)
+{
+    UErrorCode  status;
+    const char  *mySource;
+    const char  *mySourceEnd;
+    char16_t    *myTarget;
+    int32_t     bufferSize;
+    int32_t     maxCPBytes;
+    int32_t     bytesRead;
+    int32_t     availLength;
+    int32_t     dataSize;
+    char        charBuffer[UFILE_CHARBUFFER_SIZE];
+    u_localized_string *str;
+
+    if (f->fFile == nullptr) {
         /* There is nothing to do. It's a string. */
         return;
     }
@@ -357,37 +429,49 @@ void ufile_fill_uchar_buffer(UFILE* f)
     }
 
     /* shift the buffer if it isn't empty */
-    if (dataSize != 0) {
+    if(dataSize != 0) {
         u_memmove(f->fUCBuffer, str->fPos, dataSize); /* not accessing beyond memory */
     }
+
 
     /* record how much buffer space is available */
     availLength = UFILE_UCHARBUFFER_SIZE - dataSize;
 
-    /* Determine the # of codepage bytes needed to fill our UChar buffer */
-    /* weiv: if converter is NULL, we use invariant converter with charwidth = 1)*/
-    maxCPBytes = availLength / (f->fConverter != NULL ? (2 * ucnv_getMinCharSize(f->fConverter)) : 1);
+    /* Determine the # of codepage bytes needed to fill our char16_t buffer */
+    /* weiv: if converter is nullptr, we use invariant converter with charwidth = 1)*/
+    maxCPBytes = availLength / (f->fConverter!=nullptr?(2*ucnv_getMinCharSize(f->fConverter)):1);
 
     /* Read in the data to convert */
     if (f->fFileno == 0) {
         /* Special case. Read from stdin one line at a time. */
-        char* retStr = fgets(charBuffer, ufmt_min(maxCPBytes, UFILE_CHARBUFFER_SIZE), f->fFile);
+        char *retStr = fgets(charBuffer, ufmt_min(maxCPBytes, UFILE_CHARBUFFER_SIZE), f->fFile);
         bytesRead = (int32_t)(retStr ? uprv_strlen(charBuffer) : 0);
-    } else {
+    }
+    else {
         /* A normal file */
-        bytesRead = (int32_t)fread(charBuffer, sizeof(char), ufmt_min(maxCPBytes, UFILE_CHARBUFFER_SIZE), f->fFile);
+        bytesRead = (int32_t)fread(charBuffer,
+            sizeof(char),
+            ufmt_min(maxCPBytes, UFILE_CHARBUFFER_SIZE),
+            f->fFile);
     }
 
     /* Set up conversion parameters */
-    status = U_ZERO_ERROR;
-    mySource = charBuffer;
+    status      = U_ZERO_ERROR;
+    mySource    = charBuffer;
     mySourceEnd = charBuffer + bytesRead;
-    myTarget = f->fUCBuffer + dataSize;
-    bufferSize = UFILE_UCHARBUFFER_SIZE;
+    myTarget    = f->fUCBuffer + dataSize;
+    bufferSize  = UFILE_UCHARBUFFER_SIZE;
 
-    if (f->fConverter != NULL) { /* We have a valid converter */
+    if(f->fConverter != nullptr) { /* We have a valid converter */
         /* Perform the conversion */
-        ucnv_toUnicode(f->fConverter, &myTarget, f->fUCBuffer + bufferSize, &mySource, mySourceEnd, NULL, (UBool)(feof(f->fFile) != 0), &status);
+        ucnv_toUnicode(f->fConverter,
+            &myTarget,
+            f->fUCBuffer + bufferSize,
+            &mySource,
+            mySourceEnd,
+            nullptr,
+            (UBool)(feof(f->fFile) != 0),
+            &status);
 
     } else { /*weiv: do the invariant conversion */
         u_charsToUChars(mySource, myTarget, bytesRead);
@@ -395,24 +479,26 @@ void ufile_fill_uchar_buffer(UFILE* f)
     }
 
     /* update the pointers into our array */
-    str->fPos = str->fBuffer;
-    str->fLimit = myTarget;
+    str->fPos    = str->fBuffer;
+    str->fLimit  = myTarget;
 }
 
-U_CAPI UChar* U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fgets(UChar* s, int32_t n, UFILE* f)
+U_CAPI char16_t* U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_fgets(char16_t     *s,
+        int32_t       n,
+        UFILE        *f)
 {
     int32_t dataSize;
     int32_t count;
-    UChar* alias;
-    const UChar* limit;
-    UChar* sItr;
-    UChar currDelim = 0;
-    u_localized_string* str;
+    char16_t *alias;
+    const char16_t *limit;
+    char16_t *sItr;
+    char16_t currDelim = 0;
+    u_localized_string *str;
 
     if (n <= 0) {
         /* Caller screwed up. We need to write the null terminatior. */
-        return NULL;
+        return nullptr;
     }
 
     /* fill the buffer if needed */
@@ -429,7 +515,7 @@ u_fgets(UChar* s, int32_t n, UFILE* f)
 
     /* if 0 characters were left, return 0 */
     if (dataSize == 0)
-        return NULL;
+        return nullptr;
 
     /* otherwise, iteratively fill the buffer and copy */
     count = 0;
@@ -441,7 +527,8 @@ u_fgets(UChar* s, int32_t n, UFILE* f)
         /* Find how much to copy */
         if (dataSize < (n - count)) {
             limit = str->fLimit;
-        } else {
+        }
+        else {
             limit = alias + (n - count);
         }
 
@@ -455,11 +542,12 @@ u_fgets(UChar* s, int32_t n, UFILE* f)
             if (alias < limit && IS_FIRST_STRING_DELIMITER(*alias)) {
                 if (CAN_HAVE_COMBINED_STRING_DELIMITER(*alias)) {
                     currDelim = *alias;
-                } else {
-                    currDelim = 1; /* This isn't a newline, but it's used to say
-                                   that we should break later. We've checked all
-                                   possible newline combinations even across buffer
-                                   boundaries. */
+                }
+                else {
+                    currDelim = 1;  /* This isn't a newline, but it's used to say
+                                    that we should break later. We've checked all
+                                    possible newline combinations even across buffer
+                                    boundaries. */
                 }
                 count++;
                 *(sItr++) = *(alias++);
@@ -471,10 +559,10 @@ u_fgets(UChar* s, int32_t n, UFILE* f)
                 count++;
                 *(sItr++) = *(alias++);
             }
-            currDelim = 1; /* This isn't a newline, but it's used to say
-                           that we should break later. We've checked all
-                           possible newline combinations even across buffer
-                           boundaries. */
+            currDelim = 1;  /* This isn't a newline, but it's used to say
+                            that we should break later. We've checked all
+                            possible newline combinations even across buffer
+                            boundaries. */
         }
 
         /* update the current buffer position */
@@ -498,40 +586,43 @@ u_fgets(UChar* s, int32_t n, UFILE* f)
     return s;
 }
 
-U_CFUNC UBool U_EXPORT2 ufile_getch(UFILE* f, UChar* ch)
+U_CFUNC UBool U_EXPORT2
+ufile_getch(UFILE *f, char16_t *ch)
 {
-    UBool isValidChar = FALSE;
+    UBool isValidChar = false;
 
     *ch = U_EOF;
     /* if we have an available character in the buffer, return it */
-    if (f->str.fPos < f->str.fLimit) {
+    if(f->str.fPos < f->str.fLimit){
         *ch = *(f->str.fPos)++;
-        isValidChar = TRUE;
-    } else {
+        isValidChar = true;
+    }
+    else {
         /* otherwise, fill the buffer and return the next character */
-        if (f->str.fPos >= f->str.fLimit) {
+        if(f->str.fPos >= f->str.fLimit) {
             ufile_fill_uchar_buffer(f);
         }
-        if (f->str.fPos < f->str.fLimit) {
+        if(f->str.fPos < f->str.fLimit) {
             *ch = *(f->str.fPos)++;
-            isValidChar = TRUE;
+            isValidChar = true;
         }
     }
     return isValidChar;
 }
 
-U_CAPI UChar U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fgetc(UFILE* f)
+U_CAPI char16_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_fgetc(UFILE        *f)
 {
-    UChar ch;
+    char16_t ch;
     ufile_getch(f, &ch);
     return ch;
 }
 
-U_CFUNC UBool U_EXPORT2 ufile_getch32(UFILE* f, UChar32* c32)
+U_CFUNC UBool U_EXPORT2
+ufile_getch32(UFILE *f, UChar32 *c32)
 {
-    UBool isValidChar = FALSE;
-    u_localized_string* str;
+    UBool isValidChar = false;
+    u_localized_string *str;
 
     *c32 = U_EOF;
 
@@ -546,14 +637,16 @@ U_CFUNC UBool U_EXPORT2 ufile_getch32(UFILE* f, UChar32* c32)
         *c32 = *(str->fPos)++;
         if (U_IS_LEAD(*c32)) {
             if (str->fPos < str->fLimit) {
-                UChar c16 = *(str->fPos)++;
+                char16_t c16 = *(str->fPos)++;
                 *c32 = U16_GET_SUPPLEMENTARY(*c32, c16);
-                isValidChar = TRUE;
-            } else {
+                isValidChar = true;
+            }
+            else {
                 *c32 = U_EOF;
             }
-        } else {
-            isValidChar = TRUE;
+        }
+        else {
+            isValidChar = true;
         }
     }
 
@@ -561,7 +654,7 @@ U_CFUNC UBool U_EXPORT2 ufile_getch32(UFILE* f, UChar32* c32)
 }
 
 U_CAPI UChar32 U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fgetcx(UFILE* f)
+u_fgetcx(UFILE        *f)
 {
     UChar32 ch;
     ufile_getch32(f, &ch);
@@ -569,23 +662,30 @@ u_fgetcx(UFILE* f)
 }
 
 U_CAPI UChar32 U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fungetc(UChar32 ch, UFILE* f)
+u_fungetc(UChar32        ch,
+    UFILE        *f)
 {
-    u_localized_string* str;
+    u_localized_string *str;
 
     str = &f->str;
 
     /* if we're at the beginning of the buffer, sorry! */
-    if (str->fPos == str->fBuffer || (U_IS_LEAD(ch) && (str->fPos - 1) == str->fBuffer)) {
+    if (str->fPos == str->fBuffer
+        || (U_IS_LEAD(ch) && (str->fPos - 1) == str->fBuffer))
+    {
         ch = U_EOF;
-    } else {
+    }
+    else {
         /* otherwise, put the character back */
         /* Remember, read them back on in the reverse order. */
         if (U_IS_LEAD(ch)) {
-            if (*--(str->fPos) != U16_TRAIL(ch) || *--(str->fPos) != U16_LEAD(ch)) {
+            if (*--(str->fPos) != U16_TRAIL(ch)
+                || *--(str->fPos) != U16_LEAD(ch))
+            {
                 ch = U_EOF;
             }
-        } else if (*--(str->fPos) != ch) {
+        }
+        else if (*--(str->fPos) != ch) {
             ch = U_EOF;
         }
     }
@@ -593,11 +693,13 @@ u_fungetc(UChar32 ch, UFILE* f)
 }
 
 U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_file_read(UChar* chars, int32_t count, UFILE* f)
+u_file_read(    char16_t     *chars,
+    int32_t        count,
+    UFILE         *f)
 {
     int32_t dataSize;
     int32_t read = 0;
-    u_localized_string* str = &f->str;
+    u_localized_string *str = &f->str;
 
     do {
 
@@ -615,14 +717,15 @@ u_file_read(UChar* chars, int32_t count, UFILE* f)
         }
 
         /* copy the current data in the buffer */
-        memcpy(chars + read, str->fPos, dataSize * sizeof(UChar));
+        memcpy(chars + read, str->fPos, dataSize * sizeof(char16_t));
 
         /* update number of items read */
         read += dataSize;
 
         /* update the current buffer position */
         str->fPos += dataSize;
-    } while (dataSize != 0 && read < count);
+    }
+    while (dataSize != 0 && read < count);
 
     return read;
 }

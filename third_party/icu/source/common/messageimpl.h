@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -35,29 +35,31 @@ public:
     /**
      * @return true if getApostropheMode()==UMSGPAT_APOS_DOUBLE_REQUIRED
      */
-    static UBool jdkAposMode(const MessagePattern& msgPattern)
-    {
-        return msgPattern.getApostropheMode() == UMSGPAT_APOS_DOUBLE_REQUIRED;
+    static UBool jdkAposMode(const MessagePattern &msgPattern) {
+        return msgPattern.getApostropheMode()==UMSGPAT_APOS_DOUBLE_REQUIRED;
     }
 
     /**
      * Appends the s[start, limit[ substring to sb, but with only half of the apostrophes
      * according to JDK pattern behavior.
      */
-    static void appendReducedApostrophes(const UnicodeString& s, int32_t start, int32_t limit, UnicodeString& sb);
+    static void appendReducedApostrophes(const UnicodeString &s, int32_t start, int32_t limit,
+                                         UnicodeString &sb);
 
     /**
      * Appends the sub-message to the result string.
      * Omits SKIP_SYNTAX and appends whole arguments using appendReducedApostrophes().
      */
-    static UnicodeString& appendSubMessageWithoutSkipSyntax(const MessagePattern& msgPattern, int32_t msgStart, UnicodeString& result);
+    static UnicodeString &appendSubMessageWithoutSkipSyntax(const MessagePattern &msgPattern,
+                                                            int32_t msgStart,
+                                                            UnicodeString &result);
 
 private:
-    MessageImpl(); // no constructor: all static methods
+    MessageImpl() = delete;  // no constructor: all static methods
 };
 
 U_NAMESPACE_END
 
-#endif // !UCONFIG_NO_FORMATTING
+#endif  // !UCONFIG_NO_FORMATTING
 
-#endif // __MESSAGEIMPL_H__
+#endif  // __MESSAGEIMPL_H__

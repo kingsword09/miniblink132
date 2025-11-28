@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -10,7 +10,7 @@
 #define TZTRANS_H
 
 /**
- * \file
+ * \file 
  * \brief C++ API: Time zone transition
  */
 
@@ -37,7 +37,7 @@ public:
     /**
      * Constructs a <code>TimeZoneTransition</code> with the time and the rules before/after
      * the transition.
-     *
+     * 
      * @param time  The time of transition in milliseconds since the base time.
      * @param from  The time zone rule used before the transition.
      * @param to    The time zone rule used after the transition.
@@ -158,9 +158,9 @@ public:
     const TimeZoneRule* getTo(void) const;
 
 private:
-    UDate fTime;
-    TimeZoneRule* fFrom;
-    TimeZoneRule* fTo;
+    UDate   fTime;
+    TimeZoneRule*   fFrom;
+    TimeZoneRule*   fTo;
 
 public:
     /**
@@ -198,4 +198,4 @@ U_NAMESPACE_END
 
 #endif // TZTRANS_H
 
-// eof
+//eof

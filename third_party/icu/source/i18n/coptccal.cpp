@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -20,19 +20,19 @@ U_NAMESPACE_BEGIN
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CopticCalendar)
 
-static const int32_t COPTIC_JD_EPOCH_OFFSET = 1824665;
+static const int32_t COPTIC_JD_EPOCH_OFFSET  = 1824665;
 
 //-------------------------------------------------------------------------
 // Constructors...
 //-------------------------------------------------------------------------
 
 CopticCalendar::CopticCalendar(const Locale& aLocale, UErrorCode& success)
-    : CECalendar(aLocale, success)
+: CECalendar(aLocale, success)
 {
 }
 
-CopticCalendar::CopticCalendar(const CopticCalendar& other)
-    : CECalendar(other)
+CopticCalendar::CopticCalendar (const CopticCalendar& other) 
+: CECalendar(other)
 {
 }
 
@@ -40,12 +40,14 @@ CopticCalendar::~CopticCalendar()
 {
 }
 
-CopticCalendar* CopticCalendar::clone() const
+CopticCalendar*
+CopticCalendar::clone() const
 {
     return new CopticCalendar(*this);
 }
 
-const char* CopticCalendar::getType() const
+const char*
+CopticCalendar::getType() const
 {
     return "coptic";
 }
@@ -54,7 +56,8 @@ const char* CopticCalendar::getType() const
 // Calendar framework
 //-------------------------------------------------------------------------
 
-int32_t CopticCalendar::handleGetExtendedYear()
+int32_t
+CopticCalendar::handleGetExtendedYear()
 {
     int32_t eyear;
     if (newerField(UCAL_EXTENDED_YEAR, UCAL_YEAR) == UCAL_EXTENDED_YEAR) {
@@ -71,7 +74,8 @@ int32_t CopticCalendar::handleGetExtendedYear()
     return eyear;
 }
 
-void CopticCalendar::handleComputeFields(int32_t julianDay, UErrorCode& /*status*/)
+void
+CopticCalendar::handleComputeFields(int32_t julianDay, UErrorCode &/*status*/)
 {
     int32_t eyear, month, day, era, year;
     jdToCE(julianDay, getJDEpochOffset(), eyear, month, day);
@@ -88,21 +92,39 @@ void CopticCalendar::handleComputeFields(int32_t julianDay, UErrorCode& /*status
     internalSet(UCAL_ERA, era);
     internalSet(UCAL_YEAR, year);
     internalSet(UCAL_MONTH, month);
+    internalSet(UCAL_ORDINAL_MONTH, month);
     internalSet(UCAL_DATE, day);
     internalSet(UCAL_DAY_OF_YEAR, (30 * month) + day);
 }
 
+constexpr uint32_t kCopticRelatedYearDiff = 284;
+
+int32_t CopticCalendar::getRelatedYear(UErrorCode &status) const
+{
+    int32_t year = get(UCAL_EXTENDED_YEAR, status);
+    if (U_FAILURE(status)) {
+        return 0;
+    }
+    return year + kCopticRelatedYearDiff;
+}
+
+void CopticCalendar::setRelatedYear(int32_t year)
+{
+    // set extended year
+    set(UCAL_EXTENDED_YEAR, year - kCopticRelatedYearDiff);
+}
+
 /**
  * The system maintains a static default century start date and Year.  They are
- * initialized the first time they are used.  Once the system default century date
+ * initialized the first time they are used.  Once the system default century date 
  * and year are set, they do not change.
  */
-static UDate gSystemDefaultCenturyStart = DBL_MIN;
-static int32_t gSystemDefaultCenturyStartYear = -1;
-static icu::UInitOnce gSystemDefaultCenturyInit {};
+static UDate           gSystemDefaultCenturyStart       = DBL_MIN;
+static int32_t         gSystemDefaultCenturyStartYear   = -1;
+static icu::UInitOnce  gSystemDefaultCenturyInit        {};
 
-static void U_CALLCONV initializeSystemDefaultCentury()
-{
+
+static void U_CALLCONV initializeSystemDefaultCentury() {
     UErrorCode status = U_ZERO_ERROR;
     CopticCalendar calendar(Locale("@calendar=coptic"), status);
     if (U_SUCCESS(status)) {
@@ -115,24 +137,29 @@ static void U_CALLCONV initializeSystemDefaultCentury()
     // out.
 }
 
-UDate CopticCalendar::defaultCenturyStart() const
+UDate
+CopticCalendar::defaultCenturyStart() const
 {
     // lazy-evaluate systemDefaultCenturyStart
     umtx_initOnce(gSystemDefaultCenturyInit, &initializeSystemDefaultCentury);
     return gSystemDefaultCenturyStart;
 }
 
-int32_t CopticCalendar::defaultCenturyStartYear() const
+int32_t
+CopticCalendar::defaultCenturyStartYear() const
 {
     // lazy-evaluate systemDefaultCenturyStart
     umtx_initOnce(gSystemDefaultCenturyInit, &initializeSystemDefaultCentury);
     return gSystemDefaultCenturyStartYear;
 }
 
-int32_t CopticCalendar::getJDEpochOffset() const
+
+int32_t
+CopticCalendar::getJDEpochOffset() const
 {
     return COPTIC_JD_EPOCH_OFFSET;
 }
+
 
 #if 0
 // We do not want to introduce this API in ICU4C.
@@ -152,4 +179,4 @@ CopticCalendar::copticToJD(int32_t year, int32_t month, int32_t day)
 U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
-// eof
+//eof

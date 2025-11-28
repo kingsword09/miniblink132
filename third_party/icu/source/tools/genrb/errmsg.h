@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -24,10 +24,10 @@
 
 U_CDECL_BEGIN
 
-extern const char* gCurrentFileName;
+extern const char *gCurrentFileName;
 
-U_CFUNC void error(uint32_t linenumber, const char* msg, ...);
-U_CFUNC void warning(uint32_t linenumber, const char* msg, ...);
+U_CFUNC void error(uint32_t linenumber, const char *msg, ...);
+U_CFUNC void warning(uint32_t linenumber, const char *msg, ...);
 
 /* Show warnings? */
 U_CFUNC void setShowWarning(UBool val);

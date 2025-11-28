@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -28,13 +28,13 @@ U_NAMESPACE_BEGIN
 
 static UInitOnce gICUInitOnce {};
 
-static UBool U_CALLCONV uinit_cleanup()
-{
+static UBool U_CALLCONV uinit_cleanup() {
     gICUInitOnce.reset();
-    return TRUE;
+    return true;
 }
 
-static void U_CALLCONV initData(UErrorCode& status)
+static void U_CALLCONV
+initData(UErrorCode &status)
 {
 #if UCONFIG_ENABLE_PLUGINS
     /* initialize plugins */
@@ -66,8 +66,8 @@ U_NAMESPACE_USE
 /*
  * ICU Initialization Function. Need not be called.
  */
-U_CAPI void U_EXPORT2 u_init(UErrorCode* status)
-{
+U_CAPI void U_EXPORT2
+u_init(UErrorCode *status) {
     UTRACE_ENTRY_OC(UTRACE_U_INIT);
     umtx_initOnce(gICUInitOnce, &initData, *status);
     UTRACE_EXIT_STATUS(*status);

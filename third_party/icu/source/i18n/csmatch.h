@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -30,34 +30,39 @@ class CharsetRecognizer;
  *              Note that a single charset recognizer may detect multiple closely related
  *              charsets, and set different names depending on the exact input bytes seen.
  */
-class CharsetMatch : public UMemory {
-private:
-    InputText* textIn;
-    int32_t confidence;
-    const char* fCharsetName;
-    const char* fLang;
+class CharsetMatch : public UMemory
+{
+ private:
+    InputText               *textIn;
+    int32_t                  confidence;
+    const char              *fCharsetName;
+    const char              *fLang;
 
-public:
+ public:
     CharsetMatch();
 
     /**
-     * fully set the state of this CharsetMatch.
-     * Called by the CharsetRecognizers to record match results.
-     * Default (NULL) parameters for names will be filled by calling the
-     *   corresponding getters on the recognizer.
-     */
-    void set(InputText* input, const CharsetRecognizer* cr, int32_t conf, const char* csName = NULL, const char* lang = NULL);
+      * fully set the state of this CharsetMatch.
+      * Called by the CharsetRecognizers to record match results.
+      * Default (nullptr) parameters for names will be filled by calling the
+      *   corresponding getters on the recognizer.
+      */
+    void set(InputText               *input, 
+             const CharsetRecognizer *cr, 
+             int32_t                  conf, 
+             const char              *csName=nullptr,
+             const char              *lang=nullptr);
 
     /**
-     * Return the name of the charset for this Match
-     */
-    const char* getName() const;
+      * Return the name of the charset for this Match
+      */
+    const char *getName() const;
 
-    const char* getLanguage() const;
+    const char *getLanguage()const;
 
-    int32_t getConfidence() const;
+    int32_t getConfidence()const;
 
-    int32_t getUChars(UChar* buf, int32_t cap, UErrorCode* status) const;
+    int32_t getUChars(char16_t *buf, int32_t cap, UErrorCode *status) const;
 };
 
 U_NAMESPACE_END

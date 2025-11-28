@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -23,7 +23,7 @@
 
 #include "unicode/unistr.h"
 
-#if !UCONFIG_NO_CONVERSION // not available without conversion
+#if !UCONFIG_NO_CONVERSION  // not available without conversion
 
 /**
  * \file
@@ -35,9 +35,7 @@
  */
 
 #if defined(__GLIBCXX__)
-namespace std {
-class type_info;
-} // WORKAROUND: http://llvm.org/bugs/show_bug.cgi?id=13364
+namespace std { class type_info; } // WORKAROUND: http://llvm.org/bugs/show_bug.cgi?id=13364
 #endif
 
 #include <iostream>
@@ -51,7 +49,7 @@ U_NAMESPACE_BEGIN
  * converter.
  * @stable 3.0
  */
-U_IO_API std::ostream& U_EXPORT2 operator<<(std::ostream& stream, const UnicodeString& s);
+U_IO_API std::ostream & U_EXPORT2 operator<<(std::ostream& stream, const UnicodeString& s);
 
 /**
  * Write the contents from a C++ istream to a UnicodeString. The UChars in the
@@ -59,7 +57,7 @@ U_IO_API std::ostream& U_EXPORT2 operator<<(std::ostream& stream, const UnicodeS
  * converter.
  * @stable 3.0
  */
-U_IO_API std::istream& U_EXPORT2 operator>>(std::istream& stream, UnicodeString& s);
+U_IO_API std::istream & U_EXPORT2 operator>>(std::istream& stream, UnicodeString& s);
 U_NAMESPACE_END
 
 #endif

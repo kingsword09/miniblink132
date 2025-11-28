@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -25,7 +25,9 @@
  * This is used for backward compatibility with old currency logic in
  * DecimalFormat and DecimalFormatSymbols.
  */
-U_CAPI void uprv_getStaticCurrencyName(const UChar* iso, const char* loc, icu::UnicodeString& result, UErrorCode& ec);
+U_CAPI void
+uprv_getStaticCurrencyName(const UChar* iso, const char* loc,
+                           icu::UnicodeString& result, UErrorCode& ec);
 
 /**
  * Attempt to parse the given string as a currency, either as a
@@ -51,8 +53,14 @@ U_CAPI void uprv_getStaticCurrencyName(const UChar* iso, const char* loc, icu::U
  *
  * @internal
  */
-U_CAPI void uprv_parseCurrency(
-    const char* locale, const icu::UnicodeString& text, icu::ParsePosition& pos, int8_t type, int32_t* partialMatchLen, UChar* result, UErrorCode& ec);
+U_CAPI void
+uprv_parseCurrency(const char* locale,
+                   const icu::UnicodeString& text,
+                   icu::ParsePosition& pos,
+                   int8_t type,
+                   int32_t* partialMatchLen,
+                   UChar* result,
+                   UErrorCode& ec);
 
 /**
  * Puts all possible first-characters of a currency into the
@@ -63,6 +71,8 @@ U_CAPI void uprv_parseCurrency(
  */
 void uprv_currencyLeads(const char* locale, icu::UnicodeSet& result, UErrorCode& ec);
 
+
+
 #endif /* #ifndef _UCURR_IMP_H_ */
 
-// eof
+//eof

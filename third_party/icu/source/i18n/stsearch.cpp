@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -23,19 +23,57 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringSearch)
 
 // public constructors and destructors -----------------------------------
 
-StringSearch::StringSearch(const UnicodeString& pattern, const UnicodeString& text, const Locale& locale, BreakIterator* breakiter, UErrorCode& status)
-    : SearchIterator(text, breakiter)
-    , m_pattern_(pattern)
+StringSearch::StringSearch(const UnicodeString &pattern,
+                           const UnicodeString &text,
+                           const Locale        &locale,
+                                 BreakIterator *breakiter,
+                                 UErrorCode    &status) :
+                           SearchIterator(text, breakiter),
+                           m_pattern_(pattern)
 {
     if (U_FAILURE(status)) {
-        m_strsrch_ = NULL;
+        m_strsrch_ = nullptr;
         return;
     }
 
-    m_strsrch_ = usearch_open(
-        m_pattern_.getBuffer(), m_pattern_.length(), m_text_.getBuffer(), m_text_.length(), locale.getName(), (UBreakIterator*)breakiter, &status);
+    m_strsrch_ = usearch_open(m_pattern_.getBuffer(), m_pattern_.length(),
+                              m_text_.getBuffer(), m_text_.length(),
+                              locale.getName(), (UBreakIterator *)breakiter,
+                              &status);
     uprv_free(m_search_);
-    m_search_ = NULL;
+    m_search_ = nullptr;
+
+    if (U_SUCCESS(status)) {
+        // m_search_ has been created by the base SearchIterator class
+        m_search_        = m_strsrch_->search;
+    }
+}
+
+StringSearch::StringSearch(const UnicodeString     &pattern,
+                           const UnicodeString     &text,
+                                 RuleBasedCollator *coll,
+                                 BreakIterator     *breakiter,
+                                 UErrorCode        &status) :
+                           SearchIterator(text, breakiter),
+                           m_pattern_(pattern)
+{
+    if (U_FAILURE(status)) {
+        m_strsrch_ = nullptr;
+        return;
+    }
+    if (coll == nullptr) {
+        status     = U_ILLEGAL_ARGUMENT_ERROR;
+        m_strsrch_ = nullptr;
+        return;
+    }
+    m_strsrch_ = usearch_openFromCollator(m_pattern_.getBuffer(),
+                                          m_pattern_.length(),
+                                          m_text_.getBuffer(),
+                                          m_text_.length(), coll->toUCollator(),
+                                          (UBreakIterator *)breakiter,
+                                          &status);
+    uprv_free(m_search_);
+    m_search_ = nullptr;
 
     if (U_SUCCESS(status)) {
         // m_search_ has been created by the base SearchIterator class
@@ -43,23 +81,24 @@ StringSearch::StringSearch(const UnicodeString& pattern, const UnicodeString& te
     }
 }
 
-StringSearch::StringSearch(const UnicodeString& pattern, const UnicodeString& text, RuleBasedCollator* coll, BreakIterator* breakiter, UErrorCode& status)
-    : SearchIterator(text, breakiter)
-    , m_pattern_(pattern)
+StringSearch::StringSearch(const UnicodeString     &pattern,
+                                 CharacterIterator &text,
+                           const Locale            &locale,
+                                 BreakIterator     *breakiter,
+                                 UErrorCode        &status) :
+                           SearchIterator(text, breakiter),
+                           m_pattern_(pattern)
 {
     if (U_FAILURE(status)) {
-        m_strsrch_ = NULL;
+        m_strsrch_ = nullptr;
         return;
     }
-    if (coll == NULL) {
-        status = U_ILLEGAL_ARGUMENT_ERROR;
-        m_strsrch_ = NULL;
-        return;
-    }
-    m_strsrch_ = usearch_openFromCollator(
-        m_pattern_.getBuffer(), m_pattern_.length(), m_text_.getBuffer(), m_text_.length(), coll->toUCollator(), (UBreakIterator*)breakiter, &status);
+    m_strsrch_ = usearch_open(m_pattern_.getBuffer(), m_pattern_.length(),
+                              m_text_.getBuffer(), m_text_.length(),
+                              locale.getName(), (UBreakIterator *)breakiter,
+                              &status);
     uprv_free(m_search_);
-    m_search_ = NULL;
+    m_search_ = nullptr;
 
     if (U_SUCCESS(status)) {
         // m_search_ has been created by the base SearchIterator class
@@ -67,18 +106,31 @@ StringSearch::StringSearch(const UnicodeString& pattern, const UnicodeString& te
     }
 }
 
-StringSearch::StringSearch(const UnicodeString& pattern, CharacterIterator& text, const Locale& locale, BreakIterator* breakiter, UErrorCode& status)
-    : SearchIterator(text, breakiter)
-    , m_pattern_(pattern)
+StringSearch::StringSearch(const UnicodeString     &pattern,
+                                 CharacterIterator &text,
+                                 RuleBasedCollator *coll,
+                                 BreakIterator     *breakiter,
+                                 UErrorCode        &status) :
+                           SearchIterator(text, breakiter),
+                           m_pattern_(pattern)
 {
     if (U_FAILURE(status)) {
-        m_strsrch_ = NULL;
+        m_strsrch_ = nullptr;
         return;
     }
-    m_strsrch_ = usearch_open(
-        m_pattern_.getBuffer(), m_pattern_.length(), m_text_.getBuffer(), m_text_.length(), locale.getName(), (UBreakIterator*)breakiter, &status);
+    if (coll == nullptr) {
+        status     = U_ILLEGAL_ARGUMENT_ERROR;
+        m_strsrch_ = nullptr;
+        return;
+    }
+    m_strsrch_ = usearch_openFromCollator(m_pattern_.getBuffer(),
+                                          m_pattern_.length(),
+                                          m_text_.getBuffer(),
+                                          m_text_.length(), coll->toUCollator(),
+                                          (UBreakIterator *)breakiter,
+                                          &status);
     uprv_free(m_search_);
-    m_search_ = NULL;
+    m_search_ = nullptr;
 
     if (U_SUCCESS(status)) {
         // m_search_ has been created by the base SearchIterator class
@@ -86,113 +138,101 @@ StringSearch::StringSearch(const UnicodeString& pattern, CharacterIterator& text
     }
 }
 
-StringSearch::StringSearch(const UnicodeString& pattern, CharacterIterator& text, RuleBasedCollator* coll, BreakIterator* breakiter, UErrorCode& status)
-    : SearchIterator(text, breakiter)
-    , m_pattern_(pattern)
-{
-    if (U_FAILURE(status)) {
-        m_strsrch_ = NULL;
-        return;
-    }
-    if (coll == NULL) {
-        status = U_ILLEGAL_ARGUMENT_ERROR;
-        m_strsrch_ = NULL;
-        return;
-    }
-    m_strsrch_ = usearch_openFromCollator(
-        m_pattern_.getBuffer(), m_pattern_.length(), m_text_.getBuffer(), m_text_.length(), coll->toUCollator(), (UBreakIterator*)breakiter, &status);
-    uprv_free(m_search_);
-    m_search_ = NULL;
-
-    if (U_SUCCESS(status)) {
-        // m_search_ has been created by the base SearchIterator class
-        m_search_ = m_strsrch_->search;
-    }
-}
-
-StringSearch::StringSearch(const StringSearch& that)
-    : SearchIterator(that.m_text_, that.m_breakiterator_)
-    , m_pattern_(that.m_pattern_)
+StringSearch::StringSearch(const StringSearch &that) :
+                       SearchIterator(that.m_text_, that.m_breakiterator_),
+                       m_pattern_(that.m_pattern_)
 {
     UErrorCode status = U_ZERO_ERROR;
 
     // Free m_search_ from the superclass
     uprv_free(m_search_);
-    m_search_ = NULL;
+    m_search_ = nullptr;
 
-    if (that.m_strsrch_ == NULL) {
+    if (that.m_strsrch_ == nullptr) {
         // This was not a good copy
-        m_strsrch_ = NULL;
-    } else {
+        m_strsrch_ = nullptr;
+    }
+    else {
         // Make a deep copy
-        m_strsrch_ = usearch_openFromCollator(m_pattern_.getBuffer(), m_pattern_.length(), m_text_.getBuffer(), m_text_.length(), that.m_strsrch_->collator,
-            (UBreakIterator*)that.m_breakiterator_, &status);
+        m_strsrch_ = usearch_openFromCollator(m_pattern_.getBuffer(),
+                                              m_pattern_.length(),
+                                              m_text_.getBuffer(),
+                                              m_text_.length(),
+                                              that.m_strsrch_->collator,
+                                             (UBreakIterator *)that.m_breakiterator_,
+                                              &status);
         if (U_SUCCESS(status)) {
             // m_search_ has been created by the base SearchIterator class
-            m_search_ = m_strsrch_->search;
+            m_search_        = m_strsrch_->search;
         }
     }
 }
 
 StringSearch::~StringSearch()
 {
-    if (m_strsrch_ != NULL) {
+    if (m_strsrch_ != nullptr) {
         usearch_close(m_strsrch_);
-        m_search_ = NULL;
+        m_search_ = nullptr;
     }
 }
 
-StringSearch* StringSearch::clone() const
-{
+StringSearch *
+StringSearch::clone() const {
     return new StringSearch(*this);
 }
 
 // operator overloading ---------------------------------------------
-StringSearch& StringSearch::operator=(const StringSearch& that)
+StringSearch & StringSearch::operator=(const StringSearch &that)
 {
     if (this != &that) {
         UErrorCode status = U_ZERO_ERROR;
-        m_text_ = that.m_text_;
+        m_text_          = that.m_text_;
         m_breakiterator_ = that.m_breakiterator_;
-        m_pattern_ = that.m_pattern_;
+        m_pattern_       = that.m_pattern_;
         // all m_search_ in the parent class is linked up with m_strsrch_
         usearch_close(m_strsrch_);
-        m_strsrch_ = usearch_openFromCollator(
-            m_pattern_.getBuffer(), m_pattern_.length(), m_text_.getBuffer(), m_text_.length(), that.m_strsrch_->collator, NULL, &status);
+        m_strsrch_ = usearch_openFromCollator(m_pattern_.getBuffer(),
+                                              m_pattern_.length(),
+                                              m_text_.getBuffer(),
+                                              m_text_.length(),
+                                              that.m_strsrch_->collator,
+                                              nullptr, &status);
         // Check null pointer
-        if (m_strsrch_ != NULL) {
+        if (m_strsrch_ != nullptr) {
             m_search_ = m_strsrch_->search;
         }
     }
     return *this;
 }
 
-bool StringSearch::operator==(const SearchIterator& that) const
+bool StringSearch::operator==(const SearchIterator &that) const
 {
     if (this == &that) {
         return true;
     }
-    if (SearchIterator::operator==(that)) {
-        StringSearch& thatsrch = (StringSearch&)that;
-        return (this->m_pattern_ == thatsrch.m_pattern_ && this->m_strsrch_->collator == thatsrch.m_strsrch_->collator);
+    if (SearchIterator::operator ==(that)) {
+        const StringSearch *thatsrch = dynamic_cast<const StringSearch *>(&that);
+        if (thatsrch == nullptr) return false;
+        return (this->m_pattern_ == thatsrch->m_pattern_ &&
+                this->m_strsrch_->collator == thatsrch->m_strsrch_->collator);
     }
     return false;
 }
 
 // public get and set methods ----------------------------------------
 
-void StringSearch::setOffset(int32_t position, UErrorCode& status)
+void StringSearch::setOffset(int32_t position, UErrorCode &status)
 {
     // status checked in usearch_setOffset
     usearch_setOffset(m_strsrch_, position, &status);
 }
 
-int32_t StringSearch::getOffset(void) const
+int32_t StringSearch::getOffset() const
 {
     return usearch_getOffset(m_strsrch_);
 }
 
-void StringSearch::setText(const UnicodeString& text, UErrorCode& status)
+void StringSearch::setText(const UnicodeString &text, UErrorCode &status)
 {
     if (U_SUCCESS(status)) {
         m_text_ = text;
@@ -200,7 +240,7 @@ void StringSearch::setText(const UnicodeString& text, UErrorCode& status)
     }
 }
 
-void StringSearch::setText(CharacterIterator& text, UErrorCode& status)
+void StringSearch::setText(CharacterIterator &text, UErrorCode &status)
 {
     if (U_SUCCESS(status)) {
         text.getText(m_text_);
@@ -208,28 +248,30 @@ void StringSearch::setText(CharacterIterator& text, UErrorCode& status)
     }
 }
 
-RuleBasedCollator* StringSearch::getCollator() const
+RuleBasedCollator * StringSearch::getCollator() const
 {
     // Note the const_cast. It would be cleaner if this const method returned a const collator.
-    return RuleBasedCollator::rbcFromUCollator(const_cast<UCollator*>(m_strsrch_->collator));
+    return RuleBasedCollator::rbcFromUCollator(const_cast<UCollator *>(m_strsrch_->collator));
 }
 
-void StringSearch::setCollator(RuleBasedCollator* coll, UErrorCode& status)
+void StringSearch::setCollator(RuleBasedCollator *coll, UErrorCode &status)
 {
     if (U_SUCCESS(status)) {
         usearch_setCollator(m_strsrch_, coll->toUCollator(), &status);
     }
 }
 
-void StringSearch::setPattern(const UnicodeString& pattern, UErrorCode& status)
+void StringSearch::setPattern(const UnicodeString &pattern,
+                                    UErrorCode    &status)
 {
     if (U_SUCCESS(status)) {
         m_pattern_ = pattern;
-        usearch_setPattern(m_strsrch_, m_pattern_.getBuffer(), m_pattern_.length(), &status);
+        usearch_setPattern(m_strsrch_, m_pattern_.getBuffer(), m_pattern_.length(),
+                           &status);
     }
 }
 
-const UnicodeString& StringSearch::getPattern() const
+const UnicodeString & StringSearch::getPattern() const
 {
     return m_pattern_;
 }
@@ -241,11 +283,14 @@ void StringSearch::reset()
     usearch_reset(m_strsrch_);
 }
 
-StringSearch* StringSearch::safeClone() const
+StringSearch * StringSearch::safeClone() const
 {
     UErrorCode status = U_ZERO_ERROR;
-    StringSearch* result = new StringSearch(m_pattern_, m_text_, getCollator(), m_breakiterator_, status);
-    /* test for NULL */
+    StringSearch *result = new StringSearch(m_pattern_, m_text_,
+                                            getCollator(),
+                                            m_breakiterator_,
+                                            status);
+    /* test for nullptr */
     if (result == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return 0;
@@ -254,25 +299,29 @@ StringSearch* StringSearch::safeClone() const
     result->setMatchStart(m_strsrch_->search->matchedIndex);
     result->setMatchLength(m_strsrch_->search->matchedLength);
     if (U_FAILURE(status)) {
-        return NULL;
+        return nullptr;
     }
     return result;
 }
 
 // protected method -------------------------------------------------
 
-int32_t StringSearch::handleNext(int32_t position, UErrorCode& status)
+int32_t StringSearch::handleNext(int32_t position, UErrorCode &status)
 {
     // values passed here are already in the pre-shift position
     if (U_SUCCESS(status)) {
         if (m_strsrch_->pattern.cesLength == 0) {
-            m_search_->matchedIndex = m_search_->matchedIndex == USEARCH_DONE ? getOffset() : m_search_->matchedIndex + 1;
+            m_search_->matchedIndex =
+                                    m_search_->matchedIndex == USEARCH_DONE ?
+                                    getOffset() : m_search_->matchedIndex + 1;
             m_search_->matchedLength = 0;
-            ucol_setOffset(m_strsrch_->textIter, m_search_->matchedIndex, &status);
+            ucol_setOffset(m_strsrch_->textIter, m_search_->matchedIndex,
+                           &status);
             if (m_search_->matchedIndex == m_search_->textLength) {
                 m_search_->matchedIndex = USEARCH_DONE;
             }
-        } else {
+        }
+        else {
             // looking at usearch.cpp, this part is shifted out to
             // StringSearch instead of SearchIterator because m_strsrch_ is
             // not accessible in SearchIterator
@@ -294,7 +343,7 @@ int32_t StringSearch::handleNext(int32_t position, UErrorCode& status)
             }
 
             ucol_setOffset(m_strsrch_->textIter, position, &status);
-
+            
 #if 0
             for (;;) {
                 if (m_search_->isCanonicalMatch) {
@@ -307,7 +356,7 @@ int32_t StringSearch::handleNext(int32_t position, UErrorCode& status)
                 if (U_FAILURE(status)) {
                     return USEARCH_DONE;
                 }
-                if (m_breakiterator_ == NULL
+                if (m_breakiterator_ == nullptr
 #if !UCONFIG_NO_BREAK_ITERATION
                     ||
                     m_search_->matchedIndex == USEARCH_DONE ||
@@ -332,22 +381,22 @@ int32_t StringSearch::handleNext(int32_t position, UErrorCode& status)
             // then we don't need to check the match boundaries here because
             // usearch_handleNextXXX will already have done it.
             if (m_search_->isCanonicalMatch) {
-                // *could* actually use exact here 'cause no extra accents allowed...
-                usearch_handleNextCanonical(m_strsrch_, &status);
+            	// *could* actually use exact here 'cause no extra accents allowed...
+            	usearch_handleNextCanonical(m_strsrch_, &status);
             } else {
-                usearch_handleNextExact(m_strsrch_, &status);
+            	usearch_handleNextExact(m_strsrch_, &status);
             }
-
+            
             if (U_FAILURE(status)) {
-                return USEARCH_DONE;
+            	return USEARCH_DONE;
             }
-
+            
             if (m_search_->matchedIndex == USEARCH_DONE) {
-                ucol_setOffset(m_strsrch_->textIter, m_search_->textLength, &status);
+            	ucol_setOffset(m_strsrch_->textIter, m_search_->textLength, &status);
             } else {
-                ucol_setOffset(m_strsrch_->textIter, m_search_->matchedIndex, &status);
+            	ucol_setOffset(m_strsrch_->textIter, m_search_->matchedIndex, &status);
             }
-
+            
             return m_search_->matchedIndex;
 #endif
         }
@@ -355,20 +404,25 @@ int32_t StringSearch::handleNext(int32_t position, UErrorCode& status)
     return USEARCH_DONE;
 }
 
-int32_t StringSearch::handlePrev(int32_t position, UErrorCode& status)
+int32_t StringSearch::handlePrev(int32_t position, UErrorCode &status)
 {
     // values passed here are already in the pre-shift position
     if (U_SUCCESS(status)) {
         if (m_strsrch_->pattern.cesLength == 0) {
-            m_search_->matchedIndex = (m_search_->matchedIndex == USEARCH_DONE ? getOffset() : m_search_->matchedIndex);
+            m_search_->matchedIndex =
+                  (m_search_->matchedIndex == USEARCH_DONE ? getOffset() :
+                   m_search_->matchedIndex);
             if (m_search_->matchedIndex == 0) {
                 setMatchNotFound();
-            } else {
-                m_search_->matchedIndex--;
-                ucol_setOffset(m_strsrch_->textIter, m_search_->matchedIndex, &status);
+            }
+            else {
+                m_search_->matchedIndex --;
+                ucol_setOffset(m_strsrch_->textIter, m_search_->matchedIndex,
+                               &status);
                 m_search_->matchedLength = 0;
             }
-        } else {
+        }
+        else {
             // looking at usearch.cpp, this part is shifted out to
             // StringSearch instead of SearchIterator because m_strsrch_ is
             // not accessible in SearchIterator
@@ -390,7 +444,7 @@ int32_t StringSearch::handlePrev(int32_t position, UErrorCode& status)
                 if (U_FAILURE(status)) {
                     return USEARCH_DONE;
                 }
-                if (m_breakiterator_ == NULL
+                if (m_breakiterator_ == nullptr
 #if !UCONFIG_NO_BREAK_ITERATION
                     ||
                     m_search_->matchedIndex == USEARCH_DONE ||
@@ -404,18 +458,18 @@ int32_t StringSearch::handlePrev(int32_t position, UErrorCode& status)
             }
 #else
             ucol_setOffset(m_strsrch_->textIter, position, &status);
-
+            
             if (m_search_->isCanonicalMatch) {
-                // *could* use exact match here since extra accents *not* allowed!
-                usearch_handlePreviousCanonical(m_strsrch_, &status);
+            	// *could* use exact match here since extra accents *not* allowed!
+            	usearch_handlePreviousCanonical(m_strsrch_, &status);
             } else {
-                usearch_handlePreviousExact(m_strsrch_, &status);
+            	usearch_handlePreviousExact(m_strsrch_, &status);
             }
-
+            
             if (U_FAILURE(status)) {
-                return USEARCH_DONE;
+            	return USEARCH_DONE;
             }
-
+            
             return m_search_->matchedIndex;
 #endif
         }

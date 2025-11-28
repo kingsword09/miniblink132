@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  ********************************************************************************
@@ -15,11 +15,12 @@
 #include "unicode/testtype.h"
 #include "unicode/utrace.h"
 
+
 /* prototypes *********************************/
 
 U_CDECL_BEGIN
-typedef void(U_CALLCONV* TestFunctionPtr)(void);
-typedef int(U_CALLCONV* ArgHandlerPtr)(int arg, int argc, const char* const argv[], void* context);
+typedef void (U_CALLCONV *TestFunctionPtr)(void);
+typedef int (U_CALLCONV *ArgHandlerPtr)(int arg, int argc, const char* const argv[], void *context);
 typedef struct TestNode TestNode;
 U_CDECL_END
 
@@ -115,7 +116,8 @@ extern T_CTEST_EXPORT_API int32_t ALLOCATION_COUNT;
  * @return value of test option, zero if option is not set or off
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API int32_t T_CTEST_EXPORT2 getTestOption(int32_t testOption);
+T_CTEST_API int32_t T_CTEST_EXPORT2
+getTestOption ( int32_t testOption );
 
 /**
  * Sets the test option with value given on commandline.
@@ -124,7 +126,8 @@ T_CTEST_API int32_t T_CTEST_EXPORT2 getTestOption(int32_t testOption);
  * @param value to set the test option to
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 setTestOption(int32_t testOption, int32_t value);
+T_CTEST_API void T_CTEST_EXPORT2
+setTestOption ( int32_t testOption, int32_t value);
 
 /**
  * Show the names of all nodes.
@@ -132,7 +135,8 @@ T_CTEST_API void T_CTEST_EXPORT2 setTestOption(int32_t testOption, int32_t value
  * @param root Subtree of tests.
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 showTests(const TestNode* root);
+T_CTEST_API void T_CTEST_EXPORT2
+showTests ( const TestNode *root);
 
 /**
  * Run a subtree of tests.
@@ -140,7 +144,8 @@ T_CTEST_API void T_CTEST_EXPORT2 showTests(const TestNode* root);
  * @param root Subtree of tests.
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 runTests(const TestNode* root);
+T_CTEST_API void T_CTEST_EXPORT2
+runTests ( const TestNode* root);
 
 /**
  * Add a test to the subtree.
@@ -154,7 +159,10 @@ T_CTEST_API void T_CTEST_EXPORT2 runTests(const TestNode* root);
  * @param path Path from root under which test will be placed. Ex. '/a/b/mytest'
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 addTest(TestNode** root, TestFunctionPtr test, const char* path);
+T_CTEST_API void T_CTEST_EXPORT2
+addTest(TestNode** root,
+        TestFunctionPtr test,
+        const char *path);
 
 /**
  * Clean up any allocated memory.
@@ -162,7 +170,8 @@ T_CTEST_API void T_CTEST_EXPORT2 addTest(TestNode** root, TestFunctionPtr test, 
  * @see u_cleanup
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 cleanUpTestTree(TestNode* tn);
+T_CTEST_API void T_CTEST_EXPORT2
+cleanUpTestTree(TestNode *tn);
 
 /**
  * Retrieve a specific subtest. (subtree).
@@ -172,22 +181,28 @@ T_CTEST_API void T_CTEST_EXPORT2 cleanUpTestTree(TestNode* tn);
  * @return The subtest, or NULL on failure.
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API const TestNode* T_CTEST_EXPORT2 getTest(const TestNode* root, const char* path);
+T_CTEST_API const TestNode* T_CTEST_EXPORT2
+getTest(const TestNode* root,
+        const char *path);
+
 
 /**
  * Log an error message. (printf style)
  * @param pattern printf-style format string
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 log_err(const char* pattern, ...);
+T_CTEST_API void T_CTEST_EXPORT2
+log_err(const char* pattern, ...);
 
-T_CTEST_API void T_CTEST_EXPORT2 log_err_status(UErrorCode status, const char* pattern, ...);
+T_CTEST_API void T_CTEST_EXPORT2
+log_err_status(UErrorCode status, const char* pattern, ...);
 /**
  * Log an informational message. (printf style)
  * @param pattern printf-style format string
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 log_info(const char* pattern, ...);
+T_CTEST_API void T_CTEST_EXPORT2
+log_info(const char* pattern, ...);
 
 /**
  * Log an informational message. (vprintf style)
@@ -196,7 +211,8 @@ T_CTEST_API void T_CTEST_EXPORT2 log_info(const char* pattern, ...);
  * @param ap variable-arguments list
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 vlog_info(const char* prefix, const char* pattern, va_list ap);
+T_CTEST_API void T_CTEST_EXPORT2
+vlog_info(const char *prefix, const char *pattern, va_list ap);
 
 /**
  * Log a verbose informational message. (printf style)
@@ -204,7 +220,8 @@ T_CTEST_API void T_CTEST_EXPORT2 vlog_info(const char* prefix, const char* patte
  * @param pattern printf-style format string
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 log_verbose(const char* pattern, ...);
+T_CTEST_API void T_CTEST_EXPORT2
+log_verbose(const char* pattern, ...);
 
 /**
  * Log an error message concerning missing data. (printf style)
@@ -213,22 +230,26 @@ T_CTEST_API void T_CTEST_EXPORT2 log_verbose(const char* pattern, ...);
  * @param pattern printf-style format string
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API void T_CTEST_EXPORT2 log_data_err(const char* pattern, ...);
+T_CTEST_API void T_CTEST_EXPORT2
+log_data_err(const char *pattern, ...);
 
 /**
  * Log a known issue.
  * @param ticket ticket number such as "ICU-12345" for ICU tickets or "CLDR-6636" for CLDR tickets.
  * @param fmt ...  sprintf-style format, optional message. can be NULL.
- * @return TRUE if known issue test should be skipped, FALSE if it should be run
+ * @return true if known issue test should be skipped, false if it should be run
  */
-T_CTEST_API UBool T_CTEST_EXPORT2 log_knownIssue(const char* ticket, const char* fmt, ...);
+T_CTEST_API UBool
+T_CTEST_EXPORT2
+log_knownIssue(const char *ticket, const char *fmt, ...);
 
 /**
  * Initialize the variables above. This allows the test to set up accordingly
  * before running the tests.
  * This must be called before runTests.
  */
-T_CTEST_API int T_CTEST_EXPORT2 initArgs(int argc, const char* const argv[], ArgHandlerPtr argHandler, void* context);
+T_CTEST_API int T_CTEST_EXPORT2 
+initArgs( int argc, const char* const argv[], ArgHandlerPtr argHandler, void *context);
 
 /**
  * Processes the command line arguments.
@@ -243,43 +264,58 @@ T_CTEST_API int T_CTEST_EXPORT2 initArgs(int argc, const char* const argv[], Arg
  * @return positive for error count, 0 for success, negative for illegal argument
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_API int T_CTEST_EXPORT2 runTestRequest(const TestNode* root, int argc, const char* const argv[]);
+T_CTEST_API int T_CTEST_EXPORT2 
+runTestRequest(const TestNode* root,
+            int argc,
+            const char* const argv[]);
 
-T_CTEST_API const char* T_CTEST_EXPORT2 getTestName(void);
+
+T_CTEST_API const char* T_CTEST_EXPORT2
+getTestName(void);
 
 /**
  * Append a time delta to str if it is significant (>5 ms) otherwise no change
  * @param delta a delta in millis
  * @param str a string to append to.
  */
-T_CTEST_API void T_CTEST_EXPORT2 str_timeDelta(char* str, UDate delta);
+T_CTEST_API void T_CTEST_EXPORT2
+str_timeDelta(char *str, UDate delta);
+
 
 /* ======== XML (JUnit output) ========= */
 
 /**
- * Set the filename for the XML output.
+ * Set the filename for the XML output. 
  * @param fileName file name. Caller must retain storage.
  * @return 0 on success, 1 on failure.
  */
-T_CTEST_API int32_t T_CTEST_EXPORT2 ctest_xml_setFileName(const char* fileName);
+T_CTEST_API int32_t T_CTEST_EXPORT2
+ctest_xml_setFileName(const char *fileName);
+
 
 /**
  * Init XML subsystem. Call ctest_xml_setFileName first
  * @param rootName the test root name to be written
  * @return 0 on success, 1 on failure.
  */
-T_CTEST_API int32_t T_CTEST_EXPORT2 ctest_xml_init(const char* rootName);
+T_CTEST_API int32_t T_CTEST_EXPORT2
+ctest_xml_init(const char *rootName);
+
 
 /**
  * Set the filename for the XML output. Caller must retain storage.
  * @return 0 on success, 1 on failure.
  */
-T_CTEST_API int32_t T_CTEST_EXPORT2 ctest_xml_fini(void);
+T_CTEST_API int32_t T_CTEST_EXPORT2
+ctest_xml_fini(void);
+
 
 /**
  * report a test case
  * @return 0 on success, 1 on failure.
  */
-T_CTEST_API int32_t T_CTEST_EXPORT2 ctest_xml_testcase(const char* classname, const char* name, const char* time, const char* failMsg);
+T_CTEST_API int32_t
+T_CTEST_EXPORT2
+ctest_xml_testcase(const char *classname, const char *name, const char *time, const char *failMsg);
 
 #endif

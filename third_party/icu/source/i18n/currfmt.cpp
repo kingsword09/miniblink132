@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -20,34 +20,37 @@
 
 U_NAMESPACE_BEGIN
 
-CurrencyFormat::CurrencyFormat(const Locale& locale, UErrorCode& ec)
-    : MeasureFormat(locale, UMEASFMT_WIDTH_WIDE, ec)
+CurrencyFormat::CurrencyFormat(const Locale& locale, UErrorCode& ec) :
+    MeasureFormat(locale, UMEASFMT_WIDTH_WIDE, ec)
 {
 }
 
-CurrencyFormat::CurrencyFormat(const CurrencyFormat& other)
-    : MeasureFormat(other)
+CurrencyFormat::CurrencyFormat(const CurrencyFormat& other) :
+    MeasureFormat(other)
 {
 }
 
-CurrencyFormat::~CurrencyFormat()
-{
+CurrencyFormat::~CurrencyFormat() {
 }
 
-CurrencyFormat* CurrencyFormat::clone() const
-{
+CurrencyFormat* CurrencyFormat::clone() const {
     return new CurrencyFormat(*this);
 }
 
-UnicodeString& CurrencyFormat::format(const Formattable& obj, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& ec) const
+UnicodeString& CurrencyFormat::format(const Formattable& obj,
+                                      UnicodeString& appendTo,
+                                      FieldPosition& pos,
+                                      UErrorCode& ec) const
 {
     return getCurrencyFormatInternal().format(obj, appendTo, pos, ec);
 }
 
-void CurrencyFormat::parseObject(const UnicodeString& source, Formattable& result, ParsePosition& pos) const
+void CurrencyFormat::parseObject(const UnicodeString& source,
+                                 Formattable& result,
+                                 ParsePosition& pos) const
 {
     CurrencyAmount* currAmt = getCurrencyFormatInternal().parseCurrency(source, pos);
-    if (currAmt != NULL) {
+    if (currAmt != nullptr) {
         result.adoptObject(currAmt);
     }
 }

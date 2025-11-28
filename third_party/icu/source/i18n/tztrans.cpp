@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -7,7 +7,7 @@
 *******************************************************************************
 */
 
-#include "utypeinfo.h" // for 'typeid' to work
+#include "utypeinfo.h"  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -21,53 +21,40 @@ U_NAMESPACE_BEGIN
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(TimeZoneTransition)
 
 TimeZoneTransition::TimeZoneTransition(UDate time, const TimeZoneRule& from, const TimeZoneRule& to)
-    : UObject()
-    , fTime(time)
-    , fFrom(from.clone())
-    , fTo(to.clone())
-{
+: UObject(), fTime(time), fFrom(from.clone()), fTo(to.clone()) {
 }
 
 TimeZoneTransition::TimeZoneTransition()
-    : UObject()
-    , fTime(0)
-    , fFrom(NULL)
-    , fTo(NULL)
-{
+: UObject(), fTime(0), fFrom(nullptr), fTo(nullptr) {
 }
 
 TimeZoneTransition::TimeZoneTransition(const TimeZoneTransition& source)
-    : UObject()
-    , fTime(source.fTime)
-    , fFrom(NULL)
-    , fTo(NULL)
-{
-    if (source.fFrom != NULL) {
-        fFrom = source.fFrom->clone();
-    }
+: UObject(), fTime(source.fTime), fFrom(nullptr), fTo(nullptr) {
+      if (source.fFrom != nullptr) {
+          fFrom = source.fFrom->clone();
+      }
 
-    if (source.fTo != NULL) {
-        fTo = source.fTo->clone();
-    }
+      if (source.fTo != nullptr) {
+          fTo = source.fTo->clone();
+      }
 }
 
-TimeZoneTransition::~TimeZoneTransition()
-{
-    if (fFrom != NULL) {
+TimeZoneTransition::~TimeZoneTransition() {
+    if (fFrom != nullptr) {
         delete fFrom;
     }
-    if (fTo != NULL) {
+    if (fTo != nullptr) {
         delete fTo;
     }
 }
 
-TimeZoneTransition* TimeZoneTransition::clone(void) const
-{
+TimeZoneTransition*
+TimeZoneTransition::clone() const {
     return new TimeZoneTransition(*this);
 }
 
-TimeZoneTransition& TimeZoneTransition::operator=(const TimeZoneTransition& right)
-{
+TimeZoneTransition&
+TimeZoneTransition::operator=(const TimeZoneTransition& right) {
     if (this != &right) {
         fTime = right.fTime;
         setFrom(*right.fFrom);
@@ -76,8 +63,8 @@ TimeZoneTransition& TimeZoneTransition::operator=(const TimeZoneTransition& righ
     return *this;
 }
 
-bool TimeZoneTransition::operator==(const TimeZoneTransition& that) const
-{
+bool
+TimeZoneTransition::operator==(const TimeZoneTransition& that) const {
     if (this == &that) {
         return true;
     }
@@ -87,68 +74,70 @@ bool TimeZoneTransition::operator==(const TimeZoneTransition& that) const
     if (fTime != that.fTime) {
         return false;
     }
-    if ((fFrom == NULL && that.fFrom == NULL) || (fFrom != NULL && that.fFrom != NULL && *fFrom == *(that.fFrom))) {
-        if ((fTo == NULL && that.fTo == NULL) || (fTo != NULL && that.fTo != NULL && *fTo == *(that.fTo))) {
+    if ((fFrom == nullptr && that.fFrom == nullptr)
+        || (fFrom != nullptr && that.fFrom != nullptr && *fFrom == *(that.fFrom))) {
+        if ((fTo == nullptr && that.fTo == nullptr)
+            || (fTo != nullptr && that.fTo != nullptr && *fTo == *(that.fTo))) {
             return true;
         }
     }
     return false;
 }
 
-bool TimeZoneTransition::operator!=(const TimeZoneTransition& that) const
-{
+bool
+TimeZoneTransition::operator!=(const TimeZoneTransition& that) const {
     return !operator==(that);
 }
 
-void TimeZoneTransition::setTime(UDate time)
-{
+void
+TimeZoneTransition::setTime(UDate time) {
     fTime = time;
 }
 
-void TimeZoneTransition::setFrom(const TimeZoneRule& from)
-{
-    if (fFrom != NULL) {
+void
+TimeZoneTransition::setFrom(const TimeZoneRule& from) {
+    if (fFrom != nullptr) {
         delete fFrom;
     }
     fFrom = from.clone();
 }
 
-void TimeZoneTransition::adoptFrom(TimeZoneRule* from)
-{
-    if (fFrom != NULL) {
+void
+TimeZoneTransition::adoptFrom(TimeZoneRule* from) {
+    if (fFrom != nullptr) {
         delete fFrom;
     }
     fFrom = from;
 }
 
-void TimeZoneTransition::setTo(const TimeZoneRule& to)
-{
-    if (fTo != NULL) {
+void
+TimeZoneTransition::setTo(const TimeZoneRule& to) {
+    if (fTo != nullptr) {
         delete fTo;
     }
     fTo = to.clone();
 }
 
-void TimeZoneTransition::adoptTo(TimeZoneRule* to)
-{
-    if (fTo != NULL) {
+void
+TimeZoneTransition::adoptTo(TimeZoneRule* to) {
+    if (fTo != nullptr) {
         delete fTo;
     }
     fTo = to;
 }
 
-UDate TimeZoneTransition::getTime(void) const
-{
+UDate
+TimeZoneTransition::getTime() const {
     return fTime;
 }
 
-const TimeZoneRule* TimeZoneTransition::getTo(void) const
-{
+const TimeZoneRule*
+TimeZoneTransition::getTo() const {
     return fTo;
 }
 
-const TimeZoneRule* TimeZoneTransition::getFrom(void) const
-{
+const TimeZoneRule*
+TimeZoneTransition::getFrom() const {
     return fFrom;
 }
 
@@ -156,4 +145,4 @@ U_NAMESPACE_END
 
 #endif
 
-// eof
+//eof

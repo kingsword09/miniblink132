@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -51,45 +51,48 @@ class DecimalQuantity;
 class ModifierStore;
 struct MicroProps;
 
+
 enum AffixPatternType {
     // Represents a literal character; the value is stored in the code point field.
-    TYPE_CODEPOINT = 0,
+            TYPE_CODEPOINT = 0,
 
     // Represents a minus sign symbol '-'.
-    TYPE_MINUS_SIGN = -1,
+            TYPE_MINUS_SIGN = -1,
 
     // Represents a plus sign symbol '+'.
-    TYPE_PLUS_SIGN = -2,
+            TYPE_PLUS_SIGN = -2,
 
     // Represents an approximately sign symbol '~'.
-    TYPE_APPROXIMATELY_SIGN = -3,
+            TYPE_APPROXIMATELY_SIGN = -3,
 
     // Represents a percent sign symbol '%'.
-    TYPE_PERCENT = -4,
+            TYPE_PERCENT = -4,
 
     // Represents a permille sign symbol '‰'.
-    TYPE_PERMILLE = -5,
+            TYPE_PERMILLE = -5,
 
     // Represents a single currency symbol '¤'.
-    TYPE_CURRENCY_SINGLE = -6,
+            TYPE_CURRENCY_SINGLE = -6,
 
     // Represents a double currency symbol '¤¤'.
-    TYPE_CURRENCY_DOUBLE = -7,
+            TYPE_CURRENCY_DOUBLE = -7,
 
     // Represents a triple currency symbol '¤¤¤'.
-    TYPE_CURRENCY_TRIPLE = -8,
+            TYPE_CURRENCY_TRIPLE = -8,
 
     // Represents a quadruple currency symbol '¤¤¤¤'.
-    TYPE_CURRENCY_QUAD = -9,
+            TYPE_CURRENCY_QUAD = -9,
 
     // Represents a quintuple currency symbol '¤¤¤¤¤'.
-    TYPE_CURRENCY_QUINT = -10,
+            TYPE_CURRENCY_QUINT = -10,
 
     // Represents a sequence of six or more currency symbols.
-    TYPE_CURRENCY_OVERFLOW = -15
+            TYPE_CURRENCY_OVERFLOW = -15
 };
 
-enum CompactType { TYPE_DECIMAL, TYPE_CURRENCY };
+enum CompactType {
+    TYPE_DECIMAL, TYPE_CURRENCY
+};
 
 enum Signum {
     SIGNUM_NEG = 0,
@@ -99,8 +102,9 @@ enum Signum {
     SIGNUM_COUNT = 4,
 };
 
+
 class U_I18N_API AffixPatternProvider {
-public:
+  public:
     static const int32_t AFFIX_PLURAL_MASK = 0xff;
     static const int32_t AFFIX_PREFIX = 0x100;
     static const int32_t AFFIX_NEGATIVE_SUBPATTERN = 0x200;
@@ -143,6 +147,7 @@ public:
     virtual bool currencyAsDecimal() const = 0;
 };
 
+
 /**
  * A Modifier is an object that can be passed through the formatting pipeline until it is finally applied to the string
  * builder. A Modifier usually contains a prefix and a suffix that are applied, but it could contain something else,
@@ -154,7 +159,7 @@ public:
  * Exported as U_I18N_API because it is a base class for other exported types
  */
 class U_I18N_API Modifier {
-public:
+  public:
     virtual ~Modifier();
 
     /**
@@ -169,7 +174,8 @@ public:
      *            formatted.
      * @return The number of characters (UTF-16 code units) that were added to the string builder.
      */
-    virtual int32_t apply(FormattedStringBuilder& output, int leftIndex, int rightIndex, UErrorCode& status) const = 0;
+    virtual int32_t apply(FormattedStringBuilder& output, int leftIndex, int rightIndex,
+                          UErrorCode& status) const = 0;
 
     /**
      * Gets the length of the prefix. This information can be used in combination with {@link #apply} to extract the
@@ -225,6 +231,7 @@ public:
     virtual bool semanticallyEquivalent(const Modifier& other) const = 0;
 };
 
+
 /**
  * This is *not* a modifier; rather, it is an object that can return modifiers
  * based on given parameters.
@@ -232,7 +239,7 @@ public:
  * Exported as U_I18N_API because it is a base class for other exported types.
  */
 class U_I18N_API ModifierStore {
-public:
+  public:
     virtual ~ModifierStore();
 
     /**
@@ -240,6 +247,7 @@ public:
      */
     virtual const Modifier* getModifier(Signum signum, StandardPlural::Form plural) const = 0;
 };
+
 
 /**
  * This interface is used when all number formatting settings, including the locale, are known, except for the quantity
@@ -261,7 +269,7 @@ public:
  *
  */
 class U_I18N_API MicroPropsGenerator {
-public:
+  public:
     virtual ~MicroPropsGenerator() = default;
 
     /**
@@ -272,14 +280,15 @@ public:
      * @param micros The MicroProps instance to populate. It will be modified as
      *   needed for the given quantity.
      */
-    virtual void processQuantity(DecimalQuantity& quantity, MicroProps& micros, UErrorCode& status) const = 0;
+    virtual void processQuantity(DecimalQuantity& quantity, MicroProps& micros,
+                                 UErrorCode& status) const = 0;
 };
 
 /**
  * An interface used by compact notation and scientific notation to choose a multiplier while rounding.
  */
 class MultiplierProducer {
-public:
+  public:
     virtual ~MultiplierProducer();
 
     /**
@@ -294,23 +303,20 @@ public:
 };
 
 // Exported as U_I18N_API because it is a public member field of exported DecimalFormatProperties
-template <typename T> class U_I18N_API NullableValue {
-public:
+template<typename T>
+class U_I18N_API NullableValue {
+  public:
     NullableValue()
-        : fNull(true)
-    {
-    }
+            : fNull(true) {}
 
     NullableValue(const NullableValue<T>& other) = default;
 
-    explicit NullableValue(const T& other)
-    {
+    explicit NullableValue(const T& other) {
         fValue = other;
         fNull = false;
     }
 
-    NullableValue<T>& operator=(const NullableValue<T>& other)
-    {
+    NullableValue<T>& operator=(const NullableValue<T>& other) {
         fNull = other.fNull;
         if (!fNull) {
             fValue = other.fValue;
@@ -318,52 +324,46 @@ public:
         return *this;
     }
 
-    NullableValue<T>& operator=(const T& other)
-    {
+    NullableValue<T>& operator=(const T& other) {
         fValue = other;
         fNull = false;
         return *this;
     }
 
-    bool operator==(const NullableValue& other) const
-    {
+    bool operator==(const NullableValue& other) const {
         // "fValue == other.fValue" returns UBool, not bool (causes compiler warnings)
         return fNull ? other.fNull : (other.fNull ? false : static_cast<bool>(fValue == other.fValue));
     }
 
-    void nullify()
-    {
+    void nullify() {
         // TODO: It might be nice to call the destructor here.
         fNull = true;
     }
 
-    bool isNull() const
-    {
+    bool isNull() const {
         return fNull;
     }
 
-    T get(UErrorCode& status) const
-    {
+    T get(UErrorCode& status) const {
         if (fNull) {
             status = U_UNDEFINED_VARIABLE;
         }
         return fValue;
     }
 
-    T getNoError() const
-    {
+    T getNoError() const {
         return fValue;
     }
 
-    T getOrDefault(T defaultValue) const
-    {
+    T getOrDefault(T defaultValue) const {
         return fNull ? defaultValue : fValue;
     }
 
-private:
+  private:
     bool fNull;
     T fValue;
 };
+
 
 } // namespace impl
 } // namespace number

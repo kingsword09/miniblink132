@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -26,7 +26,7 @@
 
 #include "unicode/utypes.h"
 
-U_CAPI int32_t U_EXPORT2 parseFlagsFile(
-    const char* fileName, char** flagBuffer, int32_t flagBufferSize, const char** flagNames, int32_t numOfFlags, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2
+parseFlagsFile(const char *fileName, char **flagBuffer, int32_t flagBufferSize, const char ** flagNames, int32_t numOfFlags, UErrorCode *status);
 
 #endif

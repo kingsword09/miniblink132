@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -32,25 +32,25 @@
  */
 typedef enum {
     /** Include a negative value so that the compiler uses the same int type as for UResType. */
-    URES_INTERNAL_NONE = -1,
+    URES_INTERNAL_NONE=-1,
 
     /** Resource type constant for tables with 32-bit count, key offsets and values. */
-    URES_TABLE32 = 4,
+    URES_TABLE32=4,
 
     /**
      * Resource type constant for tables with 16-bit count, key offsets and values.
      * All values are URES_STRING_V2 strings.
      */
-    URES_TABLE16 = 5,
+    URES_TABLE16=5,
 
     /** Resource type constant for 16-bit Unicode strings in formatVersion 2. */
-    URES_STRING_V2 = 6,
+    URES_STRING_V2=6,
 
     /**
      * Resource type constant for arrays with 16-bit count and values.
      * All values are URES_STRING_V2 strings.
      */
-    URES_ARRAY16 = 9
+    URES_ARRAY16=9
 
     /* Resource type 15 is not defined but effectively used by RES_BOGUS=0xffffffff. */
 } UResInternalType;
@@ -65,27 +65,27 @@ typedef uint32_t Resource;
 #define RES_BOGUS 0xffffffff
 #define RES_MAX_OFFSET 0x0fffffff
 
-#define RES_GET_TYPE(res) ((int32_t)((res) >> 28UL))
+#define RES_GET_TYPE(res) ((int32_t)((res)>>28UL))
 #define RES_GET_OFFSET(res) ((res)&0x0fffffff)
-#define RES_GET_POINTER(pRoot, res) ((pRoot) + RES_GET_OFFSET(res))
+#define RES_GET_POINTER(pRoot, res) ((pRoot)+RES_GET_OFFSET(res))
 
 /* get signed and unsigned integer values directly from the Resource handle
  * NOTE: For proper logging, please use the res_getInt() constexpr
  */
 #if U_SIGNED_RIGHT_SHIFT_IS_ARITHMETIC
-#define RES_GET_INT_NO_TRACE(res) (((int32_t)((res) << 4L)) >> 4L)
+#   define RES_GET_INT_NO_TRACE(res) (((int32_t)((res)<<4L))>>4L)
 #else
-#define RES_GET_INT_NO_TRACE(res) (int32_t)(((res)&0x08000000) ? (res) | 0xf0000000 : (res)&0x07ffffff)
+#   define RES_GET_INT_NO_TRACE(res) (int32_t)(((res)&0x08000000) ? (res)|0xf0000000 : (res)&0x07ffffff)
 #endif
 
 #define RES_GET_UINT_NO_TRACE(res) ((res)&0x0fffffff)
 
-#define URES_IS_ARRAY(type) ((int32_t)(type) == URES_ARRAY || (int32_t)(type) == URES_ARRAY16)
-#define URES_IS_TABLE(type) ((int32_t)(type) == URES_TABLE || (int32_t)(type) == URES_TABLE16 || (int32_t)(type) == URES_TABLE32)
+#define URES_IS_ARRAY(type) ((int32_t)(type)==URES_ARRAY || (int32_t)(type)==URES_ARRAY16)
+#define URES_IS_TABLE(type) ((int32_t)(type)==URES_TABLE || (int32_t)(type)==URES_TABLE16 || (int32_t)(type)==URES_TABLE32)
 #define URES_IS_CONTAINER(type) (URES_IS_TABLE(type) || URES_IS_ARRAY(type))
 
-#define URES_MAKE_RESOURCE(type, offset) (((Resource)(type) << 28) | (Resource)(offset))
-#define URES_MAKE_EMPTY_RESOURCE(type) ((Resource)(type) << 28)
+#define URES_MAKE_RESOURCE(type, offset) (((Resource)(type)<<28)|(Resource)(offset))
+#define URES_MAKE_EMPTY_RESOURCE(type) ((Resource)(type)<<28)
 
 /* indexes[] value names; indexes are generally 32-bit (Resource) indexes */
 enum {
@@ -384,13 +384,13 @@ enum {
  * Structure for a single, memory-mapped ResourceBundle.
  */
 typedef struct ResourceData {
-    UDataMemory* data;
-    const int32_t* pRoot;
-    const uint16_t* p16BitUnits;
-    const char* poolBundleKeys;
+    UDataMemory *data;
+    const int32_t *pRoot;
+    const uint16_t *p16BitUnits;
+    const char *poolBundleKeys;
     Resource rootRes;
     int32_t localKeyLimit;
-    const uint16_t* poolBundleStrings;
+    const uint16_t *poolBundleStrings;
     int32_t poolStringIndexLimit;
     int32_t poolStringIndex16Limit;
     UBool noFallback; /* see URES_ATT_NO_FALLBACK */
@@ -399,26 +399,33 @@ typedef struct ResourceData {
     UBool useNativeStrcmp;
 } ResourceData;
 
-struct UResourceDataEntry; // forward declared for ResoureDataValue below; actually defined in uresimp.h
+struct UResourceDataEntry;   // forward declared for ResoureDataValue below; actually defined in uresimp.h
 
 /*
  * Read a resource bundle from memory.
  */
-U_CAPI void U_EXPORT2 res_read(ResourceData* pResData, const UDataInfo* pInfo, const void* inBytes, int32_t length, UErrorCode* errorCode);
+U_CAPI void U_EXPORT2
+res_read(ResourceData *pResData,
+         const UDataInfo *pInfo, const void *inBytes, int32_t length,
+         UErrorCode *errorCode);
 
 /*
  * Load a resource bundle file.
  * The ResourceData structure must be allocated externally.
  */
-U_CFUNC void res_load(ResourceData* pResData, const char* path, const char* name, UErrorCode* errorCode);
+U_CFUNC void
+res_load(ResourceData *pResData,
+         const char *path, const char *name, UErrorCode *errorCode);
 
 /*
  * Release a resource bundle file.
  * This does not release the ResourceData structure itself.
  */
-U_CFUNC void res_unload(ResourceData* pResData);
+U_CFUNC void
+res_unload(ResourceData *pResData);
 
-U_CAPI UResType U_EXPORT2 res_getPublicType(Resource res);
+U_CAPI UResType U_EXPORT2
+res_getPublicType(Resource res);
 
 ///////////////////////////////////////////////////////////////////////////
 // To enable tracing, use the inline versions of the res_get* functions. //
@@ -429,23 +436,32 @@ U_CAPI UResType U_EXPORT2 res_getPublicType(Resource res);
  * and set its length in *pLength.
  * Returns NULL if not found.
  */
-U_CAPI const UChar* U_EXPORT2 res_getStringNoTrace(const ResourceData* pResData, Resource res, int32_t* pLength);
+U_CAPI const UChar * U_EXPORT2
+res_getStringNoTrace(const ResourceData *pResData, Resource res, int32_t *pLength);
 
-U_CAPI const uint8_t* U_EXPORT2 res_getBinaryNoTrace(const ResourceData* pResData, Resource res, int32_t* pLength);
+U_CAPI const uint8_t * U_EXPORT2
+res_getBinaryNoTrace(const ResourceData *pResData, Resource res, int32_t *pLength);
 
-U_CAPI const int32_t* U_EXPORT2 res_getIntVectorNoTrace(const ResourceData* pResData, Resource res, int32_t* pLength);
+U_CAPI const int32_t * U_EXPORT2
+res_getIntVectorNoTrace(const ResourceData *pResData, Resource res, int32_t *pLength);
 
-U_CAPI const UChar* U_EXPORT2 res_getAlias(const ResourceData* pResData, Resource res, int32_t* pLength);
+U_CAPI const UChar * U_EXPORT2
+res_getAlias(const ResourceData *pResData, Resource res, int32_t *pLength);
 
-U_CAPI Resource U_EXPORT2 res_getResource(const ResourceData* pResData, const char* key);
+U_CAPI Resource U_EXPORT2
+res_getResource(const ResourceData *pResData, const char *key);
 
-U_CAPI int32_t U_EXPORT2 res_countArrayItems(const ResourceData* pResData, Resource res);
+U_CAPI int32_t U_EXPORT2
+res_countArrayItems(const ResourceData *pResData, Resource res);
 
-U_CAPI Resource U_EXPORT2 res_getArrayItem(const ResourceData* pResData, Resource array, int32_t indexS);
+U_CAPI Resource U_EXPORT2
+res_getArrayItem(const ResourceData *pResData, Resource array, int32_t indexS);
 
-U_CAPI Resource U_EXPORT2 res_getTableItemByIndex(const ResourceData* pResData, Resource table, int32_t indexS, const char** key);
+U_CAPI Resource U_EXPORT2
+res_getTableItemByIndex(const ResourceData *pResData, Resource table, int32_t indexS, const char ** key);
 
-U_CAPI Resource U_EXPORT2 res_getTableItemByKey(const ResourceData* pResData, Resource table, int32_t* indexS, const char** key);
+U_CAPI Resource U_EXPORT2
+res_getTableItemByKey(const ResourceData *pResData, Resource table, int32_t *indexS, const char* * key);
 
 /**
  * Iterates over the path and stops when a scalar resource is found.
@@ -456,113 +472,103 @@ U_CAPI Resource U_EXPORT2 res_getTableItemByKey(const ResourceData* pResData, Re
  * @param path input: "CollationElements/Sequence" or "zoneStrings/3/2" etc.;
  *             output: points to the part that has not yet been processed
  */
-U_CFUNC Resource res_findResource(const ResourceData* pResData, Resource r, char** path, const char** key);
+U_CFUNC Resource res_findResource(const ResourceData *pResData, Resource r,
+                                  char** path, const char** key);
 
 #ifdef __cplusplus
 
-#include "icu_resource.h"
+#include "resource.h"
 #include "restrace.h"
 
 U_NAMESPACE_BEGIN
 
-inline const UChar* res_getString(const ResourceTracer& traceInfo, const ResourceData* pResData, Resource res, int32_t* pLength)
-{
+inline const char16_t* res_getString(const ResourceTracer& traceInfo,
+        const ResourceData *pResData, Resource res, int32_t *pLength) {
     traceInfo.trace("string");
     return res_getStringNoTrace(pResData, res, pLength);
 }
 
-inline const uint8_t* res_getBinary(const ResourceTracer& traceInfo, const ResourceData* pResData, Resource res, int32_t* pLength)
-{
+inline const uint8_t* res_getBinary(const ResourceTracer& traceInfo,
+        const ResourceData *pResData, Resource res, int32_t *pLength) {
     traceInfo.trace("binary");
     return res_getBinaryNoTrace(pResData, res, pLength);
 }
 
-inline const int32_t* res_getIntVector(const ResourceTracer& traceInfo, const ResourceData* pResData, Resource res, int32_t* pLength)
-{
+inline const int32_t* res_getIntVector(const ResourceTracer& traceInfo,
+        const ResourceData *pResData, Resource res, int32_t *pLength) {
     traceInfo.trace("intvector");
     return res_getIntVectorNoTrace(pResData, res, pLength);
 }
 
-inline int32_t res_getInt(const ResourceTracer& traceInfo, Resource res)
-{
+inline int32_t res_getInt(const ResourceTracer& traceInfo, Resource res) {
     traceInfo.trace("int");
     return RES_GET_INT_NO_TRACE(res);
 }
 
-inline uint32_t res_getUInt(const ResourceTracer& traceInfo, Resource res)
-{
+inline uint32_t res_getUInt(const ResourceTracer& traceInfo, Resource res) {
     traceInfo.trace("uint");
     return RES_GET_UINT_NO_TRACE(res);
 }
 
 class ResourceDataValue : public ResourceValue {
 public:
-    ResourceDataValue()
-        : pResData(nullptr)
-        , validLocaleDataEntry(nullptr)
-        , res(static_cast<Resource>(URES_NONE))
-        , fTraceInfo()
-    {
-    }
+    ResourceDataValue() :
+        pResData(nullptr),
+        validLocaleDataEntry(nullptr),
+        res(static_cast<Resource>(URES_NONE)),
+        fTraceInfo() {}
     virtual ~ResourceDataValue();
 
-    void setData(const ResourceData& data)
-    {
+    void setData(const ResourceData &data) {
         pResData = &data;
     }
-
-    void setValidLocaleDataEntry(UResourceDataEntry* entry)
-    {
+    
+    void setValidLocaleDataEntry(UResourceDataEntry *entry) {
         validLocaleDataEntry = entry;
     }
 
-    void setResource(Resource r, ResourceTracer&& traceInfo)
-    {
+    void setResource(Resource r, ResourceTracer&& traceInfo) {
         res = r;
         fTraceInfo = traceInfo;
     }
 
-    const ResourceData& getData() const
-    {
-        return *pResData;
-    }
-    UResourceDataEntry* getValidLocaleDataEntry() const
-    {
-        return validLocaleDataEntry;
-    }
-    Resource getResource() const
-    {
-        return res;
-    }
+    const ResourceData &getData() const { return *pResData; }
+    UResourceDataEntry *getValidLocaleDataEntry() const { return validLocaleDataEntry; }
+    Resource getResource() const { return res; }
     virtual UResType getType() const override;
-    virtual const UChar* getString(int32_t& length, UErrorCode& errorCode) const override;
-    virtual const UChar* getAliasString(int32_t& length, UErrorCode& errorCode) const override;
-    virtual int32_t getInt(UErrorCode& errorCode) const override;
-    virtual uint32_t getUInt(UErrorCode& errorCode) const override;
-    virtual const int32_t* getIntVector(int32_t& length, UErrorCode& errorCode) const override;
-    virtual const uint8_t* getBinary(int32_t& length, UErrorCode& errorCode) const override;
-    virtual ResourceArray getArray(UErrorCode& errorCode) const override;
-    virtual ResourceTable getTable(UErrorCode& errorCode) const override;
+    virtual const char16_t *getString(int32_t &length, UErrorCode &errorCode) const override;
+    virtual const char16_t *getAliasString(int32_t &length, UErrorCode &errorCode) const override;
+    virtual int32_t getInt(UErrorCode &errorCode) const override;
+    virtual uint32_t getUInt(UErrorCode &errorCode) const override;
+    virtual const int32_t *getIntVector(int32_t &length, UErrorCode &errorCode) const override;
+    virtual const uint8_t *getBinary(int32_t &length, UErrorCode &errorCode) const override;
+    virtual ResourceArray getArray(UErrorCode &errorCode) const override;
+    virtual ResourceTable getTable(UErrorCode &errorCode) const override;
     virtual UBool isNoInheritanceMarker() const override;
-    virtual int32_t getStringArray(UnicodeString* dest, int32_t capacity, UErrorCode& errorCode) const override;
-    virtual int32_t getStringArrayOrStringAsArray(UnicodeString* dest, int32_t capacity, UErrorCode& errorCode) const override;
-    virtual UnicodeString getStringOrFirstOfArray(UErrorCode& errorCode) const override;
+    virtual int32_t getStringArray(UnicodeString *dest, int32_t capacity,
+                                   UErrorCode &errorCode) const override;
+    virtual int32_t getStringArrayOrStringAsArray(UnicodeString *dest, int32_t capacity,
+                                                  UErrorCode &errorCode) const override;
+    virtual UnicodeString getStringOrFirstOfArray(UErrorCode &errorCode) const override;
 
 private:
-    const ResourceData* pResData;
-    UResourceDataEntry* validLocaleDataEntry;
+    const ResourceData *pResData;
+    UResourceDataEntry *validLocaleDataEntry;
     Resource res;
     ResourceTracer fTraceInfo;
 };
 
 U_NAMESPACE_END
 
-#endif /* __cplusplus */
+#endif  /* __cplusplus */
 
 /**
  * Swap an ICU resource bundle. See udataswp.h.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2 ures_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
+U_CAPI int32_t U_EXPORT2
+ures_swap(const UDataSwapper *ds,
+          const void *inData, int32_t length, void *outData,
+          UErrorCode *pErrorCode);
 
 #endif

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -37,7 +37,8 @@ class NumberFormat;
  */
 class CurrencyFormat : public MeasureFormat {
 
-public:
+ public:
+
     /**
      * Construct a CurrencyFormat for the given locale.
      */
@@ -58,17 +59,23 @@ public:
      */
     virtual CurrencyFormat* clone() const override;
 
+
     using MeasureFormat::format;
 
     /**
      * Override Format API.
      */
-    virtual UnicodeString& format(const Formattable& obj, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& ec) const override;
+    virtual UnicodeString& format(const Formattable& obj,
+                                  UnicodeString& appendTo,
+                                  FieldPosition& pos,
+                                  UErrorCode& ec) const override;
 
     /**
      * Override Format API.
      */
-    virtual void parseObject(const UnicodeString& source, Formattable& result, ParsePosition& pos) const override;
+    virtual void parseObject(const UnicodeString& source,
+                             Formattable& result,
+                             ParsePosition& pos) const override;
 
     /**
      * Override Format API.

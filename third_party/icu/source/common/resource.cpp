@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -11,16 +11,12 @@
 * created by: Markus W. Scherer
 */
 
-#include "icu_resource.h"
+#include "resource.h"
 
 U_NAMESPACE_BEGIN
 
-ResourceValue::~ResourceValue()
-{
-}
+ResourceValue::~ResourceValue() {}
 
-ResourceSink::~ResourceSink()
-{
-}
+ResourceSink::~ResourceSink() {}
 
 U_NAMESPACE_END

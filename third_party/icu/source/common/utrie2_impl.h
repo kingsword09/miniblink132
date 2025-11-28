@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -36,8 +36,8 @@
 
 // UTrie2 signature values, in platform endianness and opposite endianness.
 // The UTrie2 signature ASCII byte values spell "Tri2".
-#define UTRIE2_SIG 0x54726932
-#define UTRIE2_OE_SIG 0x32697254
+#define UTRIE2_SIG      0x54726932
+#define UTRIE2_OE_SIG   0x32697254
 
 /**
  * Trie data structure in serialized form:
@@ -80,7 +80,7 @@ typedef struct UTrie2Header {
  */
 enum {
     /** Mask to get the UTrie2ValueBits valueBits from options. */
-    UTRIE2_OPTIONS_VALUE_BITS_MASK = 0xf
+    UTRIE2_OPTIONS_VALUE_BITS_MASK=0xf
 };
 
 /* Building a trie ---------------------------------------------------------- */
@@ -97,8 +97,10 @@ enum {
      * and the supplementary index-1 table.
      * Round up to UTRIE2_INDEX_2_BLOCK_LENGTH for proper compacting.
      */
-    UNEWTRIE2_INDEX_GAP_OFFSET = UTRIE2_INDEX_2_BMP_LENGTH,
-    UNEWTRIE2_INDEX_GAP_LENGTH = ((UTRIE2_UTF8_2B_INDEX_2_LENGTH + UTRIE2_MAX_INDEX_1_LENGTH) + UTRIE2_INDEX_2_MASK) & ~UTRIE2_INDEX_2_MASK,
+    UNEWTRIE2_INDEX_GAP_OFFSET=UTRIE2_INDEX_2_BMP_LENGTH,
+    UNEWTRIE2_INDEX_GAP_LENGTH=
+        ((UTRIE2_UTF8_2B_INDEX_2_LENGTH+UTRIE2_MAX_INDEX_1_LENGTH)+UTRIE2_INDEX_2_MASK)&
+        ~UTRIE2_INDEX_2_MASK,
 
     /**
      * Maximum length of the build-time index-2 array.
@@ -107,9 +109,13 @@ enum {
      * plus the build-time index gap,
      * plus the null index-2 block.
      */
-    UNEWTRIE2_MAX_INDEX_2_LENGTH = (0x110000 >> UTRIE2_SHIFT_2) + UTRIE2_LSCP_INDEX_2_LENGTH + UNEWTRIE2_INDEX_GAP_LENGTH + UTRIE2_INDEX_2_BLOCK_LENGTH,
+    UNEWTRIE2_MAX_INDEX_2_LENGTH=
+        (0x110000>>UTRIE2_SHIFT_2)+
+        UTRIE2_LSCP_INDEX_2_LENGTH+
+        UNEWTRIE2_INDEX_GAP_LENGTH+
+        UTRIE2_INDEX_2_BLOCK_LENGTH,
 
-    UNEWTRIE2_INDEX_1_LENGTH = 0x110000 >> UTRIE2_SHIFT_1
+    UNEWTRIE2_INDEX_1_LENGTH=0x110000>>UTRIE2_SHIFT_1
 };
 
 /**
@@ -117,7 +123,7 @@ enum {
  * One entry per 0x110000 code points, plus the illegal-UTF-8 block and the null block,
  * plus values for the 0x400 surrogate code units.
  */
-#define UNEWTRIE2_MAX_DATA_LENGTH (0x110000 + 0x40 + 0x40 + 0x400)
+#define UNEWTRIE2_MAX_DATA_LENGTH (0x110000+0x40+0x40+0x400)
 
 /*
  * Build-time trie structure.
@@ -136,9 +142,9 @@ enum {
 struct UNewTrie2 {
     int32_t index1[UNEWTRIE2_INDEX_1_LENGTH];
     int32_t index2[UNEWTRIE2_MAX_INDEX_2_LENGTH];
-    uint32_t* data;
+    uint32_t *data;
 #ifdef UCPTRIE_DEBUG
-    UMutableCPTrie* t3;
+    UMutableCPTrie *t3;
 #endif
 
     uint32_t initialValue, errorValue;
@@ -163,7 +169,7 @@ struct UNewTrie2 {
      * Map of adjusted indexes, used in compactData() and compactIndex2().
      * Maps from original indexes to new ones.
      */
-    int32_t map[UNEWTRIE2_MAX_DATA_LENGTH >> UTRIE2_SHIFT_2];
+    int32_t map[UNEWTRIE2_MAX_DATA_LENGTH>>UTRIE2_SHIFT_2];
 };
 
 #endif

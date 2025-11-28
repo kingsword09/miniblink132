@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *****************************************************************************************
@@ -52,8 +52,8 @@ enum UDisplayContextType {
     UDISPCTX_TYPE_SUBSTITUTE_HANDLING = 3
 };
 /**
- *  @stable ICU 51
- */
+*  @stable ICU 51
+*/
 typedef enum UDisplayContextType UDisplayContextType;
 
 /**
@@ -74,14 +74,14 @@ enum UDisplayContext {
      * e.g. en_GB displays as 'English (United Kingdom)'.
      * @stable ICU 51
      */
-    UDISPCTX_STANDARD_NAMES = (UDISPCTX_TYPE_DIALECT_HANDLING << 8) + 0,
+    UDISPCTX_STANDARD_NAMES = (UDISPCTX_TYPE_DIALECT_HANDLING<<8) + 0,
     /**
      * A possible setting for DIALECT_HANDLING:
      * use dialect names, when generating a locale name,
      * e.g. en_GB displays as 'British English'.
      * @stable ICU 51
      */
-    UDISPCTX_DIALECT_NAMES = (UDISPCTX_TYPE_DIALECT_HANDLING << 8) + 1,
+    UDISPCTX_DIALECT_NAMES = (UDISPCTX_TYPE_DIALECT_HANDLING<<8) + 1,
     /**
      * ================================
      * CAPITALIZATION can be set to one of UDISPCTX_CAPITALIZATION_NONE,
@@ -95,32 +95,32 @@ enum UDisplayContext {
      * The capitalization context to be used is unknown (this is the default value).
      * @stable ICU 51
      */
-    UDISPCTX_CAPITALIZATION_NONE = (UDISPCTX_TYPE_CAPITALIZATION << 8) + 0,
+    UDISPCTX_CAPITALIZATION_NONE = (UDISPCTX_TYPE_CAPITALIZATION<<8) + 0,
     /**
      * The capitalization context if a date, date symbol or display name is to be
      * formatted with capitalization appropriate for the middle of a sentence.
      * @stable ICU 51
      */
-    UDISPCTX_CAPITALIZATION_FOR_MIDDLE_OF_SENTENCE = (UDISPCTX_TYPE_CAPITALIZATION << 8) + 1,
+    UDISPCTX_CAPITALIZATION_FOR_MIDDLE_OF_SENTENCE = (UDISPCTX_TYPE_CAPITALIZATION<<8) + 1,
     /**
      * The capitalization context if a date, date symbol or display name is to be
      * formatted with capitalization appropriate for the beginning of a sentence.
      * @stable ICU 51
      */
-    UDISPCTX_CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE = (UDISPCTX_TYPE_CAPITALIZATION << 8) + 2,
+    UDISPCTX_CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE = (UDISPCTX_TYPE_CAPITALIZATION<<8) + 2,
     /**
      * The capitalization context if a date, date symbol or display name is to be
      * formatted with capitalization appropriate for a user-interface list or menu item.
      * @stable ICU 51
      */
-    UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU = (UDISPCTX_TYPE_CAPITALIZATION << 8) + 3,
+    UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU = (UDISPCTX_TYPE_CAPITALIZATION<<8) + 3,
     /**
      * The capitalization context if a date, date symbol or display name is to be
      * formatted with capitalization appropriate for stand-alone usage such as an
      * isolated name on a calendar page.
      * @stable ICU 51
      */
-    UDISPCTX_CAPITALIZATION_FOR_STANDALONE = (UDISPCTX_TYPE_CAPITALIZATION << 8) + 4,
+    UDISPCTX_CAPITALIZATION_FOR_STANDALONE = (UDISPCTX_TYPE_CAPITALIZATION<<8) + 4,
     /**
      * ================================
      * DISPLAY_LENGTH can be set to one of UDISPCTX_LENGTH_FULL or
@@ -133,14 +133,14 @@ enum UDisplayContext {
      * e.g. "United States" for US.
      * @stable ICU 54
      */
-    UDISPCTX_LENGTH_FULL = (UDISPCTX_TYPE_DISPLAY_LENGTH << 8) + 0,
+    UDISPCTX_LENGTH_FULL = (UDISPCTX_TYPE_DISPLAY_LENGTH<<8) + 0,
     /**
      * A possible setting for DISPLAY_LENGTH:
      * use short names when generating a locale name,
      * e.g. "U.S." for US.
      * @stable ICU 54
      */
-    UDISPCTX_LENGTH_SHORT = (UDISPCTX_TYPE_DISPLAY_LENGTH << 8) + 1,
+    UDISPCTX_LENGTH_SHORT = (UDISPCTX_TYPE_DISPLAY_LENGTH<<8) + 1,
     /**
      * ================================
      * SUBSTITUTE_HANDLING can be set to one of UDISPCTX_SUBSTITUTE or
@@ -153,19 +153,19 @@ enum UDisplayContext {
      * This is the default value.
      * @stable ICU 58
      */
-    UDISPCTX_SUBSTITUTE = (UDISPCTX_TYPE_SUBSTITUTE_HANDLING << 8) + 0,
+    UDISPCTX_SUBSTITUTE = (UDISPCTX_TYPE_SUBSTITUTE_HANDLING<<8) + 0,
     /**
      * A possible setting for SUBSTITUTE_HANDLING:
      * Returns a null value with error code set to U_ILLEGAL_ARGUMENT_ERROR when no
      * data is available.
      * @stable ICU 58
      */
-    UDISPCTX_NO_SUBSTITUTE = (UDISPCTX_TYPE_SUBSTITUTE_HANDLING << 8) + 1
+    UDISPCTX_NO_SUBSTITUTE = (UDISPCTX_TYPE_SUBSTITUTE_HANDLING<<8) + 1
 
 };
 /**
- *  @stable ICU 51
- */
+*  @stable ICU 51
+*/
 typedef enum UDisplayContext UDisplayContext;
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

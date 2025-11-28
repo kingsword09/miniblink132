@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -25,7 +25,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif // U_SHOW_CPLUSPLUS_API
+#endif   // U_SHOW_CPLUSPLUS_API
 
 /**
  * \file
@@ -38,30 +38,32 @@ struct ULocaleData;
 /** A locale data object. @stable ICU 3.6 */
 typedef struct ULocaleData ULocaleData;
 
+
+
 /** The possible types of exemplar character sets.
- * @stable ICU 3.4
- */
-typedef enum ULocaleDataExemplarSetType {
+  * @stable ICU 3.4
+  */
+typedef enum ULocaleDataExemplarSetType  {
     /** Basic set @stable ICU 3.4 */
-    ULOCDATA_ES_STANDARD = 0,
+    ULOCDATA_ES_STANDARD=0,
     /** Auxiliary set @stable ICU 3.4 */
-    ULOCDATA_ES_AUXILIARY = 1,
+    ULOCDATA_ES_AUXILIARY=1,
     /** Index Character set @stable ICU 4.8 */
-    ULOCDATA_ES_INDEX = 2,
+    ULOCDATA_ES_INDEX=2,
     /** Punctuation set @stable ICU 51 */
-    ULOCDATA_ES_PUNCTUATION = 3,
+    ULOCDATA_ES_PUNCTUATION=3,
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the highest normal ULocaleDataExemplarSetType value.
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
-    ULOCDATA_ES_COUNT = 4
-#endif /* U_HIDE_DEPRECATED_API */
+    ULOCDATA_ES_COUNT=4
+#endif  /* U_HIDE_DEPRECATED_API */
 } ULocaleDataExemplarSetType;
 
 /** The possible types of delimiters.
- * @stable ICU 3.4
- */
+  * @stable ICU 3.4
+  */
 typedef enum ULocaleDataDelimiterType {
     /** Quotation start @stable ICU 3.4 */
     ULOCDATA_QUOTATION_START = 0,
@@ -77,7 +79,7 @@ typedef enum ULocaleDataDelimiterType {
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     ULOCDATA_DELIMITER_COUNT = 4
-#endif /* U_HIDE_DEPRECATED_API */
+#endif  /* U_HIDE_DEPRECATED_API */
 } ULocaleDataDelimiterType;
 
 /**
@@ -88,7 +90,8 @@ typedef enum ULocaleDataDelimiterType {
  * @param status    Pointer to error status code.
  * @stable ICU 3.4
  */
-U_CAPI ULocaleData* U_EXPORT2 ulocdata_open(const char* localeID, UErrorCode* status);
+U_CAPI ULocaleData* U_EXPORT2
+ulocdata_open(const char *localeID, UErrorCode *status);
 
 /**
  * Closes a locale data object.
@@ -96,7 +99,8 @@ U_CAPI ULocaleData* U_EXPORT2 ulocdata_open(const char* localeID, UErrorCode* st
  * @param uld       The locale data object to close
  * @stable ICU 3.4
  */
-U_CAPI void U_EXPORT2 ulocdata_close(ULocaleData* uld);
+U_CAPI void U_EXPORT2
+ulocdata_close(ULocaleData *uld);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -128,7 +132,8 @@ U_NAMESPACE_END
  * @param setting   Value of the "no substitute" attribute.
  * @stable ICU 3.4
  */
-U_CAPI void U_EXPORT2 ulocdata_setNoSubstitute(ULocaleData* uld, UBool setting);
+U_CAPI void U_EXPORT2
+ulocdata_setNoSubstitute(ULocaleData *uld, UBool setting);
 
 /**
  * Retrieves the current "no Substitute" value of the locale data
@@ -141,7 +146,8 @@ U_CAPI void U_EXPORT2 ulocdata_setNoSubstitute(ULocaleData* uld, UBool setting);
  * @return UBool    Value of the "no substitute" attribute.
  * @stable ICU 3.4
  */
-U_CAPI UBool U_EXPORT2 ulocdata_getNoSubstitute(ULocaleData* uld);
+U_CAPI UBool U_EXPORT2
+ulocdata_getNoSubstitute(ULocaleData *uld);
 
 /**
  * Returns the set of exemplar characters for a locale.
@@ -170,7 +176,9 @@ U_CAPI UBool U_EXPORT2 ulocdata_getNoSubstitute(ULocaleData* uld);
  *                  In case of error, NULL is returned.
  * @stable ICU 3.4
  */
-U_CAPI USet* U_EXPORT2 ulocdata_getExemplarSet(ULocaleData* uld, USet* fillIn, uint32_t options, ULocaleDataExemplarSetType extype, UErrorCode* status);
+U_CAPI USet* U_EXPORT2
+ulocdata_getExemplarSet(ULocaleData *uld, USet *fillIn,
+                        uint32_t options, ULocaleDataExemplarSetType extype, UErrorCode *status);
 
 /**
  * Returns one of the delimiter strings associated with a locale.
@@ -185,23 +193,24 @@ U_CAPI USet* U_EXPORT2 ulocdata_getExemplarSet(ULocaleData* uld, USet* fillIn, u
  *                      the output was truncated.
  * @stable ICU 3.4
  */
-U_CAPI int32_t U_EXPORT2 ulocdata_getDelimiter(ULocaleData* uld, ULocaleDataDelimiterType type, UChar* result, int32_t resultLength, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2
+ulocdata_getDelimiter(ULocaleData *uld, ULocaleDataDelimiterType type, UChar *result, int32_t resultLength, UErrorCode *status);
 
 /**
  * Enumeration for representing the measurement systems.
  * @stable ICU 2.8
  */
 typedef enum UMeasurementSystem {
-    UMS_SI, /**< Measurement system specified by SI otherwise known as Metric system. @stable ICU 2.8 */
-    UMS_US, /**< Measurement system followed in the United States of America. @stable ICU 2.8 */
-    UMS_UK, /**< Mix of metric and imperial units used in Great Britain. @stable ICU 55 */
+    UMS_SI,     /**< Measurement system specified by SI otherwise known as Metric system. @stable ICU 2.8 */
+    UMS_US,     /**< Measurement system followed in the United States of America. @stable ICU 2.8 */
+    UMS_UK,     /**< Mix of metric and imperial units used in Great Britain. @stable ICU 55 */
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the highest normal UMeasurementSystem value.
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     UMS_LIMIT
-#endif /* U_HIDE_DEPRECATED_API */
+#endif  /* U_HIDE_DEPRECATED_API */
 } UMeasurementSystem;
 
 /**
@@ -214,7 +223,8 @@ typedef enum UMeasurementSystem {
  * @return UMeasurementSystem the measurement system used in the locale.
  * @stable ICU 2.8
  */
-U_CAPI UMeasurementSystem U_EXPORT2 ulocdata_getMeasurementSystem(const char* localeID, UErrorCode* status);
+U_CAPI UMeasurementSystem U_EXPORT2
+ulocdata_getMeasurementSystem(const char *localeID, UErrorCode *status);
 
 /**
  * Returns the element gives the normal business letter size, and customary units.
@@ -232,7 +242,8 @@ U_CAPI UMeasurementSystem U_EXPORT2 ulocdata_getMeasurementSystem(const char* lo
  *                      which must not indicate a failure before the function call.
  * @stable ICU 2.8
  */
-U_CAPI void U_EXPORT2 ulocdata_getPaperSize(const char* localeID, int32_t* height, int32_t* width, UErrorCode* status);
+U_CAPI void U_EXPORT2
+ulocdata_getPaperSize(const char *localeID, int32_t *height, int32_t *width, UErrorCode *status);
 
 /**
  * Return the current CLDR version used by the library.
@@ -240,7 +251,8 @@ U_CAPI void U_EXPORT2 ulocdata_getPaperSize(const char* localeID, int32_t* heigh
  * @param status error code - could be U_MISSING_RESOURCE_ERROR if the version was not found.
  * @stable ICU 4.2
  */
-U_CAPI void U_EXPORT2 ulocdata_getCLDRVersion(UVersionInfo versionArray, UErrorCode* status);
+U_CAPI void U_EXPORT2
+ulocdata_getCLDRVersion(UVersionInfo versionArray, UErrorCode *status);
 
 /**
  * Returns locale display pattern associated with a locale.
@@ -257,7 +269,12 @@ U_CAPI void U_EXPORT2 ulocdata_getCLDRVersion(UVersionInfo versionArray, UErrorC
  *
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2 ulocdata_getLocaleDisplayPattern(ULocaleData* uld, UChar* pattern, int32_t patternCapacity, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2
+ulocdata_getLocaleDisplayPattern(ULocaleData *uld,
+                                 UChar *pattern,
+                                 int32_t patternCapacity,
+                                 UErrorCode *status);
+
 
 /**
  * Returns locale separator associated with a locale.
@@ -274,5 +291,9 @@ U_CAPI int32_t U_EXPORT2 ulocdata_getLocaleDisplayPattern(ULocaleData* uld, UCha
  *
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2 ulocdata_getLocaleSeparator(ULocaleData* uld, UChar* separator, int32_t separatorCapacity, UErrorCode* status);
+U_CAPI int32_t U_EXPORT2
+ulocdata_getLocaleSeparator(ULocaleData *uld,
+                            UChar *separator,
+                            int32_t separatorCapacity,
+                            UErrorCode *status);
 #endif

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /**
  *******************************************************************************
@@ -22,65 +22,67 @@
 #include "ucln_cmn.h"
 #include "uassert.h"
 
-#define UNDERSCORE_CHAR ((UChar)0x005f)
-#define AT_SIGN_CHAR ((UChar)64)
-#define PERIOD_CHAR ((UChar)46)
+#define UNDERSCORE_CHAR ((char16_t)0x005f)
+#define AT_SIGN_CHAR    ((char16_t)64)
+#define PERIOD_CHAR     ((char16_t)46)
 
 U_NAMESPACE_BEGIN
 
 ICUResourceBundleFactory::ICUResourceBundleFactory()
-    : LocaleKeyFactory(VISIBLE)
-    , _bundleName()
+  : LocaleKeyFactory(VISIBLE)
+  , _bundleName()
 {
 }
 
 ICUResourceBundleFactory::ICUResourceBundleFactory(const UnicodeString& bundleName)
-    : LocaleKeyFactory(VISIBLE)
-    , _bundleName(bundleName)
+  : LocaleKeyFactory(VISIBLE)
+  , _bundleName(bundleName)
 {
 }
 
-ICUResourceBundleFactory::~ICUResourceBundleFactory()
-{
-}
+ICUResourceBundleFactory::~ICUResourceBundleFactory() {}
 
-const Hashtable* ICUResourceBundleFactory::getSupportedIDs(UErrorCode& status) const
+const Hashtable*
+ICUResourceBundleFactory::getSupportedIDs(UErrorCode& status) const
 {
     if (U_SUCCESS(status)) {
         return LocaleUtility::getAvailableLocaleNames(_bundleName);
     }
-    return NULL;
+    return nullptr;
 }
 
-UObject* ICUResourceBundleFactory::handleCreate(const Locale& loc, int32_t /* kind */, const ICUService* /* service */, UErrorCode& status) const
+UObject*
+ICUResourceBundleFactory::handleCreate(const Locale& loc, int32_t /* kind */, const ICUService* /* service */, UErrorCode& status) const
 {
     if (U_SUCCESS(status)) {
         // _bundleName is a package name
         // and should only contain invariant characters
-        // ??? is it always true that the max length of the bundle name is 19?
-        // who made this change? -- dlf
+                // ??? is it always true that the max length of the bundle name is 19?
+                // who made this change? -- dlf
         char pkg[20];
         int32_t length;
-        length = _bundleName.extract(0, INT32_MAX, pkg, (int32_t)sizeof(pkg), US_INV);
-        if (length >= (int32_t)sizeof(pkg)) {
-            return NULL;
+        length=_bundleName.extract(0, INT32_MAX, pkg, (int32_t)sizeof(pkg), US_INV);
+        if(length>=(int32_t)sizeof(pkg)) {
+            return nullptr;
         }
         return new ResourceBundle(pkg, loc, status);
     }
-    return NULL;
+    return nullptr;
 }
 
 #ifdef SERVICE_DEBUG
-UnicodeString& ICUResourceBundleFactory::debug(UnicodeString& result) const
+UnicodeString&
+ICUResourceBundleFactory::debug(UnicodeString& result) const
 {
     LocaleKeyFactory::debug(result);
-    result.append((UnicodeString) ", bundle: ");
+    result.append((UnicodeString)", bundle: ");
     return result.append(_bundleName);
 }
 
-UnicodeString& ICUResourceBundleFactory::debugClass(UnicodeString& result) const
+UnicodeString&
+ICUResourceBundleFactory::debugClass(UnicodeString& result) const
 {
-    return result.append((UnicodeString) "ICUResourceBundleFactory");
+    return result.append((UnicodeString)"ICUResourceBundleFactory");
 }
 #endif
 
@@ -90,3 +92,5 @@ U_NAMESPACE_END
 
 /* !UCONFIG_NO_SERVICE */
 #endif
+
+

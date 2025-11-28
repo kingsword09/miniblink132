@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -17,7 +17,7 @@
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_FORMATTING
-
+    
 #include "unicode/numsys.h"
 #include "uvector.h"
 #include "unicode/strenum.h"
@@ -29,12 +29,11 @@ public:
     NumsysNameEnumeration(UErrorCode& status);
 
     virtual ~NumsysNameEnumeration();
-    static UClassID U_EXPORT2 getStaticClassID(void);
-    virtual UClassID getDynamicClassID(void) const override;
+    static UClassID U_EXPORT2 getStaticClassID();
+    virtual UClassID getDynamicClassID() const override;
     virtual const UnicodeString* snext(UErrorCode& status) override;
     virtual void reset(UErrorCode& status) override;
     virtual int32_t count(UErrorCode& status) const override;
-
 private:
     int32_t pos;
 };

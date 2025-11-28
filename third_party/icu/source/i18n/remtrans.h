@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -27,6 +27,7 @@ U_NAMESPACE_BEGIN
 class RemoveTransliterator : public Transliterator {
 
 public:
+
     /**
      * Constructs a transliterator.
      */
@@ -57,7 +58,8 @@ public:
      * @param incremental   if true, assume more text may be coming after
      *                      pos.contextLimit. Otherwise, assume the text is complete.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset, UBool isIncremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset,
+                                     UBool isIncremental) const override;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
@@ -68,6 +70,7 @@ public:
      * ICU "poor man's RTTI", returns a UClassID for this class.
      */
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
+
 };
 
 U_NAMESPACE_END

@@ -1,4 +1,4 @@
-﻿// © 2017 and later: Unicode, Inc. and others.
+// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -12,27 +12,27 @@ using namespace icu;
 using namespace icu::number;
 using namespace icu::number::impl;
 
+
 namespace {
 
-alignas(DecimalFormatProperties) char kRawDefaultProperties[sizeof(DecimalFormatProperties)];
+alignas(DecimalFormatProperties)
+char kRawDefaultProperties[sizeof(DecimalFormatProperties)];
 
 icu::UInitOnce gDefaultPropertiesInitOnce {};
 
-void U_CALLCONV initDefaultProperties(UErrorCode&)
-{
+void U_CALLCONV initDefaultProperties(UErrorCode&) {
     // can't fail, uses placement new into statically allocated space.
-    new (kRawDefaultProperties) DecimalFormatProperties(); // set to the default instance
+    new(kRawDefaultProperties) DecimalFormatProperties(); // set to the default instance
 }
 
 }
 
-DecimalFormatProperties::DecimalFormatProperties()
-{
+
+DecimalFormatProperties::DecimalFormatProperties() {
     clear();
 }
 
-void DecimalFormatProperties::clear()
-{
+void DecimalFormatProperties::clear() {
     compactStyle.nullify();
     currency.nullify();
     currencyPluralInfo.fPtr.adoptInstead(nullptr);
@@ -78,8 +78,8 @@ void DecimalFormatProperties::clear()
     signAlwaysShown = false;
 }
 
-bool DecimalFormatProperties::_equals(const DecimalFormatProperties& other, bool ignoreForFastFormat) const
-{
+bool
+DecimalFormatProperties::_equals(const DecimalFormatProperties& other, bool ignoreForFastFormat) const {
     bool eq = true;
 
     // Properties that must be equal both normally and for fast-path formatting
@@ -139,15 +139,13 @@ bool DecimalFormatProperties::_equals(const DecimalFormatProperties& other, bool
     return eq;
 }
 
-bool DecimalFormatProperties::equalsDefaultExceptFastFormat() const
-{
+bool DecimalFormatProperties::equalsDefaultExceptFastFormat() const {
     UErrorCode localStatus = U_ZERO_ERROR;
     umtx_initOnce(gDefaultPropertiesInitOnce, &initDefaultProperties, localStatus);
     return _equals(*reinterpret_cast<DecimalFormatProperties*>(kRawDefaultProperties), true);
 }
 
-const DecimalFormatProperties& DecimalFormatProperties::getDefault()
-{
+const DecimalFormatProperties& DecimalFormatProperties::getDefault() {
     UErrorCode localStatus = U_ZERO_ERROR;
     umtx_initOnce(gDefaultPropertiesInitOnce, &initDefaultProperties, localStatus);
     return *reinterpret_cast<const DecimalFormatProperties*>(kRawDefaultProperties);

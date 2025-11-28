@@ -1,4 +1,4 @@
-﻿// © 2021 and later: Unicode, Inc. and others.
+// © 2021 and later: Unicode, Inc. and others.
 // License & terms of use: https://www.unicode.org/copyright.html
 
 // emojiprops.h
@@ -18,18 +18,15 @@ U_NAMESPACE_BEGIN
 class EmojiProps : public UMemory {
 public:
     // @internal
-    EmojiProps(UErrorCode& errorCode)
-    {
-        load(errorCode);
-    }
+    EmojiProps(UErrorCode &errorCode) { load(errorCode); }
     ~EmojiProps();
 
-    static const EmojiProps* getSingleton(UErrorCode& errorCode);
+    static const EmojiProps *getSingleton(UErrorCode &errorCode);
     static UBool hasBinaryProperty(UChar32 c, UProperty which);
-    static UBool hasBinaryProperty(const UChar* s, int32_t length, UProperty which);
+    static UBool hasBinaryProperty(const char16_t *s, int32_t length, UProperty which);
 
-    void addPropertyStarts(const USetAdder* sa, UErrorCode& errorCode) const;
-    void addStrings(const USetAdder* sa, UProperty which, UErrorCode& errorCode) const;
+    void addPropertyStarts(const USetAdder *sa, UErrorCode &errorCode) const;
+    void addStrings(const USetAdder *sa, UProperty which, UErrorCode &errorCode) const;
 
     enum {
         // Byte offsets from the start of the data, after the generic header,
@@ -55,7 +52,7 @@ public:
         // Not initially byte offsets.
         IX_RESERVED14,
         IX_RESERVED15,
-        IX_COUNT // 16
+        IX_COUNT  // 16
     };
 
     // Properties in the code point trie.
@@ -72,22 +69,22 @@ public:
     };
 
 private:
-    static UBool U_CALLCONV isAcceptable(void* context, const char* type, const char* name, const UDataInfo* pInfo);
+    static UBool U_CALLCONV
+    isAcceptable(void *context, const char *type, const char *name, const UDataInfo *pInfo);
     /** Input i: One of the IX_..._TRIE_OFFSET indexes into the data file indexes[] array. */
-    static int32_t getStringTrieIndex(int32_t i)
-    {
+    static int32_t getStringTrieIndex(int32_t i) {
         return i - IX_BASIC_EMOJI_TRIE_OFFSET;
     }
 
-    void load(UErrorCode& errorCode);
+    void load(UErrorCode &errorCode);
     UBool hasBinaryPropertyImpl(UChar32 c, UProperty which) const;
-    UBool hasBinaryPropertyImpl(const UChar* s, int32_t length, UProperty which) const;
+    UBool hasBinaryPropertyImpl(const char16_t *s, int32_t length, UProperty which) const;
 
-    UDataMemory* memory = nullptr;
-    UCPTrie* cpTrie = nullptr;
-    const UChar* stringTries[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+    UDataMemory *memory = nullptr;
+    UCPTrie *cpTrie = nullptr;
+    const char16_t *stringTries[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 };
 
 U_NAMESPACE_END
 
-#endif // __EMOJIPROPS_H__
+#endif  // __EMOJIPROPS_H__

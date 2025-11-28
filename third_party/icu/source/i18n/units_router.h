@@ -1,4 +1,4 @@
-﻿// © 2020 and later: Unicode, Inc. and others.
+// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -11,6 +11,7 @@
 
 #include "cmemory.h"
 #include "measunit_impl.h"
+#include "unicode/locid.h"
 #include "unicode/measunit.h"
 #include "unicode/stringpiece.h"
 #include "unicode/uobject.h"
@@ -38,10 +39,7 @@ struct RouteResult : UMemory {
     MeasureUnitImpl outputUnit;
 
     RouteResult(MaybeStackVector<Measure> measures, MeasureUnitImpl outputUnit)
-        : measures(std::move(measures))
-        , outputUnit(std::move(outputUnit))
-    {
-    }
+        : measures(std::move(measures)), outputUnit(std::move(outputUnit)) {}
 };
 
 /**
@@ -63,20 +61,16 @@ struct ConverterPreference : UMemory {
     MeasureUnitImpl targetUnit;
 
     // In case there is no limit, the limit will be -inf.
-    ConverterPreference(
-        const MeasureUnitImpl& source, const MeasureUnitImpl& complexTarget, UnicodeString precision, const ConversionRates& ratesInfo, UErrorCode& status)
-        : ConverterPreference(source, complexTarget, std::numeric_limits<double>::lowest(), precision, ratesInfo, status)
-    {
-    }
+    ConverterPreference(const MeasureUnitImpl &source, const MeasureUnitImpl &complexTarget,
+                        UnicodeString precision, const ConversionRates &ratesInfo, UErrorCode &status)
+        : ConverterPreference(source, complexTarget, std::numeric_limits<double>::lowest(), precision,
+                              ratesInfo, status) {}
 
-    ConverterPreference(const MeasureUnitImpl& source, const MeasureUnitImpl& complexTarget, double limit, UnicodeString precision,
-        const ConversionRates& ratesInfo, UErrorCode& status)
-        : converter(source, complexTarget, ratesInfo, status)
-        , limit(limit)
-        , precision(std::move(precision))
-        , targetUnit(complexTarget.copy(status))
-    {
-    }
+    ConverterPreference(const MeasureUnitImpl &source, const MeasureUnitImpl &complexTarget,
+                        double limit, UnicodeString precision, const ConversionRates &ratesInfo,
+                        UErrorCode &status)
+        : converter(source, complexTarget, ratesInfo, status), limit(limit),
+          precision(std::move(precision)), targetUnit(complexTarget.copy(status)) {}
 };
 
 } // namespace units
@@ -124,9 +118,11 @@ namespace units {
  *    desired complex units and to check the limit too.
  */
 class U_I18N_API UnitsRouter {
-public:
-    UnitsRouter(StringPiece inputUnitIdentifier, StringPiece locale, StringPiece usage, UErrorCode& status);
-    UnitsRouter(const MeasureUnit& inputUnit, StringPiece locale, StringPiece usage, UErrorCode& status);
+  public:
+    UnitsRouter(StringPiece inputUnitIdentifier, const Locale &locale, StringPiece usage,
+                UErrorCode &status);
+    UnitsRouter(const MeasureUnit &inputUnit, const Locale &locale, StringPiece usage,
+                UErrorCode &status);
 
     /**
      * Performs locale and usage sensitive unit conversion.
@@ -137,7 +133,7 @@ public:
      *     and locale preference, alternatively with the default precision.
      * @param status Receives status.
      */
-    RouteResult route(double quantity, icu::number::impl::RoundingImpl* rounder, UErrorCode& status) const;
+    RouteResult route(double quantity, icu::number::impl::RoundingImpl *rounder, UErrorCode &status) const;
 
     /**
      * Returns the list of possible output units, i.e. the full set of
@@ -146,9 +142,9 @@ public:
      * The returned pointer should be valid for the lifetime of the
      * UnitsRouter instance.
      */
-    const MaybeStackVector<MeasureUnit>* getOutputUnits() const;
+    const MaybeStackVector<MeasureUnit> *getOutputUnits() const;
 
-private:
+  private:
     // List of possible output units. TODO: converterPreferences_ now also has
     // this data available. Maybe drop outputUnits_ and have getOutputUnits
     // construct a the list from data in converterPreferences_ instead?
@@ -156,9 +152,10 @@ private:
 
     MaybeStackVector<ConverterPreference> converterPreferences_;
 
-    static number::Precision parseSkeletonToPrecision(icu::UnicodeString precisionSkeleton, UErrorCode& status);
+    static number::Precision parseSkeletonToPrecision(icu::UnicodeString precisionSkeleton,
+                                                      UErrorCode &status);
 
-    void init(const MeasureUnit& inputUnit, StringPiece locale, StringPiece usage, UErrorCode& status);
+    void init(const MeasureUnit &inputUnit, const Locale &locale, StringPiece usage, UErrorCode &status);
 };
 
 } // namespace units

@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
@@ -27,7 +27,7 @@
 #if !UCONFIG_NO_FORMATTING
 
 /**
- * \file
+ * \file 
  * \brief C++ API: Format numbers using Windows API.
  */
 
@@ -35,17 +35,18 @@ U_NAMESPACE_BEGIN
 
 union FormatInfo;
 
-class Win32NumberFormat : public NumberFormat {
+class Win32NumberFormat : public NumberFormat
+{
 public:
-    Win32NumberFormat(const Locale& locale, UBool currency, UErrorCode& status);
+    Win32NumberFormat(const Locale &locale, UBool currency, UErrorCode &status);
 
-    Win32NumberFormat(const Win32NumberFormat& other);
+    Win32NumberFormat(const Win32NumberFormat &other);
 
     virtual ~Win32NumberFormat();
 
-    virtual Win32NumberFormat* clone() const;
+    virtual Win32NumberFormat *clone() const;
 
-    Win32NumberFormat& operator=(const Win32NumberFormat& other);
+    Win32NumberFormat &operator=(const Win32NumberFormat &other);
 
     /**
      * Format a double number. Concrete subclasses must implement
@@ -58,7 +59,9 @@ public:
      *                  On output: the offsets of the alignment field.
      * @return          Reference to 'appendTo' parameter.
      */
-    virtual UnicodeString& format(double number, UnicodeString& appendTo, FieldPosition& pos) const;
+    virtual UnicodeString& format(double number,
+                                  UnicodeString& appendTo,
+                                  FieldPosition& pos) const;
     /**
      * Format a long number. Concrete subclasses must implement
      * these pure virtual methods.
@@ -69,8 +72,10 @@ public:
      * @param pos       On input: an alignment field, if desired.
      *                  On output: the offsets of the alignment field.
      * @return          Reference to 'appendTo' parameter.
-     */
-    virtual UnicodeString& format(int32_t number, UnicodeString& appendTo, FieldPosition& pos) const;
+    */
+    virtual UnicodeString& format(int32_t number,
+                                  UnicodeString& appendTo,
+                                  FieldPosition& pos) const;
 
     /**
      * Format an int64 number.
@@ -81,15 +86,17 @@ public:
      * @param pos       On input: an alignment field, if desired.
      *                  On output: the offsets of the alignment field.
      * @return          Reference to 'appendTo' parameter.
-     */
-    virtual UnicodeString& format(int64_t number, UnicodeString& appendTo, FieldPosition& pos) const;
+    */
+    virtual UnicodeString& format(int64_t number,
+                                  UnicodeString& appendTo,
+                                  FieldPosition& pos) const;
 
     using NumberFormat::format;
 
-    // Use the default behavior for the following.
-    //    virtual UnicodeString &format(double number, UnicodeString &appendTo) const;
-    //    virtual UnicodeString &format(int32_t number, UnicodeString &appendTo) const;
-    //    virtual UnicodeString &format(int64_t number, UnicodeString &appendTo) const;
+// Use the default behavior for the following.
+//    virtual UnicodeString &format(double number, UnicodeString &appendTo) const;
+//    virtual UnicodeString &format(int32_t number, UnicodeString &appendTo) const;
+//    virtual UnicodeString &format(int64_t number, UnicodeString &appendTo) const;
 
     virtual void parse(const UnicodeString& text, Formattable& result, ParsePosition& parsePosition) const;
 
@@ -125,7 +132,7 @@ public:
      * </pre>
      * @return          The class ID for all objects of this class.
      */
-    U_I18N_API static UClassID U_EXPORT2 getStaticClassID(void);
+    U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
     /**
      * Returns a unique class ID POLYMORPHICALLY. Pure virtual override. This
@@ -137,15 +144,15 @@ public:
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
      */
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID() const;
 
 private:
-    UnicodeString& format(int32_t numDigits, UnicodeString& appendTo, const wchar_t* format, ...) const;
+    UnicodeString &format(int32_t numDigits, UnicodeString &appendTo, const wchar_t *format, ...) const;
 
     UBool fCurrency;
     Locale fLocale;
     int32_t fLCID;
-    FormatInfo* fFormatInfo;
+    FormatInfo *fFormatInfo;
     UBool fFractionDigitsSet;
 
     UnicodeString* fWindowsLocaleName; // Stores the equivalent Windows locale name.

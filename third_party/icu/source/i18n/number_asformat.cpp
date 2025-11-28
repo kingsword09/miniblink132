@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -23,18 +23,16 @@ using namespace icu::number::impl;
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(LocalizedNumberFormatterAsFormat)
 
-LocalizedNumberFormatterAsFormat::LocalizedNumberFormatterAsFormat(const LocalizedNumberFormatter& formatter, const Locale& locale)
-    : fFormatter(formatter)
-    , fLocale(locale)
-{
+LocalizedNumberFormatterAsFormat::LocalizedNumberFormatterAsFormat(
+        const LocalizedNumberFormatter& formatter, const Locale& locale)
+        : fFormatter(formatter), fLocale(locale) {
     const char* localeName = locale.getName();
     setLocaleIDs(localeName, localeName);
 }
 
 LocalizedNumberFormatterAsFormat::~LocalizedNumberFormatterAsFormat() = default;
 
-bool LocalizedNumberFormatterAsFormat::operator==(const Format& other) const
-{
+bool LocalizedNumberFormatterAsFormat::operator==(const Format& other) const {
     auto* _other = dynamic_cast<const LocalizedNumberFormatterAsFormat*>(&other);
     if (_other == nullptr) {
         return false;
@@ -45,16 +43,13 @@ bool LocalizedNumberFormatterAsFormat::operator==(const Format& other) const
     return fFormatter.toSkeleton(localStatus) == _other->fFormatter.toSkeleton(localStatus);
 }
 
-LocalizedNumberFormatterAsFormat* LocalizedNumberFormatterAsFormat::clone() const
-{
+LocalizedNumberFormatterAsFormat* LocalizedNumberFormatterAsFormat::clone() const {
     return new LocalizedNumberFormatterAsFormat(*this);
 }
 
-UnicodeString& LocalizedNumberFormatterAsFormat::format(const Formattable& obj, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const
-{
-    if (U_FAILURE(status)) {
-        return appendTo;
-    }
+UnicodeString& LocalizedNumberFormatterAsFormat::format(const Formattable& obj, UnicodeString& appendTo,
+                                                        FieldPosition& pos, UErrorCode& status) const {
+    if (U_FAILURE(status)) { return appendTo; }
     UFormattedNumberData data;
     obj.populateDecimalQuantity(data.quantity, status);
     if (U_FAILURE(status)) {
@@ -76,12 +71,10 @@ UnicodeString& LocalizedNumberFormatterAsFormat::format(const Formattable& obj, 
     return appendTo;
 }
 
-UnicodeString& LocalizedNumberFormatterAsFormat::format(
-    const Formattable& obj, UnicodeString& appendTo, FieldPositionIterator* posIter, UErrorCode& status) const
-{
-    if (U_FAILURE(status)) {
-        return appendTo;
-    }
+UnicodeString& LocalizedNumberFormatterAsFormat::format(const Formattable& obj, UnicodeString& appendTo,
+                                                        FieldPositionIterator* posIter,
+                                                        UErrorCode& status) const {
+    if (U_FAILURE(status)) { return appendTo; }
     UFormattedNumberData data;
     obj.populateDecimalQuantity(data.quantity, status);
     if (U_FAILURE(status)) {
@@ -99,25 +92,25 @@ UnicodeString& LocalizedNumberFormatterAsFormat::format(
     return appendTo;
 }
 
-void LocalizedNumberFormatterAsFormat::parseObject(const UnicodeString&, Formattable&, ParsePosition& parse_pos) const
-{
+void LocalizedNumberFormatterAsFormat::parseObject(const UnicodeString&, Formattable&,
+                                                   ParsePosition& parse_pos) const {
     // Not supported.
     parse_pos.setErrorIndex(0);
 }
 
-const LocalizedNumberFormatter& LocalizedNumberFormatterAsFormat::getNumberFormatter() const
-{
+const LocalizedNumberFormatter& LocalizedNumberFormatterAsFormat::getNumberFormatter() const {
     return fFormatter;
 }
 
+
 // Definitions of public API methods (put here for dependency disentanglement)
 
-Format* LocalizedNumberFormatter::toFormat(UErrorCode& status) const
-{
+Format* LocalizedNumberFormatter::toFormat(UErrorCode& status) const {
     if (U_FAILURE(status)) {
         return nullptr;
     }
-    LocalPointer<LocalizedNumberFormatterAsFormat> retval(new LocalizedNumberFormatterAsFormat(*this, fMacros.locale), status);
+    LocalPointer<LocalizedNumberFormatterAsFormat> retval(
+            new LocalizedNumberFormatterAsFormat(*this, fMacros.locale), status);
     return retval.orphan();
 }
 

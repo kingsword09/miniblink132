@@ -1,4 +1,4 @@
-﻿// © 2018 and later: Unicode, Inc. and others.
+// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include <iostream>
@@ -7,14 +7,17 @@
 #include "filterrb.h"
 #include "errmsg.h"
 
-const char* PathFilter::kEInclusionNames[] = { "INCLUDE", "PARTIAL", "EXCLUDE" };
 
-ResKeyPath::ResKeyPath()
-{
-}
+const char* PathFilter::kEInclusionNames[] = {
+    "INCLUDE",
+    "PARTIAL",
+    "EXCLUDE"
+};
 
-ResKeyPath::ResKeyPath(const std::string& path, UErrorCode& status)
-{
+
+ResKeyPath::ResKeyPath() {}
+
+ResKeyPath::ResKeyPath(const std::string& path, UErrorCode& status) {
     if (path.empty() || path[0] != '/') {
         std::cerr << "genrb error: path must start with /: " << path << std::endl;
         status = U_PARSE_ERROR;
@@ -41,36 +44,32 @@ ResKeyPath::ResKeyPath(const std::string& path, UErrorCode& status)
     }
 }
 
-void ResKeyPath::push(const std::string& key)
-{
+void ResKeyPath::push(const std::string& key) {
     fPath.push_back(key);
 }
 
-void ResKeyPath::pop()
-{
+void ResKeyPath::pop() {
     fPath.pop_back();
 }
 
-const std::list<std::string>& ResKeyPath::pieces() const
-{
+const std::list<std::string>& ResKeyPath::pieces() const {
     return fPath;
 }
 
-std::ostream& operator<<(std::ostream& out, const ResKeyPath& value)
-{
+std::ostream& operator<<(std::ostream& out, const ResKeyPath& value) {
     if (value.pieces().empty()) {
         out << "/";
-    } else
-        for (auto& key : value.pieces()) {
-            out << "/" << key;
-        }
+    } else for (auto& key : value.pieces()) {
+        out << "/" << key;
+    }
     return out;
 }
 
+
 PathFilter::~PathFilter() = default;
 
-void SimpleRuleBasedPathFilter::addRule(const std::string& ruleLine, UErrorCode& status)
-{
+
+void SimpleRuleBasedPathFilter::addRule(const std::string& ruleLine, UErrorCode& status) {
     if (ruleLine.empty()) {
         std::cerr << "genrb error: empty filter rules are not allowed" << std::endl;
         status = U_PARSE_ERROR;
@@ -88,16 +87,14 @@ void SimpleRuleBasedPathFilter::addRule(const std::string& ruleLine, UErrorCode&
     addRule(path, inclusionRule, status);
 }
 
-void SimpleRuleBasedPathFilter::addRule(const ResKeyPath& path, bool inclusionRule, UErrorCode& status)
-{
+void SimpleRuleBasedPathFilter::addRule(const ResKeyPath& path, bool inclusionRule, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return;
     }
     fRoot.applyRule(path, path.pieces().begin(), inclusionRule, status);
 }
 
-PathFilter::EInclusion SimpleRuleBasedPathFilter::match(const ResKeyPath& path) const
-{
+PathFilter::EInclusion SimpleRuleBasedPathFilter::match(const ResKeyPath& path) const {
     const Tree* node = &fRoot;
 
     // defaultResult "bubbles up" the nearest "definite" inclusion/exclusion rule
@@ -148,28 +145,30 @@ PathFilter::EInclusion SimpleRuleBasedPathFilter::match(const ResKeyPath& path) 
     return node->fIncluded;
 }
 
+
 SimpleRuleBasedPathFilter::Tree::Tree(const Tree& other)
-    : fIncluded(other.fIncluded)
-    , fChildren(other.fChildren)
-{
+        : fIncluded(other.fIncluded), fChildren(other.fChildren) {
     // Note: can't use the default copy assignment because of the std::unique_ptr
     if (other.fWildcard) {
         fWildcard.reset(new Tree(*other.fWildcard));
     }
 }
 
-bool SimpleRuleBasedPathFilter::Tree::isLeaf() const
-{
+bool SimpleRuleBasedPathFilter::Tree::isLeaf() const {
     return fChildren.empty() && !fWildcard;
 }
 
-void SimpleRuleBasedPathFilter::Tree::applyRule(const ResKeyPath& path, std::list<std::string>::const_iterator it, bool inclusionRule, UErrorCode& status)
-{
+void SimpleRuleBasedPathFilter::Tree::applyRule(
+        const ResKeyPath& path,
+        std::list<std::string>::const_iterator it,
+        bool inclusionRule,
+        UErrorCode& status) {
 
     // Base Case
     if (it == path.pieces().end()) {
         if (isVerbose() && (fIncluded != PARTIAL || !isLeaf())) {
-            std::cout << "genrb info: rule on path " << path << " overrides previous rules" << std::endl;
+            std::cout << "genrb info: rule on path " << path
+                << " overrides previous rules" << std::endl;
         }
         fIncluded = inclusionRule ? INCLUDE : EXCLUDE;
         fChildren.clear();
@@ -209,40 +208,32 @@ void SimpleRuleBasedPathFilter::Tree::applyRule(const ResKeyPath& path, std::lis
     }
 }
 
-void SimpleRuleBasedPathFilter::Tree::print(std::ostream& out, int32_t indent) const
-{
-    for (int32_t i = 0; i < indent; i++)
-        out << "\t";
+void SimpleRuleBasedPathFilter::Tree::print(std::ostream& out, int32_t indent) const {
+    for (int32_t i=0; i<indent; i++) out << "\t";
     out << "included: " << kEInclusionNames[fIncluded] << std::endl;
     for (auto& child : fChildren) {
-        for (int32_t i = 0; i < indent; i++)
-            out << "\t";
+        for (int32_t i=0; i<indent; i++) out << "\t";
         out << child.first << ": {" << std::endl;
         child.second.print(out, indent + 1);
-        for (int32_t i = 0; i < indent; i++)
-            out << "\t";
+        for (int32_t i=0; i<indent; i++) out << "\t";
         out << "}" << std::endl;
     }
     if (fWildcard) {
-        for (int32_t i = 0; i < indent; i++)
-            out << "\t";
+        for (int32_t i=0; i<indent; i++) out << "\t";
         out << "* {" << std::endl;
         fWildcard->print(out, indent + 1);
-        for (int32_t i = 0; i < indent; i++)
-            out << "\t";
+        for (int32_t i=0; i<indent; i++) out << "\t";
         out << "}" << std::endl;
     }
 }
 
-void SimpleRuleBasedPathFilter::print(std::ostream& out) const
-{
+void SimpleRuleBasedPathFilter::print(std::ostream& out) const {
     out << "SimpleRuleBasedPathFilter {" << std::endl;
     fRoot.print(out, 1);
     out << "}" << std::endl;
 }
 
-std::ostream& operator<<(std::ostream& out, const SimpleRuleBasedPathFilter& value)
-{
+std::ostream& operator<<(std::ostream& out, const SimpleRuleBasedPathFilter& value) {
     value.print(out);
     return out;
 }

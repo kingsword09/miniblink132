@@ -1,30 +1,30 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*************************************************************************
- * Copyright (c) 1997-2016, International Business Machines Corporation
- * and others. All Rights Reserved.
- **************************************************************************
- *
- * File TIMEZONE.H
- *
- * Modification History:
- *
- *   Date        Name        Description
- *   04/21/97    aliu        Overhauled header.
- *   07/09/97    helena      Changed createInstance to createDefault.
- *   08/06/97    aliu        Removed dependency on internal header for Hashtable.
- *   08/10/98    stephen        Changed getDisplayName() API conventions to match
- *   08/19/98    stephen        Changed createTimeZone() to never return 0
- *   09/02/98    stephen        Sync to JDK 1.2 8/31
- *                            - Added getOffset(... monthlen ...)
- *                            - Added hasSameRules()
- *   09/15/98    stephen        Added getStaticClassID
- *   12/03/99    aliu        Moved data out of static table into icudata.dll.
- *                           Hashtable replaced by new static data structures.
- *   12/14/99    aliu        Made GMT public.
- *   08/15/01    grhoten     Made GMT private and added the getGMT() function
- **************************************************************************
- */
+* Copyright (c) 1997-2016, International Business Machines Corporation
+* and others. All Rights Reserved.
+**************************************************************************
+*
+* File TIMEZONE.H
+*
+* Modification History:
+*
+*   Date        Name        Description
+*   04/21/97    aliu        Overhauled header.
+*   07/09/97    helena      Changed createInstance to createDefault.
+*   08/06/97    aliu        Removed dependency on internal header for Hashtable.
+*   08/10/98    stephen        Changed getDisplayName() API conventions to match
+*   08/19/98    stephen        Changed createTimeZone() to never return 0
+*   09/02/98    stephen        Sync to JDK 1.2 8/31
+*                            - Added getOffset(... monthlen ...)
+*                            - Added hasSameRules()
+*   09/15/98    stephen        Added getStaticClassID
+*   12/03/99    aliu        Moved data out of static table into icudata.dll.
+*                           Hashtable replaced by new static data structures.
+*   12/14/99    aliu        Made GMT public.
+*   08/15/01    grhoten     Made GMT private and added the getGMT() function
+**************************************************************************
+*/
 
 #ifndef TIMEZONE_H
 #define TIMEZONE_H
@@ -34,7 +34,7 @@
 #if U_SHOW_CPLUSPLUS_API
 
 /**
- * \file
+ * \file 
  * \brief C++ API: TimeZone object
  */
 
@@ -171,7 +171,7 @@ public:
      * or a custom ID such as "GMT-8:00".
      * @return the specified <code>TimeZone</code>, or a mutable clone of getUnknown()
      * if the given ID cannot be understood or if the given ID is "Etc/Unknown".
-     * The return result is guaranteed to be non-NULL.
+     * The return result is guaranteed to be non-nullptr.
      * If you require that the specific zone asked for be returned,
      * compare the result with getUnknown() or check the ID of the return result.
      * @stable ICU 2.0
@@ -183,17 +183,21 @@ public:
      * filter conditions.
      * @param zoneType      The system time zone type.
      * @param region        The ISO 3166 two-letter country code or UN M.49
-     *                      three-digit area code. When NULL, no filtering
-     *                      done by region.
+     *                      three-digit area code. When nullptr, no filtering
+     *                      done by region. 
      * @param rawOffset     An offset from GMT in milliseconds, ignoring
      *                      the effect of daylight savings time, if any.
-     *                      When NULL, no filtering done by zone offset.
+     *                      When nullptr, no filtering done by zone offset.
      * @param ec            Output param to filled in with a success or
      *                      an error.
      * @return an enumeration object, owned by the caller.
      * @stable ICU 4.8
      */
-    static StringEnumeration* U_EXPORT2 createTimeZoneIDEnumeration(USystemTimeZoneType zoneType, const char* region, const int32_t* rawOffset, UErrorCode& ec);
+    static StringEnumeration* U_EXPORT2 createTimeZoneIDEnumeration(
+        USystemTimeZoneType zoneType,
+        const char* region,
+        const int32_t* rawOffset,
+        UErrorCode& ec);
 
 #ifndef U_HIDE_DEPRECATED_API
     /**
@@ -204,7 +208,7 @@ public:
      * @deprecated ICU 70 Use createEnumeration(UErrorCode&) instead.
      */
     static StringEnumeration* U_EXPORT2 createEnumeration();
-#endif // U_HIDE_DEPRECATED_API
+#endif  // U_HIDE_DEPRECATED_API
 
     /**
      * Returns an enumeration over all recognized time zone IDs. (i.e.,
@@ -235,7 +239,7 @@ public:
      * @deprecated ICU 70 Use createEnumerationForRawOffset(int32_t,UErrorCode&) instead.
      */
     static StringEnumeration* U_EXPORT2 createEnumeration(int32_t rawOffset);
-#endif // U_HIDE_DEPRECATED_API
+#endif  // U_HIDE_DEPRECATED_API
 
     /**
      * Returns an enumeration over time zone IDs with a given raw
@@ -263,20 +267,20 @@ public:
      * given region.  Some zones are affiliated with no region
      * (e.g., "UTC"); these may also be retrieved, as a group.
      *
-     * @param region The ISO 3166 two-letter country code, or NULL to
+     * @param region The ISO 3166 two-letter country code, or nullptr to
      * retrieve zones not affiliated with any region.
      * @return an enumeration object, owned by the caller
      * @deprecated ICU 70 Use createEnumerationForRegion(const char*,UErrorCode&) instead.
      */
     static StringEnumeration* U_EXPORT2 createEnumeration(const char* region);
-#endif // U_HIDE_DEPRECATED_API
+#endif  // U_HIDE_DEPRECATED_API
 
     /**
      * Returns an enumeration over time zone IDs associated with the
      * given region.  Some zones are affiliated with no region
      * (e.g., "UTC"); these may also be retrieved, as a group.
      *
-     * @param region The ISO 3166 two-letter country code, or NULL to
+     * @param region The ISO 3166 two-letter country code, or nullptr to
      * retrieve zones not affiliated with any region.
      * @param status Receives the status.
      * @return an enumeration object, owned by the caller
@@ -319,16 +323,17 @@ public:
      * @see #countEquivalentIDs
      * @stable ICU 2.0
      */
-    static const UnicodeString U_EXPORT2 getEquivalentID(const UnicodeString& id, int32_t index);
+    static const UnicodeString U_EXPORT2 getEquivalentID(const UnicodeString& id,
+                                               int32_t index);
 
     /**
      * Creates an instance of TimeZone detected from the current host
      * system configuration. If the host system detection routines fail,
      * or if they specify a TimeZone or TimeZone offset which is not
      * recognized, then the special TimeZone "Etc/Unknown" is returned.
-     *
+     * 
      * Note that ICU4C does not change the default time zone unless
-     * `TimeZone::adoptDefault(TimeZone*)` or
+     * `TimeZone::adoptDefault(TimeZone*)` or 
      * `TimeZone::setDefault(const TimeZone&)` is explicitly called by a
      * user. This method does not update the current ICU's default,
      * and may return a different TimeZone from the one returned by
@@ -372,11 +377,11 @@ public:
      * @internal
      */
     static TimeZone* U_EXPORT2 forLocaleOrDefault(const Locale& locale);
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
     /**
      * Sets the default time zone (i.e., what's returned by createDefault()) to be the
-     * specified time zone.  If NULL is specified for the time zone, the default time
+     * specified time zone.  If nullptr is specified for the time zone, the default time
      * zone is set to the default host time zone.  This call adopts the TimeZone object
      * passed in; the client is no longer responsible for deleting it.
      *
@@ -395,7 +400,7 @@ public:
      * @stable ICU 2.0
      */
     static void U_EXPORT2 setDefault(const TimeZone& zone);
-#endif /* U_HIDE_SYSTEM_API */
+#endif  /* U_HIDE_SYSTEM_API */
 
     /**
      * Returns the timezone data version currently used by ICU.
@@ -418,7 +423,8 @@ public:
      * @return A reference to the result.
      * @stable ICU 4.0
      */
-    static UnicodeString& U_EXPORT2 getCanonicalID(const UnicodeString& id, UnicodeString& canonicalID, UErrorCode& status);
+    static UnicodeString& U_EXPORT2 getCanonicalID(const UnicodeString& id,
+        UnicodeString& canonicalID, UErrorCode& status);
 
     /**
      * Returns the canonical system time zone ID or the normalized
@@ -435,59 +441,93 @@ public:
      * @return A reference to the result.
      * @stable ICU 4.0
      */
-    static UnicodeString& U_EXPORT2 getCanonicalID(const UnicodeString& id, UnicodeString& canonicalID, UBool& isSystemID, UErrorCode& status);
+    static UnicodeString& U_EXPORT2 getCanonicalID(const UnicodeString& id,
+        UnicodeString& canonicalID, UBool& isSystemID, UErrorCode& status);
+
+
+#ifndef U_HIDE_DRAFT_API
+    /**
+     * Returns the preferred time zone ID in the IANA time zone database for the given time zone ID.
+     * There are two types of preferred IDs. The first type is the one defined in zone.tab file,
+     * such as "America/Los_Angeles". The second types is the one defined for zones not associated
+     * with a specific region, but not defined with "Link" syntax such as "Etc/GMT+10".
+     *
+     * <p>Note: For most of valid time zone IDs, this method returns an ID same as getCanonicalID().
+     * getCanonicalID() is based on canonical time zone IDs defined in Unicode CLDR.
+     * These canonical time zone IDs in CLDR were based on very old version of the time zone database.
+     * In the IANA time zone database, some IDs were updated since then. This API returns a newer
+     * time zone ID. For example, CLDR defines "Asia/Calcutta" as the canonical time zone ID. This
+     * method returns "Asia/Kolkata" instead.
+     * <p> "Etc/Unknown" is a special time zone ID defined by CLDR. There are no corresponding zones
+     * in the IANA time zone database. Therefore, this API returns U_ILLEGAL_ARGUMENT_ERROR when the
+     * input ID is "Etc/Unknown".
+     *
+     * @param id        The input time zone ID.
+     * @param ianaID    Receives the preferred time zone ID in the IANA time zone database. When
+     *                  the given time zone ID is not a known time zone ID, this method sets an
+     *                  invalid (bogus) string.
+     * @param status    Receives the status.  When the given time zone ID is not a known time zone
+     *                  ID, U_ILLEGAL_ARGUMENT_ERROR is set.
+     * @return  A reference to the result.
+     * @draft ICU 74
+     */
+    static UnicodeString& U_EXPORT2 getIanaID(const UnicodeString&id, UnicodeString& ianaID,
+        UErrorCode& status);
+#endif // U_HIDE_DRAFT_API
 
     /**
-     * Converts a system time zone ID to an equivalent Windows time zone ID. For example,
-     * Windows time zone ID "Pacific Standard Time" is returned for input "America/Los_Angeles".
-     *
-     * <p>There are system time zones that cannot be mapped to Windows zones. When the input
-     * system time zone ID is unknown or unmappable to a Windows time zone, then the result will be
-     * empty, but the operation itself remains successful (no error status set on return).
-     *
-     * <p>This implementation utilizes <a href="http://unicode.org/cldr/charts/supplemental/zone_tzid.html">
-     * Zone-Tzid mapping data</a>. The mapping data is updated time to time. To get the latest changes,
-     * please read the ICU user guide section <a href="https://unicode-org.github.io/icu/userguide/datetime/timezone#updating-the-time-zone-data">
-     * Updating the Time Zone Data</a>.
-     *
-     * @param id        A system time zone ID.
-     * @param winid     Receives a Windows time zone ID. When the input system time zone ID is unknown
-     *                  or unmappable to a Windows time zone ID, then an empty string is set on return.
-     * @param status    Receives the status.
-     * @return          A reference to the result (<code>winid</code>).
-     * @see getIDForWindowsID
-     *
-     * @stable ICU 52
-     */
-    static UnicodeString& U_EXPORT2 getWindowsID(const UnicodeString& id, UnicodeString& winid, UErrorCode& status);
+    * Converts a system time zone ID to an equivalent Windows time zone ID. For example,
+    * Windows time zone ID "Pacific Standard Time" is returned for input "America/Los_Angeles".
+    *
+    * <p>There are system time zones that cannot be mapped to Windows zones. When the input
+    * system time zone ID is unknown or unmappable to a Windows time zone, then the result will be
+    * empty, but the operation itself remains successful (no error status set on return).
+    *
+    * <p>This implementation utilizes <a href="http://unicode.org/cldr/charts/supplemental/zone_tzid.html">
+    * Zone-Tzid mapping data</a>. The mapping data is updated time to time. To get the latest changes,
+    * please read the ICU user guide section <a href="https://unicode-org.github.io/icu/userguide/datetime/timezone#updating-the-time-zone-data">
+    * Updating the Time Zone Data</a>.
+    *
+    * @param id        A system time zone ID.
+    * @param winid     Receives a Windows time zone ID. When the input system time zone ID is unknown
+    *                  or unmappable to a Windows time zone ID, then an empty string is set on return.
+    * @param status    Receives the status.
+    * @return          A reference to the result (<code>winid</code>).
+    * @see getIDForWindowsID
+    *
+    * @stable ICU 52
+    */
+    static UnicodeString& U_EXPORT2 getWindowsID(const UnicodeString& id,
+        UnicodeString& winid, UErrorCode& status);
 
     /**
-     * Converts a Windows time zone ID to an equivalent system time zone ID
-     * for a region. For example, system time zone ID "America/Los_Angeles" is returned
-     * for input Windows ID "Pacific Standard Time" and region "US" (or <code>null</code>),
-     * "America/Vancouver" is returned for the same Windows ID "Pacific Standard Time" and
-     * region "CA".
-     *
-     * <p>Not all Windows time zones can be mapped to system time zones. When the input
-     * Windows time zone ID is unknown or unmappable to a system time zone, then the result
-     * will be empty, but the operation itself remains successful (no error status set on return).
-     *
-     * <p>This implementation utilizes <a href="http://unicode.org/cldr/charts/supplemental/zone_tzid.html">
-     * Zone-Tzid mapping data</a>. The mapping data is updated time to time. To get the latest changes,
-     * please read the ICU user guide section <a href="https://unicode-org.github.io/icu/userguide/datetime/timezone#updating-the-time-zone-data">
-     * Updating the Time Zone Data</a>.
-     *
-     * @param winid     A Windows time zone ID.
-     * @param region    A null-terminated region code, or <code>NULL</code> if no regional preference.
-     * @param id        Receives a system time zone ID. When the input Windows time zone ID is unknown
-     *                  or unmappable to a system time zone ID, then an empty string is set on return.
-     * @param status    Receives the status.
-     * @return          A reference to the result (<code>id</code>).
-     * @see getWindowsID
-     *
-     * @stable ICU 52
-     */
-    static UnicodeString& U_EXPORT2 getIDForWindowsID(const UnicodeString& winid, const char* region, UnicodeString& id, UErrorCode& status);
+    * Converts a Windows time zone ID to an equivalent system time zone ID
+    * for a region. For example, system time zone ID "America/Los_Angeles" is returned
+    * for input Windows ID "Pacific Standard Time" and region "US" (or <code>null</code>),
+    * "America/Vancouver" is returned for the same Windows ID "Pacific Standard Time" and
+    * region "CA".
+    *
+    * <p>Not all Windows time zones can be mapped to system time zones. When the input
+    * Windows time zone ID is unknown or unmappable to a system time zone, then the result
+    * will be empty, but the operation itself remains successful (no error status set on return).
+    *
+    * <p>This implementation utilizes <a href="http://unicode.org/cldr/charts/supplemental/zone_tzid.html">
+    * Zone-Tzid mapping data</a>. The mapping data is updated time to time. To get the latest changes,
+    * please read the ICU user guide section <a href="https://unicode-org.github.io/icu/userguide/datetime/timezone#updating-the-time-zone-data">
+    * Updating the Time Zone Data</a>.
+    *
+    * @param winid     A Windows time zone ID.
+    * @param region    A NUL-terminated region code, or <code>nullptr</code> if no regional preference.
+    * @param id        Receives a system time zone ID. When the input Windows time zone ID is unknown
+    *                  or unmappable to a system time zone ID, then an empty string is set on return.
+    * @param status    Receives the status.
+    * @return          A reference to the result (<code>id</code>).
+    * @see getWindowsID
+    *
+    * @stable ICU 52
+    */
+    static UnicodeString& U_EXPORT2 getIDForWindowsID(const UnicodeString& winid, const char* region,
+        UnicodeString& id, UErrorCode& status);
 
     /**
      * Returns true if the two TimeZones are equal.  (The TimeZone version only compares
@@ -509,10 +549,7 @@ public:
      *              otherwise.
      * @stable ICU 2.0
      */
-    bool operator!=(const TimeZone& that) const
-    {
-        return !operator==(that);
-    }
+    bool operator!=(const TimeZone& that) const {return !operator==(that);}
 
     /**
      * Returns the TimeZone's adjusted GMT offset (i.e., the number of milliseconds to add
@@ -538,7 +575,8 @@ public:
      * @return           The offset in milliseconds to add to GMT to get local time.
      * @stable ICU 2.0
      */
-    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const = 0;
+    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
+                              uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const = 0;
 
     /**
      * Gets the time zone offset, for current date, modified in case of
@@ -560,9 +598,9 @@ public:
      * @return the offset to add *to* GMT to get local time.
      * @stable ICU 2.0
      */
-    virtual int32_t getOffset(
-        uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t milliseconds, int32_t monthLength, UErrorCode& status) const
-        = 0;
+    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
+                           uint8_t dayOfWeek, int32_t milliseconds,
+                           int32_t monthLength, UErrorCode& status) const = 0;
 
     /**
      * Returns the time zone raw and GMT offset for the given moment
@@ -587,7 +625,8 @@ public:
      *
      * @stable ICU 2.8
      */
-    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset, int32_t& dstOffset, UErrorCode& ec) const;
+    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset,
+                           int32_t& dstOffset, UErrorCode& ec) const;
 
     /**
      * Sets the TimeZone's raw GMT offset (i.e., the number of milliseconds to add
@@ -739,7 +778,7 @@ public:
      * @stable ICU 2.0
      */
     UnicodeString& getDisplayName(UBool inDaylight, EDisplayType style, const Locale& locale, UnicodeString& result) const;
-
+    
     /**
      * Queries if this time zone uses daylight savings time.
      * @return true if this time zone uses daylight savings time,
@@ -771,7 +810,7 @@ public:
      * always returns a <code>BasicTimeZone</code>) provides a series of methods allowing
      * historic and future time zone rule iteration, so you can check if daylight saving
      * time is observed or not within a given period.
-     *
+     * 
      * @stable ICU 2.0
      */
     virtual UBool useDaylightTime(void) const = 0;
@@ -791,7 +830,7 @@ public:
      * @deprecated ICU 2.4. Use Calendar::inDaylightTime() instead.
      */
     virtual UBool inDaylightTime(UDate date, UErrorCode& status) const = 0;
-#endif // U_FORCE_HIDE_DEPRECATED_API
+#endif  // U_FORCE_HIDE_DEPRECATED_API
 
     /**
      * Returns true if this zone has the same rule and offset as another zone.
@@ -832,7 +871,7 @@ public:
      * @stable ICU 2.0
      */
     virtual UClassID getDynamicClassID(void) const override = 0;
-
+    
     /**
      * Returns the amount of time to be added to local standard time
      * to get local wall clock time.
@@ -857,7 +896,7 @@ public:
      * When the time zone is not associated with a specific location,
      * for example - "Etc/UTC", "EST5EDT", then this method returns
      * "001" (UN M.49 area code for World).
-     *
+     * 
      * @param id            The system time zone ID.
      * @param region        Output buffer for receiving the region code.
      * @param capacity      The size of the output buffer.
@@ -865,11 +904,13 @@ public:
      *                      is not a known system time zone ID,
      *                      U_ILLEGAL_ARGUMENT_ERROR is set.
      * @return The length of the output region code.
-     * @stable ICU 4.8
-     */
-    static int32_t U_EXPORT2 getRegion(const UnicodeString& id, char* region, int32_t capacity, UErrorCode& status);
+     * @stable ICU 4.8 
+     */ 
+    static int32_t U_EXPORT2 getRegion(const UnicodeString& id, 
+        char *region, int32_t capacity, UErrorCode& status); 
 
 protected:
+
     /**
      * Default constructor.  ID is initialized to the empty string.
      * @stable ICU 2.0
@@ -881,7 +922,7 @@ protected:
      * @param id a system time zone ID
      * @stable ICU 2.0
      */
-    TimeZone(const UnicodeString& id);
+    TimeZone(const UnicodeString &id);
 
     /**
      * Copy constructor.
@@ -902,18 +943,19 @@ protected:
      * Utility function. For internally loading rule data.
      * @param top Top resource bundle for tz data
      * @param ruleid ID of rule to load
-     * @param oldbundle Old bundle to reuse or NULL
+     * @param oldbundle Old bundle to reuse or nullptr
      * @param status Status parameter
      * @return either a new bundle or *oldbundle
      * @internal
      */
-    static UResourceBundle* loadRule(const UResourceBundle* top, const UnicodeString& ruleid, UResourceBundle* oldbundle, UErrorCode& status);
-#endif /* U_HIDE_INTERNAL_API */
+    static UResourceBundle* loadRule(const UResourceBundle* top, const UnicodeString& ruleid, UResourceBundle* oldbundle, UErrorCode&status);
+#endif  /* U_HIDE_INTERNAL_API */
 
 private:
     friend class ZoneMeta;
 
-    static TimeZone* createCustomTimeZone(const UnicodeString&); // Creates a time zone based on the string.
+
+    static TimeZone*        createCustomTimeZone(const UnicodeString&); // Creates a time zone based on the string.
 
     /**
      * Finds the given ID in the Olson tzdata. If the given ID is found in the tzdata,
@@ -921,7 +963,7 @@ private:
      * for ICU internal implementation and useful for building hashtable using a time zone
      * ID as a key.
      * @param id zone id string
-     * @return the pointer of the ID resource, or NULL.
+     * @return the pointer of the ID resource, or nullptr.
      */
     static const char16_t* findID(const UnicodeString& id);
 
@@ -929,34 +971,34 @@ private:
      * Resolve a link in Olson tzdata.  When the given id is known and it's not a link,
      * the id itself is returned.  When the given id is known and it is a link, then
      * dereferenced zone id is returned.  When the given id is unknown, then it returns
-     * NULL.
+     * nullptr.
      * @param id zone id string
-     * @return the dereferenced zone or NULL
+     * @return the dereferenced zone or nullptr
      */
     static const char16_t* dereferOlsonLink(const UnicodeString& id);
 
     /**
      * Returns the region code associated with the given zone,
-     * or NULL if the zone is not known.
+     * or nullptr if the zone is not known.
      * @param id zone id string
      * @return the region associated with the given zone
      */
     static const char16_t* getRegion(const UnicodeString& id);
 
-public:
+  public:
 #ifndef U_HIDE_INTERNAL_API
     /**
      * Returns the region code associated with the given zone,
-     * or NULL if the zone is not known.
+     * or nullptr if the zone is not known.
      * @param id zone id string
      * @param status Status parameter
      * @return the region associated with the given zone
      * @internal
      */
     static const char16_t* getRegion(const UnicodeString& id, UErrorCode& status);
-#endif /* U_HIDE_INTERNAL_API */
+#endif  /* U_HIDE_INTERNAL_API */
 
-private:
+  private:
     /**
      * Parses the given custom time zone identifier
      * @param id id A string of the form GMT[+-]hh:mm, GMT[+-]hhmm, or
@@ -967,7 +1009,8 @@ private:
      * @param second Receives parsed second field
      * @return Returns true when the given custom id is valid.
      */
-    static UBool parseCustomID(const UnicodeString& id, int32_t& sign, int32_t& hour, int32_t& minute, int32_t& second);
+    static UBool parseCustomID(const UnicodeString& id, int32_t& sign, int32_t& hour,
+        int32_t& minute, int32_t& second);
 
     /**
      * Parse a custom time zone identifier and return the normalized
@@ -978,8 +1021,9 @@ private:
      * @param status Receives the status.  When the input ID string is invalid,
      * U_ILLEGAL_ARGUMENT_ERROR is set.
      * @return The normalized custom id string.
-     */
-    static UnicodeString& getCustomID(const UnicodeString& id, UnicodeString& normalized, UErrorCode& status);
+    */
+    static UnicodeString& getCustomID(const UnicodeString& id, UnicodeString& normalized,
+        UErrorCode& status);
 
     /**
      * Returns the normalized custom time zone ID for the given offset fields.
@@ -990,16 +1034,19 @@ private:
      * @param id Receives the format result (normalized custom ID)
      * @return The reference to id
      */
-    static UnicodeString& formatCustomID(int32_t hour, int32_t min, int32_t sec, UBool negative, UnicodeString& id);
+    static UnicodeString& formatCustomID(int32_t hour, int32_t min, int32_t sec,
+        UBool negative, UnicodeString& id);
 
-    UnicodeString fID; // this time zone's ID
+    UnicodeString           fID;    // this time zone's ID
 
     friend class TZEnumeration;
 };
 
+
 // -------------------------------------
 
-inline UnicodeString& TimeZone::getID(UnicodeString& ID) const
+inline UnicodeString&
+TimeZone::getID(UnicodeString& ID) const
 {
     ID = fID;
     return ID;
@@ -1007,7 +1054,8 @@ inline UnicodeString& TimeZone::getID(UnicodeString& ID) const
 
 // -------------------------------------
 
-inline void TimeZone::setID(const UnicodeString& ID)
+inline void
+TimeZone::setID(const UnicodeString& ID)
 {
     fID = ID;
 }
@@ -1018,4 +1066,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif //_TIMEZONE
-// eof
+//eof

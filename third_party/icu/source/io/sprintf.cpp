@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -35,9 +35,12 @@
 #include <ctype.h>
 
 /* u_minstrncpy copies the minimum number of code units of (count or output->available) */
-static int32_t u_sprintf_write(void* context, const UChar* str, int32_t count)
+static int32_t
+u_sprintf_write(void        *context,
+                const char16_t *str,
+                int32_t     count)
 {
-    u_localized_print_string* output = (u_localized_print_string*)context;
+    u_localized_print_string *output = (u_localized_print_string *)context;
 
     /* just calculating buffer size */
     if (output->str == 0) {
@@ -51,24 +54,29 @@ static int32_t u_sprintf_write(void* context, const UChar* str, int32_t count)
     return size;
 }
 
-static int32_t u_sprintf_pad_and_justify(void* context, const u_printf_spec_info* info, const UChar* result, int32_t resultLen)
+static int32_t
+u_sprintf_pad_and_justify(void                        *context,
+                          const u_printf_spec_info    *info,
+                          const char16_t              *result,
+                          int32_t                     resultLen)
 {
-    u_localized_print_string* output = (u_localized_print_string*)context;
+    u_localized_print_string *output = (u_localized_print_string *)context;
     int32_t written = 0;
     int32_t lengthOfResult = resultLen;
 
     /* just calculating buffer size */
-    if (output->str == 0 && info->fWidth != -1 && resultLen < info->fWidth) {
+    if (output->str == 0 &&
+        info->fWidth != -1 && resultLen < info->fWidth) {
         return info->fWidth;
     }
 
     resultLen = ufmt_min(resultLen, output->available);
 
     /* pad and justify, if needed */
-    if (info->fWidth != -1 && resultLen < info->fWidth) {
+    if(info->fWidth != -1 && resultLen < info->fWidth) {
         int32_t paddingLeft = info->fWidth - resultLen;
         int32_t outputPos = output->len - output->available;
-
+  
         if (paddingLeft + resultLen > output->available) {
             paddingLeft = output->available - resultLen;
             if (paddingLeft < 0) {
@@ -79,7 +87,7 @@ static int32_t u_sprintf_pad_and_justify(void* context, const u_printf_spec_info
         written += paddingLeft;
 
         /* left justify */
-        if (info->fLeft) {
+        if(info->fLeft) {
             written += u_sprintf_write(output, result, resultLen);
             u_memset(&output->str[outputPos + resultLen], info->fPadChar, paddingLeft);
             output->available -= paddingLeft;
@@ -95,15 +103,18 @@ static int32_t u_sprintf_pad_and_justify(void* context, const u_printf_spec_info
     else {
         written = u_sprintf_write(output, result, resultLen);
     }
-
+    
     if (written >= 0 && lengthOfResult > written) {
-        return lengthOfResult;
+    	return lengthOfResult;
     }
 
     return written;
 }
 
-U_CAPI int32_t U_EXPORT2 u_sprintf(UChar* buffer, const char* patternSpecification, ...)
+U_CAPI int32_t U_EXPORT2
+u_sprintf(char16_t    *buffer,
+          const char    *patternSpecification,
+          ... )
 {
     va_list ap;
     int32_t written;
@@ -115,7 +126,10 @@ U_CAPI int32_t U_EXPORT2 u_sprintf(UChar* buffer, const char* patternSpecificati
     return written;
 }
 
-U_CAPI int32_t U_EXPORT2 u_sprintf_u(UChar* buffer, const UChar* patternSpecification, ...)
+U_CAPI int32_t U_EXPORT2
+u_sprintf_u(char16_t  *buffer,
+            const char16_t *patternSpecification,
+            ... )
 {
     va_list ap;
     int32_t written;
@@ -128,12 +142,18 @@ U_CAPI int32_t U_EXPORT2 u_sprintf_u(UChar* buffer, const UChar* patternSpecific
 }
 
 U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_vsprintf(UChar* buffer, const char* patternSpecification, va_list ap)
+u_vsprintf(char16_t    *buffer,
+           const char     *patternSpecification,
+           va_list         ap)
 {
     return u_vsnprintf(buffer, INT32_MAX, patternSpecification, ap);
 }
 
-U_CAPI int32_t U_EXPORT2 u_snprintf(UChar* buffer, int32_t count, const char* patternSpecification, ...)
+U_CAPI int32_t U_EXPORT2
+u_snprintf(char16_t    *buffer,
+           int32_t         count,
+           const char    *patternSpecification,
+           ... )
 {
     va_list ap;
     int32_t written;
@@ -145,7 +165,11 @@ U_CAPI int32_t U_EXPORT2 u_snprintf(UChar* buffer, int32_t count, const char* pa
     return written;
 }
 
-U_CAPI int32_t U_EXPORT2 u_snprintf_u(UChar* buffer, int32_t count, const UChar* patternSpecification, ...)
+U_CAPI int32_t U_EXPORT2
+u_snprintf_u(char16_t  *buffer,
+             int32_t        count,
+             const char16_t *patternSpecification,
+             ... )
 {
     va_list ap;
     int32_t written;
@@ -157,21 +181,25 @@ U_CAPI int32_t U_EXPORT2 u_snprintf_u(UChar* buffer, int32_t count, const UChar*
     return written;
 }
 
-U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_vsnprintf(UChar* buffer, int32_t count, const char* patternSpecification, va_list ap)
+U_CAPI int32_t  U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_vsnprintf(char16_t    *buffer,
+            int32_t         count,
+            const char     *patternSpecification,
+            va_list         ap)
 {
     int32_t written;
-    UChar* pattern;
-    UChar patBuffer[UFMT_DEFAULT_BUFFER_SIZE];
+    char16_t *pattern;
+    char16_t patBuffer[UFMT_DEFAULT_BUFFER_SIZE];
     int32_t size = (int32_t)strlen(patternSpecification) + 1;
 
     /* convert from the default codepage to Unicode */
     if (size >= (int32_t)MAX_UCHAR_BUFFER_SIZE(patBuffer)) {
-        pattern = (UChar*)uprv_malloc(size * sizeof(UChar));
-        if (pattern == 0) {
+        pattern = (char16_t *)uprv_malloc(size * sizeof(char16_t));
+        if(pattern == 0) {
             return 0;
         }
-    } else {
+    }
+    else {
         pattern = patBuffer;
     }
     u_charsToUChars(patternSpecification, pattern, size);
@@ -187,18 +215,27 @@ u_vsnprintf(UChar* buffer, int32_t count, const char* patternSpecification, va_l
     return written;
 }
 
-U_CAPI int32_t U_EXPORT2 u_vsprintf_u(UChar* buffer, const UChar* patternSpecification, va_list ap)
-{
-    return u_vsnprintf_u(buffer, INT32_MAX, patternSpecification, ap);
-}
+U_CAPI int32_t U_EXPORT2 
+u_vsprintf_u(char16_t    *buffer,
+             const char16_t *patternSpecification,
+             va_list     ap) 
+{ 
+    return u_vsnprintf_u(buffer, INT32_MAX, patternSpecification, ap); 
+} 
 
-static const u_printf_stream_handler g_sprintf_stream_handler = { u_sprintf_write, u_sprintf_pad_and_justify };
+static const u_printf_stream_handler g_sprintf_stream_handler = {
+    u_sprintf_write,
+    u_sprintf_pad_and_justify
+};
 
-U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_vsnprintf_u(UChar* buffer, int32_t count, const UChar* patternSpecification, va_list ap)
+U_CAPI int32_t  U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_vsnprintf_u(char16_t *buffer,
+              int32_t        count,
+              const char16_t *patternSpecification,
+              va_list        ap)
 {
-    int32_t written = 0; /* haven't written anything yet */
-    int32_t result = 0; /* test the return value of u_printf_parse */
+    int32_t          written = 0;   /* haven't written anything yet */
+    int32_t			 result = 0; /* test the return value of u_printf_parse */
 
     u_localized_print_string outStr;
 
@@ -210,13 +247,13 @@ u_vsnprintf_u(UChar* buffer, int32_t count, const UChar* patternSpecification, v
     outStr.len = count;
     outStr.available = count;
 
-    if (u_locbund_init(&outStr.fBundle, "en_US_POSIX") == 0) {
+    if(u_locbund_init(&outStr.fBundle, "en_US_POSIX") == 0) {
         return 0;
     }
 
     /* parse and print the whole format string */
     result = u_printf_parse(&g_sprintf_stream_handler, patternSpecification, &outStr, &outStr, &outStr.fBundle, &written, ap);
-
+    
     /* Terminate the buffer, if there's room. */
     if (outStr.available > 0) {
         buffer[outStr.len - outStr.available] = 0x0000;
@@ -225,12 +262,13 @@ u_vsnprintf_u(UChar* buffer, int32_t count, const UChar* patternSpecification, v
     /* Release the cloned bundle, if we cloned it. */
     u_locbund_close(&outStr.fBundle);
 
-    /* parsing error */
+    /* parsing error */ 
     if (result < 0) {
-        return result;
+    	return result;
     }
     /* return # of UChars written */
     return written;
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
+

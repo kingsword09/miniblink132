@@ -1,4 +1,4 @@
-﻿// © 2016 and later: Unicode, Inc. and others.
+// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
@@ -27,7 +27,7 @@
 #include "unicode/locid.h"
 
 /**
- * \file
+ * \file 
  * \brief C++ API: Format dates using Windows API.
  */
 
@@ -39,19 +39,20 @@ U_CDECL_END
 
 U_NAMESPACE_BEGIN
 
-class Win32DateFormat : public DateFormat {
+class Win32DateFormat : public DateFormat
+{
 public:
-    Win32DateFormat(DateFormat::EStyle timeStyle, DateFormat::EStyle dateStyle, const Locale& locale, UErrorCode& status);
+    Win32DateFormat(DateFormat::EStyle timeStyle, DateFormat::EStyle dateStyle, const Locale &locale, UErrorCode &status);
 
-    Win32DateFormat(const Win32DateFormat& other);
+    Win32DateFormat(const Win32DateFormat &other);
 
     virtual ~Win32DateFormat();
 
-    virtual Win32DateFormat* clone() const;
+    virtual Win32DateFormat *clone() const;
 
-    Win32DateFormat& operator=(const Win32DateFormat& other);
+    Win32DateFormat &operator=(const Win32DateFormat &other);
 
-    UnicodeString& format(Calendar& cal, UnicodeString& appendTo, FieldPosition& pos) const;
+    UnicodeString &format(Calendar &cal, UnicodeString &appendTo, FieldPosition &pos) const;
 
     using DateFormat::format;
 
@@ -98,7 +99,7 @@ public:
      * </pre>
      * @return          The class ID for all objects of this class.
      */
-    U_I18N_API static UClassID U_EXPORT2 getStaticClassID(void);
+    U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
     /**
      * Returns a unique class ID POLYMORPHICALLY. Pure virtual override. This
@@ -110,24 +111,21 @@ public:
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
      */
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID() const;
 
 private:
-    void formatDate(const SYSTEMTIME* st, UnicodeString& appendTo) const;
-    void formatTime(const SYSTEMTIME* st, UnicodeString& appendTo) const;
+    void formatDate(const SYSTEMTIME *st, UnicodeString &appendTo) const;
+    void formatTime(const SYSTEMTIME *st, UnicodeString &appendTo) const;
 
-    UnicodeString setTimeZoneInfo(TIME_ZONE_INFORMATION* tzi, const TimeZone& zone) const;
-    UnicodeString* getTimeDateFormat(const Calendar* cal, const Locale* locale, UErrorCode& status) const;
+    UnicodeString setTimeZoneInfo(TIME_ZONE_INFORMATION *tzi, const TimeZone &zone) const;
+    UnicodeString* getTimeDateFormat(const Calendar *cal, const Locale *locale, UErrorCode &status) const;
 
-    UnicodeString* fDateTimeMsg;
+    UnicodeString *fDateTimeMsg;
     DateFormat::EStyle fTimeStyle;
     DateFormat::EStyle fDateStyle;
     Locale fLocale;
-#ifdef SUPPORT_XP_CODE
-    int32_t fLCID;
-#endif
     UnicodeString fZoneID;
-    TIME_ZONE_INFORMATION* fTZI;
+    TIME_ZONE_INFORMATION *fTZI;
 
     UnicodeString* fWindowsLocaleName; // Stores the equivalent Windows locale name.
 };
