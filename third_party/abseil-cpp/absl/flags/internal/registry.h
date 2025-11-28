@@ -79,19 +79,19 @@ constexpr size_t kRetiredFlagObjSize = 3 * sizeof(void*);
 constexpr size_t kRetiredFlagObjAlignment = alignof(void*);
 
 // Registered a retired flag with name 'flag_name' and type 'T'.
-template <typename T> class RetiredFlag {
-public:
-    void Retire(const char* flag_name)
-    {
-        flags_internal::Retire(flag_name, base_internal::FastTypeId<T>(), buf_);
-    }
+template <typename T>
+class RetiredFlag {
+ public:
+  void Retire(const char* flag_name) {
+    flags_internal::Retire(flag_name, base_internal::FastTypeId<T>(), buf_);
+  }
 
-private:
-    alignas(kRetiredFlagObjAlignment) char buf_[kRetiredFlagObjSize];
+ private:
+  alignas(kRetiredFlagObjAlignment) char buf_[kRetiredFlagObjSize];
 };
 
-} // namespace flags_internal
+}  // namespace flags_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_FLAGS_INTERNAL_REGISTRY_H_
+#endif  // ABSL_FLAGS_INTERNAL_REGISTRY_H_

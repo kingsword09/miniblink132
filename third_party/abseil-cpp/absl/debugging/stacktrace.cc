@@ -45,17 +45,17 @@
 #if defined(ABSL_STACKTRACE_INL_HEADER)
 #include ABSL_STACKTRACE_INL_HEADER
 #else
-#error Cannot calculate stack trace: will need to write for your environment
+# error Cannot calculate stack trace: will need to write for your environment
 
-#include "absl/debugging/internal/stacktrace_aarch64-inl.inc"
-#include "absl/debugging/internal/stacktrace_arm-inl.inc"
-#include "absl/debugging/internal/stacktrace_emscripten-inl.inc"
-#include "absl/debugging/internal/stacktrace_generic-inl.inc"
-#include "absl/debugging/internal/stacktrace_powerpc-inl.inc"
-#include "absl/debugging/internal/stacktrace_riscv-inl.inc"
-#include "absl/debugging/internal/stacktrace_unimplemented-inl.inc"
-#include "absl/debugging/internal/stacktrace_win32-inl.inc"
-#include "absl/debugging/internal/stacktrace_x86-inl.inc"
+# include "absl/debugging/internal/stacktrace_aarch64-inl.inc"
+# include "absl/debugging/internal/stacktrace_arm-inl.inc"
+# include "absl/debugging/internal/stacktrace_emscripten-inl.inc"
+# include "absl/debugging/internal/stacktrace_generic-inl.inc"
+# include "absl/debugging/internal/stacktrace_powerpc-inl.inc"
+# include "absl/debugging/internal/stacktrace_riscv-inl.inc"
+# include "absl/debugging/internal/stacktrace_unimplemented-inl.inc"
+# include "absl/debugging/internal/stacktrace_win32-inl.inc"
+# include "absl/debugging/internal/stacktrace_x86-inl.inc"
 #endif
 
 namespace absl {
@@ -66,72 +66,77 @@ typedef int (*Unwinder)(void**, int*, int, int, const void*, int*);
 std::atomic<Unwinder> custom;
 
 template <bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
-ABSL_ATTRIBUTE_ALWAYS_INLINE inline int Unwind(void** result, int* sizes, int max_depth, int skip_count, const void* uc, int* min_dropped_frames)
-{
-    Unwinder f = &UnwindImpl<IS_STACK_FRAMES, IS_WITH_CONTEXT>;
-    Unwinder g = custom.load(std::memory_order_acquire);
-    if (g != nullptr)
-        f = g;
+ABSL_ATTRIBUTE_ALWAYS_INLINE inline int Unwind(void** result, int* sizes,
+                                               int max_depth, int skip_count,
+                                               const void* uc,
+                                               int* min_dropped_frames) {
+  Unwinder f = &UnwindImpl<IS_STACK_FRAMES, IS_WITH_CONTEXT>;
+  Unwinder g = custom.load(std::memory_order_acquire);
+  if (g != nullptr) f = g;
 
-    // Add 1 to skip count for the unwinder function itself
-    int size = (*f)(result, sizes, max_depth, skip_count + 1, uc, min_dropped_frames);
-    // To disable tail call to (*f)(...)
-    ABSL_BLOCK_TAIL_CALL_OPTIMIZATION();
-    return size;
+  // Add 1 to skip count for the unwinder function itself
+  int size = (*f)(result, sizes, max_depth, skip_count + 1, uc,
+                  min_dropped_frames);
+  // To disable tail call to (*f)(...)
+  ABSL_BLOCK_TAIL_CALL_OPTIMIZATION();
+  return size;
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
-ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int GetStackFrames(void** result, int* sizes, int max_depth, int skip_count)
-{
-    return Unwind<true, false>(result, sizes, max_depth, skip_count, nullptr, nullptr);
+ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int GetStackFrames(
+    void** result, int* sizes, int max_depth, int skip_count) {
+  return Unwind<true, false>(result, sizes, max_depth, skip_count, nullptr,
+                             nullptr);
 }
 
-ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int GetStackFramesWithContext(
-    void** result, int* sizes, int max_depth, int skip_count, const void* uc, int* min_dropped_frames)
-{
-    return Unwind<true, true>(result, sizes, max_depth, skip_count, uc, min_dropped_frames);
+ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int
+GetStackFramesWithContext(void** result, int* sizes, int max_depth,
+                          int skip_count, const void* uc,
+                          int* min_dropped_frames) {
+  return Unwind<true, true>(result, sizes, max_depth, skip_count, uc,
+                            min_dropped_frames);
 }
 
-ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int GetStackTrace(void** result, int max_depth, int skip_count)
-{
-    return Unwind<false, false>(result, nullptr, max_depth, skip_count, nullptr, nullptr);
+ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int GetStackTrace(
+    void** result, int max_depth, int skip_count) {
+  return Unwind<false, false>(result, nullptr, max_depth, skip_count, nullptr,
+                              nullptr);
 }
 
-ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int GetStackTraceWithContext(
-    void** result, int max_depth, int skip_count, const void* uc, int* min_dropped_frames)
-{
-    return Unwind<false, true>(result, nullptr, max_depth, skip_count, uc, min_dropped_frames);
+ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_NO_TAIL_CALL int
+GetStackTraceWithContext(void** result, int max_depth, int skip_count,
+                         const void* uc, int* min_dropped_frames) {
+  return Unwind<false, true>(result, nullptr, max_depth, skip_count, uc,
+                             min_dropped_frames);
 }
 
-void SetStackUnwinder(Unwinder w)
-{
-    custom.store(w, std::memory_order_release);
+void SetStackUnwinder(Unwinder w) {
+  custom.store(w, std::memory_order_release);
 }
 
-int DefaultStackUnwinder(void** pcs, int* sizes, int depth, int skip, const void* uc, int* min_dropped_frames)
-{
-    skip++; // For this function
-    Unwinder f = nullptr;
-    if (sizes == nullptr) {
-        if (uc == nullptr) {
-            f = &UnwindImpl<false, false>;
-        } else {
-            f = &UnwindImpl<false, true>;
-        }
+int DefaultStackUnwinder(void** pcs, int* sizes, int depth, int skip,
+                         const void* uc, int* min_dropped_frames) {
+  skip++;  // For this function
+  Unwinder f = nullptr;
+  if (sizes == nullptr) {
+    if (uc == nullptr) {
+      f = &UnwindImpl<false, false>;
     } else {
-        if (uc == nullptr) {
-            f = &UnwindImpl<true, false>;
-        } else {
-            f = &UnwindImpl<true, true>;
-        }
+      f = &UnwindImpl<false, true>;
     }
-    volatile int x = 0;
-    int n = (*f)(pcs, sizes, depth, skip, uc, min_dropped_frames);
-    x = 1;
-    (void)x; // To disable tail call to (*f)(...)
-    return n;
+  } else {
+    if (uc == nullptr) {
+      f = &UnwindImpl<true, false>;
+    } else {
+      f = &UnwindImpl<true, true>;
+    }
+  }
+  volatile int x = 0;
+  int n = (*f)(pcs, sizes, depth, skip, uc, min_dropped_frames);
+  x = 1; (void) x;  // To disable tail call to (*f)(...)
+  return n;
 }
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

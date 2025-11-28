@@ -71,12 +71,13 @@ ABSL_NAMESPACE_BEGIN
 //     ...
 //   }
 //   EXPECT_EQ(unescaped_s, "foo\rbar\nbaz\t");
-bool CUnescape(absl::string_view source, absl::Nonnull<std::string*> dest, absl::Nullable<std::string*> error);
+bool CUnescape(absl::string_view source, absl::Nonnull<std::string*> dest,
+               absl::Nullable<std::string*> error);
 
 // Overload of `CUnescape()` with no error reporting.
-inline bool CUnescape(absl::string_view source, absl::Nonnull<std::string*> dest)
-{
-    return CUnescape(source, dest, nullptr);
+inline bool CUnescape(absl::string_view source,
+                      absl::Nonnull<std::string*> dest) {
+  return CUnescape(source, dest, nullptr);
 }
 
 // CEscape()
@@ -133,7 +134,8 @@ std::string Base64Escape(absl::string_view src);
 // Encodes a `src` string into a base64 string, like Base64Escape() does, but
 // outputs '-' instead of '+' and '_' instead of '/', and does not pad 'dest'.
 // This function conforms with RFC 4648 section 5 (base64url).
-void WebSafeBase64Escape(absl::string_view src, absl::Nonnull<std::string*> dest);
+void WebSafeBase64Escape(absl::string_view src,
+                         absl::Nonnull<std::string*> dest);
 std::string WebSafeBase64Escape(absl::string_view src);
 
 // Base64Unescape()
@@ -152,7 +154,8 @@ bool Base64Unescape(absl::string_view src, absl::Nonnull<std::string*> dest);
 // invalid characters, `dest` is cleared and returns `false`. If padding is
 // included (note that `WebSafeBase64Escape()` does not produce it), it must be
 // correct. In the padding, '=' and '.' are treated identically.
-bool WebSafeBase64Unescape(absl::string_view src, absl::Nonnull<std::string*> dest);
+bool WebSafeBase64Unescape(absl::string_view src,
+                           absl::Nonnull<std::string*> dest);
 
 // HexStringToBytes()
 //
@@ -160,7 +163,8 @@ bool WebSafeBase64Unescape(absl::string_view src, absl::Nonnull<std::string*> de
 // output string.  If `hex` does not consist of valid hexadecimal data, this
 // function returns false and leaves `bytes` in an unspecified state. Returns
 // true on success.
-ABSL_MUST_USE_RESULT bool HexStringToBytes(absl::string_view hex, absl::Nonnull<std::string*> bytes);
+ABSL_MUST_USE_RESULT bool HexStringToBytes(absl::string_view hex,
+                                           absl::Nonnull<std::string*> bytes);
 
 // HexStringToBytes()
 //
@@ -177,6 +181,6 @@ std::string HexStringToBytes(absl::string_view from);
 std::string BytesToHexString(absl::string_view from);
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_STRINGS_ESCAPING_H_
+#endif  // ABSL_STRINGS_ESCAPING_H_

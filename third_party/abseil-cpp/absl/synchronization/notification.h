@@ -64,78 +64,70 @@ ABSL_NAMESPACE_BEGIN
 // Notification
 // -----------------------------------------------------------------------------
 class Notification {
-public:
-    // Initializes the "notified" state to unnotified.
-    Notification()
-        : notified_yet_(false)
-    {
+ public:
+  // Initializes the "notified" state to unnotified.
+  Notification() : notified_yet_(false) {}
+  explicit Notification(bool prenotify) : notified_yet_(prenotify) {}
+  Notification(const Notification&) = delete;
+  Notification& operator=(const Notification&) = delete;
+  ~Notification();
+
+  // Notification::HasBeenNotified()
+  //
+  // Returns the value of the notification's internal "notified" state.
+  ABSL_MUST_USE_RESULT bool HasBeenNotified() const {
+    if (HasBeenNotifiedInternal(&this->notified_yet_)) {
+      base_internal::TraceObserved(this, TraceObjectKind());
+      return true;
     }
-    explicit Notification(bool prenotify)
-        : notified_yet_(prenotify)
-    {
-    }
-    Notification(const Notification&) = delete;
-    Notification& operator=(const Notification&) = delete;
-    ~Notification();
+    return false;
+  }
 
-    // Notification::HasBeenNotified()
-    //
-    // Returns the value of the notification's internal "notified" state.
-    ABSL_MUST_USE_RESULT bool HasBeenNotified() const
-    {
-        if (HasBeenNotifiedInternal(&this->notified_yet_)) {
-            base_internal::TraceObserved(this, TraceObjectKind());
-            return true;
-        }
-        return false;
-    }
+  // Notification::WaitForNotification()
+  //
+  // Blocks the calling thread until the notification's "notified" state is
+  // `true`. Note that if `Notify()` has been previously called on this
+  // notification, this function will immediately return.
+  void WaitForNotification() const;
 
-    // Notification::WaitForNotification()
-    //
-    // Blocks the calling thread until the notification's "notified" state is
-    // `true`. Note that if `Notify()` has been previously called on this
-    // notification, this function will immediately return.
-    void WaitForNotification() const;
+  // Notification::WaitForNotificationWithTimeout()
+  //
+  // Blocks until either the notification's "notified" state is `true` (which
+  // may occur immediately) or the timeout has elapsed, returning the value of
+  // its "notified" state in either case.
+  bool WaitForNotificationWithTimeout(absl::Duration timeout) const;
 
-    // Notification::WaitForNotificationWithTimeout()
-    //
-    // Blocks until either the notification's "notified" state is `true` (which
-    // may occur immediately) or the timeout has elapsed, returning the value of
-    // its "notified" state in either case.
-    bool WaitForNotificationWithTimeout(absl::Duration timeout) const;
+  // Notification::WaitForNotificationWithDeadline()
+  //
+  // Blocks until either the notification's "notified" state is `true` (which
+  // may occur immediately) or the deadline has expired, returning the value of
+  // its "notified" state in either case.
+  bool WaitForNotificationWithDeadline(absl::Time deadline) const;
 
-    // Notification::WaitForNotificationWithDeadline()
-    //
-    // Blocks until either the notification's "notified" state is `true` (which
-    // may occur immediately) or the deadline has expired, returning the value of
-    // its "notified" state in either case.
-    bool WaitForNotificationWithDeadline(absl::Time deadline) const;
+  // Notification::Notify()
+  //
+  // Sets the "notified" state of this notification to `true` and wakes waiting
+  // threads. Note: do not call `Notify()` multiple times on the same
+  // `Notification`; calling `Notify()` more than once on the same notification
+  // results in undefined behavior.
+  void Notify();
 
-    // Notification::Notify()
-    //
-    // Sets the "notified" state of this notification to `true` and wakes waiting
-    // threads. Note: do not call `Notify()` multiple times on the same
-    // `Notification`; calling `Notify()` more than once on the same notification
-    // results in undefined behavior.
-    void Notify();
+ private:
+  // Convenience helper to reduce verbosity at call sites.
+  static inline constexpr base_internal::ObjectKind TraceObjectKind() {
+    return base_internal::ObjectKind::kNotification;
+  }
 
-private:
-    // Convenience helper to reduce verbosity at call sites.
-    static inline constexpr base_internal::ObjectKind TraceObjectKind()
-    {
-        return base_internal::ObjectKind::kNotification;
-    }
+  static inline bool HasBeenNotifiedInternal(
+      const std::atomic<bool>* notified_yet) {
+    return notified_yet->load(std::memory_order_acquire);
+  }
 
-    static inline bool HasBeenNotifiedInternal(const std::atomic<bool>* notified_yet)
-    {
-        return notified_yet->load(std::memory_order_acquire);
-    }
-
-    mutable Mutex mutex_;
-    std::atomic<bool> notified_yet_; // written under mutex_
+  mutable Mutex mutex_;
+  std::atomic<bool> notified_yet_;  // written under mutex_
 };
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_SYNCHRONIZATION_NOTIFICATION_H_
+#endif  // ABSL_SYNCHRONIZATION_NOTIFICATION_H_

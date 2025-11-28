@@ -55,8 +55,9 @@ size_t GetMorePreciseMemoryUsage(absl::Nonnull<const CordRep*> rep);
 // the total memory usage as a 'fair share' of the total memory usage.
 size_t GetEstimatedFairShareMemoryUsage(absl::Nonnull<const CordRep*> rep);
 
-} // namespace cord_internal
+}  // namespace cord_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_STRINGS_CORD_ANALYSIS_H_
+
+#endif  // ABSL_STRINGS_CORD_ANALYSIS_H_

@@ -17,16 +17,12 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace strings_internal {
 
-void StringifySink::Append(size_t count, char ch)
-{
-    buffer_.append(count, ch);
+void StringifySink::Append(size_t count, char ch) { buffer_.append(count, ch); }
+
+void StringifySink::Append(string_view v) {
+  buffer_.append(v.data(), v.size());
 }
 
-void StringifySink::Append(string_view v)
-{
-    buffer_.append(v.data(), v.size());
-}
-
-} // namespace strings_internal
+}  // namespace strings_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

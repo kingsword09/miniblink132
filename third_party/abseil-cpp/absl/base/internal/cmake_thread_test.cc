@@ -15,9 +15,8 @@
 #include <iostream>
 #include "absl/base/internal/thread_identity.h"
 
-int main()
-{
-    auto* tid = absl::base_internal::CurrentThreadIdentityIfPresent();
-    // Make sure the above call can't be optimized out
-    std::cout << (void*)tid << std::endl;
+int main() {
+  auto* tid = absl::base_internal::CurrentThreadIdentityIfPresent();
+  // Make sure the above call can't be optimized out
+  std::cout << (void*)tid << std::endl;
 }

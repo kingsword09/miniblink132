@@ -30,44 +30,41 @@ constexpr uint32_t kMax2ByteCodePoint = 0x7ff;
 constexpr uint32_t kMax3ByteCodePoint = 0xffff;
 constexpr uint32_t kMaxCodePoint = 0x10ffff;
 
-} // namespace
+}  // namespace
 
-Utf8ForCodePoint::Utf8ForCodePoint(uint64_t code_point)
-{
-    if (code_point <= kMax1ByteCodePoint) {
-        length = 1;
-        bytes[0] = static_cast<char>(code_point);
-        return;
-    }
+Utf8ForCodePoint::Utf8ForCodePoint(uint64_t code_point) {
+  if (code_point <= kMax1ByteCodePoint) {
+    length = 1;
+    bytes[0] = static_cast<char>(code_point);
+    return;
+  }
 
-    if (code_point <= kMax2ByteCodePoint) {
-        length = 2;
-        bytes[0] = static_cast<char>(0xc0 | (code_point >> 6));
-        bytes[1] = static_cast<char>(0x80 | (code_point & 0x3f));
-        return;
-    }
+  if (code_point <= kMax2ByteCodePoint) {
+    length = 2;
+    bytes[0] = static_cast<char>(0xc0 | (code_point >> 6));
+    bytes[1] = static_cast<char>(0x80 | (code_point & 0x3f));
+    return;
+  }
 
-    if (kMinSurrogate <= code_point && code_point <= kMaxSurrogate)
-        return;
+  if (kMinSurrogate <= code_point && code_point <= kMaxSurrogate) return;
 
-    if (code_point <= kMax3ByteCodePoint) {
-        length = 3;
-        bytes[0] = static_cast<char>(0xe0 | (code_point >> 12));
-        bytes[1] = static_cast<char>(0x80 | ((code_point >> 6) & 0x3f));
-        bytes[2] = static_cast<char>(0x80 | (code_point & 0x3f));
-        return;
-    }
+  if (code_point <= kMax3ByteCodePoint) {
+    length = 3;
+    bytes[0] = static_cast<char>(0xe0 | (code_point >> 12));
+    bytes[1] = static_cast<char>(0x80 | ((code_point >> 6) & 0x3f));
+    bytes[2] = static_cast<char>(0x80 | (code_point & 0x3f));
+    return;
+  }
 
-    if (code_point > kMaxCodePoint)
-        return;
+  if (code_point > kMaxCodePoint) return;
 
-    length = 4;
-    bytes[0] = static_cast<char>(0xf0 | (code_point >> 18));
-    bytes[1] = static_cast<char>(0x80 | ((code_point >> 12) & 0x3f));
-    bytes[2] = static_cast<char>(0x80 | ((code_point >> 6) & 0x3f));
-    bytes[3] = static_cast<char>(0x80 | (code_point & 0x3f));
+  length = 4;
+  bytes[0] = static_cast<char>(0xf0 | (code_point >> 18));
+  bytes[1] = static_cast<char>(0x80 | ((code_point >> 12) & 0x3f));
+  bytes[2] = static_cast<char>(0x80 | ((code_point >> 6) & 0x3f));
+  bytes[3] = static_cast<char>(0x80 | (code_point & 0x3f));
 }
 
-} // namespace debugging_internal
+}  // namespace debugging_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

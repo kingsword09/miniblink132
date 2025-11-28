@@ -27,7 +27,8 @@ ABSL_NAMESPACE_BEGIN
 //
 // This type alias can be used by generic code that wants to provide more
 // flexibility for defining underlying containers.
-template <typename T> using DefaultHashContainerHash = absl::container_internal::hash_default_hash<T>;
+template <typename T>
+using DefaultHashContainerHash = absl::container_internal::hash_default_hash<T>;
 
 // DefaultHashContainerEq is a convenience alias for the functor that is used by
 // default by Abseil hash-based (unordered) containers for equality check when
@@ -35,9 +36,10 @@ template <typename T> using DefaultHashContainerHash = absl::container_internal:
 //
 // This type alias can be used by generic code that wants to provide more
 // flexibility for defining underlying containers.
-template <typename T> using DefaultHashContainerEq = absl::container_internal::hash_default_eq<T>;
+template <typename T>
+using DefaultHashContainerEq = absl::container_internal::hash_default_eq<T>;
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_CONTAINER_HASH_CONTAINER_DEFAULTS_H_
+#endif  // ABSL_CONTAINER_HASH_CONTAINER_DEFAULTS_H_

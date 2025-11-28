@@ -35,13 +35,14 @@ namespace random_internal {
 // mean, variance, skewness, and kurtosis.
 // http://www.itl.nist.gov/div898/handbook/eda/section3/eda35b.htm
 struct DistributionMoments {
-    size_t n = 0;
-    double mean = 0.0;
-    double variance = 0.0;
-    double skewness = 0.0;
-    double kurtosis = 0.0;
+  size_t n = 0;
+  double mean = 0.0;
+  double variance = 0.0;
+  double skewness = 0.0;
+  double kurtosis = 0.0;
 };
-DistributionMoments ComputeDistributionMoments(absl::Span<const double> data_points);
+DistributionMoments ComputeDistributionMoments(
+    absl::Span<const double> data_points);
 
 std::ostream& operator<<(std::ostream& os, const DistributionMoments& moments);
 
@@ -105,8 +106,8 @@ double BetaIncomplete(double x, double p, double q);
 // and thus the runtime is highly variable.
 double BetaIncompleteInv(double p, double q, double alpha);
 
-} // namespace random_internal
+}  // namespace random_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_RANDOM_INTERNAL_DISTRIBUTION_TEST_UTIL_H_
+#endif  // ABSL_RANDOM_INTERNAL_DISTRIBUTION_TEST_UTIL_H_

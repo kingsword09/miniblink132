@@ -58,7 +58,8 @@
 // including necessary headers to support hardware AES.
 //
 // ABSL_ARCH_{X86/PPC/ARM} macros determine the platform.
-#if defined(__x86_64__) || defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64)
+#if defined(__x86_64__) || defined(__x86_64) || defined(_M_AMD64) || \
+    defined(_M_X64)
 #define ABSL_ARCH_X86_64
 #elif defined(__i386) || defined(_M_IX86)
 #define ABSL_ARCH_X86_32
@@ -66,7 +67,8 @@
 #define ABSL_ARCH_AARCH64
 #elif defined(__arm__) || defined(__ARMEL__) || defined(_M_ARM)
 #define ABSL_ARCH_ARM
-#elif defined(__powerpc64__) || defined(__PPC64__) || defined(__powerpc__) || defined(__ppc__) || defined(__PPC__)
+#elif defined(__powerpc64__) || defined(__PPC64__) || defined(__powerpc__) || \
+    defined(__ppc__) || defined(__PPC__)
 #define ABSL_ARCH_PPC
 #else
 // Unsupported architecture.
@@ -104,7 +106,8 @@
 #elif defined(ABSL_ARCH_PPC)
 
 // Rely on VSX and CRYPTO extensions for vcipher on PowerPC.
-#if (defined(__VEC__) || defined(__ALTIVEC__)) && defined(__VSX__) && defined(__CRYPTO__)
+#if (defined(__VEC__) || defined(__ALTIVEC__)) && defined(__VSX__) && \
+    defined(__CRYPTO__)
 #undef ABSL_HAVE_ACCELERATED_AES
 #define ABSL_HAVE_ACCELERATED_AES 1
 #endif
@@ -159,9 +162,10 @@
 // iOS does not support dispatch, even on x86, since applications
 // should be bundled as fat binaries, with a different build tailored for
 // each specific supported platform/architecture.
-#if (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) || (defined(TARGET_OS_IPHONE_SIMULATOR) && TARGET_OS_IPHONE_SIMULATOR)
+#if (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) || \
+    (defined(TARGET_OS_IPHONE_SIMULATOR) && TARGET_OS_IPHONE_SIMULATOR)
 #undef ABSL_RANDOM_INTERNAL_AES_DISPATCH
 #define ABSL_RANDOM_INTERNAL_AES_DISPATCH 0
 #endif
 
-#endif // ABSL_RANDOM_INTERNAL_PLATFORM_H_
+#endif  // ABSL_RANDOM_INTERNAL_PLATFORM_H_

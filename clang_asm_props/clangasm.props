@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(CLANGASMBeforeTargets)' == '' and '$(CLANGASMAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <CLANGASMBeforeTargets>Midl</CLANGASMBeforeTargets>
+    <CLANGASMAfterTargets>CustomBuild</CLANGASMAfterTargets>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <CLANGASM>
+      <PreprocessWithCl Condition="'%(PreprocessWithCl)' == ''">true</PreprocessWithCl>
+      <PreprocessedFileName Condition="'%(PreprocessedFileName)' == ''">$(IntDir)%(FileName)%(Extension)</PreprocessedFileName>
+      <ObjectFileName Condition="'%(ObjectFileName)' == ''">$(IntDir)%(FileName).obj</ObjectFileName>
+      <CommandLineTemplate Condition="'%(CommandLineTemplate)' == '' and '$(Platform)' == 'ARM64'">clang-cl.exe /c [Inputs] [AllOptions] [AdditionalOptions]</CommandLineTemplate>
+    </CLANGASM>
+  </ItemDefinitionGroup>
+</Project>

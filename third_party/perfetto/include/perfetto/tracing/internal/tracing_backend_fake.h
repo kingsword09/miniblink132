@@ -26,18 +26,20 @@ namespace internal {
 // A built-in implementation of TracingBackend that fails any attempt to create
 // a tracing session.
 class PERFETTO_EXPORT_COMPONENT TracingBackendFake : public TracingBackend {
-public:
-    static TracingBackend* GetInstance();
+ public:
+  static TracingBackend* GetInstance();
 
-    // TracingBackend implementation.
-    std::unique_ptr<ProducerEndpoint> ConnectProducer(const ConnectProducerArgs&) override;
-    std::unique_ptr<ConsumerEndpoint> ConnectConsumer(const ConnectConsumerArgs&) override;
+  // TracingBackend implementation.
+  std::unique_ptr<ProducerEndpoint> ConnectProducer(
+      const ConnectProducerArgs&) override;
+  std::unique_ptr<ConsumerEndpoint> ConnectConsumer(
+      const ConnectConsumerArgs&) override;
 
-private:
-    TracingBackendFake();
+ private:
+  TracingBackendFake();
 };
 
-} // namespace internal
-} // namespace perfetto
+}  // namespace internal
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACING_BACKEND_FAKE_H_
+#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACING_BACKEND_FAKE_H_

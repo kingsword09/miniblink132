@@ -25,4 +25,4 @@
 
 #include "protos/perfetto/common/data_source_descriptor.gen.h"
 
-#endif // INCLUDE_PERFETTO_TRACING_CORE_DATA_SOURCE_DESCRIPTOR_H_
+#endif  // INCLUDE_PERFETTO_TRACING_CORE_DATA_SOURCE_DESCRIPTOR_H_

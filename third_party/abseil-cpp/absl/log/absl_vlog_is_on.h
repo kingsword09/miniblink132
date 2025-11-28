@@ -60,7 +60,7 @@
 
 #include "absl/base/attributes.h"
 #include "absl/base/config.h"
-#include "absl/log/internal/vlog_config.h" // IWYU pragma: export
+#include "absl/log/internal/vlog_config.h"  // IWYU pragma: export
 #include "absl/strings/string_view.h"
 
 // IWYU pragma: private, include "absl/log/log.h"
@@ -70,7 +70,8 @@
 // An ABSL_MAX_VLOG_VERBOSITY of 2 means that VLOG(3) and above should never
 // log.
 #ifdef ABSL_MAX_VLOG_VERBOSITY
-#define ABSL_LOG_INTERNAL_MAX_LOG_VERBOSITY_CHECK(x) ((x) <= ABSL_MAX_VLOG_VERBOSITY)&&
+#define ABSL_LOG_INTERNAL_MAX_LOG_VERBOSITY_CHECK(x) \
+  ((x) <= ABSL_MAX_VLOG_VERBOSITY)&&
 #else
 #define ABSL_LOG_INTERNAL_MAX_LOG_VERBOSITY_CHECK(x)
 #endif
@@ -82,8 +83,8 @@
 //
 // ABSL_VLOG_IS_ON is not async signal safe, but it is guaranteed not to
 // allocate new memory.
-#define ABSL_VLOG_IS_ON(verbose_level)                                                                                                                         \
-    (ABSL_LOG_INTERNAL_MAX_LOG_VERBOSITY_CHECK(verbose_level)[]()            \
+#define ABSL_VLOG_IS_ON(verbose_level)                                     \
+  (ABSL_LOG_INTERNAL_MAX_LOG_VERBOSITY_CHECK(verbose_level)[]()            \
        ->::absl::log_internal::VLogSite *                                  \
    {                                                                       \
      ABSL_CONST_INIT static ::absl::log_internal::VLogSite site(__FILE__); \
@@ -91,4 +92,4 @@
    }()                                                                     \
        ->IsEnabled(verbose_level))
 
-#endif // ABSL_LOG_ABSL_VLOG_IS_ON_H_
+#endif  // ABSL_LOG_ABSL_VLOG_IS_ON_H_

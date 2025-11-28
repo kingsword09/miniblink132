@@ -35,24 +35,27 @@ namespace internal {
 // instance in-process. Instantiated when the embedder calls
 // Tracing::Initialize(kInProcessBackend). Solves most in-app-only tracing
 // use-cases.
-class PERFETTO_EXPORT_COMPONENT InProcessTracingBackend : public TracingBackend {
-public:
-    static TracingBackend* GetInstance();
+class PERFETTO_EXPORT_COMPONENT InProcessTracingBackend
+    : public TracingBackend {
+ public:
+  static TracingBackend* GetInstance();
 
-    ~InProcessTracingBackend() override;
+  ~InProcessTracingBackend() override;
 
-    // TracingBackend implementation.
-    std::unique_ptr<ProducerEndpoint> ConnectProducer(const ConnectProducerArgs&) override;
-    std::unique_ptr<ConsumerEndpoint> ConnectConsumer(const ConnectConsumerArgs&) override;
+  // TracingBackend implementation.
+  std::unique_ptr<ProducerEndpoint> ConnectProducer(
+      const ConnectProducerArgs&) override;
+  std::unique_ptr<ConsumerEndpoint> ConnectConsumer(
+      const ConnectConsumerArgs&) override;
 
-private:
-    InProcessTracingBackend();
-    TracingService* GetOrCreateService(base::TaskRunner*);
+ private:
+  InProcessTracingBackend();
+  TracingService* GetOrCreateService(base::TaskRunner*);
 
-    std::unique_ptr<TracingService> service_;
+  std::unique_ptr<TracingService> service_;
 };
 
-} // namespace internal
-} // namespace perfetto
+}  // namespace internal
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_IN_PROCESS_TRACING_BACKEND_H_
+#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_IN_PROCESS_TRACING_BACKEND_H_

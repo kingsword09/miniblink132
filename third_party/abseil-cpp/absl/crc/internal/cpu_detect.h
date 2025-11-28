@@ -24,25 +24,25 @@ namespace crc_internal {
 // Enumeration of architectures that we have special-case tuning parameters for.
 // This set may change over time.
 enum class CpuType {
-    kUnknown,
-    kIntelHaswell,
-    kAmdRome,
-    kAmdNaples,
-    kAmdMilan,
-    kAmdGenoa,
-    kAmdRyzenV3000,
-    kIntelCascadelakeXeon,
-    kIntelSkylakeXeon,
-    kIntelBroadwell,
-    kIntelSkylake,
-    kIntelIvybridge,
-    kIntelSandybridge,
-    kIntelWestmere,
-    kArmNeoverseN1,
-    kArmNeoverseV1,
-    kAmpereSiryn,
-    kArmNeoverseN2,
-    kArmNeoverseV2
+  kUnknown,
+  kIntelHaswell,
+  kAmdRome,
+  kAmdNaples,
+  kAmdMilan,
+  kAmdGenoa,
+  kAmdRyzenV3000,
+  kIntelCascadelakeXeon,
+  kIntelSkylakeXeon,
+  kIntelBroadwell,
+  kIntelSkylake,
+  kIntelIvybridge,
+  kIntelSandybridge,
+  kIntelWestmere,
+  kArmNeoverseN1,
+  kArmNeoverseV1,
+  kAmpereSiryn,
+  kArmNeoverseN2,
+  kArmNeoverseV2
 };
 
 // Returns the type of host CPU this code is running on.  Returns kUnknown if
@@ -56,8 +56,8 @@ CpuType GetCpuType();
 // tuning.
 bool SupportsArmCRC32PMULL();
 
-} // namespace crc_internal
+}  // namespace crc_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_CRC_INTERNAL_CPU_DETECT_H_
+#endif  // ABSL_CRC_INTERNAL_CPU_DETECT_H_

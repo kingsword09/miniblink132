@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema
+      Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+      <AvailableItemName Include="CLANGASM">
+        <Targets>_CLANGASM</Targets>
+      </AvailableItemName>
+  </ItemGroup>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>
+      $(ComputeLinkInputsTargets);
+      ComputeCLANGASMOutput;
+    </ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>
+      $(ComputeLibInputsTargets);
+      ComputeCLANGASMOutput;
+    </ComputeLibInputsTargets>
+  </PropertyGroup>
+  <UsingTask
+    TaskName="CLANGASM"
+    TaskFactory="XamlTaskFactory"
+    AssemblyName="Microsoft.Build.Tasks.v4.0, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+
+  <!-- Creates the the directories that CLANGASM uses -->
+  <Target Name="_CreateDirsForCLANGASM">
+    <ItemGroup Condition="'@(CLANGASM)'!=''">
+      <CLANGASMDirsToMake Include="@(CLANGASM->Metadata('ObjectFileName')->DirectoryName()->Distinct()->ClearMetadata())" />
+      <CLANGASMDirsToMake Include="@(CLANGASM->Metadata('PreprocessOutputPath')->DirectoryName()->Distinct()->ClearMetadata())" />
+    </ItemGroup>
+
+    <MakeDir Directories="@(CLANGASMDirsToMake)" />
+
+    <ItemGroup>
+      <CLANGASMDirsToMake Remove="@(CLANGASMDirsToMake)" />
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="_CLANGASM"
+    BeforeTargets="$(CLANGASMBeforeTargets)"
+    AfterTargets="$(CLANGASMAfterTargets)"
+    Condition="'@(CLANGASM)' != ''"
+    DependsOnTargets="_SelectedFiles;_CreateDirsForCLANGASM">
+
+    <ItemGroup Condition="'@(SelectedFiles)' != ''">
+      <CLANGASM Remove="@(CLANGASM)" Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'@(SelectedFiles)' == ''">
+      <CLANGASM Remove="@(CLANGASM)" Condition="'%(CLANGASM.ExcludedFromBuild)' == 'true'" />
+    </ItemGroup>
+
+    <VCMessage Code="MSB8076" Type="Error" Condition="'@(CLANGASM)' != '' and '$(Platform)' != 'ARM' and '$(Platform)' != 'ARM64' and '$(Platform)' != 'ARM64EC'"/>
+
+    <ItemGroup Condition="'@(CLANGASM)' != ''">
+      <_Preprocess Include="@(CLANGASM)" Condition="'%(CLANGASM.PreprocessWithCl)' == 'true'" />
+    </ItemGroup>
+
+    <Cl
+      Condition="'@(_Preprocess)' != ''"
+      Sources="@(_Preprocess)"
+
+      AdditionalIncludeDirectories="%(_Preprocess.AdditionalIncludeDirectories)"
+      AdditionalOptions=""
+      BuildingInIDE="$(BuildingInsideVisualStudio)"
+      IgnoreStandardIncludePath="%(_Preprocess.IgnoreStandardIncludePath)"
+      PrecompiledHeader=""
+      PrecompiledHeaderFile="NotUsing"
+      PreprocessorDefinitions="%(_Preprocess.PreprocessorDefinitions)"
+      PreprocessKeepComments="%(_Preprocess.PreprocessKeepComments)"
+      PreprocessSuppressLineNumbers="%(_Preprocess.PreprocessSuppressLineNumbers)"
+      PreprocessOutputPath="%(_Preprocess.PreprocessedFileName)"
+      PreprocessToFile="True"
+      UndefineAllPreprocessorDefinitions="%(_Preprocess.UndefineAllPreprocessorDefinitions)"
+      UndefinePreprocessorDefinitions="%(_Preprocess.UndefinePreprocessorDefinitions)"
+      UseStandardPreprocessor="%(_Preprocess.UseStandardPreprocessor)"
+
+      TrackerLogDirectory                ="$(TLogLocation)"
+      ExcludedInputPaths                 ="$(ExcludePath)"
+      TLogReadFiles                      ="@(CLTLogReadFiles)"
+      TLogWriteFiles                     ="@(CLTLogWriteFiles)"
+      ToolExe                            ="$(CLToolExe)"
+      ToolPath                           ="$(CLToolPath)"
+      TrackFileAccess                    ="$(TrackFileAccess)"
+      MinimalRebuildFromTracking         ="$(TrackFileAccess)"
+      ToolArchitecture                   ="$(CLToolArchitecture)"
+      TrackerFrameworkPath               ="$(CLTrackerFrameworkPath)"
+      TrackerSdkPath                     ="$(CLTrackerSdkPath)"
+      TrackedInputFilesToIgnore          ="@(ClNoDependencies)"
+      TrackedOutputFilesToIgnore         ="@(ClTrackedOutputFilesToIgnore)"
+      DeleteOutputBeforeExecute          ="%(ClCompile.DeleteOutputBeforeExecute)"
+      AcceptableNonZeroExitCodes         ="%(ClCompile.AcceptableNonZeroExitCodes)"
+      YieldDuringToolExecution           ="$(ClYieldDuringToolExecution)"
+      EnableClServerMode                 ="true"
+      UseMsbuildResourceManager          ="$(UseMsbuildResourceManager)"
+      IgnoreErrorsFromLog                ="$(IgnoreErrorsFromLog)"
+      ErrorListRegex                     ="@(CLErrorListRegex)"
+    />
+
+    <ItemGroup Condition="'@(_Preprocess)' != ''">
+      <_PreprocessedCLANGASM Include="%(_Preprocess.PreprocessedFileName)" />
+      <CLANGASM Remove="@(_Preprocess)"  />
+      <CLANGASM Include="@(_PreprocessedCLANGASM)" />
+      <_Preprocess Remove="@(_Preprocess)" />
+      <_PreprocessedCLANGASM Remove="@(PreprocessedCLANGASM)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <CLANGASM>
+        <ActualCommandLine>-o %(CLANGASM.ObjectFileName) %(CLANGASM.AdditionalOptions)</ActualCommandLine>
+      </CLANGASM>
+    </ItemGroup>
+
+    <GetOutOfDateItems
+      Condition="'@(SelectedFiles)' == '' and '@(CLANGASM)' != '' and '$(TrackFileAccess)' == 'true'"
+      Sources="@(CLANGASM)"
+
+      OutputsMetadataName="ObjectFileName"
+      CommandMetadataName="ActualCommandLine"
+
+      TLogDirectory="$(TLogLocation)"
+      TLogNamePrefix="CLANGASM"
+      TrackFileAccess="$(TrackFileAccess)"
+      >
+      <Output TaskParameter="OutOfDateSources" ItemName="_CLANGASM"/>
+    </GetOutOfDateItems>
+
+    <ItemGroup Condition ="'$(SelectedFiles)' != '' or '$(TrackFileAccess)' != 'true'">
+      <_CLANGASM Include="@(CLANGASM)" />
+    </ItemGroup>
+
+    <Message
+      Importance="High"
+      Text="%(_CLANGASM.FileName)" />
+
+    <CLANGASM
+      Condition="'@(_CLANGASM)' != ''"
+      CommandLineTemplate="%(_CLANGASM.CommandLineTemplate)"
+      ObjectFileName="%(_CLANGASM.ObjectFileName)"
+      AdditionalOptions="%(_CLANGASM.AdditionalOptions)"
+      Inputs="%(_CLANGASM.Identity)" />
+
+    <ItemGroup>
+      <_CLANGASM Remove="@(_CLANGASM)" />
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="ComputeCLANGASMOutput"
+    Condition="'@(CLANGASM)' != ''">
+    <ItemGroup>
+      <Link Include="@(CLANGASM->Metadata('ObjectFileName')->Distinct()->ClearMetadata())" Condition="'%(CLANGASM.ExcludedFromBuild)' != 'true'"/>
+      <Lib Include="@(CLANGASM->Metadata('ObjectFileName')->Distinct()->ClearMetadata())" Condition="'%(CLANGASM.ExcludedFromBuild)' != 'true'"/>
+    </ItemGroup>
+  </Target>
+  <Target
+    Name="ComputeCLANGASMObj"
+    Condition="'@(CLANGASM)' != ''"
+    BeforeTargets="GetResolvedLinkObjs">
+    <ItemGroup>
+      <Obj Include="@(CLANGASM->Metadata('ObjectFileName')->Distinct()->ClearMetadata())" Condition="'%(CLANGASM.ExcludedFromBuild)' != 'true'"/>
+    </ItemGroup>
+  </Target>
+</Project>

@@ -27,7 +27,8 @@ namespace perfetto {
 PERFETTO_EXPORT_COMPONENT const char* GetConsumerSocket();
 // This function is used for tokenize the |producer_socket_names| string into
 // multiple producer socket names.
-PERFETTO_EXPORT_COMPONENT std::vector<std::string> TokenizeProducerSockets(const char* producer_socket_names);
+PERFETTO_EXPORT_COMPONENT std::vector<std::string> TokenizeProducerSockets(
+    const char* producer_socket_names);
 PERFETTO_EXPORT_COMPONENT const char* GetProducerSocket();
 
 // Optionally returns the relay socket name (nullable). The relay socket is used
@@ -35,6 +36,6 @@ PERFETTO_EXPORT_COMPONENT const char* GetProducerSocket();
 // tracing service.
 PERFETTO_EXPORT_COMPONENT const char* GetRelaySocket();
 
-} // namespace perfetto
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_DEFAULT_SOCKET_H_
+#endif  // INCLUDE_PERFETTO_TRACING_DEFAULT_SOCKET_H_

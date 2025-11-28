@@ -23,42 +23,38 @@ namespace {
 using absl::strings_internal::MakeStringConstant;
 
 struct Callable {
-    constexpr absl::string_view operator()() const
-    {
-        return absl::string_view("Callable", 8);
-    }
+  constexpr absl::string_view operator()() const {
+    return absl::string_view("Callable", 8);
+  }
 };
 
-TEST(StringConstant, Traits)
-{
-    constexpr auto str = MakeStringConstant(Callable {});
-    using T = decltype(str);
+TEST(StringConstant, Traits) {
+  constexpr auto str = MakeStringConstant(Callable{});
+  using T = decltype(str);
 
-    EXPECT_TRUE(std::is_empty<T>::value);
-    EXPECT_TRUE(std::is_trivial<T>::value);
-    EXPECT_TRUE(absl::is_trivially_default_constructible<T>::value);
-    EXPECT_TRUE(absl::is_trivially_copy_constructible<T>::value);
-    EXPECT_TRUE(absl::is_trivially_move_constructible<T>::value);
-    EXPECT_TRUE(absl::is_trivially_destructible<T>::value);
+  EXPECT_TRUE(std::is_empty<T>::value);
+  EXPECT_TRUE(std::is_trivial<T>::value);
+  EXPECT_TRUE(absl::is_trivially_default_constructible<T>::value);
+  EXPECT_TRUE(absl::is_trivially_copy_constructible<T>::value);
+  EXPECT_TRUE(absl::is_trivially_move_constructible<T>::value);
+  EXPECT_TRUE(absl::is_trivially_destructible<T>::value);
 }
 
-TEST(StringConstant, MakeFromCallable)
-{
-    constexpr auto str = MakeStringConstant(Callable {});
-    using T = decltype(str);
-    EXPECT_EQ(Callable {}(), T::value);
-    EXPECT_EQ(Callable {}(), str());
+TEST(StringConstant, MakeFromCallable) {
+  constexpr auto str = MakeStringConstant(Callable{});
+  using T = decltype(str);
+  EXPECT_EQ(Callable{}(), T::value);
+  EXPECT_EQ(Callable{}(), str());
 }
 
-TEST(StringConstant, MakeFromStringConstant)
-{
-    // We want to make sure the StringConstant itself is a valid input to the
-    // factory function.
-    constexpr auto str = MakeStringConstant(Callable {});
-    constexpr auto str2 = MakeStringConstant(str);
-    using T = decltype(str2);
-    EXPECT_EQ(Callable {}(), T::value);
-    EXPECT_EQ(Callable {}(), str2());
+TEST(StringConstant, MakeFromStringConstant) {
+  // We want to make sure the StringConstant itself is a valid input to the
+  // factory function.
+  constexpr auto str = MakeStringConstant(Callable{});
+  constexpr auto str2 = MakeStringConstant(str);
+  using T = decltype(str2);
+  EXPECT_EQ(Callable{}(), T::value);
+  EXPECT_EQ(Callable{}(), str2());
 }
 
-} // namespace
+}  // namespace

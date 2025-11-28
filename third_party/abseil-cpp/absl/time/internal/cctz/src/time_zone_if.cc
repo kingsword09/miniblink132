@@ -23,31 +23,25 @@ ABSL_NAMESPACE_BEGIN
 namespace time_internal {
 namespace cctz {
 
-std::unique_ptr<TimeZoneIf> TimeZoneIf::UTC()
-{
-    return TimeZoneInfo::UTC();
-}
+std::unique_ptr<TimeZoneIf> TimeZoneIf::UTC() { return TimeZoneInfo::UTC(); }
 
-std::unique_ptr<TimeZoneIf> TimeZoneIf::Make(const std::string& name)
-{
-    // Support "libc:localtime" and "libc:*" to access the legacy
-    // localtime and UTC support respectively from the C library.
-    // NOTE: The "libc:*" zones are internal, test-only interfaces, and
-    // are subject to change/removal without notice. Do not use them.
-    if (name.compare(0, 5, "libc:") == 0) {
-        return TimeZoneLibC::Make(name.substr(5));
-    }
+std::unique_ptr<TimeZoneIf> TimeZoneIf::Make(const std::string& name) {
+  // Support "libc:localtime" and "libc:*" to access the legacy
+  // localtime and UTC support respectively from the C library.
+  // NOTE: The "libc:*" zones are internal, test-only interfaces, and
+  // are subject to change/removal without notice. Do not use them.
+  if (name.compare(0, 5, "libc:") == 0) {
+    return TimeZoneLibC::Make(name.substr(5));
+  }
 
-    // Otherwise use the "zoneinfo" implementation.
-    return TimeZoneInfo::Make(name);
+  // Otherwise use the "zoneinfo" implementation.
+  return TimeZoneInfo::Make(name);
 }
 
 // Defined out-of-line to avoid emitting a weak vtable in all TUs.
-TimeZoneIf::~TimeZoneIf()
-{
-}
+TimeZoneIf::~TimeZoneIf() {}
 
-} // namespace cctz
-} // namespace time_internal
+}  // namespace cctz
+}  // namespace time_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

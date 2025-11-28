@@ -32,17 +32,19 @@ ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 
 // absl::Flag<T> represents a flag of type 'T' created by ABSL_FLAG.
-template <typename T> class Flag;
+template <typename T>
+class Flag;
 
-} // namespace flags_internal
+}  // namespace flags_internal
 
 // Flag
 //
 // Forward declaration of the `absl::Flag` type for use in defining the macro.
-template <typename T> using Flag = flags_internal::Flag<T>;
+template <typename T>
+using Flag = flags_internal::Flag<T>;
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
 // ABSL_DECLARE_FLAG()
 //
@@ -57,11 +59,10 @@ ABSL_NAMESPACE_END
 
 // Internal implementation of ABSL_DECLARE_FLAG to allow macro expansion of its
 // arguments. Clients must use ABSL_DECLARE_FLAG instead.
-#define ABSL_DECLARE_FLAG_INTERNAL(type, name)                                                                                                                 \
-    extern absl::Flag<type> FLAGS_##name;                                                                                                                      \
-    namespace absl /* block flags in namespaces */ {                                                                                                           \
-    }                                                                                                                                                          \
-    /* second redeclaration is to allow applying attributes */                                                                                                 \
-    extern absl::Flag<type> FLAGS_##name
+#define ABSL_DECLARE_FLAG_INTERNAL(type, name)               \
+  extern absl::Flag<type> FLAGS_##name;                      \
+  namespace absl /* block flags in namespaces */ {}          \
+  /* second redeclaration is to allow applying attributes */ \
+  extern absl::Flag<type> FLAGS_##name
 
-#endif // ABSL_FLAGS_DECLARE_H_
+#endif  // ABSL_FLAGS_DECLARE_H_

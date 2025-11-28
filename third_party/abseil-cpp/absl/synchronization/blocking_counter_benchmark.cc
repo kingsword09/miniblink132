@@ -21,25 +21,30 @@
 
 namespace {
 
-void BM_BlockingCounter_SingleThread(benchmark::State& state)
-{
-    for (auto _ : state) {
-        int iterations = state.range(0);
-        absl::BlockingCounter counter { iterations };
-        for (int i = 0; i < iterations; ++i) {
-            counter.DecrementCount();
-        }
-        counter.Wait();
+void BM_BlockingCounter_SingleThread(benchmark::State& state) {
+  for (auto _ : state) {
+    int iterations = state.range(0);
+    absl::BlockingCounter counter{iterations};
+    for (int i = 0; i < iterations; ++i) {
+      counter.DecrementCount();
     }
+    counter.Wait();
+  }
 }
-BENCHMARK(BM_BlockingCounter_SingleThread)->ArgName("iterations")->Arg(2)->Arg(4)->Arg(16)->Arg(64)->Arg(256);
+BENCHMARK(BM_BlockingCounter_SingleThread)
+    ->ArgName("iterations")
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(16)
+    ->Arg(64)
+    ->Arg(256);
 
-void BM_BlockingCounter_DecrementCount(benchmark::State& state)
-{
-    static absl::NoDestructor<absl::BlockingCounter> counter(std::numeric_limits<int>::max());
-    for (auto _ : state) {
-        counter->DecrementCount();
-    }
+void BM_BlockingCounter_DecrementCount(benchmark::State& state) {
+  static absl::NoDestructor<absl::BlockingCounter> counter(
+      std::numeric_limits<int>::max());
+  for (auto _ : state) {
+    counter->DecrementCount();
+  }
 }
 BENCHMARK(BM_BlockingCounter_DecrementCount)
     ->Threads(2)
@@ -53,20 +58,27 @@ BENCHMARK(BM_BlockingCounter_DecrementCount)
     ->Threads(64)
     ->Threads(128);
 
-void BM_BlockingCounter_Wait(benchmark::State& state)
-{
-    int num_threads = state.range(0);
-    absl::synchronization_internal::ThreadPool pool(num_threads);
-    for (auto _ : state) {
-        absl::BlockingCounter counter { num_threads };
-        pool.Schedule([num_threads, &counter, &pool]() {
-            for (int i = 0; i < num_threads; ++i) {
-                pool.Schedule([&counter]() { counter.DecrementCount(); });
-            }
-        });
-        counter.Wait();
-    }
+void BM_BlockingCounter_Wait(benchmark::State& state) {
+  int num_threads = state.range(0);
+  absl::synchronization_internal::ThreadPool pool(num_threads);
+  for (auto _ : state) {
+    absl::BlockingCounter counter{num_threads};
+    pool.Schedule([num_threads, &counter, &pool]() {
+      for (int i = 0; i < num_threads; ++i) {
+        pool.Schedule([&counter]() { counter.DecrementCount(); });
+      }
+    });
+    counter.Wait();
+  }
 }
-BENCHMARK(BM_BlockingCounter_Wait)->ArgName("threads")->Arg(2)->Arg(4)->Arg(8)->Arg(16)->Arg(32)->Arg(64)->Arg(128);
+BENCHMARK(BM_BlockingCounter_Wait)
+    ->ArgName("threads")
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(8)
+    ->Arg(16)
+    ->Arg(32)
+    ->Arg(64)
+    ->Arg(128);
 
-} // namespace
+}  // namespace

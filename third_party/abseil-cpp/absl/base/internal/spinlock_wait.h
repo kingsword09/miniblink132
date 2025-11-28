@@ -30,9 +30,9 @@ namespace base_internal {
 // SpinLockWait() waits until it can perform one of several transitions from
 // "from" to "to".  It returns when it performs a transition where done==true.
 struct SpinLockWaitTransition {
-    uint32_t from;
-    uint32_t to;
-    bool done;
+  uint32_t from;
+  uint32_t to;
+  bool done;
 };
 
 // Wait until *w can transition from trans[i].from to trans[i].to for some i
@@ -41,27 +41,30 @@ struct SpinLockWaitTransition {
 // where !trans[i].done, but continue waiting.
 //
 // Wakeups for threads blocked on SpinLockWait do not respect priorities.
-uint32_t SpinLockWait(std::atomic<uint32_t>* w, int n, const SpinLockWaitTransition trans[], SchedulingMode scheduling_mode);
+uint32_t SpinLockWait(std::atomic<uint32_t> *w, int n,
+                      const SpinLockWaitTransition trans[],
+                      SchedulingMode scheduling_mode);
 
 // If possible, wake some thread that has called SpinLockDelay(w, ...). If `all`
 // is true, wake all such threads. On some systems, this may be a no-op; on
 // those systems, threads calling SpinLockDelay() will always wake eventually
 // even if SpinLockWake() is never called.
-void SpinLockWake(std::atomic<uint32_t>* w, bool all);
+void SpinLockWake(std::atomic<uint32_t> *w, bool all);
 
 // Wait for an appropriate spin delay on iteration "loop" of a
 // spin loop on location *w, whose previously observed value was "value".
 // SpinLockDelay() may do nothing, may yield the CPU, may sleep a clock tick,
 // or may wait for a call to SpinLockWake(w).
-void SpinLockDelay(std::atomic<uint32_t>* w, uint32_t value, int loop, base_internal::SchedulingMode scheduling_mode);
+void SpinLockDelay(std::atomic<uint32_t> *w, uint32_t value, int loop,
+                   base_internal::SchedulingMode scheduling_mode);
 
 // Helper used by AbslInternalSpinLockDelay.
 // Returns a suggested delay in nanoseconds for iteration number "loop".
 int SpinLockSuggestedDelayNS(int loop);
 
-} // namespace base_internal
+}  // namespace base_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
 // In some build configurations we pass --detect-odr-violations to the
 // gold linker.  This causes it to flag weak symbol overrides as ODR
@@ -70,19 +73,23 @@ ABSL_NAMESPACE_END
 // By changing our extension points to be extern "C", we dodge this
 // check.
 extern "C" {
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockWake)(std::atomic<uint32_t>* w, bool all);
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockDelay)(std::atomic<uint32_t>* w, uint32_t value, int loop, absl::base_internal::SchedulingMode scheduling_mode);
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockWake)(std::atomic<uint32_t> *w,
+                                                      bool all);
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockDelay)(
+    std::atomic<uint32_t> *w, uint32_t value, int loop,
+    absl::base_internal::SchedulingMode scheduling_mode);
 }
 
-inline void absl::base_internal::SpinLockWake(std::atomic<uint32_t>* w, bool all)
-{
-    ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockWake)(w, all);
+inline void absl::base_internal::SpinLockWake(std::atomic<uint32_t> *w,
+                                              bool all) {
+  ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockWake)(w, all);
 }
 
-inline void absl::base_internal::SpinLockDelay(std::atomic<uint32_t>* w, uint32_t value, int loop, absl::base_internal::SchedulingMode scheduling_mode)
-{
-    ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockDelay)
-    (w, value, loop, scheduling_mode);
+inline void absl::base_internal::SpinLockDelay(
+    std::atomic<uint32_t> *w, uint32_t value, int loop,
+    absl::base_internal::SchedulingMode scheduling_mode) {
+  ABSL_INTERNAL_C_SYMBOL(AbslInternalSpinLockDelay)
+  (w, value, loop, scheduling_mode);
 }
 
-#endif // ABSL_BASE_INTERNAL_SPINLOCK_WAIT_H_
+#endif  // ABSL_BASE_INTERNAL_SPINLOCK_WAIT_H_

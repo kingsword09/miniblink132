@@ -324,9 +324,9 @@ using detail::prev_weekday;
 //
 using detail::get_yearday;
 
-} // namespace cctz
-} // namespace time_internal
+}  // namespace cctz
+}  // namespace time_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_TIME_INTERNAL_CCTZ_CIVIL_TIME_H_
+#endif  // ABSL_TIME_INTERNAL_CCTZ_CIVIL_TIME_H_

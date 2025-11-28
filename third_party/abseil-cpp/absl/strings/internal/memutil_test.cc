@@ -22,15 +22,20 @@
 
 namespace {
 
-TEST(MemUtil, memcasecmp)
-{
-    // check memutil functions
-    const char a[] = "hello there";
+TEST(MemUtil, memcasecmp) {
+  // check memutil functions
+  const char a[] = "hello there";
 
-    EXPECT_EQ(absl::strings_internal::memcasecmp(a, "heLLO there", sizeof("hello there") - 1), 0);
-    EXPECT_EQ(absl::strings_internal::memcasecmp(a, "heLLO therf", sizeof("hello there") - 1), -1);
-    EXPECT_EQ(absl::strings_internal::memcasecmp(a, "heLLO therf", sizeof("hello there") - 2), 0);
-    EXPECT_EQ(absl::strings_internal::memcasecmp(a, "whatever", 0), 0);
+  EXPECT_EQ(absl::strings_internal::memcasecmp(a, "heLLO there",
+                                               sizeof("hello there") - 1),
+            0);
+  EXPECT_EQ(absl::strings_internal::memcasecmp(a, "heLLO therf",
+                                               sizeof("hello there") - 1),
+            -1);
+  EXPECT_EQ(absl::strings_internal::memcasecmp(a, "heLLO therf",
+                                               sizeof("hello there") - 2),
+            0);
+  EXPECT_EQ(absl::strings_internal::memcasecmp(a, "whatever", 0), 0);
 }
 
-} // namespace
+}  // namespace

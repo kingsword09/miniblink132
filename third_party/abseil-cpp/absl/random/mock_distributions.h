@@ -82,9 +82,14 @@ ABSL_NAMESPACE_BEGIN
 //  assert(x == 123456)
 //
 template <typename R>
-using MockUniform = random_internal::MockOverloadSetWithValidator<random_internal::UniformDistributionWrapper<R>,
-    random_internal::UniformDistributionValidator<R>, R(IntervalClosedOpenTag, MockingBitGen&, R, R), R(IntervalClosedClosedTag, MockingBitGen&, R, R),
-    R(IntervalOpenOpenTag, MockingBitGen&, R, R), R(IntervalOpenClosedTag, MockingBitGen&, R, R), R(MockingBitGen&, R, R), R(MockingBitGen&)>;
+using MockUniform = random_internal::MockOverloadSetWithValidator<
+    random_internal::UniformDistributionWrapper<R>,
+    random_internal::UniformDistributionValidator<R>,
+    R(IntervalClosedOpenTag, MockingBitGen&, R, R),
+    R(IntervalClosedClosedTag, MockingBitGen&, R, R),
+    R(IntervalOpenOpenTag, MockingBitGen&, R, R),
+    R(IntervalOpenClosedTag, MockingBitGen&, R, R), R(MockingBitGen&, R, R),
+    R(MockingBitGen&)>;
 
 // -----------------------------------------------------------------------------
 // absl::MockBernoulli
@@ -104,7 +109,9 @@ using MockUniform = random_internal::MockOverloadSetWithValidator<random_interna
 //     .WillOnce(Return(false));
 //  assert(absl::Bernoulli(mock, 0.5) == false);
 //
-using MockBernoulli = random_internal::MockOverloadSet<absl::bernoulli_distribution, bool(MockingBitGen&, double)>;
+using MockBernoulli =
+    random_internal::MockOverloadSet<absl::bernoulli_distribution,
+                                     bool(MockingBitGen&, double)>;
 
 // -----------------------------------------------------------------------------
 // absl::MockBeta
@@ -125,7 +132,11 @@ using MockBernoulli = random_internal::MockOverloadSet<absl::bernoulli_distribut
 //  auto x = absl::Beta<double>(mock, 3.0, 2.0);
 //  assert(x == 0.567);
 //
-template <typename RealType> using MockBeta = random_internal::MockOverloadSet<absl::beta_distribution<RealType>, RealType(MockingBitGen&, RealType, RealType)>;
+template <typename RealType>
+using MockBeta =
+    random_internal::MockOverloadSet<absl::beta_distribution<RealType>,
+                                     RealType(MockingBitGen&, RealType,
+                                              RealType)>;
 
 // -----------------------------------------------------------------------------
 // absl::MockExponential
@@ -148,7 +159,9 @@ template <typename RealType> using MockBeta = random_internal::MockOverloadSet<a
 //  assert(x == 12.3456789)
 //
 template <typename RealType>
-using MockExponential = random_internal::MockOverloadSet<absl::exponential_distribution<RealType>, RealType(MockingBitGen&, RealType)>;
+using MockExponential =
+    random_internal::MockOverloadSet<absl::exponential_distribution<RealType>,
+                                     RealType(MockingBitGen&, RealType)>;
 
 // -----------------------------------------------------------------------------
 // absl::MockGaussian
@@ -171,7 +184,10 @@ using MockExponential = random_internal::MockOverloadSet<absl::exponential_distr
 //  assert(x == 12.3456789)
 //
 template <typename RealType>
-using MockGaussian = random_internal::MockOverloadSet<absl::gaussian_distribution<RealType>, RealType(MockingBitGen&, RealType, RealType)>;
+using MockGaussian =
+    random_internal::MockOverloadSet<absl::gaussian_distribution<RealType>,
+                                     RealType(MockingBitGen&, RealType,
+                                              RealType)>;
 
 // -----------------------------------------------------------------------------
 // absl::MockLogUniform
@@ -194,7 +210,9 @@ using MockGaussian = random_internal::MockOverloadSet<absl::gaussian_distributio
 //  assert(x == 1221)
 //
 template <typename IntType>
-using MockLogUniform = random_internal::MockOverloadSet<absl::log_uniform_int_distribution<IntType>, IntType(MockingBitGen&, IntType, IntType, IntType)>;
+using MockLogUniform = random_internal::MockOverloadSet<
+    absl::log_uniform_int_distribution<IntType>,
+    IntType(MockingBitGen&, IntType, IntType, IntType)>;
 
 // -----------------------------------------------------------------------------
 // absl::MockPoisson
@@ -215,7 +233,10 @@ using MockLogUniform = random_internal::MockOverloadSet<absl::log_uniform_int_di
 //  auto x = absl::Poisson<int>(mock, 2.0);
 //  assert(x == 1221)
 //
-template <typename IntType> using MockPoisson = random_internal::MockOverloadSet<absl::poisson_distribution<IntType>, IntType(MockingBitGen&, double)>;
+template <typename IntType>
+using MockPoisson =
+    random_internal::MockOverloadSet<absl::poisson_distribution<IntType>,
+                                     IntType(MockingBitGen&, double)>;
 
 // -----------------------------------------------------------------------------
 // absl::MockZipf
@@ -237,9 +258,12 @@ template <typename IntType> using MockPoisson = random_internal::MockOverloadSet
 //  assert(x == 1221)
 //
 template <typename IntType>
-using MockZipf = random_internal::MockOverloadSet<absl::zipf_distribution<IntType>, IntType(MockingBitGen&, IntType, double, double)>;
+using MockZipf =
+    random_internal::MockOverloadSet<absl::zipf_distribution<IntType>,
+                                     IntType(MockingBitGen&, IntType, double,
+                                             double)>;
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_RANDOM_MOCK_DISTRIBUTIONS_H_
+#endif  // ABSL_RANDOM_MOCK_DISTRIBUTIONS_H_

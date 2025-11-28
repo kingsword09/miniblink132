@@ -96,6 +96,7 @@
 
 #define ABSL_OPTION_USE_STD_ANY 2
 
+
 // ABSL_OPTION_USE_STD_OPTIONAL
 //
 // This option controls whether absl::optional is implemented as an alias to
@@ -121,6 +122,7 @@
 // ABSL_USES_STD_OPTIONAL.
 
 #define ABSL_OPTION_USE_STD_OPTIONAL 2
+
 
 // ABSL_OPTION_USE_STD_STRING_VIEW
 //
@@ -256,4 +258,4 @@
 
 #define ABSL_OPTION_HARDENED 1
 
-#endif // ABSL_BASE_OPTIONS_H_
+#endif  // ABSL_BASE_OPTIONS_H_

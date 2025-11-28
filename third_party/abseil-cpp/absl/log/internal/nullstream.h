@@ -45,67 +45,52 @@ namespace log_internal {
 // compiler can eliminate the whole instance and discard anything that's
 // streamed in.
 class NullStream {
-public:
-    NullStream& AtLocation(absl::string_view, int)
-    {
-        return *this;
-    }
-    template <typename SourceLocationType> NullStream& AtLocation(SourceLocationType)
-    {
-        return *this;
-    }
-    NullStream& NoPrefix()
-    {
-        return *this;
-    }
-    NullStream& WithVerbosity(int)
-    {
-        return *this;
-    }
-    template <typename TimeType> NullStream& WithTimestamp(TimeType)
-    {
-        return *this;
-    }
-    template <typename Tid> NullStream& WithThreadID(Tid)
-    {
-        return *this;
-    }
-    template <typename LogEntryType> NullStream& WithMetadataFrom(const LogEntryType&)
-    {
-        return *this;
-    }
-    NullStream& WithPerror()
-    {
-        return *this;
-    }
-    template <typename LogSinkType> NullStream& ToSinkAlso(LogSinkType*)
-    {
-        return *this;
-    }
-    template <typename LogSinkType> NullStream& ToSinkOnly(LogSinkType*)
-    {
-        return *this;
-    }
-    template <typename LogSinkType> NullStream& OutputToSink(LogSinkType*, bool)
-    {
-        return *this;
-    }
-    NullStream& InternalStream()
-    {
-        return *this;
-    }
+ public:
+  NullStream& AtLocation(absl::string_view, int) { return *this; }
+  template <typename SourceLocationType>
+  NullStream& AtLocation(SourceLocationType) {
+    return *this;
+  }
+  NullStream& NoPrefix() { return *this; }
+  NullStream& WithVerbosity(int) { return *this; }
+  template <typename TimeType>
+  NullStream& WithTimestamp(TimeType) {
+    return *this;
+  }
+  template <typename Tid>
+  NullStream& WithThreadID(Tid) {
+    return *this;
+  }
+  template <typename LogEntryType>
+  NullStream& WithMetadataFrom(const LogEntryType&) {
+    return *this;
+  }
+  NullStream& WithPerror() { return *this; }
+  template <typename LogSinkType>
+  NullStream& ToSinkAlso(LogSinkType*) {
+    return *this;
+  }
+  template <typename LogSinkType>
+  NullStream& ToSinkOnly(LogSinkType*) {
+    return *this;
+  }
+  template <typename LogSinkType>
+  NullStream& OutputToSink(LogSinkType*, bool) {
+    return *this;
+  }
+  NullStream& InternalStream() { return *this; }
 };
-template <typename T> inline NullStream& operator<<(NullStream& str, const T&)
-{
-    return str;
+template <typename T>
+inline NullStream& operator<<(NullStream& str, const T&) {
+  return str;
 }
-inline NullStream& operator<<(NullStream& str, std::ostream& (*)(std::ostream& os))
-{
-    return str;
+inline NullStream& operator<<(NullStream& str,
+                              std::ostream& (*)(std::ostream& os)) {
+  return str;
 }
-inline NullStream& operator<<(NullStream& str, std::ios_base& (*)(std::ios_base& os))
-{
-    return str;
+inline NullStream& operator<<(NullStream& str,
+                              std::ios_base& (*)(std::ios_base& os)) {
+  return str;
 }
 
 // `NullStreamMaybeFatal` implements the process termination semantics of
@@ -113,36 +98,30 @@ inline NullStream& operator<<(NullStream& str, std::ios_base& (*)(std::ios_base&
 // severity e.g. `LOG(LEVEL(HowBadIsIt()))`.  Like `LogMessage`, it terminates
 // the process when destroyed if the passed-in severity equals `FATAL`.
 class NullStreamMaybeFatal final : public NullStream {
-public:
-    explicit NullStreamMaybeFatal(absl::LogSeverity severity)
-        : fatal_(severity == absl::LogSeverity::kFatal)
-    {
+ public:
+  explicit NullStreamMaybeFatal(absl::LogSeverity severity)
+      : fatal_(severity == absl::LogSeverity::kFatal) {}
+  ~NullStreamMaybeFatal() {
+    if (fatal_) {
+      _exit(1);
     }
-    ~NullStreamMaybeFatal()
-    {
-        if (fatal_) {
-            _exit(1);
-        }
-    }
+  }
 
-private:
-    bool fatal_;
+ private:
+  bool fatal_;
 };
 
 // `NullStreamFatal` implements the process termination semantics of
 // `LogMessageFatal`, which means it always terminates the process.  `DFATAL`
 // and expression-defined severity use `NullStreamMaybeFatal` above.
 class NullStreamFatal final : public NullStream {
-public:
-    NullStreamFatal() = default;
-    [[noreturn]] ~NullStreamFatal()
-    {
-        _exit(1);
-    }
+ public:
+  NullStreamFatal() = default;
+  [[noreturn]] ~NullStreamFatal() { _exit(1); }
 };
 
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_INTERNAL_GLOBALS_H_
+#endif  // ABSL_LOG_INTERNAL_GLOBALS_H_

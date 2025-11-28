@@ -1,4 +1,4 @@
-﻿/*
+/*
   Additional tools for Minizip
   Code: Xavier Roche '2004
   License: Same as ZLIB (www.gzip.org)
@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #ifndef _ZLIB_H
-#include "third_party/zlib/zlib.h"
+#include "zlib.h"
 #endif
 
 #include "unzip.h"
@@ -22,10 +22,16 @@ extern "C" {
    fileOut: output file after recovery
    fileOutTmp: temporary file name used for recovery
 */
-extern int ZEXPORT unzRepair(const char* file, const char* fileOut, const char* fileOutTmp, uLong* nRecovered, uLong* bytesRecovered);
+extern int ZEXPORT unzRepair(const char* file,
+                             const char* fileOut,
+                             const char* fileOutTmp,
+                             uLong* nRecovered,
+                             uLong* bytesRecovered);
+
 
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif

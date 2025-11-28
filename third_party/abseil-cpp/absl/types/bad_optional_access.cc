@@ -26,26 +26,24 @@ ABSL_NAMESPACE_BEGIN
 
 bad_optional_access::~bad_optional_access() = default;
 
-const char* bad_optional_access::what() const noexcept
-{
-    return "optional has no value";
+const char* bad_optional_access::what() const noexcept {
+  return "optional has no value";
 }
 
 namespace optional_internal {
 
-void throw_bad_optional_access()
-{
+void throw_bad_optional_access() {
 #ifdef ABSL_HAVE_EXCEPTIONS
-    throw bad_optional_access();
+  throw bad_optional_access();
 #else
-    ABSL_RAW_LOG(FATAL, "Bad optional access");
-    abort();
+  ABSL_RAW_LOG(FATAL, "Bad optional access");
+  abort();
 #endif
 }
 
-} // namespace optional_internal
+}  // namespace optional_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
 #else
 
@@ -60,9 +58,9 @@ ABSL_NAMESPACE_BEGIN
 namespace types_internal {
 extern const char kAvoidEmptyBadOptionalAccessLibraryWarning;
 const char kAvoidEmptyBadOptionalAccessLibraryWarning = 0;
-} // namespace types_internal
+}  // namespace types_internal
 ABSL_NAMESPACE_END
-} // namespace absl
-#endif // __APPLE__
+}  // namespace absl
+#endif  // __APPLE__
 
-#endif // ABSL_USES_STD_OPTIONAL
+#endif  // ABSL_USES_STD_OPTIONAL

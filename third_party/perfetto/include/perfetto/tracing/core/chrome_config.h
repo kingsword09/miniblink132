@@ -25,4 +25,4 @@
 
 #include "protos/perfetto/config/chrome/chrome_config.gen.h"
 
-#endif // INCLUDE_PERFETTO_TRACING_CORE_CHROME_CONFIG_H_
+#endif  // INCLUDE_PERFETTO_TRACING_CORE_CHROME_CONFIG_H_

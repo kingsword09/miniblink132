@@ -28,79 +28,79 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace synchronization_internal {
 
-void PerThreadSem::SetThreadBlockedCounter(std::atomic<int>* counter)
-{
-    base_internal::ThreadIdentity* identity;
-    identity = GetOrCreateCurrentThreadIdentity();
-    identity->blocked_count_ptr = counter;
+void PerThreadSem::SetThreadBlockedCounter(std::atomic<int> *counter) {
+  base_internal::ThreadIdentity *identity;
+  identity = GetOrCreateCurrentThreadIdentity();
+  identity->blocked_count_ptr = counter;
 }
 
-std::atomic<int>* PerThreadSem::GetThreadBlockedCounter()
-{
-    base_internal::ThreadIdentity* identity;
-    identity = GetOrCreateCurrentThreadIdentity();
-    return identity->blocked_count_ptr;
+std::atomic<int> *PerThreadSem::GetThreadBlockedCounter() {
+  base_internal::ThreadIdentity *identity;
+  identity = GetOrCreateCurrentThreadIdentity();
+  return identity->blocked_count_ptr;
 }
 
-void PerThreadSem::Tick(base_internal::ThreadIdentity* identity)
-{
-    const int ticker = identity->ticker.fetch_add(1, std::memory_order_relaxed) + 1;
-    const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
-    const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
-    if (wait_start && (ticker - wait_start > Waiter::kIdlePeriods) && !is_idle) {
-        // Wakeup the waiting thread since it is time for it to become idle.
-        ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPoke)(identity);
-    }
+void PerThreadSem::Tick(base_internal::ThreadIdentity *identity) {
+  const int ticker =
+      identity->ticker.fetch_add(1, std::memory_order_relaxed) + 1;
+  const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
+  const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
+  if (wait_start && (ticker - wait_start > Waiter::kIdlePeriods) && !is_idle) {
+    // Wakeup the waiting thread since it is time for it to become idle.
+    ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPoke)(identity);
+  }
 }
 
-} // namespace synchronization_internal
+}  // namespace synchronization_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
 extern "C" {
 
-ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemInit)(absl::base_internal::ThreadIdentity* identity)
-{
-    new (absl::synchronization_internal::Waiter::GetWaiter(identity)) absl::synchronization_internal::Waiter();
+ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemInit)(
+    absl::base_internal::ThreadIdentity *identity) {
+  new (absl::synchronization_internal::Waiter::GetWaiter(identity))
+      absl::synchronization_internal::Waiter();
 }
 
-ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPost)(absl::base_internal::ThreadIdentity* identity)
-{
-    absl::synchronization_internal::Waiter::GetWaiter(identity)->Post();
+ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPost)(
+    absl::base_internal::ThreadIdentity *identity) {
+  absl::synchronization_internal::Waiter::GetWaiter(identity)->Post();
 }
 
-ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPoke)(absl::base_internal::ThreadIdentity* identity)
-{
-    absl::synchronization_internal::Waiter::GetWaiter(identity)->Poke();
+ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPoke)(
+    absl::base_internal::ThreadIdentity *identity) {
+  absl::synchronization_internal::Waiter::GetWaiter(identity)->Poke();
 }
 
-ABSL_ATTRIBUTE_WEAK bool ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemWait)(absl::synchronization_internal::KernelTimeout t)
-{
-    bool timeout = false;
-    absl::base_internal::ThreadIdentity* identity;
-    identity = absl::synchronization_internal::GetOrCreateCurrentThreadIdentity();
+ABSL_ATTRIBUTE_WEAK bool ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemWait)(
+    absl::synchronization_internal::KernelTimeout t) {
+  bool timeout = false;
+  absl::base_internal::ThreadIdentity *identity;
+  identity = absl::synchronization_internal::GetOrCreateCurrentThreadIdentity();
 
-    // Ensure wait_start != 0.
-    int ticker = identity->ticker.load(std::memory_order_relaxed);
-    identity->wait_start.store(ticker ? ticker : 1, std::memory_order_relaxed);
-    identity->is_idle.store(false, std::memory_order_relaxed);
+  // Ensure wait_start != 0.
+  int ticker = identity->ticker.load(std::memory_order_relaxed);
+  identity->wait_start.store(ticker ? ticker : 1, std::memory_order_relaxed);
+  identity->is_idle.store(false, std::memory_order_relaxed);
 
-    if (identity->blocked_count_ptr != nullptr) {
-        // Increment count of threads blocked in a given thread pool.
-        identity->blocked_count_ptr->fetch_add(1, std::memory_order_relaxed);
-    }
+  if (identity->blocked_count_ptr != nullptr) {
+    // Increment count of threads blocked in a given thread pool.
+    identity->blocked_count_ptr->fetch_add(1, std::memory_order_relaxed);
+  }
 
-    timeout = !absl::synchronization_internal::Waiter::GetWaiter(identity)->Wait(t);
+  timeout =
+      !absl::synchronization_internal::Waiter::GetWaiter(identity)->Wait(t);
 
-    if (identity->blocked_count_ptr != nullptr) {
-        identity->blocked_count_ptr->fetch_sub(1, std::memory_order_relaxed);
-    }
+  if (identity->blocked_count_ptr != nullptr) {
+    identity->blocked_count_ptr->fetch_sub(1, std::memory_order_relaxed);
+  }
 
-    identity->is_idle.store(false, std::memory_order_relaxed);
-    identity->wait_start.store(0, std::memory_order_relaxed);
-    return !timeout;
+  identity->is_idle.store(false, std::memory_order_relaxed);
+  identity->wait_start.store(0, std::memory_order_relaxed);
+  return !timeout;
 }
 
-} // extern "C"
+}  // extern "C"
 
-#endif // ABSL_LOW_LEVEL_ALLOC_MISSING
+#endif  // ABSL_LOW_LEVEL_ALLOC_MISSING

@@ -27,14 +27,14 @@ namespace random_internal {
 // RandenSlow implements the basic state manipulation methods for
 // architectures lacking AES hardware acceleration intrinsics.
 class RandenSlow {
-public:
-    static void Generate(const void* keys, void* state_void);
-    static void Absorb(const void* seed_void, void* state_void);
-    static const void* GetKeys();
+ public:
+  static void Generate(const void* keys, void* state_void);
+  static void Absorb(const void* seed_void, void* state_void);
+  static const void* GetKeys();
 };
 
-} // namespace random_internal
+}  // namespace random_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_RANDOM_INTERNAL_RANDEN_SLOW_H_
+#endif  // ABSL_RANDOM_INTERNAL_RANDEN_SLOW_H_

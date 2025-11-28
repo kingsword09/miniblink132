@@ -28,37 +28,61 @@ namespace internal {
 // perfetto::TracedValue implementation).
 
 struct PERFETTO_EXPORT_COMPONENT InternedEventCategory
-    : public TrackEventInternedDataIndex<InternedEventCategory, perfetto::protos::pbzero::InternedData::kEventCategoriesFieldNumber, const char*,
+    : public TrackEventInternedDataIndex<
+          InternedEventCategory,
+          perfetto::protos::pbzero::InternedData::kEventCategoriesFieldNumber,
+          const char*,
           SmallInternedDataTraits> {
-    ~InternedEventCategory() override;
+  ~InternedEventCategory() override;
 
-    static void Add(protos::pbzero::InternedData* interned_data, size_t iid, const char* value, size_t length);
+  static void Add(protos::pbzero::InternedData* interned_data,
+                  size_t iid,
+                  const char* value,
+                  size_t length);
 };
 
-struct PERFETTO_EXPORT_COMPONENT InternedEventName : public TrackEventInternedDataIndex<InternedEventName,
-                                                         perfetto::protos::pbzero::InternedData::kEventNamesFieldNumber, const char*, SmallInternedDataTraits> {
-    ~InternedEventName() override;
+struct PERFETTO_EXPORT_COMPONENT InternedEventName
+    : public TrackEventInternedDataIndex<
+          InternedEventName,
+          perfetto::protos::pbzero::InternedData::kEventNamesFieldNumber,
+          const char*,
+          SmallInternedDataTraits> {
+  ~InternedEventName() override;
 
-    static void Add(protos::pbzero::InternedData* interned_data, size_t iid, const char* value);
+  static void Add(protos::pbzero::InternedData* interned_data,
+                  size_t iid,
+                  const char* value);
 };
 
 struct PERFETTO_EXPORT_COMPONENT InternedDebugAnnotationName
-    : public TrackEventInternedDataIndex<InternedDebugAnnotationName, perfetto::protos::pbzero::InternedData::kDebugAnnotationNamesFieldNumber, const char*,
+    : public TrackEventInternedDataIndex<
+          InternedDebugAnnotationName,
+          perfetto::protos::pbzero::InternedData::
+              kDebugAnnotationNamesFieldNumber,
+          const char*,
           SmallInternedDataTraits> {
-    ~InternedDebugAnnotationName() override;
+  ~InternedDebugAnnotationName() override;
 
-    static void Add(protos::pbzero::InternedData* interned_data, size_t iid, const char* value);
+  static void Add(protos::pbzero::InternedData* interned_data,
+                  size_t iid,
+                  const char* value);
 };
 
 struct PERFETTO_EXPORT_COMPONENT InternedDebugAnnotationValueTypeName
-    : public TrackEventInternedDataIndex<InternedDebugAnnotationValueTypeName,
-          perfetto::protos::pbzero::InternedData::kDebugAnnotationValueTypeNamesFieldNumber, const char*, SmallInternedDataTraits> {
-    ~InternedDebugAnnotationValueTypeName() override;
+    : public TrackEventInternedDataIndex<
+          InternedDebugAnnotationValueTypeName,
+          perfetto::protos::pbzero::InternedData::
+              kDebugAnnotationValueTypeNamesFieldNumber,
+          const char*,
+          SmallInternedDataTraits> {
+  ~InternedDebugAnnotationValueTypeName() override;
 
-    static void Add(protos::pbzero::InternedData* interned_data, size_t iid, const char* value);
+  static void Add(protos::pbzero::InternedData* interned_data,
+                  size_t iid,
+                  const char* value);
 };
 
-} // namespace internal
-} // namespace perfetto
+}  // namespace internal
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACK_EVENT_INTERNED_FIELDS_H_
+#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACK_EVENT_INTERNED_FIELDS_H_

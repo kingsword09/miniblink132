@@ -66,7 +66,7 @@ bool GzipCompress(base::span<const uint8_t> input, std::string* output) {
     return false;
   }
   output->assign(resized_data, resized_data + compressed_data_size);
-  DCHECK_EQ(input_size, GetUncompressedSize(base::span<const char>(output->data(), output->size())));
+  DCHECK_EQ(input_size, GetUncompressedSize(*output));
 
   free(resized_data);
   return true;
@@ -74,7 +74,7 @@ bool GzipCompress(base::span<const uint8_t> input, std::string* output) {
 
 bool GzipUncompress(const std::string& input, std::string* output) {
   std::string uncompressed_output;
-  uLongf uncompressed_size = static_cast<uLongf>(GetUncompressedSize(base::span<const char>(input.data(), input.size())));
+  uLongf uncompressed_size = static_cast<uLongf>(GetUncompressedSize(input));
   if (size_t{uncompressed_size} > uncompressed_output.max_size())
     return false;
 

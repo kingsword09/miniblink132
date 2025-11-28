@@ -21,13 +21,12 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace time_internal {
 
-TimeZone LoadTimeZone(const std::string& name)
-{
-    TimeZone tz;
-    ABSL_RAW_CHECK(LoadTimeZone(name, &tz), name.c_str());
-    return tz;
+TimeZone LoadTimeZone(const std::string& name) {
+  TimeZone tz;
+  ABSL_RAW_CHECK(LoadTimeZone(name, &tz), name.c_str());
+  return tz;
 }
 
-} // namespace time_internal
+}  // namespace time_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

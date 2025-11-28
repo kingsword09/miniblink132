@@ -35,137 +35,146 @@
 // Test go/btm support by randomizing the value of clock_gettime() for
 // CLOCK_MONOTONIC. This works by overriding a weak symbol in glibc.
 // We should be resistant to this randomization when !SupportsSteadyClock().
-#if defined(__GOOGLE_GRTE_VERSION__) && !defined(ABSL_HAVE_ADDRESS_SANITIZER) && !defined(ABSL_HAVE_MEMORY_SANITIZER) && !defined(ABSL_HAVE_THREAD_SANITIZER)
+#if defined(__GOOGLE_GRTE_VERSION__) &&      \
+    !defined(ABSL_HAVE_ADDRESS_SANITIZER) && \
+    !defined(ABSL_HAVE_MEMORY_SANITIZER) &&  \
+    !defined(ABSL_HAVE_THREAD_SANITIZER)
 extern "C" int __clock_gettime(clockid_t c, struct timespec* ts);
 
-extern "C" int clock_gettime(clockid_t c, struct timespec* ts)
-{
-    if (c == CLOCK_MONOTONIC && !absl::synchronization_internal::KernelTimeout::SupportsSteadyClock()) {
-        thread_local absl::BitGen gen; // NOLINT
-        ts->tv_sec = absl::Uniform(gen, 0, 1'000'000'000);
-        ts->tv_nsec = absl::Uniform(gen, 0, 1'000'000'000);
-        return 0;
-    }
-    return __clock_gettime(c, ts);
+extern "C" int clock_gettime(clockid_t c, struct timespec* ts) {
+  if (c == CLOCK_MONOTONIC &&
+      !absl::synchronization_internal::KernelTimeout::SupportsSteadyClock()) {
+    thread_local absl::BitGen gen;  // NOLINT
+    ts->tv_sec = absl::Uniform(gen, 0, 1'000'000'000);
+    ts->tv_nsec = absl::Uniform(gen, 0, 1'000'000'000);
+    return 0;
+  }
+  return __clock_gettime(c, ts);
 }
 #endif
 
 namespace {
 
-TEST(Waiter, PrintPlatformImplementation)
-{
-    // Allows us to verify that the platform is using the expected implementation.
-    std::cout << absl::synchronization_internal::Waiter::kName << std::endl;
+TEST(Waiter, PrintPlatformImplementation) {
+  // Allows us to verify that the platform is using the expected implementation.
+  std::cout << absl::synchronization_internal::Waiter::kName << std::endl;
 }
 
-template <typename T> class WaiterTest : public ::testing::Test {
-public:
-    // Waiter implementations assume that a ThreadIdentity has already been
-    // created.
-    WaiterTest()
-    {
-        absl::synchronization_internal::GetOrCreateCurrentThreadIdentity();
-    }
+template <typename T>
+class WaiterTest : public ::testing::Test {
+ public:
+  // Waiter implementations assume that a ThreadIdentity has already been
+  // created.
+  WaiterTest() {
+    absl::synchronization_internal::GetOrCreateCurrentThreadIdentity();
+  }
 };
 
 TYPED_TEST_SUITE_P(WaiterTest);
 
-absl::Duration WithTolerance(absl::Duration d)
-{
-    return d * 0.95;
+absl::Duration WithTolerance(absl::Duration d) { return d * 0.95; }
+
+TYPED_TEST_P(WaiterTest, WaitNoTimeout) {
+  absl::synchronization_internal::ThreadPool tp(1);
+  TypeParam waiter;
+  tp.Schedule([&]() {
+    // Include some `Poke()` calls to ensure they don't cause `waiter` to return
+    // from `Wait()`.
+    waiter.Poke();
+    absl::SleepFor(absl::Seconds(1));
+    waiter.Poke();
+    absl::SleepFor(absl::Seconds(1));
+    waiter.Post();
+  });
+  absl::Time start = absl::Now();
+  EXPECT_TRUE(
+      waiter.Wait(absl::synchronization_internal::KernelTimeout::Never()));
+  absl::Duration waited = absl::Now() - start;
+  EXPECT_GE(waited, WithTolerance(absl::Seconds(2)));
 }
 
-TYPED_TEST_P(WaiterTest, WaitNoTimeout)
-{
-    absl::synchronization_internal::ThreadPool tp(1);
-    TypeParam waiter;
-    tp.Schedule([&]() {
-        // Include some `Poke()` calls to ensure they don't cause `waiter` to return
-        // from `Wait()`.
-        waiter.Poke();
-        absl::SleepFor(absl::Seconds(1));
-        waiter.Poke();
-        absl::SleepFor(absl::Seconds(1));
-        waiter.Post();
-    });
-    absl::Time start = absl::Now();
-    EXPECT_TRUE(waiter.Wait(absl::synchronization_internal::KernelTimeout::Never()));
-    absl::Duration waited = absl::Now() - start;
-    EXPECT_GE(waited, WithTolerance(absl::Seconds(2)));
+TYPED_TEST_P(WaiterTest, WaitDurationWoken) {
+  absl::synchronization_internal::ThreadPool tp(1);
+  TypeParam waiter;
+  tp.Schedule([&]() {
+    // Include some `Poke()` calls to ensure they don't cause `waiter` to return
+    // from `Wait()`.
+    waiter.Poke();
+    absl::SleepFor(absl::Milliseconds(500));
+    waiter.Post();
+  });
+  absl::Time start = absl::Now();
+  EXPECT_TRUE(waiter.Wait(
+      absl::synchronization_internal::KernelTimeout(absl::Seconds(10))));
+  absl::Duration waited = absl::Now() - start;
+  EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
+  EXPECT_LT(waited, absl::Seconds(2));
 }
 
-TYPED_TEST_P(WaiterTest, WaitDurationWoken)
-{
-    absl::synchronization_internal::ThreadPool tp(1);
-    TypeParam waiter;
-    tp.Schedule([&]() {
-        // Include some `Poke()` calls to ensure they don't cause `waiter` to return
-        // from `Wait()`.
-        waiter.Poke();
-        absl::SleepFor(absl::Milliseconds(500));
-        waiter.Post();
-    });
-    absl::Time start = absl::Now();
-    EXPECT_TRUE(waiter.Wait(absl::synchronization_internal::KernelTimeout(absl::Seconds(10))));
-    absl::Duration waited = absl::Now() - start;
-    EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
-    EXPECT_LT(waited, absl::Seconds(2));
+TYPED_TEST_P(WaiterTest, WaitTimeWoken) {
+  absl::synchronization_internal::ThreadPool tp(1);
+  TypeParam waiter;
+  tp.Schedule([&]() {
+    // Include some `Poke()` calls to ensure they don't cause `waiter` to return
+    // from `Wait()`.
+    waiter.Poke();
+    absl::SleepFor(absl::Milliseconds(500));
+    waiter.Post();
+  });
+  absl::Time start = absl::Now();
+  EXPECT_TRUE(waiter.Wait(absl::synchronization_internal::KernelTimeout(
+      start + absl::Seconds(10))));
+  absl::Duration waited = absl::Now() - start;
+  EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
+  EXPECT_LT(waited, absl::Seconds(2));
 }
 
-TYPED_TEST_P(WaiterTest, WaitTimeWoken)
-{
-    absl::synchronization_internal::ThreadPool tp(1);
-    TypeParam waiter;
-    tp.Schedule([&]() {
-        // Include some `Poke()` calls to ensure they don't cause `waiter` to return
-        // from `Wait()`.
-        waiter.Poke();
-        absl::SleepFor(absl::Milliseconds(500));
-        waiter.Post();
-    });
-    absl::Time start = absl::Now();
-    EXPECT_TRUE(waiter.Wait(absl::synchronization_internal::KernelTimeout(start + absl::Seconds(10))));
-    absl::Duration waited = absl::Now() - start;
-    EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
-    EXPECT_LT(waited, absl::Seconds(2));
+TYPED_TEST_P(WaiterTest, WaitDurationReached) {
+  TypeParam waiter;
+  absl::Time start = absl::Now();
+  EXPECT_FALSE(waiter.Wait(
+      absl::synchronization_internal::KernelTimeout(absl::Milliseconds(500))));
+  absl::Duration waited = absl::Now() - start;
+  EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
+  EXPECT_LT(waited, absl::Seconds(1));
 }
 
-TYPED_TEST_P(WaiterTest, WaitDurationReached)
-{
-    TypeParam waiter;
-    absl::Time start = absl::Now();
-    EXPECT_FALSE(waiter.Wait(absl::synchronization_internal::KernelTimeout(absl::Milliseconds(500))));
-    absl::Duration waited = absl::Now() - start;
-    EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
-    EXPECT_LT(waited, absl::Seconds(1));
+TYPED_TEST_P(WaiterTest, WaitTimeReached) {
+  TypeParam waiter;
+  absl::Time start = absl::Now();
+  EXPECT_FALSE(waiter.Wait(absl::synchronization_internal::KernelTimeout(
+      start + absl::Milliseconds(500))));
+  absl::Duration waited = absl::Now() - start;
+  EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
+  EXPECT_LT(waited, absl::Seconds(1));
 }
 
-TYPED_TEST_P(WaiterTest, WaitTimeReached)
-{
-    TypeParam waiter;
-    absl::Time start = absl::Now();
-    EXPECT_FALSE(waiter.Wait(absl::synchronization_internal::KernelTimeout(start + absl::Milliseconds(500))));
-    absl::Duration waited = absl::Now() - start;
-    EXPECT_GE(waited, WithTolerance(absl::Milliseconds(500)));
-    EXPECT_LT(waited, absl::Seconds(1));
-}
-
-REGISTER_TYPED_TEST_SUITE_P(WaiterTest, WaitNoTimeout, WaitDurationWoken, WaitTimeWoken, WaitDurationReached, WaitTimeReached);
+REGISTER_TYPED_TEST_SUITE_P(WaiterTest,
+                            WaitNoTimeout,
+                            WaitDurationWoken,
+                            WaitTimeWoken,
+                            WaitDurationReached,
+                            WaitTimeReached);
 
 #ifdef ABSL_INTERNAL_HAVE_FUTEX_WAITER
-INSTANTIATE_TYPED_TEST_SUITE_P(Futex, WaiterTest, absl::synchronization_internal::FutexWaiter);
+INSTANTIATE_TYPED_TEST_SUITE_P(Futex, WaiterTest,
+                               absl::synchronization_internal::FutexWaiter);
 #endif
 #ifdef ABSL_INTERNAL_HAVE_PTHREAD_WAITER
-INSTANTIATE_TYPED_TEST_SUITE_P(Pthread, WaiterTest, absl::synchronization_internal::PthreadWaiter);
+INSTANTIATE_TYPED_TEST_SUITE_P(Pthread, WaiterTest,
+                               absl::synchronization_internal::PthreadWaiter);
 #endif
 #ifdef ABSL_INTERNAL_HAVE_SEM_WAITER
-INSTANTIATE_TYPED_TEST_SUITE_P(Sem, WaiterTest, absl::synchronization_internal::SemWaiter);
+INSTANTIATE_TYPED_TEST_SUITE_P(Sem, WaiterTest,
+                               absl::synchronization_internal::SemWaiter);
 #endif
 #ifdef ABSL_INTERNAL_HAVE_WIN32_WAITER
-INSTANTIATE_TYPED_TEST_SUITE_P(Win32, WaiterTest, absl::synchronization_internal::Win32Waiter);
+INSTANTIATE_TYPED_TEST_SUITE_P(Win32, WaiterTest,
+                               absl::synchronization_internal::Win32Waiter);
 #endif
 #ifdef ABSL_INTERNAL_HAVE_STDCPP_WAITER
-INSTANTIATE_TYPED_TEST_SUITE_P(Stdcpp, WaiterTest, absl::synchronization_internal::StdcppWaiter);
+INSTANTIATE_TYPED_TEST_SUITE_P(Stdcpp, WaiterTest,
+                               absl::synchronization_internal::StdcppWaiter);
 #endif
 
-} // namespace
+}  // namespace

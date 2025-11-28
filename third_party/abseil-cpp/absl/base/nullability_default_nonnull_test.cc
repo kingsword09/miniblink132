@@ -21,30 +21,24 @@ ABSL_POINTERS_DEFAULT_NONNULL
 
 namespace {
 
-void FuncWithDefaultNonnullArg(int* /*arg*/)
-{
-}
-template <typename T> void FuncWithDeducedDefaultNonnullArg(T* /*arg*/)
-{
+void FuncWithDefaultNonnullArg(int* /*arg*/) {}
+template <typename T>
+void FuncWithDeducedDefaultNonnullArg(T* /*arg*/) {}
+
+TEST(DefaultNonnullTest, NonnullArgument) {
+  int var = 0;
+  FuncWithDefaultNonnullArg(&var);
+  FuncWithDeducedDefaultNonnullArg<int>(&var);
 }
 
-TEST(DefaultNonnullTest, NonnullArgument)
-{
-    int var = 0;
-    FuncWithDefaultNonnullArg(&var);
-    FuncWithDeducedDefaultNonnullArg<int>(&var);
+int* FuncWithDefaultNonnullReturn() {
+  static int var = 0;
+  return &var;
 }
 
-int* FuncWithDefaultNonnullReturn()
-{
-    static int var = 0;
-    return &var;
+TEST(DefaultNonnullTest, NonnullReturn) {
+  auto var = FuncWithDefaultNonnullReturn();
+  (void)var;
 }
 
-TEST(DefaultNonnullTest, NonnullReturn)
-{
-    auto var = FuncWithDefaultNonnullReturn();
-    (void)var;
-}
-
-} // namespace
+}  // namespace

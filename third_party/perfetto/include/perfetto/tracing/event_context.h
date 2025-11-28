@@ -17,8 +17,6 @@
 #ifndef INCLUDE_PERFETTO_TRACING_EVENT_CONTEXT_H_
 #define INCLUDE_PERFETTO_TRACING_EVENT_CONTEXT_H_
 
-#if 0
-
 #include "perfetto/protozero/message_handle.h"
 #include "perfetto/tracing/internal/track_event_internal.h"
 #include "perfetto/tracing/traced_proto.h"
@@ -166,5 +164,4 @@ class PERFETTO_EXPORT_COMPONENT EventContext {
 
 }  // namespace perfetto
 
-#endif // if 0
-#endif // INCLUDE_PERFETTO_TRACING_EVENT_CONTEXT_H_
+#endif  // INCLUDE_PERFETTO_TRACING_EVENT_CONTEXT_H_

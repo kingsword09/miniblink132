@@ -30,32 +30,31 @@ ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 
 ABSL_CONST_INIT static absl::Mutex program_name_guard(absl::kConstInit);
-ABSL_CONST_INIT static std::string* program_name ABSL_GUARDED_BY(program_name_guard) = nullptr;
+ABSL_CONST_INIT static std::string* program_name
+    ABSL_GUARDED_BY(program_name_guard) = nullptr;
 
-std::string ProgramInvocationName()
-{
-    absl::MutexLock l(&program_name_guard);
+std::string ProgramInvocationName() {
+  absl::MutexLock l(&program_name_guard);
 
-    return program_name ? *program_name : "UNKNOWN";
+  return program_name ? *program_name : "UNKNOWN";
 }
 
-std::string ShortProgramInvocationName()
-{
-    absl::MutexLock l(&program_name_guard);
+std::string ShortProgramInvocationName() {
+  absl::MutexLock l(&program_name_guard);
 
-    return program_name ? std::string(flags_internal::Basename(*program_name)) : "UNKNOWN";
+  return program_name ? std::string(flags_internal::Basename(*program_name))
+                      : "UNKNOWN";
 }
 
-void SetProgramInvocationName(absl::string_view prog_name_str)
-{
-    absl::MutexLock l(&program_name_guard);
+void SetProgramInvocationName(absl::string_view prog_name_str) {
+  absl::MutexLock l(&program_name_guard);
 
-    if (!program_name)
-        program_name = new std::string(prog_name_str);
-    else
-        program_name->assign(prog_name_str.data(), prog_name_str.size());
+  if (!program_name)
+    program_name = new std::string(prog_name_str);
+  else
+    program_name->assign(prog_name_str.data(), prog_name_str.size());
 }
 
-} // namespace flags_internal
+}  // namespace flags_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

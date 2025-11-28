@@ -41,46 +41,44 @@ namespace base_internal {
 
 namespace {
 
-size_t GetPageSize()
-{
+size_t GetPageSize() {
 #ifdef _WIN32
-    SYSTEM_INFO system_info;
-    GetSystemInfo(&system_info);
-    return system_info.dwPageSize;
+  SYSTEM_INFO system_info;
+  GetSystemInfo(&system_info);
+  return system_info.dwPageSize;
 #elif defined(__wasm__) || defined(__asmjs__) || defined(__hexagon__)
-    return getpagesize();
+  return getpagesize();
 #else
-    return static_cast<size_t>(sysconf(_SC_PAGESIZE));
+  return static_cast<size_t>(sysconf(_SC_PAGESIZE));
 #endif
 }
 
-} // namespace
+}  // namespace
 
-void* InitializePoisonedPointerInternal()
-{
-    const size_t block_size = GetPageSize();
+void* InitializePoisonedPointerInternal() {
+  const size_t block_size = GetPageSize();
 #if defined(ABSL_HAVE_ADDRESS_SANITIZER)
-    void* data = malloc(block_size);
-    ASAN_POISON_MEMORY_REGION(data, block_size);
+  void* data = malloc(block_size);
+  ASAN_POISON_MEMORY_REGION(data, block_size);
 #elif defined(ABSL_HAVE_MEMORY_SANITIZER)
-    void* data = malloc(block_size);
-    __msan_poison(data, block_size);
+  void* data = malloc(block_size);
+  __msan_poison(data, block_size);
 #elif defined(ABSL_HAVE_MMAP)
-    void* data = DirectMmap(nullptr, block_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (data == MAP_FAILED)
-        return GetBadPointerInternal();
+  void* data = DirectMmap(nullptr, block_size, PROT_NONE,
+                          MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (data == MAP_FAILED) return GetBadPointerInternal();
 #elif defined(_WIN32)
-    void* data = VirtualAlloc(nullptr, block_size, MEM_RESERVE | MEM_COMMIT, PAGE_NOACCESS);
-    if (data == nullptr)
-        return GetBadPointerInternal();
+  void* data = VirtualAlloc(nullptr, block_size, MEM_RESERVE | MEM_COMMIT,
+                            PAGE_NOACCESS);
+  if (data == nullptr) return GetBadPointerInternal();
 #else
-    return GetBadPointerInternal();
+  return GetBadPointerInternal();
 #endif
-    // Return the middle of the block so that dereferences before and after the
-    // pointer will both crash.
-    return static_cast<char*>(data) + block_size / 2;
+  // Return the middle of the block so that dereferences before and after the
+  // pointer will both crash.
+  return static_cast<char*>(data) + block_size / 2;
 }
 
-} // namespace base_internal
+}  // namespace base_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

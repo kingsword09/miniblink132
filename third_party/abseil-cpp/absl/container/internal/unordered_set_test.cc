@@ -24,15 +24,18 @@ ABSL_NAMESPACE_BEGIN
 namespace container_internal {
 namespace {
 
-using SetTypes = ::testing::Types<std::unordered_set<int, StatefulTestingHash, StatefulTestingEqual, Alloc<int>>,
-    std::unordered_set<std::string, StatefulTestingHash, StatefulTestingEqual, Alloc<std::string>>>;
+using SetTypes = ::testing::Types<
+    std::unordered_set<int, StatefulTestingHash, StatefulTestingEqual,
+                       Alloc<int>>,
+    std::unordered_set<std::string, StatefulTestingHash, StatefulTestingEqual,
+                       Alloc<std::string>>>;
 
 INSTANTIATE_TYPED_TEST_SUITE_P(UnorderedSet, ConstructorTest, SetTypes);
 INSTANTIATE_TYPED_TEST_SUITE_P(UnorderedSet, LookupTest, SetTypes);
 INSTANTIATE_TYPED_TEST_SUITE_P(UnorderedSet, MembersTest, SetTypes);
 INSTANTIATE_TYPED_TEST_SUITE_P(UnorderedSet, ModifiersTest, SetTypes);
 
-} // namespace
-} // namespace container_internal
+}  // namespace
+}  // namespace container_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

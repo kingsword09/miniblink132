@@ -17,8 +17,6 @@
 #ifndef INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
 #define INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
 
-#if 0
-
 #include "perfetto/base/compiler.h"
 #include "perfetto/base/export.h"
 #include "perfetto/base/template_util.h"
@@ -713,6 +711,4 @@ struct TraceFormatTraits<std::nullptr_t> {
 
 }  // namespace perfetto
 
-#endif // if 0
-
-#endif // INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
+#endif  // INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_

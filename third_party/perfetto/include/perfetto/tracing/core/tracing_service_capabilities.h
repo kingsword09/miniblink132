@@ -25,4 +25,4 @@
 
 #include "protos/perfetto/common/tracing_service_capabilities.gen.h"
 
-#endif // INCLUDE_PERFETTO_TRACING_CORE_TRACING_SERVICE_CAPABILITIES_H_
+#endif  // INCLUDE_PERFETTO_TRACING_CORE_TRACING_SERVICE_CAPABILITIES_H_

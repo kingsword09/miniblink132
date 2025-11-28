@@ -43,13 +43,9 @@ ABSL_NAMESPACE_BEGIN
 // sink instead which writes them to `stderr`.
 //
 // Do not call these inside `absl::LogSink::Send`.
-inline void AddLogSink(absl::LogSink* sink)
-{
-    log_internal::AddLogSink(sink);
-}
-inline void RemoveLogSink(absl::LogSink* sink)
-{
-    log_internal::RemoveLogSink(sink);
+inline void AddLogSink(absl::LogSink* sink) { log_internal::AddLogSink(sink); }
+inline void RemoveLogSink(absl::LogSink* sink) {
+  log_internal::RemoveLogSink(sink);
 }
 
 // FlushLogSinks()
@@ -57,12 +53,9 @@ inline void RemoveLogSink(absl::LogSink* sink)
 // Calls `absl::LogSink::Flush` on all registered sinks.
 //
 // Do not call this inside `absl::LogSink::Send`.
-inline void FlushLogSinks()
-{
-    log_internal::FlushLogSinks();
-}
+inline void FlushLogSinks() { log_internal::FlushLogSinks(); }
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_LOG_SINK_REGISTRY_H_
+#endif  // ABSL_LOG_LOG_SINK_REGISTRY_H_

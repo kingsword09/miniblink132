@@ -158,182 +158,177 @@ ABSL_NAMESPACE_BEGIN
 //   // Create an empty instance using the default constructor.
 //   AnyInvocable<void()> empty;
 //   empty();  // WARNING: Undefined behavior!
-template <class Sig> class AnyInvocable : private internal_any_invocable::Impl<Sig> {
-private:
-    static_assert(std::is_function<Sig>::value, "The template argument of AnyInvocable must be a function type.");
+template <class Sig>
+class AnyInvocable : private internal_any_invocable::Impl<Sig> {
+ private:
+  static_assert(
+      std::is_function<Sig>::value,
+      "The template argument of AnyInvocable must be a function type.");
 
-    using Impl = internal_any_invocable::Impl<Sig>;
+  using Impl = internal_any_invocable::Impl<Sig>;
 
-public:
-    // The return type of Sig
-    using result_type = typename Impl::result_type;
+ public:
+  // The return type of Sig
+  using result_type = typename Impl::result_type;
 
-    // Constructors
+  // Constructors
 
-    // Constructs the `AnyInvocable` in an empty state.
-    // Invoking it results in undefined behavior.
-    AnyInvocable() noexcept = default;
-    AnyInvocable(std::nullptr_t) noexcept
-    {
-    } // NOLINT
+  // Constructs the `AnyInvocable` in an empty state.
+  // Invoking it results in undefined behavior.
+  AnyInvocable() noexcept = default;
+  AnyInvocable(std::nullptr_t) noexcept {}  // NOLINT
 
-    // Constructs the `AnyInvocable` from an existing `AnyInvocable` by a move.
-    // Note that `f` is not guaranteed to be empty after move-construction,
-    // although it may be.
-    AnyInvocable(AnyInvocable&& /*f*/) noexcept = default;
+  // Constructs the `AnyInvocable` from an existing `AnyInvocable` by a move.
+  // Note that `f` is not guaranteed to be empty after move-construction,
+  // although it may be.
+  AnyInvocable(AnyInvocable&& /*f*/) noexcept = default;
 
-    // Constructs an `AnyInvocable` from an invocable object.
-    //
-    // Upon construction, `*this` is only empty if `f` is a function pointer or
-    // member pointer type and is null, or if `f` is an `AnyInvocable` that is
-    // empty.
-    template <class F, typename = absl::enable_if_t<internal_any_invocable::CanConvert<Sig, F>::value>>
-    AnyInvocable(F&& f) // NOLINT
-        : Impl(internal_any_invocable::ConversionConstruct(), std::forward<F>(f))
-    {
-    }
+  // Constructs an `AnyInvocable` from an invocable object.
+  //
+  // Upon construction, `*this` is only empty if `f` is a function pointer or
+  // member pointer type and is null, or if `f` is an `AnyInvocable` that is
+  // empty.
+  template <class F, typename = absl::enable_if_t<
+                         internal_any_invocable::CanConvert<Sig, F>::value>>
+  AnyInvocable(F&& f)  // NOLINT
+      : Impl(internal_any_invocable::ConversionConstruct(),
+             std::forward<F>(f)) {}
 
-    // Constructs an `AnyInvocable` that holds an invocable object of type `T`,
-    // which is constructed in-place from the given arguments.
-    //
-    // Example:
-    //
-    //   AnyInvocable<int(int)> func(
-    //       absl::in_place_type<PossiblyImmovableType>, arg1, arg2);
-    //
-    template <class T, class... Args, typename = absl::enable_if_t<internal_any_invocable::CanEmplace<Sig, T, Args...>::value>>
-    explicit AnyInvocable(absl::in_place_type_t<T>, Args&&... args)
-        : Impl(absl::in_place_type<absl::decay_t<T>>, std::forward<Args>(args)...)
-    {
-        static_assert(std::is_same<T, absl::decay_t<T>>::value,
-            "The explicit template argument of in_place_type is required "
-            "to be an unqualified object type.");
-    }
+  // Constructs an `AnyInvocable` that holds an invocable object of type `T`,
+  // which is constructed in-place from the given arguments.
+  //
+  // Example:
+  //
+  //   AnyInvocable<int(int)> func(
+  //       absl::in_place_type<PossiblyImmovableType>, arg1, arg2);
+  //
+  template <class T, class... Args,
+            typename = absl::enable_if_t<
+                internal_any_invocable::CanEmplace<Sig, T, Args...>::value>>
+  explicit AnyInvocable(absl::in_place_type_t<T>, Args&&... args)
+      : Impl(absl::in_place_type<absl::decay_t<T>>,
+             std::forward<Args>(args)...) {
+    static_assert(std::is_same<T, absl::decay_t<T>>::value,
+                  "The explicit template argument of in_place_type is required "
+                  "to be an unqualified object type.");
+  }
 
-    // Overload of the above constructor to support list-initialization.
-    template <class T, class U, class... Args,
-        typename = absl::enable_if_t<internal_any_invocable::CanEmplace<Sig, T, std::initializer_list<U>&, Args...>::value>>
-    explicit AnyInvocable(absl::in_place_type_t<T>, std::initializer_list<U> ilist, Args&&... args)
-        : Impl(absl::in_place_type<absl::decay_t<T>>, ilist, std::forward<Args>(args)...)
-    {
-        static_assert(std::is_same<T, absl::decay_t<T>>::value,
-            "The explicit template argument of in_place_type is required "
-            "to be an unqualified object type.");
-    }
+  // Overload of the above constructor to support list-initialization.
+  template <class T, class U, class... Args,
+            typename = absl::enable_if_t<internal_any_invocable::CanEmplace<
+                Sig, T, std::initializer_list<U>&, Args...>::value>>
+  explicit AnyInvocable(absl::in_place_type_t<T>,
+                        std::initializer_list<U> ilist, Args&&... args)
+      : Impl(absl::in_place_type<absl::decay_t<T>>, ilist,
+             std::forward<Args>(args)...) {
+    static_assert(std::is_same<T, absl::decay_t<T>>::value,
+                  "The explicit template argument of in_place_type is required "
+                  "to be an unqualified object type.");
+  }
 
-    // Assignment Operators
+  // Assignment Operators
 
-    // Assigns an `AnyInvocable` through move-assignment.
-    // Note that `f` is not guaranteed to be empty after move-assignment
-    // although it may be.
-    AnyInvocable& operator=(AnyInvocable&& /*f*/) noexcept = default;
+  // Assigns an `AnyInvocable` through move-assignment.
+  // Note that `f` is not guaranteed to be empty after move-assignment
+  // although it may be.
+  AnyInvocable& operator=(AnyInvocable&& /*f*/) noexcept = default;
 
-    // Assigns an `AnyInvocable` from a nullptr, clearing the `AnyInvocable`. If
-    // not empty, destroys the target, putting `*this` into an empty state.
-    AnyInvocable& operator=(std::nullptr_t) noexcept
-    {
-        this->Clear();
-        return *this;
-    }
+  // Assigns an `AnyInvocable` from a nullptr, clearing the `AnyInvocable`. If
+  // not empty, destroys the target, putting `*this` into an empty state.
+  AnyInvocable& operator=(std::nullptr_t) noexcept {
+    this->Clear();
+    return *this;
+  }
 
-    // Assigns an `AnyInvocable` from an existing `AnyInvocable` instance.
-    //
-    // Upon assignment, `*this` is only empty if `f` is a function pointer or
-    // member pointer type and is null, or if `f` is an `AnyInvocable` that is
-    // empty.
-    template <class F, typename = absl::enable_if_t<internal_any_invocable::CanAssign<Sig, F>::value>> AnyInvocable& operator=(F&& f)
-    {
-        *this = AnyInvocable(std::forward<F>(f));
-        return *this;
-    }
+  // Assigns an `AnyInvocable` from an existing `AnyInvocable` instance.
+  //
+  // Upon assignment, `*this` is only empty if `f` is a function pointer or
+  // member pointer type and is null, or if `f` is an `AnyInvocable` that is
+  // empty.
+  template <class F, typename = absl::enable_if_t<
+                         internal_any_invocable::CanAssign<Sig, F>::value>>
+  AnyInvocable& operator=(F&& f) {
+    *this = AnyInvocable(std::forward<F>(f));
+    return *this;
+  }
 
-    // Assigns an `AnyInvocable` from a reference to an invocable object.
-    // Upon assignment, stores a reference to the invocable object in the
-    // `AnyInvocable` instance.
-    template <class F, typename = absl::enable_if_t<internal_any_invocable::CanAssignReferenceWrapper<Sig, F>::value>>
-    AnyInvocable& operator=(std::reference_wrapper<F> f) noexcept
-    {
-        *this = AnyInvocable(f);
-        return *this;
-    }
+  // Assigns an `AnyInvocable` from a reference to an invocable object.
+  // Upon assignment, stores a reference to the invocable object in the
+  // `AnyInvocable` instance.
+  template <
+      class F,
+      typename = absl::enable_if_t<
+          internal_any_invocable::CanAssignReferenceWrapper<Sig, F>::value>>
+  AnyInvocable& operator=(std::reference_wrapper<F> f) noexcept {
+    *this = AnyInvocable(f);
+    return *this;
+  }
 
-    // Destructor
+  // Destructor
 
-    // If not empty, destroys the target.
-    ~AnyInvocable() = default;
+  // If not empty, destroys the target.
+  ~AnyInvocable() = default;
 
-    // absl::AnyInvocable::swap()
-    //
-    // Exchanges the targets of `*this` and `other`.
-    void swap(AnyInvocable& other) noexcept
-    {
-        std::swap(*this, other);
-    }
+  // absl::AnyInvocable::swap()
+  //
+  // Exchanges the targets of `*this` and `other`.
+  void swap(AnyInvocable& other) noexcept { std::swap(*this, other); }
 
-    // absl::AnyInvocable::operator bool()
-    //
-    // Returns `true` if `*this` is not empty.
-    //
-    // WARNING: An `AnyInvocable` that wraps an empty `std::function` is not
-    // itself empty. This behavior is consistent with the standard equivalent
-    // `std::move_only_function`.
-    //
-    // In other words:
-    //   std::function<void()> f;  // empty
-    //   absl::AnyInvocable<void()> a = std::move(f);  // not empty
-    //
-    // Invoking an empty `AnyInvocable` results in undefined behavior.
-    explicit operator bool() const noexcept
-    {
-        return this->HasValue();
-    }
+  // absl::AnyInvocable::operator bool()
+  //
+  // Returns `true` if `*this` is not empty.
+  //
+  // WARNING: An `AnyInvocable` that wraps an empty `std::function` is not
+  // itself empty. This behavior is consistent with the standard equivalent
+  // `std::move_only_function`.
+  //
+  // In other words:
+  //   std::function<void()> f;  // empty
+  //   absl::AnyInvocable<void()> a = std::move(f);  // not empty
+  //
+  // Invoking an empty `AnyInvocable` results in undefined behavior.
+  explicit operator bool() const noexcept { return this->HasValue(); }
 
-    // Invokes the target object of `*this`. `*this` must not be empty.
-    //
-    // Note: The signature of this function call operator is the same as the
-    //       template parameter `Sig`.
-    using Impl::operator();
+  // Invokes the target object of `*this`. `*this` must not be empty.
+  //
+  // Note: The signature of this function call operator is the same as the
+  //       template parameter `Sig`.
+  using Impl::operator();
 
-    // Equality operators
+  // Equality operators
 
-    // Returns `true` if `*this` is empty.
-    friend bool operator==(const AnyInvocable& f, std::nullptr_t) noexcept
-    {
-        return !f.HasValue();
-    }
+  // Returns `true` if `*this` is empty.
+  friend bool operator==(const AnyInvocable& f, std::nullptr_t) noexcept {
+    return !f.HasValue();
+  }
 
-    // Returns `true` if `*this` is empty.
-    friend bool operator==(std::nullptr_t, const AnyInvocable& f) noexcept
-    {
-        return !f.HasValue();
-    }
+  // Returns `true` if `*this` is empty.
+  friend bool operator==(std::nullptr_t, const AnyInvocable& f) noexcept {
+    return !f.HasValue();
+  }
 
-    // Returns `false` if `*this` is empty.
-    friend bool operator!=(const AnyInvocable& f, std::nullptr_t) noexcept
-    {
-        return f.HasValue();
-    }
+  // Returns `false` if `*this` is empty.
+  friend bool operator!=(const AnyInvocable& f, std::nullptr_t) noexcept {
+    return f.HasValue();
+  }
 
-    // Returns `false` if `*this` is empty.
-    friend bool operator!=(std::nullptr_t, const AnyInvocable& f) noexcept
-    {
-        return f.HasValue();
-    }
+  // Returns `false` if `*this` is empty.
+  friend bool operator!=(std::nullptr_t, const AnyInvocable& f) noexcept {
+    return f.HasValue();
+  }
 
-    // swap()
-    //
-    // Exchanges the targets of `f1` and `f2`.
-    friend void swap(AnyInvocable& f1, AnyInvocable& f2) noexcept
-    {
-        f1.swap(f2);
-    }
+  // swap()
+  //
+  // Exchanges the targets of `f1` and `f2`.
+  friend void swap(AnyInvocable& f1, AnyInvocable& f2) noexcept { f1.swap(f2); }
 
-private:
-    // Friending other instantiations is necessary for conversions.
-    template <bool /*SigIsNoexcept*/, class /*ReturnType*/, class... /*P*/> friend class internal_any_invocable::CoreImpl;
+ private:
+  // Friending other instantiations is necessary for conversions.
+  template <bool /*SigIsNoexcept*/, class /*ReturnType*/, class... /*P*/>
+  friend class internal_any_invocable::CoreImpl;
 };
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_FUNCTIONAL_ANY_INVOCABLE_H_
+#endif  // ABSL_FUNCTIONAL_ANY_INVOCABLE_H_

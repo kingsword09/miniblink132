@@ -25,25 +25,22 @@
 
 namespace {
 
-TEST(RawLoggingCompilationTest, Log)
-{
-    ABSL_RAW_LOG(INFO, "RAW INFO: %d", 1);
-    ABSL_RAW_LOG(INFO, "RAW INFO: %d %d", 1, 2);
-    ABSL_RAW_LOG(INFO, "RAW INFO: %d %d %d", 1, 2, 3);
-    ABSL_RAW_LOG(INFO, "RAW INFO: %d %d %d %d", 1, 2, 3, 4);
-    ABSL_RAW_LOG(INFO, "RAW INFO: %d %d %d %d %d", 1, 2, 3, 4, 5);
-    ABSL_RAW_LOG(WARNING, "RAW WARNING: %d", 1);
-    ABSL_RAW_LOG(ERROR, "RAW ERROR: %d", 1);
+TEST(RawLoggingCompilationTest, Log) {
+  ABSL_RAW_LOG(INFO, "RAW INFO: %d", 1);
+  ABSL_RAW_LOG(INFO, "RAW INFO: %d %d", 1, 2);
+  ABSL_RAW_LOG(INFO, "RAW INFO: %d %d %d", 1, 2, 3);
+  ABSL_RAW_LOG(INFO, "RAW INFO: %d %d %d %d", 1, 2, 3, 4);
+  ABSL_RAW_LOG(INFO, "RAW INFO: %d %d %d %d %d", 1, 2, 3, 4, 5);
+  ABSL_RAW_LOG(WARNING, "RAW WARNING: %d", 1);
+  ABSL_RAW_LOG(ERROR, "RAW ERROR: %d", 1);
 }
 
-TEST(RawLoggingCompilationTest, LogWithNulls)
-{
-    ABSL_RAW_LOG(INFO, "RAW INFO: %s%c%s", "Hello", 0, "World");
+TEST(RawLoggingCompilationTest, LogWithNulls) {
+  ABSL_RAW_LOG(INFO, "RAW INFO: %s%c%s", "Hello", 0, "World");
 }
 
-TEST(RawLoggingCompilationTest, PassingCheck)
-{
-    ABSL_RAW_CHECK(true, "RAW CHECK");
+TEST(RawLoggingCompilationTest, PassingCheck) {
+  ABSL_RAW_CHECK(true, "RAW CHECK");
 }
 
 // Not all platforms support output from raw log, so we don't verify any
@@ -52,36 +49,35 @@ TEST(RawLoggingCompilationTest, PassingCheck)
 // are verifying process death when EXPECT_DEATH works for a platform.
 const char kExpectedDeathOutput[] = "";
 
-TEST(RawLoggingDeathTest, FailingCheck)
-{
-    EXPECT_DEATH_IF_SUPPORTED(ABSL_RAW_CHECK(1 == 0, "explanation"), kExpectedDeathOutput);
+TEST(RawLoggingDeathTest, FailingCheck) {
+  EXPECT_DEATH_IF_SUPPORTED(ABSL_RAW_CHECK(1 == 0, "explanation"),
+                            kExpectedDeathOutput);
 }
 
-TEST(RawLoggingDeathTest, LogFatal)
-{
-    EXPECT_DEATH_IF_SUPPORTED(ABSL_RAW_LOG(FATAL, "my dog has fleas"), kExpectedDeathOutput);
+TEST(RawLoggingDeathTest, LogFatal) {
+  EXPECT_DEATH_IF_SUPPORTED(ABSL_RAW_LOG(FATAL, "my dog has fleas"),
+                            kExpectedDeathOutput);
 }
 
-TEST(InternalLog, CompilationTest)
-{
-    ABSL_INTERNAL_LOG(INFO, "Internal Log");
-    std::string log_msg = "Internal Log";
-    ABSL_INTERNAL_LOG(INFO, log_msg);
+TEST(InternalLog, CompilationTest) {
+  ABSL_INTERNAL_LOG(INFO, "Internal Log");
+  std::string log_msg = "Internal Log";
+  ABSL_INTERNAL_LOG(INFO, log_msg);
 
-    ABSL_INTERNAL_LOG(INFO, log_msg + " 2");
+  ABSL_INTERNAL_LOG(INFO, log_msg + " 2");
 
-    float d = 1.1f;
-    ABSL_INTERNAL_LOG(INFO, absl::StrCat("Internal log ", 3, " + ", d));
+  float d = 1.1f;
+  ABSL_INTERNAL_LOG(INFO, absl::StrCat("Internal log ", 3, " + ", d));
 }
 
-TEST(InternalLogDeathTest, FailingCheck)
-{
-    EXPECT_DEATH_IF_SUPPORTED(ABSL_INTERNAL_CHECK(1 == 0, "explanation"), kExpectedDeathOutput);
+TEST(InternalLogDeathTest, FailingCheck) {
+  EXPECT_DEATH_IF_SUPPORTED(ABSL_INTERNAL_CHECK(1 == 0, "explanation"),
+                            kExpectedDeathOutput);
 }
 
-TEST(InternalLogDeathTest, LogFatal)
-{
-    EXPECT_DEATH_IF_SUPPORTED(ABSL_INTERNAL_LOG(FATAL, "my dog has fleas"), kExpectedDeathOutput);
+TEST(InternalLogDeathTest, LogFatal) {
+  EXPECT_DEATH_IF_SUPPORTED(ABSL_INTERNAL_LOG(FATAL, "my dog has fleas"),
+                            kExpectedDeathOutput);
 }
 
-} // namespace
+}  // namespace

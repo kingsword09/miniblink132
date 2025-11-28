@@ -21,23 +21,21 @@
 
 namespace {
 
-TEST(LeakCheckTest, IgnoreLeakSuppressesLeakedMemoryErrors)
-{
-    if (!absl::LeakCheckerIsActive()) {
-        GTEST_SKIP() << "LeakChecker is not active";
-    }
-    auto foo = absl::IgnoreLeak(new std::string("some ignored leaked string"));
-    LOG(INFO) << "Ignoring leaked string " << foo;
+TEST(LeakCheckTest, IgnoreLeakSuppressesLeakedMemoryErrors) {
+  if (!absl::LeakCheckerIsActive()) {
+    GTEST_SKIP() << "LeakChecker is not active";
+  }
+  auto foo = absl::IgnoreLeak(new std::string("some ignored leaked string"));
+  LOG(INFO) << "Ignoring leaked string " << foo;
 }
 
-TEST(LeakCheckTest, LeakCheckDisablerIgnoresLeak)
-{
-    if (!absl::LeakCheckerIsActive()) {
-        GTEST_SKIP() << "LeakChecker is not active";
-    }
-    absl::LeakCheckDisabler disabler;
-    auto foo = new std::string("some string leaked while checks are disabled");
-    LOG(INFO) << "Ignoring leaked string " << foo;
+TEST(LeakCheckTest, LeakCheckDisablerIgnoresLeak) {
+  if (!absl::LeakCheckerIsActive()) {
+    GTEST_SKIP() << "LeakChecker is not active";
+  }
+  absl::LeakCheckDisabler disabler;
+  auto foo = new std::string("some string leaked while checks are disabled");
+  LOG(INFO) << "Ignoring leaked string " << foo;
 }
 
-} // namespace
+}  // namespace

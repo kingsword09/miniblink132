@@ -26,8 +26,8 @@ namespace random_internal {
 // platform is currently running.
 bool CPUSupportsRandenHwAes();
 
-} // namespace random_internal
+}  // namespace random_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_RANDOM_INTERNAL_RANDEN_DETECT_H_
+#endif  // ABSL_RANDOM_INTERNAL_RANDEN_DETECT_H_

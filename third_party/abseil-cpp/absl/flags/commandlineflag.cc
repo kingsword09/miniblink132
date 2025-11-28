@@ -24,14 +24,11 @@
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 
-bool CommandLineFlag::IsRetired() const
-{
-    return false;
-}
-bool CommandLineFlag::ParseFrom(absl::string_view value, std::string* error)
-{
-    return ParseFrom(value, flags_internal::SET_FLAGS_VALUE, flags_internal::kProgrammaticChange, *error);
+bool CommandLineFlag::IsRetired() const { return false; }
+bool CommandLineFlag::ParseFrom(absl::string_view value, std::string* error) {
+  return ParseFrom(value, flags_internal::SET_FLAGS_VALUE,
+                   flags_internal::kProgrammaticChange, *error);
 }
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

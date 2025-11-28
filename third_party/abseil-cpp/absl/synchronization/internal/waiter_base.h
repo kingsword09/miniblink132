@@ -30,59 +30,61 @@ namespace synchronization_internal {
 // as described in `WaiterBase`.  `waiter.h` selects the implementation and uses
 // static-dispatch for performance.
 class WaiterBase {
-public:
-    WaiterBase() = default;
+ public:
+  WaiterBase() = default;
 
-    // Not copyable or movable
-    WaiterBase(const WaiterBase&) = delete;
-    WaiterBase& operator=(const WaiterBase&) = delete;
+  // Not copyable or movable
+  WaiterBase(const WaiterBase&) = delete;
+  WaiterBase& operator=(const WaiterBase&) = delete;
 
-    // Blocks the calling thread until a matching call to `Post()` or
-    // `t` has passed. Returns `true` if woken (`Post()` called),
-    // `false` on timeout.
-    //
-    // bool Wait(KernelTimeout t);
+  // Blocks the calling thread until a matching call to `Post()` or
+  // `t` has passed. Returns `true` if woken (`Post()` called),
+  // `false` on timeout.
+  //
+  // bool Wait(KernelTimeout t);
 
-    // Restart the caller of `Wait()` as with a normal semaphore.
-    //
-    // void Post();
+  // Restart the caller of `Wait()` as with a normal semaphore.
+  //
+  // void Post();
 
-    // If anyone is waiting, wake them up temporarily and cause them to
-    // call `MaybeBecomeIdle()`. They will then return to waiting for a
-    // `Post()` or timeout.
-    //
-    // void Poke();
+  // If anyone is waiting, wake them up temporarily and cause them to
+  // call `MaybeBecomeIdle()`. They will then return to waiting for a
+  // `Post()` or timeout.
+  //
+  // void Poke();
 
-    // Returns the name of this implementation. Used only for debugging.
-    //
-    // static constexpr char kName[];
+  // Returns the name of this implementation. Used only for debugging.
+  //
+  // static constexpr char kName[];
 
-    // How many periods to remain idle before releasing resources
+  // How many periods to remain idle before releasing resources
 #ifndef ABSL_HAVE_THREAD_SANITIZER
-    static constexpr int kIdlePeriods = 60;
+  static constexpr int kIdlePeriods = 60;
 #else
-    // Memory consumption under ThreadSanitizer is a serious concern,
-    // so we release resources sooner. The value of 1 leads to 1 to 2 second
-    // delay before marking a thread as idle.
-    static constexpr int kIdlePeriods = 1;
+  // Memory consumption under ThreadSanitizer is a serious concern,
+  // so we release resources sooner. The value of 1 leads to 1 to 2 second
+  // delay before marking a thread as idle.
+  static constexpr int kIdlePeriods = 1;
 #endif
 
-protected:
-    static void MaybeBecomeIdle();
+ protected:
+  static void MaybeBecomeIdle();
 };
 
-template <typename T> class WaiterCrtp : public WaiterBase {
-public:
-    // Returns the Waiter associated with the identity.
-    static T* GetWaiter(base_internal::ThreadIdentity* identity)
-    {
-        static_assert(sizeof(T) <= sizeof(base_internal::ThreadIdentity::WaiterState), "Insufficient space for Waiter");
-        return reinterpret_cast<T*>(identity->waiter_state.data);
-    }
+template <typename T>
+class WaiterCrtp : public WaiterBase {
+ public:
+  // Returns the Waiter associated with the identity.
+  static T* GetWaiter(base_internal::ThreadIdentity* identity) {
+    static_assert(
+        sizeof(T) <= sizeof(base_internal::ThreadIdentity::WaiterState),
+        "Insufficient space for Waiter");
+    return reinterpret_cast<T*>(identity->waiter_state.data);
+  }
 };
 
-} // namespace synchronization_internal
+}  // namespace synchronization_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_SYNCHRONIZATION_INTERNAL_WAITER_BASE_H_
+#endif  // ABSL_SYNCHRONIZATION_INTERNAL_WAITER_BASE_H_

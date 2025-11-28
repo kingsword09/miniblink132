@@ -164,8 +164,8 @@ namespace protos {
 namespace gen {
 class DataSourceConfig;
 class InterceptorDescriptor;
-} // namespace gen
-} // namespace protos
+}  // namespace gen
+}  // namespace protos
 
 using protos::gen::InterceptorDescriptor;
 
@@ -175,176 +175,183 @@ class InterceptorTraceWriterTest;
 class TracingMuxer;
 class TracingMuxerFake;
 class TracingMuxerImpl;
-} // namespace internal
+}  // namespace internal
 
 // A virtual base class for interceptors. Users should derive from the templated
 // subclass below instead of this one.
 class PERFETTO_EXPORT_COMPONENT InterceptorBase {
-public:
-    virtual ~InterceptorBase();
+ public:
+  virtual ~InterceptorBase();
 
-    // A virtual base class for thread-local state needed by the interceptor.
-    // To define your own state, subclass this with the same name in the
-    // interceptor class. A reference to the state can then be looked up through
-    // context.GetThreadLocalState() in the trace packet interceptor function.
-    class PERFETTO_EXPORT_COMPONENT ThreadLocalState {
-    public:
-        virtual ~ThreadLocalState();
-    };
+  // A virtual base class for thread-local state needed by the interceptor.
+  // To define your own state, subclass this with the same name in the
+  // interceptor class. A reference to the state can then be looked up through
+  // context.GetThreadLocalState() in the trace packet interceptor function.
+  class PERFETTO_EXPORT_COMPONENT ThreadLocalState {
+   public:
+    virtual ~ThreadLocalState();
+  };
 
-    struct SetupArgs {
-        const DataSourceConfig& config;
-    };
-    struct StartArgs { };
-    struct StopArgs { };
+  struct SetupArgs {
+    const DataSourceConfig& config;
+  };
+  struct StartArgs {};
+  struct StopArgs {};
 
-    // Called when an intercepted data source is set up. Both the interceptor's
-    // and the data source's configuration is available in
-    // |SetupArgs|. Called on an internal Perfetto service thread, but not
-    // concurrently.
-    virtual void OnSetup(const SetupArgs&)
-    {
-    }
+  // Called when an intercepted data source is set up. Both the interceptor's
+  // and the data source's configuration is available in
+  // |SetupArgs|. Called on an internal Perfetto service thread, but not
+  // concurrently.
+  virtual void OnSetup(const SetupArgs&) {}
 
-    // Called when an intercepted data source starts. Called on an internal
-    // Perfetto service thread, but not concurrently.
-    virtual void OnStart(const StartArgs&)
-    {
-    }
+  // Called when an intercepted data source starts. Called on an internal
+  // Perfetto service thread, but not concurrently.
+  virtual void OnStart(const StartArgs&) {}
 
-    // Called when an intercepted data source stops. Called on an internal
-    // Perfetto service thread, but not concurrently.
-    virtual void OnStop(const StopArgs&)
-    {
-    }
+  // Called when an intercepted data source stops. Called on an internal
+  // Perfetto service thread, but not concurrently.
+  virtual void OnStop(const StopArgs&) {}
 
-private:
-    friend class internal::InterceptorTraceWriter;
-    friend class internal::InterceptorTraceWriterTest;
-    friend class internal::TracingMuxer;
-    friend class internal::TracingMuxerFake;
-    friend class internal::TracingMuxerImpl;
-    friend MockTracingMuxer;
-    template <class T> friend class Interceptor;
+ private:
+  friend class internal::InterceptorTraceWriter;
+  friend class internal::InterceptorTraceWriterTest;
+  friend class internal::TracingMuxer;
+  friend class internal::TracingMuxerFake;
+  friend class internal::TracingMuxerImpl;
+  friend MockTracingMuxer;
+  template <class T>
+  friend class Interceptor;
 
-    // Data passed from DataSource::Trace() into the interceptor.
-    struct TracePacketCallbackArgs {
-        internal::DataSourceStaticState* static_state;
-        uint32_t instance_index;
-        protozero::ConstBytes packet_data;
-        ThreadLocalState* tls;
-    };
+  // Data passed from DataSource::Trace() into the interceptor.
+  struct TracePacketCallbackArgs {
+    internal::DataSourceStaticState* static_state;
+    uint32_t instance_index;
+    protozero::ConstBytes packet_data;
+    ThreadLocalState* tls;
+  };
 
-    // These callback functions are defined as stateless to avoid accidentally
-    // introducing cross-thread data races.
-    using TLSFactory = std::unique_ptr<ThreadLocalState> (*)(internal::DataSourceStaticState*, uint32_t data_source_instance_index);
-    using TracePacketCallback = void (*)(TracePacketCallbackArgs);
+  // These callback functions are defined as stateless to avoid accidentally
+  // introducing cross-thread data races.
+  using TLSFactory = std::unique_ptr<ThreadLocalState> (*)(
+      internal::DataSourceStaticState*,
+      uint32_t data_source_instance_index);
+  using TracePacketCallback = void (*)(TracePacketCallbackArgs);
 
-    static void RegisterImpl(const InterceptorDescriptor& descriptor, std::function<std::unique_ptr<InterceptorBase>()> factory,
-        InterceptorBase::TLSFactory tls_factory, InterceptorBase::TracePacketCallback on_trace_packet);
+  static void RegisterImpl(
+      const InterceptorDescriptor& descriptor,
+      std::function<std::unique_ptr<InterceptorBase>()> factory,
+      InterceptorBase::TLSFactory tls_factory,
+      InterceptorBase::TracePacketCallback on_trace_packet);
 };
 
 // Templated interceptor instantiation. See above for usage.
-template <class InterceptorType> class PERFETTO_EXPORT_COMPONENT Interceptor : public InterceptorBase {
-public:
-    // A context object provided to the ThreadLocalState constructor. Provides
-    // access to the per-instance interceptor object.
-    class ThreadLocalStateArgs {
-    public:
-        ~ThreadLocalStateArgs() = default;
+template <class InterceptorType>
+class PERFETTO_EXPORT_COMPONENT Interceptor : public InterceptorBase {
+ public:
+  // A context object provided to the ThreadLocalState constructor. Provides
+  // access to the per-instance interceptor object.
+  class ThreadLocalStateArgs {
+   public:
+    ~ThreadLocalStateArgs() = default;
 
-        ThreadLocalStateArgs(const ThreadLocalStateArgs&) = delete;
-        ThreadLocalStateArgs& operator=(const ThreadLocalStateArgs&) = delete;
+    ThreadLocalStateArgs(const ThreadLocalStateArgs&) = delete;
+    ThreadLocalStateArgs& operator=(const ThreadLocalStateArgs&) = delete;
 
-        ThreadLocalStateArgs(ThreadLocalStateArgs&&) noexcept = default;
-        ThreadLocalStateArgs& operator=(ThreadLocalStateArgs&&) noexcept = default;
+    ThreadLocalStateArgs(ThreadLocalStateArgs&&) noexcept = default;
+    ThreadLocalStateArgs& operator=(ThreadLocalStateArgs&&) noexcept = default;
 
-        // Return a locked reference to the interceptor session. The session object
-        // will remain valid as long as the returned handle is in scope.
-        LockedHandle<InterceptorType> GetInterceptorLocked()
-        {
-            auto* internal_state = static_state_->TryGet(data_source_instance_index_);
-            if (!internal_state)
-                return LockedHandle<InterceptorType>();
-            std::unique_lock<std::recursive_mutex> lock(internal_state->lock);
-            return LockedHandle<InterceptorType>(std::move(lock), static_cast<InterceptorType*>(internal_state->interceptor.get()));
-        }
-
-    private:
-        friend class Interceptor<InterceptorType>;
-        friend class InterceptorContext;
-        friend class TracingMuxerImpl;
-
-        ThreadLocalStateArgs(internal::DataSourceStaticState* static_state, uint32_t data_source_instance_index)
-            : static_state_(static_state)
-            , data_source_instance_index_(data_source_instance_index)
-        {
-        }
-
-        internal::DataSourceStaticState* const static_state_;
-        const uint32_t data_source_instance_index_;
-    };
-
-    // A context object provided to each call into |OnTracePacket|. Contains the
-    // intercepted serialized trace packet data.
-    class InterceptorContext {
-    public:
-        InterceptorContext(InterceptorContext&&) noexcept = default;
-        ~InterceptorContext() = default;
-
-        // Return a locked reference to the interceptor session. The session object
-        // will remain valid as long as the returned handle is in scope.
-        LockedHandle<InterceptorType> GetInterceptorLocked()
-        {
-            return tls_args_.GetInterceptorLocked();
-        }
-
-        // Return the thread-local state for this interceptor. See
-        // InterceptorBase::ThreadLocalState.
-        typename InterceptorType::ThreadLocalState& GetThreadLocalState()
-        {
-            return static_cast<typename InterceptorType::ThreadLocalState&>(*tls_);
-        }
-
-        // A buffer containing the serialized TracePacket protocol buffer message.
-        // This memory is only valid during the call to OnTracePacket.
-        protozero::ConstBytes packet_data;
-
-    private:
-        friend class Interceptor<InterceptorType>;
-        InterceptorContext(TracePacketCallbackArgs args)
-            : packet_data(args.packet_data)
-            , tls_args_(args.static_state, args.instance_index)
-            , tls_(args.tls)
-        {
-        }
-        InterceptorContext(const InterceptorContext&) = delete;
-        InterceptorContext& operator=(const InterceptorContext&) = delete;
-
-        ThreadLocalStateArgs tls_args_;
-        InterceptorBase::ThreadLocalState* const tls_;
-    };
-
-    // Register the interceptor for use in tracing sessions.
-    // The optional |constructor_args| will be passed to the interceptor when it
-    // is constructed.
-    template <class... Args> static void Register(const InterceptorDescriptor& descriptor, const Args&... constructor_args)
-    {
-        auto factory = [constructor_args...]() { return std::unique_ptr<InterceptorBase>(new InterceptorType(constructor_args...)); };
-        auto tls_factory = [](internal::DataSourceStaticState* static_state, uint32_t data_source_instance_index) {
-            // Don't bother allocating TLS state unless the interceptor is actually
-            // using it.
-            if (std::is_same<typename InterceptorType::ThreadLocalState, InterceptorBase::ThreadLocalState>::value) {
-                return std::unique_ptr<InterceptorBase::ThreadLocalState>(nullptr);
-            }
-            ThreadLocalStateArgs args(static_state, data_source_instance_index);
-            return std::unique_ptr<InterceptorBase::ThreadLocalState>(new typename InterceptorType::ThreadLocalState(args));
-        };
-        auto on_trace_packet = [](TracePacketCallbackArgs args) { InterceptorType::OnTracePacket(InterceptorContext(std::move(args))); };
-        RegisterImpl(descriptor, std::move(factory), std::move(tls_factory), std::move(on_trace_packet));
+    // Return a locked reference to the interceptor session. The session object
+    // will remain valid as long as the returned handle is in scope.
+    LockedHandle<InterceptorType> GetInterceptorLocked() {
+      auto* internal_state = static_state_->TryGet(data_source_instance_index_);
+      if (!internal_state)
+        return LockedHandle<InterceptorType>();
+      std::unique_lock<std::recursive_mutex> lock(internal_state->lock);
+      return LockedHandle<InterceptorType>(
+          std::move(lock),
+          static_cast<InterceptorType*>(internal_state->interceptor.get()));
     }
+
+   private:
+    friend class Interceptor<InterceptorType>;
+    friend class InterceptorContext;
+    friend class TracingMuxerImpl;
+
+    ThreadLocalStateArgs(internal::DataSourceStaticState* static_state,
+                         uint32_t data_source_instance_index)
+        : static_state_(static_state),
+          data_source_instance_index_(data_source_instance_index) {}
+
+    internal::DataSourceStaticState* const static_state_;
+    const uint32_t data_source_instance_index_;
+  };
+
+  // A context object provided to each call into |OnTracePacket|. Contains the
+  // intercepted serialized trace packet data.
+  class InterceptorContext {
+   public:
+    InterceptorContext(InterceptorContext&&) noexcept = default;
+    ~InterceptorContext() = default;
+
+    // Return a locked reference to the interceptor session. The session object
+    // will remain valid as long as the returned handle is in scope.
+    LockedHandle<InterceptorType> GetInterceptorLocked() {
+      return tls_args_.GetInterceptorLocked();
+    }
+
+    // Return the thread-local state for this interceptor. See
+    // InterceptorBase::ThreadLocalState.
+    typename InterceptorType::ThreadLocalState& GetThreadLocalState() {
+      return static_cast<typename InterceptorType::ThreadLocalState&>(*tls_);
+    }
+
+    // A buffer containing the serialized TracePacket protocol buffer message.
+    // This memory is only valid during the call to OnTracePacket.
+    protozero::ConstBytes packet_data;
+
+   private:
+    friend class Interceptor<InterceptorType>;
+    InterceptorContext(TracePacketCallbackArgs args)
+        : packet_data(args.packet_data),
+          tls_args_(args.static_state, args.instance_index),
+          tls_(args.tls) {}
+    InterceptorContext(const InterceptorContext&) = delete;
+    InterceptorContext& operator=(const InterceptorContext&) = delete;
+
+    ThreadLocalStateArgs tls_args_;
+    InterceptorBase::ThreadLocalState* const tls_;
+  };
+
+  // Register the interceptor for use in tracing sessions.
+  // The optional |constructor_args| will be passed to the interceptor when it
+  // is constructed.
+  template <class... Args>
+  static void Register(const InterceptorDescriptor& descriptor,
+                       const Args&... constructor_args) {
+    auto factory = [constructor_args...]() {
+      return std::unique_ptr<InterceptorBase>(
+          new InterceptorType(constructor_args...));
+    };
+    auto tls_factory = [](internal::DataSourceStaticState* static_state,
+                          uint32_t data_source_instance_index) {
+      // Don't bother allocating TLS state unless the interceptor is actually
+      // using it.
+      if (std::is_same<typename InterceptorType::ThreadLocalState,
+                       InterceptorBase::ThreadLocalState>::value) {
+        return std::unique_ptr<InterceptorBase::ThreadLocalState>(nullptr);
+      }
+      ThreadLocalStateArgs args(static_state, data_source_instance_index);
+      return std::unique_ptr<InterceptorBase::ThreadLocalState>(
+          new typename InterceptorType::ThreadLocalState(args));
+    };
+    auto on_trace_packet = [](TracePacketCallbackArgs args) {
+      InterceptorType::OnTracePacket(InterceptorContext(std::move(args)));
+    };
+    RegisterImpl(descriptor, std::move(factory), std::move(tls_factory),
+                 std::move(on_trace_packet));
+  }
 };
 
-} // namespace perfetto
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_INTERCEPTOR_H_
+#endif  // INCLUDE_PERFETTO_TRACING_INTERCEPTOR_H_

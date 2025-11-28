@@ -44,7 +44,8 @@
 //
 // Use `CHECK(ptr)` or `CHECK(ptr != nullptr)` if the returned pointer is
 // unused.
-#define ABSL_DIE_IF_NULL(val) ::absl::log_internal::DieIfNull(__FILE__, __LINE__, #val, (val))
+#define ABSL_DIE_IF_NULL(val) \
+  ::absl::log_internal::DieIfNull(__FILE__, __LINE__, #val, (val))
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
@@ -54,20 +55,22 @@ namespace log_internal {
 // `line` location. Called when `ABSL_DIE_IF_NULL` fails. Calling this function
 // generates less code than its implementation would if inlined, for a slight
 // code size reduction each time `ABSL_DIE_IF_NULL` is called.
-[[noreturn]] ABSL_ATTRIBUTE_NOINLINE void DieBecauseNull(const char* file, int line, const char* exprtext);
+[[noreturn]] ABSL_ATTRIBUTE_NOINLINE void DieBecauseNull(
+    const char* file, int line, const char* exprtext);
 
 // Helper for `ABSL_DIE_IF_NULL`.
-template <typename T> ABSL_MUST_USE_RESULT T DieIfNull(const char* file, int line, const char* exprtext, T&& t)
-{
-    if (ABSL_PREDICT_FALSE(t == nullptr)) {
-        // Call a non-inline helper function for a small code size improvement.
-        DieBecauseNull(file, line, exprtext);
-    }
-    return std::forward<T>(t);
+template <typename T>
+ABSL_MUST_USE_RESULT T DieIfNull(const char* file, int line,
+                                 const char* exprtext, T&& t) {
+  if (ABSL_PREDICT_FALSE(t == nullptr)) {
+    // Call a non-inline helper function for a small code size improvement.
+    DieBecauseNull(file, line, exprtext);
+  }
+  return std::forward<T>(t);
 }
 
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_DIE_IF_NULL_H_
+#endif  // ABSL_LOG_DIE_IF_NULL_H_

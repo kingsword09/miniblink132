@@ -65,11 +65,11 @@
 #ifndef ABSL_STATUS_STATUS_MATCHERS_H_
 #define ABSL_STATUS_STATUS_MATCHERS_H_
 
-#include <ostream> // NOLINT
+#include <ostream>  // NOLINT
 #include <type_traits>
 #include <utility>
 
-#include "gmock/gmock.h" // gmock_for_status_matchers.h
+#include "gmock/gmock.h"  // gmock_for_status_matchers.h
 #include "absl/base/config.h"
 #include "absl/status/internal/status_matchers.h"
 
@@ -78,9 +78,12 @@ ABSL_NAMESPACE_BEGIN
 
 // Returns a gMock matcher that matches a StatusOr<> whose status is
 // OK and whose value matches the inner matcher.
-template <typename InnerMatcherT> status_internal::IsOkAndHoldsMatcher<typename std::decay<InnerMatcherT>::type> IsOkAndHolds(InnerMatcherT&& inner_matcher)
-{
-    return status_internal::IsOkAndHoldsMatcher<typename std::decay<InnerMatcherT>::type>(std::forward<InnerMatcherT>(inner_matcher));
+template <typename InnerMatcherT>
+status_internal::IsOkAndHoldsMatcher<typename std::decay<InnerMatcherT>::type>
+IsOkAndHolds(InnerMatcherT&& inner_matcher) {
+  return status_internal::IsOkAndHoldsMatcher<
+      typename std::decay<InnerMatcherT>::type>(
+      std::forward<InnerMatcherT>(inner_matcher));
 }
 
 // Returns a gMock matcher that matches a Status or StatusOr<> whose status code
@@ -89,25 +92,27 @@ template <typename InnerMatcherT> status_internal::IsOkAndHoldsMatcher<typename 
 //
 // StatusIs(absl::StatusCode::kInvalidArgument, "...")
 template <typename StatusCodeMatcherT, typename StatusMessageMatcherT>
-status_internal::StatusIsMatcher StatusIs(StatusCodeMatcherT&& code_matcher, StatusMessageMatcherT&& message_matcher)
-{
-    return status_internal::StatusIsMatcher(std::forward<StatusCodeMatcherT>(code_matcher), std::forward<StatusMessageMatcherT>(message_matcher));
+status_internal::StatusIsMatcher StatusIs(
+    StatusCodeMatcherT&& code_matcher,
+    StatusMessageMatcherT&& message_matcher) {
+  return status_internal::StatusIsMatcher(
+      std::forward<StatusCodeMatcherT>(code_matcher),
+      std::forward<StatusMessageMatcherT>(message_matcher));
 }
 
 // Returns a gMock matcher that matches a Status or StatusOr<> and whose status
 // code matches code_matcher.  See above for details.
-template <typename StatusCodeMatcherT> status_internal::StatusIsMatcher StatusIs(StatusCodeMatcherT&& code_matcher)
-{
-    return StatusIs(std::forward<StatusCodeMatcherT>(code_matcher), ::testing::_);
+template <typename StatusCodeMatcherT>
+status_internal::StatusIsMatcher StatusIs(StatusCodeMatcherT&& code_matcher) {
+  return StatusIs(std::forward<StatusCodeMatcherT>(code_matcher), ::testing::_);
 }
 
 // Returns a gMock matcher that matches a Status or StatusOr<> which is OK.
-inline status_internal::IsOkMatcher IsOk()
-{
-    return status_internal::IsOkMatcher();
+inline status_internal::IsOkMatcher IsOk() {
+  return status_internal::IsOkMatcher();
 }
 
 ABSL_NAMESPACE_END
-} // namespace absl_testing
+}  // namespace absl_testing
 
-#endif // ABSL_STATUS_STATUS_MATCHERS_H_
+#endif  // ABSL_STATUS_STATUS_MATCHERS_H_

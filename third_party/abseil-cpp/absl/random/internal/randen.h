@@ -32,67 +32,65 @@ namespace random_internal {
 //
 // Randen implements the basic state manipulation methods.
 class Randen {
-public:
-    static constexpr size_t kStateBytes = RandenTraits::kStateBytes;
-    static constexpr size_t kCapacityBytes = RandenTraits::kCapacityBytes;
-    static constexpr size_t kSeedBytes = RandenTraits::kSeedBytes;
+ public:
+  static constexpr size_t kStateBytes = RandenTraits::kStateBytes;
+  static constexpr size_t kCapacityBytes = RandenTraits::kCapacityBytes;
+  static constexpr size_t kSeedBytes = RandenTraits::kSeedBytes;
 
-    ~Randen() = default;
+  ~Randen() = default;
 
-    Randen();
+  Randen();
 
-    // Generate updates the randen sponge. The outer portion of the sponge
-    // (kCapacityBytes .. kStateBytes) may be consumed as PRNG state.
-    // REQUIRES: state points to kStateBytes of state.
-    inline void Generate(void* state) const
-    {
+  // Generate updates the randen sponge. The outer portion of the sponge
+  // (kCapacityBytes .. kStateBytes) may be consumed as PRNG state.
+  // REQUIRES: state points to kStateBytes of state.
+  inline void Generate(void* state) const {
 #if ABSL_RANDOM_INTERNAL_AES_DISPATCH
-        // HW AES Dispatch.
-        if (has_crypto_) {
-            RandenHwAes::Generate(keys_, state);
-        } else {
-            RandenSlow::Generate(keys_, state);
-        }
-#elif ABSL_HAVE_ACCELERATED_AES
-        // HW AES is enabled.
-        RandenHwAes::Generate(keys_, state);
-#else
-        // HW AES is disabled.
-        RandenSlow::Generate(keys_, state);
-#endif
+    // HW AES Dispatch.
+    if (has_crypto_) {
+      RandenHwAes::Generate(keys_, state);
+    } else {
+      RandenSlow::Generate(keys_, state);
     }
-
-    // Absorb incorporates additional seed material into the randen sponge.  After
-    // absorb returns, Generate must be called before the state may be consumed.
-    // REQUIRES: seed points to kSeedBytes of seed.
-    // REQUIRES: state points to kStateBytes of state.
-    inline void Absorb(const void* seed, void* state) const
-    {
-#if ABSL_RANDOM_INTERNAL_AES_DISPATCH
-        // HW AES Dispatch.
-        if (has_crypto_) {
-            RandenHwAes::Absorb(seed, state);
-        } else {
-            RandenSlow::Absorb(seed, state);
-        }
 #elif ABSL_HAVE_ACCELERATED_AES
-        // HW AES is enabled.
-        RandenHwAes::Absorb(seed, state);
+    // HW AES is enabled.
+    RandenHwAes::Generate(keys_, state);
 #else
-        // HW AES is disabled.
-        RandenSlow::Absorb(seed, state);
+    // HW AES is disabled.
+    RandenSlow::Generate(keys_, state);
 #endif
-    }
+  }
 
-private:
-    const void* keys_;
+  // Absorb incorporates additional seed material into the randen sponge.  After
+  // absorb returns, Generate must be called before the state may be consumed.
+  // REQUIRES: seed points to kSeedBytes of seed.
+  // REQUIRES: state points to kStateBytes of state.
+  inline void Absorb(const void* seed, void* state) const {
 #if ABSL_RANDOM_INTERNAL_AES_DISPATCH
-    bool has_crypto_;
+    // HW AES Dispatch.
+    if (has_crypto_) {
+      RandenHwAes::Absorb(seed, state);
+    } else {
+      RandenSlow::Absorb(seed, state);
+    }
+#elif ABSL_HAVE_ACCELERATED_AES
+    // HW AES is enabled.
+    RandenHwAes::Absorb(seed, state);
+#else
+    // HW AES is disabled.
+    RandenSlow::Absorb(seed, state);
+#endif
+  }
+
+ private:
+  const void* keys_;
+#if ABSL_RANDOM_INTERNAL_AES_DISPATCH
+  bool has_crypto_;
 #endif
 };
 
-} // namespace random_internal
+}  // namespace random_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_RANDOM_INTERNAL_RANDEN_H_
+#endif  // ABSL_RANDOM_INTERNAL_RANDEN_H_

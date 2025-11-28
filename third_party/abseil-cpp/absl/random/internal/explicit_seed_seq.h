@@ -42,59 +42,51 @@ namespace random_internal {
 // the constructor, then the remaining bytes will be filled with deterministic,
 // nonrandom data.
 class ExplicitSeedSeq {
-public:
-    using result_type = uint32_t;
+ public:
+  using result_type = uint32_t;
 
-    ExplicitSeedSeq()
-        : state_()
-    {
+  ExplicitSeedSeq() : state_() {}
+
+  // Copy and move both allowed.
+  ExplicitSeedSeq(const ExplicitSeedSeq& other) = default;
+  ExplicitSeedSeq& operator=(const ExplicitSeedSeq& other) = default;
+  ExplicitSeedSeq(ExplicitSeedSeq&& other) = default;
+  ExplicitSeedSeq& operator=(ExplicitSeedSeq&& other) = default;
+
+  template <typename Iterator>
+  ExplicitSeedSeq(Iterator begin, Iterator end) {
+    for (auto it = begin; it != end; it++) {
+      state_.push_back(*it & 0xffffffff);
     }
+  }
 
-    // Copy and move both allowed.
-    ExplicitSeedSeq(const ExplicitSeedSeq& other) = default;
-    ExplicitSeedSeq& operator=(const ExplicitSeedSeq& other) = default;
-    ExplicitSeedSeq(ExplicitSeedSeq&& other) = default;
-    ExplicitSeedSeq& operator=(ExplicitSeedSeq&& other) = default;
+  template <typename T>
+  ExplicitSeedSeq(std::initializer_list<T> il)
+      : ExplicitSeedSeq(il.begin(), il.end()) {}
 
-    template <typename Iterator> ExplicitSeedSeq(Iterator begin, Iterator end)
-    {
-        for (auto it = begin; it != end; it++) {
-            state_.push_back(*it & 0xffffffff);
-        }
+  size_t size() const { return state_.size(); }
+
+  template <typename OutIterator>
+  void param(OutIterator out) const {
+    std::copy(std::begin(state_), std::end(state_), out);
+  }
+
+  template <typename OutIterator>
+  void generate(OutIterator begin, OutIterator end) {
+    for (size_t index = 0; begin != end; begin++) {
+      *begin = state_.empty() ? 0 : state_[index++];
+      if (index >= state_.size()) {
+        index = 0;
+      }
     }
+  }
 
-    template <typename T>
-    ExplicitSeedSeq(std::initializer_list<T> il)
-        : ExplicitSeedSeq(il.begin(), il.end())
-    {
-    }
-
-    size_t size() const
-    {
-        return state_.size();
-    }
-
-    template <typename OutIterator> void param(OutIterator out) const
-    {
-        std::copy(std::begin(state_), std::end(state_), out);
-    }
-
-    template <typename OutIterator> void generate(OutIterator begin, OutIterator end)
-    {
-        for (size_t index = 0; begin != end; begin++) {
-            *begin = state_.empty() ? 0 : state_[index++];
-            if (index >= state_.size()) {
-                index = 0;
-            }
-        }
-    }
-
-protected:
-    std::vector<uint32_t> state_;
+ protected:
+  std::vector<uint32_t> state_;
 };
 
-} // namespace random_internal
+}  // namespace random_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_RANDOM_INTERNAL_EXPLICIT_SEED_SEQ_H_
+#endif  // ABSL_RANDOM_INTERNAL_EXPLICIT_SEED_SEQ_H_

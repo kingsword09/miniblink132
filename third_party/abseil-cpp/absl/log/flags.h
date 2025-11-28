@@ -40,4 +40,4 @@
 // To configure the Log library programmatically, use the interfaces defined in
 // absl/log/globals.h.
 
-#endif // ABSL_LOG_FLAGS_H_
+#endif  // ABSL_LOG_FLAGS_H_

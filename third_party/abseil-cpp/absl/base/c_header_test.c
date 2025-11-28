@@ -21,13 +21,10 @@
 // compatibility or keep C compatibility forever. This test only exists to
 // ensure C compatibility until it is no longer required. Do not add new code
 // that requires C compatibility.
-#include "absl/base/attributes.h" // IWYU pragma: keep
-#include "absl/base/config.h" // IWYU pragma: keep
-#include "absl/base/optimization.h" // IWYU pragma: keep
-#include "absl/base/policy_checks.h" // IWYU pragma: keep
-#include "absl/base/port.h" // IWYU pragma: keep
+#include "absl/base/attributes.h"     // IWYU pragma: keep
+#include "absl/base/config.h"         // IWYU pragma: keep
+#include "absl/base/optimization.h"   // IWYU pragma: keep
+#include "absl/base/policy_checks.h"  // IWYU pragma: keep
+#include "absl/base/port.h"           // IWYU pragma: keep
 
-int main()
-{
-    return 0;
-}
+int main() { return 0; }

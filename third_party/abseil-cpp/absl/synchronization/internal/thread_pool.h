@@ -19,7 +19,7 @@
 #include <cstddef>
 #include <functional>
 #include <queue>
-#include <thread> // NOLINT(build/c++11)
+#include <thread>  // NOLINT(build/c++11)
 #include <utility>
 #include <vector>
 
@@ -33,69 +33,64 @@ namespace synchronization_internal {
 
 // A simple ThreadPool implementation for tests.
 class ThreadPool {
-public:
-    explicit ThreadPool(int num_threads)
-    {
-        threads_.reserve(num_threads);
-        for (int i = 0; i < num_threads; ++i) {
-            threads_.push_back(std::thread(&ThreadPool::WorkLoop, this));
-        }
+ public:
+  explicit ThreadPool(int num_threads) {
+    threads_.reserve(num_threads);
+    for (int i = 0; i < num_threads; ++i) {
+      threads_.push_back(std::thread(&ThreadPool::WorkLoop, this));
     }
+  }
 
-    ThreadPool(const ThreadPool&) = delete;
-    ThreadPool& operator=(const ThreadPool&) = delete;
+  ThreadPool(const ThreadPool &) = delete;
+  ThreadPool &operator=(const ThreadPool &) = delete;
 
-    ~ThreadPool()
+  ~ThreadPool() {
     {
-        {
-            absl::MutexLock l(&mu_);
-            for (size_t i = 0; i < threads_.size(); i++) {
-                queue_.push(nullptr); // Shutdown signal.
-            }
-        }
-        for (auto& t : threads_) {
-            t.join();
-        }
+      absl::MutexLock l(&mu_);
+      for (size_t i = 0; i < threads_.size(); i++) {
+        queue_.push(nullptr);  // Shutdown signal.
+      }
     }
+    for (auto &t : threads_) {
+      t.join();
+    }
+  }
 
-    // Schedule a function to be run on a ThreadPool thread immediately.
-    void Schedule(absl::AnyInvocable<void()> func)
-    {
-        assert(func != nullptr);
+  // Schedule a function to be run on a ThreadPool thread immediately.
+  void Schedule(absl::AnyInvocable<void()> func) {
+    assert(func != nullptr);
+    absl::MutexLock l(&mu_);
+    queue_.push(std::move(func));
+  }
+
+ private:
+  bool WorkAvailable() const ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_) {
+    return !queue_.empty();
+  }
+
+  void WorkLoop() {
+    while (true) {
+      absl::AnyInvocable<void()> func;
+      {
         absl::MutexLock l(&mu_);
-        queue_.push(std::move(func));
+        mu_.Await(absl::Condition(this, &ThreadPool::WorkAvailable));
+        func = std::move(queue_.front());
+        queue_.pop();
+      }
+      if (func == nullptr) {  // Shutdown signal.
+        break;
+      }
+      func();
     }
+  }
 
-private:
-    bool WorkAvailable() const ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu_)
-    {
-        return !queue_.empty();
-    }
-
-    void WorkLoop()
-    {
-        while (true) {
-            absl::AnyInvocable<void()> func;
-            {
-                absl::MutexLock l(&mu_);
-                mu_.Await(absl::Condition(this, &ThreadPool::WorkAvailable));
-                func = std::move(queue_.front());
-                queue_.pop();
-            }
-            if (func == nullptr) { // Shutdown signal.
-                break;
-            }
-            func();
-        }
-    }
-
-    absl::Mutex mu_;
-    std::queue<absl::AnyInvocable<void()>> queue_ ABSL_GUARDED_BY(mu_);
-    std::vector<std::thread> threads_;
+  absl::Mutex mu_;
+  std::queue<absl::AnyInvocable<void()>> queue_ ABSL_GUARDED_BY(mu_);
+  std::vector<std::thread> threads_;
 };
 
-} // namespace synchronization_internal
+}  // namespace synchronization_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_SYNCHRONIZATION_INTERNAL_THREAD_POOL_H_
+#endif  // ABSL_SYNCHRONIZATION_INTERNAL_THREAD_POOL_H_

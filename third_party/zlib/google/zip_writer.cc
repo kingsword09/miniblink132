@@ -285,10 +285,10 @@ bool ZipWriter::AddDirectoryContents(const base::FilePath& path) {
   Filter(&files);
   Filter(&subdirs);
 
-  if (!AddFileEntries(Paths(files.data(), files.size())))
+  if (!AddFileEntries(files))
     return false;
 
-  return AddDirectoryEntries(Paths(subdirs.data(), subdirs.size()));
+  return AddDirectoryEntries(subdirs);
 }
 
 void ZipWriter::Filter(std::vector<base::FilePath>* const paths) {

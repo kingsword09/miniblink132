@@ -62,8 +62,8 @@ class TracingServiceState;
 class SyncClockRequest;
 class SyncClockResponse;
 
-} // namespace gen
-} // namespace protos
+}  // namespace gen
+}  // namespace protos
 
 using ChromeConfig = ::perfetto::protos::gen::ChromeConfig;
 using CommitDataRequest = ::perfetto::protos::gen::CommitDataRequest;
@@ -72,11 +72,12 @@ using DataSourceDescriptor = ::perfetto::protos::gen::DataSourceDescriptor;
 using ObservableEvents = ::perfetto::protos::gen::ObservableEvents;
 using TraceConfig = ::perfetto::protos::gen::TraceConfig;
 using TraceStats = ::perfetto::protos::gen::TraceStats;
-using TracingServiceCapabilities = ::perfetto::protos::gen::TracingServiceCapabilities;
+using TracingServiceCapabilities =
+    ::perfetto::protos::gen::TracingServiceCapabilities;
 using TracingServiceState = ::perfetto::protos::gen::TracingServiceState;
 using SyncClockRequest = ::perfetto::protos::gen::SyncClockRequest;
 using SyncClockResponse = ::perfetto::protos::gen::SyncClockResponse;
 
-} // namespace perfetto
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_CORE_FORWARD_DECLS_H_
+#endif  // INCLUDE_PERFETTO_TRACING_CORE_FORWARD_DECLS_H_

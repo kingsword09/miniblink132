@@ -246,7 +246,8 @@ ABSL_NAMESPACE_BEGIN
 // Note: unlike `std::hash', `absl::Hash` should never be specialized. It must
 // only be extended by adding `AbslHashValue()` overloads.
 //
-template <typename T> using Hash = absl::hash_internal::Hash<T>;
+template <typename T>
+using Hash = absl::hash_internal::Hash<T>;
 
 // HashOf
 //
@@ -262,10 +263,10 @@ template <typename T> using Hash = absl::hash_internal::Hash<T>;
 // The requirement that the arguments match in both type and value is critical.
 // It means that `a == b` does not necessarily imply `HashOf(a) == HashOf(b)` if
 // `a` and `b` have different types. For example, `HashOf(2) != HashOf(2.0)`.
-template <int&... ExplicitArgumentBarrier, typename... Types> size_t HashOf(const Types&... values)
-{
-    auto tuple = std::tie(values...);
-    return absl::Hash<decltype(tuple)> {}(tuple);
+template <int&... ExplicitArgumentBarrier, typename... Types>
+size_t HashOf(const Types&... values) {
+  auto tuple = std::tie(values...);
+  return absl::Hash<decltype(tuple)>{}(tuple);
 }
 
 // HashState
@@ -312,104 +313,112 @@ template <int&... ExplicitArgumentBarrier, typename... Types> size_t HashOf(cons
 //     std::string v2_;
 //   };
 class HashState : public hash_internal::HashStateBase<HashState> {
-public:
-    // HashState::Create()
-    //
-    // Create a new `HashState` instance that wraps `state`. All calls to
-    // `combine()` and `combine_contiguous()` on the new instance will be
-    // redirected to the original `state` object. The `state` object must outlive
-    // the `HashState` instance.
-    template <typename T> static HashState Create(T* state)
-    {
-        HashState s;
-        s.Init(state);
-        return s;
+ public:
+  // HashState::Create()
+  //
+  // Create a new `HashState` instance that wraps `state`. All calls to
+  // `combine()` and `combine_contiguous()` on the new instance will be
+  // redirected to the original `state` object. The `state` object must outlive
+  // the `HashState` instance.
+  template <typename T>
+  static HashState Create(T* state) {
+    HashState s;
+    s.Init(state);
+    return s;
+  }
+
+  HashState(const HashState&) = delete;
+  HashState& operator=(const HashState&) = delete;
+  HashState(HashState&&) = default;
+  HashState& operator=(HashState&&) = default;
+
+  // HashState::combine()
+  //
+  // Combines an arbitrary number of values into a hash state, returning the
+  // updated state.
+  using HashState::HashStateBase::combine;
+
+  // HashState::combine_contiguous()
+  //
+  // Combines a contiguous array of `size` elements into a hash state, returning
+  // the updated state.
+  static HashState combine_contiguous(HashState hash_state,
+                                      const unsigned char* first, size_t size) {
+    hash_state.combine_contiguous_(hash_state.state_, first, size);
+    return hash_state;
+  }
+  using HashState::HashStateBase::combine_contiguous;
+
+ private:
+  HashState() = default;
+
+  friend class HashState::HashStateBase;
+
+  template <typename T>
+  static void CombineContiguousImpl(void* p, const unsigned char* first,
+                                    size_t size) {
+    T& state = *static_cast<T*>(p);
+    state = T::combine_contiguous(std::move(state), first, size);
+  }
+
+  template <typename T>
+  void Init(T* state) {
+    state_ = state;
+    combine_contiguous_ = &CombineContiguousImpl<T>;
+    run_combine_unordered_ = &RunCombineUnorderedImpl<T>;
+  }
+
+  template <typename HS>
+  struct CombineUnorderedInvoker {
+    template <typename T, typename ConsumerT>
+    void operator()(T inner_state, ConsumerT inner_cb) {
+      f(HashState::Create(&inner_state),
+        [&](HashState& inner_erased) { inner_cb(inner_erased.Real<T>()); });
     }
 
-    HashState(const HashState&) = delete;
-    HashState& operator=(const HashState&) = delete;
-    HashState(HashState&&) = default;
-    HashState& operator=(HashState&&) = default;
+    absl::FunctionRef<void(HS, absl::FunctionRef<void(HS&)>)> f;
+  };
 
-    // HashState::combine()
-    //
-    // Combines an arbitrary number of values into a hash state, returning the
-    // updated state.
-    using HashState::HashStateBase::combine;
+  template <typename T>
+  static HashState RunCombineUnorderedImpl(
+      HashState state,
+      absl::FunctionRef<void(HashState, absl::FunctionRef<void(HashState&)>)>
+          f) {
+    // Note that this implementation assumes that inner_state and outer_state
+    // are the same type.  This isn't true in the SpyHash case, but SpyHash
+    // types are move-convertible to each other, so this still works.
+    T& real_state = state.Real<T>();
+    real_state = T::RunCombineUnordered(
+        std::move(real_state), CombineUnorderedInvoker<HashState>{f});
+    return state;
+  }
 
-    // HashState::combine_contiguous()
-    //
-    // Combines a contiguous array of `size` elements into a hash state, returning
-    // the updated state.
-    static HashState combine_contiguous(HashState hash_state, const unsigned char* first, size_t size)
-    {
-        hash_state.combine_contiguous_(hash_state.state_, first, size);
-        return hash_state;
-    }
-    using HashState::HashStateBase::combine_contiguous;
+  template <typename CombinerT>
+  static HashState RunCombineUnordered(HashState state, CombinerT combiner) {
+    auto* run = state.run_combine_unordered_;
+    return run(std::move(state), std::ref(combiner));
+  }
 
-private:
-    HashState() = default;
+  // Do not erase an already erased state.
+  void Init(HashState* state) {
+    state_ = state->state_;
+    combine_contiguous_ = state->combine_contiguous_;
+    run_combine_unordered_ = state->run_combine_unordered_;
+  }
 
-    friend class HashState::HashStateBase;
+  template <typename T>
+  T& Real() {
+    return *static_cast<T*>(state_);
+  }
 
-    template <typename T> static void CombineContiguousImpl(void* p, const unsigned char* first, size_t size)
-    {
-        T& state = *static_cast<T*>(p);
-        state = T::combine_contiguous(std::move(state), first, size);
-    }
-
-    template <typename T> void Init(T* state)
-    {
-        state_ = state;
-        combine_contiguous_ = &CombineContiguousImpl<T>;
-        run_combine_unordered_ = &RunCombineUnorderedImpl<T>;
-    }
-
-    template <typename HS> struct CombineUnorderedInvoker {
-        template <typename T, typename ConsumerT> void operator()(T inner_state, ConsumerT inner_cb)
-        {
-            f(HashState::Create(&inner_state), [&](HashState& inner_erased) { inner_cb(inner_erased.Real<T>()); });
-        }
-
-        absl::FunctionRef<void(HS, absl::FunctionRef<void(HS&)>)> f;
-    };
-
-    template <typename T> static HashState RunCombineUnorderedImpl(HashState state, absl::FunctionRef<void(HashState, absl::FunctionRef<void(HashState&)>)> f)
-    {
-        // Note that this implementation assumes that inner_state and outer_state
-        // are the same type.  This isn't true in the SpyHash case, but SpyHash
-        // types are move-convertible to each other, so this still works.
-        T& real_state = state.Real<T>();
-        real_state = T::RunCombineUnordered(std::move(real_state), CombineUnorderedInvoker<HashState> { f });
-        return state;
-    }
-
-    template <typename CombinerT> static HashState RunCombineUnordered(HashState state, CombinerT combiner)
-    {
-        auto* run = state.run_combine_unordered_;
-        return run(std::move(state), std::ref(combiner));
-    }
-
-    // Do not erase an already erased state.
-    void Init(HashState* state)
-    {
-        state_ = state->state_;
-        combine_contiguous_ = state->combine_contiguous_;
-        run_combine_unordered_ = state->run_combine_unordered_;
-    }
-
-    template <typename T> T& Real()
-    {
-        return *static_cast<T*>(state_);
-    }
-
-    void* state_;
-    void (*combine_contiguous_)(void*, const unsigned char*, size_t);
-    HashState (*run_combine_unordered_)(HashState state, absl::FunctionRef<void(HashState, absl::FunctionRef<void(HashState&)>)>);
+  void* state_;
+  void (*combine_contiguous_)(void*, const unsigned char*, size_t);
+  HashState (*run_combine_unordered_)(
+      HashState state,
+      absl::FunctionRef<void(HashState, absl::FunctionRef<void(HashState&)>)>);
 };
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_HASH_HASH_H_
+#endif  // ABSL_HASH_HASH_H_

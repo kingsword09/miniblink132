@@ -38,6 +38,6 @@ void SetProgramUsageMessage(absl::string_view new_usage_message);
 absl::string_view ProgramUsageMessage();
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_FLAGS_USAGE_H_
+#endif  // ABSL_FLAGS_USAGE_H_

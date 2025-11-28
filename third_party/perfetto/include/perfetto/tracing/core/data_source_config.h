@@ -25,4 +25,4 @@
 
 #include "protos/perfetto/config/data_source_config.gen.h"
 
-#endif // INCLUDE_PERFETTO_TRACING_CORE_DATA_SOURCE_CONFIG_H_
+#endif  // INCLUDE_PERFETTO_TRACING_CORE_DATA_SOURCE_CONFIG_H_

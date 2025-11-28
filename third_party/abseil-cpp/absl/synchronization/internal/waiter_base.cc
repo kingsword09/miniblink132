@@ -25,18 +25,18 @@ namespace synchronization_internal {
 constexpr int WaiterBase::kIdlePeriods;
 #endif
 
-void WaiterBase::MaybeBecomeIdle()
-{
-    base_internal::ThreadIdentity* identity = base_internal::CurrentThreadIdentityIfPresent();
-    assert(identity != nullptr);
-    const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
-    const int ticker = identity->ticker.load(std::memory_order_relaxed);
-    const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
-    if (!is_idle && ticker - wait_start > kIdlePeriods) {
-        identity->is_idle.store(true, std::memory_order_relaxed);
-    }
+void WaiterBase::MaybeBecomeIdle() {
+  base_internal::ThreadIdentity *identity =
+      base_internal::CurrentThreadIdentityIfPresent();
+  assert(identity != nullptr);
+  const bool is_idle = identity->is_idle.load(std::memory_order_relaxed);
+  const int ticker = identity->ticker.load(std::memory_order_relaxed);
+  const int wait_start = identity->wait_start.load(std::memory_order_relaxed);
+  if (!is_idle && ticker - wait_start > kIdlePeriods) {
+    identity->is_idle.store(true, std::memory_order_relaxed);
+  }
 }
 
-} // namespace synchronization_internal
+}  // namespace synchronization_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

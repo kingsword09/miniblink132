@@ -36,30 +36,30 @@ namespace synchronization_internal {
 #define ABSL_INTERNAL_HAVE_SEM_WAITER 1
 
 class SemWaiter : public WaiterCrtp<SemWaiter> {
-public:
-    SemWaiter();
+ public:
+  SemWaiter();
 
-    bool Wait(KernelTimeout t);
-    void Post();
-    void Poke();
+  bool Wait(KernelTimeout t);
+  void Post();
+  void Poke();
 
-    static constexpr char kName[] = "SemWaiter";
+  static constexpr char kName[] = "SemWaiter";
 
-private:
-    int TimedWait(KernelTimeout t);
+ private:
+  int TimedWait(KernelTimeout t);
 
-    sem_t sem_;
+  sem_t sem_;
 
-    // This seems superfluous, but for Poke() we need to cause spurious
-    // wakeups on the semaphore. Hence we can't actually use the
-    // semaphore's count.
-    std::atomic<int> wakeups_;
+  // This seems superfluous, but for Poke() we need to cause spurious
+  // wakeups on the semaphore. Hence we can't actually use the
+  // semaphore's count.
+  std::atomic<int> wakeups_;
 };
 
-} // namespace synchronization_internal
+}  // namespace synchronization_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_HAVE_SEMAPHORE_H
+#endif  // ABSL_HAVE_SEMAPHORE_H
 
-#endif // ABSL_SYNCHRONIZATION_INTERNAL_SEM_WAITER_H_
+#endif  // ABSL_SYNCHRONIZATION_INTERNAL_SEM_WAITER_H_

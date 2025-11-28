@@ -19,20 +19,20 @@
 
 namespace {
 
-void BM_SafeCurrentThreadIdentity(benchmark::State& state)
-{
-    for (auto _ : state) {
-        benchmark::DoNotOptimize(absl::synchronization_internal::GetOrCreateCurrentThreadIdentity());
-    }
+void BM_SafeCurrentThreadIdentity(benchmark::State& state) {
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(
+        absl::synchronization_internal::GetOrCreateCurrentThreadIdentity());
+  }
 }
 BENCHMARK(BM_SafeCurrentThreadIdentity);
 
-void BM_UnsafeCurrentThreadIdentity(benchmark::State& state)
-{
-    for (auto _ : state) {
-        benchmark::DoNotOptimize(absl::base_internal::CurrentThreadIdentityIfPresent());
-    }
+void BM_UnsafeCurrentThreadIdentity(benchmark::State& state) {
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(
+        absl::base_internal::CurrentThreadIdentityIfPresent());
+  }
 }
 BENCHMARK(BM_UnsafeCurrentThreadIdentity);
 
-} // namespace
+}  // namespace

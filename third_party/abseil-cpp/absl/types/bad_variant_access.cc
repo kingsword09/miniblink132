@@ -31,38 +31,35 @@ ABSL_NAMESPACE_BEGIN
 
 bad_variant_access::~bad_variant_access() = default;
 
-const char* bad_variant_access::what() const noexcept
-{
-    return "Bad variant access";
+const char* bad_variant_access::what() const noexcept {
+  return "Bad variant access";
 }
 
 namespace variant_internal {
 
-void ThrowBadVariantAccess()
-{
+void ThrowBadVariantAccess() {
 #ifdef ABSL_HAVE_EXCEPTIONS
-    throw bad_variant_access();
+  throw bad_variant_access();
 #else
-    ABSL_RAW_LOG(FATAL, "Bad variant access");
-    abort(); // TODO(calabrese) Remove once RAW_LOG FATAL is noreturn.
+  ABSL_RAW_LOG(FATAL, "Bad variant access");
+  abort();  // TODO(calabrese) Remove once RAW_LOG FATAL is noreturn.
 #endif
 }
 
-void Rethrow()
-{
+void Rethrow() {
 #ifdef ABSL_HAVE_EXCEPTIONS
-    throw;
+  throw;
 #else
-    ABSL_RAW_LOG(FATAL,
-        "Internal error in absl::variant implementation. Attempted to "
-        "rethrow an exception when building with exceptions disabled.");
-    abort(); // TODO(calabrese) Remove once RAW_LOG FATAL is noreturn.
+  ABSL_RAW_LOG(FATAL,
+               "Internal error in absl::variant implementation. Attempted to "
+               "rethrow an exception when building with exceptions disabled.");
+  abort();  // TODO(calabrese) Remove once RAW_LOG FATAL is noreturn.
 #endif
 }
 
-} // namespace variant_internal
+}  // namespace variant_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
 #else
 
@@ -77,9 +74,9 @@ ABSL_NAMESPACE_BEGIN
 namespace types_internal {
 extern const char kAvoidEmptyBadVariantAccessLibraryWarning;
 const char kAvoidEmptyBadVariantAccessLibraryWarning = 0;
-} // namespace types_internal
+}  // namespace types_internal
 ABSL_NAMESPACE_END
-} // namespace absl
-#endif // __APPLE__
+}  // namespace absl
+#endif  // __APPLE__
 
-#endif // ABSL_USES_STD_VARIANT
+#endif  // ABSL_USES_STD_VARIANT

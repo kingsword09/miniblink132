@@ -22,34 +22,32 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace profiling_internal {
 
-int64_t PeriodicSamplerBase::GetExponentialBiased(int period) noexcept
-{
-    return rng_.GetStride(period);
+int64_t PeriodicSamplerBase::GetExponentialBiased(int period) noexcept {
+  return rng_.GetStride(period);
 }
 
-bool PeriodicSamplerBase::SubtleConfirmSample() noexcept
-{
-    int current_period = period();
+bool PeriodicSamplerBase::SubtleConfirmSample() noexcept {
+  int current_period = period();
 
-    // Deal with period case 0 (always off) and 1 (always on)
-    if (ABSL_PREDICT_FALSE(current_period < 2)) {
-        stride_ = 0;
-        return current_period == 1;
-    }
+  // Deal with period case 0 (always off) and 1 (always on)
+  if (ABSL_PREDICT_FALSE(current_period < 2)) {
+    stride_ = 0;
+    return current_period == 1;
+  }
 
-    // Check if this is the first call to Sample()
-    if (ABSL_PREDICT_FALSE(stride_ == 1)) {
-        stride_ = static_cast<uint64_t>(-GetExponentialBiased(current_period));
-        if (static_cast<int64_t>(stride_) < -1) {
-            ++stride_;
-            return false;
-        }
-    }
-
+  // Check if this is the first call to Sample()
+  if (ABSL_PREDICT_FALSE(stride_ == 1)) {
     stride_ = static_cast<uint64_t>(-GetExponentialBiased(current_period));
-    return true;
+    if (static_cast<int64_t>(stride_) < -1) {
+      ++stride_;
+      return false;
+    }
+  }
+
+  stride_ = static_cast<uint64_t>(-GetExponentialBiased(current_period));
+  return true;
 }
 
-} // namespace profiling_internal
+}  // namespace profiling_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

@@ -40,7 +40,7 @@ constexpr size_t kMaxDataSources = 32;
 // creating two entries for it in the trace config.
 constexpr size_t kMaxDataSourceInstances = 8;
 
-} // namespace internal
-} // namespace perfetto
+}  // namespace internal
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_BASIC_TYPES_H_
+#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_BASIC_TYPES_H_

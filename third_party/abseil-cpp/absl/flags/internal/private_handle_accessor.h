@@ -32,28 +32,30 @@ namespace flags_internal {
 // CommandLineFlag. This class is intended for use exclusively internally inside
 // of the Abseil Flags implementation.
 class PrivateHandleAccessor {
-public:
-    // Access to CommandLineFlag::TypeId.
-    static FlagFastTypeId TypeId(const CommandLineFlag& flag);
+ public:
+  // Access to CommandLineFlag::TypeId.
+  static FlagFastTypeId TypeId(const CommandLineFlag& flag);
 
-    // Access to CommandLineFlag::SaveState.
-    static std::unique_ptr<FlagStateInterface> SaveState(CommandLineFlag& flag);
+  // Access to CommandLineFlag::SaveState.
+  static std::unique_ptr<FlagStateInterface> SaveState(CommandLineFlag& flag);
 
-    // Access to CommandLineFlag::IsSpecifiedOnCommandLine.
-    static bool IsSpecifiedOnCommandLine(const CommandLineFlag& flag);
+  // Access to CommandLineFlag::IsSpecifiedOnCommandLine.
+  static bool IsSpecifiedOnCommandLine(const CommandLineFlag& flag);
 
-    // Access to CommandLineFlag::ValidateInputValue.
-    static bool ValidateInputValue(const CommandLineFlag& flag, absl::string_view value);
+  // Access to CommandLineFlag::ValidateInputValue.
+  static bool ValidateInputValue(const CommandLineFlag& flag,
+                                 absl::string_view value);
 
-    // Access to CommandLineFlag::CheckDefaultValueParsingRoundtrip.
-    static void CheckDefaultValueParsingRoundtrip(const CommandLineFlag& flag);
+  // Access to CommandLineFlag::CheckDefaultValueParsingRoundtrip.
+  static void CheckDefaultValueParsingRoundtrip(const CommandLineFlag& flag);
 
-    static bool ParseFrom(
-        CommandLineFlag& flag, absl::string_view value, flags_internal::FlagSettingMode set_mode, flags_internal::ValueSource source, std::string& error);
+  static bool ParseFrom(CommandLineFlag& flag, absl::string_view value,
+                        flags_internal::FlagSettingMode set_mode,
+                        flags_internal::ValueSource source, std::string& error);
 };
 
-} // namespace flags_internal
+}  // namespace flags_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_FLAGS_INTERNAL_PRIVATE_HANDLE_ACCESSOR_H_
+#endif  // ABSL_FLAGS_INTERNAL_PRIVATE_HANDLE_ACCESSOR_H_

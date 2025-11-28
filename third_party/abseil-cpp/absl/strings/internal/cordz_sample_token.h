@@ -56,48 +56,42 @@ namespace cord_internal {
 // global_cordz_infos at any time since the objects it is able to retrieve will
 // not be deleted while the CordzSampleToken exists.
 class CordzSampleToken : public CordzSnapshot {
-public:
-    class Iterator {
-    public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type = const CordzInfo&;
-        using difference_type = ptrdiff_t;
-        using pointer = const CordzInfo*;
-        using reference = value_type;
+ public:
+  class Iterator {
+   public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = const CordzInfo&;
+    using difference_type = ptrdiff_t;
+    using pointer = const CordzInfo*;
+    using reference = value_type;
 
-        Iterator() = default;
+    Iterator() = default;
 
-        Iterator& operator++();
-        Iterator operator++(int);
-        friend bool operator==(const Iterator& lhs, const Iterator& rhs);
-        friend bool operator!=(const Iterator& lhs, const Iterator& rhs);
-        reference operator*() const;
-        pointer operator->() const;
+    Iterator& operator++();
+    Iterator operator++(int);
+    friend bool operator==(const Iterator& lhs, const Iterator& rhs);
+    friend bool operator!=(const Iterator& lhs, const Iterator& rhs);
+    reference operator*() const;
+    pointer operator->() const;
 
-    private:
-        friend class CordzSampleToken;
-        explicit Iterator(const CordzSampleToken* token);
+   private:
+    friend class CordzSampleToken;
+    explicit Iterator(const CordzSampleToken* token);
 
-        const CordzSampleToken* token_ = nullptr;
-        pointer current_ = nullptr;
-    };
+    const CordzSampleToken* token_ = nullptr;
+    pointer current_ = nullptr;
+  };
 
-    CordzSampleToken() = default;
-    CordzSampleToken(const CordzSampleToken&) = delete;
-    CordzSampleToken& operator=(const CordzSampleToken&) = delete;
+  CordzSampleToken() = default;
+  CordzSampleToken(const CordzSampleToken&) = delete;
+  CordzSampleToken& operator=(const CordzSampleToken&) = delete;
 
-    Iterator begin()
-    {
-        return Iterator(this);
-    }
-    Iterator end()
-    {
-        return Iterator();
-    }
+  Iterator begin() { return Iterator(this); }
+  Iterator end() { return Iterator(); }
 };
 
-} // namespace cord_internal
+}  // namespace cord_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_STRINGS_INTERNAL_CORDZ_SAMPLE_TOKEN_H_
+#endif  // ABSL_STRINGS_INTERNAL_CORDZ_SAMPLE_TOKEN_H_

@@ -28,22 +28,23 @@ namespace perfetto {
 // certain tracing SDK events occur. All methods are called on an internal
 // perfetto thread.
 class PERFETTO_EXPORT_COMPONENT TracingPolicy {
-public:
-    virtual ~TracingPolicy();
+ public:
+  virtual ~TracingPolicy();
 
-    // Called when the current process attempts to connect a new consumer to the
-    // backend of |backend_type| to check if the connection should be allowed. Its
-    // implementation should execute |result_callback| with the result of the
-    // check (synchronuosly or asynchronously on any thread). If the result is
-    // false, the consumer connection is aborted. Chrome uses this to restrict
-    // creating (system) tracing sessions based on an enterprise policy.
-    struct ShouldAllowConsumerSessionArgs {
-        BackendType backend_type;
-        std::function<void(bool /*allow*/)> result_callback;
-    };
-    virtual void ShouldAllowConsumerSession(const ShouldAllowConsumerSessionArgs&) = 0;
+  // Called when the current process attempts to connect a new consumer to the
+  // backend of |backend_type| to check if the connection should be allowed. Its
+  // implementation should execute |result_callback| with the result of the
+  // check (synchronuosly or asynchronously on any thread). If the result is
+  // false, the consumer connection is aborted. Chrome uses this to restrict
+  // creating (system) tracing sessions based on an enterprise policy.
+  struct ShouldAllowConsumerSessionArgs {
+    BackendType backend_type;
+    std::function<void(bool /*allow*/)> result_callback;
+  };
+  virtual void ShouldAllowConsumerSession(
+      const ShouldAllowConsumerSessionArgs&) = 0;
 };
 
-} // namespace perfetto
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_TRACING_POLICY_H_
+#endif  // INCLUDE_PERFETTO_TRACING_TRACING_POLICY_H_

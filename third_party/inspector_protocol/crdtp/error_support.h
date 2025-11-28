@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CRDTP_ERROR_SUPPORT_H_
-#define CRDTP_ERROR_SUPPORT_H_
+#ifndef V8_CRDTP_ERROR_SUPPORT_H_
+#define V8_CRDTP_ERROR_SUPPORT_H_
 
 #include <cstdint>
 #include <string>
@@ -11,7 +11,7 @@
 #include "export.h"
 #include "span.h"
 
-namespace crdtp {
+namespace v8_crdtp {
 // =============================================================================
 // ErrorSupport - For tracking errors in tree structures.
 // =============================================================================
@@ -24,39 +24,39 @@ namespace crdtp {
 // stack is materialized and prefixes the error message. E.g.,
 // "foo.bar.2: some error". After error collection, ::Errors() is used to
 // access the message.
-class CRDTP_EXPORT ErrorSupport {
-public:
-    // Push / Pop operations for the path segments; after Push, either SetName or
-    // SetIndex must be called exactly once.
-    void Push();
-    void Pop();
+class ErrorSupport {
+ public:
+  // Push / Pop operations for the path segments; after Push, either SetName or
+  // SetIndex must be called exactly once.
+  void Push();
+  void Pop();
 
-    // Sets the name of the current segment on the stack; e.g. a field name.
-    // |name| must be a C++ string literal in 7 bit US-ASCII.
-    void SetName(const char* name);
-    // Sets the index of the current segment on the stack; e.g. an array index.
-    void SetIndex(size_t index);
+  // Sets the name of the current segment on the stack; e.g. a field name.
+  // |name| must be a C++ string literal in 7 bit US-ASCII.
+  void SetName(const char* name);
+  // Sets the index of the current segment on the stack; e.g. an array index.
+  void SetIndex(size_t index);
 
-    // Materializes the error internally. |error| must be a C++ string literal
-    // in 7 bit US-ASCII.
-    void AddError(const char* error);
+  // Materializes the error internally. |error| must be a C++ string literal
+  // in 7 bit US-ASCII.
+  void AddError(const char* error);
 
-    // Returns the semicolon-separated list of errors as in 7 bit ASCII.
-    span<uint8_t> Errors() const;
+  // Returns the semicolon-separated list of errors as in 7 bit ASCII.
+  span<uint8_t> Errors() const;
 
-private:
-    enum SegmentType { EMPTY, NAME, INDEX };
-    struct Segment {
-        SegmentType type = EMPTY;
-        union {
-            const char* name;
-            size_t index;
-        };
+ private:
+  enum SegmentType { EMPTY, NAME, INDEX };
+  struct Segment {
+    SegmentType type = EMPTY;
+    union {
+      const char* name;
+      size_t index;
     };
-    std::vector<Segment> stack_;
-    std::string errors_;
+  };
+  std::vector<Segment> stack_;
+  std::string errors_;
 };
 
-} // namespace crdtp
+}  // namespace v8_crdtp
 
-#endif // CRDTP_ERROR_SUPPORT_H_
+#endif  // V8_CRDTP_ERROR_SUPPORT_H_

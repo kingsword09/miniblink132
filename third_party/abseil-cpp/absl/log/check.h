@@ -35,10 +35,10 @@
 #define ABSL_LOG_CHECK_H_
 
 #include "absl/log/internal/check_impl.h"
-#include "absl/log/internal/check_op.h" // IWYU pragma: export
-#include "absl/log/internal/conditions.h" // IWYU pragma: export
-#include "absl/log/internal/log_message.h" // IWYU pragma: export
-#include "absl/log/internal/strip.h" // IWYU pragma: export
+#include "absl/log/internal/check_op.h"     // IWYU pragma: export
+#include "absl/log/internal/conditions.h"   // IWYU pragma: export
+#include "absl/log/internal/log_message.h"  // IWYU pragma: export
+#include "absl/log/internal/strip.h"        // IWYU pragma: export
 
 // CHECK()
 //
@@ -113,24 +113,42 @@
 //
 // WARNING: Passing `NULL` as an argument to `CHECK_EQ` and similar macros does
 // not compile.  Use `nullptr` instead.
-#define CHECK_EQ(val1, val2) ABSL_LOG_INTERNAL_CHECK_EQ_IMPL((val1), #val1, (val2), #val2)
-#define CHECK_NE(val1, val2) ABSL_LOG_INTERNAL_CHECK_NE_IMPL((val1), #val1, (val2), #val2)
-#define CHECK_LE(val1, val2) ABSL_LOG_INTERNAL_CHECK_LE_IMPL((val1), #val1, (val2), #val2)
-#define CHECK_LT(val1, val2) ABSL_LOG_INTERNAL_CHECK_LT_IMPL((val1), #val1, (val2), #val2)
-#define CHECK_GE(val1, val2) ABSL_LOG_INTERNAL_CHECK_GE_IMPL((val1), #val1, (val2), #val2)
-#define CHECK_GT(val1, val2) ABSL_LOG_INTERNAL_CHECK_GT_IMPL((val1), #val1, (val2), #val2)
-#define QCHECK_EQ(val1, val2) ABSL_LOG_INTERNAL_QCHECK_EQ_IMPL((val1), #val1, (val2), #val2)
-#define QCHECK_NE(val1, val2) ABSL_LOG_INTERNAL_QCHECK_NE_IMPL((val1), #val1, (val2), #val2)
-#define QCHECK_LE(val1, val2) ABSL_LOG_INTERNAL_QCHECK_LE_IMPL((val1), #val1, (val2), #val2)
-#define QCHECK_LT(val1, val2) ABSL_LOG_INTERNAL_QCHECK_LT_IMPL((val1), #val1, (val2), #val2)
-#define QCHECK_GE(val1, val2) ABSL_LOG_INTERNAL_QCHECK_GE_IMPL((val1), #val1, (val2), #val2)
-#define QCHECK_GT(val1, val2) ABSL_LOG_INTERNAL_QCHECK_GT_IMPL((val1), #val1, (val2), #val2)
-#define DCHECK_EQ(val1, val2) ABSL_LOG_INTERNAL_DCHECK_EQ_IMPL((val1), #val1, (val2), #val2)
-#define DCHECK_NE(val1, val2) ABSL_LOG_INTERNAL_DCHECK_NE_IMPL((val1), #val1, (val2), #val2)
-#define DCHECK_LE(val1, val2) ABSL_LOG_INTERNAL_DCHECK_LE_IMPL((val1), #val1, (val2), #val2)
-#define DCHECK_LT(val1, val2) ABSL_LOG_INTERNAL_DCHECK_LT_IMPL((val1), #val1, (val2), #val2)
-#define DCHECK_GE(val1, val2) ABSL_LOG_INTERNAL_DCHECK_GE_IMPL((val1), #val1, (val2), #val2)
-#define DCHECK_GT(val1, val2) ABSL_LOG_INTERNAL_DCHECK_GT_IMPL((val1), #val1, (val2), #val2)
+#define CHECK_EQ(val1, val2) \
+  ABSL_LOG_INTERNAL_CHECK_EQ_IMPL((val1), #val1, (val2), #val2)
+#define CHECK_NE(val1, val2) \
+  ABSL_LOG_INTERNAL_CHECK_NE_IMPL((val1), #val1, (val2), #val2)
+#define CHECK_LE(val1, val2) \
+  ABSL_LOG_INTERNAL_CHECK_LE_IMPL((val1), #val1, (val2), #val2)
+#define CHECK_LT(val1, val2) \
+  ABSL_LOG_INTERNAL_CHECK_LT_IMPL((val1), #val1, (val2), #val2)
+#define CHECK_GE(val1, val2) \
+  ABSL_LOG_INTERNAL_CHECK_GE_IMPL((val1), #val1, (val2), #val2)
+#define CHECK_GT(val1, val2) \
+  ABSL_LOG_INTERNAL_CHECK_GT_IMPL((val1), #val1, (val2), #val2)
+#define QCHECK_EQ(val1, val2) \
+  ABSL_LOG_INTERNAL_QCHECK_EQ_IMPL((val1), #val1, (val2), #val2)
+#define QCHECK_NE(val1, val2) \
+  ABSL_LOG_INTERNAL_QCHECK_NE_IMPL((val1), #val1, (val2), #val2)
+#define QCHECK_LE(val1, val2) \
+  ABSL_LOG_INTERNAL_QCHECK_LE_IMPL((val1), #val1, (val2), #val2)
+#define QCHECK_LT(val1, val2) \
+  ABSL_LOG_INTERNAL_QCHECK_LT_IMPL((val1), #val1, (val2), #val2)
+#define QCHECK_GE(val1, val2) \
+  ABSL_LOG_INTERNAL_QCHECK_GE_IMPL((val1), #val1, (val2), #val2)
+#define QCHECK_GT(val1, val2) \
+  ABSL_LOG_INTERNAL_QCHECK_GT_IMPL((val1), #val1, (val2), #val2)
+#define DCHECK_EQ(val1, val2) \
+  ABSL_LOG_INTERNAL_DCHECK_EQ_IMPL((val1), #val1, (val2), #val2)
+#define DCHECK_NE(val1, val2) \
+  ABSL_LOG_INTERNAL_DCHECK_NE_IMPL((val1), #val1, (val2), #val2)
+#define DCHECK_LE(val1, val2) \
+  ABSL_LOG_INTERNAL_DCHECK_LE_IMPL((val1), #val1, (val2), #val2)
+#define DCHECK_LT(val1, val2) \
+  ABSL_LOG_INTERNAL_DCHECK_LT_IMPL((val1), #val1, (val2), #val2)
+#define DCHECK_GE(val1, val2) \
+  ABSL_LOG_INTERNAL_DCHECK_GE_IMPL((val1), #val1, (val2), #val2)
+#define DCHECK_GT(val1, val2) \
+  ABSL_LOG_INTERNAL_DCHECK_GT_IMPL((val1), #val1, (val2), #val2)
 
 // `CHECK_OK` and friends validate that the provided `absl::Status` or
 // `absl::StatusOr<T>` is OK.  If it isn't, they print a failure message that
@@ -163,17 +181,29 @@
 // Example:
 //
 //   CHECK_STREQ(Foo().c_str(), Bar().c_str());
-#define CHECK_STREQ(s1, s2) ABSL_LOG_INTERNAL_CHECK_STREQ_IMPL((s1), #s1, (s2), #s2)
-#define CHECK_STRNE(s1, s2) ABSL_LOG_INTERNAL_CHECK_STRNE_IMPL((s1), #s1, (s2), #s2)
-#define CHECK_STRCASEEQ(s1, s2) ABSL_LOG_INTERNAL_CHECK_STRCASEEQ_IMPL((s1), #s1, (s2), #s2)
-#define CHECK_STRCASENE(s1, s2) ABSL_LOG_INTERNAL_CHECK_STRCASENE_IMPL((s1), #s1, (s2), #s2)
-#define QCHECK_STREQ(s1, s2) ABSL_LOG_INTERNAL_QCHECK_STREQ_IMPL((s1), #s1, (s2), #s2)
-#define QCHECK_STRNE(s1, s2) ABSL_LOG_INTERNAL_QCHECK_STRNE_IMPL((s1), #s1, (s2), #s2)
-#define QCHECK_STRCASEEQ(s1, s2) ABSL_LOG_INTERNAL_QCHECK_STRCASEEQ_IMPL((s1), #s1, (s2), #s2)
-#define QCHECK_STRCASENE(s1, s2) ABSL_LOG_INTERNAL_QCHECK_STRCASENE_IMPL((s1), #s1, (s2), #s2)
-#define DCHECK_STREQ(s1, s2) ABSL_LOG_INTERNAL_DCHECK_STREQ_IMPL((s1), #s1, (s2), #s2)
-#define DCHECK_STRNE(s1, s2) ABSL_LOG_INTERNAL_DCHECK_STRNE_IMPL((s1), #s1, (s2), #s2)
-#define DCHECK_STRCASEEQ(s1, s2) ABSL_LOG_INTERNAL_DCHECK_STRCASEEQ_IMPL((s1), #s1, (s2), #s2)
-#define DCHECK_STRCASENE(s1, s2) ABSL_LOG_INTERNAL_DCHECK_STRCASENE_IMPL((s1), #s1, (s2), #s2)
+#define CHECK_STREQ(s1, s2) \
+  ABSL_LOG_INTERNAL_CHECK_STREQ_IMPL((s1), #s1, (s2), #s2)
+#define CHECK_STRNE(s1, s2) \
+  ABSL_LOG_INTERNAL_CHECK_STRNE_IMPL((s1), #s1, (s2), #s2)
+#define CHECK_STRCASEEQ(s1, s2) \
+  ABSL_LOG_INTERNAL_CHECK_STRCASEEQ_IMPL((s1), #s1, (s2), #s2)
+#define CHECK_STRCASENE(s1, s2) \
+  ABSL_LOG_INTERNAL_CHECK_STRCASENE_IMPL((s1), #s1, (s2), #s2)
+#define QCHECK_STREQ(s1, s2) \
+  ABSL_LOG_INTERNAL_QCHECK_STREQ_IMPL((s1), #s1, (s2), #s2)
+#define QCHECK_STRNE(s1, s2) \
+  ABSL_LOG_INTERNAL_QCHECK_STRNE_IMPL((s1), #s1, (s2), #s2)
+#define QCHECK_STRCASEEQ(s1, s2) \
+  ABSL_LOG_INTERNAL_QCHECK_STRCASEEQ_IMPL((s1), #s1, (s2), #s2)
+#define QCHECK_STRCASENE(s1, s2) \
+  ABSL_LOG_INTERNAL_QCHECK_STRCASENE_IMPL((s1), #s1, (s2), #s2)
+#define DCHECK_STREQ(s1, s2) \
+  ABSL_LOG_INTERNAL_DCHECK_STREQ_IMPL((s1), #s1, (s2), #s2)
+#define DCHECK_STRNE(s1, s2) \
+  ABSL_LOG_INTERNAL_DCHECK_STRNE_IMPL((s1), #s1, (s2), #s2)
+#define DCHECK_STRCASEEQ(s1, s2) \
+  ABSL_LOG_INTERNAL_DCHECK_STRCASEEQ_IMPL((s1), #s1, (s2), #s2)
+#define DCHECK_STRCASENE(s1, s2) \
+  ABSL_LOG_INTERNAL_DCHECK_STRCASENE_IMPL((s1), #s1, (s2), #s2)
 
-#endif // ABSL_LOG_CHECK_H_
+#endif  // ABSL_LOG_CHECK_H_

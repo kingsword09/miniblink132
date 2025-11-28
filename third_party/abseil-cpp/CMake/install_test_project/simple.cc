@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2019 The Abseil Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,8 @@
 #error ABSL_LTS_RELEASE_PATCH_LEVEL is not set correctly.
 #endif
 
-int main(int argc, char** argv)
-{
-    for (int i = 0; i < argc; ++i) {
-        std::cout << absl::Substitute("Arg $0: $1\n", i, argv[i]);
-    }
+int main(int argc, char** argv) {
+  for (int i = 0; i < argc; ++i) {
+    std::cout << absl::Substitute("Arg $0: $1\n", i, argv[i]);
+  }
 }

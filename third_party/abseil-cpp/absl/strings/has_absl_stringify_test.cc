@@ -21,21 +21,20 @@
 
 namespace {
 
-struct TypeWithoutAbslStringify { };
+struct TypeWithoutAbslStringify {};
 
 struct TypeWithAbslStringify {
-    template <typename Sink> friend void AbslStringify(Sink&, const TypeWithAbslStringify&)
-    {
-    }
+  template <typename Sink>
+  friend void AbslStringify(Sink&, const TypeWithAbslStringify&) {}
 };
 
-TEST(HasAbslStringifyTest, Works)
-{
-    EXPECT_FALSE(absl::HasAbslStringify<int>::value);
-    EXPECT_FALSE(absl::HasAbslStringify<std::string>::value);
-    EXPECT_FALSE(absl::HasAbslStringify<TypeWithoutAbslStringify>::value);
-    EXPECT_TRUE(absl::HasAbslStringify<TypeWithAbslStringify>::value);
-    EXPECT_FALSE(absl::HasAbslStringify<absl::optional<TypeWithAbslStringify>>::value);
+TEST(HasAbslStringifyTest, Works) {
+  EXPECT_FALSE(absl::HasAbslStringify<int>::value);
+  EXPECT_FALSE(absl::HasAbslStringify<std::string>::value);
+  EXPECT_FALSE(absl::HasAbslStringify<TypeWithoutAbslStringify>::value);
+  EXPECT_TRUE(absl::HasAbslStringify<TypeWithAbslStringify>::value);
+  EXPECT_FALSE(
+      absl::HasAbslStringify<absl::optional<TypeWithAbslStringify>>::value);
 }
 
-} // namespace
+}  // namespace

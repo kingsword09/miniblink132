@@ -34,7 +34,7 @@ using Record = std::tuple<Function, const void*, ObjectKind>;
 
 thread_local std::vector<Record>* tls_records = nullptr;
 
-} // namespace
+}  // namespace
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
@@ -43,75 +43,75 @@ namespace base_internal {
 // Strong extern "C" implementation.
 extern "C" {
 
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceWait)(const void* object, ObjectKind kind)
-{
-    if (tls_records != nullptr) {
-        tls_records->push_back({ kWait, object, kind });
-    }
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceWait)(const void* object,
+                                                   ObjectKind kind) {
+  if (tls_records != nullptr) {
+    tls_records->push_back({kWait, object, kind});
+  }
 }
 
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceContinue)(const void* object, ObjectKind kind)
-{
-    if (tls_records != nullptr) {
-        tls_records->push_back({ kContinue, object, kind });
-    }
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceContinue)(const void* object,
+                                                       ObjectKind kind) {
+  if (tls_records != nullptr) {
+    tls_records->push_back({kContinue, object, kind});
+  }
 }
 
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceSignal)(const void* object, ObjectKind kind)
-{
-    if (tls_records != nullptr) {
-        tls_records->push_back({ kSignal, object, kind });
-    }
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceSignal)(const void* object,
+                                                     ObjectKind kind) {
+  if (tls_records != nullptr) {
+    tls_records->push_back({kSignal, object, kind});
+  }
 }
 
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceObserved)(const void* object, ObjectKind kind)
-{
-    if (tls_records != nullptr) {
-        tls_records->push_back({ kObserved, object, kind });
-    }
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceObserved)(const void* object,
+                                                       ObjectKind kind) {
+  if (tls_records != nullptr) {
+    tls_records->push_back({kObserved, object, kind});
+  }
 }
 
-} // extern "C"
+}  // extern "C"
 
-} // namespace base_internal
+}  // namespace base_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
 namespace {
 
-TEST(TracingInternal, InvokesStrongFunctionWithNullptr)
-{
-    std::vector<Record> records;
-    tls_records = &records;
-    auto kind = absl::base_internal::ObjectKind::kUnknown;
-    absl::base_internal::TraceWait(nullptr, kind);
-    absl::base_internal::TraceContinue(nullptr, kind);
-    absl::base_internal::TraceSignal(nullptr, kind);
-    absl::base_internal::TraceObserved(nullptr, kind);
-    tls_records = nullptr;
+TEST(TracingInternal, InvokesStrongFunctionWithNullptr) {
+  std::vector<Record> records;
+  tls_records = &records;
+  auto kind = absl::base_internal::ObjectKind::kUnknown;
+  absl::base_internal::TraceWait(nullptr, kind);
+  absl::base_internal::TraceContinue(nullptr, kind);
+  absl::base_internal::TraceSignal(nullptr, kind);
+  absl::base_internal::TraceObserved(nullptr, kind);
+  tls_records = nullptr;
 
-    EXPECT_THAT(records,
-        ElementsAre(
-            Record { kWait, nullptr, kind }, Record { kContinue, nullptr, kind }, Record { kSignal, nullptr, kind }, Record { kObserved, nullptr, kind }));
+  EXPECT_THAT(records, ElementsAre(Record{kWait, nullptr, kind},
+                                   Record{kContinue, nullptr, kind},
+                                   Record{kSignal, nullptr, kind},
+                                   Record{kObserved, nullptr, kind}));
 }
 
-TEST(TracingInternal, InvokesStrongFunctionWithObjectAddress)
-{
-    int object = 0;
-    std::vector<Record> records;
-    tls_records = &records;
-    auto kind = absl::base_internal::ObjectKind::kUnknown;
-    absl::base_internal::TraceWait(&object, kind);
-    absl::base_internal::TraceContinue(&object, kind);
-    absl::base_internal::TraceSignal(&object, kind);
-    absl::base_internal::TraceObserved(&object, kind);
-    tls_records = nullptr;
+TEST(TracingInternal, InvokesStrongFunctionWithObjectAddress) {
+  int object = 0;
+  std::vector<Record> records;
+  tls_records = &records;
+  auto kind = absl::base_internal::ObjectKind::kUnknown;
+  absl::base_internal::TraceWait(&object, kind);
+  absl::base_internal::TraceContinue(&object, kind);
+  absl::base_internal::TraceSignal(&object, kind);
+  absl::base_internal::TraceObserved(&object, kind);
+  tls_records = nullptr;
 
-    EXPECT_THAT(records,
-        ElementsAre(
-            Record { kWait, &object, kind }, Record { kContinue, &object, kind }, Record { kSignal, &object, kind }, Record { kObserved, &object, kind }));
+  EXPECT_THAT(records, ElementsAre(Record{kWait, &object, kind},
+                                   Record{kContinue, &object, kind},
+                                   Record{kSignal, &object, kind},
+                                   Record{kObserved, &object, kind}));
 }
 
-} // namespace
+}  // namespace
 
-#endif // ABSL_HAVE_ATTRIBUTE_WEAK
+#endif  // ABSL_HAVE_ATTRIBUTE_WEAK

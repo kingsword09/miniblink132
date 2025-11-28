@@ -31,8 +31,8 @@
 #define ABSL_FUNCTIONAL_BIND_FRONT_H_
 
 #if defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
-#include <functional> // For std::bind_front.
-#endif // defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
+#include <functional>  // For std::bind_front.
+#endif  // defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
 
 #include <utility>
 
@@ -179,14 +179,16 @@ ABSL_NAMESPACE_BEGIN
 //
 #if defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
 using std::bind_front;
-#else // defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
-template <class F, class... BoundArgs> constexpr functional_internal::bind_front_t<F, BoundArgs...> bind_front(F&& func, BoundArgs&&... args)
-{
-    return functional_internal::bind_front_t<F, BoundArgs...>(absl::in_place, std::forward<F>(func), std::forward<BoundArgs>(args)...);
+#else   // defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
+template <class F, class... BoundArgs>
+constexpr functional_internal::bind_front_t<F, BoundArgs...> bind_front(
+    F&& func, BoundArgs&&... args) {
+  return functional_internal::bind_front_t<F, BoundArgs...>(
+      absl::in_place, std::forward<F>(func), std::forward<BoundArgs>(args)...);
 }
-#endif // defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
+#endif  // defined(__cpp_lib_bind_front) && __cpp_lib_bind_front >= 201907L
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_FUNCTIONAL_BIND_FRONT_H_
+#endif  // ABSL_FUNCTIONAL_BIND_FRONT_H_

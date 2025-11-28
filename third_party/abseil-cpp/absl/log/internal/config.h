@@ -38,8 +38,8 @@ using Tid = uint32_t;
 using Tid = pid_t;
 #endif
 
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_INTERNAL_CONFIG_H_
+#endif  // ABSL_LOG_INTERNAL_CONFIG_H_

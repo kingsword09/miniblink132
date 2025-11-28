@@ -25,114 +25,107 @@
 
 namespace {
 
-TEST(OStringStream, IsOStream)
-{
-    static_assert(std::is_base_of<std::ostream, absl::strings_internal::OStringStream>(), "");
+TEST(OStringStream, IsOStream) {
+  static_assert(
+      std::is_base_of<std::ostream, absl::strings_internal::OStringStream>(),
+      "");
 }
 
-TEST(OStringStream, ConstructNullptr)
-{
-    absl::strings_internal::OStringStream strm(nullptr);
-    EXPECT_EQ(nullptr, strm.str());
+TEST(OStringStream, ConstructNullptr) {
+  absl::strings_internal::OStringStream strm(nullptr);
+  EXPECT_EQ(nullptr, strm.str());
 }
 
-TEST(OStringStream, ConstructStr)
-{
-    std::string s = "abc";
-    {
-        absl::strings_internal::OStringStream strm(&s);
-        EXPECT_EQ(&s, strm.str());
-    }
+TEST(OStringStream, ConstructStr) {
+  std::string s = "abc";
+  {
+    absl::strings_internal::OStringStream strm(&s);
+    EXPECT_EQ(&s, strm.str());
+  }
+  EXPECT_EQ("abc", s);
+}
+
+TEST(OStringStream, Destroy) {
+  std::unique_ptr<std::string> s(new std::string);
+  absl::strings_internal::OStringStream strm(s.get());
+  s.reset();
+}
+
+TEST(OStringStream, MoveConstruct) {
+  std::string s = "abc";
+  {
+    absl::strings_internal::OStringStream strm1(&s);
+    strm1 << std::hex << 16;
+    EXPECT_EQ(&s, strm1.str());
+    absl::strings_internal::OStringStream strm2(std::move(strm1));
+    strm2 << 16;  // We should still be in base 16.
+    EXPECT_EQ(&s, strm2.str());
+  }
+  EXPECT_EQ("abc1010", s);
+}
+
+TEST(OStringStream, MoveAssign) {
+  std::string s = "abc";
+  {
+    absl::strings_internal::OStringStream strm1(&s);
+    strm1 << std::hex << 16;
+    EXPECT_EQ(&s, strm1.str());
+    absl::strings_internal::OStringStream strm2(nullptr);
+    strm2 = std::move(strm1);
+    strm2 << 16;  // We should still be in base 16.
+    EXPECT_EQ(&s, strm2.str());
+  }
+  EXPECT_EQ("abc1010", s);
+}
+
+TEST(OStringStream, Str) {
+  std::string s1;
+  absl::strings_internal::OStringStream strm(&s1);
+  const absl::strings_internal::OStringStream& c_strm(strm);
+
+  static_assert(std::is_same<decltype(strm.str()), std::string*>(), "");
+  static_assert(std::is_same<decltype(c_strm.str()), const std::string*>(), "");
+
+  EXPECT_EQ(&s1, strm.str());
+  EXPECT_EQ(&s1, c_strm.str());
+
+  strm.str(&s1);
+  EXPECT_EQ(&s1, strm.str());
+  EXPECT_EQ(&s1, c_strm.str());
+
+  std::string s2;
+  strm.str(&s2);
+  EXPECT_EQ(&s2, strm.str());
+  EXPECT_EQ(&s2, c_strm.str());
+
+  strm.str(nullptr);
+  EXPECT_EQ(nullptr, strm.str());
+  EXPECT_EQ(nullptr, c_strm.str());
+}
+
+TEST(OStreamStream, WriteToLValue) {
+  std::string s = "abc";
+  {
+    absl::strings_internal::OStringStream strm(&s);
     EXPECT_EQ("abc", s);
-}
-
-TEST(OStringStream, Destroy)
-{
-    std::unique_ptr<std::string> s(new std::string);
-    absl::strings_internal::OStringStream strm(s.get());
-    s.reset();
-}
-
-TEST(OStringStream, MoveConstruct)
-{
-    std::string s = "abc";
-    {
-        absl::strings_internal::OStringStream strm1(&s);
-        strm1 << std::hex << 16;
-        EXPECT_EQ(&s, strm1.str());
-        absl::strings_internal::OStringStream strm2(std::move(strm1));
-        strm2 << 16; // We should still be in base 16.
-        EXPECT_EQ(&s, strm2.str());
-    }
-    EXPECT_EQ("abc1010", s);
-}
-
-TEST(OStringStream, MoveAssign)
-{
-    std::string s = "abc";
-    {
-        absl::strings_internal::OStringStream strm1(&s);
-        strm1 << std::hex << 16;
-        EXPECT_EQ(&s, strm1.str());
-        absl::strings_internal::OStringStream strm2(nullptr);
-        strm2 = std::move(strm1);
-        strm2 << 16; // We should still be in base 16.
-        EXPECT_EQ(&s, strm2.str());
-    }
-    EXPECT_EQ("abc1010", s);
-}
-
-TEST(OStringStream, Str)
-{
-    std::string s1;
-    absl::strings_internal::OStringStream strm(&s1);
-    const absl::strings_internal::OStringStream& c_strm(strm);
-
-    static_assert(std::is_same<decltype(strm.str()), std::string*>(), "");
-    static_assert(std::is_same<decltype(c_strm.str()), const std::string*>(), "");
-
-    EXPECT_EQ(&s1, strm.str());
-    EXPECT_EQ(&s1, c_strm.str());
-
-    strm.str(&s1);
-    EXPECT_EQ(&s1, strm.str());
-    EXPECT_EQ(&s1, c_strm.str());
-
-    std::string s2;
-    strm.str(&s2);
-    EXPECT_EQ(&s2, strm.str());
-    EXPECT_EQ(&s2, c_strm.str());
-
-    strm.str(nullptr);
-    EXPECT_EQ(nullptr, strm.str());
-    EXPECT_EQ(nullptr, c_strm.str());
-}
-
-TEST(OStreamStream, WriteToLValue)
-{
-    std::string s = "abc";
-    {
-        absl::strings_internal::OStringStream strm(&s);
-        EXPECT_EQ("abc", s);
-        strm << "";
-        EXPECT_EQ("abc", s);
-        strm << 42;
-        EXPECT_EQ("abc42", s);
-        strm << 'x' << 'y';
-        EXPECT_EQ("abc42xy", s);
-    }
-    EXPECT_EQ("abc42xy", s);
-}
-
-TEST(OStreamStream, WriteToRValue)
-{
-    std::string s = "abc";
-    absl::strings_internal::OStringStream(&s) << "";
+    strm << "";
     EXPECT_EQ("abc", s);
-    absl::strings_internal::OStringStream(&s) << 42;
+    strm << 42;
     EXPECT_EQ("abc42", s);
-    absl::strings_internal::OStringStream(&s) << 'x' << 'y';
+    strm << 'x' << 'y';
     EXPECT_EQ("abc42xy", s);
+  }
+  EXPECT_EQ("abc42xy", s);
 }
 
-} // namespace
+TEST(OStreamStream, WriteToRValue) {
+  std::string s = "abc";
+  absl::strings_internal::OStringStream(&s) << "";
+  EXPECT_EQ("abc", s);
+  absl::strings_internal::OStringStream(&s) << 42;
+  EXPECT_EQ("abc42", s);
+  absl::strings_internal::OStringStream(&s) << 'x' << 'y';
+  EXPECT_EQ("abc42xy", s);
+}
+
+}  // namespace

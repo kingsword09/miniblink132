@@ -23,16 +23,14 @@ namespace status_internal {
 ABSL_INTERNAL_ATOMIC_HOOK_ATTRIBUTES
 static absl::base_internal::AtomicHook<StatusPayloadPrinter> storage;
 
-void SetStatusPayloadPrinter(StatusPayloadPrinter printer)
-{
-    storage.Store(printer);
+void SetStatusPayloadPrinter(StatusPayloadPrinter printer) {
+  storage.Store(printer);
 }
 
-StatusPayloadPrinter GetStatusPayloadPrinter()
-{
-    return storage.Load();
+StatusPayloadPrinter GetStatusPayloadPrinter() {
+  return storage.Load();
 }
 
-} // namespace status_internal
+}  // namespace status_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl

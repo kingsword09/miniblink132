@@ -30,16 +30,15 @@ ABSL_NAMESPACE_BEGIN
 namespace log_internal {
 
 class Voidify final {
-public:
-    // This has to be an operator with a precedence lower than << but higher than
-    // ?:
-    template <typename T> void operator&&(const T&) const&&
-    {
-    }
+ public:
+  // This has to be an operator with a precedence lower than << but higher than
+  // ?:
+  template <typename T>
+  void operator&&(const T&) const&& {}
 };
 
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_INTERNAL_VOIDIFY_H_
+#endif  // ABSL_LOG_INTERNAL_VOIDIFY_H_

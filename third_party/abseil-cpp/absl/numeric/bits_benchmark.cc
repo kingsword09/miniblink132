@@ -23,51 +23,51 @@
 namespace absl {
 namespace {
 
-template <typename T> static void BM_bit_width(benchmark::State& state)
-{
-    const auto count = static_cast<size_t>(state.range(0));
+template <typename T>
+static void BM_bit_width(benchmark::State& state) {
+  const auto count = static_cast<size_t>(state.range(0));
 
-    absl::BitGen rng;
-    std::vector<T> values;
-    values.reserve(count);
+  absl::BitGen rng;
+  std::vector<T> values;
+  values.reserve(count);
+  for (size_t i = 0; i < count; ++i) {
+    values.push_back(absl::Uniform<T>(rng, 0, std::numeric_limits<T>::max()));
+  }
+
+  while (state.KeepRunningBatch(static_cast<int64_t>(count))) {
     for (size_t i = 0; i < count; ++i) {
-        values.push_back(absl::Uniform<T>(rng, 0, std::numeric_limits<T>::max()));
+      benchmark::DoNotOptimize(absl::bit_width(values[i]));
     }
-
-    while (state.KeepRunningBatch(static_cast<int64_t>(count))) {
-        for (size_t i = 0; i < count; ++i) {
-            benchmark::DoNotOptimize(absl::bit_width(values[i]));
-        }
-    }
+  }
 }
 BENCHMARK_TEMPLATE(BM_bit_width, uint8_t)->Range(1, 1 << 20);
 BENCHMARK_TEMPLATE(BM_bit_width, uint16_t)->Range(1, 1 << 20);
 BENCHMARK_TEMPLATE(BM_bit_width, uint32_t)->Range(1, 1 << 20);
 BENCHMARK_TEMPLATE(BM_bit_width, uint64_t)->Range(1, 1 << 20);
 
-template <typename T> static void BM_bit_width_nonzero(benchmark::State& state)
-{
-    const auto count = static_cast<size_t>(state.range(0));
+template <typename T>
+static void BM_bit_width_nonzero(benchmark::State& state) {
+  const auto count = static_cast<size_t>(state.range(0));
 
-    absl::BitGen rng;
-    std::vector<T> values;
-    values.reserve(count);
+  absl::BitGen rng;
+  std::vector<T> values;
+  values.reserve(count);
+  for (size_t i = 0; i < count; ++i) {
+    values.push_back(absl::Uniform<T>(rng, 1, std::numeric_limits<T>::max()));
+  }
+
+  while (state.KeepRunningBatch(static_cast<int64_t>(count))) {
     for (size_t i = 0; i < count; ++i) {
-        values.push_back(absl::Uniform<T>(rng, 1, std::numeric_limits<T>::max()));
+      const T value = values[i];
+      ABSL_ASSUME(value > 0);
+      benchmark::DoNotOptimize(absl::bit_width(value));
     }
-
-    while (state.KeepRunningBatch(static_cast<int64_t>(count))) {
-        for (size_t i = 0; i < count; ++i) {
-            const T value = values[i];
-            ABSL_ASSUME(value > 0);
-            benchmark::DoNotOptimize(absl::bit_width(value));
-        }
-    }
+  }
 }
 BENCHMARK_TEMPLATE(BM_bit_width_nonzero, uint8_t)->Range(1, 1 << 20);
 BENCHMARK_TEMPLATE(BM_bit_width_nonzero, uint16_t)->Range(1, 1 << 20);
 BENCHMARK_TEMPLATE(BM_bit_width_nonzero, uint32_t)->Range(1, 1 << 20);
 BENCHMARK_TEMPLATE(BM_bit_width_nonzero, uint64_t)->Range(1, 1 << 20);
 
-} // namespace
-} // namespace absl
+}  // namespace
+}  // namespace absl

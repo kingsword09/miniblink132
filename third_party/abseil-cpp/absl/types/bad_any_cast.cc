@@ -26,26 +26,22 @@ ABSL_NAMESPACE_BEGIN
 
 bad_any_cast::~bad_any_cast() = default;
 
-const char* bad_any_cast::what() const noexcept
-{
-    return "Bad any cast";
-}
+const char* bad_any_cast::what() const noexcept { return "Bad any cast"; }
 
 namespace any_internal {
 
-void ThrowBadAnyCast()
-{
+void ThrowBadAnyCast() {
 #ifdef ABSL_HAVE_EXCEPTIONS
-    throw bad_any_cast();
+  throw bad_any_cast();
 #else
-    ABSL_RAW_LOG(FATAL, "Bad any cast");
-    std::abort();
+  ABSL_RAW_LOG(FATAL, "Bad any cast");
+  std::abort();
 #endif
 }
 
-} // namespace any_internal
+}  // namespace any_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
 #else
 
@@ -60,9 +56,9 @@ ABSL_NAMESPACE_BEGIN
 namespace types_internal {
 extern const char kAvoidEmptyBadAnyCastLibraryWarning;
 const char kAvoidEmptyBadAnyCastLibraryWarning = 0;
-} // namespace types_internal
+}  // namespace types_internal
 ABSL_NAMESPACE_END
-} // namespace absl
-#endif // __APPLE__
+}  // namespace absl
+#endif  // __APPLE__
 
-#endif // ABSL_USES_STD_ANY
+#endif  // ABSL_USES_STD_ANY

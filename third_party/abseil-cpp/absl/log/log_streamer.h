@@ -72,97 +72,87 @@ ABSL_NAMESPACE_BEGIN
 //     ShaveYakAndWriteToStreamPointer(yak3, &streamer.stream());
 //   }
 class LogStreamer final {
-public:
-    // LogStreamer::LogStreamer()
-    //
-    // Creates a LogStreamer with a given `severity` that will log a message
-    // attributed to the given `file` and `line`.
-    explicit LogStreamer(absl::LogSeverity severity, absl::string_view file, int line)
-        : severity_(severity)
-        , line_(line)
-        , file_(file)
-        , stream_(absl::in_place, &buf_)
-    {
-        // To match `LOG`'s defaults:
-        stream_->setf(std::ios_base::showbase | std::ios_base::boolalpha);
-    }
+ public:
+  // LogStreamer::LogStreamer()
+  //
+  // Creates a LogStreamer with a given `severity` that will log a message
+  // attributed to the given `file` and `line`.
+  explicit LogStreamer(absl::LogSeverity severity, absl::string_view file,
+                       int line)
+      : severity_(severity),
+        line_(line),
+        file_(file),
+        stream_(absl::in_place, &buf_) {
+    // To match `LOG`'s defaults:
+    stream_->setf(std::ios_base::showbase | std::ios_base::boolalpha);
+  }
 
-    // A moved-from `absl::LogStreamer` does not `LOG` when destroyed,
-    // and a program that streams into one has undefined behavior.
-    LogStreamer(LogStreamer&& that) noexcept
-        : severity_(that.severity_)
-        , line_(that.line_)
-        , file_(std::move(that.file_))
-        , buf_(std::move(that.buf_))
-        , stream_(std::move(that.stream_))
-    {
-        if (stream_.has_value())
-            stream_->str(&buf_);
-        that.stream_.reset();
-    }
-    LogStreamer& operator=(LogStreamer&& that)
-    {
-        ABSL_LOG_IF(LEVEL(severity_), stream_).AtLocation(file_, line_) << buf_;
-        severity_ = that.severity_;
-        file_ = std::move(that.file_);
-        line_ = that.line_;
-        buf_ = std::move(that.buf_);
-        stream_ = std::move(that.stream_);
-        if (stream_.has_value())
-            stream_->str(&buf_);
-        that.stream_.reset();
-        return *this;
-    }
+  // A moved-from `absl::LogStreamer` does not `LOG` when destroyed,
+  // and a program that streams into one has undefined behavior.
+  LogStreamer(LogStreamer&& that) noexcept
+      : severity_(that.severity_),
+        line_(that.line_),
+        file_(std::move(that.file_)),
+        buf_(std::move(that.buf_)),
+        stream_(std::move(that.stream_)) {
+    if (stream_.has_value()) stream_->str(&buf_);
+    that.stream_.reset();
+  }
+  LogStreamer& operator=(LogStreamer&& that) {
+    ABSL_LOG_IF(LEVEL(severity_), stream_).AtLocation(file_, line_) << buf_;
+    severity_ = that.severity_;
+    file_ = std::move(that.file_);
+    line_ = that.line_;
+    buf_ = std::move(that.buf_);
+    stream_ = std::move(that.stream_);
+    if (stream_.has_value()) stream_->str(&buf_);
+    that.stream_.reset();
+    return *this;
+  }
 
-    // LogStreamer::~LogStreamer()
-    //
-    // Logs this LogStreamer's buffered content as if by LOG.
-    ~LogStreamer()
-    {
-        ABSL_LOG_IF(LEVEL(severity_), stream_.has_value()).AtLocation(file_, line_) << buf_;
-    }
+  // LogStreamer::~LogStreamer()
+  //
+  // Logs this LogStreamer's buffered content as if by LOG.
+  ~LogStreamer() {
+    ABSL_LOG_IF(LEVEL(severity_), stream_.has_value()).AtLocation(file_, line_)
+        << buf_;
+  }
 
-    // LogStreamer::stream()
-    //
-    // Returns the `std::ostream` to use to write into this LogStreamer' internal
-    // buffer.
-    std::ostream& stream()
-    {
-        return *stream_;
-    }
+  // LogStreamer::stream()
+  //
+  // Returns the `std::ostream` to use to write into this LogStreamer' internal
+  // buffer.
+  std::ostream& stream() { return *stream_; }
 
-private:
-    absl::LogSeverity severity_;
-    int line_;
-    std::string file_;
-    std::string buf_;
-    // A disengaged `stream_` indicates a moved-from `LogStreamer` that should not
-    // `LOG` upon destruction.
-    absl::optional<absl::strings_internal::OStringStream> stream_;
+ private:
+  absl::LogSeverity severity_;
+  int line_;
+  std::string file_;
+  std::string buf_;
+  // A disengaged `stream_` indicates a moved-from `LogStreamer` that should not
+  // `LOG` upon destruction.
+  absl::optional<absl::strings_internal::OStringStream> stream_;
 };
 
 // LogInfoStreamer()
 //
 // Returns a LogStreamer that writes at level LogSeverity::kInfo.
-inline LogStreamer LogInfoStreamer(absl::string_view file, int line)
-{
-    return absl::LogStreamer(absl::LogSeverity::kInfo, file, line);
+inline LogStreamer LogInfoStreamer(absl::string_view file, int line) {
+  return absl::LogStreamer(absl::LogSeverity::kInfo, file, line);
 }
 
 // LogWarningStreamer()
 //
 // Returns a LogStreamer that writes at level LogSeverity::kWarning.
-inline LogStreamer LogWarningStreamer(absl::string_view file, int line)
-{
-    return absl::LogStreamer(absl::LogSeverity::kWarning, file, line);
+inline LogStreamer LogWarningStreamer(absl::string_view file, int line) {
+  return absl::LogStreamer(absl::LogSeverity::kWarning, file, line);
 }
 
 // LogErrorStreamer()
 //
 // Returns a LogStreamer that writes at level LogSeverity::kError.
-inline LogStreamer LogErrorStreamer(absl::string_view file, int line)
-{
-    return absl::LogStreamer(absl::LogSeverity::kError, file, line);
+inline LogStreamer LogErrorStreamer(absl::string_view file, int line) {
+  return absl::LogStreamer(absl::LogSeverity::kError, file, line);
 }
 
 // LogFatalStreamer()
@@ -171,9 +161,8 @@ inline LogStreamer LogErrorStreamer(absl::string_view file, int line)
 //
 // The program will be terminated when this `LogStreamer` is destroyed,
 // regardless of whether any data were streamed in.
-inline LogStreamer LogFatalStreamer(absl::string_view file, int line)
-{
-    return absl::LogStreamer(absl::LogSeverity::kFatal, file, line);
+inline LogStreamer LogFatalStreamer(absl::string_view file, int line) {
+  return absl::LogStreamer(absl::LogSeverity::kFatal, file, line);
 }
 
 // LogDebugFatalStreamer()
@@ -182,12 +171,11 @@ inline LogStreamer LogFatalStreamer(absl::string_view file, int line)
 //
 // In debug mode, the program will be terminated when this `LogStreamer` is
 // destroyed, regardless of whether any data were streamed in.
-inline LogStreamer LogDebugFatalStreamer(absl::string_view file, int line)
-{
-    return absl::LogStreamer(absl::kLogDebugFatal, file, line);
+inline LogStreamer LogDebugFatalStreamer(absl::string_view file, int line) {
+  return absl::LogStreamer(absl::kLogDebugFatal, file, line);
 }
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_LOG_STREAMER_H_
+#endif  // ABSL_LOG_LOG_STREAMER_H_

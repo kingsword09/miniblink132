@@ -33,30 +33,32 @@ using ::absl::log_internal::TextMessage;
 using ::testing::ElementsAre;
 using ::testing::Eq;
 
-auto* test_env ABSL_ATTRIBUTE_UNUSED = ::testing::AddGlobalTestEnvironment(new absl::log_internal::LogTestEnvironment);
+auto *test_env ABSL_ATTRIBUTE_UNUSED = ::testing::AddGlobalTestEnvironment(
+    new absl::log_internal::LogTestEnvironment);
 
 // Abseil Logging library uses these by default, so we set them on the
 // `std::ostream` we compare against too.
-std::ios& LoggingDefaults(std::ios& str)
-{
-    str.setf(std::ios_base::showbase | std::ios_base::boolalpha | std::ios_base::internal);
-    return str;
+std::ios &LoggingDefaults(std::ios &str) {
+  str.setf(std::ios_base::showbase | std::ios_base::boolalpha |
+           std::ios_base::internal);
+  return str;
 }
 
-TEST(StreamingFormatTest, LogAsLiteral)
-{
-    std::ostringstream stream;
-    const std::string not_a_literal("hello world");
-    stream << LoggingDefaults << absl::LogAsLiteral(not_a_literal);
+TEST(StreamingFormatTest, LogAsLiteral) {
+  std::ostringstream stream;
+  const std::string not_a_literal("hello world");
+  stream << LoggingDefaults << absl::LogAsLiteral(not_a_literal);
 
-    absl::ScopedMockLog sink;
+  absl::ScopedMockLog sink;
 
-    EXPECT_CALL(sink,
-        Send(AllOf(TextMessage(MatchesOstream(stream)), TextMessage(Eq("hello world")),
-            ENCODED_MESSAGE(HasValues(ElementsAre(EqualsProto(R"pb(literal: "hello world")pb")))))));
+  EXPECT_CALL(sink,
+              Send(AllOf(TextMessage(MatchesOstream(stream)),
+                         TextMessage(Eq("hello world")),
+                         ENCODED_MESSAGE(HasValues(ElementsAre(
+                             EqualsProto(R"pb(literal: "hello world")pb")))))));
 
-    sink.StartCapturingLogs();
-    LOG(INFO) << absl::LogAsLiteral(not_a_literal);
+  sink.StartCapturingLogs();
+  LOG(INFO) << absl::LogAsLiteral(not_a_literal);
 }
 
-} // namespace
+}  // namespace

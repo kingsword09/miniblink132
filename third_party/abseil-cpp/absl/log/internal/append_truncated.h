@@ -27,25 +27,21 @@ ABSL_NAMESPACE_BEGIN
 namespace log_internal {
 // Copies into `dst` as many bytes of `src` as will fit, then truncates the
 // copied bytes from the front of `dst` and returns the number of bytes written.
-inline size_t AppendTruncated(absl::string_view src, absl::Span<char>& dst)
-{
-    if (src.size() > dst.size())
-        src = src.substr(0, dst.size());
-    memcpy(dst.data(), src.data(), src.size());
-    dst.remove_prefix(src.size());
-    return src.size();
+inline size_t AppendTruncated(absl::string_view src, absl::Span<char> &dst) {
+  if (src.size() > dst.size()) src = src.substr(0, dst.size());
+  memcpy(dst.data(), src.data(), src.size());
+  dst.remove_prefix(src.size());
+  return src.size();
 }
 // Likewise, but `n` copies of `c`.
-inline size_t AppendTruncated(char c, size_t n, absl::Span<char>& dst)
-{
-    if (n > dst.size())
-        n = dst.size();
-    memset(dst.data(), c, n);
-    dst.remove_prefix(n);
-    return n;
+inline size_t AppendTruncated(char c, size_t n, absl::Span<char> &dst) {
+  if (n > dst.size()) n = dst.size();
+  memset(dst.data(), c, n);
+  dst.remove_prefix(n);
+  return n;
 }
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_INTERNAL_APPEND_TRUNCATED_H_
+#endif  // ABSL_LOG_INTERNAL_APPEND_TRUNCATED_H_

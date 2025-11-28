@@ -17,8 +17,6 @@
 #ifndef INCLUDE_PERFETTO_TRACING_STRING_HELPERS_H_
 #define INCLUDE_PERFETTO_TRACING_STRING_HELPERS_H_
 
-#if 0
-
 #include "perfetto/base/export.h"
 #include "perfetto/base/logging.h"
 
@@ -82,5 +80,4 @@ constexpr const char* GetStaticString(perfetto::StaticString string) {
 }  // namespace internal
 }  // namespace perfetto
 
-#endif // #if 0
-#endif // INCLUDE_PERFETTO_TRACING_STRING_HELPERS_H_
+#endif  // INCLUDE_PERFETTO_TRACING_STRING_HELPERS_H_

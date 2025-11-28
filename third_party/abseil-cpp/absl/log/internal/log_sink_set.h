@@ -39,15 +39,16 @@ bool ThreadIsLoggingToLogSink();
 //    extra sinks to the entry.
 // * Otherwise it will also log to the global sinks set. This set is managed
 //   by `absl::AddLogSink` and `absl::RemoveLogSink`.
-void LogToSinks(const absl::LogEntry& entry, absl::Span<absl::LogSink*> extra_sinks, bool extra_sinks_only);
+void LogToSinks(const absl::LogEntry& entry,
+                absl::Span<absl::LogSink*> extra_sinks, bool extra_sinks_only);
 
 // Implementation for operations with log sink set.
 void AddLogSink(absl::LogSink* sink);
 void RemoveLogSink(absl::LogSink* sink);
 void FlushLogSinks();
 
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_INTERNAL_LOG_SINK_SET_H_
+#endif  // ABSL_LOG_INTERNAL_LOG_SINK_SET_H_

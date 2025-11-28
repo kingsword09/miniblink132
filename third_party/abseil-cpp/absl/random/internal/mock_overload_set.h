@@ -28,7 +28,8 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace random_internal {
 
-template <typename DistrT, typename ValidatorT, typename Fn> struct MockSingleOverload;
+template <typename DistrT, typename ValidatorT, typename Fn>
+struct MockSingleOverload;
 
 // MockSingleOverload
 //
@@ -39,37 +40,47 @@ template <typename DistrT, typename ValidatorT, typename Fn> struct MockSingleOv
 // arguments to MockingBitGen::Register.
 //
 // The underlying KeyT must match the KeyT constructed by DistributionCaller.
-template <typename DistrT, typename ValidatorT, typename Ret, typename... Args> struct MockSingleOverload<DistrT, ValidatorT, Ret(MockingBitGen&, Args...)> {
-    static_assert(std::is_same<typename DistrT::result_type, Ret>::value,
-        "Overload signature must have return type matching the "
-        "distribution result_type.");
-    using KeyT = Ret(DistrT, std::tuple<Args...>);
+template <typename DistrT, typename ValidatorT, typename Ret, typename... Args>
+struct MockSingleOverload<DistrT, ValidatorT, Ret(MockingBitGen&, Args...)> {
+  static_assert(std::is_same<typename DistrT::result_type, Ret>::value,
+                "Overload signature must have return type matching the "
+                "distribution result_type.");
+  using KeyT = Ret(DistrT, std::tuple<Args...>);
 
-    template <typename MockURBG>
-    auto gmock_Call(MockURBG& gen, const ::testing::Matcher<Args>&... matchers)
-        -> decltype(MockHelpers::MockFor<KeyT>(gen, ValidatorT()).gmock_Call(matchers...))
-    {
-        static_assert(std::is_base_of<MockingBitGenImpl<true>, MockURBG>::value || std::is_base_of<MockingBitGenImpl<false>, MockURBG>::value,
-            "Mocking requires an absl::MockingBitGen");
-        return MockHelpers::MockFor<KeyT>(gen, ValidatorT()).gmock_Call(matchers...);
-    }
+  template <typename MockURBG>
+  auto gmock_Call(MockURBG& gen, const ::testing::Matcher<Args>&... matchers)
+      -> decltype(MockHelpers::MockFor<KeyT>(gen, ValidatorT())
+                      .gmock_Call(matchers...)) {
+    static_assert(
+        std::is_base_of<MockingBitGenImpl<true>, MockURBG>::value ||
+            std::is_base_of<MockingBitGenImpl<false>, MockURBG>::value,
+        "Mocking requires an absl::MockingBitGen");
+    return MockHelpers::MockFor<KeyT>(gen, ValidatorT())
+        .gmock_Call(matchers...);
+  }
 };
 
-template <typename DistrT, typename ValidatorT, typename Ret, typename Arg, typename... Args>
-struct MockSingleOverload<DistrT, ValidatorT, Ret(Arg, MockingBitGen&, Args...)> {
-    static_assert(std::is_same<typename DistrT::result_type, Ret>::value,
-        "Overload signature must have return type matching the "
-        "distribution result_type.");
-    using KeyT = Ret(DistrT, std::tuple<Arg, Args...>);
+template <typename DistrT, typename ValidatorT, typename Ret, typename Arg,
+          typename... Args>
+struct MockSingleOverload<DistrT, ValidatorT,
+                          Ret(Arg, MockingBitGen&, Args...)> {
+  static_assert(std::is_same<typename DistrT::result_type, Ret>::value,
+                "Overload signature must have return type matching the "
+                "distribution result_type.");
+  using KeyT = Ret(DistrT, std::tuple<Arg, Args...>);
 
-    template <typename MockURBG>
-    auto gmock_Call(const ::testing::Matcher<Arg>& matcher, MockURBG& gen, const ::testing::Matcher<Args>&... matchers)
-        -> decltype(MockHelpers::MockFor<KeyT>(gen, ValidatorT()).gmock_Call(matcher, matchers...))
-    {
-        static_assert(std::is_base_of<MockingBitGenImpl<true>, MockURBG>::value || std::is_base_of<MockingBitGenImpl<false>, MockURBG>::value,
-            "Mocking requires an absl::MockingBitGen");
-        return MockHelpers::MockFor<KeyT>(gen, ValidatorT()).gmock_Call(matcher, matchers...);
-    }
+  template <typename MockURBG>
+  auto gmock_Call(const ::testing::Matcher<Arg>& matcher, MockURBG& gen,
+                  const ::testing::Matcher<Args>&... matchers)
+      -> decltype(MockHelpers::MockFor<KeyT>(gen, ValidatorT())
+                      .gmock_Call(matcher, matchers...)) {
+    static_assert(
+        std::is_base_of<MockingBitGenImpl<true>, MockURBG>::value ||
+            std::is_base_of<MockingBitGenImpl<false>, MockURBG>::value,
+        "Mocking requires an absl::MockingBitGen");
+    return MockHelpers::MockFor<KeyT>(gen, ValidatorT())
+        .gmock_Call(matcher, matchers...);
+  }
 };
 
 // MockOverloadSetWithValidator
@@ -81,18 +92,22 @@ struct MockSingleOverload<DistrT, ValidatorT, Ret(Arg, MockingBitGen&, Args...)>
 // `ValidatorT::Validate(result, args...)` will be called after the mock
 // distribution returns a value in `result`, allowing for validation against the
 // args.
-template <typename DistrT, typename ValidatorT, typename... Fns> struct MockOverloadSetWithValidator;
+template <typename DistrT, typename ValidatorT, typename... Fns>
+struct MockOverloadSetWithValidator;
 
 template <typename DistrT, typename ValidatorT, typename Sig>
-struct MockOverloadSetWithValidator<DistrT, ValidatorT, Sig> : public MockSingleOverload<DistrT, ValidatorT, Sig> {
-    using MockSingleOverload<DistrT, ValidatorT, Sig>::gmock_Call;
+struct MockOverloadSetWithValidator<DistrT, ValidatorT, Sig>
+    : public MockSingleOverload<DistrT, ValidatorT, Sig> {
+  using MockSingleOverload<DistrT, ValidatorT, Sig>::gmock_Call;
 };
 
-template <typename DistrT, typename ValidatorT, typename FirstSig, typename... Rest>
-struct MockOverloadSetWithValidator<DistrT, ValidatorT, FirstSig, Rest...> : public MockSingleOverload<DistrT, ValidatorT, FirstSig>,
-                                                                             public MockOverloadSetWithValidator<DistrT, ValidatorT, Rest...> {
-    using MockSingleOverload<DistrT, ValidatorT, FirstSig>::gmock_Call;
-    using MockOverloadSetWithValidator<DistrT, ValidatorT, Rest...>::gmock_Call;
+template <typename DistrT, typename ValidatorT, typename FirstSig,
+          typename... Rest>
+struct MockOverloadSetWithValidator<DistrT, ValidatorT, FirstSig, Rest...>
+    : public MockSingleOverload<DistrT, ValidatorT, FirstSig>,
+      public MockOverloadSetWithValidator<DistrT, ValidatorT, Rest...> {
+  using MockSingleOverload<DistrT, ValidatorT, FirstSig>::gmock_Call;
+  using MockOverloadSetWithValidator<DistrT, ValidatorT, Rest...>::gmock_Call;
 };
 
 // MockOverloadSet
@@ -101,9 +116,11 @@ struct MockOverloadSetWithValidator<DistrT, ValidatorT, FirstSig, Rest...> : pub
 // performs overload resolution amongst all the overloads. This makes
 // `EXPECT_CALL(mock_overload_set, Call(...))` expand and do overload resolution
 // correctly.
-template <typename DistrT, typename... Signatures> using MockOverloadSet = MockOverloadSetWithValidator<DistrT, NoOpValidator, Signatures...>;
+template <typename DistrT, typename... Signatures>
+using MockOverloadSet =
+    MockOverloadSetWithValidator<DistrT, NoOpValidator, Signatures...>;
 
-} // namespace random_internal
+}  // namespace random_internal
 ABSL_NAMESPACE_END
-} // namespace absl
-#endif // ABSL_RANDOM_INTERNAL_MOCK_OVERLOAD_SET_H_
+}  // namespace absl
+#endif  // ABSL_RANDOM_INTERNAL_MOCK_OVERLOAD_SET_H_

@@ -48,35 +48,32 @@ ABSL_NAMESPACE_BEGIN
 //                                          // returns `true`; that call
 //                                          // deletes the barrier.
 class Barrier {
-public:
-    // `num_threads` is the number of threads that will participate in the barrier
-    explicit Barrier(int num_threads)
-        : num_to_block_(num_threads)
-        , num_to_exit_(num_threads)
-    {
-    }
+ public:
+  // `num_threads` is the number of threads that will participate in the barrier
+  explicit Barrier(int num_threads)
+      : num_to_block_(num_threads), num_to_exit_(num_threads) {}
 
-    Barrier(const Barrier&) = delete;
-    Barrier& operator=(const Barrier&) = delete;
+  Barrier(const Barrier&) = delete;
+  Barrier& operator=(const Barrier&) = delete;
 
-    // Barrier::Block()
-    //
-    // Blocks the current thread, and returns only when the `num_threads`
-    // threshold of threads utilizing this barrier has been reached. `Block()`
-    // returns `true` for precisely one caller, which may then destroy the
-    // barrier.
-    //
-    // Memory ordering: For any threads X and Y, any action taken by X
-    // before X calls `Block()` will be visible to Y after Y returns from
-    // `Block()`.
-    bool Block();
+  // Barrier::Block()
+  //
+  // Blocks the current thread, and returns only when the `num_threads`
+  // threshold of threads utilizing this barrier has been reached. `Block()`
+  // returns `true` for precisely one caller, which may then destroy the
+  // barrier.
+  //
+  // Memory ordering: For any threads X and Y, any action taken by X
+  // before X calls `Block()` will be visible to Y after Y returns from
+  // `Block()`.
+  bool Block();
 
-private:
-    Mutex lock_;
-    int num_to_block_ ABSL_GUARDED_BY(lock_);
-    int num_to_exit_ ABSL_GUARDED_BY(lock_);
+ private:
+  Mutex lock_;
+  int num_to_block_ ABSL_GUARDED_BY(lock_);
+  int num_to_exit_ ABSL_GUARDED_BY(lock_);
 };
 
 ABSL_NAMESPACE_END
-} // namespace absl
-#endif // ABSL_SYNCHRONIZATION_BARRIER_H_
+}  // namespace absl
+#endif  // ABSL_SYNCHRONIZATION_BARRIER_H_

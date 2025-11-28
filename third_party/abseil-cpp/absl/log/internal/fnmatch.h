@@ -28,8 +28,8 @@ namespace log_internal {
 // * wildcards may match /
 // * no backslash-escaping
 bool FNMatch(absl::string_view pattern, absl::string_view str);
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_INTERNAL_FNMATCH_H_
+#endif  // ABSL_LOG_INTERNAL_FNMATCH_H_

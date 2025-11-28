@@ -50,66 +50,69 @@ using CreateSocketAsync = void (*)(CreateSocketCallback);
 
 // Responsible for connecting to the producer.
 class PERFETTO_EXPORT_COMPONENT TracingProducerBackend {
-public:
-    virtual ~TracingProducerBackend();
+ public:
+  virtual ~TracingProducerBackend();
 
-    // Connects a Producer instance and obtains a ProducerEndpoint, which is
-    // essentially a 1:1 channel between one Producer and the Service.
-    // To disconnect just destroy the returned endpoint object. It is safe to
-    // destroy the Producer once Producer::OnDisconnect() has been invoked.
-    struct ConnectProducerArgs {
-        std::string producer_name;
+  // Connects a Producer instance and obtains a ProducerEndpoint, which is
+  // essentially a 1:1 channel between one Producer and the Service.
+  // To disconnect just destroy the returned endpoint object. It is safe to
+  // destroy the Producer once Producer::OnDisconnect() has been invoked.
+  struct ConnectProducerArgs {
+    std::string producer_name;
 
-        // The Producer object that will receive calls like Start/StopDataSource().
-        // The caller has to guarantee that this object is valid as long as the
-        // returned ProducerEndpoint is alive.
-        Producer* producer = nullptr;
+    // The Producer object that will receive calls like Start/StopDataSource().
+    // The caller has to guarantee that this object is valid as long as the
+    // returned ProducerEndpoint is alive.
+    Producer* producer = nullptr;
 
-        // The task runner where the Producer methods will be called onto.
-        // The caller has to guarantee that the passed TaskRunner is valid as long
-        // as the returned ProducerEndpoint is alive.
-        ::perfetto::base::TaskRunner* task_runner = nullptr;
+    // The task runner where the Producer methods will be called onto.
+    // The caller has to guarantee that the passed TaskRunner is valid as long
+    // as the returned ProducerEndpoint is alive.
+    ::perfetto::base::TaskRunner* task_runner = nullptr;
 
-        // These get propagated from TracingInitArgs and are optionally provided by
-        // the client when calling Tracing::Initialize().
-        uint32_t shmem_size_hint_bytes = 0;
-        uint32_t shmem_page_size_hint_bytes = 0;
+    // These get propagated from TracingInitArgs and are optionally provided by
+    // the client when calling Tracing::Initialize().
+    uint32_t shmem_size_hint_bytes = 0;
+    uint32_t shmem_page_size_hint_bytes = 0;
 
-        // If true, the backend should allocate a shared memory buffer and provide
-        // it to the service when connecting.
-        // It's used in startup tracing.
-        bool use_producer_provided_smb = false;
+    // If true, the backend should allocate a shared memory buffer and provide
+    // it to the service when connecting.
+    // It's used in startup tracing.
+    bool use_producer_provided_smb = false;
 
-        // If set, the producer will call this function to create and connect to a
-        // socket. See the corresponding field in TracingInitArgs for more info.
-        CreateSocketAsync create_socket_async = nullptr;
-    };
+    // If set, the producer will call this function to create and connect to a
+    // socket. See the corresponding field in TracingInitArgs for more info.
+    CreateSocketAsync create_socket_async = nullptr;
+  };
 
-    virtual std::unique_ptr<ProducerEndpoint> ConnectProducer(const ConnectProducerArgs&) = 0;
+  virtual std::unique_ptr<ProducerEndpoint> ConnectProducer(
+      const ConnectProducerArgs&) = 0;
 };
 
 // Responsible for connecting to the consumer.
 class PERFETTO_EXPORT_COMPONENT TracingConsumerBackend {
-public:
-    virtual ~TracingConsumerBackend();
+ public:
+  virtual ~TracingConsumerBackend();
 
-    // As above, for the Consumer-side.
-    struct ConnectConsumerArgs {
-        // The Consumer object that will receive calls like OnTracingDisabled(),
-        // OnTraceData().
-        Consumer* consumer {};
+  // As above, for the Consumer-side.
+  struct ConnectConsumerArgs {
+    // The Consumer object that will receive calls like OnTracingDisabled(),
+    // OnTraceData().
+    Consumer* consumer{};
 
-        // The task runner where the Consumer methods will be called onto.
-        ::perfetto::base::TaskRunner* task_runner {};
-    };
-    virtual std::unique_ptr<ConsumerEndpoint> ConnectConsumer(const ConnectConsumerArgs&) = 0;
+    // The task runner where the Consumer methods will be called onto.
+    ::perfetto::base::TaskRunner* task_runner{};
+  };
+  virtual std::unique_ptr<ConsumerEndpoint> ConnectConsumer(
+      const ConnectConsumerArgs&) = 0;
 };
 
-class PERFETTO_EXPORT_COMPONENT TracingBackend : public TracingProducerBackend, public TracingConsumerBackend {
-public:
-    ~TracingBackend() override;
+class PERFETTO_EXPORT_COMPONENT TracingBackend : public TracingProducerBackend,
+                                                 public TracingConsumerBackend {
+ public:
+  ~TracingBackend() override;
 };
 
-} // namespace perfetto
+}  // namespace perfetto
 
-#endif // INCLUDE_PERFETTO_TRACING_TRACING_BACKEND_H_
+#endif  // INCLUDE_PERFETTO_TRACING_TRACING_BACKEND_H_

@@ -33,74 +33,41 @@ extern "C" ABSL_ATTRIBUTE_WEAK int __lsan_is_turned_off();
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
-bool HaveLeakSanitizer()
-{
-    return true;
-}
+bool HaveLeakSanitizer() { return true; }
 
 #if ABSL_HAVE_ATTRIBUTE_WEAK
-bool LeakCheckerIsActive()
-{
-    return !(&__lsan_is_turned_off && __lsan_is_turned_off());
+bool LeakCheckerIsActive() {
+  return !(&__lsan_is_turned_off && __lsan_is_turned_off());
 }
 #else
-bool LeakCheckerIsActive()
-{
-    return true;
-}
+bool LeakCheckerIsActive() { return true; }
 #endif
 
-bool FindAndReportLeaks()
-{
-    return __lsan_do_recoverable_leak_check() != 0;
+bool FindAndReportLeaks() { return __lsan_do_recoverable_leak_check() != 0; }
+void DoIgnoreLeak(const void* ptr) { __lsan_ignore_object(ptr); }
+void RegisterLivePointers(const void* ptr, size_t size) {
+  __lsan_register_root_region(ptr, size);
 }
-void DoIgnoreLeak(const void* ptr)
-{
-    __lsan_ignore_object(ptr);
+void UnRegisterLivePointers(const void* ptr, size_t size) {
+  __lsan_unregister_root_region(ptr, size);
 }
-void RegisterLivePointers(const void* ptr, size_t size)
-{
-    __lsan_register_root_region(ptr, size);
-}
-void UnRegisterLivePointers(const void* ptr, size_t size)
-{
-    __lsan_unregister_root_region(ptr, size);
-}
-LeakCheckDisabler::LeakCheckDisabler()
-{
-    __lsan_disable();
-}
-LeakCheckDisabler::~LeakCheckDisabler()
-{
-    __lsan_enable();
-}
+LeakCheckDisabler::LeakCheckDisabler() { __lsan_disable(); }
+LeakCheckDisabler::~LeakCheckDisabler() { __lsan_enable(); }
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#else // defined(ABSL_HAVE_LEAK_SANITIZER)
+#else  // defined(ABSL_HAVE_LEAK_SANITIZER)
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
-bool HaveLeakSanitizer()
-{
-    return false;
-}
-bool LeakCheckerIsActive()
-{
-    return false;
-}
-void DoIgnoreLeak(const void*)
-{
-}
-void RegisterLivePointers(const void*, size_t)
-{
-}
-void UnRegisterLivePointers(const void*, size_t)
-{
-}
+bool HaveLeakSanitizer() { return false; }
+bool LeakCheckerIsActive() { return false; }
+void DoIgnoreLeak(const void*) { }
+void RegisterLivePointers(const void*, size_t) { }
+void UnRegisterLivePointers(const void*, size_t) { }
 LeakCheckDisabler::LeakCheckDisabler() = default;
 LeakCheckDisabler::~LeakCheckDisabler() = default;
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // defined(ABSL_HAVE_LEAK_SANITIZER)
+#endif  // defined(ABSL_HAVE_LEAK_SANITIZER)

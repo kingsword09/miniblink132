@@ -81,13 +81,13 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 
 namespace time_internal {
-struct second_tag : cctz::detail::second_tag { };
-struct minute_tag : second_tag, cctz::detail::minute_tag { };
-struct hour_tag : minute_tag, cctz::detail::hour_tag { };
-struct day_tag : hour_tag, cctz::detail::day_tag { };
-struct month_tag : day_tag, cctz::detail::month_tag { };
-struct year_tag : month_tag, cctz::detail::year_tag { };
-} // namespace time_internal
+struct second_tag : cctz::detail::second_tag {};
+struct minute_tag : second_tag, cctz::detail::minute_tag {};
+struct hour_tag : minute_tag, cctz::detail::hour_tag {};
+struct day_tag : hour_tag, cctz::detail::day_tag {};
+struct month_tag : day_tag, cctz::detail::month_tag {};
+struct year_tag : month_tag, cctz::detail::year_tag {};
+}  // namespace time_internal
 
 // -----------------------------------------------------------------------------
 // CivilSecond, CivilMinute, CivilHour, CivilDay, CivilMonth, CivilYear
@@ -322,12 +322,18 @@ struct year_tag : month_tag, cctz::detail::year_tag { };
 //     // error, month overflow
 //   }
 //
-using CivilSecond = time_internal::cctz::detail::civil_time<time_internal::second_tag>;
-using CivilMinute = time_internal::cctz::detail::civil_time<time_internal::minute_tag>;
-using CivilHour = time_internal::cctz::detail::civil_time<time_internal::hour_tag>;
-using CivilDay = time_internal::cctz::detail::civil_time<time_internal::day_tag>;
-using CivilMonth = time_internal::cctz::detail::civil_time<time_internal::month_tag>;
-using CivilYear = time_internal::cctz::detail::civil_time<time_internal::year_tag>;
+using CivilSecond =
+    time_internal::cctz::detail::civil_time<time_internal::second_tag>;
+using CivilMinute =
+    time_internal::cctz::detail::civil_time<time_internal::minute_tag>;
+using CivilHour =
+    time_internal::cctz::detail::civil_time<time_internal::hour_tag>;
+using CivilDay =
+    time_internal::cctz::detail::civil_time<time_internal::day_tag>;
+using CivilMonth =
+    time_internal::cctz::detail::civil_time<time_internal::month_tag>;
+using CivilYear =
+    time_internal::cctz::detail::civil_time<time_internal::year_tag>;
 
 // civil_year_t
 //
@@ -374,9 +380,8 @@ using Weekday = time_internal::cctz::weekday;
 //   absl::CivilDay a(2015, 8, 13);
 //   absl::Weekday wd = absl::GetWeekday(a);  // wd == absl::Weekday::thursday
 //
-inline Weekday GetWeekday(CivilSecond cs)
-{
-    return time_internal::cctz::get_weekday(cs);
+inline Weekday GetWeekday(CivilSecond cs) {
+  return time_internal::cctz::get_weekday(cs);
 }
 
 // NextWeekday()
@@ -409,13 +414,11 @@ inline Weekday GetWeekday(CivilSecond cs)
 //   // Gets the previous Thursday if d is not already Thursday
 //   absl::CivilDay thurs2 = absl::PrevWeekday(d + 1, absl::Weekday::thursday);
 //
-inline CivilDay NextWeekday(CivilDay cd, Weekday wd)
-{
-    return CivilDay(time_internal::cctz::next_weekday(cd, wd));
+inline CivilDay NextWeekday(CivilDay cd, Weekday wd) {
+  return CivilDay(time_internal::cctz::next_weekday(cd, wd));
 }
-inline CivilDay PrevWeekday(CivilDay cd, Weekday wd)
-{
-    return CivilDay(time_internal::cctz::prev_weekday(cd, wd));
+inline CivilDay PrevWeekday(CivilDay cd, Weekday wd) {
+  return CivilDay(time_internal::cctz::prev_weekday(cd, wd));
 }
 
 // GetYearDay()
@@ -429,9 +432,8 @@ inline CivilDay PrevWeekday(CivilDay cd, Weekday wd)
 //   absl::CivilDay b(2015, 12, 31);
 //   int yd_dec_31 = absl::GetYearDay(b);  // yd_dec_31 = 365
 //
-inline int GetYearDay(CivilSecond cs)
-{
-    return time_internal::cctz::get_yearday(cs);
+inline int GetYearDay(CivilSecond cs) {
+  return time_internal::cctz::get_yearday(cs);
 }
 
 // FormatCivilTime()
@@ -461,29 +463,29 @@ std::string FormatCivilTime(CivilMonth c);
 std::string FormatCivilTime(CivilYear c);
 
 // Support for StrFormat(), StrCat(), etc
-template <typename Sink> void AbslStringify(Sink& sink, CivilSecond c)
-{
-    sink.Append(FormatCivilTime(c));
+template <typename Sink>
+void AbslStringify(Sink& sink, CivilSecond c) {
+  sink.Append(FormatCivilTime(c));
 }
-template <typename Sink> void AbslStringify(Sink& sink, CivilMinute c)
-{
-    sink.Append(FormatCivilTime(c));
+template <typename Sink>
+void AbslStringify(Sink& sink, CivilMinute c) {
+  sink.Append(FormatCivilTime(c));
 }
-template <typename Sink> void AbslStringify(Sink& sink, CivilHour c)
-{
-    sink.Append(FormatCivilTime(c));
+template <typename Sink>
+void AbslStringify(Sink& sink, CivilHour c) {
+  sink.Append(FormatCivilTime(c));
 }
-template <typename Sink> void AbslStringify(Sink& sink, CivilDay c)
-{
-    sink.Append(FormatCivilTime(c));
+template <typename Sink>
+void AbslStringify(Sink& sink, CivilDay c) {
+  sink.Append(FormatCivilTime(c));
 }
-template <typename Sink> void AbslStringify(Sink& sink, CivilMonth c)
-{
-    sink.Append(FormatCivilTime(c));
+template <typename Sink>
+void AbslStringify(Sink& sink, CivilMonth c) {
+  sink.Append(FormatCivilTime(c));
 }
-template <typename Sink> void AbslStringify(Sink& sink, CivilYear c)
-{
-    sink.Append(FormatCivilTime(c));
+template <typename Sink>
+void AbslStringify(Sink& sink, CivilYear c) {
+  sink.Append(FormatCivilTime(c));
 }
 
 // absl::ParseCivilTime()
@@ -537,7 +539,7 @@ bool ParseLenientCivilTime(absl::string_view s, CivilDay* c);
 bool ParseLenientCivilTime(absl::string_view s, CivilMonth* c);
 bool ParseLenientCivilTime(absl::string_view s, CivilYear* c);
 
-namespace time_internal { // For functions found via ADL on civil-time tags.
+namespace time_internal {  // For functions found via ADL on civil-time tags.
 
 // Streaming Operators
 //
@@ -579,9 +581,9 @@ std::string AbslUnparseFlag(CivilDay c);
 std::string AbslUnparseFlag(CivilMonth c);
 std::string AbslUnparseFlag(CivilYear c);
 
-} // namespace time_internal
+}  // namespace time_internal
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_TIME_CIVIL_TIME_H_
+#endif  // ABSL_TIME_CIVIL_TIME_H_

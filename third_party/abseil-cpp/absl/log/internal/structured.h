@@ -30,34 +30,29 @@ ABSL_NAMESPACE_BEGIN
 namespace log_internal {
 
 class ABSL_MUST_USE_RESULT AsLiteralImpl final {
-public:
-    explicit AsLiteralImpl(absl::string_view str)
-        : str_(str)
-    {
-    }
-    AsLiteralImpl(const AsLiteralImpl&) = default;
-    AsLiteralImpl& operator=(const AsLiteralImpl&) = default;
+ public:
+  explicit AsLiteralImpl(absl::string_view str) : str_(str) {}
+  AsLiteralImpl(const AsLiteralImpl&) = default;
+  AsLiteralImpl& operator=(const AsLiteralImpl&) = default;
 
-private:
-    absl::string_view str_;
+ private:
+  absl::string_view str_;
 
-    friend std::ostream& operator<<(std::ostream& os, AsLiteralImpl as_literal)
-    {
-        return os << as_literal.str_;
-    }
-    void AddToMessage(log_internal::LogMessage& m)
-    {
-        m.CopyToEncodedBuffer<log_internal::LogMessage::StringType::kLiteral>(str_);
-    }
-    friend log_internal::LogMessage& operator<<(log_internal::LogMessage& m, AsLiteralImpl as_literal)
-    {
-        as_literal.AddToMessage(m);
-        return m;
-    }
+  friend std::ostream& operator<<(std::ostream& os, AsLiteralImpl as_literal) {
+    return os << as_literal.str_;
+  }
+  void AddToMessage(log_internal::LogMessage& m) {
+    m.CopyToEncodedBuffer<log_internal::LogMessage::StringType::kLiteral>(str_);
+  }
+  friend log_internal::LogMessage& operator<<(log_internal::LogMessage& m,
+                                              AsLiteralImpl as_literal) {
+    as_literal.AddToMessage(m);
+    return m;
+  }
 };
 
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_LOG_INTERNAL_STRUCTURED_H_
+#endif  // ABSL_LOG_INTERNAL_STRUCTURED_H_

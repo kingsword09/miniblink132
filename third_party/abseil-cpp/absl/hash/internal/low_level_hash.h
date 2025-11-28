@@ -40,13 +40,15 @@ namespace hash_internal {
 // To allow all hashable types (including string_view and Span) to depend on
 // this algorithm, we keep the API low-level, with as few dependencies as
 // possible.
-uint64_t LowLevelHash(const void* data, size_t len, uint64_t seed, const uint64_t salt[5]);
+uint64_t LowLevelHash(const void* data, size_t len, uint64_t seed,
+                      const uint64_t salt[5]);
 
 // Same as above except the length must be greater than 16.
-uint64_t LowLevelHashLenGt16(const void* data, size_t len, uint64_t seed, const uint64_t salt[5]);
+uint64_t LowLevelHashLenGt16(const void* data, size_t len, uint64_t seed,
+                             const uint64_t salt[5]);
 
-} // namespace hash_internal
+}  // namespace hash_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_HASH_INTERNAL_LOW_LEVEL_HASH_H_
+#endif  // ABSL_HASH_INTERNAL_LOW_LEVEL_HASH_H_

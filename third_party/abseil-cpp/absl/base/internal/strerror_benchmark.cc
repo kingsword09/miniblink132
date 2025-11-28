@@ -20,11 +20,10 @@
 #include "benchmark/benchmark.h"
 
 namespace {
-void BM_AbslStrError(benchmark::State& state)
-{
-    for (auto _ : state) {
-        benchmark::DoNotOptimize(absl::base_internal::StrError(ERANGE));
-    }
+void BM_AbslStrError(benchmark::State& state) {
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(absl::base_internal::StrError(ERANGE));
+  }
 }
 BENCHMARK(BM_AbslStrError);
-} // namespace
+}  // namespace

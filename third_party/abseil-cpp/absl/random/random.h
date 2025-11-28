@@ -33,12 +33,12 @@
 
 #include <random>
 
-#include "absl/random/distributions.h" // IWYU pragma: export
-#include "absl/random/internal/nonsecure_base.h" // IWYU pragma: export
-#include "absl/random/internal/pcg_engine.h" // IWYU pragma: export
+#include "absl/random/distributions.h"  // IWYU pragma: export
+#include "absl/random/internal/nonsecure_base.h"  // IWYU pragma: export
+#include "absl/random/internal/pcg_engine.h"  // IWYU pragma: export
 #include "absl/random/internal/pool_urbg.h"
 #include "absl/random/internal/randen_engine.h"
-#include "absl/random/seed_sequences.h" // IWYU pragma: export
+#include "absl/random/seed_sequences.h"  // IWYU pragma: export
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
@@ -117,7 +117,8 @@ ABSL_NAMESPACE_BEGIN
 // discards the intermediate results.
 // ---------------------------------------------------------------------------
 
-using BitGen = random_internal::NonsecureURBGBase<random_internal::randen_engine<uint64_t>>;
+using BitGen = random_internal::NonsecureURBGBase<
+    random_internal::randen_engine<uint64_t>>;
 
 // -----------------------------------------------------------------------------
 // absl::InsecureBitGen
@@ -157,7 +158,8 @@ using BitGen = random_internal::NonsecureURBGBase<random_internal::randen_engine
 // Prefer `absl::BitGen` over `absl::InsecureBitGen` as the general type is
 // often fast enough for the vast majority of applications.
 
-using InsecureBitGen = random_internal::NonsecureURBGBase<random_internal::pcg64_2018_engine>;
+using InsecureBitGen =
+    random_internal::NonsecureURBGBase<random_internal::pcg64_2018_engine>;
 
 // ---------------------------------------------------------------------------
 // absl::InsecureBitGen member functions
@@ -182,6 +184,6 @@ using InsecureBitGen = random_internal::NonsecureURBGBase<random_internal::pcg64
 // ---------------------------------------------------------------------------
 
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
 
-#endif // ABSL_RANDOM_RANDOM_H_
+#endif  // ABSL_RANDOM_RANDOM_H_

@@ -23,10 +23,13 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace log_internal {
 
-ABSL_CONST_INIT ABSL_DLL const std::array<char, 7> kCharNull { { '(', 'n', 'u', 'l', 'l', ')', '\0' } };
-ABSL_CONST_INIT ABSL_DLL const std::array<signed char, 7> kSignedCharNull { { '(', 'n', 'u', 'l', 'l', ')', '\0' } };
-ABSL_CONST_INIT ABSL_DLL const std::array<unsigned char, 7> kUnsignedCharNull { { '(', 'n', 'u', 'l', 'l', ')', '\0' } };
+ABSL_CONST_INIT ABSL_DLL const std::array<char, 7> kCharNull{
+    {'(', 'n', 'u', 'l', 'l', ')', '\0'}};
+ABSL_CONST_INIT ABSL_DLL const std::array<signed char, 7> kSignedCharNull{
+    {'(', 'n', 'u', 'l', 'l', ')', '\0'}};
+ABSL_CONST_INIT ABSL_DLL const std::array<unsigned char, 7> kUnsignedCharNull{
+    {'(', 'n', 'u', 'l', 'l', ')', '\0'}};
 
-} // namespace log_internal
+}  // namespace log_internal
 ABSL_NAMESPACE_END
-} // namespace absl
+}  // namespace absl
