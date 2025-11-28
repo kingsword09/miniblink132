@@ -169,8 +169,8 @@
       <StringPooling>true</StringPooling>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <Optimization>MinSpace</Optimization>
-      <AdditionalOptions>-mno-avx %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalOptions>/clang:-O3 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -237,11 +237,11 @@
       <ExceptionHandling>false</ExceptionHandling>
       <DisableSpecificWarnings>4003</DisableSpecificWarnings>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalOptions>-mno-avx </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -269,11 +269,11 @@
       <ExceptionHandling>false</ExceptionHandling>
       <DisableSpecificWarnings>4003</DisableSpecificWarnings>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalOptions>-mno-avx </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

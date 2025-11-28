@@ -211,7 +211,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)../third_party/;$(SolutionDir)../third_party/openssl;$(SolutionDir)../third_party/openssl/openssl/;$(SolutionDir)../third_party/openssl/openssl/crypto;$(SolutionDir)../third_party/openssl/openssl/crypto/asn1;$(SolutionDir)../third_party/openssl/openssl/crypto/evp;$(SolutionDir)../third_party/openssl/openssl/crypto/md2;$(SolutionDir)../third_party/openssl/openssl/crypto/modes;$(SolutionDir)../third_party/openssl/openssl/crypto/store;$(SolutionDir)../third_party/openssl/openssl/include;$(SolutionDir)../third_party/openssl/openssl/providers/common/include;$(SolutionDir)../third_party/openssl/openssl/providers/implementations/include;$(SolutionDir)../third_party/openssl/config/archs/VC-WIN32/no-asm/providers/common/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>-mno-avx %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 %(AdditionalOptions)</AdditionalOptions>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <CompileAsWinRT>false</CompileAsWinRT>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -221,7 +221,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>NDEBUG;_REENTRANT;PURIFY;MK1MF_BUILD;WIN32_LEAN_AND_MEAN;OPENSSL_SYSNAME_WIN32;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;BUILDING_V8_SHARED=1;BUILDING_UV_SHARED=1;L_ENDIAN;OPENSSL_BN_ASM_PART_WORDS;DSO_WIN32;OPENSSL_NO_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -276,7 +276,7 @@
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>false</OmitFramePointers>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>NDEBUG;_REENTRANT;PURIFY;MK1MF_BUILD;WIN32_LEAN_AND_MEAN;OPENSSL_SYSNAME_WIN32;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;BUILDING_V8_SHARED=1;BUILDING_UV_SHARED=1;L_ENDIAN;OPENSSL_BN_ASM_PART_WORDS;DSO_WIN32;I386_ONLY;OPENSSL_NO_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -290,7 +290,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <SDLCheck>false</SDLCheck>
-      <AdditionalOptions>-mno-avx </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Lib>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
@@ -331,7 +331,7 @@
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>false</OmitFramePointers>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>NDEBUG;_REENTRANT;PURIFY;MK1MF_BUILD;WIN32_LEAN_AND_MEAN;OPENSSL_SYSNAME_WIN32;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;BUILDING_V8_SHARED=1;BUILDING_UV_SHARED=1;L_ENDIAN;OPENSSL_BN_ASM_PART_WORDS;DSO_WIN32;I386_ONLY;OPENSSL_NO_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -344,8 +344,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <SDLCheck>false</SDLCheck>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Lib>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>

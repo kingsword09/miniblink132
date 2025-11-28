@@ -1461,9 +1461,6 @@
     <ClInclude Include="..\..\v8\src\wasm\baseline\liftoff-assembler-inl.h">
       <Filter>src\wasm\baseline</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\v8\src\libplatform\default-platform-wrap.h">
-      <Filter>src\libplatform</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\v8\src\diagnostics\arm64\disasm-arm64.h">
       <Filter>src\diagnostics\arm64</Filter>
     </ClInclude>

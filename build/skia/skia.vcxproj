@@ -168,7 +168,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <AdditionalOptions>-mno-avx</AdditionalOptions>
+      <AdditionalOptions>/clang:-O3</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -236,7 +236,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)../third_party/libjpeg_turbo;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/boringssl/src/include;$(SolutionDir)../third_party/skia/;$(SolutionDir)../third_party/skia/src/utils/win;$(SolutionDir)../third_party/skia/include/codec;$(SolutionDir)../third_party/skia/include/config;$(SolutionDir)../third_party/skia/include/core;$(SolutionDir)../third_party/skia/include/device;$(SolutionDir)../third_party/skia/include/effects;$(SolutionDir)../third_party/skia/include/images;$(SolutionDir)../third_party/skia/include/pathops;$(SolutionDir)../third_party/skia/include/pipe;$(SolutionDir)../third_party/skia/include/ports;$(SolutionDir)../third_party/skia/include/utils/win;$(SolutionDir)../third_party/skia/include/utils;$(SolutionDir)../third_party/skia/include/private;$(SolutionDir)../third_party/skia/src/image;$(SolutionDir)../third_party/skia/src/core;$(SolutionDir)../third_party/skia/src/sfnt;$(SolutionDir)../third_party/skia/src/lazy;$(SolutionDir)../third_party/skia/src/utils;$(SolutionDir)../third_party/skia/src/opts;$(SolutionDir)../third_party/libpng;$(SolutionDir)../third_party/libwebp/src/src</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <AdditionalOptions>-mno-avx </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -267,8 +267,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <AdditionalIncludeDirectories>$(SolutionDir)../third_party/libjpeg_turbo;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/boringssl/src/include;$(SolutionDir)../third_party/skia/;$(SolutionDir)../third_party/skia/src/utils/win;$(SolutionDir)../third_party/skia/include/codec;$(SolutionDir)../third_party/skia/include/config;$(SolutionDir)../third_party/skia/include/core;$(SolutionDir)../third_party/skia/include/device;$(SolutionDir)../third_party/skia/include/effects;$(SolutionDir)../third_party/skia/include/images;$(SolutionDir)../third_party/skia/include/pathops;$(SolutionDir)../third_party/skia/include/pipe;$(SolutionDir)../third_party/skia/include/ports;$(SolutionDir)../third_party/skia/include/utils/win;$(SolutionDir)../third_party/skia/include/utils;$(SolutionDir)../third_party/skia/include/private;$(SolutionDir)../third_party/skia/src/image;$(SolutionDir)../third_party/skia/src/core;$(SolutionDir)../third_party/skia/src/sfnt;$(SolutionDir)../third_party/skia/src/lazy;$(SolutionDir)../third_party/skia/src/utils;$(SolutionDir)../third_party/skia/src/opts;$(SolutionDir)../third_party/libpng;$(SolutionDir)../third_party/libwebp/src/src</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>

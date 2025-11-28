@@ -1478,7 +1478,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="..\..\..\..\work\clang_asm_props\clangasm.props" />
+    <Import Project="..\..\clang_asm_props\clangasm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -1572,8 +1572,8 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <Optimization>MinSpace</Optimization>
-      <AdditionalOptions>-mno-avx %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalOptions>/clang:-O3 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -1648,11 +1648,11 @@
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <AdditionalOptions>-mno-avx </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -1683,11 +1683,10 @@
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>/clang:-O3 </AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -1703,6 +1702,6 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\..\..\..\work\clang_asm_props\clangasm.targets" />
+    <Import Project="..\..\clang_asm_props\clangasm.targets" />
   </ImportGroup>
 </Project>
