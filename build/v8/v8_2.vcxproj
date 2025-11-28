@@ -458,7 +458,6 @@
     <ClInclude Include="..\..\v8\src\interpreter\interpreter.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-foreground-task-runner.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-job.h" />
-    <ClInclude Include="..\..\v8\src\libplatform\default-platform-wrap.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-platform.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-thread-isolated-allocator.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-worker-threads-task-runner.h" />
@@ -866,13 +865,11 @@
     <ClCompile Include="..\..\v8\src\interpreter\interpreter.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-foreground-task-runner.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-job.cc" />
-    <ClCompile Include="..\..\v8\src\libplatform\default-platform-wrap.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-platform.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-thread-isolated-allocator.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-worker-threads-task-runner.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\delayed-task-queue.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\task-queue.cc" />
-    <ClCompile Include="..\..\v8\src\libplatform\tracing\recorder-empty.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\tracing\trace-buffer.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\tracing\trace-config.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\tracing\trace-object.cc" />
@@ -990,7 +987,6 @@
     <ClCompile Include="..\..\v8\src\torque\type-oracle.cc" />
     <ClCompile Include="..\..\v8\src\torque\type-visitor.cc" />
     <ClCompile Include="..\..\v8\src\torque\types.cc" />
-    <ClCompile Include="..\..\v8\src\torque\utils-torque.cc" />
     <ClCompile Include="..\..\v8\src\tracing\trace-categories.cc" />
     <ClCompile Include="..\..\v8\src\tracing\trace-event.cc" />
     <ClCompile Include="..\..\v8\src\tracing\traced-value.cc" />

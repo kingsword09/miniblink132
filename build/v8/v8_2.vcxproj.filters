@@ -2432,17 +2432,8 @@
     <ClCompile Include="..\..\v8\src\zone\zone-segment.cc">
       <Filter>src\zone</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\torque\utils-torque.cc">
-      <Filter>src\torque</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\wasm\baseline\parallel-move.cc">
       <Filter>src\wasm\baseline</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\libplatform\default-platform-wrap.cc">
-      <Filter>src\libplatform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\libplatform\tracing\recorder-empty.cc">
-      <Filter>src\libplatform\tracing</Filter>
     </ClCompile>
     <ClCompile Include="..\..\v8\src\diagnostics\arm64\disasm-arm64.cc">
       <Filter>src\diagnostics\arm64</Filter>

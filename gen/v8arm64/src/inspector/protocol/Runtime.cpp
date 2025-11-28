@@ -8,9 +8,9 @@
 
 #include "src/inspector/protocol/Protocol.h"
 
-#include "v8//third_party/inspector_protocol\crdtp/cbor.h"
-#include "v8//third_party/inspector_protocol\crdtp/find_by_first.h"
-#include "v8//third_party/inspector_protocol\crdtp/span.h"
+#include "third_party/inspector_protocol\crdtp/cbor.h"
+#include "third_party/inspector_protocol\crdtp/find_by_first.h"
+#include "third_party/inspector_protocol\crdtp/span.h"
 
 namespace v8_inspector {
 namespace protocol {

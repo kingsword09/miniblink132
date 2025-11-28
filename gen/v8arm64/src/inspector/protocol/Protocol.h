@@ -277,7 +277,7 @@ private:
 //#include "Forward.h"
 //#include "Values.h"
 
-#include "v8//third_party/inspector_protocol\crdtp/serializable.h"
+#include "third_party/inspector_protocol\crdtp/serializable.h"
 
 namespace v8_inspector {
 namespace protocol {

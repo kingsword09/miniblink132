@@ -558,9 +558,6 @@
     <ClInclude Include="..\..\v8\src\heap\concurrent-marking.h">
       <Filter>src\heap</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\v8\src\heap\conservative-stack-visitor.h">
-      <Filter>src\heap</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\v8\src\heap\ephemeron-remembered-set.h">
       <Filter>src\heap</Filter>
     </ClInclude>
@@ -2921,18 +2918,6 @@
     <ClCompile Include="..\..\v8\src\sandbox\testing.cc">
       <Filter>src\sandbox</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\heap\cppgc\free-list-cppgc.cc">
-      <Filter>src\heap\cppgc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\heap\cppgc\sweeper-cppgc.cc">
-      <Filter>src\heap\cppgc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\heap\cppgc\heap-cppgc.cc">
-      <Filter>src\heap\cppgc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\v8\src\heap\cppgc\testing-cppgc.cc">
-      <Filter>src\heap\cppgc</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\v8\src\runtime\runtime-test.cc">
       <Filter>src\runtime</Filter>
     </ClCompile>
@@ -2993,7 +2978,7 @@
     <ClCompile Include="..\..\v8\src\maglev\arm64\maglev-ir-arm64.cc">
       <Filter>src\maglev\arm64</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\v8\src\heap\base\asm\arm64\push_registers_asm_arm64.cc">
+    <ClCompile Include="..\..\v8\src\heap\base\asm\arm64\push_registers_asm.cc">
       <Filter>src\heap\base\asm\arm64</Filter>
     </ClCompile>
   </ItemGroup>
