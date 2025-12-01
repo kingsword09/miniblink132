@@ -1,0 +1,70 @@
+
+ï
+&protos/third_party/pprof/profile.proto'perfetto.third_party.perftools.profiles"ó
+ProfileS
+sample_type (22.perfetto.third_party.perftools.profiles.ValueTypeR
+sampleTypeG
+sample (2/.perfetto.third_party.perftools.profiles.SampleRsampleJ
+mapping (20.perfetto.third_party.perftools.profiles.MappingRmappingM
+location (21.perfetto.third_party.perftools.profiles.LocationRlocationM
+function (21.perfetto.third_party.perftools.profiles.FunctionRfunction!
+string_table (	RstringTable
+drop_frames (R
+dropFrames
+keep_frames (R
+keepFrames
+
+time_nanos	 (R	timeNanos%
+duration_nanos
+ (RdurationNanosS
+period_type (22.perfetto.third_party.perftools.profiles.ValueTypeR
+periodType
+period (Rperiod
+comment (Rcomment.
+default_sample_type (RdefaultSampleType"3
+	ValueType
+type (Rtype
+unit (Runit"…
+Sample
+location_id (R
+locationId
+value (RvalueD
+label (2..perfetto.third_party.perftools.profiles.LabelRlabel"X
+Label
+key (Rkey
+str (Rstr
+num (Rnum
+num_unit (RnumUnit"×
+Mapping
+id (Rid!
+memory_start (RmemoryStart!
+memory_limit (RmemoryLimit
+file_offset (R
+fileOffset
+filename (Rfilename
+build_id (RbuildId#
+has_functions (RhasFunctions#
+has_filenames (RhasFilenames(
+has_line_numbers	 (RhasLineNumbers*
+has_inline_frames
+ (RhasInlineFrames"³
+Location
+id (Rid
+
+mapping_id (R	mappingId
+address (RaddressA
+line (2-.perfetto.third_party.perftools.profiles.LineRline
+	is_folded (RisFolded";
+Line
+function_id (R
+functionId
+line (Rline"Š
+Function
+id (Rid
+name (Rname
+system_name (R
+systemName
+filename (Rfilename
+
+start_line (R	startLineB-
+com.google.perftools.profilesBProfileProtobproto3
