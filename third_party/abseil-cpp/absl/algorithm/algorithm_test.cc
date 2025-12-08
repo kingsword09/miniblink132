@@ -23,38 +23,47 @@
 namespace {
 
 class LinearSearchTest : public testing::Test {
- protected:
-  LinearSearchTest() : container_{1, 2, 3} {}
+protected:
+    LinearSearchTest()
+        : container_ { 1, 2, 3 }
+    {
+    }
 
-  static bool Is3(int n) { return n == 3; }
-  static bool Is4(int n) { return n == 4; }
+    static bool Is3(int n)
+    {
+        return n == 3;
+    }
+    static bool Is4(int n)
+    {
+        return n == 4;
+    }
 
-  std::vector<int> container_;
+    std::vector<int> container_;
 };
 
-TEST_F(LinearSearchTest, linear_search) {
-  EXPECT_TRUE(absl::linear_search(container_.begin(), container_.end(), 3));
-  EXPECT_FALSE(absl::linear_search(container_.begin(), container_.end(), 4));
+TEST_F(LinearSearchTest, linear_search)
+{
+    EXPECT_TRUE(absl::linear_search(container_.begin(), container_.end(), 3));
+    EXPECT_FALSE(absl::linear_search(container_.begin(), container_.end(), 4));
 }
 
-TEST_F(LinearSearchTest, linear_searchConst) {
-  const std::vector<int> *const const_container = &container_;
-  EXPECT_TRUE(
-      absl::linear_search(const_container->begin(), const_container->end(), 3));
-  EXPECT_FALSE(
-      absl::linear_search(const_container->begin(), const_container->end(), 4));
+TEST_F(LinearSearchTest, linear_searchConst)
+{
+    const std::vector<int>* const const_container = &container_;
+    EXPECT_TRUE(absl::linear_search(const_container->begin(), const_container->end(), 3));
+    EXPECT_FALSE(absl::linear_search(const_container->begin(), const_container->end(), 4));
 }
 
-#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
+#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
 
-TEST_F(LinearSearchTest, Constexpr) {
-  static constexpr std::array<int, 3> kArray = {1, 2, 3};
-  static_assert(absl::linear_search(kArray.begin(), kArray.end(), 3));
-  static_assert(!absl::linear_search(kArray.begin(), kArray.end(), 4));
+TEST_F(LinearSearchTest, Constexpr)
+{
+    static constexpr std::array<int, 3> kArray = { 1, 2, 3 };
+    static_assert(absl::linear_search(kArray.begin(), kArray.end(), 3));
+    static_assert(!absl::linear_search(kArray.begin(), kArray.end(), 4));
 }
 
-#endif  // defined(ABSL_INTERNAL_CPLUSPLUS_LANG) &&
-        //  ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
+#endif // defined(ABSL_INTERNAL_CPLUSPLUS_LANG) &&                                                                                                             \
+    //  ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
 
-}  // namespace
+} // namespace

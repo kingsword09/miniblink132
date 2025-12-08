@@ -17,18 +17,19 @@
 
 namespace {
 
-TEST(TracingInternal, HasDefaultImplementation) {
-  auto kind = absl::base_internal::ObjectKind::kUnknown;
-  absl::base_internal::TraceWait(nullptr, kind);
-  absl::base_internal::TraceContinue(nullptr, kind);
-  absl::base_internal::TraceSignal(nullptr, kind);
-  absl::base_internal::TraceObserved(nullptr, kind);
+TEST(TracingInternal, HasDefaultImplementation)
+{
+    auto kind = absl::base_internal::ObjectKind::kUnknown;
+    absl::base_internal::TraceWait(nullptr, kind);
+    absl::base_internal::TraceContinue(nullptr, kind);
+    absl::base_internal::TraceSignal(nullptr, kind);
+    absl::base_internal::TraceObserved(nullptr, kind);
 
-  int object = 0;
-  absl::base_internal::TraceWait(&object, kind);
-  absl::base_internal::TraceContinue(&object, kind);
-  absl::base_internal::TraceSignal(&object, kind);
-  absl::base_internal::TraceObserved(&object, kind);
+    int object = 0;
+    absl::base_internal::TraceWait(&object, kind);
+    absl::base_internal::TraceContinue(&object, kind);
+    absl::base_internal::TraceSignal(&object, kind);
+    absl::base_internal::TraceObserved(&object, kind);
 }
 
-}  // namespace
+} // namespace

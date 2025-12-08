@@ -23,17 +23,21 @@ namespace base_internal {
 
 extern "C" {
 
-ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceWait)(
-    const void*, ObjectKind) {}
-ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceContinue)(
-    const void*, ObjectKind) {}
-ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceSignal)(
-    const void*, ObjectKind) {}
-ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceObserved)(
-    const void*, ObjectKind) {}
+ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceWait)(const void*, ObjectKind)
+{
+}
+ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceContinue)(const void*, ObjectKind)
+{
+}
+ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceSignal)(const void*, ObjectKind)
+{
+}
+ABSL_ATTRIBUTE_WEAK void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceObserved)(const void*, ObjectKind)
+{
+}
 
-}  // extern "C"
+} // extern "C"
 
-}  // namespace base_internal
+} // namespace base_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

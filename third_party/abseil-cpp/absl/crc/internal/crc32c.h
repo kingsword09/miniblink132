@@ -32,8 +32,8 @@ namespace crc_internal {
 // Internal implementation detail, exposed for testing only.
 crc32c_t UnextendCrc32cByZeroes(crc32c_t initial_crc, size_t length);
 
-}  // namespace crc_internal
+} // namespace crc_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_CRC_INTERNAL_CRC32C_H_
+#endif // ABSL_CRC_INTERNAL_CRC32C_H_

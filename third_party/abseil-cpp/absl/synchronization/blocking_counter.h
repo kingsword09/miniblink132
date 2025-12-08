@@ -62,46 +62,47 @@ ABSL_NAMESPACE_BEGIN
 //     bcount.Wait();                    // wait for all work to be complete
 //
 class BlockingCounter {
- public:
-  explicit BlockingCounter(int initial_count);
+public:
+    explicit BlockingCounter(int initial_count);
 
-  BlockingCounter(const BlockingCounter&) = delete;
-  BlockingCounter& operator=(const BlockingCounter&) = delete;
+    BlockingCounter(const BlockingCounter&) = delete;
+    BlockingCounter& operator=(const BlockingCounter&) = delete;
 
-  // BlockingCounter::DecrementCount()
-  //
-  // Decrements the counter's "count" by one, and return "count == 0". This
-  // function requires that "count != 0" when it is called.
-  //
-  // Memory ordering: For any threads X and Y, any action taken by X
-  // before it calls `DecrementCount()` is visible to thread Y after
-  // Y's call to `DecrementCount()`, provided Y's call returns `true`.
-  bool DecrementCount();
+    // BlockingCounter::DecrementCount()
+    //
+    // Decrements the counter's "count" by one, and return "count == 0". This
+    // function requires that "count != 0" when it is called.
+    //
+    // Memory ordering: For any threads X and Y, any action taken by X
+    // before it calls `DecrementCount()` is visible to thread Y after
+    // Y's call to `DecrementCount()`, provided Y's call returns `true`.
+    bool DecrementCount();
 
-  // BlockingCounter::Wait()
-  //
-  // Blocks until the counter reaches zero. This function may be called at most
-  // once. On return, `DecrementCount()` will have been called "initial_count"
-  // times and the blocking counter may be destroyed.
-  //
-  // Memory ordering: For any threads X and Y, any action taken by X
-  // before X calls `DecrementCount()` is visible to Y after Y returns
-  // from `Wait()`.
-  void Wait();
+    // BlockingCounter::Wait()
+    //
+    // Blocks until the counter reaches zero. This function may be called at most
+    // once. On return, `DecrementCount()` will have been called "initial_count"
+    // times and the blocking counter may be destroyed.
+    //
+    // Memory ordering: For any threads X and Y, any action taken by X
+    // before X calls `DecrementCount()` is visible to Y after Y returns
+    // from `Wait()`.
+    void Wait();
 
- private:
-  // Convenience helper to reduce verbosity at call sites.
-  static inline constexpr base_internal::ObjectKind TraceObjectKind() {
-    return base_internal::ObjectKind::kBlockingCounter;
-  }
+private:
+    // Convenience helper to reduce verbosity at call sites.
+    static inline constexpr base_internal::ObjectKind TraceObjectKind()
+    {
+        return base_internal::ObjectKind::kBlockingCounter;
+    }
 
-  Mutex lock_;
-  std::atomic<int> count_;
-  int num_waiting_ ABSL_GUARDED_BY(lock_);
-  bool done_ ABSL_GUARDED_BY(lock_);
+    Mutex lock_;
+    std::atomic<int> count_;
+    int num_waiting_ ABSL_GUARDED_BY(lock_);
+    bool done_ ABSL_GUARDED_BY(lock_);
 };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_SYNCHRONIZATION_BLOCKING_COUNTER_H_
+#endif // ABSL_SYNCHRONIZATION_BLOCKING_COUNTER_H_

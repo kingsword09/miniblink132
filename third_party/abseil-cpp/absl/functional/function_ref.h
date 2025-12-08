@@ -61,8 +61,7 @@ ABSL_NAMESPACE_BEGIN
 //
 // Dummy class declaration to allow the partial specialization based on function
 // types below.
-template <typename T>
-class FunctionRef;
+template <typename T> class FunctionRef;
 
 // FunctionRef
 //
@@ -86,66 +85,63 @@ class FunctionRef;
 // Note: the assignment operator within an `absl::FunctionRef` is intentionally
 // deleted to prevent misuse; because the `absl::FunctionRef` does not own the
 // underlying type, assignment likely indicates misuse.
-template <typename R, typename... Args>
-class FunctionRef<R(Args...)> {
- private:
-  // Used to disable constructors for objects that are not compatible with the
-  // signature of this FunctionRef.
-  template <typename F,
-            typename FR = absl::base_internal::invoke_result_t<F, Args&&...>>
-  using EnableIfCompatible =
-      typename std::enable_if<std::is_void<R>::value ||
-                              std::is_convertible<FR, R>::value>::type;
+template <typename R, typename... Args> class FunctionRef<R(Args...)> {
+private:
+    // Used to disable constructors for objects that are not compatible with the
+    // signature of this FunctionRef.
+    template <typename F, typename FR = absl::base_internal::invoke_result_t<F, Args&&...>>
+    using EnableIfCompatible = typename std::enable_if<std::is_void<R>::value || std::is_convertible<FR, R>::value>::type;
 
- public:
-  // Constructs a FunctionRef from any invocable type.
-  template <typename F, typename = EnableIfCompatible<const F&>>
-  // NOLINTNEXTLINE(runtime/explicit)
-  FunctionRef(const F& f ABSL_ATTRIBUTE_LIFETIME_BOUND)
-      : invoker_(&absl::functional_internal::InvokeObject<F, R, Args...>) {
-    absl::functional_internal::AssertNonNull(f);
-    ptr_.obj = &f;
-  }
+public:
+    // Constructs a FunctionRef from any invocable type.
+    template <typename F, typename = EnableIfCompatible<const F&>>
+    // NOLINTNEXTLINE(runtime/explicit)
+    FunctionRef(const F& f ABSL_ATTRIBUTE_LIFETIME_BOUND)
+        : invoker_(&absl::functional_internal::InvokeObject<F, R, Args...>)
+    {
+        absl::functional_internal::AssertNonNull(f);
+        ptr_.obj = &f;
+    }
 
-  // Overload for function pointers. This eliminates a level of indirection that
-  // would happen if the above overload was used (it lets us store the pointer
-  // instead of a pointer to a pointer).
-  //
-  // This overload is also used for references to functions, since references to
-  // functions can decay to function pointers implicitly.
-  template <
-      typename F, typename = EnableIfCompatible<F*>,
-      absl::functional_internal::EnableIf<absl::is_function<F>::value> = 0>
-  FunctionRef(F* f)  // NOLINT(runtime/explicit)
-      : invoker_(&absl::functional_internal::InvokeFunction<F*, R, Args...>) {
-    assert(f != nullptr);
-    ptr_.fun = reinterpret_cast<decltype(ptr_.fun)>(f);
-  }
+    // Overload for function pointers. This eliminates a level of indirection that
+    // would happen if the above overload was used (it lets us store the pointer
+    // instead of a pointer to a pointer).
+    //
+    // This overload is also used for references to functions, since references to
+    // functions can decay to function pointers implicitly.
+    template <typename F, typename = EnableIfCompatible<F*>,
+        absl::functional_internal::EnableIf<absl::is_function<F>::value> = 0>
+    FunctionRef(F* f) // NOLINT(runtime/explicit)
+        : invoker_(&absl::functional_internal::InvokeFunction<F*, R, Args...>)
+    {
+        assert(f != nullptr);
+        ptr_.fun = reinterpret_cast<decltype(ptr_.fun)>(f);
+    }
 
-  // To help prevent subtle lifetime bugs, FunctionRef is not assignable.
-  // Typically, it should only be used as an argument type.
-  FunctionRef& operator=(const FunctionRef& rhs) = delete;
-  FunctionRef(const FunctionRef& rhs) = default;
+    // To help prevent subtle lifetime bugs, FunctionRef is not assignable.
+    // Typically, it should only be used as an argument type.
+    FunctionRef& operator=(const FunctionRef& rhs) = delete;
+    FunctionRef(const FunctionRef& rhs) = default;
 
-  // Call the underlying object.
-  R operator()(Args... args) const {
-    return invoker_(ptr_, std::forward<Args>(args)...);
-  }
+    // Call the underlying object.
+    R operator()(Args... args) const
+    {
+        return invoker_(ptr_, std::forward<Args>(args)...);
+    }
 
- private:
-  absl::functional_internal::VoidPtr ptr_;
-  absl::functional_internal::Invoker<R, Args...> invoker_;
+private:
+    absl::functional_internal::VoidPtr ptr_;
+    absl::functional_internal::Invoker<R, Args...> invoker_;
 };
 
 // Allow const qualified function signatures. Since FunctionRef requires
 // constness anyway we can just make this a no-op.
-template <typename R, typename... Args>
-class FunctionRef<R(Args...) const> : public FunctionRef<R(Args...)> {
- public:
-  using FunctionRef<R(Args...)>::FunctionRef;
+template <typename R, typename... Args> class FunctionRef<R(Args...) const> : public FunctionRef<R(Args...)> {
+public:
+    using FunctionRef<R(Args...)>::FunctionRef;
 };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FUNCTIONAL_FUNCTION_REF_H_
+#endif // ABSL_FUNCTIONAL_FUNCTION_REF_H_

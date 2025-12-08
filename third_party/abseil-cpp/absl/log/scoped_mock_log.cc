@@ -30,57 +30,61 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 
 ScopedMockLog::ScopedMockLog(MockLogDefault default_exp)
-    : sink_(this), is_capturing_logs_(false), is_triggered_(false) {
-  if (default_exp == MockLogDefault::kIgnoreUnexpected) {
-    // Ignore all calls to Log we did not set expectations for.
-    EXPECT_CALL(*this, Log).Times(::testing::AnyNumber());
-  } else {
-    // Disallow all calls to Log we did not set expectations for.
-    EXPECT_CALL(*this, Log).Times(0);
-  }
-  // By default Send mock forwards to Log mock.
-  EXPECT_CALL(*this, Send)
-      .Times(::testing::AnyNumber())
-      .WillRepeatedly([this](const absl::LogEntry& entry) {
+    : sink_(this)
+    , is_capturing_logs_(false)
+    , is_triggered_(false)
+{
+    if (default_exp == MockLogDefault::kIgnoreUnexpected) {
+        // Ignore all calls to Log we did not set expectations for.
+        EXPECT_CALL(*this, Log).Times(::testing::AnyNumber());
+    } else {
+        // Disallow all calls to Log we did not set expectations for.
+        EXPECT_CALL(*this, Log).Times(0);
+    }
+    // By default Send mock forwards to Log mock.
+    EXPECT_CALL(*this, Send).Times(::testing::AnyNumber()).WillRepeatedly([this](const absl::LogEntry& entry) {
         is_triggered_.store(true, std::memory_order_relaxed);
-        Log(entry.log_severity(), std::string(entry.source_filename()),
-            std::string(entry.text_message()));
-      });
+        Log(entry.log_severity(), std::string(entry.source_filename()), std::string(entry.text_message()));
+    });
 
-  // By default We ignore all Flush calls.
-  EXPECT_CALL(*this, Flush).Times(::testing::AnyNumber());
+    // By default We ignore all Flush calls.
+    EXPECT_CALL(*this, Flush).Times(::testing::AnyNumber());
 }
 
-ScopedMockLog::~ScopedMockLog() {
-  ABSL_RAW_CHECK(is_triggered_.load(std::memory_order_relaxed),
-                 "Did you forget to call StartCapturingLogs()?");
+ScopedMockLog::~ScopedMockLog()
+{
+    ABSL_RAW_CHECK(is_triggered_.load(std::memory_order_relaxed), "Did you forget to call StartCapturingLogs()?");
 
-  if (is_capturing_logs_) StopCapturingLogs();
+    if (is_capturing_logs_)
+        StopCapturingLogs();
 }
 
-void ScopedMockLog::StartCapturingLogs() {
-  ABSL_RAW_CHECK(!is_capturing_logs_,
-                 "StartCapturingLogs() can be called only when the "
-                 "absl::ScopedMockLog object is not capturing logs.");
+void ScopedMockLog::StartCapturingLogs()
+{
+    ABSL_RAW_CHECK(!is_capturing_logs_,
+        "StartCapturingLogs() can be called only when the "
+        "absl::ScopedMockLog object is not capturing logs.");
 
-  is_capturing_logs_ = true;
-  is_triggered_.store(true, std::memory_order_relaxed);
-  absl::AddLogSink(&sink_);
+    is_capturing_logs_ = true;
+    is_triggered_.store(true, std::memory_order_relaxed);
+    absl::AddLogSink(&sink_);
 }
 
-void ScopedMockLog::StopCapturingLogs() {
-  ABSL_RAW_CHECK(is_capturing_logs_,
-                 "StopCapturingLogs() can be called only when the "
-                 "absl::ScopedMockLog object is capturing logs.");
+void ScopedMockLog::StopCapturingLogs()
+{
+    ABSL_RAW_CHECK(is_capturing_logs_,
+        "StopCapturingLogs() can be called only when the "
+        "absl::ScopedMockLog object is capturing logs.");
 
-  is_capturing_logs_ = false;
-  absl::RemoveLogSink(&sink_);
+    is_capturing_logs_ = false;
+    absl::RemoveLogSink(&sink_);
 }
 
-absl::LogSink& ScopedMockLog::UseAsLocalSink() {
-  is_triggered_.store(true, std::memory_order_relaxed);
-  return sink_;
+absl::LogSink& ScopedMockLog::UseAsLocalSink()
+{
+    is_triggered_.store(true, std::memory_order_relaxed);
+    return sink_;
 }
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

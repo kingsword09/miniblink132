@@ -24,70 +24,59 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace crc_internal {
 
-crc32c_t CrcNonTemporalMemcpyEngine::Compute(void* __restrict dst,
-                                             const void* __restrict src,
-                                             std::size_t length,
-                                             crc32c_t initial_crc) const {
-  constexpr size_t kBlockSize = 8192;
-  crc32c_t crc = initial_crc;
+crc32c_t CrcNonTemporalMemcpyEngine::Compute(void* __restrict dst, const void* __restrict src, std::size_t length, crc32c_t initial_crc) const
+{
+    constexpr size_t kBlockSize = 8192;
+    crc32c_t crc = initial_crc;
 
-  const char* src_bytes = reinterpret_cast<const char*>(src);
-  char* dst_bytes = reinterpret_cast<char*>(dst);
+    const char* src_bytes = reinterpret_cast<const char*>(src);
+    char* dst_bytes = reinterpret_cast<char*>(dst);
 
-  // Copy + CRC loop - run 8k chunks until we are out of full chunks.
-  std::size_t offset = 0;
-  for (; offset + kBlockSize < length; offset += kBlockSize) {
-    crc = absl::ExtendCrc32c(crc,
-                             absl::string_view(src_bytes + offset, kBlockSize));
-    non_temporal_store_memcpy(dst_bytes + offset, src_bytes + offset,
-                              kBlockSize);
-  }
+    // Copy + CRC loop - run 8k chunks until we are out of full chunks.
+    std::size_t offset = 0;
+    for (; offset + kBlockSize < length; offset += kBlockSize) {
+        crc = absl::ExtendCrc32c(crc, absl::string_view(src_bytes + offset, kBlockSize));
+        non_temporal_store_memcpy(dst_bytes + offset, src_bytes + offset, kBlockSize);
+    }
 
-  // Save some work if length is 0.
-  if (offset < length) {
-    std::size_t final_copy_size = length - offset;
-    crc = ExtendCrc32c(crc,
-                       absl::string_view(src_bytes + offset, final_copy_size));
+    // Save some work if length is 0.
+    if (offset < length) {
+        std::size_t final_copy_size = length - offset;
+        crc = ExtendCrc32c(crc, absl::string_view(src_bytes + offset, final_copy_size));
 
-    non_temporal_store_memcpy(dst_bytes + offset, src_bytes + offset,
-                              final_copy_size);
-  }
+        non_temporal_store_memcpy(dst_bytes + offset, src_bytes + offset, final_copy_size);
+    }
 
-  return crc;
+    return crc;
 }
 
-crc32c_t CrcNonTemporalMemcpyAVXEngine::Compute(void* __restrict dst,
-                                                const void* __restrict src,
-                                                std::size_t length,
-                                                crc32c_t initial_crc) const {
-  constexpr size_t kBlockSize = 8192;
-  crc32c_t crc = initial_crc;
+crc32c_t CrcNonTemporalMemcpyAVXEngine::Compute(void* __restrict dst, const void* __restrict src, std::size_t length, crc32c_t initial_crc) const
+{
+    constexpr size_t kBlockSize = 8192;
+    crc32c_t crc = initial_crc;
 
-  const char* src_bytes = reinterpret_cast<const char*>(src);
-  char* dst_bytes = reinterpret_cast<char*>(dst);
+    const char* src_bytes = reinterpret_cast<const char*>(src);
+    char* dst_bytes = reinterpret_cast<char*>(dst);
 
-  // Copy + CRC loop - run 8k chunks until we are out of full chunks.
-  std::size_t offset = 0;
-  for (; offset + kBlockSize < length; offset += kBlockSize) {
-    crc = ExtendCrc32c(crc, absl::string_view(src_bytes + offset, kBlockSize));
+    // Copy + CRC loop - run 8k chunks until we are out of full chunks.
+    std::size_t offset = 0;
+    for (; offset + kBlockSize < length; offset += kBlockSize) {
+        crc = ExtendCrc32c(crc, absl::string_view(src_bytes + offset, kBlockSize));
 
-    non_temporal_store_memcpy_avx(dst_bytes + offset, src_bytes + offset,
-                                  kBlockSize);
-  }
+        non_temporal_store_memcpy_avx(dst_bytes + offset, src_bytes + offset, kBlockSize);
+    }
 
-  // Save some work if length is 0.
-  if (offset < length) {
-    std::size_t final_copy_size = length - offset;
-    crc = ExtendCrc32c(crc,
-                       absl::string_view(src_bytes + offset, final_copy_size));
+    // Save some work if length is 0.
+    if (offset < length) {
+        std::size_t final_copy_size = length - offset;
+        crc = ExtendCrc32c(crc, absl::string_view(src_bytes + offset, final_copy_size));
 
-    non_temporal_store_memcpy_avx(dst_bytes + offset, src_bytes + offset,
-                                  final_copy_size);
-  }
+        non_temporal_store_memcpy_avx(dst_bytes + offset, src_bytes + offset, final_copy_size);
+    }
 
-  return crc;
+    return crc;
 }
 
-}  // namespace crc_internal
+} // namespace crc_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

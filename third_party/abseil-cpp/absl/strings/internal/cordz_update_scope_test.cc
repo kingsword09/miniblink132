@@ -31,19 +31,21 @@ namespace {
 // Used test values
 auto constexpr kTrackCordMethod = CordzUpdateTracker::kConstructorString;
 
-TEST(CordzUpdateScopeTest, ScopeNullptr) {
-  CordzUpdateScope scope(nullptr, kTrackCordMethod);
+TEST(CordzUpdateScopeTest, ScopeNullptr)
+{
+    CordzUpdateScope scope(nullptr, kTrackCordMethod);
 }
 
-TEST(CordzUpdateScopeTest, ScopeSampledCord) {
-  TestCordData cord;
-  CordzInfo::TrackCord(cord.data, kTrackCordMethod, 1);
-  CordzUpdateScope scope(cord.data.cordz_info(), kTrackCordMethod);
-  cord.data.cordz_info()->SetCordRep(nullptr);
+TEST(CordzUpdateScopeTest, ScopeSampledCord)
+{
+    TestCordData cord;
+    CordzInfo::TrackCord(cord.data, kTrackCordMethod, 1);
+    CordzUpdateScope scope(cord.data.cordz_info(), kTrackCordMethod);
+    cord.data.cordz_info()->SetCordRep(nullptr);
 }
 
-}  // namespace
+} // namespace
 ABSL_NAMESPACE_END
-}  // namespace cord_internal
+} // namespace cord_internal
 
-}  // namespace absl
+} // namespace absl

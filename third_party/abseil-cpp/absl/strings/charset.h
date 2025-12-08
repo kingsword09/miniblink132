@@ -55,109 +55,131 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 
 class CharSet {
- public:
-  constexpr CharSet() : m_() {}
-
-  // Initializes with a given string_view.
-  constexpr explicit CharSet(absl::string_view str) : m_() {
-    for (char c : str) {
-      SetChar(static_cast<unsigned char>(c));
+public:
+    constexpr CharSet()
+        : m_()
+    {
     }
-  }
 
-  constexpr bool contains(char c) const {
-    return ((m_[static_cast<unsigned char>(c) / 64] >>
-             (static_cast<unsigned char>(c) % 64)) &
-            0x1) == 0x1;
-  }
-
-  constexpr bool empty() const {
-    for (uint64_t c : m_) {
-      if (c != 0) return false;
+    // Initializes with a given string_view.
+    constexpr explicit CharSet(absl::string_view str)
+        : m_()
+    {
+        for (char c : str) {
+            SetChar(static_cast<unsigned char>(c));
+        }
     }
-    return true;
-  }
 
-  // Containing only a single specified char.
-  static constexpr CharSet Char(char x) {
-    return CharSet(CharMaskForWord(x, 0), CharMaskForWord(x, 1),
-                   CharMaskForWord(x, 2), CharMaskForWord(x, 3));
-  }
+    constexpr bool contains(char c) const
+    {
+        return ((m_[static_cast<unsigned char>(c) / 64] >> (static_cast<unsigned char>(c) % 64)) & 0x1) == 0x1;
+    }
 
-  // Containing all the chars in the closed interval [lo,hi].
-  static constexpr CharSet Range(char lo, char hi) {
-    return CharSet(RangeForWord(lo, hi, 0), RangeForWord(lo, hi, 1),
-                   RangeForWord(lo, hi, 2), RangeForWord(lo, hi, 3));
-  }
+    constexpr bool empty() const
+    {
+        for (uint64_t c : m_) {
+            if (c != 0)
+                return false;
+        }
+        return true;
+    }
 
-  friend constexpr CharSet operator&(const CharSet& a, const CharSet& b) {
-    return CharSet(a.m_[0] & b.m_[0], a.m_[1] & b.m_[1], a.m_[2] & b.m_[2],
-                   a.m_[3] & b.m_[3]);
-  }
+    // Containing only a single specified char.
+    static constexpr CharSet Char(char x)
+    {
+        return CharSet(CharMaskForWord(x, 0), CharMaskForWord(x, 1), CharMaskForWord(x, 2), CharMaskForWord(x, 3));
+    }
 
-  friend constexpr CharSet operator|(const CharSet& a, const CharSet& b) {
-    return CharSet(a.m_[0] | b.m_[0], a.m_[1] | b.m_[1], a.m_[2] | b.m_[2],
-                   a.m_[3] | b.m_[3]);
-  }
+    // Containing all the chars in the closed interval [lo,hi].
+    static constexpr CharSet Range(char lo, char hi)
+    {
+        return CharSet(RangeForWord(lo, hi, 0), RangeForWord(lo, hi, 1), RangeForWord(lo, hi, 2), RangeForWord(lo, hi, 3));
+    }
 
-  friend constexpr CharSet operator~(const CharSet& a) {
-    return CharSet(~a.m_[0], ~a.m_[1], ~a.m_[2], ~a.m_[3]);
-  }
+    friend constexpr CharSet operator&(const CharSet& a, const CharSet& b)
+    {
+        return CharSet(a.m_[0] & b.m_[0], a.m_[1] & b.m_[1], a.m_[2] & b.m_[2], a.m_[3] & b.m_[3]);
+    }
 
-  // Mirrors the char-classifying predicates in <cctype>.
-  static constexpr CharSet AsciiUppercase() { return CharSet::Range('A', 'Z'); }
-  static constexpr CharSet AsciiLowercase() { return CharSet::Range('a', 'z'); }
-  static constexpr CharSet AsciiDigits() { return CharSet::Range('0', '9'); }
-  static constexpr CharSet AsciiAlphabet() {
-    return AsciiLowercase() | AsciiUppercase();
-  }
-  static constexpr CharSet AsciiAlphanumerics() {
-    return AsciiDigits() | AsciiAlphabet();
-  }
-  static constexpr CharSet AsciiHexDigits() {
-    return AsciiDigits() | CharSet::Range('A', 'F') | CharSet::Range('a', 'f');
-  }
-  static constexpr CharSet AsciiPrintable() {
-    return CharSet::Range(0x20, 0x7e);
-  }
-  static constexpr CharSet AsciiWhitespace() { return CharSet("\t\n\v\f\r "); }
-  static constexpr CharSet AsciiPunctuation() {
-    return AsciiPrintable() & ~AsciiWhitespace() & ~AsciiAlphanumerics();
-  }
+    friend constexpr CharSet operator|(const CharSet& a, const CharSet& b)
+    {
+        return CharSet(a.m_[0] | b.m_[0], a.m_[1] | b.m_[1], a.m_[2] | b.m_[2], a.m_[3] | b.m_[3]);
+    }
 
- private:
-  constexpr CharSet(uint64_t b0, uint64_t b1, uint64_t b2, uint64_t b3)
-      : m_{b0, b1, b2, b3} {}
+    friend constexpr CharSet operator~(const CharSet& a)
+    {
+        return CharSet(~a.m_[0], ~a.m_[1], ~a.m_[2], ~a.m_[3]);
+    }
 
-  static constexpr uint64_t RangeForWord(char lo, char hi, uint64_t word) {
-    return OpenRangeFromZeroForWord(static_cast<unsigned char>(hi) + 1, word) &
-           ~OpenRangeFromZeroForWord(static_cast<unsigned char>(lo), word);
-  }
+    // Mirrors the char-classifying predicates in <cctype>.
+    static constexpr CharSet AsciiUppercase()
+    {
+        return CharSet::Range('A', 'Z');
+    }
+    static constexpr CharSet AsciiLowercase()
+    {
+        return CharSet::Range('a', 'z');
+    }
+    static constexpr CharSet AsciiDigits()
+    {
+        return CharSet::Range('0', '9');
+    }
+    static constexpr CharSet AsciiAlphabet()
+    {
+        return AsciiLowercase() | AsciiUppercase();
+    }
+    static constexpr CharSet AsciiAlphanumerics()
+    {
+        return AsciiDigits() | AsciiAlphabet();
+    }
+    static constexpr CharSet AsciiHexDigits()
+    {
+        return AsciiDigits() | CharSet::Range('A', 'F') | CharSet::Range('a', 'f');
+    }
+    static constexpr CharSet AsciiPrintable()
+    {
+        return CharSet::Range(0x20, 0x7e);
+    }
+    static constexpr CharSet AsciiWhitespace()
+    {
+        return CharSet("\t\n\v\f\r ");
+    }
+    static constexpr CharSet AsciiPunctuation()
+    {
+        return AsciiPrintable() & ~AsciiWhitespace() & ~AsciiAlphanumerics();
+    }
 
-  // All the chars in the specified word of the range [0, upper).
-  static constexpr uint64_t OpenRangeFromZeroForWord(uint64_t upper,
-                                                     uint64_t word) {
-    return (upper <= 64 * word) ? 0
-           : (upper >= 64 * (word + 1))
-               ? ~static_cast<uint64_t>(0)
-               : (~static_cast<uint64_t>(0) >> (64 - upper % 64));
-  }
+private:
+    constexpr CharSet(uint64_t b0, uint64_t b1, uint64_t b2, uint64_t b3)
+        : m_ { b0, b1, b2, b3 }
+    {
+    }
 
-  static constexpr uint64_t CharMaskForWord(char x, uint64_t word) {
-    return (static_cast<unsigned char>(x) / 64 == word)
-               ? (static_cast<uint64_t>(1)
-                  << (static_cast<unsigned char>(x) % 64))
-               : 0;
-  }
+    static constexpr uint64_t RangeForWord(char lo, char hi, uint64_t word)
+    {
+        return OpenRangeFromZeroForWord(static_cast<unsigned char>(hi) + 1, word) & ~OpenRangeFromZeroForWord(static_cast<unsigned char>(lo), word);
+    }
 
-  constexpr void SetChar(unsigned char c) {
-    m_[c / 64] |= static_cast<uint64_t>(1) << (c % 64);
-  }
+    // All the chars in the specified word of the range [0, upper).
+    static constexpr uint64_t OpenRangeFromZeroForWord(uint64_t upper, uint64_t word)
+    {
+        return (upper <= 64 * word) ? 0 : (upper >= 64 * (word + 1)) ? ~static_cast<uint64_t>(0) : (~static_cast<uint64_t>(0) >> (64 - upper % 64));
+    }
 
-  uint64_t m_[4];
+    static constexpr uint64_t CharMaskForWord(char x, uint64_t word)
+    {
+        return (static_cast<unsigned char>(x) / 64 == word) ? (static_cast<uint64_t>(1) << (static_cast<unsigned char>(x) % 64)) : 0;
+    }
+
+    constexpr void SetChar(unsigned char c)
+    {
+        m_[c / 64] |= static_cast<uint64_t>(1) << (c % 64);
+    }
+
+    uint64_t m_[4];
 };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_STRINGS_CHARSET_H_
+#endif // ABSL_STRINGS_CHARSET_H_

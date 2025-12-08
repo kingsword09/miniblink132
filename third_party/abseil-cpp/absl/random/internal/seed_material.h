@@ -32,8 +32,9 @@ namespace random_internal {
 
 // Returns the number of 32-bit blocks needed to contain the given number of
 // bits.
-constexpr size_t SeedBitsToBlocks(size_t seed_size) {
-  return (seed_size + 31) / 32;
+constexpr size_t SeedBitsToBlocks(size_t seed_size)
+{
+    return (seed_size + 31) / 32;
 }
 
 // Amount of entropy (measured in bits) used to instantiate a Seed Sequence,
@@ -42,11 +43,9 @@ constexpr size_t kEntropyBitsNeeded = 256;
 
 // Amount of entropy (measured in 32-bit blocks) used to instantiate a Seed
 // Sequence, with which to create a URBG.
-constexpr size_t kEntropyBlocksNeeded =
-    random_internal::SeedBitsToBlocks(kEntropyBitsNeeded);
+constexpr size_t kEntropyBlocksNeeded = random_internal::SeedBitsToBlocks(kEntropyBitsNeeded);
 
-static_assert(kEntropyBlocksNeeded > 0,
-              "Entropy used to seed URBGs must be nonzero.");
+static_assert(kEntropyBlocksNeeded > 0, "Entropy used to seed URBGs must be nonzero.");
 
 // Attempts to fill a span of uint32_t-values using an OS-provided source of
 // true entropy (eg. /dev/urandom) into an array of uint32_t blocks of data. The
@@ -64,20 +63,19 @@ bool ReadSeedMaterialFromOSEntropy(absl::Span<uint32_t> values);
 // "Seed Sequence" concept [rand.req.seedseq].
 //
 // If urbg == nullptr or values.data() == nullptr, the behavior is undefined.
-template <typename URBG>
-ABSL_MUST_USE_RESULT bool ReadSeedMaterialFromURBG(
-    URBG* urbg, absl::Span<uint32_t> values) {
-  random_internal::FastUniformBits<uint32_t> distr;
+template <typename URBG> ABSL_MUST_USE_RESULT bool ReadSeedMaterialFromURBG(URBG* urbg, absl::Span<uint32_t> values)
+{
+    random_internal::FastUniformBits<uint32_t> distr;
 
-  assert(urbg != nullptr && values.data() != nullptr);
-  if (urbg == nullptr || values.data() == nullptr) {
-    return false;
-  }
+    assert(urbg != nullptr && values.data() != nullptr);
+    if (urbg == nullptr || values.data() == nullptr) {
+        return false;
+    }
 
-  for (uint32_t& seed_value : values) {
-    seed_value = distr(*urbg);
-  }
-  return true;
+    for (uint32_t& seed_value : values) {
+        seed_value = distr(*urbg);
+    }
+    return true;
 }
 
 // Mixes given sequence of values with into given sequence of seed material.
@@ -87,8 +85,7 @@ ABSL_MUST_USE_RESULT bool ReadSeedMaterialFromURBG(
 // Algorithm is based on code available at
 // https://gist.github.com/imneme/540829265469e673d045
 // by Melissa O'Neill.
-void MixIntoSeedMaterial(absl::Span<const uint32_t> sequence,
-                         absl::Span<uint32_t> seed_material);
+void MixIntoSeedMaterial(absl::Span<const uint32_t> sequence, absl::Span<uint32_t> seed_material);
 
 // Returns salt value.
 //
@@ -97,8 +94,8 @@ void MixIntoSeedMaterial(absl::Span<const uint32_t> sequence,
 // May return empty value if optaining the salt was not possible.
 absl::optional<uint32_t> GetSaltMaterial();
 
-}  // namespace random_internal
+} // namespace random_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_RANDOM_INTERNAL_SEED_MATERIAL_H_
+#endif // ABSL_RANDOM_INTERNAL_SEED_MATERIAL_H_

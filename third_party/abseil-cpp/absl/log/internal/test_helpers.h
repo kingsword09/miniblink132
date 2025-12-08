@@ -58,14 +58,14 @@ bool DiedOfQFatal(int exit_status);
 // -----------------------------------------------------------------------------
 
 class LogTestEnvironment : public ::testing::Environment {
- public:
-  ~LogTestEnvironment() override = default;
+public:
+    ~LogTestEnvironment() override = default;
 
-  void SetUp() override;
+    void SetUp() override;
 };
 
-}  // namespace log_internal
+} // namespace log_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_LOG_INTERNAL_TEST_HELPERS_H_
+#endif // ABSL_LOG_INTERNAL_TEST_HELPERS_H_

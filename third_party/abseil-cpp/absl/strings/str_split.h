@@ -122,12 +122,12 @@ ABSL_NAMESPACE_BEGIN
 //                                                ByString(", "));
 //   // v[0] == "a", v[1] == "b", v[2] == "c"
 class ByString {
- public:
-  explicit ByString(absl::string_view sp);
-  absl::string_view Find(absl::string_view text, size_t pos) const;
+public:
+    explicit ByString(absl::string_view sp);
+    absl::string_view Find(absl::string_view text, size_t pos) const;
 
- private:
-  const std::string delimiter_;
+private:
+    const std::string delimiter_;
 };
 
 // ByAsciiWhitespace
@@ -144,8 +144,8 @@ class ByString {
 //       "a b\tc\n  d  \n", absl::ByAsciiWhitespace(), absl::SkipEmpty());
 //   // v[0] == "a", v[1] == "b", v[2] == "c", v[3] == "d"
 class ByAsciiWhitespace {
- public:
-  absl::string_view Find(absl::string_view text, size_t pos) const;
+public:
+    absl::string_view Find(absl::string_view text, size_t pos) const;
 };
 
 // ByChar
@@ -172,12 +172,15 @@ class ByAsciiWhitespace {
 //   std::vector<std::string> v = absl::StrSplit("a-b", ByChar('-'));
 //
 class ByChar {
- public:
-  explicit ByChar(char c) : c_(c) {}
-  absl::string_view Find(absl::string_view text, size_t pos) const;
+public:
+    explicit ByChar(char c)
+        : c_(c)
+    {
+    }
+    absl::string_view Find(absl::string_view text, size_t pos) const;
 
- private:
-  char c_;
+private:
+    char c_;
 };
 
 // ByAnyChar
@@ -198,12 +201,12 @@ class ByChar {
 // `ByString` and matches each individual character in the input string.
 //
 class ByAnyChar {
- public:
-  explicit ByAnyChar(absl::string_view sp);
-  absl::string_view Find(absl::string_view text, size_t pos) const;
+public:
+    explicit ByAnyChar(absl::string_view sp);
+    absl::string_view Find(absl::string_view text, size_t pos) const;
 
- private:
-  const std::string delimiters_;
+private:
+    const std::string delimiters_;
 };
 
 // ByLength
@@ -229,12 +232,12 @@ class ByAnyChar {
 //
 //   // v[0] == "12", v[1] == "34", v[2] == "5"
 class ByLength {
- public:
-  explicit ByLength(ptrdiff_t length);
-  absl::string_view Find(absl::string_view text, size_t pos) const;
+public:
+    explicit ByLength(ptrdiff_t length);
+    absl::string_view Find(absl::string_view text, size_t pos) const;
 
- private:
-  const ptrdiff_t length_;
+private:
+    const ptrdiff_t length_;
 };
 
 namespace strings_internal {
@@ -246,53 +249,51 @@ namespace strings_internal {
 // This allows functions like absl::StrSplit() and absl::MaxSplits() to accept
 // string-like objects (e.g., ',') as delimiter arguments but they will be
 // treated as if a ByString delimiter was given.
-template <typename Delimiter>
-struct SelectDelimiter {
-  using type = Delimiter;
+template <typename Delimiter> struct SelectDelimiter {
+    using type = Delimiter;
 };
 
-template <>
-struct SelectDelimiter<char> {
-  using type = ByChar;
+template <> struct SelectDelimiter<char> {
+    using type = ByChar;
 };
-template <>
-struct SelectDelimiter<char*> {
-  using type = ByString;
+template <> struct SelectDelimiter<char*> {
+    using type = ByString;
 };
-template <>
-struct SelectDelimiter<const char*> {
-  using type = ByString;
+template <> struct SelectDelimiter<const char*> {
+    using type = ByString;
 };
-template <>
-struct SelectDelimiter<absl::string_view> {
-  using type = ByString;
+template <> struct SelectDelimiter<absl::string_view> {
+    using type = ByString;
 };
-template <>
-struct SelectDelimiter<std::string> {
-  using type = ByString;
+template <> struct SelectDelimiter<std::string> {
+    using type = ByString;
 };
 
 // Wraps another delimiter and sets a max number of matches for that delimiter.
-template <typename Delimiter>
-class MaxSplitsImpl {
- public:
-  MaxSplitsImpl(Delimiter delimiter, int limit)
-      : delimiter_(delimiter), limit_(limit), count_(0) {}
-  absl::string_view Find(absl::string_view text, size_t pos) {
-    if (count_++ == limit_) {
-      return absl::string_view(text.data() + text.size(),
-                               0);  // No more matches.
+template <typename Delimiter> class MaxSplitsImpl {
+public:
+    MaxSplitsImpl(Delimiter delimiter, int limit)
+        : delimiter_(delimiter)
+        , limit_(limit)
+        , count_(0)
+    {
     }
-    return delimiter_.Find(text, pos);
-  }
+    absl::string_view Find(absl::string_view text, size_t pos)
+    {
+        if (count_++ == limit_) {
+            return absl::string_view(text.data() + text.size(),
+                0); // No more matches.
+        }
+        return delimiter_.Find(text, pos);
+    }
 
- private:
-  Delimiter delimiter_;
-  const int limit_;
-  int count_;
+private:
+    Delimiter delimiter_;
+    const int limit_;
+    int count_;
 };
 
-}  // namespace strings_internal
+} // namespace strings_internal
 
 // MaxSplits()
 //
@@ -307,13 +308,10 @@ class MaxSplitsImpl {
 //
 //   // v[0] == "a", v[1] == "b,c"
 template <typename Delimiter>
-inline strings_internal::MaxSplitsImpl<
-    typename strings_internal::SelectDelimiter<Delimiter>::type>
-MaxSplits(Delimiter delimiter, int limit) {
-  typedef
-      typename strings_internal::SelectDelimiter<Delimiter>::type DelimiterType;
-  return strings_internal::MaxSplitsImpl<DelimiterType>(
-      DelimiterType(delimiter), limit);
+inline strings_internal::MaxSplitsImpl<typename strings_internal::SelectDelimiter<Delimiter>::type> MaxSplits(Delimiter delimiter, int limit)
+{
+    typedef typename strings_internal::SelectDelimiter<Delimiter>::type DelimiterType;
+    return strings_internal::MaxSplitsImpl<DelimiterType>(DelimiterType(delimiter), limit);
 }
 
 //------------------------------------------------------------------------------
@@ -345,7 +343,10 @@ MaxSplits(Delimiter delimiter, int limit) {
 //
 //  // v[0] == " a ", v[1] == " ", v[2] == "", v[3] = "b", v[4] == ""
 struct AllowEmpty {
-  bool operator()(absl::string_view) const { return true; }
+    bool operator()(absl::string_view) const
+    {
+        return true;
+    }
 };
 
 // SkipEmpty()
@@ -363,7 +364,10 @@ struct AllowEmpty {
 // to be empty. To skip such whitespace as well, use the `SkipWhitespace()`
 // predicate.
 struct SkipEmpty {
-  bool operator()(absl::string_view sp) const { return !sp.empty(); }
+    bool operator()(absl::string_view sp) const
+    {
+        return !sp.empty();
+    }
 };
 
 // SkipWhitespace()
@@ -381,17 +385,15 @@ struct SkipEmpty {
 //   std::vector<std::string> v = absl::StrSplit(" a , ,,b,", ',', SkipEmpty());
 //   // v[0] == " a ", v[1] == " ", v[2] == "b"
 struct SkipWhitespace {
-  bool operator()(absl::string_view sp) const {
-    sp = absl::StripAsciiWhitespace(sp);
-    return !sp.empty();
-  }
+    bool operator()(absl::string_view sp) const
+    {
+        sp = absl::StripAsciiWhitespace(sp);
+        return !sp.empty();
+    }
 };
 
 template <typename T>
-using EnableSplitIfString =
-    typename std::enable_if<std::is_same<T, std::string>::value ||
-                            std::is_same<T, const std::string>::value,
-                            int>::type;
+using EnableSplitIfString = typename std::enable_if<std::is_same<T, std::string>::value || std::is_same<T, const std::string>::value, int>::type;
 
 //------------------------------------------------------------------------------
 //                                  StrSplit()
@@ -511,55 +513,37 @@ using EnableSplitIfString =
 //
 // Try not to depend on this distinction because the bug may one day be fixed.
 template <typename Delimiter>
-strings_internal::Splitter<
-    typename strings_internal::SelectDelimiter<Delimiter>::type, AllowEmpty,
-    absl::string_view>
-StrSplit(strings_internal::ConvertibleToStringView text, Delimiter d) {
-  using DelimiterType =
-      typename strings_internal::SelectDelimiter<Delimiter>::type;
-  return strings_internal::Splitter<DelimiterType, AllowEmpty,
-                                    absl::string_view>(
-      text.value(), DelimiterType(d), AllowEmpty());
+strings_internal::Splitter<typename strings_internal::SelectDelimiter<Delimiter>::type, AllowEmpty, absl::string_view> StrSplit(
+    strings_internal::ConvertibleToStringView text, Delimiter d)
+{
+    using DelimiterType = typename strings_internal::SelectDelimiter<Delimiter>::type;
+    return strings_internal::Splitter<DelimiterType, AllowEmpty, absl::string_view>(text.value(), DelimiterType(d), AllowEmpty());
 }
 
-template <typename Delimiter, typename StringType,
-          EnableSplitIfString<StringType> = 0>
-strings_internal::Splitter<
-    typename strings_internal::SelectDelimiter<Delimiter>::type, AllowEmpty,
-    std::string>
-StrSplit(StringType&& text, Delimiter d) {
-  using DelimiterType =
-      typename strings_internal::SelectDelimiter<Delimiter>::type;
-  return strings_internal::Splitter<DelimiterType, AllowEmpty, std::string>(
-      std::move(text), DelimiterType(d), AllowEmpty());
+template <typename Delimiter, typename StringType, EnableSplitIfString<StringType> = 0>
+strings_internal::Splitter<typename strings_internal::SelectDelimiter<Delimiter>::type, AllowEmpty, std::string> StrSplit(StringType&& text, Delimiter d)
+{
+    using DelimiterType = typename strings_internal::SelectDelimiter<Delimiter>::type;
+    return strings_internal::Splitter<DelimiterType, AllowEmpty, std::string>(std::move(text), DelimiterType(d), AllowEmpty());
 }
 
 template <typename Delimiter, typename Predicate>
-strings_internal::Splitter<
-    typename strings_internal::SelectDelimiter<Delimiter>::type, Predicate,
-    absl::string_view>
-StrSplit(strings_internal::ConvertibleToStringView text, Delimiter d,
-         Predicate p) {
-  using DelimiterType =
-      typename strings_internal::SelectDelimiter<Delimiter>::type;
-  return strings_internal::Splitter<DelimiterType, Predicate,
-                                    absl::string_view>(
-      text.value(), DelimiterType(std::move(d)), std::move(p));
+strings_internal::Splitter<typename strings_internal::SelectDelimiter<Delimiter>::type, Predicate, absl::string_view> StrSplit(
+    strings_internal::ConvertibleToStringView text, Delimiter d, Predicate p)
+{
+    using DelimiterType = typename strings_internal::SelectDelimiter<Delimiter>::type;
+    return strings_internal::Splitter<DelimiterType, Predicate, absl::string_view>(text.value(), DelimiterType(std::move(d)), std::move(p));
 }
 
-template <typename Delimiter, typename Predicate, typename StringType,
-          EnableSplitIfString<StringType> = 0>
-strings_internal::Splitter<
-    typename strings_internal::SelectDelimiter<Delimiter>::type, Predicate,
-    std::string>
-StrSplit(StringType&& text, Delimiter d, Predicate p) {
-  using DelimiterType =
-      typename strings_internal::SelectDelimiter<Delimiter>::type;
-  return strings_internal::Splitter<DelimiterType, Predicate, std::string>(
-      std::move(text), DelimiterType(d), std::move(p));
+template <typename Delimiter, typename Predicate, typename StringType, EnableSplitIfString<StringType> = 0>
+strings_internal::Splitter<typename strings_internal::SelectDelimiter<Delimiter>::type, Predicate, std::string> StrSplit(
+    StringType&& text, Delimiter d, Predicate p)
+{
+    using DelimiterType = typename strings_internal::SelectDelimiter<Delimiter>::type;
+    return strings_internal::Splitter<DelimiterType, Predicate, std::string>(std::move(text), DelimiterType(d), std::move(p));
 }
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_STRINGS_STR_SPLIT_H_
+#endif // ABSL_STRINGS_STR_SPLIT_H_

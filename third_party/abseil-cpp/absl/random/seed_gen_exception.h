@@ -37,10 +37,10 @@ ABSL_NAMESPACE_BEGIN
 // SeedGenException
 //------------------------------------------------------------------------------
 class SeedGenException : public std::exception {
- public:
-  SeedGenException() = default;
-  ~SeedGenException() override;
-  const char* what() const noexcept override;
+public:
+    SeedGenException() = default;
+    ~SeedGenException() override;
+    const char* what() const noexcept override;
 };
 
 namespace random_internal {
@@ -48,8 +48,8 @@ namespace random_internal {
 // throw delegator
 [[noreturn]] void ThrowSeedGenException();
 
-}  // namespace random_internal
+} // namespace random_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_RANDOM_SEED_GEN_EXCEPTION_H_
+#endif // ABSL_RANDOM_SEED_GEN_EXCEPTION_H_

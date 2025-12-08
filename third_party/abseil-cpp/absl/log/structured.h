@@ -60,11 +60,12 @@ ABSL_NAMESPACE_BEGIN
 //                                 int line) {
 //     LOG(LEVEL(severity)).AtLocation(file, line) << absl::LogAsLiteral(str);
 //   }
-inline log_internal::AsLiteralImpl LogAsLiteral(absl::string_view s) {
-  return log_internal::AsLiteralImpl(s);
+inline log_internal::AsLiteralImpl LogAsLiteral(absl::string_view s)
+{
+    return log_internal::AsLiteralImpl(s);
 }
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_LOG_STRUCTURED_H_
+#endif // ABSL_LOG_STRUCTURED_H_

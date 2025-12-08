@@ -25,18 +25,15 @@
 // message
 #ifdef ABSL_HAVE_EXCEPTIONS
 
-#define ABSL_BASE_INTERNAL_EXPECT_FAIL(expr, exception_t, text) \
-  EXPECT_THROW(expr, exception_t)
+#define ABSL_BASE_INTERNAL_EXPECT_FAIL(expr, exception_t, text) EXPECT_THROW(expr, exception_t)
 
 #elif defined(__ANDROID__)
 // Android asserts do not log anywhere that gtest can currently inspect.
 // So we expect exit, but cannot match the message.
-#define ABSL_BASE_INTERNAL_EXPECT_FAIL(expr, exception_t, text) \
-  EXPECT_DEATH(expr, ".*")
+#define ABSL_BASE_INTERNAL_EXPECT_FAIL(expr, exception_t, text) EXPECT_DEATH(expr, ".*")
 #else
-#define ABSL_BASE_INTERNAL_EXPECT_FAIL(expr, exception_t, text) \
-  EXPECT_DEATH_IF_SUPPORTED(expr, text)
+#define ABSL_BASE_INTERNAL_EXPECT_FAIL(expr, exception_t, text) EXPECT_DEATH_IF_SUPPORTED(expr, text)
 
 #endif
 
-#endif  // ABSL_BASE_INTERNAL_EXCEPTION_TESTING_H_
+#endif // ABSL_BASE_INTERNAL_EXCEPTION_TESTING_H_

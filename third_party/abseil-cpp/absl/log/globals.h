@@ -57,17 +57,17 @@ namespace log_internal {
 //
 // RAII type used to temporarily update the Min Log Level parameter.
 class ScopedMinLogLevel final {
- public:
-  explicit ScopedMinLogLevel(absl::LogSeverityAtLeast severity);
-  ScopedMinLogLevel(const ScopedMinLogLevel&) = delete;
-  ScopedMinLogLevel& operator=(const ScopedMinLogLevel&) = delete;
-  ~ScopedMinLogLevel();
+public:
+    explicit ScopedMinLogLevel(absl::LogSeverityAtLeast severity);
+    ScopedMinLogLevel(const ScopedMinLogLevel&) = delete;
+    ScopedMinLogLevel& operator=(const ScopedMinLogLevel&) = delete;
+    ~ScopedMinLogLevel();
 
- private:
-  absl::LogSeverityAtLeast saved_severity_;
+private:
+    absl::LogSeverityAtLeast saved_severity_;
 };
 
-}  // namespace log_internal
+} // namespace log_internal
 
 //------------------------------------------------------------------------------
 // Stderr Threshold
@@ -89,22 +89,23 @@ ABSL_MUST_USE_RESULT absl::LogSeverityAtLeast StderrThreshold();
 // Updates the Stderr Threshold parameter.
 // This function is async-signal-safe.
 void SetStderrThreshold(absl::LogSeverityAtLeast severity);
-inline void SetStderrThreshold(absl::LogSeverity severity) {
-  absl::SetStderrThreshold(static_cast<absl::LogSeverityAtLeast>(severity));
+inline void SetStderrThreshold(absl::LogSeverity severity)
+{
+    absl::SetStderrThreshold(static_cast<absl::LogSeverityAtLeast>(severity));
 }
 
 // ScopedStderrThreshold
 //
 // RAII type used to temporarily update the Stderr Threshold parameter.
 class ScopedStderrThreshold final {
- public:
-  explicit ScopedStderrThreshold(absl::LogSeverityAtLeast severity);
-  ScopedStderrThreshold(const ScopedStderrThreshold&) = delete;
-  ScopedStderrThreshold& operator=(const ScopedStderrThreshold&) = delete;
-  ~ScopedStderrThreshold();
+public:
+    explicit ScopedStderrThreshold(absl::LogSeverityAtLeast severity);
+    ScopedStderrThreshold(const ScopedStderrThreshold&) = delete;
+    ScopedStderrThreshold& operator=(const ScopedStderrThreshold&) = delete;
+    ~ScopedStderrThreshold();
 
- private:
-  absl::LogSeverityAtLeast saved_severity_;
+private:
+    absl::LogSeverityAtLeast saved_severity_;
 };
 
 //------------------------------------------------------------------------------
@@ -118,9 +119,8 @@ class ScopedStderrThreshold final {
 //
 // Returns true if we should log a backtrace at the specified location.
 namespace log_internal {
-ABSL_MUST_USE_RESULT bool ShouldLogBacktraceAt(absl::string_view file,
-                                               int line);
-}  // namespace log_internal
+ABSL_MUST_USE_RESULT bool ShouldLogBacktraceAt(absl::string_view file, int line);
+} // namespace log_internal
 
 // SetLogBacktraceLocation()
 //
@@ -175,8 +175,9 @@ void EnableLogPrefix(bool on_off);
 //
 // Sets the global `VLOG` level to threshold. Returns the previous global
 // threshold.
-inline int SetGlobalVLogLevel(int threshold) {
-  return absl::log_internal::UpdateGlobalVLogLevel(threshold);
+inline int SetGlobalVLogLevel(int threshold)
+{
+    return absl::log_internal::UpdateGlobalVLogLevel(threshold);
 }
 
 // SetVLogLevel()
@@ -184,8 +185,9 @@ inline int SetGlobalVLogLevel(int threshold) {
 // Sets the `VLOG` threshold for all files that match `module_pattern`,
 // overwriting any prior value. Files that don't match aren't affected.
 // Returns the threshold that previously applied to `module_pattern`.
-inline int SetVLogLevel(absl::string_view module_pattern, int threshold) {
-  return absl::log_internal::PrependVModule(module_pattern, threshold);
+inline int SetVLogLevel(absl::string_view module_pattern, int threshold)
+{
+    return absl::log_internal::PrependVModule(module_pattern, threshold);
 }
 
 //------------------------------------------------------------------------------
@@ -209,7 +211,7 @@ namespace log_internal {
 //
 // Returns the configured Android logging tag.
 const char* GetAndroidNativeTag();
-}  // namespace log_internal
+} // namespace log_internal
 
 namespace log_internal {
 
@@ -224,8 +226,8 @@ void RawSetMinLogLevel(absl::LogSeverityAtLeast severity);
 void RawSetStderrThreshold(absl::LogSeverityAtLeast severity);
 void RawEnableLogPrefix(bool on_off);
 
-}  // namespace log_internal
+} // namespace log_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_LOG_GLOBALS_H_
+#endif // ABSL_LOG_GLOBALS_H_

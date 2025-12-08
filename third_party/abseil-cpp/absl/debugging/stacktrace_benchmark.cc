@@ -26,30 +26,33 @@ static constexpr int kMaxStackDepth = 100;
 static constexpr int kCacheSize = (1 << 16);
 void* pcs[kMaxStackDepth];
 
-ABSL_ATTRIBUTE_NOINLINE void func(benchmark::State& state, int x, int depth) {
-  if (x <= 0) {
-    // Touch a significant amount of memory so that the stack is likely to be
-    // not cached in the L1 cache.
-    state.PauseTiming();
-    int* arr = new int[kCacheSize];
-    for (int i = 0; i < kCacheSize; ++i) benchmark::DoNotOptimize(arr[i] = 100);
-    delete[] arr;
-    state.ResumeTiming();
-    benchmark::DoNotOptimize(absl::GetStackTrace(pcs, depth, 0));
-    return;
-  }
-  ABSL_BLOCK_TAIL_CALL_OPTIMIZATION();
-  func(state, --x, depth);
+ABSL_ATTRIBUTE_NOINLINE void func(benchmark::State& state, int x, int depth)
+{
+    if (x <= 0) {
+        // Touch a significant amount of memory so that the stack is likely to be
+        // not cached in the L1 cache.
+        state.PauseTiming();
+        int* arr = new int[kCacheSize];
+        for (int i = 0; i < kCacheSize; ++i)
+            benchmark::DoNotOptimize(arr[i] = 100);
+        delete[] arr;
+        state.ResumeTiming();
+        benchmark::DoNotOptimize(absl::GetStackTrace(pcs, depth, 0));
+        return;
+    }
+    ABSL_BLOCK_TAIL_CALL_OPTIMIZATION();
+    func(state, --x, depth);
 }
 
-void BM_GetStackTrace(benchmark::State& state) {
-  int depth = state.range(0);
-  for (auto s : state) {
-    func(state, depth, depth);
-  }
+void BM_GetStackTrace(benchmark::State& state)
+{
+    int depth = state.range(0);
+    for (auto s : state) {
+        func(state, depth, depth);
+    }
 }
 
 BENCHMARK(BM_GetStackTrace)->DenseRange(10, kMaxStackDepth, 10);
-}  // namespace
+} // namespace
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

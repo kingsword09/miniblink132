@@ -22,11 +22,11 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace log_internal {
 
-void DieBecauseNull(const char* file, int line, const char* exprtext) {
-  LOG(FATAL).AtLocation(file, line)
-      << absl::StrCat("Check failed: '", exprtext, "' Must be non-null");
+void DieBecauseNull(const char* file, int line, const char* exprtext)
+{
+    LOG(FATAL).AtLocation(file, line) << absl::StrCat("Check failed: '", exprtext, "' Must be non-null");
 }
 
-}  // namespace log_internal
+} // namespace log_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

@@ -58,7 +58,7 @@
 #ifndef ABSL_LOG_VLOG_IS_ON_H_
 #define ABSL_LOG_VLOG_IS_ON_H_
 
-#include "absl/log/absl_vlog_is_on.h"  // IWYU pragma: export
+#include "absl/log/absl_vlog_is_on.h" // IWYU pragma: export
 
 // IWYU pragma: private, include "absl/log/log.h"
 
@@ -71,4 +71,4 @@
 // new memory.
 #define VLOG_IS_ON(verbose_level) ABSL_VLOG_IS_ON(verbose_level)
 
-#endif  // ABSL_LOG_VLOG_IS_ON_H_
+#endif // ABSL_LOG_VLOG_IS_ON_H_

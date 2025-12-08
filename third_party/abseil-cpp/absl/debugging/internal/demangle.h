@@ -69,8 +69,8 @@ bool Demangle(const char* mangled, char* out, size_t out_size);
 // This function is not async-signal-safe.
 std::string DemangleString(const char* mangled);
 
-}  // namespace debugging_internal
+} // namespace debugging_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_DEBUGGING_INTERNAL_DEMANGLE_H_
+#endif // ABSL_DEBUGGING_INTERNAL_DEMANGLE_H_

@@ -94,8 +94,8 @@ bool SuppressSigabortTrace();
 // Sets the SuppressSigabortTrace() status and returns the previous state.
 bool SetSuppressSigabortTrace(bool on_off);
 
-}  // namespace log_internal
+} // namespace log_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_LOG_INTERNAL_GLOBALS_H_
+#endif // ABSL_LOG_INTERNAL_GLOBALS_H_

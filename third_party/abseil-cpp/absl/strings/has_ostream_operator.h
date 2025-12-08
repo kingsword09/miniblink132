@@ -26,17 +26,13 @@ ABSL_NAMESPACE_BEGIN
 
 // Detects if type `T` supports streaming to `std::ostream`s with `operator<<`.
 
-template <typename T, typename = void>
-struct HasOstreamOperator : std::false_type {};
+template <typename T, typename = void> struct HasOstreamOperator : std::false_type { };
 
 template <typename T>
-struct HasOstreamOperator<
-    T, std::enable_if_t<std::is_same<
-           std::ostream&, decltype(std::declval<std::ostream&>()
-                                   << std::declval<const T&>())>::value>>
-    : std::true_type {};
+struct HasOstreamOperator<T, std::enable_if_t<std::is_same<std::ostream&, decltype(std::declval<std::ostream&>() << std::declval<const T&>())>::value>>
+    : std::true_type { };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_STRINGS_HAS_OSTREAM_OPERATOR_H_
+#endif // ABSL_STRINGS_HAS_OSTREAM_OPERATOR_H_

@@ -66,18 +66,17 @@
 #include "absl/base/macros.h"
 #include "absl/base/nullability.h"
 #include "absl/base/optimization.h"
-#include "absl/base/port.h"    // TODO(strel): remove this include
+#include "absl/base/port.h" // TODO(strel): remove this include
 #include "absl/meta/type_traits.h"
 #include "absl/types/internal/span.h"
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 
-template <typename T>
-class Span;
+template <typename T> class Span;
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
 // If std::ranges is available, mark Span as satisfying the `view` and
 // `borrowed_range` concepts, just like std::span.
@@ -85,15 +84,15 @@ ABSL_NAMESPACE_END
 #define __has_include(header) 0
 #endif
 #if __has_include(<version>)
-#include <version>  // NOLINT(misc-include-cleaner)
+#include <version> // NOLINT(misc-include-cleaner)
 #endif
 #if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201911L
-#include <ranges>  // NOLINT(build/c++20)
+#include <ranges> // NOLINT(build/c++20)
 template <typename T>
- // NOLINTNEXTLINE(build/c++20)
+// NOLINTNEXTLINE(build/c++20)
 inline constexpr bool std::ranges::enable_view<absl::Span<T>> = true;
 template <typename T>
- // NOLINTNEXTLINE(build/c++20)
+// NOLINTNEXTLINE(build/c++20)
 inline constexpr bool std::ranges::enable_borrowed_range<absl::Span<T>> = true;
 #endif
 
@@ -178,333 +177,366 @@ ABSL_NAMESPACE_BEGIN
 //   // Explicit constructor from pointer,size
 //   int* my_array = new int[10];
 //   MyRoutine(absl::Span<const int>(my_array, 10));
-template <typename T>
-class ABSL_ATTRIBUTE_VIEW Span {
- private:
-  // Used to determine whether a Span can be constructed from a container of
-  // type C.
-  template <typename C>
-  using EnableIfConvertibleFrom =
-      typename std::enable_if<span_internal::HasData<T, C>::value &&
-                              span_internal::HasSize<C>::value>::type;
+template <typename T> class ABSL_ATTRIBUTE_VIEW Span {
+private:
+    // Used to determine whether a Span can be constructed from a container of
+    // type C.
+    template <typename C>
+    using EnableIfConvertibleFrom = typename std::enable_if<span_internal::HasData<T, C>::value && span_internal::HasSize<C>::value>::type;
 
-  // Used to SFINAE-enable a function when the slice elements are const.
-  template <typename U>
-  using EnableIfValueIsConst =
-      typename std::enable_if<std::is_const<T>::value, U>::type;
+    // Used to SFINAE-enable a function when the slice elements are const.
+    template <typename U> using EnableIfValueIsConst = typename std::enable_if<std::is_const<T>::value, U>::type;
 
-  // Used to SFINAE-enable a function when the slice elements are mutable.
-  template <typename U>
-  using EnableIfValueIsMutable =
-      typename std::enable_if<!std::is_const<T>::value, U>::type;
+    // Used to SFINAE-enable a function when the slice elements are mutable.
+    template <typename U> using EnableIfValueIsMutable = typename std::enable_if<!std::is_const<T>::value, U>::type;
 
- public:
-  using element_type = T;
-  using value_type = absl::remove_cv_t<T>;
-  // TODO(b/316099902) - pointer should be Nullable<T*>, but this makes it hard
-  // to recognize foreach loops as safe.
-  using pointer = T*;
-  using const_pointer = const T*;
-  using reference = T&;
-  using const_reference = const T&;
-  using iterator = pointer;
-  using const_iterator = const_pointer;
-  using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-  using size_type = size_t;
-  using difference_type = ptrdiff_t;
-  using absl_internal_is_view = std::true_type;
+public:
+    using element_type = T;
+    using value_type = absl::remove_cv_t<T>;
+    // TODO(b/316099902) - pointer should be Nullable<T*>, but this makes it hard
+    // to recognize foreach loops as safe.
+    using pointer = T*;
+    using const_pointer = const T*;
+    using reference = T&;
+    using const_reference = const T&;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using absl_internal_is_view = std::true_type;
 
-  // NOLINTNEXTLINE
-  static const size_type npos = ~(size_type(0));
+    // NOLINTNEXTLINE
+    static const size_type npos = ~(size_type(0));
 
-  constexpr Span() noexcept : Span(nullptr, 0) {}
-  constexpr Span(pointer array ABSL_ATTRIBUTE_LIFETIME_BOUND,
-                 size_type length) noexcept
-      : ptr_(array), len_(length) {}
+    constexpr Span() noexcept
+        : Span(nullptr, 0)
+    {
+    }
+    constexpr Span(pointer array ABSL_ATTRIBUTE_LIFETIME_BOUND, size_type length) noexcept
+        : ptr_(array)
+        , len_(length)
+    {
+    }
 
-  // Implicit conversion constructors
-  template <size_t N>
-  constexpr Span(T(  // NOLINT(google-explicit-constructor)
-      &a ABSL_ATTRIBUTE_LIFETIME_BOUND)[N]) noexcept
-      : Span(a, N) {}
+    // Implicit conversion constructors
+    template <size_t N>
+    constexpr Span(T( // NOLINT(google-explicit-constructor)
+        &a ABSL_ATTRIBUTE_LIFETIME_BOUND)[N]) noexcept
+        : Span(a, N)
+    {
+    }
 
-  // Explicit reference constructor for a mutable `Span<T>` type. Can be
-  // replaced with MakeSpan() to infer the type parameter.
-  template <typename V, typename = EnableIfConvertibleFrom<V>,
-            typename = EnableIfValueIsMutable<V>,
-            typename = span_internal::EnableIfNotIsView<V>>
-  explicit Span(
-      V& v
-          ABSL_ATTRIBUTE_LIFETIME_BOUND) noexcept  // NOLINT(runtime/references)
-      : Span(span_internal::GetData(v), v.size()) {}
+    // Explicit reference constructor for a mutable `Span<T>` type. Can be
+    // replaced with MakeSpan() to infer the type parameter.
+    template <typename V, typename = EnableIfConvertibleFrom<V>, typename = EnableIfValueIsMutable<V>,
+        typename = span_internal::EnableIfNotIsView<V>>
+    explicit Span(V& v ABSL_ATTRIBUTE_LIFETIME_BOUND) noexcept // NOLINT(runtime/references)
+        : Span(span_internal::GetData(v), v.size())
+    {
+    }
 
-  // Implicit reference constructor for a read-only `Span<const T>` type
-  template <typename V, typename = EnableIfConvertibleFrom<V>,
-            typename = EnableIfValueIsConst<V>,
-            typename = span_internal::EnableIfNotIsView<V>>
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  constexpr Span(const V& v ABSL_ATTRIBUTE_LIFETIME_BOUND) noexcept
-      : Span(span_internal::GetData(v), v.size()) {}
+    // Implicit reference constructor for a read-only `Span<const T>` type
+    template <typename V, typename = EnableIfConvertibleFrom<V>, typename = EnableIfValueIsConst<V>, typename = span_internal::EnableIfNotIsView<V>>
+    // NOLINTNEXTLINE(google-explicit-constructor)
+    constexpr Span(const V& v ABSL_ATTRIBUTE_LIFETIME_BOUND) noexcept
+        : Span(span_internal::GetData(v), v.size())
+    {
+    }
 
-  // Overloads of the above two functions that are only enabled for view types.
-  // This is so we can drop the ABSL_ATTRIBUTE_LIFETIME_BOUND annotation. These
-  // overloads must be made unique by using a different template parameter list
-  // (hence the = 0 for the IsView enabler).
-  template <typename V, typename = EnableIfConvertibleFrom<V>,
-            typename = EnableIfValueIsMutable<V>,
-            span_internal::EnableIfIsView<V> = 0>
-  explicit Span(V& v) noexcept  // NOLINT(runtime/references)
-      : Span(span_internal::GetData(v), v.size()) {}
-  template <typename V, typename = EnableIfConvertibleFrom<V>,
-            typename = EnableIfValueIsConst<V>,
-            span_internal::EnableIfIsView<V> = 0>
-  constexpr Span(const V& v) noexcept  // NOLINT(google-explicit-constructor)
-      : Span(span_internal::GetData(v), v.size()) {}
+    // Overloads of the above two functions that are only enabled for view types.
+    // This is so we can drop the ABSL_ATTRIBUTE_LIFETIME_BOUND annotation. These
+    // overloads must be made unique by using a different template parameter list
+    // (hence the = 0 for the IsView enabler).
+    template <typename V, typename = EnableIfConvertibleFrom<V>, typename = EnableIfValueIsMutable<V>,
+        span_internal::EnableIfIsView<V> = 0>
+    explicit Span(V& v) noexcept // NOLINT(runtime/references)
+        : Span(span_internal::GetData(v), v.size())
+    {
+    }
+    template <typename V, typename = EnableIfConvertibleFrom<V>, typename = EnableIfValueIsConst<V>,
+        span_internal::EnableIfIsView<V> = 0>
+    constexpr Span(const V& v) noexcept // NOLINT(google-explicit-constructor)
+        : Span(span_internal::GetData(v), v.size())
+    {
+    }
 
-  // Implicit constructor from an initializer list, making it possible to pass a
-  // brace-enclosed initializer list to a function expecting a `Span`. Such
-  // spans constructed from an initializer list must be of type `Span<const T>`.
-  //
-  //   void Process(absl::Span<const int> x);
-  //   Process({1, 2, 3});
-  //
-  // Note that as always the array referenced by the span must outlive the span.
-  // Since an initializer list constructor acts as if it is fed a temporary
-  // array (cf. C++ standard [dcl.init.list]/5), it's safe to use this
-  // constructor only when the `std::initializer_list` itself outlives the span.
-  // In order to meet this requirement it's sufficient to ensure that neither
-  // the span nor a copy of it is used outside of the expression in which it's
-  // created:
-  //
-  //   // Assume that this function uses the array directly, not retaining any
-  //   // copy of the span or pointer to any of its elements.
-  //   void Process(absl::Span<const int> ints);
-  //
-  //   // Okay: the std::initializer_list<int> will reference a temporary array
-  //   // that isn't destroyed until after the call to Process returns.
-  //   Process({ 17, 19 });
-  //
-  //   // Not okay: the storage used by the std::initializer_list<int> is not
-  //   // allowed to be referenced after the first line.
-  //   absl::Span<const int> ints = { 17, 19 };
-  //   Process(ints);
-  //
-  //   // Not okay for the same reason as above: even when the elements of the
-  //   // initializer list expression are not temporaries the underlying array
-  //   // is, so the initializer list must still outlive the span.
-  //   const int foo = 17;
-  //   absl::Span<const int> ints = { foo };
-  //   Process(ints);
-  //
-  template <typename LazyT = T,
-            typename = EnableIfValueIsConst<LazyT>>
-  Span(std::initializer_list<value_type> v
-           ABSL_ATTRIBUTE_LIFETIME_BOUND) noexcept  // NOLINT(runtime/explicit)
-      : Span(v.begin(), v.size()) {}
+    // Implicit constructor from an initializer list, making it possible to pass a
+    // brace-enclosed initializer list to a function expecting a `Span`. Such
+    // spans constructed from an initializer list must be of type `Span<const T>`.
+    //
+    //   void Process(absl::Span<const int> x);
+    //   Process({1, 2, 3});
+    //
+    // Note that as always the array referenced by the span must outlive the span.
+    // Since an initializer list constructor acts as if it is fed a temporary
+    // array (cf. C++ standard [dcl.init.list]/5), it's safe to use this
+    // constructor only when the `std::initializer_list` itself outlives the span.
+    // In order to meet this requirement it's sufficient to ensure that neither
+    // the span nor a copy of it is used outside of the expression in which it's
+    // created:
+    //
+    //   // Assume that this function uses the array directly, not retaining any
+    //   // copy of the span or pointer to any of its elements.
+    //   void Process(absl::Span<const int> ints);
+    //
+    //   // Okay: the std::initializer_list<int> will reference a temporary array
+    //   // that isn't destroyed until after the call to Process returns.
+    //   Process({ 17, 19 });
+    //
+    //   // Not okay: the storage used by the std::initializer_list<int> is not
+    //   // allowed to be referenced after the first line.
+    //   absl::Span<const int> ints = { 17, 19 };
+    //   Process(ints);
+    //
+    //   // Not okay for the same reason as above: even when the elements of the
+    //   // initializer list expression are not temporaries the underlying array
+    //   // is, so the initializer list must still outlive the span.
+    //   const int foo = 17;
+    //   absl::Span<const int> ints = { foo };
+    //   Process(ints);
+    //
+    template <typename LazyT = T,
+        typename = EnableIfValueIsConst<LazyT>>
+    Span(std::initializer_list<value_type> v ABSL_ATTRIBUTE_LIFETIME_BOUND) noexcept // NOLINT(runtime/explicit)
+        : Span(v.begin(), v.size())
+    {
+    }
 
-  // Accessors
+    // Accessors
 
-  // Span::data()
-  //
-  // Returns a pointer to the span's underlying array of data (which is held
-  // outside the span).
-  constexpr pointer data() const noexcept { return ptr_; }
+    // Span::data()
+    //
+    // Returns a pointer to the span's underlying array of data (which is held
+    // outside the span).
+    constexpr pointer data() const noexcept
+    {
+        return ptr_;
+    }
 
-  // Span::size()
-  //
-  // Returns the size of this span.
-  constexpr size_type size() const noexcept { return len_; }
+    // Span::size()
+    //
+    // Returns the size of this span.
+    constexpr size_type size() const noexcept
+    {
+        return len_;
+    }
 
-  // Span::length()
-  //
-  // Returns the length (size) of this span.
-  constexpr size_type length() const noexcept { return size(); }
+    // Span::length()
+    //
+    // Returns the length (size) of this span.
+    constexpr size_type length() const noexcept
+    {
+        return size();
+    }
 
-  // Span::empty()
-  //
-  // Returns a boolean indicating whether or not this span is considered empty.
-  constexpr bool empty() const noexcept { return size() == 0; }
+    // Span::empty()
+    //
+    // Returns a boolean indicating whether or not this span is considered empty.
+    constexpr bool empty() const noexcept
+    {
+        return size() == 0;
+    }
 
-  // Span::operator[]
-  //
-  // Returns a reference to the i'th element of this span.
-  constexpr reference operator[](size_type i) const noexcept {
-    return ABSL_HARDENING_ASSERT(i < size()), ptr_[i];
-  }
+    // Span::operator[]
+    //
+    // Returns a reference to the i'th element of this span.
+    constexpr reference operator[](size_type i) const noexcept
+    {
+        return ABSL_HARDENING_ASSERT(i < size()), ptr_[i];
+    }
 
-  // Span::at()
-  //
-  // Returns a reference to the i'th element of this span.
-  constexpr reference at(size_type i) const {
-    return ABSL_PREDICT_TRUE(i < size())  //
-               ? *(data() + i)
-               : (base_internal::ThrowStdOutOfRange(
-                      "Span::at failed bounds check"),
-                  *(data() + i));
-  }
+    // Span::at()
+    //
+    // Returns a reference to the i'th element of this span.
+    constexpr reference at(size_type i) const
+    {
+        return ABSL_PREDICT_TRUE(i < size()) //
+            ? *(data() + i)
+            : (base_internal::ThrowStdOutOfRange("Span::at failed bounds check"), *(data() + i));
+    }
 
-  // Span::front()
-  //
-  // Returns a reference to the first element of this span. The span must not
-  // be empty.
-  constexpr reference front() const noexcept {
-    return ABSL_HARDENING_ASSERT(size() > 0), *data();
-  }
+    // Span::front()
+    //
+    // Returns a reference to the first element of this span. The span must not
+    // be empty.
+    constexpr reference front() const noexcept
+    {
+        return ABSL_HARDENING_ASSERT(size() > 0), *data();
+    }
 
-  // Span::back()
-  //
-  // Returns a reference to the last element of this span. The span must not
-  // be empty.
-  constexpr reference back() const noexcept {
-    return ABSL_HARDENING_ASSERT(size() > 0), *(data() + size() - 1);
-  }
+    // Span::back()
+    //
+    // Returns a reference to the last element of this span. The span must not
+    // be empty.
+    constexpr reference back() const noexcept
+    {
+        return ABSL_HARDENING_ASSERT(size() > 0), *(data() + size() - 1);
+    }
 
-  // Span::begin()
-  //
-  // Returns an iterator pointing to the first element of this span, or `end()`
-  // if the span is empty.
-  constexpr iterator begin() const noexcept { return data(); }
+    // Span::begin()
+    //
+    // Returns an iterator pointing to the first element of this span, or `end()`
+    // if the span is empty.
+    constexpr iterator begin() const noexcept
+    {
+        return data();
+    }
 
-  // Span::cbegin()
-  //
-  // Returns a const iterator pointing to the first element of this span, or
-  // `end()` if the span is empty.
-  constexpr const_iterator cbegin() const noexcept { return begin(); }
+    // Span::cbegin()
+    //
+    // Returns a const iterator pointing to the first element of this span, or
+    // `end()` if the span is empty.
+    constexpr const_iterator cbegin() const noexcept
+    {
+        return begin();
+    }
 
-  // Span::end()
-  //
-  // Returns an iterator pointing just beyond the last element at the
-  // end of this span. This iterator acts as a placeholder; attempting to
-  // access it results in undefined behavior.
-  constexpr iterator end() const noexcept { return data() + size(); }
+    // Span::end()
+    //
+    // Returns an iterator pointing just beyond the last element at the
+    // end of this span. This iterator acts as a placeholder; attempting to
+    // access it results in undefined behavior.
+    constexpr iterator end() const noexcept
+    {
+        return data() + size();
+    }
 
-  // Span::cend()
-  //
-  // Returns a const iterator pointing just beyond the last element at the
-  // end of this span. This iterator acts as a placeholder; attempting to
-  // access it results in undefined behavior.
-  constexpr const_iterator cend() const noexcept { return end(); }
+    // Span::cend()
+    //
+    // Returns a const iterator pointing just beyond the last element at the
+    // end of this span. This iterator acts as a placeholder; attempting to
+    // access it results in undefined behavior.
+    constexpr const_iterator cend() const noexcept
+    {
+        return end();
+    }
 
-  // Span::rbegin()
-  //
-  // Returns a reverse iterator pointing to the last element at the end of this
-  // span, or `rend()` if the span is empty.
-  constexpr reverse_iterator rbegin() const noexcept {
-    return reverse_iterator(end());
-  }
+    // Span::rbegin()
+    //
+    // Returns a reverse iterator pointing to the last element at the end of this
+    // span, or `rend()` if the span is empty.
+    constexpr reverse_iterator rbegin() const noexcept
+    {
+        return reverse_iterator(end());
+    }
 
-  // Span::crbegin()
-  //
-  // Returns a const reverse iterator pointing to the last element at the end of
-  // this span, or `crend()` if the span is empty.
-  constexpr const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+    // Span::crbegin()
+    //
+    // Returns a const reverse iterator pointing to the last element at the end of
+    // this span, or `crend()` if the span is empty.
+    constexpr const_reverse_iterator crbegin() const noexcept
+    {
+        return rbegin();
+    }
 
-  // Span::rend()
-  //
-  // Returns a reverse iterator pointing just before the first element
-  // at the beginning of this span. This pointer acts as a placeholder;
-  // attempting to access its element results in undefined behavior.
-  constexpr reverse_iterator rend() const noexcept {
-    return reverse_iterator(begin());
-  }
+    // Span::rend()
+    //
+    // Returns a reverse iterator pointing just before the first element
+    // at the beginning of this span. This pointer acts as a placeholder;
+    // attempting to access its element results in undefined behavior.
+    constexpr reverse_iterator rend() const noexcept
+    {
+        return reverse_iterator(begin());
+    }
 
-  // Span::crend()
-  //
-  // Returns a reverse const iterator pointing just before the first element
-  // at the beginning of this span. This pointer acts as a placeholder;
-  // attempting to access its element results in undefined behavior.
-  constexpr const_reverse_iterator crend() const noexcept { return rend(); }
+    // Span::crend()
+    //
+    // Returns a reverse const iterator pointing just before the first element
+    // at the beginning of this span. This pointer acts as a placeholder;
+    // attempting to access its element results in undefined behavior.
+    constexpr const_reverse_iterator crend() const noexcept
+    {
+        return rend();
+    }
 
-  // Span mutations
+    // Span mutations
 
-  // Span::remove_prefix()
-  //
-  // Removes the first `n` elements from the span.
-  void remove_prefix(size_type n) noexcept {
-    ABSL_HARDENING_ASSERT(size() >= n);
-    ptr_ += n;
-    len_ -= n;
-  }
+    // Span::remove_prefix()
+    //
+    // Removes the first `n` elements from the span.
+    void remove_prefix(size_type n) noexcept
+    {
+        ABSL_HARDENING_ASSERT(size() >= n);
+        ptr_ += n;
+        len_ -= n;
+    }
 
-  // Span::remove_suffix()
-  //
-  // Removes the last `n` elements from the span.
-  void remove_suffix(size_type n) noexcept {
-    ABSL_HARDENING_ASSERT(size() >= n);
-    len_ -= n;
-  }
+    // Span::remove_suffix()
+    //
+    // Removes the last `n` elements from the span.
+    void remove_suffix(size_type n) noexcept
+    {
+        ABSL_HARDENING_ASSERT(size() >= n);
+        len_ -= n;
+    }
 
-  // Span::subspan()
-  //
-  // Returns a `Span` starting at element `pos` and of length `len`. Both `pos`
-  // and `len` are of type `size_type` and thus non-negative. Parameter `pos`
-  // must be <= size(). Any `len` value that points past the end of the span
-  // will be trimmed to at most size() - `pos`. A default `len` value of `npos`
-  // ensures the returned subspan continues until the end of the span.
-  //
-  // Examples:
-  //
-  //   std::vector<int> vec = {10, 11, 12, 13};
-  //   absl::MakeSpan(vec).subspan(1, 2);  // {11, 12}
-  //   absl::MakeSpan(vec).subspan(2, 8);  // {12, 13}
-  //   absl::MakeSpan(vec).subspan(1);     // {11, 12, 13}
-  //   absl::MakeSpan(vec).subspan(4);     // {}
-  //   absl::MakeSpan(vec).subspan(5);     // throws std::out_of_range
-  constexpr Span subspan(size_type pos = 0, size_type len = npos) const {
-    return (pos <= size())
-               ? Span(data() + pos, (std::min)(size() - pos, len))
-               : (base_internal::ThrowStdOutOfRange("pos > size()"), Span());
-  }
+    // Span::subspan()
+    //
+    // Returns a `Span` starting at element `pos` and of length `len`. Both `pos`
+    // and `len` are of type `size_type` and thus non-negative. Parameter `pos`
+    // must be <= size(). Any `len` value that points past the end of the span
+    // will be trimmed to at most size() - `pos`. A default `len` value of `npos`
+    // ensures the returned subspan continues until the end of the span.
+    //
+    // Examples:
+    //
+    //   std::vector<int> vec = {10, 11, 12, 13};
+    //   absl::MakeSpan(vec).subspan(1, 2);  // {11, 12}
+    //   absl::MakeSpan(vec).subspan(2, 8);  // {12, 13}
+    //   absl::MakeSpan(vec).subspan(1);     // {11, 12, 13}
+    //   absl::MakeSpan(vec).subspan(4);     // {}
+    //   absl::MakeSpan(vec).subspan(5);     // throws std::out_of_range
+    constexpr Span subspan(size_type pos = 0, size_type len = npos) const
+    {
+        return (pos <= size()) ? Span(data() + pos, (std::min)(size() - pos, len)) : (base_internal::ThrowStdOutOfRange("pos > size()"), Span());
+    }
 
-  // Span::first()
-  //
-  // Returns a `Span` containing first `len` elements. Parameter `len` is of
-  // type `size_type` and thus non-negative. `len` value must be <= size().
-  //
-  // Examples:
-  //
-  //   std::vector<int> vec = {10, 11, 12, 13};
-  //   absl::MakeSpan(vec).first(1);  // {10}
-  //   absl::MakeSpan(vec).first(3);  // {10, 11, 12}
-  //   absl::MakeSpan(vec).first(5);  // throws std::out_of_range
-  constexpr Span first(size_type len) const {
-    return (len <= size())
-               ? Span(data(), len)
-               : (base_internal::ThrowStdOutOfRange("len > size()"), Span());
-  }
+    // Span::first()
+    //
+    // Returns a `Span` containing first `len` elements. Parameter `len` is of
+    // type `size_type` and thus non-negative. `len` value must be <= size().
+    //
+    // Examples:
+    //
+    //   std::vector<int> vec = {10, 11, 12, 13};
+    //   absl::MakeSpan(vec).first(1);  // {10}
+    //   absl::MakeSpan(vec).first(3);  // {10, 11, 12}
+    //   absl::MakeSpan(vec).first(5);  // throws std::out_of_range
+    constexpr Span first(size_type len) const
+    {
+        return (len <= size()) ? Span(data(), len) : (base_internal::ThrowStdOutOfRange("len > size()"), Span());
+    }
 
-  // Span::last()
-  //
-  // Returns a `Span` containing last `len` elements. Parameter `len` is of
-  // type `size_type` and thus non-negative. `len` value must be <= size().
-  //
-  // Examples:
-  //
-  //   std::vector<int> vec = {10, 11, 12, 13};
-  //   absl::MakeSpan(vec).last(1);  // {13}
-  //   absl::MakeSpan(vec).last(3);  // {11, 12, 13}
-  //   absl::MakeSpan(vec).last(5);  // throws std::out_of_range
-  constexpr Span last(size_type len) const {
-    return (len <= size())
-               ? Span(size() - len + data(), len)
-               : (base_internal::ThrowStdOutOfRange("len > size()"), Span());
-  }
+    // Span::last()
+    //
+    // Returns a `Span` containing last `len` elements. Parameter `len` is of
+    // type `size_type` and thus non-negative. `len` value must be <= size().
+    //
+    // Examples:
+    //
+    //   std::vector<int> vec = {10, 11, 12, 13};
+    //   absl::MakeSpan(vec).last(1);  // {13}
+    //   absl::MakeSpan(vec).last(3);  // {11, 12, 13}
+    //   absl::MakeSpan(vec).last(5);  // throws std::out_of_range
+    constexpr Span last(size_type len) const
+    {
+        return (len <= size()) ? Span(size() - len + data(), len) : (base_internal::ThrowStdOutOfRange("len > size()"), Span());
+    }
 
-  // Support for absl::Hash.
-  template <typename H>
-  friend H AbslHashValue(H h, Span v) {
-    return H::combine(H::combine_contiguous(std::move(h), v.data(), v.size()),
-                      v.size());
-  }
+    // Support for absl::Hash.
+    template <typename H> friend H AbslHashValue(H h, Span v)
+    {
+        return H::combine(H::combine_contiguous(std::move(h), v.data(), v.size()), v.size());
+    }
 
- private:
-  pointer ptr_;
-  size_type len_;
+private:
+    pointer ptr_;
+    size_type len_;
 };
 
-template <typename T>
-const typename Span<T>::size_type Span<T>::npos;
+template <typename T> const typename Span<T>::size_type Span<T>::npos;
 
 // Span relationals
 
@@ -521,159 +553,135 @@ const typename Span<T>::size_type Span<T>::npos;
 // - (non_deduced<Span<const T>>, Span<T>)
 
 // operator==
-template <typename T>
-bool operator==(Span<T> a, Span<T> b) {
-  return span_internal::EqualImpl<Span, const T>(a, b);
+template <typename T> bool operator==(Span<T> a, Span<T> b)
+{
+    return span_internal::EqualImpl<Span, const T>(a, b);
 }
-template <typename T>
-bool operator==(Span<const T> a, Span<T> b) {
-  return span_internal::EqualImpl<Span, const T>(a, b);
+template <typename T> bool operator==(Span<const T> a, Span<T> b)
+{
+    return span_internal::EqualImpl<Span, const T>(a, b);
 }
-template <typename T>
-bool operator==(Span<T> a, Span<const T> b) {
-  return span_internal::EqualImpl<Span, const T>(a, b);
+template <typename T> bool operator==(Span<T> a, Span<const T> b)
+{
+    return span_internal::EqualImpl<Span, const T>(a, b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator==(const U& a, Span<T> b) {
-  return span_internal::EqualImpl<Span, const T>(a, b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator==(const U& a, Span<T> b)
+{
+    return span_internal::EqualImpl<Span, const T>(a, b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator==(Span<T> a, const U& b) {
-  return span_internal::EqualImpl<Span, const T>(a, b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator==(Span<T> a, const U& b)
+{
+    return span_internal::EqualImpl<Span, const T>(a, b);
 }
 
 // operator!=
-template <typename T>
-bool operator!=(Span<T> a, Span<T> b) {
-  return !(a == b);
+template <typename T> bool operator!=(Span<T> a, Span<T> b)
+{
+    return !(a == b);
 }
-template <typename T>
-bool operator!=(Span<const T> a, Span<T> b) {
-  return !(a == b);
+template <typename T> bool operator!=(Span<const T> a, Span<T> b)
+{
+    return !(a == b);
 }
-template <typename T>
-bool operator!=(Span<T> a, Span<const T> b) {
-  return !(a == b);
+template <typename T> bool operator!=(Span<T> a, Span<const T> b)
+{
+    return !(a == b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator!=(const U& a, Span<T> b) {
-  return !(a == b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator!=(const U& a, Span<T> b)
+{
+    return !(a == b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator!=(Span<T> a, const U& b) {
-  return !(a == b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator!=(Span<T> a, const U& b)
+{
+    return !(a == b);
 }
 
 // operator<
-template <typename T>
-bool operator<(Span<T> a, Span<T> b) {
-  return span_internal::LessThanImpl<Span, const T>(a, b);
+template <typename T> bool operator<(Span<T> a, Span<T> b)
+{
+    return span_internal::LessThanImpl<Span, const T>(a, b);
 }
-template <typename T>
-bool operator<(Span<const T> a, Span<T> b) {
-  return span_internal::LessThanImpl<Span, const T>(a, b);
+template <typename T> bool operator<(Span<const T> a, Span<T> b)
+{
+    return span_internal::LessThanImpl<Span, const T>(a, b);
 }
-template <typename T>
-bool operator<(Span<T> a, Span<const T> b) {
-  return span_internal::LessThanImpl<Span, const T>(a, b);
+template <typename T> bool operator<(Span<T> a, Span<const T> b)
+{
+    return span_internal::LessThanImpl<Span, const T>(a, b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator<(const U& a, Span<T> b) {
-  return span_internal::LessThanImpl<Span, const T>(a, b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator<(const U& a, Span<T> b)
+{
+    return span_internal::LessThanImpl<Span, const T>(a, b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator<(Span<T> a, const U& b) {
-  return span_internal::LessThanImpl<Span, const T>(a, b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator<(Span<T> a, const U& b)
+{
+    return span_internal::LessThanImpl<Span, const T>(a, b);
 }
 
 // operator>
-template <typename T>
-bool operator>(Span<T> a, Span<T> b) {
-  return b < a;
+template <typename T> bool operator>(Span<T> a, Span<T> b)
+{
+    return b < a;
 }
-template <typename T>
-bool operator>(Span<const T> a, Span<T> b) {
-  return b < a;
+template <typename T> bool operator>(Span<const T> a, Span<T> b)
+{
+    return b < a;
 }
-template <typename T>
-bool operator>(Span<T> a, Span<const T> b) {
-  return b < a;
+template <typename T> bool operator>(Span<T> a, Span<const T> b)
+{
+    return b < a;
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator>(const U& a, Span<T> b) {
-  return b < a;
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator>(const U& a, Span<T> b)
+{
+    return b < a;
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator>(Span<T> a, const U& b) {
-  return b < a;
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator>(Span<T> a, const U& b)
+{
+    return b < a;
 }
 
 // operator<=
-template <typename T>
-bool operator<=(Span<T> a, Span<T> b) {
-  return !(b < a);
+template <typename T> bool operator<=(Span<T> a, Span<T> b)
+{
+    return !(b < a);
 }
-template <typename T>
-bool operator<=(Span<const T> a, Span<T> b) {
-  return !(b < a);
+template <typename T> bool operator<=(Span<const T> a, Span<T> b)
+{
+    return !(b < a);
 }
-template <typename T>
-bool operator<=(Span<T> a, Span<const T> b) {
-  return !(b < a);
+template <typename T> bool operator<=(Span<T> a, Span<const T> b)
+{
+    return !(b < a);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator<=(const U& a, Span<T> b) {
-  return !(b < a);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator<=(const U& a, Span<T> b)
+{
+    return !(b < a);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator<=(Span<T> a, const U& b) {
-  return !(b < a);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator<=(Span<T> a, const U& b)
+{
+    return !(b < a);
 }
 
 // operator>=
-template <typename T>
-bool operator>=(Span<T> a, Span<T> b) {
-  return !(a < b);
+template <typename T> bool operator>=(Span<T> a, Span<T> b)
+{
+    return !(a < b);
 }
-template <typename T>
-bool operator>=(Span<const T> a, Span<T> b) {
-  return !(a < b);
+template <typename T> bool operator>=(Span<const T> a, Span<T> b)
+{
+    return !(a < b);
 }
-template <typename T>
-bool operator>=(Span<T> a, Span<const T> b) {
-  return !(a < b);
+template <typename T> bool operator>=(Span<T> a, Span<const T> b)
+{
+    return !(a < b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator>=(const U& a, Span<T> b) {
-  return !(a < b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator>=(const U& a, Span<T> b)
+{
+    return !(a < b);
 }
-template <
-    typename T, typename U,
-    typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>>
-bool operator>=(Span<T> a, const U& b) {
-  return !(a < b);
+template <typename T, typename U, typename = span_internal::EnableIfConvertibleTo<U, absl::Span<const T>>> bool operator>=(Span<T> a, const U& b)
+{
+    return !(a < b);
 }
 
 // MakeSpan()
@@ -712,26 +720,26 @@ bool operator>=(Span<T> a, const U& b) {
 //     return absl::MakeSpan(&array[0], num_elements_);
 //   }
 //
-template <int&... ExplicitArgumentBarrier, typename T>
-constexpr Span<T> MakeSpan(absl::Nullable<T*> ptr, size_t size) noexcept {
-  return Span<T>(ptr, size);
+template <int&... ExplicitArgumentBarrier, typename T> constexpr Span<T> MakeSpan(absl::Nullable<T*> ptr, size_t size) noexcept
+{
+    return Span<T>(ptr, size);
 }
 
-template <int&... ExplicitArgumentBarrier, typename T>
-Span<T> MakeSpan(absl::Nullable<T*> begin, absl::Nullable<T*> end) noexcept {
-  return ABSL_HARDENING_ASSERT(begin <= end),
-         Span<T>(begin, static_cast<size_t>(end - begin));
+template <int&... ExplicitArgumentBarrier, typename T> Span<T> MakeSpan(absl::Nullable<T*> begin, absl::Nullable<T*> end) noexcept
+{
+    return ABSL_HARDENING_ASSERT(begin <= end), Span<T>(begin, static_cast<size_t>(end - begin));
 }
 
 template <int&... ExplicitArgumentBarrier, typename C>
-constexpr auto MakeSpan(C& c) noexcept  // NOLINT(runtime/references)
-    -> decltype(absl::MakeSpan(span_internal::GetData(c), c.size())) {
-  return MakeSpan(span_internal::GetData(c), c.size());
+constexpr auto MakeSpan(C& c) noexcept // NOLINT(runtime/references)
+    -> decltype(absl::MakeSpan(span_internal::GetData(c), c.size()))
+{
+    return MakeSpan(span_internal::GetData(c), c.size());
 }
 
-template <int&... ExplicitArgumentBarrier, typename T, size_t N>
-constexpr Span<T> MakeSpan(T (&array)[N]) noexcept {
-  return Span<T>(array, N);
+template <int&... ExplicitArgumentBarrier, typename T, size_t N> constexpr Span<T> MakeSpan(T (&array)[N]) noexcept
+{
+    return Span<T>(array, N);
 }
 
 // MakeConstSpan()
@@ -758,27 +766,25 @@ constexpr Span<T> MakeSpan(T (&array)[N]) noexcept {
 //   ProcessInts(absl::MakeConstSpan(some_ints));
 //   ProcessInts(absl::MakeConstSpan(std::vector<int>{ 0, 0, 0 }));
 //
-template <int&... ExplicitArgumentBarrier, typename T>
-constexpr Span<const T> MakeConstSpan(absl::Nullable<T*> ptr,
-                                      size_t size) noexcept {
-  return Span<const T>(ptr, size);
+template <int&... ExplicitArgumentBarrier, typename T> constexpr Span<const T> MakeConstSpan(absl::Nullable<T*> ptr, size_t size) noexcept
+{
+    return Span<const T>(ptr, size);
 }
 
-template <int&... ExplicitArgumentBarrier, typename T>
-Span<const T> MakeConstSpan(absl::Nullable<T*> begin,
-                            absl::Nullable<T*> end) noexcept {
-  return ABSL_HARDENING_ASSERT(begin <= end), Span<const T>(begin, end - begin);
+template <int&... ExplicitArgumentBarrier, typename T> Span<const T> MakeConstSpan(absl::Nullable<T*> begin, absl::Nullable<T*> end) noexcept
+{
+    return ABSL_HARDENING_ASSERT(begin <= end), Span<const T>(begin, end - begin);
 }
 
-template <int&... ExplicitArgumentBarrier, typename C>
-constexpr auto MakeConstSpan(const C& c) noexcept -> decltype(MakeSpan(c)) {
-  return MakeSpan(c);
+template <int&... ExplicitArgumentBarrier, typename C> constexpr auto MakeConstSpan(const C& c) noexcept -> decltype(MakeSpan(c))
+{
+    return MakeSpan(c);
 }
 
-template <int&... ExplicitArgumentBarrier, typename T, size_t N>
-constexpr Span<const T> MakeConstSpan(const T (&array)[N]) noexcept {
-  return Span<const T>(array, N);
+template <int&... ExplicitArgumentBarrier, typename T, size_t N> constexpr Span<const T> MakeConstSpan(const T (&array)[N]) noexcept
+{
+    return Span<const T>(array, N);
 }
 ABSL_NAMESPACE_END
-}  // namespace absl
-#endif  // ABSL_TYPES_SPAN_H_
+} // namespace absl
+#endif // ABSL_TYPES_SPAN_H_

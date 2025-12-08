@@ -33,25 +33,15 @@ namespace flags_internal {
 
 // The format to report the help messages in.
 enum class HelpFormat {
-  kHumanReadable,
+    kHumanReadable,
 };
 
 // The kind of usage help requested.
-enum class HelpMode {
-  kNone,
-  kImportant,
-  kShort,
-  kFull,
-  kPackage,
-  kMatch,
-  kVersion,
-  kOnlyCheckArgs
-};
+enum class HelpMode { kNone, kImportant, kShort, kFull, kPackage, kMatch, kVersion, kOnlyCheckArgs };
 
 // Streams the help message describing `flag` to `out`.
 // The default value for `flag` is included in the output.
-void FlagHelp(std::ostream& out, const CommandLineFlag& flag,
-              HelpFormat format = HelpFormat::kHumanReadable);
+void FlagHelp(std::ostream& out, const CommandLineFlag& flag, HelpFormat format = HelpFormat::kHumanReadable);
 
 // Produces the help messages for all flags matching the filter. A flag matches
 // the filter if it is defined in a file with a filename which includes
@@ -62,8 +52,7 @@ void FlagHelp(std::ostream& out, const CommandLineFlag& flag,
 //  .../path/to/file.<ext>
 // for any extension 'ext'. If the filter is empty this function produces help
 // messages for all flags.
-void FlagsHelp(std::ostream& out, absl::string_view filter,
-               HelpFormat format, absl::string_view program_usage_message);
+void FlagsHelp(std::ostream& out, absl::string_view filter, HelpFormat format, absl::string_view program_usage_message);
 
 // --------------------------------------------------------------------
 
@@ -71,8 +60,7 @@ void FlagsHelp(std::ostream& out, absl::string_view filter,
 // this file) has been set this routine produces corresponding help message in
 // the specified output stream and returns HelpMode that was handled. Otherwise
 // it returns HelpMode::kNone.
-HelpMode HandleUsageFlags(std::ostream& out,
-                          absl::string_view program_usage_message);
+HelpMode HandleUsageFlags(std::ostream& out, absl::string_view program_usage_message);
 
 // --------------------------------------------------------------------
 // Encapsulates the logic of exiting the binary depending on handled help mode.
@@ -99,8 +87,8 @@ void SetFlagsHelpFormat(HelpFormat);
 // function.
 bool DeduceUsageFlags(absl::string_view name, absl::string_view value);
 
-}  // namespace flags_internal
+} // namespace flags_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FLAGS_INTERNAL_USAGE_H_
+#endif // ABSL_FLAGS_INTERNAL_USAGE_H_

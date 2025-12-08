@@ -33,31 +33,33 @@ namespace synchronization_internal {
 #define ABSL_INTERNAL_HAVE_FUTEX_WAITER 1
 
 class FutexWaiter : public WaiterCrtp<FutexWaiter> {
- public:
-  FutexWaiter() : futex_(0) {}
+public:
+    FutexWaiter()
+        : futex_(0)
+    {
+    }
 
-  bool Wait(KernelTimeout t);
-  void Post();
-  void Poke();
+    bool Wait(KernelTimeout t);
+    void Post();
+    void Poke();
 
-  static constexpr char kName[] = "FutexWaiter";
+    static constexpr char kName[] = "FutexWaiter";
 
- private:
-  // Atomically check that `*v == val`, and if it is, then sleep until the
-  // timeout `t` has been reached, or until woken by `Wake()`.
-  static int WaitUntil(std::atomic<int32_t>* v, int32_t val,
-                       KernelTimeout t);
+private:
+    // Atomically check that `*v == val`, and if it is, then sleep until the
+    // timeout `t` has been reached, or until woken by `Wake()`.
+    static int WaitUntil(std::atomic<int32_t>* v, int32_t val, KernelTimeout t);
 
-  // Futexes are defined by specification to be 32-bits.
-  // Thus std::atomic<int32_t> must be just an int32_t with lockfree methods.
-  std::atomic<int32_t> futex_;
-  static_assert(sizeof(int32_t) == sizeof(futex_), "Wrong size for futex");
+    // Futexes are defined by specification to be 32-bits.
+    // Thus std::atomic<int32_t> must be just an int32_t with lockfree methods.
+    std::atomic<int32_t> futex_;
+    static_assert(sizeof(int32_t) == sizeof(futex_), "Wrong size for futex");
 };
 
-}  // namespace synchronization_internal
+} // namespace synchronization_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_INTERNAL_HAVE_FUTEX
+#endif // ABSL_INTERNAL_HAVE_FUTEX
 
-#endif  // ABSL_SYNCHRONIZATION_INTERNAL_FUTEX_WAITER_H_
+#endif // ABSL_SYNCHRONIZATION_INTERNAL_FUTEX_WAITER_H_

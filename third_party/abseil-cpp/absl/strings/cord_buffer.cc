@@ -27,4 +27,4 @@ constexpr size_t CordBuffer::kCustomLimit;
 #endif
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

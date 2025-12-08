@@ -24,57 +24,35 @@
 
 namespace {
 
-template <absl::base_internal::SchedulingMode scheduling_mode>
-static void BM_TryLock(benchmark::State& state) {
-  // Ensure a ThreadIdentity is installed so that KERNEL_ONLY has an effect.
-  ABSL_INTERNAL_CHECK(
-      absl::synchronization_internal::GetOrCreateCurrentThreadIdentity() !=
-          nullptr,
-      "GetOrCreateCurrentThreadIdentity() failed");
+template <absl::base_internal::SchedulingMode scheduling_mode> static void BM_TryLock(benchmark::State& state)
+{
+    // Ensure a ThreadIdentity is installed so that KERNEL_ONLY has an effect.
+    ABSL_INTERNAL_CHECK(absl::synchronization_internal::GetOrCreateCurrentThreadIdentity() != nullptr, "GetOrCreateCurrentThreadIdentity() failed");
 
-  static absl::NoDestructor<absl::base_internal::SpinLock> spinlock(
-      scheduling_mode);
-  for (auto _ : state) {
-    if (spinlock->TryLock()) spinlock->Unlock();
-  }
+    static absl::NoDestructor<absl::base_internal::SpinLock> spinlock(scheduling_mode);
+    for (auto _ : state) {
+        if (spinlock->TryLock())
+            spinlock->Unlock();
+    }
 }
 
-template <absl::base_internal::SchedulingMode scheduling_mode>
-static void BM_SpinLock(benchmark::State& state) {
-  // Ensure a ThreadIdentity is installed so that KERNEL_ONLY has an effect.
-  ABSL_INTERNAL_CHECK(
-      absl::synchronization_internal::GetOrCreateCurrentThreadIdentity() !=
-          nullptr,
-      "GetOrCreateCurrentThreadIdentity() failed");
+template <absl::base_internal::SchedulingMode scheduling_mode> static void BM_SpinLock(benchmark::State& state)
+{
+    // Ensure a ThreadIdentity is installed so that KERNEL_ONLY has an effect.
+    ABSL_INTERNAL_CHECK(absl::synchronization_internal::GetOrCreateCurrentThreadIdentity() != nullptr, "GetOrCreateCurrentThreadIdentity() failed");
 
-  static absl::NoDestructor<absl::base_internal::SpinLock> spinlock(
-      scheduling_mode);
-  for (auto _ : state) {
-    absl::base_internal::SpinLockHolder holder(spinlock.get());
-  }
+    static absl::NoDestructor<absl::base_internal::SpinLock> spinlock(scheduling_mode);
+    for (auto _ : state) {
+        absl::base_internal::SpinLockHolder holder(spinlock.get());
+    }
 }
 
-BENCHMARK_TEMPLATE(BM_SpinLock,
-                   absl::base_internal::SCHEDULE_KERNEL_ONLY)
-    ->UseRealTime()
-    ->Threads(1)
-    ->ThreadPerCpu();
+BENCHMARK_TEMPLATE(BM_SpinLock, absl::base_internal::SCHEDULE_KERNEL_ONLY)->UseRealTime()->Threads(1)->ThreadPerCpu();
 
-BENCHMARK_TEMPLATE(BM_SpinLock,
-                   absl::base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL)
-    ->UseRealTime()
-    ->Threads(1)
-    ->ThreadPerCpu();
+BENCHMARK_TEMPLATE(BM_SpinLock, absl::base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL)->UseRealTime()->Threads(1)->ThreadPerCpu();
 
-BENCHMARK_TEMPLATE(BM_TryLock, absl::base_internal::SCHEDULE_KERNEL_ONLY)
-    ->UseRealTime()
-    ->Threads(1)
-    ->ThreadPerCpu();
+BENCHMARK_TEMPLATE(BM_TryLock, absl::base_internal::SCHEDULE_KERNEL_ONLY)->UseRealTime()->Threads(1)->ThreadPerCpu();
 
-BENCHMARK_TEMPLATE(BM_TryLock,
-                   absl::base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL)
-    ->UseRealTime()
-    ->Threads(1)
-    ->ThreadPerCpu();
+BENCHMARK_TEMPLATE(BM_TryLock, absl::base_internal::SCHEDULE_COOPERATIVE_AND_KERNEL)->UseRealTime()->Threads(1)->ThreadPerCpu();
 
-}  // namespace
+} // namespace

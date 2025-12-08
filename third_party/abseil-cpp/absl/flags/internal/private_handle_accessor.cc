@@ -27,39 +27,37 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 
-FlagFastTypeId PrivateHandleAccessor::TypeId(const CommandLineFlag& flag) {
-  return flag.TypeId();
+FlagFastTypeId PrivateHandleAccessor::TypeId(const CommandLineFlag& flag)
+{
+    return flag.TypeId();
 }
 
-std::unique_ptr<FlagStateInterface> PrivateHandleAccessor::SaveState(
-    CommandLineFlag& flag) {
-  return flag.SaveState();
+std::unique_ptr<FlagStateInterface> PrivateHandleAccessor::SaveState(CommandLineFlag& flag)
+{
+    return flag.SaveState();
 }
 
-bool PrivateHandleAccessor::IsSpecifiedOnCommandLine(
-    const CommandLineFlag& flag) {
-  return flag.IsSpecifiedOnCommandLine();
+bool PrivateHandleAccessor::IsSpecifiedOnCommandLine(const CommandLineFlag& flag)
+{
+    return flag.IsSpecifiedOnCommandLine();
 }
 
-bool PrivateHandleAccessor::ValidateInputValue(const CommandLineFlag& flag,
-                                               absl::string_view value) {
-  return flag.ValidateInputValue(value);
+bool PrivateHandleAccessor::ValidateInputValue(const CommandLineFlag& flag, absl::string_view value)
+{
+    return flag.ValidateInputValue(value);
 }
 
-void PrivateHandleAccessor::CheckDefaultValueParsingRoundtrip(
-    const CommandLineFlag& flag) {
-  flag.CheckDefaultValueParsingRoundtrip();
+void PrivateHandleAccessor::CheckDefaultValueParsingRoundtrip(const CommandLineFlag& flag)
+{
+    flag.CheckDefaultValueParsingRoundtrip();
 }
 
-bool PrivateHandleAccessor::ParseFrom(CommandLineFlag& flag,
-                                      absl::string_view value,
-                                      flags_internal::FlagSettingMode set_mode,
-                                      flags_internal::ValueSource source,
-                                      std::string& error) {
-  return flag.ParseFrom(value, set_mode, source, error);
+bool PrivateHandleAccessor::ParseFrom(
+    CommandLineFlag& flag, absl::string_view value, flags_internal::FlagSettingMode set_mode, flags_internal::ValueSource source, std::string& error)
+{
+    return flag.ParseFrom(value, set_mode, source, error);
 }
 
-}  // namespace flags_internal
+} // namespace flags_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
-
+} // namespace absl

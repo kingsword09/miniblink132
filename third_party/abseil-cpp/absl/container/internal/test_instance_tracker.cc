@@ -24,6 +24,6 @@ int BaseCountedInstance::num_copies_ = 0;
 int BaseCountedInstance::num_swaps_ = 0;
 int BaseCountedInstance::num_comparisons_ = 0;
 
-}  // namespace test_internal
+} // namespace test_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

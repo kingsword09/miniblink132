@@ -41,10 +41,8 @@
 //
 // This preprocessor token is also defined in raw_io.cc.  If you need to copy
 // this, consider moving both to config.h instead.
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
-    defined(__hexagon__) || defined(__Fuchsia__) ||                     \
-    defined(__native_client__) || defined(__OpenBSD__) ||               \
-    defined(__EMSCRIPTEN__) || defined(__ASYLO__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__hexagon__) || defined(__Fuchsia__) || defined(__native_client__)             \
+    || defined(__OpenBSD__) || defined(__EMSCRIPTEN__) || defined(__ASYLO__)
 
 #include <unistd.h>
 
@@ -90,25 +88,26 @@ constexpr char kTruncated[] = " ... (message truncated)\n";
 // consumed bytes, and return whether the message fit without truncation.  If
 // truncation occurred, if possible leave room in the buffer for the message
 // kTruncated[].
+bool VADoRawLog(char** buf, int* size, const char* format, va_list ap) ABSL_PRINTF_ATTRIBUTE(3, 0);
 bool VADoRawLog(char** buf, int* size, const char* format, va_list ap)
-    ABSL_PRINTF_ATTRIBUTE(3, 0);
-bool VADoRawLog(char** buf, int* size, const char* format, va_list ap) {
-  if (*size < 0) return false;
-  int n = vsnprintf(*buf, static_cast<size_t>(*size), format, ap);
-  bool result = true;
-  if (n < 0 || n > *size) {
-    result = false;
-    if (static_cast<size_t>(*size) > sizeof(kTruncated)) {
-      n = *size - static_cast<int>(sizeof(kTruncated));
-    } else {
-      n = 0;  // no room for truncation message
+{
+    if (*size < 0)
+        return false;
+    int n = vsnprintf(*buf, static_cast<size_t>(*size), format, ap);
+    bool result = true;
+    if (n < 0 || n > *size) {
+        result = false;
+        if (static_cast<size_t>(*size) > sizeof(kTruncated)) {
+            n = *size - static_cast<int>(sizeof(kTruncated));
+        } else {
+            n = 0; // no room for truncation message
+        }
     }
-  }
-  *size -= n;
-  *buf += n;
-  return result;
+    *size -= n;
+    *buf += n;
+    return result;
 }
-#endif  // ABSL_LOW_LEVEL_WRITE_SUPPORTED
+#endif // ABSL_LOW_LEVEL_WRITE_SUPPORTED
 
 constexpr int kLogBufSize = 3000;
 
@@ -118,163 +117,167 @@ constexpr int kLogBufSize = 3000;
 // Helper for RawLog below.
 // *DoRawLog writes to *buf of *size and move them past the written portion.
 // It returns true iff there was no overflow or error.
+bool DoRawLog(char** buf, int* size, const char* format, ...) ABSL_PRINTF_ATTRIBUTE(3, 4);
 bool DoRawLog(char** buf, int* size, const char* format, ...)
-    ABSL_PRINTF_ATTRIBUTE(3, 4);
-bool DoRawLog(char** buf, int* size, const char* format, ...) {
-  if (*size < 0) return false;
-  va_list ap;
-  va_start(ap, format);
-  int n = vsnprintf(*buf, static_cast<size_t>(*size), format, ap);
-  va_end(ap);
-  if (n < 0 || n > *size) return false;
-  *size -= n;
-  *buf += n;
-  return true;
+{
+    if (*size < 0)
+        return false;
+    va_list ap;
+    va_start(ap, format);
+    int n = vsnprintf(*buf, static_cast<size_t>(*size), format, ap);
+    va_end(ap);
+    if (n < 0 || n > *size)
+        return false;
+    *size -= n;
+    *buf += n;
+    return true;
 }
 
-bool DefaultLogFilterAndPrefix(absl::LogSeverity, const char* file, int line,
-                               char** buf, int* buf_size) {
-  DoRawLog(buf, buf_size, "[%s : %d] RAW: ", file, line);
-  return true;
+bool DefaultLogFilterAndPrefix(absl::LogSeverity, const char* file, int line, char** buf, int* buf_size)
+{
+    DoRawLog(buf, buf_size, "[%s : %d] RAW: ", file, line);
+    return true;
 }
 
 ABSL_INTERNAL_ATOMIC_HOOK_ATTRIBUTES
-absl::base_internal::AtomicHook<LogFilterAndPrefixHook>
-    log_filter_and_prefix_hook(DefaultLogFilterAndPrefix);
+absl::base_internal::AtomicHook<LogFilterAndPrefixHook> log_filter_and_prefix_hook(DefaultLogFilterAndPrefix);
 ABSL_INTERNAL_ATOMIC_HOOK_ATTRIBUTES
 absl::base_internal::AtomicHook<AbortHook> abort_hook;
 
-void RawLogVA(absl::LogSeverity severity, const char* file, int line,
-              const char* format, va_list ap) ABSL_PRINTF_ATTRIBUTE(4, 0);
-void RawLogVA(absl::LogSeverity severity, const char* file, int line,
-              const char* format, va_list ap) {
-  char buffer[kLogBufSize];
-  char* buf = buffer;
-  int size = sizeof(buffer);
+void RawLogVA(absl::LogSeverity severity, const char* file, int line, const char* format, va_list ap) ABSL_PRINTF_ATTRIBUTE(4, 0);
+void RawLogVA(absl::LogSeverity severity, const char* file, int line, const char* format, va_list ap)
+{
+    char buffer[kLogBufSize];
+    char* buf = buffer;
+    int size = sizeof(buffer);
 #ifdef ABSL_LOW_LEVEL_WRITE_SUPPORTED
-  bool enabled = true;
+    bool enabled = true;
 #else
-  bool enabled = false;
+    bool enabled = false;
 #endif
 
 #ifdef ABSL_MIN_LOG_LEVEL
-  if (severity < static_cast<absl::LogSeverity>(ABSL_MIN_LOG_LEVEL) &&
-      severity < absl::LogSeverity::kFatal) {
-    enabled = false;
-  }
+    if (severity < static_cast<absl::LogSeverity>(ABSL_MIN_LOG_LEVEL) && severity < absl::LogSeverity::kFatal) {
+        enabled = false;
+    }
 #endif
 
-  enabled = log_filter_and_prefix_hook(severity, file, line, &buf, &size);
-  const char* const prefix_end = buf;
+    enabled = log_filter_and_prefix_hook(severity, file, line, &buf, &size);
+    const char* const prefix_end = buf;
 
 #ifdef ABSL_LOW_LEVEL_WRITE_SUPPORTED
-  if (enabled) {
-    bool no_chop = VADoRawLog(&buf, &size, format, ap);
-    if (no_chop) {
-      DoRawLog(&buf, &size, "\n");
-    } else {
-      DoRawLog(&buf, &size, "%s", kTruncated);
+    if (enabled) {
+        bool no_chop = VADoRawLog(&buf, &size, format, ap);
+        if (no_chop) {
+            DoRawLog(&buf, &size, "\n");
+        } else {
+            DoRawLog(&buf, &size, "%s", kTruncated);
+        }
+        AsyncSignalSafeWriteError(buffer, static_cast<size_t>(buf - buffer));
     }
-    AsyncSignalSafeWriteError(buffer, static_cast<size_t>(buf - buffer));
-  }
 #else
-  static_cast<void>(format);
-  static_cast<void>(ap);
-  static_cast<void>(enabled);
+    static_cast<void>(format);
+    static_cast<void>(ap);
+    static_cast<void>(enabled);
 #endif
 
-  // Abort the process after logging a FATAL message, even if the output itself
-  // was suppressed.
-  if (severity == absl::LogSeverity::kFatal) {
-    abort_hook(file, line, buffer, prefix_end, buffer + kLogBufSize);
-    abort();
-  }
+    // Abort the process after logging a FATAL message, even if the output itself
+    // was suppressed.
+    if (severity == absl::LogSeverity::kFatal) {
+        abort_hook(file, line, buffer, prefix_end, buffer + kLogBufSize);
+        abort();
+    }
 }
 
 // Non-formatting version of RawLog().
 //
 // TODO(gfalcon): When string_view no longer depends on base, change this
 // interface to take its message as a string_view instead.
-void DefaultInternalLog(absl::LogSeverity severity, const char* file, int line,
-                        const std::string& message) {
-  RawLog(severity, file, line, "%.*s", static_cast<int>(message.size()),
-         message.data());
+void DefaultInternalLog(absl::LogSeverity severity, const char* file, int line, const std::string& message)
+{
+    RawLog(severity, file, line, "%.*s", static_cast<int>(message.size()), message.data());
 }
 
-}  // namespace
+} // namespace
 
-void AsyncSignalSafeWriteError(const char* s, size_t len) {
-  if (!len) return;
-  absl::base_internal::ErrnoSaver errno_saver;
+void AsyncSignalSafeWriteError(const char* s, size_t len)
+{
+    if (!len)
+        return;
+    absl::base_internal::ErrnoSaver errno_saver;
 #if defined(__EMSCRIPTEN__)
-  // In WebAssembly, bypass filesystem emulation via fwrite.
-  if (s[len - 1] == '\n') {
-    // Skip a trailing newline character as emscripten_errn adds one itself.
-    len--;
-  }
-  // emscripten_errn was introduced in 3.1.41 but broken in standalone mode
-  // until 3.1.43.
+    // In WebAssembly, bypass filesystem emulation via fwrite.
+    if (s[len - 1] == '\n') {
+        // Skip a trailing newline character as emscripten_errn adds one itself.
+        len--;
+    }
+    // emscripten_errn was introduced in 3.1.41 but broken in standalone mode
+    // until 3.1.43.
 #if ABSL_INTERNAL_EMSCRIPTEN_VERSION >= 3001043
-  emscripten_errn(s, len);
+    emscripten_errn(s, len);
 #else
-  char buf[kLogBufSize];
-  if (len >= kLogBufSize) {
-    len = kLogBufSize - 1;
-    constexpr size_t trunc_len = sizeof(kTruncated) - 2;
-    memcpy(buf + len - trunc_len, kTruncated, trunc_len);
-    buf[len] = '\0';
-    len -= trunc_len;
-  } else {
-    buf[len] = '\0';
-  }
-  memcpy(buf, s, len);
-  _emscripten_err(buf);
+    char buf[kLogBufSize];
+    if (len >= kLogBufSize) {
+        len = kLogBufSize - 1;
+        constexpr size_t trunc_len = sizeof(kTruncated) - 2;
+        memcpy(buf + len - trunc_len, kTruncated, trunc_len);
+        buf[len] = '\0';
+        len -= trunc_len;
+    } else {
+        buf[len] = '\0';
+    }
+    memcpy(buf, s, len);
+    _emscripten_err(buf);
 #endif
 #elif defined(ABSL_HAVE_SYSCALL_WRITE)
-  // We prefer calling write via `syscall` to minimize the risk of libc doing
-  // something "helpful".
-  syscall(SYS_write, STDERR_FILENO, s, len);
+    // We prefer calling write via `syscall` to minimize the risk of libc doing
+    // something "helpful".
+    syscall(SYS_write, STDERR_FILENO, s, len);
 #elif defined(ABSL_HAVE_POSIX_WRITE)
-  write(STDERR_FILENO, s, len);
+    write(STDERR_FILENO, s, len);
 #elif defined(ABSL_HAVE_RAW_IO)
-  _write(/* stderr */ 2, s, static_cast<unsigned>(len));
+    _write(/* stderr */ 2, s, static_cast<unsigned>(len));
 #else
-  // stderr logging unsupported on this platform
-  (void)s;
-  (void)len;
+    // stderr logging unsupported on this platform
+    (void)s;
+    (void)len;
 #endif
 }
 
-void RawLog(absl::LogSeverity severity, const char* file, int line,
-            const char* format, ...) {
-  va_list ap;
-  va_start(ap, format);
-  RawLogVA(severity, file, line, format, ap);
-  va_end(ap);
+void RawLog(absl::LogSeverity severity, const char* file, int line, const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    RawLogVA(severity, file, line, format, ap);
+    va_end(ap);
 }
 
-bool RawLoggingFullySupported() {
+bool RawLoggingFullySupported()
+{
 #ifdef ABSL_LOW_LEVEL_WRITE_SUPPORTED
-  return true;
-#else   // !ABSL_LOW_LEVEL_WRITE_SUPPORTED
-  return false;
-#endif  // !ABSL_LOW_LEVEL_WRITE_SUPPORTED
+    return true;
+#else // !ABSL_LOW_LEVEL_WRITE_SUPPORTED
+    return false;
+#endif // !ABSL_LOW_LEVEL_WRITE_SUPPORTED
 }
 
-ABSL_INTERNAL_ATOMIC_HOOK_ATTRIBUTES ABSL_DLL
-    absl::base_internal::AtomicHook<InternalLogFunction>
-        internal_log_function(DefaultInternalLog);
+ABSL_INTERNAL_ATOMIC_HOOK_ATTRIBUTES ABSL_DLL absl::base_internal::AtomicHook<InternalLogFunction> internal_log_function(DefaultInternalLog);
 
-void RegisterLogFilterAndPrefixHook(LogFilterAndPrefixHook func) {
-  log_filter_and_prefix_hook.Store(func);
+void RegisterLogFilterAndPrefixHook(LogFilterAndPrefixHook func)
+{
+    log_filter_and_prefix_hook.Store(func);
 }
 
-void RegisterAbortHook(AbortHook func) { abort_hook.Store(func); }
-
-void RegisterInternalLogFunction(InternalLogFunction func) {
-  internal_log_function.Store(func);
+void RegisterAbortHook(AbortHook func)
+{
+    abort_hook.Store(func);
 }
 
-}  // namespace raw_log_internal
+void RegisterInternalLogFunction(InternalLogFunction func)
+{
+    internal_log_function.Store(func);
+}
+
+} // namespace raw_log_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

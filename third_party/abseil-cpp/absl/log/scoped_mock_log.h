@@ -91,107 +91,113 @@ enum class MockLogDefault { kIgnoreUnexpected, kDisallowUnexpected };
 // expectations are matched on two threads concurrently, their actions will be
 // executed concurrently as well and may interleave.
 class ScopedMockLog final {
- public:
-  // ScopedMockLog::ScopedMockLog()
-  //
-  // Sets up the log and adds default expectations.
-  explicit ScopedMockLog(
-      MockLogDefault default_exp = MockLogDefault::kIgnoreUnexpected);
-  ScopedMockLog(const ScopedMockLog&) = delete;
-  ScopedMockLog& operator=(const ScopedMockLog&) = delete;
+public:
+    // ScopedMockLog::ScopedMockLog()
+    //
+    // Sets up the log and adds default expectations.
+    explicit ScopedMockLog(MockLogDefault default_exp = MockLogDefault::kIgnoreUnexpected);
+    ScopedMockLog(const ScopedMockLog&) = delete;
+    ScopedMockLog& operator=(const ScopedMockLog&) = delete;
 
-  // ScopedMockLog::~ScopedMockLog()
-  //
-  // Stops intercepting logs and destroys this ScopedMockLog.
-  ~ScopedMockLog();
+    // ScopedMockLog::~ScopedMockLog()
+    //
+    // Stops intercepting logs and destroys this ScopedMockLog.
+    ~ScopedMockLog();
 
-  // ScopedMockLog::StartCapturingLogs()
-  //
-  // Starts log capturing if the object isn't already doing so. Otherwise
-  // crashes.
-  //
-  // Usually this method is called in the same thread that created this
-  // ScopedMockLog. It is the user's responsibility to not call this method if
-  // another thread may be calling it or StopCapturingLogs() at the same time.
-  // It is undefined behavior to add expectations while capturing logs is
-  // enabled.
-  void StartCapturingLogs();
+    // ScopedMockLog::StartCapturingLogs()
+    //
+    // Starts log capturing if the object isn't already doing so. Otherwise
+    // crashes.
+    //
+    // Usually this method is called in the same thread that created this
+    // ScopedMockLog. It is the user's responsibility to not call this method if
+    // another thread may be calling it or StopCapturingLogs() at the same time.
+    // It is undefined behavior to add expectations while capturing logs is
+    // enabled.
+    void StartCapturingLogs();
 
-  // ScopedMockLog::StopCapturingLogs()
-  //
-  // Stops log capturing if the object is capturing logs. Otherwise crashes.
-  //
-  // Usually this method is called in the same thread that created this object.
-  // It is the user's responsibility to not call this method if another thread
-  // may be calling it or StartCapturingLogs() at the same time.
-  //
-  // It is UB to add expectations, while capturing logs is enabled.
-  void StopCapturingLogs();
+    // ScopedMockLog::StopCapturingLogs()
+    //
+    // Stops log capturing if the object is capturing logs. Otherwise crashes.
+    //
+    // Usually this method is called in the same thread that created this object.
+    // It is the user's responsibility to not call this method if another thread
+    // may be calling it or StartCapturingLogs() at the same time.
+    //
+    // It is UB to add expectations, while capturing logs is enabled.
+    void StopCapturingLogs();
 
-  // ScopedMockLog::UseAsLocalSink()
-  //
-  // Each `ScopedMockLog` is implemented with an `absl::LogSink`; this method
-  // returns a reference to that sink (e.g. for use with
-  // `LOG(...).ToSinkOnly()`) and marks the `ScopedMockLog` as having been used
-  // even if `StartCapturingLogs` is never called.
-  absl::LogSink& UseAsLocalSink();
+    // ScopedMockLog::UseAsLocalSink()
+    //
+    // Each `ScopedMockLog` is implemented with an `absl::LogSink`; this method
+    // returns a reference to that sink (e.g. for use with
+    // `LOG(...).ToSinkOnly()`) and marks the `ScopedMockLog` as having been used
+    // even if `StartCapturingLogs` is never called.
+    absl::LogSink& UseAsLocalSink();
 
-  // Implements the mock method:
-  //
-  //   void Log(LogSeverity severity, absl::string_view file_path,
-  //            absl::string_view message);
-  //
-  // The second argument to Log() is the full path of the source file in
-  // which the LOG() was issued.
-  //
-  // This is a shorthand form, which should be used by most users. Use the
-  // `Send` mock only if you want to add expectations for other log message
-  // attributes.
-  MOCK_METHOD(void, Log,
-              (absl::LogSeverity severity, const std::string& file_path,
-               const std::string& message));
+    // Implements the mock method:
+    //
+    //   void Log(LogSeverity severity, absl::string_view file_path,
+    //            absl::string_view message);
+    //
+    // The second argument to Log() is the full path of the source file in
+    // which the LOG() was issued.
+    //
+    // This is a shorthand form, which should be used by most users. Use the
+    // `Send` mock only if you want to add expectations for other log message
+    // attributes.
+    MOCK_METHOD(void, Log, (absl::LogSeverity severity, const std::string& file_path, const std::string& message));
 
-  // Implements the mock method:
-  //
-  //   void Send(const absl::LogEntry& entry);
-  //
-  // This is the most generic form of mock that can be specified. Use this mock
-  // only if you want to add expectations for log message attributes different
-  // from the log message text, log message path and log message severity.
-  //
-  // If no expectations are specified for this mock, the default action is to
-  // forward the call to the `Log` mock.
-  MOCK_METHOD(void, Send, (const absl::LogEntry&));
+    // Implements the mock method:
+    //
+    //   void Send(const absl::LogEntry& entry);
+    //
+    // This is the most generic form of mock that can be specified. Use this mock
+    // only if you want to add expectations for log message attributes different
+    // from the log message text, log message path and log message severity.
+    //
+    // If no expectations are specified for this mock, the default action is to
+    // forward the call to the `Log` mock.
+    MOCK_METHOD(void, Send, (const absl::LogEntry&));
 
-  // Implements the mock method:
-  //
-  //   void Flush();
-  //
-  // Use this mock only if you want to add expectations for log flush calls.
-  MOCK_METHOD(void, Flush, ());
+    // Implements the mock method:
+    //
+    //   void Flush();
+    //
+    // Use this mock only if you want to add expectations for log flush calls.
+    MOCK_METHOD(void, Flush, ());
 
- private:
-  class ForwardingSink final : public absl::LogSink {
-   public:
-    explicit ForwardingSink(ScopedMockLog* sml) : sml_(sml) {}
-    ForwardingSink(const ForwardingSink&) = delete;
-    ForwardingSink& operator=(const ForwardingSink&) = delete;
-    void Send(const absl::LogEntry& entry) override { sml_->Send(entry); }
-    void Flush() override { sml_->Flush(); }
+private:
+    class ForwardingSink final : public absl::LogSink {
+    public:
+        explicit ForwardingSink(ScopedMockLog* sml)
+            : sml_(sml)
+        {
+        }
+        ForwardingSink(const ForwardingSink&) = delete;
+        ForwardingSink& operator=(const ForwardingSink&) = delete;
+        void Send(const absl::LogEntry& entry) override
+        {
+            sml_->Send(entry);
+        }
+        void Flush() override
+        {
+            sml_->Flush();
+        }
 
-   private:
-    ScopedMockLog* sml_;
-  };
+    private:
+        ScopedMockLog* sml_;
+    };
 
-  ForwardingSink sink_;
-  bool is_capturing_logs_;
-  // Until C++20, the default constructor leaves the underlying value wrapped in
-  // std::atomic uninitialized, so all constructors should be sure to initialize
-  // is_triggered_.
-  std::atomic<bool> is_triggered_;
+    ForwardingSink sink_;
+    bool is_capturing_logs_;
+    // Until C++20, the default constructor leaves the underlying value wrapped in
+    // std::atomic uninitialized, so all constructors should be sure to initialize
+    // is_triggered_.
+    std::atomic<bool> is_triggered_;
 };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_LOG_SCOPED_MOCK_LOG_H_
+#endif // ABSL_LOG_SCOPED_MOCK_LOG_H_

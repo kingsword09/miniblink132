@@ -58,52 +58,52 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 
 namespace flags_internal {
-using FlagKindFilter = std::function<bool (absl::string_view)>;
-}  // namespace flags_internal
+using FlagKindFilter = std::function<bool(absl::string_view)>;
+} // namespace flags_internal
 
 // FlagsUsageConfig
 //
 // This structure contains the collection of callbacks for changing the behavior
 // of the usage reporting routines in Abseil Flags.
 struct FlagsUsageConfig {
-  // Returns true if flags defined in the given source code file should be
-  // reported with --helpshort flag. For example, if the file
-  // "path/to/my/code.cc" defines the flag "--my_flag", and
-  // contains_helpshort_flags("path/to/my/code.cc") returns true, invoking the
-  // program with --helpshort will include information about --my_flag in the
-  // program output.
-  flags_internal::FlagKindFilter contains_helpshort_flags;
+    // Returns true if flags defined in the given source code file should be
+    // reported with --helpshort flag. For example, if the file
+    // "path/to/my/code.cc" defines the flag "--my_flag", and
+    // contains_helpshort_flags("path/to/my/code.cc") returns true, invoking the
+    // program with --helpshort will include information about --my_flag in the
+    // program output.
+    flags_internal::FlagKindFilter contains_helpshort_flags;
 
-  // Returns true if flags defined in the filename should be reported with
-  // --help flag. For example, if the file
-  // "path/to/my/code.cc" defines the flag "--my_flag", and
-  // contains_help_flags("path/to/my/code.cc") returns true, invoking the
-  // program with --help will include information about --my_flag in the
-  // program output.
-  flags_internal::FlagKindFilter contains_help_flags;
+    // Returns true if flags defined in the filename should be reported with
+    // --help flag. For example, if the file
+    // "path/to/my/code.cc" defines the flag "--my_flag", and
+    // contains_help_flags("path/to/my/code.cc") returns true, invoking the
+    // program with --help will include information about --my_flag in the
+    // program output.
+    flags_internal::FlagKindFilter contains_help_flags;
 
-  // Returns true if flags defined in the filename should be reported with
-  // --helppackage flag. For example, if the file
-  // "path/to/my/code.cc" defines the flag "--my_flag", and
-  // contains_helppackage_flags("path/to/my/code.cc") returns true, invoking the
-  // program with --helppackage will include information about --my_flag in the
-  // program output.
-  flags_internal::FlagKindFilter contains_helppackage_flags;
+    // Returns true if flags defined in the filename should be reported with
+    // --helppackage flag. For example, if the file
+    // "path/to/my/code.cc" defines the flag "--my_flag", and
+    // contains_helppackage_flags("path/to/my/code.cc") returns true, invoking the
+    // program with --helppackage will include information about --my_flag in the
+    // program output.
+    flags_internal::FlagKindFilter contains_helppackage_flags;
 
-  // Generates string containing program version. This is the string reported
-  // when user specifies --version in a command line.
-  std::function<std::string()> version_string;
+    // Generates string containing program version. This is the string reported
+    // when user specifies --version in a command line.
+    std::function<std::string()> version_string;
 
-  // Normalizes the filename specific to the build system/filesystem used. This
-  // routine is used when we report the information about the flag definition
-  // location. For instance, if your build resides at some location you do not
-  // want to expose in the usage output, you can trim it to show only relevant
-  // part.
-  // For example:
-  //   normalize_filename("/my_company/some_long_path/src/project/file.cc")
-  // might produce
-  //   "project/file.cc".
-  std::function<std::string(absl::string_view)> normalize_filename;
+    // Normalizes the filename specific to the build system/filesystem used. This
+    // routine is used when we report the information about the flag definition
+    // location. For instance, if your build resides at some location you do not
+    // want to expose in the usage output, you can trim it to show only relevant
+    // part.
+    // For example:
+    //   normalize_filename("/my_company/some_long_path/src/project/file.cc")
+    // might produce
+    //   "project/file.cc".
+    std::function<std::string(absl::string_view)> normalize_filename;
 };
 
 // SetFlagsUsageConfig()
@@ -119,17 +119,16 @@ FlagsUsageConfig GetUsageConfig();
 
 void ReportUsageError(absl::string_view msg, bool is_fatal);
 
-}  // namespace flags_internal
+} // namespace flags_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
 extern "C" {
 
 // Additional report of fatal usage error message before we std::exit. Error is
 // fatal if is_fatal argument to ReportUsageError is true.
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalReportFatalUsageError)(
-    absl::string_view);
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalReportFatalUsageError)(absl::string_view);
 
-}  // extern "C"
+} // extern "C"
 
-#endif  // ABSL_FLAGS_USAGE_CONFIG_H_
+#endif // ABSL_FLAGS_USAGE_CONFIG_H_

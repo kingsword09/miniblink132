@@ -29,36 +29,37 @@ namespace {
 
 // Unrefs the provided `substring`, and returns `substring->child`
 // Adds or assumes a reference on `substring->child`
-CordRep* ClipSubstring(CordRepSubstring* substring) {
-  CordRep* child = substring->child;
-  if (substring->refcount.IsOne()) {
-    delete substring;
-  } else {
-    CordRep::Ref(child);
-    CordRep::Unref(substring);
-  }
-  return child;
+CordRep* ClipSubstring(CordRepSubstring* substring)
+{
+    CordRep* child = substring->child;
+    if (substring->refcount.IsOne()) {
+        delete substring;
+    } else {
+        CordRep::Ref(child);
+        CordRep::Unref(substring);
+    }
+    return child;
 }
 
-}  // namespace
+} // namespace
 
-void Consume(CordRep* rep,
-             FunctionRef<void(CordRep*, size_t, size_t)> consume_fn) {
-  size_t offset = 0;
-  size_t length = rep->length;
+void Consume(CordRep* rep, FunctionRef<void(CordRep*, size_t, size_t)> consume_fn)
+{
+    size_t offset = 0;
+    size_t length = rep->length;
 
-  if (rep->tag == SUBSTRING) {
-    offset += rep->substring()->start;
-    rep = ClipSubstring(rep->substring());
-  }
-  consume_fn(rep, offset, length);
+    if (rep->tag == SUBSTRING) {
+        offset += rep->substring()->start;
+        rep = ClipSubstring(rep->substring());
+    }
+    consume_fn(rep, offset, length);
 }
 
-void ReverseConsume(CordRep* rep,
-                    FunctionRef<void(CordRep*, size_t, size_t)> consume_fn) {
-  return Consume(rep, consume_fn);
+void ReverseConsume(CordRep* rep, FunctionRef<void(CordRep*, size_t, size_t)> consume_fn)
+{
+    return Consume(rep, consume_fn);
 }
 
-}  // namespace cord_internal
+} // namespace cord_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

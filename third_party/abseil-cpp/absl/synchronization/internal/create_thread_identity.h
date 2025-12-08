@@ -40,17 +40,17 @@ base_internal::ThreadIdentity* CreateThreadIdentity();
 // to be unique for its lifetime.  The returned object will remain valid for the
 // program's lifetime; although it may be re-assigned to a subsequent thread.
 // If one does not exist for the calling thread, allocate it now.
-inline base_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentity() {
-  base_internal::ThreadIdentity* identity =
-      base_internal::CurrentThreadIdentityIfPresent();
-  if (ABSL_PREDICT_FALSE(identity == nullptr)) {
-    return CreateThreadIdentity();
-  }
-  return identity;
+inline base_internal::ThreadIdentity* GetOrCreateCurrentThreadIdentity()
+{
+    base_internal::ThreadIdentity* identity = base_internal::CurrentThreadIdentityIfPresent();
+    if (ABSL_PREDICT_FALSE(identity == nullptr)) {
+        return CreateThreadIdentity();
+    }
+    return identity;
 }
 
-}  // namespace synchronization_internal
+} // namespace synchronization_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_SYNCHRONIZATION_INTERNAL_CREATE_THREAD_IDENTITY_H_
+#endif // ABSL_SYNCHRONIZATION_INTERNAL_CREATE_THREAD_IDENTITY_H_

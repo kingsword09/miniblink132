@@ -32,10 +32,10 @@ namespace random_internal {
 //
 // RandenHwAes implements the basic state manipulation methods.
 class RandenHwAes {
- public:
-  static void Generate(const void* keys, void* state_void);
-  static void Absorb(const void* seed_void, void* state_void);
-  static const void* GetKeys();
+public:
+    static void Generate(const void* keys, void* state_void);
+    static void Absorb(const void* seed_void, void* state_void);
+    static const void* GetKeys();
 };
 
 // HasRandenHwAesImplementation returns true when there is an accelerated
@@ -43,8 +43,8 @@ class RandenHwAes {
 // then attempting to use it will abort the program.
 bool HasRandenHwAesImplementation();
 
-}  // namespace random_internal
+} // namespace random_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_RANDOM_INTERNAL_RANDEN_HWAES_H_
+#endif // ABSL_RANDOM_INTERNAL_RANDEN_HWAES_H_

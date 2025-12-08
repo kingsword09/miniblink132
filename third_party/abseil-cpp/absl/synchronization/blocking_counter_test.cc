@@ -14,7 +14,7 @@
 
 #include "absl/synchronization/blocking_counter.h"
 
-#include <thread>  // NOLINT(build/c++11)
+#include <thread> // NOLINT(build/c++11)
 #include <tuple>
 #include <vector>
 
@@ -29,57 +29,59 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace {
 
-void PauseAndDecreaseCounter(BlockingCounter* counter, int* done) {
-  absl::SleepFor(absl::Seconds(1));
-  *done = 1;
-  counter->DecrementCount();
+void PauseAndDecreaseCounter(BlockingCounter* counter, int* done)
+{
+    absl::SleepFor(absl::Seconds(1));
+    *done = 1;
+    counter->DecrementCount();
 }
 
-TEST(BlockingCounterTest, BasicFunctionality) {
-  // This test verifies that BlockingCounter functions correctly. Starts a
-  // number of threads that just sleep for a second and decrement a counter.
+TEST(BlockingCounterTest, BasicFunctionality)
+{
+    // This test verifies that BlockingCounter functions correctly. Starts a
+    // number of threads that just sleep for a second and decrement a counter.
 
-  // Initialize the counter.
-  const int num_workers = 10;
-  BlockingCounter counter(num_workers);
+    // Initialize the counter.
+    const int num_workers = 10;
+    BlockingCounter counter(num_workers);
 
-  std::vector<std::thread> workers;
-  std::vector<int> done(num_workers, 0);
+    std::vector<std::thread> workers;
+    std::vector<int> done(num_workers, 0);
 
-  // Start a number of parallel tasks that will just wait for a seconds and
-  // then decrement the count.
-  workers.reserve(num_workers);
-  for (int k = 0; k < num_workers; k++) {
-    workers.emplace_back(
-        [&counter, &done, k] { PauseAndDecreaseCounter(&counter, &done[k]); });
-  }
+    // Start a number of parallel tasks that will just wait for a seconds and
+    // then decrement the count.
+    workers.reserve(num_workers);
+    for (int k = 0; k < num_workers; k++) {
+        workers.emplace_back([&counter, &done, k] { PauseAndDecreaseCounter(&counter, &done[k]); });
+    }
 
-  // Wait for the threads to have all finished.
-  counter.Wait();
+    // Wait for the threads to have all finished.
+    counter.Wait();
 
-  // Check that all the workers have completed.
-  for (int k = 0; k < num_workers; k++) {
-    EXPECT_EQ(1, done[k]);
-  }
+    // Check that all the workers have completed.
+    for (int k = 0; k < num_workers; k++) {
+        EXPECT_EQ(1, done[k]);
+    }
 
-  for (std::thread& w : workers) {
-    w.join();
-  }
+    for (std::thread& w : workers) {
+        w.join();
+    }
 }
 
-TEST(BlockingCounterTest, WaitZeroInitialCount) {
-  BlockingCounter counter(0);
-  counter.Wait();
+TEST(BlockingCounterTest, WaitZeroInitialCount)
+{
+    BlockingCounter counter(0);
+    counter.Wait();
 }
 
 #if GTEST_HAS_DEATH_TEST
-TEST(BlockingCounterTest, WaitNegativeInitialCount) {
-  EXPECT_DEATH(BlockingCounter counter(-1),
-               "BlockingCounter initial_count negative");
+TEST(BlockingCounterTest, WaitNegativeInitialCount)
+{
+    EXPECT_DEATH(BlockingCounter counter(-1), "BlockingCounter initial_count negative");
 }
 #endif
 
-}  // namespace
+} // namespace
 
 #if ABSL_HAVE_ATTRIBUTE_WEAK
 
@@ -93,54 +95,56 @@ thread_local TraceRecord tls_signal;
 thread_local TraceRecord tls_wait;
 thread_local TraceRecord tls_continue;
 
-}  // namespace
+} // namespace
 
 // Strong extern "C" implementation.
 extern "C" {
 
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceWait)(const void* object,
-                                                   ObjectKind kind) {
-  tls_wait = {object, kind};
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceWait)(const void* object, ObjectKind kind)
+{
+    tls_wait = { object, kind };
 }
 
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceContinue)(const void* object,
-                                                       ObjectKind kind) {
-  tls_continue = {object, kind};
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceContinue)(const void* object, ObjectKind kind)
+{
+    tls_continue = { object, kind };
 }
 
-void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceSignal)(const void* object,
-                                                     ObjectKind kind) {
-  tls_signal = {object, kind};
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalTraceSignal)(const void* object, ObjectKind kind)
+{
+    tls_signal = { object, kind };
 }
 
-}  // extern "C"
+} // extern "C"
 
-TEST(BlockingCounterTest, TracesSignal) {
-  BlockingCounter counter(2);
+TEST(BlockingCounterTest, TracesSignal)
+{
+    BlockingCounter counter(2);
 
-  tls_signal = {};
-  counter.DecrementCount();
-  EXPECT_EQ(tls_signal, TraceRecord(nullptr, ObjectKind::kUnknown));
+    tls_signal = {};
+    counter.DecrementCount();
+    EXPECT_EQ(tls_signal, TraceRecord(nullptr, ObjectKind::kUnknown));
 
-  tls_signal = {};
-  counter.DecrementCount();
-  EXPECT_EQ(tls_signal, TraceRecord(&counter, ObjectKind::kBlockingCounter));
+    tls_signal = {};
+    counter.DecrementCount();
+    EXPECT_EQ(tls_signal, TraceRecord(&counter, ObjectKind::kBlockingCounter));
 }
 
-TEST(BlockingCounterTest, TracesWaitContinue) {
-  BlockingCounter counter(1);
-  counter.DecrementCount();
+TEST(BlockingCounterTest, TracesWaitContinue)
+{
+    BlockingCounter counter(1);
+    counter.DecrementCount();
 
-  tls_wait = {};
-  tls_continue = {};
-  counter.Wait();
-  EXPECT_EQ(tls_wait, TraceRecord(&counter, ObjectKind::kBlockingCounter));
-  EXPECT_EQ(tls_continue, TraceRecord(&counter, ObjectKind::kBlockingCounter));
+    tls_wait = {};
+    tls_continue = {};
+    counter.Wait();
+    EXPECT_EQ(tls_wait, TraceRecord(&counter, ObjectKind::kBlockingCounter));
+    EXPECT_EQ(tls_continue, TraceRecord(&counter, ObjectKind::kBlockingCounter));
 }
 
-}  // namespace base_internal
+} // namespace base_internal
 
-#endif  // ABSL_HAVE_ATTRIBUTE_WEAK
+#endif // ABSL_HAVE_ATTRIBUTE_WEAK
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

@@ -24,9 +24,8 @@
 // Use this feature test macro to detect its availability.
 #ifdef ABSL_INTERNAL_HAVE_DEBUGGING_STACK_CONSUMPTION
 #error ABSL_INTERNAL_HAVE_DEBUGGING_STACK_CONSUMPTION cannot be set directly
-#elif !defined(__APPLE__) && !defined(_WIN32) && !defined(__Fuchsia__) && \
-    (defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || \
-     defined(__aarch64__) || defined(__riscv))
+#elif !defined(__APPLE__) && !defined(_WIN32) && !defined(__Fuchsia__)                                                                                         \
+    && (defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || defined(__aarch64__) || defined(__riscv))
 #define ABSL_INTERNAL_HAVE_DEBUGGING_STACK_CONSUMPTION 1
 
 namespace absl {
@@ -41,10 +40,10 @@ namespace debugging_internal {
 // variables to pass information between your test code and signal_handler.
 int GetSignalHandlerStackConsumption(void (*signal_handler)(int));
 
-}  // namespace debugging_internal
+} // namespace debugging_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_INTERNAL_HAVE_DEBUGGING_STACK_CONSUMPTION
+#endif // ABSL_INTERNAL_HAVE_DEBUGGING_STACK_CONSUMPTION
 
-#endif  // ABSL_DEBUGGING_INTERNAL_STACK_CONSUMPTION_H_
+#endif // ABSL_DEBUGGING_INTERNAL_STACK_CONSUMPTION_H_

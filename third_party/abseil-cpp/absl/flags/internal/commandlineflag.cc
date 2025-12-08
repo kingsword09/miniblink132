@@ -21,6 +21,6 @@ namespace flags_internal {
 
 FlagStateInterface::~FlagStateInterface() = default;
 
-}  // namespace flags_internal
+} // namespace flags_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

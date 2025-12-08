@@ -56,170 +56,139 @@ using ::testing::IsEmpty;
 using ::testing::IsFalse;
 using ::testing::Truly;
 
-TEST(TailCallsModifiesTest, AtLocationFileLine) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, AtLocationFileLine)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(
-      test_sink,
-      Send(AllOf(
-          // The metadata should change:
-          SourceFilename(Eq("/my/very/very/very_long_source_file.cc")),
-          SourceBasename(Eq("very_long_source_file.cc")), SourceLine(Eq(777)),
-          // The logged line should change too, even though the prefix must
-          // grow to fit the new metadata.
-          TextMessageWithPrefix(Truly([](absl::string_view msg) {
-            return absl::EndsWith(msg,
-                                  " very_long_source_file.cc:777] hello world");
-          })))));
+    EXPECT_CALL(test_sink,
+        Send(AllOf(
+            // The metadata should change:
+            SourceFilename(Eq("/my/very/very/very_long_source_file.cc")), SourceBasename(Eq("very_long_source_file.cc")), SourceLine(Eq(777)),
+            // The logged line should change too, even though the prefix must
+            // grow to fit the new metadata.
+            TextMessageWithPrefix(Truly([](absl::string_view msg) { return absl::EndsWith(msg, " very_long_source_file.cc:777] hello world"); })))));
 
-  test_sink.StartCapturingLogs();
-  LOG(INFO).AtLocation("/my/very/very/very_long_source_file.cc", 777)
-      << "hello world";
+    test_sink.StartCapturingLogs();
+    LOG(INFO).AtLocation("/my/very/very/very_long_source_file.cc", 777) << "hello world";
 }
 
-TEST(TailCallsModifiesTest, NoPrefix) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, NoPrefix)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(test_sink, Send(AllOf(Prefix(IsFalse()), TextPrefix(IsEmpty()),
-                                    TextMessageWithPrefix(Eq("hello world")))));
+    EXPECT_CALL(test_sink, Send(AllOf(Prefix(IsFalse()), TextPrefix(IsEmpty()), TextMessageWithPrefix(Eq("hello world")))));
 
-  test_sink.StartCapturingLogs();
-  LOG(INFO).NoPrefix() << "hello world";
+    test_sink.StartCapturingLogs();
+    LOG(INFO).NoPrefix() << "hello world";
 }
 
-TEST(TailCallsModifiesTest, NoPrefixNoMessageNoShirtNoShoesNoService) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, NoPrefixNoMessageNoShirtNoShoesNoService)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(test_sink,
-              Send(AllOf(Prefix(IsFalse()), TextPrefix(IsEmpty()),
-                         TextMessageWithPrefix(IsEmpty()),
-                         TextMessageWithPrefixAndNewline(Eq("\n")))));
-  test_sink.StartCapturingLogs();
-  LOG(INFO).NoPrefix();
+    EXPECT_CALL(test_sink, Send(AllOf(Prefix(IsFalse()), TextPrefix(IsEmpty()), TextMessageWithPrefix(IsEmpty()), TextMessageWithPrefixAndNewline(Eq("\n")))));
+    test_sink.StartCapturingLogs();
+    LOG(INFO).NoPrefix();
 }
 
-TEST(TailCallsModifiesTest, WithVerbosity) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, WithVerbosity)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(test_sink, Send(Verbosity(Eq(2))));
+    EXPECT_CALL(test_sink, Send(Verbosity(Eq(2))));
 
-  test_sink.StartCapturingLogs();
-  LOG(INFO).WithVerbosity(2) << "hello world";
+    test_sink.StartCapturingLogs();
+    LOG(INFO).WithVerbosity(2) << "hello world";
 }
 
-TEST(TailCallsModifiesTest, WithVerbosityNoVerbosity) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, WithVerbosityNoVerbosity)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(test_sink,
-              Send(Verbosity(Eq(absl::LogEntry::kNoVerbosityLevel))));
+    EXPECT_CALL(test_sink, Send(Verbosity(Eq(absl::LogEntry::kNoVerbosityLevel))));
 
-  test_sink.StartCapturingLogs();
-  LOG(INFO).WithVerbosity(2).WithVerbosity(absl::LogEntry::kNoVerbosityLevel)
-      << "hello world";
+    test_sink.StartCapturingLogs();
+    LOG(INFO).WithVerbosity(2).WithVerbosity(absl::LogEntry::kNoVerbosityLevel) << "hello world";
 }
 
-TEST(TailCallsModifiesTest, WithTimestamp) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, WithTimestamp)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(test_sink, Send(Timestamp(Eq(absl::UnixEpoch()))));
+    EXPECT_CALL(test_sink, Send(Timestamp(Eq(absl::UnixEpoch()))));
 
-  test_sink.StartCapturingLogs();
-  LOG(INFO).WithTimestamp(absl::UnixEpoch()) << "hello world";
+    test_sink.StartCapturingLogs();
+    LOG(INFO).WithTimestamp(absl::UnixEpoch()) << "hello world";
 }
 
-TEST(TailCallsModifiesTest, WithThreadID) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, WithThreadID)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(test_sink,
-              Send(AllOf(ThreadID(Eq(absl::LogEntry::tid_t{1234})))));
+    EXPECT_CALL(test_sink, Send(AllOf(ThreadID(Eq(absl::LogEntry::tid_t { 1234 })))));
 
-  test_sink.StartCapturingLogs();
-  LOG(INFO).WithThreadID(1234) << "hello world";
+    test_sink.StartCapturingLogs();
+    LOG(INFO).WithThreadID(1234) << "hello world";
 }
 
-TEST(TailCallsModifiesTest, WithMetadataFrom) {
-  class ForwardingLogSink : public absl::LogSink {
-   public:
-    void Send(const absl::LogEntry &entry) override {
-      LOG(LEVEL(entry.log_severity())).WithMetadataFrom(entry)
-          << "forwarded: " << entry.text_message();
-    }
-  } forwarding_sink;
+TEST(TailCallsModifiesTest, WithMetadataFrom)
+{
+    class ForwardingLogSink : public absl::LogSink {
+    public:
+        void Send(const absl::LogEntry& entry) override
+        {
+            LOG(LEVEL(entry.log_severity())).WithMetadataFrom(entry) << "forwarded: " << entry.text_message();
+        }
+    } forwarding_sink;
 
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(
-      test_sink,
-      Send(AllOf(SourceFilename(Eq("fake/file")), SourceBasename(Eq("file")),
-                 SourceLine(Eq(123)), Prefix(IsFalse()),
-                 LogSeverity(Eq(absl::LogSeverity::kWarning)),
-                 Timestamp(Eq(absl::UnixEpoch())),
-                 ThreadID(Eq(absl::LogEntry::tid_t{456})),
-                 TextMessage(Eq("forwarded: hello world")), Verbosity(Eq(7)),
-                 ENCODED_MESSAGE(MatchesEvent(
-                     Eq("fake/file"), Eq(123), Eq(absl::UnixEpoch()),
-                     Eq(logging::proto::WARNING), Eq(456),
-                     ElementsAre(EqualsProto(R"pb(literal: "forwarded: ")pb"),
-                                 EqualsProto(R"pb(str: "hello world")pb")))))));
+    EXPECT_CALL(test_sink,
+        Send(AllOf(SourceFilename(Eq("fake/file")), SourceBasename(Eq("file")), SourceLine(Eq(123)), Prefix(IsFalse()),
+            LogSeverity(Eq(absl::LogSeverity::kWarning)), Timestamp(Eq(absl::UnixEpoch())), ThreadID(Eq(absl::LogEntry::tid_t { 456 })),
+            TextMessage(Eq("forwarded: hello world")), Verbosity(Eq(7)),
+            ENCODED_MESSAGE(MatchesEvent(Eq("fake/file"), Eq(123), Eq(absl::UnixEpoch()), Eq(logging::proto::WARNING), Eq(456),
+                ElementsAre(EqualsProto(R"pb(literal: "forwarded: ")pb"), EqualsProto(R"pb(str: "hello world")pb")))))));
 
-  test_sink.StartCapturingLogs();
-  LOG(WARNING)
-          .AtLocation("fake/file", 123)
-          .NoPrefix()
-          .WithTimestamp(absl::UnixEpoch())
-          .WithThreadID(456)
-          .WithVerbosity(7)
-          .ToSinkOnly(&forwarding_sink)
-      << "hello world";
+    test_sink.StartCapturingLogs();
+    LOG(WARNING).AtLocation("fake/file", 123).NoPrefix().WithTimestamp(absl::UnixEpoch()).WithThreadID(456).WithVerbosity(7).ToSinkOnly(&forwarding_sink)
+        << "hello world";
 }
 
-TEST(TailCallsModifiesTest, WithPerror) {
-  absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
+TEST(TailCallsModifiesTest, WithPerror)
+{
+    absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-  EXPECT_CALL(
-      test_sink,
-      Send(AllOf(TextMessage(AnyOf(Eq("hello world: Bad file number [9]"),
-                                   Eq("hello world: Bad file descriptor [9]"),
-                                   Eq("hello world: Bad file descriptor [8]"))),
-                 ENCODED_MESSAGE(HasValues(ElementsAre(
-                     EqualsProto(R"pb(literal: "hello world")pb"),
-                     EqualsProto(R"pb(literal: ": ")pb"),
-                     AnyOf(EqualsProto(R"pb(str: "Bad file number")pb"),
-                           EqualsProto(R"pb(str: "Bad file descriptor")pb")),
-                     EqualsProto(R"pb(literal: " [")pb"),
-                     AnyOf(EqualsProto(R"pb(str: "8")pb"),
-                           EqualsProto(R"pb(str: "9")pb")),
-                     EqualsProto(R"pb(literal: "]")pb")))))));
+    EXPECT_CALL(test_sink,
+        Send(AllOf(
+            TextMessage(AnyOf(Eq("hello world: Bad file number [9]"), Eq("hello world: Bad file descriptor [9]"), Eq("hello world: Bad file descriptor [8]"))),
+            ENCODED_MESSAGE(HasValues(ElementsAre(EqualsProto(R"pb(literal: "hello world")pb"), EqualsProto(R"pb(literal: ": ")pb"),
+                AnyOf(EqualsProto(R"pb(str: "Bad file number")pb"), EqualsProto(R"pb(str: "Bad file descriptor")pb")), EqualsProto(R"pb(literal: " [")pb"),
+                AnyOf(EqualsProto(R"pb(str: "8")pb"), EqualsProto(R"pb(str: "9")pb")), EqualsProto(R"pb(literal: "]")pb")))))));
 
-  test_sink.StartCapturingLogs();
-  errno = EBADF;
-  LOG(INFO).WithPerror() << "hello world";
+    test_sink.StartCapturingLogs();
+    errno = EBADF;
+    LOG(INFO).WithPerror() << "hello world";
 }
 
 #if GTEST_HAS_DEATH_TEST
-TEST(ModifierMethodDeathTest, ToSinkOnlyQFatal) {
-  EXPECT_EXIT(
-      {
-        absl::ScopedMockLog test_sink(
-            absl::MockLogDefault::kDisallowUnexpected);
+TEST(ModifierMethodDeathTest, ToSinkOnlyQFatal)
+{
+    EXPECT_EXIT(
+        {
+            absl::ScopedMockLog test_sink(absl::MockLogDefault::kDisallowUnexpected);
 
-        auto do_log = [&test_sink] {
-          LOG(QFATAL).ToSinkOnly(&test_sink.UseAsLocalSink()) << "hello world";
-        };
+            auto do_log = [&test_sink] { LOG(QFATAL).ToSinkOnly(&test_sink.UseAsLocalSink()) << "hello world"; };
 
-        EXPECT_CALL(test_sink, Send)
-            .Times(AnyNumber())
-            .WillRepeatedly(DeathTestUnexpectedLogging());
+            EXPECT_CALL(test_sink, Send).Times(AnyNumber()).WillRepeatedly(DeathTestUnexpectedLogging());
 
-        EXPECT_CALL(test_sink, Send(AllOf(TextMessage(Eq("hello world")),
-                                          Stacktrace(IsEmpty()))))
-            .WillOnce(DeathTestExpectedLogging());
+            EXPECT_CALL(test_sink, Send(AllOf(TextMessage(Eq("hello world")), Stacktrace(IsEmpty())))).WillOnce(DeathTestExpectedLogging());
 
-        test_sink.StartCapturingLogs();
-        do_log();
-      },
-      DiedOfQFatal, DeathTestValidateExpectations());
+            test_sink.StartCapturingLogs();
+            do_log();
+        },
+        DiedOfQFatal, DeathTestValidateExpectations());
 }
 #endif
 
-}  // namespace
+} // namespace

@@ -67,10 +67,10 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 
 enum ConstInitType {
-  kConstInit,
+    kConstInit,
 };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_BASE_CONST_INIT_H_
+#endif // ABSL_BASE_CONST_INIT_H_

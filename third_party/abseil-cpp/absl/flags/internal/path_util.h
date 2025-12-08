@@ -31,12 +31,11 @@ namespace flags_internal {
 // returns "file.cc"
 //     flags_internal::Basename("file.cc")
 // returns "file.cc"
-inline absl::string_view Basename(absl::string_view filename) {
-  auto last_slash_pos = filename.find_last_of("/\\");
+inline absl::string_view Basename(absl::string_view filename)
+{
+    auto last_slash_pos = filename.find_last_of("/\\");
 
-  return last_slash_pos == absl::string_view::npos
-             ? filename
-             : filename.substr(last_slash_pos + 1);
+    return last_slash_pos == absl::string_view::npos ? filename : filename.substr(last_slash_pos + 1);
 }
 
 // A portable interface that returns the directory name of the filename
@@ -47,16 +46,15 @@ inline absl::string_view Basename(absl::string_view filename) {
 // returns "a/b/prog/"
 //      flags_internal::Package("file.cc")
 // returns ""
-inline absl::string_view Package(absl::string_view filename) {
-  auto last_slash_pos = filename.find_last_of("/\\");
+inline absl::string_view Package(absl::string_view filename)
+{
+    auto last_slash_pos = filename.find_last_of("/\\");
 
-  return last_slash_pos == absl::string_view::npos
-             ? absl::string_view()
-             : filename.substr(0, last_slash_pos + 1);
+    return last_slash_pos == absl::string_view::npos ? absl::string_view() : filename.substr(0, last_slash_pos + 1);
 }
 
-}  // namespace flags_internal
+} // namespace flags_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FLAGS_INTERNAL_PATH_UTIL_H_
+#endif // ABSL_FLAGS_INTERNAL_PATH_UTIL_H_

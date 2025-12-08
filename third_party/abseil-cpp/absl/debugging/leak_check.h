@@ -88,10 +88,10 @@ void DoIgnoreLeak(const void* ptr);
 // allocated, leak sanitizer will assume this object is referenced even if
 // there is no actual reference in user memory.
 //
-template <typename T>
-T* IgnoreLeak(T* ptr) {
-  DoIgnoreLeak(ptr);
-  return ptr;
+template <typename T> T* IgnoreLeak(T* ptr)
+{
+    DoIgnoreLeak(ptr);
+    return ptr;
 }
 
 // FindAndReportLeaks()
@@ -123,11 +123,11 @@ bool FindAndReportLeaks();
 //
 // REQUIRES: Destructor runs in same thread as constructor
 class LeakCheckDisabler {
- public:
-  LeakCheckDisabler();
-  LeakCheckDisabler(const LeakCheckDisabler&) = delete;
-  LeakCheckDisabler& operator=(const LeakCheckDisabler&) = delete;
-  ~LeakCheckDisabler();
+public:
+    LeakCheckDisabler();
+    LeakCheckDisabler(const LeakCheckDisabler&) = delete;
+    LeakCheckDisabler& operator=(const LeakCheckDisabler&) = delete;
+    ~LeakCheckDisabler();
 };
 
 // RegisterLivePointers()
@@ -145,6 +145,6 @@ void RegisterLivePointers(const void* ptr, size_t size);
 void UnRegisterLivePointers(const void* ptr, size_t size);
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_DEBUGGING_LEAK_CHECK_H_
+#endif // ABSL_DEBUGGING_LEAK_CHECK_H_

@@ -68,8 +68,8 @@ namespace base_internal {
 // libcxx (as of 3.2) and msvc (as of 2015) both have it.
 // [[noreturn]] void ThrowStdBadArrayNewLength();
 
-}  // namespace base_internal
+} // namespace base_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_BASE_INTERNAL_THROW_DELEGATE_H_
+#endif // ABSL_BASE_INTERNAL_THROW_DELEGATE_H_

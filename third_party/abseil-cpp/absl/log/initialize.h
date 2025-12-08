@@ -40,6 +40,6 @@ ABSL_NAMESPACE_BEGIN
 void InitializeLog();
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_LOG_INITIALIZE_H_
+#endif // ABSL_LOG_INITIALIZE_H_

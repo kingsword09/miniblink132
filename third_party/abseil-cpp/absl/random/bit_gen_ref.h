@@ -39,28 +39,17 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace random_internal {
 
-template <typename URBG, typename = void, typename = void, typename = void>
-struct is_urbg : std::false_type {};
+template <typename URBG, typename = void, typename = void, typename = void> struct is_urbg : std::false_type { };
 
 template <typename URBG>
-struct is_urbg<
-    URBG,
-    absl::enable_if_t<std::is_same<
-        typename URBG::result_type,
-        typename std::decay<decltype((URBG::min)())>::type>::value>,
-    absl::enable_if_t<std::is_same<
-        typename URBG::result_type,
-        typename std::decay<decltype((URBG::max)())>::type>::value>,
-    absl::enable_if_t<std::is_same<
-        typename URBG::result_type,
-        typename std::decay<decltype(std::declval<URBG>()())>::type>::value>>
-    : std::true_type {};
+struct is_urbg<URBG, absl::enable_if_t<std::is_same<typename URBG::result_type, typename std::decay<decltype((URBG::min)())>::type>::value>,
+    absl::enable_if_t<std::is_same<typename URBG::result_type, typename std::decay<decltype((URBG::max)())>::type>::value>,
+    absl::enable_if_t<std::is_same<typename URBG::result_type, typename std::decay<decltype(std::declval<URBG>()())>::type>::value>> : std::true_type { };
 
-template <typename>
-struct DistributionCaller;
+template <typename> struct DistributionCaller;
 class MockHelpers;
 
-}  // namespace random_internal
+} // namespace random_internal
 
 // -----------------------------------------------------------------------------
 // absl::BitGenRef
@@ -86,102 +75,98 @@ class MockHelpers;
 //    }
 //
 class BitGenRef {
-  // SFINAE to detect whether the URBG type includes a member matching
-  // bool InvokeMock(base_internal::FastTypeIdType, void*, void*).
-  //
-  // These live inside BitGenRef so that they have friend access
-  // to MockingBitGen. (see similar methods in DistributionCaller).
-  template <template <class...> class Trait, class AlwaysVoid, class... Args>
-  struct detector : std::false_type {};
-  template <template <class...> class Trait, class... Args>
-  struct detector<Trait, absl::void_t<Trait<Args...>>, Args...>
-      : std::true_type {};
+    // SFINAE to detect whether the URBG type includes a member matching
+    // bool InvokeMock(base_internal::FastTypeIdType, void*, void*).
+    //
+    // These live inside BitGenRef so that they have friend access
+    // to MockingBitGen. (see similar methods in DistributionCaller).
+    template <template <class...> class Trait, class AlwaysVoid, class... Args> struct detector : std::false_type { };
+    template <template <class...> class Trait, class... Args> struct detector<Trait, absl::void_t<Trait<Args...>>, Args...> : std::true_type { };
 
-  template <class T>
-  using invoke_mock_t = decltype(std::declval<T*>()->InvokeMock(
-      std::declval<base_internal::FastTypeIdType>(), std::declval<void*>(),
-      std::declval<void*>()));
+    template <class T>
+    using invoke_mock_t = decltype(std::declval<T*>()->InvokeMock(std::declval<base_internal::FastTypeIdType>(), std::declval<void*>(), std::declval<void*>()));
 
-  template <typename T>
-  using HasInvokeMock = typename detector<invoke_mock_t, void, T>::type;
+    template <typename T> using HasInvokeMock = typename detector<invoke_mock_t, void, T>::type;
 
- public:
-  BitGenRef(const BitGenRef&) = default;
-  BitGenRef(BitGenRef&&) = default;
-  BitGenRef& operator=(const BitGenRef&) = default;
-  BitGenRef& operator=(BitGenRef&&) = default;
+public:
+    BitGenRef(const BitGenRef&) = default;
+    BitGenRef(BitGenRef&&) = default;
+    BitGenRef& operator=(const BitGenRef&) = default;
+    BitGenRef& operator=(BitGenRef&&) = default;
 
-  template <
-      typename URBGRef, typename URBG = absl::remove_cvref_t<URBGRef>,
-      typename absl::enable_if_t<(!std::is_same<URBG, BitGenRef>::value &&
-                                  random_internal::is_urbg<URBG>::value &&
-                                  !HasInvokeMock<URBG>::value)>* = nullptr>
-  BitGenRef(URBGRef&& gen ABSL_ATTRIBUTE_LIFETIME_BOUND)  // NOLINT
-      : t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen)),
-        mock_call_(NotAMock),
-        generate_impl_fn_(ImplFn<URBG>) {}
+    template <typename URBGRef, typename URBG = absl::remove_cvref_t<URBGRef>,
+        typename absl::enable_if_t<(!std::is_same<URBG, BitGenRef>::value && random_internal::is_urbg<URBG>::value && !HasInvokeMock<URBG>::value)>* = nullptr>
+    BitGenRef(URBGRef&& gen ABSL_ATTRIBUTE_LIFETIME_BOUND) // NOLINT
+        : t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen))
+        , mock_call_(NotAMock)
+        , generate_impl_fn_(ImplFn<URBG>)
+    {
+    }
 
-  template <typename URBGRef, typename URBG = absl::remove_cvref_t<URBGRef>,
-            typename absl::enable_if_t<(!std::is_same<URBG, BitGenRef>::value &&
-                                        random_internal::is_urbg<URBG>::value &&
-                                        HasInvokeMock<URBG>::value)>* = nullptr>
-  BitGenRef(URBGRef&& gen ABSL_ATTRIBUTE_LIFETIME_BOUND)  // NOLINT
-      : t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen)),
-        mock_call_(&MockCall<URBG>),
-        generate_impl_fn_(ImplFn<URBG>) {}
+    template <typename URBGRef, typename URBG = absl::remove_cvref_t<URBGRef>,
+        typename absl::enable_if_t<(!std::is_same<URBG, BitGenRef>::value && random_internal::is_urbg<URBG>::value && HasInvokeMock<URBG>::value)>* = nullptr>
+    BitGenRef(URBGRef&& gen ABSL_ATTRIBUTE_LIFETIME_BOUND) // NOLINT
+        : t_erased_gen_ptr_(reinterpret_cast<uintptr_t>(&gen))
+        , mock_call_(&MockCall<URBG>)
+        , generate_impl_fn_(ImplFn<URBG>)
+    {
+    }
 
-  using result_type = uint64_t;
+    using result_type = uint64_t;
 
-  static constexpr result_type(min)() {
-    return (std::numeric_limits<result_type>::min)();
-  }
+    static constexpr result_type(min)()
+    {
+        return (std::numeric_limits<result_type>::min)();
+    }
 
-  static constexpr result_type(max)() {
-    return (std::numeric_limits<result_type>::max)();
-  }
+    static constexpr result_type(max)()
+    {
+        return (std::numeric_limits<result_type>::max)();
+    }
 
-  result_type operator()() { return generate_impl_fn_(t_erased_gen_ptr_); }
+    result_type operator()()
+    {
+        return generate_impl_fn_(t_erased_gen_ptr_);
+    }
 
- private:
-  using impl_fn = result_type (*)(uintptr_t);
-  using mock_call_fn = bool (*)(uintptr_t, base_internal::FastTypeIdType, void*,
-                                void*);
+private:
+    using impl_fn = result_type (*)(uintptr_t);
+    using mock_call_fn = bool (*)(uintptr_t, base_internal::FastTypeIdType, void*, void*);
 
-  template <typename URBG>
-  static result_type ImplFn(uintptr_t ptr) {
-    // Ensure that the return values from operator() fill the entire
-    // range promised by result_type, min() and max().
-    absl::random_internal::FastUniformBits<result_type> fast_uniform_bits;
-    return fast_uniform_bits(*reinterpret_cast<URBG*>(ptr));
-  }
+    template <typename URBG> static result_type ImplFn(uintptr_t ptr)
+    {
+        // Ensure that the return values from operator() fill the entire
+        // range promised by result_type, min() and max().
+        absl::random_internal::FastUniformBits<result_type> fast_uniform_bits;
+        return fast_uniform_bits(*reinterpret_cast<URBG*>(ptr));
+    }
 
-  // Get a type-erased InvokeMock pointer.
-  template <typename URBG>
-  static bool MockCall(uintptr_t gen_ptr, base_internal::FastTypeIdType type,
-                       void* result, void* arg_tuple) {
-    return reinterpret_cast<URBG*>(gen_ptr)->InvokeMock(type, result,
-                                                        arg_tuple);
-  }
-  static bool NotAMock(uintptr_t, base_internal::FastTypeIdType, void*, void*) {
-    return false;
-  }
+    // Get a type-erased InvokeMock pointer.
+    template <typename URBG> static bool MockCall(uintptr_t gen_ptr, base_internal::FastTypeIdType type, void* result, void* arg_tuple)
+    {
+        return reinterpret_cast<URBG*>(gen_ptr)->InvokeMock(type, result, arg_tuple);
+    }
+    static bool NotAMock(uintptr_t, base_internal::FastTypeIdType, void*, void*)
+    {
+        return false;
+    }
 
-  inline bool InvokeMock(base_internal::FastTypeIdType type, void* args_tuple,
-                         void* result) {
-    if (mock_call_ == NotAMock) return false;  // avoids an indirect call.
-    return mock_call_(t_erased_gen_ptr_, type, args_tuple, result);
-  }
+    inline bool InvokeMock(base_internal::FastTypeIdType type, void* args_tuple, void* result)
+    {
+        if (mock_call_ == NotAMock)
+            return false; // avoids an indirect call.
+        return mock_call_(t_erased_gen_ptr_, type, args_tuple, result);
+    }
 
-  uintptr_t t_erased_gen_ptr_;
-  mock_call_fn mock_call_;
-  impl_fn generate_impl_fn_;
+    uintptr_t t_erased_gen_ptr_;
+    mock_call_fn mock_call_;
+    impl_fn generate_impl_fn_;
 
-  template <typename>
-  friend struct ::absl::random_internal::DistributionCaller;  // for InvokeMock
-  friend class ::absl::random_internal::MockHelpers;          // for InvokeMock
+    template <typename> friend struct ::absl::random_internal::DistributionCaller; // for InvokeMock
+    friend class ::absl::random_internal::MockHelpers; // for InvokeMock
 };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_RANDOM_BIT_GEN_REF_H_
+#endif // ABSL_RANDOM_BIT_GEN_REF_H_

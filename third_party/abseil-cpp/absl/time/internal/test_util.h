@@ -26,8 +26,8 @@ namespace time_internal {
 // Loads the named timezone, but dies on any failure.
 absl::TimeZone LoadTimeZone(const std::string& name);
 
-}  // namespace time_internal
+} // namespace time_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_TIME_INTERNAL_TEST_UTIL_H_
+#endif // ABSL_TIME_INTERNAL_TEST_UTIL_H_

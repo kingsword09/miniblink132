@@ -54,7 +54,7 @@
 #ifdef __cplusplus
 // Included for __GLIBCXX__, _LIBCPP_VERSION
 #include <cstddef>
-#endif  // __cplusplus
+#endif // __cplusplus
 
 // ABSL_INTERNAL_CPLUSPLUS_LANG
 //
@@ -75,8 +75,7 @@
 #define ABSL_INTERNAL_CPLUSPLUS_LANG __cplusplus
 #endif
 
-#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
+#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
 // Include library feature test macros.
 #include <version>
 #endif
@@ -148,27 +147,22 @@
 // not support forward declarations of its own types, nor does it support
 // user-provided specialization of Abseil templates.  Code that violates these
 // rules may be broken without warning.)
-#if !defined(ABSL_OPTION_USE_INLINE_NAMESPACE) || \
-    !defined(ABSL_OPTION_INLINE_NAMESPACE_NAME)
+#if !defined(ABSL_OPTION_USE_INLINE_NAMESPACE) || !defined(ABSL_OPTION_INLINE_NAMESPACE_NAME)
 #error options.h is misconfigured.
 #endif
 
 // Check that ABSL_OPTION_INLINE_NAMESPACE_NAME is neither "head" nor ""
 #if defined(__cplusplus) && ABSL_OPTION_USE_INLINE_NAMESPACE == 1
 
-#define ABSL_INTERNAL_INLINE_NAMESPACE_STR \
-  ABSL_INTERNAL_TOKEN_STR(ABSL_OPTION_INLINE_NAMESPACE_NAME)
+#define ABSL_INTERNAL_INLINE_NAMESPACE_STR ABSL_INTERNAL_TOKEN_STR(ABSL_OPTION_INLINE_NAMESPACE_NAME)
 
 static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != '\0',
-              "options.h misconfigured: ABSL_OPTION_INLINE_NAMESPACE_NAME must "
-              "not be empty.");
-static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
-                  ABSL_INTERNAL_INLINE_NAMESPACE_STR[1] != 'e' ||
-                  ABSL_INTERNAL_INLINE_NAMESPACE_STR[2] != 'a' ||
-                  ABSL_INTERNAL_INLINE_NAMESPACE_STR[3] != 'd' ||
-                  ABSL_INTERNAL_INLINE_NAMESPACE_STR[4] != '\0',
-              "options.h misconfigured: ABSL_OPTION_INLINE_NAMESPACE_NAME must "
-              "be changed to a new, unique identifier name.");
+    "options.h misconfigured: ABSL_OPTION_INLINE_NAMESPACE_NAME must "
+    "not be empty.");
+static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' || ABSL_INTERNAL_INLINE_NAMESPACE_STR[1] != 'e' || ABSL_INTERNAL_INLINE_NAMESPACE_STR[2] != 'a'
+        || ABSL_INTERNAL_INLINE_NAMESPACE_STR[3] != 'd' || ABSL_INTERNAL_INLINE_NAMESPACE_STR[4] != '\0',
+    "options.h misconfigured: ABSL_OPTION_INLINE_NAMESPACE_NAME must "
+    "be changed to a new, unique identifier name.");
 
 #endif
 
@@ -177,14 +171,11 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #define ABSL_NAMESPACE_END
 #define ABSL_INTERNAL_C_SYMBOL(x) x
 #elif ABSL_OPTION_USE_INLINE_NAMESPACE == 1
-#define ABSL_NAMESPACE_BEGIN \
-  inline namespace ABSL_OPTION_INLINE_NAMESPACE_NAME {
+#define ABSL_NAMESPACE_BEGIN inline namespace ABSL_OPTION_INLINE_NAMESPACE_NAME {
 #define ABSL_NAMESPACE_END }
 #define ABSL_INTERNAL_C_SYMBOL_HELPER_2(x, v) x##_##v
-#define ABSL_INTERNAL_C_SYMBOL_HELPER_1(x, v) \
-  ABSL_INTERNAL_C_SYMBOL_HELPER_2(x, v)
-#define ABSL_INTERNAL_C_SYMBOL(x) \
-  ABSL_INTERNAL_C_SYMBOL_HELPER_1(x, ABSL_OPTION_INLINE_NAMESPACE_NAME)
+#define ABSL_INTERNAL_C_SYMBOL_HELPER_1(x, v) ABSL_INTERNAL_C_SYMBOL_HELPER_2(x, v)
+#define ABSL_INTERNAL_C_SYMBOL(x) ABSL_INTERNAL_C_SYMBOL_HELPER_1(x, ABSL_OPTION_INLINE_NAMESPACE_NAME)
 #else
 #error options.h is misconfigured.
 #endif
@@ -217,15 +208,13 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // Portable check for GCC minimum version:
 // https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
 #if defined(__GNUC__) && defined(__GNUC_MINOR__)
-#define ABSL_INTERNAL_HAVE_MIN_GNUC_VERSION(x, y) \
-  (__GNUC__ > (x) || __GNUC__ == (x) && __GNUC_MINOR__ >= (y))
+#define ABSL_INTERNAL_HAVE_MIN_GNUC_VERSION(x, y) (__GNUC__ > (x) || __GNUC__ == (x) && __GNUC_MINOR__ >= (y))
 #else
 #define ABSL_INTERNAL_HAVE_MIN_GNUC_VERSION(x, y) 0
 #endif
 
 #if defined(__clang__) && defined(__clang_major__) && defined(__clang_minor__)
-#define ABSL_INTERNAL_HAVE_MIN_CLANG_VERSION(x, y) \
-  (__clang_major__ > (x) || __clang_major__ == (x) && __clang_minor__ >= (y))
+#define ABSL_INTERNAL_HAVE_MIN_CLANG_VERSION(x, y) (__clang_major__ > (x) || __clang_major__ == (x) && __clang_minor__ >= (y))
 #else
 #define ABSL_INTERNAL_HAVE_MIN_CLANG_VERSION(x, y) 0
 #endif
@@ -274,7 +263,6 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #define ABSL_HAVE_STD_IS_TRIVIALLY_COPYABLE 1
 #endif
 
-
 // ABSL_HAVE_THREAD_LOCAL
 //
 // DEPRECATED - `thread_local` is available on all supported platforms.
@@ -302,9 +290,8 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #ifdef ABSL_HAVE_INTRINSIC_INT128
 #error ABSL_HAVE_INTRINSIC_INT128 cannot be directly set
 #elif defined(__SIZEOF_INT128__)
-#if (defined(__clang__) && !defined(_WIN32)) ||           \
-    (defined(__CUDACC__) && __CUDACC_VER_MAJOR__ >= 9) || \
-    (defined(__GNUC__) && !defined(__clang__) && !defined(__CUDACC__))
+#if (defined(__clang__) && !defined(_WIN32)) || (defined(__CUDACC__) && __CUDACC_VER_MAJOR__ >= 9)                                                             \
+    || (defined(__GNUC__) && !defined(__clang__) && !defined(__CUDACC__))
 #define ABSL_HAVE_INTRINSIC_INT128 1
 #elif defined(__CUDACC__)
 // __CUDACC_VER__ is a full version number before CUDA 9, and is defined to a
@@ -313,9 +300,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // NOTE: `__CUDACC__` could be undefined while `__CUDACC_VER__` is defined.
 #if __CUDACC_VER__ >= 70000
 #define ABSL_HAVE_INTRINSIC_INT128 1
-#endif  // __CUDACC_VER__ >= 70000
-#endif  // defined(__CUDACC__)
-#endif  // ABSL_HAVE_INTRINSIC_INT128
+#endif // __CUDACC_VER__ >= 70000
+#endif // defined(__CUDACC__)
+#endif // ABSL_HAVE_INTRINSIC_INT128
 
 // ABSL_HAVE_EXCEPTIONS
 //
@@ -335,16 +322,15 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // Clang >= 3.6
 #if ABSL_HAVE_FEATURE(cxx_exceptions)
 #define ABSL_HAVE_EXCEPTIONS 1
-#endif  // ABSL_HAVE_FEATURE(cxx_exceptions)
+#endif // ABSL_HAVE_FEATURE(cxx_exceptions)
 #elif defined(__clang__)
 // Clang < 3.6
 // http://releases.llvm.org/3.6.0/tools/clang/docs/ReleaseNotes.html#the-exceptions-macro
 #if defined(__EXCEPTIONS) && ABSL_HAVE_FEATURE(cxx_exceptions)
 #define ABSL_HAVE_EXCEPTIONS 1
-#endif  // defined(__EXCEPTIONS) && ABSL_HAVE_FEATURE(cxx_exceptions)
+#endif // defined(__EXCEPTIONS) && ABSL_HAVE_FEATURE(cxx_exceptions)
 // Handle remaining special cases and default to exceptions being supported.
-#elif !(defined(__GNUC__) && !defined(__cpp_exceptions)) && \
-    !(defined(_MSC_VER) && !defined(_CPPUNWIND))
+#elif !(defined(__GNUC__) && !defined(__cpp_exceptions)) && !(defined(_MSC_VER) && !defined(_CPPUNWIND))
 #define ABSL_HAVE_EXCEPTIONS 1
 #endif
 
@@ -375,12 +361,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // POSIX.1-2001.
 #ifdef ABSL_HAVE_MMAP
 #error ABSL_HAVE_MMAP cannot be directly set
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||    \
-    defined(_AIX) || defined(__ros__) || defined(__native_client__) ||       \
-    defined(__asmjs__) || defined(__EMSCRIPTEN__) || defined(__Fuchsia__) || \
-    defined(__sun) || defined(__myriad2__) || defined(__HAIKU__) ||          \
-    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__QNX__) ||       \
-    defined(__VXWORKS__) || defined(__hexagon__) || defined(__XTENSA__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(_AIX) || defined(__ros__) || defined(__native_client__)                      \
+    || defined(__asmjs__) || defined(__EMSCRIPTEN__) || defined(__Fuchsia__) || defined(__sun) || defined(__myriad2__) || defined(__HAIKU__)                   \
+    || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__QNX__) || defined(__VXWORKS__) || defined(__hexagon__) || defined(__XTENSA__)
 #define ABSL_HAVE_MMAP 1
 #endif
 
@@ -390,9 +373,8 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // functions as defined in POSIX.1-2001.
 #ifdef ABSL_HAVE_PTHREAD_GETSCHEDPARAM
 #error ABSL_HAVE_PTHREAD_GETSCHEDPARAM cannot be directly set
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
-    defined(_AIX) || defined(__ros__) || defined(__OpenBSD__) ||          \
-    defined(__NetBSD__) || defined(__VXWORKS__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(_AIX) || defined(__ros__) || defined(__OpenBSD__) || defined(__NetBSD__)     \
+    || defined(__VXWORKS__)
 #define ABSL_HAVE_PTHREAD_GETSCHEDPARAM 1
 #endif
 
@@ -411,8 +393,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // POSIX.1-2001.
 #ifdef ABSL_HAVE_SCHED_YIELD
 #error ABSL_HAVE_SCHED_YIELD cannot be directly set
-#elif defined(__linux__) || defined(__ros__) || defined(__native_client__) || \
-    defined(__VXWORKS__)
+#elif defined(__linux__) || defined(__ros__) || defined(__native_client__) || defined(__VXWORKS__)
 #define ABSL_HAVE_SCHED_YIELD 1
 #endif
 
@@ -480,11 +461,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error "ABSL_IS_LITTLE_ENDIAN cannot be directly set."
 #endif
 
-#if (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
-     __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#if (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 #define ABSL_IS_LITTLE_ENDIAN 1
-#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && \
-    __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define ABSL_IS_BIG_ENDIAN 1
 #elif defined(_WIN32)
 #define ABSL_IS_LITTLE_ENDIAN 1
@@ -506,15 +485,11 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // and
 // https://github.com/llvm/llvm-project/commit/0bc451e7e137c4ccadcd3377250874f641ca514a
 // The second has the actually correct versions, thus, is what we copy here.
-#if defined(__APPLE__) &&                                         \
-    ((defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) &&   \
-      __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 101300) ||  \
-     (defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) &&  \
-      __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ < 120000) || \
-     (defined(__ENVIRONMENT_WATCH_OS_VERSION_MIN_REQUIRED__) &&   \
-      __ENVIRONMENT_WATCH_OS_VERSION_MIN_REQUIRED__ < 50000) ||   \
-     (defined(__ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__) &&      \
-      __ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__ < 120000))
+#if defined(__APPLE__)                                                                                                                                         \
+    && ((defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 101300)                                     \
+        || (defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) && __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ < 120000)                                \
+        || (defined(__ENVIRONMENT_WATCH_OS_VERSION_MIN_REQUIRED__) && __ENVIRONMENT_WATCH_OS_VERSION_MIN_REQUIRED__ < 50000)                                   \
+        || (defined(__ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__) && __ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__ < 120000))
 #define ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE 1
 #else
 #define ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE 0
@@ -527,9 +502,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error "ABSL_HAVE_STD_ANY cannot be directly set."
 #elif defined(__cpp_lib_any) && __cpp_lib_any >= 201606L
 #define ABSL_HAVE_STD_ANY 1
-#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L && \
-    !ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE
+#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L && !ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE
 #define ABSL_HAVE_STD_ANY 1
 #endif
 
@@ -540,9 +513,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error "ABSL_HAVE_STD_OPTIONAL cannot be directly set."
 #elif defined(__cpp_lib_optional) && __cpp_lib_optional >= 202106L
 #define ABSL_HAVE_STD_OPTIONAL 1
-#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L && \
-    !ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE
+#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L && !ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE
 #define ABSL_HAVE_STD_OPTIONAL 1
 #endif
 
@@ -553,9 +524,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error "ABSL_HAVE_STD_VARIANT cannot be directly set."
 #elif defined(__cpp_lib_variant) && __cpp_lib_variant >= 201606L
 #define ABSL_HAVE_STD_VARIANT 1
-#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L && \
-    !ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE
+#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L && !ABSL_INTERNAL_APPLE_CXX17_TYPES_UNAVAILABLE
 #define ABSL_HAVE_STD_VARIANT 1
 #endif
 
@@ -566,8 +535,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error "ABSL_HAVE_STD_STRING_VIEW cannot be directly set."
 #elif defined(__cpp_lib_string_view) && __cpp_lib_string_view >= 201606L
 #define ABSL_HAVE_STD_STRING_VIEW 1
-#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L
+#elif defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L
 #define ABSL_HAVE_STD_STRING_VIEW 1
 #endif
 
@@ -580,10 +548,8 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // when building in C++20 mode.
 #ifdef ABSL_HAVE_STD_ORDERING
 #error "ABSL_HAVE_STD_ORDERING cannot be directly set."
-#elif (defined(__cpp_lib_three_way_comparison) &&    \
-       __cpp_lib_three_way_comparison >= 201907L) || \
-    (defined(ABSL_INTERNAL_CPLUSPLUS_LANG) &&        \
-     ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L)
+#elif (defined(__cpp_lib_three_way_comparison) && __cpp_lib_three_way_comparison >= 201907L)                                                                   \
+    || (defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L)
 #define ABSL_HAVE_STD_ORDERING 1
 #endif
 
@@ -592,11 +558,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // Indicates whether absl::any is an alias for std::any.
 #if !defined(ABSL_OPTION_USE_STD_ANY)
 #error options.h is misconfigured.
-#elif ABSL_OPTION_USE_STD_ANY == 0 || \
-    (ABSL_OPTION_USE_STD_ANY == 2 && !defined(ABSL_HAVE_STD_ANY))
+#elif ABSL_OPTION_USE_STD_ANY == 0 || (ABSL_OPTION_USE_STD_ANY == 2 && !defined(ABSL_HAVE_STD_ANY))
 #undef ABSL_USES_STD_ANY
-#elif ABSL_OPTION_USE_STD_ANY == 1 || \
-    (ABSL_OPTION_USE_STD_ANY == 2 && defined(ABSL_HAVE_STD_ANY))
+#elif ABSL_OPTION_USE_STD_ANY == 1 || (ABSL_OPTION_USE_STD_ANY == 2 && defined(ABSL_HAVE_STD_ANY))
 #define ABSL_USES_STD_ANY 1
 #else
 #error options.h is misconfigured.
@@ -607,11 +571,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // Indicates whether absl::optional is an alias for std::optional.
 #if !defined(ABSL_OPTION_USE_STD_OPTIONAL)
 #error options.h is misconfigured.
-#elif ABSL_OPTION_USE_STD_OPTIONAL == 0 || \
-    (ABSL_OPTION_USE_STD_OPTIONAL == 2 && !defined(ABSL_HAVE_STD_OPTIONAL))
+#elif ABSL_OPTION_USE_STD_OPTIONAL == 0 || (ABSL_OPTION_USE_STD_OPTIONAL == 2 && !defined(ABSL_HAVE_STD_OPTIONAL))
 #undef ABSL_USES_STD_OPTIONAL
-#elif ABSL_OPTION_USE_STD_OPTIONAL == 1 || \
-    (ABSL_OPTION_USE_STD_OPTIONAL == 2 && defined(ABSL_HAVE_STD_OPTIONAL))
+#elif ABSL_OPTION_USE_STD_OPTIONAL == 1 || (ABSL_OPTION_USE_STD_OPTIONAL == 2 && defined(ABSL_HAVE_STD_OPTIONAL))
 #define ABSL_USES_STD_OPTIONAL 1
 #else
 #error options.h is misconfigured.
@@ -622,11 +584,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // Indicates whether absl::variant is an alias for std::variant.
 #if !defined(ABSL_OPTION_USE_STD_VARIANT)
 #error options.h is misconfigured.
-#elif ABSL_OPTION_USE_STD_VARIANT == 0 || \
-    (ABSL_OPTION_USE_STD_VARIANT == 2 && !defined(ABSL_HAVE_STD_VARIANT))
+#elif ABSL_OPTION_USE_STD_VARIANT == 0 || (ABSL_OPTION_USE_STD_VARIANT == 2 && !defined(ABSL_HAVE_STD_VARIANT))
 #undef ABSL_USES_STD_VARIANT
-#elif ABSL_OPTION_USE_STD_VARIANT == 1 || \
-    (ABSL_OPTION_USE_STD_VARIANT == 2 && defined(ABSL_HAVE_STD_VARIANT))
+#elif ABSL_OPTION_USE_STD_VARIANT == 1 || (ABSL_OPTION_USE_STD_VARIANT == 2 && defined(ABSL_HAVE_STD_VARIANT))
 #define ABSL_USES_STD_VARIANT 1
 #else
 #error options.h is misconfigured.
@@ -637,13 +597,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // Indicates whether absl::string_view is an alias for std::string_view.
 #if !defined(ABSL_OPTION_USE_STD_STRING_VIEW)
 #error options.h is misconfigured.
-#elif ABSL_OPTION_USE_STD_STRING_VIEW == 0 || \
-    (ABSL_OPTION_USE_STD_STRING_VIEW == 2 &&  \
-     !defined(ABSL_HAVE_STD_STRING_VIEW))
+#elif ABSL_OPTION_USE_STD_STRING_VIEW == 0 || (ABSL_OPTION_USE_STD_STRING_VIEW == 2 && !defined(ABSL_HAVE_STD_STRING_VIEW))
 #undef ABSL_USES_STD_STRING_VIEW
-#elif ABSL_OPTION_USE_STD_STRING_VIEW == 1 || \
-    (ABSL_OPTION_USE_STD_STRING_VIEW == 2 &&  \
-     defined(ABSL_HAVE_STD_STRING_VIEW))
+#elif ABSL_OPTION_USE_STD_STRING_VIEW == 1 || (ABSL_OPTION_USE_STD_STRING_VIEW == 2 && defined(ABSL_HAVE_STD_STRING_VIEW))
 #define ABSL_USES_STD_STRING_VIEW 1
 #else
 #error options.h is misconfigured.
@@ -655,11 +611,9 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // std:: ordering types.
 #if !defined(ABSL_OPTION_USE_STD_ORDERING)
 #error options.h is misconfigured.
-#elif ABSL_OPTION_USE_STD_ORDERING == 0 || \
-    (ABSL_OPTION_USE_STD_ORDERING == 2 && !defined(ABSL_HAVE_STD_ORDERING))
+#elif ABSL_OPTION_USE_STD_ORDERING == 0 || (ABSL_OPTION_USE_STD_ORDERING == 2 && !defined(ABSL_HAVE_STD_ORDERING))
 #undef ABSL_USES_STD_ORDERING
-#elif ABSL_OPTION_USE_STD_ORDERING == 1 || \
-    (ABSL_OPTION_USE_STD_ORDERING == 2 && defined(ABSL_HAVE_STD_ORDERING))
+#elif ABSL_OPTION_USE_STD_ORDERING == 1 || (ABSL_OPTION_USE_STD_ORDERING == 2 && defined(ABSL_HAVE_STD_ORDERING))
 #define ABSL_USES_STD_ORDERING 1
 #else
 #error options.h is misconfigured.
@@ -689,8 +643,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #define ABSL_INTERNAL_MANGLED_NS "absl"
 #define ABSL_INTERNAL_MANGLED_BACKREFERENCE "5"
 #else
-#define ABSL_INTERNAL_MANGLED_NS \
-  ABSL_INTERNAL_TOKEN_STR(ABSL_OPTION_INLINE_NAMESPACE_NAME) "@absl"
+#define ABSL_INTERNAL_MANGLED_NS ABSL_INTERNAL_TOKEN_STR(ABSL_OPTION_INLINE_NAMESPACE_NAME) "@absl"
 #define ABSL_INTERNAL_MANGLED_BACKREFERENCE "6"
 #endif
 #endif
@@ -712,7 +665,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #endif
 #else
 #define ABSL_DLL
-#endif  // defined(_MSC_VER)
+#endif // defined(_MSC_VER)
 
 #if defined(_MSC_VER)
 #if defined(ABSL_BUILD_TEST_DLL)
@@ -724,7 +677,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #endif
 #else
 #define ABSL_TEST_DLL
-#endif  // defined(_MSC_VER)
+#endif // defined(_MSC_VER)
 
 // ABSL_HAVE_MEMORY_SANITIZER
 //
@@ -838,8 +791,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // #ifdef ABSL_INTERNAL_NEED_REDUNDANT_CONSTEXPR_DECL
 // constexpr int Foo::kBar;
 // #endif
-#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG < 201703L
+#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG < 201703L
 #define ABSL_INTERNAL_NEED_REDUNDANT_CONSTEXPR_DECL 1
 #endif
 
@@ -877,8 +829,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error ABSL_INTERNAL_HAVE_SSE cannot be directly set
 #elif defined(__SSE__)
 #define ABSL_INTERNAL_HAVE_SSE 1
-#elif (defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 1)) && \
-    !defined(_M_ARM64EC)
+#elif (defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 1)) && !defined(_M_ARM64EC)
 // MSVC only defines _M_IX86_FP for x86 32-bit code, and _M_IX86_FP >= 1
 // indicates that at least SSE was targeted with the /arch:SSE option.
 // All x86-64 processors support SSE, so support can be assumed.
@@ -893,8 +844,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error ABSL_INTERNAL_HAVE_SSE2 cannot be directly set
 #elif defined(__SSE2__)
 #define ABSL_INTERNAL_HAVE_SSE2 1
-#elif (defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)) && \
-    !defined(_M_ARM64EC)
+#elif (defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)) && !defined(_M_ARM64EC)
 // MSVC only defines _M_IX86_FP for x86 32-bit code, and _M_IX86_FP >= 2
 // indicates that at least SSE2 was targeted with the /arch:SSE2 option.
 // All x86-64 processors support SSE2, so support can be assumed.
@@ -949,14 +899,12 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 //
 // For this reason, this symbol is considered INTERNAL and code outside of
 // Abseil must not use it.
-#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L
+#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L
 #define ABSL_INTERNAL_CONSTEXPR_SINCE_CXX17 constexpr
 #else
 #define ABSL_INTERNAL_CONSTEXPR_SINCE_CXX17
 #endif
-#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
+#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
 #define ABSL_INTERNAL_CONSTEXPR_SINCE_CXX20 constexpr
 #else
 #define ABSL_INTERNAL_CONSTEXPR_SINCE_CXX20
@@ -976,10 +924,8 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #if __EMSCRIPTEN_tiny__ >= 1000
 #error __EMSCRIPTEN_tiny__ is too big to fit in ABSL_INTERNAL_EMSCRIPTEN_VERSION
 #endif
-#define ABSL_INTERNAL_EMSCRIPTEN_VERSION                              \
-  ((__EMSCRIPTEN_major__) * 1000000 + (__EMSCRIPTEN_minor__) * 1000 + \
-   (__EMSCRIPTEN_tiny__))
+#define ABSL_INTERNAL_EMSCRIPTEN_VERSION ((__EMSCRIPTEN_major__)*1000000 + (__EMSCRIPTEN_minor__)*1000 + (__EMSCRIPTEN_tiny__))
 #endif
 #endif
 
-#endif  // ABSL_BASE_CONFIG_H_
+#endif // ABSL_BASE_CONFIG_H_

@@ -56,4 +56,4 @@ ABSL_DECLARE_FLAG(int, v);
 // Per-module log verbosity level. By default is empty and is unused.
 ABSL_DECLARE_FLAG(std::string, vmodule);
 
-#endif  // ABSL_LOG_INTERNAL_FLAGS_H_
+#endif // ABSL_LOG_INTERNAL_FLAGS_H_

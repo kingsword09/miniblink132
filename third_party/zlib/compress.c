@@ -19,8 +19,13 @@
    memory, Z_BUF_ERROR if there was not enough room in the output buffer,
    Z_STREAM_ERROR if the level parameter is invalid.
 */
-int ZEXPORT compress2(Bytef *dest, uLongf *destLen, const Bytef *source,
-                      uLong sourceLen, int level) {
+int ZEXPORT compress2(dest, destLen, source, sourceLen, level)
+Bytef* dest;
+uLongf* destLen;
+const Bytef* source;
+uLong sourceLen;
+int level;
+{
     z_stream stream;
     int err;
     const uInt max = (uInt)-1;
@@ -34,11 +39,12 @@ int ZEXPORT compress2(Bytef *dest, uLongf *destLen, const Bytef *source,
     stream.opaque = (voidpf)0;
 
     err = deflateInit(&stream, level);
-    if (err != Z_OK) return err;
+    if (err != Z_OK)
+        return err;
 
     stream.next_out = dest;
     stream.avail_out = 0;
-    stream.next_in = (z_const Bytef *)source;
+    stream.next_in = (z_const Bytef*)source;
     stream.avail_in = 0;
 
     do {
@@ -60,8 +66,12 @@ int ZEXPORT compress2(Bytef *dest, uLongf *destLen, const Bytef *source,
 
 /* ===========================================================================
  */
-int ZEXPORT compress(Bytef *dest, uLongf *destLen, const Bytef *source,
-                     uLong sourceLen) {
+int ZEXPORT compress(dest, destLen, source, sourceLen)
+Bytef* dest;
+uLongf* destLen;
+const Bytef* source;
+uLong sourceLen;
+{
     return compress2(dest, destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 }
 
@@ -69,9 +79,10 @@ int ZEXPORT compress(Bytef *dest, uLongf *destLen, const Bytef *source,
      If the default memLevel or windowBits for deflateInit() is changed, then
    this function needs to be updated.
  */
-uLong ZEXPORT compressBound(uLong sourceLen) {
-    sourceLen = sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
-                (sourceLen >> 25) + 13;
+uLong ZEXPORT compressBound(sourceLen)
+uLong sourceLen;
+{
+    sourceLen = sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + (sourceLen >> 25) + 13;
     /* FIXME(cavalcantii): usage of CRC32 Castagnoli as a hash function
      * for the hash table of symbols used for compression has a side effect
      * where for compression level [4, 5] it will increase the output buffer size

@@ -35,30 +35,31 @@ ABSL_NAMESPACE_BEGIN
 // This type represent information about an unrecognized flag in the command
 // line.
 struct UnrecognizedFlag {
-  enum Source { kFromArgv, kFromFlagfile };
+    enum Source { kFromArgv, kFromFlagfile };
 
-  explicit UnrecognizedFlag(Source s, absl::string_view f)
-      : source(s), flag_name(f) {}
-  // This field indicates where we found this flag: on the original command line
-  // or read in some flag file.
-  Source source;
-  // Name of the flag we did not recognize in --flag_name=value or --flag_name.
-  std::string flag_name;
+    explicit UnrecognizedFlag(Source s, absl::string_view f)
+        : source(s)
+        , flag_name(f)
+    {
+    }
+    // This field indicates where we found this flag: on the original command line
+    // or read in some flag file.
+    Source source;
+    // Name of the flag we did not recognize in --flag_name=value or --flag_name.
+    std::string flag_name;
 };
 
-inline bool operator==(const UnrecognizedFlag& lhs,
-                       const UnrecognizedFlag& rhs) {
-  return lhs.source == rhs.source && lhs.flag_name == rhs.flag_name;
+inline bool operator==(const UnrecognizedFlag& lhs, const UnrecognizedFlag& rhs)
+{
+    return lhs.source == rhs.source && lhs.flag_name == rhs.flag_name;
 }
 
 namespace flags_internal {
 
 HelpMode ParseAbseilFlagsOnlyImpl(
-    int argc, char* argv[], std::vector<char*>& positional_args,
-    std::vector<UnrecognizedFlag>& unrecognized_flags,
-    UsageFlagsAction usage_flag_action);
+    int argc, char* argv[], std::vector<char*>& positional_args, std::vector<UnrecognizedFlag>& unrecognized_flags, UsageFlagsAction usage_flag_action);
 
-}  // namespace flags_internal
+} // namespace flags_internal
 
 // ParseAbseilFlagsOnly()
 //
@@ -93,16 +94,13 @@ HelpMode ParseAbseilFlagsOnlyImpl(
 // that appear within `undefok` will therefore be ignored and not included in
 // the `unrecognized_flag` output parameter.
 //
-void ParseAbseilFlagsOnly(int argc, char* argv[],
-                          std::vector<char*>& positional_args,
-                          std::vector<UnrecognizedFlag>& unrecognized_flags);
+void ParseAbseilFlagsOnly(int argc, char* argv[], std::vector<char*>& positional_args, std::vector<UnrecognizedFlag>& unrecognized_flags);
 
 // ReportUnrecognizedFlags()
 //
 // Reports an error to `stderr` for all non-ignored unrecognized flags in
 // the provided `unrecognized_flags` list.
-void ReportUnrecognizedFlags(
-    const std::vector<UnrecognizedFlag>& unrecognized_flags);
+void ReportUnrecognizedFlags(const std::vector<UnrecognizedFlag>& unrecognized_flags);
 
 // ParseCommandLine()
 //
@@ -125,6 +123,6 @@ void ReportUnrecognizedFlags(
 std::vector<char*> ParseCommandLine(int argc, char* argv[]);
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FLAGS_PARSE_H_
+#endif // ABSL_FLAGS_PARSE_H_

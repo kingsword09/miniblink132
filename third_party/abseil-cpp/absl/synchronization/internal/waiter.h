@@ -62,8 +62,8 @@ using Waiter = Win32Waiter;
 using Waiter = StdcppWaiter;
 #endif
 
-}  // namespace synchronization_internal
+} // namespace synchronization_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_SYNCHRONIZATION_INTERNAL_WAITER_H_
+#endif // ABSL_SYNCHRONIZATION_INTERNAL_WAITER_H_

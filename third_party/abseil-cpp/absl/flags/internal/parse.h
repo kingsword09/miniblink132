@@ -36,11 +36,7 @@ ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 
 enum class UsageFlagsAction { kHandleUsage, kIgnoreUsage };
-enum class OnUndefinedFlag {
-  kIgnoreUndefined,
-  kReportUndefined,
-  kAbortIfUndefined
-};
+enum class OnUndefinedFlag { kIgnoreUndefined, kReportUndefined, kAbortIfUndefined };
 
 // This is not a public interface. This interface exists to expose the ability
 // to change help output stream in case of parsing errors. This is used by
@@ -48,9 +44,7 @@ enum class OnUndefinedFlag {
 // When this was written, `EXPECT_EXIT` only supported matchers on stderr,
 // but not on stdout.
 std::vector<char*> ParseCommandLineImpl(
-    int argc, char* argv[], UsageFlagsAction usage_flag_action,
-    OnUndefinedFlag undef_flag_action,
-    std::ostream& error_help_output = std::cout);
+    int argc, char* argv[], UsageFlagsAction usage_flag_action, OnUndefinedFlag undef_flag_action, std::ostream& error_help_output = std::cout);
 
 // --------------------------------------------------------------------
 // Inspect original command line
@@ -63,8 +57,8 @@ bool WasPresentOnCommandLine(absl::string_view flag_name);
 // misspellings.
 std::vector<std::string> GetMisspellingHints(absl::string_view flag);
 
-}  // namespace flags_internal
+} // namespace flags_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FLAGS_INTERNAL_PARSE_H_
+#endif // ABSL_FLAGS_INTERNAL_PARSE_H_

@@ -51,46 +51,47 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace time_internal {
 class UnscaledCycleClockWrapperForGetCurrentTime;
-}  // namespace time_internal
+} // namespace time_internal
 
 namespace base_internal {
 class CycleClock;
 class UnscaledCycleClockWrapperForInitializeFrequency;
 
 class UnscaledCycleClock {
- private:
-  UnscaledCycleClock() = delete;
+private:
+    UnscaledCycleClock() = delete;
 
-  // Return the value of a cycle counter that counts at a rate that is
-  // approximately constant.
-  static int64_t Now();
+    // Return the value of a cycle counter that counts at a rate that is
+    // approximately constant.
+    static int64_t Now();
 
-  // Return the how much UnscaledCycleClock::Now() increases per second.
-  // This is not necessarily the core CPU clock frequency.
-  // It may be the nominal value report by the kernel, rather than a measured
-  // value.
-  static double Frequency();
+    // Return the how much UnscaledCycleClock::Now() increases per second.
+    // This is not necessarily the core CPU clock frequency.
+    // It may be the nominal value report by the kernel, rather than a measured
+    // value.
+    static double Frequency();
 
-  // Allowed users
-  friend class base_internal::CycleClock;
-  friend class time_internal::UnscaledCycleClockWrapperForGetCurrentTime;
-  friend class base_internal::UnscaledCycleClockWrapperForInitializeFrequency;
+    // Allowed users
+    friend class base_internal::CycleClock;
+    friend class time_internal::UnscaledCycleClockWrapperForGetCurrentTime;
+    friend class base_internal::UnscaledCycleClockWrapperForInitializeFrequency;
 };
 
 #if defined(__x86_64__)
 
-inline int64_t UnscaledCycleClock::Now() {
-  uint64_t low, high;
-  __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
-  return static_cast<int64_t>((high << 32) | low);
+inline int64_t UnscaledCycleClock::Now()
+{
+    uint64_t low, high;
+    __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
+    return static_cast<int64_t>((high << 32) | low);
 }
 
 #endif
 
-}  // namespace base_internal
+} // namespace base_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_USE_UNSCALED_CYCLECLOCK
+#endif // ABSL_USE_UNSCALED_CYCLECLOCK
 
-#endif  // ABSL_BASE_INTERNAL_UNSCALEDCYCLECLOCK_H_
+#endif // ABSL_BASE_INTERNAL_UNSCALEDCYCLECLOCK_H_

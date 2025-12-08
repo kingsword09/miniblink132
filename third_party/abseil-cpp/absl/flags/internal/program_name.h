@@ -43,8 +43,8 @@ std::string ShortProgramInvocationName();
 // during program initialization, before any threads are spawned.
 void SetProgramInvocationName(absl::string_view prog_name_str);
 
-}  // namespace flags_internal
+} // namespace flags_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FLAGS_INTERNAL_PROGRAM_NAME_H_
+#endif // ABSL_FLAGS_INTERNAL_PROGRAM_NAME_H_

@@ -35,37 +35,39 @@ ABSL_NAMESPACE_BEGIN
 // `absl::AddLogSink`).  Implementations must not take any locks that might be
 // held by the `LOG` caller.
 class LogSink {
- public:
-  virtual ~LogSink() = default;
+public:
+    virtual ~LogSink() = default;
 
-  // LogSink::Send()
-  //
-  // `Send` is called synchronously during the log statement.  `Send` must be
-  // thread-safe.
-  //
-  // It is safe to use `LOG` within an implementation of `Send`.  `ToSinkOnly`
-  // and `ToSinkAlso` are safe in general but can be used to create an infinite
-  // loop if you try.
-  virtual void Send(const absl::LogEntry& entry) = 0;
+    // LogSink::Send()
+    //
+    // `Send` is called synchronously during the log statement.  `Send` must be
+    // thread-safe.
+    //
+    // It is safe to use `LOG` within an implementation of `Send`.  `ToSinkOnly`
+    // and `ToSinkAlso` are safe in general but can be used to create an infinite
+    // loop if you try.
+    virtual void Send(const absl::LogEntry& entry) = 0;
 
-  // LogSink::Flush()
-  //
-  // Sinks that buffer messages should override this method to flush the buffer
-  // and return.  `Flush` must be thread-safe.
-  virtual void Flush() {}
+    // LogSink::Flush()
+    //
+    // Sinks that buffer messages should override this method to flush the buffer
+    // and return.  `Flush` must be thread-safe.
+    virtual void Flush()
+    {
+    }
 
- protected:
-  LogSink() = default;
-  // Implementations may be copyable and/or movable.
-  LogSink(const LogSink&) = default;
-  LogSink& operator=(const LogSink&) = default;
+protected:
+    LogSink() = default;
+    // Implementations may be copyable and/or movable.
+    LogSink(const LogSink&) = default;
+    LogSink& operator=(const LogSink&) = default;
 
- private:
-  // https://lld.llvm.org/missingkeyfunction.html#missing-key-function
-  virtual void KeyFunction() const final;  // NOLINT(readability/inheritance)
+private:
+    // https://lld.llvm.org/missingkeyfunction.html#missing-key-function
+    virtual void KeyFunction() const final; // NOLINT(readability/inheritance)
 };
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_LOG_LOG_SINK_H_
+#endif // ABSL_LOG_LOG_SINK_H_

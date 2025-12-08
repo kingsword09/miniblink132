@@ -1,4 +1,4 @@
-// Copyright 2019 The Abseil Authors.
+﻿// Copyright 2019 The Abseil Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@
 #define ABSL_OPTION_USE_STD_OPTIONAL 0
 #define ABSL_OPTION_USE_STD_STRING_VIEW 0
 #define ABSL_OPTION_USE_STD_VARIANT 0
-#define ABSL_OPTION_USE_STD_ORDERING 0
 #define ABSL_OPTION_USE_INLINE_NAMESPACE 1
 #define ABSL_OPTION_INLINE_NAMESPACE_NAME ns
 #define ABSL_OPTION_HARDENED 1
 
-#endif  // ABSL_CI_ABSL_ALTERNATE_OPTIONS_H_
+#endif // ABSL_CI_ABSL_ALTERNATE_OPTIONS_H_

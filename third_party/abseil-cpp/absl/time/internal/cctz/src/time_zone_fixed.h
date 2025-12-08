@@ -44,9 +44,9 @@ bool FixedOffsetFromName(const std::string& name, seconds* offset);
 std::string FixedOffsetToName(const seconds& offset);
 std::string FixedOffsetToAbbr(const seconds& offset);
 
-}  // namespace cctz
-}  // namespace time_internal
+} // namespace cctz
+} // namespace time_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_TIME_INTERNAL_CCTZ_TIME_ZONE_FIXED_H_
+#endif // ABSL_TIME_INTERNAL_CCTZ_TIME_ZONE_FIXED_H_

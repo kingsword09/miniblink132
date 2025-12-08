@@ -34,8 +34,8 @@ constexpr int LogEntry::kNoVerboseLevel;
 namespace log_internal {
 extern const char kAvoidEmptyLogEntryLibraryWarning;
 const char kAvoidEmptyLogEntryLibraryWarning = 0;
-}  // namespace log_internal
-#endif  // __APPLE__
+} // namespace log_internal
+#endif // __APPLE__
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl

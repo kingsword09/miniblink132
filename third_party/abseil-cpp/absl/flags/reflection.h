@@ -34,7 +34,7 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 class FlagSaverImpl;
-}  // namespace flags_internal
+} // namespace flags_internal
 
 // FindCommandLineFlag()
 //
@@ -71,20 +71,20 @@ absl::flat_hash_map<absl::string_view, absl::CommandLineFlag*> GetAllFlags();
 // This class is thread-safe.
 
 class FlagSaver {
- public:
-  FlagSaver();
-  ~FlagSaver();
+public:
+    FlagSaver();
+    ~FlagSaver();
 
-  FlagSaver(const FlagSaver&) = delete;
-  void operator=(const FlagSaver&) = delete;
+    FlagSaver(const FlagSaver&) = delete;
+    void operator=(const FlagSaver&) = delete;
 
- private:
-  flags_internal::FlagSaverImpl* impl_;
+private:
+    flags_internal::FlagSaverImpl* impl_;
 };
 
 //-----------------------------------------------------------------------------
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FLAGS_REFLECTION_H_
+#endif // ABSL_FLAGS_REFLECTION_H_

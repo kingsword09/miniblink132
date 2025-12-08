@@ -16,8 +16,8 @@
 #ifndef ABSL_SYNCHRONIZATION_INTERNAL_STDCPP_WAITER_H_
 #define ABSL_SYNCHRONIZATION_INTERNAL_STDCPP_WAITER_H_
 
-#include <condition_variable>  // NOLINT(build/c++11)
-#include <mutex>  // NOLINT(build/c++11)
+#include <condition_variable> // NOLINT(build/c++11)
+#include <mutex> // NOLINT(build/c++11)
 
 #include "absl/base/config.h"
 #include "absl/synchronization/internal/kernel_timeout.h"
@@ -30,27 +30,27 @@ namespace synchronization_internal {
 #define ABSL_INTERNAL_HAVE_STDCPP_WAITER 1
 
 class StdcppWaiter : public WaiterCrtp<StdcppWaiter> {
- public:
-  StdcppWaiter();
+public:
+    StdcppWaiter();
 
-  bool Wait(KernelTimeout t);
-  void Post();
-  void Poke();
+    bool Wait(KernelTimeout t);
+    void Post();
+    void Poke();
 
-  static constexpr char kName[] = "StdcppWaiter";
+    static constexpr char kName[] = "StdcppWaiter";
 
- private:
-  // REQUIRES: mu_ must be held.
-  void InternalCondVarPoke();
+private:
+    // REQUIRES: mu_ must be held.
+    void InternalCondVarPoke();
 
-  std::mutex mu_;
-  std::condition_variable cv_;
-  int waiter_count_;
-  int wakeup_count_;  // Unclaimed wakeups.
+    std::mutex mu_;
+    std::condition_variable cv_;
+    int waiter_count_;
+    int wakeup_count_; // Unclaimed wakeups.
 };
 
-}  // namespace synchronization_internal
+} // namespace synchronization_internal
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_SYNCHRONIZATION_INTERNAL_STDCPP_WAITER_H_
+#endif // ABSL_SYNCHRONIZATION_INTERNAL_STDCPP_WAITER_H_

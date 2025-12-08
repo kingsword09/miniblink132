@@ -1,4 +1,4 @@
-#ifndef __INF_COVER_H__
+﻿#ifndef __INF_COVER_H__
 #define __INF_COVER_H__
 
 void cover_support(void);

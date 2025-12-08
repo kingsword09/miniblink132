@@ -46,47 +46,45 @@
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 
-#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && \
-    ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L
+#if defined(ABSL_INTERNAL_CPLUSPLUS_LANG) && ABSL_INTERNAL_CPLUSPLUS_LANG >= 201703L
 
-template <typename... T>
-struct Overload final : T... {
-  using T::operator()...;
+template <typename... T> struct Overload final : T... {
+    using T::operator()...;
 
-  // For historical reasons we want to support use that looks like a function
-  // call:
-  //
-  //     absl::Overload(lambda_1, lambda_2)
-  //
-  // This works automatically in C++20 because we have support for parenthesized
-  // aggregate initialization. Before then we must provide a constructor that
-  // makes this work.
-  //
-  constexpr explicit Overload(T... ts) : T(std::move(ts))... {}
+    // For historical reasons we want to support use that looks like a function
+    // call:
+    //
+    //     absl::Overload(lambda_1, lambda_2)
+    //
+    // This works automatically in C++20 because we have support for parenthesized
+    // aggregate initialization. Before then we must provide a constructor that
+    // makes this work.
+    //
+    constexpr explicit Overload(T... ts)
+        : T(std::move(ts))...
+    {
+    }
 };
 
 // Before C++20, which added support for CTAD for aggregate types, we must also
 // teach the compiler how to deduce the template arguments for Overload.
 //
-template <typename... T>
-Overload(T...) -> Overload<T...>;
+template <typename... T> Overload(T...) -> Overload<T...>;
 
 #else
 
 namespace functional_internal {
-template <typename T>
-constexpr bool kDependentFalse = false;
+template <typename T> constexpr bool kDependentFalse = false;
 }
 
-template <typename Dependent = int, typename... T>
-auto Overload(T&&...) {
-  static_assert(functional_internal::kDependentFalse<Dependent>,
-                "Overload is only usable with C++17 or above.");
+template <typename Dependent = int, typename... T> auto Overload(T&&...)
+{
+    static_assert(functional_internal::kDependentFalse<Dependent>, "Overload is only usable with C++17 or above.");
 }
 
 #endif
 
 ABSL_NAMESPACE_END
-}  // namespace absl
+} // namespace absl
 
-#endif  // ABSL_FUNCTIONAL_OVERLOAD_H_
+#endif // ABSL_FUNCTIONAL_OVERLOAD_H_

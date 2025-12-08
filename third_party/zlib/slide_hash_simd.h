@@ -1,4 +1,4 @@
-/* slide_hash_simd.h
+﻿/* slide_hash_simd.h
  *
  * Copyright 2022 The Chromium Authors
  * Use of this source code is governed by a BSD-style license that can be
@@ -24,35 +24,35 @@
 
 #elif defined(DEFLATE_SLIDE_HASH_SSE2)
 
-#include <emmintrin.h>  /* SSE2 */
+#include <emmintrin.h> /* SSE2 */
 
 #define Z_SLIDE_INIT_SIMD(wsize) _mm_set1_epi16((ush)(wsize))
 
-#define Z_SLIDE_HASH_SIMD(table, size, vector_wsize) \
-    for (const Posf* const end = table + size; table != end;) { \
-        __m128i vO = _mm_loadu_si128((__m128i *)(table + 0)); \
-        vO = _mm_subs_epu16(vO, vector_wsize); \
-        _mm_storeu_si128((__m128i *)(table + 0), vO); \
-        table += 8; \
+#define Z_SLIDE_HASH_SIMD(table, size, vector_wsize)                                                                                                           \
+    for (const Posf* const end = table + size; table != end;) {                                                                                                \
+        __m128i vO = _mm_loadu_si128((__m128i*)(table + 0));                                                                                                   \
+        vO = _mm_subs_epu16(vO, vector_wsize);                                                                                                                 \
+        _mm_storeu_si128((__m128i*)(table + 0), vO);                                                                                                           \
+        table += 8;                                                                                                                                            \
     }
 
 typedef __m128i z_vec128i_u16x8_t;
 
 #elif defined(DEFLATE_SLIDE_HASH_NEON)
 
-#include <arm_neon.h>  /* NEON */
+#include <arm_neon.h> /* NEON */
 
 #define Z_SLIDE_INIT_SIMD(wsize) vdupq_n_u16((ush)(wsize))
 
-#define Z_SLIDE_HASH_SIMD(table, size, vector_wsize) \
-    for (const Posf* const end = table + size; table != end;) { \
-        uint16x8_t vO = vld1q_u16(table + 0); \
-        uint16x8_t v8 = vld1q_u16(table + 8); \
-        vO = vqsubq_u16(vO, vector_wsize); \
-        v8 = vqsubq_u16(v8, vector_wsize); \
-        vst1q_u16(table + 0, vO); \
-        vst1q_u16(table + 8, v8); \
-        table += 8 + 8; \
+#define Z_SLIDE_HASH_SIMD(table, size, vector_wsize)                                                                                                           \
+    for (const Posf* const end = table + size; table != end;) {                                                                                                \
+        uint16x8_t vO = vld1q_u16(table + 0);                                                                                                                  \
+        uint16x8_t v8 = vld1q_u16(table + 8);                                                                                                                  \
+        vO = vqsubq_u16(vO, vector_wsize);                                                                                                                     \
+        v8 = vqsubq_u16(v8, vector_wsize);                                                                                                                     \
+        vst1q_u16(table + 0, vO);                                                                                                                              \
+        vst1q_u16(table + 8, v8);                                                                                                                              \
+        table += 8 + 8;                                                                                                                                        \
     }
 
 typedef uint16x8_t z_vec128i_u16x8_t;
@@ -68,8 +68,8 @@ typedef uint16x8_t z_vec128i_u16x8_t;
  * bit values at the expense of memory usage). We slide even when level == 0 to
  * keep the hash table consistent if we switch back to level > 0 later.
  */
-local INLINE void slide_hash_simd(
-    Posf *head, Posf *prev, const uInt w_size, const uInt hash_size) {
+local INLINE void slide_hash_simd(Posf* head, Posf* prev, const uInt w_size, const uInt hash_size)
+{
     /*
      * The SIMD implementation of the hash table slider assumes:
      *
@@ -87,10 +87,8 @@ local INLINE void slide_hash_simd(
      * since the NEON table slider moves two 128-bit items per loop (loop is
      * unrolled on NEON for performance, see http://crbug.com/863257).
      */
-    Assert(!((hash_size * sizeof(head[0])) & (32 - 1)),
-        "Hash table size error: should be a multiple of 32 bytes");
-    Assert(!((w_size * sizeof(prev[0])) & (32 - 1)),
-        "Prev table size error: should be a multiple of 32 bytes");
+    Assert(!((hash_size * sizeof(head[0])) & (32 - 1)), "Hash table size error: should be a multiple of 32 bytes");
+    Assert(!((w_size * sizeof(prev[0])) & (32 - 1)), "Prev table size error: should be a multiple of 32 bytes");
 
     /*
      * Duplicate (ush)w_size in each uint16_t component of a 128-bit vector.
@@ -106,11 +104,10 @@ local INLINE void slide_hash_simd(
 #ifndef FASTEST
     Z_SLIDE_HASH_SIMD(prev, w_size, vec_wsize);
 #endif
-
 }
 
 #undef z_vec128i_u16x8_t
 #undef Z_SLIDE_HASH_SIMD
 #undef Z_SLIDE_INIT_SIMD
 
-#endif  /* SLIDE_HASH_SIMD_H */
+#endif /* SLIDE_HASH_SIMD_H */

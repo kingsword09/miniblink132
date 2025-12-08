@@ -1,6 +1,5 @@
 /* inffast_chunk.c -- fast decoding
  * Copyright (C) 1995-2017 Mark Adler
- * Copyright 2023 The Chromium Authors
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -11,7 +10,7 @@
 #include "contrib/optimizations/chunkcopy.h"
 
 #ifdef ASMINF
-#  pragma message("Assembler code may have bugs -- use at your own risk")
+#pragma message("Assembler code may have bugs -- use at your own risk")
 #else
 
 /*
@@ -25,8 +24,8 @@
    Entry assumptions:
 
         state->mode == LEN
-        strm->avail_in >= INFLATE_FAST_MIN_INPUT (6 or 8 bytes + 7 bytes)
-        strm->avail_out >= INFLATE_FAST_MIN_OUTPUT (258 bytes + 2 bytes)
+        strm->avail_in >= INFLATE_FAST_MIN_INPUT (6 or 8 bytes)
+        strm->avail_out >= INFLATE_FAST_MIN_OUTPUT (258 bytes)
         start >= strm->avail_out
         state->bits < 8
         (state->hold >> state->bits) == 0
@@ -43,7 +42,7 @@
 
    Notes:
 
-    INFLATE_FAST_MIN_INPUT: 6 or 8 bytes + 7 bytes
+    INFLATE_FAST_MIN_INPUT: 6 or 8 bytes
 
     - The maximum input bits used by a length/distance pair is 15 bits for the
       length code, 5 bits for the length extra, 15 bits for the distance code,
@@ -65,43 +64,46 @@
 
           (state->hold >> state->bits) == 0
 
-    INFLATE_FAST_MIN_OUTPUT: 258 bytes + 2 bytes for literals = 260 bytes
+    INFLATE_FAST_MIN_OUTPUT: 258 bytes
 
     - The maximum bytes that a single length/distance pair can output is 258
       bytes, which is the maximum length that can be coded.  inflate_fast()
-      requires strm->avail_out >= 260 for each loop to avoid checking for
+      requires strm->avail_out >= 258 for each loop to avoid checking for
       available output space while decoding.
  */
-void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
-    struct inflate_state FAR *state;
-    z_const unsigned char FAR *in;      /* local strm->next_in */
-    z_const unsigned char FAR *last;    /* have enough input while in < last */
-    unsigned char FAR *out;     /* local strm->next_out */
-    unsigned char FAR *beg;     /* inflate()'s initial strm->next_out */
-    unsigned char FAR *end;     /* while out < end, enough space available */
-    unsigned char FAR *limit;   /* safety limit for chunky copies */
+void ZLIB_INTERNAL inflate_fast_chunk_(strm, start)
+z_streamp strm;
+unsigned start; /* inflate()'s starting value for strm->avail_out */
+{
+    struct inflate_state FAR* state;
+    z_const unsigned char FAR* in; /* local strm->next_in */
+    z_const unsigned char FAR* last; /* have enough input while in < last */
+    unsigned char FAR* out; /* local strm->next_out */
+    unsigned char FAR* beg; /* inflate()'s initial strm->next_out */
+    unsigned char FAR* end; /* while out < end, enough space available */
+    unsigned char FAR* limit; /* safety limit for chunky copies */
 #ifdef INFLATE_STRICT
-    unsigned dmax;              /* maximum distance from zlib header */
+    unsigned dmax; /* maximum distance from zlib header */
 #endif
-    unsigned wsize;             /* window size or zero if not using window */
-    unsigned whave;             /* valid bytes in the window */
-    unsigned wnext;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
-    inflate_holder_t hold;      /* local strm->hold */
-    unsigned bits;              /* local strm->bits */
-    code const FAR *lcode;      /* local strm->lencode */
-    code const FAR *dcode;      /* local strm->distcode */
-    unsigned lmask;             /* mask for first level of length codes */
-    unsigned dmask;             /* mask for first level of distance codes */
-    code const *here;           /* retrieved table entry */
-    unsigned op;                /* code bits, operation, extra bits, or */
-                                /*  window position, window bytes to copy */
-    unsigned len;               /* match length, unused bytes */
-    unsigned dist;              /* match distance */
-    unsigned char FAR *from;    /* where to copy match from */
+    unsigned wsize; /* window size or zero if not using window */
+    unsigned whave; /* valid bytes in the window */
+    unsigned wnext; /* window write index */
+    unsigned char FAR* window; /* allocated sliding window, if wsize != 0 */
+    inflate_holder_t hold; /* local strm->hold */
+    unsigned bits; /* local strm->bits */
+    code const FAR* lcode; /* local strm->lencode */
+    code const FAR* dcode; /* local strm->distcode */
+    unsigned lmask; /* mask for first level of length codes */
+    unsigned dmask; /* mask for first level of distance codes */
+    code const* here; /* retrieved table entry */
+    unsigned op; /* code bits, operation, extra bits, or */
+    /*  window position, window bytes to copy */
+    unsigned len; /* match length, unused bytes */
+    unsigned dist; /* match distance */
+    unsigned char FAR* from; /* where to copy match from */
 
     /* copy state to local variables */
-    state = (struct inflate_state FAR *)strm->state;
+    state = (struct inflate_state FAR*)strm->state;
     in = strm->next_in;
     last = in + (strm->avail_in - (INFLATE_FAST_MIN_INPUT - 1));
     out = strm->next_out;
@@ -122,98 +124,75 @@ void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
     lmask = (1U << state->lenbits) - 1;
     dmask = (1U << state->distbits) - 1;
 
-#ifdef INFLATE_CHUNK_READ_64LE
-#define REFILL() do { \
-        Assert(bits < 64, "### Too many bits in inflate_fast."); \
-        hold |= read64le(in) << bits; \
-        in += 7; \
-        in -= bits >> 3; \
-        bits |= 56; \
-    } while (0)
-#endif
-
     /* decode literals and length/distances until end-of-block or not enough
        input data or output space */
     do {
-#ifdef INFLATE_CHUNK_READ_64LE
-        REFILL();
-#else
         if (bits < 15) {
-            hold += (unsigned long)(*in++) << bits;
-            bits += 8;
-            hold += (unsigned long)(*in++) << bits;
-            bits += 8;
-        }
-#endif
-        here = lcode + (hold & lmask);
 #ifdef INFLATE_CHUNK_READ_64LE
-        if (here->op == 0) {                    /* literal */
-            Tracevv((stderr, here->val >= 0x20 && here->val < 0x7f ?
-                    "inflate:         literal '%c'\n" :
-                    "inflate:         literal 0x%02x\n", here->val));
-            *out++ = (unsigned char)(here->val);
-            hold >>= here->bits;
-            bits -= here->bits;
-            here = lcode + (hold & lmask);
-            if (here->op == 0) {                /* literal */
-                Tracevv((stderr, here->val >= 0x20 && here->val < 0x7f ?
-                        "inflate:    2nd  literal '%c'\n" :
-                        "inflate:    2nd  literal 0x%02x\n", here->val));
-                *out++ = (unsigned char)(here->val);
-                hold >>= here->bits;
-                bits -= here->bits;
-                here = lcode + (hold & lmask);
-            }
-        }
+            hold |= read64le(in) << bits;
+            in += 6;
+            bits += 48;
+#else
+            hold += (unsigned long)(*in++) << bits;
+            bits += 8;
+            hold += (unsigned long)(*in++) << bits;
+            bits += 8;
 #endif
-      dolen:
+        }
+        here = lcode + (hold & lmask);
+    dolen:
         op = (unsigned)(here->bits);
         hold >>= op;
         bits -= op;
         op = (unsigned)(here->op);
-        if (op == 0) {                          /* literal */
-            Tracevv((stderr, here->val >= 0x20 && here->val < 0x7f ?
-                    "inflate:         literal '%c'\n" :
-                    "inflate:         literal 0x%02x\n", here->val));
+        if (op == 0) { /* literal */
+            Tracevv((stderr, here->val >= 0x20 && here->val < 0x7f ? "inflate:         literal '%c'\n" : "inflate:         literal 0x%02x\n", here->val));
             *out++ = (unsigned char)(here->val);
-        }
-        else if (op & 16) {                     /* length base */
+        } else if (op & 16) { /* length base */
             len = (unsigned)(here->val);
-            op &= 15;                           /* number of extra bits */
+            op &= 15; /* number of extra bits */
             if (op) {
-#ifndef INFLATE_CHUNK_READ_64LE
                 if (bits < op) {
+#ifdef INFLATE_CHUNK_READ_64LE
+                    hold |= read64le(in) << bits;
+                    in += 6;
+                    bits += 48;
+#else
                     hold += (unsigned long)(*in++) << bits;
                     bits += 8;
-                }
 #endif
+                }
                 len += (unsigned)hold & ((1U << op) - 1);
                 hold >>= op;
                 bits -= op;
             }
             Tracevv((stderr, "inflate:         length %u\n", len));
-#ifndef INFLATE_CHUNK_READ_64LE
             if (bits < 15) {
+#ifdef INFLATE_CHUNK_READ_64LE
+                hold |= read64le(in) << bits;
+                in += 6;
+                bits += 48;
+#else
                 hold += (unsigned long)(*in++) << bits;
                 bits += 8;
                 hold += (unsigned long)(*in++) << bits;
                 bits += 8;
-            }
 #endif
+            }
             here = dcode + (hold & dmask);
-          dodist:
+        dodist:
             op = (unsigned)(here->bits);
             hold >>= op;
             bits -= op;
             op = (unsigned)(here->op);
-            if (op & 16) {                      /* distance base */
+            if (op & 16) { /* distance base */
                 dist = (unsigned)(here->val);
-                op &= 15;                       /* number of extra bits */
-                /* we have two fast-path loads: 10+10 + 15+5 + 15 = 55,
-                   but we may need to refill here in the worst case */
+                op &= 15; /* number of extra bits */
                 if (bits < op) {
 #ifdef INFLATE_CHUNK_READ_64LE
-                    REFILL();
+                    hold |= read64le(in) << bits;
+                    in += 6;
+                    bits += 48;
 #else
                     hold += (unsigned long)(*in++) << bits;
                     bits += 8;
@@ -226,7 +205,7 @@ void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
                 dist += (unsigned)hold & ((1U << op) - 1);
 #ifdef INFLATE_STRICT
                 if (dist > dmax) {
-                    strm->msg = (char *)"invalid distance too far back";
+                    strm->msg = (char*)"invalid distance too far back";
                     state->mode = BAD;
                     break;
                 }
@@ -234,13 +213,12 @@ void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
                 hold >>= op;
                 bits -= op;
                 Tracevv((stderr, "inflate:         distance %u\n", dist));
-                op = (unsigned)(out - beg);     /* max distance in output */
-                if (dist > op) {                /* see if copy from window */
-                    op = dist - op;             /* distance back in window */
+                op = (unsigned)(out - beg); /* max distance in output */
+                if (dist > op) { /* see if copy from window */
+                    op = dist - op; /* distance back in window */
                     if (op > whave) {
                         if (state->sane) {
-                            strm->msg =
-                                (char *)"invalid distance too far back";
+                            strm->msg = (char*)"invalid distance too far back";
                             state->mode = BAD;
                             break;
                         }
@@ -265,23 +243,22 @@ void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
 #endif
                     }
                     from = window;
-                    if (wnext >= op) {          /* contiguous in window */
+                    if (wnext >= op) { /* contiguous in window */
                         from += wnext - op;
-                    }
-                    else {                      /* wrap around window */
+                    } else { /* wrap around window */
                         op -= wnext;
                         from += wsize - op;
-                        if (op < len) {         /* some from end of window */
+                        if (op < len) { /* some from end of window */
                             len -= op;
                             out = chunkcopy_safe(out, from, op, limit);
-                            from = window;      /* more from start of window */
+                            from = window; /* more from start of window */
                             op = wnext;
                             /* This (rare) case can create a situation where
                                the first chunkcopy below must be checked.
                              */
                         }
                     }
-                    if (op < len) {             /* still need some from output */
+                    if (op < len) { /* still need some from output */
                         out = chunkcopy_safe(out, from, op, limit);
                         len -= op;
                         /* When dist is small the amount of data that can be
@@ -301,8 +278,7 @@ void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
                          */
                         out = chunkcopy_safe(out, from, len, limit);
                     }
-                }
-                else {
+                } else {
                     /* Whole reference is in range of current output.  No
                        range checks are necessary because we start with room
                        for at least 258 bytes of output, so unroll and roundoff
@@ -311,28 +287,23 @@ void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
                      */
                     out = chunkcopy_lapped_relaxed(out, dist, len);
                 }
-            }
-            else if ((op & 64) == 0) {          /* 2nd level distance code */
+            } else if ((op & 64) == 0) { /* 2nd level distance code */
                 here = dcode + here->val + (hold & ((1U << op) - 1));
                 goto dodist;
-            }
-            else {
-                strm->msg = (char *)"invalid distance code";
+            } else {
+                strm->msg = (char*)"invalid distance code";
                 state->mode = BAD;
                 break;
             }
-        }
-        else if ((op & 64) == 0) {              /* 2nd level length code */
+        } else if ((op & 64) == 0) { /* 2nd level length code */
             here = lcode + here->val + (hold & ((1U << op) - 1));
             goto dolen;
-        }
-        else if (op & 32) {                     /* end-of-block */
+        } else if (op & 32) { /* end-of-block */
             Tracevv((stderr, "inflate:         end of block\n"));
             state->mode = TYPE;
             break;
-        }
-        else {
-            strm->msg = (char *)"invalid literal/length code";
+        } else {
+            strm->msg = (char*)"invalid literal/length code";
             state->mode = BAD;
             break;
         }
@@ -347,16 +318,13 @@ void ZLIB_INTERNAL inflate_fast_chunk_(z_streamp strm, unsigned start) {
     /* update state and return */
     strm->next_in = in;
     strm->next_out = out;
-    strm->avail_in = (unsigned)(in < last ?
-        (INFLATE_FAST_MIN_INPUT - 1) + (last - in) :
-        (INFLATE_FAST_MIN_INPUT - 1) - (in - last));
-    strm->avail_out = (unsigned)(out < end ?
-        (INFLATE_FAST_MIN_OUTPUT - 1) + (end - out) :
-        (INFLATE_FAST_MIN_OUTPUT - 1) - (out - end));
+    strm->avail_in = (unsigned)(in < last ? (INFLATE_FAST_MIN_INPUT - 1) + (last - in) : (INFLATE_FAST_MIN_INPUT - 1) - (in - last));
+    strm->avail_out = (unsigned)(out < end ? (INFLATE_FAST_MIN_OUTPUT - 1) + (end - out) : (INFLATE_FAST_MIN_OUTPUT - 1) - (out - end));
     state->hold = hold;
     state->bits = bits;
 
     Assert((state->hold >> state->bits) == 0, "invalid input data state");
+    return;
 }
 
 /*

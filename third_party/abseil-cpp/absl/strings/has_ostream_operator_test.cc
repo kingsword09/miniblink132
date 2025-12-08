@@ -22,20 +22,22 @@
 
 namespace {
 
-struct TypeWithoutOstreamOp {};
+struct TypeWithoutOstreamOp { };
 
 struct TypeWithOstreamOp {
-  friend std::ostream& operator<<(std::ostream& os, const TypeWithOstreamOp&) {
-    return os;
-  }
+    friend std::ostream& operator<<(std::ostream& os, const TypeWithOstreamOp&)
+    {
+        return os;
+    }
 };
 
-TEST(HasOstreamOperatorTest, Works) {
-  EXPECT_TRUE(absl::HasOstreamOperator<int>::value);
-  EXPECT_TRUE(absl::HasOstreamOperator<std::string>::value);
-  EXPECT_FALSE(absl::HasOstreamOperator<absl::optional<int>>::value);
-  EXPECT_FALSE(absl::HasOstreamOperator<TypeWithoutOstreamOp>::value);
-  EXPECT_TRUE(absl::HasOstreamOperator<TypeWithOstreamOp>::value);
+TEST(HasOstreamOperatorTest, Works)
+{
+    EXPECT_TRUE(absl::HasOstreamOperator<int>::value);
+    EXPECT_TRUE(absl::HasOstreamOperator<std::string>::value);
+    EXPECT_FALSE(absl::HasOstreamOperator<absl::optional<int>>::value);
+    EXPECT_FALSE(absl::HasOstreamOperator<TypeWithoutOstreamOp>::value);
+    EXPECT_TRUE(absl::HasOstreamOperator<TypeWithOstreamOp>::value);
 }
 
-}  // namespace
+} // namespace
