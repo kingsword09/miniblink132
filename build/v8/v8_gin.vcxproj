@@ -256,7 +256,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)../gen/v8arm64/third_party/perfetto/build_config;$(SolutionDir)../gen/v8arm64/third_party/perfetto/;$(SolutionDir)../third_party/perfetto;$(SolutionDir)../third_party/perfetto/include;$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib;$(SolutionDir)../base/allocator/partition_allocator/src;$(SolutionDir)../gen/base/allocator/partition_allocator/src;$(SolutionDir)../third_party/openssl/openssl/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../third_party/perfetto;$(SolutionDir)../third_party/icu/source/common;$(SolutionDir)../third_party/icu/source/i18n;$(SolutionDir)../gen;$(SolutionDir)../;$(SolutionDir)../v8;$(SolutionDir)../v8/include;$(SolutionDir)../third_party/abseil-cpp;$(SolutionDir)../third_party/fp16/src/include;$(SolutionDir)../third_party/zlib;$(SolutionDir)../base/allocator/partition_allocator/src;$(SolutionDir)../gen/base/allocator/partition_allocator/src;$(SolutionDir)../third_party/openssl/openssl/include</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
