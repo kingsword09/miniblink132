@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -14,37 +14,33 @@
 
 U_NAMESPACE_BEGIN
 
-
-FormattedValueFieldPositionIteratorImpl::FormattedValueFieldPositionIteratorImpl(
-        int32_t initialFieldCapacity,
-        UErrorCode& status)
-        : fFields(initialFieldCapacity * 4, status) {
+FormattedValueFieldPositionIteratorImpl::FormattedValueFieldPositionIteratorImpl(int32_t initialFieldCapacity, UErrorCode& status)
+    : fFields(initialFieldCapacity * 4, status)
+{
 }
 
 FormattedValueFieldPositionIteratorImpl::~FormattedValueFieldPositionIteratorImpl() = default;
 
-UnicodeString FormattedValueFieldPositionIteratorImpl::toString(
-        UErrorCode&) const {
+UnicodeString FormattedValueFieldPositionIteratorImpl::toString(UErrorCode&) const
+{
     return fString;
 }
 
-UnicodeString FormattedValueFieldPositionIteratorImpl::toTempString(
-        UErrorCode&) const {
+UnicodeString FormattedValueFieldPositionIteratorImpl::toTempString(UErrorCode&) const
+{
     // The alias must point to memory owned by this object;
     // fastCopyFrom doesn't do this when using a stack buffer.
-    return UnicodeString(true, fString.getBuffer(), fString.length());
+    return UnicodeString(TRUE, fString.getBuffer(), fString.length());
 }
 
-Appendable& FormattedValueFieldPositionIteratorImpl::appendTo(
-        Appendable& appendable,
-        UErrorCode&) const {
+Appendable& FormattedValueFieldPositionIteratorImpl::appendTo(Appendable& appendable, UErrorCode&) const
+{
     appendable.appendString(fString.getBuffer(), fString.length());
     return appendable;
 }
 
-UBool FormattedValueFieldPositionIteratorImpl::nextPosition(
-        ConstrainedFieldPosition& cfpos,
-        UErrorCode&) const {
+UBool FormattedValueFieldPositionIteratorImpl::nextPosition(ConstrainedFieldPosition& cfpos, UErrorCode&) const
+{
     U_ASSERT(fFields.size() % 4 == 0);
     int32_t numFields = fFields.size() / 4;
     int32_t i = static_cast<int32_t>(cfpos.getInt64IterationContext());
@@ -62,15 +58,13 @@ UBool FormattedValueFieldPositionIteratorImpl::nextPosition(
     return i < numFields;
 }
 
-
-FieldPositionIteratorHandler FormattedValueFieldPositionIteratorImpl::getHandler(
-        UErrorCode& status) {
+FieldPositionIteratorHandler FormattedValueFieldPositionIteratorImpl::getHandler(UErrorCode& status)
+{
     return FieldPositionIteratorHandler(&fFields, status);
 }
 
-void FormattedValueFieldPositionIteratorImpl::appendString(
-        UnicodeString string,
-        UErrorCode& status) {
+void FormattedValueFieldPositionIteratorImpl::appendString(UnicodeString string, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return;
     }
@@ -82,11 +76,8 @@ void FormattedValueFieldPositionIteratorImpl::appendString(
     }
 }
 
-
-void FormattedValueFieldPositionIteratorImpl::addOverlapSpans(
-        UFieldCategory spanCategory,
-        int8_t firstIndex,
-        UErrorCode& status) {
+void FormattedValueFieldPositionIteratorImpl::addOverlapSpans(UFieldCategory spanCategory, int8_t firstIndex, UErrorCode& status)
+{
     // In order to avoid fancy data structures, this is an O(N^2) algorithm,
     // which should be fine for all real-life applications of this function.
     int32_t s1a = INT32_MAX;
@@ -94,9 +85,9 @@ void FormattedValueFieldPositionIteratorImpl::addOverlapSpans(
     int32_t s2a = INT32_MAX;
     int32_t s2b = 0;
     int32_t numFields = fFields.size() / 4;
-    for (int32_t i = 0; i<numFields; i++) {
+    for (int32_t i = 0; i < numFields; i++) {
         int32_t field1 = fFields.elementAti(i * 4 + 1);
-        for (int32_t j = i + 1; j<numFields; j++) {
+        for (int32_t j = i + 1; j < numFields; j++) {
             int32_t field2 = fFields.elementAti(j * 4 + 1);
             if (field1 != field2) {
                 continue;
@@ -122,21 +113,21 @@ void FormattedValueFieldPositionIteratorImpl::addOverlapSpans(
     }
 }
 
-
-void FormattedValueFieldPositionIteratorImpl::sort() {
+void FormattedValueFieldPositionIteratorImpl::sort()
+{
     // Use bubble sort, O(N^2) but easy and no fancy data structures.
     int32_t numFields = fFields.size() / 4;
     while (true) {
         bool isSorted = true;
-        for (int32_t i=0; i<numFields-1; i++) {
-            int32_t categ1 = fFields.elementAti(i*4 + 0);
-            int32_t field1 = fFields.elementAti(i*4 + 1);
-            int32_t start1 = fFields.elementAti(i*4 + 2);
-            int32_t limit1 = fFields.elementAti(i*4 + 3);
-            int32_t categ2 = fFields.elementAti(i*4 + 4);
-            int32_t field2 = fFields.elementAti(i*4 + 5);
-            int32_t start2 = fFields.elementAti(i*4 + 6);
-            int32_t limit2 = fFields.elementAti(i*4 + 7);
+        for (int32_t i = 0; i < numFields - 1; i++) {
+            int32_t categ1 = fFields.elementAti(i * 4 + 0);
+            int32_t field1 = fFields.elementAti(i * 4 + 1);
+            int32_t start1 = fFields.elementAti(i * 4 + 2);
+            int32_t limit1 = fFields.elementAti(i * 4 + 3);
+            int32_t categ2 = fFields.elementAti(i * 4 + 4);
+            int32_t field2 = fFields.elementAti(i * 4 + 5);
+            int32_t start2 = fFields.elementAti(i * 4 + 6);
+            int32_t limit2 = fFields.elementAti(i * 4 + 7);
             int64_t comparison = 0;
             if (start1 != start2) {
                 // Higher start index -> higher rank
@@ -154,14 +145,14 @@ void FormattedValueFieldPositionIteratorImpl::sort() {
             if (comparison < 0) {
                 // Perform a swap
                 isSorted = false;
-                fFields.setElementAt(categ2, i*4 + 0);
-                fFields.setElementAt(field2, i*4 + 1);
-                fFields.setElementAt(start2, i*4 + 2);
-                fFields.setElementAt(limit2, i*4 + 3);
-                fFields.setElementAt(categ1, i*4 + 4);
-                fFields.setElementAt(field1, i*4 + 5);
-                fFields.setElementAt(start1, i*4 + 6);
-                fFields.setElementAt(limit1, i*4 + 7);
+                fFields.setElementAt(categ2, i * 4 + 0);
+                fFields.setElementAt(field2, i * 4 + 1);
+                fFields.setElementAt(start2, i * 4 + 2);
+                fFields.setElementAt(limit2, i * 4 + 3);
+                fFields.setElementAt(categ1, i * 4 + 4);
+                fFields.setElementAt(field1, i * 4 + 5);
+                fFields.setElementAt(start1, i * 4 + 6);
+                fFields.setElementAt(limit1, i * 4 + 7);
             }
         }
         if (isSorted) {
@@ -169,7 +160,6 @@ void FormattedValueFieldPositionIteratorImpl::sort() {
         }
     }
 }
-
 
 U_NAMESPACE_END
 

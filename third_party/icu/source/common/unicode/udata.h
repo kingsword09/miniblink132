@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -23,7 +23,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 U_CDECL_BEGIN
 
@@ -41,16 +41,16 @@ U_CDECL_BEGIN
  *
  * See the User Guide Data Management chapter.
  */
- 
+
 #ifndef U_HIDE_INTERNAL_API
 /**
- * Character used to separate package names from tree names 
+ * Character used to separate package names from tree names
  * @internal ICU 3.0
  */
 #define U_TREE_SEPARATOR '-'
 
 /**
- * String used to separate package names from tree names 
+ * String used to separate package names from tree names
  * @internal ICU 3.0
  */
 #define U_TREE_SEPARATOR_STRING "-"
@@ -68,7 +68,7 @@ U_CDECL_BEGIN
 #define U_TREE_ENTRY_SEP_STRING "/"
 
 /**
- * Alias for standard ICU data 
+ * Alias for standard ICU data
  * @internal ICU 3.0
  */
 #define U_ICUDATA_ALIAS "ICUDATA"
@@ -118,7 +118,7 @@ typedef struct {
      *  @stable ICU 2.0 */
     uint16_t size;
 
-    /** unused, set to 0 
+    /** unused, set to 0
      *  @stable ICU 2.0*/
     uint16_t reservedWord;
 
@@ -127,27 +127,27 @@ typedef struct {
      *  @stable ICU 2.0 */
     uint8_t isBigEndian;
 
-    /** see U_CHARSET_FAMILY values in utypes.h 
+    /** see U_CHARSET_FAMILY values in utypes.h
      *  @stable ICU 2.0*/
     uint8_t charsetFamily;
 
-    /** sizeof(UChar), one of { 1, 2, 4 } 
+    /** sizeof(UChar), one of { 1, 2, 4 }
      *  @stable ICU 2.0*/
     uint8_t sizeofUChar;
 
-    /** unused, set to 0 
+    /** unused, set to 0
      *  @stable ICU 2.0*/
     uint8_t reservedByte;
 
-    /** data format identifier 
+    /** data format identifier
      *  @stable ICU 2.0*/
     uint8_t dataFormat[4];
 
-    /** versions: [0] major [1] minor [2] milli [3] micro 
+    /** versions: [0] major [1] minor [2] milli [3] micro
      *  @stable ICU 2.0*/
     uint8_t formatVersion[4];
 
-    /** versions: [0] major [1] minor [2] milli [3] micro 
+    /** versions: [0] major [1] minor [2] milli [3] micro
      *  @stable ICU 2.0*/
     uint8_t dataVersion[4];
 } UDataInfo;
@@ -173,11 +173,7 @@ typedef struct UDataMemory UDataMemory;
  * @return true if the current data memory is acceptable
  * @stable ICU 2.0
  */
-typedef UBool U_CALLCONV
-UDataMemoryIsAcceptable(void *context,
-                        const char *type, const char *name,
-                        const UDataInfo *pInfo);
-
+typedef UBool U_CALLCONV UDataMemoryIsAcceptable(void* context, const char* type, const char* name, const UDataInfo* pInfo);
 
 /**
  * Convenience function.
@@ -200,9 +196,7 @@ UDataMemoryIsAcceptable(void *context,
  * @see udata_openChoice
  * @stable ICU 2.0
  */
-U_CAPI UDataMemory * U_EXPORT2
-udata_open(const char *path, const char *type, const char *name,
-           UErrorCode *pErrorCode);
+U_CAPI UDataMemory* U_EXPORT2 udata_open(const char* path, const char* type, const char* name, UErrorCode* pErrorCode);
 
 /**
  * Data loading function.
@@ -252,10 +246,8 @@ udata_open(const char *path, const char *type, const char *name,
  *         to get a pointer to the actual data.
  * @stable ICU 2.0
  */
-U_CAPI UDataMemory * U_EXPORT2
-udata_openChoice(const char *path, const char *type, const char *name,
-                 UDataMemoryIsAcceptable *isAcceptable, void *context,
-                 UErrorCode *pErrorCode);
+U_CAPI UDataMemory* U_EXPORT2 udata_openChoice(
+    const char* path, const char* type, const char* name, UDataMemoryIsAcceptable* isAcceptable, void* context, UErrorCode* pErrorCode);
 
 /**
  * Close the data memory.
@@ -264,8 +256,7 @@ udata_openChoice(const char *path, const char *type, const char *name,
  * @param pData The pointer to data memory object
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2
-udata_close(UDataMemory *pData);
+U_CAPI void U_EXPORT2 udata_close(UDataMemory* pData);
 
 /**
  * Get the pointer to the actual data inside the data memory.
@@ -276,8 +267,7 @@ udata_close(UDataMemory *pData);
  * @param pData The pointer to data memory object
  * @stable ICU 2.0
  */
-U_CAPI const void * U_EXPORT2
-udata_getMemory(UDataMemory *pData);
+U_CAPI const void* U_EXPORT2 udata_getMemory(UDataMemory* pData);
 
 /**
  * Get the information from the data memory header.
@@ -297,8 +287,7 @@ udata_getMemory(UDataMemory *pData);
  * adjusted and only part of the structure will be filled.
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2
-udata_getInfo(UDataMemory *pData, UDataInfo *pInfo);
+U_CAPI void U_EXPORT2 udata_getInfo(UDataMemory* pData, UDataInfo* pInfo);
 
 /**
  * This function bypasses the normal ICU data loading process and
@@ -306,7 +295,7 @@ udata_getInfo(UDataMemory *pData, UDataInfo *pInfo);
  * area in memory.
  *
  * ICU data must be at least 8-aligned, and should be 16-aligned.
- * See https://unicode-org.github.io/icu/userguide/icu_data
+ * See https://unicode-org.github.io/icu/userguide/icudata
  *
  * The format of this data is that of the icu common data file, as is
  * generated by the pkgdata tool with mode=common or mode=dll.
@@ -343,9 +332,7 @@ udata_getInfo(UDataMemory *pData, UDataInfo *pInfo);
  * @param err outgoing error status <code>U_USING_DEFAULT_WARNING, U_UNSUPPORTED_ERROR</code>
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2
-udata_setCommonData(const void *data, UErrorCode *err);
-
+U_CAPI void U_EXPORT2 udata_setCommonData(const void* data, UErrorCode* err);
 
 /**
  * This function bypasses the normal ICU data loading process for application-specific
@@ -353,7 +340,7 @@ udata_setCommonData(const void *data, UErrorCode *err);
  * pointer.
  *
  * ICU data must be at least 8-aligned, and should be 16-aligned.
- * See https://unicode-org.github.io/icu/userguide/icu_data
+ * See https://unicode-org.github.io/icu/userguide/icudata
  *
  * The format of this data is that of the icu common data file, like 'icudt26l.dat'
  * or the corresponding shared library (DLL) file.
@@ -374,8 +361,7 @@ udata_setCommonData(const void *data, UErrorCode *err);
  * @see udata_setCommonData
  * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2
-udata_setAppData(const char *packageName, const void *data, UErrorCode *err);
+U_CAPI void U_EXPORT2 udata_setAppData(const char* packageName, const void* data, UErrorCode* err);
 
 /**
  * Possible settings for udata_setFileAccess()
@@ -400,21 +386,20 @@ typedef enum UDataFileAccess {
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     UDATA_FILE_ACCESS_COUNT
-#endif  // U_HIDE_DEPRECATED_API
+#endif // U_HIDE_DEPRECATED_API
 } UDataFileAccess;
 
 /**
  * This function may be called to control how ICU loads data. It must be called
- * before any ICU data is loaded, including application data loaded with 
- * ures/ResourceBundle or udata APIs. This function is not multithread safe.  
+ * before any ICU data is loaded, including application data loaded with
+ * ures/ResourceBundle or udata APIs. This function is not multithread safe.
  * The results of calling it while other threads are loading data are undefined.
  * @param access The type of file access to be used
  * @param status Error code.
  * @see UDataFileAccess
- * @stable ICU 3.4 
+ * @stable ICU 3.4
  */
-U_CAPI void U_EXPORT2
-udata_setFileAccess(UDataFileAccess access, UErrorCode *status);
+U_CAPI void U_EXPORT2 udata_setFileAccess(UDataFileAccess access, UErrorCode* status);
 
 U_CDECL_END
 
@@ -435,6 +420,6 @@ U_DEFINE_LOCAL_OPEN_POINTER(LocalUDataMemoryPointer, UDataMemory, udata_close);
 
 U_NAMESPACE_END
 
-#endif  // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 #endif

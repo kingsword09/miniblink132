@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -29,17 +29,17 @@ U_NAMESPACE_BEGIN
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(NameUnicodeTransliterator)
 
-static const char16_t OPEN[] = {92,78,126,123,126,0}; // "\N~{~"
-static const char16_t OPEN_DELIM  = 92;  // '\\' first char of OPEN
-static const char16_t CLOSE_DELIM = 125; // '}'
-static const char16_t SPACE       = 32;  // ' '
+static const UChar OPEN[] = { 92, 78, 126, 123, 126, 0 }; // "\N~{~"
+static const UChar OPEN_DELIM = 92; // '\\' first char of OPEN
+static const UChar CLOSE_DELIM = 125; // '}'
+static const UChar SPACE = 32; // ' '
 
 U_CDECL_BEGIN
 
 // USetAdder implementation
 // Does not use uset.h to reduce code dependencies
-static void U_CALLCONV
-_set_add(USet *set, UChar32 c) {
+static void U_CALLCONV _set_add(USet* set, UChar32 c)
+{
     uset_add(set, c);
 }
 
@@ -50,7 +50,7 @@ _set_addRange(USet *set, UChar32 start, UChar32 end) {
 }
 
 static void U_CALLCONV
-_set_addString(USet *set, const char16_t *str, int32_t length) {
+_set_addString(USet *set, const UChar *str, int32_t length) {
     ((UnicodeSet *)set)->add(UnicodeString((UBool)(length<0), str, length));
 }*/
 
@@ -60,32 +60,36 @@ U_CDECL_END
  * Constructs a transliterator with the default delimiters '{' and
  * '}'.
  */
-NameUnicodeTransliterator::NameUnicodeTransliterator(UnicodeFilter* adoptedFilter) :
-    Transliterator(UNICODE_STRING("Name-Any", 8), adoptedFilter) {
+NameUnicodeTransliterator::NameUnicodeTransliterator(UnicodeFilter* adoptedFilter)
+    : Transliterator(UNICODE_STRING("Name-Any", 8), adoptedFilter)
+{
 
-    UnicodeSet *legalPtr = &legal;
+    UnicodeSet* legalPtr = &legal;
     // Get the legal character set
-    USetAdder sa = {
-        (USet *)legalPtr, // USet* == UnicodeSet*
+    USetAdder sa = { (USet*)legalPtr, // USet* == UnicodeSet*
         _set_add,
-        nullptr, // Don't need _set_addRange
-        nullptr, // Don't need _set_addString
-        nullptr, // Don't need remove()
-        nullptr
-    };
+        NULL, // Don't need _set_addRange
+        NULL, // Don't need _set_addString
+        NULL, // Don't need remove()
+        NULL };
     uprv_getCharNameCharacters(&sa);
 }
 
 /**
  * Destructor.
  */
-NameUnicodeTransliterator::~NameUnicodeTransliterator() {}
+NameUnicodeTransliterator::~NameUnicodeTransliterator()
+{
+}
 
 /**
  * Copy constructor.
  */
-NameUnicodeTransliterator::NameUnicodeTransliterator(const NameUnicodeTransliterator& o) :
-    Transliterator(o), legal(o.legal) {}
+NameUnicodeTransliterator::NameUnicodeTransliterator(const NameUnicodeTransliterator& o)
+    : Transliterator(o)
+    , legal(o.legal)
+{
+}
 
 /**
  * Assignment operator.
@@ -100,18 +104,19 @@ NameUnicodeTransliterator::NameUnicodeTransliterator(const NameUnicodeTransliter
 /**
  * Transliterator API.
  */
-NameUnicodeTransliterator* NameUnicodeTransliterator::clone() const {
+NameUnicodeTransliterator* NameUnicodeTransliterator::clone() const
+{
     return new NameUnicodeTransliterator(*this);
 }
 
 /**
  * Implements {@link Transliterator#handleTransliterate}.
  */
-void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPosition& offsets,
-                                                    UBool isIncremental) const {
+void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPosition& offsets, UBool isIncremental) const
+{
     // The failure mode, here and below, is to behave like Any-Null,
     // if either there is no name data (max len == 0) or there is no
-    // memory (malloc() => nullptr).
+    // memory (malloc() => NULL).
 
     int32_t maxLen = uprv_getMaxCharNameLength();
     if (maxLen == 0) {
@@ -121,13 +126,13 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
 
     // Accommodate the longest possible name
     ++maxLen; // allow for temporary trailing space
-    char* cbuf = (char*) uprv_malloc(maxLen);
-    if (cbuf == nullptr) {
+    char* cbuf = (char*)uprv_malloc(maxLen);
+    if (cbuf == NULL) {
         offsets.start = offsets.limit;
         return;
     }
 
-    UnicodeString openPat(true, OPEN, -1);
+    UnicodeString openPat(TRUE, OPEN, -1);
     UnicodeString str, name;
 
     int32_t cursor = offsets.start;
@@ -147,8 +152,7 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
         case 0: // looking for open delimiter
             if (c == OPEN_DELIM) { // quick check first
                 openPos = cursor;
-                int32_t i =
-                    ICU_Utility::parsePattern(openPat, text, cursor, limit);
+                int32_t i = ICU_Utility::parsePattern(openPat, text, cursor, limit);
                 if (i >= 0 && i < limit) {
                     mode = 1;
                     name.truncate(0);
@@ -168,8 +172,7 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
             // runs of >1 space characters in names.
             if (PatternProps::isWhiteSpace(c)) {
                 // Ignore leading whitespace
-                if (name.length() > 0 &&
-                    name.charAt(name.length()-1) != SPACE) {
+                if (name.length() > 0 && name.charAt(name.length() - 1) != SPACE) {
                     name.append(SPACE);
                     // If we are too long then abort.  maxLen includes
                     // temporary trailing space, so use '>'.
@@ -184,8 +187,7 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
                 int32_t len = name.length();
 
                 // Delete trailing space, if any
-                if (len > 0 &&
-                    name.charAt(len-1) == SPACE) {
+                if (len > 0 && name.charAt(len - 1) == SPACE) {
                     --len;
                 }
 
@@ -220,9 +222,9 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
                 openPos = -1; // close off candidate
                 continue; // *** reprocess char32At(cursor)
             }
-            
+
             // Check if c is a legal char.  We assume here that
-            // legal.contains(OPEN_DELIM) is false, so when we abort a
+            // legal.contains(OPEN_DELIM) is FALSE, so when we abort a
             // name, we don't have to go back to openPos+1.
             if (legal.contains(c)) {
                 name.append(c);
@@ -232,7 +234,7 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
                     mode = 0;
                 }
             }
-            
+
             // Invalid character
             else {
                 --cursor; // Backup and reprocess this character
@@ -244,7 +246,7 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
 
         cursor += U16_LENGTH(c);
     }
-        
+
     offsets.contextLimit += limit - offsets.limit;
     offsets.limit = limit;
     // In incremental mode, only advance the cursor up to the last

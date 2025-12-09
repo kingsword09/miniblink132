@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -22,7 +22,6 @@ using namespace icu;
 using namespace icu::number;
 using namespace icu::number::impl;
 
-
 U_NAMESPACE_BEGIN
 namespace number {
 namespace impl {
@@ -31,8 +30,8 @@ namespace impl {
  * Implementation class for UNumberRangeFormatter. Wraps a LocalizedRangeNumberFormatter.
  */
 struct UNumberRangeFormatterData : public UMemory,
-        // Magic number as ASCII == "NRF" (NumberRangeFormatter)
-        public IcuCApiHelper<UNumberRangeFormatter, UNumberRangeFormatterData, 0x4E524600> {
+                                   // Magic number as ASCII == "NRF" (NumberRangeFormatter)
+                                   public IcuCApiHelper<UNumberRangeFormatter, UNumberRangeFormatterData, 0x4E524600> {
     LocalizedNumberRangeFormatter fFormatter;
 };
 
@@ -50,11 +49,13 @@ struct UFormattedNumberRangeImpl : public UFormattedValueImpl, public UFormatted
 };
 
 UFormattedNumberRangeImpl::UFormattedNumberRangeImpl()
-        : fImpl(&fData) {
+    : fImpl(&fData)
+{
     fFormattedValue = &fImpl;
 }
 
-UFormattedNumberRangeImpl::~UFormattedNumberRangeImpl() {
+UFormattedNumberRangeImpl::~UFormattedNumberRangeImpl()
+{
     // Disown the data from fImpl so it doesn't get deleted twice
     fImpl.fData = nullptr;
 }
@@ -63,16 +64,10 @@ UFormattedNumberRangeImpl::~UFormattedNumberRangeImpl() {
 } // namespace number
 U_NAMESPACE_END
 
+UPRV_FORMATTED_VALUE_CAPI_NO_IMPLTYPE_AUTO_IMPL(UFormattedNumberRange, UFormattedNumberRangeImpl, UFormattedNumberRangeApiHelper, unumrf)
 
-UPRV_FORMATTED_VALUE_CAPI_NO_IMPLTYPE_AUTO_IMPL(
-    UFormattedNumberRange,
-    UFormattedNumberRangeImpl,
-    UFormattedNumberRangeApiHelper,
-    unumrf)
-
-
-const UFormattedNumberRangeData* number::impl::validateUFormattedNumberRange(
-        const UFormattedNumberRange* uresult, UErrorCode& status) {
+const UFormattedNumberRangeData* number::impl::validateUFormattedNumberRange(const UFormattedNumberRange* uresult, UErrorCode& status)
+{
     auto* result = UFormattedNumberRangeApiHelper::validate(uresult, status);
     if (U_FAILURE(status)) {
         return nullptr;
@@ -80,16 +75,9 @@ const UFormattedNumberRangeData* number::impl::validateUFormattedNumberRange(
     return &result->fData;
 }
 
-
-U_CAPI UNumberRangeFormatter* U_EXPORT2
-unumrf_openForSkeletonWithCollapseAndIdentityFallback(
-        const char16_t* skeleton,
-        int32_t skeletonLen,
-        UNumberRangeCollapse collapse,
-        UNumberRangeIdentityFallback identityFallback,
-        const char* locale,
-        UParseError* perror,
-        UErrorCode* ec) {
+U_CAPI UNumberRangeFormatter* U_EXPORT2 unumrf_openForSkeletonWithCollapseAndIdentityFallback(const UChar* skeleton, int32_t skeletonLen,
+    UNumberRangeCollapse collapse, UNumberRangeIdentityFallback identityFallback, const char* locale, UParseError* perror, UErrorCode* ec)
+{
     auto* impl = new UNumberRangeFormatterData();
     if (impl == nullptr) {
         *ec = U_MEMORY_ALLOCATION_ERROR;
@@ -97,24 +85,21 @@ unumrf_openForSkeletonWithCollapseAndIdentityFallback(
     }
     // Readonly-alias constructor (first argument is whether we are NUL-terminated)
     UnicodeString skeletonString(skeletonLen == -1, skeleton, skeletonLen);
-    UParseError tempParseError;
     impl->fFormatter = NumberRangeFormatter::withLocale(locale)
-        .numberFormatterBoth(NumberFormatter::forSkeleton(skeletonString, (perror == nullptr) ? tempParseError : *perror, *ec))
-        .collapse(collapse)
-        .identityFallback(identityFallback);
+                           .numberFormatterBoth(NumberFormatter::forSkeleton(skeletonString, *perror, *ec))
+                           .collapse(collapse)
+                           .identityFallback(identityFallback);
     return impl->exportForC();
 }
 
-U_CAPI void U_EXPORT2
-unumrf_formatDoubleRange(
-        const UNumberRangeFormatter* uformatter,
-        double first,
-        double second,
-        UFormattedNumberRange* uresult,
-        UErrorCode* ec) {
+U_CAPI void U_EXPORT2 unumrf_formatDoubleRange(
+    const UNumberRangeFormatter* uformatter, double first, double second, UFormattedNumberRange* uresult, UErrorCode* ec)
+{
     const UNumberRangeFormatterData* formatter = UNumberRangeFormatterData::validate(uformatter, *ec);
     auto* result = UFormattedNumberRangeApiHelper::validate(uresult, *ec);
-    if (U_FAILURE(*ec)) { return; }
+    if (U_FAILURE(*ec)) {
+        return;
+    }
 
     result->fData.resetString();
     result->fData.quantity1.clear();
@@ -124,29 +109,25 @@ unumrf_formatDoubleRange(
     formatter->fFormatter.formatImpl(result->fData, first == second, *ec);
 }
 
-U_CAPI void U_EXPORT2
-unumrf_formatDecimalRange(
-        const UNumberRangeFormatter* uformatter,
-        const char* first, int32_t firstLen,
-        const char* second, int32_t secondLen,
-        UFormattedNumberRange* uresult,
-        UErrorCode* ec) {
+U_CAPI void U_EXPORT2 unumrf_formatDecimalRange(const UNumberRangeFormatter* uformatter, const char* first, int32_t firstLen, const char* second,
+    int32_t secondLen, UFormattedNumberRange* uresult, UErrorCode* ec)
+{
     const UNumberRangeFormatterData* formatter = UNumberRangeFormatterData::validate(uformatter, *ec);
     auto* result = UFormattedNumberRangeApiHelper::validate(uresult, *ec);
-    if (U_FAILURE(*ec)) { return; }
+    if (U_FAILURE(*ec)) {
+        return;
+    }
 
     result->fData.resetString();
     result->fData.quantity1.clear();
     result->fData.quantity2.clear();
-    result->fData.quantity1.setToDecNumber({first, firstLen}, *ec);
-    result->fData.quantity2.setToDecNumber({second, secondLen}, *ec);
+    result->fData.quantity1.setToDecNumber({ first, firstLen }, *ec);
+    result->fData.quantity2.setToDecNumber({ second, secondLen }, *ec);
     formatter->fFormatter.formatImpl(result->fData, first == second, *ec);
 }
 
-U_CAPI UNumberRangeIdentityResult U_EXPORT2
-unumrf_resultGetIdentityResult(
-        const UFormattedNumberRange* uresult,
-        UErrorCode* ec) {
+U_CAPI UNumberRangeIdentityResult U_EXPORT2 unumrf_resultGetIdentityResult(const UFormattedNumberRange* uresult, UErrorCode* ec)
+{
     auto* result = UFormattedNumberRangeApiHelper::validate(uresult, *ec);
     if (U_FAILURE(*ec)) {
         return UNUM_IDENTITY_RESULT_COUNT;
@@ -154,45 +135,31 @@ unumrf_resultGetIdentityResult(
     return result->fData.identityResult;
 }
 
-U_CAPI int32_t U_EXPORT2
-unumrf_resultGetFirstDecimalNumber(
-        const UFormattedNumberRange* uresult,
-        char* dest,
-        int32_t destCapacity,
-        UErrorCode* ec) {
+U_CAPI int32_t U_EXPORT2 unumrf_resultGetFirstDecimalNumber(const UFormattedNumberRange* uresult, char* dest, int32_t destCapacity, UErrorCode* ec)
+{
     const auto* result = UFormattedNumberRangeApiHelper::validate(uresult, *ec);
     if (U_FAILURE(*ec)) {
         return 0;
     }
     DecNum decnum;
-    return result->fData.quantity1.toDecNum(decnum, *ec)
-        .toCharString(*ec)
-        .extract(dest, destCapacity, *ec);
+    return result->fData.quantity1.toDecNum(decnum, *ec).toCharString(*ec).extract(dest, destCapacity, *ec);
 }
 
-U_CAPI int32_t U_EXPORT2
-unumrf_resultGetSecondDecimalNumber(
-        const UFormattedNumberRange* uresult,
-        char* dest,
-        int32_t destCapacity,
-        UErrorCode* ec) {
+U_CAPI int32_t U_EXPORT2 unumrf_resultGetSecondDecimalNumber(const UFormattedNumberRange* uresult, char* dest, int32_t destCapacity, UErrorCode* ec)
+{
     const auto* result = UFormattedNumberRangeApiHelper::validate(uresult, *ec);
     if (U_FAILURE(*ec)) {
         return 0;
     }
     DecNum decnum;
-    return result->fData.quantity2
-        .toDecNum(decnum, *ec)
-        .toCharString(*ec)
-        .extract(dest, destCapacity, *ec);
+    return result->fData.quantity2.toDecNum(decnum, *ec).toCharString(*ec).extract(dest, destCapacity, *ec);
 }
 
-U_CAPI void U_EXPORT2
-unumrf_close(UNumberRangeFormatter* f) {
+U_CAPI void U_EXPORT2 unumrf_close(UNumberRangeFormatter* f)
+{
     UErrorCode localStatus = U_ZERO_ERROR;
     const UNumberRangeFormatterData* impl = UNumberRangeFormatterData::validate(f, localStatus);
     delete impl;
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

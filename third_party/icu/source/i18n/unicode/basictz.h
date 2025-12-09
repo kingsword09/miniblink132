@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -10,7 +10,7 @@
 #define BASICTZ_H
 
 /**
- * \file 
+ * \file
  * \brief C++ API: ICU TimeZone base class
  */
 
@@ -35,7 +35,7 @@ class UVector;
  * All ICU <code>TimeZone</code> concrete subclasses extend this class.
  * @stable ICU 3.8
  */
-class U_I18N_API BasicTimeZone: public TimeZone {
+class U_I18N_API BasicTimeZone : public TimeZone {
 public:
     /**
      * Destructor.
@@ -91,8 +91,7 @@ public:
      *              time range.
      * @stable ICU 3.8
      */
-    virtual UBool hasEquivalentTransitions(const BasicTimeZone& tz, UDate start, UDate end,
-        UBool ignoreDstAmount, UErrorCode& ec) const;
+    virtual UBool hasEquivalentTransitions(const BasicTimeZone& tz, UDate start, UDate end, UBool ignoreDstAmount, UErrorCode& ec) const;
 
     /**
      * Returns the number of <code>TimeZoneRule</code>s which represents time transitions,
@@ -107,7 +106,7 @@ public:
     /**
      * Gets the <code>InitialTimeZoneRule</code> and the set of <code>TimeZoneRule</code>
      * which represent time transitions for this time zone.  On successful return,
-     * the argument initial points to non-nullptr <code>InitialTimeZoneRule</code> and
+     * the argument initial points to non-NULL <code>InitialTimeZoneRule</code> and
      * the array trsrules is filled with 0 or multiple <code>TimeZoneRule</code>
      * instances up to the size specified by trscount.  The results are referencing the
      * rule instance held by this time zone instance.  Therefore, after this time zone
@@ -120,8 +119,7 @@ public:
      * @param status        Receives error status code.
      * @stable ICU 3.8
      */
-    virtual void getTimeZoneRules(const InitialTimeZoneRule*& initial,
-        const TimeZoneRule* trsrules[], int32_t& trscount, UErrorCode& status) const = 0;
+    virtual void getTimeZoneRules(const InitialTimeZoneRule*& initial, const TimeZoneRule* trsrules[], int32_t& trscount, UErrorCode& status) const = 0;
 
     /**
      * Gets the set of time zone rules valid at the specified time.  Some known external time zone
@@ -139,28 +137,24 @@ public:
      * The time zone rule objects returned by this method is owned by the caller, so the caller is
      * responsible for deleting them after use.
      * @param date      The date used for extracting time zone rules.
-     * @param initial   Receives the <code>InitialTimeZone</code>, always not nullptr.
+     * @param initial   Receives the <code>InitialTimeZone</code>, always not NULL.
      * @param std       Receives the <code>AnnualTimeZoneRule</code> for standard time transitions.
      *                  When this time time zone does not observe daylight saving times around the
-     *                  specified date, nullptr is set.
+     *                  specified date, NULL is set.
      * @param dst       Receives the <code>AnnualTimeZoneRule</code> for daylight saving time
      *                  transitions.  When this time zone does not observer daylight saving times
-     *                  around the specified date, nullptr is set.
+     *                  around the specified date, NULL is set.
      * @param status    Receives error status code.
      * @stable ICU 3.8
      */
-    virtual void getSimpleRulesNear(UDate date, InitialTimeZoneRule*& initial,
-        AnnualTimeZoneRule*& std, AnnualTimeZoneRule*& dst, UErrorCode& status) const;
+    virtual void getSimpleRulesNear(UDate date, InitialTimeZoneRule*& initial, AnnualTimeZoneRule*& std, AnnualTimeZoneRule*& dst, UErrorCode& status) const;
 
     /**
      * Get time zone offsets from local wall time.
      * @stable ICU 69
      */
-    virtual void getOffsetFromLocal(
-        UDate date, UTimeZoneLocalOption nonExistingTimeOpt,
-        UTimeZoneLocalOption duplicatedTimeOpt, int32_t& rawOffset,
+    virtual void getOffsetFromLocal(UDate date, UTimeZoneLocalOption nonExistingTimeOpt, UTimeZoneLocalOption duplicatedTimeOpt, int32_t& rawOffset,
         int32_t& dstOffset, UErrorCode& status) const;
-
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -171,19 +165,18 @@ public:
         kStandard = 0x01,
         kDaylight = 0x03,
         kFormer = 0x04, /* UCAL_TZ_LOCAL_FORMER */
-        kLatter = 0x0C  /* UCAL_TZ_LOCAL_LATTER */
+        kLatter = 0x0C /* UCAL_TZ_LOCAL_LATTER */
     };
 
     /**
      * Get time zone offsets from local wall time.
      * @internal
      */
-    void getOffsetFromLocal(UDate date, int32_t nonExistingTimeOpt, int32_t duplicatedTimeOpt,
-        int32_t& rawOffset, int32_t& dstOffset, UErrorCode& status) const;
-#endif  /* U_HIDE_INTERNAL_API */
+    void getOffsetFromLocal(
+        UDate date, int32_t nonExistingTimeOpt, int32_t duplicatedTimeOpt, int32_t& rawOffset, int32_t& dstOffset, UErrorCode& status) const;
+#endif /* U_HIDE_INTERNAL_API */
 
 protected:
-
 #ifndef U_HIDE_INTERNAL_API
     /**
      * A time type option bit mask used by getOffsetFromLocal.
@@ -195,7 +188,7 @@ protected:
      * @internal
      */
     static constexpr int32_t kFormerLatterMask = kLatter;
-#endif  /* U_HIDE_INTERNAL_API */
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Default constructor.
@@ -208,7 +201,7 @@ protected:
      * @param id a system time zone ID
      * @stable ICU 3.8
      */
-    BasicTimeZone(const UnicodeString &id);
+    BasicTimeZone(const UnicodeString& id);
 
     /**
      * Copy constructor.
@@ -233,8 +226,7 @@ protected:
      *                  The caller owns the returned vector; the UVector owns the rules.
      * @param status    Receives error status code
      */
-    void getTimeZoneRulesAfter(UDate start, InitialTimeZoneRule*& initial, UVector*& transitionRules,
-        UErrorCode& status) const;
+    void getTimeZoneRulesAfter(UDate start, InitialTimeZoneRule*& initial, UVector*& transitionRules, UErrorCode& status) const;
 };
 
 U_NAMESPACE_END
@@ -245,4 +237,4 @@ U_NAMESPACE_END
 
 #endif // BASICTZ_H
 
-//eof
+// eof

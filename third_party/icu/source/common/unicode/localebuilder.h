@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 #ifndef __LOCALEBUILDER_H__
 #define __LOCALEBUILDER_H__
@@ -216,8 +216,7 @@ public:
      * @return This builder.
      * @stable ICU 64
      */
-    LocaleBuilder& setUnicodeLocaleKeyword(
-        StringPiece key, StringPiece type);
+    LocaleBuilder& setUnicodeLocaleKeyword(StringPiece key, StringPiece type);
 
     /**
      * Adds a unicode locale attribute, if not already present, otherwise
@@ -286,7 +285,7 @@ public:
      * @return true if U_FAILURE(outErrorCode)
      * @stable ICU 65
      */
-    UBool copyErrorTo(UErrorCode &outErrorCode) const;
+    UBool copyErrorTo(UErrorCode& outErrorCode) const;
 
 private:
     friend class LocaleMatcher::Result;
@@ -297,13 +296,12 @@ private:
     char language_[9];
     char script_[5];
     char region_[4];
-    CharString *variant_;  // Pointer not object so we need not #include internal charstr.h.
-    icu::Locale *extensions_;  // Pointer not object. Storage for all other fields.
-
+    CharString* variant_; // Pointer not object so we need not #include internal charstr.h.
+    icu::Locale* extensions_; // Pointer not object. Storage for all other fields.
 };
 
 U_NAMESPACE_END
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
-#endif  // __LOCALEBUILDER_H__
+#endif // __LOCALEBUILDER_H__

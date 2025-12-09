@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -22,9 +22,8 @@ using namespace icu;
 using namespace icu::numparse;
 using namespace icu::numparse::impl;
 
-
-DecimalMatcher::DecimalMatcher(const DecimalFormatSymbols& symbols, const Grouper& grouper,
-                               parse_flags_t parseFlags) {
+DecimalMatcher::DecimalMatcher(const DecimalFormatSymbols& symbols, const Grouper& grouper, parse_flags_t parseFlags)
+{
     if (0 != (parseFlags & PARSE_FLAG_MONETARY_SEPARATORS)) {
         groupingSeparator = symbols.getConstSymbol(DecimalFormatSymbols::kMonetaryGroupingSeparatorSymbol);
         decimalSeparator = symbols.getConstSymbol(DecimalFormatSymbols::kMonetarySeparatorSymbol);
@@ -33,16 +32,13 @@ DecimalMatcher::DecimalMatcher(const DecimalFormatSymbols& symbols, const Groupe
         decimalSeparator = symbols.getConstSymbol(DecimalFormatSymbols::kDecimalSeparatorSymbol);
     }
     bool strictSeparators = 0 != (parseFlags & PARSE_FLAG_STRICT_SEPARATORS);
-    unisets::Key groupingKey = strictSeparators ? unisets::STRICT_ALL_SEPARATORS
-                                                : unisets::ALL_SEPARATORS;
+    unisets::Key groupingKey = strictSeparators ? unisets::STRICT_ALL_SEPARATORS : unisets::ALL_SEPARATORS;
 
     // Attempt to find separators in the static cache
 
     groupingUniSet = unisets::get(groupingKey);
     unisets::Key decimalKey = unisets::chooseFrom(
-            decimalSeparator,
-            strictSeparators ? unisets::STRICT_COMMA : unisets::COMMA,
-            strictSeparators ? unisets::STRICT_PERIOD : unisets::PERIOD);
+        decimalSeparator, strictSeparators ? unisets::STRICT_COMMA : unisets::COMMA, strictSeparators ? unisets::STRICT_PERIOD : unisets::PERIOD);
     if (decimalKey >= 0) {
         decimalUniSet = unisets::get(decimalKey);
     } else if (!decimalSeparator.isEmpty()) {
@@ -58,9 +54,7 @@ DecimalMatcher::DecimalMatcher(const DecimalFormatSymbols& symbols, const Groupe
     if (groupingKey >= 0 && decimalKey >= 0) {
         // Everything is available in the static cache
         separatorSet = groupingUniSet;
-        leadSet = unisets::get(
-                strictSeparators ? unisets::DIGITS_OR_ALL_SEPARATORS
-                                 : unisets::DIGITS_OR_STRICT_ALL_SEPARATORS);
+        leadSet = unisets::get(strictSeparators ? unisets::DIGITS_OR_ALL_SEPARATORS : unisets::DIGITS_OR_STRICT_ALL_SEPARATORS);
     } else {
         auto* set = new UnicodeSet();
         set->addAll(*groupingUniSet);
@@ -92,12 +86,13 @@ DecimalMatcher::DecimalMatcher(const DecimalFormatSymbols& symbols, const Groupe
     // fractionGrouping = 0 != (parseFlags & PARSE_FLAG_FRACTION_GROUPING_ENABLED);
 }
 
-bool DecimalMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const {
+bool DecimalMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const
+{
     return match(segment, result, 0, status);
 }
 
-bool DecimalMatcher::match(StringSegment& segment, ParsedNumber& result, int8_t exponentSign,
-                           UErrorCode&) const {
+bool DecimalMatcher::match(StringSegment& segment, ParsedNumber& result, int8_t exponentSign, UErrorCode&) const
+{
     if (result.seenNumber() && exponentSign == 0) {
         // A number has already been consumed.
         return false;
@@ -217,8 +212,7 @@ bool DecimalMatcher::match(StringSegment& segment, ParsedNumber& result, int8_t 
 
         // 2.5) Attempt to match a new the grouping separator string literal.
         // if (we have not seen a grouping or decimal separator yet) { ... }
-        if (!groupingDisabled && actualGroupingString.isBogus() && actualDecimalString.isBogus() &&
-            !groupingSeparator.isEmpty()) {
+        if (!groupingDisabled && actualGroupingString.isBogus() && actualDecimalString.isBogus() && !groupingSeparator.isEmpty()) {
             int32_t overlap = segment.getCommonPrefixLength(groupingSeparator);
             maybeMore = maybeMore || (overlap == segment.length());
             if (overlap == groupingSeparator.length()) {
@@ -397,7 +391,8 @@ bool DecimalMatcher::match(StringSegment& segment, ParsedNumber& result, int8_t 
     return segment.length() == 0 || maybeMore;
 }
 
-bool DecimalMatcher::validateGroup(int32_t sepType, int32_t count, bool isPrimary) const {
+bool DecimalMatcher::validateGroup(int32_t sepType, int32_t count, bool isPrimary) const
+{
     if (requireGroupingMatch) {
         if (sepType == -1) {
             // No such group (prevGroup before first shift).
@@ -432,7 +427,8 @@ bool DecimalMatcher::validateGroup(int32_t sepType, int32_t count, bool isPrimar
     }
 }
 
-bool DecimalMatcher::smokeTest(const StringSegment& segment) const {
+bool DecimalMatcher::smokeTest(const StringSegment& segment) const
+{
     // The common case uses a static leadSet for efficiency.
     if (fLocalDigitStrings.isNull() && leadSet != nullptr) {
         return segment.startsWith(*leadSet);
@@ -451,9 +447,9 @@ bool DecimalMatcher::smokeTest(const StringSegment& segment) const {
     return false;
 }
 
-UnicodeString DecimalMatcher::toString() const {
+UnicodeString DecimalMatcher::toString() const
+{
     return u"<Decimal>";
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

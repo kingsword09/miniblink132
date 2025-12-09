@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -44,60 +44,36 @@
 
 U_NAMESPACE_BEGIN
 
-UBool beVerbose=false, haveCopyright=true;
+UBool beVerbose = FALSE, haveCopyright = TRUE;
 
 #if !UCONFIG_NO_NORMALIZATION
-void parseFile(std::ifstream &f, Normalizer2DataBuilder &builder);
+void parseFile(std::ifstream& f, Normalizer2DataBuilder& builder);
 #endif
 
 /* -------------------------------------------------------------------------- */
 
-enum {
-    HELP_H,
-    HELP_QUESTION_MARK,
-    VERBOSE,
-    COPYRIGHT,
-    SOURCEDIR,
-    OUTPUT_FILENAME,
-    UNICODE_VERSION,
-    WRITE_C_SOURCE,
-    WRITE_COMBINED_DATA,
-    OPT_FAST
-};
+enum { HELP_H, HELP_QUESTION_MARK, VERBOSE, COPYRIGHT, SOURCEDIR, OUTPUT_FILENAME, UNICODE_VERSION, WRITE_C_SOURCE, WRITE_COMBINED_DATA, OPT_FAST };
 
-static UOption options[]={
-    UOPTION_HELP_H,
-    UOPTION_HELP_QUESTION_MARK,
-    UOPTION_VERBOSE,
-    UOPTION_COPYRIGHT,
-    UOPTION_SOURCEDIR,
-    UOPTION_DEF("output", 'o', UOPT_REQUIRES_ARG),
-    UOPTION_DEF("unicode", 'u', UOPT_REQUIRES_ARG),
-    UOPTION_DEF("csource", '\1', UOPT_NO_ARG),
-    UOPTION_DEF("combined", '\1', UOPT_NO_ARG),
-    UOPTION_DEF("fast", '\1', UOPT_NO_ARG)
-};
+static UOption options[] = { UOPTION_HELP_H, UOPTION_HELP_QUESTION_MARK, UOPTION_VERBOSE, UOPTION_COPYRIGHT, UOPTION_SOURCEDIR,
+    UOPTION_DEF("output", 'o', UOPT_REQUIRES_ARG), UOPTION_DEF("unicode", 'u', UOPT_REQUIRES_ARG), UOPTION_DEF("csource", '\1', UOPT_NO_ARG),
+    UOPTION_DEF("combined", '\1', UOPT_NO_ARG), UOPTION_DEF("fast", '\1', UOPT_NO_ARG) };
 
-extern "C" int
-main(int argc, char* argv[]) {
+extern "C" int main(int argc, char* argv[])
+{
     U_MAIN_INIT_ARGS(argc, argv);
 
     /* preset then read command line options */
-    options[SOURCEDIR].value="";
-    argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[HELP_H]), options);
+    options[SOURCEDIR].value = "";
+    argc = u_parseArgs(argc, argv, sizeof(options) / sizeof(options[HELP_H]), options);
 
     /* error handling, printing usage message */
-    if(argc<0) {
-        fprintf(stderr,
-            "error in command line argument \"%s\"\n",
-            argv[-argc]);
+    if (argc < 0) {
+        fprintf(stderr, "error in command line argument \"%s\"\n", argv[-argc]);
     }
-    if(!options[OUTPUT_FILENAME].doesOccur) {
-        argc=-1;
+    if (!options[OUTPUT_FILENAME].doesOccur) {
+        argc = -1;
     }
-    if( argc<2 ||
-        options[HELP_H].doesOccur || options[HELP_QUESTION_MARK].doesOccur
-    ) {
+    if (argc < 2 || options[HELP_H].doesOccur || options[HELP_QUESTION_MARK].doesOccur) {
         fprintf(stderr,
             "Usage: %s [-options] infiles+ -o outputfilename\n"
             "\n"
@@ -132,11 +108,11 @@ main(int argc, char* argv[]) {
             "\t                    regular mappings instead of delta mappings.\n"
             "\t                    You should measure the runtime speed to make sure that\n"
             "\t                    this is a good trade-off.)\n");
-        return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
+        return argc < 0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
-    beVerbose=options[VERBOSE].doesOccur;
-    haveCopyright=options[COPYRIGHT].doesOccur;
+    beVerbose = options[VERBOSE].doesOccur;
+    haveCopyright = options[COPYRIGHT].doesOccur;
 
     IcuToolErrorCode errorCode("gennorm2/main()");
 
@@ -146,7 +122,7 @@ main(int argc, char* argv[]) {
         "gennorm2 writes a dummy binary data file "
         "because UCONFIG_NO_NORMALIZATION is set, \n"
         "see icu/source/common/unicode/uconfig.h\n");
-    udata_createDummy(nullptr, nullptr, options[OUTPUT_FILENAME].value, errorCode);
+    udata_createDummy(NULL, NULL, options[OUTPUT_FILENAME].value, errorCode);
     // Should not return an error since this is the expected behaviour if UCONFIG_NO_NORMALIZATION is on.
     // return U_UNSUPPORTED_ERROR;
     return 0;
@@ -156,33 +132,30 @@ main(int argc, char* argv[]) {
     LocalPointer<Normalizer2DataBuilder> b1(new Normalizer2DataBuilder(errorCode), errorCode);
     LocalPointer<Normalizer2DataBuilder> b2;
     LocalPointer<Normalizer2DataBuilder> diff;
-    Normalizer2DataBuilder *builder = b1.getAlias();
+    Normalizer2DataBuilder* builder = b1.getAlias();
     errorCode.assertSuccess();
 
-    if(options[UNICODE_VERSION].doesOccur) {
+    if (options[UNICODE_VERSION].doesOccur) {
         builder->setUnicodeVersion(options[UNICODE_VERSION].value);
     }
 
-    if(options[OPT_FAST].doesOccur) {
+    if (options[OPT_FAST].doesOccur) {
         builder->setOptimization(Normalizer2DataBuilder::OPTIMIZE_FAST);
     }
 
     // prepare the filename beginning with the source dir
     CharString filename(options[SOURCEDIR].value, errorCode);
-    int32_t pathLength=filename.length();
-    if( pathLength>0 &&
-        filename[pathLength-1]!=U_FILE_SEP_CHAR &&
-        filename[pathLength-1]!=U_FILE_ALT_SEP_CHAR
-    ) {
+    int32_t pathLength = filename.length();
+    if (pathLength > 0 && filename[pathLength - 1] != U_FILE_SEP_CHAR && filename[pathLength - 1] != U_FILE_ALT_SEP_CHAR) {
         filename.append(U_FILE_SEP_CHAR, errorCode);
-        pathLength=filename.length();
+        pathLength = filename.length();
     }
 
     bool doMinus = false;
-    for(int i=1; i<argc; ++i) {
+    for (int i = 1; i < argc; ++i) {
         printf("gennorm2: processing %s\n", argv[i]);
-        if(strcmp(argv[i], "minus") == 0) {
-            if(doMinus) {
+        if (strcmp(argv[i], "minus") == 0) {
+            if (doMinus) {
                 fprintf(stderr, "gennorm2 error: only one 'minus' can be specified\n");
                 exit(U_ILLEGAL_ARGUMENT_ERROR);
             }
@@ -192,10 +165,10 @@ main(int argc, char* argv[]) {
             diff.adoptInsteadAndCheckErrorCode(new Normalizer2DataBuilder(errorCode), errorCode);
             errorCode.assertSuccess();
             builder = b2.getAlias();
-            if(options[UNICODE_VERSION].doesOccur) {
+            if (options[UNICODE_VERSION].doesOccur) {
                 builder->setUnicodeVersion(options[UNICODE_VERSION].value);
             }
-            if(options[OPT_FAST].doesOccur) {
+            if (options[OPT_FAST].doesOccur) {
                 builder->setOptimization(Normalizer2DataBuilder::OPTIMIZE_FAST);
             }
             doMinus = true;
@@ -203,7 +176,7 @@ main(int argc, char* argv[]) {
         }
         filename.append(argv[i], errorCode);
         std::ifstream f(filename.data());
-        if(f.fail()) {
+        if (f.fail()) {
             fprintf(stderr, "gennorm2 error: unable to open %s\n", filename.data());
             exit(U_FILE_ACCESS_ERROR);
         }
@@ -212,12 +185,12 @@ main(int argc, char* argv[]) {
         filename.truncate(pathLength);
     }
 
-    if(doMinus) {
+    if (doMinus) {
         Normalizer2DataBuilder::computeDiff(*b1, *b2, *diff);
         diff->writeDataFile(options[OUTPUT_FILENAME].value, /* writeRemoved= */ true);
-    } else if(options[WRITE_COMBINED_DATA].doesOccur) {
+    } else if (options[WRITE_COMBINED_DATA].doesOccur) {
         builder->writeDataFile(options[OUTPUT_FILENAME].value, /* writeRemoved= */ false);
-    } else if(options[WRITE_C_SOURCE].doesOccur) {
+    } else if (options[WRITE_C_SOURCE].doesOccur) {
         builder->writeCSourceFile(options[OUTPUT_FILENAME].value);
     } else {
         builder->writeBinaryFile(options[OUTPUT_FILENAME].value);
@@ -230,85 +203,86 @@ main(int argc, char* argv[]) {
 
 #if !UCONFIG_NO_NORMALIZATION
 
-void parseFile(std::ifstream &f, Normalizer2DataBuilder &builder) {
+void parseFile(std::ifstream& f, Normalizer2DataBuilder& builder)
+{
     IcuToolErrorCode errorCode("gennorm2/parseFile()");
     std::string lineString;
     uint32_t startCP, endCP;
-    while(std::getline(f, lineString)) {
+    while (std::getline(f, lineString)) {
         if (lineString.empty()) {
-            continue;  // skip empty lines.
+            continue; // skip empty lines.
         }
-        char *line = &lineString.front();
-        char *comment=(char *)strchr(line, '#');
-        if(comment!=nullptr) {
-            *comment=0;
+#if (U_CPLUSPLUS_VERSION >= 11)
+        char* line = &lineString.front();
+#else
+        char* line = &lineString.at(0);
+#endif
+        char* comment = (char*)strchr(line, '#');
+        if (comment != NULL) {
+            *comment = 0;
         }
         u_rtrim(line);
-        if(line[0]==0) {
-            continue;  // skip empty and comment-only lines
+        if (line[0] == 0) {
+            continue; // skip empty and comment-only lines
         }
-        if(line[0]=='*') {
-            const char *s=u_skipWhitespace(line+1);
-            if(0==strncmp(s, "Unicode", 7)) {
-                s=u_skipWhitespace(s+7);
+        if (line[0] == '*') {
+            const char* s = u_skipWhitespace(line + 1);
+            if (0 == strncmp(s, "Unicode", 7)) {
+                s = u_skipWhitespace(s + 7);
                 builder.setUnicodeVersion(s);
             }
-            continue;  // reserved syntax
+            continue; // reserved syntax
         }
-        const char *delimiter;
-        int32_t rangeLength=
-            u_parseCodePointRangeAnyTerminator(line, &startCP, &endCP, &delimiter, errorCode);
-        if(errorCode.isFailure()) {
+        const char* delimiter;
+        int32_t rangeLength = u_parseCodePointRangeAnyTerminator(line, &startCP, &endCP, &delimiter, errorCode);
+        if (errorCode.isFailure()) {
             fprintf(stderr, "gennorm2 error: parsing code point range from %s\n", line);
             exit(errorCode.reset());
         }
         if (endCP >= 0xd800 && startCP <= 0xdfff) {
-                fprintf(stderr, "gennorm2 error: value or mapping for surrogate code points: %s\n",
-                        line);
-                exit(U_ILLEGAL_ARGUMENT_ERROR);
+            fprintf(stderr, "gennorm2 error: value or mapping for surrogate code points: %s\n", line);
+            exit(U_ILLEGAL_ARGUMENT_ERROR);
         }
-        delimiter=u_skipWhitespace(delimiter);
-        if(*delimiter==':') {
-            const char *s=u_skipWhitespace(delimiter+1);
-            char *end;
-            unsigned long value=strtoul(s, &end, 10);
-            if(end<=s || *u_skipWhitespace(end)!=0 || value>=0xff) {
+        delimiter = u_skipWhitespace(delimiter);
+        if (*delimiter == ':') {
+            const char* s = u_skipWhitespace(delimiter + 1);
+            char* end;
+            unsigned long value = strtoul(s, &end, 10);
+            if (end <= s || *u_skipWhitespace(end) != 0 || value >= 0xff) {
                 fprintf(stderr, "gennorm2 error: parsing ccc from %s\n", line);
                 exit(U_PARSE_ERROR);
             }
-            for(UChar32 c=(UChar32)startCP; c<=(UChar32)endCP; ++c) {
+            for (UChar32 c = (UChar32)startCP; c <= (UChar32)endCP; ++c) {
                 builder.setCC(c, (uint8_t)value);
             }
             continue;
         }
-        if(*delimiter=='-') {
-            if(*u_skipWhitespace(delimiter+1)!=0) {
+        if (*delimiter == '-') {
+            if (*u_skipWhitespace(delimiter + 1) != 0) {
                 fprintf(stderr, "gennorm2 error: parsing remove-mapping %s\n", line);
                 exit(U_PARSE_ERROR);
             }
-            for(UChar32 c=(UChar32)startCP; c<=(UChar32)endCP; ++c) {
+            for (UChar32 c = (UChar32)startCP; c <= (UChar32)endCP; ++c) {
                 builder.removeMapping(c);
             }
             continue;
         }
-        if(*delimiter=='=' || *delimiter=='>') {
-            char16_t uchars[Normalizer2Impl::MAPPING_LENGTH_MASK];
-            int32_t length=u_parseString(delimiter+1, uchars, UPRV_LENGTHOF(uchars), nullptr, errorCode);
-            if(errorCode.isFailure()) {
+        if (*delimiter == '=' || *delimiter == '>') {
+            UChar uchars[Normalizer2Impl::MAPPING_LENGTH_MASK];
+            int32_t length = u_parseString(delimiter + 1, uchars, UPRV_LENGTHOF(uchars), NULL, errorCode);
+            if (errorCode.isFailure()) {
                 fprintf(stderr, "gennorm2 error: parsing mapping string from %s\n", line);
                 exit(errorCode.reset());
             }
-            UnicodeString mapping(false, uchars, length);
-            if(*delimiter=='=') {
-                if(rangeLength!=1) {
-                    fprintf(stderr,
-                            "gennorm2 error: round-trip mapping for more than 1 code point on %s\n",
-                            line);
+            UnicodeString mapping(FALSE, uchars, length);
+            if (*delimiter == '=') {
+                if (rangeLength != 1) {
+                    fprintf(stderr, "gennorm2 error: round-trip mapping for more than 1 code point on %s\n", line);
                     exit(U_PARSE_ERROR);
                 }
                 builder.setRoundTripMapping((UChar32)startCP, mapping);
             } else {
-                for(UChar32 c=(UChar32)startCP; c<=(UChar32)endCP; ++c) {
+                for (UChar32 c = (UChar32)startCP; c <= (UChar32)endCP; ++c) {
                     builder.setOneWayMapping(c, mapping);
                 }
             }

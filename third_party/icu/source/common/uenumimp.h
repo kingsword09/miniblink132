@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -23,14 +23,14 @@
 
 U_CDECL_BEGIN
 
-/** 
- * following are the type declarations for 
+/**
+ * following are the type declarations for
  * implementations of APIs. If any of these
  * functions are NULL, U_UNSUPPORTED_ERROR
  * is returned. If close is NULL, the enumeration
  * object is going to be released.
  * Initial error checking is done in the body
- * of API function, so the implementations 
+ * of API function, so the implementations
  * need not to check the initial error condition.
  */
 
@@ -41,8 +41,7 @@ U_CDECL_BEGIN
  *
  * @param en enumeration to be closed
  */
-typedef void U_CALLCONV
-UEnumClose(UEnumeration *en);
+typedef void U_CALLCONV UEnumClose(UEnumeration* en);
 
 /**
  * Function type declaration for uenum_count().
@@ -54,8 +53,7 @@ UEnumClose(UEnumeration *en);
  * @param status pointer to UErrorCode variable
  * @return number of elements in enumeration
  */
-typedef int32_t U_CALLCONV
-UEnumCount(UEnumeration *en, UErrorCode *status);
+typedef int32_t U_CALLCONV UEnumCount(UEnumeration* en, UErrorCode* status);
 
 /**
  * Function type declaration for uenum_unext().
@@ -63,16 +61,13 @@ UEnumCount(UEnumeration *en, UErrorCode *status);
  * This function returns the next element as a UChar *,
  * or NULL after all elements haven been enumerated.
  *
- * @param en enumeration 
+ * @param en enumeration
  * @param resultLength pointer to result length
  * @param status pointer to UErrorCode variable
  * @return next element as UChar *,
  *         or NULL after all elements haven been enumerated
  */
-typedef const UChar* U_CALLCONV 
-UEnumUNext(UEnumeration* en,
-            int32_t* resultLength,
-            UErrorCode* status);
+typedef const UChar* U_CALLCONV UEnumUNext(UEnumeration* en, int32_t* resultLength, UErrorCode* status);
 
 /**
  * Function type declaration for uenum_next().
@@ -80,52 +75,46 @@ UEnumUNext(UEnumeration* en,
  * This function returns the next element as a char *,
  * or NULL after all elements haven been enumerated.
  *
- * @param en enumeration 
+ * @param en enumeration
  * @param resultLength pointer to result length
  * @param status pointer to UErrorCode variable
  * @return next element as char *,
  *         or NULL after all elements haven been enumerated
  */
-typedef const char* U_CALLCONV 
-UEnumNext(UEnumeration* en,
-           int32_t* resultLength,
-           UErrorCode* status);
+typedef const char* U_CALLCONV UEnumNext(UEnumeration* en, int32_t* resultLength, UErrorCode* status);
 
 /**
  * Function type declaration for uenum_reset().
  *
- * This function should reset the enumeration 
+ * This function should reset the enumeration
  * object
  *
- * @param en enumeration 
+ * @param en enumeration
  * @param status pointer to UErrorCode variable
  */
-typedef void U_CALLCONV 
-UEnumReset(UEnumeration* en, 
-            UErrorCode* status);
-
+typedef void U_CALLCONV UEnumReset(UEnumeration* en, UErrorCode* status);
 
 struct UEnumeration {
     /* baseContext. For the base class only. Don't touch! */
-    void *baseContext;
+    void* baseContext;
 
     /* context. Use it for what you need */
-    void *context;
+    void* context;
 
-    /** 
-     * these are functions that will 
+    /**
+     * these are functions that will
      * be used for APIs
      */
     /* called from uenum_close */
-    UEnumClose *close;
+    UEnumClose* close;
     /* called from uenum_count */
-    UEnumCount *count;
+    UEnumCount* count;
     /* called from uenum_unext */
-    UEnumUNext *uNext;
+    UEnumUNext* uNext;
     /* called from uenum_next */
-    UEnumNext  *next;
+    UEnumNext* next;
     /* called from uenum_reset */
-    UEnumReset *reset;
+    UEnumReset* reset;
 };
 
 U_CDECL_END
@@ -136,10 +125,7 @@ U_CDECL_END
  * when a UEnumeration is defined with 'uNext' pointing to this
  * function.
  */
-U_CAPI const UChar* U_EXPORT2
-uenum_unextDefault(UEnumeration* en,
-            int32_t* resultLength,
-            UErrorCode* status);
+U_CAPI const UChar* U_EXPORT2 uenum_unextDefault(UEnumeration* en, int32_t* resultLength, UErrorCode* status);
 
 /* This is the default implementation for uenum_next().
  * It automatically converts the UChar * string to char *.
@@ -147,9 +133,6 @@ uenum_unextDefault(UEnumeration* en,
  * when a UEnumeration is defined with 'next' pointing to this
  * function.
  */
-U_CAPI const char* U_EXPORT2
-uenum_nextDefault(UEnumeration* en,
-            int32_t* resultLength,
-            UErrorCode* status);
+U_CAPI const char* U_EXPORT2 uenum_nextDefault(UEnumeration* en, int32_t* resultLength, UErrorCode* status);
 
 #endif

@@ -1,4 +1,4 @@
-/**********************************************************************
+﻿/**********************************************************************
  * © 2016 and later: Unicode, Inc. and others.
  * License & terms of use: http://www.unicode.org/copyright.html
  ***********************************************************************
@@ -16,7 +16,7 @@ using namespace icu;
 void check(UErrorCode& status, const char* msg);
 
 // Replace nonprintable characters with unicode escapes
-UnicodeString escape(const UnicodeString &source);
+UnicodeString escape(const UnicodeString& source);
 
 // Print the given string to stdout
-void uprintf(const UnicodeString &str);
+void uprintf(const UnicodeString& str);

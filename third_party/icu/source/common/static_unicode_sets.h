@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // This file contains utilities to deal with static-allocated UnicodeSets.
@@ -83,9 +83,9 @@ enum Key {
  *
  * This method is always safe and OK to chain: in the case of a memory or other
  * error, it returns an empty set from static memory.
- * 
+ *
  * Example:
- * 
+ *
  *     UBool hasIgnorables = unisets::get(unisets::DEFAULT_IGNORABLES)->contains(...);
  *
  * @param key The desired UnicodeSet according to the enum in this file.
@@ -126,11 +126,11 @@ static const struct {
     Key key;
     UChar32 exemplar;
 } kCurrencyEntries[] = {
-    {DOLLAR_SIGN, u'$'},
-    {POUND_SIGN, u'£'},
-    {RUPEE_SIGN, u'₹'},
-    {YEN_SIGN, u'¥'},
-    {WON_SIGN, u'₩'},
+    { DOLLAR_SIGN, u'$' },
+    { POUND_SIGN, u'£' },
+    { RUPEE_SIGN, u'₹' },
+    { YEN_SIGN, u'¥' },
+    { WON_SIGN, u'₩' },
 };
 
 } // namespace unisets

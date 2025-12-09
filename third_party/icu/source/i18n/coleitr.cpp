@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -8,22 +8,22 @@
 */
 
 /*
-* File coleitr.cpp
-*
-* Created by: Helena Shih
-*
-* Modification History:
-*
-*  Date      Name        Description
-*
-*  6/23/97   helena      Adding comments to make code more readable.
-* 08/03/98   erm         Synched with 1.2 version of CollationElementIterator.java
-* 12/10/99   aliu        Ported Thai collation support from Java.
-* 01/25/01   swquek      Modified to a C++ wrapper calling C APIs (ucoliter.h)
-* 02/19/01   swquek      Removed CollationElementIterator() since it is 
-*                        private constructor and no calls are made to it
-* 2012-2014  markus      Rewritten in C++ again.
-*/
+ * File coleitr.cpp
+ *
+ * Created by: Helena Shih
+ *
+ * Modification History:
+ *
+ *  Date      Name        Description
+ *
+ *  6/23/97   helena      Adding comments to make code more readable.
+ * 08/03/98   erm         Synched with 1.2 version of CollationElementIterator.java
+ * 12/10/99   aliu        Ported Thai collation support from Java.
+ * 01/25/01   swquek      Modified to a C++ wrapper calling C APIs (ucoliter.h)
+ * 02/19/01   swquek      Removed CollationElementIterator() since it is
+ *                        private constructor and no calls are made to it
+ * 2012-2014  markus      Rewritten in C++ again.
+ */
 
 #include "unicode/utypes.h"
 
@@ -52,9 +52,14 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CollationElementIterator)
 
 /* CollationElementIterator public constructor/destructor ------------------ */
 
-CollationElementIterator::CollationElementIterator(
-                                         const CollationElementIterator& other) 
-        : UObject(other), iter_(nullptr), rbc_(nullptr), otherHalf_(0), dir_(0), offsets_(nullptr) {
+CollationElementIterator::CollationElementIterator(const CollationElementIterator& other)
+    : UObject(other)
+    , iter_(NULL)
+    , rbc_(NULL)
+    , otherHalf_(0)
+    , dir_(0)
+    , offsets_(NULL)
+{
     *this = other;
 }
 
@@ -68,21 +73,24 @@ CollationElementIterator::~CollationElementIterator()
 
 namespace {
 
-uint32_t getFirstHalf(uint32_t p, uint32_t lower32) {
+uint32_t getFirstHalf(uint32_t p, uint32_t lower32)
+{
     return (p & 0xffff0000) | ((lower32 >> 16) & 0xff00) | ((lower32 >> 8) & 0xff);
 }
-uint32_t getSecondHalf(uint32_t p, uint32_t lower32) {
+uint32_t getSecondHalf(uint32_t p, uint32_t lower32)
+{
     return (p << 16) | ((lower32 >> 8) & 0xff00) | (lower32 & 0x3f);
 }
-UBool ceNeedsTwoParts(int64_t ce) {
+UBool ceNeedsTwoParts(int64_t ce)
+{
     return (ce & INT64_C(0xffff00ff003f)) != 0;
 }
 
-}  // namespace
+} // namespace
 
 int32_t CollationElementIterator::getOffset() const
 {
-    if (dir_ < 0 && offsets_ != nullptr && !offsets_->isEmpty()) {
+    if (dir_ < 0 && offsets_ != NULL && !offsets_->isEmpty()) {
         // CollationIterator::previousCE() decrements the CEs length
         // while it pops CEs from its internal buffer.
         int32_t i = iter_->getCEsLength();
@@ -97,13 +105,15 @@ int32_t CollationElementIterator::getOffset() const
 }
 
 /**
-* Get the ordering priority of the next character in the string.
-* @return the next character's ordering. Returns NULLORDER if an error has 
-*         occurred or if the end of string has been reached
-*/
+ * Get the ordering priority of the next character in the string.
+ * @return the next character's ordering. Returns NULLORDER if an error has
+ *         occurred or if the end of string has been reached
+ */
 int32_t CollationElementIterator::next(UErrorCode& status)
 {
-    if (U_FAILURE(status)) { return NULLORDER; }
+    if (U_FAILURE(status)) {
+        return NULLORDER;
+    }
     if (dir_ > 1) {
         // Continue forward iteration. Test this first.
         if (otherHalf_ != 0) {
@@ -125,48 +135,46 @@ int32_t CollationElementIterator::next(UErrorCode& status)
     // No need to keep all CEs in the buffer when we iterate.
     iter_->clearCEsIfNoneRemaining();
     int64_t ce = iter_->nextCE(status);
-    if (ce == Collation::NO_CE) { return NULLORDER; }
+    if (ce == Collation::NO_CE) {
+        return NULLORDER;
+    }
     // Turn the 64-bit CE into two old-style 32-bit CEs, without quaternary bits.
     uint32_t p = (uint32_t)(ce >> 32);
     uint32_t lower32 = (uint32_t)ce;
     uint32_t firstHalf = getFirstHalf(p, lower32);
     uint32_t secondHalf = getSecondHalf(p, lower32);
     if (secondHalf != 0) {
-        otherHalf_ = secondHalf | 0xc0;  // continuation CE
+        otherHalf_ = secondHalf | 0xc0; // continuation CE
     }
     return firstHalf;
 }
 
-bool CollationElementIterator::operator!=(
-                                  const CollationElementIterator& other) const
+bool CollationElementIterator::operator!=(const CollationElementIterator& other) const
 {
     return !(*this == other);
 }
 
-bool CollationElementIterator::operator==(
-                                    const CollationElementIterator& that) const
+bool CollationElementIterator::operator==(const CollationElementIterator& that) const
 {
     if (this == &that) {
         return true;
     }
 
-    return
-        (rbc_ == that.rbc_ || *rbc_ == *that.rbc_) &&
-        otherHalf_ == that.otherHalf_ &&
-        normalizeDir() == that.normalizeDir() &&
-        string_ == that.string_ &&
-        *iter_ == *that.iter_;
+    return (rbc_ == that.rbc_ || *rbc_ == *that.rbc_) && otherHalf_ == that.otherHalf_ && normalizeDir() == that.normalizeDir() && string_ == that.string_
+        && *iter_ == *that.iter_;
 }
 
 /**
-* Get the ordering priority of the previous collation element in the string.
-* @param status the error code status.
-* @return the previous element's ordering. Returns NULLORDER if an error has 
-*         occurred or if the start of string has been reached.
-*/
+ * Get the ordering priority of the previous collation element in the string.
+ * @param status the error code status.
+ * @return the previous element's ordering. Returns NULLORDER if an error has
+ *         occurred or if the start of string has been reached.
+ */
 int32_t CollationElementIterator::previous(UErrorCode& status)
 {
-    if (U_FAILURE(status)) { return NULLORDER; }
+    if (U_FAILURE(status)) {
+        return NULLORDER;
+    }
     if (dir_ < 0) {
         // Continue backwards iteration. Test this first.
         if (otherHalf_ != 0) {
@@ -185,9 +193,9 @@ int32_t CollationElementIterator::previous(UErrorCode& status)
         status = U_INVALID_STATE_ERROR;
         return NULLORDER;
     }
-    if (offsets_ == nullptr) {
+    if (offsets_ == NULL) {
         offsets_ = new UVector32(status);
-        if (offsets_ == nullptr) {
+        if (offsets_ == NULL) {
             status = U_MEMORY_ALLOCATION_ERROR;
             return NULLORDER;
         }
@@ -197,7 +205,9 @@ int32_t CollationElementIterator::previous(UErrorCode& status)
     // write offsets for an artificial expansion.
     int32_t limitOffset = iter_->getCEsLength() == 0 ? iter_->getOffset() : 0;
     int64_t ce = iter_->previousCE(*offsets_, status);
-    if (ce == Collation::NO_CE) { return NULLORDER; }
+    if (ce == Collation::NO_CE) {
+        return NULLORDER;
+    }
     // Turn the 64-bit CE into two old-style 32-bit CEs, without quaternary bits.
     uint32_t p = (uint32_t)(ce >> 32);
     uint32_t lower32 = (uint32_t)ce;
@@ -212,31 +222,31 @@ int32_t CollationElementIterator::previous(UErrorCode& status)
             offsets_->addElement(limitOffset, status);
         }
         otherHalf_ = firstHalf;
-        return secondHalf | 0xc0;  // continuation CE
+        return secondHalf | 0xc0; // continuation CE
     }
     return firstHalf;
 }
 
 /**
-* Resets the cursor to the beginning of the string.
-*/
+ * Resets the cursor to the beginning of the string.
+ */
 void CollationElementIterator::reset()
 {
-    iter_ ->resetToOffset(0);
+    iter_->resetToOffset(0);
     otherHalf_ = 0;
     dir_ = 0;
 }
 
-void CollationElementIterator::setOffset(int32_t newOffset, 
-                                         UErrorCode& status)
+void CollationElementIterator::setOffset(int32_t newOffset, UErrorCode& status)
 {
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
     if (0 < newOffset && newOffset < string_.length()) {
         int32_t offset = newOffset;
         do {
-            char16_t c = string_.charAt(offset);
-            if (!rbc_->isUnsafe(c) ||
-                    (U16_IS_LEAD(c) && !rbc_->isUnsafe(string_.char32At(offset)))) {
+            UChar c = string_.charAt(offset);
+            if (!rbc_->isUnsafe(c) || (U16_IS_LEAD(c) && !rbc_->isUnsafe(string_.char32At(offset)))) {
                 break;
             }
             // Back up to before this unsafe character.
@@ -253,7 +263,9 @@ void CollationElementIterator::setOffset(int32_t newOffset,
                 iter_->resetToOffset(lastSafeOffset);
                 do {
                     iter_->nextCE(status);
-                    if (U_FAILURE(status)) { return; }
+                    if (U_FAILURE(status)) {
+                        return;
+                    }
                 } while ((offset = iter_->getOffset()) == lastSafeOffset);
                 if (offset <= newOffset) {
                     lastSafeOffset = offset;
@@ -268,25 +280,24 @@ void CollationElementIterator::setOffset(int32_t newOffset,
 }
 
 /**
-* Sets the source to the new source string.
-*/
-void CollationElementIterator::setText(const UnicodeString& source,
-                                       UErrorCode& status)
+ * Sets the source to the new source string.
+ */
+void CollationElementIterator::setText(const UnicodeString& source, UErrorCode& status)
 {
     if (U_FAILURE(status)) {
         return;
     }
 
     string_ = source;
-    const char16_t *s = string_.getBuffer();
-    CollationIterator *newIter;
+    const UChar* s = string_.getBuffer();
+    CollationIterator* newIter;
     UBool numeric = rbc_->settings->isNumeric();
     if (rbc_->settings->dontCheckFCD()) {
         newIter = new UTF16CollationIterator(rbc_->data, numeric, s, s, s + string_.length());
     } else {
         newIter = new FCDUTF16CollationIterator(rbc_->data, numeric, s, s, s + string_.length());
     }
-    if (newIter == nullptr) {
+    if (newIter == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
@@ -297,10 +308,9 @@ void CollationElementIterator::setText(const UnicodeString& source,
 }
 
 // Sets the source to the new character iterator.
-void CollationElementIterator::setText(CharacterIterator& source, 
-                                       UErrorCode& status)
+void CollationElementIterator::setText(CharacterIterator& source, UErrorCode& status)
 {
-    if (U_FAILURE(status)) 
+    if (U_FAILURE(status))
         return;
 
     source.getText(string_);
@@ -313,8 +323,7 @@ int32_t CollationElementIterator::strengthOrder(int32_t order) const
     // Mask off the unwanted differences.
     if (s == UCOL_PRIMARY) {
         order &= 0xffff0000;
-    }
-    else if (s == UCOL_SECONDARY) {
+    } else if (s == UCOL_SECONDARY) {
         order &= 0xffffff00;
     }
 
@@ -323,55 +332,56 @@ int32_t CollationElementIterator::strengthOrder(int32_t order) const
 
 /* CollationElementIterator private constructors/destructors --------------- */
 
-/** 
-* This is the "real" constructor for this class; it constructs an iterator
-* over the source text using the specified collator
-*/
-CollationElementIterator::CollationElementIterator(
-                                               const UnicodeString &source,
-                                               const RuleBasedCollator *coll,
-                                               UErrorCode &status)
-        : iter_(nullptr), rbc_(coll), otherHalf_(0), dir_(0), offsets_(nullptr) {
+/**
+ * This is the "real" constructor for this class; it constructs an iterator
+ * over the source text using the specified collator
+ */
+CollationElementIterator::CollationElementIterator(const UnicodeString& source, const RuleBasedCollator* coll, UErrorCode& status)
+    : iter_(NULL)
+    , rbc_(coll)
+    , otherHalf_(0)
+    , dir_(0)
+    , offsets_(NULL)
+{
     setText(source, status);
 }
 
-/** 
-* This is the "real" constructor for this class; it constructs an iterator over 
-* the source text using the specified collator
-*/
-CollationElementIterator::CollationElementIterator(
-                                           const CharacterIterator &source,
-                                           const RuleBasedCollator *coll,
-                                           UErrorCode &status)
-        : iter_(nullptr), rbc_(coll), otherHalf_(0), dir_(0), offsets_(nullptr) {
+/**
+ * This is the "real" constructor for this class; it constructs an iterator over
+ * the source text using the specified collator
+ */
+CollationElementIterator::CollationElementIterator(const CharacterIterator& source, const RuleBasedCollator* coll, UErrorCode& status)
+    : iter_(NULL)
+    , rbc_(coll)
+    , otherHalf_(0)
+    , dir_(0)
+    , offsets_(NULL)
+{
     // We only call source.getText() which should be const anyway.
-    setText(const_cast<CharacterIterator &>(source), status);
+    setText(const_cast<CharacterIterator&>(source), status);
 }
 
 /* CollationElementIterator private methods -------------------------------- */
 
-const CollationElementIterator& CollationElementIterator::operator=(
-                                         const CollationElementIterator& other)
+const CollationElementIterator& CollationElementIterator::operator=(const CollationElementIterator& other)
 {
     if (this == &other) {
         return *this;
     }
 
-    CollationIterator *newIter;
-    const FCDUTF16CollationIterator *otherFCDIter =
-            dynamic_cast<const FCDUTF16CollationIterator *>(other.iter_);
-    if(otherFCDIter != nullptr) {
+    CollationIterator* newIter;
+    const FCDUTF16CollationIterator* otherFCDIter = dynamic_cast<const FCDUTF16CollationIterator*>(other.iter_);
+    if (otherFCDIter != NULL) {
         newIter = new FCDUTF16CollationIterator(*otherFCDIter, string_.getBuffer());
     } else {
-        const UTF16CollationIterator *otherIter =
-                dynamic_cast<const UTF16CollationIterator *>(other.iter_);
-        if(otherIter != nullptr) {
+        const UTF16CollationIterator* otherIter = dynamic_cast<const UTF16CollationIterator*>(other.iter_);
+        if (otherIter != NULL) {
             newIter = new UTF16CollationIterator(*otherIter, string_.getBuffer());
         } else {
-            newIter = nullptr;
+            newIter = NULL;
         }
     }
-    if(newIter != nullptr) {
+    if (newIter != NULL) {
         delete iter_;
         iter_ = newIter;
         rbc_ = other.rbc_;
@@ -380,12 +390,12 @@ const CollationElementIterator& CollationElementIterator::operator=(
 
         string_ = other.string_;
     }
-    if(other.dir_ < 0 && other.offsets_ != nullptr && !other.offsets_->isEmpty()) {
+    if (other.dir_ < 0 && other.offsets_ != NULL && !other.offsets_->isEmpty()) {
         UErrorCode errorCode = U_ZERO_ERROR;
-        if(offsets_ == nullptr) {
+        if (offsets_ == NULL) {
             offsets_ = new UVector32(other.offsets_->size(), errorCode);
         }
-        if(offsets_ != nullptr) {
+        if (offsets_ != NULL) {
             offsets_->assign(*other.offsets_, errorCode);
         }
     }
@@ -396,15 +406,22 @@ namespace {
 
 class MaxExpSink : public ContractionsAndExpansions::CESink {
 public:
-    MaxExpSink(UHashtable *h, UErrorCode &ec) : maxExpansions(h), errorCode(ec) {}
+    MaxExpSink(UHashtable* h, UErrorCode& ec)
+        : maxExpansions(h)
+        , errorCode(ec)
+    {
+    }
     virtual ~MaxExpSink();
-    virtual void handleCE(int64_t /*ce*/) override {}
-    virtual void handleExpansion(const int64_t ces[], int32_t length) override {
+    virtual void handleCE(int64_t /*ce*/) override
+    {
+    }
+    virtual void handleExpansion(const int64_t ces[], int32_t length) override
+    {
         if (length <= 1) {
             // We do not need to add single CEs into the map.
             return;
         }
-        int32_t count = 0;  // number of CE "halves"
+        int32_t count = 0; // number of CE "halves"
         for (int32_t i = 0; i < length; ++i) {
             count += ceNeedsTwoParts(ces[i]) ? 2 : 1;
         }
@@ -417,7 +434,7 @@ public:
             lastHalf = getFirstHalf(p, lower32);
             U_ASSERT(lastHalf != 0);
         } else {
-            lastHalf |= 0xc0;  // old-style continuation CE
+            lastHalf |= 0xc0; // old-style continuation CE
         }
         if (count > uhash_igeti(maxExpansions, (int32_t)lastHalf)) {
             uhash_iputi(maxExpansions, (int32_t)lastHalf, count, &errorCode);
@@ -425,39 +442,46 @@ public:
     }
 
 private:
-    UHashtable *maxExpansions;
-    UErrorCode &errorCode;
+    UHashtable* maxExpansions;
+    UErrorCode& errorCode;
 };
 
-MaxExpSink::~MaxExpSink() {}
+MaxExpSink::~MaxExpSink()
+{
+}
 
-}  // namespace
+} // namespace
 
-UHashtable *
-CollationElementIterator::computeMaxExpansions(const CollationData *data, UErrorCode &errorCode) {
-    if (U_FAILURE(errorCode)) { return nullptr; }
-    UHashtable *maxExpansions = uhash_open(uhash_hashLong, uhash_compareLong,
-                                           uhash_compareLong, &errorCode);
-    if (U_FAILURE(errorCode)) { return nullptr; }
+UHashtable* CollationElementIterator::computeMaxExpansions(const CollationData* data, UErrorCode& errorCode)
+{
+    if (U_FAILURE(errorCode)) {
+        return NULL;
+    }
+    UHashtable* maxExpansions = uhash_open(uhash_hashLong, uhash_compareLong, uhash_compareLong, &errorCode);
+    if (U_FAILURE(errorCode)) {
+        return NULL;
+    }
     MaxExpSink sink(maxExpansions, errorCode);
-    ContractionsAndExpansions(nullptr, nullptr, &sink, true).forData(data, errorCode);
+    ContractionsAndExpansions(NULL, NULL, &sink, TRUE).forData(data, errorCode);
     if (U_FAILURE(errorCode)) {
         uhash_close(maxExpansions);
-        return nullptr;
+        return NULL;
     }
     return maxExpansions;
 }
 
-int32_t
-CollationElementIterator::getMaxExpansion(int32_t order) const {
+int32_t CollationElementIterator::getMaxExpansion(int32_t order) const
+{
     return getMaxExpansion(rbc_->tailoring->maxExpansions, order);
 }
 
-int32_t
-CollationElementIterator::getMaxExpansion(const UHashtable *maxExpansions, int32_t order) {
-    if (order == 0) { return 1; }
+int32_t CollationElementIterator::getMaxExpansion(const UHashtable* maxExpansions, int32_t order)
+{
+    if (order == 0) {
+        return 1;
+    }
     int32_t max;
-    if(maxExpansions != nullptr && (max = uhash_igeti(maxExpansions, order)) != 0) {
+    if (maxExpansions != NULL && (max = uhash_igeti(maxExpansions, order)) != 0) {
         return max;
     }
     if ((order & 0xc0) == 0xc0) {

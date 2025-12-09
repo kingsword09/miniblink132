@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+﻿// Copyright 2016 The Chromium Authors. All rights reserved.
 
 // Fuzzer for NumberFormat::parse.
 
@@ -11,19 +11,20 @@
 IcuEnvironment* env = new IcuEnvironment();
 
 // Entry point for LibFuzzer.
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-  UErrorCode status = U_ZERO_ERROR;
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+{
+    UErrorCode status = U_ZERO_ERROR;
 
-  auto rng = CreateRng(data, size);
-  const icu::Locale& locale = GetRandomLocale(&rng);
+    auto rng = CreateRng(data, size);
+    const icu::Locale& locale = GetRandomLocale(&rng);
 
-  std::unique_ptr<icu::NumberFormat> fmt(
-      icu::NumberFormat::createInstance(locale, status));
-  if (U_FAILURE(status)) return 0;
+    std::unique_ptr<icu::NumberFormat> fmt(icu::NumberFormat::createInstance(locale, status));
+    if (U_FAILURE(status))
+        return 0;
 
-  icu::UnicodeString str(UnicodeStringFromUtf8(data, size));
-  icu::Formattable result;
-  fmt->parse(str, result, status);
+    icu::UnicodeString str(UnicodeStringFromUtf8(data, size));
+    icu::Formattable result;
+    fmt->parse(str, result, status);
 
-  return 0;
+    return 0;
 }

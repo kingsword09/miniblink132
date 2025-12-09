@@ -1,4 +1,4 @@
-// © 2017 and later: Unicode, Inc. and others.
+﻿// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -36,34 +36,37 @@ enum CldrPatternStyle {
 // Namespace for naked functions
 namespace utils {
 
-inline int32_t insertDigitFromSymbols(FormattedStringBuilder& output, int32_t index, int8_t digit,
-                                      const DecimalFormatSymbols& symbols, Field field,
-                                      UErrorCode& status) {
+inline int32_t insertDigitFromSymbols(
+    FormattedStringBuilder& output, int32_t index, int8_t digit, const DecimalFormatSymbols& symbols, Field field, UErrorCode& status)
+{
     if (symbols.getCodePointZero() != -1) {
         return output.insertCodePoint(index, symbols.getCodePointZero() + digit, field, status);
     }
     return output.insert(index, symbols.getConstDigitSymbol(digit), field, status);
 }
 
-inline bool unitIsCurrency(const MeasureUnit& unit) {
+inline bool unitIsCurrency(const MeasureUnit& unit)
+{
     return uprv_strcmp("currency", unit.getType()) == 0;
 }
 
-inline bool unitIsBaseUnit(const MeasureUnit& unit) {
+inline bool unitIsBaseUnit(const MeasureUnit& unit)
+{
     return unit == MeasureUnit();
 }
 
-inline bool unitIsPercent(const MeasureUnit& unit) {
+inline bool unitIsPercent(const MeasureUnit& unit)
+{
     return uprv_strcmp("percent", unit.getSubtype()) == 0;
 }
 
-inline bool unitIsPermille(const MeasureUnit& unit) {
+inline bool unitIsPermille(const MeasureUnit& unit)
+{
     return uprv_strcmp("permille", unit.getSubtype()) == 0;
 }
 
 // NOTE: In Java, this method is in NumberFormat.java
-const char16_t*
-getPatternForStyle(const Locale& locale, const char* nsName, CldrPatternStyle style, UErrorCode& status);
+const char16_t* getPatternForStyle(const Locale& locale, const char* nsName, CldrPatternStyle style, UErrorCode& status);
 
 /**
  * Computes the plural form for this number based on the specified set of rules.
@@ -72,8 +75,8 @@ getPatternForStyle(const Locale& locale, const char* nsName, CldrPatternStyle st
  * @return The {@link StandardPlural} according to the PluralRules. If the plural form is not in
  *     the set of standard plurals, {@link StandardPlural#OTHER} is returned instead.
  */
-inline StandardPlural::Form getStandardPlural(const PluralRules *rules,
-                                              const IFixedDecimal &fdec) {
+inline StandardPlural::Form getStandardPlural(const PluralRules* rules, const IFixedDecimal& fdec)
+{
     if (rules == nullptr) {
         // Fail gracefully if the user didn't provide a PluralRules
         return StandardPlural::Form::OTHER;
@@ -86,11 +89,8 @@ inline StandardPlural::Form getStandardPlural(const PluralRules *rules,
 /**
  * Computes the plural form after copying the number and applying rounding rules.
  */
-inline StandardPlural::Form getPluralSafe(
-        const RoundingImpl& rounder,
-        const PluralRules* rules,
-        const DecimalQuantity& dq,
-        UErrorCode& status) {
+inline StandardPlural::Form getPluralSafe(const RoundingImpl& rounder, const PluralRules* rules, const DecimalQuantity& dq, UErrorCode& status)
+{
     // TODO(ICU-20500): Avoid the copy?
     DecimalQuantity copy(dq);
     rounder.apply(copy, status);

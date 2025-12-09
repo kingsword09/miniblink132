@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -14,32 +14,34 @@
 #include "dayperiodrules.h"
 
 #include "unicode/ures.h"
-#include "bytesinkutil.h"
 #include "charstr.h"
 #include "cstring.h"
 #include "ucln_in.h"
 #include "uhash.h"
-#include "ulocimp.h"
 #include "umutex.h"
 #include "uresimp.h"
-
 
 U_NAMESPACE_BEGIN
 
 namespace {
 
 struct DayPeriodRulesData : public UMemory {
-    DayPeriodRulesData() : localeToRuleSetNumMap(nullptr), rules(nullptr), maxRuleSetNum(0) {}
+    DayPeriodRulesData()
+        : localeToRuleSetNumMap(NULL)
+        , rules(NULL)
+        , maxRuleSetNum(0)
+    {
+    }
 
-    UHashtable *localeToRuleSetNumMap;
-    DayPeriodRules *rules;
+    UHashtable* localeToRuleSetNumMap;
+    DayPeriodRules* rules;
     int32_t maxRuleSetNum;
-} *data = nullptr;
+}* data = NULL;
 
 enum CutoffType {
     CUTOFF_TYPE_UNKNOWN = -1,
     CUTOFF_TYPE_BEFORE,
-    CUTOFF_TYPE_AFTER,  // TODO: AFTER is deprecated in CLDR 29. Remove.
+    CUTOFF_TYPE_AFTER, // TODO: AFTER is deprecated in CLDR 29. Remove.
     CUTOFF_TYPE_FROM,
     CUTOFF_TYPE_AT
 };
@@ -47,47 +49,61 @@ enum CutoffType {
 } // namespace
 
 struct DayPeriodRulesDataSink : public ResourceSink {
-    DayPeriodRulesDataSink() {
-        for (int32_t i = 0; i < UPRV_LENGTHOF(cutoffs); ++i) { cutoffs[i] = 0; }
+    DayPeriodRulesDataSink()
+    {
+        for (int32_t i = 0; i < UPRV_LENGTHOF(cutoffs); ++i) {
+            cutoffs[i] = 0;
+        }
     }
     virtual ~DayPeriodRulesDataSink();
 
-    virtual void put(const char *key, ResourceValue &value, UBool, UErrorCode &errorCode) override {
+    virtual void put(const char* key, ResourceValue& value, UBool, UErrorCode& errorCode) override
+    {
         ResourceTable dayPeriodData = value.getTable(errorCode);
-        if (U_FAILURE(errorCode)) { return; }
+        if (U_FAILURE(errorCode)) {
+            return;
+        }
 
         for (int32_t i = 0; dayPeriodData.getKeyAndValue(i, key, value); ++i) {
             if (uprv_strcmp(key, "locales") == 0) {
                 ResourceTable locales = value.getTable(errorCode);
-                if (U_FAILURE(errorCode)) { return; }
+                if (U_FAILURE(errorCode)) {
+                    return;
+                }
 
                 for (int32_t j = 0; locales.getKeyAndValue(j, key, value); ++j) {
                     UnicodeString setNum_str = value.getUnicodeString(errorCode);
                     int32_t setNum = parseSetNum(setNum_str, errorCode);
-                    uhash_puti(data->localeToRuleSetNumMap, const_cast<char *>(key), setNum, &errorCode);
+                    uhash_puti(data->localeToRuleSetNumMap, const_cast<char*>(key), setNum, &errorCode);
                 }
             } else if (uprv_strcmp(key, "rules") == 0) {
                 // Allocate one more than needed to skip [0]. See comment in parseSetNum().
                 data->rules = new DayPeriodRules[data->maxRuleSetNum + 1];
-                if (data->rules == nullptr) {
+                if (data->rules == NULL) {
                     errorCode = U_MEMORY_ALLOCATION_ERROR;
                     return;
                 }
                 ResourceTable rules = value.getTable(errorCode);
                 processRules(rules, key, value, errorCode);
-                if (U_FAILURE(errorCode)) { return; }
+                if (U_FAILURE(errorCode)) {
+                    return;
+                }
             }
         }
     }
 
-    void processRules(const ResourceTable &rules, const char *key,
-                      ResourceValue &value, UErrorCode &errorCode) {
-        if (U_FAILURE(errorCode)) { return; }
+    void processRules(const ResourceTable& rules, const char* key, ResourceValue& value, UErrorCode& errorCode)
+    {
+        if (U_FAILURE(errorCode)) {
+            return;
+        }
 
         for (int32_t i = 0; rules.getKeyAndValue(i, key, value); ++i) {
             ruleSetNum = parseSetNum(key, errorCode);
             ResourceTable ruleSet = value.getTable(errorCode);
-            if (U_FAILURE(errorCode)) { return; }
+            if (U_FAILURE(errorCode)) {
+                return;
+            }
 
             for (int32_t j = 0; ruleSet.getKeyAndValue(j, key, value); ++j) {
                 period = DayPeriodRules::getDayPeriodFromString(key);
@@ -96,25 +112,33 @@ struct DayPeriodRulesDataSink : public ResourceSink {
                     return;
                 }
                 ResourceTable periodDefinition = value.getTable(errorCode);
-                if (U_FAILURE(errorCode)) { return; }
+                if (U_FAILURE(errorCode)) {
+                    return;
+                }
 
                 for (int32_t k = 0; periodDefinition.getKeyAndValue(k, key, value); ++k) {
                     if (value.getType() == URES_STRING) {
                         // Key-value pairs (e.g. before{6:00}).
                         CutoffType type = getCutoffTypeFromString(key);
                         addCutoff(type, value.getUnicodeString(errorCode), errorCode);
-                        if (U_FAILURE(errorCode)) { return; }
+                        if (U_FAILURE(errorCode)) {
+                            return;
+                        }
                     } else {
                         // Arrays (e.g. before{6:00, 24:00}).
                         cutoffType = getCutoffTypeFromString(key);
                         ResourceArray cutoffArray = value.getArray(errorCode);
-                        if (U_FAILURE(errorCode)) { return; }
+                        if (U_FAILURE(errorCode)) {
+                            return;
+                        }
 
                         int32_t length = cutoffArray.getSize();
                         for (int32_t l = 0; l < length; ++l) {
                             cutoffArray.getValue(l, value);
                             addCutoff(cutoffType, value.getUnicodeString(errorCode), errorCode);
-                            if (U_FAILURE(errorCode)) { return; }
+                            if (U_FAILURE(errorCode)) {
+                                return;
+                            }
                         }
                     }
                 }
@@ -132,7 +156,7 @@ struct DayPeriodRulesDataSink : public ResourceSink {
     }
 
     // Members.
-    int32_t cutoffs[25];  // [0] thru [24]: 24 is allowed in "before 24".
+    int32_t cutoffs[25]; // [0] thru [24]: 24 is allowed in "before 24".
 
     // "Path" to data.
     int32_t ruleSetNum;
@@ -140,14 +164,18 @@ struct DayPeriodRulesDataSink : public ResourceSink {
     CutoffType cutoffType;
 
     // Helpers.
-    static int32_t parseSetNum(const UnicodeString &setNumStr, UErrorCode &errorCode) {
+    static int32_t parseSetNum(const UnicodeString& setNumStr, UErrorCode& errorCode)
+    {
         CharString cs;
         cs.appendInvariantChars(setNumStr, errorCode);
         return parseSetNum(cs.data(), errorCode);
     }
 
-    static int32_t parseSetNum(const char *setNumStr, UErrorCode &errorCode) {
-        if (U_FAILURE(errorCode)) { return -1; }
+    static int32_t parseSetNum(const char* setNumStr, UErrorCode& errorCode)
+    {
+        if (U_FAILURE(errorCode)) {
+            return -1;
+        }
 
         if (uprv_strncmp(setNumStr, "set", 3) != 0) {
             errorCode = U_INVALID_FORMAT_ERROR;
@@ -176,8 +204,11 @@ struct DayPeriodRulesDataSink : public ResourceSink {
         }
     }
 
-    void addCutoff(CutoffType type, const UnicodeString &hour_str, UErrorCode &errorCode) {
-        if (U_FAILURE(errorCode)) { return; }
+    void addCutoff(CutoffType type, const UnicodeString& hour_str, UErrorCode& errorCode)
+    {
+        if (U_FAILURE(errorCode)) {
+            return;
+        }
 
         if (type == CUTOFF_TYPE_UNKNOWN) {
             errorCode = U_INVALID_FORMAT_ERROR;
@@ -185,38 +216,42 @@ struct DayPeriodRulesDataSink : public ResourceSink {
         }
 
         int32_t hour = parseHour(hour_str, errorCode);
-        if (U_FAILURE(errorCode)) { return; }
+        if (U_FAILURE(errorCode)) {
+            return;
+        }
 
         cutoffs[hour] |= 1 << type;
     }
 
     // Translate the cutoffs[] array to day period rules.
-    void setDayPeriodForHoursFromCutoffs(UErrorCode &errorCode) {
-        DayPeriodRules &rule = data->rules[ruleSetNum];
+    void setDayPeriodForHoursFromCutoffs(UErrorCode& errorCode)
+    {
+        DayPeriodRules& rule = data->rules[ruleSetNum];
 
         for (int32_t startHour = 0; startHour <= 24; ++startHour) {
             // AT cutoffs must be either midnight or noon.
             if (cutoffs[startHour] & (1 << CUTOFF_TYPE_AT)) {
                 if (startHour == 0 && period == DayPeriodRules::DAYPERIOD_MIDNIGHT) {
-                    rule.fHasMidnight = true;
+                    rule.fHasMidnight = TRUE;
                 } else if (startHour == 12 && period == DayPeriodRules::DAYPERIOD_NOON) {
-                    rule.fHasNoon = true;
+                    rule.fHasNoon = TRUE;
                 } else {
-                    errorCode = U_INVALID_FORMAT_ERROR;  // Bad data.
+                    errorCode = U_INVALID_FORMAT_ERROR; // Bad data.
                     return;
                 }
             }
 
             // FROM/AFTER and BEFORE must come in a pair.
-            if (cutoffs[startHour] & (1 << CUTOFF_TYPE_FROM) ||
-                    cutoffs[startHour] & (1 << CUTOFF_TYPE_AFTER)) {
+            if (cutoffs[startHour] & (1 << CUTOFF_TYPE_FROM) || cutoffs[startHour] & (1 << CUTOFF_TYPE_AFTER)) {
                 for (int32_t hour = startHour + 1;; ++hour) {
                     if (hour == startHour) {
                         // We've gone around the array once and can't find a BEFORE.
                         errorCode = U_INVALID_FORMAT_ERROR;
                         return;
                     }
-                    if (hour == 25) { hour = 0; }
+                    if (hour == 25) {
+                        hour = 0;
+                    }
                     if (cutoffs[hour] & (1 << CUTOFF_TYPE_BEFORE)) {
                         rule.add(startHour, hour, period);
                         break;
@@ -227,7 +262,8 @@ struct DayPeriodRulesDataSink : public ResourceSink {
     }
 
     // Translate "before" to CUTOFF_TYPE_BEFORE, for example.
-    static CutoffType getCutoffTypeFromString(const char *type_str) {
+    static CutoffType getCutoffTypeFromString(const char* type_str)
+    {
         if (uprv_strcmp(type_str, "from") == 0) {
             return CUTOFF_TYPE_FROM;
         } else if (uprv_strcmp(type_str, "before") == 0) {
@@ -242,7 +278,8 @@ struct DayPeriodRulesDataSink : public ResourceSink {
     }
 
     // Gets the numerical value of the hour from the Unicode string.
-    static int32_t parseHour(const UnicodeString &time, UErrorCode &errorCode) {
+    static int32_t parseHour(const UnicodeString& time, UErrorCode& errorCode)
+    {
         if (U_FAILURE(errorCode)) {
             return 0;
         }
@@ -250,9 +287,7 @@ struct DayPeriodRulesDataSink : public ResourceSink {
         int32_t hourLimit = time.length() - 3;
         // `time` must look like "x:00" or "xx:00".
         // If length is wrong or `time` doesn't end with ":00", error out.
-        if ((hourLimit != 1 && hourLimit != 2) ||
-                time[hourLimit] != 0x3A || time[hourLimit + 1] != 0x30 ||
-                time[hourLimit + 2] != 0x30) {
+        if ((hourLimit != 1 && hourLimit != 2) || time[hourLimit] != 0x3A || time[hourLimit + 1] != 0x30 || time[hourLimit + 2] != 0x30) {
             errorCode = U_INVALID_FORMAT_ERROR;
             return 0;
         }
@@ -279,14 +314,17 @@ struct DayPeriodRulesDataSink : public ResourceSink {
 
         return hour;
     }
-};  // struct DayPeriodRulesDataSink
+}; // struct DayPeriodRulesDataSink
 
 struct DayPeriodRulesCountSink : public ResourceSink {
     virtual ~DayPeriodRulesCountSink();
 
-    virtual void put(const char *key, ResourceValue &value, UBool, UErrorCode &errorCode) override {
+    virtual void put(const char* key, ResourceValue& value, UBool, UErrorCode& errorCode) override
+    {
         ResourceTable rules = value.getTable(errorCode);
-        if (U_FAILURE(errorCode)) { return; }
+        if (U_FAILURE(errorCode)) {
+            return;
+        }
 
         for (int32_t i = 0; rules.getKeyAndValue(i, key, value); ++i) {
             int32_t setNum = DayPeriodRulesDataSink::parseSetNum(key, errorCode);
@@ -298,31 +336,37 @@ struct DayPeriodRulesCountSink : public ResourceSink {
 };
 
 // Out-of-line virtual destructors.
-DayPeriodRulesDataSink::~DayPeriodRulesDataSink() {}
-DayPeriodRulesCountSink::~DayPeriodRulesCountSink() {}
+DayPeriodRulesDataSink::~DayPeriodRulesDataSink()
+{
+}
+DayPeriodRulesCountSink::~DayPeriodRulesCountSink()
+{
+}
 
 namespace {
 
 UInitOnce initOnce {};
 
-U_CFUNC UBool U_CALLCONV dayPeriodRulesCleanup() {
+U_CFUNC UBool U_CALLCONV dayPeriodRulesCleanup()
+{
     delete[] data->rules;
     uhash_close(data->localeToRuleSetNumMap);
     delete data;
-    data = nullptr;
-    return true;
+    data = NULL;
+    return TRUE;
 }
 
-}  // namespace
+} // namespace
 
-void U_CALLCONV DayPeriodRules::load(UErrorCode &errorCode) {
+void U_CALLCONV DayPeriodRules::load(UErrorCode& errorCode)
+{
     if (U_FAILURE(errorCode)) {
         return;
     }
 
     data = new DayPeriodRulesData();
-    data->localeToRuleSetNumMap = uhash_open(uhash_hashChars, uhash_compareChars, nullptr, &errorCode);
-    LocalUResourceBundlePointer rb_dayPeriods(ures_openDirect(nullptr, "dayPeriods", &errorCode));
+    data->localeToRuleSetNumMap = uhash_open(uhash_hashChars, uhash_compareChars, NULL, &errorCode);
+    LocalUResourceBundlePointer rb_dayPeriods(ures_openDirect(NULL, "dayPeriods", &errorCode));
 
     // Get the largest rule set number (so we allocate enough objects).
     DayPeriodRulesCountSink countSink;
@@ -335,15 +379,19 @@ void U_CALLCONV DayPeriodRules::load(UErrorCode &errorCode) {
     ucln_i18n_registerCleanup(UCLN_I18N_DAYPERIODRULES, dayPeriodRulesCleanup);
 }
 
-const DayPeriodRules *DayPeriodRules::getInstance(const Locale &locale, UErrorCode &errorCode) {
+const DayPeriodRules* DayPeriodRules::getInstance(const Locale& locale, UErrorCode& errorCode)
+{
     umtx_initOnce(initOnce, DayPeriodRules::load, errorCode);
 
     // If the entire day period rules data doesn't conform to spec (even if the part we want
-    // does), return nullptr.
-    if(U_FAILURE(errorCode)) { return nullptr; }
+    // does), return NULL.
+    if (U_FAILURE(errorCode)) {
+        return NULL;
+    }
 
-    const char *localeCode = locale.getBaseName();
+    const char* localeCode = locale.getBaseName();
     char name[ULOC_FULLNAME_CAPACITY];
+    char parentName[ULOC_FULLNAME_CAPACITY];
 
     if (uprv_strlen(localeCode) < ULOC_FULLNAME_CAPACITY) {
         uprv_strcpy(name, localeCode);
@@ -354,21 +402,20 @@ const DayPeriodRules *DayPeriodRules::getInstance(const Locale &locale, UErrorCo
         }
     } else {
         errorCode = U_BUFFER_OVERFLOW_ERROR;
-        return nullptr;
+        return NULL;
     }
 
-    int32_t ruleSetNum = 0;  // NB there is no rule set 0 and 0 is returned upon lookup failure.
+    int32_t ruleSetNum = 0; // NB there is no rule set 0 and 0 is returned upon lookup failure.
     while (*name != '\0') {
         ruleSetNum = uhash_geti(data->localeToRuleSetNumMap, name);
         if (ruleSetNum == 0) {
-            CharString parent;
-            CharStringByteSink sink(&parent);
-            ulocimp_getParent(name, sink, &errorCode);
-            if (parent.isEmpty()) {
+            // name and parentName can't be the same pointer, so fill in parent then copy to child.
+            uloc_getParent(name, parentName, ULOC_FULLNAME_CAPACITY, &errorCode);
+            if (*parentName == '\0') {
                 // Saves a lookup in the hash table.
                 break;
             }
-            parent.extract(name, UPRV_LENGTHOF(name), errorCode);
+            uprv_strcpy(name, parentName);
         } else {
             break;
         }
@@ -377,26 +424,33 @@ const DayPeriodRules *DayPeriodRules::getInstance(const Locale &locale, UErrorCo
     if (ruleSetNum <= 0 || data->rules[ruleSetNum].getDayPeriodForHour(0) == DAYPERIOD_UNKNOWN) {
         // If day period for hour 0 is UNKNOWN then day period for all hours are UNKNOWN.
         // Data doesn't exist even with fallback.
-        return nullptr;
+        return NULL;
     } else {
         return &data->rules[ruleSetNum];
     }
 }
 
-DayPeriodRules::DayPeriodRules() : fHasMidnight(false), fHasNoon(false) {
+DayPeriodRules::DayPeriodRules()
+    : fHasMidnight(FALSE)
+    , fHasNoon(FALSE)
+{
     for (int32_t i = 0; i < 24; ++i) {
         fDayPeriodForHour[i] = DayPeriodRules::DAYPERIOD_UNKNOWN;
     }
 }
 
-double DayPeriodRules::getMidPointForDayPeriod(
-        DayPeriodRules::DayPeriod dayPeriod, UErrorCode &errorCode) const {
-    if (U_FAILURE(errorCode)) { return -1; }
+double DayPeriodRules::getMidPointForDayPeriod(DayPeriodRules::DayPeriod dayPeriod, UErrorCode& errorCode) const
+{
+    if (U_FAILURE(errorCode)) {
+        return -1;
+    }
 
     int32_t startHour = getStartHourForDayPeriod(dayPeriod, errorCode);
     int32_t endHour = getEndHourForDayPeriod(dayPeriod, errorCode);
     // Can't obtain startHour or endHour; bail out.
-    if (U_FAILURE(errorCode)) { return -1; }
+    if (U_FAILURE(errorCode)) {
+        return -1;
+    }
 
     double midPoint = (startHour + endHour) / 2.0;
 
@@ -412,12 +466,18 @@ double DayPeriodRules::getMidPointForDayPeriod(
     return midPoint;
 }
 
-int32_t DayPeriodRules::getStartHourForDayPeriod(
-        DayPeriodRules::DayPeriod dayPeriod, UErrorCode &errorCode) const {
-    if (U_FAILURE(errorCode)) { return -1; }
+int32_t DayPeriodRules::getStartHourForDayPeriod(DayPeriodRules::DayPeriod dayPeriod, UErrorCode& errorCode) const
+{
+    if (U_FAILURE(errorCode)) {
+        return -1;
+    }
 
-    if (dayPeriod == DAYPERIOD_MIDNIGHT) { return 0; }
-    if (dayPeriod == DAYPERIOD_NOON) { return 12; }
+    if (dayPeriod == DAYPERIOD_MIDNIGHT) {
+        return 0;
+    }
+    if (dayPeriod == DAYPERIOD_NOON) {
+        return 12;
+    }
 
     if (fDayPeriodForHour[0] == dayPeriod && fDayPeriodForHour[23] == dayPeriod) {
         // dayPeriod wraps around midnight. Start hour is later than end hour.
@@ -439,12 +499,18 @@ int32_t DayPeriodRules::getStartHourForDayPeriod(
     return -1;
 }
 
-int32_t DayPeriodRules::getEndHourForDayPeriod(
-        DayPeriodRules::DayPeriod dayPeriod, UErrorCode &errorCode) const {
-    if (U_FAILURE(errorCode)) { return -1; }
+int32_t DayPeriodRules::getEndHourForDayPeriod(DayPeriodRules::DayPeriod dayPeriod, UErrorCode& errorCode) const
+{
+    if (U_FAILURE(errorCode)) {
+        return -1;
+    }
 
-    if (dayPeriod == DAYPERIOD_MIDNIGHT) { return 0; }
-    if (dayPeriod == DAYPERIOD_NOON) { return 12; }
+    if (dayPeriod == DAYPERIOD_MIDNIGHT) {
+        return 0;
+    }
+    if (dayPeriod == DAYPERIOD_NOON) {
+        return 12;
+    }
 
     if (fDayPeriodForHour[0] == dayPeriod && fDayPeriodForHour[23] == dayPeriod) {
         // dayPeriod wraps around midnight. End hour is before start hour.
@@ -467,7 +533,8 @@ int32_t DayPeriodRules::getEndHourForDayPeriod(
     return -1;
 }
 
-DayPeriodRules::DayPeriod DayPeriodRules::getDayPeriodFromString(const char *type_str) {
+DayPeriodRules::DayPeriod DayPeriodRules::getDayPeriodFromString(const char* type_str)
+{
     if (uprv_strcmp(type_str, "midnight") == 0) {
         return DAYPERIOD_MIDNIGHT;
     } else if (uprv_strcmp(type_str, "noon") == 0) {
@@ -497,21 +564,25 @@ DayPeriodRules::DayPeriod DayPeriodRules::getDayPeriodFromString(const char *typ
     }
 }
 
-void DayPeriodRules::add(int32_t startHour, int32_t limitHour, DayPeriod period) {
+void DayPeriodRules::add(int32_t startHour, int32_t limitHour, DayPeriod period)
+{
     for (int32_t i = startHour; i != limitHour; ++i) {
-        if (i == 24) { i = 0; }
+        if (i == 24) {
+            i = 0;
+        }
         fDayPeriodForHour[i] = period;
     }
 }
 
-UBool DayPeriodRules::allHoursAreSet() {
+UBool DayPeriodRules::allHoursAreSet()
+{
     for (int32_t i = 0; i < 24; ++i) {
-        if (fDayPeriodForHour[i] == DAYPERIOD_UNKNOWN) { return false; }
+        if (fDayPeriodForHour[i] == DAYPERIOD_UNKNOWN) {
+            return FALSE;
+        }
     }
 
-    return true;
+    return TRUE;
 }
-
-
 
 U_NAMESPACE_END

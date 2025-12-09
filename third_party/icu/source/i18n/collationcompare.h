@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -27,12 +27,10 @@ struct CollationSettings;
 
 class U_I18N_API CollationCompare /* not : public UObject because all methods are static */ {
 public:
-    static UCollationResult compareUpToQuaternary(CollationIterator &left, CollationIterator &right,
-                                                  const CollationSettings &settings,
-                                                  UErrorCode &errorCode);
+    static UCollationResult compareUpToQuaternary(CollationIterator& left, CollationIterator& right, const CollationSettings& settings, UErrorCode& errorCode);
 };
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
-#endif  // __COLLATIONCOMPARE_H__
+#endif // !UCONFIG_NO_COLLATION
+#endif // __COLLATIONCOMPARE_H__

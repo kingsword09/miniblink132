@@ -55,21 +55,21 @@ const char* {{type.id}}::{{property.name | to_title_case}}Enum::{{literal | dash
       {% endif %}
     {% endfor %}
     {% if not (type.type == "object") or not ("properties" in type) %}{% continue %}{% endif %}
-V8_CRDTP_BEGIN_DESERIALIZER({{type.id}})
+CRDTP_BEGIN_DESERIALIZER({{type.id}})
       {% for property in type.properties | sort(attribute = 'name', case_sensitive=True) %}
       {% if property.optional %}
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("{{property.name}}", m_{{property.name}}),
+    CRDTP_DESERIALIZE_FIELD_OPT("{{property.name}}", m_{{property.name}}),
       {% else %}
-    V8_CRDTP_DESERIALIZE_FIELD("{{property.name}}", m_{{property.name}}),
+    CRDTP_DESERIALIZE_FIELD("{{property.name}}", m_{{property.name}}),
       {% endif %}
       {% endfor %}
-V8_CRDTP_END_DESERIALIZER()
+CRDTP_END_DESERIALIZER()
 
-V8_CRDTP_BEGIN_SERIALIZER({{type.id}})
+CRDTP_BEGIN_SERIALIZER({{type.id}})
       {% for property in type.properties %}
-    V8_CRDTP_SERIALIZE_FIELD("{{property.name}}", m_{{property.name}});
+    CRDTP_SERIALIZE_FIELD("{{property.name}}", m_{{property.name}});
       {% endfor %}
-V8_CRDTP_END_SERIALIZER();
+CRDTP_END_SERIALIZER();
 
     {% if protocol.is_exported(domain.domain, type.id) %}
 // static
@@ -257,15 +257,15 @@ struct {{command.name}}Params : public {{config.crdtp.namespace}}::Deserializabl
     DECLARE_DESERIALIZATION_SUPPORT();
 };
 
-V8_CRDTP_BEGIN_DESERIALIZER({{command.name}}Params)
+CRDTP_BEGIN_DESERIALIZER({{command.name}}Params)
       {% for parameter in command.parameters  | sort(attribute = 'name', case_sensitive=True) %}
       {% if parameter.optional %}
-    V8_CRDTP_DESERIALIZE_FIELD_OPT("{{parameter.name}}", {{parameter.name}}),
+    CRDTP_DESERIALIZE_FIELD_OPT("{{parameter.name}}", {{parameter.name}}),
       {% else %}
-    V8_CRDTP_DESERIALIZE_FIELD("{{parameter.name}}", {{parameter.name}}),
+    CRDTP_DESERIALIZE_FIELD("{{parameter.name}}", {{parameter.name}}),
       {% endif %}
       {% endfor %}
-V8_CRDTP_END_DESERIALIZER()
+CRDTP_END_DESERIALIZER()
      {% endif %}
 
 }  // namespace

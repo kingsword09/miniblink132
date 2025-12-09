@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ***************************************************************************
@@ -34,72 +34,76 @@
 
 #include "uassert.h"
 
-
 U_NAMESPACE_BEGIN
 
 #ifdef RBBI_DEBUG
-static int  gLastSerial = 0;
+static int gLastSerial = 0;
 #endif
-
 
 //-------------------------------------------------------------------------
 //
 //    Constructor.   Just set the fields to reasonable default values.
 //
 //-------------------------------------------------------------------------
-RBBINode::RBBINode(NodeType t) : UMemory() {
+RBBINode::RBBINode(NodeType t)
+    : UMemory()
+{
 #ifdef RBBI_DEBUG
-    fSerialNum    = ++gLastSerial;
+    fSerialNum = ++gLastSerial;
 #endif
-    fType         = t;
-    fParent       = nullptr;
-    fLeftChild    = nullptr;
-    fRightChild   = nullptr;
-    fInputSet     = nullptr;
-    fFirstPos     = 0;
-    fLastPos      = 0;
-    fNullable     = false;
-    fLookAheadEnd = false;
-    fRuleRoot     = false;
-    fChainIn      = false;
-    fVal          = 0;
-    fPrecedence   = precZero;
+    fType = t;
+    fParent = NULL;
+    fLeftChild = NULL;
+    fRightChild = NULL;
+    fInputSet = NULL;
+    fFirstPos = 0;
+    fLastPos = 0;
+    fNullable = FALSE;
+    fLookAheadEnd = FALSE;
+    fRuleRoot = FALSE;
+    fChainIn = FALSE;
+    fVal = 0;
+    fPrecedence = precZero;
 
-    UErrorCode     status = U_ZERO_ERROR;
-    fFirstPosSet  = new UVector(status);  // TODO - get a real status from somewhere
-    fLastPosSet   = new UVector(status);
-    fFollowPos    = new UVector(status);
-    if      (t==opCat)    {fPrecedence = precOpCat;}
-    else if (t==opOr)     {fPrecedence = precOpOr;}
-    else if (t==opStart)  {fPrecedence = precStart;}
-    else if (t==opLParen) {fPrecedence = precLParen;}
-
+    UErrorCode status = U_ZERO_ERROR;
+    fFirstPosSet = new UVector(status); // TODO - get a real status from somewhere
+    fLastPosSet = new UVector(status);
+    fFollowPos = new UVector(status);
+    if (t == opCat) {
+        fPrecedence = precOpCat;
+    } else if (t == opOr) {
+        fPrecedence = precOpOr;
+    } else if (t == opStart) {
+        fPrecedence = precStart;
+    } else if (t == opLParen) {
+        fPrecedence = precLParen;
+    }
 }
 
-
-RBBINode::RBBINode(const RBBINode &other) : UMemory(other) {
+RBBINode::RBBINode(const RBBINode& other)
+    : UMemory(other)
+{
 #ifdef RBBI_DEBUG
-    fSerialNum   = ++gLastSerial;
+    fSerialNum = ++gLastSerial;
 #endif
-    fType        = other.fType;
-    fParent      = nullptr;
-    fLeftChild   = nullptr;
-    fRightChild  = nullptr;
-    fInputSet    = other.fInputSet;
-    fPrecedence  = other.fPrecedence;
-    fText        = other.fText;
-    fFirstPos    = other.fFirstPos;
-    fLastPos     = other.fLastPos;
-    fNullable    = other.fNullable;
-    fVal         = other.fVal;
-    fRuleRoot    = false;
-    fChainIn     = other.fChainIn;
-    UErrorCode     status = U_ZERO_ERROR;
-    fFirstPosSet = new UVector(status);   // TODO - get a real status from somewhere
-    fLastPosSet  = new UVector(status);
-    fFollowPos   = new UVector(status);
+    fType = other.fType;
+    fParent = NULL;
+    fLeftChild = NULL;
+    fRightChild = NULL;
+    fInputSet = other.fInputSet;
+    fPrecedence = other.fPrecedence;
+    fText = other.fText;
+    fFirstPos = other.fFirstPos;
+    fLastPos = other.fLastPos;
+    fNullable = other.fNullable;
+    fVal = other.fVal;
+    fRuleRoot = FALSE;
+    fChainIn = other.fChainIn;
+    UErrorCode status = U_ZERO_ERROR;
+    fFirstPosSet = new UVector(status); // TODO - get a real status from somewhere
+    fLastPosSet = new UVector(status);
+    fFollowPos = new UVector(status);
 }
-
 
 //-------------------------------------------------------------------------
 //
@@ -110,10 +114,11 @@ RBBINode::RBBINode(const RBBINode &other) : UMemory(other) {
 //                  it can't be deleted here.
 //
 //-------------------------------------------------------------------------
-RBBINode::~RBBINode() {
+RBBINode::~RBBINode()
+{
     // printf("deleting node %8x   serial %4d\n", this, this->fSerialNum);
     delete fInputSet;
-    fInputSet = nullptr;
+    fInputSet = NULL;
 
     switch (this->fType) {
     case varRef:
@@ -123,19 +128,16 @@ RBBINode::~RBBINode() {
         break;
 
     default:
-        delete        fLeftChild;
-        fLeftChild =   nullptr;
-        delete        fRightChild;
-        fRightChild = nullptr;
+        delete fLeftChild;
+        fLeftChild = NULL;
+        delete fRightChild;
+        fRightChild = NULL;
     }
-
 
     delete fFirstPosSet;
     delete fLastPosSet;
     delete fFollowPos;
-
 }
-
 
 //-------------------------------------------------------------------------
 //
@@ -146,8 +148,9 @@ RBBINode::~RBBINode() {
 //                  references in preparation for generating the DFA tables.
 //
 //-------------------------------------------------------------------------
-RBBINode *RBBINode::cloneTree() {
-    RBBINode    *n;
+RBBINode* RBBINode::cloneTree()
+{
+    RBBINode* n;
 
     if (fType == RBBINode::varRef) {
         // If the current node is a variable reference, skip over it
@@ -158,21 +161,19 @@ RBBINode *RBBINode::cloneTree() {
     } else {
         n = new RBBINode(*this);
         // Check for null pointer.
-        if (n != nullptr) {
-            if (fLeftChild != nullptr) {
-                n->fLeftChild          = fLeftChild->cloneTree();
+        if (n != NULL) {
+            if (fLeftChild != NULL) {
+                n->fLeftChild = fLeftChild->cloneTree();
                 n->fLeftChild->fParent = n;
             }
-            if (fRightChild != nullptr) {
-                n->fRightChild          = fRightChild->cloneTree();
+            if (fRightChild != NULL) {
+                n->fRightChild = fRightChild->cloneTree();
                 n->fRightChild->fParent = n;
             }
         }
     }
     return n;
 }
-
-
 
 //-------------------------------------------------------------------------
 //
@@ -192,28 +193,28 @@ RBBINode *RBBINode::cloneTree() {
 //                      nested references are handled by cloneTree(), not here.
 //
 //-------------------------------------------------------------------------
-RBBINode *RBBINode::flattenVariables() {
+RBBINode* RBBINode::flattenVariables()
+{
     if (fType == varRef) {
-        RBBINode *retNode  = fLeftChild->cloneTree();
-        if (retNode != nullptr) {
+        RBBINode* retNode = fLeftChild->cloneTree();
+        if (retNode != NULL) {
             retNode->fRuleRoot = this->fRuleRoot;
-            retNode->fChainIn  = this->fChainIn;
+            retNode->fChainIn = this->fChainIn;
         }
-        delete this;   // TODO: undefined behavior. Fix.
+        delete this; // TODO: undefined behavior. Fix.
         return retNode;
     }
 
-    if (fLeftChild != nullptr) {
+    if (fLeftChild != NULL) {
         fLeftChild = fLeftChild->flattenVariables();
-        fLeftChild->fParent  = this;
+        fLeftChild->fParent = this;
     }
-    if (fRightChild != nullptr) {
+    if (fRightChild != NULL) {
         fRightChild = fRightChild->flattenVariables();
         fRightChild->fParent = this;
     }
     return this;
 }
-
 
 //-------------------------------------------------------------------------
 //
@@ -223,29 +224,30 @@ RBBINode *RBBINode::flattenVariables() {
 //                 the left child of the uset node.
 //
 //-------------------------------------------------------------------------
-void RBBINode::flattenSets() {
+void RBBINode::flattenSets()
+{
     U_ASSERT(fType != setRef);
 
-    if (fLeftChild != nullptr) {
-        if (fLeftChild->fType==setRef) {
-            RBBINode *setRefNode = fLeftChild;
-            RBBINode *usetNode   = setRefNode->fLeftChild;
-            RBBINode *replTree   = usetNode->fLeftChild;
-            fLeftChild           = replTree->cloneTree();
-            fLeftChild->fParent  = this;
+    if (fLeftChild != NULL) {
+        if (fLeftChild->fType == setRef) {
+            RBBINode* setRefNode = fLeftChild;
+            RBBINode* usetNode = setRefNode->fLeftChild;
+            RBBINode* replTree = usetNode->fLeftChild;
+            fLeftChild = replTree->cloneTree();
+            fLeftChild->fParent = this;
             delete setRefNode;
         } else {
             fLeftChild->flattenSets();
         }
     }
 
-    if (fRightChild != nullptr) {
-        if (fRightChild->fType==setRef) {
-            RBBINode *setRefNode = fRightChild;
-            RBBINode *usetNode   = setRefNode->fLeftChild;
-            RBBINode *replTree   = usetNode->fLeftChild;
-            fRightChild           = replTree->cloneTree();
-            fRightChild->fParent  = this;
+    if (fRightChild != NULL) {
+        if (fRightChild->fType == setRef) {
+            RBBINode* setRefNode = fRightChild;
+            RBBINode* usetNode = setRefNode->fLeftChild;
+            RBBINode* replTree = usetNode->fLeftChild;
+            fRightChild = replTree->cloneTree();
+            fRightChild->fParent = this;
             delete setRefNode;
         } else {
             fRightChild->flattenSets();
@@ -253,15 +255,14 @@ void RBBINode::flattenSets() {
     }
 }
 
-
-
 //-------------------------------------------------------------------------
 //
 //   findNodes()     Locate all the nodes of the specified type, starting
 //                   at the specified root.
 //
 //-------------------------------------------------------------------------
-void   RBBINode::findNodes(UVector *dest, RBBINode::NodeType kind, UErrorCode &status) {
+void RBBINode::findNodes(UVector* dest, RBBINode::NodeType kind, UErrorCode& status)
+{
     /* test for buffer overflows */
     if (U_FAILURE(status)) {
         return;
@@ -270,14 +271,13 @@ void   RBBINode::findNodes(UVector *dest, RBBINode::NodeType kind, UErrorCode &s
     if (fType == kind) {
         dest->addElement(this, status);
     }
-    if (fLeftChild != nullptr) {
+    if (fLeftChild != NULL) {
         fLeftChild->findNodes(dest, kind, status);
     }
-    if (fRightChild != nullptr) {
+    if (fRightChild != NULL) {
         fRightChild->findNodes(dest, kind, status);
     }
 }
-
 
 //-------------------------------------------------------------------------
 //
@@ -286,38 +286,21 @@ void   RBBINode::findNodes(UVector *dest, RBBINode::NodeType kind, UErrorCode &s
 //-------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
 
-static int32_t serial(const RBBINode *node) {
-    return (node == nullptr? -1 : node->fSerialNum);
+static int32_t serial(const RBBINode* node)
+{
+    return (node == NULL ? -1 : node->fSerialNum);
 }
 
+void RBBINode::printNode(const RBBINode* node)
+{
+    static const char* const nodeTypeNames[] = { "setRef", "uset", "varRef", "leafChar", "lookAhead", "tag", "endMark", "opStart", "opCat", "opOr", "opStar",
+        "opPlus", "opQuestion", "opBreak", "opReverse", "opLParen" };
 
-void RBBINode::printNode(const RBBINode *node) {
-    static const char * const nodeTypeNames[] = {
-                "setRef",
-                "uset",
-                "varRef",
-                "leafChar",
-                "lookAhead",
-                "tag",
-                "endMark",
-                "opStart",
-                "opCat",
-                "opOr",
-                "opStar",
-                "opPlus",
-                "opQuestion",
-                "opBreak",
-                "opReverse",
-                "opLParen"
-    };
-
-    if (node==nullptr) {
-        RBBIDebugPrintf("%10p", (void *)node);
+    if (node == NULL) {
+        RBBIDebugPrintf("%10p", (void*)node);
     } else {
-        RBBIDebugPrintf("%10p %5d %12s %c%c  %5d       %5d     %5d       %6d     %d ",
-            (void *)node, node->fSerialNum, nodeTypeNames[node->fType],
-            node->fRuleRoot?'R':' ', node->fChainIn?'C':' ',
-            serial(node->fLeftChild), serial(node->fRightChild), serial(node->fParent),
+        RBBIDebugPrintf("%10p %5d %12s %c%c  %5d       %5d     %5d       %6d     %d ", (void*)node, node->fSerialNum, nodeTypeNames[node->fType],
+            node->fRuleRoot ? 'R' : ' ', node->fChainIn ? 'C' : ' ', serial(node->fLeftChild), serial(node->fRightChild), serial(node->fParent),
             node->fFirstPos, node->fVal);
         if (node->fType == varRef) {
             RBBI_DEBUG_printUnicodeString(node->fText);
@@ -327,13 +310,12 @@ void RBBINode::printNode(const RBBINode *node) {
 }
 #endif
 
-
 #ifdef RBBI_DEBUG
-U_CFUNC void RBBI_DEBUG_printUnicodeString(const UnicodeString &s, int minWidth) {
+U_CFUNC void RBBI_DEBUG_printUnicodeString(const UnicodeString& s, int minWidth)
+{
     RBBIDebugPrintf("%*s", minWidth, CStr(s)());
 }
 #endif
-
 
 //-------------------------------------------------------------------------
 //
@@ -341,32 +323,32 @@ U_CFUNC void RBBI_DEBUG_printUnicodeString(const UnicodeString &s, int minWidth)
 //
 //-------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBINode::printNodeHeader() {
+void RBBINode::printNodeHeader()
+{
     RBBIDebugPrintf(" Address   serial        type     LeftChild  RightChild   Parent   position value\n");
 }
-    
-void RBBINode::printTree(const RBBINode *node, UBool printHeading) {
+
+void RBBINode::printTree(const RBBINode* node, UBool printHeading)
+{
     if (printHeading) {
         printNodeHeader();
     }
     printNode(node);
-    if (node != nullptr) {
+    if (node != NULL) {
         // Only dump the definition under a variable reference if asked to.
         // Unconditionally dump children of all other node types.
         if (node->fType != varRef) {
-            if (node->fLeftChild != nullptr) {
-                printTree(node->fLeftChild, false);
+            if (node->fLeftChild != NULL) {
+                printTree(node->fLeftChild, FALSE);
             }
-            
-            if (node->fRightChild != nullptr) {
-                printTree(node->fRightChild, false);
+
+            if (node->fRightChild != NULL) {
+                printTree(node->fRightChild, FALSE);
             }
         }
     }
 }
 #endif
-
-
 
 U_NAMESPACE_END
 

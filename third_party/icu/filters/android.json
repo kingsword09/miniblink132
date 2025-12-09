@@ -129,13 +129,18 @@
     ]
   },
   "featureFilters": {
-    "brkitr_adaboost": {
-      "includelist": [
-        "jaml"
+    "brkitr_dictionaries": {
+      "excludelist": [
+// Filtered by android/brkitr.patch        "cjdict",
+        "cjdict"
       ]
     },
     "brkitr_rules": {
       "excludelist": [
+// Exclude *phrase_cj
+        "line_phrase_cj",
+        "line_normal_phrase_cj",
+        "line_loose_phrase_cj",
 // Exclude line_cj till we upgrade to 68.1 due to size impact.
 	"line_cj",
         "title",
@@ -720,8 +725,7 @@
         "-/ExemplarCharactersNumbers",
         "-/ExemplarCharactersPunctuation",
         "-/measurementSystemNames",
-        "-/NumberElements/minimalPairs",
-        "-/personNames"
+        "-/NumberElements/minimalPairs"
       ]
     },
 // Based on filter_currency_data

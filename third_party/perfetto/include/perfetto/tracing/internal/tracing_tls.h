@@ -65,48 +65,53 @@ namespace internal {
 // TraceWriter.
 // The lookup is O(1): Given the TLS object, the TraceWriter is just tls[M][N].
 class TracingTLS : public Platform::ThreadLocalObject {
- public:
-  ~TracingTLS() override;
+public:
+    ~TracingTLS() override;
 
-  // This is checked against TraceMuxerImpl's global generation counter to
-  // handle destruction of TraceWriter(s) that belong to data sources that
-  // have been stopped. When the two numbers diverge, a scan of all the
-  // thread-local TraceWriter(s) is issued.
-  uint32_t generation = 0;
+    // This is checked against TraceMuxerImpl's global generation counter to
+    // handle destruction of TraceWriter(s) that belong to data sources that
+    // have been stopped. When the two numbers diverge, a scan of all the
+    // thread-local TraceWriter(s) is issued.
+    uint32_t generation = 0;
 
-  // This flag is true while this thread is inside a trace point for any data
-  // source or in other delicate parts of the tracing machinery during which we
-  // should not try to trace. Used to prevent unexpected re-entrancy.
-  // This flag is also load-bearing when handling re-entrancy during thread-exit
-  // handlers. See comment in TracingTLS::~TracingTLS().
-  bool is_in_trace_point = false;
+    // This flag is true while this thread is inside a trace point for any data
+    // source or in other delicate parts of the tracing machinery during which we
+    // should not try to trace. Used to prevent unexpected re-entrancy.
+    // This flag is also load-bearing when handling re-entrancy during thread-exit
+    // handlers. See comment in TracingTLS::~TracingTLS().
+    bool is_in_trace_point = false;
 
-  // Used inside a trace point (only one trace point per thread can be active at
-  // any time) to cache the instances bitmap.
-  uint32_t cached_instances = 0;
+    // Used inside a trace point (only one trace point per thread can be active at
+    // any time) to cache the instances bitmap.
+    uint32_t cached_instances = 0;
 
-  // By default all data source instances have independent thread-local state
-  // (see above).
-  std::array<DataSourceThreadLocalState, kMaxDataSources> data_sources_tls{};
+    // By default all data source instances have independent thread-local state
+    // (see above).
+    std::array<DataSourceThreadLocalState, kMaxDataSources> data_sources_tls {};
 
-  // Track event data sources, however, share the same thread-local state in
-  // order to be able to share trace writers and interning state across all
-  // track event categories.
-  DataSourceThreadLocalState track_event_tls{};
+    // Track event data sources, however, share the same thread-local state in
+    // order to be able to share trace writers and interning state across all
+    // track event categories.
+    DataSourceThreadLocalState track_event_tls {};
 };
 
 struct ScopedReentrancyAnnotator {
-  ScopedReentrancyAnnotator(TracingTLS& root_tls) : root_tls_(root_tls) {
-    PERFETTO_DCHECK(!root_tls_.is_in_trace_point);
-    root_tls_.is_in_trace_point = true;
-  }
-  ~ScopedReentrancyAnnotator() { root_tls_.is_in_trace_point = false; }
+    ScopedReentrancyAnnotator(TracingTLS& root_tls)
+        : root_tls_(root_tls)
+    {
+        PERFETTO_DCHECK(!root_tls_.is_in_trace_point);
+        root_tls_.is_in_trace_point = true;
+    }
+    ~ScopedReentrancyAnnotator()
+    {
+        root_tls_.is_in_trace_point = false;
+    }
 
- private:
-  TracingTLS& root_tls_;
+private:
+    TracingTLS& root_tls_;
 };
 
-}  // namespace internal
-}  // namespace perfetto
+} // namespace internal
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACING_TLS_H_
+#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACING_TLS_H_

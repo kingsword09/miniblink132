@@ -1,4 +1,4 @@
-/*
+﻿/*
  *******************************************************************************
  *
  *   © 2016 and later: Unicode, Inc. and others.
@@ -33,7 +33,7 @@
 #include "sfnt.h"
 #include "cmaps.h"
 
-GnomeSurface::GnomeSurface(GtkWidget *theWidget)
+GnomeSurface::GnomeSurface(GtkWidget* theWidget)
     : fWidget(theWidget)
 {
     fCairo = gdk_cairo_create(fWidget->window);
@@ -44,22 +44,29 @@ GnomeSurface::~GnomeSurface()
     cairo_destroy(fCairo);
 }
 
-void GnomeSurface::drawGlyphs(const LEFontInstance *font, const LEGlyphID *glyphs, le_int32 count,
-                              const float *positions, le_int32 x, le_int32 y, le_int32 /*width*/, le_int32 /*height*/)
+void GnomeSurface::drawGlyphs(const LEFontInstance* font, const LEGlyphID* glyphs, le_int32 count, const float* positions, le_int32 x, le_int32 y,
+    le_int32 /*width*/, le_int32 /*height*/)
 {
-    GnomeFontInstance *gFont = (GnomeFontInstance *) font;
-    
+    GnomeFontInstance* gFont = (GnomeFontInstance*)font;
+
     gFont->rasterizeGlyphs(fCairo, glyphs, count, positions, x, y);
 }
 
-GnomeFontInstance::GnomeFontInstance(FT_Library engine, const char *fontPathName, le_int16 pointSize, LEErrorCode &status)
-    : FontTableCache(), fPointSize(pointSize), fUnitsPerEM(0), fAscent(0), fDescent(0), fLeading(0),
-      fDeviceScaleX(1), fDeviceScaleY(1), fMapper(nullptr)
+GnomeFontInstance::GnomeFontInstance(FT_Library engine, const char* fontPathName, le_int16 pointSize, LEErrorCode& status)
+    : FontTableCache()
+    , fPointSize(pointSize)
+    , fUnitsPerEM(0)
+    , fAscent(0)
+    , fDescent(0)
+    , fLeading(0)
+    , fDeviceScaleX(1)
+    , fDeviceScaleY(1)
+    , fMapper(NULL)
 {
     FT_Error error;
 
-    fFace      = nullptr;
-    fCairoFace = nullptr;
+    fFace = NULL;
+    fCairoFace = NULL;
 
     error = FT_New_Face(engine, fontPathName, 0, &fFace);
 
@@ -70,18 +77,18 @@ GnomeFontInstance::GnomeFontInstance(FT_Library engine, const char *fontPathName
     }
 
     // FIXME: what about the display resolution?
-    fDeviceScaleX = ((float) 96) / 72;
-    fDeviceScaleY = ((float) 96) / 72;
+    fDeviceScaleX = ((float)96) / 72;
+    fDeviceScaleY = ((float)96) / 72;
 
     error = FT_Set_Char_Size(fFace, 0, pointSize << 6, 92, 92);
-    
+
     fCairoFace = cairo_ft_font_face_create_for_ft_face(fFace, 0);
 
     fUnitsPerEM = fFace->units_per_EM;
 
-    fAscent  = (le_int32) (yUnitsToPoints(fFace->ascender) * fDeviceScaleY);
-    fDescent = (le_int32) -(yUnitsToPoints(fFace->descender) * fDeviceScaleY);
-    fLeading = (le_int32) (yUnitsToPoints(fFace->height) * fDeviceScaleY) - fAscent - fDescent;
+    fAscent = (le_int32)(yUnitsToPoints(fFace->ascender) * fDeviceScaleY);
+    fDescent = (le_int32) - (yUnitsToPoints(fFace->descender) * fDeviceScaleY);
+    fLeading = (le_int32)(yUnitsToPoints(fFace->height) * fDeviceScaleY) - fAscent - fDescent;
 
     // printf("Face = %s, unitsPerEM = %d, ascent = %d, descent = %d\n", fontPathName, fUnitsPerEM, fAscent, fDescent);
 
@@ -96,8 +103,8 @@ GnomeFontInstance::GnomeFontInstance(FT_Library engine, const char *fontPathName
 GnomeFontInstance::~GnomeFontInstance()
 {
     cairo_font_face_destroy(fCairoFace);
-    
-    if (fFace != nullptr) {
+
+    if (fFace != NULL) {
         FT_Done_Face(fFace);
     }
 }
@@ -105,32 +112,32 @@ GnomeFontInstance::~GnomeFontInstance()
 LEErrorCode GnomeFontInstance::initMapper()
 {
     LETag cmapTag = LE_CMAP_TABLE_TAG;
-    const CMAPTable *cmap = (const CMAPTable *) readFontTable(cmapTag);
+    const CMAPTable* cmap = (const CMAPTable*)readFontTable(cmapTag);
 
-    if (cmap == nullptr) {
+    if (cmap == NULL) {
         return LE_MISSING_FONT_TABLE_ERROR;
     }
 
     fMapper = CMAPMapper::createUnicodeMapper(cmap);
 
-    if (fMapper == nullptr) {
+    if (fMapper == NULL) {
         return LE_MISSING_FONT_TABLE_ERROR;
     }
 
     return LE_NO_ERROR;
 }
 
-const void *GnomeFontInstance::getFontTable(LETag tableTag) const
+const void* GnomeFontInstance::getFontTable(LETag tableTag) const
 {
     return FontTableCache::find(tableTag);
 }
 
-const void *GnomeFontInstance::readFontTable(LETag tableTag) const
+const void* GnomeFontInstance::readFontTable(LETag tableTag) const
 {
     FT_ULong len = 0;
-    FT_Byte *result = nullptr;
+    FT_Byte* result = NULL;
 
-    FT_Load_Sfnt_Table(fFace, tableTag, 0, nullptr, &len);
+    FT_Load_Sfnt_Table(fFace, tableTag, 0, NULL, &len);
 
     if (len > 0) {
         result = LE_NEW_ARRAY(FT_Byte, len);
@@ -140,7 +147,7 @@ const void *GnomeFontInstance::readFontTable(LETag tableTag) const
     return result;
 }
 
-void GnomeFontInstance::getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const
+void GnomeFontInstance::getGlyphAdvance(LEGlyphID glyph, LEPoint& advance) const
 {
     advance.fX = 0;
     advance.fY = 0;
@@ -161,47 +168,46 @@ void GnomeFontInstance::getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const
     return;
 }
 
-le_bool GnomeFontInstance::getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const
+le_bool GnomeFontInstance::getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint& point) const
 {
     FT_Error error;
 
     error = FT_Load_Glyph(fFace, glyph, FT_LOAD_DEFAULT);
 
     if (error != 0) {
-        return false;
+        return FALSE;
     }
 
     if (pointNumber >= fFace->glyph->outline.n_points) {
-        return false;
+        return FALSE;
     }
 
     point.fX = fFace->glyph->outline.points[pointNumber].x >> 6;
     point.fY = fFace->glyph->outline.points[pointNumber].y >> 6;
 
-    return true;
+    return TRUE;
 }
 
-void GnomeFontInstance::rasterizeGlyphs(cairo_t *cairo, const LEGlyphID *glyphs, le_int32 glyphCount, const float *positions,
-                                        le_int32 x, le_int32 y) const
+void GnomeFontInstance::rasterizeGlyphs(cairo_t* cairo, const LEGlyphID* glyphs, le_int32 glyphCount, const float* positions, le_int32 x, le_int32 y) const
 {
-    cairo_glyph_t *glyph_t = LE_NEW_ARRAY(cairo_glyph_t, glyphCount);
+    cairo_glyph_t* glyph_t = LE_NEW_ARRAY(cairo_glyph_t, glyphCount);
     le_int32 in, out;
-    
+
     for (in = 0, out = 0; in < glyphCount; in += 1) {
         TTGlyphID glyph = LE_GET_GLYPH(glyphs[in]);
-        
+
         if (glyph < 0xFFFE) {
             glyph_t[out].index = glyph;
-            glyph_t[out].x     = x + positions[in*2];
-            glyph_t[out].y     = y + positions[in*2 + 1];
-            
+            glyph_t[out].x = x + positions[in * 2];
+            glyph_t[out].y = y + positions[in * 2 + 1];
+
             out += 1;
         }
     }
-    
+
     cairo_set_font_face(cairo, fCairoFace);
     cairo_set_font_size(cairo, getXPixelsPerEm() * getScaleFactorX());
     cairo_show_glyphs(cairo, glyph_t, out);
-    
+
     LE_DELETE_ARRAY(glyph_t);
 }

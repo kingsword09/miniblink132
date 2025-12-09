@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -102,7 +102,7 @@ typedef UElement UHashTok;
  */
 struct UHashElement {
     /* Reorder these elements to pack nicely if necessary */
-    int32_t  hashcode;
+    int32_t hashcode;
     UHashTok value;
     UHashTok key;
 };
@@ -132,9 +132,9 @@ typedef UElementsAreEqual UValueComparator;
  * See uhash_setResizePolicy().
  */
 enum UHashResizePolicy {
-    U_GROW,            /* Grow on demand, do not shrink */
+    U_GROW, /* Grow on demand, do not shrink */
     U_GROW_AND_SHRINK, /* Grow and shrink on demand */
-    U_FIXED            /* Never change size */
+    U_FIXED /* Never change size */
 };
 
 /**
@@ -145,39 +145,39 @@ struct UHashtable {
 
     /* Main key-value pair storage array */
 
-    UHashElement *elements;
+    UHashElement* elements;
 
     /* Function pointers */
 
-    UHashFunction *keyHasher;      /* Computes hash from key.
-                                   * Never null. */
-    UKeyComparator *keyComparator; /* Compares keys for equality.
-                                   * Never null. */
-    UValueComparator *valueComparator; /* Compares the values for equality */
+    UHashFunction* keyHasher; /* Computes hash from key.
+                               * Never null. */
+    UKeyComparator* keyComparator; /* Compares keys for equality.
+                                    * Never null. */
+    UValueComparator* valueComparator; /* Compares the values for equality */
 
-    UObjectDeleter *keyDeleter;    /* Deletes keys when required.
-                                   * If NULL won't do anything */
-    UObjectDeleter *valueDeleter;  /* Deletes values when required.
+    UObjectDeleter* keyDeleter; /* Deletes keys when required.
+                                 * If NULL won't do anything */
+    UObjectDeleter* valueDeleter; /* Deletes values when required.
                                    * If NULL won't do anything */
 
     /* Size parameters */
 
-    int32_t     count;      /* The number of key-value pairs in this table.
-                             * 0 <= count <= length.  In practice we
-                             * never let count == length (see code). */
-    int32_t     length;     /* The physical size of the arrays hashes, keys
-                             * and values.  Must be prime. */
+    int32_t count; /* The number of key-value pairs in this table.
+                    * 0 <= count <= length.  In practice we
+                    * never let count == length (see code). */
+    int32_t length; /* The physical size of the arrays hashes, keys
+                     * and values.  Must be prime. */
 
     /* Rehashing thresholds */
 
-    int32_t     highWaterMark;  /* If count > highWaterMark, rehash */
-    int32_t     lowWaterMark;   /* If count < lowWaterMark, rehash */
-    float       highWaterRatio; /* 0..1; high water as a fraction of length */
-    float       lowWaterRatio;  /* 0..1; low water as a fraction of length */
+    int32_t highWaterMark; /* If count > highWaterMark, rehash */
+    int32_t lowWaterMark; /* If count < lowWaterMark, rehash */
+    float highWaterRatio; /* 0..1; high water as a fraction of length */
+    float lowWaterRatio; /* 0..1; low water as a fraction of length */
 
-    int8_t      primeIndex;     /* Index into our prime table for length.
-                                 * length == PRIMES[primeIndex] */
-    UBool       allocated; /* Was this UHashtable allocated? */
+    int8_t primeIndex; /* Index into our prime table for length.
+                        * length == PRIMES[primeIndex] */
+    UBool allocated; /* Was this UHashtable allocated? */
 };
 typedef struct UHashtable UHashtable;
 
@@ -197,11 +197,7 @@ U_CDECL_END
  * @return A pointer to a UHashtable, or 0 if an error occurred.
  * @see uhash_openSize
  */
-U_CAPI UHashtable* U_EXPORT2
-uhash_open(UHashFunction *keyHash,
-           UKeyComparator *keyComp,
-           UValueComparator *valueComp,
-           UErrorCode *status);
+U_CAPI UHashtable* U_EXPORT2 uhash_open(UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, UErrorCode* status);
 
 /**
  * Initialize a new UHashtable with a given initial size.
@@ -214,12 +210,7 @@ uhash_open(UHashFunction *keyHash,
  * @return A pointer to a UHashtable, or 0 if an error occurred.
  * @see uhash_open
  */
-U_CAPI UHashtable* U_EXPORT2
-uhash_openSize(UHashFunction *keyHash,
-               UKeyComparator *keyComp,
-               UValueComparator *valueComp,
-               int32_t size,
-               UErrorCode *status);
+U_CAPI UHashtable* U_EXPORT2 uhash_openSize(UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, int32_t size, UErrorCode* status);
 
 /**
  * Initialize an existing UHashtable.
@@ -231,12 +222,7 @@ uhash_openSize(UHashFunction *keyHash,
  * @return A pointer to a UHashtable, or 0 if an error occurred.
  * @see uhash_openSize
  */
-U_CAPI UHashtable* U_EXPORT2
-uhash_init(UHashtable *hash,
-           UHashFunction *keyHash,
-           UKeyComparator *keyComp,
-           UValueComparator *valueComp,
-           UErrorCode *status);
+U_CAPI UHashtable* U_EXPORT2 uhash_init(UHashtable* hash, UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, UErrorCode* status);
 
 /**
  * Initialize an existing UHashtable.
@@ -249,22 +235,14 @@ uhash_init(UHashtable *hash,
  * @return A pointer to a UHashtable, or 0 if an error occurred.
  * @see uhash_openSize
  */
-U_CAPI UHashtable* U_EXPORT2
-uhash_initSize(UHashtable *hash,
-               UHashFunction *keyHash,
-               UKeyComparator *keyComp,
-               UValueComparator *valueComp,
-               int32_t size,
-               UErrorCode *status);
+U_CAPI UHashtable* U_EXPORT2 uhash_initSize(
+    UHashtable* hash, UHashFunction* keyHash, UKeyComparator* keyComp, UValueComparator* valueComp, int32_t size, UErrorCode* status);
 
 /**
  * Close a UHashtable, releasing the memory used.
  * @param hash The UHashtable to close. If hash is NULL no operation is performed.
  */
-U_CAPI void U_EXPORT2
-uhash_close(UHashtable *hash);
-
-
+U_CAPI void U_EXPORT2 uhash_close(UHashtable* hash);
 
 /**
  * Set the function used to hash keys.
@@ -272,8 +250,7 @@ uhash_close(UHashtable *hash);
  * @param fn the function to be used hash keys; must not be NULL
  * @return the previous key hasher; non-NULL
  */
-U_CAPI UHashFunction *U_EXPORT2
-uhash_setKeyHasher(UHashtable *hash, UHashFunction *fn);
+U_CAPI UHashFunction* U_EXPORT2 uhash_setKeyHasher(UHashtable* hash, UHashFunction* fn);
 
 /**
  * Set the function used to compare keys.  The default comparison is a
@@ -282,8 +259,7 @@ uhash_setKeyHasher(UHashtable *hash, UHashFunction *fn);
  * @param fn the function to be used compare keys; must not be NULL
  * @return the previous key comparator; non-NULL
  */
-U_CAPI UKeyComparator *U_EXPORT2
-uhash_setKeyComparator(UHashtable *hash, UKeyComparator *fn);
+U_CAPI UKeyComparator* U_EXPORT2 uhash_setKeyComparator(UHashtable* hash, UKeyComparator* fn);
 
 /**
  * Set the function used to compare values.  The default comparison is a
@@ -292,8 +268,7 @@ uhash_setKeyComparator(UHashtable *hash, UKeyComparator *fn);
  * @param fn the function to be used compare keys; must not be NULL
  * @return the previous key comparator; non-NULL
  */
-U_CAPI UValueComparator *U_EXPORT2
-uhash_setValueComparator(UHashtable *hash, UValueComparator *fn);
+U_CAPI UValueComparator* U_EXPORT2 uhash_setValueComparator(UHashtable* hash, UValueComparator* fn);
 
 /**
  * Set the function used to delete keys.  If this function pointer is
@@ -305,8 +280,7 @@ uhash_setValueComparator(UHashtable *hash, UValueComparator *fn);
  * @param fn the function to be used delete keys, or NULL
  * @return the previous key deleter; may be NULL
  */
-U_CAPI UObjectDeleter *U_EXPORT2
-uhash_setKeyDeleter(UHashtable *hash, UObjectDeleter *fn);
+U_CAPI UObjectDeleter* U_EXPORT2 uhash_setKeyDeleter(UHashtable* hash, UObjectDeleter* fn);
 
 /**
  * Set the function used to delete values.  If this function pointer
@@ -318,8 +292,7 @@ uhash_setKeyDeleter(UHashtable *hash, UObjectDeleter *fn);
  * @param fn the function to be used delete values, or NULL
  * @return the previous value deleter; may be NULL
  */
-U_CAPI UObjectDeleter *U_EXPORT2
-uhash_setValueDeleter(UHashtable *hash, UObjectDeleter *fn);
+U_CAPI UObjectDeleter* U_EXPORT2 uhash_setValueDeleter(UHashtable* hash, UObjectDeleter* fn);
 
 /**
  * Specify whether or not, and how, the hashtable resizes itself.
@@ -328,16 +301,14 @@ uhash_setValueDeleter(UHashtable *hash, UObjectDeleter *fn);
  * @param hash The UHashtable to set
  * @param policy The way the hashtable resizes itself, {U_GROW, U_GROW_AND_SHRINK, U_FIXED}
  */
-U_CAPI void U_EXPORT2
-uhash_setResizePolicy(UHashtable *hash, enum UHashResizePolicy policy);
+U_CAPI void U_EXPORT2 uhash_setResizePolicy(UHashtable* hash, enum UHashResizePolicy policy);
 
 /**
  * Get the number of key-value pairs stored in a UHashtable.
  * @param hash The UHashtable to query.
  * @return The number of key-value pairs stored in hash.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_count(const UHashtable *hash);
+U_CAPI int32_t U_EXPORT2 uhash_count(const UHashtable* hash);
 
 /**
  * Put a (key=pointer, value=pointer) item in a UHashtable.  If the
@@ -352,11 +323,7 @@ uhash_count(const UHashtable *hash);
  * @return The previous value, or NULL if none.
  * @see uhash_get
  */
-U_CAPI void* U_EXPORT2
-uhash_put(UHashtable *hash,
-          void *key,
-          void *value,
-          UErrorCode *status);
+U_CAPI void* U_EXPORT2 uhash_put(UHashtable* hash, void* key, void* value, UErrorCode* status);
 
 /**
  * Put a (key=integer, value=pointer) item in a UHashtable.
@@ -370,11 +337,7 @@ uhash_put(UHashtable *hash,
  * @return The previous value, or NULL if none.
  * @see uhash_get
  */
-U_CAPI void* U_EXPORT2
-uhash_iput(UHashtable *hash,
-           int32_t key,
-           void* value,
-           UErrorCode *status);
+U_CAPI void* U_EXPORT2 uhash_iput(UHashtable* hash, int32_t key, void* value, UErrorCode* status);
 
 /**
  * Put a (key=pointer, value=integer) item in a UHashtable.  If the
@@ -388,11 +351,7 @@ uhash_iput(UHashtable *hash,
  * @return The previous value, or 0 if none.
  * @see uhash_get
  */
-U_CAPI int32_t U_EXPORT2
-uhash_puti(UHashtable *hash,
-           void* key,
-           int32_t value,
-           UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uhash_puti(UHashtable* hash, void* key, int32_t value, UErrorCode* status);
 
 /**
  * Put a (key=integer, value=integer) item in a UHashtable.  If the
@@ -406,11 +365,7 @@ uhash_puti(UHashtable *hash,
  * @return The previous value, or 0 if none.
  * @see uhash_get
  */
-U_CAPI int32_t U_EXPORT2
-uhash_iputi(UHashtable *hash,
-           int32_t key,
-           int32_t value,
-           UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uhash_iputi(UHashtable* hash, int32_t key, int32_t value, UErrorCode* status);
 
 /**
  * Put a (key=pointer, value=integer) item in a UHashtable.  If the
@@ -425,11 +380,7 @@ uhash_iputi(UHashtable *hash,
  * @return The previous value, or 0 if none.
  * @see uhash_getiAndFound
  */
-U_CAPI int32_t U_EXPORT2
-uhash_putiAllowZero(UHashtable *hash,
-                    void *key,
-                    int32_t value,
-                    UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uhash_putiAllowZero(UHashtable* hash, void* key, int32_t value, UErrorCode* status);
 
 /**
  * Put a (key=integer, value=integer) item in a UHashtable.  If the
@@ -444,11 +395,7 @@ uhash_putiAllowZero(UHashtable *hash,
  * @return The previous value, or 0 if none.
  * @see uhash_igetiAndFound
  */
-U_CAPI int32_t U_EXPORT2
-uhash_iputiAllowZero(UHashtable *hash,
-                     int32_t key,
-                     int32_t value,
-                     UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uhash_iputiAllowZero(UHashtable* hash, int32_t key, int32_t value, UErrorCode* status);
 
 /**
  * Retrieve a pointer value from a UHashtable using a pointer key,
@@ -457,9 +404,7 @@ uhash_iputiAllowZero(UHashtable *hash,
  * @param key A pointer key stored in a hashtable
  * @return The requested item, or NULL if not found.
  */
-U_CAPI void* U_EXPORT2
-uhash_get(const UHashtable *hash,
-          const void *key);
+U_CAPI void* U_EXPORT2 uhash_get(const UHashtable* hash, const void* key);
 
 /**
  * Retrieve a pointer value from a UHashtable using a integer key,
@@ -468,9 +413,7 @@ uhash_get(const UHashtable *hash,
  * @param key An integer key stored in a hashtable
  * @return The requested item, or NULL if not found.
  */
-U_CAPI void* U_EXPORT2
-uhash_iget(const UHashtable *hash,
-           int32_t key);
+U_CAPI void* U_EXPORT2 uhash_iget(const UHashtable* hash, int32_t key);
 
 /**
  * Retrieve an integer value from a UHashtable using a pointer key,
@@ -479,9 +422,7 @@ uhash_iget(const UHashtable *hash,
  * @param key A pointer key stored in a hashtable
  * @return The requested item, or 0 if not found.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_geti(const UHashtable *hash,
-           const void* key);
+U_CAPI int32_t U_EXPORT2 uhash_geti(const UHashtable* hash, const void* key);
 /**
  * Retrieve an integer value from a UHashtable using an integer key,
  * as previously stored by uhash_iputi().
@@ -489,9 +430,7 @@ uhash_geti(const UHashtable *hash,
  * @param key An integer key stored in a hashtable
  * @return The requested item, or 0 if not found.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_igeti(const UHashtable *hash,
-           int32_t key);
+U_CAPI int32_t U_EXPORT2 uhash_igeti(const UHashtable* hash, int32_t key);
 
 /**
  * Retrieves an integer value from a UHashtable using a pointer key,
@@ -502,10 +441,7 @@ uhash_igeti(const UHashtable *hash,
  * @param found A pointer to a boolean which will be set for whether the key was found.
  * @return The requested item, or 0 if not found.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_getiAndFound(const UHashtable *hash,
-                   const void *key,
-                   UBool *found);
+U_CAPI int32_t U_EXPORT2 uhash_getiAndFound(const UHashtable* hash, const void* key, UBool* found);
 
 /**
  * Retrieves an integer value from a UHashtable using an integer key,
@@ -516,10 +452,7 @@ uhash_getiAndFound(const UHashtable *hash,
  * @param found A pointer to a boolean which will be set for whether the key was found.
  * @return The requested item, or 0 if not found.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_igetiAndFound(const UHashtable *hash,
-                    int32_t key,
-                    UBool *found);
+U_CAPI int32_t U_EXPORT2 uhash_igetiAndFound(const UHashtable* hash, int32_t key, UBool* found);
 
 /**
  * Remove an item from a UHashtable stored by uhash_put().
@@ -527,9 +460,7 @@ uhash_igetiAndFound(const UHashtable *hash,
  * @param key A key stored in a hashtable
  * @return The item removed, or NULL if not found.
  */
-U_CAPI void* U_EXPORT2
-uhash_remove(UHashtable *hash,
-             const void *key);
+U_CAPI void* U_EXPORT2 uhash_remove(UHashtable* hash, const void* key);
 
 /**
  * Remove an item from a UHashtable stored by uhash_iput().
@@ -537,9 +468,7 @@ uhash_remove(UHashtable *hash,
  * @param key An integer key stored in a hashtable
  * @return The item removed, or NULL if not found.
  */
-U_CAPI void* U_EXPORT2
-uhash_iremove(UHashtable *hash,
-              int32_t key);
+U_CAPI void* U_EXPORT2 uhash_iremove(UHashtable* hash, int32_t key);
 
 /**
  * Remove an item from a UHashtable stored by uhash_puti().
@@ -547,9 +476,7 @@ uhash_iremove(UHashtable *hash,
  * @param key An key stored in a hashtable
  * @return The item removed, or 0 if not found.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_removei(UHashtable *hash,
-              const void* key);
+U_CAPI int32_t U_EXPORT2 uhash_removei(UHashtable* hash, const void* key);
 
 /**
  * Remove an item from a UHashtable stored by uhash_iputi().
@@ -557,16 +484,13 @@ uhash_removei(UHashtable *hash,
  * @param key An integer key stored in a hashtable
  * @return The item removed, or 0 if not found.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_iremovei(UHashtable *hash,
-               int32_t key);
+U_CAPI int32_t U_EXPORT2 uhash_iremovei(UHashtable* hash, int32_t key);
 
 /**
  * Remove all items from a UHashtable.
  * @param hash The target UHashtable.
  */
-U_CAPI void U_EXPORT2
-uhash_removeAll(UHashtable *hash);
+U_CAPI void U_EXPORT2 uhash_removeAll(UHashtable* hash);
 
 /**
  * Returns true if the UHashtable contains an item with this pointer key.
@@ -575,8 +499,7 @@ uhash_removeAll(UHashtable *hash);
  * @param key A pointer key stored in a hashtable
  * @return true if the key is found.
  */
-U_CAPI UBool U_EXPORT2
-uhash_containsKey(const UHashtable *hash, const void *key);
+U_CAPI UBool U_EXPORT2 uhash_containsKey(const UHashtable* hash, const void* key);
 
 /**
  * Returns true if the UHashtable contains an item with this integer key.
@@ -585,8 +508,7 @@ uhash_containsKey(const UHashtable *hash, const void *key);
  * @param key An integer key stored in a hashtable
  * @return true if the key is found.
  */
-U_CAPI UBool U_EXPORT2
-uhash_icontainsKey(const UHashtable *hash, int32_t key);
+U_CAPI UBool U_EXPORT2 uhash_icontainsKey(const UHashtable* hash, int32_t key);
 
 /**
  * Locate an element of a UHashtable.  The caller must not modify the
@@ -599,8 +521,7 @@ uhash_icontainsKey(const UHashtable *hash, int32_t key);
  * @param key A key stored in a hashtable
  * @return a hash element, or NULL if the key is not found.
  */
-U_CAPI const UHashElement* U_EXPORT2
-uhash_find(const UHashtable *hash, const void* key);
+U_CAPI const UHashElement* U_EXPORT2 uhash_find(const UHashtable* hash, const void* key);
 
 /**
  * \def UHASH_FIRST
@@ -622,9 +543,7 @@ uhash_find(const UHashtable *hash, const void* key);
  * @return a hash element, or NULL if no further key-value pairs
  * exist in the table.
  */
-U_CAPI const UHashElement* U_EXPORT2
-uhash_nextElement(const UHashtable *hash,
-                  int32_t *pos);
+U_CAPI const UHashElement* U_EXPORT2 uhash_nextElement(const UHashtable* hash, int32_t* pos);
 
 /**
  * Remove an element, returned by uhash_nextElement(), from the table.
@@ -637,8 +556,7 @@ uhash_nextElement(const UHashtable *hash,
  * modified.
  * @return the value that was removed.
  */
-U_CAPI void* U_EXPORT2
-uhash_removeElement(UHashtable *hash, const UHashElement* e);
+U_CAPI void* U_EXPORT2 uhash_removeElement(UHashtable* hash, const UHashElement* e);
 
 /********************************************************************
  * UHashTok convenience
@@ -671,8 +589,7 @@ uhash_tokp(void* p);*/
  * @param key The string (const UChar*) to hash.
  * @return A hash code for the key.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_hashUChars(const UHashTok key);
+U_CAPI int32_t U_EXPORT2 uhash_hashUChars(const UHashTok key);
 
 /**
  * Generate a hash code for a null-terminated char* string.  If the
@@ -681,8 +598,7 @@ uhash_hashUChars(const UHashTok key);
  * @param key The string (const char*) to hash.
  * @return A hash code for the key.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_hashChars(const UHashTok key);
+U_CAPI int32_t U_EXPORT2 uhash_hashChars(const UHashTok key);
 
 /**
  * Generate a case-insensitive hash code for a null-terminated char*
@@ -691,8 +607,7 @@ uhash_hashChars(const UHashTok key);
  * @param key The string (const char*) to hash.
  * @return A hash code for the key.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_hashIChars(const UHashTok key);
+U_CAPI int32_t U_EXPORT2 uhash_hashIChars(const UHashTok key);
 
 /**
  * Comparator for null-terminated UChar* strings.  Use together with
@@ -701,8 +616,7 @@ uhash_hashIChars(const UHashTok key);
  * @param key2 The string for comparison
  * @return true if key1 and key2 are equal, return false otherwise.
  */
-U_CAPI UBool U_EXPORT2
-uhash_compareUChars(const UHashTok key1, const UHashTok key2);
+U_CAPI UBool U_EXPORT2 uhash_compareUChars(const UHashTok key1, const UHashTok key2);
 
 /**
  * Comparator for null-terminated char* strings.  Use together with
@@ -711,8 +625,7 @@ uhash_compareUChars(const UHashTok key1, const UHashTok key2);
  * @param key2 The string for comparison
  * @return true if key1 and key2 are equal, return false otherwise.
  */
-U_CAPI UBool U_EXPORT2
-uhash_compareChars(const UHashTok key1, const UHashTok key2);
+U_CAPI UBool U_EXPORT2 uhash_compareChars(const UHashTok key1, const UHashTok key2);
 
 /**
  * Case-insensitive comparator for null-terminated char* strings.  Use
@@ -721,8 +634,7 @@ uhash_compareChars(const UHashTok key1, const UHashTok key2);
  * @param key2 The string for comparison
  * @return true if key1 and key2 are equal, return false otherwise.
  */
-U_CAPI UBool U_EXPORT2
-uhash_compareIChars(const UHashTok key1, const UHashTok key2);
+U_CAPI UBool U_EXPORT2 uhash_compareIChars(const UHashTok key1, const UHashTok key2);
 
 /********************************************************************
  * UnicodeString Support Functions
@@ -733,8 +645,7 @@ uhash_compareIChars(const UHashTok key1, const UHashTok key2);
  * @param key The string (const char*) to hash.
  * @return A hash code for the key.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_hashUnicodeString(const UElement key);
+U_CAPI int32_t U_EXPORT2 uhash_hashUnicodeString(const UElement key);
 
 /**
  * Hash function for UnicodeString* keys (case insensitive).
@@ -742,8 +653,7 @@ uhash_hashUnicodeString(const UElement key);
  * @param key The string (const char*) to hash.
  * @return A hash code for the key.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_hashCaselessUnicodeString(const UElement key);
+U_CAPI int32_t U_EXPORT2 uhash_hashCaselessUnicodeString(const UElement key);
 
 /********************************************************************
  * int32_t Support Functions
@@ -754,8 +664,7 @@ uhash_hashCaselessUnicodeString(const UElement key);
  * @param key The string (const char*) to hash.
  * @return A hash code for the key.
  */
-U_CAPI int32_t U_EXPORT2
-uhash_hashLong(const UHashTok key);
+U_CAPI int32_t U_EXPORT2 uhash_hashLong(const UHashTok key);
 
 /**
  * Comparator function for 32-bit integer keys.
@@ -763,8 +672,7 @@ uhash_hashLong(const UHashTok key);
  * @param Key2 The integer for comparison
  * @return true if key1 and key2 are equal, return false otherwise
  */
-U_CAPI UBool U_EXPORT2
-uhash_compareLong(const UHashTok key1, const UHashTok key2);
+U_CAPI UBool U_EXPORT2 uhash_compareLong(const UHashTok key1, const UHashTok key2);
 
 /********************************************************************
  * Other Support Functions
@@ -774,8 +682,7 @@ uhash_compareLong(const UHashTok key1, const UHashTok key2);
  * Deleter for Hashtable objects.
  * @param obj The object to be deleted
  */
-U_CAPI void U_EXPORT2
-uhash_deleteHashtable(void *obj);
+U_CAPI void U_EXPORT2 uhash_deleteHashtable(void* obj);
 
 /* Use uprv_free() itself as a deleter for any key or value allocated using uprv_malloc. */
 
@@ -785,9 +692,7 @@ uhash_deleteHashtable(void *obj);
  * @param hash2
  * @return true if the hashtables are equal and false if not.
  */
-U_CAPI UBool U_EXPORT2
-uhash_equals(const UHashtable* hash1, const UHashtable* hash2);
-
+U_CAPI UBool U_EXPORT2 uhash_equals(const UHashtable* hash1, const UHashtable* hash2);
 
 #if U_SHOW_CPLUSPLUS_API
 

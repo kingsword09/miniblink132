@@ -1,4 +1,4 @@
-/*
+﻿/*
  *******************************************************************************
  *
  *   © 2016 and later: Unicode, Inc. and others.
@@ -20,13 +20,12 @@
 #ifndef __GUISUPPORT_H
 #define __GUISUPPORT_H
 
-class GUISupport
-{
+class GUISupport {
 public:
     GUISupport() {};
     virtual ~GUISupport() {};
 
-    virtual void postErrorMessage(const char *message, const char *title) = 0;
+    virtual void postErrorMessage(const char* message, const char* title) = 0;
 };
 
 #endif

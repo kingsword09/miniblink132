@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -14,7 +14,7 @@
 #if U_SHOW_CPLUSPLUS_API
 
 /**
- * \file 
+ * \file
  * \brief C++ API: Rule for specifying date and time in an year
  */
 
@@ -27,25 +27,24 @@ U_NAMESPACE_BEGIN
  * <code>DateTimeRule</code> is a class representing a time in a year by
  * a rule specified by month, day of month, day of week and
  * time in the day.
- * 
+ *
  * @stable ICU 3.8
  */
 class U_I18N_API DateTimeRule : public UObject {
 public:
-
     /**
      * Date rule type constants.
      * @stable ICU 3.8
      */
     enum DateRuleType {
-        DOM = 0,        /**< The exact day of month,
-                             for example, March 11. */
-        DOW,            /**< The Nth occurrence of the day of week,
-                             for example, 2nd Sunday in March. */
-        DOW_GEQ_DOM,    /**< The first occurrence of the day of week on or after the day of monnth,
-                             for example, first Sunday on or after March 8. */
-        DOW_LEQ_DOM     /**< The last occurrence of the day of week on or before the day of month,
-                             for example, first Sunday on or before March 14. */
+        DOM = 0, /**< The exact day of month,
+                      for example, March 11. */
+        DOW, /**< The Nth occurrence of the day of week,
+                  for example, 2nd Sunday in March. */
+        DOW_GEQ_DOM, /**< The first occurrence of the day of week on or after the day of monnth,
+                          for example, first Sunday on or after March 8. */
+        DOW_LEQ_DOM /**< The last occurrence of the day of week on or before the day of month,
+                         for example, first Sunday on or before March 14. */
     };
 
     /**
@@ -53,16 +52,16 @@ public:
      * @stable ICU 3.8
      */
     enum TimeRuleType {
-        WALL_TIME = 0,  /**< The local wall clock time */
-        STANDARD_TIME,  /**< The local standard time */
-        UTC_TIME        /**< The UTC time */
+        WALL_TIME = 0, /**< The local wall clock time */
+        STANDARD_TIME, /**< The local standard time */
+        UTC_TIME /**< The UTC time */
     };
 
     /**
      * Constructs a <code>DateTimeRule</code> by the day of month and
      * the time rule.  The date rule type for an instance created by
      * this constructor is <code>DOM</code>.
-     * 
+     *
      * @param month         The rule month, for example, <code>Calendar::JANUARY</code>
      * @param dayOfMonth    The day of month, 1-based.
      * @param millisInDay   The milliseconds in the rule date.
@@ -70,14 +69,13 @@ public:
      *                      or <code>UTC_TIME</code>.
      * @stable ICU 3.8
      */
-    DateTimeRule(int32_t month, int32_t dayOfMonth,
-        int32_t millisInDay, TimeRuleType timeType);
+    DateTimeRule(int32_t month, int32_t dayOfMonth, int32_t millisInDay, TimeRuleType timeType);
 
     /**
      * Constructs a <code>DateTimeRule</code> by the day of week and its ordinal
      * number and the time rule.  The date rule type for an instance created
      * by this constructor is <code>DOW</code>.
-     * 
+     *
      * @param month         The rule month, for example, <code>Calendar::JANUARY</code>.
      * @param weekInMonth   The ordinal number of the day of week.  Negative number
      *                      may be used for specifying a rule date counted from the
@@ -88,15 +86,14 @@ public:
      *                      or <code>UTC_TIME</code>.
      * @stable ICU 3.8
      */
-    DateTimeRule(int32_t month, int32_t weekInMonth, int32_t dayOfWeek,
-        int32_t millisInDay, TimeRuleType timeType);
+    DateTimeRule(int32_t month, int32_t weekInMonth, int32_t dayOfWeek, int32_t millisInDay, TimeRuleType timeType);
 
     /**
      * Constructs a <code>DateTimeRule</code> by the first/last day of week
      * on or after/before the day of month and the time rule.  The date rule
      * type for an instance created by this constructor is either
      * <code>DOM_GEQ_DOM</code> or <code>DOM_LEQ_DOM</code>.
-     * 
+     *
      * @param month         The rule month, for example, <code>Calendar::JANUARY</code>
      * @param dayOfMonth    The day of month, 1-based.
      * @param dayOfWeek     The day of week, for example, <code>Calendar::SUNDAY</code>.
@@ -106,8 +103,7 @@ public:
      *                      or <code>UTC_TIME</code>.
      * @stable ICU 3.8
      */
-    DateTimeRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, UBool after,
-        int32_t millisInDay, TimeRuleType timeType);
+    DateTimeRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, UBool after, int32_t millisInDay, TimeRuleType timeType);
 
     /**
      * Copy constructor.
@@ -253,4 +249,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // DTRULE_H
-//eof
+// eof

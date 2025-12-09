@@ -1,4 +1,4 @@
-/*
+﻿/*
  *******************************************************************************
  *
  *   © 2016 and later: Unicode, Inc. and others.
@@ -21,8 +21,7 @@
 
 #include "GDIGUISupport.h"
 
-void GDIGUISupport::postErrorMessage(const char *message, const char *title)
+void GDIGUISupport::postErrorMessage(const char* message, const char* title)
 {
-    MessageBoxA(nullptr, message, title, MB_ICONERROR);
+    MessageBoxA(NULL, message, title, MB_ICONERROR);
 }
-

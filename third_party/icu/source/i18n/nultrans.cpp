@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -20,16 +20,22 @@ U_NAMESPACE_BEGIN
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(NullTransliterator)
 
-NullTransliterator::NullTransliterator() : Transliterator(UNICODE_STRING_SIMPLE("Any-Null"), 0) {}
+NullTransliterator::NullTransliterator()
+    : Transliterator(UNICODE_STRING_SIMPLE("Any-Null"), 0)
+{
+}
 
-NullTransliterator::~NullTransliterator() {}
+NullTransliterator::~NullTransliterator()
+{
+}
 
-NullTransliterator* NullTransliterator::clone() const {
+NullTransliterator* NullTransliterator::clone() const
+{
     return new NullTransliterator();
 }
 
-void NullTransliterator::handleTransliterate(Replaceable& /*text*/, UTransPosition& offsets,
-                                             UBool /*isIncremental*/) const {
+void NullTransliterator::handleTransliterate(Replaceable& /*text*/, UTransPosition& offsets, UBool /*isIncremental*/) const
+{
     offsets.start = offsets.limit;
 }
 

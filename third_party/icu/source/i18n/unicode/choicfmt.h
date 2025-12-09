@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
@@ -173,7 +173,7 @@ class MessageFormat;
  *
  * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
  */
-class U_I18N_API ChoiceFormat: public NumberFormat {
+class U_I18N_API ChoiceFormat : public NumberFormat {
 public:
     /**
      * Constructs a new ChoiceFormat from the pattern string.
@@ -183,9 +183,7 @@ public:
      *                  pattern cannot be parsed, set to failure code.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    ChoiceFormat(const UnicodeString& pattern,
-                 UErrorCode& status);
-
+    ChoiceFormat(const UnicodeString& pattern, UErrorCode& status);
 
     /**
      * Constructs a new ChoiceFormat with the given limits and message strings.
@@ -199,9 +197,7 @@ public:
      * @param count     Size of 'limits' and 'formats' arrays.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    ChoiceFormat(const double* limits,
-                 const UnicodeString* formats,
-                 int32_t count );
+    ChoiceFormat(const double* limits, const UnicodeString* formats, int32_t count);
 
     /**
      * Constructs a new ChoiceFormat with the given limits, closure flags and message strings.
@@ -217,10 +213,7 @@ public:
      * @param count Size of 'limits', 'closures', and 'formats' arrays
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    ChoiceFormat(const double* limits,
-                 const UBool* closures,
-                 const UnicodeString* formats,
-                 int32_t count);
+    ChoiceFormat(const double* limits, const UBool* closures, const UnicodeString* formats, int32_t count);
 
     /**
      * Copy constructor.
@@ -271,8 +264,7 @@ public:
      *                  set to a failure result.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual void applyPattern(const UnicodeString& pattern,
-                              UErrorCode& status);
+    virtual void applyPattern(const UnicodeString& pattern, UErrorCode& status);
 
     /**
      * Sets the pattern.
@@ -284,9 +276,7 @@ public:
      *                   set to a failure result.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual void applyPattern(const UnicodeString& pattern,
-                             UParseError& parseError,
-                             UErrorCode& status);
+    virtual void applyPattern(const UnicodeString& pattern, UParseError& parseError, UErrorCode& status);
     /**
      * Gets the pattern.
      *
@@ -295,7 +285,7 @@ public:
      * @return    A reference to 'pattern'
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual UnicodeString& toPattern(UnicodeString &pattern) const;
+    virtual UnicodeString& toPattern(UnicodeString& pattern) const;
 
     /**
      * Sets the choices to be used in formatting.
@@ -310,9 +300,7 @@ public:
      * @param count             The size of the above arrays.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual void setChoices(const double* limitsToCopy,
-                            const UnicodeString* formatsToCopy,
-                            int32_t count );
+    virtual void setChoices(const double* limitsToCopy, const UnicodeString* formatsToCopy, int32_t count);
 
     /**
      * Sets the choices to be used in formatting.
@@ -324,41 +312,37 @@ public:
      * @param count The size of the above arrays
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual void setChoices(const double* limits,
-                            const UBool* closures,
-                            const UnicodeString* formats,
-                            int32_t count);
+    virtual void setChoices(const double* limits, const UBool* closures, const UnicodeString* formats, int32_t count);
 
     /**
-     * Returns nullptr and 0.
+     * Returns NULL and 0.
      * Before ICU 4.8, this used to return the choice limits array.
      *
      * @param count Will be set to 0.
-     * @return nullptr
+     * @return NULL
      * @deprecated ICU 4.8 Use the MessagePattern class to analyze a ChoiceFormat pattern.
      */
     virtual const double* getLimits(int32_t& count) const;
 
     /**
-     * Returns nullptr and 0.
+     * Returns NULL and 0.
      * Before ICU 4.8, this used to return the limit booleans array.
      *
      * @param count Will be set to 0.
-     * @return nullptr
+     * @return NULL
      * @deprecated ICU 4.8 Use the MessagePattern class to analyze a ChoiceFormat pattern.
      */
     virtual const UBool* getClosures(int32_t& count) const;
 
     /**
-     * Returns nullptr and 0.
+     * Returns NULL and 0.
      * Before ICU 4.8, this used to return the array of choice strings.
      *
      * @param count Will be set to 0.
-     * @return nullptr
+     * @return NULL
      * @deprecated ICU 4.8 Use the MessagePattern class to analyze a ChoiceFormat pattern.
      */
     virtual const UnicodeString* getFormats(int32_t& count) const;
-
 
     using NumberFormat::format;
 
@@ -373,9 +357,7 @@ public:
      * @return          Reference to 'appendTo' parameter.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual UnicodeString& format(double number,
-                                  UnicodeString& appendTo,
-                                  FieldPosition& pos) const override;
+    virtual UnicodeString& format(double number, UnicodeString& appendTo, FieldPosition& pos) const override;
     /**
      * Formats an int32_t number using this object's choices.
      *
@@ -387,9 +369,7 @@ public:
      * @return          Reference to 'appendTo' parameter.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual UnicodeString& format(int32_t number,
-                                  UnicodeString& appendTo,
-                                  FieldPosition& pos) const override;
+    virtual UnicodeString& format(int32_t number, UnicodeString& appendTo, FieldPosition& pos) const override;
 
     /**
      * Formats an int64_t number using this object's choices.
@@ -402,9 +382,7 @@ public:
      * @return          Reference to 'appendTo' parameter.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual UnicodeString& format(int64_t number,
-                                  UnicodeString& appendTo,
-                                  FieldPosition& pos) const override;
+    virtual UnicodeString& format(int64_t number, UnicodeString& appendTo, FieldPosition& pos) const override;
 
     /**
      * Formats an array of objects using this object's choices.
@@ -420,31 +398,25 @@ public:
      * @return          Reference to 'appendTo' parameter.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
      */
-    virtual UnicodeString& format(const Formattable* objs,
-                                  int32_t cnt,
-                                  UnicodeString& appendTo,
-                                  FieldPosition& pos,
-                                  UErrorCode& success) const;
+    virtual UnicodeString& format(const Formattable* objs, int32_t cnt, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& success) const;
 
-   using NumberFormat::parse;
+    using NumberFormat::parse;
 
-   /**
-    * Looks for the longest match of any message string on the input text and,
-    * if there is a match, sets the result object to the corresponding range's number.
-    *
-    * If no string matches, then the parsePosition is unchanged.
-    *
-    * @param text           The text to be parsed.
-    * @param result         Formattable to be set to the parse result.
-    *                       If parse fails, return contents are undefined.
-    * @param parsePosition  The position to start parsing at on input.
-    *                       On output, moved to after the last successfully
-    *                       parse character. On parse failure, does not change.
+    /**
+     * Looks for the longest match of any message string on the input text and,
+     * if there is a match, sets the result object to the corresponding range's number.
+     *
+     * If no string matches, then the parsePosition is unchanged.
+     *
+     * @param text           The text to be parsed.
+     * @param result         Formattable to be set to the parse result.
+     *                       If parse fails, return contents are undefined.
+     * @param parsePosition  The position to start parsing at on input.
+     *                       On output, moved to after the last successfully
+     *                       parse character. On parse failure, does not change.
      * @deprecated ICU 49 Use MessageFormat instead, with plural and select arguments.
-    */
-    virtual void parse(const UnicodeString& text,
-                       Formattable& result,
-                       ParsePosition& parsePosition) const override;
+     */
+    virtual void parse(const UnicodeString& text, Formattable& result, ParsePosition& parsePosition) const override;
 
     /**
      * Returns a unique class ID POLYMORPHICALLY. Part of ICU's "poor man's RTTI".
@@ -478,7 +450,7 @@ private:
      */
     static UnicodeString& dtos(double value, UnicodeString& string);
 
-    ChoiceFormat() = delete; // default constructor not implemented
+    ChoiceFormat(); // default constructor not implemented
 
     /**
      * Construct a new ChoiceFormat with the limits and the corresponding formats
@@ -490,17 +462,11 @@ private:
      * @param status       Output param to receive success code.  If the
      *                     pattern cannot be parsed, set to failure code.
      */
-    ChoiceFormat(const UnicodeString& newPattern,
-                 UParseError& parseError,
-                 UErrorCode& status);
+    ChoiceFormat(const UnicodeString& newPattern, UParseError& parseError, UErrorCode& status);
 
     friend class MessageFormat;
 
-    virtual void setChoices(const double* limits,
-                            const UBool* closures,
-                            const UnicodeString* formats,
-                            int32_t count,
-                            UErrorCode &errorCode);
+    virtual void setChoices(const double* limits, const UBool* closures, const UnicodeString* formats, int32_t count, UErrorCode& errorCode);
 
     /**
      * Finds the ChoiceFormat sub-message for the given number.
@@ -509,11 +475,9 @@ private:
      * @param number a number to be mapped to one of the ChoiceFormat argument's intervals
      * @return the sub-message start part index.
      */
-    static int32_t findSubMessage(const MessagePattern &pattern, int32_t partIndex, double number);
+    static int32_t findSubMessage(const MessagePattern& pattern, int32_t partIndex, double number);
 
-    static double parseArgument(
-            const MessagePattern &pattern, int32_t partIndex,
-            const UnicodeString &source, ParsePosition &pos);
+    static double parseArgument(const MessagePattern& pattern, int32_t partIndex, const UnicodeString& source, ParsePosition& pos);
 
     /**
      * Matches the pattern string from the end of the partIndex to
@@ -524,8 +488,7 @@ private:
      * Otherwise returns -1.
      */
     static int32_t matchStringUntilLimitPart(
-            const MessagePattern &pattern, int32_t partIndex, int32_t limitPartIndex,
-            const UnicodeString &source, int32_t sourceOffset);
+        const MessagePattern& pattern, int32_t partIndex, int32_t limitPartIndex, const UnicodeString& source, int32_t sourceOffset);
 
     /**
      * Some of the ChoiceFormat constructors do not have a UErrorCode parameter.
@@ -589,13 +552,12 @@ private:
     // int32_t         fCount;
 };
 
-
 U_NAMESPACE_END
 
-#endif  // U_HIDE_DEPRECATED_API
+#endif // U_HIDE_DEPRECATED_API
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // CHOICFMT_H
-//eof
+// eof

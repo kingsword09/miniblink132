@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
@@ -36,7 +36,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * Enum designating the type of a UFormattable instance.
@@ -46,22 +46,21 @@
  * @stable ICU 52
  */
 typedef enum UFormattableType {
-  UFMT_DATE = 0, /**< ufmt_getDate() will return without conversion. @see ufmt_getDate*/
-  UFMT_DOUBLE,   /**< ufmt_getDouble() will return without conversion.  @see ufmt_getDouble*/
-  UFMT_LONG,     /**< ufmt_getLong() will return without conversion. @see ufmt_getLong */
-  UFMT_STRING,   /**< ufmt_getUChars() will return without conversion.  @see ufmt_getUChars*/
-  UFMT_ARRAY,    /**< ufmt_countArray() and ufmt_getArray() will return the value.  @see ufmt_getArrayItemByIndex */
-  UFMT_INT64,    /**< ufmt_getInt64() will return without conversion. @see ufmt_getInt64 */
-  UFMT_OBJECT,   /**< ufmt_getObject() will return without conversion.  @see ufmt_getObject*/
+    UFMT_DATE = 0, /**< ufmt_getDate() will return without conversion. @see ufmt_getDate*/
+    UFMT_DOUBLE, /**< ufmt_getDouble() will return without conversion.  @see ufmt_getDouble*/
+    UFMT_LONG, /**< ufmt_getLong() will return without conversion. @see ufmt_getLong */
+    UFMT_STRING, /**< ufmt_getUChars() will return without conversion.  @see ufmt_getUChars*/
+    UFMT_ARRAY, /**< ufmt_countArray() and ufmt_getArray() will return the value.  @see ufmt_getArrayItemByIndex */
+    UFMT_INT64, /**< ufmt_getInt64() will return without conversion. @see ufmt_getInt64 */
+    UFMT_OBJECT, /**< ufmt_getObject() will return without conversion.  @see ufmt_getObject*/
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the highest normal UFormattableType value.
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
     UFMT_COUNT
-#endif  /* U_HIDE_DEPRECATED_API */
+#endif /* U_HIDE_DEPRECATED_API */
 } UFormattableType;
-
 
 /**
  * Opaque type representing various types of data which may be used for formatting
@@ -69,7 +68,7 @@ typedef enum UFormattableType {
  * @see icu::Formattable
  * @stable ICU 52
  */
-typedef void *UFormattable;
+typedef void* UFormattable;
 
 /**
  * Initialize a UFormattable, to type UNUM_LONG, value 0
@@ -81,8 +80,7 @@ typedef void *UFormattable;
  * @see ufmt_close
  * @see icu::Formattable::Formattable()
  */
-U_CAPI UFormattable* U_EXPORT2
-ufmt_open(UErrorCode* status);
+U_CAPI UFormattable* U_EXPORT2 ufmt_open(UErrorCode* status);
 
 /**
  * Cleanup any additional memory allocated by this UFormattable.
@@ -90,8 +88,7 @@ ufmt_open(UErrorCode* status);
  * @stable ICU 52
  * @see ufmt_open
  */
-U_CAPI void U_EXPORT2
-ufmt_close(UFormattable* fmt);
+U_CAPI void U_EXPORT2 ufmt_close(UFormattable* fmt);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -122,8 +119,7 @@ U_NAMESPACE_END
  * @see icu::Formattable::getType() const
  * @stable ICU 52
  */
-U_CAPI UFormattableType U_EXPORT2
-ufmt_getType(const UFormattable* fmt, UErrorCode *status);
+U_CAPI UFormattableType U_EXPORT2 ufmt_getType(const UFormattable* fmt, UErrorCode* status);
 
 /**
  * Return whether the object is numeric.
@@ -133,8 +129,7 @@ ufmt_getType(const UFormattable* fmt, UErrorCode *status);
  * @see icu::Formattable::isNumeric() const
  * @stable ICU 52
  */
-U_CAPI UBool U_EXPORT2
-ufmt_isNumeric(const UFormattable* fmt);
+U_CAPI UBool U_EXPORT2 ufmt_isNumeric(const UFormattable* fmt);
 
 /**
  * Gets the UDate value of this object.  If the type is not of type UFMT_DATE,
@@ -146,8 +141,7 @@ ufmt_isNumeric(const UFormattable* fmt);
  * @stable ICU 52
  * @see icu::Formattable::getDate(UErrorCode&) const
  */
-U_CAPI UDate U_EXPORT2
-ufmt_getDate(const UFormattable* fmt, UErrorCode *status);
+U_CAPI UDate U_EXPORT2 ufmt_getDate(const UFormattable* fmt, UErrorCode* status);
 
 /**
  * Gets the double value of this object. If the type is not a UFMT_DOUBLE, or
@@ -164,8 +158,7 @@ ufmt_getDate(const UFormattable* fmt, UErrorCode *status);
  * @stable ICU 52
  * @see icu::Formattable::getDouble(UErrorCode&) const
  */
-U_CAPI double U_EXPORT2
-ufmt_getDouble(UFormattable* fmt, UErrorCode *status);
+U_CAPI double U_EXPORT2 ufmt_getDouble(UFormattable* fmt, UErrorCode* status);
 
 /**
  * Gets the long (int32_t) value of this object. If the magnitude is too
@@ -185,9 +178,7 @@ ufmt_getDouble(UFormattable* fmt, UErrorCode *status);
  * @stable ICU 52
  * @see icu::Formattable::getLong(UErrorCode&) const
  */
-U_CAPI int32_t U_EXPORT2
-ufmt_getLong(UFormattable* fmt, UErrorCode *status);
-
+U_CAPI int32_t U_EXPORT2 ufmt_getLong(UFormattable* fmt, UErrorCode* status);
 
 /**
  * Gets the int64_t value of this object. If this object is of a numeric
@@ -206,8 +197,7 @@ ufmt_getLong(UFormattable* fmt, UErrorCode *status);
  * @stable ICU 52
  * @see icu::Formattable::getInt64(UErrorCode&) const
  */
-U_CAPI int64_t U_EXPORT2
-ufmt_getInt64(UFormattable* fmt, UErrorCode *status);
+U_CAPI int64_t U_EXPORT2 ufmt_getInt64(UFormattable* fmt, UErrorCode* status);
 
 /**
  * Returns a pointer to the UObject contained within this
@@ -219,8 +209,7 @@ ufmt_getInt64(UFormattable* fmt, UErrorCode *status);
  * @stable ICU 52
  * @see icu::Formattable::getObject() const
  */
-U_CAPI const void *U_EXPORT2
-ufmt_getObject(const UFormattable* fmt, UErrorCode *status);
+U_CAPI const void* U_EXPORT2 ufmt_getObject(const UFormattable* fmt, UErrorCode* status);
 
 /**
  * Gets the string value of this object as a UChar string. If the type is not a
@@ -234,8 +223,7 @@ ufmt_getObject(const UFormattable* fmt, UErrorCode *status);
  * @stable ICU 52
  * @see icu::Formattable::getString(UnicodeString&)const
  */
-U_CAPI const UChar* U_EXPORT2
-ufmt_getUChars(UFormattable* fmt, int32_t *len, UErrorCode *status);
+U_CAPI const UChar* U_EXPORT2 ufmt_getUChars(UFormattable* fmt, int32_t* len, UErrorCode* status);
 
 /**
  * Get the number of array objects contained, if an array type UFMT_ARRAY
@@ -245,8 +233,7 @@ ufmt_getUChars(UFormattable* fmt, int32_t *len, UErrorCode *status);
  * @stable ICU 52
  * @see ufmt_getArrayItemByIndex
  */
-U_CAPI int32_t U_EXPORT2
-ufmt_getArrayLength(const UFormattable* fmt, UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 ufmt_getArrayLength(const UFormattable* fmt, UErrorCode* status);
 
 /**
  * Get the specified value from the array of UFormattables. Invalid if the object is not an array type UFMT_ARRAY
@@ -257,8 +244,7 @@ ufmt_getArrayLength(const UFormattable* fmt, UErrorCode *status);
  * @stable ICU 52
  * @see icu::Formattable::getArray(int32_t&, UErrorCode&) const
  */
-U_CAPI UFormattable * U_EXPORT2
-ufmt_getArrayItemByIndex(UFormattable* fmt, int32_t n, UErrorCode *status);
+U_CAPI UFormattable* U_EXPORT2 ufmt_getArrayItemByIndex(UFormattable* fmt, int32_t n, UErrorCode* status);
 
 /**
  * Returns a numeric string representation of the number contained within this
@@ -282,8 +268,7 @@ ufmt_getArrayItemByIndex(UFormattable* fmt, int32_t n, UErrorCode *status);
  * @stable ICU 52
  * @see icu::Formattable::getDecimalNumber(UErrorCode&)
  */
-U_CAPI const char * U_EXPORT2
-ufmt_getDecNumChars(UFormattable *fmt, int32_t *len, UErrorCode *status);
+U_CAPI const char* U_EXPORT2 ufmt_getDecNumChars(UFormattable* fmt, int32_t* len, UErrorCode* status);
 
 #endif
 

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -22,10 +22,10 @@
 #include "unicode/measunit.h"
 
 /**
- * \file 
+ * \file
  * \brief C++ API: Currency Unit Information.
  */
- 
+
 U_NAMESPACE_BEGIN
 
 /**
@@ -36,8 +36,8 @@ U_NAMESPACE_BEGIN
  * @author Alan Liu
  * @stable ICU 3.0
  */
-class U_I18N_API CurrencyUnit: public MeasureUnit {
- public:
+class U_I18N_API CurrencyUnit : public MeasureUnit {
+public:
     /**
      * Default constructor.  Initializes currency code to "XXX" (no currency).
      * @stable ICU 60
@@ -48,13 +48,13 @@ class U_I18N_API CurrencyUnit: public MeasureUnit {
      * Construct an object with the given ISO currency code.
      *
      * @param isoCode the 3-letter ISO 4217 currency code; must have
-     * length 3 and need not be NUL-terminated. If nullptr, the currency
+     * length 3 and need not be NUL-terminated. If NULL, the currency
      * is initialized to the unknown currency XXX.
      * @param ec input-output error code. If the isoCode is invalid,
      * then this will be set to a failing value.
      * @stable ICU 3.0
      */
-    CurrencyUnit(ConstChar16Ptr isoCode, UErrorCode &ec);
+    CurrencyUnit(ConstChar16Ptr isoCode, UErrorCode& ec);
 
     /**
      * Construct an object with the given ISO currency code.
@@ -65,7 +65,7 @@ class U_I18N_API CurrencyUnit: public MeasureUnit {
      * then this will be set to a failing value.
      * @stable ICU 64
      */
-    CurrencyUnit(StringPiece isoCode, UErrorCode &ec);
+    CurrencyUnit(StringPiece isoCode, UErrorCode& ec);
 
     /**
      * Copy constructor
@@ -81,7 +81,7 @@ class U_I18N_API CurrencyUnit: public MeasureUnit {
      * @param ec Set to a failing value if the MeasureUnit is not a currency.
      * @stable ICU 60
      */
-    CurrencyUnit(const MeasureUnit& measureUnit, UErrorCode &ec);
+    CurrencyUnit(const MeasureUnit& measureUnit, UErrorCode& ec);
 
     /**
      * Assignment operator
@@ -126,14 +126,15 @@ class U_I18N_API CurrencyUnit: public MeasureUnit {
      */
     inline const char16_t* getISOCurrency() const;
 
- private:
+private:
     /**
      * The ISO 4217 code of this object.
      */
     char16_t isoCode[4];
 };
 
-inline const char16_t* CurrencyUnit::getISOCurrency() const {
+inline const char16_t* CurrencyUnit::getISOCurrency() const
+{
     return isoCode;
 }
 

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /********************************************************************
  * COPYRIGHT:
@@ -22,11 +22,12 @@
 
 U_NAMESPACE_USE
 
-static UnicodeString **strs = nullptr;
+static UnicodeString** strs = NULL;
 
-static const UnicodeString&  _fieldString(UDebugEnumType type, int32_t field, UnicodeString& fillin) {
-    const char *str = udbg_enumName(type, field);
-    if(str == nullptr) {
+static const UnicodeString& _fieldString(UDebugEnumType type, int32_t field, UnicodeString& fillin)
+{
+    const char* str = udbg_enumName(type, field);
+    if (str == NULL) {
         return fillin.remove();
     } else {
         return fillin = UnicodeString(str, -1, US_INV);
@@ -34,37 +35,40 @@ static const UnicodeString&  _fieldString(UDebugEnumType type, int32_t field, Un
 }
 
 U_CDECL_BEGIN
-static void udbg_cleanup() {
-    if(strs != nullptr) {
-        for(int t=0;t<=UDBG_ENUM_COUNT;t++) {
-            delete [] strs[t];
+static void udbg_cleanup(void)
+{
+    if (strs != NULL) {
+        for (int t = 0; t <= UDBG_ENUM_COUNT; t++) {
+            delete[] strs[t];
         }
         delete[] strs;
-        strs = nullptr;
+        strs = NULL;
     }
 }
 
-static UBool tu_cleanup()
+static UBool tu_cleanup(void)
 {
     udbg_cleanup();
-    return true;
+    return TRUE;
 }
 
-static void udbg_register_cleanup() {
-   ucln_registerCleanup(UCLN_TOOLUTIL, tu_cleanup);
+static void udbg_register_cleanup(void)
+{
+    ucln_registerCleanup(UCLN_TOOLUTIL, tu_cleanup);
 }
 U_CDECL_END
 
-static void udbg_setup() {
-    if(strs == nullptr) {
+static void udbg_setup(void)
+{
+    if (strs == NULL) {
         udbg_register_cleanup();
-        //fprintf(stderr,"Initializing string cache..\n");
-        //fflush(stderr);
-        UnicodeString **newStrs = new UnicodeString*[UDBG_ENUM_COUNT+1];
-        for(int t=0;t<UDBG_ENUM_COUNT;t++) {
+        // fprintf(stderr,"Initializing string cache..\n");
+        // fflush(stderr);
+        UnicodeString** newStrs = new UnicodeString*[UDBG_ENUM_COUNT + 1];
+        for (int t = 0; t < UDBG_ENUM_COUNT; t++) {
             int32_t c = udbg_enumCount((UDebugEnumType)t);
-            newStrs[t] = new UnicodeString[c+1];
-            for(int f=0;f<=c;f++) {
+            newStrs[t] = new UnicodeString[c + 1];
+            for (int f = 0; f <= c; f++) {
                 _fieldString((UDebugEnumType)t, f, newStrs[t][f]);
             }
         }
@@ -74,38 +78,39 @@ static void udbg_setup() {
     }
 }
 
-
-
-U_TOOLUTIL_API const UnicodeString& U_EXPORT2 udbg_enumString(UDebugEnumType type, int32_t field) {
-    if(strs == nullptr ) {
+U_TOOLUTIL_API const UnicodeString& U_EXPORT2 udbg_enumString(UDebugEnumType type, int32_t field)
+{
+    if (strs == NULL) {
         udbg_setup();
     }
-    if(type<0||type>=UDBG_ENUM_COUNT) {
+    if (type < 0 || type >= UDBG_ENUM_COUNT) {
         // use UDBG_ENUM_COUNT,0  to mean an empty string
-        //fprintf(stderr, "** returning out of range on %d\n",type);
-        //fflush(stderr);
+        // fprintf(stderr, "** returning out of range on %d\n",type);
+        // fflush(stderr);
         return strs[UDBG_ENUM_COUNT][0];
     }
     int32_t count = udbg_enumCount(type);
-    //fprintf(stderr, "enumString [%d,%d]: typecount %d, fieldcount %d\n", type,field,UDBG_ENUM_COUNT,count);
-    //fflush(stderr);
-    if(field<0 || field > count) {
+    // fprintf(stderr, "enumString [%d,%d]: typecount %d, fieldcount %d\n", type,field,UDBG_ENUM_COUNT,count);
+    // fflush(stderr);
+    if (field < 0 || field > count) {
         return strs[type][count];
-    } else {        return strs[type][field];
+    } else {
+        return strs[type][field];
     }
 }
 
-U_CAPI int32_t  U_EXPORT2 udbg_enumByString(UDebugEnumType type, const UnicodeString& string) {
-    if(type<0||type>=UDBG_ENUM_COUNT) {
+U_CAPI int32_t U_EXPORT2 udbg_enumByString(UDebugEnumType type, const UnicodeString& string)
+{
+    if (type < 0 || type >= UDBG_ENUM_COUNT) {
         return -1;
     }
     // initialize array
-    udbg_enumString(type,0);
+    udbg_enumString(type, 0);
     // search
-   /// printf("type=%d\n", type); fflush(stdout);
-    for(int i=0;i<udbg_enumCount(type);i++) {
-//    printf("i=%d/%d\n", i, udbg_enumCount(type)); fflush(stdout);
-        if(string == (strs[type][i])) {
+    /// printf("type=%d\n", type); fflush(stdout);
+    for (int i = 0; i < udbg_enumCount(type); i++) {
+        //    printf("i=%d/%d\n", i, udbg_enumCount(type)); fflush(stdout);
+        if (string == (strs[type][i])) {
             return i;
         }
     }
@@ -113,48 +118,41 @@ U_CAPI int32_t  U_EXPORT2 udbg_enumByString(UDebugEnumType type, const UnicodeSt
 }
 
 // from DataMap::utoi
-U_CAPI int32_t 
-udbg_stoi(const UnicodeString &s)
+U_CAPI int32_t udbg_stoi(const UnicodeString& s)
 {
     char ch[256];
-    const char16_t *u = toUCharPtr(s.getBuffer());
+    const UChar* u = toUCharPtr(s.getBuffer());
     int32_t len = s.length();
     u_UCharsToChars(u, ch, len);
     ch[len] = 0; /* include terminating \0 */
     return atoi(ch);
 }
 
-
-U_CAPI double 
-udbg_stod(const UnicodeString &s)
+U_CAPI double udbg_stod(const UnicodeString& s)
 {
     char ch[256];
-    const char16_t *u = toUCharPtr(s.getBuffer());
+    const UChar* u = toUCharPtr(s.getBuffer());
     int32_t len = s.length();
     u_UCharsToChars(u, ch, len);
     ch[len] = 0; /* include terminating \0 */
     return atof(ch);
 }
 
-U_CAPI UnicodeString *
-udbg_escape(const UnicodeString &src, UnicodeString *dst)
+U_CAPI UnicodeString* udbg_escape(const UnicodeString& src, UnicodeString* dst)
 {
     dst->remove();
     for (int32_t i = 0; i < src.length(); ++i) {
-        char16_t c = src[i];
-        if(ICU_Utility::isUnprintable(c)) {
+        UChar c = src[i];
+        if (ICU_Utility::isUnprintable(c)) {
             *dst += UnicodeString("[");
             ICU_Utility::escapeUnprintable(*dst, c);
             *dst += UnicodeString("]");
-        }
-        else {
+        } else {
             *dst += c;
         }
     }
 
     return dst;
 }
-
-
 
 #endif

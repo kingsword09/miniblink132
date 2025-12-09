@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -62,13 +62,15 @@ public:
 /**
  * Wrapper class around generic dictionaries, implementing matches().
  * getType() should return a TRIE_TYPE_??? constant from DictionaryData.
- * 
+ *
  * All implementations of this interface must be thread-safe if they are to be used inside of the
  * dictionary-based break iteration code.
  */
 class U_COMMON_API DictionaryMatcher : public UMemory {
 public:
-    DictionaryMatcher() {}
+    DictionaryMatcher()
+    {
+    }
     virtual ~DictionaryMatcher();
     // this should emulate CompactTrieDictionary::matches()
     /*  @param text      The text in which to look for matching words. Matching begins
@@ -79,20 +81,18 @@ public:
      *                   matching words to be found.
      *  @param lengths   output array, filled with the lengths of the matches, in order,
      *                   from shortest to longest. Lengths are in native indexing units
-     *                   of the UText. May be nullptr.
+     *                   of the UText. May be NULL.
      *  @param cpLengths output array, filled with the lengths of the matches, in order,
      *                   from shortest to longest. Lengths are the number of Unicode code points.
-     *                   May be nullptr.
+     *                   May be NULL.
      *  @param values    Output array, filled with the values associated with the words found.
-     *                   May be nullptr.
+     *                   May be NULL.
      *  @param prefix    Output parameter, the code point length of the prefix match, even if that
      *                   prefix didn't lead to a complete word. Will always be >= the cpLength
-     *                   of the longest complete word matched. May be nullptr.
+     *                   of the longest complete word matched. May be NULL.
      *  @return          Number of matching words found.
      */
-    virtual int32_t matches(UText *text, int32_t maxLength, int32_t limit,
-                            int32_t *lengths, int32_t *cpLengths, int32_t *values,
-                            int32_t *prefix) const = 0;
+    virtual int32_t matches(UText* text, int32_t maxLength, int32_t limit, int32_t* lengths, int32_t* cpLengths, int32_t* values, int32_t* prefix) const = 0;
 
     /** @return DictionaryData::TRIE_TYPE_XYZ */
     virtual int32_t getType() const = 0;
@@ -103,15 +103,19 @@ class U_COMMON_API UCharsDictionaryMatcher : public DictionaryMatcher {
 public:
     // constructs a new UCharsDictionaryMatcher.
     // The UDataMemory * will be closed on this object's destruction.
-    UCharsDictionaryMatcher(const char16_t *c, UDataMemory *f) : characters(c), file(f) { }
+    UCharsDictionaryMatcher(const UChar* c, UDataMemory* f)
+        : characters(c)
+        , file(f)
+    {
+    }
     virtual ~UCharsDictionaryMatcher();
-    virtual int32_t matches(UText *text, int32_t maxLength, int32_t limit,
-                            int32_t *lengths, int32_t *cpLengths, int32_t *values,
-                            int32_t *prefix) const override;
+    virtual int32_t matches(
+        UText* text, int32_t maxLength, int32_t limit, int32_t* lengths, int32_t* cpLengths, int32_t* values, int32_t* prefix) const override;
     virtual int32_t getType() const override;
+
 private:
-    const char16_t *characters;
-    UDataMemory *file;
+    const UChar* characters;
+    UDataMemory* file;
 };
 
 // Implementation of the DictionaryMatcher interface for a BytesTrie dictionary
@@ -120,25 +124,28 @@ public:
     // constructs a new BytesTrieDictionaryMatcher
     // the transform constant should be the constant read from the file, not a masked version!
     // the UDataMemory * fed in here will be closed on this object's destruction
-    BytesDictionaryMatcher(const char *c, int32_t t, UDataMemory *f)
-            : characters(c), transformConstant(t), file(f) { }
+    BytesDictionaryMatcher(const char* c, int32_t t, UDataMemory* f)
+        : characters(c)
+        , transformConstant(t)
+        , file(f)
+    {
+    }
     virtual ~BytesDictionaryMatcher();
-    virtual int32_t matches(UText *text, int32_t maxLength, int32_t limit,
-                            int32_t *lengths, int32_t *cpLengths, int32_t *values,
-                            int32_t *prefix) const override;
+    virtual int32_t matches(
+        UText* text, int32_t maxLength, int32_t limit, int32_t* lengths, int32_t* cpLengths, int32_t* values, int32_t* prefix) const override;
     virtual int32_t getType() const override;
+
 private:
     UChar32 transform(UChar32 c) const;
 
-    const char *characters;
+    const char* characters;
     int32_t transformConstant;
-    UDataMemory *file;
+    UDataMemory* file;
 };
 
 U_NAMESPACE_END
 
-U_CAPI int32_t U_EXPORT2
-udict_swap(const UDataSwapper *ds, const void *inData, int32_t length, void *outData, UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 udict_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* pErrorCode);
 
 /**
  * Format of dictionary .dict data files.
@@ -187,5 +194,5 @@ udict_swap(const UDataSwapper *ds, const void *inData, int32_t length, void *out
  *      or it maps all strings to 0 (TRIE_HAS_VALUES bit not set).
  */
 
-#endif  /* !UCONFIG_NO_BREAK_ITERATION */
-#endif  /* __DICTIONARYDATA_H__ */
+#endif /* !UCONFIG_NO_BREAK_ITERATION */
+#endif /* __DICTIONARYDATA_H__ */

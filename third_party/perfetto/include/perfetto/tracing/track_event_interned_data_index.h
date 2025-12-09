@@ -74,46 +74,46 @@ namespace perfetto {
 // types where this isn't necessary (e.g., raw const char*), use
 // SmallInternedDataTraits.
 struct BigInternedDataTraits {
-  template <typename ValueType>
-  class Index {
-   public:
-    bool LookUpOrInsert(size_t* iid, const ValueType& value) {
-      size_t next_id = data_.size() + 1;
-      auto it_and_inserted = data_.insert(std::make_pair(value, next_id));
-      if (!it_and_inserted.second) {
-        *iid = it_and_inserted.first->second;
-        return true;
-      }
-      *iid = next_id;
-      return false;
-    }
+    template <typename ValueType> class Index {
+    public:
+        bool LookUpOrInsert(size_t* iid, const ValueType& value)
+        {
+            size_t next_id = data_.size() + 1;
+            auto it_and_inserted = data_.insert(std::make_pair(value, next_id));
+            if (!it_and_inserted.second) {
+                *iid = it_and_inserted.first->second;
+                return true;
+            }
+            *iid = next_id;
+            return false;
+        }
 
-   private:
-    std::unordered_map<ValueType, size_t> data_;
-  };
+    private:
+        std::unordered_map<ValueType, size_t> data_;
+    };
 };
 
 // This type of interning index keeps full copies of interned data without
 // hashing the values. This is a good fit for small types that can be directly
 // used as index keys.
 struct SmallInternedDataTraits {
-  template <typename ValueType>
-  class Index {
-   public:
-    bool LookUpOrInsert(size_t* iid, const ValueType& value) {
-      size_t next_id = data_.size() + 1;
-      auto it_and_inserted = data_.insert(std::make_pair(value, next_id));
-      if (!it_and_inserted.second) {
-        *iid = it_and_inserted.first->second;
-        return true;
-      }
-      *iid = next_id;
-      return false;
-    }
+    template <typename ValueType> class Index {
+    public:
+        bool LookUpOrInsert(size_t* iid, const ValueType& value)
+        {
+            size_t next_id = data_.size() + 1;
+            auto it_and_inserted = data_.insert(std::make_pair(value, next_id));
+            if (!it_and_inserted.second) {
+                *iid = it_and_inserted.first->second;
+                return true;
+            }
+            *iid = next_id;
+            return false;
+        }
 
-   private:
-    std::map<ValueType, size_t> data_;
-  };
+    private:
+        std::map<ValueType, size_t> data_;
+    };
 };
 
 // This type of interning index only stores the hash of the interned values
@@ -123,24 +123,24 @@ struct SmallInternedDataTraits {
 //
 // Note that the given type must have a specialization for std::hash.
 struct HashedInternedDataTraits {
-  template <typename ValueType>
-  class Index {
-   public:
-    bool LookUpOrInsert(size_t* iid, const ValueType& value) {
-      auto key = std::hash<ValueType>()(value);
-      size_t next_id = data_.size() + 1;
-      auto it_and_inserted = data_.insert(std::make_pair(key, next_id));
-      if (!it_and_inserted.second) {
-        *iid = it_and_inserted.first->second;
-        return true;
-      }
-      *iid = next_id;
-      return false;
-    }
+    template <typename ValueType> class Index {
+    public:
+        bool LookUpOrInsert(size_t* iid, const ValueType& value)
+        {
+            auto key = std::hash<ValueType>()(value);
+            size_t next_id = data_.size() + 1;
+            auto it_and_inserted = data_.insert(std::make_pair(key, next_id));
+            if (!it_and_inserted.second) {
+                *iid = it_and_inserted.first->second;
+                return true;
+            }
+            *iid = next_id;
+            return false;
+        }
 
-   private:
-    std::map<size_t, size_t> data_;
-  };
+    private:
+        std::map<size_t, size_t> data_;
+    };
 };
 
 // A templated base class for an interned data type which corresponds to a field
@@ -158,107 +158,90 @@ struct HashedInternedDataTraits {
 //                   size_t iid,
 //                   const ValueType& value);
 //
-template <typename InternedDataType,
-          size_t FieldNumber,
-          typename ValueType,
-          // Avoid unnecessary hashing for pointers by default.
-          typename Traits =
-              typename std::conditional<(std::is_pointer<ValueType>::value),
-                                        SmallInternedDataTraits,
-                                        BigInternedDataTraits>::type>
-class TrackEventInternedDataIndex
-    : public internal::BaseTrackEventInternedDataIndex {
- public:
-  // Return an interning id for |value|. The returned id can be immediately
-  // written to the trace. The optional |add_args| are passed to the Add()
-  // function.
-  template <typename... Args>
-  static size_t Get(EventContext* ctx,
-                    const ValueType& value,
-                    Args&&... add_args) {
-    return Get(ctx->incremental_state_, value, std::forward<Args>(add_args)...);
-  }
-
-  template <typename... Args>
-  static size_t Get(internal::TrackEventIncrementalState* incremental_state,
-                    const ValueType& value,
-                    Args&&... add_args) {
-    // First check if the value exists in the dictionary.
-    auto index_for_field = GetOrCreateIndexForField(incremental_state);
-    size_t iid;
-    if (PERFETTO_LIKELY(index_for_field->index_.LookUpOrInsert(&iid, value))) {
-      PERFETTO_DCHECK(iid);
-      return iid;
+template <typename InternedDataType, size_t FieldNumber, typename ValueType,
+    // Avoid unnecessary hashing for pointers by default.
+    typename Traits = typename std::conditional<(std::is_pointer<ValueType>::value), SmallInternedDataTraits, BigInternedDataTraits>::type>
+class TrackEventInternedDataIndex : public internal::BaseTrackEventInternedDataIndex {
+public:
+    // Return an interning id for |value|. The returned id can be immediately
+    // written to the trace. The optional |add_args| are passed to the Add()
+    // function.
+    template <typename... Args> static size_t Get(EventContext* ctx, const ValueType& value, Args&&... add_args)
+    {
+        return Get(ctx->incremental_state_, value, std::forward<Args>(add_args)...);
     }
 
-    // If not, we need to serialize the definition of the interned value into
-    // the heap buffered message (which is committed to the trace when the
-    // packet ends).
-    PERFETTO_DCHECK(iid);
-    InternedDataType::Add(incremental_state->serialized_interned_data.get(),
-                          iid, std::move(value),
-                          std::forward<Args>(add_args)...);
-    return iid;
-  }
-
- protected:
-  // Some use cases require a custom Get implemention, so they need access to
-  // GetOrCreateIndexForField + the returned index.
-  static InternedDataType* GetOrCreateIndexForField(
-      internal::TrackEventIncrementalState* incremental_state) {
-    // Fast path: look for matching field number.
-    for (const auto& entry : incremental_state->interned_data_indices) {
-      if (entry.first == FieldNumber) {
-#if PERFETTO_DCHECK_IS_ON()
-        if (strcmp(PERFETTO_DEBUG_FUNCTION_IDENTIFIER(),
-                   entry.second->type_id_)) {
-          PERFETTO_FATAL(
-              "Interned data accessed under different types! Previous type: "
-              "%s. New type: %s.",
-              entry.second->type_id_, PERFETTO_DEBUG_FUNCTION_IDENTIFIER());
+    template <typename... Args> static size_t Get(internal::TrackEventIncrementalState* incremental_state, const ValueType& value, Args&&... add_args)
+    {
+        // First check if the value exists in the dictionary.
+        auto index_for_field = GetOrCreateIndexForField(incremental_state);
+        size_t iid;
+        if (PERFETTO_LIKELY(index_for_field->index_.LookUpOrInsert(&iid, value))) {
+            PERFETTO_DCHECK(iid);
+            return iid;
         }
-        // If an interned data index is defined in an anonymous namespace, we
-        // can end up with multiple copies of it in the same program. Because
-        // they will all share a memory address through TLS, this can lead to
-        // subtle data corruption if all the copies aren't exactly identical.
-        // Try to detect this by checking if the Add() function address remains
-        // constant.
-        if (reinterpret_cast<void*>(&InternedDataType::Add) !=
-            entry.second->add_function_ptr_) {
-          PERFETTO_FATAL(
-              "Inconsistent interned data index. Maybe the index was defined "
-              "in an anonymous namespace in a header or copied to multiple "
-              "files? Duplicate index definitions can lead to memory "
-              "corruption! Type id: %s",
-              entry.second->type_id_);
-        }
-#endif  // PERFETTO_DCHECK_IS_ON()
-        return reinterpret_cast<InternedDataType*>(entry.second.get());
-      }
-    }
-    // No match -- add a new entry for this field.
-    for (auto& entry : incremental_state->interned_data_indices) {
-      if (!entry.first) {
-        entry.first = FieldNumber;
-        entry.second.reset(new InternedDataType());
-#if PERFETTO_DCHECK_IS_ON()
-        entry.second->type_id_ = PERFETTO_DEBUG_FUNCTION_IDENTIFIER();
-        entry.second->add_function_ptr_ =
-            reinterpret_cast<void*>(&InternedDataType::Add);
-#endif  // PERFETTO_DCHECK_IS_ON()
-        return reinterpret_cast<InternedDataType*>(entry.second.get());
-      }
-    }
-    // Out of space in the interned data index table.
-    PERFETTO_CHECK(false);
-  }
 
-  // The actual interning dictionary for this type of interned data. The actual
-  // container type is defined by |Traits|, hence the extra layer of template
-  // indirection here.
-  typename Traits::template Index<ValueType> index_;
+        // If not, we need to serialize the definition of the interned value into
+        // the heap buffered message (which is committed to the trace when the
+        // packet ends).
+        PERFETTO_DCHECK(iid);
+        InternedDataType::Add(incremental_state->serialized_interned_data.get(), iid, std::move(value), std::forward<Args>(add_args)...);
+        return iid;
+    }
+
+protected:
+    // Some use cases require a custom Get implemention, so they need access to
+    // GetOrCreateIndexForField + the returned index.
+    static InternedDataType* GetOrCreateIndexForField(internal::TrackEventIncrementalState* incremental_state)
+    {
+        // Fast path: look for matching field number.
+        for (const auto& entry : incremental_state->interned_data_indices) {
+            if (entry.first == FieldNumber) {
+#if PERFETTO_DCHECK_IS_ON()
+                if (strcmp(PERFETTO_DEBUG_FUNCTION_IDENTIFIER(), entry.second->type_id_)) {
+                    PERFETTO_FATAL("Interned data accessed under different types! Previous type: "
+                                   "%s. New type: %s.",
+                        entry.second->type_id_, PERFETTO_DEBUG_FUNCTION_IDENTIFIER());
+                }
+                // If an interned data index is defined in an anonymous namespace, we
+                // can end up with multiple copies of it in the same program. Because
+                // they will all share a memory address through TLS, this can lead to
+                // subtle data corruption if all the copies aren't exactly identical.
+                // Try to detect this by checking if the Add() function address remains
+                // constant.
+                if (reinterpret_cast<void*>(&InternedDataType::Add) != entry.second->add_function_ptr_) {
+                    PERFETTO_FATAL("Inconsistent interned data index. Maybe the index was defined "
+                                   "in an anonymous namespace in a header or copied to multiple "
+                                   "files? Duplicate index definitions can lead to memory "
+                                   "corruption! Type id: %s",
+                        entry.second->type_id_);
+                }
+#endif // PERFETTO_DCHECK_IS_ON()
+                return reinterpret_cast<InternedDataType*>(entry.second.get());
+            }
+        }
+        // No match -- add a new entry for this field.
+        for (auto& entry : incremental_state->interned_data_indices) {
+            if (!entry.first) {
+                entry.first = FieldNumber;
+                entry.second.reset(new InternedDataType());
+#if PERFETTO_DCHECK_IS_ON()
+                entry.second->type_id_ = PERFETTO_DEBUG_FUNCTION_IDENTIFIER();
+                entry.second->add_function_ptr_ = reinterpret_cast<void*>(&InternedDataType::Add);
+#endif // PERFETTO_DCHECK_IS_ON()
+                return reinterpret_cast<InternedDataType*>(entry.second.get());
+            }
+        }
+        // Out of space in the interned data index table.
+        PERFETTO_CHECK(false);
+    }
+
+    // The actual interning dictionary for this type of interned data. The actual
+    // container type is defined by |Traits|, hence the extra layer of template
+    // indirection here.
+    typename Traits::template Index<ValueType> index_;
 };
 
-}  // namespace perfetto
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_TRACK_EVENT_INTERNED_DATA_INDEX_H_
+#endif // INCLUDE_PERFETTO_TRACING_TRACK_EVENT_INTERNED_DATA_INDEX_H_

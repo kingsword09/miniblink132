@@ -1,4 +1,4 @@
-/*
+﻿/*
 ***********************************************************************
 * © 2016 and later: Unicode, Inc. and others.
 * License & terms of use: http://www.unicode.org/copyright.html
@@ -25,6 +25,6 @@
 #include "unicode/utypes.h"
 
 /* Print a ustring to the specified FILE* in the default codepage */
-U_CFUNC void uprint(const UChar *s, FILE *f, UErrorCode *status);
+U_CFUNC void uprint(const UChar* s, FILE* f, UErrorCode* status);
 
 #endif /* ! UPRINT_H */

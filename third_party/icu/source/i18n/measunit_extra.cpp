@@ -1,4 +1,4 @@
-// © 2020 and later: Unicode, Inc. and others.
+﻿// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // Extra functions for MeasureUnit not needed for all clients.
@@ -16,7 +16,7 @@
 #include "cmemory.h"
 #include "cstring.h"
 #include "measunit_impl.h"
-#include "resource.h"
+#include "icu_resource.h"
 #include "uarrsort.h"
 #include "uassert.h"
 #include "ucln_in.h"
@@ -34,7 +34,6 @@
 
 U_NAMESPACE_BEGIN
 
-
 namespace {
 
 // TODO: Propose a new error code for this?
@@ -43,17 +42,15 @@ constexpr UErrorCode kUnitIdentifierSyntaxError = U_ILLEGAL_ARGUMENT_ERROR;
 // Trie value offset for SI or binary prefixes. This is big enough to ensure we only
 // insert positive integers into the trie.
 constexpr int32_t kPrefixOffset = 64;
-static_assert(kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MIN_BIN > 0,
-              "kPrefixOffset is too small for minimum UMeasurePrefix value");
-static_assert(kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MIN_SI > 0,
-              "kPrefixOffset is too small for minimum UMeasurePrefix value");
+static_assert(kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MIN_BIN > 0, "kPrefixOffset is too small for minimum UMeasurePrefix value");
+static_assert(kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MIN_SI > 0, "kPrefixOffset is too small for minimum UMeasurePrefix value");
 
 // Trie value offset for compound parts, e.g. "-per-", "-", "-and-".
 constexpr int32_t kCompoundPartOffset = 128;
-static_assert(kCompoundPartOffset > kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MAX_BIN,
-              "Ambiguous token values: prefix tokens are overlapping with CompoundPart tokens");
-static_assert(kCompoundPartOffset > kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MAX_SI,
-              "Ambiguous token values: prefix tokens are overlapping with CompoundPart tokens");
+static_assert(
+    kCompoundPartOffset > kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MAX_BIN, "Ambiguous token values: prefix tokens are overlapping with CompoundPart tokens");
+static_assert(
+    kCompoundPartOffset > kPrefixOffset + UMEASURE_PREFIX_INTERNAL_MAX_SI, "Ambiguous token values: prefix tokens are overlapping with CompoundPart tokens");
 
 enum CompoundPart {
     // Represents "-per-"
@@ -148,11 +145,11 @@ const struct UnitPrefixStrings {
  *     int32_t *unitCategories[ARR_SIZE];
  *     SimpleUnitIdentifiersSink identifierSink(gSerializedUnitCategoriesTrie, unitIdentifiers,
  *                                              unitCategories, ARR_SIZE, b, kTrieValueOffset);
- *     LocalUResourceBundlePointer unitsBundle(ures_openDirect(nullptr, "units", &status));
+ *     LocalUResourceBundlePointer unitsBundle(ures_openDirect(NULL, "units", &status));
  *     ures_getAllItemsWithFallback(unitsBundle.getAlias(), "convertUnits", identifierSink, status);
  */
 class SimpleUnitIdentifiersSink : public icu::ResourceSink {
-  public:
+public:
     /**
      * Constructor.
      * @param quantitiesTrieData The data for constructing a quantitiesTrie,
@@ -171,11 +168,17 @@ class SimpleUnitIdentifiersSink : public icu::ResourceSink {
      *     the `out` array, before adding to `trieBuilder` as the value
      *     associated with the identifier.
      */
-    explicit SimpleUnitIdentifiersSink(StringPiece quantitiesTrieData, const char **out,
-                                       int32_t *outCategories, int32_t outSize,
-                                       BytesTrieBuilder &trieBuilder, int32_t trieValueOffset)
-        : outArray(out), outCategories(outCategories), outSize(outSize), trieBuilder(trieBuilder),
-          trieValueOffset(trieValueOffset), quantitiesTrieData(quantitiesTrieData), outIndex(0) {}
+    explicit SimpleUnitIdentifiersSink(
+        StringPiece quantitiesTrieData, const char** out, int32_t* outCategories, int32_t outSize, BytesTrieBuilder& trieBuilder, int32_t trieValueOffset)
+        : outArray(out)
+        , outCategories(outCategories)
+        , outSize(outSize)
+        , trieBuilder(trieBuilder)
+        , trieValueOffset(trieValueOffset)
+        , quantitiesTrieData(quantitiesTrieData)
+        , outIndex(0)
+    {
+    }
 
     /**
      * Adds the table keys found in value to the output vector.
@@ -186,9 +189,11 @@ class SimpleUnitIdentifiersSink : public icu::ResourceSink {
      * @param noFallback Ignored.
      * @param status The standard ICU error code output parameter.
      */
-    void put(const char * /*key*/, ResourceValue &value, UBool /*noFallback*/, UErrorCode &status) override {
+    void put(const char* /*key*/, ResourceValue& value, UBool /*noFallback*/, UErrorCode& status) override
+    {
         ResourceTable table = value.getTable(status);
-        if (U_FAILURE(status)) return;
+        if (U_FAILURE(status))
+            return;
 
         if (outIndex + table.getSize() > outSize) {
             status = U_INDEX_OUTOFBOUNDS_ERROR;
@@ -198,7 +203,7 @@ class SimpleUnitIdentifiersSink : public icu::ResourceSink {
         BytesTrie quantitiesTrie(quantitiesTrieData.data());
 
         // Collect keys from the table resource.
-        const char *simpleUnitID;
+        const char* simpleUnitID;
         for (int32_t i = 0; table.getKeyAndValue(i, simpleUnitID, value); ++i) {
             U_ASSERT(i < table.getSize());
             U_ASSERT(outIndex < outSize);
@@ -214,16 +219,20 @@ class SimpleUnitIdentifiersSink : public icu::ResourceSink {
 
             // Find the base target unit for this simple unit
             ResourceTable table = value.getTable(status);
-            if (U_FAILURE(status)) { return; }
+            if (U_FAILURE(status)) {
+                return;
+            }
             if (!table.findValue("target", value)) {
                 status = U_INVALID_FORMAT_ERROR;
                 break;
             }
             int32_t len;
-            const char16_t* uTarget = value.getString(len, status);
+            const UChar* uTarget = value.getString(len, status);
             CharString target;
             target.appendInvariantChars(uTarget, len, status);
-            if (U_FAILURE(status)) { return; }
+            if (U_FAILURE(status)) {
+                return;
+            }
             quantitiesTrie.reset();
             UStringTrieResult result = quantitiesTrie.next(target.data(), target.length());
             if (!USTRINGTRIE_HAS_VALUE(result)) {
@@ -236,11 +245,11 @@ class SimpleUnitIdentifiersSink : public icu::ResourceSink {
         }
     }
 
-  private:
-    const char **outArray;
-    int32_t *outCategories;
+private:
+    const char** outArray;
+    int32_t* outCategories;
     int32_t outSize;
-    BytesTrieBuilder &trieBuilder;
+    BytesTrieBuilder& trieBuilder;
     int32_t trieValueOffset;
 
     StringPiece quantitiesTrieData;
@@ -255,15 +264,15 @@ class SimpleUnitIdentifiersSink : public icu::ResourceSink {
  *
  * For example: "kilogram" -> "mass", "meter-per-second" -> "speed".
  *
- * In C++ unitQuantity values are collected in order into a char16_t* array, while
+ * In C++ unitQuantity values are collected in order into a UChar* array, while
  * unitQuantity keys are added added to a TrieBuilder, with associated values
- * being the index into the aforementioned char16_t* array.
+ * being the index into the aforementioned UChar* array.
  */
 class CategoriesSink : public icu::ResourceSink {
-  public:
+public:
     /**
      * Constructor.
-     * @param out Array of char16_t* to which unitQuantity values will be saved.
+     * @param out Array of UChar* to which unitQuantity values will be saved.
      *     The pointers returned  not owned: they point directly at the resource
      *     strings in static memory.
      * @param outSize The size of the `out` array.
@@ -271,10 +280,16 @@ class CategoriesSink : public icu::ResourceSink {
      *     each unitQuantity will be added, each with value being the offset
      *     into `out`.
      */
-    explicit CategoriesSink(const char16_t **out, int32_t &outSize, BytesTrieBuilder &trieBuilder)
-        : outQuantitiesArray(out), outSize(outSize), trieBuilder(trieBuilder), outIndex(0) {}
+    explicit CategoriesSink(const UChar** out, int32_t& outSize, BytesTrieBuilder& trieBuilder)
+        : outQuantitiesArray(out)
+        , outSize(outSize)
+        , trieBuilder(trieBuilder)
+        , outIndex(0)
+    {
+    }
 
-    void put(const char * /*key*/, ResourceValue &value, UBool /*noFallback*/, UErrorCode &status) override {
+    void put(const char* /*key*/, ResourceValue& value, UBool /*noFallback*/, UErrorCode& status) override
+    {
         ResourceArray array = value.getArray(status);
         if (U_FAILURE(status)) {
             return;
@@ -295,7 +310,7 @@ class CategoriesSink : public icu::ResourceSink {
                 status = U_INVALID_FORMAT_ERROR;
                 return;
             }
-            const char *key;
+            const char* key;
             table.getKeyAndValue(0, key, value);
             int32_t uTmpLen;
             outQuantitiesArray[outIndex] = value.getString(uTmpLen, status);
@@ -304,10 +319,10 @@ class CategoriesSink : public icu::ResourceSink {
         }
     }
 
-  private:
-    const char16_t **outQuantitiesArray;
-    int32_t &outSize;
-    BytesTrieBuilder &trieBuilder;
+private:
+    const UChar** outQuantitiesArray;
+    int32_t& outSize;
+    BytesTrieBuilder& trieBuilder;
 
     int32_t outIndex;
 };
@@ -319,25 +334,26 @@ icu::UInitOnce gUnitExtrasInitOnce {};
 // The array memory itself is owned by this pointer, but the individual char* in
 // that array point at static memory. (Note that these char* are also returned
 // by SingleUnitImpl::getSimpleUnitID().)
-const char **gSimpleUnits = nullptr;
+const char** gSimpleUnits = nullptr;
 
 // Maps from the value associated with each simple unit ID to an index into the
 // gCategories array.
-int32_t *gSimpleUnitCategories = nullptr;
+int32_t* gSimpleUnitCategories = nullptr;
 
-char *gSerializedUnitExtrasStemTrie = nullptr;
+char* gSerializedUnitExtrasStemTrie = nullptr;
 
-// Array of char16_t* pointing at the unit categories (aka "quantities", aka
+// Array of UChar* pointing at the unit categories (aka "quantities", aka
 // "types"), as found in the `unitQuantities` resource. The array memory itself
-// is owned by this pointer, but the individual char16_t* in that array point at
+// is owned by this pointer, but the individual UChar* in that array point at
 // static memory.
-const char16_t **gCategories = nullptr;
+const UChar** gCategories = nullptr;
 // Number of items in `gCategories`.
 int32_t gCategoriesCount = 0;
 // Serialized BytesTrie for mapping from base units to indices into gCategories.
-char *gSerializedUnitCategoriesTrie = nullptr;
+char* gSerializedUnitCategoriesTrie = nullptr;
 
-UBool U_CALLCONV cleanupUnitExtras() {
+UBool U_CALLCONV cleanupUnitExtras()
+{
     uprv_free(gSerializedUnitCategoriesTrie);
     gSerializedUnitCategoriesTrie = nullptr;
     uprv_free(gCategories);
@@ -349,21 +365,23 @@ UBool U_CALLCONV cleanupUnitExtras() {
     uprv_free(gSimpleUnits);
     gSimpleUnits = nullptr;
     gUnitExtrasInitOnce.reset();
-    return true;
+    return TRUE;
 }
 
-void U_CALLCONV initUnitExtras(UErrorCode& status) {
+void U_CALLCONV initUnitExtras(UErrorCode& status)
+{
     ucln_i18n_registerCleanup(UCLN_I18N_UNIT_EXTRAS, cleanupUnitExtras);
     LocalUResourceBundlePointer unitsBundle(ures_openDirect(nullptr, "units", &status));
 
     // Collect unitQuantities information into gSerializedUnitCategoriesTrie and gCategories.
-    const char *CATEGORY_TABLE_NAME = "unitQuantities";
-    LocalUResourceBundlePointer unitQuantities(
-        ures_getByKey(unitsBundle.getAlias(), CATEGORY_TABLE_NAME, nullptr, &status));
-    if (U_FAILURE(status)) { return; }
+    const char* CATEGORY_TABLE_NAME = "unitQuantities";
+    LocalUResourceBundlePointer unitQuantities(ures_getByKey(unitsBundle.getAlias(), CATEGORY_TABLE_NAME, nullptr, &status));
+    if (U_FAILURE(status)) {
+        return;
+    }
     gCategoriesCount = unitQuantities.getAlias()->fSize;
-    size_t quantitiesMallocSize = sizeof(char16_t *) * gCategoriesCount;
-    gCategories = static_cast<const char16_t **>(uprv_malloc(quantitiesMallocSize));
+    size_t quantitiesMallocSize = sizeof(UChar*) * gCategoriesCount;
+    gCategories = static_cast<const UChar**>(uprv_malloc(quantitiesMallocSize));
     if (gCategories == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
@@ -373,10 +391,12 @@ void U_CALLCONV initUnitExtras(UErrorCode& status) {
     CategoriesSink categoriesSink(gCategories, gCategoriesCount, quantitiesBuilder);
     ures_getAllItemsWithFallback(unitsBundle.getAlias(), CATEGORY_TABLE_NAME, categoriesSink, status);
     StringPiece resultQuantities = quantitiesBuilder.buildStringPiece(USTRINGTRIE_BUILD_FAST, status);
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
     // Copy the result into the global constant pointer
     size_t numBytesQuantities = resultQuantities.length();
-    gSerializedUnitCategoriesTrie = static_cast<char *>(uprv_malloc(numBytesQuantities));
+    gSerializedUnitCategoriesTrie = static_cast<char*>(uprv_malloc(numBytesQuantities));
     if (gSerializedUnitCategoriesTrie == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
@@ -386,13 +406,17 @@ void U_CALLCONV initUnitExtras(UErrorCode& status) {
     // Build the BytesTrie that Parser needs for parsing unit identifiers.
 
     BytesTrieBuilder b(status);
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
 
     // Add SI and binary prefixes
     for (const auto& unitPrefixInfo : gUnitPrefixStrings) {
         b.add(unitPrefixInfo.string, unitPrefixInfo.value + kPrefixOffset, status);
     }
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
 
     // Add syntax parts (compound, power prefixes)
     b.add("-per-", COMPOUND_PART_PER, status);
@@ -415,26 +439,29 @@ void U_CALLCONV initUnitExtras(UErrorCode& status) {
     b.add("pow13-", POWER_PART_P13, status);
     b.add("pow14-", POWER_PART_P14, status);
     b.add("pow15-", POWER_PART_P15, status);
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
 
     // Add sanctioned simple units by offset: simple units all have entries in
     // units/convertUnits resources.
-    LocalUResourceBundlePointer convertUnits(
-        ures_getByKey(unitsBundle.getAlias(), "convertUnits", nullptr, &status));
-    if (U_FAILURE(status)) { return; }
+    LocalUResourceBundlePointer convertUnits(ures_getByKey(unitsBundle.getAlias(), "convertUnits", nullptr, &status));
+    if (U_FAILURE(status)) {
+        return;
+    }
 
     // Allocate enough space: with identifierSink below skipping kilogram, we're
     // probably allocating one more than needed.
     int32_t simpleUnitsCount = convertUnits.getAlias()->fSize;
-    int32_t arrayMallocSize = sizeof(char *) * simpleUnitsCount;
-    gSimpleUnits = static_cast<const char **>(uprv_malloc(arrayMallocSize));
+    int32_t arrayMallocSize = sizeof(char*) * simpleUnitsCount;
+    gSimpleUnits = static_cast<const char**>(uprv_malloc(arrayMallocSize));
     if (gSimpleUnits == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
     uprv_memset(gSimpleUnits, 0, arrayMallocSize);
     arrayMallocSize = sizeof(int32_t) * simpleUnitsCount;
-    gSimpleUnitCategories = static_cast<int32_t *>(uprv_malloc(arrayMallocSize));
+    gSimpleUnitCategories = static_cast<int32_t*>(uprv_malloc(arrayMallocSize));
     if (gSimpleUnitCategories == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
@@ -442,18 +469,19 @@ void U_CALLCONV initUnitExtras(UErrorCode& status) {
     uprv_memset(gSimpleUnitCategories, 0, arrayMallocSize);
 
     // Populate gSimpleUnits and build the associated trie.
-    SimpleUnitIdentifiersSink identifierSink(resultQuantities, gSimpleUnits, gSimpleUnitCategories,
-                                             simpleUnitsCount, b, kSimpleUnitOffset);
+    SimpleUnitIdentifiersSink identifierSink(resultQuantities, gSimpleUnits, gSimpleUnitCategories, simpleUnitsCount, b, kSimpleUnitOffset);
     ures_getAllItemsWithFallback(unitsBundle.getAlias(), "convertUnits", identifierSink, status);
 
     // Build the CharsTrie
     // TODO: Use SLOW or FAST here?
     StringPiece result = b.buildStringPiece(USTRINGTRIE_BUILD_FAST, status);
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
 
     // Copy the result into the global constant pointer
     size_t numBytes = result.length();
-    gSerializedUnitExtrasStemTrie = static_cast<char *>(uprv_malloc(numBytes));
+    gSerializedUnitExtrasStemTrie = static_cast<char*>(uprv_malloc(numBytes));
     if (gSerializedUnitExtrasStemTrie == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
@@ -463,7 +491,10 @@ void U_CALLCONV initUnitExtras(UErrorCode& status) {
 
 class Token {
 public:
-    Token(int32_t match) : fMatch(match) {}
+    Token(int32_t match)
+        : fMatch(match)
+    {
+    }
 
     enum Type {
         TYPE_UNDEFINED,
@@ -478,7 +509,8 @@ public:
 
     // Calling getType() is invalid, resulting in an assertion failure, if Token
     // value isn't positive.
-    Type getType() const {
+    Type getType() const
+    {
         U_ASSERT(fMatch > 0);
         if (fMatch < kCompoundPartOffset) {
             return TYPE_PREFIX;
@@ -495,18 +527,21 @@ public:
         return TYPE_SIMPLE_UNIT;
     }
 
-    UMeasurePrefix getUnitPrefix() const {
+    UMeasurePrefix getUnitPrefix() const
+    {
         U_ASSERT(getType() == TYPE_PREFIX);
         return static_cast<UMeasurePrefix>(fMatch - kPrefixOffset);
     }
 
     // Valid only for tokens with type TYPE_COMPOUND_PART.
-    int32_t getMatch() const {
+    int32_t getMatch() const
+    {
         U_ASSERT(getType() == TYPE_COMPOUND_PART);
         return fMatch;
     }
 
-    int32_t getInitialCompoundPart() const {
+    int32_t getInitialCompoundPart() const
+    {
         // Even if there is only one InitialCompoundPart value, we have this
         // function for the simplicity of code consistency.
         U_ASSERT(getType() == TYPE_INITIAL_COMPOUND_PART);
@@ -516,12 +551,14 @@ public:
         return fMatch;
     }
 
-    int8_t getPower() const {
+    int8_t getPower() const
+    {
         U_ASSERT(getType() == TYPE_POWER_PART);
         return static_cast<int8_t>(fMatch - kPowerPartOffset);
     }
 
-    int32_t getSimpleUnitIndex() const {
+    int32_t getSimpleUnitIndex() const
+    {
         U_ASSERT(getType() == TYPE_SIMPLE_UNIT);
         return fMatch - kSimpleUnitOffset;
     }
@@ -540,7 +577,8 @@ public:
      * parser.
      * @param status ICU error code.
      */
-    static Parser from(StringPiece source, UErrorCode& status) {
+    static Parser from(StringPiece source, UErrorCode& status)
+    {
         if (U_FAILURE(status)) {
             return Parser();
         }
@@ -551,7 +589,8 @@ public:
         return Parser(source);
     }
 
-    MeasureUnitImpl parse(UErrorCode& status) {
+    MeasureUnitImpl parse(UErrorCode& status)
+    {
         MeasureUnitImpl result;
 
         if (U_FAILURE(status)) {
@@ -586,8 +625,7 @@ public:
                 // same identifier. It doesn't fail for other compound units
                 // (COMPOUND_PART_TIMES). Consequently we take care of that
                 // here.
-                UMeasureUnitComplexity complexity =
-                    sawAnd ? UMEASURE_UNIT_MIXED : UMEASURE_UNIT_COMPOUND;
+                UMeasureUnitComplexity complexity = sawAnd ? UMEASURE_UNIT_MIXED : UMEASURE_UNIT_COMPOUND;
                 if (result.singleUnits.length() == 2) {
                     // After appending two singleUnits, the complexity will be `UMEASURE_UNIT_COMPOUND`
                     U_ASSERT(result.complexity == UMEASURE_UNIT_COMPOUND);
@@ -618,19 +656,28 @@ private:
     // identifier is invalid pending TODO(CLDR-13701).
     bool fAfterPer = false;
 
-    Parser() : fSource(""), fTrie(u"") {}
+    Parser()
+        : fSource("")
+        , fTrie(u"")
+    {
+    }
 
     Parser(StringPiece source)
-        : fSource(source), fTrie(gSerializedUnitExtrasStemTrie) {}
+        : fSource(source)
+        , fTrie(gSerializedUnitExtrasStemTrie)
+    {
+    }
 
-    inline bool hasNext() const {
+    inline bool hasNext() const
+    {
         return fIndex < fSource.length();
     }
 
     // Returns the next Token parsed from fSource, advancing fIndex to the end
     // of that token in fSource. In case of U_FAILURE(status), the token
     // returned will cause an abort if getType() is called on it.
-    Token nextToken(UErrorCode& status) {
+    Token nextToken(UErrorCode& status)
+    {
         fTrie.reset();
         int32_t match = -1;
         // Saves the position in the fSource string for the end of the most
@@ -676,7 +723,8 @@ private:
      * unit", sawAnd is set to true. If not, it is left as is.
      * @param status ICU error code.
      */
-    SingleUnitImpl nextSingleUnit(bool &sawAnd, UErrorCode &status) {
+    SingleUnitImpl nextSingleUnit(bool& sawAnd, UErrorCode& status)
+    {
         SingleUnitImpl result;
         if (U_FAILURE(status)) {
             return result;
@@ -718,7 +766,7 @@ private:
             case COMPOUND_PART_PER:
                 if (sawAnd) {
                     // Mixed compound units not yet supported,
-                    // TODO(CLDR-13701).
+                    // TODO(CLDR-13700).
                     status = kUnitIdentifierSyntaxError;
                     return result;
                 }
@@ -735,7 +783,7 @@ private:
             case COMPOUND_PART_AND:
                 if (fAfterPer) {
                     // Can't start with "-and-", and mixed compound units
-                    // not yet supported, TODO(CLDR-13701).
+                    // not yet supported, TODO(CLDR-13700).
                     status = kUnitIdentifierSyntaxError;
                     return result;
                 }
@@ -752,31 +800,31 @@ private:
         // Read tokens until we have a complete SingleUnit or we reach the end.
         while (true) {
             switch (token.getType()) {
-                case Token::TYPE_POWER_PART:
-                    if (state > 0) {
-                        status = kUnitIdentifierSyntaxError;
-                        return result;
-                    }
-                    result.dimensionality *= token.getPower();
-                    state = 1;
-                    break;
-
-                case Token::TYPE_PREFIX:
-                    if (state > 1) {
-                        status = kUnitIdentifierSyntaxError;
-                        return result;
-                    }
-                    result.unitPrefix = token.getUnitPrefix();
-                    state = 2;
-                    break;
-
-                case Token::TYPE_SIMPLE_UNIT:
-                    result.index = token.getSimpleUnitIndex();
-                    return result;
-
-                default:
+            case Token::TYPE_POWER_PART:
+                if (state > 0) {
                     status = kUnitIdentifierSyntaxError;
                     return result;
+                }
+                result.dimensionality *= token.getPower();
+                state = 1;
+                break;
+
+            case Token::TYPE_PREFIX:
+                if (state > 1) {
+                    status = kUnitIdentifierSyntaxError;
+                    return result;
+                }
+                result.unitPrefix = token.getUnitPrefix();
+                state = 2;
+                break;
+
+            case Token::TYPE_SIMPLE_UNIT:
+                result.index = token.getSimpleUnitIndex();
+                return result;
+
+            default:
+                status = kUnitIdentifierSyntaxError;
+                return result;
             }
 
             if (!hasNext()) {
@@ -795,8 +843,8 @@ private:
 };
 
 // Sorting function wrapping SingleUnitImpl::compareTo for use with uprv_sortArray.
-int32_t U_CALLCONV
-compareSingleUnits(const void* /*context*/, const void* left, const void* right) {
+int32_t U_CALLCONV compareSingleUnits(const void* /*context*/, const void* left, const void* right)
+{
     auto realLeft = static_cast<const SingleUnitImpl* const*>(left);
     auto realRight = static_cast<const SingleUnitImpl* const*>(right);
     return (*realLeft)->compareTo(**realRight);
@@ -805,7 +853,8 @@ compareSingleUnits(const void* /*context*/, const void* left, const void* right)
 // Returns an index into the gCategories array, for the "unitQuantity" (aka
 // "type" or "category") associated with the given base unit identifier. Returns
 // -1 on failure, together with U_UNSUPPORTED_ERROR.
-int32_t getUnitCategoryIndex(BytesTrie &trie, StringPiece baseUnitIdentifier, UErrorCode &status) {
+int32_t getUnitCategoryIndex(BytesTrie& trie, StringPiece baseUnitIdentifier, UErrorCode& status)
+{
     UStringTrieResult result = trie.reset().next(baseUnitIdentifier.data(), baseUnitIdentifier.length());
     if (!USTRINGTRIE_HAS_VALUE(result)) {
         status = U_UNSUPPORTED_ERROR;
@@ -817,29 +866,26 @@ int32_t getUnitCategoryIndex(BytesTrie &trie, StringPiece baseUnitIdentifier, UE
 
 } // namespace
 
-U_CAPI int32_t U_EXPORT2
-umeas_getPrefixPower(UMeasurePrefix unitPrefix) {
-    if (unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_BIN &&
-        unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_BIN) {
+U_CAPI int32_t U_EXPORT2 umeas_getPrefixPower(UMeasurePrefix unitPrefix)
+{
+    if (unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_BIN && unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_BIN) {
         return unitPrefix - UMEASURE_PREFIX_INTERNAL_ONE_BIN;
     }
-    U_ASSERT(unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_SI &&
-             unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_SI);
+    U_ASSERT(unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_SI && unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_SI);
     return unitPrefix - UMEASURE_PREFIX_ONE;
 }
 
-U_CAPI int32_t U_EXPORT2
-umeas_getPrefixBase(UMeasurePrefix unitPrefix) {
-    if (unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_BIN &&
-        unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_BIN) {
+U_CAPI int32_t U_EXPORT2 umeas_getPrefixBase(UMeasurePrefix unitPrefix)
+{
+    if (unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_BIN && unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_BIN) {
         return 1024;
     }
-    U_ASSERT(unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_SI &&
-             unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_SI);
+    U_ASSERT(unitPrefix >= UMEASURE_PREFIX_INTERNAL_MIN_SI && unitPrefix <= UMEASURE_PREFIX_INTERNAL_MAX_SI);
     return 10;
 }
 
-CharString U_I18N_API getUnitQuantity(const MeasureUnitImpl &baseMeasureUnitImpl, UErrorCode &status) {
+CharString U_I18N_API getUnitQuantity(const MeasureUnitImpl& baseMeasureUnitImpl, UErrorCode& status)
+{
     CharString result;
     MeasureUnitImpl baseUnitImpl = baseMeasureUnitImpl.copy(status);
     UErrorCode localStatus = U_ZERO_ERROR;
@@ -914,7 +960,8 @@ CharString U_I18N_API getUnitQuantity(const MeasureUnitImpl &baseMeasureUnitImpl
 }
 
 // In ICU4J, this is MeasureUnit.getSingleUnitImpl().
-SingleUnitImpl SingleUnitImpl::forMeasureUnit(const MeasureUnit& measureUnit, UErrorCode& status) {
+SingleUnitImpl SingleUnitImpl::forMeasureUnit(const MeasureUnit& measureUnit, UErrorCode& status)
+{
     MeasureUnitImpl temp;
     const MeasureUnitImpl& impl = MeasureUnitImpl::forMeasureUnit(measureUnit, temp, status);
     if (U_FAILURE(status)) {
@@ -930,7 +977,8 @@ SingleUnitImpl SingleUnitImpl::forMeasureUnit(const MeasureUnit& measureUnit, UE
     return {};
 }
 
-MeasureUnit SingleUnitImpl::build(UErrorCode& status) const {
+MeasureUnit SingleUnitImpl::build(UErrorCode& status) const
+{
     MeasureUnitImpl temp;
     temp.appendSingleUnit(*this, status);
     // TODO(icu-units#28): the MeasureUnitImpl::build() method uses
@@ -942,15 +990,17 @@ MeasureUnit SingleUnitImpl::build(UErrorCode& status) const {
     return std::move(temp).build(status);
 }
 
-const char *SingleUnitImpl::getSimpleUnitID() const {
+const char* SingleUnitImpl::getSimpleUnitID() const
+{
     return gSimpleUnits[index];
 }
 
-void SingleUnitImpl::appendNeutralIdentifier(CharString &result, UErrorCode &status) const UPRV_NO_SANITIZE_UNDEFINED {
+void SingleUnitImpl::appendNeutralIdentifier(CharString& result, UErrorCode& status) const
+{
     int32_t absPower = std::abs(this->dimensionality);
 
     U_ASSERT(absPower > 0); // "this function does not support the dimensionless single units";
-    
+
     if (absPower == 1) {
         // no-op
     } else if (absPower == 2) {
@@ -972,7 +1022,7 @@ void SingleUnitImpl::appendNeutralIdentifier(CharString &result, UErrorCode &sta
 
     if (this->unitPrefix != UMEASURE_PREFIX_ONE) {
         bool found = false;
-        for (const auto &unitPrefixInfo : gUnitPrefixStrings) {
+        for (const auto& unitPrefixInfo : gUnitPrefixStrings) {
             // TODO: consider using binary search? If we do this, add a unit
             // test to ensure gUnitPrefixStrings is sorted?
             if (unitPrefixInfo.value == this->unitPrefix) {
@@ -990,20 +1040,23 @@ void SingleUnitImpl::appendNeutralIdentifier(CharString &result, UErrorCode &sta
     result.append(StringPiece(this->getSimpleUnitID()), status);
 }
 
-int32_t SingleUnitImpl::getUnitCategoryIndex() const {
+int32_t SingleUnitImpl::getUnitCategoryIndex() const
+{
     return gSimpleUnitCategories[index];
 }
 
-MeasureUnitImpl::MeasureUnitImpl(const SingleUnitImpl &singleUnit, UErrorCode &status) {
+MeasureUnitImpl::MeasureUnitImpl(const SingleUnitImpl& singleUnit, UErrorCode& status)
+{
     this->appendSingleUnit(singleUnit, status);
 }
 
-MeasureUnitImpl MeasureUnitImpl::forIdentifier(StringPiece identifier, UErrorCode& status) {
+MeasureUnitImpl MeasureUnitImpl::forIdentifier(StringPiece identifier, UErrorCode& status)
+{
     return Parser::from(identifier, status).parse(status);
 }
 
-const MeasureUnitImpl& MeasureUnitImpl::forMeasureUnit(
-        const MeasureUnit& measureUnit, MeasureUnitImpl& memory, UErrorCode& status) {
+const MeasureUnitImpl& MeasureUnitImpl::forMeasureUnit(const MeasureUnit& measureUnit, MeasureUnitImpl& memory, UErrorCode& status)
+{
     if (measureUnit.fImpl) {
         return *measureUnit.fImpl;
     } else {
@@ -1012,8 +1065,8 @@ const MeasureUnitImpl& MeasureUnitImpl::forMeasureUnit(
     }
 }
 
-MeasureUnitImpl MeasureUnitImpl::forMeasureUnitMaybeCopy(
-        const MeasureUnit& measureUnit, UErrorCode& status) {
+MeasureUnitImpl MeasureUnitImpl::forMeasureUnitMaybeCopy(const MeasureUnit& measureUnit, UErrorCode& status)
+{
     if (measureUnit.fImpl) {
         return measureUnit.fImpl->copy(status);
     } else {
@@ -1021,28 +1074,28 @@ MeasureUnitImpl MeasureUnitImpl::forMeasureUnitMaybeCopy(
     }
 }
 
-void MeasureUnitImpl::takeReciprocal(UErrorCode& /*status*/) {
+void MeasureUnitImpl::takeReciprocal(UErrorCode& /*status*/)
+{
     identifier.clear();
     for (int32_t i = 0; i < singleUnits.length(); i++) {
         singleUnits[i]->dimensionality *= -1;
     }
 }
 
-MeasureUnitImpl MeasureUnitImpl::copyAndSimplify(UErrorCode &status) const {
+MeasureUnitImpl MeasureUnitImpl::copyAndSimplify(UErrorCode& status) const
+{
     MeasureUnitImpl result;
     for (int32_t i = 0; i < singleUnits.length(); i++) {
-        const SingleUnitImpl &singleUnit = *this->singleUnits[i];
-        
+        const SingleUnitImpl& singleUnit = *this->singleUnits[i];
+
         // The following `for` loop will cause time complexity to be O(n^2).
         // However, n is very small (number of units, generally, at maximum equal to 10)
         bool unitExist = false;
         for (int32_t j = 0; j < result.singleUnits.length(); j++) {
-            if (uprv_strcmp(result.singleUnits[j]->getSimpleUnitID(), singleUnit.getSimpleUnitID()) ==
-                    0 &&
-                result.singleUnits[j]->unitPrefix == singleUnit.unitPrefix) {
+            if (uprv_strcmp(result.singleUnits[j]->getSimpleUnitID(), singleUnit.getSimpleUnitID()) == 0
+                && result.singleUnits[j]->unitPrefix == singleUnit.unitPrefix) {
                 unitExist = true;
-                result.singleUnits[j]->dimensionality =
-                    result.singleUnits[j]->dimensionality + singleUnit.dimensionality;
+                result.singleUnits[j]->dimensionality = result.singleUnits[j]->dimensionality + singleUnit.dimensionality;
                 break;
             }
         }
@@ -1055,7 +1108,8 @@ MeasureUnitImpl MeasureUnitImpl::copyAndSimplify(UErrorCode &status) const {
     return result;
 }
 
-bool MeasureUnitImpl::appendSingleUnit(const SingleUnitImpl &singleUnit, UErrorCode &status) {
+bool MeasureUnitImpl::appendSingleUnit(const SingleUnitImpl& singleUnit, UErrorCode& status)
+{
     identifier.clear();
 
     if (singleUnit.isDimensionless()) {
@@ -1064,9 +1118,9 @@ bool MeasureUnitImpl::appendSingleUnit(const SingleUnitImpl &singleUnit, UErrorC
     }
 
     // Find a similar unit that already exists, to attempt to coalesce
-    SingleUnitImpl *oldUnit = nullptr;
+    SingleUnitImpl* oldUnit = nullptr;
     for (int32_t i = 0; i < this->singleUnits.length(); i++) {
-        auto *candidate = this->singleUnits[i];
+        auto* candidate = this->singleUnits[i];
         if (candidate->isCompatibleWith(singleUnit)) {
             oldUnit = candidate;
         }
@@ -1089,16 +1143,15 @@ bool MeasureUnitImpl::appendSingleUnit(const SingleUnitImpl &singleUnit, UErrorC
 
     // If the MeasureUnitImpl is `UMEASURE_UNIT_SINGLE` and after the appending a unit, the `singleUnits`
     // contains more than one. thus means the complexity should be `UMEASURE_UNIT_COMPOUND`
-    if (this->singleUnits.length() > 1 &&
-        this->complexity == UMeasureUnitComplexity::UMEASURE_UNIT_SINGLE) {
+    if (this->singleUnits.length() > 1 && this->complexity == UMeasureUnitComplexity::UMEASURE_UNIT_SINGLE) {
         this->complexity = UMeasureUnitComplexity::UMEASURE_UNIT_COMPOUND;
     }
 
     return true;
 }
 
-MaybeStackVector<MeasureUnitImplWithIndex>
-MeasureUnitImpl::extractIndividualUnitsWithIndices(UErrorCode &status) const {
+MaybeStackVector<MeasureUnitImplWithIndex> MeasureUnitImpl::extractIndividualUnitsWithIndices(UErrorCode& status) const
+{
     MaybeStackVector<MeasureUnitImplWithIndex> result;
 
     if (this->complexity != UMeasureUnitComplexity::UMEASURE_UNIT_MIXED) {
@@ -1119,7 +1172,8 @@ MeasureUnitImpl::extractIndividualUnitsWithIndices(UErrorCode &status) const {
 /**
  * Normalize a MeasureUnitImpl and generate the identifier string in place.
  */
-void MeasureUnitImpl::serialize(UErrorCode &status) {
+void MeasureUnitImpl::serialize(UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return;
     }
@@ -1131,8 +1185,7 @@ void MeasureUnitImpl::serialize(UErrorCode &status) {
 
     if (this->complexity == UMEASURE_UNIT_COMPOUND) {
         // Note: don't sort a MIXED unit
-        uprv_sortArray(this->singleUnits.getAlias(), this->singleUnits.length(),
-                       sizeof(this->singleUnits[0]), compareSingleUnits, nullptr, false, &status);
+        uprv_sortArray(this->singleUnits.getAlias(), this->singleUnits.length(), sizeof(this->singleUnits[0]), compareSingleUnits, nullptr, false, &status);
         if (U_FAILURE(status)) {
             return;
         }
@@ -1177,52 +1230,63 @@ void MeasureUnitImpl::serialize(UErrorCode &status) {
     this->identifier = CharString(result, status);
 }
 
-MeasureUnit MeasureUnitImpl::build(UErrorCode& status) && {
+MeasureUnit MeasureUnitImpl::build(UErrorCode& status) &&
+{
     this->serialize(status);
     return MeasureUnit(std::move(*this));
 }
 
-MeasureUnit MeasureUnit::forIdentifier(StringPiece identifier, UErrorCode& status) {
+MeasureUnit MeasureUnit::forIdentifier(StringPiece identifier, UErrorCode& status)
+{
     return Parser::from(identifier, status).parse(status).build(status);
 }
 
-UMeasureUnitComplexity MeasureUnit::getComplexity(UErrorCode& status) const {
+UMeasureUnitComplexity MeasureUnit::getComplexity(UErrorCode& status) const
+{
     MeasureUnitImpl temp;
     return MeasureUnitImpl::forMeasureUnit(*this, temp, status).complexity;
 }
 
-UMeasurePrefix MeasureUnit::getPrefix(UErrorCode& status) const {
+UMeasurePrefix MeasureUnit::getPrefix(UErrorCode& status) const
+{
     return SingleUnitImpl::forMeasureUnit(*this, status).unitPrefix;
 }
 
-MeasureUnit MeasureUnit::withPrefix(UMeasurePrefix prefix, UErrorCode& status) const UPRV_NO_SANITIZE_UNDEFINED {
+MeasureUnit MeasureUnit::withPrefix(UMeasurePrefix prefix, UErrorCode& status) const
+{
     SingleUnitImpl singleUnit = SingleUnitImpl::forMeasureUnit(*this, status);
     singleUnit.unitPrefix = prefix;
     return singleUnit.build(status);
 }
 
-int32_t MeasureUnit::getDimensionality(UErrorCode& status) const {
+int32_t MeasureUnit::getDimensionality(UErrorCode& status) const
+{
     SingleUnitImpl singleUnit = SingleUnitImpl::forMeasureUnit(*this, status);
-    if (U_FAILURE(status)) { return 0; }
+    if (U_FAILURE(status)) {
+        return 0;
+    }
     if (singleUnit.isDimensionless()) {
         return 0;
     }
     return singleUnit.dimensionality;
 }
 
-MeasureUnit MeasureUnit::withDimensionality(int32_t dimensionality, UErrorCode& status) const {
+MeasureUnit MeasureUnit::withDimensionality(int32_t dimensionality, UErrorCode& status) const
+{
     SingleUnitImpl singleUnit = SingleUnitImpl::forMeasureUnit(*this, status);
     singleUnit.dimensionality = dimensionality;
     return singleUnit.build(status);
 }
 
-MeasureUnit MeasureUnit::reciprocal(UErrorCode& status) const {
+MeasureUnit MeasureUnit::reciprocal(UErrorCode& status) const
+{
     MeasureUnitImpl impl = MeasureUnitImpl::forMeasureUnitMaybeCopy(*this, status);
     impl.takeReciprocal(status);
     return std::move(impl).build(status);
 }
 
-MeasureUnit MeasureUnit::product(const MeasureUnit& other, UErrorCode& status) const {
+MeasureUnit MeasureUnit::product(const MeasureUnit& other, UErrorCode& status) const
+{
     MeasureUnitImpl impl = MeasureUnitImpl::forMeasureUnitMaybeCopy(*this, status);
     MeasureUnitImpl temp;
     const MeasureUnitImpl& otherImpl = MeasureUnitImpl::forMeasureUnit(other, temp, status);
@@ -1239,7 +1303,8 @@ MeasureUnit MeasureUnit::product(const MeasureUnit& other, UErrorCode& status) c
     return std::move(impl).build(status);
 }
 
-LocalArray<MeasureUnit> MeasureUnit::splitToSingleUnitsImpl(int32_t& outCount, UErrorCode& status) const {
+LocalArray<MeasureUnit> MeasureUnit::splitToSingleUnitsImpl(int32_t& outCount, UErrorCode& status) const
+{
     MeasureUnitImpl temp;
     const MeasureUnitImpl& impl = MeasureUnitImpl::forMeasureUnit(*this, temp, status);
     outCount = impl.singleUnits.length();
@@ -1253,7 +1318,6 @@ LocalArray<MeasureUnit> MeasureUnit::splitToSingleUnitsImpl(int32_t& outCount, U
     }
     return LocalArray<MeasureUnit>(arr, status);
 }
-
 
 U_NAMESPACE_END
 

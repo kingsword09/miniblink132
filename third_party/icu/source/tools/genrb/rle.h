@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -38,9 +38,7 @@ U_CDECL_BEGIN
  * The ESCAPE_BYTE value is chosen so as not to collide with commonly
  * seen values.
  */
-int32_t
-byteArrayToRLEString(const uint8_t* src,int32_t srcLen, uint16_t* buffer,int32_t bufLen, UErrorCode* status);
-
+int32_t byteArrayToRLEString(const uint8_t* src, int32_t srcLen, uint16_t* buffer, int32_t bufLen, UErrorCode* status);
 
 /**
  * Construct a string representing a char array.  Use run-length encoding.
@@ -55,19 +53,16 @@ byteArrayToRLEString(const uint8_t* src,int32_t srcLen, uint16_t* buffer,int32_t
  * The ESCAPE value is chosen so as not to collide with commonly
  * seen values.
  */
-int32_t
-usArrayToRLEString(const uint16_t* src,int32_t srcLen,uint16_t* buffer, int32_t bufLen,UErrorCode* status);
+int32_t usArrayToRLEString(const uint16_t* src, int32_t srcLen, uint16_t* buffer, int32_t bufLen, UErrorCode* status);
 
 /**
  * Construct an array of bytes from a run-length encoded string.
  */
-int32_t
-rleStringToByteArray(uint16_t* src, int32_t srcLen, uint8_t* target, int32_t tgtLen, UErrorCode* status); 
+int32_t rleStringToByteArray(uint16_t* src, int32_t srcLen, uint8_t* target, int32_t tgtLen, UErrorCode* status);
 /**
  * Construct an array of shorts from a run-length encoded string.
  */
-int32_t
-rleStringToUCharArray(uint16_t* src, int32_t srcLen, uint16_t* target, int32_t tgtLen, UErrorCode* status);
+int32_t rleStringToUCharArray(uint16_t* src, int32_t srcLen, uint16_t* target, int32_t tgtLen, UErrorCode* status);
 
 U_CDECL_END
 

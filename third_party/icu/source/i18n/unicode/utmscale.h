@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -14,7 +14,7 @@
 
 #if !UCONFIG_NO_FORMATTING
 
-/** 
+/**
  * \file
  * \brief C API: Universal Time Scale
  *
@@ -217,7 +217,7 @@ typedef enum UDateTimeScale {
      * @stable ICU 3.2
      */
     UDTS_UNIX_TIME,
-    
+
     /**
      * Used in IUC4C. Data is a <code>double</code>. Value
      * is milliseconds since January 1, 1970.
@@ -225,7 +225,7 @@ typedef enum UDateTimeScale {
      * @stable ICU 3.2
      */
     UDTS_ICU4C_TIME,
-    
+
     /**
      * Used in Windows for file times. Data is an <code>int64_t</code>. Value
      * is ticks (1 tick == 100 nanoseconds) since January 1, 1601.
@@ -233,7 +233,7 @@ typedef enum UDateTimeScale {
      * @stable ICU 3.2
      */
     UDTS_WINDOWS_FILE_TIME,
-    
+
     /**
      * Used in the .NET framework's <code>System.DateTime</code> structure. Data is an <code>int64_t</code>. Value
      * is ticks (1 tick == 100 nanoseconds) since January 1, 0001.
@@ -241,7 +241,7 @@ typedef enum UDateTimeScale {
      * @stable ICU 3.2
      */
     UDTS_DOTNET_DATE_TIME,
-    
+
     /**
      * Used in older Macintosh systems. Data is <code>int32_t</code> or <code>int64_t</code>. Value
      * is seconds since January 1, 1904.
@@ -249,7 +249,7 @@ typedef enum UDateTimeScale {
      * @stable ICU 3.2
      */
     UDTS_MAC_OLD_TIME,
-    
+
     /**
      * Used in newer Macintosh systems. Data is a <code>double</code>. Value
      * is seconds since January 1, 2001.
@@ -257,7 +257,7 @@ typedef enum UDateTimeScale {
      * @stable ICU 3.2
      */
     UDTS_MAC_TIME,
-    
+
     /**
      * Used in Excel. Data is an <code>?unknown?</code>. Value
      * is days since December 31, 1899.
@@ -265,7 +265,7 @@ typedef enum UDateTimeScale {
      * @stable ICU 3.2
      */
     UDTS_EXCEL_TIME,
-    
+
     /**
      * Used in DB2. Data is an <code>?unknown?</code>. Value
      * is days since December 31, 1899.
@@ -289,7 +289,7 @@ typedef enum UDateTimeScale {
      * @deprecated ICU 59 The numeric value may change over time, see ICU ticket #12420.
      */
     UDTS_MAX_SCALE
-#endif  /* U_HIDE_DEPRECATED_API */
+#endif /* U_HIDE_DEPRECATED_API */
 
 } UDateTimeScale;
 
@@ -305,7 +305,7 @@ typedef enum UTimeScaleValue {
     /**
      * The constant used to select the units vale
      * for a time scale.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @stable ICU 3.2
@@ -315,142 +315,141 @@ typedef enum UTimeScaleValue {
     /**
      * The constant used to select the epoch offset value
      * for a time scale.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @stable ICU 3.2
      */
-    UTSV_EPOCH_OFFSET_VALUE=1,
+    UTSV_EPOCH_OFFSET_VALUE = 1,
 
     /**
      * The constant used to select the minimum from value
      * for a time scale.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @stable ICU 3.2
      */
-    UTSV_FROM_MIN_VALUE=2,
+    UTSV_FROM_MIN_VALUE = 2,
 
     /**
      * The constant used to select the maximum from value
      * for a time scale.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @stable ICU 3.2
      */
-    UTSV_FROM_MAX_VALUE=3,
+    UTSV_FROM_MAX_VALUE = 3,
 
     /**
      * The constant used to select the minimum to value
      * for a time scale.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @stable ICU 3.2
      */
-    UTSV_TO_MIN_VALUE=4,
+    UTSV_TO_MIN_VALUE = 4,
 
     /**
      * The constant used to select the maximum to value
      * for a time scale.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @stable ICU 3.2
      */
-    UTSV_TO_MAX_VALUE=5,
+    UTSV_TO_MAX_VALUE = 5,
 
 #ifndef U_HIDE_INTERNAL_API
     /**
      * The constant used to select the epoch plus one value
      * for a time scale.
-     * 
+     *
      * NOTE: This is an internal value. DO NOT USE IT. May not
      * actually be equal to the epoch offset value plus one.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @internal ICU 3.2
      */
-    UTSV_EPOCH_OFFSET_PLUS_1_VALUE=6,
+    UTSV_EPOCH_OFFSET_PLUS_1_VALUE = 6,
 
     /**
      * The constant used to select the epoch plus one value
      * for a time scale.
-     * 
+     *
      * NOTE: This is an internal value. DO NOT USE IT. May not
      * actually be equal to the epoch offset value plus one.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @internal ICU 3.2
      */
-    UTSV_EPOCH_OFFSET_MINUS_1_VALUE=7,
+    UTSV_EPOCH_OFFSET_MINUS_1_VALUE = 7,
 
     /**
      * The constant used to select the units round value
      * for a time scale.
-     * 
+     *
      * NOTE: This is an internal value. DO NOT USE IT.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @internal ICU 3.2
      */
-    UTSV_UNITS_ROUND_VALUE=8,
+    UTSV_UNITS_ROUND_VALUE = 8,
 
     /**
      * The constant used to select the minimum safe rounding value
      * for a time scale.
-     * 
+     *
      * NOTE: This is an internal value. DO NOT USE IT.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @internal ICU 3.2
      */
-    UTSV_MIN_ROUND_VALUE=9,
+    UTSV_MIN_ROUND_VALUE = 9,
 
     /**
      * The constant used to select the maximum safe rounding value
      * for a time scale.
-     * 
+     *
      * NOTE: This is an internal value. DO NOT USE IT.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      *
      * @internal ICU 3.2
      */
-    UTSV_MAX_ROUND_VALUE=10,
+    UTSV_MAX_ROUND_VALUE = 10,
 
 #endif /* U_HIDE_INTERNAL_API */
 
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * The number of time scale values, in other words limit of this enum.
-     * 
+     *
      * @see utmscale_getTimeScaleValue
      * @deprecated ICU 59 The numeric value may change over time, see ICU ticket #12420.
      */
-    UTSV_MAX_SCALE_VALUE=11
-#endif  /* U_HIDE_DEPRECATED_API */
+    UTSV_MAX_SCALE_VALUE = 11
+#endif /* U_HIDE_DEPRECATED_API */
 
 } UTimeScaleValue;
 
 /**
  * Get a value associated with a particular time scale.
- * 
+ *
  * @param timeScale The time scale
  * @param value A constant representing the value to get
  * @param status The status code. Set to <code>U_ILLEGAL_ARGUMENT_ERROR</code> if arguments are invalid.
  * @return - the value.
- * 
+ *
  * @stable ICU 3.2
  */
-U_CAPI int64_t U_EXPORT2
-    utmscale_getTimeScaleValue(UDateTimeScale timeScale, UTimeScaleValue value, UErrorCode *status);
+U_CAPI int64_t U_EXPORT2 utmscale_getTimeScaleValue(UDateTimeScale timeScale, UTimeScaleValue value, UErrorCode* status);
 
 /* Conversion to 'universal time scale' */
 
@@ -460,13 +459,12 @@ U_CAPI int64_t U_EXPORT2
  * @param otherTime The <code>int64_t</code> datetime
  * @param timeScale The time scale to convert from
  * @param status The status code. Set to <code>U_ILLEGAL_ARGUMENT_ERROR</code> if the conversion is out of range.
- * 
+ *
  * @return The datetime converted to the universal time scale
  *
  * @stable ICU 3.2
  */
-U_CAPI int64_t U_EXPORT2
-    utmscale_fromInt64(int64_t otherTime, UDateTimeScale timeScale, UErrorCode *status);
+U_CAPI int64_t U_EXPORT2 utmscale_fromInt64(int64_t otherTime, UDateTimeScale timeScale, UErrorCode* status);
 
 /* Conversion from 'universal time scale' */
 
@@ -476,15 +474,13 @@ U_CAPI int64_t U_EXPORT2
  * @param universalTime The datetime in the universal time scale
  * @param timeScale The time scale to convert to
  * @param status The status code. Set to <code>U_ILLEGAL_ARGUMENT_ERROR</code> if the conversion is out of range.
- * 
+ *
  * @return The datetime converted to the given time scale
  *
  * @stable ICU 3.2
  */
-U_CAPI int64_t U_EXPORT2
-    utmscale_toInt64(int64_t universalTime, UDateTimeScale timeScale, UErrorCode *status);
+U_CAPI int64_t U_EXPORT2 utmscale_toInt64(int64_t universalTime, UDateTimeScale timeScale, UErrorCode* status);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif
-

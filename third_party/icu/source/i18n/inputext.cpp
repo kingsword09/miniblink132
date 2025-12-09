@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -22,19 +22,21 @@ U_NAMESPACE_BEGIN
 
 #define BUFFER_SIZE 8192
 
-#define NEW_ARRAY(type,count) (type *) uprv_malloc((count) * sizeof(type))
-#define DELETE_ARRAY(array) uprv_free((void *) (array))
+#define NEW_ARRAY(type, count) (type*)uprv_malloc((count) * sizeof(type))
+#define DELETE_ARRAY(array) uprv_free((void*)(array))
 
-InputText::InputText(UErrorCode &status)
-    : fInputBytes(NEW_ARRAY(uint8_t, BUFFER_SIZE)), // The text to be checked.  Markup will have been
-                                                 //   removed if appropriate.
-      fByteStats(NEW_ARRAY(int16_t, 256)),       // byte frequency statistics for the input text.
-                                                 //   Value is percent, not absolute.
-      fDeclaredEncoding(0),
-      fRawInput(0),
-      fRawLength(0)
+InputText::InputText(UErrorCode& status)
+    : fInputBytes(NEW_ARRAY(uint8_t, BUFFER_SIZE))
+    , // The text to be checked.  Markup will have been
+    //   removed if appropriate.
+    fByteStats(NEW_ARRAY(int16_t, 256))
+    , // byte frequency statistics for the input text.
+    //   Value is percent, not absolute.
+    fDeclaredEncoding(0)
+    , fRawInput(0)
+    , fRawLength(0)
 {
-    if (fInputBytes == nullptr || fByteStats == nullptr) {
+    if (fInputBytes == NULL || fByteStats == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
     }
 }
@@ -46,46 +48,47 @@ InputText::~InputText()
     DELETE_ARRAY(fInputBytes);
 }
 
-void InputText::setText(const char *in, int32_t len)
+void InputText::setText(const char* in, int32_t len)
 {
-    fInputLen  = 0;
-    fC1Bytes   = false;
-    fRawInput  = (const uint8_t *) in;
-    fRawLength = len == -1? (int32_t)uprv_strlen(in) : len;
+    fInputLen = 0;
+    fC1Bytes = FALSE;
+    fRawInput = (const uint8_t*)in;
+    fRawLength = len == -1 ? (int32_t)uprv_strlen(in) : len;
 }
 
 void InputText::setDeclaredEncoding(const char* encoding, int32_t len)
 {
-    if(encoding) {
+    if (encoding) {
         if (len == -1) {
             len = (int32_t)uprv_strlen(encoding);
         }
 
-        len += 1;     // to make place for the \0 at the end.
+        len += 1; // to make place for the \0 at the end.
         uprv_free(fDeclaredEncoding);
         fDeclaredEncoding = NEW_ARRAY(char, len);
         uprv_strncpy(fDeclaredEncoding, encoding, len);
     }
 }
 
-UBool InputText::isSet() const 
+UBool InputText::isSet() const
 {
-    return fRawInput != nullptr;
+    return fRawInput != NULL;
 }
 
 /**
-*  MungeInput - after getting a set of raw input data to be analyzed, preprocess
-*               it by removing what appears to be html markup.
-* 
-* @internal
-*/
-void InputText::MungeInput(UBool fStripTags) {
-    int     srci = 0;
-    int     dsti = 0;
+ *  MungeInput - after getting a set of raw input data to be analyzed, preprocess
+ *               it by removing what appears to be html markup.
+ *
+ * @internal
+ */
+void InputText::MungeInput(UBool fStripTags)
+{
+    int srci = 0;
+    int dsti = 0;
     uint8_t b;
-    bool    inMarkup = false;
+    bool inMarkup = FALSE;
     int32_t openTags = 0;
-    int32_t badTags  = 0;
+    int32_t badTags = 0;
 
     //
     //  html / xml markup stripping.
@@ -103,16 +106,16 @@ void InputText::MungeInput(UBool fStripTags) {
                     badTags += 1;
                 }
 
-                inMarkup = true;
+                inMarkup = TRUE;
                 openTags += 1;
             }
 
-            if (! inMarkup) {
+            if (!inMarkup) {
                 fInputBytes[dsti++] = b;
             }
 
             if (b == (uint8_t)0x3E) { /* Check for the ASCII '>' */
-                inMarkup = false;
+                inMarkup = FALSE;
             }
         }
 
@@ -124,16 +127,14 @@ void InputText::MungeInput(UBool fStripTags) {
     //    essentially nothing but markup abandon the markup stripping.
     //    Detection will have to work on the unstripped input.
     //
-    if (openTags<5 || openTags/5 < badTags || 
-        (fInputLen < 100 && fRawLength>600))
-    {
+    if (openTags < 5 || openTags / 5 < badTags || (fInputLen < 100 && fRawLength > 600)) {
         int32_t limit = fRawLength;
 
         if (limit > BUFFER_SIZE) {
             limit = BUFFER_SIZE;
         }
 
-        for (srci=0; srci<limit; srci++) {
+        for (srci = 0; srci < limit; srci++) {
             fInputBytes[srci] = fRawInput[srci];
         }
 
@@ -153,7 +154,7 @@ void InputText::MungeInput(UBool fStripTags) {
 
     for (int32_t i = 0x80; i <= 0x9F; i += 1) {
         if (fByteStats[i] != 0) {
-            fC1Bytes = true;
+            fC1Bytes = TRUE;
             break;
         }
     }
@@ -161,4 +162,3 @@ void InputText::MungeInput(UBool fStripTags) {
 
 U_NAMESPACE_END
 #endif
-

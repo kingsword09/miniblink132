@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -32,11 +32,7 @@
 #include "cmemory.h"
 #include "cstring.h"
 
-
-U_CAPI int32_t U_EXPORT2
-u_fscanf(UFILE        *f,
-         const char    *patternSpecification,
-         ... )
+U_CAPI int32_t U_EXPORT2 u_fscanf(UFILE* f, const char* patternSpecification, ...)
 {
     va_list ap;
     int32_t converted;
@@ -48,10 +44,7 @@ u_fscanf(UFILE        *f,
     return converted;
 }
 
-U_CAPI int32_t U_EXPORT2
-u_fscanf_u(UFILE        *f,
-           const char16_t *patternSpecification,
-           ... )
+U_CAPI int32_t U_EXPORT2 u_fscanf_u(UFILE* f, const UChar* patternSpecification, ...)
 {
     va_list ap;
     int32_t converted;
@@ -63,24 +56,21 @@ u_fscanf_u(UFILE        *f,
     return converted;
 }
 
-U_CAPI int32_t  U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_vfscanf(UFILE        *f,
-          const char    *patternSpecification,
-          va_list        ap)
+U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_vfscanf(UFILE* f, const char* patternSpecification, va_list ap)
 {
     int32_t converted;
-    char16_t *pattern;
-    char16_t patBuffer[UFMT_DEFAULT_BUFFER_SIZE];
+    UChar* pattern;
+    UChar patBuffer[UFMT_DEFAULT_BUFFER_SIZE];
     int32_t size = (int32_t)uprv_strlen(patternSpecification) + 1;
 
     /* convert from the default codepage to Unicode */
     if (size >= MAX_UCHAR_BUFFER_SIZE(patBuffer)) {
-        pattern = (char16_t *)uprv_malloc(size * sizeof(char16_t));
-        if(pattern == 0) {
+        pattern = (UChar*)uprv_malloc(size * sizeof(UChar));
+        if (pattern == 0) {
             return 0;
         }
-    }
-    else {
+    } else {
         pattern = patBuffer;
     }
     u_charsToUChars(patternSpecification, pattern, size);
@@ -96,13 +86,10 @@ u_vfscanf(UFILE        *f,
     return converted;
 }
 
-U_CAPI int32_t  U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_vfscanf_u(UFILE       *f,
-            const char16_t *patternSpecification,
-            va_list     ap)
+U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_vfscanf_u(UFILE* f, const UChar* patternSpecification, va_list ap)
 {
     return u_scanf_parse(f, patternSpecification, ap);
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
-

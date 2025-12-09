@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __CAPI_HELPER_H__
@@ -11,9 +11,8 @@ U_NAMESPACE_BEGIN
 /**
  * An internal helper class to help convert between C and C++ APIs.
  */
-template<typename CType, typename CPPType, int32_t kMagic>
-class IcuCApiHelper {
-  public:
+template <typename CType, typename CPPType, int32_t kMagic> class IcuCApiHelper {
+public:
     /**
      * Convert from the C type to the C++ type (const version).
      */
@@ -39,17 +38,16 @@ class IcuCApiHelper {
      */
     ~IcuCApiHelper();
 
-  private:
+private:
     /**
      * While the object is valid, fMagic equals kMagic.
      */
     int32_t fMagic = kMagic;
 };
 
-
-template<typename CType, typename CPPType, int32_t kMagic>
-const CPPType*
-IcuCApiHelper<CType, CPPType, kMagic>::validate(const CType* input, UErrorCode& status) {
+template <typename CType, typename CPPType, int32_t kMagic>
+const CPPType* IcuCApiHelper<CType, CPPType, kMagic>::validate(const CType* input, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return nullptr;
     }
@@ -65,32 +63,28 @@ IcuCApiHelper<CType, CPPType, kMagic>::validate(const CType* input, UErrorCode& 
     return impl;
 }
 
-template<typename CType, typename CPPType, int32_t kMagic>
-CPPType*
-IcuCApiHelper<CType, CPPType, kMagic>::validate(CType* input, UErrorCode& status) {
+template <typename CType, typename CPPType, int32_t kMagic> CPPType* IcuCApiHelper<CType, CPPType, kMagic>::validate(CType* input, UErrorCode& status)
+{
     auto* constInput = static_cast<const CType*>(input);
     auto* validated = validate(constInput, status);
     return const_cast<CPPType*>(validated);
 }
 
-template<typename CType, typename CPPType, int32_t kMagic>
-const CType*
-IcuCApiHelper<CType, CPPType, kMagic>::exportConstForC() const {
+template <typename CType, typename CPPType, int32_t kMagic> const CType* IcuCApiHelper<CType, CPPType, kMagic>::exportConstForC() const
+{
     return reinterpret_cast<const CType*>(static_cast<const CPPType*>(this));
 }
 
-template<typename CType, typename CPPType, int32_t kMagic>
-CType*
-IcuCApiHelper<CType, CPPType, kMagic>::exportForC() {
+template <typename CType, typename CPPType, int32_t kMagic> CType* IcuCApiHelper<CType, CPPType, kMagic>::exportForC()
+{
     return reinterpret_cast<CType*>(static_cast<CPPType*>(this));
 }
 
-template<typename CType, typename CPPType, int32_t kMagic>
-IcuCApiHelper<CType, CPPType, kMagic>::~IcuCApiHelper() {
+template <typename CType, typename CPPType, int32_t kMagic> IcuCApiHelper<CType, CPPType, kMagic>::~IcuCApiHelper()
+{
     // head off application errors by preventing use of of deleted objects.
     fMagic = 0;
 }
-
 
 U_NAMESPACE_END
 

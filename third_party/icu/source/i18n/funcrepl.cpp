@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -18,9 +18,9 @@
 #include "unicode/uniset.h"
 #include "funcrepl.h"
 
-static const char16_t AMPERSAND = 38; // '&'
-static const char16_t OPEN[]    = {40,32,0}; // "( "
-static const char16_t CLOSE[]   = {32,41,0}; // " )"
+static const UChar AMPERSAND = 38; // '&'
+static const UChar OPEN[] = { 40, 32, 0 }; // "( "
+static const UChar CLOSE[] = { 32, 41, 0 }; // " )"
 
 U_NAMESPACE_BEGIN
 
@@ -31,8 +31,8 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(FunctionReplacer)
  * replacer, passes it through the given transliterator, and emits
  * the result as output.
  */
-FunctionReplacer::FunctionReplacer(Transliterator* adoptedTranslit,
-                                   UnicodeFunctor* adoptedReplacer) {
+FunctionReplacer::FunctionReplacer(Transliterator* adoptedTranslit, UnicodeFunctor* adoptedReplacer)
+{
     translit = adoptedTranslit;
     replacer = adoptedReplacer;
 }
@@ -40,9 +40,9 @@ FunctionReplacer::FunctionReplacer(Transliterator* adoptedTranslit,
 /**
  * Copy constructor.
  */
-FunctionReplacer::FunctionReplacer(const FunctionReplacer& other) :
-    UnicodeFunctor(other),
-    UnicodeReplacer(other)
+FunctionReplacer::FunctionReplacer(const FunctionReplacer& other)
+    : UnicodeFunctor(other)
+    , UnicodeReplacer(other)
 {
     translit = other.translit->clone();
     replacer = other.replacer->clone();
@@ -51,7 +51,8 @@ FunctionReplacer::FunctionReplacer(const FunctionReplacer& other) :
 /**
  * Destructor
  */
-FunctionReplacer::~FunctionReplacer() {
+FunctionReplacer::~FunctionReplacer()
+{
     delete translit;
     delete replacer;
 }
@@ -59,7 +60,8 @@ FunctionReplacer::~FunctionReplacer() {
 /**
  * Implement UnicodeFunctor
  */
-FunctionReplacer* FunctionReplacer::clone() const {
+FunctionReplacer* FunctionReplacer::clone() const
+{
     return new FunctionReplacer(*this);
 }
 
@@ -67,20 +69,18 @@ FunctionReplacer* FunctionReplacer::clone() const {
  * UnicodeFunctor API.  Cast 'this' to a UnicodeReplacer* pointer
  * and return the pointer.
  */
-UnicodeReplacer* FunctionReplacer::toReplacer() const {
-  FunctionReplacer  *nonconst_this = const_cast<FunctionReplacer *>(this);
-  UnicodeReplacer *nonconst_base = static_cast<UnicodeReplacer *>(nonconst_this);
-  
-  return nonconst_base;
+UnicodeReplacer* FunctionReplacer::toReplacer() const
+{
+    FunctionReplacer* nonconst_this = const_cast<FunctionReplacer*>(this);
+    UnicodeReplacer* nonconst_base = static_cast<UnicodeReplacer*>(nonconst_this);
+
+    return nonconst_base;
 }
 
 /**
  * UnicodeReplacer API
  */
-int32_t FunctionReplacer::replace(Replaceable& text,
-                                  int32_t start,
-                                  int32_t limit,
-                                  int32_t& cursor)
+int32_t FunctionReplacer::replace(Replaceable& text, int32_t start, int32_t limit, int32_t& cursor)
 {
 
     // First delegate to subordinate replacer
@@ -96,8 +96,8 @@ int32_t FunctionReplacer::replace(Replaceable& text,
 /**
  * UnicodeReplacer API
  */
-UnicodeString& FunctionReplacer::toReplacerPattern(UnicodeString& rule,
-                                                   UBool escapeUnprintable) const {
+UnicodeString& FunctionReplacer::toReplacerPattern(UnicodeString& rule, UBool escapeUnprintable) const
+{
     UnicodeString str;
     rule.truncate(0);
     rule.append(AMPERSAND);
@@ -111,7 +111,8 @@ UnicodeString& FunctionReplacer::toReplacerPattern(UnicodeString& rule,
 /**
  * Implement UnicodeReplacer
  */
-void FunctionReplacer::addReplacementSetTo(UnicodeSet& toUnionTo) const {
+void FunctionReplacer::addReplacementSetTo(UnicodeSet& toUnionTo) const
+{
     UnicodeSet set;
     toUnionTo.addAll(translit->getTargetSet(set));
 }
@@ -119,7 +120,8 @@ void FunctionReplacer::addReplacementSetTo(UnicodeSet& toUnionTo) const {
 /**
  * UnicodeFunctor API
  */
-void FunctionReplacer::setData(const TransliterationRuleData* d) {
+void FunctionReplacer::setData(const TransliterationRuleData* d)
+{
     replacer->setData(d);
 }
 
@@ -127,4 +129,4 @@ U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
-//eof
+// eof

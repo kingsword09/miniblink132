@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -31,78 +31,66 @@
 
 U_NAMESPACE_BEGIN
 
-uint8_t *
-RuleBasedCollator::cloneRuleData(int32_t &length, UErrorCode &errorCode) const {
-    if(U_FAILURE(errorCode)) { return nullptr; }
-    LocalMemory<uint8_t> buffer((uint8_t *)uprv_malloc(20000));
-    if(buffer.isNull()) {
+uint8_t* RuleBasedCollator::cloneRuleData(int32_t& length, UErrorCode& errorCode) const
+{
+    if (U_FAILURE(errorCode)) {
+        return NULL;
+    }
+    LocalMemory<uint8_t> buffer((uint8_t*)uprv_malloc(20000));
+    if (buffer.isNull()) {
         errorCode = U_MEMORY_ALLOCATION_ERROR;
-        return nullptr;
+        return NULL;
     }
     length = cloneBinary(buffer.getAlias(), 20000, errorCode);
-    if(errorCode == U_BUFFER_OVERFLOW_ERROR) {
-        if(buffer.allocateInsteadAndCopy(length, 0) == nullptr) {
+    if (errorCode == U_BUFFER_OVERFLOW_ERROR) {
+        if (buffer.allocateInsteadAndCopy(length, 0) == NULL) {
             errorCode = U_MEMORY_ALLOCATION_ERROR;
-            return nullptr;
+            return NULL;
         }
         errorCode = U_ZERO_ERROR;
         length = cloneBinary(buffer.getAlias(), length, errorCode);
     }
-    if(U_FAILURE(errorCode)) { return nullptr; }
+    if (U_FAILURE(errorCode)) {
+        return NULL;
+    }
     return buffer.orphan();
 }
 
-int32_t
-RuleBasedCollator::cloneBinary(uint8_t *dest, int32_t capacity, UErrorCode &errorCode) const {
+int32_t RuleBasedCollator::cloneBinary(uint8_t* dest, int32_t capacity, UErrorCode& errorCode) const
+{
     int32_t indexes[CollationDataReader::IX_TOTAL_SIZE + 1];
-    return CollationDataWriter::writeTailoring(
-            *tailoring, *settings, indexes, dest, capacity,
-            errorCode);
+    return CollationDataWriter::writeTailoring(*tailoring, *settings, indexes, dest, capacity, errorCode);
 }
 
 static const UDataInfo dataInfo = {
-    sizeof(UDataInfo),
-    0,
+    sizeof(UDataInfo), 0,
 
-    U_IS_BIG_ENDIAN,
-    U_CHARSET_FAMILY,
-    U_SIZEOF_UCHAR,
-    0,
+    U_IS_BIG_ENDIAN, U_CHARSET_FAMILY, U_SIZEOF_UCHAR, 0,
 
-    { 0x55, 0x43, 0x6f, 0x6c },         // dataFormat="UCol"
-    { 5, 0, 0, 0 },                     // formatVersion
-    { 6, 3, 0, 0 }                      // dataVersion
+    { 0x55, 0x43, 0x6f, 0x6c }, // dataFormat="UCol"
+    { 5, 0, 0, 0 }, // formatVersion
+    { 6, 3, 0, 0 } // dataVersion
 };
 
-int32_t
-CollationDataWriter::writeBase(const CollationData &data, const CollationSettings &settings,
-                               const void *rootElements, int32_t rootElementsLength,
-                               int32_t indexes[], uint8_t *dest, int32_t capacity,
-                               UErrorCode &errorCode) {
-    return write(true, nullptr,
-                 data, settings,
-                 rootElements, rootElementsLength,
-                 indexes, dest, capacity, errorCode);
+int32_t CollationDataWriter::writeBase(const CollationData& data, const CollationSettings& settings, const void* rootElements, int32_t rootElementsLength,
+    int32_t indexes[], uint8_t* dest, int32_t capacity, UErrorCode& errorCode)
+{
+    return write(TRUE, NULL, data, settings, rootElements, rootElementsLength, indexes, dest, capacity, errorCode);
 }
 
-int32_t
-CollationDataWriter::writeTailoring(const CollationTailoring &t, const CollationSettings &settings,
-                                    int32_t indexes[], uint8_t *dest, int32_t capacity,
-                                    UErrorCode &errorCode) {
-    return write(false, t.version,
-                 *t.data, settings,
-                 nullptr, 0,
-                 indexes, dest, capacity, errorCode);
+int32_t CollationDataWriter::writeTailoring(
+    const CollationTailoring& t, const CollationSettings& settings, int32_t indexes[], uint8_t* dest, int32_t capacity, UErrorCode& errorCode)
+{
+    return write(FALSE, t.version, *t.data, settings, NULL, 0, indexes, dest, capacity, errorCode);
 }
 
-int32_t
-CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
-                           const CollationData &data, const CollationSettings &settings,
-                           const void *rootElements, int32_t rootElementsLength,
-                           int32_t indexes[], uint8_t *dest, int32_t capacity,
-                           UErrorCode &errorCode) {
-    if(U_FAILURE(errorCode)) { return 0; }
-    if(capacity < 0 || (capacity > 0 && dest == nullptr)) {
+int32_t CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion, const CollationData& data, const CollationSettings& settings,
+    const void* rootElements, int32_t rootElementsLength, int32_t indexes[], uint8_t* dest, int32_t capacity, UErrorCode& errorCode)
+{
+    if (U_FAILURE(errorCode)) {
+        return 0;
+    }
+    if (capacity < 0 || (capacity > 0 && dest == NULL)) {
         errorCode = U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
     }
@@ -114,71 +102,72 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
     int32_t indexesLength;
     UBool hasMappings;
     UnicodeSet unsafeBackwardSet;
-    const CollationData *baseData = data.base;
+    const CollationData* baseData = data.base;
 
     int32_t fastLatinVersion;
-    if(data.fastLatinTable != nullptr) {
+    if (data.fastLatinTable != NULL) {
         fastLatinVersion = (int32_t)CollationFastLatin::VERSION << 16;
     } else {
         fastLatinVersion = 0;
     }
     int32_t fastLatinTableLength = 0;
 
-    if(isBase) {
+    if (isBase) {
         // For the root collator, we write an even number of indexes
         // so that we start with an 8-aligned offset.
         indexesLength = CollationDataReader::IX_TOTAL_SIZE + 1;
         U_ASSERT(settings.reorderCodesLength == 0);
-        hasMappings = true;
+        hasMappings = TRUE;
         unsafeBackwardSet = *data.unsafeBackwardSet;
         fastLatinTableLength = data.fastLatinTableLength;
-    } else if(baseData == nullptr) {
-        hasMappings = false;
-        if(settings.reorderCodesLength == 0) {
+    } else if (baseData == NULL) {
+        hasMappings = FALSE;
+        if (settings.reorderCodesLength == 0) {
             // only options
-            indexesLength = CollationDataReader::IX_OPTIONS + 1;  // no limit offset here
+            indexesLength = CollationDataReader::IX_OPTIONS + 1; // no limit offset here
         } else {
             // only options, reorder codes, and the reorder table
             indexesLength = CollationDataReader::IX_REORDER_TABLE_OFFSET + 2;
         }
     } else {
-        hasMappings = true;
+        hasMappings = TRUE;
         // Tailored mappings, and what else?
         // Check in ascending order of optional tailoring data items.
         indexesLength = CollationDataReader::IX_CE32S_OFFSET + 2;
-        if(data.contextsLength != 0) {
+        if (data.contextsLength != 0) {
             indexesLength = CollationDataReader::IX_CONTEXTS_OFFSET + 2;
         }
         unsafeBackwardSet.addAll(*data.unsafeBackwardSet).removeAll(*baseData->unsafeBackwardSet);
-        if(!unsafeBackwardSet.isEmpty()) {
+        if (!unsafeBackwardSet.isEmpty()) {
             indexesLength = CollationDataReader::IX_UNSAFE_BWD_OFFSET + 2;
         }
-        if(data.fastLatinTable != baseData->fastLatinTable) {
+        if (data.fastLatinTable != baseData->fastLatinTable) {
             fastLatinTableLength = data.fastLatinTableLength;
             indexesLength = CollationDataReader::IX_FAST_LATIN_TABLE_OFFSET + 2;
         }
     }
 
     UVector32 codesAndRanges(errorCode);
-    const int32_t *reorderCodes = settings.reorderCodes;
+    const int32_t* reorderCodes = settings.reorderCodes;
     int32_t reorderCodesLength = settings.reorderCodesLength;
-    if(settings.hasReordering() &&
-            CollationSettings::reorderTableHasSplitBytes(settings.reorderTable)) {
+    if (settings.hasReordering() && CollationSettings::reorderTableHasSplitBytes(settings.reorderTable)) {
         // Rebuild the full list of reorder ranges.
         // The list in the settings is truncated for efficiency.
         data.makeReorderRanges(reorderCodes, reorderCodesLength, codesAndRanges, errorCode);
         // Write the codes, then the ranges.
-        for(int32_t i = 0; i < reorderCodesLength; ++i) {
+        for (int32_t i = 0; i < reorderCodesLength; ++i) {
             codesAndRanges.insertElementAt(reorderCodes[i], i, errorCode);
         }
-        if(U_FAILURE(errorCode)) { return 0; }
+        if (U_FAILURE(errorCode)) {
+            return 0;
+        }
         reorderCodes = codesAndRanges.getBuffer();
         reorderCodesLength = codesAndRanges.size();
     }
 
     int32_t headerSize;
-    if(isBase) {
-        headerSize = 0;  // udata_create() writes the header
+    if (isBase) {
+        headerSize = 0; // udata_create() writes the header
     } else {
         DataHeader header;
         header.dataHeader.magic1 = 0xda;
@@ -186,12 +175,12 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
         uprv_memcpy(&header.info, &dataInfo, sizeof(UDataInfo));
         uprv_memcpy(header.info.dataVersion, dataVersion, sizeof(UVersionInfo));
         headerSize = (int32_t)sizeof(header);
-        U_ASSERT((headerSize & 3) == 0);  // multiple of 4 bytes
-        if(hasMappings && data.cesLength != 0) {
+        U_ASSERT((headerSize & 3) == 0); // multiple of 4 bytes
+        if (hasMappings && data.cesLength != 0) {
             // Sum of the sizes of the data items which are
             // not automatically multiples of 8 bytes and which are placed before the CEs.
             int32_t sum = headerSize + (indexesLength + reorderCodesLength) * 4;
-            if((sum & 7) != 0) {
+            if ((sum & 7) != 0) {
                 // We need to add padding somewhere so that the 64-bit CEs are 8-aligned.
                 // We add to the header size here.
                 // Alternatively, we could increment the indexesLength
@@ -200,22 +189,21 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
             }
         }
         header.dataHeader.headerSize = (uint16_t)headerSize;
-        if(headerSize <= capacity) {
+        if (headerSize <= capacity) {
             uprv_memcpy(dest, &header, sizeof(header));
             // Write 00 bytes so that the padding is not mistaken for a copyright string.
             uprv_memset(dest + sizeof(header), 0, headerSize - (int32_t)sizeof(header));
             dest += headerSize;
             capacity -= headerSize;
         } else {
-            dest = nullptr;
+            dest = NULL;
             capacity = 0;
         }
     }
 
     indexes[CollationDataReader::IX_INDEXES_LENGTH] = indexesLength;
     U_ASSERT((settings.options & ~0xffff) == 0);
-    indexes[CollationDataReader::IX_OPTIONS] =
-            data.numericPrimary | fastLatinVersion | settings.options;
+    indexes[CollationDataReader::IX_OPTIONS] = data.numericPrimary | fastLatinVersion | settings.options;
     indexes[CollationDataReader::IX_RESERVED2] = 0;
     indexes[CollationDataReader::IX_RESERVED3] = 0;
 
@@ -223,7 +211,7 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
     // We add the headerSize at the very end.
     int32_t totalSize = indexesLength * 4;
 
-    if(hasMappings && (isBase || data.jamoCE32s != baseData->jamoCE32s)) {
+    if (hasMappings && (isBase || data.jamoCE32s != baseData->jamoCE32s)) {
         indexes[CollationDataReader::IX_JAMO_CE32S_START] = static_cast<int32_t>(data.jamoCE32s - data.ce32s);
     } else {
         indexes[CollationDataReader::IX_JAMO_CE32S_START] = -1;
@@ -233,21 +221,20 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
     totalSize += reorderCodesLength * 4;
 
     indexes[CollationDataReader::IX_REORDER_TABLE_OFFSET] = totalSize;
-    if(settings.reorderTable != nullptr) {
+    if (settings.reorderTable != NULL) {
         totalSize += 256;
     }
 
     indexes[CollationDataReader::IX_TRIE_OFFSET] = totalSize;
-    if(hasMappings) {
+    if (hasMappings) {
         UErrorCode errorCode2 = U_ZERO_ERROR;
         int32_t length;
-        if(totalSize < capacity) {
-            length = utrie2_serialize(data.trie, dest + totalSize,
-                                      capacity - totalSize, &errorCode2);
+        if (totalSize < capacity) {
+            length = utrie2_serialize(data.trie, dest + totalSize, capacity - totalSize, &errorCode2);
         } else {
-            length = utrie2_serialize(data.trie, nullptr, 0, &errorCode2);
+            length = utrie2_serialize(data.trie, NULL, 0, &errorCode2);
         }
-        if(U_FAILURE(errorCode2) && errorCode2 != U_BUFFER_OVERFLOW_ERROR) {
+        if (U_FAILURE(errorCode2) && errorCode2 != U_BUFFER_OVERFLOW_ERROR) {
             errorCode = errorCode2;
             return 0;
         }
@@ -259,14 +246,14 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
 
     indexes[CollationDataReader::IX_RESERVED8_OFFSET] = totalSize;
     indexes[CollationDataReader::IX_CES_OFFSET] = totalSize;
-    if(hasMappings && data.cesLength != 0) {
+    if (hasMappings && data.cesLength != 0) {
         U_ASSERT(((headerSize + totalSize) & 7) == 0);
         totalSize += data.cesLength * 8;
     }
 
     indexes[CollationDataReader::IX_RESERVED10_OFFSET] = totalSize;
     indexes[CollationDataReader::IX_CE32S_OFFSET] = totalSize;
-    if(hasMappings) {
+    if (hasMappings) {
         totalSize += data.ce32sLength * 4;
     }
 
@@ -274,22 +261,21 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
     totalSize += rootElementsLength * 4;
 
     indexes[CollationDataReader::IX_CONTEXTS_OFFSET] = totalSize;
-    if(hasMappings) {
+    if (hasMappings) {
         totalSize += data.contextsLength * 2;
     }
 
     indexes[CollationDataReader::IX_UNSAFE_BWD_OFFSET] = totalSize;
-    if(hasMappings && !unsafeBackwardSet.isEmpty()) {
+    if (hasMappings && !unsafeBackwardSet.isEmpty()) {
         UErrorCode errorCode2 = U_ZERO_ERROR;
         int32_t length;
-        if(totalSize < capacity) {
-            uint16_t *p = reinterpret_cast<uint16_t *>(dest + totalSize);
-            length = unsafeBackwardSet.serialize(
-                    p, (capacity - totalSize) / 2, errorCode2);
+        if (totalSize < capacity) {
+            uint16_t* p = reinterpret_cast<uint16_t*>(dest + totalSize);
+            length = unsafeBackwardSet.serialize(p, (capacity - totalSize) / 2, errorCode2);
         } else {
-            length = unsafeBackwardSet.serialize(nullptr, 0, errorCode2);
+            length = unsafeBackwardSet.serialize(NULL, 0, errorCode2);
         }
-        if(U_FAILURE(errorCode2) && errorCode2 != U_BUFFER_OVERFLOW_ERROR) {
+        if (U_FAILURE(errorCode2) && errorCode2 != U_BUFFER_OVERFLOW_ERROR) {
             errorCode = errorCode2;
             return 0;
         }
@@ -301,22 +287,22 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
 
     UnicodeString scripts;
     indexes[CollationDataReader::IX_SCRIPTS_OFFSET] = totalSize;
-    if(isBase) {
-        scripts.append((char16_t)data.numScripts);
-        scripts.append(reinterpret_cast<const char16_t *>(data.scriptsIndex), data.numScripts + 16);
-        scripts.append(reinterpret_cast<const char16_t *>(data.scriptStarts), data.scriptStartsLength);
+    if (isBase) {
+        scripts.append((UChar)data.numScripts);
+        scripts.append(reinterpret_cast<const UChar*>(data.scriptsIndex), data.numScripts + 16);
+        scripts.append(reinterpret_cast<const UChar*>(data.scriptStarts), data.scriptStartsLength);
         totalSize += scripts.length() * 2;
     }
 
     indexes[CollationDataReader::IX_COMPRESSIBLE_BYTES_OFFSET] = totalSize;
-    if(isBase) {
+    if (isBase) {
         totalSize += 256;
     }
 
     indexes[CollationDataReader::IX_RESERVED18_OFFSET] = totalSize;
     indexes[CollationDataReader::IX_TOTAL_SIZE] = totalSize;
 
-    if(totalSize > capacity) {
+    if (totalSize > capacity) {
         errorCode = U_BUFFER_OVERFLOW_ERROR;
         return headerSize + totalSize;
     }
@@ -337,16 +323,15 @@ CollationDataWriter::write(UBool isBase, const UVersionInfo dataVersion,
     return headerSize + totalSize;
 }
 
-void
-CollationDataWriter::copyData(const int32_t indexes[], int32_t startIndex,
-                              const void *src, uint8_t *dest) {
+void CollationDataWriter::copyData(const int32_t indexes[], int32_t startIndex, const void* src, uint8_t* dest)
+{
     int32_t start = indexes[startIndex];
     int32_t limit = indexes[startIndex + 1];
-    if(start < limit) {
+    if (start < limit) {
         uprv_memcpy(dest + start, src, limit - start);
     }
 }
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
+#endif // !UCONFIG_NO_COLLATION

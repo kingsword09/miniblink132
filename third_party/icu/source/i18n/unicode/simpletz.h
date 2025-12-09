@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  ********************************************************************************
@@ -31,10 +31,10 @@
 #if U_SHOW_CPLUSPLUS_API
 
 /**
- * \file 
+ * \file
  * \brief C++ API: SimpleTimeZone is a concrete subclass of TimeZone.
  */
- 
+
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/basictz.h"
@@ -62,9 +62,8 @@ class AnnualTimeZoneRule;
  * @see      TimeZone
  * @author   D. Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
-class U_I18N_API SimpleTimeZone: public BasicTimeZone {
+class U_I18N_API SimpleTimeZone : public BasicTimeZone {
 public:
-
     /**
      * TimeMode is used, together with a millisecond offset after
      * midnight, to specify a rule transition time.  Most rules
@@ -76,11 +75,7 @@ public:
      * parameter, this is not the case.
      * @stable ICU 2.0
      */
-    enum TimeMode {
-        WALL_TIME = 0,
-        STANDARD_TIME,
-        UTC_TIME
-    };
+    enum TimeMode { WALL_TIME = 0, STANDARD_TIME, UTC_TIME };
 
     /**
      * Copy constructor
@@ -161,11 +156,8 @@ public:
      * @param status            An UErrorCode to receive the status.
      * @stable ICU 2.0
      */
-    SimpleTimeZone(int32_t rawOffsetGMT, const UnicodeString& ID,
-        int8_t savingsStartMonth, int8_t savingsStartDayOfWeekInMonth,
-        int8_t savingsStartDayOfWeek, int32_t savingsStartTime,
-        int8_t savingsEndMonth, int8_t savingsEndDayOfWeekInMonth,
-        int8_t savingsEndDayOfWeek, int32_t savingsEndTime,
+    SimpleTimeZone(int32_t rawOffsetGMT, const UnicodeString& ID, int8_t savingsStartMonth, int8_t savingsStartDayOfWeekInMonth, int8_t savingsStartDayOfWeek,
+        int32_t savingsStartTime, int8_t savingsEndMonth, int8_t savingsEndDayOfWeekInMonth, int8_t savingsEndDayOfWeek, int32_t savingsEndTime,
         UErrorCode& status);
     /**
      * Construct a SimpleTimeZone with the given raw GMT offset, time zone ID,
@@ -204,11 +196,8 @@ public:
      * @param status            An UErrorCode to receive the status.
      * @stable ICU 2.0
      */
-    SimpleTimeZone(int32_t rawOffsetGMT, const UnicodeString& ID,
-        int8_t savingsStartMonth, int8_t savingsStartDayOfWeekInMonth,
-        int8_t savingsStartDayOfWeek, int32_t savingsStartTime,
-        int8_t savingsEndMonth, int8_t savingsEndDayOfWeekInMonth,
-        int8_t savingsEndDayOfWeek, int32_t savingsEndTime,
+    SimpleTimeZone(int32_t rawOffsetGMT, const UnicodeString& ID, int8_t savingsStartMonth, int8_t savingsStartDayOfWeekInMonth, int8_t savingsStartDayOfWeek,
+        int32_t savingsStartTime, int8_t savingsEndMonth, int8_t savingsEndDayOfWeekInMonth, int8_t savingsEndDayOfWeek, int32_t savingsEndTime,
         int32_t savingsDST, UErrorCode& status);
 
     /**
@@ -252,13 +241,9 @@ public:
      * @param status            An UErrorCode to receive the status.
      * @stable ICU 2.0
      */
-    SimpleTimeZone(int32_t rawOffsetGMT, const UnicodeString& ID,
-        int8_t savingsStartMonth, int8_t savingsStartDayOfWeekInMonth,
-        int8_t savingsStartDayOfWeek, int32_t savingsStartTime,
-        TimeMode savingsStartTimeMode,
-        int8_t savingsEndMonth, int8_t savingsEndDayOfWeekInMonth,
-        int8_t savingsEndDayOfWeek, int32_t savingsEndTime, TimeMode savingsEndTimeMode,
-        int32_t savingsDST, UErrorCode& status);
+    SimpleTimeZone(int32_t rawOffsetGMT, const UnicodeString& ID, int8_t savingsStartMonth, int8_t savingsStartDayOfWeekInMonth, int8_t savingsStartDayOfWeek,
+        int32_t savingsStartTime, TimeMode savingsStartTimeMode, int8_t savingsEndMonth, int8_t savingsEndDayOfWeekInMonth, int8_t savingsEndDayOfWeek,
+        int32_t savingsEndTime, TimeMode savingsEndTimeMode, int32_t savingsDST, UErrorCode& status);
 
     /**
      * Sets the daylight savings starting year, that is, the year this time zone began
@@ -312,8 +297,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setStartRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek,
-                      int32_t time, UErrorCode& status);
+    void setStartRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek, int32_t time, UErrorCode& status);
     /**
      * Sets the daylight savings starting rule. For example, in the U.S., Daylight Savings
      * Time starts at the second Sunday in March, at 2 AM in standard time.
@@ -358,8 +342,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setStartRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek,
-                      int32_t time, TimeMode mode, UErrorCode& status);
+    void setStartRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek, int32_t time, TimeMode mode, UErrorCode& status);
 
     /**
      * Sets the DST start rule to a fixed date within a month.
@@ -372,8 +355,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t time,
-                      UErrorCode& status);
+    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t time, UErrorCode& status);
     /**
      * Sets the DST start rule to a fixed date within a month.
      *
@@ -387,8 +369,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t time,
-                      TimeMode mode, UErrorCode& status);
+    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t time, TimeMode mode, UErrorCode& status);
 
     /**
      * Sets the DST start rule to a weekday before or after a give date within
@@ -406,8 +387,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
-                      int32_t time, UBool after, UErrorCode& status);
+    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, int32_t time, UBool after, UErrorCode& status);
     /**
      * Sets the DST start rule to a weekday before or after a give date within
      * a month, e.g., the first Monday on or after the 8th.
@@ -426,8 +406,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
-                      int32_t time, TimeMode mode, UBool after, UErrorCode& status);
+    void setStartRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, int32_t time, TimeMode mode, UBool after, UErrorCode& status);
 
     /**
      * Sets the daylight savings ending rule. For example, if Daylight
@@ -451,8 +430,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setEndRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek,
-                    int32_t time, UErrorCode& status);
+    void setEndRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek, int32_t time, UErrorCode& status);
 
     /**
      * Sets the daylight savings ending rule. For example, if Daylight
@@ -478,8 +456,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setEndRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek,
-                    int32_t time, TimeMode mode, UErrorCode& status);
+    void setEndRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek, int32_t time, TimeMode mode, UErrorCode& status);
 
     /**
      * Sets the DST end rule to a fixed date within a month.
@@ -507,8 +484,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setEndRule(int32_t month, int32_t dayOfMonth, int32_t time,
-                    TimeMode mode, UErrorCode& status);
+    void setEndRule(int32_t month, int32_t dayOfMonth, int32_t time, TimeMode mode, UErrorCode& status);
 
     /**
      * Sets the DST end rule to a weekday before or after a give date within
@@ -526,8 +502,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
-                    int32_t time, UBool after, UErrorCode& status);
+    void setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, int32_t time, UBool after, UErrorCode& status);
 
     /**
      * Sets the DST end rule to a weekday before or after a give date within
@@ -547,8 +522,7 @@ public:
      * @param status An UErrorCode
      * @stable ICU 2.0
      */
-    void setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
-                    int32_t time, TimeMode mode, UBool after, UErrorCode& status);
+    void setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, int32_t time, TimeMode mode, UBool after, UErrorCode& status);
 
     /**
      * Returns the TimeZone's adjusted GMT offset (i.e., the number of milliseconds to add
@@ -570,8 +544,7 @@ public:
      * @return           The offset in milliseconds to add to GMT to get local time.
      * @stable ICU 2.0
      */
-    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
-                              uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const override;
+    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const override;
 
     /**
      * Gets the time zone offset, for current date, modified in case of
@@ -588,9 +561,8 @@ public:
      * @return the offset to add *to* GMT to get local time.
      * @stable ICU 2.0
      */
-    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
-                           uint8_t dayOfWeek, int32_t milliseconds,
-                           int32_t monthLength, UErrorCode& status) const override;
+    virtual int32_t getOffset(
+        uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t milliseconds, int32_t monthLength, UErrorCode& status) const override;
     /**
      * Gets the time zone offset, for current date, modified in case of
      * daylight savings. This is the offset to add *to* UTC to get local time.
@@ -607,27 +579,22 @@ public:
      * @return the offset to add *to* GMT to get local time.
      * @stable ICU 2.0
      */
-    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
-                              uint8_t dayOfWeek, int32_t milliseconds,
-                              int32_t monthLength, int32_t prevMonthLength,
-                              UErrorCode& status) const;
+    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t milliseconds, int32_t monthLength,
+        int32_t prevMonthLength, UErrorCode& status) const;
 
     /**
      * Redeclared TimeZone method.  This implementation simply calls
      * the base class method, which otherwise would be hidden.
      * @stable ICU 2.8
      */
-    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset,
-                           int32_t& dstOffset, UErrorCode& ec) const override;
+    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset, int32_t& dstOffset, UErrorCode& ec) const override;
 
     /**
      * Get time zone offsets from local wall time.
      * @stable ICU 69
      */
-    virtual void getOffsetFromLocal(
-        UDate date, UTimeZoneLocalOption nonExistingTimeOpt,
-        UTimeZoneLocalOption duplicatedTimeOpt,
-        int32_t& rawOffset, int32_t& dstOffset, UErrorCode& status) const override;
+    virtual void getOffsetFromLocal(UDate date, UTimeZoneLocalOption nonExistingTimeOpt, UTimeZoneLocalOption duplicatedTimeOpt, int32_t& rawOffset,
+        int32_t& dstOffset, UErrorCode& status) const override;
 
     /**
      * Returns the TimeZone's raw GMT offset (i.e., the number of milliseconds to add
@@ -692,7 +659,7 @@ public:
      * @deprecated ICU 2.4. Use Calendar::inDaylightTime() instead.
      */
     virtual UBool inDaylightTime(UDate date, UErrorCode& status) const override;
-#endif  // U_FORCE_HIDE_DEPRECATED_API
+#endif // U_FORCE_HIDE_DEPRECATED_API
 
     /**
      * Return true if this zone has the same rules and offset as another zone.
@@ -744,7 +711,7 @@ public:
     /**
      * Gets the <code>InitialTimeZoneRule</code> and the set of <code>TimeZoneRule</code>
      * which represent time transitions for this time zone.  On successful return,
-     * the argument initial points to non-nullptr <code>InitialTimeZoneRule</code> and
+     * the argument initial points to non-NULL <code>InitialTimeZoneRule</code> and
      * the array trsrules is filled with 0 or multiple <code>TimeZoneRule</code>
      * instances up to the size specified by trscount.  The results are referencing the
      * rule instance held by this time zone instance.  Therefore, after this time zone
@@ -757,12 +724,9 @@ public:
      * @param status        Receives error status code.
      * @stable ICU 3.8
      */
-    virtual void getTimeZoneRules(const InitialTimeZoneRule*& initial,
-        const TimeZoneRule* trsrules[], int32_t& trscount, UErrorCode& status) const override;
-
+    virtual void getTimeZoneRules(const InitialTimeZoneRule*& initial, const TimeZoneRule* trsrules[], int32_t& trscount, UErrorCode& status) const override;
 
 public:
-
     /**
      * Override TimeZone Returns a unique class ID POLYMORPHICALLY. Pure virtual
      * override. This method is to implement a simple version of RTTI, since not all C++
@@ -792,15 +756,9 @@ private:
     /**
      * Constants specifying values of startMode and endMode.
      */
-    enum EMode
-    {
-        DOM_MODE = 1,
-        DOW_IN_MONTH_MODE,
-        DOW_GE_DOM_MODE,
-        DOW_LE_DOM_MODE
-    };
+    enum EMode { DOM_MODE = 1, DOW_IN_MONTH_MODE, DOW_GE_DOM_MODE, DOW_LE_DOM_MODE };
 
-    SimpleTimeZone() = delete; // default constructor not implemented
+    SimpleTimeZone(); // default constructor not implemented
 
     /**
      * Internal construction method.
@@ -821,12 +779,8 @@ private:
      *                        to get DST time. Default is one hour.
      * @param status          An UErrorCode to receive the status.
      */
-    void construct(int32_t rawOffsetGMT,
-                   int8_t startMonth, int8_t startDay, int8_t startDayOfWeek,
-                   int32_t startTime, TimeMode startTimeMode,
-                   int8_t endMonth, int8_t endDay, int8_t endDayOfWeek,
-                   int32_t endTime, TimeMode endTimeMode,
-                   int32_t dstSavings, UErrorCode& status);
+    void construct(int32_t rawOffsetGMT, int8_t startMonth, int8_t startDay, int8_t startDayOfWeek, int32_t startTime, TimeMode startTimeMode, int8_t endMonth,
+        int8_t endDay, int8_t endDayOfWeek, int32_t endTime, TimeMode endTimeMode, int32_t dstSavings, UErrorCode& status);
 
     /**
      * Compare a given date in the year to a rule. Return 1, 0, or -1, depending
@@ -837,11 +791,8 @@ private:
      * @return  1 if the date is after the rule date, -1 if the date is before
      *          the rule date, or 0 if the date is equal to the rule date.
      */
-    static int32_t compareToRule(int8_t month, int8_t monthLen, int8_t prevMonthLen,
-                                 int8_t dayOfMonth,
-                                 int8_t dayOfWeek, int32_t millis, int32_t millisDelta,
-                                 EMode ruleMode, int8_t ruleMonth, int8_t ruleDayOfWeek,
-                                 int8_t ruleDay, int32_t ruleMillis);
+    static int32_t compareToRule(int8_t month, int8_t monthLen, int8_t prevMonthLen, int8_t dayOfMonth, int8_t dayOfWeek, int32_t millis, int32_t millisDelta,
+        EMode ruleMode, int8_t ruleMonth, int8_t ruleDayOfWeek, int8_t ruleDay, int32_t ruleMillis);
 
     /**
      * Given a set of encoded rules in startDay and startDayOfMonth, decode
@@ -862,16 +813,16 @@ private:
     void decodeStartRule(UErrorCode& status);
     void decodeEndRule(UErrorCode& status);
 
-    int8_t startMonth, startDay, startDayOfWeek;   // the month, day, DOW, and time DST starts
+    int8_t startMonth, startDay, startDayOfWeek; // the month, day, DOW, and time DST starts
     int32_t startTime;
     TimeMode startTimeMode, endTimeMode; // Mode for startTime, endTime; see TimeMode
     int8_t endMonth, endDay, endDayOfWeek; // the month, day, DOW, and time DST ends
     int32_t endTime;
-    int32_t startYear;  // the year these DST rules took effect
-    int32_t rawOffset;  // the TimeZone's raw GMT offset
+    int32_t startYear; // the year these DST rules took effect
+    int32_t rawOffset; // the TimeZone's raw GMT offset
     UBool useDaylight; // flag indicating whether this TimeZone uses DST
     static const int8_t STATICMONTHLENGTH[12]; // lengths of the months
-    EMode startMode, endMode;   // flags indicating what kind of rules the DST rules are
+    EMode startMode, endMode; // flags indicating what kind of rules the DST rules are
 
     /**
      * A positive value indicating the amount of time saved during DST in ms.
@@ -884,50 +835,45 @@ private:
     void initTransitionRules(UErrorCode& status);
     void clearTransitionRules(void);
     void deleteTransitionRules(void);
-    UBool   transitionRulesInitialized;
-    InitialTimeZoneRule*    initialRule;
-    TimeZoneTransition*     firstTransition;
-    AnnualTimeZoneRule*     stdRule;
-    AnnualTimeZoneRule*     dstRule;
+    UBool transitionRulesInitialized;
+    InitialTimeZoneRule* initialRule;
+    TimeZoneTransition* firstTransition;
+    AnnualTimeZoneRule* stdRule;
+    AnnualTimeZoneRule* dstRule;
 };
 
-inline void SimpleTimeZone::setStartRule(int32_t month, int32_t dayOfWeekInMonth,
-                                         int32_t dayOfWeek,
-                                         int32_t time, UErrorCode& status) {
+inline void SimpleTimeZone::setStartRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek, int32_t time, UErrorCode& status)
+{
     setStartRule(month, dayOfWeekInMonth, dayOfWeek, time, WALL_TIME, status);
 }
 
-inline void SimpleTimeZone::setStartRule(int32_t month, int32_t dayOfMonth,
-                                         int32_t time,
-                                         UErrorCode& status) {
+inline void SimpleTimeZone::setStartRule(int32_t month, int32_t dayOfMonth, int32_t time, UErrorCode& status)
+{
     setStartRule(month, dayOfMonth, time, WALL_TIME, status);
 }
 
-inline void SimpleTimeZone::setStartRule(int32_t month, int32_t dayOfMonth,
-                                         int32_t dayOfWeek,
-                                         int32_t time, UBool after, UErrorCode& status) {
+inline void SimpleTimeZone::setStartRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, int32_t time, UBool after, UErrorCode& status)
+{
     setStartRule(month, dayOfMonth, dayOfWeek, time, WALL_TIME, after, status);
 }
 
-inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfWeekInMonth,
-                                       int32_t dayOfWeek,
-                                       int32_t time, UErrorCode& status) {
+inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfWeekInMonth, int32_t dayOfWeek, int32_t time, UErrorCode& status)
+{
     setEndRule(month, dayOfWeekInMonth, dayOfWeek, time, WALL_TIME, status);
 }
 
-inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfMonth,
-                                       int32_t time, UErrorCode& status) {
+inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfMonth, int32_t time, UErrorCode& status)
+{
     setEndRule(month, dayOfMonth, time, WALL_TIME, status);
 }
 
-inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
-                                       int32_t time, UBool after, UErrorCode& status) {
+inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek, int32_t time, UBool after, UErrorCode& status)
+{
     setEndRule(month, dayOfMonth, dayOfWeek, time, WALL_TIME, after, status);
 }
 
-inline void
-SimpleTimeZone::getOffset(UDate date, UBool local, int32_t& rawOffsetRef,
-                          int32_t& dstOffsetRef, UErrorCode& ec) const {
+inline void SimpleTimeZone::getOffset(UDate date, UBool local, int32_t& rawOffsetRef, int32_t& dstOffsetRef, UErrorCode& ec) const
+{
     TimeZone::getOffset(date, local, rawOffsetRef, dstOffsetRef, ec);
 }
 

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -17,10 +17,10 @@
 /**
  * Deleter for Hashtable objects.
  */
-U_CAPI void U_EXPORT2
-uhash_deleteHashtable(void *obj) {
+U_CAPI void U_EXPORT2 uhash_deleteHashtable(void* obj)
+{
     U_NAMESPACE_USE
-    delete (Hashtable*) obj;
+    delete (Hashtable*)obj;
 }
 
-//eof
+// eof

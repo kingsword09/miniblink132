@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -8,7 +8,7 @@
 */
 
 #include "unicode/utypes.h"
-#include "utypeinfo.h"  // for 'typeid' to work
+#include "utypeinfo.h" // for 'typeid' to work
 
 #include "unicode/rbnf.h"
 
@@ -45,22 +45,14 @@
 
 #define U_ICUDATA_RBNF U_ICUDATA_NAME U_TREE_SEPARATOR_STRING "rbnf"
 
-static const char16_t gPercentPercent[] =
-{
-    0x25, 0x25, 0
-}; /* "%%" */
+static const UChar gPercentPercent[] = { 0x25, 0x25, 0 }; /* "%%" */
 
 // All urbnf objects are created through openRules, so we init all of the
 // Unicode string constants required by rbnf, nfrs, or nfr here.
-static const char16_t gLenientParse[] =
-{
-    0x25, 0x25, 0x6C, 0x65, 0x6E, 0x69, 0x65, 0x6E, 0x74, 0x2D, 0x70, 0x61, 0x72, 0x73, 0x65, 0x3A, 0
-}; /* "%%lenient-parse:" */
-static const char16_t gSemiColon = 0x003B;
-static const char16_t gSemiPercent[] =
-{
-    0x3B, 0x25, 0
-}; /* ";%" */
+static const UChar gLenientParse[]
+    = { 0x25, 0x25, 0x6C, 0x65, 0x6E, 0x69, 0x65, 0x6E, 0x74, 0x2D, 0x70, 0x61, 0x72, 0x73, 0x65, 0x3A, 0 }; /* "%%lenient-parse:" */
+static const UChar gSemiColon = 0x003B;
+static const UChar gSemiPercent[] = { 0x3B, 0x25, 0 }; /* ";%" */
 
 #define kSomeNumberOfBitsDiv2 22
 #define kHalfMaxDouble (double)(1 << kSomeNumberOfBitsDiv2)
@@ -83,61 +75,71 @@ class LocalizationInfo : public UMemory {
 protected:
     virtual ~LocalizationInfo();
     uint32_t refcount;
-    
+
 public:
-    LocalizationInfo() : refcount(0) {}
-    
-    LocalizationInfo* ref() {
+    LocalizationInfo()
+        : refcount(0)
+    {
+    }
+
+    LocalizationInfo* ref(void)
+    {
         ++refcount;
         return this;
     }
-    
-    LocalizationInfo* unref() {
+
+    LocalizationInfo* unref(void)
+    {
         if (refcount && --refcount == 0) {
             delete this;
         }
-        return nullptr;
+        return NULL;
     }
-    
+
     virtual bool operator==(const LocalizationInfo* rhs) const;
-    inline  bool operator!=(const LocalizationInfo* rhs) const { return !operator==(rhs); }
-    
-    virtual int32_t getNumberOfRuleSets() const = 0;
-    virtual const char16_t* getRuleSetName(int32_t index) const = 0;
-    virtual int32_t getNumberOfDisplayLocales() const = 0;
-    virtual const char16_t* getLocaleName(int32_t index) const = 0;
-    virtual const char16_t* getDisplayName(int32_t localeIndex, int32_t ruleIndex) const = 0;
-    
-    virtual int32_t indexForLocale(const char16_t* locale) const;
-    virtual int32_t indexForRuleSet(const char16_t* ruleset) const;
-    
-//    virtual UClassID getDynamicClassID() const = 0;
-//    static UClassID getStaticClassID();
+    inline bool operator!=(const LocalizationInfo* rhs) const
+    {
+        return !operator==(rhs);
+    }
+
+    virtual int32_t getNumberOfRuleSets(void) const = 0;
+    virtual const UChar* getRuleSetName(int32_t index) const = 0;
+    virtual int32_t getNumberOfDisplayLocales(void) const = 0;
+    virtual const UChar* getLocaleName(int32_t index) const = 0;
+    virtual const UChar* getDisplayName(int32_t localeIndex, int32_t ruleIndex) const = 0;
+
+    virtual int32_t indexForLocale(const UChar* locale) const;
+    virtual int32_t indexForRuleSet(const UChar* ruleset) const;
+
+    //    virtual UClassID getDynamicClassID() const = 0;
+    //    static UClassID getStaticClassID(void);
 };
 
-LocalizationInfo::~LocalizationInfo() {}
+LocalizationInfo::~LocalizationInfo()
+{
+}
 
-//UOBJECT_DEFINE_ABSTRACT_RTTI_IMPLEMENTATION(LocalizationInfo)
+// UOBJECT_DEFINE_ABSTRACT_RTTI_IMPLEMENTATION(LocalizationInfo)
 
-// if both strings are nullptr, this returns true
-static UBool 
-streq(const char16_t* lhs, const char16_t* rhs) {
+// if both strings are NULL, this returns TRUE
+static UBool streq(const UChar* lhs, const UChar* rhs)
+{
     if (rhs == lhs) {
-        return true;
+        return TRUE;
     }
     if (lhs && rhs) {
         return u_strcmp(lhs, rhs) == 0;
     }
-    return false;
+    return FALSE;
 }
 
-bool
-LocalizationInfo::operator==(const LocalizationInfo* rhs) const {
+bool LocalizationInfo::operator==(const LocalizationInfo* rhs) const
+{
     if (rhs) {
         if (this == rhs) {
             return true;
         }
-        
+
         int32_t rsc = getNumberOfRuleSets();
         if (rsc == rhs->getNumberOfRuleSets()) {
             for (int i = 0; i < rsc; ++i) {
@@ -148,7 +150,7 @@ LocalizationInfo::operator==(const LocalizationInfo* rhs) const {
             int32_t dlc = getNumberOfDisplayLocales();
             if (dlc == rhs->getNumberOfDisplayLocales()) {
                 for (int i = 0; i < dlc; ++i) {
-                    const char16_t* locale = getLocaleName(i);
+                    const UChar* locale = getLocaleName(i);
                     int32_t ix = rhs->indexForLocale(locale);
                     // if no locale, ix is -1, getLocaleName returns null, so streq returns false
                     if (!streq(locale, rhs->getLocaleName(ix))) {
@@ -167,8 +169,8 @@ LocalizationInfo::operator==(const LocalizationInfo* rhs) const {
     return false;
 }
 
-int32_t
-LocalizationInfo::indexForLocale(const char16_t* locale) const {
+int32_t LocalizationInfo::indexForLocale(const UChar* locale) const
+{
     for (int i = 0; i < getNumberOfDisplayLocales(); ++i) {
         if (streq(locale, getLocaleName(i))) {
             return i;
@@ -177,8 +179,8 @@ LocalizationInfo::indexForLocale(const char16_t* locale) const {
     return -1;
 }
 
-int32_t
-LocalizationInfo::indexForRuleSet(const char16_t* ruleset) const {
+int32_t LocalizationInfo::indexForRuleSet(const UChar* ruleset) const
+{
     if (ruleset) {
         for (int i = 0; i < getNumberOfRuleSets(); ++i) {
             if (streq(ruleset, getRuleSetName(i))) {
@@ -189,7 +191,6 @@ LocalizationInfo::indexForRuleSet(const char16_t* ruleset) const {
     return -1;
 }
 
-
 typedef void (*Fn_Deleter)(void*);
 
 class VArray {
@@ -197,25 +198,41 @@ class VArray {
     int32_t cap;
     int32_t size;
     Fn_Deleter deleter;
+
 public:
-    VArray() : buf(nullptr), cap(0), size(0), deleter(nullptr) {}
-    
-    VArray(Fn_Deleter del) : buf(nullptr), cap(0), size(0), deleter(del) {}
-    
-    ~VArray() {
+    VArray()
+        : buf(NULL)
+        , cap(0)
+        , size(0)
+        , deleter(NULL)
+    {
+    }
+
+    VArray(Fn_Deleter del)
+        : buf(NULL)
+        , cap(0)
+        , size(0)
+        , deleter(del)
+    {
+    }
+
+    ~VArray()
+    {
         if (deleter) {
             for (int i = 0; i < size; ++i) {
                 (*deleter)(buf[i]);
             }
         }
-        uprv_free(buf); 
+        uprv_free(buf);
     }
-    
-    int32_t length() {
+
+    int32_t length()
+    {
         return size;
     }
-    
-    void add(void* elem, UErrorCode& status) {
+
+    void add(void* elem, UErrorCode& status)
+    {
         if (U_SUCCESS(status)) {
             if (size == cap) {
                 if (cap == 0) {
@@ -225,12 +242,12 @@ public:
                 } else {
                     cap += 256;
                 }
-                if (buf == nullptr) {
+                if (buf == NULL) {
                     buf = (void**)uprv_malloc(cap * sizeof(void*));
                 } else {
                     buf = (void**)uprv_realloc(buf, cap * sizeof(void*));
                 }
-                if (buf == nullptr) {
+                if (buf == NULL) {
                     // if we couldn't realloc, we leak the memory we've already allocated, but we're in deep trouble anyway
                     status = U_MEMORY_ALLOCATION_ERROR;
                     return;
@@ -242,10 +259,11 @@ public:
             buf[size++] = elem;
         }
     }
-    
-    void** release() {
+
+    void** release(void)
+    {
         void** result = buf;
-        buf = nullptr;
+        buf = NULL;
         cap = 0;
         size = 0;
         return result;
@@ -255,35 +273,43 @@ public:
 class LocDataParser;
 
 class StringLocalizationInfo : public LocalizationInfo {
-    char16_t* info;
-    char16_t*** data;
+    UChar* info;
+    UChar*** data;
     int32_t numRuleSets;
     int32_t numLocales;
 
-friend class LocDataParser;
+    friend class LocDataParser;
 
-    StringLocalizationInfo(char16_t* i, char16_t*** d, int32_t numRS, int32_t numLocs)
-        : info(i), data(d), numRuleSets(numRS), numLocales(numLocs)
+    StringLocalizationInfo(UChar* i, UChar*** d, int32_t numRS, int32_t numLocs)
+        : info(i)
+        , data(d)
+        , numRuleSets(numRS)
+        , numLocales(numLocs)
     {
     }
-    
+
 public:
     static StringLocalizationInfo* create(const UnicodeString& info, UParseError& perror, UErrorCode& status);
-    
+
     virtual ~StringLocalizationInfo();
-    virtual int32_t getNumberOfRuleSets() const override { return numRuleSets; }
-    virtual const char16_t* getRuleSetName(int32_t index) const override;
-    virtual int32_t getNumberOfDisplayLocales() const override { return numLocales; }
-    virtual const char16_t* getLocaleName(int32_t index) const override;
-    virtual const char16_t* getDisplayName(int32_t localeIndex, int32_t ruleIndex) const override;
-    
-//    virtual UClassID getDynamicClassID() const;
-//    static UClassID getStaticClassID();
-    
+    virtual int32_t getNumberOfRuleSets(void) const override
+    {
+        return numRuleSets;
+    }
+    virtual const UChar* getRuleSetName(int32_t index) const override;
+    virtual int32_t getNumberOfDisplayLocales(void) const override
+    {
+        return numLocales;
+    }
+    virtual const UChar* getLocaleName(int32_t index) const override;
+    virtual const UChar* getDisplayName(int32_t localeIndex, int32_t ruleIndex) const override;
+
+    //    virtual UClassID getDynamicClassID() const;
+    //    static UClassID getStaticClassID(void);
+
 private:
     void init(UErrorCode& status) const;
 };
-
 
 enum {
     OPEN_ANGLE = 0x003c, /* '<' */
@@ -298,48 +324,61 @@ enum {
  * Utility for parsing a localization string and returning a StringLocalizationInfo*.
  */
 class LocDataParser {
-    char16_t* data;
-    const char16_t* e;
-    char16_t* p;
-    char16_t ch;
+    UChar* data;
+    const UChar* e;
+    UChar* p;
+    UChar ch;
     UParseError& pe;
     UErrorCode& ec;
-    
+
 public:
-    LocDataParser(UParseError& parseError, UErrorCode& status) 
-        : data(nullptr), e(nullptr), p(nullptr), ch(0xffff), pe(parseError), ec(status) {}
-    ~LocDataParser() {}
-    
+    LocDataParser(UParseError& parseError, UErrorCode& status)
+        : data(NULL)
+        , e(NULL)
+        , p(NULL)
+        , ch(0xffff)
+        , pe(parseError)
+        , ec(status)
+    {
+    }
+    ~LocDataParser()
+    {
+    }
+
     /*
-    * On a successful parse, return a StringLocalizationInfo*, otherwise delete locData, set perror and status,
-    * and return nullptr.  The StringLocalizationInfo will adopt locData if it is created.
-    */
-    StringLocalizationInfo* parse(char16_t* data, int32_t len);
-    
+     * On a successful parse, return a StringLocalizationInfo*, otherwise delete locData, set perror and status,
+     * and return NULL.  The StringLocalizationInfo will adopt locData if it is created.
+     */
+    StringLocalizationInfo* parse(UChar* data, int32_t len);
+
 private:
-    
-    inline void inc() {
+    inline void inc(void)
+    {
         ++p;
         ch = 0xffff;
     }
-    inline UBool checkInc(char16_t c) {
+    inline UBool checkInc(UChar c)
+    {
         if (p < e && (ch == c || *p == c)) {
             inc();
-            return true;
+            return TRUE;
         }
-        return false;
+        return FALSE;
     }
-    inline UBool check(char16_t c) {
+    inline UBool check(UChar c)
+    {
         return p < e && (ch == c || *p == c);
     }
-    inline void skipWhitespace() {
+    inline void skipWhitespace(void)
+    {
         while (p < e && PatternProps::isWhiteSpace(ch != 0xffff ? ch : *p)) {
             inc();
         }
     }
-    inline UBool inList(char16_t c, const char16_t* list) const {
+    inline UBool inList(UChar c, const UChar* list) const
+    {
         if (*list == SPACE && PatternProps::isWhiteSpace(c)) {
-            return true;
+            return TRUE;
         }
         while (*list && *list != c) {
             ++list;
@@ -347,50 +386,50 @@ private:
         return *list == c;
     }
     void parseError(const char* msg);
-    
-    StringLocalizationInfo* doParse();
-        
-    char16_t** nextArray(int32_t& requiredLength);
-    char16_t*  nextString();
+
+    StringLocalizationInfo* doParse(void);
+
+    UChar** nextArray(int32_t& requiredLength);
+    UChar* nextString(void);
 };
 
 #ifdef RBNF_DEBUG
-#define ERROR(msg) UPRV_BLOCK_MACRO_BEGIN { \
-    parseError(msg); \
-    return nullptr; \
-} UPRV_BLOCK_MACRO_END
+#define ERROR(msg)                                                                                                                                             \
+    UPRV_BLOCK_MACRO_BEGIN                                                                                                                                     \
+    {                                                                                                                                                          \
+        parseError(msg);                                                                                                                                       \
+        return NULL;                                                                                                                                           \
+    }                                                                                                                                                          \
+    UPRV_BLOCK_MACRO_END
 #define EXPLANATION_ARG explanationArg
 #else
-#define ERROR(msg) UPRV_BLOCK_MACRO_BEGIN { \
-    parseError(nullptr); \
-    return nullptr; \
-} UPRV_BLOCK_MACRO_END
+#define ERROR(msg)                                                                                                                                             \
+    UPRV_BLOCK_MACRO_BEGIN                                                                                                                                     \
+    {                                                                                                                                                          \
+        parseError(NULL);                                                                                                                                      \
+        return NULL;                                                                                                                                           \
+    }                                                                                                                                                          \
+    UPRV_BLOCK_MACRO_END
 #define EXPLANATION_ARG
 #endif
-        
 
-static const char16_t DQUOTE_STOPLIST[] = {
-    QUOTE, 0
-};
+static const UChar DQUOTE_STOPLIST[] = { QUOTE, 0 };
 
-static const char16_t SQUOTE_STOPLIST[] = {
-    TICK, 0
-};
+static const UChar SQUOTE_STOPLIST[] = { TICK, 0 };
 
-static const char16_t NOQUOTE_STOPLIST[] = {
-    SPACE, COMMA, CLOSE_ANGLE, OPEN_ANGLE, TICK, QUOTE, 0
-};
+static const UChar NOQUOTE_STOPLIST[] = { SPACE, COMMA, CLOSE_ANGLE, OPEN_ANGLE, TICK, QUOTE, 0 };
 
-static void
-DeleteFn(void* p) {
-  uprv_free(p);
+static void DeleteFn(void* p)
+{
+    uprv_free(p);
 }
 
-StringLocalizationInfo*
-LocDataParser::parse(char16_t* _data, int32_t len) {
+StringLocalizationInfo* LocDataParser::parse(UChar* _data, int32_t len)
+{
     if (U_FAILURE(ec)) {
-        if (_data) uprv_free(_data);
-        return nullptr;
+        if (_data)
+            uprv_free(_data);
+        return NULL;
     }
 
     pe.line = 0;
@@ -398,15 +437,15 @@ LocDataParser::parse(char16_t* _data, int32_t len) {
     pe.postContext[0] = 0;
     pe.preContext[0] = 0;
 
-    if (_data == nullptr) {
+    if (_data == NULL) {
         ec = U_ILLEGAL_ARGUMENT_ERROR;
-        return nullptr;
+        return NULL;
     }
 
     if (len <= 0) {
         ec = U_ILLEGAL_ARGUMENT_ERROR;
         uprv_free(_data);
-        return nullptr;
+        return NULL;
     }
 
     data = _data;
@@ -417,26 +456,25 @@ LocDataParser::parse(char16_t* _data, int32_t len) {
     return doParse();
 }
 
-
-StringLocalizationInfo*
-LocDataParser::doParse() {
+StringLocalizationInfo* LocDataParser::doParse(void)
+{
     skipWhitespace();
     if (!checkInc(OPEN_ANGLE)) {
         ERROR("Missing open angle");
     } else {
         VArray array(DeleteFn);
-        UBool mightHaveNext = true;
+        UBool mightHaveNext = TRUE;
         int32_t requiredLength = -1;
         while (mightHaveNext) {
-            mightHaveNext = false;
-            char16_t** elem = nextArray(requiredLength);
+            mightHaveNext = FALSE;
+            UChar** elem = nextArray(requiredLength);
             skipWhitespace();
             UBool haveComma = check(COMMA);
             if (elem) {
                 array.add(elem, ec);
                 if (haveComma) {
                     inc();
-                    mightHaveNext = true;
+                    mightHaveNext = TRUE;
                 }
             } else if (haveComma) {
                 ERROR("Unexpected character");
@@ -457,41 +495,41 @@ LocDataParser::doParse() {
             ERROR("Extra text after close of localization data");
         }
 
-        array.add(nullptr, ec);
+        array.add(NULL, ec);
         if (U_SUCCESS(ec)) {
-            int32_t numLocs = array.length() - 2; // subtract first, nullptr
-            char16_t*** result = (char16_t***)array.release();
-            
-            return new StringLocalizationInfo(data, result, requiredLength-2, numLocs); // subtract first, nullptr
+            int32_t numLocs = array.length() - 2; // subtract first, NULL
+            UChar*** result = (UChar***)array.release();
+
+            return new StringLocalizationInfo(data, result, requiredLength - 2, numLocs); // subtract first, NULL
         }
     }
-  
+
     ERROR("Unknown error");
 }
 
-char16_t**
-LocDataParser::nextArray(int32_t& requiredLength) {
+UChar** LocDataParser::nextArray(int32_t& requiredLength)
+{
     if (U_FAILURE(ec)) {
-        return nullptr;
+        return NULL;
     }
-    
+
     skipWhitespace();
     if (!checkInc(OPEN_ANGLE)) {
         ERROR("Missing open angle");
     }
 
     VArray array;
-    UBool mightHaveNext = true;
+    UBool mightHaveNext = TRUE;
     while (mightHaveNext) {
-        mightHaveNext = false;
-        char16_t* elem = nextString();
+        mightHaveNext = FALSE;
+        UChar* elem = nextString();
         skipWhitespace();
         UBool haveComma = check(COMMA);
         if (elem) {
             array.add(elem, ec);
             if (haveComma) {
                 inc();
-                mightHaveNext = true;
+                mightHaveNext = TRUE;
             }
         } else if (haveComma) {
             ERROR("Unexpected comma");
@@ -506,7 +544,7 @@ LocDataParser::nextArray(int32_t& requiredLength) {
         }
     }
 
-    array.add(nullptr, ec);
+    array.add(NULL, ec);
     if (U_SUCCESS(ec)) {
         if (requiredLength == -1) {
             requiredLength = array.length() + 1;
@@ -514,20 +552,20 @@ LocDataParser::nextArray(int32_t& requiredLength) {
             ec = U_ILLEGAL_ARGUMENT_ERROR;
             ERROR("Array not of required length");
         }
-        
-        return (char16_t**)array.release();
+
+        return (UChar**)array.release();
     }
     ERROR("Unknown Error");
 }
 
-char16_t*
-LocDataParser::nextString() {
-    char16_t* result = nullptr;
-    
+UChar* LocDataParser::nextString()
+{
+    UChar* result = NULL;
+
     skipWhitespace();
     if (p < e) {
-        const char16_t* terminators;
-        char16_t c = *p;
+        const UChar* terminators;
+        UChar c = *p;
         UBool haveQuote = c == QUOTE || c == TICK;
         if (haveQuote) {
             inc();
@@ -535,13 +573,14 @@ LocDataParser::nextString() {
         } else {
             terminators = NOQUOTE_STOPLIST;
         }
-        char16_t* start = p;
-        while (p < e && !inList(*p, terminators)) ++p;
+        UChar* start = p;
+        while (p < e && !inList(*p, terminators))
+            ++p;
         if (p == e) {
             ERROR("Unexpected end of data");
         }
-        
-        char16_t x = *p;
+
+        UChar x = *p;
         if (p > start) {
             ch = x;
             *p = 0x0; // terminate by writing to data
@@ -569,35 +608,35 @@ void LocDataParser::parseError(const char* EXPLANATION_ARG)
         return;
     }
 
-    const char16_t* start = p - U_PARSE_CONTEXT_LEN - 1;
+    const UChar* start = p - U_PARSE_CONTEXT_LEN - 1;
     if (start < data) {
         start = data;
     }
-    for (char16_t* x = p; --x >= start;) {
+    for (UChar* x = p; --x >= start;) {
         if (!*x) {
-            start = x+1;
+            start = x + 1;
             break;
         }
     }
-    const char16_t* limit = p + U_PARSE_CONTEXT_LEN - 1;
+    const UChar* limit = p + U_PARSE_CONTEXT_LEN - 1;
     if (limit > e) {
         limit = e;
     }
-    u_strncpy(pe.preContext, start, (int32_t)(p-start));
-    pe.preContext[p-start] = 0;
-    u_strncpy(pe.postContext, p, (int32_t)(limit-p));
-    pe.postContext[limit-p] = 0;
+    u_strncpy(pe.preContext, start, (int32_t)(p - start));
+    pe.preContext[p - start] = 0;
+    u_strncpy(pe.postContext, p, (int32_t)(limit - p));
+    pe.postContext[limit - p] = 0;
     pe.offset = (int32_t)(p - data);
-    
+
 #ifdef RBNF_DEBUG
-    fprintf(stderr, "%s at or near character %ld: ", EXPLANATION_ARG, p-data);
+    fprintf(stderr, "%s at or near character %ld: ", EXPLANATION_ARG, p - data);
 
     UnicodeString msg;
     msg.append(start, p - start);
-    msg.append((char16_t)0x002f); /* SOLIDUS/SLASH */
-    msg.append(p, limit-p);
+    msg.append((UChar)0x002f); /* SOLIDUS/SLASH */
+    msg.append(p, limit - p);
     msg.append(UNICODE_STRING_SIMPLE("'"));
-    
+
     char buf[128];
     int32_t len = msg.extract(0, msg.length(), buf, 128);
     if (len >= 128) {
@@ -608,222 +647,215 @@ void LocDataParser::parseError(const char* EXPLANATION_ARG)
     fprintf(stderr, "%s\n", buf);
     fflush(stderr);
 #endif
-    
+
     uprv_free(data);
-    data = nullptr;
-    p = nullptr;
-    e = nullptr;
-    
+    data = NULL;
+    p = NULL;
+    e = NULL;
+
     if (U_SUCCESS(ec)) {
         ec = U_PARSE_ERROR;
     }
 }
 
-//UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringLocalizationInfo)
+// UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringLocalizationInfo)
 
-StringLocalizationInfo* 
-StringLocalizationInfo::create(const UnicodeString& info, UParseError& perror, UErrorCode& status) {
+StringLocalizationInfo* StringLocalizationInfo::create(const UnicodeString& info, UParseError& perror, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
-        return nullptr;
+        return NULL;
     }
-    
+
     int32_t len = info.length();
     if (len == 0) {
-        return nullptr; // no error;
+        return NULL; // no error;
     }
-    
-    char16_t* p = (char16_t*)uprv_malloc(len * sizeof(char16_t));
+
+    UChar* p = (UChar*)uprv_malloc(len * sizeof(UChar));
     if (!p) {
         status = U_MEMORY_ALLOCATION_ERROR;
-        return nullptr;
+        return NULL;
     }
     info.extract(p, len, status);
     if (!U_FAILURE(status)) {
         status = U_ZERO_ERROR; // clear warning about non-termination
     }
-    
+
     LocDataParser parser(perror, status);
     return parser.parse(p, len);
 }
 
-StringLocalizationInfo::~StringLocalizationInfo() {
-    for (char16_t*** p = (char16_t***)data; *p; ++p) {
+StringLocalizationInfo::~StringLocalizationInfo()
+{
+    for (UChar*** p = (UChar***)data; *p; ++p) {
         // remaining data is simply pointer into our unicode string data.
-        if (*p) uprv_free(*p);
+        if (*p)
+            uprv_free(*p);
     }
-    if (data) uprv_free(data);
-    if (info) uprv_free(info);
+    if (data)
+        uprv_free(data);
+    if (info)
+        uprv_free(info);
 }
 
-
-const char16_t*
-StringLocalizationInfo::getRuleSetName(int32_t index) const {
+const UChar* StringLocalizationInfo::getRuleSetName(int32_t index) const
+{
     if (index >= 0 && index < getNumberOfRuleSets()) {
         return data[0][index];
     }
-    return nullptr;
+    return NULL;
 }
 
-const char16_t*
-StringLocalizationInfo::getLocaleName(int32_t index) const {
+const UChar* StringLocalizationInfo::getLocaleName(int32_t index) const
+{
     if (index >= 0 && index < getNumberOfDisplayLocales()) {
-        return data[index+1][0];
+        return data[index + 1][0];
     }
-    return nullptr;
+    return NULL;
 }
 
-const char16_t*
-StringLocalizationInfo::getDisplayName(int32_t localeIndex, int32_t ruleIndex) const {
-    if (localeIndex >= 0 && localeIndex < getNumberOfDisplayLocales() &&
-        ruleIndex >= 0 && ruleIndex < getNumberOfRuleSets()) {
-        return data[localeIndex+1][ruleIndex+1];
+const UChar* StringLocalizationInfo::getDisplayName(int32_t localeIndex, int32_t ruleIndex) const
+{
+    if (localeIndex >= 0 && localeIndex < getNumberOfDisplayLocales() && ruleIndex >= 0 && ruleIndex < getNumberOfRuleSets()) {
+        return data[localeIndex + 1][ruleIndex + 1];
     }
-    return nullptr;
+    return NULL;
 }
 
 // ----------
 
-RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, 
-                                             const UnicodeString& locs,
-                                             const Locale& alocale, UParseError& perror, UErrorCode& status)
-  : fRuleSets(nullptr)
-  , ruleSetDescriptions(nullptr)
-  , numRuleSets(0)
-  , defaultRuleSet(nullptr)
-  , locale(alocale)
-  , collator(nullptr)
-  , decimalFormatSymbols(nullptr)
-  , defaultInfinityRule(nullptr)
-  , defaultNaNRule(nullptr)
-  , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
-  , lenient(false)
-  , lenientParseRules(nullptr)
-  , localizations(nullptr)
-  , capitalizationInfoSet(false)
-  , capitalizationForUIListMenu(false)
-  , capitalizationForStandAlone(false)
-  , capitalizationBrkIter(nullptr)
+RuleBasedNumberFormat::RuleBasedNumberFormat(
+    const UnicodeString& description, const UnicodeString& locs, const Locale& alocale, UParseError& perror, UErrorCode& status)
+    : fRuleSets(NULL)
+    , ruleSetDescriptions(NULL)
+    , numRuleSets(0)
+    , defaultRuleSet(NULL)
+    , locale(alocale)
+    , collator(NULL)
+    , decimalFormatSymbols(NULL)
+    , defaultInfinityRule(NULL)
+    , defaultNaNRule(NULL)
+    , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
+    , lenient(FALSE)
+    , lenientParseRules(NULL)
+    , localizations(NULL)
+    , capitalizationInfoSet(FALSE)
+    , capitalizationForUIListMenu(FALSE)
+    , capitalizationForStandAlone(FALSE)
+    , capitalizationBrkIter(NULL)
 {
-  LocalizationInfo* locinfo = StringLocalizationInfo::create(locs, perror, status);
-  init(description, locinfo, perror, status);
+    LocalizationInfo* locinfo = StringLocalizationInfo::create(locs, perror, status);
+    init(description, locinfo, perror, status);
 }
 
-RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, 
-                                             const UnicodeString& locs,
-                                             UParseError& perror, UErrorCode& status)
-  : fRuleSets(nullptr)
-  , ruleSetDescriptions(nullptr)
-  , numRuleSets(0)
-  , defaultRuleSet(nullptr)
-  , locale(Locale::getDefault())
-  , collator(nullptr)
-  , decimalFormatSymbols(nullptr)
-  , defaultInfinityRule(nullptr)
-  , defaultNaNRule(nullptr)
-  , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
-  , lenient(false)
-  , lenientParseRules(nullptr)
-  , localizations(nullptr)
-  , capitalizationInfoSet(false)
-  , capitalizationForUIListMenu(false)
-  , capitalizationForStandAlone(false)
-  , capitalizationBrkIter(nullptr)
+RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, const UnicodeString& locs, UParseError& perror, UErrorCode& status)
+    : fRuleSets(NULL)
+    , ruleSetDescriptions(NULL)
+    , numRuleSets(0)
+    , defaultRuleSet(NULL)
+    , locale(Locale::getDefault())
+    , collator(NULL)
+    , decimalFormatSymbols(NULL)
+    , defaultInfinityRule(NULL)
+    , defaultNaNRule(NULL)
+    , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
+    , lenient(FALSE)
+    , lenientParseRules(NULL)
+    , localizations(NULL)
+    , capitalizationInfoSet(FALSE)
+    , capitalizationForUIListMenu(FALSE)
+    , capitalizationForStandAlone(FALSE)
+    , capitalizationBrkIter(NULL)
 {
-  LocalizationInfo* locinfo = StringLocalizationInfo::create(locs, perror, status);
-  init(description, locinfo, perror, status);
+    LocalizationInfo* locinfo = StringLocalizationInfo::create(locs, perror, status);
+    init(description, locinfo, perror, status);
 }
 
-RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, 
-                                             LocalizationInfo* info,
-                                             const Locale& alocale, UParseError& perror, UErrorCode& status)
-  : fRuleSets(nullptr)
-  , ruleSetDescriptions(nullptr)
-  , numRuleSets(0)
-  , defaultRuleSet(nullptr)
-  , locale(alocale)
-  , collator(nullptr)
-  , decimalFormatSymbols(nullptr)
-  , defaultInfinityRule(nullptr)
-  , defaultNaNRule(nullptr)
-  , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
-  , lenient(false)
-  , lenientParseRules(nullptr)
-  , localizations(nullptr)
-  , capitalizationInfoSet(false)
-  , capitalizationForUIListMenu(false)
-  , capitalizationForStandAlone(false)
-  , capitalizationBrkIter(nullptr)
+RuleBasedNumberFormat::RuleBasedNumberFormat(
+    const UnicodeString& description, LocalizationInfo* info, const Locale& alocale, UParseError& perror, UErrorCode& status)
+    : fRuleSets(NULL)
+    , ruleSetDescriptions(NULL)
+    , numRuleSets(0)
+    , defaultRuleSet(NULL)
+    , locale(alocale)
+    , collator(NULL)
+    , decimalFormatSymbols(NULL)
+    , defaultInfinityRule(NULL)
+    , defaultNaNRule(NULL)
+    , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
+    , lenient(FALSE)
+    , lenientParseRules(NULL)
+    , localizations(NULL)
+    , capitalizationInfoSet(FALSE)
+    , capitalizationForUIListMenu(FALSE)
+    , capitalizationForStandAlone(FALSE)
+    , capitalizationBrkIter(NULL)
 {
-  init(description, info, perror, status);
+    init(description, info, perror, status);
 }
 
-RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, 
-                         UParseError& perror, 
-                         UErrorCode& status) 
-  : fRuleSets(nullptr)
-  , ruleSetDescriptions(nullptr)
-  , numRuleSets(0)
-  , defaultRuleSet(nullptr)
-  , locale(Locale::getDefault())
-  , collator(nullptr)
-  , decimalFormatSymbols(nullptr)
-  , defaultInfinityRule(nullptr)
-  , defaultNaNRule(nullptr)
-  , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
-  , lenient(false)
-  , lenientParseRules(nullptr)
-  , localizations(nullptr)
-  , capitalizationInfoSet(false)
-  , capitalizationForUIListMenu(false)
-  , capitalizationForStandAlone(false)
-  , capitalizationBrkIter(nullptr)
+RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, UParseError& perror, UErrorCode& status)
+    : fRuleSets(NULL)
+    , ruleSetDescriptions(NULL)
+    , numRuleSets(0)
+    , defaultRuleSet(NULL)
+    , locale(Locale::getDefault())
+    , collator(NULL)
+    , decimalFormatSymbols(NULL)
+    , defaultInfinityRule(NULL)
+    , defaultNaNRule(NULL)
+    , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
+    , lenient(FALSE)
+    , lenientParseRules(NULL)
+    , localizations(NULL)
+    , capitalizationInfoSet(FALSE)
+    , capitalizationForUIListMenu(FALSE)
+    , capitalizationForStandAlone(FALSE)
+    , capitalizationBrkIter(NULL)
 {
-    init(description, nullptr, perror, status);
+    init(description, NULL, perror, status);
 }
 
-RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, 
-                         const Locale& aLocale,
-                         UParseError& perror, 
-                         UErrorCode& status) 
-  : fRuleSets(nullptr)
-  , ruleSetDescriptions(nullptr)
-  , numRuleSets(0)
-  , defaultRuleSet(nullptr)
-  , locale(aLocale)
-  , collator(nullptr)
-  , decimalFormatSymbols(nullptr)
-  , defaultInfinityRule(nullptr)
-  , defaultNaNRule(nullptr)
-  , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
-  , lenient(false)
-  , lenientParseRules(nullptr)
-  , localizations(nullptr)
-  , capitalizationInfoSet(false)
-  , capitalizationForUIListMenu(false)
-  , capitalizationForStandAlone(false)
-  , capitalizationBrkIter(nullptr)
+RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, const Locale& aLocale, UParseError& perror, UErrorCode& status)
+    : fRuleSets(NULL)
+    , ruleSetDescriptions(NULL)
+    , numRuleSets(0)
+    , defaultRuleSet(NULL)
+    , locale(aLocale)
+    , collator(NULL)
+    , decimalFormatSymbols(NULL)
+    , defaultInfinityRule(NULL)
+    , defaultNaNRule(NULL)
+    , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
+    , lenient(FALSE)
+    , lenientParseRules(NULL)
+    , localizations(NULL)
+    , capitalizationInfoSet(FALSE)
+    , capitalizationForUIListMenu(FALSE)
+    , capitalizationForStandAlone(FALSE)
+    , capitalizationBrkIter(NULL)
 {
-    init(description, nullptr, perror, status);
+    init(description, NULL, perror, status);
 }
 
 RuleBasedNumberFormat::RuleBasedNumberFormat(URBNFRuleSetTag tag, const Locale& alocale, UErrorCode& status)
-  : fRuleSets(nullptr)
-  , ruleSetDescriptions(nullptr)
-  , numRuleSets(0)
-  , defaultRuleSet(nullptr)
-  , locale(alocale)
-  , collator(nullptr)
-  , decimalFormatSymbols(nullptr)
-  , defaultInfinityRule(nullptr)
-  , defaultNaNRule(nullptr)
-  , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
-  , lenient(false)
-  , lenientParseRules(nullptr)
-  , localizations(nullptr)
-  , capitalizationInfoSet(false)
-  , capitalizationForUIListMenu(false)
-  , capitalizationForStandAlone(false)
-  , capitalizationBrkIter(nullptr)
+    : fRuleSets(NULL)
+    , ruleSetDescriptions(NULL)
+    , numRuleSets(0)
+    , defaultRuleSet(NULL)
+    , locale(alocale)
+    , collator(NULL)
+    , decimalFormatSymbols(NULL)
+    , defaultInfinityRule(NULL)
+    , defaultNaNRule(NULL)
+    , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
+    , lenient(FALSE)
+    , lenientParseRules(NULL)
+    , localizations(NULL)
+    , capitalizationInfoSet(FALSE)
+    , capitalizationForUIListMenu(FALSE)
+    , capitalizationForStandAlone(FALSE)
+    , capitalizationBrkIter(NULL)
 {
     if (U_FAILURE(status)) {
         return;
@@ -832,26 +864,35 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(URBNFRuleSetTag tag, const Locale& 
     const char* rules_tag = "RBNFRules";
     const char* fmt_tag = "";
     switch (tag) {
-    case URBNF_SPELLOUT: fmt_tag = "SpelloutRules"; break;
-    case URBNF_ORDINAL: fmt_tag = "OrdinalRules"; break;
-    case URBNF_DURATION: fmt_tag = "DurationRules"; break;
-    case URBNF_NUMBERING_SYSTEM: fmt_tag = "NumberingSystemRules"; break;
-    default: status = U_ILLEGAL_ARGUMENT_ERROR; return;
+    case URBNF_SPELLOUT:
+        fmt_tag = "SpelloutRules";
+        break;
+    case URBNF_ORDINAL:
+        fmt_tag = "OrdinalRules";
+        break;
+    case URBNF_DURATION:
+        fmt_tag = "DurationRules";
+        break;
+    case URBNF_NUMBERING_SYSTEM:
+        fmt_tag = "NumberingSystemRules";
+        break;
+    default:
+        status = U_ILLEGAL_ARGUMENT_ERROR;
+        return;
     }
 
     // TODO: read localization info from resource
-    LocalizationInfo* locinfo = nullptr;
+    LocalizationInfo* locinfo = NULL;
 
     UResourceBundle* nfrb = ures_open(U_ICUDATA_RBNF, locale.getName(), &status);
     if (U_SUCCESS(status)) {
-        setLocaleIDs(ures_getLocaleByType(nfrb, ULOC_VALID_LOCALE, &status),
-                     ures_getLocaleByType(nfrb, ULOC_ACTUAL_LOCALE, &status));
+        setLocaleIDs(ures_getLocaleByType(nfrb, ULOC_VALID_LOCALE, &status), ures_getLocaleByType(nfrb, ULOC_ACTUAL_LOCALE, &status));
 
-        UResourceBundle* rbnfRules = ures_getByKeyWithFallback(nfrb, rules_tag, nullptr, &status);
+        UResourceBundle* rbnfRules = ures_getByKeyWithFallback(nfrb, rules_tag, NULL, &status);
         if (U_FAILURE(status)) {
             ures_close(nfrb);
         }
-        UResourceBundle* ruleSets = ures_getByKeyWithFallback(rbnfRules, fmt_tag, nullptr, &status);
+        UResourceBundle* ruleSets = ures_getByKeyWithFallback(rbnfRules, fmt_tag, NULL, &status);
         if (U_FAILURE(status)) {
             ures_close(rbnfRules);
             ures_close(nfrb);
@@ -860,7 +901,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(URBNFRuleSetTag tag, const Locale& 
 
         UnicodeString desc;
         while (ures_hasNext(ruleSets)) {
-           desc.append(ures_getNextUnicodeString(ruleSets,nullptr,&status));
+            desc.append(ures_getNextUnicodeString(ruleSets, NULL, &status));
         }
         UParseError perror;
 
@@ -873,32 +914,31 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(URBNFRuleSetTag tag, const Locale& 
 }
 
 RuleBasedNumberFormat::RuleBasedNumberFormat(const RuleBasedNumberFormat& rhs)
-  : NumberFormat(rhs)
-  , fRuleSets(nullptr)
-  , ruleSetDescriptions(nullptr)
-  , numRuleSets(0)
-  , defaultRuleSet(nullptr)
-  , locale(rhs.locale)
-  , collator(nullptr)
-  , decimalFormatSymbols(nullptr)
-  , defaultInfinityRule(nullptr)
-  , defaultNaNRule(nullptr)
-  , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
-  , lenient(false)
-  , lenientParseRules(nullptr)
-  , localizations(nullptr)
-  , capitalizationInfoSet(false)
-  , capitalizationForUIListMenu(false)
-  , capitalizationForStandAlone(false)
-  , capitalizationBrkIter(nullptr)
+    : NumberFormat(rhs)
+    , fRuleSets(NULL)
+    , ruleSetDescriptions(NULL)
+    , numRuleSets(0)
+    , defaultRuleSet(NULL)
+    , locale(rhs.locale)
+    , collator(NULL)
+    , decimalFormatSymbols(NULL)
+    , defaultInfinityRule(NULL)
+    , defaultNaNRule(NULL)
+    , fRoundingMode(DecimalFormat::ERoundingMode::kRoundUnnecessary)
+    , lenient(FALSE)
+    , lenientParseRules(NULL)
+    , localizations(NULL)
+    , capitalizationInfoSet(FALSE)
+    , capitalizationForUIListMenu(FALSE)
+    , capitalizationForStandAlone(FALSE)
+    , capitalizationBrkIter(NULL)
 {
     this->operator=(rhs);
 }
 
 // --------
 
-RuleBasedNumberFormat&
-RuleBasedNumberFormat::operator=(const RuleBasedNumberFormat& rhs)
+RuleBasedNumberFormat& RuleBasedNumberFormat::operator=(const RuleBasedNumberFormat& rhs)
 {
     if (this == &rhs) {
         return *this;
@@ -911,7 +951,7 @@ RuleBasedNumberFormat::operator=(const RuleBasedNumberFormat& rhs)
 
     UParseError perror;
     setDecimalFormatSymbols(*rhs.getDecimalFormatSymbols());
-    init(rhs.originalDescription, rhs.localizations ? rhs.localizations->ref() : nullptr, perror, status);
+    init(rhs.originalDescription, rhs.localizations ? rhs.localizations->ref() : NULL, perror, status);
     setDefaultRuleSet(rhs.getDefaultRuleSetName(), status);
     setRoundingMode(rhs.getRoundingMode());
 
@@ -919,7 +959,7 @@ RuleBasedNumberFormat::operator=(const RuleBasedNumberFormat& rhs)
     capitalizationForUIListMenu = rhs.capitalizationForUIListMenu;
     capitalizationForStandAlone = rhs.capitalizationForStandAlone;
 #if !UCONFIG_NO_BREAK_ITERATION
-    capitalizationBrkIter = (rhs.capitalizationBrkIter!=nullptr)? rhs.capitalizationBrkIter->clone(): nullptr;
+    capitalizationBrkIter = (rhs.capitalizationBrkIter != NULL) ? rhs.capitalizationBrkIter->clone() : NULL;
 #endif
 
     return *this;
@@ -930,55 +970,47 @@ RuleBasedNumberFormat::~RuleBasedNumberFormat()
     dispose();
 }
 
-RuleBasedNumberFormat*
-RuleBasedNumberFormat::clone() const
+RuleBasedNumberFormat* RuleBasedNumberFormat::clone() const
 {
     return new RuleBasedNumberFormat(*this);
 }
 
-bool
-RuleBasedNumberFormat::operator==(const Format& other) const
+bool RuleBasedNumberFormat::operator==(const Format& other) const
 {
     if (this == &other) {
         return true;
     }
 
     if (typeid(*this) == typeid(other)) {
-        const RuleBasedNumberFormat& rhs = static_cast<const RuleBasedNumberFormat&>(other);
+        const RuleBasedNumberFormat& rhs = (const RuleBasedNumberFormat&)other;
         // test for capitalization info equality is adequately handled
         // by the NumberFormat test for fCapitalizationContext equality;
         // the info here is just derived from that.
-        if (locale == rhs.locale &&
-            lenient == rhs.lenient &&
-            (localizations == nullptr 
-                ? rhs.localizations == nullptr 
-                : (rhs.localizations == nullptr 
-                    ? false
-                    : *localizations == rhs.localizations))) {
+        if (locale == rhs.locale && lenient == rhs.lenient
+            && (localizations == NULL ? rhs.localizations == NULL : (rhs.localizations == NULL ? false : *localizations == rhs.localizations))) {
 
             NFRuleSet** p = fRuleSets;
             NFRuleSet** q = rhs.fRuleSets;
-            if (p == nullptr) {
-                return q == nullptr;
-            } else if (q == nullptr) {
+            if (p == NULL) {
+                return q == NULL;
+            } else if (q == NULL) {
                 return false;
             }
             while (*p && *q && (**p == **q)) {
                 ++p;
                 ++q;
             }
-            return *q == nullptr && *p == nullptr;
+            return *q == NULL && *p == NULL;
         }
     }
 
     return false;
 }
 
-UnicodeString
-RuleBasedNumberFormat::getRules() const
+UnicodeString RuleBasedNumberFormat::getRules() const
 {
     UnicodeString result;
-    if (fRuleSets != nullptr) {
+    if (fRuleSets != NULL) {
         for (NFRuleSet** p = fRuleSets; *p; ++p) {
             (*p)->appendRules(result);
         }
@@ -986,14 +1018,12 @@ RuleBasedNumberFormat::getRules() const
     return result;
 }
 
-UnicodeString
-RuleBasedNumberFormat::getRuleSetName(int32_t index) const
+UnicodeString RuleBasedNumberFormat::getRuleSetName(int32_t index) const
 {
     if (localizations) {
-        UnicodeString string(true, localizations->getRuleSetName(index), (int32_t)-1);
+        UnicodeString string(TRUE, localizations->getRuleSetName(index), (int32_t)-1);
         return string;
-    }
-    else if (fRuleSets) {
+    } else if (fRuleSets) {
         UnicodeString result;
         for (NFRuleSet** p = fRuleSets; *p; ++p) {
             NFRuleSet* rs = *p;
@@ -1009,14 +1039,12 @@ RuleBasedNumberFormat::getRuleSetName(int32_t index) const
     return empty;
 }
 
-int32_t
-RuleBasedNumberFormat::getNumberOfRuleSetNames() const
+int32_t RuleBasedNumberFormat::getNumberOfRuleSetNames() const
 {
     int32_t result = 0;
     if (localizations) {
         result = localizations->getNumberOfRuleSets();
-    }
-    else if (fRuleSets) {
+    } else if (fRuleSets) {
         for (NFRuleSet** p = fRuleSets; *p; ++p) {
             if ((**p).isPublic()) {
                 ++result;
@@ -1026,27 +1054,27 @@ RuleBasedNumberFormat::getNumberOfRuleSetNames() const
     return result;
 }
 
-int32_t 
-RuleBasedNumberFormat::getNumberOfRuleSetDisplayNameLocales() const {
+int32_t RuleBasedNumberFormat::getNumberOfRuleSetDisplayNameLocales(void) const
+{
     if (localizations) {
         return localizations->getNumberOfDisplayLocales();
     }
     return 0;
 }
 
-Locale 
-RuleBasedNumberFormat::getRuleSetDisplayNameLocale(int32_t index, UErrorCode& status) const {
+Locale RuleBasedNumberFormat::getRuleSetDisplayNameLocale(int32_t index, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return Locale("");
     }
     if (localizations && index >= 0 && index < localizations->getNumberOfDisplayLocales()) {
-        UnicodeString name(true, localizations->getLocaleName(index), -1);
+        UnicodeString name(TRUE, localizations->getLocaleName(index), -1);
         char buffer[64];
         int32_t cap = name.length() + 1;
         char* bp = buffer;
         if (cap > 64) {
-            bp = (char *)uprv_malloc(cap);
-            if (bp == nullptr) {
+            bp = (char*)uprv_malloc(cap);
+            if (bp == NULL) {
                 status = U_MEMORY_ALLOCATION_ERROR;
                 return Locale("");
             }
@@ -1063,25 +1091,28 @@ RuleBasedNumberFormat::getRuleSetDisplayNameLocale(int32_t index, UErrorCode& st
     return retLocale;
 }
 
-UnicodeString 
-RuleBasedNumberFormat::getRuleSetDisplayName(int32_t index, const Locale& localeParam) {
+UnicodeString RuleBasedNumberFormat::getRuleSetDisplayName(int32_t index, const Locale& localeParam)
+{
     if (localizations && index >= 0 && index < localizations->getNumberOfRuleSets()) {
-        UnicodeString localeName(localeParam.getBaseName(), -1, UnicodeString::kInvariant); 
+        UnicodeString localeName(localeParam.getBaseName(), -1, UnicodeString::kInvariant);
         int32_t len = localeName.length();
-        char16_t* localeStr = localeName.getBuffer(len + 1);
+        UChar* localeStr = localeName.getBuffer(len + 1);
         while (len >= 0) {
             localeStr[len] = 0;
             int32_t ix = localizations->indexForLocale(localeStr);
             if (ix >= 0) {
-                UnicodeString name(true, localizations->getDisplayName(ix, index), -1);
+                UnicodeString name(TRUE, localizations->getDisplayName(ix, index), -1);
                 return name;
             }
-            
+
             // trim trailing portion, skipping over omitted sections
-            do { --len;} while (len > 0 && localeStr[len] != 0x005f); // underscore
-            while (len > 0 && localeStr[len-1] == 0x005F) --len;
+            do {
+                --len;
+            } while (len > 0 && localeStr[len] != 0x005f); // underscore
+            while (len > 0 && localeStr[len - 1] == 0x005F)
+                --len;
         }
-        UnicodeString name(true, localizations->getRuleSetName(index), -1);
+        UnicodeString name(TRUE, localizations->getRuleSetName(index), -1);
         return name;
     }
     UnicodeString bogus;
@@ -1089,8 +1120,8 @@ RuleBasedNumberFormat::getRuleSetDisplayName(int32_t index, const Locale& locale
     return bogus;
 }
 
-UnicodeString 
-RuleBasedNumberFormat::getRuleSetDisplayName(const UnicodeString& ruleSetName, const Locale& localeParam) {
+UnicodeString RuleBasedNumberFormat::getRuleSetDisplayName(const UnicodeString& ruleSetName, const Locale& localeParam)
+{
     if (localizations) {
         UnicodeString rsn(ruleSetName);
         int32_t ix = localizations->indexForRuleSet(rsn.getTerminatedBuffer());
@@ -1101,8 +1132,7 @@ RuleBasedNumberFormat::getRuleSetDisplayName(const UnicodeString& ruleSetName, c
     return bogus;
 }
 
-NFRuleSet*
-RuleBasedNumberFormat::findRuleSet(const UnicodeString& name, UErrorCode& status) const
+NFRuleSet* RuleBasedNumberFormat::findRuleSet(const UnicodeString& name, UErrorCode& status) const
 {
     if (U_SUCCESS(status) && fRuleSets) {
         for (NFRuleSet** p = fRuleSets; *p; ++p) {
@@ -1113,27 +1143,22 @@ RuleBasedNumberFormat::findRuleSet(const UnicodeString& name, UErrorCode& status
         }
         status = U_ILLEGAL_ARGUMENT_ERROR;
     }
-    return nullptr;
+    return NULL;
 }
 
-UnicodeString&
-RuleBasedNumberFormat::format(const DecimalQuantity &number,
-                     UnicodeString& appendTo,
-                     FieldPosition& pos,
-                     UErrorCode &status) const {
+UnicodeString& RuleBasedNumberFormat::format(const DecimalQuantity& number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo;
     }
     DecimalQuantity copy(number);
     if (copy.fitsInLong()) {
         format(number.toLong(), appendTo, pos, status);
-    }
-    else {
+    } else {
         copy.roundToMagnitude(0, number::impl::RoundingMode::UNUM_ROUND_HALFEVEN, status);
         if (copy.fitsInLong()) {
             format(number.toDouble(), appendTo, pos, status);
-        }
-        else {
+        } else {
             // We're outside of our normal range that this framework can handle.
             // The DecimalFormat will provide more accurate results.
 
@@ -1154,19 +1179,12 @@ RuleBasedNumberFormat::format(const DecimalQuantity &number,
     return appendTo;
 }
 
-UnicodeString&
-RuleBasedNumberFormat::format(int32_t number,
-                              UnicodeString& toAppendTo,
-                              FieldPosition& pos) const
+UnicodeString& RuleBasedNumberFormat::format(int32_t number, UnicodeString& toAppendTo, FieldPosition& pos) const
 {
     return format((int64_t)number, toAppendTo, pos);
 }
 
-
-UnicodeString&
-RuleBasedNumberFormat::format(int64_t number,
-                              UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */) const
+UnicodeString& RuleBasedNumberFormat::format(int64_t number, UnicodeString& toAppendTo, FieldPosition& /* pos */) const
 {
     if (defaultRuleSet) {
         UErrorCode status = U_ZERO_ERROR;
@@ -1175,11 +1193,7 @@ RuleBasedNumberFormat::format(int64_t number,
     return toAppendTo;
 }
 
-
-UnicodeString&
-RuleBasedNumberFormat::format(double number,
-                              UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */) const
+UnicodeString& RuleBasedNumberFormat::format(double number, UnicodeString& toAppendTo, FieldPosition& /* pos */) const
 {
     UErrorCode status = U_ZERO_ERROR;
     if (defaultRuleSet) {
@@ -1188,31 +1202,21 @@ RuleBasedNumberFormat::format(double number,
     return toAppendTo;
 }
 
-
-UnicodeString&
-RuleBasedNumberFormat::format(int32_t number,
-                              const UnicodeString& ruleSetName,
-                              UnicodeString& toAppendTo,
-                              FieldPosition& pos,
-                              UErrorCode& status) const
+UnicodeString& RuleBasedNumberFormat::format(
+    int32_t number, const UnicodeString& ruleSetName, UnicodeString& toAppendTo, FieldPosition& pos, UErrorCode& status) const
 {
     return format((int64_t)number, ruleSetName, toAppendTo, pos, status);
 }
 
-
-UnicodeString&
-RuleBasedNumberFormat::format(int64_t number,
-                              const UnicodeString& ruleSetName,
-                              UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */,
-                              UErrorCode& status) const
+UnicodeString& RuleBasedNumberFormat::format(
+    int64_t number, const UnicodeString& ruleSetName, UnicodeString& toAppendTo, FieldPosition& /* pos */, UErrorCode& status) const
 {
     if (U_SUCCESS(status)) {
         if (ruleSetName.indexOf(gPercentPercent, 2, 0) == 0) {
             // throw new IllegalArgumentException("Can't use internal rule set");
             status = U_ILLEGAL_ARGUMENT_ERROR;
         } else {
-            NFRuleSet *rs = findRuleSet(ruleSetName, status);
+            NFRuleSet* rs = findRuleSet(ruleSetName, status);
             if (rs) {
                 format(number, rs, toAppendTo, status);
             }
@@ -1221,20 +1225,15 @@ RuleBasedNumberFormat::format(int64_t number,
     return toAppendTo;
 }
 
-
-UnicodeString&
-RuleBasedNumberFormat::format(double number,
-                              const UnicodeString& ruleSetName,
-                              UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */,
-                              UErrorCode& status) const
+UnicodeString& RuleBasedNumberFormat::format(
+    double number, const UnicodeString& ruleSetName, UnicodeString& toAppendTo, FieldPosition& /* pos */, UErrorCode& status) const
 {
     if (U_SUCCESS(status)) {
         if (ruleSetName.indexOf(gPercentPercent, 2, 0) == 0) {
             // throw new IllegalArgumentException("Can't use internal rule set");
             status = U_ILLEGAL_ARGUMENT_ERROR;
         } else {
-            NFRuleSet *rs = findRuleSet(ruleSetName, status);
+            NFRuleSet* rs = findRuleSet(ruleSetName, status);
             if (rs) {
                 format(number, *rs, toAppendTo, status);
             }
@@ -1243,20 +1242,13 @@ RuleBasedNumberFormat::format(double number,
     return toAppendTo;
 }
 
-void
-RuleBasedNumberFormat::format(double number,
-                              NFRuleSet& rs,
-                              UnicodeString& toAppendTo,
-                              UErrorCode& status) const
+void RuleBasedNumberFormat::format(double number, NFRuleSet& rs, UnicodeString& toAppendTo, UErrorCode& status) const
 {
     int32_t startPos = toAppendTo.length();
     if (getRoundingMode() != DecimalFormat::ERoundingMode::kRoundUnnecessary && !uprv_isNaN(number) && !uprv_isInfinite(number)) {
         DecimalQuantity digitList;
         digitList.setToDouble(number);
-        digitList.roundToMagnitude(
-                -getMaximumFractionDigits(),
-                static_cast<UNumberFormatRoundingMode>(getRoundingMode()),
-                status);
+        digitList.roundToMagnitude(-getMaximumFractionDigits(), static_cast<UNumberFormatRoundingMode>(getRoundingMode()), status);
         number = digitList.toDouble();
     }
     rs.format(number, toAppendTo, toAppendTo.length(), 0, status);
@@ -1271,8 +1263,7 @@ RuleBasedNumberFormat::format(double number,
  * @param ruleSet The rule set to use to format the number
  * @return The text that resulted from formatting the number
  */
-UnicodeString&
-RuleBasedNumberFormat::format(int64_t number, NFRuleSet *ruleSet, UnicodeString& toAppendTo, UErrorCode& status) const
+UnicodeString& RuleBasedNumberFormat::format(int64_t number, NFRuleSet* ruleSet, UnicodeString& toAppendTo, UErrorCode& status) const
 {
     // all API format() routines that take a double vector through
     // here.  We have these two identical functions-- one taking a
@@ -1290,13 +1281,13 @@ RuleBasedNumberFormat::format(int64_t number, NFRuleSet *ruleSet, UnicodeString&
             // We can't handle this value right now. Provide an accurate default value.
 
             // TODO this section should probably be optimized. The DecimalFormat is shared in ICU4J.
-            NumberFormat *decimalFormat = NumberFormat::createInstance(locale, UNUM_DECIMAL, status);
+            NumberFormat* decimalFormat = NumberFormat::createInstance(locale, UNUM_DECIMAL, status);
             if (decimalFormat == nullptr) {
                 return toAppendTo;
             }
             Formattable f;
             FieldPosition pos(FieldPosition::DONT_CARE);
-            DecimalQuantity *decimalQuantity = new DecimalQuantity();
+            DecimalQuantity* decimalQuantity = new DecimalQuantity();
             if (decimalQuantity == nullptr) {
                 status = U_MEMORY_ALLOCATION_ERROR;
                 delete decimalFormat;
@@ -1306,8 +1297,7 @@ RuleBasedNumberFormat::format(int64_t number, NFRuleSet *ruleSet, UnicodeString&
             f.adoptDecimalQuantity(decimalQuantity); // f now owns decimalQuantity.
             decimalFormat->format(f, toAppendTo, pos, status);
             delete decimalFormat;
-        }
-        else {
+        } else {
             int32_t startPos = toAppendTo.length();
             ruleSet->format(number, toAppendTo, toAppendTo.length(), 0, status);
             adjustForCapitalizationContext(startPos, toAppendTo, status);
@@ -1316,20 +1306,17 @@ RuleBasedNumberFormat::format(int64_t number, NFRuleSet *ruleSet, UnicodeString&
     return toAppendTo;
 }
 
-UnicodeString&
-RuleBasedNumberFormat::adjustForCapitalizationContext(int32_t startPos,
-                                                      UnicodeString& currentResult,
-                                                      UErrorCode& status) const
+UnicodeString& RuleBasedNumberFormat::adjustForCapitalizationContext(int32_t startPos, UnicodeString& currentResult, UErrorCode& status) const
 {
 #if !UCONFIG_NO_BREAK_ITERATION
     UDisplayContext capitalizationContext = getContext(UDISPCTX_TYPE_CAPITALIZATION, status);
     if (capitalizationContext != UDISPCTX_CAPITALIZATION_NONE && startPos == 0 && currentResult.length() > 0) {
         // capitalize currentResult according to context
         UChar32 ch = currentResult.char32At(0);
-        if (u_islower(ch) && U_SUCCESS(status) && capitalizationBrkIter != nullptr &&
-              ( capitalizationContext == UDISPCTX_CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE ||
-                (capitalizationContext == UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU && capitalizationForUIListMenu) ||
-                (capitalizationContext == UDISPCTX_CAPITALIZATION_FOR_STANDALONE && capitalizationForStandAlone)) ) {
+        if (u_islower(ch) && U_SUCCESS(status) && capitalizationBrkIter != NULL
+            && (capitalizationContext == UDISPCTX_CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE
+                || (capitalizationContext == UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU && capitalizationForUIListMenu)
+                || (capitalizationContext == UDISPCTX_CAPITALIZATION_FOR_STANDALONE && capitalizationForStandAlone))) {
             // titlecase first word of currentResult, here use sentence iterator unlike current implementations
             // in LocaleDisplayNamesImpl::adjustForUsageAndContext and RelativeDateFormat::format
             currentResult.toTitle(capitalizationBrkIter, locale, U_TITLECASE_NO_LOWERCASE | U_TITLECASE_NO_BREAK_ADJUSTMENT);
@@ -1339,11 +1326,7 @@ RuleBasedNumberFormat::adjustForCapitalizationContext(int32_t startPos,
     return currentResult;
 }
 
-
-void
-RuleBasedNumberFormat::parse(const UnicodeString& text,
-                             Formattable& result,
-                             ParsePosition& parsePosition) const
+void RuleBasedNumberFormat::parse(const UnicodeString& text, Formattable& result, ParsePosition& parsePosition) const
 {
     if (!fRuleSets) {
         parsePosition.setErrorIndex(0);
@@ -1357,7 +1340,7 @@ RuleBasedNumberFormat::parse(const UnicodeString& text,
     Formattable high_result;
 
     for (NFRuleSet** p = fRuleSets; *p; ++p) {
-        NFRuleSet *rp = *p;
+        NFRuleSet* rp = *p;
         if (rp->isPublic() && rp->isParseable()) {
             ParsePosition working_pp(0);
             Formattable working_result;
@@ -1379,7 +1362,7 @@ RuleBasedNumberFormat::parse(const UnicodeString& text,
     if (high_pp.getIndex() > 0) {
         parsePosition.setErrorIndex(-1);
     } else {
-        int32_t errorIndex = (high_pp.getErrorIndex()>0)? high_pp.getErrorIndex(): 0;
+        int32_t errorIndex = (high_pp.getErrorIndex() > 0) ? high_pp.getErrorIndex() : 0;
         parsePosition.setErrorIndex(startIndex + errorIndex);
     }
     result = high_result;
@@ -1396,41 +1379,40 @@ RuleBasedNumberFormat::parse(const UnicodeString& text,
 
 #if !UCONFIG_NO_COLLATION
 
-void
-RuleBasedNumberFormat::setLenient(UBool enabled)
+void RuleBasedNumberFormat::setLenient(UBool enabled)
 {
     lenient = enabled;
     if (!enabled && collator) {
         delete collator;
-        collator = nullptr;
+        collator = NULL;
     }
 }
 
 #endif
 
-void 
-RuleBasedNumberFormat::setDefaultRuleSet(const UnicodeString& ruleSetName, UErrorCode& status) {
+void RuleBasedNumberFormat::setDefaultRuleSet(const UnicodeString& ruleSetName, UErrorCode& status)
+{
     if (U_SUCCESS(status)) {
         if (ruleSetName.isEmpty()) {
-          if (localizations) {
-              UnicodeString name(true, localizations->getRuleSetName(0), -1);
-              defaultRuleSet = findRuleSet(name, status);
-          } else {
-            initDefaultRuleSet();
-          }
+            if (localizations) {
+                UnicodeString name(TRUE, localizations->getRuleSetName(0), -1);
+                defaultRuleSet = findRuleSet(name, status);
+            } else {
+                initDefaultRuleSet();
+            }
         } else if (ruleSetName.startsWith(UNICODE_STRING_SIMPLE("%%"))) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
         } else {
             NFRuleSet* result = findRuleSet(ruleSetName, status);
-            if (result != nullptr) {
+            if (result != NULL) {
                 defaultRuleSet = result;
             }
         }
     }
 }
 
-UnicodeString
-RuleBasedNumberFormat::getDefaultRuleSetName() const {
+UnicodeString RuleBasedNumberFormat::getDefaultRuleSetName() const
+{
     UnicodeString result;
     if (defaultRuleSet && defaultRuleSet->isPublic()) {
         defaultRuleSet->getName(result);
@@ -1440,10 +1422,9 @@ RuleBasedNumberFormat::getDefaultRuleSetName() const {
     return result;
 }
 
-void 
-RuleBasedNumberFormat::initDefaultRuleSet()
+void RuleBasedNumberFormat::initDefaultRuleSet()
 {
-    defaultRuleSet = nullptr;
+    defaultRuleSet = NULL;
     if (!fRuleSets) {
         return;
     }
@@ -1452,7 +1433,7 @@ RuleBasedNumberFormat::initDefaultRuleSet()
     const UnicodeString ordinal(UNICODE_STRING_SIMPLE("%digits-ordinal"));
     const UnicodeString duration(UNICODE_STRING_SIMPLE("%duration"));
 
-    NFRuleSet**p = &fRuleSets[0];
+    NFRuleSet** p = &fRuleSets[0];
     while (*p) {
         if ((*p)->isNamed(spellout) || (*p)->isNamed(ordinal) || (*p)->isNamed(duration)) {
             defaultRuleSet = *p;
@@ -1473,14 +1454,11 @@ RuleBasedNumberFormat::initDefaultRuleSet()
     }
 }
 
-
-void
-RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* localizationInfos,
-                            UParseError& pErr, UErrorCode& status)
+void RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* localizationInfos, UParseError& pErr, UErrorCode& status)
 {
     // TODO: implement UParseError
     uprv_memset(&pErr, 0, sizeof(UParseError));
-    // Note: this can leave ruleSets == nullptr, so remaining code should check
+    // Note: this can leave ruleSets == NULL, so remaining code should check
     if (U_FAILURE(status)) {
         return;
     }
@@ -1492,7 +1470,7 @@ RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* locali
         return;
     }
 
-    this->localizations = localizationInfos == nullptr ? nullptr : localizationInfos->ref();
+    this->localizations = localizationInfos == NULL ? NULL : localizationInfos->ref();
 
     UnicodeString description(rules);
     if (!description.length()) {
@@ -1533,7 +1511,7 @@ RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* locali
             // copy out the lenient-parse rules and delete them
             // from the description
             lenientParseRules = new UnicodeString();
-            /* test for nullptr */
+            /* test for NULL */
             if (lenientParseRules == nullptr) {
                 status = U_MEMORY_ALLOCATION_ERROR;
                 return;
@@ -1555,15 +1533,15 @@ RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* locali
     ++numRuleSets;
 
     // our rule list is an array of the appropriate size
-    fRuleSets = (NFRuleSet **)uprv_malloc((numRuleSets + 1) * sizeof(NFRuleSet *));
-    /* test for nullptr */
+    fRuleSets = (NFRuleSet**)uprv_malloc((numRuleSets + 1) * sizeof(NFRuleSet*));
+    /* test for NULL */
     if (fRuleSets == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
 
     for (int i = 0; i <= numRuleSets; ++i) {
-        fRuleSets[i] = nullptr;
+        fRuleSets[i] = NULL;
     }
 
     // divide up the descriptions into individual rule-set descriptions
@@ -1573,7 +1551,7 @@ RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* locali
     // the rest of the descriptions and finish initializing everything
     // because we have to know the names and locations of all the rule
     // sets before we can actually set everything up
-    if(!numRuleSets) {
+    if (!numRuleSets) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
@@ -1612,7 +1590,7 @@ RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* locali
     // by appending more rule sets to the end)
 
     // {dlf} Initialization of a fraction rule set requires the default rule
-    // set to be known.  For purposes of initialization, this is always the 
+    // set to be known.  For purposes of initialization, this is always the
     // last public rule set, no matter what the localization data says.
     initDefaultRuleSet();
 
@@ -1631,14 +1609,14 @@ RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* locali
     // The C code keeps the localization array as is, rather than building
     // a separate array of the public rule set names, so we have less work
     // to do here-- but we still need to check the names.
-    
+
     if (localizationInfos) {
         // confirm the names, if any aren't in the rules, that's an error
         // it is ok if the rules contain public rule sets that are not in this list
         for (int32_t i = 0; i < localizationInfos->getNumberOfRuleSets(); ++i) {
-            UnicodeString name(true, localizationInfos->getRuleSetName(i), -1);
+            UnicodeString name(TRUE, localizationInfos->getRuleSetName(i), -1);
             NFRuleSet* rs = findRuleSet(name, status);
-            if (rs == nullptr) {
+            if (rs == NULL) {
                 break; // error
             }
             if (i == 0) {
@@ -1653,44 +1631,42 @@ RuleBasedNumberFormat::init(const UnicodeString& rules, LocalizationInfo* locali
 
 // override the NumberFormat implementation in order to
 // lazily initialize relevant items
-void
-RuleBasedNumberFormat::setContext(UDisplayContext value, UErrorCode& status)
+void RuleBasedNumberFormat::setContext(UDisplayContext value, UErrorCode& status)
 {
     NumberFormat::setContext(value, status);
     if (U_SUCCESS(status)) {
-    	if (!capitalizationInfoSet &&
-    	        (value==UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU || value==UDISPCTX_CAPITALIZATION_FOR_STANDALONE)) {
-    	    initCapitalizationContextInfo(locale);
-    	    capitalizationInfoSet = true;
+        if (!capitalizationInfoSet && (value == UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU || value == UDISPCTX_CAPITALIZATION_FOR_STANDALONE)) {
+            initCapitalizationContextInfo(locale);
+            capitalizationInfoSet = TRUE;
         }
 #if !UCONFIG_NO_BREAK_ITERATION
-        if ( capitalizationBrkIter == nullptr && (value==UDISPCTX_CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE ||
-                (value==UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU && capitalizationForUIListMenu) ||
-                (value==UDISPCTX_CAPITALIZATION_FOR_STANDALONE && capitalizationForStandAlone)) ) {
+        if (capitalizationBrkIter == NULL
+            && (value == UDISPCTX_CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE
+                || (value == UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU && capitalizationForUIListMenu)
+                || (value == UDISPCTX_CAPITALIZATION_FOR_STANDALONE && capitalizationForStandAlone))) {
             status = U_ZERO_ERROR;
             capitalizationBrkIter = BreakIterator::createSentenceInstance(locale, status);
             if (U_FAILURE(status)) {
                 delete capitalizationBrkIter;
-                capitalizationBrkIter = nullptr;
+                capitalizationBrkIter = NULL;
             }
         }
 #endif
     }
 }
 
-void
-RuleBasedNumberFormat::initCapitalizationContextInfo(const Locale& thelocale)
+void RuleBasedNumberFormat::initCapitalizationContextInfo(const Locale& thelocale)
 {
 #if !UCONFIG_NO_BREAK_ITERATION
-    const char * localeID = (thelocale != nullptr)? thelocale.getBaseName(): nullptr;
+    const char* localeID = (thelocale != NULL) ? thelocale.getBaseName() : NULL;
     UErrorCode status = U_ZERO_ERROR;
-    UResourceBundle *rb = ures_open(nullptr, localeID, &status);
+    UResourceBundle* rb = ures_open(NULL, localeID, &status);
     rb = ures_getByKeyWithFallback(rb, "contextTransforms", rb, &status);
     rb = ures_getByKeyWithFallback(rb, "number-spellout", rb, &status);
-    if (U_SUCCESS(status) && rb != nullptr) {
+    if (U_SUCCESS(status) && rb != NULL) {
         int32_t len = 0;
-        const int32_t * intVector = ures_getIntVector(rb, &len, &status);
-        if (U_SUCCESS(status) && intVector != nullptr && len >= 2) {
+        const int32_t* intVector = ures_getIntVector(rb, &len, &status);
+        if (U_SUCCESS(status) && intVector != NULL && len >= 2) {
             capitalizationForUIListMenu = static_cast<UBool>(intVector[0]);
             capitalizationForStandAlone = static_cast<UBool>(intVector[1]);
         }
@@ -1699,8 +1675,7 @@ RuleBasedNumberFormat::initCapitalizationContextInfo(const Locale& thelocale)
 #endif
 }
 
-void
-RuleBasedNumberFormat::stripWhitespace(UnicodeString& description)
+void RuleBasedNumberFormat::stripWhitespace(UnicodeString& description)
 {
     // iterate through the characters...
     UnicodeString result;
@@ -1708,8 +1683,7 @@ RuleBasedNumberFormat::stripWhitespace(UnicodeString& description)
     int start = 0;
     while (start != -1 && start < description.length()) {
         // seek to the first non-whitespace character...
-        while (start < description.length()
-            && PatternProps::isWhiteSpace(description.charAt(start))) {
+        while (start < description.length() && PatternProps::isWhiteSpace(description.charAt(start))) {
             ++start;
         }
 
@@ -1721,8 +1695,7 @@ RuleBasedNumberFormat::stripWhitespace(UnicodeString& description)
             // the string into the result
             result.append(description, start, description.length() - start);
             start = -1;
-        }
-        else if (p < description.length()) {
+        } else if (p < description.length()) {
             result.append(description, start, p + 1 - start);
             start = p + 1;
         }
@@ -1739,50 +1712,47 @@ RuleBasedNumberFormat::stripWhitespace(UnicodeString& description)
     description.setTo(result);
 }
 
-
-void
-RuleBasedNumberFormat::dispose()
+void RuleBasedNumberFormat::dispose()
 {
     if (fRuleSets) {
         for (NFRuleSet** p = fRuleSets; *p; ++p) {
             delete *p;
         }
         uprv_free(fRuleSets);
-        fRuleSets = nullptr;
+        fRuleSets = NULL;
     }
 
     if (ruleSetDescriptions) {
-        delete [] ruleSetDescriptions;
-        ruleSetDescriptions = nullptr;
+        delete[] ruleSetDescriptions;
+        ruleSetDescriptions = NULL;
     }
 
 #if !UCONFIG_NO_COLLATION
     delete collator;
 #endif
-    collator = nullptr;
+    collator = NULL;
 
     delete decimalFormatSymbols;
-    decimalFormatSymbols = nullptr;
+    decimalFormatSymbols = NULL;
 
     delete defaultInfinityRule;
-    defaultInfinityRule = nullptr;
+    defaultInfinityRule = NULL;
 
     delete defaultNaNRule;
-    defaultNaNRule = nullptr;
+    defaultNaNRule = NULL;
 
     delete lenientParseRules;
-    lenientParseRules = nullptr;
+    lenientParseRules = NULL;
 
 #if !UCONFIG_NO_BREAK_ITERATION
     delete capitalizationBrkIter;
-    capitalizationBrkIter = nullptr;
+    capitalizationBrkIter = NULL;
 #endif
 
     if (localizations) {
         localizations = localizations->unref();
     }
 }
-
 
 //-----------------------------------------------------------------------
 // package-internal API
@@ -1793,17 +1763,16 @@ RuleBasedNumberFormat::dispose()
  * this function creates it the first time it's called.
  * @return The collator to use for lenient parsing, or null if lenient parsing
  * is turned off.
-*/
-const RuleBasedCollator*
-RuleBasedNumberFormat::getCollator() const
+ */
+const RuleBasedCollator* RuleBasedNumberFormat::getCollator() const
 {
 #if !UCONFIG_NO_COLLATION
     if (!fRuleSets) {
-        return nullptr;
+        return NULL;
     }
 
     // lazy-evaluate the collator
-    if (collator == nullptr && lenient) {
+    if (collator == NULL && lenient) {
         // create a default collator based on the formatter's locale,
         // then pull out that collator's rules, append any additional
         // rules specified in the description, and create a _new_
@@ -1813,18 +1782,18 @@ RuleBasedNumberFormat::getCollator() const
 
         Collator* temp = Collator::createInstance(locale, status);
         RuleBasedCollator* newCollator;
-        if (U_SUCCESS(status) && (newCollator = dynamic_cast<RuleBasedCollator*>(temp)) != nullptr) {
+        if (U_SUCCESS(status) && (newCollator = dynamic_cast<RuleBasedCollator*>(temp)) != NULL) {
             if (lenientParseRules) {
                 UnicodeString rules(newCollator->getRules());
                 rules.append(*lenientParseRules);
 
                 newCollator = new RuleBasedCollator(rules, status);
                 // Exit if newCollator could not be created.
-                if (newCollator == nullptr) {
-                    return nullptr;
+                if (newCollator == NULL) {
+                    return NULL;
                 }
             } else {
-                temp = nullptr;
+                temp = NULL;
             }
             if (U_SUCCESS(status)) {
                 newCollator->setAttribute(UCOL_DECOMPOSITION_MODE, UCOL_ON, status);
@@ -1843,9 +1812,7 @@ RuleBasedNumberFormat::getCollator() const
     return collator;
 }
 
-
-DecimalFormatSymbols*
-RuleBasedNumberFormat::initializeDecimalFormatSymbols(UErrorCode &status)
+DecimalFormatSymbols* RuleBasedNumberFormat::initializeDecimalFormatSymbols(UErrorCode& status)
 {
     // lazy-evaluate the DecimalFormatSymbols object.  This object
     // is shared by all DecimalFormat instances belonging to this
@@ -1862,20 +1829,18 @@ RuleBasedNumberFormat::initializeDecimalFormatSymbols(UErrorCode &status)
 /**
  * Returns the DecimalFormatSymbols object that should be used by all DecimalFormat
  * instances owned by this formatter.
-*/
-const DecimalFormatSymbols*
-RuleBasedNumberFormat::getDecimalFormatSymbols() const
+ */
+const DecimalFormatSymbols* RuleBasedNumberFormat::getDecimalFormatSymbols() const
 {
     return decimalFormatSymbols;
 }
 
-NFRule*
-RuleBasedNumberFormat::initializeDefaultInfinityRule(UErrorCode &status)
+NFRule* RuleBasedNumberFormat::initializeDefaultInfinityRule(UErrorCode& status)
 {
     if (U_FAILURE(status)) {
         return nullptr;
     }
-    if (defaultInfinityRule == nullptr) {
+    if (defaultInfinityRule == NULL) {
         UnicodeString rule(UNICODE_STRING_SIMPLE("Inf: "));
         rule.append(getDecimalFormatSymbols()->getSymbol(DecimalFormatSymbols::kInfinitySymbol));
         LocalPointer<NFRule> temp(new NFRule(this, rule, status), status);
@@ -1886,14 +1851,12 @@ RuleBasedNumberFormat::initializeDefaultInfinityRule(UErrorCode &status)
     return defaultInfinityRule;
 }
 
-const NFRule*
-RuleBasedNumberFormat::getDefaultInfinityRule() const
+const NFRule* RuleBasedNumberFormat::getDefaultInfinityRule() const
 {
     return defaultInfinityRule;
 }
 
-NFRule*
-RuleBasedNumberFormat::initializeDefaultNaNRule(UErrorCode &status)
+NFRule* RuleBasedNumberFormat::initializeDefaultNaNRule(UErrorCode& status)
 {
     if (U_FAILURE(status)) {
         return nullptr;
@@ -1909,21 +1872,19 @@ RuleBasedNumberFormat::initializeDefaultNaNRule(UErrorCode &status)
     return defaultNaNRule;
 }
 
-const NFRule*
-RuleBasedNumberFormat::getDefaultNaNRule() const
+const NFRule* RuleBasedNumberFormat::getDefaultNaNRule() const
 {
     return defaultNaNRule;
 }
 
 // De-owning the current localized symbols and adopt the new symbols.
-void
-RuleBasedNumberFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsToAdopt)
+void RuleBasedNumberFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsToAdopt)
 {
-    if (symbolsToAdopt == nullptr) {
-        return; // do not allow caller to set decimalFormatSymbols to nullptr
+    if (symbolsToAdopt == NULL) {
+        return; // do not allow caller to set decimalFormatSymbols to NULL
     }
 
-    if (decimalFormatSymbols != nullptr) {
+    if (decimalFormatSymbols != NULL) {
         delete decimalFormatSymbols;
     }
 
@@ -1934,11 +1895,11 @@ RuleBasedNumberFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsTo
         UErrorCode status = U_ZERO_ERROR;
 
         delete defaultInfinityRule;
-        defaultInfinityRule = nullptr;
+        defaultInfinityRule = NULL;
         initializeDefaultInfinityRule(status); // Reset with the new DecimalFormatSymbols
 
         delete defaultNaNRule;
-        defaultNaNRule = nullptr;
+        defaultNaNRule = NULL;
         initializeDefaultNaNRule(status); // Reset with the new DecimalFormatSymbols
 
         if (fRuleSets) {
@@ -1950,18 +1911,14 @@ RuleBasedNumberFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsTo
 }
 
 // Setting the symbols is equivalent to adopting a newly created localized symbols.
-void
-RuleBasedNumberFormat::setDecimalFormatSymbols(const DecimalFormatSymbols& symbols)
+void RuleBasedNumberFormat::setDecimalFormatSymbols(const DecimalFormatSymbols& symbols)
 {
     adoptDecimalFormatSymbols(new DecimalFormatSymbols(symbols));
 }
 
-PluralFormat *
-RuleBasedNumberFormat::createPluralFormat(UPluralType pluralType,
-                                          const UnicodeString &pattern,
-                                          UErrorCode& status) const
+PluralFormat* RuleBasedNumberFormat::createPluralFormat(UPluralType pluralType, const UnicodeString& pattern, UErrorCode& status) const
 {
-    auto *pf = new PluralFormat(locale, pluralType, pattern, status);
+    auto* pf = new PluralFormat(locale, pluralType, pattern, status);
     if (pf == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
     }
@@ -1972,7 +1929,8 @@ RuleBasedNumberFormat::createPluralFormat(UPluralType pluralType,
  * Get the rounding mode.
  * @return A rounding mode
  */
-DecimalFormat::ERoundingMode RuleBasedNumberFormat::getRoundingMode() const {
+DecimalFormat::ERoundingMode RuleBasedNumberFormat::getRoundingMode() const
+{
     return fRoundingMode;
 }
 
@@ -1981,7 +1939,8 @@ DecimalFormat::ERoundingMode RuleBasedNumberFormat::getRoundingMode() const {
  * increment is greater than zero.
  * @param roundingMode A rounding mode
  */
-void RuleBasedNumberFormat::setRoundingMode(DecimalFormat::ERoundingMode roundingMode) {
+void RuleBasedNumberFormat::setRoundingMode(DecimalFormat::ERoundingMode roundingMode)
+{
     fRoundingMode = roundingMode;
 }
 

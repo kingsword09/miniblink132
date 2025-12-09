@@ -1,4 +1,4 @@
-// © 2019 and later: Unicode, Inc. and others.
+﻿// © 2019 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __RESTRACE_H__
@@ -27,41 +27,53 @@ class CharString;
  */
 class U_COMMON_API ResourceTracer {
 public:
-    ResourceTracer() :
-        fResB(nullptr),
-        fParent(nullptr),
-        fKey(nullptr),
-        fIndex(-1) {}
+    ResourceTracer()
+        : fResB(nullptr)
+        , fParent(nullptr)
+        , fKey(nullptr)
+        , fIndex(-1)
+    {
+    }
 
-    ResourceTracer(const UResourceBundle* resB) :
-        fResB(resB),
-        fParent(nullptr),
-        fKey(nullptr),
-        fIndex(-1) {}
+    ResourceTracer(const UResourceBundle* resB)
+        : fResB(resB)
+        , fParent(nullptr)
+        , fKey(nullptr)
+        , fIndex(-1)
+    {
+    }
 
-    ResourceTracer(const UResourceBundle* resB, const char* key) :
-        fResB(resB),
-        fParent(nullptr),
-        fKey(key),
-        fIndex(-1) {}
+    ResourceTracer(const UResourceBundle* resB, const char* key)
+        : fResB(resB)
+        , fParent(nullptr)
+        , fKey(key)
+        , fIndex(-1)
+    {
+    }
 
-    ResourceTracer(const UResourceBundle* resB, int32_t index) :
-        fResB(resB),
-        fParent(nullptr),
-        fKey(nullptr),
-        fIndex(index) {}
+    ResourceTracer(const UResourceBundle* resB, int32_t index)
+        : fResB(resB)
+        , fParent(nullptr)
+        , fKey(nullptr)
+        , fIndex(index)
+    {
+    }
 
-    ResourceTracer(const ResourceTracer& parent, const char* key) :
-        fResB(nullptr),
-        fParent(&parent),
-        fKey(key),
-        fIndex(-1) {}
+    ResourceTracer(const ResourceTracer& parent, const char* key)
+        : fResB(nullptr)
+        , fParent(&parent)
+        , fKey(key)
+        , fIndex(-1)
+    {
+    }
 
-    ResourceTracer(const ResourceTracer& parent, int32_t index) :
-        fResB(nullptr),
-        fParent(&parent),
-        fKey(nullptr),
-        fIndex(index) {}
+    ResourceTracer(const ResourceTracer& parent, int32_t index)
+        : fResB(nullptr)
+        , fParent(&parent)
+        , fKey(nullptr)
+        , fIndex(index)
+    {
+    }
 
     ~ResourceTracer();
 
@@ -72,7 +84,8 @@ public:
      * Calls trace() if the resB or parent provided to the constructor was
      * non-null; otherwise, does nothing.
      */
-    void maybeTrace(const char* type) const {
+    void maybeTrace(const char* type) const
+    {
         if (fResB || fParent) {
             trace(type);
         }
@@ -113,23 +126,41 @@ U_NAMESPACE_BEGIN
  */
 class U_COMMON_API ResourceTracer {
 public:
-    ResourceTracer() {}
+    ResourceTracer()
+    {
+    }
 
-    ResourceTracer(const void*) {}
+    ResourceTracer(const void*)
+    {
+    }
 
-    ResourceTracer(const void*, const char*) {}
+    ResourceTracer(const void*, const char*)
+    {
+    }
 
-    ResourceTracer(const void*, int32_t) {}
+    ResourceTracer(const void*, int32_t)
+    {
+    }
 
-    ResourceTracer(const ResourceTracer&, const char*) {}
+    ResourceTracer(const ResourceTracer&, const char*)
+    {
+    }
 
-    ResourceTracer(const ResourceTracer&, int32_t) {}
+    ResourceTracer(const ResourceTracer&, int32_t)
+    {
+    }
 
-    void trace(const char*) const {}
+    void trace(const char*) const
+    {
+    }
 
-    void traceOpen() const {}
+    void traceOpen() const
+    {
+    }
 
-    void maybeTrace(const char*) const {}
+    void maybeTrace(const char*) const
+    {
+    }
 };
 
 /**
@@ -137,7 +168,9 @@ public:
  */
 class FileTracer {
 public:
-    static void traceOpen(const char*, const char*, const char*) {}
+    static void traceOpen(const char*, const char*, const char*)
+    {
+    }
 };
 
 U_NAMESPACE_END

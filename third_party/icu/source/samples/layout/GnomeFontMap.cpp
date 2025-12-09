@@ -1,4 +1,4 @@
-/*
+﻿/*
  ******************************************************************************
  * © 2016 and later: Unicode, Inc. and others.                    *
  * License & terms of use: http://www.unicode.org/copyright.html      *
@@ -21,8 +21,9 @@
 #include "FontMap.h"
 #include "GnomeFontMap.h"
 
-GnomeFontMap::GnomeFontMap(FT_Library engine, const char *fileName, le_int16 pointSize, GUISupport *guiSupport, LEErrorCode &status)
-    : FontMap(fileName, pointSize, guiSupport, status), fEngine(engine)
+GnomeFontMap::GnomeFontMap(FT_Library engine, const char* fileName, le_int16 pointSize, GUISupport* guiSupport, LEErrorCode& status)
+    : FontMap(fileName, pointSize, guiSupport, status)
+    , fEngine(engine)
 {
     // nothing to do?
 }
@@ -32,13 +33,13 @@ GnomeFontMap::~GnomeFontMap()
     // anything?
 }
 
-const LEFontInstance *GnomeFontMap::openFont(const char *fontName, le_int16 pointSize, LEErrorCode &status)
+const LEFontInstance* GnomeFontMap::openFont(const char* fontName, le_int16 pointSize, LEErrorCode& status)
 {
-    LEFontInstance *result = new GnomeFontInstance(fEngine, fontName, pointSize, status);
+    LEFontInstance* result = new GnomeFontInstance(fEngine, fontName, pointSize, status);
 
     if (LE_FAILURE(status)) {
-      delete result;
-      result = nullptr;
+        delete result;
+        result = NULL;
     }
 
     return result;

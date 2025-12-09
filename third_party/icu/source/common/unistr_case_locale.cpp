@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -29,28 +29,24 @@ U_NAMESPACE_BEGIN
 // Write implementation
 //========================================
 
-UnicodeString &
-UnicodeString::toLower() {
-  return caseMap(ustrcase_getCaseLocale(nullptr), 0,
-                 UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToLower);
+UnicodeString& UnicodeString::toLower()
+{
+    return caseMap(ustrcase_getCaseLocale(NULL), 0, UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToLower);
 }
 
-UnicodeString &
-UnicodeString::toLower(const Locale &locale) {
-  return caseMap(ustrcase_getCaseLocale(locale.getBaseName()), 0,
-                 UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToLower);
+UnicodeString& UnicodeString::toLower(const Locale& locale)
+{
+    return caseMap(ustrcase_getCaseLocale(locale.getBaseName()), 0, UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToLower);
 }
 
-UnicodeString &
-UnicodeString::toUpper() {
-  return caseMap(ustrcase_getCaseLocale(nullptr), 0,
-                 UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToUpper);
+UnicodeString& UnicodeString::toUpper()
+{
+    return caseMap(ustrcase_getCaseLocale(NULL), 0, UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToUpper);
 }
 
-UnicodeString &
-UnicodeString::toUpper(const Locale &locale) {
-  return caseMap(ustrcase_getCaseLocale(locale.getBaseName()), 0,
-                 UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToUpper);
+UnicodeString& UnicodeString::toUpper(const Locale& locale)
+{
+    return caseMap(ustrcase_getCaseLocale(locale.getBaseName()), 0, UCASEMAP_BREAK_ITERATOR_NULL ustrcase_internalToUpper);
 }
 
 U_NAMESPACE_END

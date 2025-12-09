@@ -1,4 +1,4 @@
-// © 2017 and later: Unicode, Inc. and others.
+﻿// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // edits.cpp
@@ -33,21 +33,23 @@ const int32_t MAX_SHORT_CHANGE = 0x6fff;
 const int32_t LENGTH_IN_1TRAIL = 61;
 const int32_t LENGTH_IN_2TRAIL = 62;
 
-}  // namespace
+} // namespace
 
-void Edits::releaseArray() noexcept {
+void Edits::releaseArray() U_NOEXCEPT
+{
     if (array != stackArray) {
         uprv_free(array);
     }
 }
 
-Edits &Edits::copyArray(const Edits &other) {
+Edits& Edits::copyArray(const Edits& other)
+{
     if (U_FAILURE(errorCode_)) {
         length = delta = numChanges = 0;
         return *this;
     }
     if (length > capacity) {
-        uint16_t *newArray = (uint16_t *)uprv_malloc((size_t)length * 2);
+        uint16_t* newArray = (uint16_t*)uprv_malloc((size_t)length * 2);
         if (newArray == nullptr) {
             length = delta = numChanges = 0;
             errorCode_ = U_MEMORY_ALLOCATION_ERROR;
@@ -63,7 +65,8 @@ Edits &Edits::copyArray(const Edits &other) {
     return *this;
 }
 
-Edits &Edits::moveArray(Edits &src) noexcept {
+Edits& Edits::moveArray(Edits& src) U_NOEXCEPT
+{
     if (U_FAILURE(errorCode_)) {
         length = delta = numChanges = 0;
         return *this;
@@ -85,8 +88,11 @@ Edits &Edits::moveArray(Edits &src) noexcept {
     return *this;
 }
 
-Edits &Edits::operator=(const Edits &other) {
-    if (this == &other) { return *this; }  // self-assignment: no-op
+Edits& Edits::operator=(const Edits& other)
+{
+    if (this == &other) {
+        return *this;
+    } // self-assignment: no-op
     length = other.length;
     delta = other.delta;
     numChanges = other.numChanges;
@@ -94,7 +100,8 @@ Edits &Edits::operator=(const Edits &other) {
     return copyArray(other);
 }
 
-Edits &Edits::operator=(Edits &&src) noexcept {
+Edits& Edits::operator=(Edits&& src) U_NOEXCEPT
+{
     length = src.length;
     delta = src.delta;
     numChanges = src.numChanges;
@@ -102,24 +109,29 @@ Edits &Edits::operator=(Edits &&src) noexcept {
     return moveArray(src);
 }
 
-Edits::~Edits() {
+Edits::~Edits()
+{
     releaseArray();
 }
 
-void Edits::reset() noexcept {
+void Edits::reset() U_NOEXCEPT
+{
     length = delta = numChanges = 0;
     errorCode_ = U_ZERO_ERROR;
 }
 
-void Edits::addUnchanged(int32_t unchangedLength) {
-    if(U_FAILURE(errorCode_) || unchangedLength == 0) { return; }
-    if(unchangedLength < 0) {
+void Edits::addUnchanged(int32_t unchangedLength)
+{
+    if (U_FAILURE(errorCode_) || unchangedLength == 0) {
+        return;
+    }
+    if (unchangedLength < 0) {
         errorCode_ = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
     // Merge into previous unchanged-text record, if any.
     int32_t last = lastUnit();
-    if(last < MAX_UNCHANGED) {
+    if (last < MAX_UNCHANGED) {
         int32_t remaining = MAX_UNCHANGED - last;
         if (remaining >= unchangedLength) {
             setLastUnit(last + unchangedLength);
@@ -129,19 +141,22 @@ void Edits::addUnchanged(int32_t unchangedLength) {
         unchangedLength -= remaining;
     }
     // Split large lengths into multiple units.
-    while(unchangedLength >= MAX_UNCHANGED_LENGTH) {
+    while (unchangedLength >= MAX_UNCHANGED_LENGTH) {
         append(MAX_UNCHANGED);
         unchangedLength -= MAX_UNCHANGED_LENGTH;
     }
     // Write a small (remaining) length.
-    if(unchangedLength > 0) {
+    if (unchangedLength > 0) {
         append(unchangedLength - 1);
     }
 }
 
-void Edits::addReplace(int32_t oldLength, int32_t newLength) {
-    if(U_FAILURE(errorCode_)) { return; }
-    if(oldLength < 0 || newLength < 0) {
+void Edits::addReplace(int32_t oldLength, int32_t newLength)
+{
+    if (U_FAILURE(errorCode_)) {
+        return;
+    }
+    if (oldLength < 0 || newLength < 0) {
         errorCode_ = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
@@ -151,8 +166,7 @@ void Edits::addReplace(int32_t oldLength, int32_t newLength) {
     ++numChanges;
     int32_t newDelta = newLength - oldLength;
     if (newDelta != 0) {
-        if ((newDelta > 0 && delta >= 0 && newDelta > (INT32_MAX - delta)) ||
-                (newDelta < 0 && delta < 0 && newDelta < (INT32_MIN - delta))) {
+        if ((newDelta > 0 && delta >= 0 && newDelta > (INT32_MAX - delta)) || (newDelta < 0 && delta < 0 && newDelta < (INT32_MIN - delta))) {
             // Integer overflow or underflow.
             errorCode_ = U_INDEX_OUTOFBOUNDS_ERROR;
             return;
@@ -160,14 +174,11 @@ void Edits::addReplace(int32_t oldLength, int32_t newLength) {
         delta += newDelta;
     }
 
-    if(0 < oldLength && oldLength <= MAX_SHORT_CHANGE_OLD_LENGTH &&
-            newLength <= MAX_SHORT_CHANGE_NEW_LENGTH) {
+    if (0 < oldLength && oldLength <= MAX_SHORT_CHANGE_OLD_LENGTH && newLength <= MAX_SHORT_CHANGE_NEW_LENGTH) {
         // Merge into previous same-lengths short-replacement record, if any.
         int32_t u = (oldLength << 12) | (newLength << 9);
         int32_t last = lastUnit();
-        if(MAX_UNCHANGED < last && last < MAX_SHORT_CHANGE &&
-                (last & ~SHORT_CHANGE_NUM_MASK) == u &&
-                (last & SHORT_CHANGE_NUM_MASK) < SHORT_CHANGE_NUM_MASK) {
+        if (MAX_UNCHANGED < last && last < MAX_SHORT_CHANGE && (last & ~SHORT_CHANGE_NUM_MASK) == u && (last & SHORT_CHANGE_NUM_MASK) < SHORT_CHANGE_NUM_MASK) {
             setLastUnit(last + 1);
             return;
         }
@@ -182,9 +193,9 @@ void Edits::addReplace(int32_t oldLength, int32_t newLength) {
         append(head);
     } else if ((capacity - length) >= 5 || growArray()) {
         int32_t limit = length + 1;
-        if(oldLength < LENGTH_IN_1TRAIL) {
+        if (oldLength < LENGTH_IN_1TRAIL) {
             head |= oldLength << 6;
-        } else if(oldLength <= 0x7fff) {
+        } else if (oldLength <= 0x7fff) {
             head |= LENGTH_IN_1TRAIL << 6;
             array[limit++] = (uint16_t)(0x8000 | oldLength);
         } else {
@@ -192,9 +203,9 @@ void Edits::addReplace(int32_t oldLength, int32_t newLength) {
             array[limit++] = (uint16_t)(0x8000 | (oldLength >> 15));
             array[limit++] = (uint16_t)(0x8000 | oldLength);
         }
-        if(newLength < LENGTH_IN_1TRAIL) {
+        if (newLength < LENGTH_IN_1TRAIL) {
             head |= newLength;
-        } else if(newLength <= 0x7fff) {
+        } else if (newLength <= 0x7fff) {
             head |= LENGTH_IN_1TRAIL;
             array[limit++] = (uint16_t)(0x8000 | newLength);
         } else {
@@ -207,13 +218,15 @@ void Edits::addReplace(int32_t oldLength, int32_t newLength) {
     }
 }
 
-void Edits::append(int32_t r) {
-    if(length < capacity || growArray()) {
+void Edits::append(int32_t r)
+{
+    if (length < capacity || growArray()) {
         array[length++] = (uint16_t)r;
     }
 }
 
-UBool Edits::growArray() {
+UBool Edits::growArray()
+{
     int32_t newCapacity;
     if (array == stackArray) {
         newCapacity = 2000;
@@ -221,7 +234,7 @@ UBool Edits::growArray() {
         // Not U_BUFFER_OVERFLOW_ERROR because that could be confused on a string transform API
         // with a result-string-buffer overflow.
         errorCode_ = U_INDEX_OUTOFBOUNDS_ERROR;
-        return false;
+        return FALSE;
     } else if (capacity >= (INT32_MAX / 2)) {
         newCapacity = INT32_MAX;
     } else {
@@ -230,34 +243,42 @@ UBool Edits::growArray() {
     // Grow by at least 5 units so that a maximal change record will fit.
     if ((newCapacity - capacity) < 5) {
         errorCode_ = U_INDEX_OUTOFBOUNDS_ERROR;
-        return false;
+        return FALSE;
     }
-    uint16_t *newArray = (uint16_t *)uprv_malloc((size_t)newCapacity * 2);
-    if (newArray == nullptr) {
+    uint16_t* newArray = (uint16_t*)uprv_malloc((size_t)newCapacity * 2);
+    if (newArray == NULL) {
         errorCode_ = U_MEMORY_ALLOCATION_ERROR;
-        return false;
+        return FALSE;
     }
     uprv_memcpy(newArray, array, (size_t)length * 2);
     releaseArray();
     array = newArray;
     capacity = newCapacity;
-    return true;
+    return TRUE;
 }
 
-UBool Edits::copyErrorTo(UErrorCode &outErrorCode) const {
-    if (U_FAILURE(outErrorCode)) { return true; }
-    if (U_SUCCESS(errorCode_)) { return false; }
+UBool Edits::copyErrorTo(UErrorCode& outErrorCode) const
+{
+    if (U_FAILURE(outErrorCode)) {
+        return TRUE;
+    }
+    if (U_SUCCESS(errorCode_)) {
+        return FALSE;
+    }
     outErrorCode = errorCode_;
-    return true;
+    return TRUE;
 }
 
-Edits &Edits::mergeAndAppend(const Edits &ab, const Edits &bc, UErrorCode &errorCode) {
-    if (copyErrorTo(errorCode)) { return *this; }
+Edits& Edits::mergeAndAppend(const Edits& ab, const Edits& bc, UErrorCode& errorCode)
+{
+    if (copyErrorTo(errorCode)) {
+        return *this;
+    }
     // Picture string a --(Edits ab)--> string b --(Edits bc)--> string c.
     // Parallel iteration over both Edits.
     Iterator abIter = ab.getFineIterator();
     Iterator bcIter = bc.getFineIterator();
-    UBool abHasNext = true, bcHasNext = true;
+    UBool abHasNext = TRUE, bcHasNext = TRUE;
     // Copy iterator state into local variables, so that we can modify and subdivide spans.
     // ab old & new length, bc old & new length
     int32_t aLength = 0, ab_bLength = 0, bc_bLength = 0, cLength = 0;
@@ -369,7 +390,7 @@ Edits &Edits::mergeAndAppend(const Edits &ab, const Edits &bc, UErrorCode &error
                 continue;
             }
             // Handle the shorter unchanged span below like a change.
-        } else {  // both abIter.hasChange() && bcIter.hasChange()
+        } else { // both abIter.hasChange() && bcIter.hasChange()
             if (ab_bLength == bc_bLength) {
                 // Changes on both sides up to the same position. Emit & reset.
                 addReplace(pending_aLength + aLength, pending_cLength + cLength);
@@ -385,7 +406,7 @@ Edits &Edits::mergeAndAppend(const Edits &ab, const Edits &bc, UErrorCode &error
         if (ab_bLength < bc_bLength) {
             bc_bLength -= ab_bLength;
             cLength = ab_bLength = 0;
-        } else {  // ab_bLength > bc_bLength
+        } else { // ab_bLength > bc_bLength
             ab_bLength -= bc_bLength;
             aLength = bc_bLength = 0;
         }
@@ -397,13 +418,25 @@ Edits &Edits::mergeAndAppend(const Edits &ab, const Edits &bc, UErrorCode &error
     return *this;
 }
 
-Edits::Iterator::Iterator(const uint16_t *a, int32_t len, UBool oc, UBool crs) :
-        array(a), index(0), length(len), remaining(0),
-        onlyChanges_(oc), coarse(crs),
-        dir(0), changed(false), oldLength_(0), newLength_(0),
-        srcIndex(0), replIndex(0), destIndex(0) {}
+Edits::Iterator::Iterator(const uint16_t* a, int32_t len, UBool oc, UBool crs)
+    : array(a)
+    , index(0)
+    , length(len)
+    , remaining(0)
+    , onlyChanges_(oc)
+    , coarse(crs)
+    , dir(0)
+    , changed(FALSE)
+    , oldLength_(0)
+    , newLength_(0)
+    , srcIndex(0)
+    , replIndex(0)
+    , destIndex(0)
+{
+}
 
-int32_t Edits::Iterator::readLength(int32_t head) {
+int32_t Edits::Iterator::readLength(int32_t head)
+{
     if (head < LENGTH_IN_1TRAIL) {
         return head;
     } else if (head < LENGTH_IN_2TRAIL) {
@@ -414,15 +447,14 @@ int32_t Edits::Iterator::readLength(int32_t head) {
         U_ASSERT((index + 2) <= length);
         U_ASSERT(array[index] >= 0x8000);
         U_ASSERT(array[index + 1] >= 0x8000);
-        int32_t len = ((head & 1) << 30) |
-                ((int32_t)(array[index] & 0x7fff) << 15) |
-                (array[index + 1] & 0x7fff);
+        int32_t len = ((head & 1) << 30) | ((int32_t)(array[index] & 0x7fff) << 15) | (array[index + 1] & 0x7fff);
         index += 2;
         return len;
     }
 }
 
-void Edits::Iterator::updateNextIndexes() {
+void Edits::Iterator::updateNextIndexes()
+{
     srcIndex += oldLength_;
     if (changed) {
         replIndex += newLength_;
@@ -430,7 +462,8 @@ void Edits::Iterator::updateNextIndexes() {
     destIndex += newLength_;
 }
 
-void Edits::Iterator::updatePreviousIndexes() {
+void Edits::Iterator::updatePreviousIndexes()
+{
     srcIndex -= oldLength_;
     if (changed) {
         replIndex -= newLength_;
@@ -438,19 +471,23 @@ void Edits::Iterator::updatePreviousIndexes() {
     destIndex -= newLength_;
 }
 
-UBool Edits::Iterator::noNext() {
+UBool Edits::Iterator::noNext()
+{
     // No change before or beyond the string.
     dir = 0;
-    changed = false;
+    changed = FALSE;
     oldLength_ = newLength_ = 0;
-    return false;
+    return FALSE;
 }
 
-UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode &errorCode) {
+UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode& errorCode)
+{
     // Forward iteration: Update the string indexes to the limit of the current span,
     // and post-increment-read array units to assemble a new span.
     // Leaves the array index one after the last unit of that span.
-    if (U_FAILURE(errorCode)) { return false; }
+    if (U_FAILURE(errorCode)) {
+        return FALSE;
+    }
     // We have an errorCode in case we need to start guarding against integer overflows.
     // It is also convenient for caller loops if we bail out when an error was set elsewhere.
     if (dir > 0) {
@@ -462,9 +499,9 @@ UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode &errorCode) {
             if (remaining > 0) {
                 // Fine-grained iterator:
                 // Stay on the current one of a sequence of compressed changes.
-                ++index;  // next() rests on the index after the sequence unit.
+                ++index; // next() rests on the index after the sequence unit.
                 dir = 1;
-                return true;
+                return TRUE;
             }
         }
         dir = 1;
@@ -473,7 +510,7 @@ UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode &errorCode) {
         // Fine-grained iterator: Continue a sequence of compressed changes.
         if (remaining > 1) {
             --remaining;
-            return true;
+            return TRUE;
         }
         remaining = 0;
     }
@@ -483,7 +520,7 @@ UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode &errorCode) {
     int32_t u = array[index++];
     if (u <= MAX_UNCHANGED) {
         // Combine adjacent unchanged ranges.
-        changed = false;
+        changed = FALSE;
         oldLength_ = u + 1;
         while (index < length && (u = array[index]) <= MAX_UNCHANGED) {
             ++index;
@@ -498,10 +535,10 @@ UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode &errorCode) {
             // already fetched u > MAX_UNCHANGED at index
             ++index;
         } else {
-            return true;
+            return TRUE;
         }
     }
-    changed = true;
+    changed = TRUE;
     if (u <= MAX_SHORT_CHANGE) {
         int32_t oldLen = u >> 12;
         int32_t newLen = (u >> 9) & MAX_SHORT_CHANGE_NEW_LENGTH;
@@ -514,16 +551,16 @@ UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode &errorCode) {
             oldLength_ = oldLen;
             newLength_ = newLen;
             if (num > 1) {
-                remaining = num;  // This is the first of two or more changes.
+                remaining = num; // This is the first of two or more changes.
             }
-            return true;
+            return TRUE;
         }
     } else {
         U_ASSERT(u <= 0x7fff);
         oldLength_ = readLength((u >> 6) & 0x3f);
         newLength_ = readLength(u & 0x3f);
         if (!coarse) {
-            return true;
+            return TRUE;
         }
     }
     // Combine adjacent changes.
@@ -539,14 +576,17 @@ UBool Edits::Iterator::next(UBool onlyChanges, UErrorCode &errorCode) {
             newLength_ += readLength(u & 0x3f);
         }
     }
-    return true;
+    return TRUE;
 }
 
-UBool Edits::Iterator::previous(UErrorCode &errorCode) {
+UBool Edits::Iterator::previous(UErrorCode& errorCode)
+{
     // Backward iteration: Pre-decrement-read array units to assemble a new span,
     // then update the string indexes to the start of that span.
     // Leaves the array index on the head unit of that span.
-    if (U_FAILURE(errorCode)) { return false; }
+    if (U_FAILURE(errorCode)) {
+        return FALSE;
+    }
     // We have an errorCode in case we need to start guarding against integer overflows.
     // It is also convenient for caller loops if we bail out when an error was set elsewhere.
     if (dir >= 0) {
@@ -557,9 +597,9 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
             if (remaining > 0) {
                 // Fine-grained iterator:
                 // Stay on the current one of a sequence of compressed changes.
-                --index;  // previous() rests on the sequence unit.
+                --index; // previous() rests on the sequence unit.
                 dir = -1;
-                return true;
+                return TRUE;
             }
             updateNextIndexes();
         }
@@ -572,7 +612,7 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
         if (remaining <= (u & SHORT_CHANGE_NUM_MASK)) {
             ++remaining;
             updatePreviousIndexes();
-            return true;
+            return TRUE;
         }
         remaining = 0;
     }
@@ -582,7 +622,7 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
     int32_t u = array[--index];
     if (u <= MAX_UNCHANGED) {
         // Combine adjacent unchanged ranges.
-        changed = false;
+        changed = FALSE;
         oldLength_ = u + 1;
         while (index > 0 && (u = array[index - 1]) <= MAX_UNCHANGED) {
             --index;
@@ -591,9 +631,9 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
         newLength_ = oldLength_;
         // No need to handle onlyChanges as long as previous() is called only from findIndex().
         updatePreviousIndexes();
-        return true;
+        return TRUE;
     }
-    changed = true;
+    changed = TRUE;
     if (u <= MAX_SHORT_CHANGE) {
         int32_t oldLen = u >> 12;
         int32_t newLen = (u >> 9) & MAX_SHORT_CHANGE_NEW_LENGTH;
@@ -606,10 +646,10 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
             oldLength_ = oldLen;
             newLength_ = newLen;
             if (num > 1) {
-                remaining = 1;  // This is the last of two or more changes.
+                remaining = 1; // This is the last of two or more changes.
             }
             updatePreviousIndexes();
-            return true;
+            return TRUE;
         }
     } else {
         if (u <= 0x7fff) {
@@ -620,7 +660,8 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
             // Back up to the head of the change, read the lengths,
             // and reset the index to the head again.
             U_ASSERT(index > 0);
-            while ((u = array[--index]) > 0x7fff) {}
+            while ((u = array[--index]) > 0x7fff) {
+            }
             U_ASSERT(u > MAX_SHORT_CHANGE);
             int32_t headIndex = index++;
             oldLength_ = readLength((u >> 6) & 0x3f);
@@ -629,7 +670,7 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
         }
         if (!coarse) {
             updatePreviousIndexes();
-            return true;
+            return TRUE;
         }
     }
     // Combine adjacent changes.
@@ -648,16 +689,19 @@ UBool Edits::Iterator::previous(UErrorCode &errorCode) {
         }
     }
     updatePreviousIndexes();
-    return true;
+    return TRUE;
 }
 
-int32_t Edits::Iterator::findIndex(int32_t i, UBool findSource, UErrorCode &errorCode) {
-    if (U_FAILURE(errorCode) || i < 0) { return -1; }
+int32_t Edits::Iterator::findIndex(int32_t i, UBool findSource, UErrorCode& errorCode)
+{
+    if (U_FAILURE(errorCode) || i < 0) {
+        return -1;
+    }
     int32_t spanStart, spanLength;
-    if (findSource) {  // find source index
+    if (findSource) { // find source index
         spanStart = srcIndex;
         spanLength = oldLength_;
-    } else {  // find destination index
+    } else { // find destination index
         spanStart = destIndex;
         spanLength = newLength_;
     }
@@ -666,8 +710,8 @@ int32_t Edits::Iterator::findIndex(int32_t i, UBool findSource, UErrorCode &erro
             // Search backwards.
             for (;;) {
                 UBool hasPrevious = previous(errorCode);
-                U_ASSERT(hasPrevious);  // because i>=0 and the first span starts at 0
-                (void)hasPrevious;  // avoid unused-variable warning
+                U_ASSERT(hasPrevious); // because i>=0 and the first span starts at 0
+                (void)hasPrevious; // avoid unused-variable warning
                 spanStart = findSource ? srcIndex : destIndex;
                 if (i >= spanStart) {
                     // The index is in the current span.
@@ -705,7 +749,7 @@ int32_t Edits::Iterator::findIndex(int32_t i, UBool findSource, UErrorCode &erro
         // The index is in the current span.
         return 0;
     }
-    while (next(false, errorCode)) {
+    while (next(FALSE, errorCode)) {
         if (findSource) {
             spanStart = srcIndex;
             spanLength = oldLength_;
@@ -722,7 +766,7 @@ int32_t Edits::Iterator::findIndex(int32_t i, UBool findSource, UErrorCode &erro
             // spanStart is the start of the current span, first of the remaining ones.
             int32_t len = remaining * spanLength;
             if (i < (spanStart + len)) {
-                int32_t n = (i - spanStart) / spanLength;  // 1 <= n <= remaining - 1
+                int32_t n = (i - spanStart) / spanLength; // 1 <= n <= remaining - 1
                 srcIndex += n * oldLength_;
                 replIndex += n * newLength_;
                 destIndex += n * newLength_;
@@ -738,8 +782,9 @@ int32_t Edits::Iterator::findIndex(int32_t i, UBool findSource, UErrorCode &erro
     return 1;
 }
 
-int32_t Edits::Iterator::destinationIndexFromSourceIndex(int32_t i, UErrorCode &errorCode) {
-    int32_t where = findIndex(i, true, errorCode);
+int32_t Edits::Iterator::destinationIndexFromSourceIndex(int32_t i, UErrorCode& errorCode)
+{
+    int32_t where = findIndex(i, TRUE, errorCode);
     if (where < 0) {
         // Error or before the string.
         return 0;
@@ -757,8 +802,9 @@ int32_t Edits::Iterator::destinationIndexFromSourceIndex(int32_t i, UErrorCode &
     }
 }
 
-int32_t Edits::Iterator::sourceIndexFromDestinationIndex(int32_t i, UErrorCode &errorCode) {
-    int32_t where = findIndex(i, false, errorCode);
+int32_t Edits::Iterator::sourceIndexFromDestinationIndex(int32_t i, UErrorCode& errorCode)
+{
+    int32_t where = findIndex(i, FALSE, errorCode);
     if (where < 0) {
         // Error or before the string.
         return 0;
@@ -776,7 +822,8 @@ int32_t Edits::Iterator::sourceIndexFromDestinationIndex(int32_t i, UErrorCode &
     }
 }
 
-UnicodeString& Edits::Iterator::toString(UnicodeString& sb) const {
+UnicodeString& Edits::Iterator::toString(UnicodeString& sb) const
+{
     sb.append(u"{ src[", -1);
     ICU_Utility::appendNumber(sb, srcIndex);
     sb.append(u"..", -1);

@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_CRDTP_JSON_PLATFORM_H_
-#define V8_CRDTP_JSON_PLATFORM_H_
+#ifndef CRDTP_JSON_PLATFORM_H_
+#define CRDTP_JSON_PLATFORM_H_
 
 #include <string>
 
-namespace v8_crdtp {
+namespace crdtp {
 namespace json {
 // These routines are implemented in json_platform.cc, or in a
 // platform-dependent (code-base dependent) custom replacement.
@@ -19,8 +19,8 @@ bool StrToD(const char* str, double* result);
 
 // Prints |value| in a format suitable for JSON.
 std::string DToStr(double value);
-}  // namespace platform
-}  // namespace json
-}  // namespace v8_crdtp
+} // namespace platform
+} // namespace json
+} // namespace crdtp
 
-#endif  // V8_CRDTP_JSON_PLATFORM_H_
+#endif // CRDTP_JSON_PLATFORM_H_

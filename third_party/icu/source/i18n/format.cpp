@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -21,7 +21,7 @@
 // This file was generated from the java source file Format.java
 // *****************************************************************************
 
-#include "utypeinfo.h"  // for 'typeid' to work
+#include "utypeinfo.h" // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -36,8 +36,8 @@
  * Unless we export _something_ in that case...
  */
 #if UCONFIG_NO_COLLATION && UCONFIG_NO_FORMATTING && UCONFIG_NO_TRANSLITERATION
-U_CAPI int32_t U_EXPORT2
-uprv_icuin_lib_dummy(int32_t i) {
+U_CAPI int32_t U_EXPORT2 uprv_icuin_lib_dummy(int32_t i)
+{
     return -i;
 }
 #endif
@@ -59,10 +59,12 @@ U_NAMESPACE_BEGIN
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(FieldPosition)
 
-FieldPosition::~FieldPosition() {}
+FieldPosition::~FieldPosition()
+{
+}
 
-FieldPosition *
-FieldPosition::clone() const {
+FieldPosition* FieldPosition::clone() const
+{
     return new FieldPosition(*this);
 }
 
@@ -84,7 +86,7 @@ Format::~Format()
 // -------------------------------------
 // copy constructor
 
-Format::Format(const Format &that)
+Format::Format(const Format& that)
     : UObject(that)
 {
     *this = that;
@@ -93,8 +95,7 @@ Format::Format(const Format &that)
 // -------------------------------------
 // assignment operator
 
-Format&
-Format::operator=(const Format& that)
+Format& Format::operator=(const Format& that)
 {
     if (this != &that) {
         uprv_strcpy(validLocale, that.validLocale);
@@ -107,12 +108,10 @@ Format::operator=(const Format& that)
 // Formats the obj and append the result in the buffer, toAppendTo.
 // This calls the actual implementation in the concrete subclasses.
 
-UnicodeString&
-Format::format(const Formattable& obj,
-               UnicodeString& toAppendTo,
-               UErrorCode& status) const
+UnicodeString& Format::format(const Formattable& obj, UnicodeString& toAppendTo, UErrorCode& status) const
 {
-    if (U_FAILURE(status)) return toAppendTo;
+    if (U_FAILURE(status))
+        return toAppendTo;
 
     FieldPosition pos(FieldPosition::DONT_CARE);
 
@@ -123,14 +122,11 @@ Format::format(const Formattable& obj,
 // Default implementation sets unsupported error; subclasses should
 // override.
 
-UnicodeString&
-Format::format(const Formattable& /* unused obj */,
-               UnicodeString& toAppendTo,
-               FieldPositionIterator* /* unused posIter */,
-               UErrorCode& status) const
+UnicodeString& Format::format(
+    const Formattable& /* unused obj */, UnicodeString& toAppendTo, FieldPositionIterator* /* unused posIter */, UErrorCode& status) const
 {
     if (!U_FAILURE(status)) {
-      status = U_UNSUPPORTED_ERROR;
+        status = U_UNSUPPORTED_ERROR;
     }
     return toAppendTo;
 }
@@ -139,12 +135,10 @@ Format::format(const Formattable& /* unused obj */,
 // Parses the source string and create the corresponding
 // result object.  Checks the parse position for errors.
 
-void
-Format::parseObject(const UnicodeString& source,
-                    Formattable& result,
-                    UErrorCode& status) const
+void Format::parseObject(const UnicodeString& source, Formattable& result, UErrorCode& status) const
 {
-    if (U_FAILURE(status)) return;
+    if (U_FAILURE(status))
+        return;
 
     ParsePosition parsePosition(0);
     parseObject(source, result, parsePosition);
@@ -155,8 +149,7 @@ Format::parseObject(const UnicodeString& source,
 
 // -------------------------------------
 
-bool
-Format::operator==(const Format& that) const
+bool Format::operator==(const Format& that) const
 {
     // Subclasses: Call this method and then add more specific checks.
     return typeid(*this) == typeid(that);
@@ -171,43 +164,43 @@ Format::operator==(const Format& that) const
  * @param parseError The UParseError object to fill in
  * @draft ICU 2.4
  */
-void Format::syntaxError(const UnicodeString& pattern,
-                         int32_t pos,
-                         UParseError& parseError) {
+void Format::syntaxError(const UnicodeString& pattern, int32_t pos, UParseError& parseError)
+{
     parseError.offset = pos;
-    parseError.line=0;  // we are not using line number
+    parseError.line = 0; // we are not using line number
 
     // for pre-context
-    int32_t start = (pos < U_PARSE_CONTEXT_LEN)? 0 : (pos - (U_PARSE_CONTEXT_LEN-1
-                                                             /* subtract 1 so that we have room for null*/));
-    int32_t stop  = pos;
-    pattern.extract(start,stop-start,parseError.preContext,0);
-    //null terminate the buffer
-    parseError.preContext[stop-start] = 0;
+    int32_t start = (pos < U_PARSE_CONTEXT_LEN) ? 0
+                                                : (pos
+                                                    - (U_PARSE_CONTEXT_LEN - 1
+                                                        /* subtract 1 so that we have room for null*/));
+    int32_t stop = pos;
+    pattern.extract(start, stop - start, parseError.preContext, 0);
+    // null terminate the buffer
+    parseError.preContext[stop - start] = 0;
 
-    //for post-context
-    start = pos+1;
-    stop  = ((pos+U_PARSE_CONTEXT_LEN)<=pattern.length()) ? (pos+(U_PARSE_CONTEXT_LEN-1)) :
-        pattern.length();
-    pattern.extract(start,stop-start,parseError.postContext,0);
-    //null terminate the buffer
-    parseError.postContext[stop-start]= 0;
+    // for post-context
+    start = pos + 1;
+    stop = ((pos + U_PARSE_CONTEXT_LEN) <= pattern.length()) ? (pos + (U_PARSE_CONTEXT_LEN - 1)) : pattern.length();
+    pattern.extract(start, stop - start, parseError.postContext, 0);
+    // null terminate the buffer
+    parseError.postContext[stop - start] = 0;
 }
 
-Locale
-Format::getLocale(ULocDataLocaleType type, UErrorCode& status) const {
+Locale Format::getLocale(ULocDataLocaleType type, UErrorCode& status) const
+{
     U_LOCALE_BASED(locBased, *this);
     return locBased.getLocale(type, status);
 }
 
-const char *
-Format::getLocaleID(ULocDataLocaleType type, UErrorCode& status) const {
+const char* Format::getLocaleID(ULocDataLocaleType type, UErrorCode& status) const
+{
     U_LOCALE_BASED(locBased, *this);
     return locBased.getLocaleID(type, status);
 }
 
-void
-Format::setLocaleIDs(const char* valid, const char* actual) {
+void Format::setLocaleIDs(const char* valid, const char* actual)
+{
     U_LOCALE_BASED(locBased, *this);
     locBased.setLocaleIDs(valid, actual);
 }
@@ -216,4 +209,4 @@ U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
-//eof
+// eof

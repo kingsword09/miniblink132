@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -42,8 +42,8 @@ public:
      * Otherwise usable.
      */
     static const uint8_t MERGE_SEPARATOR_BYTE = 2;
-    static const uint32_t MERGE_SEPARATOR_PRIMARY = 0x02000000;  // U+FFFE
-    static const uint32_t MERGE_SEPARATOR_CE32 = 0x02000505;  // U+FFFE
+    static const uint32_t MERGE_SEPARATOR_PRIMARY = 0x02000000; // U+FFFE
+    static const uint32_t MERGE_SEPARATOR_CE32 = 0x02000505; // U+FFFE
 
     /**
      * Primary compression low terminator, must be greater than MERGE_SEPARATOR_BYTE.
@@ -81,7 +81,7 @@ public:
     /** Case bits and quaternary bits. */
     static const uint32_t CASE_AND_QUATERNARY_MASK = CASE_MASK | QUATERNARY_MASK;
 
-    static const uint8_t UNASSIGNED_IMPLICIT_BYTE = 0xfe;  // compressible
+    static const uint8_t UNASSIGNED_IMPLICIT_BYTE = 0xfe; // compressible
     /**
      * First unassigned: AlphabeticIndex overflow boundary.
      * We want a 3-byte primary so that it fits into the root elements table.
@@ -92,10 +92,10 @@ public:
      */
     static const uint32_t FIRST_UNASSIGNED_PRIMARY = 0xfe040200;
 
-    static const uint8_t TRAIL_WEIGHT_BYTE = 0xff;  // not compressible
-    static const uint32_t FIRST_TRAILING_PRIMARY = 0xff020200;  // [first trailing]
-    static const uint32_t MAX_PRIMARY = 0xffff0000;  // U+FFFF
-    static const uint32_t MAX_REGULAR_CE32 = 0xffff0505;  // U+FFFF
+    static const uint8_t TRAIL_WEIGHT_BYTE = 0xff; // not compressible
+    static const uint32_t FIRST_TRAILING_PRIMARY = 0xff020200; // [first trailing]
+    static const uint32_t MAX_PRIMARY = 0xffff0000; // U+FFFF
+    static const uint32_t MAX_REGULAR_CE32 = 0xffff0505; // U+FFFF
 
     // CE32 value for U+FFFD as well as illegal UTF-8 byte sequences (which behave like U+FFFD).
     // We use the third-highest primary weight for U+FFFD (as in UCA 6.3+).
@@ -112,16 +112,16 @@ public:
     /**
      * Low byte of a long-primary special CE32.
      */
-    static const uint8_t LONG_PRIMARY_CE32_LOW_BYTE = 0xc1;  // SPECIAL_CE32_LOW_BYTE | LONG_PRIMARY_TAG
+    static const uint8_t LONG_PRIMARY_CE32_LOW_BYTE = 0xc1; // SPECIAL_CE32_LOW_BYTE | LONG_PRIMARY_TAG
 
-    static const uint32_t UNASSIGNED_CE32 = 0xffffffff;  // Compute an unassigned-implicit CE.
+    static const uint32_t UNASSIGNED_CE32 = 0xffffffff; // Compute an unassigned-implicit CE.
 
     static const uint32_t NO_CE32 = 1;
 
     /** No CE: End of input. Only used in runtime code, not stored in data. */
-    static const uint32_t NO_CE_PRIMARY = 1;  // not a left-adjusted weight
-    static const uint32_t NO_CE_WEIGHT16 = 0x0100;  // weight of LEVEL_SEPARATOR_BYTE
-    static const int64_t NO_CE = INT64_C(0x101000100);  // NO_CE_PRIMARY, NO_CE_WEIGHT16, NO_CE_WEIGHT16
+    static const uint32_t NO_CE_PRIMARY = 1; // not a left-adjusted weight
+    static const uint32_t NO_CE_WEIGHT16 = 0x0100; // weight of LEVEL_SEPARATOR_BYTE
+    static const int64_t NO_CE = INT64_C(0x101000100); // NO_CE_PRIMARY, NO_CE_WEIGHT16, NO_CE_WEIGHT16
 
     /** Sort key levels. */
     enum Level {
@@ -221,8 +221,7 @@ public:
         /**
          * Points to contraction data.
          * Bits 31..13: Index into prefix/contraction data.
-         * Bit      12: Unused, 0.
-         * Bit      11: CONTRACT_HAS_STARTER flag. (Used by ICU4X only.)
+         * Bits 12..11: Unused, 0.
          * Bit      10: CONTRACT_TRAILING_CCC flag.
          * Bit       9: CONTRACT_NEXT_CCC flag.
          * Bit       8: CONTRACT_SINGLE_CP_NO_MATCH flag.
@@ -275,7 +274,8 @@ public:
         IMPLICIT_TAG = 15
     };
 
-    static UBool isAssignedCE32(uint32_t ce32) {
+    static UBool isAssignedCE32(uint32_t ce32)
+    {
         return ce32 != FALLBACK_CE32 && ce32 != UNASSIGNED_CE32;
     }
 
@@ -299,8 +299,6 @@ public:
     static const uint32_t CONTRACT_NEXT_CCC = 0x200;
     /** Set if any contraction suffix ends with lccc!=0. */
     static const uint32_t CONTRACT_TRAILING_CCC = 0x400;
-    /** Set if any contraction suffix contains a starter. (Used by ICU4X only.) */
-    static const uint32_t CONTRACT_HAS_STARTER = 0x800;
 
     /** For HANGUL_TAG: None of its Jamo CE32s isSpecialCE32(). */
     static const uint32_t HANGUL_NO_SPECIAL_JAMO = 0x100;
@@ -310,83 +308,96 @@ public:
     static const uint32_t LEAD_MIXED = 0x200;
     static const uint32_t LEAD_TYPE_MASK = 0x300;
 
-    static uint32_t makeLongPrimaryCE32(uint32_t p) { return p | LONG_PRIMARY_CE32_LOW_BYTE; }
+    static uint32_t makeLongPrimaryCE32(uint32_t p)
+    {
+        return p | LONG_PRIMARY_CE32_LOW_BYTE;
+    }
 
     /** Turns the long-primary CE32 into a primary weight pppppp00. */
-    static inline uint32_t primaryFromLongPrimaryCE32(uint32_t ce32) {
+    static inline uint32_t primaryFromLongPrimaryCE32(uint32_t ce32)
+    {
         return ce32 & 0xffffff00;
     }
-    static inline int64_t ceFromLongPrimaryCE32(uint32_t ce32) {
+    static inline int64_t ceFromLongPrimaryCE32(uint32_t ce32)
+    {
         return ((int64_t)(ce32 & 0xffffff00) << 32) | COMMON_SEC_AND_TER_CE;
     }
 
-    static uint32_t makeLongSecondaryCE32(uint32_t lower32) {
+    static uint32_t makeLongSecondaryCE32(uint32_t lower32)
+    {
         return lower32 | SPECIAL_CE32_LOW_BYTE | LONG_SECONDARY_TAG;
     }
-    static inline int64_t ceFromLongSecondaryCE32(uint32_t ce32) {
+    static inline int64_t ceFromLongSecondaryCE32(uint32_t ce32)
+    {
         return ce32 & 0xffffff00;
     }
 
     /** Makes a special CE32 with tag, index and length. */
-    static uint32_t makeCE32FromTagIndexAndLength(int32_t tag, int32_t index, int32_t length) {
+    static uint32_t makeCE32FromTagIndexAndLength(int32_t tag, int32_t index, int32_t length)
+    {
         return (index << 13) | (length << 8) | SPECIAL_CE32_LOW_BYTE | tag;
     }
     /** Makes a special CE32 with only tag and index. */
-    static uint32_t makeCE32FromTagAndIndex(int32_t tag, int32_t index) {
+    static uint32_t makeCE32FromTagAndIndex(int32_t tag, int32_t index)
+    {
         return (index << 13) | SPECIAL_CE32_LOW_BYTE | tag;
     }
 
-    static inline UBool isSpecialCE32(uint32_t ce32) {
+    static inline UBool isSpecialCE32(uint32_t ce32)
+    {
         return (ce32 & 0xff) >= SPECIAL_CE32_LOW_BYTE;
     }
 
-    static inline int32_t tagFromCE32(uint32_t ce32) {
+    static inline int32_t tagFromCE32(uint32_t ce32)
+    {
         return (int32_t)(ce32 & 0xf);
     }
 
-    static inline UBool hasCE32Tag(uint32_t ce32, int32_t tag) {
+    static inline UBool hasCE32Tag(uint32_t ce32, int32_t tag)
+    {
         return isSpecialCE32(ce32) && tagFromCE32(ce32) == tag;
     }
 
-    static inline UBool isLongPrimaryCE32(uint32_t ce32) {
+    static inline UBool isLongPrimaryCE32(uint32_t ce32)
+    {
         return hasCE32Tag(ce32, LONG_PRIMARY_TAG);
     }
 
-    static UBool isSimpleOrLongCE32(uint32_t ce32) {
-        return !isSpecialCE32(ce32) ||
-                tagFromCE32(ce32) == LONG_PRIMARY_TAG ||
-                tagFromCE32(ce32) == LONG_SECONDARY_TAG;
+    static UBool isSimpleOrLongCE32(uint32_t ce32)
+    {
+        return !isSpecialCE32(ce32) || tagFromCE32(ce32) == LONG_PRIMARY_TAG || tagFromCE32(ce32) == LONG_SECONDARY_TAG;
     }
 
     /**
      * @return true if the ce32 yields one or more CEs without further data lookups
      */
-    static UBool isSelfContainedCE32(uint32_t ce32) {
-        return !isSpecialCE32(ce32) ||
-                tagFromCE32(ce32) == LONG_PRIMARY_TAG ||
-                tagFromCE32(ce32) == LONG_SECONDARY_TAG ||
-                tagFromCE32(ce32) == LATIN_EXPANSION_TAG;
+    static UBool isSelfContainedCE32(uint32_t ce32)
+    {
+        return !isSpecialCE32(ce32) || tagFromCE32(ce32) == LONG_PRIMARY_TAG || tagFromCE32(ce32) == LONG_SECONDARY_TAG
+            || tagFromCE32(ce32) == LATIN_EXPANSION_TAG;
     }
 
-    static inline UBool isPrefixCE32(uint32_t ce32) {
+    static inline UBool isPrefixCE32(uint32_t ce32)
+    {
         return hasCE32Tag(ce32, PREFIX_TAG);
     }
 
-    static inline UBool isContractionCE32(uint32_t ce32) {
+    static inline UBool isContractionCE32(uint32_t ce32)
+    {
         return hasCE32Tag(ce32, CONTRACTION_TAG);
     }
 
-    static inline UBool ce32HasContext(uint32_t ce32) {
-        return isSpecialCE32(ce32) &&
-                (tagFromCE32(ce32) == PREFIX_TAG ||
-                tagFromCE32(ce32) == CONTRACTION_TAG);
+    static inline UBool ce32HasContext(uint32_t ce32)
+    {
+        return isSpecialCE32(ce32) && (tagFromCE32(ce32) == PREFIX_TAG || tagFromCE32(ce32) == CONTRACTION_TAG);
     }
 
     /**
      * Get the first of the two Latin-expansion CEs encoded in ce32.
      * @see LATIN_EXPANSION_TAG
      */
-    static inline int64_t latinCE0FromCE32(uint32_t ce32) {
+    static inline int64_t latinCE0FromCE32(uint32_t ce32)
+    {
         return ((int64_t)(ce32 & 0xff000000) << 32) | COMMON_SECONDARY_CE | ((ce32 & 0xff0000) >> 8);
     }
 
@@ -394,47 +405,53 @@ public:
      * Get the second of the two Latin-expansion CEs encoded in ce32.
      * @see LATIN_EXPANSION_TAG
      */
-    static inline int64_t latinCE1FromCE32(uint32_t ce32) {
+    static inline int64_t latinCE1FromCE32(uint32_t ce32)
+    {
         return ((ce32 & 0xff00) << 16) | COMMON_TERTIARY_CE;
     }
 
     /**
      * Returns the data index from a special CE32.
      */
-    static inline int32_t indexFromCE32(uint32_t ce32) {
+    static inline int32_t indexFromCE32(uint32_t ce32)
+    {
         return (int32_t)(ce32 >> 13);
     }
 
     /**
      * Returns the data length from a ce32.
      */
-    static inline int32_t lengthFromCE32(uint32_t ce32) {
+    static inline int32_t lengthFromCE32(uint32_t ce32)
+    {
         return (ce32 >> 8) & 31;
     }
 
     /**
      * Returns the digit value from a DIGIT_TAG ce32.
      */
-    static inline char digitFromCE32(uint32_t ce32) {
+    static inline char digitFromCE32(uint32_t ce32)
+    {
         return (char)((ce32 >> 8) & 0xf);
     }
 
     /** Returns a 64-bit CE from a simple CE32 (not special). */
-    static inline int64_t ceFromSimpleCE32(uint32_t ce32) {
+    static inline int64_t ceFromSimpleCE32(uint32_t ce32)
+    {
         // normal form ppppsstt -> pppp0000ss00tt00
         // assert (ce32 & 0xff) < SPECIAL_CE32_LOW_BYTE
         return ((int64_t)(ce32 & 0xffff0000) << 32) | ((ce32 & 0xff00) << 16) | ((ce32 & 0xff) << 8);
     }
 
     /** Returns a 64-bit CE from a simple/long-primary/long-secondary CE32. */
-    static inline int64_t ceFromCE32(uint32_t ce32) {
+    static inline int64_t ceFromCE32(uint32_t ce32)
+    {
         uint32_t tertiary = ce32 & 0xff;
-        if(tertiary < SPECIAL_CE32_LOW_BYTE) {
+        if (tertiary < SPECIAL_CE32_LOW_BYTE) {
             // normal form ppppsstt -> pppp0000ss00tt00
             return ((int64_t)(ce32 & 0xffff0000) << 32) | ((ce32 & 0xff00) << 16) | (tertiary << 8);
         } else {
             ce32 -= tertiary;
-            if((tertiary & 0xf) == LONG_PRIMARY_TAG) {
+            if ((tertiary & 0xf) == LONG_PRIMARY_TAG) {
                 // long-primary form ppppppC1 -> pppppp00050000500
                 return ((int64_t)ce32 << 32) | COMMON_SEC_AND_TER_CE;
             } else {
@@ -446,28 +463,28 @@ public:
     }
 
     /** Creates a CE from a primary weight. */
-    static inline int64_t makeCE(uint32_t p) {
+    static inline int64_t makeCE(uint32_t p)
+    {
         return ((int64_t)p << 32) | COMMON_SEC_AND_TER_CE;
     }
     /**
      * Creates a CE from a primary weight,
      * 16-bit secondary/tertiary weights, and a 2-bit quaternary.
      */
-    static inline int64_t makeCE(uint32_t p, uint32_t s, uint32_t t, uint32_t q) {
+    static inline int64_t makeCE(uint32_t p, uint32_t s, uint32_t t, uint32_t q)
+    {
         return ((int64_t)p << 32) | (s << 16) | t | (q << 6);
     }
 
     /**
      * Increments a 2-byte primary by a code point offset.
      */
-    static uint32_t incTwoBytePrimaryByOffset(uint32_t basePrimary, UBool isCompressible,
-                                              int32_t offset);
+    static uint32_t incTwoBytePrimaryByOffset(uint32_t basePrimary, UBool isCompressible, int32_t offset);
 
     /**
      * Increments a 3-byte primary by a code point offset.
      */
-    static uint32_t incThreeBytePrimaryByOffset(uint32_t basePrimary, UBool isCompressible,
-                                                int32_t offset);
+    static uint32_t incThreeBytePrimaryByOffset(uint32_t basePrimary, UBool isCompressible, int32_t offset);
 
     /**
      * Decrements a 2-byte primary by one range step (1..0x7f).
@@ -489,15 +506,16 @@ public:
      */
     static uint32_t unassignedPrimaryFromCodePoint(UChar32 c);
 
-    static inline int64_t unassignedCEFromCodePoint(UChar32 c) {
+    static inline int64_t unassignedCEFromCodePoint(UChar32 c)
+    {
         return makeCE(unassignedPrimaryFromCodePoint(c));
     }
 
 private:
-    Collation() = delete;  // No instantiation.
+    Collation(); // No instantiation.
 };
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
-#endif  // __COLLATION_H__
+#endif // !UCONFIG_NO_COLLATION
+#endif // __COLLATION_H__

@@ -1,4 +1,4 @@
-/***********************************************************************
+﻿/***********************************************************************
  * © 2016 and later: Unicode, Inc. and others.
  * License & terms of use: http://www.unicode.org/copyright.html
  ***********************************************************************
@@ -14,9 +14,8 @@
 using namespace icu;
 
 class UnaccentTransliterator : public Transliterator {
-    
- public:
-    
+
+public:
     /**
      * Constructor
      */
@@ -27,26 +26,21 @@ class UnaccentTransliterator : public Transliterator {
      */
     virtual ~UnaccentTransliterator();
 
- protected:
-
+protected:
     /**
      * Implement Transliterator API
      */
-    virtual void handleTransliterate(Replaceable& text,
-                                     UTransPosition& index,
-                                     UBool incremental) const;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& index, UBool incremental) const;
 
- private:
-
+private:
     /**
      * Unaccent a single character using normalizer.
      */
-    char16_t unaccent(char16_t c) const;
+    UChar unaccent(UChar c) const;
 
     Normalizer normalizer;
 
 public:
-
     /**
      * Return the class ID for this class.  This is useful only for
      * comparing to a return value from getDynamicClassID().  For example:
@@ -58,18 +52,21 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; };
+    static inline UClassID getStaticClassID(void)
+    {
+        return (UClassID)&fgClassID;
+    };
 
     /**
      * Returns a unique class ID <b>polymorphically</b>.  This method
      * is to implement a simple version of RTTI, since not all C++
      * compilers support genuine RTTI.  Polymorphic operator==() and
      * clone() methods call this method.
-     * 
+     *
      * <p>Concrete subclasses of Transliterator that wish clients to
      * be able to identify them should implement getDynamicClassID()
      * and also a static method and data member:
-     * 
+     *
      * <pre>
      * static UClassID getStaticClassID() { return (UClassID)&fgClassID; }
      * static char fgClassID;
@@ -83,10 +80,12 @@ public:
      * different class IDs.
      * @stable ICU 2.0
      */
-    virtual UClassID getDynamicClassID() const { return getStaticClassID(); };
+    virtual UClassID getDynamicClassID(void) const
+    {
+        return getStaticClassID();
+    };
 
 private:
-
     /**
      * Class identifier for subclasses of Transliterator that do not
      * define their class (anonymous subclasses).

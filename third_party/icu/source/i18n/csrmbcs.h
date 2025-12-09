@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -29,21 +29,19 @@ U_NAMESPACE_BEGIN
 //   stripped of markup.  Detection only considers multi-byte chars, effectively
 //   stripping markup anyway, and double byte chars do occur in markup too.
 //
-class IteratedChar : public UMemory
-{
+class IteratedChar : public UMemory {
 public:
-    uint32_t charValue;             // 1-4 bytes from the raw input data
-    int32_t  index;
-    int32_t  nextIndex;
-    UBool    error;
-    UBool    done;
+    uint32_t charValue; // 1-4 bytes from the raw input data
+    int32_t index;
+    int32_t nextIndex;
+    UBool error;
+    UBool done;
 
 public:
     IteratedChar();
-    //void reset();
+    // void reset();
     int32_t nextByte(InputText* det);
 };
-
 
 class CharsetRecog_mbcs : public CharsetRecognizer {
 
@@ -63,7 +61,6 @@ protected:
     int32_t match_mbcs(InputText* det, const uint16_t commonChars[], int32_t commonCharsLen) const;
 
 public:
-
     virtual ~CharsetRecog_mbcs();
 
     /**
@@ -71,9 +68,9 @@ public:
      * @return the charset name.
      */
 
-    const char *getName() const override = 0;
-    const char *getLanguage() const override = 0;
-    UBool match(InputText* input, CharsetMatch *results) const override = 0;
+    const char* getName() const override = 0;
+    const char* getLanguage() const override = 0;
+    UBool match(InputText* input, CharsetMatch* results) const override = 0;
 
     /**
      * Get the next character (however many bytes it is) from the input data
@@ -87,10 +84,8 @@ public:
      *            being iterated over.
      * @return    True if a character was returned, false at end of input.
      */
-    virtual UBool nextChar(IteratedChar *it, InputText *textIn) const = 0;
-
+    virtual UBool nextChar(IteratedChar* it, InputText* textIn) const = 0;
 };
-
 
 /**
  *   Shift-JIS charset recognizer.
@@ -100,15 +95,13 @@ class CharsetRecog_sjis : public CharsetRecog_mbcs {
 public:
     virtual ~CharsetRecog_sjis();
 
-    UBool nextChar(IteratedChar *it, InputText *det) const override;
+    UBool nextChar(IteratedChar* it, InputText* det) const override;
 
-    UBool match(InputText* input, CharsetMatch *results) const override;
+    UBool match(InputText* input, CharsetMatch* results) const override;
 
-    const char *getName() const override;
-    const char *getLanguage() const override;
-
+    const char* getName() const override;
+    const char* getLanguage() const override;
 };
-
 
 /**
  *   EUC charset recognizers.  One abstract class that provides the common function
@@ -116,52 +109,49 @@ public:
  *             and nested derived classes for EUC_KR, EUC_JP, EUC_CN.
  *
  */
-class CharsetRecog_euc : public CharsetRecog_mbcs
-{
+class CharsetRecog_euc : public CharsetRecog_mbcs {
 public:
     virtual ~CharsetRecog_euc();
 
-    const char *getName() const override = 0;
-    const char *getLanguage() const override = 0;
+    const char* getName() const override = 0;
+    const char* getLanguage() const override = 0;
 
-    UBool match(InputText* input, CharsetMatch *results) const override = 0;
+    UBool match(InputText* input, CharsetMatch* results) const override = 0;
     /*
      *  (non-Javadoc)
      *  Get the next character value for EUC based encodings.
      *  Character "value" is simply the raw bytes that make up the character
      *     packed into an int.
      */
-    UBool nextChar(IteratedChar *it, InputText *det) const override;
+    UBool nextChar(IteratedChar* it, InputText* det) const override;
 };
 
 /**
  * The charset recognize for EUC-JP.  A singleton instance of this class
  *    is created and kept by the public CharsetDetector class
  */
-class CharsetRecog_euc_jp : public CharsetRecog_euc
-{
+class CharsetRecog_euc_jp : public CharsetRecog_euc {
 public:
     virtual ~CharsetRecog_euc_jp();
 
-    const char *getName() const override;
-    const char *getLanguage() const override;
+    const char* getName() const override;
+    const char* getLanguage() const override;
 
-    UBool match(InputText* input, CharsetMatch *results) const override;
+    UBool match(InputText* input, CharsetMatch* results) const override;
 };
 
 /**
  * The charset recognize for EUC-KR.  A singleton instance of this class
  *    is created and kept by the public CharsetDetector class
  */
-class CharsetRecog_euc_kr : public CharsetRecog_euc
-{
+class CharsetRecog_euc_kr : public CharsetRecog_euc {
 public:
     virtual ~CharsetRecog_euc_kr();
 
-    const char *getName() const override;
-    const char *getLanguage() const override;
+    const char* getName() const override;
+    const char* getLanguage() const override;
 
-    UBool match(InputText* input, CharsetMatch *results) const override;
+    UBool match(InputText* input, CharsetMatch* results) const override;
 };
 
 /**
@@ -169,36 +159,33 @@ public:
  *   Big5 charset recognizer.
  *
  */
-class CharsetRecog_big5 : public CharsetRecog_mbcs
-{
+class CharsetRecog_big5 : public CharsetRecog_mbcs {
 public:
     virtual ~CharsetRecog_big5();
 
     UBool nextChar(IteratedChar* it, InputText* det) const override;
 
-    const char *getName() const override;
-    const char *getLanguage() const override;
+    const char* getName() const override;
+    const char* getLanguage() const override;
 
-    UBool match(InputText* input, CharsetMatch *results) const override;
+    UBool match(InputText* input, CharsetMatch* results) const override;
 };
-
 
 /**
  *
  *   GB-18030 recognizer. Uses simplified Chinese statistics.
  *
  */
-class CharsetRecog_gb_18030 : public CharsetRecog_mbcs
-{
+class CharsetRecog_gb_18030 : public CharsetRecog_mbcs {
 public:
     virtual ~CharsetRecog_gb_18030();
 
     UBool nextChar(IteratedChar* it, InputText* det) const override;
 
-    const char *getName() const override;
-    const char *getLanguage() const override;
+    const char* getName() const override;
+    const char* getLanguage() const override;
 
-    UBool match(InputText* input, CharsetMatch *results) const override;
+    UBool match(InputText* input, CharsetMatch* results) const override;
 };
 
 U_NAMESPACE_END

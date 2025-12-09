@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -41,7 +41,7 @@ typedef enum UAlphabeticIndexLabelType {
      *  in the bucket with this label.
      * @stable ICU 4.8
      */
-    U_ALPHAINDEX_NORMAL    = 0,
+    U_ALPHAINDEX_NORMAL = 0,
 
     /**
      * Underflow Label.  The bucket with this label contains names
@@ -58,16 +58,15 @@ typedef enum UAlphabeticIndexLabelType {
      * included scripts.
      * @stable ICU 4.8
      */
-    U_ALPHAINDEX_INFLOW    = 2,
+    U_ALPHAINDEX_INFLOW = 2,
 
     /**
      * Overflow Label. The bucket with this label contains names in scripts
      * that sort after all of the bucket labels in this index.
      * @stable ICU 4.8
      */
-    U_ALPHAINDEX_OVERFLOW  = 3
+    U_ALPHAINDEX_OVERFLOW = 3
 } UAlphabeticIndexLabelType;
-
 
 struct UHashtable;
 U_CDECL_END
@@ -87,7 +86,7 @@ class UVector;
  * AlphabeticIndex supports the creation of a UI index appropriate for a given language.
  * It can support either direct use, or use with a client that doesn't support localized collation.
  * The following is an example of what an index might look like in a UI:
- * 
+ *
  * <pre>
  *  <b>... A B C D E F G H I J K L M N O P Q R S T U V W X Y Z  ...</b>
  *
@@ -189,18 +188,18 @@ class UVector;
  *
  * @stable ICU 4.8
  */
-class U_I18N_API AlphabeticIndex: public UObject {
+class U_I18N_API AlphabeticIndex : public UObject {
 public:
-     /**
-      * An index "bucket" with a label string and type.
-      * It is referenced by getBucketIndex(),
-      * and returned by ImmutableIndex.getBucket().
-      *
-      * The Bucket class is not intended for public subclassing.
-      * @stable ICU 51
-      */
-     class U_I18N_API Bucket : public UObject {
-     public:
+    /**
+     * An index "bucket" with a label string and type.
+     * It is referenced by getBucketIndex(),
+     * and returned by ImmutableIndex.getBucket().
+     *
+     * The Bucket class is not intended for public subclassing.
+     * @stable ICU 51
+     */
+    class U_I18N_API Bucket : public UObject {
+    public:
         /**
          * Destructor.
          * @stable ICU 51
@@ -213,30 +212,35 @@ public:
          * @return the label string for the bucket
          * @stable ICU 51
          */
-        const UnicodeString &getLabel() const { return label_; }
+        const UnicodeString& getLabel() const
+        {
+            return label_;
+        }
         /**
          * Returns whether this bucket is a normal, underflow, overflow, or inflow bucket.
          *
          * @return the bucket label type
          * @stable ICU 51
          */
-        UAlphabeticIndexLabelType getLabelType() const { return labelType_; }
+        UAlphabeticIndexLabelType getLabelType() const
+        {
+            return labelType_;
+        }
 
-     private:
+    private:
         friend class AlphabeticIndex;
         friend class BucketList;
 
         UnicodeString label_;
         UnicodeString lowerBoundary_;
         UAlphabeticIndexLabelType labelType_;
-        Bucket *displayBucket_;
+        Bucket* displayBucket_;
         int32_t displayIndex_;
-        UVector *records_;  // Records are owned by the inputList_ vector.
+        UVector* records_; // Records are owned by the inputList_ vector.
 
-        Bucket(const UnicodeString &label,   // Parameter strings are copied.
-               const UnicodeString &lowerBoundary,
-               UAlphabeticIndexLabelType type);
-     };
+        Bucket(const UnicodeString& label, // Parameter strings are copied.
+            const UnicodeString& lowerBoundary, UAlphabeticIndexLabelType type);
+    };
 
     /**
      * Immutable, thread-safe version of AlphabeticIndex.
@@ -274,25 +278,28 @@ public:
          * @return the bucket number for the name
          * @stable ICU 51
          */
-        int32_t getBucketIndex(const UnicodeString &name, UErrorCode &errorCode) const;
+        int32_t getBucketIndex(const UnicodeString& name, UErrorCode& errorCode) const;
 
         /**
-         * Returns the index-th bucket. Returns nullptr if the index is out of range.
+         * Returns the index-th bucket. Returns NULL if the index is out of range.
          *
          * @param index bucket number
          * @return the index-th bucket
          * @stable ICU 51
          */
-        const Bucket *getBucket(int32_t index) const;
+        const Bucket* getBucket(int32_t index) const;
 
     private:
         friend class AlphabeticIndex;
 
-        ImmutableIndex(BucketList *bucketList, Collator *collatorPrimaryOnly)
-                : buckets_(bucketList), collatorPrimaryOnly_(collatorPrimaryOnly) {}
+        ImmutableIndex(BucketList* bucketList, Collator* collatorPrimaryOnly)
+            : buckets_(bucketList)
+            , collatorPrimaryOnly_(collatorPrimaryOnly)
+        {
+        }
 
-        BucketList *buckets_;
-        Collator *collatorPrimaryOnly_;
+        BucketList* buckets_;
+        Collator* collatorPrimaryOnly_;
     };
 
     /**
@@ -307,35 +314,35 @@ public:
      *               of the AlphabeticIndex object fails.
      * @stable ICU 4.8
      */
-     AlphabeticIndex(const Locale &locale, UErrorCode &status);
+    AlphabeticIndex(const Locale& locale, UErrorCode& status);
 
-   /** 
+    /**
      * Construct an AlphabeticIndex that uses a specific collator.
-     * 
+     *
      * The index will be created with no labels; the addLabels() function must be called
      * after creation to add the desired labels to the index.
-     * 
-     * The index adopts the collator, and is responsible for deleting it. 
+     *
+     * The index adopts the collator, and is responsible for deleting it.
      * The caller should make no further use of the collator after creating the index.
-     * 
+     *
      * @param collator The collator to use to order the contents of this index.
-     * @param status Error code, will be set with the reason if the 
+     * @param status Error code, will be set with the reason if the
      *               operation fails.
      * @stable ICU 51
      */
-    AlphabeticIndex(RuleBasedCollator *collator, UErrorCode &status);
+    AlphabeticIndex(RuleBasedCollator* collator, UErrorCode& status);
 
     /**
      * Add Labels to this Index.  The labels are additions to those
      * that are already in the index; they do not replace the existing
      * ones.
      * @param additions The additional characters to add to the index, such as A-Z.
-     * @param status Error code, will be set with the reason if the 
+     * @param status Error code, will be set with the reason if the
      *               operation fails.
      * @return this, for chaining
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &addLabels(const UnicodeSet &additions, UErrorCode &status);
+    virtual AlphabeticIndex& addLabels(const UnicodeSet& additions, UErrorCode& status);
 
     /**
      * Add the index characters from a Locale to the index.  The labels
@@ -345,17 +352,17 @@ public:
      * when creating this Index.
      *
      * @param locale The locale whose index characters are to be added.
-     * @param status Error code, will be set with the reason if the 
+     * @param status Error code, will be set with the reason if the
      *               operation fails.
      * @return this, for chaining
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &addLabels(const Locale &locale, UErrorCode &status);
+    virtual AlphabeticIndex& addLabels(const Locale& locale, UErrorCode& status);
 
-     /**
-      * Destructor
-      * @stable ICU 4.8
-      */
+    /**
+     * Destructor
+     * @stable ICU 4.8
+     */
     virtual ~AlphabeticIndex();
 
     /**
@@ -364,7 +371,7 @@ public:
      * @return an immutable index instance
      * @stable ICU 51
      */
-    ImmutableIndex *buildImmutableIndex(UErrorCode &errorCode);
+    ImmutableIndex* buildImmutableIndex(UErrorCode& errorCode);
 
     /**
      * Get the Collator that establishes the ordering of the items in this index.
@@ -378,10 +385,9 @@ public:
      * @return The collator
      * @stable ICU 4.8
      */
-    virtual const RuleBasedCollator &getCollator() const;
+    virtual const RuleBasedCollator& getCollator() const;
 
-
-   /**
+    /**
      * Get the default label used for abbreviated buckets *between* other index characters.
      * For example, consider the labels when Latin (X Y Z) and Greek (Α Β Γ) are used:
      *
@@ -390,9 +396,9 @@ public:
      * @return inflow label
      * @stable ICU 4.8
      */
-    virtual const UnicodeString &getInflowLabel() const;
+    virtual const UnicodeString& getInflowLabel() const;
 
-   /**
+    /**
      * Set the default label used for abbreviated buckets <i>between</i> other index characters.
      * An inflow label will be automatically inserted if two otherwise-adjacent label characters
      * are from different scripts, e.g. Latin and Cyrillic, and a third script, e.g. Greek,
@@ -403,20 +409,18 @@ public:
      * @return this
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &setInflowLabel(const UnicodeString &inflowLabel, UErrorCode &status);
+    virtual AlphabeticIndex& setInflowLabel(const UnicodeString& inflowLabel, UErrorCode& status);
 
-
-   /**
+    /**
      * Get the special label used for items that sort after the last normal label,
      * and that would not otherwise have an appropriate label.
      *
      * @return the overflow label
      * @stable ICU 4.8
      */
-    virtual const UnicodeString &getOverflowLabel() const;
+    virtual const UnicodeString& getOverflowLabel() const;
 
-
-   /**
+    /**
      * Set the label used for items that sort after the last normal label,
      * and that would not otherwise have an appropriate label.
      *
@@ -425,18 +429,18 @@ public:
      * @return this
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &setOverflowLabel(const UnicodeString &overflowLabel, UErrorCode &status);
+    virtual AlphabeticIndex& setOverflowLabel(const UnicodeString& overflowLabel, UErrorCode& status);
 
-   /**
+    /**
      * Get the special label used for items that sort before the first normal label,
      * and that would not otherwise have an appropriate label.
      *
      * @return underflow label
      * @stable ICU 4.8
      */
-    virtual const UnicodeString &getUnderflowLabel() const;
+    virtual const UnicodeString& getUnderflowLabel() const;
 
-   /**
+    /**
      * Set the label used for items that sort before the first normal label,
      * and that would not otherwise have an appropriate label.
      *
@@ -445,8 +449,7 @@ public:
      * @return this
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &setUnderflowLabel(const UnicodeString &underflowLabel, UErrorCode &status);
-
+    virtual AlphabeticIndex& setUnderflowLabel(const UnicodeString& underflowLabel, UErrorCode& status);
 
     /**
      * Get the limit on the number of labels permitted in the index.
@@ -469,8 +472,7 @@ public:
      * @return This, for chaining
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &setMaxLabelCount(int32_t maxLabelCount, UErrorCode &status);
-
+    virtual AlphabeticIndex& setMaxLabelCount(int32_t maxLabelCount, UErrorCode& status);
 
     /**
      * Add a record to the index.  Each record will be associated with an index Bucket
@@ -488,7 +490,7 @@ public:
      * @return        This, for chaining.
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &addRecord(const UnicodeString &name, const void *data, UErrorCode &status);
+    virtual AlphabeticIndex& addRecord(const UnicodeString& name, const void* data, UErrorCode& status);
 
     /**
      * Remove all Records from the Index.  The set of Buckets, which define the headings under
@@ -498,8 +500,7 @@ public:
      * @return        This, for chaining.
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &clearRecords(UErrorCode &status);
-
+    virtual AlphabeticIndex& clearRecords(UErrorCode& status);
 
     /**  Get the number of labels in this index.
      *      Note: may trigger lazy index construction.
@@ -509,8 +510,7 @@ public:
      *                in-flow labels.
      * @stable ICU 4.8
      */
-    virtual int32_t  getBucketCount(UErrorCode &status);
-
+    virtual int32_t getBucketCount(UErrorCode& status);
 
     /**  Get the total number of Records in this index, that is, the number
      *   of <name, data> pairs added.
@@ -520,9 +520,7 @@ public:
      *                of (name, data) items added with addRecord().
      * @stable ICU 4.8
      */
-    virtual int32_t  getRecordCount(UErrorCode &status);
-
-
+    virtual int32_t getRecordCount(UErrorCode& status);
 
     /**
      *   Given the name of a record, return the zero-based index of the Bucket
@@ -536,8 +534,7 @@ public:
      * @stable ICU 4.8
      *
      */
-    virtual int32_t  getBucketIndex(const UnicodeString &itemName, UErrorCode &status);
-
+    virtual int32_t getBucketIndex(const UnicodeString& itemName, UErrorCode& status);
 
     /**
      *   Get the zero based index of the current Bucket from an iteration
@@ -545,8 +542,7 @@ public:
      *   @return  the index of the current Bucket
      *   @stable ICU 4.8
      */
-    virtual int32_t  getBucketIndex() const;
-
+    virtual int32_t getBucketIndex() const;
 
     /**
      *   Advance the iteration over the Buckets of this index.  Return false if
@@ -559,7 +555,7 @@ public:
      *   @return true if success, false if at end of iteration
      *   @stable ICU 4.8
      */
-    virtual UBool nextBucket(UErrorCode &status);
+    virtual UBool nextBucket(UErrorCode& status);
 
     /**
      *   Return the name of the Label of the current bucket from an iteration over the buckets.
@@ -569,7 +565,7 @@ public:
      *   @return the bucket label.
      *   @stable ICU 4.8
      */
-    virtual const UnicodeString &getBucketLabel() const;
+    virtual const UnicodeString& getBucketLabel() const;
 
     /**
      *  Return the type of the label for the current Bucket (selected by the
@@ -581,15 +577,14 @@ public:
     virtual UAlphabeticIndexLabelType getBucketLabelType() const;
 
     /**
-      * Get the number of <name, data> Records in the current Bucket.
-      * If the current bucket iteration position is before the first label or after the
-      * last, return 0.
-      *
-      *  @return the number of Records.
-      *  @stable ICU 4.8
-      */
+     * Get the number of <name, data> Records in the current Bucket.
+     * If the current bucket iteration position is before the first label or after the
+     * last, return 0.
+     *
+     *  @return the number of Records.
+     *  @stable ICU 4.8
+     */
     virtual int32_t getBucketRecordCount() const;
-
 
     /**
      *  Reset the Bucket iteration for this index.  The next call to nextBucket()
@@ -599,7 +594,7 @@ public:
      * @return        this, for chaining.
      * @stable ICU 4.8
      */
-    virtual AlphabeticIndex &resetBucketIterator(UErrorCode &status);
+    virtual AlphabeticIndex& resetBucketIterator(UErrorCode& status);
 
     /**
      * Advance to the next record in the current Bucket.
@@ -612,7 +607,7 @@ public:
      *   @return true if successful, false when the iteration advances past the last item.
      *   @stable ICU 4.8
      */
-    virtual UBool nextRecord(UErrorCode &status);
+    virtual UBool nextRecord(UErrorCode& status);
 
     /**
      * Get the name of the current Record.
@@ -622,19 +617,17 @@ public:
      *  @return The name of the current index item.
      *  @stable ICU 4.8
      */
-    virtual const UnicodeString &getRecordName() const;
-
+    virtual const UnicodeString& getRecordName() const;
 
     /**
      * Return the data pointer of the Record currently being iterated over.
-     * Return nullptr if the current iteration position before the first item in this Bucket,
+     * Return NULL if the current iteration position before the first item in this Bucket,
      * or after the last.
      *
      *  @return The current Record's data pointer.
      *  @stable ICU 4.8
      */
-    virtual const void *getRecordData() const;
-
+    virtual const void* getRecordData() const;
 
     /**
      * Reset the Record iterator position to before the first Record in the current Bucket.
@@ -642,62 +635,64 @@ public:
      *  @return This, for chaining.
      *  @stable ICU 4.8
      */
-    virtual AlphabeticIndex &resetRecordIterator();
+    virtual AlphabeticIndex& resetRecordIterator();
 
 private:
-     /**
-      * No Copy constructor.
-      * @internal (private)
-      */
-     AlphabeticIndex(const AlphabeticIndex &other) = delete;
+    /**
+     * No Copy constructor.
+     * @internal (private)
+     */
+    AlphabeticIndex(const AlphabeticIndex& other);
 
-     /**
-      *   No assignment.
-      */
-     AlphabeticIndex &operator =(const AlphabeticIndex & /*other*/) { return *this;}
+    /**
+     *   No assignment.
+     */
+    AlphabeticIndex& operator=(const AlphabeticIndex& /*other*/)
+    {
+        return *this;
+    }
 
     /**
      * No Equality operators.
      * @internal (private)
      */
-     virtual bool operator==(const AlphabeticIndex& other) const;
+    virtual bool operator==(const AlphabeticIndex& other) const;
 
     /**
      * Inequality operator.
      * @internal (private)
      */
-     virtual bool operator!=(const AlphabeticIndex& other) const;
+    virtual bool operator!=(const AlphabeticIndex& other) const;
 
-     // Common initialization, for use from all constructors.
-     void init(const Locale *locale, UErrorCode &status);
+    // Common initialization, for use from all constructors.
+    void init(const Locale* locale, UErrorCode& status);
 
     /**
      * This method is called to get the index exemplars. Normally these come from the locale directly,
      * but if they aren't available, we have to synthesize them.
      */
-    void addIndexExemplars(const Locale &locale, UErrorCode &status);
+    void addIndexExemplars(const Locale& locale, UErrorCode& status);
     /**
      * Add Chinese index characters from the tailoring.
      */
-    UBool addChineseIndexCharacters(UErrorCode &errorCode);
+    UBool addChineseIndexCharacters(UErrorCode& errorCode);
 
-    UVector *firstStringsInScript(UErrorCode &status);
+    UVector* firstStringsInScript(UErrorCode& status);
 
-    static UnicodeString separated(const UnicodeString &item);
+    static UnicodeString separated(const UnicodeString& item);
 
     /**
      * Determine the best labels to use.
      * This is based on the exemplars, but we also process to make sure that they are unique,
      * and sort differently, and that the overall list is small enough.
      */
-    void initLabels(UVector &indexCharacters, UErrorCode &errorCode) const;
-    BucketList *createBucketList(UErrorCode &errorCode) const;
-    void initBuckets(UErrorCode &errorCode);
+    void initLabels(UVector& indexCharacters, UErrorCode& errorCode) const;
+    BucketList* createBucketList(UErrorCode& errorCode) const;
+    void initBuckets(UErrorCode& errorCode);
     void clearBuckets();
     void internalResetBucketIterator();
 
 public:
-
     //  The Record is declared public only to allow access from
     //  implementation code written in plain C.
     //  It is not intended for public use.
@@ -709,57 +704,56 @@ public:
      * \cond
      * @internal
      */
-    struct Record: public UMemory {
-        const UnicodeString  name_;
-        const void           *data_;
-        Record(const UnicodeString &name, const void *data);
+    struct Record : public UMemory {
+        const UnicodeString name_;
+        const void* data_;
+        Record(const UnicodeString& name, const void* data);
         ~Record();
     };
     /** \endcond */
-#endif  /* U_HIDE_INTERNAL_API */
+#endif /* U_HIDE_INTERNAL_API */
 
 private:
-
     /**
      * Holds all user records before they are distributed into buckets.
      * Type of contents is (Record *)
      * @internal (private)
      */
-    UVector  *inputList_;
+    UVector* inputList_;
 
-    int32_t  labelsIterIndex_;        // Index of next item to return.
-    int32_t  itemsIterIndex_;
-    Bucket   *currentBucket_;         // While an iteration of the index in underway,
-                                      //   point to the bucket for the current label.
-                                      // nullptr when no iteration underway.
+    int32_t labelsIterIndex_; // Index of next item to return.
+    int32_t itemsIterIndex_;
+    Bucket* currentBucket_; // While an iteration of the index in underway,
+        //   point to the bucket for the current label.
+        // NULL when no iteration underway.
 
-    int32_t    maxLabelCount_;        // Limit on # of labels permitted in the index.
+    int32_t maxLabelCount_; // Limit on # of labels permitted in the index.
 
-    UnicodeSet *initialLabels_;       // Initial (unprocessed) set of Labels.  Union
-                                      //   of those explicitly set by the user plus
-                                      //   those from locales.  Raw values, before
-                                      //   crunching into bucket labels.
+    UnicodeSet* initialLabels_; // Initial (unprocessed) set of Labels.  Union
+        //   of those explicitly set by the user plus
+        //   those from locales.  Raw values, before
+        //   crunching into bucket labels.
 
-    UVector *firstCharsInScripts_;    // The first character from each script,
-                                      //   in collation order.
+    UVector* firstCharsInScripts_; // The first character from each script,
+        //   in collation order.
 
-    RuleBasedCollator *collator_;
-    RuleBasedCollator *collatorPrimaryOnly_;
+    RuleBasedCollator* collator_;
+    RuleBasedCollator* collatorPrimaryOnly_;
 
     // Lazy evaluated: null means that we have not built yet.
-    BucketList *buckets_;
+    BucketList* buckets_;
 
-    UnicodeString  inflowLabel_;
-    UnicodeString  overflowLabel_;
-    UnicodeString  underflowLabel_;
-    UnicodeString  overflowComparisonString_;
+    UnicodeString inflowLabel_;
+    UnicodeString overflowLabel_;
+    UnicodeString underflowLabel_;
+    UnicodeString overflowComparisonString_;
 
     UnicodeString emptyString_;
 };
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
+#endif // !UCONFIG_NO_COLLATION
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ***************************************************************************
@@ -19,13 +19,11 @@
 #ifndef USPOOF_H
 #define USPOOF_H
 
-#include "unicode/ubidi.h"
 #include "unicode/utypes.h"
 #include "unicode/uset.h"
 #include "unicode/parseerr.h"
 
 #if !UCONFIG_NO_NORMALIZATION
-
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
@@ -33,10 +31,9 @@
 #include "unicode/uniset.h"
 #endif
 
-
 /**
  * \file
- * \brief C API: Unicode Security and Spoofing Detection
+ * \brief Unicode Security and Spoofing Detection, C API.
  *
  * <p>
  * This class, based on <a href="http://unicode.org/reports/tr36">Unicode Technical Report #36</a> and
@@ -83,25 +80,6 @@
  * confusability test; and the following line extracts the result out of the return value. For best performance,
  * the instance should be created once (e.g., upon application startup), and the efficient
  * {@link uspoof_areConfusable} method can be used at runtime.
- *
- * If the paragraph direction used to display the strings is known, the bidi function should be used instead:
- *
- * \code{.c}
- * UErrorCode status = U_ZERO_ERROR;
- * // These strings look identical when rendered in a left-to-right context.
- * // They look distinct in a right-to-left context.
- * UChar* str1 = (UChar*) u"A1\u05D0";  // A1א
- * UChar* str2 = (UChar*) u"A\u05D01";  // Aא1
- *
- * USpoofChecker* sc = uspoof_open(&status);
- * uspoof_setChecks(sc, USPOOF_CONFUSABLE, &status);
- *
- * int32_t bitmask = uspoof_areBidiConfusable(sc, UBIDI_LTR, str1, -1, str2, -1, &status);
- * UBool result = bitmask != 0;
- * // areBidiConfusable: 1 (status: U_ZERO_ERROR)
- * printf("areBidiConfusable: %d (status: %s)\n", result, u_errorName(status));
- * uspoof_close(sc);
- * \endcode
  *
  * <p>
  * The type {@link LocalUSpoofCheckerPointer} is exposed for C++ programmers.  It will automatically call
@@ -359,51 +337,6 @@
  * COMMON or INHERITED, such as numbers and punctuation, are ignored when computing whether a string has multiple
  * scripts.
  *
- * <h2>Advanced bidirectional usage</h2>
- * If the paragraph direction with which the identifiers will be displayed is not known, there are
- * multiple options for confusable detection depending on the circumstances.
- *
- * <p>
- * In some circumstances, the only concern is confusion between identifiers displayed with the same
- * paragraph direction.
- *
- * <p>
- * An example is the case where identifiers are usernames prefixed with the @ symbol.
- * That symbol will appear to the left in a left-to-right context, and to the right in a
- * right-to-left context, so that an identifier displayed in a left-to-right context can never be
- * confused with an identifier displayed in a right-to-left context:
- * <ul>
- * <li>
- * The usernames "A1א" (A one aleph) and "Aא1" (A aleph 1)
- * would be considered confusable, since they both appear as \@A1א in a left-to-right context, and the
- * usernames "אA_1" (aleph A underscore one) and "א1_A" (aleph one underscore A) would be considered
- * confusable, since they both appear as A_1א@ in a right-to-left context.
- * </li>
- * <li>
- * The username "Mark_" would not be considered confusable with the username "_Mark",
- * even though the latter would appear as Mark_@ in a right-to-left context, and the
- * former as \@Mark_ in a left-to-right context.
- * </li>
- * </ul>
- * <p>
- * In that case, the caller should check for both LTR-confusability and RTL-confusability:
- *
- * \code{.cpp}
- * bool confusableInEitherDirection =
- *     uspoof_areBidiConfusableUnicodeString(sc, UBIDI_LTR, id1, id2, &status) ||
- *     uspoof_areBidiConfusableUnicodeString(sc, UBIDI_RTL, id1, id2, &status);
- * \endcode
- *
- * If the bidiSkeleton is used, the LTR and RTL skeleta should be kept separately and compared, LTR
- * with LTR and RTL with RTL.
- *
- * <p>
- * In cases where confusability between the visual appearances of an identifier displayed in a
- * left-to-right context with another identifier displayed in a right-to-left context is a concern,
- * the LTR skeleton of one can be compared with the RTL skeleton of the other.  However, this
- * very broad definition of confusability may have unexpected results; for instance, it treats the
- * ASCII identifiers "Mark_" and "_Mark" as confusable.
- *
  * <h2>Additional Information</h2>
  *
  * A <code>USpoofChecker</code> instance may be used repeatedly to perform checks on any number of identifiers.
@@ -449,7 +382,7 @@ typedef enum USpoofChecks {
      * @see uspoof_areConfusable
      * @stable ICU 4.2
      */
-    USPOOF_SINGLE_SCRIPT_CONFUSABLE =   1,
+    USPOOF_SINGLE_SCRIPT_CONFUSABLE = 1,
 
     /**
      * When performing the two-string {@link uspoof_areConfusable} test, this flag in the return value indicates
@@ -459,7 +392,7 @@ typedef enum USpoofChecks {
      * @see uspoof_areConfusable
      * @stable ICU 4.2
      */
-    USPOOF_MIXED_SCRIPT_CONFUSABLE  =   2,
+    USPOOF_MIXED_SCRIPT_CONFUSABLE = 2,
 
     /**
      * When performing the two-string {@link uspoof_areConfusable} test, this flag in the return value indicates
@@ -469,7 +402,7 @@ typedef enum USpoofChecks {
      * @see uspoof_areConfusable
      * @stable ICU 4.2
      */
-    USPOOF_WHOLE_SCRIPT_CONFUSABLE  =   4,
+    USPOOF_WHOLE_SCRIPT_CONFUSABLE = 4,
 
     /**
      * Enable this flag in {@link uspoof_setChecks} to turn on all types of confusables.  You may set
@@ -480,55 +413,55 @@ typedef enum USpoofChecks {
      * @see uspoof_getSkeleton
      * @stable ICU 58
      */
-    USPOOF_CONFUSABLE               =   USPOOF_SINGLE_SCRIPT_CONFUSABLE | USPOOF_MIXED_SCRIPT_CONFUSABLE | USPOOF_WHOLE_SCRIPT_CONFUSABLE,
+    USPOOF_CONFUSABLE = USPOOF_SINGLE_SCRIPT_CONFUSABLE | USPOOF_MIXED_SCRIPT_CONFUSABLE | USPOOF_WHOLE_SCRIPT_CONFUSABLE,
 
 #ifndef U_HIDE_DEPRECATED_API
     /**
-      * This flag is deprecated and no longer affects the behavior of SpoofChecker.
-      *
-      * @deprecated ICU 58  Any case confusable mappings were removed from UTS 39; the corresponding ICU API was deprecated.
-      */
-    USPOOF_ANY_CASE                 =   8,
-#endif  /* U_HIDE_DEPRECATED_API */
+     * This flag is deprecated and no longer affects the behavior of SpoofChecker.
+     *
+     * @deprecated ICU 58  Any case confusable mappings were removed from UTS 39; the corresponding ICU API was deprecated.
+     */
+    USPOOF_ANY_CASE = 8,
+#endif /* U_HIDE_DEPRECATED_API */
 
     /**
-      * Check that an identifier is no looser than the specified RestrictionLevel.
-      * The default if {@link uspoof_setRestrictionLevel} is not called is HIGHLY_RESTRICTIVE.
-      *
-      * If USPOOF_AUX_INFO is enabled the actual restriction level of the
-      * identifier being tested will also be returned by uspoof_check().
-      *
-      * @see URestrictionLevel
-      * @see uspoof_setRestrictionLevel
-      * @see USPOOF_AUX_INFO
-      *
-      * @stable ICU 51
-      */
-    USPOOF_RESTRICTION_LEVEL        = 16,
+     * Check that an identifier is no looser than the specified RestrictionLevel.
+     * The default if {@link uspoof_setRestrictionLevel} is not called is HIGHLY_RESTRICTIVE.
+     *
+     * If USPOOF_AUX_INFO is enabled the actual restriction level of the
+     * identifier being tested will also be returned by uspoof_check().
+     *
+     * @see URestrictionLevel
+     * @see uspoof_setRestrictionLevel
+     * @see USPOOF_AUX_INFO
+     *
+     * @stable ICU 51
+     */
+    USPOOF_RESTRICTION_LEVEL = 16,
 
 #ifndef U_HIDE_DEPRECATED_API
     /** Check that an identifier contains only characters from a
-      * single script (plus chars from the common and inherited scripts.)
-      * Applies to checks of a single identifier check only.
-      * @deprecated ICU 51  Use RESTRICTION_LEVEL instead.
-      */
-    USPOOF_SINGLE_SCRIPT            =  USPOOF_RESTRICTION_LEVEL,
-#endif  /* U_HIDE_DEPRECATED_API */
+     * single script (plus chars from the common and inherited scripts.)
+     * Applies to checks of a single identifier check only.
+     * @deprecated ICU 51  Use RESTRICTION_LEVEL instead.
+     */
+    USPOOF_SINGLE_SCRIPT = USPOOF_RESTRICTION_LEVEL,
+#endif /* U_HIDE_DEPRECATED_API */
 
     /** Check an identifier for the presence of invisible characters,
-      * such as zero-width spaces, or character sequences that are
-      * likely not to display, such as multiple occurrences of the same
-      * non-spacing mark.  This check does not test the input string as a whole
-      * for conformance to any particular syntax for identifiers.
-      */
-    USPOOF_INVISIBLE                =  32,
+     * such as zero-width spaces, or character sequences that are
+     * likely not to display, such as multiple occurrences of the same
+     * non-spacing mark.  This check does not test the input string as a whole
+     * for conformance to any particular syntax for identifiers.
+     */
+    USPOOF_INVISIBLE = 32,
 
     /** Check that an identifier contains only characters from a specified set
-      * of acceptable characters.  See {@link uspoof_setAllowedChars} and
-      * {@link uspoof_setAllowedLocales}.  Note that a string that fails this check
-      * will also fail the {@link USPOOF_RESTRICTION_LEVEL} check.
-      */
-    USPOOF_CHAR_LIMIT               =  64,
+     * of acceptable characters.  See {@link uspoof_setAllowedChars} and
+     * {@link uspoof_setAllowedLocales}.  Note that a string that fails this check
+     * will also fail the {@link USPOOF_RESTRICTION_LEVEL} check.
+     */
+    USPOOF_CHAR_LIMIT = 64,
 
     /**
      * Check that an identifier does not mix numbers from different numbering systems.
@@ -536,7 +469,7 @@ typedef enum USpoofChecks {
      *
      * @stable ICU 51
      */
-    USPOOF_MIXED_NUMBERS            = 128,
+    USPOOF_MIXED_NUMBERS = 128,
 
     /**
      * Check that an identifier does not have a combining character following a character in which that
@@ -557,104 +490,103 @@ typedef enum USpoofChecks {
      *
      * @stable ICU 62
      */
-    USPOOF_HIDDEN_OVERLAY            = 256,
+    USPOOF_HIDDEN_OVERLAY = 256,
 
-   /**
+    /**
      * Enable all spoof checks.
      *
      * @stable ICU 4.6
      */
-    USPOOF_ALL_CHECKS               = 0xFFFF,
+    USPOOF_ALL_CHECKS = 0xFFFF,
 
     /**
-      * Enable the return of auxiliary (non-error) information in the
-      * upper bits of the check results value.
-      *
-      * If this "check" is not enabled, the results of {@link uspoof_check} will be
-      * zero when an identifier passes all of the enabled checks.
-      *
-      * If this "check" is enabled, (uspoof_check() & {@link USPOOF_ALL_CHECKS}) will
-      * be zero when an identifier passes all checks.
-      *
-      * @stable ICU 51
-      */
-    USPOOF_AUX_INFO                  = 0x40000000
-
-    } USpoofChecks;
-
-
-    /**
-     * Constants from UTS #39 for use in {@link uspoof_setRestrictionLevel}, and
-     * for returned identifier restriction levels in check results.
+     * Enable the return of auxiliary (non-error) information in the
+     * upper bits of the check results value.
+     *
+     * If this "check" is not enabled, the results of {@link uspoof_check} will be
+     * zero when an identifier passes all of the enabled checks.
+     *
+     * If this "check" is enabled, (uspoof_check() & {@link USPOOF_ALL_CHECKS}) will
+     * be zero when an identifier passes all checks.
      *
      * @stable ICU 51
-     *
-     * @see uspoof_setRestrictionLevel
-     * @see uspoof_check
      */
-    typedef enum URestrictionLevel {
-        /**
-         * All characters in the string are in the identifier profile and all characters in the string are in the
-         * ASCII range.
-         *
-         * @stable ICU 51
-         */
-        USPOOF_ASCII = 0x10000000,
-        /**
-         * The string classifies as ASCII-Only, or all characters in the string are in the identifier profile and
-         * the string is single-script, according to the definition in UTS 39 section 5.1.
-         *
-         * @stable ICU 53
-         */
-        USPOOF_SINGLE_SCRIPT_RESTRICTIVE = 0x20000000,
-        /**
-         * The string classifies as Single Script, or all characters in the string are in the identifier profile and
-         * the string is covered by any of the following sets of scripts, according to the definition in UTS 39
-         * section 5.1:
-         * <ul>
-         *   <li>Latin + Han + Bopomofo (or equivalently: Latn + Hanb)</li>
-         *   <li>Latin + Han + Hiragana + Katakana (or equivalently: Latn + Jpan)</li>
-         *   <li>Latin + Han + Hangul (or equivalently: Latn +Kore)</li>
-         * </ul>
-         * This is the default restriction in ICU.
-         *
-         * @stable ICU 51
-         */
-        USPOOF_HIGHLY_RESTRICTIVE = 0x30000000,
-        /**
-         * The string classifies as Highly Restrictive, or all characters in the string are in the identifier profile
-         * and the string is covered by Latin and any one other Recommended or Aspirational script, except Cyrillic,
-         * Greek, and Cherokee.
-         *
-         * @stable ICU 51
-         */
-        USPOOF_MODERATELY_RESTRICTIVE = 0x40000000,
-        /**
-         * All characters in the string are in the identifier profile.  Allow arbitrary mixtures of scripts.
-         *
-         * @stable ICU 51
-         */
-        USPOOF_MINIMALLY_RESTRICTIVE = 0x50000000,
-        /**
-         * Any valid identifiers, including characters outside of the Identifier Profile.
-         *
-         * @stable ICU 51
-         */
-        USPOOF_UNRESTRICTIVE = 0x60000000,
-        /**
-         * Mask for selecting the Restriction Level bits from the return value of {@link uspoof_check}.
-         *
-         * @stable ICU 53
-         */
-        USPOOF_RESTRICTION_LEVEL_MASK = 0x7F000000,
+    USPOOF_AUX_INFO = 0x40000000
+
+} USpoofChecks;
+
+/**
+ * Constants from UAX #39 for use in {@link uspoof_setRestrictionLevel}, and
+ * for returned identifier restriction levels in check results.
+ *
+ * @stable ICU 51
+ *
+ * @see uspoof_setRestrictionLevel
+ * @see uspoof_check
+ */
+typedef enum URestrictionLevel {
+    /**
+     * All characters in the string are in the identifier profile and all characters in the string are in the
+     * ASCII range.
+     *
+     * @stable ICU 51
+     */
+    USPOOF_ASCII = 0x10000000,
+    /**
+     * The string classifies as ASCII-Only, or all characters in the string are in the identifier profile and
+     * the string is single-script, according to the definition in UTS 39 section 5.1.
+     *
+     * @stable ICU 53
+     */
+    USPOOF_SINGLE_SCRIPT_RESTRICTIVE = 0x20000000,
+    /**
+     * The string classifies as Single Script, or all characters in the string are in the identifier profile and
+     * the string is covered by any of the following sets of scripts, according to the definition in UTS 39
+     * section 5.1:
+     * <ul>
+     *   <li>Latin + Han + Bopomofo (or equivalently: Latn + Hanb)</li>
+     *   <li>Latin + Han + Hiragana + Katakana (or equivalently: Latn + Jpan)</li>
+     *   <li>Latin + Han + Hangul (or equivalently: Latn +Kore)</li>
+     * </ul>
+     * This is the default restriction in ICU.
+     *
+     * @stable ICU 51
+     */
+    USPOOF_HIGHLY_RESTRICTIVE = 0x30000000,
+    /**
+     * The string classifies as Highly Restrictive, or all characters in the string are in the identifier profile
+     * and the string is covered by Latin and any one other Recommended or Aspirational script, except Cyrillic,
+     * Greek, and Cherokee.
+     *
+     * @stable ICU 51
+     */
+    USPOOF_MODERATELY_RESTRICTIVE = 0x40000000,
+    /**
+     * All characters in the string are in the identifier profile.  Allow arbitrary mixtures of scripts.
+     *
+     * @stable ICU 51
+     */
+    USPOOF_MINIMALLY_RESTRICTIVE = 0x50000000,
+    /**
+     * Any valid identifiers, including characters outside of the Identifier Profile.
+     *
+     * @stable ICU 51
+     */
+    USPOOF_UNRESTRICTIVE = 0x60000000,
+    /**
+     * Mask for selecting the Restriction Level bits from the return value of {@link uspoof_check}.
+     *
+     * @stable ICU 53
+     */
+    USPOOF_RESTRICTION_LEVEL_MASK = 0x7F000000,
 #ifndef U_HIDE_INTERNAL_API
-        /**
-         * An undefined restriction level.
-         * @internal
-         */
-        USPOOF_UNDEFINED_RESTRICTIVE = -1
-#endif  /* U_HIDE_INTERNAL_API */
-    } URestrictionLevel;
+    /**
+     * An undefined restriction level.
+     * @internal
+     */
+    USPOOF_UNDEFINED_RESTRICTIVE = -1
+#endif /* U_HIDE_INTERNAL_API */
+} URestrictionLevel;
 
 /**
  *  Create a Unicode Spoof Checker, configured to perform all
@@ -666,9 +598,7 @@ typedef enum USpoofChecks {
  *  @return        the newly created Spoof Checker
  *  @stable ICU 4.2
  */
-U_CAPI USpoofChecker * U_EXPORT2
-uspoof_open(UErrorCode *status);
-
+U_CAPI USpoofChecker* U_EXPORT2 uspoof_open(UErrorCode* status);
 
 /**
  * Open a Spoof checker from its serialized form, stored in 32-bit-aligned memory.
@@ -691,53 +621,47 @@ uspoof_open(UErrorCode *status);
  * @see uspoof_serialize
  * @stable ICU 4.2
  */
-U_CAPI USpoofChecker * U_EXPORT2
-uspoof_openFromSerialized(const void *data, int32_t length, int32_t *pActualLength,
-                          UErrorCode *pErrorCode);
+U_CAPI USpoofChecker* U_EXPORT2 uspoof_openFromSerialized(const void* data, int32_t length, int32_t* pActualLength, UErrorCode* pErrorCode);
 
 /**
-  * Open a Spoof Checker from the source form of the spoof data.
-  * The input corresponds to the Unicode data file confusables.txt
-  * as described in Unicode Technical Standard #39.  The syntax of the source data
-  * is as described in UTS #39 for this file, and the content of
-  * this file is acceptable input.
-  *
-  * The character encoding of the (char *) input text is UTF-8.
-  *
-  * @param confusables a pointer to the confusable characters definitions,
-  *                    as found in file confusables.txt from unicode.org.
-  * @param confusablesLen The length of the confusables text, or -1 if the
-  *                    input string is zero terminated.
-  * @param confusablesWholeScript
-  *                    Deprecated in ICU 58.  No longer used.
-  * @param confusablesWholeScriptLen
-  *                    Deprecated in ICU 58.  No longer used.
-  * @param errType     In the event of an error in the input, indicates
-  *                    which of the input files contains the error.
-  *                    The value is one of USPOOF_SINGLE_SCRIPT_CONFUSABLE or
-  *                    USPOOF_WHOLE_SCRIPT_CONFUSABLE, or
-  *                    zero if no errors are found.
-  * @param pe          In the event of an error in the input, receives the position
-  *                    in the input text (line, offset) of the error.
-  * @param status      an in/out ICU UErrorCode.  Among the possible errors is
-  *                    U_PARSE_ERROR, which is used to report syntax errors
-  *                    in the input.
-  * @return            A spoof checker that uses the rules from the input files.
-  * @stable ICU 4.2
-  */
-U_CAPI USpoofChecker * U_EXPORT2
-uspoof_openFromSource(const char *confusables,  int32_t confusablesLen,
-                      const char *confusablesWholeScript, int32_t confusablesWholeScriptLen,
-                      int32_t *errType, UParseError *pe, UErrorCode *status);
-
+ * Open a Spoof Checker from the source form of the spoof data.
+ * The input corresponds to the Unicode data file confusables.txt
+ * as described in Unicode UAX #39.  The syntax of the source data
+ * is as described in UAX #39 for this file, and the content of
+ * this file is acceptable input.
+ *
+ * The character encoding of the (char *) input text is UTF-8.
+ *
+ * @param confusables a pointer to the confusable characters definitions,
+ *                    as found in file confusables.txt from unicode.org.
+ * @param confusablesLen The length of the confusables text, or -1 if the
+ *                    input string is zero terminated.
+ * @param confusablesWholeScript
+ *                    Deprecated in ICU 58.  No longer used.
+ * @param confusablesWholeScriptLen
+ *                    Deprecated in ICU 58.  No longer used.
+ * @param errType     In the event of an error in the input, indicates
+ *                    which of the input files contains the error.
+ *                    The value is one of USPOOF_SINGLE_SCRIPT_CONFUSABLE or
+ *                    USPOOF_WHOLE_SCRIPT_CONFUSABLE, or
+ *                    zero if no errors are found.
+ * @param pe          In the event of an error in the input, receives the position
+ *                    in the input text (line, offset) of the error.
+ * @param status      an in/out ICU UErrorCode.  Among the possible errors is
+ *                    U_PARSE_ERROR, which is used to report syntax errors
+ *                    in the input.
+ * @return            A spoof checker that uses the rules from the input files.
+ * @stable ICU 4.2
+ */
+U_CAPI USpoofChecker* U_EXPORT2 uspoof_openFromSource(const char* confusables, int32_t confusablesLen, const char* confusablesWholeScript,
+    int32_t confusablesWholeScriptLen, int32_t* errType, UParseError* pe, UErrorCode* status);
 
 /**
-  * Close a Spoof Checker, freeing any memory that was being held by
-  *   its implementation.
-  * @stable ICU 4.2
-  */
-U_CAPI void U_EXPORT2
-uspoof_close(USpoofChecker *sc);
+ * Close a Spoof Checker, freeing any memory that was being held by
+ *   its implementation.
+ * @stable ICU 4.2
+ */
+U_CAPI void U_EXPORT2 uspoof_close(USpoofChecker* sc);
 
 /**
  * Clone a Spoof Checker.  The clone will be set to perform the same checks
@@ -748,9 +672,7 @@ uspoof_close(USpoofChecker *sc);
  * @return
  * @stable ICU 4.2
  */
-U_CAPI USpoofChecker * U_EXPORT2
-uspoof_clone(const USpoofChecker *sc, UErrorCode *status);
-
+U_CAPI USpoofChecker* U_EXPORT2 uspoof_clone(const USpoofChecker* sc, UErrorCode* status);
 
 /**
  * Specify the bitmask of checks that will be performed by {@link uspoof_check}. Calling this method
@@ -792,8 +714,7 @@ uspoof_clone(const USpoofChecker *sc, UErrorCode *status);
  * @stable ICU 4.2
  *
  */
-U_CAPI void U_EXPORT2
-uspoof_setChecks(USpoofChecker *sc, int32_t checks, UErrorCode *status);
+U_CAPI void U_EXPORT2 uspoof_setChecks(USpoofChecker* sc, int32_t checks, UErrorCode* status);
 
 /**
  * Get the set of checks that this Spoof Checker has been configured to perform.
@@ -806,8 +727,7 @@ uspoof_setChecks(USpoofChecker *sc, int32_t checks, UErrorCode *status);
  * @stable ICU 4.2
  *
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_getChecks(const USpoofChecker *sc, UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_getChecks(const USpoofChecker* sc, UErrorCode* status);
 
 /**
  * Set the loosest restriction level allowed for strings. The default if this is not called is
@@ -820,19 +740,16 @@ uspoof_getChecks(const USpoofChecker *sc, UErrorCode *status);
  * @see URestrictionLevel
  * @stable ICU 51
  */
-U_CAPI void U_EXPORT2
-uspoof_setRestrictionLevel(USpoofChecker *sc, URestrictionLevel restrictionLevel);
-
+U_CAPI void U_EXPORT2 uspoof_setRestrictionLevel(USpoofChecker* sc, URestrictionLevel restrictionLevel);
 
 /**
-  * Get the Restriction Level that will be tested if the checks include {@link USPOOF_RESTRICTION_LEVEL}.
-  *
-  * @return The restriction level
-  * @see URestrictionLevel
-  * @stable ICU 51
-  */
-U_CAPI URestrictionLevel U_EXPORT2
-uspoof_getRestrictionLevel(const USpoofChecker *sc);
+ * Get the Restriction Level that will be tested if the checks include {@link USPOOF_RESTRICTION_LEVEL}.
+ *
+ * @return The restriction level
+ * @see URestrictionLevel
+ * @stable ICU 51
+ */
+U_CAPI URestrictionLevel U_EXPORT2 uspoof_getRestrictionLevel(const USpoofChecker* sc);
 
 /**
  * Limit characters that are acceptable in identifiers being checked to those
@@ -876,8 +793,7 @@ uspoof_getRestrictionLevel(const USpoofChecker *sc);
  * @param status       The error code, set if this function encounters a problem.
  * @stable ICU 4.2
  */
-U_CAPI void U_EXPORT2
-uspoof_setAllowedLocales(USpoofChecker *sc, const char *localesList, UErrorCode *status);
+U_CAPI void U_EXPORT2 uspoof_setAllowedLocales(USpoofChecker* sc, const char* localesList, UErrorCode* status);
 
 /**
  * Get a list of locales for the scripts that are acceptable in strings
@@ -900,9 +816,7 @@ uspoof_setAllowedLocales(USpoofChecker *sc, const char *localesList, UErrorCode 
  *
  * @stable ICU 4.2
  */
-U_CAPI const char * U_EXPORT2
-uspoof_getAllowedLocales(USpoofChecker *sc, UErrorCode *status);
-
+U_CAPI const char* U_EXPORT2 uspoof_getAllowedLocales(USpoofChecker* sc, UErrorCode* status);
 
 /**
  * Limit the acceptable characters to those specified by a Unicode Set.
@@ -922,9 +836,7 @@ uspoof_getAllowedLocales(USpoofChecker *sc, UErrorCode *status);
  * @param status   The error code, set if this function encounters a problem.
  * @stable ICU 4.2
  */
-U_CAPI void U_EXPORT2
-uspoof_setAllowedChars(USpoofChecker *sc, const USet *chars, UErrorCode *status);
-
+U_CAPI void U_EXPORT2 uspoof_setAllowedChars(USpoofChecker* sc, const USet* chars, UErrorCode* status);
 
 /**
  * Get a USet for the characters permitted in an identifier.
@@ -946,9 +858,7 @@ uspoof_setAllowedChars(USpoofChecker *sc, const USet *chars, UErrorCode *status)
  *                 the USPOOF_CHAR_LIMIT test.
  * @stable ICU 4.2
  */
-U_CAPI const USet * U_EXPORT2
-uspoof_getAllowedChars(const USpoofChecker *sc, UErrorCode *status);
-
+U_CAPI const USet* U_EXPORT2 uspoof_getAllowedChars(const USpoofChecker* sc, UErrorCode* status);
 
 /**
  * Check the specified string for possible security issues.
@@ -982,12 +892,7 @@ uspoof_getAllowedChars(const USpoofChecker *sc, UErrorCode *status);
  * @see uspoof_check2
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_check(const USpoofChecker *sc,
-                         const UChar *id, int32_t length,
-                         int32_t *position,
-                         UErrorCode *status);
-
+U_CAPI int32_t U_EXPORT2 uspoof_check(const USpoofChecker* sc, const UChar* id, int32_t length, int32_t* position, UErrorCode* status);
 
 /**
  * Check the specified string for possible security issues.
@@ -1021,12 +926,7 @@ uspoof_check(const USpoofChecker *sc,
  * @see uspoof_check2UTF8
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_checkUTF8(const USpoofChecker *sc,
-                 const char *id, int32_t length,
-                 int32_t *position,
-                 UErrorCode *status);
-
+U_CAPI int32_t U_EXPORT2 uspoof_checkUTF8(const USpoofChecker* sc, const char* id, int32_t length, int32_t* position, UErrorCode* status);
 
 /**
  * Check the specified string for possible security issues.
@@ -1056,11 +956,7 @@ uspoof_checkUTF8(const USpoofChecker *sc,
  * @see uspoof_check2UnicodeString
  * @stable ICU 58
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_check2(const USpoofChecker *sc,
-    const UChar* id, int32_t length,
-    USpoofCheckResult* checkResult,
-    UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_check2(const USpoofChecker* sc, const UChar* id, int32_t length, USpoofCheckResult* checkResult, UErrorCode* status);
 
 /**
  * Check the specified string for possible security issues.
@@ -1093,11 +989,7 @@ uspoof_check2(const USpoofChecker *sc,
  * @see uspoof_check2UnicodeString
  * @stable ICU 58
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_check2UTF8(const USpoofChecker *sc,
-    const char *id, int32_t length,
-    USpoofCheckResult* checkResult,
-    UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_check2UTF8(const USpoofChecker* sc, const char* id, int32_t length, USpoofCheckResult* checkResult, UErrorCode* status);
 
 /**
  * Create a USpoofCheckResult, used by the {@link uspoof_check2} class of functions to return
@@ -1117,8 +1009,7 @@ uspoof_check2UTF8(const USpoofChecker *sc,
  * @see uspoof_check2UnicodeString
  * @stable ICU 58
  */
-U_CAPI USpoofCheckResult* U_EXPORT2
-uspoof_openCheckResult(UErrorCode *status);
+U_CAPI USpoofCheckResult* U_EXPORT2 uspoof_openCheckResult(UErrorCode* status);
 
 /**
  * Close a USpoofCheckResult, freeing any memory that was being held by
@@ -1127,8 +1018,7 @@ uspoof_openCheckResult(UErrorCode *status);
  * @param checkResult  The instance of USpoofCheckResult to close
  * @stable ICU 58
  */
-U_CAPI void U_EXPORT2
-uspoof_closeCheckResult(USpoofCheckResult *checkResult);
+U_CAPI void U_EXPORT2 uspoof_closeCheckResult(USpoofCheckResult* checkResult);
 
 /**
  * Indicates which of the spoof check(s) have failed. The value is a bitwise OR of the constants for the tests
@@ -1144,8 +1034,7 @@ uspoof_closeCheckResult(USpoofCheckResult *checkResult);
  * @see uspoof_setChecks
  * @stable ICU 58
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_getCheckResultChecks(const USpoofCheckResult *checkResult, UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_getCheckResultChecks(const USpoofCheckResult* checkResult, UErrorCode* status);
 
 /**
  * Gets the restriction level that the text meets, if the USPOOF_RESTRICTION_LEVEL check
@@ -1157,8 +1046,7 @@ uspoof_getCheckResultChecks(const USpoofCheckResult *checkResult, UErrorCode *st
  * @see uspoof_setRestrictionLevel
  * @stable ICU 58
  */
-U_CAPI URestrictionLevel U_EXPORT2
-uspoof_getCheckResultRestrictionLevel(const USpoofCheckResult *checkResult, UErrorCode *status);
+U_CAPI URestrictionLevel U_EXPORT2 uspoof_getCheckResultRestrictionLevel(const USpoofCheckResult* checkResult, UErrorCode* status);
 
 /**
  * Gets the set of numerics found in the string, if the USPOOF_MIXED_NUMBERS check was enabled;
@@ -1171,12 +1059,10 @@ uspoof_getCheckResultRestrictionLevel(const USpoofCheckResult *checkResult, UErr
  * @param status       The error code, set if an error occurred.
  * @stable ICU 58
  */
-U_CAPI const USet* U_EXPORT2
-uspoof_getCheckResultNumerics(const USpoofCheckResult *checkResult, UErrorCode *status);
-
+U_CAPI const USet* U_EXPORT2 uspoof_getCheckResultNumerics(const USpoofCheckResult* checkResult, UErrorCode* status);
 
 /**
- * Check whether two specified strings are visually confusable.
+ * Check the whether two specified strings are visually confusable.
  *
  * If the strings are confusable, the return value will be nonzero, as long as
  * {@link USPOOF_CONFUSABLE} was enabled in uspoof_setChecks().
@@ -1218,64 +1104,8 @@ uspoof_getCheckResultNumerics(const USpoofCheckResult *checkResult, UErrorCode *
  *
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_areConfusable(const USpoofChecker *sc,
-                     const UChar *id1, int32_t length1,
-                     const UChar *id2, int32_t length2,
-                     UErrorCode *status);
-
-#ifndef U_HIDE_DRAFT_API
-/**
- * Check whether two specified strings are visually confusable when
- * displayed in a context with the given paragraph direction.
- *
- * If the strings are confusable, the return value will be nonzero, as long as
- * {@link USPOOF_CONFUSABLE} was enabled in uspoof_setChecks().
- *
- * The bits in the return value correspond to flags for each of the classes of
- * confusables applicable to the two input strings.  According to UTS 39
- * section 4, the possible flags are:
- *
- * <ul>
- *   <li>{@link USPOOF_SINGLE_SCRIPT_CONFUSABLE}</li>
- *   <li>{@link USPOOF_MIXED_SCRIPT_CONFUSABLE}</li>
- *   <li>{@link USPOOF_WHOLE_SCRIPT_CONFUSABLE}</li>
- * </ul>
- *
- * If one or more of the above flags were not listed in uspoof_setChecks(), this
- * function will never report that class of confusable.  The check
- * {@link USPOOF_CONFUSABLE} enables all three flags.
- *
- *
- * @param sc      The USpoofChecker
- * @param direction The paragraph direction with which the identifiers are
- *                displayed.  Must be either UBIDI_LTR or UBIDI_RTL.
- * @param id1     The first of the two identifiers to be compared for
- *                confusability.  The strings are in UTF-16 format.
- * @param length1 the length of the first identifier, expressed in
- *                16 bit UTF-16 code units, or -1 if the string is
- *                nul terminated.
- * @param id2     The second of the two identifiers to be compared for
- *                confusability.  The identifiers are in UTF-16 format.
- * @param length2 The length of the second identifiers, expressed in
- *                16 bit UTF-16 code units, or -1 if the string is
- *                nul terminated.
- * @param status  The error code, set if an error occurred while attempting to
- *                perform the check.
- *                Confusability of the identifiers is not reported here,
- *                but through this function's return value.
- * @return        An integer value with bit(s) set corresponding to
- *                the type of confusability found, as defined by
- *                enum USpoofChecks.  Zero is returned if the identifiers
- *                are not confusable.
- *
- * @draft ICU 74
- */
-U_CAPI uint32_t U_EXPORT2 uspoof_areBidiConfusable(const USpoofChecker *sc, UBiDiDirection direction,
-                                                  const UChar *id1, int32_t length1,
-                                                  const UChar *id2, int32_t length2,
-                                                  UErrorCode *status);
-#endif /* U_HIDE_DRAFT_API */
+U_CAPI int32_t U_EXPORT2 uspoof_areConfusable(
+    const USpoofChecker* sc, const UChar* id1, int32_t length1, const UChar* id2, int32_t length2, UErrorCode* status);
 
 /**
  * A version of {@link uspoof_areConfusable} accepting strings in UTF-8 format.
@@ -1302,51 +1132,14 @@ U_CAPI uint32_t U_EXPORT2 uspoof_areBidiConfusable(const USpoofChecker *sc, UBiD
  *
  * @see uspoof_areConfusable
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_areConfusableUTF8(const USpoofChecker *sc,
-                         const char *id1, int32_t length1,
-                         const char *id2, int32_t length2,
-                         UErrorCode *status);
-
-#ifndef U_HIDE_DRAFT_API
-/**
- * A version of {@link uspoof_areBidiConfusable} accepting strings in UTF-8 format.
- *
- * @param sc      The USpoofChecker
- * @param direction The paragraph direction with which the identifiers are
- *                displayed.  Must be either UBIDI_LTR or UBIDI_RTL.
- * @param id1     The first of the two identifiers to be compared for
- *                confusability.  The strings are in UTF-8 format.
- * @param length1 the length of the first identifiers, in bytes, or -1
- *                if the string is nul terminated.
- * @param id2     The second of the two identifiers to be compared for
- *                confusability.  The strings are in UTF-8 format.
- * @param length2 The length of the second string in bytes, or -1
- *                if the string is nul terminated.
- * @param status  The error code, set if an error occurred while attempting to
- *                perform the check.
- *                Confusability of the strings is not reported here,
- *                but through this function's return value.
- * @return        An integer value with bit(s) set corresponding to
- *                the type of confusability found, as defined by
- *                enum USpoofChecks.  Zero is returned if the strings
- *                are not confusable.
- *
- * @draft ICU 74
- *
- * @see uspoof_areBidiConfusable
- */
-U_CAPI uint32_t U_EXPORT2 uspoof_areBidiConfusableUTF8(const USpoofChecker *sc, UBiDiDirection direction,
-                                                      const char *id1, int32_t length1,
-                                                      const char *id2, int32_t length2,
-                                                      UErrorCode *status);
-#endif /* U_HIDE_DRAFT_API */
+U_CAPI int32_t U_EXPORT2 uspoof_areConfusableUTF8(
+    const USpoofChecker* sc, const char* id1, int32_t length1, const char* id2, int32_t length2, UErrorCode* status);
 
 /**
  *  Get the "skeleton" for an identifier.
  *  Skeletons are a transformation of the input identifier;
  * Two identifiers are confusable if their skeletons are identical.
- *  See Unicode Technical Standard #39 for additional information.
+ *  See Unicode UAX #39 for additional information.
  *
  *  Using skeletons directly makes it possible to quickly check
  *  whether an identifier is confusable with any of some large
@@ -1373,57 +1166,14 @@ U_CAPI uint32_t U_EXPORT2 uspoof_areBidiConfusableUTF8(const USpoofChecker *sc, 
  * @stable ICU 4.2
  * @see uspoof_areConfusable
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_getSkeleton(const USpoofChecker *sc,
-                   uint32_t type,
-                   const UChar *id,  int32_t length,
-                   UChar *dest, int32_t destCapacity,
-                   UErrorCode *status);
-
-#ifndef U_HIDE_DRAFT_API
-/**
- *  Get the "bidiSkeleton" for an identifier and a direction.
- *  Skeletons are a transformation of the input identifier;
- *  Two identifiers are LTR-confusable if their LTR bidiSkeletons are identical;
- *  they are RTL-confusable if their RTL bidiSkeletons are identical.
- *  See Unicode Technical Standard #39 for additional information:
- *  https://www.unicode.org/reports/tr39/#Confusable_Detection.
- *
- *  Using skeletons directly makes it possible to quickly check
- *  whether an identifier is confusable with any of some large
- *  set of existing identifiers, by creating an efficiently
- *  searchable collection of the skeletons.
- *
- * @param sc      The USpoofChecker.
- * @param direction The context direction with which the identifier will be
- *                displayed.  Must be either UBIDI_LTR or UBIDI_RTL.
- * @param id      The input identifier whose skeleton will be computed.
- * @param length  The length of the input identifier, expressed in 16 bit
- *                UTF-16 code units, or -1 if the string is zero terminated.
- * @param dest    The output buffer, to receive the skeleton string.
- * @param destCapacity  The length of the output buffer, in 16 bit units.
- *                The destCapacity may be zero, in which case the function will
- *                return the actual length of the skeleton.
- * @param status  The error code, set if an error occurred while attempting to
- *                perform the check.
- * @return        The length of the skeleton string.  The returned length
- *                is always that of the complete skeleton, even when the
- *                supplied buffer is too small (or of zero length)
- *
- * @draft ICU 74
- * @see uspoof_areBidiConfusable
- */
-U_CAPI int32_t U_EXPORT2 uspoof_getBidiSkeleton(const USpoofChecker *sc,
-                                                UBiDiDirection direction,
-                                                const UChar *id, int32_t length,
-                                                UChar *dest, int32_t destCapacity, UErrorCode *status);
-#endif /* U_HIDE_DRAFT_API */
+U_CAPI int32_t U_EXPORT2 uspoof_getSkeleton(
+    const USpoofChecker* sc, uint32_t type, const UChar* id, int32_t length, UChar* dest, int32_t destCapacity, UErrorCode* status);
 
 /**
  *  Get the "skeleton" for an identifier.
  *  Skeletons are a transformation of the input identifier;
  *  Two identifiers are confusable if their skeletons are identical.
- *  See Unicode Technical Standard #39 for additional information.
+ *  See Unicode UAX #39 for additional information.
  *
  *  Using skeletons directly makes it possible to quickly check
  *  whether an identifier is confusable with any of some large
@@ -1452,82 +1202,36 @@ U_CAPI int32_t U_EXPORT2 uspoof_getBidiSkeleton(const USpoofChecker *sc,
  *
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_getSkeletonUTF8(const USpoofChecker *sc,
-                       uint32_t type,
-                       const char *id,  int32_t length,
-                       char *dest, int32_t destCapacity,
-                       UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_getSkeletonUTF8(
+    const USpoofChecker* sc, uint32_t type, const char* id, int32_t length, char* dest, int32_t destCapacity, UErrorCode* status);
 
-#ifndef U_HIDE_DRAFT_API
 /**
- *  Get the "bidiSkeleton" for an identifier and a direction.
- *  Skeletons are a transformation of the input identifier;
- *  Two identifiers are LTR-confusable if their LTR bidiSkeletons are identical;
- *  they are RTL-confusable if their RTL bidiSkeletons are identical.
- *  See Unicode Technical Standard #39 for additional information:
- *  https://www.unicode.org/reports/tr39/#Confusable_Detection.
+ * Get the set of Candidate Characters for Inclusion in Identifiers, as defined
+ * in http://unicode.org/Public/security/latest/xidmodifications.txt
+ * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
  *
- *  Using skeletons directly makes it possible to quickly check
- *  whether an identifier is confusable with any of some large
- *  set of existing identifiers, by creating an efficiently
- *  searchable collection of the skeletons.
+ * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
+ * be deleted by the caller.
  *
- * @param sc      The USpoofChecker
- * @param direction The context direction with which the identifier will be
- *                displayed.  Must be either UBIDI_LTR or UBIDI_RTL.
- * @param id      The UTF-8 format identifier whose skeleton will be computed.
- * @param length  The length of the input string, in bytes,
- *                or -1 if the string is zero terminated.
- * @param dest    The output buffer, to receive the skeleton string.
- * @param destCapacity  The length of the output buffer, in bytes.
- *                The destCapacity may be zero, in which case the function will
- *                return the actual length of the skeleton.
- * @param status  The error code, set if an error occurred while attempting to
- *                perform the check.  Possible Errors include U_INVALID_CHAR_FOUND
- *                for invalid UTF-8 sequences, and
- *                U_BUFFER_OVERFLOW_ERROR if the destination buffer is too small
- *                to hold the complete skeleton.
- * @return        The length of the skeleton string, in bytes.  The returned length
- *                is always that of the complete skeleton, even when the
- *                supplied buffer is too small (or of zero length)
+ * @param status The error code, set if a problem occurs while creating the set.
  *
- * @draft ICU 74
+ * @stable ICU 51
  */
-U_CAPI int32_t U_EXPORT2 uspoof_getBidiSkeletonUTF8(const USpoofChecker *sc, UBiDiDirection direction,
-                                                    const char *id, int32_t length, char *dest,
-                                                    int32_t destCapacity, UErrorCode *status);
-#endif /* U_HIDE_DRAFT_API */
+U_CAPI const USet* U_EXPORT2 uspoof_getInclusionSet(UErrorCode* status);
 
 /**
-  * Get the set of Candidate Characters for Inclusion in Identifiers, as defined
-  * in http://unicode.org/Public/security/latest/xidmodifications.txt
-  * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
-  *
-  * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
-  * be deleted by the caller.
-  *
-  * @param status The error code, set if a problem occurs while creating the set.
-  *
-  * @stable ICU 51
-  */
-U_CAPI const USet * U_EXPORT2
-uspoof_getInclusionSet(UErrorCode *status);
-
-/**
-  * Get the set of characters from Recommended Scripts for Inclusion in Identifiers, as defined
-  * in http://unicode.org/Public/security/latest/xidmodifications.txt
-  * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
-  *
-  * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
-  * be deleted by the caller.
-  *
-  * @param status The error code, set if a problem occurs while creating the set.
-  *
-  * @stable ICU 51
-  */
-U_CAPI const USet * U_EXPORT2
-uspoof_getRecommendedSet(UErrorCode *status);
+ * Get the set of characters from Recommended Scripts for Inclusion in Identifiers, as defined
+ * in http://unicode.org/Public/security/latest/xidmodifications.txt
+ * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
+ *
+ * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
+ * be deleted by the caller.
+ *
+ * @param status The error code, set if a problem occurs while creating the set.
+ *
+ * @stable ICU 51
+ */
+U_CAPI const USet* U_EXPORT2 uspoof_getRecommendedSet(UErrorCode* status);
 
 /**
  * Serialize the data for a spoof detector into a chunk of memory.
@@ -1551,10 +1255,7 @@ uspoof_getRecommendedSet(UErrorCode *status);
  * @see utrie2_openFromSerialized()
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_serialize(USpoofChecker *sc,
-                 void *data, int32_t capacity,
-                 UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_serialize(USpoofChecker* sc, void* data, int32_t capacity, UErrorCode* status);
 
 U_CDECL_END
 
@@ -1617,9 +1318,7 @@ U_NAMESPACE_END
  * @param status   The error code, set if this function encounters a problem.
  * @stable ICU 4.2
  */
-U_CAPI void U_EXPORT2
-uspoof_setAllowedUnicodeSet(USpoofChecker *sc, const icu::UnicodeSet *chars, UErrorCode *status);
-
+U_CAPI void U_EXPORT2 uspoof_setAllowedUnicodeSet(USpoofChecker* sc, const icu::UnicodeSet* chars, UErrorCode* status);
 
 /**
  * Get a UnicodeSet for the characters permitted in an identifier.
@@ -1641,8 +1340,7 @@ uspoof_setAllowedUnicodeSet(USpoofChecker *sc, const icu::UnicodeSet *chars, UEr
  *                 the USPOOF_CHAR_LIMIT test.
  * @stable ICU 4.2
  */
-U_CAPI const icu::UnicodeSet * U_EXPORT2
-uspoof_getAllowedUnicodeSet(const USpoofChecker *sc, UErrorCode *status);
+U_CAPI const icu::UnicodeSet* U_EXPORT2 uspoof_getAllowedUnicodeSet(const USpoofChecker* sc, UErrorCode* status);
 
 /**
  * Check the specified string for possible security issues.
@@ -1659,7 +1357,7 @@ uspoof_getAllowedUnicodeSet(const USpoofChecker *sc, UErrorCode *status);
  * @param position  Deprecated in ICU 51.  Always returns zero.
  *                Originally, an out parameter for the index of the first
  *                string position that failed a check.
- *                This parameter may be nullptr.
+ *                This parameter may be NULL.
  * @param status  The error code, set if an error occurred while attempting to
  *                perform the check.
  *                Spoofing or security issues detected with the input string are
@@ -1672,11 +1370,7 @@ uspoof_getAllowedUnicodeSet(const USpoofChecker *sc, UErrorCode *status);
  * @see uspoof_check2UnicodeString
  * @stable ICU 4.2
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_checkUnicodeString(const USpoofChecker *sc,
-                          const icu::UnicodeString &id,
-                          int32_t *position,
-                          UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_checkUnicodeString(const USpoofChecker* sc, const icu::UnicodeString& id, int32_t* position, UErrorCode* status);
 
 /**
  * Check the specified string for possible security issues.
@@ -1686,7 +1380,7 @@ uspoof_checkUnicodeString(const USpoofChecker *sc,
  * @param sc      The USpoofChecker
  * @param id      A identifier to be checked for possible security issues.
  * @param checkResult  An instance of USpoofCheckResult to be filled with
- *                details about the identifier.  Can be nullptr.
+ *                details about the identifier.  Can be NULL.
  * @param status  The error code, set if an error occurred while attempting to
  *                perform the check.
  *                Spoofing or security issues detected with the input string are
@@ -1703,11 +1397,7 @@ uspoof_checkUnicodeString(const USpoofChecker *sc,
  * @see uspoof_check2UTF8
  * @stable ICU 58
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_check2UnicodeString(const USpoofChecker *sc,
-    const icu::UnicodeString &id,
-    USpoofCheckResult* checkResult,
-    UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 uspoof_check2UnicodeString(const USpoofChecker* sc, const icu::UnicodeString& id, USpoofCheckResult* checkResult, UErrorCode* status);
 
 /**
  * A version of {@link uspoof_areConfusable} accepting UnicodeStrings.
@@ -1730,48 +1420,14 @@ uspoof_check2UnicodeString(const USpoofChecker *sc,
  *
  * @see uspoof_areConfusable
  */
-U_CAPI int32_t U_EXPORT2
-uspoof_areConfusableUnicodeString(const USpoofChecker *sc,
-                                  const icu::UnicodeString &s1,
-                                  const icu::UnicodeString &s2,
-                                  UErrorCode *status);
-
-#ifndef U_HIDE_DRAFT_API
-/**
- * A version of {@link uspoof_areBidiConfusable} accepting UnicodeStrings.
- *
- * @param sc      The USpoofChecker
- * @param direction The paragraph direction with which the identifiers are
- *                displayed.  Must be either UBIDI_LTR or UBIDI_RTL.
- * @param s1     The first of the two identifiers to be compared for
- *                confusability.  The strings are in UTF-8 format.
- * @param s2     The second of the two identifiers to be compared for
- *                confusability.  The strings are in UTF-8 format.
- * @param status  The error code, set if an error occurred while attempting to
- *                perform the check.
- *                Confusability of the identifiers is not reported here,
- *                but through this function's return value.
- * @return        An integer value with bit(s) set corresponding to
- *                the type of confusability found, as defined by
- *                enum USpoofChecks.  Zero is returned if the identifiers
- *                are not confusable.
- *
- * @draft ICU 74
- *
- * @see uspoof_areBidiConfusable
- */
-U_CAPI uint32_t U_EXPORT2 uspoof_areBidiConfusableUnicodeString(const USpoofChecker *sc,
-                                                               UBiDiDirection direction,
-                                                               const icu::UnicodeString &s1,
-                                                               const icu::UnicodeString &s2,
-                                                               UErrorCode *status);
-#endif /* U_HIDE_DRAFT_API */
+U_CAPI int32_t U_EXPORT2 uspoof_areConfusableUnicodeString(
+    const USpoofChecker* sc, const icu::UnicodeString& s1, const icu::UnicodeString& s2, UErrorCode* status);
 
 /**
  *  Get the "skeleton" for an identifier.
  *  Skeletons are a transformation of the input identifier;
  *  Two identifiers are confusable if their skeletons are identical.
- *  See Unicode Technical Standard #39 for additional information.
+ *  See Unicode UAX #39 for additional information.
  *
  *  Using skeletons directly makes it possible to quickly check
  *  whether an identifier is confusable with any of some large
@@ -1790,75 +1446,39 @@ U_CAPI uint32_t U_EXPORT2 uspoof_areBidiConfusableUnicodeString(const USpoofChec
  *
  * @stable ICU 4.2
  */
-U_I18N_API icu::UnicodeString & U_EXPORT2
-uspoof_getSkeletonUnicodeString(const USpoofChecker *sc,
-                                uint32_t type,
-                                const icu::UnicodeString &id,
-                                icu::UnicodeString &dest,
-                                UErrorCode *status);
+U_I18N_API icu::UnicodeString& U_EXPORT2 uspoof_getSkeletonUnicodeString(
+    const USpoofChecker* sc, uint32_t type, const icu::UnicodeString& id, icu::UnicodeString& dest, UErrorCode* status);
 
-#ifndef U_HIDE_DRAFT_API
 /**
- *  Get the "bidiSkeleton" for an identifier and a direction.
- *  Skeletons are a transformation of the input identifier;
- *  Two identifiers are LTR-confusable if their LTR bidiSkeletons are identical;
- *  they are RTL-confusable if their RTL bidiSkeletons are identical.
- *  See Unicode Technical Standard #39 for additional information.
- *  https://www.unicode.org/reports/tr39/#Confusable_Detection.
+ * Get the set of Candidate Characters for Inclusion in Identifiers, as defined
+ * in http://unicode.org/Public/security/latest/xidmodifications.txt
+ * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
  *
- *  Using skeletons directly makes it possible to quickly check
- *  whether an identifier is confusable with any of some large
- *  set of existing identifiers, by creating an efficiently
- *  searchable collection of the skeletons.
+ * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
+ * be deleted by the caller.
  *
- * @param sc      The USpoofChecker.
- * @param direction The context direction with which the identifier will be
- *                displayed.  Must be either UBIDI_LTR or UBIDI_RTL.
- * @param id      The input identifier whose bidiSkeleton will be computed.
- * @param dest    The output identifier, to receive the skeleton string.
- * @param status  The error code, set if an error occurred while attempting to
- *                perform the check.
- * @return        A reference to the destination (skeleton) string.
+ * @param status The error code, set if a problem occurs while creating the set.
  *
- * @draft ICU 74
+ * @stable ICU 51
  */
-U_I18N_API icu::UnicodeString &U_EXPORT2 uspoof_getBidiSkeletonUnicodeString(
-    const USpoofChecker *sc, UBiDiDirection direction, const icu::UnicodeString &id,
-    icu::UnicodeString &dest, UErrorCode *status);
-#endif /* U_HIDE_DRAFT_API */
+U_CAPI const icu::UnicodeSet* U_EXPORT2 uspoof_getInclusionUnicodeSet(UErrorCode* status);
 
 /**
-  * Get the set of Candidate Characters for Inclusion in Identifiers, as defined
-  * in http://unicode.org/Public/security/latest/xidmodifications.txt
-  * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
-  *
-  * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
-  * be deleted by the caller.
-  *
-  * @param status The error code, set if a problem occurs while creating the set.
-  *
-  * @stable ICU 51
-  */
-U_CAPI const icu::UnicodeSet * U_EXPORT2
-uspoof_getInclusionUnicodeSet(UErrorCode *status);
-
-/**
-  * Get the set of characters from Recommended Scripts for Inclusion in Identifiers, as defined
-  * in http://unicode.org/Public/security/latest/xidmodifications.txt
-  * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
-  *
-  * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
-  * be deleted by the caller.
-  *
-  * @param status The error code, set if a problem occurs while creating the set.
-  *
-  * @stable ICU 51
-  */
-U_CAPI const icu::UnicodeSet * U_EXPORT2
-uspoof_getRecommendedUnicodeSet(UErrorCode *status);
+ * Get the set of characters from Recommended Scripts for Inclusion in Identifiers, as defined
+ * in http://unicode.org/Public/security/latest/xidmodifications.txt
+ * and documented in http://www.unicode.org/reports/tr39/, Unicode Security Mechanisms.
+ *
+ * The returned set is frozen. Ownership of the set remains with the ICU library; it must not
+ * be deleted by the caller.
+ *
+ * @param status The error code, set if a problem occurs while creating the set.
+ *
+ * @stable ICU 51
+ */
+U_CAPI const icu::UnicodeSet* U_EXPORT2 uspoof_getRecommendedUnicodeSet(UErrorCode* status);
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif /* UCONFIG_NO_NORMALIZATION */
 
-#endif   /* USPOOF_H */
+#endif /* USPOOF_H */

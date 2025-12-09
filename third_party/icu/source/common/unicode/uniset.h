@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ***************************************************************************
@@ -269,7 +269,7 @@ class RuleCharacterIterator;
  *     </tr>
  *   </table>
  * \htmlonly</blockquote>\endhtmlonly
- * 
+ *
  * <p>Note:
  *  - Most UnicodeSet methods do not take a UErrorCode parameter because
  *   there are usually very few opportunities for failure other than a shortage
@@ -282,7 +282,7 @@ class RuleCharacterIterator;
  * @author Alan Liu
  * @stable ICU 2.0
  */
-class U_COMMON_API UnicodeSet final : public UnicodeFilter {
+class U_COMMON_API UnicodeSet U_FINAL : public UnicodeFilter {
 private:
     /**
      * Enough for sets with few ranges.
@@ -290,15 +290,15 @@ private:
      */
     static constexpr int32_t INITIAL_CAPACITY = 25;
     // fFlags constant
-    static constexpr uint8_t kIsBogus = 1;  // This set is bogus (i.e. not valid)
+    static constexpr uint8_t kIsBogus = 1; // This set is bogus (i.e. not valid)
 
     UChar32* list = stackList; // MUST be terminated with HIGH
     int32_t capacity = INITIAL_CAPACITY; // capacity of list
     int32_t len = 1; // length of list used; 1 <= len <= capacity
-    uint8_t fFlags = 0;         // Bit flag (see constants above)
+    uint8_t fFlags = 0; // Bit flag (see constants above)
 
-    BMPSet *bmpSet = nullptr; // The set is frozen iff either bmpSet or stringSpan is not nullptr.
-    UChar32* buffer = nullptr; // internal buffer, may be nullptr
+    BMPSet* bmpSet = nullptr; // The set is frozen iff either bmpSet or stringSpan is not NULL.
+    UChar32* buffer = nullptr; // internal buffer, may be NULL
     int32_t bufferCapacity = 0; // capacity of buffer
 
     /**
@@ -310,11 +310,11 @@ private:
      * indicating that toPattern() must generate a pattern
      * representation from the inversion list.
      */
-    char16_t *pat = nullptr;
+    char16_t* pat = nullptr;
     int32_t patLen = 0;
 
     UVector* strings = nullptr; // maintained in sorted order
-    UnicodeSetStringSpan *stringSpan = nullptr;
+    UnicodeSetStringSpan* stringSpan = nullptr;
 
     /**
      * Initial list array.
@@ -354,7 +354,6 @@ public:
     void setToBogus();
 
 public:
-
     enum {
         /**
          * Minimum value that can be stored in a UnicodeSet.
@@ -374,7 +373,6 @@ public:
     //----------------------------------------------------------------
 
 public:
-
     /**
      * Constructs an empty set.
      * @stable ICU 2.0
@@ -396,7 +394,7 @@ public:
      * @internal
      */
     enum ESerialization {
-      kSerialized  /* result of serialize() */
+        kSerialized /* result of serialize() */
     };
 
     /**
@@ -409,9 +407,8 @@ public:
      *
      * @internal
      */
-    UnicodeSet(const uint16_t buffer[], int32_t bufferLen,
-               ESerialization serialization, UErrorCode &status);
-#endif  /* U_HIDE_INTERNAL_API */
+    UnicodeSet(const uint16_t buffer[], int32_t bufferLen, ESerialization serialization, UErrorCode& status);
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Constructs a set from the given pattern.  See the class
@@ -421,8 +418,7 @@ public:
      * contains a syntax error.
      * @stable ICU 2.0
      */
-    UnicodeSet(const UnicodeString& pattern,
-               UErrorCode& status);
+    UnicodeSet(const UnicodeString& pattern, UErrorCode& status);
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -430,20 +426,15 @@ public:
      * description for the syntax of the pattern language.
      * @param pattern a string specifying what characters are in the set
      * @param options bitmask for options to apply to the pattern.
-     * Valid options are USET_IGNORE_SPACE and
-     * at most one of USET_CASE_INSENSITIVE, USET_ADD_CASE_MAPPINGS, USET_SIMPLE_CASE_INSENSITIVE.
-     * These case options are mutually exclusive.
+     * Valid options are USET_IGNORE_SPACE and USET_CASE_INSENSITIVE.
      * @param symbols a symbol table mapping variable names to values
-     * and stand-in characters to UnicodeSets; may be nullptr
+     * and stand-in characters to UnicodeSets; may be NULL
      * @param status returns <code>U_ILLEGAL_ARGUMENT_ERROR</code> if the pattern
      * contains a syntax error.
      * @internal
      */
-    UnicodeSet(const UnicodeString& pattern,
-               uint32_t options,
-               const SymbolTable* symbols,
-               UErrorCode& status);
-#endif  /* U_HIDE_INTERNAL_API */
+    UnicodeSet(const UnicodeString& pattern, uint32_t options, const SymbolTable* symbols, UErrorCode& status);
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Constructs a set from the given pattern.  See the class description
@@ -452,18 +443,13 @@ public:
      * @param pos on input, the position in pattern at which to start parsing.
      * On output, the position after the last character parsed.
      * @param options bitmask for options to apply to the pattern.
-     * Valid options are USET_IGNORE_SPACE and
-     * at most one of USET_CASE_INSENSITIVE, USET_ADD_CASE_MAPPINGS, USET_SIMPLE_CASE_INSENSITIVE.
-     * These case options are mutually exclusive.
+     * Valid options are USET_IGNORE_SPACE and USET_CASE_INSENSITIVE.
      * @param symbols a symbol table mapping variable names to values
-     * and stand-in characters to UnicodeSets; may be nullptr
+     * and stand-in characters to UnicodeSets; may be NULL
      * @param status input-output error code
      * @stable ICU 2.8
      */
-    UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
-               uint32_t options,
-               const SymbolTable* symbols,
-               UErrorCode& status);
+    UnicodeSet(const UnicodeString& pattern, ParsePosition& pos, uint32_t options, const SymbolTable* symbols, UErrorCode& status);
 
     /**
      * Constructs a set that is identical to the given UnicodeSet.
@@ -532,7 +518,7 @@ public:
      *
      * @stable ICU 4.2
      */
-    inline static UnicodeSet *fromUSet(USet *uset);
+    inline static UnicodeSet* fromUSet(USet* uset);
 
     /**
      * Get a UnicodeSet pointer from a const USet
@@ -542,8 +528,8 @@ public:
      *
      * @stable ICU 4.2
      */
-    inline static const UnicodeSet *fromUSet(const USet *uset);
-    
+    inline static const UnicodeSet* fromUSet(const USet* uset);
+
     /**
      * Produce a USet * pointer for this UnicodeSet.
      * USet is the plain C type for UnicodeSet
@@ -551,8 +537,7 @@ public:
      * @return a USet pointer for this UnicodeSet
      * @stable ICU 4.2
      */
-    inline USet *toUSet();
-
+    inline USet* toUSet();
 
     /**
      * Produce a const USet * pointer for this UnicodeSet.
@@ -561,8 +546,7 @@ public:
      * @return a const USet pointer for this UnicodeSet
      * @stable ICU 4.2
      */
-    inline const USet * toUSet() const;
-
+    inline const USet* toUSet() const;
 
     //----------------------------------------------------------------
     // Freezable API
@@ -591,7 +575,7 @@ public:
      * @see cloneAsThawed
      * @stable ICU 3.8
      */
-    UnicodeSet *freeze();
+    UnicodeSet* freeze();
 
     /**
      * Clone the set and make the clone mutable.
@@ -601,7 +585,7 @@ public:
      * @see isFrozen
      * @stable ICU 3.8
      */
-    UnicodeSet *cloneAsThawed() const;
+    UnicodeSet* cloneAsThawed() const;
 
     //----------------------------------------------------------------
     // Public API
@@ -623,8 +607,7 @@ public:
      * to be the start of a UnicodeSet pattern.
      * @stable ICU 2.4
      */
-    static UBool resemblesPattern(const UnicodeString& pattern,
-                                  int32_t pos);
+    static UBool resemblesPattern(const UnicodeString& pattern, int32_t pos);
 
     /**
      * Modifies this set to represent the set specified by the given
@@ -638,8 +621,7 @@ public:
      * @return a reference to this
      * @stable ICU 2.0
      */
-    UnicodeSet& applyPattern(const UnicodeString& pattern,
-                             UErrorCode& status);
+    UnicodeSet& applyPattern(const UnicodeString& pattern, UErrorCode& status);
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -649,22 +631,17 @@ public:
      * A frozen set will not be modified.
      * @param pattern a string specifying what characters are in the set
      * @param options bitmask for options to apply to the pattern.
-     * Valid options are USET_IGNORE_SPACE and
-     * at most one of USET_CASE_INSENSITIVE, USET_ADD_CASE_MAPPINGS, USET_SIMPLE_CASE_INSENSITIVE.
-     * These case options are mutually exclusive.
+     * Valid options are USET_IGNORE_SPACE and USET_CASE_INSENSITIVE.
      * @param symbols a symbol table mapping variable names to
-     * values and stand-ins to UnicodeSets; may be nullptr
+     * values and stand-ins to UnicodeSets; may be NULL
      * @param status returns <code>U_ILLEGAL_ARGUMENT_ERROR</code> if the pattern
      * contains a syntax error.
      *<em> Empties the set passed before applying the pattern.</em>
      * @return a reference to this
      * @internal
      */
-    UnicodeSet& applyPattern(const UnicodeString& pattern,
-                             uint32_t options,
-                             const SymbolTable* symbols,
-                             UErrorCode& status);
-#endif  /* U_HIDE_INTERNAL_API */
+    UnicodeSet& applyPattern(const UnicodeString& pattern, uint32_t options, const SymbolTable* symbols, UErrorCode& status);
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Parses the given pattern, starting at the given position.  The
@@ -689,21 +666,15 @@ public:
      * pattern.length() if the closing ']' is the last character of
      * the pattern string.
      * @param options bitmask for options to apply to the pattern.
-     * Valid options are USET_IGNORE_SPACE and
-     * at most one of USET_CASE_INSENSITIVE, USET_ADD_CASE_MAPPINGS, USET_SIMPLE_CASE_INSENSITIVE.
-     * These case options are mutually exclusive.
+     * Valid options are USET_IGNORE_SPACE and USET_CASE_INSENSITIVE.
      * @param symbols a symbol table mapping variable names to
-     * values and stand-ins to UnicodeSets; may be nullptr
+     * values and stand-ins to UnicodeSets; may be NULL
      * @param status returns <code>U_ILLEGAL_ARGUMENT_ERROR</code> if the pattern
      * contains a syntax error.
      * @return a reference to this
      * @stable ICU 2.8
      */
-    UnicodeSet& applyPattern(const UnicodeString& pattern,
-                             ParsePosition& pos,
-                             uint32_t options,
-                             const SymbolTable* symbols,
-                             UErrorCode& status);
+    UnicodeSet& applyPattern(const UnicodeString& pattern, ParsePosition& pos, uint32_t options, const SymbolTable* symbols, UErrorCode& status);
 
     /**
      * Returns a string representation of this set.  If the result of
@@ -718,8 +689,7 @@ public:
      * U+000A, U+0020..U+007E.
      * @stable ICU 2.0
      */
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable = false) const override;
+    virtual UnicodeString& toPattern(UnicodeString& result, UBool escapeUnprintable = false) const override;
 
     /**
      * Modifies this set to contain those code points which have the given value
@@ -743,9 +713,7 @@ public:
      *
      * @stable ICU 2.4
      */
-    UnicodeSet& applyIntPropertyValue(UProperty prop,
-                                      int32_t value,
-                                      UErrorCode& ec);
+    UnicodeSet& applyIntPropertyValue(UProperty prop, int32_t value, UErrorCode& ec);
 
     /**
      * Modifies this set to contain those code points which have the
@@ -776,9 +744,7 @@ public:
      *
      * @stable ICU 2.4
      */
-    UnicodeSet& applyPropertyAlias(const UnicodeString& prop,
-                                   const UnicodeString& value,
-                                   UErrorCode& ec);
+    UnicodeSet& applyPropertyAlias(const UnicodeString& prop, const UnicodeString& value, UErrorCode& ec);
 
     /**
      * Returns the number of elements in this set (its cardinality).
@@ -802,11 +768,13 @@ public:
      */
     virtual UBool isEmpty(void) const;
 
+#ifndef U_HIDE_DRAFT_API
     /**
      * @return true if this set contains multi-character strings or the empty string.
-     * @stable ICU 70
+     * @draft ICU 70
      */
     UBool hasStrings() const;
+#endif // U_HIDE_DRAFT_API
 
     /**
      * Returns true if this set contains the given character.
@@ -928,7 +896,7 @@ public:
      * @stable ICU 3.8
      * @see USetSpanCondition
      */
-    int32_t span(const char16_t *s, int32_t length, USetSpanCondition spanCondition) const;
+    int32_t span(const char16_t* s, int32_t length, USetSpanCondition spanCondition) const;
 
     /**
      * Returns the end of the substring of the input string according to the USetSpanCondition.
@@ -942,7 +910,7 @@ public:
      * @stable ICU 4.4
      * @see USetSpanCondition
      */
-    inline int32_t span(const UnicodeString &s, int32_t start, USetSpanCondition spanCondition) const;
+    inline int32_t span(const UnicodeString& s, int32_t start, USetSpanCondition spanCondition) const;
 
     /**
      * Returns the start of the trailing substring of the input string which
@@ -961,7 +929,7 @@ public:
      * @stable ICU 3.8
      * @see USetSpanCondition
      */
-    int32_t spanBack(const char16_t *s, int32_t length, USetSpanCondition spanCondition) const;
+    int32_t spanBack(const char16_t* s, int32_t length, USetSpanCondition spanCondition) const;
 
     /**
      * Returns the start of the substring of the input string according to the USetSpanCondition.
@@ -976,7 +944,7 @@ public:
      * @stable ICU 4.4
      * @see USetSpanCondition
      */
-    inline int32_t spanBack(const UnicodeString &s, int32_t limit, USetSpanCondition spanCondition) const;
+    inline int32_t spanBack(const UnicodeString& s, int32_t limit, USetSpanCondition spanCondition) const;
 
     /**
      * Returns the length of the initial substring of the input string which
@@ -996,7 +964,7 @@ public:
      * @stable ICU 3.8
      * @see USetSpanCondition
      */
-    int32_t spanUTF8(const char *s, int32_t length, USetSpanCondition spanCondition) const;
+    int32_t spanUTF8(const char* s, int32_t length, USetSpanCondition spanCondition) const;
 
     /**
      * Returns the start of the trailing substring of the input string which
@@ -1015,16 +983,13 @@ public:
      * @stable ICU 3.8
      * @see USetSpanCondition
      */
-    int32_t spanBackUTF8(const char *s, int32_t length, USetSpanCondition spanCondition) const;
+    int32_t spanBackUTF8(const char* s, int32_t length, USetSpanCondition spanCondition) const;
 
     /**
      * Implement UnicodeMatcher::matches()
      * @stable ICU 2.4
      */
-    virtual UMatchDegree matches(const Replaceable& text,
-                         int32_t& offset,
-                         int32_t limit,
-                         UBool incremental) override;
+    virtual UMatchDegree matches(const Replaceable& text, int32_t& offset, int32_t limit, UBool incremental) override;
 
 private:
     /**
@@ -1049,9 +1014,7 @@ private:
      * s.length().  If there is a mismatch between s and text, return
      * 0
      */
-    static int32_t matchRest(const Replaceable& text,
-                             int32_t start, int32_t limit,
-                             const UnicodeString& s);
+    static int32_t matchRest(const Replaceable& text, int32_t start, int32_t limit, const UnicodeString& s);
 
     /**
      * Returns the smallest value i such that c < list[i].  Caller
@@ -1065,7 +1028,6 @@ private:
     int32_t findCodePoint(UChar32 c) const;
 
 public:
-
     /**
      * Implementation of UnicodeMatcher API.  Union the set of all
      * characters that may be matched by this object into the given
@@ -1143,7 +1105,7 @@ public:
      */
     UnicodeSet& add(const UnicodeString& s);
 
- private:
+private:
     /**
      * @return a code point IF the string consists of a single one.
      * otherwise returns -1.
@@ -1153,7 +1115,7 @@ public:
 
     void _add(const UnicodeString& s);
 
- public:
+public:
     /**
      * Adds each of the characters in this string to the set. Note: "ch" => {"c", "h"}
      * If this set already contains any particular character, it has no effect on that character.
@@ -1201,7 +1163,6 @@ public:
      */
     static UnicodeSet* U_EXPORT2 createFrom(const UnicodeString& s);
 
-
     /**
      * Makes a set from each of the characters in the string. Thus "ch" => {"c", "h"}
      * @param s the source string
@@ -1224,7 +1185,6 @@ public:
      */
     virtual UnicodeSet& retain(UChar32 start, UChar32 end);
 
-
     /**
      * Retain the specified character from this set if it is present.
      * A frozen set will not be modified.
@@ -1245,7 +1205,7 @@ public:
      * @return this object, for chaining
      * @stable ICU 69
      */
-    UnicodeSet& retain(const UnicodeString &s);
+    UnicodeSet& retain(const UnicodeString& s);
 
     /**
      * Removes the specified range from this set if it is present.
@@ -1398,7 +1358,7 @@ public:
 
     /**
      * Close this set over the given attribute.  For the attribute
-     * USET_CASE_INSENSITIVE, the result is to modify this set so that:
+     * USET_CASE, the result is to modify this set so that:
      *
      * 1. For each character or string 'a' in this set, all strings or
      * characters 'b' such that foldCase(a) == foldCase(b) are added
@@ -1416,10 +1376,8 @@ public:
      * A frozen set will not be modified.
      *
      * @param attribute bitmask for attributes to close over.
-     * Valid options:
-     * At most one of USET_CASE_INSENSITIVE, USET_ADD_CASE_MAPPINGS, USET_SIMPLE_CASE_INSENSITIVE.
-     * These case options are mutually exclusive.
-     * Unrelated options bits are ignored.
+     * Currently only the USET_CASE bit is supported.  Any undefined bits
+     * are ignored.
      * @return a reference to this set.
      * @stable ICU 4.2
      */
@@ -1431,7 +1389,7 @@ public:
      * @return a reference to this set.
      * @stable ICU 4.2
      */
-    virtual UnicodeSet &removeAllStrings();
+    virtual UnicodeSet& removeAllStrings();
 
     /**
      * Iteration method that returns the number of ranges contained in
@@ -1498,7 +1456,7 @@ public:
      * bits followed by least significant 16 bits.
      *
      * @param dest pointer to buffer of destCapacity 16-bit integers.
-     * May be nullptr only if destCapacity is zero.
+     * May be NULL only if destCapacity is zero.
      * @param destCapacity size of dest, or zero.  Must not be negative.
      * @param ec error code.  Will be set to U_INDEX_OUTOFBOUNDS_ERROR
      * if n+2*m > 0x7FFF.  Will be set to U_BUFFER_OVERFLOW_ERROR if
@@ -1508,7 +1466,7 @@ public:
      * than U_BUFFER_OVERFLOW_ERROR.
      * @stable ICU 2.4
      */
-    int32_t serialize(uint16_t *dest, int32_t destCapacity, UErrorCode& ec) const;
+    int32_t serialize(uint16_t* dest, int32_t destCapacity, UErrorCode& ec) const;
 
     /**
      * Reallocate this objects internal structures to take up the least
@@ -1542,7 +1500,6 @@ public:
     virtual UClassID getDynamicClassID(void) const override;
 
 private:
-
     // Private API for the USet API
 
     friend class USetAccess;
@@ -1554,7 +1511,6 @@ private:
     //----------------------------------------------------------------
 
 private:
-
     /**
      * Returns <tt>true</tt> if this set contains any character whose low byte
      * is the given value.  This is used by <tt>RuleBasedTransliterator</tt> for
@@ -1576,21 +1532,10 @@ private:
     // Implementation: Pattern parsing
     //----------------------------------------------------------------
 
-    void applyPatternIgnoreSpace(const UnicodeString& pattern,
-                                 ParsePosition& pos,
-                                 const SymbolTable* symbols,
-                                 UErrorCode& status);
+    void applyPatternIgnoreSpace(const UnicodeString& pattern, ParsePosition& pos, const SymbolTable* symbols, UErrorCode& status);
 
-    void applyPattern(RuleCharacterIterator& chars,
-                      const SymbolTable* symbols,
-                      UnicodeString& rebuiltPat,
-                      uint32_t options,
-                      UnicodeSet& (UnicodeSet::*caseClosure)(int32_t attribute),
-                      int32_t depth,
-                      UErrorCode& ec);
-
-    void closeOverCaseInsensitive(bool simple);
-    void closeOverAddCaseMappings();
+    void applyPattern(RuleCharacterIterator& chars, const SymbolTable* symbols, UnicodeString& rebuiltPat, uint32_t options,
+        UnicodeSet& (UnicodeSet::*caseClosure)(int32_t attribute), int32_t depth, UErrorCode& ec);
 
     //----------------------------------------------------------------
     // Implementation: Utility methods
@@ -1604,22 +1549,19 @@ private:
 
     void swapBuffers(void);
 
-    UBool allocateStrings(UErrorCode &status);
+    UBool allocateStrings(UErrorCode& status);
     int32_t stringsSize() const;
-    UBool stringsContains(const UnicodeString &s) const;
+    UBool stringsContains(const UnicodeString& s) const;
 
-    UnicodeString& _toPattern(UnicodeString& result,
-                              UBool escapeUnprintable) const;
+    UnicodeString& _toPattern(UnicodeString& result, UBool escapeUnprintable) const;
 
-    UnicodeString& _generatePattern(UnicodeString& result,
-                                    UBool escapeUnprintable) const;
+    UnicodeString& _generatePattern(UnicodeString& result, UBool escapeUnprintable) const;
 
     static void _appendToPat(UnicodeString& buf, const UnicodeString& s, UBool escapeUnprintable);
 
     static void _appendToPat(UnicodeString& buf, UChar32 c, UBool escapeUnprintable);
 
-    static void _appendToPat(UnicodeString &result, UChar32 start, UChar32 end,
-                             UBool escapeUnprintable);
+    static void _appendToPat(UnicodeString& result, UChar32 start, UChar32 end, UBool escapeUnprintable);
 
     //----------------------------------------------------------------
     // Implementation: Fundamental operators
@@ -1636,11 +1578,9 @@ private:
      * to be the start of a property set pattern [:foo:], \\p{foo}, or
      * \\P{foo}, or \\N{name}.
      */
-    static UBool resemblesPropertyPattern(const UnicodeString& pattern,
-                                          int32_t pos);
+    static UBool resemblesPropertyPattern(const UnicodeString& pattern, int32_t pos);
 
-    static UBool resemblesPropertyPattern(RuleCharacterIterator& chars,
-                                          int32_t iterOpts);
+    static UBool resemblesPropertyPattern(RuleCharacterIterator& chars, int32_t iterOpts);
 
     /**
      * Parse the given property pattern at the given parse position
@@ -1681,13 +1621,11 @@ private:
      * @param ec status
      * @return a reference to this.
      */
-    UnicodeSet& applyPropertyPattern(const UnicodeString& pattern,
-                                     ParsePosition& ppos,
-                                     UErrorCode &ec);
+    UnicodeSet& applyPropertyPattern(const UnicodeString& pattern, ParsePosition& ppos, UErrorCode& ec);
 
-    void applyPropertyPattern(RuleCharacterIterator& chars,
-                              UnicodeString& rebuiltPat,
-                              UErrorCode& ec);
+    void applyPropertyPattern(RuleCharacterIterator& chars, UnicodeString& rebuiltPat, UErrorCode& ec);
+
+    static const UnicodeSet* getInclusions(int32_t src, UErrorCode& status);
 
     /**
      * A filter that returns true if the given code point should be
@@ -1704,18 +1642,19 @@ private:
      * getInclusions().
      * src is a UPropertySource value.
      */
-    void applyFilter(Filter filter,
-                     void* context,
-                     const UnicodeSet* inclusions,
-                     UErrorCode &status);
+    void applyFilter(Filter filter, void* context, const UnicodeSet* inclusions, UErrorCode& status);
+
+    // UCPMap is now stable ICU 63
+    void applyIntPropertyValue(const UCPMap* map, UCPMapValueFilter* filter, const void* context, UErrorCode& errorCode);
 
     /**
      * Set the new pattern to cache.
      */
-    void setPattern(const UnicodeString& newPat) {
+    void setPattern(const UnicodeString& newPat)
+    {
         setPattern(newPat.getBuffer(), newPat.length());
     }
-    void setPattern(const char16_t *newPat, int32_t newPatLen);
+    void setPattern(const char16_t* newPat, int32_t newPatLen);
     /**
      * Release existing cached pattern.
      */
@@ -1724,64 +1663,74 @@ private:
     friend class UnicodeSetIterator;
 };
 
-
-
-inline bool UnicodeSet::operator!=(const UnicodeSet& o) const {
+inline bool UnicodeSet::operator!=(const UnicodeSet& o) const
+{
     return !operator==(o);
 }
 
-inline UBool UnicodeSet::isFrozen() const {
-    return (UBool)(bmpSet!=nullptr || stringSpan!=nullptr);
+inline UBool UnicodeSet::isFrozen() const
+{
+    return (UBool)(bmpSet != NULL || stringSpan != NULL);
 }
 
-inline UBool UnicodeSet::containsSome(UChar32 start, UChar32 end) const {
+inline UBool UnicodeSet::containsSome(UChar32 start, UChar32 end) const
+{
     return !containsNone(start, end);
 }
 
-inline UBool UnicodeSet::containsSome(const UnicodeSet& s) const {
+inline UBool UnicodeSet::containsSome(const UnicodeSet& s) const
+{
     return !containsNone(s);
 }
 
-inline UBool UnicodeSet::containsSome(const UnicodeString& s) const {
+inline UBool UnicodeSet::containsSome(const UnicodeString& s) const
+{
     return !containsNone(s);
 }
 
-inline UBool UnicodeSet::isBogus() const {
+inline UBool UnicodeSet::isBogus() const
+{
     return (UBool)(fFlags & kIsBogus);
 }
 
-inline UnicodeSet *UnicodeSet::fromUSet(USet *uset) {
-    return reinterpret_cast<UnicodeSet *>(uset);
+inline UnicodeSet* UnicodeSet::fromUSet(USet* uset)
+{
+    return reinterpret_cast<UnicodeSet*>(uset);
 }
 
-inline const UnicodeSet *UnicodeSet::fromUSet(const USet *uset) {
-    return reinterpret_cast<const UnicodeSet *>(uset);
+inline const UnicodeSet* UnicodeSet::fromUSet(const USet* uset)
+{
+    return reinterpret_cast<const UnicodeSet*>(uset);
 }
 
-inline USet *UnicodeSet::toUSet() {
-    return reinterpret_cast<USet *>(this);
+inline USet* UnicodeSet::toUSet()
+{
+    return reinterpret_cast<USet*>(this);
 }
 
-inline const USet *UnicodeSet::toUSet() const {
-    return reinterpret_cast<const USet *>(this);
+inline const USet* UnicodeSet::toUSet() const
+{
+    return reinterpret_cast<const USet*>(this);
 }
 
-inline int32_t UnicodeSet::span(const UnicodeString &s, int32_t start, USetSpanCondition spanCondition) const {
-    int32_t sLength=s.length();
-    if(start<0) {
-        start=0;
-    } else if(start>sLength) {
-        start=sLength;
+inline int32_t UnicodeSet::span(const UnicodeString& s, int32_t start, USetSpanCondition spanCondition) const
+{
+    int32_t sLength = s.length();
+    if (start < 0) {
+        start = 0;
+    } else if (start > sLength) {
+        start = sLength;
     }
-    return start+span(s.getBuffer()+start, sLength-start, spanCondition);
+    return start + span(s.getBuffer() + start, sLength - start, spanCondition);
 }
 
-inline int32_t UnicodeSet::spanBack(const UnicodeString &s, int32_t limit, USetSpanCondition spanCondition) const {
-    int32_t sLength=s.length();
-    if(limit<0) {
-        limit=0;
-    } else if(limit>sLength) {
-        limit=sLength;
+inline int32_t UnicodeSet::spanBack(const UnicodeString& s, int32_t limit, USetSpanCondition spanCondition) const
+{
+    int32_t sLength = s.length();
+    if (limit < 0) {
+        limit = 0;
+    } else if (limit > sLength) {
+        limit = sLength;
     }
     return spanBack(s.getBuffer(), limit, spanCondition);
 }

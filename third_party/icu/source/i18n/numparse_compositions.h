@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -26,7 +26,7 @@ namespace impl {
  */
 // Exported as U_I18N_API for tests
 class U_I18N_API CompositionMatcher : public NumberParseMatcher {
-  protected:
+protected:
     // No construction except by subclasses!
     CompositionMatcher() = default;
 
@@ -36,7 +36,6 @@ class U_I18N_API CompositionMatcher : public NumberParseMatcher {
     // To be overridden by subclasses (used for iteration):
     virtual const NumberParseMatcher* const* end() const = 0;
 };
-
 
 // NOTE: AnyMatcher is no longer being used. The previous definition is shown below.
 // The implementation can be found in SVN source control, deleted around March 30, 2018.
@@ -49,7 +48,7 @@ class U_I18N_API CompositionMatcher : public NumberParseMatcher {
 // * @author sffc
 // * @see SeriesMatcher
 // */
-//class AnyMatcher : public CompositionMatcher {
+// class AnyMatcher : public CompositionMatcher {
 //  public:
 //    bool match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const override;
 //
@@ -62,7 +61,6 @@ class U_I18N_API CompositionMatcher : public NumberParseMatcher {
 //    AnyMatcher() = default;
 //};
 
-
 /**
  * Composes a number of matchers, running one after another. Matches the input string only if all of the
  * matchers in the series succeed. Performs greedy matches within the context of the series.
@@ -72,7 +70,7 @@ class U_I18N_API CompositionMatcher : public NumberParseMatcher {
  */
 // Exported as U_I18N_API for tests
 class U_I18N_API SeriesMatcher : public CompositionMatcher {
-  public:
+public:
     bool match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const override;
 
     bool smokeTest(const StringSegment& segment) const override;
@@ -81,7 +79,7 @@ class U_I18N_API SeriesMatcher : public CompositionMatcher {
 
     virtual int32_t length() const = 0;
 
-  protected:
+protected:
     // No construction except by subclasses!
     SeriesMatcher() = default;
 };
@@ -93,8 +91,8 @@ class U_I18N_API SeriesMatcher : public CompositionMatcher {
  */
 // Exported as U_I18N_API for tests
 class U_I18N_API ArraySeriesMatcher : public SeriesMatcher {
-  public:
-    ArraySeriesMatcher();  // WARNING: Leaves the object in an unusable state
+public:
+    ArraySeriesMatcher(); // WARNING: Leaves the object in an unusable state
 
     typedef MaybeStackArray<const NumberParseMatcher*, 3> MatcherArray;
 
@@ -105,16 +103,15 @@ class U_I18N_API ArraySeriesMatcher : public SeriesMatcher {
 
     int32_t length() const override;
 
-  protected:
+protected:
     const NumberParseMatcher* const* begin() const override;
 
     const NumberParseMatcher* const* end() const override;
 
-  private:
+private:
     MatcherArray fMatchers;
     int32_t fMatchersLen;
 };
-
 
 } // namespace impl
 } // namespace numparse

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 #ifndef INCLUDE_PERFETTO_TRACING_CORE_TRACING_SERVICE_STATE_H_
 #define INCLUDE_PERFETTO_TRACING_CORE_TRACING_SERVICE_STATE_H_
 
@@ -26,4 +25,4 @@
 
 #include "protos/perfetto/common/tracing_service_state.gen.h"
 
-#endif  // INCLUDE_PERFETTO_TRACING_CORE_TRACING_SERVICE_STATE_H_
+#endif // INCLUDE_PERFETTO_TRACING_CORE_TRACING_SERVICE_STATE_H_

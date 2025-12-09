@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -17,7 +17,7 @@
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_FORMATTING
-    
+
 #include "unicode/msgfmt.h"
 #include "uvector.h"
 #include "unicode/strenum.h"
@@ -28,11 +28,12 @@ class FormatNameEnumeration : public StringEnumeration {
 public:
     FormatNameEnumeration(LocalPointer<UVector> fFormatNames, UErrorCode& status);
     virtual ~FormatNameEnumeration();
-    static UClassID U_EXPORT2 getStaticClassID();
-    virtual UClassID getDynamicClassID() const override;
+    static UClassID U_EXPORT2 getStaticClassID(void);
+    virtual UClassID getDynamicClassID(void) const override;
     virtual const UnicodeString* snext(UErrorCode& status) override;
     virtual void reset(UErrorCode& status) override;
     virtual int32_t count(UErrorCode& status) const override;
+
 private:
     int32_t pos;
     LocalPointer<UVector> fFormatNames;

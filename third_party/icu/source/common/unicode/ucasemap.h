@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -27,7 +27,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * \file
@@ -72,16 +72,14 @@ typedef struct UCaseMap UCaseMap; /**< C typedef for struct UCaseMap. @stable IC
  * @see U_TITLECASE_NO_BREAK_ADJUSTMENT
  * @stable ICU 3.4
  */
-U_CAPI UCaseMap * U_EXPORT2
-ucasemap_open(const char *locale, uint32_t options, UErrorCode *pErrorCode);
+U_CAPI UCaseMap* U_EXPORT2 ucasemap_open(const char* locale, uint32_t options, UErrorCode* pErrorCode);
 
 /**
  * Close a UCaseMap service object.
  * @param csm Object to be closed.
  * @stable ICU 3.4
  */
-U_CAPI void U_EXPORT2
-ucasemap_close(UCaseMap *csm);
+U_CAPI void U_EXPORT2 ucasemap_close(UCaseMap* csm);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -108,8 +106,7 @@ U_NAMESPACE_END
  * @return locale ID
  * @stable ICU 3.4
  */
-U_CAPI const char * U_EXPORT2
-ucasemap_getLocale(const UCaseMap *csm);
+U_CAPI const char* U_EXPORT2 ucasemap_getLocale(const UCaseMap* csm);
 
 /**
  * Get the options bit set that is used for case folding and string comparisons.
@@ -117,8 +114,7 @@ ucasemap_getLocale(const UCaseMap *csm);
  * @return options bit set
  * @stable ICU 3.4
  */
-U_CAPI uint32_t U_EXPORT2
-ucasemap_getOptions(const UCaseMap *csm);
+U_CAPI uint32_t U_EXPORT2 ucasemap_getOptions(const UCaseMap* csm);
 
 /**
  * Set the locale ID that is used for language-dependent case mappings.
@@ -131,8 +127,7 @@ ucasemap_getOptions(const UCaseMap *csm);
  * @see ucasemap_open
  * @stable ICU 3.4
  */
-U_CAPI void U_EXPORT2
-ucasemap_setLocale(UCaseMap *csm, const char *locale, UErrorCode *pErrorCode);
+U_CAPI void U_EXPORT2 ucasemap_setLocale(UCaseMap* csm, const char* locale, UErrorCode* pErrorCode);
 
 /**
  * Set the options bit set that is used for case folding and string comparisons.
@@ -145,8 +140,7 @@ ucasemap_setLocale(UCaseMap *csm, const char *locale, UErrorCode *pErrorCode);
  * @see ucasemap_open
  * @stable ICU 3.4
  */
-U_CAPI void U_EXPORT2
-ucasemap_setOptions(UCaseMap *csm, uint32_t options, UErrorCode *pErrorCode);
+U_CAPI void U_EXPORT2 ucasemap_setOptions(UCaseMap* csm, uint32_t options, UErrorCode* pErrorCode);
 
 #if !UCONFIG_NO_BREAK_ITERATION
 
@@ -157,8 +151,7 @@ ucasemap_setOptions(UCaseMap *csm, uint32_t options, UErrorCode *pErrorCode);
  * @return titlecasing break iterator
  * @stable ICU 3.8
  */
-U_CAPI const UBreakIterator * U_EXPORT2
-ucasemap_getBreakIterator(const UCaseMap *csm);
+U_CAPI const UBreakIterator* U_EXPORT2 ucasemap_getBreakIterator(const UCaseMap* csm);
 
 /**
  * Set the break iterator that is used for titlecasing.
@@ -180,8 +173,7 @@ ucasemap_getBreakIterator(const UCaseMap *csm);
  * @see ucasemap_utf8ToTitle
  * @stable ICU 3.8
  */
-U_CAPI void U_EXPORT2
-ucasemap_setBreakIterator(UCaseMap *csm, UBreakIterator *iterToAdopt, UErrorCode *pErrorCode);
+U_CAPI void U_EXPORT2 ucasemap_setBreakIterator(UCaseMap* csm, UBreakIterator* iterToAdopt, UErrorCode* pErrorCode);
 
 /**
  * Titlecase a UTF-16 string. This function is almost a duplicate of u_strToTitle(),
@@ -229,13 +221,9 @@ ucasemap_setBreakIterator(UCaseMap *csm, UBreakIterator *iterToAdopt, UErrorCode
  * @see u_strToTitle
  * @stable ICU 3.8
  */
-U_CAPI int32_t U_EXPORT2
-ucasemap_toTitle(UCaseMap *csm,
-                 UChar *dest, int32_t destCapacity,
-                 const UChar *src, int32_t srcLength,
-                 UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 ucasemap_toTitle(UCaseMap* csm, UChar* dest, int32_t destCapacity, const UChar* src, int32_t srcLength, UErrorCode* pErrorCode);
 
-#endif  // UCONFIG_NO_BREAK_ITERATION
+#endif // UCONFIG_NO_BREAK_ITERATION
 
 /**
  * Lowercase the characters in a UTF-8 string.
@@ -260,11 +248,8 @@ ucasemap_toTitle(UCaseMap *csm,
  * @see u_strToLower
  * @stable ICU 3.4
  */
-U_CAPI int32_t U_EXPORT2
-ucasemap_utf8ToLower(const UCaseMap *csm,
-                     char *dest, int32_t destCapacity,
-                     const char *src, int32_t srcLength,
-                     UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 ucasemap_utf8ToLower(
+    const UCaseMap* csm, char* dest, int32_t destCapacity, const char* src, int32_t srcLength, UErrorCode* pErrorCode);
 
 /**
  * Uppercase the characters in a UTF-8 string.
@@ -289,11 +274,8 @@ ucasemap_utf8ToLower(const UCaseMap *csm,
  * @see u_strToUpper
  * @stable ICU 3.4
  */
-U_CAPI int32_t U_EXPORT2
-ucasemap_utf8ToUpper(const UCaseMap *csm,
-                     char *dest, int32_t destCapacity,
-                     const char *src, int32_t srcLength,
-                     UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 ucasemap_utf8ToUpper(
+    const UCaseMap* csm, char* dest, int32_t destCapacity, const char* src, int32_t srcLength, UErrorCode* pErrorCode);
 
 #if !UCONFIG_NO_BREAK_ITERATION
 
@@ -341,11 +323,7 @@ ucasemap_utf8ToUpper(const UCaseMap *csm,
  * @see U_TITLECASE_NO_BREAK_ADJUSTMENT
  * @stable ICU 3.8
  */
-U_CAPI int32_t U_EXPORT2
-ucasemap_utf8ToTitle(UCaseMap *csm,
-                    char *dest, int32_t destCapacity,
-                    const char *src, int32_t srcLength,
-                    UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 ucasemap_utf8ToTitle(UCaseMap* csm, char* dest, int32_t destCapacity, const char* src, int32_t srcLength, UErrorCode* pErrorCode);
 
 #endif
 
@@ -379,10 +357,7 @@ ucasemap_utf8ToTitle(UCaseMap *csm,
  * @see U_FOLD_CASE_EXCLUDE_SPECIAL_I
  * @stable ICU 3.8
  */
-U_CAPI int32_t U_EXPORT2
-ucasemap_utf8FoldCase(const UCaseMap *csm,
-                      char *dest, int32_t destCapacity,
-                      const char *src, int32_t srcLength,
-                      UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 ucasemap_utf8FoldCase(
+    const UCaseMap* csm, char* dest, int32_t destCapacity, const char* src, int32_t srcLength, UErrorCode* pErrorCode);
 
 #endif

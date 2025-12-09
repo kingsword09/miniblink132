@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -18,8 +18,8 @@ using namespace icu;
 using namespace icu::numparse;
 using namespace icu::numparse::impl;
 
-
-bool SeriesMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const {
+bool SeriesMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const
+{
     ParsedNumber backup(result);
 
     int32_t initialOffset = segment.getOffset();
@@ -61,7 +61,8 @@ bool SeriesMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCo
     return maybeMore;
 }
 
-bool SeriesMatcher::smokeTest(const StringSegment& segment) const {
+bool SeriesMatcher::smokeTest(const StringSegment& segment) const
+{
     // NOTE: The range-based for loop calls the virtual begin() and end() methods.
     // NOTE: We only want the first element. Use the for loop for boundary checking.
     for (auto& matcher : *this) {
@@ -72,37 +73,43 @@ bool SeriesMatcher::smokeTest(const StringSegment& segment) const {
     return false;
 }
 
-void SeriesMatcher::postProcess(ParsedNumber& result) const {
+void SeriesMatcher::postProcess(ParsedNumber& result) const
+{
     // NOTE: The range-based for loop calls the virtual begin() and end() methods.
     for (auto* matcher : *this) {
         matcher->postProcess(result);
     }
 }
 
-
 ArraySeriesMatcher::ArraySeriesMatcher()
-        : fMatchersLen(0) {
+    : fMatchersLen(0)
+{
 }
 
 ArraySeriesMatcher::ArraySeriesMatcher(MatcherArray& matchers, int32_t matchersLen)
-        : fMatchers(std::move(matchers)), fMatchersLen(matchersLen) {
+    : fMatchers(std::move(matchers))
+    , fMatchersLen(matchersLen)
+{
 }
 
-int32_t ArraySeriesMatcher::length() const {
+int32_t ArraySeriesMatcher::length() const
+{
     return fMatchersLen;
 }
 
-const NumberParseMatcher* const* ArraySeriesMatcher::begin() const {
+const NumberParseMatcher* const* ArraySeriesMatcher::begin() const
+{
     return fMatchers.getAlias();
 }
 
-const NumberParseMatcher* const* ArraySeriesMatcher::end() const {
+const NumberParseMatcher* const* ArraySeriesMatcher::end() const
+{
     return fMatchers.getAlias() + fMatchersLen;
 }
 
-UnicodeString ArraySeriesMatcher::toString() const {
+UnicodeString ArraySeriesMatcher::toString() const
+{
     return u"<ArraySeries>";
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *****************************************************************************************
@@ -16,7 +16,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * \file
@@ -43,7 +43,7 @@
  * @stable ICU 55
  */
 struct UFieldPositionIterator;
-typedef struct UFieldPositionIterator UFieldPositionIterator;  /**< C typedef for struct UFieldPositionIterator. @stable ICU 55 */
+typedef struct UFieldPositionIterator UFieldPositionIterator; /**< C typedef for struct UFieldPositionIterator. @stable ICU 55 */
 
 /**
  * Open a new, unset UFieldPositionIterator object.
@@ -54,8 +54,7 @@ typedef struct UFieldPositionIterator UFieldPositionIterator;  /**< C typedef fo
  *          or NULL if an error occurred.
  * @stable ICU 55
  */
-U_CAPI UFieldPositionIterator* U_EXPORT2
-ufieldpositer_open(UErrorCode* status);
+U_CAPI UFieldPositionIterator* U_EXPORT2 ufieldpositer_open(UErrorCode* status);
 
 /**
  * Close a UFieldPositionIterator object. Once closed it may no longer be used.
@@ -63,9 +62,7 @@ ufieldpositer_open(UErrorCode* status);
  *          A pointer to the UFieldPositionIterator object to close.
  * @stable ICU 55
  */
-U_CAPI void U_EXPORT2
-ufieldpositer_close(UFieldPositionIterator *fpositer);
-
+U_CAPI void U_EXPORT2 ufieldpositer_close(UFieldPositionIterator* fpositer);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -114,9 +111,7 @@ U_NAMESPACE_END
  *
  * @stable ICU 55
  */
-U_CAPI int32_t U_EXPORT2
-ufieldpositer_next(UFieldPositionIterator *fpositer,
-                   int32_t *beginIndex, int32_t *endIndex);
+U_CAPI int32_t U_EXPORT2 ufieldpositer_next(UFieldPositionIterator* fpositer, int32_t* beginIndex, int32_t* endIndex);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

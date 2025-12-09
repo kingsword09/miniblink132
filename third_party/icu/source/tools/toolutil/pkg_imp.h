@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -30,9 +30,6 @@
  * and set the lengths of the UDataInfo and of the whole header.
  * All data remains in its platform type.
  */
-U_CFUNC const UDataInfo *
-getDataInfo(const uint8_t *data, int32_t length,
-            int32_t &infoLength, int32_t &headerLength,
-            UErrorCode *pErrorCode);
+U_CFUNC const UDataInfo* getDataInfo(const uint8_t* data, int32_t length, int32_t& infoLength, int32_t& headerLength, UErrorCode* pErrorCode);
 
 #endif

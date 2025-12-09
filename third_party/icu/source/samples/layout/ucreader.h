@@ -1,4 +1,4 @@
-/*
+﻿/*
  *
  * © 2016 and later: Unicode, Inc. and others.
  * License & terms of use: http://www.unicode.org/copyright.html
@@ -15,7 +15,7 @@
 
 U_CDECL_BEGIN
 
-const char16_t *uc_readFile(const char *fileName, gs_guiSupport *guiSupport, int32_t *charCount);
+const UChar* uc_readFile(const char* fileName, gs_guiSupport* guiSupport, int32_t* charCount);
 
 U_CDECL_END
 

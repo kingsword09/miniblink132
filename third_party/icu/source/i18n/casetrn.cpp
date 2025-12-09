@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -31,53 +31,52 @@
 #include "cpputils.h"
 
 /* case context iterator using a Replaceable */
-U_CFUNC UChar32 U_CALLCONV
-utrans_rep_caseContextIterator(void *context, int8_t dir)
+U_CFUNC UChar32 U_CALLCONV utrans_rep_caseContextIterator(void* context, int8_t dir)
 {
     U_NAMESPACE_USE
 
-    UCaseContext *csc=(UCaseContext *)context;
-    Replaceable *rep=(Replaceable *)csc->p;
+    UCaseContext* csc = (UCaseContext*)context;
+    Replaceable* rep = (Replaceable*)csc->p;
     UChar32 c;
 
-    if(dir<0) {
+    if (dir < 0) {
         /* reset for backward iteration */
-        csc->index=csc->cpStart;
-        csc->dir=dir;
-    } else if(dir>0) {
+        csc->index = csc->cpStart;
+        csc->dir = dir;
+    } else if (dir > 0) {
         /* reset for forward iteration */
-        csc->index=csc->cpLimit;
-        csc->dir=dir;
+        csc->index = csc->cpLimit;
+        csc->dir = dir;
     } else {
         /* continue current iteration direction */
-        dir=csc->dir;
+        dir = csc->dir;
     }
 
     // automatically adjust start and limit if the Replaceable disagrees
     // with the original values
-    if(dir<0) {
-        if(csc->start<csc->index) {
-            c=rep->char32At(csc->index-1);
-            if(c<0) {
-                csc->start=csc->index;
+    if (dir < 0) {
+        if (csc->start < csc->index) {
+            c = rep->char32At(csc->index - 1);
+            if (c < 0) {
+                csc->start = csc->index;
             } else {
-                csc->index-=U16_LENGTH(c);
+                csc->index -= U16_LENGTH(c);
                 return c;
             }
         }
     } else {
         // detect, and store in csc->b1, if we hit the limit
-        if(csc->index<csc->limit) {
-            c=rep->char32At(csc->index);
-            if(c<0) {
-                csc->limit=csc->index;
-                csc->b1=true;
+        if (csc->index < csc->limit) {
+            c = rep->char32At(csc->index);
+            if (c < 0) {
+                csc->limit = csc->index;
+                csc->b1 = TRUE;
             } else {
-                csc->index+=U16_LENGTH(c);
+                csc->index += U16_LENGTH(c);
                 return c;
             }
         } else {
-            csc->b1=true;
+            csc->b1 = TRUE;
         }
     }
     return U_SENTINEL;
@@ -90,9 +89,9 @@ UOBJECT_DEFINE_ABSTRACT_RTTI_IMPLEMENTATION(CaseMapTransliterator)
 /**
  * Constructs a transliterator.
  */
-CaseMapTransliterator::CaseMapTransliterator(const UnicodeString &id, UCaseMapFull *map) : 
-    Transliterator(id, 0),
-    fMap(map)
+CaseMapTransliterator::CaseMapTransliterator(const UnicodeString& id, UCaseMapFull* map)
+    : Transliterator(id, 0)
+    , fMap(map)
 {
     // TODO test incremental mode with context-sensitive text (e.g. greek sigma)
     // TODO need to call setMaximumContextLength()?!
@@ -101,15 +100,16 @@ CaseMapTransliterator::CaseMapTransliterator(const UnicodeString &id, UCaseMapFu
 /**
  * Destructor.
  */
-CaseMapTransliterator::~CaseMapTransliterator() {
+CaseMapTransliterator::~CaseMapTransliterator()
+{
 }
 
 /**
  * Copy constructor.
  */
-CaseMapTransliterator::CaseMapTransliterator(const CaseMapTransliterator& o) :
-    Transliterator(o),
-    fMap(o.fMap)
+CaseMapTransliterator::CaseMapTransliterator(const CaseMapTransliterator& o)
+    : Transliterator(o)
+    , fMap(o.fMap)
 {
 }
 
@@ -132,9 +132,7 @@ CaseMapTransliterator::CaseMapTransliterator(const CaseMapTransliterator& o) :
 /**
  * Implements {@link Transliterator#handleTransliterate}.
  */
-void CaseMapTransliterator::handleTransliterate(Replaceable& text,
-                                 UTransPosition& offsets, 
-                                 UBool isIncremental) const
+void CaseMapTransliterator::handleTransliterate(Replaceable& text, UTransPosition& offsets, UBool isIncremental) const
 {
     if (offsets.start >= offsets.limit) {
         return;
@@ -147,45 +145,45 @@ void CaseMapTransliterator::handleTransliterate(Replaceable& text,
     csc.limit = offsets.contextLimit;
 
     UnicodeString tmp;
-    const char16_t *s;
+    const UChar* s;
     UChar32 c;
     int32_t textPos, delta, result;
 
-    for(textPos=offsets.start; textPos<offsets.limit;) {
-        csc.cpStart=textPos;
-        c=text.char32At(textPos);
-        csc.cpLimit=textPos+=U16_LENGTH(c);
+    for (textPos = offsets.start; textPos < offsets.limit;) {
+        csc.cpStart = textPos;
+        c = text.char32At(textPos);
+        csc.cpLimit = textPos += U16_LENGTH(c);
 
-        result=fMap(c, utrans_rep_caseContextIterator, &csc, &s, UCASE_LOC_ROOT);
+        result = fMap(c, utrans_rep_caseContextIterator, &csc, &s, UCASE_LOC_ROOT);
 
-        if(csc.b1 && isIncremental) {
+        if (csc.b1 && isIncremental) {
             // fMap() tried to look beyond the context limit
             // wait for more input
-            offsets.start=csc.cpStart;
+            offsets.start = csc.cpStart;
             return;
         }
 
-        if(result>=0) {
+        if (result >= 0) {
             // replace the current code point with its full case mapping result
             // see UCASE_MAX_STRING_LENGTH
-            if(result<=UCASE_MAX_STRING_LENGTH) {
+            if (result <= UCASE_MAX_STRING_LENGTH) {
                 // string s[result]
-                tmp.setTo(false, s, result);
-                delta=result-U16_LENGTH(c);
+                tmp.setTo(FALSE, s, result);
+                delta = result - U16_LENGTH(c);
             } else {
                 // single code point
                 tmp.setTo(result);
-                delta=tmp.length()-U16_LENGTH(c);
+                delta = tmp.length() - U16_LENGTH(c);
             }
             text.handleReplaceBetween(csc.cpStart, textPos, tmp);
-            if(delta!=0) {
-                textPos+=delta;
-                csc.limit=offsets.contextLimit+=delta;
-                offsets.limit+=delta;
+            if (delta != 0) {
+                textPos += delta;
+                csc.limit = offsets.contextLimit += delta;
+                offsets.limit += delta;
             }
         }
     }
-    offsets.start=textPos;
+    offsets.start = textPos;
 }
 
 U_NAMESPACE_END

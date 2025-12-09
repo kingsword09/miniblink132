@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -40,7 +40,7 @@ struct U_I18N_API CollationDataReader /* all static */ {
          * Can be 7 or 8 if there are only options and a script reordering.
          * The loader treats any index>=indexes[IX_INDEXES_LENGTH] as 0.
          */
-        IX_INDEXES_LENGTH,  // 0
+        IX_INDEXES_LENGTH, // 0
         /**
          * Bits 31..24: numericPrimary, for numeric collation
          *      23..16: fast Latin format version (0 = no fast Latin table)
@@ -51,7 +51,7 @@ struct U_I18N_API CollationDataReader /* all static */ {
         IX_RESERVED3,
 
         /** Array offset to Jamo CE32s in ce32s[], or <0 if none. */
-        IX_JAMO_CE32S_START,  // 4
+        IX_JAMO_CE32S_START, // 4
 
         // Byte offsets from the start of the data, after the generic header.
         // The indexes[] are at byte offset 0, other data follows.
@@ -71,7 +71,7 @@ struct U_I18N_API CollationDataReader /* all static */ {
         /** Byte offset to the collation trie. Its length is a multiple of 8 bytes. */
         IX_TRIE_OFFSET,
 
-        IX_RESERVED8_OFFSET,  // 8
+        IX_RESERVED8_OFFSET, // 8
         /** Byte offset to int64_t ces[]. */
         IX_CES_OFFSET,
         IX_RESERVED10_OFFSET,
@@ -79,8 +79,8 @@ struct U_I18N_API CollationDataReader /* all static */ {
         IX_CE32S_OFFSET,
 
         /** Byte offset to uint32_t rootElements[]. */
-        IX_ROOT_ELEMENTS_OFFSET,  // 12
-        /** Byte offset to char16_t *contexts[]. */
+        IX_ROOT_ELEMENTS_OFFSET, // 12
+        /** Byte offset to UChar *contexts[]. */
         IX_CONTEXTS_OFFSET,
         /** Byte offset to uint16_t [] with serialized unsafeBackwardSet. */
         IX_UNSAFE_BWD_OFFSET,
@@ -88,7 +88,7 @@ struct U_I18N_API CollationDataReader /* all static */ {
         IX_FAST_LATIN_TABLE_OFFSET,
 
         /** Byte offset to uint16_t scripts[]. */
-        IX_SCRIPTS_OFFSET,  // 16
+        IX_SCRIPTS_OFFSET, // 16
         /**
          * Byte offset to UBool compressibleBytes[].
          * Empty table if <256 bytes (padding only).
@@ -99,14 +99,12 @@ struct U_I18N_API CollationDataReader /* all static */ {
         IX_TOTAL_SIZE
     };
 
-    static void read(const CollationTailoring *base, const uint8_t *inBytes, int32_t inLength,
-                     CollationTailoring &tailoring, UErrorCode &errorCode);
+    static void read(const CollationTailoring* base, const uint8_t* inBytes, int32_t inLength, CollationTailoring& tailoring, UErrorCode& errorCode);
 
-    static UBool U_CALLCONV
-    isAcceptable(void *context, const char *type, const char *name, const UDataInfo *pInfo);
+    static UBool U_CALLCONV isAcceptable(void* context, const char* type, const char* name, const UDataInfo* pInfo);
 
 private:
-    CollationDataReader() = delete;  // no constructor
+    CollationDataReader(); // no constructor
 };
 
 /*
@@ -198,7 +196,7 @@ private:
  *      Compact storage for all of the CEs that occur in the root collation.
  *      See the CollationRootElements class.
  *
- * char16_t *contexts[];
+ * UChar *contexts[];
  *      Serialized UCharsTrie structures with prefix (pre-context) and contraction mappings.
  *
  * uint16_t unsafeBackwardSet[]; -- see UnicodeSet::serialize()
@@ -249,5 +247,5 @@ private:
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
-#endif  // __COLLATIONDATAREADER_H__
+#endif // !UCONFIG_NO_COLLATION
+#endif // __COLLATIONDATAREADER_H__

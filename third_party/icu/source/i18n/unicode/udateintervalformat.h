@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *****************************************************************************************
@@ -21,7 +21,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * \file
@@ -48,7 +48,7 @@
  * - The skeleton MMMd will produce
  *   for en_US, "Mar 4-8"
  *   for en_GB, "4-8 Mar"
- * 
+ *
  * Note:  the "-" characters in the above sample output will actually be
  * Unicode 2013, EN_DASH, in all but the last example.
  *
@@ -85,7 +85,7 @@
  * @stable ICU 4.8
  */
 struct UDateIntervalFormat;
-typedef struct UDateIntervalFormat UDateIntervalFormat;  /**< C typedef for struct UDateIntervalFormat. @stable ICU 4.8 */
+typedef struct UDateIntervalFormat UDateIntervalFormat; /**< C typedef for struct UDateIntervalFormat. @stable ICU 4.8 */
 
 struct UFormattedDateInterval;
 /**
@@ -118,13 +118,8 @@ typedef struct UFormattedDateInterval UFormattedDateInterval;
  *            or NULL if an error occurred.
  * @stable ICU 4.8
  */
-U_CAPI UDateIntervalFormat* U_EXPORT2
-udtitvfmt_open(const char*  locale,
-              const UChar* skeleton,
-              int32_t      skeletonLength,
-              const UChar* tzID,
-              int32_t      tzIDLength,
-              UErrorCode*  status);
+U_CAPI UDateIntervalFormat* U_EXPORT2 udtitvfmt_open(
+    const char* locale, const UChar* skeleton, int32_t skeletonLength, const UChar* tzID, int32_t tzIDLength, UErrorCode* status);
 
 /**
  * Close a UDateIntervalFormat object. Once closed it may no longer be used.
@@ -132,8 +127,7 @@ udtitvfmt_open(const char*  locale,
  *            The UDateIntervalFormat object to close.
  * @stable ICU 4.8
  */
-U_CAPI void U_EXPORT2
-udtitvfmt_close(UDateIntervalFormat *formatter);
+U_CAPI void U_EXPORT2 udtitvfmt_close(UDateIntervalFormat* formatter);
 
 /**
  * Creates an object to hold the result of a UDateIntervalFormat
@@ -144,8 +138,7 @@ udtitvfmt_close(UDateIntervalFormat *formatter);
  * @return A pointer needing ownership.
  * @stable ICU 64
  */
-U_CAPI UFormattedDateInterval* U_EXPORT2
-udtitvfmt_openResult(UErrorCode* ec);
+U_CAPI UFormattedDateInterval* U_EXPORT2 udtitvfmt_openResult(UErrorCode* ec);
 
 /**
  * Returns a representation of a UFormattedDateInterval as a UFormattedValue,
@@ -169,8 +162,7 @@ udtitvfmt_openResult(UErrorCode* ec);
  * @return A UFormattedValue owned by the input object.
  * @stable ICU 64
  */
-U_CAPI const UFormattedValue* U_EXPORT2
-udtitvfmt_resultAsValue(const UFormattedDateInterval* uresult, UErrorCode* ec);
+U_CAPI const UFormattedValue* U_EXPORT2 udtitvfmt_resultAsValue(const UFormattedDateInterval* uresult, UErrorCode* ec);
 
 /**
  * Releases the UFormattedDateInterval created by udtitvfmt_openResult().
@@ -178,9 +170,7 @@ udtitvfmt_resultAsValue(const UFormattedDateInterval* uresult, UErrorCode* ec);
  * @param uresult The object to release.
  * @stable ICU 64
  */
-U_CAPI void U_EXPORT2
-udtitvfmt_closeResult(UFormattedDateInterval* uresult);
-
+U_CAPI void U_EXPORT2 udtitvfmt_closeResult(UFormattedDateInterval* uresult);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -212,7 +202,6 @@ U_NAMESPACE_END
 
 #endif
 
-
 /**
  * Formats a date/time range using the conventions established for the
  * UDateIntervalFormat object.
@@ -242,15 +231,8 @@ U_NAMESPACE_END
  *            output was truncated.
  * @stable ICU 4.8
  */
-U_CAPI int32_t U_EXPORT2
-udtitvfmt_format(const UDateIntervalFormat* formatter,
-                UDate           fromDate,
-                UDate           toDate,
-                UChar*          result,
-                int32_t         resultCapacity,
-                UFieldPosition* position,
-                UErrorCode*     status);
-
+U_CAPI int32_t U_EXPORT2 udtitvfmt_format(
+    const UDateIntervalFormat* formatter, UDate fromDate, UDate toDate, UChar* result, int32_t resultCapacity, UFieldPosition* position, UErrorCode* status);
 
 /**
  * Formats a date/time range using the conventions established for the
@@ -268,13 +250,8 @@ udtitvfmt_format(const UDateIntervalFormat* formatter,
  *            A pointer to a UErrorCode to receive any errors.
  * @stable ICU 67
  */
-U_CAPI void U_EXPORT2
-udtitvfmt_formatToResult(
-                const UDateIntervalFormat* formatter,
-                UDate           fromDate,
-                UDate           toDate,
-                UFormattedDateInterval* result,
-                UErrorCode*     status);
+U_CAPI void U_EXPORT2 udtitvfmt_formatToResult(
+    const UDateIntervalFormat* formatter, UDate fromDate, UDate toDate, UFormattedDateInterval* result, UErrorCode* status);
 
 /**
  * Formats a date/time range using the conventions established for the
@@ -293,13 +270,8 @@ udtitvfmt_formatToResult(
  * @stable ICU 67
  */
 
-U_CAPI void U_EXPORT2
-udtitvfmt_formatCalendarToResult(
-                const UDateIntervalFormat* formatter,
-                UCalendar*      fromCalendar,
-                UCalendar*      toCalendar,
-                UFormattedDateInterval* result,
-                UErrorCode*     status);
+U_CAPI void U_EXPORT2 udtitvfmt_formatCalendarToResult(
+    const UDateIntervalFormat* formatter, UCalendar* fromCalendar, UCalendar* toCalendar, UFormattedDateInterval* result, UErrorCode* status);
 
 /**
  * Set a particular UDisplayContext value in the formatter, such as
@@ -312,8 +284,7 @@ udtitvfmt_formatCalendarToResult(
  * @param status A pointer to an UErrorCode to receive any errors
  * @stable ICU 68
  */
-U_CAPI void U_EXPORT2
-udtitvfmt_setContext(UDateIntervalFormat* formatter, UDisplayContext value, UErrorCode* status);
+U_CAPI void U_EXPORT2 udtitvfmt_setContext(UDateIntervalFormat* formatter, UDisplayContext value, UErrorCode* status);
 
 /**
  * Get the formatter's UDisplayContext value for the specified UDisplayContextType,
@@ -324,8 +295,7 @@ udtitvfmt_setContext(UDateIntervalFormat* formatter, UDisplayContext value, UErr
  * @return The UDisplayContextValue for the specified type.
  * @stable ICU 68
  */
-U_CAPI UDisplayContext U_EXPORT2
-udtitvfmt_getContext(const UDateIntervalFormat* formatter, UDisplayContextType type, UErrorCode* status);
+U_CAPI UDisplayContext U_EXPORT2 udtitvfmt_getContext(const UDateIntervalFormat* formatter, UDisplayContextType type, UErrorCode* status);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

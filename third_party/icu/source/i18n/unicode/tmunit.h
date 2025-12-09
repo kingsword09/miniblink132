@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -9,7 +9,6 @@
 
 #ifndef __TMUNIT_H__
 #define __TMUNIT_H__
-
 
 /**
  * \file
@@ -32,7 +31,7 @@ U_NAMESPACE_BEGIN
  * @see TimeUnit
  * @stable ICU 4.2
  */
-class U_I18N_API TimeUnit: public MeasureUnit {
+class U_I18N_API TimeUnit : public MeasureUnit {
 public:
     /**
      * Constants for all the time units we supported.
@@ -52,7 +51,7 @@ public:
          * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
          */
         UTIMEUNIT_FIELD_COUNT
-#endif  // U_HIDE_DEPRECATED_API
+#endif // U_HIDE_DEPRECATED_API
     };
 
     /**
@@ -65,9 +64,7 @@ public:
      * @return               a TimeUnit instance
      * @stable ICU 4.2
      */
-    static TimeUnit* U_EXPORT2 createInstance(UTimeUnitFields timeUnitField,
-                                              UErrorCode& status);
-
+    static TimeUnit* U_EXPORT2 createInstance(UTimeUnitFields timeUnitField, UErrorCode& status);
 
     /**
      * Override clone.
@@ -105,7 +102,6 @@ public:
      */
     static UClassID U_EXPORT2 getStaticClassID();
 
-
     /**
      * Get time unit field.
      * @return time unit field.
@@ -127,9 +123,7 @@ private:
      * @internal (private)
      */
     TimeUnit(UTimeUnitFields timeUnitField);
-
 };
-
 
 U_NAMESPACE_END
 
@@ -138,5 +132,5 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // __TMUNIT_H__
-//eof
+// eof
 //

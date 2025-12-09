@@ -25,7 +25,6 @@
  * ICU workshop
  ******************************************************************************/
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef WIN32
@@ -43,49 +42,42 @@
 #define DATA_TYPE "dat"
 
 /* UDataInfo cf. udata.h */
-static const UDataInfo dataInfo={
-    sizeof(UDataInfo),
-    0,
+static const UDataInfo dataInfo = {
+    sizeof(UDataInfo), 0,
 
-    U_IS_BIG_ENDIAN,
-    U_CHARSET_FAMILY,
-    sizeof(UChar),
-    0,
+    U_IS_BIG_ENDIAN, U_CHARSET_FAMILY, sizeof(UChar), 0,
 
-    0x4D, 0x79, 0x44, 0x74,     /* dataFormat="MyDt" */
-    1, 0, 0, 0,                 /* formatVersion */
-    1, 0, 0, 0                  /* dataVersion */
+    0x4D, 0x79, 0x44, 0x74, /* dataFormat="MyDt" */
+    1, 0, 0, 0, /* formatVersion */
+    1, 0, 0, 0 /* dataVersion */
 };
-
 
 /* Exercise: add writing out other data types */
 /* see icu/source/tools/toolutil/unewdata.h    */
 /* for other possibilities                     */
 
-extern int
-main(int argc, const char *argv[]) {
-    UNewDataMemory *pData;
-    UErrorCode errorCode=U_ZERO_ERROR;
-    char stringValue[]={'E', 'X', 'A', 'M', 'P', 'L', 'E', '\0'};
-    uint16_t intValue=2000;
-    
+extern int main(int argc, const char* argv[])
+{
+    UNewDataMemory* pData;
+    UErrorCode errorCode = U_ZERO_ERROR;
+    char stringValue[] = { 'E', 'X', 'A', 'M', 'P', 'L', 'E', '\0' };
+    uint16_t intValue = 2000;
+
     long dataLength;
     size_t size;
 #ifdef WIN32
-    char *currdir = _getcwd(NULL, 0);
+    char* currdir = _getcwd(NULL, 0);
 #else
-    char *currdir = getcwd(NULL, 0);
+    char* currdir = getcwd(NULL, 0);
 #endif
 
-    pData=udata_create(currdir, DATA_TYPE, DATA_NAME, &dataInfo,
-                       U_COPYRIGHT_STRING, &errorCode);
+    pData = udata_create(currdir, DATA_TYPE, DATA_NAME, &dataInfo, U_COPYRIGHT_STRING, &errorCode);
 
-    if(currdir != NULL) {
+    if (currdir != NULL) {
         free(currdir);
     }
 
-
-    if(U_FAILURE(errorCode)) {
+    if (U_FAILURE(errorCode)) {
         fprintf(stderr, "Error: unable to create data memory, error %d\n", errorCode);
         exit(errorCode);
     }
@@ -98,15 +90,14 @@ main(int argc, const char *argv[]) {
     udata_writeString(pData, stringValue, sizeof(stringValue));
 
     /* finish up */
-    dataLength=udata_finish(pData, &errorCode);
-    if(U_FAILURE(errorCode)) {
+    dataLength = udata_finish(pData, &errorCode);
+    if (U_FAILURE(errorCode)) {
         fprintf(stderr, "Error: error %d writing the output file\n", errorCode);
         exit(errorCode);
     }
-    size=sizeof(stringValue) + sizeof(intValue);
+    size = sizeof(stringValue) + sizeof(intValue);
 
-
-    if(dataLength!=(long)size) {
+    if (dataLength != (long)size) {
         fprintf(stderr, "Error: data length %ld != calculated size %zu\n", dataLength, size);
         exit(U_INTERNAL_PROGRAM_ERROR);
     }

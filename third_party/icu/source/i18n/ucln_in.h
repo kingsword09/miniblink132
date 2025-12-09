@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -68,7 +68,6 @@ typedef enum ECleanupI18NType {
 /* Main library cleanup registration function. */
 /* See common/ucln.h for details on adding a cleanup function. */
 /* Note: the global mutex must not be held when calling this function. */
-U_CFUNC void U_EXPORT2 ucln_i18n_registerCleanup(ECleanupI18NType type,
-                                                 cleanupFunc *func);
+U_CFUNC void U_EXPORT2 ucln_i18n_registerCleanup(ECleanupI18NType type, cleanupFunc* func);
 
 #endif

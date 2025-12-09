@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -26,24 +26,27 @@ constexpr int32_t DEFAULT_CAPACITY = 8;
  */
 constexpr int8_t HINT_KEY_POINTER = 1;
 constexpr int8_t HINT_KEY_INTEGER = 0;
- 
+
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(UVector)
 
-UVector::UVector(UErrorCode &status) :
-        UVector(nullptr, nullptr, DEFAULT_CAPACITY, status) {
+UVector::UVector(UErrorCode& status)
+    : UVector(nullptr, nullptr, DEFAULT_CAPACITY, status)
+{
 }
 
-UVector::UVector(int32_t initialCapacity, UErrorCode &status) :
-        UVector(nullptr, nullptr, initialCapacity, status) {
+UVector::UVector(int32_t initialCapacity, UErrorCode& status)
+    : UVector(nullptr, nullptr, initialCapacity, status)
+{
 }
 
-UVector::UVector(UObjectDeleter *d, UElementsAreEqual *c, UErrorCode &status) :
-        UVector(d, c, DEFAULT_CAPACITY, status) {
+UVector::UVector(UObjectDeleter* d, UElementsAreEqual* c, UErrorCode& status)
+    : UVector(d, c, DEFAULT_CAPACITY, status)
+{
 }
 
-UVector::UVector(UObjectDeleter *d, UElementsAreEqual *c, int32_t initialCapacity, UErrorCode &status) :
-    deleter(d),
-    comparer(c)
+UVector::UVector(UObjectDeleter* d, UElementsAreEqual* c, int32_t initialCapacity, UErrorCode& status)
+    : deleter(d)
+    , comparer(c)
 {
     if (U_FAILURE(status)) {
         return;
@@ -52,7 +55,7 @@ UVector::UVector(UObjectDeleter *d, UElementsAreEqual *c, int32_t initialCapacit
     if ((initialCapacity < 1) || (initialCapacity > (int32_t)(INT32_MAX / sizeof(UElement)))) {
         initialCapacity = DEFAULT_CAPACITY;
     }
-    elements = (UElement *)uprv_malloc(sizeof(UElement)*initialCapacity);
+    elements = (UElement*)uprv_malloc(sizeof(UElement) * initialCapacity);
     if (elements == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
     } else {
@@ -60,7 +63,8 @@ UVector::UVector(UObjectDeleter *d, UElementsAreEqual *c, int32_t initialCapacit
     }
 }
 
-UVector::~UVector() {
+UVector::~UVector()
+{
     removeAllElements();
     uprv_free(elements);
     elements = nullptr;
@@ -70,11 +74,12 @@ UVector::~UVector() {
  * Assign this object to another (make this a copy of 'other').
  * Use the 'assign' function to assign each element.
  */
-void UVector::assign(const UVector& other, UElementAssigner *assign, UErrorCode &ec) {
+void UVector::assign(const UVector& other, UElementAssigner* assign, UErrorCode& ec)
+{
     if (ensureCapacity(other.count, ec)) {
         setSize(other.count, ec);
         if (U_SUCCESS(ec)) {
-            for (int32_t i=0; i<other.count; ++i) {
+            for (int32_t i = 0; i < other.count; ++i) {
                 if (elements[i].pointer != nullptr && deleter != nullptr) {
                     (*deleter)(elements[i].pointer);
                 }
@@ -85,12 +90,14 @@ void UVector::assign(const UVector& other, UElementAssigner *assign, UErrorCode 
 }
 
 // This only does something sensible if this object has a non-null comparer
-bool UVector::operator==(const UVector& other) const {
+bool UVector::operator==(const UVector& other) const
+{
     U_ASSERT(comparer != nullptr);
-    if (count != other.count) return false;
+    if (count != other.count)
+        return false;
     if (comparer != nullptr) {
         // Compare using this object's comparer
-        for (int32_t i=0; i<count; ++i) {
+        for (int32_t i = 0; i < count; ++i) {
             if (!(*comparer)(elements[i], other.elements[i])) {
                 return false;
             }
@@ -99,14 +106,16 @@ bool UVector::operator==(const UVector& other) const {
     return true;
 }
 
-void UVector::addElement(void* obj, UErrorCode &status) {
+void UVector::addElement(void* obj, UErrorCode& status)
+{
     U_ASSERT(deleter == nullptr);
     if (ensureCapacity(count + 1, status)) {
         elements[count++].pointer = obj;
     }
 }
 
-void UVector::adoptElement(void* obj, UErrorCode &status) {
+void UVector::adoptElement(void* obj, UErrorCode& status)
+{
     U_ASSERT(deleter != nullptr);
     if (ensureCapacity(count + 1, status)) {
         elements[count++].pointer = obj;
@@ -114,16 +123,18 @@ void UVector::adoptElement(void* obj, UErrorCode &status) {
         (*deleter)(obj);
     }
 }
-void UVector::addElement(int32_t elem, UErrorCode &status) {
-    U_ASSERT(deleter == nullptr);  // Usage error. Mixing up ints and pointers.
+void UVector::addElement(int32_t elem, UErrorCode& status)
+{
+    U_ASSERT(deleter == nullptr); // Usage error. Mixing up ints and pointers.
     if (ensureCapacity(count + 1, status)) {
-        elements[count].pointer = nullptr;     // Pointers may be bigger than ints.
+        elements[count].pointer = nullptr; // Pointers may be bigger than ints.
         elements[count].integer = elem;
         count++;
     }
 }
 
-void UVector::setElementAt(void* obj, int32_t index) {
+void UVector::setElementAt(void* obj, int32_t index)
+{
     if (0 <= index && index < count) {
         if (elements[index].pointer != nullptr && deleter != nullptr) {
             (*deleter)(elements[index].pointer);
@@ -137,8 +148,9 @@ void UVector::setElementAt(void* obj, int32_t index) {
     }
 }
 
-void UVector::setElementAt(int32_t elem, int32_t index) {
-    U_ASSERT(deleter == nullptr);  // Usage error. Mixing up ints and pointers.
+void UVector::setElementAt(int32_t elem, int32_t index)
+{
+    U_ASSERT(deleter == nullptr); // Usage error. Mixing up ints and pointers.
     if (0 <= index && index < count) {
         elements[index].pointer = nullptr;
         elements[index].integer = elem;
@@ -146,11 +158,12 @@ void UVector::setElementAt(int32_t elem, int32_t index) {
     /* else index out of range */
 }
 
-void UVector::insertElementAt(void* obj, int32_t index, UErrorCode &status) {
+void UVector::insertElementAt(void* obj, int32_t index, UErrorCode& status)
+{
     if (ensureCapacity(count + 1, status)) {
         if (0 <= index && index <= count) {
-            for (int32_t i=count; i>index; --i) {
-                elements[i] = elements[i-1];
+            for (int32_t i = count; i > index; --i) {
+                elements[i] = elements[i - 1];
             }
             elements[index].pointer = obj;
             ++count;
@@ -164,13 +177,14 @@ void UVector::insertElementAt(void* obj, int32_t index, UErrorCode &status) {
     }
 }
 
-void UVector::insertElementAt(int32_t elem, int32_t index, UErrorCode &status) {
-    U_ASSERT(deleter == nullptr);  // Usage error. Mixing up ints and pointers.
+void UVector::insertElementAt(int32_t elem, int32_t index, UErrorCode& status)
+{
+    U_ASSERT(deleter == nullptr); // Usage error. Mixing up ints and pointers.
     // must have 0 <= index <= count
     if (ensureCapacity(count + 1, status)) {
         if (0 <= index && index <= count) {
-            for (int32_t i=count; i>index; --i) {
-                elements[i] = elements[i-1];
+            for (int32_t i = count; i > index; --i) {
+                elements[i] = elements[i - 1];
             }
             elements[index].pointer = nullptr;
             elements[index].integer = elem;
@@ -182,75 +196,84 @@ void UVector::insertElementAt(int32_t elem, int32_t index, UErrorCode &status) {
     }
 }
 
-void* UVector::elementAt(int32_t index) const {
+void* UVector::elementAt(int32_t index) const
+{
     return (0 <= index && index < count) ? elements[index].pointer : 0;
 }
 
-int32_t UVector::elementAti(int32_t index) const {
+int32_t UVector::elementAti(int32_t index) const
+{
     return (0 <= index && index < count) ? elements[index].integer : 0;
 }
 
-UBool UVector::containsAll(const UVector& other) const {
-    for (int32_t i=0; i<other.size(); ++i) {
+UBool UVector::containsAll(const UVector& other) const
+{
+    for (int32_t i = 0; i < other.size(); ++i) {
         if (indexOf(other.elements[i]) < 0) {
-            return false;
+            return FALSE;
         }
     }
-    return true;
+    return TRUE;
 }
 
-UBool UVector::containsNone(const UVector& other) const {
-    for (int32_t i=0; i<other.size(); ++i) {
+UBool UVector::containsNone(const UVector& other) const
+{
+    for (int32_t i = 0; i < other.size(); ++i) {
         if (indexOf(other.elements[i]) >= 0) {
-            return false;
+            return FALSE;
         }
     }
-    return true;
+    return TRUE;
 }
 
-UBool UVector::removeAll(const UVector& other) {
-    UBool changed = false;
-    for (int32_t i=0; i<other.size(); ++i) {
+UBool UVector::removeAll(const UVector& other)
+{
+    UBool changed = FALSE;
+    for (int32_t i = 0; i < other.size(); ++i) {
         int32_t j = indexOf(other.elements[i]);
         if (j >= 0) {
             removeElementAt(j);
-            changed = true;
+            changed = TRUE;
         }
     }
     return changed;
 }
 
-UBool UVector::retainAll(const UVector& other) {
-    UBool changed = false;
-    for (int32_t j=size()-1; j>=0; --j) {
+UBool UVector::retainAll(const UVector& other)
+{
+    UBool changed = FALSE;
+    for (int32_t j = size() - 1; j >= 0; --j) {
         int32_t i = other.indexOf(elements[j]);
         if (i < 0) {
             removeElementAt(j);
-            changed = true;
+            changed = TRUE;
         }
     }
     return changed;
 }
 
-void UVector::removeElementAt(int32_t index) {
+void UVector::removeElementAt(int32_t index)
+{
     void* e = orphanElementAt(index);
     if (e != nullptr && deleter != nullptr) {
         (*deleter)(e);
     }
 }
 
-UBool UVector::removeElement(void* obj) {
+UBool UVector::removeElement(void* obj)
+{
     int32_t i = indexOf(obj);
     if (i >= 0) {
         removeElementAt(i);
-        return true;
+        return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
-void UVector::removeAllElements() {
+void UVector::removeAllElements(void)
+{
     if (deleter != nullptr) {
-        for (int32_t i=0; i<count; ++i) {
+        for (int32_t i = 0; i < count; ++i) {
             if (elements[i].pointer != nullptr) {
                 (*deleter)(elements[i].pointer);
             }
@@ -259,53 +282,55 @@ void UVector::removeAllElements() {
     count = 0;
 }
 
-UBool   UVector::equals(const UVector &other) const {
-    int      i;
+UBool UVector::equals(const UVector& other) const
+{
+    int i;
 
     if (this->count != other.count) {
-        return false;
+        return FALSE;
     }
     if (comparer == nullptr) {
-        for (i=0; i<count; i++) {
+        for (i = 0; i < count; i++) {
             if (elements[i].pointer != other.elements[i].pointer) {
-                return false;
+                return FALSE;
             }
         }
     } else {
         UElement key;
-        for (i=0; i<count; i++) {
+        for (i = 0; i < count; i++) {
             key.pointer = &other.elements[i];
             if (!(*comparer)(key, elements[i])) {
-                return false;
+                return FALSE;
             }
         }
     }
-    return true;
+    return TRUE;
 }
 
-
-
-int32_t UVector::indexOf(void* obj, int32_t startIndex) const {
+int32_t UVector::indexOf(void* obj, int32_t startIndex) const
+{
     UElement key;
     key.pointer = obj;
     return indexOf(key, startIndex, HINT_KEY_POINTER);
 }
 
-int32_t UVector::indexOf(int32_t obj, int32_t startIndex) const {
+int32_t UVector::indexOf(int32_t obj, int32_t startIndex) const
+{
     UElement key;
     key.integer = obj;
     return indexOf(key, startIndex, HINT_KEY_INTEGER);
 }
 
-int32_t UVector::indexOf(UElement key, int32_t startIndex, int8_t hint) const {
+int32_t UVector::indexOf(UElement key, int32_t startIndex, int8_t hint) const
+{
     if (comparer != nullptr) {
-        for (int32_t i=startIndex; i<count; ++i) {
+        for (int32_t i = startIndex; i < count; ++i) {
             if ((*comparer)(key, elements[i])) {
                 return i;
             }
         }
     } else {
-        for (int32_t i=startIndex; i<count; ++i) {
+        for (int32_t i = startIndex; i < count; ++i) {
             /* Pointers are not always the same size as ints so to perform
              * a valid comparison we need to know whether we are being
              * provided an int or a pointer. */
@@ -323,7 +348,8 @@ int32_t UVector::indexOf(UElement key, int32_t startIndex, int8_t hint) const {
     return -1;
 }
 
-UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
+UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return false;
     }
@@ -332,7 +358,7 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
         return false;
     }
     if (capacity < minimumCapacity) {
-        if (capacity > (INT32_MAX - 1) / 2) {        	// integer overflow check
+        if (capacity > (INT32_MAX - 1) / 2) { // integer overflow check
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return false;
         }
@@ -340,12 +366,12 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
         if (newCap < minimumCapacity) {
             newCap = minimumCapacity;
         }
-        if (newCap > (int32_t)(INT32_MAX / sizeof(UElement))) {	// integer overflow check
+        if (newCap > (int32_t)(INT32_MAX / sizeof(UElement))) { // integer overflow check
             // We keep the original memory contents on bad minimumCapacity.
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return false;
         }
-        UElement* newElems = (UElement *)uprv_realloc(elements, sizeof(UElement)*newCap);
+        UElement* newElems = (UElement*)uprv_realloc(elements, sizeof(UElement) * newCap);
         if (newElems == nullptr) {
             // We keep the original contents on the memory failure on realloc or bad minimumCapacity.
             status = U_MEMORY_ALLOCATION_ERROR;
@@ -363,7 +389,8 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
  * newSize.  If newSize is larger, grow the array, filling in new
  * slots with nullptr.
  */
-void UVector::setSize(int32_t newSize, UErrorCode &status) {
+void UVector::setSize(int32_t newSize, UErrorCode& status)
+{
     if (!ensureCapacity(newSize, status)) {
         return;
     }
@@ -371,12 +398,12 @@ void UVector::setSize(int32_t newSize, UErrorCode &status) {
         UElement empty;
         empty.pointer = nullptr;
         empty.integer = 0;
-        for (int32_t i=count; i<newSize; ++i) {
+        for (int32_t i = count; i < newSize; ++i) {
             elements[i] = empty;
         }
     } else {
         /* Most efficient to count down */
-        for (int32_t i=count-1; i>=newSize; --i) {
+        for (int32_t i = count - 1; i >= newSize; --i) {
             removeElementAt(i);
         }
     }
@@ -386,22 +413,25 @@ void UVector::setSize(int32_t newSize, UErrorCode &status) {
 /**
  * Fill in the given array with all elements of this vector.
  */
-void** UVector::toArray(void** result) const {
+void** UVector::toArray(void** result) const
+{
     void** a = result;
-    for (int i=0; i<count; ++i) {
+    for (int i = 0; i < count; ++i) {
         *a++ = elements[i].pointer;
     }
     return result;
 }
 
-UObjectDeleter *UVector::setDeleter(UObjectDeleter *d) {
-    UObjectDeleter *old = deleter;
+UObjectDeleter* UVector::setDeleter(UObjectDeleter* d)
+{
+    UObjectDeleter* old = deleter;
     deleter = d;
     return old;
 }
 
-UElementsAreEqual *UVector::setComparer(UElementsAreEqual *d) {
-    UElementsAreEqual *old = comparer;
+UElementsAreEqual* UVector::setComparer(UElementsAreEqual* d)
+{
+    UElementsAreEqual* old = comparer;
     comparer = d;
     return old;
 }
@@ -415,12 +445,13 @@ UElementsAreEqual *UVector::setComparer(UElementsAreEqual *d) {
  * index is out of range or if there is no item at the given index
  * then 0 is returned and the vector is unchanged.
  */
-void* UVector::orphanElementAt(int32_t index) {
+void* UVector::orphanElementAt(int32_t index)
+{
     void* e = nullptr;
     if (0 <= index && index < count) {
         e = elements[index].pointer;
-        for (int32_t i=index; i<count-1; ++i) {
-            elements[i] = elements[i+1];
+        for (int32_t i = index; i < count - 1; ++i) {
+            elements[i] = elements[i + 1];
         }
         --count;
     }
@@ -433,7 +464,8 @@ void* UVector::orphanElementAt(int32_t index) {
  * as defined by 'compare'.  The current elements are assumed to
  * be sorted already.
  */
-void UVector::sortedInsert(void* obj, UElementComparator *compare, UErrorCode& ec) {
+void UVector::sortedInsert(void* obj, UElementComparator* compare, UErrorCode& ec)
+{
     UElement e;
     e.pointer = obj;
     sortedInsert(e, compare, ec);
@@ -444,7 +476,8 @@ void UVector::sortedInsert(void* obj, UElementComparator *compare, UErrorCode& e
  * as defined by 'compare'.  The current elements are assumed to
  * be sorted already.
  */
-void UVector::sortedInsert(int32_t obj, UElementComparator *compare, UErrorCode& ec) {
+void UVector::sortedInsert(int32_t obj, UElementComparator* compare, UErrorCode& ec)
+{
     U_ASSERT(deleter == nullptr);
     UElement e {};
     e.integer = obj;
@@ -452,7 +485,8 @@ void UVector::sortedInsert(int32_t obj, UElementComparator *compare, UErrorCode&
 }
 
 // ASSUME elements[] IS CURRENTLY SORTED
-void UVector::sortedInsert(UElement e, UElementComparator *compare, UErrorCode& ec) {
+void UVector::sortedInsert(UElement e, UElementComparator* compare, UErrorCode& ec)
+{
     // Perform a binary search for the location to insert tok at.  Tok
     // will be inserted between two elements a and b such that a <=
     // tok && tok < b, where there is a 'virtual' elements[-1] always
@@ -475,60 +509,57 @@ void UVector::sortedInsert(UElement e, UElementComparator *compare, UErrorCode& 
             min = probe + 1;
         }
     }
-    for (int32_t i=count; i>min; --i) {
-        elements[i] = elements[i-1];
+    for (int32_t i = count; i > min; --i) {
+        elements[i] = elements[i - 1];
     }
     elements[min] = e;
     ++count;
 }
 
 /**
-  *  Array sort comparator function.
-  *  Used from UVector::sort()
-  *  Conforms to function signature required for uprv_sortArray().
-  *  This function is essentially just a wrapper, to make a
-  *  UVector style comparator function usable with uprv_sortArray().
-  *
-  *  The context pointer to this function is a pointer back
-  *  (with some extra indirection) to the user supplied comparator.
-  *  
-  */
-static int32_t U_CALLCONV
-sortComparator(const void *context, const void *left, const void *right) {
-    UElementComparator *compare = *static_cast<UElementComparator * const *>(context);
-    UElement e1 = *static_cast<const UElement *>(left);
-    UElement e2 = *static_cast<const UElement *>(right);
+ *  Array sort comparator function.
+ *  Used from UVector::sort()
+ *  Conforms to function signature required for uprv_sortArray().
+ *  This function is essentially just a wrapper, to make a
+ *  UVector style comparator function usable with uprv_sortArray().
+ *
+ *  The context pointer to this function is a pointer back
+ *  (with some extra indirection) to the user supplied comparator.
+ *
+ */
+static int32_t U_CALLCONV sortComparator(const void* context, const void* left, const void* right)
+{
+    UElementComparator* compare = *static_cast<UElementComparator* const*>(context);
+    UElement e1 = *static_cast<const UElement*>(left);
+    UElement e2 = *static_cast<const UElement*>(right);
     int32_t result = (*compare)(e1, e2);
     return result;
 }
 
-
 /**
-  *  Array sort comparison function for use from UVector::sorti()
-  *  Compares int32_t vector elements.
-  */
-static int32_t U_CALLCONV
-sortiComparator(const void * /*context */, const void *left, const void *right) {
-    const UElement *e1 = static_cast<const UElement *>(left);
-    const UElement *e2 = static_cast<const UElement *>(right);
-    int32_t result = e1->integer < e2->integer? -1 :
-                     e1->integer == e2->integer? 0 : 1;
+ *  Array sort comparison function for use from UVector::sorti()
+ *  Compares int32_t vector elements.
+ */
+static int32_t U_CALLCONV sortiComparator(const void* /*context */, const void* left, const void* right)
+{
+    const UElement* e1 = static_cast<const UElement*>(left);
+    const UElement* e2 = static_cast<const UElement*>(right);
+    int32_t result = e1->integer < e2->integer ? -1 : e1->integer == e2->integer ? 0 : 1;
     return result;
 }
 
 /**
-  * Sort the vector, assuming it contains ints.
-  *     (A more general sort would take a comparison function, but it's
-  *     not clear whether UVector's UElementComparator or
-  *     UComparator from uprv_sortAray would be more appropriate.)
-  */
-void UVector::sorti(UErrorCode &ec) {
+ * Sort the vector, assuming it contains ints.
+ *     (A more general sort would take a comparison function, but it's
+ *     not clear whether UVector's UElementComparator or
+ *     UComparator from uprv_sortAray would be more appropriate.)
+ */
+void UVector::sorti(UErrorCode& ec)
+{
     if (U_SUCCESS(ec)) {
-        uprv_sortArray(elements, count, sizeof(UElement),
-                       sortiComparator, nullptr,  false, &ec);
+        uprv_sortArray(elements, count, sizeof(UElement), sortiComparator, nullptr, FALSE, &ec);
     }
 }
-
 
 /**
  *  Sort with a user supplied comparator.
@@ -544,23 +575,21 @@ void UVector::sorti(UErrorCode &ec) {
  *    as  a (void *) data pointer, so instead we pass a (data) pointer to a
  *    pointer-to-function variable.
  */
-void UVector::sort(UElementComparator *compare, UErrorCode &ec) {
+void UVector::sort(UElementComparator* compare, UErrorCode& ec)
+{
     if (U_SUCCESS(ec)) {
-        uprv_sortArray(elements, count, sizeof(UElement),
-                       sortComparator, &compare, false, &ec);
+        uprv_sortArray(elements, count, sizeof(UElement), sortComparator, &compare, FALSE, &ec);
     }
 }
-
 
 /**
  *  Stable sort with a user supplied comparator of type UComparator.
  */
-void UVector::sortWithUComparator(UComparator *compare, const void *context, UErrorCode &ec) {
+void UVector::sortWithUComparator(UComparator* compare, const void* context, UErrorCode& ec)
+{
     if (U_SUCCESS(ec)) {
-        uprv_sortArray(elements, count, sizeof(UElement),
-                       compare, context, true, &ec);
+        uprv_sortArray(elements, count, sizeof(UElement), compare, context, TRUE, &ec);
     }
 }
 
 U_NAMESPACE_END
-

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -21,7 +21,7 @@
 #if !UCONFIG_NO_FORMATTING
 
 #include "cmemory.h"
-#include "unicode/fpositer.h"  // FieldPositionIterator
+#include "unicode/fpositer.h" // FieldPositionIterator
 #include "unicode/listformatter.h"
 #include "unicode/simpleformatter.h"
 #include "unicode/ulistformatter.h"
@@ -35,7 +35,7 @@
 #include "charstr.h"
 #include "ucln_in.h"
 #include "uresimp.h"
-#include "resource.h"
+#include "icu_resource.h"
 #include "formattedval_impl.h"
 
 U_NAMESPACE_BEGIN
@@ -44,25 +44,34 @@ namespace {
 
 class PatternHandler : public UObject {
 public:
-    PatternHandler(const UnicodeString& two, const UnicodeString& end, UErrorCode& errorCode) :
-        twoPattern(two, 2, 2, errorCode),
-        endPattern(end, 2, 2, errorCode) {  }
+    PatternHandler(const UnicodeString& two, const UnicodeString& end, UErrorCode& errorCode)
+        : twoPattern(two, 2, 2, errorCode)
+        , endPattern(end, 2, 2, errorCode)
+    {
+    }
 
-    PatternHandler(const SimpleFormatter& two, const SimpleFormatter& end) :
-        twoPattern(two),
-        endPattern(end) { }
+    PatternHandler(const SimpleFormatter& two, const SimpleFormatter& end)
+        : twoPattern(two)
+        , endPattern(end)
+    {
+    }
 
     virtual ~PatternHandler();
 
-    virtual PatternHandler* clone() const { return new PatternHandler(twoPattern, endPattern); }
+    virtual PatternHandler* clone() const
+    {
+        return new PatternHandler(twoPattern, endPattern);
+    }
 
     /** Argument: final string in the list. */
-    virtual const SimpleFormatter& getTwoPattern(const UnicodeString&) const {
+    virtual const SimpleFormatter& getTwoPattern(const UnicodeString&) const
+    {
         return twoPattern;
     }
 
     /** Argument: final string in the list. */
-    virtual const SimpleFormatter& getEndPattern(const UnicodeString&) const {
+    virtual const SimpleFormatter& getEndPattern(const UnicodeString&) const
+    {
         return endPattern;
     }
 
@@ -71,44 +80,44 @@ protected:
     SimpleFormatter endPattern;
 };
 
-PatternHandler::~PatternHandler() {
+PatternHandler::~PatternHandler()
+{
 }
 
 class ContextualHandler : public PatternHandler {
 public:
-    ContextualHandler(bool (*testFunc)(const UnicodeString& text),
-                      const UnicodeString& thenTwo,
-                      const UnicodeString& elseTwo,
-                      const UnicodeString& thenEnd,
-                      const UnicodeString& elseEnd,
-                      UErrorCode& errorCode) :
-        PatternHandler(elseTwo, elseEnd, errorCode),
-        test(testFunc),
-        thenTwoPattern(thenTwo, 2, 2, errorCode),
-        thenEndPattern(thenEnd, 2, 2, errorCode) {  }
+    ContextualHandler(bool (*testFunc)(const UnicodeString& text), const UnicodeString& thenTwo, const UnicodeString& elseTwo, const UnicodeString& thenEnd,
+        const UnicodeString& elseEnd, UErrorCode& errorCode)
+        : PatternHandler(elseTwo, elseEnd, errorCode)
+        , test(testFunc)
+        , thenTwoPattern(thenTwo, 2, 2, errorCode)
+        , thenEndPattern(thenEnd, 2, 2, errorCode)
+    {
+    }
 
-    ContextualHandler(bool (*testFunc)(const UnicodeString& text),
-                      const SimpleFormatter& thenTwo, SimpleFormatter elseTwo,
-                      const SimpleFormatter& thenEnd, SimpleFormatter elseEnd) :
-      PatternHandler(elseTwo, elseEnd),
-      test(testFunc),
-      thenTwoPattern(thenTwo),
-      thenEndPattern(thenEnd) { }
+    ContextualHandler(bool (*testFunc)(const UnicodeString& text), const SimpleFormatter& thenTwo, SimpleFormatter elseTwo, const SimpleFormatter& thenEnd,
+        SimpleFormatter elseEnd)
+        : PatternHandler(elseTwo, elseEnd)
+        , test(testFunc)
+        , thenTwoPattern(thenTwo)
+        , thenEndPattern(thenEnd)
+    {
+    }
 
     ~ContextualHandler() override;
 
-    PatternHandler* clone() const override {
-        return new ContextualHandler(
-            test, thenTwoPattern, twoPattern, thenEndPattern, endPattern);
+    PatternHandler* clone() const override
+    {
+        return new ContextualHandler(test, thenTwoPattern, twoPattern, thenEndPattern, endPattern);
     }
 
-    const SimpleFormatter& getTwoPattern(
-        const UnicodeString& text) const override {
+    const SimpleFormatter& getTwoPattern(const UnicodeString& text) const override
+    {
         return (test)(text) ? thenTwoPattern : twoPattern;
     }
 
-    const SimpleFormatter& getEndPattern(
-        const UnicodeString& text) const override {
+    const SimpleFormatter& getEndPattern(const UnicodeString& text) const override
+    {
         return (test)(text) ? thenEndPattern : endPattern;
     }
 
@@ -118,61 +127,74 @@ private:
     SimpleFormatter thenEndPattern;
 };
 
-ContextualHandler::~ContextualHandler() {
+ContextualHandler::~ContextualHandler()
+{
 }
 
-static const char16_t *spanishY = u"{0} y {1}";
-static const char16_t *spanishE = u"{0} e {1}";
-static const char16_t *spanishO = u"{0} o {1}";
-static const char16_t *spanishU = u"{0} u {1}";
-static const char16_t *hebrewVav = u"{0} \u05D5{1}";
-static const char16_t *hebrewVavDash = u"{0} \u05D5-{1}";
+static const char16_t* spanishY = u"{0} y {1}";
+static const char16_t* spanishE = u"{0} e {1}";
+static const char16_t* spanishO = u"{0} o {1}";
+static const char16_t* spanishU = u"{0} u {1}";
+static const char16_t* hebrewVav = u"{0} \u05D5{1}";
+static const char16_t* hebrewVavDash = u"{0} \u05D5-{1}";
 
 // Condiction to change to e.
 // Starts with "hi" or "i" but not with "hie" nor "hia"
-static bool shouldChangeToE(const UnicodeString& text) {
+static bool shouldChangeToE(const UnicodeString& text)
+{
     int32_t len = text.length();
-    if (len == 0) { return false; }
+    if (len == 0) {
+        return false;
+    }
     // Case insensitive match hi but not hie nor hia.
-    if ((text[0] == u'h' || text[0] == u'H') &&
-            ((len > 1) && (text[1] == u'i' || text[1] == u'I')) &&
-            ((len == 2) || !(text[2] == u'a' || text[2] == u'A' || text[2] == u'e' || text[2] == u'E'))) {
+    if ((text[0] == u'h' || text[0] == u'H') && ((len > 1) && (text[1] == u'i' || text[1] == u'I'))
+        && ((len == 2) || !(text[2] == u'a' || text[2] == u'A' || text[2] == u'e' || text[2] == u'E'))) {
         return true;
     }
     // Case insensitive for "start with i"
-    if (text[0] == u'i' || text[0] == u'I') { return true; }
+    if (text[0] == u'i' || text[0] == u'I') {
+        return true;
+    }
     return false;
 }
 
 // Condiction to change to u.
 // Starts with "o", "ho", and "8". Also "11" by itself.
 // re: ^((o|ho|8).*|11)$
-static bool shouldChangeToU(const UnicodeString& text) {
+static bool shouldChangeToU(const UnicodeString& text)
+{
     int32_t len = text.length();
-    if (len == 0) { return false; }
+    if (len == 0) {
+        return false;
+    }
     // Case insensitive match o.* and 8.*
-    if (text[0] == u'o' || text[0] == u'O' || text[0] == u'8') { return true; }
+    if (text[0] == u'o' || text[0] == u'O' || text[0] == u'8') {
+        return true;
+    }
     // Case insensitive match ho.*
-    if ((text[0] == u'h' || text[0] == u'H') &&
-            ((len > 1) && (text[1] == 'o' || text[1] == u'O'))) {
+    if ((text[0] == u'h' || text[0] == u'H') && ((len > 1) && (text[1] == 'o' || text[1] == u'O'))) {
         return true;
     }
     // match "^11$" and "^11 .*"
-    if ((len >= 2) && text[0] == u'1' && text[1] == u'1' && (len == 2 || text[2] == u' ')) { return true; }
+    if ((len >= 2) && text[0] == u'1' && text[1] == u'1' && (len == 2 || text[2] == u' ')) {
+        return true;
+    }
     return false;
 }
 
 // Condiction to change to VAV follow by a dash.
 // Starts with non Hebrew letter.
-static bool shouldChangeToVavDash(const UnicodeString& text) {
-    if (text.isEmpty()) { return false; }
+static bool shouldChangeToVavDash(const UnicodeString& text)
+{
+    if (text.isEmpty()) {
+        return false;
+    }
     UErrorCode status = U_ZERO_ERROR;
     return uscript_getScript(text.char32At(0), &status) != USCRIPT_HEBREW;
 }
 
-PatternHandler* createPatternHandler(
-        const char* lang, const UnicodeString& two, const UnicodeString& end,
-    UErrorCode& status) {
+PatternHandler* createPatternHandler(const char* lang, const UnicodeString& two, const UnicodeString& end, UErrorCode& status)
+{
     if (uprv_strcmp(lang, "es") == 0) {
         // Spanish
         UnicodeString spanishYStr(true, spanishY, -1);
@@ -180,20 +202,14 @@ PatternHandler* createPatternHandler(
         bool endIsY = end == spanishYStr;
         if (twoIsY || endIsY) {
             UnicodeString replacement(true, spanishE, -1);
-            return new ContextualHandler(
-                shouldChangeToE,
-                twoIsY ? replacement : two, two,
-                endIsY ? replacement : end, end, status);
+            return new ContextualHandler(shouldChangeToE, twoIsY ? replacement : two, two, endIsY ? replacement : end, end, status);
         }
         UnicodeString spanishOStr(true, spanishO, -1);
         bool twoIsO = two == spanishOStr;
         bool endIsO = end == spanishOStr;
         if (twoIsO || endIsO) {
             UnicodeString replacement(true, spanishU, -1);
-            return new ContextualHandler(
-                shouldChangeToU,
-                twoIsO ? replacement : two, two,
-                endIsO ? replacement : end, end, status);
+            return new ContextualHandler(shouldChangeToU, twoIsO ? replacement : two, two, endIsO ? replacement : end, end, status);
         }
     } else if (uprv_strcmp(lang, "he") == 0 || uprv_strcmp(lang, "iw") == 0) {
         // Hebrew
@@ -202,49 +218,48 @@ PatternHandler* createPatternHandler(
         bool endIsVav = end == hebrewVavStr;
         if (twoIsVav || endIsVav) {
             UnicodeString replacement(true, hebrewVavDash, -1);
-            return new ContextualHandler(
-                shouldChangeToVavDash,
-                twoIsVav ? replacement : two, two,
-                endIsVav ? replacement : end, end, status);
+            return new ContextualHandler(shouldChangeToVavDash, twoIsVav ? replacement : two, two, endIsVav ? replacement : end, end, status);
         }
     }
     return new PatternHandler(two, end, status);
 }
 
-}  // namespace
+} // namespace
 
 struct ListFormatInternal : public UMemory {
     SimpleFormatter startPattern;
     SimpleFormatter middlePattern;
     LocalPointer<PatternHandler> patternHandler;
 
-ListFormatInternal(
-        const UnicodeString& two,
-        const UnicodeString& start,
-        const UnicodeString& middle,
-        const UnicodeString& end,
-        const Locale& locale,
-        UErrorCode &errorCode) :
-        startPattern(start, 2, 2, errorCode),
-        middlePattern(middle, 2, 2, errorCode),
-        patternHandler(createPatternHandler(locale.getLanguage(), two, end, errorCode), errorCode) { }
+    ListFormatInternal(const UnicodeString& two, const UnicodeString& start, const UnicodeString& middle, const UnicodeString& end, const Locale& locale,
+        UErrorCode& errorCode)
+        : startPattern(start, 2, 2, errorCode)
+        , middlePattern(middle, 2, 2, errorCode)
+        , patternHandler(createPatternHandler(locale.getLanguage(), two, end, errorCode), errorCode)
+    {
+    }
 
-ListFormatInternal(const ListFormatData &data, UErrorCode &errorCode) :
-        startPattern(data.startPattern, errorCode),
-        middlePattern(data.middlePattern, errorCode),
-        patternHandler(createPatternHandler(
-            data.locale.getLanguage(), data.twoPattern, data.endPattern, errorCode), errorCode) { }
+    ListFormatInternal(const ListFormatData& data, UErrorCode& errorCode)
+        : startPattern(data.startPattern, errorCode)
+        , middlePattern(data.middlePattern, errorCode)
+        , patternHandler(createPatternHandler(data.locale.getLanguage(), data.twoPattern, data.endPattern, errorCode), errorCode)
+    {
+    }
 
-ListFormatInternal(const ListFormatInternal &other) :
-    startPattern(other.startPattern),
-    middlePattern(other.middlePattern),
-    patternHandler(other.patternHandler->clone()) { }
+    ListFormatInternal(const ListFormatInternal& other)
+        : startPattern(other.startPattern)
+        , middlePattern(other.middlePattern)
+        , patternHandler(other.patternHandler->clone())
+    {
+    }
 };
-
 
 class FormattedListData : public FormattedValueStringBuilderImpl {
 public:
-    FormattedListData(UErrorCode&) : FormattedValueStringBuilderImpl(kUndefinedField) {}
+    FormattedListData(UErrorCode&)
+        : FormattedValueStringBuilderImpl(kUndefinedField)
+    {
+    }
     virtual ~FormattedListData();
 };
 
@@ -252,32 +267,35 @@ FormattedListData::~FormattedListData() = default;
 
 UPRV_FORMATTED_VALUE_SUBCLASS_AUTO_IMPL(FormattedList)
 
-
 static Hashtable* listPatternHash = nullptr;
 
 U_CDECL_BEGIN
-static UBool U_CALLCONV uprv_listformatter_cleanup() {
+static UBool U_CALLCONV uprv_listformatter_cleanup()
+{
     delete listPatternHash;
     listPatternHash = nullptr;
     return true;
 }
 
-static void U_CALLCONV
-uprv_deleteListFormatInternal(void *obj) {
-    delete static_cast<ListFormatInternal *>(obj);
+static void U_CALLCONV uprv_deleteListFormatInternal(void* obj)
+{
+    delete static_cast<ListFormatInternal*>(obj);
 }
 
 U_CDECL_END
 
-ListFormatter::ListFormatter(const ListFormatter& other) :
-        owned(other.owned), data(other.data) {
+ListFormatter::ListFormatter(const ListFormatter& other)
+    : owned(other.owned)
+    , data(other.data)
+{
     if (other.owned != nullptr) {
         owned = new ListFormatInternal(*other.owned);
         data = owned;
     }
 }
 
-ListFormatter& ListFormatter::operator=(const ListFormatter& other) {
+ListFormatter& ListFormatter::operator=(const ListFormatter& other)
+{
     if (this == &other) {
         return *this;
     }
@@ -292,7 +310,8 @@ ListFormatter& ListFormatter::operator=(const ListFormatter& other) {
     return *this;
 }
 
-void ListFormatter::initializeHash(UErrorCode& errorCode) {
+void ListFormatter::initializeHash(UErrorCode& errorCode)
+{
     if (U_FAILURE(errorCode)) {
         return;
     }
@@ -305,11 +324,10 @@ void ListFormatter::initializeHash(UErrorCode& errorCode) {
 
     listPatternHash->setValueDeleter(uprv_deleteListFormatInternal);
     ucln_i18n_registerCleanup(UCLN_I18N_LIST_FORMATTER, uprv_listformatter_cleanup);
-
 }
 
-const ListFormatInternal* ListFormatter::getListFormatInternal(
-        const Locale& locale, const char *style, UErrorCode& errorCode) {
+const ListFormatInternal* ListFormatter::getListFormatInternal(const Locale& locale, const char* style, UErrorCode& errorCode)
+{
     if (U_FAILURE(errorCode)) {
         return nullptr;
     }
@@ -352,52 +370,53 @@ const ListFormatInternal* ListFormatter::getListFormatInternal(
     return result;
 }
 
-static const char* typeWidthToStyleString(UListFormatterType type, UListFormatterWidth width) {
+static const char* typeWidthToStyleString(UListFormatterType type, UListFormatterWidth width)
+{
     switch (type) {
-        case ULISTFMT_TYPE_AND:
-            switch (width) {
-                case ULISTFMT_WIDTH_WIDE:
-                    return "standard";
-                case ULISTFMT_WIDTH_SHORT:
-                    return "standard-short";
-                case ULISTFMT_WIDTH_NARROW:
-                    return "standard-narrow";
-                default:
-                    return nullptr;
-            }
-            break;
+    case ULISTFMT_TYPE_AND:
+        switch (width) {
+        case ULISTFMT_WIDTH_WIDE:
+            return "standard";
+        case ULISTFMT_WIDTH_SHORT:
+            return "standard-short";
+        case ULISTFMT_WIDTH_NARROW:
+            return "standard-narrow";
+        default:
+            return nullptr;
+        }
+        break;
 
-        case ULISTFMT_TYPE_OR:
-            switch (width) {
-                case ULISTFMT_WIDTH_WIDE:
-                    return "or";
-                case ULISTFMT_WIDTH_SHORT:
-                    return "or-short";
-                case ULISTFMT_WIDTH_NARROW:
-                    return "or-narrow";
-                default:
-                    return nullptr;
-            }
-            break;
+    case ULISTFMT_TYPE_OR:
+        switch (width) {
+        case ULISTFMT_WIDTH_WIDE:
+            return "or";
+        case ULISTFMT_WIDTH_SHORT:
+            return "or-short";
+        case ULISTFMT_WIDTH_NARROW:
+            return "or-narrow";
+        default:
+            return nullptr;
+        }
+        break;
 
-        case ULISTFMT_TYPE_UNITS:
-            switch (width) {
-                case ULISTFMT_WIDTH_WIDE:
-                    return "unit";
-                case ULISTFMT_WIDTH_SHORT:
-                    return "unit-short";
-                case ULISTFMT_WIDTH_NARROW:
-                    return "unit-narrow";
-                default:
-                    return nullptr;
-            }
+    case ULISTFMT_TYPE_UNITS:
+        switch (width) {
+        case ULISTFMT_WIDTH_WIDE:
+            return "unit";
+        case ULISTFMT_WIDTH_SHORT:
+            return "unit-short";
+        case ULISTFMT_WIDTH_NARROW:
+            return "unit-narrow";
+        default:
+            return nullptr;
+        }
     }
 
     return nullptr;
 }
 
-static const char16_t solidus = 0x2F;
-static const char16_t aliasPrefix[] = { 0x6C,0x69,0x73,0x74,0x50,0x61,0x74,0x74,0x65,0x72,0x6E,0x2F }; // "listPattern/"
+static const UChar solidus = 0x2F;
+static const UChar aliasPrefix[] = { 0x6C, 0x69, 0x73, 0x74, 0x50, 0x61, 0x74, 0x74, 0x65, 0x72, 0x6E, 0x2F }; // "listPattern/"
 enum {
     kAliasPrefixLen = UPRV_LENGTHOF(aliasPrefix),
     kStyleLenMax = 24 // longest currently is 14
@@ -405,12 +424,23 @@ enum {
 
 struct ListFormatter::ListPatternsSink : public ResourceSink {
     UnicodeString two, start, middle, end;
-    char aliasedStyle[kStyleLenMax+1] = {0};
+#if ((U_PLATFORM == U_PF_AIX) || (U_PLATFORM == U_PF_OS390)) && (U_CPLUSPLUS_VERSION < 11)
+    char aliasedStyle[kStyleLenMax + 1];
+    ListPatternsSink()
+    {
+        uprv_memset(aliasedStyle, 0, kStyleLenMax + 1);
+    }
+#else
+    char aliasedStyle[kStyleLenMax + 1] = { 0 };
 
-    ListPatternsSink() {}
+    ListPatternsSink()
+    {
+    }
+#endif
     virtual ~ListPatternsSink();
 
-    void setAliasedStyle(UnicodeString alias) {
+    void setAliasedStyle(UnicodeString alias)
+    {
         int32_t startIndex = alias.indexOf(aliasPrefix, kAliasPrefixLen, 0);
         if (startIndex < 0) {
             return;
@@ -420,11 +450,12 @@ struct ListFormatter::ListPatternsSink : public ResourceSink {
         if (endIndex < 0) {
             endIndex = alias.length();
         }
-        alias.extract(startIndex, endIndex-startIndex, aliasedStyle, kStyleLenMax+1, US_INV);
+        alias.extract(startIndex, endIndex - startIndex, aliasedStyle, kStyleLenMax + 1, US_INV);
         aliasedStyle[kStyleLenMax] = 0;
     }
 
-    void handleValueForPattern(ResourceValue &value, UnicodeString &pattern, UErrorCode &errorCode) {
+    void handleValueForPattern(ResourceValue& value, UnicodeString& pattern, UErrorCode& errorCode)
+    {
         if (pattern.isEmpty()) {
             if (value.getType() == URES_ALIAS) {
                 if (aliasedStyle[0] == 0) {
@@ -436,8 +467,8 @@ struct ListFormatter::ListPatternsSink : public ResourceSink {
         }
     }
 
-    virtual void put(const char *key, ResourceValue &value, UBool /*noFallback*/,
-            UErrorCode &errorCode) override {
+    virtual void put(const char* key, ResourceValue& value, UBool /*noFallback*/, UErrorCode& errorCode) override
+    {
         aliasedStyle[0] = 0;
         if (value.getType() == URES_ALIAS) {
             setAliasedStyle(value.getAliasUnicodeString(errorCode));
@@ -459,10 +490,12 @@ struct ListFormatter::ListPatternsSink : public ResourceSink {
 };
 
 // Virtual destructors must be defined out of line.
-ListFormatter::ListPatternsSink::~ListPatternsSink() {}
+ListFormatter::ListPatternsSink::~ListPatternsSink()
+{
+}
 
-ListFormatInternal* ListFormatter::loadListFormatInternal(
-        const Locale& locale, const char * style, UErrorCode& errorCode) {
+ListFormatInternal* ListFormatter::loadListFormatInternal(const Locale& locale, const char* style, UErrorCode& errorCode)
+{
     UResourceBundle* rb = ures_open(nullptr, locale.getName(), &errorCode);
     rb = ures_getByKeyWithFallback(rb, "listPattern", rb, &errorCode);
     if (U_FAILURE(errorCode)) {
@@ -470,7 +503,7 @@ ListFormatInternal* ListFormatter::loadListFormatInternal(
         return nullptr;
     }
     ListFormatter::ListPatternsSink sink;
-    char currentStyle[kStyleLenMax+1];
+    char currentStyle[kStyleLenMax + 1];
     uprv_strncpy(currentStyle, style, kStyleLenMax);
     currentStyle[kStyleLenMax] = 0;
 
@@ -502,17 +535,19 @@ ListFormatInternal* ListFormatter::loadListFormatInternal(
     return result;
 }
 
-ListFormatter* ListFormatter::createInstance(UErrorCode& errorCode) {
-    Locale locale;  // The default locale.
+ListFormatter* ListFormatter::createInstance(UErrorCode& errorCode)
+{
+    Locale locale; // The default locale.
     return createInstance(locale, errorCode);
 }
 
-ListFormatter* ListFormatter::createInstance(const Locale& locale, UErrorCode& errorCode) {
+ListFormatter* ListFormatter::createInstance(const Locale& locale, UErrorCode& errorCode)
+{
     return createInstance(locale, ULISTFMT_TYPE_AND, ULISTFMT_WIDTH_WIDE, errorCode);
 }
 
-ListFormatter* ListFormatter::createInstance(
-        const Locale& locale, UListFormatterType type, UListFormatterWidth width, UErrorCode& errorCode) {
+ListFormatter* ListFormatter::createInstance(const Locale& locale, UListFormatterType type, UListFormatterWidth width, UErrorCode& errorCode)
+{
     const char* style = typeWidthToStyleString(type, width);
     if (style == nullptr) {
         errorCode = U_ILLEGAL_ARGUMENT_ERROR;
@@ -521,7 +556,8 @@ ListFormatter* ListFormatter::createInstance(
     return createInstance(locale, style, errorCode);
 }
 
-ListFormatter* ListFormatter::createInstance(const Locale& locale, const char *style, UErrorCode& errorCode) {
+ListFormatter* ListFormatter::createInstance(const Locale& locale, const char* style, UErrorCode& errorCode)
+{
     const ListFormatInternal* listFormatInternal = getListFormatInternal(locale, style, errorCode);
     if (U_FAILURE(errorCode)) {
         return nullptr;
@@ -534,15 +570,20 @@ ListFormatter* ListFormatter::createInstance(const Locale& locale, const char *s
     return p;
 }
 
-ListFormatter::ListFormatter(const ListFormatData& listFormatData, UErrorCode &errorCode) {
+ListFormatter::ListFormatter(const ListFormatData& listFormatData, UErrorCode& errorCode)
+{
     owned = new ListFormatInternal(listFormatData, errorCode);
     data = owned;
 }
 
-ListFormatter::ListFormatter(const ListFormatInternal* listFormatterInternal) : owned(nullptr), data(listFormatterInternal) {
+ListFormatter::ListFormatter(const ListFormatInternal* listFormatterInternal)
+    : owned(nullptr)
+    , data(listFormatterInternal)
+{
 }
 
-ListFormatter::~ListFormatter() {
+ListFormatter::~ListFormatter()
+{
     delete owned;
 }
 
@@ -554,22 +595,22 @@ public:
 
     /** For lists of length 1+ */
     FormattedListBuilder(const UnicodeString& start, UErrorCode& status)
-            : data(new FormattedListData(status), status) {
+        : data(new FormattedListData(status), status)
+    {
         if (U_SUCCESS(status)) {
-            data->getStringRef().append(
-                start,
-                {UFIELD_CATEGORY_LIST, ULISTFMT_ELEMENT_FIELD},
-                status);
+            data->getStringRef().append(start, { UFIELD_CATEGORY_LIST, ULISTFMT_ELEMENT_FIELD }, status);
             data->appendSpanInfo(UFIELD_CATEGORY_LIST_SPAN, 0, -1, start.length(), status);
         }
     }
 
     /** For lists of length 0 */
     FormattedListBuilder(UErrorCode& status)
-            : data(new FormattedListData(status), status) {
+        : data(new FormattedListData(status), status)
+    {
     }
 
-    void append(const SimpleFormatter& pattern, const UnicodeString& next, int32_t position, UErrorCode& status) {
+    void append(const SimpleFormatter& pattern, const UnicodeString& next, int32_t position, UErrorCode& status)
+    {
         if (U_FAILURE(status)) {
             return;
         }
@@ -578,75 +619,40 @@ public:
             return;
         }
         // In the pattern, {0} are the pre-existing elements and {1} is the new element.
-        int32_t offsets[] = {0, 0};
+        int32_t offsets[] = { 0, 0 };
         UnicodeString temp = pattern.getTextWithNoArguments(offsets, 2);
         if (offsets[0] <= offsets[1]) {
             // prefix{0}infix{1}suffix
             // Prepend prefix, then append infix, element, and suffix
-            data->getStringRef().insert(
-                0,
-                temp.tempSubStringBetween(0, offsets[0]),
-                {UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD},
-                status);
-            data->getStringRef().append(
-                temp.tempSubStringBetween(offsets[0], offsets[1]),
-                {UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD},
-                status);
-            data->getStringRef().append(
-                next,
-                {UFIELD_CATEGORY_LIST, ULISTFMT_ELEMENT_FIELD},
-                status);
+            data->getStringRef().insert(0, temp.tempSubStringBetween(0, offsets[0]), { UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD }, status);
+            data->getStringRef().append(temp.tempSubStringBetween(offsets[0], offsets[1]), { UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD }, status);
+            data->getStringRef().append(next, { UFIELD_CATEGORY_LIST, ULISTFMT_ELEMENT_FIELD }, status);
             data->appendSpanInfo(UFIELD_CATEGORY_LIST_SPAN, position, -1, next.length(), status);
-            data->getStringRef().append(
-                temp.tempSubString(offsets[1]),
-                {UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD},
-                status);
+            data->getStringRef().append(temp.tempSubString(offsets[1]), { UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD }, status);
         } else {
             // prefix{1}infix{0}suffix
             // Prepend infix, element, and prefix, then append suffix.
             // (We prepend in reverse order because prepending at index 0 is fast.)
-            data->getStringRef().insert(
-                0,
-                temp.tempSubStringBetween(offsets[1], offsets[0]),
-                {UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD},
-                status);
-            data->getStringRef().insert(
-                0,
-                next,
-                {UFIELD_CATEGORY_LIST, ULISTFMT_ELEMENT_FIELD},
-                status);
+            data->getStringRef().insert(0, temp.tempSubStringBetween(offsets[1], offsets[0]), { UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD }, status);
+            data->getStringRef().insert(0, next, { UFIELD_CATEGORY_LIST, ULISTFMT_ELEMENT_FIELD }, status);
             data->prependSpanInfo(UFIELD_CATEGORY_LIST_SPAN, position, -1, next.length(), status);
-            data->getStringRef().insert(
-                0,
-                temp.tempSubStringBetween(0, offsets[1]),
-                {UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD},
-                status);
-            data->getStringRef().append(
-                temp.tempSubString(offsets[0]),
-                {UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD},
-                status);
+            data->getStringRef().insert(0, temp.tempSubStringBetween(0, offsets[1]), { UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD }, status);
+            data->getStringRef().append(temp.tempSubString(offsets[0]), { UFIELD_CATEGORY_LIST, ULISTFMT_LITERAL_FIELD }, status);
         }
     }
 };
 
 }
 
-UnicodeString& ListFormatter::format(
-        const UnicodeString items[],
-        int32_t nItems,
-        UnicodeString& appendTo,
-        UErrorCode& errorCode) const {
+UnicodeString& ListFormatter::format(const UnicodeString items[], int32_t nItems, UnicodeString& appendTo, UErrorCode& errorCode) const
+{
     int32_t offset;
     return format(items, nItems, appendTo, -1, offset, errorCode);
 }
 
 UnicodeString& ListFormatter::format(
-        const UnicodeString items[],
-        int32_t nItems,
-        UnicodeString& appendTo,
-        int32_t index,
-        int32_t &offset,
-        UErrorCode& errorCode) const {
+    const UnicodeString items[], int32_t nItems, UnicodeString& appendTo, int32_t index, int32_t& offset, UErrorCode& errorCode) const
+{
     int32_t initialOffset = appendTo.length();
     auto result = formatStringsToValue(items, nItems, errorCode);
     UnicodeStringAppendable appendable(appendTo);
@@ -660,10 +666,8 @@ UnicodeString& ListFormatter::format(
     return appendTo;
 }
 
-FormattedList ListFormatter::formatStringsToValue(
-        const UnicodeString items[],
-        int32_t nItems,
-        UErrorCode& errorCode) const {
+FormattedList ListFormatter::formatStringsToValue(const UnicodeString items[], int32_t nItems, UErrorCode& errorCode) const
+{
     if (nItems == 0) {
         FormattedListBuilder result(errorCode);
         if (U_FAILURE(errorCode)) {
@@ -684,11 +688,7 @@ FormattedList ListFormatter::formatStringsToValue(
         if (U_FAILURE(errorCode)) {
             return FormattedList(errorCode);
         }
-        result.append(
-            data->patternHandler->getTwoPattern(items[1]),
-            items[1],
-            1,
-            errorCode);
+        result.append(data->patternHandler->getTwoPattern(items[1]), items[1], 1, errorCode);
         result.data->getStringRef().writeTerminator(errorCode);
         if (U_FAILURE(errorCode)) {
             return FormattedList(errorCode);
@@ -701,23 +701,11 @@ FormattedList ListFormatter::formatStringsToValue(
     if (U_FAILURE(errorCode)) {
         return FormattedList(errorCode);
     }
-    result.append(
-        data->startPattern,
-        items[1],
-        1,
-        errorCode);
+    result.append(data->startPattern, items[1], 1, errorCode);
     for (int32_t i = 2; i < nItems - 1; i++) {
-        result.append(
-            data->middlePattern,
-            items[i],
-            i,
-            errorCode);
+        result.append(data->middlePattern, items[i], i, errorCode);
     }
-    result.append(
-        data->patternHandler->getEndPattern(items[nItems-1]),
-        items[nItems-1],
-        nItems-1,
-        errorCode);
+    result.append(data->patternHandler->getEndPattern(items[nItems - 1]), items[nItems - 1], nItems - 1, errorCode);
     result.data->getStringRef().writeTerminator(errorCode);
     if (U_FAILURE(errorCode)) {
         return FormattedList(errorCode);
@@ -725,7 +713,6 @@ FormattedList ListFormatter::formatStringsToValue(
         return FormattedList(result.data.orphan());
     }
 }
-
 
 U_NAMESPACE_END
 

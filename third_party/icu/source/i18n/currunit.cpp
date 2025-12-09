@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -25,7 +25,8 @@
 
 U_NAMESPACE_BEGIN
 
-CurrencyUnit::CurrencyUnit(ConstChar16Ptr _isoCode, UErrorCode& ec) {
+CurrencyUnit::CurrencyUnit(ConstChar16Ptr _isoCode, UErrorCode& ec)
+{
     // The constructor always leaves the CurrencyUnit in a valid state (with a 3-character currency code).
     // Note: in ICU4J Currency.getInstance(), we check string length for 3, but in ICU4C we allow a
     // non-NUL-terminated string to be passed as an argument, so it is not possible to check length.
@@ -42,20 +43,21 @@ CurrencyUnit::CurrencyUnit(ConstChar16Ptr _isoCode, UErrorCode& ec) {
         useDefault = true;
         ec = U_INVARIANT_CONVERSION_ERROR;
     } else {
-        for (int32_t i=0; i<3; i++) {
+        for (int32_t i = 0; i < 3; i++) {
             isoCode[i] = u_asciiToUpper(_isoCode[i]);
         }
         isoCode[3] = 0;
     }
     if (useDefault) {
-        uprv_memcpy(isoCode, kDefaultCurrency, sizeof(char16_t) * 4);
+        uprv_memcpy(isoCode, kDefaultCurrency, sizeof(UChar) * 4);
     }
     char simpleIsoCode[4];
     u_UCharsToChars(isoCode, simpleIsoCode, 4);
     initCurrency(simpleIsoCode);
 }
 
-CurrencyUnit::CurrencyUnit(StringPiece _isoCode, UErrorCode& ec) {
+CurrencyUnit::CurrencyUnit(StringPiece _isoCode, UErrorCode& ec)
+{
     // Note: unlike the old constructor, reject empty arguments with an error.
     char isoCodeBuffer[4];
     const char* isoCodeToUse;
@@ -69,7 +71,7 @@ CurrencyUnit::CurrencyUnit(StringPiece _isoCode, UErrorCode& ec) {
         ec = U_INVARIANT_CONVERSION_ERROR;
     } else {
         // Have to use isoCodeBuffer to ensure the string is NUL-terminated
-        for (int32_t i=0; i<3; i++) {
+        for (int32_t i = 0; i < 3; i++) {
             isoCodeBuffer[i] = uprv_toupper(_isoCode.data()[i]);
         }
         isoCodeBuffer[3] = 0;
@@ -79,11 +81,15 @@ CurrencyUnit::CurrencyUnit(StringPiece _isoCode, UErrorCode& ec) {
     initCurrency(isoCodeToUse);
 }
 
-CurrencyUnit::CurrencyUnit(const CurrencyUnit& other) : MeasureUnit(other) {
+CurrencyUnit::CurrencyUnit(const CurrencyUnit& other)
+    : MeasureUnit(other)
+{
     u_strcpy(isoCode, other.isoCode);
 }
 
-CurrencyUnit::CurrencyUnit(const MeasureUnit& other, UErrorCode& ec) : MeasureUnit(other) {
+CurrencyUnit::CurrencyUnit(const MeasureUnit& other, UErrorCode& ec)
+    : MeasureUnit(other)
+{
     // Make sure this is a currency.
     // OK to hard-code the string because we are comparing against another hard-coded string.
     if (uprv_strcmp("currency", getType()) != 0) {
@@ -96,14 +102,17 @@ CurrencyUnit::CurrencyUnit(const MeasureUnit& other, UErrorCode& ec) : MeasureUn
     }
 }
 
-CurrencyUnit::CurrencyUnit() : MeasureUnit() {
+CurrencyUnit::CurrencyUnit()
+    : MeasureUnit()
+{
     u_strcpy(isoCode, kDefaultCurrency);
     char simpleIsoCode[4];
     u_UCharsToChars(isoCode, simpleIsoCode, 4);
     initCurrency(simpleIsoCode);
 }
 
-CurrencyUnit& CurrencyUnit::operator=(const CurrencyUnit& other) {
+CurrencyUnit& CurrencyUnit::operator=(const CurrencyUnit& other)
+{
     if (this == &other) {
         return *this;
     }
@@ -112,13 +121,15 @@ CurrencyUnit& CurrencyUnit::operator=(const CurrencyUnit& other) {
     return *this;
 }
 
-CurrencyUnit* CurrencyUnit::clone() const {
+CurrencyUnit* CurrencyUnit::clone() const
+{
     return new CurrencyUnit(*this);
 }
 
-CurrencyUnit::~CurrencyUnit() {
+CurrencyUnit::~CurrencyUnit()
+{
 }
-    
+
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CurrencyUnit)
 
 U_NAMESPACE_END

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ***************************************************************************
@@ -28,7 +28,6 @@
 #ifdef __cplusplus
 
 #include "capi_helper.h"
-#include "umutex.h"
 
 U_NAMESPACE_BEGIN
 
@@ -52,13 +51,12 @@ struct SpoofDataHeader;
 class ConfusableDataUtils;
 
 /**
-  *  Class SpoofImpl corresponds directly to the plain C API opaque type
-  *  USpoofChecker.  One can be cast to the other.
-  */
-class SpoofImpl : public UObject,
-        public IcuCApiHelper<USpoofChecker, SpoofImpl, USPOOF_MAGIC> {
+ *  Class SpoofImpl corresponds directly to the plain C API opaque type
+ *  USpoofChecker.  One can be cast to the other.
+ */
+class SpoofImpl : public UObject, public IcuCApiHelper<USpoofChecker, SpoofImpl, USPOOF_MAGIC> {
 public:
-    SpoofImpl(SpoofData *data, UErrorCode& status);
+    SpoofImpl(SpoofData* data, UErrorCode& status);
     SpoofImpl(UErrorCode& status);
     SpoofImpl();
     void construct(UErrorCode& status);
@@ -66,19 +64,19 @@ public:
 
     /** Copy constructor, used by the user level uspoof_clone() function.
      */
-    SpoofImpl(const SpoofImpl &src, UErrorCode &status);
-    
-    USpoofChecker *asUSpoofChecker();
-    static SpoofImpl *validateThis(USpoofChecker *sc, UErrorCode &status);
-    static const SpoofImpl *validateThis(const USpoofChecker *sc, UErrorCode &status);
+    SpoofImpl(const SpoofImpl& src, UErrorCode& status);
+
+    USpoofChecker* asUSpoofChecker();
+    static SpoofImpl* validateThis(USpoofChecker* sc, UErrorCode& status);
+    static const SpoofImpl* validateThis(const USpoofChecker* sc, UErrorCode& status);
 
     /** Set and Get AllowedLocales, implementations of the corresponding API */
-    void setAllowedLocales(const char *localesList, UErrorCode &status);
-    const char * getAllowedLocales(UErrorCode &status);
+    void setAllowedLocales(const char* localesList, UErrorCode& status);
+    const char* getAllowedLocales(UErrorCode& status);
 
     // Add (union) to the UnicodeSet all of the characters for the scripts used for
     // the specified locale.  Part of the implementation of setAllowedLocales.
-    void addScriptChars(const char *locale, UnicodeSet *allowedChars, UErrorCode &status);
+    void addScriptChars(const char* locale, UnicodeSet* allowedChars, UErrorCode& status);
 
     // Functions implementing the features of UTS 39 section 5.
     static void getAugmentedScriptSet(UChar32 codePoint, ScriptSet& result, UErrorCode& status);
@@ -91,39 +89,38 @@ public:
     bool isIllegalCombiningDotLeadCharacter(UChar32 cp) const;
 
     /** parse a hex number.  Untility used by the builders.   */
-    static UChar32 ScanHex(const char16_t *s, int32_t start, int32_t limit, UErrorCode &status);
+    static UChar32 ScanHex(const UChar* s, int32_t start, int32_t limit, UErrorCode& status);
 
-    static UClassID U_EXPORT2 getStaticClassID();
-    virtual UClassID getDynamicClassID() const override;
+    static UClassID U_EXPORT2 getStaticClassID(void);
+    virtual UClassID getDynamicClassID(void) const override;
 
     //
     // Data Members
     //
 
-    int32_t           fChecks;            // Bit vector of checks to perform.
+    int32_t fChecks; // Bit vector of checks to perform.
 
-    SpoofData        *fSpoofData;
-    
-    const UnicodeSet *fAllowedCharsSet;   // The UnicodeSet of allowed characters.
-                                          //   for this Spoof Checker.  Defaults to all chars.
+    SpoofData* fSpoofData;
 
-    const char       *fAllowedLocales;    // The list of allowed locales.
-    URestrictionLevel fRestrictionLevel;  // The maximum restriction level for an acceptable identifier.
+    const UnicodeSet* fAllowedCharsSet; // The UnicodeSet of allowed characters.
+        //   for this Spoof Checker.  Defaults to all chars.
+
+    const char* fAllowedLocales; // The list of allowed locales.
+    URestrictionLevel fRestrictionLevel; // The maximum restriction level for an acceptable identifier.
 };
 
 /**
  *  Class CheckResult corresponds directly to the plain C API opaque type
  *  USpoofCheckResult.  One can be cast to the other.
  */
-class CheckResult : public UObject,
-        public IcuCApiHelper<USpoofCheckResult, CheckResult, USPOOF_CHECK_MAGIC> {
+class CheckResult : public UObject, public IcuCApiHelper<USpoofCheckResult, CheckResult, USPOOF_CHECK_MAGIC> {
 public:
     CheckResult();
     virtual ~CheckResult();
 
-    USpoofCheckResult *asUSpoofCheckResult();
-    static CheckResult *validateThis(USpoofCheckResult *ptr, UErrorCode &status);
-    static const CheckResult *validateThis(const USpoofCheckResult *ptr, UErrorCode &status);
+    USpoofCheckResult* asUSpoofCheckResult();
+    static CheckResult* validateThis(USpoofCheckResult* ptr, UErrorCode& status);
+    static const CheckResult* validateThis(const USpoofCheckResult* ptr, UErrorCode& status);
 
     void clear();
 
@@ -131,11 +128,10 @@ public:
     int32_t toCombinedBitmask(int32_t expectedChecks);
 
     // Data Members
-    int32_t fChecks;                       // Bit vector of checks that were failed.
-    UnicodeSet fNumerics;                  // Set of numerics found in the string.
-    URestrictionLevel fRestrictionLevel;   // The restriction level of the string.
+    int32_t fChecks; // Bit vector of checks that were failed.
+    UnicodeSet fNumerics; // Set of numerics found in the string.
+    URestrictionLevel fRestrictionLevel; // The restriction level of the string.
 };
-
 
 //
 //  Confusable Mappings Data Structures, version 2.0
@@ -158,7 +154,7 @@ public:
 //
 //    String Table:
 //       The strings table contains all of the value strings (those of length two or greater)
-//       concatenated together into one long char16_t (UTF-16) array.
+//       concatenated together into one long UChar (UTF-16) array.
 //
 //       There is no nul character or other mark between adjacent strings.
 //
@@ -171,25 +167,25 @@ public:
 //      4) Removal of the string lengths table since 8 bits is sufficient for the
 //         lengths of all entries in confusables.txt.
 
-
-
 // Internal functions for manipulating confusable data table keys
-#define USPOOF_CONFUSABLE_DATA_FORMAT_VERSION 2  // version for ICU 58
+#define USPOOF_CONFUSABLE_DATA_FORMAT_VERSION 2 // version for ICU 58
 class ConfusableDataUtils {
 public:
-    inline static UChar32 keyToCodePoint(int32_t key) {
+    inline static UChar32 keyToCodePoint(int32_t key)
+    {
         return key & 0x00ffffff;
     }
-    inline static int32_t keyToLength(int32_t key) {
+    inline static int32_t keyToLength(int32_t key)
+    {
         return ((key & 0xff000000) >> 24) + 1;
     }
-    inline static int32_t codePointAndLengthToKey(UChar32 codePoint, int32_t length) {
+    inline static int32_t codePointAndLengthToKey(UChar32 codePoint, int32_t length)
+    {
         U_ASSERT((codePoint & 0x00ffffff) == codePoint);
         U_ASSERT(length <= 256);
         return codePoint | ((length - 1) << 24);
     }
 };
-
 
 //-------------------------------------------------------------------------------------
 //
@@ -205,34 +201,34 @@ public:
 //    USpoofDetector object.
 //
 //---------------------------------------------------------------------------------------
-class SpoofData: public UMemory {
-  public:
-    static SpoofData* getDefault(UErrorCode &status);   // Get standard ICU spoof data.
-    static void releaseDefault();   // Cleanup reference to default spoof data.
+class SpoofData : public UMemory {
+public:
+    static SpoofData* getDefault(UErrorCode& status); // Get standard ICU spoof data.
+    static void releaseDefault(); // Cleanup reference to default spoof data.
 
-    SpoofData(UErrorCode &status);   // Create new spoof data wrapper.
-                                     // Only used when building new data from rules.
-    
+    SpoofData(UErrorCode& status); // Create new spoof data wrapper.
+        // Only used when building new data from rules.
+
     // Constructor for use when creating from prebuilt default data.
     //   A UDataMemory is what the ICU internal data loading functions provide.
     //   The udm is adopted by the SpoofData.
-    SpoofData(UDataMemory *udm, UErrorCode &status);
+    SpoofData(UDataMemory* udm, UErrorCode& status);
 
     // Constructor for use when creating from serialized data.
     //
-    SpoofData(const void *serializedData, int32_t length, UErrorCode &status);
+    SpoofData(const void* serializedData, int32_t length, UErrorCode& status);
 
     //  Check raw Spoof Data Version compatibility.
     //  Return true it looks good.
-    UBool validateDataVersion(UErrorCode &status) const;
+    UBool validateDataVersion(UErrorCode& status) const;
 
-    ~SpoofData();                    // Destructor not normally used.
-                                     // Use removeReference() instead.
+    ~SpoofData(); // Destructor not normally used.
+        // Use removeReference() instead.
     // Reference Counting functions.
     //    Clone of a user-level spoof detector increments the ref count on the data.
     //    Close of a user-level spoof detector decrements the ref count.
     //    If the data is owned by us, it will be deleted when count goes to zero.
-    SpoofData *addReference(); 
+    SpoofData* addReference();
     void removeReference();
 
     // Reset all fields to an initial state.
@@ -240,7 +236,7 @@ class SpoofData: public UMemory {
     void reset();
 
     // Copy this instance's raw data buffer to the specified address.
-    int32_t serialize(void *buf, int32_t capacity, UErrorCode &status) const;
+    int32_t serialize(void* buf, int32_t capacity, UErrorCode& status) const;
 
     // Get the total number of bytes of data backed by this SpoofData.
     // Not to be confused with length, which returns the number of confusable entries.
@@ -250,7 +246,7 @@ class SpoofData: public UMemory {
     // The result is a string with a length between 1 and 18 as of Unicode 9.
     // This is the main public endpoint for this class.
     // @return   The length in UTF-16 code units of the substitution string.
-    int32_t confusableLookup(UChar32 inChar, UnicodeString &dest) const;
+    int32_t confusableLookup(UChar32 inChar, UnicodeString& dest) const;
 
     // Get the number of confusable entries in this SpoofData.
     int32_t length() const;
@@ -263,31 +259,31 @@ class SpoofData: public UMemory {
     // @return   The length in UTF-16 code units of the skeleton string.
     int32_t appendValueTo(int32_t index, UnicodeString& dest) const;
 
-  private:
+private:
     // Reserve space in the raw data.  For use by builder when putting together a
     //   new set of data.  Init the new storage to zero, to prevent inconsistent
     //   results if it is not all otherwise set by the requester.
     //  Return:
     //    pointer to the new space that was added by this function.
-    void *reserveSpace(int32_t numBytes, UErrorCode &status);
+    void* reserveSpace(int32_t numBytes, UErrorCode& status);
 
     // initialize the pointers from this object to the raw data.
-    void initPtrs(UErrorCode &status);
+    void initPtrs(UErrorCode& status);
 
-    SpoofDataHeader             *fRawData;          // Ptr to the raw memory-mapped data
-    UBool                       fDataOwned;         // True if the raw data is owned, and needs
-                                                    //  to be deleted when refcount goes to zero.
-    UDataMemory                 *fUDM;              // If not nullptr, our data came from a
-                                                    //   UDataMemory, which we must close when
-                                                    //   we are done.
+    SpoofDataHeader* fRawData; // Ptr to the raw memory-mapped data
+    UBool fDataOwned; // True if the raw data is owned, and needs
+        //  to be deleted when refcount goes to zero.
+    UDataMemory* fUDM; // If not NULL, our data came from a
+        //   UDataMemory, which we must close when
+        //   we are done.
 
-    uint32_t                    fMemLimit;          // Limit of available raw data space
-    u_atomic_int32_t            fRefCount;
+    uint32_t fMemLimit; // Limit of available raw data space
+    u_atomic_int32_t fRefCount;
 
     // Confusable data
-    int32_t                     *fCFUKeys;
-    uint16_t                    *fCFUValues;
-    char16_t                    *fCFUStrings;
+    int32_t* fCFUKeys;
+    uint16_t* fCFUValues;
+    UChar* fCFUStrings;
 
     friend class ConfusabledataBuilder;
 };
@@ -299,46 +295,40 @@ class SpoofData: public UMemory {
 //
 //---------------------------------------------------------------------------------------
 struct SpoofDataHeader {
-    int32_t       fMagic;                // (0x3845fdef)
-    uint8_t       fFormatVersion[4];     // Data Format. Same as the value in struct UDataInfo
-                                         //   if there is one associated with this data.
-    int32_t       fLength;               // Total length in bytes of this spoof data,
-                                         //   including all sections, not just the header.
+    int32_t fMagic; // (0x3845fdef)
+    uint8_t fFormatVersion[4]; // Data Format. Same as the value in struct UDataInfo
+        //   if there is one associated with this data.
+    int32_t fLength; // Total length in bytes of this spoof data,
+        //   including all sections, not just the header.
 
     // The following four sections refer to data representing the confusable data
     //   from the Unicode.org data from "confusables.txt"
 
-    int32_t       fCFUKeys;               // byte offset to Keys table (from SpoofDataHeader *)
-    int32_t       fCFUKeysSize;           // number of entries in keys table  (32 bits each)
+    int32_t fCFUKeys; // byte offset to Keys table (from SpoofDataHeader *)
+    int32_t fCFUKeysSize; // number of entries in keys table  (32 bits each)
 
     // TODO: change name to fCFUValues, for consistency.
-    int32_t       fCFUStringIndex;        // byte offset to String Indexes table
-    int32_t       fCFUStringIndexSize;    // number of entries in String Indexes table (16 bits each)
-                                          //     (number of entries must be same as in Keys table
+    int32_t fCFUStringIndex; // byte offset to String Indexes table
+    int32_t fCFUStringIndexSize; // number of entries in String Indexes table (16 bits each)
+        //     (number of entries must be same as in Keys table
 
-    int32_t       fCFUStringTable;        // byte offset of String table
-    int32_t       fCFUStringTableLen;     // length of string table (in 16 bit UChars)
+    int32_t fCFUStringTable; // byte offset of String table
+    int32_t fCFUStringTableLen; // length of string table (in 16 bit UChars)
 
     // The following sections are for data from xidmodifications.txt
 
-    int32_t       unused[15];              // Padding, Room for Expansion
+    int32_t unused[15]; // Padding, Room for Expansion
 };
-
-
 
 U_NAMESPACE_END
 #endif /* __cplusplus */
 
 /**
-  * Endianness swap function for binary spoof data.
-  * @internal
-  */
-U_CAPI int32_t U_EXPORT2
-uspoof_swap(const UDataSwapper *ds, const void *inData, int32_t length, void *outData,
-            UErrorCode *status);
-
+ * Endianness swap function for binary spoof data.
+ * @internal
+ */
+U_CAPI int32_t U_EXPORT2 uspoof_swap(const UDataSwapper* ds, const void* inData, int32_t length, void* outData, UErrorCode* status);
 
 #endif
 
-#endif  /* USPOOFIM_H */
-
+#endif /* USPOOFIM_H */

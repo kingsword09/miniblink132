@@ -1,4 +1,4 @@
-// © 2017 and later: Unicode, Inc. and others.
+﻿// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -28,27 +28,27 @@ using namespace icu::number::impl;
 // fully defined. However, since each translation unit explicitly instantiates all the necessary template classes,
 // they will all be passed to the linker, and the linker will still find and export all the class members.
 #pragma warning(push)
-#pragma warning(disable: 4661)
+#pragma warning(disable : 4661)
 #endif
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::notation(const Notation& notation) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::notation(const Notation& notation) const&
+{
     Derived copy(*this);
     // NOTE: Slicing is OK.
     copy.fMacros.notation = notation;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::notation(const Notation& notation)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::notation(const Notation& notation) &&
+{
     Derived move(std::move(*this));
     // NOTE: Slicing is OK.
     move.fMacros.notation = notation;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::unit(const icu::MeasureUnit& unit) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::unit(const icu::MeasureUnit& unit) const&
+{
     Derived copy(*this);
     // NOTE: Slicing occurs here. However, CurrencyUnit can be restored from MeasureUnit.
     // TimeUnit may be affected, but TimeUnit is not as relevant to number formatting.
@@ -56,16 +56,16 @@ Derived NumberFormatterSettings<Derived>::unit(const icu::MeasureUnit& unit) con
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::unit(const icu::MeasureUnit& unit)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::unit(const icu::MeasureUnit& unit) &&
+{
     Derived move(std::move(*this));
     // See comments above about slicing.
     move.fMacros.unit = unit;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::adoptUnit(icu::MeasureUnit* unit) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::adoptUnit(icu::MeasureUnit* unit) const&
+{
     Derived copy(*this);
     // Just move the unit into the MacroProps by value, and delete it since we have ownership.
     // NOTE: Slicing occurs here. However, CurrencyUnit can be restored from MeasureUnit.
@@ -78,8 +78,8 @@ Derived NumberFormatterSettings<Derived>::adoptUnit(icu::MeasureUnit* unit) cons
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::adoptUnit(icu::MeasureUnit* unit)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::adoptUnit(icu::MeasureUnit* unit) &&
+{
     Derived move(std::move(*this));
     // See comments above about slicing and ownership.
     if (unit != nullptr) {
@@ -90,24 +90,24 @@ Derived NumberFormatterSettings<Derived>::adoptUnit(icu::MeasureUnit* unit)&& {
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::perUnit(const icu::MeasureUnit& perUnit) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::perUnit(const icu::MeasureUnit& perUnit) const&
+{
     Derived copy(*this);
     // See comments above about slicing.
     copy.fMacros.perUnit = perUnit;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::perUnit(const icu::MeasureUnit& perUnit)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::perUnit(const icu::MeasureUnit& perUnit) &&
+{
     Derived move(std::move(*this));
     // See comments above about slicing.
     move.fMacros.perUnit = perUnit;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::adoptPerUnit(icu::MeasureUnit* perUnit) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::adoptPerUnit(icu::MeasureUnit* perUnit) const&
+{
     Derived copy(*this);
     // See comments above about slicing and ownership.
     if (perUnit != nullptr) {
@@ -118,8 +118,8 @@ Derived NumberFormatterSettings<Derived>::adoptPerUnit(icu::MeasureUnit* perUnit
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::adoptPerUnit(icu::MeasureUnit* perUnit)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::adoptPerUnit(icu::MeasureUnit* perUnit) &&
+{
     Derived move(std::move(*this));
     // See comments above about slicing and ownership.
     if (perUnit != nullptr) {
@@ -130,38 +130,38 @@ Derived NumberFormatterSettings<Derived>::adoptPerUnit(icu::MeasureUnit* perUnit
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::precision(const Precision& precision) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::precision(const Precision& precision) const&
+{
     Derived copy(*this);
     // NOTE: Slicing is OK.
     copy.fMacros.precision = precision;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::precision(const Precision& precision)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::precision(const Precision& precision) &&
+{
     Derived move(std::move(*this));
     // NOTE: Slicing is OK.
     move.fMacros.precision = precision;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::roundingMode(UNumberFormatRoundingMode roundingMode) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::roundingMode(UNumberFormatRoundingMode roundingMode) const&
+{
     Derived copy(*this);
     copy.fMacros.roundingMode = roundingMode;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::roundingMode(UNumberFormatRoundingMode roundingMode)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::roundingMode(UNumberFormatRoundingMode roundingMode) &&
+{
     Derived move(std::move(*this));
     move.fMacros.roundingMode = roundingMode;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::grouping(UNumberGroupingStrategy strategy) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::grouping(UNumberGroupingStrategy strategy) const&
+{
     Derived copy(*this);
     // NOTE: This is slightly different than how the setting is stored in Java
     // because we want to put it on the stack.
@@ -169,218 +169,190 @@ Derived NumberFormatterSettings<Derived>::grouping(UNumberGroupingStrategy strat
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::grouping(UNumberGroupingStrategy strategy)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::grouping(UNumberGroupingStrategy strategy) &&
+{
     Derived move(std::move(*this));
     move.fMacros.grouper = Grouper::forStrategy(strategy);
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::integerWidth(const IntegerWidth& style) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::integerWidth(const IntegerWidth& style) const&
+{
     Derived copy(*this);
     copy.fMacros.integerWidth = style;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::integerWidth(const IntegerWidth& style)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::integerWidth(const IntegerWidth& style) &&
+{
     Derived move(std::move(*this));
     move.fMacros.integerWidth = style;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::symbols(const DecimalFormatSymbols& symbols) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::symbols(const DecimalFormatSymbols& symbols) const&
+{
     Derived copy(*this);
     copy.fMacros.symbols.setTo(symbols);
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::symbols(const DecimalFormatSymbols& symbols)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::symbols(const DecimalFormatSymbols& symbols) &&
+{
     Derived move(std::move(*this));
     move.fMacros.symbols.setTo(symbols);
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::adoptSymbols(NumberingSystem* ns) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::adoptSymbols(NumberingSystem* ns) const&
+{
     Derived copy(*this);
     copy.fMacros.symbols.setTo(ns);
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::adoptSymbols(NumberingSystem* ns)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::adoptSymbols(NumberingSystem* ns) &&
+{
     Derived move(std::move(*this));
     move.fMacros.symbols.setTo(ns);
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::unitWidth(UNumberUnitWidth width) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::unitWidth(UNumberUnitWidth width) const&
+{
     Derived copy(*this);
     copy.fMacros.unitWidth = width;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::unitWidth(UNumberUnitWidth width)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::unitWidth(UNumberUnitWidth width) &&
+{
     Derived move(std::move(*this));
     move.fMacros.unitWidth = width;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::sign(UNumberSignDisplay style) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::sign(UNumberSignDisplay style) const&
+{
     Derived copy(*this);
     copy.fMacros.sign = style;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::sign(UNumberSignDisplay style)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::sign(UNumberSignDisplay style) &&
+{
     Derived move(std::move(*this));
     move.fMacros.sign = style;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::decimal(UNumberDecimalSeparatorDisplay style) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::decimal(UNumberDecimalSeparatorDisplay style) const&
+{
     Derived copy(*this);
     copy.fMacros.decimal = style;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::decimal(UNumberDecimalSeparatorDisplay style)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::decimal(UNumberDecimalSeparatorDisplay style) &&
+{
     Derived move(std::move(*this));
     move.fMacros.decimal = style;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::scale(const Scale& scale) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::scale(const Scale& scale) const&
+{
     Derived copy(*this);
     copy.fMacros.scale = scale;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::scale(const Scale& scale)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::scale(const Scale& scale) &&
+{
     Derived move(std::move(*this));
     move.fMacros.scale = scale;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::usage(const StringPiece usage) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::usage(const StringPiece usage) const&
+{
     Derived copy(*this);
     copy.fMacros.usage.set(usage);
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::usage(const StringPiece usage)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::usage(const StringPiece usage) &&
+{
     Derived move(std::move(*this));
     move.fMacros.usage.set(usage);
     return move;
 }
 
-template <typename Derived>
-Derived NumberFormatterSettings<Derived>::displayOptions(const DisplayOptions &displayOptions) const & {
-    Derived copy(*this);
-    // `displayCase` does not recognise the `undefined`
-    if (displayOptions.getGrammaticalCase() == UDISPOPT_GRAMMATICAL_CASE_UNDEFINED) {
-        copy.fMacros.unitDisplayCase.set(nullptr);
-        return copy;
-    }
-
-    copy.fMacros.unitDisplayCase.set(
-        udispopt_getGrammaticalCaseIdentifier(displayOptions.getGrammaticalCase()));
-    return copy;
-}
-
-template <typename Derived>
-Derived NumberFormatterSettings<Derived>::displayOptions(const DisplayOptions &displayOptions) && {
-    Derived move(std::move(*this));
-    // `displayCase` does not recognise the `undefined`
-    if (displayOptions.getGrammaticalCase() == UDISPOPT_GRAMMATICAL_CASE_UNDEFINED) {
-        move.fMacros.unitDisplayCase.set(nullptr);
-        return move;
-    }
-
-    move.fMacros.unitDisplayCase.set(
-        udispopt_getGrammaticalCaseIdentifier(displayOptions.getGrammaticalCase()));
-    return move;
-}
-
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::unitDisplayCase(const StringPiece unitDisplayCase) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::unitDisplayCase(const StringPiece unitDisplayCase) const&
+{
     Derived copy(*this);
     copy.fMacros.unitDisplayCase.set(unitDisplayCase);
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::unitDisplayCase(const StringPiece unitDisplayCase)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::unitDisplayCase(const StringPiece unitDisplayCase) &&
+{
     Derived move(std::move(*this));
     move.fMacros.unitDisplayCase.set(unitDisplayCase);
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::padding(const Padder& padder) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::padding(const Padder& padder) const&
+{
     Derived copy(*this);
     copy.fMacros.padder = padder;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::padding(const Padder& padder)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::padding(const Padder& padder) &&
+{
     Derived move(std::move(*this));
     move.fMacros.padder = padder;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::threshold(int32_t threshold) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::threshold(int32_t threshold) const&
+{
     Derived copy(*this);
     copy.fMacros.threshold = threshold;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::threshold(int32_t threshold)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::threshold(int32_t threshold) &&
+{
     Derived move(std::move(*this));
     move.fMacros.threshold = threshold;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::macros(const impl::MacroProps& macros) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::macros(const impl::MacroProps& macros) const&
+{
     Derived copy(*this);
     copy.fMacros = macros;
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::macros(const impl::MacroProps& macros)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::macros(const impl::MacroProps& macros) &&
+{
     Derived move(std::move(*this));
     move.fMacros = macros;
     return move;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::macros(impl::MacroProps&& macros) const& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::macros(impl::MacroProps&& macros) const&
+{
     Derived copy(*this);
     copy.fMacros = std::move(macros);
     return copy;
 }
 
-template<typename Derived>
-Derived NumberFormatterSettings<Derived>::macros(impl::MacroProps&& macros)&& {
+template <typename Derived> Derived NumberFormatterSettings<Derived>::macros(impl::MacroProps&& macros) &&
+{
     Derived move(std::move(*this));
     move.fMacros = std::move(macros);
     return move;
@@ -388,64 +360,68 @@ Derived NumberFormatterSettings<Derived>::macros(impl::MacroProps&& macros)&& {
 
 // Note: toSkeleton defined in number_skeletons.cpp
 
-template<typename Derived>
-LocalPointer<Derived> NumberFormatterSettings<Derived>::clone() const & {
+template <typename Derived> LocalPointer<Derived> NumberFormatterSettings<Derived>::clone() const&
+{
     return LocalPointer<Derived>(new Derived(*this));
 }
 
-template<typename Derived>
-LocalPointer<Derived> NumberFormatterSettings<Derived>::clone() && {
+template <typename Derived> LocalPointer<Derived> NumberFormatterSettings<Derived>::clone() &&
+{
     return LocalPointer<Derived>(new Derived(std::move(*this)));
 }
 
 // Declare all classes that implement NumberFormatterSettings
 // See https://stackoverflow.com/a/495056/1407170
-template
-class icu::number::NumberFormatterSettings<icu::number::UnlocalizedNumberFormatter>;
-template
-class icu::number::NumberFormatterSettings<icu::number::LocalizedNumberFormatter>;
+template class icu::number::NumberFormatterSettings<icu::number::UnlocalizedNumberFormatter>;
+template class icu::number::NumberFormatterSettings<icu::number::LocalizedNumberFormatter>;
 
-
-UnlocalizedNumberFormatter NumberFormatter::with() {
+UnlocalizedNumberFormatter NumberFormatter::with()
+{
     UnlocalizedNumberFormatter result;
     return result;
 }
 
-LocalizedNumberFormatter NumberFormatter::withLocale(const Locale& locale) {
+LocalizedNumberFormatter NumberFormatter::withLocale(const Locale& locale)
+{
     return with().locale(locale);
 }
 
 // Note: forSkeleton defined in number_skeletons.cpp
 
-
-template<typename T> using NFS = NumberFormatterSettings<T>;
+template <typename T> using NFS = NumberFormatterSettings<T>;
 using LNF = LocalizedNumberFormatter;
 using UNF = UnlocalizedNumberFormatter;
 
 UnlocalizedNumberFormatter::UnlocalizedNumberFormatter(const UNF& other)
-        : UNF(static_cast<const NFS<UNF>&>(other)) {}
+    : UNF(static_cast<const NFS<UNF>&>(other))
+{
+}
 
 UnlocalizedNumberFormatter::UnlocalizedNumberFormatter(const NFS<UNF>& other)
-        : NFS<UNF>(other) {
+    : NFS<UNF>(other)
+{
     // No additional fields to assign
 }
 
 // Make default copy constructor call the NumberFormatterSettings copy constructor.
-UnlocalizedNumberFormatter::UnlocalizedNumberFormatter(UNF&& src) noexcept
-        : UNF(static_cast<NFS<UNF>&&>(src)) {}
+UnlocalizedNumberFormatter::UnlocalizedNumberFormatter(UNF&& src) U_NOEXCEPT : UNF(static_cast<NFS<UNF>&&>(src))
+{
+}
 
-UnlocalizedNumberFormatter::UnlocalizedNumberFormatter(NFS<UNF>&& src) noexcept
-        : NFS<UNF>(std::move(src)) {
+UnlocalizedNumberFormatter::UnlocalizedNumberFormatter(NFS<UNF>&& src) U_NOEXCEPT : NFS<UNF>(std::move(src))
+{
     // No additional fields to assign
 }
 
-UnlocalizedNumberFormatter& UnlocalizedNumberFormatter::operator=(const UNF& other) {
+UnlocalizedNumberFormatter& UnlocalizedNumberFormatter::operator=(const UNF& other)
+{
     NFS<UNF>::operator=(static_cast<const NFS<UNF>&>(other));
     // No additional fields to assign
     return *this;
 }
 
-UnlocalizedNumberFormatter& UnlocalizedNumberFormatter::operator=(UNF&& src) noexcept {
+UnlocalizedNumberFormatter& UnlocalizedNumberFormatter::operator=(UNF&& src) U_NOEXCEPT
+{
     NFS<UNF>::operator=(static_cast<NFS<UNF>&&>(src));
     // No additional fields to assign
     return *this;
@@ -453,43 +429,53 @@ UnlocalizedNumberFormatter& UnlocalizedNumberFormatter::operator=(UNF&& src) noe
 
 // Make default copy constructor call the NumberFormatterSettings copy constructor.
 LocalizedNumberFormatter::LocalizedNumberFormatter(const LNF& other)
-        : LNF(static_cast<const NFS<LNF>&>(other)) {}
+    : LNF(static_cast<const NFS<LNF>&>(other))
+{
+}
 
 LocalizedNumberFormatter::LocalizedNumberFormatter(const NFS<LNF>& other)
-        : NFS<LNF>(other) {
+    : NFS<LNF>(other)
+{
     UErrorCode localStatus = U_ZERO_ERROR; // Can't bubble up the error
     lnfCopyHelper(static_cast<const LNF&>(other), localStatus);
 }
 
-LocalizedNumberFormatter::LocalizedNumberFormatter(LocalizedNumberFormatter&& src) noexcept
-        : LNF(static_cast<NFS<LNF>&&>(src)) {}
+LocalizedNumberFormatter::LocalizedNumberFormatter(LocalizedNumberFormatter&& src) U_NOEXCEPT : LNF(static_cast<NFS<LNF>&&>(src))
+{
+}
 
-LocalizedNumberFormatter::LocalizedNumberFormatter(NFS<LNF>&& src) noexcept
-        : NFS<LNF>(std::move(src)) {
+LocalizedNumberFormatter::LocalizedNumberFormatter(NFS<LNF>&& src) U_NOEXCEPT : NFS<LNF>(std::move(src))
+{
     lnfMoveHelper(std::move(static_cast<LNF&&>(src)));
 }
 
-LocalizedNumberFormatter& LocalizedNumberFormatter::operator=(const LNF& other) {
-    if (this == &other) { return *this; }  // self-assignment: no-op
+LocalizedNumberFormatter& LocalizedNumberFormatter::operator=(const LNF& other)
+{
+    if (this == &other) {
+        return *this;
+    } // self-assignment: no-op
     NFS<LNF>::operator=(static_cast<const NFS<LNF>&>(other));
     UErrorCode localStatus = U_ZERO_ERROR; // Can't bubble up the error
     lnfCopyHelper(other, localStatus);
     return *this;
 }
 
-LocalizedNumberFormatter& LocalizedNumberFormatter::operator=(LNF&& src) noexcept {
+LocalizedNumberFormatter& LocalizedNumberFormatter::operator=(LNF&& src) U_NOEXCEPT
+{
     NFS<LNF>::operator=(static_cast<NFS<LNF>&&>(src));
     lnfMoveHelper(std::move(src));
     return *this;
 }
 
-void LocalizedNumberFormatter::resetCompiled() {
+void LocalizedNumberFormatter::resetCompiled()
+{
     auto* callCount = reinterpret_cast<u_atomic_int32_t*>(fUnsafeCallCount);
     umtx_storeRelease(*callCount, 0);
     fCompiled = nullptr;
 }
 
-void LocalizedNumberFormatter::lnfMoveHelper(LNF&& src) {
+void LocalizedNumberFormatter::lnfMoveHelper(LNF&& src)
+{
     // Copy over the compiled formatter and set call count to INT32_MIN as in computeCompiled().
     // Don't copy the call count directly because doing so requires a loadAcquire/storeRelease.
     // The bits themselves appear to be platform-dependent, so copying them might not be safe.
@@ -510,7 +496,8 @@ void LocalizedNumberFormatter::lnfMoveHelper(LNF&& src) {
     src.fWarehouse = nullptr;
 }
 
-void LocalizedNumberFormatter::lnfCopyHelper(const LNF&, UErrorCode& status) {
+void LocalizedNumberFormatter::lnfCopyHelper(const LNF&, UErrorCode& status)
+{
     // When copying, always reset the compiled formatter.
     delete fCompiled;
     resetCompiled();
@@ -529,8 +516,7 @@ void LocalizedNumberFormatter::lnfCopyHelper(const LNF&, UErrorCode& status) {
             fMacros.affixProvider = &warehouse->affixProvider.get();
         }
         if (fMacros.rules) {
-            warehouse->rules.adoptInsteadAndCheckErrorCode(
-                new PluralRules(*fMacros.rules), status);
+            warehouse->rules.adoptInsteadAndCheckErrorCode(new PluralRules(*fMacros.rules), status);
             fMacros.rules = warehouse->rules.getAlias();
         }
         fWarehouse = warehouse.orphan();
@@ -539,32 +525,39 @@ void LocalizedNumberFormatter::lnfCopyHelper(const LNF&, UErrorCode& status) {
     }
 }
 
-
-LocalizedNumberFormatter::~LocalizedNumberFormatter() {
+LocalizedNumberFormatter::~LocalizedNumberFormatter()
+{
     delete fCompiled;
     delete fWarehouse;
 }
 
-LocalizedNumberFormatter::LocalizedNumberFormatter(const MacroProps& macros, const Locale& locale) {
+LocalizedNumberFormatter::LocalizedNumberFormatter(const MacroProps& macros, const Locale& locale)
+{
     fMacros = macros;
     fMacros.locale = locale;
 }
 
-LocalizedNumberFormatter::LocalizedNumberFormatter(MacroProps&& macros, const Locale& locale) {
+LocalizedNumberFormatter::LocalizedNumberFormatter(MacroProps&& macros, const Locale& locale)
+{
     fMacros = std::move(macros);
     fMacros.locale = locale;
 }
 
-LocalizedNumberFormatter UnlocalizedNumberFormatter::locale(const Locale& locale) const& {
+LocalizedNumberFormatter UnlocalizedNumberFormatter::locale(const Locale& locale) const&
+{
     return LocalizedNumberFormatter(fMacros, locale);
 }
 
-LocalizedNumberFormatter UnlocalizedNumberFormatter::locale(const Locale& locale)&& {
+LocalizedNumberFormatter UnlocalizedNumberFormatter::locale(const Locale& locale) &&
+{
     return LocalizedNumberFormatter(std::move(fMacros), locale);
 }
 
-FormattedNumber LocalizedNumberFormatter::formatInt(int64_t value, UErrorCode& status) const {
-    if (U_FAILURE(status)) { return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR); }
+FormattedNumber LocalizedNumberFormatter::formatInt(int64_t value, UErrorCode& status) const
+{
+    if (U_FAILURE(status)) {
+        return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR);
+    }
     auto results = new UFormattedNumberData();
     if (results == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -582,8 +575,11 @@ FormattedNumber LocalizedNumberFormatter::formatInt(int64_t value, UErrorCode& s
     }
 }
 
-FormattedNumber LocalizedNumberFormatter::formatDouble(double value, UErrorCode& status) const {
-    if (U_FAILURE(status)) { return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR); }
+FormattedNumber LocalizedNumberFormatter::formatDouble(double value, UErrorCode& status) const
+{
+    if (U_FAILURE(status)) {
+        return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR);
+    }
     auto results = new UFormattedNumberData();
     if (results == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -601,8 +597,11 @@ FormattedNumber LocalizedNumberFormatter::formatDouble(double value, UErrorCode&
     }
 }
 
-FormattedNumber LocalizedNumberFormatter::formatDecimal(StringPiece value, UErrorCode& status) const {
-    if (U_FAILURE(status)) { return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR); }
+FormattedNumber LocalizedNumberFormatter::formatDecimal(StringPiece value, UErrorCode& status) const
+{
+    if (U_FAILURE(status)) {
+        return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR);
+    }
     auto results = new UFormattedNumberData();
     if (results == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -620,9 +619,11 @@ FormattedNumber LocalizedNumberFormatter::formatDecimal(StringPiece value, UErro
     }
 }
 
-FormattedNumber
-LocalizedNumberFormatter::formatDecimalQuantity(const DecimalQuantity& dq, UErrorCode& status) const {
-    if (U_FAILURE(status)) { return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR); }
+FormattedNumber LocalizedNumberFormatter::formatDecimalQuantity(const DecimalQuantity& dq, UErrorCode& status) const
+{
+    if (U_FAILURE(status)) {
+        return FormattedNumber(U_ILLEGAL_ARGUMENT_ERROR);
+    }
     auto results = new UFormattedNumberData();
     if (results == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -640,7 +641,8 @@ LocalizedNumberFormatter::formatDecimalQuantity(const DecimalQuantity& dq, UErro
     }
 }
 
-void LocalizedNumberFormatter::formatImpl(impl::UFormattedNumberData* results, UErrorCode& status) const {
+void LocalizedNumberFormatter::formatImpl(impl::UFormattedNumberData* results, UErrorCode& status) const
+{
     if (computeCompiled(status)) {
         fCompiled->format(results, status);
     } else {
@@ -652,8 +654,8 @@ void LocalizedNumberFormatter::formatImpl(impl::UFormattedNumberData* results, U
     results->getStringRef().writeTerminator(status);
 }
 
-void LocalizedNumberFormatter::getAffixImpl(bool isPrefix, bool isNegative, UnicodeString& result,
-                                            UErrorCode& status) const {
+void LocalizedNumberFormatter::getAffixImpl(bool isPrefix, bool isNegative, UnicodeString& result, UErrorCode& status) const
+{
     FormattedStringBuilder string;
     auto signum = static_cast<Signum>(isNegative ? SIGNUM_NEG : SIGNUM_POS);
     // Always return affixes for plural form OTHER.
@@ -672,16 +674,14 @@ void LocalizedNumberFormatter::getAffixImpl(bool isPrefix, bool isNegative, Unic
     }
 }
 
-bool LocalizedNumberFormatter::computeCompiled(UErrorCode& status) const {
+bool LocalizedNumberFormatter::computeCompiled(UErrorCode& status) const
+{
     // fUnsafeCallCount contains memory to be interpreted as an atomic int, most commonly
     // std::atomic<int32_t>.  Since the type of atomic int is platform-dependent, we cast the
     // bytes in fUnsafeCallCount to u_atomic_int32_t, a typedef for the platform-dependent
     // atomic int type defined in umutex.h.
-    static_assert(
-            sizeof(u_atomic_int32_t) <= sizeof(fUnsafeCallCount),
-            "Atomic integer size on this platform exceeds the size allocated by fUnsafeCallCount");
-    auto* callCount = reinterpret_cast<u_atomic_int32_t*>(
-            const_cast<LocalizedNumberFormatter*>(this)->fUnsafeCallCount);
+    static_assert(sizeof(u_atomic_int32_t) <= sizeof(fUnsafeCallCount), "Atomic integer size on this platform exceeds the size allocated by fUnsafeCallCount");
+    auto* callCount = reinterpret_cast<u_atomic_int32_t*>(const_cast<LocalizedNumberFormatter*>(this)->fUnsafeCallCount);
 
     // A positive value in the atomic int indicates that the data structure is not yet ready;
     // a negative value indicates that it is ready. If, after the increment, the atomic int
@@ -714,19 +714,21 @@ bool LocalizedNumberFormatter::computeCompiled(UErrorCode& status) const {
     }
 }
 
-const impl::NumberFormatterImpl* LocalizedNumberFormatter::getCompiled() const {
+const impl::NumberFormatterImpl* LocalizedNumberFormatter::getCompiled() const
+{
     return fCompiled;
 }
 
-int32_t LocalizedNumberFormatter::getCallCount() const {
-    auto* callCount = reinterpret_cast<u_atomic_int32_t*>(
-            const_cast<LocalizedNumberFormatter*>(this)->fUnsafeCallCount);
+int32_t LocalizedNumberFormatter::getCallCount() const
+{
+    auto* callCount = reinterpret_cast<u_atomic_int32_t*>(const_cast<LocalizedNumberFormatter*>(this)->fUnsafeCallCount);
     return umtx_loadAcquire(*callCount);
 }
 
 // Note: toFormat defined in number_asformat.cpp
 
-const DecimalFormatSymbols* LocalizedNumberFormatter::getDecimalFormatSymbols() const {
+const DecimalFormatSymbols* LocalizedNumberFormatter::getDecimalFormatSymbols() const
+{
     return fMacros.symbols.getDecimalFormatSymbols();
 }
 

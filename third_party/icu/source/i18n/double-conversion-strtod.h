@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 // From the double-conversion library. Original license:
@@ -64,19 +64,20 @@ double StrtodTrimmed(Vector<const char> trimmed, int exponent);
 // zeros, must not be a lone zero, and must not have 'too many' digits.
 float StrtofTrimmed(Vector<const char> trimmed, int exponent);
 
-inline Vector<const char> TrimTrailingZeros(Vector<const char> buffer) {
-  for (int i = buffer.length() - 1; i >= 0; --i) {
-    if (buffer[i] != '0') {
-      return buffer.SubVector(0, i + 1);
+inline Vector<const char> TrimTrailingZeros(Vector<const char> buffer)
+{
+    for (int i = buffer.length() - 1; i >= 0; --i) {
+        if (buffer[i] != '0') {
+            return buffer.SubVector(0, i + 1);
+        }
     }
-  }
-  return Vector<const char>(buffer.start(), 0);
+    return Vector<const char>(buffer.start(), 0);
 }
 
-}  // namespace double_conversion
+} // namespace double_conversion
 
 // ICU PATCH: Close ICU namespace
 U_NAMESPACE_END
 
-#endif  // DOUBLE_CONVERSION_STRTOD_H_
+#endif // DOUBLE_CONVERSION_STRTOD_H_
 #endif // ICU PATCH: close #if !UCONFIG_NO_FORMATTING

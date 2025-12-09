@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -9,7 +9,6 @@
 //
 //  rbbitblb.cpp
 //
-
 
 #include "unicode/utypes.h"
 
@@ -30,34 +29,33 @@ U_NAMESPACE_BEGIN
 
 const int32_t kMaxStateFor8BitsTable = 255;
 
-RBBITableBuilder::RBBITableBuilder(RBBIRuleBuilder *rb, RBBINode **rootNode, UErrorCode &status) :
-        fRB(rb),
-        fTree(*rootNode),
-        fStatus(&status),
-        fDStates(nullptr),
-        fSafeTable(nullptr) {
+RBBITableBuilder::RBBITableBuilder(RBBIRuleBuilder* rb, RBBINode** rootNode, UErrorCode& status)
+    : fRB(rb)
+    , fTree(*rootNode)
+    , fStatus(&status)
+    , fDStates(nullptr)
+    , fSafeTable(nullptr)
+{
     if (U_FAILURE(status)) {
         return;
     }
     // fDStates is UVector<RBBIStateDescriptor *>
     fDStates = new UVector(status);
-    if (U_SUCCESS(status) && fDStates == nullptr ) {
+    if (U_SUCCESS(status) && fDStates == nullptr) {
         status = U_MEMORY_ALLOCATION_ERROR;
     }
 }
 
-
-
-RBBITableBuilder::~RBBITableBuilder() {
+RBBITableBuilder::~RBBITableBuilder()
+{
     int i;
-    for (i=0; i<fDStates->size(); i++) {
-        delete (RBBIStateDescriptor *)fDStates->elementAt(i);
+    for (i = 0; i < fDStates->size(); i++) {
+        delete (RBBIStateDescriptor*)fDStates->elementAt(i);
     }
     delete fDStates;
     delete fSafeTable;
     delete fLookAheadRuleMap;
 }
-
 
 //-----------------------------------------------------------------------------
 //
@@ -65,7 +63,8 @@ RBBITableBuilder::~RBBITableBuilder() {
 //                               the DFA state transition table from the RBBI rules parse tree.
 //
 //-----------------------------------------------------------------------------
-void  RBBITableBuilder::buildForwardTable() {
+void RBBITableBuilder::buildForwardTable()
+{
 
     if (U_FAILURE(*fStatus)) {
         return;
@@ -73,7 +72,7 @@ void  RBBITableBuilder::buildForwardTable() {
 
     // If there were no rules, just return.  This situation can easily arise
     //   for the reverse rules.
-    if (fTree==nullptr) {
+    if (fTree == NULL) {
         return;
     }
 
@@ -85,31 +84,31 @@ void  RBBITableBuilder::buildForwardTable() {
 #ifdef RBBI_DEBUG
     if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "ftree")) {
         RBBIDebugPuts("\nParse tree after flattening variable references.");
-        RBBINode::printTree(fTree, true);
+        RBBINode::printTree(fTree, TRUE);
     }
 #endif
 
     //
-    // If the rules contained any references to {bof} 
+    // If the rules contained any references to {bof}
     //   add a {bof} <cat> <former root of tree> to the
-    //   tree.  Means that all matches must start out with the 
+    //   tree.  Means that all matches must start out with the
     //   {bof} fake character.
-    // 
+    //
     if (fRB->fSetBuilder->sawBOF()) {
-        RBBINode *bofTop    = new RBBINode(RBBINode::opCat);
-        RBBINode *bofLeaf   = new RBBINode(RBBINode::leafChar);
+        RBBINode* bofTop = new RBBINode(RBBINode::opCat);
+        RBBINode* bofLeaf = new RBBINode(RBBINode::leafChar);
         // Delete and exit if memory allocation failed.
-        if (bofTop == nullptr || bofLeaf == nullptr) {
+        if (bofTop == NULL || bofLeaf == NULL) {
             *fStatus = U_MEMORY_ALLOCATION_ERROR;
             delete bofTop;
             delete bofLeaf;
             return;
         }
-        bofTop->fLeftChild  = bofLeaf;
+        bofTop->fLeftChild = bofLeaf;
         bofTop->fRightChild = fTree;
-        bofLeaf->fParent    = bofTop;
-        bofLeaf->fVal       = 2;      // Reserved value for {bof}.
-        fTree               = bofTop;
+        bofLeaf->fParent = bofTop;
+        bofLeaf->fVal = 2; // Reserved value for {bof}.
+        fTree = bofTop;
     }
 
     //
@@ -117,17 +116,17 @@ void  RBBITableBuilder::buildForwardTable() {
     //   Appears as a cat-node, left child being the original tree,
     //   right child being the end marker.
     //
-    RBBINode *cn = new RBBINode(RBBINode::opCat);
+    RBBINode* cn = new RBBINode(RBBINode::opCat);
     // Exit if memory allocation failed.
-    if (cn == nullptr) {
+    if (cn == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
     cn->fLeftChild = fTree;
     fTree->fParent = cn;
-    RBBINode *endMarkerNode = cn->fRightChild = new RBBINode(RBBINode::endMark);
+    RBBINode* endMarkerNode = cn->fRightChild = new RBBINode(RBBINode::endMark);
     // Delete and exit if memory allocation failed.
-    if (cn->fRightChild == nullptr) {
+    if (cn->fRightChild == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
         delete cn;
         return;
@@ -143,10 +142,9 @@ void  RBBITableBuilder::buildForwardTable() {
 #ifdef RBBI_DEBUG
     if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "stree")) {
         RBBIDebugPuts("\nParse tree after flattening Unicode Set references.");
-        RBBINode::printTree(fTree, true);
+        RBBINode::printTree(fTree, TRUE);
     }
 #endif
-
 
     //
     // calculate the functions nullable, firstpos, lastpos and followpos on
@@ -195,31 +193,28 @@ void  RBBITableBuilder::buildForwardTable() {
     mergeRuleStatusVals();
 }
 
-
-
 //-----------------------------------------------------------------------------
 //
 //   calcNullable.    Impossible to explain succinctly.  See Aho, section 3.9
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::calcNullable(RBBINode *n) {
-    if (n == nullptr) {
+void RBBITableBuilder::calcNullable(RBBINode* n)
+{
+    if (n == NULL) {
         return;
     }
-    if (n->fType == RBBINode::setRef ||
-        n->fType == RBBINode::endMark ) {
+    if (n->fType == RBBINode::setRef || n->fType == RBBINode::endMark) {
         // These are non-empty leaf node types.
-        n->fNullable = false;
+        n->fNullable = FALSE;
         return;
     }
 
     if (n->fType == RBBINode::lookAhead || n->fType == RBBINode::tag) {
         // Lookahead marker node.  It's a leaf, so no recursion on children.
         // It's nullable because it does not match any literal text from the input stream.
-        n->fNullable = true;
+        n->fNullable = TRUE;
         return;
     }
-
 
     // The node is not a leaf.
     //  Calculate nullable on its children.
@@ -229,34 +224,26 @@ void RBBITableBuilder::calcNullable(RBBINode *n) {
     // Apply functions from table 3.40 in Aho
     if (n->fType == RBBINode::opOr) {
         n->fNullable = n->fLeftChild->fNullable || n->fRightChild->fNullable;
-    }
-    else if (n->fType == RBBINode::opCat) {
+    } else if (n->fType == RBBINode::opCat) {
         n->fNullable = n->fLeftChild->fNullable && n->fRightChild->fNullable;
-    }
-    else if (n->fType == RBBINode::opStar || n->fType == RBBINode::opQuestion) {
-        n->fNullable = true;
-    }
-    else {
-        n->fNullable = false;
+    } else if (n->fType == RBBINode::opStar || n->fType == RBBINode::opQuestion) {
+        n->fNullable = TRUE;
+    } else {
+        n->fNullable = FALSE;
     }
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 //
 //   calcFirstPos.    Impossible to explain succinctly.  See Aho, section 3.9
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::calcFirstPos(RBBINode *n) {
-    if (n == nullptr) {
+void RBBITableBuilder::calcFirstPos(RBBINode* n)
+{
+    if (n == NULL) {
         return;
     }
-    if (n->fType == RBBINode::leafChar  ||
-        n->fType == RBBINode::endMark   ||
-        n->fType == RBBINode::lookAhead ||
-        n->fType == RBBINode::tag) {
+    if (n->fType == RBBINode::leafChar || n->fType == RBBINode::endMark || n->fType == RBBINode::lookAhead || n->fType == RBBINode::tag) {
         // These are non-empty leaf node types.
         // Note: In order to maintain the sort invariant on the set,
         // this function should only be called on a node whose set is
@@ -274,35 +261,27 @@ void RBBITableBuilder::calcFirstPos(RBBINode *n) {
     if (n->fType == RBBINode::opOr) {
         setAdd(n->fFirstPosSet, n->fLeftChild->fFirstPosSet);
         setAdd(n->fFirstPosSet, n->fRightChild->fFirstPosSet);
-    }
-    else if (n->fType == RBBINode::opCat) {
+    } else if (n->fType == RBBINode::opCat) {
         setAdd(n->fFirstPosSet, n->fLeftChild->fFirstPosSet);
         if (n->fLeftChild->fNullable) {
             setAdd(n->fFirstPosSet, n->fRightChild->fFirstPosSet);
         }
-    }
-    else if (n->fType == RBBINode::opStar ||
-             n->fType == RBBINode::opQuestion ||
-             n->fType == RBBINode::opPlus) {
+    } else if (n->fType == RBBINode::opStar || n->fType == RBBINode::opQuestion || n->fType == RBBINode::opPlus) {
         setAdd(n->fFirstPosSet, n->fLeftChild->fFirstPosSet);
     }
 }
-
-
 
 //-----------------------------------------------------------------------------
 //
 //   calcLastPos.    Impossible to explain succinctly.  See Aho, section 3.9
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::calcLastPos(RBBINode *n) {
-    if (n == nullptr) {
+void RBBITableBuilder::calcLastPos(RBBINode* n)
+{
+    if (n == NULL) {
         return;
     }
-    if (n->fType == RBBINode::leafChar  ||
-        n->fType == RBBINode::endMark   ||
-        n->fType == RBBINode::lookAhead ||
-        n->fType == RBBINode::tag) {
+    if (n->fType == RBBINode::leafChar || n->fType == RBBINode::endMark || n->fType == RBBINode::lookAhead || n->fType == RBBINode::tag) {
         // These are non-empty leaf node types.
         // Note: In order to maintain the sort invariant on the set,
         // this function should only be called on a node whose set is
@@ -320,31 +299,24 @@ void RBBITableBuilder::calcLastPos(RBBINode *n) {
     if (n->fType == RBBINode::opOr) {
         setAdd(n->fLastPosSet, n->fLeftChild->fLastPosSet);
         setAdd(n->fLastPosSet, n->fRightChild->fLastPosSet);
-    }
-    else if (n->fType == RBBINode::opCat) {
+    } else if (n->fType == RBBINode::opCat) {
         setAdd(n->fLastPosSet, n->fRightChild->fLastPosSet);
         if (n->fRightChild->fNullable) {
             setAdd(n->fLastPosSet, n->fLeftChild->fLastPosSet);
         }
-    }
-    else if (n->fType == RBBINode::opStar     ||
-             n->fType == RBBINode::opQuestion ||
-             n->fType == RBBINode::opPlus) {
+    } else if (n->fType == RBBINode::opStar || n->fType == RBBINode::opQuestion || n->fType == RBBINode::opPlus) {
         setAdd(n->fLastPosSet, n->fLeftChild->fLastPosSet);
     }
 }
-
-
 
 //-----------------------------------------------------------------------------
 //
 //   calcFollowPos.    Impossible to explain succinctly.  See Aho, section 3.9
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::calcFollowPos(RBBINode *n) {
-    if (n == nullptr ||
-        n->fType == RBBINode::leafChar ||
-        n->fType == RBBINode::endMark) {
+void RBBITableBuilder::calcFollowPos(RBBINode* n)
+{
+    if (n == NULL || n->fType == RBBINode::leafChar || n->fType == RBBINode::endMark) {
         return;
     }
 
@@ -353,31 +325,27 @@ void RBBITableBuilder::calcFollowPos(RBBINode *n) {
 
     // Aho rule #1
     if (n->fType == RBBINode::opCat) {
-        RBBINode *i;   // is 'i' in Aho's description
-        uint32_t     ix;
+        RBBINode* i; // is 'i' in Aho's description
+        uint32_t ix;
 
-        UVector *LastPosOfLeftChild = n->fLeftChild->fLastPosSet;
+        UVector* LastPosOfLeftChild = n->fLeftChild->fLastPosSet;
 
-        for (ix=0; ix<(uint32_t)LastPosOfLeftChild->size(); ix++) {
-            i = (RBBINode *)LastPosOfLeftChild->elementAt(ix);
+        for (ix = 0; ix < (uint32_t)LastPosOfLeftChild->size(); ix++) {
+            i = (RBBINode*)LastPosOfLeftChild->elementAt(ix);
             setAdd(i->fFollowPos, n->fRightChild->fFirstPosSet);
         }
     }
 
     // Aho rule #2
-    if (n->fType == RBBINode::opStar ||
-        n->fType == RBBINode::opPlus) {
-        RBBINode   *i;  // again, n and i are the names from Aho's description.
-        uint32_t    ix;
+    if (n->fType == RBBINode::opStar || n->fType == RBBINode::opPlus) {
+        RBBINode* i; // again, n and i are the names from Aho's description.
+        uint32_t ix;
 
-        for (ix=0; ix<(uint32_t)n->fLastPosSet->size(); ix++) {
-            i = (RBBINode *)n->fLastPosSet->elementAt(ix);
+        for (ix = 0; ix < (uint32_t)n->fLastPosSet->size(); ix++) {
+            i = (RBBINode*)n->fLastPosSet->elementAt(ix);
             setAdd(i->fFollowPos, n->fFirstPosSet);
         }
     }
-
-
-
 }
 
 //-----------------------------------------------------------------------------
@@ -386,8 +354,9 @@ void RBBITableBuilder::calcFollowPos(RBBINode *n) {
 //                        as roots of a rule to a destination vector.
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::addRuleRootNodes(UVector *dest, RBBINode *node) {
-    if (node == nullptr || U_FAILURE(*fStatus)) {
+void RBBITableBuilder::addRuleRootNodes(UVector* dest, RBBINode* node)
+{
+    if (node == NULL || U_FAILURE(*fStatus)) {
         return;
     }
     U_ASSERT(!dest->hasDeleter());
@@ -407,9 +376,10 @@ void RBBITableBuilder::addRuleRootNodes(UVector *dest, RBBINode *node) {
 //                            to implement rule chaining.  NOT described by Aho
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree, RBBINode *endMarkNode) {
+void RBBITableBuilder::calcChainedFollowPos(RBBINode* tree, RBBINode* endMarkNode)
+{
 
-    UVector         leafNodes(*fStatus);
+    UVector leafNodes(*fStatus);
     if (U_FAILURE(*fStatus)) {
         return;
     }
@@ -421,15 +391,15 @@ void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree, RBBINode *endMarkNod
     }
 
     // Collect all leaf nodes that can start matches for rules
-    // with inbound chaining enabled, which is the union of the 
+    // with inbound chaining enabled, which is the union of the
     // firstPosition sets from each of the rule root nodes.
-    
+
     UVector ruleRootNodes(*fStatus);
     addRuleRootNodes(&ruleRootNodes, tree);
 
     UVector matchStartNodes(*fStatus);
-    for (int j=0; j<ruleRootNodes.size(); ++j) {
-        RBBINode *node = static_cast<RBBINode *>(ruleRootNodes.elementAt(j));
+    for (int j = 0; j < ruleRootNodes.size(); ++j) {
+        RBBINode* node = static_cast<RBBINode*>(ruleRootNodes.elementAt(j));
         if (node->fChainIn) {
             setAdd(&matchStartNodes, node->fFirstPosSet);
         }
@@ -438,11 +408,11 @@ void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree, RBBINode *endMarkNod
         return;
     }
 
-    int32_t  endNodeIx;
-    int32_t  startNodeIx;
+    int32_t endNodeIx;
+    int32_t startNodeIx;
 
-    for (endNodeIx=0; endNodeIx<leafNodes.size(); endNodeIx++) {
-        RBBINode *endNode   = (RBBINode *)leafNodes.elementAt(endNodeIx);
+    for (endNodeIx = 0; endNodeIx < leafNodes.size(); endNodeIx++) {
+        RBBINode* endNode = (RBBINode*)leafNodes.elementAt(endNodeIx);
 
         // Identify leaf nodes that correspond to overall rule match positions.
         // These include the endMarkNode in their followPos sets.
@@ -458,11 +428,26 @@ void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree, RBBINode *endMarkNod
 
         // We've got a node that can end a match.
 
+        // !!LBCMNoChain implementation:  If this node's val correspond to
+        // the Line Break $CM char class, don't chain from it.
+        // TODO:  Remove this. !!LBCMNoChain is deprecated, and is not used
+        //        by any of the standard ICU rules.
+        if (fRB->fLBCMNoChain) {
+            UChar32 c = this->fRB->fSetBuilder->getFirstChar(endNode->fVal);
+            if (c != -1) {
+                // c == -1 occurs with sets containing only the {eof} marker string.
+                ULineBreak cLBProp = (ULineBreak)u_getIntPropertyValue(c, UCHAR_LINE_BREAK);
+                if (cLBProp == U_LB_COMBINING_MARK) {
+                    continue;
+                }
+            }
+        }
+
         // Now iterate over the nodes that can start a match, looking for ones
         //   with the same char class as our ending node.
-        RBBINode *startNode;
-        for (startNodeIx = 0; startNodeIx<matchStartNodes.size(); startNodeIx++) {
-            startNode = (RBBINode *)matchStartNodes.elementAt(startNodeIx);
+        RBBINode* startNode;
+        for (startNodeIx = 0; startNodeIx < matchStartNodes.size(); startNodeIx++) {
+            startNode = (RBBINode*)matchStartNodes.elementAt(startNodeIx);
             if (startNode->fType != RBBINode::leafChar) {
                 continue;
             }
@@ -481,7 +466,6 @@ void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree, RBBINode *endMarkNod
     }
 }
 
-
 //-----------------------------------------------------------------------------
 //
 //   bofFixup.    Fixup for state tables that include {bof} beginning of input testing.
@@ -492,7 +476,8 @@ void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree, RBBINode *endMarkNod
 //                This function has much in common with calcChainedFollowPos().
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::bofFixup() {
+void RBBITableBuilder::bofFixup()
+{
 
     if (U_FAILURE(*fStatus)) {
         return;
@@ -508,7 +493,7 @@ void RBBITableBuilder::bofFixup() {
     //
     //    We will be adding things to the followPos set of the <bofNode>
     //
-    RBBINode  *bofNode = fTree->fLeftChild->fLeftChild;
+    RBBINode* bofNode = fTree->fLeftChild->fLeftChild;
     U_ASSERT(bofNode->fType == RBBINode::leafChar);
     U_ASSERT(bofNode->fVal == 2);
 
@@ -516,13 +501,13 @@ void RBBITableBuilder::bofFixup() {
     //  (excluding the fake bofNode)
     //  We want the nodes that can start a match in the
     //     part labeled "rest of tree"
-    // 
-    UVector *matchStartNodes = fTree->fLeftChild->fRightChild->fFirstPosSet;
+    //
+    UVector* matchStartNodes = fTree->fLeftChild->fRightChild->fFirstPosSet;
 
-    RBBINode *startNode;
-    int       startNodeIx;
-    for (startNodeIx = 0; startNodeIx<matchStartNodes->size(); startNodeIx++) {
-        startNode = (RBBINode *)matchStartNodes->elementAt(startNodeIx);
+    RBBINode* startNode;
+    int startNodeIx;
+    for (startNodeIx = 0; startNodeIx < matchStartNodes->size(); startNodeIx++) {
+        startNode = (RBBINode*)matchStartNodes->elementAt(startNodeIx);
         if (startNode->fType != RBBINode::leafChar) {
             continue;
         }
@@ -532,7 +517,7 @@ void RBBITableBuilder::bofFixup() {
             //    explicitly written into a rule.
             //  Add everything from the followPos set of this node to the
             //    followPos set of the fake bofNode at the start of the tree.
-            //  
+            //
             setAdd(bofNode->fFollowPos, startNode->fFollowPos);
         }
     }
@@ -547,26 +532,27 @@ void RBBITableBuilder::bofFixup() {
 //                        Most of the comments are quotes of Aho's psuedo-code.
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::buildStateTable() {
+void RBBITableBuilder::buildStateTable()
+{
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    RBBIStateDescriptor *failState;
-    // Set it to nullptr to avoid uninitialized warning
-    RBBIStateDescriptor *initialState = nullptr;
+    RBBIStateDescriptor* failState;
+    // Set it to NULL to avoid uninitialized warning
+    RBBIStateDescriptor* initialState = NULL;
     //
     // Add a dummy state 0 - the stop state.  Not from Aho.
-    int      lastInputSymbol = fRB->fSetBuilder->getNumCharCategories() - 1;
+    int lastInputSymbol = fRB->fSetBuilder->getNumCharCategories() - 1;
     failState = new RBBIStateDescriptor(lastInputSymbol, fStatus);
-    if (failState == nullptr) {
+    if (failState == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
         goto ExitBuildSTdeleteall;
     }
     failState->fPositions = new UVector(*fStatus);
-    if (failState->fPositions == nullptr) {
+    if (failState->fPositions == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
     }
-    if (failState->fPositions == nullptr || U_FAILURE(*fStatus)) {
+    if (failState->fPositions == NULL || U_FAILURE(*fStatus)) {
         goto ExitBuildSTdeleteall;
     }
     fDStates->addElement(failState, *fStatus);
@@ -577,14 +563,14 @@ void RBBITableBuilder::buildStateTable() {
     // initially, the only unmarked state in Dstates is firstpos(root),
     //       where toot is the root of the syntax tree for (r)#;
     initialState = new RBBIStateDescriptor(lastInputSymbol, fStatus);
-    if (initialState == nullptr) {
+    if (initialState == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
     }
     if (U_FAILURE(*fStatus)) {
         goto ExitBuildSTdeleteall;
     }
     initialState->fPositions = new UVector(*fStatus);
-    if (initialState->fPositions == nullptr) {
+    if (initialState->fPositions == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
     }
     if (U_FAILURE(*fStatus)) {
@@ -598,40 +584,40 @@ void RBBITableBuilder::buildStateTable() {
 
     // while there is an unmarked state T in Dstates do begin
     for (;;) {
-        RBBIStateDescriptor *T = nullptr;
-        int32_t              tx;
-        for (tx=1; tx<fDStates->size(); tx++) {
-            RBBIStateDescriptor *temp;
-            temp = (RBBIStateDescriptor *)fDStates->elementAt(tx);
-            if (temp->fMarked == false) {
+        RBBIStateDescriptor* T = NULL;
+        int32_t tx;
+        for (tx = 1; tx < fDStates->size(); tx++) {
+            RBBIStateDescriptor* temp;
+            temp = (RBBIStateDescriptor*)fDStates->elementAt(tx);
+            if (temp->fMarked == FALSE) {
                 T = temp;
                 break;
             }
         }
-        if (T == nullptr) {
+        if (T == NULL) {
             break;
         }
 
         // mark T;
-        T->fMarked = true;
+        T->fMarked = TRUE;
 
         // for each input symbol a do begin
-        int32_t  a;
-        for (a = 1; a<=lastInputSymbol; a++) {
+        int32_t a;
+        for (a = 1; a <= lastInputSymbol; a++) {
             // let U be the set of positions that are in followpos(p)
             //    for some position p in T
             //    such that the symbol at position p is a;
-            UVector    *U = nullptr;
-            RBBINode   *p;
-            int32_t     px;
-            for (px=0; px<T->fPositions->size(); px++) {
-                p = (RBBINode *)T->fPositions->elementAt(px);
-                if ((p->fType == RBBINode::leafChar) &&  (p->fVal == a)) {
-                    if (U == nullptr) {
+            UVector* U = NULL;
+            RBBINode* p;
+            int32_t px;
+            for (px = 0; px < T->fPositions->size(); px++) {
+                p = (RBBINode*)T->fPositions->elementAt(px);
+                if ((p->fType == RBBINode::leafChar) && (p->fVal == a)) {
+                    if (U == NULL) {
                         U = new UVector(*fStatus);
-                        if (U == nullptr) {
-                        	*fStatus = U_MEMORY_ALLOCATION_ERROR;
-                        	goto ExitBuildSTdeleteall;
+                        if (U == NULL) {
+                            *fStatus = U_MEMORY_ALLOCATION_ERROR;
+                            goto ExitBuildSTdeleteall;
                         }
                     }
                     setAdd(U, p->fFollowPos);
@@ -639,29 +625,28 @@ void RBBITableBuilder::buildStateTable() {
             }
 
             // if U is not empty and not in DStates then
-            int32_t  ux = 0;
-            UBool    UinDstates = false;
-            if (U != nullptr) {
+            int32_t ux = 0;
+            UBool UinDstates = FALSE;
+            if (U != NULL) {
                 U_ASSERT(U->size() > 0);
-                int  ix;
-                for (ix=0; ix<fDStates->size(); ix++) {
-                    RBBIStateDescriptor *temp2;
-                    temp2 = (RBBIStateDescriptor *)fDStates->elementAt(ix);
+                int ix;
+                for (ix = 0; ix < fDStates->size(); ix++) {
+                    RBBIStateDescriptor* temp2;
+                    temp2 = (RBBIStateDescriptor*)fDStates->elementAt(ix);
                     if (setEquals(U, temp2->fPositions)) {
                         delete U;
-                        U  = temp2->fPositions;
+                        U = temp2->fPositions;
                         ux = ix;
-                        UinDstates = true;
+                        UinDstates = TRUE;
                         break;
                     }
                 }
 
                 // Add U as an unmarked state to Dstates
-                if (!UinDstates)
-                {
-                    RBBIStateDescriptor *newState = new RBBIStateDescriptor(lastInputSymbol, fStatus);
-                    if (newState == nullptr) {
-                    	*fStatus = U_MEMORY_ALLOCATION_ERROR;
+                if (!UinDstates) {
+                    RBBIStateDescriptor* newState = new RBBIStateDescriptor(lastInputSymbol, fStatus);
+                    if (newState == NULL) {
+                        *fStatus = U_MEMORY_ALLOCATION_ERROR;
                     }
                     if (U_FAILURE(*fStatus)) {
                         goto ExitBuildSTdeleteall;
@@ -671,7 +656,7 @@ void RBBITableBuilder::buildStateTable() {
                     if (U_FAILURE(*fStatus)) {
                         return;
                     }
-                    ux = fDStates->size()-1;
+                    ux = fDStates->size() - 1;
                 }
 
                 // Dtran[T, a] := U;
@@ -686,13 +671,13 @@ ExitBuildSTdeleteall:
     delete failState;
 }
 
-
 /**
  * mapLookAheadRules
  *
  */
-void RBBITableBuilder::mapLookAheadRules() {
-    fLookAheadRuleMap =  new UVector32(fRB->fScanner->numRules() + 1, *fStatus);
+void RBBITableBuilder::mapLookAheadRules()
+{
+    fLookAheadRuleMap = new UVector32(fRB->fScanner->numRules() + 1, *fStatus);
     if (fLookAheadRuleMap == nullptr) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
     }
@@ -701,8 +686,8 @@ void RBBITableBuilder::mapLookAheadRules() {
     }
     fLookAheadRuleMap->setSize(fRB->fScanner->numRules() + 1);
 
-    for (int32_t n=0; n<fDStates->size(); n++) {
-        RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(n);
+    for (int32_t n = 0; n < fDStates->size(); n++) {
+        RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(n);
         int32_t laSlotForState = 0;
 
         // Establish the look-ahead slot for this state, if the state covers
@@ -712,13 +697,13 @@ void RBBITableBuilder::mapLookAheadRules() {
         // otherwise assign a new one.
 
         bool sawLookAheadNode = false;
-        for (int32_t ipos=0; ipos<sd->fPositions->size(); ++ipos) {
-            RBBINode *node = static_cast<RBBINode *>(sd->fPositions->elementAt(ipos));
+        for (int32_t ipos = 0; ipos < sd->fPositions->size(); ++ipos) {
+            RBBINode* node = static_cast<RBBINode*>(sd->fPositions->elementAt(ipos));
             if (node->fType != RBBINode::NodeType::lookAhead) {
                 continue;
             }
             sawLookAheadNode = true;
-            int32_t ruleNum = node->fVal;     // Set when rule was originally parsed.
+            int32_t ruleNum = node->fVal; // Set when rule was originally parsed.
             U_ASSERT(ruleNum < fLookAheadRuleMap->size());
             U_ASSERT(ruleNum > 0);
             int32_t laSlot = fLookAheadRuleMap->elementAti(ruleNum);
@@ -743,19 +728,18 @@ void RBBITableBuilder::mapLookAheadRules() {
         // set the mapping from the node's rule number to the look ahead slot.
         // There can be multiple nodes/rule numbers going to the same la slot.
 
-        for (int32_t ipos=0; ipos<sd->fPositions->size(); ++ipos) {
-            RBBINode *node = static_cast<RBBINode *>(sd->fPositions->elementAt(ipos));
+        for (int32_t ipos = 0; ipos < sd->fPositions->size(); ++ipos) {
+            RBBINode* node = static_cast<RBBINode*>(sd->fPositions->elementAt(ipos));
             if (node->fType != RBBINode::NodeType::lookAhead) {
                 continue;
             }
-            int32_t ruleNum = node->fVal;     // Set when rule was originally parsed.
+            int32_t ruleNum = node->fVal; // Set when rule was originally parsed.
             int32_t existingVal = fLookAheadRuleMap->elementAti(ruleNum);
             (void)existingVal;
             U_ASSERT(existingVal == 0 || existingVal == laSlotForState);
             fLookAheadRuleMap->setElementAt(laSlotForState, ruleNum);
         }
     }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -767,14 +751,15 @@ void RBBITableBuilder::mapLookAheadRules() {
 //                                  s is an accepting state.
 //
 //-----------------------------------------------------------------------------
-void     RBBITableBuilder::flagAcceptingStates() {
+void RBBITableBuilder::flagAcceptingStates()
+{
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    UVector     endMarkerNodes(*fStatus);
-    RBBINode    *endMarker;
-    int32_t     i;
-    int32_t     n;
+    UVector endMarkerNodes(*fStatus);
+    RBBINode* endMarker;
+    int32_t i;
+    int32_t n;
 
     if (U_FAILURE(*fStatus)) {
         return;
@@ -785,23 +770,23 @@ void     RBBITableBuilder::flagAcceptingStates() {
         return;
     }
 
-    for (i=0; i<endMarkerNodes.size(); i++) {
-        endMarker = (RBBINode *)endMarkerNodes.elementAt(i);
-        for (n=0; n<fDStates->size(); n++) {
-            RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(n);
+    for (i = 0; i < endMarkerNodes.size(); i++) {
+        endMarker = (RBBINode*)endMarkerNodes.elementAt(i);
+        for (n = 0; n < fDStates->size(); n++) {
+            RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(n);
             if (sd->fPositions->indexOf(endMarker) >= 0) {
                 // Any non-zero value for fAccepting means this is an accepting node.
                 // The value is what will be returned to the user as the break status.
                 // If no other value was specified, force it to ACCEPTING_UNCONDITIONAL (1).
 
-                if (sd->fAccepting==0) {
+                if (sd->fAccepting == 0) {
                     // State hasn't been marked as accepting yet.  Do it now.
                     sd->fAccepting = fLookAheadRuleMap->elementAti(endMarker->fVal);
                     if (sd->fAccepting == 0) {
                         sd->fAccepting = ACCEPTING_UNCONDITIONAL;
                     }
                 }
-                if (sd->fAccepting==ACCEPTING_UNCONDITIONAL && endMarker->fVal != 0) {
+                if (sd->fAccepting == ACCEPTING_UNCONDITIONAL && endMarker->fVal != 0) {
                     // Both lookahead and non-lookahead accepting for this state.
                     // Favor the look-ahead, because a look-ahead match needs to
                     // immediately stop the run-time engine. First match, not longest.
@@ -814,31 +799,31 @@ void     RBBITableBuilder::flagAcceptingStates() {
     }
 }
 
-
 //-----------------------------------------------------------------------------
 //
 //    flagLookAheadStates   Very similar to flagAcceptingStates, above.
 //
 //-----------------------------------------------------------------------------
-void     RBBITableBuilder::flagLookAheadStates() {
+void RBBITableBuilder::flagLookAheadStates()
+{
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    UVector     lookAheadNodes(*fStatus);
-    RBBINode    *lookAheadNode;
-    int32_t     i;
-    int32_t     n;
+    UVector lookAheadNodes(*fStatus);
+    RBBINode* lookAheadNode;
+    int32_t i;
+    int32_t n;
 
     fTree->findNodes(&lookAheadNodes, RBBINode::lookAhead, *fStatus);
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    for (i=0; i<lookAheadNodes.size(); i++) {
-        lookAheadNode = (RBBINode *)lookAheadNodes.elementAt(i);
+    for (i = 0; i < lookAheadNodes.size(); i++) {
+        lookAheadNode = (RBBINode*)lookAheadNodes.elementAt(i);
         U_ASSERT(lookAheadNode->fType == RBBINode::NodeType::lookAhead);
 
-        for (n=0; n<fDStates->size(); n++) {
-            RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(n);
+        for (n = 0; n < fDStates->size(); n++) {
+            RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(n);
             int32_t positionsIdx = sd->fPositions->indexOf(lookAheadNode);
             if (positionsIdx >= 0) {
                 U_ASSERT(lookAheadNode == sd->fPositions->elementAt(positionsIdx));
@@ -854,22 +839,20 @@ void     RBBITableBuilder::flagLookAheadStates() {
     }
 }
 
-
-
-
 //-----------------------------------------------------------------------------
 //
 //    flagTaggedStates
 //
 //-----------------------------------------------------------------------------
-void     RBBITableBuilder::flagTaggedStates() {
+void RBBITableBuilder::flagTaggedStates()
+{
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    UVector     tagNodes(*fStatus);
-    RBBINode    *tagNode;
-    int32_t     i;
-    int32_t     n;
+    UVector tagNodes(*fStatus);
+    RBBINode* tagNode;
+    int32_t i;
+    int32_t n;
 
     if (U_FAILURE(*fStatus)) {
         return;
@@ -878,20 +861,17 @@ void     RBBITableBuilder::flagTaggedStates() {
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    for (i=0; i<tagNodes.size(); i++) {                   // For each tag node t (all of 'em)
-        tagNode = (RBBINode *)tagNodes.elementAt(i);
+    for (i = 0; i < tagNodes.size(); i++) { // For each tag node t (all of 'em)
+        tagNode = (RBBINode*)tagNodes.elementAt(i);
 
-        for (n=0; n<fDStates->size(); n++) {              //    For each state  s (row in the state table)
-            RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(n);
-            if (sd->fPositions->indexOf(tagNode) >= 0) {  //       if  s include the tag node t
+        for (n = 0; n < fDStates->size(); n++) { //    For each state  s (row in the state table)
+            RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(n);
+            if (sd->fPositions->indexOf(tagNode) >= 0) { //       if  s include the tag node t
                 sortedAdd(&sd->fTagVals, tagNode->fVal);
             }
         }
     }
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 //
@@ -902,7 +882,8 @@ void     RBBITableBuilder::flagTaggedStates() {
 //      for all tables.  Merge the ones from this table into the global set.
 //
 //-----------------------------------------------------------------------------
-void  RBBITableBuilder::mergeRuleStatusVals() {
+void RBBITableBuilder::mergeRuleStatusVals()
+{
     //
     //  The basic outline of what happens here is this...
     //
@@ -919,15 +900,15 @@ void  RBBITableBuilder::mergeRuleStatusVals() {
     // Pre-set a single tag of {0} into the table.
     //   We will need this as a default, for rule sets with no explicit tagging.
     if (fRB->fRuleStatusVals->size() == 0) {
-        fRB->fRuleStatusVals->addElement(1, *fStatus);  // Num of statuses in group
-        fRB->fRuleStatusVals->addElement((int32_t)0, *fStatus);  //   and our single status of zero
+        fRB->fRuleStatusVals->addElement(1, *fStatus); // Num of statuses in group
+        fRB->fRuleStatusVals->addElement((int32_t)0, *fStatus); //   and our single status of zero
     }
 
     //    For each state
-    for (n=0; n<fDStates->size(); n++) {
-        RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(n);
-        UVector *thisStatesTagValues = sd->fTagVals;
-        if (thisStatesTagValues == nullptr) {
+    for (n = 0; n < fDStates->size(); n++) {
+        RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(n);
+        UVector* thisStatesTagValues = sd->fTagVals;
+        if (thisStatesTagValues == NULL) {
             // No tag values are explicitly associated with this state.
             //   Set the default tag value.
             sd->fTagsIdx = 0;
@@ -938,8 +919,8 @@ void  RBBITableBuilder::mergeRuleStatusVals() {
         //   fTagsIdx will be the index into the global tag list for this state's tag values.
         //   Initial value of -1 flags that we haven't got it set yet.
         sd->fTagsIdx = -1;
-        int32_t  thisTagGroupStart = 0;   // indexes into the global rule status vals list
-        int32_t  nextTagGroupStart = 0;
+        int32_t thisTagGroupStart = 0; // indexes into the global rule status vals list
+        int32_t nextTagGroupStart = 0;
 
         // Loop runs once per group of tags in the global list
         while (nextTagGroupStart < fRB->fRuleStatusVals->size()) {
@@ -953,9 +934,8 @@ void  RBBITableBuilder::mergeRuleStatusVals() {
             }
             // The lengths match, go ahead and compare the actual tag values
             //    between this state and the group from the global list.
-            for (i=0; i<thisStatesTagValues->size(); i++) {
-                if (thisStatesTagValues->elementAti(i) !=
-                    fRB->fRuleStatusVals->elementAti(thisTagGroupStart + 1 + i) ) {
+            for (i = 0; i < thisStatesTagValues->size(); i++) {
+                if (thisStatesTagValues->elementAti(i) != fRB->fRuleStatusVals->elementAti(thisTagGroupStart + 1 + i)) {
                     // Mismatch.
                     break;
                 }
@@ -973,18 +953,12 @@ void  RBBITableBuilder::mergeRuleStatusVals() {
             // No suitable entry in the global tag list already.  Add one
             sd->fTagsIdx = fRB->fRuleStatusVals->size();
             fRB->fRuleStatusVals->addElement(thisStatesTagValues->size(), *fStatus);
-            for (i=0; i<thisStatesTagValues->size(); i++) {
+            for (i = 0; i < thisStatesTagValues->size(); i++) {
                 fRB->fRuleStatusVals->addElement(thisStatesTagValues->elementAti(i), *fStatus);
             }
         }
     }
 }
-
-
-
-
-
-
 
 //-----------------------------------------------------------------------------
 //
@@ -994,18 +968,19 @@ void  RBBITableBuilder::mergeRuleStatusVals() {
 //             Lazily create the vector if it does not already exist.
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::sortedAdd(UVector **vector, int32_t val) {
+void RBBITableBuilder::sortedAdd(UVector** vector, int32_t val)
+{
     int32_t i;
 
-    if (*vector == nullptr) {
+    if (*vector == NULL) {
         *vector = new UVector(*fStatus);
     }
-    if (*vector == nullptr || U_FAILURE(*fStatus)) {
+    if (*vector == NULL || U_FAILURE(*fStatus)) {
         return;
     }
-    UVector *vec = *vector;
-    int32_t  vSize = vec->size();
-    for (i=0; i<vSize; i++) {
+    UVector* vec = *vector;
+    int32_t vSize = vec->size();
+    for (i = 0; i < vSize; i++) {
         int32_t valAtI = vec->elementAti(i);
         if (valAtI == val) {
             // The value is already in the vector.  Don't add it again.
@@ -1018,8 +993,6 @@ void RBBITableBuilder::sortedAdd(UVector **vector, int32_t val) {
     vec->insertElementAt(val, i, *fStatus);
 }
 
-
-
 //-----------------------------------------------------------------------------
 //
 //  setAdd     Set operation on UVector
@@ -1027,37 +1000,38 @@ void RBBITableBuilder::sortedAdd(UVector **vector, int32_t val) {
 //             Elements may only appear once and must be sorted.
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::setAdd(UVector *dest, UVector *source) {
+void RBBITableBuilder::setAdd(UVector* dest, UVector* source)
+{
     U_ASSERT(!dest->hasDeleter());
     U_ASSERT(!source->hasDeleter());
     int32_t destOriginalSize = dest->size();
-    int32_t sourceSize       = source->size();
-    int32_t di           = 0;
-    MaybeStackArray<void *, 16> destArray, sourceArray;  // Handle small cases without malloc
+    int32_t sourceSize = source->size();
+    int32_t di = 0;
+    MaybeStackArray<void*, 16> destArray, sourceArray; // Handle small cases without malloc
     void **destPtr, **sourcePtr;
     void **destLim, **sourceLim;
 
     if (destOriginalSize > destArray.getCapacity()) {
-        if (destArray.resize(destOriginalSize) == nullptr) {
+        if (destArray.resize(destOriginalSize) == NULL) {
             return;
         }
     }
     destPtr = destArray.getAlias();
-    destLim = destPtr + destOriginalSize;  // destArray.getArrayLimit()?
+    destLim = destPtr + destOriginalSize; // destArray.getArrayLimit()?
 
     if (sourceSize > sourceArray.getCapacity()) {
-        if (sourceArray.resize(sourceSize) == nullptr) {
+        if (sourceArray.resize(sourceSize) == NULL) {
             return;
         }
     }
     sourcePtr = sourceArray.getAlias();
-    sourceLim = sourcePtr + sourceSize;  // sourceArray.getArrayLimit()?
+    sourceLim = sourcePtr + sourceSize; // sourceArray.getArrayLimit()?
 
     // Avoid multiple "get element" calls by getting the contents into arrays
-    (void) dest->toArray(destPtr);
-    (void) source->toArray(sourcePtr);
+    (void)dest->toArray(destPtr);
+    (void)source->toArray(sourcePtr);
 
-    dest->setSize(sourceSize+destOriginalSize, *fStatus);
+    dest->setSize(sourceSize + destOriginalSize, *fStatus);
     if (U_FAILURE(*fStatus)) {
         return;
     }
@@ -1069,10 +1043,9 @@ void RBBITableBuilder::setAdd(UVector *dest, UVector *source) {
         }
         // This check is required for machines with segmented memory, like i5/OS.
         // Direct pointer comparison is not recommended.
-        else if (uprv_memcmp(destPtr, sourcePtr, sizeof(void *)) < 0) {
+        else if (uprv_memcmp(destPtr, sourcePtr, sizeof(void*)) < 0) {
             dest->setElementAt(*destPtr++, di++);
-        }
-        else { /* *sourcePtr < *destPtr */
+        } else { /* *sourcePtr < *destPtr */
             dest->setElementAt(*sourcePtr++, di++);
         }
     }
@@ -1088,8 +1061,6 @@ void RBBITableBuilder::setAdd(UVector *dest, UVector *source) {
     dest->setSize(di, *fStatus);
 }
 
-
-
 //-----------------------------------------------------------------------------
 //
 //  setEqual    Set operation on UVector.
@@ -1097,10 +1068,10 @@ void RBBITableBuilder::setAdd(UVector *dest, UVector *source) {
 //              Elements must be sorted.
 //
 //-----------------------------------------------------------------------------
-UBool RBBITableBuilder::setEquals(UVector *a, UVector *b) {
+UBool RBBITableBuilder::setEquals(UVector* a, UVector* b)
+{
     return a->equals(*b);
 }
-
 
 //-----------------------------------------------------------------------------
 //
@@ -1109,14 +1080,15 @@ UBool RBBITableBuilder::setEquals(UVector *a, UVector *b) {
 //
 //-----------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBITableBuilder::printPosSets(RBBINode *n) {
-    if (n==nullptr) {
+void RBBITableBuilder::printPosSets(RBBINode* n)
+{
+    if (n == NULL) {
         return;
     }
     printf("\n");
     RBBINode::printNodeHeader();
     RBBINode::printNode(n);
-    RBBIDebugPrintf("         Nullable:  %s\n", n->fNullable?"true":"false");
+    RBBIDebugPrintf("         Nullable:  %s\n", n->fNullable ? "TRUE" : "FALSE");
 
     RBBIDebugPrintf("         firstpos:  ");
     printSet(n->fFirstPosSet);
@@ -1135,23 +1107,23 @@ void RBBITableBuilder::printPosSets(RBBINode *n) {
 //
 //    findDuplCharClassFrom()
 //
-bool RBBITableBuilder::findDuplCharClassFrom(IntPair *categories) {
+bool RBBITableBuilder::findDuplCharClassFrom(IntPair* categories)
+{
     int32_t numStates = fDStates->size();
     int32_t numCols = fRB->fSetBuilder->getNumCharCategories();
 
-    for (; categories->first < numCols-1; categories->first++) {
+    for (; categories->first < numCols - 1; categories->first++) {
         // Note: dictionary & non-dictionary columns cannot be merged.
         //       The limitSecond value prevents considering mixed pairs.
         //       Dictionary categories are >= DictCategoriesStart.
         //       Non dict categories are   <  DictCategoriesStart.
-        int limitSecond = categories->first < fRB->fSetBuilder->getDictCategoriesStart() ?
-            fRB->fSetBuilder->getDictCategoriesStart() : numCols;
-        for (categories->second=categories->first+1; categories->second < limitSecond; categories->second++) {
+        int limitSecond = categories->first < fRB->fSetBuilder->getDictCategoriesStart() ? fRB->fSetBuilder->getDictCategoriesStart() : numCols;
+        for (categories->second = categories->first + 1; categories->second < limitSecond; categories->second++) {
             // Initialized to different values to prevent returning true if numStates = 0 (implies no duplicates).
             uint16_t table_base = 0;
             uint16_t table_dupl = 1;
-            for (int32_t state=0; state<numStates; state++) {
-                RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(state);
+            for (int32_t state = 0; state < numStates; state++) {
+                RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(state);
                 table_base = (uint16_t)sd->fDtran->elementAti(categories->first);
                 table_dupl = (uint16_t)sd->fDtran->elementAti(categories->second);
                 if (table_base != table_dupl) {
@@ -1166,14 +1138,14 @@ bool RBBITableBuilder::findDuplCharClassFrom(IntPair *categories) {
     return false;
 }
 
-
 //
 //    removeColumn()
 //
-void RBBITableBuilder::removeColumn(int32_t column) {
+void RBBITableBuilder::removeColumn(int32_t column)
+{
     int32_t numStates = fDStates->size();
-    for (int32_t state=0; state<numStates; state++) {
-        RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(state);
+    for (int32_t state = 0; state < numStates; state++) {
+        RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(state);
         U_ASSERT(column < sd->fDtran->size());
         sd->fDtran->removeElementAt(column);
     }
@@ -1182,26 +1154,24 @@ void RBBITableBuilder::removeColumn(int32_t column) {
 /*
  * findDuplicateState
  */
-bool RBBITableBuilder::findDuplicateState(IntPair *states) {
+bool RBBITableBuilder::findDuplicateState(IntPair* states)
+{
     int32_t numStates = fDStates->size();
     int32_t numCols = fRB->fSetBuilder->getNumCharCategories();
 
-    for (; states->first<numStates-1; states->first++) {
-        RBBIStateDescriptor *firstSD = (RBBIStateDescriptor *)fDStates->elementAt(states->first);
-        for (states->second=states->first+1; states->second<numStates; states->second++) {
-            RBBIStateDescriptor *duplSD = (RBBIStateDescriptor *)fDStates->elementAt(states->second);
-            if (firstSD->fAccepting != duplSD->fAccepting ||
-                firstSD->fLookAhead != duplSD->fLookAhead ||
-                firstSD->fTagsIdx   != duplSD->fTagsIdx) {
+    for (; states->first < numStates - 1; states->first++) {
+        RBBIStateDescriptor* firstSD = (RBBIStateDescriptor*)fDStates->elementAt(states->first);
+        for (states->second = states->first + 1; states->second < numStates; states->second++) {
+            RBBIStateDescriptor* duplSD = (RBBIStateDescriptor*)fDStates->elementAt(states->second);
+            if (firstSD->fAccepting != duplSD->fAccepting || firstSD->fLookAhead != duplSD->fLookAhead || firstSD->fTagsIdx != duplSD->fTagsIdx) {
                 continue;
             }
             bool rowsMatch = true;
-            for (int32_t col=0; col < numCols; ++col) {
+            for (int32_t col = 0; col < numCols; ++col) {
                 int32_t firstVal = firstSD->fDtran->elementAti(col);
                 int32_t duplVal = duplSD->fDtran->elementAti(col);
-                if (!((firstVal == duplVal) ||
-                        ((firstVal == states->first || firstVal == states->second) &&
-                        (duplVal  == states->first || duplVal  == states->second)))) {
+                if (!((firstVal == duplVal)
+                        || ((firstVal == states->first || firstVal == states->second) && (duplVal == states->first || duplVal == states->second)))) {
                     rowsMatch = false;
                     break;
                 }
@@ -1214,22 +1184,21 @@ bool RBBITableBuilder::findDuplicateState(IntPair *states) {
     return false;
 }
 
-
-bool RBBITableBuilder::findDuplicateSafeState(IntPair *states) {
+bool RBBITableBuilder::findDuplicateSafeState(IntPair* states)
+{
     int32_t numStates = fSafeTable->size();
 
-    for (; states->first<numStates-1; states->first++) {
-        UnicodeString *firstRow = static_cast<UnicodeString *>(fSafeTable->elementAt(states->first));
-        for (states->second=states->first+1; states->second<numStates; states->second++) {
-            UnicodeString *duplRow = static_cast<UnicodeString *>(fSafeTable->elementAt(states->second));
+    for (; states->first < numStates - 1; states->first++) {
+        UnicodeString* firstRow = static_cast<UnicodeString*>(fSafeTable->elementAt(states->first));
+        for (states->second = states->first + 1; states->second < numStates; states->second++) {
+            UnicodeString* duplRow = static_cast<UnicodeString*>(fSafeTable->elementAt(states->second));
             bool rowsMatch = true;
             int32_t numCols = firstRow->length();
-            for (int32_t col=0; col < numCols; ++col) {
+            for (int32_t col = 0; col < numCols; ++col) {
                 int32_t firstVal = firstRow->charAt(col);
                 int32_t duplVal = duplRow->charAt(col);
-                if (!((firstVal == duplVal) ||
-                        ((firstVal == states->first || firstVal == states->second) &&
-                        (duplVal  == states->first || duplVal  == states->second)))) {
+                if (!((firstVal == duplVal)
+                        || ((firstVal == states->first || firstVal == states->second) && (duplVal == states->first || duplVal == states->second)))) {
                     rowsMatch = false;
                     break;
                 }
@@ -1242,22 +1211,22 @@ bool RBBITableBuilder::findDuplicateSafeState(IntPair *states) {
     return false;
 }
 
-
-void RBBITableBuilder::removeState(IntPair duplStates) {
+void RBBITableBuilder::removeState(IntPair duplStates)
+{
     const int32_t keepState = duplStates.first;
     const int32_t duplState = duplStates.second;
     U_ASSERT(keepState < duplState);
     U_ASSERT(duplState < fDStates->size());
 
-    RBBIStateDescriptor *duplSD = (RBBIStateDescriptor *)fDStates->elementAt(duplState);
+    RBBIStateDescriptor* duplSD = (RBBIStateDescriptor*)fDStates->elementAt(duplState);
     fDStates->removeElementAt(duplState);
     delete duplSD;
 
     int32_t numStates = fDStates->size();
     int32_t numCols = fRB->fSetBuilder->getNumCharCategories();
-    for (int32_t state=0; state<numStates; ++state) {
-        RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(state);
-        for (int32_t col=0; col<numCols; col++) {
+    for (int32_t state = 0; state < numStates; ++state) {
+        RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(state);
+        for (int32_t col = 0; col < numCols; col++) {
             int32_t existingVal = sd->fDtran->elementAti(col);
             int32_t newVal = existingVal;
             if (existingVal == duplState) {
@@ -1270,19 +1239,20 @@ void RBBITableBuilder::removeState(IntPair duplStates) {
     }
 }
 
-void RBBITableBuilder::removeSafeState(IntPair duplStates) {
+void RBBITableBuilder::removeSafeState(IntPair duplStates)
+{
     const int32_t keepState = duplStates.first;
     const int32_t duplState = duplStates.second;
     U_ASSERT(keepState < duplState);
     U_ASSERT(duplState < fSafeTable->size());
 
-    fSafeTable->removeElementAt(duplState);   // Note that fSafeTable has a deleter function
-                                              // and will auto-delete the removed element.
+    fSafeTable->removeElementAt(duplState); // Note that fSafeTable has a deleter function
+        // and will auto-delete the removed element.
     int32_t numStates = fSafeTable->size();
-    for (int32_t state=0; state<numStates; ++state) {
-        UnicodeString *sd = (UnicodeString *)fSafeTable->elementAt(state);
+    for (int32_t state = 0; state < numStates; ++state) {
+        UnicodeString* sd = (UnicodeString*)fSafeTable->elementAt(state);
         int32_t numCols = sd->length();
-        for (int32_t col=0; col<numCols; col++) {
+        for (int32_t col = 0; col < numCols; col++) {
             int32_t existingVal = sd->charAt(col);
             int32_t newVal = existingVal;
             if (existingVal == duplState) {
@@ -1295,12 +1265,12 @@ void RBBITableBuilder::removeSafeState(IntPair duplStates) {
     }
 }
 
-
 /*
  * RemoveDuplicateStates
  */
-int32_t RBBITableBuilder::removeDuplicateStates() {
-    IntPair dupls = {3, 0};
+int32_t RBBITableBuilder::removeDuplicateStates()
+{
+    IntPair dupls = { 3, 0 };
     int32_t numStatesRemoved = 0;
 
     while (findDuplicateState(&dupls)) {
@@ -1311,38 +1281,39 @@ int32_t RBBITableBuilder::removeDuplicateStates() {
     return numStatesRemoved;
 }
 
-
 //-----------------------------------------------------------------------------
 //
 //   getTableSize()    Calculate the size of the runtime form of this
 //                     state transition table.
 //
 //-----------------------------------------------------------------------------
-int32_t  RBBITableBuilder::getTableSize() const {
-    int32_t    size = 0;
-    int32_t    numRows;
-    int32_t    numCols;
-    int32_t    rowSize;
+int32_t RBBITableBuilder::getTableSize() const
+{
+    int32_t size = 0;
+    int32_t numRows;
+    int32_t numCols;
+    int32_t rowSize;
 
-    if (fTree == nullptr) {
+    if (fTree == NULL) {
         return 0;
     }
 
-    size    = offsetof(RBBIStateTable, fTableData);    // The header, with no rows to the table.
+    size = offsetof(RBBIStateTable, fTableData); // The header, with no rows to the table.
 
     numRows = fDStates->size();
     numCols = fRB->fSetBuilder->getNumCharCategories();
 
     if (use8BitsForTable()) {
-        rowSize = offsetof(RBBIStateTableRow8, fNextState) + sizeof(int8_t)*numCols;
+        rowSize = offsetof(RBBIStateTableRow8, fNextState) + sizeof(int8_t) * numCols;
     } else {
-        rowSize = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t)*numCols;
+        rowSize = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t) * numCols;
     }
-    size   += numRows * rowSize;
+    size += numRows * rowSize;
     return size;
 }
 
-bool RBBITableBuilder::use8BitsForTable() const {
+bool RBBITableBuilder::use8BitsForTable() const
+{
     return fDStates->size() <= kMaxStateFor8BitsTable;
 }
 
@@ -1353,18 +1324,18 @@ bool RBBITableBuilder::use8BitsForTable() const {
 //                    must be available at the output address "where".
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::exportTable(void *where) {
-    RBBIStateTable    *table = (RBBIStateTable *)where;
-    uint32_t           state;
-    int                col;
+void RBBITableBuilder::exportTable(void* where)
+{
+    RBBIStateTable* table = (RBBIStateTable*)where;
+    uint32_t state;
+    int col;
 
-    if (U_FAILURE(*fStatus) || fTree == nullptr) {
+    if (U_FAILURE(*fStatus) || fTree == NULL) {
         return;
     }
 
     int32_t catCount = fRB->fSetBuilder->getNumCharCategories();
-    if (catCount > 0x7fff ||
-        fDStates->size() > 0x7fff) {
+    if (catCount > 0x7fff || fDStates->size() > 0x7fff) {
         *fStatus = U_BRK_INTERNAL_ERROR;
         return;
     }
@@ -1372,54 +1343,54 @@ void RBBITableBuilder::exportTable(void *where) {
     table->fNumStates = fDStates->size();
     table->fDictCategoriesStart = fRB->fSetBuilder->getDictCategoriesStart();
     table->fLookAheadResultsSize = fLASlotsInUse == ACCEPTING_UNCONDITIONAL ? 0 : fLASlotsInUse + 1;
-    table->fFlags     = 0;
+    table->fFlags = 0;
     if (use8BitsForTable()) {
-        table->fRowLen    = offsetof(RBBIStateTableRow8, fNextState) + sizeof(uint8_t) * catCount;
-        table->fFlags  |= RBBI_8BITS_ROWS;
+        table->fRowLen = offsetof(RBBIStateTableRow8, fNextState) + sizeof(uint8_t) * catCount;
+        table->fFlags |= RBBI_8BITS_ROWS;
     } else {
-        table->fRowLen    = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t) * catCount;
+        table->fRowLen = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t) * catCount;
     }
     if (fRB->fLookAheadHardBreak) {
-        table->fFlags  |= RBBI_LOOKAHEAD_HARD_BREAK;
+        table->fFlags |= RBBI_LOOKAHEAD_HARD_BREAK;
     }
     if (fRB->fSetBuilder->sawBOF()) {
-        table->fFlags  |= RBBI_BOF_REQUIRED;
+        table->fFlags |= RBBI_BOF_REQUIRED;
     }
 
-    for (state=0; state<table->fNumStates; state++) {
-        RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(state);
-        RBBIStateTableRow   *row = (RBBIStateTableRow *)(table->fTableData + state*table->fRowLen);
+    for (state = 0; state < table->fNumStates; state++) {
+        RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(state);
+        RBBIStateTableRow* row = (RBBIStateTableRow*)(table->fTableData + state * table->fRowLen);
         if (use8BitsForTable()) {
-            U_ASSERT (sd->fAccepting <= 255);
-            U_ASSERT (sd->fLookAhead <= 255);
-            U_ASSERT (0 <= sd->fTagsIdx && sd->fTagsIdx <= 255);
-            RBBIStateTableRow8 *r8 = (RBBIStateTableRow8*)row;
+            U_ASSERT(sd->fAccepting <= 255);
+            U_ASSERT(sd->fLookAhead <= 255);
+            U_ASSERT(0 <= sd->fTagsIdx && sd->fTagsIdx <= 255);
+            RBBIStateTableRow8* r8 = (RBBIStateTableRow8*)row;
             r8->fAccepting = sd->fAccepting;
             r8->fLookAhead = sd->fLookAhead;
-            r8->fTagsIdx   = sd->fTagsIdx;
-            for (col=0; col<catCount; col++) {
-                U_ASSERT (sd->fDtran->elementAti(col) <= kMaxStateFor8BitsTable);
+            r8->fTagsIdx = sd->fTagsIdx;
+            for (col = 0; col < catCount; col++) {
+                U_ASSERT(sd->fDtran->elementAti(col) <= kMaxStateFor8BitsTable);
                 r8->fNextState[col] = sd->fDtran->elementAti(col);
             }
         } else {
-            U_ASSERT (sd->fAccepting <= 0xffff);
-            U_ASSERT (sd->fLookAhead <= 0xffff);
-            U_ASSERT (0 <= sd->fTagsIdx && sd->fTagsIdx <= 0xffff);
+            U_ASSERT(sd->fAccepting <= 0xffff);
+            U_ASSERT(sd->fLookAhead <= 0xffff);
+            U_ASSERT(0 <= sd->fTagsIdx && sd->fTagsIdx <= 0xffff);
             row->r16.fAccepting = sd->fAccepting;
             row->r16.fLookAhead = sd->fLookAhead;
-            row->r16.fTagsIdx   = sd->fTagsIdx;
-            for (col=0; col<catCount; col++) {
+            row->r16.fTagsIdx = sd->fTagsIdx;
+            for (col = 0; col < catCount; col++) {
                 row->r16.fNextState[col] = sd->fDtran->elementAti(col);
             }
         }
     }
 }
 
-
 /**
  *   Synthesize a safe state table from the main state table.
  */
-void RBBITableBuilder::buildSafeReverseTable(UErrorCode &status) {
+void RBBITableBuilder::buildSafeReverseTable(UErrorCode& status)
+{
     // The safe table creation has three steps:
 
     // 1. Identify pairs of character classes that are "safe." Safe means that boundaries
@@ -1451,14 +1422,14 @@ void RBBITableBuilder::buildSafeReverseTable(UErrorCode &status) {
     int32_t numCharClasses = fRB->fSetBuilder->getNumCharCategories();
     int32_t numStates = fDStates->size();
 
-    for (int32_t c1=0; c1<numCharClasses; ++c1) {
-        for (int32_t c2=0; c2 < numCharClasses; ++c2) {
+    for (int32_t c1 = 0; c1 < numCharClasses; ++c1) {
+        for (int32_t c2 = 0; c2 < numCharClasses; ++c2) {
             int32_t wantedEndState = -1;
             int32_t endState = 0;
             for (int32_t startState = 1; startState < numStates; ++startState) {
-                RBBIStateDescriptor *startStateD = static_cast<RBBIStateDescriptor *>(fDStates->elementAt(startState));
+                RBBIStateDescriptor* startStateD = static_cast<RBBIStateDescriptor*>(fDStates->elementAt(startState));
                 int32_t s2 = startStateD->fDtran->elementAti(c1);
-                RBBIStateDescriptor *s2StateD = static_cast<RBBIStateDescriptor *>(fDStates->elementAt(s2));
+                RBBIStateDescriptor* s2StateD = static_cast<RBBIStateDescriptor*>(fDStates->elementAt(s2));
                 endState = s2StateD->fDtran->elementAti(c2);
                 if (wantedEndState < 0) {
                     wantedEndState = endState;
@@ -1488,14 +1459,13 @@ void RBBITableBuilder::buildSafeReverseTable(UErrorCode &status) {
     // fLookAhead, etc. are not needed for the safe table, and are omitted at this stage of building.
 
     U_ASSERT(fSafeTable == nullptr);
-    LocalPointer<UVector> lpSafeTable(
-        new UVector(uprv_deleteUObject, uhash_compareUnicodeString, numCharClasses + 2, status), status);
+    LocalPointer<UVector> lpSafeTable(new UVector(uprv_deleteUObject, uhash_compareUnicodeString, numCharClasses + 2, status), status);
     if (U_FAILURE(status)) {
         return;
     }
     fSafeTable = lpSafeTable.orphan();
-    for (int32_t row=0; row<numCharClasses + 2; ++row) {
-        LocalPointer<UnicodeString> lpString(new UnicodeString(numCharClasses, 0, numCharClasses+4), status);
+    for (int32_t row = 0; row < numCharClasses + 2; ++row) {
+        LocalPointer<UnicodeString> lpString(new UnicodeString(numCharClasses, 0, numCharClasses + 4), status);
         fSafeTable->adoptElement(lpString.orphan(), status);
     }
     if (U_FAILURE(status)) {
@@ -1503,36 +1473,35 @@ void RBBITableBuilder::buildSafeReverseTable(UErrorCode &status) {
     }
 
     // From the start state, each input char class transitions to the state for that input.
-    UnicodeString &startState = *static_cast<UnicodeString *>(fSafeTable->elementAt(1));
-    for (int32_t charClass=0; charClass < numCharClasses; ++charClass) {
+    UnicodeString& startState = *static_cast<UnicodeString*>(fSafeTable->elementAt(1));
+    for (int32_t charClass = 0; charClass < numCharClasses; ++charClass) {
         // Note: +2 for the start & stop state.
-        startState.setCharAt(charClass, static_cast<char16_t>(charClass+2));
+        startState.setCharAt(charClass, static_cast<char16_t>(charClass + 2));
     }
 
     // Initially make every other state table row look like the start state row,
-    for (int32_t row=2; row<numCharClasses+2; ++row) {
-        UnicodeString &rowState = *static_cast<UnicodeString *>(fSafeTable->elementAt(row));
-        rowState = startState;   // UnicodeString assignment, copies contents.
+    for (int32_t row = 2; row < numCharClasses + 2; ++row) {
+        UnicodeString& rowState = *static_cast<UnicodeString*>(fSafeTable->elementAt(row));
+        rowState = startState; // UnicodeString assignment, copies contents.
     }
 
     // Run through the safe pairs, set the next state to zero when pair has been seen.
     // Zero being the stop state, meaning we found a safe point.
-    for (int32_t pairIdx=0; pairIdx<safePairs.length(); pairIdx+=2) {
+    for (int32_t pairIdx = 0; pairIdx < safePairs.length(); pairIdx += 2) {
         int32_t c1 = safePairs.charAt(pairIdx);
         int32_t c2 = safePairs.charAt(pairIdx + 1);
 
-        UnicodeString &rowState = *static_cast<UnicodeString *>(fSafeTable->elementAt(c2 + 2));
+        UnicodeString& rowState = *static_cast<UnicodeString*>(fSafeTable->elementAt(c2 + 2));
         rowState.setCharAt(c1, 0);
     }
 
     // Remove duplicate or redundant rows from the table.
-    IntPair states = {1, 0};
+    IntPair states = { 1, 0 };
     while (findDuplicateSafeState(&states)) {
         // printf("Removing duplicate safe states (%d, %d)\n", states.first, states.second);
         removeSafeState(states);
     }
 }
-
 
 //-----------------------------------------------------------------------------
 //
@@ -1540,31 +1509,33 @@ void RBBITableBuilder::buildSafeReverseTable(UErrorCode &status) {
 //                         safe state table.
 //
 //-----------------------------------------------------------------------------
-int32_t  RBBITableBuilder::getSafeTableSize() const {
-    int32_t    size = 0;
-    int32_t    numRows;
-    int32_t    numCols;
-    int32_t    rowSize;
+int32_t RBBITableBuilder::getSafeTableSize() const
+{
+    int32_t size = 0;
+    int32_t numRows;
+    int32_t numCols;
+    int32_t rowSize;
 
     if (fSafeTable == nullptr) {
         return 0;
     }
 
-    size    = offsetof(RBBIStateTable, fTableData);    // The header, with no rows to the table.
+    size = offsetof(RBBIStateTable, fTableData); // The header, with no rows to the table.
 
     numRows = fSafeTable->size();
     numCols = fRB->fSetBuilder->getNumCharCategories();
 
     if (use8BitsForSafeTable()) {
-        rowSize = offsetof(RBBIStateTableRow8, fNextState) + sizeof(int8_t)*numCols;
+        rowSize = offsetof(RBBIStateTableRow8, fNextState) + sizeof(int8_t) * numCols;
     } else {
-        rowSize = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t)*numCols;
+        rowSize = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t) * numCols;
     }
-    size   += numRows * rowSize;
+    size += numRows * rowSize;
     return size;
 }
 
-bool RBBITableBuilder::use8BitsForSafeTable() const {
+bool RBBITableBuilder::use8BitsForSafeTable() const
+{
     return fSafeTable->size() <= kMaxStateFor8BitsTable;
 }
 
@@ -1575,56 +1546,53 @@ bool RBBITableBuilder::use8BitsForSafeTable() const {
 //                       must be available at the output address "where".
 //
 //-----------------------------------------------------------------------------
-void RBBITableBuilder::exportSafeTable(void *where) {
-    RBBIStateTable    *table = (RBBIStateTable *)where;
-    uint32_t           state;
-    int                col;
+void RBBITableBuilder::exportSafeTable(void* where)
+{
+    RBBIStateTable* table = (RBBIStateTable*)where;
+    uint32_t state;
+    int col;
 
     if (U_FAILURE(*fStatus) || fSafeTable == nullptr) {
         return;
     }
 
     int32_t catCount = fRB->fSetBuilder->getNumCharCategories();
-    if (catCount > 0x7fff ||
-            fSafeTable->size() > 0x7fff) {
+    if (catCount > 0x7fff || fSafeTable->size() > 0x7fff) {
         *fStatus = U_BRK_INTERNAL_ERROR;
         return;
     }
 
     table->fNumStates = fSafeTable->size();
-    table->fFlags     = 0;
+    table->fFlags = 0;
     if (use8BitsForSafeTable()) {
-        table->fRowLen    = offsetof(RBBIStateTableRow8, fNextState) + sizeof(uint8_t) * catCount;
-        table->fFlags  |= RBBI_8BITS_ROWS;
+        table->fRowLen = offsetof(RBBIStateTableRow8, fNextState) + sizeof(uint8_t) * catCount;
+        table->fFlags |= RBBI_8BITS_ROWS;
     } else {
-        table->fRowLen    = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t) * catCount;
+        table->fRowLen = offsetof(RBBIStateTableRow16, fNextState) + sizeof(int16_t) * catCount;
     }
 
-    for (state=0; state<table->fNumStates; state++) {
-        UnicodeString *rowString = (UnicodeString *)fSafeTable->elementAt(state);
-        RBBIStateTableRow   *row = (RBBIStateTableRow *)(table->fTableData + state*table->fRowLen);
+    for (state = 0; state < table->fNumStates; state++) {
+        UnicodeString* rowString = (UnicodeString*)fSafeTable->elementAt(state);
+        RBBIStateTableRow* row = (RBBIStateTableRow*)(table->fTableData + state * table->fRowLen);
         if (use8BitsForSafeTable()) {
-            RBBIStateTableRow8 *r8 = (RBBIStateTableRow8*)row;
+            RBBIStateTableRow8* r8 = (RBBIStateTableRow8*)row;
             r8->fAccepting = 0;
             r8->fLookAhead = 0;
-            r8->fTagsIdx    = 0;
-            for (col=0; col<catCount; col++) {
+            r8->fTagsIdx = 0;
+            for (col = 0; col < catCount; col++) {
                 U_ASSERT(rowString->charAt(col) <= kMaxStateFor8BitsTable);
                 r8->fNextState[col] = static_cast<uint8_t>(rowString->charAt(col));
             }
         } else {
             row->r16.fAccepting = 0;
             row->r16.fLookAhead = 0;
-            row->r16.fTagsIdx    = 0;
-            for (col=0; col<catCount; col++) {
+            row->r16.fTagsIdx = 0;
+            for (col = 0; col < catCount; col++) {
                 row->r16.fNextState[col] = rowString->charAt(col);
             }
         }
     }
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 //
@@ -1632,16 +1600,16 @@ void RBBITableBuilder::exportSafeTable(void *where) {
 //
 //-----------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBITableBuilder::printSet(UVector *s) {
-    int32_t  i;
-    for (i=0; i<s->size(); i++) {
-        const RBBINode *v = static_cast<const RBBINode *>(s->elementAt(i));
-        RBBIDebugPrintf("%5d", v==nullptr? -1 : v->fSerialNum);
+void RBBITableBuilder::printSet(UVector* s)
+{
+    int32_t i;
+    for (i = 0; i < s->size(); i++) {
+        const RBBINode* v = static_cast<const RBBINode*>(s->elementAt(i));
+        RBBIDebugPrintf("%5d", v == NULL ? -1 : v->fSerialNum);
     }
     RBBIDebugPrintf("\n");
 }
 #endif
-
 
 //-----------------------------------------------------------------------------
 //
@@ -1649,27 +1617,28 @@ void RBBITableBuilder::printSet(UVector *s) {
 //
 //-----------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBITableBuilder::printStates() {
-    int     c;    // input "character"
-    int     n;    // state number
+void RBBITableBuilder::printStates()
+{
+    int c; // input "character"
+    int n; // state number
 
     RBBIDebugPrintf("state |           i n p u t     s y m b o l s \n");
     RBBIDebugPrintf("      | Acc  LA    Tag");
-    for (c=0; c<fRB->fSetBuilder->getNumCharCategories(); c++) {
+    for (c = 0; c < fRB->fSetBuilder->getNumCharCategories(); c++) {
         RBBIDebugPrintf(" %3d", c);
     }
     RBBIDebugPrintf("\n");
     RBBIDebugPrintf("      |---------------");
-    for (c=0; c<fRB->fSetBuilder->getNumCharCategories(); c++) {
+    for (c = 0; c < fRB->fSetBuilder->getNumCharCategories(); c++) {
         RBBIDebugPrintf("----");
     }
     RBBIDebugPrintf("\n");
 
-    for (n=0; n<fDStates->size(); n++) {
-        RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(n);
-        RBBIDebugPrintf("  %3d | " , n);
+    for (n = 0; n < fDStates->size(); n++) {
+        RBBIStateDescriptor* sd = (RBBIStateDescriptor*)fDStates->elementAt(n);
+        RBBIDebugPrintf("  %3d | ", n);
         RBBIDebugPrintf("%3d %3d %5d ", sd->fAccepting, sd->fLookAhead, sd->fTagsIdx);
-        for (c=0; c<fRB->fSetBuilder->getNumCharCategories(); c++) {
+        for (c = 0; c < fRB->fSetBuilder->getNumCharCategories(); c++) {
             RBBIDebugPrintf(" %3d", sd->fDtran->elementAti(c));
         }
         RBBIDebugPrintf("\n");
@@ -1678,16 +1647,16 @@ void RBBITableBuilder::printStates() {
 }
 #endif
 
-
 //-----------------------------------------------------------------------------
 //
 //   printSafeTable    Debug Function.  Dump the fully constructed safe table.
 //
 //-----------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBITableBuilder::printReverseTable() {
-    int     c;    // input "character"
-    int     n;    // state number
+void RBBITableBuilder::printReverseTable()
+{
+    int c; // input "character"
+    int n; // state number
 
     RBBIDebugPrintf("    Safe Reverse Table \n");
     if (fSafeTable == nullptr) {
@@ -1696,21 +1665,21 @@ void RBBITableBuilder::printReverseTable() {
     }
     RBBIDebugPrintf("state |           i n p u t     s y m b o l s \n");
     RBBIDebugPrintf("      | Acc  LA    Tag");
-    for (c=0; c<fRB->fSetBuilder->getNumCharCategories(); c++) {
+    for (c = 0; c < fRB->fSetBuilder->getNumCharCategories(); c++) {
         RBBIDebugPrintf(" %2d", c);
     }
     RBBIDebugPrintf("\n");
     RBBIDebugPrintf("      |---------------");
-    for (c=0; c<fRB->fSetBuilder->getNumCharCategories(); c++) {
+    for (c = 0; c < fRB->fSetBuilder->getNumCharCategories(); c++) {
         RBBIDebugPrintf("---");
     }
     RBBIDebugPrintf("\n");
 
-    for (n=0; n<fSafeTable->size(); n++) {
-        UnicodeString *rowString = (UnicodeString *)fSafeTable->elementAt(n);
-        RBBIDebugPrintf("  %3d | " , n);
-        RBBIDebugPrintf("%3d %3d %5d ", 0, 0, 0);  // Accepting, LookAhead, Tags
-        for (c=0; c<fRB->fSetBuilder->getNumCharCategories(); c++) {
+    for (n = 0; n < fSafeTable->size(); n++) {
+        UnicodeString* rowString = (UnicodeString*)fSafeTable->elementAt(n);
+        RBBIDebugPrintf("  %3d | ", n);
+        RBBIDebugPrintf("%3d %3d %5d ", 0, 0, 0); // Accepting, LookAhead, Tags
+        for (c = 0; c < fRB->fSetBuilder->getNumCharCategories(); c++) {
             RBBIDebugPrintf(" %2d", rowString->charAt(c));
         }
         RBBIDebugPrintf("\n");
@@ -1719,19 +1688,18 @@ void RBBITableBuilder::printReverseTable() {
 }
 #endif
 
-
-
 //-----------------------------------------------------------------------------
 //
 //   printRuleStatusTable    Debug Function.  Dump the common rule status table
 //
 //-----------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBITableBuilder::printRuleStatusTable() {
-    int32_t  thisRecord = 0;
-    int32_t  nextRecord = 0;
-    int      i;
-    UVector  *tbl = fRB->fRuleStatusVals;
+void RBBITableBuilder::printRuleStatusTable()
+{
+    int32_t thisRecord = 0;
+    int32_t nextRecord = 0;
+    int i;
+    UVector* tbl = fRB->fRuleStatusVals;
 
     RBBIDebugPrintf("index |  tags \n");
     RBBIDebugPrintf("-------------------\n");
@@ -1740,7 +1708,7 @@ void RBBITableBuilder::printRuleStatusTable() {
         thisRecord = nextRecord;
         nextRecord = thisRecord + tbl->elementAti(thisRecord) + 1;
         RBBIDebugPrintf("%4d   ", thisRecord);
-        for (i=thisRecord+1; i<nextRecord; i++) {
+        for (i = thisRecord + 1; i < nextRecord; i++) {
             RBBIDebugPrintf("  %5d", tbl->elementAti(i));
         }
         RBBIDebugPrintf("\n");
@@ -1749,7 +1717,6 @@ void RBBITableBuilder::printRuleStatusTable() {
 }
 #endif
 
-
 //-----------------------------------------------------------------------------
 //
 //   RBBIStateDescriptor     Methods.  This is a very struct-like class
@@ -1757,37 +1724,38 @@ void RBBITableBuilder::printRuleStatusTable() {
 //
 //-----------------------------------------------------------------------------
 
-RBBIStateDescriptor::RBBIStateDescriptor(int lastInputSymbol, UErrorCode *fStatus) {
-    fMarked    = false;
+RBBIStateDescriptor::RBBIStateDescriptor(int lastInputSymbol, UErrorCode* fStatus)
+{
+    fMarked = FALSE;
     fAccepting = 0;
     fLookAhead = 0;
-    fTagsIdx   = 0;
-    fTagVals   = nullptr;
-    fPositions = nullptr;
-    fDtran     = nullptr;
+    fTagsIdx = 0;
+    fTagVals = NULL;
+    fPositions = NULL;
+    fDtran = NULL;
 
-    fDtran     = new UVector32(lastInputSymbol+1, *fStatus);
+    fDtran = new UVector32(lastInputSymbol + 1, *fStatus);
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    if (fDtran == nullptr) {
+    if (fDtran == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
-    fDtran->setSize(lastInputSymbol+1);    // fDtran needs to be pre-sized.
-                                           //   It is indexed by input symbols, and will
-                                           //   hold  the next state number for each
-                                           //   symbol.
+    fDtran->setSize(lastInputSymbol + 1); // fDtran needs to be pre-sized.
+        //   It is indexed by input symbols, and will
+        //   hold  the next state number for each
+        //   symbol.
 }
 
-
-RBBIStateDescriptor::~RBBIStateDescriptor() {
-    delete       fPositions;
-    delete       fDtran;
-    delete       fTagVals;
-    fPositions = nullptr;
-    fDtran     = nullptr;
-    fTagVals   = nullptr;
+RBBIStateDescriptor::~RBBIStateDescriptor()
+{
+    delete fPositions;
+    delete fDtran;
+    delete fTagVals;
+    fPositions = NULL;
+    fDtran = NULL;
+    fTagVals = NULL;
 }
 
 U_NAMESPACE_END

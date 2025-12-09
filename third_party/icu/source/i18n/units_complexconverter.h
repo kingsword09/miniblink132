@@ -1,4 +1,4 @@
-// © 2020 and later: Unicode, Inc. and others.
+﻿// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -47,7 +47,7 @@ namespace units {
  *    instances of the `UnitsConverter` to perform the conversion.
  */
 class U_I18N_API ComplexUnitsConverter : public UMemory {
-  public:
+public:
     /**
      * Constructs `ComplexUnitsConverter` for an `targetUnit` that could be Single, Compound or Mixed.
      * In case of:
@@ -63,8 +63,7 @@ class U_I18N_API ComplexUnitsConverter : public UMemory {
      * @param ratesInfo
      * @param status
      */
-    ComplexUnitsConverter(const MeasureUnitImpl &targetUnit, const ConversionRates &ratesInfo,
-                          UErrorCode &status);
+    ComplexUnitsConverter(const MeasureUnitImpl& targetUnit, const ConversionRates& ratesInfo, UErrorCode& status);
     /**
      * Constructor of `ComplexUnitsConverter`.
      * NOTE:
@@ -75,8 +74,7 @@ class U_I18N_API ComplexUnitsConverter : public UMemory {
      * @param outputUnits represents the output unit. could be any type. (single, compound or mixed).
      * @param status
      */
-    ComplexUnitsConverter(StringPiece inputUnitIdentifier, StringPiece outputUnitsIdentifier,
-                          UErrorCode &status);
+    ComplexUnitsConverter(StringPiece inputUnitIdentifier, StringPiece outputUnitsIdentifier, UErrorCode& status);
 
     /**
      * Constructor of `ComplexUnitsConverter`.
@@ -89,8 +87,7 @@ class U_I18N_API ComplexUnitsConverter : public UMemory {
      * @param ratesInfo a ConversionRates instance containing the unit conversion rates.
      * @param status
      */
-    ComplexUnitsConverter(const MeasureUnitImpl &inputUnit, const MeasureUnitImpl &outputUnits,
-                          const ConversionRates &ratesInfo, UErrorCode &status);
+    ComplexUnitsConverter(const MeasureUnitImpl& inputUnit, const MeasureUnitImpl& outputUnits, const ConversionRates& ratesInfo, UErrorCode& status);
 
     // Returns true if the specified `quantity` of the `inputUnit`, expressed in terms of the biggest
     // unit in the MeasureUnit `outputUnit`, is greater than or equal to `limit`.
@@ -105,8 +102,7 @@ class U_I18N_API ComplexUnitsConverter : public UMemory {
     //         NOTE:
     //           the smallest element is the only element that could have fractional values. And all
     //           other elements are floored to the nearest integer
-    MaybeStackVector<Measure>
-    convert(double quantity, icu::number::impl::RoundingImpl *rounder, UErrorCode &status) const;
+    MaybeStackVector<Measure> convert(double quantity, icu::number::impl::RoundingImpl* rounder, UErrorCode& status) const;
 
     // TODO(ICU-21937): Make it private after submitting the public units conversion API.
     MaybeStackVector<UnitsConverter> unitsConverters_;
@@ -116,16 +112,15 @@ class U_I18N_API ComplexUnitsConverter : public UMemory {
     // indicating the requested output mixed unit order.
     MaybeStackVector<MeasureUnitImplWithIndex> units_;
 
-  private:
+private:
     // Sorts units_, which must be populated before calling this, and populates
     // unitsConverters_.
-    void init(const MeasureUnitImpl &inputUnit, const ConversionRates &ratesInfo, UErrorCode &status);
+    void init(const MeasureUnitImpl& inputUnit, const ConversionRates& ratesInfo, UErrorCode& status);
 
     // Applies the rounder to the quantity (last element) and bubble up any carried value to all the
     // intValues.
     // TODO(ICU-21288): get smarter about precision for mixed units.
-    void applyRounder(MaybeStackArray<int64_t, 5> &intValues, double &quantity,
-                      icu::number::impl::RoundingImpl *rounder, UErrorCode &status) const;
+    void applyRounder(MaybeStackArray<int64_t, 5>& intValues, double& quantity, icu::number::impl::RoundingImpl* rounder, UErrorCode& status) const;
 };
 
 } // namespace units

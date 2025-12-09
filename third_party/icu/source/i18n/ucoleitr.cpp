@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -11,7 +11,7 @@
 * Modification History:
 *
 * Date        Name        Description
-* 02/15/2001  synwee      Modified all methods to process its own function 
+* 02/15/2001  synwee      Modified all methods to process its own function
 *                         instead of calling the equivalent c++ api (coleitr.h)
 * 2012-2014   markus      Rewritten in C++ again.
 ******************************************************************************/
@@ -31,30 +31,28 @@
 
 U_NAMESPACE_USE
 
-#define BUFFER_LENGTH             100
+#define BUFFER_LENGTH 100
 
 #define DEFAULT_BUFFER_SIZE 16
 #define BUFFER_GROW 8
 
-#define ARRAY_COPY(dst, src, count) uprv_memcpy((void *) (dst), (void *) (src), (size_t)(count) * sizeof (src)[0])
+#define ARRAY_COPY(dst, src, count) uprv_memcpy((void*)(dst), (void*)(src), (size_t)(count) * sizeof(src)[0])
 
-#define NEW_ARRAY(type, count) (type *) uprv_malloc((size_t)(count) * sizeof(type))
+#define NEW_ARRAY(type, count) (type*)uprv_malloc((size_t)(count) * sizeof(type))
 
-#define DELETE_ARRAY(array) uprv_free((void *) (array))
+#define DELETE_ARRAY(array) uprv_free((void*)(array))
 
-struct RCEI
-{
+struct RCEI {
     uint32_t ce;
-    int32_t  low;
-    int32_t  high;
+    int32_t low;
+    int32_t high;
 };
 
 U_NAMESPACE_BEGIN
 
-struct RCEBuffer
-{
-    RCEI    defaultBuffer[DEFAULT_BUFFER_SIZE];
-    RCEI   *buffer;
+struct RCEBuffer {
+    RCEI defaultBuffer[DEFAULT_BUFFER_SIZE];
+    RCEI* buffer;
     int32_t bufferIndex;
     int32_t bufferSize;
 
@@ -62,8 +60,8 @@ struct RCEBuffer
     ~RCEBuffer();
 
     UBool isEmpty() const;
-    void  put(uint32_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode &errorCode);
-    const RCEI *get();
+    void put(uint32_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode& errorCode);
+    const RCEI* get();
 };
 
 RCEBuffer::RCEBuffer()
@@ -85,14 +83,14 @@ UBool RCEBuffer::isEmpty() const
     return bufferIndex <= 0;
 }
 
-void RCEBuffer::put(uint32_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode &errorCode)
+void RCEBuffer::put(uint32_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode& errorCode)
 {
     if (U_FAILURE(errorCode)) {
         return;
     }
     if (bufferIndex >= bufferSize) {
-        RCEI *newBuffer = NEW_ARRAY(RCEI, bufferSize + BUFFER_GROW);
-        if (newBuffer == nullptr) {
+        RCEI* newBuffer = NEW_ARRAY(RCEI, bufferSize + BUFFER_GROW);
+        if (newBuffer == NULL) {
             errorCode = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
@@ -107,20 +105,20 @@ void RCEBuffer::put(uint32_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode &erro
         bufferSize += BUFFER_GROW;
     }
 
-    buffer[bufferIndex].ce   = ce;
-    buffer[bufferIndex].low  = ixLow;
+    buffer[bufferIndex].ce = ce;
+    buffer[bufferIndex].low = ixLow;
     buffer[bufferIndex].high = ixHigh;
 
     bufferIndex += 1;
 }
 
-const RCEI *RCEBuffer::get()
+const RCEI* RCEBuffer::get()
 {
     if (bufferIndex > 0) {
-     return &buffer[--bufferIndex];
+        return &buffer[--bufferIndex];
     }
 
-    return nullptr;
+    return NULL;
 }
 
 PCEBuffer::PCEBuffer()
@@ -147,14 +145,14 @@ UBool PCEBuffer::isEmpty() const
     return bufferIndex <= 0;
 }
 
-void PCEBuffer::put(uint64_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode &errorCode)
+void PCEBuffer::put(uint64_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode& errorCode)
 {
     if (U_FAILURE(errorCode)) {
         return;
     }
     if (bufferIndex >= bufferSize) {
-        PCEI *newBuffer = NEW_ARRAY(PCEI, bufferSize + BUFFER_GROW);
-        if (newBuffer == nullptr) {
+        PCEI* newBuffer = NEW_ARRAY(PCEI, bufferSize + BUFFER_GROW);
+        if (newBuffer == NULL) {
             errorCode = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
@@ -169,43 +167,50 @@ void PCEBuffer::put(uint64_t ce, int32_t ixLow, int32_t ixHigh, UErrorCode &erro
         bufferSize += BUFFER_GROW;
     }
 
-    buffer[bufferIndex].ce   = ce;
-    buffer[bufferIndex].low  = ixLow;
+    buffer[bufferIndex].ce = ce;
+    buffer[bufferIndex].low = ixLow;
     buffer[bufferIndex].high = ixHigh;
 
     bufferIndex += 1;
 }
 
-const PCEI *PCEBuffer::get()
+const PCEI* PCEBuffer::get()
 {
     if (bufferIndex > 0) {
-     return &buffer[--bufferIndex];
+        return &buffer[--bufferIndex];
     }
 
-    return nullptr;
+    return NULL;
 }
 
-UCollationPCE::UCollationPCE(UCollationElements *elems) { init(elems); }
+UCollationPCE::UCollationPCE(UCollationElements* elems)
+{
+    init(elems);
+}
 
-UCollationPCE::UCollationPCE(CollationElementIterator *iter) { init(iter); }
+UCollationPCE::UCollationPCE(CollationElementIterator* iter)
+{
+    init(iter);
+}
 
-void UCollationPCE::init(UCollationElements *elems) {
+void UCollationPCE::init(UCollationElements* elems)
+{
     init(CollationElementIterator::fromUCollationElements(elems));
 }
 
-void UCollationPCE::init(CollationElementIterator *iter)
+void UCollationPCE::init(CollationElementIterator* iter)
 {
     cei = iter;
     init(*iter->rbc_);
 }
 
-void UCollationPCE::init(const Collator &coll)
+void UCollationPCE::init(const Collator& coll)
 {
     UErrorCode status = U_ZERO_ERROR;
 
-    strength    = coll.getAttribute(UCOL_STRENGTH, status);
-    toShift     = coll.getAttribute(UCOL_ALTERNATE_HANDLING, status) == UCOL_SHIFTED;
-    isShifted   = false;
+    strength = coll.getAttribute(UCOL_STRENGTH, status);
+    toShift = coll.getAttribute(UCOL_ALTERNATE_HANDLING, status) == UCOL_SHIFTED;
+    isShifted = FALSE;
     variableTop = coll.getVariableTop(status);
 }
 
@@ -221,7 +226,7 @@ uint64_t UCollationPCE::processCE(uint32_t ce)
     // This is clean, but somewhat slow...
     // We could apply the mask to ce and then
     // just get all three orders...
-    switch(strength) {
+    switch (strength) {
     default:
         tertiary = ucol_tertiaryOrder(ce);
         U_FALLTHROUGH;
@@ -242,8 +247,7 @@ uint64_t UCollationPCE::processCE(uint32_t ce)
     // **** the *second* CE is marked as a continuation, so ****
     // **** we always have to peek ahead to know how long   ****
     // **** the primary is...                               ****
-    if ((toShift && variableTop > ce && primary != 0)
-                || (isShifted && primary == 0)) {
+    if ((toShift && variableTop > ce && primary != 0) || (isShifted && primary == 0)) {
 
         if (primary == 0) {
             return UCOL_IGNORABLE;
@@ -254,13 +258,13 @@ uint64_t UCollationPCE::processCE(uint32_t ce)
         }
 
         primary = secondary = tertiary = 0;
-        isShifted = true;
+        isShifted = TRUE;
     } else {
         if (strength >= UCOL_QUATERNARY) {
             quaternary = 0xFFFF;
         }
 
-        isShifted = false;
+        isShifted = FALSE;
     }
 
     return primary << 48 | secondary << 32 | tertiary << 16 | quaternary;
@@ -270,51 +274,42 @@ U_NAMESPACE_END
 
 /* public methods ---------------------------------------------------- */
 
-U_CAPI UCollationElements* U_EXPORT2
-ucol_openElements(const UCollator  *coll,
-                  const char16_t   *text,
-                        int32_t    textLength,
-                        UErrorCode *status)
+U_CAPI UCollationElements* U_EXPORT2 ucol_openElements(const UCollator* coll, const UChar* text, int32_t textLength, UErrorCode* status)
 {
     if (U_FAILURE(*status)) {
-        return nullptr;
+        return NULL;
     }
-    if (coll == nullptr || (text == nullptr && textLength != 0)) {
+    if (coll == NULL || (text == NULL && textLength != 0)) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return nullptr;
+        return NULL;
     }
-    const RuleBasedCollator *rbc = RuleBasedCollator::rbcFromUCollator(coll);
-    if (rbc == nullptr) {
-        *status = U_UNSUPPORTED_ERROR;  // coll is a Collator but not a RuleBasedCollator
-        return nullptr;
+    const RuleBasedCollator* rbc = RuleBasedCollator::rbcFromUCollator(coll);
+    if (rbc == NULL) {
+        *status = U_UNSUPPORTED_ERROR; // coll is a Collator but not a RuleBasedCollator
+        return NULL;
     }
 
     UnicodeString s((UBool)(textLength < 0), text, textLength);
-    CollationElementIterator *cei = rbc->createCollationElementIterator(s);
-    if (cei == nullptr) {
+    CollationElementIterator* cei = rbc->createCollationElementIterator(s);
+    if (cei == NULL) {
         *status = U_MEMORY_ALLOCATION_ERROR;
-        return nullptr;
+        return NULL;
     }
 
     return cei->toUCollationElements();
 }
 
-
-U_CAPI void U_EXPORT2
-ucol_closeElements(UCollationElements *elems)
+U_CAPI void U_EXPORT2 ucol_closeElements(UCollationElements* elems)
 {
     delete CollationElementIterator::fromUCollationElements(elems);
 }
 
-U_CAPI void U_EXPORT2
-ucol_reset(UCollationElements *elems)
+U_CAPI void U_EXPORT2 ucol_reset(UCollationElements* elems)
 {
     CollationElementIterator::fromUCollationElements(elems)->reset();
 }
 
-U_CAPI int32_t U_EXPORT2
-ucol_next(UCollationElements *elems, 
-          UErrorCode         *status)
+U_CAPI int32_t U_EXPORT2 ucol_next(UCollationElements* elems, UErrorCode* status)
 {
     if (U_FAILURE(*status)) {
         return UCOL_NULLORDER;
@@ -325,11 +320,7 @@ ucol_next(UCollationElements *elems,
 
 U_NAMESPACE_BEGIN
 
-int64_t
-UCollationPCE::nextProcessed(
-                   int32_t            *ixLow,
-                   int32_t            *ixHigh,
-                   UErrorCode         *status)
+int64_t UCollationPCE::nextProcessed(int32_t* ixLow, int32_t* ixHigh, UErrorCode* status)
 {
     int64_t result = UCOL_IGNORABLE;
     uint32_t low = 0, high = 0;
@@ -346,18 +337,18 @@ UCollationPCE::nextProcessed(
         high = cei->getOffset();
 
         if (ce == UCOL_NULLORDER) {
-             result = UCOL_PROCESSED_NULLORDER;
-             break;
+            result = UCOL_PROCESSED_NULLORDER;
+            break;
         }
 
         result = processCE((uint32_t)ce);
     } while (result == UCOL_IGNORABLE);
 
-    if (ixLow != nullptr) {
+    if (ixLow != NULL) {
         *ixLow = low;
     }
 
-    if (ixHigh != nullptr) {
+    if (ixHigh != NULL) {
         *ixHigh = high;
     }
 
@@ -366,11 +357,9 @@ UCollationPCE::nextProcessed(
 
 U_NAMESPACE_END
 
-U_CAPI int32_t U_EXPORT2
-ucol_previous(UCollationElements *elems,
-              UErrorCode         *status)
+U_CAPI int32_t U_EXPORT2 ucol_previous(UCollationElements* elems, UErrorCode* status)
 {
-    if(U_FAILURE(*status)) {
+    if (U_FAILURE(*status)) {
         return UCOL_NULLORDER;
     }
     return CollationElementIterator::fromUCollationElements(elems)->previous(*status);
@@ -378,14 +367,10 @@ ucol_previous(UCollationElements *elems,
 
 U_NAMESPACE_BEGIN
 
-int64_t
-UCollationPCE::previousProcessed(
-                   int32_t            *ixLow,
-                   int32_t            *ixHigh,
-                   UErrorCode         *status)
+int64_t UCollationPCE::previousProcessed(int32_t* ixLow, int32_t* ixHigh, UErrorCode* status)
 {
     int64_t result = UCOL_IGNORABLE;
-    int32_t  low = 0, high = 0;
+    int32_t low = 0, high = 0;
 
     if (U_FAILURE(*status)) {
         return UCOL_PROCESSED_NULLORDER;
@@ -397,12 +382,12 @@ UCollationPCE::previousProcessed(
         // buffer raw CEs up to non-ignorable primary
         RCEBuffer rceb;
         int32_t ce;
-        
+
         // **** do we need to reset rceb, or will it always be empty at this point ****
         do {
             high = cei->getOffset();
-            ce   = cei->previous(*status);
-            low  = cei->getOffset();
+            ce = cei->previous(*status);
+            low = cei->getOffset();
 
             if (ce == UCOL_NULLORDER) {
                 if (!rceb.isEmpty()) {
@@ -417,7 +402,7 @@ UCollationPCE::previousProcessed(
 
         // process the raw CEs
         while (U_SUCCESS(*status) && !rceb.isEmpty()) {
-            const RCEI *rcei = rceb.get();
+            const RCEI* rcei = rceb.get();
 
             result = processCE(rcei->ce);
 
@@ -433,24 +418,23 @@ UCollationPCE::previousProcessed(
 finish:
     if (pceBuffer.isEmpty()) {
         // **** Is -1 the right value for ixLow, ixHigh? ****
-    	if (ixLow != nullptr) {
-    		*ixLow = -1;
-    	}
-    	
-    	if (ixHigh != nullptr) {
-    		*ixHigh = -1
-    		;
-    	}
+        if (ixLow != NULL) {
+            *ixLow = -1;
+        }
+
+        if (ixHigh != NULL) {
+            *ixHigh = -1;
+        }
         return UCOL_PROCESSED_NULLORDER;
     }
 
-    const PCEI *pcei = pceBuffer.get();
+    const PCEI* pcei = pceBuffer.get();
 
-    if (ixLow != nullptr) {
+    if (ixLow != NULL) {
         *ixLow = pcei->low;
     }
 
-    if (ixHigh != nullptr) {
+    if (ixHigh != NULL) {
         *ixHigh = pcei->high;
     }
 
@@ -459,9 +443,7 @@ finish:
 
 U_NAMESPACE_END
 
-U_CAPI int32_t U_EXPORT2
-ucol_getMaxExpansion(const UCollationElements *elems,
-                           int32_t            order)
+U_CAPI int32_t U_EXPORT2 ucol_getMaxExpansion(const UCollationElements* elems, int32_t order)
 {
     return CollationElementIterator::fromUCollationElements(elems)->getMaxExpansion(order);
 
@@ -474,17 +456,13 @@ ucol_getMaxExpansion(const UCollationElements *elems,
     // of the hits...
 }
 
-U_CAPI void U_EXPORT2
-ucol_setText(      UCollationElements *elems,
-             const char16_t           *text,
-                   int32_t            textLength,
-                   UErrorCode         *status)
+U_CAPI void U_EXPORT2 ucol_setText(UCollationElements* elems, const UChar* text, int32_t textLength, UErrorCode* status)
 {
     if (U_FAILURE(*status)) {
         return;
     }
 
-    if ((text == nullptr && textLength != 0)) {
+    if ((text == NULL && textLength != 0)) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
@@ -492,16 +470,12 @@ ucol_setText(      UCollationElements *elems,
     return CollationElementIterator::fromUCollationElements(elems)->setText(s, *status);
 }
 
-U_CAPI int32_t U_EXPORT2
-ucol_getOffset(const UCollationElements *elems)
+U_CAPI int32_t U_EXPORT2 ucol_getOffset(const UCollationElements* elems)
 {
     return CollationElementIterator::fromUCollationElements(elems)->getOffset();
 }
 
-U_CAPI void U_EXPORT2
-ucol_setOffset(UCollationElements    *elems,
-               int32_t           offset,
-               UErrorCode            *status)
+U_CAPI void U_EXPORT2 ucol_setOffset(UCollationElements* elems, int32_t offset, UErrorCode* status)
 {
     if (U_FAILURE(*status)) {
         return;
@@ -510,20 +484,17 @@ ucol_setOffset(UCollationElements    *elems,
     CollationElementIterator::fromUCollationElements(elems)->setOffset(offset, *status);
 }
 
-U_CAPI int32_t U_EXPORT2
-ucol_primaryOrder (int32_t order) 
+U_CAPI int32_t U_EXPORT2 ucol_primaryOrder(int32_t order)
 {
     return (order >> 16) & 0xffff;
 }
 
-U_CAPI int32_t U_EXPORT2
-ucol_secondaryOrder (int32_t order) 
+U_CAPI int32_t U_EXPORT2 ucol_secondaryOrder(int32_t order)
 {
     return (order >> 8) & 0xff;
 }
 
-U_CAPI int32_t U_EXPORT2
-ucol_tertiaryOrder (int32_t order) 
+U_CAPI int32_t U_EXPORT2 ucol_tertiaryOrder(int32_t order)
 {
     return order & 0xff;
 }

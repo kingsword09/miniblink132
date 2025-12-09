@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ********************************************************************************
@@ -74,14 +74,14 @@ class Hashtable;
  * DateFormatSymbols are not expected to be subclassed. Data for a calendar is
  * loaded out of resource bundles.  The 'type' parameter indicates the type of
  * calendar, for example, "gregorian" or "japanese".  If the type is not gregorian
- * (or nullptr, or an empty string) then the type is appended to the resource name,
+ * (or NULL, or an empty string) then the type is appended to the resource name,
  * for example,  'Eras_japanese' instead of 'Eras'.   If the resource 'Eras_japanese' did
  * not exist (even in root), then this class will fall back to just 'Eras', that is,
  * Gregorian data.  Therefore, the calendar implementor MUST ensure that the root
  * locale at least contains any resources that are to be particularized for the
  * calendar type.
  */
-class U_I18N_API DateFormatSymbols final : public UObject  {
+class U_I18N_API DateFormatSymbols U_FINAL : public UObject {
 public:
     /**
      * Construct a DateFormatSymbols object by loading format data from
@@ -108,8 +108,7 @@ public:
      *                  found or cannot be loaded
      * @stable ICU 2.0
      */
-    DateFormatSymbols(const Locale& locale,
-                      UErrorCode& status);
+    DateFormatSymbols(const Locale& locale, UErrorCode& status);
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -122,13 +121,13 @@ public:
      *
      * @param type      Type of calendar (as returned by Calendar::getType).
      *                  Will be used to access the correct set of strings.
-     *                  (nullptr or empty string defaults to "gregorian".)
+     *                  (NULL or empty string defaults to "gregorian".)
      * @param status    Status code.  Failure
      *                  results if the resources for the default cannot be
      *                  found or cannot be loaded
      * @internal
      */
-    DateFormatSymbols(const char *type, UErrorCode& status);
+    DateFormatSymbols(const char* type, UErrorCode& status);
 
     /**
      * Construct a DateFormatSymbols object by loading format data from
@@ -137,16 +136,14 @@ public:
      * @param locale    Locale to load format data from.
      * @param type      Type of calendar (as returned by Calendar::getType).
      *                  Will be used to access the correct set of strings.
-     *                  (nullptr or empty string defaults to "gregorian".)
+     *                  (NULL or empty string defaults to "gregorian".)
      * @param status    Status code.  Failure
      *                  results if the resources for the locale cannot be
      *                  found or cannot be loaded
      * @internal
      */
-    DateFormatSymbols(const Locale& locale,
-                      const char *type,
-                      UErrorCode& status);
-#endif  /* U_HIDE_INTERNAL_API */
+    DateFormatSymbols(const Locale& locale, const char* type, UErrorCode& status);
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Copy constructor.
@@ -183,7 +180,10 @@ public:
      * @return         true if other is semantically unequal to this.
      * @stable ICU 2.0
      */
-    bool operator!=(const DateFormatSymbols& other) const { return !operator==(other); }
+    bool operator!=(const DateFormatSymbols& other) const
+    {
+        return !operator==(other);
+    }
 
     /**
      * Gets abbreviated era strings. For example: "AD" and "BC".
@@ -283,7 +283,7 @@ public:
          * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
          */
         DT_CONTEXT_COUNT
-#endif  // U_HIDE_DEPRECATED_API
+#endif // U_HIDE_DEPRECATED_API
     };
 
     /**
@@ -305,7 +305,7 @@ public:
          * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
          */
         DT_WIDTH_COUNT = 4
-#endif  // U_HIDE_DEPRECATED_API
+#endif // U_HIDE_DEPRECATED_API
     };
 
     /**
@@ -336,7 +336,6 @@ public:
      * @stable ICU 2.0
      */
     const UnicodeString* getWeekdays(int32_t& count) const;
-
 
     /**
      * Sets wide weekday strings. For example: "Sunday", "Monday", etc.
@@ -427,13 +426,13 @@ public:
      * doesn't specify any time separator, and always recognized when parsing.
      * @internal
      */
-    static const char16_t DEFAULT_TIME_SEPARATOR = 0x003a;  // ':'
+    static const char16_t DEFAULT_TIME_SEPARATOR = 0x003a; // ':'
 
     /**
      * This alternate time separator is always recognized when parsing.
      * @internal
      */
-    static const char16_t ALTERNATE_TIME_SEPARATOR = 0x002e;  // '.'
+    static const char16_t ALTERNATE_TIME_SEPARATOR = 0x002e; // '.'
 
     /**
      * Gets the time separator string. For example: ":".
@@ -449,7 +448,7 @@ public:
      * @internal
      */
     void setTimeSeparatorString(const UnicodeString& newTimeSeparator);
-#endif  /* U_HIDE_INTERNAL_API */
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Gets cyclic year name strings if the calendar has them, by width and context.
@@ -461,8 +460,7 @@ public:
      *                  or null if they are not available for this calendar.
      * @stable ICU 54
      */
-    const UnicodeString* getYearNames(int32_t& count,
-                            DtContextType context, DtWidthType width) const;
+    const UnicodeString* getYearNames(int32_t& count, DtContextType context, DtWidthType width) const;
 
     /**
      * Sets cyclic year name strings by width and context. For example: "jia-zi", "yi-chou", etc.
@@ -473,8 +471,7 @@ public:
      * @param width     The name width: WIDE, ABBREVIATED, NARROW (currently only ABBREVIATED is supported).
      * @stable ICU 54
      */
-    void setYearNames(const UnicodeString* yearNames, int32_t count,
-                            DtContextType context, DtWidthType width);
+    void setYearNames(const UnicodeString* yearNames, int32_t count, DtContextType context, DtWidthType width);
 
     /**
      * Gets calendar zodiac name strings if the calendar has them, by width and context.
@@ -486,8 +483,7 @@ public:
      *                  or null if they are not available for this calendar.
      * @stable ICU 54
      */
-    const UnicodeString* getZodiacNames(int32_t& count,
-                            DtContextType context, DtWidthType width) const;
+    const UnicodeString* getZodiacNames(int32_t& count, DtContextType context, DtWidthType width) const;
 
     /**
      * Sets calendar zodiac name strings by width and context. For example: "Rat", "Ox", "Tiger", etc.
@@ -498,8 +494,7 @@ public:
      * @param width     The name width: WIDE, ABBREVIATED, NARROW (currently only ABBREVIATED is supported).
      * @stable ICU 54
      */
-    void setZodiacNames(const UnicodeString* zodiacNames, int32_t count,
-                            DtContextType context, DtWidthType width);
+    void setZodiacNames(const UnicodeString* zodiacNames, int32_t count, DtContextType context, DtWidthType width);
 
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -510,8 +505,7 @@ public:
      * more complete approach.
      * @internal
      */
-    enum EMonthPatternType
-    {
+    enum EMonthPatternType {
         kLeapMonthPatternFormatWide,
         kLeapMonthPatternFormatAbbrev,
         kLeapMonthPatternFormatNarrow,
@@ -524,19 +518,19 @@ public:
 
     /**
      * Somewhat temporary function for getting complete set of leap month patterns for all
-     * contexts & widths, indexed by EMonthPatternType values. Returns nullptr if calendar
+     * contexts & widths, indexed by EMonthPatternType values. Returns NULL if calendar
      * does not have leap month patterns. Note, there is currently no setter for this.
      * Eventually we will add full support for different month pattern types (needed for
      * other calendars such as Hindu) at which point this approach will be replaced by a
      * more complete approach.
      * @param count        Filled in with length of the array (may be 0).
      * @return             The leap month patterns (DateFormatSymbols retains ownership).
-     *                     May be nullptr if there are no leap month patterns for this calendar.
+     *                     May be NULL if there are no leap month patterns for this calendar.
      * @internal
      */
     const UnicodeString* getLeapMonthPatterns(int32_t& count) const;
 
-#endif  /* U_HIDE_INTERNAL_API */
+#endif /* U_HIDE_INTERNAL_API */
 
 #ifndef U_HIDE_DEPRECATED_API
     /**
@@ -547,7 +541,7 @@ public:
      * @deprecated ICU 3.6
      */
     const UnicodeString** getZoneStrings(int32_t& rowCount, int32_t& columnCount) const;
-#endif  /* U_HIDE_DEPRECATED_API */
+#endif /* U_HIDE_DEPRECATED_API */
 
     /**
      * Sets timezone strings. These strings are stored in a 2-dimensional array.
@@ -567,7 +561,7 @@ public:
      * @return    the non-localized date-time pattern characters
      * @stable ICU 2.0
      */
-    static const char16_t * U_EXPORT2 getPatternUChars(void);
+    static const char16_t* U_EXPORT2 getPatternUChars(void);
 
     /**
      * Gets localized date-time pattern characters. For example: 'u', 't', etc.
@@ -597,19 +591,18 @@ public:
     Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
 
     /* The following type and kCapContextUsageTypeCount cannot be #ifndef U_HIDE_INTERNAL_API,
-       they are needed for .h file declarations. */ 
+       they are needed for .h file declarations. */
     /**
      * Constants for capitalization context usage types.
      * @internal
      */
-    enum ECapitalizationContextUsageType
-    {
+    enum ECapitalizationContextUsageType {
 #ifndef U_HIDE_INTERNAL_API
         kCapContextUsageOther = 0,
-        kCapContextUsageMonthFormat,     /* except narrow */
+        kCapContextUsageMonthFormat, /* except narrow */
         kCapContextUsageMonthStandalone, /* except narrow */
         kCapContextUsageMonthNarrow,
-        kCapContextUsageDayFormat,     /* except narrow */
+        kCapContextUsageDayFormat, /* except narrow */
         kCapContextUsageDayStandalone, /* except narrow */
         kCapContextUsageDayNarrow,
         kCapContextUsageEraWide,
@@ -638,188 +631,187 @@ public:
     static UClassID U_EXPORT2 getStaticClassID();
 
 private:
-
     friend class SimpleDateFormat;
     friend class DateFormatSymbolsSingleSetter; // see udat.cpp
 
     /**
      * Abbreviated era strings. For example: "AD" and "BC".
      */
-    UnicodeString*  fEras;
-    int32_t         fErasCount;
+    UnicodeString* fEras;
+    int32_t fErasCount;
 
     /**
      * Era name strings. For example: "Anno Domini" and "Before Christ".
      */
-    UnicodeString*  fEraNames;
-    int32_t         fEraNamesCount;
+    UnicodeString* fEraNames;
+    int32_t fEraNamesCount;
 
     /**
      * Narrow era strings. For example: "A" and "B".
      */
-    UnicodeString*  fNarrowEras;
-    int32_t         fNarrowErasCount;
+    UnicodeString* fNarrowEras;
+    int32_t fNarrowErasCount;
 
     /**
      * Month strings. For example: "January", "February", etc.
      */
-    UnicodeString*  fMonths;
-    int32_t         fMonthsCount;
+    UnicodeString* fMonths;
+    int32_t fMonthsCount;
 
     /**
      * Short month strings. For example: "Jan", "Feb", etc.
      */
-    UnicodeString*  fShortMonths;
-    int32_t         fShortMonthsCount;
+    UnicodeString* fShortMonths;
+    int32_t fShortMonthsCount;
 
     /**
      * Narrow month strings. For example: "J", "F", etc.
      */
-    UnicodeString*  fNarrowMonths;
-    int32_t         fNarrowMonthsCount;
+    UnicodeString* fNarrowMonths;
+    int32_t fNarrowMonthsCount;
 
     /**
      * Standalone Month strings. For example: "January", "February", etc.
      */
-    UnicodeString*  fStandaloneMonths;
-    int32_t         fStandaloneMonthsCount;
+    UnicodeString* fStandaloneMonths;
+    int32_t fStandaloneMonthsCount;
 
     /**
      * Standalone Short month strings. For example: "Jan", "Feb", etc.
      */
-    UnicodeString*  fStandaloneShortMonths;
-    int32_t         fStandaloneShortMonthsCount;
+    UnicodeString* fStandaloneShortMonths;
+    int32_t fStandaloneShortMonthsCount;
 
     /**
      * Standalone Narrow month strings. For example: "J", "F", etc.
      */
-    UnicodeString*  fStandaloneNarrowMonths;
-    int32_t         fStandaloneNarrowMonthsCount;
+    UnicodeString* fStandaloneNarrowMonths;
+    int32_t fStandaloneNarrowMonthsCount;
 
     /**
      * CLDR-style format wide weekday strings. For example: "Sunday", "Monday", etc.
      */
-    UnicodeString*  fWeekdays;
-    int32_t         fWeekdaysCount;
+    UnicodeString* fWeekdays;
+    int32_t fWeekdaysCount;
 
     /**
      * CLDR-style format abbreviated (not short) weekday strings. For example: "Sun", "Mon", etc.
      */
-    UnicodeString*  fShortWeekdays;
-    int32_t         fShortWeekdaysCount;
+    UnicodeString* fShortWeekdays;
+    int32_t fShortWeekdaysCount;
 
     /**
      * CLDR-style format short weekday strings. For example: "Su", "Mo", etc.
      */
-    UnicodeString*  fShorterWeekdays;
-    int32_t         fShorterWeekdaysCount;
+    UnicodeString* fShorterWeekdays;
+    int32_t fShorterWeekdaysCount;
 
     /**
      * CLDR-style format narrow weekday strings. For example: "S", "M", etc.
      */
-    UnicodeString*  fNarrowWeekdays;
-    int32_t         fNarrowWeekdaysCount;
+    UnicodeString* fNarrowWeekdays;
+    int32_t fNarrowWeekdaysCount;
 
     /**
      * CLDR-style standalone wide weekday strings. For example: "Sunday", "Monday", etc.
      */
-    UnicodeString*  fStandaloneWeekdays;
-    int32_t         fStandaloneWeekdaysCount;
+    UnicodeString* fStandaloneWeekdays;
+    int32_t fStandaloneWeekdaysCount;
 
     /**
      * CLDR-style standalone abbreviated (not short) weekday strings. For example: "Sun", "Mon", etc.
      */
-    UnicodeString*  fStandaloneShortWeekdays;
-    int32_t         fStandaloneShortWeekdaysCount;
+    UnicodeString* fStandaloneShortWeekdays;
+    int32_t fStandaloneShortWeekdaysCount;
 
     /**
      * CLDR-style standalone short weekday strings. For example: "Su", "Mo", etc.
      */
-    UnicodeString*  fStandaloneShorterWeekdays;
-    int32_t         fStandaloneShorterWeekdaysCount;
+    UnicodeString* fStandaloneShorterWeekdays;
+    int32_t fStandaloneShorterWeekdaysCount;
 
     /**
      * Standalone Narrow weekday strings. For example: "Sun", "Mon", etc.
      */
-    UnicodeString*  fStandaloneNarrowWeekdays;
-    int32_t         fStandaloneNarrowWeekdaysCount;
+    UnicodeString* fStandaloneNarrowWeekdays;
+    int32_t fStandaloneNarrowWeekdaysCount;
 
     /**
      * Ampm strings. For example: "AM" and "PM".
      */
-    UnicodeString*  fAmPms;
-    int32_t         fAmPmsCount;
+    UnicodeString* fAmPms;
+    int32_t fAmPmsCount;
 
     /**
      * Narrow Ampm strings. For example: "a" and "p".
      */
-    UnicodeString*  fNarrowAmPms;
-    int32_t         fNarrowAmPmsCount;
+    UnicodeString* fNarrowAmPms;
+    int32_t fNarrowAmPmsCount;
 
     /**
      * Time separator string. For example: ":".
      */
-    UnicodeString   fTimeSeparator;
+    UnicodeString fTimeSeparator;
 
     /**
      * Quarter strings. For example: "1st quarter", "2nd quarter", etc.
      */
-    UnicodeString  *fQuarters;
-    int32_t         fQuartersCount;
+    UnicodeString* fQuarters;
+    int32_t fQuartersCount;
 
     /**
      * Short quarters. For example: "Q1", "Q2", etc.
      */
-    UnicodeString  *fShortQuarters;
-    int32_t         fShortQuartersCount;
+    UnicodeString* fShortQuarters;
+    int32_t fShortQuartersCount;
 
     /**
      * Narrow quarters. For example: "1", "2", etc.
      * (In many, but not all, locales, this is the same as "Q", but there are locales for which this isn't true.)
      */
-    UnicodeString  *fNarrowQuarters;
-    int32_t         fNarrowQuartersCount;
-    
+    UnicodeString* fNarrowQuarters;
+    int32_t fNarrowQuartersCount;
+
     /**
      * Standalone quarter strings. For example: "1st quarter", "2nd quarter", etc.
      */
-    UnicodeString  *fStandaloneQuarters;
-    int32_t         fStandaloneQuartersCount;
+    UnicodeString* fStandaloneQuarters;
+    int32_t fStandaloneQuartersCount;
 
     /**
      * Standalone short quarter strings. For example: "Q1", "Q2", etc.
      */
-    UnicodeString  *fStandaloneShortQuarters;
-    int32_t         fStandaloneShortQuartersCount;
+    UnicodeString* fStandaloneShortQuarters;
+    int32_t fStandaloneShortQuartersCount;
 
     /**
      * Standalone narrow quarter strings. For example: "1", "2", etc.
      * (In many, but not all, locales, this is the same as "q", but there are locales for which this isn't true.)
      */
-    UnicodeString  *fStandaloneNarrowQuarters;
-    int32_t         fStandaloneNarrowQuartersCount;
-    
+    UnicodeString* fStandaloneNarrowQuarters;
+    int32_t fStandaloneNarrowQuartersCount;
+
     /**
      * All leap month patterns, for example "{0}bis".
      */
-    UnicodeString  *fLeapMonthPatterns;
-    int32_t         fLeapMonthPatternsCount;
+    UnicodeString* fLeapMonthPatterns;
+    int32_t fLeapMonthPatternsCount;
 
     /**
      * Cyclic year names, for example: "jia-zi", "yi-chou", ... "gui-hai";
      * currently we only have data for format/abbreviated.
      * For the others, just get from format/abbreviated, ignore set.
      */
-    UnicodeString  *fShortYearNames;
-    int32_t         fShortYearNamesCount;
+    UnicodeString* fShortYearNames;
+    int32_t fShortYearNamesCount;
 
     /**
      * Cyclic zodiac names, for example "Rat", "Ox", "Tiger", etc.;
      * currently we only have data for format/abbreviated.
      * For the others, just get from format/abbreviated, ignore set.
      */
-    UnicodeString  *fShortZodiacNames;
-    int32_t         fShortZodiacNamesCount;
+    UnicodeString* fShortZodiacNames;
+    int32_t fShortZodiacNamesCount;
 
     /**
      * Localized names of time zones in this locale.  This is a
@@ -828,7 +820,7 @@ private:
      * entry containing the localized names for a single TimeZone.
      *
      * Each such row contains (with i ranging from 0..n-1):
-     * 
+     *
      * zoneStrings[i][0] - time zone ID
      *  example: America/Los_Angeles
      * zoneStrings[i][1] - long name of zone in standard time
@@ -858,69 +850,69 @@ private:
      * instance.  But we still need to support the old way of customizing
      * localized zone names, so we keep this field for the purpose.
      */
-    UnicodeString   **fZoneStrings;         // Zone string array set by setZoneStrings
-    UnicodeString   **fLocaleZoneStrings;   // Zone string array created by the locale
-    int32_t         fZoneStringsRowCount;
-    int32_t         fZoneStringsColCount;
+    UnicodeString** fZoneStrings; // Zone string array set by setZoneStrings
+    UnicodeString** fLocaleZoneStrings; // Zone string array created by the locale
+    int32_t fZoneStringsRowCount;
+    int32_t fZoneStringsColCount;
 
-    Locale                  fZSFLocale;         // Locale used for getting ZoneStringFormat
+    Locale fZSFLocale; // Locale used for getting ZoneStringFormat
 
     /**
      * Localized date-time pattern characters. For example: use 'u' as 'y'.
      */
-    UnicodeString   fLocalPatternChars;
+    UnicodeString fLocalPatternChars;
 
     /**
      * Capitalization transforms. For each usage type, the first array element indicates
      * whether to titlecase for uiListOrMenu context, the second indicates whether to
      * titlecase for stand-alone context.
      */
-     UBool fCapitalization[kCapContextUsageTypeCount][2];
+    UBool fCapitalization[kCapContextUsageTypeCount][2];
 
     /**
      * Abbreviated (== short) day period strings.
      */
-    UnicodeString  *fAbbreviatedDayPeriods;
-    int32_t         fAbbreviatedDayPeriodsCount;
+    UnicodeString* fAbbreviatedDayPeriods;
+    int32_t fAbbreviatedDayPeriodsCount;
 
     /**
      * Wide day period strings.
      */
-    UnicodeString  *fWideDayPeriods;
-    int32_t         fWideDayPeriodsCount;
+    UnicodeString* fWideDayPeriods;
+    int32_t fWideDayPeriodsCount;
 
     /**
      * Narrow day period strings.
      */
-    UnicodeString  *fNarrowDayPeriods;
-    int32_t         fNarrowDayPeriodsCount;
+    UnicodeString* fNarrowDayPeriods;
+    int32_t fNarrowDayPeriodsCount;
 
     /**
      * Stand-alone abbreviated (== short) day period strings.
      */
-    UnicodeString  *fStandaloneAbbreviatedDayPeriods;
-    int32_t         fStandaloneAbbreviatedDayPeriodsCount;
+    UnicodeString* fStandaloneAbbreviatedDayPeriods;
+    int32_t fStandaloneAbbreviatedDayPeriodsCount;
 
     /**
      * Stand-alone wide day period strings.
      */
-    UnicodeString  *fStandaloneWideDayPeriods;
-    int32_t         fStandaloneWideDayPeriodsCount;
+    UnicodeString* fStandaloneWideDayPeriods;
+    int32_t fStandaloneWideDayPeriodsCount;
 
     /**
      * Stand-alone narrow day period strings.
      */
-    UnicodeString  *fStandaloneNarrowDayPeriods;
-    int32_t         fStandaloneNarrowDayPeriodsCount;
+    UnicodeString* fStandaloneNarrowDayPeriods;
+    int32_t fStandaloneNarrowDayPeriodsCount;
 
 private:
-    /** valid/actual locale information 
+    /** valid/actual locale information
      *  these are always ICU locales, so the length should not be a problem
      */
     char validLocale[ULOC_FULLNAME_CAPACITY];
     char actualLocale[ULOC_FULLNAME_CAPACITY];
 
-    DateFormatSymbols() = delete; // default constructor not implemented
+    DateFormatSymbols(); // default constructor not implemented
 
     /**
      * Called by the constructors to actually load data from the resources
@@ -931,8 +923,7 @@ private:
      *                             failure code upon return.
      * @param useLastResortData    determine if use last resort data
      */
-    void initializeData(const Locale& locale, const char *type,
-                        UErrorCode& status, UBool useLastResortData = false);
+    void initializeData(const Locale& locale, const char* type, UErrorCode& status, UBool useLastResortData = false);
 
     /**
      * Copy or alias an array in another object, as appropriate.
@@ -942,10 +933,7 @@ private:
      * @param srcArray    the source array to be copied.
      * @param srcCount    the length of items to be copied from the 'srcArray'.
      */
-    static void assignArray(UnicodeString*& dstArray,
-                            int32_t& dstCount,
-                            const UnicodeString* srcArray,
-                            int32_t srcCount);
+    static void assignArray(UnicodeString*& dstArray, int32_t& dstCount, const UnicodeString* srcArray, int32_t srcCount);
 
     /**
      * Return true if the given arrays' contents are equal, or if the arrays are
@@ -957,16 +945,14 @@ private:
      * @return         true if the given arrays' contents are equal, or if the arrays are
      *                 identical (pointers are equal).
      */
-    static UBool arrayCompare(const UnicodeString* array1,
-                             const UnicodeString* array2,
-                             int32_t count);
+    static UBool arrayCompare(const UnicodeString* array1, const UnicodeString* array2, int32_t count);
 
     /**
      * Create a copy, in fZoneStrings, of the given zone strings array. The
      * member variables fZoneStringsRowCount and fZoneStringsColCount should be
      * set already by the caller.
      */
-    void createZoneStrings(const UnicodeString *const * otherStrings);
+    void createZoneStrings(const UnicodeString* const* otherStrings);
 
     /**
      * Delete all the storage owned by this object.
@@ -1004,6 +990,7 @@ private:
      * Returns true if c (repeated count times) is the pattern character for a numeric field.
      */
     static UBool U_EXPORT2 isNumericPatternChar(char16_t c, int32_t count);
+
 public:
 #ifndef U_HIDE_INTERNAL_API
     /**
@@ -1017,9 +1004,8 @@ public:
      * @return the new DateFormatSymbols which the caller owns.
      * @internal For ICU use only.
      */
-    static DateFormatSymbols * U_EXPORT2 createForLocale(
-            const Locale &locale, UErrorCode &status);
-#endif  /* U_HIDE_INTERNAL_API */
+    static DateFormatSymbols* U_EXPORT2 createForLocale(const Locale& locale, UErrorCode& status);
+#endif /* U_HIDE_INTERNAL_API */
 };
 
 U_NAMESPACE_END
@@ -1029,4 +1015,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // _DTFMTSYM
-//eof
+// eof

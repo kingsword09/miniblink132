@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 //   Copyright (C) 2012 International Business Machines Corporation
@@ -18,16 +18,22 @@
 
 U_NAMESPACE_BEGIN
 
-CaseFoldingUTextIterator::CaseFoldingUTextIterator(UText &text) :
-   fUText(text), fFoldChars(nullptr), fFoldLength(0) {
+CaseFoldingUTextIterator::CaseFoldingUTextIterator(UText& text)
+    : fUText(text)
+    , fFoldChars(NULL)
+    , fFoldLength(0)
+{
 }
 
-CaseFoldingUTextIterator::~CaseFoldingUTextIterator() {}
+CaseFoldingUTextIterator::~CaseFoldingUTextIterator()
+{
+}
 
-UChar32 CaseFoldingUTextIterator::next() {
-    UChar32  foldedC;
-    UChar32  originalC;
-    if (fFoldChars == nullptr) {
+UChar32 CaseFoldingUTextIterator::next()
+{
+    UChar32 foldedC;
+    UChar32 originalC;
+    if (fFoldChars == NULL) {
         // We are not in a string folding of an earlier character.
         // Start handling the next char from the input UText.
         originalC = UTEXT_NEXT32(&fUText);
@@ -42,7 +48,7 @@ UChar32 CaseFoldingUTextIterator::next() {
                 fFoldLength = ~fFoldLength;
             }
             foldedC = (UChar32)fFoldLength;
-            fFoldChars = nullptr;
+            fFoldChars = NULL;
             return foldedC;
         }
         // String foldings fall through here.
@@ -51,30 +57,34 @@ UChar32 CaseFoldingUTextIterator::next() {
 
     U16_NEXT(fFoldChars, fFoldIndex, fFoldLength, foldedC);
     if (fFoldIndex >= fFoldLength) {
-        fFoldChars = nullptr;
+        fFoldChars = NULL;
     }
     return foldedC;
 }
-    
 
-UBool CaseFoldingUTextIterator::inExpansion() {
-    return fFoldChars != nullptr;
+UBool CaseFoldingUTextIterator::inExpansion()
+{
+    return fFoldChars != NULL;
 }
 
-
-
-CaseFoldingUCharIterator::CaseFoldingUCharIterator(const char16_t *chars, int64_t start, int64_t limit) :
-   fChars(chars), fIndex(start), fLimit(limit), fFoldChars(nullptr), fFoldLength(0) {
+CaseFoldingUCharIterator::CaseFoldingUCharIterator(const UChar* chars, int64_t start, int64_t limit)
+    : fChars(chars)
+    , fIndex(start)
+    , fLimit(limit)
+    , fFoldChars(NULL)
+    , fFoldLength(0)
+{
 }
 
+CaseFoldingUCharIterator::~CaseFoldingUCharIterator()
+{
+}
 
-CaseFoldingUCharIterator::~CaseFoldingUCharIterator() {}
-
-
-UChar32 CaseFoldingUCharIterator::next() {
-    UChar32  foldedC;
-    UChar32  originalC;
-    if (fFoldChars == nullptr) {
+UChar32 CaseFoldingUCharIterator::next()
+{
+    UChar32 foldedC;
+    UChar32 originalC;
+    if (fFoldChars == NULL) {
         // We are not in a string folding of an earlier character.
         // Start handling the next char from the input UText.
         if (fIndex >= fLimit) {
@@ -90,7 +100,7 @@ UChar32 CaseFoldingUCharIterator::next() {
                 fFoldLength = ~fFoldLength;
             }
             foldedC = (UChar32)fFoldLength;
-            fFoldChars = nullptr;
+            fFoldChars = NULL;
             return foldedC;
         }
         // String foldings fall through here.
@@ -99,22 +109,21 @@ UChar32 CaseFoldingUCharIterator::next() {
 
     U16_NEXT(fFoldChars, fFoldIndex, fFoldLength, foldedC);
     if (fFoldIndex >= fFoldLength) {
-        fFoldChars = nullptr;
+        fFoldChars = NULL;
     }
     return foldedC;
 }
-    
 
-UBool CaseFoldingUCharIterator::inExpansion() {
-    return fFoldChars != nullptr;
+UBool CaseFoldingUCharIterator::inExpansion()
+{
+    return fFoldChars != NULL;
 }
 
-int64_t CaseFoldingUCharIterator::getIndex() {
+int64_t CaseFoldingUCharIterator::getIndex()
+{
     return fIndex;
 }
-
 
 U_NAMESPACE_END
 
 #endif
-

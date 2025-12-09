@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -30,31 +30,33 @@
 
 U_NAMESPACE_BEGIN
 
-QuantityFormatter::QuantityFormatter() {
+QuantityFormatter::QuantityFormatter()
+{
     for (int32_t i = 0; i < UPRV_LENGTHOF(formatters); ++i) {
-        formatters[i] = nullptr;
+        formatters[i] = NULL;
     }
 }
 
-QuantityFormatter::QuantityFormatter(const QuantityFormatter &other) {
+QuantityFormatter::QuantityFormatter(const QuantityFormatter& other)
+{
     for (int32_t i = 0; i < UPRV_LENGTHOF(formatters); ++i) {
-        if (other.formatters[i] == nullptr) {
-            formatters[i] = nullptr;
+        if (other.formatters[i] == NULL) {
+            formatters[i] = NULL;
         } else {
             formatters[i] = new SimpleFormatter(*other.formatters[i]);
         }
     }
 }
 
-QuantityFormatter &QuantityFormatter::operator=(
-        const QuantityFormatter& other) {
+QuantityFormatter& QuantityFormatter::operator=(const QuantityFormatter& other)
+{
     if (this == &other) {
         return *this;
     }
     for (int32_t i = 0; i < UPRV_LENGTHOF(formatters); ++i) {
         delete formatters[i];
-        if (other.formatters[i] == nullptr) {
-            formatters[i] = nullptr;
+        if (other.formatters[i] == NULL) {
+            formatters[i] = NULL;
         } else {
             formatters[i] = new SimpleFormatter(*other.formatters[i]);
         }
@@ -62,74 +64,71 @@ QuantityFormatter &QuantityFormatter::operator=(
     return *this;
 }
 
-QuantityFormatter::~QuantityFormatter() {
+QuantityFormatter::~QuantityFormatter()
+{
     for (int32_t i = 0; i < UPRV_LENGTHOF(formatters); ++i) {
         delete formatters[i];
     }
 }
 
-void QuantityFormatter::reset() {
+void QuantityFormatter::reset()
+{
     for (int32_t i = 0; i < UPRV_LENGTHOF(formatters); ++i) {
         delete formatters[i];
-        formatters[i] = nullptr;
+        formatters[i] = NULL;
     }
 }
 
-UBool QuantityFormatter::addIfAbsent(
-        const char *variant,
-        const UnicodeString &rawPattern,
-        UErrorCode &status) {
+UBool QuantityFormatter::addIfAbsent(const char* variant, const UnicodeString& rawPattern, UErrorCode& status)
+{
     int32_t pluralIndex = StandardPlural::indexFromString(variant, status);
     if (U_FAILURE(status)) {
-        return false;
+        return FALSE;
     }
-    if (formatters[pluralIndex] != nullptr) {
-        return true;
+    if (formatters[pluralIndex] != NULL) {
+        return TRUE;
     }
-    SimpleFormatter *newFmt = new SimpleFormatter(rawPattern, 0, 1, status);
-    if (newFmt == nullptr) {
+    SimpleFormatter* newFmt = new SimpleFormatter(rawPattern, 0, 1, status);
+    if (newFmt == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
-        return false;
+        return FALSE;
     }
     if (U_FAILURE(status)) {
         delete newFmt;
-        return false;
+        return FALSE;
     }
     formatters[pluralIndex] = newFmt;
-    return true;
+    return TRUE;
 }
 
-UBool QuantityFormatter::isValid() const {
-    return formatters[StandardPlural::OTHER] != nullptr;
+UBool QuantityFormatter::isValid() const
+{
+    return formatters[StandardPlural::OTHER] != NULL;
 }
 
-const SimpleFormatter *QuantityFormatter::getByVariant(
-        const char *variant) const {
+const SimpleFormatter* QuantityFormatter::getByVariant(const char* variant) const
+{
     U_ASSERT(isValid());
     int32_t pluralIndex = StandardPlural::indexOrOtherIndexFromString(variant);
-    const SimpleFormatter *pattern = formatters[pluralIndex];
-    if (pattern == nullptr) {
+    const SimpleFormatter* pattern = formatters[pluralIndex];
+    if (pattern == NULL) {
         pattern = formatters[StandardPlural::OTHER];
     }
     return pattern;
 }
 
-UnicodeString &QuantityFormatter::format(
-            const Formattable &number,
-            const NumberFormat &fmt,
-            const PluralRules &rules,
-            UnicodeString &appendTo,
-            FieldPosition &pos,
-            UErrorCode &status) const {
+UnicodeString& QuantityFormatter::format(
+    const Formattable& number, const NumberFormat& fmt, const PluralRules& rules, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const
+{
     UnicodeString formattedNumber;
     StandardPlural::Form p = selectPlural(number, fmt, rules, formattedNumber, pos, status);
     if (U_FAILURE(status)) {
         return appendTo;
     }
-    const SimpleFormatter *pattern = formatters[p];
-    if (pattern == nullptr) {
+    const SimpleFormatter* pattern = formatters[p];
+    if (pattern == NULL) {
         pattern = formatters[StandardPlural::OTHER];
-        if (pattern == nullptr) {
+        if (pattern == NULL) {
             status = U_INVALID_STATE_ERROR;
             return appendTo;
         }
@@ -141,18 +140,14 @@ UnicodeString &QuantityFormatter::format(
 // and the SimpleFormatter does not depend on FieldPosition.
 
 StandardPlural::Form QuantityFormatter::selectPlural(
-            const Formattable &number,
-            const NumberFormat &fmt,
-            const PluralRules &rules,
-            UnicodeString &formattedNumber,
-            FieldPosition &pos,
-            UErrorCode &status) {
+    const Formattable& number, const NumberFormat& fmt, const PluralRules& rules, UnicodeString& formattedNumber, FieldPosition& pos, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return StandardPlural::OTHER;
     }
     UnicodeString pluralKeyword;
-    const DecimalFormat *decFmt = dynamic_cast<const DecimalFormat *>(&fmt);
-    if (decFmt != nullptr) {
+    const DecimalFormat* decFmt = dynamic_cast<const DecimalFormat*>(&fmt);
+    if (decFmt != NULL) {
         number::impl::DecimalQuantity dq;
         decFmt->formatToDecimalQuantity(number, dq, status);
         if (U_FAILURE(status)) {
@@ -166,7 +161,7 @@ StandardPlural::Form QuantityFormatter::selectPlural(
         } else if (number.getType() == Formattable::kLong) {
             pluralKeyword = rules.select(number.getLong());
         } else if (number.getType() == Formattable::kInt64) {
-            pluralKeyword = rules.select((double) number.getInt64());
+            pluralKeyword = rules.select((double)number.getInt64());
         } else {
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return StandardPlural::OTHER;
@@ -177,12 +172,8 @@ StandardPlural::Form QuantityFormatter::selectPlural(
 }
 
 void QuantityFormatter::formatAndSelect(
-        double quantity,
-        const NumberFormat& fmt,
-        const PluralRules& rules,
-        FormattedStringBuilder& output,
-        StandardPlural::Form& pluralForm,
-        UErrorCode& status) {
+    double quantity, const NumberFormat& fmt, const PluralRules& rules, FormattedStringBuilder& output, StandardPlural::Form& pluralForm, UErrorCode& status)
+{
     UnicodeString pluralKeyword;
     const DecimalFormat* df = dynamic_cast<const DecimalFormat*>(&fmt);
     if (df != nullptr) {
@@ -214,16 +205,13 @@ void QuantityFormatter::formatAndSelect(
     pluralForm = StandardPlural::orOtherFromString(pluralKeyword);
 }
 
-UnicodeString &QuantityFormatter::format(
-            const SimpleFormatter &pattern,
-            const UnicodeString &value,
-            UnicodeString &appendTo,
-            FieldPosition &pos,
-            UErrorCode &status) {
+UnicodeString& QuantityFormatter::format(
+    const SimpleFormatter& pattern, const UnicodeString& value, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return appendTo;
     }
-    const UnicodeString *param = &value;
+    const UnicodeString* param = &value;
     int32_t offset;
     pattern.formatAndAppend(&param, 1, appendTo, &offset, 1, status);
     if (pos.getBeginIndex() != 0 || pos.getEndIndex() != 0) {

@@ -36,8 +36,8 @@ class TracingSession;
 namespace internal {
 
 struct DataSourceParams {
-  bool supports_multiple_instances;
-  bool requires_callbacks_under_lock;
+    bool supports_multiple_instances;
+    bool requires_callbacks_under_lock;
 };
 
 struct DataSourceStaticState;
@@ -53,72 +53,72 @@ struct DataSourceStaticState;
 // src/tracing/internal/tracing_muxer_impl.h instead: that one can pull in
 // perfetto headers outside of public, this one cannot.
 class PERFETTO_EXPORT_COMPONENT TracingMuxer {
- public:
-  static TracingMuxer* Get() { return instance_; }
+public:
+    static TracingMuxer* Get()
+    {
+        return instance_;
+    }
 
-  virtual ~TracingMuxer();
+    virtual ~TracingMuxer();
 
-  TracingTLS* GetOrCreateTracingTLS() {
-    return static_cast<TracingTLS*>(platform_->GetOrCreateThreadLocalObject());
-  }
+    TracingTLS* GetOrCreateTracingTLS()
+    {
+        return static_cast<TracingTLS*>(platform_->GetOrCreateThreadLocalObject());
+    }
 
-  // This method can fail and return false if trying to register more than
-  // kMaxDataSources types.
-  using DataSourceFactory = std::function<std::unique_ptr<DataSourceBase>()>;
-  virtual bool RegisterDataSource(const DataSourceDescriptor&,
-                                  DataSourceFactory,
-                                  DataSourceParams,
-                                  bool no_flush,
-                                  DataSourceStaticState*) = 0;
+    // This method can fail and return false if trying to register more than
+    // kMaxDataSources types.
+    using DataSourceFactory = std::function<std::unique_ptr<DataSourceBase>()>;
+    virtual bool RegisterDataSource(const DataSourceDescriptor&, DataSourceFactory, DataSourceParams, bool no_flush, DataSourceStaticState*) = 0;
 
-  // Updates the DataSourceDescriptor for the DataSource.
-  virtual void UpdateDataSourceDescriptor(const DataSourceDescriptor&,
-                                          const DataSourceStaticState*) = 0;
+    // Updates the DataSourceDescriptor for the DataSource.
+    virtual void UpdateDataSourceDescriptor(const DataSourceDescriptor&, const DataSourceStaticState*) = 0;
 
-  // It identifies the right backend and forwards the call to it.
-  // The returned TraceWriter must be used within the same sequence (for most
-  // projects this means "same thread"). Alternatively the client needs to take
-  // care of using synchronization primitives to prevent concurrent accesses.
-  virtual std::unique_ptr<TraceWriterBase> CreateTraceWriter(
-      DataSourceStaticState*,
-      uint32_t data_source_instance_index,
-      DataSourceState*,
-      BufferExhaustedPolicy buffer_exhausted_policy) = 0;
+    // It identifies the right backend and forwards the call to it.
+    // The returned TraceWriter must be used within the same sequence (for most
+    // projects this means "same thread"). Alternatively the client needs to take
+    // care of using synchronization primitives to prevent concurrent accesses.
+    virtual std::unique_ptr<TraceWriterBase> CreateTraceWriter(
+        DataSourceStaticState*, uint32_t data_source_instance_index, DataSourceState*, BufferExhaustedPolicy buffer_exhausted_policy)
+        = 0;
 
-  virtual void DestroyStoppedTraceWritersForCurrentThread() = 0;
+    virtual void DestroyStoppedTraceWritersForCurrentThread() = 0;
 
-  uint32_t generation(std::memory_order ord) { return generation_.load(ord); }
+    uint32_t generation(std::memory_order ord)
+    {
+        return generation_.load(ord);
+    }
 
-  using InterceptorFactory = std::function<std::unique_ptr<InterceptorBase>()>;
-  virtual void RegisterInterceptor(const InterceptorDescriptor&,
-                                   InterceptorFactory,
-                                   InterceptorBase::TLSFactory,
-                                   InterceptorBase::TracePacketCallback) = 0;
+    using InterceptorFactory = std::function<std::unique_ptr<InterceptorBase>()>;
+    virtual void RegisterInterceptor(const InterceptorDescriptor&, InterceptorFactory, InterceptorBase::TLSFactory, InterceptorBase::TracePacketCallback) = 0;
 
-  // Informs the tracing services to activate any of these triggers if any
-  // tracing session was waiting for them.
-  //
-  // Sends the trigger signal to all the initialized backends that are currently
-  // connected and that connect in the next `ttl_ms` milliseconds (but returns
-  // immediately anyway).
-  virtual void ActivateTriggers(const std::vector<std::string>&,
-                                uint32_t ttl_ms) = 0;
+    // Informs the tracing services to activate any of these triggers if any
+    // tracing session was waiting for them.
+    //
+    // Sends the trigger signal to all the initialized backends that are currently
+    // connected and that connect in the next `ttl_ms` milliseconds (but returns
+    // immediately anyway).
+    virtual void ActivateTriggers(const std::vector<std::string>&, uint32_t ttl_ms) = 0;
 
-  base::PlatformThreadId GetCurrentThreadId() {
-    return platform_->GetCurrentThreadId();
-  }
+    base::PlatformThreadId GetCurrentThreadId()
+    {
+        return platform_->GetCurrentThreadId();
+    }
 
- protected:
-  explicit TracingMuxer(Platform* platform) : platform_(platform) {}
+protected:
+    explicit TracingMuxer(Platform* platform)
+        : platform_(platform)
+    {
+    }
 
-  static TracingMuxer* instance_;
-  Platform* const platform_ = nullptr;
+    static TracingMuxer* instance_;
+    Platform* const platform_ = nullptr;
 
-  // Incremented every time a data source is destroyed. See tracing_tls.h.
-  std::atomic<uint32_t> generation_{};
+    // Incremented every time a data source is destroyed. See tracing_tls.h.
+    std::atomic<uint32_t> generation_ {};
 };
 
-}  // namespace internal
-}  // namespace perfetto
+} // namespace internal
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACING_MUXER_H_
+#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_TRACING_MUXER_H_

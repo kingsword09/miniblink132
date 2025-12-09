@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -40,9 +40,9 @@ typedef struct UCHARBUF UCHARBUF;
 
 typedef struct ULine ULine;
 
-struct  ULine {
-    UChar     *name;
-    int32_t   len;
+struct ULine {
+    UChar* name;
+    int32_t len;
 };
 
 /**
@@ -52,15 +52,14 @@ struct  ULine {
  *                  If *codepage is NULL on input the API will try to autodetect
  *                  popular Unicode encodings
  * @param showWarning Flag to print out warnings to STDOUT
- * @param buffered  If true performs a buffered read of the input file. If false reads
+ * @param buffered  If TRUE performs a buffered read of the input file. If FALSE reads
  *                  the whole file into memory and converts it.
  * @param err is a pointer to a valid <code>UErrorCode</code> value. If this value
  *        indicates a failure on entry, the function will immediately return.
  *        On exit the value will indicate the success of the operation.
  * @return pointer to the newly opened UCHARBUF
  */
-U_CAPI UCHARBUF* U_EXPORT2
-ucbuf_open(const char* fileName,const char** codepage,UBool showWarning, UBool buffered, UErrorCode* err);
+U_CAPI UCHARBUF* U_EXPORT2 ucbuf_open(const char* fileName, const char** codepage, UBool showWarning, UBool buffered, UErrorCode* err);
 
 /**
  * Gets a UTF-16 code unit at the current position from the converted buffer
@@ -70,8 +69,7 @@ ucbuf_open(const char* fileName,const char** codepage,UBool showWarning, UBool b
  *        indicates a failure on entry, the function will immediately return.
  *        On exit the value will indicate the success of the operation.
  */
-U_CAPI int32_t U_EXPORT2
-ucbuf_getc(UCHARBUF* buf,UErrorCode* err);
+U_CAPI int32_t U_EXPORT2 ucbuf_getc(UCHARBUF* buf, UErrorCode* err);
 
 /**
  * Gets a UTF-32 code point at the current position from the converted buffer
@@ -81,8 +79,7 @@ ucbuf_getc(UCHARBUF* buf,UErrorCode* err);
  *        indicates a failure on entry, the function will immediately return.
  *        On exit the value will indicate the success of the operation.
  */
-U_CAPI int32_t U_EXPORT2
-ucbuf_getc32(UCHARBUF* buf,UErrorCode* err);
+U_CAPI int32_t U_EXPORT2 ucbuf_getc32(UCHARBUF* buf, UErrorCode* err);
 
 /**
  * Gets a UTF-16 code unit at the current position from the converted buffer after
@@ -93,8 +90,7 @@ ucbuf_getc32(UCHARBUF* buf,UErrorCode* err);
  *        indicates a failure on entry, the function will immediately return.
  *        On exit the value will indicate the success of the operation.
  */
-U_CAPI int32_t U_EXPORT2
-ucbuf_getcx32(UCHARBUF* buf,UErrorCode* err);
+U_CAPI int32_t U_EXPORT2 ucbuf_getcx32(UCHARBUF* buf, UErrorCode* err);
 
 /**
  * Gets a pointer to the current position in the internal buffer and length of the line.
@@ -107,9 +103,7 @@ ucbuf_getcx32(UCHARBUF* buf,UErrorCode* err);
  *        Error: U_TRUNCATED_CHAR_FOUND
  * @return Pointer to the internal buffer, NULL if EOF
  */
-U_CAPI const UChar* U_EXPORT2
-ucbuf_readline(UCHARBUF* buf,int32_t* len, UErrorCode* err);
-
+U_CAPI const UChar* U_EXPORT2 ucbuf_readline(UCHARBUF* buf, int32_t* len, UErrorCode* err);
 
 /**
  * Resets the buffers and the underlying file stream.
@@ -118,8 +112,7 @@ ucbuf_readline(UCHARBUF* buf,int32_t* len, UErrorCode* err);
  *        indicates a failure on entry, the function will immediately return.
  *        On exit the value will indicate the success of the operation.
  */
-U_CAPI void U_EXPORT2
-ucbuf_rewind(UCHARBUF* buf,UErrorCode* err);
+U_CAPI void U_EXPORT2 ucbuf_rewind(UCHARBUF* buf, UErrorCode* err);
 
 /**
  * Returns a pointer to the internal converted buffer
@@ -130,15 +123,13 @@ ucbuf_rewind(UCHARBUF* buf,UErrorCode* err);
  *        On exit the value will indicate the success of the operation.
  * @return Pointer to internal UChar buffer
  */
-U_CAPI const UChar* U_EXPORT2
-ucbuf_getBuffer(UCHARBUF* buf,int32_t* len,UErrorCode* err);
+U_CAPI const UChar* U_EXPORT2 ucbuf_getBuffer(UCHARBUF* buf, int32_t* len, UErrorCode* err);
 
 /**
  * Closes the UCHARBUF structure members and cleans up the malloc'ed memory
  * @param buf Pointer to UCHARBUF structure
  */
-U_CAPI void U_EXPORT2
-ucbuf_close(UCHARBUF* buf);
+U_CAPI void U_EXPORT2 ucbuf_close(UCHARBUF* buf);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -161,9 +152,7 @@ U_NAMESPACE_END
 /**
  * Rewinds the buffer by one codepoint. Does not rewind over escaped characters.
  */
-U_CAPI void U_EXPORT2
-ucbuf_ungetc(int32_t ungetChar,UCHARBUF* buf);
-
+U_CAPI void U_EXPORT2 ucbuf_ungetc(int32_t ungetChar, UCHARBUF* buf);
 
 /**
  * Autodetects the encoding of the file stream. Only Unicode charsets are autodectected.
@@ -181,9 +170,7 @@ ucbuf_ungetc(int32_t ungetChar,UCHARBUF* buf);
  *        On exit the value will indicate the success of the operation.
  * @return The input FileStream if its charset was autodetected; NULL otherwise.
  */
-U_CAPI FileStream * U_EXPORT2
-ucbuf_autodetect(const char* fileName, const char** cp,UConverter** conv,
-int32_t* signatureLength, UErrorCode* status);
+U_CAPI FileStream* U_EXPORT2 ucbuf_autodetect(const char* fileName, const char** cp, UConverter** conv, int32_t* signatureLength, UErrorCode* status);
 
 /**
  * Autodetects the encoding of the file stream. Only Unicode charsets are autodectected.
@@ -201,18 +188,14 @@ int32_t* signatureLength, UErrorCode* status);
  * @return Boolean whether the Unicode charset was autodetected.
  */
 
-U_CAPI UBool U_EXPORT2
-ucbuf_autodetect_fs(FileStream* in, const char** cp, UConverter** conv, int32_t* signatureLength, UErrorCode* status);
+U_CAPI UBool U_EXPORT2 ucbuf_autodetect_fs(FileStream* in, const char** cp, UConverter** conv, int32_t* signatureLength, UErrorCode* status);
 
 /**
  * Returns the approximate size in UChars required for converting the file to UChars
  */
-U_CAPI int32_t U_EXPORT2
-ucbuf_size(UCHARBUF* buf);
+U_CAPI int32_t U_EXPORT2 ucbuf_size(UCHARBUF* buf);
 
-U_CAPI const char* U_EXPORT2
-ucbuf_resolveFileName(const char* inputDir, const char* fileName, char* target, int32_t* len, UErrorCode* status);
+U_CAPI const char* U_EXPORT2 ucbuf_resolveFileName(const char* inputDir, const char* fileName, char* target, int32_t* len, UErrorCode* status);
 
 #endif
 #endif
-

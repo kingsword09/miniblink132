@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -29,29 +29,22 @@ struct CollationTailoring;
  */
 class U_I18N_API CollationDataWriter /* all static */ {
 public:
-    static int32_t writeBase(const CollationData &data, const CollationSettings &settings,
-                             const void *rootElements, int32_t rootElementsLength,
-                             int32_t indexes[], uint8_t *dest, int32_t capacity,
-                             UErrorCode &errorCode);
+    static int32_t writeBase(const CollationData& data, const CollationSettings& settings, const void* rootElements, int32_t rootElementsLength,
+        int32_t indexes[], uint8_t* dest, int32_t capacity, UErrorCode& errorCode);
 
-    static int32_t writeTailoring(const CollationTailoring &t, const CollationSettings &settings,
-                                  int32_t indexes[], uint8_t *dest, int32_t capacity,
-                                  UErrorCode &errorCode);
+    static int32_t writeTailoring(
+        const CollationTailoring& t, const CollationSettings& settings, int32_t indexes[], uint8_t* dest, int32_t capacity, UErrorCode& errorCode);
 
 private:
-    CollationDataWriter() = delete;  // no constructor
+    CollationDataWriter(); // no constructor
 
-    static int32_t write(UBool isBase, const UVersionInfo dataVersion,
-                         const CollationData &data, const CollationSettings &settings,
-                         const void *rootElements, int32_t rootElementsLength,
-                         int32_t indexes[], uint8_t *dest, int32_t capacity,
-                         UErrorCode &errorCode);
+    static int32_t write(UBool isBase, const UVersionInfo dataVersion, const CollationData& data, const CollationSettings& settings, const void* rootElements,
+        int32_t rootElementsLength, int32_t indexes[], uint8_t* dest, int32_t capacity, UErrorCode& errorCode);
 
-    static void copyData(const int32_t indexes[], int32_t startIndex,
-                         const void *src, uint8_t *dest);
+    static void copyData(const int32_t indexes[], int32_t startIndex, const void* src, uint8_t* dest);
 };
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
-#endif  // __COLLATIONDATAWRITER_H__
+#endif // !UCONFIG_NO_COLLATION
+#endif // __COLLATIONDATAWRITER_H__

@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -20,21 +20,21 @@ using namespace icu;
 using namespace icu::numparse;
 using namespace icu::numparse::impl;
 
-
-CombinedCurrencyMatcher::CombinedCurrencyMatcher(const CurrencySymbols& currencySymbols, const DecimalFormatSymbols& dfs,
-                                                 parse_flags_t parseFlags, UErrorCode& status)
-        : fCurrency1(currencySymbols.getCurrencySymbol(status)),
-          fCurrency2(currencySymbols.getIntlCurrencySymbol(status)),
-          fUseFullCurrencyData(0 == (parseFlags & PARSE_FLAG_NO_FOREIGN_CURRENCY)),
-          afterPrefixInsert(dfs.getPatternForCurrencySpacing(UNUM_CURRENCY_INSERT, false, status)),
-          beforeSuffixInsert(dfs.getPatternForCurrencySpacing(UNUM_CURRENCY_INSERT, true, status)),
-          fLocaleName(dfs.getLocale().getName(), -1, status) {
+CombinedCurrencyMatcher::CombinedCurrencyMatcher(
+    const CurrencySymbols& currencySymbols, const DecimalFormatSymbols& dfs, parse_flags_t parseFlags, UErrorCode& status)
+    : fCurrency1(currencySymbols.getCurrencySymbol(status))
+    , fCurrency2(currencySymbols.getIntlCurrencySymbol(status))
+    , fUseFullCurrencyData(0 == (parseFlags & PARSE_FLAG_NO_FOREIGN_CURRENCY))
+    , afterPrefixInsert(dfs.getPatternForCurrencySpacing(UNUM_CURRENCY_INSERT, false, status))
+    , beforeSuffixInsert(dfs.getPatternForCurrencySpacing(UNUM_CURRENCY_INSERT, true, status))
+    , fLocaleName(dfs.getLocale().getName(), -1, status)
+{
     utils::copyCurrencyCode(fCurrencyCode, currencySymbols.getIsoCode());
 
     // Pre-load the long names for the current locale and currency
     // if we are parsing without the full currency data.
     if (!fUseFullCurrencyData) {
-        for (int32_t i=0; i<StandardPlural::COUNT; i++) {
+        for (int32_t i = 0; i < StandardPlural::COUNT; i++) {
             auto plural = static_cast<StandardPlural::Form>(i);
             fLocalLongNames[i] = currencySymbols.getPluralName(plural, status);
         }
@@ -43,19 +43,19 @@ CombinedCurrencyMatcher::CombinedCurrencyMatcher(const CurrencySymbols& currency
     // TODO: Figure out how to make this faster and re-enable.
     // Computing the "lead code points" set for fastpathing is too slow to use in production.
     // See https://unicode-org.atlassian.net/browse/ICU-13584
-//    // Compute the full set of characters that could be the first in a currency to allow for
-//    // efficient smoke test.
-//    fLeadCodePoints.add(fCurrency1.char32At(0));
-//    fLeadCodePoints.add(fCurrency2.char32At(0));
-//    fLeadCodePoints.add(beforeSuffixInsert.char32At(0));
-//    uprv_currencyLeads(fLocaleName.data(), fLeadCodePoints, status);
-//    // Always apply case mapping closure for currencies
-//    fLeadCodePoints.closeOver(USET_ADD_CASE_MAPPINGS);
-//    fLeadCodePoints.freeze();
+    //    // Compute the full set of characters that could be the first in a currency to allow for
+    //    // efficient smoke test.
+    //    fLeadCodePoints.add(fCurrency1.char32At(0));
+    //    fLeadCodePoints.add(fCurrency2.char32At(0));
+    //    fLeadCodePoints.add(beforeSuffixInsert.char32At(0));
+    //    uprv_currencyLeads(fLocaleName.data(), fLeadCodePoints, status);
+    //    // Always apply case mapping closure for currencies
+    //    fLeadCodePoints.closeOver(USET_ADD_CASE_MAPPINGS);
+    //    fLeadCodePoints.freeze();
 }
 
-bool
-CombinedCurrencyMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const {
+bool CombinedCurrencyMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const
+{
     if (result.currencyCode[0] != 0) {
         return false;
     }
@@ -92,8 +92,8 @@ CombinedCurrencyMatcher::match(StringSegment& segment, ParsedNumber& result, UEr
     return maybeMore;
 }
 
-bool CombinedCurrencyMatcher::matchCurrency(StringSegment& segment, ParsedNumber& result,
-                                            UErrorCode& status) const {
+bool CombinedCurrencyMatcher::matchCurrency(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const
+{
     bool maybeMore = false;
 
     int32_t overlap1;
@@ -134,14 +134,9 @@ bool CombinedCurrencyMatcher::matchCurrency(StringSegment& segment, ParsedNumber
         // Try to parse the currency
         ParsePosition ppos(0);
         int32_t partialMatchLen = 0;
-        uprv_parseCurrency(
-                fLocaleName.data(),
-                segmentString,
-                ppos,
-                UCURR_SYMBOL_NAME, // checks for both UCURR_SYMBOL_NAME and UCURR_LONG_NAME
-                &partialMatchLen,
-                result.currencyCode,
-                status);
+        uprv_parseCurrency(fLocaleName.data(), segmentString, ppos,
+            UCURR_SYMBOL_NAME, // checks for both UCURR_SYMBOL_NAME and UCURR_LONG_NAME
+            &partialMatchLen, result.currencyCode, status);
         maybeMore = maybeMore || partialMatchLen == segment.length();
 
         if (U_SUCCESS(status) && ppos.getIndex() != 0) {
@@ -155,7 +150,7 @@ bool CombinedCurrencyMatcher::matchCurrency(StringSegment& segment, ParsedNumber
     } else {
         // Use the locale long names.
         int32_t longestFullMatch = 0;
-        for (int32_t i=0; i<StandardPlural::COUNT; i++) {
+        for (int32_t i = 0; i < StandardPlural::COUNT; i++) {
             const UnicodeString& name = fLocalLongNames[i];
             int32_t overlap = segment.getCommonPrefixLength(name);
             if (overlap == name.length() && name.length() > longestFullMatch) {
@@ -175,15 +170,16 @@ bool CombinedCurrencyMatcher::matchCurrency(StringSegment& segment, ParsedNumber
     return maybeMore;
 }
 
-bool CombinedCurrencyMatcher::smokeTest(const StringSegment&) const {
+bool CombinedCurrencyMatcher::smokeTest(const StringSegment&) const
+{
     // TODO: See constructor
     return true;
-    //return segment.startsWith(fLeadCodePoints);
+    // return segment.startsWith(fLeadCodePoints);
 }
 
-UnicodeString CombinedCurrencyMatcher::toString() const {
+UnicodeString CombinedCurrencyMatcher::toString() const
+{
     return u"<CombinedCurrencyMatcher>";
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

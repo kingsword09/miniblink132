@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import("//build/config/features.gni")
 import("//build/config/host_byteorder.gni")
 import("config.gni")
 import("sources.gni")
@@ -25,13 +24,6 @@ group("icu") {
     ":icui18n",
     ":icuuc",
   ]
-}
-
-# Allow access to normalization test data from unit/integration tests.
-copy("normalization_test") {
-  testonly = true
-  sources = [ "source/data/unidata/NormalizationTest.txt" ]
-  outputs = [ "$root_out_dir/testdata/{{source_file_part}}" ]
 }
 
 # Shared config used by ICU and all dependents.
@@ -78,8 +70,6 @@ config("icu_code") {
 
     # Only build encoding coverters and detectors necessary for HTML5.
     "UCONFIG_ONLY_HTML_CONVERSION=1",
-
-    "UCONFIG_USE_ML_PHRASE_BREAKING=1",
 
     # TODO(jshin): do we still need this?
     "UCONFIG_USE_WINDOWS_LCID_MAPPING_API=0",
@@ -159,12 +149,11 @@ config("icu_code") {
       # are only needed for the Fuchsia toolchain.
       "-DICU_IS_IN_FUCHSIA",
 
-      # Fuchsia's default compilation config makes
-      # no-newline-after-eof an error. While in ICU it
-      # probably does not matter. So we instruct Fuchsia
-      # to lower its standards when compiling ICU.
-      "-Wno-newline-eof",
-    ] + icu_fuchsia_extra_compile_flags
+      # Can be removed after
+      # https://unicode-org.atlassian.net/browse/ICU-22113 is fixed.
+      "-Wno-unknown-warning-option",
+      "-Wno-enum-constexpr-conversion",
+    ]
   }
   if (current_cpu == "wasm") {
     # Tell ICU that we are a 32 bit platform, otherwise,
@@ -192,14 +181,6 @@ template("generate_icu_component") {
                              ])
       assert(fuchsia_output_name_postfix == "")
 
-      # If icu_use_target_out_dir is defined and set, then the component
-      # will be output in the regular target_out_dir, rather than the default
-      # root_build_dir.
-      # See README.fuchsia for details.
-      if (defined(icu_use_target_out_dir) && icu_use_target_out_dir) {
-        output_dir = target_out_dir
-      }
-
       # ICU uses RTTI, replace the default "no rtti" config (if applied).
       configs += [
         "//build/config:no_rtti",
@@ -216,12 +197,6 @@ template("generate_icu_component") {
       # take effect.
       configs += [ ":icu_code" ]
       configs += extra_configs
-      # Add Fuchsia-specific configs
-      configs += icu_fuchsia_extra_configs
-      # Remove Fuchsia-specific configs, the "add-then-remove" ensures that
-      # removing a config that is not there does not fail.
-      configs += icu_fuchsia_remove_configs
-      configs -= icu_fuchsia_remove_configs
       public_configs = [ ":icu_config" ]
     }
   } else {
@@ -232,15 +207,6 @@ template("generate_icu_component") {
                                "testonly",
                                "visibility",
                              ])
-
-      # If icu_use_target_output_dir is defined and set, then the component
-      # will be output in the regular target_out_dir, rather than the default
-      # root_build_dir.
-      # See README.fuchsia for details.
-      if (defined(icu_use_target_output_dir) && icu_use_target_output_dir) {
-        output_dir = target_out_dir
-      }
-
       if (is_fuchsia) {
         base_output_name = target_name
         if (defined(invoker.output_name)) {
@@ -272,10 +238,6 @@ template("generate_icu_component") {
       # take effect.
       configs += [ ":icu_code" ]
       configs += extra_configs
-      # See a similar stanza above for details.
-      configs += icu_fuchsia_extra_configs
-      configs += icu_fuchsia_remove_configs
-      configs -= icu_fuchsia_remove_configs
       public_configs = [ ":icu_config" ]
 
       # Make icu into a standalone static library. Currently This is only useful
@@ -311,7 +273,7 @@ template("generate_icui18n") {
     defines = [ "U_I18N_IMPLEMENTATION" ]
     deps = icuuc_deps
 
-    # TODO(fxbug.dev/42180987): workaround for toolchain issues, see bug
+    # TODO(fxbug.dev/98632): workaround for toolchain issues, see bug
     if (icu_is_in_fuchsia && is_fuchsia) {
       deps += [ "//build/config/fuchsia:uses-outline-atomics-fxbug98632" ]
     }
@@ -320,23 +282,11 @@ template("generate_icui18n") {
 
 generate_icui18n("icui18n") {
   extra_configs = []
-  if (icu_is_in_fuchsia) {
-      # See similar stanza above for details.
-      extra_configs += icu_fuchsia_extra_configs
-      extra_configs += icu_fuchsia_remove_configs
-      extra_configs -= icu_fuchsia_remove_configs
-  }
   icuuc_deps = [ ":icuuc_private" ]
 }
 
 generate_icui18n("icui18n_hidden_visibility") {
   extra_configs = [ ":visibility_hidden" ]
-  if (icu_is_in_fuchsia) {
-      # See similar stanza above for details.
-      extra_configs += icu_fuchsia_extra_configs
-      extra_configs += icu_fuchsia_remove_configs
-      extra_configs -= icu_fuchsia_remove_configs
-  }
   icuuc_deps = [ ":icuuc_private_hidden_visibility" ]
   if (is_fuchsia && !icu_is_in_fuchsia) {
     fuchsia_output_name_postfix = "_hidden_visibility"
@@ -363,13 +313,17 @@ template("generate_icuuc") {
     defines = [ "U_COMMON_IMPLEMENTATION" ]
     deps = [ ":icudata" ]
 
+    if (is_chromeos) {
+      deps += [ ":icudata_hash" ]
+    }
+
     if (icu_use_data_file && icu_use_stub_data) {
       sources += [ "source/stubdata/stubdata.cpp" ]
     }
 
     defines += [ "U_ICUDATAENTRY_IN_COMMON" ]
 
-    # TODO(fxbug.dev/42180987): workaround for toolchain issues, see bug
+    # TODO(fxbug.dev/98632): workaround for toolchain issues, see bug
     if (icu_is_in_fuchsia && is_fuchsia) {
       deps += [ "//build/config/fuchsia:uses-outline-atomics-fxbug98632" ]
     }
@@ -390,12 +344,6 @@ source_set("icuuc_public") {
 
 generate_icuuc("icuuc_private") {
   extra_configs = []
-  if (icu_is_in_fuchsia) {
-      # See similar stanza above for details.
-      extra_configs += icu_fuchsia_extra_configs
-      extra_configs += icu_fuchsia_remove_configs
-      extra_configs -= icu_fuchsia_remove_configs
-  }
   output_name = "icuuc"
   visibility = [
     ":icui18n",
@@ -405,12 +353,6 @@ generate_icuuc("icuuc_private") {
 
 generate_icuuc("icuuc_private_hidden_visibility") {
   extra_configs = [ ":visibility_hidden" ]
-  if (icu_is_in_fuchsia) {
-      # See similar stanza above for details.
-      extra_configs += icu_fuchsia_extra_configs
-      extra_configs += icu_fuchsia_remove_configs
-      extra_configs -= icu_fuchsia_remove_configs
-  }
   output_name = "icuuc_hidden_visibility"
   visibility = [
     ":icui18n_hidden_visibility",
@@ -433,7 +375,7 @@ if (is_android && enable_java_templates) {
 
 if (is_android) {
   data_dir = "android"
-} else if (is_ios && !use_blink) {
+} else if (is_ios) {
   data_dir = "ios"
 } else if (is_chromeos) {
   data_dir = "chromeos"
@@ -454,23 +396,6 @@ if (current_cpu == "mips" || current_cpu == "mips64" ||
 }
 data_bundle = "${data_bundle_prefix}.dat"
 
-# Some code paths end up not using these, marking them to avoid build
-# breaks.
-# See README.fuchsia for details.
-not_needed([
-             "data_bundle",
-             "data_bundle_prefix",
-             "data_dir",
-           ])
-
-if (icu_copy_icudata_to_root_build_dir) {
-  copy("copy_icudata") {
-    sources = [ "$data_dir/$data_bundle" ]
-    outputs = [ "$root_out_dir/$data_bundle" ]
-    data = [ "$root_out_dir/$data_bundle" ]
-  }
-}
-
 if (icu_use_data_file) {
   if (is_ios) {
     bundle_data("icudata") {
@@ -478,13 +403,17 @@ if (icu_use_data_file) {
       outputs = [ "{{bundle_resources_dir}}/{{source_file_part}}" ]
     }
   } else {
-    group("icudata") {
-      if (icu_copy_icudata_to_root_build_dir) {
-        # Guarded by a flag, to avoid name clashes if other build processes
-        # also happen to generate the output file by the same name.
-        # See README.fuchsia for details.
-        public_deps = [ ":copy_icudata" ]
-      }
+    copy("icudata") {
+      sources = [ "$data_dir/$data_bundle" ]
+      outputs = [ "$root_out_dir/$data_bundle" ]
+      data = [ "$root_out_dir/$data_bundle" ]
+    }
+  }
+
+  if (is_chromeos) {
+    copy("icudata_hash") {
+      sources = [ "chromeos/icudtl.dat.hash" ]
+      outputs = [ "$root_out_dir/icudtl.dat.hash" ]
     }
   }
 } else {
@@ -515,13 +444,7 @@ if (icu_use_data_file) {
       if (is_mac || is_ios) {
         args += [ "--mac" ]
       } else if (is_win) {
-        if (target_cpu == "arm64" || target_cpu == "x64") {
-          args += [ "--win64" ]
-        } else if (target_cpu == "arm" || target_cpu == "x86") {
-          args += [ "--win32" ]
-        } else {
-          assert(false)
-        }
+        args += [ "--win" ]
       }
     }
   }
@@ -550,13 +473,6 @@ if (icu_use_data_file) {
     } else {
       sources = [ data_assembly ]
       deps = [ ":make_data_assembly" ]
-      asmflags = []
-      if (current_cpu == "arm64") {
-        import("//build/config/arm.gni")
-        if (arm_control_flow_integrity == "standard") {
-          asmflags += [ "-mmark-bti-property" ]
-        }
-      }
     }
   }
 }

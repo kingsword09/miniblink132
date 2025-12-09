@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -26,26 +26,30 @@ U_NAMESPACE_BEGIN
  * one character at a time in a loop. It stores appends in a buffer while
  * never actually calling append on the unicode string unless the buffer
  * fills up or is flushed.
- * 
+ *
  * proper usage:
  * {
  *     UnicodeStringAppender appender(astring);
  *     for (int32_t i = 0; i < 100; ++i) {
- *        appender.append((char16_t) i);
+ *        appender.append((UChar) i);
  *     }
  *     // appender flushed automatically when it goes out of scope.
  * }
  */
 class UnicodeStringAppender : public UMemory {
 public:
-    
     /**
      * dest is the UnicodeString being appended to. It must always
      * exist while this instance exists.
      */
-    UnicodeStringAppender(UnicodeString &dest) : fDest(&dest), fIdx(0) { }
+    UnicodeStringAppender(UnicodeString& dest)
+        : fDest(&dest)
+        , fIdx(0)
+    {
+    }
 
-    inline void append(char16_t x) {
+    inline void append(UChar x)
+    {
         if (fIdx == UPRV_LENGTHOF(fBuffer)) {
             fDest->append(fBuffer, 0, fIdx);
             fIdx = 0;
@@ -53,7 +57,8 @@ public:
         fBuffer[fIdx++] = x;
     }
 
-    inline void append(UChar32 x) {
+    inline void append(UChar32 x)
+    {
         if (fIdx >= UPRV_LENGTHOF(fBuffer) - 1) {
             fDest->append(fBuffer, 0, fIdx);
             fIdx = 0;
@@ -64,7 +69,8 @@ public:
     /**
      * Ensures that all appended characters have been written out to dest.
      */
-    inline void flush() {
+    inline void flush()
+    {
         if (fIdx) {
             fDest->append(fBuffer, 0, fIdx);
         }
@@ -74,15 +80,17 @@ public:
     /**
      * flush the buffer when we go out of scope.
      */
-    ~UnicodeStringAppender() {
+    ~UnicodeStringAppender()
+    {
         flush();
     }
+
 private:
-    UnicodeString *fDest;
+    UnicodeString* fDest;
     int32_t fIdx;
-    char16_t fBuffer[32];
-    UnicodeStringAppender(const UnicodeStringAppender &other);
-    UnicodeStringAppender &operator=(const UnicodeStringAppender &other);
+    UChar fBuffer[32];
+    UnicodeStringAppender(const UnicodeStringAppender& other);
+    UnicodeStringAppender& operator=(const UnicodeStringAppender& other);
 };
 
 U_NAMESPACE_END

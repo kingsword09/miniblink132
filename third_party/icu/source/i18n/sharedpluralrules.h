@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -13,7 +13,6 @@
 
 #include "unicode/utypes.h"
 #include "sharedobject.h"
-#include "unifiedcache.h"
 
 U_NAMESPACE_BEGIN
 
@@ -21,19 +20,25 @@ class PluralRules;
 
 class U_I18N_API SharedPluralRules : public SharedObject {
 public:
-    SharedPluralRules(PluralRules *prToAdopt) : ptr(prToAdopt) { }
+    SharedPluralRules(PluralRules* prToAdopt)
+        : ptr(prToAdopt)
+    {
+    }
     virtual ~SharedPluralRules();
-    const PluralRules *operator->() const { return ptr; }
-    const PluralRules &operator*() const { return *ptr; }
-private:
-    PluralRules *ptr;
-    SharedPluralRules(const SharedPluralRules &) = delete;
-    SharedPluralRules &operator=(const SharedPluralRules &) =delete;
-};
+    const PluralRules* operator->() const
+    {
+        return ptr;
+    }
+    const PluralRules& operator*() const
+    {
+        return *ptr;
+    }
 
-template<> U_I18N_API
-const SharedPluralRules *LocaleCacheKey<SharedPluralRules>::createObject(
-        const void * /*unused*/, UErrorCode &status) const;
+private:
+    PluralRules* ptr;
+    SharedPluralRules(const SharedPluralRules&);
+    SharedPluralRules& operator=(const SharedPluralRules&);
+};
 
 U_NAMESPACE_END
 

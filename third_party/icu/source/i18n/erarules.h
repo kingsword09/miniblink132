@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef ERARULES_H_
@@ -21,7 +21,7 @@ U_NAMESPACE_BEGIN
 #if defined(_MSC_VER)
 // Ignore warning 4661 as LocalPointerBase does not use operator== or operator!=
 #pragma warning(push)
-#pragma warning(disable: 4661)
+#pragma warning(disable : 4661)
 #endif
 template class U_I18N_API LocalPointerBase<int32_t>;
 template class U_I18N_API LocalMemory<int32_t>;
@@ -34,13 +34,14 @@ class U_I18N_API EraRules : public UMemory {
 public:
     ~EraRules();
 
-    static EraRules* createInstance(const char *calType, UBool includeTentativeEra, UErrorCode& status);
+    static EraRules* createInstance(const char* calType, UBool includeTentativeEra, UErrorCode& status);
 
     /**
      * Gets number of effective eras
      * @return  number of effective eras
      */
-    inline int32_t getNumberOfEras() const {
+    inline int32_t getNumberOfEras() const
+    {
         return numEras;
     }
 
@@ -80,7 +81,8 @@ public:
      *
      * @return era index of current era (or 0, when current date is before the first era)
      */
-    inline int32_t getCurrentEraIndex() const {
+    inline int32_t getCurrentEraIndex() const
+    {
         return currentEra;
     }
 

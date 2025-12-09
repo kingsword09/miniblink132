@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -15,12 +15,16 @@
 
 U_NAMESPACE_BEGIN
 
-SharedObject::~SharedObject() {}
+SharedObject::~SharedObject()
+{
+}
 
-UnifiedCacheBase::~UnifiedCacheBase() {}
+UnifiedCacheBase::~UnifiedCacheBase()
+{
+}
 
-void
-SharedObject::addRef() const {
+void SharedObject::addRef() const
+{
     umtx_atomic_inc(&hardRefCount);
 }
 
@@ -32,9 +36,9 @@ SharedObject::addRef() const {
 //           a cache eviction cycle concurrently.
 //           NO ACCESS TO *this PERMITTED AFTER REFERENCE COUNT == 0 for cached objects.
 //           THE OBJECT MAY ALREADY BE GONE.
-void
-SharedObject::removeRef() const {
-    const UnifiedCacheBase *cache = this->cachePtr;
+void SharedObject::removeRef() const
+{
+    const UnifiedCacheBase* cache = this->cachePtr;
     int32_t updatedRefCount = umtx_atomic_dec(&hardRefCount);
     U_ASSERT(updatedRefCount >= 0);
     if (updatedRefCount == 0) {
@@ -46,14 +50,13 @@ SharedObject::removeRef() const {
     }
 }
 
-
-int32_t
-SharedObject::getRefCount() const {
+int32_t SharedObject::getRefCount() const
+{
     return umtx_loadAcquire(hardRefCount);
 }
 
-void
-SharedObject::deleteIfZeroRefCount() const {
+void SharedObject::deleteIfZeroRefCount() const
+{
     if (this->cachePtr == nullptr && getRefCount() == 0) {
         delete this;
     }

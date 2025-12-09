@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -48,7 +48,7 @@
 U_NAMESPACE_USE
 
 // Special property set IDs
-static const char ANY[]   = "ANY";   // [\u0000-\U0010FFFF]
+static const char ANY[] = "ANY"; // [\u0000-\U0010FFFF]
 static const char ASCII[] = "ASCII"; // [\u0000-\u007F]
 static const char ASSIGNED[] = "Assigned"; // [:^Cn:]
 
@@ -61,17 +61,18 @@ static const char ASSIGNED[] = "Assigned"; // [:^Cn:]
 U_CDECL_BEGIN
 static UBool U_CALLCONV uset_cleanup();
 
-static UnicodeSet *uni32Singleton;
+static UnicodeSet* uni32Singleton;
 static icu::UInitOnce uni32InitOnce {};
 
 /**
  * Cleanup function for UnicodeSet
  */
-static UBool U_CALLCONV uset_cleanup() {
+static UBool U_CALLCONV uset_cleanup(void)
+{
     delete uni32Singleton;
-    uni32Singleton = nullptr;
+    uni32Singleton = NULL;
     uni32InitOnce.reset();
-    return true;
+    return TRUE;
 }
 
 U_CDECL_END
@@ -81,20 +82,20 @@ U_NAMESPACE_BEGIN
 namespace {
 
 // Cache some sets for other services -------------------------------------- ***
-void U_CALLCONV createUni32Set(UErrorCode &errorCode) {
-    U_ASSERT(uni32Singleton == nullptr);
+void U_CALLCONV createUni32Set(UErrorCode& errorCode)
+{
+    U_ASSERT(uni32Singleton == NULL);
     uni32Singleton = new UnicodeSet(UNICODE_STRING_SIMPLE("[:age=3.2:]"), errorCode);
-    if(uni32Singleton==nullptr) {
-        errorCode=U_MEMORY_ALLOCATION_ERROR;
+    if (uni32Singleton == NULL) {
+        errorCode = U_MEMORY_ALLOCATION_ERROR;
     } else {
         uni32Singleton->freeze();
     }
     ucln_common_registerCleanup(UCLN_COMMON_USET, uset_cleanup);
 }
 
-
-U_CFUNC UnicodeSet *
-uniset_getUnicode32Instance(UErrorCode &errorCode) {
+U_CFUNC UnicodeSet* uniset_getUnicode32Instance(UErrorCode& errorCode)
+{
     umtx_initOnce(uni32InitOnce, &createUni32Set, errorCode);
     return uni32Singleton;
 }
@@ -106,10 +107,10 @@ uniset_getUnicode32Instance(UErrorCode &errorCode) {
 // caseCompare(), but they also make UnicodeSet work for simple patterns when
 // no Unicode properties data is available - when caseCompare() fails
 
-static inline UBool
-isPerlOpen(const UnicodeString &pattern, int32_t pos) {
-    char16_t c;
-    return pattern.charAt(pos)==u'\\' && ((c=pattern.charAt(pos+1))==u'p' || c==u'P');
+static inline UBool isPerlOpen(const UnicodeString& pattern, int32_t pos)
+{
+    UChar c;
+    return pattern.charAt(pos) == u'\\' && ((c = pattern.charAt(pos + 1)) == u'p' || c == u'P');
 }
 
 /*static inline UBool
@@ -117,14 +118,14 @@ isPerlClose(const UnicodeString &pattern, int32_t pos) {
     return pattern.charAt(pos)==u'}';
 }*/
 
-static inline UBool
-isNameOpen(const UnicodeString &pattern, int32_t pos) {
-    return pattern.charAt(pos)==u'\\' && pattern.charAt(pos+1)==u'N';
+static inline UBool isNameOpen(const UnicodeString& pattern, int32_t pos)
+{
+    return pattern.charAt(pos) == u'\\' && pattern.charAt(pos + 1) == u'N';
 }
 
-static inline UBool
-isPOSIXOpen(const UnicodeString &pattern, int32_t pos) {
-    return pattern.charAt(pos)==u'[' && pattern.charAt(pos+1)==u':';
+static inline UBool isPOSIXOpen(const UnicodeString& pattern, int32_t pos)
+{
+    return pattern.charAt(pos) == u'[' && pattern.charAt(pos + 1) == u':';
 }
 
 /*static inline UBool
@@ -137,7 +138,7 @@ isPOSIXClose(const UnicodeString &pattern, int32_t pos) {
 // memory leak checker tools
 #define _dbgct(me)
 
-}  // namespace
+} // namespace
 
 //----------------------------------------------------------------
 // Constructors &c
@@ -149,8 +150,8 @@ isPOSIXClose(const UnicodeString &pattern, int32_t pos) {
  * pattern language.
  * @param pattern a string specifying what characters are in the set
  */
-UnicodeSet::UnicodeSet(const UnicodeString& pattern,
-                       UErrorCode& status) {
+UnicodeSet::UnicodeSet(const UnicodeString& pattern, UErrorCode& status)
+{
     applyPattern(pattern, status);
     _dbgct(this);
 }
@@ -159,29 +160,27 @@ UnicodeSet::UnicodeSet(const UnicodeString& pattern,
 // Public API
 //----------------------------------------------------------------
 
-UnicodeSet& UnicodeSet::applyPattern(const UnicodeString& pattern,
-                                     UErrorCode& status) {
+UnicodeSet& UnicodeSet::applyPattern(const UnicodeString& pattern, UErrorCode& status)
+{
     // Equivalent to
-    //   return applyPattern(pattern, USET_IGNORE_SPACE, nullptr, status);
+    //   return applyPattern(pattern, USET_IGNORE_SPACE, NULL, status);
     // but without dependency on closeOver().
     ParsePosition pos(0);
-    applyPatternIgnoreSpace(pattern, pos, nullptr, status);
-    if (U_FAILURE(status)) return *this;
+    applyPatternIgnoreSpace(pattern, pos, NULL, status);
+    if (U_FAILURE(status))
+        return *this;
 
     int32_t i = pos.getIndex();
     // Skip over trailing whitespace
-    ICU_Utility::skipWhitespace(pattern, i, true);
+    ICU_Utility::skipWhitespace(pattern, i, TRUE);
     if (i != pattern.length()) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
     }
     return *this;
 }
 
-void
-UnicodeSet::applyPatternIgnoreSpace(const UnicodeString& pattern,
-                                    ParsePosition& pos,
-                                    const SymbolTable* symbols,
-                                    UErrorCode& status) {
+void UnicodeSet::applyPatternIgnoreSpace(const UnicodeString& pattern, ParsePosition& pos, const SymbolTable* symbols, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return;
     }
@@ -193,8 +192,9 @@ UnicodeSet::applyPatternIgnoreSpace(const UnicodeString& pattern,
     // _applyPattern calls add() etc., which set pat to empty.
     UnicodeString rebuiltPat;
     RuleCharacterIterator chars(pattern, symbols, pos);
-    applyPattern(chars, symbols, rebuiltPat, USET_IGNORE_SPACE, nullptr, 0, status);
-    if (U_FAILURE(status)) return;
+    applyPattern(chars, symbols, rebuiltPat, USET_IGNORE_SPACE, NULL, 0, status);
+    if (U_FAILURE(status))
+        return;
     if (chars.inVariable()) {
         // syntaxError(chars, "Extra chars in variable value");
         status = U_MALFORMED_SET;
@@ -207,10 +207,9 @@ UnicodeSet::applyPatternIgnoreSpace(const UnicodeString& pattern,
  * Return true if the given position, in the given pattern, appears
  * to be the start of a UnicodeSet pattern.
  */
-UBool UnicodeSet::resemblesPattern(const UnicodeString& pattern, int32_t pos) {
-    return ((pos+1) < pattern.length() &&
-            pattern.charAt(pos) == (char16_t)91/*[*/) ||
-        resemblesPropertyPattern(pattern, pos);
+UBool UnicodeSet::resemblesPattern(const UnicodeString& pattern, int32_t pos)
+{
+    return ((pos + 1) < pattern.length() && pattern.charAt(pos) == (UChar)91 /*[*/) || resemblesPropertyPattern(pattern, pos);
 }
 
 //----------------------------------------------------------------
@@ -225,11 +224,22 @@ namespace {
  */
 class UnicodeSetPointer {
     UnicodeSet* p;
+
 public:
-    inline UnicodeSetPointer() : p(0) {}
-    inline ~UnicodeSetPointer() { delete p; }
-    inline UnicodeSet* pointer() { return p; }
-    inline UBool allocate() {
+    inline UnicodeSetPointer()
+        : p(0)
+    {
+    }
+    inline ~UnicodeSetPointer()
+    {
+        delete p;
+    }
+    inline UnicodeSet* pointer()
+    {
+        return p;
+    }
+    inline UBool allocate()
+    {
         if (p == 0) {
             p = new UnicodeSet();
         }
@@ -239,7 +249,7 @@ public:
 
 constexpr int32_t MAX_DEPTH = 100;
 
-}  // namespace
+} // namespace
 
 /**
  * Parse the pattern from the given RuleCharacterIterator.  The
@@ -255,14 +265,11 @@ constexpr int32_t MAX_DEPTH = 100;
  * @param options a bit mask of zero or more of the following:
  * IGNORE_SPACE, CASE.
  */
-void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
-                              const SymbolTable* symbols,
-                              UnicodeString& rebuiltPat,
-                              uint32_t options,
-                              UnicodeSet& (UnicodeSet::*caseClosure)(int32_t attribute),
-                              int32_t depth,
-                              UErrorCode& ec) {
-    if (U_FAILURE(ec)) return;
+void UnicodeSet::applyPattern(RuleCharacterIterator& chars, const SymbolTable* symbols, UnicodeString& rebuiltPat, uint32_t options,
+    UnicodeSet& (UnicodeSet::*caseClosure)(int32_t attribute), int32_t depth, UErrorCode& ec)
+{
+    if (U_FAILURE(ec))
+        return;
     if (depth > MAX_DEPTH) {
         ec = U_ILLEGAL_ARGUMENT_ERROR;
         return;
@@ -272,14 +279,13 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
 
     // Recognized special forms for chars, sets: c-c s-s s&s
 
-    int32_t opts = RuleCharacterIterator::PARSE_VARIABLES |
-                   RuleCharacterIterator::PARSE_ESCAPES;
+    int32_t opts = RuleCharacterIterator::PARSE_VARIABLES | RuleCharacterIterator::PARSE_ESCAPES;
     if ((options & USET_IGNORE_SPACE) != 0) {
         opts |= RuleCharacterIterator::SKIP_WHITESPACE;
     }
 
     UnicodeString patLocal, buf;
-    UBool usePat = false;
+    UBool usePat = FALSE;
     UnicodeSetPointer scratch;
     RuleCharacterIterator::Pos backup;
 
@@ -287,19 +293,17 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
     // lastItem: 0=none, 1=char, 2=set
     int8_t lastItem = 0, mode = 0;
     UChar32 lastChar = 0;
-    char16_t op = 0;
+    UChar op = 0;
 
-    UBool invert = false;
+    UBool invert = FALSE;
 
     clear();
 
     while (mode != 2 && !chars.atEnd()) {
-        U_ASSERT((lastItem == 0 && op == 0) ||
-                 (lastItem == 1 && (op == 0 || op == u'-')) ||
-                 (lastItem == 2 && (op == 0 || op == u'-' || op == u'&')));
+        U_ASSERT((lastItem == 0 && op == 0) || (lastItem == 1 && (op == 0 || op == u'-')) || (lastItem == 2 && (op == 0 || op == u'-' || op == u'&')));
 
         UChar32 c = 0;
-        UBool literal = false;
+        UBool literal = FALSE;
         UnicodeSet* nested = 0; // alias - do not delete
 
         // -------- Check for property pattern
@@ -322,7 +326,8 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
             // Prepare to backup if necessary
             chars.getPos(backup);
             c = chars.next(opts, literal, ec);
-            if (U_FAILURE(ec)) return;
+            if (U_FAILURE(ec))
+                return;
 
             if (c == u'[' && !literal) {
                 if (mode == 1) {
@@ -333,19 +338,21 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                     mode = 1;
                     patLocal.append(u'[');
                     chars.getPos(backup); // prepare to backup
-                    c = chars.next(opts, literal, ec); 
-                    if (U_FAILURE(ec)) return;
+                    c = chars.next(opts, literal, ec);
+                    if (U_FAILURE(ec))
+                        return;
                     if (c == u'^' && !literal) {
-                        invert = true;
+                        invert = TRUE;
                         patLocal.append(u'^');
                         chars.getPos(backup); // prepare to backup
                         c = chars.next(opts, literal, ec);
-                        if (U_FAILURE(ec)) return;
+                        if (U_FAILURE(ec))
+                            return;
                     }
                     // Fall through to handle special leading '-';
                     // otherwise restart loop for nested [], \p{}, etc.
                     if (c == u'-') {
-                        literal = true;
+                        literal = TRUE;
                         // Fall through to handle literal '-' below
                     } else {
                         chars.setPos(backup); // backup
@@ -353,10 +360,10 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                     }
                 }
             } else if (symbols != 0) {
-                const UnicodeFunctor *m = symbols->lookupMatcher(c);
+                const UnicodeFunctor* m = symbols->lookupMatcher(c);
                 if (m != 0) {
-                    const UnicodeSet *ms = dynamic_cast<const UnicodeSet *>(m);
-                    if (ms == nullptr) {
+                    const UnicodeSet* ms = dynamic_cast<const UnicodeSet*>(m);
+                    if (ms == NULL) {
                         ec = U_MALFORMED_SET;
                         return;
                     }
@@ -381,7 +388,7 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                     return;
                 }
                 add(lastChar, lastChar);
-                _appendToPat(patLocal, lastChar, false);
+                _appendToPat(patLocal, lastChar, FALSE);
                 lastItem = 0;
                 op = 0;
             }
@@ -405,14 +412,15 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
             case 2:
                 chars.skipIgnored(opts);
                 nested->applyPropertyPattern(chars, patLocal, ec);
-                if (U_FAILURE(ec)) return;
+                if (U_FAILURE(ec))
+                    return;
                 break;
             case 3: // `nested' already parsed
-                nested->_toPattern(patLocal, false);
+                nested->_toPattern(patLocal, FALSE);
                 break;
             }
 
-            usePat = true;
+            usePat = TRUE;
 
             if (mode == 0) {
                 // Entire pattern is a category; leave parse loop
@@ -454,7 +462,7 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
             case u']':
                 if (lastItem == 1) {
                     add(lastChar, lastChar);
-                    _appendToPat(patLocal, lastChar, false);
+                    _appendToPat(patLocal, lastChar, FALSE);
                 }
                 // Treat final trailing '-' as a literal
                 if (op == u'-') {
@@ -471,13 +479,14 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
             case u'-':
                 if (op == 0) {
                     if (lastItem != 0) {
-                        op = (char16_t) c;
+                        op = (UChar)c;
                         continue;
                     } else {
                         // Treat final trailing '-' as a literal
                         add(c, c);
                         c = chars.next(opts, literal, ec);
-                        if (U_FAILURE(ec)) return;
+                        if (U_FAILURE(ec))
+                            return;
                         if (c == u']' && !literal) {
                             patLocal.append(u"-]", 2);
                             mode = 2;
@@ -490,7 +499,7 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                 return;
             case u'&':
                 if (lastItem == 2 && op == 0) {
-                    op = (char16_t) c;
+                    op = (UChar)c;
                     continue;
                 }
                 // syntaxError(chars, "'&' not after set");
@@ -508,17 +517,18 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                 }
                 if (lastItem == 1) {
                     add(lastChar, lastChar);
-                    _appendToPat(patLocal, lastChar, false);
+                    _appendToPat(patLocal, lastChar, FALSE);
                 }
                 lastItem = 0;
                 buf.truncate(0);
                 {
-                    UBool ok = false;
+                    UBool ok = FALSE;
                     while (!chars.atEnd()) {
                         c = chars.next(opts, literal, ec);
-                        if (U_FAILURE(ec)) return;
+                        if (U_FAILURE(ec))
+                            return;
                         if (c == u'}' && !literal) {
-                            ok = true;
+                            ok = TRUE;
                             break;
                         }
                         buf.append(c);
@@ -534,7 +544,7 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                 // processing
                 add(buf);
                 patLocal.append(u'{');
-                _appendToPat(patLocal, buf, false);
+                _appendToPat(patLocal, buf, FALSE);
                 patLocal.append(u'}');
                 continue;
             case SymbolTable::SYMBOL_REF:
@@ -547,7 +557,8 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                 {
                     chars.getPos(backup);
                     c = chars.next(opts, literal, ec);
-                    if (U_FAILURE(ec)) return;
+                    if (U_FAILURE(ec))
+                        return;
                     UBool anchor = (c == u']' && !literal);
                     if (symbols == 0 && !anchor) {
                         c = SymbolTable::SYMBOL_REF;
@@ -557,11 +568,11 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                     if (anchor && op == 0) {
                         if (lastItem == 1) {
                             add(lastChar, lastChar);
-                            _appendToPat(patLocal, lastChar, false);
+                            _appendToPat(patLocal, lastChar, FALSE);
                         }
                         add(U_ETHER);
-                        usePat = true;
-                        patLocal.append((char16_t) SymbolTable::SYMBOL_REF);
+                        usePat = TRUE;
+                        patLocal.append((UChar)SymbolTable::SYMBOL_REF);
                         patLocal.append(u']');
                         mode = 2;
                         continue;
@@ -594,14 +605,14 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
                     return;
                 }
                 add(lastChar, c);
-                _appendToPat(patLocal, lastChar, false);
+                _appendToPat(patLocal, lastChar, FALSE);
                 patLocal.append(op);
-                _appendToPat(patLocal, c, false);
+                _appendToPat(patLocal, c, FALSE);
                 lastItem = 0;
                 op = 0;
             } else {
                 add(lastChar, lastChar);
-                _appendToPat(patLocal, lastChar, false);
+                _appendToPat(patLocal, lastChar, FALSE);
                 lastChar = c;
             }
             break;
@@ -631,11 +642,13 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
      * to close over case BEFORE COMPLEMENTING.  This makes
      * patterns like /[^abc]/i work.
      */
-    if ((options & USET_CASE_MASK) != 0) {
-        (this->*caseClosure)(options);
+    if ((options & USET_CASE_INSENSITIVE) != 0) {
+        (this->*caseClosure)(USET_CASE_INSENSITIVE);
+    } else if ((options & USET_ADD_CASE_MAPPINGS) != 0) {
+        (this->*caseClosure)(USET_ADD_CASE_MAPPINGS);
     }
     if (invert) {
-        complement().removeAllStrings();  // code point complement
+        complement().removeAllStrings(); // code point complement
     }
 
     // Use the rebuilt pattern (patLocal) only if necessary.  Prefer the
@@ -643,7 +656,7 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
     if (usePat) {
         rebuiltPat.append(patLocal);
     } else {
-        _generatePattern(rebuiltPat, false);
+        _generatePattern(rebuiltPat, FALSE);
     }
     if (isBogus() && U_SUCCESS(ec)) {
         // We likely ran out of memory. AHHH!
@@ -657,16 +670,19 @@ void UnicodeSet::applyPattern(RuleCharacterIterator& chars,
 
 namespace {
 
-static UBool numericValueFilter(UChar32 ch, void* context) {
+static UBool numericValueFilter(UChar32 ch, void* context)
+{
     return u_getNumericValue(ch) == *(double*)context;
 }
 
-static UBool generalCategoryMaskFilter(UChar32 ch, void* context) {
+static UBool generalCategoryMaskFilter(UChar32 ch, void* context)
+{
     int32_t value = *(int32_t*)context;
-    return (U_GET_GC_MASK((UChar32) ch) & value) != 0;
+    return (U_GET_GC_MASK((UChar32)ch) & value) != 0;
 }
 
-static UBool versionFilter(UChar32 ch, void* context) {
+static UBool versionFilter(UChar32 ch, void* context)
+{
     static const UVersionInfo none = { 0, 0, 0, 0 };
     UVersionInfo v;
     u_charAge(ch, v);
@@ -679,25 +695,26 @@ typedef struct {
     int32_t value;
 } IntPropertyContext;
 
-static UBool intPropertyFilter(UChar32 ch, void* context) {
+static UBool intPropertyFilter(UChar32 ch, void* context)
+{
     IntPropertyContext* c = (IntPropertyContext*)context;
-    return u_getIntPropertyValue((UChar32) ch, c->prop) == c->value;
+    return u_getIntPropertyValue((UChar32)ch, c->prop) == c->value;
 }
 
-static UBool scriptExtensionsFilter(UChar32 ch, void* context) {
+static UBool scriptExtensionsFilter(UChar32 ch, void* context)
+{
     return uscript_hasScript(ch, *(UScriptCode*)context);
 }
 
-}  // namespace
+} // namespace
 
 /**
  * Generic filter-based scanning code for UCD property UnicodeSets.
  */
-void UnicodeSet::applyFilter(UnicodeSet::Filter filter,
-                             void* context,
-                             const UnicodeSet* inclusions,
-                             UErrorCode &status) {
-    if (U_FAILURE(status)) return;
+void UnicodeSet::applyFilter(UnicodeSet::Filter filter, void* context, const UnicodeSet* inclusions, UErrorCode& status)
+{
+    if (U_FAILURE(status))
+        return;
 
     // Logically, walk through all Unicode characters, noting the start
     // and end of each range for which filter.contain(c) is
@@ -714,7 +731,7 @@ void UnicodeSet::applyFilter(UnicodeSet::Filter filter,
     UChar32 startHasProperty = -1;
     int32_t limitRange = inclusions->getRangeCount();
 
-    for (int j=0; j<limitRange; ++j) {
+    for (int j = 0; j < limitRange; ++j) {
         // get current range
         UChar32 start = inclusions->getRangeStart(j);
         UChar32 end = inclusions->getRangeEnd(j);
@@ -728,7 +745,7 @@ void UnicodeSet::applyFilter(UnicodeSet::Filter filter,
                     startHasProperty = ch;
                 }
             } else if (startHasProperty >= 0) {
-                add(startHasProperty, ch-1);
+                add(startHasProperty, ch - 1);
                 startHasProperty = -1;
             }
         }
@@ -744,37 +761,45 @@ void UnicodeSet::applyFilter(UnicodeSet::Filter filter,
 
 namespace {
 
-static UBool mungeCharName(char* dst, const char* src, int32_t dstCapacity) {
+static UBool mungeCharName(char* dst, const char* src, int32_t dstCapacity)
+{
     /* Note: we use ' ' in compiler code page */
     int32_t j = 0;
     char ch;
     --dstCapacity; /* make room for term. zero */
     while ((ch = *src++) != 0) {
-        if (ch == ' ' && (j==0 || (j>0 && dst[j-1]==' '))) {
+        if (ch == ' ' && (j == 0 || (j > 0 && dst[j - 1] == ' '))) {
             continue;
         }
-        if (j >= dstCapacity) return false;
+        if (j >= dstCapacity)
+            return FALSE;
         dst[j++] = ch;
     }
-    if (j > 0 && dst[j-1] == ' ') --j;
+    if (j > 0 && dst[j - 1] == ' ')
+        --j;
     dst[j] = 0;
-    return true;
+    return TRUE;
 }
 
-}  // namespace
+} // namespace
 
 //----------------------------------------------------------------
 // Property set API
 //----------------------------------------------------------------
 
-#define FAIL(ec) UPRV_BLOCK_MACRO_BEGIN { \
-    ec=U_ILLEGAL_ARGUMENT_ERROR; \
-    return *this; \
-} UPRV_BLOCK_MACRO_END
+#define FAIL(ec)                                                                                                                                               \
+    UPRV_BLOCK_MACRO_BEGIN                                                                                                                                     \
+    {                                                                                                                                                          \
+        ec = U_ILLEGAL_ARGUMENT_ERROR;                                                                                                                         \
+        return *this;                                                                                                                                          \
+    }                                                                                                                                                          \
+    UPRV_BLOCK_MACRO_END
 
-UnicodeSet&
-UnicodeSet::applyIntPropertyValue(UProperty prop, int32_t value, UErrorCode& ec) {
-    if (U_FAILURE(ec) || isFrozen()) { return *this; }
+UnicodeSet& UnicodeSet::applyIntPropertyValue(UProperty prop, int32_t value, UErrorCode& ec)
+{
+    if (U_FAILURE(ec) || isFrozen()) {
+        return *this;
+    }
     if (prop == UCHAR_GENERAL_CATEGORY_MASK) {
         const UnicodeSet* inclusions = CharacterProperties::getInclusionsForProperty(prop, ec);
         applyFilter(generalCategoryMaskFilter, &value, inclusions, ec);
@@ -784,18 +809,20 @@ UnicodeSet::applyIntPropertyValue(UProperty prop, int32_t value, UErrorCode& ec)
         applyFilter(scriptExtensionsFilter, &script, inclusions, ec);
     } else if (0 <= prop && prop < UCHAR_BINARY_LIMIT) {
         if (value == 0 || value == 1) {
-            const USet *set = u_getBinaryPropertySet(prop, &ec);
-            if (U_FAILURE(ec)) { return *this; }
-            copyFrom(*UnicodeSet::fromUSet(set), true);
+            const USet* set = u_getBinaryPropertySet(prop, &ec);
+            if (U_FAILURE(ec)) {
+                return *this;
+            }
+            copyFrom(*UnicodeSet::fromUSet(set), TRUE);
             if (value == 0) {
-                complement().removeAllStrings();  // code point complement
+                complement().removeAllStrings(); // code point complement
             }
         } else {
             clear();
         }
     } else if (UCHAR_INT_START <= prop && prop < UCHAR_INT_LIMIT) {
         const UnicodeSet* inclusions = CharacterProperties::getInclusionsForProperty(prop, ec);
-        IntPropertyContext c = {prop, value};
+        IntPropertyContext c = { prop, value };
         applyFilter(intPropertyFilter, &c, inclusions, ec);
     } else {
         ec = U_ILLEGAL_ARGUMENT_ERROR;
@@ -803,11 +830,10 @@ UnicodeSet::applyIntPropertyValue(UProperty prop, int32_t value, UErrorCode& ec)
     return *this;
 }
 
-UnicodeSet&
-UnicodeSet::applyPropertyAlias(const UnicodeString& prop,
-                               const UnicodeString& value,
-                               UErrorCode& ec) {
-    if (U_FAILURE(ec) || isFrozen()) return *this;
+UnicodeSet& UnicodeSet::applyPropertyAlias(const UnicodeString& prop, const UnicodeString& value, UErrorCode& ec)
+{
+    if (U_FAILURE(ec) || isFrozen())
+        return *this;
 
     // prop and value used to be converted to char * using the default
     // converter instead of the invariant conversion.
@@ -815,46 +841,42 @@ UnicodeSet::applyPropertyAlias(const UnicodeString& prop,
     // names use only invariant characters.
     // If there are any variant characters, then we won't find them anyway.
     // Checking first avoids assertion failures in the conversion.
-    if( !uprv_isInvariantUString(prop.getBuffer(), prop.length()) ||
-        !uprv_isInvariantUString(value.getBuffer(), value.length())
-    ) {
+    if (!uprv_isInvariantUString(prop.getBuffer(), prop.length()) || !uprv_isInvariantUString(value.getBuffer(), value.length())) {
         FAIL(ec);
     }
     CharString pname, vname;
     pname.appendInvariantChars(prop, ec);
     vname.appendInvariantChars(value, ec);
-    if (U_FAILURE(ec)) return *this;
+    if (U_FAILURE(ec))
+        return *this;
 
     UProperty p;
     int32_t v;
-    UBool invert = false;
+    UBool invert = FALSE;
 
     if (value.length() > 0) {
         p = u_getPropertyEnum(pname.data());
-        if (p == UCHAR_INVALID_CODE) FAIL(ec);
+        if (p == UCHAR_INVALID_CODE)
+            FAIL(ec);
 
         // Treat gc as gcm
         if (p == UCHAR_GENERAL_CATEGORY) {
             p = UCHAR_GENERAL_CATEGORY_MASK;
         }
 
-        if ((p >= UCHAR_BINARY_START && p < UCHAR_BINARY_LIMIT) ||
-            (p >= UCHAR_INT_START && p < UCHAR_INT_LIMIT) ||
-            (p >= UCHAR_MASK_START && p < UCHAR_MASK_LIMIT)) {
+        if ((p >= UCHAR_BINARY_START && p < UCHAR_BINARY_LIMIT) || (p >= UCHAR_INT_START && p < UCHAR_INT_LIMIT)
+            || (p >= UCHAR_MASK_START && p < UCHAR_MASK_LIMIT)) {
             v = u_getPropertyValueEnum(p, vname.data());
             if (v == UCHAR_INVALID_CODE) {
                 // Handle numeric CCC
-                if (p == UCHAR_CANONICAL_COMBINING_CLASS ||
-                    p == UCHAR_TRAIL_CANONICAL_COMBINING_CLASS ||
-                    p == UCHAR_LEAD_CANONICAL_COMBINING_CLASS) {
+                if (p == UCHAR_CANONICAL_COMBINING_CLASS || p == UCHAR_TRAIL_CANONICAL_COMBINING_CLASS || p == UCHAR_LEAD_CANONICAL_COMBINING_CLASS) {
                     char* end;
                     double val = uprv_strtod(vname.data(), &end);
                     // Anything between 0 and 255 is valid even if unused.
                     // Cast double->int only after range check.
                     // We catch NaN here because comparing it with both 0 and 255 will be false
                     // (as are all comparisons with NaN).
-                    if (*end != 0 || !(0 <= val && val <= 255) ||
-                            (v = (int32_t)val) != val) {
+                    if (*end != 0 || !(0 <= val && val <= 255) || (v = (int32_t)val) != val) {
                         // non-integral value or outside 0..255, or trailing junk
                         FAIL(ec);
                     }
@@ -867,47 +889,44 @@ UnicodeSet::applyPropertyAlias(const UnicodeString& prop,
         else {
 
             switch (p) {
-            case UCHAR_NUMERIC_VALUE:
-                {
-                    char* end;
-                    double val = uprv_strtod(vname.data(), &end);
-                    if (*end != 0) {
-                        FAIL(ec);
-                    }
-                    applyFilter(numericValueFilter, &val,
-                                CharacterProperties::getInclusionsForProperty(p, ec), ec);
+            case UCHAR_NUMERIC_VALUE: {
+                char* end;
+                double val = uprv_strtod(vname.data(), &end);
+                if (*end != 0) {
+                    FAIL(ec);
+                }
+                applyFilter(numericValueFilter, &val, CharacterProperties::getInclusionsForProperty(p, ec), ec);
+                return *this;
+            }
+            case UCHAR_NAME: {
+                // Must munge name, since u_charFromName() does not do
+                // 'loose' matching.
+                char buf[128]; // it suffices that this be > uprv_getMaxCharNameLength
+                if (!mungeCharName(buf, vname.data(), sizeof(buf)))
+                    FAIL(ec);
+                UChar32 ch = u_charFromName(U_EXTENDED_CHAR_NAME, buf, &ec);
+                if (U_SUCCESS(ec)) {
+                    clear();
+                    add(ch);
                     return *this;
+                } else {
+                    FAIL(ec);
                 }
-            case UCHAR_NAME:
-                {
-                    // Must munge name, since u_charFromName() does not do
-                    // 'loose' matching.
-                    char buf[128]; // it suffices that this be > uprv_getMaxCharNameLength
-                    if (!mungeCharName(buf, vname.data(), sizeof(buf))) FAIL(ec);
-                    UChar32 ch = u_charFromName(U_EXTENDED_CHAR_NAME, buf, &ec);
-                    if (U_SUCCESS(ec)) {
-                        clear();
-                        add(ch);
-                        return *this;
-                    } else {
-                        FAIL(ec);
-                    }
-                }
+            }
             case UCHAR_UNICODE_1_NAME:
                 // ICU 49 deprecates the Unicode_1_Name property APIs.
                 FAIL(ec);
-            case UCHAR_AGE:
-                {
-                    // Must munge name, since u_versionFromString() does not do
-                    // 'loose' matching.
-                    char buf[128];
-                    if (!mungeCharName(buf, vname.data(), sizeof(buf))) FAIL(ec);
-                    UVersionInfo version;
-                    u_versionFromString(version, buf);
-                    applyFilter(versionFilter, &version,
-                                CharacterProperties::getInclusionsForProperty(p, ec), ec);
-                    return *this;
-                }
+            case UCHAR_AGE: {
+                // Must munge name, since u_versionFromString() does not do
+                // 'loose' matching.
+                char buf[128];
+                if (!mungeCharName(buf, vname.data(), sizeof(buf)))
+                    FAIL(ec);
+                UVersionInfo version;
+                u_versionFromString(version, buf);
+                applyFilter(versionFilter, &version, CharacterProperties::getInclusionsForProperty(p, ec), ec);
+                return *this;
+            }
             case UCHAR_SCRIPT_EXTENSIONS:
                 v = u_getPropertyValueEnum(UCHAR_SCRIPT, vname.data());
                 if (v == UCHAR_INVALID_CODE) {
@@ -945,7 +964,7 @@ UnicodeSet::applyPropertyAlias(const UnicodeString& prop,
                     // [:Assigned:]=[:^Cn:]
                     p = UCHAR_GENERAL_CATEGORY_MASK;
                     v = U_GC_CN_MASK;
-                    invert = true;
+                    invert = TRUE;
                 } else {
                     FAIL(ec);
                 }
@@ -954,8 +973,8 @@ UnicodeSet::applyPropertyAlias(const UnicodeString& prop,
     }
 
     applyIntPropertyValue(p, v, ec);
-    if(invert) {
-        complement().removeAllStrings();  // code point complement
+    if (invert) {
+        complement().removeAllStrings(); // code point complement
     }
 
     if (isBogus() && U_SUCCESS(ec)) {
@@ -973,11 +992,11 @@ UnicodeSet::applyPropertyAlias(const UnicodeString& prop,
  * Return true if the given position, in the given pattern, appears
  * to be the start of a property set pattern.
  */
-UBool UnicodeSet::resemblesPropertyPattern(const UnicodeString& pattern,
-                                           int32_t pos) {
+UBool UnicodeSet::resemblesPropertyPattern(const UnicodeString& pattern, int32_t pos)
+{
     // Patterns are at least 5 characters long
-    if ((pos+5) > pattern.length()) {
-        return false;
+    if ((pos + 5) > pattern.length()) {
+        return FALSE;
     }
 
     // Look for an opening [:, [:^, \p, or \P
@@ -992,20 +1011,18 @@ UBool UnicodeSet::resemblesPropertyPattern(const UnicodeString& pattern,
  * it will be unchanged.
  * @param iterOpts RuleCharacterIterator options
  */
-UBool UnicodeSet::resemblesPropertyPattern(RuleCharacterIterator& chars,
-                                           int32_t iterOpts) {
-    // NOTE: literal will always be false, because we don't parse escapes.
-    UBool result = false, literal;
+UBool UnicodeSet::resemblesPropertyPattern(RuleCharacterIterator& chars, int32_t iterOpts)
+{
+    // NOTE: literal will always be FALSE, because we don't parse escapes.
+    UBool result = FALSE, literal;
     UErrorCode ec = U_ZERO_ERROR;
     iterOpts &= ~RuleCharacterIterator::PARSE_ESCAPES;
     RuleCharacterIterator::Pos pos;
     chars.getPos(pos);
     UChar32 c = chars.next(iterOpts, literal, ec);
     if (c == u'[' || c == u'\\') {
-        UChar32 d = chars.next(iterOpts & ~RuleCharacterIterator::SKIP_WHITESPACE,
-                               literal, ec);
-        result = (c == u'[') ? (d == u':') :
-                               (d == u'N' || d == u'p' || d == u'P');
+        UChar32 d = chars.next(iterOpts & ~RuleCharacterIterator::SKIP_WHITESPACE, literal, ec);
+        result = (c == u'[') ? (d == u':') : (d == u'N' || d == u'p' || d == u'P');
     }
     chars.setPos(pos);
     return result && U_SUCCESS(ec);
@@ -1014,34 +1031,34 @@ UBool UnicodeSet::resemblesPropertyPattern(RuleCharacterIterator& chars,
 /**
  * Parse the given property pattern at the given parse position.
  */
-UnicodeSet& UnicodeSet::applyPropertyPattern(const UnicodeString& pattern,
-                                             ParsePosition& ppos,
-                                             UErrorCode &ec) {
+UnicodeSet& UnicodeSet::applyPropertyPattern(const UnicodeString& pattern, ParsePosition& ppos, UErrorCode& ec)
+{
     int32_t pos = ppos.getIndex();
 
-    UBool posix = false; // true for [:pat:], false for \p{pat} \P{pat} \N{pat}
-    UBool isName = false; // true for \N{pat}, o/w false
-    UBool invert = false;
+    UBool posix = FALSE; // true for [:pat:], false for \p{pat} \P{pat} \N{pat}
+    UBool isName = FALSE; // true for \N{pat}, o/w false
+    UBool invert = FALSE;
 
-    if (U_FAILURE(ec)) return *this;
+    if (U_FAILURE(ec))
+        return *this;
 
     // Minimum length is 5 characters, e.g. \p{L}
-    if ((pos+5) > pattern.length()) {
+    if ((pos + 5) > pattern.length()) {
         FAIL(ec);
     }
 
     // On entry, ppos should point to one of the following locations:
     // Look for an opening [:, [:^, \p, or \P
     if (isPOSIXOpen(pattern, pos)) {
-        posix = true;
+        posix = TRUE;
         pos += 2;
         pos = ICU_Utility::skipWhitespace(pattern, pos);
         if (pos < pattern.length() && pattern.charAt(pos) == u'^') {
             ++pos;
-            invert = true;
+            invert = TRUE;
         }
     } else if (isPerlOpen(pattern, pos) || isNameOpen(pattern, pos)) {
-        char16_t c = pattern.charAt(pos+1);
+        UChar c = pattern.charAt(pos + 1);
         invert = (c == u'P');
         isName = (c == u'N');
         pos += 2;
@@ -1058,9 +1075,9 @@ UnicodeSet& UnicodeSet::applyPropertyPattern(const UnicodeString& pattern,
     // Look for the matching close delimiter, either :] or }
     int32_t close;
     if (posix) {
-      close = pattern.indexOf(u":]", 2, pos);
+        close = pattern.indexOf(u":]", 2, pos);
     } else {
-      close = pattern.indexOf(u'}', pos);
+        close = pattern.indexOf(u'}', pos);
     }
     if (close < 0) {
         // Syntax error; close delimiter missing
@@ -1075,13 +1092,13 @@ UnicodeSet& UnicodeSet::applyPropertyPattern(const UnicodeString& pattern,
     if (equals >= 0 && equals < close && !isName) {
         // Equals seen; parse medium/long pattern
         pattern.extractBetween(pos, equals, propName);
-        pattern.extractBetween(equals+1, close, valueName);
+        pattern.extractBetween(equals + 1, close, valueName);
     }
 
     else {
         // Handle case where no '=' is seen, and \N{}
         pattern.extractBetween(pos, close, propName);
-            
+
         // Handle \N{name}
         if (isName) {
             // This is a little inefficient since it means we have to
@@ -1098,7 +1115,7 @@ UnicodeSet& UnicodeSet::applyPropertyPattern(const UnicodeString& pattern,
 
     if (U_SUCCESS(ec)) {
         if (invert) {
-            complement().removeAllStrings();  // code point complement
+            complement().removeAllStrings(); // code point complement
         }
 
         // Move to the limit position after the close delimiter if the
@@ -1118,15 +1135,16 @@ UnicodeSet& UnicodeSet::applyPropertyPattern(const UnicodeString& pattern,
  * @param rebuiltPat the pattern that was parsed, rebuilt or
  * copied from the input pattern, as appropriate.
  */
-void UnicodeSet::applyPropertyPattern(RuleCharacterIterator& chars,
-                                      UnicodeString& rebuiltPat,
-                                      UErrorCode& ec) {
-    if (U_FAILURE(ec)) return;
+void UnicodeSet::applyPropertyPattern(RuleCharacterIterator& chars, UnicodeString& rebuiltPat, UErrorCode& ec)
+{
+    if (U_FAILURE(ec))
+        return;
     UnicodeString pattern;
     chars.lookahead(pattern);
     ParsePosition pos(0);
     applyPropertyPattern(pattern, pos, ec);
-    if (U_FAILURE(ec)) return;
+    if (U_FAILURE(ec))
+        return;
     if (pos.getIndex() == 0) {
         // syntaxError(chars, "Invalid property pattern");
         ec = U_MALFORMED_SET;

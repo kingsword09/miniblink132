@@ -32,26 +32,35 @@ namespace internal {
 // - Only an active scope can be destroyed. When this happens, its parent scope
 // becomes active.
 class PERFETTO_EXPORT_COMPONENT CheckedScope {
- public:
-  explicit CheckedScope(CheckedScope* parent_scope);
-  ~CheckedScope();
-  CheckedScope(CheckedScope&&);
-  CheckedScope& operator=(CheckedScope&&);
-  CheckedScope(const CheckedScope&) = delete;
-  CheckedScope& operator=(const CheckedScope&) = delete;
+public:
+    explicit CheckedScope(CheckedScope* parent_scope);
+    ~CheckedScope();
+    CheckedScope(CheckedScope&&);
+    CheckedScope& operator=(CheckedScope&&);
+    CheckedScope(const CheckedScope&) = delete;
+    CheckedScope& operator=(const CheckedScope&) = delete;
 
-  void Reset();
+    void Reset();
 
-  CheckedScope* parent_scope() const { return parent_scope_; }
-  bool is_active() const { return is_active_; }
+    CheckedScope* parent_scope() const
+    {
+        return parent_scope_;
+    }
+    bool is_active() const
+    {
+        return is_active_;
+    }
 
- private:
-  void set_is_active(bool is_active) { is_active_ = is_active; }
+private:
+    void set_is_active(bool is_active)
+    {
+        is_active_ = is_active;
+    }
 
-  bool is_active_ = true;
-  CheckedScope* parent_scope_;
+    bool is_active_ = true;
+    CheckedScope* parent_scope_;
 
-  bool deleted_ = false;
+    bool deleted_ = false;
 };
 
 #else
@@ -59,25 +68,37 @@ class PERFETTO_EXPORT_COMPONENT CheckedScope {
 // Dummy for cases when DCHECK is not enabled. Methods are marked constexpr to
 // ensure that the compiler can inline and optimise them away.
 class CheckedScope {
- public:
-  inline explicit CheckedScope(CheckedScope*) {}
-  inline ~CheckedScope() {}
+public:
+    inline explicit CheckedScope(CheckedScope*)
+    {
+    }
+    inline ~CheckedScope()
+    {
+    }
 
-  CheckedScope(const CheckedScope&) = delete;
-  CheckedScope& operator=(const CheckedScope&) = delete;
+    CheckedScope(const CheckedScope&) = delete;
+    CheckedScope& operator=(const CheckedScope&) = delete;
 
-  CheckedScope(CheckedScope&&) = default;
-  CheckedScope& operator=(CheckedScope&&) = default;
+    CheckedScope(CheckedScope&&) = default;
+    CheckedScope& operator=(CheckedScope&&) = default;
 
-  inline void Reset() {}
+    inline void Reset()
+    {
+    }
 
-  inline CheckedScope* parent_scope() const { return nullptr; }
-  inline bool is_active() const { return true; }
+    inline CheckedScope* parent_scope() const
+    {
+        return nullptr;
+    }
+    inline bool is_active() const
+    {
+        return true;
+    }
 };
 
-#endif  // PERFETTO_DCHECK_IS_ON()
+#endif // PERFETTO_DCHECK_IS_ON()
 
-}  // namespace internal
-}  // namespace perfetto
+} // namespace internal
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_CHECKED_SCOPE_H_
+#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_CHECKED_SCOPE_H_

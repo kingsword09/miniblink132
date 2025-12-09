@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -27,7 +27,7 @@
 
 typedef unsigned char ICUZoneinfoVersion;
 
-#define TZ_ICU_VERSION ((ICUZoneinfoVersion) 1)
+#define TZ_ICU_VERSION ((ICUZoneinfoVersion)1)
 
 /* File into which we will write supplemental ICU data.  This allows
  * zic to communicate final zone data to tz2icu. */

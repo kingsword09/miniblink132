@@ -1,19 +1,19 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
 *   Copyright (C) 2000-2006, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
- *  ucnv_cb.c:
- *  External APIs for the ICU's codeset conversion library
- *  Helena Shih
- *
- * Modification History:
- *
- *   Date        Name        Description
- *   7/28/2000   srl         Implementation
- */
+*  ucnv_cb.c:
+*  External APIs for the ICU's codeset conversion library
+*  Helena Shih
+*
+* Modification History:
+*
+*   Date        Name        Description
+*   7/28/2000   srl         Implementation
+*/
 
 /**
  * @name Character Conversion C API
@@ -33,31 +33,17 @@
 /* Note: Recursion may occur in the cb functions, be sure to update the offsets correctly
 if you don't use ucnv_cbXXX functions.  Make sure you don't use the same callback within
 the same call stack if the complexity arises. */
-U_CAPI void  U_EXPORT2
-ucnv_cbFromUWriteBytes (UConverterFromUnicodeArgs *args,
-                       const char* source,
-                       int32_t length,
-                       int32_t offsetIndex,
-                       UErrorCode * err)
+U_CAPI void U_EXPORT2 ucnv_cbFromUWriteBytes(UConverterFromUnicodeArgs* args, const char* source, int32_t length, int32_t offsetIndex, UErrorCode* err)
 {
-    if(U_FAILURE(*err)) {
+    if (U_FAILURE(*err)) {
         return;
     }
 
-    ucnv_fromUWriteBytes(
-        args->converter,
-        source, length,
-        &args->target, args->targetLimit,
-        &args->offsets, offsetIndex,
-        err);
+    ucnv_fromUWriteBytes(args->converter, source, length, &args->target, args->targetLimit, &args->offsets, offsetIndex, err);
 }
 
-U_CAPI void  U_EXPORT2
-ucnv_cbFromUWriteUChars(UConverterFromUnicodeArgs *args,
-                             const char16_t** source,
-                             const char16_t*  sourceLimit,
-                             int32_t offsetIndex,
-                             UErrorCode * err)
+U_CAPI void U_EXPORT2 ucnv_cbFromUWriteUChars(
+    UConverterFromUnicodeArgs* args, const UChar** source, const UChar* sourceLimit, int32_t offsetIndex, UErrorCode* err)
 {
     /*
     This is a fun one.  Recursion can occur - we're basically going to
@@ -71,27 +57,20 @@ ucnv_cbFromUWriteUChars(UConverterFromUnicodeArgs *args,
     into this.
     */
 
-    char *oldTarget;
+    char* oldTarget;
 
-    if(U_FAILURE(*err))
-    {
+    if (U_FAILURE(*err)) {
         return;
     }
 
     oldTarget = args->target;
 
-    ucnv_fromUnicode(args->converter,
-        &args->target,
-        args->targetLimit,
-        source,
-        sourceLimit,
-        nullptr, /* no offsets */
-        false, /* no flush */
+    ucnv_fromUnicode(args->converter, &args->target, args->targetLimit, source, sourceLimit, NULL, /* no offsets */
+        FALSE, /* no flush */
         err);
 
-    if(args->offsets)
-    {
-        while (args->target != oldTarget)  /* if it moved at all.. */
+    if (args->offsets) {
+        while (args->target != oldTarget) /* if it moved at all.. */
         {
             *(args->offsets)++ = offsetIndex;
             oldTarget++;
@@ -102,28 +81,26 @@ ucnv_cbFromUWriteUChars(UConverterFromUnicodeArgs *args,
     Note, if you did something like used a Stop subcallback, things would get interesting.
     In fact, here's where we want to return the partially consumed in-source!
     */
-    if(*err == U_BUFFER_OVERFLOW_ERROR)
+    if (*err == U_BUFFER_OVERFLOW_ERROR)
     /* && (*source < sourceLimit && args->target >= args->targetLimit)
     -- S. Hrcek */
     {
         /* Overflowed the target.  Now, we'll write into the charErrorBuffer.
         It's a fixed size. If we overflow it... Hmm */
-        char *newTarget;
-        const char *newTargetLimit;
+        char* newTarget;
+        const char* newTargetLimit;
         UErrorCode err2 = U_ZERO_ERROR;
 
         int8_t errBuffLen;
 
-        errBuffLen  = args->converter->charErrorBufferLength;
+        errBuffLen = args->converter->charErrorBufferLength;
 
         /* start the new target at the first free slot in the errbuff.. */
-        newTarget = (char *)(args->converter->charErrorBuffer + errBuffLen);
+        newTarget = (char*)(args->converter->charErrorBuffer + errBuffLen);
 
-        newTargetLimit = (char *)(args->converter->charErrorBuffer +
-            sizeof(args->converter->charErrorBuffer));
+        newTargetLimit = (char*)(args->converter->charErrorBuffer + sizeof(args->converter->charErrorBuffer));
 
-        if(newTarget >= newTargetLimit)
-        {
+        if (newTarget >= newTargetLimit) {
             *err = U_INTERNAL_PROGRAM_ERROR;
             return;
         }
@@ -135,23 +112,14 @@ ucnv_cbFromUWriteUChars(UConverterFromUnicodeArgs *args,
 
         args->converter->charErrorBufferLength = 0;
 
-        ucnv_fromUnicode(args->converter,
-                         &newTarget,
-                         newTargetLimit,
-                         source,
-                         sourceLimit,
-                         nullptr,
-                         false,
-                         &err2);
+        ucnv_fromUnicode(args->converter, &newTarget, newTargetLimit, source, sourceLimit, NULL, FALSE, &err2);
 
         /* We can go ahead and overwrite the  length here. We know just how
         to recalculate it. */
 
-        args->converter->charErrorBufferLength = (int8_t)(
-            newTarget - (char*)args->converter->charErrorBuffer);
+        args->converter->charErrorBufferLength = (int8_t)(newTarget - (char*)args->converter->charErrorBuffer);
 
-        if((newTarget >= newTargetLimit) || (err2 == U_BUFFER_OVERFLOW_ERROR))
-        {
+        if ((newTarget >= newTargetLimit) || (err2 == U_BUFFER_OVERFLOW_ERROR)) {
             /* now we're REALLY in trouble.
             Internal program error - callback shouldn't have written this much
             data!
@@ -160,38 +128,35 @@ ucnv_cbFromUWriteUChars(UConverterFromUnicodeArgs *args,
             return;
         }
         /*else {*/
-            /* sub errs could be invalid/truncated/illegal chars or w/e.
-            These might want to be passed on up.. But the problem is, we already
-            need to pass U_BUFFER_OVERFLOW_ERROR. That has to override these
-            other errs.. */
+        /* sub errs could be invalid/truncated/illegal chars or w/e.
+        These might want to be passed on up.. But the problem is, we already
+        need to pass U_BUFFER_OVERFLOW_ERROR. That has to override these
+        other errs.. */
 
-            /*
-            if(U_FAILURE(err2))
-            ??
-            */
+        /*
+        if(U_FAILURE(err2))
+        ??
+        */
         /*}*/
     }
 }
 
-U_CAPI void  U_EXPORT2
-ucnv_cbFromUWriteSub (UConverterFromUnicodeArgs *args,
-                           int32_t offsetIndex,
-                           UErrorCode * err)
+U_CAPI void U_EXPORT2 ucnv_cbFromUWriteSub(UConverterFromUnicodeArgs* args, int32_t offsetIndex, UErrorCode* err)
 {
-    UConverter *converter;
+    UConverter* converter;
     int32_t length;
 
-    if(U_FAILURE(*err)) {
+    if (U_FAILURE(*err)) {
         return;
     }
     converter = args->converter;
     length = converter->subCharLen;
 
-    if(length == 0) {
+    if (length == 0) {
         return;
     }
 
-    if(length < 0) {
+    if (length < 0) {
         /*
          * Write/convert the substitution string. Its real length is -length.
          * Unlike the escape callback, we need not change the converter's
@@ -200,58 +165,39 @@ ucnv_cbFromUWriteSub (UConverterFromUnicodeArgs *args,
          * and will not recurse.
          * At worst we should get a U_BUFFER_OVERFLOW_ERROR.
          */
-        const char16_t *source = (const char16_t *)converter->subChars;
+        const UChar* source = (const UChar*)converter->subChars;
         ucnv_cbFromUWriteUChars(args, &source, source - length, offsetIndex, err);
         return;
     }
 
-    if(converter->sharedData->impl->writeSub!=nullptr) {
+    if (converter->sharedData->impl->writeSub != NULL) {
         converter->sharedData->impl->writeSub(args, offsetIndex, err);
-    }
-    else if(converter->subChar1!=0 && (uint16_t)converter->invalidUCharBuffer[0]<=(uint16_t)0xffu) {
+    } else if (converter->subChar1 != 0 && (uint16_t)converter->invalidUCharBuffer[0] <= (uint16_t)0xffu) {
         /*
         TODO: Is this untestable because the MBCS converter has a writeSub function to call
         and the other converters don't use subChar1?
         */
-        ucnv_cbFromUWriteBytes(args,
-                               (const char *)&converter->subChar1, 1,
-                               offsetIndex, err);
-    }
-    else {
-        ucnv_cbFromUWriteBytes(args,
-                               (const char *)converter->subChars, length,
-                               offsetIndex, err);
+        ucnv_cbFromUWriteBytes(args, (const char*)&converter->subChar1, 1, offsetIndex, err);
+    } else {
+        ucnv_cbFromUWriteBytes(args, (const char*)converter->subChars, length, offsetIndex, err);
     }
 }
 
-U_CAPI void  U_EXPORT2
-ucnv_cbToUWriteUChars (UConverterToUnicodeArgs *args,
-                            const char16_t* source,
-                            int32_t length,
-                            int32_t offsetIndex,
-                            UErrorCode * err)
+U_CAPI void U_EXPORT2 ucnv_cbToUWriteUChars(UConverterToUnicodeArgs* args, const UChar* source, int32_t length, int32_t offsetIndex, UErrorCode* err)
 {
-    if(U_FAILURE(*err)) {
+    if (U_FAILURE(*err)) {
         return;
     }
 
-    ucnv_toUWriteUChars(
-        args->converter,
-        source, length,
-        &args->target, args->targetLimit,
-        &args->offsets, offsetIndex,
-        err);
+    ucnv_toUWriteUChars(args->converter, source, length, &args->target, args->targetLimit, &args->offsets, offsetIndex, err);
 }
 
-U_CAPI void  U_EXPORT2
-ucnv_cbToUWriteSub (UConverterToUnicodeArgs *args,
-                         int32_t offsetIndex,
-                       UErrorCode * err)
+U_CAPI void U_EXPORT2 ucnv_cbToUWriteSub(UConverterToUnicodeArgs* args, int32_t offsetIndex, UErrorCode* err)
 {
-    static const char16_t kSubstituteChar1 = 0x1A, kSubstituteChar = 0xFFFD;
+    static const UChar kSubstituteChar1 = 0x1A, kSubstituteChar = 0xFFFD;
 
     /* could optimize this case, just one uchar */
-    if(args->converter->invalidCharLength == 1 && args->converter->subChar1 != 0) {
+    if (args->converter->invalidCharLength == 1 && args->converter->subChar1 != 0) {
         ucnv_cbToUWriteUChars(args, &kSubstituteChar1, 1, offsetIndex, err);
     } else {
         ucnv_cbToUWriteUChars(args, &kSubstituteChar, 1, offsetIndex, err);

@@ -1,4 +1,4 @@
-// © 2017 and later: Unicode, Inc. and others.
+﻿// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // stringoptions.h
@@ -156,21 +156,21 @@
  * Compare strings in code point order instead of code unit order.
  * @stable ICU 2.2
  */
-#define U_COMPARE_CODE_POINT_ORDER  0x8000
+#define U_COMPARE_CODE_POINT_ORDER 0x8000
 
 /**
  * Option bit for unorm_compare:
  * Perform case-insensitive comparison.
  * @stable ICU 2.2
  */
-#define U_COMPARE_IGNORE_CASE       0x10000
+#define U_COMPARE_IGNORE_CASE 0x10000
 
 /**
  * Option bit for unorm_compare:
  * Both input strings are assumed to fulfill FCD conditions.
  * @stable ICU 2.2
  */
-#define UNORM_INPUT_IS_FCD          0x20000
+#define UNORM_INPUT_IS_FCD 0x20000
 
 // Related definitions elsewhere.
 // Options that are not meaningful in the same functions
@@ -187,4 +187,4 @@
 // ustr_imp.h #define _STRNCMP_STYLE 0x1000
 // unormcmp.cpp #define _COMPARE_EQUIV 0x80000
 
-#endif  // __STRINGOPTIONS_H__
+#endif // __STRINGOPTIONS_H__

@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -28,69 +28,67 @@ using namespace icu::number::impl;
 using namespace icu::numparse;
 using namespace icu::numparse::impl;
 
-
 NumberParseMatcher::~NumberParseMatcher() = default;
 
-
-NumberParserImpl*
-NumberParserImpl::createSimpleParser(const Locale& locale, const UnicodeString& patternString,
-                                     parse_flags_t parseFlags, UErrorCode& status) {
+NumberParserImpl* NumberParserImpl::createSimpleParser(const Locale& locale, const UnicodeString& patternString, parse_flags_t parseFlags, UErrorCode& status)
+{
 
     LocalPointer<NumberParserImpl> parser(new NumberParserImpl(parseFlags));
     DecimalFormatSymbols symbols(locale, status);
 
-    parser->fLocalMatchers.ignorables = {parseFlags};
+    parser->fLocalMatchers.ignorables = { parseFlags };
     IgnorablesMatcher& ignorables = parser->fLocalMatchers.ignorables;
 
     DecimalFormatSymbols dfs(locale, status);
     dfs.setSymbol(DecimalFormatSymbols::kCurrencySymbol, u"IU$");
     dfs.setSymbol(DecimalFormatSymbols::kIntlCurrencySymbol, u"ICU");
-    CurrencySymbols currencySymbols({u"ICU", status}, locale, dfs, status);
+    CurrencySymbols currencySymbols({ u"ICU", status }, locale, dfs, status);
 
     ParsedPatternInfo patternInfo;
     PatternParser::parseToPatternInfo(patternString, patternInfo, status);
 
     // The following statements set up the affix matchers.
-    AffixTokenMatcherSetupData affixSetupData = {
-            currencySymbols, symbols, ignorables, locale, parseFlags};
-    parser->fLocalMatchers.affixTokenMatcherWarehouse = {&affixSetupData};
-    parser->fLocalMatchers.affixMatcherWarehouse = {&parser->fLocalMatchers.affixTokenMatcherWarehouse};
-    parser->fLocalMatchers.affixMatcherWarehouse.createAffixMatchers(
-            patternInfo, *parser, ignorables, parseFlags, status);
+    AffixTokenMatcherSetupData affixSetupData = { currencySymbols, symbols, ignorables, locale, parseFlags };
+    parser->fLocalMatchers.affixTokenMatcherWarehouse = { &affixSetupData };
+    parser->fLocalMatchers.affixMatcherWarehouse = { &parser->fLocalMatchers.affixTokenMatcherWarehouse };
+    parser->fLocalMatchers.affixMatcherWarehouse.createAffixMatchers(patternInfo, *parser, ignorables, parseFlags, status);
 
     Grouper grouper = Grouper::forStrategy(UNUM_GROUPING_AUTO);
     grouper.setLocaleData(patternInfo, locale);
 
     parser->addMatcher(parser->fLocalMatchers.ignorables);
-    parser->addMatcher(parser->fLocalMatchers.decimal = {symbols, grouper, parseFlags});
-    parser->addMatcher(parser->fLocalMatchers.minusSign = {symbols, false});
-    parser->addMatcher(parser->fLocalMatchers.plusSign = {symbols, false});
-    parser->addMatcher(parser->fLocalMatchers.percent = {symbols});
-    parser->addMatcher(parser->fLocalMatchers.permille = {symbols});
-    parser->addMatcher(parser->fLocalMatchers.nan = {symbols});
-    parser->addMatcher(parser->fLocalMatchers.infinity = {symbols});
-    parser->addMatcher(parser->fLocalMatchers.padding = {u"@"});
-    parser->addMatcher(parser->fLocalMatchers.scientific = {symbols, grouper});
-    parser->addMatcher(parser->fLocalMatchers.currency = {currencySymbols, symbols, parseFlags, status});
+    parser->addMatcher(parser->fLocalMatchers.decimal = { symbols, grouper, parseFlags });
+    parser->addMatcher(parser->fLocalMatchers.minusSign = { symbols, false });
+    parser->addMatcher(parser->fLocalMatchers.plusSign = { symbols, false });
+    parser->addMatcher(parser->fLocalMatchers.percent = { symbols });
+    parser->addMatcher(parser->fLocalMatchers.permille = { symbols });
+    parser->addMatcher(parser->fLocalMatchers.nan = { symbols });
+    parser->addMatcher(parser->fLocalMatchers.infinity = { symbols });
+    parser->addMatcher(parser->fLocalMatchers.padding = { u"@" });
+    parser->addMatcher(parser->fLocalMatchers.scientific = { symbols, grouper });
+    parser->addMatcher(parser->fLocalMatchers.currency = { currencySymbols, symbols, parseFlags, status });
     parser->addMatcher(parser->fLocalValidators.number = {});
 
     parser->freeze();
     return parser.orphan();
 }
 
-NumberParserImpl*
-NumberParserImpl::createParserFromProperties(const number::impl::DecimalFormatProperties& properties,
-                                             const DecimalFormatSymbols& symbols, bool parseCurrency,
-                                             UErrorCode& status) {
+NumberParserImpl* NumberParserImpl::createParserFromProperties(
+    const number::impl::DecimalFormatProperties& properties, const DecimalFormatSymbols& symbols, bool parseCurrency, UErrorCode& status)
+{
     Locale locale = symbols.getLocale();
     AutoAffixPatternProvider affixProvider(properties, status);
-    if (U_FAILURE(status)) { return nullptr; }
+    if (U_FAILURE(status)) {
+        return nullptr;
+    }
     CurrencyUnit currency = resolveCurrency(properties, locale, status);
     CurrencySymbols currencySymbols(currency, locale, symbols, status);
     bool isStrict = properties.parseMode.getOrDefault(PARSE_MODE_STRICT) == PARSE_MODE_STRICT;
     Grouper grouper = Grouper::forProperties(properties);
     int parseFlags = 0;
-    if (U_FAILURE(status)) { return nullptr; }
+    if (U_FAILURE(status)) {
+        return nullptr;
+    }
     if (!properties.parseCaseSensitive) {
         parseFlags |= PARSE_FLAG_IGNORE_CASE;
     }
@@ -121,7 +119,7 @@ NumberParserImpl::createParserFromProperties(const number::impl::DecimalFormatPr
 
     LocalPointer<NumberParserImpl> parser(new NumberParserImpl(parseFlags));
 
-    parser->fLocalMatchers.ignorables = {parseFlags};
+    parser->fLocalMatchers.ignorables = { parseFlags };
     IgnorablesMatcher& ignorables = parser->fLocalMatchers.ignorables;
 
     //////////////////////
@@ -129,19 +127,17 @@ NumberParserImpl::createParserFromProperties(const number::impl::DecimalFormatPr
     //////////////////////
 
     // The following statements set up the affix matchers.
-    AffixTokenMatcherSetupData affixSetupData = {
-            currencySymbols, symbols, ignorables, locale, parseFlags};
-    parser->fLocalMatchers.affixTokenMatcherWarehouse = {&affixSetupData};
-    parser->fLocalMatchers.affixMatcherWarehouse = {&parser->fLocalMatchers.affixTokenMatcherWarehouse};
-    parser->fLocalMatchers.affixMatcherWarehouse.createAffixMatchers(
-            affixProvider.get(), *parser, ignorables, parseFlags, status);
+    AffixTokenMatcherSetupData affixSetupData = { currencySymbols, symbols, ignorables, locale, parseFlags };
+    parser->fLocalMatchers.affixTokenMatcherWarehouse = { &affixSetupData };
+    parser->fLocalMatchers.affixMatcherWarehouse = { &parser->fLocalMatchers.affixTokenMatcherWarehouse };
+    parser->fLocalMatchers.affixMatcherWarehouse.createAffixMatchers(affixProvider.get(), *parser, ignorables, parseFlags, status);
 
     ////////////////////////
     /// CURRENCY MATCHER ///
     ////////////////////////
 
     if (parseCurrency || affixProvider.get().hasCurrencySign()) {
-        parser->addMatcher(parser->fLocalMatchers.currency = {currencySymbols, symbols, parseFlags, status});
+        parser->addMatcher(parser->fLocalMatchers.currency = { currencySymbols, symbols, parseFlags, status });
     }
 
     ///////////////
@@ -151,10 +147,10 @@ NumberParserImpl::createParserFromProperties(const number::impl::DecimalFormatPr
     // ICU-TC meeting, April 11, 2018: accept percent/permille only if it is in the pattern,
     // and to maintain regressive behavior, divide by 100 even if no percent sign is present.
     if (!isStrict && affixProvider.get().containsSymbolType(AffixPatternType::TYPE_PERCENT, status)) {
-        parser->addMatcher(parser->fLocalMatchers.percent = {symbols});
+        parser->addMatcher(parser->fLocalMatchers.percent = { symbols });
     }
     if (!isStrict && affixProvider.get().containsSymbolType(AffixPatternType::TYPE_PERMILLE, status)) {
-        parser->addMatcher(parser->fLocalMatchers.permille = {symbols});
+        parser->addMatcher(parser->fLocalMatchers.permille = { symbols });
     }
 
     ///////////////////////////////
@@ -162,20 +158,20 @@ NumberParserImpl::createParserFromProperties(const number::impl::DecimalFormatPr
     ///////////////////////////////
 
     if (!isStrict) {
-        parser->addMatcher(parser->fLocalMatchers.plusSign = {symbols, false});
-        parser->addMatcher(parser->fLocalMatchers.minusSign = {symbols, false});
+        parser->addMatcher(parser->fLocalMatchers.plusSign = { symbols, false });
+        parser->addMatcher(parser->fLocalMatchers.minusSign = { symbols, false });
     }
-    parser->addMatcher(parser->fLocalMatchers.nan = {symbols});
-    parser->addMatcher(parser->fLocalMatchers.infinity = {symbols});
+    parser->addMatcher(parser->fLocalMatchers.nan = { symbols });
+    parser->addMatcher(parser->fLocalMatchers.infinity = { symbols });
     UnicodeString padString = properties.padString;
     if (!padString.isBogus() && !ignorables.getSet()->contains(padString)) {
-        parser->addMatcher(parser->fLocalMatchers.padding = {padString});
+        parser->addMatcher(parser->fLocalMatchers.padding = { padString });
     }
     parser->addMatcher(parser->fLocalMatchers.ignorables);
-    parser->addMatcher(parser->fLocalMatchers.decimal = {symbols, grouper, parseFlags});
+    parser->addMatcher(parser->fLocalMatchers.decimal = { symbols, grouper, parseFlags });
     // NOTE: parseNoExponent doesn't disable scientific parsing if we have a scientific formatter
     if (!properties.parseNoExponent || properties.minimumExponentDigits > 0) {
-        parser->addMatcher(parser->fLocalMatchers.scientific = {symbols, grouper});
+        parser->addMatcher(parser->fLocalMatchers.scientific = { symbols, grouper });
     }
 
     //////////////////
@@ -190,14 +186,13 @@ NumberParserImpl::createParserFromProperties(const number::impl::DecimalFormatPr
         parser->addMatcher(parser->fLocalValidators.currency = {});
     }
     if (properties.decimalPatternMatchRequired) {
-        bool patternHasDecimalSeparator =
-                properties.decimalSeparatorAlwaysShown || properties.maximumFractionDigits != 0;
-        parser->addMatcher(parser->fLocalValidators.decimalSeparator = {patternHasDecimalSeparator});
+        bool patternHasDecimalSeparator = properties.decimalSeparatorAlwaysShown || properties.maximumFractionDigits != 0;
+        parser->addMatcher(parser->fLocalValidators.decimalSeparator = { patternHasDecimalSeparator });
     }
     // The multiplier takes care of scaling percentages.
     Scale multiplier = scaleFromProperties(properties);
     if (multiplier.isValid()) {
-        parser->addMatcher(parser->fLocalValidators.multiplier = {multiplier});
+        parser->addMatcher(parser->fLocalValidators.multiplier = { multiplier });
     }
 
     parser->freeze();
@@ -205,14 +200,17 @@ NumberParserImpl::createParserFromProperties(const number::impl::DecimalFormatPr
 }
 
 NumberParserImpl::NumberParserImpl(parse_flags_t parseFlags)
-        : fParseFlags(parseFlags) {
+    : fParseFlags(parseFlags)
+{
 }
 
-NumberParserImpl::~NumberParserImpl() {
+NumberParserImpl::~NumberParserImpl()
+{
     fNumMatchers = 0;
 }
 
-void NumberParserImpl::addMatcher(NumberParseMatcher& matcher) {
+void NumberParserImpl::addMatcher(NumberParseMatcher& matcher)
+{
     if (fNumMatchers + 1 > fMatchers.getCapacity()) {
         fMatchers.resize(fNumMatchers * 2, fNumMatchers);
     }
@@ -220,21 +218,23 @@ void NumberParserImpl::addMatcher(NumberParseMatcher& matcher) {
     fNumMatchers++;
 }
 
-void NumberParserImpl::freeze() {
+void NumberParserImpl::freeze()
+{
     fFrozen = true;
 }
 
-parse_flags_t NumberParserImpl::getParseFlags() const {
+parse_flags_t NumberParserImpl::getParseFlags() const
+{
     return fParseFlags;
 }
 
-void NumberParserImpl::parse(const UnicodeString& input, bool greedy, ParsedNumber& result,
-                             UErrorCode& status) const {
+void NumberParserImpl::parse(const UnicodeString& input, bool greedy, ParsedNumber& result, UErrorCode& status) const
+{
     return parse(input, 0, greedy, result, status);
 }
 
-void NumberParserImpl::parse(const UnicodeString& input, int32_t start, bool greedy, ParsedNumber& result,
-                             UErrorCode& status) const {
+void NumberParserImpl::parse(const UnicodeString& input, int32_t start, bool greedy, ParsedNumber& result, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return;
     }
@@ -257,10 +257,10 @@ void NumberParserImpl::parse(const UnicodeString& input, int32_t start, bool gre
     result.postProcess();
 }
 
-void NumberParserImpl::parseGreedy(StringSegment& segment, ParsedNumber& result,
-                                            UErrorCode& status) const {
+void NumberParserImpl::parseGreedy(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const
+{
     // Note: this method is not recursive in order to avoid stack overflow.
-    for (int i = 0; i <fNumMatchers;) {
+    for (int i = 0; i < fNumMatchers;) {
         // Base Case
         if (segment.length() == 0) {
             return;
@@ -291,9 +291,8 @@ void NumberParserImpl::parseGreedy(StringSegment& segment, ParsedNumber& result,
     // NOTE: If we get here, the greedy parse completed without consuming the entire string.
 }
 
-void NumberParserImpl::parseLongestRecursive(StringSegment& segment, ParsedNumber& result,
-                                             int32_t recursionLevels,
-                                             UErrorCode& status) const {
+void NumberParserImpl::parseLongestRecursive(StringSegment& segment, ParsedNumber& result, int32_t recursionLevels, UErrorCode& status) const
+{
     // Base Case
     if (segment.length() == 0) {
         return;
@@ -351,7 +350,8 @@ void NumberParserImpl::parseLongestRecursive(StringSegment& segment, ParsedNumbe
     }
 }
 
-UnicodeString NumberParserImpl::toString() const {
+UnicodeString NumberParserImpl::toString() const
+{
     UnicodeString result(u"<NumberParserImpl matchers:[");
     for (int32_t i = 0; i < fNumMatchers; i++) {
         result.append(u' ');
@@ -360,6 +360,5 @@ UnicodeString NumberParserImpl::toString() const {
     result.append(u" ]>", -1);
     return result;
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

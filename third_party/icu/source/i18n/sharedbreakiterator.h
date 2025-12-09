@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -30,16 +30,26 @@ class BreakIterator;
 // these shared break iterators must never be exposed outside of that class.
 class U_I18N_API SharedBreakIterator : public SharedObject {
 public:
-    SharedBreakIterator(BreakIterator *biToAdopt);
+    SharedBreakIterator(BreakIterator* biToAdopt);
     virtual ~SharedBreakIterator();
 
-    BreakIterator *get() const { return ptr; }
-    BreakIterator *operator->() const { return ptr; }
-    BreakIterator &operator*() const { return *ptr; }
+    BreakIterator* get() const
+    {
+        return ptr;
+    }
+    BreakIterator* operator->() const
+    {
+        return ptr;
+    }
+    BreakIterator& operator*() const
+    {
+        return *ptr;
+    }
+
 private:
-    BreakIterator *ptr;
-    SharedBreakIterator(const SharedBreakIterator &) = delete;
-    SharedBreakIterator &operator=(const SharedBreakIterator &) = delete;
+    BreakIterator* ptr;
+    SharedBreakIterator(const SharedBreakIterator&);
+    SharedBreakIterator& operator=(const SharedBreakIterator&);
 };
 
 U_NAMESPACE_END

@@ -1,4 +1,4 @@
-/*
+﻿/*
  ******************************************************************************
  * © 2016 and later: Unicode, Inc. and others.                    *
  * License & terms of use: http://www.unicode.org/copyright.html      *
@@ -19,8 +19,9 @@
 #include "FontMap.h"
 #include "GDIFontMap.h"
 
-GDIFontMap::GDIFontMap(GDISurface *surface, const char *fileName, le_int16 pointSize, GUISupport *guiSupport, LEErrorCode &status)
-    : FontMap(fileName, pointSize, guiSupport, status), fSurface(surface)
+GDIFontMap::GDIFontMap(GDISurface* surface, const char* fileName, le_int16 pointSize, GUISupport* guiSupport, LEErrorCode& status)
+    : FontMap(fileName, pointSize, guiSupport, status)
+    , fSurface(surface)
 {
     // nothing to do?
 }
@@ -30,14 +31,14 @@ GDIFontMap::~GDIFontMap()
     // anything?
 }
 
-const LEFontInstance *GDIFontMap::openFont(const char *fontName, le_int16 pointSize, LEErrorCode &status)
+const LEFontInstance* GDIFontMap::openFont(const char* fontName, le_int16 pointSize, LEErrorCode& status)
 {
-	LEFontInstance *result = new GDIFontInstance(fSurface, fontName, pointSize, status);
+    LEFontInstance* result = new GDIFontInstance(fSurface, fontName, pointSize, status);
 
-	if (LE_FAILURE(status)) {
-		delete result;
-		result = nullptr;
-	}
+    if (LE_FAILURE(status)) {
+        delete result;
+        result = NULL;
+    }
 
     return result;
 }

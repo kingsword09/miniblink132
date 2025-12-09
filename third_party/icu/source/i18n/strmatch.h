@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  * Copyright (C) 2001-2011, International Business Machines Corporation
@@ -43,8 +43,7 @@ class TransliterationRuleData;
  */
 class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public UnicodeReplacer {
 
- public:
-
+public:
     /**
      * Construct a matcher that matches the given pattern string.
      * @param string the pattern to be matched, possibly containing
@@ -57,18 +56,14 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      * @param data context object mapping stand-ins to
      * UnicodeMatcher objects.
      */
-    StringMatcher(const UnicodeString& string,
-                  int32_t start,
-                  int32_t limit,
-                  int32_t segmentNum,
-                  const TransliterationRuleData& data);
+    StringMatcher(const UnicodeString& string, int32_t start, int32_t limit, int32_t segmentNum, const TransliterationRuleData& data);
 
     /**
      * Copy constructor
      * @param o  the object to be copied.
      */
     StringMatcher(const StringMatcher& o);
-        
+
     /**
      * Destructor
      */
@@ -116,10 +111,7 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      * match, or a mismatch.  If incremental is false then
      * U_PARTIAL_MATCH should never be returned.
      */
-    virtual UMatchDegree matches(const Replaceable& text,
-                                 int32_t& offset,
-                                 int32_t limit,
-                                 UBool incremental) override;
+    virtual UMatchDegree matches(const Replaceable& text, int32_t& offset, int32_t limit, UBool incremental) override;
 
     /**
      * Implement UnicodeMatcher
@@ -127,8 +119,7 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      * @param escapeUnprintable if True then escape the unprintable characters.
      * @return                  A reference to 'result'.
      */
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable = false) const override;
+    virtual UnicodeString& toPattern(UnicodeString& result, UBool escapeUnprintable = false) const override;
 
     /**
      * Implement UnicodeMatcher
@@ -137,7 +128,7 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      * offset).  This is used by <tt>RuleBasedTransliterator</tt> for
      * indexing.
      * @param v    the given value
-     * @return     true if this matcher will match a character c, 
+     * @return     true if this matcher will match a character c,
      *             where c & 0xFF == v
      */
     virtual UBool matchesIndexValue(uint8_t v) const override;
@@ -169,10 +160,7 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      * @return the number of 16-bit code units in the text replacing
      * the characters at offsets start..(limit-1) in text
      */
-    virtual int32_t replace(Replaceable& text,
-                            int32_t start,
-                            int32_t limit,
-                            int32_t& cursor) override;
+    virtual int32_t replace(Replaceable& text, int32_t start, int32_t limit, int32_t& cursor) override;
 
     /**
      * Returns a string representation of this replacer.  If the
@@ -187,8 +175,7 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      * Utility.isUnprintable().
      * @return a reference to 'result'.
      */
-    virtual UnicodeString& toReplacerPattern(UnicodeString& result,
-                                             UBool escapeUnprintable) const override;
+    virtual UnicodeString& toReplacerPattern(UnicodeString& result, UBool escapeUnprintable) const override;
 
     /**
      * Remove any match data.  This must be called before performing a
@@ -213,8 +200,7 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      */
     virtual void addReplacementSetTo(UnicodeSet& toUnionTo) const override;
 
- private:
-
+private:
     /**
      * The text to be matched.
      */
@@ -242,7 +228,6 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
      * match.
      */
     int32_t matchLimit;
-
 };
 
 U_NAMESPACE_END

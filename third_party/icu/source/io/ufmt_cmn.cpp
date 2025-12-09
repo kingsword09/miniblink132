@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 ******************************************************************************
@@ -29,32 +29,23 @@
 
 #if !UCONFIG_NO_CONVERSION
 
-
-#define DIGIT_0     0x0030
-#define DIGIT_9     0x0039
+#define DIGIT_0 0x0030
+#define DIGIT_9 0x0039
 #define LOWERCASE_A 0x0061
 #define UPPERCASE_A 0x0041
 #define LOWERCASE_Z 0x007A
 #define UPPERCASE_Z 0x005A
 
-int
-ufmt_digitvalue(char16_t c)
+int ufmt_digitvalue(UChar c)
 {
-    if( ((c>=DIGIT_0)&&(c<=DIGIT_9)) ||
-        ((c>=LOWERCASE_A)&&(c<=LOWERCASE_Z)) ||
-        ((c>=UPPERCASE_A)&&(c<=UPPERCASE_Z))  )
-    {
-      return c - DIGIT_0 - (c >= 0x0041 ? (c >= 0x0061 ? 39 : 7) : 0);
-    }
-    else
-    {
-      return -1;
+    if (((c >= DIGIT_0) && (c <= DIGIT_9)) || ((c >= LOWERCASE_A) && (c <= LOWERCASE_Z)) || ((c >= UPPERCASE_A) && (c <= UPPERCASE_Z))) {
+        return c - DIGIT_0 - (c >= 0x0041 ? (c >= 0x0061 ? 39 : 7) : 0);
+    } else {
+        return -1;
     }
 }
 
-UBool
-ufmt_isdigit(char16_t  c,
-             int32_t     radix)
+UBool ufmt_isdigit(UChar c, int32_t radix)
 {
     int digitVal = ufmt_digitvalue(c);
 
@@ -64,139 +55,121 @@ ufmt_isdigit(char16_t  c,
 #define TO_UC_DIGIT(a) a <= 9 ? (DIGIT_0 + a) : (0x0037 + a)
 #define TO_LC_DIGIT(a) a <= 9 ? (DIGIT_0 + a) : (0x0057 + a)
 
-void 
-ufmt_64tou(char16_t  *buffer,
-          int32_t   *len,
-          uint64_t  value, 
-          uint8_t  radix,
-          UBool     uselower,
-          int32_t   minDigits)
+void ufmt_64tou(UChar* buffer, int32_t* len, uint64_t value, uint8_t radix, UBool uselower, int32_t minDigits)
 {
-    int32_t  length = 0;
+    int32_t length = 0;
     uint32_t digit;
-    char16_t *left, *right, temp;
-    
+    UChar *left, *right, temp;
+
     do {
         digit = (uint32_t)(value % radix);
         value = value / radix;
-        buffer[length++] = (char16_t)(uselower ? TO_LC_DIGIT(digit)
-            : TO_UC_DIGIT(digit));
-    } while(value);
+        buffer[length++] = (UChar)(uselower ? TO_LC_DIGIT(digit) : TO_UC_DIGIT(digit));
+    } while (value);
 
     /* pad with zeroes to make it minDigits long */
-    if(minDigits != -1 && length < minDigits) {
-        while(length < minDigits && length < *len)
-            buffer[length++] = DIGIT_0;  /*zero padding */
+    if (minDigits != -1 && length < minDigits) {
+        while (length < minDigits && length < *len)
+            buffer[length++] = DIGIT_0; /*zero padding */
     }
 
     /* reverse the buffer */
-    left     = buffer;
+    left = buffer;
     right = buffer + length;
-    while(left < --right) {
-        temp     = *left;
-        *left++     = *right;
-        *right     = temp;
+    while (left < --right) {
+        temp = *left;
+        *left++ = *right;
+        *right = temp;
     }
-    
+
     *len = length;
 }
 
-void 
-ufmt_ptou(char16_t *buffer,
-          int32_t   *len,
-          void      *value, 
-          UBool     uselower)
+void ufmt_ptou(UChar* buffer, int32_t* len, void* value, UBool uselower)
 {
     int32_t i;
     int32_t length = 0;
-    uint8_t *ptrIdx = (uint8_t *)&value;
+    uint8_t* ptrIdx = (uint8_t*)&value;
 
 #if U_IS_BIG_ENDIAN
-    for (i = 0; i < (int32_t)sizeof(void *); i++)
+    for (i = 0; i < (int32_t)sizeof(void*); i++)
 #else
-    for (i = (int32_t)sizeof(void *)-1; i >= 0 ; i--)
+    for (i = (int32_t)sizeof(void*) - 1; i >= 0; i--)
 #endif
     {
         uint8_t byteVal = ptrIdx[i];
-        uint16_t firstNibble = (uint16_t)(byteVal>>4);
-        uint16_t secondNibble = (uint16_t)(byteVal&0xF);
+        uint16_t firstNibble = (uint16_t)(byteVal >> 4);
+        uint16_t secondNibble = (uint16_t)(byteVal & 0xF);
         if (uselower) {
-            buffer[length++]=TO_LC_DIGIT(firstNibble);
-            buffer[length++]=TO_LC_DIGIT(secondNibble);
-        }
-        else {
-            buffer[length++]=TO_UC_DIGIT(firstNibble);
-            buffer[length++]=TO_UC_DIGIT(secondNibble);
+            buffer[length++] = TO_LC_DIGIT(firstNibble);
+            buffer[length++] = TO_LC_DIGIT(secondNibble);
+        } else {
+            buffer[length++] = TO_UC_DIGIT(firstNibble);
+            buffer[length++] = TO_UC_DIGIT(secondNibble);
         }
     }
 
     *len = length;
 }
 
-int64_t
-ufmt_uto64(const char16_t  *buffer,
-          int32_t     *len,
-          int8_t     radix)
+int64_t ufmt_uto64(const UChar* buffer, int32_t* len, int8_t radix)
 {
-    const char16_t  *limit;
-    int32_t         count;
-    uint64_t        result;
-    
-    
+    const UChar* limit;
+    int32_t count;
+    uint64_t result;
+
     /* initialize parameters */
-    limit     = buffer + *len;
-    count     = 0;
-    result    = 0;
-    
+    limit = buffer + *len;
+    count = 0;
+    result = 0;
+
     /* iterate through buffer */
-    while(ufmt_isdigit(*buffer, radix) && buffer < limit) {
-        
+    while (ufmt_isdigit(*buffer, radix) && buffer < limit) {
+
         /* read the next digit */
         result *= radix;
         result += ufmt_digitvalue(*buffer++);
-        
+
         /* increment our count */
         ++count;
     }
-    
+
     *len = count;
     return static_cast<int64_t>(result);
 }
 
 #define NIBBLE_PER_BYTE 2
-void *
-ufmt_utop(const char16_t  *buffer,
-          int32_t     *len)
+void* ufmt_utop(const UChar* buffer, int32_t* len)
 {
     int32_t count, resultIdx, incVal, offset;
     /* This union allows the pointer to be written as an array. */
     union {
-        void *ptr;
+        void* ptr;
         uint8_t bytes[sizeof(void*)];
     } result;
-    
+
     /* initialize variables */
-    count      = 0;
-    offset     = 0;
-    result.ptr = nullptr;
+    count = 0;
+    offset = 0;
+    result.ptr = NULL;
 
     /* Skip the leading zeros */
-    while(buffer[count] == DIGIT_0 || u_isspace(buffer[count])) {
+    while (buffer[count] == DIGIT_0 || u_isspace(buffer[count])) {
         count++;
         offset++;
     }
 
     /* iterate through buffer, stop when you hit the end */
-    while(count < *len && ufmt_isdigit(buffer[count], 16)) {
+    while (count < *len && ufmt_isdigit(buffer[count], 16)) {
         /* increment the count consumed */
         ++count;
     }
 
     /* detect overflow */
-    if (count - offset > (int32_t)(sizeof(void*)*NIBBLE_PER_BYTE)) {
-        offset = count - (int32_t)(sizeof(void*)*NIBBLE_PER_BYTE);
+    if (count - offset > (int32_t)(sizeof(void*) * NIBBLE_PER_BYTE)) {
+        offset = count - (int32_t)(sizeof(void*) * NIBBLE_PER_BYTE);
     }
-    
+
     /* Initialize the direction of the input */
 #if U_IS_BIG_ENDIAN
     incVal = -1;
@@ -207,7 +180,7 @@ ufmt_utop(const char16_t  *buffer,
 #endif
     /* Write how much was consumed. */
     *len = count;
-    while(--count >= offset) {
+    while (--count >= offset) {
         /* Get the first nibble of the byte */
         uint8_t byte = (uint8_t)ufmt_digitvalue(buffer[count]);
 
@@ -223,37 +196,32 @@ ufmt_utop(const char16_t  *buffer,
     return result.ptr;
 }
 
-char16_t*
-ufmt_defaultCPToUnicode(const char *s, int32_t sSize,
-                        char16_t *target, int32_t tSize)
+UChar* ufmt_defaultCPToUnicode(const char* s, int32_t sSize, UChar* target, int32_t tSize)
 {
-    char16_t *alias;
+    UChar* alias;
     UErrorCode status = U_ZERO_ERROR;
-    UConverter *defConverter = u_getDefaultConverter(&status);
-    
-    if(U_FAILURE(status) || defConverter == 0)
+    UConverter* defConverter = u_getDefaultConverter(&status);
+
+    if (U_FAILURE(status) || defConverter == 0)
         return 0;
 
-    if(sSize <= 0) {
+    if (sSize <= 0) {
         sSize = static_cast<int32_t>(uprv_strlen(s)) + 1;
     }
-    
+
     /* perform the conversion in one swoop */
-    if(target != 0) {
-        
+    if (target != 0) {
+
         alias = target;
-        ucnv_toUnicode(defConverter, &alias, alias + tSize, &s, s + sSize - 1, 
-            nullptr, true, &status);
-        
-        
+        ucnv_toUnicode(defConverter, &alias, alias + tSize, &s, s + sSize - 1, NULL, TRUE, &status);
+
         /* add the null terminator */
         *alias = 0x0000;
     }
-    
+
     u_releaseDefaultConverter(defConverter);
-    
+
     return target;
 }
-
 
 #endif

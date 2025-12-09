@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -42,13 +42,16 @@ struct CollationData;
  */
 class TailoredSet : public UMemory {
 public:
-    TailoredSet(UnicodeSet *t)
-            : data(nullptr), baseData(nullptr),
-              tailored(t),
-              suffix(nullptr),
-              errorCode(U_ZERO_ERROR) {}
+    TailoredSet(UnicodeSet* t)
+        : data(NULL)
+        , baseData(NULL)
+        , tailored(t)
+        , suffix(NULL)
+        , errorCode(U_ZERO_ERROR)
+    {
+    }
 
-    void forData(const CollationData *d, UErrorCode &errorCode);
+    void forData(const CollationData* d, UErrorCode& errorCode);
 
     /**
      * @return U_SUCCESS(errorCode) in C++, void in Java
@@ -58,29 +61,31 @@ public:
 
 private:
     void compare(UChar32 c, uint32_t ce32, uint32_t baseCE32);
-    void comparePrefixes(UChar32 c, const char16_t *p, const char16_t *q);
-    void compareContractions(UChar32 c, const char16_t *p, const char16_t *q);
+    void comparePrefixes(UChar32 c, const UChar* p, const UChar* q);
+    void compareContractions(UChar32 c, const UChar* p, const UChar* q);
 
-    void addPrefixes(const CollationData *d, UChar32 c, const char16_t *p);
-    void addPrefix(const CollationData *d, const UnicodeString &pfx, UChar32 c, uint32_t ce32);
-    void addContractions(UChar32 c, const char16_t *p);
-    void addSuffix(UChar32 c, const UnicodeString &sfx);
+    void addPrefixes(const CollationData* d, UChar32 c, const UChar* p);
+    void addPrefix(const CollationData* d, const UnicodeString& pfx, UChar32 c, uint32_t ce32);
+    void addContractions(UChar32 c, const UChar* p);
+    void addSuffix(UChar32 c, const UnicodeString& sfx);
     void add(UChar32 c);
 
     /** Prefixes are reversed in the data structure. */
-    void setPrefix(const UnicodeString &pfx) {
+    void setPrefix(const UnicodeString& pfx)
+    {
         unreversedPrefix = pfx;
         unreversedPrefix.reverse();
     }
-    void resetPrefix() {
+    void resetPrefix()
+    {
         unreversedPrefix.remove();
     }
 
-    const CollationData *data;
-    const CollationData *baseData;
-    UnicodeSet *tailored;
+    const CollationData* data;
+    const CollationData* baseData;
+    UnicodeSet* tailored;
     UnicodeString unreversedPrefix;
-    const UnicodeString *suffix;
+    const UnicodeString* suffix;
     UErrorCode errorCode;
 };
 
@@ -93,17 +98,20 @@ public:
         virtual void handleExpansion(const int64_t ces[], int32_t length) = 0;
     };
 
-    ContractionsAndExpansions(UnicodeSet *con, UnicodeSet *exp, CESink *s, UBool prefixes)
-            : data(nullptr),
-              contractions(con), expansions(exp),
-              sink(s),
-              addPrefixes(prefixes),
-              checkTailored(0),
-              suffix(nullptr),
-              errorCode(U_ZERO_ERROR) {}
+    ContractionsAndExpansions(UnicodeSet* con, UnicodeSet* exp, CESink* s, UBool prefixes)
+        : data(NULL)
+        , contractions(con)
+        , expansions(exp)
+        , sink(s)
+        , addPrefixes(prefixes)
+        , checkTailored(0)
+        , suffix(NULL)
+        , errorCode(U_ZERO_ERROR)
+    {
+    }
 
-    void forData(const CollationData *d, UErrorCode &errorCode);
-    void forCodePoint(const CollationData *d, UChar32 c, UErrorCode &ec);
+    void forData(const CollationData* d, UErrorCode& errorCode);
+    void forCodePoint(const CollationData* d, UChar32 c, UErrorCode& ec);
 
     // all following: @internal, only public for access by callback
 
@@ -113,32 +121,34 @@ public:
     void handleContractions(UChar32 start, UChar32 end, uint32_t ce32);
 
     void addExpansions(UChar32 start, UChar32 end);
-    void addStrings(UChar32 start, UChar32 end, UnicodeSet *set);
+    void addStrings(UChar32 start, UChar32 end, UnicodeSet* set);
 
     /** Prefixes are reversed in the data structure. */
-    void setPrefix(const UnicodeString &pfx) {
+    void setPrefix(const UnicodeString& pfx)
+    {
         unreversedPrefix = pfx;
         unreversedPrefix.reverse();
     }
-    void resetPrefix() {
+    void resetPrefix()
+    {
         unreversedPrefix.remove();
     }
 
-    const CollationData *data;
-    UnicodeSet *contractions;
-    UnicodeSet *expansions;
-    CESink *sink;
+    const CollationData* data;
+    UnicodeSet* contractions;
+    UnicodeSet* expansions;
+    CESink* sink;
     UBool addPrefixes;
-    int8_t checkTailored;  // -1: collected tailored  +1: exclude tailored
+    int8_t checkTailored; // -1: collected tailored  +1: exclude tailored
     UnicodeSet tailored;
     UnicodeSet ranges;
     UnicodeString unreversedPrefix;
-    const UnicodeString *suffix;
+    const UnicodeString* suffix;
     int64_t ces[Collation::MAX_EXPANSION_LENGTH];
     UErrorCode errorCode;
 };
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
-#endif  // __COLLATIONSETS_H__
+#endif // !UCONFIG_NO_COLLATION
+#endif // __COLLATIONSETS_H__

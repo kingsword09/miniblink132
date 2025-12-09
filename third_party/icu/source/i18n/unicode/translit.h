@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -490,7 +490,6 @@ class TransliteratorIDParser;
 class U_I18N_API Transliterator : public UObject {
 
 private:
-
     /**
      * Programmatic name, e.g., "Latin-Arabic".
      */
@@ -506,8 +505,7 @@ private:
 
     int32_t maximumContextLength;
 
- public:
-
+public:
     /**
      * A context integer or pointer for a factory function, passed by
      * value.
@@ -523,7 +521,7 @@ private:
          * This token, interpreted as a native pointer.
          * @stable ICU 2.4
          */
-        void*   pointer;
+        void* pointer;
     };
 
 #ifndef U_HIDE_INTERNAL_API
@@ -540,7 +538,7 @@ private:
      * @internal
      */
     inline static Token pointerToken(void*);
-#endif  /* U_HIDE_INTERNAL_API */
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * A function that creates and returns a Transliterator.  When
@@ -557,10 +555,9 @@ private:
      *                the registration ID is being instantiated with this factory.
      * @stable ICU 2.4
      */
-    typedef Transliterator* (U_EXPORT2 *Factory)(const UnicodeString& ID, Token context);
+    typedef Transliterator*(U_EXPORT2* Factory)(const UnicodeString& ID, Token context);
 
 protected:
-
     /**
      * Default constructor.
      * @param ID the string identifier for this transliterator
@@ -590,20 +587,18 @@ protected:
      * variant.
      * @param id a basic ID of the form S-T or S-T/V.
      * @param canon canonical ID to assign to the object, or
-     * nullptr to leave the ID unchanged
+     * NULL to leave the ID unchanged
      * @return a newly created Transliterator or null if the ID is
      * invalid.
      * @stable ICU 2.4
      */
-    static Transliterator* createBasicInstance(const UnicodeString& id,
-                                               const UnicodeString* canon);
+    static Transliterator* createBasicInstance(const UnicodeString& id, const UnicodeString* canon);
 
     friend class TransliteratorParser; // for parseID()
     friend class TransliteratorIDParser; // for createBasicInstance()
     friend class TransliteratorAlias; // for setID()
 
 public:
-
     /**
      * Destructor.
      * @stable ICU 2.0
@@ -641,8 +636,7 @@ public:
      * the returned value is -1 and the input string remains unchanged.
      * @stable ICU 2.0
      */
-    virtual int32_t transliterate(Replaceable& text,
-                                  int32_t start, int32_t limit) const;
+    virtual int32_t transliterate(Replaceable& text, int32_t start, int32_t limit) const;
 
     /**
      * Transliterates an entire string in place. Convenience method.
@@ -715,9 +709,7 @@ public:
      * @see UTransPosition
      * @stable ICU 2.0
      */
-    virtual void transliterate(Replaceable& text, UTransPosition& index,
-                               const UnicodeString& insertion,
-                               UErrorCode& status) const;
+    virtual void transliterate(Replaceable& text, UTransPosition& index, const UnicodeString& insertion, UErrorCode& status) const;
 
     /**
      * Transliterates the portion of the text buffer that can be
@@ -734,9 +726,7 @@ public:
      * @see #transliterate(Replaceable&, UTransPosition&, const UnicodeString&, UErrorCode&) const
      * @stable ICU 2.0
      */
-    virtual void transliterate(Replaceable& text, UTransPosition& index,
-                               UChar32 insertion,
-                               UErrorCode& status) const;
+    virtual void transliterate(Replaceable& text, UTransPosition& index, UChar32 insertion, UErrorCode& status) const;
 
     /**
      * Transliterates the portion of the text buffer that can be
@@ -750,8 +740,7 @@ public:
      * @see #transliterate(Replaceable&, UTransPosition&, const UnicodeString&, UErrorCode &) const
      * @stable ICU 2.0
      */
-    virtual void transliterate(Replaceable& text, UTransPosition& index,
-                               UErrorCode& status) const;
+    virtual void transliterate(Replaceable& text, UTransPosition& index, UErrorCode& status) const;
 
     /**
      * Finishes any pending transliterations that were waiting for
@@ -763,11 +752,9 @@ public:
      * @param index the array of indices previously passed to {@link #transliterate }
      * @stable ICU 2.0
      */
-    virtual void finishTransliteration(Replaceable& text,
-                                       UTransPosition& index) const;
+    virtual void finishTransliteration(Replaceable& text, UTransPosition& index) const;
 
 private:
-
     /**
      * This internal method does incremental transliteration.  If the
      * 'insertion' is non-null then we append it to 'text' before
@@ -783,13 +770,9 @@ private:
      * <code>index.limit</code>.
      * @param status    Output param to filled in with a success or an error.
      */
-    void _transliterate(Replaceable& text,
-                        UTransPosition& index,
-                        const UnicodeString* insertion,
-                        UErrorCode &status) const;
+    void _transliterate(Replaceable& text, UTransPosition& index, const UnicodeString* insertion, UErrorCode& status) const;
 
 protected:
-
     /**
      * Abstract method that concrete subclasses define to implement
      * their transliteration algorithm.  This method handles both
@@ -869,9 +852,7 @@ protected:
      * @see #transliterate
      * @stable ICU 2.4
      */
-    virtual void handleTransliterate(Replaceable& text,
-                                     UTransPosition& pos,
-                                     UBool incremental) const = 0;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& pos, UBool incremental) const = 0;
 
 public:
     /**
@@ -885,12 +866,9 @@ public:
      * characters
      * @stable ICU 2.4
      */
-    virtual void filteredTransliterate(Replaceable& text,
-                                       UTransPosition& index,
-                                       UBool incremental) const;
+    virtual void filteredTransliterate(Replaceable& text, UTransPosition& index, UBool incremental) const;
 
 private:
-
     /**
      * Top-level transliteration method, handling filtering, incremental and
      * non-incremental transliteration, and rollback.  All transliteration
@@ -918,13 +896,9 @@ private:
      * transliterations where necessary.  If incremental is false then this
      * parameter is ignored.
      */
-    virtual void filteredTransliterate(Replaceable& text,
-                                       UTransPosition& index,
-                                       UBool incremental,
-                                       UBool rollback) const;
+    virtual void filteredTransliterate(Replaceable& text, UTransPosition& index, UBool incremental, UBool rollback) const;
 
 public:
-
     /**
      * Returns the length of the longest context required by this transliterator.
      * This is <em>preceding</em> context.  The default implementation supplied
@@ -941,7 +915,6 @@ public:
     int32_t getMaximumContextLength(void) const;
 
 protected:
-
     /**
      * Method for subclasses to use to set the maximum context length.
      * @param maxContextLength the new value to be set.
@@ -951,7 +924,6 @@ protected:
     void setMaximumContextLength(int32_t maxContextLength);
 
 public:
-
     /**
      * Returns a programmatic identifier for this transliterator.
      * If this identifier is passed to <code>createInstance()</code>, it
@@ -973,8 +945,7 @@ public:
      * @return       A reference to 'result'.
      * @stable ICU 2.0
      */
-    static UnicodeString& U_EXPORT2 getDisplayName(const UnicodeString& ID,
-                                         UnicodeString& result);
+    static UnicodeString& U_EXPORT2 getDisplayName(const UnicodeString& ID, UnicodeString& result);
 
     /**
      * Returns a name for this transliterator that is appropriate for
@@ -997,25 +968,23 @@ public:
      * @return         A reference to 'result'.
      * @stable ICU 2.0
      */
-    static UnicodeString& U_EXPORT2 getDisplayName(const UnicodeString& ID,
-                                         const Locale& inLocale,
-                                         UnicodeString& result);
+    static UnicodeString& U_EXPORT2 getDisplayName(const UnicodeString& ID, const Locale& inLocale, UnicodeString& result);
 
     /**
-     * Returns the filter used by this transliterator, or <tt>nullptr</tt>
+     * Returns the filter used by this transliterator, or <tt>NULL</tt>
      * if this transliterator uses no filter.
-     * @return the filter used by this transliterator, or <tt>nullptr</tt>
+     * @return the filter used by this transliterator, or <tt>NULL</tt>
      *         if this transliterator uses no filter.
      * @stable ICU 2.0
      */
     const UnicodeFilter* getFilter(void) const;
 
     /**
-     * Returns the filter used by this transliterator, or <tt>nullptr</tt> if this
+     * Returns the filter used by this transliterator, or <tt>NULL</tt> if this
      * transliterator uses no filter.  The caller must eventually delete the
      * result.  After this call, this transliterator's filter is set to
-     * <tt>nullptr</tt>.
-     * @return the filter used by this transliterator, or <tt>nullptr</tt> if this
+     * <tt>NULL</tt>.
+     * @return the filter used by this transliterator, or <tt>NULL</tt> if this
      *         transliterator uses no filter.
      * @stable ICU 2.4
      */
@@ -1070,10 +1039,7 @@ public:
      * @see #getID
      * @stable ICU 2.0
      */
-    static Transliterator* U_EXPORT2 createInstance(const UnicodeString& ID,
-                                          UTransDirection dir,
-                                          UParseError& parseError,
-                                          UErrorCode& status);
+    static Transliterator* U_EXPORT2 createInstance(const UnicodeString& ID, UTransDirection dir, UParseError& parseError, UErrorCode& status);
 
     /**
      * Returns a <code>Transliterator</code> object given its ID.
@@ -1085,9 +1051,7 @@ public:
      * @return A <code>Transliterator</code> object with the given ID
      * @stable ICU 2.0
      */
-    static Transliterator* U_EXPORT2 createInstance(const UnicodeString& ID,
-                                          UTransDirection dir,
-                                          UErrorCode& status);
+    static Transliterator* U_EXPORT2 createInstance(const UnicodeString& ID, UTransDirection dir, UErrorCode& status);
 
     /**
      * Returns a <code>Transliterator</code> object constructed from
@@ -1106,11 +1070,8 @@ public:
      * @return a newly created Transliterator
      * @stable ICU 2.0
      */
-    static Transliterator* U_EXPORT2 createFromRules(const UnicodeString& ID,
-                                           const UnicodeString& rules,
-                                           UTransDirection dir,
-                                           UParseError& parseError,
-                                           UErrorCode& status);
+    static Transliterator* U_EXPORT2 createFromRules(
+        const UnicodeString& ID, const UnicodeString& rules, UTransDirection dir, UParseError& parseError, UErrorCode& status);
 
     /**
      * Create a rule string that can be passed to createFromRules()
@@ -1123,8 +1084,7 @@ public:
      * U+000A, U+0020..U+007E.
      * @stable ICU 2.0
      */
-    virtual UnicodeString& toRules(UnicodeString& result,
-                                   UBool escapeUnprintable) const;
+    virtual UnicodeString& toRules(UnicodeString& result, UBool escapeUnprintable) const;
 
     /**
      * Return the number of elements that make up this transliterator.
@@ -1210,7 +1170,6 @@ public:
     virtual UnicodeSet& getTargetSet(UnicodeSet& result) const;
 
 public:
-
     /**
      * Registers a factory function that creates transliterators of
      * a given ID.
@@ -1227,9 +1186,7 @@ public:
      * the registration ID is being instantiated with this factory.
      * @stable ICU 2.0
      */
-    static void U_EXPORT2 registerFactory(const UnicodeString& id,
-                                Factory factory,
-                                Token context);
+    static void U_EXPORT2 registerFactory(const UnicodeString& id, Factory factory, Token context);
 
     /**
      * Registers an instance <tt>obj</tt> of a subclass of
@@ -1268,11 +1225,9 @@ public:
      * the framework, although this isn't checked.
      * @stable ICU 3.6
      */
-     static void U_EXPORT2 registerAlias(const UnicodeString& aliasID,
-                                         const UnicodeString& realID);
+    static void U_EXPORT2 registerAlias(const UnicodeString& aliasID, const UnicodeString& realID);
 
 protected:
-
 #ifndef U_HIDE_INTERNAL_API
     /**
      * @param id the ID being registered
@@ -1283,9 +1238,7 @@ protected:
      * the registration ID is being instantiated with this factory.
      * @internal
      */
-    static void _registerFactory(const UnicodeString& id,
-                                 Factory factory,
-                                 Token context);
+    static void _registerFactory(const UnicodeString& id, Factory factory, Token context);
 
     /**
      * @internal
@@ -1330,13 +1283,10 @@ protected:
      * as well, that is, Any-inverseTarget.getInverse() => Any-target
      * @internal
      */
-    static void _registerSpecialInverse(const UnicodeString& target,
-                                        const UnicodeString& inverseTarget,
-                                        UBool bidirectional);
-#endif  /* U_HIDE_INTERNAL_API */
+    static void _registerSpecialInverse(const UnicodeString& target, const UnicodeString& inverseTarget, UBool bidirectional);
+#endif /* U_HIDE_INTERNAL_API */
 
 public:
-
     /**
      * Unregisters a transliterator or class.  This may be either
      * a system transliterator or a user transliterator or class.
@@ -1357,7 +1307,6 @@ public:
     static void U_EXPORT2 unregister(const UnicodeString& ID);
 
 public:
-
     /**
      * Return a StringEnumeration over the IDs available at the time of the
      * call, including user-registered IDs.
@@ -1385,8 +1334,7 @@ public:
      * @return reference to result
      * @stable ICU 2.0
      */
-    static UnicodeString& U_EXPORT2 getAvailableSource(int32_t index,
-                                             UnicodeString& result);
+    static UnicodeString& U_EXPORT2 getAvailableSource(int32_t index, UnicodeString& result);
 
     /**
      * Return the number of registered target specifiers for a given
@@ -1409,9 +1357,7 @@ public:
      * @return reference to result
      * @stable ICU 2.0
      */
-    static UnicodeString& U_EXPORT2 getAvailableTarget(int32_t index,
-                                             const UnicodeString& source,
-                                             UnicodeString& result);
+    static UnicodeString& U_EXPORT2 getAvailableTarget(int32_t index, const UnicodeString& source, UnicodeString& result);
 
     /**
      * Return the number of registered variant specifiers for a given
@@ -1420,8 +1366,7 @@ public:
      * @param target    the target specifiers.
      * @stable ICU 2.0
      */
-    static int32_t U_EXPORT2 countAvailableVariants(const UnicodeString& source,
-                                          const UnicodeString& target);
+    static int32_t U_EXPORT2 countAvailableVariants(const UnicodeString& source, const UnicodeString& target);
 
     /**
      * Return a registered variant specifier for a given source-target
@@ -1436,13 +1381,9 @@ public:
      * @return reference to result
      * @stable ICU 2.0
      */
-    static UnicodeString& U_EXPORT2 getAvailableVariant(int32_t index,
-                                              const UnicodeString& source,
-                                              const UnicodeString& target,
-                                              UnicodeString& result);
+    static UnicodeString& U_EXPORT2 getAvailableVariant(int32_t index, const UnicodeString& source, const UnicodeString& target, UnicodeString& result);
 
 protected:
-
 #ifndef U_HIDE_INTERNAL_API
     /**
      * Non-mutexed internal method
@@ -1454,8 +1395,7 @@ protected:
      * Non-mutexed internal method
      * @internal
      */
-    static UnicodeString& _getAvailableSource(int32_t index,
-                                              UnicodeString& result);
+    static UnicodeString& _getAvailableSource(int32_t index, UnicodeString& result);
 
     /**
      * Non-mutexed internal method
@@ -1467,29 +1407,22 @@ protected:
      * Non-mutexed internal method
      * @internal
      */
-    static UnicodeString& _getAvailableTarget(int32_t index,
-                                              const UnicodeString& source,
-                                              UnicodeString& result);
+    static UnicodeString& _getAvailableTarget(int32_t index, const UnicodeString& source, UnicodeString& result);
 
     /**
      * Non-mutexed internal method
      * @internal
      */
-    static int32_t _countAvailableVariants(const UnicodeString& source,
-                                           const UnicodeString& target);
+    static int32_t _countAvailableVariants(const UnicodeString& source, const UnicodeString& target);
 
     /**
      * Non-mutexed internal method
      * @internal
      */
-    static UnicodeString& _getAvailableVariant(int32_t index,
-                                               const UnicodeString& source,
-                                               const UnicodeString& target,
-                                               UnicodeString& result);
-#endif  /* U_HIDE_INTERNAL_API */
+    static UnicodeString& _getAvailableVariant(int32_t index, const UnicodeString& source, const UnicodeString& target, UnicodeString& result);
+#endif /* U_HIDE_INTERNAL_API */
 
 protected:
-
     /**
      * Set the ID of this transliterators.  Subclasses shouldn't do
      * this, unless the underlying script behavior has changed.
@@ -1499,7 +1432,6 @@ protected:
     void setID(const UnicodeString& id);
 
 public:
-
     /**
      * Return the class ID for this class.  This is useful only for
      * comparing to a return value from getDynamicClassID().
@@ -1530,7 +1462,7 @@ public:
     virtual UClassID getDynamicClassID(void) const override = 0;
 
 private:
-    static UBool initializeRegistry(UErrorCode &status);
+    static UBool initializeRegistry(UErrorCode& status);
 
 public:
 #ifndef U_HIDE_OBSOLETE_API
@@ -1556,33 +1488,37 @@ public:
      * may become invalid if another thread calls unregister
      */
     static const UnicodeString& U_EXPORT2 getAvailableID(int32_t index);
-#endif  /* U_HIDE_OBSOLETE_API */
+#endif /* U_HIDE_OBSOLETE_API */
 };
 
-inline int32_t Transliterator::getMaximumContextLength(void) const {
+inline int32_t Transliterator::getMaximumContextLength(void) const
+{
     return maximumContextLength;
 }
 
-inline void Transliterator::setID(const UnicodeString& id) {
+inline void Transliterator::setID(const UnicodeString& id)
+{
     ID = id;
     // NUL-terminate the ID string, which is a non-aliased copy.
     ID.append((char16_t)0);
-    ID.truncate(ID.length()-1);
+    ID.truncate(ID.length() - 1);
 }
 
 #ifndef U_HIDE_INTERNAL_API
-inline Transliterator::Token Transliterator::integerToken(int32_t i) {
+inline Transliterator::Token Transliterator::integerToken(int32_t i)
+{
     Token t;
     t.integer = i;
     return t;
 }
 
-inline Transliterator::Token Transliterator::pointerToken(void* p) {
+inline Transliterator::Token Transliterator::pointerToken(void* p)
+{
     Token t;
     t.pointer = p;
     return t;
 }
-#endif  /* U_HIDE_INTERNAL_API */
+#endif /* U_HIDE_INTERNAL_API */
 
 U_NAMESPACE_END
 

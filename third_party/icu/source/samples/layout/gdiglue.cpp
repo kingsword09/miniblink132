@@ -1,4 +1,4 @@
-/*
+﻿/*
  *
  * © 2016 and later: Unicode, Inc. and others.
  * License & terms of use: http://www.unicode.org/copyright.html
@@ -22,60 +22,59 @@
 #include "GDIFontMap.h"
 #include "ScriptCompositeFontInstance.h"
 
-
 U_CDECL_BEGIN
 
-gs_guiSupport *gs_gdiGuiSupportOpen()
+gs_guiSupport* gs_gdiGuiSupportOpen()
 {
-    return (gs_guiSupport *) new GDIGUISupport();
+    return (gs_guiSupport*)new GDIGUISupport();
 }
 
-void gs_gdiGuiSupportClose(gs_guiSupport *guiSupport)
+void gs_gdiGuiSupportClose(gs_guiSupport* guiSupport)
 {
-    GDIGUISupport *gs = (GDIGUISupport *) guiSupport;
+    GDIGUISupport* gs = (GDIGUISupport*)guiSupport;
 
     delete gs;
 }
 
-rs_surface *rs_gdiRenderingSurfaceOpen(HDC hdc)
+rs_surface* rs_gdiRenderingSurfaceOpen(HDC hdc)
 {
-    return (rs_surface *) new GDISurface(hdc);
+    return (rs_surface*)new GDISurface(hdc);
 }
 
-void rs_gdiRenderingSurfaceSetHDC(rs_surface *surface, HDC hdc)
+void rs_gdiRenderingSurfaceSetHDC(rs_surface* surface, HDC hdc)
 {
-    GDISurface *rs = (GDISurface *) surface;
+    GDISurface* rs = (GDISurface*)surface;
 
     rs->setHDC(hdc);
 }
 
-void rs_gdiRenderingSurfaceClose(rs_surface *surface)
+void rs_gdiRenderingSurfaceClose(rs_surface* surface)
 {
-    GDISurface *rs = (GDISurface *) surface;
+    GDISurface* rs = (GDISurface*)surface;
 
     delete rs;
 }
 
-fm_fontMap *fm_gdiFontMapOpen(rs_surface *surface, const char *fileName, le_int16 pointSize, gs_guiSupport *guiSupport, LEErrorCode *status)
+fm_fontMap* fm_gdiFontMapOpen(rs_surface* surface, const char* fileName, le_int16 pointSize, gs_guiSupport* guiSupport, LEErrorCode* status)
 {
-    return (fm_fontMap *) new GDIFontMap((GDISurface *) surface, fileName, pointSize, (GDIGUISupport *) guiSupport, *status);
+    return (fm_fontMap*)new GDIFontMap((GDISurface*)surface, fileName, pointSize, (GDIGUISupport*)guiSupport, *status);
 }
 
-void fm_fontMapClose(fm_fontMap *fontMap)
+void fm_fontMapClose(fm_fontMap* fontMap)
 {
-    GDIFontMap *fm = (GDIFontMap *) fontMap;
+    GDIFontMap* fm = (GDIFontMap*)fontMap;
 
     delete fm;
 }
 
-le_font *le_scriptCompositeFontOpen(fm_fontMap *fontMap)
+le_font* le_scriptCompositeFontOpen(fm_fontMap* fontMap)
 {
-    return (le_font *) new ScriptCompositeFontInstance((FontMap *) fontMap);
+    return (le_font*)new ScriptCompositeFontInstance((FontMap*)fontMap);
 }
 
-void le_fontClose(le_font *font)
+void le_fontClose(le_font* font)
 {
-    LEFontInstance *fi = (LEFontInstance *) font;
+    LEFontInstance* fi = (LEFontInstance*)font;
 
     delete fi;
 }

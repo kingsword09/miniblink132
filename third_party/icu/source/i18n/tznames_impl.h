@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -9,7 +9,6 @@
 
 #ifndef __TZNAMES_IMPL_H__
 #define __TZNAMES_IMPL_H__
-
 
 /**
  * \file
@@ -33,13 +32,13 @@
 U_NAMESPACE_BEGIN
 
 /*
- * ZNStringPool    Pool of (char16_t *) strings.  Provides for sharing of repeated
+ * ZNStringPool    Pool of (UChar *) strings.  Provides for sharing of repeated
  *                 zone strings.
  */
 struct ZNStringPoolChunk;
-class U_I18N_API ZNStringPool: public UMemory {
-  public:
-    ZNStringPool(UErrorCode &status);
+class U_I18N_API ZNStringPool : public UMemory {
+public:
+    ZNStringPool(UErrorCode& status);
     ~ZNStringPool();
 
     /* Get the pooled string that is equal to the supplied string s.
@@ -47,26 +46,26 @@ class U_I18N_API ZNStringPool: public UMemory {
      *
      * Life time of the returned string is that of the pool.
      */
-    const char16_t *get(const char16_t *s, UErrorCode &status);
+    const UChar* get(const UChar* s, UErrorCode& status);
 
     /* Get the pooled string that is equal to the supplied string s.
      * Copy the string into the pool if it is not already present.
      */
-    const char16_t *get(const UnicodeString &s, UErrorCode &status);
+    const UChar* get(const UnicodeString& s, UErrorCode& status);
 
     /* Adopt a string into the pool, without copying it.
      * Used for strings from resource bundles, which will persist without copying.
      */
-    const char16_t *adopt(const char16_t *s, UErrorCode &status);
+    const UChar* adopt(const UChar* s, UErrorCode& status);
 
     /* Freeze the string pool.  Discards the hash table that is used
      * for looking up a string.  All pointers to pooled strings remain valid.
      */
     void freeze();
 
-  private:
-    ZNStringPoolChunk   *fChunks;
-    UHashtable           *fHash;
+private:
+    ZNStringPoolChunk* fChunks;
+    UHashtable* fHash;
 };
 
 /*
@@ -78,41 +77,41 @@ struct CharacterNode {
     // and clear and delete them ourselves.
 
     void clear();
-    void deleteValues(UObjectDeleter *valueDeleter);
+    void deleteValues(UObjectDeleter* valueDeleter);
 
-    void addValue(void *value, UObjectDeleter *valueDeleter, UErrorCode &status);
+    void addValue(void* value, UObjectDeleter* valueDeleter, UErrorCode& status);
     inline UBool hasValues() const;
     inline int32_t countValues() const;
-    inline const void *getValue(int32_t index) const;
+    inline const void* getValue(int32_t index) const;
 
-    void     *fValues;      // Union of one single value vs. UVector of values.
-    char16_t fCharacter;    // UTF-16 code unit.
-    uint16_t fFirstChild;   // 0 if no children.
-    uint16_t fNextSibling;  // 0 terminates the list.
-    UBool    fHasValuesVector;
-    UBool    fPadding;
+    void* fValues; // Union of one single value vs. UVector of values.
+    UChar fCharacter; // UTF-16 code unit.
+    uint16_t fFirstChild; // 0 if no children.
+    uint16_t fNextSibling; // 0 terminates the list.
+    UBool fHasValuesVector;
+    UBool fPadding;
 
-    // No value:   fValues == nullptr            and  fHasValuesVector == false
+    // No value:   fValues == NULL               and  fHasValuesVector == false
     // One value:  fValues == value              and  fHasValuesVector == false
     // >=2 values: fValues == UVector of values  and  fHasValuesVector == true
 };
 
-inline UBool CharacterNode::hasValues() const {
-    return (UBool)(fValues != nullptr);
+inline UBool CharacterNode::hasValues() const
+{
+    return (UBool)(fValues != NULL);
 }
 
-inline int32_t CharacterNode::countValues() const {
-    return
-        fValues == nullptr ? 0 :
-        !fHasValuesVector ? 1 :
-        ((const UVector *)fValues)->size();
+inline int32_t CharacterNode::countValues() const
+{
+    return fValues == NULL ? 0 : !fHasValuesVector ? 1 : ((const UVector*)fValues)->size();
 }
 
-inline const void *CharacterNode::getValue(int32_t index) const {
+inline const void* CharacterNode::getValue(int32_t index) const
+{
     if (!fHasValuesVector) {
-        return fValues;  // Assume index == 0.
+        return fValues; // Assume index == 0.
     } else {
-        return ((const UVector *)fValues)->elementAt(index);
+        return ((const UVector*)fValues)->elementAt(index);
     }
 }
 
@@ -121,9 +120,8 @@ inline const void *CharacterNode::getValue(int32_t index) const {
  */
 class TextTrieMapSearchResultHandler : public UMemory {
 public:
-    virtual UBool handleMatch(int32_t matchLength,
-                              const CharacterNode *node, UErrorCode& status) = 0;
-    virtual ~TextTrieMapSearchResultHandler(); //added to avoid warning
+    virtual UBool handleMatch(int32_t matchLength, const CharacterNode* node, UErrorCode& status) = 0;
+    virtual ~TextTrieMapSearchResultHandler(); // added to avoid warning
 };
 
 /**
@@ -132,36 +130,33 @@ public:
  */
 class U_I18N_API TextTrieMap : public UMemory {
 public:
-    TextTrieMap(UBool ignoreCase, UObjectDeleter *valeDeleter);
+    TextTrieMap(UBool ignoreCase, UObjectDeleter* valeDeleter);
     virtual ~TextTrieMap();
 
-    void put(const UnicodeString &key, void *value, ZNStringPool &sp, UErrorCode &status);
-    void put(const char16_t*, void *value, UErrorCode &status);
-    void search(const UnicodeString &text, int32_t start,
-        TextTrieMapSearchResultHandler *handler, UErrorCode& status) const;
+    void put(const UnicodeString& key, void* value, ZNStringPool& sp, UErrorCode& status);
+    void put(const UChar*, void* value, UErrorCode& status);
+    void search(const UnicodeString& text, int32_t start, TextTrieMapSearchResultHandler* handler, UErrorCode& status) const;
     int32_t isEmpty() const;
 
 private:
-    UBool           fIgnoreCase;
-    CharacterNode   *fNodes;
-    int32_t         fNodesCapacity;
-    int32_t         fNodesCount;
+    UBool fIgnoreCase;
+    CharacterNode* fNodes;
+    int32_t fNodesCapacity;
+    int32_t fNodesCount;
 
-    UVector         *fLazyContents;
-    UBool           fIsEmpty;
-    UObjectDeleter  *fValueDeleter;
+    UVector* fLazyContents;
+    UBool fIsEmpty;
+    UObjectDeleter* fValueDeleter;
 
     UBool growNodes();
-    CharacterNode* addChildNode(CharacterNode *parent, char16_t c, UErrorCode &status);
-    CharacterNode* getChildNode(CharacterNode *parent, char16_t c) const;
+    CharacterNode* addChildNode(CharacterNode* parent, UChar c, UErrorCode& status);
+    CharacterNode* getChildNode(CharacterNode* parent, UChar c) const;
 
-    void putImpl(const UnicodeString &key, void *value, UErrorCode &status);
-    void buildTrie(UErrorCode &status);
-    void search(CharacterNode *node, const UnicodeString &text, int32_t start,
-        int32_t index, TextTrieMapSearchResultHandler *handler, UErrorCode &status) const;
+    void putImpl(const UnicodeString& key, void* value, UErrorCode& status);
+    void buildTrie(UErrorCode& status);
+    void search(
+        CharacterNode* node, const UnicodeString& text, int32_t start, int32_t index, TextTrieMapSearchResultHandler* handler, UErrorCode& status) const;
 };
-
-
 
 class ZNames;
 class TextTrieMap;
@@ -190,7 +185,8 @@ public:
     TimeZoneNames::MatchInfoCollection* find(const UnicodeString& text, int32_t start, uint32_t types, UErrorCode& status) const override;
 
     void loadAllDisplayNames(UErrorCode& status) override;
-    void getDisplayNames(const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const override;
+    void getDisplayNames(
+        const UnicodeString& tzID, const UTimeZoneNameType types[], int32_t numTypes, UDate date, UnicodeString dest[], UErrorCode& status) const override;
 
     static UnicodeString& getDefaultExemplarLocationName(const UnicodeString& tzID, UnicodeString& name);
 
@@ -200,7 +196,6 @@ public:
     static UnicodeString& _getReferenceZoneID(const UnicodeString& mzID, const char* region, UnicodeString& tzID);
 
 private:
-
     Locale fLocale;
 
     UResourceBundle* fZoneStrings;
@@ -219,8 +214,7 @@ private:
 
     ZNames* loadMetaZoneNames(const UnicodeString& mzId, UErrorCode& status);
     ZNames* loadTimeZoneNames(const UnicodeString& mzId, UErrorCode& status);
-    TimeZoneNames::MatchInfoCollection* doFind(ZNameSearchHandler& handler,
-        const UnicodeString& text, int32_t start, UErrorCode& status) const;
+    TimeZoneNames::MatchInfoCollection* doFind(ZNameSearchHandler& handler, const UnicodeString& text, int32_t start, UErrorCode& status) const;
     void addAllNamesIntoTrie(UErrorCode& errorCode);
 
     void internalLoadAllDisplayNames(UErrorCode& status);
@@ -249,7 +243,7 @@ public:
 
     TimeZoneNames::MatchInfoCollection* find(const UnicodeString& text, int32_t start, uint32_t types, UErrorCode& status) const override;
 
-    // When TZDBNames for the metazone is not available, this method returns nullptr,
+    // When TZDBNames for the metazone is not available, this method returns NULL,
     // but does NOT set U_MISSING_RESOURCE_ERROR to status.
     static const TZDBNames* getMetaZoneNames(const UnicodeString& mzId, UErrorCode& status);
 
@@ -263,5 +257,5 @@ U_NAMESPACE_END
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // __TZNAMES_IMPL_H__
-//eof
+// eof
 //

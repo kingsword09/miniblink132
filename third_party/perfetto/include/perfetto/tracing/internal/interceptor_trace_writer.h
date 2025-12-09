@@ -28,42 +28,39 @@ namespace internal {
 
 // A heap-backed trace writer used to reroute trace packets to an interceptor.
 class InterceptorTraceWriter : public TraceWriterBase {
- public:
-  InterceptorTraceWriter(std::unique_ptr<InterceptorBase::ThreadLocalState> tls,
-                         InterceptorBase::TracePacketCallback packet_callback,
-                         DataSourceStaticState* static_state,
-                         uint32_t instance_index);
-  ~InterceptorTraceWriter() override;
+public:
+    InterceptorTraceWriter(std::unique_ptr<InterceptorBase::ThreadLocalState> tls, InterceptorBase::TracePacketCallback packet_callback,
+        DataSourceStaticState* static_state, uint32_t instance_index);
+    ~InterceptorTraceWriter() override;
 
-  // TraceWriterBase implementation.
-  protozero::MessageHandle<protos::pbzero::TracePacket> NewTracePacket()
-      override;
-  void FinishTracePacket() override;
-  void Flush(std::function<void()> callback = {}) override;
-  uint64_t written() const override;
+    // TraceWriterBase implementation.
+    protozero::MessageHandle<protos::pbzero::TracePacket> NewTracePacket() override;
+    void FinishTracePacket() override;
+    void Flush(std::function<void()> callback = {}) override;
+    uint64_t written() const override;
 
- private:
-  std::unique_ptr<InterceptorBase::ThreadLocalState> tls_;
-  InterceptorBase::TracePacketCallback packet_callback_;
+private:
+    std::unique_ptr<InterceptorBase::ThreadLocalState> tls_;
+    InterceptorBase::TracePacketCallback packet_callback_;
 
-  protozero::HeapBuffered<protos::pbzero::TracePacket> cur_packet_;
-  uint64_t bytes_written_ = 0;
+    protozero::HeapBuffered<protos::pbzero::TracePacket> cur_packet_;
+    uint64_t bytes_written_ = 0;
 
-  // Static state of the data source we are intercepting.
-  DataSourceStaticState* const static_state_;
+    // Static state of the data source we are intercepting.
+    DataSourceStaticState* const static_state_;
 
-  // Index of the data source tracing session which we are intercepting
-  // (0...kMaxDataSourceInstances - 1). Used to look up this interceptor's
-  // session state (i.e., the Interceptor class instance) in the
-  // DataSourceStaticState::instances array.
-  const uint32_t instance_index_;
+    // Index of the data source tracing session which we are intercepting
+    // (0...kMaxDataSourceInstances - 1). Used to look up this interceptor's
+    // session state (i.e., the Interceptor class instance) in the
+    // DataSourceStaticState::instances array.
+    const uint32_t instance_index_;
 
-  const uint32_t sequence_id_;
+    const uint32_t sequence_id_;
 
-  static std::atomic<uint32_t> next_sequence_id_;
+    static std::atomic<uint32_t> next_sequence_id_;
 };
 
-}  // namespace internal
-}  // namespace perfetto
+} // namespace internal
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_INTERCEPTOR_TRACE_WRITER_H_
+#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_INTERCEPTOR_TRACE_WRITER_H_

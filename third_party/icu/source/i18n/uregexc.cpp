@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -8,7 +8,7 @@
 *   file name:   regexc.cpp
 *   description: The purpose of this function is to separate the codepage
 *       conversion from the rest of the uregex_ API. This can removes any
-*       dependency on codepage conversion, which reduces the overhead of 
+*       dependency on codepage conversion, which reduces the overhead of
 */
 
 #include "unicode/uregex.h"
@@ -23,17 +23,14 @@ U_NAMESPACE_USE
 //----------------------------------------------------------------------------------------
 #if !UCONFIG_NO_CONVERSION && !UCONFIG_NO_REGULAR_EXPRESSIONS
 
-U_CAPI URegularExpression * U_EXPORT2
-uregex_openC( const char           *pattern,
-                    uint32_t        flags,
-                    UParseError    *pe,
-                    UErrorCode     *status) {
+U_CAPI URegularExpression* U_EXPORT2 uregex_openC(const char* pattern, uint32_t flags, UParseError* pe, UErrorCode* status)
+{
     if (U_FAILURE(*status)) {
-        return nullptr;
+        return NULL;
     }
-    if (pattern == nullptr) {
+    if (pattern == NULL) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return nullptr;
+        return NULL;
     }
 
     UnicodeString patString(pattern);

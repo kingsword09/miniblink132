@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -39,51 +39,52 @@ using EPadPosition = icu::DecimalFormat::EPadPosition;
 #define UBOOL_TO_BOOL(b) b
 #endif
 
-
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(DecimalFormat)
 
-
 DecimalFormat::DecimalFormat(UErrorCode& status)
-        : DecimalFormat(nullptr, status) {
-    if (U_FAILURE(status)) { return; }
+    : DecimalFormat(nullptr, status)
+{
+    if (U_FAILURE(status)) {
+        return;
+    }
     // Use the default locale and decimal pattern.
     const char* localeName = Locale::getDefault().getName();
     LocalPointer<NumberingSystem> ns(NumberingSystem::createInstance(status));
-    UnicodeString patternString = utils::getPatternForStyle(
-            localeName,
-            ns->getName(),
-            CLDR_PATTERN_STYLE_DECIMAL,
-            status);
+    UnicodeString patternString = utils::getPatternForStyle(localeName, ns->getName(), CLDR_PATTERN_STYLE_DECIMAL, status);
     setPropertiesFromPattern(patternString, IGNORE_ROUNDING_IF_CURRENCY, status);
     touch(status);
 }
 
 DecimalFormat::DecimalFormat(const UnicodeString& pattern, UErrorCode& status)
-        : DecimalFormat(nullptr, status) {
-    if (U_FAILURE(status)) { return; }
+    : DecimalFormat(nullptr, status)
+{
+    if (U_FAILURE(status)) {
+        return;
+    }
     setPropertiesFromPattern(pattern, IGNORE_ROUNDING_IF_CURRENCY, status);
     touch(status);
 }
 
-DecimalFormat::DecimalFormat(const UnicodeString& pattern, DecimalFormatSymbols* symbolsToAdopt,
-                             UErrorCode& status)
-        : DecimalFormat(symbolsToAdopt, status) {
-    if (U_FAILURE(status)) { return; }
+DecimalFormat::DecimalFormat(const UnicodeString& pattern, DecimalFormatSymbols* symbolsToAdopt, UErrorCode& status)
+    : DecimalFormat(symbolsToAdopt, status)
+{
+    if (U_FAILURE(status)) {
+        return;
+    }
     setPropertiesFromPattern(pattern, IGNORE_ROUNDING_IF_CURRENCY, status);
     touch(status);
 }
 
-DecimalFormat::DecimalFormat(const UnicodeString& pattern, DecimalFormatSymbols* symbolsToAdopt,
-                             UNumberFormatStyle style, UErrorCode& status)
-        : DecimalFormat(symbolsToAdopt, status) {
-    if (U_FAILURE(status)) { return; }
+DecimalFormat::DecimalFormat(const UnicodeString& pattern, DecimalFormatSymbols* symbolsToAdopt, UNumberFormatStyle style, UErrorCode& status)
+    : DecimalFormat(symbolsToAdopt, status)
+{
+    if (U_FAILURE(status)) {
+        return;
+    }
     // If choice is a currency type, ignore the rounding information.
-    if (style == UNumberFormatStyle::UNUM_CURRENCY ||
-        style == UNumberFormatStyle::UNUM_CURRENCY_ISO ||
-        style == UNumberFormatStyle::UNUM_CURRENCY_ACCOUNTING ||
-        style == UNumberFormatStyle::UNUM_CASH_CURRENCY ||
-        style == UNumberFormatStyle::UNUM_CURRENCY_STANDARD ||
-        style == UNumberFormatStyle::UNUM_CURRENCY_PLURAL) {
+    if (style == UNumberFormatStyle::UNUM_CURRENCY || style == UNumberFormatStyle::UNUM_CURRENCY_ISO || style == UNumberFormatStyle::UNUM_CURRENCY_ACCOUNTING
+        || style == UNumberFormatStyle::UNUM_CASH_CURRENCY || style == UNumberFormatStyle::UNUM_CURRENCY_STANDARD
+        || style == UNumberFormatStyle::UNUM_CURRENCY_PLURAL) {
         setPropertiesFromPattern(pattern, IGNORE_ROUNDING_ALWAYS, status);
     } else {
         setPropertiesFromPattern(pattern, IGNORE_ROUNDING_IF_CURRENCY, status);
@@ -91,16 +92,17 @@ DecimalFormat::DecimalFormat(const UnicodeString& pattern, DecimalFormatSymbols*
     // Note: in Java, CurrencyPluralInfo is set in NumberFormat.java, but in C++, it is not set there,
     // so we have to set it here.
     if (style == UNumberFormatStyle::UNUM_CURRENCY_PLURAL) {
-        LocalPointer<CurrencyPluralInfo> cpi(
-                new CurrencyPluralInfo(fields->symbols->getLocale(), status),
-                status);
-        if (U_FAILURE(status)) { return; }
+        LocalPointer<CurrencyPluralInfo> cpi(new CurrencyPluralInfo(fields->symbols->getLocale(), status), status);
+        if (U_FAILURE(status)) {
+            return;
+        }
         fields->properties.currencyPluralInfo.fPtr.adoptInstead(cpi.orphan());
     }
     touch(status);
 }
 
-DecimalFormat::DecimalFormat(const DecimalFormatSymbols* symbolsToAdopt, UErrorCode& status) {
+DecimalFormat::DecimalFormat(const DecimalFormatSymbols* symbolsToAdopt, UErrorCode& status)
+{
     // we must take ownership of symbolsToAdopt, even in a failure case.
     LocalPointer<const DecimalFormatSymbols> adoptedSymbols(symbolsToAdopt);
     if (U_FAILURE(status)) {
@@ -124,17 +126,24 @@ DecimalFormat::DecimalFormat(const DecimalFormatSymbols* symbolsToAdopt, UErrorC
 
 #if UCONFIG_HAVE_PARSEALLINPUT
 
-void DecimalFormat::setParseAllInput(UNumberFormatAttributeValue value) {
-    if (fields == nullptr) { return; }
-    if (value == fields->properties.parseAllInput) { return; }
+void DecimalFormat::setParseAllInput(UNumberFormatAttributeValue value)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (value == fields->properties.parseAllInput) {
+        return;
+    }
     fields->properties.parseAllInput = value;
 }
 
 #endif
 
-DecimalFormat&
-DecimalFormat::setAttribute(UNumberFormatAttribute attr, int32_t newValue, UErrorCode& status) {
-    if (U_FAILURE(status)) { return *this; }
+DecimalFormat& DecimalFormat::setAttribute(UNumberFormatAttribute attr, int32_t newValue, UErrorCode& status)
+{
+    if (U_FAILURE(status)) {
+        return *this;
+    }
 
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
@@ -143,133 +152,136 @@ DecimalFormat::setAttribute(UNumberFormatAttribute attr, int32_t newValue, UErro
     }
 
     switch (attr) {
-        case UNUM_LENIENT_PARSE:
-            setLenient(newValue != 0);
-            break;
+    case UNUM_LENIENT_PARSE:
+        setLenient(newValue != 0);
+        break;
 
-        case UNUM_PARSE_INT_ONLY:
-            setParseIntegerOnly(newValue != 0);
-            break;
+    case UNUM_PARSE_INT_ONLY:
+        setParseIntegerOnly(newValue != 0);
+        break;
 
-        case UNUM_GROUPING_USED:
-            setGroupingUsed(newValue != 0);
-            break;
+    case UNUM_GROUPING_USED:
+        setGroupingUsed(newValue != 0);
+        break;
 
-        case UNUM_DECIMAL_ALWAYS_SHOWN:
-            setDecimalSeparatorAlwaysShown(newValue != 0);
-            break;
+    case UNUM_DECIMAL_ALWAYS_SHOWN:
+        setDecimalSeparatorAlwaysShown(newValue != 0);
+        break;
 
-        case UNUM_MAX_INTEGER_DIGITS:
-            setMaximumIntegerDigits(newValue);
-            break;
+    case UNUM_MAX_INTEGER_DIGITS:
+        setMaximumIntegerDigits(newValue);
+        break;
 
-        case UNUM_MIN_INTEGER_DIGITS:
-            setMinimumIntegerDigits(newValue);
-            break;
+    case UNUM_MIN_INTEGER_DIGITS:
+        setMinimumIntegerDigits(newValue);
+        break;
 
-        case UNUM_INTEGER_DIGITS:
-            setMinimumIntegerDigits(newValue);
-            setMaximumIntegerDigits(newValue);
-            break;
+    case UNUM_INTEGER_DIGITS:
+        setMinimumIntegerDigits(newValue);
+        setMaximumIntegerDigits(newValue);
+        break;
 
-        case UNUM_MAX_FRACTION_DIGITS:
-            setMaximumFractionDigits(newValue);
-            break;
+    case UNUM_MAX_FRACTION_DIGITS:
+        setMaximumFractionDigits(newValue);
+        break;
 
-        case UNUM_MIN_FRACTION_DIGITS:
-            setMinimumFractionDigits(newValue);
-            break;
+    case UNUM_MIN_FRACTION_DIGITS:
+        setMinimumFractionDigits(newValue);
+        break;
 
-        case UNUM_FRACTION_DIGITS:
-            setMinimumFractionDigits(newValue);
-            setMaximumFractionDigits(newValue);
-            break;
+    case UNUM_FRACTION_DIGITS:
+        setMinimumFractionDigits(newValue);
+        setMaximumFractionDigits(newValue);
+        break;
 
-        case UNUM_SIGNIFICANT_DIGITS_USED:
-            setSignificantDigitsUsed(newValue != 0);
-            break;
+    case UNUM_SIGNIFICANT_DIGITS_USED:
+        setSignificantDigitsUsed(newValue != 0);
+        break;
 
-        case UNUM_MAX_SIGNIFICANT_DIGITS:
-            setMaximumSignificantDigits(newValue);
-            break;
+    case UNUM_MAX_SIGNIFICANT_DIGITS:
+        setMaximumSignificantDigits(newValue);
+        break;
 
-        case UNUM_MIN_SIGNIFICANT_DIGITS:
-            setMinimumSignificantDigits(newValue);
-            break;
+    case UNUM_MIN_SIGNIFICANT_DIGITS:
+        setMinimumSignificantDigits(newValue);
+        break;
 
-        case UNUM_MULTIPLIER:
-            setMultiplier(newValue);
-            break;
+    case UNUM_MULTIPLIER:
+        setMultiplier(newValue);
+        break;
 
-        case UNUM_SCALE:
-            setMultiplierScale(newValue);
-            break;
+    case UNUM_SCALE:
+        setMultiplierScale(newValue);
+        break;
 
-        case UNUM_GROUPING_SIZE:
-            setGroupingSize(newValue);
-            break;
+    case UNUM_GROUPING_SIZE:
+        setGroupingSize(newValue);
+        break;
 
-        case UNUM_ROUNDING_MODE:
-            setRoundingMode((DecimalFormat::ERoundingMode) newValue);
-            break;
+    case UNUM_ROUNDING_MODE:
+        setRoundingMode((DecimalFormat::ERoundingMode)newValue);
+        break;
 
-        case UNUM_FORMAT_WIDTH:
-            setFormatWidth(newValue);
-            break;
+    case UNUM_FORMAT_WIDTH:
+        setFormatWidth(newValue);
+        break;
 
-        case UNUM_PADDING_POSITION:
-            /** The position at which padding will take place. */
-            setPadPosition((DecimalFormat::EPadPosition) newValue);
-            break;
+    case UNUM_PADDING_POSITION:
+        /** The position at which padding will take place. */
+        setPadPosition((DecimalFormat::EPadPosition)newValue);
+        break;
 
-        case UNUM_SECONDARY_GROUPING_SIZE:
-            setSecondaryGroupingSize(newValue);
-            break;
+    case UNUM_SECONDARY_GROUPING_SIZE:
+        setSecondaryGroupingSize(newValue);
+        break;
 
 #if UCONFIG_HAVE_PARSEALLINPUT
-        case UNUM_PARSE_ALL_INPUT:
-            setParseAllInput((UNumberFormatAttributeValue) newValue);
-            break;
+    case UNUM_PARSE_ALL_INPUT:
+        setParseAllInput((UNumberFormatAttributeValue)newValue);
+        break;
 #endif
 
-        case UNUM_PARSE_NO_EXPONENT:
-            setParseNoExponent((UBool) newValue);
-            break;
+    case UNUM_PARSE_NO_EXPONENT:
+        setParseNoExponent((UBool)newValue);
+        break;
 
-        case UNUM_PARSE_DECIMAL_MARK_REQUIRED:
-            setDecimalPatternMatchRequired((UBool) newValue);
-            break;
+    case UNUM_PARSE_DECIMAL_MARK_REQUIRED:
+        setDecimalPatternMatchRequired((UBool)newValue);
+        break;
 
-        case UNUM_CURRENCY_USAGE:
-            setCurrencyUsage((UCurrencyUsage) newValue, &status);
-            break;
+    case UNUM_CURRENCY_USAGE:
+        setCurrencyUsage((UCurrencyUsage)newValue, &status);
+        break;
 
-        case UNUM_MINIMUM_GROUPING_DIGITS:
-            setMinimumGroupingDigits(newValue);
-            break;
+    case UNUM_MINIMUM_GROUPING_DIGITS:
+        setMinimumGroupingDigits(newValue);
+        break;
 
-        case UNUM_PARSE_CASE_SENSITIVE:
-            setParseCaseSensitive(static_cast<UBool>(newValue));
-            break;
+    case UNUM_PARSE_CASE_SENSITIVE:
+        setParseCaseSensitive(static_cast<UBool>(newValue));
+        break;
 
-        case UNUM_SIGN_ALWAYS_SHOWN:
-            setSignAlwaysShown(static_cast<UBool>(newValue));
-            break;
+    case UNUM_SIGN_ALWAYS_SHOWN:
+        setSignAlwaysShown(static_cast<UBool>(newValue));
+        break;
 
-        case UNUM_FORMAT_FAIL_IF_MORE_THAN_MAX_DIGITS:
-            setFormatFailIfMoreThanMaxDigits(static_cast<UBool>(newValue));
-            break;
+    case UNUM_FORMAT_FAIL_IF_MORE_THAN_MAX_DIGITS:
+        setFormatFailIfMoreThanMaxDigits(static_cast<UBool>(newValue));
+        break;
 
-        default:
-            status = U_UNSUPPORTED_ERROR;
-            break;
+    default:
+        status = U_UNSUPPORTED_ERROR;
+        break;
     }
     return *this;
 }
 
-int32_t DecimalFormat::getAttribute(UNumberFormatAttribute attr, UErrorCode& status) const {
-    if (U_FAILURE(status)) { return -1; }
-    
+int32_t DecimalFormat::getAttribute(UNumberFormatAttribute attr, UErrorCode& status) const
+{
+    if (U_FAILURE(status)) {
+        return -1;
+    }
+
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -277,141 +289,154 @@ int32_t DecimalFormat::getAttribute(UNumberFormatAttribute attr, UErrorCode& sta
     }
 
     switch (attr) {
-        case UNUM_LENIENT_PARSE:
-            return isLenient();
+    case UNUM_LENIENT_PARSE:
+        return isLenient();
 
-        case UNUM_PARSE_INT_ONLY:
-            return isParseIntegerOnly();
+    case UNUM_PARSE_INT_ONLY:
+        return isParseIntegerOnly();
 
-        case UNUM_GROUPING_USED:
-            return isGroupingUsed();
+    case UNUM_GROUPING_USED:
+        return isGroupingUsed();
 
-        case UNUM_DECIMAL_ALWAYS_SHOWN:
-            return isDecimalSeparatorAlwaysShown();
+    case UNUM_DECIMAL_ALWAYS_SHOWN:
+        return isDecimalSeparatorAlwaysShown();
 
-        case UNUM_MAX_INTEGER_DIGITS:
-            return getMaximumIntegerDigits();
+    case UNUM_MAX_INTEGER_DIGITS:
+        return getMaximumIntegerDigits();
 
-        case UNUM_MIN_INTEGER_DIGITS:
-            return getMinimumIntegerDigits();
+    case UNUM_MIN_INTEGER_DIGITS:
+        return getMinimumIntegerDigits();
 
-        case UNUM_INTEGER_DIGITS:
-            // TBD: what should this return?
-            return getMinimumIntegerDigits();
+    case UNUM_INTEGER_DIGITS:
+        // TBD: what should this return?
+        return getMinimumIntegerDigits();
 
-        case UNUM_MAX_FRACTION_DIGITS:
-            return getMaximumFractionDigits();
+    case UNUM_MAX_FRACTION_DIGITS:
+        return getMaximumFractionDigits();
 
-        case UNUM_MIN_FRACTION_DIGITS:
-            return getMinimumFractionDigits();
+    case UNUM_MIN_FRACTION_DIGITS:
+        return getMinimumFractionDigits();
 
-        case UNUM_FRACTION_DIGITS:
-            // TBD: what should this return?
-            return getMinimumFractionDigits();
+    case UNUM_FRACTION_DIGITS:
+        // TBD: what should this return?
+        return getMinimumFractionDigits();
 
-        case UNUM_SIGNIFICANT_DIGITS_USED:
-            return areSignificantDigitsUsed();
+    case UNUM_SIGNIFICANT_DIGITS_USED:
+        return areSignificantDigitsUsed();
 
-        case UNUM_MAX_SIGNIFICANT_DIGITS:
-            return getMaximumSignificantDigits();
+    case UNUM_MAX_SIGNIFICANT_DIGITS:
+        return getMaximumSignificantDigits();
 
-        case UNUM_MIN_SIGNIFICANT_DIGITS:
-            return getMinimumSignificantDigits();
+    case UNUM_MIN_SIGNIFICANT_DIGITS:
+        return getMinimumSignificantDigits();
 
-        case UNUM_MULTIPLIER:
-            return getMultiplier();
+    case UNUM_MULTIPLIER:
+        return getMultiplier();
 
-        case UNUM_SCALE:
-            return getMultiplierScale();
+    case UNUM_SCALE:
+        return getMultiplierScale();
 
-        case UNUM_GROUPING_SIZE:
-            return getGroupingSize();
+    case UNUM_GROUPING_SIZE:
+        return getGroupingSize();
 
-        case UNUM_ROUNDING_MODE:
-            return getRoundingMode();
+    case UNUM_ROUNDING_MODE:
+        return getRoundingMode();
 
-        case UNUM_FORMAT_WIDTH:
-            return getFormatWidth();
+    case UNUM_FORMAT_WIDTH:
+        return getFormatWidth();
 
-        case UNUM_PADDING_POSITION:
-            return getPadPosition();
+    case UNUM_PADDING_POSITION:
+        return getPadPosition();
 
-        case UNUM_SECONDARY_GROUPING_SIZE:
-            return getSecondaryGroupingSize();
+    case UNUM_SECONDARY_GROUPING_SIZE:
+        return getSecondaryGroupingSize();
 
-        case UNUM_PARSE_NO_EXPONENT:
-            return isParseNoExponent();
+    case UNUM_PARSE_NO_EXPONENT:
+        return isParseNoExponent();
 
-        case UNUM_PARSE_DECIMAL_MARK_REQUIRED:
-            return isDecimalPatternMatchRequired();
+    case UNUM_PARSE_DECIMAL_MARK_REQUIRED:
+        return isDecimalPatternMatchRequired();
 
-        case UNUM_CURRENCY_USAGE:
-            return getCurrencyUsage();
+    case UNUM_CURRENCY_USAGE:
+        return getCurrencyUsage();
 
-        case UNUM_MINIMUM_GROUPING_DIGITS:
-            return getMinimumGroupingDigits();
+    case UNUM_MINIMUM_GROUPING_DIGITS:
+        return getMinimumGroupingDigits();
 
-        case UNUM_PARSE_CASE_SENSITIVE:
-            return isParseCaseSensitive();
+    case UNUM_PARSE_CASE_SENSITIVE:
+        return isParseCaseSensitive();
 
-        case UNUM_SIGN_ALWAYS_SHOWN:
-            return isSignAlwaysShown();
+    case UNUM_SIGN_ALWAYS_SHOWN:
+        return isSignAlwaysShown();
 
-        case UNUM_FORMAT_FAIL_IF_MORE_THAN_MAX_DIGITS:
-            return isFormatFailIfMoreThanMaxDigits();
+    case UNUM_FORMAT_FAIL_IF_MORE_THAN_MAX_DIGITS:
+        return isFormatFailIfMoreThanMaxDigits();
 
-        default:
-            status = U_UNSUPPORTED_ERROR;
-            break;
+    default:
+        status = U_UNSUPPORTED_ERROR;
+        break;
     }
 
     return -1; /* undefined */
 }
 
-void DecimalFormat::setGroupingUsed(UBool enabled) {
+void DecimalFormat::setGroupingUsed(UBool enabled)
+{
     if (fields == nullptr) {
         return;
     }
-    if (UBOOL_TO_BOOL(enabled) == fields->properties.groupingUsed) { return; }
+    if (UBOOL_TO_BOOL(enabled) == fields->properties.groupingUsed) {
+        return;
+    }
     NumberFormat::setGroupingUsed(enabled); // to set field for compatibility
     fields->properties.groupingUsed = enabled;
     touchNoError();
 }
 
-void DecimalFormat::setParseIntegerOnly(UBool value) {
+void DecimalFormat::setParseIntegerOnly(UBool value)
+{
     if (fields == nullptr) {
         return;
     }
-    if (UBOOL_TO_BOOL(value) == fields->properties.parseIntegerOnly) { return; }
+    if (UBOOL_TO_BOOL(value) == fields->properties.parseIntegerOnly) {
+        return;
+    }
     NumberFormat::setParseIntegerOnly(value); // to set field for compatibility
     fields->properties.parseIntegerOnly = value;
     touchNoError();
 }
 
-void DecimalFormat::setLenient(UBool enable) {
+void DecimalFormat::setLenient(UBool enable)
+{
     if (fields == nullptr) {
         return;
     }
     ParseMode mode = enable ? PARSE_MODE_LENIENT : PARSE_MODE_STRICT;
-    if (!fields->properties.parseMode.isNull() && mode == fields->properties.parseMode.getNoError()) { return; }
+    if (!fields->properties.parseMode.isNull() && mode == fields->properties.parseMode.getNoError()) {
+        return;
+    }
     NumberFormat::setLenient(enable); // to set field for compatibility
     fields->properties.parseMode = mode;
     touchNoError();
 }
 
-DecimalFormat::DecimalFormat(const UnicodeString& pattern, DecimalFormatSymbols* symbolsToAdopt,
-                             UParseError&, UErrorCode& status)
-        : DecimalFormat(symbolsToAdopt, status) {
-    if (U_FAILURE(status)) { return; }
+DecimalFormat::DecimalFormat(const UnicodeString& pattern, DecimalFormatSymbols* symbolsToAdopt, UParseError&, UErrorCode& status)
+    : DecimalFormat(symbolsToAdopt, status)
+{
+    if (U_FAILURE(status)) {
+        return;
+    }
     // TODO: What is parseError for?
     setPropertiesFromPattern(pattern, IGNORE_ROUNDING_IF_CURRENCY, status);
     touch(status);
 }
 
-DecimalFormat::DecimalFormat(const UnicodeString& pattern, const DecimalFormatSymbols& symbols,
-                             UErrorCode& status)
-        : DecimalFormat(nullptr, status) {
-    if (U_FAILURE(status)) { return; }
+DecimalFormat::DecimalFormat(const UnicodeString& pattern, const DecimalFormatSymbols& symbols, UErrorCode& status)
+    : DecimalFormat(nullptr, status)
+{
+    if (U_FAILURE(status)) {
+        return;
+    }
     LocalPointer<DecimalFormatSymbols> dfs(new DecimalFormatSymbols(symbols), status);
     if (U_FAILURE(status)) {
         // If we failed to allocate DecimalFormatSymbols, then release fields and its members.
@@ -426,7 +451,9 @@ DecimalFormat::DecimalFormat(const UnicodeString& pattern, const DecimalFormatSy
     touch(status);
 }
 
-DecimalFormat::DecimalFormat(const DecimalFormat& source) : NumberFormat(source) {
+DecimalFormat::DecimalFormat(const DecimalFormat& source)
+    : NumberFormat(source)
+{
     // If the object that we are copying from is invalid, no point in going further.
     if (source.fields == nullptr) {
         return;
@@ -451,7 +478,8 @@ DecimalFormat::DecimalFormat(const DecimalFormat& source) : NumberFormat(source)
     touch(status);
 }
 
-DecimalFormat& DecimalFormat::operator=(const DecimalFormat& rhs) {
+DecimalFormat& DecimalFormat::operator=(const DecimalFormat& rhs)
+{
     // guard against self-assignment
     if (this == &rhs) {
         return *this;
@@ -477,15 +505,19 @@ DecimalFormat& DecimalFormat::operator=(const DecimalFormat& rhs) {
     return *this;
 }
 
-DecimalFormat::~DecimalFormat() {
-    if (fields == nullptr) { return; }
+DecimalFormat::~DecimalFormat()
+{
+    if (fields == nullptr) {
+        return;
+    }
 
     delete fields->atomicParser.exchange(nullptr);
     delete fields->atomicCurrencyParser.exchange(nullptr);
     delete fields;
 }
 
-DecimalFormat* DecimalFormat::clone() const {
+DecimalFormat* DecimalFormat::clone() const
+{
     // can only clone valid objects.
     if (fields == nullptr) {
         return nullptr;
@@ -497,7 +529,8 @@ DecimalFormat* DecimalFormat::clone() const {
     return nullptr;
 }
 
-bool DecimalFormat::operator==(const Format& other) const {
+bool DecimalFormat::operator==(const Format& other) const
+{
     auto* otherDF = dynamic_cast<const DecimalFormat*>(&other);
     if (otherDF == nullptr) {
         return false;
@@ -510,7 +543,8 @@ bool DecimalFormat::operator==(const Format& other) const {
     return fields->properties == otherDF->fields->properties && *getDecimalFormatSymbols() == *otherDF->getDecimalFormatSymbols();
 }
 
-UnicodeString& DecimalFormat::format(double number, UnicodeString& appendTo, FieldPosition& pos) const {
+UnicodeString& DecimalFormat::format(double number, UnicodeString& appendTo, FieldPosition& pos) const
+{
     if (fields == nullptr) {
         appendTo.setToBogus();
         return appendTo;
@@ -528,8 +562,8 @@ UnicodeString& DecimalFormat::format(double number, UnicodeString& appendTo, Fie
     return appendTo;
 }
 
-UnicodeString& DecimalFormat::format(double number, UnicodeString& appendTo, FieldPosition& pos,
-                                     UErrorCode& status) const {
+UnicodeString& DecimalFormat::format(double number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo; // don't overwrite status if it's already a failure.
     }
@@ -551,9 +585,8 @@ UnicodeString& DecimalFormat::format(double number, UnicodeString& appendTo, Fie
     return appendTo;
 }
 
-UnicodeString&
-DecimalFormat::format(double number, UnicodeString& appendTo, FieldPositionIterator* posIter,
-                      UErrorCode& status) const {
+UnicodeString& DecimalFormat::format(double number, UnicodeString& appendTo, FieldPositionIterator* posIter, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo; // don't overwrite status if it's already a failure.
     }
@@ -575,22 +608,23 @@ DecimalFormat::format(double number, UnicodeString& appendTo, FieldPositionItera
     return appendTo;
 }
 
-UnicodeString& DecimalFormat::format(int32_t number, UnicodeString& appendTo, FieldPosition& pos) const {
-    return format(static_cast<int64_t> (number), appendTo, pos);
+UnicodeString& DecimalFormat::format(int32_t number, UnicodeString& appendTo, FieldPosition& pos) const
+{
+    return format(static_cast<int64_t>(number), appendTo, pos);
 }
 
-UnicodeString& DecimalFormat::format(int32_t number, UnicodeString& appendTo, FieldPosition& pos,
-                                     UErrorCode& status) const {
-    return format(static_cast<int64_t> (number), appendTo, pos, status);
+UnicodeString& DecimalFormat::format(int32_t number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const
+{
+    return format(static_cast<int64_t>(number), appendTo, pos, status);
 }
 
-UnicodeString&
-DecimalFormat::format(int32_t number, UnicodeString& appendTo, FieldPositionIterator* posIter,
-                      UErrorCode& status) const {
-    return format(static_cast<int64_t> (number), appendTo, posIter, status);
+UnicodeString& DecimalFormat::format(int32_t number, UnicodeString& appendTo, FieldPositionIterator* posIter, UErrorCode& status) const
+{
+    return format(static_cast<int64_t>(number), appendTo, posIter, status);
 }
 
-UnicodeString& DecimalFormat::format(int64_t number, UnicodeString& appendTo, FieldPosition& pos) const {
+UnicodeString& DecimalFormat::format(int64_t number, UnicodeString& appendTo, FieldPosition& pos) const
+{
     if (fields == nullptr) {
         appendTo.setToBogus();
         return appendTo;
@@ -608,8 +642,8 @@ UnicodeString& DecimalFormat::format(int64_t number, UnicodeString& appendTo, Fi
     return appendTo;
 }
 
-UnicodeString& DecimalFormat::format(int64_t number, UnicodeString& appendTo, FieldPosition& pos,
-                                     UErrorCode& status) const {
+UnicodeString& DecimalFormat::format(int64_t number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo; // don't overwrite status if it's already a failure.
     }
@@ -631,9 +665,8 @@ UnicodeString& DecimalFormat::format(int64_t number, UnicodeString& appendTo, Fi
     return appendTo;
 }
 
-UnicodeString&
-DecimalFormat::format(int64_t number, UnicodeString& appendTo, FieldPositionIterator* posIter,
-                      UErrorCode& status) const {
+UnicodeString& DecimalFormat::format(int64_t number, UnicodeString& appendTo, FieldPositionIterator* posIter, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo; // don't overwrite status if it's already a failure.
     }
@@ -655,9 +688,8 @@ DecimalFormat::format(int64_t number, UnicodeString& appendTo, FieldPositionIter
     return appendTo;
 }
 
-UnicodeString&
-DecimalFormat::format(StringPiece number, UnicodeString& appendTo, FieldPositionIterator* posIter,
-                      UErrorCode& status) const {
+UnicodeString& DecimalFormat::format(StringPiece number, UnicodeString& appendTo, FieldPositionIterator* posIter, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo; // don't overwrite status if it's already a failure.
     }
@@ -676,8 +708,8 @@ DecimalFormat::format(StringPiece number, UnicodeString& appendTo, FieldPosition
     return appendTo;
 }
 
-UnicodeString& DecimalFormat::format(const DecimalQuantity& number, UnicodeString& appendTo,
-                                     FieldPositionIterator* posIter, UErrorCode& status) const {
+UnicodeString& DecimalFormat::format(const DecimalQuantity& number, UnicodeString& appendTo, FieldPositionIterator* posIter, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo; // don't overwrite status if it's already a failure.
     }
@@ -696,9 +728,8 @@ UnicodeString& DecimalFormat::format(const DecimalQuantity& number, UnicodeStrin
     return appendTo;
 }
 
-UnicodeString&
-DecimalFormat::format(const DecimalQuantity& number, UnicodeString& appendTo, FieldPosition& pos,
-                      UErrorCode& status) const {
+UnicodeString& DecimalFormat::format(const DecimalQuantity& number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const
+{
     if (U_FAILURE(status)) {
         return appendTo; // don't overwrite status if it's already a failure.
     }
@@ -717,8 +748,8 @@ DecimalFormat::format(const DecimalQuantity& number, UnicodeString& appendTo, Fi
     return appendTo;
 }
 
-void DecimalFormat::parse(const UnicodeString& text, Formattable& output,
-                          ParsePosition& parsePosition) const {
+void DecimalFormat::parse(const UnicodeString& text, Formattable& output, ParsePosition& parsePosition) const
+{
     if (fields == nullptr) {
         return;
     }
@@ -752,7 +783,8 @@ void DecimalFormat::parse(const UnicodeString& text, Formattable& output,
     }
 }
 
-CurrencyAmount* DecimalFormat::parseCurrency(const UnicodeString& text, ParsePosition& parsePosition) const {
+CurrencyAmount* DecimalFormat::parseCurrency(const UnicodeString& text, ParsePosition& parsePosition) const
+{
     if (fields == nullptr) {
         return nullptr;
     }
@@ -778,8 +810,7 @@ CurrencyAmount* DecimalFormat::parseCurrency(const UnicodeString& text, ParsePos
         parsePosition.setIndex(result.charEnd);
         Formattable formattable;
         result.populateFormattable(formattable, parser->getParseFlags());
-        LocalPointer<CurrencyAmount> currencyAmount(
-            new CurrencyAmount(formattable, result.currencyCode, status), status);
+        LocalPointer<CurrencyAmount> currencyAmount(new CurrencyAmount(formattable, result.currencyCode, status), status);
         if (U_FAILURE(status)) {
             return nullptr;
         }
@@ -790,7 +821,8 @@ CurrencyAmount* DecimalFormat::parseCurrency(const UnicodeString& text, ParsePos
     }
 }
 
-const DecimalFormatSymbols* DecimalFormat::getDecimalFormatSymbols() const {
+const DecimalFormatSymbols* DecimalFormat::getDecimalFormatSymbols(void) const
+{
     if (fields == nullptr) {
         return nullptr;
     }
@@ -801,9 +833,10 @@ const DecimalFormatSymbols* DecimalFormat::getDecimalFormatSymbols() const {
     }
 }
 
-void DecimalFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsToAdopt) {
+void DecimalFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsToAdopt)
+{
     if (symbolsToAdopt == nullptr) {
-        return; // do not allow caller to set fields->symbols to nullptr
+        return; // do not allow caller to set fields->symbols to NULL
     }
     // we must take ownership of symbolsToAdopt, even in a failure case.
     LocalPointer<DecimalFormatSymbols> dfs(symbolsToAdopt);
@@ -814,7 +847,8 @@ void DecimalFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsToAdo
     touchNoError();
 }
 
-void DecimalFormat::setDecimalFormatSymbols(const DecimalFormatSymbols& symbols) {
+void DecimalFormat::setDecimalFormatSymbols(const DecimalFormatSymbols& symbols)
+{
     if (fields == nullptr) {
         return;
     }
@@ -831,14 +865,16 @@ void DecimalFormat::setDecimalFormatSymbols(const DecimalFormatSymbols& symbols)
     touchNoError();
 }
 
-const CurrencyPluralInfo* DecimalFormat::getCurrencyPluralInfo() const {
+const CurrencyPluralInfo* DecimalFormat::getCurrencyPluralInfo(void) const
+{
     if (fields == nullptr) {
         return nullptr;
     }
     return fields->properties.currencyPluralInfo.fPtr.getAlias();
 }
 
-void DecimalFormat::adoptCurrencyPluralInfo(CurrencyPluralInfo* toAdopt) {
+void DecimalFormat::adoptCurrencyPluralInfo(CurrencyPluralInfo* toAdopt)
+{
     // TODO: should we guard against nullptr input, like in adoptDecimalFormatSymbols?
     // we must take ownership of toAdopt, even in a failure case.
     LocalPointer<CurrencyPluralInfo> cpi(toAdopt);
@@ -849,7 +885,8 @@ void DecimalFormat::adoptCurrencyPluralInfo(CurrencyPluralInfo* toAdopt) {
     touchNoError();
 }
 
-void DecimalFormat::setCurrencyPluralInfo(const CurrencyPluralInfo& info) {
+void DecimalFormat::setCurrencyPluralInfo(const CurrencyPluralInfo& info)
+{
     if (fields == nullptr) {
         return;
     }
@@ -862,87 +899,112 @@ void DecimalFormat::setCurrencyPluralInfo(const CurrencyPluralInfo& info) {
     touchNoError();
 }
 
-UnicodeString& DecimalFormat::getPositivePrefix(UnicodeString& result) const {
+UnicodeString& DecimalFormat::getPositivePrefix(UnicodeString& result) const
+{
     if (fields == nullptr) {
         result.setToBogus();
         return result;
     }
     UErrorCode status = U_ZERO_ERROR;
     fields->formatter.getAffixImpl(true, false, result, status);
-    if (U_FAILURE(status)) { result.setToBogus(); }
+    if (U_FAILURE(status)) {
+        result.setToBogus();
+    }
     return result;
 }
 
-void DecimalFormat::setPositivePrefix(const UnicodeString& newValue) {
+void DecimalFormat::setPositivePrefix(const UnicodeString& newValue)
+{
     if (fields == nullptr) {
         return;
     }
-    if (newValue == fields->properties.positivePrefix) { return; }
+    if (newValue == fields->properties.positivePrefix) {
+        return;
+    }
     fields->properties.positivePrefix = newValue;
     touchNoError();
 }
 
-UnicodeString& DecimalFormat::getNegativePrefix(UnicodeString& result) const {
+UnicodeString& DecimalFormat::getNegativePrefix(UnicodeString& result) const
+{
     if (fields == nullptr) {
         result.setToBogus();
         return result;
     }
     UErrorCode status = U_ZERO_ERROR;
     fields->formatter.getAffixImpl(true, true, result, status);
-    if (U_FAILURE(status)) { result.setToBogus(); }
+    if (U_FAILURE(status)) {
+        result.setToBogus();
+    }
     return result;
 }
 
-void DecimalFormat::setNegativePrefix(const UnicodeString& newValue) {
+void DecimalFormat::setNegativePrefix(const UnicodeString& newValue)
+{
     if (fields == nullptr) {
         return;
     }
-    if (newValue == fields->properties.negativePrefix) { return; }
+    if (newValue == fields->properties.negativePrefix) {
+        return;
+    }
     fields->properties.negativePrefix = newValue;
     touchNoError();
 }
 
-UnicodeString& DecimalFormat::getPositiveSuffix(UnicodeString& result) const {
+UnicodeString& DecimalFormat::getPositiveSuffix(UnicodeString& result) const
+{
     if (fields == nullptr) {
         result.setToBogus();
         return result;
     }
     UErrorCode status = U_ZERO_ERROR;
     fields->formatter.getAffixImpl(false, false, result, status);
-    if (U_FAILURE(status)) { result.setToBogus(); }
+    if (U_FAILURE(status)) {
+        result.setToBogus();
+    }
     return result;
 }
 
-void DecimalFormat::setPositiveSuffix(const UnicodeString& newValue) {
+void DecimalFormat::setPositiveSuffix(const UnicodeString& newValue)
+{
     if (fields == nullptr) {
         return;
     }
-    if (newValue == fields->properties.positiveSuffix) { return; }
+    if (newValue == fields->properties.positiveSuffix) {
+        return;
+    }
     fields->properties.positiveSuffix = newValue;
     touchNoError();
 }
 
-UnicodeString& DecimalFormat::getNegativeSuffix(UnicodeString& result) const {
+UnicodeString& DecimalFormat::getNegativeSuffix(UnicodeString& result) const
+{
     if (fields == nullptr) {
         result.setToBogus();
         return result;
     }
     UErrorCode status = U_ZERO_ERROR;
     fields->formatter.getAffixImpl(false, true, result, status);
-    if (U_FAILURE(status)) { result.setToBogus(); }
+    if (U_FAILURE(status)) {
+        result.setToBogus();
+    }
     return result;
 }
 
-void DecimalFormat::setNegativeSuffix(const UnicodeString& newValue) {
+void DecimalFormat::setNegativeSuffix(const UnicodeString& newValue)
+{
     if (fields == nullptr) {
         return;
     }
-    if (newValue == fields->properties.negativeSuffix) { return; }
+    if (newValue == fields->properties.negativeSuffix) {
+        return;
+    }
     fields->properties.negativeSuffix = newValue;
     touchNoError();
 }
 
-UBool DecimalFormat::isSignAlwaysShown() const {
+UBool DecimalFormat::isSignAlwaysShown() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         return DecimalFormatProperties::getDefault().signAlwaysShown;
@@ -950,15 +1012,21 @@ UBool DecimalFormat::isSignAlwaysShown() const {
     return fields->properties.signAlwaysShown;
 }
 
-void DecimalFormat::setSignAlwaysShown(UBool value) {
-    if (fields == nullptr) { return; }
-    if (UBOOL_TO_BOOL(value) == fields->properties.signAlwaysShown) { return; }
+void DecimalFormat::setSignAlwaysShown(UBool value)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (UBOOL_TO_BOOL(value) == fields->properties.signAlwaysShown) {
+        return;
+    }
     fields->properties.signAlwaysShown = value;
     touchNoError();
 }
 
-int32_t DecimalFormat::getMultiplier() const {
-    const DecimalFormatProperties *dfp;
+int32_t DecimalFormat::getMultiplier(void) const
+{
+    const DecimalFormatProperties* dfp;
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -975,12 +1043,13 @@ int32_t DecimalFormat::getMultiplier() const {
     }
 }
 
-void DecimalFormat::setMultiplier(int32_t multiplier) {
+void DecimalFormat::setMultiplier(int32_t multiplier)
+{
     if (fields == nullptr) {
-         return;
+        return;
     }
     if (multiplier == 0) {
-        multiplier = 1;     // one being the benign default value for a multiplier.
+        multiplier = 1; // one being the benign default value for a multiplier.
     }
 
     // Try to convert to a magnitude multiplier first
@@ -1005,7 +1074,8 @@ void DecimalFormat::setMultiplier(int32_t multiplier) {
     touchNoError();
 }
 
-int32_t DecimalFormat::getMultiplierScale() const {
+int32_t DecimalFormat::getMultiplierScale() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1014,14 +1084,20 @@ int32_t DecimalFormat::getMultiplierScale() const {
     return fields->properties.multiplierScale;
 }
 
-void DecimalFormat::setMultiplierScale(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.multiplierScale) { return; }
+void DecimalFormat::setMultiplierScale(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.multiplierScale) {
+        return;
+    }
     fields->properties.multiplierScale = newValue;
     touchNoError();
 }
 
-double DecimalFormat::getRoundingIncrement() const {
+double DecimalFormat::getRoundingIncrement(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1030,14 +1106,20 @@ double DecimalFormat::getRoundingIncrement() const {
     return fields->exportedProperties.roundingIncrement;
 }
 
-void DecimalFormat::setRoundingIncrement(double newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.roundingIncrement) { return; }
+void DecimalFormat::setRoundingIncrement(double newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.roundingIncrement) {
+        return;
+    }
     fields->properties.roundingIncrement = newValue;
     touchNoError();
 }
 
-ERoundingMode DecimalFormat::getRoundingMode() const {
+ERoundingMode DecimalFormat::getRoundingMode(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1047,8 +1129,11 @@ ERoundingMode DecimalFormat::getRoundingMode() const {
     return static_cast<ERoundingMode>(fields->exportedProperties.roundingMode.getNoError());
 }
 
-void DecimalFormat::setRoundingMode(ERoundingMode roundingMode) UPRV_NO_SANITIZE_UNDEFINED {
-    if (fields == nullptr) { return; }
+void DecimalFormat::setRoundingMode(ERoundingMode roundingMode)
+{
+    if (fields == nullptr) {
+        return;
+    }
     auto uRoundingMode = static_cast<UNumberFormatRoundingMode>(roundingMode);
     if (!fields->properties.roundingMode.isNull() && uRoundingMode == fields->properties.roundingMode.getNoError()) {
         return;
@@ -1058,7 +1143,8 @@ void DecimalFormat::setRoundingMode(ERoundingMode roundingMode) UPRV_NO_SANITIZE
     touchNoError();
 }
 
-int32_t DecimalFormat::getFormatWidth() const {
+int32_t DecimalFormat::getFormatWidth(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1067,25 +1153,36 @@ int32_t DecimalFormat::getFormatWidth() const {
     return fields->properties.formatWidth;
 }
 
-void DecimalFormat::setFormatWidth(int32_t width) {
-    if (fields == nullptr) { return; }
-    if (width == fields->properties.formatWidth) { return; }
+void DecimalFormat::setFormatWidth(int32_t width)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (width == fields->properties.formatWidth) {
+        return;
+    }
     fields->properties.formatWidth = width;
     touchNoError();
 }
 
-UnicodeString DecimalFormat::getPadCharacterString() const {
+UnicodeString DecimalFormat::getPadCharacterString() const
+{
     if (fields == nullptr || fields->properties.padString.isBogus()) {
         // Readonly-alias the static string kFallbackPaddingString
-        return {true, kFallbackPaddingString, -1};
+        return { true, kFallbackPaddingString, -1 };
     } else {
         return fields->properties.padString;
     }
 }
 
-void DecimalFormat::setPadCharacter(const UnicodeString& padChar) {
-    if (fields == nullptr) { return; }
-    if (padChar == fields->properties.padString) { return; }
+void DecimalFormat::setPadCharacter(const UnicodeString& padChar)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (padChar == fields->properties.padString) {
+        return;
+    }
     if (padChar.length() > 0) {
         fields->properties.padString = UnicodeString(padChar.char32At(0));
     } else {
@@ -1094,7 +1191,8 @@ void DecimalFormat::setPadCharacter(const UnicodeString& padChar) {
     touchNoError();
 }
 
-EPadPosition DecimalFormat::getPadPosition() const {
+EPadPosition DecimalFormat::getPadPosition(void) const
+{
     if (fields == nullptr || fields->properties.padPosition.isNull()) {
         return EPadPosition::kPadBeforePrefix;
     } else {
@@ -1103,8 +1201,11 @@ EPadPosition DecimalFormat::getPadPosition() const {
     }
 }
 
-void DecimalFormat::setPadPosition(EPadPosition padPos) {
-    if (fields == nullptr) { return; }
+void DecimalFormat::setPadPosition(EPadPosition padPos)
+{
+    if (fields == nullptr) {
+        return;
+    }
     auto uPadPos = static_cast<UNumberFormatPadPosition>(padPos);
     if (!fields->properties.padPosition.isNull() && uPadPos == fields->properties.padPosition.getNoError()) {
         return;
@@ -1113,7 +1214,8 @@ void DecimalFormat::setPadPosition(EPadPosition padPos) {
     touchNoError();
 }
 
-UBool DecimalFormat::isScientificNotation() const {
+UBool DecimalFormat::isScientificNotation(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1122,10 +1224,15 @@ UBool DecimalFormat::isScientificNotation() const {
     return (fields->properties.minimumExponentDigits != -1);
 }
 
-void DecimalFormat::setScientificNotation(UBool useScientific) {
-    if (fields == nullptr) { return; }
+void DecimalFormat::setScientificNotation(UBool useScientific)
+{
+    if (fields == nullptr) {
+        return;
+    }
     int32_t minExp = useScientific ? 1 : -1;
-    if (fields->properties.minimumExponentDigits == minExp) { return; }
+    if (fields->properties.minimumExponentDigits == minExp) {
+        return;
+    }
     if (useScientific) {
         fields->properties.minimumExponentDigits = 1;
     } else {
@@ -1134,7 +1241,8 @@ void DecimalFormat::setScientificNotation(UBool useScientific) {
     touchNoError();
 }
 
-int8_t DecimalFormat::getMinimumExponentDigits() const {
+int8_t DecimalFormat::getMinimumExponentDigits(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1143,14 +1251,20 @@ int8_t DecimalFormat::getMinimumExponentDigits() const {
     return static_cast<int8_t>(fields->properties.minimumExponentDigits);
 }
 
-void DecimalFormat::setMinimumExponentDigits(int8_t minExpDig) {
-    if (fields == nullptr) { return; }
-    if (minExpDig == fields->properties.minimumExponentDigits) { return; }
+void DecimalFormat::setMinimumExponentDigits(int8_t minExpDig)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (minExpDig == fields->properties.minimumExponentDigits) {
+        return;
+    }
     fields->properties.minimumExponentDigits = minExpDig;
     touchNoError();
 }
 
-UBool DecimalFormat::isExponentSignAlwaysShown() const {
+UBool DecimalFormat::isExponentSignAlwaysShown(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1159,14 +1273,20 @@ UBool DecimalFormat::isExponentSignAlwaysShown() const {
     return fields->properties.exponentSignAlwaysShown;
 }
 
-void DecimalFormat::setExponentSignAlwaysShown(UBool expSignAlways) {
-    if (fields == nullptr) { return; }
-    if (UBOOL_TO_BOOL(expSignAlways) == fields->properties.exponentSignAlwaysShown) { return; }
+void DecimalFormat::setExponentSignAlwaysShown(UBool expSignAlways)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (UBOOL_TO_BOOL(expSignAlways) == fields->properties.exponentSignAlwaysShown) {
+        return;
+    }
     fields->properties.exponentSignAlwaysShown = expSignAlways;
     touchNoError();
 }
 
-int32_t DecimalFormat::getGroupingSize() const {
+int32_t DecimalFormat::getGroupingSize(void) const
+{
     int32_t groupingSize;
     // Not much we can do to report an error.
     if (fields == nullptr) {
@@ -1181,14 +1301,20 @@ int32_t DecimalFormat::getGroupingSize() const {
     return groupingSize;
 }
 
-void DecimalFormat::setGroupingSize(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.groupingSize) { return; }
+void DecimalFormat::setGroupingSize(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.groupingSize) {
+        return;
+    }
     fields->properties.groupingSize = newValue;
     touchNoError();
 }
 
-int32_t DecimalFormat::getSecondaryGroupingSize() const {
+int32_t DecimalFormat::getSecondaryGroupingSize(void) const
+{
     int32_t grouping2;
     // Not much we can do to report an error.
     if (fields == nullptr) {
@@ -1203,14 +1329,20 @@ int32_t DecimalFormat::getSecondaryGroupingSize() const {
     return grouping2;
 }
 
-void DecimalFormat::setSecondaryGroupingSize(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.secondaryGroupingSize) { return; }
+void DecimalFormat::setSecondaryGroupingSize(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.secondaryGroupingSize) {
+        return;
+    }
     fields->properties.secondaryGroupingSize = newValue;
     touchNoError();
 }
 
-int32_t DecimalFormat::getMinimumGroupingDigits() const {
+int32_t DecimalFormat::getMinimumGroupingDigits() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1219,14 +1351,20 @@ int32_t DecimalFormat::getMinimumGroupingDigits() const {
     return fields->properties.minimumGroupingDigits;
 }
 
-void DecimalFormat::setMinimumGroupingDigits(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.minimumGroupingDigits) { return; }
+void DecimalFormat::setMinimumGroupingDigits(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.minimumGroupingDigits) {
+        return;
+    }
     fields->properties.minimumGroupingDigits = newValue;
     touchNoError();
 }
 
-UBool DecimalFormat::isDecimalSeparatorAlwaysShown() const {
+UBool DecimalFormat::isDecimalSeparatorAlwaysShown(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1235,14 +1373,20 @@ UBool DecimalFormat::isDecimalSeparatorAlwaysShown() const {
     return fields->properties.decimalSeparatorAlwaysShown;
 }
 
-void DecimalFormat::setDecimalSeparatorAlwaysShown(UBool newValue) {
-    if (fields == nullptr) { return; }
-    if (UBOOL_TO_BOOL(newValue) == fields->properties.decimalSeparatorAlwaysShown) { return; }
+void DecimalFormat::setDecimalSeparatorAlwaysShown(UBool newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (UBOOL_TO_BOOL(newValue) == fields->properties.decimalSeparatorAlwaysShown) {
+        return;
+    }
     fields->properties.decimalSeparatorAlwaysShown = newValue;
     touchNoError();
 }
 
-UBool DecimalFormat::isDecimalPatternMatchRequired() const {
+UBool DecimalFormat::isDecimalPatternMatchRequired(void) const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1251,14 +1395,20 @@ UBool DecimalFormat::isDecimalPatternMatchRequired() const {
     return fields->properties.decimalPatternMatchRequired;
 }
 
-void DecimalFormat::setDecimalPatternMatchRequired(UBool newValue) {
-    if (fields == nullptr) { return; }
-    if (UBOOL_TO_BOOL(newValue) == fields->properties.decimalPatternMatchRequired) { return; }
+void DecimalFormat::setDecimalPatternMatchRequired(UBool newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (UBOOL_TO_BOOL(newValue) == fields->properties.decimalPatternMatchRequired) {
+        return;
+    }
     fields->properties.decimalPatternMatchRequired = newValue;
     touchNoError();
 }
 
-UBool DecimalFormat::isParseNoExponent() const {
+UBool DecimalFormat::isParseNoExponent() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1267,14 +1417,20 @@ UBool DecimalFormat::isParseNoExponent() const {
     return fields->properties.parseNoExponent;
 }
 
-void DecimalFormat::setParseNoExponent(UBool value) {
-    if (fields == nullptr) { return; }
-    if (UBOOL_TO_BOOL(value) == fields->properties.parseNoExponent) { return; }
+void DecimalFormat::setParseNoExponent(UBool value)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (UBOOL_TO_BOOL(value) == fields->properties.parseNoExponent) {
+        return;
+    }
     fields->properties.parseNoExponent = value;
     touchNoError();
 }
 
-UBool DecimalFormat::isParseCaseSensitive() const {
+UBool DecimalFormat::isParseCaseSensitive() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1283,14 +1439,20 @@ UBool DecimalFormat::isParseCaseSensitive() const {
     return fields->properties.parseCaseSensitive;
 }
 
-void DecimalFormat::setParseCaseSensitive(UBool value) {
-    if (fields == nullptr) { return; }
-    if (UBOOL_TO_BOOL(value) == fields->properties.parseCaseSensitive) { return; }
+void DecimalFormat::setParseCaseSensitive(UBool value)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (UBOOL_TO_BOOL(value) == fields->properties.parseCaseSensitive) {
+        return;
+    }
     fields->properties.parseCaseSensitive = value;
     touchNoError();
 }
 
-UBool DecimalFormat::isFormatFailIfMoreThanMaxDigits() const {
+UBool DecimalFormat::isFormatFailIfMoreThanMaxDigits() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1299,14 +1461,20 @@ UBool DecimalFormat::isFormatFailIfMoreThanMaxDigits() const {
     return fields->properties.formatFailIfMoreThanMaxDigits;
 }
 
-void DecimalFormat::setFormatFailIfMoreThanMaxDigits(UBool value) {
-    if (fields == nullptr) { return; }
-    if (UBOOL_TO_BOOL(value) == fields->properties.formatFailIfMoreThanMaxDigits) { return; }
+void DecimalFormat::setFormatFailIfMoreThanMaxDigits(UBool value)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (UBOOL_TO_BOOL(value) == fields->properties.formatFailIfMoreThanMaxDigits) {
+        return;
+    }
     fields->properties.formatFailIfMoreThanMaxDigits = value;
     touchNoError();
 }
 
-UnicodeString& DecimalFormat::toPattern(UnicodeString& result) const {
+UnicodeString& DecimalFormat::toPattern(UnicodeString& result) const
+{
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         result.setToBogus();
@@ -1318,15 +1486,11 @@ UnicodeString& DecimalFormat::toPattern(UnicodeString& result) const {
     // TODO: Consider putting this logic in number_patternstring.cpp instead.
     ErrorCode localStatus;
     DecimalFormatProperties tprops(fields->properties);
-    bool useCurrency = (
-        !tprops.currency.isNull() ||
-        !tprops.currencyPluralInfo.fPtr.isNull() ||
-        !tprops.currencyUsage.isNull() ||
-        tprops.currencyAsDecimal ||
-        AffixUtils::hasCurrencySymbols(tprops.positivePrefixPattern, localStatus) ||
-        AffixUtils::hasCurrencySymbols(tprops.positiveSuffixPattern, localStatus) ||
-        AffixUtils::hasCurrencySymbols(tprops.negativePrefixPattern, localStatus) ||
-        AffixUtils::hasCurrencySymbols(tprops.negativeSuffixPattern, localStatus));
+    bool useCurrency = (!tprops.currency.isNull() || !tprops.currencyPluralInfo.fPtr.isNull() || !tprops.currencyUsage.isNull() || tprops.currencyAsDecimal
+        || AffixUtils::hasCurrencySymbols(tprops.positivePrefixPattern, localStatus)
+        || AffixUtils::hasCurrencySymbols(tprops.positiveSuffixPattern, localStatus)
+        || AffixUtils::hasCurrencySymbols(tprops.negativePrefixPattern, localStatus)
+        || AffixUtils::hasCurrencySymbols(tprops.negativeSuffixPattern, localStatus));
     if (useCurrency) {
         tprops.minimumFractionDigits = fields->exportedProperties.minimumFractionDigits;
         tprops.maximumFractionDigits = fields->exportedProperties.maximumFractionDigits;
@@ -1336,7 +1500,8 @@ UnicodeString& DecimalFormat::toPattern(UnicodeString& result) const {
     return result;
 }
 
-UnicodeString& DecimalFormat::toLocalizedPattern(UnicodeString& result) const {
+UnicodeString& DecimalFormat::toLocalizedPattern(UnicodeString& result) const
+{
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         result.setToBogus();
@@ -1348,14 +1513,18 @@ UnicodeString& DecimalFormat::toLocalizedPattern(UnicodeString& result) const {
     return result;
 }
 
-void DecimalFormat::applyPattern(const UnicodeString& pattern, UParseError&, UErrorCode& status) {
+void DecimalFormat::applyPattern(const UnicodeString& pattern, UParseError&, UErrorCode& status)
+{
     // TODO: What is parseError for?
     applyPattern(pattern, status);
 }
 
-void DecimalFormat::applyPattern(const UnicodeString& pattern, UErrorCode& status) {
+void DecimalFormat::applyPattern(const UnicodeString& pattern, UErrorCode& status)
+{
     // don't overwrite status if it's already a failure.
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -1365,28 +1534,35 @@ void DecimalFormat::applyPattern(const UnicodeString& pattern, UErrorCode& statu
     touch(status);
 }
 
-void DecimalFormat::applyLocalizedPattern(const UnicodeString& localizedPattern, UParseError&,
-                                          UErrorCode& status) {
+void DecimalFormat::applyLocalizedPattern(const UnicodeString& localizedPattern, UParseError&, UErrorCode& status)
+{
     // TODO: What is parseError for?
     applyLocalizedPattern(localizedPattern, status);
 }
 
-void DecimalFormat::applyLocalizedPattern(const UnicodeString& localizedPattern, UErrorCode& status) {
+void DecimalFormat::applyLocalizedPattern(const UnicodeString& localizedPattern, UErrorCode& status)
+{
     // don't overwrite status if it's already a failure.
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
-    UnicodeString pattern = PatternStringUtils::convertLocalized(
-            localizedPattern, *getDecimalFormatSymbols(), false, status);
+    UnicodeString pattern = PatternStringUtils::convertLocalized(localizedPattern, *getDecimalFormatSymbols(), false, status);
     applyPattern(pattern, status);
 }
 
-void DecimalFormat::setMaximumIntegerDigits(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.maximumIntegerDigits) { return; }
+void DecimalFormat::setMaximumIntegerDigits(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.maximumIntegerDigits) {
+        return;
+    }
     // For backwards compatibility, conflicting min/max need to keep the most recent setting.
     int32_t min = fields->properties.minimumIntegerDigits;
     if (min >= 0 && min > newValue) {
@@ -1396,9 +1572,14 @@ void DecimalFormat::setMaximumIntegerDigits(int32_t newValue) {
     touchNoError();
 }
 
-void DecimalFormat::setMinimumIntegerDigits(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.minimumIntegerDigits) { return; }
+void DecimalFormat::setMinimumIntegerDigits(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.minimumIntegerDigits) {
+        return;
+    }
     // For backwards compatibility, conflicting min/max need to keep the most recent setting.
     int32_t max = fields->properties.maximumIntegerDigits;
     if (max >= 0 && max < newValue) {
@@ -1408,9 +1589,14 @@ void DecimalFormat::setMinimumIntegerDigits(int32_t newValue) {
     touchNoError();
 }
 
-void DecimalFormat::setMaximumFractionDigits(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.maximumFractionDigits) { return; }
+void DecimalFormat::setMaximumFractionDigits(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.maximumFractionDigits) {
+        return;
+    }
     // cap for backward compatibility, formerly 340, now 999
     if (newValue > kMaxIntFracSig) {
         newValue = kMaxIntFracSig;
@@ -1424,9 +1610,14 @@ void DecimalFormat::setMaximumFractionDigits(int32_t newValue) {
     touchNoError();
 }
 
-void DecimalFormat::setMinimumFractionDigits(int32_t newValue) {
-    if (fields == nullptr) { return; }
-    if (newValue == fields->properties.minimumFractionDigits) { return; }
+void DecimalFormat::setMinimumFractionDigits(int32_t newValue)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (newValue == fields->properties.minimumFractionDigits) {
+        return;
+    }
     // For backwards compatibility, conflicting min/max need to keep the most recent setting.
     int32_t max = fields->properties.maximumFractionDigits;
     if (max >= 0 && max < newValue) {
@@ -1436,7 +1627,8 @@ void DecimalFormat::setMinimumFractionDigits(int32_t newValue) {
     touchNoError();
 }
 
-int32_t DecimalFormat::getMinimumSignificantDigits() const {
+int32_t DecimalFormat::getMinimumSignificantDigits() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1445,7 +1637,8 @@ int32_t DecimalFormat::getMinimumSignificantDigits() const {
     return fields->exportedProperties.minimumSignificantDigits;
 }
 
-int32_t DecimalFormat::getMaximumSignificantDigits() const {
+int32_t DecimalFormat::getMaximumSignificantDigits() const
+{
     // Not much we can do to report an error.
     if (fields == nullptr) {
         // Fallback to using the default instance of DecimalFormatProperties.
@@ -1454,9 +1647,14 @@ int32_t DecimalFormat::getMaximumSignificantDigits() const {
     return fields->exportedProperties.maximumSignificantDigits;
 }
 
-void DecimalFormat::setMinimumSignificantDigits(int32_t value) {
-    if (fields == nullptr) { return; }
-    if (value == fields->properties.minimumSignificantDigits) { return; }
+void DecimalFormat::setMinimumSignificantDigits(int32_t value)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (value == fields->properties.minimumSignificantDigits) {
+        return;
+    }
     int32_t max = fields->properties.maximumSignificantDigits;
     if (max >= 0 && max < value) {
         fields->properties.maximumSignificantDigits = value;
@@ -1465,9 +1663,14 @@ void DecimalFormat::setMinimumSignificantDigits(int32_t value) {
     touchNoError();
 }
 
-void DecimalFormat::setMaximumSignificantDigits(int32_t value) {
-    if (fields == nullptr) { return; }
-    if (value == fields->properties.maximumSignificantDigits) { return; }
+void DecimalFormat::setMaximumSignificantDigits(int32_t value)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (value == fields->properties.maximumSignificantDigits) {
+        return;
+    }
     int32_t min = fields->properties.minimumSignificantDigits;
     if (min >= 0 && min > value) {
         fields->properties.minimumSignificantDigits = value;
@@ -1476,7 +1679,8 @@ void DecimalFormat::setMaximumSignificantDigits(int32_t value) {
     touchNoError();
 }
 
-UBool DecimalFormat::areSignificantDigitsUsed() const {
+UBool DecimalFormat::areSignificantDigitsUsed() const
+{
     const DecimalFormatProperties* dfp;
     // Not much we can do to report an error.
     if (fields == nullptr) {
@@ -1485,21 +1689,22 @@ UBool DecimalFormat::areSignificantDigitsUsed() const {
     } else {
         dfp = &fields->properties;
     }
-    return dfp->minimumSignificantDigits != -1 || dfp->maximumSignificantDigits != -1;    
+    return dfp->minimumSignificantDigits != -1 || dfp->maximumSignificantDigits != -1;
 }
 
-void DecimalFormat::setSignificantDigitsUsed(UBool useSignificantDigits) {
-    if (fields == nullptr) { return; }
-    
+void DecimalFormat::setSignificantDigitsUsed(UBool useSignificantDigits)
+{
+    if (fields == nullptr) {
+        return;
+    }
+
     // These are the default values from the old implementation.
     if (useSignificantDigits) {
-        if (fields->properties.minimumSignificantDigits != -1 ||
-            fields->properties.maximumSignificantDigits != -1) {
+        if (fields->properties.minimumSignificantDigits != -1 || fields->properties.maximumSignificantDigits != -1) {
             return;
         }
     } else {
-        if (fields->properties.minimumSignificantDigits == -1 &&
-            fields->properties.maximumSignificantDigits == -1) {
+        if (fields->properties.minimumSignificantDigits == -1 && fields->properties.maximumSignificantDigits == -1) {
             return;
         }
     }
@@ -1510,16 +1715,21 @@ void DecimalFormat::setSignificantDigitsUsed(UBool useSignificantDigits) {
     touchNoError();
 }
 
-void DecimalFormat::setCurrency(const char16_t* theCurrency, UErrorCode& ec) {
+void DecimalFormat::setCurrency(const char16_t* theCurrency, UErrorCode& ec)
+{
     // don't overwrite ec if it's already a failure.
-    if (U_FAILURE(ec)) { return; }
+    if (U_FAILURE(ec)) {
+        return;
+    }
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         ec = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
     CurrencyUnit currencyUnit(theCurrency, ec);
-    if (U_FAILURE(ec)) { return; }
+    if (U_FAILURE(ec)) {
+        return;
+    }
     if (!fields->properties.currency.isNull() && fields->properties.currency.getNoError() == currencyUnit) {
         return;
     }
@@ -1532,14 +1742,18 @@ void DecimalFormat::setCurrency(const char16_t* theCurrency, UErrorCode& ec) {
     touch(ec);
 }
 
-void DecimalFormat::setCurrency(const char16_t* theCurrency) {
+void DecimalFormat::setCurrency(const char16_t* theCurrency)
+{
     ErrorCode localStatus;
     setCurrency(theCurrency, localStatus);
 }
 
-void DecimalFormat::setCurrencyUsage(UCurrencyUsage newUsage, UErrorCode* ec) {
+void DecimalFormat::setCurrencyUsage(UCurrencyUsage newUsage, UErrorCode* ec)
+{
     // don't overwrite ec if it's already a failure.
-    if (U_FAILURE(*ec)) { return; }
+    if (U_FAILURE(*ec)) {
+        return;
+    }
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         *ec = U_MEMORY_ALLOCATION_ERROR;
@@ -1552,7 +1766,8 @@ void DecimalFormat::setCurrencyUsage(UCurrencyUsage newUsage, UErrorCode* ec) {
     touch(*ec);
 }
 
-UCurrencyUsage DecimalFormat::getCurrencyUsage() const {
+UCurrencyUsage DecimalFormat::getCurrencyUsage() const
+{
     // CurrencyUsage is not exported, so we have to get it from the input property bag.
     // TODO: Should we export CurrencyUsage instead?
     if (fields == nullptr || fields->properties.currencyUsage.isNull()) {
@@ -1561,10 +1776,12 @@ UCurrencyUsage DecimalFormat::getCurrencyUsage() const {
     return fields->properties.currencyUsage.getNoError();
 }
 
-void
-DecimalFormat::formatToDecimalQuantity(double number, DecimalQuantity& output, UErrorCode& status) const {
+void DecimalFormat::formatToDecimalQuantity(double number, DecimalQuantity& output, UErrorCode& status) const
+{
     // don't overwrite status if it's already a failure.
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -1573,10 +1790,12 @@ DecimalFormat::formatToDecimalQuantity(double number, DecimalQuantity& output, U
     fields->formatter.formatDouble(number, status).getDecimalQuantity(output, status);
 }
 
-void DecimalFormat::formatToDecimalQuantity(const Formattable& number, DecimalQuantity& output,
-                                            UErrorCode& status) const {
+void DecimalFormat::formatToDecimalQuantity(const Formattable& number, DecimalQuantity& output, UErrorCode& status) const
+{
     // don't overwrite status if it's already a failure.
-    if (U_FAILURE(status)) { return; }
+    if (U_FAILURE(status)) {
+        return;
+    }
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -1588,9 +1807,12 @@ void DecimalFormat::formatToDecimalQuantity(const Formattable& number, DecimalQu
     output = std::move(obj.quantity);
 }
 
-const number::LocalizedNumberFormatter* DecimalFormat::toNumberFormatter(UErrorCode& status) const {
+const number::LocalizedNumberFormatter* DecimalFormat::toNumberFormatter(UErrorCode& status) const
+{
     // We sometimes need to return nullptr here (see ICU-20380)
-    if (U_FAILURE(status)) { return nullptr; }
+    if (U_FAILURE(status)) {
+        return nullptr;
+    }
     if (fields == nullptr) {
         // We only get here if an OOM error happened during construction, copy construction, assignment, or modification.
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -1600,7 +1822,8 @@ const number::LocalizedNumberFormatter* DecimalFormat::toNumberFormatter(UErrorC
 }
 
 /** Rebuilds the formatter object from the property bag. */
-void DecimalFormat::touch(UErrorCode& status) {
+void DecimalFormat::touch(UErrorCode& status)
+{
     if (U_FAILURE(status)) {
         return;
     }
@@ -1617,22 +1840,20 @@ void DecimalFormat::touch(UErrorCode& status) {
     // is the source of truth for the locale.
     const DecimalFormatSymbols* symbols = getDecimalFormatSymbols();
     Locale locale = symbols->getLocale();
-    
+
     // Note: The formatter is relatively cheap to create, and we need it to populate fields->exportedProperties,
     // so automatically recompute it here. The parser is a bit more expensive and is not needed until the
     // parse method is called, so defer that until needed.
     // TODO: Only update the pieces that changed instead of re-computing the whole formatter?
- 
+
     // Since memory has already been allocated for the formatter, we can move assign a stack-allocated object
     // and don't need to call new. (Which is slower and could possibly fail).
     // [Note that "symbols" above might point to the DecimalFormatSymbols object owned by fields->formatter.
     // That's okay, because NumberPropertyMapper::create() will clone it before fields->formatter's assignment
     // operator deletes it.  But it does mean that "symbols" can't be counted on to be good after this line.]
-    fields->formatter = NumberPropertyMapper::create(
-        fields->properties, *symbols, fields->warehouse, fields->exportedProperties, status
-    ).locale(locale);
+    fields->formatter = NumberPropertyMapper::create(fields->properties, *symbols, fields->warehouse, fields->exportedProperties, status).locale(locale);
     fields->symbols.adoptInstead(nullptr); // the fields->symbols property is only temporary, until we can copy it into a new LocalizedNumberFormatter
-    
+
     // Do this after fields->exportedProperties are set up
     setupFastFormat();
 
@@ -1650,21 +1871,23 @@ void DecimalFormat::touch(UErrorCode& status) {
     NumberFormat::setGroupingUsed(fields->properties.groupingUsed);
 }
 
-void DecimalFormat::touchNoError() {
+void DecimalFormat::touchNoError()
+{
     UErrorCode localStatus = U_ZERO_ERROR;
     touch(localStatus);
 }
 
-void DecimalFormat::setPropertiesFromPattern(const UnicodeString& pattern, int32_t ignoreRounding,
-                                             UErrorCode& status) {
+void DecimalFormat::setPropertiesFromPattern(const UnicodeString& pattern, int32_t ignoreRounding, UErrorCode& status)
+{
     if (U_SUCCESS(status)) {
         // Cast workaround to get around putting the enum in the public header file
         auto actualIgnoreRounding = static_cast<IgnoreRounding>(ignoreRounding);
-        PatternParser::parseToExistingProperties(pattern, fields->properties,  actualIgnoreRounding, status);
+        PatternParser::parseToExistingProperties(pattern, fields->properties, actualIgnoreRounding, status);
     }
 }
 
-const numparse::impl::NumberParserImpl* DecimalFormat::getParser(UErrorCode& status) const {
+const numparse::impl::NumberParserImpl* DecimalFormat::getParser(UErrorCode& status) const
+{
     // TODO: Move this into umutex.h? (similar logic also in numrange_fluent.cpp)
     // See ICU-20146
 
@@ -1702,8 +1925,11 @@ const numparse::impl::NumberParserImpl* DecimalFormat::getParser(UErrorCode& sta
     }
 }
 
-const numparse::impl::NumberParserImpl* DecimalFormat::getCurrencyParser(UErrorCode& status) const {
-    if (U_FAILURE(status)) { return nullptr; }
+const numparse::impl::NumberParserImpl* DecimalFormat::getCurrencyParser(UErrorCode& status) const
+{
+    if (U_FAILURE(status)) {
+        return nullptr;
+    }
 
     // First try to get the pre-computed parser
     auto* ptr = fields->atomicCurrencyParser.load();
@@ -1731,13 +1957,11 @@ const numparse::impl::NumberParserImpl* DecimalFormat::getCurrencyParser(UErrorC
     }
 }
 
-void
-DecimalFormat::fieldPositionHelper(
-        const UFormattedNumberData& formatted,
-        FieldPosition& fieldPosition,
-        int32_t offset,
-        UErrorCode& status) {
-    if (U_FAILURE(status)) { return; }
+void DecimalFormat::fieldPositionHelper(const UFormattedNumberData& formatted, FieldPosition& fieldPosition, int32_t offset, UErrorCode& status)
+{
+    if (U_FAILURE(status)) {
+        return;
+    }
     // always return first occurrence:
     fieldPosition.setBeginIndex(0);
     fieldPosition.setEndIndex(0);
@@ -1748,12 +1972,8 @@ DecimalFormat::fieldPositionHelper(
     }
 }
 
-void
-DecimalFormat::fieldPositionIteratorHelper(
-        const UFormattedNumberData& formatted,
-        FieldPositionIterator* fpi,
-        int32_t offset,
-        UErrorCode& status) {
+void DecimalFormat::fieldPositionIteratorHelper(const UFormattedNumberData& formatted, FieldPositionIterator* fpi, int32_t offset, UErrorCode& status)
+{
     if (U_SUCCESS(status) && (fpi != nullptr)) {
         FieldPositionIteratorHandler fpih(fpi, status);
         fpih.setShift(offset);
@@ -1764,7 +1984,8 @@ DecimalFormat::fieldPositionIteratorHelper(
 // To debug fast-format, change void(x) to printf(x)
 #define trace(x) void(x)
 
-void DecimalFormat::setupFastFormat() {
+void DecimalFormat::setupFastFormat()
+{
     // Check the majority of properties:
     if (!fields->properties.equalsDefaultExceptFastFormat()) {
         trace("no fast format: equality\n");
@@ -1776,9 +1997,8 @@ void DecimalFormat::setupFastFormat() {
     // Nontrivial affixes:
     UBool trivialPP = fields->properties.positivePrefixPattern.isEmpty();
     UBool trivialPS = fields->properties.positiveSuffixPattern.isEmpty();
-    UBool trivialNP = fields->properties.negativePrefixPattern.isBogus() || (
-            fields->properties.negativePrefixPattern.length() == 1 &&
-            fields->properties.negativePrefixPattern.charAt(0) == u'-');
+    UBool trivialNP = fields->properties.negativePrefixPattern.isBogus()
+        || (fields->properties.negativePrefixPattern.length() == 1 && fields->properties.negativePrefixPattern.charAt(0) == u'-');
     UBool trivialNS = fields->properties.negativeSuffixPattern.isEmpty();
     if (!trivialPP || !trivialPS || !trivialNP || !trivialNS) {
         trace("no fast format: affixes\n");
@@ -1787,7 +2007,7 @@ void DecimalFormat::setupFastFormat() {
     }
 
     const DecimalFormatSymbols* symbols = getDecimalFormatSymbols();
-    
+
     // Grouping (secondary grouping is forbidden in equalsDefaultExceptFastFormat):
     bool groupingUsed = fields->properties.groupingUsed;
     int32_t groupingSize = fields->properties.groupingSize;
@@ -1836,21 +2056,20 @@ void DecimalFormat::setupFastFormat() {
     fields->fastData.maxInt = (maxInt < 0 || maxInt > 127) ? 127 : static_cast<int8_t>(maxInt);
 }
 
-bool DecimalFormat::fastFormatDouble(double input, UnicodeString& output) const {
+bool DecimalFormat::fastFormatDouble(double input, UnicodeString& output) const
+{
     if (!fields->canUseFastFormat) {
         return false;
     }
-    if (std::isnan(input)
-            || uprv_trunc(input) != input
-            || input <= INT32_MIN
-            || input > INT32_MAX) {
+    if (std::isnan(input) || uprv_trunc(input) != input || input <= INT32_MIN || input > INT32_MAX) {
         return false;
     }
     doFastFormatInt32(static_cast<int32_t>(input), std::signbit(input), output);
     return true;
 }
 
-bool DecimalFormat::fastFormatInt64(int64_t input, UnicodeString& output) const {
+bool DecimalFormat::fastFormatInt64(int64_t input, UnicodeString& output) const
+{
     if (!fields->canUseFastFormat) {
         return false;
     }
@@ -1861,11 +2080,12 @@ bool DecimalFormat::fastFormatInt64(int64_t input, UnicodeString& output) const 
     return true;
 }
 
-void DecimalFormat::doFastFormatInt32(int32_t input, bool isNegative, UnicodeString& output) const {
+void DecimalFormat::doFastFormatInt32(int32_t input, bool isNegative, UnicodeString& output) const
+{
     U_ASSERT(fields->canUseFastFormat);
     if (isNegative) {
         output.append(fields->fastData.cpMinusSign);
-        U_ASSERT(input != INT32_MIN);  // handled by callers
+        U_ASSERT(input != INT32_MIN); // handled by callers
         input = -input;
     }
     // Cap at int32_t to make the buffer small and operations fast.
@@ -1874,7 +2094,7 @@ void DecimalFormat::doFastFormatInt32(int32_t input, bool isNegative, UnicodeStr
     char16_t localBuffer[localCapacity];
     char16_t* ptr = localBuffer + localCapacity;
     int8_t group = 0;
-    int8_t minInt = (fields->fastData.minInt < 1)? 1: fields->fastData.minInt;
+    int8_t minInt = (fields->fastData.minInt < 1) ? 1 : fields->fastData.minInt;
     for (int8_t i = 0; i < fields->fastData.maxInt && (input != 0 || i < minInt); i++) {
         if (group++ == 3 && fields->fastData.cpGroupingSeparator != 0) {
             *(--ptr) = fields->fastData.cpGroupingSeparator;
@@ -1887,6 +2107,5 @@ void DecimalFormat::doFastFormatInt32(int32_t input, bool isNegative, UnicodeStr
     int32_t len = localCapacity - static_cast<int32_t>(ptr - localBuffer);
     output.append(ptr, len);
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -1,4 +1,4 @@
-/***********************************************************************
+﻿/***********************************************************************
  * © 2016 and later: Unicode, Inc. and others.
  * License & terms of use: http://www.unicode.org/copyright.html
  ***********************************************************************
@@ -18,11 +18,12 @@
 #include "util.h"
 #include "unaccent.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
 
-    Calendar *cal;
-    DateFormat *fmt;
-    DateFormat *defFmt;
+    Calendar* cal;
+    DateFormat* fmt;
+    DateFormat* defFmt;
     UErrorCode status = U_ZERO_ERROR;
     Locale greece("el", "GR");
     UnicodeString str, str2;
@@ -40,14 +41,12 @@ int main(int argc, char **argv) {
     defFmt->setCalendar(*cal);
 
     // Loop over various months
-    for (int32_t month = Calendar::JANUARY;
-         month <= Calendar::DECEMBER;
-         ++month) {
+    for (int32_t month = Calendar::JANUARY; month <= Calendar::DECEMBER; ++month) {
 
         // Set the calendar to a date
         cal->clear();
         cal->set(1999, month, 4);
-        
+
         // Format the date in default locale
         str.remove();
         defFmt->format(cal->getTime(status), str, status);
@@ -55,7 +54,7 @@ int main(int argc, char **argv) {
         printf("Date: ");
         uprintf(escape(str));
         printf("\n");
-        
+
         // Format the date for Greece
         str.remove();
         fmt->format(cal->getTime(status), str, status);

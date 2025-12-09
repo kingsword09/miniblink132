@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -33,9 +33,6 @@
  * @return Minimum number of ranges (at most capacity) that have the desired density,
  *         or 0 if that density cannot be achieved.
  */
-U_CAPI int32_t U_EXPORT2
-uprv_makeDenseRanges(const int32_t values[], int32_t length,
-                     int32_t density,
-                     int32_t ranges[][2], int32_t capacity);
+U_CAPI int32_t U_EXPORT2 uprv_makeDenseRanges(const int32_t values[], int32_t length, int32_t density, int32_t ranges[][2], int32_t capacity);
 
-#endif  // __DENSERANGES_H__
+#endif // __DENSERANGES_H__

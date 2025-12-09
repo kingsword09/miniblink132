@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -24,8 +24,6 @@
 #include "collationsettings.h"
 #include "uhash.h"
 #include "umutex.h"
-#include "unifiedcache.h"
- 
 
 struct UDataMemory;
 struct UResourceBundle;
@@ -48,23 +46,26 @@ class UnicodeSet;
  * It is shared, reference-counted, and auto-deleted; see SharedObject.
  */
 struct U_I18N_API CollationTailoring : public SharedObject {
-    CollationTailoring(const CollationSettings *baseSettings);
+    CollationTailoring(const CollationSettings* baseSettings);
     virtual ~CollationTailoring();
 
     /**
      * Returns true if the constructor could not initialize properly.
      */
-    UBool isBogus() { return settings == nullptr; }
+    UBool isBogus()
+    {
+        return settings == NULL;
+    }
 
-    UBool ensureOwnedData(UErrorCode &errorCode);
+    UBool ensureOwnedData(UErrorCode& errorCode);
 
     static void makeBaseVersion(const UVersionInfo ucaVersion, UVersionInfo version);
     void setVersion(const UVersionInfo baseVersion, const UVersionInfo rulesVersion);
     int32_t getUCAVersion() const;
 
     // data for sorting etc.
-    const CollationData *data;  // == base data or ownedData
-    const CollationSettings *settings;  // reference-counted
+    const CollationData* data; // == base data or ownedData
+    const CollationSettings* settings; // reference-counted
     UnicodeString rules;
     // The locale is bogus when built from rules or constructed from a binary blob.
     // It can then be set by the service registration code which is thread-safe.
@@ -77,13 +78,13 @@ struct U_I18N_API CollationTailoring : public SharedObject {
     UVersionInfo version;
 
     // owned objects
-    CollationData *ownedData;
-    UObject *builder;
-    UDataMemory *memory;
-    UResourceBundle *bundle;
-    UTrie2 *trie;
-    UnicodeSet *unsafeBackwardSet;
-    mutable UHashtable *maxExpansions;
+    CollationData* ownedData;
+    UObject* builder;
+    UDataMemory* memory;
+    UResourceBundle* bundle;
+    UTrie2* trie;
+    UnicodeSet* unsafeBackwardSet;
+    mutable UHashtable* maxExpansions;
     mutable UInitOnce maxExpansionsInitOnce;
 
 private:
@@ -91,27 +92,25 @@ private:
      * No copy constructor: A CollationTailoring cannot be copied.
      * It is immutable, and the data trie cannot be copied either.
      */
-    CollationTailoring(const CollationTailoring &other) = delete;
+    CollationTailoring(const CollationTailoring& other);
 };
 
 struct U_I18N_API CollationCacheEntry : public SharedObject {
-    CollationCacheEntry(const Locale &loc, const CollationTailoring *t)
-            : validLocale(loc), tailoring(t) {
-        if(t != nullptr) {
+    CollationCacheEntry(const Locale& loc, const CollationTailoring* t)
+        : validLocale(loc)
+        , tailoring(t)
+    {
+        if (t != NULL) {
             t->addRef();
         }
     }
     ~CollationCacheEntry();
 
     Locale validLocale;
-    const CollationTailoring *tailoring;
+    const CollationTailoring* tailoring;
 };
 
-template<> U_I18N_API
-const CollationCacheEntry *
-LocaleCacheKey<CollationCacheEntry>::createObject(const void *creationContext,
-                                                  UErrorCode &errorCode) const;
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
-#endif  // __COLLATIONTAILORING_H__
+#endif // !UCONFIG_NO_COLLATION
+#endif // __COLLATIONTAILORING_H__

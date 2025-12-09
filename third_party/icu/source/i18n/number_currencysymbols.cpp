@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -16,16 +16,17 @@ using namespace icu;
 using namespace icu::number;
 using namespace icu::number::impl;
 
-
 CurrencySymbols::CurrencySymbols(CurrencyUnit currency, const Locale& locale, UErrorCode& status)
-        : fCurrency(currency), fLocaleName(locale.getName(), status) {
+    : fCurrency(currency)
+    , fLocaleName(locale.getName(), status)
+{
     fCurrencySymbol.setToBogus();
     fIntlCurrencySymbol.setToBogus();
 }
 
-CurrencySymbols::CurrencySymbols(CurrencyUnit currency, const Locale& locale,
-                                 const DecimalFormatSymbols& symbols, UErrorCode& status)
-        : CurrencySymbols(currency, locale, status) {
+CurrencySymbols::CurrencySymbols(CurrencyUnit currency, const Locale& locale, const DecimalFormatSymbols& symbols, UErrorCode& status)
+    : CurrencySymbols(currency, locale, status)
+{
     // If either of the overrides is present, save it in the local UnicodeString.
     if (symbols.isCustomCurrencySymbol()) {
         fCurrencySymbol = symbols.getConstSymbol(DecimalFormatSymbols::kCurrencySymbol);
@@ -35,42 +36,42 @@ CurrencySymbols::CurrencySymbols(CurrencyUnit currency, const Locale& locale,
     }
 }
 
-const char16_t* CurrencySymbols::getIsoCode() const {
+const char16_t* CurrencySymbols::getIsoCode() const
+{
     return fCurrency.getISOCurrency();
 }
 
-UnicodeString CurrencySymbols::getNarrowCurrencySymbol(UErrorCode& status) const {
+UnicodeString CurrencySymbols::getNarrowCurrencySymbol(UErrorCode& status) const
+{
     // Note: currently no override is available for narrow currency symbol
     return loadSymbol(UCURR_NARROW_SYMBOL_NAME, status);
 }
 
-UnicodeString CurrencySymbols::getFormalCurrencySymbol(UErrorCode& status) const {
+UnicodeString CurrencySymbols::getFormalCurrencySymbol(UErrorCode& status) const
+{
     // Note: currently no override is available for formal currency symbol
     return loadSymbol(UCURR_FORMAL_SYMBOL_NAME, status);
 }
 
-UnicodeString CurrencySymbols::getVariantCurrencySymbol(UErrorCode& status) const {
+UnicodeString CurrencySymbols::getVariantCurrencySymbol(UErrorCode& status) const
+{
     // Note: currently no override is available for variant currency symbol
     return loadSymbol(UCURR_VARIANT_SYMBOL_NAME, status);
 }
 
-UnicodeString CurrencySymbols::getCurrencySymbol(UErrorCode& status) const {
+UnicodeString CurrencySymbols::getCurrencySymbol(UErrorCode& status) const
+{
     if (!fCurrencySymbol.isBogus()) {
         return fCurrencySymbol;
     }
     return loadSymbol(UCURR_SYMBOL_NAME, status);
 }
 
-UnicodeString CurrencySymbols::loadSymbol(UCurrNameStyle selector, UErrorCode& status) const {
+UnicodeString CurrencySymbols::loadSymbol(UCurrNameStyle selector, UErrorCode& status) const
+{
     const char16_t* isoCode = fCurrency.getISOCurrency();
     int32_t symbolLen = 0;
-    const char16_t* symbol = ucurr_getName(
-            isoCode,
-            fLocaleName.data(),
-            selector,
-            nullptr /* isChoiceFormat */,
-            &symbolLen,
-            &status);
+    const char16_t* symbol = ucurr_getName(isoCode, fLocaleName.data(), selector, nullptr /* isChoiceFormat */, &symbolLen, &status);
     // If given an unknown currency, ucurr_getName returns the input string, which we can't alias safely!
     // Otherwise, symbol points to a resource bundle, and we can use readonly-aliasing constructor.
     if (symbol == isoCode) {
@@ -80,7 +81,8 @@ UnicodeString CurrencySymbols::loadSymbol(UCurrNameStyle selector, UErrorCode& s
     }
 }
 
-UnicodeString CurrencySymbols::getIntlCurrencySymbol(UErrorCode&) const {
+UnicodeString CurrencySymbols::getIntlCurrencySymbol(UErrorCode&) const
+{
     if (!fIntlCurrencySymbol.isBogus()) {
         return fIntlCurrencySymbol;
     }
@@ -89,16 +91,12 @@ UnicodeString CurrencySymbols::getIntlCurrencySymbol(UErrorCode&) const {
     return UnicodeString(fCurrency.getISOCurrency(), 3);
 }
 
-UnicodeString CurrencySymbols::getPluralName(StandardPlural::Form plural, UErrorCode& status) const {
+UnicodeString CurrencySymbols::getPluralName(StandardPlural::Form plural, UErrorCode& status) const
+{
     const char16_t* isoCode = fCurrency.getISOCurrency();
     int32_t symbolLen = 0;
-    const char16_t* symbol = ucurr_getPluralName(
-            isoCode,
-            fLocaleName.data(),
-            nullptr /* isChoiceFormat */,
-            StandardPlural::getKeyword(plural),
-            &symbolLen,
-            &status);
+    const char16_t* symbol
+        = ucurr_getPluralName(isoCode, fLocaleName.data(), nullptr /* isChoiceFormat */, StandardPlural::getKeyword(plural), &symbolLen, &status);
     // If given an unknown currency, ucurr_getName returns the input string, which we can't alias safely!
     // Otherwise, symbol points to a resource bundle, and we can use readonly-aliasing constructor.
     if (symbol == isoCode) {
@@ -108,14 +106,8 @@ UnicodeString CurrencySymbols::getPluralName(StandardPlural::Form plural, UError
     }
 }
 
-bool CurrencySymbols::hasEmptyCurrencySymbol() const {
-    return !fCurrencySymbol.isBogus() && fCurrencySymbol.isEmpty();
-}
-
-
-CurrencyUnit
-icu::number::impl::resolveCurrency(const DecimalFormatProperties& properties, const Locale& locale,
-                                   UErrorCode& status) {
+CurrencyUnit icu::number::impl::resolveCurrency(const DecimalFormatProperties& properties, const Locale& locale, UErrorCode& status)
+{
     if (!properties.currency.isNull()) {
         return properties.currency.getNoError();
     } else {
@@ -130,6 +122,5 @@ icu::number::impl::resolveCurrency(const DecimalFormatProperties& properties, co
         }
     }
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

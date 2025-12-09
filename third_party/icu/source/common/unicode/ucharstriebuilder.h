@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -47,7 +47,7 @@ public:
      * @param errorCode Standard ICU error code.
      * @stable ICU 4.8
      */
-    UCharsTrieBuilder(UErrorCode &errorCode);
+    UCharsTrieBuilder(UErrorCode& errorCode);
 
     /**
      * Destructor.
@@ -69,7 +69,7 @@ public:
      * @return *this
      * @stable ICU 4.8
      */
-    UCharsTrieBuilder &add(const UnicodeString &s, int32_t value, UErrorCode &errorCode);
+    UCharsTrieBuilder& add(const UnicodeString& s, int32_t value, UErrorCode& errorCode);
 
     /**
      * Builds a UCharsTrie for the add()ed data.
@@ -89,7 +89,7 @@ public:
      * @return A new UCharsTrie for the add()ed data.
      * @stable ICU 4.8
      */
-    UCharsTrie *build(UStringTrieBuildOption buildOption, UErrorCode &errorCode);
+    UCharsTrie* build(UStringTrieBuildOption buildOption, UErrorCode& errorCode);
 
     /**
      * Builds a UCharsTrie for the add()ed data and char16_t-serializes it.
@@ -116,8 +116,7 @@ public:
      * @return result
      * @stable ICU 4.8
      */
-    UnicodeString &buildUnicodeString(UStringTrieBuildOption buildOption, UnicodeString &result,
-                                      UErrorCode &errorCode);
+    UnicodeString& buildUnicodeString(UStringTrieBuildOption buildOption, UnicodeString& result, UErrorCode& errorCode);
 
     /**
      * Removes all (string, value) pairs.
@@ -125,18 +124,19 @@ public:
      * @return *this
      * @stable ICU 4.8
      */
-    UCharsTrieBuilder &clear() {
+    UCharsTrieBuilder& clear()
+    {
         strings.remove();
-        elementsLength=0;
-        ucharsLength=0;
+        elementsLength = 0;
+        ucharsLength = 0;
         return *this;
     }
 
 private:
-    UCharsTrieBuilder(const UCharsTrieBuilder &other) = delete;  // no copy constructor
-    UCharsTrieBuilder &operator=(const UCharsTrieBuilder &other) = delete;  // no assignment operator
+    UCharsTrieBuilder(const UCharsTrieBuilder& other); // no copy constructor
+    UCharsTrieBuilder& operator=(const UCharsTrieBuilder& other); // no assignment operator
 
-    void buildUChars(UStringTrieBuildOption buildOption, UErrorCode &errorCode);
+    void buildUChars(UStringTrieBuildOption buildOption, UErrorCode& errorCode);
 
     virtual int32_t getElementStringLength(int32_t i) const override;
     virtual char16_t getElementUnit(int32_t i, int32_t unitIndex) const override;
@@ -148,40 +148,52 @@ private:
     virtual int32_t skipElementsBySomeUnits(int32_t i, int32_t unitIndex, int32_t count) const override;
     virtual int32_t indexOfElementWithNextUnit(int32_t i, int32_t unitIndex, char16_t unit) const override;
 
-    virtual UBool matchNodesCanHaveValues() const override { return true; }
+    virtual UBool matchNodesCanHaveValues() const override
+    {
+        return true;
+    }
 
-    virtual int32_t getMaxBranchLinearSubNodeLength() const override { return UCharsTrie::kMaxBranchLinearSubNodeLength; }
-    virtual int32_t getMinLinearMatch() const override { return UCharsTrie::kMinLinearMatch; }
-    virtual int32_t getMaxLinearMatchLength() const override { return UCharsTrie::kMaxLinearMatchLength; }
+    virtual int32_t getMaxBranchLinearSubNodeLength() const override
+    {
+        return UCharsTrie::kMaxBranchLinearSubNodeLength;
+    }
+    virtual int32_t getMinLinearMatch() const override
+    {
+        return UCharsTrie::kMinLinearMatch;
+    }
+    virtual int32_t getMaxLinearMatchLength() const override
+    {
+        return UCharsTrie::kMaxLinearMatchLength;
+    }
 
     class UCTLinearMatchNode : public LinearMatchNode {
     public:
-        UCTLinearMatchNode(const char16_t *units, int32_t len, Node *nextNode);
-        virtual bool operator==(const Node &other) const override;
-        virtual void write(StringTrieBuilder &builder) override;
+        UCTLinearMatchNode(const char16_t* units, int32_t len, Node* nextNode);
+        virtual bool operator==(const Node& other) const override;
+        virtual void write(StringTrieBuilder& builder) override;
+
     private:
-        const char16_t *s;
+        const char16_t* s;
     };
 
-    virtual Node *createLinearMatchNode(int32_t i, int32_t unitIndex, int32_t length,
-                                        Node *nextNode) const override;
+    virtual Node* createLinearMatchNode(int32_t i, int32_t unitIndex, int32_t length, Node* nextNode) const override;
 
     UBool ensureCapacity(int32_t length);
     virtual int32_t write(int32_t unit) override;
-    int32_t write(const char16_t *s, int32_t length);
+    int32_t write(const char16_t* s, int32_t length);
     virtual int32_t writeElementUnits(int32_t i, int32_t unitIndex, int32_t length) override;
     virtual int32_t writeValueAndFinal(int32_t i, UBool isFinal) override;
     virtual int32_t writeValueAndType(UBool hasValue, int32_t value, int32_t node) override;
     virtual int32_t writeDeltaTo(int32_t jumpTarget) override;
 
     UnicodeString strings;
-    UCharsTrieElement *elements;
+    UCharsTrieElement* elements;
     int32_t elementsCapacity;
     int32_t elementsLength;
 
     // char16_t serialization of the trie.
     // Grows from the back: ucharsLength measures from the end of the buffer!
-    char16_t *uchars;
+    char16_t* uchars;
     int32_t ucharsCapacity;
     int32_t ucharsLength;
 };
@@ -190,4 +202,4 @@ U_NAMESPACE_END
 
 #endif /* U_SHOW_CPLUSPLUS_API */
 
-#endif  // __UCHARSTRIEBUILDER_H__
+#endif // __UCHARSTRIEBUILDER_H__

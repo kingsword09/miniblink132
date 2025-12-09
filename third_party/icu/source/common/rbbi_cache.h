@@ -1,4 +1,4 @@
-// Copyright (C) 2016 and later: Unicode, Inc. and others.
+﻿// Copyright (C) 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // file: rbbi_cache.h
@@ -30,16 +30,16 @@ U_NAMESPACE_BEGIN
  *
  *                 The boundaries are stored in a simple ArrayList (vector), with the
  *                 assumption that they will be accessed sequentially.
- */                 
-class RuleBasedBreakIterator::DictionaryCache: public UMemory {
-  public:
-     DictionaryCache(RuleBasedBreakIterator *bi, UErrorCode &status);
-     ~DictionaryCache();
+ */
+class RuleBasedBreakIterator::DictionaryCache : public UMemory {
+public:
+    DictionaryCache(RuleBasedBreakIterator* bi, UErrorCode& status);
+    ~DictionaryCache();
 
-     void reset();
+    void reset();
 
-     UBool following(int32_t fromPos, int32_t *pos, int32_t *statusIndex);
-     UBool preceding(int32_t fromPos, int32_t *pos, int32_t *statusIndex);
+    UBool following(int32_t fromPos, int32_t* pos, int32_t* statusIndex);
+    UBool preceding(int32_t fromPos, int32_t* pos, int32_t* statusIndex);
 
     /**
      * Populate the cache with the dictionary based boundaries within a region of text.
@@ -49,23 +49,19 @@ class RuleBasedBreakIterator::DictionaryCache: public UMemory {
      * @param otherRuleStatus The rule status index that applies to boundaries other than startPos
      * @internal
      */
-    void populateDictionary(int32_t startPos, int32_t endPos,
-                         int32_t firstRuleStatus, int32_t otherRuleStatus);
+    void populateDictionary(int32_t startPos, int32_t endPos, int32_t firstRuleStatus, int32_t otherRuleStatus);
 
+    RuleBasedBreakIterator* fBI;
 
-
-    RuleBasedBreakIterator *fBI;
-    
-    UVector32           fBreaks;                // A vector containing the boundaries.
-    int32_t             fPositionInCache;       // Index in fBreaks of last boundary returned by following()
-                                                //    or preceding(). Optimizes sequential access.
-    int32_t             fStart;                 // Text position of first boundary in cache.
-    int32_t             fLimit;                 // Last boundary in cache. Which is the limit of the
-                                                //    text segment being handled by the dictionary.
-    int32_t             fFirstRuleStatusIndex;  // Rule status info for first boundary.
-    int32_t             fOtherRuleStatusIndex;  // Rule status info for 2nd through last boundaries.
+    UVector32 fBreaks; // A vector containing the boundaries.
+    int32_t fPositionInCache; // Index in fBreaks of last boundary returned by following()
+        //    or preceding(). Optimizes sequential access.
+    int32_t fStart; // Text position of first boundary in cache.
+    int32_t fLimit; // Last boundary in cache. Which is the limit of the
+        //    text segment being handled by the dictionary.
+    int32_t fFirstRuleStatusIndex; // Rule status info for first boundary.
+    int32_t fOtherRuleStatusIndex; // Rule status info for 2nd through last boundaries.
 };
-
 
 /*
  * class BreakCache
@@ -83,35 +79,36 @@ class RuleBasedBreakIterator::DictionaryCache: public UMemory {
  * size of the circular cache buffer.
  */
 
-class RuleBasedBreakIterator::BreakCache: public UMemory {
-  public:
-                BreakCache(RuleBasedBreakIterator *bi, UErrorCode &status);
-    virtual     ~BreakCache();
-    void        reset(int32_t pos = 0, int32_t ruleStatus = 0);
-    void        next() {    if (fBufIdx == fEndBufIdx) {
-                                nextOL();
-                            } else {
-                                fBufIdx = modChunkSize(fBufIdx + 1);
-                                fTextIdx = fBI->fPosition = fBoundaries[fBufIdx];
-                                fBI->fRuleStatusIndex = fStatuses[fBufIdx];
-                            }
-                }
+class RuleBasedBreakIterator::BreakCache : public UMemory {
+public:
+    BreakCache(RuleBasedBreakIterator* bi, UErrorCode& status);
+    virtual ~BreakCache();
+    void reset(int32_t pos = 0, int32_t ruleStatus = 0);
+    void next()
+    {
+        if (fBufIdx == fEndBufIdx) {
+            nextOL();
+        } else {
+            fBufIdx = modChunkSize(fBufIdx + 1);
+            fTextIdx = fBI->fPosition = fBoundaries[fBufIdx];
+            fBI->fRuleStatusIndex = fStatuses[fBufIdx];
+        }
+    }
 
-
-    void        nextOL();
-    void        previous(UErrorCode &status);
+    void nextOL();
+    void previous(UErrorCode& status);
 
     // Move the iteration state to the position following the startPosition.
     // Input position must be pinned to the input length.
-    void        following(int32_t startPosition, UErrorCode &status);
+    void following(int32_t startPosition, UErrorCode& status);
 
-    void        preceding(int32_t startPosition, UErrorCode &status);
+    void preceding(int32_t startPosition, UErrorCode& status);
 
     /*
      * Update the state of the public BreakIterator (fBI) to reflect the
      * current state of the break iterator cache (this).
      */
-    int32_t     current();
+    int32_t current();
 
     /**
      * Add boundaries to the cache near the specified position.
@@ -128,7 +125,7 @@ class RuleBasedBreakIterator::BreakCache: public UMemory {
      *
      * Return false if the operation failed.
      */
-    UBool populateNear(int32_t position, UErrorCode &status);
+    UBool populateNear(int32_t position, UErrorCode& status);
 
     /**
      *  Add boundary(s) to the cache following the current last boundary.
@@ -142,12 +139,9 @@ class RuleBasedBreakIterator::BreakCache: public UMemory {
      *  Leave the iteration position on the first added boundary.
      *  Return false if no boundaries could be added (if at the start of the text.)
      */
-    UBool populatePreceding(UErrorCode &status);
+    UBool populatePreceding(UErrorCode& status);
 
-    enum UpdatePositionValues {
-        RetainCachePosition = 0,
-        UpdateCachePosition = 1
-    };
+    enum UpdatePositionValues { RetainCachePosition = 0, UpdateCachePosition = 1 };
 
     /*
      * Add the boundary following the current position.
@@ -155,7 +149,6 @@ class RuleBasedBreakIterator::BreakCache: public UMemory {
      * as specified by the update parameter.
      */
     void addFollowing(int32_t position, int32_t ruleStatusIdx, UpdatePositionValues update);
-
 
     /*
      * Add the boundary preceding the current position.
@@ -173,27 +166,30 @@ class RuleBasedBreakIterator::BreakCache: public UMemory {
      *  Return true if successful, false if the specified position is after
      *  the last cached boundary or before the first.
      */
-    UBool                   seek(int32_t startPosition);
+    UBool seek(int32_t startPosition);
 
     void dumpCache();
 
-  private:
-    static inline int32_t   modChunkSize(int index) { return index & (CACHE_SIZE - 1); }
+private:
+    static inline int32_t modChunkSize(int index)
+    {
+        return index & (CACHE_SIZE - 1);
+    }
 
     static constexpr int32_t CACHE_SIZE = 128;
-    static_assert((CACHE_SIZE & (CACHE_SIZE-1)) == 0, "CACHE_SIZE must be power of two.");
+    static_assert((CACHE_SIZE & (CACHE_SIZE - 1)) == 0, "CACHE_SIZE must be power of two.");
 
-    RuleBasedBreakIterator *fBI;
-    int32_t                 fStartBufIdx;
-    int32_t                 fEndBufIdx;    // inclusive
+    RuleBasedBreakIterator* fBI;
+    int32_t fStartBufIdx;
+    int32_t fEndBufIdx; // inclusive
 
-    int32_t                 fTextIdx;
-    int32_t                 fBufIdx;
+    int32_t fTextIdx;
+    int32_t fBufIdx;
 
-    int32_t                 fBoundaries[CACHE_SIZE];
-    uint16_t                fStatuses[CACHE_SIZE];
+    int32_t fBoundaries[CACHE_SIZE];
+    uint16_t fStatuses[CACHE_SIZE];
 
-    UVector32               fSideBuffer;
+    UVector32 fSideBuffer;
 };
 
 U_NAMESPACE_END

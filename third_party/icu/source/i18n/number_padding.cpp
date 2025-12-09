@@ -1,4 +1,4 @@
-// © 2017 and later: Unicode, Inc. and others.
+﻿// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -16,9 +16,8 @@ using namespace icu::number::impl;
 
 namespace {
 
-int32_t
-addPaddingHelper(UChar32 paddingCp, int32_t requiredPadding, FormattedStringBuilder &string, int32_t index,
-                 UErrorCode &status) {
+int32_t addPaddingHelper(UChar32 paddingCp, int32_t requiredPadding, FormattedStringBuilder& string, int32_t index, UErrorCode& status)
+{
     for (int32_t i = 0; i < requiredPadding; i++) {
         // TODO: If appending to the end, this will cause actual insertion operations. Improve.
         string.insertCodePoint(index, paddingCp, kUndefinedField, status);
@@ -28,44 +27,51 @@ addPaddingHelper(UChar32 paddingCp, int32_t requiredPadding, FormattedStringBuil
 
 }
 
-Padder::Padder(UChar32 cp, int32_t width, UNumberFormatPadPosition position) : fWidth(width) {
+Padder::Padder(UChar32 cp, int32_t width, UNumberFormatPadPosition position)
+    : fWidth(width)
+{
     // TODO(13034): Consider making this a string instead of code point.
     fUnion.padding.fCp = cp;
     fUnion.padding.fPosition = position;
 }
 
-Padder::Padder(int32_t width) : fWidth(width) {}
-
-Padder Padder::none() {
-    return {-1};
+Padder::Padder(int32_t width)
+    : fWidth(width)
+{
 }
 
-Padder Padder::codePoints(UChar32 cp, int32_t targetWidth, UNumberFormatPadPosition position) {
+Padder Padder::none()
+{
+    return { -1 };
+}
+
+Padder Padder::codePoints(UChar32 cp, int32_t targetWidth, UNumberFormatPadPosition position)
+{
     // TODO: Validate the code point?
     if (targetWidth >= 0) {
-        return {cp, targetWidth, position};
+        return { cp, targetWidth, position };
     } else {
-        return {U_NUMBER_ARG_OUTOFBOUNDS_ERROR};
+        return { U_NUMBER_ARG_OUTOFBOUNDS_ERROR };
     }
 }
 
-Padder Padder::forProperties(const DecimalFormatProperties& properties) {
+Padder Padder::forProperties(const DecimalFormatProperties& properties)
+{
     UChar32 padCp;
     if (properties.padString.length() > 0) {
         padCp = properties.padString.char32At(0);
     } else {
         padCp = kFallbackPaddingString[0];
     }
-    return {padCp, properties.formatWidth, properties.padPosition.getOrDefault(UNUM_PAD_BEFORE_PREFIX)};
+    return { padCp, properties.formatWidth, properties.padPosition.getOrDefault(UNUM_PAD_BEFORE_PREFIX) };
 }
 
-int32_t Padder::padAndApply(const Modifier &mod1, const Modifier &mod2,
-                            FormattedStringBuilder &string, int32_t leftIndex, int32_t rightIndex,
-                            UErrorCode &status) const {
+int32_t Padder::padAndApply(
+    const Modifier& mod1, const Modifier& mod2, FormattedStringBuilder& string, int32_t leftIndex, int32_t rightIndex, UErrorCode& status) const
+{
     int32_t modLength = mod1.getCodePointCount() + mod2.getCodePointCount();
     int32_t requiredPadding = fWidth - modLength - string.codePointCount();
-    U_ASSERT(leftIndex == 0 &&
-             rightIndex == string.length()); // fix the previous line to remove this assertion
+    U_ASSERT(leftIndex == 0 && rightIndex == string.length()); // fix the previous line to remove this assertion
 
     int length = 0;
     if (requiredPadding <= 0) {

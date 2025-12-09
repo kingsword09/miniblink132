@@ -1,4 +1,4 @@
-// © 2017 and later: Unicode, Inc. and others.
+﻿// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // umutablecptrie.h (split out of ucptrie.h)
@@ -15,13 +15,14 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 U_CDECL_BEGIN
 
 /**
  * \file
- * \brief C API: This file defines a mutable Unicode code point trie.
+ *
+ * This file defines a mutable Unicode code point trie.
  *
  * @see UCPTrie
  * @see UMutableCPTrie
@@ -61,8 +62,7 @@ typedef struct UMutableCPTrie UMutableCPTrie;
  * @return the trie
  * @stable ICU 63
  */
-U_CAPI UMutableCPTrie * U_EXPORT2
-umutablecptrie_open(uint32_t initialValue, uint32_t errorValue, UErrorCode *pErrorCode);
+U_CAPI UMutableCPTrie* U_EXPORT2 umutablecptrie_open(uint32_t initialValue, uint32_t errorValue, UErrorCode* pErrorCode);
 
 /**
  * Clones a mutable trie.
@@ -73,8 +73,7 @@ umutablecptrie_open(uint32_t initialValue, uint32_t errorValue, UErrorCode *pErr
  * @return the trie clone
  * @stable ICU 63
  */
-U_CAPI UMutableCPTrie * U_EXPORT2
-umutablecptrie_clone(const UMutableCPTrie *other, UErrorCode *pErrorCode);
+U_CAPI UMutableCPTrie* U_EXPORT2 umutablecptrie_clone(const UMutableCPTrie* other, UErrorCode* pErrorCode);
 
 /**
  * Closes a mutable trie and releases associated memory.
@@ -82,8 +81,7 @@ umutablecptrie_clone(const UMutableCPTrie *other, UErrorCode *pErrorCode);
  * @param trie the trie
  * @stable ICU 63
  */
-U_CAPI void U_EXPORT2
-umutablecptrie_close(UMutableCPTrie *trie);
+U_CAPI void U_EXPORT2 umutablecptrie_close(UMutableCPTrie* trie);
 
 /**
  * Creates a mutable trie with the same contents as the UCPMap.
@@ -94,8 +92,7 @@ umutablecptrie_close(UMutableCPTrie *trie);
  * @return the mutable trie
  * @stable ICU 63
  */
-U_CAPI UMutableCPTrie * U_EXPORT2
-umutablecptrie_fromUCPMap(const UCPMap *map, UErrorCode *pErrorCode);
+U_CAPI UMutableCPTrie* U_EXPORT2 umutablecptrie_fromUCPMap(const UCPMap* map, UErrorCode* pErrorCode);
 
 /**
  * Creates a mutable trie with the same contents as the immutable one.
@@ -106,8 +103,7 @@ umutablecptrie_fromUCPMap(const UCPMap *map, UErrorCode *pErrorCode);
  * @return the mutable trie
  * @stable ICU 63
  */
-U_CAPI UMutableCPTrie * U_EXPORT2
-umutablecptrie_fromUCPTrie(const UCPTrie *trie, UErrorCode *pErrorCode);
+U_CAPI UMutableCPTrie* U_EXPORT2 umutablecptrie_fromUCPTrie(const UCPTrie* trie, UErrorCode* pErrorCode);
 
 /**
  * Returns the value for a code point as stored in the trie.
@@ -117,8 +113,7 @@ umutablecptrie_fromUCPTrie(const UCPTrie *trie, UErrorCode *pErrorCode);
  * @return the value
  * @stable ICU 63
  */
-U_CAPI uint32_t U_EXPORT2
-umutablecptrie_get(const UMutableCPTrie *trie, UChar32 c);
+U_CAPI uint32_t U_EXPORT2 umutablecptrie_get(const UMutableCPTrie* trie, UChar32 c);
 
 /**
  * Returns the last code point such that all those from start to there have the same value.
@@ -149,10 +144,8 @@ umutablecptrie_get(const UMutableCPTrie *trie, UChar32 c);
  * @return the range end code point, or -1 if start is not a valid code point
  * @stable ICU 63
  */
-U_CAPI UChar32 U_EXPORT2
-umutablecptrie_getRange(const UMutableCPTrie *trie, UChar32 start,
-                        UCPMapRangeOption option, uint32_t surrogateValue,
-                        UCPMapValueFilter *filter, const void *context, uint32_t *pValue);
+U_CAPI UChar32 U_EXPORT2 umutablecptrie_getRange(const UMutableCPTrie* trie, UChar32 start, UCPMapRangeOption option, uint32_t surrogateValue,
+    UCPMapValueFilter* filter, const void* context, uint32_t* pValue);
 
 /**
  * Sets a value for a code point.
@@ -163,8 +156,7 @@ umutablecptrie_getRange(const UMutableCPTrie *trie, UChar32 start,
  * @param pErrorCode an in/out ICU UErrorCode
  * @stable ICU 63
  */
-U_CAPI void U_EXPORT2
-umutablecptrie_set(UMutableCPTrie *trie, UChar32 c, uint32_t value, UErrorCode *pErrorCode);
+U_CAPI void U_EXPORT2 umutablecptrie_set(UMutableCPTrie* trie, UChar32 c, uint32_t value, UErrorCode* pErrorCode);
 
 /**
  * Sets a value for each code point [start..end].
@@ -177,10 +169,7 @@ umutablecptrie_set(UMutableCPTrie *trie, UChar32 c, uint32_t value, UErrorCode *
  * @param pErrorCode an in/out ICU UErrorCode
  * @stable ICU 63
  */
-U_CAPI void U_EXPORT2
-umutablecptrie_setRange(UMutableCPTrie *trie,
-                        UChar32 start, UChar32 end,
-                        uint32_t value, UErrorCode *pErrorCode);
+U_CAPI void U_EXPORT2 umutablecptrie_setRange(UMutableCPTrie* trie, UChar32 start, UChar32 end, uint32_t value, UErrorCode* pErrorCode);
 
 /**
  * Compacts the data and builds an immutable UCPTrie according to the parameters.
@@ -212,9 +201,7 @@ umutablecptrie_setRange(UMutableCPTrie *trie,
  * @see umutablecptrie_fromUCPTrie
  * @stable ICU 63
  */
-U_CAPI UCPTrie * U_EXPORT2
-umutablecptrie_buildImmutable(UMutableCPTrie *trie, UCPTrieType type, UCPTrieValueWidth valueWidth,
-                              UErrorCode *pErrorCode);
+U_CAPI UCPTrie* U_EXPORT2 umutablecptrie_buildImmutable(UMutableCPTrie* trie, UCPTrieType type, UCPTrieValueWidth valueWidth, UErrorCode* pErrorCode);
 
 U_CDECL_END
 

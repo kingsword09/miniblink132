@@ -1,4 +1,4 @@
-// © 2019 and later: Unicode, Inc. and others.
+﻿// © 2019 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -17,7 +17,8 @@ U_NAMESPACE_BEGIN
 
 ResourceTracer::~ResourceTracer() = default;
 
-void ResourceTracer::trace(const char* resType) const {
+void ResourceTracer::trace(const char* resType) const
+{
 #if U_ENABLE_RESOURCE_TRACING
     U_ASSERT(fResB || fParent);
     UTRACE_ENTRY(UTRACE_UDATA_RESOURCE);
@@ -35,16 +36,13 @@ void ResourceTracer::trace(const char* resType) const {
     format.append(kSpaces, sizeof(kSpaces) - 1 - uprv_strlen(resType), status);
     format.append("(%s) %s @ %s", status);
 
-    UTRACE_DATA3(UTRACE_VERBOSE,
-        format.data(),
-        resType,
-        filePath.data(),
-        resPath.data());
+    UTRACE_DATA3(UTRACE_VERBOSE, format.data(), resType, filePath.data(), resPath.data());
     UTRACE_EXIT_STATUS(status);
-#endif  // U_ENABLE_RESOURCE_TRACING
+#endif // U_ENABLE_RESOURCE_TRACING
 }
 
-void ResourceTracer::traceOpen() const {
+void ResourceTracer::traceOpen() const
+{
 #if U_ENABLE_RESOURCE_TRACING
     U_ASSERT(fResB);
     UTRACE_ENTRY(UTRACE_UDATA_BUNDLE);
@@ -53,10 +51,11 @@ void ResourceTracer::traceOpen() const {
     CharString filePath;
     UTRACE_DATA1(UTRACE_VERBOSE, "%s", getFilePath(filePath, status).data());
     UTRACE_EXIT_STATUS(status);
-#endif  // U_ENABLE_RESOURCE_TRACING
+#endif // U_ENABLE_RESOURCE_TRACING
 }
 
-CharString& ResourceTracer::getFilePath(CharString& output, UErrorCode& status) const {
+CharString& ResourceTracer::getFilePath(CharString& output, UErrorCode& status) const
+{
     if (fResB) {
         // Note: if you get a segfault around here, check that ResourceTable and
         // ResourceArray instances outlive ResourceValue instances referring to
@@ -71,13 +70,14 @@ CharString& ResourceTracer::getFilePath(CharString& output, UErrorCode& status) 
     return output;
 }
 
-CharString& ResourceTracer::getResPath(CharString& output, UErrorCode& status) const {
+CharString& ResourceTracer::getResPath(CharString& output, UErrorCode& status) const
+{
     if (fResB) {
         output.append('/', status);
         output.append(fResB->fResPath, status);
         // removing the trailing /
-        U_ASSERT(output[output.length()-1] == '/');
-        output.truncate(output.length()-1);
+        U_ASSERT(output[output.length() - 1] == '/');
+        output.truncate(output.length() - 1);
     } else {
         fParent->getResPath(output, status);
     }
@@ -95,7 +95,8 @@ CharString& ResourceTracer::getResPath(CharString& output, UErrorCode& status) c
     return output;
 }
 
-void FileTracer::traceOpen(const char* path, const char* type, const char* name) {
+void FileTracer::traceOpen(const char* path, const char* type, const char* name)
+{
     if (uprv_strcmp(type, "res") == 0) {
         traceOpenResFile(path, name);
     } else {
@@ -103,7 +104,8 @@ void FileTracer::traceOpen(const char* path, const char* type, const char* name)
     }
 }
 
-void FileTracer::traceOpenDataFile(const char* path, const char* type, const char* name) {
+void FileTracer::traceOpenDataFile(const char* path, const char* type, const char* name)
+{
     UTRACE_ENTRY(UTRACE_UDATA_DATA_FILE);
     UErrorCode status = U_ZERO_ERROR;
 
@@ -118,7 +120,8 @@ void FileTracer::traceOpenDataFile(const char* path, const char* type, const cha
     UTRACE_EXIT_STATUS(status);
 }
 
-void FileTracer::traceOpenResFile(const char* path, const char* name) {
+void FileTracer::traceOpenResFile(const char* path, const char* name)
+{
 #if U_ENABLE_RESOURCE_TRACING
     UTRACE_ENTRY(UTRACE_UDATA_RES_FILE);
     UErrorCode status = U_ZERO_ERROR;
@@ -131,7 +134,7 @@ void FileTracer::traceOpenResFile(const char* path, const char* name) {
 
     UTRACE_DATA1(UTRACE_VERBOSE, "%s", filePath.data());
     UTRACE_EXIT_STATUS(status);
-#endif  // U_ENABLE_RESOURCE_TRACING
+#endif // U_ENABLE_RESOURCE_TRACING
 }
 
 U_NAMESPACE_END

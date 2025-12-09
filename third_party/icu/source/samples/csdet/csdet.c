@@ -17,22 +17,22 @@
 
 #define BUFFER_SIZE 8192
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     static char buffer[BUFFER_SIZE];
     int32_t arg;
 
-    if( argc <= 1 ) {
+    if (argc <= 1) {
         printf("Usage: %s [filename]...\n", argv[0]);
         return -1;
     }
 
-    for(arg = 1; arg < argc; arg += 1) {
-        FILE *file;
-        char *filename = argv[arg];
+    for (arg = 1; arg < argc; arg += 1) {
+        FILE* file;
+        char* filename = argv[arg];
         int32_t inputLength, match, matchCount = 0;
         UCharsetDetector* csd;
-        const UCharsetMatch **csm;
+        const UCharsetMatch** csm;
         UErrorCode status = U_ZERO_ERROR;
 
         if (arg > 1) {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
         printf("%s:\n", filename);
 
-        inputLength = (int32_t) fread(buffer, 1, BUFFER_SIZE, file);
+        inputLength = (int32_t)fread(buffer, 1, BUFFER_SIZE, file);
 
         fclose(file);
 
@@ -57,9 +57,9 @@ int main(int argc, char *argv[])
 
         csm = ucsdet_detectAll(csd, &matchCount, &status);
 
-        for(match = 0; match < matchCount; match += 1) {
-            const char *name = ucsdet_getName(csm[match], &status);
-            const char *lang = ucsdet_getLanguage(csm[match], &status);
+        for (match = 0; match < matchCount; match += 1) {
+            const char* name = ucsdet_getName(csm[match], &status);
+            const char* lang = ucsdet_getLanguage(csm[match], &status);
             int32_t confidence = ucsdet_getConfidence(csm[match], &status);
 
             if (lang == NULL || strlen(lang) == 0) {
@@ -71,7 +71,6 @@ int main(int argc, char *argv[])
 
         ucsdet_close(csd);
     }
-    
+
     return 0;
 }
-

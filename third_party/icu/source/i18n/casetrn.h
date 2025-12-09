@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -42,7 +42,7 @@ public:
      * @param id  the transliterator ID.
      * @param map the full case mapping function (see ucase.h)
      */
-    CaseMapTransliterator(const UnicodeString &id, UCaseMapFull *map);
+    CaseMapTransliterator(const UnicodeString& id, UCaseMapFull* map);
 
     /**
      * Destructor.
@@ -63,7 +63,7 @@ public:
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      */
-    //virtual UClassID getDynamicClassID() const;
+    // virtual UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
@@ -80,25 +80,21 @@ protected:
      * @param incremental if true, assume more text may be coming after
      *                    pos.contextLimit.  Otherwise, assume the text is complete.
      */
-    virtual void handleTransliterate(Replaceable& text,
-                                     UTransPosition& offsets, 
-                                     UBool isIncremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offsets, UBool isIncremental) const override;
 
-    UCaseMapFull *fMap;
+    UCaseMapFull* fMap;
 
 private:
     /**
      * Assignment operator.
      */
     CaseMapTransliterator& operator=(const CaseMapTransliterator&);
-
 };
 
 U_NAMESPACE_END
 
 /** case context iterator using a Replaceable. This must be a C function because it is a callback. */
-U_CFUNC UChar32 U_CALLCONV
-utrans_rep_caseContextIterator(void *context, int8_t dir);
+U_CFUNC UChar32 U_CALLCONV utrans_rep_caseContextIterator(void* context, int8_t dir);
 
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 

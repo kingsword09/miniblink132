@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -32,19 +32,19 @@
  * the definition of the feature test macro."
  */
 #ifdef _XOPEN_SOURCE
-    /* Use the predefined value. */
+/* Use the predefined value. */
 #elif !defined(ICU_IS_IN_FUCHSIA) || !defined(__APPLE__)
-    /*
-     * Version 6.0:
-     * The Open Group Base Specifications Issue 6 (IEEE Std 1003.1, 2004 Edition)
-     * also known as
-     * SUSv3 = Open Group Single UNIX Specification, Version 3 (UNIX03)
-     *
-     * Note: This definition used to be in C source code (e.g., putil.c)
-     * and define _XOPEN_SOURCE to different values depending on __STDC_VERSION__.
-     * In C++ source code (e.g., putil.cpp), __STDC_VERSION__ is not defined at all.
-     */
-#   define _XOPEN_SOURCE 600
+/*
+ * Version 6.0:
+ * The Open Group Base Specifications Issue 6 (IEEE Std 1003.1, 2004 Edition)
+ * also known as
+ * SUSv3 = Open Group Single UNIX Specification, Version 3 (UNIX03)
+ *
+ * Note: This definition used to be in C source code (e.g., putil.c)
+ * and define _XOPEN_SOURCE to different values depending on __STDC_VERSION__.
+ * In C++ source code (e.g., putil.cpp), __STDC_VERSION__ is not defined at all.
+ */
+#define _XOPEN_SOURCE 600
 #endif
 
 /*
@@ -55,7 +55,7 @@
  * z/OS needs this definition for timeval and to get usleep.
  */
 #if !defined(_XOPEN_SOURCE_EXTENDED) && defined(__TOS_MVS__)
-#   define _XOPEN_SOURCE_EXTENDED 1
+#define _XOPEN_SOURCE_EXTENDED 1
 #endif
 
 /**
@@ -64,14 +64,13 @@
  *   than a c99 or later compiler."
  * Apparently C++11 is not "or later". Work around this.
  */
-#if defined(__cplusplus) && (defined(sun) || defined(__sun)) && !defined (_STDC_C99)
-#   define _STDC_C99
+#if defined(__cplusplus) && (defined(sun) || defined(__sun)) && !defined(_STDC_C99)
+#define _STDC_C99
 #endif
 
-#if !defined _POSIX_C_SOURCE && \
-    defined(__APPLE__) && defined(__MACH__) && !defined(__clang__)
+#if !defined _POSIX_C_SOURCE && defined(__APPLE__) && defined(__MACH__) && !defined(__clang__)
 // Needed to prevent EOWNERDEAD issues with GCC on Mac
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#endif  /* __UPOSIXDEFS_H__ */
+#endif /* __UPOSIXDEFS_H__ */

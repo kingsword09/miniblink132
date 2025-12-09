@@ -1,4 +1,4 @@
-/*
+﻿/*
  ******************************************************************************
  *
  *   © 2016 and later: Unicode, Inc. and others.
@@ -23,28 +23,26 @@
 #include "layout/LETypes.h"
 #include "sfnt.h"
 
-class CMAPMapper
-{
+class CMAPMapper {
 public:
     virtual LEGlyphID unicodeToGlyph(LEUnicode32 unicode32) const = 0;
 
     virtual ~CMAPMapper();
 
-    static CMAPMapper *createUnicodeMapper(const CMAPTable *cmap);
+    static CMAPMapper* createUnicodeMapper(const CMAPTable* cmap);
 
 protected:
-    CMAPMapper(const CMAPTable *cmap);
+    CMAPMapper(const CMAPTable* cmap);
 
     CMAPMapper() {};
 
 private:
-    const CMAPTable *fcmap;
+    const CMAPTable* fcmap;
 };
 
-class CMAPFormat4Mapper : public CMAPMapper
-{
+class CMAPFormat4Mapper : public CMAPMapper {
 public:
-    CMAPFormat4Mapper(const CMAPTable *cmap, const CMAPFormat4Encoding *header);
+    CMAPFormat4Mapper(const CMAPTable* cmap, const CMAPFormat4Encoding* header);
 
     virtual ~CMAPFormat4Mapper();
 
@@ -54,18 +52,17 @@ protected:
     CMAPFormat4Mapper() {};
 
 private:
-    le_uint16        fEntrySelector;
-    le_uint16        fRangeShift;
-    const le_uint16 *fEndCodes;
-    const le_uint16 *fStartCodes;
-    const le_uint16 *fIdDelta;
-    const le_uint16 *fIdRangeOffset;
+    le_uint16 fEntrySelector;
+    le_uint16 fRangeShift;
+    const le_uint16* fEndCodes;
+    const le_uint16* fStartCodes;
+    const le_uint16* fIdDelta;
+    const le_uint16* fIdRangeOffset;
 };
 
-class CMAPGroupMapper : public CMAPMapper
-{
+class CMAPGroupMapper : public CMAPMapper {
 public:
-    CMAPGroupMapper(const CMAPTable *cmap, const CMAPGroup *groups, le_uint32 nGroups);
+    CMAPGroupMapper(const CMAPTable* cmap, const CMAPGroup* groups, le_uint32 nGroups);
 
     virtual ~CMAPGroupMapper();
 
@@ -77,10 +74,10 @@ protected:
 private:
     le_int32 fPower;
     le_int32 fRangeOffset;
-    const CMAPGroup *fGroups;
+    const CMAPGroup* fGroups;
 };
 
-inline CMAPMapper::CMAPMapper(const CMAPTable *cmap)
+inline CMAPMapper::CMAPMapper(const CMAPTable* cmap)
     : fcmap(cmap)
 {
     // nothing else to do
@@ -92,4 +89,3 @@ inline CMAPMapper::~CMAPMapper()
 }
 
 #endif
-

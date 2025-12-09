@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  ********************************************************************************
@@ -48,14 +48,11 @@ U_NAMESPACE_BEGIN
  */
 class BuddhistCalendar : public GregorianCalendar {
 public:
-
     /**
      * Useful constants for BuddhistCalendar.  Only one Era.
      * @internal
      */
-    enum EEras {
-       BE
-    };
+    enum EEras { BE };
 
     /**
      * Constructs a BuddhistCalendar based on the current time in the default time zone
@@ -67,7 +64,6 @@ public:
      * @internal
      */
     BuddhistCalendar(const Locale& aLocale, UErrorCode& success);
-
 
     /**
      * Destructor
@@ -107,7 +103,7 @@ public:
      *           same class ID. Objects of other classes have different class IDs.
      * @internal
      */
-    virtual UClassID getDynamicClassID() const override;
+    virtual UClassID getDynamicClassID(void) const override;
 
     /**
      * Return the class ID for this class. This is useful only for comparing to a return
@@ -120,7 +116,7 @@ public:
      * @return   The class ID for all objects of this class.
      * @internal
      */
-    U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
+    U_I18N_API static UClassID U_EXPORT2 getStaticClassID(void);
 
     /**
      * return the calendar type, "buddhist".
@@ -128,12 +124,12 @@ public:
      * @return calendar type
      * @internal
      */
-    virtual const char * getType() const override;
+    virtual const char* getType() const override;
 
 private:
     BuddhistCalendar(); // default constructor not implemented
 
- protected:
+protected:
     /**
      * Return the extended year defined by the current fields.  This will
      * use the UCAL_EXTENDED_YEAR field or the UCAL_YEAR and supra-year fields (such
@@ -145,7 +141,7 @@ private:
     virtual int32_t handleGetExtendedYear() override;
     /**
      * Subclasses may override this method to compute several fields
-     * specific to each calendar system.  
+     * specific to each calendar system.
      * @internal
      */
     virtual void handleComputeFields(int32_t julianDay, UErrorCode& status) override;
@@ -157,6 +153,20 @@ private:
      * @internal
      */
     virtual int32_t handleGetLimit(UCalendarDateFields field, ELimitType limitType) const override;
+    /**
+     * Return the Julian day number of day before the first day of the
+     * given month in the given extended year.  Subclasses should override
+     * this method to implement their calendar system.
+     * @param eyear the extended year
+     * @param month the zero-based month, or 0 if useMonth is false
+     * @param useMonth if false, compute the day before the first day of
+     * the given year, otherwise, compute the day before the first day of
+     * the given month
+     * @param return the Julian day number of the day before the first
+     * day of the given month and year
+     * @internal
+     */
+    virtual int32_t handleComputeMonthStart(int32_t eyear, int32_t month, UBool useMonth) const override;
 
     /**
      * Returns true because the Buddhist Calendar does have a default century
@@ -183,5 +193,4 @@ U_NAMESPACE_END
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _GREGOCAL
-//eof
-
+// eof

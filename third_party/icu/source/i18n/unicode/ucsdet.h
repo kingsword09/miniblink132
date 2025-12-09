@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  **********************************************************************
@@ -29,10 +29,10 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
- * \file 
+ * \file
  * \brief C API: Charset Detection API
  *
  * This API provides a facility for detecting the
@@ -53,45 +53,42 @@
  * Compact Encoding Detector, https://github.com/google/compact_enc_det.
  * It often gives more accurate results, especially with short input samples.
  */
- 
 
 struct UCharsetDetector;
 /**
-  * Structure representing a charset detector
-  * @stable ICU 3.6
-  */
+ * Structure representing a charset detector
+ * @stable ICU 3.6
+ */
 typedef struct UCharsetDetector UCharsetDetector;
 
 struct UCharsetMatch;
 /**
-  *  Opaque structure representing a match that was identified
-  *  from a charset detection operation.
-  *  @stable ICU 3.6
-  */
+ *  Opaque structure representing a match that was identified
+ *  from a charset detection operation.
+ *  @stable ICU 3.6
+ */
 typedef struct UCharsetMatch UCharsetMatch;
 
 /**
-  *  Open a charset detector.
-  *
-  *  @param status Any error conditions occurring during the open
-  *                operation are reported back in this variable.
-  *  @return the newly opened charset detector.
-  *  @stable ICU 3.6
-  */
-U_CAPI UCharsetDetector * U_EXPORT2
-ucsdet_open(UErrorCode   *status);
+ *  Open a charset detector.
+ *
+ *  @param status Any error conditions occurring during the open
+ *                operation are reported back in this variable.
+ *  @return the newly opened charset detector.
+ *  @stable ICU 3.6
+ */
+U_CAPI UCharsetDetector* U_EXPORT2 ucsdet_open(UErrorCode* status);
 
 /**
-  * Close a charset detector.  All storage and any other resources
-  *   owned by this charset detector will be released.  Failure to
-  *   close a charset detector when finished with it can result in
-  *   memory leaks in the application.
-  *
-  *  @param ucsd  The charset detector to be closed.
-  *  @stable ICU 3.6
-  */
-U_CAPI void U_EXPORT2
-ucsdet_close(UCharsetDetector *ucsd);
+ * Close a charset detector.  All storage and any other resources
+ *   owned by this charset detector will be released.  Failure to
+ *   close a charset detector when finished with it can result in
+ *   memory leaks in the application.
+ *
+ *  @param ucsd  The charset detector to be closed.
+ *  @stable ICU 3.6
+ */
+U_CAPI void U_EXPORT2 ucsdet_close(UCharsetDetector* ucsd);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -113,23 +110,21 @@ U_NAMESPACE_END
 #endif
 
 /**
-  * Set the input byte data whose charset is to detected.
-  *
-  * Ownership of the input  text byte array remains with the caller.
-  * The input string must not be altered or deleted until the charset
-  * detector is either closed or reset to refer to different input text.
-  *
-  * @param ucsd   the charset detector to be used.
-  * @param textIn the input text of unknown encoding.   .
-  * @param len    the length of the input text, or -1 if the text
-  *               is NUL terminated.
-  * @param status any error conditions are reported back in this variable.
-  *
-  * @stable ICU 3.6
-  */
-U_CAPI void U_EXPORT2
-ucsdet_setText(UCharsetDetector *ucsd, const char *textIn, int32_t len, UErrorCode *status);
-
+ * Set the input byte data whose charset is to detected.
+ *
+ * Ownership of the input  text byte array remains with the caller.
+ * The input string must not be altered or deleted until the charset
+ * detector is either closed or reset to refer to different input text.
+ *
+ * @param ucsd   the charset detector to be used.
+ * @param textIn the input text of unknown encoding.   .
+ * @param len    the length of the input text, or -1 if the text
+ *               is NUL terminated.
+ * @param status any error conditions are reported back in this variable.
+ *
+ * @stable ICU 3.6
+ */
+U_CAPI void U_EXPORT2 ucsdet_setText(UCharsetDetector* ucsd, const char* textIn, int32_t len, UErrorCode* status);
 
 /** Set the declared encoding for charset detection.
  *  The declared encoding of an input text is an encoding obtained
@@ -149,14 +144,12 @@ ucsdet_setText(UCharsetDetector *ucsd, const char *textIn, int32_t len, UErrorCo
  *
  * @stable ICU 3.6
  */
-U_CAPI void U_EXPORT2
-ucsdet_setDeclaredEncoding(UCharsetDetector *ucsd, const char *encoding, int32_t length, UErrorCode *status);
-
+U_CAPI void U_EXPORT2 ucsdet_setDeclaredEncoding(UCharsetDetector* ucsd, const char* encoding, int32_t length, UErrorCode* status);
 
 /**
  * Return the charset that best matches the supplied input data.
- * 
- * Note though, that because the detection 
+ *
+ * Note though, that because the detection
  * only looks at the start of the input data,
  * there is a possibility that the returned charset will fail to handle
  * the full set of input data.
@@ -178,9 +171,7 @@ ucsdet_setDeclaredEncoding(UCharsetDetector *ucsd, const char *encoding, int32_t
  *
  * @stable ICU 3.6
  */
-U_CAPI const UCharsetMatch * U_EXPORT2
-ucsdet_detect(UCharsetDetector *ucsd, UErrorCode *status);
-    
+U_CAPI const UCharsetMatch* U_EXPORT2 ucsdet_detect(UCharsetDetector* ucsd, UErrorCode* status);
 
 /**
  *  Find all charset matches that appear to be consistent with the input,
@@ -193,14 +184,14 @@ ucsdet_detect(UCharsetDetector *ucsd, UErrorCode *status);
  *  <p>
  *  The returned UCharsetMatch objects are owned by the UCharsetDetector.
  *  They will remain valid until the detector is closed or modified
- *  
+ *
  * <p>
- * Return an error if 
+ * Return an error if
  *  <ul>
  *    <li>no charsets appear to match the input data.</li>
  *    <li>no input text has been provided</li>
  *  </ul>
- * 
+ *
  * @param ucsd          the charset detector to be used.
  * @param matchesFound  pointer to a variable that will be set to the
  *                      number of charsets identified that are consistent with
@@ -212,10 +203,7 @@ ucsdet_detect(UCharsetDetector *ucsd, UErrorCode *status);
  *                      the detector is closed or modified.
  * @stable ICU 3.6
  */
-U_CAPI const UCharsetMatch ** U_EXPORT2
-ucsdet_detectAll(UCharsetDetector *ucsd, int32_t *matchesFound, UErrorCode *status);
-
-
+U_CAPI const UCharsetMatch** U_EXPORT2 ucsdet_detectAll(UCharsetDetector* ucsd, int32_t* matchesFound, UErrorCode* status);
 
 /**
  *  Get the name of the charset represented by a UCharsetMatch.
@@ -232,8 +220,7 @@ ucsdet_detectAll(UCharsetDetector *ucsd, int32_t *matchesFound, UErrorCode *stat
  *
  *  @stable ICU 3.6
  */
-U_CAPI const char * U_EXPORT2
-ucsdet_getName(const UCharsetMatch *ucsm, UErrorCode *status);
+U_CAPI const char* U_EXPORT2 ucsdet_getName(const UCharsetMatch* ucsm, UErrorCode* status);
 
 /**
  *  Get a confidence number for the quality of the match of the byte
@@ -258,8 +245,7 @@ ucsdet_getName(const UCharsetMatch *ucsm, UErrorCode *status);
  *
  *  @stable ICU 3.6
  */
-U_CAPI int32_t U_EXPORT2
-ucsdet_getConfidence(const UCharsetMatch *ucsm, UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 ucsdet_getConfidence(const UCharsetMatch* ucsm, UErrorCode* status);
 
 /**
  *  Get the RFC 3066 code for the language of the input data.
@@ -290,83 +276,74 @@ ucsdet_getConfidence(const UCharsetMatch *ucsm, UErrorCode *status);
  *
  *  @stable ICU 3.6
  */
-U_CAPI const char * U_EXPORT2
-ucsdet_getLanguage(const UCharsetMatch *ucsm, UErrorCode *status);
-
+U_CAPI const char* U_EXPORT2 ucsdet_getLanguage(const UCharsetMatch* ucsm, UErrorCode* status);
 
 /**
-  *  Get the entire input text as a UChar string, placing it into
-  *  a caller-supplied buffer.  A terminating
-  *  NUL character will be appended to the buffer if space is available.
-  *
-  *  The number of UChars in the output string, not including the terminating
-  *  NUL, is returned. 
-  *
-  *  If the supplied buffer is smaller than required to hold the output,
-  *  the contents of the buffer are undefined.  The full output string length
-  *  (in UChars) is returned as always, and can be used to allocate a buffer
-  *  of the correct size.
-  *
-  *
-  * @param ucsm    The charset match object.
-  * @param buf     A UChar buffer to be filled with the converted text data.
-  * @param cap     The capacity of the buffer in UChars.
-  * @param status  Any error conditions are reported back in this variable.
-  * @return        The number of UChars in the output string.
-  *
-  * @stable ICU 3.6
-  */
-U_CAPI  int32_t U_EXPORT2
-ucsdet_getUChars(const UCharsetMatch *ucsm,
-                 UChar *buf, int32_t cap, UErrorCode *status);
-
-
+ *  Get the entire input text as a UChar string, placing it into
+ *  a caller-supplied buffer.  A terminating
+ *  NUL character will be appended to the buffer if space is available.
+ *
+ *  The number of UChars in the output string, not including the terminating
+ *  NUL, is returned.
+ *
+ *  If the supplied buffer is smaller than required to hold the output,
+ *  the contents of the buffer are undefined.  The full output string length
+ *  (in UChars) is returned as always, and can be used to allocate a buffer
+ *  of the correct size.
+ *
+ *
+ * @param ucsm    The charset match object.
+ * @param buf     A UChar buffer to be filled with the converted text data.
+ * @param cap     The capacity of the buffer in UChars.
+ * @param status  Any error conditions are reported back in this variable.
+ * @return        The number of UChars in the output string.
+ *
+ * @stable ICU 3.6
+ */
+U_CAPI int32_t U_EXPORT2 ucsdet_getUChars(const UCharsetMatch* ucsm, UChar* buf, int32_t cap, UErrorCode* status);
 
 /**
-  *  Get an iterator over the set of all detectable charsets - 
-  *  over the charsets that are known to the charset detection
-  *  service.
-  *
-  *  The returned UEnumeration provides access to the names of
-  *  the charsets.
-  *
-  *  <p>
-  *  The state of the Charset detector that is passed in does not
-  *  affect the result of this function, but requiring a valid, open
-  *  charset detector as a parameter insures that the charset detection
-  *  service has been safely initialized and that the required detection
-  *  data is available.
-  *
-  *  <p>
-  *  <b>Note:</b> Multiple different charset encodings in a same family may use
-  *  a single shared name in this implementation. For example, this method returns
-  *  an array including "ISO-8859-1" (ISO Latin 1), but not including "windows-1252"
-  *  (Windows Latin 1). However, actual detection result could be "windows-1252"
-  *  when the input data matches Latin 1 code points with any points only available
-  *  in "windows-1252".
-  *
-  *  @param ucsd a Charset detector.
-  *  @param status  Any error conditions are reported back in this variable.
-  *  @return an iterator providing access to the detectable charset names.
-  *  @stable ICU 3.6
-  */
-U_CAPI  UEnumeration * U_EXPORT2
-ucsdet_getAllDetectableCharsets(const UCharsetDetector *ucsd,  UErrorCode *status);
+ *  Get an iterator over the set of all detectable charsets -
+ *  over the charsets that are known to the charset detection
+ *  service.
+ *
+ *  The returned UEnumeration provides access to the names of
+ *  the charsets.
+ *
+ *  <p>
+ *  The state of the Charset detector that is passed in does not
+ *  affect the result of this function, but requiring a valid, open
+ *  charset detector as a parameter insures that the charset detection
+ *  service has been safely initialized and that the required detection
+ *  data is available.
+ *
+ *  <p>
+ *  <b>Note:</b> Multiple different charset encodings in a same family may use
+ *  a single shared name in this implementation. For example, this method returns
+ *  an array including "ISO-8859-1" (ISO Latin 1), but not including "windows-1252"
+ *  (Windows Latin 1). However, actual detection result could be "windows-1252"
+ *  when the input data matches Latin 1 code points with any points only available
+ *  in "windows-1252".
+ *
+ *  @param ucsd a Charset detector.
+ *  @param status  Any error conditions are reported back in this variable.
+ *  @return an iterator providing access to the detectable charset names.
+ *  @stable ICU 3.6
+ */
+U_CAPI UEnumeration* U_EXPORT2 ucsdet_getAllDetectableCharsets(const UCharsetDetector* ucsd, UErrorCode* status);
 
 /**
-  *  Test whether input filtering is enabled for this charset detector.
-  *  Input filtering removes text that appears to be HTML or xml
-  *  markup from the input before applying the code page detection
-  *  heuristics.
-  *
-  *  @param ucsd  The charset detector to check.
-  *  @return true if filtering is enabled.
-  *  @stable ICU 3.6
-  */
+ *  Test whether input filtering is enabled for this charset detector.
+ *  Input filtering removes text that appears to be HTML or xml
+ *  markup from the input before applying the code page detection
+ *  heuristics.
+ *
+ *  @param ucsd  The charset detector to check.
+ *  @return true if filtering is enabled.
+ *  @stable ICU 3.6
+ */
 
-U_CAPI  UBool U_EXPORT2
-ucsdet_isInputFilterEnabled(const UCharsetDetector *ucsd);
-
+U_CAPI UBool U_EXPORT2 ucsdet_isInputFilterEnabled(const UCharsetDetector* ucsd);
 
 /**
  * Enable filtering of input text. If filtering is enabled,
@@ -379,44 +356,39 @@ ucsdet_isInputFilterEnabled(const UCharsetDetector *ucsd);
  *
  * @stable ICU 3.6
  */
-U_CAPI  UBool U_EXPORT2
-ucsdet_enableInputFilter(UCharsetDetector *ucsd, UBool filter);
+U_CAPI UBool U_EXPORT2 ucsdet_enableInputFilter(UCharsetDetector* ucsd, UBool filter);
 
 #ifndef U_HIDE_INTERNAL_API
 /**
-  *  Get an iterator over the set of detectable charsets -
-  *  over the charsets that are enabled by the specified charset detector.
-  *
-  *  The returned UEnumeration provides access to the names of
-  *  the charsets.
-  *
-  *  @param ucsd a Charset detector.
-  *  @param status  Any error conditions are reported back in this variable.
-  *  @return an iterator providing access to the detectable charset names by
-  *  the specified charset detector.
-  *  @internal
-  */
-U_CAPI UEnumeration * U_EXPORT2
-ucsdet_getDetectableCharsets(const UCharsetDetector *ucsd,  UErrorCode *status);
+ *  Get an iterator over the set of detectable charsets -
+ *  over the charsets that are enabled by the specified charset detector.
+ *
+ *  The returned UEnumeration provides access to the names of
+ *  the charsets.
+ *
+ *  @param ucsd a Charset detector.
+ *  @param status  Any error conditions are reported back in this variable.
+ *  @return an iterator providing access to the detectable charset names by
+ *  the specified charset detector.
+ *  @internal
+ */
+U_CAPI UEnumeration* U_EXPORT2 ucsdet_getDetectableCharsets(const UCharsetDetector* ucsd, UErrorCode* status);
 
 /**
-  * Enable or disable individual charset encoding.
-  * A name of charset encoding must be included in the names returned by
-  * {@link #ucsdet_getAllDetectableCharsets()}.
-  *
-  * @param ucsd a Charset detector.
-  * @param encoding encoding the name of charset encoding.
-  * @param enabled <code>true</code> to enable, or <code>false</code> to disable the
-  *   charset encoding.
-  * @param status receives the return status. When the name of charset encoding
-  *   is not supported, U_ILLEGAL_ARGUMENT_ERROR is set.
-  * @internal
-  */
-U_CAPI void U_EXPORT2
-ucsdet_setDetectableCharset(UCharsetDetector *ucsd, const char *encoding, UBool enabled, UErrorCode *status);
-#endif  /* U_HIDE_INTERNAL_API */
+ * Enable or disable individual charset encoding.
+ * A name of charset encoding must be included in the names returned by
+ * {@link #ucsdet_getAllDetectableCharsets()}.
+ *
+ * @param ucsd a Charset detector.
+ * @param encoding encoding the name of charset encoding.
+ * @param enabled <code>true</code> to enable, or <code>false</code> to disable the
+ *   charset encoding.
+ * @param status receives the return status. When the name of charset encoding
+ *   is not supported, U_ILLEGAL_ARGUMENT_ERROR is set.
+ * @internal
+ */
+U_CAPI void U_EXPORT2 ucsdet_setDetectableCharset(UCharsetDetector* ucsd, const char* encoding, UBool enabled, UErrorCode* status);
+#endif /* U_HIDE_INTERNAL_API */
 
 #endif
-#endif   /* __UCSDET_H */
-
-
+#endif /* __UCSDET_H */

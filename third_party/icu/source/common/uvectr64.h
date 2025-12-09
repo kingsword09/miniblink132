@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -22,8 +22,6 @@
 #include "uassert.h"
 
 U_NAMESPACE_BEGIN
-
-
 
 /**
  * <p>Ultralightweight C++ implementation of an <tt>int64_t</tt> vector
@@ -59,18 +57,18 @@ U_NAMESPACE_BEGIN
  */
 class U_COMMON_API UVector64 : public UObject {
 private:
-    int32_t   count;
+    int32_t count;
 
-    int32_t   capacity;
-    
-    int32_t   maxCapacity;   // Limit beyond which capacity is not permitted to grow.
+    int32_t capacity;
 
-    int64_t*  elements;
+    int32_t maxCapacity; // Limit beyond which capacity is not permitted to grow.
+
+    int64_t* elements;
 
 public:
-    UVector64(UErrorCode &status);
+    UVector64(UErrorCode& status);
 
-    UVector64(int32_t initialCapacity, UErrorCode &status);
+    UVector64(int32_t initialCapacity, UErrorCode& status);
 
     virtual ~UVector64();
 
@@ -78,7 +76,7 @@ public:
      * Assign this object to another (make this a copy of 'other').
      * Use the 'assign' function to assign each element.
      */
-    void assign(const UVector64& other, UErrorCode &ec);
+    void assign(const UVector64& other, UErrorCode& ec);
 
     /**
      * Compare this vector with another.  They will be considered
@@ -96,41 +94,44 @@ public:
     // subset of java.util.Vector API
     //------------------------------------------------------------
 
-    inline void addElement(int64_t elem, UErrorCode &status);
+    inline void addElement(int64_t elem, UErrorCode& status);
 
     void setElementAt(int64_t elem, int32_t index);
 
-    void insertElementAt(int64_t elem, int32_t index, UErrorCode &status);
-    
+    void insertElementAt(int64_t elem, int32_t index, UErrorCode& status);
+
     inline int64_t elementAti(int32_t index) const;
 
-    //UBool equals(const UVector64 &other) const;
+    // UBool equals(const UVector64 &other) const;
 
-    inline int64_t lastElementi() const;
+    inline int64_t lastElementi(void) const;
 
-    //int32_t indexOf(int64_t elem, int32_t startIndex = 0) const;
+    // int32_t indexOf(int64_t elem, int32_t startIndex = 0) const;
 
-    //UBool contains(int64_t elem) const;
+    // UBool contains(int64_t elem) const;
 
-    //UBool containsAll(const UVector64& other) const;
+    // UBool containsAll(const UVector64& other) const;
 
-    //UBool removeAll(const UVector64& other);
+    // UBool removeAll(const UVector64& other);
 
-    //UBool retainAll(const UVector64& other);
+    // UBool retainAll(const UVector64& other);
 
-    //void removeElementAt(int32_t index);
+    // void removeElementAt(int32_t index);
 
     void removeAllElements();
 
-    inline int32_t size() const;
+    inline int32_t size(void) const;
 
-    inline UBool isEmpty() const { return count == 0; }
+    inline UBool isEmpty(void) const
+    {
+        return count == 0;
+    }
 
     // Inline.  Use this one for speedy size check.
-    inline UBool ensureCapacity(int32_t minimumCapacity, UErrorCode &status);
+    inline UBool ensureCapacity(int32_t minimumCapacity, UErrorCode& status);
 
     // Out-of-line, handles actual growth.  Called by ensureCapacity() when necessary.
-    UBool expandCapacity(int32_t minimumCapacity, UErrorCode &status);
+    UBool expandCapacity(int32_t minimumCapacity, UErrorCode& status);
 
     /**
      * Change the size of this vector as follows: If newSize is
@@ -144,15 +145,14 @@ public:
     // New API
     //------------------------------------------------------------
 
-    //UBool containsNone(const UVector64& other) const;
+    // UBool containsNone(const UVector64& other) const;
 
-
-    //void sortedInsert(int64_t elem, UErrorCode& ec);
+    // void sortedInsert(int64_t elem, UErrorCode& ec);
 
     /**
      * Returns a pointer to the internal array holding the vector.
      */
-    inline int64_t *getBuffer() const;
+    inline int64_t* getBuffer() const;
 
     /**
      * Set the maximum allowed buffer capacity for this vector/stack.
@@ -173,35 +173,34 @@ public:
     virtual UClassID getDynamicClassID() const override;
 
 private:
-    void _init(int32_t initialCapacity, UErrorCode &status);
+    void _init(int32_t initialCapacity, UErrorCode& status);
 
     // Disallow
-    UVector64(const UVector64&) = delete;
+    UVector64(const UVector64&);
 
     // Disallow
-    UVector64& operator=(const UVector64&) = delete;
-
+    UVector64& operator=(const UVector64&);
 
     //  API Functions for Stack operations.
     //  In the original UVector, these were in a separate derived class, UStack.
     //  Here in UVector64, they are all together.
 public:
-    //UBool empty() const;   // TODO:  redundant, same as empty().  Remove it?
+    // UBool empty(void) const;   // TODO:  redundant, same as empty().  Remove it?
 
-    //int64_t peeki() const;
-    
-    inline int64_t popi();
-    
-    inline int64_t push(int64_t i, UErrorCode &status);
+    // int64_t peeki(void) const;
 
-    inline int64_t *reserveBlock(int32_t size, UErrorCode &status);
-    inline int64_t *popFrame(int32_t size);
+    inline int64_t popi(void);
+
+    inline int64_t push(int64_t i, UErrorCode& status);
+
+    inline int64_t* reserveBlock(int32_t size, UErrorCode& status);
+    inline int64_t* popFrame(int32_t size);
 };
-
 
 // UVector64 inlines
 
-inline UBool UVector64::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
+inline UBool UVector64::ensureCapacity(int32_t minimumCapacity, UErrorCode& status)
+{
     if ((minimumCapacity >= 0) && (capacity >= minimumCapacity)) {
         return true;
     } else {
@@ -209,63 +208,69 @@ inline UBool UVector64::ensureCapacity(int32_t minimumCapacity, UErrorCode &stat
     }
 }
 
-inline int64_t UVector64::elementAti(int32_t index) const {
+inline int64_t UVector64::elementAti(int32_t index) const
+{
     return (0 <= index && index < count) ? elements[index] : 0;
 }
 
-
-inline void UVector64::addElement(int64_t elem, UErrorCode &status) {
+inline void UVector64::addElement(int64_t elem, UErrorCode& status)
+{
     if (ensureCapacity(count + 1, status)) {
         elements[count] = elem;
         count++;
     }
 }
 
-inline int64_t *UVector64::reserveBlock(int32_t size, UErrorCode &status) {
-    if (ensureCapacity(count+size, status) == false) {
-        return nullptr;
+inline int64_t* UVector64::reserveBlock(int32_t size, UErrorCode& status)
+{
+    if (ensureCapacity(count + size, status) == false) {
+        return NULL;
     }
-    int64_t  *rp = elements+count;
+    int64_t* rp = elements + count;
     count += size;
     return rp;
 }
 
-inline int64_t *UVector64::popFrame(int32_t size) {
+inline int64_t* UVector64::popFrame(int32_t size)
+{
     U_ASSERT(count >= size);
     count -= size;
     if (count < 0) {
         count = 0;
     }
-    return elements+count-size;
+    return elements + count - size;
 }
 
-
-
-inline int32_t UVector64::size() const {
+inline int32_t UVector64::size(void) const
+{
     return count;
 }
 
-inline int64_t UVector64::lastElementi() const {
-    return elementAti(count-1);
+inline int64_t UVector64::lastElementi(void) const
+{
+    return elementAti(count - 1);
 }
 
-inline bool UVector64::operator!=(const UVector64& other) {
+inline bool UVector64::operator!=(const UVector64& other)
+{
     return !operator==(other);
 }
 
-inline int64_t *UVector64::getBuffer() const {
+inline int64_t* UVector64::getBuffer() const
+{
     return elements;
 }
 
-
 // UStack inlines
 
-inline int64_t UVector64::push(int64_t i, UErrorCode &status) {
+inline int64_t UVector64::push(int64_t i, UErrorCode& status)
+{
     addElement(i, status);
     return i;
 }
 
-inline int64_t UVector64::popi() {
+inline int64_t UVector64::popi(void)
+{
     int64_t result = 0;
     if (count > 0) {
         count--;

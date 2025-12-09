@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *****************************************************************************************
@@ -18,13 +18,13 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * \file
  * \brief C API: Format a list in a locale-appropriate way.
  *
- * A UListFormatter is used to format a list of items in a locale-appropriate way, 
+ * A UListFormatter is used to format a list of items in a locale-appropriate way,
  * using data from CLDR.
  * Example: Input data ["Alice", "Bob", "Charlie", "Delta"] will be formatted
  * as "Alice, Bob, Charlie, and Delta" in English.
@@ -35,7 +35,7 @@
  * @stable ICU 55
  */
 struct UListFormatter;
-typedef struct UListFormatter UListFormatter;  /**< C typedef for struct UListFormatter. @stable ICU 55 */
+typedef struct UListFormatter UListFormatter; /**< C typedef for struct UListFormatter. @stable ICU 55 */
 
 struct UFormattedList;
 /**
@@ -135,9 +135,7 @@ typedef enum UListFormatterWidth {
  *            or NULL if an error occurred.
  * @stable ICU 55
  */
-U_CAPI UListFormatter* U_EXPORT2
-ulistfmt_open(const char*  locale,
-              UErrorCode*  status);
+U_CAPI UListFormatter* U_EXPORT2 ulistfmt_open(const char* locale, UErrorCode* status);
 
 /**
  * Open a new UListFormatter object appropriate for the given locale, list type,
@@ -161,9 +159,7 @@ ulistfmt_open(const char*  locale,
  *            or NULL if an error occurred.
  * @stable ICU 67
  */
-U_CAPI UListFormatter* U_EXPORT2
-ulistfmt_openForType(const char*  locale, UListFormatterType type,
-                     UListFormatterWidth width, UErrorCode*  status);
+U_CAPI UListFormatter* U_EXPORT2 ulistfmt_openForType(const char* locale, UListFormatterType type, UListFormatterWidth width, UErrorCode* status);
 
 /**
  * Close a UListFormatter object. Once closed it may no longer be used.
@@ -171,8 +167,7 @@ ulistfmt_openForType(const char*  locale, UListFormatterType type,
  *            The UListFormatter object to close.
  * @stable ICU 55
  */
-U_CAPI void U_EXPORT2
-ulistfmt_close(UListFormatter *listfmt);
+U_CAPI void U_EXPORT2 ulistfmt_close(UListFormatter* listfmt);
 
 /**
  * Creates an object to hold the result of a UListFormatter
@@ -183,8 +178,7 @@ ulistfmt_close(UListFormatter *listfmt);
  * @return A pointer needing ownership.
  * @stable ICU 64
  */
-U_CAPI UFormattedList* U_EXPORT2
-ulistfmt_openResult(UErrorCode* ec);
+U_CAPI UFormattedList* U_EXPORT2 ulistfmt_openResult(UErrorCode* ec);
 
 /**
  * Returns a representation of a UFormattedList as a UFormattedValue,
@@ -207,8 +201,7 @@ ulistfmt_openResult(UErrorCode* ec);
  * @return A UFormattedValue owned by the input object.
  * @stable ICU 64
  */
-U_CAPI const UFormattedValue* U_EXPORT2
-ulistfmt_resultAsValue(const UFormattedList* uresult, UErrorCode* ec);
+U_CAPI const UFormattedValue* U_EXPORT2 ulistfmt_resultAsValue(const UFormattedList* uresult, UErrorCode* ec);
 
 /**
  * Releases the UFormattedList created by ulistfmt_openResult().
@@ -216,9 +209,7 @@ ulistfmt_resultAsValue(const UFormattedList* uresult, UErrorCode* ec);
  * @param uresult The object to release.
  * @stable ICU 64
  */
-U_CAPI void U_EXPORT2
-ulistfmt_closeResult(UFormattedList* uresult);
-
+U_CAPI void U_EXPORT2 ulistfmt_closeResult(UFormattedList* uresult);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -284,14 +275,8 @@ U_NAMESPACE_END
  *            total buffer size needed (e.g. for illegal arguments).
  * @stable ICU 55
  */
-U_CAPI int32_t U_EXPORT2
-ulistfmt_format(const UListFormatter* listfmt,
-                const UChar* const strings[],
-                const int32_t *    stringLengths,
-                int32_t            stringCount,
-                UChar*             result,
-                int32_t            resultCapacity,
-                UErrorCode*        status);
+U_CAPI int32_t U_EXPORT2 ulistfmt_format(const UListFormatter* listfmt, const UChar* const strings[], const int32_t* stringLengths, int32_t stringCount,
+    UChar* result, int32_t resultCapacity, UErrorCode* status);
 
 /**
  * Formats a list of strings to a UFormattedList, which exposes more
@@ -319,14 +304,8 @@ ulistfmt_format(const UListFormatter* listfmt,
  *            Error code set if an error occurred during formatting.
  * @stable ICU 64
  */
-U_CAPI void U_EXPORT2
-ulistfmt_formatStringsToResult(
-                const UListFormatter* listfmt,
-                const UChar* const strings[],
-                const int32_t *    stringLengths,
-                int32_t            stringCount,
-                UFormattedList*    uresult,
-                UErrorCode*        status);
+U_CAPI void U_EXPORT2 ulistfmt_formatStringsToResult(const UListFormatter* listfmt, const UChar* const strings[], const int32_t* stringLengths,
+    int32_t stringCount, UFormattedList* uresult, UErrorCode* status);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

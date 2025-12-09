@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -15,20 +15,18 @@
 
 using namespace icu;
 
-
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CompactDecimalFormat)
 
-
-CompactDecimalFormat*
-CompactDecimalFormat::createInstance(const Locale& inLocale, UNumberCompactStyle style,
-                                     UErrorCode& status) {
+CompactDecimalFormat* CompactDecimalFormat::createInstance(const Locale& inLocale, UNumberCompactStyle style, UErrorCode& status)
+{
     return new CompactDecimalFormat(inLocale, style, status);
 }
 
-CompactDecimalFormat::CompactDecimalFormat(const Locale& inLocale, UNumberCompactStyle style,
-                                           UErrorCode& status)
-        : DecimalFormat(new DecimalFormatSymbols(inLocale, status), status) {
-    if (U_FAILURE(status)) return;
+CompactDecimalFormat::CompactDecimalFormat(const Locale& inLocale, UNumberCompactStyle style, UErrorCode& status)
+    : DecimalFormat(new DecimalFormatSymbols(inLocale, status), status)
+{
+    if (U_FAILURE(status))
+        return;
     // Minimal properties: let the non-shim code path do most of the logic for us.
     fields->properties.compactStyle = style;
     fields->properties.groupingSize = -2; // do not forward grouping information
@@ -40,36 +38,29 @@ CompactDecimalFormat::CompactDecimalFormat(const CompactDecimalFormat& source) =
 
 CompactDecimalFormat::~CompactDecimalFormat() = default;
 
-CompactDecimalFormat& CompactDecimalFormat::operator=(const CompactDecimalFormat& rhs) {
+CompactDecimalFormat& CompactDecimalFormat::operator=(const CompactDecimalFormat& rhs)
+{
     DecimalFormat::operator=(rhs);
     return *this;
 }
 
-CompactDecimalFormat* CompactDecimalFormat::clone() const {
+CompactDecimalFormat* CompactDecimalFormat::clone() const
+{
     return new CompactDecimalFormat(*this);
 }
 
-void
-CompactDecimalFormat::parse(
-        const UnicodeString& /* text */,
-        Formattable& /* result */,
-        ParsePosition& /* parsePosition */) const {
+void CompactDecimalFormat::parse(const UnicodeString& /* text */, Formattable& /* result */, ParsePosition& /* parsePosition */) const
+{
 }
 
-void
-CompactDecimalFormat::parse(
-        const UnicodeString& /* text */,
-        Formattable& /* result */,
-        UErrorCode& status) const {
+void CompactDecimalFormat::parse(const UnicodeString& /* text */, Formattable& /* result */, UErrorCode& status) const
+{
     status = U_UNSUPPORTED_ERROR;
 }
 
-CurrencyAmount*
-CompactDecimalFormat::parseCurrency(
-        const UnicodeString& /* text */,
-        ParsePosition& /* pos */) const {
+CurrencyAmount* CompactDecimalFormat::parseCurrency(const UnicodeString& /* text */, ParsePosition& /* pos */) const
+{
     return nullptr;
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

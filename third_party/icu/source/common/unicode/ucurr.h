@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -13,7 +13,7 @@
 #include "unicode/uenum.h"
 
 /**
- * \file 
+ * \file
  * \brief C API: Encapsulates information about a currency.
  *
  * The ucurr API encapsulates information about a currency, as defined by
@@ -45,27 +45,27 @@ enum UCurrencyUsage {
      * used as DEFAULT value
      * @stable ICU 54
      */
-    UCURR_USAGE_STANDARD=0,
+    UCURR_USAGE_STANDARD = 0,
     /**
      * a setting to specify currency usage which determines currency digit
      * and rounding for cash usage, for example: "50 NT$"
      * @stable ICU 54
      */
-    UCURR_USAGE_CASH=1,
+    UCURR_USAGE_CASH = 1,
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One higher than the last enum UCurrencyUsage constant.
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
-    UCURR_USAGE_COUNT=2
-#endif  // U_HIDE_DEPRECATED_API
+    UCURR_USAGE_COUNT = 2
+#endif // U_HIDE_DEPRECATED_API
 };
 /** Currency Usage used for Decimal Format */
-typedef enum UCurrencyUsage UCurrencyUsage; 
+typedef enum UCurrencyUsage UCurrencyUsage;
 
 /**
  * Finds a currency code for the given locale.
- * @param locale the locale for which to retrieve a currency code. 
+ * @param locale the locale for which to retrieve a currency code.
  *               Currency can be specified by the "currency" keyword
  *               in which case it overrides the default currency code
  * @param buff   fill in buffer. Can be NULL for preflighting.
@@ -74,15 +74,11 @@ typedef enum UCurrencyUsage UCurrencyUsage;
  *               must not be NULL.
  * @param ec error code
  * @return length of the currency string. It should always be 3. If 0,
- *                currency couldn't be found or the input values are 
- *                invalid. 
+ *                currency couldn't be found or the input values are
+ *                invalid.
  * @stable ICU 2.8
  */
-U_CAPI int32_t U_EXPORT2
-ucurr_forLocale(const char* locale,
-                UChar* buff,
-                int32_t buffCapacity,
-                UErrorCode* ec);
+U_CAPI int32_t U_EXPORT2 ucurr_forLocale(const char* locale, UChar* buff, int32_t buffCapacity, UErrorCode* ec);
 
 /**
  * Selector constants for ucurr_getName().
@@ -133,7 +129,7 @@ typedef enum UCurrNameStyle {
      * @stable ICU 68
      */
     UCURR_VARIANT_SYMBOL_NAME
-    
+
 } UCurrNameStyle;
 
 #if !UCONFIG_NO_SERVICE
@@ -153,23 +149,19 @@ typedef const void* UCurrRegistryKey;
  * if there was an error.
  * @stable ICU 2.6
  */
-U_CAPI UCurrRegistryKey U_EXPORT2
-ucurr_register(const UChar* isoCode, 
-                   const char* locale,  
-                   UErrorCode* status);
+U_CAPI UCurrRegistryKey U_EXPORT2 ucurr_register(const UChar* isoCode, const char* locale, UErrorCode* status);
 /**
  * Unregister the previously-registered currency definitions using the
  * URegistryKey returned from ucurr_register.  Key becomes invalid after
- * a successful call and should not be used again.  Any currency 
- * that might have been hidden by the original ucurr_register call is 
+ * a successful call and should not be used again.  Any currency
+ * that might have been hidden by the original ucurr_register call is
  * restored.
  * @param key the registry key returned by a previous call to ucurr_register
  * @param status the in/out status code, no special meanings are assigned
  * @return true if the currency for this key was successfully unregistered
  * @stable ICU 2.6
  */
-U_CAPI UBool U_EXPORT2
-ucurr_unregister(UCurrRegistryKey key, UErrorCode* status);
+U_CAPI UBool U_EXPORT2 ucurr_unregister(UCurrRegistryKey key, UErrorCode* status);
 #endif /* UCONFIG_NO_SERVICE */
 
 /**
@@ -189,13 +181,8 @@ ucurr_unregister(UCurrRegistryKey key, UErrorCode* status);
  * returned.
  * @stable ICU 2.6
  */
-U_CAPI const UChar* U_EXPORT2
-ucurr_getName(const UChar* currency,
-              const char* locale,
-              UCurrNameStyle nameStyle,
-              UBool* isChoiceFormat,
-              int32_t* len,
-              UErrorCode* ec);
+U_CAPI const UChar* U_EXPORT2 ucurr_getName(
+    const UChar* currency, const char* locale, UCurrNameStyle nameStyle, UBool* isChoiceFormat, int32_t* len, UErrorCode* ec);
 
 /**
  * Returns the plural name for the given currency in the
@@ -214,13 +201,8 @@ ucurr_getName(const UChar* currency,
  * returned.
  * @stable ICU 4.2
  */
-U_CAPI const UChar* U_EXPORT2
-ucurr_getPluralName(const UChar* currency,
-                    const char* locale,
-                    UBool* isChoiceFormat,
-                    const char* pluralCount,
-                    int32_t* len,
-                    UErrorCode* ec);
+U_CAPI const UChar* U_EXPORT2 ucurr_getPluralName(
+    const UChar* currency, const char* locale, UBool* isChoiceFormat, const char* pluralCount, int32_t* len, UErrorCode* ec);
 
 /**
  * Returns the number of the number of fraction digits that should
@@ -239,9 +221,7 @@ ucurr_getPluralName(const UChar* currency,
  * displayed, or 0 if there is an error
  * @stable ICU 3.0
  */
-U_CAPI int32_t U_EXPORT2
-ucurr_getDefaultFractionDigits(const UChar* currency,
-                               UErrorCode* ec);
+U_CAPI int32_t U_EXPORT2 ucurr_getDefaultFractionDigits(const UChar* currency, UErrorCode* ec);
 
 /**
  * Returns the number of the number of fraction digits that should
@@ -260,10 +240,7 @@ ucurr_getDefaultFractionDigits(const UChar* currency,
  * displayed, or 0 if there is an error
  * @stable ICU 54
  */
-U_CAPI int32_t U_EXPORT2
-ucurr_getDefaultFractionDigitsForUsage(const UChar* currency, 
-                                       const UCurrencyUsage usage,
-                                       UErrorCode* ec);
+U_CAPI int32_t U_EXPORT2 ucurr_getDefaultFractionDigitsForUsage(const UChar* currency, const UCurrencyUsage usage, UErrorCode* ec);
 
 /**
  * Returns the rounding increment for the given currency, or 0.0 if no
@@ -275,9 +252,7 @@ ucurr_getDefaultFractionDigitsForUsage(const UChar* currency,
  * or 0.0 if there is an error
  * @stable ICU 3.0
  */
-U_CAPI double U_EXPORT2
-ucurr_getRoundingIncrement(const UChar* currency,
-                           UErrorCode* ec);
+U_CAPI double U_EXPORT2 ucurr_getRoundingIncrement(const UChar* currency, UErrorCode* ec);
 
 /**
  * Returns the rounding increment for the given currency, or 0.0 if no
@@ -289,10 +264,7 @@ ucurr_getRoundingIncrement(const UChar* currency,
  * or 0.0 if there is an error
  * @stable ICU 54
  */
-U_CAPI double U_EXPORT2
-ucurr_getRoundingIncrementForUsage(const UChar* currency,
-                                   const UCurrencyUsage usage,
-                                   UErrorCode* ec);
+U_CAPI double U_EXPORT2 ucurr_getRoundingIncrementForUsage(const UChar* currency, const UCurrencyUsage usage, UErrorCode* ec);
 
 /**
  * Selector constants for ucurr_openCurrencies().
@@ -346,42 +318,37 @@ typedef enum UCurrCurrencyType {
  * @param pErrorCode Error code
  * @stable ICU 3.2
  */
-U_CAPI UEnumeration * U_EXPORT2
-ucurr_openISOCurrencies(uint32_t currType, UErrorCode *pErrorCode);
+U_CAPI UEnumeration* U_EXPORT2 ucurr_openISOCurrencies(uint32_t currType, UErrorCode* pErrorCode);
 
 /**
-  * Queries if the given ISO 4217 3-letter code is available on the specified date range. 
-  * 
-  * Note: For checking availability of a currency on a specific date, specify the date on both 'from' and 'to' 
-  * 
-  * When 'from' is U_DATE_MIN and 'to' is U_DATE_MAX, this method checks if the specified currency is available any time. 
-  * If 'from' and 'to' are same UDate value, this method checks if the specified currency is available on that date.
-  * 
-  * @param isoCode 
-  *            The ISO 4217 3-letter code. 
-  * 
-  * @param from 
-  *            The lower bound of the date range, inclusive. When 'from' is U_DATE_MIN, check the availability 
-  *            of the currency any date before 'to' 
-  * 
-  * @param to 
-  *            The upper bound of the date range, inclusive. When 'to' is U_DATE_MAX, check the availability of 
-  *            the currency any date after 'from' 
-  * 
-  * @param errorCode 
-  *            ICU error code 
-   * 
-  * @return true if the given ISO 4217 3-letter code is supported on the specified date range. 
-  * 
-  * @stable ICU 4.8 
-  */ 
-U_CAPI UBool U_EXPORT2
-ucurr_isAvailable(const UChar* isoCode, 
-             UDate from, 
-             UDate to, 
-             UErrorCode* errorCode);
+ * Queries if the given ISO 4217 3-letter code is available on the specified date range.
+ *
+ * Note: For checking availability of a currency on a specific date, specify the date on both 'from' and 'to'
+ *
+ * When 'from' is U_DATE_MIN and 'to' is U_DATE_MAX, this method checks if the specified currency is available any time.
+ * If 'from' and 'to' are same UDate value, this method checks if the specified currency is available on that date.
+ *
+ * @param isoCode
+ *            The ISO 4217 3-letter code.
+ *
+ * @param from
+ *            The lower bound of the date range, inclusive. When 'from' is U_DATE_MIN, check the availability
+ *            of the currency any date before 'to'
+ *
+ * @param to
+ *            The upper bound of the date range, inclusive. When 'to' is U_DATE_MAX, check the availability of
+ *            the currency any date after 'from'
+ *
+ * @param errorCode
+ *            ICU error code
+ *
+ * @return true if the given ISO 4217 3-letter code is supported on the specified date range.
+ *
+ * @stable ICU 4.8
+ */
+U_CAPI UBool U_EXPORT2 ucurr_isAvailable(const UChar* isoCode, UDate from, UDate to, UErrorCode* errorCode);
 
-/** 
+/**
  * Finds the number of valid currency codes for the
  * given locale and date.
  * @param locale the locale for which to retrieve the
@@ -395,37 +362,28 @@ ucurr_isAvailable(const UChar* isoCode,
  *               values are invalid.
  * @stable ICU 4.0
  */
-U_CAPI int32_t U_EXPORT2
-ucurr_countCurrencies(const char* locale, 
-                 UDate date, 
-                 UErrorCode* ec); 
+U_CAPI int32_t U_EXPORT2 ucurr_countCurrencies(const char* locale, UDate date, UErrorCode* ec);
 
-/** 
- * Finds a currency code for the given locale and date 
- * @param locale the locale for which to retrieve a currency code.  
- *               Currency can be specified by the "currency" keyword 
- *               in which case it overrides the default currency code 
- * @param date   the date for which to retrieve a currency code for 
- *               the given locale. 
+/**
+ * Finds a currency code for the given locale and date
+ * @param locale the locale for which to retrieve a currency code.
+ *               Currency can be specified by the "currency" keyword
+ *               in which case it overrides the default currency code
+ * @param date   the date for which to retrieve a currency code for
+ *               the given locale.
  * @param index  the index within the available list of currency codes
  *               for the given locale on the given date.
- * @param buff   fill in buffer. Can be NULL for preflighting. 
- * @param buffCapacity capacity of the fill in buffer. Can be 0 for 
- *               preflighting. If it is non-zero, the buff parameter 
- *               must not be NULL. 
- * @param ec     error code 
- * @return       length of the currency string. It should always be 3. 
- *               If 0, currency couldn't be found or the input values are  
- *               invalid.  
- * @stable ICU 4.0 
- */ 
-U_CAPI int32_t U_EXPORT2 
-ucurr_forLocaleAndDate(const char* locale, 
-                UDate date, 
-                int32_t index,
-                UChar* buff, 
-                int32_t buffCapacity, 
-                UErrorCode* ec); 
+ * @param buff   fill in buffer. Can be NULL for preflighting.
+ * @param buffCapacity capacity of the fill in buffer. Can be 0 for
+ *               preflighting. If it is non-zero, the buff parameter
+ *               must not be NULL.
+ * @param ec     error code
+ * @return       length of the currency string. It should always be 3.
+ *               If 0, currency couldn't be found or the input values are
+ *               invalid.
+ * @stable ICU 4.0
+ */
+U_CAPI int32_t U_EXPORT2 ucurr_forLocaleAndDate(const char* locale, UDate date, int32_t index, UChar* buff, int32_t buffCapacity, UErrorCode* ec);
 
 /**
  * Given a key and a locale, returns an array of string values in a preferred
@@ -443,11 +401,7 @@ ucurr_forLocaleAndDate(const char* locale,
  * @return a string enumeration over keyword values for the given key and the locale.
  * @stable ICU 4.2
  */
-U_CAPI UEnumeration* U_EXPORT2
-ucurr_getKeywordValuesForLocale(const char* key,
-                                const char* locale,
-                                UBool commonlyUsed,
-                                UErrorCode* status);
+U_CAPI UEnumeration* U_EXPORT2 ucurr_getKeywordValuesForLocale(const char* key, const char* locale, UBool commonlyUsed, UErrorCode* status);
 
 /**
  * Returns the ISO 4217 numeric code for the currency.
@@ -458,8 +412,7 @@ ucurr_getKeywordValuesForLocale(const char* key,
  * @return The ISO 4217 numeric code of the currency
  * @stable ICU 49
  */
-U_CAPI int32_t U_EXPORT2
-ucurr_getNumericCode(const UChar* currency);
+U_CAPI int32_t U_EXPORT2 ucurr_getNumericCode(const UChar* currency);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

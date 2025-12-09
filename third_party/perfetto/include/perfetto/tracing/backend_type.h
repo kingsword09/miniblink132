@@ -22,23 +22,23 @@
 namespace perfetto {
 
 enum BackendType : uint32_t {
-  kUnspecifiedBackend = 0,
+    kUnspecifiedBackend = 0,
 
-  // Connects to a previously-initialized perfetto tracing backend for
-  // in-process. If the in-process backend has not been previously initialized
-  // it will do so and create the tracing service on a dedicated thread.
-  kInProcessBackend = 1 << 0,
+    // Connects to a previously-initialized perfetto tracing backend for
+    // in-process. If the in-process backend has not been previously initialized
+    // it will do so and create the tracing service on a dedicated thread.
+    kInProcessBackend = 1 << 0,
 
-  // Connects to the system tracing service (e.g. on Linux/Android/Mac uses a
-  // named UNIX socket).
-  kSystemBackend = 1 << 1,
+    // Connects to the system tracing service (e.g. on Linux/Android/Mac uses a
+    // named UNIX socket).
+    kSystemBackend = 1 << 1,
 
-  // Used to provide a custom IPC transport to connect to the service.
-  // TracingInitArgs::custom_backend must be non-null and point to an
-  // indefinitely lived instance.
-  kCustomBackend = 1 << 2,
+    // Used to provide a custom IPC transport to connect to the service.
+    // TracingInitArgs::custom_backend must be non-null and point to an
+    // indefinitely lived instance.
+    kCustomBackend = 1 << 2,
 };
 
-}  // namespace perfetto
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_BACKEND_TYPE_H_
+#endif // INCLUDE_PERFETTO_TRACING_BACKEND_TYPE_H_

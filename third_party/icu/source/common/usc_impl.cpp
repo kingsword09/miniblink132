@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -22,26 +22,24 @@
 #define PAREN_STACK_DEPTH 32
 
 #define MOD(sp) ((sp) % PAREN_STACK_DEPTH)
-#define LIMIT_INC(sp) (((sp) < PAREN_STACK_DEPTH)? (sp) + 1 : PAREN_STACK_DEPTH)
-#define INC(sp,count) (MOD((sp) + (count)))
+#define LIMIT_INC(sp) (((sp) < PAREN_STACK_DEPTH) ? (sp) + 1 : PAREN_STACK_DEPTH)
+#define INC(sp, count) (MOD((sp) + (count)))
 #define INC1(sp) (INC(sp, 1))
-#define DEC(sp,count) (MOD((sp) + PAREN_STACK_DEPTH - (count)))
+#define DEC(sp, count) (MOD((sp) + PAREN_STACK_DEPTH - (count)))
 #define DEC1(sp) (DEC(sp, 1))
 #define STACK_IS_EMPTY(scriptRun) ((scriptRun)->pushCount <= 0)
-#define STACK_IS_NOT_EMPTY(scriptRun) (! STACK_IS_EMPTY(scriptRun))
+#define STACK_IS_NOT_EMPTY(scriptRun) (!STACK_IS_EMPTY(scriptRun))
 #define TOP(scriptRun) ((scriptRun)->parenStack[(scriptRun)->parenSP])
 #define SYNC_FIXUP(scriptRun) ((scriptRun)->fixupCount = 0)
 
-struct ParenStackEntry
-{
+struct ParenStackEntry {
     int32_t pairIndex;
     UScriptCode scriptCode;
 };
 
-struct UScriptRun
-{
+struct UScriptRun {
     int32_t textLength;
-    const char16_t *textArray;
+    const UChar* textArray;
 
     int32_t scriptStart;
     int32_t scriptLimit;
@@ -55,49 +53,35 @@ struct UScriptRun
 
 static int8_t highBit(int32_t value);
 
-static const UChar32 pairedChars[] = {
-    0x0028, 0x0029, /* ascii paired punctuation */
-    0x003c, 0x003e,
-    0x005b, 0x005d,
-    0x007b, 0x007d,
-    0x00ab, 0x00bb, /* guillemets */
+static const UChar32 pairedChars[] = { 0x0028, 0x0029, /* ascii paired punctuation */
+    0x003c, 0x003e, 0x005b, 0x005d, 0x007b, 0x007d, 0x00ab, 0x00bb, /* guillemets */
     0x2018, 0x2019, /* general punctuation */
-    0x201c, 0x201d,
-    0x2039, 0x203a,
-    0x3008, 0x3009, /* chinese paired punctuation */
-    0x300a, 0x300b,
-    0x300c, 0x300d,
-    0x300e, 0x300f,
-    0x3010, 0x3011,
-    0x3014, 0x3015,
-    0x3016, 0x3017,
-    0x3018, 0x3019,
-    0x301a, 0x301b
-};
+    0x201c, 0x201d, 0x2039, 0x203a, 0x3008, 0x3009, /* chinese paired punctuation */
+    0x300a, 0x300b, 0x300c, 0x300d, 0x300e, 0x300f, 0x3010, 0x3011, 0x3014, 0x3015, 0x3016, 0x3017, 0x3018, 0x3019, 0x301a, 0x301b };
 
-static void push(UScriptRun *scriptRun, int32_t pairIndex, UScriptCode scriptCode)
+static void push(UScriptRun* scriptRun, int32_t pairIndex, UScriptCode scriptCode)
 {
-    scriptRun->pushCount  = LIMIT_INC(scriptRun->pushCount);
+    scriptRun->pushCount = LIMIT_INC(scriptRun->pushCount);
     scriptRun->fixupCount = LIMIT_INC(scriptRun->fixupCount);
-    
+
     scriptRun->parenSP = INC1(scriptRun->parenSP);
-    scriptRun->parenStack[scriptRun->parenSP].pairIndex  = pairIndex;
+    scriptRun->parenStack[scriptRun->parenSP].pairIndex = pairIndex;
     scriptRun->parenStack[scriptRun->parenSP].scriptCode = scriptCode;
 }
 
-static void pop(UScriptRun *scriptRun)
+static void pop(UScriptRun* scriptRun)
 {
     if (STACK_IS_EMPTY(scriptRun)) {
         return;
     }
-    
+
     if (scriptRun->fixupCount > 0) {
         scriptRun->fixupCount -= 1;
     }
-    
+
     scriptRun->pushCount -= 1;
     scriptRun->parenSP = DEC1(scriptRun->parenSP);
-    
+
     /* If the stack is now empty, reset the stack
        pointers to their initial values.
      */
@@ -106,18 +90,17 @@ static void pop(UScriptRun *scriptRun)
     }
 }
 
-static void fixup(UScriptRun *scriptRun, UScriptCode scriptCode)
+static void fixup(UScriptRun* scriptRun, UScriptCode scriptCode)
 {
     int32_t fixupSP = DEC(scriptRun->parenSP, scriptRun->fixupCount);
-    
+
     while (scriptRun->fixupCount-- > 0) {
         fixupSP = INC1(fixupSP);
         scriptRun->parenStack[fixupSP].scriptCode = scriptCode;
     }
 }
 
-static int8_t
-highBit(int32_t value)
+static int8_t highBit(int32_t value)
 {
     int8_t bit = 0;
 
@@ -146,15 +129,14 @@ highBit(int32_t value)
     }
 
     if (value >= 1 << 1) {
-        //value >>= 1;
+        // value >>= 1;
         bit += 1;
     }
 
     return bit;
 }
 
-static int32_t
-getPairIndex(UChar32 ch)
+static int32_t getPairIndex(UChar32 ch)
 {
     int32_t pairedCharCount = UPRV_LENGTHOF(pairedChars);
     int32_t pairedCharPower = 1 << highBit(pairedCharCount);
@@ -182,26 +164,24 @@ getPairIndex(UChar32 ch)
     return pairIndex;
 }
 
-static UBool
-sameScript(UScriptCode scriptOne, UScriptCode scriptTwo)
+static UBool sameScript(UScriptCode scriptOne, UScriptCode scriptTwo)
 {
     return scriptOne <= USCRIPT_INHERITED || scriptTwo <= USCRIPT_INHERITED || scriptOne == scriptTwo;
 }
 
-U_CAPI UScriptRun * U_EXPORT2
-uscript_openRun(const char16_t *src, int32_t length, UErrorCode *pErrorCode)
+U_CAPI UScriptRun* U_EXPORT2 uscript_openRun(const UChar* src, int32_t length, UErrorCode* pErrorCode)
 {
-    UScriptRun *result = nullptr;
+    UScriptRun* result = NULL;
 
-    if (pErrorCode == nullptr || U_FAILURE(*pErrorCode)) {
-        return nullptr;
+    if (pErrorCode == NULL || U_FAILURE(*pErrorCode)) {
+        return NULL;
     }
 
-    result = (UScriptRun *)uprv_malloc(sizeof (UScriptRun));
+    result = (UScriptRun*)uprv_malloc(sizeof(UScriptRun));
 
-    if (result == nullptr) {
+    if (result == NULL) {
         *pErrorCode = U_MEMORY_ALLOCATION_ERROR;
-        return nullptr;
+        return NULL;
     }
 
     uscript_setRunText(result, src, length, pErrorCode);
@@ -209,67 +189,63 @@ uscript_openRun(const char16_t *src, int32_t length, UErrorCode *pErrorCode)
     /* Release the UScriptRun if uscript_setRunText() returns an error */
     if (U_FAILURE(*pErrorCode)) {
         uprv_free(result);
-        result = nullptr;
+        result = NULL;
     }
 
     return result;
 }
 
-U_CAPI void U_EXPORT2
-uscript_closeRun(UScriptRun *scriptRun)
+U_CAPI void U_EXPORT2 uscript_closeRun(UScriptRun* scriptRun)
 {
-    if (scriptRun != nullptr) {
+    if (scriptRun != NULL) {
         uprv_free(scriptRun);
     }
 }
 
-U_CAPI void U_EXPORT2
-uscript_resetRun(UScriptRun *scriptRun)
+U_CAPI void U_EXPORT2 uscript_resetRun(UScriptRun* scriptRun)
 {
-    if (scriptRun != nullptr) {
+    if (scriptRun != NULL) {
         scriptRun->scriptStart = 0;
         scriptRun->scriptLimit = 0;
-        scriptRun->scriptCode  = USCRIPT_INVALID_CODE;
-        scriptRun->parenSP     = -1;
-        scriptRun->pushCount   =  0;
-        scriptRun->fixupCount  =  0;
+        scriptRun->scriptCode = USCRIPT_INVALID_CODE;
+        scriptRun->parenSP = -1;
+        scriptRun->pushCount = 0;
+        scriptRun->fixupCount = 0;
     }
 }
 
-U_CAPI void U_EXPORT2
-uscript_setRunText(UScriptRun *scriptRun, const char16_t *src, int32_t length, UErrorCode *pErrorCode)
+U_CAPI void U_EXPORT2 uscript_setRunText(UScriptRun* scriptRun, const UChar* src, int32_t length, UErrorCode* pErrorCode)
 {
-    if (pErrorCode == nullptr || U_FAILURE(*pErrorCode)) {
+    if (pErrorCode == NULL || U_FAILURE(*pErrorCode)) {
         return;
     }
 
-    if (scriptRun == nullptr || length < 0 || ((src == nullptr) != (length == 0))) {
+    if (scriptRun == NULL || length < 0 || ((src == NULL) != (length == 0))) {
         *pErrorCode = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
 
-    scriptRun->textArray  = src;
+    scriptRun->textArray = src;
     scriptRun->textLength = length;
 
     uscript_resetRun(scriptRun);
 }
 
-U_CAPI UBool U_EXPORT2
-uscript_nextRun(UScriptRun *scriptRun, int32_t *pRunStart, int32_t *pRunLimit, UScriptCode *pRunScript)
+U_CAPI UBool U_EXPORT2 uscript_nextRun(UScriptRun* scriptRun, int32_t* pRunStart, int32_t* pRunLimit, UScriptCode* pRunScript)
 {
     UErrorCode error = U_ZERO_ERROR;
 
     /* if we've fallen off the end of the text, we're done */
-    if (scriptRun == nullptr || scriptRun->scriptLimit >= scriptRun->textLength) {
-        return false;
+    if (scriptRun == NULL || scriptRun->scriptLimit >= scriptRun->textLength) {
+        return FALSE;
     }
-    
+
     SYNC_FIXUP(scriptRun);
     scriptRun->scriptCode = USCRIPT_COMMON;
 
     for (scriptRun->scriptStart = scriptRun->scriptLimit; scriptRun->scriptLimit < scriptRun->textLength; scriptRun->scriptLimit += 1) {
-        char16_t high = scriptRun->textArray[scriptRun->scriptLimit];
-        UChar32  ch   = high;
+        UChar high = scriptRun->textArray[scriptRun->scriptLimit];
+        UChar32 ch = high;
         UScriptCode sc;
         int32_t pairIndex;
 
@@ -278,7 +254,7 @@ uscript_nextRun(UScriptRun *scriptRun, int32_t *pRunStart, int32_t *pRunLimit, U
          * in the text, see if it's followed by a low surrogate
          */
         if (high >= 0xD800 && high <= 0xDBFF && scriptRun->scriptLimit < scriptRun->textLength - 1) {
-            char16_t low = scriptRun->textArray[scriptRun->scriptLimit + 1];
+            UChar low = scriptRun->textArray[scriptRun->scriptLimit + 1];
 
             /*
              * if it is followed by a low surrogate,
@@ -344,18 +320,17 @@ uscript_nextRun(UScriptRun *scriptRun, int32_t *pRunStart, int32_t *pRunLimit, U
         }
     }
 
-
-    if (pRunStart != nullptr) {
+    if (pRunStart != NULL) {
         *pRunStart = scriptRun->scriptStart;
     }
 
-    if (pRunLimit != nullptr) {
+    if (pRunLimit != NULL) {
         *pRunLimit = scriptRun->scriptLimit;
     }
 
-    if (pRunScript != nullptr) {
+    if (pRunScript != NULL) {
         *pRunScript = scriptRun->scriptCode;
     }
 
-    return true;
+    return TRUE;
 }

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -42,7 +42,7 @@ U_NAMESPACE_BEGIN
 constexpr const size_t kInternalNumSysNameCapacity = 8;
 
 /**
- * Defines numbering systems. A numbering system describes the scheme by which 
+ * Defines numbering systems. A numbering system describes the scheme by which
  * numbers are to be presented to the end user.  In its simplest form, a numbering
  * system describes the set of digit characters that are to be used to display
  * numbers, such as Western digits, Thai digits, Arabic-Indic digits, etc., in a
@@ -59,7 +59,6 @@ constexpr const size_t kInternalNumSysNameCapacity = 8;
 
 class U_I18N_API NumberingSystem : public UObject {
 public:
-
     /**
      * Default Constructor.
      *
@@ -91,7 +90,7 @@ public:
      * @param status ICU status
      * @stable ICU 4.2
      */
-    static NumberingSystem* U_EXPORT2 createInstance(const Locale & inLocale, UErrorCode& status);
+    static NumberingSystem* U_EXPORT2 createInstance(const Locale& inLocale, UErrorCode& status);
 
     /**
      * Create the default numbering system associated with the default locale.
@@ -100,7 +99,7 @@ public:
     static NumberingSystem* U_EXPORT2 createInstance(UErrorCode& status);
 
     /**
-     * Create a numbering system using the specified radix, type, and description. 
+     * Create a numbering system using the specified radix, type, and description.
      * @param radix         The radix (base) for this numbering system.
      * @param isAlgorithmic true if the numbering system is algorithmic rather than numeric.
      * @param description   The string representing the set of digits used in a numeric system, or the name of the RBNF
@@ -108,7 +107,7 @@ public:
      * @param status ICU status
      * @stable ICU 4.2
      */
-    static NumberingSystem* U_EXPORT2 createInstance(int32_t radix, UBool isAlgorithmic, const UnicodeString& description, UErrorCode& status );
+    static NumberingSystem* U_EXPORT2 createInstance(int32_t radix, UBool isAlgorithmic, const UnicodeString& description, UErrorCode& status);
 
     /**
      * Return a StringEnumeration over all the names of numbering systems known to ICU.
@@ -119,7 +118,7 @@ public:
      *
      * @stable ICU 4.2
      */
-     static StringEnumeration * U_EXPORT2 getAvailableNames(UErrorCode& status);
+    static StringEnumeration* U_EXPORT2 getAvailableNames(UErrorCode& status);
 
     /**
      * Create a numbering system from one of the predefined numbering systems specified
@@ -137,7 +136,6 @@ public:
      */
     static NumberingSystem* U_EXPORT2 createInstanceByName(const char* name, UErrorCode& status);
 
-
     /**
      * Returns the radix of this numbering system. Simple positional numbering systems
      * typically have radix 10, but might have a radix of e.g. 16 for hexadecimal. The
@@ -148,13 +146,13 @@ public:
 
     /**
      * Returns the name of this numbering system if it was created using one of the predefined names
-     * known to ICU.  Otherwise, returns nullptr.
+     * known to ICU.  Otherwise, returns NULL.
      * The predefined names are identical to the numbering system names as defined by
      * the BCP47 definition in Unicode CLDR.
      * See also, http://www.unicode.org/repos/cldr/tags/latest/common/bcp47/number.xml
      * @stable ICU 4.6
      */
-    const char * getName() const;
+    const char* getName() const;
 
     /**
      * Returns the description string of this numbering system. For simple
@@ -167,8 +165,6 @@ public:
      * @stable ICU 4.2
      */
     virtual UnicodeString getDescription() const;
-
-
 
     /**
      * Returns true if the given numbering system is algorithmic
@@ -184,7 +180,7 @@ public:
      *
      * @stable ICU 4.2
      *
-    */
+     */
     static UClassID U_EXPORT2 getStaticClassID(void);
 
     /**
@@ -194,20 +190,23 @@ public:
      */
     virtual UClassID getDynamicClassID() const override;
 
-
 private:
-    UnicodeString   desc;
-    int32_t         radix;
-    UBool           algorithmic;
-    char            name[kInternalNumSysNameCapacity+1];
+    UnicodeString desc;
+    int32_t radix;
+    UBool algorithmic;
+    char name[kInternalNumSysNameCapacity + 1];
 
     void setRadix(int32_t radix);
 
     void setAlgorithmic(UBool algorithmic);
 
-    void setDesc(const UnicodeString &desc);
+    void setDesc(const UnicodeString& desc);
 
     void setName(const char* name);
+
+    static UBool isValidDigitString(const UnicodeString& str);
+
+    UBool hasContiguousDecimalDigits() const;
 };
 
 U_NAMESPACE_END
@@ -217,4 +216,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // _NUMSYS
-//eof
+// eof

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -18,10 +18,10 @@
 #if U_SHOW_CPLUSPLUS_API
 
 /**
- * \file 
+ * \file
  * \brief C++ API: MeasureUnit object.
  */
- 
+
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/fmtable.h"
@@ -42,20 +42,19 @@ class MeasureUnit;
  * @author Alan Liu
  * @stable ICU 3.0
  */
-class U_I18N_API Measure: public UObject {
- public:
+class U_I18N_API Measure : public UObject {
+public:
     /**
      * Construct an object with the given numeric amount and the given
      * unit.  After this call, the caller must not delete the given
      * unit object.
      * @param number a numeric object; amount.isNumeric() must be true
-     * @param adoptedUnit the unit object, which must not be nullptr
+     * @param adoptedUnit the unit object, which must not be NULL
      * @param ec input-output error code. If the amount or the unit
      * is invalid, then this will be set to a failing value.
      * @stable ICU 3.0
      */
-    Measure(const Formattable& number, MeasureUnit* adoptedUnit,
-            UErrorCode& ec);
+    Measure(const Formattable& number, MeasureUnit* adoptedUnit, UErrorCode& ec);
 
     /**
      * Copy constructor
@@ -81,23 +80,13 @@ class U_I18N_API Measure: public UObject {
      * @stable ICU 3.0
      */
     virtual ~Measure();
-    
+
     /**
      * Equality operator.  Return true if this object is equal
      * to the given object.
      * @stable ICU 3.0
      */
     bool operator==(const UObject& other) const;
-
-#ifndef U_HIDE_DRAFT_API
-    /**
-     * Inequality operator.  Returns true if this object is not equal to the other object.
-     * @param other the object to compare with
-     * @return true if the objects are not equal
-     * @draft ICU 74
-     */
-    inline bool operator!=(const UObject& other) const { return !operator==(other); }
-#endif  // U_HIDE_DRAFT_API
 
     /**
      * Return a reference to the numeric value of this object.  The
@@ -139,14 +128,14 @@ class U_I18N_API Measure: public UObject {
      */
     virtual UClassID getDynamicClassID(void) const override;
 
- protected:
+protected:
     /**
      * Default constructor.
      * @stable ICU 3.0
      */
     Measure();
 
- private:
+private:
     /**
      * The numeric value of this object, e.g. 2.54 or 100.
      */
@@ -159,11 +148,13 @@ class U_I18N_API Measure: public UObject {
     MeasureUnit* unit;
 };
 
-inline const Formattable& Measure::getNumber() const {
+inline const Formattable& Measure::getNumber() const
+{
     return number;
 }
 
-inline const MeasureUnit& Measure::getUnit() const {
+inline const MeasureUnit& Measure::getUnit() const
+{
     return *unit;
 }
 

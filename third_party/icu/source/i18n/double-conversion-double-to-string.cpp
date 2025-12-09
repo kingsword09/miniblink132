@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 // From the double-conversion library. Original license:
@@ -53,7 +53,7 @@ U_NAMESPACE_BEGIN
 
 namespace double_conversion {
 
-#if 0  // not needed for ICU
+#if 0 // not needed for ICU
 const DoubleToStringConverter& DoubleToStringConverter::EcmaScriptConverter() {
   int flags = UNIQUE_ZERO | EMIT_POSITIVE_EXPONENT_SIGN;
   static DoubleToStringConverter converter(flags,
@@ -71,7 +71,7 @@ bool DoubleToStringConverter::HandleSpecialValues(
     StringBuilder* result_builder) const {
   Double double_inspect(value);
   if (double_inspect.IsInfinite()) {
-    if (infinity_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
+    if (infinity_symbol_ == NULL) return false;
     if (value < 0) {
       result_builder->AddCharacter('-');
     }
@@ -79,7 +79,7 @@ bool DoubleToStringConverter::HandleSpecialValues(
     return true;
   }
   if (double_inspect.IsNan()) {
-    if (nan_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
+    if (nan_symbol_ == NULL) return false;
     result_builder->AddString(nan_symbol_);
     return true;
   }
@@ -94,14 +94,7 @@ void DoubleToStringConverter::CreateExponentialRepresentation(
     StringBuilder* result_builder) const {
   DOUBLE_CONVERSION_ASSERT(length != 0);
   result_builder->AddCharacter(decimal_digits[0]);
-  if (length == 1) {
-    if ((flags_ & EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL) != 0) {
-      result_builder->AddCharacter('.');
-      if ((flags_ & EMIT_TRAILING_ZERO_AFTER_POINT_IN_EXPONENTIAL) != 0) {
-          result_builder->AddCharacter('0');
-      }
-    }
-  } else {
+  if (length != 1) {
     result_builder->AddCharacter('.');
     result_builder->AddSubstring(&decimal_digits[1], length-1);
   }
@@ -384,59 +377,54 @@ bool DoubleToStringConverter::ToPrecision(double value,
 }
 #endif // not needed for ICU
 
-
-static BignumDtoaMode DtoaToBignumDtoaMode(
-    DoubleToStringConverter::DtoaMode dtoa_mode) {
-  switch (dtoa_mode) {
-    case DoubleToStringConverter::SHORTEST:  return BIGNUM_DTOA_SHORTEST;
+static BignumDtoaMode DtoaToBignumDtoaMode(DoubleToStringConverter::DtoaMode dtoa_mode)
+{
+    switch (dtoa_mode) {
+    case DoubleToStringConverter::SHORTEST:
+        return BIGNUM_DTOA_SHORTEST;
     case DoubleToStringConverter::SHORTEST_SINGLE:
         return BIGNUM_DTOA_SHORTEST_SINGLE;
-    case DoubleToStringConverter::FIXED:     return BIGNUM_DTOA_FIXED;
-    case DoubleToStringConverter::PRECISION: return BIGNUM_DTOA_PRECISION;
+    case DoubleToStringConverter::FIXED:
+        return BIGNUM_DTOA_FIXED;
+    case DoubleToStringConverter::PRECISION:
+        return BIGNUM_DTOA_PRECISION;
     default:
-      DOUBLE_CONVERSION_UNREACHABLE();
-  }
+        DOUBLE_CONVERSION_UNREACHABLE();
+    }
 }
 
+void DoubleToStringConverter::DoubleToAscii(double v, DtoaMode mode, int requested_digits, char* buffer, int buffer_length, bool* sign, int* length, int* point)
+{
+    Vector<char> vector(buffer, buffer_length);
+    DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
+    DOUBLE_CONVERSION_ASSERT(mode == SHORTEST || mode == SHORTEST_SINGLE || requested_digits >= 0);
 
-void DoubleToStringConverter::DoubleToAscii(double v,
-                                            DtoaMode mode,
-                                            int requested_digits,
-                                            char* buffer,
-                                            int buffer_length,
-                                            bool* sign,
-                                            int* length,
-                                            int* point) {
-  Vector<char> vector(buffer, buffer_length);
-  DOUBLE_CONVERSION_ASSERT(!Double(v).IsSpecial());
-  DOUBLE_CONVERSION_ASSERT(mode == SHORTEST || mode == SHORTEST_SINGLE || requested_digits >= 0);
+    if (Double(v).Sign() < 0) {
+        *sign = true;
+        v = -v;
+    } else {
+        *sign = false;
+    }
 
-  if (Double(v).Sign() < 0) {
-    *sign = true;
-    v = -v;
-  } else {
-    *sign = false;
-  }
+    if (mode == PRECISION && requested_digits == 0) {
+        vector[0] = '\0';
+        *length = 0;
+        return;
+    }
 
-  if (mode == PRECISION && requested_digits == 0) {
-    vector[0] = '\0';
-    *length = 0;
-    return;
-  }
+    if (v == 0) {
+        vector[0] = '0';
+        vector[1] = '\0';
+        *length = 1;
+        *point = 1;
+        return;
+    }
 
-  if (v == 0) {
-    vector[0] = '0';
-    vector[1] = '\0';
-    *length = 1;
-    *point = 1;
-    return;
-  }
-
-  bool fast_worked;
-  switch (mode) {
+    bool fast_worked;
+    switch (mode) {
     case SHORTEST:
-      fast_worked = FastDtoa(v, FAST_DTOA_SHORTEST, 0, vector, length, point);
-      break;
+        fast_worked = FastDtoa(v, FAST_DTOA_SHORTEST, 0, vector, length, point);
+        break;
 #if 0 // not needed for ICU
     case SHORTEST_SINGLE:
       fast_worked = FastDtoa(v, FAST_DTOA_SHORTEST_SINGLE, 0,
@@ -451,18 +439,19 @@ void DoubleToStringConverter::DoubleToAscii(double v,
       break;
 #endif // not needed for ICU
     default:
-      fast_worked = false;
-      DOUBLE_CONVERSION_UNREACHABLE();
-  }
-  if (fast_worked) return;
+        fast_worked = false;
+        DOUBLE_CONVERSION_UNREACHABLE();
+    }
+    if (fast_worked)
+        return;
 
-  // If the fast dtoa didn't succeed use the slower bignum version.
-  BignumDtoaMode bignum_mode = DtoaToBignumDtoaMode(mode);
-  BignumDtoa(v, bignum_mode, requested_digits, vector, length, point);
-  vector[*length] = '\0';
+    // If the fast dtoa didn't succeed use the slower bignum version.
+    BignumDtoaMode bignum_mode = DtoaToBignumDtoaMode(mode);
+    BignumDtoa(v, bignum_mode, requested_digits, vector, length, point);
+    vector[*length] = '\0';
 }
 
-}  // namespace double_conversion
+} // namespace double_conversion
 
 // ICU PATCH: Close ICU namespace
 U_NAMESPACE_END

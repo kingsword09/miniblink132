@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -27,22 +27,23 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(UppercaseTransliterator)
 /**
  * Constructs a transliterator.
  */
-UppercaseTransliterator::UppercaseTransliterator() :
-    CaseMapTransliterator(UNICODE_STRING("Any-Upper", 9), ucase_toFullUpper)
+UppercaseTransliterator::UppercaseTransliterator()
+    : CaseMapTransliterator(UNICODE_STRING("Any-Upper", 9), ucase_toFullUpper)
 {
 }
 
 /**
  * Destructor.
  */
-UppercaseTransliterator::~UppercaseTransliterator() {
+UppercaseTransliterator::~UppercaseTransliterator()
+{
 }
 
 /**
  * Copy constructor.
  */
-UppercaseTransliterator::UppercaseTransliterator(const UppercaseTransliterator& o) :
-    CaseMapTransliterator(o)
+UppercaseTransliterator::UppercaseTransliterator(const UppercaseTransliterator& o)
+    : CaseMapTransliterator(o)
 {
 }
 
@@ -58,7 +59,8 @@ UppercaseTransliterator::UppercaseTransliterator(const UppercaseTransliterator& 
 /**
  * Transliterator API.
  */
-UppercaseTransliterator* UppercaseTransliterator::clone() const {
+UppercaseTransliterator* UppercaseTransliterator::clone() const
+{
     return new UppercaseTransliterator(*this);
 }
 

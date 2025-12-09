@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -28,15 +28,15 @@ struct CollationData;
 class U_TOOLUTIL_API CollationInfo /* all static */ {
 public:
     static void printSizes(int32_t sizeWithHeader, const int32_t indexes[]);
-    static void printReorderRanges(const CollationData &data, const int32_t *codes, int32_t length);
+    static void printReorderRanges(const CollationData& data, const int32_t* codes, int32_t length);
 
 private:
-    CollationInfo();  // no constructor
+    CollationInfo(); // no constructor
 
     static int32_t getDataLength(const int32_t indexes[], int32_t startIndex);
 };
 
 U_NAMESPACE_END
 
-#endif  // !UCONFIG_NO_COLLATION
-#endif  // __COLLATIONINFO_H__
+#endif // !UCONFIG_NO_COLLATION
+#endif // __COLLATIONINFO_H__

@@ -13,30 +13,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void uprintf(const UChar* str) {
+static void uprintf(const UChar* str)
+{
     char buf[256];
     u_austrcpy(buf, str);
     printf("%s", buf);
 }
 
-void capi() {
-    UNumberFormat *fmt;
+void capi()
+{
+    UNumberFormat* fmt;
     UErrorCode status = U_ZERO_ERROR;
     /* The string "987654321.123" as UChars */
-    UChar str[] = { 0x39, 0x38, 0x37, 0x36, 0x35, 0x34, 0x33,
-                    0x32, 0x31, 0x30, 0x2E, 0x31, 0x32, 0x33, 0 };
+    UChar str[] = { 0x39, 0x38, 0x37, 0x36, 0x35, 0x34, 0x33, 0x32, 0x31, 0x30, 0x2E, 0x31, 0x32, 0x33, 0 };
     UChar buf[256];
     int32_t needed;
     double a;
-    
+
     /* Create a formatter for the US locale */
-    fmt = unum_open(
-          UNUM_DECIMAL,      /* style         */
-          0,                 /* pattern       */
-          0,                 /* patternLength */
-          "en_US",           /* locale        */
-          0,                 /* parseErr      */
-          &status);
+    fmt = unum_open(UNUM_DECIMAL, /* style         */
+        0, /* pattern       */
+        0, /* patternLength */
+        "en_US", /* locale        */
+        0, /* parseErr      */
+        &status);
     if (U_FAILURE(status)) {
         printf("FAIL: unum_open\n");
         exit(1);

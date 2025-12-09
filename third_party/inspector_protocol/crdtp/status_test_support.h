@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_CRDTP_STATUS_TEST_SUPPORT_H_
-#define V8_CRDTP_STATUS_TEST_SUPPORT_H_
+#ifndef CRDTP_STATUS_TEST_SUPPORT_H_
+#define CRDTP_STATUS_TEST_SUPPORT_H_
 
 #include <ostream>
 #include "status.h"
 #include "test_platform.h"
 
-namespace v8_crdtp {
+namespace crdtp {
 // Supports gtest, to conveniently match Status objects and
 // get useful error messages when tests fail.
 // Typically used with EXPECT_THAT, e.g.
@@ -27,6 +27,6 @@ testing::Matcher<Status> StatusIsOk();
 
 // Matches any status with |error| and |pos|.
 testing::Matcher<Status> StatusIs(Error error, size_t pos);
-}  // namespace v8_crdtp
+} // namespace crdtp
 
-#endif  // V8_CRDTP_STATUS_TEST_SUPPORT_H_
+#endif // CRDTP_STATUS_TEST_SUPPORT_H_

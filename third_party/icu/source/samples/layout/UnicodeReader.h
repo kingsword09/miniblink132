@@ -1,4 +1,4 @@
-/*
+﻿/*
  ******************************************************************************
  * © 2016 and later: Unicode, Inc. and others.                    *
  * License & terms of use: http://www.unicode.org/copyright.html      *
@@ -16,8 +16,7 @@
 
 #include "GUISupport.h"
 
-class UnicodeReader
-{
+class UnicodeReader {
 public:
     UnicodeReader()
     {
@@ -29,8 +28,7 @@ public:
         // nothing, too
     }
 
-    static const char16_t *readFile(const char *fileName, GUISupport *guiSupport, int32_t &charCount);
+    static const UChar* readFile(const char* fileName, GUISupport* guiSupport, int32_t& charCount);
 };
 
 #endif
-

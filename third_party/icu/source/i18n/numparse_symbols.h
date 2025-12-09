@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -11,161 +11,153 @@
 #include "unicode/uniset.h"
 #include "static_unicode_sets.h"
 
-U_NAMESPACE_BEGIN namespace numparse {
-namespace impl {
+U_NAMESPACE_BEGIN namespace numparse
+{
+    namespace impl {
 
+    /**
+     * A base class for many matchers that performs a simple match against a UnicodeString and/or UnicodeSet.
+     *
+     * @author sffc
+     */
+    // Exported as U_I18N_API for tests
+    class U_I18N_API SymbolMatcher : public NumberParseMatcher, public UMemory {
+    public:
+        SymbolMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-/**
- * A base class for many matchers that performs a simple match against a UnicodeString and/or UnicodeSet.
- *
- * @author sffc
- */
-// Exported as U_I18N_API for tests
-class U_I18N_API SymbolMatcher : public NumberParseMatcher, public UMemory {
-  public:
-    SymbolMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        const UnicodeSet* getSet() const;
 
-    const UnicodeSet* getSet() const;
+        bool match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const override;
 
-    bool match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const override;
+        bool smokeTest(const StringSegment& segment) const override;
 
-    bool smokeTest(const StringSegment& segment) const override;
+        UnicodeString toString() const override;
 
-    UnicodeString toString() const override;
+        virtual bool isDisabled(const ParsedNumber& result) const = 0;
 
-    virtual bool isDisabled(const ParsedNumber& result) const = 0;
+        virtual void accept(StringSegment& segment, ParsedNumber& result) const = 0;
 
-    virtual void accept(StringSegment& segment, ParsedNumber& result) const = 0;
+    protected:
+        UnicodeString fString;
+        const UnicodeSet* fUniSet; // a reference from numparse_unisets.h; never owned
 
-  protected:
-    UnicodeString fString;
-    const UnicodeSet* fUniSet; // a reference from numparse_unisets.h; never owned
+        SymbolMatcher(const UnicodeString& symbolString, unisets::Key key);
+    };
 
-    SymbolMatcher(const UnicodeString& symbolString, unisets::Key key);
-};
+    // Exported as U_I18N_API for tests
+    class U_I18N_API IgnorablesMatcher : public SymbolMatcher {
+    public:
+        IgnorablesMatcher() = default; // WARNING: Leaves the object in an unusable state
 
+        IgnorablesMatcher(parse_flags_t parseFlags);
 
-// Exported as U_I18N_API for tests
-class U_I18N_API IgnorablesMatcher : public SymbolMatcher {
-  public:
-    IgnorablesMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        bool isFlexible() const override;
 
-    IgnorablesMatcher(parse_flags_t parseFlags);
+        UnicodeString toString() const override;
 
-    bool isFlexible() const override;
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
-    UnicodeString toString() const override;
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
+    };
 
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
+    class InfinityMatcher : public SymbolMatcher {
+    public:
+        InfinityMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
-};
+        InfinityMatcher(const DecimalFormatSymbols& dfs);
 
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
-class InfinityMatcher : public SymbolMatcher {
-  public:
-    InfinityMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
+    };
 
-    InfinityMatcher(const DecimalFormatSymbols& dfs);
+    // Exported as U_I18N_API for tests
+    class U_I18N_API MinusSignMatcher : public SymbolMatcher {
+    public:
+        MinusSignMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
+        MinusSignMatcher(const DecimalFormatSymbols& dfs, bool allowTrailing);
 
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
-};
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
 
-// Exported as U_I18N_API for tests
-class U_I18N_API MinusSignMatcher : public SymbolMatcher {
-  public:
-    MinusSignMatcher() = default;  // WARNING: Leaves the object in an unusable state
+    private:
+        bool fAllowTrailing;
+    };
 
-    MinusSignMatcher(const DecimalFormatSymbols& dfs, bool allowTrailing);
+    class NanMatcher : public SymbolMatcher {
+    public:
+        NanMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
+        NanMatcher(const DecimalFormatSymbols& dfs);
 
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
-  private:
-    bool fAllowTrailing;
-};
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
+    };
 
+    class PaddingMatcher : public SymbolMatcher {
+    public:
+        PaddingMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-class NanMatcher : public SymbolMatcher {
-  public:
-    NanMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        PaddingMatcher(const UnicodeString& padString);
 
-    NanMatcher(const DecimalFormatSymbols& dfs);
+        bool isFlexible() const override;
 
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
-};
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
+    };
 
+    // Exported as U_I18N_API for tests
+    class U_I18N_API PercentMatcher : public SymbolMatcher {
+    public:
+        PercentMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-class PaddingMatcher : public SymbolMatcher {
-  public:
-    PaddingMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        PercentMatcher(const DecimalFormatSymbols& dfs);
 
-    PaddingMatcher(const UnicodeString& padString);
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
-    bool isFlexible() const override;
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
+    };
 
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
+    // Exported as U_I18N_API for tests
+    class U_I18N_API PermilleMatcher : public SymbolMatcher {
+    public:
+        PermilleMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
-};
+        PermilleMatcher(const DecimalFormatSymbols& dfs);
 
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
-// Exported as U_I18N_API for tests
-class U_I18N_API PercentMatcher : public SymbolMatcher {
-  public:
-    PercentMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
+    };
 
-    PercentMatcher(const DecimalFormatSymbols& dfs);
+    // Exported as U_I18N_API for tests
+    class U_I18N_API PlusSignMatcher : public SymbolMatcher {
+    public:
+        PlusSignMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
+        PlusSignMatcher(const DecimalFormatSymbols& dfs, bool allowTrailing);
 
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
-};
+    protected:
+        bool isDisabled(const ParsedNumber& result) const override;
 
-// Exported as U_I18N_API for tests
-class U_I18N_API PermilleMatcher : public SymbolMatcher {
-  public:
-    PermilleMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        void accept(StringSegment& segment, ParsedNumber& result) const override;
 
-    PermilleMatcher(const DecimalFormatSymbols& dfs);
+    private:
+        bool fAllowTrailing;
+    };
 
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
-
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
-};
-
-
-// Exported as U_I18N_API for tests
-class U_I18N_API PlusSignMatcher : public SymbolMatcher {
-  public:
-    PlusSignMatcher() = default;  // WARNING: Leaves the object in an unusable state
-
-    PlusSignMatcher(const DecimalFormatSymbols& dfs, bool allowTrailing);
-
-  protected:
-    bool isDisabled(const ParsedNumber& result) const override;
-
-    void accept(StringSegment& segment, ParsedNumber& result) const override;
-
-  private:
-    bool fAllowTrailing;
-};
-
-
-} // namespace impl
+    } // namespace impl
 } // namespace numparse
 U_NAMESPACE_END
 

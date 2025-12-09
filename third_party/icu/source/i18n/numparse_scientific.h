@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -14,32 +14,31 @@
 
 using icu::number::impl::Grouper;
 
-U_NAMESPACE_BEGIN namespace numparse {
-namespace impl {
+U_NAMESPACE_BEGIN namespace numparse
+{
+    namespace impl {
 
+    class ScientificMatcher : public NumberParseMatcher, public UMemory {
+    public:
+        ScientificMatcher() = default; // WARNING: Leaves the object in an unusable state
 
-class ScientificMatcher : public NumberParseMatcher, public UMemory {
-  public:
-    ScientificMatcher() = default;  // WARNING: Leaves the object in an unusable state
+        ScientificMatcher(const DecimalFormatSymbols& dfs, const Grouper& grouper);
 
-    ScientificMatcher(const DecimalFormatSymbols& dfs, const Grouper& grouper);
+        bool match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const override;
 
-    bool match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const override;
+        bool smokeTest(const StringSegment& segment) const override;
 
-    bool smokeTest(const StringSegment& segment) const override;
+        UnicodeString toString() const override;
 
-    UnicodeString toString() const override;
+    private:
+        UnicodeString fExponentSeparatorString;
+        DecimalMatcher fExponentMatcher;
+        IgnorablesMatcher fIgnorablesMatcher;
+        UnicodeString fCustomMinusSign;
+        UnicodeString fCustomPlusSign;
+    };
 
-  private:
-    UnicodeString fExponentSeparatorString;
-    DecimalMatcher fExponentMatcher;
-    IgnorablesMatcher fIgnorablesMatcher;
-    UnicodeString fCustomMinusSign;
-    UnicodeString fCustomPlusSign;
-};
-
-
-} // namespace impl
+    } // namespace impl
 } // namespace numparse
 U_NAMESPACE_END
 

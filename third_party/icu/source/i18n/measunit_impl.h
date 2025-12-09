@@ -1,4 +1,4 @@
-// © 2020 and later: Unicode, Inc. and others.
+﻿// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __MEASUNIT_IMPL_H__
@@ -36,7 +36,7 @@ static const char kDefaultCurrency8[] = "XXX";
  * `units.txt`).
  */
 // TODO: make this function accepts any `MeasureUnit` as Java and move it to the `UnitsData` class.
-CharString U_I18N_API getUnitQuantity(const MeasureUnitImpl &baseMeasureUnitImpl, UErrorCode &status);
+CharString U_I18N_API getUnitQuantity(const MeasureUnitImpl& baseMeasureUnitImpl, UErrorCode& status);
 
 /**
  * A struct representing a single unit (optional SI or binary prefix, and dimensionality).
@@ -59,13 +59,13 @@ struct U_I18N_API SingleUnitImpl : public UMemory {
      * The returned pointer points at memory that exists for the duration of the
      * program's running.
      */
-    const char *getSimpleUnitID() const;
+    const char* getSimpleUnitID() const;
 
     /**
      * Generates and append a neutral identifier string for a single unit which means we do not include
      * the dimension signal.
      */
-    void appendNeutralIdentifier(CharString &result, UErrorCode &status) const;
+    void appendNeutralIdentifier(CharString& result, UErrorCode& status) const;
 
     /**
      * Returns the index of this unit's "quantity" in unitQuantities (in
@@ -89,7 +89,8 @@ struct U_I18N_API SingleUnitImpl : public UMemory {
      * would sort before other units by virtue of index being < 0 and
      * dimensionality not being negative.
      */
-    int32_t compareTo(const SingleUnitImpl& other) const {
+    int32_t compareTo(const SingleUnitImpl& other) const
+    {
         if (dimensionality < 0 && other.dimensionality > 0) {
             // Positive dimensions first
             return 1;
@@ -124,11 +125,9 @@ struct U_I18N_API SingleUnitImpl : public UMemory {
         int32_t otherUnitBase = umeas_getPrefixBase(other.unitPrefix);
 
         // Values for comparison purposes only.
-        int32_t unitPower = unitBase == 1024 /* Binary Prefix */ ? umeas_getPrefixPower(unitPrefix) * 3
-                                                                 : umeas_getPrefixPower(unitPrefix);
-        int32_t otherUnitPower =
-            otherUnitBase == 1024 /* Binary Prefix */ ? umeas_getPrefixPower(other.unitPrefix) * 3
-                                                      : umeas_getPrefixPower(other.unitPrefix);
+        int32_t unitPower = unitBase == 1024 /* Binary Prefix */ ? umeas_getPrefixPower(unitPrefix) * 3 : umeas_getPrefixPower(unitPrefix);
+        int32_t otherUnitPower
+            = otherUnitBase == 1024 /* Binary Prefix */ ? umeas_getPrefixPower(other.unitPrefix) * 3 : umeas_getPrefixPower(other.unitPrefix);
 
         // NOTE: if the unitPower is less than the other,
         // we return 1 not -1. Thus because we want th sorting order
@@ -157,7 +156,8 @@ struct U_I18N_API SingleUnitImpl : public UMemory {
      * Units with the same base unit and SI or binary prefix should match, except that they must also
      * have the same dimensionality sign, such that we don't merge numerator and denominator.
      */
-    bool isCompatibleWith(const SingleUnitImpl& other) const {
+    bool isCompatibleWith(const SingleUnitImpl& other) const
+    {
         return (compareTo(other) == 0);
     }
 
@@ -166,7 +166,8 @@ struct U_I18N_API SingleUnitImpl : public UMemory {
      * by the MeasureUnit() default constructor. (This does not include the
      * likes of concentrations or angles.)
      */
-    bool isDimensionless() const {
+    bool isDimensionless() const
+    {
         return index == -1;
     }
 
@@ -202,7 +203,7 @@ struct MeasureUnitImplWithIndex;
 // MaybeStackVector. This is required when building DLLs for Windows. (See
 // datefmt.h, collationiterator.h, erarules.h and others for similar examples.)
 #if U_PF_WINDOWS <= U_PLATFORM && U_PLATFORM <= U_PF_CYGWIN
-template class U_I18N_API MaybeStackArray<SingleUnitImpl *, 8>;
+template class U_I18N_API MaybeStackArray<SingleUnitImpl*, 8>;
 template class U_I18N_API MemoryPool<SingleUnitImpl, 8>;
 template class U_I18N_API MaybeStackVector<SingleUnitImpl, 8>;
 #endif
@@ -212,17 +213,18 @@ template class U_I18N_API MaybeStackVector<SingleUnitImpl, 8>;
  * including mixed and compound units.
  */
 class U_I18N_API MeasureUnitImpl : public UMemory {
-  public:
+public:
     MeasureUnitImpl() = default;
-    MeasureUnitImpl(MeasureUnitImpl &&other) = default;
+    MeasureUnitImpl(MeasureUnitImpl&& other) = default;
     // No copy constructor, use MeasureUnitImpl::copy() to make it explicit.
-    MeasureUnitImpl(const MeasureUnitImpl &other, UErrorCode &status) = delete;
-    MeasureUnitImpl(const SingleUnitImpl &singleUnit, UErrorCode &status);
+    MeasureUnitImpl(const MeasureUnitImpl& other, UErrorCode& status) = delete;
+    MeasureUnitImpl(const SingleUnitImpl& singleUnit, UErrorCode& status);
 
-    MeasureUnitImpl &operator=(MeasureUnitImpl &&other) noexcept = default;
+    MeasureUnitImpl& operator=(MeasureUnitImpl&& other) noexcept = default;
 
     /** Extract the MeasureUnitImpl from a MeasureUnit. */
-    static inline const MeasureUnitImpl *get(const MeasureUnit &measureUnit) {
+    static inline const MeasureUnitImpl* get(const MeasureUnit& measureUnit)
+    {
         return measureUnit.fImpl;
     }
 
@@ -238,14 +240,13 @@ class U_I18N_API MeasureUnitImpl : public UMemory {
 
     /**
      * Extract the MeasureUnitImpl from a MeasureUnit, or parse if it is not present.
-     * 
+     *
      * @param measureUnit The source MeasureUnit.
      * @param memory A place to write the new MeasureUnitImpl if parsing is required.
      * @param status Set if an error occurs.
      * @return A reference to either measureUnit.fImpl or memory.
      */
-    static const MeasureUnitImpl& forMeasureUnit(
-        const MeasureUnit& measureUnit, MeasureUnitImpl& memory, UErrorCode& status);
+    static const MeasureUnitImpl& forMeasureUnit(const MeasureUnit& measureUnit, MeasureUnitImpl& memory, UErrorCode& status);
 
     /**
      * Extract the MeasureUnitImpl from a MeasureUnit, or parse if it is not present.
@@ -254,13 +255,13 @@ class U_I18N_API MeasureUnitImpl : public UMemory {
      * @param status Set if an error occurs.
      * @return A value object, either newly parsed or copied from measureUnit.
      */
-    static MeasureUnitImpl forMeasureUnitMaybeCopy(
-        const MeasureUnit& measureUnit, UErrorCode& status);
+    static MeasureUnitImpl forMeasureUnitMaybeCopy(const MeasureUnit& measureUnit, UErrorCode& status);
 
     /**
      * Used for currency units.
      */
-    static inline MeasureUnitImpl forCurrencyCode(StringPiece currencyCode) {
+    static inline MeasureUnitImpl forCurrencyCode(StringPiece currencyCode)
+    {
         MeasureUnitImpl result;
         UErrorCode localStatus = U_ZERO_ERROR;
         result.identifier.append(currencyCode, localStatus);
@@ -278,14 +279,13 @@ class U_I18N_API MeasureUnitImpl : public UMemory {
 
     /**
      * Extracts the list of all the individual units inside the `MeasureUnitImpl` with their indices.
-     *      For example:    
+     *      For example:
      *          -   if the `MeasureUnitImpl` is `foot-per-hour`
-     *                  it will return a list of 1 {(0, `foot-per-hour`)} 
-     *          -   if the `MeasureUnitImpl` is `foot-and-inch` 
+     *                  it will return a list of 1 {(0, `foot-per-hour`)}
+     *          -   if the `MeasureUnitImpl` is `foot-and-inch`
      *                  it will return a list of 2 {(0, `foot`), (1, `inch`)}
      */
-    MaybeStackVector<MeasureUnitImplWithIndex>
-    extractIndividualUnitsWithIndices(UErrorCode &status) const;
+    MaybeStackVector<MeasureUnitImplWithIndex> extractIndividualUnitsWithIndices(UErrorCode& status) const;
 
     /** Mutates this MeasureUnitImpl to take the reciprocal. */
     void takeReciprocal(UErrorCode& status);
@@ -298,7 +298,7 @@ class U_I18N_API MeasureUnitImpl : public UMemory {
      * Example 1: "square-meter-per-meter" --> "meter"
      * Example 2: "square-millimeter-per-meter" --> "square-millimeter-per-meter"
      */
-    MeasureUnitImpl copyAndSimplify(UErrorCode &status) const;
+    MeasureUnitImpl copyAndSimplify(UErrorCode& status) const;
 
     /**
      * Mutates this MeasureUnitImpl to append a single unit.
@@ -311,7 +311,7 @@ class U_I18N_API MeasureUnitImpl : public UMemory {
     /**
      * Normalizes a MeasureUnitImpl and generate the identifier string in place.
      */
-    void serialize(UErrorCode &status);
+    void serialize(UErrorCode& status);
 
     /** The complexity, either SINGLE, COMPOUND, or MIXED. */
     UMeasureUnitComplexity complexity = UMEASURE_UNIT_SINGLE;
@@ -339,11 +339,15 @@ struct U_I18N_API MeasureUnitImplWithIndex : public UMemory {
     const int32_t index;
     MeasureUnitImpl unitImpl;
     // Makes a copy of unitImpl.
-    MeasureUnitImplWithIndex(int32_t index, const MeasureUnitImpl &unitImpl, UErrorCode &status)
-        : index(index), unitImpl(unitImpl.copy(status)) {
+    MeasureUnitImplWithIndex(int32_t index, const MeasureUnitImpl& unitImpl, UErrorCode& status)
+        : index(index)
+        , unitImpl(unitImpl.copy(status))
+    {
     }
-    MeasureUnitImplWithIndex(int32_t index, const SingleUnitImpl &singleUnitImpl, UErrorCode &status)
-        : index(index), unitImpl(MeasureUnitImpl(singleUnitImpl, status)) {
+    MeasureUnitImplWithIndex(int32_t index, const SingleUnitImpl& singleUnitImpl, UErrorCode& status)
+        : index(index)
+        , unitImpl(MeasureUnitImpl(singleUnitImpl, status))
+    {
     }
 };
 
@@ -351,7 +355,7 @@ struct U_I18N_API MeasureUnitImplWithIndex : public UMemory {
 // MaybeStackVector. This is required when building DLLs for Windows. (See
 // datefmt.h, collationiterator.h, erarules.h and others for similar examples.)
 #if U_PF_WINDOWS <= U_PLATFORM && U_PLATFORM <= U_PF_CYGWIN
-template class U_I18N_API MaybeStackArray<MeasureUnitImplWithIndex *, 8>;
+template class U_I18N_API MaybeStackArray<MeasureUnitImplWithIndex*, 8>;
 template class U_I18N_API MemoryPool<MeasureUnitImplWithIndex, 8>;
 template class U_I18N_API MaybeStackVector<MeasureUnitImplWithIndex, 8>;
 

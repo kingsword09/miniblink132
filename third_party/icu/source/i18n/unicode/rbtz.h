@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -14,7 +14,7 @@
 #if U_SHOW_CPLUSPLUS_API
 
 /**
- * \file 
+ * \file
  * \brief C++ API: Rule based customizable time zone
  */
 
@@ -73,7 +73,7 @@ public:
      * semantically equal. Objects of different subclasses are considered unequal.
      * @param that  The object to be compared with.
      * @return  true if the given <code>TimeZone</code> objects are
-      *semantically equal.
+     *semantically equal.
      * @stable ICU 3.8
      */
     virtual bool operator==(const TimeZone& that) const override;
@@ -150,8 +150,7 @@ public:
      * @return           The offset in milliseconds to add to GMT to get local time.
      * @stable ICU 3.8
      */
-    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
-                              uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const override;
+    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const override;
 
     /**
      * Gets the time zone offset, for current date, modified in case of
@@ -172,9 +171,8 @@ public:
      * @return           The offset in milliseconds to add to GMT to get local time.
      * @stable ICU 3.8
      */
-    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
-                           uint8_t dayOfWeek, int32_t millis,
-                           int32_t monthLength, UErrorCode& status) const override;
+    virtual int32_t getOffset(
+        uint8_t era, int32_t year, int32_t month, int32_t day, uint8_t dayOfWeek, int32_t millis, int32_t monthLength, UErrorCode& status) const override;
 
     /**
      * Returns the time zone raw and GMT offset for the given moment
@@ -198,8 +196,7 @@ public:
      * @param ec input-output error code
      * @stable ICU 3.8
      */
-    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset,
-                           int32_t& dstOffset, UErrorCode& ec) const override;
+    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset, int32_t& dstOffset, UErrorCode& ec) const override;
 
     /**
      * Sets the TimeZone's raw GMT offset (i.e., the number of milliseconds to add
@@ -242,7 +239,7 @@ public:
      * @deprecated ICU 2.4. Use Calendar::inDaylightTime() instead.
      */
     virtual UBool inDaylightTime(UDate date, UErrorCode& status) const override;
-#endif  // U_FORCE_HIDE_DEPRECATED_API
+#endif // U_FORCE_HIDE_DEPRECATED_API
 
     /**
      * Returns true if this zone has the same rule and offset as another zone.
@@ -287,7 +284,7 @@ public:
     /**
      * Gets the <code>InitialTimeZoneRule</code> and the set of <code>TimeZoneRule</code>
      * which represent time transitions for this time zone.  On successful return,
-     * the argument initial points to non-nullptr <code>InitialTimeZoneRule</code> and
+     * the argument initial points to non-NULL <code>InitialTimeZoneRule</code> and
      * the array trsrules is filled with 0 or multiple <code>TimeZoneRule</code>
      * instances up to the size specified by trscount.  The results are referencing the
      * rule instance held by this time zone instance.  Therefore, after this time zone
@@ -300,39 +297,34 @@ public:
      * @param status        Receives error status code.
      * @stable ICU 3.8
      */
-    virtual void getTimeZoneRules(const InitialTimeZoneRule*& initial,
-        const TimeZoneRule* trsrules[], int32_t& trscount, UErrorCode& status) const override;
+    virtual void getTimeZoneRules(const InitialTimeZoneRule*& initial, const TimeZoneRule* trsrules[], int32_t& trscount, UErrorCode& status) const override;
 
     /**
      * Get time zone offsets from local wall time.
      * @stable ICU 69
      */
-    virtual void getOffsetFromLocal(
-        UDate date, UTimeZoneLocalOption nonExistingTimeOpt,
-        UTimeZoneLocalOption duplicatedTimeOpt,
-        int32_t& rawOffset, int32_t& dstOffset, UErrorCode& status) const override;
+    virtual void getOffsetFromLocal(UDate date, UTimeZoneLocalOption nonExistingTimeOpt, UTimeZoneLocalOption duplicatedTimeOpt, int32_t& rawOffset,
+        int32_t& dstOffset, UErrorCode& status) const override;
 
 private:
     void deleteRules(void);
     void deleteTransitions(void);
     UVector* copyRules(UVector* source);
-    TimeZoneRule* findRuleInFinal(UDate date, UBool local,
-        int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt) const;
+    TimeZoneRule* findRuleInFinal(UDate date, UBool local, int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt) const;
     UBool findNext(UDate base, UBool inclusive, UDate& time, TimeZoneRule*& from, TimeZoneRule*& to) const;
     UBool findPrev(UDate base, UBool inclusive, UDate& time, TimeZoneRule*& from, TimeZoneRule*& to) const;
-    int32_t getLocalDelta(int32_t rawBefore, int32_t dstBefore, int32_t rawAfter, int32_t dstAfter,
-        int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt) const;
-    UDate getTransitionTime(Transition* transition, UBool local,
-        int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt) const;
-    void getOffsetInternal(UDate date, UBool local, int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt,
-        int32_t& rawOffset, int32_t& dstOffset, UErrorCode& ec) const;
-    void completeConst(UErrorCode &status) const;
+    int32_t getLocalDelta(
+        int32_t rawBefore, int32_t dstBefore, int32_t rawAfter, int32_t dstAfter, int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt) const;
+    UDate getTransitionTime(Transition* transition, UBool local, int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt) const;
+    void getOffsetInternal(
+        UDate date, UBool local, int32_t NonExistingTimeOpt, int32_t DuplicatedTimeOpt, int32_t& rawOffset, int32_t& dstOffset, UErrorCode& ec) const;
+    void completeConst(UErrorCode& status) const;
 
-    InitialTimeZoneRule *fInitialRule;
-    UVector             *fHistoricRules;
-    UVector             *fFinalRules;
-    UVector             *fHistoricTransitions;
-    UBool               fUpToDate;
+    InitialTimeZoneRule* fInitialRule;
+    UVector* fHistoricRules;
+    UVector* fFinalRules;
+    UVector* fHistoricTransitions;
+    UBool fUpToDate;
 
 public:
     /**
@@ -370,4 +362,4 @@ U_NAMESPACE_END
 
 #endif // RBTZ_H
 
-//eof
+// eof

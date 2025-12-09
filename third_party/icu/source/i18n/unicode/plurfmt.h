@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -147,7 +147,6 @@ class NFRule;
 
 class U_I18N_API PluralFormat : public Format {
 public:
-
     /**
      * Creates a new cardinal-number <code>PluralFormat</code> for the default locale.
      * This locale will be used to get the set of plural rules and for standard
@@ -190,11 +189,11 @@ public:
      * @param status  output param set to success/failure code on exit, which
      *                must not indicate a failure before the function call.
      * @stable ICU 4.0
-	 * <p>
-	 * <h4>Sample code</h4>
-	 * \snippet samples/plurfmtsample/plurfmtsample.cpp PluralFormatExample1
-	 * \snippet samples/plurfmtsample/plurfmtsample.cpp PluralFormatExample
-	 * <p>
+     * <p>
+     * <h4>Sample code</h4>
+     * \snippet samples/plurfmtsample/plurfmtsample.cpp PluralFormatExample1
+     * \snippet samples/plurfmtsample/plurfmtsample.cpp PluralFormatExample
+     * <p>
      */
     PluralFormat(const Locale& locale, const PluralRules& rules, UErrorCode& status);
 
@@ -249,9 +248,7 @@ public:
      *                 must not indicate a failure before the function call.
      * @stable ICU 4.0
      */
-    PluralFormat(const PluralRules& rules,
-                 const UnicodeString& pattern,
-                 UErrorCode& status);
+    PluralFormat(const PluralRules& rules, const UnicodeString& pattern, UErrorCode& status);
 
     /**
      * Creates a new <code>PluralFormat</code> for a given set of rules, a
@@ -267,10 +264,7 @@ public:
      *                must not indicate a failure before the function call.
      * @stable ICU 4.0
      */
-    PluralFormat(const Locale& locale,
-                 const PluralRules& rules,
-                 const UnicodeString& pattern,
-                 UErrorCode& status);
+    PluralFormat(const Locale& locale, const PluralRules& rules, const UnicodeString& pattern, UErrorCode& status);
 
     /**
      * Creates a new <code>PluralFormat</code> for a plural type, a
@@ -285,15 +279,12 @@ public:
      *                must not indicate a failure before the function call.
      * @stable ICU 50
      */
-    PluralFormat(const Locale& locale,
-                 UPluralType type,
-                 const UnicodeString& pattern,
-                 UErrorCode& status);
+    PluralFormat(const Locale& locale, UPluralType type, const UnicodeString& pattern, UErrorCode& status);
 
     /**
-      * copy constructor.
-      * @stable ICU 4.0
-      */
+     * copy constructor.
+     * @stable ICU 4.0
+     */
     PluralFormat(const PluralFormat& other);
 
     /**
@@ -315,7 +306,6 @@ public:
      * @stable ICU 4.0
      */
     void applyPattern(const UnicodeString& pattern, UErrorCode& status);
-
 
     using Format::format;
 
@@ -363,10 +353,7 @@ public:
      * @return         the string containing the formatted plural message.
      * @stable ICU 4.0
      */
-    UnicodeString& format(int32_t number,
-                          UnicodeString& appendTo,
-                          FieldPosition& pos,
-                          UErrorCode& status) const;
+    UnicodeString& format(int32_t number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const;
 
     /**
      * Formats a plural message for a given number.
@@ -384,12 +371,9 @@ public:
      * @return         the string containing the formatted plural message.
      * @stable ICU 4.0
      */
-    UnicodeString& format(double number,
-                          UnicodeString& appendTo,
-                          FieldPosition& pos,
-                          UErrorCode& status) const;
+    UnicodeString& format(double number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const;
 
-#ifndef U_HIDE_DEPRECATED_API 
+#ifndef U_HIDE_DEPRECATED_API
     /**
      * Sets the locale used by this <code>PluraFormat</code> object.
      * Note: Calling this method resets this <code>PluraFormat</code> object,
@@ -406,34 +390,34 @@ public:
      *             use one of the constructors to create a new instance instead.
      */
     void setLocale(const Locale& locale, UErrorCode& status);
-#endif  /* U_HIDE_DEPRECATED_API */
+#endif /* U_HIDE_DEPRECATED_API */
 
     /**
-      * Sets the number format used by this formatter.  You only need to
-      * call this if you want a different number format than the default
-      * formatter for the locale.
-      * @param format  the number format to use.
-      * @param status  output param set to success/failure code on exit, which
-      *                must not indicate a failure before the function call.
-      * @stable ICU 4.0
-      */
+     * Sets the number format used by this formatter.  You only need to
+     * call this if you want a different number format than the default
+     * formatter for the locale.
+     * @param format  the number format to use.
+     * @param status  output param set to success/failure code on exit, which
+     *                must not indicate a failure before the function call.
+     * @stable ICU 4.0
+     */
     void setNumberFormat(const NumberFormat* format, UErrorCode& status);
 
     /**
-       * Assignment operator
-       *
-       * @param other    the PluralFormat object to copy from.
-       * @stable ICU 4.0
-       */
+     * Assignment operator
+     *
+     * @param other    the PluralFormat object to copy from.
+     * @stable ICU 4.0
+     */
     PluralFormat& operator=(const PluralFormat& other);
 
     /**
-      * Return true if another object is semantically equal to this one.
-      *
-      * @param other    the PluralFormat object to be compared with.
-      * @return         true if other is semantically equal to this.
-      * @stable ICU 4.0
-      */
+     * Return true if another object is semantically equal to this one.
+     *
+     * @param other    the PluralFormat object to be compared with.
+     * @return         true if other is semantically equal to this.
+     * @stable ICU 4.0
+     */
     virtual bool operator==(const Format& other) const override;
 
     /**
@@ -452,60 +436,55 @@ public:
      */
     virtual PluralFormat* clone() const override;
 
-   /**
-    * Formats a plural message for a number taken from a Formattable object.
-    *
-    * @param obj       The object containing a number for which the 
-    *                  plural message should be formatted.
-    *                  The object must be of a numeric type.
-    * @param appendTo  output parameter to receive result.
-    *                  Result is appended to existing contents.
-    * @param pos       On input: an alignment field, if desired.
-    *                  On output: the offsets of the alignment field.
-    * @param status    output param filled with success/failure status.
-    * @return          Reference to 'appendTo' parameter.
-    * @stable ICU 4.0
-    */
-   UnicodeString& format(const Formattable& obj,
-                         UnicodeString& appendTo,
-                         FieldPosition& pos,
-                         UErrorCode& status) const override;
-
-   /**
-    * Returns the pattern from applyPattern() or constructor().
-    *
-    * @param  appendTo  output parameter to receive result.
+    /**
+     * Formats a plural message for a number taken from a Formattable object.
+     *
+     * @param obj       The object containing a number for which the
+     *                  plural message should be formatted.
+     *                  The object must be of a numeric type.
+     * @param appendTo  output parameter to receive result.
      *                  Result is appended to existing contents.
-    * @return the UnicodeString with inserted pattern.
-    * @stable ICU 4.0
-    */
-   UnicodeString& toPattern(UnicodeString& appendTo);
+     * @param pos       On input: an alignment field, if desired.
+     *                  On output: the offsets of the alignment field.
+     * @param status    output param filled with success/failure status.
+     * @return          Reference to 'appendTo' parameter.
+     * @stable ICU 4.0
+     */
+    UnicodeString& format(const Formattable& obj, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const override;
 
-   /**
-    * This method is not yet supported by <code>PluralFormat</code>.
-    * <P>
-    * Before calling, set parse_pos.index to the offset you want to start
-    * parsing at in the source. After calling, parse_pos.index is the end of
-    * the text you parsed. If error occurs, index is unchanged.
-    * <P>
-    * When parsing, leading whitespace is discarded (with a successful parse),
-    * while trailing whitespace is left as is.
-    * <P>
-    * See Format::parseObject() for more.
-    *
-    * @param source    The string to be parsed into an object.
-    * @param result    Formattable to be set to the parse result.
-    *                  If parse fails, return contents are undefined.
-    * @param parse_pos The position to start parsing at. Upon return
-    *                  this param is set to the position after the
-    *                  last character successfully parsed. If the
-    *                  source is not parsed successfully, this param
-    *                  will remain unchanged.
-    * @stable ICU 4.0
-    */
-   virtual void parseObject(const UnicodeString& source,
-                            Formattable& result,
-                            ParsePosition& parse_pos) const override;
+    /**
+     * Returns the pattern from applyPattern() or constructor().
+     *
+     * @param  appendTo  output parameter to receive result.
+     *                  Result is appended to existing contents.
+     * @return the UnicodeString with inserted pattern.
+     * @stable ICU 4.0
+     */
+    UnicodeString& toPattern(UnicodeString& appendTo);
+
+    /**
+     * This method is not yet supported by <code>PluralFormat</code>.
+     * <P>
+     * Before calling, set parse_pos.index to the offset you want to start
+     * parsing at in the source. After calling, parse_pos.index is the end of
+     * the text you parsed. If error occurs, index is unchanged.
+     * <P>
+     * When parsing, leading whitespace is discarded (with a successful parse),
+     * while trailing whitespace is left as is.
+     * <P>
+     * See Format::parseObject() for more.
+     *
+     * @param source    The string to be parsed into an object.
+     * @param result    Formattable to be set to the parse result.
+     *                  If parse fails, return contents are undefined.
+     * @param parse_pos The position to start parsing at. Upon return
+     *                  this param is set to the position after the
+     *                  last character successfully parsed. If the
+     *                  source is not parsed successfully, this param
+     *                  will remain unchanged.
+     * @stable ICU 4.0
+     */
+    virtual void parseObject(const UnicodeString& source, Formattable& result, ParsePosition& parse_pos) const override;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
@@ -520,14 +499,14 @@ public:
      *
      * @stable ICU 4.0
      */
-     virtual UClassID getDynamicClassID() const override;
+    virtual UClassID getDynamicClassID() const override;
 
 private:
-     /**
-      * @internal (private)
-      */
+    /**
+     * @internal (private)
+     */
     class U_I18N_API PluralSelector : public UMemory {
-      public:
+    public:
         virtual ~PluralSelector();
         /**
          * Given a number, returns the appropriate PluralFormat keyword.
@@ -538,30 +517,32 @@ private:
          * @return The selected PluralFormat keyword.
          * @internal (private)
          */
-        virtual UnicodeString select(void *context, double number, UErrorCode& ec) const = 0;
+        virtual UnicodeString select(void* context, double number, UErrorCode& ec) const = 0;
     };
 
     class U_I18N_API PluralSelectorAdapter : public PluralSelector {
-      public:
-        PluralSelectorAdapter() : pluralRules(nullptr) {
+    public:
+        PluralSelectorAdapter()
+            : pluralRules(NULL)
+        {
         }
 
         virtual ~PluralSelectorAdapter();
 
-        virtual UnicodeString select(void *context, double number, UErrorCode& /*ec*/) const override;
+        virtual UnicodeString select(void* context, double number, UErrorCode& /*ec*/) const override;
 
         void reset();
 
         PluralRules* pluralRules;
     };
 
-    Locale  locale;
+    Locale locale;
     MessagePattern msgPattern;
-    NumberFormat*  numberFormat;
+    NumberFormat* numberFormat;
     double offset;
     PluralSelectorAdapter pluralRulesWrapper;
 
-    PluralFormat() = delete;   // default constructor not implemented
+    PluralFormat(); // default constructor not implemented
     void init(const PluralRules* rules, UPluralType type, UErrorCode& status);
     /**
      * Copies dynamically allocated values (pointer fields).
@@ -569,10 +550,7 @@ private:
      */
     void copyObjects(const PluralFormat& other);
 
-    UnicodeString& format(const Formattable& numberObject, double number,
-                          UnicodeString& appendTo,
-                          FieldPosition& pos,
-                          UErrorCode& status) const;
+    UnicodeString& format(const Formattable& numberObject, double number, UnicodeString& appendTo, FieldPosition& pos, UErrorCode& status) const;
 
     /**
      * Finds the PluralFormat sub-message for the given number, or the "other" sub-message.
@@ -586,11 +564,9 @@ private:
      * @return the sub-message start part index.
      */
     static int32_t findSubMessage(
-         const MessagePattern& pattern, int32_t partIndex,
-         const PluralSelector& selector, void *context, double number, UErrorCode& ec);
+        const MessagePattern& pattern, int32_t partIndex, const PluralSelector& selector, void* context, double number, UErrorCode& ec);
 
-    void parseType(const UnicodeString& source, const NFRule *rbnfLenientScanner,
-        Formattable& result, FieldPosition& pos) const;
+    void parseType(const UnicodeString& source, const NFRule* rbnfLenientScanner, Formattable& result, FieldPosition& pos) const;
 
     friend class MessageFormat;
     friend class NFRule;
@@ -603,4 +579,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // _PLURFMT
-//eof
+// eof

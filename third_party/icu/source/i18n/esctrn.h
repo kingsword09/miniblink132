@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -45,8 +45,7 @@ U_NAMESPACE_BEGIN
  */
 class EscapeTransliterator : public Transliterator {
 
- private:
-
+private:
     /**
      * The prefix of the escape form; may be empty, but usually isn't.
      */
@@ -84,8 +83,7 @@ class EscapeTransliterator : public Transliterator {
      */
     EscapeTransliterator* supplementalHandler;
 
- public:
-
+public:
     /**
      * Registers standard variants with the system.  Called by
      * Transliterator during initialization.
@@ -96,11 +94,8 @@ class EscapeTransliterator : public Transliterator {
      * Constructs an escape transliterator with the given ID and
      * parameters.  See the class member documentation for details.
      */
-    EscapeTransliterator(const UnicodeString& ID,
-                         const UnicodeString& prefix, const UnicodeString& suffix,
-                         int32_t radix, int32_t minDigits,
-                         UBool grokSupplementals,
-                         EscapeTransliterator* adoptedSupplementalHandler);
+    EscapeTransliterator(const UnicodeString& ID, const UnicodeString& prefix, const UnicodeString& suffix, int32_t radix, int32_t minDigits,
+        UBool grokSupplementals, EscapeTransliterator* adoptedSupplementalHandler);
 
     /**
      * Copy constructor.
@@ -127,14 +122,11 @@ class EscapeTransliterator : public Transliterator {
      */
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
- protected:
-
+protected:
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset,
-                             UBool isIncremental) const override;
-
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset, UBool isIncremental) const override;
 };
 
 U_NAMESPACE_END

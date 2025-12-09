@@ -1,4 +1,4 @@
-// © 2020 and later: Unicode, Inc. and others.
+﻿// © 2020 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -12,15 +12,18 @@ using namespace icu;
 using namespace icu::number;
 using namespace icu::number::impl;
 
-SymbolsWrapper::SymbolsWrapper(const SymbolsWrapper &other) {
+SymbolsWrapper::SymbolsWrapper(const SymbolsWrapper& other)
+{
     doCopyFrom(other);
 }
 
-SymbolsWrapper::SymbolsWrapper(SymbolsWrapper &&src) noexcept {
+SymbolsWrapper::SymbolsWrapper(SymbolsWrapper&& src) U_NOEXCEPT
+{
     doMoveFrom(std::move(src));
 }
 
-SymbolsWrapper &SymbolsWrapper::operator=(const SymbolsWrapper &other) {
+SymbolsWrapper& SymbolsWrapper::operator=(const SymbolsWrapper& other)
+{
     if (this == &other) {
         return *this;
     }
@@ -29,7 +32,8 @@ SymbolsWrapper &SymbolsWrapper::operator=(const SymbolsWrapper &other) {
     return *this;
 }
 
-SymbolsWrapper &SymbolsWrapper::operator=(SymbolsWrapper &&src) noexcept {
+SymbolsWrapper& SymbolsWrapper::operator=(SymbolsWrapper&& src) U_NOEXCEPT
+{
     if (this == &src) {
         return *this;
     }
@@ -38,23 +42,27 @@ SymbolsWrapper &SymbolsWrapper::operator=(SymbolsWrapper &&src) noexcept {
     return *this;
 }
 
-SymbolsWrapper::~SymbolsWrapper() {
+SymbolsWrapper::~SymbolsWrapper()
+{
     doCleanup();
 }
 
-void SymbolsWrapper::setTo(const DecimalFormatSymbols &dfs) {
+void SymbolsWrapper::setTo(const DecimalFormatSymbols& dfs)
+{
     doCleanup();
     fType = SYMPTR_DFS;
     fPtr.dfs = new DecimalFormatSymbols(dfs);
 }
 
-void SymbolsWrapper::setTo(const NumberingSystem *ns) {
+void SymbolsWrapper::setTo(const NumberingSystem* ns)
+{
     doCleanup();
     fType = SYMPTR_NS;
     fPtr.ns = ns;
 }
 
-void SymbolsWrapper::doCopyFrom(const SymbolsWrapper &other) {
+void SymbolsWrapper::doCopyFrom(const SymbolsWrapper& other)
+{
     fType = other.fType;
     switch (fType) {
     case SYMPTR_NONE:
@@ -79,7 +87,8 @@ void SymbolsWrapper::doCopyFrom(const SymbolsWrapper &other) {
     }
 }
 
-void SymbolsWrapper::doMoveFrom(SymbolsWrapper &&src) {
+void SymbolsWrapper::doMoveFrom(SymbolsWrapper&& src)
+{
     fType = src.fType;
     switch (fType) {
     case SYMPTR_NONE:
@@ -96,7 +105,8 @@ void SymbolsWrapper::doMoveFrom(SymbolsWrapper &&src) {
     }
 }
 
-void SymbolsWrapper::doCleanup() {
+void SymbolsWrapper::doCleanup()
+{
     switch (fType) {
     case SYMPTR_NONE:
         // No action necessary
@@ -110,20 +120,24 @@ void SymbolsWrapper::doCleanup() {
     }
 }
 
-bool SymbolsWrapper::isDecimalFormatSymbols() const {
+bool SymbolsWrapper::isDecimalFormatSymbols() const
+{
     return fType == SYMPTR_DFS;
 }
 
-bool SymbolsWrapper::isNumberingSystem() const {
+bool SymbolsWrapper::isNumberingSystem() const
+{
     return fType == SYMPTR_NS;
 }
 
-const DecimalFormatSymbols *SymbolsWrapper::getDecimalFormatSymbols() const {
+const DecimalFormatSymbols* SymbolsWrapper::getDecimalFormatSymbols() const
+{
     U_ASSERT(fType == SYMPTR_DFS);
     return fPtr.dfs;
 }
 
-const NumberingSystem *SymbolsWrapper::getNumberingSystem() const {
+const NumberingSystem* SymbolsWrapper::getNumberingSystem() const
+{
     U_ASSERT(fType == SYMPTR_NS);
     return fPtr.ns;
 }

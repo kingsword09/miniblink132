@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /********************************************************************
  * COPYRIGHT:
@@ -18,313 +18,308 @@
 
 #if !UCONFIG_NO_CONVERSION
 
-UPerfFunction::~UPerfFunction() {}
+UPerfFunction::~UPerfFunction()
+{
+}
 
 static const char delim = '/';
 static int32_t execCount = 0;
-UPerfTest* UPerfTest::gTest = nullptr;
+UPerfTest* UPerfTest::gTest = NULL;
 static const int MAXLINES = 40000;
-const char UPerfTest::gUsageString[] =
-    "Usage: %s [OPTIONS] [FILES]\n"
-    "\tReads the input file and prints out time taken in seconds\n"
-    "Options:\n"
-    "\t-h or -? or --help   this usage text\n"
-    "\t-v or --verbose      print extra information when processing files\n"
-    "\t-s or --sourcedir    source directory for files followed by path\n"
-    "\t                     followed by path\n"
-    "\t-e or --encoding     encoding of source files\n"
-    "\t-u or --uselen       perform timing analysis on non-null terminated buffer using length\n"
-    "\t-f or --file-name    file to be used as input data\n"
-    "\t-p or --passes       Number of passes to be performed. Requires Numeric argument.\n"
-    "\t                     Cannot be used with --time\n"
-    "\t-i or --iterations   Number of iterations to be performed. Requires Numeric argument\n"
-    "\t-t or --time         Threshold time for looping until in seconds. Requires Numeric argument.\n"
-    "\t                     Cannot be used with --iterations\n"
-    "\t-l or --line-mode    The data file should be processed in line mode\n"
-    "\t-b or --bulk-mode    The data file should be processed in file based.\n"
-    "\t                     Cannot be used with --line-mode\n"
-    "\t-L or --locale       Locale for the test\n";
+const char UPerfTest::gUsageString[] = "Usage: %s [OPTIONS] [FILES]\n"
+                                       "\tReads the input file and prints out time taken in seconds\n"
+                                       "Options:\n"
+                                       "\t-h or -? or --help   this usage text\n"
+                                       "\t-v or --verbose      print extra information when processing files\n"
+                                       "\t-s or --sourcedir    source directory for files followed by path\n"
+                                       "\t                     followed by path\n"
+                                       "\t-e or --encoding     encoding of source files\n"
+                                       "\t-u or --uselen       perform timing analysis on non-null terminated buffer using length\n"
+                                       "\t-f or --file-name    file to be used as input data\n"
+                                       "\t-p or --passes       Number of passes to be performed. Requires Numeric argument.\n"
+                                       "\t                     Cannot be used with --time\n"
+                                       "\t-i or --iterations   Number of iterations to be performed. Requires Numeric argument\n"
+                                       "\t-t or --time         Threshold time for looping until in seconds. Requires Numeric argument.\n"
+                                       "\t                     Cannot be used with --iterations\n"
+                                       "\t-l or --line-mode    The data file should be processed in line mode\n"
+                                       "\t-b or --bulk-mode    The data file should be processed in file based.\n"
+                                       "\t                     Cannot be used with --line-mode\n"
+                                       "\t-L or --locale       Locale for the test\n";
 
-enum
-{
-    HELP1,
-    HELP2,
-    VERBOSE,
-    SOURCEDIR,
-    ENCODING,
-    USELEN,
-    FILE_NAME,
-    PASSES,
-    ITERATIONS,
-    TIME,
-    LINE_MODE,
-    BULK_MODE,
-    LOCALE,
-    OPTIONS_COUNT
-};
+enum { HELP1, HELP2, VERBOSE, SOURCEDIR, ENCODING, USELEN, FILE_NAME, PASSES, ITERATIONS, TIME, LINE_MODE, BULK_MODE, LOCALE, OPTIONS_COUNT };
 
-
-static UOption options[OPTIONS_COUNT+20]={
-    UOPTION_HELP_H,
-    UOPTION_HELP_QUESTION_MARK,
-    UOPTION_VERBOSE,
-    UOPTION_SOURCEDIR,
-    UOPTION_ENCODING,
-    UOPTION_DEF( "uselen",        'u', UOPT_NO_ARG),
-    UOPTION_DEF( "file-name",     'f', UOPT_REQUIRES_ARG),
-    UOPTION_DEF( "passes",        'p', UOPT_REQUIRES_ARG),
-    UOPTION_DEF( "iterations",    'i', UOPT_REQUIRES_ARG),
-    UOPTION_DEF( "time",          't', UOPT_REQUIRES_ARG),
-    UOPTION_DEF( "line-mode",     'l', UOPT_NO_ARG),
-    UOPTION_DEF( "bulk-mode",     'b', UOPT_NO_ARG),
-    UOPTION_DEF( "locale",        'L', UOPT_REQUIRES_ARG)
-};
+static UOption options[OPTIONS_COUNT + 20] = { UOPTION_HELP_H, UOPTION_HELP_QUESTION_MARK, UOPTION_VERBOSE, UOPTION_SOURCEDIR, UOPTION_ENCODING,
+    UOPTION_DEF("uselen", 'u', UOPT_NO_ARG), UOPTION_DEF("file-name", 'f', UOPT_REQUIRES_ARG), UOPTION_DEF("passes", 'p', UOPT_REQUIRES_ARG),
+    UOPTION_DEF("iterations", 'i', UOPT_REQUIRES_ARG), UOPTION_DEF("time", 't', UOPT_REQUIRES_ARG), UOPTION_DEF("line-mode", 'l', UOPT_NO_ARG),
+    UOPTION_DEF("bulk-mode", 'b', UOPT_NO_ARG), UOPTION_DEF("locale", 'L', UOPT_REQUIRES_ARG) };
 
 UPerfTest::UPerfTest(int32_t argc, const char* argv[], UErrorCode& status)
-        : _argc(argc), _argv(argv), _addUsage(nullptr),
-          ucharBuf(nullptr), encoding(""),
-          uselen(false),
-          fileName(nullptr), sourceDir("."),
-          lines(nullptr), numLines(0), line_mode(true),
-          buffer(nullptr), bufferLen(0),
-          verbose(false), bulk_mode(false),
-          passes(1), iterations(0), time(0),
-          locale(nullptr) {
-    init(nullptr, 0, status);
+    : _argc(argc)
+    , _argv(argv)
+    , _addUsage(NULL)
+    , ucharBuf(NULL)
+    , encoding("")
+    , uselen(FALSE)
+    , fileName(NULL)
+    , sourceDir(".")
+    , lines(NULL)
+    , numLines(0)
+    , line_mode(TRUE)
+    , buffer(NULL)
+    , bufferLen(0)
+    , verbose(FALSE)
+    , bulk_mode(FALSE)
+    , passes(1)
+    , iterations(0)
+    , time(0)
+    , locale(NULL)
+{
+    init(NULL, 0, status);
 }
 
-UPerfTest::UPerfTest(int32_t argc, const char* argv[],
-                     UOption addOptions[], int32_t addOptionsCount,
-                     const char *addUsage,
-                     UErrorCode& status)
-        : _argc(argc), _argv(argv), _addUsage(addUsage),
-          ucharBuf(nullptr), encoding(""),
-          uselen(false),
-          fileName(nullptr), sourceDir("."),
-          lines(nullptr), numLines(0), line_mode(true),
-          buffer(nullptr), bufferLen(0),
-          verbose(false), bulk_mode(false),
-          passes(1), iterations(0), time(0),
-          locale(nullptr) {
+UPerfTest::UPerfTest(int32_t argc, const char* argv[], UOption addOptions[], int32_t addOptionsCount, const char* addUsage, UErrorCode& status)
+    : _argc(argc)
+    , _argv(argv)
+    , _addUsage(addUsage)
+    , ucharBuf(NULL)
+    , encoding("")
+    , uselen(FALSE)
+    , fileName(NULL)
+    , sourceDir(".")
+    , lines(NULL)
+    , numLines(0)
+    , line_mode(TRUE)
+    , buffer(NULL)
+    , bufferLen(0)
+    , verbose(FALSE)
+    , bulk_mode(FALSE)
+    , passes(1)
+    , iterations(0)
+    , time(0)
+    , locale(NULL)
+{
     init(addOptions, addOptionsCount, status);
 }
 
-void UPerfTest::init(UOption addOptions[], int32_t addOptionsCount,
-                     UErrorCode& status) {
-    //initialize the argument list
+void UPerfTest::init(UOption addOptions[], int32_t addOptionsCount, UErrorCode& status)
+{
+    // initialize the argument list
     U_MAIN_INIT_ARGS(_argc, _argv);
 
-    resolvedFileName = nullptr;
+    resolvedFileName = NULL;
 
     // add specific options
     int32_t optionsCount = OPTIONS_COUNT;
     if (addOptionsCount > 0) {
-        memcpy(options+optionsCount, addOptions, addOptionsCount*sizeof(UOption));
+        memcpy(options + optionsCount, addOptions, addOptionsCount * sizeof(UOption));
         optionsCount += addOptionsCount;
     }
 
-    //parse the arguments
+    // parse the arguments
     _remainingArgc = u_parseArgs(_argc, (char**)_argv, optionsCount, options);
 
     // copy back values for additional options
     if (addOptionsCount > 0) {
-        memcpy(addOptions, options+OPTIONS_COUNT, addOptionsCount*sizeof(UOption));
+        memcpy(addOptions, options + OPTIONS_COUNT, addOptionsCount * sizeof(UOption));
     }
 
     // Now setup the arguments
-    if(_argc==1 || options[HELP1].doesOccur || options[HELP2].doesOccur) {
+    if (_argc == 1 || options[HELP1].doesOccur || options[HELP2].doesOccur) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
 
-    if(options[VERBOSE].doesOccur) {
-        verbose = true;
+    if (options[VERBOSE].doesOccur) {
+        verbose = TRUE;
     }
 
-    if(options[SOURCEDIR].doesOccur) {
+    if (options[SOURCEDIR].doesOccur) {
         sourceDir = options[SOURCEDIR].value;
     }
 
-    if(options[ENCODING].doesOccur) {
+    if (options[ENCODING].doesOccur) {
         encoding = options[ENCODING].value;
     }
 
-    if(options[USELEN].doesOccur) {
-        uselen = true;
+    if (options[USELEN].doesOccur) {
+        uselen = TRUE;
     }
 
-    if(options[FILE_NAME].doesOccur){
+    if (options[FILE_NAME].doesOccur) {
         fileName = options[FILE_NAME].value;
     }
 
-    if(options[PASSES].doesOccur) {
+    if (options[PASSES].doesOccur) {
         passes = atoi(options[PASSES].value);
     }
-    if(options[ITERATIONS].doesOccur) {
+    if (options[ITERATIONS].doesOccur) {
         iterations = atoi(options[ITERATIONS].value);
-        if(options[TIME].doesOccur) {
+        if (options[TIME].doesOccur) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }
-    } else if(options[TIME].doesOccur) {
+    } else if (options[TIME].doesOccur) {
         time = atoi(options[TIME].value);
     } else {
         iterations = 1000; // some default
     }
 
-    if(options[LINE_MODE].doesOccur) {
-        line_mode = true;
-        bulk_mode = false;
+    if (options[LINE_MODE].doesOccur) {
+        line_mode = TRUE;
+        bulk_mode = FALSE;
     }
 
-    if(options[BULK_MODE].doesOccur) {
-        bulk_mode = true;
-        line_mode = false;
+    if (options[BULK_MODE].doesOccur) {
+        bulk_mode = TRUE;
+        line_mode = FALSE;
     }
-    
-    if(options[LOCALE].doesOccur) {
+
+    if (options[LOCALE].doesOccur) {
         locale = options[LOCALE].value;
     }
 
     int32_t len = 0;
-    if(fileName!=nullptr){
-        //pre-flight
-        ucbuf_resolveFileName(sourceDir, fileName, nullptr, &len, &status);
-        resolvedFileName = (char*) uprv_malloc(len);
-        if(resolvedFileName==nullptr){
-            status= U_MEMORY_ALLOCATION_ERROR;
+    if (fileName != NULL) {
+        // pre-flight
+        ucbuf_resolveFileName(sourceDir, fileName, NULL, &len, &status);
+        resolvedFileName = (char*)uprv_malloc(len);
+        if (resolvedFileName == NULL) {
+            status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
-        if(status == U_BUFFER_OVERFLOW_ERROR){
+        if (status == U_BUFFER_OVERFLOW_ERROR) {
             status = U_ZERO_ERROR;
         }
         ucbuf_resolveFileName(sourceDir, fileName, resolvedFileName, &len, &status);
-        ucharBuf = ucbuf_open(resolvedFileName,&encoding,true,false,&status);
+        ucharBuf = ucbuf_open(resolvedFileName, &encoding, TRUE, FALSE, &status);
 
-        if(U_FAILURE(status)){
+        if (U_FAILURE(status)) {
             printf("Could not open the input file %s. Error: %s\n", fileName, u_errorName(status));
             return;
         }
     }
 }
 
-ULine* UPerfTest::getLines(UErrorCode& status){
+ULine* UPerfTest::getLines(UErrorCode& status)
+{
     if (U_FAILURE(status)) {
-        return nullptr;
+        return NULL;
     }
-    if (lines != nullptr) {
-        return lines;  // don't do it again
+    if (lines != NULL) {
+        return lines; // don't do it again
     }
-    lines     = new ULine[MAXLINES];
+    lines = new ULine[MAXLINES];
     int maxLines = MAXLINES;
-    numLines=0;
-    const char16_t* line=nullptr;
-    int32_t len =0;
+    numLines = 0;
+    const UChar* line = NULL;
+    int32_t len = 0;
     for (;;) {
-        line = ucbuf_readline(ucharBuf,&len,&status);
-        if(line == nullptr || U_FAILURE(status)){
+        line = ucbuf_readline(ucharBuf, &len, &status);
+        if (line == NULL || U_FAILURE(status)) {
             break;
         }
-        lines[numLines].name  = new char16_t[len];
-        lines[numLines].len   = len;
+        lines[numLines].name = new UChar[len];
+        lines[numLines].len = len;
         memcpy(lines[numLines].name, line, len * U_SIZEOF_UCHAR);
 
         numLines++;
         len = 0;
         if (numLines >= maxLines) {
             maxLines += MAXLINES;
-            ULine *newLines = new ULine[maxLines];
-            if(newLines == nullptr) {
+            ULine* newLines = new ULine[maxLines];
+            if (newLines == NULL) {
                 fprintf(stderr, "Out of memory reading line %d.\n", (int)numLines);
-                status= U_MEMORY_ALLOCATION_ERROR;
-                delete []lines;
-                return nullptr;
+                status = U_MEMORY_ALLOCATION_ERROR;
+                delete[] lines;
+                return NULL;
             }
 
-            memcpy(newLines, lines, numLines*sizeof(ULine));
-            delete []lines;
+            memcpy(newLines, lines, numLines * sizeof(ULine));
+            delete[] lines;
             lines = newLines;
         }
     }
     return lines;
 }
-const char16_t* UPerfTest::getBuffer(int32_t& len, UErrorCode& status){
+const UChar* UPerfTest::getBuffer(int32_t& len, UErrorCode& status)
+{
     if (U_FAILURE(status)) {
-        return nullptr;
+        return NULL;
     }
     len = ucbuf_size(ucharBuf);
-    buffer =  (char16_t*) uprv_malloc(U_SIZEOF_UCHAR * (len+1));
-    u_strncpy(buffer,ucbuf_getBuffer(ucharBuf,&bufferLen,&status),len);
-    buffer[len]=0;
+    buffer = (UChar*)uprv_malloc(U_SIZEOF_UCHAR * (len + 1));
+    u_strncpy(buffer, ucbuf_getBuffer(ucharBuf, &bufferLen, &status), len);
+    buffer[len] = 0;
     len = bufferLen;
     return buffer;
 }
-UBool UPerfTest::run(){
-    if(_remainingArgc==1){
+UBool UPerfTest::run()
+{
+    if (_remainingArgc == 1) {
         // Testing all methods
         return runTest();
     }
-    UBool res=false;
+    UBool res = FALSE;
     // Test only the specified function
     for (int i = 1; i < _remainingArgc; ++i) {
         if (_argv[i][0] != '-') {
-            char* name = (char*) _argv[i];
-            if(verbose==true){
-                //fprintf(stdout, "\n=== Handling test: %s: ===\n", name);
-                //fprintf(stdout, "\n%s:\n", name);
+            char* name = (char*)_argv[i];
+            if (verbose == TRUE) {
+                // fprintf(stdout, "\n=== Handling test: %s: ===\n", name);
+                // fprintf(stdout, "\n%s:\n", name);
             }
-            char* parameter = strchr( name, '@' );
+            char* parameter = strchr(name, '@');
             if (parameter) {
                 *parameter = 0;
                 parameter += 1;
             }
             execCount = 0;
-            res = runTest( name, parameter );
+            res = runTest(name, parameter);
             if (!res || (execCount <= 0)) {
                 fprintf(stdout, "\n---ERROR: Test doesn't exist: %s!\n", name);
-                return false;
+                return FALSE;
             }
         }
     }
     return res;
 }
-UBool UPerfTest::runTest(char* name, char* par ){
+UBool UPerfTest::runTest(char* name, char* par)
+{
     UBool rval;
-    char* pos = nullptr;
+    char* pos = NULL;
 
     if (name)
-        pos = strchr( name, delim ); // check if name contains path (by looking for '/')
+        pos = strchr(name, delim); // check if name contains path (by looking for '/')
     if (pos) {
-        path = pos+1;   // store subpath for calling subtest
-        *pos = 0;       // split into two strings
-    }else{
-        path = nullptr;
+        path = pos + 1; // store subpath for calling subtest
+        *pos = 0; // split into two strings
+    } else {
+        path = NULL;
     }
 
     if (!name || (name[0] == 0) || (strcmp(name, "*") == 0)) {
-        rval = runTestLoop( nullptr, nullptr );
+        rval = runTestLoop(NULL, NULL);
 
-    }else if (strcmp( name, "LIST" ) == 0) {
+    } else if (strcmp(name, "LIST") == 0) {
         this->usage();
-        rval = true;
+        rval = TRUE;
 
-    }else{
-        rval = runTestLoop( name, par );
+    } else {
+        rval = runTestLoop(name, par);
     }
 
     if (pos)
-        *pos = delim;  // restore original value at pos
+        *pos = delim; // restore original value at pos
     return rval;
 }
 
-
-void UPerfTest::setPath( char* pathVal )
+void UPerfTest::setPath(char* pathVal)
 {
     this->path = pathVal;
 }
 
 // call individual tests, to be overridden to call implementations
-UPerfFunction* UPerfTest::runIndexedTest( int32_t /*index*/, UBool /*exec*/, const char* & /*name*/, char* /*par*/ )
+UPerfFunction* UPerfTest::runIndexedTest(int32_t /*index*/, UBool /*exec*/, const char*& /*name*/, char* /*par*/)
 {
     // to be overridden by a method like:
     /*
@@ -334,55 +329,54 @@ UPerfFunction* UPerfTest::runIndexedTest( int32_t /*index*/, UBool /*exec*/, con
         default: name = ""; break;
     }
     */
-    fprintf(stderr,"*** runIndexedTest needs to be overridden! ***");
-    return nullptr;
+    fprintf(stderr, "*** runIndexedTest needs to be overridden! ***");
+    return NULL;
 }
 
-
-UBool UPerfTest::runTestLoop( char* testname, char* par )
+UBool UPerfTest::runTestLoop(char* testname, char* par)
 {
-    int32_t    index = 0;
-    const char*   name;
-    UBool  run_this_test;
-    UBool  rval = false;
+    int32_t index = 0;
+    const char* name;
+    UBool run_this_test;
+    UBool rval = FALSE;
     UErrorCode status = U_ZERO_ERROR;
     UPerfTest* saveTest = gTest;
     gTest = this;
     int32_t loops = 0;
-    double t=0;
+    double t = 0;
     int32_t n = 1;
     long ops;
     do {
-        this->runIndexedTest( index, false, name );
+        this->runIndexedTest(index, FALSE, name);
         if (!name || (name[0] == 0))
             break;
         if (!testname) {
-            run_this_test = true;
-        }else{
-            run_this_test = (UBool) (strcmp( name, testname ) == 0);
+            run_this_test = TRUE;
+        } else {
+            run_this_test = (UBool)(strcmp(name, testname) == 0);
         }
         if (run_this_test) {
-            UPerfFunction* testFunction = this->runIndexedTest( index, true, name, par );
+            UPerfFunction* testFunction = this->runIndexedTest(index, TRUE, name, par);
             execCount++;
-            rval=true;
-            if(testFunction==nullptr){
-                fprintf(stderr,"%s function returned nullptr", name);
-                return false;
+            rval = TRUE;
+            if (testFunction == NULL) {
+                fprintf(stderr, "%s function returned NULL", name);
+                return FALSE;
             }
             ops = testFunction->getOperationsPerIteration();
             if (ops < 1) {
                 fprintf(stderr, "%s returned an illegal operations/iteration()\n", name);
-                return false;
+                return FALSE;
             }
-            if(iterations == 0) {
+            if (iterations == 0) {
                 n = time;
                 // Run for specified duration in seconds
-                if(verbose==true){
-                    fprintf(stdout,"= %s calibrating %i seconds \n", name, (int)n);
+                if (verbose == TRUE) {
+                    fprintf(stdout, "= %s calibrating %i seconds \n", name, (int)n);
                 }
 
-                //n *=  1000; // s => ms
-                //System.out.println("# " + meth.getName() + " " + n + " sec");
+                // n *=  1000; // s => ms
+                // System.out.println("# " + meth.getName() + " " + n + " sec");
                 int32_t failsafe = 1; // last resort for very fast methods
                 t = 0;
                 while (t < (int)(n * 0.9)) { // 90% is close enough
@@ -390,16 +384,16 @@ UBool UPerfTest::runTestLoop( char* testname, char* par )
                         loops = failsafe;
                         failsafe *= 10;
                     } else {
-                        //System.out.println("# " + meth.getName() + " x " + loops + " = " + t);
+                        // System.out.println("# " + meth.getName() + " x " + loops + " = " + t);
                         loops = (int)((double)n / t * loops + 0.5);
                         if (loops == 0) {
-                            fprintf(stderr,"Unable to converge on desired duration");
-                            return false;
+                            fprintf(stderr, "Unable to converge on desired duration");
+                            return FALSE;
                         }
                     }
-                    //System.out.println("# " + meth.getName() + " x " + loops);
-                    t = testFunction->time(loops,&status);
-                    if(U_FAILURE(status)){
+                    // System.out.println("# " + meth.getName() + " x " + loops);
+                    t = testFunction->time(loops, &status);
+                    if (U_FAILURE(status)) {
                         printf("Performance test failed with error: %s \n", u_errorName(status));
                         break;
                     }
@@ -408,101 +402,91 @@ UBool UPerfTest::runTestLoop( char* testname, char* par )
                 loops = iterations;
             }
 
-            double min_t=1000000.0, sum_t=0.0;
+            double min_t = 1000000.0, sum_t = 0.0;
             long events = -1;
 
-            for(int32_t ps =0; ps < passes; ps++){
-                if(verbose==true){
-                    fprintf(stdout,"= %s begin " ,name);
-                    if(iterations > 0) {
+            for (int32_t ps = 0; ps < passes; ps++) {
+                if (verbose == TRUE) {
+                    fprintf(stdout, "= %s begin ", name);
+                    if (iterations > 0) {
                         fprintf(stdout, "%i\n", (int)loops);
                     } else {
                         fprintf(stdout, "%i\n", (int)n);
                     }
                 }
                 t = testFunction->time(loops, &status);
-                if(U_FAILURE(status)){
+                if (U_FAILURE(status)) {
                     printf("Performance test failed with error: %s \n", u_errorName(status));
                     break;
                 }
-                sum_t+=t;
-                if(t<min_t) {
-                    min_t=t;
+                sum_t += t;
+                if (t < min_t) {
+                    min_t = t;
                 }
                 events = testFunction->getEventsPerIteration();
-                //print info only in verbose mode
-                if(verbose==true){
-                    if(events == -1){
+                // print info only in verbose mode
+                if (verbose == TRUE) {
+                    if (events == -1) {
                         fprintf(stdout, "= %s end: %f loops: %i operations: %li \n", name, t, (int)loops, ops);
-                    }else{
+                    } else {
                         fprintf(stdout, "= %s end: %f loops: %i operations: %li events: %li\n", name, t, (int)loops, ops, events);
                     }
                 }
             }
-            if(verbose && U_SUCCESS(status)) {
-                double avg_t = sum_t/passes;
+            if (verbose && U_SUCCESS(status)) {
+                double avg_t = sum_t / passes;
                 if (loops == 0 || ops == 0) {
                     fprintf(stderr, "%s did not run\n", name);
+                } else if (events == -1) {
+                    fprintf(stdout, "%%= %s avg: %.4g loops: %i avg/op: %.4g ns\n", name, avg_t, (int)loops, (avg_t * 1E9) / (loops * ops));
+                    fprintf(stdout, "_= %s min: %.4g loops: %i min/op: %.4g ns\n", name, min_t, (int)loops, (min_t * 1E9) / (loops * ops));
+                } else {
+                    fprintf(stdout, "%%= %s avg: %.4g loops: %i avg/op: %.4g ns avg/event: %.4g ns\n", name, avg_t, (int)loops, (avg_t * 1E9) / (loops * ops),
+                        (avg_t * 1E9) / (loops * events));
+                    fprintf(stdout, "_= %s min: %.4g loops: %i min/op: %.4g ns min/event: %.4g ns\n", name, min_t, (int)loops, (min_t * 1E9) / (loops * ops),
+                        (min_t * 1E9) / (loops * events));
                 }
-                else if(events == -1) {
-                    fprintf(stdout, "%%= %s avg: %.4g loops: %i avg/op: %.4g ns\n",
-                            name, avg_t, (int)loops, (avg_t*1E9)/(loops*ops));
-                    fprintf(stdout, "_= %s min: %.4g loops: %i min/op: %.4g ns\n",
-                            name, min_t, (int)loops, (min_t*1E9)/(loops*ops));
-                }
-                else {
-                    fprintf(stdout, "%%= %s avg: %.4g loops: %i avg/op: %.4g ns avg/event: %.4g ns\n",
-                            name, avg_t, (int)loops, (avg_t*1E9)/(loops*ops), (avg_t*1E9)/(loops*events));
-                    fprintf(stdout, "_= %s min: %.4g loops: %i min/op: %.4g ns min/event: %.4g ns\n",
-                            name, min_t, (int)loops, (min_t*1E9)/(loops*ops), (min_t*1E9)/(loops*events));
-                }
-            }
-            else if(U_SUCCESS(status)) {
+            } else if (U_SUCCESS(status)) {
                 // Print results in ndjson format for GHA Benchmark to process.
-                fprintf(stdout,
-                        "{\"biggerIsBetter\":false,\"name\":\"%s\",\"unit\":\"ns/iter\",\"value\":%.4f}\n",
-                        name, (min_t*1E9)/(loops*ops));
+                fprintf(stdout, "{\"biggerIsBetter\":false,\"name\":\"%s\",\"unit\":\"ns/iter\",\"value\":%.4f}\n", name, (min_t * 1E9) / (loops * ops));
             }
             delete testFunction;
         }
         index++;
-    }while(name);
+    } while (name);
 
     gTest = saveTest;
     return rval;
 }
 
 /**
-* Print a usage message for this test class.
-*/
-void UPerfTest::usage()
+ * Print a usage message for this test class.
+ */
+void UPerfTest::usage(void)
 {
     puts(gUsageString);
-    if (_addUsage != nullptr) {
+    if (_addUsage != NULL) {
         puts(_addUsage);
     }
 
     UBool save_verbose = verbose;
-    verbose = true;
-    fprintf(stdout,"Test names:\n");
-    fprintf(stdout,"-----------\n");
+    verbose = TRUE;
+    fprintf(stdout, "Test names:\n");
+    fprintf(stdout, "-----------\n");
 
     int32_t index = 0;
-    const char* name = nullptr;
-    do{
-        this->runIndexedTest( index, false, name );
+    const char* name = NULL;
+    do {
+        this->runIndexedTest(index, FALSE, name);
         if (!name)
             break;
         fprintf(stdout, "%s\n", name);
         index++;
-    }while (name && (name[0] != 0));
+    } while (name && (name[0] != 0));
     verbose = save_verbose;
 }
 
-
-
-
-void UPerfTest::setCaller( UPerfTest* callingTest )
+void UPerfTest::setCaller(UPerfTest* callingTest)
 {
     caller = callingTest;
     if (caller) {
@@ -510,21 +494,22 @@ void UPerfTest::setCaller( UPerfTest* callingTest )
     }
 }
 
-UBool UPerfTest::callTest( UPerfTest& testToBeCalled, char* par )
+UBool UPerfTest::callTest(UPerfTest& testToBeCalled, char* par)
 {
     execCount--; // correct a previously assumed test-exec, as this only calls a subtest
-    testToBeCalled.setCaller( this );
-    return testToBeCalled.runTest( path, par );
+    testToBeCalled.setCaller(this);
+    return testToBeCalled.runTest(path, par);
 }
 
-UPerfTest::~UPerfTest(){
-    if(lines!=nullptr){
+UPerfTest::~UPerfTest()
+{
+    if (lines != NULL) {
         delete[] lines;
     }
-    if(buffer!=nullptr){
+    if (buffer != NULL) {
         uprv_free(buffer);
     }
-    if(resolvedFileName!=nullptr){
+    if (resolvedFileName != NULL) {
         uprv_free(resolvedFileName);
     }
     ucbuf_close(ucharBuf);

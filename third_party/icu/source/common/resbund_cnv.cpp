@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -24,32 +24,27 @@
 
 U_NAMESPACE_BEGIN
 
-ResourceBundle::ResourceBundle( const UnicodeString&    path,
-                                const Locale&           locale,
-                                UErrorCode&              error)
-                                :UObject(), fLocale(nullptr)
+ResourceBundle::ResourceBundle(const UnicodeString& path, const Locale& locale, UErrorCode& error)
+    : UObject()
+    , fLocale(NULL)
 {
     constructForLocale(path, locale, error);
 }
 
-ResourceBundle::ResourceBundle( const UnicodeString&    path,
-                                UErrorCode&              error)
-                                :UObject(), fLocale(nullptr)
+ResourceBundle::ResourceBundle(const UnicodeString& path, UErrorCode& error)
+    : UObject()
+    , fLocale(NULL)
 {
     constructForLocale(path, Locale::getDefault(), error);
 }
 
-void 
-ResourceBundle::constructForLocale(const UnicodeString& path,
-                                   const Locale& locale,
-                                   UErrorCode& error)
+void ResourceBundle::constructForLocale(const UnicodeString& path, const Locale& locale, UErrorCode& error)
 {
     if (path.isEmpty()) {
-        fResource = ures_open(nullptr, locale.getName(), &error);
-    }
-    else {
+        fResource = ures_open(NULL, locale.getName(), &error);
+    } else {
         UnicodeString nullTerminatedPath(path);
-        nullTerminatedPath.append((char16_t)0);
+        nullTerminatedPath.append((UChar)0);
         fResource = ures_openU(nullTerminatedPath.getBuffer(), locale.getName(), &error);
     }
 }

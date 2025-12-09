@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -21,8 +21,7 @@
  * object, which must have two members named `validLocale' and
  * `actualLocale' of size ULOC_FULLNAME_CAPACITY
  */
-#define U_LOCALE_BASED(varname, objname) \
-  LocaleBased varname((objname).validLocale, (objname).actualLocale)
+#define U_LOCALE_BASED(varname, objname) LocaleBased varname((objname).validLocale, (objname).actualLocale)
 
 U_NAMESPACE_BEGIN
 
@@ -35,8 +34,7 @@ U_NAMESPACE_BEGIN
  */
 class U_COMMON_API LocaleBased : public UMemory {
 
- public:
-
+public:
     /**
      * Construct a LocaleBased wrapper around the two pointers.  These
      * will be aliased for the lifetime of this object.
@@ -85,21 +83,23 @@ class U_COMMON_API LocaleBased : public UMemory {
      */
     void setLocaleIDs(const Locale& valid, const Locale& actual);
 
- private:
-
+private:
     char* valid;
-    
+
     char* actual;
 };
 
-inline LocaleBased::LocaleBased(char* validAlias, char* actualAlias) :
-    valid(validAlias), actual(actualAlias) {
+inline LocaleBased::LocaleBased(char* validAlias, char* actualAlias)
+    : valid(validAlias)
+    , actual(actualAlias)
+{
 }
 
-inline LocaleBased::LocaleBased(const char* validAlias,
-                                const char* actualAlias) :
-    // ugh: cast away const
-    valid((char*)validAlias), actual((char*)actualAlias) {
+inline LocaleBased::LocaleBased(const char* validAlias, const char* actualAlias)
+    : // ugh: cast away const
+    valid((char*)validAlias)
+    , actual((char*)actualAlias)
+{
 }
 
 U_NAMESPACE_END

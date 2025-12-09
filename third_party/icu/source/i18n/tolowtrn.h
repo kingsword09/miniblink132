@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -28,8 +28,7 @@ U_NAMESPACE_BEGIN
  */
 class LowercaseTransliterator : public CaseMapTransliterator {
 
- public:
-
+public:
     /**
      * Constructs a transliterator.
      * @param loc the given locale.
@@ -61,8 +60,8 @@ class LowercaseTransliterator : public CaseMapTransliterator {
      * ICU "poor man's RTTI", returns a UClassID for this class.
      */
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
-private:
 
+private:
     /**
      * Assignment operator.
      */

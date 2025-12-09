@@ -1,27 +1,27 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
-* Copyright (C) 1997-2013, International Business Machines Corporation and others.
-* All Rights Reserved.
-********************************************************************************
-*
-* File GREGOCAL.H
-*
-* Modification History:
-*
-*   Date        Name        Description
-*   04/22/97    aliu        Overhauled header.
-*    07/28/98    stephen        Sync with JDK 1.2
-*    09/04/98    stephen        Re-sync with JDK 8/31 putback
-*    09/14/98    stephen        Changed type of kOneDay, kOneWeek to double.
-*                            Fixed bug in roll()
-*   10/15/99    aliu        Fixed j31, incorrect WEEK_OF_YEAR computation.
-*                           Added documentation of WEEK_OF_YEAR computation.
-*   10/15/99    aliu        Fixed j32, cannot set date to Feb 29 2000 AD.
-*                           {JDK bug 4210209 4209272}
-*   11/07/2003  srl         Update, clean up documentation.
-********************************************************************************
-*/
+ * Copyright (C) 1997-2013, International Business Machines Corporation and others.
+ * All Rights Reserved.
+ ********************************************************************************
+ *
+ * File GREGOCAL.H
+ *
+ * Modification History:
+ *
+ *   Date        Name        Description
+ *   04/22/97    aliu        Overhauled header.
+ *    07/28/98    stephen        Sync with JDK 1.2
+ *    09/04/98    stephen        Re-sync with JDK 8/31 putback
+ *    09/14/98    stephen        Changed type of kOneDay, kOneWeek to double.
+ *                            Fixed bug in roll()
+ *   10/15/99    aliu        Fixed j31, incorrect WEEK_OF_YEAR computation.
+ *                           Added documentation of WEEK_OF_YEAR computation.
+ *   10/15/99    aliu        Fixed j32, cannot set date to Feb 29 2000 AD.
+ *                           {JDK bug 4210209 4209272}
+ *   11/07/2003  srl         Update, clean up documentation.
+ ********************************************************************************
+ */
 
 #ifndef GREGOCAL_H
 #define GREGOCAL_H
@@ -35,13 +35,13 @@
 #include "unicode/calendar.h"
 
 /**
- * \file 
+ * \file
  * \brief C++ API: Concrete class which provides the standard calendar.
  */
 
 U_NAMESPACE_BEGIN
 
-/** 
+/**
  * Concrete class which provides the standard calendar used by most of the world.
  * <P>
  * The standard (Gregorian) calendar has 2 eras, BC and AD.
@@ -88,7 +88,7 @@ U_NAMESPACE_BEGIN
  *     cout << "Current Time" << endl;
  *
  *     // create a Pacific Standard Time time zone
- *     SimpleTimeZone* pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, ids->unext(nullptr, success)));
+ *     SimpleTimeZone* pdt = new SimpleTimeZone(-8 * 60 * 60 * 1000, ids->unext(NULL, success)));
  *
  *     // set up rules for daylight savings time
  *     pdt->setStartRule(UCAL_MARCH, 1, UCAL_SUNDAY, 2 * 60 * 60 * 1000);
@@ -150,17 +150,13 @@ U_NAMESPACE_BEGIN
  * </pre>
  * @stable ICU 2.0
  */
-class U_I18N_API GregorianCalendar: public Calendar {
+class U_I18N_API GregorianCalendar : public Calendar {
 public:
-
     /**
      * Useful constants for GregorianCalendar and TimeZone.
      * @stable ICU 2.0
      */
-    enum EEras {
-        BC,
-        AD
-    };
+    enum EEras { BC, AD };
 
     /**
      * Constructs a default GregorianCalendar using the current time in the default time
@@ -347,7 +343,7 @@ public:
      * Returns true if the given Calendar object is equivalent to this
      * one.  Calendar override.
      *
-     * @param other the Calendar to be compared with this Calendar   
+     * @param other the Calendar to be compared with this Calendar
      * @stable ICU 2.4
      */
     virtual UBool isEquivalentTo(const Calendar& other) const override;
@@ -365,7 +361,7 @@ public:
      * @deprecated ICU 2.6. Use roll(UCalendarDateFields field, int32_t amount, UErrorCode& status) instead.
      */
     virtual void roll(EDateFields field, int32_t amount, UErrorCode& status) override;
-#endif  // U_FORCE_HIDE_DEPRECATED_API
+#endif // U_FORCE_HIDE_DEPRECATED_API
 
     /**
      * (Overrides Calendar) Rolls up or down by the given amount in the specified field.
@@ -399,7 +395,7 @@ public:
      * @deprecated ICU 2.6. Use getActualMinimum(UCalendarDateFields field) instead. (Added to ICU 3.0 for signature consistency)
      */
     int32_t getActualMinimum(EDateFields field, UErrorCode& status) const;
-#endif  /* U_HIDE_DEPRECATED_API */
+#endif /* U_HIDE_DEPRECATED_API */
 
     /**
      * Return the minimum value that this field could have, given the current date.
@@ -409,7 +405,20 @@ public:
      * @return         the minimum value that this field could have, given the current date.
      * @stable ICU 3.0
      */
-    int32_t getActualMinimum(UCalendarDateFields field, UErrorCode &status) const override;
+    int32_t getActualMinimum(UCalendarDateFields field, UErrorCode& status) const override;
+
+#ifndef U_HIDE_DEPRECATED_API
+    /**
+     * Return the maximum value that this field could have, given the current date.
+     * For example, with the date "Feb 3, 1997" and the DAY_OF_MONTH field, the actual
+     * maximum would be 28; for "Feb 3, 1996" it s 29.  Similarly for a Hebrew calendar,
+     * for some years the actual maximum for MONTH is 12, and for others 13.
+     * @param field    the time field.
+     * @return         the maximum value that this field could have, given the current date.
+     * @deprecated ICU 2.6. Use getActualMaximum(UCalendarDateFields field) instead.
+     */
+    int32_t getActualMaximum(EDateFields field) const;
+#endif /* U_HIDE_DEPRECATED_API */
 
     /**
      * Return the maximum value that this field could have, given the current date.
@@ -423,8 +432,18 @@ public:
      */
     virtual int32_t getActualMaximum(UCalendarDateFields field, UErrorCode& status) const override;
 
-public:
+    /**
+     * (Overrides Calendar) Return true if the current date for this Calendar is in
+     * Daylight Savings Time. Recognizes DST_OFFSET, if it is set.
+     *
+     * @param status Fill-in parameter which receives the status of this operation.
+     * @return   True if the current date for this Calendar is in Daylight Savings Time,
+     *           false, otherwise.
+     * @stable ICU 2.0
+     */
+    virtual UBool inDaylightTime(UErrorCode& status) const override;
 
+public:
     /**
      * Override Calendar Returns a unique class ID POLYMORPHICALLY. Pure virtual
      * override. This method is to implement a simple version of RTTI, since not all C++
@@ -460,12 +479,12 @@ public:
      * @return legacy calendar type name string
      * @stable ICU 49
      */
-    virtual const char * getType() const override;
+    virtual const char* getType() const override;
 
- private:
-    GregorianCalendar() = delete; // default constructor not implemented
+private:
+    GregorianCalendar(); // default constructor not implemented
 
- protected:
+protected:
     /**
      * Return the ERA.  We need a special method for this because the
      * default ERA is AD, but a zero (unset) ERA is BC.
@@ -487,14 +506,13 @@ public:
      * day of the given month and year
      * @internal
      */
-    virtual int32_t handleComputeMonthStart(int32_t eyear, int32_t month,
-                                                   UBool useMonth) const override;
+    virtual int32_t handleComputeMonthStart(int32_t eyear, int32_t month, UBool useMonth) const override;
 
     /**
      * Subclasses may override this.  This method calls
      * handleGetMonthLength() to obtain the calendar-specific month
      * length.
-     * @param bestField which field to use to calculate the date 
+     * @param bestField which field to use to calculate the date
      * @return julian day specified by calendar fields.
      * @internal
      */
@@ -537,19 +555,35 @@ public:
 
 #ifndef U_HIDE_INTERNAL_API
     /**
+     * return the length of the given year.
+     * @param year    the given year.
+     * @return        the length of the given year.
+     * @internal
+     */
+    int32_t yearLength(int32_t year) const;
+
+    /**
      * return the length of the year field.
      * @return    the length of the year field
      * @internal
      */
     int32_t yearLength(void) const;
 
-#endif  /* U_HIDE_INTERNAL_API */
+    /**
+     * After adjustments such as add(MONTH), add(YEAR), we don't want the
+     * month to jump around.  E.g., we don't want Jan 31 + 1 month to go to Mar
+     * 3, we want it to go to Feb 28.  Adjustments which might run into this
+     * problem call this method to retain the proper month.
+     * @internal
+     */
+    void pinDayOfMonth(void);
+#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Return the day number with respect to the epoch.  January 1, 1970 (Gregorian)
      * is day zero.
      * @param status Fill-in parameter which receives the status of this operation.
-     * @return       the day number with respect to the epoch.  
+     * @return       the day number with respect to the epoch.
      * @internal
      */
     virtual UDate getEpochDay(UErrorCode& status);
@@ -587,8 +621,8 @@ public:
      */
     virtual int32_t handleGetExtendedYear() override;
 
-    /** 
-     * Subclasses may override this to convert from week fields 
+    /**
+     * Subclasses may override this to convert from week fields
      * (YEAR_WOY and WEEK_OF_YEAR) to an extended year in the case
      * where YEAR, EXTENDED_YEAR are not set.
      * The Gregorian implementation assumes a yearWoy in gregorian format, according to the current era.
@@ -596,7 +630,6 @@ public:
      * @internal
      */
     virtual int32_t handleGetExtendedYearFromWeekFields(int32_t yearWoy, int32_t woy) override;
-
 
     /**
      * Subclasses may override this method to compute several fields
@@ -613,19 +646,18 @@ public:
      * a calendar with the specified Julian/Gregorian cutover date.
      * @internal
      */
-    virtual void handleComputeFields(int32_t julianDay, UErrorCode &status) override;
+    virtual void handleComputeFields(int32_t julianDay, UErrorCode& status) override;
 
- private:
+private:
     /**
      * Compute the julian day number of the given year.
      * @param isGregorian    if true, using Gregorian calendar, otherwise using Julian calendar
      * @param year           the given year.
-     * @param isLeap         true if the year is a leap year.       
-     * @return 
+     * @param isLeap         true if the year is a leap year.
+     * @return
      */
-    static double computeJulianDayOfYear(UBool isGregorian, int32_t year,
-                                         UBool& isLeap);
-    
+    static double computeJulianDayOfYear(UBool isGregorian, int32_t year, UBool& isLeap);
+
     /**
      * Validates the values of the set time fields.  True if they're all valid.
      * @return    True if the set time fields are all valid.
@@ -655,25 +687,31 @@ public:
      * by October 15, 1582 (Gregorian).  This corresponds to Julian day number
      * 2299161. This is measured from the standard epoch, not in Julian Days.
      */
-    UDate                fGregorianCutover;
+    UDate fGregorianCutover;
 
     /**
      * Julian day number of the Gregorian cutover
      */
-    int32_t             fCutoverJulianDay;
+    int32_t fCutoverJulianDay;
 
     /**
      * Midnight, local time (using this Calendar's TimeZone) at or before the
      * gregorianCutover. This is a pure date value with no time of day or
      * timezone component.
      */
-    UDate                 fNormalizedGregorianCutover;// = gregorianCutover;
+    UDate fNormalizedGregorianCutover; // = gregorianCutover;
 
     /**
      * The year of the gregorianCutover, with 0 representing
      * 1 BC, -1 representing 2 BC, etc.
      */
-    int32_t fGregorianCutoverYear;// = 1582;
+    int32_t fGregorianCutoverYear; // = 1582;
+
+    /**
+     * The year of the gregorianCutover, with 0 representing
+     * 1 BC, -1 representing 2 BC, etc.
+     */
+    int32_t fGregorianCutoverJulianDay; // = 2299161;
 
     /**
      * Converts time as milliseconds to Julian date. The Julian date used here is not a
@@ -706,12 +744,10 @@ public:
      */
     UBool fInvertGregorian;
 
-
- public: // internal implementation
-
+public: // internal implementation
     /**
      * @return true if this calendar has the notion of a default century
-     * @internal 
+     * @internal
      */
     virtual UBool haveDefaultCentury() const override;
 
@@ -723,7 +759,7 @@ public:
 
     /**
      * @return the beginning year of the default century
-     * @internal 
+     * @internal
      */
     virtual int32_t defaultCenturyStartYear() const override;
 };
@@ -735,5 +771,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // _GREGOCAL
-//eof
-
+// eof

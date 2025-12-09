@@ -1,4 +1,4 @@
-
+﻿
 /*
  *******************************************************************************
  *
@@ -34,30 +34,28 @@
 #include "FontTableCache.h"
 #include "cmaps.h"
 
-class GnomeSurface : public RenderingSurface
-{
+class GnomeSurface : public RenderingSurface {
 public:
-    GnomeSurface(GtkWidget *theWidget);
+    GnomeSurface(GtkWidget* theWidget);
     virtual ~GnomeSurface();
 
-    virtual void drawGlyphs(const LEFontInstance *font, const LEGlyphID *glyphs, le_int32 count,
-        const float *positions, le_int32 x, le_int32 y, le_int32 width, le_int32 height);
+    virtual void drawGlyphs(
+        const LEFontInstance* font, const LEGlyphID* glyphs, le_int32 count, const float* positions, le_int32 x, le_int32 y, le_int32 width, le_int32 height);
 
-    GtkWidget *getWidget() const;
-    void setWidget(GtkWidget *theWidget);
+    GtkWidget* getWidget() const;
+    void setWidget(GtkWidget* theWidget);
 
 private:
-    GtkWidget *fWidget;
-    cairo_t   *fCairo;
+    GtkWidget* fWidget;
+    cairo_t* fCairo;
 };
 
-class GnomeFontInstance : public LEFontInstance, protected FontTableCache
-{
- protected:
+class GnomeFontInstance : public LEFontInstance, protected FontTableCache {
+protected:
     FT_Face fFace;
-//  FT_Glyph fGlyph;
-    
-    cairo_font_face_t *fCairoFace;
+    //  FT_Glyph fGlyph;
+
+    cairo_font_face_t* fCairoFace;
 
     le_int32 fPointSize;
     le_int32 fUnitsPerEM;
@@ -68,18 +66,18 @@ class GnomeFontInstance : public LEFontInstance, protected FontTableCache
     float fDeviceScaleX;
     float fDeviceScaleY;
 
-    CMAPMapper *fMapper;
+    CMAPMapper* fMapper;
 
-    virtual const void *readFontTable(LETag tableTag) const;
+    virtual const void* readFontTable(LETag tableTag) const;
 
     virtual LEErrorCode initMapper();
 
- public:
-    GnomeFontInstance(FT_Library engine, const char *fontPathName, le_int16 pointSize, LEErrorCode &status);
+public:
+    GnomeFontInstance(FT_Library engine, const char* fontPathName, le_int16 pointSize, LEErrorCode& status);
 
     virtual ~GnomeFontInstance();
 
-    virtual const void *getFontTable(LETag tableTag) const;
+    virtual const void* getFontTable(LETag tableTag) const;
 
     virtual le_int32 getUnitsPerEM() const;
 
@@ -91,9 +89,9 @@ class GnomeFontInstance : public LEFontInstance, protected FontTableCache
 
     virtual LEGlyphID mapCharToGlyph(LEUnicode32 ch) const;
 
-    virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const;
+    virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint& advance) const;
 
-    virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const;
+    virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint& point) const;
 
     float getXPixelsPerEm() const;
 
@@ -103,16 +101,15 @@ class GnomeFontInstance : public LEFontInstance, protected FontTableCache
 
     float getScaleFactorY() const;
 
-    void rasterizeGlyphs(cairo_t *cairo, const LEGlyphID *glyphs, le_int32 glyphCount, const float *positions,
-				   le_int32 x, le_int32 y) const;
+    void rasterizeGlyphs(cairo_t* cairo, const LEGlyphID* glyphs, le_int32 glyphCount, const float* positions, le_int32 x, le_int32 y) const;
 };
 
-inline GtkWidget *GnomeSurface::getWidget() const
+inline GtkWidget* GnomeSurface::getWidget() const
 {
     return fWidget;
 }
 
-inline void GnomeSurface::setWidget(GtkWidget *theWidget)
+inline void GnomeSurface::setWidget(GtkWidget* theWidget)
 {
     fWidget = theWidget;
 }
@@ -151,12 +148,12 @@ inline LEGlyphID GnomeFontInstance::mapCharToGlyph(LEUnicode32 ch) const
 
 inline float GnomeFontInstance::getXPixelsPerEm() const
 {
-    return (float) fPointSize;
+    return (float)fPointSize;
 }
 
 inline float GnomeFontInstance::getYPixelsPerEm() const
 {
-    return  (float) fPointSize;
+    return (float)fPointSize;
 }
 
 inline float GnomeFontInstance::getScaleFactorX() const

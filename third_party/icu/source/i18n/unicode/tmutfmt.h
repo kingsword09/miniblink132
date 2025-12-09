@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -16,7 +16,6 @@
  * \file
  * \brief C++ API: Format and parse duration in single time unit
  */
-
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -47,7 +46,6 @@ enum UTimeUnitFormatStyle {
     UTMUTFMT_FORMAT_STYLE_COUNT
 };
 typedef enum UTimeUnitFormatStyle UTimeUnitFormatStyle; /**< @deprecated ICU 53 */
-
 
 U_NAMESPACE_BEGIN
 
@@ -86,9 +84,8 @@ struct TimeUnitFormatReadSink;
  * @see TimeUnitFormat
  * @deprecated ICU 53 Use the MeasureFormat class instead.
  */
-class U_I18N_API TimeUnitFormat: public MeasureFormat {
+class U_I18N_API TimeUnitFormat : public MeasureFormat {
 public:
-
     /**
      * Create TimeUnitFormat with default locale, and full name style.
      * Use setLocale and/or setFormat to modify.
@@ -142,7 +139,6 @@ public:
      */
     void setLocale(const Locale& locale, UErrorCode& status);
 
-
     /**
      * Set the number format used for formatting or parsing.
      * @param format  the number formatter to be set
@@ -156,9 +152,7 @@ public:
      * @see Format#parseObject(const UnicodeString&, Formattable&, ParsePosition&) const;
      * @deprecated ICU 53
      */
-    virtual void parseObject(const UnicodeString& source,
-                             Formattable& result,
-                             ParsePosition& pos) const override;
+    virtual void parseObject(const UnicodeString& source, Formattable& result, ParsePosition& pos) const override;
 
     /**
      * Return the class ID for this class. This is useful only for comparing to
@@ -187,7 +181,7 @@ public:
     virtual UClassID getDynamicClassID(void) const override;
 
 private:
-    Hashtable*    fTimeUnitToCountToPatterns[TimeUnit::UTIMEUNIT_FIELD_COUNT];
+    Hashtable* fTimeUnitToCountToPatterns[TimeUnit::UTIMEUNIT_FIELD_COUNT];
     UTimeUnitFormatStyle fStyle;
 
     void create(UTimeUnitFormatStyle style, UErrorCode& status);
@@ -200,17 +194,15 @@ private:
     void initDataMembers(UErrorCode& status);
 
     // initialize fTimeUnitToCountToPatterns from current locale's resource.
-    void readFromCurrentLocale(UTimeUnitFormatStyle style, const char* key, const UVector& pluralCounts,
-                               UErrorCode& status);
+    void readFromCurrentLocale(UTimeUnitFormatStyle style, const char* key, const UVector& pluralCounts, UErrorCode& status);
 
     // check completeness of fTimeUnitToCountToPatterns against all time units,
     // and all plural rules, fill in fallback as necessary.
     void checkConsistency(UTimeUnitFormatStyle style, const char* key, UErrorCode& status);
 
     // fill in fTimeUnitToCountToPatterns from locale fall-back chain
-    void searchInLocaleChain(UTimeUnitFormatStyle style, const char* key, const char* localeName,
-                             TimeUnit::UTimeUnitFields field, const UnicodeString&,
-                             const char*, Hashtable*, UErrorCode&);
+    void searchInLocaleChain(UTimeUnitFormatStyle style, const char* key, const char* localeName, TimeUnit::UTimeUnitFields field, const UnicodeString&,
+        const char*, Hashtable*, UErrorCode&);
 
     // initialize hash table
     Hashtable* initHash(UErrorCode& status);
@@ -235,4 +227,4 @@ U_NAMESPACE_END
 #endif /* U_SHOW_CPLUSPLUS_API */
 
 #endif // __TMUTFMT_H__
-//eof
+// eof

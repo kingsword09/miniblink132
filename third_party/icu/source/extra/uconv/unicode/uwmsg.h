@@ -1,8 +1,8 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
-* Copyright (C) 2000-2004, International Business Machines Corporation 
+* Copyright (C) 2000-2004, International Business Machines Corporation
 * and others.  All Rights Reserved.
 **********************************************************************
 
@@ -20,10 +20,10 @@ and print it to stderr
 /* Set the path to wmsg's bundle.
    Caller owns storage.
 */
-U_CFUNC UResourceBundle *u_wmsg_setPath(const char *path, UErrorCode *err);
+U_CFUNC UResourceBundle* u_wmsg_setPath(const char* path, UErrorCode* err);
 
 /* Format a message and print it's output to a given file stream */
-U_CFUNC int u_wmsg(FILE *fp, const char *tag, ... );
+U_CFUNC int u_wmsg(FILE* fp, const char* tag, ...);
 
 /* format an error message */
 U_CFUNC const UChar* u_wmsg_errorName(UErrorCode err);

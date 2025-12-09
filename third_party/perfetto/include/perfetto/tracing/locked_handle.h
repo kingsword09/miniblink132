@@ -24,30 +24,42 @@ namespace perfetto {
 // This is used for GetDataSourceLocked(), in the (rare) case where the
 // tracing code wants to access the state of its data source from the Trace()
 // method.
-template <typename T>
-class LockedHandle {
- public:
-  LockedHandle(std::unique_lock<std::recursive_mutex> lock, T* obj)
-      : lock_(std::move(lock)), obj_(obj) {}
-  LockedHandle() = default;  // For the invalid case.
-  LockedHandle(LockedHandle&&) = default;
-  LockedHandle& operator=(LockedHandle&&) = default;
+template <typename T> class LockedHandle {
+public:
+    LockedHandle(std::unique_lock<std::recursive_mutex> lock, T* obj)
+        : lock_(std::move(lock))
+        , obj_(obj)
+    {
+    }
+    LockedHandle() = default; // For the invalid case.
+    LockedHandle(LockedHandle&&) = default;
+    LockedHandle& operator=(LockedHandle&&) = default;
 
-  bool valid() const { return obj_; }
-  explicit operator bool() const { return valid(); }
+    bool valid() const
+    {
+        return obj_;
+    }
+    explicit operator bool() const
+    {
+        return valid();
+    }
 
-  T* operator->() {
-    assert(valid());
-    return obj_;
-  }
+    T* operator->()
+    {
+        assert(valid());
+        return obj_;
+    }
 
-  T& operator*() { return *(this->operator->()); }
+    T& operator*()
+    {
+        return *(this->operator->());
+    }
 
- private:
-  std::unique_lock<std::recursive_mutex> lock_;
-  T* obj_ = nullptr;
+private:
+    std::unique_lock<std::recursive_mutex> lock_;
+    T* obj_ = nullptr;
 };
 
-}  // namespace perfetto
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_LOCKED_HANDLE_H_
+#endif // INCLUDE_PERFETTO_TRACING_LOCKED_HANDLE_H_

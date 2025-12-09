@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -27,8 +27,7 @@ U_NAMESPACE_BEGIN
  */
 class UnicodeNameTransliterator : public Transliterator {
 
- public:
-
+public:
     /**
      * Constructs a transliterator.
      * @param adoptedFilter the filter to be adopted.
@@ -60,8 +59,7 @@ class UnicodeNameTransliterator : public Transliterator {
      */
     U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
- protected:
-
+protected:
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      * @param text        the buffer holding transliterated and
@@ -71,15 +69,13 @@ class UnicodeNameTransliterator : public Transliterator {
      * @param incremental if true, assume more text may be coming after
      *                    pos.contextLimit.  Otherwise, assume the text is complete.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset,
-                                     UBool isIncremental) const override;
+    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset, UBool isIncremental) const override;
 
 private:
     /**
      * Assignment operator.
      */
     UnicodeNameTransliterator& operator=(const UnicodeNameTransliterator&);
-
 };
 
 U_NAMESPACE_END

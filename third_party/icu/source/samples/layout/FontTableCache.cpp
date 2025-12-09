@@ -1,4 +1,4 @@
-/*
+﻿/*
  *************************************************************************
  *   © 2016 and later: Unicode, Inc. and others.
  *   License & terms of use: http://www.unicode.org/copyright.html
@@ -16,25 +16,25 @@
 #define TABLE_CACHE_INIT 5
 #define TABLE_CACHE_GROW 5
 
-struct FontTableCacheEntry
-{
+struct FontTableCacheEntry {
     LETag tag;
-    const void *table;
+    const void* table;
 };
 
 FontTableCache::FontTableCache()
-    : fTableCacheCurr(0), fTableCacheSize(TABLE_CACHE_INIT)
+    : fTableCacheCurr(0)
+    , fTableCacheSize(TABLE_CACHE_INIT)
 {
     fTableCache = LE_NEW_ARRAY(FontTableCacheEntry, fTableCacheSize);
 
-    if (fTableCache == nullptr) {
+    if (fTableCache == NULL) {
         fTableCacheSize = 0;
         return;
     }
 
     for (int i = 0; i < fTableCacheSize; i += 1) {
-        fTableCache[i].tag   = 0;
-        fTableCache[i].table = nullptr;
+        fTableCache[i].tag = 0;
+        fTableCache[i].table = NULL;
     }
 }
 
@@ -43,22 +43,22 @@ FontTableCache::~FontTableCache()
     for (int i = fTableCacheCurr - 1; i >= 0; i -= 1) {
         freeFontTable(fTableCache[i].table);
 
-        fTableCache[i].tag   = 0;
-        fTableCache[i].table = nullptr;
+        fTableCache[i].tag = 0;
+        fTableCache[i].table = NULL;
     }
 
     fTableCacheCurr = 0;
 
     LE_DELETE_ARRAY(fTableCache);
-    fTableCache = nullptr;
+    fTableCache = NULL;
 }
 
-void FontTableCache::freeFontTable(const void *table) const
+void FontTableCache::freeFontTable(const void* table) const
 {
     LE_DELETE_ARRAY(table);
 }
 
-const void *FontTableCache::find(LETag tableTag) const
+const void* FontTableCache::find(LETag tableTag) const
 {
     for (int i = 0; i < fTableCacheCurr; i += 1) {
         if (fTableCache[i].tag == tableTag) {
@@ -66,29 +66,29 @@ const void *FontTableCache::find(LETag tableTag) const
         }
     }
 
-    const void *table = readFontTable(tableTag);
+    const void* table = readFontTable(tableTag);
 
-    ((FontTableCache *) this)->add(tableTag, table);
+    ((FontTableCache*)this)->add(tableTag, table);
 
     return table;
 }
 
-void FontTableCache::add(LETag tableTag, const void *table)
+void FontTableCache::add(LETag tableTag, const void* table)
 {
     if (fTableCacheCurr >= fTableCacheSize) {
         le_int32 newSize = fTableCacheSize + TABLE_CACHE_GROW;
 
-        fTableCache = (FontTableCacheEntry *) LE_GROW_ARRAY(fTableCache, newSize);
+        fTableCache = (FontTableCacheEntry*)LE_GROW_ARRAY(fTableCache, newSize);
 
         for (le_int32 i = fTableCacheSize; i < newSize; i += 1) {
-            fTableCache[i].tag   = 0;
-            fTableCache[i].table = nullptr;
+            fTableCache[i].tag = 0;
+            fTableCache[i].table = NULL;
         }
 
         fTableCacheSize = newSize;
     }
 
-    fTableCache[fTableCacheCurr].tag   = tableTag;
+    fTableCache[fTableCacheCurr].tag = tableTag;
     fTableCache[fTableCacheCurr].table = table;
 
     fTableCacheCurr += 1;

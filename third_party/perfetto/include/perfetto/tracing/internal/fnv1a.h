@@ -32,26 +32,28 @@ namespace internal {
 static constexpr uint64_t kFnv1a64OffsetBasis = 0xcbf29ce484222325;
 static constexpr uint64_t kFnv1a64Prime = 0x100000001b3;
 
-static constexpr inline uint64_t Fnv1a(const char* s) {
-  uint64_t ret = kFnv1a64OffsetBasis;
-  for (; *s; s++) {
-    ret = ret ^ static_cast<uint8_t>(*s);
-    ret *= kFnv1a64Prime;
-  }
-  return ret;
+static constexpr inline uint64_t Fnv1a(const char* s)
+{
+    uint64_t ret = kFnv1a64OffsetBasis;
+    for (; *s; s++) {
+        ret = ret ^ static_cast<uint8_t>(*s);
+        ret *= kFnv1a64Prime;
+    }
+    return ret;
 }
 
-static constexpr inline uint64_t Fnv1a(const void* data, size_t size) {
-  uint64_t ret = kFnv1a64OffsetBasis;
-  const uint8_t* s = static_cast<const uint8_t*>(data);
-  for (size_t i = 0; i < size; i++) {
-    ret = ret ^ s[i];
-    ret *= kFnv1a64Prime;
-  }
-  return ret;
+static constexpr inline uint64_t Fnv1a(const void* data, size_t size)
+{
+    uint64_t ret = kFnv1a64OffsetBasis;
+    const uint8_t* s = static_cast<const uint8_t*>(data);
+    for (size_t i = 0; i < size; i++) {
+        ret = ret ^ s[i];
+        ret *= kFnv1a64Prime;
+    }
+    return ret;
 }
 
-}  // namespace internal
-}  // namespace perfetto
+} // namespace internal
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_FNV1A_H_
+#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_FNV1A_H_

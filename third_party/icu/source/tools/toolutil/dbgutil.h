@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 /*
@@ -19,26 +19,23 @@
 
 #if !UCONFIG_NO_FORMATTING
 
-U_TOOLUTIL_API const icu::UnicodeString& U_EXPORT2
-udbg_enumString(UDebugEnumType type, int32_t field);
+U_TOOLUTIL_API const icu::UnicodeString& U_EXPORT2 udbg_enumString(UDebugEnumType type, int32_t field);
 
 /**
  * @return enum offset, or UDBG_INVALID_ENUM on error
- */ 
-U_CAPI int32_t U_EXPORT2
-udbg_enumByString(UDebugEnumType type, const icu::UnicodeString& string);
+ */
+U_CAPI int32_t U_EXPORT2 udbg_enumByString(UDebugEnumType type, const icu::UnicodeString& string);
 
 /**
  * Convert a UnicodeString (with ascii digits) into a number.
  * @param s string
  * @return numerical value, or 0 on error
  */
-U_CAPI int32_t U_EXPORT2 udbg_stoi(const icu::UnicodeString &s);
+U_CAPI int32_t U_EXPORT2 udbg_stoi(const icu::UnicodeString& s);
 
-U_CAPI double U_EXPORT2 udbg_stod(const icu::UnicodeString &s);
+U_CAPI double U_EXPORT2 udbg_stod(const icu::UnicodeString& s);
 
-U_CAPI icu::UnicodeString * U_EXPORT2
-udbg_escape(const icu::UnicodeString &s, icu::UnicodeString *dst);
+U_CAPI icu::UnicodeString* U_EXPORT2 udbg_escape(const icu::UnicodeString& s, icu::UnicodeString* dst);
 
 #endif
 

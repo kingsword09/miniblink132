@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -26,20 +26,15 @@
 
 U_CDECL_BEGIN
 
-typedef void U_CALLCONV
-USetAdd(USet *set, UChar32 c);
+typedef void U_CALLCONV USetAdd(USet* set, UChar32 c);
 
-typedef void U_CALLCONV
-USetAddRange(USet *set, UChar32 start, UChar32 end);
+typedef void U_CALLCONV USetAddRange(USet* set, UChar32 start, UChar32 end);
 
-typedef void U_CALLCONV
-USetAddString(USet *set, const UChar *str, int32_t length);
+typedef void U_CALLCONV USetAddString(USet* set, const UChar* str, int32_t length);
 
-typedef void U_CALLCONV
-USetRemove(USet *set, UChar32 c);
+typedef void U_CALLCONV USetRemove(USet* set, UChar32 c);
 
-typedef void U_CALLCONV
-USetRemoveRange(USet *set, UChar32 start, UChar32 end);
+typedef void U_CALLCONV USetRemoveRange(USet* set, UChar32 start, UChar32 end);
 
 /**
  * Interface for adding items to a USet, to keep low-level code from
@@ -47,25 +42,15 @@ USetRemoveRange(USet *set, UChar32 start, UChar32 end);
  * Calls will look like sa->add(sa->set, c);
  */
 struct USetAdder {
-    USet *set;
-    USetAdd *add;
-    USetAddRange *addRange;
-    USetAddString *addString;
-    USetRemove *remove;
-    USetRemoveRange *removeRange;
+    USet* set;
+    USetAdd* add;
+    USetAddRange* addRange;
+    USetAddString* addString;
+    USetRemove* remove;
+    USetRemoveRange* removeRange;
 };
 typedef struct USetAdder USetAdder;
 
 U_CDECL_END
-
-#ifdef __cplusplus
-
-namespace {
-
-constexpr int32_t USET_CASE_MASK = USET_CASE_INSENSITIVE | USET_ADD_CASE_MAPPINGS;
-
-}  // namespace
-
-#endif  // __cplusplus
 
 #endif

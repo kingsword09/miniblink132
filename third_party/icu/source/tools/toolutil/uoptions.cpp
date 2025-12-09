@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -22,54 +22,53 @@
 #include "cstring.h"
 #include "uoptions.h"
 
-U_CAPI int U_EXPORT2
-u_parseArgs(int argc, char* argv[],
-            int optionCount, UOption options[]) {
-    char *arg;
-    int i=1, remaining=1;
-    char c, stopOptions=0;
+U_CAPI int U_EXPORT2 u_parseArgs(int argc, char* argv[], int optionCount, UOption options[])
+{
+    char* arg;
+    int i = 1, remaining = 1;
+    char c, stopOptions = 0;
 
-    while(i<argc) {
-        arg=argv[i];
-        if(!stopOptions && *arg=='-' && (c=arg[1])!=0) {
+    while (i < argc) {
+        arg = argv[i];
+        if (!stopOptions && *arg == '-' && (c = arg[1]) != 0) {
             /* process an option */
-            UOption *option=nullptr;
-            arg+=2;
-            if(c=='-') {
+            UOption* option = NULL;
+            arg += 2;
+            if (c == '-') {
                 /* process a long option */
-                if(*arg==0) {
+                if (*arg == 0) {
                     /* stop processing options after "--" */
-                    stopOptions=1;
+                    stopOptions = 1;
                 } else {
                     /* search for the option string */
                     int j;
-                    for(j=0; j<optionCount; ++j) {
-                        if(options[j].longName && uprv_strcmp(arg, options[j].longName)==0) {
-                            option=options+j;
+                    for (j = 0; j < optionCount; ++j) {
+                        if (options[j].longName && uprv_strcmp(arg, options[j].longName) == 0) {
+                            option = options + j;
                             break;
                         }
                     }
-                    if(option==nullptr) {
+                    if (option == NULL) {
                         /* no option matches */
                         return -i;
                     }
-                    option->doesOccur=1;
+                    option->doesOccur = 1;
 
-                    if(option->hasArg!=UOPT_NO_ARG) {
+                    if (option->hasArg != UOPT_NO_ARG) {
                         /* parse the argument for the option, if any */
-                        if(i+1<argc && !(argv[i+1][0]=='-' && argv[i+1][1]!=0)) {
+                        if (i + 1 < argc && !(argv[i + 1][0] == '-' && argv[i + 1][1] != 0)) {
                             /* argument in the next argv[], and there is not an option in there */
-                            option->value=argv[++i];
-                        } else if(option->hasArg==UOPT_REQUIRES_ARG) {
+                            option->value = argv[++i];
+                        } else if (option->hasArg == UOPT_REQUIRES_ARG) {
                             /* there is no argument, but one is required: return with error */
-                            option->doesOccur=0;
+                            option->doesOccur = 0;
                             return -i;
                         }
                     }
 
-                    if(option->optionFn!=nullptr && option->optionFn(option->context, option)<0) {
+                    if (option->optionFn != NULL && option->optionFn(option->context, option) < 0) {
                         /* the option function was called and returned an error */
-                        option->doesOccur=0;
+                        option->doesOccur = 0;
                         return -i;
                     }
                 }
@@ -78,54 +77,54 @@ u_parseArgs(int argc, char* argv[],
                 do {
                     /* search for the option letter */
                     int j;
-                    for(j=0; j<optionCount; ++j) {
-                        if(c==options[j].shortName) {
-                            option=options+j;
+                    for (j = 0; j < optionCount; ++j) {
+                        if (c == options[j].shortName) {
+                            option = options + j;
                             break;
                         }
                     }
-                    if(option==nullptr) {
+                    if (option == NULL) {
                         /* no option matches */
                         return -i;
                     }
-                    option->doesOccur=1;
+                    option->doesOccur = 1;
 
-                    if(option->hasArg!=UOPT_NO_ARG) {
+                    if (option->hasArg != UOPT_NO_ARG) {
                         /* parse the argument for the option, if any */
-                        if(*arg!=0) {
+                        if (*arg != 0) {
                             /* argument following in the same argv[] */
-                            option->value=arg;
+                            option->value = arg;
                             /* do not process the rest of this arg as option letters */
                             break;
-                        } else if(i+1<argc && !(argv[i+1][0]=='-' && argv[i+1][1]!=0)) {
+                        } else if (i + 1 < argc && !(argv[i + 1][0] == '-' && argv[i + 1][1] != 0)) {
                             /* argument in the next argv[], and there is not an option in there */
-                            option->value=argv[++i];
+                            option->value = argv[++i];
                             /* this break is redundant because we know that *arg==0 */
                             break;
-                        } else if(option->hasArg==UOPT_REQUIRES_ARG) {
+                        } else if (option->hasArg == UOPT_REQUIRES_ARG) {
                             /* there is no argument, but one is required: return with error */
-                            option->doesOccur=0;
+                            option->doesOccur = 0;
                             return -i;
                         }
                     }
 
-                    if(option->optionFn!=nullptr && option->optionFn(option->context, option)<0) {
+                    if (option->optionFn != NULL && option->optionFn(option->context, option) < 0) {
                         /* the option function was called and returned an error */
-                        option->doesOccur=0;
+                        option->doesOccur = 0;
                         return -i;
                     }
 
                     /* get the next option letter */
-                    option=nullptr;
-                    c=*arg++;
-                } while(c!=0);
+                    option = NULL;
+                    c = *arg++;
+                } while (c != 0);
             }
 
             /* go to next argv[] */
             ++i;
         } else {
             /* move a non-option up in argv[] */
-            argv[remaining++]=arg;
+            argv[remaining++] = arg;
             ++i;
         }
     }

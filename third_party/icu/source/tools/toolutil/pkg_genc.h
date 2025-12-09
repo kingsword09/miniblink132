@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /******************************************************************************
  *   Copyright (C) 2008-2011, International Business Machines
@@ -23,7 +23,6 @@
 #define WINDOWS_WITH_MSVC
 #endif
 #endif
-
 
 #if !defined(WINDOWS_WITH_MSVC)
 #define BUILD_DATA_WITHOUT_ASSEMBLY
@@ -66,42 +65,17 @@
 
 /** End platform defines **/
 
+U_CAPI void U_EXPORT2 printAssemblyHeadersToStdErr(void);
 
+U_CAPI UBool U_EXPORT2 checkAssemblyHeaderName(const char* optAssembly);
 
-U_CAPI void U_EXPORT2
-printAssemblyHeadersToStdErr(void);
+U_CAPI void U_EXPORT2 writeCCode(
+    const char* filename, const char* destdir, const char* optName, const char* optFilename, char* outFilePath, size_t outFilePathCapacity);
 
-U_CAPI UBool U_EXPORT2
-checkAssemblyHeaderName(const char* optAssembly);
+U_CAPI void U_EXPORT2 writeAssemblyCode(
+    const char* filename, const char* destdir, const char* optEntryPoint, const char* optFilename, char* outFilePath, size_t outFilePathCapacity);
 
-U_CAPI void U_EXPORT2
-writeCCode(
-    const char *filename,
-    const char *destdir,
-    const char *optEntryPoint,
-    const char *optName,
-    const char *optFilename,
-    char *outFilePath,
-    size_t outFilePathCapacity);
-
-U_CAPI void U_EXPORT2
-writeAssemblyCode(
-    const char *filename,
-    const char *destdir,
-    const char *optEntryPoint,
-    const char *optFilename,
-    char *outFilePath,
-    size_t outFilePathCapacity);
-
-U_CAPI void U_EXPORT2
-writeObjectCode(
-    const char *filename,
-    const char *destdir,
-    const char *optEntryPoint,
-    const char *optMatchArch,
-    const char *optFilename,
-    char *outFilePath,
-    size_t outFilePathCapacity,
-    UBool optWinDllExport);
+U_CAPI void U_EXPORT2 writeObjectCode(const char* filename, const char* destdir, const char* optEntryPoint, const char* optMatchArch, const char* optFilename,
+    char* outFilePath, size_t outFilePathCapacity, UBool optWinDllExport);
 
 #endif

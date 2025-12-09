@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -21,7 +21,7 @@
 
 #if U_SHOW_CPLUSPLUS_API
 #include "unicode/localpointer.h"
-#endif   // U_SHOW_CPLUSPLUS_API
+#endif // U_SHOW_CPLUSPLUS_API
 
 /**
  * Enum used in LocaleDisplayNames::createInstance.
@@ -48,11 +48,11 @@ typedef enum {
  */
 struct ULocaleDisplayNames;
 
-/** 
- * C typedef for struct ULocaleDisplayNames. 
- * @stable ICU 4.4 
+/**
+ * C typedef for struct ULocaleDisplayNames.
+ * @stable ICU 4.4
  */
-typedef struct ULocaleDisplayNames ULocaleDisplayNames;  
+typedef struct ULocaleDisplayNames ULocaleDisplayNames;
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -62,24 +62,20 @@ typedef struct ULocaleDisplayNames ULocaleDisplayNames;
  * dialectHandling.  The usual value for dialectHandling is
  * ULOC_STANDARD_NAMES.
  *
- * @param locale the display locale 
- * @param dialectHandling how to select names for locales 
- * @return a ULocaleDisplayNames instance 
+ * @param locale the display locale
+ * @param dialectHandling how to select names for locales
+ * @return a ULocaleDisplayNames instance
  * @param pErrorCode the status code
  * @stable ICU 4.4
  */
-U_CAPI ULocaleDisplayNames * U_EXPORT2
-uldn_open(const char * locale,
-          UDialectHandling dialectHandling,
-          UErrorCode *pErrorCode);
+U_CAPI ULocaleDisplayNames* U_EXPORT2 uldn_open(const char* locale, UDialectHandling dialectHandling, UErrorCode* pErrorCode);
 
 /**
  * Closes a ULocaleDisplayNames instance obtained from uldn_open().
  * @param ldn the ULocaleDisplayNames instance to be closed
  * @stable ICU 4.4
  */
-U_CAPI void U_EXPORT2
-uldn_close(ULocaleDisplayNames *ldn);
+U_CAPI void U_EXPORT2 uldn_close(ULocaleDisplayNames* ldn);
 
 #if U_SHOW_CPLUSPLUS_API
 
@@ -106,11 +102,10 @@ U_NAMESPACE_END
  * Returns the locale used to determine the display names. This is
  * not necessarily the same locale passed to {@link #uldn_open}.
  * @param ldn the LocaleDisplayNames instance
- * @return the display locale 
+ * @return the display locale
  * @stable ICU 4.4
  */
-U_CAPI const char * U_EXPORT2
-uldn_getLocale(const ULocaleDisplayNames *ldn);
+U_CAPI const char* U_EXPORT2 uldn_getLocale(const ULocaleDisplayNames* ldn);
 
 /**
  * Returns the dialect handling used in the display names.
@@ -118,8 +113,7 @@ uldn_getLocale(const ULocaleDisplayNames *ldn);
  * @return the dialect handling enum
  * @stable ICU 4.4
  */
-U_CAPI UDialectHandling U_EXPORT2
-uldn_getDialectHandling(const ULocaleDisplayNames *ldn);
+U_CAPI UDialectHandling U_EXPORT2 uldn_getDialectHandling(const ULocaleDisplayNames* ldn);
 
 /* names for entire locales */
 
@@ -134,12 +128,8 @@ uldn_getDialectHandling(const ULocaleDisplayNames *ldn);
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_localeDisplayName(const ULocaleDisplayNames *ldn,
-                       const char *locale,
-                       UChar *result,
-                       int32_t maxResultSize,
-                       UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_localeDisplayName(
+    const ULocaleDisplayNames* ldn, const char* locale, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /* names for components of a locale */
 
@@ -154,12 +144,8 @@ uldn_localeDisplayName(const ULocaleDisplayNames *ldn,
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_languageDisplayName(const ULocaleDisplayNames *ldn,
-                         const char *lang,
-                         UChar *result,
-                         int32_t maxResultSize,
-                         UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_languageDisplayName(
+    const ULocaleDisplayNames* ldn, const char* lang, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /**
  * Returns the display name of the provided script.
@@ -172,12 +158,8 @@ uldn_languageDisplayName(const ULocaleDisplayNames *ldn,
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_scriptDisplayName(const ULocaleDisplayNames *ldn,
-                       const char *script,
-                       UChar *result,
-                       int32_t maxResultSize,
-                       UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_scriptDisplayName(
+    const ULocaleDisplayNames* ldn, const char* script, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /**
  * Returns the display name of the provided script code.
@@ -190,12 +172,8 @@ uldn_scriptDisplayName(const ULocaleDisplayNames *ldn,
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_scriptCodeDisplayName(const ULocaleDisplayNames *ldn,
-                           UScriptCode scriptCode,
-                           UChar *result,
-                           int32_t maxResultSize,
-                           UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_scriptCodeDisplayName(
+    const ULocaleDisplayNames* ldn, UScriptCode scriptCode, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /**
  * Returns the display name of the provided region code.
@@ -208,12 +186,8 @@ uldn_scriptCodeDisplayName(const ULocaleDisplayNames *ldn,
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_regionDisplayName(const ULocaleDisplayNames *ldn,
-                       const char *region,
-                       UChar *result,
-                       int32_t maxResultSize,
-                       UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_regionDisplayName(
+    const ULocaleDisplayNames* ldn, const char* region, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /**
  * Returns the display name of the provided variant
@@ -226,12 +200,8 @@ uldn_regionDisplayName(const ULocaleDisplayNames *ldn,
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_variantDisplayName(const ULocaleDisplayNames *ldn,
-                        const char *variant,
-                        UChar *result,
-                        int32_t maxResultSize,
-                        UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_variantDisplayName(
+    const ULocaleDisplayNames* ldn, const char* variant, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /**
  * Returns the display name of the provided locale key
@@ -244,12 +214,7 @@ uldn_variantDisplayName(const ULocaleDisplayNames *ldn,
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_keyDisplayName(const ULocaleDisplayNames *ldn,
-                    const char *key,
-                    UChar *result,
-                    int32_t maxResultSize,
-                    UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_keyDisplayName(const ULocaleDisplayNames* ldn, const char* key, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /**
  * Returns the display name of the provided value (used with the provided key).
@@ -263,45 +228,36 @@ uldn_keyDisplayName(const ULocaleDisplayNames *ldn,
  * greater than maxResultSize, the returned name will be truncated.
  * @stable ICU 4.4
  */
-U_CAPI int32_t U_EXPORT2
-uldn_keyValueDisplayName(const ULocaleDisplayNames *ldn,
-                         const char *key,
-                         const char *value,
-                         UChar *result,
-                         int32_t maxResultSize,
-                         UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 uldn_keyValueDisplayName(
+    const ULocaleDisplayNames* ldn, const char* key, const char* value, UChar* result, int32_t maxResultSize, UErrorCode* pErrorCode);
 
 /**
-* Returns an instance of LocaleDisplayNames that returns names formatted
-* for the provided locale, using the provided UDisplayContext settings.
-*
-* @param locale The display locale 
-* @param contexts List of one or more context settings (e.g. for dialect
-*               handling, capitalization, etc.
-* @param length Number of items in the contexts list
-* @param pErrorCode Pointer to UErrorCode input/output status. If at entry this indicates
-*               a failure status, the function will do nothing; otherwise this will be
-*               updated with any new status from the function. 
-* @return a ULocaleDisplayNames instance 
-* @stable ICU 51
-*/
-U_CAPI ULocaleDisplayNames * U_EXPORT2
-uldn_openForContext(const char * locale, UDisplayContext *contexts,
-                    int32_t length, UErrorCode *pErrorCode);
+ * Returns an instance of LocaleDisplayNames that returns names formatted
+ * for the provided locale, using the provided UDisplayContext settings.
+ *
+ * @param locale The display locale
+ * @param contexts List of one or more context settings (e.g. for dialect
+ *               handling, capitalization, etc.
+ * @param length Number of items in the contexts list
+ * @param pErrorCode Pointer to UErrorCode input/output status. If at entry this indicates
+ *               a failure status, the function will do nothing; otherwise this will be
+ *               updated with any new status from the function.
+ * @return a ULocaleDisplayNames instance
+ * @stable ICU 51
+ */
+U_CAPI ULocaleDisplayNames* U_EXPORT2 uldn_openForContext(const char* locale, UDisplayContext* contexts, int32_t length, UErrorCode* pErrorCode);
 
 /**
-* Returns the UDisplayContext value for the specified UDisplayContextType.
-* @param ldn the ULocaleDisplayNames instance
-* @param type the UDisplayContextType whose value to return
-* @param pErrorCode Pointer to UErrorCode input/output status. If at entry this indicates
-*               a failure status, the function will do nothing; otherwise this will be
-*               updated with any new status from the function. 
-* @return the UDisplayContextValue for the specified type.
-* @stable ICU 51
-*/
-U_CAPI UDisplayContext U_EXPORT2
-uldn_getContext(const ULocaleDisplayNames *ldn, UDisplayContextType type,
-                UErrorCode *pErrorCode);
+ * Returns the UDisplayContext value for the specified UDisplayContextType.
+ * @param ldn the ULocaleDisplayNames instance
+ * @param type the UDisplayContextType whose value to return
+ * @param pErrorCode Pointer to UErrorCode input/output status. If at entry this indicates
+ *               a failure status, the function will do nothing; otherwise this will be
+ *               updated with any new status from the function.
+ * @return the UDisplayContextValue for the specified type.
+ * @stable ICU 51
+ */
+U_CAPI UDisplayContext U_EXPORT2 uldn_getContext(const ULocaleDisplayNames* ldn, UDisplayContextType type, UErrorCode* pErrorCode);
 
-#endif  /* !UCONFIG_NO_FORMATTING */
-#endif  /* __ULDNAMES_H__ */
+#endif /* !UCONFIG_NO_FORMATTING */
+#endif /* __ULDNAMES_H__ */

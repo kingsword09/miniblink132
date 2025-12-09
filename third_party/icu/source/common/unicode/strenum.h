@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -20,10 +20,10 @@
 #include "unicode/unistr.h"
 
 /**
- * \file 
+ * \file
  * \brief C++ API: String Enumeration
  */
- 
+
 U_NAMESPACE_BEGIN
 
 /**
@@ -56,9 +56,9 @@ U_NAMESPACE_BEGIN
  * ICU 2.8 adds some default implementations and helper functions
  * for subclasses.
  *
- * @stable ICU 2.4 
+ * @stable ICU 2.4
  */
-class U_COMMON_API StringEnumeration : public UObject { 
+class U_COMMON_API StringEnumeration : public UObject {
 public:
     /**
      * Destructor.
@@ -70,7 +70,7 @@ public:
      * Clone this object, an instance of a subclass of StringEnumeration.
      * Clones can be used concurrently in multiple threads.
      * If a subclass does not implement clone(), or if an error occurs,
-     * then nullptr is returned.
+     * then NULL is returned.
      * The caller must delete the clone.
      *
      * @return a clone of this object
@@ -78,7 +78,7 @@ public:
      * @see getDynamicClassID
      * @stable ICU 2.8
      */
-    virtual StringEnumeration *clone() const;
+    virtual StringEnumeration* clone() const;
 
     /**
      * <p>Return the number of elements that the iterator traverses.  If
@@ -101,8 +101,8 @@ public:
 
     /**
      * <p>Returns the next element as a NUL-terminated char*.  If there
-     * are no more elements, returns nullptr.  If the resultLength pointer
-     * is not nullptr, the length of the string (not counting the
+     * are no more elements, returns NULL.  If the resultLength pointer
+     * is not NULL, the length of the string (not counting the
      * terminating NUL) is returned at that address.  If an error
      * status is returned, the value at resultLength is undefined.</p>
      *
@@ -111,30 +111,30 @@ public:
      * to next, unext, snext, reset, or the enumerator's destructor.</p>
      *
      * <p>If the iterator is out of sync with its service, status is set
-     * to U_ENUM_OUT_OF_SYNC_ERROR and nullptr is returned.</p>
+     * to U_ENUM_OUT_OF_SYNC_ERROR and NULL is returned.</p>
      *
      * <p>If the native service string is a char16_t* string, it is
      * converted to char* with the invariant converter.  If the
      * conversion fails (because a character cannot be converted) then
      * status is set to U_INVARIANT_CONVERSION_ERROR and the return
-     * value is undefined (though not nullptr).</p>
+     * value is undefined (though not NULL).</p>
      *
      * Starting with ICU 2.8, the default implementation calls snext()
      * and handles the conversion.
      * Either next() or snext() must be implemented differently by a subclass.
      *
      * @param status the error code.
-     * @param resultLength a pointer to receive the length, can be nullptr.
-     * @return a pointer to the string, or nullptr.
+     * @param resultLength a pointer to receive the length, can be NULL.
+     * @return a pointer to the string, or NULL.
      *
-     * @stable ICU 2.4 
+     * @stable ICU 2.4
      */
-    virtual const char* next(int32_t *resultLength, UErrorCode& status);
+    virtual const char* next(int32_t* resultLength, UErrorCode& status);
 
     /**
      * <p>Returns the next element as a NUL-terminated char16_t*.  If there
-     * are no more elements, returns nullptr.  If the resultLength pointer
-     * is not nullptr, the length of the string (not counting the
+     * are no more elements, returns NULL.  If the resultLength pointer
+     * is not NULL, the length of the string (not counting the
      * terminating NUL) is returned at that address.  If an error
      * status is returned, the value at resultLength is undefined.</p>
      *
@@ -143,38 +143,38 @@ public:
      * to next, unext, snext, reset, or the enumerator's destructor.</p>
      *
      * <p>If the iterator is out of sync with its service, status is set
-     * to U_ENUM_OUT_OF_SYNC_ERROR and nullptr is returned.</p>
+     * to U_ENUM_OUT_OF_SYNC_ERROR and NULL is returned.</p>
      *
      * Starting with ICU 2.8, the default implementation calls snext()
      * and handles the conversion.
      *
      * @param status the error code.
-     * @param resultLength a pointer to receive the length, can be nullptr.
-     * @return a pointer to the string, or nullptr.
+     * @param resultLength a pointer to receive the length, can be NULL.
+     * @return a pointer to the string, or NULL.
      *
-     * @stable ICU 2.4 
+     * @stable ICU 2.4
      */
-    virtual const char16_t* unext(int32_t *resultLength, UErrorCode& status);
+    virtual const char16_t* unext(int32_t* resultLength, UErrorCode& status);
 
     /**
      * <p>Returns the next element a UnicodeString*.  If there are no
-     * more elements, returns nullptr.</p>
+     * more elements, returns NULL.</p>
      *
      * <p>The returned pointer is owned by this iterator and must not be
      * deleted by the caller.  The pointer is valid until the next call
      * to next, unext, snext, reset, or the enumerator's destructor.</p>
      *
      * <p>If the iterator is out of sync with its service, status is set
-     * to U_ENUM_OUT_OF_SYNC_ERROR and nullptr is returned.</p>
+     * to U_ENUM_OUT_OF_SYNC_ERROR and NULL is returned.</p>
      *
      * Starting with ICU 2.8, the default implementation calls next()
      * and handles the conversion.
      * Either next() or snext() must be implemented differently by a subclass.
      *
      * @param status the error code.
-     * @return a pointer to the string, or nullptr.
+     * @return a pointer to the string, or NULL.
      *
-     * @stable ICU 2.4 
+     * @stable ICU 2.4
      */
     virtual const UnicodeString* snext(UErrorCode& status);
 
@@ -188,7 +188,7 @@ public:
      *
      * @param status the error code.
      *
-     * @stable ICU 2.4 
+     * @stable ICU 2.4
      */
     virtual void reset(UErrorCode& status) = 0;
 
@@ -197,17 +197,17 @@ public:
      *
      * @param that The other string enumeration to compare this object to
      * @return true if the enumerations are equal. false if not.
-     * @stable ICU 3.6 
+     * @stable ICU 3.6
      */
-    virtual bool operator==(const StringEnumeration& that)const;
+    virtual bool operator==(const StringEnumeration& that) const;
     /**
      * Compares this enumeration to other to check if both are not equal
      *
      * @param that The other string enumeration to compare this object to
      * @return true if the enumerations are equal. false if not.
-     * @stable ICU 3.6 
+     * @stable ICU 3.6
      */
-    virtual bool operator!=(const StringEnumeration& that)const;
+    virtual bool operator!=(const StringEnumeration& that) const;
 
 protected:
     /**
@@ -225,7 +225,7 @@ protected:
      * Allocated in constructor and in ensureCharsCapacity().
      * @stable ICU 2.8
      */
-    char *chars;
+    char* chars;
     /**
      * Capacity of chars, for use with default implementations and subclasses.
      * @stable ICU 2.8
@@ -246,7 +246,7 @@ protected:
      * @param status ICU in/out error code.
      * @stable ICU 2.8
      */
-    void ensureCharsCapacity(int32_t capacity, UErrorCode &status);
+    void ensureCharsCapacity(int32_t capacity, UErrorCode& status);
 
     /**
      * Converts s to Unicode and sets unistr to the result.
@@ -270,7 +270,7 @@ protected:
      * @return A pointer to unistr.
      * @stable ICU 2.8
      */
-    UnicodeString *setChars(const char *s, int32_t length, UErrorCode &status);
+    UnicodeString* setChars(const char* s, int32_t length, UErrorCode& status);
 };
 
 U_NAMESPACE_END

@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 **********************************************************************
@@ -86,18 +86,18 @@ private:
 
     UElement* elements = nullptr;
 
-    UObjectDeleter *deleter = nullptr;
+    UObjectDeleter* deleter = nullptr;
 
-    UElementsAreEqual *comparer = nullptr;
+    UElementsAreEqual* comparer = nullptr;
 
 public:
-    UVector(UErrorCode &status);
+    UVector(UErrorCode& status);
 
-    UVector(int32_t initialCapacity, UErrorCode &status);
+    UVector(int32_t initialCapacity, UErrorCode& status);
 
-    UVector(UObjectDeleter *d, UElementsAreEqual *c, UErrorCode &status);
+    UVector(UObjectDeleter* d, UElementsAreEqual* c, UErrorCode& status);
 
-    UVector(UObjectDeleter *d, UElementsAreEqual *c, int32_t initialCapacity, UErrorCode &status);
+    UVector(UObjectDeleter* d, UElementsAreEqual* c, int32_t initialCapacity, UErrorCode& status);
 
     virtual ~UVector();
 
@@ -105,7 +105,7 @@ public:
      * Assign this object to another (make this a copy of 'other').
      * Use the 'assign' function to assign each element.
      */
-    void assign(const UVector& other, UElementAssigner *assign, UErrorCode &ec);
+    void assign(const UVector& other, UElementAssigner* assign, UErrorCode& ec);
 
     /**
      * Compare this vector with another.  They will be considered
@@ -117,7 +117,10 @@ public:
     /**
      * Equivalent to !operator==()
      */
-    inline bool operator!=(const UVector& other) const {return !operator==(other);}
+    inline bool operator!=(const UVector& other) const
+    {
+        return !operator==(other);
+    }
 
     //------------------------------------------------------------
     // java.util.Vector API
@@ -128,7 +131,7 @@ public:
      * For use only with vectors that do not adopt their elements, which is to say,
      * have not set an element deleter function. See `adoptElement()`.
      */
-    void addElement(void *obj, UErrorCode &status);
+    void addElement(void* obj, UErrorCode& status);
 
     /**
      * Add an element at the end of the vector.
@@ -143,37 +146,52 @@ public:
      * to see what the function is doing at call sites. Having a single combined function,
      * as in earlier versions of UVector, had proved to be error-prone.
      */
-    void adoptElement(void *obj, UErrorCode &status);
+    void adoptElement(void* obj, UErrorCode& status);
 
-    void addElement(int32_t elem, UErrorCode &status);
+    void addElement(int32_t elem, UErrorCode& status);
 
     void setElementAt(void* obj, int32_t index);
 
     void setElementAt(int32_t elem, int32_t index);
 
-    void insertElementAt(void* obj, int32_t index, UErrorCode &status);
+    void insertElementAt(void* obj, int32_t index, UErrorCode& status);
 
-    void insertElementAt(int32_t elem, int32_t index, UErrorCode &status);
-    
+    void insertElementAt(int32_t elem, int32_t index, UErrorCode& status);
+
     void* elementAt(int32_t index) const;
 
     int32_t elementAti(int32_t index) const;
 
-    UBool equals(const UVector &other) const;
+    UBool equals(const UVector& other) const;
 
-    inline void* firstElement() const {return elementAt(0);}
+    inline void* firstElement(void) const
+    {
+        return elementAt(0);
+    }
 
-    inline void* lastElement() const {return elementAt(count-1);}
+    inline void* lastElement(void) const
+    {
+        return elementAt(count - 1);
+    }
 
-    inline int32_t lastElementi() const {return elementAti(count-1);}
+    inline int32_t lastElementi(void) const
+    {
+        return elementAti(count - 1);
+    }
 
     int32_t indexOf(void* obj, int32_t startIndex = 0) const;
 
     int32_t indexOf(int32_t obj, int32_t startIndex = 0) const;
 
-    inline UBool contains(void* obj) const {return indexOf(obj) >= 0;}
+    inline UBool contains(void* obj) const
+    {
+        return indexOf(obj) >= 0;
+    }
 
-    inline UBool contains(int32_t obj) const {return indexOf(obj) >= 0;}
+    inline UBool contains(int32_t obj) const
+    {
+        return indexOf(obj) >= 0;
+    }
 
     UBool containsAll(const UVector& other) const;
 
@@ -187,19 +205,25 @@ public:
 
     void removeAllElements();
 
-    inline int32_t size() const {return count;}
+    inline int32_t size(void) const
+    {
+        return count;
+    }
 
-    inline UBool isEmpty() const {return count == 0;}
+    inline UBool isEmpty(void) const
+    {
+        return count == 0;
+    }
 
-    UBool ensureCapacity(int32_t minimumCapacity, UErrorCode &status);
+    UBool ensureCapacity(int32_t minimumCapacity, UErrorCode& status);
 
     /**
      * Change the size of this vector as follows: If newSize is
      * smaller, then truncate the array, possibly deleting held
      * elements for i >= newSize.  If newSize is larger, grow the
-     * array, filling in new slots with nullptr.
+     * array, filling in new slots with NULL.
      */
-    void setSize(int32_t newSize, UErrorCode &status);
+    void setSize(int32_t newSize, UErrorCode& status);
 
     /**
      * Fill in the given array with all elements of this vector.
@@ -210,12 +234,18 @@ public:
     // New API
     //------------------------------------------------------------
 
-    UObjectDeleter *setDeleter(UObjectDeleter *d);
-    bool hasDeleter() {return deleter != nullptr;}
+    UObjectDeleter* setDeleter(UObjectDeleter* d);
+    bool hasDeleter()
+    {
+        return deleter != nullptr;
+    }
 
-    UElementsAreEqual *setComparer(UElementsAreEqual *c);
+    UElementsAreEqual* setComparer(UElementsAreEqual* c);
 
-    inline void* operator[](int32_t index) const {return elementAt(index);}
+    inline void* operator[](int32_t index) const
+    {
+        return elementAt(index);
+    }
 
     /**
      * Removes the element at the given index from this vector and
@@ -241,28 +271,28 @@ public:
      * as defined by 'compare'.  The current elements are assumed to
      * be sorted already.
      */
-    void sortedInsert(void* obj, UElementComparator *compare, UErrorCode& ec);
+    void sortedInsert(void* obj, UElementComparator* compare, UErrorCode& ec);
 
     /**
      * Insert the given integer into this vector at its sorted position
      * as defined by 'compare'.  The current elements are assumed to
      * be sorted already.
      */
-    void sortedInsert(int32_t obj, UElementComparator *compare, UErrorCode& ec);
+    void sortedInsert(int32_t obj, UElementComparator* compare, UErrorCode& ec);
 
     /**
      * Sort the contents of the vector, assuming that the contents of the
      * vector are of type int32_t.
      */
-    void sorti(UErrorCode &ec);
+    void sorti(UErrorCode& ec);
 
     /**
-      * Sort the contents of this vector, using a caller-supplied function
-      * to do the comparisons.  (It's confusing that
-      *  UVector's UElementComparator function is different from the
-      *  UComparator function type defined in uarrsort.h)
-      */
-    void sort(UElementComparator *compare, UErrorCode &ec);
+     * Sort the contents of this vector, using a caller-supplied function
+     * to do the comparisons.  (It's confusing that
+     *  UVector's UElementComparator function is different from the
+     *  UComparator function type defined in uarrsort.h)
+     */
+    void sort(UElementComparator* compare, UErrorCode& ec);
 
     /**
      * Stable sort the contents of this vector using a caller-supplied function
@@ -270,7 +300,7 @@ public:
      * than UVector::sort() because an additional user parameter can be passed to
      * the comparison function.
      */
-    void sortWithUComparator(UComparator *compare, const void *context, UErrorCode &ec);
+    void sortWithUComparator(UComparator* compare, const void* context, UErrorCode& ec);
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
@@ -285,7 +315,7 @@ public:
 private:
     int32_t indexOf(UElement key, int32_t startIndex = 0, int8_t hint = 0) const;
 
-    void sortedInsert(UElement e, UElementComparator *compare, UErrorCode& ec);
+    void sortedInsert(UElement e, UElementComparator* compare, UErrorCode& ec);
 
 public:
     // Disallow
@@ -293,9 +323,7 @@ public:
 
     // Disallow
     UVector& operator=(const UVector&) = delete;
-
 };
-
 
 /**
  * Ultralightweight C++ implementation of a `void*` stack
@@ -315,35 +343,45 @@ public:
  */
 class U_COMMON_API UStack : public UVector {
 public:
-    UStack(UErrorCode &status);
+    UStack(UErrorCode& status);
 
-    UStack(int32_t initialCapacity, UErrorCode &status);
+    UStack(int32_t initialCapacity, UErrorCode& status);
 
-    UStack(UObjectDeleter *d, UElementsAreEqual *c, UErrorCode &status);
+    UStack(UObjectDeleter* d, UElementsAreEqual* c, UErrorCode& status);
 
-    UStack(UObjectDeleter *d, UElementsAreEqual *c, int32_t initialCapacity, UErrorCode &status);
+    UStack(UObjectDeleter* d, UElementsAreEqual* c, int32_t initialCapacity, UErrorCode& status);
 
     virtual ~UStack();
 
     // It's okay not to have a virtual destructor (in UVector)
     // because UStack has no special cleanup to do.
 
-    inline UBool empty() const {return isEmpty();}
+    inline UBool empty(void) const
+    {
+        return isEmpty();
+    }
 
-    inline void* peek() const {return lastElement();}
+    inline void* peek(void) const
+    {
+        return lastElement();
+    }
 
-    inline int32_t peeki() const {return lastElementi();}
-    
+    inline int32_t peeki(void) const
+    {
+        return lastElementi();
+    }
+
     /**
      * Pop and return an element from the stack.
      * For stacks with a deleter function, the caller takes ownership
      * of the popped element.
      */
-    void* pop();
-    
-    int32_t popi();
-    
-    inline void* push(void* obj, UErrorCode &status) {
+    void* pop(void);
+
+    int32_t popi(void);
+
+    inline void* push(void* obj, UErrorCode& status)
+    {
         if (hasDeleter()) {
             adoptElement(obj, status);
             return (U_SUCCESS(status)) ? obj : nullptr;
@@ -353,7 +391,8 @@ public:
         }
     }
 
-    inline int32_t push(int32_t i, UErrorCode &status) {
+    inline int32_t push(int32_t i, UErrorCode& status)
+    {
         addElement(i, status);
         return i;
     }

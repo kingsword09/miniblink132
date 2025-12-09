@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 // From the double-conversion library. Original license:
@@ -47,44 +47,44 @@ U_NAMESPACE_BEGIN
 namespace double_conversion {
 
 class DoubleToStringConverter {
- public:
-  // When calling ToFixed with a double > 10^kMaxFixedDigitsBeforePoint
-  // or a requested_digits parameter > kMaxFixedDigitsAfterPoint then the
-  // function returns false.
-  static const int kMaxFixedDigitsBeforePoint = 60;
-  static const int kMaxFixedDigitsAfterPoint = 100;
+public:
+    // When calling ToFixed with a double > 10^kMaxFixedDigitsBeforePoint
+    // or a requested_digits parameter > kMaxFixedDigitsAfterPoint then the
+    // function returns false.
+    static const int kMaxFixedDigitsBeforePoint = 60;
+    static const int kMaxFixedDigitsAfterPoint = 100;
 
-  // When calling ToExponential with a requested_digits
-  // parameter > kMaxExponentialDigits then the function returns false.
-  static const int kMaxExponentialDigits = 120;
+    // When calling ToExponential with a requested_digits
+    // parameter > kMaxExponentialDigits then the function returns false.
+    static const int kMaxExponentialDigits = 120;
 
-  // When calling ToPrecision with a requested_digits
-  // parameter < kMinPrecisionDigits or requested_digits > kMaxPrecisionDigits
-  // then the function returns false.
-  static const int kMinPrecisionDigits = 1;
-  static const int kMaxPrecisionDigits = 120;
+    // When calling ToPrecision with a requested_digits
+    // parameter < kMinPrecisionDigits or requested_digits > kMaxPrecisionDigits
+    // then the function returns false.
+    static const int kMinPrecisionDigits = 1;
+    static const int kMaxPrecisionDigits = 120;
 
-  // The maximal number of digits that are needed to emit a double in base 10.
-  // A higher precision can be achieved by using more digits, but the shortest
-  // accurate representation of any double will never use more digits than
-  // kBase10MaximalLength.
-  // Note that DoubleToAscii null-terminates its input. So the given buffer
-  // should be at least kBase10MaximalLength + 1 characters long.
-  static const int kBase10MaximalLength = 17;
+    // The maximal number of digits that are needed to emit a double in base 10.
+    // A higher precision can be achieved by using more digits, but the shortest
+    // accurate representation of any double will never use more digits than
+    // kBase10MaximalLength.
+    // Note that DoubleToAscii null-terminates its input. So the given buffer
+    // should be at least kBase10MaximalLength + 1 characters long.
+    static const int kBase10MaximalLength = 17;
 
-  // The maximal number of digits that are needed to emit a single in base 10.
-  // A higher precision can be achieved by using more digits, but the shortest
-  // accurate representation of any single will never use more digits than
-  // kBase10MaximalLengthSingle.
-  static const int kBase10MaximalLengthSingle = 9;
+    // The maximal number of digits that are needed to emit a single in base 10.
+    // A higher precision can be achieved by using more digits, but the shortest
+    // accurate representation of any single will never use more digits than
+    // kBase10MaximalLengthSingle.
+    static const int kBase10MaximalLengthSingle = 9;
 
-  // The length of the longest string that 'ToShortest' can produce when the
-  // converter is instantiated with EcmaScript defaults (see
-  // 'EcmaScriptConverter')
-  // This value does not include the trailing '\0' character.
-  // This amount of characters is needed for negative values that hit the
-  // 'decimal_in_shortest_low' limit. For example: "-0.0000033333333333333333"
-  static const int kMaxCharsEcmaScriptShortest = 25;
+    // The length of the longest string that 'ToShortest' can produce when the
+    // converter is instantiated with EcmaScript defaults (see
+    // 'EcmaScriptConverter')
+    // This value does not include the trailing '\0' character.
+    // This amount of characters is needed for negative values that hit the
+    // 'decimal_in_shortest_low' limit. For example: "-0.0000033333333333333333"
+    static const int kMaxCharsEcmaScriptShortest = 25;
 
 #if 0 // not needed for ICU
   enum Flags {
@@ -93,9 +93,7 @@ class DoubleToStringConverter {
     EMIT_TRAILING_DECIMAL_POINT = 2,
     EMIT_TRAILING_ZERO_AFTER_POINT = 4,
     UNIQUE_ZERO = 8,
-    NO_TRAILING_ZERO = 16,
-    EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL = 32,
-    EMIT_TRAILING_ZERO_AFTER_POINT_IN_EXPONENTIAL = 64
+    NO_TRAILING_ZERO = 16
   };
 
   // Flags should be a bit-or combination of the possible Flags-enum.
@@ -114,16 +112,9 @@ class DoubleToStringConverter {
   //    of the result in precision mode. Matches printf's %g.
   //    When EMIT_TRAILING_ZERO_AFTER_POINT is also given, one trailing zero is
   //    preserved.
-  //  - EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL: when the input number has
-  //    exactly one significant digit and is converted into exponent form then a
-  //    trailing decimal point is appended to the significand in shortest mode
-  //    or in precision mode with one requested digit.
-  //  - EMIT_TRAILING_ZERO_AFTER_POINT_IN_EXPONENTIAL: in addition to a trailing
-  //    decimal point emits a trailing '0'-character. This flag requires the
-  //    EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL flag.
   //
   // Infinity symbol and nan_symbol provide the string representation for these
-  // special values. If the string is nullptr and the special value is encountered
+  // special values. If the string is NULL and the special value is encountered
   // then the conversion functions return false.
   //
   // The exponent_character is used in exponential representations. It is
@@ -155,22 +146,6 @@ class DoubleToStringConverter {
   //   ToPrecision(230.0, 2) -> "230"
   //   ToPrecision(230.0, 2) -> "230."  with EMIT_TRAILING_DECIMAL_POINT.
   //   ToPrecision(230.0, 2) -> "2.3e2" with EMIT_TRAILING_ZERO_AFTER_POINT.
-  //
-  // When converting numbers with exactly one significant digit to exponent
-  // form in shortest mode or in precision mode with one requested digit, the
-  // EMIT_TRAILING_DECIMAL_POINT and EMIT_TRAILING_ZERO_AFTER_POINT flags have
-  // no effect. Use the EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL flag to
-  // append a decimal point in this case and the
-  // EMIT_TRAILING_ZERO_AFTER_POINT_IN_EXPONENTIAL flag to also append a
-  // '0'-character in this case.
-  // Example with decimal_in_shortest_low = 0:
-  //   ToShortest(0.0009) -> "9e-4"
-  //     with EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL deactivated.
-  //   ToShortest(0.0009) -> "9.e-4"
-  //     with EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL activated.
-  //   ToShortest(0.0009) -> "9.0e-4"
-  //     with EMIT_TRAILING_DECIMAL_POINT_IN_EXPONENTIAL activated and
-  //     EMIT_TRAILING_ZERO_AFTER_POINT_IN_EXPONENTIAL activated.
   //
   // The min_exponent_width is used for exponential representations.
   // The converter adds leading '0's to the exponent until the exponent
@@ -377,73 +352,66 @@ class DoubleToStringConverter {
                    StringBuilder* result_builder) const;
 #endif // not needed for ICU
 
-  enum DtoaMode {
-    // Produce the shortest correct representation.
-    // For example the output of 0.299999999999999988897 is (the less accurate
-    // but correct) 0.3.
-    SHORTEST,
-    // Same as SHORTEST, but for single-precision floats.
-    SHORTEST_SINGLE,
-    // Produce a fixed number of digits after the decimal point.
-    // For instance fixed(0.1, 4) becomes 0.1000
-    // If the input number is big, the output will be big.
-    FIXED,
-    // Fixed number of digits (independent of the decimal point).
-    PRECISION
-  };
+    enum DtoaMode {
+        // Produce the shortest correct representation.
+        // For example the output of 0.299999999999999988897 is (the less accurate
+        // but correct) 0.3.
+        SHORTEST,
+        // Same as SHORTEST, but for single-precision floats.
+        SHORTEST_SINGLE,
+        // Produce a fixed number of digits after the decimal point.
+        // For instance fixed(0.1, 4) becomes 0.1000
+        // If the input number is big, the output will be big.
+        FIXED,
+        // Fixed number of digits (independent of the decimal point).
+        PRECISION
+    };
 
-  // Converts the given double 'v' to digit characters. 'v' must not be NaN,
-  // +Infinity, or -Infinity. In SHORTEST_SINGLE-mode this restriction also
-  // applies to 'v' after it has been casted to a single-precision float. That
-  // is, in this mode static_cast<float>(v) must not be NaN, +Infinity or
-  // -Infinity.
-  //
-  // The result should be interpreted as buffer * 10^(point-length).
-  //
-  // The digits are written to the buffer in the platform's charset, which is
-  // often UTF-8 (with ASCII-range digits) but may be another charset, such
-  // as EBCDIC.
-  //
-  // The output depends on the given mode:
-  //  - SHORTEST: produce the least amount of digits for which the internal
-  //   identity requirement is still satisfied. If the digits are printed
-  //   (together with the correct exponent) then reading this number will give
-  //   'v' again. The buffer will choose the representation that is closest to
-  //   'v'. If there are two at the same distance, than the one farther away
-  //   from 0 is chosen (halfway cases - ending with 5 - are rounded up).
-  //   In this mode the 'requested_digits' parameter is ignored.
-  //  - SHORTEST_SINGLE: same as SHORTEST but with single-precision.
-  //  - FIXED: produces digits necessary to print a given number with
-  //   'requested_digits' digits after the decimal point. The produced digits
-  //   might be too short in which case the caller has to fill the remainder
-  //   with '0's.
-  //   Example: toFixed(0.001, 5) is allowed to return buffer="1", point=-2.
-  //   Halfway cases are rounded towards +/-Infinity (away from 0). The call
-  //   toFixed(0.15, 2) thus returns buffer="2", point=0.
-  //   The returned buffer may contain digits that would be truncated from the
-  //   shortest representation of the input.
-  //  - PRECISION: produces 'requested_digits' where the first digit is not '0'.
-  //   Even though the length of produced digits usually equals
-  //   'requested_digits', the function is allowed to return fewer digits, in
-  //   which case the caller has to fill the missing digits with '0's.
-  //   Halfway cases are again rounded away from 0.
-  // DoubleToAscii expects the given buffer to be big enough to hold all
-  // digits and a terminating null-character. In SHORTEST-mode it expects a
-  // buffer of at least kBase10MaximalLength + 1. In all other modes the
-  // requested_digits parameter and the padding-zeroes limit the size of the
-  // output. Don't forget the decimal point, the exponent character and the
-  // terminating null-character when computing the maximal output size.
-  // The given length is only used in debug mode to ensure the buffer is big
-  // enough.
-  // ICU PATCH: Export this as U_I18N_API for unit tests.
-  static void U_I18N_API DoubleToAscii(double v,
-                            DtoaMode mode,
-                            int requested_digits,
-                            char* buffer,
-                            int buffer_length,
-                            bool* sign,
-                            int* length,
-                            int* point);
+    // Converts the given double 'v' to digit characters. 'v' must not be NaN,
+    // +Infinity, or -Infinity. In SHORTEST_SINGLE-mode this restriction also
+    // applies to 'v' after it has been casted to a single-precision float. That
+    // is, in this mode static_cast<float>(v) must not be NaN, +Infinity or
+    // -Infinity.
+    //
+    // The result should be interpreted as buffer * 10^(point-length).
+    //
+    // The digits are written to the buffer in the platform's charset, which is
+    // often UTF-8 (with ASCII-range digits) but may be another charset, such
+    // as EBCDIC.
+    //
+    // The output depends on the given mode:
+    //  - SHORTEST: produce the least amount of digits for which the internal
+    //   identity requirement is still satisfied. If the digits are printed
+    //   (together with the correct exponent) then reading this number will give
+    //   'v' again. The buffer will choose the representation that is closest to
+    //   'v'. If there are two at the same distance, than the one farther away
+    //   from 0 is chosen (halfway cases - ending with 5 - are rounded up).
+    //   In this mode the 'requested_digits' parameter is ignored.
+    //  - SHORTEST_SINGLE: same as SHORTEST but with single-precision.
+    //  - FIXED: produces digits necessary to print a given number with
+    //   'requested_digits' digits after the decimal point. The produced digits
+    //   might be too short in which case the caller has to fill the remainder
+    //   with '0's.
+    //   Example: toFixed(0.001, 5) is allowed to return buffer="1", point=-2.
+    //   Halfway cases are rounded towards +/-Infinity (away from 0). The call
+    //   toFixed(0.15, 2) thus returns buffer="2", point=0.
+    //   The returned buffer may contain digits that would be truncated from the
+    //   shortest representation of the input.
+    //  - PRECISION: produces 'requested_digits' where the first digit is not '0'.
+    //   Even though the length of produced digits usually equals
+    //   'requested_digits', the function is allowed to return fewer digits, in
+    //   which case the caller has to fill the missing digits with '0's.
+    //   Halfway cases are again rounded away from 0.
+    // DoubleToAscii expects the given buffer to be big enough to hold all
+    // digits and a terminating null-character. In SHORTEST-mode it expects a
+    // buffer of at least kBase10MaximalLength + 1. In all other modes the
+    // requested_digits parameter and the padding-zeroes limit the size of the
+    // output. Don't forget the decimal point, the exponent character and the
+    // terminating null-character when computing the maximal output size.
+    // The given length is only used in debug mode to ensure the buffer is big
+    // enough.
+    // ICU PATCH: Export this as U_I18N_API for unit tests.
+    static void U_I18N_API DoubleToAscii(double v, DtoaMode mode, int requested_digits, char* buffer, int buffer_length, bool* sign, int* length, int* point);
 
 #if 0 // not needed for ICU
  private:
@@ -454,7 +422,7 @@ class DoubleToStringConverter {
 
   // If the value is a special value (NaN or Infinity) constructs the
   // corresponding string using the configured infinity/nan-symbol.
-  // If either of them is nullptr or the value is not special then the
+  // If either of them is NULL or the value is not special then the
   // function returns false.
   bool HandleSpecialValues(double value, StringBuilder* result_builder) const;
   // Constructs an exponential representation (i.e. 1.234e56).
@@ -481,13 +449,13 @@ class DoubleToStringConverter {
   const int min_exponent_width_;
 #endif // not needed for ICU
 
-  DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(DoubleToStringConverter);
+    DOUBLE_CONVERSION_DISALLOW_IMPLICIT_CONSTRUCTORS(DoubleToStringConverter);
 };
 
-}  // namespace double_conversion
+} // namespace double_conversion
 
 // ICU PATCH: Close ICU namespace
 U_NAMESPACE_END
 
-#endif  // DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
+#endif // DOUBLE_CONVERSION_DOUBLE_TO_STRING_H_
 #endif // ICU PATCH: close #if !UCONFIG_NO_FORMATTING

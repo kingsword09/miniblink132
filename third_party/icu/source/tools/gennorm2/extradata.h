@@ -1,4 +1,4 @@
-// © 2017 and later: Unicode, Inc. and others.
+﻿// © 2017 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 // extradata.h
@@ -28,9 +28,9 @@ U_NAMESPACE_BEGIN
 
 class ExtraData : public Norms::Enumerator {
 public:
-    ExtraData(Norms &n, UBool fast);
+    ExtraData(Norms& n, UBool fast);
 
-    void rangeHandler(UChar32 start, UChar32 end, Norm &norm) override;
+    void rangeHandler(UChar32 start, UChar32 end, Norm& norm) U_OVERRIDE;
 
     UnicodeString maybeYesCompositions;
     UnicodeString yesYesCompositions;
@@ -48,16 +48,15 @@ private:
      * That is the same as the length of the optional data
      * for the raw mapping and the ccc/lccc word.
      */
-    int32_t writeMapping(UChar32 c, const Norm &norm, UnicodeString &dataString);
-    int32_t writeNoNoMapping(UChar32 c, const Norm &norm,
-                             UnicodeString &dataString, Hashtable &previousMappings);
-    UBool setNoNoDelta(UChar32 c, Norm &norm) const;
+    int32_t writeMapping(UChar32 c, const Norm& norm, UnicodeString& dataString);
+    int32_t writeNoNoMapping(UChar32 c, const Norm& norm, UnicodeString& dataString, Hashtable& previousMappings);
+    UBool setNoNoDelta(UChar32 c, Norm& norm) const;
     /** Requires norm.compositions!=nullptr. */
-    void writeCompositions(UChar32 c, const Norm &norm, UnicodeString &dataString);
-    void writeExtraData(UChar32 c, Norm &norm);
+    void writeCompositions(UChar32 c, const Norm& norm, UnicodeString& dataString);
+    void writeExtraData(UChar32 c, Norm& norm);
 
     UBool optimizeFast;
-    Hashtable previousNoNoMappingsCompYes;  // If constructed in runtime code, pass in UErrorCode.
+    Hashtable previousNoNoMappingsCompYes; // If constructed in runtime code, pass in UErrorCode.
     Hashtable previousNoNoMappingsCompBoundaryBefore;
     Hashtable previousNoNoMappingsCompNoMaybeCC;
     Hashtable previousNoNoMappingsEmpty;
@@ -67,4 +66,4 @@ U_NAMESPACE_END
 
 #endif // #if !UCONFIG_NO_NORMALIZATION
 
-#endif  // __EXTRADATA_H__
+#endif // __EXTRADATA_H__

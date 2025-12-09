@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -25,28 +25,25 @@
 
 U_NAMESPACE_BEGIN
 
-class  UnicodeSet;
+class UnicodeSet;
 
-
-class SimpleDateFormatStaticSets : public UMemory
-{
+class SimpleDateFormatStaticSets : public UMemory {
 public:
-    SimpleDateFormatStaticSets(UErrorCode &status);
+    SimpleDateFormatStaticSets(UErrorCode& status);
     ~SimpleDateFormatStaticSets();
-    
-    static void    initSets(UErrorCode *status);
-    static UBool   cleanup();
-    
-    static UnicodeSet *getIgnorables(UDateFormatField fieldIndex);
-    
-private:
-    UnicodeSet *fDateIgnorables;
-    UnicodeSet *fTimeIgnorables;
-    UnicodeSet *fOtherIgnorables;
-};
 
+    static void initSets(UErrorCode* status);
+    static UBool cleanup();
+
+    static UnicodeSet* getIgnorables(UDateFormatField fieldIndex);
+
+private:
+    UnicodeSet* fDateIgnorables;
+    UnicodeSet* fTimeIgnorables;
+    UnicodeSet* fOtherIgnorables;
+};
 
 U_NAMESPACE_END
 
-#endif   // #if !UCONFIG_NO_FORMATTING
-#endif   // SMPDTFST_H
+#endif // #if !UCONFIG_NO_FORMATTING
+#endif // SMPDTFST_H

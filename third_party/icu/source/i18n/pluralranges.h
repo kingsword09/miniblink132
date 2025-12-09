@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #ifndef __PLURALRANGES_H__
@@ -24,7 +24,7 @@ class UFormattedNumberRangeData;
 }
 
 class StandardPluralRanges : public UMemory {
-  public:
+public:
     /** Create a new StandardPluralRanges for the given locale */
     static StandardPluralRanges forLocale(const Locale& locale, UErrorCode& status);
 
@@ -38,15 +38,12 @@ class StandardPluralRanges : public UMemory {
     StandardPlural::Form resolve(StandardPlural::Form first, StandardPlural::Form second) const;
 
     /** Used for data loading. */
-    void addPluralRange(
-        StandardPlural::Form first,
-        StandardPlural::Form second,
-        StandardPlural::Form result);
+    void addPluralRange(StandardPlural::Form first, StandardPlural::Form second, StandardPlural::Form result);
 
     /** Used for data loading. */
     void setCapacity(int32_t length, UErrorCode& status);
 
-  private:
+private:
     struct StandardPluralRangeTriple {
         StandardPlural::Form first;
         StandardPlural::Form second;

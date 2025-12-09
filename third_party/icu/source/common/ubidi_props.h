@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -31,40 +31,29 @@ U_CDECL_BEGIN
 
 /* library API -------------------------------------------------------------- */
 
-U_CFUNC void
-ubidi_addPropertyStarts(const USetAdder *sa, UErrorCode *pErrorCode);
+U_CFUNC void ubidi_addPropertyStarts(const USetAdder* sa, UErrorCode* pErrorCode);
 
 /* property access functions */
 
-U_CFUNC int32_t
-ubidi_getMaxValue(UProperty which);
+U_CFUNC int32_t ubidi_getMaxValue(UProperty which);
 
-U_CAPI UCharDirection
-ubidi_getClass(UChar32 c);
+U_CAPI UCharDirection ubidi_getClass(UChar32 c);
 
-U_CFUNC UBool
-ubidi_isMirrored(UChar32 c);
+U_CFUNC UBool ubidi_isMirrored(UChar32 c);
 
-U_CFUNC UChar32
-ubidi_getMirror(UChar32 c);
+U_CFUNC UChar32 ubidi_getMirror(UChar32 c);
 
-U_CFUNC UBool
-ubidi_isBidiControl(UChar32 c);
+U_CFUNC UBool ubidi_isBidiControl(UChar32 c);
 
-U_CFUNC UBool
-ubidi_isJoinControl(UChar32 c);
+U_CFUNC UBool ubidi_isJoinControl(UChar32 c);
 
-U_CFUNC UJoiningType
-ubidi_getJoiningType(UChar32 c);
+U_CFUNC UJoiningType ubidi_getJoiningType(UChar32 c);
 
-U_CFUNC UJoiningGroup
-ubidi_getJoiningGroup(UChar32 c);
+U_CFUNC UJoiningGroup ubidi_getJoiningGroup(UChar32 c);
 
-U_CFUNC UBidiPairedBracketType
-ubidi_getPairedBracketType(UChar32 c);
+U_CFUNC UBidiPairedBracketType ubidi_getPairedBracketType(UChar32 c);
 
-U_CFUNC UChar32
-ubidi_getPairedBracket(UChar32 c);
+U_CFUNC UChar32 ubidi_getPairedBracket(UChar32 c);
 
 /* file definitions --------------------------------------------------------- */
 
@@ -86,62 +75,58 @@ enum {
 
     UBIDI_IX_JG_START,
     UBIDI_IX_JG_LIMIT,
-    UBIDI_IX_JG_START2,  /* new in format version 2.2, ICU 54 */
+    UBIDI_IX_JG_START2, /* new in format version 2.2, ICU 54 */
     UBIDI_IX_JG_LIMIT2,
 
-    UBIDI_MAX_VALUES_INDEX=15,
-    UBIDI_IX_TOP=16
+    UBIDI_MAX_VALUES_INDEX = 15,
+    UBIDI_IX_TOP = 16
 };
 
 /* definitions for 16-bit bidi/shaping properties word ---------------------- */
 
 enum {
- /* UBIDI_CLASS_SHIFT=0, */     /* bidi class: 5 bits (4..0) */
-    UBIDI_JT_SHIFT=5,           /* joining type: 3 bits (7..5) */
+    /* UBIDI_CLASS_SHIFT=0, */ /* bidi class: 5 bits (4..0) */
+    UBIDI_JT_SHIFT = 5, /* joining type: 3 bits (7..5) */
 
-    UBIDI_BPT_SHIFT=8,          /* Bidi_Paired_Bracket_Type(bpt): 2 bits (9..8) */
+    UBIDI_BPT_SHIFT = 8, /* Bidi_Paired_Bracket_Type(bpt): 2 bits (9..8) */
 
-    UBIDI_JOIN_CONTROL_SHIFT=10,
-    UBIDI_BIDI_CONTROL_SHIFT=11,
+    UBIDI_JOIN_CONTROL_SHIFT = 10,
+    UBIDI_BIDI_CONTROL_SHIFT = 11,
 
-    UBIDI_IS_MIRRORED_SHIFT=12,         /* 'is mirrored' */
-    UBIDI_MIRROR_DELTA_SHIFT=13,        /* bidi mirroring delta: 3 bits (15..13) */
+    UBIDI_IS_MIRRORED_SHIFT = 12, /* 'is mirrored' */
+    UBIDI_MIRROR_DELTA_SHIFT = 13, /* bidi mirroring delta: 3 bits (15..13) */
 
-    UBIDI_MAX_JG_SHIFT=16               /* max JG value in indexes[UBIDI_MAX_VALUES_INDEX] bits 23..16 */
+    UBIDI_MAX_JG_SHIFT = 16 /* max JG value in indexes[UBIDI_MAX_VALUES_INDEX] bits 23..16 */
 };
 
-#define UBIDI_CLASS_MASK        0x0000001f
-#define UBIDI_JT_MASK           0x000000e0
-#define UBIDI_BPT_MASK          0x00000300
+#define UBIDI_CLASS_MASK 0x0000001f
+#define UBIDI_JT_MASK 0x000000e0
+#define UBIDI_BPT_MASK 0x00000300
 
-#define UBIDI_MAX_JG_MASK       0x00ff0000
+#define UBIDI_MAX_JG_MASK 0x00ff0000
 
 #define UBIDI_GET_CLASS(props) ((props)&UBIDI_CLASS_MASK)
-#define UBIDI_GET_FLAG(props, shift) (((props)>>(shift))&1)
+#define UBIDI_GET_FLAG(props, shift) (((props) >> (shift)) & 1)
 
 #if U_SIGNED_RIGHT_SHIFT_IS_ARITHMETIC
-#   define UBIDI_GET_MIRROR_DELTA(props) ((int16_t)(props)>>UBIDI_MIRROR_DELTA_SHIFT)
+#define UBIDI_GET_MIRROR_DELTA(props) ((int16_t)(props) >> UBIDI_MIRROR_DELTA_SHIFT)
 #else
-#   define UBIDI_GET_MIRROR_DELTA(props) (int16_t)(((props)&0x8000) ? (((props)>>UBIDI_MIRROR_DELTA_SHIFT)|0xe000) : ((props)>>UBIDI_MIRROR_DELTA_SHIFT))
+#define UBIDI_GET_MIRROR_DELTA(props) (int16_t)(((props)&0x8000) ? (((props) >> UBIDI_MIRROR_DELTA_SHIFT) | 0xe000) : ((props) >> UBIDI_MIRROR_DELTA_SHIFT))
 #endif
 
-enum {
-    UBIDI_ESC_MIRROR_DELTA=-4,
-    UBIDI_MIN_MIRROR_DELTA=-3,
-    UBIDI_MAX_MIRROR_DELTA=3
-};
+enum { UBIDI_ESC_MIRROR_DELTA = -4, UBIDI_MIN_MIRROR_DELTA = -3, UBIDI_MAX_MIRROR_DELTA = 3 };
 
 /* definitions for 32-bit mirror table entry -------------------------------- */
 
 enum {
     /* the source Unicode code point takes 21 bits (20..0) */
-    UBIDI_MIRROR_INDEX_SHIFT=21,
-    UBIDI_MAX_MIRROR_INDEX=0x7ff
+    UBIDI_MIRROR_INDEX_SHIFT = 21,
+    UBIDI_MAX_MIRROR_INDEX = 0x7ff
 };
 
 #define UBIDI_GET_MIRROR_CODE_POINT(m) (UChar32)((m)&0x1fffff)
 
-#define UBIDI_GET_MIRROR_INDEX(m) ((m)>>UBIDI_MIRROR_INDEX_SHIFT)
+#define UBIDI_GET_MIRROR_INDEX(m) ((m) >> UBIDI_MIRROR_INDEX_SHIFT)
 
 U_CDECL_END
 

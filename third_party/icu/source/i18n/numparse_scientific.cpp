@@ -1,4 +1,4 @@
-// © 2018 and later: Unicode, Inc. and others.
+﻿// © 2018 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 
 #include "unicode/utypes.h"
@@ -18,24 +18,25 @@ using namespace icu;
 using namespace icu::numparse;
 using namespace icu::numparse::impl;
 
-
 namespace {
 
-inline const UnicodeSet& minusSignSet() {
+inline const UnicodeSet& minusSignSet()
+{
     return *unisets::get(unisets::MINUS_SIGN);
 }
 
-inline const UnicodeSet& plusSignSet() {
+inline const UnicodeSet& plusSignSet()
+{
     return *unisets::get(unisets::PLUS_SIGN);
 }
 
 } // namespace
 
-
 ScientificMatcher::ScientificMatcher(const DecimalFormatSymbols& dfs, const Grouper& grouper)
-        : fExponentSeparatorString(dfs.getConstSymbol(DecimalFormatSymbols::kExponentialSymbol)),
-          fExponentMatcher(dfs, grouper, PARSE_FLAG_INTEGER_ONLY | PARSE_FLAG_GROUPING_DISABLED),
-          fIgnorablesMatcher(PARSE_FLAG_STRICT_IGNORABLES) {
+    : fExponentSeparatorString(dfs.getConstSymbol(DecimalFormatSymbols::kExponentialSymbol))
+    , fExponentMatcher(dfs, grouper, PARSE_FLAG_INTEGER_ONLY | PARSE_FLAG_GROUPING_DISABLED)
+    , fIgnorablesMatcher(PARSE_FLAG_STRICT_IGNORABLES)
+{
 
     const UnicodeString& minusSign = dfs.getConstSymbol(DecimalFormatSymbols::kMinusSignSymbol);
     if (minusSignSet().contains(minusSign)) {
@@ -52,7 +53,8 @@ ScientificMatcher::ScientificMatcher(const DecimalFormatSymbols& dfs, const Grou
     }
 }
 
-bool ScientificMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const {
+bool ScientificMatcher::match(StringSegment& segment, ParsedNumber& result, UErrorCode& status) const
+{
     // Only accept scientific notation after the mantissa.
     if (!result.seenNumber()) {
         return false;
@@ -151,13 +153,14 @@ bool ScientificMatcher::match(StringSegment& segment, ParsedNumber& result, UErr
     return false;
 }
 
-bool ScientificMatcher::smokeTest(const StringSegment& segment) const {
+bool ScientificMatcher::smokeTest(const StringSegment& segment) const
+{
     return segment.startsWith(fExponentSeparatorString);
 }
 
-UnicodeString ScientificMatcher::toString() const {
+UnicodeString ScientificMatcher::toString() const
+{
     return u"<Scientific>";
 }
-
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

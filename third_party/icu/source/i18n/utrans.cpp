@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
  *******************************************************************************
@@ -28,7 +28,9 @@
 #include "rbt.h"
 
 // Following macro is to be followed by <return value>';' or just ';'
-#define utrans_ENTRY(s) if ((s)==nullptr || U_FAILURE(*(s))) return
+#define utrans_ENTRY(s)                                                                                                                                        \
+    if ((s) == NULL || U_FAILURE(*(s)))                                                                                                                        \
+    return
 
 /********************************************************************
  * Replaceable-UReplaceableCallbacks glue
@@ -40,27 +42,21 @@
 U_NAMESPACE_BEGIN
 class ReplaceableGlue : public Replaceable {
 
-    UReplaceable *rep;
-    const UReplaceableCallbacks *func;
+    UReplaceable* rep;
+    const UReplaceableCallbacks* func;
 
 public:
-
-    ReplaceableGlue(UReplaceable *replaceable,
-                    const UReplaceableCallbacks *funcCallback);
+    ReplaceableGlue(UReplaceable* replaceable, const UReplaceableCallbacks* funcCallback);
 
     virtual ~ReplaceableGlue();
 
-    virtual void handleReplaceBetween(int32_t start,
-                                      int32_t limit,
-                                      const UnicodeString& text) override;
+    virtual void handleReplaceBetween(int32_t start, int32_t limit, const UnicodeString& text) override;
 
-    virtual void extractBetween(int32_t start,
-                                int32_t limit,
-                                UnicodeString& target) const override;
+    virtual void extractBetween(int32_t start, int32_t limit, UnicodeString& target) const override;
 
     virtual void copy(int32_t start, int32_t limit, int32_t dest) override;
 
-    // virtual Replaceable *clone() const { return nullptr; } same as default
+    // virtual Replaceable *clone() const { return NULL; } same as default
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
@@ -77,52 +73,54 @@ public:
     static UClassID U_EXPORT2 getStaticClassID();
 
 protected:
-
     virtual int32_t getLength() const override;
 
-    virtual char16_t getCharAt(int32_t offset) const override;
+    virtual UChar getCharAt(int32_t offset) const override;
 
     virtual UChar32 getChar32At(int32_t offset) const override;
 };
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ReplaceableGlue)
 
-ReplaceableGlue::ReplaceableGlue(UReplaceable *replaceable,
-                                 const UReplaceableCallbacks *funcCallback)
-  : Replaceable()
+ReplaceableGlue::ReplaceableGlue(UReplaceable* replaceable, const UReplaceableCallbacks* funcCallback)
+    : Replaceable()
 {
     this->rep = replaceable;
     this->func = funcCallback;
 }
 
-ReplaceableGlue::~ReplaceableGlue() {}
+ReplaceableGlue::~ReplaceableGlue()
+{
+}
 
-int32_t ReplaceableGlue::getLength() const {
+int32_t ReplaceableGlue::getLength() const
+{
     return (*func->length)(rep);
 }
 
-char16_t ReplaceableGlue::getCharAt(int32_t offset) const {
+UChar ReplaceableGlue::getCharAt(int32_t offset) const
+{
     return (*func->charAt)(rep, offset);
 }
 
-UChar32 ReplaceableGlue::getChar32At(int32_t offset) const {
+UChar32 ReplaceableGlue::getChar32At(int32_t offset) const
+{
     return (*func->char32At)(rep, offset);
 }
 
-void ReplaceableGlue::handleReplaceBetween(int32_t start,
-                          int32_t limit,
-                          const UnicodeString& text) {
+void ReplaceableGlue::handleReplaceBetween(int32_t start, int32_t limit, const UnicodeString& text)
+{
     (*func->replace)(rep, start, limit, text.getBuffer(), text.length());
 }
 
-void ReplaceableGlue::extractBetween(int32_t start,
-                                     int32_t limit,
-                                     UnicodeString& target) const {
-    (*func->extract)(rep, start, limit, target.getBuffer(limit-start));
-    target.releaseBuffer(limit-start);
+void ReplaceableGlue::extractBetween(int32_t start, int32_t limit, UnicodeString& target) const
+{
+    (*func->extract)(rep, start, limit, target.getBuffer(limit - start));
+    target.releaseBuffer(limit - start);
 }
 
-void ReplaceableGlue::copy(int32_t start, int32_t limit, int32_t dest) {
+void ReplaceableGlue::copy(int32_t start, int32_t limit, int32_t dest)
+{
     (*func->copy)(rep, start, limit, dest);
 }
 U_NAMESPACE_END
@@ -131,174 +129,154 @@ U_NAMESPACE_END
  ********************************************************************/
 U_NAMESPACE_USE
 
-U_CAPI UTransliterator* U_EXPORT2
-utrans_openU(const char16_t *id,
-             int32_t idLength,
-             UTransDirection dir,
-             const char16_t *rules,
-             int32_t rulesLength,
-             UParseError *parseError,
-             UErrorCode *status) {
-    if(status==nullptr || U_FAILURE(*status)) {
-        return nullptr;
+U_CAPI UTransliterator* U_EXPORT2 utrans_openU(
+    const UChar* id, int32_t idLength, UTransDirection dir, const UChar* rules, int32_t rulesLength, UParseError* parseError, UErrorCode* status)
+{
+    if (status == NULL || U_FAILURE(*status)) {
+        return NULL;
     }
-    if (id == nullptr) {
+    if (id == NULL) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return nullptr;
+        return NULL;
     }
     UParseError temp;
-    
-    if(parseError == nullptr){
+
+    if (parseError == NULL) {
         parseError = &temp;
     }
-    
-    UnicodeString ID(idLength<0, id, idLength); // r-o alias
 
-    if(rules==nullptr){
+    UnicodeString ID(idLength < 0, id, idLength); // r-o alias
 
-        Transliterator *trans = nullptr;
+    if (rules == NULL) {
+
+        Transliterator* trans = NULL;
 
         trans = Transliterator::createInstance(ID, dir, *parseError, *status);
-        
-        if(U_FAILURE(*status)){
-            return nullptr;
-        }
-        return (UTransliterator*) trans;
-    }else{
-        UnicodeString ruleStr(rulesLength < 0,
-                              rules,
-                              rulesLength); // r-o alias
 
-        Transliterator *trans = nullptr;
-        trans = Transliterator::createFromRules(ID, ruleStr, dir, *parseError, *status); 
-        if(U_FAILURE(*status)) { 
-            return nullptr;
+        if (U_FAILURE(*status)) {
+            return NULL;
+        }
+        return (UTransliterator*)trans;
+    } else {
+        UnicodeString ruleStr(rulesLength < 0, rules,
+            rulesLength); // r-o alias
+
+        Transliterator* trans = NULL;
+        trans = Transliterator::createFromRules(ID, ruleStr, dir, *parseError, *status);
+        if (U_FAILURE(*status)) {
+            return NULL;
         }
 
-        return (UTransliterator*) trans;
+        return (UTransliterator*)trans;
     }
 }
 
-U_CAPI UTransliterator* U_EXPORT2
-utrans_open(const char* id,
-            UTransDirection dir,
-            const char16_t* rules,         /* may be Null */
-            int32_t rulesLength,        /* -1 if null-terminated */ 
-            UParseError* parseError,    /* may be Null */
-            UErrorCode* status) {
+U_CAPI UTransliterator* U_EXPORT2 utrans_open(const char* id, UTransDirection dir, const UChar* rules, /* may be Null */
+    int32_t rulesLength, /* -1 if null-terminated */
+    UParseError* parseError, /* may be Null */
+    UErrorCode* status)
+{
     UnicodeString ID(id, -1, US_INV); // use invariant converter
-    return utrans_openU(ID.getBuffer(), ID.length(), dir,
-                        rules, rulesLength,
-                        parseError, status);
+    return utrans_openU(ID.getBuffer(), ID.length(), dir, rules, rulesLength, parseError, status);
 }
 
-U_CAPI UTransliterator* U_EXPORT2
-utrans_openInverse(const UTransliterator* trans,
-                   UErrorCode* status) {
+U_CAPI UTransliterator* U_EXPORT2 utrans_openInverse(const UTransliterator* trans, UErrorCode* status)
+{
 
-    utrans_ENTRY(status) nullptr;
+    utrans_ENTRY(status) NULL;
 
-    UTransliterator* result =
-        (UTransliterator*) ((Transliterator*) trans)->createInverse(*status);
+    UTransliterator* result = (UTransliterator*)((Transliterator*)trans)->createInverse(*status);
 
     return result;
 }
 
-U_CAPI UTransliterator* U_EXPORT2
-utrans_clone(const UTransliterator* trans,
-             UErrorCode* status) {
+U_CAPI UTransliterator* U_EXPORT2 utrans_clone(const UTransliterator* trans, UErrorCode* status)
+{
 
-    utrans_ENTRY(status) nullptr;
+    utrans_ENTRY(status) NULL;
 
-    if (trans == nullptr) {
+    if (trans == NULL) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return nullptr;
+        return NULL;
     }
 
-    Transliterator *t = ((Transliterator*) trans)->clone();
-    if (t == nullptr) {
+    Transliterator* t = ((Transliterator*)trans)->clone();
+    if (t == NULL) {
         *status = U_MEMORY_ALLOCATION_ERROR;
     }
-    return (UTransliterator*) t;
+    return (UTransliterator*)t;
 }
 
-U_CAPI void U_EXPORT2
-utrans_close(UTransliterator* trans) {
-    delete (Transliterator*) trans;
+U_CAPI void U_EXPORT2 utrans_close(UTransliterator* trans)
+{
+    delete (Transliterator*)trans;
 }
 
-U_CAPI const char16_t * U_EXPORT2
-utrans_getUnicodeID(const UTransliterator *trans,
-                    int32_t *resultLength) {
+U_CAPI const UChar* U_EXPORT2 utrans_getUnicodeID(const UTransliterator* trans, int32_t* resultLength)
+{
     // Transliterator keeps its ID NUL-terminated
-    const UnicodeString &ID=((Transliterator*) trans)->getID();
-    if(resultLength!=nullptr) {
-        *resultLength=ID.length();
+    const UnicodeString& ID = ((Transliterator*)trans)->getID();
+    if (resultLength != NULL) {
+        *resultLength = ID.length();
     }
     return ID.getBuffer();
 }
 
-U_CAPI int32_t U_EXPORT2
-utrans_getID(const UTransliterator* trans,
-             char* buf,
-             int32_t bufCapacity) {
-    return ((Transliterator*) trans)->getID().extract(0, 0x7fffffff, buf, bufCapacity, US_INV);
+U_CAPI int32_t U_EXPORT2 utrans_getID(const UTransliterator* trans, char* buf, int32_t bufCapacity)
+{
+    return ((Transliterator*)trans)->getID().extract(0, 0x7fffffff, buf, bufCapacity, US_INV);
 }
 
-U_CAPI void U_EXPORT2
-utrans_register(UTransliterator* adoptedTrans,
-                UErrorCode* status) {
+U_CAPI void U_EXPORT2 utrans_register(UTransliterator* adoptedTrans, UErrorCode* status)
+{
     utrans_ENTRY(status);
     // status currently ignored; may remove later
-    Transliterator::registerInstance((Transliterator*) adoptedTrans);
+    Transliterator::registerInstance((Transliterator*)adoptedTrans);
 }
 
-U_CAPI void U_EXPORT2
-utrans_unregisterID(const char16_t* id, int32_t idLength) {
-    UnicodeString ID(idLength<0, id, idLength); // r-o alias
+U_CAPI void U_EXPORT2 utrans_unregisterID(const UChar* id, int32_t idLength)
+{
+    UnicodeString ID(idLength < 0, id, idLength); // r-o alias
     Transliterator::unregister(ID);
 }
 
-U_CAPI void U_EXPORT2
-utrans_unregister(const char* id) {
+U_CAPI void U_EXPORT2 utrans_unregister(const char* id)
+{
     UnicodeString ID(id, -1, US_INV); // use invariant converter
     Transliterator::unregister(ID);
 }
 
-U_CAPI void U_EXPORT2
-utrans_setFilter(UTransliterator* trans,
-                 const char16_t* filterPattern,
-                 int32_t filterPatternLen,
-                 UErrorCode* status) {
+U_CAPI void U_EXPORT2 utrans_setFilter(UTransliterator* trans, const UChar* filterPattern, int32_t filterPatternLen, UErrorCode* status)
+{
 
     utrans_ENTRY(status);
-    UnicodeFilter* filter = nullptr;
-    if (filterPattern != nullptr && *filterPattern != 0) {
+    UnicodeFilter* filter = NULL;
+    if (filterPattern != NULL && *filterPattern != 0) {
         // Create read only alias of filterPattern:
         UnicodeString pat(filterPatternLen < 0, filterPattern, filterPatternLen);
         filter = new UnicodeSet(pat, *status);
-        /* test for nullptr */
-        if (filter == nullptr) {
+        /* test for NULL */
+        if (filter == NULL) {
             *status = U_MEMORY_ALLOCATION_ERROR;
             return;
         }
         if (U_FAILURE(*status)) {
             delete filter;
-            filter = nullptr;
+            filter = NULL;
         }
     }
-    ((Transliterator*) trans)->adoptFilter(filter);
+    ((Transliterator*)trans)->adoptFilter(filter);
 }
 
-U_CAPI int32_t U_EXPORT2
-utrans_countAvailableIDs() {
+U_CAPI int32_t U_EXPORT2 utrans_countAvailableIDs(void)
+{
     return Transliterator::countAvailableIDs();
 }
 
-U_CAPI int32_t U_EXPORT2
-utrans_getAvailableID(int32_t index,
-                      char* buf, // may be nullptr
-                      int32_t bufCapacity) {
+U_CAPI int32_t U_EXPORT2 utrans_getAvailableID(int32_t index,
+    char* buf, // may be NULL
+    int32_t bufCapacity)
+{
     return Transliterator::getAvailableID(index).extract(0, 0x7fffffff, buf, bufCapacity, US_INV);
 }
 
@@ -310,98 +288,84 @@ typedef struct UTransEnumeration {
 } UTransEnumeration;
 
 U_CDECL_BEGIN
-static int32_t U_CALLCONV
-utrans_enum_count(UEnumeration *uenum, UErrorCode *pErrorCode) {
-    if(pErrorCode==nullptr || U_FAILURE(*pErrorCode)) {
+static int32_t U_CALLCONV utrans_enum_count(UEnumeration* uenum, UErrorCode* pErrorCode)
+{
+    if (pErrorCode == NULL || U_FAILURE(*pErrorCode)) {
         return 0;
     }
-    return ((UTransEnumeration *)uenum)->count;
+    return ((UTransEnumeration*)uenum)->count;
 }
 
-static const char16_t* U_CALLCONV
-utrans_enum_unext(UEnumeration *uenum,
-                  int32_t* resultLength,
-                  UErrorCode *pErrorCode) {
-    if(pErrorCode==nullptr || U_FAILURE(*pErrorCode)) {
+static const UChar* U_CALLCONV utrans_enum_unext(UEnumeration* uenum, int32_t* resultLength, UErrorCode* pErrorCode)
+{
+    if (pErrorCode == NULL || U_FAILURE(*pErrorCode)) {
         return 0;
     }
 
-    UTransEnumeration *ute=(UTransEnumeration *)uenum;
-    int32_t index=ute->index;
-    if(index<ute->count) {
-        const UnicodeString &ID=Transliterator::getAvailableID(index);
-        ute->index=index+1;
-        if(resultLength!=nullptr) {
-            *resultLength=ID.length();
+    UTransEnumeration* ute = (UTransEnumeration*)uenum;
+    int32_t index = ute->index;
+    if (index < ute->count) {
+        const UnicodeString& ID = Transliterator::getAvailableID(index);
+        ute->index = index + 1;
+        if (resultLength != NULL) {
+            *resultLength = ID.length();
         }
         // Transliterator keeps its ID NUL-terminated
         return ID.getBuffer();
     }
 
-    if(resultLength!=nullptr) {
-        *resultLength=0;
+    if (resultLength != NULL) {
+        *resultLength = 0;
     }
-    return nullptr;
+    return NULL;
 }
 
-static void U_CALLCONV
-utrans_enum_reset(UEnumeration *uenum, UErrorCode *pErrorCode) {
-    if(pErrorCode==nullptr || U_FAILURE(*pErrorCode)) {
+static void U_CALLCONV utrans_enum_reset(UEnumeration* uenum, UErrorCode* pErrorCode)
+{
+    if (pErrorCode == NULL || U_FAILURE(*pErrorCode)) {
         return;
     }
 
-    UTransEnumeration *ute=(UTransEnumeration *)uenum;
-    ute->index=0;
-    ute->count=Transliterator::countAvailableIDs();
+    UTransEnumeration* ute = (UTransEnumeration*)uenum;
+    ute->index = 0;
+    ute->count = Transliterator::countAvailableIDs();
 }
 
-static void U_CALLCONV
-utrans_enum_close(UEnumeration *uenum) {
+static void U_CALLCONV utrans_enum_close(UEnumeration* uenum)
+{
     uprv_free(uenum);
 }
 U_CDECL_END
 
-static const UEnumeration utransEnumeration={
-    nullptr,
-    nullptr,
-    utrans_enum_close,
-    utrans_enum_count,
-    utrans_enum_unext,
-    uenum_nextDefault,
-    utrans_enum_reset
-};
+static const UEnumeration utransEnumeration = { NULL, NULL, utrans_enum_close, utrans_enum_count, utrans_enum_unext, uenum_nextDefault, utrans_enum_reset };
 
-U_CAPI UEnumeration * U_EXPORT2
-utrans_openIDs(UErrorCode *pErrorCode) {
-    UTransEnumeration *ute;
+U_CAPI UEnumeration* U_EXPORT2 utrans_openIDs(UErrorCode* pErrorCode)
+{
+    UTransEnumeration* ute;
 
-    if(pErrorCode==nullptr || U_FAILURE(*pErrorCode)) {
-        return nullptr;
+    if (pErrorCode == NULL || U_FAILURE(*pErrorCode)) {
+        return NULL;
     }
 
-    ute=(UTransEnumeration *)uprv_malloc(sizeof(UTransEnumeration));
-    if(ute==nullptr) {
-        *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
-        return nullptr;
+    ute = (UTransEnumeration*)uprv_malloc(sizeof(UTransEnumeration));
+    if (ute == NULL) {
+        *pErrorCode = U_MEMORY_ALLOCATION_ERROR;
+        return NULL;
     }
 
-    ute->uenum=utransEnumeration;
-    ute->index=0;
-    ute->count=Transliterator::countAvailableIDs();
-    return (UEnumeration *)ute;
+    ute->uenum = utransEnumeration;
+    ute->index = 0;
+    ute->count = Transliterator::countAvailableIDs();
+    return (UEnumeration*)ute;
 }
 
 /********************************************************************
  * Transliteration API
  ********************************************************************/
 
-U_CAPI void U_EXPORT2
-utrans_trans(const UTransliterator* trans,
-             UReplaceable* rep,
-             const UReplaceableCallbacks* repFunc,
-             int32_t start,
-             int32_t* limit,
-             UErrorCode* status) {
+U_CAPI void U_EXPORT2 utrans_trans(
+    const UTransliterator* trans, UReplaceable* rep, const UReplaceableCallbacks* repFunc, int32_t start, int32_t* limit, UErrorCode* status)
+{
 
     utrans_ENTRY(status);
 
@@ -412,15 +376,12 @@ utrans_trans(const UTransliterator* trans,
 
     ReplaceableGlue r(rep, repFunc);
 
-    *limit = ((Transliterator*) trans)->transliterate(r, start, *limit);
+    *limit = ((Transliterator*)trans)->transliterate(r, start, *limit);
 }
 
-U_CAPI void U_EXPORT2
-utrans_transIncremental(const UTransliterator* trans,
-                        UReplaceable* rep,
-                        const UReplaceableCallbacks* repFunc,
-                        UTransPosition* pos,
-                        UErrorCode* status) {
+U_CAPI void U_EXPORT2 utrans_transIncremental(
+    const UTransliterator* trans, UReplaceable* rep, const UReplaceableCallbacks* repFunc, UTransPosition* pos, UErrorCode* status)
+{
 
     utrans_ENTRY(status);
 
@@ -431,17 +392,12 @@ utrans_transIncremental(const UTransliterator* trans,
 
     ReplaceableGlue r(rep, repFunc);
 
-    ((Transliterator*) trans)->transliterate(r, *pos, *status);
+    ((Transliterator*)trans)->transliterate(r, *pos, *status);
 }
 
-U_CAPI void U_EXPORT2
-utrans_transUChars(const UTransliterator* trans,
-                   char16_t* text,
-                   int32_t* textLength,
-                   int32_t textCapacity,
-                   int32_t start,
-                   int32_t* limit,
-                   UErrorCode* status) {
+U_CAPI void U_EXPORT2 utrans_transUChars(
+    const UTransliterator* trans, UChar* text, int32_t* textLength, int32_t textCapacity, int32_t start, int32_t* limit, UErrorCode* status)
+{
 
     utrans_ENTRY(status);
 
@@ -449,29 +405,24 @@ utrans_transUChars(const UTransliterator* trans,
         *status = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
- 
-    int32_t textLen = (textLength == nullptr || *textLength < 0)
-        ? u_strlen(text) : *textLength;
+
+    int32_t textLen = (textLength == NULL || *textLength < 0) ? u_strlen(text) : *textLength;
     // writeable alias: for this ct, len CANNOT be -1 (why?)
     UnicodeString str(text, textLen, textCapacity);
 
-    *limit = ((Transliterator*) trans)->transliterate(str, start, *limit);
+    *limit = ((Transliterator*)trans)->transliterate(str, start, *limit);
 
     // Copy the string buffer back to text (only if necessary)
-    // and fill in *neededCapacity (if neededCapacity != nullptr).
+    // and fill in *neededCapacity (if neededCapacity != NULL).
     textLen = str.extract(text, textCapacity, *status);
-    if(textLength != nullptr) {
+    if (textLength != NULL) {
         *textLength = textLen;
     }
 }
 
-U_CAPI void U_EXPORT2
-utrans_transIncrementalUChars(const UTransliterator* trans,
-                              char16_t* text,
-                              int32_t* textLength,
-                              int32_t textCapacity,
-                              UTransPosition* pos,
-                              UErrorCode* status) {
+U_CAPI void U_EXPORT2 utrans_transIncrementalUChars(
+    const UTransliterator* trans, UChar* text, int32_t* textLength, int32_t textCapacity, UTransPosition* pos, UErrorCode* status)
+{
 
     utrans_ENTRY(status);
 
@@ -480,52 +431,45 @@ utrans_transIncrementalUChars(const UTransliterator* trans,
         return;
     }
 
-    int32_t textLen = (textLength == nullptr || *textLength < 0)
-        ? u_strlen(text) : *textLength;
+    int32_t textLen = (textLength == NULL || *textLength < 0) ? u_strlen(text) : *textLength;
     // writeable alias: for this ct, len CANNOT be -1 (why?)
     UnicodeString str(text, textLen, textCapacity);
 
-    ((Transliterator*) trans)->transliterate(str, *pos, *status);
+    ((Transliterator*)trans)->transliterate(str, *pos, *status);
 
     // Copy the string buffer back to text (only if necessary)
-    // and fill in *neededCapacity (if neededCapacity != nullptr).
+    // and fill in *neededCapacity (if neededCapacity != NULL).
     textLen = str.extract(text, textCapacity, *status);
-    if(textLength != nullptr) {
+    if (textLength != NULL) {
         *textLength = textLen;
     }
 }
 
-U_CAPI int32_t U_EXPORT2
-utrans_toRules(     const UTransliterator* trans,
-                    UBool escapeUnprintable,
-                    char16_t* result, int32_t resultLength,
-                    UErrorCode* status) {
+U_CAPI int32_t U_EXPORT2 utrans_toRules(const UTransliterator* trans, UBool escapeUnprintable, UChar* result, int32_t resultLength, UErrorCode* status)
+{
     utrans_ENTRY(status) 0;
-    if ( (result==nullptr)? resultLength!=0: resultLength<0 ) {
+    if ((result == NULL) ? resultLength != 0 : resultLength < 0) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
     }
 
     UnicodeString res;
     res.setTo(result, 0, resultLength);
-    ((Transliterator*) trans)->toRules(res, escapeUnprintable);
+    ((Transliterator*)trans)->toRules(res, escapeUnprintable);
     return res.extract(result, resultLength, *status);
 }
 
-U_CAPI USet* U_EXPORT2
-utrans_getSourceSet(const UTransliterator* trans,
-                    UBool ignoreFilter,
-                    USet* fillIn,
-                    UErrorCode* status) {
+U_CAPI USet* U_EXPORT2 utrans_getSourceSet(const UTransliterator* trans, UBool ignoreFilter, USet* fillIn, UErrorCode* status)
+{
     utrans_ENTRY(status) fillIn;
 
-    if (fillIn == nullptr) {
+    if (fillIn == NULL) {
         fillIn = uset_openEmpty();
     }
     if (ignoreFilter) {
-        ((Transliterator*) trans)->handleGetSourceSet(*((UnicodeSet*)fillIn));
+        ((Transliterator*)trans)->handleGetSourceSet(*((UnicodeSet*)fillIn));
     } else {
-        ((Transliterator*) trans)->getSourceSet(*((UnicodeSet*)fillIn));
+        ((Transliterator*)trans)->getSourceSet(*((UnicodeSet*)fillIn));
     }
     return fillIn;
 }

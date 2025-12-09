@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -21,7 +21,6 @@
 #include "cstring.h"
 #include "filestrm.h"
 
-
 #include "ucbuf.h"
 #include "errmsg.h"
 #include "parse.h"
@@ -39,13 +38,7 @@
 U_CDECL_BEGIN
 
 U_CAPI void processFile(
-    const char *filename,
-    const char* cp,
-    const char *inputDir,
-    const char *outputDir,
-    const char *packageName,
-    UBool omitBinaryCollation,
-    UErrorCode *status);
+    const char* filename, const char* cp, const char* inputDir, const char* outputDir, const char* packageName, UBool omitBinaryCollation, UErrorCode* status);
 
 U_CDECL_END
 

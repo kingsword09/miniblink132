@@ -39,32 +39,28 @@ class Producer;
 namespace internal {
 
 // Producer backend
-class PERFETTO_EXPORT_COMPONENT SystemProducerTracingBackend
-    : public TracingProducerBackend {
- public:
-  static TracingProducerBackend* GetInstance();
+class PERFETTO_EXPORT_COMPONENT SystemProducerTracingBackend : public TracingProducerBackend {
+public:
+    static TracingProducerBackend* GetInstance();
 
-  std::unique_ptr<ProducerEndpoint> ConnectProducer(
-      const ConnectProducerArgs&) override;
+    std::unique_ptr<ProducerEndpoint> ConnectProducer(const ConnectProducerArgs&) override;
 
- private:
-  SystemProducerTracingBackend();
+private:
+    SystemProducerTracingBackend();
 };
 
 // Consumer backend
-class PERFETTO_EXPORT_COMPONENT SystemConsumerTracingBackend
-    : public TracingConsumerBackend {
- public:
-  static TracingConsumerBackend* GetInstance();
+class PERFETTO_EXPORT_COMPONENT SystemConsumerTracingBackend : public TracingConsumerBackend {
+public:
+    static TracingConsumerBackend* GetInstance();
 
-  std::unique_ptr<ConsumerEndpoint> ConnectConsumer(
-      const ConnectConsumerArgs&) override;
+    std::unique_ptr<ConsumerEndpoint> ConnectConsumer(const ConnectConsumerArgs&) override;
 
- private:
-  SystemConsumerTracingBackend();
+private:
+    SystemConsumerTracingBackend();
 };
 
-}  // namespace internal
-}  // namespace perfetto
+} // namespace internal
+} // namespace perfetto
 
-#endif  // INCLUDE_PERFETTO_TRACING_INTERNAL_SYSTEM_TRACING_BACKEND_H_
+#endif // INCLUDE_PERFETTO_TRACING_INTERNAL_SYSTEM_TRACING_BACKEND_H_

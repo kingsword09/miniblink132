@@ -1,4 +1,4 @@
-// © 2016 and later: Unicode, Inc. and others.
+﻿// © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 /*
 *******************************************************************************
@@ -29,7 +29,7 @@
  * Is c an invariant-character whitespace?
  * @param c invariant character
  */
-#define U_IS_INV_WHITESPACE(c) ((c)==' ' || (c)=='\t' || (c)=='\r' || (c)=='\n')
+#define U_IS_INV_WHITESPACE(c) ((c) == ' ' || (c) == '\t' || (c) == '\r' || (c) == '\n')
 
 U_CDECL_BEGIN
 
@@ -39,8 +39,7 @@ U_CDECL_BEGIN
  * @param s Pointer to characters.
  * @return Pointer to first character at or after s that is not a space or TAB.
  */
-U_CAPI const char * U_EXPORT2
-u_skipWhitespace(const char *s);
+U_CAPI const char* U_EXPORT2 u_skipWhitespace(const char* s);
 
 /**
  * Trim whitespace (including line endings) from the end of the string.
@@ -48,15 +47,10 @@ u_skipWhitespace(const char *s);
  * @param s Pointer to the string.
  * @return Pointer to the new end of the string.
  */
-U_CAPI char * U_EXPORT2
-u_rtrim(char *s);
+U_CAPI char* U_EXPORT2 u_rtrim(char* s);
 
 /** Function type for u_parseDelimitedFile(). */
-typedef void U_CALLCONV
-UParseLineFn(void *context,
-              char *fields[][2],
-              int32_t fieldCount,
-              UErrorCode *pErrorCode);
+typedef void U_CALLCONV UParseLineFn(void* context, char* fields[][2], int32_t fieldCount, UErrorCode* pErrorCode);
 
 /**
  * Parser for files that are similar to UnicodeData.txt:
@@ -82,11 +76,8 @@ UParseLineFn(void *context,
  * If the file cannot be opened, or there is a parsing error or a field function
  * sets *pErrorCode, then the parser returns with *pErrorCode set to an error code.
  */
-U_CAPI void U_EXPORT2
-u_parseDelimitedFile(const char *filename, char delimiter,
-                     char *fields[][2], int32_t fieldCount,
-                     UParseLineFn *lineFn, void *context,
-                     UErrorCode *pErrorCode);
+U_CAPI void U_EXPORT2 u_parseDelimitedFile(
+    const char* filename, char delimiter, char* fields[][2], int32_t fieldCount, UParseLineFn* lineFn, void* context, UErrorCode* pErrorCode);
 
 /**
  * Parse a string of code points like 0061 0308 0300.
@@ -94,10 +85,7 @@ u_parseDelimitedFile(const char *filename, char delimiter,
  *
  * @return Number of code points.
  */
-U_CAPI int32_t U_EXPORT2
-u_parseCodePoints(const char *s,
-                  uint32_t *dest, int32_t destCapacity,
-                  UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 u_parseCodePoints(const char* s, uint32_t* dest, int32_t destCapacity, UErrorCode* pErrorCode);
 
 /**
  * Parse a list of code points like 0061 0308 0300
@@ -114,11 +102,7 @@ u_parseCodePoints(const char *s,
  * @param pErrorCode ICU error code.
  * @return The length of the string in numbers of UChars.
  */
-U_CAPI int32_t U_EXPORT2
-u_parseString(const char *s,
-              UChar *dest, int32_t destCapacity,
-              uint32_t *pFirst,
-              UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 u_parseString(const char* s, UChar* dest, int32_t destCapacity, uint32_t* pFirst, UErrorCode* pErrorCode);
 
 /**
  * Parse a code point range like
@@ -129,24 +113,16 @@ u_parseString(const char *s,
  *
  * @return Length of code point range, end-start+1
  */
-U_CAPI int32_t U_EXPORT2
-u_parseCodePointRange(const char *s,
-                      uint32_t *pStart, uint32_t *pEnd,
-                      UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 u_parseCodePointRange(const char* s, uint32_t* pStart, uint32_t* pEnd, UErrorCode* pErrorCode);
 
 /**
  * Same as u_parseCodePointRange() but the range may be terminated by
  * any character. The position of the terminating character is returned via
  * the *terminator output parameter.
  */
-U_CAPI int32_t U_EXPORT2
-u_parseCodePointRangeAnyTerminator(const char *s,
-                                   uint32_t *pStart, uint32_t *pEnd,
-                                   const char **terminator,
-                                   UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 u_parseCodePointRangeAnyTerminator(const char* s, uint32_t* pStart, uint32_t* pEnd, const char** terminator, UErrorCode* pErrorCode);
 
-U_CAPI int32_t U_EXPORT2
-u_parseUTF8(const char *source, int32_t sLen, char *dest, int32_t destCapacity, UErrorCode *status);
+U_CAPI int32_t U_EXPORT2 u_parseUTF8(const char* source, int32_t sLen, char* dest, int32_t destCapacity, UErrorCode* status);
 
 U_CDECL_END
 
