@@ -1336,7 +1336,7 @@
     <ClCompile Include="..\..\content\renderer\WebDedicatedWorkerHostFactoryClientImpl.cpp" />
     <ClCompile Include="..\..\content\renderer\WebLocalFrameClientImpl.cpp" />
     <ClCompile Include="..\..\content\renderer\WebWorkerFetchContextImpl.cpp" />
-    <ClCompile Include="..\..\content\resources\embedded_win_arm64.cc" />
+    <ClCompile Include="..\..\content\resources\embedded.cc" />
     <ClCompile Include="..\..\content\resources\icudtl.cpp" />
     <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinArm64.cpp" />
     <ClCompile Include="..\..\content\ui\ClipboardUtil.cpp" />

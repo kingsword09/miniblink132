@@ -4464,7 +4464,7 @@
     <ClCompile Include="..\..\net\base\filename_util_icu.cc">
       <Filter>src\net\base</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\content\resources\embedded_win_arm64.cc">
+    <ClCompile Include="..\..\content\resources\embedded.cc">
       <Filter>src\content\resources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\content\resources\V8108SnapshotBlobBinArm64.cpp">
