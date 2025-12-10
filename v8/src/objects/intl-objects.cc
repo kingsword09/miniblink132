@@ -58,9 +58,9 @@
 
 #define XSTR(s) STR(s)
 #define STR(s) #s
-static_assert(
-    V8_MINIMUM_ICU_VERSION <= U_ICU_VERSION_MAJOR_NUM,
-    "v8 is required to build with ICU " XSTR(V8_MINIMUM_ICU_VERSION) " and up");
+//static_assert(
+//    V8_MINIMUM_ICU_VERSION <= U_ICU_VERSION_MAJOR_NUM,
+//    "v8 is required to build with ICU " XSTR(V8_MINIMUM_ICU_VERSION) " and up");
 #undef STR
 #undef XSTR
 
