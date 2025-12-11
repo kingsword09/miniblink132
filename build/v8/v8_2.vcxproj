@@ -288,7 +288,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\default-platform-wrap.h" />
     <ClInclude Include="..\..\v8\src\debug\debug-coverage.h" />
     <ClInclude Include="..\..\v8\src\debug\debug-evaluate.h" />
     <ClInclude Include="..\..\v8\src\debug\debug-frames.h" />
@@ -458,6 +457,7 @@
     <ClInclude Include="..\..\v8\src\interpreter\interpreter.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-foreground-task-runner.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-job.h" />
+    <ClInclude Include="..\..\v8\src\libplatform\default-platform-wrap.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-platform.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-thread-isolated-allocator.h" />
     <ClInclude Include="..\..\v8\src\libplatform\default-worker-threads-task-runner.h" />
@@ -730,8 +730,6 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\default-platform-wrap.cc" />
-    <ClCompile Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\tracing\recorder-empty.cc" />
     <ClCompile Include="..\..\v8\src\debug\debug-coverage.cc" />
     <ClCompile Include="..\..\v8\src\debug\debug-evaluate.cc" />
     <ClCompile Include="..\..\v8\src\debug\debug-frames.cc" />
@@ -868,11 +866,13 @@
     <ClCompile Include="..\..\v8\src\interpreter\interpreter.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-foreground-task-runner.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-job.cc" />
+    <ClCompile Include="..\..\v8\src\libplatform\default-platform-wrap.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-platform.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-thread-isolated-allocator.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\default-worker-threads-task-runner.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\delayed-task-queue.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\task-queue.cc" />
+    <ClCompile Include="..\..\v8\src\libplatform\tracing\recorder-empty.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\tracing\trace-buffer.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\tracing\trace-config.cc" />
     <ClCompile Include="..\..\v8\src\libplatform\tracing\trace-object.cc" />
