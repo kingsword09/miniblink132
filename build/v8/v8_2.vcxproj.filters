@@ -160,6 +160,9 @@
     <Filter Include="src\regexp\arm64">
       <UniqueIdentifier>{7a499f8f-ea5b-4034-bb6c-18c1168af80c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\wasm\fuzzing">
+      <UniqueIdentifier>{5c26f479-2936-4112-af08-4aa15e91cb17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -1476,6 +1479,12 @@
     <ClInclude Include="..\..\v8\src\regexp\arm64\regexp-macro-assembler-arm64.h">
       <Filter>src\regexp\arm64</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\default-platform-wrap.h">
+      <Filter>src\libplatform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\src\wasm\fuzzing\random-module-generation.h">
+      <Filter>src\wasm\fuzzing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\v8\src\wasm\baseline\liftoff-assembler.cc">
@@ -2455,6 +2464,18 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\regexp\arm64\regexp-macro-assembler-arm64.cc">
       <Filter>src\regexp\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\default-platform-wrap.cc">
+      <Filter>src\libplatform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\tracing\recorder-empty.cc">
+      <Filter>src\libplatform\tracing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\torque\utils.cc">
+      <Filter>src\torque</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\wasm\fuzzing\random-module-generation.cc">
+      <Filter>src\wasm\fuzzing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -717,7 +717,6 @@
     <ClInclude Include="..\..\v8\src\compiler\js-type-hint-lowering.h" />
     <ClInclude Include="..\..\v8\src\compiler\js-typed-lowering.h" />
     <ClInclude Include="..\..\v8\src\compiler\late-escape-analysis.h" />
-    <ClInclude Include="..\..\v8\src\compiler\linear-scheduler.h" />
     <ClInclude Include="..\..\v8\src\compiler\linkage.h" />
     <ClInclude Include="..\..\v8\src\compiler\load-elimination.h" />
     <ClInclude Include="..\..\v8\src\compiler\loop-analysis.h" />
@@ -757,7 +756,6 @@
     <ClInclude Include="..\..\v8\src\compiler\redundancy-elimination.h" />
     <ClInclude Include="..\..\v8\src\compiler\refs-map.h" />
     <ClInclude Include="..\..\v8\src\compiler\representation-change.h" />
-    <ClInclude Include="..\..\v8\src\compiler\revectorizer.h" />
     <ClInclude Include="..\..\v8\src\compiler\schedule.h" />
     <ClInclude Include="..\..\v8\src\compiler\scheduler.h" />
     <ClInclude Include="..\..\v8\src\compiler\select-lowering.h" />
@@ -869,8 +867,6 @@
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-lowering-phase.h" />
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-lowering-reducer.h" />
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-optimize-phase.h" />
-    <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-revec-phase.h" />
-    <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-revec-reducer.h" />
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-turboshaft-compiler.h" />
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\zone-with-name.h" />
     <ClInclude Include="..\..\v8\src\compiler\type-cache.h" />
@@ -900,6 +896,12 @@
     <ClInclude Include="..\..\v8\src\date\dateparser.h" />
     <ClInclude Include="..\..\v8\src\json\json-parser.h" />
     <ClInclude Include="..\..\v8\src\json\json-stringifier.h" />
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\branred.h" />
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\dla.h" />
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\endian.h" />
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\mydefs.h" />
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\trig.h" />
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\usncs.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
@@ -1058,6 +1060,9 @@
     <ClCompile Include="..\..\v8\src\codegen\arm64\macro-assembler-arm64.cc" />
     <ClCompile Include="..\..\v8\src\codegen\arm64\register-arm64.cc" />
     <ClCompile Include="..\..\v8\src\codegen\arm64\utils-arm64.cc" />
+    <ClCompile Include="..\..\v8\src\codegen\assembler.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)assembler-codegen.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\codegen\bailout-reason.cc" />
     <ClCompile Include="..\..\v8\src\codegen\code-comments.cc" />
     <ClCompile Include="..\..\v8\src\codegen\code-desc.cc" />
@@ -1204,7 +1209,9 @@
     <ClCompile Include="..\..\v8\src\compiler\turbofan-typer.cc" />
     <ClCompile Include="..\..\v8\src\compiler\turbofan-types.cc" />
     <ClCompile Include="..\..\v8\src\compiler\turboshaft\analyzer-iterator.cc" />
-    <ClCompile Include="..\..\v8\src\compiler\turboshaft\assembler.cc" />
+    <ClCompile Include="..\..\v8\src\compiler\turboshaft\assembler.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)assembler-turboshaft.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\compiler\turboshaft\block-instrumentation-phase.cc" />
     <ClCompile Include="..\..\v8\src\compiler\turboshaft\block-instrumentation-reducer.cc" />
     <ClCompile Include="..\..\v8\src\compiler\turboshaft\build-graph-phase.cc" />
@@ -1278,6 +1285,9 @@
     <ClCompile Include="..\..\v8\src\date\dateparser.cc" />
     <ClCompile Include="..\..\v8\src\json\json-parser.cc" />
     <ClCompile Include="..\..\v8\src\json\json-stringifier.cc" />
+    <ClCompile Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\branred.c" />
+    <ClCompile Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\sincostab.c" />
+    <ClCompile Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\s_sin.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\v8\include\cppgc\DEPS" />

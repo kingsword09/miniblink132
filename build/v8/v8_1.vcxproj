@@ -422,6 +422,9 @@
     <ClInclude Include="..\..\v8\src\heap\collection-barrier.h" />
     <ClInclude Include="..\..\v8\src\heap\combined-heap.h" />
     <ClInclude Include="..\..\v8\src\heap\concurrent-marking.h" />
+    <ClInclude Include="..\..\v8\src\heap\conservative-stack-visitor.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\..\v8\src\heap\cppgc-js\cpp-heap.h" />
     <ClInclude Include="..\..\v8\src\heap\cppgc-js\cpp-marking-state-inl.h" />
     <ClInclude Include="..\..\v8\src\heap\cppgc-js\cpp-marking-state.h" />
@@ -980,6 +983,9 @@
     <ClCompile Include="..\..\v8\src\heap\collection-barrier.cc" />
     <ClCompile Include="..\..\v8\src\heap\combined-heap.cc" />
     <ClCompile Include="..\..\v8\src\heap\concurrent-marking.cc" />
+    <ClCompile Include="..\..\v8\src\heap\conservative-stack-visitor.cc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\heap\cppgc-js\cpp-heap.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc-js\cpp-snapshot.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc-js\cross-heap-remembered-set.cc" />
@@ -993,6 +999,9 @@
     <ClCompile Include="..\..\v8\src\heap\cppgc\compactor.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\concurrent-marker.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\explicit-management.cc" />
+    <ClCompile Include="..\..\v8\src\heap\cppgc\free-list.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)free-list-cppgc.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\heap\cppgc\gc-info-table.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\gc-info.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\gc-invoker.cc" />
@@ -1004,6 +1013,9 @@
     <ClCompile Include="..\..\v8\src\heap\cppgc\heap-space.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\heap-state.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\heap-statistics-collector.cc" />
+    <ClCompile Include="..\..\v8\src\heap\cppgc\heap.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)heap-cppgc.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\heap\cppgc\liveness-broker.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\logging.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\marker.cc" />
@@ -1026,6 +1038,12 @@
     <ClCompile Include="..\..\v8\src\heap\cppgc\raw-heap.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\remembered-set.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\stats-collector.cc" />
+    <ClCompile Include="..\..\v8\src\heap\cppgc\sweeper.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)sweeper-cppgc.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\heap\cppgc\testing.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)testing-cppgc.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\heap\cppgc\trace-trait.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\virtual-memory.cc" />
     <ClCompile Include="..\..\v8\src\heap\cppgc\visitor.cc" />
@@ -1083,7 +1101,9 @@
     <ClCompile Include="..\..\v8\src\heap\slot-set.cc" />
     <ClCompile Include="..\..\v8\src\heap\spaces.cc" />
     <ClCompile Include="..\..\v8\src\heap\stress-scavenge-observer.cc" />
-    <ClCompile Include="..\..\v8\src\heap\sweeper.cc" />
+    <ClCompile Include="..\..\v8\src\heap\sweeper.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)sweeper-v8_1.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\heap\traced-handles-marking-visitor.cc" />
     <ClCompile Include="..\..\v8\src\heap\trusted-range.cc" />
     <ClCompile Include="..\..\v8\src\heap\visit-object.cc" />

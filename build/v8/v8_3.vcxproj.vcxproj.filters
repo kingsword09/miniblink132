@@ -106,6 +106,12 @@
     <Filter Include="src\builtins\arm64">
       <UniqueIdentifier>{85096655-9f01-4824-84be-55ba130f1702}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third_party">
+      <UniqueIdentifier>{e420f175-7fed-4d2b-bd1e-85cf65913545}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\ieee754-dbl-64">
+      <UniqueIdentifier>{4bceb770-3be9-45bd-a075-365ba18c1f01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -1320,9 +1326,6 @@
     <ClInclude Include="..\..\v8\src\compiler\late-escape-analysis.h">
       <Filter>src\compiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\v8\src\compiler\linear-scheduler.h">
-      <Filter>src\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\v8\src\compiler\linkage.h">
       <Filter>src\compiler</Filter>
     </ClInclude>
@@ -1438,9 +1441,6 @@
       <Filter>src\compiler</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\compiler\representation-change.h">
-      <Filter>src\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\compiler\revectorizer.h">
       <Filter>src\compiler</Filter>
     </ClInclude>
     <ClInclude Include="..\..\v8\src\compiler\schedule.h">
@@ -1896,12 +1896,6 @@
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-optimize-phase.h">
       <Filter>src\compiler\turboshaft</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-revec-phase.h">
-      <Filter>src\compiler\turboshaft</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-revec-reducer.h">
-      <Filter>src\compiler\turboshaft</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\v8\src\compiler\turboshaft\wasm-turboshaft-compiler.h">
       <Filter>src\compiler\turboshaft</Filter>
     </ClInclude>
@@ -1949,6 +1943,24 @@
     </ClInclude>
     <ClInclude Include="..\..\v8\src\compiler\backend\arm64\unwinding-info-writer-arm64.h">
       <Filter>src\compiler\backend\arm64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\branred.h">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\dla.h">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\endian.h">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\mydefs.h">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\trig.h">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\usncs.h">
+      <Filter>third_party\ieee754-dbl-64</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3073,6 +3085,18 @@
     </ClCompile>
     <ClCompile Include="..\..\v8\src\builtins\arm64\builtins-arm64.cc">
       <Filter>src\builtins\arm64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\branred.c">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\s_sin.c">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\third_party\glibc\src\sysdeps\ieee754\dbl-64\sincostab.c">
+      <Filter>third_party\ieee754-dbl-64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\v8\src\codegen\assembler.cc">
+      <Filter>src\codegen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

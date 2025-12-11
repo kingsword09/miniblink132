@@ -288,6 +288,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\default-platform-wrap.h" />
     <ClInclude Include="..\..\v8\src\debug\debug-coverage.h" />
     <ClInclude Include="..\..\v8\src\debug\debug-evaluate.h" />
     <ClInclude Include="..\..\v8\src\debug\debug-frames.h" />
@@ -647,6 +648,7 @@
     <ClInclude Include="..\..\v8\src\wasm\function-body-decoder-impl.h" />
     <ClInclude Include="..\..\v8\src\wasm\function-body-decoder.h" />
     <ClInclude Include="..\..\v8\src\wasm\function-compiler.h" />
+    <ClInclude Include="..\..\v8\src\wasm\fuzzing\random-module-generation.h" />
     <ClInclude Include="..\..\v8\src\wasm\graph-builder-interface.h" />
     <ClInclude Include="..\..\v8\src\wasm\inlining-tree.h" />
     <ClInclude Include="..\..\v8\src\wasm\interpreter\instruction-handlers.h" />
@@ -728,6 +730,8 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\default-platform-wrap.cc" />
+    <ClCompile Include="..\..\..\miniblink132_raw\miniblink132\v8\src\libplatform\tracing\recorder-empty.cc" />
     <ClCompile Include="..\..\v8\src\debug\debug-coverage.cc" />
     <ClCompile Include="..\..\v8\src\debug\debug-evaluate.cc" />
     <ClCompile Include="..\..\v8\src\debug\debug-frames.cc" />
@@ -986,6 +990,9 @@
     <ClCompile Include="..\..\v8\src\torque\type-oracle.cc" />
     <ClCompile Include="..\..\v8\src\torque\type-visitor.cc" />
     <ClCompile Include="..\..\v8\src\torque\types.cc" />
+    <ClCompile Include="..\..\v8\src\torque\utils.cc">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)utils-torque.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\v8\src\tracing\trace-categories.cc" />
     <ClCompile Include="..\..\v8\src\tracing\trace-event.cc" />
     <ClCompile Include="..\..\v8\src\tracing\traced-value.cc" />
@@ -1016,6 +1023,7 @@
     <ClCompile Include="..\..\v8\src\wasm\constant-expression.cc" />
     <ClCompile Include="..\..\v8\src\wasm\function-body-decoder.cc" />
     <ClCompile Include="..\..\v8\src\wasm\function-compiler.cc" />
+    <ClCompile Include="..\..\v8\src\wasm\fuzzing\random-module-generation.cc" />
     <ClCompile Include="..\..\v8\src\wasm\graph-builder-interface.cc" />
     <ClCompile Include="..\..\v8\src\wasm\jump-table-assembler.cc" />
     <ClCompile Include="..\..\v8\src\wasm\local-decl-encoder.cc" />
