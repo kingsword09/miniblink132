@@ -89,6 +89,7 @@
 #include "torque-generated/src/builtins/torque-internal-tq-csa.h"
 #include "torque-generated/src/objects/contexts-tq-csa.h"
 #include "torque-generated/src/objects/js-promise-tq-csa.h"
+#include "torque-generated/src/objects/promise-tq-csa.h"
 
 namespace v8 {
 namespace internal {
@@ -470,8 +471,13 @@ void RunContextPromiseHookResolve_0(compiler::CodeAssemblerState* state_, TNode<
   compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
+  TNode<IntPtrT> tmp0;
+  TNode<Uint32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
+    tmp0 = PROMISE_HOOK_RESOLVE_FUNCTION_INDEX_0(state_);
+    tmp1 = PromiseBuiltinsAssembler(state_).PromiseHookFlags();
+    RunContextPromiseHook_0(state_, TNode<Context>{p_context}, TNode<IntPtrT>{tmp0}, TNode<HeapObject>{p_promise}, TNode<Uint32T>{tmp1});
     ca_.Goto(&block2);
   }
 
@@ -505,8 +511,13 @@ void RunContextPromiseHookBefore_0(compiler::CodeAssemblerState* state_, TNode<C
   compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
+  TNode<IntPtrT> tmp0;
+  TNode<Uint32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
+    tmp0 = PROMISE_HOOK_BEFORE_FUNCTION_INDEX_0(state_);
+    tmp1 = PromiseBuiltinsAssembler(state_).PromiseHookFlags();
+    RunContextPromiseHook_0(state_, TNode<Context>{p_context}, TNode<IntPtrT>{tmp0}, TNode<HeapObject>{p_promiseOrCapability}, TNode<Uint32T>{tmp1});
     ca_.Goto(&block2);
   }
 
@@ -540,8 +551,13 @@ void RunContextPromiseHookAfter_0(compiler::CodeAssemblerState* state_, TNode<Co
   compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
+  TNode<IntPtrT> tmp0;
+  TNode<Uint32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
+    tmp0 = PROMISE_HOOK_AFTER_FUNCTION_INDEX_0(state_);
+    tmp1 = PromiseBuiltinsAssembler(state_).PromiseHookFlags();
+    RunContextPromiseHook_0(state_, TNode<Context>{p_context}, TNode<IntPtrT>{tmp0}, TNode<HeapObject>{p_promiseOrCapability}, TNode<Uint32T>{tmp1});
     ca_.Goto(&block2);
   }
 
@@ -573,14 +589,162 @@ void RunContextPromiseHook_0(compiler::CodeAssemblerState* state_, TNode<Context
   compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
   compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block11(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block10(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block15(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block14(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block19(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block18(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<JSPromise> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<JSPromise, JSPromise> block22(&ca_, compiler::CodeAssemblerLabel::kDeferred);
+  compiler::CodeAssemblerParameterizedLabel<JSPromise> block20(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block23(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
+  TNode<BoolT> tmp0;
+  TNode<BoolT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    ca_.Goto(&block2);
+    tmp0 = PromiseBuiltinsAssembler(state_).IsContextPromiseHookEnabled(TNode<Uint32T>{p_flags});
+    tmp1 = CodeStubAssembler(state_).Word32BinaryNot(TNode<BoolT>{tmp0});
+    ca_.Branch(tmp1, &block2, std::vector<compiler::Node*>{}, &block3, std::vector<compiler::Node*>{});
   }
 
+  if (block2.is_used()) {
     ca_.Bind(&block2);
+    ca_.Goto(&block1);
+  }
+
+  TNode<Object> tmp2;
+  TNode<IntPtrT> tmp3;
+  TNode<HeapObject> tmp4;
+  TNode<JSReceiver> tmp5;
+  if (block3.is_used()) {
+    ca_.Bind(&block3);
+    std::tie(tmp2, tmp3) = NativeContextSlot_Context_Undefined_OR_JSFunction_OR_CallableApiObject_OR_CallableJSProxy_OR_JSWrappedFunction_OR_JSBoundFunction_0(state_, TNode<Context>{p_context}, TNode<IntPtrT>{p_slot}).Flatten();
+    tmp4 = CodeStubAssembler(state_).LoadReference<HeapObject>(CodeStubAssembler::Reference{tmp2, tmp3});
+    compiler::CodeAssemblerLabel label6(&ca_);
+    tmp5 = Cast_Callable_0(state_, TNode<HeapObject>{tmp4}, &label6);
+    ca_.Goto(&block6);
+    if (label6.is_used()) {
+      ca_.Bind(&label6);
+      ca_.Goto(&block7);
+    }
+  }
+
+  if (block7.is_used()) {
+    ca_.Bind(&block7);
+    ca_.Goto(&block1);
+  }
+
+  TNode<JSPromise> tmp7;
+  if (block6.is_used()) {
+    ca_.Bind(&block6);
+    compiler::CodeAssemblerLabel label8(&ca_);
+    tmp7 = Cast_JSPromise_0(state_, TNode<HeapObject>{p_promiseOrCapability}, &label8);
+    ca_.Goto(&block10);
+    if (label8.is_used()) {
+      ca_.Bind(&label8);
+      ca_.Goto(&block11);
+    }
+  }
+
+  TNode<PromiseCapability> tmp9;
+  if (block11.is_used()) {
+    ca_.Bind(&block11);
+    compiler::CodeAssemblerLabel label10(&ca_);
+    tmp9 = Cast_PromiseCapability_0(state_, TNode<HeapObject>{ca_.UncheckedCast<HeapObject>(p_promiseOrCapability)}, &label10);
+    ca_.Goto(&block14);
+    if (label10.is_used()) {
+      ca_.Bind(&label10);
+      ca_.Goto(&block15);
+    }
+  }
+
+  if (block10.is_used()) {
+    ca_.Bind(&block10);
+    ca_.Goto(&block8, tmp7);
+  }
+
+  if (block15.is_used()) {
+    ca_.Bind(&block15);
+    ca_.Goto(&block1);
+  }
+
+  TNode<IntPtrT> tmp11;
+  TNode<HeapObject> tmp12;
+  TNode<JSPromise> tmp13;
+  if (block14.is_used()) {
+    ca_.Bind(&block14);
+    tmp11 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
+    tmp12 = CodeStubAssembler(state_).LoadReference<HeapObject>(CodeStubAssembler::Reference{tmp9, tmp11});
+    compiler::CodeAssemblerLabel label14(&ca_);
+    tmp13 = Cast_JSPromise_0(state_, TNode<HeapObject>{tmp12}, &label14);
+    ca_.Goto(&block18);
+    if (label14.is_used()) {
+      ca_.Bind(&label14);
+      ca_.Goto(&block19);
+    }
+  }
+
+  if (block19.is_used()) {
+    ca_.Bind(&block19);
+    ca_.Goto(&block1);
+  }
+
+  if (block18.is_used()) {
+    ca_.Bind(&block18);
+    ca_.Goto(&block8, tmp13);
+  }
+
+  TNode<JSPromise> phi_bb8_9;
+  TNode<Undefined> tmp15;
+  TNode<Object> tmp16;
+      TNode<Object> tmp18;
+  if (block8.is_used()) {
+    ca_.Bind(&block8, &phi_bb8_9);
+    tmp15 = Undefined_0(state_);
+    compiler::CodeAssemblerExceptionHandlerLabel catch17__label(&ca_, compiler::CodeAssemblerLabel::kDeferred);
+    { compiler::ScopedExceptionHandler s(&ca_, &catch17__label);
+    tmp16 = CodeStubAssembler(state_).Call(TNode<Context>{p_context}, TNode<Object>{tmp5}, TNode<Object>{tmp15}, TNode<Object>{phi_bb8_9});
+    }
+    if (catch17__label.is_used()) {
+      compiler::CodeAssemblerLabel catch17_skip(&ca_);
+      ca_.Goto(&catch17_skip);
+      ca_.Bind(&catch17__label, &tmp18);
+      ca_.Goto(&block22, phi_bb8_9, phi_bb8_9);
+      ca_.Bind(&catch17_skip);
+    }
+    ca_.Goto(&block20, phi_bb8_9);
+  }
+
+  TNode<JSPromise> phi_bb22_9;
+  TNode<JSPromise> phi_bb22_13;
+  TNode<HeapObject> tmp19;
+  TNode<Object> tmp20;
+  if (block22.is_used()) {
+    ca_.Bind(&block22, &phi_bb22_9, &phi_bb22_13);
+    tmp19 = GetAndResetPendingMessage_0(state_);
+    tmp20 = CodeStubAssembler(state_).CallRuntime(Runtime::kReportMessageFromMicrotask, p_context, tmp18); 
+    ca_.Goto(&block20, phi_bb22_9);
+  }
+
+  TNode<JSPromise> phi_bb20_9;
+  if (block20.is_used()) {
+    ca_.Bind(&block20, &phi_bb20_9);
+    ca_.Goto(&block1);
+  }
+
+  if (block1.is_used()) {
+    ca_.Bind(&block1);
+    ca_.Goto(&block23);
+  }
+
+    ca_.Bind(&block23);
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/promise-misc.tq?l=251&c=1
@@ -592,8 +756,10 @@ void RunAnyPromiseHookInit_0(compiler::CodeAssemblerState* state_, TNode<Context
   compiler::CodeAssemblerParameterizedLabel<> block3(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
   compiler::CodeAssemblerParameterizedLabel<> block4(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
   compiler::CodeAssemblerParameterizedLabel<> block5(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-  compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
   compiler::CodeAssemblerParameterizedLabel<> block6(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block7(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block1(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
+  compiler::CodeAssemblerParameterizedLabel<> block8(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
   TNode<Uint32T> tmp0;
@@ -615,28 +781,41 @@ void RunAnyPromiseHookInit_0(compiler::CodeAssemblerState* state_, TNode<Context
   TNode<BoolT> tmp3;
   if (block3.is_used()) {
     ca_.Bind(&block3);
-    tmp3 = PromiseBuiltinsAssembler(state_).IsIsolatePromiseHookEnabled(TNode<Uint32T>{tmp0});
+    tmp3 = PromiseBuiltinsAssembler(state_).IsContextPromiseHookEnabled(TNode<Uint32T>{tmp0});
     ca_.Branch(tmp3, &block4, std::vector<compiler::Node*>{}, &block5, std::vector<compiler::Node*>{});
   }
 
-  TNode<Object> tmp4;
   if (block4.is_used()) {
     ca_.Bind(&block4);
-    tmp4 = CodeStubAssembler(state_).CallRuntime(Runtime::kPromiseHookInit, p_context, p_promise, p_parent); 
+    RunContextPromiseHookInit_0(state_, TNode<Context>{p_context}, TNode<JSPromise>{p_promise}, TNode<Object>{p_parent});
     ca_.Goto(&block5);
   }
 
+  TNode<BoolT> tmp4;
   if (block5.is_used()) {
     ca_.Bind(&block5);
+    tmp4 = PromiseBuiltinsAssembler(state_).IsIsolatePromiseHookEnabled(TNode<Uint32T>{tmp0});
+    ca_.Branch(tmp4, &block6, std::vector<compiler::Node*>{}, &block7, std::vector<compiler::Node*>{});
+  }
+
+  TNode<Object> tmp5;
+  if (block6.is_used()) {
+    ca_.Bind(&block6);
+    tmp5 = CodeStubAssembler(state_).CallRuntime(Runtime::kPromiseHookInit, p_context, p_promise, p_parent); 
+    ca_.Goto(&block7);
+  }
+
+  if (block7.is_used()) {
+    ca_.Bind(&block7);
     ca_.Goto(&block1);
   }
 
   if (block1.is_used()) {
     ca_.Bind(&block1);
-    ca_.Goto(&block6);
+    ca_.Goto(&block8);
   }
 
-    ca_.Bind(&block6);
+    ca_.Bind(&block8);
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/builtins/promise-misc.tq?l=271&c=1
