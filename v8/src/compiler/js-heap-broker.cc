@@ -869,11 +869,13 @@ ElementAccessFeedback const& JSHeapBroker::ProcessFeedbackMapsForElementAccess(
       // FindElementsKindTransitionedMap).
       MapUpdaterGuardIfNeeded mumd_scope(this);
 
-      transition_target = map.object()->FindElementsKindTransitionedMap(
-          isolate(),
-          MapHandlesSpan(possible_transition_targets.begin(),
-                         possible_transition_targets.end()),
-          ConcurrencyMode::kConcurrent);
+      if (!possible_transition_targets.empty()) {
+        transition_target = map.object()->FindElementsKindTransitionedMap(
+            isolate(),
+            MapHandlesSpan(possible_transition_targets.begin(),
+                           possible_transition_targets.end()),
+            ConcurrencyMode::kConcurrent);
+      }
     }
 
     if (transition_target.is_null()) {
