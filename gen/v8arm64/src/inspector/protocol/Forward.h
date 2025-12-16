@@ -11,10 +11,10 @@
 #include <memory>
 #include <vector>
 
-#include "third_party/inspector_protocol\crdtp/error_support.h"
-#include "third_party/inspector_protocol\crdtp/dispatch.h"
-#include "third_party/inspector_protocol\crdtp/frontend_channel.h"
-#include "third_party/inspector_protocol\crdtp/protocol_core.h"
+#include "v8/third_party/inspector_protocol\crdtp/error_support.h"
+#include "v8/third_party/inspector_protocol\crdtp/dispatch.h"
+#include "v8/third_party/inspector_protocol\crdtp/frontend_channel.h"
+#include "v8/third_party/inspector_protocol\crdtp/protocol_core.h"
 
 #include "src/inspector/string-util.h"
 

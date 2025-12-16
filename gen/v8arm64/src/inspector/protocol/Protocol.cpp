@@ -20,7 +20,7 @@
 
 //#include "Values.h"
 
-#include "third_party/inspector_protocol\crdtp/cbor.h"
+#include "v8/third_party/inspector_protocol\crdtp/cbor.h"
 
 namespace v8_inspector {
 namespace protocol {
