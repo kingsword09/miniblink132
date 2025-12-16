@@ -32,10 +32,10 @@ std::tuple<Tagged<Union<HeapObject, TaggedIndex>>, intptr_t, intptr_t> TqRuntime
   goto block0;
 
   block0:
-  tmp0 = TqRuntimeFromConstexpr_intptr_constexpr_int31_0(16);
+  tmp0 = TqRuntimeFromConstexpr_intptr_constexpr_int31_0(20);
   tmp1 = TaggedField<Tagged<Smi>>::load(UncheckedCast<HeapObject>(p_o), static_cast<int>(tmp0));
   tmp2 = TqRuntimeConvert_intptr_Smi_0(tmp1);
-  tmp3 = TqRuntimeFromConstexpr_intptr_constexpr_IntegerLiteral_0(IntegerLiteral(false, 0x14ull));
+  tmp3 = TqRuntimeFromConstexpr_intptr_constexpr_IntegerLiteral_0(IntegerLiteral(false, 0x18ull));
   std::tie(tmp4, tmp5, tmp6) = TqRuntimeNewMutableSlice_Object_0(p_o, tmp3, tmp2);
   goto block2;
 
@@ -357,19 +357,6 @@ Address TorqueGeneratedWasmInternalFunction<D, P>::call_target() const {
 template<class D, class P>
 void TorqueGeneratedWasmInternalFunction<D, P>::set_call_target(Address value) {
   this->template WriteField<Address>(kCallTargetOffset, value);
-}
-
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-template<class D, class P>
-uintptr_t TorqueGeneratedWasmInternalFunction<D, P>::signature_hash() const {
-  uintptr_t value = this->template ReadField<uintptr_t>(kSignatureHashOffset);
-  return value;
-}
-
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-template<class D, class P>
-void TorqueGeneratedWasmInternalFunction<D, P>::set_signature_hash(uintptr_t value) {
-  this->template WriteField<uintptr_t>(kSignatureHashOffset, value);
 }
 
 template<class D, class P>

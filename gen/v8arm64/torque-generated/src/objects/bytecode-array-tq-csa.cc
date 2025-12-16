@@ -238,7 +238,7 @@ TNode<Smi> LoadBytecodeArrayLength_0(compiler::CodeAssemblerState* state_, TNode
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -259,7 +259,7 @@ TNode<BytecodeWrapper> LoadBytecodeArrayWrapper_0(compiler::CodeAssemblerState* 
   TNode<BytecodeWrapper> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     tmp1 = CodeStubAssembler(state_).LoadReference<BytecodeWrapper>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -279,7 +279,7 @@ void StoreBytecodeArrayWrapper_0(compiler::CodeAssemblerState* state_, TNode<Byt
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     CodeStubAssembler(state_).StoreReference<BytecodeWrapper>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -299,7 +299,7 @@ TNode<MaybeObject> LoadBytecodeArraySourcePositionTable_0(compiler::CodeAssemble
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -319,7 +319,7 @@ void StoreBytecodeArraySourcePositionTable_0(compiler::CodeAssemblerState* state
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -339,7 +339,7 @@ TNode<MaybeObject> LoadBytecodeArrayHandlerTable_0(compiler::CodeAssemblerState*
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -359,7 +359,7 @@ void StoreBytecodeArrayHandlerTable_0(compiler::CodeAssemblerState* state_, TNod
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -379,7 +379,7 @@ TNode<MaybeObject> LoadBytecodeArrayConstantPool_0(compiler::CodeAssemblerState*
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -399,7 +399,7 @@ void StoreBytecodeArrayConstantPool_0(compiler::CodeAssemblerState* state_, TNod
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -419,7 +419,7 @@ TNode<Int32T> LoadBytecodeArrayFrameSize_0(compiler::CodeAssemblerState* state_,
   TNode<Int32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     tmp1 = CodeStubAssembler(state_).LoadReference<Int32T>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -439,7 +439,7 @@ void StoreBytecodeArrayFrameSize_0(compiler::CodeAssemblerState* state_, TNode<B
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     CodeStubAssembler(state_).StoreReference<Int32T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -459,7 +459,7 @@ TNode<Uint16T> LoadBytecodeArrayParameterSize_0(compiler::CodeAssemblerState* st
   TNode<Uint16T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint16T>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -479,7 +479,7 @@ void StoreBytecodeArrayParameterSize_0(compiler::CodeAssemblerState* state_, TNo
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     CodeStubAssembler(state_).StoreReference<Uint16T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -499,7 +499,7 @@ TNode<Uint16T> LoadBytecodeArrayMaxArguments_0(compiler::CodeAssemblerState* sta
   TNode<Uint16T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 34);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 30);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint16T>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -519,7 +519,7 @@ void StoreBytecodeArrayMaxArguments_0(compiler::CodeAssemblerState* state_, TNod
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 34);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 30);
     CodeStubAssembler(state_).StoreReference<Uint16T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -539,7 +539,7 @@ TNode<Int32T> LoadBytecodeArrayIncomingNewTargetOrGeneratorRegister_0(compiler::
   TNode<Int32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
     tmp1 = CodeStubAssembler(state_).LoadReference<Int32T>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -559,7 +559,7 @@ void StoreBytecodeArrayIncomingNewTargetOrGeneratorRegister_0(compiler::CodeAsse
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
     CodeStubAssembler(state_).StoreReference<Int32T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -584,10 +584,10 @@ TorqueStructSlice_uint8_MutableReference_uint8_0 FieldSliceBytecodeArrayBytes_0(
   TNode<IntPtrT> tmp6;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     tmp2 = Convert_intptr_Smi_0(state_, TNode<Smi>{tmp1});
-    tmp3 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x28ull));
+    tmp3 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x24ull));
     std::tie(tmp4, tmp5, tmp6) = NewMutableSlice_uint8_0(state_, TNode<Object>{p_o}, TNode<IntPtrT>{tmp3}, TNode<IntPtrT>{tmp2}).Flatten();
     ca_.Goto(&block2);
   }

@@ -1753,7 +1753,7 @@ TNode<MaybeObject> LoadWasmInternalFunctionProtectedImplicitArg_0(compiler::Code
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -1773,7 +1773,7 @@ void StoreWasmInternalFunctionProtectedImplicitArg_0(compiler::CodeAssemblerStat
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -1793,7 +1793,7 @@ TNode<HeapObject> LoadWasmInternalFunctionExternal_0(compiler::CodeAssemblerStat
   TNode<HeapObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     tmp1 = CodeStubAssembler(state_).LoadReference<HeapObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -1813,7 +1813,7 @@ void StoreWasmInternalFunctionExternal_0(compiler::CodeAssemblerState* state_, T
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     CodeStubAssembler(state_).StoreReference<HeapObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -1833,7 +1833,7 @@ TNode<Smi> LoadWasmInternalFunctionFunctionIndex_0(compiler::CodeAssemblerState*
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -1853,7 +1853,7 @@ void StoreWasmInternalFunctionFunctionIndex_0(compiler::CodeAssemblerState* stat
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -1873,7 +1873,7 @@ TNode<RawPtrT> LoadWasmInternalFunctionCallTarget_0(compiler::CodeAssemblerState
   TNode<RawPtrT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<RawPtrT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -1893,48 +1893,8 @@ void StoreWasmInternalFunctionCallTarget_0(compiler::CodeAssemblerState* state_,
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<RawPtrT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
-    ca_.Goto(&block2);
-  }
-
-    ca_.Bind(&block2);
-}
-
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-TNode<UintPtrT> LoadWasmInternalFunctionSignatureHash_0(compiler::CodeAssemblerState* state_, TNode<WasmInternalFunction> p_o) {
-  compiler::CodeAssembler ca_(state_);
-  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    ca_.Goto(&block0);
-
-  TNode<IntPtrT> tmp0;
-  TNode<UintPtrT> tmp1;
-  if (block0.is_used()) {
-    ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
-    tmp1 = CodeStubAssembler(state_).LoadReference<UintPtrT>(CodeStubAssembler::Reference{p_o, tmp0});
-    ca_.Goto(&block2);
-  }
-
-    ca_.Bind(&block2);
-  return TNode<UintPtrT>{tmp1};
-}
-
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-void StoreWasmInternalFunctionSignatureHash_0(compiler::CodeAssemblerState* state_, TNode<WasmInternalFunction> p_o, TNode<UintPtrT> p_v) {
-  compiler::CodeAssembler ca_(state_);
-  compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
-  compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-  compiler::CodeAssemblerParameterizedLabel<> block2(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-    ca_.Goto(&block0);
-
-  TNode<IntPtrT> tmp0;
-  if (block0.is_used()) {
-    ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
-    CodeStubAssembler(state_).StoreReference<UintPtrT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
 
@@ -1953,7 +1913,7 @@ TNode<TrustedPointerT> LoadWasmFunctionDataWrapperCode_0(compiler::CodeAssembler
   TNode<TrustedPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     tmp1 = CodeStubAssembler(state_).LoadReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -1973,7 +1933,7 @@ void StoreWasmFunctionDataWrapperCode_0(compiler::CodeAssemblerState* state_, TN
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     CodeStubAssembler(state_).StoreReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -1993,7 +1953,7 @@ TNode<WasmFuncRef> LoadWasmFunctionDataFuncRef_0(compiler::CodeAssemblerState* s
   TNode<WasmFuncRef> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     tmp1 = CodeStubAssembler(state_).LoadReference<WasmFuncRef>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2013,7 +1973,7 @@ void StoreWasmFunctionDataFuncRef_0(compiler::CodeAssemblerState* state_, TNode<
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     CodeStubAssembler(state_).StoreReference<WasmFuncRef>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2033,7 +1993,7 @@ TNode<Smi> LoadWasmFunctionDataJsPromiseFlags_0(compiler::CodeAssemblerState* st
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2053,7 +2013,7 @@ void StoreWasmFunctionDataJsPromiseFlags_0(compiler::CodeAssemblerState* state_,
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2073,7 +2033,7 @@ TNode<MaybeObject> LoadWasmFunctionDataProtectedInternal_0(compiler::CodeAssembl
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2093,7 +2053,7 @@ void StoreWasmFunctionDataProtectedInternal_0(compiler::CodeAssemblerState* stat
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2113,7 +2073,7 @@ TNode<MaybeObject> LoadWasmExportedFunctionDataProtectedInstanceData_0(compiler:
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2133,7 +2093,7 @@ void StoreWasmExportedFunctionDataProtectedInstanceData_0(compiler::CodeAssemble
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2153,7 +2113,7 @@ TNode<Smi> LoadWasmExportedFunctionDataFunctionIndex_0(compiler::CodeAssemblerSt
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2173,7 +2133,7 @@ void StoreWasmExportedFunctionDataFunctionIndex_0(compiler::CodeAssemblerState* 
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2193,7 +2153,7 @@ TNode<Cell> LoadWasmExportedFunctionDataWrapperBudget_0(compiler::CodeAssemblerS
   TNode<Cell> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     tmp1 = CodeStubAssembler(state_).LoadReference<Cell>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2213,7 +2173,7 @@ void StoreWasmExportedFunctionDataWrapperBudget_0(compiler::CodeAssemblerState* 
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     CodeStubAssembler(state_).StoreReference<Cell>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2233,7 +2193,7 @@ TNode<Smi> LoadWasmExportedFunctionDataCanonicalTypeIndex_0(compiler::CodeAssemb
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2253,7 +2213,7 @@ void StoreWasmExportedFunctionDataCanonicalTypeIndex_0(compiler::CodeAssemblerSt
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2273,7 +2233,7 @@ TNode<Smi> LoadWasmExportedFunctionDataPackedArgsSize_0(compiler::CodeAssemblerS
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2293,7 +2253,7 @@ void StoreWasmExportedFunctionDataPackedArgsSize_0(compiler::CodeAssemblerState*
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 36);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2313,7 +2273,7 @@ TNode<TrustedPointerT> LoadWasmExportedFunctionDataCWrapperCode_0(compiler::Code
   TNode<TrustedPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
     tmp1 = CodeStubAssembler(state_).LoadReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2333,7 +2293,7 @@ void StoreWasmExportedFunctionDataCWrapperCode_0(compiler::CodeAssemblerState* s
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 40);
     CodeStubAssembler(state_).StoreReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2353,7 +2313,7 @@ TNode<RawPtrT> LoadWasmExportedFunctionDataSig_0(compiler::CodeAssemblerState* s
   TNode<RawPtrT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
     tmp1 = CodeStubAssembler(state_).LoadReference<RawPtrT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2373,7 +2333,7 @@ void StoreWasmExportedFunctionDataSig_0(compiler::CodeAssemblerState* state_, TN
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
     CodeStubAssembler(state_).StoreReference<RawPtrT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2393,7 +2353,7 @@ TNode<Smi> LoadWasmJSFunctionDataCanonicalSigIndex_0(compiler::CodeAssemblerStat
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2413,7 +2373,7 @@ void StoreWasmJSFunctionDataCanonicalSigIndex_0(compiler::CodeAssemblerState* st
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2433,7 +2393,7 @@ TNode<MaybeObject> LoadWasmJSFunctionDataProtectedOffheapData_0(compiler::CodeAs
   TNode<MaybeObject> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     tmp1 = CodeStubAssembler(state_).LoadReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2453,7 +2413,7 @@ void StoreWasmJSFunctionDataProtectedOffheapData_0(compiler::CodeAssemblerState*
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     CodeStubAssembler(state_).StoreReference<MaybeObject>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2473,7 +2433,7 @@ TNode<Smi> LoadWasmCapiFunctionDataCanonicalSigIndex_0(compiler::CodeAssemblerSt
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2493,7 +2453,7 @@ void StoreWasmCapiFunctionDataCanonicalSigIndex_0(compiler::CodeAssemblerState* 
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     CodeStubAssembler(state_).StoreReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2513,7 +2473,7 @@ TNode<Foreign> LoadWasmCapiFunctionDataEmbedderData_0(compiler::CodeAssemblerSta
   TNode<Foreign> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     tmp1 = CodeStubAssembler(state_).LoadReference<Foreign>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2533,7 +2493,7 @@ void StoreWasmCapiFunctionDataEmbedderData_0(compiler::CodeAssemblerState* state
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 24);
     CodeStubAssembler(state_).StoreReference<Foreign>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2553,7 +2513,7 @@ TNode<RawPtrT> LoadWasmCapiFunctionDataSig_0(compiler::CodeAssemblerState* state
   TNode<RawPtrT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     tmp1 = CodeStubAssembler(state_).LoadReference<RawPtrT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2573,7 +2533,7 @@ void StoreWasmCapiFunctionDataSig_0(compiler::CodeAssemblerState* state_, TNode<
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     CodeStubAssembler(state_).StoreReference<RawPtrT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -2753,7 +2713,7 @@ TNode<ExternalPointerT> LoadWasmContinuationObjectJmpbuf_0(compiler::CodeAssembl
   TNode<ExternalPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<ExternalPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -2773,7 +2733,7 @@ void StoreWasmContinuationObjectJmpbuf_0(compiler::CodeAssemblerState* state_, T
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<ExternalPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -4273,7 +4233,7 @@ TNode<Uint32T> LoadWasmTypeInfoModuleTypeIndex_0(compiler::CodeAssemblerState* s
   TNode<Uint32T> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     tmp1 = CodeStubAssembler(state_).LoadReference<Uint32T>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -4293,7 +4253,7 @@ void StoreWasmTypeInfoModuleTypeIndex_0(compiler::CodeAssemblerState* state_, TN
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
     CodeStubAssembler(state_).StoreReference<Uint32T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -4313,7 +4273,7 @@ TNode<TrustedPointerT> LoadWasmTypeInfoTrustedData_0(compiler::CodeAssemblerStat
   TNode<TrustedPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp1 = CodeStubAssembler(state_).LoadReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -4333,7 +4293,7 @@ void StoreWasmTypeInfoTrustedData_0(compiler::CodeAssemblerState* state_, TNode<
   TNode<IntPtrT> tmp0;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     CodeStubAssembler(state_).StoreReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
@@ -4353,7 +4313,7 @@ TNode<Smi> LoadWasmTypeInfoSupertypesLength_0(compiler::CodeAssemblerState* stat
   TNode<Smi> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
@@ -4379,10 +4339,10 @@ TorqueStructSlice_Object_MutableReference_Object_0 FieldSliceWasmTypeInfoSuperty
   TNode<IntPtrT> tmp6;
   if (block0.is_used()) {
     ca_.Bind(&block0);
-    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
     tmp1 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{p_o, tmp0});
     tmp2 = Convert_intptr_Smi_0(state_, TNode<Smi>{tmp1});
-    tmp3 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x14ull));
+    tmp3 = FromConstexpr_intptr_constexpr_IntegerLiteral_0(state_, IntegerLiteral(false, 0x18ull));
     std::tie(tmp4, tmp5, tmp6) = NewMutableSlice_Object_0(state_, TNode<Object>{p_o}, TNode<IntPtrT>{tmp3}, TNode<IntPtrT>{tmp2}).Flatten();
     ca_.Goto(&block2);
   }

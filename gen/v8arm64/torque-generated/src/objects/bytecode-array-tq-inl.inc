@@ -32,10 +32,10 @@ std::tuple<Tagged<Union<HeapObject, TaggedIndex>>, intptr_t, intptr_t> TqRuntime
   goto block0;
 
   block0:
-  tmp0 = TqRuntimeFromConstexpr_intptr_constexpr_int31_0(8);
+  tmp0 = TqRuntimeFromConstexpr_intptr_constexpr_int31_0(4);
   tmp1 = TaggedField<Tagged<Smi>>::load(UncheckedCast<HeapObject>(p_o), static_cast<int>(tmp0));
   tmp2 = TqRuntimeConvert_intptr_Smi_0(tmp1);
-  tmp3 = TqRuntimeFromConstexpr_intptr_constexpr_IntegerLiteral_0(IntegerLiteral(false, 0x28ull));
+  tmp3 = TqRuntimeFromConstexpr_intptr_constexpr_IntegerLiteral_0(IntegerLiteral(false, 0x24ull));
   std::tie(tmp4, tmp5, tmp6) = TqRuntimeNewMutableSlice_uint8_0(p_o, tmp3, tmp2);
   goto block2;
 

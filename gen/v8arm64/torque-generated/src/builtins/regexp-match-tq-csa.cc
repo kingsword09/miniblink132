@@ -221,7 +221,7 @@ TNode<Object> RegExpPrototypeMatchBody_0(compiler::CodeAssemblerState* state_, T
     tmp5 = UnsafeCast_JSRegExp_0(state_, TNode<Context>{p_context}, TNode<Object>{p_regexp});
     tmp6 = CodeStubAssembler(state_).LoadTrustedPointerFromObject(TNode<HeapObject>{tmp5}, JSRegExp::kDataOffset, kRegExpDataIndirectPointerTag);
     tmp7 = UnsafeCast_RegExpData_0(state_, TNode<Context>{p_context}, TNode<Object>{tmp6});
-    tmp8 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
+    tmp8 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     tmp9 = CodeStubAssembler(state_).LoadReference<Smi>(CodeStubAssembler::Reference{tmp7, tmp8});
     tmp10 = FromConstexpr_Number_constexpr_uint32_0(state_, static_cast<uint8_t>(RegExpData::Type::ATOM));
     tmp11 = IsNumberEqual_0(state_, TNode<Number>{tmp9}, TNode<Number>{tmp10});

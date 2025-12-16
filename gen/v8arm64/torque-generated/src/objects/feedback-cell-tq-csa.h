@@ -15,12 +15,6 @@ TNode<HeapObject> LoadFeedbackCellValue_0(compiler::CodeAssemblerState* state_, 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=6&c=3
 void StoreFeedbackCellValue_0(compiler::CodeAssemblerState* state_, TNode<FeedbackCell> p_o, TNode<HeapObject> p_v);
 
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
-TNode<Int32T> LoadFeedbackCellDispatchHandle_0(compiler::CodeAssemblerState* state_, TNode<FeedbackCell> p_o);
-
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
-void StoreFeedbackCellDispatchHandle_0(compiler::CodeAssemblerState* state_, TNode<FeedbackCell> p_o, TNode<Int32T> p_v);
-
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=8&c=3
 TNode<Int32T> LoadFeedbackCellInterruptBudget_0(compiler::CodeAssemblerState* state_, TNode<FeedbackCell> p_o);
 

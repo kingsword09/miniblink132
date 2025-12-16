@@ -1306,14 +1306,14 @@ TNode<Object> JSToWasmWrapperHelper_0(compiler::CodeAssemblerState* state_, TNod
   TNode<BoolT> tmp14;
   if (block2.is_used()) {
     ca_.Bind(&block2);
-    tmp3 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp3 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     tmp4 = CodeStubAssembler(state_).LoadReference<Cell>(CodeStubAssembler::Reference{tmp2, tmp3});
     tmp5 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     tmp6 = CodeStubAssembler(state_).LoadReference<Object>(CodeStubAssembler::Reference{tmp4, tmp5});
     tmp7 = UnsafeCast_Smi_0(state_, TNode<Context>{p_context}, TNode<Object>{tmp6});
     tmp8 = SmiConstant_0(state_, IntegerLiteral(false, 0x1ull));
     tmp9 = CodeStubAssembler(state_).SmiSub(TNode<Smi>{tmp7}, TNode<Smi>{tmp8});
-    tmp10 = FromConstexpr_intptr_constexpr_int31_0(state_, 32);
+    tmp10 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
     tmp11 = CodeStubAssembler(state_).LoadReference<Cell>(CodeStubAssembler::Reference{tmp2, tmp10});
     tmp12 = FromConstexpr_intptr_constexpr_int31_0(state_, 4);
     CodeStubAssembler(state_).StoreReference<Object>(CodeStubAssembler::Reference{tmp11, tmp12}, tmp9);
@@ -1373,7 +1373,7 @@ TNode<Object> JSToWasmWrapperHelper_0(compiler::CodeAssemblerState* state_, TNod
   TNode<BoolT> tmp46;
   if (block4.is_used()) {
     ca_.Bind(&block4);
-    tmp17 = FromConstexpr_intptr_constexpr_int31_0(state_, 48);
+    tmp17 = FromConstexpr_intptr_constexpr_int31_0(state_, 44);
     tmp18 = CodeStubAssembler(state_).LoadReference<RawPtrT>(CodeStubAssembler::Reference{tmp2, tmp17});
     tmp19 = CodeStubAssembler(state_).LoadWasmInternalFunctionFromFunctionData(TNode<WasmFunctionData>{tmp2});
     tmp20 = CodeStubAssembler(state_).LoadImplicitArgFromWasmInternalFunction(TNode<WasmInternalFunction>{tmp19});
@@ -5317,7 +5317,7 @@ TNode<Object> JSToWasmWrapperHelper_0(compiler::CodeAssemblerState* state_, TNod
     ca_.Bind(&block276, &phi_bb276_17, &phi_bb276_18, &phi_bb276_19, &phi_bb276_26, &phi_bb276_27, &phi_bb276_28, &phi_bb276_29, &phi_bb276_30, &phi_bb276_32, &phi_bb276_33, &phi_bb276_34, &phi_bb276_35, &phi_bb276_36, &phi_bb276_39);
     tmp500 = CodeStubAssembler(state_).GCUnsafeReferenceToRawPtr(TNode<Object>{tmp198}, TNode<IntPtrT>{phi_bb276_39});
     tmp501 = CodeStubAssembler(state_).LoadWasmInternalFunctionFromFunctionData(TNode<WasmFunctionData>{tmp2});
-    tmp502 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
+    tmp502 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
     tmp503 = CodeStubAssembler(state_).LoadReference<RawPtrT>(CodeStubAssembler::Reference{tmp501, tmp502});
     tmp504 = CodeStubAssembler(state_).StackSlotPtr(JSToWasmWrapperFrameConstants::kWrapperBufferSize, (SizeOf_intptr_0(state_)));
     tmp505 = (TNode<RawPtrT>{tmp504});
@@ -5523,7 +5523,7 @@ TF_BUILTIN(JSToWasmWrapper, CodeStubAssembler) {
   USE(parameter1);
   TNode<JSFunction> parameter2 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
 USE(parameter2);
-  TNode<JSDispatchHandleT> parameter3 = UncheckedParameter<JSDispatchHandleT>(Descriptor::kJSDispatchHandle);
+  TNode<JSDispatchHandleT> parameter3 = InvalidDispatchHandleConstant();
 USE(parameter3);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
@@ -5550,7 +5550,7 @@ TF_BUILTIN(WasmPromising, CodeStubAssembler) {
   USE(parameter1);
   TNode<JSFunction> parameter2 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
 USE(parameter2);
-  TNode<JSDispatchHandleT> parameter3 = UncheckedParameter<JSDispatchHandleT>(Descriptor::kJSDispatchHandle);
+  TNode<JSDispatchHandleT> parameter3 = InvalidDispatchHandleConstant();
 USE(parameter3);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
@@ -5577,7 +5577,7 @@ TF_BUILTIN(WasmStressSwitch, CodeStubAssembler) {
   USE(parameter1);
   TNode<JSFunction> parameter2 = UncheckedParameter<JSFunction>(Descriptor::kJSTarget);
 USE(parameter2);
-  TNode<JSDispatchHandleT> parameter3 = UncheckedParameter<JSDispatchHandleT>(Descriptor::kJSDispatchHandle);
+  TNode<JSDispatchHandleT> parameter3 = InvalidDispatchHandleConstant();
 USE(parameter3);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);

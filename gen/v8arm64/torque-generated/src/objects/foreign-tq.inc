@@ -37,7 +37,7 @@ class TorqueGeneratedForeign : public P {
 
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/foreign.tq?l=5&c=1
   V8_INLINE static constexpr int32_t SizeFor() {
-    DCHECK(kHeaderSize == kSize && kHeaderSize == 8);
+    DCHECK(kHeaderSize == kSize && kHeaderSize == 12);
     int32_t size = kHeaderSize;
     return size;
   }

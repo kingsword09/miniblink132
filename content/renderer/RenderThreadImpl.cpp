@@ -67,7 +67,7 @@
 extern unsigned char icudtlData[10464176];
 extern unsigned char SnapshotBlobBinX86[328619];
 extern unsigned char SnapshotBlobBinX64[327326];
-extern unsigned char SnapshotBlobBinArm64[320602];
+extern unsigned char SnapshotBlobBinArm64[327314];
 extern unsigned char SnapshotBlobBinX64Linux[471944];
 extern unsigned char SnapshotBlobBinArm64Linux[471936];
 

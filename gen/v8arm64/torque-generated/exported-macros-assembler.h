@@ -503,10 +503,10 @@ class V8_EXPORT_PRIVATE TorqueGeneratedExportedMacrosAssembler {
   TNode<Smi> LoadJSPromiseFlags(TNode<JSPromise> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-promise.tq?l=35&c=3
   void StoreJSPromiseFlags(TNode<JSPromise> p_o, TNode<Smi> p_v);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
-  TNode<Int32T> LoadJSFunctionDispatchHandle(TNode<JSFunction> p_o);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
-  void StoreJSFunctionDispatchHandle(TNode<JSFunction> p_o, TNode<Int32T> p_v);
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=33&c=33
+  TNode<TrustedPointerT> LoadJSFunctionCode(TNode<JSFunction> p_o);
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=33&c=33
+  void StoreJSFunctionCode(TNode<JSFunction> p_o, TNode<TrustedPointerT> p_v);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=35&c=3
   TNode<SharedFunctionInfo> LoadJSFunctionSharedFunctionInfo(TNode<JSFunction> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=35&c=3
@@ -949,10 +949,6 @@ class V8_EXPORT_PRIVATE TorqueGeneratedExportedMacrosAssembler {
   TNode<MaybeObject> LoadWeakArrayListObjects(TNode<WeakArrayList> p_o, TNode<IntPtrT> p_i);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/fixed-array.tq?l=72&c=36
   void StoreWeakArrayListObjects(TNode<WeakArrayList> p_o, TNode<IntPtrT> p_i, TNode<MaybeObject> p_v);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=12&c=26
-  TNode<TrustedPointerT> LoadExposedTrustedObjectSelfIndirectPointer(TNode<ExposedTrustedObject> p_o);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/trusted-object.tq?l=12&c=26
-  void StoreExposedTrustedObjectSelfIndirectPointer(TNode<ExposedTrustedObject> p_o, TNode<TrustedPointerT> p_v);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/bytecode-array.tq?l=9&c=9
   TNode<Smi> LoadBytecodeArrayLength(TNode<BytecodeArray> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/bytecode-array.tq?l=10&c=3
@@ -1221,10 +1217,6 @@ class V8_EXPORT_PRIVATE TorqueGeneratedExportedMacrosAssembler {
   TNode<HeapObject> LoadFeedbackCellValue(TNode<FeedbackCell> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=6&c=3
   void StoreFeedbackCellValue(TNode<FeedbackCell> p_o, TNode<HeapObject> p_v);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
-  TNode<Int32T> LoadFeedbackCellDispatchHandle(TNode<FeedbackCell> p_o);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=7&c=30
-  void StoreFeedbackCellDispatchHandle(TNode<FeedbackCell> p_o, TNode<Int32T> p_v);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=8&c=3
   TNode<Int32T> LoadFeedbackCellInterruptBudget(TNode<FeedbackCell> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-cell.tq?l=8&c=3
@@ -1267,6 +1259,10 @@ class V8_EXPORT_PRIVATE TorqueGeneratedExportedMacrosAssembler {
   TNode<FeedbackCell> LoadFeedbackVectorParentFeedbackCell(TNode<FeedbackVector> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=54&c=3
   void StoreFeedbackVectorParentFeedbackCell(TNode<FeedbackVector> p_o, TNode<FeedbackCell> p_v);
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
+  TNode<MaybeObject> LoadFeedbackVectorMaybeOptimizedCode(TNode<FeedbackVector> p_o);
+  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
+  void StoreFeedbackVectorMaybeOptimizedCode(TNode<FeedbackVector> p_o, TNode<MaybeObject> p_v);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=56&c=36
   TorqueStructSlice_MaybeObject_MutableReference_MaybeObject_0 FieldSliceFeedbackVectorRawFeedbackSlots(TNode<FeedbackVector> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=56&c=36
@@ -3215,10 +3211,6 @@ class V8_EXPORT_PRIVATE TorqueGeneratedExportedMacrosAssembler {
   TNode<RawPtrT> LoadWasmInternalFunctionCallTarget(TNode<WasmInternalFunction> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=93&c=3
   void StoreWasmInternalFunctionCallTarget(TNode<WasmInternalFunction> p_o, TNode<RawPtrT> p_v);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-  TNode<UintPtrT> LoadWasmInternalFunctionSignatureHash(TNode<WasmInternalFunction> p_o);
-  // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-  void StoreWasmInternalFunctionSignatureHash(TNode<WasmInternalFunction> p_o, TNode<UintPtrT> p_v);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=120&c=3
   TNode<TrustedPointerT> LoadWasmFunctionDataWrapperCode(TNode<WasmFunctionData> p_o);
   // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=120&c=3

@@ -226,8 +226,8 @@ TNode<JSFunction> Cast_JSFunction_0(compiler::CodeAssemblerState* state_, TNode<
   return TNode<JSFunction>{tmp0};
 }
 
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
-TNode<Int32T> LoadJSFunctionDispatchHandle_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o) {
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=33&c=33
+TNode<TrustedPointerT> LoadJSFunctionCode_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o) {
   compiler::CodeAssembler ca_(state_);
   compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
@@ -235,20 +235,20 @@ TNode<Int32T> LoadJSFunctionDispatchHandle_0(compiler::CodeAssemblerState* state
     ca_.Goto(&block0);
 
   TNode<IntPtrT> tmp0;
-  TNode<Int32T> tmp1;
+  TNode<TrustedPointerT> tmp1;
   if (block0.is_used()) {
     ca_.Bind(&block0);
     tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
-    tmp1 = CodeStubAssembler(state_).LoadReference<Int32T>(CodeStubAssembler::Reference{p_o, tmp0});
+    tmp1 = CodeStubAssembler(state_).LoadReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0});
     ca_.Goto(&block2);
   }
 
     ca_.Bind(&block2);
-  return TNode<Int32T>{tmp1};
+  return TNode<TrustedPointerT>{tmp1};
 }
 
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=34&c=30
-void StoreJSFunctionDispatchHandle_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o, TNode<Int32T> p_v) {
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/js-function.tq?l=33&c=33
+void StoreJSFunctionCode_0(compiler::CodeAssemblerState* state_, TNode<JSFunction> p_o, TNode<TrustedPointerT> p_v) {
   compiler::CodeAssembler ca_(state_);
   compiler::CodeAssembler::SourcePositionScope pos_scope(&ca_);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
@@ -259,7 +259,7 @@ void StoreJSFunctionDispatchHandle_0(compiler::CodeAssemblerState* state_, TNode
   if (block0.is_used()) {
     ca_.Bind(&block0);
     tmp0 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
-    CodeStubAssembler(state_).StoreReference<Int32T>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
+    CodeStubAssembler(state_).StoreReference<TrustedPointerT>(CodeStubAssembler::Reference{p_o, tmp0}, p_v);
     ca_.Goto(&block2);
   }
 

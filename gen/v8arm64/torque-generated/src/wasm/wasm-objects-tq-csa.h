@@ -209,12 +209,6 @@ TNode<RawPtrT> LoadWasmInternalFunctionCallTarget_0(compiler::CodeAssemblerState
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=93&c=3
 void StoreWasmInternalFunctionCallTarget_0(compiler::CodeAssemblerState* state_, TNode<WasmInternalFunction> p_o, TNode<RawPtrT> p_v);
 
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-TNode<UintPtrT> LoadWasmInternalFunctionSignatureHash_0(compiler::CodeAssemblerState* state_, TNode<WasmInternalFunction> p_o);
-
-// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=101&c=26
-void StoreWasmInternalFunctionSignatureHash_0(compiler::CodeAssemblerState* state_, TNode<WasmInternalFunction> p_o, TNode<UintPtrT> p_v);
-
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/wasm/wasm-objects.tq?l=120&c=3
 TNode<TrustedPointerT> LoadWasmFunctionDataWrapperCode_0(compiler::CodeAssemblerState* state_, TNode<WasmFunctionData> p_o);
 

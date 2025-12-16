@@ -297,7 +297,7 @@ TF_BUILTIN(WasmFuncRefToJS, CodeStubAssembler) {
   if (block4.is_used()) {
     ca_.Bind(&block4);
     tmp2 = CodeStubAssembler(state_).LoadWasmInternalFunctionFromFuncRef(TNode<WasmFuncRef>{ca_.UncheckedCast<WasmFuncRef>(parameter1)});
-    tmp3 = FromConstexpr_intptr_constexpr_int31_0(state_, 12);
+    tmp3 = FromConstexpr_intptr_constexpr_int31_0(state_, 8);
     tmp4 = CodeStubAssembler(state_).LoadReference<HeapObject>(CodeStubAssembler::Reference{tmp2, tmp3});
     tmp5 = Undefined_0(state_);
     tmp6 = CodeStubAssembler(state_).TaggedNotEqual(TNode<Object>{tmp4}, TNode<HeapObject>{tmp5});
@@ -3133,42 +3133,22 @@ TF_BUILTIN(CallRefIC, CodeStubAssembler) {
   TNode<WasmFuncRef> parameter3 = UncheckedParameter<WasmFuncRef>(Descriptor::kFuncref);
   USE(parameter3);
   compiler::CodeAssemblerParameterizedLabel<> block0(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
-  compiler::CodeAssemblerParameterizedLabel<> block10(&ca_, compiler::CodeAssemblerLabel::kDeferred);
-  compiler::CodeAssemblerParameterizedLabel<> block11(&ca_, compiler::CodeAssemblerLabel::kNonDeferred);
     ca_.Goto(&block0);
 
   TNode<IntPtrT> tmp0;
   TNode<WasmInternalFunction> tmp1;
   TNode<IntPtrT> tmp2;
-  TNode<UintPtrT> tmp3;
-  TNode<BoolT> tmp4;
+  TNode<RawPtrT> tmp3;
+  TNode<TrustedObject> tmp4;
   if (block0.is_used()) {
     ca_.Bind(&block0);
     tmp0 = Convert_intptr_int32_0(state_, TNode<Int32T>{parameter1});
     UpdateCallRefOrIndirectIC_0(state_, TNode<FixedArray>{parameter0}, TNode<IntPtrT>{tmp0}, TNode<Object>{parameter3});
     tmp1 = CodeStubAssembler(state_).LoadWasmInternalFunctionFromFuncRef(TNode<WasmFuncRef>{parameter3});
-    tmp2 = FromConstexpr_intptr_constexpr_int31_0(state_, 28);
-    tmp3 = CodeStubAssembler(state_).LoadReference<UintPtrT>(CodeStubAssembler::Reference{tmp1, tmp2});
-    tmp4 = CodeStubAssembler(state_).WordNotEqual(TNode<UintPtrT>{parameter2}, TNode<UintPtrT>{tmp3});
-    ca_.Branch(tmp4, &block10, std::vector<compiler::Node*>{}, &block11, std::vector<compiler::Node*>{});
-  }
-
-  TNode<Smi> tmp5;
-  if (block10.is_used()) {
-    ca_.Bind(&block10);
-    tmp5 = WasmBuiltinsAssembler(state_).SignatureCheckFail(TNode<WasmInternalFunction>{tmp1}, TNode<UintPtrT>{parameter2});
-    ca_.Goto(&block11);
-  }
-
-  TNode<IntPtrT> tmp6;
-  TNode<RawPtrT> tmp7;
-  TNode<TrustedObject> tmp8;
-  if (block11.is_used()) {
-    ca_.Bind(&block11);
-    tmp6 = FromConstexpr_intptr_constexpr_int31_0(state_, 20);
-    tmp7 = CodeStubAssembler(state_).LoadReference<RawPtrT>(CodeStubAssembler::Reference{tmp1, tmp6});
-    tmp8 = CodeStubAssembler(state_).LoadImplicitArgFromWasmInternalFunction(TNode<WasmInternalFunction>{tmp1});
-    CodeStubAssembler(state_).Return(tmp7, tmp8);
+    tmp2 = FromConstexpr_intptr_constexpr_int31_0(state_, 16);
+    tmp3 = CodeStubAssembler(state_).LoadReference<RawPtrT>(CodeStubAssembler::Reference{tmp1, tmp2});
+    tmp4 = CodeStubAssembler(state_).LoadImplicitArgFromWasmInternalFunction(TNode<WasmInternalFunction>{tmp1});
+    CodeStubAssembler(state_).Return(tmp3, tmp4);
   }
 }
 

@@ -35,7 +35,7 @@ std::tuple<Tagged<Union<HeapObject, TaggedIndex>>, intptr_t, intptr_t> TqRuntime
   tmp0 = TqRuntimeFromConstexpr_intptr_constexpr_int31_0(4);
   tmp1 = (p_o)->ReadField<int32_t>(tmp0);
   tmp2 = TqRuntimeConvert_intptr_int32_0(tmp1);
-  tmp3 = TqRuntimeFromConstexpr_intptr_constexpr_IntegerLiteral_0(IntegerLiteral(false, 0x1cull));
+  tmp3 = TqRuntimeFromConstexpr_intptr_constexpr_IntegerLiteral_0(IntegerLiteral(false, 0x20ull));
   std::tie(tmp4, tmp5, tmp6) = TqRuntimeNewMutableSlice_MaybeObject_0(p_o, tmp3, tmp2);
   goto block2;
 
@@ -268,6 +268,29 @@ void TorqueGeneratedFeedbackVector<D, P>::set_parent_feedback_cell(Tagged<Feedba
   SLOW_DCHECK(IsFeedbackCell(value));
   WRITE_FIELD(*this, kParentFeedbackCellOffset, value);
   CONDITIONAL_WRITE_BARRIER(*this, kParentFeedbackCellOffset, value, mode);
+}
+
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
+template<class D, class P>
+Tagged<MaybeObject> TorqueGeneratedFeedbackVector<D, P>::maybe_optimized_code() const {
+  PtrComprCageBase cage_base = GetPtrComprCageBase(*this);
+  return TorqueGeneratedFeedbackVector::maybe_optimized_code(cage_base);
+}
+
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
+template<class D, class P>
+Tagged<MaybeObject> TorqueGeneratedFeedbackVector<D, P>::maybe_optimized_code(PtrComprCageBase cage_base) const {
+  Tagged<MaybeObject> value = TaggedField<Tagged<MaybeObject>>::load(cage_base, *this, kMaybeOptimizedCodeOffset);
+  DCHECK(value.IsCleared() || (value.IsWeak() && IsCodeWrapper(value.GetHeapObjectOrSmi())));
+  return value;
+}
+
+// https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=55&c=33
+template<class D, class P>
+void TorqueGeneratedFeedbackVector<D, P>::set_maybe_optimized_code(Tagged<MaybeObject> value, WriteBarrierMode mode) {
+  SLOW_DCHECK(value.IsCleared() || (value.IsWeak() && IsCodeWrapper(value.GetHeapObjectOrSmi())));
+  RELAXED_WRITE_WEAK_FIELD(*this, kMaybeOptimizedCodeOffset, value);
+  CONDITIONAL_WRITE_BARRIER(*this, kMaybeOptimizedCodeOffset, value, mode);
 }
 
 // https://source.chromium.org/chromium/chromium/src/+/main:v8/src/objects/feedback-vector.tq?l=56&c=36

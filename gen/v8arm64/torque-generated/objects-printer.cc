@@ -36,7 +36,6 @@ void TorqueGeneratedJSFunction<JSFunction, JSFunctionOrBoundFunctionOrWrappedFun
   this->PrintHeader(os, "JSFunction");
   os << "\n - properties_or_hash: " << Brief(this->JSReceiver::TorqueGeneratedClass::properties_or_hash());
   os << "\n - elements: " << Brief(this->JSObject::TorqueGeneratedClass::elements());
-  os << "\n - dispatch_handle: " << this->dispatch_handle();
   os << "\n - shared_function_info: " << Brief(this->shared_function_info());
   os << "\n - context: " << Brief(this->context());
   os << "\n - feedback_cell: " << Brief(this->feedback_cell());
@@ -415,7 +414,6 @@ template <>
 void TorqueGeneratedFeedbackCell<FeedbackCell, Struct>::FeedbackCellPrint(std::ostream& os) {
   this->PrintHeader(os, "FeedbackCell");
   os << "\n - value: " << Brief(this->value());
-  os << "\n - dispatch_handle: " << this->dispatch_handle();
   os << "\n - interrupt_budget: " << this->interrupt_budget();
   os << '\n';
 }
@@ -431,6 +429,7 @@ void TorqueGeneratedFeedbackVector<FeedbackVector, HeapObject>::FeedbackVectorPr
   os << "\n - shared_function_info: " << Brief(this->shared_function_info());
   os << "\n - closure_feedback_cell_array: " << Brief(this->closure_feedback_cell_array());
   os << "\n - parent_feedback_cell: " << Brief(this->parent_feedback_cell());
+  os << "\n - maybe_optimized_code: " << Brief(this->maybe_optimized_code());
   os << '\n';
 }
 
@@ -1844,7 +1843,6 @@ void TorqueGeneratedWasmInternalFunction<WasmInternalFunction, ExposedTrustedObj
   os << "\n - external: " << Brief(this->external());
   os << "\n - function_index: " << this->function_index();
   os << "\n - call_target: " << this->call_target();
-  os << "\n - signature_hash: " << this->signature_hash();
   os << '\n';
 }
 
