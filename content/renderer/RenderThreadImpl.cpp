@@ -64,7 +64,7 @@
 #endif
 #include "url/url_util.h"
 
-extern unsigned char icudtlData[10464176];
+extern unsigned char icudtlData[10462432];
 extern unsigned char SnapshotBlobBinX86[328619];
 extern unsigned char SnapshotBlobBinX64[327326];
 extern unsigned char SnapshotBlobBinArm64[327314];
