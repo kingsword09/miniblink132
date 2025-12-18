@@ -53,6 +53,7 @@
     <ClCompile Include="..\..\electron\browser\api\WindowList.cpp" />
     <ClCompile Include="..\..\electron\common\api\ApiAsar.cpp" />
     <ClCompile Include="..\..\electron\common\api\ApiClipboard.cpp" />
+    <ClCompile Include="..\..\electron\common\api\ApiFeatures.cpp" />
     <ClCompile Include="..\..\electron\common\api\ApiIntlCollator.cpp" />
     <ClCompile Include="..\..\electron\common\api\ApiNativeImage.cpp" />
     <ClCompile Include="..\..\electron\common\api\ApiOriginalFs.cpp" />

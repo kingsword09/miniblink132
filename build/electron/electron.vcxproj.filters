@@ -270,6 +270,9 @@
     <ClCompile Include="..\..\electron\browser\api\ApiPowerMonitor.cpp">
       <Filter>src\browser\api</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\electron\common\api\ApiFeatures.cpp">
+      <Filter>src\common\api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\electron\browser\api\ApiBrowserView.h">
