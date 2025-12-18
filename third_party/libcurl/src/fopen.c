@@ -38,6 +38,8 @@
 #include "curl_memory.h"
 #include "memdebug.h"
 
+FILE* fopen_wrap(const char* _Filename, const char* _OpenFlag);
+
 /*
  * Curl_fopen() opens a file for writing with a temp name, to be renamed
  * to the final name when completed. If there is an existing file using this
@@ -54,7 +56,7 @@ CURLcode Curl_fopen(struct Curl_easy* data, const char* filename, FILE** fh, cha
     int fd = -1;
     *tempname = NULL;
 
-    *fh = fopen(filename, FOPEN_WRITETEXT);
+    *fh = fopen_wrap(filename, FOPEN_WRITETEXT);
     if (!*fh)
         goto fail;
     if (fstat(fileno(*fh), &sb) == -1 || !S_ISREG(sb.st_mode))

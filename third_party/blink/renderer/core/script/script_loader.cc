@@ -1355,6 +1355,7 @@ void ScriptLoader::AddSpeculationRuleSet(SpeculationRuleSet::Source* source)
     // Set the script’s result to result.
     // If the script’s result is not null, append it to the element’s node
     // document's list of speculation rule sets.
+#if 0
     Document& element_document = element_->GetDocument();
     LocalDOMWindow* context_window = element_document.domWindow();
     if (!context_window) {
@@ -1365,6 +1366,7 @@ void ScriptLoader::AddSpeculationRuleSet(SpeculationRuleSet::Source* source)
     CHECK(speculation_rule_set_);
     DocumentSpeculationRules::From(element_document).AddRuleSet(speculation_rule_set_);
     speculation_rule_set_->AddConsoleMessageForValidation(*element_);
+#endif // 0
 }
 
 SpeculationRuleSet* ScriptLoader::RemoveSpeculationRuleSet()

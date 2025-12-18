@@ -10,6 +10,18 @@
 #include "third_party/icu/source/common/unicode/utf8.h"
 #include "third_party/liburlpattern/utils.h"
 #include "third_party/liburlpattern/constructor_string_parser.h"
+#include "base/strings/stringprintf.h"
+
+namespace absl {
+
+std::string& StrAppendFormat(std::string* dst, const char* format, absl::string_view arg)
+{
+    std::string c_arg(arg.data(), arg.size());
+    base::StringAppendF(dst, format, c_arg.c_str());
+    return *dst;
+}
+
+} // absl
 
 namespace liburlpattern {
 

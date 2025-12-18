@@ -27,6 +27,8 @@
 #include "services/network/public/mojom/early_hints.mojom.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
 
+extern "C" MojoResult MojoSetDebugMojoHandleStr(MojoHandle handle, const std::string & str);
+
 namespace blink {
 
 namespace {
@@ -253,8 +255,11 @@ std::unique_ptr<ThrottlingURLLoader> ThrottlingURLLoader::CreateLoaderAndStart(s
     return loader;
 }
 
+int g_ThrottlingURLLoaderCount = 0;
+
 ThrottlingURLLoader::~ThrottlingURLLoader()
 {
+    g_ThrottlingURLLoaderCount--;
     TRACE_EVENT_WITH_FLOW0("loading", "ThrottlingURLLoader::~ThrottlingURLLoader", TRACE_ID_LOCAL(this), TRACE_EVENT_FLAG_FLOW_IN);
     if (inside_delegate_calls_ > 0) {
         // A throttle is calling into this object. In this case, delay destruction
@@ -367,6 +372,7 @@ ThrottlingURLLoader::ThrottlingURLLoader(std::vector<std::unique_ptr<URLLoaderTh
     , client_receiver_delegate_(std::move(client_receiver_delegate))
     , traffic_annotation_(traffic_annotation)
 {
+    g_ThrottlingURLLoaderCount++;
     TRACE_EVENT_WITH_FLOW0("loading", "ThrottlingURLLoader::ThrottlingURLLoader", TRACE_ID_LOCAL(this), TRACE_EVENT_FLAG_FLOW_OUT);
     throttles_.reserve(throttles.size());
     for (auto& throttle : throttles)
@@ -484,9 +490,24 @@ void ThrottlingURLLoader::StartNow()
         base::UmaHistogramBoolean("FetchKeepAlive.Renderer.Total.Started", true);
     }
     DCHECK(start_info_->url_loader_factory);
+    //
     start_info_->url_loader_factory->CreateLoaderAndStart(url_loader_.BindNewPipeAndPassReceiver(start_info_->task_runner), start_info_->request_id,
         start_info_->options, start_info_->url_request, client_receiver_.BindNewPipeAndPassRemote(start_info_->task_runner),
         net::MutableNetworkTrafficAnnotationTag(traffic_annotation_));
+
+//     mojo::PendingReceiver<network::mojom::URLLoader> xx = url_loader_.BindNewPipeAndPassReceiver(start_info_->task_runner);
+//     mojo::PendingRemote<network::mojom::URLLoaderClient> yy = client_receiver_.BindNewPipeAndPassRemote(start_info_->task_runner);
+// 
+//     mojo::internal::PendingReceiverState* state = xx.internal_state();
+//     MojoSetDebugMojoHandleStr(state->pipe.get().value(), "ThrottlingURLLoader::StartNow URLLoader");
+// 
+//     mojo::internal::PendingRemoteState* remote_state = yy.internal_state();
+//     MojoSetDebugMojoHandleStr(remote_state->pipe.get().value(), "ThrottlingURLLoader::StartNow URLLoaderClient");
+    /////
+
+//     start_info_->url_loader_factory->CreateLoaderAndStart(std::move(xx), start_info_->request_id,
+//         start_info_->options, start_info_->url_request, std::move(yy),
+//         net::MutableNetworkTrafficAnnotationTag(traffic_annotation_));
 
     // TODO(https://crbug.com/919736): Remove this call.
     client_receiver_.internal_state()->EnableBatchDispatch();

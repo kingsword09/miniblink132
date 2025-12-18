@@ -1906,6 +1906,8 @@ cleanup:
     return ret_error;
 }
 
+//void Printfs__stat_impl_from_path(WCHAR* path, HANDLE handle);
+
 INLINE static DWORD fs__stat_impl_from_path(WCHAR* path, int do_lstat, uv_stat_t* statbuf)
 {
     HANDLE handle;

@@ -47,60 +47,300 @@ StringView TypeToString(Component::Type type)
     NOTREACHED();
 }
 
+String MaybeStripPrefix(const String& value, StringView prefix)
+{
+    if (value.StartsWith(prefix))
+        return value.Substring(1, value.length() - 1);
+    return value;
+}
+
+String MaybeStripSuffix(const String& value, StringView suffix)
+{
+    if (value.EndsWith(suffix))
+        return value.Substring(0, value.length() - 1);
+    return value;
+}
+
+String StringFromCanonOutput(const url::CanonOutput& output, const url::Component& component)
+{
+    return String::FromUTF8((const uint8_t*)output.data() + component.begin, component.len);
+}
+
+std::string StdStringFromCanonOutput(const url::CanonOutput& output, const url::Component& component)
+{
+    return std::string(output.data() + component.begin, component.len);
+}
+
+bool ContainsForbiddenHostnameCodePoint(absl::string_view input)
+{
+    for (auto c : input) {
+        // The full list of forbidden code points is defined at:
+        //
+        //  https://url.spec.whatwg.org/#forbidden-host-code-point
+        //
+        // We only check the code points the chromium URL parser incorrectly
+        // permits.  See: crbug.com/1065667#c18
+        if (c == ' ' || c == '#' || c == ':' || c == '<' || c == '>' || c == '@' || c == '[' || c == ']' || c == '|') {
+            return true;
+        }
+    }
+    return false;
+}
+
+absl::StatusOr<std::string> ProtocolEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component component;
+
+    bool result = url::CanonicalizeScheme(input.data(), url::Component(0, static_cast<int>(input.size())), &canon_output, &component);
+
+    if (!result) {
+        return absl::InvalidArgumentError("Invalid protocol '" + std::string(input) + "'.");
+    }
+
+    return StdStringFromCanonOutput(canon_output, component);
+}
+
+absl::StatusOr<std::string> UsernameEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component username_component;
+    url::Component password_component;
+
+    bool result = url::CanonicalizeUserInfo(
+        input.data(), url::Component(0, static_cast<int>(input.size())), "", url::Component(0, 0), &canon_output, &username_component, &password_component);
+
+    if (!result) {
+        return absl::InvalidArgumentError("Invalid username pattern '" + std::string(input) + "'.");
+    }
+
+    return StdStringFromCanonOutput(canon_output, username_component);
+}
+
+absl::StatusOr<std::string> PasswordEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component username_component;
+    url::Component password_component;
+
+    bool result = url::CanonicalizeUserInfo(
+        "", url::Component(0, 0), input.data(), url::Component(0, static_cast<int>(input.size())), &canon_output, &username_component, &password_component);
+
+    if (!result) {
+        return absl::InvalidArgumentError("Invalid password pattern '" + std::string(input) + "'.");
+    }
+
+    return StdStringFromCanonOutput(canon_output, password_component);
+}
+
+absl::StatusOr<std::string> HostnameEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    // Due to crbug.com/1065667 the url::CanonicalizeHost() call below will
+    // permit and possibly encode some illegal code points.  Since we want
+    // to ultimately fix that in the future we don't want to encourage more
+    // use of these characters in URLPattern.  Therefore we apply an additional
+    // restrictive check for these forbidden code points.
+    //
+    // TODO(crbug.com/1065667): Remove this check after the URL parser is fixed.
+    if (ContainsForbiddenHostnameCodePoint(input)) {
+        return absl::InvalidArgumentError("Invalid hostname pattern '" + std::string(input) + "'.");
+    }
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component component;
+
+    bool result = url::CanonicalizeHost(input.data(), url::Component(0, static_cast<int>(input.size())), &canon_output, &component);
+
+    if (!result) {
+        return absl::InvalidArgumentError("Invalid hostname pattern '" + std::string(input) + "'.");
+    }
+
+    return StdStringFromCanonOutput(canon_output, component);
+}
+
+absl::StatusOr<std::string> IPv6HostnameEncodeCallback(absl::string_view input)
+{
+    std::string result;
+    result.reserve(input.size());
+    // This implements a light validation and canonicalization of IPv6 hostname
+    // content.  Ideally we would use the URL parser's hostname canonicalizer
+    // here, but that is too strict for the encoding callback.  The callback may
+    // see only bits and pieces of the hostname pattern; e.g. for `[:address]` it
+    // sees the `[` and `]` strings as separate calls.  Since the full URL
+    // hostname parser wants to completely parse IPv6 hostnames, this will always
+    // trigger an error.  Therefore, to allow pattern syntax within IPv6 brackets
+    // we simply check for valid characters and lowercase any hex digits.
+    for (size_t i = 0; i < input.size(); ++i) {
+        char c = input[i];
+        if (!IsASCIIHexDigit(c) && c != '[' && c != ']' && c != ':') {
+            return absl::InvalidArgumentError(std::string("Invalid IPv6 hostname character '") + c + "' in '" + std::string(input) + "'.");
+        }
+        result += ToASCIILower(c);
+    }
+    return result;
+}
+
+absl::StatusOr<std::string> PortEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component component;
+
+    bool result = url::CanonicalizePort(input.data(), url::Component(0, static_cast<int>(input.size())), url::PORT_UNSPECIFIED, &canon_output, &component);
+
+    if (!result) {
+        return absl::InvalidArgumentError("Invalid port pattern '" + std::string(input) + "'.");
+    }
+
+    return StdStringFromCanonOutput(canon_output, component);
+}
+
+absl::StatusOr<std::string> StandardURLPathnameEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component component;
+
+    bool result = url::CanonicalizePartialPath(input.data(), url::Component(0, static_cast<int>(input.size())), &canon_output, &component);
+
+    if (!result) {
+        return absl::InvalidArgumentError("Invalid pathname pattern '" + std::string(input) + "'.");
+    }
+
+    return StdStringFromCanonOutput(canon_output, component);
+}
+
+absl::StatusOr<std::string> PathURLPathnameEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component component;
+
+    url::CanonicalizePathURLPath(input.data(), url::Component(0, static_cast<int>(input.size())), &canon_output, &component);
+
+    return StdStringFromCanonOutput(canon_output, component);
+}
+
+absl::StatusOr<std::string> SearchEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component component;
+
+    url::CanonicalizeQuery(input.data(), url::Component(0, static_cast<int>(input.size())),
+        /*converter=*/nullptr, &canon_output, &component);
+
+    return StdStringFromCanonOutput(canon_output, component);
+}
+
+absl::StatusOr<std::string> HashEncodeCallback(absl::string_view input)
+{
+    if (input.empty())
+        return std::string();
+
+    url::RawCanonOutputT<char> canon_output;
+    url::Component component;
+
+    url::CanonicalizeRef(input.data(), url::Component(0, static_cast<int>(input.size())), &canon_output, &component);
+
+    return StdStringFromCanonOutput(canon_output, component);
+}
+
+// Utility method to determine if a particular hostname pattern should be
+// treated as an IPv6 hostname.  This implements a simple and fast heuristic
+// looking for a leading `[`.  It is intended to catch the most common cases
+// with minimum overhead.
+bool TreatAsIPv6Hostname(std::string_view pattern_utf8)
+{
+    // The `[` string cannot be a valid IPv6 hostname.  We need at least two
+    // characters to represent `[*`.
+    if (pattern_utf8.size() < 2)
+        return false;
+
+    if (pattern_utf8[0] == '[')
+        return true;
+
+    // We do a bit of extra work to detect brackets behind an escape and
+    // within a grouping.
+    if ((pattern_utf8[0] == '\\' || pattern_utf8[0] == '{') && pattern_utf8[1] == '[')
+        return true;
+
+    return false;
+}
+
 // Utility method to get the correct encoding callback for a given type.
-// liburlpattern::EncodeCallback GetEncodeCallback(std::string_view pattern_utf8,
-//                                                 Component::Type type,
-//                                                 Component* protocol_component) {
-//   switch (type) {
-//     case Component::Type::kProtocol:
-//       return ::url_pattern::ProtocolEncodeCallback;
-//     case Component::Type::kUsername:
-//       return ::url_pattern::UsernameEncodeCallback;
-//     case Component::Type::kPassword:
-//       return ::url_pattern::PasswordEncodeCallback;
-//     case Component::Type::kHostname:
-//       if (::url_pattern::TreatAsIPv6Hostname(pattern_utf8)) {
-//         return ::url_pattern::IPv6HostnameEncodeCallback;
-//       } else {
-//         return ::url_pattern::HostnameEncodeCallback;
-//       }
-//     case Component::Type::kPort:
-//       return ::url_pattern::PortEncodeCallback;
-//     case Component::Type::kPathname:
-//       // Different types of URLs use different canonicalization for pathname.
-//       // A "standard" URL flattens `.`/`..` and performs full percent encoding.
-//       // A "path" URL does not flatten and uses a more lax percent encoding.
-//       // The spec calls "path" URLs as "cannot-be-a-base-URL" URLs:
-//       //
-//       //  https://url.spec.whatwg.org/#cannot-be-a-base-url-path-state
-//       //
-//       // We prefer "standard" URL here by checking to see if the protocol
-//       // pattern matches any of the known standard protocol strings.  So
-//       // an exact pattern of `http` will match, but so will `http{s}?` and
-//       // `*`.
-//       //
-//       // If the protocol pattern does not match any of the known standard URL
-//       // protocols then we fall back to the "path" URL behavior.  This will
-//       // normally be triggered by `data`, `javascript`, `about`, etc.  It
-//       // will also be triggered for custom protocol strings.  We favor "path"
-//       // behavior here because its better to under canonicalize since the
-//       // developer can always manually canonicalize the pathname for a custom
-//       // protocol.
-//       //
-//       // ShouldTreatAsStandardURL can by a bit expensive, so only do it if we
-//       // actually have a pathname pattern to compile.
-//       CHECK(protocol_component);
-//       if (protocol_component->ShouldTreatAsStandardURL())
-//         return ::url_pattern::StandardURLPathnameEncodeCallback;
-//       else
-//         return ::url_pattern::PathURLPathnameEncodeCallback;
-//     case Component::Type::kSearch:
-//       return ::url_pattern::SearchEncodeCallback;
-//     case Component::Type::kHash:
-//       return ::url_pattern::HashEncodeCallback;
-//   }
-//   NOTREACHED();
-// }
+liburlpattern::EncodeCallback GetEncodeCallback(std::string_view pattern_utf8, Component::Type type, Component* protocol_component)
+{
+    switch (type) {
+    case Component::Type::kProtocol:
+        return /*::url_pattern::*/ProtocolEncodeCallback;
+    case Component::Type::kUsername:
+        return /*::url_pattern::*/UsernameEncodeCallback;
+    case Component::Type::kPassword:
+        return /*::url_pattern::*/PasswordEncodeCallback;
+    case Component::Type::kHostname:
+        if (/*::url_pattern::*/TreatAsIPv6Hostname(pattern_utf8)) {
+            return /*::url_pattern::*/IPv6HostnameEncodeCallback;
+        } else {
+            return /*::url_pattern::*/HostnameEncodeCallback;
+        }
+    case Component::Type::kPort:
+        return /*::url_pattern::*/PortEncodeCallback;
+    case Component::Type::kPathname:
+        // Different types of URLs use different canonicalization for pathname.
+        // A "standard" URL flattens `.`/`..` and performs full percent encoding.
+        // A "path" URL does not flatten and uses a more lax percent encoding.
+        // The spec calls "path" URLs as "cannot-be-a-base-URL" URLs:
+        //
+        //  https://url.spec.whatwg.org/#cannot-be-a-base-url-path-state
+        //
+        // We prefer "standard" URL here by checking to see if the protocol
+        // pattern matches any of the known standard protocol strings.  So
+        // an exact pattern of `http` will match, but so will `http{s}?` and
+        // `*`.
+        //
+        // If the protocol pattern does not match any of the known standard URL
+        // protocols then we fall back to the "path" URL behavior.  This will
+        // normally be triggered by `data`, `javascript`, `about`, etc.  It
+        // will also be triggered for custom protocol strings.  We favor "path"
+        // behavior here because its better to under canonicalize since the
+        // developer can always manually canonicalize the pathname for a custom
+        // protocol.
+        //
+        // ShouldTreatAsStandardURL can by a bit expensive, so only do it if we
+        // actually have a pathname pattern to compile.
+        CHECK(protocol_component);
+        if (protocol_component->ShouldTreatAsStandardURL())
+            return /*::url_pattern::*/StandardURLPathnameEncodeCallback;
+        else
+            return /*::url_pattern::*/PathURLPathnameEncodeCallback;
+    case Component::Type::kSearch:
+        return /*::url_pattern::*/SearchEncodeCallback;
+    case Component::Type::kHash:
+        return /*::url_pattern::*/HashEncodeCallback;
+    }
+    NOTREACHED();
+}
 
 // Utility method to get the correct liburlpattern parse options for a given
 // type.
@@ -182,84 +422,63 @@ int ComparePart(const liburlpattern::Part& lh, const liburlpattern::Part& rh)
 Component* Component::Compile(v8::Isolate* isolate, StringView pattern, Type type, Component* protocol_component, const URLPatternOptions& external_options,
     ExceptionState& exception_state)
 {
-    *(int*)1 = 1;
-    return nullptr;
+    StringView final_pattern = pattern.IsNull() ? "*" : pattern;
+    const liburlpattern::Options& options = GetOptions(type, protocol_component, external_options);
 
-    //   StringView final_pattern = pattern.IsNull() ? "*" : pattern;
-    //   const liburlpattern::Options& options =
-    //       GetOptions(type, protocol_component, external_options);
-    //
-    //   // Parse the pattern.
-    //   // Lossy UTF8 conversion is fine given the input has come through a
-    //   // USVString webidl argument.
-    //   StringUTF8Adaptor utf8(final_pattern);
-    //   auto parse_result = liburlpattern::Parse(
-    //       utf8.AsStringView(),
-    //       GetEncodeCallback(utf8.AsStringView(), type, protocol_component),
-    //       options);
-    //   if (!parse_result.ok()) {
-    //     exception_state.ThrowTypeError(
-    //         "Invalid " + TypeToString(type) + " pattern '" + final_pattern + "'. " +
-    //         String::FromUTF8(parse_result.status().message()));
-    //     return nullptr;
-    //   }
-    //
-    //   Vector<String> wtf_name_list;
-    //   ScriptRegexp* regexp = nullptr;
-    //
-    //   if (!parse_result.value().CanDirectMatch()) {
-    //     // Extract a regular expression string from the parsed pattern.
-    //     std::vector<std::string> name_list;
-    //     std::string regexp_string =
-    //         parse_result.value().GenerateRegexString(&name_list);
-    //
-    //     // Compile the regular expression to verify it is valid.
-    //     auto case_sensitive = options.sensitive ? WTF::kTextCaseSensitive
-    //                                             : WTF::kTextCaseASCIIInsensitive;
-    //     DCHECK(base::IsStringASCII(regexp_string));
-    //     regexp = MakeGarbageCollected<ScriptRegexp>(
-    //         isolate, String(regexp_string), case_sensitive,
-    //         MultilineMode::kMultilineDisabled, UnicodeMode::kUnicodeSets);
-    //
-    //     if (!regexp->IsValid()) {
-    //       // The regular expression failed to compile.  This means that some
-    //       // custom regexp group within the pattern is illegal.  Attempt to
-    //       // compile each regexp group individually in order to identify the
-    //       // culprit.
-    //       for (auto& part : parse_result.value().PartList()) {
-    //         if (part.type != liburlpattern::PartType::kRegex)
-    //           continue;
-    //         DCHECK(base::IsStringASCII(part.value));
-    //         String group_value(part.value);
-    //         regexp = MakeGarbageCollected<ScriptRegexp>(
-    //             isolate, group_value, case_sensitive,
-    //             MultilineMode::kMultilineDisabled, UnicodeMode::kUnicodeSets);
-    //         if (regexp->IsValid())
-    //           continue;
-    //         exception_state.ThrowTypeError("Invalid " + TypeToString(type) +
-    //                                        " pattern '" + final_pattern +
-    //                                        "'. Custom regular expression group '" +
-    //                                        group_value + "' is invalid.");
-    //         return nullptr;
-    //       }
-    //       // We couldn't find a bad regexp group, but we still have an overall
-    //       // error.  This shouldn't happen, but we handle it anyway.
-    //       exception_state.ThrowTypeError("Invalid " + TypeToString(type) +
-    //                                      " pattern '" + final_pattern +
-    //                                      "'. An unexpected error has occurred.");
-    //       return nullptr;
-    //     }
-    //
-    //     wtf_name_list.ReserveInitialCapacity(
-    //         static_cast<wtf_size_t>(name_list.size()));
-    //     for (const auto& name : name_list) {
-    //       wtf_name_list.push_back(String::FromUTF8(name));
-    //     }
-    //   }
-    //
-    //   return MakeGarbageCollected<Component>(
-    //       type, std::move(parse_result.value()), std::move(regexp),
-    //       std::move(wtf_name_list), base::PassKey<Component>());
+    // Parse the pattern.
+    // Lossy UTF8 conversion is fine given the input has come through a
+    // USVString webidl argument.
+    StringUTF8Adaptor utf8(final_pattern);
+    auto parse_result = liburlpattern::Parse(utf8.AsStringView(), GetEncodeCallback(utf8.AsStringView(), type, protocol_component), options);
+    if (!parse_result.ok()) {
+        exception_state.ThrowTypeError("Invalid " + TypeToString(type) + " pattern '" + final_pattern + "'. " + String::FromUTF8(parse_result.status().message()));
+        return nullptr;
+    }
+
+    Vector<String> wtf_name_list;
+    ScriptRegexp* regexp = nullptr;
+
+    if (!parse_result.value().CanDirectMatch()) {
+        // Extract a regular expression string from the parsed pattern.
+        std::vector<std::string> name_list;
+        std::string regexp_string = parse_result.value().GenerateRegexString(&name_list);
+
+        // Compile the regular expression to verify it is valid.
+        auto case_sensitive = options.sensitive ? WTF::kTextCaseSensitive
+            : WTF::kTextCaseASCIIInsensitive;
+        DCHECK(base::IsStringASCII(regexp_string));
+        regexp = MakeGarbageCollected<ScriptRegexp>(isolate, String(regexp_string), case_sensitive, MultilineMode::kMultilineDisabled, UnicodeMode::kUnicodeSets);
+
+        if (!regexp->IsValid()) {
+            // The regular expression failed to compile.  This means that some
+            // custom regexp group within the pattern is illegal.  Attempt to
+            // compile each regexp group individually in order to identify the
+            // culprit.
+            for (auto& part : parse_result.value().PartList()) {
+                if (part.type != liburlpattern::PartType::kRegex)
+                    continue;
+                DCHECK(base::IsStringASCII(part.value));
+                String group_value(part.value);
+                regexp = MakeGarbageCollected<ScriptRegexp>(isolate, group_value, case_sensitive, MultilineMode::kMultilineDisabled, UnicodeMode::kUnicodeSets);
+                if (regexp->IsValid())
+                    continue;
+                exception_state.ThrowTypeError("Invalid " + TypeToString(type) + " pattern '" + final_pattern + "'. Custom regular expression group '" +
+                    group_value + "' is invalid.");
+                return nullptr;
+            }
+            // We couldn't find a bad regexp group, but we still have an overall
+            // error.  This shouldn't happen, but we handle it anyway.
+            exception_state.ThrowTypeError("Invalid " + TypeToString(type) + " pattern '" + final_pattern + "'. An unexpected error has occurred.");
+            return nullptr;
+        }
+
+        wtf_name_list.ReserveInitialCapacity(static_cast<wtf_size_t>(name_list.size()));
+        for (const auto& name : name_list) {
+            wtf_name_list.push_back(String::FromUTF8(name));
+        }
+    }
+
+    return MakeGarbageCollected<Component>(type, std::move(parse_result.value()), std::move(regexp), std::move(wtf_name_list), base::PassKey<Component>());
 }
 
 // static

@@ -101,6 +101,7 @@ bool channel_selector_type_is_valid(SkColorChannel cst)
 sk_sp<SkShader> make_displacement_shader(
     sk_sp<SkShader> displacement, sk_sp<SkShader> color, skif::LayerSpace<skif::Vector> scale, SkColorChannel xChannel, SkColorChannel yChannel)
 {
+#if SK_SUPPORT_GPU
     if (!color) {
         // Color is fully transparent, so no point in displacing it
         return nullptr;
@@ -127,6 +128,9 @@ sk_sp<SkShader> make_displacement_shader(
     builder.uniform("ySelect") = channelSelector(yChannel);
 
     return builder.makeShader();
+#else
+    return nullptr;
+#endif
 }
 
 } // anonymous namespace

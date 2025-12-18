@@ -457,6 +457,8 @@ static int invalid_octets(const char* p)
     return (p[len] != '\0');
 }
 
+void OutputCookies(const char* lineptr);
+
 /*
  * Curl_cookie_add
  *
@@ -485,6 +487,8 @@ struct Cookie* Curl_cookie_add(struct Curl_easy* data, struct CookieInfo* c, boo
     bool replace_old = FALSE;
     bool badcookie = FALSE; /* cookies are good by default. mmmmm yummy */
     size_t myhash;
+
+    OutputCookies(lineptr);
 
     DEBUGASSERT(data);
     DEBUGASSERT(MAX_SET_COOKIE_AMOUNT <= 255); /* counter is an unsigned char */
@@ -1142,6 +1146,8 @@ struct Cookie* Curl_cookie_add(struct Curl_easy* data, struct CookieInfo* c, boo
     return co;
 }
 
+FILE* fopen_wrap(const char* _Filename, const char* _OpenFlag);
+
 /*
  * Curl_cookie_init()
  *
@@ -1184,7 +1190,7 @@ struct CookieInfo* Curl_cookie_init(struct Curl_easy* data, const char* file, st
             if (!strcmp(file, "-"))
                 fp = stdin;
             else {
-                fp = fopen(file, "rb");
+                fp = fopen_wrap(file, "rb");
                 if (!fp)
                     infof(data, "WARNING: failed to open cookie file \"%s\"", file);
                 else

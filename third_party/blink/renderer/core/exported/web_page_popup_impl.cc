@@ -608,7 +608,8 @@ void WebPagePopupImpl::SetWindowRect(const gfx::Rect& rect_in_screen)
 
     if (!should_defer_setting_window_rect_) {
         widget_base_->SetPendingWindowRect(window_rect);
-        popup_widget_host_->SetPopupBounds(window_rect, WTF::BindOnce(&WebPagePopupImpl::DidSetBounds, WTF::Unretained(this)));
+        if (popup_widget_host_.TryGet())
+            popup_widget_host_->SetPopupBounds(window_rect, WTF::BindOnce(&WebPagePopupImpl::DidSetBounds, WTF::Unretained(this)));
     } else {
         initial_rect_ = window_rect;
     }
@@ -954,7 +955,8 @@ void WebPagePopupImpl::ClosePopup()
         // responding to the browser closing us though. We don't need to do a post
         // task like WebViewImpl::CloseWindowSoon does because we shouldn't be
         // executing javascript influencing this popup widget.
-        popup_widget_host_->RequestClosePopup();
+        if (popup_widget_host_.TryGet())
+            popup_widget_host_->RequestClosePopup();
     }
 
     closing_ = true;

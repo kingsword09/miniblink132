@@ -12,6 +12,7 @@
 #include "third_party/liburlpattern/pattern.h"
 #include "third_party/liburlpattern/tokenize.h"
 #include "third_party/liburlpattern/utils.h"
+#include "base/strings/stringprintf.h"
 
 // The following code is a translation from the path-to-regexp typescript at:
 //
@@ -139,6 +140,13 @@ template <> bool FormatArgImpl::Dispatch<std::string>(FormatArgImpl::Data, Forma
     return false;
 }
 
+template <>
+bool FormatArgImpl::Dispatch<absl::string_view>(FormatArgImpl::Data, FormatConversionSpecImpl, void*)
+{
+    *(int*)1 = 1;
+    return false;
+}
+
 IntegralConvertResult FormatConvertImpl(__int64, FormatConversionSpecImpl, FormatSinkImpl*)
 {
     *(int*)1 = 1;
@@ -241,8 +249,20 @@ std::string& AppendPack(std::string*, UntypedFormatSpecImpl, absl::Span<FormatAr
 }
 
 ABSL_INTERNAL_FORMAT_DISPATCH_OVERLOADS_EXPAND_(extern);
+
+} // str_format_internal 
+
+ABSL_MUST_USE_RESULT std::string StrFormat(const char* format, const std::string& arg)
+{
+    return base::StringPrintf(format, arg.c_str());
 }
+
+ABSL_MUST_USE_RESULT std::string StrFormat(const char* format, int arg)
+{
+    return base::StringPrintf(format, arg);
 }
+
+} // absl
 
 void absl::base_internal::ThrowStdOutOfRange(char const*)
 {
@@ -255,11 +275,6 @@ void absl::base_internal::ThrowStdOutOfRange(char const*)
 //     return stream;
 // }
 // 
-// absl::string_view::size_type absl::string_view::find(char c, absl::string_view::size_type pos) const noexcept
-// {
-//     *(int*)1 = 1;
-//     return 0;
-// }
 
 namespace liburlpattern {
 

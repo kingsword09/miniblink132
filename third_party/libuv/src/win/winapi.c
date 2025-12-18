@@ -122,4 +122,9 @@ void uv__winapi_init(void)
     if (api_win_core_file_module != NULL) {
         pGetFileInformationByName = (sGetFileInformationByName)GetProcAddress(api_win_core_file_module, "GetFileInformationByName");
     }
+    if (pGetFileInformationByName == NULL) {
+        api_win_core_file_module = GetModuleHandleA("kernel32.dll");
+        pGetFileInformationByName = (sGetFileInformationByName)GetProcAddress(api_win_core_file_module, "GetFileInformationByName");
+    }
+
 }

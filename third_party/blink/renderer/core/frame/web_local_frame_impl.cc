@@ -2664,7 +2664,6 @@ void WebLocalFrameImpl::Load(const WebURLRequest& request, WebFrameLoadType fram
     GetFrame()->Loader().StartNavigation(frame_load_request, frame_load_type);
 }
 
-
 void WebLocalFrameImpl::SendOrientationChangeEvent()
 {
     // Speculative fix for https://crbug.com/1143380.
