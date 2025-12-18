@@ -133,6 +133,8 @@
 #include <tuple>
 #include <vector>
 
+int MbFprintf(FILE* const stream, char const* const format, ...);
+
 namespace node {
 
 using v8::Array;
@@ -854,7 +856,7 @@ static ExitCode InitializeNodeWithArgsInternal(
                 break;
             case Dotenv::ParseResult::FileError:
                 if (file_data.is_optional) {
-                    fprintf(stderr, "%s not found. Continuing without it.\n", file_data.path.c_str());
+                    MbFprintf(stderr, "%s not found. Continuing without it.\n", file_data.path.c_str());
                     continue;
                 }
                 errors->push_back(file_data.path + ": not found");
@@ -1294,7 +1296,7 @@ ExitCode GenerateAndWriteSnapshotData(const SnapshotData** snapshot_data_ptr, co
         *snapshot_data_ptr = SnapshotBuilder::GetEmbeddedSnapshotData();
         if (*snapshot_data_ptr == nullptr) {
             // The Node.js binary is built without embedded snapshot
-            fprintf(stderr,
+            MbFprintf(stderr,
                 "node:embedded_snapshot_main was specified as snapshot "
                 "entry point but Node.js was built without embedded "
                 "snapshot.\n");
@@ -1309,7 +1311,7 @@ ExitCode GenerateAndWriteSnapshotData(const SnapshotData** snapshot_data_ptr, co
             builder_script_content = std::string();
             int r = ReadFileSync(&(builder_script_content.value()), builder_script.c_str());
             if (r != 0) {
-                FPrintF(stderr, "Cannot read builder script %s for building snapshot. %s: %s\n", builder_script, uv_err_name(r), uv_strerror(r));
+                MbFprintf(stderr, "Cannot read builder script %s for building snapshot. %s: %s\n", builder_script.c_str(), uv_err_name(r), uv_strerror(r));
                 return ExitCode::kGenericUserError;
             }
         } else {
@@ -1338,7 +1340,7 @@ ExitCode GenerateAndWriteSnapshotData(const SnapshotData** snapshot_data_ptr, co
         (*snapshot_data_ptr)->ToFile(fp);
         fclose(fp);
     } else {
-        fprintf(stderr, "Cannot open %s for writing a snapshot.\n", snapshot_blob_path.c_str());
+        MbFprintf(stderr, "Cannot open %s for writing a snapshot.\n", snapshot_blob_path.c_str());
         exit_code = ExitCode::kStartupSnapshotFailure;
     }
     return exit_code;
@@ -1361,7 +1363,7 @@ bool LoadSnapshotData(const SnapshotData** snapshot_data_ptr)
                 *snapshot_data_ptr = read_data.release();
                 return true;
             } else {
-                fprintf(stderr, "Invalid snapshot data in single executable binary\n");
+                MbFprintf(stderr, "Invalid snapshot data in single executable binary\n");
                 return false;
             }
         }
@@ -1374,7 +1376,7 @@ bool LoadSnapshotData(const SnapshotData** snapshot_data_ptr)
         std::string filename = per_process::cli_options->snapshot_blob;
         FILE* fp = fopen(filename.c_str(), "rb");
         if (fp == nullptr) {
-            fprintf(stderr, "Cannot open %s", filename.c_str());
+            MbFprintf(stderr, "Cannot open %s", filename.c_str());
             return false;
         }
         std::unique_ptr<SnapshotData> read_data = std::make_unique<SnapshotData>();
@@ -1437,14 +1439,14 @@ static ExitCode StartInternal(int argc, char** argv)
 #if !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
         return sea::BuildSingleExecutableBlob(sea_config, result->args(), result->exec_args());
 #else
-        fprintf(stderr, "Single executable application is disabled.\n");
+        MbFprintf(stderr, "Single executable application is disabled.\n");
         return ExitCode::kGenericUserError;
 #endif // !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
     }
     // --build-snapshot indicates that we are in snapshot building mode.
     if (per_process::cli_options->per_isolate->build_snapshot) {
         if (per_process::cli_options->per_isolate->build_snapshot_config.empty() && result->args().size() < 2) {
-            fprintf(stderr,
+            MbFprintf(stderr,
                 "--build-snapshot must be used with an entry point script.\n"
                 "Usage: node --build-snapshot /path/to/entry.js\n");
             return ExitCode::kInvalidCommandLineArgument;

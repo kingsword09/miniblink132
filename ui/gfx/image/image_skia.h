@@ -40,7 +40,7 @@ class TestOnThread;
 // potentially many different densities for high-DPI displays.
 //
 // ImageSkia is cheap to copy and intentionally supports copy semantics.
-class COMPONENT_EXPORT(GFX) ImageSkia {
+class /*COMPONENT_EXPORT(GFX)*/ ImageSkia {
 public:
     typedef std::vector<ImageSkiaRep> ImageSkiaReps;
 

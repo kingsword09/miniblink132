@@ -20,6 +20,10 @@
 #include "inspector/worker_inspector.h" // ParentInspectorHandle
 #endif
 
+namespace atom {
+void bindMbConsoleLog(v8::Local<v8::Context> context);
+}
+
 namespace node {
 using errors::TryCatchScope;
 using v8::Array;
@@ -416,6 +420,8 @@ Environment* CreateEnvironment(IsolateData* isolate_data, Local<Context> context
         }
         SetIsolateErrorHandlers(isolate, {});
     }
+
+    atom::bindMbConsoleLog(context);
 
     Context::Scope context_scope(context);
     env->InitializeMainContext(context, env_snapshot_info);

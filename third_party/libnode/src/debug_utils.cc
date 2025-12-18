@@ -50,6 +50,41 @@
 #include <tchar.h>
 #endif // _WIN32
 
+int MbFprintf(FILE* const stream, char const* const format, ...) {
+    va_list args;
+    int ret;
+
+    va_start(args, format);
+#ifdef _WIN32
+    int bufferSize = vsnprintf(NULL, 0, format, args);
+    if (bufferSize < 0) {
+        va_end(args);
+        return 0;
+    }
+
+    std::vector<char> buffer;
+    buffer.resize(bufferSize + 1);
+    memset(buffer.data(), 0, buffer.size());
+
+    // 将可变参数格式化到缓冲区
+    // 重置可变参数列表（因为第一次 vsnprintf 可能修改了 args 的状态）
+    va_end(args);
+
+    va_start(args, format);
+    vsnprintf(buffer.data(), bufferSize + 1, format, args);
+    va_end(args);
+
+    OutputDebugStringA(buffer.data());
+
+    va_start(args, format);
+#endif // _WIN32
+    ret = vfprintf(stream, format, args);
+
+    va_end(args);
+
+    return ret;
+}
+
 namespace node {
 namespace per_process {
 EnabledDebugList enabled_debug_list;

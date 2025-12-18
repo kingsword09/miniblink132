@@ -27,6 +27,10 @@
 #define NODE_BUILTIN_DEBUG_BINDINGS(V)
 #endif
 
+namespace content {
+void printCallstack();
+}
+
 // A list of built-in bindings. In order to do binding registration
 // in node::Init(), need to add built-in bindings in the following list.
 // Then in binding::RegisterBuiltinBindings(), it calls bindings' registration
@@ -490,6 +494,15 @@ void DLOpen(const FunctionCallbackInfo<Value>& args)
     }
 
     node::Utf8Value filename(env->isolate(), args[1]); // Cast
+    //--
+    std::string temp = "DLOpen:";
+    temp += *filename;
+    temp += "\n";
+    OutputDebugStringA(temp.c_str());
+    //content::printCallstack();
+    //if (std::string::npos != temp.find("conpty.node"))
+    //    content::printCallstack();
+    //--
     env->TryLoadAddon(*filename, flags, [&](DLib* dlib) {
         static Mutex dlib_load_mutex;
         Mutex::ScopedLock lock(dlib_load_mutex);

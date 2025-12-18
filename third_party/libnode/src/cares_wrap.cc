@@ -1366,6 +1366,7 @@ void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, struct addrinfo* res)
 
     HandleScope handle_scope(env->isolate());
     Context::Scope context_scope(env->context());
+    v8::MicrotasksScope microtasks_scope(env->context(), v8::MicrotasksScope::kRunMicrotasks);
 
     Local<Value> argv[] = { Integer::New(env->isolate(), status), Null(env->isolate()) };
 

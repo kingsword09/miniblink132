@@ -45,8 +45,25 @@ void ThreadPoolWork::ScheduleWork()
         [](uv_work_t* req, int status) {
             ThreadPoolWork* self = ContainerOf(&ThreadPoolWork::work_req_, req);
             self->env_->DecreaseWaitingRequestCounter();
+
+            //////////////////////////////////////////////////////////////////////////
+            Environment* env_need_exit_context = nullptr;
+            v8::Isolate* isolate = self->env_->isolate();
+            v8::HandleScope handle_scope(isolate);
+            v8::Local<v8::Context> current_context = isolate->GetCurrentContext();
+            if (self->env_->context() != current_context && current_context.IsEmpty()) {
+                node::Environment* env2 = node::Environment::GetCurrent(isolate);
+                if (env2 != self->env_) {
+                    self->env_->context()->Enter();
+                    env_need_exit_context = self->env_;
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+
             TRACE_EVENT_NESTABLE_ASYNC_END1(TRACING_CATEGORY_NODE2(threadpoolwork, async), self->type_, self, "result", status);
             self->AfterThreadPoolWork(status);
+            if (env_need_exit_context)
+                env_need_exit_context->context();
         });
     CHECK_EQ(status, 0);
 }

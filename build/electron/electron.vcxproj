@@ -37,6 +37,7 @@
     <ClCompile Include="..\..\electron\browser\api\ApiMenu.cpp" />
     <ClCompile Include="..\..\electron\browser\api\ApiMessagePortMain.cpp" />
     <ClCompile Include="..\..\electron\browser\api\ApiParentPort.cpp" />
+    <ClCompile Include="..\..\electron\browser\api\ApiPowerMonitor.cpp" />
     <ClCompile Include="..\..\electron\browser\api\ApiProtocol.cpp" />
     <ClCompile Include="..\..\electron\browser\api\ApiSafestorage.cpp" />
     <ClCompile Include="..\..\electron\browser\api\ApiSession.cpp" />

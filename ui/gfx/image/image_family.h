@@ -25,7 +25,7 @@ class Size;
 // size, with high-DPI bitmap versions; use an Image or ImageSkia for that. Each
 // image in an ImageFamily should have a different logical size (and may also
 // include high-DPI representations).
-class COMPONENT_EXPORT(GFX) ImageFamily {
+class /*COMPONENT_EXPORT(GFX)*/ ImageFamily {
 private:
     // An <aspect ratio, DIP width> pair.
     // A 0x0 image has aspect ratio 1.0. 0xN and Nx0 images are treated as 0x0.

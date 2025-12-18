@@ -144,7 +144,8 @@ void InternalCallbackScope::Close()
 
     Local<Context> context = env_->context();
     if (!tick_info->has_tick_scheduled()) {
-        context->GetMicrotaskQueue()->PerformCheckpoint(isolate);
+        if (context->GetMicrotaskQueue()) // weolar
+            context->GetMicrotaskQueue()->PerformCheckpoint(isolate);
 
         perform_stopping_check();
     }

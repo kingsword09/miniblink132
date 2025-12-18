@@ -56,7 +56,7 @@ class SkBitmap;
 //                 reinterpret_cast<LPARAM>(icon.get()));
 //
 ///////////////////////////////////////////////////////////////////////////////
-class COMPONENT_EXPORT(GFX) IconUtil {
+class /*COMPONENT_EXPORT(GFX)*/ IconUtil {
 public:
     // ATOMIC_WRITE ensures that a partially written icon won't be created even if
     // Chrome crashes part way through, but ATOMIC_WRITE is more expensive than

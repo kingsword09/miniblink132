@@ -84,7 +84,8 @@ public:
     {
         scoped_refptr<base::RefCountedMemory> raw_data = png_rep.raw_data;
         CHECK(raw_data.get());
-        SkBitmap bitmap = PNGCodec::Decode(*raw_data);
+        base::span<const uint8_t> raw_data_span(raw_data->data(), raw_data->size());
+        SkBitmap bitmap = PNGCodec::Decode(raw_data_span);
         if (bitmap.isNull()) {
             LOG(ERROR) << "Unable to decode PNG for " << png_rep.scale << ".";
             return ImageSkiaRep();

@@ -1005,19 +1005,19 @@ static void ExistsSync(const FunctionCallbackInfo<Value>& args)
 }
 
 //--
-static bool CheckMiniElectronAsarResStat(const std::string& path, int* rc)
-{
-    if (path.find(kMiniElectronAsarPrefix) != std::string::npos) {
-        *rc = (path.find(".") != std::string::npos) ? 0 : 1;
-        return true;
-    }
-
-    if (atom::LoadMiniElectronAsarRes(path, nullptr)) {
-        *rc = 0;
-        return true;
-    }
-    return false;
-}
+// static bool CheckMiniElectronAsarResStat(const std::string& path, int* rc)
+// {
+//     if (atom::isMiniElectronAsarResPath(path)/*path.find(kMiniElectronAsarPrefix) != std::string::npos*/) {
+//         *rc = (path.find(".") != std::string::npos) ? 0 : 1;
+//         return true;
+//     }
+// 
+//     if (atom::isMiniElectronAsarResPath(path)) {
+//         *rc = 0;
+//         return true;
+//     }
+//     return false;
+// }
 
 static void MakeFakeUvStat(uv_stat_t* s, bool is_dir)
 {
@@ -1061,7 +1061,7 @@ static void InternalModuleStat(const FunctionCallbackInfo<Value>& args)
     int rc = 0;
     //----
     std::string path_temp = *path;
-    if (CheckMiniElectronAsarResStat(*path, &rc)) {
+    if (atom::checkMiniElectronAsarResStat(*path, &rc, nullptr)) {
         args.GetReturnValue().Set(rc);
         return;
     }
@@ -1166,9 +1166,10 @@ static void LStat(const FunctionCallbackInfo<Value>& args)
 
     //--
     std::string path_temp = *path;
-    if (path_temp.find(kMiniElectronAsarPrefix) != std::string::npos) {
+    int rc = 0;
+    if (/*path_temp.find(kMiniElectronAsarPrefix) != std::string::npos*/atom::checkMiniElectronAsarResStat(*path, &rc, nullptr)) {
         uv_stat_t s;
-        MakeFakeUvStat(&s, path_temp.find(".") != std::string::npos);
+        MakeFakeUvStat(&s, rc == 1/*path_temp.find(".") != std::string::npos*/);
         Local<Value> arr = FillGlobalStatsArray(binding_data, use_bigint, &s);
         args.GetReturnValue().Set(arr);
         return;
@@ -2494,7 +2495,8 @@ static void ReadFileUtf8(const FunctionCallbackInfo<Value>& args)
         CHECK_NOT_NULL(*path);
 
         //---atom
-        if (atom::LoadMiniElectronAsarRes(*path, &result)) {
+        int rc = 0;
+        if (atom::checkMiniElectronAsarResStat(*path, &rc, &result)) {
             Local<Value> val;
             if (!ToV8Value(env->context(), result, isolate).ToLocal(&val))
                 return;

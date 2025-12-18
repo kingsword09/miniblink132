@@ -19,7 +19,7 @@ namespace gfx {
 // (ImageSkia does not automatically scale the image).
 // TODO(malaykeshav): Support transport of PaintRecord across mojo. This would
 // require adding inline serialization support for PaintRecords.
-class COMPONENT_EXPORT(GFX) ImageSkiaRep {
+class /*COMPONENT_EXPORT(GFX)*/ ImageSkiaRep {
 public:
     // Create null bitmap.
     ImageSkiaRep();

@@ -63,6 +63,16 @@ const assert = require('internal/assert');
 const { getOptionValue } = require('internal/options');
 const { exitCodes: { kGenericUserError } } = internalBinding('errors');
 
+function setupAsarSupport() {
+  if (!("_isInElectronEnv" in globalThis) || !globalThis._isInElectronEnv()) // weolar add
+    return;
+  try {
+    process._linkedBinding('electron_common_asar')?.initAsarSupport(process, /*NativeModule.*/require);
+  } catch(e) {
+  }
+}
+setupAsarSupport();
+
 prepareWorkerThreadExecution();
 
 debug(`[${threadId}] is setting up worker child environment`);
@@ -229,6 +239,9 @@ port.on('message', (message) => {
 });
 
 function workerOnGlobalUncaughtException(error, fromPromise) {
+  if ("mbConsoleLog" in globalThis)
+    mbConsoleLog("workerOnGlobalUncaughtException, error:" + error.stack); // weolar
+
   debug(`[${threadId}] gets uncaught exception`);
   let handled = false;
   let handlerThrew = false;
