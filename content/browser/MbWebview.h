@@ -40,7 +40,7 @@ class MbWebView {
 public:
     MbWebView(bool isPopup);
     ~MbWebView();
-    void preDestroyOnUiThread();
+    bool preDestroyOnUiThread();
     void preDestroyOnBlinkThread();
 
     void setHostWnd(HWND hWnd);
@@ -226,6 +226,7 @@ public:
     scoped_refptr<mbnet::PageNetExtraData> getPageNetExtraData();
     mbnet::WebCookieJarImpl* getWebCookieJarImpl();
     std::string getCookie();
+    void setCookie(const std::string& ck);
 
     std::map<std::string, void*>& getUserKeyValues()
     {
@@ -322,8 +323,6 @@ private:
 
     gfx::Point m_caretPos;
 
-    bool m_isAsynResizing = false;
-
     CRITICAL_SECTION m_mouseMsgQueueLock;
     struct MouseMsg {
         MouseMsg(const MouseMsg& other)
@@ -355,8 +354,11 @@ private:
 
     mutable CRITICAL_SECTION m_clientSizeLock;
     SIZE m_clientSize;
+    SIZE m_clientSizeCache;
     bool m_clientSizeDirty = true;
     bool m_clientResizeRepaintDirty = true;
+    bool m_isAsynResizing = false;
+    bool m_updataBlinkSizeAsyn = false;
 
     bool m_isLayerWindow = false;
     POINT m_offset;

@@ -1070,16 +1070,32 @@ void MB_CALL_TYPE mbWake(mbWebView webviewHandle)
     content::ThreadCall::wake();
 }
 
+// 本函数有可能在blink线程（例如js里用close调用）
 void mbDestroyWebViewImpl(mbWebView webviewHandle)
 {
-    OutputDebugStringA("mbDestroyWebViewImpl-1-------------\n");
     checkThreadCallIsValid(__FUNCTION__);
 
     content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
     if (!webview)
         return;
 
-    webview->preDestroyOnUiThread();
+    BOOL canContinue = TRUE;
+    mbCloseCallback closingCallback = webview->getClosure().m_ClosingCallback;
+    webview->getClosure().m_ClosingCallback = nullptr;
+    if (webview->getClosure().m_ClosingCallback) {
+        if (!content::ThreadCall::isUiThread()) {
+            content::ThreadCall::callUiThreadSync(FROM_HERE, [&canContinue, webview, webviewHandle, closingCallback] {
+                canContinue = (closingCallback((mbWebView)webviewHandle, webview->getClosure().m_ClosingParam, nullptr));
+            });
+        } else {
+            canContinue = (closingCallback((mbWebView)webviewHandle, webview->getClosure().m_ClosingParam, nullptr));
+        }
+    }
+    if (!canContinue)
+        return;
+
+    if (!webview->preDestroyOnUiThread())
+        return;
     webview->getClosure().m_ClosingCallback = nullptr;
 
     //     if (webview->m_destroyCallback)
@@ -1088,7 +1104,6 @@ void mbDestroyWebViewImpl(mbWebView webviewHandle)
     ::PostMessageW(webview->getHostWnd(), WM_CLOSE, 0, 0);
 
     content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webview] { webview->preDestroyOnBlinkThread(); });
-    OutputDebugStringA("mbDestroyWebViewImpl-2-------------\n");
 }
 
 void MB_CALL_TYPE mbDestroyWebView(mbWebView webviewHandle)
@@ -1890,7 +1905,6 @@ void MB_CALL_TYPE mbResponseQuery(mbWebView webviewHandle, int64_t queryId, int 
     std::string* requestString = new std::string(response ? response : "");
     content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, queryId, customMsg, requestString] {
         std::pair<mbWebFrameHandle, int>* idInfo = (std::pair<mbWebFrameHandle, int>*)queryId;
-        printf("mbResponseQuery 1111\n");
         content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
         do {
             if (!webview)
@@ -1902,6 +1916,8 @@ void MB_CALL_TYPE mbResponseQuery(mbWebView webviewHandle, int64_t queryId, int 
             v8::Isolate* isolate = v8::Isolate::GetCurrent();
             v8::HandleScope handleScope(isolate);
             blink::WebLocalFrame* mainFrame = blink::WebLocalFrameImpl::FromFrame(blinkFrame);
+            if (!mainFrame)
+                break;
             v8::Local<v8::Context> context = mainFrame->MainWorldScriptContext();
             v8::MicrotasksScope microtasksScope(context, v8::MicrotasksScope::kDoNotRunMicrotasks);
 

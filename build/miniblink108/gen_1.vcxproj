@@ -2396,7 +2396,12 @@
     <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_sql_transaction_error_callback.h" />
     <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_state_callback.h" />
     <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_access_handle.h" />
+    <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_error_callback.h" />
     <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_estimate.h" />
+    <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_manager.h" />
+    <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_quota_callback.h" />
+    <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_usage_callback.h" />
+    <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_usage_details.h" />
     <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_subsample_entry.h" />
     <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_subtle_crypto.h" />
     <ClInclude Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_sub_apps_result_code.h" />
@@ -2603,6 +2608,7 @@
     <ClInclude Include="..\..\third_party\abseil-cpp\absl\types\optional.h" />
     <ClInclude Include="..\..\third_party\abseil-cpp\absl\types\span.h" />
     <ClInclude Include="..\..\third_party\abseil-cpp\absl\types\variant.h" />
+    <ClInclude Include="..\..\third_party\blink\renderer\modules\quota\quota_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\gen\third_party\blink\common\features_generated.cc" />
@@ -3836,9 +3842,14 @@
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_state_callback.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_access_types.cc" />
+    <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_error_callback.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_estimate.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_event.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_event_init.cc" />
+    <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_manager.cc" />
+    <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_quota_callback.cc" />
+    <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_usage_callback.cc" />
+    <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_storage_usage_details.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_subsample_entry.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_subtle_crypto.cc" />
     <ClCompile Include="..\..\gen\third_party\blink\renderer\bindings\modules\v8\v8_svc_output_metadata.cc" />
@@ -4004,6 +4015,10 @@
     <ClCompile Include="..\..\third_party\abseil-cpp\absl\types\bad_any_cast.cc" />
     <ClCompile Include="..\..\third_party\abseil-cpp\absl\types\bad_optional_access.cc" />
     <ClCompile Include="..\..\third_party\abseil-cpp\absl\types\bad_variant_access.cc" />
+    <ClCompile Include="..\..\third_party\blink\renderer\modules\quota\deprecated_storage_quota.cc" />
+    <ClCompile Include="..\..\third_party\blink\renderer\modules\quota\navigator_storage_quota.cc" />
+    <ClCompile Include="..\..\third_party\blink\renderer\modules\quota\quota_utils.cc" />
+    <ClCompile Include="..\..\third_party\blink\renderer\modules\quota\storage_manager.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -59,10 +59,10 @@ public:
             return;
 
         registerClass();
-        m_hWnd = CreateWindowExW(WS_EX_TOOLWINDOW, kContextMenuClassName, kContextMenuClassName, WS_POPUP, 0, 0, 1, 1, HWND_DESKTOP, NULL, nullptr, this);
+        m_hWnd = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, kContextMenuClassName, kContextMenuClassName, WS_POPUP, 0, 0, 1, 1, HWND_DESKTOP, NULL, nullptr, this);
+        ::ShowWindow(m_hWnd, SW_HIDE);
         ::SetPropW(m_hWnd, kContextMenuClassName, (HANDLE)this);
         ::SetForegroundWindow(m_hWnd);
-        ::ShowWindow(m_hWnd, SW_SHOW);
     }
 
     ~ContextMenu()
@@ -381,8 +381,8 @@ public:
 
     static LRESULT CALLBACK wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        //         String output = String::format("ContextMenu.wndProc: %d\n", uMsg);
-        //         OutputDebugStringA(output.utf8().data());
+        //String output = String::Format("ContextMenu.wndProc: %d\n", uMsg);
+        //OutputDebugStringA(output.Utf8().c_str());
 
         PAINTSTRUCT ps;
         HDC hdc = nullptr;

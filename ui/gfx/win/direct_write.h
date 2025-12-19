@@ -7,6 +7,7 @@
 
 #include <dwrite.h>
 
+#include <iostream>
 #include <optional>
 #include <string_view>
 

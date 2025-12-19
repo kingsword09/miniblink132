@@ -1891,6 +1891,7 @@
     <ClInclude Include="..\..\skia\ext\cicp.h" />
     <ClInclude Include="..\..\skia\ext\convolver.h" />
     <ClInclude Include="..\..\skia\ext\convolver_mips_dspr2.h" />
+    <ClInclude Include="..\..\skia\ext\convolver_neon.h" />
     <ClInclude Include="..\..\skia\ext\event_tracer_impl.h" />
     <ClInclude Include="..\..\skia\ext\image_operations.h" />
     <ClInclude Include="..\..\skia\ext\legacy_display_globals.h" />
@@ -1945,6 +1946,7 @@
     <ClInclude Include="..\..\ui\base\cursor\cursor_size.h" />
     <ClInclude Include="..\..\ui\base\cursor\platform_cursor.h" />
     <ClInclude Include="..\..\ui\base\data_transfer_policy\data_transfer_endpoint.h" />
+    <ClInclude Include="..\..\ui\base\idle\idle.h" />
     <ClInclude Include="..\..\ui\base\ime\ime_text_span.h" />
     <ClInclude Include="..\..\ui\base\mojom\clipboard_blink_mojom_traits.h" />
     <ClInclude Include="..\..\ui\base\mojom\ui_base_types_mojom_traits.h" />
@@ -1957,6 +1959,8 @@
     <ClInclude Include="..\..\ui\base\ui_base_switches_util.h" />
     <ClInclude Include="..\..\ui\base\ui_base_types.h" />
     <ClInclude Include="..\..\ui\base\win\internal_constants.h" />
+    <ClInclude Include="..\..\ui\base\win\lock_state.h" />
+    <ClInclude Include="..\..\ui\base\win\session_change_observer.h" />
     <ClInclude Include="..\..\ui\base\win\shell.h" />
     <ClInclude Include="..\..\ui\color\color_id.h" />
     <ClInclude Include="..\..\ui\color\color_mixer.h" />
@@ -3238,12 +3242,17 @@
     <ClCompile Include="..\..\ui\base\clipboard\url_file_parser.cc" />
     <ClCompile Include="..\..\ui\base\cursor\cursor.cc" />
     <ClCompile Include="..\..\ui\base\data_transfer_policy\data_transfer_endpoint.cc" />
+    <ClCompile Include="..\..\ui\base\idle\idle.cc" />
+    <ClCompile Include="..\..\ui\base\idle\idle_internal.cc" />
+    <ClCompile Include="..\..\ui\base\idle\idle_win.cc" />
     <ClCompile Include="..\..\ui\base\ime\ime_text_span.cc" />
     <ClCompile Include="..\..\ui\base\prediction\empty_predictor.cc" />
     <ClCompile Include="..\..\ui\base\prediction\prediction_metrics_handler.cc" />
     <ClCompile Include="..\..\ui\base\ui_base_features_lite.cc" />
     <ClCompile Include="..\..\ui\base\ui_base_switches_util.cc" />
     <ClCompile Include="..\..\ui\base\win\internal_constants.cc" />
+    <ClCompile Include="..\..\ui\base\win\lock_state.cc" />
+    <ClCompile Include="..\..\ui\base\win\session_change_observer.cc" />
     <ClCompile Include="..\..\ui\base\win\shell.cc" />
     <ClCompile Include="..\..\ui\color\color_mixer.cc" />
     <ClCompile Include="..\..\ui\color\color_mixers.cc" />

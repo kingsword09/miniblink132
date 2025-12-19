@@ -12,6 +12,12 @@
 #include "base/strings/string_split.h"
 #include <windows.h>
 
+extern "C" void OutputCookies(const char* lineptr)
+{
+    //if (strstr(lineptr, "wlfstk_smdl") != nullptr)
+    //    OutputDebugStringA("");
+}
+
 namespace mbnet {
 
 static void readCurlCookieToken(const char*& cookie, std::string& token)
@@ -369,6 +375,9 @@ static std::string getNetscapeCookieFormat(const blink::KURL& url, const std::st
 
 void WebCookieJarImpl::setCookiesFromDOM(const blink::KURL&, const blink::KURL& url, const std::string& value)
 {
+    std::string cookieJarFullPath = getCookieJarFullPath();
+    if (cookieJarFullPath.empty())
+        return;
     // CURL accepts cookies in either Set-Cookie or Netscape file format.
     // However with Set-Cookie format, there is no way to specify that we
     // should not allow cookies to be read from subdomains, which is the
@@ -381,6 +390,8 @@ void WebCookieJarImpl::setCookiesFromDOM(const blink::KURL&, const blink::KURL& 
     CURLSH* curlsh = m_curlShareHandle;
     curl_easy_setopt(curl, CURLOPT_SHARE, curlsh);
     curl_easy_setopt(curl, CURLOPT_COOKIELIST, cookie.c_str());
+    curl_easy_setopt(curl, CURLOPT_COOKIEJAR, cookieJarFullPath.c_str());
+    curl_easy_setopt(curl, CURLOPT_COOKIELIST, "FLUSH");
     curl_easy_cleanup(curl);
 
     m_dirty = true;

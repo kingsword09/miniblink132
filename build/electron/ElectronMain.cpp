@@ -67,7 +67,8 @@ namespace atom {
     fn(electron_browser_web_frame_main) \
     fn(electron_browser_commandline) \
     fn(electron_browser_message_port) \
-    fn(electron_browser_safe_storage) 
+    fn(electron_browser_safe_storage) \
+    fn(electron_browser_powermonitor)
 
 NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_REG_IN_MAIN(NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_DECLARE_IN_MAIN)
 

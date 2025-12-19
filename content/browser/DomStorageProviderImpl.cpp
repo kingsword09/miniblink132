@@ -282,8 +282,9 @@ private:
         if (!base::DirectoryExists(dir)) {
             base::File::Error error;
             bool b = base::CreateDirectoryAndGetError(dir, &error);
-            if (!b)
+            if (!base::DirectoryExists(dir)) {
                 return;
+            }
         }
         if (buffer.size() == 0) {
             base::DeleteFile(m_localPath);

@@ -9,6 +9,7 @@
 #include "content/renderer/ContentSecurityNotifierImpl.h"
 #include "content/browser/LocalFrameHostImpl.h"
 #include "content/browser/LocalMainFrameHostImpl.h"
+#include "content/browser/BackForwardCacheControllerHostImpl.h"
 #include "content/browser/RenderWidgetHostImpl.h"
 #include "content/common/ThreadCall.h"
 #include "content/common/CreateAndBindTempl.h"
@@ -65,6 +66,7 @@
 #include "url/url_util.h"
 
 extern unsigned char icudtlData[10462432];
+extern unsigned char icudtlData_flutter_desktop[2700172];
 extern unsigned char SnapshotBlobBinX86[328619];
 extern unsigned char SnapshotBlobBinX64[327326];
 extern unsigned char SnapshotBlobBinArm64[327314];
@@ -127,6 +129,8 @@ RenderThreadImpl::RenderThreadImpl()
     m_uiThreadTask = std::make_unique<base::SingleThreadTaskExecutor>(base::MessagePumpType::UI);
     base::PlatformThread::SetName("Mb132UiThread");
 
+    ThreadCall::init(nullptr);
+
     base::Thread::Options opt;
     opt.stack_size = 3000000;
     opt.delegate = std::make_unique<RenderThreadImpl::ThreadDelegate>(this);
@@ -136,8 +140,6 @@ RenderThreadImpl::RenderThreadImpl()
     }
 
     m_hostThread.Start();
-
-    ThreadCall::init(nullptr);
 }
 
 void readFileToBuf(const char* path, std::vector<char>* buffer)
@@ -196,7 +198,6 @@ static bool initializeICUWithFileDescriptorInternal()
     //path = "E:\\chroium\\M108\\src\\third_party\\icu\\cast\\icudtl.dat"; // ok
     //path = "W:\\mycode\\guomi\\bin\\Release\\icudtl.dat";
     //path = "P:\\chromium\\M115\\third_party\\icu\\flutter_desktop\\icudtl.dat";
-    path = "Q:\\imdata\\weixin\\WeChat Files\\weolar\\FileStorage\\File\\2024-02\\icudtl(2).dat";
     //path = "W:\\mycode\\mb108\\content\\resources\\icudtl.dat";
     readFileToBuf(path, buffer);
     if (buffer->size() != 0) {
@@ -237,8 +238,6 @@ public:
     void onDiscardableMemoryRelease(size_t size);
 
 private:
-    //WTF::RecursiveMutex* mutex = sharedResourceMutex(CURL_LOCK_DATA_COOKIE);
-    //WTF::Locker<WTF::RecursiveMutex> locker(*mutex);
     WTF::RecursiveMutex m_lock;
     std::set<int64_t> m_ids;
     int64_t m_discardableMemorySize = 0;
@@ -457,9 +456,14 @@ public:
 
     void onBindLocalFrameHost(mojo::ScopedInterfaceEndpointHandle handle)
     {
+        createAndBindInterface<::blink::mojom::blink::LocalFrameHost, LocalFrameHostImpl>(std::move(handle), nullptr);
+    }
+
+    void onBindBackForwardCacheControllerHost(mojo::ScopedInterfaceEndpointHandle handle)
+    {
         //mojo::PendingAssociatedReceiver<::blink::mojom::blink::LocalFrameHost> pendingReceiver(std::move(handle));
         //m_emptyLocalFrameHostReceiver.Bind(std::move(pendingReceiver));
-        createAndBindInterface<::blink::mojom::blink::LocalFrameHost, LocalFrameHostImpl>(std::move(handle), nullptr);
+        createAndBindInterface<::blink::mojom::blink::BackForwardCacheControllerHost, BackForwardCacheControllerHostImpl>(std::move(handle));
     }
 
     mojo::AssociatedReceiver<::blink::mojom::blink::LocalFrameHost> m_emptyLocalFrameHostReceiver;
@@ -518,6 +522,9 @@ void RenderThreadImpl::OverrideAssociatedInterfaceProvider(blink::AssociatedInte
 
     associatedInterfaceProvider->OverrideBinderForTesting("blink.mojom.LocalFrameHost",
         base::BindRepeating(&EmptyAssociatedInterfaceProvider::onBindLocalFrameHost, base::Unretained(m_emptyAssociatedInterfaceProvider)));
+
+    associatedInterfaceProvider->OverrideBinderForTesting("blink.mojom.BackForwardCacheControllerHost",
+        base::BindRepeating(&EmptyAssociatedInterfaceProvider::onBindBackForwardCacheControllerHost, base::Unretained(m_emptyAssociatedInterfaceProvider)));
 
     //     if ("blink.mojom.BackForwardCacheControllerHost" == name) {
     //         mojo::PendingAssociatedReceiver<::blink::mojom::blink::BackForwardCacheControllerHost> pendingReceiver(receiver.PassHandle());
@@ -748,6 +755,7 @@ void RenderThreadImpl::initializeWebKitOnThread(/*mojo::BinderMap* binders*/)
 
     blink::WebRuntimeFeaturesBase::EnableSharedArrayBuffer(true);
     blink::WebRuntimeFeaturesBase::EnableSharedArrayBufferOnDesktop(true);
+    blink::WebRuntimeFeaturesBase::EnableAdTagging(true);
 
     blink::GetNetworkStateNotifier().SetOnLine(true);
     blink::GetNetworkStateNotifier().SetWebConnection(blink::kWebConnectionTypeWifi, 0.0 /*max_bandwidth_mbps*/);

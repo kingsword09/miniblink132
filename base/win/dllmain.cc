@@ -8,8 +8,17 @@
 #include "base/win/win_util.h"
 
 HMODULE g_hModule;
+int g_is_xp = -1;
 
-#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) // SUPPORT_XP_CODE
+void CheckIsXp()
+{
+    if (-1 == g_is_xp) {
+        HMODULE handle = GetModuleHandleW(L"Kernel32.dll");
+        g_is_xp = GetProcAddress(handle, "QueryThreadCycleTime") ? 0 : 1;
+    }
+}
+
+#if defined(__i386__) || defined(_M_IX86) // SUPPORT_XP_CODE
 #include <TlHelp32.h>
 #pragma optimize("", off)
 #pragma clang optimize off
@@ -88,7 +97,7 @@ static void NTAPI on_callback(PVOID h, DWORD reason, PVOID reserved)
 // #endif  // _WIN64
 // }  // extern "C"
 
-#if defined(__i386__) || defined(_M_IX86)
+#if defined(__i386__) || defined(_M_IX86) // SUPPORT_XP_CODE
 thread_local int* g_thread_local_stub = nullptr;
 int g_unuse = 0;
 
@@ -99,10 +108,8 @@ struct XP_PEB {
 };
 #pragma pack(pop)
 
-void* g_dll_base = nullptr;
 typedef void* (WINAPI* FN_RtlImageDirectoryEntryToData)(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, PULONG Size);
 FN_RtlImageDirectoryEntryToData pRtlImageDirectoryEntryToData = NULL;
-int g_is_xp = -1;
 
 void* ThreadLocalFunStub()
 {
@@ -184,7 +191,7 @@ static bool AllocThreadLocalStoragePointer(void*** ThreadLocalStoragePointer, in
 
     // 拷贝本dll的tls表给xp系统
     ULONG tls_size;
-    PIMAGE_TLS_DIRECTORY tls_image = (PIMAGE_TLS_DIRECTORY)pRtlImageDirectoryEntryToData(g_dll_base, TRUE, IMAGE_DIRECTORY_ENTRY_TLS, &tls_size);
+    PIMAGE_TLS_DIRECTORY tls_image = (PIMAGE_TLS_DIRECTORY)pRtlImageDirectoryEntryToData(g_hModule, TRUE, IMAGE_DIRECTORY_ENTRY_TLS, &tls_size);
     if (!tls_image) {
         OutputDebugStringA("AllocThreadLocalStoragePointer tls_image is null\n");
         return false;
@@ -306,14 +313,6 @@ BOOL HookByHotpatch(LPCWSTR szDllName, LPCSTR szFuncName, void* pfnNew, void** p
     return HookAddrByHotpatch((void*)pFunc, pfnNew, pfnOld);
 }
 
-void CheckIsXp()
-{
-    if (-1 == g_is_xp) {
-        HMODULE handle = GetModuleHandleW(L"Kernel32.dll");
-        g_is_xp = GetProcAddress(handle, "QueryThreadCycleTime") ? 0 : 1;
-    }
-}
-
 BOOL FixXp()
 {
     if (1 == g_is_xp) {
@@ -337,13 +336,6 @@ NOINLINE static void CrashOnProcessDetach()
     *static_cast<volatile int*>(nullptr) = 0x356;
 }
 
-int g_is_xp = -1;
-void CheckIsXp()
-{
-    if (-1 == g_is_xp)
-        g_is_xp = 0;
-}
-
 // Make DllMain call the listed callbacks.  This way any third parties that are
 // linked in will also be called.
 BOOL WINAPI DllMain(PVOID h, DWORD reason, PVOID reserved)
@@ -355,8 +347,6 @@ BOOL WINAPI DllMain(PVOID h, DWORD reason, PVOID reserved)
         g_hModule = (HMODULE)h;
         CheckIsXp();
 #if defined(__i386__) || defined(_M_IX86)
-        g_dll_base = h;
-        
         if (FixXp())
             return TRUE;
 

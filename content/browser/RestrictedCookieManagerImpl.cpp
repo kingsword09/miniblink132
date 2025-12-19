@@ -99,16 +99,18 @@ void RestrictedCookieManagerImpl::GetAllForUrl(const ::blink::KURL& url, const :
     network::mojom::blink::RestrictedCookieManager::GetAllForUrlCallback callback)
 {
     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce([](
+        int64_t webviewId,
         const ::blink::KURL& url, const ::net::SiteForCookies& siteForCookies,
         const ::scoped_refptr<const ::blink::SecurityOrigin>& topFrameOrigin, ::net::StorageAccessApiStatus storageAccessApiStatus,
         ::network::mojom::blink::CookieManagerGetOptionsPtr options,
         bool partitionedCookiesRuntimeFeatureEnabled, bool isAdTagged,
         network::mojom::blink::RestrictedCookieManager::GetAllForUrlCallback callback) {
-        mbnet::WebCookieJarImpl* cookieJar = mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
+        mbnet::WebCookieJarImpl* cookieJar = getCookieJar(webviewId);
         cookieJar->getAllCookies(url, siteForCookies, topFrameOrigin, storageAccessApiStatus, std::move(options), partitionedCookiesRuntimeFeatureEnabled,
             isAdTagged, std::move(callback));
-        }, url, siteForCookies, topFrameOrigin, storageAccessApiStatus, std::move(options), partitionedCookiesRuntimeFeatureEnabled,
-            isAdTagged, std::move(callback)));
+        }, 
+    m_webviewId, url, siteForCookies, topFrameOrigin, storageAccessApiStatus, std::move(options), partitionedCookiesRuntimeFeatureEnabled,
+    isAdTagged, std::move(callback)));
 }
 
 void RestrictedCookieManagerImpl::SetCanonicalCookie(const ::net::CanonicalCookie& cookie, const ::blink::KURL& url,
@@ -116,7 +118,14 @@ void RestrictedCookieManagerImpl::SetCanonicalCookie(const ::net::CanonicalCooki
     ::net::StorageAccessApiStatus storage_access_api_status,
     ::net::CookieInclusionStatus status, SetCanonicalCookieCallback callback)
 {
-    printFuncName(__FUNCTION__, true, true);
+    std::string ckLine = net::CanonicalCookie::BuildCookieAttributesLine(cookie);
+
+    mbnet::WebCookieJarImpl* cookieJar = getCookieJar(m_webviewId);
+    cookieJar->setCookiesFromDOM(blink::KURL(), url, ckLine);
+
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce([](SetCanonicalCookieCallback callback) {
+        std::move(callback).Run(true);
+    }, std::move(callback)));
 }
 
 void RestrictedCookieManagerImpl::AddChangeListener(const ::blink::KURL& url, const ::net::SiteForCookies& site_for_cookies,

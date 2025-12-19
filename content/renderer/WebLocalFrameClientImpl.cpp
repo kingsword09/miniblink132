@@ -108,8 +108,6 @@ WebLocalFrameClientImpl::WebLocalFrameClientImpl(int64_t mbwebviewId)
     , m_associatedInterfaceProviderImpl(new AssociatedInterfaceProviderImpl(this))
     , m_interfaceProviderReceiver(m_associatedInterfaceProviderImpl)
 {
-//     mojo::PendingRemote<blink::mojom::BrowserInterfaceBroker> browserInterfaceBroker = m_browserInterfaceBrokerProxyReceiver.BindNewPipeAndPassRemote();
-//     m_browserInterfaceBrokerProxy.Bind(std::move(browserInterfaceBroker), RenderThreadImpl::get()->m_agentGroupScheduler->DefaultTaskRunner());
 }
 
 WebLocalFrameClientImpl::~WebLocalFrameClientImpl()
@@ -461,8 +459,14 @@ bool decidePolicyForNavigation(int64_t mbwebviewId, blink::WebLocalFrame* frame,
     return !!result;
 }
 
-static void beginNavigation(std::unique_ptr<blink::WebNavigationInfo> info, blink::WebNavigationControl* navigationControl, int64_t mbwebviewId,
-    MojoHandle dataPipeProducerHandle, blink::WebLocalFrame* frame, std::unique_ptr<String> downloadName)
+static void beginNavigation(
+    std::unique_ptr<blink::WebNavigationInfo> info, 
+    blink::WebNavigationControl* navigationControl, 
+    int64_t mbwebviewId,
+    MojoHandle dataPipeProducerHandle, 
+    blink::WebLocalFrame* frame, 
+    std::unique_ptr<String> downloadName
+    )
 {
     if (!decidePolicyForNavigation(mbwebviewId, frame, *info))
         return;
@@ -519,10 +523,18 @@ static void beginNavigation(std::unique_ptr<blink::WebNavigationInfo> info, blin
 
 void WebLocalFrameClientImpl::BeginNavigation(std::unique_ptr<blink::WebNavigationInfo> info)
 {
+    WTF::String url = info->url_request.Url().GetString();
+    if (url == "about:srcdoc") {
+        std::string newUrl = "data:text/plain;charset=utf-8,";
+        newUrl += m_srcdoc.Utf8();
+        info->url_request.SetUrl(blink::KURL(String::FromUTF8(newUrl)));
+    }
     beginNavigation(std::move(info), m_navigationControl, m_mbwebviewId, 0, m_frame, nullptr);
 }
 
-void WebLocalFrameClientImpl::beginDownload(std::unique_ptr<blink::WebNavigationInfo> info, std::unique_ptr<String> downloadName)
+void WebLocalFrameClientImpl::beginDownload(
+    std::unique_ptr<blink::WebNavigationInfo> info, 
+    std::unique_ptr<String> downloadName)
 {
     beginNavigation(std::move(info), m_navigationControl, m_mbwebviewId, 0, m_frame, std::move(downloadName));
 }
@@ -1054,6 +1066,9 @@ mbWebFrameHandle v8ContextToMbWebFrameHandle(v8::Local<v8::Context> context)
     return frameId;
 }
 
+bool s_needPrintCallstack = false;
+void printCallstack();
+
 void WebLocalFrameClientImpl::DidAddMessageToConsole(
     const blink::WebConsoleMessage& message, const blink::WebString& source_name, unsigned source_line, const blink::WebString& stack_trace)
 {
@@ -1079,6 +1094,9 @@ void WebLocalFrameClientImpl::DidAddMessageToConsole(
     std::u16string textW = base::UTF8ToUTF16(text);
     OutputDebugStringW((const WCHAR*)textW.c_str());
 #endif
+
+    if (s_needPrintCallstack)
+        content::printCallstack();
 
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(m_mbwebviewId);
     if (!webview || !(webview->getClosure().m_ConsoleCallback))

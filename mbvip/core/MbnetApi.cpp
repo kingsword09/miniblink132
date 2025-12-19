@@ -458,29 +458,25 @@ void MB_CALL_TYPE mbSetCookie(mbWebView webviewHandle, const utf8* url, const ut
     //checkThreadCallIsValid(__FUNCTION__);
     //cookie = "cna22=111111; domain=.1688.com; path=/; expires=Tue, 23-Jan-2029 13:17:21 GMT;";
 
-//     content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
-//     if (!webview)
-//         return;
-// 
-//     std::string* urlString = new std::string(url);
-//     std::string* cookieString = new std::string(cookie);
-// 
-//     content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, urlString, cookieString] {
-//         content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
-//         if (webview) {
-//             blink::KURL webUrl(blink::ParsedURLString, url);
-//             blink::KURL webFirstPartyForCookies;
-//             String webCookie(cookie);
-//             webView->getCookieJar()->setCookie(webUrl, webFirstPartyForCookies, webCookie);
-//             wkeSetCookie(webview->getWkeWebView(), urlString->c_str(), cookieString->c_str());
-//         }
-// 
-//         OutputDebugStringA("mbSetCookie:");
-//         OutputDebugStringA(cookieString->c_str());
-//         OutputDebugStringA("\n");
-//         delete urlString;
-//         delete cookieString;
-//     });
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+
+    std::string* urlString = new std::string(url);
+    std::string* cookieString = new std::string(cookie);
+
+    content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, urlString, cookieString] {
+        content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+        if (webview) {
+            webview->setCookie(*cookieString);
+        }
+
+        OutputDebugStringA("mbSetCookie:");
+        OutputDebugStringA(cookieString->c_str());
+        OutputDebugStringA("\n");
+        delete urlString;
+        delete cookieString;
+    });
 }
 
 void MB_CALL_TYPE mbGetCookie(mbWebView webviewHandle, mbGetCookieCallback callback, void* param)

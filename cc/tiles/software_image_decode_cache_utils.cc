@@ -24,7 +24,11 @@
 
 namespace cc {
 
+#ifdef _DEBUG
+size_t kMemoryThresholdTSoftwareImageDecodeCache = 5000 * 5000 * 8;
+#else
 size_t kMemoryThresholdTSoftwareImageDecodeCache = 5000 * 5000 * 4;
+#endif // _DEBUG
 
 namespace {
 // If the size of the original sized image breaches kMemoryRatioToSubrect but we
@@ -74,9 +78,6 @@ std::unique_ptr<SoftwareImageDecodeCacheUtils::CacheEntry> SoftwareImageDecodeCa
     SkImageInfo target_info = SkImageInfo::Make(target_size, color_type, kPremul_SkAlphaType, target_color_space);
 
     if (target_info.width() * target_info.height() > kMemoryThresholdTSoftwareImageDecodeCache) {
-        char output[100] = { 0 };
-        sprintf(output, "DoDecodeImage fail: %p\n", target_info.width(), target_info.height());
-        OutputDebugStringA(output);
         return nullptr;
     }
 

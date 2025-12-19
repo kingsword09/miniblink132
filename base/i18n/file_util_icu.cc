@@ -26,6 +26,7 @@
 #include "build/chromeos_buildflags.h"
 #include "third_party/icu/source/common/unicode/uniset.h"
 #include "third_party/icu/source/i18n/unicode/coll.h"
+#include <windows.h>
 
 namespace base {
 namespace i18n {
@@ -282,22 +283,24 @@ void ReplaceIllegalCharactersInPath(FilePath::StringType* file_name, char replac
 
 bool LocaleAwareCompareFilenames(const FilePath& a, const FilePath& b)
 {
-    UErrorCode error_code = U_ZERO_ERROR;
-    // Use the default collator. The default locale should have been properly
-    // set by the time this constructor is called.
-    std::unique_ptr<icu::Collator> collator(icu::Collator::createInstance(error_code));
-    DCHECK(U_SUCCESS(error_code));
-    // Make it case-sensitive.
-    collator->setStrength(icu::Collator::TERTIARY);
-
-#if BUILDFLAG(IS_WIN)
-    return CompareString16WithCollator(*collator, AsStringPiece16(a.value()), AsStringPiece16(b.value())) == UCOL_LESS;
-
-#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-    // On linux, the file system encoding is not defined. We assume
-    // SysNativeMBToWide takes care of it.
-    return CompareString16WithCollator(*collator, WideToUTF16(SysNativeMBToWide(a.value())), WideToUTF16(SysNativeMBToWide(b.value()))) == UCOL_LESS;
-#endif
+    OutputDebugStringA("LocaleAwareCompareFilenames not impl\n");
+    *(int*)1 = 1;
+//     UErrorCode error_code = U_ZERO_ERROR;
+//     // Use the default collator. The default locale should have been properly
+//     // set by the time this constructor is called.
+//     std::unique_ptr<icu::Collator> collator(icu::Collator::createInstance(error_code));
+//     DCHECK(U_SUCCESS(error_code));
+//     // Make it case-sensitive.
+//     collator->setStrength(icu::Collator::TERTIARY);
+// 
+// #if BUILDFLAG(IS_WIN)
+//     return CompareString16WithCollator(*collator, AsStringPiece16(a.value()), AsStringPiece16(b.value())) == UCOL_LESS;
+// 
+// #elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
+//     // On linux, the file system encoding is not defined. We assume
+//     // SysNativeMBToWide takes care of it.
+//     return CompareString16WithCollator(*collator, WideToUTF16(SysNativeMBToWide(a.value())), WideToUTF16(SysNativeMBToWide(b.value()))) == UCOL_LESS;
+// #endif
 }
 
 void NormalizeFileNameEncoding(FilePath* file_name)

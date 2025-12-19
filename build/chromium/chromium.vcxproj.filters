@@ -571,6 +571,9 @@
     <Filter Include="src\ui\base\resource">
       <UniqueIdentifier>{18c88451-b68d-45f7-902f-fe88f51f8bd6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\base\idle">
+      <UniqueIdentifier>{808ad860-10e9-4bfb-8948-53d67c59d992}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -6267,6 +6270,18 @@
     <ClInclude Include="..\..\base\i18n\string_compare.h">
       <Filter>src\base\i18n</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\ui\base\idle\idle.h">
+      <Filter>src\ui\base\idle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\win\lock_state.h">
+      <Filter>src\ui\base\win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ui\base\win\session_change_observer.h">
+      <Filter>src\ui\base\win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\skia\ext\convolver_neon.h">
+      <Filter>src\skia\ext</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\cc\mojo_embedder\async_layer_tree_frame_sink.cc">
@@ -9958,6 +9973,21 @@
     </ClCompile>
     <ClCompile Include="..\..\base\i18n\string_compare.cc">
       <Filter>src\base\i18n</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\idle\idle.cc">
+      <Filter>src\ui\base\idle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\idle\idle_internal.cc">
+      <Filter>src\ui\base\idle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\idle\idle_win.cc">
+      <Filter>src\ui\base\idle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\win\lock_state.cc">
+      <Filter>src\ui\base\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ui\base\win\session_change_observer.cc">
+      <Filter>src\ui\base\win</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -413,7 +413,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(OutDir)libnode.lib;$(OutDir)libuv.lib;$(OutDir)mb_platform.lib;$(OutDir)miniblink132.lib;$(OutDir)chromium.lib;$(OutDir)gen_1.lib;$(OutDir)harfbuzz.lib;$(OutDir)icu.lib;$(OutDir)skia.lib;$(OutDir)util.lib;$(OutDir)v8_1.lib;$(OutDir)v8_2.lib;$(OutDir)v8_3.lib;$(OutDir)v8_gen_x64_1.lib;$(OutDir)v8_gen_x64_2.lib;$(OutDir)v8_gen_x64_3.lib;$(OutDir)v8_gin.lib;$(OutDir)openssl.lib;Kernel32.lib;Psapi.lib;Wldap32.lib;Userenv.lib;Dbghelp.lib;Crypt32.lib;Winmm.lib;Shlwapi.lib;Imm32.lib;gdiplus.lib;Usp10.lib;SetupAPI.lib;Cfgmgr32.lib;Version.lib;Shcore.lib;PowrProf.lib;Propsys.lib;runtimeobject.lib;Dwmapi.lib;mincore.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)libnode.lib;$(OutDir)libuv.lib;$(OutDir)mb_platform.lib;$(OutDir)miniblink132.lib;$(OutDir)chromium.lib;$(OutDir)gen_1.lib;$(OutDir)harfbuzz.lib;$(OutDir)icu.lib;$(OutDir)skia.lib;$(OutDir)util.lib;$(OutDir)v8_1.lib;$(OutDir)v8_2.lib;$(OutDir)v8_3.lib;$(OutDir)v8_gen_x64_1.lib;$(OutDir)v8_gen_x64_2.lib;$(OutDir)v8_gen_x64_3.lib;$(OutDir)v8_gin.lib;$(OutDir)openssl.lib;Kernel32.lib;Psapi.lib;Wldap32.lib;Userenv.lib;Dbghelp.lib;Crypt32.lib;Winmm.lib;Shlwapi.lib;Imm32.lib;gdiplus.lib;Usp10.lib;SetupAPI.lib;Cfgmgr32.lib;Version.lib;Shcore.lib;PowrProf.lib;Propsys.lib;runtimeobject.lib;Dwmapi.lib;mincore.lib;ntdll.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>3000000</StackReserveSize>
       <StackCommitSize>12000</StackCommitSize>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -481,7 +481,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(OutDir)libnode.lib;$(OutDir)libuv.lib;$(OutDir)mb_platform.lib;$(OutDir)miniblink132.lib;$(OutDir)chromium.lib;$(OutDir)gen_1.lib;$(OutDir)harfbuzz.lib;$(OutDir)icu.lib;$(OutDir)skia.lib;$(OutDir)util.lib;$(OutDir)v8_1.lib;$(OutDir)v8_2.lib;$(OutDir)v8_3.lib;$(OutDir)v8_gen_x64_1.lib;$(OutDir)v8_gen_x64_2.lib;$(OutDir)v8_gen_x64_3.lib;$(OutDir)v8_gin.lib;$(OutDir)openssl.lib;Kernel32.lib;Psapi.lib;Wldap32.lib;Userenv.lib;Dbghelp.lib;Crypt32.lib;Winmm.lib;Shlwapi.lib;Imm32.lib;gdiplus.lib;Usp10.lib;SetupAPI.lib;Cfgmgr32.lib;Version.lib;Shcore.lib;PowrProf.lib;Propsys.lib;runtimeobject.lib;Dwmapi.lib;mincore.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)libnode.lib;$(OutDir)libuv.lib;$(OutDir)mb_platform.lib;$(OutDir)miniblink132.lib;$(OutDir)chromium.lib;$(OutDir)gen_1.lib;$(OutDir)harfbuzz.lib;$(OutDir)icu.lib;$(OutDir)skia.lib;$(OutDir)util.lib;$(OutDir)v8_1.lib;$(OutDir)v8_2.lib;$(OutDir)v8_3.lib;$(OutDir)v8_gen_x64_1.lib;$(OutDir)v8_gen_x64_2.lib;$(OutDir)v8_gen_x64_3.lib;$(OutDir)v8_gin.lib;$(OutDir)openssl.lib;Kernel32.lib;Psapi.lib;Wldap32.lib;Userenv.lib;Dbghelp.lib;Crypt32.lib;Winmm.lib;Shlwapi.lib;Imm32.lib;gdiplus.lib;Usp10.lib;SetupAPI.lib;Cfgmgr32.lib;Version.lib;Shcore.lib;PowrProf.lib;Propsys.lib;runtimeobject.lib;Dwmapi.lib;mincore.lib;ntdll.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <ResourceCompile>
