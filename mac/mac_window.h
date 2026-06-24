@@ -42,4 +42,8 @@ public:
     static std::recursive_mutex* s_hwndMutex;
 };
 
+extern "C" void* MacCreateStatusItem(HWND hwnd, UINT id, UINT callbackMessage, const char* title, bool hidden);
+extern "C" bool MacUpdateStatusItem(void* handle, UINT callbackMessage, const char* title, bool hidden);
+extern "C" void MacDestroyStatusItem(void* handle);
+
 #endif // MAC_MAC_WINDOW_H

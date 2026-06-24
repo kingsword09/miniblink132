@@ -204,6 +204,22 @@
 #define WM_TOUCH 0x0240
 #define WM_CAPTURECHANGED 0x0215
 
+#define NIM_ADD 0x00000000
+#define NIM_MODIFY 0x00000001
+#define NIM_DELETE 0x00000002
+#define NIM_SETFOCUS 0x00000003
+#define NIM_SETVERSION 0x00000004
+
+#define NIF_MESSAGE 0x00000001
+#define NIF_ICON 0x00000002
+#define NIF_TIP 0x00000004
+#define NIF_STATE 0x00000008
+#define NIF_INFO 0x00000010
+
+#define NIS_HIDDEN 0x00000001
+#define NOTIFYICON_VERSION 3
+#define NOTIFYICON_VERSION_4 4
+
 #define HTERROR (-2)
 #define HTTRANSPARENT (-1)
 #define HTNOWHERE 0
@@ -1125,6 +1141,44 @@ typedef struct _ICONINFO {
 } ICONINFO;
 typedef ICONINFO* PICONINFO;
 
+typedef struct _NOTIFYICONDATAW {
+    DWORD cbSize;
+    HWND hWnd;
+    UINT uID;
+    UINT uFlags;
+    UINT uCallbackMessage;
+    HICON hIcon;
+    WCHAR szTip[128];
+    DWORD dwState;
+    DWORD dwStateMask;
+    WCHAR szInfo[256];
+    union {
+        UINT uTimeout;
+        UINT uVersion;
+    };
+    WCHAR szInfoTitle[64];
+    DWORD dwInfoFlags;
+} NOTIFYICONDATAW, *PNOTIFYICONDATAW;
+
+typedef struct _NOTIFYICONDATAA {
+    DWORD cbSize;
+    HWND hWnd;
+    UINT uID;
+    UINT uFlags;
+    UINT uCallbackMessage;
+    HICON hIcon;
+    CHAR szTip[128];
+    DWORD dwState;
+    DWORD dwStateMask;
+    CHAR szInfo[256];
+    union {
+        UINT uTimeout;
+        UINT uVersion;
+    };
+    CHAR szInfoTitle[64];
+    DWORD dwInfoFlags;
+} NOTIFYICONDATAA, *PNOTIFYICONDATAA;
+
 typedef struct tagTPMPARAMS {
     UINT cbSize; /* Size of structure */
     RECT rcExclude; /* Screen coordinates of rectangle to exclude when positioning */
@@ -1442,6 +1496,8 @@ EXTERN_C BOOL QueryPerformanceFrequency(LARGE_INTEGER* lpFrequency);
 
 EXTERN_C /*FILE*/ void* _wfopen(const WCHAR* _FileName, const WCHAR* _Mode);
 EXTERN_C HINSTANCE ShellExecuteA(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd);
+EXTERN_C BOOL Shell_NotifyIconW(DWORD dwMessage, PNOTIFYICONDATAW lpData);
+EXTERN_C BOOL Shell_NotifyIconA(DWORD dwMessage, PNOTIFYICONDATAA lpData);
 EXTERN_C BOOL PathFileExistsW(LPCWSTR pszPath);
 EXTERN_C DWORD GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer);
 EXTERN_C BOOL InvalidateRect(HWND hWnd, CONST RECT* lpRect, BOOL bErase);

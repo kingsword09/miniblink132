@@ -1274,6 +1274,16 @@ std::u16string readMenuText(const WCHAR* text)
     return result;
 }
 
+void copyWideText(const std::u16string& text, WCHAR* buffer, size_t capacity)
+{
+    if (!buffer || !capacity)
+        return;
+    size_t length = text.size() < capacity - 1 ? text.size() : capacity - 1;
+    for (size_t i = 0; i < length; ++i)
+        buffer[i] = static_cast<WCHAR>(text[i]);
+    buffer[length] = 0;
+}
+
 void runMenuCompatibilityChecks()
 {
     HMENU menu = CreateMenu();
@@ -1419,6 +1429,83 @@ void runNativeImageCompatibilityChecks()
     addCheck("nativeimage-icon-lifecycle",
         icon && destroyed_icon && invalid_icon_rejected && color_deleted && mask_deleted,
         "icon=" + std::to_string(icon ? 1 : 0) + " destroyed=" + std::to_string(destroyed_icon));
+}
+
+void runTrayCompatibilityChecks(HWND host)
+{
+    addCheck("tray-host-window", host != nullptr, "host=" + std::to_string((uintptr_t)host));
+    if (!host)
+        return;
+
+    BITMAPINFO bitmap_info = {};
+    bitmap_info.bmiHeader.biSize = sizeof(bitmap_info.bmiHeader);
+    bitmap_info.bmiHeader.biWidth = 2;
+    bitmap_info.bmiHeader.biHeight = -2;
+    bitmap_info.bmiHeader.biPlanes = 1;
+    bitmap_info.bmiHeader.biBitCount = 32;
+    bitmap_info.bmiHeader.biCompression = BI_RGB;
+
+    void* pixels = nullptr;
+    HBITMAP color_bitmap = CreateDIBSection(nullptr, &bitmap_info, DIB_RGB_COLORS, &pixels, nullptr, 0);
+    HBITMAP mask_bitmap = CreateBitmap(2, 2, 1, 1, nullptr);
+    ICONINFO icon_info = {};
+    icon_info.fIcon = TRUE;
+    icon_info.hbmColor = color_bitmap;
+    icon_info.hbmMask = mask_bitmap;
+    HICON icon = CreateIconIndirect(&icon_info);
+    addCheck("tray-icon-create", color_bitmap && mask_bitmap && icon);
+
+    NOTIFYICONDATAW data = {};
+    data.cbSize = sizeof(data);
+    data.hWnd = host;
+    data.uID = 7001;
+    data.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+    data.uCallbackMessage = WM_USER + 57;
+    data.hIcon = icon;
+    copyWideText(u"tray-tip", data.szTip, sizeof(data.szTip) / sizeof(data.szTip[0]));
+
+    BOOL added = Shell_NotifyIconW(NIM_ADD, &data);
+    BOOL duplicate_add_rejected = !Shell_NotifyIconW(NIM_ADD, &data);
+    addCheck("tray-notify-add", added);
+    addCheck("tray-notify-duplicate-add", duplicate_add_rejected);
+
+    data.uVersion = NOTIFYICON_VERSION_4;
+    BOOL version_set = Shell_NotifyIconW(NIM_SETVERSION, &data);
+    BOOL focus_set = Shell_NotifyIconW(NIM_SETFOCUS, &data);
+    addCheck("tray-notify-version-focus", version_set && focus_set);
+
+    data.uFlags = NIF_TIP | NIF_STATE | NIF_INFO | NIF_ICON;
+    data.dwState = NIS_HIDDEN;
+    data.dwStateMask = NIS_HIDDEN;
+    data.dwInfoFlags = 0;
+    copyWideText(u"tray-tip-modified", data.szTip, sizeof(data.szTip) / sizeof(data.szTip[0]));
+    copyWideText(u"tray-info", data.szInfo, sizeof(data.szInfo) / sizeof(data.szInfo[0]));
+    copyWideText(u"tray-title", data.szInfoTitle, sizeof(data.szInfoTitle) / sizeof(data.szInfoTitle[0]));
+    BOOL modified = Shell_NotifyIconW(NIM_MODIFY, &data);
+    addCheck("tray-notify-modify-state-info", modified);
+
+    NOTIFYICONDATAA data_a = {};
+    data_a.cbSize = sizeof(data_a);
+    data_a.hWnd = host;
+    data_a.uID = data.uID;
+    data_a.uFlags = NIF_TIP | NIF_INFO;
+    snprintf(data_a.szTip, sizeof(data_a.szTip), "%s", "tray-tip-ansi");
+    snprintf(data_a.szInfo, sizeof(data_a.szInfo), "%s", "tray-info-ansi");
+    snprintf(data_a.szInfoTitle, sizeof(data_a.szInfoTitle), "%s", "tray-title-ansi");
+    BOOL ansi_modified = Shell_NotifyIconA(NIM_MODIFY, &data_a);
+    addCheck("tray-notify-ansi-modify", ansi_modified);
+
+    BOOL deleted = Shell_NotifyIconW(NIM_DELETE, &data);
+    BOOL missing_delete_rejected = !Shell_NotifyIconW(NIM_DELETE, &data);
+    addCheck("tray-notify-delete", deleted);
+    addCheck("tray-notify-delete-missing", missing_delete_rejected);
+
+    if (icon)
+        DestroyIcon(icon);
+    if (color_bitmap)
+        DeleteObject(color_bitmap);
+    if (mask_bitmap)
+        DeleteObject(mask_bitmap);
 }
 
 std::string getCookieViaApi(mbWebView view)
@@ -1873,6 +1960,7 @@ int main()
 
     runMenuCompatibilityChecks();
     runNativeImageCompatibilityChecks();
+    runTrayCompatibilityChecks(host);
     runLifecycleChecks();
     runNavigationControlChecks(server.origin());
 

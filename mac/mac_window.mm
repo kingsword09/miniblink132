@@ -398,6 +398,42 @@ static void pumpCocoaOnce(NSDate* limitDate)
 
 @end
 
+@interface MacStatusItemTarget : NSObject {
+@public
+    HWND _hwnd;
+    UINT _id;
+    UINT _callbackMessage;
+}
+- (instancetype)initWithHwnd:(HWND)hwnd id:(UINT)id callbackMessage:(UINT)callbackMessage;
+- (void)statusItemClicked:(id)sender;
+@end
+
+@implementation MacStatusItemTarget
+
+- (instancetype)initWithHwnd:(HWND)hwnd id:(UINT)id callbackMessage:(UINT)callbackMessage
+{
+    self = [super init];
+    if (self) {
+        _hwnd = hwnd;
+        _id = id;
+        _callbackMessage = callbackMessage;
+    }
+    return self;
+}
+
+- (void)statusItemClicked:(id)sender
+{
+    if (_hwnd && _callbackMessage)
+        PostMessageW(_hwnd, _callbackMessage, _id, WM_LBUTTONUP);
+}
+
+@end
+
+struct MacStatusItemHandle {
+    NSStatusItem* item = nil;
+    MacStatusItemTarget* target = nil;
+};
+
 std::map<std::u16string, WNDCLASSEXW>* HwndMac::s_wndClassMap = nullptr;
 std::set<HWND>* HwndMac::s_hwnds = nullptr;
 std::recursive_mutex* HwndMac::s_hwndMutex = nullptr;
@@ -488,6 +524,85 @@ extern "C" void MacInitializeApplication(void)
         init();
     else
         dispatch_sync(dispatch_get_main_queue(), init);
+}
+
+static NSString* macStatusItemText(const char* title)
+{
+    if (!title || !title[0])
+        return @"MB";
+    NSString* text = [NSString stringWithUTF8String:title];
+    return text ? text : @"MB";
+}
+
+static void macApplyStatusItem(MacStatusItemHandle* handle, UINT callbackMessage, const char* title, bool hidden)
+{
+    if (!handle || !handle->item)
+        return;
+    handle->target->_callbackMessage = callbackMessage;
+
+    NSString* text = macStatusItemText(title);
+    if ([handle->item respondsToSelector:@selector(setVisible:)])
+        [handle->item setVisible:!hidden];
+    NSStatusBarButton* button = [handle->item button];
+    if (!button)
+        return;
+    [button setToolTip:text];
+    [button setTitle:text];
+    [button setTarget:handle->target];
+    [button setAction:@selector(statusItemClicked:)];
+}
+
+extern "C" void* MacCreateStatusItem(HWND hwnd, UINT id, UINT callbackMessage, const char* title, bool hidden)
+{
+    __block MacStatusItemHandle* handle = nullptr;
+    auto create = ^{
+        MacInitializeApplication();
+        handle = new MacStatusItemHandle();
+        handle->target = [[MacStatusItemTarget alloc] initWithHwnd:hwnd id:id callbackMessage:callbackMessage];
+        handle->item = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+        macApplyStatusItem(handle, callbackMessage, title, hidden);
+    };
+    if ([NSThread isMainThread])
+        create();
+    else
+        dispatch_sync(dispatch_get_main_queue(), create);
+    return handle;
+}
+
+extern "C" bool MacUpdateStatusItem(void* statusItem, UINT callbackMessage, const char* title, bool hidden)
+{
+    MacStatusItemHandle* handle = (MacStatusItemHandle*)statusItem;
+    if (!handle)
+        return false;
+    auto update = ^{
+        macApplyStatusItem(handle, callbackMessage, title, hidden);
+    };
+    if ([NSThread isMainThread])
+        update();
+    else
+        dispatch_sync(dispatch_get_main_queue(), update);
+    return true;
+}
+
+extern "C" void MacDestroyStatusItem(void* statusItem)
+{
+    MacStatusItemHandle* handle = (MacStatusItemHandle*)statusItem;
+    if (!handle)
+        return;
+    auto destroy = ^{
+        if (handle->item) {
+            [[NSStatusBar systemStatusBar] removeStatusItem:handle->item];
+            [handle->item release];
+            handle->item = nil;
+        }
+        [handle->target release];
+        handle->target = nil;
+    };
+    if ([NSThread isMainThread])
+        destroy();
+    else
+        dispatch_sync(dispatch_get_main_queue(), destroy);
+    delete handle;
 }
 
 extern "C" ATOM RegisterClassExW(CONST WNDCLASSEXW* wndClass)

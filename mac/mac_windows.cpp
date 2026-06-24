@@ -1,4 +1,5 @@
 #include "mac/windows.h"
+#include "mac/mac_window.h"
 #include "mac/shlwapi.h"
 
 #include <CoreGraphics/CoreGraphics.h>
@@ -17,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -1927,6 +1929,142 @@ extern "C" HINSTANCE ShellExecuteW(HWND hwnd, LPCWSTR lpOperation, LPCWSTR lpFil
 {
     std::string file = wideToUtf8(lpFile);
     return ShellExecuteA(hwnd, nullptr, file.c_str(), nullptr, nullptr, nShowCmd);
+}
+
+struct MacTrayItem {
+    HWND hwnd = nullptr;
+    UINT id = 0;
+    UINT flags = 0;
+    UINT callbackMessage = 0;
+    HICON icon = nullptr;
+    DWORD state = 0;
+    UINT version = 0;
+    std::u16string tip;
+    std::u16string info;
+    std::u16string infoTitle;
+    DWORD infoFlags = 0;
+    void* nativeStatusItem = nullptr;
+};
+
+static std::mutex g_trayMutex;
+static std::vector<MacTrayItem> g_trayItems;
+
+static std::vector<MacTrayItem>::iterator findTrayItem(HWND hwnd, UINT id)
+{
+    return std::find_if(g_trayItems.begin(), g_trayItems.end(), [hwnd, id](const MacTrayItem& item) {
+        return item.hwnd == hwnd && item.id == id;
+    });
+}
+
+static std::u16string fixedWideString(const WCHAR* value, size_t capacity)
+{
+    size_t len = 0;
+    while (len < capacity && value[len])
+        ++len;
+    return std::u16string((const char16_t*)value, (const char16_t*)value + len);
+}
+
+static std::string trayTitleUtf8(const MacTrayItem& item)
+{
+    return item.tip.empty() ? std::string() : wideToUtf8((LPCWSTR)item.tip.c_str());
+}
+
+static bool isTrayItemHidden(const MacTrayItem& item)
+{
+    return (item.state & NIS_HIDDEN) != 0;
+}
+
+static void updateNativeTrayItem(MacTrayItem& item)
+{
+    if (!item.nativeStatusItem)
+        return;
+    std::string title = trayTitleUtf8(item);
+    MacUpdateStatusItem(item.nativeStatusItem, item.callbackMessage, title.c_str(), isTrayItemHidden(item));
+}
+
+static void applyTrayData(MacTrayItem& item, const NOTIFYICONDATAW* data)
+{
+    if (data->uFlags & NIF_MESSAGE)
+        item.callbackMessage = data->uCallbackMessage;
+    if (data->uFlags & NIF_ICON)
+        item.icon = data->hIcon;
+    if (data->uFlags & NIF_TIP)
+        item.tip = fixedWideString(data->szTip, sizeof(data->szTip) / sizeof(data->szTip[0]));
+    if (data->uFlags & NIF_STATE) {
+        item.state &= ~data->dwStateMask;
+        item.state |= (data->dwState & data->dwStateMask);
+    }
+    if (data->uFlags & NIF_INFO) {
+        item.info = fixedWideString(data->szInfo, sizeof(data->szInfo) / sizeof(data->szInfo[0]));
+        item.infoTitle = fixedWideString(data->szInfoTitle, sizeof(data->szInfoTitle) / sizeof(data->szInfoTitle[0]));
+        item.infoFlags = data->dwInfoFlags;
+    }
+    item.flags |= data->uFlags;
+}
+
+extern "C" BOOL Shell_NotifyIconW(DWORD dwMessage, PNOTIFYICONDATAW lpData)
+{
+    if (!lpData || lpData->cbSize < offsetof(NOTIFYICONDATAW, szTip))
+        return FALSE;
+
+    std::lock_guard<std::mutex> lock(g_trayMutex);
+    auto it = findTrayItem(lpData->hWnd, lpData->uID);
+    if (dwMessage == NIM_ADD) {
+        if (it != g_trayItems.end())
+            return FALSE;
+        MacTrayItem item;
+        item.hwnd = lpData->hWnd;
+        item.id = lpData->uID;
+        applyTrayData(item, lpData);
+        std::string title = trayTitleUtf8(item);
+        item.nativeStatusItem = MacCreateStatusItem(item.hwnd, item.id, item.callbackMessage, title.c_str(), isTrayItemHidden(item));
+        g_trayItems.push_back(item);
+        return TRUE;
+    }
+    if (it == g_trayItems.end())
+        return FALSE;
+    if (dwMessage == NIM_MODIFY) {
+        applyTrayData(*it, lpData);
+        updateNativeTrayItem(*it);
+        return TRUE;
+    }
+    if (dwMessage == NIM_DELETE) {
+        MacDestroyStatusItem(it->nativeStatusItem);
+        g_trayItems.erase(it);
+        return TRUE;
+    }
+    if (dwMessage == NIM_SETVERSION) {
+        it->version = lpData->uVersion;
+        return TRUE;
+    }
+    if (dwMessage == NIM_SETFOCUS)
+        return TRUE;
+    return FALSE;
+}
+
+extern "C" BOOL Shell_NotifyIconA(DWORD dwMessage, PNOTIFYICONDATAA lpData)
+{
+    if (!lpData)
+        return FALSE;
+    NOTIFYICONDATAW data = {};
+    data.cbSize = sizeof(data);
+    data.hWnd = lpData->hWnd;
+    data.uID = lpData->uID;
+    data.uFlags = lpData->uFlags;
+    data.uCallbackMessage = lpData->uCallbackMessage;
+    data.hIcon = lpData->hIcon;
+    data.dwState = lpData->dwState;
+    data.dwStateMask = lpData->dwStateMask;
+    data.uVersion = lpData->uVersion;
+    data.dwInfoFlags = lpData->dwInfoFlags;
+
+    std::u16string tip = utf8ToWide(lpData->szTip, -1);
+    std::u16string info = utf8ToWide(lpData->szInfo, -1);
+    std::u16string title = utf8ToWide(lpData->szInfoTitle, -1);
+    copyWideToBuffer(tip, data.szTip, sizeof(data.szTip) / sizeof(data.szTip[0]));
+    copyWideToBuffer(info, data.szInfo, sizeof(data.szInfo) / sizeof(data.szInfo[0]));
+    copyWideToBuffer(title, data.szInfoTitle, sizeof(data.szInfoTitle) / sizeof(data.szInfoTitle[0]));
+    return Shell_NotifyIconW(dwMessage, &data);
 }
 
 extern "C" int GetLocaleInfoW(LCID Locale, LCTYPE LCType, LPWSTR lpLCData, int cchData)
