@@ -26,6 +26,7 @@
 
 #define ENABLE_MB 1
 #include "mbvip/core/mb.h"
+#include "mac/shellapi.h"
 #include "mac/shlobj.h"
 
 namespace {
@@ -1361,6 +1362,109 @@ void runDialogCompatibilityChecks()
         widePathToAscii(browse_path));
 }
 
+void runShellCompatibilityChecks()
+{
+    std::string shell_dir = "/tmp/miniblink_browser_window_like/shell";
+    mkdir(shell_dir.c_str(), 0755);
+    std::string open_path = shell_dir + "/open-path.txt";
+    std::string shell_log = shell_dir + "/shell-execute.log";
+    unlink(shell_log.c_str());
+    {
+        std::ofstream file(open_path);
+        file << "shell open ok\n";
+    }
+
+    setenv("MINIBLINK_SHELL_EXECUTE_LOG", shell_log.c_str(), 1);
+
+    std::u16string open_path_w = asciiToWidePath(open_path);
+    HINSTANCE open_path_result = ShellExecuteW(nullptr, u"open", reinterpret_cast<LPCWSTR>(open_path_w.c_str()), nullptr, nullptr, SW_SHOWNORMAL);
+    addCheck("shell-open-path-shellexecute",
+        reinterpret_cast<ULONG_PTR>(open_path_result) > 32,
+        std::to_string(reinterpret_cast<ULONG_PTR>(open_path_result)));
+
+    std::u16string quoted_url_w = asciiToWidePath("\"https://example.com/\"");
+    HINSTANCE open_external_result = ShellExecuteW(nullptr, u"open", reinterpret_cast<LPCWSTR>(quoted_url_w.c_str()), nullptr, nullptr, SW_SHOWNORMAL);
+    addCheck("shell-open-external-shellexecute",
+        reinterpret_cast<ULONG_PTR>(open_external_result) > 32,
+        std::to_string(reinterpret_cast<ULONG_PTR>(open_external_result)));
+
+    std::u16string shell_dir_w = asciiToWidePath(shell_dir);
+    SHELLEXECUTEINFOW exec_info = {};
+    exec_info.cbSize = sizeof(exec_info);
+    exec_info.fMask = SEE_MASK_NOASYNC;
+    exec_info.lpVerb = u"explore";
+    exec_info.lpFile = reinterpret_cast<LPCWSTR>(shell_dir_w.c_str());
+    exec_info.lpDirectory = reinterpret_cast<LPCWSTR>(shell_dir_w.c_str());
+    exec_info.nShow = SW_SHOWNORMAL;
+    BOOL shell_execute_ex = ShellExecuteExW(&exec_info);
+    addCheck("shell-show-item-in-folder-fallback",
+        shell_execute_ex && reinterpret_cast<ULONG_PTR>(exec_info.hInstApp) > 32,
+        std::to_string(reinterpret_cast<ULONG_PTR>(exec_info.hInstApp)));
+
+    HMODULE shell32 = GetModuleHandleW(u"shell32.dll");
+    void* select_proc = GetProcAddress(shell32, "SHOpenFolderAndSelectItems");
+    addCheck("shell-show-item-in-folder-optional-proc",
+        shell32 && !select_proc,
+        std::string("shell32=") + (shell32 ? "1" : "0") + " proc=" + (select_proc ? "1" : "0"));
+
+    BROWSEINFOW reveal_browse = {};
+    reveal_browse.lParam = reinterpret_cast<LPARAM>(open_path_w.c_str());
+    reveal_browse.ulFlags = BIF_BROWSEINCLUDEFILES;
+    LPITEMIDLIST reveal_item = SHBrowseForFolderW(&reveal_browse);
+    HRESULT reveal_result = reveal_item ? SHOpenFolderAndSelectItems(reveal_item, 0, nullptr, 0) : E_FAIL;
+    if (reveal_item)
+        CoTaskMemFree(reveal_item);
+    addCheck("shell-show-item-in-folder-api",
+        SUCCEEDED(reveal_result),
+        std::to_string((long)reveal_result));
+
+    unsetenv("MINIBLINK_SHELL_EXECUTE_LOG");
+
+    std::ifstream log_file(shell_log);
+    std::stringstream log_buffer;
+    log_buffer << log_file.rdbuf();
+    std::string log_text = log_buffer.str();
+    addCheck("shell-execute-log-openpath",
+        log_text.find("/usr/bin/open\t" + open_path) != std::string::npos,
+        log_text);
+    addCheck("shell-execute-log-openexternal",
+        log_text.find("/usr/bin/open\thttps://example.com/") != std::string::npos,
+        log_text);
+    addCheck("shell-execute-log-showitem",
+        log_text.find("/usr/bin/open\t-R\t" + open_path) != std::string::npos,
+        log_text);
+
+    std::string trash_name = "trash-" + std::to_string((long long)getpid()) + ".txt";
+    std::string trash_path = shell_dir + "/" + trash_name;
+    std::string expected_trash_path = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + trash_name;
+    unlink(expected_trash_path.c_str());
+    {
+        std::ofstream file(trash_path);
+        file << "trash ok\n";
+    }
+    std::u16string trash_from = asciiToWidePath(trash_path);
+    trash_from.push_back(0);
+    trash_from.push_back(0);
+    SHFILEOPSTRUCTW file_op = {};
+    file_op.wFunc = FO_DELETE;
+    file_op.pFrom = reinterpret_cast<LPCWSTR>(trash_from.c_str());
+    file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    int trash_result = SHFileOperationW(&file_op);
+    bool trash_moved = access(trash_path.c_str(), F_OK) != 0 && access(expected_trash_path.c_str(), F_OK) == 0;
+    addCheck("shell-trash-item-shfileoperation",
+        trash_result == ERROR_SUCCESS && !file_op.fAnyOperationsAborted && trash_moved,
+        "result=" + std::to_string(trash_result) + " moved=" + (trash_moved ? "1" : "0"));
+    unlink(expected_trash_path.c_str());
+
+    setenv("MINIBLINK_SUPPRESS_BEEP", "1", 1);
+    BOOL message_beep = MessageBeep(MB_OK);
+    BOOL beep = Beep(750, 10);
+    unsetenv("MINIBLINK_SUPPRESS_BEEP");
+    addCheck("shell-beep-messagebeep",
+        message_beep && beep,
+        std::string("message=") + (message_beep ? "1" : "0") + " beep=" + (beep ? "1" : "0"));
+}
+
 std::u16string readMenuText(const WCHAR* text)
 {
     std::u16string result;
@@ -2224,6 +2328,7 @@ int main()
 
     runMenuCompatibilityChecks();
     runDialogCompatibilityChecks();
+    runShellCompatibilityChecks();
     runNativeImageCompatibilityChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();

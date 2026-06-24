@@ -79,6 +79,7 @@ typedef struct _browseinfoW {
 
 ITEMIDLIST* SHBrowseForFolderW(LPBROWSEINFOW lpbi);
 BOOL SHGetPathFromIDListW(const ITEMIDLIST* pidl, LPWSTR pszPath);
+EXTERN_C HRESULT SHOpenFolderAndSelectItems(LPCITEMIDLIST pidlFolder, UINT cidl, LPCITEMIDLIST* apidl, DWORD dwFlags);
 HRESULT CoCreateInstance(REFCLSID rclsid, IUnknown* pUnkOuter, DWORD dwClsContext, REFIID riid, LPVOID* ppv);
 
 #endif // MAC_SHLOBJ_H

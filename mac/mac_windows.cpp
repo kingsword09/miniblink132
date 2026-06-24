@@ -1,5 +1,6 @@
 #include "mac/windows.h"
 #include "mac/mac_window.h"
+#include "mac/shellapi.h"
 #include "mac/shlobj.h"
 #include "mac/shlwapi.h"
 
@@ -8,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <execinfo.h>
 #include <dirent.h>
 #include <dlfcn.h>
@@ -333,6 +335,228 @@ static DWORD errnoToWinError(int value)
     default:
         return (DWORD)value;
     }
+}
+
+static std::string trimShellValue(std::string value)
+{
+    size_t first = value.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos)
+        return std::string();
+    size_t last = value.find_last_not_of(" \t\r\n");
+    value = value.substr(first, last - first + 1);
+    if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') || (value.front() == '\'' && value.back() == '\'')))
+        value = value.substr(1, value.size() - 2);
+    return value;
+}
+
+static std::string lowerAscii(std::string value)
+{
+    for (char& ch : value) {
+        if (ch >= 'A' && ch <= 'Z')
+            ch = (char)(ch - 'A' + 'a');
+    }
+    return value;
+}
+
+static bool isUrlLike(const std::string& value)
+{
+    size_t colon = value.find(':');
+    if (colon == std::string::npos || colon == 0)
+        return false;
+    for (size_t i = 0; i < colon; ++i) {
+        char ch = value[i];
+        bool ok = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '+' || ch == '-' || ch == '.';
+        if (!ok)
+            return false;
+    }
+    return true;
+}
+
+static std::string joinShellPath(const char* directory, const std::string& file)
+{
+    if (file.empty() || isUrlLike(file) || file[0] == '/')
+        return file;
+    if (!directory || !directory[0])
+        return file;
+    std::string result = trimShellValue(directory);
+    if (result.empty())
+        return file;
+    if (result.back() != '/')
+        result.push_back('/');
+    result += file;
+    return result;
+}
+
+static bool spawnDetached(const std::vector<std::string>& args)
+{
+    if (args.empty())
+        return false;
+    if (const char* logPath = getenv("MINIBLINK_SHELL_EXECUTE_LOG")) {
+        FILE* log = fopen(logPath, "a");
+        if (!log) {
+            g_lastError = errnoToWinError(errno);
+            return false;
+        }
+        for (size_t i = 0; i < args.size(); ++i)
+            fprintf(log, "%s%s", i ? "\t" : "", args[i].c_str());
+        fputc('\n', log);
+        fclose(log);
+        g_lastError = ERROR_SUCCESS;
+        return true;
+    }
+    std::vector<char*> argv;
+    argv.reserve(args.size() + 1);
+    for (const std::string& arg : args)
+        argv.push_back(const_cast<char*>(arg.c_str()));
+    argv.push_back(nullptr);
+    pid_t pid = 0;
+    int result = posix_spawn(&pid, args[0].c_str(), nullptr, nullptr, argv.data(), environ);
+    if (result != 0) {
+        g_lastError = errnoToWinError(result);
+        return false;
+    }
+    g_lastError = ERROR_SUCCESS;
+    return true;
+}
+
+static int spawnAndWait(const std::vector<std::string>& args)
+{
+    if (args.empty())
+        return EINVAL;
+    std::vector<char*> argv;
+    argv.reserve(args.size() + 1);
+    for (const std::string& arg : args)
+        argv.push_back(const_cast<char*>(arg.c_str()));
+    argv.push_back(nullptr);
+    pid_t pid = 0;
+    int result = posix_spawn(&pid, args[0].c_str(), nullptr, nullptr, argv.data(), environ);
+    if (result != 0)
+        return result;
+    int status = 0;
+    if (waitpid(pid, &status, 0) < 0)
+        return errno;
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+        return EIO;
+    return 0;
+}
+
+static HINSTANCE shellExecuteOpen(const char* operation, const char* file, const char* parameters, const char* directory)
+{
+    std::string target = trimShellValue(file ? file : "");
+    if (target.empty())
+        target = trimShellValue(parameters ? parameters : "");
+    target = joinShellPath(directory, target);
+    if (target.empty()) {
+        g_lastError = ERROR_FILE_NOT_FOUND;
+        return (HINSTANCE)(uintptr_t)ERROR_FILE_NOT_FOUND;
+    }
+
+    std::string verb = lowerAscii(trimShellValue(operation ? operation : "open"));
+    std::vector<std::string> args;
+    args.push_back("/usr/bin/open");
+    if (verb == "reveal" || verb == "select")
+        args.push_back("-R");
+    args.push_back(target);
+    return spawnDetached(args) ? (HINSTANCE)(uintptr_t)33 : (HINSTANCE)(uintptr_t)g_lastError;
+}
+
+static bool isKnownModuleName(LPCWSTR moduleName)
+{
+    if (!moduleName)
+        return true;
+    std::string name = lowerAscii(trimShellValue(wideToUtf8(moduleName)));
+    size_t slash = name.find_last_of("/\\");
+    if (slash != std::string::npos)
+        name = name.substr(slash + 1);
+    return name == "shell32.dll" || name == "shell32" || name == "user32.dll" || name == "user32"
+        || name == "kernel32.dll" || name == "kernel32";
+}
+
+static std::vector<std::u16string> doubleNullWideList(LPCWSTR list)
+{
+    std::vector<std::u16string> result;
+    if (!list)
+        return result;
+    const WCHAR* cursor = list;
+    while (*cursor) {
+        std::u16string value;
+        while (*cursor) {
+            value.push_back((char16_t)*cursor);
+            ++cursor;
+        }
+        result.push_back(value);
+        ++cursor;
+    }
+    return result;
+}
+
+static std::string pathBasename(std::string path)
+{
+    while (path.size() > 1 && path.back() == '/')
+        path.pop_back();
+    size_t slash = path.find_last_of('/');
+    if (slash == std::string::npos)
+        return path.empty() ? std::string("item") : path;
+    std::string name = path.substr(slash + 1);
+    return name.empty() ? std::string("item") : name;
+}
+
+static std::string uniqueTrashPath(const std::string& trashDir, const std::string& name)
+{
+    std::string candidate = trashDir + "/" + name;
+    if (access(candidate.c_str(), F_OK) != 0)
+        return candidate;
+
+    std::string stem = name;
+    std::string extension;
+    size_t dot = name.find_last_of('.');
+    if (dot != std::string::npos && dot != 0) {
+        stem = name.substr(0, dot);
+        extension = name.substr(dot);
+    }
+
+    for (int index = 1; index < 10000; ++index) {
+        candidate = trashDir + "/" + stem + " " + std::to_string(index) + extension;
+        if (access(candidate.c_str(), F_OK) != 0)
+            return candidate;
+    }
+    return trashDir + "/" + name + " " + std::to_string((long long)time(nullptr));
+}
+
+static int movePathToTrash(const std::u16string& widePath)
+{
+    std::string path = wideToUtf8((LPCWSTR)widePath.c_str());
+    if (path.empty())
+        return ENOENT;
+    const char* home = getenv("HOME");
+    if (!home || !home[0])
+        return ENOENT;
+    std::string trashDir = std::string(home) + "/.Trash";
+    if (mkdir(trashDir.c_str(), 0700) != 0 && errno != EEXIST)
+        return errno;
+    std::string destination = uniqueTrashPath(trashDir, pathBasename(path));
+    if (rename(path.c_str(), destination.c_str()) == 0)
+        return 0;
+    int savedErrno = errno;
+    if (savedErrno == EXDEV)
+        return spawnAndWait({ "/bin/mv", path, destination });
+    return savedErrno;
+}
+
+static int deletePathPermanently(const std::u16string& widePath)
+{
+    std::string path = wideToUtf8((LPCWSTR)widePath.c_str());
+    if (path.empty())
+        return ENOENT;
+    if (unlink(path.c_str()) == 0)
+        return 0;
+    int savedErrno = errno;
+    if (savedErrno == EISDIR || savedErrno == EPERM) {
+        if (rmdir(path.c_str()) == 0)
+            return 0;
+        savedErrno = errno;
+    }
+    return savedErrno;
 }
 
 static void fillFileTime(time_t seconds, FILETIME* fileTime)
@@ -777,7 +1001,7 @@ extern "C" LANGID GetUserDefaultUILanguage(void)
 
 extern "C" HMODULE GetModuleHandleW(LPCWSTR lpModuleName)
 {
-    return nullptr;
+    return isKnownModuleName(lpModuleName) ? (HMODULE)RTLD_DEFAULT : nullptr;
 }
 
 extern "C" DWORD GetModuleFileNameW(HMODULE hModule, LPWSTR lpFilename, DWORD nSize)
@@ -804,6 +1028,10 @@ extern "C" HMODULE LoadLibraryW(LPCWSTR lpLibFileName)
 
 extern "C" void* GetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 {
+    if (!lpProcName)
+        return nullptr;
+    if (strcmp(lpProcName, "SHOpenFolderAndSelectItems") == 0)
+        return nullptr;
     return dlsym(hModule ? hModule : RTLD_DEFAULT, lpProcName);
 }
 
@@ -2314,18 +2542,85 @@ extern "C" int MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uT
 
 extern "C" HINSTANCE ShellExecuteA(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd)
 {
-    if (!lpFile)
-        return (HINSTANCE)0;
-    pid_t pid = 0;
-    const char* argv[] = { "/usr/bin/open", lpFile, nullptr };
-    int result = posix_spawn(&pid, "/usr/bin/open", nullptr, nullptr, (char* const*)argv, environ);
-    return result == 0 ? (HINSTANCE)33 : (HINSTANCE)0;
+    return shellExecuteOpen(lpOperation, lpFile, lpParameters, lpDirectory);
 }
 
 extern "C" HINSTANCE ShellExecuteW(HWND hwnd, LPCWSTR lpOperation, LPCWSTR lpFile, LPCWSTR lpParameters, LPCWSTR lpDirectory, INT nShowCmd)
 {
+    std::string operation = wideToUtf8(lpOperation);
     std::string file = wideToUtf8(lpFile);
-    return ShellExecuteA(hwnd, nullptr, file.c_str(), nullptr, nullptr, nShowCmd);
+    std::string parameters = wideToUtf8(lpParameters);
+    std::string directory = wideToUtf8(lpDirectory);
+    return ShellExecuteA(hwnd,
+        operation.empty() ? nullptr : operation.c_str(),
+        file.empty() ? nullptr : file.c_str(),
+        parameters.empty() ? nullptr : parameters.c_str(),
+        directory.empty() ? nullptr : directory.c_str(),
+        nShowCmd);
+}
+
+extern "C" BOOL ShellExecuteExW(LPSHELLEXECUTEINFOW lpExecInfo)
+{
+    if (!lpExecInfo || lpExecInfo->cbSize < sizeof(SHELLEXECUTEINFOW)) {
+        g_lastError = ERROR_INVALID_PARAMETER;
+        return FALSE;
+    }
+    HINSTANCE result = ShellExecuteW(lpExecInfo->hwnd, lpExecInfo->lpVerb, lpExecInfo->lpFile,
+        lpExecInfo->lpParameters, lpExecInfo->lpDirectory, lpExecInfo->nShow);
+    lpExecInfo->hInstApp = result;
+    if ((ULONG_PTR)result <= 32) {
+        g_lastError = result ? (DWORD)(ULONG_PTR)result : ERROR_FILE_NOT_FOUND;
+        return FALSE;
+    }
+    if (lpExecInfo->fMask & SEE_MASK_NOCLOSEPROCESS)
+        lpExecInfo->hProcess = nullptr;
+    return TRUE;
+}
+
+extern "C" int SHFileOperationW(LPSHFILEOPSTRUCTW lpFileOp)
+{
+    if (!lpFileOp || !lpFileOp->pFrom) {
+        g_lastError = ERROR_INVALID_PARAMETER;
+        return ERROR_INVALID_PARAMETER;
+    }
+    if (lpFileOp->wFunc != FO_DELETE) {
+        g_lastError = ERROR_CALL_NOT_IMPLEMENTED;
+        return ERROR_CALL_NOT_IMPLEMENTED;
+    }
+
+    std::vector<std::u16string> paths = doubleNullWideList(lpFileOp->pFrom);
+    if (paths.empty()) {
+        g_lastError = ERROR_FILE_NOT_FOUND;
+        return ERROR_FILE_NOT_FOUND;
+    }
+
+    for (const std::u16string& path : paths) {
+        int result = (lpFileOp->fFlags & FOF_ALLOWUNDO) ? movePathToTrash(path) : deletePathPermanently(path);
+        if (result != 0) {
+            DWORD winError = errnoToWinError(result);
+            lpFileOp->fAnyOperationsAborted = TRUE;
+            g_lastError = winError;
+            return (int)winError;
+        }
+    }
+
+    lpFileOp->fAnyOperationsAborted = FALSE;
+    g_lastError = ERROR_SUCCESS;
+    return ERROR_SUCCESS;
+}
+
+extern "C" BOOL MessageBeep(UINT uType)
+{
+    if (!getenv("MINIBLINK_SUPPRESS_BEEP")) {
+        fputc('\a', stderr);
+        fflush(stderr);
+    }
+    return TRUE;
+}
+
+extern "C" BOOL Beep(DWORD dwFreq, DWORD dwDuration)
+{
+    return MessageBeep(MB_OK);
 }
 
 struct MacTrayItem {
@@ -2542,7 +2837,8 @@ ITEMIDLIST* SHBrowseForFolderW(LPBROWSEINFOW lpbi)
         path = wideToU16((LPCWSTR)lpbi->lParam);
     if (path.empty() && lpbi)
         path = wideToU16(lpbi->pszDisplayName);
-    if (!pathIsDirectory(path))
+    bool includeFiles = lpbi && (lpbi->ulFlags & BIF_BROWSEINCLUDEFILES);
+    if (!pathExists(path) || (!includeFiles && !pathIsDirectory(path)))
         return nullptr;
 
     if (lpbi && lpbi->lpfn)
@@ -2559,13 +2855,40 @@ ITEMIDLIST* SHBrowseForFolderW(LPBROWSEINFOW lpbi)
     return (ITEMIDLIST*)item;
 }
 
-BOOL SHGetPathFromIDListW(const ITEMIDLIST* pidl, LPWSTR pszPath)
+static std::u16string pathFromItemIdList(LPCITEMIDLIST pidl)
 {
     const MacPathItemIdList* item = (const MacPathItemIdList*)pidl;
-    if (!item || item->magic != 0x6d627069 || !pszPath)
+    if (!item || item->magic != 0x6d627069)
+        return std::u16string();
+    return wideToU16(item->path);
+}
+
+BOOL SHGetPathFromIDListW(const ITEMIDLIST* pidl, LPWSTR pszPath)
+{
+    std::u16string path = pathFromItemIdList(pidl);
+    if (path.empty() || !pszPath)
         return FALSE;
-    copyWideToBuffer(wideToU16(item->path), pszPath, MAX_PATH);
+    copyWideToBuffer(path, pszPath, MAX_PATH);
     return TRUE;
+}
+
+extern "C" HRESULT SHOpenFolderAndSelectItems(LPCITEMIDLIST pidlFolder, UINT cidl, LPCITEMIDLIST* apidl, DWORD dwFlags)
+{
+    std::u16string target;
+    if (cidl > 0 && apidl && apidl[0])
+        target = pathFromItemIdList(apidl[0]);
+    if (target.empty())
+        target = pathFromItemIdList(pidlFolder);
+    if (target.empty() || !pathExists(target))
+        return E_INVALIDARG;
+
+    std::string path = wideToUtf8((LPCWSTR)target.c_str());
+    std::vector<std::string> args;
+    args.push_back("/usr/bin/open");
+    if (!pathIsDirectory(target))
+        args.push_back("-R");
+    args.push_back(path);
+    return spawnDetached(args) ? S_OK : E_FAIL;
 }
 
 extern "C" UINT RegisterWindowMessageW(LPCWSTR lpString)
