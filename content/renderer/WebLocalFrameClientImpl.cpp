@@ -400,6 +400,18 @@ scoped_refptr<network::SharedURLLoaderFactory> WebLocalFrameClientImpl::GetURLLo
     return CreateURLLoaderFactoryByMbWebview(m_mbwebviewId);
 }
 
+blink::WebString WebLocalFrameClientImpl::UserAgentOverride()
+{
+    MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(m_mbwebviewId);
+    if (!webview)
+        return blink::WebString();
+
+    std::string user_agent = webview->getUserAgentOverride();
+    if (user_agent.empty())
+        return blink::WebString();
+    return blink::WebString::FromUTF8(user_agent);
+}
+
 class WebHTTPHeaderVisitorimpl : public blink::WebHTTPHeaderVisitor {
 public:
     void VisitHeader(const blink::WebString& name, const blink::WebString& value) override

@@ -265,6 +265,8 @@ public:
 
     void setSetLanguage(const std::string& lang);
     std::string getSetLanguage() const;
+    void setUserAgentOverride(const std::string& userAgent);
+    std::string getUserAgentOverride() const;
 
     void draggableRegionsChanged(blink::WebVector<blink::WebDraggableRegion> regions);
 
@@ -412,6 +414,7 @@ private:
     std::string m_windowTitle;
     std::string m_title;
     std::string m_url;
+    std::string m_userAgentOverride;
 
     std::map<std::string, void*> m_userKeyValues;
     mutable CRITICAL_SECTION m_userKeyValuesLock;

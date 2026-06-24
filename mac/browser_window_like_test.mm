@@ -61,6 +61,9 @@ std::atomic<int> g_async_js_callback_count(0);
 std::atomic<double> g_async_js_number(0);
 std::atomic<int> g_cookie_callback_count(0);
 std::atomic<int> g_cookie_callback_state(-1);
+std::atomic<bool> g_web_request_begin_seen(false);
+std::atomic<bool> g_web_request_end_seen(false);
+std::atomic<bool> g_web_request_post_body_seen(false);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -70,6 +73,8 @@ std::string g_last_fail_reason;
 std::string g_last_download_url;
 std::string g_async_js_text;
 std::string g_last_cookie_string;
+std::string g_web_request_post_body;
+std::string g_web_request_end_body;
 BOOL g_last_can_go_back = FALSE;
 BOOL g_last_can_go_forward = FALSE;
 
@@ -339,10 +344,26 @@ public:
     std::string origin() const { return "http://127.0.0.1:" + std::to_string(port_); }
     int websocketUpgrades() const { return websocket_upgrades_.load(); }
     int websocketMessages() const { return websocket_messages_.load(); }
+    int webRequestHits() const { return web_request_hits_.load(); }
     std::string websocketDebug() const
     {
         std::lock_guard<std::mutex> lock(websocket_mutex_);
         return " wsKey=" + websocket_key_ + " wsAccept=" + websocket_accept_;
+    }
+    std::string lastWebRequestUserAgent() const
+    {
+        std::lock_guard<std::mutex> lock(web_request_mutex_);
+        return web_request_user_agent_;
+    }
+    std::string lastWebRequestHookHeader() const
+    {
+        std::lock_guard<std::mutex> lock(web_request_mutex_);
+        return web_request_hook_header_;
+    }
+    std::string lastWebRequestBody() const
+    {
+        std::lock_guard<std::mutex> lock(web_request_mutex_);
+        return web_request_body_;
     }
 
 private:
@@ -375,6 +396,21 @@ private:
         std::string method;
         std::string path;
         line_stream >> method >> path;
+        std::string request_body;
+        size_t headers_end = request.find("\r\n\r\n");
+        int content_length = 0;
+        std::string content_length_text = headerValue(request, "Content-Length");
+        if (!content_length_text.empty())
+            content_length = atoi(content_length_text.c_str());
+        if (headers_end != std::string::npos) {
+            request_body = request.substr(headers_end + 4);
+            while ((int)request_body.size() < content_length) {
+                ssize_t n = recv(fd, buffer, sizeof(buffer), 0);
+                if (n <= 0)
+                    break;
+                request_body.append(buffer, buffer + n);
+            }
+        }
 
         if (request.find("Upgrade: websocket") != std::string::npos || request.find("upgrade: websocket") != std::string::npos) {
             handleWebSocket(fd, request);
@@ -409,6 +445,14 @@ private:
         } else if (path == "/xhr") {
             type = "text/plain";
             body = "xhr-ok";
+        } else if (path == "/webrequest") {
+            type = "text/plain";
+            body = "webrequest-ok";
+            ++web_request_hits_;
+            std::lock_guard<std::mutex> lock(web_request_mutex_);
+            web_request_user_agent_ = headerValue(request, "User-Agent");
+            web_request_hook_header_ = headerValue(request, "X-MB-Hooked");
+            web_request_body_ = request_body;
         } else if (path == "/download") {
             type = "application/octet-stream";
             body = "download-ok\n";
@@ -518,9 +562,14 @@ private:
     std::atomic<bool> running_ { false };
     std::atomic<int> websocket_upgrades_ { 0 };
     std::atomic<int> websocket_messages_ { 0 };
+    std::atomic<int> web_request_hits_ { 0 };
     mutable std::mutex websocket_mutex_;
+    mutable std::mutex web_request_mutex_;
     std::string websocket_key_;
     std::string websocket_accept_;
+    std::string web_request_user_agent_;
+    std::string web_request_hook_header_;
+    std::string web_request_body_;
     std::thread thread_;
 };
 
@@ -578,6 +627,47 @@ void MB_CALL_TYPE onLoadUrlFinish(mbWebView, void*, const utf8* url, mbNetJob, i
     g_load_finished = true;
     std::lock_guard<std::mutex> lock(g_state_mutex);
     g_last_url = url ? url : "";
+}
+
+BOOL MB_CALL_TYPE onLoadUrlBeginForWebRequest(mbWebView, void*, const char* url, void* job)
+{
+    if (!url || !strstr(url, "/webrequest"))
+        return TRUE;
+
+    g_web_request_begin_seen = true;
+    mbNetSetHTTPHeaderFieldUtf8(job, "X-MB-Hooked", "yes", FALSE);
+
+    mbPostBodyElements* post_body = mbNetGetPostBody(job);
+    if (post_body) {
+        std::string body;
+        for (size_t i = 0; i < post_body->elementSize; ++i) {
+            mbPostBodyElement* element = post_body->element[i];
+            if (!element || element->type != mbHttBodyElementTypeData || !element->data || !element->data->data)
+                continue;
+            body.append(static_cast<const char*>(element->data->data), element->data->length);
+        }
+        {
+            std::lock_guard<std::mutex> lock(g_state_mutex);
+            g_web_request_post_body = body;
+        }
+        g_web_request_post_body_seen = !body.empty();
+        mbNetFreePostBodyElements(post_body);
+    }
+
+    mbNetHookRequest(job);
+    return TRUE;
+}
+
+void MB_CALL_TYPE onLoadUrlEndForWebRequest(mbWebView, void*, const char* url, void*, void* buf, int len)
+{
+    if (!url || !strstr(url, "/webrequest"))
+        return;
+
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_web_request_end_body.assign(static_cast<const char*>(buf), len > 0 ? len : 0);
+    }
+    g_web_request_end_seen = true;
 }
 
 mbWebView MB_CALL_TYPE onCreateView(mbWebView, void*, mbNavigationType, const utf8* url, const mbWindowFeatures*)
@@ -905,6 +995,58 @@ void runSessionCookieChecks(mbWebView view, const std::string& origin)
     addCheck("session-cookie-clear-via-api", cleared, getCookieViaApi(view));
 }
 
+void runSessionWebRequestChecks(mbWebView view, LocalServer& server)
+{
+    const std::string custom_user_agent = "MiniBlinkMacE2E/1.0";
+    mbSetUserAgent(view, custom_user_agent.c_str());
+    bool js_user_agent_ok = waitFor([&] {
+        return jsString(view, "navigator.userAgent").find(custom_user_agent) != std::string::npos;
+    }, 3000);
+    addCheck("session-user-agent-js", js_user_agent_ok, jsString(view, "navigator.userAgent"));
+
+    g_web_request_begin_seen = false;
+    g_web_request_end_seen = false;
+    g_web_request_post_body_seen = false;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_web_request_post_body.clear();
+        g_web_request_end_body.clear();
+    }
+    int before_hits = server.webRequestHits();
+    jsNumber(view,
+        "window.__webRequestResult='pending';"
+        "fetch('/webrequest',{method:'POST',headers:{'Content-Type':'text/plain'},body:'post-body-ok'})"
+        ".then(function(r){return r.text()})"
+        ".then(function(t){window.__webRequestResult=t})"
+        ".catch(function(e){window.__webRequestResult='ERR:'+e.message});"
+        "1");
+
+    bool fetch_ok = waitFor([&] {
+        return jsString(view, "window.__webRequestResult") == "webrequest-ok" && server.webRequestHits() > before_hits;
+    }, 5000);
+    addCheck("session-webrequest-fetch-post", fetch_ok, jsString(view, "window.__webRequestResult"));
+
+    addCheck("session-webrequest-user-agent-header",
+        server.lastWebRequestUserAgent().find(custom_user_agent) != std::string::npos,
+        server.lastWebRequestUserAgent());
+    addCheck("session-webrequest-header-mutation",
+        server.lastWebRequestHookHeader() == "yes",
+        server.lastWebRequestHookHeader());
+    addCheck("session-webrequest-post-body-server",
+        server.lastWebRequestBody() == "post-body-ok",
+        server.lastWebRequestBody());
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("session-webrequest-post-body-callback",
+            g_web_request_post_body_seen.load() && g_web_request_post_body == "post-body-ok",
+            g_web_request_post_body);
+        addCheck("session-webrequest-load-url-end",
+            g_web_request_end_seen.load() && g_web_request_end_body == "webrequest-ok",
+            g_web_request_end_body);
+    }
+    addCheck("session-webrequest-load-url-begin", g_web_request_begin_seen.load());
+}
+
 } // namespace
 
 int main()
@@ -940,6 +1082,8 @@ int main()
     mbOnLoadingFinish(view, onLoadingFinish, nullptr);
     mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
     mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+    mbOnLoadUrlBegin(view, onLoadUrlBeginForWebRequest, nullptr);
+    mbOnLoadUrlEnd(view, onLoadUrlEndForWebRequest, nullptr);
     mbOnCreateView(view, onCreateView, nullptr);
     mbOnDownloadInBlinkThread(view, onDownloadInBlinkThread, nullptr);
     mbSetNavigationToNewWindowEnable(view, TRUE);
@@ -1026,6 +1170,7 @@ int main()
                 + server.websocketDebug());
         addCheck("cookie-localStorage", json.find("cookie-ok") != std::string::npos && json.find("storage-ok") != std::string::npos, json);
         runSessionCookieChecks(view, server.origin());
+        runSessionWebRequestChecks(view, server);
 
         mbSetFocus(view);
         jsNumber(view, "var i=document.getElementById('textInput'); i.value=''; i.focus(); 1");

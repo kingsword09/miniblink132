@@ -1210,12 +1210,11 @@ void MB_CALL_TYPE mbSetUserAgent(mbWebView webviewHandle, const utf8* userAgent)
     if (!userAgent)
         return;
 
-    std::string* userAgentString = new std::string(userAgent);
-
-    content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, userAgentString] {
+    std::string userAgentString(userAgent);
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [userAgentString](content::MbWebView* webview) {
         content::RendererBlinkPlatformImpl* platform = (content::RendererBlinkPlatformImpl*)blink::Platform::Current();
-        platform->setUserAgent(*userAgentString);
-        delete userAgentString;
+        platform->setUserAgent(userAgentString);
+        webview->setUserAgentOverride(userAgentString);
     });
 }
 

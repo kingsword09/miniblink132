@@ -2185,6 +2185,16 @@ const mbProxy* MbWebView::getProxy() const
     return m_pageNetExtraData->getProxy();
 }
 
+void MbWebView::setUserAgentOverride(const std::string& userAgent)
+{
+    m_userAgentOverride = userAgent;
+}
+
+std::string MbWebView::getUserAgentOverride() const
+{
+    return m_userAgentOverride;
+}
+
 void MbWebView::setSetLanguage(const std::string& lang)
 {
     blink::RendererPreferences pref = m_renderWidgetHostImpl->m_webWiew->GetRendererPreferences();
