@@ -78,6 +78,10 @@ std::atomic<int> g_source_callback_count(0);
 std::atomic<int> g_markup_callback_count(0);
 std::atomic<int> g_menu_command_count(0);
 std::atomic<UINT> g_menu_command_id(0);
+std::atomic<int> g_hotkey_count(0);
+std::atomic<int> g_hotkey_id(0);
+std::atomic<UINT> g_hotkey_modifiers(0);
+std::atomic<UINT> g_hotkey_vk(0);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -181,6 +185,18 @@ WindowState readWindowState(HWND hwnd)
     state.hwnd = hwnd;
     mbCallUiThreadSync(readWindowStateOnUiThread, &state, nullptr);
     return state;
+}
+
+LRESULT CALLBACK hotKeyWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (msg == WM_HOTKEY) {
+        g_hotkey_count++;
+        g_hotkey_id = static_cast<int>(wParam);
+        g_hotkey_modifiers = LOWORD(lParam);
+        g_hotkey_vk = HIWORD(lParam);
+        return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
 struct CreateWindowState {
@@ -1056,6 +1072,63 @@ void runAppLifecycleMessageLoopChecks()
         !get_result && quit_message.message == WM_QUIT && quit_message.wParam == 42,
         "get=" + std::to_string(get_result) + " msg=" + std::to_string(quit_message.message)
             + " code=" + std::to_string((unsigned long long)quit_message.wParam));
+}
+
+void MB_CALL_TYPE runGlobalShortcutCompatibilityChecksOnUiThread(void*, void*)
+{
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = hotKeyWindowProc;
+    wc.lpszClassName = u"GlobalShortcutCompatibilityWindow";
+    RegisterClassW(&wc);
+    HWND hwnd = CreateWindowExW(0, wc.lpszClassName, u"hotkey-test", WS_OVERLAPPEDWINDOW, 0, 0, 120, 80, nullptr, nullptr, nullptr, nullptr);
+
+    const int hotkey_id = 7001;
+    const UINT modifiers = MOD_CONTROL | MOD_SHIFT;
+    BOOL registered = RegisterHotKey(hwnd, hotkey_id, modifiers, 'G');
+    BOOL duplicate_chord = RegisterHotKey(hwnd, hotkey_id + 1, modifiers, 'G');
+    BOOL duplicate_id = RegisterHotKey(hwnd, hotkey_id, MOD_ALT, 'H');
+    addCheck("global-shortcut-register-state",
+        hwnd && registered && !duplicate_chord && !duplicate_id,
+        "registered=" + std::to_string(registered)
+            + " dupChord=" + std::to_string(duplicate_chord)
+            + " dupId=" + std::to_string(duplicate_id));
+
+    g_hotkey_count = 0;
+    g_hotkey_id = 0;
+    g_hotkey_modifiers = 0;
+    g_hotkey_vk = 0;
+    PostMessageW(hwnd, WM_HOTKEY, hotkey_id, MAKELPARAM(modifiers, 'G'));
+    MSG hotkey_msg = {};
+    BOOL got_hotkey = PeekMessageW(&hotkey_msg, hwnd, 0, 0, PM_REMOVE);
+    if (got_hotkey)
+        DispatchMessageW(&hotkey_msg);
+    addCheck("global-shortcut-hotkey-message",
+        got_hotkey
+            && g_hotkey_count == 1
+            && g_hotkey_id == hotkey_id
+            && g_hotkey_modifiers == modifiers
+            && g_hotkey_vk == 'G',
+        "count=" + std::to_string(g_hotkey_count.load())
+            + " id=" + std::to_string(g_hotkey_id.load())
+            + " mods=" + std::to_string(g_hotkey_modifiers.load())
+            + " vk=" + std::to_string(g_hotkey_vk.load()));
+
+    BOOL unregistered = UnregisterHotKey(hwnd, hotkey_id);
+    BOOL unregister_again = UnregisterHotKey(hwnd, hotkey_id);
+    BOOL reregistered = RegisterHotKey(hwnd, hotkey_id + 2, modifiers, 'G');
+    BOOL final_unregister = UnregisterHotKey(hwnd, hotkey_id + 2);
+    DestroyWindow(hwnd);
+    addCheck("global-shortcut-unregister-state",
+        unregistered && !unregister_again && reregistered && final_unregister,
+        "unregistered=" + std::to_string(unregistered)
+            + " again=" + std::to_string(unregister_again)
+            + " reregistered=" + std::to_string(reregistered)
+            + " final=" + std::to_string(final_unregister));
+}
+
+void runGlobalShortcutCompatibilityChecks()
+{
+    mbCallUiThreadSync(runGlobalShortcutCompatibilityChecksOnUiThread, nullptr, nullptr);
 }
 
 bool waitForUrlContains(mbWebView view, const std::string& label, const std::string& fragment, int timeout_ms)
@@ -2594,6 +2667,7 @@ int main()
     runDialogCompatibilityChecks();
     runShellCompatibilityChecks();
     runAppCompatibilityChecks();
+    runGlobalShortcutCompatibilityChecks();
     runScreenCompatibilityChecks(host);
     runNativeThemeCompatibilityChecks();
     runPowerMonitorCompatibilityChecks();

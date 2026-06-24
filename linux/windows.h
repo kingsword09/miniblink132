@@ -203,6 +203,7 @@
 #define WM_QUERYENDSESSION 0x0011
 #define WM_QUIT 0x0012
 #define WM_POWERBROADCAST 0x0218
+#define WM_HOTKEY 0x0312
 #define WM_USER 0x0400
 #define WM_SETFONT 0x0030
 #define WM_TOUCH 0x0240
@@ -430,6 +431,8 @@
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
 #define E_INVALIDARG ((HRESULT)0x80000003L)
 #define ERROR_ALREADY_EXISTS 183L
+#define ERROR_INVALID_PARAMETER 87L
+#define ERROR_INVALID_HANDLE 6L
 #define ERROR_FILE_EXISTS 80L
 #define CSIDL_FLAG_CREATE 0x8000
 #define FILE_BEGIN 0
@@ -526,6 +529,12 @@
 #define AC_LINE_UNKNOWN 0xFF
 #define BATTERY_FLAG_UNKNOWN 0xFF
 #define HCF_HIGHCONTRASTON 0x00000001
+
+#define MOD_ALT 0x0001
+#define MOD_CONTROL 0x0002
+#define MOD_SHIFT 0x0004
+#define MOD_WIN 0x0008
+#define MOD_NOREPEAT 0x4000
 
 #define CreateWindowW(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)                                        \
     CreateWindowExW(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)
@@ -1416,6 +1425,8 @@ EXTERN_C BOOL BitBlt(HDC hdc, int x, int y, int cx, int cy, HDC hdcSrc, int x1, 
 EXTERN_C BOOL TranslateMessage(CONST MSG* lpMsg);
 EXTERN_C BOOL PeekMessageW(MSG* lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 EXTERN_C LRESULT DispatchMessageW(CONST MSG* lpMsg);
+EXTERN_C BOOL RegisterHotKey(HWND hWnd, int id, UINT fsModifiers, UINT vk);
+EXTERN_C BOOL UnregisterHotKey(HWND hWnd, int id);
 EXTERN_C VOID Sleep(DWORD dwMilliseconds);
 EXTERN_C LRESULT DefWindowProcW(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 EXTERN_C ATOM RegisterClassW(CONST WNDCLASSW* lpWndClass);

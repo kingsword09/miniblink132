@@ -19,6 +19,16 @@ std::deque<MSG> g_messageQueue;
 HWND g_focusWindow = nullptr;
 HWND g_captureWindow = nullptr;
 
+struct HotKeyRegistration {
+    HWND hwnd = nullptr;
+    int id = 0;
+    UINT modifiers = 0;
+    UINT vk = 0;
+};
+
+std::mutex g_hotKeyMutex;
+std::vector<HotKeyRegistration> g_hotKeys;
+
 static std::u16string wideKey(LPCWSTR value)
 {
     if (!value)
@@ -98,6 +108,26 @@ static WPARAM eventButtonFlags(NSEvent* event)
     return flags;
 }
 
+static UINT normalizeHotKeyModifiers(UINT modifiers)
+{
+    return modifiers & (MOD_ALT | MOD_CONTROL | MOD_SHIFT | MOD_WIN);
+}
+
+static UINT hotKeyModifiersFromEvent(NSEvent* event)
+{
+    UINT modifiers = 0;
+    NSEventModifierFlags flags = [event modifierFlags];
+    if (flags & NSEventModifierFlagOption)
+        modifiers |= MOD_ALT;
+    if (flags & NSEventModifierFlagControl)
+        modifiers |= MOD_CONTROL;
+    if (flags & NSEventModifierFlagShift)
+        modifiers |= MOD_SHIFT;
+    if (flags & NSEventModifierFlagCommand)
+        modifiers |= MOD_WIN;
+    return modifiers;
+}
+
 static UINT virtualKeyFromEvent(NSEvent* event)
 {
     switch ([event keyCode]) {
@@ -142,6 +172,21 @@ static UINT virtualKeyFromEvent(NSEvent* event)
         return ch;
     }
     return 0;
+}
+
+static bool findRegisteredHotKey(HWND hwnd, UINT modifiers, UINT vk, HotKeyRegistration* registration)
+{
+    std::lock_guard<std::mutex> lock(g_hotKeyMutex);
+    for (const HotKeyRegistration& candidate : g_hotKeys) {
+        if (candidate.vk != vk || candidate.modifiers != modifiers)
+            continue;
+        if (candidate.hwnd && candidate.hwnd != hwnd)
+            continue;
+        if (registration)
+            *registration = candidate;
+        return true;
+    }
+    return false;
 }
 
 static void dispatchQueuedMessagesForWindow(HWND hwnd)
@@ -337,6 +382,14 @@ static void pumpCocoaOnce(NSDate* limitDate)
     if (!_hwnd || !_hwnd->m_wndProc)
         return;
     UINT key = virtualKeyFromEvent(event);
+    UINT hotKeyModifiers = hotKeyModifiersFromEvent(event);
+    HotKeyRegistration hotKey;
+    if (key && findRegisteredHotKey((HWND)_hwnd, hotKeyModifiers, key, &hotKey)) {
+        HWND target = hotKey.hwnd ? hotKey.hwnd : (HWND)_hwnd;
+        SendMessageW(target, WM_HOTKEY, (WPARAM)hotKey.id, MAKELPARAM(hotKey.modifiers, hotKey.vk));
+        return;
+    }
+
     _hwnd->m_wndProc((HWND)_hwnd, WM_KEYDOWN, key, 0);
 
     NSString* chars = [event characters];
@@ -1117,6 +1170,47 @@ extern "C" LRESULT DispatchMessageW(CONST MSG* lpMsg)
 
 extern "C" BOOL TranslateMessage(CONST MSG* lpMsg)
 {
+    return TRUE;
+}
+
+extern "C" BOOL RegisterHotKey(HWND hWnd, int id, UINT fsModifiers, UINT vk)
+{
+    if ((hWnd && !HwndMac::isValid(hWnd)) || id < 0 || vk == 0) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    UINT modifiers = normalizeHotKeyModifiers(fsModifiers);
+    std::lock_guard<std::mutex> lock(g_hotKeyMutex);
+    for (const HotKeyRegistration& registration : g_hotKeys) {
+        if (registration.hwnd == hWnd && registration.id == id) {
+            SetLastError(ERROR_ALREADY_EXISTS);
+            return FALSE;
+        }
+        if (registration.modifiers == modifiers && registration.vk == vk) {
+            SetLastError(ERROR_ALREADY_EXISTS);
+            return FALSE;
+        }
+    }
+
+    g_hotKeys.push_back({ hWnd, id, modifiers, vk });
+    SetLastError(0);
+    return TRUE;
+}
+
+extern "C" BOOL UnregisterHotKey(HWND hWnd, int id)
+{
+    std::lock_guard<std::mutex> lock(g_hotKeyMutex);
+    auto it = std::find_if(g_hotKeys.begin(), g_hotKeys.end(), [hWnd, id](const HotKeyRegistration& registration) {
+        return registration.hwnd == hWnd && registration.id == id;
+    });
+    if (it == g_hotKeys.end()) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    g_hotKeys.erase(it);
+    SetLastError(0);
     return TRUE;
 }
 
