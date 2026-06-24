@@ -92,6 +92,7 @@ test "$runtime_missing" = "0"
 run_step dlopen_miniblink_test "$OUT_DIR/dlopen_miniblink_test"
 run_step mbapi_smoke_test "$OUT_DIR/mbapi_smoke_test"
 run_step mbapi_extra_smoke "$OUT_DIR/mbapi_extra_smoke"
+run_step electron_api_smoke node mac/electron_api_smoke.js
 
 run_step build_browser_window_like_test clang++ -std=c++17 -ObjC++ -DENABLE_MB=1 -Imac -I. \
     mac/browser_window_like_test.mm "$DYLIB" -framework Cocoa -o "$TEST_BIN"
