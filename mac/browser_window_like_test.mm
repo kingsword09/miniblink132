@@ -64,6 +64,10 @@ std::atomic<int> g_cookie_callback_state(-1);
 std::atomic<bool> g_web_request_begin_seen(false);
 std::atomic<bool> g_web_request_end_seen(false);
 std::atomic<bool> g_web_request_post_body_seen(false);
+std::atomic<bool> g_web_request_redirect_seen(false);
+std::atomic<bool> g_web_request_cancel_seen(false);
+std::atomic<bool> g_custom_protocol_main_seen(false);
+std::atomic<bool> g_custom_protocol_subresource_seen(false);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -75,6 +79,7 @@ std::string g_async_js_text;
 std::string g_last_cookie_string;
 std::string g_web_request_post_body;
 std::string g_web_request_end_body;
+std::string g_redirect_target_url;
 BOOL g_last_can_go_back = FALSE;
 BOOL g_last_can_go_forward = FALSE;
 
@@ -345,6 +350,8 @@ public:
     int websocketUpgrades() const { return websocket_upgrades_.load(); }
     int websocketMessages() const { return websocket_messages_.load(); }
     int webRequestHits() const { return web_request_hits_.load(); }
+    int redirectTargetHits() const { return redirect_target_hits_.load(); }
+    int cancelHits() const { return cancel_hits_.load(); }
     std::string websocketDebug() const
     {
         std::lock_guard<std::mutex> lock(websocket_mutex_);
@@ -453,6 +460,17 @@ private:
             web_request_user_agent_ = headerValue(request, "User-Agent");
             web_request_hook_header_ = headerValue(request, "X-MB-Hooked");
             web_request_body_ = request_body;
+        } else if (path == "/redirect-target") {
+            type = "text/plain";
+            body = "redirect-ok";
+            ++redirect_target_hits_;
+        } else if (path == "/redirect-by-api") {
+            type = "text/plain";
+            body = "redirect-source";
+        } else if (path == "/cancel-by-api") {
+            type = "text/plain";
+            body = "cancel-source";
+            ++cancel_hits_;
         } else if (path == "/download") {
             type = "application/octet-stream";
             body = "download-ok\n";
@@ -563,6 +581,8 @@ private:
     std::atomic<int> websocket_upgrades_ { 0 };
     std::atomic<int> websocket_messages_ { 0 };
     std::atomic<int> web_request_hits_ { 0 };
+    std::atomic<int> redirect_target_hits_ { 0 };
+    std::atomic<int> cancel_hits_ { 0 };
     mutable std::mutex websocket_mutex_;
     mutable std::mutex web_request_mutex_;
     std::string websocket_key_;
@@ -631,7 +651,50 @@ void MB_CALL_TYPE onLoadUrlFinish(mbWebView, void*, const utf8* url, mbNetJob, i
 
 BOOL MB_CALL_TYPE onLoadUrlBeginForWebRequest(mbWebView, void*, const char* url, void* job)
 {
-    if (!url || !strstr(url, "/webrequest"))
+    if (!url)
+        return TRUE;
+
+    std::string request_url(url);
+    if (request_url.find("mbapp://e2e/index.html") == 0) {
+        g_custom_protocol_main_seen = true;
+        std::string html =
+            "<!doctype html><html><head><meta charset='utf-8'><title>Protocol Ready</title></head>"
+            "<body><img id='customImage' src='mbapp://e2e/image.svg' "
+            "onload='window.__customProtocolImage=1' onerror='window.__customProtocolImage=-1'>"
+            "<script>window.__customProtocol='main-ok';</script></body></html>";
+        mbNetSetMIMEType(job, "text/html");
+        mbNetSetData(job, (void*)html.data(), (int)html.size());
+        return TRUE;
+    }
+
+    if (request_url.find("mbapp://e2e/image.svg") == 0) {
+        g_custom_protocol_subresource_seen = true;
+        std::string svg =
+            "<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'>"
+            "<rect width='8' height='8' fill='green'/></svg>";
+        mbNetSetMIMEType(job, "image/svg+xml");
+        mbNetSetData(job, (void*)svg.data(), (int)svg.size());
+        return TRUE;
+    }
+
+    std::string redirect_target_url;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        redirect_target_url = g_redirect_target_url;
+    }
+    if (request_url.find("/redirect-by-api") != std::string::npos && !redirect_target_url.empty()) {
+        g_web_request_redirect_seen = true;
+        mbNetChangeRequestUrl(job, redirect_target_url.c_str());
+        return TRUE;
+    }
+
+    if (request_url.find("/cancel-by-api") != std::string::npos) {
+        g_web_request_cancel_seen = true;
+        mbNetCancelRequest(job);
+        return TRUE;
+    }
+
+    if (request_url.find("/webrequest") == std::string::npos)
         return TRUE;
 
     g_web_request_begin_seen = true;
@@ -995,6 +1058,28 @@ void runSessionCookieChecks(mbWebView view, const std::string& origin)
     addCheck("session-cookie-clear-via-api", cleared, getCookieViaApi(view));
 }
 
+void runProtocolChecks(mbWebView view)
+{
+    g_custom_protocol_main_seen = false;
+    g_custom_protocol_subresource_seen = false;
+
+    resetLoadState();
+    mbLoadURL(view, "mbapp://e2e/index.html");
+    bool protocol_ok = waitForLoad(view, "protocol-custom-scheme-load", 6000);
+    addCheck("protocol-custom-scheme-main-callback", g_custom_protocol_main_seen.load());
+    if (!protocol_ok)
+        return;
+
+    addCheck("protocol-custom-scheme-js", jsString(view, "window.__customProtocol") == "main-ok",
+        jsString(view, "window.__customProtocol"));
+    bool subresource_ok = waitFor([&] {
+        return jsNumber(view, "window.__customProtocolImage || 0") == 1;
+    }, 3000);
+    addCheck("protocol-custom-scheme-subresource",
+        subresource_ok && g_custom_protocol_subresource_seen.load(),
+        jsString(view, "String(window.__customProtocolImage || 0)"));
+}
+
 void runSessionWebRequestChecks(mbWebView view, LocalServer& server)
 {
     const std::string custom_user_agent = "MiniBlinkMacE2E/1.0";
@@ -1045,6 +1130,42 @@ void runSessionWebRequestChecks(mbWebView view, LocalServer& server)
             g_web_request_end_body);
     }
     addCheck("session-webrequest-load-url-begin", g_web_request_begin_seen.load());
+
+    g_web_request_redirect_seen = false;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_redirect_target_url = server.origin() + "/redirect-target";
+    }
+    int before_redirect_hits = server.redirectTargetHits();
+    jsNumber(view,
+        "window.__redirectResult='pending';"
+        "fetch('/redirect-by-api')"
+        ".then(function(r){return r.text()})"
+        ".then(function(t){window.__redirectResult=t})"
+        ".catch(function(e){window.__redirectResult='ERR:'+e.message});"
+        "1");
+    bool redirect_ok = waitFor([&] {
+        return jsString(view, "window.__redirectResult") == "redirect-ok"
+            && server.redirectTargetHits() > before_redirect_hits;
+    }, 5000);
+    addCheck("session-webrequest-redirect-url",
+        redirect_ok && g_web_request_redirect_seen.load(),
+        jsString(view, "window.__redirectResult"));
+
+    g_web_request_cancel_seen = false;
+    int before_cancel_hits = server.cancelHits();
+    jsNumber(view,
+        "window.__cancelResult='pending';"
+        "fetch('/cancel-by-api')"
+        ".then(function(r){window.__cancelResult='unexpected:'+r.status})"
+        ".catch(function(e){window.__cancelResult='cancelled'});"
+        "1");
+    bool cancel_ok = waitFor([&] {
+        return jsString(view, "window.__cancelResult") == "cancelled";
+    }, 5000);
+    addCheck("session-webrequest-cancel",
+        cancel_ok && g_web_request_cancel_seen.load() && server.cancelHits() == before_cancel_hits,
+        jsString(view, "window.__cancelResult") + " serverHits=" + std::to_string(server.cancelHits() - before_cancel_hits));
 }
 
 } // namespace
@@ -1149,6 +1270,7 @@ int main()
         addCheck("document-ready-callback", g_document_ready.load());
         addCheck("load-finish-callback-local", g_load_finish_callback.load());
         runWebContentsScriptAndZoomChecks(view);
+        runProtocolChecks(view);
     }
 
     resetLoadState();

@@ -1894,9 +1894,9 @@ void changeRequestUrl(mbNetJob jobPtr, const char* url)
     blink::KURL newUrl(WTF::String::FromUTF8(url));
     job->m_response.SetCurrentRequestUrl(newUrl);
     job->firstRequest()->url = (GURL)(newUrl);
-    //job->m_url = url;
-    job->m_initializeHandleInfo->url = url;
-    CHECK(job->m_url.empty());
+    if (job->m_initializeHandleInfo)
+        job->m_initializeHandleInfo->url = url;
+    job->m_url = url;
 }
 
 void onNetSetData(mbNetJob jobPtr, void* buf, int len)
