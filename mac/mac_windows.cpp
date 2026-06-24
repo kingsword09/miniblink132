@@ -1,5 +1,6 @@
 #include "mac/windows.h"
 #include "mac/mac_window.h"
+#include "mac/shlobj.h"
 #include "mac/shlwapi.h"
 
 #include <CoreGraphics/CoreGraphics.h>
@@ -34,6 +35,7 @@ extern char** environ;
 namespace {
 
 thread_local DWORD g_lastError = 0;
+thread_local DWORD g_commDlgExtendedError = 0;
 BOOL g_isLinuxOpenglDraw = FALSE;
 
 enum MacHandleKind {
@@ -174,6 +176,146 @@ static DWORD copyWideToBuffer(const std::u16string& value, LPWSTR buffer, DWORD 
         buffer[i] = (WCHAR)value[i];
     buffer[copied] = 0;
     return required;
+}
+
+static std::u16string wideToU16(LPCWSTR value)
+{
+    std::u16string result;
+    if (!value)
+        return result;
+    size_t length = wideLen(value);
+    result.reserve(length);
+    for (size_t i = 0; i < length; ++i)
+        result.push_back((char16_t)value[i]);
+    return result;
+}
+
+static std::u16string utf8ToU16Path(const char* value)
+{
+    return value && value[0] ? utf8ToWide(value, -1) : std::u16string();
+}
+
+static bool isAbsolutePath(const std::u16string& path)
+{
+    if (path.empty())
+        return false;
+    if (path[0] == '/' || path[0] == '\\')
+        return true;
+    return path.size() > 2 && ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z')) && path[1] == ':';
+}
+
+static std::u16string joinPath(const std::u16string& dir, const std::u16string& leaf)
+{
+    if (dir.empty() || leaf.empty() || isAbsolutePath(leaf))
+        return leaf.empty() ? dir : leaf;
+    std::u16string result = dir;
+    if (!result.empty() && result.back() != '/' && result.back() != '\\')
+        result.push_back('/');
+    result += leaf;
+    return result;
+}
+
+static bool pathStat(const std::u16string& path, struct stat* st)
+{
+    std::string utf8 = wideToUtf8((LPCWSTR)path.c_str());
+    return !utf8.empty() && stat(utf8.c_str(), st) == 0;
+}
+
+static bool pathExists(const std::u16string& path)
+{
+    struct stat st;
+    return pathStat(path, &st);
+}
+
+static bool pathIsDirectory(const std::u16string& path)
+{
+    struct stat st;
+    return pathStat(path, &st) && S_ISDIR(st.st_mode);
+}
+
+static std::u16string parentPath(const std::u16string& path)
+{
+    size_t slash = path.find_last_of(u"/\\");
+    if (slash == std::u16string::npos)
+        return std::u16string();
+    if (slash == 0)
+        return u"/";
+    return path.substr(0, slash);
+}
+
+static bool canUseSavePath(const std::u16string& path)
+{
+    if (path.empty())
+        return false;
+    if (pathExists(path))
+        return true;
+    std::u16string parent = parentPath(path);
+    return !parent.empty() && pathIsDirectory(parent);
+}
+
+static bool looksLikeCommDlgSizeMarker(const std::u16string& value)
+{
+    return g_commDlgExtendedError == FNERR_BUFFERTOOSMALL && value.size() == 1 && value[0] != 0;
+}
+
+static std::u16string dialogEnvPath(bool openDialog)
+{
+    if (const char* path = getenv(openDialog ? "MINIBLINK_OPEN_FILE_NAME" : "MINIBLINK_SAVE_FILE_NAME"))
+        return utf8ToU16Path(path);
+    return std::u16string();
+}
+
+static std::u16string candidateDialogPath(const OPENFILENAMEW* info, bool openDialog)
+{
+    std::u16string envPath = dialogEnvPath(openDialog);
+    if (!envPath.empty())
+        return envPath;
+
+    std::u16string initialDir = wideToU16(info ? info->lpstrInitialDir : nullptr);
+    std::u16string file = wideToU16(info ? info->lpstrFile : nullptr);
+    if (looksLikeCommDlgSizeMarker(file))
+        file.clear();
+
+    if (!file.empty()) {
+        if (!isAbsolutePath(file) && pathIsDirectory(initialDir))
+            return joinPath(initialDir, file);
+        return file;
+    }
+
+    return initialDir;
+}
+
+static void setFileDialogOffsets(OPENFILENAMEW* info, const std::u16string& path)
+{
+    if (!info)
+        return;
+    size_t slash = path.find_last_of(u"/\\");
+    info->nFileOffset = slash == std::u16string::npos ? 0 : (WORD)(slash + 1);
+    size_t dot = path.find_last_of(u'.');
+    info->nFileExtension = dot == std::u16string::npos || (slash != std::u16string::npos && dot < slash)
+        ? 0
+        : (WORD)(dot + 1);
+    if (info->lpstrFileTitle && info->nMaxFileTitle) {
+        std::u16string title = slash == std::u16string::npos ? path : path.substr(slash + 1);
+        copyWideToBuffer(title, info->lpstrFileTitle, info->nMaxFileTitle);
+    }
+}
+
+static BOOL writeFileDialogResult(OPENFILENAMEW* info, const std::u16string& path)
+{
+    if (!info || !info->lpstrFile || info->nMaxFile == 0)
+        return FALSE;
+    DWORD required = (DWORD)path.size() + 1;
+    if (required > info->nMaxFile) {
+        if (info->nMaxFile >= 1)
+            *((WORD*)info->lpstrFile) = (WORD)required;
+        g_commDlgExtendedError = FNERR_BUFFERTOOSMALL;
+        return FALSE;
+    }
+    copyWideToBuffer(path, info->lpstrFile, info->nMaxFile);
+    setFileDialogOffsets(info, path);
+    g_commDlgExtendedError = 0;
+    return TRUE;
 }
 
 static DWORD errnoToWinError(int value)
@@ -2362,9 +2504,68 @@ extern "C" BOOL KillTimer(HWND hWnd, UINT_PTR uIDEvent)
     return TRUE;
 }
 
+DWORD CommDlgExtendedError(void)
+{
+    return g_commDlgExtendedError;
+}
+
+BOOL GetOpenFileNameW(LPOPENFILENAMEW info)
+{
+    std::u16string path = candidateDialogPath(info, true);
+    if (path.empty() || !pathExists(path) || pathIsDirectory(path)) {
+        g_commDlgExtendedError = 0;
+        return FALSE;
+    }
+    return writeFileDialogResult(info, path);
+}
+
 BOOL GetSaveFileNameW(LPOPENFILENAMEW info)
 {
-    return FALSE;
+    std::u16string path = candidateDialogPath(info, false);
+    if (!canUseSavePath(path)) {
+        g_commDlgExtendedError = 0;
+        return FALSE;
+    }
+    return writeFileDialogResult(info, path);
+}
+
+struct MacPathItemIdList {
+    SHITEMID mkid;
+    DWORD magic;
+    WCHAR path[MAX_PATH];
+};
+
+ITEMIDLIST* SHBrowseForFolderW(LPBROWSEINFOW lpbi)
+{
+    std::u16string path = utf8ToU16Path(getenv("MINIBLINK_FOLDER_CHOOSER_PATH"));
+    if (path.empty() && lpbi)
+        path = wideToU16((LPCWSTR)lpbi->lParam);
+    if (path.empty() && lpbi)
+        path = wideToU16(lpbi->pszDisplayName);
+    if (!pathIsDirectory(path))
+        return nullptr;
+
+    if (lpbi && lpbi->lpfn)
+        lpbi->lpfn(lpbi->hwndOwner, BFFM_INITIALIZED, 0, lpbi->lParam);
+    if (lpbi && lpbi->pszDisplayName)
+        copyWideToBuffer(path, lpbi->pszDisplayName, MAX_PATH);
+
+    MacPathItemIdList* item = (MacPathItemIdList*)calloc(1, sizeof(MacPathItemIdList));
+    if (!item)
+        return nullptr;
+    item->mkid.cb = sizeof(MacPathItemIdList);
+    item->magic = 0x6d627069;
+    copyWideToBuffer(path, item->path, MAX_PATH);
+    return (ITEMIDLIST*)item;
+}
+
+BOOL SHGetPathFromIDListW(const ITEMIDLIST* pidl, LPWSTR pszPath)
+{
+    const MacPathItemIdList* item = (const MacPathItemIdList*)pidl;
+    if (!item || item->magic != 0x6d627069 || !pszPath)
+        return FALSE;
+    copyWideToBuffer(wideToU16(item->path), pszPath, MAX_PATH);
+    return TRUE;
 }
 
 extern "C" UINT RegisterWindowMessageW(LPCWSTR lpString)

@@ -26,6 +26,7 @@
 
 #define ENABLE_MB 1
 #include "mbvip/core/mb.h"
+#include "mac/shlobj.h"
 
 namespace {
 
@@ -221,6 +222,18 @@ std::u16string asciiToWidePath(const std::string& path)
     out.reserve(path.size());
     for (char c : path)
         out.push_back(static_cast<char16_t>(c));
+    return out;
+}
+
+std::string widePathToAscii(const WCHAR* path)
+{
+    std::string out;
+    if (!path)
+        return out;
+    while (*path) {
+        out.push_back(static_cast<char>(*path));
+        ++path;
+    }
     return out;
 }
 
@@ -1278,6 +1291,74 @@ void runDialogCompatibilityChecks()
         "ok=" + std::to_string(ok) + " okCancel=" + std::to_string(ok_cancel)
             + " yesNo=" + std::to_string(yes_no) + " yesNoCancel=" + std::to_string(yes_no_cancel)
             + " ansi=" + std::to_string(ansi_yes_no));
+
+    std::string dialog_dir = "/tmp/miniblink_browser_window_like/dialog";
+    mkdir(dialog_dir.c_str(), 0755);
+    std::string open_path = dialog_dir + "/open.txt";
+    std::string save_path = dialog_dir + "/save.txt";
+    {
+        std::ofstream file(open_path);
+        file << "open dialog ok\n";
+    }
+
+    std::u16string open_path_w = asciiToWidePath(open_path);
+    WCHAR open_buffer[MAX_PATH] = {};
+    OPENFILENAMEW open_info = {};
+    open_info.lStructSize = sizeof(open_info);
+    open_info.lpstrFile = open_buffer;
+    open_info.nMaxFile = MAX_PATH;
+    open_info.lpstrInitialDir = reinterpret_cast<LPCWSTR>(open_path_w.c_str());
+    open_info.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER;
+    BOOL opened = GetOpenFileNameW(&open_info);
+    addCheck("dialog-open-file-default-path",
+        opened && widePathToAscii(open_buffer) == open_path && CommDlgExtendedError() == 0,
+        widePathToAscii(open_buffer) + " offset=" + std::to_string(open_info.nFileOffset));
+
+    WCHAR tiny_buffer[2] = {};
+    OPENFILENAMEW tiny_info = open_info;
+    tiny_info.lpstrFile = tiny_buffer;
+    tiny_info.nMaxFile = 2;
+    BOOL tiny_opened = GetOpenFileNameW(&tiny_info);
+    WORD required_size = *((WORD*)tiny_buffer);
+    bool tiny_failed_with_size = !tiny_opened && CommDlgExtendedError() == FNERR_BUFFERTOOSMALL && required_size > open_path.size();
+
+    std::vector<WCHAR> retry_buffer(required_size + 1);
+    retry_buffer[0] = tiny_buffer[0];
+    OPENFILENAMEW retry_info = open_info;
+    retry_info.lpstrFile = retry_buffer.data();
+    retry_info.nMaxFile = required_size;
+    BOOL retry_opened = GetOpenFileNameW(&retry_info);
+    addCheck("dialog-open-file-buffer-resize",
+        tiny_failed_with_size && retry_opened && widePathToAscii(retry_buffer.data()) == open_path && CommDlgExtendedError() == 0,
+        "required=" + std::to_string(required_size) + " retry=" + widePathToAscii(retry_buffer.data()));
+
+    std::u16string save_path_w = asciiToWidePath(save_path);
+    WCHAR save_buffer[MAX_PATH] = {};
+    OPENFILENAMEW save_info = {};
+    save_info.lStructSize = sizeof(save_info);
+    save_info.lpstrFile = save_buffer;
+    save_info.nMaxFile = MAX_PATH;
+    save_info.lpstrInitialDir = reinterpret_cast<LPCWSTR>(save_path_w.c_str());
+    save_info.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_EXPLORER;
+    BOOL saved = GetSaveFileNameW(&save_info);
+    addCheck("dialog-save-file-default-path",
+        saved && widePathToAscii(save_buffer) == save_path && CommDlgExtendedError() == 0,
+        widePathToAscii(save_buffer) + " ext=" + std::to_string(save_info.nFileExtension));
+
+    std::u16string dialog_dir_w = asciiToWidePath(dialog_dir);
+    WCHAR browse_display[MAX_PATH] = {};
+    BROWSEINFOW browse_info = {};
+    browse_info.pszDisplayName = browse_display;
+    browse_info.lParam = reinterpret_cast<LPARAM>(dialog_dir_w.c_str());
+    browse_info.ulFlags = BIF_USENEWUI | BIF_RETURNONLYFSDIRS;
+    LPITEMIDLIST item = SHBrowseForFolder(&browse_info);
+    WCHAR browse_path[MAX_PATH] = {};
+    BOOL browse_path_ok = item ? SHGetPathFromIDList(item, browse_path) : FALSE;
+    if (item)
+        CoTaskMemFree(item);
+    addCheck("dialog-open-directory-default-path",
+        item && browse_path_ok && widePathToAscii(browse_path) == dialog_dir,
+        widePathToAscii(browse_path));
 }
 
 std::u16string readMenuText(const WCHAR* text)
