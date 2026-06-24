@@ -53,7 +53,7 @@ public:
 
     static StorageAreaImplMgr* get();
 
-    StorageAreaImpl* findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey);
+    StorageAreaImpl* findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const base::FilePath& localPathDir);
 
 private:
     static String buildFileName(const ::blink::BlinkStorageKey& storageKey)
@@ -309,9 +309,16 @@ StorageAreaImplMgr* StorageAreaImplMgr::get()
     return s_inst;
 }
 
-StorageAreaImpl* StorageAreaImplMgr::findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey)
+StorageAreaImpl* StorageAreaImplMgr::findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const base::FilePath& localPathDir)
 {
     WTF::String key = buildFileNameStringByStorageKey(isLocal, storageKey);
+    if (isLocal) {
+        WTF::StringBuilder builder;
+        builder.Append(WTF::String::FromUTF8(localPathDir.AsUTF8Unsafe()));
+        builder.Append(WTF::String("/"));
+        builder.Append(key);
+        key = builder.ToString();
+    }
     WTF::HashMap<String, StorageAreaImpl*>::iterator it = m_areas.find(key);
     if (it != m_areas.end())
         return it->value;
@@ -356,7 +363,7 @@ public:
     {
         s_StorageAreaStub++;
         m_localStorageDir = getLocalStorageDirByLocalFrameToken(localFrameToken);
-        m_impl = StorageAreaImplMgr::get()->findOrCreateByStorageKey(isLocal, storageKey);
+        m_impl = StorageAreaImplMgr::get()->findOrCreateByStorageKey(isLocal, storageKey, m_localStorageDir);
 
         m_impl->loadFromFile(m_localStorageDir, &m_outData);
     }

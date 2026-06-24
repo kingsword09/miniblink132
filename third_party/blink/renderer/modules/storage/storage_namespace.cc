@@ -94,7 +94,8 @@ scoped_refptr<CachedStorageArea> StorageNamespace::GetCachedArea(
     auto cache_it = cached_areas_.find(&storage_key);
     if (cache_it != cached_areas_.end()) {
         metric = cache_it->value->HasOneRef() ? CacheMetrics::kHit : CacheMetrics::kUnused;
-        result = cache_it->value;
+        if (cache_it->value->HasOneRef())
+            result = cache_it->value;
     }
     if (IsSessionStorage()) {
         base::UmaHistogramEnumeration("Storage.SessionStorage.RendererAreaCacheHit", metric);

@@ -191,6 +191,24 @@ mbWebView createPopupWindow(int x, int y, int width, int height)
     return state.view;
 }
 
+void MB_CALL_TYPE noOpOnBlinkThread(void*, void*)
+{
+}
+
+void flushBlinkThread()
+{
+    mbCallBlinkThreadSync(noOpOnBlinkThread, nullptr, nullptr);
+}
+
+std::u16string asciiToWidePath(const std::string& path)
+{
+    std::u16string out;
+    out.reserve(path.size());
+    for (char c : path)
+        out.push_back(static_cast<char16_t>(c));
+    return out;
+}
+
 std::string jsString(mbWebView view, const std::string& script)
 {
     mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
@@ -446,6 +464,9 @@ private:
             body = "<!doctype html><html><head><title>Slow Page</title></head><body>slow</body></html>";
         } else if (path == "/popup.html") {
             body = "<!doctype html><title>Popup Page</title><p>popup</p>";
+        } else if (path == "/partition.html") {
+            body = "<!doctype html><html><head><title>Partition Page</title></head>"
+                   "<body><script>window.__partitionReady=1;</script></body></html>";
         } else if (path == "/api") {
             type = "text/plain";
             body = "fetch-ok";
@@ -800,6 +821,16 @@ void MB_CALL_TYPE onRunJsString(mbWebView, void*, mbJsExecState es, mbJsValue va
     ++g_async_js_callback_count;
 }
 
+void attachBasicLoadCallbacks(mbWebView view)
+{
+    mbOnTitleChanged(view, onTitleChanged, nullptr);
+    mbOnURLChanged(view, onUrlChanged, nullptr);
+    mbOnNavigation(view, onNavigation, nullptr);
+    mbOnLoadingFinish(view, onLoadingFinish, nullptr);
+    mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
+    mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+}
+
 std::string makeLocalHtml(const std::string& dir)
 {
     std::string path = dir + "/local.html";
@@ -1058,6 +1089,119 @@ void runSessionCookieChecks(mbWebView view, const std::string& origin)
     addCheck("session-cookie-clear-via-api", cleared, getCookieViaApi(view));
 }
 
+void runSessionPartitionCookieChecks(const std::string& origin, const std::string& tmp_dir)
+{
+    mbWebView view_a = createPopupWindow(300, 300, 360, 260);
+    mbWebView view_b = createPopupWindow(330, 330, 360, 260);
+    HWND host_a = view_a ? mbGetHostHWND(view_a) : nullptr;
+    HWND host_b = view_b ? mbGetHostHWND(view_b) : nullptr;
+    addCheck("session-partition-window-create", view_a != NULL_WEBVIEW && view_b != NULL_WEBVIEW && host_a && host_b);
+    if (view_a == NULL_WEBVIEW || view_b == NULL_WEBVIEW)
+        return;
+
+    std::u16string jar_a = asciiToWidePath(tmp_dir + "/partition_cookie_a.dat");
+    std::u16string jar_b = asciiToWidePath(tmp_dir + "/partition_cookie_b.dat");
+    mbSetCookieJarFullPath(view_a, reinterpret_cast<const WCHAR*>(jar_a.c_str()));
+    mbSetCookieJarFullPath(view_b, reinterpret_cast<const WCHAR*>(jar_b.c_str()));
+    flushBlinkThread();
+
+    attachBasicLoadCallbacks(view_a);
+    attachBasicLoadCallbacks(view_b);
+    mbShowWindow(view_a, SW_SHOW);
+    mbShowWindow(view_b, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(view_a, partition_url.c_str());
+    bool a_loaded = waitForLoad(view_a, "session-partition-load-a", 6000);
+    resetLoadState();
+    mbLoadURL(view_b, partition_url.c_str());
+    bool b_loaded = waitForLoad(view_b, "session-partition-load-b", 6000);
+
+    bool dom_isolated = false;
+    bool api_isolated = false;
+    std::string detail;
+    if (a_loaded && b_loaded) {
+        jsString(view_a, "document.cookie='partition_cookie=A; path=/'; document.cookie");
+        std::string b_before = jsString(view_b, "document.cookie");
+        jsString(view_b, "document.cookie='partition_cookie=B; path=/'; document.cookie");
+        std::string b_after = jsString(view_b, "document.cookie");
+        std::string a_after = jsString(view_a, "document.cookie");
+        dom_isolated = a_after.find("partition_cookie=A") != std::string::npos
+            && a_after.find("partition_cookie=B") == std::string::npos
+            && b_before.find("partition_cookie=A") == std::string::npos
+            && b_after.find("partition_cookie=B") != std::string::npos;
+        detail = "a=" + a_after + " bBefore=" + b_before + " bAfter=" + b_after;
+
+        mbSetCookie(view_a, partition_url.c_str(), "api_partition=A; path=/");
+        std::string a_api = getCookieViaApi(view_a);
+        std::string b_api_before = getCookieViaApi(view_b);
+        mbSetCookie(view_b, partition_url.c_str(), "api_partition=B; path=/");
+        std::string b_api_after = getCookieViaApi(view_b);
+        std::string a_api_after = getCookieViaApi(view_a);
+        api_isolated = a_api_after.find("api_partition=A") != std::string::npos
+            && a_api_after.find("api_partition=B") == std::string::npos
+            && b_api_before.find("api_partition=A") == std::string::npos
+            && b_api_after.find("api_partition=B") != std::string::npos;
+        detail += " apiA=" + a_api + " apiBBefore=" + b_api_before + " apiBAfter=" + b_api_after + " apiAAfter=" + a_api_after;
+    }
+    addCheck("session-partition-cookie-dom-isolation", dom_isolated, detail);
+    addCheck("session-partition-cookie-api-isolation", api_isolated, detail);
+
+    mbDestroyWebView(view_a);
+    mbDestroyWebView(view_b);
+    waitFor([&] { return (!host_a || !readWindowState(host_a).isWindow) && (!host_b || !readWindowState(host_b).isWindow); }, 3000);
+}
+
+void runSessionPartitionLocalStorageChecks(const std::string& origin, const std::string& tmp_dir)
+{
+    mbWebView view_a = createPopupWindow(360, 360, 360, 260);
+    mbWebView view_b = createPopupWindow(390, 390, 360, 260);
+    HWND host_a = view_a ? mbGetHostHWND(view_a) : nullptr;
+    HWND host_b = view_b ? mbGetHostHWND(view_b) : nullptr;
+    addCheck("session-partition-localstorage-window-create", view_a != NULL_WEBVIEW && view_b != NULL_WEBVIEW && host_a && host_b);
+    if (view_a == NULL_WEBVIEW || view_b == NULL_WEBVIEW)
+        return;
+
+    mkdir((tmp_dir + "/partition_ls_a").c_str(), 0755);
+    mkdir((tmp_dir + "/partition_ls_b").c_str(), 0755);
+    std::u16string path_a = asciiToWidePath(tmp_dir + "/partition_ls_a");
+    std::u16string path_b = asciiToWidePath(tmp_dir + "/partition_ls_b");
+    mbSetLocalStorageFullPath(view_a, reinterpret_cast<const WCHAR*>(path_a.c_str()));
+    mbSetLocalStorageFullPath(view_b, reinterpret_cast<const WCHAR*>(path_b.c_str()));
+    flushBlinkThread();
+
+    attachBasicLoadCallbacks(view_a);
+    attachBasicLoadCallbacks(view_b);
+    mbShowWindow(view_a, SW_SHOW);
+    mbShowWindow(view_b, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(view_a, partition_url.c_str());
+    bool a_loaded = waitForLoad(view_a, "session-partition-localstorage-load-a", 6000);
+    resetLoadState();
+    mbLoadURL(view_b, partition_url.c_str());
+    bool b_loaded = waitForLoad(view_b, "session-partition-localstorage-load-b", 6000);
+
+    bool isolated = false;
+    std::string detail;
+    if (a_loaded && b_loaded) {
+        jsString(view_a, "localStorage.clear(); localStorage.setItem('partition_ls','A'); localStorage.getItem('partition_ls')");
+        std::string b_before = jsString(view_b, "localStorage.getItem('partition_ls') || ''");
+        jsString(view_b, "localStorage.setItem('partition_ls','B'); localStorage.getItem('partition_ls')");
+        std::string b_after = jsString(view_b, "localStorage.getItem('partition_ls') || ''");
+        std::string a_after = jsString(view_a, "localStorage.getItem('partition_ls') || ''");
+        isolated = a_after == "A" && b_before.empty() && b_after == "B";
+        detail = "aAfter=" + a_after + " bBefore=" + b_before + " bAfter=" + b_after;
+    }
+    addCheck("session-partition-localstorage-isolation", isolated, detail);
+
+    mbDestroyWebView(view_a);
+    mbDestroyWebView(view_b);
+    waitFor([&] { return (!host_a || !readWindowState(host_a).isWindow) && (!host_b || !readWindowState(host_b).isWindow); }, 3000);
+}
+
 void runProtocolChecks(mbWebView view)
 {
     g_custom_protocol_main_seen = false;
@@ -1292,6 +1436,8 @@ int main()
                 + server.websocketDebug());
         addCheck("cookie-localStorage", json.find("cookie-ok") != std::string::npos && json.find("storage-ok") != std::string::npos, json);
         runSessionCookieChecks(view, server.origin());
+        runSessionPartitionCookieChecks(server.origin(), tmp_dir);
+        runSessionPartitionLocalStorageChecks(server.origin(), tmp_dir);
         runSessionWebRequestChecks(view, server);
 
         mbSetFocus(view);
