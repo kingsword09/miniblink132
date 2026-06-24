@@ -1579,6 +1579,84 @@ void runAppCompatibilityChecks()
             + " third=" + std::to_string(third_error) + " wait=" + std::to_string(wait_result));
 }
 
+struct MonitorEnumState {
+    int count = 0;
+    bool info_ok = true;
+    RECT first_rect = {};
+    HMONITOR first_monitor = nullptr;
+};
+
+BOOL CALLBACK collectMonitorCallback(HMONITOR monitor, HDC hdc, LPRECT rect, LPARAM data)
+{
+    MonitorEnumState* state = reinterpret_cast<MonitorEnumState*>(data);
+    if (!state || !monitor || !rect)
+        return FALSE;
+
+    MONITORINFOEXW info = {};
+    info.cbSize = sizeof(info);
+    BOOL got_info = GetMonitorInfoW(monitor, reinterpret_cast<LPMONITORINFO>(&info));
+    bool rect_valid = rect->right > rect->left && rect->bottom > rect->top;
+    bool info_valid = got_info
+        && info.rcMonitor.right > info.rcMonitor.left
+        && info.rcMonitor.bottom > info.rcMonitor.top
+        && info.szDevice[0] != 0;
+    state->info_ok = state->info_ok && rect_valid && info_valid;
+    if (state->count == 0) {
+        state->first_rect = *rect;
+        state->first_monitor = monitor;
+    }
+    ++state->count;
+    return TRUE;
+}
+
+void runScreenCompatibilityChecks(HWND host)
+{
+    int width = GetSystemMetrics(SM_CXSCREEN);
+    int height = GetSystemMetrics(SM_CYSCREEN);
+    int monitor_count = GetSystemMetrics(SM_CMONITORS);
+    addCheck("screen-system-metrics",
+        width > 0 && height > 0 && monitor_count >= 1,
+        std::to_string(width) + "x" + std::to_string(height) + " monitors=" + std::to_string(monitor_count));
+
+    HMONITOR window_monitor = MonitorFromWindow(host, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFOEXW window_info = {};
+    window_info.cbSize = sizeof(window_info);
+    BOOL got_window_info = GetMonitorInfoW(window_monitor, reinterpret_cast<LPMONITORINFO>(&window_info));
+    bool window_info_ok = window_monitor && got_window_info
+        && window_info.rcMonitor.right > window_info.rcMonitor.left
+        && window_info.rcMonitor.bottom > window_info.rcMonitor.top
+        && window_info.rcWork.right > window_info.rcWork.left
+        && window_info.rcWork.bottom > window_info.rcWork.top
+        && window_info.szDevice[0] != 0;
+    addCheck("screen-monitor-from-window",
+        window_info_ok,
+        "monitor=" + std::to_string((uintptr_t)window_monitor)
+            + " rect=" + std::to_string(window_info.rcMonitor.left) + "," + std::to_string(window_info.rcMonitor.top)
+            + " " + std::to_string(window_info.rcMonitor.right - window_info.rcMonitor.left)
+            + "x" + std::to_string(window_info.rcMonitor.bottom - window_info.rcMonitor.top));
+
+    POINT inside = { window_info.rcMonitor.left + 1, window_info.rcMonitor.top + 1 };
+    HMONITOR point_monitor = MonitorFromPoint(inside, MONITOR_DEFAULTTONULL);
+    POINT outside = { -1000000000, -1000000000 };
+    HMONITOR outside_monitor = MonitorFromPoint(outside, MONITOR_DEFAULTTONULL);
+    addCheck("screen-monitor-from-point",
+        point_monitor && !outside_monitor,
+        "inside=" + std::to_string((uintptr_t)point_monitor)
+            + " outside=" + std::to_string((uintptr_t)outside_monitor));
+
+    MonitorEnumState enum_state;
+    BOOL enum_ok = EnumDisplayMonitors(nullptr, nullptr, collectMonitorCallback, reinterpret_cast<LPARAM>(&enum_state));
+    addCheck("screen-enum-display-monitors",
+        enum_ok && enum_state.count == monitor_count && enum_state.info_ok && enum_state.first_monitor,
+        "count=" + std::to_string(enum_state.count) + " expected=" + std::to_string(monitor_count));
+
+    MonitorEnumState clipped_state;
+    BOOL clipped_ok = EnumDisplayMonitors(nullptr, &enum_state.first_rect, collectMonitorCallback, reinterpret_cast<LPARAM>(&clipped_state));
+    addCheck("screen-enum-display-monitors-clipped",
+        clipped_ok && clipped_state.count >= 1 && clipped_state.count <= enum_state.count && clipped_state.info_ok,
+        "count=" + std::to_string(clipped_state.count));
+}
+
 std::u16string readMenuText(const WCHAR* text)
 {
     std::u16string result;
@@ -2444,6 +2522,7 @@ int main()
     runDialogCompatibilityChecks();
     runShellCompatibilityChecks();
     runAppCompatibilityChecks();
+    runScreenCompatibilityChecks(host);
     runNativeImageCompatibilityChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();

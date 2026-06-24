@@ -23,6 +23,6 @@ This matrix tracks Electron-like API coverage that is backed by macOS code and r
 | App lifecycle | quit, before-quit, window-all-closed | `app.quit()` now closes windows and posts `WM_QUIT`; `app.exit()` remains immediate exit; window-all-closed hook exists in `ApiBrowserWindow` | Partial, `app-lifecycle-*` covers Win32 message-loop quit path | Add full JS Electron runtime smoke for `before-quit/window-all-closed` event ordering |
 | Single instance lock | Process-level named mutex | Win32-compatible named mutex shim | Yes, `app-single-instance-mutex` | Add cross-process callback/argv forwarding case |
 | globalShortcut | Register/unregister accelerators | Not covered yet | No | Later system integration batch |
-| screen | Display list/primary display/cursor point | Partial lower-level display shims may exist | No | Add API inventory and E2E |
+| screen | Display list/primary display/cursor point | NSScreen-backed Win32 monitor metrics, monitor lookup, monitor info, display enumeration, cursor point | Yes, `screen-*` covers monitor metrics/enumeration/lookup; cursor point already used by menu/input paths | Add full JS Electron runtime smoke for `screen.getPrimaryDisplay/getAllDisplays/getCursorScreenPoint` |
 | nativeTheme | Theme/dark mode/high contrast | Not covered yet | No | Add deterministic query shim |
 | powerMonitor | Suspend/resume/power events | Not covered yet | No | Add event source or deterministic test hook |

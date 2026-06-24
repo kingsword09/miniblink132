@@ -271,6 +271,10 @@ typedef struct _RTL_SRWLOCK {
 #define GetLocaleInfo GetLocaleInfoW
 #endif
 
+#ifndef GetMonitorInfo
+#define GetMonitorInfo GetMonitorInfoW
+#endif
+
 #ifndef SHBrowseForFolder
 #define SHBrowseForFolder SHBrowseForFolderW
 #endif

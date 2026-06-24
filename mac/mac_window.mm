@@ -1342,6 +1342,8 @@ extern "C" int GetSystemMetrics(int nIndex)
         return (int)frame.size.width;
     if (nIndex == SM_CYSCREEN)
         return (int)frame.size.height;
+    if (nIndex == SM_CMONITORS)
+        return (int)[[NSScreen screens] count];
     return 0;
 }
 
@@ -1354,7 +1356,24 @@ extern "C" HMONITOR MonitorFromPoint(POINT pt, DWORD dwFlags)
             && pt.y >= frame.origin.y && pt.y < frame.origin.y + frame.size.height)
             return (HMONITOR)screen;
     }
+    if (dwFlags == MONITOR_DEFAULTTONULL)
+        return nullptr;
     return (HMONITOR)([NSScreen mainScreen] ?: [screens firstObject]);
+}
+
+extern "C" HMONITOR MonitorFromWindow(HWND hwnd, DWORD dwFlags)
+{
+    HwndMac* self = HwndMac::from(hwnd);
+    if (self && self->m_window) {
+        NSWindow* window = (NSWindow*)self->m_window;
+        NSScreen* screen = [window screen];
+        if (screen)
+            return (HMONITOR)screen;
+    }
+
+    if (dwFlags == MONITOR_DEFAULTTONULL)
+        return nullptr;
+    return (HMONITOR)([NSScreen mainScreen] ?: [[NSScreen screens] firstObject]);
 }
 
 extern "C" BOOL GetMonitorInfoW(HMONITOR hMonitor, LPMONITORINFO lpmi)
@@ -1373,6 +1392,36 @@ extern "C" BOOL GetMonitorInfoW(HMONITOR hMonitor, LPMONITORINFO lpmi)
     lpmi->rcWork = { (LONG)work.origin.x, (LONG)work.origin.y,
         (LONG)(work.origin.x + work.size.width), (LONG)(work.origin.y + work.size.height) };
     lpmi->dwFlags = screen == [NSScreen mainScreen] ? MONITORINFOF_PRIMARY : 0;
+    if (lpmi->cbSize >= sizeof(MONITORINFOEXW)) {
+        LPMONITORINFOEXW infoEx = (LPMONITORINFOEXW)lpmi;
+        const WCHAR name[] = u"\\\\.\\DISPLAY1";
+        size_t i = 0;
+        for (; i + 1 < CCHDEVICENAME && name[i]; ++i)
+            infoEx->szDevice[i] = name[i];
+        for (; i < CCHDEVICENAME; ++i)
+            infoEx->szDevice[i] = 0;
+        infoEx->szDevice[CCHDEVICENAME - 1] = 0;
+    }
+    return TRUE;
+}
+
+extern "C" BOOL EnumDisplayMonitors(HDC hdc, const RECT* lprcClip, MONITORENUMPROC lpfnEnum, LPARAM dwData)
+{
+    if (!lpfnEnum)
+        return FALSE;
+    NSArray<NSScreen*>* screens = [NSScreen screens];
+    for (NSScreen* screen in screens) {
+        NSRect frame = [screen frame];
+        RECT rect = { (LONG)frame.origin.x, (LONG)frame.origin.y,
+            (LONG)(frame.origin.x + frame.size.width), (LONG)(frame.origin.y + frame.size.height) };
+        if (lprcClip) {
+            RECT overlap = {};
+            if (!IntersectRect(&overlap, &rect, lprcClip))
+                continue;
+        }
+        if (!lpfnEnum((HMONITOR)screen, hdc, &rect, dwData))
+            return TRUE;
+    }
     return TRUE;
 }
 

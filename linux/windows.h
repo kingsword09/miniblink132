@@ -455,6 +455,7 @@
 #define SWP_NOZORDER 0x0004
 #define GWL_STYLE (-16)
 #define SM_CYSCREEN 1
+#define SM_CMONITORS 80
 #define GCS_COMPSTR 0x0008
 #define WM_GETDLGCODE 0x0087
 
@@ -521,7 +522,10 @@
 #define RGN_OR 2
 #define RGN_DIFF 4
 
+#define MONITOR_DEFAULTTONULL 0x00000000
 #define MONITOR_DEFAULTTOPRIMARY 0x00000001
+#define MONITOR_DEFAULTTONEAREST 0x00000002
+#define CCHDEVICENAME 32
 
 #define MAX_PATH 260
 
@@ -1266,6 +1270,18 @@ typedef struct tagMONITORINFO {
     DWORD dwFlags;
 } MONITORINFO, *LPMONITORINFO;
 
+typedef struct tagMONITORINFOEXW {
+    DWORD cbSize;
+    RECT rcMonitor;
+    RECT rcWork;
+    DWORD dwFlags;
+    WCHAR szDevice[CCHDEVICENAME];
+} MONITORINFOEXW, *LPMONITORINFOEXW;
+
+typedef MONITORINFOEXW MONITORINFOEX;
+typedef LPMONITORINFOEXW LPMONITORINFOEX;
+typedef BOOL(CALLBACK* MONITORENUMPROC)(HMONITOR, HDC, LPRECT, LPARAM);
+
 typedef union _ULARGE_INTEGER {
     struct {
         DWORD LowPart;
@@ -1413,7 +1429,9 @@ EXTERN_C DWORD GetClipboardSequenceNumber();
 EXTERN_C BOOL IsClipboardFormatAvailable(UINT format);
 
 EXTERN_C HMONITOR MonitorFromPoint(POINT pt, DWORD dwFlags);
+EXTERN_C HMONITOR MonitorFromWindow(HWND hwnd, DWORD dwFlags);
 EXTERN_C BOOL GetMonitorInfoW(HMONITOR hMonitor, LPMONITORINFO lpmi);
+EXTERN_C BOOL EnumDisplayMonitors(HDC hdc, const RECT* lprcClip, MONITORENUMPROC lpfnEnum, LPARAM dwData);
 EXTERN_C DWORD GetCurrentThreadId();
 EXTERN_C DWORD GetWindowThreadProcessId(HWND hWnd, LPDWORD lpdwProcessId);
 EXTERN_C UINT_PTR SetTimer(HWND hWnd, UINT_PTR nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc);
