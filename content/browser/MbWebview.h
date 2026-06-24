@@ -120,6 +120,7 @@ public:
         ::mojo::PendingAssociatedRemote<::blink::mojom::blink::Widget> blinkWidget);
 
     void loadUrl(const char* urlStr);
+    void postUrl(const char* urlStr, const char* postData, int postLen);
     bool loadHTMLString(const std::string& html, const std::string& baseUrl);
     void reload(bool force);
 
@@ -175,6 +176,23 @@ public:
     {
         return m_offset;
     }
+    void setTouchEnabled(bool b) { m_isTouchEnabled = b; }
+    bool isTouchEnabled() const { return m_isTouchEnabled; }
+    void setSystemTouchEnabled(bool b) { m_isSystemTouchEnabled = b; }
+    bool isSystemTouchEnabled() const { return m_isSystemTouchEnabled; }
+    void setDragDropEnabled(bool b) { m_isDragDropEnabled = b; }
+    bool isDragDropEnabled() const { return m_isDragDropEnabled; }
+    void setDragEnabled(bool b) { m_isDragEnabled = b; }
+    bool isDragEnabled() const { return m_isDragEnabled; }
+    void setAudioMuted(bool b) { m_isAudioMuted = b; }
+    bool isAudioMuted() const { return m_isAudioMuted; }
+    void setMemoryCacheEnabled(bool b) { m_isMemoryCacheEnabled = b; }
+    bool isMemoryCacheEnabled() const { return m_isMemoryCacheEnabled; }
+    void setNodeJsEnabled(bool b) { m_isEnableNode = b; }
+    bool isNodeJsEnabled() const { return m_isEnableNode; }
+    void setCookieEnabled(bool b);
+    bool isCookieEnabled() const { return m_isCookieEnabled; }
+    int getNavigateIndex() const;
 
     void setFocus();
     void killFocus();
@@ -297,6 +315,7 @@ private:
     bool m_isWebWindowMode = false;
     bool m_isPopupWidgetMode = false;
     bool m_isEnableNode = false;
+    bool m_isCookieEnabled = true;
     bool m_isAutoDrawToHwnd = true;
     //int m_cursorInfoType = 0;
     bool m_isCursorInfoTypeAsynGetting = false;
@@ -364,6 +383,12 @@ private:
     POINT m_offset;
     blink::WebVector<blink::WebDraggableRegion> m_draggableRegion;
     bool m_enableMouseKeyMessage = true;
+    bool m_isTouchEnabled = true;
+    bool m_isSystemTouchEnabled = true;
+    bool m_isDragDropEnabled = true;
+    bool m_isDragEnabled = true;
+    bool m_isAudioMuted = false;
+    bool m_isMemoryCacheEnabled = true;
     float m_zoomFactor = 1.0f;
     bool m_hasSetZoomFactor = false;
 

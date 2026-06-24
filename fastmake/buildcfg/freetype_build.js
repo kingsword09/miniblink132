@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var json = [{
     "var":[
@@ -71,6 +71,7 @@ var json = [{
             "${srcPath}/third_party/freetype/src/src/base/ftsynth.c",
             "${srcPath}/third_party/freetype/src/src/base/fttype1.c",
             "${srcPath}/third_party/freetype/src/src/base/ftobjs.c",
+            "${srcPath}/third_party/freetype/src/src/base/ftrfork.c",
             "${srcPath}/third_party/freetype/src/src/base/ftmm.c",
             "${srcPath}/third_party/freetype/src/src/base/ftwinfnt.c"
         ],
@@ -98,5 +99,7 @@ var json = [{
         "linker":"${ndkBinPath}/llvm-ar.exe"
     }
 }];
+
+applyMacBuildSettings(json);
 
 buildCommonSetting(json);

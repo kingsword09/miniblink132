@@ -21,10 +21,12 @@ struct SkIRect;
 struct SkPoint;
 struct SkRect;
 class SkSurface;
+#ifndef OS_POSIX
 typedef unsigned long DWORD;
 typedef DWORD COLORREF;
 typedef struct tagPOINT POINT;
 typedef struct tagRECT RECT;
+#endif
 
 namespace skia {
 

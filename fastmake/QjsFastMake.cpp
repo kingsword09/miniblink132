@@ -87,17 +87,19 @@ static JSValue jsQfmRebuild(JSContext* ctx, JSValueConst this_val, int argc, JSV
 
     std::string jsonPath = targetDir;
     char c = jsonPath[jsonPath.size() - 1];
-    if (c != '\\' || c != '/')
+    if (c != '\\' && c != '/')
         jsonPath += '/';
     jsonPath += ctxInfo->jsonName;
 
-    std::wstring jsonPathW = (const WCHAR*)(content::utf8ToUtf16(jsonPath).c_str());
+    std::u16string jsonPathW = (const WCHAR*)(content::utf8ToUtf16(jsonPath).c_str());
     common::writeFile((const WCHAR*)(jsonPathW.c_str()), buffer);
+    OutputDebugStringA("qfmRebuild: wrote build json\n");
     //     if (kRebuildOptCompileTimeOutFile == ctxInfo->opt)
     //         fmBuild(jsonPathW);
     //     else
     //         fmFastBuild(jsonPathW, ctxInfo->opt);
     fmFastBuild(jsonPathW, ctxInfo->opt);
+    OutputDebugStringA("qfmRebuild: fmFastBuild done\n");
 
     JS_FreeCString(ctx, argv[0], targetDir);
     JS_FreeCString(ctx, argv[1], json);

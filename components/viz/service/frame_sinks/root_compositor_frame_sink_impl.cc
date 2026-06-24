@@ -271,12 +271,10 @@ void RootCompositorFrameSinkImpl::SetDisplayVisible(bool visible)
     display_->SetVisible(visible);
 }
 
-#if BUILDFLAG(IS_WIN)
 void RootCompositorFrameSinkImpl::DisableSwapUntilResize(DisableSwapUntilResizeCallback callback)
 {
     display_->DisableSwapUntilResize(std::move(callback));
 }
-#endif
 
 void RootCompositorFrameSinkImpl::Resize(const gfx::Size& size)
 {
@@ -703,14 +701,10 @@ void RootCompositorFrameSinkImpl::DisplayDidReceiveCALayerParams(const gfx::CALa
         return;
     }
     last_ca_layer_params_ = ca_layer_params;
-    // OnDisplayReceivedCALayerParams() is ultimately responsible for triggering
-    // updates to vsync. VSync may change dynamically. To ensure the value is
-    // updated correctly, OnDisplayReceivedCALayerParams() is periodically called,
-    // even if the params haven't changed. The value here matches that of
-    // DisplayLinkMac, which is responsible for querying for vsync updates.
+    // Keep this timestamp in sync with Chromium's periodic CALayer refresh
+    // behavior. This generated mojom set does not expose the Apple display
+    // client callback, so mac builds retain the latest params locally.
     next_forced_ca_layer_params_update_time_ = base::TimeTicks::Now() + base::Seconds(10);
-    if (display_client_)
-        display_client_->OnDisplayReceivedCALayerParams(ca_layer_params);
 #else
     NOTREACHED_IN_MIGRATION();
 #endif

@@ -370,7 +370,7 @@ void OnleavepictureinpictureAttributeSetCallback(const v8::FunctionCallbackInfo<
 
 void DisablePictureInPictureAttributeGetCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("DisablePictureInPictureAttributeGetCallback not impl\n");
+    (void)0;
 //     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_disablePictureInPicture_Getter");
 //     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.disablePictureInPicture.get");
 //     v8::Isolate* isolate = info.GetIsolate();
@@ -427,7 +427,7 @@ void ConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void CancelVideoFrameCallbackOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("CancelVideoFrameCallbackOperationCallback not impl\n");
+    (void)0;
 //     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_cancelVideoFrameCallback");
 //     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.cancelVideoFrameCallback");
 // 
@@ -455,7 +455,7 @@ void CancelVideoFrameCallbackOperationCallback(const v8::FunctionCallbackInfo<v8
 
 void GetVideoPlaybackQualityOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("GetVideoPlaybackQualityOperationCallback not impl\n");
+    (void)0;
 //     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_getVideoPlaybackQuality");
 //     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.getVideoPlaybackQuality");
 // 
@@ -476,7 +476,7 @@ void GetVideoPlaybackQualityOperationCallback(const v8::FunctionCallbackInfo<v8:
 
 void RequestPictureInPictureOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("RequestPictureInPictureOperationCallback not impl\n");
+    (void)0;
 //     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_requestPictureInPicture");
 //     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.requestPictureInPicture");
 //     // Promise returning function: Convert a TypeError to a reject promise.
@@ -512,7 +512,7 @@ void RequestPictureInPictureOperationCallback(const v8::FunctionCallbackInfo<v8:
 
 void RequestVideoFrameCallbackOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("RequestVideoFrameCallbackOperationCallback not impl\n");
+    (void)0;
 
 //     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_HTMLVideoElement_requestVideoFrameCallback");
 //     BLINK_BINDINGS_TRACE_EVENT("HTMLVideoElement.requestVideoFrameCallback");

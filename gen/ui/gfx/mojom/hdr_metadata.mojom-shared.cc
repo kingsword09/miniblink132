@@ -39,11 +39,6 @@ bool HdrMetadataCta861_3_Data::Validate(const void* data, mojo::internal::Valida
     return true;
 }
 
-HdrMetadataCta861_3_Data::HdrMetadataCta861_3_Data()
-    : header_({ sizeof(*this), 0 })
-{
-}
-
 // static
 bool HdrMetadataSmpteSt2086_Data::Validate(const void* data, mojo::internal::ValidationContext* validation_context)
 {
@@ -66,11 +61,6 @@ bool HdrMetadataSmpteSt2086_Data::Validate(const void* data, mojo::internal::Val
     return true;
 }
 
-HdrMetadataSmpteSt2086_Data::HdrMetadataSmpteSt2086_Data()
-    : header_({ sizeof(*this), 0 })
-{
-}
-
 // static
 bool HdrMetadataNdwl_Data::Validate(const void* data, mojo::internal::ValidationContext* validation_context)
 {
@@ -87,11 +77,6 @@ bool HdrMetadataNdwl_Data::Validate(const void* data, mojo::internal::Validation
     return true;
 }
 
-HdrMetadataNdwl_Data::HdrMetadataNdwl_Data()
-    : header_({ sizeof(*this), 0 })
-{
-}
-
 // static
 bool HdrMetadataExtendedRange_Data::Validate(const void* data, mojo::internal::ValidationContext* validation_context)
 {
@@ -106,11 +91,6 @@ bool HdrMetadataExtendedRange_Data::Validate(const void* data, mojo::internal::V
     [[maybe_unused]] const HdrMetadataExtendedRange_Data* object = static_cast<const HdrMetadataExtendedRange_Data*>(data);
 
     return true;
-}
-
-HdrMetadataExtendedRange_Data::HdrMetadataExtendedRange_Data()
-    : header_({ sizeof(*this), 0 })
-{
 }
 
 // static
@@ -139,11 +119,6 @@ bool HDRMetadata_Data::Validate(const void* data, mojo::internal::ValidationCont
         return false;
 
     return true;
-}
-
-HDRMetadata_Data::HDRMetadata_Data()
-    : header_({ sizeof(*this), 0 })
-{
 }
 
 } // namespace internal

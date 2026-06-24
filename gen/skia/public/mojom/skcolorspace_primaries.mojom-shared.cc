@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "base/strings/stringprintf.h"
+#include "base/trace_event/base_tracing.h"
 #include "mojo/public/cpp/bindings/lib/validate_params.h"
 #include "mojo/public/cpp/bindings/lib/validation_errors.h"
 #include "mojo/public/cpp/bindings/lib/validation_util.h"
@@ -37,11 +38,6 @@ bool SkColorSpacePrimaries_Data::Validate(const void* data, mojo::internal::Vali
     [[maybe_unused]] const SkColorSpacePrimaries_Data* object = static_cast<const SkColorSpacePrimaries_Data*>(data);
 
     return true;
-}
-
-SkColorSpacePrimaries_Data::SkColorSpacePrimaries_Data()
-    : header_({ sizeof(*this), 0 })
-{
 }
 
 } // namespace internal

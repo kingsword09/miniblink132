@@ -776,7 +776,7 @@ SkColor4f Color::ToSkColor4fInternal(bool gamut_map_oklab_oklch) const
     case ColorSpace::kHWB:
         return gfx::HWBToSkColor4f(param0_, param1_, param2_, alpha_);
     default:
-        NOTIMPLEMENTED();
+        (void)0;
         return SkColor4f { 0.f, 0.f, 0.f, 0.f };
     }
 }

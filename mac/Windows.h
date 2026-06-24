@@ -1,0 +1,6 @@
+#ifndef MAC_WINDOWS_CASE_WRAPPER_H
+#define MAC_WINDOWS_CASE_WRAPPER_H
+
+#include "windows.h"
+
+#endif // MAC_WINDOWS_CASE_WRAPPER_H

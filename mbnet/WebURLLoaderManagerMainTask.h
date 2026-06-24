@@ -1028,6 +1028,9 @@ static void setResponseDataToJobWhenDidReceiveResponseOnMainThread(WebURLLoaderI
     GURL url = job->firstRequest()->url;
     bool needSetResponseFired = true;
 
+    if (url.SchemeIsHTTPOrHTTPS() && 0 == args->httpCode)
+        return;
+
     job->m_response.SetExpectedContentLength(static_cast<long long int>(args->contentLength));
     if (checkNeedSetResponseUrl(args->hdr, job->m_url))
         job->m_response.SetCurrentRequestUrl(blink::KURL(args->hdr));

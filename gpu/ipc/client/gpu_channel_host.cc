@@ -309,7 +309,7 @@ void GpuChannelHost::Listener::Initialize(mojo::ScopedMessagePipeHandle handle, 
     scoped_refptr<base::SingleThreadTaskRunner> io_task_runner)
 {
     base::AutoLock lock(lock_);
-    channel_ = IPC::ChannelMojo::Create(std::move(handle), IPC::Channel::MODE_CLIENT, this, io_task_runner, io_task_runner);
+    channel_ = IPC::ChannelMojo::Create(std::move(handle), IPC::ChannelMojo::MODE_CLIENT, this, io_task_runner, io_task_runner);
     DCHECK(channel_);
     bool result = channel_->Connect();
     DCHECK(result);

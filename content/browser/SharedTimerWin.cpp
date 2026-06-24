@@ -10,8 +10,12 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-extern "C" long MB_InterlockedExchange(long volatile* _Target, long _Value);
-extern "C" long MB_InterlockedIncrement(long volatile* _Target);
+#if defined(OS_MAC)
+#define MB_TIMER_WSTR(value) u##value
+#else
+#define MB_TIMER_WSTR(value) L##value
+#endif
+
 void nodeRunNoWait();
 
 extern base::RunLoop* g_mainThreadRunLoop;
@@ -52,7 +56,7 @@ namespace content {
 typedef void(WINAPI* PfnUiThreadHeartbeatCallback)();
 PfnUiThreadHeartbeatCallback g_uiThreadHeartbeatCallback = nullptr;
 
-const LPCWSTR kTimerWindowClassName = L"_TimerWindowClass_";
+const LPCWSTR kTimerWindowClassName = MB_TIMER_WSTR("_TimerWindowClass_");
 
 static UINT s_timerID;
 static void sharedTimerFiredFunction();
@@ -65,10 +69,10 @@ static HANDLE s_timerQueue;
 static HANDLE s_timerThreadHandle = nullptr;
 static bool s_highResTimerActive;
 static bool s_processingCustomTimerMessage = false;
-static long s_pendingTimers = 0;
+static LONG s_pendingTimers = 0;
 static double s_lastIntervalInMS = 0;
 
-static long s_pendingSharedTimers = 0;
+static LONG s_pendingSharedTimers = 0;
 
 const int kTimerResolution = 1; // To improve s_timer resolution, we call timeBeginPeriod/timeEndPeriod with this value to increase s_timer resolution to 1ms.
 const int kHighResolutionThresholdMsec
@@ -95,7 +99,7 @@ static LRESULT CALLBACK timerWindowWndProc(HWND hWnd, UINT message, WPARAM wPara
     LRESULT result = 0;
     if (message == WM_TIMER) {
         if (wParam == sharedTimerID) {
-            MB_InterlockedExchange((long*)&s_pendingSharedTimers, 0);
+            MB_InterlockedExchange((LONG*)&s_pendingSharedTimers, 0);
 
             if (kShouldUseHighResolutionTimers)
                 ::KillTimer(s_timerWindowHandle, sharedTimerID);
@@ -109,7 +113,7 @@ static LRESULT CALLBACK timerWindowWndProc(HWND hWnd, UINT message, WPARAM wPara
             sharedTimerFiredFunction();
         }
     } else if (message == s_timerFiredMessage || WM_NULL == message) {
-        MB_InterlockedExchange((long*)&s_pendingTimers, 0);
+        MB_InterlockedExchange((LONG*)&s_pendingTimers, 0);
         s_processingCustomTimerMessage = true;
         sharedTimerFiredFunction();
         s_processingCustomTimerMessage = false;
@@ -149,7 +153,7 @@ static void WINAPI queueTimerProc(PVOID, BOOLEAN)
 {
     if (s_pendingTimers > 100000) // 太大说明主线程卡死了
         return;
-    if (MB_InterlockedIncrement((long*)&s_pendingTimers) == 1)
+    if (MB_InterlockedIncrement((LONG*)&s_pendingTimers) == 1)
         ::PostMessageW(s_timerWindowHandle, s_timerFiredMessage /*WM_NULL*/, s_timerFiredMessage, s_timerFiredMessage);
 }
 
@@ -231,7 +235,7 @@ static void initializeOffScreenTimerWindow()
         return;
     s_timerWindowWndProcThreadId = ::GetCurrentThreadId();
 
-    HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
+    HMODULE hMod = GetModuleHandleW(MB_TIMER_WSTR("Kernel32.dll"));
     pCreateTimerQueue = (PfnCreateTimerQueue)::GetProcAddress(hMod, "CreateTimerQueue");
     pDeleteTimerQueueTimer = (PfnDeleteTimerQueueTimer)::GetProcAddress(hMod, "DeleteTimerQueueTimer");
     pCreateTimerQueueTimer = (PfnCreateTimerQueueTimer)::GetProcAddress(hMod, "CreateTimerQueueTimer");
@@ -245,7 +249,7 @@ static void initializeOffScreenTimerWindow()
 
     s_timerWindowHandle = CreateWindowExW(0, // window ex-style
         kTimerWindowClassName, // window class name
-        L"OffScreenTimer", // window caption
+        MB_TIMER_WSTR("OffScreenTimer"), // window caption
         WS_POPUP, // window style
         1, // initial x position
         1, // initial y position
@@ -257,7 +261,7 @@ static void initializeOffScreenTimerWindow()
         NULL); // creation parameters
     //::SetTimer(s_timerWindowHandle, (UINT_PTR)s_timerWindowHandle, 50, 0);
 
-    s_timerFiredMessage = ::RegisterWindowMessageW(L"com.weolar.Miniblink.TimerFired");
+    s_timerFiredMessage = ::RegisterWindowMessageW(MB_TIMER_WSTR("com.weolar.Miniblink.TimerFired"));
     //::SetTimer(s_timerWindowHandle, lowResTimerID, 16, 0);
 #endif
 }

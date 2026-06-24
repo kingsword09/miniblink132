@@ -142,6 +142,22 @@ public:
         m_LoadUrlEndParam = param;
     };
 
+    mbLoadUrlFinishCallback m_LoadUrlFinishCallback { nullptr };
+    void* m_LoadUrlFinishParam { nullptr };
+    void setLoadUrlFinishCallback(mbLoadUrlFinishCallback callback, void* param)
+    {
+        m_LoadUrlFinishCallback = callback;
+        m_LoadUrlFinishParam = param;
+    };
+
+    mbLoadUrlHeadersReceivedCallback m_LoadUrlHeadersReceivedCallback { nullptr };
+    void* m_LoadUrlHeadersReceivedParam { nullptr };
+    void setLoadUrlHeadersReceivedCallback(mbLoadUrlHeadersReceivedCallback callback, void* param)
+    {
+        m_LoadUrlHeadersReceivedCallback = callback;
+        m_LoadUrlHeadersReceivedParam = param;
+    };
+
     mbLoadUrlFailCallback m_LoadUrlFailCallback { nullptr };
     void* m_LoadUrlFailParam { nullptr };
     void setLoadUrlFailCallback(mbLoadUrlFailCallback callback, void* param)
@@ -292,6 +308,14 @@ public:
     {
         m_ImageBufferToDataURLCallback = callback;
         m_ImageBufferToDataURLParam = param;
+    };
+
+    mbNodeOnCreateProcessCallback m_NodeCreateProcessCallback { nullptr };
+    void* m_NodeCreateProcessParam { nullptr };
+    void setNodeCreateProcessCallback(mbNodeOnCreateProcessCallback callback, void* param)
+    {
+        m_NodeCreateProcessCallback = callback;
+        m_NodeCreateProcessParam = param;
     };
 
     mbNetResponseCallback m_NetResponseCallback { nullptr };

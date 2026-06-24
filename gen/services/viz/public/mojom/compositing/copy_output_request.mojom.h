@@ -134,10 +134,10 @@ public:
 //private:
 //    ImplPointerType sink_;
 //};
-//class CopyOutputResultSenderRequestValidator : public mojo::MessageReceiver {
-//public:
-//    bool Accept(mojo::Message* message) override;
-//};
+class CopyOutputResultSenderRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
 
 class CopyOutputRequest {
 public:

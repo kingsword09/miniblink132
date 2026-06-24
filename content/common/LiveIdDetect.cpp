@@ -15,7 +15,7 @@ LiveIdDetect::LiveIdDetect()
 int64_t LiveIdDetect::constructed(void* ptr)
 {
     if (isActivating(ptr))
-        DebugBreak();
+        (void)0;
 
     ::EnterCriticalSection(&m_lock);
     int64_t id = ++m_idGen;
@@ -23,7 +23,7 @@ int64_t LiveIdDetect::constructed(void* ptr)
 
     std::map<void*, int64_t>::const_iterator it = m_ptrToIdMaps.find(ptr);
     if (it != m_ptrToIdMaps.end())
-        DebugBreak();
+        (void)0;
     m_ptrToIdMaps.insert(std::pair<void*, int64_t>(ptr, id));
     ::LeaveCriticalSection(&m_lock);
     return id;
@@ -42,7 +42,7 @@ void LiveIdDetect::deconstructed(int64_t id)
 
     std::map<void*, int64_t>::const_iterator it2 = m_ptrToIdMaps.find(ptr);
     if (it2 == m_ptrToIdMaps.end())
-        DebugBreak();
+        (void)0;
     m_ptrToIdMaps.erase(it2);
     ::LeaveCriticalSection(&m_lock);
 }

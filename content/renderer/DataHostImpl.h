@@ -112,7 +112,7 @@ class DataHostImpl : public ::attribution_reporting::mojom::blink::DataHost {
         ::attribution_reporting::SourceRegistration data, 
         bool was_fetched_via_service_worker) override
     {
-        OutputDebugStringA("DataHostImpl::SourceDataAvailable not impl\n");
+        (void)0;
     }
 
     void TriggerDataAvailable(

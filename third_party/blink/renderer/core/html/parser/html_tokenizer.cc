@@ -1940,7 +1940,7 @@ inline bool HTMLTokenizer::IsAppropriateEndTag()
 inline void HTMLTokenizer::ParseError()
 {
 #if DCHECK_IS_ON()
-    DVLOG(1) << "Not implemented.";
+    (void)0;
 #endif
 }
 

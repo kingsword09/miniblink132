@@ -26,11 +26,25 @@ constValue.linker = "C:/Microsoft/AndroidNDK64/android-ndk-r16b/toolchains/aarch
 constValue.isBuildElectronMode = cmd.isBuildElectronMode;
 constValue.compileCfg = cmd.compileCfg;
 constValue.target = "x86_64-linux-guneabi";
+constValue.isMac = !!cmd.isMac || (cmd.compileCfg && 0 == cmd.compileCfg.indexOf("mac_"));
+constValue.isLinux = !constValue.isMac;
+
+if (cmd.srcPath)
+    constValue.srcPath = cmd.srcPath;
+if (cmd.clangPath)
+    constValue.clangPath = cmd.clangPath;
 
 jsPrint("constValue.isBuildElectronMode:" + constValue.isBuildElectronMode);
 jsPrint("constValue.compileCfg:" + constValue.compileCfg);
 
-if (cmd.compileCfg == "debug") {
+if (constValue.isMac) {
+    if (!cmd.clangPath)
+        constValue.clangPath = "/opt/homebrew/opt/llvm/bin";
+    constValue.targetDir = cmd.compileCfg || "mac_release_x64";
+    constValue.target = (cmd.compileCfg && 0 <= cmd.compileCfg.indexOf("arm64")) ? "arm64-apple-macosx" : "x86_64-apple-macosx";
+    constValue.linker = constValue.clangPath + "/clang++";
+    constValue.staticLinker = constValue.clangPath + "/llvm-ar";
+} else if (cmd.compileCfg == "debug") {
     constValue.targetDir = "linux_debug_x64";
 } else if (cmd.compileCfg == "release" || cmd.compileCfg == "linux_release_x64") {
     constValue.targetDir = "linux_release_x64";
@@ -44,8 +58,12 @@ if (cmd.compileCfg == "debug") {
     constValue.targetDir = "linux_release_sym_x64";
 }
 
+constValue.isArm64 = 0 <= constValue.target.indexOf("arm64") || 0 <= constValue.target.indexOf("aarch64") || (cmd.compileCfg && 0 <= cmd.compileCfg.indexOf("arm64"));
+
 var includePaths;
-if ("aarch64-linux-guneabi" == constValue.target) { // Arm 64
+if (constValue.isMac) {
+    includePaths = [];
+} else if ("aarch64-linux-guneabi" == constValue.target) { // Arm 64
     constValue.sdkPath        = "C:/Microsoft/AndroidNDK64/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu";
     //constValue.clangPath      = "C:/Microsoft/AndroidNDK64/android-ndk-r16b/toolchains/llvm/prebuilt/windows-x86_64/bin";
     //constValue.ndkBinPath     = "C:/Microsoft/AndroidNDK64/android-ndk-r16b/toolchains/aarch64-linux-android-4.9/prebuilt/windows-x86_64/aarch64-linux-android/bin";
@@ -79,7 +97,12 @@ if ("aarch64-linux-guneabi" == constValue.target) { // Arm 64
     ];
 }
 
-constValue.includePaths = [
+constValue.includePaths = constValue.isMac ? [
+    "${srcPath}",
+    "${srcPath}/mac",
+    "${srcPath}/base/allocator/partition_allocator/src",
+    "${srcPath}/gen/base/allocator/partition_allocator/src",
+] : [
     //"C:/Microsoft/AndroidNDK64/android-ndk-r16b/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/lib/gcc/arm-linux-androideabi/4.9.x/include", // 给ARM用的
     "${ndkIncludePath}", // 优先使用clang目录里的stddef.h、arm_neon.h，不然sysroot的这几个头文件clang会识别不了一些基本类型如'__Int8x8_t'
     ...includePaths,
@@ -95,26 +118,106 @@ constValue.includePaths = [
     
 export const constVal = constValue;
 
+const macLinuxOnlyArgs = new Set([
+    "-DOS_LINUX_FOR_WIN",
+    "-DOS_LINUX_FOR_WIN=1",
+    "-DV8_OS_LINUX",
+    "-DV8_TARGET_OS_LINUX",
+    "-DOS_LINUX",
+    "-DOS_LINUX=1",
+    "-DUSE_OZONE",
+    "-DUSE_OZONE=1",
+    "-DUSE_GLIB",
+    "-DUSE_GLIB=1",
+    "-D__linux__",
+]);
+
+const macArm64OnlyRemoveArgs = new Set([
+    "-DV8_HOST_ARCH_X64",
+    "-DV8_TARGET_ARCH_X64",
+]);
+
+const macWarningSuppressArgs = [
+    "-Wno-defaulted-function-deleted",
+    "-Wno-deprecated-builtins",
+    "-Wno-nontrivial-memcall",
+];
+
+const isX86CpuArg = function(arg) {
+    return 0 == arg.indexOf("-march=")
+        || 0 == arg.indexOf("-mtune=")
+        || 0 == arg.indexOf("-mavx")
+        || 0 == arg.indexOf("-msse");
+};
+
+const pushUnique = function(array, value) {
+    if (array.indexOf(value) < 0)
+        array.push(value);
+};
+
+export const applyMacBuildSettings = function(json, options = {}) {
+    if (!constValue.isMac)
+        return;
+
+    const compile = json[0].compile;
+    compile.ccompiler = "${clangPath}/clang";
+    compile.cppcompiler = "${clangPath}/clang++";
+    compile.cmd = compile.cmd.filter((arg) => !macLinuxOnlyArgs.has(arg) && !(constValue.isArm64 && isX86CpuArg(arg)));
+
+    if (!options.keepLinuxInclude) {
+        compile.include = compile.include
+            .filter((path) => path != "${srcPath}/linux")
+            .map((path) => path == "${srcPath}/third_party/libxml/linux/include" ? "${srcPath}/third_party/libxml/mac/include" : path);
+    }
+
+    pushUnique(compile.cmd, "-DOS_MAC");
+    pushUnique(compile.cmd, "-DOS_POSIX");
+    pushUnique(compile.cmd, "-D_DARWIN_C_SOURCE");
+    pushUnique(compile.cmd, "-include");
+    pushUnique(compile.cmd, "${srcPath}/mac/mac_build_compat.h");
+    for (const warningArg of macWarningSuppressArgs)
+        pushUnique(compile.cmd, warningArg);
+
+    if (options.v8) {
+        pushUnique(compile.cmd, "-DV8_OS_MACOS");
+        pushUnique(compile.cmd, "-DV8_TARGET_OS_MACOS");
+        if (constValue.isArm64) {
+            compile.cmd = compile.cmd.filter((arg) => !macArm64OnlyRemoveArgs.has(arg));
+            pushUnique(compile.cmd, "-DV8_HOST_ARCH_ARM64");
+            pushUnique(compile.cmd, "-DV8_TARGET_ARCH_ARM64");
+        }
+    }
+
+    if (options.staticLib !== false && 0 <= compile.target.indexOf(".a"))
+        compile.linker = constValue.staticLinker;
+};
+
 export const buildCommonSetting = function(json) {
     json[0].compile.objdir = json[0].compile.objdir.replace("${srcPath}", constValue.srcPath);
     json[0].compile.objdir = json[0].compile.objdir.replace("${targetDir}", constValue.targetDir);
+    json[0].compile.outdir = json[0].compile.outdir.replace("${srcPath}", constValue.srcPath);
+    json[0].compile.outdir = json[0].compile.outdir.replace("${targetDir}", constValue.targetDir);
     
     json[0].compile.cmd.push("-fPIC");
     json[0].compile.cmd.push("-fno-exceptions");
-    json[0].compile.cmd.push("-fvisibility=hidden");
-    json[0].compile.cmd.push("--target=" + constValue.target);
+    if (!constValue.isMac)
+        json[0].compile.cmd.push("-fvisibility=hidden");
+    if (!constValue.isMac)
+        json[0].compile.cmd.push("--target=" + constValue.target);
     //json[0].compile.cmd.push("-march=iwmmxt2");
     
-    // gtk:
-    //json[0].compile.cmd.push("-DSK_B32_SHIFT=0");
-    //json[0].compile.cmd.push("-DSK_G32_SHIFT=8");
-    //json[0].compile.cmd.push("-DSK_R32_SHIFT=16");
-    //json[0].compile.cmd.push("-DSK_A32_SHIFT=24");
-    // opengl
-    json[0].compile.cmd.push("-DSK_B32_SHIFT=16");
-    json[0].compile.cmd.push("-DSK_G32_SHIFT=8");
-    json[0].compile.cmd.push("-DSK_R32_SHIFT=0");
-    json[0].compile.cmd.push("-DSK_A32_SHIFT=24");
+    if (!constValue.isMac) {
+        // gtk:
+        //json[0].compile.cmd.push("-DSK_B32_SHIFT=0");
+        //json[0].compile.cmd.push("-DSK_G32_SHIFT=8");
+        //json[0].compile.cmd.push("-DSK_R32_SHIFT=16");
+        //json[0].compile.cmd.push("-DSK_A32_SHIFT=24");
+        // opengl
+        json[0].compile.cmd.push("-DSK_B32_SHIFT=16");
+        json[0].compile.cmd.push("-DSK_G32_SHIFT=8");
+        json[0].compile.cmd.push("-DSK_R32_SHIFT=0");
+        json[0].compile.cmd.push("-DSK_A32_SHIFT=24");
+    }
     
     if ("aarch64-linux-guneabi" == constValue.target) { // ARM64
         //json[0].compile.cmd.push("-mfpu=neon-fp16");

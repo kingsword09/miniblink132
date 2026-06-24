@@ -41,8 +41,8 @@ Status ExportPKeySpki(EVP_PKEY* key, std::vector<uint8_t>* buffer)
 //     }
 //     buffer->assign(der, der + der_len);
 //     OPENSSL_free(der);
-    OutputDebugStringA("ExportPKeySpki not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
     return Status::Success();
 }
 
@@ -62,8 +62,8 @@ Status ExportPKeyPkcs8(EVP_PKEY* key, std::vector<uint8_t>* buffer)
 //     buffer->assign(der, der + der_len);
 //     OPENSSL_free(der);
 
-    OutputDebugStringA("ExportPKeyPkcs8 not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
     return Status::Success();
 }
 

@@ -19,6 +19,9 @@
 #include "third_party/skia/include/core/SkFontStyle.h"
 #include "third_party/skia/include/core/SkString.h"
 #include "third_party/skia/include/core/SkTypeface.h"
+#if BUILDFLAG(IS_APPLE)
+#include "third_party/skia/include/ports/SkTypeface_mac.h"
+#endif
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/font.h"
 #include "ui/gfx/font_list.h"
@@ -318,6 +321,13 @@ sk_sp<SkTypeface> PlatformFontSkia::GetNativeSkTypeface() const
     DCHECK(typeface_);
     return sk_sp<SkTypeface>(typeface_);
 }
+
+#if BUILDFLAG(IS_APPLE)
+CTFontRef PlatformFontSkia::GetCTFont() const
+{
+    return SkTypeface_GetCTFontRef(typeface_.get());
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // PlatformFontSkia, private:

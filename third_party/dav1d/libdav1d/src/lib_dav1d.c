@@ -762,6 +762,8 @@ void dav1d_data_props_unref(Dav1dDataProps* const props)
 #else
 
 //#include "third_party/dav1d/libdav1d/include/common/attributes.h"
+#include <stdio.h>
+
 #include "dav1d/dav1d.h"
 
 /*COLD*/ const char* dav1d_version(void)

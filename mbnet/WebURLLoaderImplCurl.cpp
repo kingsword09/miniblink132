@@ -229,7 +229,7 @@ void WebURLLoaderImplCurl::LoadSynchronously(
         //
         //         m_blobLoader = mbnet::BlobResourceLoader::createAsync(url, client);
         //         m_blobLoader->start();
-        DebugBreak();
+        (void)0;
         return;
     }
 

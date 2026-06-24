@@ -20,7 +20,7 @@ enum LatencyComponentType;
 struct LatencyInfoTest {
     static void deserializeUiLatencyInfo(LatencyInfo* out, base::PickleIterator& pickleIn)
     {
-        DebugBreak();
+        (void)0;
 //         uint32_t componentsSize = 0;
 //         CHECK(pickleIn.ReadUInt32(&componentsSize));
 //         for (size_t i = 0; i < componentsSize; ++i) {
@@ -207,7 +207,7 @@ void deserializeVizSurfaceRange(viz::SurfaceRange* out, base::PickleIterator& pi
         deserializeVizSurfaceId(&id, pickleIn);
 
         start.emplace(id);
-        DebugBreak();
+        (void)0;
     }
 
     viz::SurfaceId end;
@@ -268,7 +268,7 @@ void deserializeVizSharedImageFormat(viz::SharedImageFormat* in, base::PickleIte
 
 void deserializeGfxColorSpace(gfx::ColorSpace* out, base::PickleIterator& pickleIn)
 {
-    DebugBreak();
+    (void)0;
 
     const char* data;
     int size = 0;
@@ -378,7 +378,7 @@ void deserializeCompositorFrameMetadata(viz::CompositorFrameMetadata* metadataIn
 
 void deserializeCcFilterOperation(cc::FilterOperation* out, base::PickleIterator& pickleIn)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void deserializeCcFilterOperations(cc::FilterOperations* out, base::PickleIterator& pickleIn)
@@ -583,7 +583,7 @@ const viz::SharedQuadState* findQuadStatePtr(const viz::SharedQuadStateList& sta
         if (i == pos)
             return quadState;
     }
-    DebugBreak();
+    (void)0;
     return nullptr;
 }
 

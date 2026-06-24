@@ -51,8 +51,10 @@ namespace content {
 LocalFrameHostImpl::LocalFrameHostImpl(WebLocalFrameClientImpl* frameClient)
     : m_frameClient(frameClient)
 {
+#if defined(OS_WIN)
     base::SequencedTaskRunner::GetCurrentDefault()->PostNonNestableDelayedTask(MB_FROM_HERE,
-        base::BindOnce([]() { ContextMenu::get();}), base::Seconds(3)); // 延迟后初始化一下，这样真正弹出菜单的时候不会抢焦点了
+        base::BindOnce([]() { ContextMenu::get();}), base::Seconds(3));
+#endif // 延迟后初始化一下，这样真正弹出菜单的时候不会抢焦点了
 
 }
 
@@ -134,15 +136,20 @@ void LocalFrameHostImpl::DidFailLoadWithError(const ::blink::KURL& url, int32_t 
     mbWebView webviewHandle = m_frameClient->getMbwebviewId();
     intptr_t id = m_frameClient->getFrameId();
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
-    if (!webview || !webview->getClosure().m_LoadingFinishCallback)
+    if (!webview)
         return;
 
     std::string* urlStr = new std::string(url.GetString().Utf8());
     ThreadCall::callUiThreadAsync(MB_FROM_HERE, [webviewHandle, urlStr, id]() {
         MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
-        if (webview)
-            webview->getClosure().m_LoadingFinishCallback(
-                webviewHandle, webview->getClosure().m_LoadingFinishParam, (mbWebFrameHandle)id, urlStr->c_str(), MB_LOADING_FAILED, "");
+        if (webview) {
+            if (webview->getClosure().m_LoadUrlFailCallback)
+                webview->getClosure().m_LoadUrlFailCallback(
+                    webviewHandle, webview->getClosure().m_LoadUrlFailParam, urlStr->c_str(), nullptr);
+            if (webview->getClosure().m_LoadingFinishCallback)
+                webview->getClosure().m_LoadingFinishCallback(
+                    webviewHandle, webview->getClosure().m_LoadingFinishParam, (mbWebFrameHandle)id, urlStr->c_str(), MB_LOADING_FAILED, "");
+        }
         delete urlStr;
     });
 }
@@ -515,8 +522,10 @@ void LocalFrameHostImpl::ShowContextMenu(
     //m_contextMenuClient->Bind(std::move(client));
 
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(m_frameClient->getMbwebviewId());
+#if defined(OS_WIN)
     ContextMenu::get()->setCurrentWebview(webview);
     ContextMenu::get()->show(params, getFrameIdByWebLocalFrame(m_frameClient->getFrame()));
+#endif
 #endif
 }
 

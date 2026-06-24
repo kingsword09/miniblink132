@@ -44,7 +44,7 @@ void InstallPropertiesPerFeatureInternal(
             }
             break;
         case WrapperTypeInfo::kIdlNamespace:
-            NOTIMPLEMENTED();
+  (void)0;
             break;
         default:
             NOTREACHED();

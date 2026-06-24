@@ -753,7 +753,7 @@ public:
     void ClosePageForTesting();
     void SetInitialFocus(bool reverse);
 
-#if BUILDFLAG(IS_MAC)
+#if 0
     void GetCharacterIndexAtPoint(const gfx::Point& point);
 #endif
 

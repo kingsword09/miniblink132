@@ -599,7 +599,7 @@ void HTMLCanvasElement::configureHighDynamicRange(const CanvasHighDynamicRangeOp
     if (IsOffscreenCanvasRegistered()) {
         // TODO(https://crbug.com/1274220): Implement HDR support for offscreen
         // canvas.
-        NOTIMPLEMENTED();
+        (void)0;
     }
 
     CanvasResourceHost::SetHdrMetadata(hdr_metadata);
@@ -1307,7 +1307,7 @@ CanvasResourceDispatcher* HTMLCanvasElement::GetOrCreateResourceDispatcher()
 
 bool HTMLCanvasElement::PushFrame(scoped_refptr<CanvasResource>&& image, const SkIRect& damage_rect)
 {
-    NOTIMPLEMENTED();
+    (void)0;
     return false;
 }
 

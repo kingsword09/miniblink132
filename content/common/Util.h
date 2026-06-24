@@ -12,7 +12,7 @@ namespace common {
 
 inline bool readFile(const WCHAR* path, std::vector<char>* buffer)
 {
-#if defined(OS_WIN)
+#if defined(OS_WIN) || defined(OS_MAC)
     HANDLE hFile = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (INVALID_HANDLE_VALUE == hFile)
         return false;
@@ -40,8 +40,8 @@ inline bool readFile(const WCHAR* path, std::vector<char>* buffer)
 // szPathDir结尾如果是目录而不是文件，请带上‘/’或‘\\’
 inline BOOL createMultiDir(const WCHAR* pathDir)
 {
-#if defined(OS_WIN)
-    const size_t len = wcslen(pathDir);
+#if defined(OS_WIN) || defined(OS_MAC)
+    const size_t len = mbWideLen(pathDir);
     std::vector<WCHAR> temp(len + 1);
 
     for (size_t i = 0; i < len; i++) {
@@ -50,7 +50,7 @@ inline BOOL createMultiDir(const WCHAR* pathDir)
         temp[i + 1] = 0;
         if (L'/' == c || L'\\' == c) {
             if (!::PathFileExistsW(temp.data())) {
-                if (!CreateDirectory(temp.data(), NULL))
+                if (!CreateDirectoryW(temp.data(), NULL))
                     return FALSE;
             }
         }

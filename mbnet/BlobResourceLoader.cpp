@@ -221,7 +221,7 @@ void BlobResourceLoader::doStart()
         m_client->DidReceiveResponse(response, std::move(responseBodyHandld), absl::nullopt);
     } else {
         //m_client->DidReceiveData(buffer.data(), numBytes);
-        DebugBreak();
+        (void)0;
     }
 
     m_client->DidFinishLoading(base::TimeTicks::Now(), numBytes, numBytes, numBytes);

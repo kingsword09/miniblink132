@@ -35,6 +35,7 @@
 
 #include "base/metrics/histogram_functions.h"
 #include "base/strings/stringprintf.h"
+#include "build/build_config.h"
 #include "third_party/blink/public/common/privacy_budget/identifiability_metric_builder.h"
 #include "third_party/blink/public/mojom/permissions_policy/permissions_policy.mojom-blink.h"
 #include "third_party/blink/public/platform/modules/webrtc/webrtc_logging.h"
@@ -55,7 +56,9 @@
 #include "third_party/blink/renderer/modules/mediastream/overconstrained_error.h"
 #include "third_party/blink/renderer/modules/mediastream/transferred_media_stream_track.h"
 #include "third_party/blink/renderer/modules/mediastream/user_media_client.h"
+#if !BUILDFLAG(IS_MAC)
 #include "third_party/blink/renderer/modules/peerconnection/peer_connection_tracker.h"
+#endif
 #include "third_party/blink/renderer/platform/bindings/exception_state.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/mediastream/media_stream_descriptor.h"
@@ -692,6 +695,7 @@ void UserMediaRequest::OnMediaStreamsInitialized(MediaStreamVector streams)
             video_track->SetInitialConstraints(video_);
 
         RecordIdentifiabilityMetric(surface_, GetExecutionContext(), IdentifiabilityBenignStringToken(g_empty_string));
+#if !BUILDFLAG(IS_MAC)
         if (auto* window = GetWindow()) {
             if (media_type_ == UserMediaRequestType::kUserMedia) {
                 PeerConnectionTracker::From(*window).TrackGetUserMediaSuccess(this, stream);
@@ -701,6 +705,7 @@ void UserMediaRequest::OnMediaStreamsInitialized(MediaStreamVector streams)
                 NOTREACHED();
             }
         }
+#endif
     }
     // After this call, the execution context may be invalid.
     callbacks_->OnSuccess(streams, capture_controller_);
@@ -714,6 +719,7 @@ void UserMediaRequest::FailConstraint(const String& constraint_name, const Strin
     if (!GetExecutionContext())
         return;
     RecordIdentifiabilityMetric(surface_, GetExecutionContext(), IdentifiabilityBenignStringToken(message));
+#if !BUILDFLAG(IS_MAC)
     if (auto* window = GetWindow()) {
         if (media_type_ == UserMediaRequestType::kUserMedia) {
             PeerConnectionTracker::From(*window).TrackGetUserMediaFailure(this, "OverConstrainedError", message);
@@ -723,6 +729,7 @@ void UserMediaRequest::FailConstraint(const String& constraint_name, const Strin
             NOTREACHED();
         }
     }
+#endif
     // After this call, the execution context may be invalid.
     callbacks_->OnError(nullptr, MakeGarbageCollected<V8MediaStreamError>(OverconstrainedError::Create(constraint_name, message)), capture_controller_,
         UserMediaRequestResult::kOverConstrainedError);
@@ -776,6 +783,7 @@ void UserMediaRequest::Fail(Result error, const String& message)
     }
     RecordIdentifiabilityMetric(surface_, GetExecutionContext(), IdentifiabilityBenignStringToken(message));
 
+#if !BUILDFLAG(IS_MAC)
     if (auto* window = GetWindow()) {
         if (media_type_ == UserMediaRequestType::kUserMedia) {
             PeerConnectionTracker::From(*window).TrackGetUserMediaFailure(this, DOMException::GetErrorName(exception_code), message);
@@ -785,6 +793,7 @@ void UserMediaRequest::Fail(Result error, const String& message)
             NOTREACHED();
         }
     }
+#endif
 
     // After this call, the execution context may be invalid.
     callbacks_->OnError(

@@ -32,7 +32,6 @@ void WebWorkerFetchContextImpl::SetTerminateSyncLoadEvent(base::WaitableEvent* e
 
 void WebWorkerFetchContextImpl::InitializeOnWorkerThread(blink::AcceptLanguagesWatcher*)
 {
-    OutputDebugStringA("WebWorkerFetchContextImpl::InitializeOnWorkerThread Not impl\n");
 }
 
 blink::URLLoaderFactory* WebWorkerFetchContextImpl::GetURLLoaderFactory()
@@ -88,8 +87,6 @@ blink::WebString WebWorkerFetchContextImpl::GetAcceptLanguages(void) const
 
 void WebWorkerFetchContextImpl::SetIsOfflineMode(bool)
 {
-    DebugBreak();
-    return;
 }
 
 blink::mojom::ControllerServiceWorkerMode WebWorkerFetchContextImpl::GetControllerServiceWorkerMode(void) const

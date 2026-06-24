@@ -90,14 +90,14 @@ bool Highlight::Contains(AbstractRange* range) const
 const AtomicString& Highlight::InterfaceName() const
 {
     // TODO(crbug.com/1346693)
-    NOTIMPLEMENTED();
+    (void)0;
     return g_null_atom;
 }
 
 ExecutionContext* Highlight::GetExecutionContext() const
 {
     // TODO(crbug.com/1346693)
-    NOTIMPLEMENTED();
+    (void)0;
     return nullptr;
 }
 

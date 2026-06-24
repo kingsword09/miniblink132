@@ -56,7 +56,7 @@ base::FilePath getDefaultLocalStorageDir()
     buf.resize(8025);
     memset(buf.data(), 0, buf.size());
     int n = readlink("/proc/self/exe", buf.data(), buf.size() - 1);
-    kDefaultLocalStorageDir = new base::FilePath(base::BasicStringPiece(buf.data()));
+    kDefaultLocalStorageDir = new base::FilePath(base::FilePath::StringType(buf.data()));
     *kDefaultLocalStorageDir = kDefaultLocalStorageDir->DirName();
     *kDefaultLocalStorageDir = kDefaultLocalStorageDir->Append("LocalStorage");
 

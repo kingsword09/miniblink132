@@ -75,7 +75,7 @@
 #include "third_party/blink/renderer/platform/loader/fetch/resource_timing_utils.h"
 #include "third_party/blink/renderer/platform/widget/frame_widget.h"
 
-#if BUILDFLAG(IS_MAC)
+#if 0
 #include "base/apple/foundation_util.h"
 #include "third_party/blink/renderer/core/editing/substring_util.h"
 #include "third_party/blink/renderer/platform/fonts/mac/attributed_string_type_converter.h"
@@ -88,7 +88,7 @@ namespace {
 
 constexpr char kInvalidWorldID[] = "JavaScriptExecuteRequestInIsolatedWorld gets an invalid world id.";
 
-#if BUILDFLAG(IS_MAC)
+#if 0
 size_t GetCurrentCursorPositionInFrame(LocalFrame* local_frame)
 {
     blink::WebRange range = WebLocalFrameImpl::FromFrame(local_frame)->SelectionRange();
@@ -308,7 +308,7 @@ LocalFrameMojoHandler::LocalFrameMojoHandler(blink::LocalFrame& frame)
 {
     frame.GetRemoteNavigationAssociatedInterfaces()->GetInterface(
         back_forward_cache_controller_host_remote_.BindNewEndpointAndPassReceiver(frame.GetTaskRunner(TaskType::kInternalDefault)));
-#if BUILDFLAG(IS_MAC)
+#if 0
     // It should be bound before accessing TextInputHost which is the interface to
     // respond to GetCharacterIndexAtPoint.
     frame.GetBrowserInterfaceBroker().GetInterface(text_input_host_.BindNewPipeAndPassReceiver(frame.GetTaskRunner(TaskType::kInternalDefault)));
@@ -329,7 +329,7 @@ void LocalFrameMojoHandler::Trace(Visitor* visitor) const
 {
     visitor->Trace(frame_);
     visitor->Trace(back_forward_cache_controller_host_remote_);
-#if BUILDFLAG(IS_MAC)
+#if 0
     visitor->Trace(text_input_host_);
 #endif
     visitor->Trace(reporting_service_);
@@ -366,7 +366,7 @@ mojom::blink::BackForwardCacheControllerHost& LocalFrameMojoHandler::BackForward
     return *back_forward_cache_controller_host_remote_.get();
 }
 
-#if BUILDFLAG(IS_MAC)
+#if 0
 mojom::blink::TextInputHost& LocalFrameMojoHandler::TextInputHost()
 {
     DCHECK(text_input_host_.is_bound());
@@ -857,7 +857,7 @@ void LocalFrameMojoHandler::JavaScriptExecuteRequestInIsolatedWorld(
         mojom::blink::PromiseResultOption::kDoNotWait);
 }
 
-#if BUILDFLAG(IS_MAC)
+#if 0
 void LocalFrameMojoHandler::GetCharacterIndexAtPoint(const gfx::Point& point)
 {
     frame_->GetCharacterIndexAtPoint(point);

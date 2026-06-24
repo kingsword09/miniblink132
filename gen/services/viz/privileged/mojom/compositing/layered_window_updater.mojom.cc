@@ -141,8 +141,9 @@ LayeredWindowUpdaterProxy::LayeredWindowUpdaterProxy(mojo::MessageReceiverWithRe
 {
 }
 
-void LayeredWindowUpdaterProxy::OnAllocatedSharedMemory(const ::gfx::Size& in_pixel_size, ::base::UnsafeSharedMemoryRegion in_region)
+void LayeredWindowUpdaterProxy::OnAllocatedSharedMemory(const ::gfx::Size& in_pixel_size, ::base::UnsafeSharedMemoryRegion in_region, void* lock)
 {
+    (void)lock;
 #if BUILDFLAG(MOJO_TRACE_ENABLED)
     TRACE_EVENT1("mojom", "Send viz::mojom::LayeredWindowUpdater::OnAllocatedSharedMemory", "input_parameters", [&](perfetto::TracedValue context) {
         auto dict = std::move(context).WriteDictionary();
@@ -328,7 +329,7 @@ bool LayeredWindowUpdaterStubDispatch::Accept(LayeredWindowUpdater* impl, mojo::
         }
         // A null |impl| means no implementation was bound.
         DCHECK(impl);
-        impl->OnAllocatedSharedMemory(std::move(p_pixel_size), std::move(p_region));
+        impl->OnAllocatedSharedMemory(std::move(p_pixel_size), std::move(p_region), nullptr);
         return true;
     }
     case messages::LayeredWindowUpdater::kDraw: {
@@ -399,9 +400,9 @@ namespace mojo {
 
 namespace viz::mojom {
 
-void LayeredWindowUpdaterInterceptorForTesting::OnAllocatedSharedMemory(const ::gfx::Size& pixel_size, ::base::UnsafeSharedMemoryRegion region)
+void LayeredWindowUpdaterInterceptorForTesting::OnAllocatedSharedMemory(const ::gfx::Size& pixel_size, ::base::UnsafeSharedMemoryRegion region, void* lock)
 {
-    GetForwardingInterface()->OnAllocatedSharedMemory(std::move(pixel_size), std::move(region));
+    GetForwardingInterface()->OnAllocatedSharedMemory(std::move(pixel_size), std::move(region), lock);
 }
 void LayeredWindowUpdaterInterceptorForTesting::Draw(DrawCallback callback)
 {

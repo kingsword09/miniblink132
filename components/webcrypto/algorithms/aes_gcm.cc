@@ -32,8 +32,8 @@ const EVP_AEAD* GetAesGcmAlgorithmFromKeySize(size_t key_size_bytes)
 //     default:
 //         return nullptr;
 //     }
-    OutputDebugStringA("GetAesGcmAlgorithmFromKeySize not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
     return nullptr;
 }
 

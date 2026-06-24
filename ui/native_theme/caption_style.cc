@@ -3,22 +3,11 @@
 // found in the LICENSE file.
 
 #include "ui/native_theme/caption_style.h"
-#include "ui/color/color_provider_key.h"
 #include "base/json/json_reader.h"
 #include "base/values.h"
 #include "build/build_config.h"
 
 namespace ui {
-
-ColorProviderKey::ColorProviderKey(void)
-{
-    *(int*)1 = 1;
-}
-
-ColorProviderKey::~ColorProviderKey(void)
-{
-    *(int*)1 = 1;
-}
 
 CaptionStyle::CaptionStyle() = default;
 CaptionStyle::CaptionStyle(const CaptionStyle& other) = default;
@@ -48,7 +37,7 @@ std::optional<CaptionStyle> CaptionStyle::FromSpec(const std::string& spec)
     return style;
 }
 
-#if 1 // !BUILDFLAG(IS_WIN) && !BUILDFLAG(IS_MAC)
+#if !BUILDFLAG(IS_WIN) && !BUILDFLAG(IS_MAC)
 std::optional<CaptionStyle> CaptionStyle::FromSystemSettings()
 {
     return std::nullopt;

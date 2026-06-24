@@ -508,8 +508,8 @@ Status EcAlgorithm::ImportKeyJwk(base::span<const uint8_t> key_data, const blink
 
 Status EcAlgorithm::ExportKeyRaw(const blink::WebCryptoKey& key, std::vector<uint8_t>* buffer) const
 {
-    OutputDebugStringA("EcAlgorithm::ExportKeyRaw not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
     return Status::ErrorUnexpectedKeyType();
 
     //   crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);

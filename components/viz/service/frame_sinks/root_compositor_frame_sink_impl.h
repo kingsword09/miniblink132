@@ -65,14 +65,12 @@ public:
 
     // mojom::DisplayPrivate:
     void SetDisplayVisible(bool visible) override;
-#if BUILDFLAG(IS_WIN)
     void DisableSwapUntilResize(DisableSwapUntilResizeCallback callback) override;
-#endif
     void Resize(const gfx::Size& size) override;
     void SetDisplayColorMatrix(const gfx::Transform& color_matrix) override;
     void SetDisplayColorSpaces(const gfx::DisplayColorSpaces& display_color_spaces) override;
 #if BUILDFLAG(IS_MAC)
-    void SetVSyncDisplayID(int64_t display_id) override;
+    void SetVSyncDisplayID(int64_t display_id);
 #endif
     void SetOutputIsSecure(bool secure) override;
     void SetDisplayVSyncParameters(base::TimeTicks timebase, base::TimeDelta interval) override;
@@ -197,8 +195,7 @@ private:
 #if BUILDFLAG(IS_APPLE)
     gfx::CALayerParams last_ca_layer_params_;
 
-    // Used to force a call to OnDisplayReceivedCALayerParams() even if the params
-    // did not change.
+    // Used to force a CALayer params update even if the params did not change.
     base::TimeTicks next_forced_ca_layer_params_update_time_;
 #endif
 

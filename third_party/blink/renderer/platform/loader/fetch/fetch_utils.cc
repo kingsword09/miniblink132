@@ -119,7 +119,7 @@ net::NetworkTrafficAnnotationTag FetchUtils::GetTrafficAnnotationTag(const netwo
         cookies_store: "user"
         setting: "These requests cannot be disabled in settings."
         policy_exception_justification:
-          "Not implemented."
+          "Unsupported."
       })");
     }
     switch (request.destination) {
@@ -167,7 +167,7 @@ net::NetworkTrafficAnnotationTag FetchUtils::GetTrafficAnnotationTag(const netwo
         cookies_store: "user"
         setting: "These requests cannot be disabled in settings."
         policy_exception_justification:
-          "Not implemented. Without these requests, Chrome will be unable "
+          "Unsupported. Without these requests, Chrome will be unable "
           "to load any webpage."
       })");
 

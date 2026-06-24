@@ -43,6 +43,7 @@ public:
     static const uint32_t kFlagIsResponse = 1 << 1;
     static const uint32_t kFlagIsSync = 1 << 2;
     static const uint32_t kFlagNoInterrupt = 1 << 3;
+    static const uint32_t kFlagIsUrgent = 1 << 4;
 
     // Constructs an uninitialized Message object.
     Message();
@@ -69,6 +70,11 @@ public:
 
     // Same as above, but the with default MojoCreateMessageFlags.
     Message(uint32_t name, uint32_t flags, size_t payload_size, size_t payload_interface_id_count, std::vector<ScopedHandle>* handles);
+
+    Message(uint32_t name, uint32_t flags, size_t payload_size)
+        : Message(name, flags, payload_size, 0, nullptr)
+    {
+    }
 
     // Constructs a new Message object from an existing message handle. Used
     // exclusively for serializing an existing unserialized message.

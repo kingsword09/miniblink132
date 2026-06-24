@@ -258,7 +258,8 @@ std::unique_ptr<uint8_t[]> MachPortRendezvousServerBase::CreateReplyMessage(
     // The current iterator location may not have appropriate alignment to
     // directly store a uint64_t. Write the size as bytes instead.
     iterator.MutableSpan<uint8_t, 8>()->copy_from(base::U64ToNativeEndian(additional_data.size()));
-    iterator.MutableSpan<uint8_t>(additional_data.size()).copy_from(additional_data);
+    iterator.MutableSpan<uint8_t>(additional_data.size())
+        .copy_from(base::span(additional_data.data(), additional_data.size()));
 
     return buffer;
 }

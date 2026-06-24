@@ -7,6 +7,7 @@
 #include <array>
 #include <cinttypes>
 #include <cstdint>
+#include <cstdlib>
 #include <map>
 #include <optional>
 #include <string>
@@ -131,12 +132,20 @@ void allocator_shim::EnablePartitionAllocMemoryReclaimer(void)
     *(int*)1 = 1;
 }
 
+void allocator_shim::TryFreeDefaultFallbackToFindZoneAndFree(void* ptr)
+{
+    free(ptr);
+}
+
 void partition_alloc::internal::logging::RawLog(int, char const*)
 {
     *(int*)1 = 1;
 }
 
-partition_alloc::internal::logging::LogMessage::LogMessage(const char* file, int line, LogSeverity severity)
+partition_alloc::internal::logging::LogMessage::LogMessage(
+    const char* file,
+    int line,
+    partition_alloc::internal::logging::LogSeverity severity)
     : severity_(severity)
     , file_(file)
     , line_(line)
@@ -149,7 +158,12 @@ partition_alloc::internal::logging::LogMessage::~LogMessage()
     *(int*)1 = 1;
 }
 
-partition_alloc::internal::logging::Win32ErrorLogMessage::Win32ErrorLogMessage(const char* file, int line, LogSeverity severity, SystemErrorCode err)
+#if PA_BUILDFLAG(IS_WIN)
+partition_alloc::internal::logging::Win32ErrorLogMessage::Win32ErrorLogMessage(
+    const char* file,
+    int line,
+    partition_alloc::internal::logging::LogSeverity severity,
+    partition_alloc::internal::logging::SystemErrorCode err)
     : partition_alloc::internal::logging::LogMessage(file, line, severity)
     , err_(err)
 {
@@ -160,6 +174,23 @@ partition_alloc::internal::logging::Win32ErrorLogMessage::~Win32ErrorLogMessage(
 {
 
 }
+#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+partition_alloc::internal::logging::ErrnoLogMessage::ErrnoLogMessage(
+    const char* file,
+    int line,
+    partition_alloc::internal::logging::LogSeverity severity,
+    partition_alloc::internal::logging::SystemErrorCode err)
+    : partition_alloc::internal::logging::LogMessage(file, line, severity)
+    , err_(err)
+{
+    *(int*)1 = 1;
+}
+
+partition_alloc::internal::logging::ErrnoLogMessage::~ErrnoLogMessage()
+{
+
+}
+#endif
 
 void allocator_shim::ConfigurePartitions(EnableBrp enable_brp, EnableMemoryTagging enable_memory_tagging,
     partition_alloc::TagViolationReportingMode memory_tagging_reporting_mode, BucketDistribution distribution,

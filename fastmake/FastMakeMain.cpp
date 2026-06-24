@@ -52,6 +52,8 @@ static std::vector<char> stdStringToBuffer(const std::string& str)
     return buffer;
 }
 
+static std::string pathNormalizeAndToLow(const std::string& path);
+
 static bool reNameFile(const WCHAR* _pFrom, const WCHAR* _pTo)
 {
     //     WCHAR pTo[MAX_PATH] = { 0 };
@@ -81,8 +83,8 @@ DWORD listAllFileInDrectory(const WCHAR* szPath)
     WCHAR szFullPath[MAX_PATH];
 
     // 构造代表子目录和文件夹路径的字符串，使用通配符“*”
-    wcscpy(szFilePath, szPath);
-    wcscat(szFilePath, L"\\*");
+    mbWideCopy(szFilePath, szPath);
+    mbWideCat(szFilePath, u"\\*");
     // 查找第一个文件/目录，获得查找句柄
     hListFile = FindFirstFile(szFilePath, &findFileData);
 
@@ -97,7 +99,7 @@ DWORD listAllFileInDrectory(const WCHAR* szPath)
             continue;
         }
         //构造成全路径
-        wsprintf(szFullPath, L"%s\\%s", szPath, findFileData.cFileName);
+        wsprintf(szFullPath, u"%s\\%s", szPath, findFileData.cFileName);
 
         //打印
         //printf("\n%d\t%s\t", dwTotalFileNum, szFullPath);
@@ -107,8 +109,8 @@ DWORD listAllFileInDrectory(const WCHAR* szPath)
             listAllFileInDrectory(szFullPath);
         } else {
             if (isEndWith(content::utf16ToUtf8(szFullPath), ".o")) {
-                std::wstring newName = szFullPath;
-                newName += L"bj";
+                std::u16string newName = szFullPath;
+                newName += u"bj";
                 reNameFile(szFullPath, newName.c_str());
             }
         }
@@ -164,14 +166,19 @@ static std::string getFileName(const std::string& str)
     return ret;
 }
 
-// xxx/aaa.cc -> aaa.o
+// xxx/aaa.cc -> aaa_<path hash>.o
 static std::string fileNameToObjName(const std::string& str, const std::string& postName)
 {
-    std::string ret = getFileName(str);
+    std::string normalizedPath = pathNormalizeAndToLow(str);
+    std::string ret = getFileName(normalizedPath);
     size_t pos = ret.rfind(".");
     if (std::string::npos == pos)
         DebugBreak();
     ret = ret.substr(0, pos);
+
+    char hashBuf[32] = { 0 };
+    sprintf_s(hashBuf, sizeof(hashBuf), "_%08x", strHash(normalizedPath));
+    ret += hashBuf;
     return ret + postName;
 }
 
@@ -193,8 +200,13 @@ static std::string pathNormalize(const std::string& path)
     std::string ret;
     for (size_t i = 0; i < path.size(); ++i) {
         char c = path[i];
+#if defined(OS_MAC)
+        if (c == '\\')
+            ret += '/';
+#else
         if (c == '/')
             ret += '\\';
+#endif
         else
             ret += c;
     }
@@ -205,12 +217,19 @@ static std::string pathNormalizeAndToLow(const std::string& path)
     std::string ret;
     for (size_t i = 0; i < path.size(); ++i) {
         char c = path[i];
+#if defined(OS_MAC)
+        if (c == '\\')
+            ret += '/';
+        else
+            ret += c;
+#else
         if (c == '/')
             ret += '\\';
         else if ('A' <= c && c <= 'Z')
             ret += c + 'a' - 'A';
         else
             ret += c;
+#endif
     }
     return ret;
 }
@@ -310,20 +329,20 @@ static void handleJsonComments(std::vector<char>* buffer)
     } while (*pos);
 }
 
-void getAllFiles(const std::wstring& strPath, std::vector<std::wstring>* result)
+void getAllFiles(const std::u16string& strPath, std::vector<std::u16string>* result)
 {
     WIN32_FIND_DATA findData;
-    std::wstring strTemp = strPath + L"\\*.*";
+    std::u16string strTemp = strPath + u"\\*.*";
 
     HANDLE hFile = FindFirstFile(strTemp.c_str(), &findData);
     while (hFile != INVALID_HANDLE_VALUE) {
         if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) { // 如果是目录
-            if (findData.cFileName[0] != L'.') { // 排除.和..文件夹
-                strTemp = strPath + L"\\" + findData.cFileName; // 获得完整路径
+            if (findData.cFileName[0] != u'.') { // 排除.和..文件夹
+                strTemp = strPath + u"\\" + findData.cFileName; // 获得完整路径
                 getAllFiles(strTemp, result); // 递归查找当前目录的文件
             }
         } else {
-            strTemp = strPath + L"\\" + findData.cFileName;
+            strTemp = strPath + u"\\" + findData.cFileName;
             //handleClangFormat(strTemp);
             //OutputDebugStringA("");
             result->push_back(strTemp);
@@ -414,10 +433,10 @@ static const char* memSrch(const char* src, size_t scrSize, const char* sub, siz
     return NULL;
 }
 
-static void binFindStr(const std::vector<std::wstring>& files, const std::string& str)
+static void binFindStr(const std::vector<std::u16string>& files, const std::string& str)
 {
     for (size_t i = 0; i < files.size(); ++i) {
-        std::wstring path = files[i];
+        std::u16string path = files[i];
         std::vector<char> buffer;
         if (!common::readFile(path.c_str(), &buffer))
             DebugBreak();
@@ -599,13 +618,51 @@ private:
         return true;
     }
 
-public:
-    bool parseJson(const std::wstring& path)
+#if defined(OS_MAC)
+    void filterMissingSourcePaths(std::vector<std::string>* paths, const char* fieldName)
     {
+        std::vector<std::string> filtered;
+        filtered.reserve(paths->size());
+
+        size_t missingCount = 0;
+        for (size_t i = 0; i < paths->size(); ++i) {
+            const std::string& path = (*paths)[i];
+            FILETIME fileTime;
+            if (getFileTime(path, &fileTime)) {
+                filtered.push_back(path);
+                continue;
+            }
+
+            if (missingCount < 32) {
+                OutputDebugStringA("skip missing ");
+                OutputDebugStringA(fieldName);
+                OutputDebugStringA(": ");
+                OutputDebugStringA(path.c_str());
+                OutputDebugStringA("\n");
+            }
+            ++missingCount;
+        }
+
+        if (missingCount > 0) {
+            char output[128] = { 0 };
+            sprintf_s(output, sizeof(output), "skip missing %s total:%zu\n", fieldName, missingCount);
+            OutputDebugStringA(output);
+        }
+
+        paths->swap(filtered);
+    }
+#endif
+
+public:
+    bool parseJson(const std::u16string& path)
+    {
+        OutputDebugStringA("CompileInfo::parseJson begin\n");
         std::vector<char> buffer;
         common::readFile(path.c_str(), &buffer);
+        OutputDebugStringA("CompileInfo::parseJson read file\n");
         buffer.push_back('\0');
         handleJsonComments(&buffer);
+        OutputDebugStringA("CompileInfo::parseJson comments done\n");
 
         cJSON* jsonRoot = nullptr;
         jsonRoot = cJSON_Parse(buffer.data());
@@ -613,6 +670,7 @@ public:
             OutputDebugStringW(L"顶层json解析出错\n");
             return false;
         }
+        OutputDebugStringA("CompileInfo::parseJson cJSON parsed\n");
 
         int ruleSize = cJSON_GetArraySize(jsonRoot);
         for (int i = 0; i < ruleSize; ++i) {
@@ -698,6 +756,13 @@ public:
                 return false;
         }
 
+#if defined(OS_MAC)
+        filterMissingSourcePaths(&m_srcPaths, "src");
+        filterMissingSourcePaths(&m_prebuildSrcPaths, "prebuildSrc");
+#endif
+
+        cJSON_Delete(jsonRoot);
+        OutputDebugStringA("CompileInfo::parseJson done\n");
         return true;
     }
 };
@@ -1021,7 +1086,6 @@ public:
 
         if (std::string::npos != outStr.find("error: ") || std::string::npos != outStr.find("FATAL:")) {
             OutputDebugStringW(L"检查到错误");
-            printError("find error!!!\n");
             self->m_state = E_UNEXPECTED;
         }
 
@@ -1065,14 +1129,14 @@ static void parseDFile(const std::string& srcPath, const std::string& dPath, std
             if (line[0] == ' ' && line[1] == ' ')
                 posBegin = 2;
             else
-                DebugBreak();
+                continue;
 
             if (line[posEnd - 1] == '\r' && line[posEnd - 2] == '\\' && line[posEnd - 3] == ' ')
                 posEnd -= 3;
             else if (line[posEnd - 1] == '\r')
                 posEnd -= 1;
             else
-                DebugBreak();
+                continue;
             str = line.substr(posBegin, posEnd - posBegin);
 #if 0 // TODO：暂时不存这个东西了。因为头文件太多了，得想办法优化算法
             fileDeps->deps.push_back(pathNormalizeAndToLow(str));
@@ -1106,14 +1170,18 @@ struct BuildCppsThreadInfo {
 
         // 这里测试F磁盘Test目录下，命令格式为 cmd.exe /C + 命令
         // TCHAR* szCmd = L"cmd.exe /C dir F:\\Test&& echo S_OK || echo E_FAIL";
-        std::wstring cmdW = (const WCHAR*)(content::utf8ToUtf16(self->cmd).c_str());
+        std::string cmd = self->cmd;
+#if defined(OS_MAC)
+        cmd += " 2>&1";
+#endif
+        std::u16string cmdW = (const WCHAR*)(content::utf8ToUtf16(cmd).c_str());
         if (cmdW.size() > MAX_CMD) {
             OutputDebugStringW(L"cmd 命令行太长\n");
             self->cmdResult = E_UNEXPECTED;
             self->isEnd = true;
             return false;
         }
-        wcscpy(cmdParam->szCommand, cmdW.c_str());
+        mbWideCopy(cmdParam->szCommand, (const WCHAR*)cmdW.c_str());
 
         CommandEventHandle commandEventHandle;
         commandEventHandle.m_src = self->src;
@@ -1129,11 +1197,8 @@ struct BuildCppsThreadInfo {
         }
 
         self->cmdResult = cmdHandler->HandleCommand(cmdParam.get());
-        if (commandEventHandle.m_state < 0) {
+        if (self->cmdResult == S_OK && commandEventHandle.m_state != S_OK)
             self->cmdResult = E_UNEXPECTED;
-        } else {
-            self->cmdResult = S_OK;
-        }
 
         self->isEnd = true;
         return 0;
@@ -1206,9 +1271,8 @@ bool buildCppsLinux(const CompileInfo& compileInfo, const std::vector<std::strin
                     break;
                 } else {
                     std::string dFile = pathAppend(compileInfo.m_objdir, fileNameToObjName(infos[i]->src, ".d"));
-                    if (infos[i]->cmdResult < 0) {
+                    if (infos[i]->cmdResult != S_OK) {
                         errorFile.push_back(infos[i]->src);
-                        DebugBreak();
                         ::DeleteFileA(dFile.c_str());
                     } else
                         parseDFile(infos[i]->src, dFile, &(linkInfo->m_cppToDeps));
@@ -1226,7 +1290,7 @@ bool buildCppsLinux(const CompileInfo& compileInfo, const std::vector<std::strin
 #endif
     linkInfo->saveToJson();
 
-    return true;
+    return errorFile.empty();
 }
 
 // yasm -I%(RootDir)%(Directory)\ -f win32 -DXX=1 -o $(IntDir)%(Filename).obj %(FullPath)
@@ -1311,7 +1375,7 @@ bool buildCppsWinCl(const CompileInfo& compileInfo, const std::vector<std::strin
                     break;
                 } else {
                     std::string dFile = pathAppend(compileInfo.m_objdir, fileNameToObjName(infos[i]->src, ".d"));
-                    if (infos[i]->cmdResult < 0) {
+                    if (infos[i]->cmdResult != S_OK) {
                         errorFile.push_back(infos[i]->src);
                         ::DeleteFileA(dFile.c_str());
                     } else
@@ -1328,7 +1392,7 @@ bool buildCppsWinCl(const CompileInfo& compileInfo, const std::vector<std::strin
     //     linkInfo->depsToCpp();
     //     linkInfo->saveToJson();
 
-    return true;
+    return errorFile.empty();
 }
 
 bool buildCpps(const CompileInfo& compileInfo, const std::vector<std::string>& needCompileCpps, LinkInfo* linkInfo)
@@ -1346,7 +1410,7 @@ bool rebuildAll(const CompileInfo& compileInfo, LinkInfo* linkInfo)
 bool parseVcxprojfilters()
 {
     std::vector<char> buffer;
-    common::readFile(L"p:\\mycode\\miniblink57\\fastmake\\build.txt", &buffer);
+    common::readFile(u"p:\\mycode\\miniblink57\\fastmake\\build.txt", &buffer);
     buffer.push_back('\0');
 
     std::string str(buffer.data());
@@ -1421,19 +1485,23 @@ enum ComputeDiffResult {
     kComputeDiffResultNone,
 };
 
-static bool isDifferentStringVector(const std::vector<std::string>& a, std::vector<std::string> b, bool isPath)
+static bool isDifferentStringVector(const std::vector<std::string>& a, const std::vector<std::string>& b, bool isPath)
 {
+    if (a.size() != b.size())
+        return true;
+
     for (size_t i = 0; i < a.size(); ++i) {
-        std::string aCmd = a[i];
+        const std::string& aCmd = a[i];
         bool find = false;
         for (size_t j = 0; j < b.size(); ++j) {
-            std::string bCmd = b[j];
-            if (!isPathEq(aCmd, bCmd)) {
+            const std::string& bCmd = b[j];
+            bool same = isPath ? isPathEq(aCmd, bCmd) : aCmd == bCmd;
+            if (same) {
                 find = true;
                 break;
             }
         }
-        if (find)
+        if (!find)
             return true;
     }
     return false;
@@ -1536,7 +1604,7 @@ static void diffCompileCpps(std::vector<std::string>* cpps, const std::map<uint3
     stringVecToHashMap(*cpps, &cppsMap);
     it = removes.begin();
     for (; it != removes.end(); ++it) {
-        if (cppsMap.find(it->first) == cppsMap.end()) {
+        if (cppsMap.find(it->first) != cppsMap.end()) {
             cppsMap.erase(it->first);
         }
     }
@@ -1561,10 +1629,13 @@ bool CompileInfo::doLink() const
     std::string targetFullPath = pathAppend(m_outdir, m_target);
     ::DeleteFileA(targetFullPath.c_str());
 
+    bool isMacStaticLib = m_isLib && !g_isWin && isEndWith(m_target, ".a");
     if (m_isLib) {
-        cmd += " -s -q ";
-        cmd += targetFullPath;
-        cmd += ' ';
+        if (!isMacStaticLib) {
+            cmd += " -s -q ";
+            cmd += targetFullPath;
+            cmd += ' ';
+        }
 
         for (size_t i = 0; i < m_srcPaths.size(); ++i) {
             cmd += pathAppend(m_objdir, fileNameToObjName(m_srcPaths[i], ".obj"));
@@ -1590,12 +1661,16 @@ bool CompileInfo::doLink() const
             cmd += ' ';
         }
 
+#if !defined(OS_MAC)
         cmd += "--start-group ";
+#endif
         for (size_t i = 0; i < m_endLibs.size(); ++i) {
             cmd += m_endLibs[i];
             cmd += ' ';
         }
+#if !defined(OS_MAC)
         cmd += "--end-group ";
+#endif
     } else if (g_isWin) {
         for (size_t i = 0; i < m_linkerCmds.size(); ++i) {
             cmd += m_linkerCmds[i];
@@ -1638,13 +1713,14 @@ bool CompileInfo::doLink() const
         return false;
     }
 
-    std::string linkCmd = m_linker + " @" + resposeFile;
-    //     if (m_isLib) {
-    //         linkCmd = m_linker + " -s @" + resposeFile; //-s参数是arm模式下用的，相当于调用ranlib.exe
-    //     }
+    std::string linkCmd;
+    if (isMacStaticLib)
+        linkCmd = m_linker + " rcs " + targetFullPath + " @" + resposeFile;
+    else
+        linkCmd = m_linker + " @" + resposeFile;
 
     std::u16string cmdW = content::utf8ToUtf16(linkCmd);
-    wcscpy(cmdParam->szCommand, (const WCHAR*)cmdW.c_str());
+    mbWideCopy(cmdParam->szCommand, (const WCHAR*)cmdW.c_str());
     OutputDebugStringA("doLink:");
     OutputDebugStringA(m_target.c_str());
     OutputDebugStringA("\n");
@@ -1662,8 +1738,10 @@ bool CompileInfo::doLink() const
     }
 
     cmdResult = cmdHandler->HandleCommand(cmdParam.get());
-    if (cmdResult != S_OK)
-        DebugBreak();
+    if (cmdResult != S_OK) {
+        OutputDebugStringW(L"link command failed\n");
+        return false;
+    }
     return true;
 }
 
@@ -1678,7 +1756,7 @@ private:
     SRWLOCK m_fileTimesSrw;
     std::unordered_map<uint32_t, std::pair<std::string, FILETIME>> m_fileTimes;
 
-    int m_currentThreadCount = 0;
+    LONG m_currentThreadCount = 0;
 
     std::unordered_map<uint32_t, HeadFileToCppItem>* m_hToCpp; // 头文件对应的cpp有哪些
     SRWLOCK m_hToCppSrw;
@@ -1852,14 +1930,14 @@ private:
             if (line[0] == ' ' && line[1] == ' ')
                 posBegin = 2;
             else
-                DebugBreak();
+                continue;
 
             if (line[posEnd - 1] == '\r' && line[posEnd - 2] == '\\' && line[posEnd - 3] == ' ')
                 posEnd -= 3;
             else if (line[posEnd - 1] == '\r')
                 posEnd -= 1;
             else
-                DebugBreak();
+                continue;
             str = line.substr(posBegin, posEnd - posBegin);
             str = pathNormalizeAndToLow(str);
 
@@ -1940,7 +2018,7 @@ private:
                 ReleaseSRWLockExclusive(&info->self->m_collectResultSrw);
             }
 
-            _InterlockedDecrement((long volatile*)&(info->self->m_currentThreadCount));
+            _InterlockedDecrement(&info->self->m_currentThreadCount);
         }
 
         delete info;
@@ -1977,12 +2055,13 @@ private:
             }
         } while (false);
 
-        if (m_isNeedCreateCppDeps || b) { // 下面是查头文件是否被修改的，速度有点慢
+        std::string dFile = pathNormalizeAndToLow(pathAppend(m_compileInfo.m_objdir, fileNameToObjName(path, ".d")));
+        FILETIME dFileTime;
+        if ((m_isNeedCreateCppDeps || b) && getFileTime(dFile, &dFileTime)) { // 下面是查头文件是否被修改的，速度有点慢
             SYSTEMTIME time1;
             ::GetLocalTime(&time1);
             uint64_t timelong1 = time1.wHour * 60 * 60 * 1000 + time1.wMinute * 60 * 1000 + time1.wSecond * 1000 + time1.wMilliseconds;
 
-            std::string dFile = pathNormalizeAndToLow(pathAppend(m_compileInfo.m_objdir, fileNameToObjName(path, ".d")));
             b |= (parseDFileAndCheckNeedBuild(path, dFile, objTime));
 
             SYSTEMTIME time2;
@@ -2070,7 +2149,7 @@ public:
 // 2、对比*_build.json和link.json文件，如果build比link.json新，重新生成link.json，并且对比下要多编译哪几个文件，少编译哪个文件
 // 3、如果link.json文件没有更新，则查找link.json里面哪些cpp时间比obj新，说明需要重新编译
 // 4、如果*_build.json里的命令行变化了，要rebuild
-void fmBuild(const std::wstring& buildJsonPath)
+void fmBuild(const std::u16string& buildJsonPath)
 {
     CompileInfo* compileInfo = new CompileInfo();
     if (!compileInfo->parseJson(buildJsonPath))
@@ -2155,13 +2234,15 @@ bool buildTimoutCpps(const CompileInfo& compileInfo, LinkInfo* linkInfo)
     return buildCpps(compileInfo, cppsVec, linkInfo);
 }
 
-void fmFastBuild(const std::wstring& buildJsonPath, RebuildOpt opt)
+void fmFastBuild(const std::u16string& buildJsonPath, RebuildOpt opt)
 {
+    OutputDebugStringA("fmFastBuild begin\n");
     CompileInfo* compileInfo = new CompileInfo();
     if (!compileInfo->parseJson(buildJsonPath)) {
         delete compileInfo;
         return;
     }
+    OutputDebugStringA("fmFastBuild parsed\n");
 
     LinkInfo linkInfo;
     if (kRebuildOptAll == opt) {
@@ -2171,11 +2252,25 @@ void fmFastBuild(const std::wstring& buildJsonPath, RebuildOpt opt)
     } else if (kRebuildOptOnlyLink == opt) {
         ;
     } else if (kRebuildOptCompileTimeOutFile == opt) { // 编译过期文件
+        OutputDebugStringA("fmFastBuild buildTimoutCpps begin\n");
+#if defined(OS_MAC)
+        std::string linkJson = pathAppend(compileInfo->m_objdir, "link.json");
+        std::u16string linkJsonW = content::utf8ToUtf16(pathNormalize(linkJson));
+        if (!linkInfo.initByJson(linkJsonW))
+            rebuildAll(*compileInfo, &linkInfo);
+        else
+            buildTimoutCpps(*compileInfo, &linkInfo);
+#else
         buildTimoutCpps(*compileInfo, &linkInfo);
+#endif
+        OutputDebugStringA("fmFastBuild buildTimoutCpps done\n");
     }
 
-    compileInfo->doLink();
+    OutputDebugStringA("fmFastBuild doLink begin\n");
+    if (!compileInfo->doLink())
+        OutputDebugStringA("fmFastBuild doLink failed\n");
     delete compileInfo;
+    OutputDebugStringA("fmFastBuild done\n");
 }
 
 void printError(const char* str)
@@ -2226,6 +2321,27 @@ void qjsBuild()
     MessageBoxA(0, output, 0, 0);
 }
 
+#if defined(OS_MAC)
+int main(int argc, char** argv)
+{
+    if (argc < 2) {
+        OutputDebugStringA("usage: fastmake <buildcfg.js> [compileCfg] [rebuildOpt] [srcPath]\n");
+        return 1;
+    }
+
+    std::string buildCfg = argv[1];
+    std::string compileCfg = argc > 2 ? argv[2] : "mac_release_arm64";
+    RebuildOpt opt = argc > 3 ? (RebuildOpt)atoi(argv[3]) : kRebuildOptCompileTimeOutFile;
+    std::string srcPath = argc > 4 ? argv[4] : ".";
+
+    size_t slash = buildCfg.find_last_of("/\\");
+    std::string jsonPath = slash == std::string::npos ? "" : buildCfg.substr(0, slash + 1);
+    std::string jsonName = slash == std::string::npos ? buildCfg : buildCfg.substr(slash + 1);
+    std::string cmd = "{\"compileCfg\":\"" + compileCfg + "\",\"isBuildElectronMode\":false,\"v8dir\":\"v8_108\",\"symbolLevel\":1,\"srcPath\":\"" + srcPath + "\"}";
+    qjsRebuild(jsonPath, jsonName, cmd, opt);
+    return 0;
+}
+#else
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
     //     std::atomic<int32_t> capture_mode_;
@@ -2246,7 +2362,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     //     listAllFileInDrectory(L"G:\\mycode\\miniblink57\\out\\tmp");
     //     return 0;
     //---
-    //     std::vector<std::wstring> files;
+    //     std::vector<std::u16string> files;
     //     getAllFiles(L"G:\\chromium\\M84\\build\\linux\\debian_sid_amd64-sysroot\\usr\\lib", &files);
     //     binFindStr(files, "_byteswap_ulong");
     // //
@@ -2272,6 +2388,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     return 0;
 }
+
+#endif
 
 extern "C" int __cdecl _CrtDbgReport(int _ReportType, char const* _FileName, int _Linenumber, char const* _ModuleName, char const* _Format, ...)
 {

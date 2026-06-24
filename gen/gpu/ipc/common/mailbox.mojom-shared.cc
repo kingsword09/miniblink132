@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "base/strings/stringprintf.h"
+#include "base/trace_event/base_tracing.h"
 #include "mojo/public/cpp/bindings/lib/validate_params.h"
 #include "mojo/public/cpp/bindings/lib/validation_errors.h"
 #include "mojo/public/cpp/bindings/lib/validation_util.h"
@@ -45,11 +46,6 @@ bool Mailbox_Data::Validate(const void* data, mojo::internal::ValidationContext*
     }
 
     return true;
-}
-
-Mailbox_Data::Mailbox_Data()
-    : header_({ sizeof(*this), 0 })
-{
 }
 
 } // namespace internal

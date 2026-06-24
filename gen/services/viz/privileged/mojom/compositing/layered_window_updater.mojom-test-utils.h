@@ -13,7 +13,7 @@ namespace viz::mojom {
 
 class LayeredWindowUpdaterInterceptorForTesting : public LayeredWindowUpdater {
     virtual LayeredWindowUpdater* GetForwardingInterface() = 0;
-    void OnAllocatedSharedMemory(const ::gfx::Size& pixel_size, ::base::UnsafeSharedMemoryRegion region) override;
+    void OnAllocatedSharedMemory(const ::gfx::Size& pixel_size, ::base::UnsafeSharedMemoryRegion region, void* lock) override;
     void Draw(DrawCallback callback) override;
 };
 class LayeredWindowUpdaterAsyncWaiter {

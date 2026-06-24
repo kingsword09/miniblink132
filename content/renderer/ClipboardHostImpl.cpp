@@ -12,7 +12,7 @@
 
 bool blink::mojom::blink::ClipboardHost::GetSequenceNumber(::blink::mojom::blink::ClipboardBuffer buffer, ::blink::ClipboardSequenceNumberToken* out_result)
 {
-    DebugBreak();
+    (void)0;
     return false;
 }
 
@@ -438,7 +438,7 @@ bool ClipboardHostImpl::ReadHtml(
                 }
             }
 
-            WCharToMByte((const wchar_t*)cfHtml, sizeOfHtml, &utf8CfHtml, CP_UTF8);
+            WCharToMByte((const WCHAR*)cfHtml, sizeOfHtml, &utf8CfHtml, CP_UTF8);
         } else {
             for (int i = 0; i < sizeOfHtml; ++i) {
                 if ('\0' == *((const char*)cfHtml + i)) {

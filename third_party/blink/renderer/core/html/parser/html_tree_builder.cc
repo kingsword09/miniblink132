@@ -1656,7 +1656,7 @@ bool HTMLTreeBuilder::ProcessBodyEndTagForInBody(AtomicHTMLToken* token)
         return false;
     }
     // Emit a more specific parse error based on stack contents.
-    DVLOG(1) << "Not implemented.";
+    (void)0;
     SetInsertionMode(kAfterBodyMode);
     return true;
 }
@@ -1714,7 +1714,7 @@ void HTMLTreeBuilder::CallTheAdoptionAgency(AtomicHTMLToken* token)
         if ((tree_.OpenElements()->Contains(formatting_element)) && !tree_.OpenElements()->InScope(formatting_element)) {
             ParseError(token);
             // Check the stack of open elements for a more specific parse error.
-            DVLOG(1) << "Not implemented.";
+            (void)0;
             return;
         }
         // 4.b
@@ -2721,7 +2721,7 @@ void HTMLTreeBuilder::ProcessEndOfFile(AtomicHTMLToken* token)
     case kInCaptionMode:
     case kInRowMode:
         // Emit parse error based on what elements are still open.
-        DVLOG(1) << "Not implemented.";
+        (void)0;
         if (!template_insertion_modes_.empty() && ProcessEndOfFileForInTemplateContents(token))
             return;
         break;
@@ -2761,7 +2761,7 @@ void HTMLTreeBuilder::ProcessEndOfFile(AtomicHTMLToken* token)
         ParseError(token);
         if (tree_.CurrentStackItem()->MatchesHTMLTag(HTMLTag::kScript)) {
             // Mark the script element as "already started".
-            DVLOG(1) << "Not implemented.";
+            (void)0;
         }
         Element* el = tree_.OpenElements()->Top();
         if (IsA<HTMLTextAreaElement>(el))
@@ -2782,7 +2782,7 @@ void HTMLTreeBuilder::ProcessEndOfFile(AtomicHTMLToken* token)
 
 void HTMLTreeBuilder::DefaultForInitial()
 {
-    DVLOG(1) << "Not implemented.";
+    (void)0;
     tree_.SetDefaultCompatibilityMode();
     // FIXME: parse error
     SetInsertionMode(kBeforeHTMLMode);

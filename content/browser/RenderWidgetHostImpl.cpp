@@ -13,7 +13,7 @@
 #include "third_party/blink/public/web/web_frame_widget.h"
 #include "ui/display/screen.h"
 #if !defined(OS_WIN)
-#include "ui/display/screen_fake.h"
+#include "ui/display/test/test_screen.h"
 #endif
 
 extern "C" MojoResult MojoMakeIsMessageChannelFlag(MojoHandle handle);
@@ -157,7 +157,7 @@ display::Screen* getScreenOrCreate()
 #if defined(OS_WIN)
         display::win::ScreenWin* screenNew = new display::win::ScreenWin();
 #else
-        display::ScreenFake* screenNew = new display::ScreenFake();
+        display::test::TestScreen* screenNew = new display::test::TestScreen();
 #endif // OS_WIN
         display::Screen::SetScreenInstance(screenNew, base::Location::Current());
         screen = display::Screen::GetScreen();
@@ -170,7 +170,7 @@ void RenderWidgetHostImpl::initVisualProperties()
     display::Screen* screen = getScreenOrCreate();
     std::vector<display::Display> displays = screen->GetAllDisplays();
     if (displays.size() == 0)
-        DebugBreak();
+        (void)0;
     for (size_t i = 0; i < displays.size(); ++i) {
         const display::Display& dis = displays[i];
         display::ScreenInfo screenInfo;

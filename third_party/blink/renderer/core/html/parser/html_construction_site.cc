@@ -905,7 +905,7 @@ void HTMLConstructionSite::InsertForeignElement(AtomicHTMLToken* token, const At
 {
     DCHECK_EQ(token->GetType(), HTMLToken::kStartTag);
     // parseError when xmlns or xmlns:xlink are wrong.
-    DVLOG(1) << "Not implemented.";
+    (void)0;
 
     Element* element = CreateElement(token, namespace_uri);
     if (is_scripting_content_allowed_ || !element->IsScriptElement()) {

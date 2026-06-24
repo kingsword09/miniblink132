@@ -29,7 +29,7 @@
 #include "base/timer/timer.h"
 #include "base/trace_event/trace_event.h"
 #include "build/build_config.h"
-#include "components/device_event_log/device_event_log.h"
+//#include "components/device_event_log/device_event_log.h"
 #include "ui/display/display.h"
 #include "ui/display/display_change_notifier.h"
 #include "ui/display/util/display_util.h"
@@ -460,9 +460,9 @@ class ScreenMac : public Screen {
 
     std::vector<Display> displays = DisplaysFromDisplaysMac(displays_mac_);
     if (displays != displays_) {
-      DISPLAY_LOG(EVENT) << "Displays updated, count: " << displays.size();
+      DLOG(INFO) << "Displays updated, count: " << displays.size();
       for (const auto& display : displays) {
-        DISPLAY_LOG(EVENT) << display.ToString();
+        DLOG(INFO) << display.ToString();
       }
     }
 
@@ -484,7 +484,7 @@ class ScreenMac : public Screen {
     // In theory, this should not be reached, but in practice, on Catalina, it
     // has been observed that -[NSScreen screens] changes before any
     // notifications are received. See crbug.com/1021340 and crbug.com/1352564
-    DISPLAY_LOG(DEBUG) << "-[NSScreen screens] changed before notification.";
+    DLOG(INFO) << "-[NSScreen screens] changed before notification.";
     return BuildDisplayForScreen(screen).display;
   }
 

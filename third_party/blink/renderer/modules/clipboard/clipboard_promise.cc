@@ -253,7 +253,7 @@ void ClipboardPromise::HandleWrite(const HeapVector<Member<ClipboardItem>>& clip
     DCHECK(GetExecutionContext());
 
     if (clipboard_items.size() > 1) {
-        script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, "Support for multiple ClipboardItems is not implemented.");
+        script_promise_resolver_->RejectWithDOMException(DOMExceptionCode::kNotAllowedError, "Multiple ClipboardItems are unsupported.");
         return;
     }
     if (!clipboard_items.size()) {

@@ -25,7 +25,7 @@
 bool ::blink::mojom::blink::StorageArea::GetAll(
     mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver>, WTF::Vector<::blink::mojom::blink::KeyValuePtr>*)
 {
-    DebugBreak();
+    (void)0;
     return false;
 }
 
@@ -485,7 +485,7 @@ public:
     void Get(const WTF::Vector<uint8_t>& key, ::blink::mojom::blink::StorageArea::GetCallback callback) override
     {
         CHECK(ThreadCall::isBlinkThread());
-        DebugBreak();
+        (void)0;
     }
 
     bool GetAll(
@@ -504,7 +504,7 @@ public:
     {
         CHECK(ThreadCall::isBlinkThread());
         addObserverImpl(std::move(newObserver));
-        DebugBreak();
+        (void)0;
     }
 
     void Checkpoint() override

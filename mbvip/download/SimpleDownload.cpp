@@ -329,7 +329,9 @@ unsigned int SimpleDownload::dialogThread(void* param)
     std::u16string defaultSaveName = getSaveName(self->m_contentDisposition, self->m_url);
     if (defaultSaveName.size() > 150)
         defaultSaveName = defaultSaveName.substr(0, 150);
-    wcscpy(fileResult->data(), (const WCHAR*)defaultSaveName.c_str());
+    for (size_t i = 0; i < defaultSaveName.size(); ++i)
+        fileResult->at(i) = static_cast<WCHAR>(defaultSaveName[i]);
+    fileResult->at(defaultSaveName.size()) = 0;
 
     HWND hwndOwner = nullptr;
     mbWebView mbWebview = self->m_mbView;
@@ -337,15 +339,23 @@ unsigned int SimpleDownload::dialogThread(void* param)
     if (webview)
         hwndOwner = webview->getHostWnd();
 
+#if defined(OS_WIN)
+    std::wstring initialDir = base::UTF8ToWide(self->dialogOpt.defaultPath);
+    const WCHAR allFilesFilter[] = L"All\0*.*\0\0";
+#else
+    std::u16string initialDir = base::UTF8ToUTF16(self->dialogOpt.defaultPath);
+    const WCHAR allFilesFilter[] = { 'A', 'l', 'l', 0, '*', '.', '*', 0, 0 };
+#endif
+
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = hwndOwner;
     ofn.lpstrFile = (LPWSTR)(fileResult->data());
     ofn.nMaxFile = MAX_PATH;
-    ofn.lpstrFilter = L"All\0*.*\0\0";
+    ofn.lpstrFilter = allFilesFilter;
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
-    ofn.lpstrInitialDir = base::UTF8ToWide(self->dialogOpt.defaultPath).c_str();
+    ofn.lpstrInitialDir = (LPCWSTR)initialDir.c_str();
     ofn.Flags = OFN_SHOWHELP | OFN_OVERWRITEPROMPT;
 
     if (!GetSaveFileNameW(&ofn)) {

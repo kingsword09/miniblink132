@@ -263,13 +263,11 @@ private:
 
 bool mojo::EnumTraits<mojo_base::mojom::TextDirection, base::i18n::TextDirection>::FromMojom(mojo_base::mojom::TextDirection, base::i18n::TextDirection*)
 {
-    *(int*)1 = 1;
     return false;
 }
 
 bool mojo::EnumTraits<network::mojom::RequestPriority, net::RequestPriority>::FromMojom(network::mojom::RequestPriority, net::RequestPriority*)
 {
-    *(int*)1 = 1;
     return false;
 }
 bool mojo::EnumTraits<ui::mojom::TextInputAction, ui::TextInputAction>::FromMojom(ui::mojom::TextInputAction mtype, ui::TextInputAction* type)
@@ -480,45 +478,37 @@ bool mojo::StructTraits<blink::mojom::PageStateDataView, mojo::StructPtr<blink::
 
 // bool mojo::UnionTraits<mojo_base::mojom::BigBufferDataView, mojo_base::BigBuffer>::invalid_buffer(mojo_base::BigBuffer&)
 // {
-//     *(int*)1 = 1;
-//     return false;
+// //     return false;
 // }
 // bool mojo::UnionTraits<mojo_base::mojom::BigBufferDataView, mojo_base::BigBufferView>::invalid_buffer(mojo_base::BigBufferView&)
 // {
-//     *(int*)1 = 1;
-//     return false;
+// //     return false;
 // }
 bool mojo::UnionTraits<network::mojom::DataElementDataView, network::DataElement>::Read(network::mojom::DataElementDataView, class network::DataElement*)
 {
-    *(int*)1 = 1;
     return false;
 }
 
 bool viz::mojom::blink::CompositorFrameSink::SubmitCompositorFrameSync(const ::viz::LocalSurfaceId& local_surface_id, ::viz::CompositorFrame frame,
     absl::optional<::viz::HitTestRegionList> hit_test_region_list, uint64_t submit_time, WTF::Vector<::viz::ReturnedResource>* out_resources)
 {
-    *(int*)1 = 1;
     return false;
 }
 
 // network::mojom::blink::AllowCSPFromHeaderValue::AllowCSPFromHeaderValue(void)
 // {
-//     *(int*)1 = 1;
-// }
+// // }
 // 
 // network::mojom::AllowCSPFromHeaderValue::AllowCSPFromHeaderValue(void)
 // {
-//     *(int*)1 = 1;
-// }
+// // }
 
 network::mojom::TimingAllowOrigin::TimingAllowOrigin(void)
 {
-    *(int*)1 = 1;
 }
 
 int64_t mojo::StructTraits<mojo_base::mojom::TimeDataView, base::Time>::internal_value(base::Time const&)
 {
-    *(int*)1 = 1;
     return 0;
 }
 
@@ -535,14 +525,12 @@ void mojo::internal::RecordInvalidStringDeserialization()
 
 bool mojo::StructTraits<skia::mojom::BitmapN32DataView, SkBitmap>::Read(skia::mojom::BitmapN32DataView, SkBitmap*)
 {
-    DebugBreak();
     return false;
 }
 
 bool mojo::StructTraits<blink::mojom::UserActivationSnapshotDataView, mojo::InlinedStructPtr<blink::mojom::blink::UserActivationSnapshot>>::Read(
     blink::mojom::UserActivationSnapshotDataView, mojo::InlinedStructPtr<blink::mojom::blink::UserActivationSnapshot>*)
 {
-    DebugBreak();
     return false;
 }
 
@@ -550,8 +538,7 @@ bool mojo::StructTraits<blink::mojom::UserActivationSnapshotDataView, mojo::Inli
 // bool mojo::internal::Serializer<mojo_base::mojom::BigBufferSharedMemoryRegionDataView, mojo_base::internal::BigBufferSharedMemoryRegion>::
 // Deserialize(mojo_base::mojom::internal::BigBufferSharedMemoryRegion_Data* data, mojo_base::internal::BigBufferSharedMemoryRegion*, mojo::Message* out)
 // {
-//     DebugBreak();
-//     return false;
+// //     return false;
 // }
 
 // bool mojo::UnionTraits<mojo_base::mojom::BigBufferDataView, mojo_base::BigBufferView>::Read(
@@ -586,28 +573,24 @@ bool mojo::StructTraits<blink::mojom::UserActivationSnapshotDataView, mojo::Inli
 bool mojo::StructTraits<blink::mojom::SerializedBlobDataView, scoped_refptr<blink::BlobDataHandle>>::Read(
     blink::mojom::SerializedBlobDataView, scoped_refptr<blink::BlobDataHandle>* handle)
 {
-    DebugBreak();
     return false;
 }
 
 // bool mojo::StructTraits<mojo_base::mojom::UnguessableTokenDataView, base::UnguessableToken>::Read(
 //     mojo_base::mojom::UnguessableTokenDataView view, base::UnguessableToken* token)
 // {
-//     DebugBreak();
-//     return false;
+// //     return false;
 // }
 
 // bool mojo::StructTraits<blink::mojom::MessagePortDescriptorDataView, blink::MessagePortDescriptor>::Read(
 //     blink::mojom::MessagePortDescriptorDataView, blink::MessagePortDescriptor*)
 // {
-//     DebugBreak();
-//     return false;
+// //     return false;
 // }
 // WTF::Vector<scoped_refptr<blink::BlobDataHandle>, 0, WTF::PartitionAllocator>
 // mojo::StructTraits<blink::mojom::CloneableMessageDataView, blink::BlinkCloneableMessage>::blobs(struct blink::BlinkCloneableMessage&)
 // {
-//     *(int*)1 = 1;
-//     return WTF::Vector<scoped_refptr<blink::BlobDataHandle>, 0, WTF::PartitionAllocator>();
+// //     return WTF::Vector<scoped_refptr<blink::BlobDataHandle>, 0, WTF::PartitionAllocator>();
 // }
 //
 //// bool mojo::StructTraits<blink::mojom::TransferableMessageDataView, blink::TransferableMessage>::Read(
@@ -618,26 +601,22 @@ bool mojo::StructTraits<blink::mojom::SerializedBlobDataView, scoped_refptr<blin
 //
 // base::UnguessableToken mojo::StructTraits<blink::mojom::MessagePortDescriptorDataView, blink::MessagePortDescriptor>::id(blink::MessagePortDescriptor&)
 // {
-//     *(int*)1 = 1;
-//     return base::UnguessableToken();
+// //     return base::UnguessableToken();
 // }
 //
 // mojo::ScopedHandleBase<mojo::MessagePipeHandle> mojo::StructTraits<blink::mojom::MessagePortDescriptorDataView, blink::MessagePortDescriptor>::pipe_handle(blink::MessagePortDescriptor&)
 // {
-//     *(int*)1 = 1;
-//     return mojo::ScopedHandleBase<mojo::MessagePipeHandle>();
+// //     return mojo::ScopedHandleBase<mojo::MessagePipeHandle>();
 // }
 //
 // uint64_t mojo::StructTraits<blink::mojom::MessagePortDescriptorDataView, blink::MessagePortDescriptor>::sequence_number(blink::MessagePortDescriptor&)
 // {
-//     *(int*)1 = 1;
-//     return 0;
+// //     return 0;
 // }
 //
 // mojo_base::BigBufferView mojo::StructTraits<blink::mojom::CloneableMessageDataView, blink::CloneableMessage>::encoded_message(blink::CloneableMessage&)
 // {
-//     *(int*)1 = 1;
-//     return mojo_base::BigBufferView();
+// //     return mojo_base::BigBufferView();
 // }
 
 void mojo::Connector::ResumeIncomingMethodCallProcessing(void)
@@ -647,21 +626,18 @@ void mojo::Connector::ResumeIncomingMethodCallProcessing(void)
 bool mojo::StructTraits<blink::mojom::SerializedBlobDataView, mojo::StructPtr<blink::mojom::SerializedBlob>>::Read(
     blink::mojom::SerializedBlobDataView view, mojo::StructPtr<blink::mojom::SerializedBlob>* out)
 {
-    DebugBreak();
     return false;
 }
 
 bool mojo::StructTraits<blink::mojom::SerializedArrayBufferContentsDataView, mojo::StructPtr<blink::mojom::SerializedArrayBufferContents>>::Read(
     blink::mojom::SerializedArrayBufferContentsDataView view, mojo::StructPtr<blink::mojom::SerializedArrayBufferContents>* out)
 {
-    DebugBreak();
     return false;
 }
 
 bool mojo::StructTraits<blink::mojom::UserActivationSnapshotDataView, mojo::InlinedStructPtr<blink::mojom::UserActivationSnapshot>>::Read(
     blink::mojom::UserActivationSnapshotDataView view, mojo::InlinedStructPtr<blink::mojom::UserActivationSnapshot>* out)
 {
-    DebugBreak();
     return false;
 }
 
@@ -670,26 +646,22 @@ void mojo::Connector::PauseIncomingMethodCallProcessing(void)
 }
 
 base::StringPiece mojo::StructTraits<url::mojom::UrlDataView, GURL>::url(GURL const&) {
-    *(int*)1 = 1;
     return base::StringPiece();
 }
 
 uint32_t
 mojo::StructTraits<skia::mojom::ImageInfoDataView, SkImageInfo>::height(SkImageInfo const&)
 {
-    *(int*)1 = 1;
     return 0;
 }
 
 uint32_t mojo::StructTraits<skia::mojom::ImageInfoDataView, SkImageInfo>::width(SkImageInfo const&)
 {
-    *(int*)1 = 1;
     return 0;
 }
 
 mojo_base::BigBufferView mojo::StructTraits<skia::mojom::BitmapN32DataView, SkBitmap>::pixel_data(SkBitmap const&)
 {
-    *(int*)1 = 1;
     return mojo_base::BigBufferView();
 }
 
@@ -702,18 +674,15 @@ mojo_base::BigBufferView mojo::StructTraits<skia::mojom::BitmapN32DataView, SkBi
 //
 // base::span<const uint8_t> mojo::UnionTraits<mojo_base::mojom::BigBufferDataView, mojo_base::BigBufferView>::bytes(mojo_base::BigBufferView const&)
 // {
-//     *(int*)1 = 1;
-//     return base::span<const uint8_t>();
+// //     return base::span<const uint8_t>();
 // }
 
 absl::optional<std::vector<float>> mojo::StructTraits<skia::mojom::ImageInfoDataView, SkImageInfo>::color_to_xyz_matrix(SkImageInfo const&)
 {
-    *(int*)1 = 1;
     return absl::nullopt;
 }
 absl::optional<std::vector<float>> mojo::StructTraits<skia::mojom::ImageInfoDataView, SkImageInfo>::color_transfer_function(SkImageInfo const&)
 {
-    *(int*)1 = 1;
     return absl::nullopt;
 }
 
@@ -750,61 +719,50 @@ void network::mojom::blink::TimingAllowOrigin::set_all(uint8_t all)
 
 mojo::WaitSet::~WaitSet(void)
 {
-    *(int*)1 = 1;
 }
 
 mojo::SyncHandleRegistry::~SyncHandleRegistry(void)
 {
-    *(int*)1 = 1;
 }
 
 scoped_refptr<mojo::internal::MultiplexRouter> mojo::internal::MultiplexRouter::CreateAndStartReceiving(
     mojo::ScopedHandleBase<mojo::MessagePipeHandle>, mojo::internal::MultiplexRouter::Config, bool, scoped_refptr<base::SequencedTaskRunner>, char const*)
 {
-    *(int*)1 = 1;
     return nullptr;
 }
 
 std::unique_ptr<void, mojo::internal::Unmapper> mojo::SharedBufferHandle::Map(uint64_t size) const
 {
-    *(int*)1 = 1;
     return nullptr;
 }
 
 mojo::HandleSignalTracker::~HandleSignalTracker(void)
 {
-    *(int*)1 = 1;
 }
 
 mojo::internal::MessageQuotaChecker::~MessageQuotaChecker(void)
 {
-    *(int*)1 = 1;
 }
 
 mojo::SyncHandleWatcher::~SyncHandleWatcher(void)
 {
-    *(int*)1 = 1;
 }
 
 void blink::MojoInterfaceRequestEvent::Trace(class cppgc::Visitor*) const
 {
-    *(int*)1 = 1;
 }
 
 // bool mojo::internal::IsHandleOrInterfaceValid(struct mojo::internal::Handle_Data const&)
 // {
-//     *(int*)1 = 1;
-//     return false;
+// //     return false;
 // }
 // bool mojo::internal::IsHandleOrInterfaceValid(struct mojo::internal::Interface_Data const&)
 // {
-//     *(int*)1 = 1;
-//     return false;
+// //     return false;
 // }
 
 bool mojo::internal::ReportSerializationWarning(enum mojo::internal::ValidationError)
 {
-    *(int*)1 = 1;
     return false;
 }
 
@@ -815,7 +773,6 @@ bool blink::mojom::PageState::Validate(void const*, class mojo::internal::Valida
 
 skia::mojom::AlphaType mojo::EnumTraits<skia::mojom::AlphaType, SkAlphaType>::ToMojom(enum SkAlphaType)
 {
-    *(int*)1 = 1;
     return skia::mojom::AlphaType::UNKNOWN;
 }
 
@@ -827,7 +784,6 @@ bool blink::mojom::blink::TransferableMessage::Validate(void const*, mojo::inter
 
 std::basic_ostream<char, struct std::char_traits<char>>& network::mojom::operator<<(
     std::basic_ostream<char, std::char_traits<char>>& other, network::mojom::CSPDirectiveName) {
-    *(int*)1 = 1;
     return other;
 }
 
@@ -840,13 +796,11 @@ mojo::StringTraits<WTF::String>::GetUTF8(const WTF::String& str)
 bool ::blink::mojom::blink::DataElementBlob::Validate(const void* data, mojo::internal::ValidationContext* validation_context)
 {
     //return Data_::Validate(data, validation_context);
-    *(int*)1 = 1;
     return false;
 }
 
 bool ::blink::mojom::internal::DataElement_Data::Validate(const void* data, mojo::internal::ValidationContext* validation_context, bool inlined)
 {
-    *(int*)1 = 1;
     return false;
 }
 
@@ -914,8 +868,7 @@ bool blink::mojom::blink::DataElement::Validate(const void* data, mojo::internal
 
 // blink::mojom::Element::Element(void)
 // {
-//     *(int*)1 = 1;
-// }
+// // }
 // blink::mojom::blink::DataElement::DataElement(void) { *(int*)1 = 1; }
 // void blink::mojom::blink::DataElement::set_blob(mojo::StructPtr<::blink::mojom::blink::DataElementBlob>) { *(int*)1 = 1; }
 // void blink::mojom::blink::DataElement::set_bytes(mojo::StructPtr<::blink::mojom::blink::DataElementBytes>) { *(int*)1 = 1; }
@@ -936,16 +889,13 @@ bool blink::mojom::blink::DataElement::Validate(const void* data, mojo::internal
 
 // blink::mojom::blink::PermissionDescriptorExtension::PermissionDescriptorExtension(void)
 // {
-//     *(int*)1 = 1;
-// }
+// // }
 
 void blink::mojom::Element::set_bytes(std::vector<unsigned char, std::allocator<unsigned char>>)
 {
-    *(int*)1 = 1;
 }
 void blink::mojom::Element::set_file(mojo::StructPtr<::blink::mojom::File>)
 {
-    *(int*)1 = 1;
 }
 
 // void blink::mojom::blink::FileChooserFileInfo::set_file_system(mojo::StructPtr<::blink::mojom::blink::FileSystemFileInfo>) { *(int*)1 = 1; }
@@ -964,7 +914,6 @@ void blink::mojom::Element::set_file(mojo::StructPtr<::blink::mojom::File>)
 
 void blink::mojom::DataElement::DestroyActive(void)
 {
-    DebugBreak();
 }
 
 //bool __thiscall blink::mojom::blink::FileSystemManager::RegisterBlob
@@ -1004,43 +953,36 @@ void blink::mojom::blink::FileChooserFileInfo::DestroyActive()
 
 // void blink::mojom::blink::PermissionDescriptorExtension::set_storage_access(mojo::StructPtr<::blink::mojom::blink::StorageAccessPermissionDescriptor>)
 // {
-//     *(int*)1 = 1;
-// }
+// // }
 
 void mojo::ReportBadMessage(base::StringPiece)
 {
-    *(int*)1 = 1;
 }
 
 void mojo::internal::SerializeInterfaceInfo(
     mojo::ScopedHandleBase<mojo::MessagePipeHandle>, unsigned int, mojo::Message&, struct mojo::internal::Interface_Data&)
 {
-    *(int*)1 = 1;
 }
 
 mojo::ScopedHandleBase<mojo::SharedBufferHandle> __cdecl mojo::SharedBufferHandle::Create(uint64_t)
 {
-    *(int*)1 = 1;
     return mojo::ScopedHandleBase<mojo::SharedBufferHandle>();
 }
 // mojo::ScopedHandleBase<mojo::SharedBufferHandle> __cdecl mojo::StructTraits<mojo_base::mojom::BigBufferSharedMemoryRegionDataView,
 //     mojo_base::internal::BigBufferSharedMemoryRegion>::buffer_handle(mojo_base::internal::BigBufferSharedMemoryRegion&)
 // {
-//     *(int*)1 = 1;
-//     return mojo::ScopedHandleBase<mojo::SharedBufferHandle>();
+// //     return mojo::ScopedHandleBase<mojo::SharedBufferHandle>();
 // }
 //
 // mojo_base::internal::BigBufferSharedMemoryRegion& __cdecl mojo::UnionTraits<mojo_base::mojom::BigBufferDataView, mojo_base::BigBuffer>::shared_memory(mojo_base::BigBuffer&)
 // {
-//     *(int*)1 = 1;
-//     mojo_base::internal::BigBufferSharedMemoryRegion* reg = new mojo_base::internal::BigBufferSharedMemoryRegion();
+// //     mojo_base::internal::BigBufferSharedMemoryRegion* reg = new mojo_base::internal::BigBufferSharedMemoryRegion();
 //     return *reg;
 // }
 //
 // mojo_base::internal::BigBufferSharedMemoryRegion& __cdecl mojo::UnionTraits<mojo_base::mojom::BigBufferDataView, mojo_base::BigBufferView>::shared_memory(mojo_base::BigBufferView&)
 // {
-//     *(int*)1 = 1;
-//     mojo_base::internal::BigBufferSharedMemoryRegion* reg = new mojo_base::internal::BigBufferSharedMemoryRegion();
+// //     mojo_base::internal::BigBufferSharedMemoryRegion* reg = new mojo_base::internal::BigBufferSharedMemoryRegion();
 //     return *reg;
 // }
 
@@ -1065,40 +1007,33 @@ mojo::internal::ValidationContext::~ValidationContext(void)
 
 bool mojo::internal::ReceiverImplBase::HasAssociatedInterfaces(void) const
 {
-    *(int*)1 = 1;
     return false;
 }
 
 bool mojo::internal::ReceiverImplBase::WaitForIncomingMethodCall(void)
 {
-    OutputDebugStringA("mojo::internal::ReceiverImplBase::WaitForIncomingMethodCall not impl\n");
     return true;
 }
 
 bool mojo::internal::MultiplexRouter::HasAssociatedEndpoints(void) const
 {
-    *(int*)1 = 1;
     return false;
 }
 
 void blink::MojoHandle::close(void)
 {
-    *(int*)1 = 1;
 }
 void blink::MojoInterfaceInterceptor::start(class blink::ExceptionState&)
 {
-    *(int*)1 = 1;
 }
 void blink::MojoInterfaceInterceptor::stop(void)
 {
-    *(int*)1 = 1;
 }
 
 //
 
 void mojo::Message::SerializeHandles(mojo::AssociatedGroupController*)
 {
-    OutputDebugStringA("mojo::Message::SerializeHandles not impl\n");
 }
 
 // void mojo::internal::AssociatedReceiverBase::FlushForTesting(void) { *(int*)1 = 1; }
@@ -1115,15 +1050,12 @@ void mojo::internal::ReceiverImplBase::EnableBatchDispatch(void)
 }
 void mojo::internal::ReceiverImplBase::FlushForTesting(void)
 {
-    *(int*)1 = 1;
 }
 void mojo::internal::ReceiverImplBase::PauseIncomingMethodCallProcessing(void)
 {
-    *(int*)1 = 1;
 }
 void mojo::internal::ReceiverImplBase::ResumeIncomingMethodCallProcessing(void)
 {
-    *(int*)1 = 1;
 }
 void mojo::internal::ReceiverImplBase::SetFilter(std::unique_ptr<mojo::MessageFilter, std::default_delete<mojo::MessageFilter>>)
 {
@@ -1131,7 +1063,6 @@ void mojo::internal::ReceiverImplBase::SetFilter(std::unique_ptr<mojo::MessageFi
 
 bool mojo::MessageReceiver::PrefersSerializedMessages(void)
 {
-    *(int*)1 = 1;
     return false;
 }
 
@@ -1151,36 +1082,30 @@ bool mojo::MessageReceiver::PrefersSerializedMessages(void)
 //
 // mojo_base::mojom::internal::BigBuffer_Data::BigBuffer_Tag mojo::UnionTraits<mojo_base::mojom::BigBufferDataView, mojo_base::BigBufferView>::GetTag(mojo_base::BigBufferView const&)
 // {
-//     *(int*)1 = 1;
-//     return mojo_base::mojom::internal::BigBuffer_Data::BigBuffer_Tag::kBytes;
+// //     return mojo_base::mojom::internal::BigBuffer_Data::BigBuffer_Tag::kBytes;
 // }
 //
 // unsigned int __cdecl mojo::StructTraits<mojo_base::mojom::BigBufferSharedMemoryRegionDataView, mojo_base::internal::BigBufferSharedMemoryRegion>::size(
 //     mojo_base::internal::BigBufferSharedMemoryRegion const&)
 // {
-//     *(int*)1 = 1;
-//     return 0;
+// //     return 0;
 // }
 
 char const* mojo::internal::ValidationErrorToString(enum mojo::internal::ValidationError)
 {
-    *(int*)1 = 1;
     return "";
 }
 
 media_session::mojom::blink::MediaPosition::MediaPosition(double, class base::TimeDelta, class base::TimeDelta, class base::TimeTicks, bool)
 {
-    *(int*)1 = 1;
 }
 
 // viz::mojom::blink::BundledFrameSubmissionData::BundledFrameSubmissionData(void)
 // {
-//     *(int*)1 = 1;
-// }
+// // }
 
 unsigned int blink::MojoWatcher::cancel(void)
 {
-    *(int*)1 = 1;
     return 0;
 }
 
@@ -1191,13 +1116,11 @@ unsigned int blink::MojoHandle::writeMessage(
     //         0> const&
     const blink::V8BufferSource* buffer, const blink::HeapVector<blink::Member<blink::MojoHandle>>& handles)
 {
-    *(int*)1 = 1;
     return 0;
 }
 
 blink::MojoInterfaceRequestEvent::~MojoInterfaceRequestEvent(void)
 {
-    *(int*)1 = 1;
 }
 
 blink::mojom::internal::CloneableMessage_Data::CloneableMessage_Data()
@@ -1295,15 +1218,12 @@ url::mojom::internal::Origin_Data::Origin_Data(void)
 
 // void viz::mojom::blink::BundledFrameSubmissionData::set_did_delete_shared_bitmap(struct gpu::Mailbox const&)
 // {
-//     *(int*)1 = 1;
-// }
+// // }
 void viz::mojom::blink::BundledFrameSubmissionData::set_did_not_produce_frame(struct viz::BeginFrameAck const&)
 {
-    *(int*)1 = 1;
 }
 void viz::mojom::blink::BundledFrameSubmissionData::set_frame(class mojo::StructPtr<class viz::mojom::blink::BundledCompositorFrame>)
 {
-    *(int*)1 = 1;
 }
 
 // network::mojom::AllowCSPFromHeaderValue::AllowCSPFromHeaderValue()
@@ -1444,32 +1364,27 @@ void network::mojom::TimingAllowOrigin::DestroyActive()
 
 // unsigned int mojo::Wait(mojo::Handle, unsigned int, unsigned int, MojoHandleSignalsState*)
 // {
-//     *(int*)1 = 1;
-//     return 0;
+// //     return 0;
 // }
 
 bool viz::mojom::FrameSinkManager::DestroyCompositorFrameSink(const viz::FrameSinkId&)
 {
-    *(int*)1 = 1;
     return false;
 }
 
 // bool viz::mojom::FrameSinkManager::EvictBackBuffer(unsigned int)
 // {
-//     *(int*)1 = 1;
-//     return false;
+// //     return false;
 // }
 
 bool viz::mojom::CompositorFrameSink::SubmitCompositorFrameSync(const ::viz::LocalSurfaceId& local_surface_id, ::viz::CompositorFrame frame,
     absl::optional<::viz::HitTestRegionList> hit_test_region_list, uint64_t submit_time, std::vector<::viz::ReturnedResource>* out_resources)
 {
-    *(int*)1 = 1;
     return false;
 }
 
 bool viz::mojom::DisplayPrivate::DisableSwapUntilResize(void)
 {
-    *(int*)1 = 1;
     return false;
 }
 

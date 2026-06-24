@@ -283,6 +283,10 @@ bool GrDirectContext::submit(const GrSubmitInfo&)
     return false;
 }
 
+void GrDirectContext::flushAndSubmit(const sk_sp<const SkImage>&)
+{
+}
+
 // sktext::SkStrikePromise::SkStrikePromise(SkStrikeSpec const&)
 // {
 //     *(int*)1 = 1;

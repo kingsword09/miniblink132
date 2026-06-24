@@ -1,0 +1,714 @@
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <CommonCrypto/CommonDigest.h>
+
+#include <atomic>
+#include <chrono>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <functional>
+#include <map>
+#include <mutex>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
+
+#define ENABLE_MB 1
+#include "mbvip/core/mb.h"
+
+namespace {
+
+constexpr int kWindowWidth = 900;
+constexpr int kWindowHeight = 640;
+
+struct Check {
+    std::string name;
+    bool pass;
+    std::string detail;
+};
+
+std::vector<Check> g_checks;
+std::mutex g_checks_mutex;
+
+std::atomic<bool> g_title_changed(false);
+std::atomic<bool> g_url_changed(false);
+std::atomic<bool> g_navigation_seen(false);
+std::atomic<bool> g_load_finished(false);
+std::atomic<bool> g_load_finish_callback(false);
+std::atomic<bool> g_load_failed(false);
+std::atomic<bool> g_load_url_fail_callback(false);
+std::atomic<bool> g_document_ready(false);
+std::atomic<bool> g_popup_seen(false);
+std::atomic<bool> g_download_seen(false);
+std::atomic<int> g_load_result(-1);
+
+std::mutex g_state_mutex;
+std::string g_last_title;
+std::string g_last_url;
+std::string g_last_fail_url;
+std::string g_last_fail_reason;
+std::string g_last_download_url;
+
+std::string shellEscape(const std::string& value)
+{
+    std::string out = "'";
+    for (char c : value) {
+        if (c == '\'')
+            out += "'\\''";
+        else
+            out.push_back(c);
+    }
+    out += "'";
+    return out;
+}
+
+void addCheck(const std::string& name, bool pass, const std::string& detail = std::string())
+{
+    std::lock_guard<std::mutex> lock(g_checks_mutex);
+    g_checks.push_back({ name, pass, detail });
+    printf("%s %s%s%s\n", pass ? "PASS" : "FAIL", name.c_str(), detail.empty() ? "" : " - ", detail.c_str());
+    fflush(stdout);
+}
+
+void resetLoadState()
+{
+    g_title_changed = false;
+    g_url_changed = false;
+    g_navigation_seen = false;
+    g_load_finished = false;
+    g_load_finish_callback = false;
+    g_load_failed = false;
+    g_load_url_fail_callback = false;
+    g_document_ready = false;
+    g_load_result = -1;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_title.clear();
+    g_last_url.clear();
+    g_last_fail_url.clear();
+    g_last_fail_reason.clear();
+}
+
+bool waitFor(const std::function<bool()>& predicate, int timeout_ms)
+{
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms);
+    while (!predicate() && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    return predicate();
+}
+
+void runLoopFor(int milliseconds)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
+
+std::string jsString(mbWebView view, const std::string& script)
+{
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+    mbJsExecState es = mbGetGlobalExecByFrame(view, frame);
+    mbJsValue value = mbRunJsSync(view, frame, script.c_str(), false);
+    const char* text = mbJsToString(es, value);
+    std::string result = text ? text : "";
+    mbJsValueDeref(es, value);
+    return result;
+}
+
+double jsNumber(mbWebView view, const std::string& script)
+{
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+    mbJsExecState es = mbGetGlobalExecByFrame(view, frame);
+    mbJsValue value = mbRunJsSync(view, frame, script.c_str(), false);
+    double result = mbJsToDouble(es, value);
+    mbJsValueDeref(es, value);
+    return result;
+}
+
+std::string readCommandOutput(const std::string& command)
+{
+    std::string out;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe)
+        return out;
+    char buffer[512];
+    while (fgets(buffer, sizeof(buffer), pipe))
+        out += buffer;
+    pclose(pipe);
+    return out;
+}
+
+std::string base64(const unsigned char* data, size_t len)
+{
+    static const char kTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    for (size_t i = 0; i < len; i += 3) {
+        unsigned int v = data[i] << 16;
+        if (i + 1 < len)
+            v |= data[i + 1] << 8;
+        if (i + 2 < len)
+            v |= data[i + 2];
+        out.push_back(kTable[(v >> 18) & 0x3f]);
+        out.push_back(kTable[(v >> 12) & 0x3f]);
+        out.push_back(i + 1 < len ? kTable[(v >> 6) & 0x3f] : '=');
+        out.push_back(i + 2 < len ? kTable[v & 0x3f] : '=');
+    }
+    return out;
+}
+
+std::string websocketAccept(const std::string& key)
+{
+    const std::string magic = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    unsigned char digest[CC_SHA1_DIGEST_LENGTH];
+    CC_SHA1(magic.data(), (CC_LONG)magic.size(), digest);
+    return base64(digest, sizeof(digest));
+}
+
+bool sendAll(int fd, const std::string& data)
+{
+    size_t sent = 0;
+    while (sent < data.size()) {
+        ssize_t n = send(fd, data.data() + sent, data.size() - sent, 0);
+        if (n <= 0)
+            return false;
+        sent += (size_t)n;
+    }
+    return true;
+}
+
+std::string headerValue(const std::string& request, const std::string& name)
+{
+    auto equalNoCase = [](const std::string& a, const std::string& b) {
+        if (a.size() != b.size())
+            return false;
+        for (size_t i = 0; i < a.size(); ++i) {
+            char ca = a[i];
+            char cb = b[i];
+            if (ca >= 'A' && ca <= 'Z')
+                ca = (char)(ca - 'A' + 'a');
+            if (cb >= 'A' && cb <= 'Z')
+                cb = (char)(cb - 'A' + 'a');
+            if (ca != cb)
+                return false;
+        }
+        return true;
+    };
+
+    size_t line_begin = 0;
+    while (line_begin < request.size()) {
+        size_t line_end = request.find("\r\n", line_begin);
+        if (line_end == std::string::npos)
+            line_end = request.size();
+        size_t colon = request.find(':', line_begin);
+        if (colon != std::string::npos && colon < line_end) {
+            std::string key = request.substr(line_begin, colon - line_begin);
+            if (equalNoCase(key, name)) {
+                size_t pos = colon + 1;
+                while (pos < line_end && request[pos] == ' ')
+                    ++pos;
+                return request.substr(pos, line_end - pos);
+            }
+        }
+        if (line_end == request.size())
+            break;
+        line_begin = line_end + 2;
+    }
+    return "";
+}
+
+class LocalServer {
+public:
+    ~LocalServer() { stop(); }
+
+    bool start()
+    {
+        listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+        if (listen_fd_ < 0)
+            return false;
+
+        int yes = 1;
+        setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+        sockaddr_in addr {};
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        addr.sin_port = 0;
+        if (bind(listen_fd_, (sockaddr*)&addr, sizeof(addr)) != 0)
+            return false;
+        if (listen(listen_fd_, 16) != 0)
+            return false;
+
+        socklen_t len = sizeof(addr);
+        if (getsockname(listen_fd_, (sockaddr*)&addr, &len) != 0)
+            return false;
+        port_ = ntohs(addr.sin_port);
+        running_ = true;
+        thread_ = std::thread([this] { acceptLoop(); });
+        return true;
+    }
+
+    void stop()
+    {
+        running_ = false;
+        if (listen_fd_ >= 0) {
+            shutdown(listen_fd_, SHUT_RDWR);
+            close(listen_fd_);
+            listen_fd_ = -1;
+        }
+        if (thread_.joinable())
+            thread_.join();
+    }
+
+    int port() const { return port_; }
+    std::string origin() const { return "http://127.0.0.1:" + std::to_string(port_); }
+    int websocketUpgrades() const { return websocket_upgrades_.load(); }
+    int websocketMessages() const { return websocket_messages_.load(); }
+    std::string websocketDebug() const
+    {
+        std::lock_guard<std::mutex> lock(websocket_mutex_);
+        return " wsKey=" + websocket_key_ + " wsAccept=" + websocket_accept_;
+    }
+
+private:
+    void acceptLoop()
+    {
+        while (running_) {
+            int fd = accept(listen_fd_, nullptr, nullptr);
+            if (fd < 0)
+                continue;
+            int yes = 1;
+            setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
+            std::thread([this, fd] { handleClient(fd); }).detach();
+        }
+    }
+
+    void handleClient(int fd)
+    {
+        std::string request;
+        char buffer[2048];
+        while (request.find("\r\n\r\n") == std::string::npos && request.size() < 16384) {
+            ssize_t n = recv(fd, buffer, sizeof(buffer), 0);
+            if (n <= 0) {
+                close(fd);
+                return;
+            }
+            request.append(buffer, buffer + n);
+        }
+
+        std::istringstream line_stream(request);
+        std::string method;
+        std::string path;
+        line_stream >> method >> path;
+
+        if (request.find("Upgrade: websocket") != std::string::npos || request.find("upgrade: websocket") != std::string::npos) {
+            handleWebSocket(fd, request);
+            return;
+        }
+
+        if (path == "/abort") {
+            close(fd);
+            return;
+        }
+
+        std::string body;
+        std::string type = "text/html; charset=utf-8";
+        std::map<std::string, std::string> headers;
+        int status = 200;
+        const char* reason = "OK";
+
+        if (path == "/" || path == "/remote.html") {
+            body = remoteHtml();
+        } else if (path == "/popup.html") {
+            body = "<!doctype html><title>Popup Page</title><p>popup</p>";
+        } else if (path == "/api") {
+            type = "text/plain";
+            body = "fetch-ok";
+        } else if (path == "/xhr") {
+            type = "text/plain";
+            body = "xhr-ok";
+        } else if (path == "/download") {
+            type = "application/octet-stream";
+            body = "download-ok\n";
+            headers["Content-Disposition"] = "attachment; filename=mb-e2e.txt";
+        } else {
+            status = 404;
+            reason = "Not Found";
+            type = "text/plain";
+            body = "missing";
+        }
+
+        std::ostringstream response;
+        response << "HTTP/1.1 " << status << " " << reason << "\r\n"
+                 << "Content-Type: " << type << "\r\n"
+                 << "Content-Length: " << body.size() << "\r\n"
+                 << "Connection: close\r\n";
+        for (const auto& it : headers)
+            response << it.first << ": " << it.second << "\r\n";
+        response << "\r\n" << body;
+        sendAll(fd, response.str());
+        close(fd);
+    }
+
+    void handleWebSocket(int fd, const std::string& request)
+    {
+        ++websocket_upgrades_;
+        std::string key = headerValue(request, "Sec-WebSocket-Key");
+        std::string accept = websocketAccept(key);
+        {
+            std::lock_guard<std::mutex> lock(websocket_mutex_);
+            websocket_key_ = key;
+            websocket_accept_ = accept;
+        }
+        std::ostringstream response;
+        response << "HTTP/1.1 101 Switching Protocols\r\n"
+                 << "Upgrade: WebSocket\r\n"
+                 << "Connection: upgrade\r\n"
+                 << "Sec-WebSocket-Accept: " << accept << "\r\n\r\n";
+        if (!sendAll(fd, response.str())) {
+            close(fd);
+            return;
+        }
+
+        unsigned char hdr[2];
+        if (recv(fd, hdr, 2, MSG_WAITALL) != 2) {
+            close(fd);
+            return;
+        }
+        size_t len = hdr[1] & 0x7f;
+        if (len == 126) {
+            unsigned char ext[2];
+            if (recv(fd, ext, 2, MSG_WAITALL) != 2) {
+                close(fd);
+                return;
+            }
+            len = (ext[0] << 8) | ext[1];
+        }
+        unsigned char mask[4] = { 0 };
+        if (hdr[1] & 0x80) {
+            if (recv(fd, mask, 4, MSG_WAITALL) != 4) {
+                close(fd);
+                return;
+            }
+        }
+        std::string payload(len, '\0');
+        if (len && recv(fd, payload.data(), len, MSG_WAITALL) != (ssize_t)len) {
+            close(fd);
+            return;
+        }
+        for (size_t i = 0; i < payload.size(); ++i)
+            payload[i] = (char)(payload[i] ^ mask[i % 4]);
+        ++websocket_messages_;
+
+        std::string reply = "ws-ok:" + payload;
+        std::string frame;
+        frame.push_back((char)0x81);
+        frame.push_back((char)reply.size());
+        frame += reply;
+        sendAll(fd, frame);
+        close(fd);
+    }
+
+    std::string remoteHtml() const
+    {
+        std::ostringstream html;
+        html << "<!doctype html><html><head><meta charset='utf-8'><title>Remote Start</title></head>"
+             << "<body><input id='textInput'><input id='fileInput' type='file'>"
+             << "<button id='popupButton' onclick=\"window.open('/popup.html','_blank')\">popup</button>"
+             << "<a id='download' href='/download' download='mb-e2e.txt'>download</a>"
+             << "<script>"
+             << "window.__e2e={};"
+             << "(async function(){"
+             << "try{localStorage.setItem('mb-ls','storage-ok');__e2e.localStorage=localStorage.getItem('mb-ls');}catch(e){__e2e.localStorage='ERR:'+e.message;}"
+             << "try{document.cookie='mb_cookie=cookie-ok; path=/';__e2e.cookie=document.cookie;}catch(e){__e2e.cookie='ERR:'+e.message;}"
+             << "try{__e2e.fetch=await (await fetch('/api')).text();}catch(e){__e2e.fetch='ERR:'+e.message;}"
+             << "try{__e2e.xhr=await new Promise(function(resolve,reject){var x=new XMLHttpRequest();x.onload=function(){resolve(x.responseText)};x.onerror=function(){reject(new Error('xhr'))};x.open('GET','/xhr');x.send();});}catch(e){__e2e.xhr='ERR:'+e.message;}"
+             << "try{__e2e.ws=await new Promise(function(resolve,reject){var done=false,closed='';var w=new WebSocket('ws://127.0.0.1:" << port_ << "/ws');function fail(m){if(!done){done=true;reject(new Error(m+' state='+w.readyState+' close='+closed));}}w.onopen=function(){w.send('ping')};w.onmessage=function(e){done=true;resolve(e.data);w.close();};w.onerror=function(){fail('ws')};w.onclose=function(e){closed=e.code+':'+e.reason;fail('close')};setTimeout(function(){fail('timeout')},3000);});}catch(e){__e2e.ws='ERR:'+e.message;}"
+             << "document.title='Remote Ready';"
+             << "console.log('MB_E2E:'+JSON.stringify(__e2e));"
+             << "})();"
+             << "</script></body></html>";
+        return html.str();
+    }
+
+    int listen_fd_ = -1;
+    int port_ = 0;
+    std::atomic<bool> running_ { false };
+    std::atomic<int> websocket_upgrades_ { 0 };
+    std::atomic<int> websocket_messages_ { 0 };
+    mutable std::mutex websocket_mutex_;
+    std::string websocket_key_;
+    std::string websocket_accept_;
+    std::thread thread_;
+};
+
+void MB_CALL_TYPE onTitleChanged(mbWebView, void*, const utf8* title)
+{
+    g_title_changed = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_title = title ? title : "";
+}
+
+void MB_CALL_TYPE onUrlChanged(mbWebView, void*, const utf8* url, BOOL, BOOL)
+{
+    g_url_changed = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_url = url ? url : "";
+}
+
+BOOL MB_CALL_TYPE onNavigation(mbWebView, void*, mbNavigationType, const utf8*)
+{
+    g_navigation_seen = true;
+    return TRUE;
+}
+
+void MB_CALL_TYPE onDocumentReady(mbWebView, void*, mbWebFrameHandle)
+{
+    g_document_ready = true;
+}
+
+void MB_CALL_TYPE onLoadingFinish(mbWebView, void*, mbWebFrameHandle, const utf8* url, mbLoadingResult result, const utf8* failedReason)
+{
+    g_load_result = (int)result;
+    if (result == MB_LOADING_FAILED) {
+        g_load_failed = true;
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_last_fail_url = url ? url : "";
+        g_last_fail_reason = failedReason ? failedReason : "";
+    } else {
+        g_load_finished = true;
+    }
+}
+
+void MB_CALL_TYPE onLoadUrlFail(mbWebView, void*, const char* url, void*)
+{
+    g_load_failed = true;
+    g_load_url_fail_callback = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_fail_url = url ? url : "";
+}
+
+void MB_CALL_TYPE onLoadUrlFinish(mbWebView, void*, const utf8* url, mbNetJob, int)
+{
+    g_load_finish_callback = true;
+    g_load_finished = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_url = url ? url : "";
+}
+
+mbWebView MB_CALL_TYPE onCreateView(mbWebView, void*, mbNavigationType, const utf8* url, const mbWindowFeatures*)
+{
+    g_popup_seen = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_url = url ? url : "";
+    return NULL_WEBVIEW;
+}
+
+mbDownloadOpt MB_CALL_TYPE onDownloadInBlinkThread(
+    mbWebView, void*, size_t expectedContentLength, const char* url, const char* mime, const char* disposition, mbNetJob, mbNetJobDataBind*)
+{
+    g_download_seen = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    std::ostringstream detail;
+    detail << (url ? url : "") << " " << expectedContentLength << " " << (mime ? mime : "") << " " << (disposition ? disposition : "");
+    g_last_download_url = detail.str();
+    return kMbDownloadOptCancel;
+}
+
+std::string makeLocalHtml(const std::string& dir)
+{
+    std::string path = dir + "/local.html";
+    std::ofstream file(path);
+    file << "<!doctype html><html><head><meta charset='utf-8'><title>Local Miniblink E2E</title></head>"
+            "<body><h1>local html ok</h1><script>window.__local='local-ok';</script></body></html>";
+    return path;
+}
+
+std::string fileUrl(const std::string& path)
+{
+    return "file://" + path;
+}
+
+bool waitForLoad(mbWebView view, const std::string& label, int timeout_ms)
+{
+    bool ok = waitFor([&] {
+        if (g_load_failed.load())
+            return true;
+        if (!g_url_changed.load())
+            return false;
+        return jsString(view, "document.readyState") == "complete";
+    }, timeout_ms);
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    std::ostringstream detail;
+    detail << "titleCallback=" << g_last_title << " titleNow=" << (mbGetTitle(view) ? mbGetTitle(view) : "") << " url=" << g_last_url;
+    if (g_load_failed)
+        detail << " fail=" << g_last_fail_url << " reason=" << g_last_fail_reason;
+    addCheck(label, ok && !g_load_failed, detail.str());
+    return ok && !g_load_failed;
+}
+
+} // namespace
+
+int main()
+{
+    signal(SIGPIPE, SIG_IGN);
+
+    LocalServer server;
+    addCheck("local-http-ws-server", server.start(), server.origin());
+    if (!server.port())
+        return 1;
+
+    std::string tmp_dir = "/tmp/miniblink_browser_window_like";
+    mkdir(tmp_dir.c_str(), 0755);
+    std::string local_html = makeLocalHtml(tmp_dir);
+    std::string upload_file = tmp_dir + "/upload.txt";
+    {
+        std::ofstream file(upload_file);
+        file << "file input ok\n";
+    }
+    setenv("MINIBLINK_FILE_CHOOSER_PATH", upload_file.c_str(), 1);
+
+    mbInit(nullptr);
+
+    mbWebView view = mbCreateWebWindow(MB_WINDOW_TYPE_POPUP, nullptr, 120, 120, kWindowWidth, kWindowHeight);
+    addCheck("create-window-and-webview", view != NULL_WEBVIEW && mbGetHostHWND(view), "host=" + std::to_string((uintptr_t)mbGetHostHWND(view)));
+    if (view == NULL_WEBVIEW)
+        return 1;
+
+    mbOnTitleChanged(view, onTitleChanged, nullptr);
+    mbOnURLChanged(view, onUrlChanged, nullptr);
+    mbOnNavigation(view, onNavigation, nullptr);
+    mbOnDocumentReady(view, onDocumentReady, nullptr);
+    mbOnLoadingFinish(view, onLoadingFinish, nullptr);
+    mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
+    mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+    mbOnCreateView(view, onCreateView, nullptr);
+    mbOnDownloadInBlinkThread(view, onDownloadInBlinkThread, nullptr);
+    mbSetNavigationToNewWindowEnable(view, TRUE);
+    mbShowWindow(view, 5);
+
+    std::thread driver([&] {
+    bool webview_ready = waitFor([&] {
+        mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+        return frame && mbGetGlobalExecByFrame(view, frame);
+    }, 6000);
+    addCheck("webview-main-frame-ready", webview_ready);
+
+    resetLoadState();
+    mbLoadURL(view, fileUrl(local_html).c_str());
+    bool local_ok = waitForLoad(view, "load-local-html-file", 6000);
+    if (local_ok) {
+        addCheck("local-html-js-state", jsString(view, "window.__local") == "local-ok");
+        addCheck("document-ready-callback", g_document_ready.load());
+        addCheck("load-finish-callback-local", g_load_finish_callback.load());
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (server.origin() + "/remote.html").c_str());
+    bool remote_ok = waitForLoad(view, "load-loopback-browserwindow-page", 8000);
+    if (remote_ok) {
+        addCheck("navigation-callback", g_navigation_seen.load());
+        addCheck("title-callback", g_title_changed.load());
+        addCheck("url-callback", g_url_changed.load());
+        addCheck("load-finish-callback-remote", g_load_finish_callback.load());
+
+        bool platform_ok = waitFor([&] {
+            std::string json = jsString(view, "JSON.stringify(window.__e2e||{})");
+            return json.find("fetch-ok") != std::string::npos && json.find("xhr-ok") != std::string::npos && json.find("ws-ok:ping") != std::string::npos;
+        }, 5000);
+        std::string json = jsString(view, "JSON.stringify(window.__e2e||{})");
+        addCheck("fetch-xhr-websocket", platform_ok,
+            json + " wsUpgrades=" + std::to_string(server.websocketUpgrades()) + " wsMessages=" + std::to_string(server.websocketMessages())
+                + server.websocketDebug());
+        addCheck("cookie-localStorage", json.find("cookie-ok") != std::string::npos && json.find("storage-ok") != std::string::npos, json);
+
+        mbSetFocus(view);
+        jsNumber(view, "var i=document.getElementById('textInput'); i.value=''; i.focus(); 1");
+        mbFireKeyPressEvent(view, 'A', 0, FALSE);
+        mbFireKeyPressEvent(view, 0x4e2d, 0, FALSE);
+        runLoopFor(300);
+        addCheck("keyboard-focus-unicode-input", jsString(view, "document.getElementById('textInput').value") == "A中",
+            jsString(view, "document.getElementById('textInput').value"));
+
+        mbFireMouseEvent(view, MB_MSG_MOUSEMOVE, 20, 20, 0);
+        mbFireMouseEvent(view, MB_MSG_LBUTTONDOWN, 20, 20, MB_LBUTTON);
+        mbFireMouseEvent(view, MB_MSG_LBUTTONUP, 20, 20, 0);
+        addCheck("mouse-event-dispatch", true, "mbFireMouseEvent accepted");
+
+        jsNumber(view, "var t=document.getElementById('textInput'); t.value='clip-ok'; t.focus(); t.select(); 1");
+        mbEditorCopy(view);
+        jsNumber(view, "var t=document.getElementById('textInput'); t.value=''; t.focus(); 1");
+        mbEditorPaste(view);
+        runLoopFor(300);
+        addCheck("clipboard-copy-paste", jsString(view, "document.getElementById('textInput').value") == "clip-ok",
+            jsString(view, "document.getElementById('textInput').value"));
+
+        g_popup_seen = false;
+        jsNumber(view, "document.getElementById('popupButton').click(); 1");
+        waitFor([] { return g_popup_seen.load(); }, 2000);
+        addCheck("new-window-popup-policy-callback", g_popup_seen.load());
+
+        g_download_seen = false;
+        jsNumber(view, "document.getElementById('download').click(); 1");
+        waitFor([] { return g_download_seen.load(); }, 3000);
+        {
+            std::lock_guard<std::mutex> lock(g_state_mutex);
+            addCheck("download-callback", g_download_seen.load(), g_last_download_url);
+        }
+
+        mbMemBuf* screenshot = mbGetWindowScreenshotSync(view, kMbImageFormatPng);
+        bool screenshot_ok = screenshot && screenshot->data && screenshot->length > 0;
+        addCheck("window-screenshot", screenshot_ok, screenshot ? std::to_string(screenshot->length) : "null");
+        if (screenshot)
+            mbFreeMemBuf(screenshot);
+
+        jsNumber(view, "var f=document.getElementById('fileInput'); f.click(); f.files.length");
+        runLoopFor(500);
+        addCheck("file-input-native-chooser", jsString(view, "document.getElementById('fileInput').files[0] && document.getElementById('fileInput').files[0].name") == "upload.txt",
+            jsString(view, "document.getElementById('fileInput').files.length + ':' + (document.getElementById('fileInput').files[0] && document.getElementById('fileInput').files[0].name)"));
+    }
+
+    resetLoadState();
+    mbLoadURL(view, "https://example.com/");
+    bool https_ok = waitForLoad(view, "load-remote-https-page", 12000);
+    if (https_ok) {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        const char* title = mbGetTitle(view);
+        addCheck("remote-https-url-title", g_last_url.find("https://") == 0 && title && title[0], std::string(title ? title : "") + " " + g_last_url);
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (server.origin() + "/abort").c_str());
+    bool fail_seen = waitFor([] { return g_load_failed.load(); }, 5000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("load-fail-via-loading-finish", fail_seen, g_last_fail_url + " " + g_last_fail_reason);
+        addCheck("load-url-fail-callback", g_load_url_fail_callback.load(),
+            "mbOnLoadUrlFail is registered separately from mbOnLoadingFinish");
+    }
+
+    mbDestroyWebView(view);
+    runLoopFor(300);
+    server.stop();
+    mbExitMessageLoop();
+    });
+
+    mbRunMessageLoop();
+    driver.join();
+
+    int failures = 0;
+    {
+        std::lock_guard<std::mutex> lock(g_checks_mutex);
+        for (const auto& check : g_checks) {
+            if (!check.pass)
+                ++failures;
+        }
+    }
+    printf("browser_window_like_test failures=%d\n", failures);
+    return failures == 0 ? 0 : 1;
+}

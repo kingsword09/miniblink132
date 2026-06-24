@@ -733,7 +733,7 @@ bool WebSocketHandshake::checkResponseHeaders()
     }
 
     if (serverWebSocketAccept != String(m_expectedAccept)) {
-        m_failureReason = "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch";
+        m_failureReason = "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch expected=" + m_expectedAccept + " actual=" + serverWebSocketAccept.Utf8();
         return false;
     }
     if (!serverWebSocketProtocol.empty()) {

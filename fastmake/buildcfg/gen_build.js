@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var src = [
     "${srcPath}/gen/third_party/blink/renderer/core/core_probes_impl.cc",
@@ -86,9 +86,9 @@ var src = [
     "${srcPath}/gen/third_party/blink/renderer/platform/exported/web_runtime_features_base.cc",
     "${srcPath}/gen/third_party/blink/renderer/platform/loader/fetch/fetch_initiator_type_names.cc",
     "${srcPath}/gen/third_party/blink/renderer/platform/network/http_names.cc",
-    "${srcPath}/gen/third_party/blink/renderer/core/inspector/protocol/animation_inspector.cc",
-    "${srcPath}/gen/third_party/blink/renderer/core/inspector/protocol/page_inspector.cc",
-    "${srcPath}/gen/third_party/blink/renderer/core/inspector/protocol/performance_inspector.cc",
+    "${srcPath}/gen/third_party/blink/renderer/core/inspector/protocol/animation.cc",
+    "${srcPath}/gen/third_party/blink/renderer/core/inspector/protocol/page.cc",
+    "${srcPath}/gen/third_party/blink/renderer/core/inspector/protocol/performance.cc",
     "${srcPath}/gen/third_party/blink/renderer/bindings/modules/v8/init_idl_interfaces.cc",
     "${srcPath}/gen/third_party/blink/renderer/bindings/modules/v8/init_idl_interfaces_for_testing.cc",
     "${srcPath}/gen/third_party/blink/renderer/bindings/modules/v8/properties_per_feature_installer.cc",
@@ -1252,5 +1252,25 @@ var json = [{
         "linker":"${ndkBinPath}/llvm-ar.exe"
     }
 }];
+
+applyMacBuildSettings(json, { v8: true });
+if (constVal.isMac) {
+    const missingGeneratedSources = new Set([
+        "${srcPath}/gen/third_party/blink/renderer/core/delivery_type_names.cc",
+        "${srcPath}/gen/third_party/blink/renderer/modules/sanitizer_api/builtins/sanitizer_attribute_lists.cc",
+        "${srcPath}/gen/third_party/blink/renderer/modules/sanitizer_api/builtins/sanitizer_attribute_lists_with_namespaces.cc",
+        "${srcPath}/gen/third_party/blink/renderer/modules/sanitizer_api/builtins/sanitizer_builtins.cc",
+        "${srcPath}/gen/third_party/blink/renderer/modules/sanitizer_api/builtins/sanitizer_builtins_with_namespaces.cc",
+    ]);
+    json[0].compile.src = json[0].compile.src.filter((path) => !missingGeneratedSources.has(path));
+    json[0].compile.src.push(
+        "${srcPath}/gen/services/metrics/public/cpp/ukm_builders.cc",
+        "${srcPath}/gen/third_party/blink/renderer/platform/runtime_feature_state/runtime_feature_state_override_context.cc",
+        "${srcPath}/gen/third_party/blink/renderer/bindings/core/v8/v8_union_cssnumericvalueorstringsequence_string.cc",
+        "${srcPath}/gen/third_party/blink/renderer/bindings/core/v8/v8_union_double_doubleorstringortimelinerangeoffsetornullsequence_string_timelinerangeoffset_null.cc",
+        "${srcPath}/gen/third_party/blink/renderer/bindings/core/v8/v8_union_double_string_timelinerangeoffset.cc",
+        "${srcPath}/gen/third_party/blink/renderer/bindings/core/v8/v8_union_stringlegacynulltoemptystring_trustedscript.cc",
+    );
+}
 
 buildCommonSetting(json);

@@ -5,9 +5,28 @@
 #ifndef GPU_IPC_COMMON_LUID_MOJOM_TRAITS_H_
 #define GPU_IPC_COMMON_LUID_MOJOM_TRAITS_H_
 
-#include "base/win/windows_types.h"
+#include "build/build_config.h"
 #include "gpu/gpu_export.h"
 #include "gpu/ipc/common/luid.mojom-shared.h"
+
+#if BUILDFLAG(IS_WIN)
+#include "base/win/windows_types.h"
+#else
+struct CHROME_LUID {
+    uint32_t LowPart = 0;
+    int32_t HighPart = 0;
+
+    bool operator==(const CHROME_LUID& that) const
+    {
+        return LowPart == that.LowPart && HighPart == that.HighPart;
+    }
+
+    bool operator!=(const CHROME_LUID& that) const
+    {
+        return !(*this == that);
+    }
+};
+#endif
 
 namespace mojo {
 

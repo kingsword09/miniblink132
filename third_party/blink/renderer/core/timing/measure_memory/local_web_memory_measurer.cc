@@ -13,19 +13,19 @@
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "components/performance_manager/public/mojom/v8_contexts.mojom-blink.h"
 
-performance_manager::mojom::blink::WebMemoryUsage::~WebMemoryUsage(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryUsage::WebMemoryUsage(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryUsage::WebMemoryUsage(unsigned __int64) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryMeasurement::~WebMemoryMeasurement(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryMeasurement::WebMemoryMeasurement(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryBreakdownEntry::~WebMemoryBreakdownEntry(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryBreakdownEntry::WebMemoryBreakdownEntry(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryAttribution::~WebMemoryAttribution(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::WebMemoryAttribution::WebMemoryAttribution(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::V8ContextDescription::~V8ContextDescription(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::V8ContextDescription::V8ContextDescription(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::IframeAttributionData::~IframeAttributionData(void) { *(int*)1 = 1; }
-performance_manager::mojom::blink::IframeAttributionData::IframeAttributionData(void) { *(int*)1 = 1; }
+performance_manager::mojom::blink::WebMemoryUsage::~WebMemoryUsage(void) {}
+performance_manager::mojom::blink::WebMemoryUsage::WebMemoryUsage(void) {}
+performance_manager::mojom::blink::WebMemoryUsage::WebMemoryUsage(unsigned __int64) {}
+performance_manager::mojom::blink::WebMemoryMeasurement::~WebMemoryMeasurement(void) {}
+performance_manager::mojom::blink::WebMemoryMeasurement::WebMemoryMeasurement(void) {}
+performance_manager::mojom::blink::WebMemoryBreakdownEntry::~WebMemoryBreakdownEntry(void) {}
+performance_manager::mojom::blink::WebMemoryBreakdownEntry::WebMemoryBreakdownEntry(void) {}
+performance_manager::mojom::blink::WebMemoryAttribution::~WebMemoryAttribution(void) {}
+performance_manager::mojom::blink::WebMemoryAttribution::WebMemoryAttribution(void) {}
+performance_manager::mojom::blink::V8ContextDescription::~V8ContextDescription(void) {}
+performance_manager::mojom::blink::V8ContextDescription::V8ContextDescription(void) {}
+performance_manager::mojom::blink::IframeAttributionData::~IframeAttributionData(void) {}
+performance_manager::mojom::blink::IframeAttributionData::IframeAttributionData(void) {}
 
 namespace blink {
 

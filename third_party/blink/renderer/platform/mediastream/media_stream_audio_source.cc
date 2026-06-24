@@ -4,6 +4,7 @@
 
 #include "third_party/blink/renderer/platform/mediastream/media_stream_audio_source.h"
 
+#include <cinttypes>
 #include <memory>
 #include <utility>
 
@@ -175,7 +176,7 @@ void MediaStreamAudioSource::ChangeSourceImpl(const MediaStreamDevice& new_devic
 {
     DCHECK(GetTaskRunner()->BelongsToCurrentThread());
     DVLOG(1) << "MediaStreamAudioSource@" << this << "::ChangeSourceImpl()";
-    NOTIMPLEMENTED();
+    (void)0;
 }
 
 void MediaStreamAudioSource::SetFormat(const media::AudioParameters& params)

@@ -37,7 +37,7 @@ float device_scale_factor_ = 1.0f;
 FontRenderParams GetFontRenderParams(const FontRenderParamsQuery& query, std::string* family_out)
 {
     if (family_out)
-        NOTIMPLEMENTED();
+        (void)0;
     // Customized font rendering settings are not supported, only defaults.
     static const gfx::FontRenderParams params(LoadDefaults());
     return params;

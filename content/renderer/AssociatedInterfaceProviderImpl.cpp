@@ -51,7 +51,7 @@ void AssociatedInterfaceProviderImpl::GetAssociatedInterface(
         }
         createAndBindInterface<::blink::mojom::blink::BlobURLStore, BlobURLStoreImpl>(std::move(receiver.PassPipe()), origin->ToRawString().Utf8());
     } else
-        DebugBreak();
+        (void)0;
 }
 
 }

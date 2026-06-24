@@ -211,7 +211,7 @@ void CSSDefaultStyleSheets::InitializeDefaultStyles()
     default_html_quirks_style_->AddRulesFromSheet(QuirksStyleSheet(), ScreenEval());
     default_print_style_->AddRulesFromSheet(DefaultStyleSheet(), PrintEval());
 
-    CHECK(default_html_style_->ViewTransitionRules().empty()) << "@view-transition is not implemented for the UA stylesheet.";
+    CHECK(default_html_style_->ViewTransitionRules().empty()) << "@view-transition is unsupported for the UA stylesheet.";
 
     VerifyUniversalRuleCount();
 }

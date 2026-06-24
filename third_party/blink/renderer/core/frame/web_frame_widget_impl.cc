@@ -163,7 +163,7 @@
 //#include "components/stylus_handwriting/win/features.h"
 #endif // BUILDFLAG(IS_WIN)
 
-#if BUILDFLAG(IS_MAC)
+#if 0
 #include "third_party/blink/renderer/core/editing/substring_util.h"
 #include "third_party/blink/renderer/platform/fonts/mac/attributed_string_type_converter.h"
 #include "ui/base/mojom/attributed_string.mojom-blink.h"
@@ -602,11 +602,12 @@ gfx::Rect WebFrameWidgetImpl::GetAbsoluteCaretBounds()
 }
 
 void WebFrameWidgetImpl::OnStartStylusWriting(
-#if BUILDFLAG(IS_WIN)
     const gfx::Rect& focus_rect_in_widget,
-#endif // BUILDFLAG(IS_WIN)
     OnStartStylusWritingCallback callback)
 {
+#if !BUILDFLAG(IS_WIN)
+    (void)focus_rect_in_widget;
+#endif
     mojom::blink::StylusWritingFocusResultPtr focus_result;
     // Focus the stylus writable element for current touch sequence as we have
     // detected writing has started.
@@ -723,7 +724,7 @@ void WebFrameWidgetImpl::UpdateRenderThrottlingStatusForSubFrame(bool is_throttl
     LocalRootImpl()->GetFrameView()->UpdateRenderThrottlingStatus(is_throttled, subtree_throttled, display_locked, /*recurse=*/true);
 }
 
-#if BUILDFLAG(IS_MAC)
+#if 0
 void WebFrameWidgetImpl::GetStringAtPoint(const gfx::Point& point_in_local_root, GetStringAtPointCallback callback)
 {
     gfx::Point baseline_point;

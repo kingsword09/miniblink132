@@ -7,6 +7,7 @@
 #include "third_party/blink/public/platform/web_string.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/files/file.h"
+#include <cstdlib>
 #include <vector>
 #include <shlwapi.h>
 #include <shlobj.h>
@@ -14,6 +15,11 @@
 #include <commdlg.h>
 
 namespace content {
+
+#if defined(OS_MAC)
+extern "C" bool MacRunOpenPanel(HWND owner, bool chooseDirectory, bool saveAs, bool allowMultiple, const char* title, const char* defaultPath,
+    std::vector<std::string>* paths);
+#endif
 
 static void appendStringToVector(std::vector<char>* result, const Vector<char>& str)
 {
@@ -64,6 +70,20 @@ std::string extentionForMimeType(const std::string& mimeType)
     mimeTypeBuf.resize(mimeType.size());
     memcpy(mimeTypeBuf.data(), mimeType.c_str(), mimeType.size());
     return extentionForMimeType(mimeTypeBuf);
+}
+
+static ::blink::mojom::blink::FileChooserResultPtr createFileChooserResultFromPaths(const std::vector<std::string>& paths)
+{
+    ::blink::mojom::blink::FileChooserResultPtr result = ::blink::mojom::blink::FileChooserResult::New();
+    for (const std::string& pathString : paths) {
+        if (pathString.empty())
+            continue;
+        base::FilePath filePath(pathString);
+        ::blink::mojom::blink::NativeFileInfoPtr nativeFile(
+            absl::in_place, filePath, ::WTF::String(), WTF::Vector<::WTF::String>());
+        result->files.push_back(::blink::mojom::blink::FileChooserFileInfo::NewNativeFile(std::move(nativeFile)));
+    }
+    return result;
 }
 
 // 现在把所有项都归并到一个项了
@@ -387,7 +407,28 @@ static bool runFileChooserImpl(HWND hWnd, ::blink::mojom::blink::FileChooserPara
         ::CloseHandle(threadHandle);
     return true;
 #else
+#if defined(OS_MAC)
+    std::vector<std::string> selectedPaths;
+    const char* forcedPath = std::getenv("MINIBLINK_FILE_CHOOSER_PATH");
+    if (forcedPath && forcedPath[0]) {
+        selectedPaths.push_back(forcedPath);
+    } else {
+        bool saveAs = params->mode == blink::mojom::FileChooserParams_Mode::kSave;
+        bool multiSelect = params->mode == blink::mojom::FileChooserParams_Mode::kOpenMultiple;
+        bool chooseDirectory = params->mode == blink::mojom::FileChooserParams_Mode::kUploadFolder
+            || params->mode == blink::mojom::FileChooserParams_Mode::kOpenDirectory;
+        std::string title = params->title.Utf8();
+        std::string defaultPath = params->default_file_name.AsUTF8Unsafe();
+        MacRunOpenPanel(hWnd, chooseDirectory, saveAs, multiSelect, title.c_str(), defaultPath.c_str(), &selectedPaths);
+    }
+
+    std::move(completion).Run(createFileChooserResultFromPaths(selectedPaths));
+    (*completionCallback)();
+    delete completionCallback;
+    return true;
+#else
     return false;
+#endif
 #endif
 }
 
@@ -414,7 +455,7 @@ void FileChooserImpl::OpenFileChooser(
 void FileChooserImpl::EnumerateChosenDirectory(
     const ::base::FilePath& directory_path, ::blink::mojom::blink::FileChooser::EnumerateChosenDirectoryCallback callback)
 {
-    DebugBreak();
+    (void)0;
 }
 
 }

@@ -69,8 +69,13 @@ extern unsigned char icudtlData[1884304];
 extern unsigned char icudtlData_flutter_desktop[2700172];
 extern unsigned char SnapshotBlobBinX86[328619];
 extern unsigned char SnapshotBlobBinX64[327326];
+#if defined(OS_MAC) && (defined(__aarch64__) || defined(__AARCH64EL__) || defined(_M_ARM64))
+extern unsigned char SnapshotBlobBinMacArm64[338293];
+#endif
+#if !defined(OS_MAC)
 extern unsigned char SnapshotBlobBinX64Linux[471944];
 extern unsigned char SnapshotBlobBinArm64Linux[471936];
+#endif
 
 #if 1
 extern "C" const uint8_t v8_Default_embedded_blob_code_[];
@@ -307,7 +312,7 @@ public:
 #ifdef _DEBUG
         for (size_t i = m_size; i < 2 * kDebugSizeExt; ++i) {
             if (m_data[i] != 0xf4)
-                DebugBreak();
+                (void)0;
         }
 #endif // _DEBUG
         delete[] m_data;
@@ -429,7 +434,7 @@ private:
             //m_contentSecurityNotifierImplReceiver.Bind(std::move(pendingReceiver));
             createAndBindBrokerProxy<::blink::mojom::blink::ContentSecurityNotifier, ContentSecurityNotifierImpl>(receiver.PassPipe(), NULL_WEBVIEW);
         } else
-            DebugBreak();
+            (void)0;
     }
 
     //mojo::Receiver<::blink::mojom::blink::ContentSecurityNotifier> m_contentSecurityNotifierImplReceiver;
@@ -636,7 +641,15 @@ void initV8Data()
     s_init = true;
     v8::StartupData snapshotBlob;
 
-#if !defined(OS_WIN)
+#if defined(OS_MAC)
+#if defined(__aarch64__) || defined(__AARCH64EL__) || defined(_M_ARM64)
+    snapshotBlob.data = (const char*)(&SnapshotBlobBinMacArm64);
+    snapshotBlob.raw_size = sizeof(SnapshotBlobBinMacArm64);
+#else
+    snapshotBlob.data = nullptr;
+    snapshotBlob.raw_size = 0;
+#endif
+#elif !defined(OS_WIN)
 #if defined(__AARCH64EL__) || defined(_M_ARM64)
     snapshotBlob.data = (const char*)(&SnapshotBlobBinArm64Linux);
     snapshotBlob.raw_size = sizeof(SnapshotBlobBinArm64Linux);
@@ -663,7 +676,8 @@ void initV8Data()
     //snapshotBlob.data = (const char*)buffer->data();
     //snapshotBlob.raw_size = buffer->size();
 
-    v8::V8::SetSnapshotDataBlob(&snapshotBlob);
+    if (snapshotBlob.data)
+        v8::V8::SetSnapshotDataBlob(&snapshotBlob);
 
     char output[120] = { 0 };
     sprintf(output, "embedded_blob: %p, %p, %d\n", v8_Default_embedded_blob_data_, v8_Default_embedded_blob_code_, snapshotBlob.raw_size);
@@ -794,7 +808,7 @@ void RenderThreadImpl::initializeDemo()
     //         std::move(frameSinkManagerClientReceiver),
     //         std::move(frameSinkManager),
     //         m_service->GetCompositorThreadRunner());
-    DebugBreak();
+    (void)0;
 #endif
 }
 
@@ -824,7 +838,7 @@ base::PlatformThreadId RenderThreadImpl::GetBlinkThreadId() const
 
 void RenderThreadImpl::createTestView()
 {
-    DebugBreak();
+    (void)0;
     //     blink::WebView* webWiew = blink::WebView::Create(new WebViewClientImpl(), false, false, false, absl::nullopt,
     //         /*compositing_enabled=*/true, false, nullptr, blink::CrossVariantMojoAssociatedReceiver<blink::mojom::PageBroadcastInterfaceBase>(),
     //         *(m_agentGroupScheduler), "session_storage_namespace_id", absl::optional<SkColor>(0xffffffff));
@@ -898,7 +912,7 @@ void RenderThreadImpl::createTestView()
 
 void RenderThreadImpl::loadTestUrl(const char* urlStr, blink::WebNavigationControl* navigationControl)
 {
-    DebugBreak();
+    (void)0;
 
     //     blink::KURL url(WTF::String::FromUTF8(urlStr));
     //

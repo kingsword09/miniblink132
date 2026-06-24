@@ -11,6 +11,7 @@
 #include "base/time/time.h"
 #include "content/viz/VizClient.h"
 #include "content/viz/OffscreenDisplayClient.h"
+#include "content/browser/MbWebview.h"
 #include "content/common/ThreadCall.h"
 #include "components/viz/host/renderer_settings_creation.h"
 #include "mojo/public/cpp/bindings/pending_associated_remote.h"
@@ -22,7 +23,7 @@ VizHost::VizHost(MbWebView* mbwebview, bool isTransparent,
     const gfx::Size& size, mojo::PendingReceiver<viz::mojom::FrameSinkManagerClient> clientReceiver,
     mojo::PendingRemote<viz::mojom::FrameSinkManager> frameSinkManagerRemote, scoped_refptr<base::SingleThreadTaskRunner> workRunner,
     scoped_refptr<base::SingleThreadTaskRunner> serviceRunner)
-    : m_widget(/*widget*/ nullptr)
+    : m_widget(gfx::kNullAcceleratedWidget)
     , m_mbwebview(mbwebview)
     , m_isTransparent(isTransparent)
     , m_size(size)
@@ -112,6 +113,11 @@ void VizHost::delayResizeDisplayOnVizThread(base::WaitableEvent* waitEvt)
     m_serviceRunner->PostTask(FROM_HERE,
         base::BindOnce(
             [](base::WeakPtr<VizHost> self, const gfx::Size& size, base::WaitableEvent* waitEvt) {
+                if (!self) {
+                    if (waitEvt)
+                        waitEvt->Signal();
+                    return;
+                }
                 if (!self->isAllowResize()) {
                     self->delayResizeDisplayOnVizThread(waitEvt);
                     return;
@@ -210,7 +216,7 @@ void VizHost::initialize(mojo::PendingReceiver<viz::mojom::FrameSinkManagerClien
 
     constexpr viz::FrameSinkId rootFrameSinkId(0xdead, 0xbeef);
     rootParams->frame_sink_id = rootFrameSinkId;
-    rootParams->widget = /*m_widget*/ 0;
+    rootParams->widget = (gpu::SurfaceHandle)(uintptr_t)m_mbwebview->getHostWnd();
     rootParams->gpu_compositing = false;
     rootParams->renderer_settings = viz::CreateRendererSettings();
     rootParams->renderer_settings.should_clear_root_render_pass = false;
@@ -244,6 +250,8 @@ void VizHost::initialize(mojo::PendingReceiver<viz::mojom::FrameSinkManagerClien
     m_serviceRunner->PostTask(FROM_HERE,
         base::BindOnce(
             [](base::WeakPtr<VizHost> self, const gfx::Size& size) {
+                if (!self)
+                    return;
                 self->m_displayPrivate->Resize(size);
                 self->m_displayPrivate->SetDisplayVisible(true);
             },

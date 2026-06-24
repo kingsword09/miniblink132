@@ -5,17 +5,17 @@
 #ifndef patch_code_no_destructor_xp_h
 #define patch_code_no_destructor_xp_h
 
-extern "C" long MB_InterlockedCompareExchange(long volatile*, long, long);
-extern "C" long MB_InterlockedExchange(long volatile* _Target, long _Value);
+extern "C" LONG MB_InterlockedCompareExchange(LONG volatile*, LONG, LONG);
+extern "C" LONG MB_InterlockedExchange(LONG volatile* _Target, LONG _Value);
 
 #define DEFINE_XP_THREAD_SAFE_STATIC_LOCAL(Type, Name, Arguments)                                                                                              \
-    static long run_once_##Name = 0;                                                                                                                           \
+    static LONG run_once_##Name = 0;                                                                                                                           \
     static Type* s_##Name = nullptr;                                                                                                                           \
     do {                                                                                                                                                       \
-        long old_var = MB_InterlockedCompareExchange((long volatile*)&(run_once_##Name), 2, 0);                                                                \
+        LONG old_var = MB_InterlockedCompareExchange((LONG volatile*)&(run_once_##Name), 2, 0);                                                              \
         if (0 == old_var) {                                                                                                                                    \
             s_##Name = new Type Arguments;                                                                                                                     \
-            MB_InterlockedExchange((long volatile*)&(run_once_##Name), 1);                                                                                     \
+            MB_InterlockedExchange((LONG volatile*)&(run_once_##Name), 1);                                                                                     \
             break;                                                                                                                                             \
         } else if (1 == old_var) {                                                                                                                             \
             break;                                                                                                                                             \

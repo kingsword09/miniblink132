@@ -116,7 +116,7 @@ void EstimateOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void GetDirectoryOperationCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("GetDirectoryOperationCallback not impl\n");
+    (void)0;
 //     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_StorageManager_getDirectory");
 //     BLINK_BINDINGS_TRACE_EVENT("StorageManager.getDirectory");
 //     // Promise returning function: Convert a TypeError to a reject promise.

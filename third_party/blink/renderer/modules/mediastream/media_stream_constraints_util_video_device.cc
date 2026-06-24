@@ -14,7 +14,6 @@
 #include "media/base/limits.h"
 #include "media/base/video_types.h"
 #include "media/mojo/mojom/display_media_information.mojom-blink.h"
-#include "media/webrtc/webrtc_features.h"
 #include "third_party/blink/public/platform/modules/webrtc/webrtc_logging.h"
 #include "third_party/blink/public/platform/web_string.h"
 #include "third_party/blink/public/web/modules/mediastream/media_stream_video_source.h"

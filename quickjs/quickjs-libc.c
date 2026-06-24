@@ -70,6 +70,7 @@ typedef sig_t sighandler_t;
 #include "list.h"
 #include "quickjs-libc.h"
 
+#if defined(_WIN32)
 FILE* popen(const char* filename, const char* mode)
 {
     DebugBreak();
@@ -81,6 +82,7 @@ int pclose(FILE* __stream)
     DebugBreak();
     return 0;
 }
+#endif
 
 /* TODO:
    - add socket calls
@@ -2575,12 +2577,12 @@ static JSValue js_os_symlink(JSContext* ctx, JSValueConst this_val, int argc, JS
         return JS_EXCEPTION;
     linkpath = JS_ToCString(ctx, argv[1]);
     if (!linkpath) {
-        JS_FreeCString(ctx, target);
+        JS_FreeCString(ctx, argv[0], target);
         return JS_EXCEPTION;
     }
     err = js_get_errno(symlink(target, linkpath));
-    JS_FreeCString(ctx, target);
-    JS_FreeCString(ctx, linkpath);
+    JS_FreeCString(ctx, argv[0], target);
+    JS_FreeCString(ctx, argv[1], linkpath);
     return JS_NewInt32(ctx, err);
 }
 
@@ -2603,7 +2605,7 @@ static JSValue js_os_readlink(JSContext* ctx, JSValueConst this_val, int argc, J
         buf[res] = '\0';
         err = 0;
     }
-    JS_FreeCString(ctx, path);
+    JS_FreeCString(ctx, argv[0], path);
     return make_string_error(ctx, buf, err);
 }
 
@@ -2626,20 +2628,23 @@ static char** build_envp(JSContext* ctx, JSValueConst obj)
         if (JS_IsException(val))
             goto fail;
         str = JS_ToCString(ctx, val);
-        JS_FreeValue(ctx, val);
-        if (!str)
+        if (!str) {
+            JS_FreeValue(ctx, val);
             goto fail;
+        }
         key = JS_AtomToCString(ctx, tab[i].atom);
         if (!key) {
-            JS_FreeCString(ctx, str);
+            JS_FreeCString(ctx, val, str);
+            JS_FreeValue(ctx, val);
             goto fail;
         }
         key_len = strlen(key);
         str_len = strlen(str);
         pair = js_malloc(ctx, key_len + str_len + 2);
         if (!pair) {
-            JS_FreeCString(ctx, key);
-            JS_FreeCString(ctx, str);
+            JS_FreeAtomCString(ctx, tab[i].atom, key);
+            JS_FreeCString(ctx, val, str);
+            JS_FreeValue(ctx, val);
             goto fail;
         }
         memcpy(pair, key, key_len);
@@ -2647,8 +2652,9 @@ static char** build_envp(JSContext* ctx, JSValueConst obj)
         memcpy(pair + key_len + 1, str, str_len);
         pair[key_len + 1 + str_len] = '\0';
         envp[i] = pair;
-        JS_FreeCString(ctx, key);
-        JS_FreeCString(ctx, str);
+        JS_FreeAtomCString(ctx, tab[i].atom, key);
+        JS_FreeCString(ctx, val, str);
+        JS_FreeValue(ctx, val);
     }
 done:
     for (i = 0; i < len; i++)
@@ -2727,6 +2733,8 @@ static JSValue js_os_exec(JSContext* ctx, JSValueConst this_val, int argc, JSVal
     JSValueConst options, args = argv[0];
     JSValue val, ret_val;
     const char **exec_argv, *file = NULL, *str, *cwd = NULL;
+    JSValue *exec_argv_val = NULL;
+    JSValue file_val = JS_UNDEFINED, cwd_val = JS_UNDEFINED;
     char** envp = environ;
     uint32_t exec_argc, i;
     int ret, pid, status;
@@ -2749,15 +2757,22 @@ static JSValue js_os_exec(JSContext* ctx, JSValueConst this_val, int argc, JSVal
     exec_argv = js_mallocz(ctx, sizeof(exec_argv[0]) * (exec_argc + 1));
     if (!exec_argv)
         return JS_EXCEPTION;
+    exec_argv_val = js_mallocz(ctx, sizeof(exec_argv_val[0]) * exec_argc);
+    if (!exec_argv_val) {
+        js_free(ctx, exec_argv);
+        return JS_EXCEPTION;
+    }
     for (i = 0; i < exec_argc; i++) {
         val = JS_GetPropertyUint32(ctx, args, i);
         if (JS_IsException(val))
             goto exception;
         str = JS_ToCString(ctx, val);
-        JS_FreeValue(ctx, val);
-        if (!str)
+        if (!str) {
+            JS_FreeValue(ctx, val);
             goto exception;
+        }
         exec_argv[i] = str;
+        exec_argv_val[i] = val;
     }
     exec_argv[exec_argc] = NULL;
 
@@ -2778,9 +2793,13 @@ static JSValue js_os_exec(JSContext* ctx, JSValueConst this_val, int argc, JSVal
             goto exception;
         if (!JS_IsUndefined(val)) {
             file = JS_ToCString(ctx, val);
-            JS_FreeValue(ctx, val);
-            if (!file)
+            if (!file) {
+                JS_FreeValue(ctx, val);
                 goto exception;
+            }
+            file_val = val;
+        } else {
+            JS_FreeValue(ctx, val);
         }
 
         val = JS_GetPropertyStr(ctx, options, "cwd");
@@ -2788,9 +2807,13 @@ static JSValue js_os_exec(JSContext* ctx, JSValueConst this_val, int argc, JSVal
             goto exception;
         if (!JS_IsUndefined(val)) {
             cwd = JS_ToCString(ctx, val);
-            JS_FreeValue(ctx, val);
-            if (!cwd)
+            if (!cwd) {
+                JS_FreeValue(ctx, val);
                 goto exception;
+            }
+            cwd_val = val;
+        } else {
+            JS_FreeValue(ctx, val);
         }
 
         /* stdin/stdout/stderr handles */
@@ -2898,10 +2921,21 @@ static JSValue js_os_exec(JSContext* ctx, JSValueConst this_val, int argc, JSVal
     }
     ret_val = JS_NewInt32(ctx, ret);
 done:
-    JS_FreeCString(ctx, file);
-    JS_FreeCString(ctx, cwd);
-    for (i = 0; i < exec_argc; i++)
-        JS_FreeCString(ctx, exec_argv[i]);
+    if (file) {
+        JS_FreeCString(ctx, file_val, file);
+        JS_FreeValue(ctx, file_val);
+    }
+    if (cwd) {
+        JS_FreeCString(ctx, cwd_val, cwd);
+        JS_FreeValue(ctx, cwd_val);
+    }
+    for (i = 0; i < exec_argc; i++) {
+        if (exec_argv[i]) {
+            JS_FreeCString(ctx, exec_argv_val[i], exec_argv[i]);
+            JS_FreeValue(ctx, exec_argv_val[i]);
+        }
+    }
+    js_free(ctx, exec_argv_val);
     js_free(ctx, exec_argv);
     if (envp != environ) {
         char** p;
@@ -3232,8 +3266,8 @@ static JSValue js_worker_ctor(JSContext* ctx, JSValueConst new_target, int argc,
     pthread_attr_t attr;
     JSValue obj = JS_UNDEFINED;
     int ret;
-    const char *filename = NULL, *basename;
-    JSAtom basename_atom;
+    const char *filename = NULL, *basename = NULL;
+    JSAtom basename_atom = JS_ATOM_NULL;
 
     /* XXX: in order to avoid problems with resource liberation, we
        don't support creating workers inside workers */
@@ -3247,7 +3281,6 @@ static JSValue js_worker_ctor(JSContext* ctx, JSValueConst new_target, int argc,
         return JS_ThrowTypeError(ctx, "could not determine calling script or module name");
     }
     basename = JS_AtomToCString(ctx, basename_atom);
-    JS_FreeAtom(ctx, basename_atom);
     if (!basename)
         goto fail;
 
@@ -3284,14 +3317,18 @@ static JSValue js_worker_ctor(JSContext* ctx, JSValueConst new_target, int argc,
         JS_ThrowTypeError(ctx, "could not create worker");
         goto fail;
     }
-    JS_FreeCString(ctx, basename);
-    JS_FreeCString(ctx, filename);
+    JS_FreeAtomCString(ctx, basename_atom, basename);
+    JS_FreeAtom(ctx, basename_atom);
+    JS_FreeCString(ctx, argv[0], filename);
     return obj;
 oom_fail:
     JS_ThrowOutOfMemory(ctx);
 fail:
-    JS_FreeCString(ctx, basename);
-    JS_FreeCString(ctx, filename);
+    if (basename)
+        JS_FreeAtomCString(ctx, basename_atom, basename);
+    if (basename_atom != JS_ATOM_NULL)
+        JS_FreeAtom(ctx, basename_atom);
+    JS_FreeCString(ctx, argv[0], filename);
     if (args) {
         free(args->filename);
         free(args->basename);
@@ -3549,7 +3586,7 @@ static int js_os_init(JSContext* ctx, JSModuleDef* m)
         proto = JS_NewObject(ctx);
         JS_SetPropertyFunctionList(ctx, proto, js_worker_proto_funcs, countof(js_worker_proto_funcs));
 
-        obj = JS_NewCFunction2(ctx, js_worker_ctor, "Worker", 1, JS_CFUNC_constructor, 0);
+        obj = JS_NewCFunction2(ctx, js_worker_ctor, "Worker", 1, JS_CFUNC_constructor, 0, NULL);
         JS_SetConstructor(ctx, obj, proto);
 
         JS_SetClassProto(ctx, js_worker_class_id, proto);

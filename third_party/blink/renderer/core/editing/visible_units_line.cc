@@ -87,7 +87,7 @@ static PositionWithAffinityTemplate<Strategy> EndPositionForLine(const PositionW
 
     if (NGInlineFormattingContextOf(adjusted.GetPosition())) {
         DCHECK((std::is_same<Ordering, VisualOrdering>::value) || !RuntimeEnabledFeatures::BidiCaretAffinityEnabled())
-            << "Logical line boundary for BidiCaretAffinity is not implemented yet";
+            << "Logical line boundary for BidiCaretAffinity is unsupported";
 
         const InlineCaretPosition caret_position = ComputeInlineCaretPosition(adjusted);
         if (caret_position.IsNull()) {
@@ -119,7 +119,7 @@ template <typename Strategy, typename Ordering> PositionWithAffinityTemplate<Str
 
     if (NGInlineFormattingContextOf(adjusted.GetPosition())) {
         DCHECK((std::is_same<Ordering, VisualOrdering>::value) || !RuntimeEnabledFeatures::BidiCaretAffinityEnabled())
-            << "Logical line boundary for BidiCaretAffinity is not implemented yet";
+            << "Logical line boundary for BidiCaretAffinity is unsupported";
 
         const InlineCaretPosition caret_position = ComputeInlineCaretPosition(adjusted);
         if (caret_position.IsNull()) {

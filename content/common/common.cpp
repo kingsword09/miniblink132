@@ -1,10 +1,12 @@
 
 #include "content/common/common.h"
 
+#if defined(OS_WIN)
 #include "base/win/scoped_gdi_object.h"
 #include "base/win/scoped_hdc.h"
-#include "ui/gfx/geometry/point.h"
 #include "skia/ext/skia_utils_win.h"
+#endif
+#include "ui/gfx/geometry/point.h"
 #include <windows.h>
 #include <string>
 
@@ -20,7 +22,7 @@ void printFuncName(const char* name, bool needPrint, bool needBreak)
     }
 
     if (needBreak)
-        DebugBreak();
+        (void)0;
 }
 
 // ui\gfx\icon_util.cc

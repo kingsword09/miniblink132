@@ -11,7 +11,7 @@ enum RebuildOpt {
     kRebuildOptCompileTimeOutFile, // 编译超时文件
 };
 
-void fmFastBuild(const std::wstring& buildJsonPath, RebuildOpt opt); // 这个是测试的
-void fmBuild(const std::wstring& buildJsonPath);
+void fmFastBuild(const std::u16string& buildJsonPath, RebuildOpt opt); // 这个是测试的
+void fmBuild(const std::u16string& buildJsonPath);
 
 #endif

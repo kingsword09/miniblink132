@@ -8,7 +8,6 @@
 #include <stdarg.h> // va_list
 
 #include <string>
-#include <xstring>
 #include <string_view>
 
 #include "base/base_export.h"

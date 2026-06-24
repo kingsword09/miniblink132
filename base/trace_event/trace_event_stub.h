@@ -8,11 +8,13 @@
 #include <stddef.h>
 
 #include <cstdint>
+#include <initializer_list>
 #include <memory>
 #include <string>
 #include <string_view>
 
 #include "base/base_export.h"
+#include "base/memory/scoped_refptr.h"
 #include "base/trace_event/common/trace_event_common.h"
 #include "base/trace_event/memory_allocator_dump_guid.h"
 #include "base/values.h"
@@ -243,6 +245,10 @@ struct IgnoredValue {
 #define TRACE_EVENT_INSTANT(category, name, ...) INTERNAL_TRACE_IGNORE(category, name)
 
 namespace base {
+
+class SequencedTaskRunner;
+class SingleThreadTaskRunner;
+
 namespace trace_event {
 
 class BASE_EXPORT ConvertableToTraceFormat {
@@ -261,8 +267,31 @@ public:
 
 class BASE_EXPORT TracedValue : public ConvertableToTraceFormat {
 public:
+    class DictionaryWriter {
+    public:
+        struct Entry {
+            template <typename T>
+            Entry(const char*, const T&)
+            {
+            }
+        };
+
+        DictionaryWriter(std::initializer_list<Entry>)
+        {
+        }
+
+        void WriteToValue(TracedValue*)
+        {
+        }
+    };
+
     explicit TracedValue(size_t capacity = 0)
     {
+    }
+
+    static DictionaryWriter Dictionary(std::initializer_list<DictionaryWriter::Entry> entries)
+    {
+        return DictionaryWriter(entries);
     }
 
     void EndDictionary()
@@ -379,6 +408,21 @@ protected:
 class BASE_EXPORT MemoryDumpManager {
 public:
     static constexpr const char* const kTraceCategory = TRACE_DISABLED_BY_DEFAULT("memory-infra");
+
+    static MemoryDumpManager* GetInstance();
+
+    void RegisterDumpProvider(MemoryDumpProvider* mdp,
+        const char* name,
+        scoped_refptr<SingleThreadTaskRunner> task_runner);
+    void RegisterDumpProvider(MemoryDumpProvider* mdp,
+        const char* name,
+        scoped_refptr<SingleThreadTaskRunner> task_runner,
+        MemoryDumpProvider::Options options);
+    void RegisterDumpProviderWithSequencedTaskRunner(MemoryDumpProvider* mdp,
+        const char* name,
+        scoped_refptr<SequencedTaskRunner> task_runner,
+        MemoryDumpProvider::Options options);
+    void UnregisterDumpProvider(MemoryDumpProvider* mdp);
 };
 
 inline uint64_t GetNextGlobalTraceId()
@@ -661,6 +705,10 @@ public:
 };
 
 template <class T> void WriteIntoTracedValue(TracedValue, T&&)
+{
+}
+
+template <class T> void WriteIntoTracedValueWithFallback(TracedValue, T&&, const char*)
 {
 }
 

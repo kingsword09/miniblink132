@@ -1,4 +1,6 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
+
+const platformWindowsSrc = constVal.isMac ? "${srcPath}/mac/mac_windows.cpp" : "${srcPath}/linux/linuxwindows.cpp";
 
 var src = [
     // 新版本nodejs的openssl
@@ -1132,7 +1134,7 @@ var src = [
     "${srcPath}/third_party/zlib/trees.c",
     "${srcPath}/third_party/zlib/uncompr.c",
     "${srcPath}/third_party/zlib/zutil.c",
-    "${srcPath}/linux/linuxwindows.cpp",
+    platformWindowsSrc,
     "${srcPath}/third_party/tscurl/tscurl_dllmain.cpp",
 ];
 var json = [{
@@ -1236,7 +1238,17 @@ var json = [{
     }
 }];
 
-if ("x86_64-linux-guneabi" == constVal.target) { // ARM64
+if (constVal.isMac) {
+    applyMacBuildSettings(json, { staticLib: false });
+    json[0].compile.target = "tscurl.dylib";
+    json[0].compile.beginLibs = [];
+    json[0].compile.endLibs = [];
+    json[0].compile.linkerCmd = [
+        "-dynamiclib",
+        "-framework", "ApplicationServices",
+        "-framework", "Foundation",
+    ];
+} else if ("x86_64-linux-guneabi" == constVal.target) { // ARM64
     json[0].compile.cmd.push("-D_M_X64=100");
 }
 

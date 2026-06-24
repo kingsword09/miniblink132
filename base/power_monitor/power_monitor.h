@@ -130,7 +130,7 @@ private:
 
     mutable Lock battery_power_status_lock_;
 
-    //perfetto::NamedTrack process_track_;
+    perfetto::NamedTrack process_track_;
     PowerThermalObserver::DeviceThermalState power_thermal_state_ GUARDED_BY(power_thermal_state_lock_) = PowerThermalObserver::DeviceThermalState::kUnknown;
     int speed_limit_ GUARDED_BY(power_thermal_state_lock_) = PowerThermalObserver::kSpeedLimitMax;
     Lock power_thermal_state_lock_;

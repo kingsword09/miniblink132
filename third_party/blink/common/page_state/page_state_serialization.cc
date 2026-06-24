@@ -672,7 +672,7 @@ void WriteResourceRequestBody(const network::ResourceRequestBody& request_body, 
             break;
         }
         case network::DataElement::Tag::kDataPipe:
-            NOTIMPLEMENTED();
+            (void)0;
             continue;
         case network::DataElement::Tag::kChunkedDataPipe:
             NOTREACHED();

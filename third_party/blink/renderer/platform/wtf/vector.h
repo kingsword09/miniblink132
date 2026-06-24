@@ -1358,7 +1358,7 @@ public:
     {
         return { data(), size() };
     }
-    explicit operator base::span<const T>()
+    explicit operator base::span<const T>() const
     {
         return { data(), size() };
     }

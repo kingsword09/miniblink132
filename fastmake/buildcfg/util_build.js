@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var src = [
     "${srcPath}/third_party/libavif/src/src/reformat_libsharpyuv.c",
@@ -826,5 +826,60 @@ if ("aarch64-linux-guneabi" == constVal.target) { // ARM64
     json[0].compile.cmd.push("-DPNG_ARM_NEON_OPT");
     json[0].compile.cmd.push("-D__ARM_NEON");
 }
+
+if (constVal.isMac) {
+    const compile = json[0].compile;
+    compile.include.push("${srcPath}/mac/libcurl");
+    compile.include.push("${srcPath}/third_party/dav1d/version");
+    compile.cmd = compile.cmd.filter((arg) => arg != "-D_GNU_SOURCE");
+    compile.cmd.push("-DHAVE_CONFIG_H");
+    compile.cmd.push("-DCURL_STATICLIB");
+    compile.cmd.push("-DBMP_SUPPORTED");
+    compile.cmd.push("-DPPM_SUPPORTED");
+    compile.src = compile.src.filter((path) =>
+        path != "${srcPath}/third_party/libavif/src/src/codec_aom.c" &&
+        path.indexOf("${srcPath}/third_party/libpng/intel/") < 0);
+    compile.src.push(
+        "${srcPath}/third_party/libcurl/src/altsvc.c",
+        "${srcPath}/third_party/libcurl/src/bufq.c",
+        "${srcPath}/third_party/libcurl/src/bufref.c",
+        "${srcPath}/third_party/libcurl/src/cf-h1-proxy.c",
+        "${srcPath}/third_party/libcurl/src/cf-haproxy.c",
+        "${srcPath}/third_party/libcurl/src/cf-https-connect.c",
+        "${srcPath}/third_party/libcurl/src/cf-socket.c",
+        "${srcPath}/third_party/libcurl/src/cfilters.c",
+        "${srcPath}/third_party/libcurl/src/curl_get_line.c",
+        "${srcPath}/third_party/libcurl/src/curl_hmac.c",
+        "${srcPath}/third_party/libcurl/src/curl_sha256.c",
+        "${srcPath}/third_party/libcurl/src/curl_trc.c",
+        "${srcPath}/third_party/libcurl/src/doh.c",
+        "${srcPath}/third_party/libcurl/src/dynbuf.c",
+        "${srcPath}/third_party/libcurl/src/dynhds.c",
+        "${srcPath}/third_party/libcurl/src/easygetopt.c",
+        "${srcPath}/third_party/libcurl/src/easyoptions.c",
+        "${srcPath}/third_party/libcurl/src/fopen.c",
+        "${srcPath}/third_party/libcurl/src/getenv_curl.c",
+        "${srcPath}/third_party/libcurl/src/headers.c",
+        "${srcPath}/third_party/libcurl/src/hsts.c",
+        "${srcPath}/third_party/libcurl/src/http1.c",
+        "${srcPath}/third_party/libcurl/src/http_aws_sigv4.c",
+        "${srcPath}/third_party/libcurl/src/idn.c",
+        "${srcPath}/third_party/libcurl/src/macos.c",
+        "${srcPath}/third_party/libcurl/src/mqtt.c",
+        "${srcPath}/third_party/libcurl/src/noproxy.c",
+        "${srcPath}/third_party/libcurl/src/rename.c",
+        "${srcPath}/third_party/libcurl/src/socketpair.c",
+        "${srcPath}/third_party/libcurl/src/timediff.c",
+        "${srcPath}/third_party/libcurl/src/urlapi.c",
+        "${srcPath}/third_party/libcurl/src/vauth/digest_curl.c",
+        "${srcPath}/third_party/libcurl/src/vtls/hostcheck.c",
+        "${srcPath}/third_party/libcurl/src/vtls/keylog.c",
+        "${srcPath}/third_party/libcurl/src/vtls/x509asn1.c",
+        "${srcPath}/third_party/libcurl/src/vquic/vquic.c",
+        "${srcPath}/third_party/libcurl/src/ws.c",
+    );
+}
+
+applyMacBuildSettings(json);
 
 buildCommonSetting(json);

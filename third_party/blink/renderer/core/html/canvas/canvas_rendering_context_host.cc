@@ -66,7 +66,7 @@ scoped_refptr<StaticBitmapImage> CanvasRenderingContextHost::CreateTransparentIm
 
 void CanvasRenderingContextHost::Commit(scoped_refptr<CanvasResource>&&, const SkIRect&)
 {
-    NOTIMPLEMENTED();
+    (void)0;
 }
 
 bool CanvasRenderingContextHost::IsPaintable() const

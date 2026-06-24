@@ -517,7 +517,9 @@ static void beginNavigation(
     extraData->setIsDownload(std::move(downloadName));
 
     scoped_refptr<const blink::SecurityOrigin> topFrameOrigin;
-    mbnet::BodyLoaderClient* client = new mbnet::BodyLoaderClient(isDownload, std::move(info), navigationControl->GetLocalFrameToken(), token);
+    bool isMainFrame = info->frame_type == blink::mojom::RequestContextFrameType::kTopLevel;
+    mbnet::BodyLoaderClient* client = new mbnet::BodyLoaderClient(
+        isDownload, std::move(info), navigationControl->GetLocalFrameToken(), token, mbwebviewId, isMainFrame);
     loader->LoadAsynchronouslyEx(std::move(request), topFrameOrigin, false, std::move(resourceLoadInfoNotifierWrap), nullptr, extraData, client);
 }
 
@@ -1121,17 +1123,18 @@ public:
 class AnchorElementInteractionHostImpl : public ::blink::mojom::blink::AnchorElementInteractionHost {
     void OnPointerDown(const ::blink::KURL& target) override
     {
-        OutputDebugStringA("AnchorElementInteractionHostImpl::OnPointerDown not impl\n");
+        (void)target;
     }
 
     void OnPointerHover(const ::blink::KURL& target, blink::mojom::blink::AnchorElementPointerDataPtr mouseData) override
     {
-        OutputDebugStringA("AnchorElementInteractionHostImpl::OnPointerHover not impl\n");
+        (void)target;
+        (void)mouseData;
     }
 
     void OnViewportHeuristicTriggered(const ::blink::KURL& target) override
     {
-        OutputDebugStringA("AnchorElementInteractionHostImpl::OnViewportHeuristicTriggered not impl\n");
+        (void)target;
     }
 };
 
@@ -1188,11 +1191,9 @@ void WebLocalFrameClientImpl::GetInterface(::mojo::GenericPendingReceiver receiv
     if ("blink.mojom.BackForwardCacheControllerHost" == name) {
         //             mojo::PendingAssociatedReceiver<::blink::mojom::blink::BackForwardCacheControllerHost> pendingReceiver(receiver.PassHandle());
         //             m_backForwardCacheControllerHostReceiver.Bind(std::move(pendingReceiver));
-        DebugBreak();
     } else if ("blink.mojom.LocalFrameHost" == name) {
         //             mojo::PendingAssociatedReceiver<::blink::mojom::blink::LocalFrameHost> pendingReceiver(receiver.PassHandle());
         //             m_localFrameHostReceiver.Bind(std::move(pendingReceiver));
-        DebugBreak();
     } else if ("blink.mojom.CodeCacheHost" == name) {
 
     } else if ("blink.mojom.ContentSecurityNotifier" == name) {
@@ -1226,7 +1227,6 @@ void WebLocalFrameClientImpl::GetInterface(::mojo::GenericPendingReceiver receiv
         createAndBindInterface<::blink::mojom::blink::NoStatePrefetchProcessor, NoStatePrefetchProcessorImpl>(receiver.PassPipe());
     } else if ("blink.mojom.WebSocketConnector" == name) {
         //createAndBindInterface<::blink::mojom::blink::WebSocketConnector, NoStatePrefetchProcessorImpl>(receiver.PassPipe());
-        DebugBreak();
     } else if ("blink.mojom.blink.NonAssociatedLocalFrameHost" == name) {
         createAndBindInterface<::blink::mojom::blink::NonAssociatedLocalFrameHost, NonAssociatedLocalFrameHostImpl>(receiver.PassPipe());
     } else if ("blink.mojom.AnchorElementInteractionHost" == name) {
@@ -1241,8 +1241,7 @@ void WebLocalFrameClientImpl::GetInterface(::mojo::GenericPendingReceiver receiv
         createAndBindInterface<::blink::mojom::blink::PermissionService, PermissionServiceImpl>(receiver.PassPipe());
     } else if ("blink.mojom.SharedWorkerConnector" == name) {
         createAndBindInterface<::blink::mojom::blink::SharedWorkerConnector, SharedWorkerConnectorImpl>(receiver.PassPipe());
-    } else
-        DebugBreak();
+    }
 }
 
 }

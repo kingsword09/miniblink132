@@ -133,7 +133,9 @@ public:
         bool isDownload, 
         std::unique_ptr<blink::WebNavigationInfo> info, 
         const blink::LocalFrameToken& navigationControlToken,
-        const blink::FrameToken& token
+        const blink::FrameToken& token,
+        int64_t mbwebviewId,
+        bool isMainFrame
     ); // TODO: WebNavigationControl要考虑页面被销毁了
     ~BodyLoaderClient() override;
 
@@ -183,6 +185,8 @@ protected:
     std::unique_ptr<blink::WebURLResponse> m_response;
 
     bool m_isDownload = false;
+    int64_t m_mbwebviewId = 0;
+    bool m_isMainFrame = false;
 };
 
 }

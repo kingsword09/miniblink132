@@ -161,15 +161,15 @@ private:
     // FORMATETC:
     // https://docs.microsoft.com/en-us/windows/desktop/com/the-formatetc-structure
     CHROME_FORMATETC data_;
-#elif defined(USE_AURA) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_FUCHSIA)
-    explicit ClipboardFormatType(const std::string& native_format);
-    std::string data_;
 #elif BUILDFLAG(IS_APPLE)
 #if __OBJC__
     explicit ClipboardFormatType(NSString* uttype);
 #endif // __OBJC__
     struct ObjCStorage;
     std::unique_ptr<ObjCStorage> objc_storage_;
+#elif defined(USE_AURA) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_FUCHSIA)
+    explicit ClipboardFormatType(const std::string& native_format);
+    std::string data_;
 #else
 #error No ClipboardFormatType definition.
 #endif

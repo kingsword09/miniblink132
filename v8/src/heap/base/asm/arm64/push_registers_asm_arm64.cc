@@ -11,7 +11,7 @@
 // Do not depend on V8_TARGET_OS_* defines as some embedders may override the
 // GN toolchain (e.g. ChromeOS) and not provide them.
 
-#if defined(_M_ARM64)
+#if defined(_M_ARM64) || defined(__aarch64__)
 
 // We maintain 16-byte alignment.
 //

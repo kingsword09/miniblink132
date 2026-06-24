@@ -6,6 +6,7 @@
 
 #include "base/apple/osstatus_logging.h"
 #include "base/apple/scoped_cftyperef.h"
+#include "base/containers/span.h"
 #include "base/mac/info_plist_data.h"
 #include "base/strings/sys_string_conversions.h"
 #include "third_party/abseil-cpp/absl/types/variant.h"
@@ -86,8 +87,9 @@ ScopedCFTypeRef<SecRequirementRef> RequirementFromString(std::string_view requir
 base::expected<ScopedCFTypeRef<SecCodeRef>, OSStatus> DynamicCodeObjectForCurrentProcess()
 {
     std::vector<uint8_t> info_plist_xml = OuterBundleCachedInfoPlistData();
+    std::string_view info_plist_xml_view = base::as_string_view(base::span<const uint8_t>(info_plist_xml.data(), info_plist_xml.size()));
     ScopedCFTypeRef<CFDictionaryRef> attributes
-        = AttributesForGuestValidation(getpid(), SignatureValidationType::DynamicOnly, base::as_string_view(info_plist_xml));
+        = AttributesForGuestValidation(getpid(), SignatureValidationType::DynamicOnly, info_plist_xml_view);
 
     ScopedCFTypeRef<SecCodeRef> code;
     OSStatus status = SecCodeCopyGuestWithAttributes(nullptr, attributes.get(), kSecCSDefaultFlags, code.InitializeInto());

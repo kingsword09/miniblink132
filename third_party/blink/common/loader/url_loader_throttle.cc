@@ -18,7 +18,7 @@ void URLLoaderThrottle::Delegate::InterceptResponse(mojo::PendingRemote<network:
     mojo::PendingReceiver<network::mojom::URLLoaderClient> new_client_receiver, mojo::PendingRemote<network::mojom::URLLoader>* original_loader,
     mojo::PendingReceiver<network::mojom::URLLoaderClient>* original_client_receiver, mojo::ScopedDataPipeConsumerHandle* body)
 {
-    NOTIMPLEMENTED();
+    (void)0;
 }
 
 URLLoaderThrottle::Delegate::~Delegate()

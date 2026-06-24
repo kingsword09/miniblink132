@@ -60,8 +60,8 @@ public:
     Status DeriveBits(const blink::WebCryptoAlgorithm& algorithm, const blink::WebCryptoKey& base_key, bool has_optional_length_bits,
         unsigned int optional_length_bits, std::vector<uint8_t>* derived_bytes) const override
     {
-        OutputDebugStringA("DeriveBits not impl\n");
-        DebugBreak();
+        (void)0;
+        (void)0;
 //         crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);
 //         if (!has_optional_length_bits)
 //             return Status::ErrorHkdfDeriveBitsLengthNotSpecified();

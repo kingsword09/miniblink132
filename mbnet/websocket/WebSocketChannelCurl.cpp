@@ -233,7 +233,7 @@ unsigned long WebSocketChannelCurl::bufferedAmount() const
     DCHECK(m_handle);
     DCHECK(!m_suspended);
 
-    DebugBreak();
+    (void)0;
     //     if (common::LiveIdDetect::get()->getPtr((intptr_t)m_handleId))
     //         return m_handle->bufferedAmount();
     return 0;
@@ -919,7 +919,7 @@ void WebSocketChannelCurl::processOutgoingFrameQueue()
             //                 break;
             //             }
             //             }
-            DebugBreak();
+            (void)0;
             break;
         }
 
@@ -1008,7 +1008,7 @@ bool WebSocketChannelCurl::sendFrame(WebSocketOneFrame::OpCode opCode, const cha
 
 blink::Document* WebSocketChannelCurl::document()
 {
-    DebugBreak();
+    (void)0;
     return nullptr;
 }
 
@@ -1080,7 +1080,7 @@ blink::WebSocketChannel::SendResult WebSocketChannelCurl::Send(
 
 void WebSocketChannelCurl::Send(scoped_refptr<blink::BlobDataHandle>)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void WebSocketChannelCurl::Close(int code, const String& reason)
@@ -1115,27 +1115,27 @@ void WebSocketChannelCurl::Disconnect()
 
 void WebSocketChannelCurl::CancelHandshake()
 {
-    DebugBreak();
+    (void)0;
 }
 
 void WebSocketChannelCurl::ApplyBackpressure()
 {
-    DebugBreak();
+    (void)0;
 }
 
 void WebSocketChannelCurl::RemoveBackpressure()
 {
-    DebugBreak();
+    (void)0;
 }
 
 void WebSocketChannelCurl::didReceiveAuthenticationChallenge(SocketStreamHandle*, const blink::AuthenticationChallenge&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void WebSocketChannelCurl::didCancelAuthenticationChallenge(SocketStreamHandle*, const blink::AuthenticationChallenge&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void WebSocketChannelCurl::ref()

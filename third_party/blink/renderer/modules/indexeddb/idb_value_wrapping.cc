@@ -26,7 +26,12 @@
 #include "third_party/blink/renderer/modules/indexeddb/idb_value.h"
 #include "third_party/blink/renderer/platform/blob/blob_data.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
+#if __has_include("third_party/snappy/src/snappy.h")
 #include "third_party/snappy/src/snappy.h"
+#define BLINK_HAS_SNAPPY 1
+#else
+#define BLINK_HAS_SNAPPY 0
+#endif
 
 namespace blink {
 
@@ -164,14 +169,21 @@ void IDBValueWrapper::DoneCloning()
 
 bool IDBValueWrapper::ShouldCompress(size_t uncompressed_length) const
 {
+#if !BLINK_HAS_SNAPPY
+    return false;
+#else
     static int field_trial_threshold = features::kIndexedDBCompressValuesWithSnappyCompressionThreshold.Get();
     return base::FeatureList::IsEnabled(features::kIndexedDBCompressValuesWithSnappy)
         && uncompressed_length
         >= compression_threshold_override_.value_or(static_cast<size_t>(field_trial_threshold < 0 ? mojom::blink::kIDBWrapThreshold : field_trial_threshold));
+#endif
 }
 
 void IDBValueWrapper::MaybeCompress()
 {
+#if !BLINK_HAS_SNAPPY
+    return;
+#else
     if (!base::FeatureList::IsEnabled(features::kIndexedDBCompressValuesWithSnappy)) {
         return;
     }
@@ -203,6 +215,7 @@ void IDBValueWrapper::MaybeCompress()
     }
 
     wire_data_ = base::make_span(reinterpret_cast<const uint8_t*>(wire_data_buffer_.data()), wire_data_buffer_.size());
+#endif
 }
 
 void IDBValueWrapper::MaybeStoreInBlob()
@@ -307,6 +320,9 @@ bool IDBValueUnwrapper::Decompress(const Vector<char>& buffer, Vector<char>* out
         return false;
     }
 
+#if !BLINK_HAS_SNAPPY
+    return false;
+#else
     base::span<const char> compressed(base::as_chars(data_span.subspan(kHeaderSize)));
 
     Vector<char> decompressed_data;
@@ -319,6 +335,7 @@ bool IDBValueUnwrapper::Decompress(const Vector<char>& buffer, Vector<char>* out
     snappy::RawUncompress(compressed.data(), compressed.size(), decompressed_data.data());
     *out_buffer = std::move(decompressed_data);
     return true;
+#endif
 }
 
 bool IDBValueUnwrapper::Parse(IDBValue* value)

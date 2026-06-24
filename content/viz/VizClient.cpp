@@ -121,14 +121,14 @@ viz::LocalSurfaceId VizClient::embedOnBlinkThread(const viz::FrameSinkId& frameS
 
 viz::LocalSurfaceId VizClient::GetLocalSurfaceId()
 {
-    DebugBreak();
+    (void)0;
     base::AutoLock lock(m_lock);
     return m_hostLocalSurfaceId;
 }
 
 viz::LocalSurfaceId VizClient::GenLocalSurfaceId()
 {
-    DebugBreak();
+    (void)0;
     base::AutoLock lock(m_lock);
     m_allocator.GenerateId();
     return m_allocator.GetCurrentLocalSurfaceId();

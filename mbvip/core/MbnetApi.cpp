@@ -16,6 +16,7 @@
 #include "mbnet/FlattenHTTPBodyElement.h"
 #include "mbnet/WebURLLoaderManagerSetupInfo.h"
 #include "mbnet/DefaultLocalStorageDir.h"
+#include "mbnet/websocket/WebSocketChannelCurl.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/partitions.h"
@@ -23,10 +24,18 @@
 #include "third_party/blink/public/platform/web_http_header_visitor.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "base/command_line.h"
+#include "base/base64.h"
 #include "base/run_loop.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_executor.h"
 #include "base/at_exit.h"
+#include "third_party/blink/renderer/platform/weborigin/kurl.h"
+#include "third_party/libcurl/include/curl/curl.h"
+#include <atomic>
+#include <climits>
+#include <mutex>
+#include <thread>
+#include <unordered_map>
 #include "v8.h"
 
 bool checkThreadCallIsValid(const char* funcName);
@@ -267,7 +276,6 @@ mbPostBodyElement* MB_CALL_TYPE mbNetCreatePostBodyElement(mbWebView webView)
 
 static mbPostBodyElements* flattenHTTPBodyElementToWke(const std::vector<mbnet::FlattenHTTPBodyElement*>& body)
 {
-#if 1 // defined(OS_WIN)
     if (0 == body.size())
         return nullptr;
 
@@ -299,10 +307,6 @@ static mbPostBodyElements* flattenHTTPBodyElementToWke(const std::vector<mbnet::
         }
     }
     return result;
-#else
-    DebugBreak();
-    return nullptr;
-#endif
 }
 
 mbPostBodyElements* MB_CALL_TYPE mbNetGetPostBody(void* jobPtr)
@@ -345,27 +349,6 @@ void MB_CALL_TYPE mbNetFreePostBodyElements(mbPostBodyElements* elements)
     netFreePostBodyElements(elements);
 }
 
-mbWebUrlRequestPtr MB_CALL_TYPE mbNetCreateWebUrlRequest(const utf8* url, const utf8* method, const utf8* mime)
-{
-    //return (mbWebUrlRequestPtr)wkeNetCreateWebUrlRequest(/*webview ? webview->getWkeWebView() : nullptr , */url, method, mime);
-    OutputDebugStringA("mbNetCreateWebUrlRequest not impl\n");
-    *(int*)1 = 1;
-    return nullptr;
-}
-
-void MB_CALL_TYPE mbNetAddHTTPHeaderFieldToUrlRequest(mbWebUrlRequestPtr request, const utf8* name, const utf8* value)
-{
-    OutputDebugStringA("mbNetAddHTTPHeaderFieldToUrlRequest not impl\n");
-    *(int*)1 = 1;
-}
-
-int MB_CALL_TYPE mbNetStartUrlRequest(mbWebView webviewHandle, mbWebUrlRequestPtr request, void* param, const mbUrlRequestCallbacks* callbacks)
-{
-    OutputDebugStringA("mbNetStartUrlRequest not impl\n");
-    *(int*)1 = 1;
-    return 0;
-}
-
 struct mbWebUrlResponse {
     mbWebUrlResponse(const blink::WebURLResponse& response)
     {
@@ -373,6 +356,241 @@ struct mbWebUrlResponse {
     }
     blink::WebURLResponse m_response;
 };
+
+struct mbWebUrlRequest {
+    std::string url;
+    std::string method;
+    std::string mime;
+    std::vector<std::pair<std::string, std::string>> headers;
+    int id = 0;
+    std::atomic_bool cancelled { false };
+    std::atomic_bool responseSent { false };
+};
+
+namespace {
+
+std::atomic_int g_nextUrlRequestId { 1 };
+std::mutex g_urlRequestMutex;
+std::unordered_map<int, mbWebUrlRequest*> g_urlRequests;
+std::once_flag g_curlInitOnce;
+
+struct MbWebsocketCallbackState {
+    mbWebsocketHookCallbacks callbacks {};
+    void* param = nullptr;
+    bool hasCallbacks = false;
+};
+
+struct MbResPacketState {
+    std::u16string path;
+    bool enabled = false;
+};
+
+struct MbUrlRequestContext {
+    mbWebView webviewHandle;
+    mbWebUrlRequest* request;
+    void* param;
+    mbUrlRequestCallbacks callbacks;
+    CURL* curl;
+};
+
+std::mutex& mbWebsocketCallbackLock()
+{
+    static std::mutex* lock = new std::mutex();
+    return *lock;
+}
+
+std::unordered_map<int64_t, MbWebsocketCallbackState>& mbWebsocketCallbacksByView()
+{
+    static std::unordered_map<int64_t, MbWebsocketCallbackState>* callbacks = new std::unordered_map<int64_t, MbWebsocketCallbackState>();
+    return *callbacks;
+}
+
+std::mutex& mbResPacketStateLock()
+{
+    static std::mutex* lock = new std::mutex();
+    return *lock;
+}
+
+std::unordered_map<int64_t, MbResPacketState>& mbResPacketStatesByView()
+{
+    static std::unordered_map<int64_t, MbResPacketState>* states = new std::unordered_map<int64_t, MbResPacketState>();
+    return *states;
+}
+
+void ensureCurlInitialized()
+{
+    std::call_once(g_curlInitOnce, [] { curl_global_init(CURL_GLOBAL_ALL); });
+}
+
+mbWebUrlResponse* createMbUrlResponse(CURL* curl, const mbWebUrlRequest* request)
+{
+    char* effectiveUrl = nullptr;
+    long statusCode = 0;
+    curl_off_t contentLength = -1;
+    char* contentType = nullptr;
+
+    curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
+    curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &contentLength);
+    curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &contentType);
+
+    blink::WebURLResponse response;
+    response.SetCurrentRequestUrl(blink::KURL(effectiveUrl ? effectiveUrl : request->url.c_str()));
+    response.SetHttpStatusCode(static_cast<int>(statusCode));
+    if (contentLength >= 0)
+        response.SetExpectedContentLength(static_cast<int64_t>(contentLength));
+    if (contentType && contentType[0])
+        response.SetMimeType(blink::WebString::FromUTF8(contentType));
+    else if (!request->mime.empty())
+        response.SetMimeType(blink::WebString::FromUTF8(request->mime));
+
+    return new mbWebUrlResponse(response);
+}
+
+void maybeSendUrlResponse(CURL* curl, mbWebView webviewHandle, mbWebUrlRequest* request, void* param, const mbUrlRequestCallbacks& callbacks)
+{
+    bool expected = false;
+    if (!request->responseSent.compare_exchange_strong(expected, true))
+        return;
+
+    if (!callbacks.didReceiveResponseCallback)
+        return;
+
+    mbWebUrlResponse* response = createMbUrlResponse(curl, request);
+    callbacks.didReceiveResponseCallback(webviewHandle, param, request, response);
+    delete response;
+}
+
+size_t mbUrlRequestWriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
+{
+    MbUrlRequestContext* context = static_cast<MbUrlRequestContext*>(userdata);
+    size_t length = size * nmemb;
+    if (!context || !context->request || context->request->cancelled.load())
+        return 0;
+
+    maybeSendUrlResponse(context->curl, context->webviewHandle, context->request, context->param, context->callbacks);
+    if (context->callbacks.didReceiveDataCallback && length > 0)
+        context->callbacks.didReceiveDataCallback(context->webviewHandle, context->param, context->request, ptr, static_cast<int>(length));
+    return length;
+}
+
+int mbUrlRequestProgressCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
+{
+    mbWebUrlRequest* request = static_cast<mbWebUrlRequest*>(userdata);
+    return request && request->cancelled.load() ? 1 : 0;
+}
+
+void removeUrlRequest(int requestId)
+{
+    std::lock_guard<std::mutex> lock(g_urlRequestMutex);
+    g_urlRequests.erase(requestId);
+}
+
+} // namespace
+
+mbWebUrlRequestPtr MB_CALL_TYPE mbNetCreateWebUrlRequest(const utf8* url, const utf8* method, const utf8* mime)
+{
+    mbWebUrlRequest* request = new mbWebUrlRequest();
+    request->url = url ? url : "";
+    request->method = (method && method[0]) ? method : "GET";
+    request->mime = mime ? mime : "";
+    return request;
+}
+
+void MB_CALL_TYPE mbNetAddHTTPHeaderFieldToUrlRequest(mbWebUrlRequestPtr request, const utf8* name, const utf8* value)
+{
+    if (!request || !name)
+        return;
+    request->headers.push_back(std::make_pair(std::string(name), std::string(value ? value : "")));
+}
+
+int MB_CALL_TYPE mbNetStartUrlRequest(mbWebView webviewHandle, mbWebUrlRequestPtr request, void* param, const mbUrlRequestCallbacks* callbacks)
+{
+    if (!request || request->url.empty()) {
+        if (callbacks && callbacks->didFailCallback)
+            callbacks->didFailCallback(webviewHandle, param, request, "invalid request");
+        delete request;
+        return 0;
+    }
+
+    ensureCurlInitialized();
+    mbUrlRequestCallbacks callbacksCopy = {};
+    if (callbacks)
+        callbacksCopy = *callbacks;
+
+    int requestId = g_nextUrlRequestId.fetch_add(1);
+    request->id = requestId;
+    {
+        std::lock_guard<std::mutex> lock(g_urlRequestMutex);
+        g_urlRequests[requestId] = request;
+    }
+
+    std::thread([webviewHandle, request, param, callbacksCopy, requestId] {
+        CURL* curl = curl_easy_init();
+        if (!curl) {
+            if (callbacksCopy.didFailCallback)
+                callbacksCopy.didFailCallback(webviewHandle, param, request, "curl_easy_init failed");
+            removeUrlRequest(requestId);
+            delete request;
+            return;
+        }
+
+        MbUrlRequestContext context = { webviewHandle, request, param, callbacksCopy, curl };
+        char errorBuffer[CURL_ERROR_SIZE] = { 0 };
+        curl_slist* headerList = nullptr;
+        for (const auto& header : request->headers) {
+            std::string line = header.first + ": " + header.second;
+            headerList = curl_slist_append(headerList, line.c_str());
+        }
+        if (!request->mime.empty()) {
+            std::string contentType = "Content-Type: " + request->mime;
+            headerList = curl_slist_append(headerList, contentType.c_str());
+        }
+
+        curl_easy_setopt(curl, CURLOPT_URL, request->url.c_str());
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
+        curl_easy_setopt(curl, CURLOPT_AUTOREFERER, 1L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        curl_easy_setopt(curl, CURLOPT_ENCODING, "");
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, mbUrlRequestWriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &context);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, mbUrlRequestProgressCallback);
+        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, request);
+        if (headerList)
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
+
+        if (request->method == "POST") {
+            curl_easy_setopt(curl, CURLOPT_POST, 1L);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0L);
+        } else if (request->method == "HEAD") {
+            curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+        } else if (request->method != "GET") {
+            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, request->method.c_str());
+        }
+
+        CURLcode code = curl_easy_perform(curl);
+        if (!request->cancelled.load() && code == CURLE_OK) {
+            maybeSendUrlResponse(curl, webviewHandle, request, param, callbacksCopy);
+            if (callbacksCopy.didFinishLoadingCallback)
+                callbacksCopy.didFinishLoadingCallback(webviewHandle, param, request, 0);
+        } else if (callbacksCopy.didFailCallback) {
+            const char* error = request->cancelled.load() ? "cancelled" : (errorBuffer[0] ? errorBuffer : curl_easy_strerror(code));
+            callbacksCopy.didFailCallback(webviewHandle, param, request, error);
+        }
+
+        if (headerList)
+            curl_slist_free_all(headerList);
+        curl_easy_cleanup(curl);
+        removeUrlRequest(requestId);
+        delete request;
+    }).detach();
+
+    return requestId;
+}
 
 int MB_CALL_TYPE mbNetGetHttpStatusCode(mbWebUrlResponsePtr response)
 {
@@ -396,13 +614,10 @@ const utf8* MB_CALL_TYPE mbNetGetResponseUrl(mbWebUrlResponsePtr response)
 
 void MB_CALL_TYPE mbNetCancelWebUrlRequest(int requestId)
 {
-    OutputDebugStringA("mbNetCancelWebUrlRequest not impl\n");
-    *(int*)1 = 1;
-//     mbnet::JobHead* jobHead = mbnet::WebURLLoaderManager::sharedInstance()->checkJob(requestId);
-//     if (!jobHead || net::JobHead::kWkeCustomNetRequest != jobHead->getType())
-//         return;
-//     NetUrlRequest* netRequest = (NetUrlRequest*)jobHead;
-//     netRequest->cancel();
+    std::lock_guard<std::mutex> lock(g_urlRequestMutex);
+    auto it = g_urlRequests.find(requestId);
+    if (it != g_urlRequests.end() && it->second)
+        it->second->cancelled.store(true);
 }
 
 void MB_CALL_TYPE mbSetViewProxy(mbWebView webviewHandle, const mbProxy* proxy)
@@ -629,46 +844,90 @@ void MB_CALL_TYPE mbNetOnResponse(mbWebView webviewHandle, mbNetResponseCallback
 
 void MB_CALL_TYPE mbNetSetWebsocketCallback(mbWebView webviewHandle, const mbWebsocketHookCallbacks* callbacks, void* param)
 {
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+
+    std::lock_guard<std::mutex> lock(mbWebsocketCallbackLock());
+    MbWebsocketCallbackState& state = mbWebsocketCallbacksByView()[(int64_t)webviewHandle];
+    if (!callbacks) {
+        state = MbWebsocketCallbackState();
+        return;
+    }
+    state.callbacks = *callbacks;
+    state.param = param;
+    state.hasCallbacks = true;
 }
 
 void MB_CALL_TYPE mbNetSendWsText(void* channel, const char* buf, size_t len)
 {
-
+    if (!channel || !buf || !len)
+        return;
+    mbnet::WebSocketChannelCurl* channelPtr = (mbnet::WebSocketChannelCurl*)channel;
+    channelPtr->send(buf, len > INT_MAX ? INT_MAX : (int)len, true);
 }
 
 void MB_CALL_TYPE mbNetSendWsBlob(void* channel, const char* buf, size_t len)
 {
-
+    if (!channel || !buf || !len)
+        return;
+    mbnet::WebSocketChannelCurl* channelPtr = (mbnet::WebSocketChannelCurl*)channel;
+    channelPtr->send(buf, len > INT_MAX ? INT_MAX : (int)len, true);
 }
 
 const utf8* MB_CALL_TYPE mbUtilBase64Encode(const utf8* str)
 {
-    OutputDebugStringA("mbUtilBase64Encode not impl\n");
-    *(int*)1 = 1;
-    return nullptr;
+    if (!str)
+        return nullptr;
+
+    std::string result = base::Base64Encode(str);
+    return createTempCharString(result.c_str(), result.size());
 }
 
 const utf8* MB_CALL_TYPE mbUtilBase64Decode(const utf8* str)
 {
-    OutputDebugStringA("mbUtilBase64Decode not impl\n");
-    *(int*)1 = 1;
-    return nullptr;
+    if (!str)
+        return nullptr;
+
+    std::string result;
+    if (!base::Base64Decode(str, &result))
+        return nullptr;
+    return createTempCharString(result.c_str(), result.size());
 }
 
 void MB_CALL_TYPE mbNetEnableResPacket(mbWebView webviewHandle, const WCHAR* pathName)
 {
-    OutputDebugStringA("mbNetEnableResPacket not impl\n");
-    *(int*)1 = 1;
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+
+    std::lock_guard<std::mutex> lock(mbResPacketStateLock());
+    MbResPacketState& state = mbResPacketStatesByView()[(int64_t)webviewHandle];
+    if (!pathName || !pathName[0]) {
+        state.path.clear();
+        state.enabled = false;
+        return;
+    }
+    state.path = std::u16string((const char16_t*)pathName);
+    state.enabled = true;
 }
 
 void MB_CALL_TYPE mbOnNavigationSync(mbWebView webviewHandle, mbNavigationCallback callback, void* param)
 {
-    OutputDebugStringA("mbOnNavigationSync not impl\n");
-    *(int*)1 = 1;
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+    webview->getClosure().setNavigationSyncCallback(callback, param);
 }
 
 void MB_CALL_TYPE mbOnNetGetFavicon(mbWebView webviewHandle, mbNetGetFaviconCallback callback, void* param)
 {
-    OutputDebugStringA("mbOnNetGetFavicon not impl\n");
-    *(int*)1 = 1;
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+    webview->getClosure().setNetGetFaviconCallback(callback, param);
 }

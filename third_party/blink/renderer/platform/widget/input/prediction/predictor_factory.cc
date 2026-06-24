@@ -6,12 +6,7 @@
 
 #include "third_party/blink/public/common/features.h"
 #include "ui/base/prediction/empty_predictor.h"
-#include "ui/base/prediction/kalman_predictor.h"
-#include "ui/base/prediction/least_squares_predictor.h"
-#include "ui/base/prediction/linear_predictor.h"
-#include "ui/base/prediction/linear_resampling.h"
 #include "ui/base/ui_base_features.h"
-#include <windows.h>
 
 namespace blink {
 
@@ -40,30 +35,14 @@ PredictorType PredictorFactory::GetPredictorTypeFromName(const std::string& pred
 
 std::unique_ptr<ui::InputPredictor> PredictorFactory::GetPredictor(PredictorType predictor_type)
 {
-//     if (predictor_type == PredictorType::kScrollPredictorTypeLinearResampling) {
-//         return std::make_unique<ui::LinearResampling>();
-//     } else if (predictor_type == PredictorType::kScrollPredictorTypeLsq) {
-//         return std::make_unique<ui::LeastSquaresPredictor>();
-//     } else if (predictor_type == PredictorType::kScrollPredictorTypeKalman) {
-//         return std::make_unique<ui::KalmanPredictor>(GetKalmanPredictorOptions());
-//     } else if (predictor_type == PredictorType::kScrollPredictorTypeLinearFirst) {
-//         return std::make_unique<ui::LinearPredictor>(ui::LinearPredictor::EquationOrder::kFirstOrder);
-//     } else if (predictor_type == PredictorType::kScrollPredictorTypeLinearSecond) {
-//         return std::make_unique<ui::LinearPredictor>(ui::LinearPredictor::EquationOrder::kSecondOrder);
-//     } else {
-//         return std::make_unique<ui::EmptyPredictor>();
-//     }
-
-    OutputDebugStringA("PredictorFactory::GetPredictor not impl\n");
+    (void)predictor_type;
     return std::make_unique<ui::EmptyPredictor>();
 }
 
 unsigned int PredictorFactory::GetKalmanPredictorOptions()
 {
-    if (predictor_options_ == UINT_MAX) {
-        predictor_options_ = (base::FeatureList::IsEnabled(blink::features::kKalmanHeuristics) ? ui::KalmanPredictor::PredictionOptions::kHeuristicsEnabled : 0)
-            | (base::FeatureList::IsEnabled(blink::features::kKalmanDirectionCutOff) ? ui::KalmanPredictor::PredictionOptions::kDirectionCutOffEnabled : 0);
-    }
+    if (predictor_options_ == UINT_MAX)
+        predictor_options_ = 0;
     return predictor_options_;
 }
 
