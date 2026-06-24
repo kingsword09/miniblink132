@@ -59,6 +59,8 @@ std::atomic<int> g_async_can_go_back(-1);
 std::atomic<int> g_async_can_go_forward(-1);
 std::atomic<int> g_async_js_callback_count(0);
 std::atomic<double> g_async_js_number(0);
+std::atomic<int> g_cookie_callback_count(0);
+std::atomic<int> g_cookie_callback_state(-1);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -67,6 +69,7 @@ std::string g_last_fail_url;
 std::string g_last_fail_reason;
 std::string g_last_download_url;
 std::string g_async_js_text;
+std::string g_last_cookie_string;
 BOOL g_last_can_go_back = FALSE;
 BOOL g_last_can_go_forward = FALSE;
 
@@ -618,6 +621,16 @@ void MB_CALL_TYPE onCanGoForward(mbWebView, void*, MbAsynRequestState state, BOO
     g_async_can_go_forward = state == kMbAsynRequestStateOk && canGo ? 1 : 0;
 }
 
+void MB_CALL_TYPE onGetCookie(mbWebView, void*, MbAsynRequestState state, const utf8* cookie)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_last_cookie_string = cookie ? cookie : "";
+    }
+    g_cookie_callback_state = state;
+    ++g_cookie_callback_count;
+}
+
 void MB_CALL_TYPE onRunJsNumber(mbWebView, void*, mbJsExecState es, mbJsValue value)
 {
     g_async_js_number = mbJsToDouble(es, value);
@@ -861,6 +874,37 @@ void runWebContentsScriptAndZoomChecks(mbWebView view)
     }
 }
 
+std::string getCookieViaApi(mbWebView view)
+{
+    int before = g_cookie_callback_count.load();
+    g_cookie_callback_state = -1;
+    mbGetCookie(view, onGetCookie, nullptr);
+    waitFor([&] { return g_cookie_callback_count.load() > before; }, 3000);
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    return g_last_cookie_string;
+}
+
+void runSessionCookieChecks(mbWebView view, const std::string& origin)
+{
+    const std::string url = origin + "/remote.html";
+    mbSetCookie(view, url.c_str(), "host_cookie=api-ok; path=/");
+    bool dom_cookie_ok = waitFor([&] {
+        return jsString(view, "document.cookie").find("host_cookie=api-ok") != std::string::npos;
+    }, 3000);
+    addCheck("session-cookie-set-via-api-dom", dom_cookie_ok, jsString(view, "document.cookie"));
+
+    std::string api_cookie = getCookieViaApi(view);
+    addCheck("session-cookie-get-via-api", g_cookie_callback_state.load() == kMbAsynRequestStateOk
+            && api_cookie.find("host_cookie=api-ok") != std::string::npos,
+        api_cookie);
+
+    mbClearCookie(view);
+    bool cleared = waitFor([&] {
+        return getCookieViaApi(view).find("host_cookie=api-ok") == std::string::npos;
+    }, 3000);
+    addCheck("session-cookie-clear-via-api", cleared, getCookieViaApi(view));
+}
+
 } // namespace
 
 int main()
@@ -981,6 +1025,7 @@ int main()
             json + " wsUpgrades=" + std::to_string(server.websocketUpgrades()) + " wsMessages=" + std::to_string(server.websocketMessages())
                 + server.websocketDebug());
         addCheck("cookie-localStorage", json.find("cookie-ok") != std::string::npos && json.find("storage-ok") != std::string::npos, json);
+        runSessionCookieChecks(view, server.origin());
 
         mbSetFocus(view);
         jsNumber(view, "var i=document.getElementById('textInput'); i.value=''; i.focus(); 1");

@@ -1924,22 +1924,17 @@ mbnet::WebCookieJarImpl* MbWebView::getWebCookieJarImpl()
     return mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
 }
 
-void MbWebView::setCookie(const std::string& ck)
+void MbWebView::setCookie(const std::string& urlText, const std::string& ck)
 {
-    blink::WebLocalFrame* frame = (blink::WebLocalFrame*)(m_renderWidgetHostImpl->m_webWiew->MainFrame());
-    if (!frame)
-        return;
-
-    blink::WebDocument webDocument = frame->GetDocument();
-    if (webDocument.IsNull())
-        return;
-
     mbnet::WebCookieJarImpl* cookieJar = getWebCookieJarImpl();
     if (!cookieJar)
         return;
 
-    const blink::Document* doc = webDocument.ConstUnwrap<blink::Document>();
-    return cookieJar->setCookiesFromDOM(blink::KURL(), /*doc->CookieURL()*/blink::KURL(), ck);
+    blink::KURL url(WTF::String::FromUTF8(std::string_view(urlText.c_str(), urlText.size())));
+    if (!url.IsValid())
+        return;
+
+    cookieJar->setCookiesFromDOM(blink::KURL(), url, ck);
 }
 
 void MbWebView::setCookieJarFullPath(const char* path)

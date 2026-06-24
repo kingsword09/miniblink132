@@ -244,7 +244,7 @@ public:
     scoped_refptr<mbnet::PageNetExtraData> getPageNetExtraData();
     mbnet::WebCookieJarImpl* getWebCookieJarImpl();
     std::string getCookie();
-    void setCookie(const std::string& ck);
+    void setCookie(const std::string& url, const std::string& ck);
 
     std::map<std::string, void*>& getUserKeyValues()
     {

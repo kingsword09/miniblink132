@@ -683,7 +683,7 @@ void MB_CALL_TYPE mbSetCookie(mbWebView webviewHandle, const utf8* url, const ut
     content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, urlString, cookieString] {
         content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
         if (webview) {
-            webview->setCookie(*cookieString);
+            webview->setCookie(*urlString, *cookieString);
         }
 
         OutputDebugStringA("mbSetCookie:");
