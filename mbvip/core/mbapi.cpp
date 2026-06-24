@@ -696,7 +696,13 @@ void MB_CALL_TYPE mbMoveWindow(mbWebView webviewHandle, int x, int y, int w, int
     HWND hwnd = mbGetHostHWND(webviewHandle);
     if (!hwnd)
         return;
-    ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+    if (content::ThreadCall::isUiThread()) {
+        ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+        return;
+    }
+    content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [hwnd, x, y, w, h] {
+        ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+    });
 }
 
 void MB_CALL_TYPE mbSetAudioMuted(mbWebView webviewHandle, BOOL b)

@@ -704,10 +704,10 @@ BOOL mbGetWindowRectImpl(mbWebView webviewHandle, mbRect* rc)
     if (!::GetWindowRect(hwnd, &windowRect))
         return FALSE;
 
-    rc->x = windowRect.top;
-    rc->y = windowRect.left;
-    rc->w = windowRect.bottom - windowRect.top;
-    rc->h = windowRect.right - windowRect.left;
+    rc->x = windowRect.left;
+    rc->y = windowRect.top;
+    rc->w = windowRect.right - windowRect.left;
+    rc->h = windowRect.bottom - windowRect.top;
     return TRUE;
 }
 

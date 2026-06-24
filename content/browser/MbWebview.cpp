@@ -1721,8 +1721,12 @@ bool MbWebView::setWindowTitle(const std::string& title)
     m_windowTitle = title;
 
     if (m_hWnd) {
+        HWND hWnd = m_hWnd;
         std::u16string titleW = utf8ToUtf16(m_windowTitle);
-        ::SetWindowTextW(m_hWnd, (LPCWSTR)titleW.c_str());
+        if (content::ThreadCall::isUiThread())
+            ::SetWindowTextW(hWnd, (LPCWSTR)titleW.c_str());
+        else
+            content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [hWnd, titleW] { ::SetWindowTextW(hWnd, (LPCWSTR)titleW.c_str()); });
         return true;
     }
 

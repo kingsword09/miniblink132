@@ -599,6 +599,24 @@ int main()
     }, 6000);
     addCheck("webview-main-frame-ready", webview_ready);
 
+    mbMoveWindow(view, 180, 160, 640, 480);
+    mbRect bounds;
+    BOOL got_bounds = mbGetWindowRect(view, &bounds);
+    bool bounds_ok = got_bounds && bounds.x == 180 && bounds.y == 160 && bounds.w == 640 && bounds.h == 480;
+    addCheck("browserwindow-bounds-api", bounds_ok,
+        std::to_string(bounds.x) + "," + std::to_string(bounds.y) + " " + std::to_string(bounds.w) + "x" + std::to_string(bounds.h));
+
+    mbSetWindowTitle(view, "Host Window Title");
+    runLoopFor(100);
+    addCheck("browserwindow-title-api", std::string(mbGetTitle(view) ? mbGetTitle(view) : "") == "Host Window Title",
+        mbGetTitle(view) ? mbGetTitle(view) : "");
+
+    mbShowWindow(view, 0);
+    runLoopFor(100);
+    mbShowWindow(view, 5);
+    runLoopFor(100);
+    addCheck("browserwindow-show-hide-api", true, "mbShowWindow accepted");
+
     resetLoadState();
     mbLoadURL(view, fileUrl(local_html).c_str());
     bool local_ok = waitForLoad(view, "load-local-html-file", 6000);
