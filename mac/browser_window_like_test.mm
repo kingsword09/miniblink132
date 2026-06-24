@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -56,6 +57,8 @@ std::atomic<int> g_lifecycle_close_count(0);
 std::atomic<int> g_lifecycle_destroy_count(0);
 std::atomic<int> g_async_can_go_back(-1);
 std::atomic<int> g_async_can_go_forward(-1);
+std::atomic<int> g_async_js_callback_count(0);
+std::atomic<double> g_async_js_number(0);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -63,6 +66,7 @@ std::string g_last_url;
 std::string g_last_fail_url;
 std::string g_last_fail_reason;
 std::string g_last_download_url;
+std::string g_async_js_text;
 BOOL g_last_can_go_back = FALSE;
 BOOL g_last_can_go_forward = FALSE;
 
@@ -614,6 +618,22 @@ void MB_CALL_TYPE onCanGoForward(mbWebView, void*, MbAsynRequestState state, BOO
     g_async_can_go_forward = state == kMbAsynRequestStateOk && canGo ? 1 : 0;
 }
 
+void MB_CALL_TYPE onRunJsNumber(mbWebView, void*, mbJsExecState es, mbJsValue value)
+{
+    g_async_js_number = mbJsToDouble(es, value);
+    ++g_async_js_callback_count;
+}
+
+void MB_CALL_TYPE onRunJsString(mbWebView, void*, mbJsExecState es, mbJsValue value)
+{
+    const char* text = mbJsToString(es, value);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_js_text = text ? text : "";
+    }
+    ++g_async_js_callback_count;
+}
+
 std::string makeLocalHtml(const std::string& dir)
 {
     std::string path = dir + "/local.html";
@@ -806,6 +826,41 @@ void runNavigationControlChecks(const std::string& origin)
     waitFor([&] { return !readWindowState(host).isWindow; }, 3000);
 }
 
+void runWebContentsScriptAndZoomChecks(mbWebView view)
+{
+    mbSetZoomFactor(view, 1.25f);
+    bool zoom_set = waitFor([&] {
+        return std::abs(mbGetZoomFactor(view) - 1.25f) < 0.001f;
+    }, 3000);
+    addCheck("webcontents-zoom-factor", zoom_set, std::to_string(mbGetZoomFactor(view)));
+    mbSetZoomFactor(view, 1.0f);
+    waitFor([&] { return std::abs(mbGetZoomFactor(view) - 1.0f) < 0.001f; }, 3000);
+
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+    int before = g_async_js_callback_count.load();
+    g_async_js_number = 0;
+    mbRunJs(view, frame, "21 * 2", FALSE, onRunJsNumber, nullptr, nullptr);
+    bool number_ok = waitFor([&] {
+        return g_async_js_callback_count.load() > before && std::abs(g_async_js_number.load() - 42.0) < 0.001;
+    }, 3000);
+    addCheck("webcontents-execute-js-async", number_ok, std::to_string(g_async_js_number.load()));
+
+    before = g_async_js_callback_count.load();
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_js_text.clear();
+    }
+    mbRunJs(view, frame, "return window.__local + '-closure';", TRUE, onRunJsString, nullptr, nullptr);
+    bool closure_ok = waitFor([&] {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        return g_async_js_callback_count.load() > before && g_async_js_text == "local-ok-closure";
+    }, 3000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-execute-js-closure", closure_ok, g_async_js_text);
+    }
+}
+
 } // namespace
 
 int main()
@@ -905,6 +960,7 @@ int main()
         addCheck("local-html-js-state", jsString(view, "window.__local") == "local-ok");
         addCheck("document-ready-callback", g_document_ready.load());
         addCheck("load-finish-callback-local", g_load_finish_callback.load());
+        runWebContentsScriptAndZoomChecks(view);
     }
 
     resetLoadState();
