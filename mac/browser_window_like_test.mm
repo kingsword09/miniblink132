@@ -1373,6 +1373,54 @@ void runMenuCompatibilityChecks()
     DestroyMenu(submenu);
 }
 
+void runNativeImageCompatibilityChecks()
+{
+    BITMAPINFO bitmap_info = {};
+    bitmap_info.bmiHeader.biSize = sizeof(bitmap_info.bmiHeader);
+    bitmap_info.bmiHeader.biWidth = 2;
+    bitmap_info.bmiHeader.biHeight = -2;
+    bitmap_info.bmiHeader.biPlanes = 1;
+    bitmap_info.bmiHeader.biBitCount = 32;
+    bitmap_info.bmiHeader.biCompression = BI_RGB;
+
+    void* pixels = nullptr;
+    HBITMAP color_bitmap = CreateDIBSection(nullptr, &bitmap_info, DIB_RGB_COLORS, &pixels, nullptr, 0);
+    if (pixels) {
+        unsigned char* bytes = static_cast<unsigned char*>(pixels);
+        for (int i = 0; i < 16; ++i)
+            bytes[i] = static_cast<unsigned char>(i * 13);
+    }
+
+    BITMAP color_info = {};
+    int color_object_size = GetObject(color_bitmap, sizeof(color_info), &color_info);
+    addCheck("nativeimage-dibsection-bitmap",
+        color_bitmap && pixels && color_object_size == sizeof(BITMAP)
+            && color_info.bmWidth == 2 && color_info.bmHeight == 2
+            && color_info.bmBitsPixel == 32 && color_info.bmBits == pixels,
+        "size=" + std::to_string(color_object_size) + " " + std::to_string(color_info.bmWidth) + "x" + std::to_string(color_info.bmHeight));
+
+    HBITMAP mask_bitmap = CreateBitmap(2, 2, 1, 1, nullptr);
+    BITMAP mask_info = {};
+    int mask_object_size = GetObject(mask_bitmap, sizeof(mask_info), &mask_info);
+    addCheck("nativeimage-mask-bitmap",
+        mask_bitmap && mask_object_size == sizeof(BITMAP)
+            && mask_info.bmWidth == 2 && mask_info.bmHeight == 2 && mask_info.bmBitsPixel == 1,
+        "size=" + std::to_string(mask_object_size) + " bpp=" + std::to_string(mask_info.bmBitsPixel));
+
+    ICONINFO icon_info = {};
+    icon_info.fIcon = TRUE;
+    icon_info.hbmColor = color_bitmap;
+    icon_info.hbmMask = mask_bitmap;
+    HICON icon = CreateIconIndirect(&icon_info);
+    BOOL destroyed_icon = DestroyIcon(icon);
+    BOOL invalid_icon_rejected = CreateIconIndirect(nullptr) == nullptr;
+    BOOL color_deleted = DeleteObject(color_bitmap);
+    BOOL mask_deleted = DeleteObject(mask_bitmap);
+    addCheck("nativeimage-icon-lifecycle",
+        icon && destroyed_icon && invalid_icon_rejected && color_deleted && mask_deleted,
+        "icon=" + std::to_string(icon ? 1 : 0) + " destroyed=" + std::to_string(destroyed_icon));
+}
+
 std::string getCookieViaApi(mbWebView view)
 {
     int before = g_cookie_callback_count.load();
@@ -1824,6 +1872,7 @@ int main()
     addCheck("browserwindow-focus-api", focused);
 
     runMenuCompatibilityChecks();
+    runNativeImageCompatibilityChecks();
     runLifecycleChecks();
     runNavigationControlChecks(server.origin());
 

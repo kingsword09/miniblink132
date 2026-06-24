@@ -1437,9 +1437,88 @@ extern "C" HDC CreateCompatibleDC(HDC hdc) { return nullptr; }
 extern "C" BOOL DeleteDC(HDC hdc) { return TRUE; }
 extern "C" HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h) { return nullptr; }
 extern "C" HGDIOBJ GetCurrentObject(HDC hdc, UINT type) { return nullptr; }
-extern "C" int GetObject(HANDLE h, int c, LPVOID pv) { return 0; }
+
+enum MacGdiObjectKind {
+    kMacGdiBitmap = 1,
+    kMacGdiIcon,
+};
+
+struct MacGdiObject {
+    uint32_t magic = 0x6d626764;
+    MacGdiObjectKind kind;
+};
+
+struct MacBitmapObject : MacGdiObject {
+    int width = 0;
+    int height = 0;
+    UINT planes = 1;
+    UINT bitsPerPixel = 32;
+    std::vector<unsigned char> pixels;
+
+    MacBitmapObject()
+    {
+        kind = kMacGdiBitmap;
+    }
+};
+
+struct MacIconObject : MacGdiObject {
+    BOOL isIcon = TRUE;
+    DWORD xHotspot = 0;
+    DWORD yHotspot = 0;
+    int width = 0;
+    int height = 0;
+
+    MacIconObject()
+    {
+        kind = kMacGdiIcon;
+    }
+};
+
+static MacGdiObject* asGdiObject(HGDIOBJ object)
+{
+    MacGdiObject* gdi = (MacGdiObject*)object;
+    return gdi && gdi->magic == 0x6d626764 ? gdi : nullptr;
+}
+
+static size_t bitmapStrideBytes(int width, UINT planes, UINT bitsPerPixel)
+{
+    if (width <= 0 || planes == 0 || bitsPerPixel == 0)
+        return 0;
+    return ((size_t)width * planes * bitsPerPixel + 31) / 32 * 4;
+}
+
+static MacBitmapObject* asBitmap(HBITMAP bitmap)
+{
+    MacGdiObject* gdi = asGdiObject((HGDIOBJ)bitmap);
+    return gdi && gdi->kind == kMacGdiBitmap ? (MacBitmapObject*)gdi : nullptr;
+}
+
+extern "C" int GetObject(HANDLE h, int c, LPVOID pv)
+{
+    MacBitmapObject* bitmap = asBitmap((HBITMAP)h);
+    if (!bitmap || !pv || c < (int)sizeof(BITMAP))
+        return 0;
+
+    BITMAP* out = (BITMAP*)pv;
+    memset(out, 0, sizeof(BITMAP));
+    out->bmWidth = bitmap->width;
+    out->bmHeight = bitmap->height;
+    out->bmWidthBytes = (LONG)bitmapStrideBytes(bitmap->width, bitmap->planes, bitmap->bitsPerPixel);
+    out->bmPlanes = (WORD)bitmap->planes;
+    out->bmBitsPixel = (WORD)bitmap->bitsPerPixel;
+    out->bmBits = bitmap->pixels.empty() ? nullptr : bitmap->pixels.data();
+    return sizeof(BITMAP);
+}
 extern "C" BOOL DeleteObject(HGDIOBJ ho)
 {
+    MacGdiObject* gdi = asGdiObject(ho);
+    if (gdi) {
+        if (gdi->kind == kMacGdiBitmap)
+            delete (MacBitmapObject*)gdi;
+        else if (gdi->kind == kMacGdiIcon)
+            delete (MacIconObject*)gdi;
+        return TRUE;
+    }
     free(ho);
     return TRUE;
 }
@@ -1471,7 +1550,22 @@ extern "C" BOOL Rectangle(HDC hdc, int left, int top, int right, int bottom) { r
 extern "C" BOOL BitBlt(HDC hdc, int x, int y, int cx, int cy, HDC hdcSrc, int x1, int y1, DWORD rop) { return FALSE; }
 extern "C" BOOL AlphaBlend(HDC hdcDest, int xoriginDest, int yoriginDest, int wDest, int hDest, HDC hdcSrc, int xoriginSrc, int yoriginSrc, int wSrc, int hSrc, BLENDFUNCTION ftn) { return FALSE; }
 extern "C" BOOL GdiAlphaBlend(HDC hdcDest, int xoriginDest, int yoriginDest, int wDest, int hDest, HDC hdcSrc, int xoriginSrc, int yoriginSrc, int wSrc, int hSrc, BLENDFUNCTION ftn) { return AlphaBlend(hdcDest, xoriginDest, yoriginDest, wDest, hDest, hdcSrc, xoriginSrc, yoriginSrc, wSrc, hSrc, ftn); }
-extern "C" HBITMAP CreateBitmap(int nWidth, int nHeight, UINT nPlanes, UINT nBitCount, const void* lpBits) { return calloc(1, 1); }
+extern "C" HBITMAP CreateBitmap(int nWidth, int nHeight, UINT nPlanes, UINT nBitCount, const void* lpBits)
+{
+    if (nWidth <= 0 || nHeight <= 0 || nPlanes == 0 || nBitCount == 0)
+        return nullptr;
+
+    MacBitmapObject* bitmap = new MacBitmapObject();
+    bitmap->width = nWidth;
+    bitmap->height = nHeight;
+    bitmap->planes = nPlanes;
+    bitmap->bitsPerPixel = nBitCount;
+    size_t size = bitmapStrideBytes(nWidth, nPlanes, nBitCount) * (size_t)nHeight;
+    bitmap->pixels.resize(size);
+    if (lpBits && size)
+        memcpy(bitmap->pixels.data(), lpBits, size);
+    return bitmap;
+}
 extern "C" HBITMAP CreateCompatibleBitmap(HDC hdc, int cx, int cy) { return CreateBitmap(cx, cy, 1, 32, nullptr); }
 extern "C" HFONT CreateFontW(int cHeight, int cWidth, int cEscapement, int cOrientation, int cWeight, DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut,
     DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision, DWORD iQuality, DWORD iPitchAndFamily, LPCWSTR pszFaceName)
@@ -1482,13 +1576,40 @@ extern "C" HBITMAP CreateDIBSection(HDC hdc, CONST BITMAPINFO* lpbmi, UINT usage
 {
     if (!lpbmi || !ppvBits)
         return nullptr;
-    size_t size = (size_t)std::abs(lpbmi->bmiHeader.biWidth) * std::abs(lpbmi->bmiHeader.biHeight) * 4;
-    void* data = calloc(1, size);
-    *ppvBits = data;
-    return data;
+    int width = std::abs(lpbmi->bmiHeader.biWidth);
+    int height = std::abs(lpbmi->bmiHeader.biHeight);
+    UINT bitsPerPixel = lpbmi->bmiHeader.biBitCount ? lpbmi->bmiHeader.biBitCount : 32;
+    HBITMAP bitmapHandle = CreateBitmap(width, height, 1, bitsPerPixel, nullptr);
+    MacBitmapObject* bitmap = asBitmap(bitmapHandle);
+    *ppvBits = bitmap && !bitmap->pixels.empty() ? bitmap->pixels.data() : nullptr;
+    return bitmapHandle;
 }
-extern "C" BOOL DestroyIcon(HICON hIcon) { return TRUE; }
-extern "C" HICON CreateIconIndirect(PICONINFO piconinfo) { return nullptr; }
+extern "C" BOOL DestroyIcon(HICON hIcon)
+{
+    MacGdiObject* gdi = asGdiObject((HGDIOBJ)hIcon);
+    if (!gdi || gdi->kind != kMacGdiIcon)
+        return FALSE;
+    delete (MacIconObject*)gdi;
+    return TRUE;
+}
+extern "C" HICON CreateIconIndirect(PICONINFO piconinfo)
+{
+    if (!piconinfo || (!piconinfo->hbmColor && !piconinfo->hbmMask))
+        return nullptr;
+
+    MacIconObject* icon = new MacIconObject();
+    icon->isIcon = piconinfo->fIcon;
+    icon->xHotspot = piconinfo->xHotspot;
+    icon->yHotspot = piconinfo->yHotspot;
+    MacBitmapObject* color = asBitmap(piconinfo->hbmColor);
+    MacBitmapObject* mask = asBitmap(piconinfo->hbmMask);
+    MacBitmapObject* source = color ? color : mask;
+    if (source) {
+        icon->width = source->width;
+        icon->height = source->height;
+    }
+    return icon;
+}
 extern "C" int SetBkMode(HDC hdc, int mode) { return mode; }
 extern "C" COLORREF SetBkColor(HDC hdc, COLORREF color) { return color; }
 extern "C" COLORREF SetTextColor(HDC hdc, COLORREF color) { return color; }
