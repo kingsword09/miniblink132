@@ -54,6 +54,8 @@ std::atomic<bool> g_lifecycle_allow_close(false);
 std::atomic<int> g_load_result(-1);
 std::atomic<int> g_lifecycle_close_count(0);
 std::atomic<int> g_lifecycle_destroy_count(0);
+std::atomic<int> g_async_can_go_back(-1);
+std::atomic<int> g_async_can_go_forward(-1);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -61,6 +63,8 @@ std::string g_last_url;
 std::string g_last_fail_url;
 std::string g_last_fail_reason;
 std::string g_last_download_url;
+BOOL g_last_can_go_back = FALSE;
+BOOL g_last_can_go_forward = FALSE;
 
 std::string shellEscape(const std::string& value)
 {
@@ -99,6 +103,8 @@ void resetLoadState()
     g_last_url.clear();
     g_last_fail_url.clear();
     g_last_fail_reason.clear();
+    g_last_can_go_back = FALSE;
+    g_last_can_go_forward = FALSE;
 }
 
 bool waitFor(const std::function<bool()>& predicate, int timeout_ms)
@@ -381,6 +387,13 @@ private:
 
         if (path == "/" || path == "/remote.html") {
             body = remoteHtml();
+        } else if (path == "/nav-one.html") {
+            body = "<!doctype html><html><head><title>Nav One</title></head><body><h1 id='page'>one</h1></body></html>";
+        } else if (path == "/nav-two.html") {
+            body = "<!doctype html><html><head><title>Nav Two</title></head><body><h1 id='page'>two</h1><script>window.__reloadToken=Date.now()</script></body></html>";
+        } else if (path == "/slow.html") {
+            std::this_thread::sleep_for(std::chrono::seconds(4));
+            body = "<!doctype html><html><head><title>Slow Page</title></head><body>slow</body></html>";
         } else if (path == "/popup.html") {
             body = "<!doctype html><title>Popup Page</title><p>popup</p>";
         } else if (path == "/api") {
@@ -511,11 +524,13 @@ void MB_CALL_TYPE onTitleChanged(mbWebView, void*, const utf8* title)
     g_last_title = title ? title : "";
 }
 
-void MB_CALL_TYPE onUrlChanged(mbWebView, void*, const utf8* url, BOOL, BOOL)
+void MB_CALL_TYPE onUrlChanged(mbWebView, void*, const utf8* url, BOOL canGoBack, BOOL canGoForward)
 {
     g_url_changed = true;
     std::lock_guard<std::mutex> lock(g_state_mutex);
     g_last_url = url ? url : "";
+    g_last_can_go_back = canGoBack;
+    g_last_can_go_forward = canGoForward;
 }
 
 BOOL MB_CALL_TYPE onNavigation(mbWebView, void*, mbNavigationType, const utf8*)
@@ -587,6 +602,16 @@ BOOL MB_CALL_TYPE onLifecycleDestroy(mbWebView, void*, void*)
 {
     ++g_lifecycle_destroy_count;
     return TRUE;
+}
+
+void MB_CALL_TYPE onCanGoBack(mbWebView, void*, MbAsynRequestState state, BOOL canGo)
+{
+    g_async_can_go_back = state == kMbAsynRequestStateOk && canGo ? 1 : 0;
+}
+
+void MB_CALL_TYPE onCanGoForward(mbWebView, void*, MbAsynRequestState state, BOOL canGo)
+{
+    g_async_can_go_forward = state == kMbAsynRequestStateOk && canGo ? 1 : 0;
 }
 
 std::string makeLocalHtml(const std::string& dir)
@@ -663,6 +688,122 @@ void runLifecycleChecks()
             && g_lifecycle_destroy_count.load() == destroy_before_destroy + 1,
         "close=" + std::to_string(g_lifecycle_close_count.load()) + " destroy=" + std::to_string(g_lifecycle_destroy_count.load()));
     addCheck("browserwindow-destroy-invalidates-host", destroy_seen);
+}
+
+bool waitForUrlContains(mbWebView view, const std::string& label, const std::string& fragment, int timeout_ms)
+{
+    bool loaded = waitForLoad(view, label, timeout_ms);
+    bool matched = false;
+    std::string detail;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        matched = g_last_url.find(fragment) != std::string::npos;
+        detail = g_last_url + " title=" + std::string(mbGetTitle(view) ? mbGetTitle(view) : "");
+    }
+    addCheck(label + "-url", loaded && matched, detail);
+    return loaded && matched;
+}
+
+bool waitForObservedUrlContains(mbWebView view, const std::string& label, const std::string& fragment, const std::string& title, int timeout_ms)
+{
+    bool matched = waitFor([&] {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        const char* current_title = mbGetTitle(view);
+        return g_url_changed.load() && g_last_url.find(fragment) != std::string::npos
+            && (!current_title || title.empty() || title == current_title);
+    }, timeout_ms);
+    std::string detail;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        detail = g_last_url + " title=" + std::string(mbGetTitle(view) ? mbGetTitle(view) : "");
+    }
+    addCheck(label, matched, detail);
+    return matched;
+}
+
+void runNavigationControlChecks(const std::string& origin)
+{
+    mbWebView view = createPopupWindow(260, 260, 480, 360);
+    HWND host = view ? mbGetHostHWND(view) : nullptr;
+    addCheck("webcontents-navigation-window-create", view != NULL_WEBVIEW && host,
+        "host=" + std::to_string((uintptr_t)host));
+    if (view == NULL_WEBVIEW || !host)
+        return;
+
+    mbOnTitleChanged(view, onTitleChanged, nullptr);
+    mbOnURLChanged(view, onUrlChanged, nullptr);
+    mbOnNavigation(view, onNavigation, nullptr);
+    mbOnLoadingFinish(view, onLoadingFinish, nullptr);
+    mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
+    mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+    mbShowWindow(view, SW_SHOW);
+
+    bool child_ready = waitFor([&] {
+        mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+        return frame && mbGetGlobalExecByFrame(view, frame);
+    }, 6000);
+    addCheck("webcontents-navigation-frame-ready", child_ready);
+    if (!child_ready) {
+        mbDestroyWebView(view);
+        return;
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (origin + "/nav-one.html").c_str());
+    bool one_ok = waitForUrlContains(view, "webcontents-load-nav-one", "/nav-one.html", 6000);
+    if (!one_ok) {
+        mbDestroyWebView(view);
+        return;
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (origin + "/nav-two.html").c_str());
+    bool two_ok = waitForUrlContains(view, "webcontents-load-nav-two", "/nav-two.html", 6000);
+    if (!two_ok) {
+        mbDestroyWebView(view);
+        return;
+    }
+
+    resetLoadState();
+    mbReload(view);
+    waitForUrlContains(view, "webcontents-reload", "/nav-two.html", 6000);
+
+    bool sync_can_go_ok = mbCanGoBackOrForward(view, TRUE) && !mbCanGoBackOrForward(view, FALSE);
+    addCheck("webcontents-can-go-sync", sync_can_go_ok);
+
+    g_async_can_go_back = -1;
+    g_async_can_go_forward = -1;
+    mbCanGoBack(view, onCanGoBack, nullptr);
+    mbCanGoForward(view, onCanGoForward, nullptr);
+    bool async_can_go_ok = waitFor([] {
+        return g_async_can_go_back.load() >= 0 && g_async_can_go_forward.load() >= 0;
+    }, 3000);
+    addCheck("webcontents-can-go-async", async_can_go_ok && g_async_can_go_back.load() == 1 && g_async_can_go_forward.load() == 0,
+        "back=" + std::to_string(g_async_can_go_back.load()) + " forward=" + std::to_string(g_async_can_go_forward.load()));
+
+    resetLoadState();
+    mbGoBack(view);
+    bool back_ok = waitForObservedUrlContains(view, "webcontents-go-back", "/nav-one.html", "Nav One", 6000);
+    bool back_finished = waitFor([] { return g_load_finished.load(); }, 5000);
+    bool can_forward_after_back = waitFor([&] { return mbCanGoBackOrForward(view, FALSE); }, 3000);
+    addCheck("webcontents-can-go-forward-after-back", back_ok && back_finished && can_forward_after_back);
+
+    resetLoadState();
+    mbGoForward(view);
+    bool forward_ok = waitForObservedUrlContains(view, "webcontents-go-forward", "/nav-two.html", "Nav Two", 6000);
+    bool forward_finished = waitFor([] { return g_load_finished.load(); }, 5000);
+    bool can_back_after_forward = waitFor([&] { return mbCanGoBackOrForward(view, TRUE); }, 3000);
+    addCheck("webcontents-can-go-back-after-forward", forward_ok && forward_finished && can_back_after_forward);
+
+    resetLoadState();
+    mbLoadURL(view, (origin + "/slow.html").c_str());
+    bool loading_seen = waitFor([&] { return mbIsLoading(view); }, 2000);
+    mbStopLoading(view);
+    bool stopped = waitFor([&] { return !mbIsLoading(view); }, 5000);
+    addCheck("webcontents-stop-loading", loading_seen && stopped);
+
+    mbDestroyWebView(view);
+    waitFor([&] { return !readWindowState(host).isWindow; }, 3000);
 }
 
 } // namespace
@@ -755,6 +896,7 @@ int main()
     addCheck("browserwindow-focus-api", focused);
 
     runLifecycleChecks();
+    runNavigationControlChecks(server.origin());
 
     resetLoadState();
     mbLoadURL(view, fileUrl(local_html).c_str());

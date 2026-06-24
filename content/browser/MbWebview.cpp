@@ -1850,11 +1850,36 @@ bool MbWebView::loadHTMLString(const std::string& html, const std::string& baseU
 
 void MbWebView::reload(bool force)
 {
-    if (!m_renderWidgetHostImpl || !m_renderWidgetHostImpl->m_mainFrame)
+    if (!m_renderWidgetHostImpl || !m_renderWidgetHostImpl->m_mainFrame || !m_frameClient)
         return;
-    mbnet::WebURLLoaderManager::sharedInstance()->cancelAllJobsOfWebview(m_id);
-    m_renderWidgetHostImpl->m_mainFrame->DeprecatedStopLoading();
-    m_renderWidgetHostImpl->m_mainFrame->StartReload(force ? blink::WebFrameLoadType::kReload : blink::WebFrameLoadType::kReloadBypassingCache);
+
+    std::string urlText = m_url;
+    if (urlText.empty())
+        return;
+
+    blink::WebNavigationControl* navigationControl = m_frameClient->m_navigationControl;
+    if (!navigationControl)
+        return;
+
+    blink::KURL url(WTF::String::FromUTF8(std::string_view(urlText.c_str(), urlText.size())));
+    if (!url.IsValid())
+        return;
+
+    if (m_renderWidgetHostImpl->m_mainFrame->IsLoading()) {
+        mbnet::WebURLLoaderManager::sharedInstance()->cancelAllJobsOfWebview(m_id);
+        m_renderWidgetHostImpl->m_mainFrame->DeprecatedStopLoading();
+    }
+
+    blink::WebNavigationInfo info;
+    info.url_request.SetUrl(url);
+    if (!navigationControl->WillStartNavigation(info))
+        return;
+
+    blink::WebURLRequest urlRequest;
+    urlRequest.SetUrl(url);
+    urlRequest.AddHttpHeaderField(blink::WebString::FromLatin1(kAcceptHeader), blink::WebString::FromLatin1(kDefaultAcceptHeader));
+    setRequestHead((blink::WebLocalFrame*)navigationControl, urlRequest);
+    navigationControl->Load(urlRequest, force ? blink::WebFrameLoadType::kReloadBypassingCache : blink::WebFrameLoadType::kReplaceCurrentItem, blink::WebHistoryItem());
 }
 
 LRESULT MbWebView::fireWheelEventOnUiThread(WPARAM wParam, LPARAM lParam)
