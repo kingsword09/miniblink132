@@ -831,6 +831,29 @@ void attachBasicLoadCallbacks(mbWebView view)
     mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
 }
 
+struct CreateViewReturnState {
+    mbWebView view = NULL_WEBVIEW;
+    HWND host = nullptr;
+    std::string url;
+};
+
+mbWebView MB_CALL_TYPE onCreateViewReturningPopup(mbWebView, void* param, mbNavigationType, const utf8* url, const mbWindowFeatures*)
+{
+    g_popup_seen = true;
+    CreateViewReturnState* state = static_cast<CreateViewReturnState*>(param);
+    if (!state)
+        return NULL_WEBVIEW;
+
+    state->url = url ? url : "";
+    state->view = mbCreateWebWindow(MB_WINDOW_TYPE_POPUP, nullptr, 420, 300, 360, 260);
+    state->host = state->view ? mbGetHostHWND(state->view) : nullptr;
+    if (state->view) {
+        attachBasicLoadCallbacks(state->view);
+        mbShowWindow(state->view, SW_SHOW);
+    }
+    return state->view;
+}
+
 std::string makeLocalHtml(const std::string& dir)
 {
     std::string path = dir + "/local.html";
@@ -1202,6 +1225,110 @@ void runSessionPartitionLocalStorageChecks(const std::string& origin, const std:
     waitFor([&] { return (!host_a || !readWindowState(host_a).isWindow) && (!host_b || !readWindowState(host_b).isWindow); }, 3000);
 }
 
+void runSessionStorageIsolationChecks(const std::string& origin)
+{
+    mbWebView view_a = createPopupWindow(420, 420, 360, 260);
+    mbWebView view_b = createPopupWindow(450, 450, 360, 260);
+    HWND host_a = view_a ? mbGetHostHWND(view_a) : nullptr;
+    HWND host_b = view_b ? mbGetHostHWND(view_b) : nullptr;
+    addCheck("session-sessionstorage-window-create", view_a != NULL_WEBVIEW && view_b != NULL_WEBVIEW && host_a && host_b);
+    if (view_a == NULL_WEBVIEW || view_b == NULL_WEBVIEW)
+        return;
+
+    attachBasicLoadCallbacks(view_a);
+    attachBasicLoadCallbacks(view_b);
+    mbShowWindow(view_a, SW_SHOW);
+    mbShowWindow(view_b, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(view_a, partition_url.c_str());
+    bool a_loaded = waitForLoad(view_a, "session-sessionstorage-load-a", 6000);
+    resetLoadState();
+    mbLoadURL(view_b, partition_url.c_str());
+    bool b_loaded = waitForLoad(view_b, "session-sessionstorage-load-b", 6000);
+
+    bool isolated = false;
+    std::string detail;
+    if (a_loaded && b_loaded) {
+        jsString(view_a, "sessionStorage.clear(); sessionStorage.setItem('partition_ss','A'); sessionStorage.getItem('partition_ss')");
+        std::string b_before = jsString(view_b, "sessionStorage.getItem('partition_ss') || ''");
+        jsString(view_b, "sessionStorage.setItem('partition_ss','B'); sessionStorage.getItem('partition_ss')");
+        std::string b_after = jsString(view_b, "sessionStorage.getItem('partition_ss') || ''");
+        std::string a_after = jsString(view_a, "sessionStorage.getItem('partition_ss') || ''");
+        isolated = a_after == "A" && b_before.empty() && b_after == "B";
+        detail = "aAfter=" + a_after + " bBefore=" + b_before + " bAfter=" + b_after;
+    }
+    addCheck("session-sessionstorage-isolation", isolated, detail);
+
+    mbDestroyWebView(view_a);
+    mbDestroyWebView(view_b);
+    waitFor([&] { return (!host_a || !readWindowState(host_a).isWindow) && (!host_b || !readWindowState(host_b).isWindow); }, 3000);
+}
+
+void runSessionStorageWindowOpenCloneChecks(const std::string& origin)
+{
+    mbWebView opener = createPopupWindow(480, 480, 360, 260);
+    HWND opener_host = opener ? mbGetHostHWND(opener) : nullptr;
+    addCheck("session-sessionstorage-window-open-opener-create", opener != NULL_WEBVIEW && opener_host);
+    if (opener == NULL_WEBVIEW)
+        return;
+
+    attachBasicLoadCallbacks(opener);
+    mbSetNavigationToNewWindowEnable(opener, TRUE);
+    mbShowWindow(opener, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(opener, partition_url.c_str());
+    bool opener_loaded = waitForLoad(opener, "session-sessionstorage-window-open-opener-load", 6000);
+
+    CreateViewReturnState child_state;
+    if (opener_loaded) {
+        mbOnCreateView(opener, onCreateViewReturningPopup, &child_state);
+        resetLoadState();
+        std::string script = "sessionStorage.clear();"
+                             "sessionStorage.setItem('open_clone','from-opener');"
+                             "window.open('" + partition_url + "');"
+                             "1";
+        jsNumber(opener, script);
+    }
+
+    bool child_created = waitFor([&] { return child_state.view != NULL_WEBVIEW; }, 3000);
+    addCheck("session-sessionstorage-window-open-child-create",
+        opener_loaded && child_created && child_state.host,
+        child_state.url);
+
+    bool child_loaded = false;
+    if (child_created)
+        child_loaded = waitForLoad(child_state.view, "session-sessionstorage-window-open-child-load", 6000);
+
+    bool cloned = false;
+    bool detached = false;
+    std::string detail;
+    if (opener_loaded && child_created && child_loaded) {
+        std::string child_initial = jsString(child_state.view, "sessionStorage.getItem('open_clone') || ''");
+        jsString(opener, "sessionStorage.setItem('open_clone','after-open'); sessionStorage.getItem('open_clone')");
+        std::string child_after_parent = jsString(child_state.view, "sessionStorage.getItem('open_clone') || ''");
+        jsString(child_state.view, "sessionStorage.setItem('open_clone','child-value'); sessionStorage.getItem('open_clone')");
+        std::string opener_after_child = jsString(opener, "sessionStorage.getItem('open_clone') || ''");
+        cloned = child_initial == "from-opener";
+        detached = child_after_parent == "from-opener" && opener_after_child == "after-open";
+        detail = "childInitial=" + child_initial + " childAfterParent=" + child_after_parent + " openerAfterChild=" + opener_after_child;
+    }
+    addCheck("session-sessionstorage-window-open-clone", cloned, detail);
+    addCheck("session-sessionstorage-window-open-detached", detached, detail);
+
+    mbOnCreateView(opener, onCreateView, nullptr);
+    if (child_state.view)
+        mbDestroyWebView(child_state.view);
+    mbDestroyWebView(opener);
+    waitFor([&] {
+        return (!child_state.host || !readWindowState(child_state.host).isWindow)
+            && (!opener_host || !readWindowState(opener_host).isWindow);
+    }, 3000);
+}
+
 void runProtocolChecks(mbWebView view)
 {
     g_custom_protocol_main_seen = false;
@@ -1438,6 +1565,8 @@ int main()
         runSessionCookieChecks(view, server.origin());
         runSessionPartitionCookieChecks(server.origin(), tmp_dir);
         runSessionPartitionLocalStorageChecks(server.origin(), tmp_dir);
+        runSessionStorageIsolationChecks(server.origin());
+        runSessionStorageWindowOpenCloneChecks(server.origin());
         runSessionWebRequestChecks(view, server);
 
         mbSetFocus(view);

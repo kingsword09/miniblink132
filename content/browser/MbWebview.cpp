@@ -411,7 +411,8 @@ blink::WebView* MbWebView::initializeViewInBlinkThread(blink::WebView* opener, b
     if (!m_navigationController)
         m_navigationController = blink::MakeGarbageCollected<content::PageNavController>(this);
 
-    m_sessionStorageNamespaceId = blink::AllocateSessionStorageNamespaceId();
+    if (m_sessionStorageNamespaceId.empty())
+        m_sessionStorageNamespaceId = blink::AllocateSessionStorageNamespaceId();
 
     blink::BrowsingContextGroupInfo browsingContextGroupInfo = blink::BrowsingContextGroupInfo::CreateUnique();
     blink::WebView* webWiew = blink::WebView::Create(
