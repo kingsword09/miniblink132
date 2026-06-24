@@ -1802,6 +1802,30 @@ void runPowerMonitorCompatibilityChecks()
         "result=" + std::to_string(null_ok));
 }
 
+void runPowerSaveBlockerCompatibilityChecks()
+{
+    EXECUTION_STATE initial = SetThreadExecutionState(ES_CONTINUOUS);
+    EXECUTION_STATE system_required = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+    EXECUTION_STATE display_required = SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+    EXECUTION_STATE invalid = SetThreadExecutionState(0);
+    DWORD invalid_error = GetLastError();
+    EXECUTION_STATE reset = SetThreadExecutionState(ES_CONTINUOUS);
+
+    addCheck("power-save-blocker-execution-state",
+        initial != 0
+            && system_required == ES_CONTINUOUS
+            && display_required == (ES_CONTINUOUS | ES_SYSTEM_REQUIRED)
+            && invalid == 0
+            && invalid_error == ERROR_INVALID_PARAMETER
+            && reset == (ES_CONTINUOUS | ES_DISPLAY_REQUIRED),
+        "initial=" + std::to_string(initial)
+            + " systemPrev=" + std::to_string(system_required)
+            + " displayPrev=" + std::to_string(display_required)
+            + " invalid=" + std::to_string(invalid)
+            + " error=" + std::to_string(invalid_error)
+            + " resetPrev=" + std::to_string(reset));
+}
+
 std::u16string readMenuText(const WCHAR* text)
 {
     std::u16string result;
@@ -2671,6 +2695,7 @@ int main()
     runScreenCompatibilityChecks(host);
     runNativeThemeCompatibilityChecks();
     runPowerMonitorCompatibilityChecks();
+    runPowerSaveBlockerCompatibilityChecks();
     runNativeImageCompatibilityChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();

@@ -536,6 +536,11 @@
 #define MOD_WIN 0x0008
 #define MOD_NOREPEAT 0x4000
 
+#define ES_SYSTEM_REQUIRED 0x00000001
+#define ES_DISPLAY_REQUIRED 0x00000002
+#define ES_AWAYMODE_REQUIRED 0x00000040
+#define ES_CONTINUOUS 0x80000000
+
 #define CreateWindowW(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)                                        \
     CreateWindowExW(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)
 
@@ -862,6 +867,7 @@ typedef int32_t LONG;
 typedef int32_t INT;
 typedef unsigned int UINT;
 typedef uint32_t DWORD;
+typedef DWORD EXECUTION_STATE;
 typedef DWORD COLORREF;
 typedef unsigned char BYTE;
 #ifdef __cplusplus
@@ -1559,6 +1565,7 @@ EXTERN_C UINT GetDoubleClickTime();
 EXTERN_C HWND SetFocus(HWND hWnd);
 EXTERN_C BOOL SystemParametersInfoW(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni);
 EXTERN_C BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus);
+EXTERN_C EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 EXTERN_C BOOL TrackPopupMenuEx(HMENU, UINT, int, int, HWND, LPTPMPARAMS);
 EXTERN_C HRESULT CoInitializeEx(LPVOID pvReserved, DWORD dwCoInit);
 EXTERN_C DWORD GetLastError(VOID);

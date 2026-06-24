@@ -1838,6 +1838,27 @@ extern "C" BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus)
     return TRUE;
 }
 
+extern "C" EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags)
+{
+    static std::mutex executionStateMutex;
+    static EXECUTION_STATE executionState = ES_CONTINUOUS;
+
+    const EXECUTION_STATE validFlags = ES_CONTINUOUS
+        | ES_SYSTEM_REQUIRED
+        | ES_DISPLAY_REQUIRED
+        | ES_AWAYMODE_REQUIRED;
+    if (esFlags == 0 || (esFlags & ~validFlags)) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return 0;
+    }
+
+    std::lock_guard<std::mutex> lock(executionStateMutex);
+    EXECUTION_STATE previous = executionState;
+    executionState = esFlags;
+    SetLastError(0);
+    return previous;
+}
+
 extern "C" VOID GetSystemTime(SYSTEMTIME* lpSystemTime)
 {
     struct timeval tv;

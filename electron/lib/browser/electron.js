@@ -216,9 +216,17 @@ electron.globalShortcut = new GlobalShortcut();
 electron.powerMonitor = require("./api/power-monitor");
 ////////////////////////////////////////////////////////////////
 function PowerSaveBlocker() {}
-PowerSaveBlocker.prototype.start = function(type) { return 0; }
-PowerSaveBlocker.prototype.stop = function(id) {}
-PowerSaveBlocker.prototype.isStarted = function(id) { return false; }
+PowerSaveBlocker.prototype._nextId = 1;
+PowerSaveBlocker.prototype._blockers = {};
+PowerSaveBlocker.prototype.start = function(type) {
+    if (type !== "prevent-app-suspension" && type !== "prevent-display-sleep")
+        throw new TypeError("Invalid powerSaveBlocker type");
+    var id = this._nextId++;
+    this._blockers[id] = type;
+    return id;
+}
+PowerSaveBlocker.prototype.stop = function(id) { delete this._blockers[id]; }
+PowerSaveBlocker.prototype.isStarted = function(id) { return !!this._blockers[id]; }
 electron.powerSaveBlocker = new PowerSaveBlocker();
 ////////////////////////////////////////////////////////////////
 function CrashReporter () {
