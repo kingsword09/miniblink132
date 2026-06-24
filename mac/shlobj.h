@@ -65,6 +65,9 @@ typedef struct _ITEMIDLIST {
 typedef int (*BFFCALLBACK)(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
 typedef const ITEMIDLIST* LPCITEMIDLIST;
 typedef ITEMIDLIST* LPITEMIDLIST;
+typedef const GUID& REFKNOWNFOLDERID;
+
+static const GUID FOLDERID_Downloads = { 0x374de290, 0x123f, 0x4565, { 0x91, 0x64, 0x39, 0xc4, 0x92, 0x5e, 0x46, 0x7b } };
 
 typedef struct _browseinfoW {
     HWND hwndOwner;
@@ -80,6 +83,7 @@ typedef struct _browseinfoW {
 ITEMIDLIST* SHBrowseForFolderW(LPBROWSEINFOW lpbi);
 BOOL SHGetPathFromIDListW(const ITEMIDLIST* pidl, LPWSTR pszPath);
 EXTERN_C HRESULT SHOpenFolderAndSelectItems(LPCITEMIDLIST pidlFolder, UINT cidl, LPCITEMIDLIST* apidl, DWORD dwFlags);
+EXTERN_C HRESULT SHGetKnownFolderPath(REFKNOWNFOLDERID rfid, DWORD dwFlags, HANDLE hToken, LPWSTR* ppszPath);
 HRESULT CoCreateInstance(REFCLSID rclsid, IUnknown* pUnkOuter, DWORD dwClsContext, REFIID riid, LPVOID* ppv);
 
 #endif // MAC_SHLOBJ_H

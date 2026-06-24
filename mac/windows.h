@@ -259,6 +259,18 @@ typedef struct _RTL_SRWLOCK {
 #define ShellExecute ShellExecuteW
 #endif
 
+#ifndef CreateMutex
+#define CreateMutex CreateMutexW
+#endif
+
+#ifndef SHGetFolderPath
+#define SHGetFolderPath SHGetFolderPathW
+#endif
+
+#ifndef GetLocaleInfo
+#define GetLocaleInfo GetLocaleInfoW
+#endif
+
 #ifndef SHBrowseForFolder
 #define SHBrowseForFolder SHBrowseForFolderW
 #endif

@@ -27,6 +27,7 @@
 
 #include <algorithm>
 #include <condition_variable>
+#include <map>
 #include <mutex>
 #include <string>
 #include <utility>
@@ -45,6 +46,7 @@ enum MacHandleKind {
     kMacHandleFile,
     kMacHandleEvent,
     kMacHandleFind,
+    kMacHandleMutex,
 };
 
 struct MacHandle {
@@ -73,9 +75,17 @@ struct MacFindHandle : MacHandle {
     size_t nextIndex = 0;
 };
 
+struct MacMutexHandle : MacHandle {
+    std::string name;
+    bool named = false;
+};
+
 struct GlobalMemoryHeader {
     size_t size;
 };
+
+static std::mutex g_namedMutexGuard;
+static std::map<std::string, int> g_namedMutexRefs;
 
 static MacHandle* asHandle(HANDLE handle)
 {
@@ -253,6 +263,81 @@ static bool canUseSavePath(const std::u16string& path)
         return true;
     std::u16string parent = parentPath(path);
     return !parent.empty() && pathIsDirectory(parent);
+}
+
+static std::string homePath()
+{
+    const char* home = getenv("HOME");
+    return home && home[0] ? std::string(home) : std::string("/tmp");
+}
+
+static std::string pathForCsidl(int csidl)
+{
+    std::string home = homePath();
+    switch (csidl & ~CSIDL_FLAG_CREATE) {
+    case CSIDL_APPDATA:
+    case CSIDL_LOCAL_APPDATA:
+        return home + "/Library/Application Support";
+    case CSIDL_DESKTOPDIRECTORY:
+        return home + "/Desktop";
+    case CSIDL_PROFILE:
+        return home;
+    case CSIDL_MYDOCUMENTS:
+        return home + "/Documents";
+    case CSIDL_MYMUSIC:
+        return home + "/Music";
+    case CSIDL_MYPICTURES:
+        return home + "/Pictures";
+    case CSIDL_MYVIDEO:
+        return home + "/Movies";
+    case CSIDL_RECENT:
+        return home + "/Library/Application Support/Recent";
+    default:
+        return home;
+    }
+}
+
+static std::string normalizedLocaleName()
+{
+    const char* candidates[] = { getenv("LC_ALL"), getenv("LC_MESSAGES"), getenv("LANG") };
+    std::string locale;
+    for (const char* candidate : candidates) {
+        if (candidate && candidate[0]) {
+            locale = candidate;
+            break;
+        }
+    }
+    if (locale.empty() || locale == "C" || locale == "POSIX")
+        locale = "en-US";
+    size_t stop = locale.find_first_of(".@");
+    if (stop != std::string::npos)
+        locale.resize(stop);
+    std::replace(locale.begin(), locale.end(), '_', '-');
+    if (locale.empty() || locale == "C" || locale == "POSIX")
+        locale = "en-US";
+    return locale;
+}
+
+static std::string localeLanguage(const std::string& locale)
+{
+    size_t dash = locale.find('-');
+    return dash == std::string::npos ? locale : locale.substr(0, dash);
+}
+
+static std::string localeCountry(const std::string& locale)
+{
+    size_t dash = locale.find('-');
+    if (dash == std::string::npos || dash + 1 >= locale.size())
+        return "US";
+    std::string country = locale.substr(dash + 1);
+    size_t next = country.find('-');
+    if (next != std::string::npos)
+        country.resize(next);
+    for (char& ch : country) {
+        if (ch >= 'a' && ch <= 'z')
+            ch = (char)(ch - 'a' + 'A');
+    }
+    return country.empty() ? std::string("US") : country;
 }
 
 static bool looksLikeCommDlgSizeMarker(const std::u16string& value)
@@ -845,6 +930,19 @@ extern "C" BOOL CloseHandle(HANDLE hObject)
         delete (MacFindHandle*)handle;
         return TRUE;
     }
+    if (handle->kind == kMacHandleMutex) {
+        MacMutexHandle* mutex = (MacMutexHandle*)handle;
+        if (mutex->named) {
+            std::lock_guard<std::mutex> lock(g_namedMutexGuard);
+            auto it = g_namedMutexRefs.find(mutex->name);
+            if (it != g_namedMutexRefs.end()) {
+                if (--it->second <= 0)
+                    g_namedMutexRefs.erase(it);
+            }
+        }
+        delete mutex;
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -860,6 +958,41 @@ extern "C" HANDLE CreateEventW(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bMa
     event->manualReset = !!bManualReset;
     event->signaled = !!bInitialState;
     return event;
+}
+
+extern "C" HANDLE CreateMutexA(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName)
+{
+    MacMutexHandle* mutex = new MacMutexHandle();
+    mutex->kind = kMacHandleMutex;
+    mutex->named = lpName && lpName[0];
+    mutex->name = mutex->named ? std::string(lpName) : std::string();
+
+    g_lastError = ERROR_SUCCESS;
+    if (mutex->named) {
+        std::lock_guard<std::mutex> lock(g_namedMutexGuard);
+        auto it = g_namedMutexRefs.find(mutex->name);
+        if (it != g_namedMutexRefs.end()) {
+            ++it->second;
+            g_lastError = ERROR_ALREADY_EXISTS;
+        } else {
+            g_namedMutexRefs[mutex->name] = 1;
+        }
+    }
+    return mutex;
+}
+
+extern "C" HANDLE CreateMutexW(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCWSTR lpName)
+{
+    std::string name = wideToUtf8(lpName);
+    return CreateMutexA(lpMutexAttributes, bInitialOwner, name.empty() ? nullptr : name.c_str());
+}
+
+extern "C" BOOL ReleaseMutex(HANDLE hMutex)
+{
+    MacHandle* handle = asHandle(hMutex);
+    if (!handle || handle->kind != kMacHandleMutex)
+        return FALSE;
+    return TRUE;
 }
 
 extern "C" BOOL SetEvent(HANDLE hEvent)
@@ -925,6 +1058,9 @@ extern "C" DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds)
         }
         return WAIT_OBJECT_0;
     }
+
+    if (handle->kind == kMacHandleMutex)
+        return WAIT_OBJECT_0;
 
     return WAIT_FAILED;
 }
@@ -1449,17 +1585,38 @@ extern "C" HRESULT SHGetFolderPathW(HWND hwnd, int csidl, HANDLE hToken, DWORD d
 {
     if (!pszPath)
         return E_INVALIDARG;
-    const char* home = getenv("HOME");
-    if (!home)
-        home = "/tmp";
-    std::string path(home);
-    int baseCsidl = csidl & ~CSIDL_FLAG_CREATE;
-    if (baseCsidl == CSIDL_APPDATA || baseCsidl == CSIDL_LOCAL_APPDATA)
-        path += "/Library/Application Support";
+    std::string path = pathForCsidl(csidl);
     if (csidl & CSIDL_FLAG_CREATE)
         SHCreateDirectoryExW(hwnd, (LPCWSTR)utf8ToWide(path.c_str(), -1).c_str(), nullptr);
     std::u16string wide = utf8ToWide(path.c_str(), -1);
     copyWideToBuffer(wide, pszPath, MAX_PATH);
+    return S_OK;
+}
+
+static bool equalGuid(REFKNOWNFOLDERID left, const GUID& right)
+{
+    return left.Data1 == right.Data1 && left.Data2 == right.Data2 && left.Data3 == right.Data3
+        && memcmp(left.Data4, right.Data4, sizeof(left.Data4)) == 0;
+}
+
+extern "C" HRESULT SHGetKnownFolderPath(REFKNOWNFOLDERID rfid, DWORD dwFlags, HANDLE hToken, LPWSTR* ppszPath)
+{
+    if (!ppszPath)
+        return E_INVALIDARG;
+    *ppszPath = nullptr;
+    std::string path;
+    if (equalGuid(rfid, FOLDERID_Downloads))
+        path = homePath() + "/Downloads";
+    else
+        return E_INVALIDARG;
+
+    std::u16string wide = utf8ToWide(path.c_str(), -1);
+    size_t bytes = (wide.size() + 1) * sizeof(WCHAR);
+    LPWSTR buffer = (LPWSTR)CoTaskMemAlloc(bytes);
+    if (!buffer)
+        return E_FAIL;
+    copyWideToBuffer(wide, buffer, (DWORD)wide.size() + 1);
+    *ppszPath = buffer;
     return S_OK;
 }
 
@@ -2762,17 +2919,39 @@ extern "C" BOOL Shell_NotifyIconA(DWORD dwMessage, PNOTIFYICONDATAA lpData)
 extern "C" int GetLocaleInfoW(LCID Locale, LCTYPE LCType, LPWSTR lpLCData, int cchData)
 {
     const char* value = "";
-    if (LCType == LOCALE_SDECIMAL)
+    std::string locale = normalizedLocaleName();
+    std::string language = localeLanguage(locale);
+    std::string country = localeCountry(locale);
+    LCTYPE baseType = LCType & ~(LOCALE_NOUSEROVERRIDE | LOCALE_RETURN_NUMBER);
+    if (baseType == LOCALE_SDECIMAL)
         value = ".";
-    else if (LCType == LOCALE_STHOUSAND)
+    else if (baseType == LOCALE_STHOUSAND)
         value = ",";
-    else if (LCType == LOCALE_SSHORTDATE)
+    else if (baseType == LOCALE_SSHORTDATE)
         value = "M/d/yyyy";
-    else if (LCType == LOCALE_STIMEFORMAT)
+    else if (baseType == LOCALE_STIMEFORMAT)
         value = "HH:mm:ss";
+    else if (baseType == LOCALE_SNAME)
+        value = locale.c_str();
+    else if (baseType == LOCALE_SISO639LANGNAME)
+        value = language.c_str();
+    else if (baseType == LOCALE_SISO3166CTRYNAME)
+        value = country.c_str();
     std::u16string wide = utf8ToWide(value, -1);
     DWORD required = copyWideToBuffer(wide, lpLCData, cchData);
     return (int)required + 1;
+}
+
+extern "C" int GetUserDefaultLocaleName(LPWSTR lpLocaleName, int cchLocaleName)
+{
+    std::u16string wide = utf8ToWide(normalizedLocaleName().c_str(), -1);
+    DWORD required = copyWideToBuffer(wide, lpLocaleName, cchLocaleName);
+    return (int)required + 1;
+}
+
+extern "C" int LCIDToLocaleName(LCID Locale, LPWSTR lpName, int cchName, DWORD dwFlags)
+{
+    return GetUserDefaultLocaleName(lpName, cchName);
 }
 
 extern "C" /*FILE*/ void* _wfopen(const WCHAR* fileName, const WCHAR* mode)

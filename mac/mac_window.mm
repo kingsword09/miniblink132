@@ -151,7 +151,7 @@ static void dispatchQueuedMessagesForWindow(HWND hwnd)
         {
             std::lock_guard<std::mutex> lock(g_messageQueueMutex);
             auto it = std::find_if(g_messageQueue.begin(), g_messageQueue.end(), [hwnd](const MSG& candidate) {
-                return !hwnd || candidate.hwnd == hwnd;
+                return candidate.message != WM_QUIT && (!hwnd || candidate.hwnd == hwnd);
             });
             if (it == g_messageQueue.end())
                 return;

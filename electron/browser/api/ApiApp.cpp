@@ -154,11 +154,8 @@ void App::nullFunction()
 
 void quit()
 {
-    ::TerminateProcess(::GetCurrentProcess(), 0);
     WindowList::closeAllWindows();
-
-    //     content::ThreadCall::exitMessageLoop(content::ThreadCall::getBlinkThreadId());
-    //     content::ThreadCall::exitMessageLoop(content::ThreadCall::getUiThreadId());
+    ::PostQuitMessage(0);
 }
 
 void App::quitApi()
@@ -176,7 +173,7 @@ void App::quitApi()
 
 void App::exitApi()
 {
-    quitApi();
+    ::TerminateProcess(::GetCurrentProcess(), 0);
 }
 
 void App::focusApi()
@@ -469,7 +466,15 @@ void App::setJumpListApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 std::string App::getLocaleApi()
 {
-    return "zh-cn";
+    WCHAR localeName[LOCALE_NAME_MAX_LENGTH] = {};
+    if (GetUserDefaultLocaleName(localeName, LOCALE_NAME_MAX_LENGTH) > 0 && localeName[0])
+        return base::UTF16ToUTF8((const char16_t*)localeName);
+
+    WCHAR language[16] = {};
+    if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, language, 16) > 0 && language[0])
+        return base::UTF16ToUTF8((const char16_t*)language);
+
+    return "en-US";
 }
 
 static LRESULT CALLBACK staticWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

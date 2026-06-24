@@ -1031,6 +1031,33 @@ void runLifecycleChecks()
     addCheck("browserwindow-destroy-invalidates-host", destroy_seen);
 }
 
+void runAppLifecycleMessageLoopChecks()
+{
+    const UINT app_message = WM_USER + 0x123;
+    PostMessageW(nullptr, app_message, 77, 88);
+
+    MSG posted = {};
+    BOOL peek_keep = PeekMessageW(&posted, nullptr, 0, 0, 0);
+    MSG posted_removed = {};
+    BOOL peek_remove = PeekMessageW(&posted_removed, nullptr, 0, 0, PM_REMOVE);
+    addCheck("app-lifecycle-message-loop-post-peek",
+        peek_keep && peek_remove
+            && posted.message == app_message
+            && posted_removed.message == app_message
+            && posted_removed.wParam == 77
+            && posted_removed.lParam == 88,
+        "keep=" + std::to_string(peek_keep) + " remove=" + std::to_string(peek_remove)
+            + " msg=" + std::to_string(posted_removed.message));
+
+    PostQuitMessage(42);
+    MSG quit_message = {};
+    BOOL get_result = GetMessageW(&quit_message, nullptr, 0, 0);
+    addCheck("app-lifecycle-post-quit-message",
+        !get_result && quit_message.message == WM_QUIT && quit_message.wParam == 42,
+        "get=" + std::to_string(get_result) + " msg=" + std::to_string(quit_message.message)
+            + " code=" + std::to_string((unsigned long long)quit_message.wParam));
+}
+
 bool waitForUrlContains(mbWebView view, const std::string& label, const std::string& fragment, int timeout_ms)
 {
     bool loaded = waitForLoad(view, label, timeout_ms);
@@ -1463,6 +1490,93 @@ void runShellCompatibilityChecks()
     addCheck("shell-beep-messagebeep",
         message_beep && beep,
         std::string("message=") + (message_beep ? "1" : "0") + " beep=" + (beep ? "1" : "0"));
+}
+
+void runAppCompatibilityChecks()
+{
+    std::string home = getenv("HOME") && getenv("HOME")[0] ? getenv("HOME") : "/tmp";
+
+    auto checkFolderPath = [&](const std::string& label, int csidl, const std::string& expected) {
+        WCHAR buffer[MAX_PATH] = {};
+        HRESULT hr = SHGetFolderPathW(nullptr, csidl, nullptr, SHGFP_TYPE_CURRENT, buffer);
+        std::string path = widePathToAscii(buffer);
+        addCheck("app-path-" + label,
+            SUCCEEDED(hr) && path == expected,
+            path);
+    };
+
+    checkFolderPath("home", CSIDL_PROFILE, home);
+    checkFolderPath("appdata", CSIDL_APPDATA | CSIDL_FLAG_CREATE, home + "/Library/Application Support");
+    checkFolderPath("localappdata", CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, home + "/Library/Application Support");
+    checkFolderPath("desktop", CSIDL_DESKTOPDIRECTORY, home + "/Desktop");
+    checkFolderPath("documents", CSIDL_MYDOCUMENTS, home + "/Documents");
+    checkFolderPath("music", CSIDL_MYMUSIC, home + "/Music");
+    checkFolderPath("pictures", CSIDL_MYPICTURES, home + "/Pictures");
+    checkFolderPath("videos", CSIDL_MYVIDEO, home + "/Movies");
+    checkFolderPath("recent", CSIDL_RECENT | CSIDL_FLAG_CREATE, home + "/Library/Application Support/Recent");
+
+    LPWSTR downloads_path = nullptr;
+    HRESULT downloads_hr = SHGetKnownFolderPath(FOLDERID_Downloads, 0, nullptr, &downloads_path);
+    std::string downloads = widePathToAscii(downloads_path);
+    if (downloads_path)
+        CoTaskMemFree(downloads_path);
+    addCheck("app-path-downloads-known-folder",
+        SUCCEEDED(downloads_hr) && downloads == home + "/Downloads",
+        downloads);
+
+    WCHAR module_path[MAX_PATH] = {};
+    DWORD module_len = GetModuleFileNameW(nullptr, module_path, MAX_PATH);
+    std::string module = widePathToAscii(module_path);
+    addCheck("app-path-exe-module",
+        module_len > 0 && module.find("browser_window_like_test") != std::string::npos,
+        module);
+
+    WCHAR locale_name[LOCALE_NAME_MAX_LENGTH] = {};
+    WCHAR lcid_locale_name[LOCALE_NAME_MAX_LENGTH] = {};
+    WCHAR language[16] = {};
+    WCHAR country[16] = {};
+    int locale_len = GetUserDefaultLocaleName(locale_name, LOCALE_NAME_MAX_LENGTH);
+    int lcid_locale_len = LCIDToLocaleName(LOCALE_USER_DEFAULT, lcid_locale_name, LOCALE_NAME_MAX_LENGTH, 0);
+    int language_len = GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, language, 16);
+    int country_len = GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, country, 16);
+    std::string locale_text = widePathToAscii(locale_name);
+    std::string lcid_locale_text = widePathToAscii(lcid_locale_name);
+    std::string language_text = widePathToAscii(language);
+    std::string country_text = widePathToAscii(country);
+    addCheck("app-locale-default-name",
+        locale_len > 1 && locale_text.size() >= 2 && lcid_locale_text == locale_text,
+        locale_text + " lcid=" + lcid_locale_text);
+    addCheck("app-locale-components",
+        language_len > 1 && !language_text.empty() && country_len > 1 && !country_text.empty(),
+        language_text + "-" + country_text);
+
+    std::u16string mutex_name = asciiToWidePath("MiniblinkAppSingleInstance-" + std::to_string((long long)getpid()));
+    HANDLE first_mutex = CreateMutexW(nullptr, TRUE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD first_error = GetLastError();
+    BOOL release_first = ReleaseMutex(first_mutex);
+    HANDLE second_mutex = CreateMutexW(nullptr, FALSE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD second_error = GetLastError();
+    DWORD wait_result = WaitForSingleObject(first_mutex, 0);
+    BOOL close_second = CloseHandle(second_mutex);
+    HANDLE third_before_close = CreateMutexW(nullptr, FALSE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD third_before_close_error = GetLastError();
+    BOOL close_third_before = CloseHandle(third_before_close);
+    BOOL close_first = CloseHandle(first_mutex);
+    HANDLE third_mutex = CreateMutexW(nullptr, FALSE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD third_error = GetLastError();
+    BOOL close_third = CloseHandle(third_mutex);
+    addCheck("app-single-instance-mutex",
+        first_mutex && second_mutex && third_before_close && third_mutex
+            && first_error == ERROR_SUCCESS
+            && release_first
+            && second_error == ERROR_ALREADY_EXISTS
+            && third_before_close_error == ERROR_ALREADY_EXISTS
+            && third_error == ERROR_SUCCESS
+            && wait_result == WAIT_OBJECT_0
+            && close_second && close_third_before && close_first && close_third,
+        "first=" + std::to_string(first_error) + " second=" + std::to_string(second_error)
+            + " thirdBeforeClose=" + std::to_string(third_before_close_error)
+            + " third=" + std::to_string(third_error) + " wait=" + std::to_string(wait_result));
 }
 
 std::u16string readMenuText(const WCHAR* text)
@@ -2329,9 +2443,11 @@ int main()
     runMenuCompatibilityChecks();
     runDialogCompatibilityChecks();
     runShellCompatibilityChecks();
+    runAppCompatibilityChecks();
     runNativeImageCompatibilityChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();
+    runAppLifecycleMessageLoopChecks();
     runNavigationControlChecks(server.origin());
 
     resetLoadState();

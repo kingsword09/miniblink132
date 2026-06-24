@@ -47,9 +47,17 @@ App.prototype.on = function(evt, cb) {
 }
 
 App.prototype.enableSandbox = function() {}
-App.prototype.getPreferredSystemLanguages = function() { return ['zh-CN', 'en-US']; }
-App.prototype.getLocale = function() { return 'zh'; }
-App.prototype.getSystemLocale = function() { return 'zh'; }
+const nativeGetLocale = App.prototype.getLocale;
+App.prototype.getLocale = function() {
+    return nativeGetLocale.call(this) || 'en-US';
+}
+App.prototype.getSystemLocale = function() {
+    return this.getLocale();
+}
+App.prototype.getPreferredSystemLanguages = function() {
+    const locale = this.getLocale();
+    return locale ? [locale] : ['en-US'];
+}
 
 const MenuItem = require('./api/menu-item.js');
 electron.MenuItem = MenuItem;

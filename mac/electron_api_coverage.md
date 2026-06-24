@@ -18,9 +18,10 @@ This matrix tracks Electron-like API coverage that is backed by macOS code and r
 | Shell showItemInFolder | `SHOpenFolderAndSelectItems` optional path with `ShellExecuteExW` fallback | Direct PIDL reveal API plus fallback-compatible shell32 probing | Yes, `shell-show-item-*` | Replace fallback with direct platform_util path when COM branch is removed |
 | Shell trashItem | Move item to Recycle Bin through shell file operation | `SHFileOperationW(FO_DELETE | FOF_ALLOWUNDO)` moves to `~/.Trash` | Yes, `shell-trash-item-*` | Add multi-item and directory trash cases |
 | Shell beep | `MessageBeep(MB_OK)` | `MessageBeep`/`Beep` shim with test suppress switch | Yes, `shell-beep-*` | Optional native sound API if needed |
-| App path/name/version/locale | Electron app metadata APIs | Not covered yet | No | Next target batch |
-| App lifecycle | quit, before-quit, window-all-closed | Not covered yet | No | Next target batch |
-| Single instance lock | Process-level lock | Unknown in current mac path | No | Inventory existing entry points first |
+| App path/locale | SHGetFolderPath, known folder, locale APIs used by Electron app | macOS folder mapping, known Downloads folder, dynamic locale shim | Yes, `app-path-*` and `app-locale-*` | Add full JS Electron runtime smoke for `app.getPath/getLocale` |
+| App name/version | Electron app metadata setters/getters | Existing C++ fields in `ApiApp` | No | Add JS binding smoke when Electron runtime path is enabled |
+| App lifecycle | quit, before-quit, window-all-closed | `app.quit()` now closes windows and posts `WM_QUIT`; `app.exit()` remains immediate exit; window-all-closed hook exists in `ApiBrowserWindow` | Partial, `app-lifecycle-*` covers Win32 message-loop quit path | Add full JS Electron runtime smoke for `before-quit/window-all-closed` event ordering |
+| Single instance lock | Process-level named mutex | Win32-compatible named mutex shim | Yes, `app-single-instance-mutex` | Add cross-process callback/argv forwarding case |
 | globalShortcut | Register/unregister accelerators | Not covered yet | No | Later system integration batch |
 | screen | Display list/primary display/cursor point | Partial lower-level display shims may exist | No | Add API inventory and E2E |
 | nativeTheme | Theme/dark mode/high contrast | Not covered yet | No | Add deterministic query shim |

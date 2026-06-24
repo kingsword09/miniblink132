@@ -385,6 +385,8 @@
 #define LOCALE_IFIRSTDAYOFWEEK 0x0000100C
 #define LOCALE_NOUSEROVERRIDE 0x80000000
 #define LOCALE_SISO639LANGNAME 0x00000059
+#define LOCALE_SISO3166CTRYNAME 0x0000005A
+#define LOCALE_SNAME 0x0000005C
 #define LOCALE_NAME_MAX_LENGTH 85
 #define MAKELANGID(p, s) ((((WORD)(s)) << 10) | (WORD)(p))
 #define SUBLANG_DEFAULT 0x01
@@ -413,6 +415,15 @@
 
 #define CSIDL_APPDATA 0x001a
 #define CSIDL_LOCAL_APPDATA 0x001c
+#define CSIDL_DESKTOPDIRECTORY 0x0010
+#define CSIDL_PROFILE 0x0028
+#define CSIDL_PERSONAL 0x0005
+#define CSIDL_MYDOCUMENTS CSIDL_PERSONAL
+#define CSIDL_MYMUSIC 0x000d
+#define CSIDL_MYVIDEO 0x000e
+#define CSIDL_MYPICTURES 0x0027
+#define CSIDL_RECENT 0x0008
+#define SHGFP_TYPE_CURRENT 0
 #define INFINITE 0xFFFFFFFF
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
 #define E_INVALIDARG ((HRESULT)0x80000003L)
@@ -1324,6 +1335,9 @@ EXTERN_C void DebugBreak();
 EXTERN_C VOID OutputDebugStringA(LPCSTR lpOutputString);
 EXTERN_C VOID OutputDebugStringW(LPCWSTR lpOutputString);
 EXTERN_C HMODULE GetModuleHandleW(LPCWSTR lpModuleName);
+EXTERN_C HANDLE CreateMutexA(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName);
+EXTERN_C HANDLE CreateMutexW(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCWSTR lpName);
+EXTERN_C BOOL ReleaseMutex(HANDLE hMutex);
 
 EXTERN_C BOOL SetForegroundWindow(HWND hWnd);
 
@@ -1558,6 +1572,8 @@ EXTERN_C BOOL FreeLibrary(HMODULE hLibModule);
 EXTERN_C HRESULT SHGetFolderPathW(HWND hwnd, int csidl, HANDLE hToken, DWORD dwFlags, LPWSTR pszPath);
 EXTERN_C DWORD SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LONG* lpDistanceToMoveHigh, DWORD dwMoveMethod);
 EXTERN_C int GetLocaleInfoW(LCID Locale, LCTYPE LCType, LPWSTR lpLCData, int cchData);
+EXTERN_C int GetUserDefaultLocaleName(LPWSTR lpLocaleName, int cchLocaleName);
+EXTERN_C int LCIDToLocaleName(LCID Locale, LPWSTR lpName, int cchName, DWORD dwFlags);
 EXTERN_C BOOL PathIsDirectoryW(LPCWSTR pszPath);
 EXTERN_C HIMC ImmGetContext(HWND);
 EXTERN_C BOOL ImmSetCompositionWindow(HIMC, LPCOMPOSITIONFORM lpCompForm);
