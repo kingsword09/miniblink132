@@ -1316,8 +1316,13 @@ extern "C" SIZE_T GlobalSize(HGLOBAL hMem)
     return header->size;
 }
 
+struct MacBitmapObject;
+static MacBitmapObject* asBitmap(HBITMAP bitmap);
+static std::vector<unsigned char> bitmapToDibData(const MacBitmapObject* bitmap);
+
 static std::mutex g_clipboardMutex;
 static std::vector<unsigned char> g_clipboardData;
+static std::vector<unsigned char> g_clipboardDibData;
 static UINT g_clipboardFormat = 0;
 static std::vector<std::pair<std::string, UINT>> g_registeredClipboardFormats;
 
@@ -1364,6 +1369,7 @@ extern "C" BOOL EmptyClipboard(void)
 {
     std::lock_guard<std::mutex> lock(g_clipboardMutex);
     g_clipboardData.clear();
+    g_clipboardDibData.clear();
     g_clipboardFormat = 0;
     return TRUE;
 }
@@ -1372,24 +1378,43 @@ extern "C" HANDLE SetClipboardData(UINT uFormat, HANDLE hMem)
 {
     std::lock_guard<std::mutex> lock(g_clipboardMutex);
     g_clipboardFormat = uFormat;
-    g_clipboardData.assign((unsigned char*)hMem, (unsigned char*)hMem + GlobalSize((HGLOBAL)hMem));
+    if (uFormat == CF_BITMAP) {
+        MacBitmapObject* bitmap = asBitmap((HBITMAP)hMem);
+        if (!bitmap)
+            return nullptr;
+        g_clipboardData.clear();
+        g_clipboardDibData = bitmapToDibData(bitmap);
+        return hMem;
+    }
+
+    SIZE_T size = GlobalSize((HGLOBAL)hMem);
+    g_clipboardData.assign((unsigned char*)hMem, (unsigned char*)hMem + size);
+    if (uFormat == CF_DIB)
+        g_clipboardDibData = g_clipboardData;
+    else
+        g_clipboardDibData.clear();
     return hMem;
 }
 
 extern "C" HANDLE GetClipboardData(UINT uFormat)
 {
     std::lock_guard<std::mutex> lock(g_clipboardMutex);
-    if (uFormat != g_clipboardFormat || g_clipboardData.empty())
+    const std::vector<unsigned char>* data = nullptr;
+    if (uFormat == g_clipboardFormat && !g_clipboardData.empty())
+        data = &g_clipboardData;
+    else if (uFormat == CF_DIB && !g_clipboardDibData.empty())
+        data = &g_clipboardDibData;
+    if (!data)
         return nullptr;
-    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, g_clipboardData.size());
-    memcpy(memory, g_clipboardData.data(), g_clipboardData.size());
+    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, data->size());
+    memcpy(memory, data->data(), data->size());
     return memory;
 }
 
 extern "C" BOOL IsClipboardFormatAvailable(UINT format)
 {
     std::lock_guard<std::mutex> lock(g_clipboardMutex);
-    return format == g_clipboardFormat;
+    return format == g_clipboardFormat || (format == CF_DIB && !g_clipboardDibData.empty());
 }
 
 extern "C" DWORD GetClipboardSequenceNumber(void)
@@ -1435,14 +1460,11 @@ extern "C" BOOL MacGdiDrawBitmapToContext(HDC hdc, const unsigned char* bitmap, 
 extern "C" HDC GetDC(HWND hWnd) { return nullptr; }
 extern "C" HDC GetDCEx(HWND hWnd, HRGN hrgnClip, DWORD flags) { return nullptr; }
 extern "C" int ReleaseDC(HWND hWnd, HDC hDC) { return 1; }
-extern "C" HDC CreateCompatibleDC(HDC hdc) { return nullptr; }
-extern "C" BOOL DeleteDC(HDC hdc) { return TRUE; }
-extern "C" HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h) { return nullptr; }
-extern "C" HGDIOBJ GetCurrentObject(HDC hdc, UINT type) { return nullptr; }
 
 enum MacGdiObjectKind {
     kMacGdiBitmap = 1,
     kMacGdiIcon,
+    kMacGdiMemoryDC,
 };
 
 struct MacGdiObject {
@@ -1476,6 +1498,15 @@ struct MacIconObject : MacGdiObject {
     }
 };
 
+struct MacMemoryDCObject : MacGdiObject {
+    HBITMAP selectedBitmap = nullptr;
+
+    MacMemoryDCObject()
+    {
+        kind = kMacGdiMemoryDC;
+    }
+};
+
 static MacGdiObject* asGdiObject(HGDIOBJ object)
 {
     MacGdiObject* gdi = (MacGdiObject*)object;
@@ -1493,6 +1524,86 @@ static MacBitmapObject* asBitmap(HBITMAP bitmap)
 {
     MacGdiObject* gdi = asGdiObject((HGDIOBJ)bitmap);
     return gdi && gdi->kind == kMacGdiBitmap ? (MacBitmapObject*)gdi : nullptr;
+}
+
+static MacMemoryDCObject* asMemoryDC(HDC dc)
+{
+    MacGdiObject* gdi = asGdiObject((HGDIOBJ)dc);
+    return gdi && gdi->kind == kMacGdiMemoryDC ? (MacMemoryDCObject*)gdi : nullptr;
+}
+
+static size_t bitmapBytesPerPixel(const MacBitmapObject* bitmap)
+{
+    if (!bitmap || bitmap->planes == 0 || bitmap->bitsPerPixel == 0)
+        return 0;
+    return std::max<size_t>(1, (bitmap->planes * bitmap->bitsPerPixel + 7) / 8);
+}
+
+static bool bitmapPointOffset(const MacBitmapObject* bitmap, int x, int y, size_t* offset)
+{
+    if (!bitmap || !offset || x < 0 || y < 0 || x >= bitmap->width || y >= bitmap->height)
+        return false;
+    size_t stride = bitmapStrideBytes(bitmap->width, bitmap->planes, bitmap->bitsPerPixel);
+    size_t bpp = bitmapBytesPerPixel(bitmap);
+    size_t value = (size_t)y * stride + (size_t)x * bpp;
+    if (value + bpp > bitmap->pixels.size())
+        return false;
+    *offset = value;
+    return true;
+}
+
+static std::vector<unsigned char> bitmapToDibData(const MacBitmapObject* bitmap)
+{
+    std::vector<unsigned char> data;
+    if (!bitmap)
+        return data;
+
+    BITMAPINFOHEADER header = {};
+    header.biSize = sizeof(header);
+    header.biWidth = bitmap->width;
+    header.biHeight = bitmap->height;
+    header.biPlanes = (WORD)bitmap->planes;
+    header.biBitCount = (WORD)bitmap->bitsPerPixel;
+    header.biCompression = BI_RGB;
+    header.biSizeImage = (DWORD)bitmap->pixels.size();
+
+    data.resize(sizeof(header) + bitmap->pixels.size());
+    memcpy(data.data(), &header, sizeof(header));
+    if (!bitmap->pixels.empty())
+        memcpy(data.data() + sizeof(header), bitmap->pixels.data(), bitmap->pixels.size());
+    return data;
+}
+
+extern "C" HDC CreateCompatibleDC(HDC hdc)
+{
+    return new MacMemoryDCObject();
+}
+extern "C" BOOL DeleteDC(HDC hdc)
+{
+    MacMemoryDCObject* dc = asMemoryDC(hdc);
+    if (!dc)
+        return FALSE;
+    delete dc;
+    return TRUE;
+}
+extern "C" HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h)
+{
+    MacMemoryDCObject* dc = asMemoryDC(hdc);
+    if (!dc)
+        return nullptr;
+    MacBitmapObject* bitmap = asBitmap((HBITMAP)h);
+    if (h && !bitmap)
+        return nullptr;
+    HBITMAP previous = dc->selectedBitmap;
+    dc->selectedBitmap = (HBITMAP)h;
+    return (HGDIOBJ)previous;
+}
+extern "C" HGDIOBJ GetCurrentObject(HDC hdc, UINT type)
+{
+    MacMemoryDCObject* dc = asMemoryDC(hdc);
+    if (!dc || type != OBJ_BITMAP)
+        return nullptr;
+    return (HGDIOBJ)dc->selectedBitmap;
 }
 
 extern "C" int GetObject(HANDLE h, int c, LPVOID pv)
@@ -1549,8 +1660,66 @@ extern "C" int FillRect(HDC hDC, CONST RECT* lprc, HBRUSH hbr)
     return 1;
 }
 extern "C" BOOL Rectangle(HDC hdc, int left, int top, int right, int bottom) { return TRUE; }
-extern "C" BOOL BitBlt(HDC hdc, int x, int y, int cx, int cy, HDC hdcSrc, int x1, int y1, DWORD rop) { return FALSE; }
-extern "C" BOOL AlphaBlend(HDC hdcDest, int xoriginDest, int yoriginDest, int wDest, int hDest, HDC hdcSrc, int xoriginSrc, int yoriginSrc, int wSrc, int hSrc, BLENDFUNCTION ftn) { return FALSE; }
+extern "C" BOOL BitBlt(HDC hdc, int x, int y, int cx, int cy, HDC hdcSrc, int x1, int y1, DWORD rop)
+{
+    if (cx <= 0 || cy <= 0 || (rop & SRCCOPY) != SRCCOPY)
+        return FALSE;
+    MacMemoryDCObject* dstDC = asMemoryDC(hdc);
+    MacMemoryDCObject* srcDC = asMemoryDC(hdcSrc);
+    MacBitmapObject* dst = dstDC ? asBitmap(dstDC->selectedBitmap) : nullptr;
+    MacBitmapObject* src = srcDC ? asBitmap(srcDC->selectedBitmap) : nullptr;
+    size_t dstBpp = bitmapBytesPerPixel(dst);
+    size_t srcBpp = bitmapBytesPerPixel(src);
+    if (!dst || !src || dstBpp == 0 || dstBpp != srcBpp)
+        return FALSE;
+
+    for (int row = 0; row < cy; ++row) {
+        for (int col = 0; col < cx; ++col) {
+            size_t dstOffset = 0;
+            size_t srcOffset = 0;
+            if (!bitmapPointOffset(dst, x + col, y + row, &dstOffset)
+                || !bitmapPointOffset(src, x1 + col, y1 + row, &srcOffset))
+                continue;
+            memcpy(dst->pixels.data() + dstOffset, src->pixels.data() + srcOffset, dstBpp);
+        }
+    }
+    return TRUE;
+}
+extern "C" BOOL AlphaBlend(HDC hdcDest, int xoriginDest, int yoriginDest, int wDest, int hDest, HDC hdcSrc, int xoriginSrc, int yoriginSrc, int wSrc, int hSrc, BLENDFUNCTION ftn)
+{
+    if (wDest <= 0 || hDest <= 0 || wSrc <= 0 || hSrc <= 0 || ftn.BlendOp != AC_SRC_OVER)
+        return FALSE;
+    MacMemoryDCObject* dstDC = asMemoryDC(hdcDest);
+    MacMemoryDCObject* srcDC = asMemoryDC(hdcSrc);
+    MacBitmapObject* dst = dstDC ? asBitmap(dstDC->selectedBitmap) : nullptr;
+    MacBitmapObject* src = srcDC ? asBitmap(srcDC->selectedBitmap) : nullptr;
+    if (!dst || !src || bitmapBytesPerPixel(dst) < 4 || bitmapBytesPerPixel(src) < 4)
+        return FALSE;
+
+    for (int row = 0; row < hDest; ++row) {
+        for (int col = 0; col < wDest; ++col) {
+            int srcX = xoriginSrc + (col * wSrc) / wDest;
+            int srcY = yoriginSrc + (row * hSrc) / hDest;
+            size_t dstOffset = 0;
+            size_t srcOffset = 0;
+            if (!bitmapPointOffset(dst, xoriginDest + col, yoriginDest + row, &dstOffset)
+                || !bitmapPointOffset(src, srcX, srcY, &srcOffset))
+                continue;
+
+            unsigned char* dstPixel = dst->pixels.data() + dstOffset;
+            const unsigned char* srcPixel = src->pixels.data() + srcOffset;
+            unsigned int sourceAlpha = ftn.SourceConstantAlpha;
+            if (ftn.AlphaFormat & AC_SRC_ALPHA)
+                sourceAlpha = (sourceAlpha * srcPixel[3]) / 255;
+            for (int channel = 0; channel < 4; ++channel) {
+                unsigned int srcValue = srcPixel[channel];
+                unsigned int dstValue = dstPixel[channel];
+                dstPixel[channel] = (unsigned char)((srcValue * sourceAlpha + dstValue * (255 - sourceAlpha)) / 255);
+            }
+        }
+    }
+    return TRUE;
+}
 extern "C" BOOL GdiAlphaBlend(HDC hdcDest, int xoriginDest, int yoriginDest, int wDest, int hDest, HDC hdcSrc, int xoriginSrc, int yoriginSrc, int wSrc, int hSrc, BLENDFUNCTION ftn) { return AlphaBlend(hdcDest, xoriginDest, yoriginDest, wDest, hDest, hdcSrc, xoriginSrc, yoriginSrc, wSrc, hSrc, ftn); }
 extern "C" HBITMAP CreateBitmap(int nWidth, int nHeight, UINT nPlanes, UINT nBitCount, const void* lpBits)
 {

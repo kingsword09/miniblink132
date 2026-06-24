@@ -1527,6 +1527,63 @@ void runNativeImageCompatibilityChecks()
             && mask_info.bmWidth == 2 && mask_info.bmHeight == 2 && mask_info.bmBitsPixel == 1,
         "size=" + std::to_string(mask_object_size) + " bpp=" + std::to_string(mask_info.bmBitsPixel));
 
+    HDC source_dc = CreateCompatibleDC(nullptr);
+    HDC dest_dc = CreateCompatibleDC(nullptr);
+    HBITMAP dest_bitmap = CreateCompatibleBitmap(nullptr, 2, 2);
+    HBITMAP old_source = source_dc ? (HBITMAP)SelectObject(source_dc, color_bitmap) : nullptr;
+    HBITMAP old_dest = dest_dc ? (HBITMAP)SelectObject(dest_dc, dest_bitmap) : nullptr;
+    BOOL selected_bitmap = GetCurrentObject(source_dc, OBJ_BITMAP) == color_bitmap
+        && GetCurrentObject(dest_dc, OBJ_BITMAP) == dest_bitmap;
+    BOOL blitted = BitBlt(dest_dc, 0, 0, 2, 2, source_dc, 0, 0, SRCCOPY);
+    BITMAP blit_info = {};
+    BOOL read_blit_bitmap = GetObject(dest_bitmap, sizeof(blit_info), &blit_info) == sizeof(BITMAP);
+    BOOL copied_pixels = pixels && blit_info.bmBits
+        && memcmp(blit_info.bmBits, pixels, 16) == 0;
+    addCheck("nativeimage-memorydc-bitblt",
+        source_dc && dest_dc && dest_bitmap && selected_bitmap && blitted && read_blit_bitmap && copied_pixels,
+        "selected=" + std::to_string(selected_bitmap) + " blit=" + std::to_string(blitted));
+
+    HBITMAP blend_bitmap = CreateCompatibleBitmap(nullptr, 2, 2);
+    SelectObject(dest_dc, blend_bitmap);
+    BLENDFUNCTION blend = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+    BOOL alpha_blended = GdiAlphaBlend(dest_dc, 0, 0, 2, 2, source_dc, 0, 0, 2, 2, blend);
+    BITMAP blend_info = {};
+    BOOL read_blend_bitmap = GetObject(blend_bitmap, sizeof(blend_info), &blend_info) == sizeof(BITMAP);
+    addCheck("nativeimage-memorydc-alpha-blend",
+        blend_bitmap && alpha_blended && read_blend_bitmap && blend_info.bmBits,
+        "blend=" + std::to_string(alpha_blended));
+
+    OpenClipboard(nullptr);
+    EmptyClipboard();
+    HANDLE set_bitmap_clipboard = SetClipboardData(CF_BITMAP, dest_bitmap);
+    HANDLE dib_clipboard = GetClipboardData(CF_DIB);
+    BITMAPINFO* dib_info = dib_clipboard ? static_cast<BITMAPINFO*>(GlobalLock(dib_clipboard)) : nullptr;
+    bool clipboard_dib_ok = set_bitmap_clipboard == dest_bitmap && dib_info
+        && dib_info->bmiHeader.biWidth == 2 && dib_info->bmiHeader.biHeight == 2
+        && dib_info->bmiHeader.biBitCount == 32
+        && IsClipboardFormatAvailable(CF_DIB);
+    if (dib_clipboard) {
+        GlobalUnlock(dib_clipboard);
+        GlobalFree(dib_clipboard);
+    }
+    CloseClipboard();
+    addCheck("nativeimage-clipboard-bitmap-dib",
+        clipboard_dib_ok,
+        "ok=" + std::to_string(clipboard_dib_ok));
+
+    if (source_dc) {
+        SelectObject(source_dc, old_source);
+        DeleteDC(source_dc);
+    }
+    if (dest_dc) {
+        SelectObject(dest_dc, old_dest);
+        DeleteDC(dest_dc);
+    }
+    if (dest_bitmap)
+        DeleteObject(dest_bitmap);
+    if (blend_bitmap)
+        DeleteObject(blend_bitmap);
+
     ICONINFO icon_info = {};
     icon_info.fIcon = TRUE;
     icon_info.hbmColor = color_bitmap;
