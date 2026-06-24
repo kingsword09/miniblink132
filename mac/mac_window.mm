@@ -439,7 +439,11 @@ std::set<HWND>* HwndMac::s_hwnds = nullptr;
 std::recursive_mutex* HwndMac::s_hwndMutex = nullptr;
 
 HwndMac::HwndMac() = default;
-HwndMac::~HwndMac() = default;
+HwndMac::~HwndMac()
+{
+    if (m_systemMenu)
+        DestroyMenu(m_systemMenu);
+}
 
 void HwndMac::ensureStatics()
 {
@@ -692,6 +696,7 @@ extern "C" HWND CreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lp
     HwndMac* self = new HwndMac();
     self->m_autoHandleClose = true;
     self->m_parent = hWndParent;
+    self->m_menu = hMenu;
     self->m_wndProc = wndClass.lpfnWndProc;
     self->m_userdata = lpParam;
     self->m_style = dwStyle;

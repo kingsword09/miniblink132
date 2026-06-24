@@ -21,6 +21,8 @@ public:
     DWORD m_styleex = 0;
     DWORD m_threadId = 0;
     HWND m_parent = nullptr;
+    HMENU m_menu = nullptr;
+    HMENU m_systemMenu = nullptr;
     bool m_autoHandleClose = false;
     bool m_isDestroying = false;
     bool m_visible = false;

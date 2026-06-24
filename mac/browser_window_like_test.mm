@@ -1298,6 +1298,7 @@ LRESULT menuCommandWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 struct MenuCommandWindowState {
     HWND hwnd = nullptr;
+    HMENU initialMenu = nullptr;
 };
 
 void MB_CALL_TYPE createMenuCommandWindowOnUiThread(void* param1, void*)
@@ -1309,7 +1310,7 @@ void MB_CALL_TYPE createMenuCommandWindowOnUiThread(void* param1, void*)
     wc.lpszClassName = reinterpret_cast<LPCWSTR>(class_name);
     RegisterClassW(&wc);
     state->hwnd = CreateWindowExW(0, reinterpret_cast<LPCWSTR>(class_name), reinterpret_cast<LPCWSTR>(class_name),
-        WS_POPUP, 0, 0, 1, 1, nullptr, nullptr, nullptr, nullptr);
+        WS_POPUP, 0, 0, 1, 1, nullptr, state->initialMenu, nullptr, nullptr);
 }
 
 void MB_CALL_TYPE destroyMenuCommandWindowOnUiThread(void* param1, void*)
@@ -1417,6 +1418,7 @@ void runMenuCompatibilityChecks()
         "count=" + std::to_string(GetMenuItemCount(menu)) + " deletedState=" + std::to_string(deleted_state));
 
     MenuCommandWindowState command_window;
+    command_window.initialMenu = menu;
     mbCallUiThreadSync(createMenuCommandWindowOnUiThread, &command_window, nullptr);
     HMENU command_menu = CreatePopupMenu();
     std::u16string disabled_command_text = u"Disabled";
@@ -1427,6 +1429,47 @@ void runMenuCompatibilityChecks()
         && AppendMenuW(command_menu, MF_STRING, 2002, reinterpret_cast<LPCWSTR>(enabled_command_text.c_str()));
     addCheck("menu-track-command-setup", command_menu_ready && command_window.hwnd,
         "hwnd=" + std::to_string((uintptr_t)command_window.hwnd));
+
+    BOOL initial_window_menu = GetMenu(command_window.hwnd) == menu;
+    BOOL set_window_menu = command_menu ? SetMenu(command_window.hwnd, command_menu) : FALSE;
+    BOOL read_window_menu = GetMenu(command_window.hwnd) == command_menu;
+    BOOL drew_menu_bar = DrawMenuBar(command_window.hwnd);
+    BOOL cleared_window_menu = SetMenu(command_window.hwnd, nullptr);
+    BOOL read_cleared_menu = GetMenu(command_window.hwnd) == nullptr;
+    addCheck("menu-window-binding",
+        initial_window_menu && set_window_menu && read_window_menu && drew_menu_bar && cleared_window_menu && read_cleared_menu,
+        "initial=" + std::to_string(initial_window_menu) + " set=" + std::to_string(set_window_menu)
+            + " read=" + std::to_string(read_window_menu) + " draw=" + std::to_string(drew_menu_bar)
+            + " cleared=" + std::to_string(read_cleared_menu));
+
+    HMENU system_menu = GetSystemMenu(command_window.hwnd, FALSE);
+    HMENU same_system_menu = GetSystemMenu(command_window.hwnd, FALSE);
+    int system_default_count = GetMenuItemCount(system_menu);
+    UINT restore_state = GetMenuState(system_menu, SC_RESTORE, MF_BYCOMMAND);
+    UINT minimize_state = GetMenuState(system_menu, SC_MINIMIZE, MF_BYCOMMAND);
+    UINT maximize_state = GetMenuState(system_menu, SC_MAXIMIZE, MF_BYCOMMAND);
+    UINT close_state = GetMenuState(system_menu, SC_CLOSE, MF_BYCOMMAND);
+    addCheck("menu-system-menu-defaults",
+        system_menu && same_system_menu == system_menu && system_default_count == 5
+            && restore_state != (UINT)-1 && minimize_state != (UINT)-1
+            && maximize_state != (UINT)-1 && close_state != (UINT)-1,
+        "count=" + std::to_string(system_default_count) + " same=" + std::to_string(same_system_menu == system_menu));
+
+    std::u16string custom_system_text = u"Custom System";
+    BOOL appended_system_custom = system_menu
+        ? AppendMenuW(system_menu, MF_STRING, 3001, reinterpret_cast<LPCWSTR>(custom_system_text.c_str()))
+        : FALSE;
+    int system_custom_count = GetMenuItemCount(system_menu);
+    HMENU revert_system_return = GetSystemMenu(command_window.hwnd, TRUE);
+    HMENU reset_system_menu = GetSystemMenu(command_window.hwnd, FALSE);
+    int reset_system_count = GetMenuItemCount(reset_system_menu);
+    UINT reset_custom_state = GetMenuState(reset_system_menu, 3001, MF_BYCOMMAND);
+    addCheck("menu-system-menu-revert",
+        appended_system_custom && system_custom_count == system_default_count + 1
+            && revert_system_return == nullptr && reset_system_menu
+            && reset_system_count == system_default_count && reset_custom_state == (UINT)-1,
+        "customCount=" + std::to_string(system_custom_count) + " resetCount=" + std::to_string(reset_system_count)
+            + " customState=" + std::to_string(reset_custom_state));
 
     BOOL returned_command = command_menu ? TrackPopupMenuEx(command_menu, TPM_RETURNCMD, 10, 10, command_window.hwnd, nullptr) : FALSE;
     addCheck("menu-track-return-command", (UINT)returned_command == 2002,

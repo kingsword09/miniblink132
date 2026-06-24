@@ -1835,6 +1835,20 @@ extern "C" BOOL AppendMenuW(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCWS
     menu->items.push_back(item);
     return TRUE;
 }
+
+static BOOL appendDefaultSystemMenuItems(HMENU hMenu)
+{
+    const char16_t restoreText[] = u"Restore";
+    const char16_t minimizeText[] = u"Minimize";
+    const char16_t maximizeText[] = u"Maximize";
+    const char16_t closeText[] = u"Close";
+    return AppendMenuW(hMenu, MF_STRING, SC_RESTORE, reinterpret_cast<LPCWSTR>(restoreText))
+        && AppendMenuW(hMenu, MF_STRING, SC_MINIMIZE, reinterpret_cast<LPCWSTR>(minimizeText))
+        && AppendMenuW(hMenu, MF_STRING, SC_MAXIMIZE, reinterpret_cast<LPCWSTR>(maximizeText))
+        && AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr)
+        && AppendMenuW(hMenu, MF_STRING, SC_CLOSE, reinterpret_cast<LPCWSTR>(closeText));
+}
+
 extern "C" int GetMenuItemCount(HMENU hMenu)
 {
     MacMenu* menu = asMenu(hMenu);
@@ -1852,7 +1866,23 @@ extern "C" BOOL TrackPopupMenuEx(HMENU hMenu, UINT uFlags, int, int, HWND hWnd, 
     return PostMessageW(hWnd, WM_COMMAND, MAKEWPARAM(commandId, 0), 0);
 }
 extern "C" BOOL TrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT* prcRect) { return TrackPopupMenuEx(hMenu, uFlags, x, y, hWnd, nullptr); }
-extern "C" BOOL SetMenu(HWND hWnd, HMENU hMenu) { return TRUE; }
+extern "C" BOOL SetMenu(HWND hWnd, HMENU hMenu)
+{
+    HwndMac* window = HwndMac::from(hWnd);
+    if (!window || (hMenu && !asMenu(hMenu)))
+        return FALSE;
+    window->m_menu = hMenu;
+    return TRUE;
+}
+extern "C" HMENU GetMenu(HWND hWnd)
+{
+    HwndMac* window = HwndMac::from(hWnd);
+    return window ? window->m_menu : nullptr;
+}
+extern "C" BOOL DrawMenuBar(HWND hWnd)
+{
+    return HwndMac::isValid(hWnd) ? TRUE : FALSE;
+}
 extern "C" BOOL SetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPositon, MENUITEMINFOW* lpmii)
 {
     MacMenuItem* menuItem = findMenuItem(asMenu(hmenu), item, fByPositon);
@@ -1926,7 +1956,29 @@ extern "C" BOOL DeleteMenu(HMENU hMenu, UINT uPosition, UINT uFlags)
     menu->items.erase(it);
     return TRUE;
 }
-extern "C" HMENU GetSystemMenu(HWND hWnd, BOOL bRevert) { return nullptr; }
+extern "C" HMENU GetSystemMenu(HWND hWnd, BOOL bRevert)
+{
+    HwndMac* window = HwndMac::from(hWnd);
+    if (!window)
+        return nullptr;
+    if (bRevert) {
+        if (window->m_systemMenu) {
+            DestroyMenu(window->m_systemMenu);
+            window->m_systemMenu = nullptr;
+        }
+        return nullptr;
+    }
+    if (!window->m_systemMenu) {
+        HMENU systemMenu = CreatePopupMenu();
+        if (!systemMenu || !appendDefaultSystemMenuItems(systemMenu)) {
+            if (systemMenu)
+                DestroyMenu(systemMenu);
+            return nullptr;
+        }
+        window->m_systemMenu = systemMenu;
+    }
+    return window->m_systemMenu;
+}
 
 extern "C" int MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
 {

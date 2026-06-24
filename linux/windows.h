@@ -132,6 +132,8 @@
 #define SW_RESTORE 9
 #define SW_MINIMIZE 6
 #define SC_CLOSE 0xF060
+#define SC_MINIMIZE 0xF020
+#define SC_MAXIMIZE 0xF030
 
 #define IDC_SMALL 2
 
@@ -1559,6 +1561,8 @@ EXTERN_C BOOL IsIconic(HWND hWnd);
 EXTERN_C HIMC ImmAssociateContext(HWND, HIMC);
 EXTERN_C BOOL IsWindowEnabled(HWND hWnd);
 EXTERN_C BOOL SetMenu(HWND hWnd, HMENU hMenu);
+EXTERN_C HMENU GetMenu(HWND hWnd);
+EXTERN_C BOOL DrawMenuBar(HWND hWnd);
 EXTERN_C BOOL TrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT* prcRect);
 EXTERN_C BOOL SetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPositon, MENUITEMINFOW* lpmii);
 EXTERN_C BOOL GetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmii);
