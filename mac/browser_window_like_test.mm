@@ -68,6 +68,12 @@ std::atomic<bool> g_web_request_redirect_seen(false);
 std::atomic<bool> g_web_request_cancel_seen(false);
 std::atomic<bool> g_custom_protocol_main_seen(false);
 std::atomic<bool> g_custom_protocol_subresource_seen(false);
+std::atomic<bool> g_console_seen(false);
+std::atomic<bool> g_alert_seen(false);
+std::atomic<bool> g_confirm_seen(false);
+std::atomic<bool> g_prompt_seen(false);
+std::atomic<int> g_source_callback_count(0);
+std::atomic<int> g_markup_callback_count(0);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -80,6 +86,13 @@ std::string g_last_cookie_string;
 std::string g_web_request_post_body;
 std::string g_web_request_end_body;
 std::string g_redirect_target_url;
+std::string g_console_message;
+std::string g_alert_message;
+std::string g_confirm_message;
+std::string g_prompt_message;
+std::string g_prompt_default;
+std::string g_async_source;
+std::string g_async_markup;
 BOOL g_last_can_go_back = FALSE;
 BOOL g_last_can_go_forward = FALSE;
 
@@ -821,6 +834,70 @@ void MB_CALL_TYPE onRunJsString(mbWebView, void*, mbJsExecState es, mbJsValue va
     ++g_async_js_callback_count;
 }
 
+void MB_CALL_TYPE onConsole(mbWebView, void*, mbConsoleLevel level, const utf8* message, const utf8* sourceName, unsigned sourceLine, const utf8*)
+{
+    if (!message || strstr(message, "mb-console-ok") == nullptr)
+        return;
+
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        std::ostringstream detail;
+        detail << message << " level=" << (int)level << " source=" << (sourceName ? sourceName : "") << ":" << sourceLine;
+        g_console_message = detail.str();
+    }
+    g_console_seen = true;
+}
+
+void MB_CALL_TYPE onAlertBox(mbWebView, void*, const utf8* msg)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_alert_message = msg ? msg : "";
+    }
+    g_alert_seen = true;
+}
+
+BOOL MB_CALL_TYPE onConfirmBox(mbWebView, void*, const utf8* msg)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_confirm_message = msg ? msg : "";
+    }
+    g_confirm_seen = true;
+    return TRUE;
+}
+
+mbStringPtr MB_CALL_TYPE onPromptBox(mbWebView, void*, const utf8* msg, const utf8* defaultResult, BOOL* result)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_prompt_message = msg ? msg : "";
+        g_prompt_default = defaultResult ? defaultResult : "";
+    }
+    if (result)
+        *result = TRUE;
+    g_prompt_seen = true;
+    return mbCreateStringWithCopy("prompt-ok", 9);
+}
+
+void MB_CALL_TYPE onGetSource(mbWebView, void*, const utf8* source)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_source = source ? source : "";
+    }
+    ++g_source_callback_count;
+}
+
+void MB_CALL_TYPE onGetContentAsMarkup(mbWebView, void*, const utf8* content, size_t size)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_markup.assign(content ? content : "", content ? size : 0);
+    }
+    ++g_markup_callback_count;
+}
+
 void attachBasicLoadCallbacks(mbWebView view)
 {
     mbOnTitleChanged(view, onTitleChanged, nullptr);
@@ -829,6 +906,14 @@ void attachBasicLoadCallbacks(mbWebView view)
     mbOnLoadingFinish(view, onLoadingFinish, nullptr);
     mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
     mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+}
+
+void attachElectronLikeCallbacks(mbWebView view)
+{
+    mbOnConsole(view, onConsole, nullptr);
+    mbOnAlertBox(view, onAlertBox, nullptr);
+    mbOnConfirmBox(view, onConfirmBox, nullptr);
+    mbOnPromptBox(view, onPromptBox, nullptr);
 }
 
 struct CreateViewReturnState {
@@ -1079,6 +1164,102 @@ void runWebContentsScriptAndZoomChecks(mbWebView view)
         std::lock_guard<std::mutex> lock(g_state_mutex);
         addCheck("webcontents-execute-js-closure", closure_ok, g_async_js_text);
     }
+}
+
+void runWebContentsDialogAndSourceChecks(mbWebView view)
+{
+    g_console_seen = false;
+    g_alert_seen = false;
+    g_confirm_seen = false;
+    g_prompt_seen = false;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_console_message.clear();
+        g_alert_message.clear();
+        g_confirm_message.clear();
+        g_prompt_message.clear();
+        g_prompt_default.clear();
+    }
+
+    jsNumber(view, "console.log('mb-console-ok'); 1");
+    bool console_ok = waitFor([] { return g_console_seen.load(); }, 3000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-console-callback", console_ok, g_console_message);
+    }
+
+    std::string dialog_result = jsString(view,
+        "alert('alert-ok');"
+        "var confirmResult = confirm('confirm-ok');"
+        "var promptResult = prompt('prompt-ok','default-ok');"
+        "JSON.stringify({confirm:confirmResult,prompt:promptResult})");
+    bool dialogs_seen = waitFor([] {
+        return g_alert_seen.load() && g_confirm_seen.load() && g_prompt_seen.load();
+    }, 3000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        std::string detail = "alert=" + g_alert_message + " confirm=" + g_confirm_message
+            + " prompt=" + g_prompt_message + " default=" + g_prompt_default + " result=" + dialog_result;
+        addCheck("webcontents-js-dialog-callbacks",
+            dialogs_seen && g_alert_message == "alert-ok" && g_confirm_message == "confirm-ok"
+                && g_prompt_message == "prompt-ok" && g_prompt_default == "default-ok"
+                && dialog_result.find("\"confirm\":true") != std::string::npos
+                && dialog_result.find("\"prompt\":\"prompt-ok\"") != std::string::npos,
+            detail);
+    }
+
+    int width = mbGetContentWidth(view);
+    int height = mbGetContentHeight(view);
+    addCheck("webcontents-content-size", width > 0 && height > 0,
+        std::to_string(width) + "x" + std::to_string(height));
+
+    mbStringPtr sync_source = mbGetSourceSync(view);
+    std::string sync_source_text;
+    if (sync_source) {
+        sync_source_text.assign(mbGetString(sync_source), mbGetStringLen(sync_source));
+        mbDeleteString(sync_source);
+    }
+    addCheck("webcontents-get-source-sync",
+        sync_source_text.find("Local Miniblink E2E") != std::string::npos
+            || sync_source_text.find("local html ok") != std::string::npos,
+        "len=" + std::to_string(sync_source_text.size()));
+
+    int before_source = g_source_callback_count.load();
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_source.clear();
+    }
+    mbGetSource(view, onGetSource, nullptr);
+    bool async_source_ok = waitFor([&] { return g_source_callback_count.load() > before_source; }, 5000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-get-source-async",
+            async_source_ok && (g_async_source.find("Local Miniblink E2E") != std::string::npos
+                || g_async_source.find("local html ok") != std::string::npos),
+            "len=" + std::to_string(g_async_source.size()));
+    }
+
+    int before_markup = g_markup_callback_count.load();
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_markup.clear();
+    }
+    mbGetContentAsMarkup(view, onGetContentAsMarkup, nullptr, mbWebFrameGetMainFrame(view));
+    bool markup_ok = waitFor([&] { return g_markup_callback_count.load() > before_markup; }, 5000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-get-content-as-markup",
+            markup_ok && (g_async_markup.find("Local Miniblink E2E") != std::string::npos
+                || g_async_markup.find("local html ok") != std::string::npos),
+            "len=" + std::to_string(g_async_markup.size()));
+    }
+
+    mbSetAudioMuted(view, TRUE);
+    BOOL muted = mbIsAudioMuted(view);
+    mbSetAudioMuted(view, FALSE);
+    BOOL unmuted = !mbIsAudioMuted(view);
+    addCheck("webcontents-audio-muted-api", muted && unmuted,
+        std::string("muted=") + (muted ? "1" : "0") + " unmuted=" + (unmuted ? "1" : "0"));
 }
 
 std::string getCookieViaApi(mbWebView view)
@@ -1478,6 +1659,7 @@ int main()
     mbOnLoadUrlEnd(view, onLoadUrlEndForWebRequest, nullptr);
     mbOnCreateView(view, onCreateView, nullptr);
     mbOnDownloadInBlinkThread(view, onDownloadInBlinkThread, nullptr);
+    attachElectronLikeCallbacks(view);
     mbSetNavigationToNewWindowEnable(view, TRUE);
     mbShowWindow(view, 5);
 
@@ -1541,6 +1723,7 @@ int main()
         addCheck("document-ready-callback", g_document_ready.load());
         addCheck("load-finish-callback-local", g_load_finish_callback.load());
         runWebContentsScriptAndZoomChecks(view);
+        runWebContentsDialogAndSourceChecks(view);
         runProtocolChecks(view);
     }
 
@@ -1576,6 +1759,11 @@ int main()
         runLoopFor(300);
         addCheck("keyboard-focus-unicode-input", jsString(view, "document.getElementById('textInput').value") == "A中",
             jsString(view, "document.getElementById('textInput').value"));
+        mbRect caret_rect;
+        mbGetCaretRect(view, &caret_rect);
+        addCheck("ime-caret-rect-api", caret_rect.x >= 0 && caret_rect.y >= 0,
+            std::to_string(caret_rect.x) + "," + std::to_string(caret_rect.y) + " "
+                + std::to_string(caret_rect.w) + "x" + std::to_string(caret_rect.h));
 
         mbFireMouseEvent(view, MB_MSG_MOUSEMOVE, 20, 20, 0);
         mbFireMouseEvent(view, MB_MSG_LBUTTONDOWN, 20, 20, MB_LBUTTON);

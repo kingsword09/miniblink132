@@ -188,7 +188,7 @@ mbStringPtr getSourceOrMhtmlSync(mbWebView webviewHandle, bool isSource)
         serializer->m_result.push_back('\0');
     }
 
-    mbStringPtr ret = mbCreateString(serializer->m_result.data(), serializer->m_result.size());
+    mbStringPtr ret = mbCreateStringWithCopy(serializer->m_result.data(), serializer->m_result.size());
 
     if (serializer)
         delete serializer;
