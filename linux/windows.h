@@ -773,6 +773,8 @@
 #define MF_SEPARATOR 0x00000800L
 #define MF_STRING 0x00000000L
 #define MF_ENABLED 0x00000000L
+#define MF_BYCOMMAND 0x00000000L
+#define MF_BYPOSITION 0x00000400L
 
 #define MFS_GRAYED 0x00000003L
 #define MFS_DISABLED MFS_GRAYED
@@ -1506,6 +1508,9 @@ EXTERN_C BOOL GetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITE
 EXTERN_C HMENU CreateMenu();
 EXTERN_C BOOL InsertMenuItemW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmi);
 EXTERN_C BOOL EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable);
+EXTERN_C UINT CheckMenuItem(HMENU hMenu, UINT uIDCheckItem, UINT uCheck);
+EXTERN_C UINT GetMenuState(HMENU hMenu, UINT uId, UINT uFlags);
+EXTERN_C BOOL DeleteMenu(HMENU hMenu, UINT uPosition, UINT uFlags);
 EXTERN_C HMENU GetSystemMenu(HWND hWnd, BOOL bRevert);
 //////////////////////////////////////////////////////////////////////////
 typedef struct _cairo_surface cairo_surface_t;

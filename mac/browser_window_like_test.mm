@@ -1262,6 +1262,117 @@ void runWebContentsDialogAndSourceChecks(mbWebView view)
         std::string("muted=") + (muted ? "1" : "0") + " unmuted=" + (unmuted ? "1" : "0"));
 }
 
+std::u16string readMenuText(const WCHAR* text)
+{
+    std::u16string result;
+    if (!text)
+        return result;
+    while (*text) {
+        result.push_back((char16_t)*text);
+        ++text;
+    }
+    return result;
+}
+
+void runMenuCompatibilityChecks()
+{
+    HMENU menu = CreateMenu();
+    HMENU submenu = CreatePopupMenu();
+    addCheck("menu-create", menu && submenu);
+    if (!menu || !submenu) {
+        if (menu)
+            DestroyMenu(menu);
+        if (submenu)
+            DestroyMenu(submenu);
+        return;
+    }
+
+    std::u16string open_text = u"Open";
+    std::u16string save_text = u"Save";
+    BOOL appended_open = AppendMenuW(menu, MF_STRING, 1001, reinterpret_cast<LPCWSTR>(open_text.c_str()));
+    BOOL appended_save = AppendMenuW(menu, MF_STRING | MF_CHECKED, 1002, reinterpret_cast<LPCWSTR>(save_text.c_str()));
+
+    std::u16string inserted_text = u"Inserted";
+    MENUITEMINFOW insert_info = {};
+    insert_info.cbSize = sizeof(insert_info);
+    insert_info.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE | MIIM_DATA | MIIM_SUBMENU;
+    insert_info.wID = 1000;
+    insert_info.fState = MFS_DISABLED;
+    insert_info.dwItemData = 0x42;
+    insert_info.hSubMenu = submenu;
+    insert_info.dwTypeData = reinterpret_cast<LPWSTR>(const_cast<char16_t*>(inserted_text.c_str()));
+    BOOL inserted = InsertMenuItemW(menu, 0, TRUE, &insert_info);
+    addCheck("menu-append-insert-count", appended_open && appended_save && inserted && GetMenuItemCount(menu) == 3,
+        std::to_string(GetMenuItemCount(menu)));
+
+    WCHAR text_buffer[64] = {};
+    MENUITEMINFOW read_info = {};
+    read_info.cbSize = sizeof(read_info);
+    read_info.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE | MIIM_DATA | MIIM_SUBMENU;
+    read_info.dwTypeData = text_buffer;
+    read_info.cch = 64;
+    BOOL read_inserted = GetMenuItemInfoW(menu, 0, TRUE, &read_info);
+    addCheck("menu-get-item-info-position",
+        read_inserted && read_info.wID == 1000 && read_info.fState == MFS_DISABLED
+            && read_info.dwItemData == 0x42 && read_info.hSubMenu == submenu
+            && readMenuText(text_buffer) == inserted_text,
+        "id=" + std::to_string(read_info.wID) + " textLen=" + std::to_string(read_info.cch));
+
+    std::u16string renamed_text = u"Renamed";
+    MENUITEMINFOW set_info = {};
+    set_info.cbSize = sizeof(set_info);
+    set_info.fMask = MIIM_STRING | MIIM_STATE;
+    set_info.fState = MFS_CHECKED;
+    set_info.dwTypeData = reinterpret_cast<LPWSTR>(const_cast<char16_t*>(renamed_text.c_str()));
+    BOOL renamed = SetMenuItemInfoW(menu, 1001, FALSE, &set_info);
+
+    memset(text_buffer, 0, sizeof(text_buffer));
+    MENUITEMINFOW read_renamed = {};
+    read_renamed.cbSize = sizeof(read_renamed);
+    read_renamed.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+    read_renamed.dwTypeData = text_buffer;
+    read_renamed.cch = 64;
+    BOOL read_by_command = GetMenuItemInfoW(menu, 1001, FALSE, &read_renamed);
+    addCheck("menu-set-get-item-info-command",
+        renamed && read_by_command && read_renamed.wID == 1001 && read_renamed.fState == MFS_CHECKED
+            && readMenuText(text_buffer) == renamed_text,
+        "id=" + std::to_string(read_renamed.wID) + " state=" + std::to_string(read_renamed.fState));
+
+    BOOL disabled = EnableMenuItem(menu, 1001, MFS_DISABLED);
+    MENUITEMINFOW disabled_info = {};
+    disabled_info.cbSize = sizeof(disabled_info);
+    disabled_info.fMask = MIIM_STATE;
+    BOOL read_disabled = GetMenuItemInfoW(menu, 1001, FALSE, &disabled_info);
+    BOOL enabled = EnableMenuItem(menu, 1001, MFS_ENABLED);
+    MENUITEMINFOW enabled_info = {};
+    enabled_info.cbSize = sizeof(enabled_info);
+    enabled_info.fMask = MIIM_STATE;
+    BOOL read_enabled = GetMenuItemInfoW(menu, 1001, FALSE, &enabled_info);
+    addCheck("menu-enable-disable-state",
+        disabled && read_disabled && (disabled_info.fState & MFS_DISABLED)
+            && enabled && read_enabled && !(enabled_info.fState & MFS_DISABLED),
+        "disabled=" + std::to_string(disabled_info.fState) + " enabled=" + std::to_string(enabled_info.fState));
+
+    UINT previous_check = CheckMenuItem(menu, 1002, MF_BYCOMMAND | MF_UNCHECKED);
+    UINT unchecked_state = GetMenuState(menu, 1002, MF_BYCOMMAND);
+    UINT previous_position_check = CheckMenuItem(menu, 1, MF_BYPOSITION | MF_CHECKED);
+    UINT checked_position_state = GetMenuState(menu, 1, MF_BYPOSITION);
+    addCheck("menu-check-state",
+        previous_check == MFS_CHECKED && !(unchecked_state & MFS_CHECKED)
+            && previous_position_check == MFS_CHECKED && (checked_position_state & MFS_CHECKED),
+        "unchecked=" + std::to_string(unchecked_state) + " checkedPos=" + std::to_string(checked_position_state));
+
+    BOOL deleted_by_position = DeleteMenu(menu, 0, MF_BYPOSITION);
+    BOOL deleted_by_command = DeleteMenu(menu, 1002, MF_BYCOMMAND);
+    UINT deleted_state = GetMenuState(menu, 1002, MF_BYCOMMAND);
+    addCheck("menu-delete-state",
+        deleted_by_position && deleted_by_command && GetMenuItemCount(menu) == 1 && deleted_state == (UINT)-1,
+        "count=" + std::to_string(GetMenuItemCount(menu)) + " deletedState=" + std::to_string(deleted_state));
+
+    DestroyMenu(menu);
+    DestroyMenu(submenu);
+}
+
 std::string getCookieViaApi(mbWebView view)
 {
     int before = g_cookie_callback_count.load();
@@ -1712,6 +1823,7 @@ int main()
     bool focused = waitFor([&] { return readWindowState(host).focused; }, 2000);
     addCheck("browserwindow-focus-api", focused);
 
+    runMenuCompatibilityChecks();
     runLifecycleChecks();
     runNavigationControlChecks(server.origin());
 

@@ -7,6 +7,14 @@ OUT_DIR="$ROOT_DIR/out/$CONFIG"
 DYLIB="$OUT_DIR/miniblink.dylib"
 TEST_BIN="$OUT_DIR/browser_window_like_test"
 LOG_DIR="$OUT_DIR/regression_logs/$(date +%Y%m%d_%H%M%S)"
+LOCK_DIR="$OUT_DIR/.browser_window_regression.lock"
+
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+    echo "another browser window regression is already running for $CONFIG" >&2
+    echo "lock: $LOCK_DIR" >&2
+    exit 75
+fi
+trap 'rmdir "$LOCK_DIR"' EXIT
 
 mkdir -p "$LOG_DIR"
 cd "$ROOT_DIR"
@@ -19,6 +27,20 @@ run_step() {
     echo "ok $name"
 }
 
+ensure_dylib_loadable() {
+    local locals
+    locals="$(otool -l "$DYLIB" | awk '/LC_DYSYMTAB/{p=1} p && /nlocalsym/{print $2; exit}')"
+    if [[ -n "$locals" && "$locals" -gt 100000 ]]; then
+        echo "stripping local symbols from $DYLIB (nlocalsym=$locals)"
+        local stripped
+        stripped="$(mktemp "$OUT_DIR/miniblink.strip.XXXXXX")"
+        cp "$DYLIB" "$stripped"
+        strip -x "$stripped"
+        chmod 755 "$stripped"
+        mv "$stripped" "$DYLIB"
+    fi
+}
+
 if [[ ! -f "$DYLIB" ]]; then
     echo "missing $DYLIB" >&2
     echo "build it first, for example:" >&2
@@ -27,6 +49,7 @@ if [[ ! -f "$DYLIB" ]]; then
 fi
 
 echo "logs: $LOG_DIR"
+ensure_dylib_loadable
 
 run_step export_check bash -c '
 set -euo pipefail

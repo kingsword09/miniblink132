@@ -1571,6 +1571,10 @@ extern "C" void DragFinish(HDROP hDrop) { }
 struct MacMenuItem {
     UINT id = 0;
     UINT flags = 0;
+    UINT type = MFT_STRING;
+    UINT state = MFS_ENABLED;
+    HMENU submenu = nullptr;
+    ULONG_PTR data = 0;
     std::u16string text;
 };
 
@@ -1578,36 +1582,201 @@ struct MacMenu {
     std::vector<MacMenuItem> items;
 };
 
-extern "C" HMENU CreatePopupMenu(void) { return new MacMenu(); }
-extern "C" HMENU CreateMenu(void) { return new MacMenu(); }
+static std::mutex g_menuMutex;
+static std::vector<MacMenu*> g_menus;
+
+static MacMenu* asMenu(HMENU hMenu)
+{
+    MacMenu* menu = (MacMenu*)hMenu;
+    std::lock_guard<std::mutex> lock(g_menuMutex);
+    auto it = std::find(g_menus.begin(), g_menus.end(), menu);
+    return it == g_menus.end() ? nullptr : menu;
+}
+
+static HMENU createMenuHandle()
+{
+    MacMenu* menu = new MacMenu();
+    std::lock_guard<std::mutex> lock(g_menuMutex);
+    g_menus.push_back(menu);
+    return menu;
+}
+
+static MacMenuItem* findMenuItem(MacMenu* menu, UINT item, BOOL byPosition)
+{
+    if (!menu)
+        return nullptr;
+    if (byPosition)
+        return item < menu->items.size() ? &menu->items[item] : nullptr;
+    auto it = std::find_if(menu->items.begin(), menu->items.end(), [item](const MacMenuItem& menuItem) {
+        return menuItem.id == item;
+    });
+    return it == menu->items.end() ? nullptr : &*it;
+}
+
+static std::vector<MacMenuItem>::iterator findMenuItemIterator(MacMenu* menu, UINT item, BOOL byPosition)
+{
+    if (!menu)
+        return {};
+    if (byPosition)
+        return item < menu->items.size() ? menu->items.begin() + item : menu->items.end();
+    return std::find_if(menu->items.begin(), menu->items.end(), [item](const MacMenuItem& menuItem) {
+        return menuItem.id == item;
+    });
+}
+
+static void applyMenuItemInfo(MacMenuItem& item, const MENUITEMINFOW* info)
+{
+    if (!info)
+        return;
+    if (info->fMask & MIIM_ID)
+        item.id = info->wID;
+    if (info->fMask & MIIM_STATE)
+        item.state = info->fState;
+    if (info->fMask & (MIIM_FTYPE | MIIM_TYPE))
+        item.type = info->fType;
+    if (info->fMask & MIIM_SUBMENU)
+        item.submenu = info->hSubMenu;
+    if (info->fMask & MIIM_DATA)
+        item.data = info->dwItemData;
+    if ((info->fMask & (MIIM_STRING | MIIM_TYPE)) && info->dwTypeData)
+        item.text.assign((const char16_t*)info->dwTypeData, (const char16_t*)info->dwTypeData + wideLen(info->dwTypeData));
+}
+
+static void readMenuItemInfo(const MacMenuItem& item, MENUITEMINFOW* info)
+{
+    if (info->fMask & MIIM_ID)
+        info->wID = item.id;
+    if (info->fMask & MIIM_STATE)
+        info->fState = item.state;
+    if (info->fMask & (MIIM_FTYPE | MIIM_TYPE))
+        info->fType = item.type;
+    if (info->fMask & MIIM_SUBMENU)
+        info->hSubMenu = item.submenu;
+    if (info->fMask & MIIM_DATA)
+        info->dwItemData = item.data;
+    if (info->fMask & (MIIM_STRING | MIIM_TYPE)) {
+        UINT textLength = (UINT)item.text.size();
+        if (info->dwTypeData && info->cch > 0) {
+            UINT copyLength = std::min<UINT>(textLength, info->cch - 1);
+            for (UINT i = 0; i < copyLength; ++i)
+                info->dwTypeData[i] = (WCHAR)item.text[i];
+            info->dwTypeData[copyLength] = 0;
+        }
+        info->cch = textLength;
+    }
+}
+
+extern "C" HMENU CreatePopupMenu(void) { return createMenuHandle(); }
+extern "C" HMENU CreateMenu(void) { return createMenuHandle(); }
 extern "C" BOOL DestroyMenu(HMENU hMenu)
 {
-    delete (MacMenu*)hMenu;
+    MacMenu* menu = (MacMenu*)hMenu;
+    {
+        std::lock_guard<std::mutex> lock(g_menuMutex);
+        auto it = std::find(g_menus.begin(), g_menus.end(), menu);
+        if (it == g_menus.end())
+            return FALSE;
+        g_menus.erase(it);
+    }
+    delete menu;
     return TRUE;
 }
 extern "C" BOOL AppendMenuW(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCWSTR lpNewItem)
 {
-    if (!hMenu)
+    MacMenu* menu = asMenu(hMenu);
+    if (!menu)
         return FALSE;
     MacMenuItem item;
     item.id = (UINT)uIDNewItem;
     item.flags = uFlags;
+    item.type = (uFlags & MF_SEPARATOR) ? MFT_SEPARATOR : MFT_STRING;
+    item.state = uFlags & (MFS_DISABLED | MFS_CHECKED);
     if (lpNewItem)
         item.text.assign((const char16_t*)lpNewItem, (const char16_t*)lpNewItem + wideLen(lpNewItem));
-    ((MacMenu*)hMenu)->items.push_back(item);
+    menu->items.push_back(item);
     return TRUE;
 }
 extern "C" int GetMenuItemCount(HMENU hMenu)
 {
-    return hMenu ? (int)((MacMenu*)hMenu)->items.size() : -1;
+    MacMenu* menu = asMenu(hMenu);
+    return menu ? (int)menu->items.size() : -1;
 }
 extern "C" BOOL TrackPopupMenuEx(HMENU, UINT, int, int, HWND, LPTPMPARAMS) { return FALSE; }
 extern "C" BOOL TrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT* prcRect) { return TrackPopupMenuEx(hMenu, uFlags, x, y, hWnd, nullptr); }
 extern "C" BOOL SetMenu(HWND hWnd, HMENU hMenu) { return TRUE; }
-extern "C" BOOL SetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPositon, MENUITEMINFOW* lpmii) { return TRUE; }
-extern "C" BOOL GetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmii) { return FALSE; }
-extern "C" BOOL InsertMenuItemW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmi) { return TRUE; }
-extern "C" BOOL EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable) { return TRUE; }
+extern "C" BOOL SetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPositon, MENUITEMINFOW* lpmii)
+{
+    MacMenuItem* menuItem = findMenuItem(asMenu(hmenu), item, fByPositon);
+    if (!menuItem)
+        return FALSE;
+    applyMenuItemInfo(*menuItem, lpmii);
+    return TRUE;
+}
+extern "C" BOOL GetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmii)
+{
+    MacMenuItem* menuItem = findMenuItem(asMenu(hmenu), item, fByPosition);
+    if (!menuItem || !lpmii)
+        return FALSE;
+    readMenuItemInfo(*menuItem, lpmii);
+    return TRUE;
+}
+extern "C" BOOL InsertMenuItemW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmi)
+{
+    MacMenu* menu = asMenu(hmenu);
+    if (!menu || !lpmi)
+        return FALSE;
+    MacMenuItem menuItem;
+    applyMenuItemInfo(menuItem, lpmi);
+    if (fByPosition) {
+        size_t index = std::min<size_t>(item, menu->items.size());
+        menu->items.insert(menu->items.begin() + index, menuItem);
+    } else {
+        auto it = std::find_if(menu->items.begin(), menu->items.end(), [item](const MacMenuItem& existing) {
+            return existing.id == item;
+        });
+        menu->items.insert(it, menuItem);
+    }
+    return TRUE;
+}
+extern "C" BOOL EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable)
+{
+    BOOL byPosition = (uEnable & MF_BYPOSITION) ? TRUE : FALSE;
+    MacMenuItem* menuItem = findMenuItem(asMenu(hMenu), uIDEnableItem, byPosition);
+    if (!menuItem)
+        return FALSE;
+    menuItem->state &= ~MFS_DISABLED;
+    menuItem->state |= (uEnable & MFS_DISABLED);
+    return TRUE;
+}
+extern "C" UINT CheckMenuItem(HMENU hMenu, UINT uIDCheckItem, UINT uCheck)
+{
+    BOOL byPosition = (uCheck & MF_BYPOSITION) ? TRUE : FALSE;
+    MacMenuItem* menuItem = findMenuItem(asMenu(hMenu), uIDCheckItem, byPosition);
+    if (!menuItem)
+        return (UINT)-1;
+    UINT previous = menuItem->state & MFS_CHECKED;
+    menuItem->state &= ~MFS_CHECKED;
+    menuItem->state |= (uCheck & MFS_CHECKED);
+    return previous;
+}
+extern "C" UINT GetMenuState(HMENU hMenu, UINT uId, UINT uFlags)
+{
+    BOOL byPosition = (uFlags & MF_BYPOSITION) ? TRUE : FALSE;
+    MacMenuItem* menuItem = findMenuItem(asMenu(hMenu), uId, byPosition);
+    if (!menuItem)
+        return (UINT)-1;
+    return menuItem->state | menuItem->type;
+}
+extern "C" BOOL DeleteMenu(HMENU hMenu, UINT uPosition, UINT uFlags)
+{
+    MacMenu* menu = asMenu(hMenu);
+    BOOL byPosition = (uFlags & MF_BYPOSITION) ? TRUE : FALSE;
+    auto it = findMenuItemIterator(menu, uPosition, byPosition);
+    if (!menu || it == menu->items.end())
+        return FALSE;
+    menu->items.erase(it);
+    return TRUE;
+}
 extern "C" HMENU GetSystemMenu(HWND hWnd, BOOL bRevert) { return nullptr; }
 
 extern "C" int MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
