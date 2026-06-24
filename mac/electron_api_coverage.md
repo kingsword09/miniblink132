@@ -24,5 +24,5 @@ This matrix tracks Electron-like API coverage that is backed by macOS code and r
 | Single instance lock | Process-level named mutex | Win32-compatible named mutex shim | Yes, `app-single-instance-mutex` | Add cross-process callback/argv forwarding case |
 | globalShortcut | Register/unregister accelerators | Not covered yet | No | Later system integration batch |
 | screen | Display list/primary display/cursor point | NSScreen-backed Win32 monitor metrics, monitor lookup, monitor info, display enumeration, cursor point | Yes, `screen-*` covers monitor metrics/enumeration/lookup; cursor point already used by menu/input paths | Add full JS Electron runtime smoke for `screen.getPrimaryDisplay/getAllDisplays/getCursorScreenPoint` |
-| nativeTheme | Theme/dark mode/high contrast | Not covered yet | No | Add deterministic query shim |
+| nativeTheme | Theme/dark mode/high contrast | `SystemParametersInfoW` supports work area, animation, deterministic high contrast; JS `nativeTheme` exposes basic read-only state | Partial, `native-theme-*` covers deterministic native queries | Add full JS Electron runtime smoke for `nativeTheme.shouldUse*` and `themeSource` |
 | powerMonitor | Suspend/resume/power events | Not covered yet | No | Add event source or deterministic test hook |

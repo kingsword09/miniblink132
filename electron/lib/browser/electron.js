@@ -86,15 +86,30 @@ electron.tray = require("./../common/api/screen.js").Tray;
 electron.clipboard = require("./../common/api/clipboard.js");
 electron.nativeImage = require("./../common/api/native-image.js").NativeImage;
 electron.safeStorage = require("./api/safe-storage.js");
+const nativeThemeState = function() {
+    const source = process.env.MINIBLINK_NATIVE_THEME || 'system';
+    const highContrast = process.env.MINIBLINK_HIGH_CONTRAST === '1';
+    const dark = source === 'dark';
+    return { source, highContrast, dark };
+}
 electron.nativeTheme = {};
-electron.nativeTheme.on = function() { }
-electron.nativeTheme.removeListener = function() { }
+Object.defineProperties(electron.nativeTheme, {
+    shouldUseDarkColors: { get: function() { return nativeThemeState().dark; } },
+    shouldUseHighContrastColors: { get: function() { return nativeThemeState().highContrast; } },
+    shouldUseInvertedColorScheme: { get: function() { return false; } },
+    themeSource: {
+        get: function() { return nativeThemeState().source; },
+        set: function(value) { process.env.MINIBLINK_NATIVE_THEME = value || 'system'; }
+    }
+});
+electron.nativeTheme.on = function() { return this; }
+electron.nativeTheme.removeListener = function() { return this; }
     
 function SystemPreferences () {}
-SystemPreferences.prototype.isDarkMode = function() { return false; }
+SystemPreferences.prototype.isDarkMode = function() { return electron.nativeTheme.shouldUseDarkColors; }
 SystemPreferences.prototype.isSwipeTrackingFromScrollEventsEnabled = function() { return false; }
 SystemPreferences.prototype.isAeroGlassEnabled = function() { return false; }
-SystemPreferences.prototype.isInvertedColorScheme = function() { return false; }
+SystemPreferences.prototype.isInvertedColorScheme = function() { return electron.nativeTheme.shouldUseInvertedColorScheme; }
 Object.setPrototypeOf(SystemPreferences.prototype, EventEmitter.prototype);
 electron.systemPreferences = new SystemPreferences();
 

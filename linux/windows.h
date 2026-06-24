@@ -507,10 +507,14 @@
 #define SWP_NOACTIVATE 0x0010
 
 #define MK_LBUTTON 0x0001
+#define SPI_GETWORKAREA 0x0030
+#define SPI_GETHIGHCONTRAST 0x0042
+#define SPI_GETANIMATION 0x0048
 #define SPI_GETWHEELSCROLLLINES 0x0068
 #define SPI_GETWHEELSCROLLCHARS 0x006C
 #define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam))
 #define WHEEL_DELTA 120
+#define HCF_HIGHCONTRASTON 0x00000001
 
 #define CreateWindowW(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)                                        \
     CreateWindowExW(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)
@@ -1262,6 +1266,17 @@ typedef struct tagPAINTSTRUCT {
     BOOL fIncUpdate;
     BYTE rgbReserved[32];
 } PAINTSTRUCT, *PPAINTSTRUCT, *NPPAINTSTRUCT, *LPPAINTSTRUCT;
+
+typedef struct tagANIMATIONINFO {
+    UINT cbSize;
+    int iMinAnimate;
+} ANIMATIONINFO, *LPANIMATIONINFO;
+
+typedef struct tagHIGHCONTRASTW {
+    UINT cbSize;
+    DWORD dwFlags;
+    LPWSTR lpszDefaultScheme;
+} HIGHCONTRASTW, *LPHIGHCONTRASTW;
 
 typedef struct tagMONITORINFO {
     DWORD cbSize;

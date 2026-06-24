@@ -1657,6 +1657,42 @@ void runScreenCompatibilityChecks(HWND host)
         "count=" + std::to_string(clipped_state.count));
 }
 
+void runNativeThemeCompatibilityChecks()
+{
+    RECT work_area = {};
+    BOOL work_area_ok = SystemParametersInfoW(SPI_GETWORKAREA, 0, &work_area, 0);
+    addCheck("native-theme-work-area",
+        work_area_ok && work_area.right > work_area.left && work_area.bottom > work_area.top,
+        std::to_string(work_area.left) + "," + std::to_string(work_area.top)
+            + " " + std::to_string(work_area.right - work_area.left)
+            + "x" + std::to_string(work_area.bottom - work_area.top));
+
+    ANIMATIONINFO animation = {};
+    animation.cbSize = sizeof(animation);
+    BOOL animation_ok = SystemParametersInfoW(SPI_GETANIMATION, sizeof(animation), &animation, 0);
+    addCheck("native-theme-animation-info",
+        animation_ok && animation.iMinAnimate == TRUE,
+        "animate=" + std::to_string(animation.iMinAnimate));
+
+    unsetenv("MINIBLINK_HIGH_CONTRAST");
+    HIGHCONTRASTW high_contrast = {};
+    high_contrast.cbSize = sizeof(high_contrast);
+    BOOL high_contrast_default_ok = SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof(high_contrast), &high_contrast, 0);
+
+    setenv("MINIBLINK_HIGH_CONTRAST", "1", 1);
+    HIGHCONTRASTW high_contrast_forced = {};
+    high_contrast_forced.cbSize = sizeof(high_contrast_forced);
+    BOOL high_contrast_forced_ok = SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof(high_contrast_forced), &high_contrast_forced, 0);
+    unsetenv("MINIBLINK_HIGH_CONTRAST");
+
+    addCheck("native-theme-high-contrast",
+        high_contrast_default_ok && high_contrast_forced_ok
+            && (high_contrast.dwFlags & HCF_HIGHCONTRASTON) == 0
+            && (high_contrast_forced.dwFlags & HCF_HIGHCONTRASTON) != 0,
+        "default=" + std::to_string(high_contrast.dwFlags)
+            + " forced=" + std::to_string(high_contrast_forced.dwFlags));
+}
+
 std::u16string readMenuText(const WCHAR* text)
 {
     std::u16string result;
@@ -2523,6 +2559,7 @@ int main()
     runShellCompatibilityChecks();
     runAppCompatibilityChecks();
     runScreenCompatibilityChecks(host);
+    runNativeThemeCompatibilityChecks();
     runNativeImageCompatibilityChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();

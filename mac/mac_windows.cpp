@@ -1780,6 +1780,30 @@ extern "C" UINT timeEndPeriod(UINT uPeriod)
 
 extern "C" BOOL SystemParametersInfoW(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni)
 {
+    if (uiAction == SPI_GETWORKAREA && pvParam) {
+        RECT* rect = (RECT*)pvParam;
+        rect->left = 0;
+        rect->top = 0;
+        rect->right = GetSystemMetrics(SM_CXSCREEN);
+        rect->bottom = GetSystemMetrics(SM_CYSCREEN);
+        return TRUE;
+    }
+    if (uiAction == SPI_GETANIMATION && pvParam) {
+        ANIMATIONINFO* info = (ANIMATIONINFO*)pvParam;
+        if (info->cbSize < sizeof(ANIMATIONINFO))
+            return FALSE;
+        info->iMinAnimate = TRUE;
+        return TRUE;
+    }
+    if (uiAction == SPI_GETHIGHCONTRAST && pvParam) {
+        HIGHCONTRASTW* info = (HIGHCONTRASTW*)pvParam;
+        if (info->cbSize < sizeof(HIGHCONTRASTW))
+            return FALSE;
+        const char* highContrast = getenv("MINIBLINK_HIGH_CONTRAST");
+        info->dwFlags = highContrast && highContrast[0] == '1' ? HCF_HIGHCONTRASTON : 0;
+        info->lpszDefaultScheme = nullptr;
+        return TRUE;
+    }
     if ((uiAction == SPI_GETWHEELSCROLLLINES || uiAction == SPI_GETWHEELSCROLLCHARS) && pvParam) {
         *(ULONG*)pvParam = 3;
         return TRUE;
