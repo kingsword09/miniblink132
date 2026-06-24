@@ -200,7 +200,9 @@
 #define WM_MBUTTONDBLCLK 0x0209
 #define WM_RBUTTONDBLCLK 0x0206
 #define WM_IME_COMPOSITION 0x010F
+#define WM_QUERYENDSESSION 0x0011
 #define WM_QUIT 0x0012
+#define WM_POWERBROADCAST 0x0218
 #define WM_USER 0x0400
 #define WM_SETFONT 0x0030
 #define WM_TOUCH 0x0240
@@ -514,6 +516,15 @@
 #define SPI_GETWHEELSCROLLCHARS 0x006C
 #define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam))
 #define WHEEL_DELTA 120
+#define ENDSESSION_CLOSEAPP 0x00000001
+#define ENDSESSION_LOGOFF 0x80000000
+#define PBT_APMSUSPEND 0x0004
+#define PBT_APMRESUMESUSPEND 0x0007
+#define PBT_APMPOWERSTATUSCHANGE 0x000A
+#define AC_LINE_OFFLINE 0x00
+#define AC_LINE_ONLINE 0x01
+#define AC_LINE_UNKNOWN 0xFF
+#define BATTERY_FLAG_UNKNOWN 0xFF
 #define HCF_HIGHCONTRASTON 0x00000001
 
 #define CreateWindowW(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)                                        \
@@ -935,6 +946,15 @@ typedef struct _SYSTEMTIME {
     WORD wSecond;
     WORD wMilliseconds;
 } SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
+
+typedef struct _SYSTEM_POWER_STATUS {
+    BYTE ACLineStatus;
+    BYTE BatteryFlag;
+    BYTE BatteryLifePercent;
+    BYTE SystemStatusFlag;
+    DWORD BatteryLifeTime;
+    DWORD BatteryFullLifeTime;
+} SYSTEM_POWER_STATUS, *LPSYSTEM_POWER_STATUS;
 
 #pragma pack(push, 8)
 typedef struct _RTL_CRITICAL_SECTION {
@@ -1527,6 +1547,7 @@ EXTERN_C BOOL IsWindowVisible(HWND hWnd);
 EXTERN_C UINT GetDoubleClickTime();
 EXTERN_C HWND SetFocus(HWND hWnd);
 EXTERN_C BOOL SystemParametersInfoW(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni);
+EXTERN_C BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus);
 EXTERN_C BOOL TrackPopupMenuEx(HMENU, UINT, int, int, HWND, LPTPMPARAMS);
 EXTERN_C HRESULT CoInitializeEx(LPVOID pvReserved, DWORD dwCoInit);
 EXTERN_C DWORD GetLastError(VOID);

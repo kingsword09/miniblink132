@@ -1811,6 +1811,33 @@ extern "C" BOOL SystemParametersInfoW(UINT uiAction, UINT uiParam, PVOID pvParam
     return FALSE;
 }
 
+extern "C" BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus)
+{
+    if (!lpSystemPowerStatus)
+        return FALSE;
+
+    memset(lpSystemPowerStatus, 0, sizeof(SYSTEM_POWER_STATUS));
+
+    const char* acEnv = getenv("MINIBLINK_POWER_AC");
+    bool onAc = !acEnv || acEnv[0] != '0';
+
+    int percent = onAc ? 100 : 50;
+    if (const char* percentEnv = getenv("MINIBLINK_BATTERY_PERCENT")) {
+        char* end = nullptr;
+        long value = strtol(percentEnv, &end, 10);
+        if (end != percentEnv && *end == '\0' && value >= 0 && value <= 100)
+            percent = static_cast<int>(value);
+    }
+
+    lpSystemPowerStatus->ACLineStatus = onAc ? AC_LINE_ONLINE : AC_LINE_OFFLINE;
+    lpSystemPowerStatus->BatteryFlag = BATTERY_FLAG_UNKNOWN;
+    lpSystemPowerStatus->BatteryLifePercent = static_cast<BYTE>(percent);
+    lpSystemPowerStatus->SystemStatusFlag = 0;
+    lpSystemPowerStatus->BatteryLifeTime = static_cast<DWORD>(-1);
+    lpSystemPowerStatus->BatteryFullLifeTime = static_cast<DWORD>(-1);
+    return TRUE;
+}
+
 extern "C" VOID GetSystemTime(SYSTEMTIME* lpSystemTime)
 {
     struct timeval tv;

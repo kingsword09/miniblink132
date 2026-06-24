@@ -1693,6 +1693,42 @@ void runNativeThemeCompatibilityChecks()
             + " forced=" + std::to_string(high_contrast_forced.dwFlags));
 }
 
+void runPowerMonitorCompatibilityChecks()
+{
+    unsetenv("MINIBLINK_POWER_AC");
+    unsetenv("MINIBLINK_BATTERY_PERCENT");
+    SYSTEM_POWER_STATUS default_status = {};
+    BOOL default_ok = GetSystemPowerStatus(&default_status);
+    addCheck("power-monitor-system-power-status-default",
+        default_ok
+            && default_status.ACLineStatus == AC_LINE_ONLINE
+            && default_status.BatteryLifePercent <= 100
+            && default_status.BatteryLifeTime == static_cast<DWORD>(-1)
+            && default_status.BatteryFullLifeTime == static_cast<DWORD>(-1),
+        "ac=" + std::to_string(default_status.ACLineStatus)
+            + " percent=" + std::to_string(default_status.BatteryLifePercent));
+
+    setenv("MINIBLINK_POWER_AC", "0", 1);
+    setenv("MINIBLINK_BATTERY_PERCENT", "42", 1);
+    SYSTEM_POWER_STATUS battery_status = {};
+    BOOL battery_ok = GetSystemPowerStatus(&battery_status);
+    unsetenv("MINIBLINK_POWER_AC");
+    unsetenv("MINIBLINK_BATTERY_PERCENT");
+
+    addCheck("power-monitor-system-power-status-battery",
+        battery_ok
+            && battery_status.ACLineStatus == AC_LINE_OFFLINE
+            && battery_status.BatteryLifePercent == 42
+            && battery_status.BatteryFlag == BATTERY_FLAG_UNKNOWN,
+        "ac=" + std::to_string(battery_status.ACLineStatus)
+            + " percent=" + std::to_string(battery_status.BatteryLifePercent));
+
+    BOOL null_ok = GetSystemPowerStatus(nullptr);
+    addCheck("power-monitor-system-power-status-null",
+        null_ok == FALSE,
+        "result=" + std::to_string(null_ok));
+}
+
 std::u16string readMenuText(const WCHAR* text)
 {
     std::u16string result;
@@ -2560,6 +2596,7 @@ int main()
     runAppCompatibilityChecks();
     runScreenCompatibilityChecks(host);
     runNativeThemeCompatibilityChecks();
+    runPowerMonitorCompatibilityChecks();
     runNativeImageCompatibilityChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();
