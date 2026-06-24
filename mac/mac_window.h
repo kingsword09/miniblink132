@@ -24,6 +24,7 @@ public:
     bool m_autoHandleClose = false;
     bool m_isDestroying = false;
     bool m_visible = false;
+    bool m_minimized = false;
     void* m_msgPtr = nullptr;
 
     RECT m_clientRect = { 0, 0, 0, 0 };

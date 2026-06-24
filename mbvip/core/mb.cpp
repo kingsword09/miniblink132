@@ -874,11 +874,11 @@ void MB_CALL_TYPE mbOnLoadUrlFail(mbWebView webviewHandle, mbLoadUrlFailCallback
 
 BOOL MB_CALL_TYPE mbOnDestroy(mbWebView webviewHandle, mbDestroyCallback callback, void* param)
 {
+    checkThreadCallIsValid(__FUNCTION__);
     content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
     if (!webview)
-        return TRUE;
-//     webview->m_destroyCallback = callback;
-//     webview->m_destroyCallbackParam = param;
+        return FALSE;
+    webview->getClosure().setDestroyCallback(callback, param);
     return TRUE;
 }
 
@@ -1260,25 +1260,37 @@ void mbDestroyWebViewImpl(mbWebView webviewHandle)
 
     BOOL canContinue = TRUE;
     mbCloseCallback closingCallback = webview->getClosure().m_ClosingCallback;
+    void* closingParam = webview->getClosure().m_ClosingParam;
     webview->getClosure().m_ClosingCallback = nullptr;
-    if (webview->getClosure().m_ClosingCallback) {
+    if (closingCallback) {
         if (!content::ThreadCall::isUiThread()) {
-            content::ThreadCall::callUiThreadSync(FROM_HERE, [&canContinue, webview, webviewHandle, closingCallback] {
-                canContinue = (closingCallback((mbWebView)webviewHandle, webview->getClosure().m_ClosingParam, nullptr));
+            content::ThreadCall::callUiThreadSync(FROM_HERE, [&canContinue, webviewHandle, closingCallback, closingParam] {
+                canContinue = (closingCallback((mbWebView)webviewHandle, closingParam, nullptr));
             });
         } else {
-            canContinue = (closingCallback((mbWebView)webviewHandle, webview->getClosure().m_ClosingParam, nullptr));
+            canContinue = (closingCallback((mbWebView)webviewHandle, closingParam, nullptr));
         }
     }
     if (!canContinue)
         return;
 
-    if (!webview->preDestroyOnUiThread())
+    bool didStartDestroy = false;
+    if (content::ThreadCall::isUiThread()) {
+        didStartDestroy = webview->preDestroyOnUiThread();
+    } else {
+        content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [&didStartDestroy, webview] {
+            didStartDestroy = webview->preDestroyOnUiThread();
+        });
+    }
+    if (!didStartDestroy)
         return;
     webview->getClosure().m_ClosingCallback = nullptr;
 
-    //     if (webview->m_destroyCallback)
-    //         webview->m_destroyCallback(webviewHandle, webview->m_destroyCallbackParam, nullptr);
+    mbDestroyCallback destroyCallback = webview->getClosure().m_DestroyCallback;
+    void* destroyParam = webview->getClosure().m_DestroyParam;
+    webview->getClosure().m_DestroyCallback = nullptr;
+    if (destroyCallback)
+        destroyCallback(webviewHandle, destroyParam, nullptr);
 
     ::PostMessageW(webview->getHostWnd(), WM_CLOSE, 0, 0);
 
@@ -1424,6 +1436,13 @@ void MB_CALL_TYPE mbUnlockViewDC(mbWebView webviewHandle)
 
 void MB_CALL_TYPE mbSetFocus(mbWebView webviewHandle)
 {
+    HWND hwnd = mbGetHostHWND(webviewHandle);
+    if (hwnd) {
+        if (content::ThreadCall::isUiThread())
+            ::SetFocus(hwnd);
+        else
+            content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [hwnd] { ::SetFocus(hwnd); });
+    }
     content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](content::MbWebView* webview) { webview->setFocus(); });
 }
 

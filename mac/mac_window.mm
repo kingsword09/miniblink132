@@ -703,15 +703,32 @@ extern "C" BOOL ShowWindow(HWND hWnd, int nCmdShow)
     if (nCmdShow == SW_HIDE) {
         [window orderOut:nil];
         self->m_visible = false;
+        self->m_minimized = false;
     } else if (nCmdShow == SW_MINIMIZE) {
         [window miniaturize:nil];
         self->m_visible = true;
+        self->m_minimized = true;
     } else if (nCmdShow == SW_MAXIMIZE) {
+        if ([window isMiniaturized])
+            [window deminiaturize:nil];
+        self->m_minimized = false;
         [window zoom:nil];
         [window makeKeyAndOrderFront:nil];
         [NSApp activateIgnoringOtherApps:YES];
         self->m_visible = true;
+    } else if (nCmdShow == SW_RESTORE) {
+        if ([window isMiniaturized])
+            [window deminiaturize:nil];
+        self->m_minimized = false;
+        if ([window isZoomed])
+            [window zoom:nil];
+        [window makeKeyAndOrderFront:nil];
+        [NSApp activateIgnoringOtherApps:YES];
+        self->m_visible = true;
     } else {
+        if ([window isMiniaturized])
+            [window deminiaturize:nil];
+        self->m_minimized = false;
         [window makeKeyAndOrderFront:nil];
         [NSApp activateIgnoringOtherApps:YES];
         self->m_visible = true;
@@ -1121,7 +1138,7 @@ extern "C" BOOL IsZoomed(HWND hWnd)
 extern "C" BOOL IsIconic(HWND hWnd)
 {
     HwndMac* self = HwndMac::from(hWnd);
-    return (self && self->m_window && [(NSWindow*)self->m_window isMiniaturized]) ? TRUE : FALSE;
+    return (self && self->m_window && (self->m_minimized || [(NSWindow*)self->m_window isMiniaturized])) ? TRUE : FALSE;
 }
 
 extern "C" HWND GetActiveWindow(void)

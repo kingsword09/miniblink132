@@ -50,7 +50,10 @@ std::atomic<bool> g_load_url_fail_callback(false);
 std::atomic<bool> g_document_ready(false);
 std::atomic<bool> g_popup_seen(false);
 std::atomic<bool> g_download_seen(false);
+std::atomic<bool> g_lifecycle_allow_close(false);
 std::atomic<int> g_load_result(-1);
+std::atomic<int> g_lifecycle_close_count(0);
+std::atomic<int> g_lifecycle_destroy_count(0);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -109,6 +112,60 @@ bool waitFor(const std::function<bool()>& predicate, int timeout_ms)
 void runLoopFor(int milliseconds)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
+
+struct WindowState {
+    HWND hwnd = nullptr;
+    BOOL isWindow = FALSE;
+    BOOL visible = FALSE;
+    BOOL iconic = FALSE;
+    BOOL zoomed = FALSE;
+    BOOL focused = FALSE;
+};
+
+void MB_CALL_TYPE readWindowStateOnUiThread(void* param1, void*)
+{
+    WindowState* state = static_cast<WindowState*>(param1);
+    state->isWindow = IsWindow(state->hwnd);
+    if (!state->isWindow)
+        return;
+    state->visible = IsWindowVisible(state->hwnd);
+    state->iconic = IsIconic(state->hwnd);
+    state->zoomed = IsZoomed(state->hwnd);
+    state->focused = GetFocus() == state->hwnd;
+}
+
+WindowState readWindowState(HWND hwnd)
+{
+    WindowState state;
+    state.hwnd = hwnd;
+    mbCallUiThreadSync(readWindowStateOnUiThread, &state, nullptr);
+    return state;
+}
+
+struct CreateWindowState {
+    mbWebView view = NULL_WEBVIEW;
+    int x = 0;
+    int y = 0;
+    int width = 0;
+    int height = 0;
+};
+
+void MB_CALL_TYPE createPopupWindowOnUiThread(void* param1, void*)
+{
+    CreateWindowState* state = static_cast<CreateWindowState*>(param1);
+    state->view = mbCreateWebWindow(MB_WINDOW_TYPE_POPUP, nullptr, state->x, state->y, state->width, state->height);
+}
+
+mbWebView createPopupWindow(int x, int y, int width, int height)
+{
+    CreateWindowState state;
+    state.x = x;
+    state.y = y;
+    state.width = width;
+    state.height = height;
+    mbCallUiThreadSync(createPopupWindowOnUiThread, &state, nullptr);
+    return state.view;
 }
 
 std::string jsString(mbWebView view, const std::string& script)
@@ -520,6 +577,18 @@ mbDownloadOpt MB_CALL_TYPE onDownloadInBlinkThread(
     return kMbDownloadOptCancel;
 }
 
+BOOL MB_CALL_TYPE onLifecycleClose(mbWebView, void*, void*)
+{
+    ++g_lifecycle_close_count;
+    return g_lifecycle_allow_close.load() ? TRUE : FALSE;
+}
+
+BOOL MB_CALL_TYPE onLifecycleDestroy(mbWebView, void*, void*)
+{
+    ++g_lifecycle_destroy_count;
+    return TRUE;
+}
+
 std::string makeLocalHtml(const std::string& dir)
 {
     std::string path = dir + "/local.html";
@@ -550,6 +619,50 @@ bool waitForLoad(mbWebView view, const std::string& label, int timeout_ms)
         detail << " fail=" << g_last_fail_url << " reason=" << g_last_fail_reason;
     addCheck(label, ok && !g_load_failed, detail.str());
     return ok && !g_load_failed;
+}
+
+void runLifecycleChecks()
+{
+    mbWebView child = createPopupWindow(220, 220, 320, 240);
+    HWND child_host = child ? mbGetHostHWND(child) : nullptr;
+    addCheck("browserwindow-lifecycle-create", child != NULL_WEBVIEW && child_host,
+        "host=" + std::to_string((uintptr_t)child_host));
+    if (child == NULL_WEBVIEW || !child_host)
+        return;
+
+    mbOnClose(child, onLifecycleClose, nullptr);
+    mbOnDestroy(child, onLifecycleDestroy, nullptr);
+    mbShowWindow(child, SW_SHOW);
+
+    bool child_ready = waitFor([&] {
+        mbWebFrameHandle frame = mbWebFrameGetMainFrame(child);
+        return frame && mbGetGlobalExecByFrame(child, frame);
+    }, 6000);
+    addCheck("browserwindow-lifecycle-frame-ready", child_ready);
+
+    int close_before_cancel = g_lifecycle_close_count.load();
+    int destroy_before_cancel = g_lifecycle_destroy_count.load();
+    g_lifecycle_allow_close = false;
+    mbDestroyWebView(child);
+    bool cancel_seen = waitFor([&] { return g_lifecycle_close_count.load() > close_before_cancel; }, 2000);
+    WindowState after_cancel = readWindowState(child_host);
+    addCheck("browserwindow-close-cancel-callback", cancel_seen && after_cancel.isWindow && g_lifecycle_destroy_count.load() == destroy_before_cancel,
+        "close=" + std::to_string(g_lifecycle_close_count.load()) + " destroy=" + std::to_string(g_lifecycle_destroy_count.load()));
+
+    mbOnClose(child, onLifecycleClose, nullptr);
+    g_lifecycle_allow_close = true;
+    int close_before_destroy = g_lifecycle_close_count.load();
+    int destroy_before_destroy = g_lifecycle_destroy_count.load();
+    mbDestroyWebView(child);
+    bool destroy_seen = waitFor([&] {
+        return g_lifecycle_close_count.load() > close_before_destroy
+            && g_lifecycle_destroy_count.load() > destroy_before_destroy
+            && !readWindowState(child_host).isWindow;
+    }, 5000);
+    addCheck("browserwindow-close-destroy-callback", g_lifecycle_close_count.load() == close_before_destroy + 1
+            && g_lifecycle_destroy_count.load() == destroy_before_destroy + 1,
+        "close=" + std::to_string(g_lifecycle_close_count.load()) + " destroy=" + std::to_string(g_lifecycle_destroy_count.load()));
+    addCheck("browserwindow-destroy-invalidates-host", destroy_seen);
 }
 
 } // namespace
@@ -611,11 +724,37 @@ int main()
     addCheck("browserwindow-title-api", std::string(mbGetTitle(view) ? mbGetTitle(view) : "") == "Host Window Title",
         mbGetTitle(view) ? mbGetTitle(view) : "");
 
-    mbShowWindow(view, 0);
-    runLoopFor(100);
-    mbShowWindow(view, 5);
-    runLoopFor(100);
-    addCheck("browserwindow-show-hide-api", true, "mbShowWindow accepted");
+    HWND host = mbGetHostHWND(view);
+
+    mbShowWindow(view, SW_HIDE);
+    bool hidden = waitFor([&] { return !readWindowState(host).visible; }, 2000);
+    mbShowWindow(view, SW_SHOW);
+    bool shown = waitFor([&] { return readWindowState(host).visible; }, 2000);
+    addCheck("browserwindow-show-hide-api", hidden && shown);
+
+    mbShowWindow(view, SW_MINIMIZE);
+    bool minimized = waitFor([&] { return readWindowState(host).iconic; }, 3000);
+    mbShowWindow(view, SW_RESTORE);
+    bool restoredFromMinimize = waitFor([&] {
+        WindowState state = readWindowState(host);
+        return state.visible && !state.iconic;
+    }, 3000);
+    addCheck("browserwindow-minimize-restore-api", minimized && restoredFromMinimize);
+
+    mbShowWindow(view, SW_MAXIMIZE);
+    bool maximized = waitFor([&] { return readWindowState(host).zoomed; }, 3000);
+    mbShowWindow(view, SW_RESTORE);
+    bool restoredFromMaximize = waitFor([&] {
+        WindowState state = readWindowState(host);
+        return state.visible && !state.zoomed;
+    }, 3000);
+    addCheck("browserwindow-maximize-restore-api", maximized && restoredFromMaximize);
+
+    mbSetFocus(view);
+    bool focused = waitFor([&] { return readWindowState(host).focused; }, 2000);
+    addCheck("browserwindow-focus-api", focused);
+
+    runLifecycleChecks();
 
     resetLoadState();
     mbLoadURL(view, fileUrl(local_html).c_str());

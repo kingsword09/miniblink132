@@ -286,6 +286,14 @@ public:
         m_ClosingParam = param;
     };
 
+    mbDestroyCallback m_DestroyCallback { nullptr };
+    void* m_DestroyParam { nullptr };
+    void setDestroyCallback(mbDestroyCallback callback, void* param)
+    {
+        m_DestroyCallback = callback;
+        m_DestroyParam = param;
+    };
+
     mbDidCreateScriptContextCallback m_DidCreateScriptContextCallback { nullptr };
     void* m_DidCreateScriptContextParam { nullptr };
     void setDidCreateScriptContextCallback(mbDidCreateScriptContextCallback callback, void* param)

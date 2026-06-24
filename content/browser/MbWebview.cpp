@@ -733,7 +733,6 @@ LRESULT MbWebView::windowProcImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM
 
     case WM_NCDESTROY:
         clearUiHwnd(hWnd, (UINT_PTR)this);
-        m_state = kPageDestroying;
         mbDestroyWebViewImpl(getWebviewHandle());
         break;
 
