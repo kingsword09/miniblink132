@@ -2152,7 +2152,15 @@ extern "C" HMENU GetSystemMenu(HWND hWnd, BOOL bRevert)
 extern "C" int MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
 {
     fprintf(stderr, "%s: %s\n", lpCaption ? lpCaption : "MessageBox", lpText ? lpText : "");
-    return IDOK;
+    switch (uType & MB_TYPEMASK) {
+    case MB_YESNO:
+    case MB_YESNOCANCEL:
+        return IDYES;
+    case MB_OKCANCEL:
+    case MB_OK:
+    default:
+        return IDOK;
+    }
 }
 
 extern "C" int MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)

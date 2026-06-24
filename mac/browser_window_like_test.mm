@@ -1264,6 +1264,22 @@ void runWebContentsDialogAndSourceChecks(mbWebView view)
         std::string("muted=") + (muted ? "1" : "0") + " unmuted=" + (unmuted ? "1" : "0"));
 }
 
+void runDialogCompatibilityChecks()
+{
+    std::u16string title = u"Dialog";
+    std::u16string message = u"Message";
+    int ok = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_OK | MB_ICONINFORMATION);
+    int ok_cancel = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_OKCANCEL | MB_ICONWARNING);
+    int yes_no = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_YESNO | MB_ICONQUESTION);
+    int yes_no_cancel = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_YESNOCANCEL | MB_ICONERROR);
+    int ansi_yes_no = MessageBoxA(nullptr, "Message", "Dialog", MB_YESNO | MB_ICONQUESTION);
+    addCheck("dialog-messagebox-return-values",
+        ok == IDOK && ok_cancel == IDOK && yes_no == IDYES && yes_no_cancel == IDYES && ansi_yes_no == IDYES,
+        "ok=" + std::to_string(ok) + " okCancel=" + std::to_string(ok_cancel)
+            + " yesNo=" + std::to_string(yes_no) + " yesNoCancel=" + std::to_string(yes_no_cancel)
+            + " ansi=" + std::to_string(ansi_yes_no));
+}
+
 std::u16string readMenuText(const WCHAR* text)
 {
     std::u16string result;
@@ -2126,6 +2142,7 @@ int main()
     addCheck("browserwindow-focus-api", focused);
 
     runMenuCompatibilityChecks();
+    runDialogCompatibilityChecks();
     runNativeImageCompatibilityChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();
