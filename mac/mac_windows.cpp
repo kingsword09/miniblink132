@@ -1789,6 +1789,22 @@ static void readMenuItemInfo(const MacMenuItem& item, MENUITEMINFOW* info)
     }
 }
 
+static UINT firstRunnableMenuItemId(const MacMenu* menu)
+{
+    if (!menu)
+        return 0;
+    for (const MacMenuItem& item : menu->items) {
+        if ((item.type & MFT_SEPARATOR) || (item.flags & MF_SEPARATOR))
+            continue;
+        if (item.state & MFS_DISABLED)
+            continue;
+        if (item.submenu || !item.id)
+            continue;
+        return item.id;
+    }
+    return 0;
+}
+
 extern "C" HMENU CreatePopupMenu(void) { return createMenuHandle(); }
 extern "C" HMENU CreateMenu(void) { return createMenuHandle(); }
 extern "C" BOOL DestroyMenu(HMENU hMenu)
@@ -1824,7 +1840,17 @@ extern "C" int GetMenuItemCount(HMENU hMenu)
     MacMenu* menu = asMenu(hMenu);
     return menu ? (int)menu->items.size() : -1;
 }
-extern "C" BOOL TrackPopupMenuEx(HMENU, UINT, int, int, HWND, LPTPMPARAMS) { return FALSE; }
+extern "C" BOOL TrackPopupMenuEx(HMENU hMenu, UINT uFlags, int, int, HWND hWnd, LPTPMPARAMS)
+{
+    UINT commandId = firstRunnableMenuItemId(asMenu(hMenu));
+    if (!commandId)
+        return FALSE;
+    if (uFlags & TPM_RETURNCMD)
+        return (BOOL)commandId;
+    if (!hWnd)
+        return FALSE;
+    return PostMessageW(hWnd, WM_COMMAND, MAKEWPARAM(commandId, 0), 0);
+}
 extern "C" BOOL TrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT* prcRect) { return TrackPopupMenuEx(hMenu, uFlags, x, y, hWnd, nullptr); }
 extern "C" BOOL SetMenu(HWND hWnd, HMENU hMenu) { return TRUE; }
 extern "C" BOOL SetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPositon, MENUITEMINFOW* lpmii)

@@ -74,6 +74,8 @@ std::atomic<bool> g_confirm_seen(false);
 std::atomic<bool> g_prompt_seen(false);
 std::atomic<int> g_source_callback_count(0);
 std::atomic<int> g_markup_callback_count(0);
+std::atomic<int> g_menu_command_count(0);
+std::atomic<UINT> g_menu_command_id(0);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -1284,6 +1286,41 @@ void copyWideText(const std::u16string& text, WCHAR* buffer, size_t capacity)
     buffer[length] = 0;
 }
 
+LRESULT menuCommandWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (msg == WM_COMMAND) {
+        g_menu_command_id = LOWORD(wParam);
+        ++g_menu_command_count;
+        return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+struct MenuCommandWindowState {
+    HWND hwnd = nullptr;
+};
+
+void MB_CALL_TYPE createMenuCommandWindowOnUiThread(void* param1, void*)
+{
+    MenuCommandWindowState* state = static_cast<MenuCommandWindowState*>(param1);
+    static const char16_t class_name[] = u"MiniblinkMenuCommandWindow";
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = menuCommandWindowProc;
+    wc.lpszClassName = reinterpret_cast<LPCWSTR>(class_name);
+    RegisterClassW(&wc);
+    state->hwnd = CreateWindowExW(0, reinterpret_cast<LPCWSTR>(class_name), reinterpret_cast<LPCWSTR>(class_name),
+        WS_POPUP, 0, 0, 1, 1, nullptr, nullptr, nullptr, nullptr);
+}
+
+void MB_CALL_TYPE destroyMenuCommandWindowOnUiThread(void* param1, void*)
+{
+    HWND* hwnd = static_cast<HWND*>(param1);
+    if (hwnd && *hwnd) {
+        DestroyWindow(*hwnd);
+        *hwnd = nullptr;
+    }
+}
+
 void runMenuCompatibilityChecks()
 {
     HMENU menu = CreateMenu();
@@ -1378,6 +1415,36 @@ void runMenuCompatibilityChecks()
     addCheck("menu-delete-state",
         deleted_by_position && deleted_by_command && GetMenuItemCount(menu) == 1 && deleted_state == (UINT)-1,
         "count=" + std::to_string(GetMenuItemCount(menu)) + " deletedState=" + std::to_string(deleted_state));
+
+    MenuCommandWindowState command_window;
+    mbCallUiThreadSync(createMenuCommandWindowOnUiThread, &command_window, nullptr);
+    HMENU command_menu = CreatePopupMenu();
+    std::u16string disabled_command_text = u"Disabled";
+    std::u16string enabled_command_text = u"Enabled";
+    BOOL command_menu_ready = command_menu
+        && AppendMenuW(command_menu, MF_SEPARATOR, 0, nullptr)
+        && AppendMenuW(command_menu, MF_STRING | MFS_DISABLED, 2001, reinterpret_cast<LPCWSTR>(disabled_command_text.c_str()))
+        && AppendMenuW(command_menu, MF_STRING, 2002, reinterpret_cast<LPCWSTR>(enabled_command_text.c_str()));
+    addCheck("menu-track-command-setup", command_menu_ready && command_window.hwnd,
+        "hwnd=" + std::to_string((uintptr_t)command_window.hwnd));
+
+    BOOL returned_command = command_menu ? TrackPopupMenuEx(command_menu, TPM_RETURNCMD, 10, 10, command_window.hwnd, nullptr) : FALSE;
+    addCheck("menu-track-return-command", (UINT)returned_command == 2002,
+        "command=" + std::to_string((UINT)returned_command));
+
+    g_menu_command_count = 0;
+    g_menu_command_id = 0;
+    BOOL posted_command = command_menu ? TrackPopupMenuEx(command_menu, TPM_LEFTALIGN, 10, 10, command_window.hwnd, nullptr) : FALSE;
+    bool received_command = waitFor([] { return g_menu_command_count.load() > 0; }, 2000);
+    addCheck("menu-track-post-command",
+        posted_command && received_command && g_menu_command_id.load() == 2002,
+        "posted=" + std::to_string(posted_command) + " count=" + std::to_string(g_menu_command_count.load())
+            + " command=" + std::to_string(g_menu_command_id.load()));
+
+    if (command_menu)
+        DestroyMenu(command_menu);
+    if (command_window.hwnd)
+        mbCallUiThreadSync(destroyMenuCommandWindowOnUiThread, &command_window.hwnd, nullptr);
 
     DestroyMenu(menu);
     DestroyMenu(submenu);
