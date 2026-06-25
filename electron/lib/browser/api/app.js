@@ -47,7 +47,7 @@ App.prototype.relaunch = function(options) {
     if (!options.args || Object.prototype.toString.call(options.args) != '[object Array]')
         options.args = [""];
     
-    if (!options.execPath || typeof (execPath) != "string")
+    if (!options.execPath || typeof (options.execPath) != "string")
         options.execPath = "";
     this._relaunch(options);
 }
@@ -63,7 +63,7 @@ function singleInstancCallback(callback) {
                 return;
 
             if (argJson.length == 1)
-                argJson.append("");
+                argJson.push("");
 
             var workingDirectory = argJson.pop();
             callback(argJson, workingDirectory);
