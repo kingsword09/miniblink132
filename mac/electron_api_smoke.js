@@ -163,6 +163,10 @@ async function runElectronAppRuntimeSmoke() {
     const originalMbConsoleLog = global.mbConsoleLog;
     const hadNativeTheme = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_NATIVE_THEME');
     const originalNativeTheme = process.env.MINIBLINK_NATIVE_THEME;
+    const hadSystemDarkMode = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_SYSTEM_DARK_MODE');
+    const originalSystemDarkMode = process.env.MINIBLINK_SYSTEM_DARK_MODE;
+    const hadNativeThemePollMs = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_NATIVE_THEME_POLL_MS');
+    const originalNativeThemePollMs = process.env.MINIBLINK_NATIVE_THEME_POLL_MS;
     const hadHighContrast = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_HIGH_CONTRAST');
     const originalHighContrast = process.env.MINIBLINK_HIGH_CONTRAST;
     const Module = require('module');
@@ -286,6 +290,8 @@ async function runElectronAppRuntimeSmoke() {
 
     try {
         delete process.env.MINIBLINK_NATIVE_THEME;
+        process.env.MINIBLINK_SYSTEM_DARK_MODE = '0';
+        process.env.MINIBLINK_NATIVE_THEME_POLL_MS = '10';
         delete process.env.MINIBLINK_HIGH_CONTRAST;
 
         const electron = require('../electron/lib/browser/electron');
@@ -349,7 +355,19 @@ async function runElectronAppRuntimeSmoke() {
         electron.nativeTheme.themeSource = '';
         assert.strictEqual(electron.nativeTheme.themeSource, 'system');
         assert.strictEqual(updatedCount, 3);
+        assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
+
+        process.env.MINIBLINK_SYSTEM_DARK_MODE = '1';
+        await new Promise(function(resolve) { setTimeout(resolve, 30); });
+        assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, true);
+        assert.ok(updatedCount >= 4);
+
+        const countBeforeRemove = updatedCount;
         electron.nativeTheme.removeAllListeners('updated');
+        assert.strictEqual(electron.nativeTheme.listenerCount('updated'), 0);
+        process.env.MINIBLINK_SYSTEM_DARK_MODE = '0';
+        await new Promise(function(resolve) { setTimeout(resolve, 30); });
+        assert.strictEqual(updatedCount, countBeforeRemove);
         console.log('PASS native-theme-js-smoke');
     } finally {
         Module._load = originalLoad;
@@ -359,6 +377,14 @@ async function runElectronAppRuntimeSmoke() {
             process.env.MINIBLINK_NATIVE_THEME = originalNativeTheme;
         else
             delete process.env.MINIBLINK_NATIVE_THEME;
+        if (hadSystemDarkMode)
+            process.env.MINIBLINK_SYSTEM_DARK_MODE = originalSystemDarkMode;
+        else
+            delete process.env.MINIBLINK_SYSTEM_DARK_MODE;
+        if (hadNativeThemePollMs)
+            process.env.MINIBLINK_NATIVE_THEME_POLL_MS = originalNativeThemePollMs;
+        else
+            delete process.env.MINIBLINK_NATIVE_THEME_POLL_MS;
         if (hadHighContrast)
             process.env.MINIBLINK_HIGH_CONTRAST = originalHighContrast;
         else
@@ -370,6 +396,103 @@ async function runElectronAppRuntimeSmoke() {
     }
 
     console.log('PASS app-runtime-js-smoke');
+}
+
+async function runNativeThemeNativeNotificationSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const originalSetInterval = global.setInterval;
+    const hadNativeTheme = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_NATIVE_THEME');
+    const originalNativeTheme = process.env.MINIBLINK_NATIVE_THEME;
+    const hadSystemDarkMode = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_SYSTEM_DARK_MODE');
+    const originalSystemDarkMode = process.env.MINIBLINK_SYSTEM_DARK_MODE;
+    const nativeThemePath = require.resolve('../electron/lib/browser/api/native-theme');
+    const cachedModule = require.cache[nativeThemePath];
+    let systemDark = false;
+    let callback = null;
+    let startCount = 0;
+    let stopCount = 0;
+
+    delete require.cache[nativeThemePath];
+    delete process.env.MINIBLINK_NATIVE_THEME;
+    delete process.env.MINIBLINK_SYSTEM_DARK_MODE;
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_native_theme') {
+            return {
+                shouldUseDarkColors() {
+                    return systemDark;
+                },
+                startWatching(listener) {
+                    startCount++;
+                    callback = listener;
+                    return listener;
+                },
+                stopWatching(listener) {
+                    assert.strictEqual(listener, callback);
+                    stopCount++;
+                    callback = null;
+                }
+            };
+        }
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    global.setInterval = function() {
+        throw new Error('nativeTheme should use native notification binding instead of polling');
+    };
+
+    try {
+        const nativeTheme = require('../electron/lib/browser/api/native-theme');
+        let updatedCount = 0;
+
+        assert.strictEqual(nativeTheme.themeSource, 'system');
+        assert.strictEqual(nativeTheme.shouldUseDarkColors, false);
+        nativeTheme.on('updated', function() { updatedCount++; });
+        assert.strictEqual(startCount, 1);
+        assert.strictEqual(typeof callback, 'function');
+
+        systemDark = true;
+        callback();
+        assert.strictEqual(nativeTheme.shouldUseDarkColors, true);
+        assert.strictEqual(updatedCount, 1);
+
+        callback();
+        assert.strictEqual(updatedCount, 1);
+
+        nativeTheme.themeSource = 'light';
+        assert.strictEqual(updatedCount, 2);
+        systemDark = false;
+        callback();
+        assert.strictEqual(updatedCount, 2);
+
+        nativeTheme.themeSource = 'system';
+        assert.strictEqual(updatedCount, 3);
+        systemDark = true;
+        callback();
+        assert.strictEqual(updatedCount, 4);
+
+        nativeTheme.removeAllListeners('updated');
+        assert.strictEqual(stopCount, 1);
+        assert.strictEqual(callback, null);
+        console.log('PASS native-theme-native-notification-smoke');
+    } finally {
+        global.setInterval = originalSetInterval;
+        process._linkedBinding = originalLinkedBinding;
+        if (hadNativeTheme)
+            process.env.MINIBLINK_NATIVE_THEME = originalNativeTheme;
+        else
+            delete process.env.MINIBLINK_NATIVE_THEME;
+        if (hadSystemDarkMode)
+            process.env.MINIBLINK_SYSTEM_DARK_MODE = originalSystemDarkMode;
+        else
+            delete process.env.MINIBLINK_SYSTEM_DARK_MODE;
+        if (cachedModule)
+            require.cache[nativeThemePath] = cachedModule;
+        else
+            delete require.cache[nativeThemePath];
+    }
 }
 
 async function runShellApiSmoke() {
@@ -724,6 +847,9 @@ function runPowerSaveBlockerSmoke() {
 runAppApiSmoke()
     .then(function() {
         return runElectronAppRuntimeSmoke();
+    })
+    .then(function() {
+        return runNativeThemeNativeNotificationSmoke();
     })
     .then(function() {
         return runShellApiSmoke();

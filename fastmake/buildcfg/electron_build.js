@@ -89,6 +89,7 @@ var json = [{
 			"${srcPath}/electron/common/OptionsSwitches.cpp",
 			"${srcPath}/electron/browser/api/ApiElectron.cpp",
 			"${srcPath}/electron/browser/api/ApiMenu.cpp",
+			"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
 			"${srcPath}/electron/common/NodeThread.cpp",
 			"${srcPath}/electron/common/NodeBinding.cpp",
 			"${srcPath}/electron/common/AtomCommandLine.cpp",
