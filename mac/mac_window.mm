@@ -1,5 +1,6 @@
 #define BOOL OBJC_BOOL
 #import <Cocoa/Cocoa.h>
+#import <Carbon/Carbon.h>
 #undef BOOL
 
 #include "mac/mac_window.h"
@@ -24,10 +25,14 @@ struct HotKeyRegistration {
     int id = 0;
     UINT modifiers = 0;
     UINT vk = 0;
+    UInt32 osHotKeyId = 0;
+    EventHotKeyRef osHotKey = nullptr;
 };
 
 std::mutex g_hotKeyMutex;
 std::vector<HotKeyRegistration> g_hotKeys;
+bool g_hotKeyHandlerInstalled = false;
+UInt32 g_nextHotKeyId = 1;
 
 static std::u16string wideKey(LPCWSTR value)
 {
@@ -174,6 +179,84 @@ static UINT virtualKeyFromEvent(NSEvent* event)
     return 0;
 }
 
+static UInt32 carbonModifiersFromHotKeyModifiers(UINT modifiers)
+{
+    UInt32 carbonModifiers = 0;
+    if (modifiers & MOD_ALT)
+        carbonModifiers |= optionKey;
+    if (modifiers & MOD_CONTROL)
+        carbonModifiers |= controlKey;
+    if (modifiers & MOD_SHIFT)
+        carbonModifiers |= shiftKey;
+    if (modifiers & MOD_WIN)
+        carbonModifiers |= cmdKey;
+    return carbonModifiers;
+}
+
+static UInt32 carbonKeyCodeFromVirtualKey(UINT vk)
+{
+    if ('A' <= vk && vk <= 'Z') {
+        static const UInt32 letterKeyCodes[] = {
+            0, 11, 8, 2, 14, 3, 5, 4, 34, 38, 40, 37, 46,
+            45, 31, 35, 12, 15, 1, 17, 32, 9, 13, 7, 16, 6
+        };
+        return letterKeyCodes[vk - 'A'];
+    }
+
+    if ('0' <= vk && vk <= '9') {
+        static const UInt32 digitKeyCodes[] = { 29, 18, 19, 20, 21, 23, 22, 26, 28, 25 };
+        return digitKeyCodes[vk - '0'];
+    }
+
+    switch (vk) {
+    case VK_RETURN:
+        return 36;
+    case VK_TAB:
+        return 48;
+    case VK_SPACE:
+        return 49;
+    case VK_BACK:
+        return 51;
+    case VK_ESCAPE:
+        return 53;
+    case VK_LEFT:
+        return 123;
+    case VK_RIGHT:
+        return 124;
+    case VK_DOWN:
+        return 125;
+    case VK_UP:
+        return 126;
+    case VK_HOME:
+        return 115;
+    case VK_END:
+        return 119;
+    case VK_PRIOR:
+        return 116;
+    case VK_NEXT:
+        return 121;
+    case VK_DELETE:
+        return 117;
+    case VK_F1:
+    case VK_F2:
+    case VK_F3:
+    case VK_F4:
+    case VK_F5:
+    case VK_F6:
+    case VK_F7:
+    case VK_F8:
+    case VK_F9:
+    case VK_F10:
+    case VK_F11:
+    case VK_F12: {
+        static const UInt32 functionKeyCodes[] = { 122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111 };
+        return functionKeyCodes[vk - VK_F1];
+    }
+    default:
+        return UINT32_MAX;
+    }
+}
+
 static bool findRegisteredHotKey(HWND hwnd, UINT modifiers, UINT vk, HotKeyRegistration* registration)
 {
     std::lock_guard<std::mutex> lock(g_hotKeyMutex);
@@ -189,12 +272,76 @@ static bool findRegisteredHotKey(HWND hwnd, UINT modifiers, UINT vk, HotKeyRegis
     return false;
 }
 
+static OSStatus hotKeyEventHandler(EventHandlerCallRef, EventRef event, void*)
+{
+    EventHotKeyID hotKeyId = {};
+    OSStatus status = GetEventParameter(event, kEventParamDirectObject, typeEventHotKeyID, nullptr, sizeof(hotKeyId), nullptr, &hotKeyId);
+    if (status != noErr || hotKeyId.signature != 'MBHK')
+        return eventNotHandledErr;
+
+    HotKeyRegistration hotKey;
+    bool found = false;
+    {
+        std::lock_guard<std::mutex> lock(g_hotKeyMutex);
+        for (const HotKeyRegistration& candidate : g_hotKeys) {
+            if (candidate.osHotKeyId == hotKeyId.id) {
+                hotKey = candidate;
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (!found)
+        return eventNotHandledErr;
+
+    PostMessageW(hotKey.hwnd, WM_HOTKEY, (WPARAM)hotKey.id, MAKELPARAM(hotKey.modifiers, hotKey.vk));
+    return noErr;
+}
+
+static bool ensureHotKeyHandlerInstalled()
+{
+    if (g_hotKeyHandlerInstalled)
+        return true;
+
+    EventTypeSpec eventType = { kEventClassKeyboard, kEventHotKeyPressed };
+    OSStatus status = InstallEventHandler(GetApplicationEventTarget(), hotKeyEventHandler, 1, &eventType, nullptr, nullptr);
+    g_hotKeyHandlerInstalled = status == noErr;
+    return g_hotKeyHandlerInstalled;
+}
+
+static bool registerOsHotKey(UINT modifiers, UINT vk, UInt32 osHotKeyId, EventHotKeyRef* osHotKey)
+{
+    if (!ensureHotKeyHandlerInstalled())
+        return false;
+
+    UInt32 carbonKeyCode = carbonKeyCodeFromVirtualKey(vk);
+    if (carbonKeyCode == UINT32_MAX)
+        return false;
+
+    EventHotKeyID hotKeyId = { 'MBHK', osHotKeyId };
+    OSStatus status = RegisterEventHotKey(carbonKeyCode, carbonModifiersFromHotKeyModifiers(modifiers), hotKeyId, GetApplicationEventTarget(), 0, osHotKey);
+    return status == noErr;
+}
+
+static void unregisterOsHotKey(EventHotKeyRef osHotKey)
+{
+    if (osHotKey)
+        UnregisterEventHotKey(osHotKey);
+}
+
 static void unregisterHotKeysForWindow(HWND hwnd)
 {
     std::lock_guard<std::mutex> lock(g_hotKeyMutex);
-    g_hotKeys.erase(std::remove_if(g_hotKeys.begin(), g_hotKeys.end(), [hwnd](const HotKeyRegistration& registration) {
-        return registration.hwnd == hwnd;
-    }), g_hotKeys.end());
+    auto it = g_hotKeys.begin();
+    while (it != g_hotKeys.end()) {
+        if (it->hwnd == hwnd) {
+            unregisterOsHotKey(it->osHotKey);
+            it = g_hotKeys.erase(it);
+            continue;
+        }
+        ++it;
+    }
 }
 
 static void dispatchQueuedMessagesForWindow(HWND hwnd)
@@ -1200,6 +1347,12 @@ extern "C" BOOL RegisterHotKey(HWND hWnd, int id, UINT fsModifiers, UINT vk)
 
     UINT modifiers = normalizeHotKeyModifiers(fsModifiers);
     std::lock_guard<std::mutex> lock(g_hotKeyMutex);
+    UInt32 carbonKeyCode = carbonKeyCodeFromVirtualKey(vk);
+    if (carbonKeyCode == UINT32_MAX) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
     for (const HotKeyRegistration& registration : g_hotKeys) {
         if (registration.hwnd == hWnd && registration.id == id) {
             SetLastError(ERROR_ALREADY_EXISTS);
@@ -1211,7 +1364,14 @@ extern "C" BOOL RegisterHotKey(HWND hWnd, int id, UINT fsModifiers, UINT vk)
         }
     }
 
-    g_hotKeys.push_back({ hWnd, id, modifiers, vk });
+    EventHotKeyRef osHotKey = nullptr;
+    UInt32 osHotKeyId = g_nextHotKeyId++;
+    if (!registerOsHotKey(modifiers, vk, osHotKeyId, &osHotKey)) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    g_hotKeys.push_back({ hWnd, id, modifiers, vk, osHotKeyId, osHotKey });
     SetLastError(0);
     return TRUE;
 }
@@ -1227,9 +1387,20 @@ extern "C" BOOL UnregisterHotKey(HWND hWnd, int id)
         return FALSE;
     }
 
+    unregisterOsHotKey(it->osHotKey);
     g_hotKeys.erase(it);
     SetLastError(0);
     return TRUE;
+}
+
+extern "C" bool MacHasRegisteredSystemHotKeyForTesting(HWND hwnd, int id)
+{
+    std::lock_guard<std::mutex> lock(g_hotKeyMutex);
+    for (const HotKeyRegistration& registration : g_hotKeys) {
+        if (registration.hwnd == hwnd && registration.id == id)
+            return registration.osHotKey != nullptr;
+    }
+    return false;
 }
 
 extern "C" VOID PostQuitMessage(int nExitCode)

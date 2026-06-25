@@ -5248,6 +5248,7 @@ var endLibs = [];
 if (constVal.isMac) {
     json[0].compile.linkerCmd = [
         "-framework", "Cocoa",
+        "-framework", "Carbon",
         "-framework", "CoreGraphics",
         "-framework", "ApplicationServices",
         "-framework", "Foundation",
@@ -5366,7 +5367,10 @@ if (!constVal.isBuildElectronMode) {
 } else {
     if (constVal.isMac) {
         json[0].compile.target = "miniblink";
+        json[0].compile.src.push("${srcPath}/build/electron/MacElectronMain.cpp");
+        json[0].compile.prebuildSrc.push("${srcPath}/build/electron/MacElectronMain.cpp");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_native_theme");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_screen");
     } else if ("aarch64-linux-guneabi" == constVal.target) // ARM64
         json[0].compile.beginLibs.push("${sysroot}/usr/lib/gcc/aarch64-linux-gnu/10/crtbegin.o");
     else

@@ -266,8 +266,12 @@ public:
         return static_cast<uint32_t>(getHash(deviceNameA.c_str(), deviceNameA.length()));
     }
 
-    static Display::Rotation GetRotationForDevice(const wchar_t* device_name)
+    static Display::Rotation GetRotationForDevice(const WCHAR* device_name)
     {
+#if defined(OS_MAC)
+        (void)device_name;
+        return Display::ROTATE_0;
+#else
         DEVMODE mode;
         ::ZeroMemory(&mode, sizeof(mode));
         mode.dmSize = sizeof(mode);
@@ -287,6 +291,7 @@ public:
             }
         }
         return Display::ROTATE_0;
+#endif
     }
 
     uint32_t id() const
@@ -365,7 +370,7 @@ public:
         MONITORINFOEX monitor_info;
         ::ZeroMemory(&monitor_info, sizeof(monitor_info));
         monitor_info.cbSize = sizeof(monitor_info);
-        ::GetMonitorInfo(monitor, &monitor_info);
+        ::GetMonitorInfo(monitor, reinterpret_cast<LPMONITORINFO>(&monitor_info));
         return monitor_info;
     }
 

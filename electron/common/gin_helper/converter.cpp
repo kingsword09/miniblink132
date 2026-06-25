@@ -730,7 +730,7 @@ v8::Local<v8::Value> ConvertToV8(v8::Isolate* isolate, const std::vector<intptr_
     std::vector<Local<Value>> elements;
     for (size_t i = 0; i < input.size(); ++i) {
         intptr_t element = input[i];
-        elements.push_back(ConvertToV8(isolate, element));
+        elements.push_back(ConvertToV8(isolate, static_cast<int64_t>(element)));
     }
     v8::Local<v8::Array> ret = v8::Array::New(isolate, elements.data(), input.size());
     return ret;

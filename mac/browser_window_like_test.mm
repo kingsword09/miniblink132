@@ -29,6 +29,8 @@
 #include "mac/shellapi.h"
 #include "mac/shlobj.h"
 
+extern "C" bool MacHasRegisteredSystemHotKeyForTesting(HWND hwnd, int id);
+
 namespace {
 
 extern "C" int IOPMCopyAssertionsStatus(CFDictionaryRef* assertionsStatus);
@@ -1112,11 +1114,13 @@ void MB_CALL_TYPE runGlobalShortcutCompatibilityChecksOnUiThread(void*, void*)
     const int hotkey_id = 7001;
     const UINT modifiers = MOD_CONTROL | MOD_SHIFT;
     BOOL registered = RegisterHotKey(hwnd, hotkey_id, modifiers, 'G');
+    bool system_registered = MacHasRegisteredSystemHotKeyForTesting(hwnd, hotkey_id);
     BOOL duplicate_chord = RegisterHotKey(hwnd, hotkey_id + 1, modifiers, 'G');
     BOOL duplicate_id = RegisterHotKey(hwnd, hotkey_id, MOD_ALT, 'H');
     addCheck("global-shortcut-register-state",
-        hwnd && registered && !duplicate_chord && !duplicate_id,
+        hwnd && registered && system_registered && !duplicate_chord && !duplicate_id,
         "registered=" + std::to_string(registered)
+            + " system=" + std::to_string(system_registered)
             + " dupChord=" + std::to_string(duplicate_chord)
             + " dupId=" + std::to_string(duplicate_id));
 
@@ -1141,14 +1145,18 @@ void MB_CALL_TYPE runGlobalShortcutCompatibilityChecksOnUiThread(void*, void*)
             + " vk=" + std::to_string(g_hotkey_vk.load()));
 
     BOOL unregistered = UnregisterHotKey(hwnd, hotkey_id);
+    bool system_unregistered = !MacHasRegisteredSystemHotKeyForTesting(hwnd, hotkey_id);
     BOOL unregister_again = UnregisterHotKey(hwnd, hotkey_id);
     BOOL reregistered = RegisterHotKey(hwnd, hotkey_id + 2, modifiers, 'G');
+    bool system_reregistered = MacHasRegisteredSystemHotKeyForTesting(hwnd, hotkey_id + 2);
     BOOL final_unregister = UnregisterHotKey(hwnd, hotkey_id + 2);
     addCheck("global-shortcut-unregister-state",
-        unregistered && !unregister_again && reregistered && final_unregister,
+        unregistered && system_unregistered && !unregister_again && reregistered && system_reregistered && final_unregister,
         "unregistered=" + std::to_string(unregistered)
+            + " systemGone=" + std::to_string(system_unregistered)
             + " again=" + std::to_string(unregister_again)
             + " reregistered=" + std::to_string(reregistered)
+            + " systemReregistered=" + std::to_string(system_reregistered)
             + " final=" + std::to_string(final_unregister));
 
     const int leaked_hotkey_id = hotkey_id + 3;

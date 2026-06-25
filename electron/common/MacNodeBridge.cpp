@@ -3,6 +3,7 @@
 #include "v8/include/v8.h"
 
 #include <stddef.h>
+#include <string.h>
 
 namespace {
 
@@ -11,6 +12,7 @@ node::node_module* g_linkedModules = nullptr;
 } // namespace
 
 extern "C" void _register_electron_browser_native_theme(void);
+extern "C" void _register_electron_common_screen(void);
 
 extern "C" void node_module_register(void* module)
 {
@@ -18,14 +20,35 @@ extern "C" void node_module_register(void* module)
     if (!nodeModule)
         return;
 
+    for (node::node_module* it = g_linkedModules; it; it = it->nm_link) {
+        if (it == nodeModule)
+            return;
+        if (it->nm_modname && nodeModule->nm_modname && strcmp(it->nm_modname, nodeModule->nm_modname) == 0)
+            return;
+    }
+
     nodeModule->nm_flags = node::ModuleFlags::kLinked;
     nodeModule->nm_link = g_linkedModules;
     g_linkedModules = nodeModule;
 }
 
+extern "C" bool electronMacNodeBridgeHasLinkedModule(const char* name)
+{
+    if (!name)
+        return false;
+
+    for (node::node_module* it = g_linkedModules; it; it = it->nm_link) {
+        if (it->nm_modname && strcmp(it->nm_modname, name) == 0)
+            return true;
+    }
+
+    return false;
+}
+
 extern "C" void nodeModuleInitRegister(void)
 {
     _register_electron_browser_native_theme();
+    _register_electron_common_screen();
 }
 
 namespace node {
@@ -47,6 +70,24 @@ v8::Local<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> re
 }
 
 } // namespace node
+
+namespace blink {
+struct CloneableMessage;
+} // namespace blink
+
+namespace atom {
+
+bool serializeV8Value(v8::Isolate*, v8::Local<v8::Value>, blink::CloneableMessage*)
+{
+    return false;
+}
+
+v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, const blink::CloneableMessage&)
+{
+    return v8::Null(isolate);
+}
+
+} // namespace atom
 
 extern "C" char* nodeBufferGetData(void* buf, size_t* len)
 {
