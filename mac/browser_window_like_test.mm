@@ -1144,13 +1144,30 @@ void MB_CALL_TYPE runGlobalShortcutCompatibilityChecksOnUiThread(void*, void*)
     BOOL unregister_again = UnregisterHotKey(hwnd, hotkey_id);
     BOOL reregistered = RegisterHotKey(hwnd, hotkey_id + 2, modifiers, 'G');
     BOOL final_unregister = UnregisterHotKey(hwnd, hotkey_id + 2);
-    DestroyWindow(hwnd);
     addCheck("global-shortcut-unregister-state",
         unregistered && !unregister_again && reregistered && final_unregister,
         "unregistered=" + std::to_string(unregistered)
             + " again=" + std::to_string(unregister_again)
             + " reregistered=" + std::to_string(reregistered)
             + " final=" + std::to_string(final_unregister));
+
+    const int leaked_hotkey_id = hotkey_id + 3;
+    const int cleanup_hotkey_id = hotkey_id + 4;
+    BOOL leak_registered = RegisterHotKey(hwnd, leaked_hotkey_id, MOD_ALT, 'J');
+    DestroyWindow(hwnd);
+
+    HWND cleanup_hwnd = CreateWindowExW(0, wc.lpszClassName, u"hotkey-cleanup-test", WS_OVERLAPPEDWINDOW, 0, 0, 120, 80, nullptr, nullptr, nullptr, nullptr);
+    BOOL cleanup_registered = cleanup_hwnd ? RegisterHotKey(cleanup_hwnd, cleanup_hotkey_id, MOD_ALT, 'J') : FALSE;
+    BOOL cleanup_unregistered = cleanup_registered ? UnregisterHotKey(cleanup_hwnd, cleanup_hotkey_id) : FALSE;
+    if (!cleanup_registered)
+        UnregisterHotKey(hwnd, leaked_hotkey_id);
+    DestroyWindow(cleanup_hwnd);
+    addCheck("global-shortcut-destroy-cleanup",
+        leak_registered && cleanup_hwnd && cleanup_registered && cleanup_unregistered,
+        "leakRegistered=" + std::to_string(leak_registered)
+            + " cleanupHwnd=" + std::to_string(cleanup_hwnd != nullptr)
+            + " cleanupRegistered=" + std::to_string(cleanup_registered)
+            + " cleanupUnregistered=" + std::to_string(cleanup_unregistered));
 }
 
 void runGlobalShortcutCompatibilityChecks()

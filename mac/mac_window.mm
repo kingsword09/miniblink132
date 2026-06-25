@@ -189,6 +189,14 @@ static bool findRegisteredHotKey(HWND hwnd, UINT modifiers, UINT vk, HotKeyRegis
     return false;
 }
 
+static void unregisterHotKeysForWindow(HWND hwnd)
+{
+    std::lock_guard<std::mutex> lock(g_hotKeyMutex);
+    g_hotKeys.erase(std::remove_if(g_hotKeys.begin(), g_hotKeys.end(), [hwnd](const HotKeyRegistration& registration) {
+        return registration.hwnd == hwnd;
+    }), g_hotKeys.end());
+}
+
 static void dispatchQueuedMessagesForWindow(HWND hwnd)
 {
     for (;;) {
@@ -557,6 +565,8 @@ void HwndMac::destroy(HWND hwnd, bool forceDelete)
     HwndMac* self = HwndMac::from(hwnd);
     if (!self)
         return;
+
+    unregisterHotKeysForWindow(hwnd);
 
     void* window = self->m_window;
     {
