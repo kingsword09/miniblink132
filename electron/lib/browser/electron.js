@@ -201,12 +201,7 @@ electron.Tray = Tray;
 */
 electron.Tray = require("./api/tray").Tray;
 ////////////////////////////////////////////////////////////////
-function GlobalShortcut() {}
-GlobalShortcut.prototype.register = function(accelerator, callback) {}
-GlobalShortcut.prototype.isRegistered = function(accelerator) { return true; }
-GlobalShortcut.prototype.unregister= function() {}
-GlobalShortcut.prototype.unregisterAll = function() {}
-electron.globalShortcut = new GlobalShortcut();
+electron.globalShortcut = require("./api/global-shortcut");
 ////////////////////////////////////////////////////////////////
 //function PowerMonitor() {}
 //Object.setPrototypeOf(PowerMonitor.prototype, EventEmitter.prototype);

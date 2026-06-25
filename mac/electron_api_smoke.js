@@ -241,6 +241,7 @@ async function runElectronAppRuntimeSmoke() {
         './api/utility-process.js': { utilityProcess: {} },
         './api/parent-port.js': {},
         './api/web-frame-main.js': { webFrameMain: {} },
+        './api/message-channel-main.js': { MessageChannelMain: function MessageChannelMain() {} },
         './../common/api/shell.js': { Shell: {} },
         './../common/api/screen.js': { Screen: {}, Tray },
         './../common/api/clipboard.js': {},
@@ -385,6 +386,68 @@ async function runShellApiSmoke() {
     console.log('PASS shell-js-smoke');
 }
 
+function runGlobalShortcutSmoke() {
+    const modulePath = require.resolve('../electron/lib/browser/api/global-shortcut');
+    delete require.cache[modulePath];
+    delete global.__miniBlinkGlobalShortcutNative;
+
+    const globalShortcut = require('../electron/lib/browser/api/global-shortcut');
+    const primary = process.platform === 'darwin' ? 'Command+Shift+G' : 'Control+Shift+G';
+
+    assert.strictEqual(globalShortcut.isRegistered('CommandOrControl+Shift+G'), false);
+    assert.strictEqual(globalShortcut.register('', function() {}), false);
+    assert.strictEqual(globalShortcut.register('CommandOrControl+Shift+G'), false);
+    assert.strictEqual(globalShortcut.register('CommandOrControl+Shift+G', function() {}), true);
+    assert.strictEqual(globalShortcut.isRegistered(primary), true);
+    assert.strictEqual(globalShortcut.register(primary, function() {}), false);
+    globalShortcut.unregister(primary);
+    assert.strictEqual(globalShortcut.isRegistered('CommandOrControl+Shift+G'), false);
+
+    const nativeCalls = [];
+    let nativeCallback = null;
+    global.__miniBlinkGlobalShortcutNative = {
+        register(accelerator, callback) {
+            nativeCalls.push(['register', accelerator]);
+            if (accelerator === 'Alt+Blocked')
+                return false;
+            nativeCallback = callback;
+            return true;
+        },
+        unregister(accelerator) {
+            nativeCalls.push(['unregister', accelerator]);
+        },
+        unregisterAll() {
+            nativeCalls.push(['unregisterAll']);
+        }
+    };
+
+    let callbackCount = 0;
+    assert.strictEqual(globalShortcut.register('Alt+X', function() { callbackCount++; }), true);
+    assert.strictEqual(globalShortcut.register('Alt+Blocked', function() {}), false);
+    assert.strictEqual(globalShortcut.isRegistered('Option+X'), true);
+    nativeCallback();
+    assert.strictEqual(callbackCount, 1);
+    globalShortcut.unregister('Option+X');
+    assert.strictEqual(globalShortcut.isRegistered('Alt+X'), false);
+    assert.strictEqual(globalShortcut.register('Shift+F5', function() {}), true);
+    assert.strictEqual(globalShortcut.register('Super+Space', function() {}), true);
+    globalShortcut.unregisterAll();
+    assert.strictEqual(globalShortcut.isRegistered('Shift+F5'), false);
+    assert.strictEqual(globalShortcut.isRegistered('Super+Space'), false);
+    assert.deepStrictEqual(nativeCalls, [
+        ['register', 'Alt+X'],
+        ['register', 'Alt+Blocked'],
+        ['unregister', 'Alt+X'],
+        ['register', 'Shift+F5'],
+        ['register', 'Super+Space'],
+        ['unregisterAll']
+    ]);
+
+    delete global.__miniBlinkGlobalShortcutNative;
+    delete require.cache[modulePath];
+    console.log('PASS global-shortcut-js-smoke');
+}
+
 const nativeStates = [];
 global.__miniBlinkPowerSaveBlockerNative = {
     setExecutionState(state) {
@@ -444,6 +507,9 @@ runAppApiSmoke()
     })
     .then(function() {
         return runShellApiSmoke();
+    })
+    .then(function() {
+        runGlobalShortcutSmoke();
     })
     .then(function() {
         runPowerSaveBlockerSmoke();
