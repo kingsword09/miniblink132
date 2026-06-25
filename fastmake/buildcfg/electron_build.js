@@ -200,6 +200,7 @@ if (constVal.isMac) {
 	json[0].compile.cmd.push("-DV8_HAVE_TARGET_OS");
 
 	const macPowerMonitorSrc = "${srcPath}/electron/browser/api/ApiPowerMonitor.cpp";
+	const macPowerSaveBlockerSrc = "${srcPath}/electron/browser/api/ApiPowerSaveBlocker.cpp";
 	const macPowerMonitorIdleSrc = [
 		"${srcPath}/ui/base/idle/idle.cc",
 		"${srcPath}/ui/base/idle/idle_internal.cc",
@@ -209,6 +210,7 @@ if (constVal.isMac) {
 		"${srcPath}/electron/browser/api/ApiElectron.cpp",
 		"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
 		macPowerMonitorSrc,
+		macPowerSaveBlockerSrc,
 		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
 		"${srcPath}/electron/browser/api/WindowList.cpp",
 		"${srcPath}/electron/common/AtomCommandLine.cpp",
@@ -239,10 +241,12 @@ if (constVal.isMac) {
 	]);
 	json[0].compile.src = json[0].compile.src.filter(src => macElectronLinkedBindingSrc.has(src));
 	json[0].compile.src.push(macPowerMonitorSrc);
+	json[0].compile.src.push(macPowerSaveBlockerSrc);
 	json[0].compile.src.push(...macPowerMonitorIdleSrc);
 	json[0].compile.src = [...new Set(json[0].compile.src)];
 	json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => macElectronLinkedBindingSrc.has(src));
 	json[0].compile.prebuildSrc.push(macPowerMonitorSrc);
+	json[0].compile.prebuildSrc.push(macPowerSaveBlockerSrc);
 	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);
 	json[0].compile.prebuildSrc = [...new Set(json[0].compile.prebuildSrc)];
 }

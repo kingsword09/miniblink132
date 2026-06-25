@@ -791,19 +791,42 @@ function runPowerMonitorSmoke() {
     console.log('PASS power-monitor-js-smoke');
 }
 
-const nativeStates = [];
-global.__miniBlinkPowerSaveBlockerNative = {
-    setExecutionState(state) {
-        nativeStates.push(state);
-    }
-};
-
 const ES_CONTINUOUS = 0x80000000;
 const ES_SYSTEM_REQUIRED = 0x00000001;
 const ES_DISPLAY_REQUIRED = 0x00000002;
 
 function runPowerSaveBlockerSmoke() {
-    const powerSaveBlocker = require('../electron/lib/browser/api/power-save-blocker');
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/browser/api/power-save-blocker');
+    const cachedModule = require.cache[modulePath];
+    const nativeStates = [];
+    const bindingCalls = [];
+
+    process._linkedBinding = function(name) {
+        bindingCalls.push(name);
+        if (name === 'electron_browser_power_save_blocker') {
+            return {
+                setExecutionState(state) {
+                    nativeStates.push(state);
+                }
+            };
+        }
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    let powerSaveBlocker;
+    try {
+        delete require.cache[modulePath];
+        powerSaveBlocker = require(modulePath);
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
 
     assert.strictEqual(powerSaveBlocker.isStarted(123456), false);
 
@@ -840,6 +863,7 @@ function runPowerSaveBlockerSmoke() {
         ES_CONTINUOUS + ES_SYSTEM_REQUIRED,
         ES_CONTINUOUS
     ]);
+    assert.deepStrictEqual(bindingCalls, ['electron_browser_power_save_blocker']);
 
     console.log('PASS power-save-blocker-js-smoke');
 }
