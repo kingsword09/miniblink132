@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var json = [{
 	"var":[
@@ -213,5 +213,31 @@ var json = [{
 		"linker":"${ndkBinPath}/ar.exe"
 	}
 }];
+
+if (constVal.isMac) {
+	json[0].compile.include = [
+		"${srcPath}",
+		"${srcPath}/mac",
+		"${srcPath}/gen",
+		"${srcPath}/gen/v8/include",
+		"${srcPath}/v8",
+		"${srcPath}/v8/include",
+		"${srcPath}/third_party/libnode/src",
+		"${srcPath}/third_party/libuv/include"
+	];
+	json[0].compile.prebuildSrc = [];
+	json[0].compile.src = [
+		"${srcPath}/electron/common/MacNodeBridge.cpp"
+	];
+	json[0].compile.cmd = [
+		"-std=c++20",
+		"-fno-exceptions",
+		"-fms-extensions",
+		"-DNODE_WANT_INTERNALS",
+		"-DENABLE_NODEJS=1"
+	];
+	applyMacBuildSettings(json, { v8: true });
+	json[0].compile.cmd.push("-DV8_HAVE_TARGET_OS");
+}
 
 buildCommonSetting(json);

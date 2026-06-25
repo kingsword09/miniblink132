@@ -45,6 +45,11 @@ static bool isEndWith(const std::string& str, const std::string& pa)
     return temp == pa;
 }
 
+static bool isTruthyArg(const std::string& value)
+{
+    return value == "1" || value == "true" || value == "electron" || value == "electron_mode";
+}
+
 static std::vector<char> stdStringToBuffer(const std::string& str)
 {
     std::vector<char> buffer(str.size());
@@ -2333,11 +2338,13 @@ int main(int argc, char** argv)
     std::string compileCfg = argc > 2 ? argv[2] : "mac_release_arm64";
     RebuildOpt opt = argc > 3 ? (RebuildOpt)atoi(argv[3]) : kRebuildOptCompileTimeOutFile;
     std::string srcPath = argc > 4 ? argv[4] : ".";
+    bool isBuildElectronMode = argc > 5 ? isTruthyArg(argv[5]) : false;
 
     size_t slash = buildCfg.find_last_of("/\\");
     std::string jsonPath = slash == std::string::npos ? "" : buildCfg.substr(0, slash + 1);
     std::string jsonName = slash == std::string::npos ? buildCfg : buildCfg.substr(slash + 1);
-    std::string cmd = "{\"compileCfg\":\"" + compileCfg + "\",\"isBuildElectronMode\":false,\"v8dir\":\"v8_108\",\"symbolLevel\":1,\"srcPath\":\"" + srcPath + "\"}";
+    std::string cmd = "{\"compileCfg\":\"" + compileCfg + "\",\"isBuildElectronMode\":" + (isBuildElectronMode ? "true" : "false")
+        + ",\"v8dir\":\"v8_108\",\"symbolLevel\":1,\"srcPath\":\"" + srcPath + "\"}";
     qjsRebuild(jsonPath, jsonName, cmd, opt);
     return 0;
 }
