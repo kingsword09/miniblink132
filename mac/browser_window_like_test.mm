@@ -1615,6 +1615,27 @@ void runAppCompatibilityChecks()
     checkFolderPath("videos", CSIDL_MYVIDEO, home + "/Movies");
     checkFolderPath("recent", CSIDL_RECENT | CSIDL_FLAG_CREATE, home + "/Library/Application Support/Recent");
 
+    const char* tmp_env = getenv("TMPDIR");
+    std::string expected_temp = tmp_env && tmp_env[0] ? tmp_env : "/tmp/";
+    if (!expected_temp.empty() && expected_temp.back() != '/')
+        expected_temp.push_back('/');
+    WCHAR temp_path[MAX_PATH] = {};
+    WCHAR tiny_temp_path[4] = {};
+    DWORD temp_len = GetTempPathW(MAX_PATH, temp_path);
+    DWORD temp_required = GetTempPathW(4, tiny_temp_path);
+    std::string temp = widePathToAscii(temp_path);
+    struct stat temp_stat = {};
+    addCheck("app-path-temp",
+        temp_len == expected_temp.size()
+            && temp_required == temp_len
+            && temp == expected_temp
+            && !temp.empty()
+            && temp.back() == '/'
+            && tiny_temp_path[3] == 0
+            && stat(temp.c_str(), &temp_stat) == 0
+            && S_ISDIR(temp_stat.st_mode),
+        temp + " required=" + std::to_string(temp_required));
+
     LPWSTR downloads_path = nullptr;
     HRESULT downloads_hr = SHGetKnownFolderPath(FOLDERID_Downloads, 0, nullptr, &downloads_path);
     std::string downloads = widePathToAscii(downloads_path);

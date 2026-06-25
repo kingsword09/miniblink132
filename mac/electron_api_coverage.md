@@ -1,6 +1,6 @@
 # macOS Electron API Coverage
 
-Updated: 2026-06-24
+Updated: 2026-06-25
 
 This matrix tracks Electron-like API coverage that is backed by macOS code and regression tests. It is intentionally scoped to APIs that are either implemented or are the next practical compatibility targets.
 
@@ -18,7 +18,7 @@ This matrix tracks Electron-like API coverage that is backed by macOS code and r
 | Shell showItemInFolder | `SHOpenFolderAndSelectItems` optional path with `ShellExecuteExW` fallback | Direct PIDL reveal API plus fallback-compatible shell32 probing | Yes, `shell-show-item-*` | Replace fallback with direct platform_util path when COM branch is removed |
 | Shell trashItem | Move item to Recycle Bin through shell file operation | `SHFileOperationW(FO_DELETE | FOF_ALLOWUNDO)` moves to `~/.Trash` | Yes, `shell-trash-item-*` | Add multi-item and directory trash cases |
 | Shell beep | `MessageBeep(MB_OK)` | `MessageBeep`/`Beep` shim with test suppress switch | Yes, `shell-beep-*` | Optional native sound API if needed |
-| App path/locale | SHGetFolderPath, known folder, locale APIs used by Electron app | macOS folder mapping, known Downloads folder, dynamic locale shim | Yes, `app-path-*` and `app-locale-*` | Add full JS Electron runtime smoke for `app.getPath/getLocale` |
+| App path/locale | SHGetFolderPath, known folder, temp path, locale APIs used by Electron app | macOS folder mapping, known Downloads/temp folders, dynamic locale shim | Yes, `app-path-*` including temp plus `app-locale-*` | Add full JS Electron runtime smoke for `app.getPath/getLocale` |
 | App name/version | Electron app metadata setters/getters | Existing C++ fields in `ApiApp` | No | Add JS binding smoke when Electron runtime path is enabled |
 | App lifecycle | quit, before-quit, window-all-closed | `app.quit()` now closes windows and posts `WM_QUIT`; `app.exit()` remains immediate exit; window-all-closed hook exists in `ApiBrowserWindow` | Partial, `app-lifecycle-*` covers Win32 message-loop quit path | Add full JS Electron runtime smoke for `before-quit/window-all-closed` event ordering |
 | Single instance lock | Process-level named mutex | Win32-compatible named mutex shim | Yes, `app-single-instance-mutex` | Add cross-process callback/argv forwarding case |
@@ -26,4 +26,4 @@ This matrix tracks Electron-like API coverage that is backed by macOS code and r
 | screen | Display list/primary display/cursor point | NSScreen-backed Win32 monitor metrics, monitor lookup, monitor info, display enumeration, cursor point | Yes, `screen-*` covers monitor metrics/enumeration/lookup; cursor point already used by menu/input paths | Add full JS Electron runtime smoke for `screen.getPrimaryDisplay/getAllDisplays/getCursorScreenPoint` |
 | nativeTheme | Theme/dark mode/high contrast | `SystemParametersInfoW` supports work area, animation, deterministic high contrast; JS `nativeTheme` exposes basic read-only state | Partial, `native-theme-*` covers deterministic native queries | Add full JS Electron runtime smoke for `nativeTheme.shouldUse*` and `themeSource` |
 | powerMonitor | Suspend/resume/power events plus `GetSystemPowerStatus` power state query | Deterministic `GetSystemPowerStatus` shim for AC/battery status; idle APIs use existing Chromium path | Partial, `power-monitor-*` covers power status query | Add full JS Electron runtime smoke for idle APIs and suspend/resume/on-ac/on-battery event ordering |
-| powerSaveBlocker | `start(type)`, `stop(id)`, `isStarted(id)` plus Win32 execution-state blocker semantics | Stateful JS shim and Win32-compatible `SetThreadExecutionState` backed by macOS IOPM assertions | Partial, `power-save-blocker-js-smoke` covers blocker IDs/types and `power-save-blocker-*` covers execution-state plus IOPM assertion behavior | Add direct Electron runtime binding from JS blocker state to native assertion lifecycle |
+| powerSaveBlocker | `start(type)`, `stop(id)`, `isStarted(id)` plus Win32 execution-state blocker semantics | JS blocker lifecycle aggregates to native execution-state hook; `SetThreadExecutionState` is backed by macOS IOPM assertions | Partial, `power-save-blocker-js-smoke` covers ID/type behavior and native hook state transitions; `power-save-blocker-*` covers execution-state plus IOPM assertion behavior | Add formal Electron linked binding for `electron_browser_power_save_blocker` in embedded runtime |

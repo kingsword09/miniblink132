@@ -207,8 +207,24 @@ static void dispatchQueuedMessagesForWindow(HWND hwnd)
     }
 }
 
+static bool takeQueuedMessage(MSG* out, HWND hwnd, bool remove)
+{
+    auto it = std::find_if(g_messageQueue.begin(), g_messageQueue.end(), [hwnd](const MSG& msg) {
+        return !hwnd || msg.hwnd == hwnd;
+    });
+    if (it == g_messageQueue.end())
+        return false;
+    if (out)
+        *out = *it;
+    if (remove)
+        g_messageQueue.erase(it);
+    return true;
+}
+
 static void pumpCocoaOnce(NSDate* limitDate)
 {
+    if (![NSThread isMainThread])
+        return;
     NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:limitDate inMode:NSDefaultRunLoopMode dequeue:YES];
     if (event)
         [NSApp sendEvent:event];
@@ -1117,9 +1133,11 @@ extern "C" BOOL PostMessageW(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
         g_messageQueue.push_back(msg);
     }
     g_messageQueueCondition.notify_one();
-    dispatch_async(dispatch_get_main_queue(), ^{
-        dispatchQueuedMessagesForWindow(nullptr);
-    });
+    if (hWnd) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            dispatchQueuedMessagesForWindow(hWnd);
+        });
+    }
     return TRUE;
 }
 
@@ -1128,17 +1146,14 @@ extern "C" BOOL GetMessageW(MSG* lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsg
     if (!lpMsg)
         return FALSE;
     for (;;) {
-        {
-            std::unique_lock<std::mutex> lock(g_messageQueueMutex);
-            auto it = std::find_if(g_messageQueue.begin(), g_messageQueue.end(), [hWnd](const MSG& msg) {
-                return !hWnd || msg.hwnd == hWnd;
-            });
-            if (it != g_messageQueue.end()) {
-                *lpMsg = *it;
-                g_messageQueue.erase(it);
-                return lpMsg->message != WM_QUIT;
-            }
+        std::unique_lock<std::mutex> lock(g_messageQueueMutex);
+        if (takeQueuedMessage(lpMsg, hWnd, true))
+            return lpMsg->message != WM_QUIT;
+        if (![NSThread isMainThread]) {
+            g_messageQueueCondition.wait_for(lock, std::chrono::milliseconds(10));
+            continue;
         }
+        lock.unlock();
         pumpCocoaOnce([NSDate dateWithTimeIntervalSinceNow:0.01]);
     }
 }
@@ -1147,15 +1162,8 @@ extern "C" BOOL PeekMessageW(MSG* lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMs
 {
     if (lpMsg) {
         std::lock_guard<std::mutex> lock(g_messageQueueMutex);
-        auto it = std::find_if(g_messageQueue.begin(), g_messageQueue.end(), [hWnd](const MSG& msg) {
-            return !hWnd || msg.hwnd == hWnd;
-        });
-        if (it != g_messageQueue.end()) {
-            *lpMsg = *it;
-            if (wRemoveMsg & PM_REMOVE)
-                g_messageQueue.erase(it);
+        if (takeQueuedMessage(lpMsg, hWnd, (wRemoveMsg & PM_REMOVE) != 0))
             return TRUE;
-        }
     }
     pumpCocoaOnce([NSDate distantPast]);
     return FALSE;

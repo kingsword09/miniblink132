@@ -333,6 +333,8 @@ EXTERN_C BOOL CreatePipe(HANDLE* hReadPipe, HANDLE* hWritePipe, LPSECURITY_ATTRI
 EXTERN_C BOOL PeekNamedPipe(HANDLE hNamedPipe, LPVOID lpBuffer, DWORD nBufferSize, LPDWORD lpBytesRead, LPDWORD lpTotalBytesAvail, LPDWORD lpBytesLeftThisMessage);
 EXTERN_C BOOL CreateProcessW(LPCWSTR lpApplicationName, LPWSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes,
     BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCWSTR lpCurrentDirectory, LPSTARTUPINFOW lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
+EXTERN_C DWORD GetTempPathW(DWORD nBufferLength, LPWSTR lpBuffer);
+EXTERN_C DWORD GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer);
 EXTERN_C UINT RegisterClipboardFormatW(LPCWSTR lpszFormat);
 EXTERN_C UINT RegisterClipboardFormatA(LPCSTR lpszFormat);
 EXTERN_C void AcquireSRWLockShared(PSRWLOCK SRWLock);
