@@ -71,7 +71,17 @@ function normalizeAccelerator(accelerator) {
 }
 
 function nativeGlobalShortcut() {
-    return global.__miniBlinkGlobalShortcutNative || null;
+    if (global.__miniBlinkGlobalShortcutNative)
+        return global.__miniBlinkGlobalShortcutNative;
+
+    if (typeof process !== 'undefined' && process._linkedBinding) {
+        try {
+            return process._linkedBinding('electron_browser_global_shortcut');
+        } catch (e) {
+        }
+    }
+
+    return null;
 }
 
 function register(accelerator, callback) {

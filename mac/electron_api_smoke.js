@@ -651,64 +651,110 @@ function runScreenApiSmoke() {
 }
 
 function runGlobalShortcutSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
     const modulePath = require.resolve('../electron/lib/browser/api/global-shortcut');
-    delete require.cache[modulePath];
+    const cachedModule = require.cache[modulePath];
     delete global.__miniBlinkGlobalShortcutNative;
 
-    const globalShortcut = require('../electron/lib/browser/api/global-shortcut');
-    const primary = process.platform === 'darwin' ? 'Command+Shift+G' : 'Control+Shift+G';
+    try {
+        process._linkedBinding = function(name) {
+            if (originalLinkedBinding)
+                return originalLinkedBinding.call(process, name);
+            throw new Error('unexpected linked binding: ' + name);
+        };
 
-    assert.strictEqual(globalShortcut.isRegistered('CommandOrControl+Shift+G'), false);
-    assert.strictEqual(globalShortcut.register('', function() {}), false);
-    assert.strictEqual(globalShortcut.register('CommandOrControl+Shift+G'), false);
-    assert.strictEqual(globalShortcut.register('CommandOrControl+Shift+G', function() {}), true);
-    assert.strictEqual(globalShortcut.isRegistered(primary), true);
-    assert.strictEqual(globalShortcut.register(primary, function() {}), false);
-    globalShortcut.unregister(primary);
-    assert.strictEqual(globalShortcut.isRegistered('CommandOrControl+Shift+G'), false);
+        delete require.cache[modulePath];
+        const globalShortcut = require('../electron/lib/browser/api/global-shortcut');
+        const primary = process.platform === 'darwin' ? 'Command+Shift+G' : 'Control+Shift+G';
 
-    const nativeCalls = [];
-    let nativeCallback = null;
-    global.__miniBlinkGlobalShortcutNative = {
-        register(accelerator, callback) {
-            nativeCalls.push(['register', accelerator]);
-            if (accelerator === 'Alt+Blocked')
-                return false;
-            nativeCallback = callback;
-            return true;
-        },
-        unregister(accelerator) {
-            nativeCalls.push(['unregister', accelerator]);
-        },
-        unregisterAll() {
-            nativeCalls.push(['unregisterAll']);
-        }
-    };
+        assert.strictEqual(globalShortcut.isRegistered('CommandOrControl+Shift+G'), false);
+        assert.strictEqual(globalShortcut.register('', function() {}), false);
+        assert.strictEqual(globalShortcut.register('CommandOrControl+Shift+G'), false);
+        assert.strictEqual(globalShortcut.register('CommandOrControl+Shift+G', function() {}), true);
+        assert.strictEqual(globalShortcut.isRegistered(primary), true);
+        assert.strictEqual(globalShortcut.register(primary, function() {}), false);
+        globalShortcut.unregister(primary);
+        assert.strictEqual(globalShortcut.isRegistered('CommandOrControl+Shift+G'), false);
+        globalShortcut.unregisterAll();
 
-    let callbackCount = 0;
-    assert.strictEqual(globalShortcut.register('Alt+X', function() { callbackCount++; }), true);
-    assert.strictEqual(globalShortcut.register('Alt+Blocked', function() {}), false);
-    assert.strictEqual(globalShortcut.isRegistered('Option+X'), true);
-    nativeCallback();
-    assert.strictEqual(callbackCount, 1);
-    globalShortcut.unregister('Option+X');
-    assert.strictEqual(globalShortcut.isRegistered('Alt+X'), false);
-    assert.strictEqual(globalShortcut.register('Shift+F5', function() {}), true);
-    assert.strictEqual(globalShortcut.register('Super+Space', function() {}), true);
-    globalShortcut.unregisterAll();
-    assert.strictEqual(globalShortcut.isRegistered('Shift+F5'), false);
-    assert.strictEqual(globalShortcut.isRegistered('Super+Space'), false);
-    assert.deepStrictEqual(nativeCalls, [
-        ['register', 'Alt+X'],
-        ['register', 'Alt+Blocked'],
-        ['unregister', 'Alt+X'],
-        ['register', 'Shift+F5'],
-        ['register', 'Super+Space'],
-        ['unregisterAll']
-    ]);
+        const nativeCalls = [];
+        const bindingCalls = [];
+        let nativeCallback = null;
+        const nativeBinding = {
+            register(accelerator, callback) {
+                nativeCalls.push(['register', accelerator]);
+                if (accelerator === 'Alt+Blocked')
+                    return false;
+                nativeCallback = callback;
+                return true;
+            },
+            unregister(accelerator) {
+                nativeCalls.push(['unregister', accelerator]);
+            },
+            unregisterAll() {
+                nativeCalls.push(['unregisterAll']);
+            }
+        };
 
-    delete global.__miniBlinkGlobalShortcutNative;
-    delete require.cache[modulePath];
+        process._linkedBinding = function(name) {
+            bindingCalls.push(name);
+            if (name === 'electron_browser_global_shortcut')
+                return nativeBinding;
+            if (originalLinkedBinding)
+                return originalLinkedBinding.call(process, name);
+            throw new Error('unexpected linked binding: ' + name);
+        };
+
+        let callbackCount = 0;
+        assert.strictEqual(globalShortcut.register('Alt+X', function() { callbackCount++; }), true);
+        assert.strictEqual(globalShortcut.register('Alt+Blocked', function() {}), false);
+        assert.strictEqual(globalShortcut.isRegistered('Option+X'), true);
+        nativeCallback();
+        assert.strictEqual(callbackCount, 1);
+        globalShortcut.unregister('Option+X');
+        assert.strictEqual(globalShortcut.isRegistered('Alt+X'), false);
+        assert.strictEqual(globalShortcut.register('Shift+F5', function() {}), true);
+        assert.strictEqual(globalShortcut.register('Super+Space', function() {}), true);
+        globalShortcut.unregisterAll();
+        assert.strictEqual(globalShortcut.isRegistered('Shift+F5'), false);
+        assert.strictEqual(globalShortcut.isRegistered('Super+Space'), false);
+        assert.deepStrictEqual(nativeCalls, [
+            ['register', 'Alt+X'],
+            ['register', 'Alt+Blocked'],
+            ['unregister', 'Alt+X'],
+            ['register', 'Shift+F5'],
+            ['register', 'Super+Space'],
+            ['unregisterAll']
+        ]);
+        assert.deepStrictEqual(bindingCalls, [
+            'electron_browser_global_shortcut',
+            'electron_browser_global_shortcut',
+            'electron_browser_global_shortcut',
+            'electron_browser_global_shortcut',
+            'electron_browser_global_shortcut',
+            'electron_browser_global_shortcut'
+        ]);
+
+        nativeCalls.length = 0;
+        bindingCalls.length = 0;
+        nativeCallback = null;
+        global.__miniBlinkGlobalShortcutNative = nativeBinding;
+        assert.strictEqual(globalShortcut.register('Control+Y', function() {}), true);
+        globalShortcut.unregister('Control+Y');
+        assert.deepStrictEqual(bindingCalls, []);
+        assert.deepStrictEqual(nativeCalls, [
+            ['register', 'Control+Y'],
+            ['unregister', 'Control+Y']
+        ]);
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        delete global.__miniBlinkGlobalShortcutNative;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
+
     console.log('PASS global-shortcut-js-smoke');
 }
 

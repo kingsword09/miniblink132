@@ -159,6 +159,8 @@ static UINT virtualKeyFromEvent(NSEvent* event)
         return VK_BACK;
     case 53:
         return VK_ESCAPE;
+    case 24:
+        return VK_OEM_PLUS;
     case 123:
         return VK_LEFT;
     case 124:
@@ -177,6 +179,22 @@ static UINT virtualKeyFromEvent(NSEvent* event)
         return VK_NEXT;
     case 117:
         return VK_DELETE;
+    case 105:
+        return VK_F13;
+    case 107:
+        return VK_F14;
+    case 113:
+        return VK_F15;
+    case 106:
+        return VK_F16;
+    case 64:
+        return VK_F17;
+    case 79:
+        return VK_F18;
+    case 80:
+        return VK_F19;
+    case 90:
+        return VK_F20;
     default:
         break;
     }
@@ -231,6 +249,10 @@ static UInt32 carbonKeyCodeFromVirtualKey(UINT vk)
         return 51;
     case VK_ESCAPE:
         return 53;
+    case VK_OEM_PLUS:
+        return 24;
+    case VK_ADD:
+        return 69;
     case VK_LEFT:
         return 123;
     case VK_RIGHT:
@@ -263,6 +285,17 @@ static UInt32 carbonKeyCodeFromVirtualKey(UINT vk)
     case VK_F12: {
         static const UInt32 functionKeyCodes[] = { 122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111 };
         return functionKeyCodes[vk - VK_F1];
+    }
+    case VK_F13:
+    case VK_F14:
+    case VK_F15:
+    case VK_F16:
+    case VK_F17:
+    case VK_F18:
+    case VK_F19:
+    case VK_F20: {
+        static const UInt32 extendedFunctionKeyCodes[] = { 105, 107, 113, 106, 64, 79, 80, 90 };
+        return extendedFunctionKeyCodes[vk - VK_F13];
     }
     default:
         return UINT32_MAX;

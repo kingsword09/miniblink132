@@ -40,6 +40,14 @@ int main(int argc, char** argv)
         printf("PASS electron-power-monitor-linked-binding\n");
     }
 
+    if (hasArg(argc, argv, "--electron-global-shortcut-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_global_shortcut")) {
+            fprintf(stderr, "missing electron_browser_global_shortcut linked binding\n");
+            return 6;
+        }
+        printf("PASS electron-global-shortcut-linked-binding\n");
+    }
+
     if (hasArg(argc, argv, "--electron-power-save-blocker-smoke")) {
         if (!electronMacNodeBridgeHasLinkedModule("electron_browser_power_save_blocker")) {
             fprintf(stderr, "missing electron_browser_power_save_blocker linked binding\n");
