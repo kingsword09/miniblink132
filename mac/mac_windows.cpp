@@ -7,6 +7,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreGraphics/CoreGraphics.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
+#include <IOKit/ps/IOPowerSources.h>
 #include <mach-o/dyld.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -1813,6 +1814,24 @@ extern "C" BOOL SystemParametersInfoW(UINT uiAction, UINT uiParam, PVOID pvParam
     return FALSE;
 }
 
+static bool queryMacPowerSourceOnAc(bool* onAc)
+{
+    if (!onAc)
+        return false;
+
+    CFTypeRef snapshot = IOPSCopyPowerSourcesInfo();
+    if (!snapshot)
+        return false;
+
+    CFStringRef powerSource = IOPSGetProvidingPowerSourceType(snapshot);
+    bool ok = powerSource != nullptr;
+    if (ok)
+        *onAc = !CFEqual(powerSource, CFSTR(kIOPMBatteryPowerKey));
+
+    CFRelease(snapshot);
+    return ok;
+}
+
 extern "C" BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus)
 {
     if (!lpSystemPowerStatus)
@@ -1821,7 +1840,11 @@ extern "C" BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus)
     memset(lpSystemPowerStatus, 0, sizeof(SYSTEM_POWER_STATUS));
 
     const char* acEnv = getenv("MINIBLINK_POWER_AC");
-    bool onAc = !acEnv || acEnv[0] != '0';
+    bool onAc = true;
+    if (acEnv)
+        onAc = acEnv[0] != '0';
+    else
+        queryMacPowerSourceOnAc(&onAc);
 
     int percent = onAc ? 100 : 50;
     if (const char* percentEnv = getenv("MINIBLINK_BATTERY_PERCENT")) {

@@ -2,6 +2,10 @@
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 #undef BOOL
+#include <IOKit/IOMessage.h>
+#include <IOKit/IOKitLib.h>
+#include <IOKit/ps/IOPowerSources.h>
+#include <IOKit/pwr_mgt/IOPMLib.h>
 
 #include "mac/mac_window.h"
 
@@ -33,6 +37,14 @@ std::mutex g_hotKeyMutex;
 std::vector<HotKeyRegistration> g_hotKeys;
 bool g_hotKeyHandlerInstalled = false;
 UInt32 g_nextHotKeyId = 1;
+
+std::mutex g_powerMonitorMutex;
+bool g_powerMonitorBridgeAttempted = false;
+bool g_powerMonitorBridgeInstalled = false;
+CFRunLoopSourceRef g_powerSourceRunLoopSource = nullptr;
+IONotificationPortRef g_systemPowerNotificationPort = nullptr;
+io_connect_t g_systemPowerRootPort = IO_OBJECT_NULL;
+io_object_t g_systemPowerNotifier = IO_OBJECT_NULL;
 
 static std::u16string wideKey(LPCWSTR value)
 {
@@ -344,6 +356,88 @@ static void unregisterHotKeysForWindow(HWND hwnd)
     }
 }
 
+static void broadcastPowerMonitorMessage(UINT event)
+{
+    std::vector<HWND> windows;
+    HwndMac::ensureStatics();
+    {
+        std::lock_guard<std::recursive_mutex> lock(*HwndMac::s_hwndMutex);
+        windows.assign(HwndMac::s_hwnds->begin(), HwndMac::s_hwnds->end());
+    }
+
+    for (HWND hwnd : windows)
+        PostMessageW(hwnd, WM_POWERBROADCAST, (WPARAM)event, 0);
+}
+
+static void powerSourceChangedCallback(void*)
+{
+    broadcastPowerMonitorMessage(PBT_APMPOWERSTATUSCHANGE);
+}
+
+static void systemPowerChangedCallback(void*, io_service_t, natural_t messageType, void* messageArgument)
+{
+    switch (messageType) {
+    case kIOMessageCanSystemSleep:
+        if (g_systemPowerRootPort != IO_OBJECT_NULL)
+            IOAllowPowerChange(g_systemPowerRootPort, (intptr_t)messageArgument);
+        break;
+    case kIOMessageSystemWillSleep:
+        broadcastPowerMonitorMessage(PBT_APMSUSPEND);
+        if (g_systemPowerRootPort != IO_OBJECT_NULL)
+            IOAllowPowerChange(g_systemPowerRootPort, (intptr_t)messageArgument);
+        break;
+    case kIOMessageSystemHasPoweredOn:
+        broadcastPowerMonitorMessage(PBT_APMRESUMESUSPEND);
+        break;
+    default:
+        break;
+    }
+}
+
+static bool ensurePowerMonitorNotificationBridge()
+{
+    std::lock_guard<std::mutex> lock(g_powerMonitorMutex);
+    if (g_powerMonitorBridgeAttempted)
+        return g_powerMonitorBridgeInstalled;
+    g_powerMonitorBridgeAttempted = true;
+
+    g_powerSourceRunLoopSource = IOPSNotificationCreateRunLoopSource(powerSourceChangedCallback, nullptr);
+    if (g_powerSourceRunLoopSource)
+        CFRunLoopAddSource(CFRunLoopGetMain(), g_powerSourceRunLoopSource, kCFRunLoopCommonModes);
+
+    IONotificationPortRef notificationPort = nullptr;
+    io_object_t notifier = IO_OBJECT_NULL;
+    io_connect_t rootPort = IORegisterForSystemPower(nullptr, &notificationPort, systemPowerChangedCallback, &notifier);
+    if (rootPort != IO_OBJECT_NULL && notificationPort && notifier != IO_OBJECT_NULL) {
+        g_systemPowerRootPort = rootPort;
+        g_systemPowerNotificationPort = notificationPort;
+        g_systemPowerNotifier = notifier;
+        CFRunLoopAddSource(CFRunLoopGetMain(), IONotificationPortGetRunLoopSource(notificationPort), kCFRunLoopCommonModes);
+    } else {
+        if (notifier != IO_OBJECT_NULL)
+            IOObjectRelease(notifier);
+        if (notificationPort)
+            IONotificationPortDestroy(notificationPort);
+        if (rootPort != IO_OBJECT_NULL)
+            IOServiceClose(rootPort);
+    }
+
+    g_powerMonitorBridgeInstalled = g_powerSourceRunLoopSource
+        || (g_systemPowerRootPort != IO_OBJECT_NULL && g_systemPowerNotificationPort && g_systemPowerNotifier != IO_OBJECT_NULL);
+    return g_powerMonitorBridgeInstalled;
+}
+
+static UINT powerMonitorNotificationBridgeState()
+{
+    std::lock_guard<std::mutex> lock(g_powerMonitorMutex);
+    UINT state = 0;
+    if (g_powerSourceRunLoopSource)
+        state |= 1;
+    if (g_systemPowerRootPort != IO_OBJECT_NULL && g_systemPowerNotificationPort && g_systemPowerNotifier != IO_OBJECT_NULL)
+        state |= 2;
+    return state;
+}
+
 static void dispatchQueuedMessagesForWindow(HWND hwnd)
 {
     for (;;) {
@@ -386,6 +480,21 @@ static void pumpCocoaOnce(NSDate* limitDate)
 }
 
 } // namespace
+
+extern "C" bool MacEnsurePowerMonitorNotificationBridge(void)
+{
+    return ensurePowerMonitorNotificationBridge();
+}
+
+extern "C" UINT MacPowerMonitorNotificationBridgeStateForTesting(void)
+{
+    return powerMonitorNotificationBridgeState();
+}
+
+extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event)
+{
+    broadcastPowerMonitorMessage(event);
+}
 
 @interface MacWindowView : NSView {
 @public

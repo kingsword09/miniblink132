@@ -30,6 +30,9 @@
 #include "mac/shlobj.h"
 
 extern "C" bool MacHasRegisteredSystemHotKeyForTesting(HWND hwnd, int id);
+extern "C" bool MacEnsurePowerMonitorNotificationBridge(void);
+extern "C" UINT MacPowerMonitorNotificationBridgeStateForTesting(void);
+extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event);
 
 namespace {
 
@@ -86,6 +89,10 @@ std::atomic<int> g_hotkey_count(0);
 std::atomic<int> g_hotkey_id(0);
 std::atomic<UINT> g_hotkey_modifiers(0);
 std::atomic<UINT> g_hotkey_vk(0);
+std::atomic<int> g_power_broadcast_count(0);
+std::atomic<int> g_power_suspend_count(0);
+std::atomic<int> g_power_resume_count(0);
+std::atomic<int> g_power_status_count(0);
 
 std::mutex g_state_mutex;
 std::string g_last_title;
@@ -224,6 +231,21 @@ LRESULT CALLBACK hotKeyWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         g_hotkey_modifiers = LOWORD(lParam);
         g_hotkey_vk = HIWORD(lParam);
         return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+LRESULT CALLBACK powerMonitorWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (msg == WM_POWERBROADCAST) {
+        g_power_broadcast_count++;
+        if (wParam == PBT_APMSUSPEND)
+            g_power_suspend_count++;
+        else if (wParam == PBT_APMRESUMESUSPEND)
+            g_power_resume_count++;
+        else if (wParam == PBT_APMPOWERSTATUSCHANGE)
+            g_power_status_count++;
+        return TRUE;
     }
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
@@ -1861,6 +1883,55 @@ void runNativeThemeCompatibilityChecks()
             + " forced=" + std::to_string(high_contrast_forced.dwFlags));
 }
 
+void MB_CALL_TYPE runPowerMonitorNotificationBridgeChecksOnUiThread(void*, void*)
+{
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = powerMonitorWindowProc;
+    wc.lpszClassName = u"PowerMonitorCompatibilityWindow";
+    RegisterClassW(&wc);
+    HWND hwnd = CreateWindowExW(0, wc.lpszClassName, u"power-monitor-test", WS_OVERLAPPEDWINDOW, 0, 0, 120, 80, nullptr, nullptr, nullptr, nullptr);
+
+    bool bridge_ok = MacEnsurePowerMonitorNotificationBridge();
+    UINT bridge_state = MacPowerMonitorNotificationBridgeStateForTesting();
+
+    g_power_broadcast_count = 0;
+    g_power_suspend_count = 0;
+    g_power_resume_count = 0;
+    g_power_status_count = 0;
+
+    MacDispatchPowerMonitorMessageForTesting(PBT_APMSUSPEND);
+    MacDispatchPowerMonitorMessageForTesting(PBT_APMRESUMESUSPEND);
+    MacDispatchPowerMonitorMessageForTesting(PBT_APMPOWERSTATUSCHANGE);
+
+    int dispatched = 0;
+    for (int i = 0; i < 3; ++i) {
+        MSG msg = {};
+        if (PeekMessageW(&msg, hwnd, 0, 0, PM_REMOVE)) {
+            DispatchMessageW(&msg);
+            ++dispatched;
+        }
+    }
+
+    DestroyWindow(hwnd);
+    addCheck("power-monitor-native-notification-bridge",
+        hwnd
+            && bridge_ok
+            && (bridge_state & 1)
+            && (bridge_state & 2)
+            && dispatched == 3
+            && g_power_broadcast_count == 3
+            && g_power_suspend_count == 1
+            && g_power_resume_count == 1
+            && g_power_status_count == 1,
+        "bridge=" + std::to_string(bridge_ok)
+            + " state=" + std::to_string(bridge_state)
+            + " dispatched=" + std::to_string(dispatched)
+            + " count=" + std::to_string(g_power_broadcast_count.load())
+            + " suspend=" + std::to_string(g_power_suspend_count.load())
+            + " resume=" + std::to_string(g_power_resume_count.load())
+            + " status=" + std::to_string(g_power_status_count.load()));
+}
+
 void runPowerMonitorCompatibilityChecks()
 {
     unsetenv("MINIBLINK_POWER_AC");
@@ -1869,7 +1940,9 @@ void runPowerMonitorCompatibilityChecks()
     BOOL default_ok = GetSystemPowerStatus(&default_status);
     addCheck("power-monitor-system-power-status-default",
         default_ok
-            && default_status.ACLineStatus == AC_LINE_ONLINE
+            && (default_status.ACLineStatus == AC_LINE_ONLINE
+                || default_status.ACLineStatus == AC_LINE_OFFLINE
+                || default_status.ACLineStatus == AC_LINE_UNKNOWN)
             && default_status.BatteryLifePercent <= 100
             && default_status.BatteryLifeTime == static_cast<DWORD>(-1)
             && default_status.BatteryFullLifeTime == static_cast<DWORD>(-1),
@@ -1895,6 +1968,8 @@ void runPowerMonitorCompatibilityChecks()
     addCheck("power-monitor-system-power-status-null",
         null_ok == FALSE,
         "result=" + std::to_string(null_ok));
+
+    mbCallUiThreadSync(runPowerMonitorNotificationBridgeChecksOnUiThread, nullptr, nullptr);
 }
 
 void runPowerSaveBlockerCompatibilityChecks()

@@ -12,6 +12,7 @@ node::node_module* g_linkedModules = nullptr;
 } // namespace
 
 extern "C" void _register_electron_browser_native_theme(void);
+extern "C" void _register_electron_browser_powermonitor(void);
 extern "C" void _register_electron_common_screen(void);
 
 extern "C" void node_module_register(void* module)
@@ -48,6 +49,7 @@ extern "C" bool electronMacNodeBridgeHasLinkedModule(const char* name)
 extern "C" void nodeModuleInitRegister(void)
 {
     _register_electron_browser_native_theme();
+    _register_electron_browser_powermonitor();
     _register_electron_common_screen();
 }
 

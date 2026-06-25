@@ -13,10 +13,11 @@ if [[ ! -x "$BIN" ]]; then
     exit 2
 fi
 
-"$BIN" --electron-native-theme-smoke --electron-screen-smoke
+"$BIN" --electron-native-theme-smoke --electron-power-monitor-smoke --electron-screen-smoke
 
 symbols="$(nm -gU "$BIN")"
 grep -q "__register_electron_browser_native_theme" <<<"$symbols"
+grep -q "__register_electron_browser_powermonitor" <<<"$symbols"
 grep -q "__register_electron_common_screen" <<<"$symbols"
 grep -q "_nodeModuleInitRegister" <<<"$symbols"
 

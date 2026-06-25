@@ -48,5 +48,8 @@ extern "C" void* MacCreateStatusItem(HWND hwnd, UINT id, UINT callbackMessage, c
 extern "C" bool MacUpdateStatusItem(void* handle, UINT callbackMessage, const char* title, bool hidden);
 extern "C" void MacDestroyStatusItem(void* handle);
 extern "C" bool MacHasRegisteredSystemHotKeyForTesting(HWND hwnd, int id);
+extern "C" bool MacEnsurePowerMonitorNotificationBridge(void);
+extern "C" UINT MacPowerMonitorNotificationBridgeStateForTesting(void);
+extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event);
 
 #endif // MAC_MAC_WINDOW_H

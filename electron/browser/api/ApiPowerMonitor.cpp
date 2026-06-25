@@ -16,6 +16,10 @@
 #include "base/command_line.h"
 #include "ui/base/idle/idle.h"
 
+#if defined(OS_MAC)
+extern "C" bool MacEnsurePowerMonitorNotificationBridge(void);
+#endif
+
 namespace gin_helper {
 template <>
 struct Converter<ui::IdleState> {
@@ -57,6 +61,7 @@ public:
 
 public:
     static gin_helper::WrapperInfo kWrapperInfo;
+    HWND powerEventWindow_ = nullptr;
 };
 
 gin_helper::WrapperInfo ApiPowerMonitor::kWrapperInfo = { gin_helper::GinEmbedder::kEmbedderNativeGin };
@@ -93,11 +98,11 @@ void ApiPowerMonitor::newFunction(const v8::FunctionCallbackInfo<v8::Value>& inf
 
 static LRESULT CALLBACK wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 {
-    ApiPowerMonitor* self = (ApiPowerMonitor*)::GetPropW(hWnd, L"kPropW");
+    ApiPowerMonitor* self = (ApiPowerMonitor*)::GetPropW(hWnd, u"kPropW");
     if (!self && message == WM_CREATE) {
         LPCREATESTRUCTW cs = (LPCREATESTRUCTW)lParam;
         self = (ApiPowerMonitor*)cs->lpCreateParams;
-        ::SetPropW(hWnd, L"kPropW", (HANDLE)self);
+        ::SetPropW(hWnd, u"kPropW", (HANDLE)self);
         return 0;
     }
 
@@ -159,14 +164,19 @@ ApiPowerMonitor::ApiPowerMonitor(v8::Isolate* isolate, v8::Local<v8::Object> wra
 
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = wndProc;
-    wc.lpszClassName = L"PowerEventWindow";
+    wc.lpszClassName = u"PowerEventWindow";
     ::RegisterClassW(&wc);
 
-    HWND hWnd = CreateWindowExW(0, wc.lpszClassName, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, this);
+    powerEventWindow_ = CreateWindowExW(0, wc.lpszClassName, u"", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, this);
+#if defined(OS_MAC)
+    MacEnsurePowerMonitorNotificationBridge();
+#endif
 }
 
 ApiPowerMonitor::~ApiPowerMonitor()
 {
+    if (powerEventWindow_)
+        DestroyWindow(powerEventWindow_);
 }
 
 ui::IdleState ApiPowerMonitor::getSystemIdleStateApi(int idleThreshold) const

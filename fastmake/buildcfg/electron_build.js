@@ -199,9 +199,16 @@ if (constVal.isMac) {
 	json[0].compile.include.push("${srcPath}/linux");
 	json[0].compile.cmd.push("-DV8_HAVE_TARGET_OS");
 
+	const macPowerMonitorSrc = "${srcPath}/electron/browser/api/ApiPowerMonitor.cpp";
+	const macPowerMonitorIdleSrc = [
+		"${srcPath}/ui/base/idle/idle.cc",
+		"${srcPath}/ui/base/idle/idle_internal.cc",
+		"${srcPath}/ui/base/idle/idle_mac.mm",
+	];
 	const macElectronLinkedBindingSrc = new Set([
 		"${srcPath}/electron/browser/api/ApiElectron.cpp",
 		"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
+		macPowerMonitorSrc,
 		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
 		"${srcPath}/electron/browser/api/WindowList.cpp",
 		"${srcPath}/electron/common/AtomCommandLine.cpp",
@@ -228,9 +235,16 @@ if (constVal.isMac) {
 		"${srcPath}/electron/common/api/RemoteObjectFreer.cpp",
 		"${srcPath}/electron/renderer/api/ApiRendererIpc.cpp",
 		"${srcPath}/electron/renderer/api/ObjectCache.cpp",
+		...macPowerMonitorIdleSrc,
 	]);
 	json[0].compile.src = json[0].compile.src.filter(src => macElectronLinkedBindingSrc.has(src));
+	json[0].compile.src.push(macPowerMonitorSrc);
+	json[0].compile.src.push(...macPowerMonitorIdleSrc);
+	json[0].compile.src = [...new Set(json[0].compile.src)];
 	json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => macElectronLinkedBindingSrc.has(src));
+	json[0].compile.prebuildSrc.push(macPowerMonitorSrc);
+	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);
+	json[0].compile.prebuildSrc = [...new Set(json[0].compile.prebuildSrc)];
 }
 
 buildCommonSetting(json);

@@ -32,6 +32,14 @@ int main(int argc, char** argv)
         printf("PASS electron-native-theme-linked-binding\n");
     }
 
+    if (hasArg(argc, argv, "--electron-power-monitor-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_powermonitor")) {
+            fprintf(stderr, "missing electron_browser_powermonitor linked binding\n");
+            return 4;
+        }
+        printf("PASS electron-power-monitor-linked-binding\n");
+    }
+
     if (hasArg(argc, argv, "--electron-screen-smoke")) {
         if (!electronMacNodeBridgeHasLinkedModule("electron_common_screen")) {
             fprintf(stderr, "missing electron_common_screen linked binding\n");
