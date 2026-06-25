@@ -65,6 +65,12 @@ Object.defineProperties(exports, {
       return require('../menu-item');
     }
   },
+  nativeTheme: {
+    enumerable: true,
+    get: function () {
+      return require('../native-theme');
+    }
+  },
   powerMonitor: {
     enumerable: true,
     get: function () {

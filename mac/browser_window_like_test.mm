@@ -1760,10 +1760,26 @@ void runScreenCompatibilityChecks(HWND host)
     HMONITOR point_monitor = MonitorFromPoint(inside, MONITOR_DEFAULTTONULL);
     POINT outside = { -1000000000, -1000000000 };
     HMONITOR outside_monitor = MonitorFromPoint(outside, MONITOR_DEFAULTTONULL);
+    HMONITOR outside_nearest_monitor = MonitorFromPoint(outside, MONITOR_DEFAULTTONEAREST);
     addCheck("screen-monitor-from-point",
-        point_monitor && !outside_monitor,
+        point_monitor && !outside_monitor && outside_nearest_monitor,
         "inside=" + std::to_string((uintptr_t)point_monitor)
-            + " outside=" + std::to_string((uintptr_t)outside_monitor));
+            + " outside=" + std::to_string((uintptr_t)outside_monitor)
+            + " nearest=" + std::to_string((uintptr_t)outside_nearest_monitor));
+
+    RECT inside_rect = { window_info.rcMonitor.left + 1, window_info.rcMonitor.top + 1,
+        window_info.rcMonitor.left + 16, window_info.rcMonitor.top + 16 };
+    RECT outside_rect = { -1000000000, -1000000000, -999999900, -999999900 };
+    HMONITOR rect_monitor = MonitorFromRect(&inside_rect, MONITOR_DEFAULTTONULL);
+    HMONITOR rect_outside_null = MonitorFromRect(&outside_rect, MONITOR_DEFAULTTONULL);
+    HMONITOR rect_outside_primary = MonitorFromRect(&outside_rect, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR rect_outside_nearest = MonitorFromRect(&outside_rect, MONITOR_DEFAULTTONEAREST);
+    addCheck("screen-monitor-from-rect",
+        rect_monitor == window_monitor && !rect_outside_null && rect_outside_primary && rect_outside_nearest,
+        "inside=" + std::to_string((uintptr_t)rect_monitor)
+            + " null=" + std::to_string((uintptr_t)rect_outside_null)
+            + " primary=" + std::to_string((uintptr_t)rect_outside_primary)
+            + " nearest=" + std::to_string((uintptr_t)rect_outside_nearest));
 
     MonitorEnumState enum_state;
     BOOL enum_ok = EnumDisplayMonitors(nullptr, nullptr, collectMonitorCallback, reinterpret_cast<LPARAM>(&enum_state));
@@ -1776,6 +1792,12 @@ void runScreenCompatibilityChecks(HWND host)
     addCheck("screen-enum-display-monitors-clipped",
         clipped_ok && clipped_state.count >= 1 && clipped_state.count <= enum_state.count && clipped_state.info_ok,
         "count=" + std::to_string(clipped_state.count));
+
+    MonitorEnumState clipped_empty_state;
+    BOOL clipped_empty_ok = EnumDisplayMonitors(nullptr, &outside_rect, collectMonitorCallback, reinterpret_cast<LPARAM>(&clipped_empty_state));
+    addCheck("screen-enum-display-monitors-clipped-empty",
+        clipped_empty_ok && clipped_empty_state.count == 0,
+        "count=" + std::to_string(clipped_empty_state.count));
 }
 
 void runNativeThemeCompatibilityChecks()

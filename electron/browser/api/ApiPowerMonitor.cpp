@@ -51,6 +51,7 @@ public:
 
     ui::IdleState getSystemIdleStateApi(int idleThreshold) const;
     int getSystemIdleTimeApi() const;
+    bool isOnBatteryPowerApi() const;
 
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -73,6 +74,7 @@ void ApiPowerMonitor::init(v8::Isolate* isolate, v8::Local<v8::Object> target, n
     gin_helper::ObjectTemplateBuilder builder(isolate, prototype->InstanceTemplate());
     builder.SetMethod("getSystemIdleState", &ApiPowerMonitor::getSystemIdleStateApi);
     builder.SetMethod("getSystemIdleTime", &ApiPowerMonitor::getSystemIdleTimeApi);
+    builder.SetMethod("isOnBatteryPower", &ApiPowerMonitor::isOnBatteryPowerApi);
 
     v8::Local<v8::Function> prototypFunc = prototype->GetFunction(context).ToLocalChecked();
     target->Set(context, v8::String::NewFromUtf8(isolate, "ApiPowerMonitor").ToLocalChecked(), prototypFunc);
@@ -180,6 +182,14 @@ ui::IdleState ApiPowerMonitor::getSystemIdleStateApi(int idleThreshold) const
 int ApiPowerMonitor::getSystemIdleTimeApi() const
 {
     return ui::CalculateIdleTime();
+}
+
+bool ApiPowerMonitor::isOnBatteryPowerApi() const
+{
+    SYSTEM_POWER_STATUS status;
+    if (!::GetSystemPowerStatus(&status))
+        return false;
+    return status.ACLineStatus == AC_LINE_OFFLINE;
 }
 
 static const char PowerMonitorSricpt[] = "exports = {};";

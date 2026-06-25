@@ -161,6 +161,10 @@ async function runAppApiSmoke() {
 async function runElectronAppRuntimeSmoke() {
     const originalLinkedBinding = process._linkedBinding;
     const originalMbConsoleLog = global.mbConsoleLog;
+    const hadNativeTheme = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_NATIVE_THEME');
+    const originalNativeTheme = process.env.MINIBLINK_NATIVE_THEME;
+    const hadHighContrast = Object.prototype.hasOwnProperty.call(process.env, 'MINIBLINK_HIGH_CONTRAST');
+    const originalHighContrast = process.env.MINIBLINK_HIGH_CONTRAST;
     const Module = require('module');
     const originalLoad = Module._load;
     const electronShim = {};
@@ -263,8 +267,12 @@ async function runElectronAppRuntimeSmoke() {
 
     const electronPath = require.resolve('../electron/lib/browser/electron');
     const appPath = require.resolve('../electron/lib/browser/api/app');
+    const nativeThemePath = require.resolve('../electron/lib/browser/api/native-theme');
+    const browserExportsPath = require.resolve('../electron/lib/browser/api/exports/electron');
     delete require.cache[electronPath];
     delete require.cache[appPath];
+    delete require.cache[nativeThemePath];
+    delete require.cache[browserExportsPath];
 
     Module._load = function(request, parent, isMain) {
         if (request === 'electron')
@@ -277,7 +285,11 @@ async function runElectronAppRuntimeSmoke() {
     };
 
     try {
+        delete process.env.MINIBLINK_NATIVE_THEME;
+        delete process.env.MINIBLINK_HIGH_CONTRAST;
+
         const electron = require('../electron/lib/browser/electron');
+        const browserExports = require('../electron/lib/browser/api/exports/electron');
         const app = electron.app;
 
         assert.strictEqual(app.getLocale(), 'en-US');
@@ -308,12 +320,53 @@ async function runElectronAppRuntimeSmoke() {
         app.releaseSingleInstance();
         assert.strictEqual(app.requestSingleInstanceLock(), true);
         app.releaseSingleInstance();
+
+        assert.strictEqual(electron.nativeTheme.themeSource, 'system');
+        assert.strictEqual(browserExports.nativeTheme, electron.nativeTheme);
+        assert.strictEqual(electronMainShim.nativeTheme, electron.nativeTheme);
+        assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
+        assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, false);
+        assert.strictEqual(electron.nativeTheme.shouldUseInvertedColorScheme, false);
+        assert.strictEqual(electron.nativeTheme.on('updated', function() {}), electron.nativeTheme);
+        electron.nativeTheme.removeAllListeners('updated');
+
+        let updatedCount = 0;
+        electron.nativeTheme.on('updated', function() { updatedCount++; });
+        electron.nativeTheme.themeSource = 'dark';
+        assert.strictEqual(electron.nativeTheme.themeSource, 'dark');
+        assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, true);
+        assert.strictEqual(electron.systemPreferences.isDarkMode(), true);
+        assert.strictEqual(updatedCount, 1);
+
+        process.env.MINIBLINK_HIGH_CONTRAST = '1';
+        assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, true);
+
+        electron.nativeTheme.themeSource = 'light';
+        assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
+        assert.strictEqual(electron.systemPreferences.isDarkMode(), false);
+        assert.strictEqual(updatedCount, 2);
+
+        electron.nativeTheme.themeSource = '';
+        assert.strictEqual(electron.nativeTheme.themeSource, 'system');
+        assert.strictEqual(updatedCount, 3);
+        electron.nativeTheme.removeAllListeners('updated');
+        console.log('PASS native-theme-js-smoke');
     } finally {
         Module._load = originalLoad;
         process._linkedBinding = originalLinkedBinding;
         global.mbConsoleLog = originalMbConsoleLog;
+        if (hadNativeTheme)
+            process.env.MINIBLINK_NATIVE_THEME = originalNativeTheme;
+        else
+            delete process.env.MINIBLINK_NATIVE_THEME;
+        if (hadHighContrast)
+            process.env.MINIBLINK_HIGH_CONTRAST = originalHighContrast;
+        else
+            delete process.env.MINIBLINK_HIGH_CONTRAST;
         delete require.cache[electronPath];
         delete require.cache[appPath];
+        delete require.cache[nativeThemePath];
+        delete require.cache[browserExportsPath];
     }
 
     console.log('PASS app-runtime-js-smoke');
@@ -386,6 +439,94 @@ async function runShellApiSmoke() {
     console.log('PASS shell-js-smoke');
 }
 
+function runScreenApiSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/common/api/screen');
+    const cachedModule = require.cache[modulePath];
+    const calls = [];
+
+    const primaryDisplay = {
+        id: 1,
+        rotation: 0,
+        scaleFactor: 1,
+        touchSupport: 'unavailable',
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        size: { width: 1920, height: 1080 },
+        workArea: { x: 0, y: 23, width: 1920, height: 1057 },
+        workAreaSize: { width: 1920, height: 1057 }
+    };
+
+    class FakeScreen {
+        getCursorScreenPoint() {
+            calls.push(['getCursorScreenPoint']);
+            return { x: 10, y: 20 };
+        }
+
+        getPrimaryDisplay() {
+            calls.push(['getPrimaryDisplay']);
+            return primaryDisplay;
+        }
+
+        getAllDisplays() {
+            calls.push(['getAllDisplays']);
+            return [primaryDisplay];
+        }
+
+        getDisplayNearestPoint(point) {
+            calls.push(['getDisplayNearestPoint', point]);
+            return primaryDisplay;
+        }
+
+        getDisplayMatching(rect) {
+            calls.push(['getDisplayMatching', rect]);
+            return primaryDisplay;
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_common_screen')
+            return { Screen: FakeScreen, Tray: function Tray() {} };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    let screenModule;
+    try {
+        delete require.cache[modulePath];
+        screenModule = require(modulePath);
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
+
+    assert.strictEqual(screenModule.Screen, screenModule.screen);
+    assert.strictEqual(typeof screenModule.screen.on, 'function');
+    assert.strictEqual(typeof screenModule.screen.getCursorScreenPoint, 'function');
+    assert.strictEqual(typeof screenModule.screen.getPrimaryDisplay, 'function');
+    assert.strictEqual(typeof screenModule.screen.getAllDisplays, 'function');
+    assert.strictEqual(typeof screenModule.screen.getDisplayNearestPoint, 'function');
+    assert.strictEqual(typeof screenModule.screen.getDisplayMatching, 'function');
+
+    assert.deepStrictEqual(screenModule.screen.getCursorScreenPoint(), { x: 10, y: 20 });
+    assert.strictEqual(screenModule.screen.getPrimaryDisplay(), primaryDisplay);
+    assert.deepStrictEqual(screenModule.screen.getAllDisplays(), [primaryDisplay]);
+    assert.strictEqual(screenModule.screen.getDisplayNearestPoint({ x: 10, y: 20 }), primaryDisplay);
+    assert.strictEqual(screenModule.screen.getDisplayMatching({ x: 0, y: 0, width: 1, height: 1 }), primaryDisplay);
+    assert.deepStrictEqual(calls, [
+        ['getCursorScreenPoint'],
+        ['getPrimaryDisplay'],
+        ['getAllDisplays'],
+        ['getDisplayNearestPoint', { x: 10, y: 20 }],
+        ['getDisplayMatching', { x: 0, y: 0, width: 1, height: 1 }]
+    ]);
+
+    console.log('PASS screen-js-smoke');
+}
+
 function runGlobalShortcutSmoke() {
     const modulePath = require.resolve('../electron/lib/browser/api/global-shortcut');
     delete require.cache[modulePath];
@@ -446,6 +587,85 @@ function runGlobalShortcutSmoke() {
     delete global.__miniBlinkGlobalShortcutNative;
     delete require.cache[modulePath];
     console.log('PASS global-shortcut-js-smoke');
+}
+
+function runPowerMonitorSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/browser/api/power-monitor');
+    const cachedModule = require.cache[modulePath];
+    const calls = [];
+
+    class FakePowerMonitor {
+        getSystemIdleState(idleThreshold) {
+            calls.push(['getSystemIdleState', idleThreshold]);
+            if (idleThreshold <= 0)
+                throw new TypeError('Invalid idle threshold, must be greater than 0');
+            return idleThreshold >= 60 ? 'idle' : 'active';
+        }
+
+        getSystemIdleTime() {
+            calls.push(['getSystemIdleTime']);
+            return 7;
+        }
+
+        isOnBatteryPower() {
+            calls.push(['isOnBatteryPower']);
+            return true;
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_powermonitor')
+            return { ApiPowerMonitor: FakePowerMonitor };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    let powerMonitor;
+    try {
+        delete require.cache[modulePath];
+        powerMonitor = require(modulePath);
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
+
+    assert.strictEqual(typeof powerMonitor.on, 'function');
+    assert.strictEqual(typeof powerMonitor.emit, 'function');
+    assert.strictEqual(typeof powerMonitor.getSystemIdleState, 'function');
+    assert.strictEqual(typeof powerMonitor.getSystemIdleTime, 'function');
+    assert.strictEqual(typeof powerMonitor.isOnBatteryPower, 'function');
+
+    const events = [];
+    ['suspend', 'resume', 'on-ac', 'on-battery', 'shutdown'].forEach(function(name) {
+        assert.strictEqual(powerMonitor.on(name, function() { events.push(name); }), powerMonitor);
+    });
+    powerMonitor.emit('suspend');
+    powerMonitor.emit('resume');
+    powerMonitor.emit('on-ac');
+    powerMonitor.emit('on-battery');
+    powerMonitor.emit('shutdown');
+    assert.deepStrictEqual(events, ['suspend', 'resume', 'on-ac', 'on-battery', 'shutdown']);
+
+    assert.strictEqual(powerMonitor.getSystemIdleState(1), 'active');
+    assert.strictEqual(powerMonitor.getSystemIdleState(60), 'idle');
+    assert.throws(function() { powerMonitor.getSystemIdleState(0); }, TypeError);
+    assert.strictEqual(powerMonitor.getSystemIdleTime(), 7);
+    assert.strictEqual(powerMonitor.isOnBatteryPower(), true);
+    assert.deepStrictEqual(calls, [
+        ['getSystemIdleState', 1],
+        ['getSystemIdleState', 60],
+        ['getSystemIdleState', 0],
+        ['getSystemIdleTime'],
+        ['isOnBatteryPower']
+    ]);
+    powerMonitor.removeAllListeners();
+
+    console.log('PASS power-monitor-js-smoke');
 }
 
 const nativeStates = [];
@@ -509,7 +729,13 @@ runAppApiSmoke()
         return runShellApiSmoke();
     })
     .then(function() {
+        runScreenApiSmoke();
+    })
+    .then(function() {
         runGlobalShortcutSmoke();
+    })
+    .then(function() {
+        runPowerMonitorSmoke();
     })
     .then(function() {
         runPowerSaveBlockerSmoke();

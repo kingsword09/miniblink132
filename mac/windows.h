@@ -275,6 +275,8 @@ typedef struct _RTL_SRWLOCK {
 #define GetMonitorInfo GetMonitorInfoW
 #endif
 
+EXTERN_C HMONITOR MonitorFromRect(const RECT* lprc, DWORD dwFlags);
+
 #ifndef SHBrowseForFolder
 #define SHBrowseForFolder SHBrowseForFolderW
 #endif

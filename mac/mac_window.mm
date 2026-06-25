@@ -1449,18 +1449,128 @@ extern "C" int GetSystemMetrics(int nIndex)
     return 0;
 }
 
+static RECT rectFromScreen(NSScreen* screen)
+{
+    NSRect frame = [screen frame];
+    return { (LONG)frame.origin.x, (LONG)frame.origin.y,
+        (LONG)(frame.origin.x + frame.size.width), (LONG)(frame.origin.y + frame.size.height) };
+}
+
+static HMONITOR primaryMonitor(NSArray<NSScreen*>* screens)
+{
+    return (HMONITOR)([NSScreen mainScreen] ?: [screens firstObject]);
+}
+
+static long long rectIntersectionArea(const RECT& a, const RECT& b)
+{
+    LONG left = std::max(a.left, b.left);
+    LONG top = std::max(a.top, b.top);
+    LONG right = std::min(a.right, b.right);
+    LONG bottom = std::min(a.bottom, b.bottom);
+    if (left >= right || top >= bottom)
+        return 0;
+    return static_cast<long long>(right - left) * static_cast<long long>(bottom - top);
+}
+
+static long long rectDistanceSquared(const RECT& a, const RECT& b)
+{
+    long long dx = 0;
+    if (a.right < b.left)
+        dx = static_cast<long long>(b.left) - a.right;
+    else if (b.right < a.left)
+        dx = static_cast<long long>(a.left) - b.right;
+
+    long long dy = 0;
+    if (a.bottom < b.top)
+        dy = static_cast<long long>(b.top) - a.bottom;
+    else if (b.bottom < a.top)
+        dy = static_cast<long long>(a.top) - b.bottom;
+
+    return dx * dx + dy * dy;
+}
+
+static long long pointDistanceSquaredToRect(POINT pt, const RECT& rect)
+{
+    long long dx = 0;
+    if (pt.x < rect.left)
+        dx = static_cast<long long>(rect.left) - pt.x;
+    else if (pt.x >= rect.right)
+        dx = static_cast<long long>(pt.x) - rect.right;
+
+    long long dy = 0;
+    if (pt.y < rect.top)
+        dy = static_cast<long long>(rect.top) - pt.y;
+    else if (pt.y >= rect.bottom)
+        dy = static_cast<long long>(pt.y) - rect.bottom;
+
+    return dx * dx + dy * dy;
+}
+
 extern "C" HMONITOR MonitorFromPoint(POINT pt, DWORD dwFlags)
 {
     NSArray<NSScreen*>* screens = [NSScreen screens];
     for (NSScreen* screen in screens) {
-        NSRect frame = [screen frame];
-        if (pt.x >= frame.origin.x && pt.x < frame.origin.x + frame.size.width
-            && pt.y >= frame.origin.y && pt.y < frame.origin.y + frame.size.height)
+        RECT rect = rectFromScreen(screen);
+        if (pt.x >= rect.left && pt.x < rect.right && pt.y >= rect.top && pt.y < rect.bottom)
             return (HMONITOR)screen;
     }
     if (dwFlags == MONITOR_DEFAULTTONULL)
         return nullptr;
-    return (HMONITOR)([NSScreen mainScreen] ?: [screens firstObject]);
+    if (dwFlags == MONITOR_DEFAULTTONEAREST) {
+        HMONITOR nearest = nullptr;
+        long long nearest_distance = 0;
+        for (NSScreen* screen in screens) {
+            RECT rect = rectFromScreen(screen);
+            long long distance = pointDistanceSquaredToRect(pt, rect);
+            if (!nearest || distance < nearest_distance) {
+                nearest = (HMONITOR)screen;
+                nearest_distance = distance;
+            }
+        }
+        if (nearest)
+            return nearest;
+    }
+    return primaryMonitor(screens);
+}
+
+extern "C" HMONITOR MonitorFromRect(const RECT* lprc, DWORD dwFlags)
+{
+    NSArray<NSScreen*>* screens = [NSScreen screens];
+    if (!lprc) {
+        if (dwFlags == MONITOR_DEFAULTTONULL)
+            return nullptr;
+        return primaryMonitor(screens);
+    }
+
+    HMONITOR best_intersection = nullptr;
+    long long best_area = 0;
+    for (NSScreen* screen in screens) {
+        RECT rect = rectFromScreen(screen);
+        long long area = rectIntersectionArea(*lprc, rect);
+        if (area > best_area) {
+            best_intersection = (HMONITOR)screen;
+            best_area = area;
+        }
+    }
+    if (best_intersection)
+        return best_intersection;
+    if (dwFlags == MONITOR_DEFAULTTONULL)
+        return nullptr;
+    if (dwFlags == MONITOR_DEFAULTTONEAREST) {
+        HMONITOR nearest = nullptr;
+        long long nearest_distance = 0;
+        for (NSScreen* screen in screens) {
+            RECT rect = rectFromScreen(screen);
+            long long distance = rectDistanceSquared(*lprc, rect);
+            if (!nearest || distance < nearest_distance) {
+                nearest = (HMONITOR)screen;
+                nearest_distance = distance;
+            }
+        }
+        if (nearest)
+            return nearest;
+    }
+    return primaryMonitor(screens);
 }
 
 extern "C" HMONITOR MonitorFromWindow(HWND hwnd, DWORD dwFlags)
