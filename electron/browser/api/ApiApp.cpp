@@ -166,7 +166,7 @@ void App::quitApi()
 
     App* self = this;
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [self] {
-        content::ThreadCall::callUiThreadAsync(FROM_HERE, [self] { self->emit("before-quit"); });
+        self->emit("before-quit");
         quit();
     });
 }
@@ -293,20 +293,24 @@ void App::setAppUserModelIdApi(const std::string& id)
 
 bool App::requestSingleInstanceLockApi()
 {
+    if (m_singleInstanceHandle)
+        return true;
+
     base::FilePath path;
     base::PathService::Get(base::DIR_EXE, &path);
     std::string temp = path.AsUTF8Unsafe();
     temp = base::Base64Encode(std::string_view(temp.c_str(), temp.size()));
 
-    HANDLE hMutex = NULL;
-    hMutex = ::CreateMutexA(NULL, FALSE, (temp).c_str());
+    HANDLE hMutex = ::CreateMutexA(NULL, FALSE, temp.c_str());
     if (hMutex != NULL) {
         if (ERROR_ALREADY_EXISTS == ::GetLastError()) {
-            ::ReleaseMutex(hMutex);
+            ::CloseHandle(hMutex);
             return false;
         }
+        m_singleInstanceHandle = hMutex;
+        return true;
     }
-    return true;
+    return false;
 }
 
 // const std::string& protocol, const std::string& path, const std::string& args
@@ -832,10 +836,28 @@ void App::relaunchApi(const base::Value::Dict& options)
     relaunchApp(argv);
 }
 
+static bool canOverridePath(const std::string& name)
+{
+    return name == "appData"
+        || name == "cache"
+        || name == "crashDumps"
+        || name == "desktop"
+        || name == "documents"
+        || name == "downloads"
+        || name == "music"
+        || name == "pictures"
+        || name == "recent"
+        || name == "temp"
+        || name == "userCache"
+        || name == "userData"
+        || name == "userDesktop"
+        || name == "videos"
+        || name == "pepperFlashSystemPlugin";
+}
+
 void App::setPathApi(const std::string& name, const std::string& path)
 {
-    if (!(name == "userData" || name == "cache" || name == "userCache" || name == "documents" || name == "downloads" || name == "music" || name == "videos"
-            || name == "pepperFlashSystemPlugin"))
+    if (!canOverridePath(name))
         return;
 
     std::map<std::string, std::string>::iterator it = m_pathMap.find(name);
@@ -943,6 +965,10 @@ bool getUserDownloadsDirectory(base::FilePath* result)
 
 std::string App::getPathApi(const std::string& name) const
 {
+    std::map<std::string, std::string>::const_iterator overrideIt = m_pathMap.find(name);
+    if (overrideIt != m_pathMap.end())
+        return overrideIt->second;
+
     base::FilePath path;
     std::u16string systemBuffer;
     systemBuffer.assign(MAX_PATH, L'\0');

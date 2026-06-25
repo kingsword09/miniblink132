@@ -82,5 +82,4 @@ App.prototype.makeSingleInstance = function(callback) {
     return this.makeSingleInstanceImpl(singleInstancCallback(callback));
 }
 
-
 exports.App = App;
