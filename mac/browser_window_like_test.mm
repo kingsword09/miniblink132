@@ -31,6 +31,8 @@
 
 namespace {
 
+extern "C" int IOPMCopyAssertionsStatus(CFDictionaryRef* assertionsStatus);
+
 constexpr int kWindowWidth = 900;
 constexpr int kWindowHeight = 640;
 
@@ -151,6 +153,31 @@ bool waitFor(const std::function<bool()>& predicate, int timeout_ms)
     while (!predicate() && std::chrono::steady_clock::now() < deadline)
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     return predicate();
+}
+
+bool iopmAssertionIsOn(CFStringRef assertionType, int* levelOut)
+{
+    if (levelOut)
+        *levelOut = -1;
+
+    CFDictionaryRef assertions = nullptr;
+    int result = IOPMCopyAssertionsStatus(&assertions);
+    if (result != 0 || !assertions)
+        return false;
+
+    bool isOn = false;
+    if (CFTypeRef value = CFDictionaryGetValue(assertions, assertionType)) {
+        int level = 0;
+        if (CFGetTypeID(value) == CFNumberGetTypeID()
+            && CFNumberGetValue((CFNumberRef)value, kCFNumberIntType, &level)) {
+            if (levelOut)
+                *levelOut = level;
+            isOn = level != 0;
+        }
+    }
+
+    CFRelease(assertions);
+    return isOn;
 }
 
 void runLoopFor(int milliseconds)
@@ -1806,7 +1833,15 @@ void runPowerSaveBlockerCompatibilityChecks()
 {
     EXECUTION_STATE initial = SetThreadExecutionState(ES_CONTINUOUS);
     EXECUTION_STATE system_required = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+    int system_assertion_level = -1;
+    bool system_assertion_on = waitFor([&] {
+        return iopmAssertionIsOn(CFSTR("PreventUserIdleSystemSleep"), &system_assertion_level);
+    }, 1000);
     EXECUTION_STATE display_required = SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+    int display_assertion_level = -1;
+    bool display_assertion_on = waitFor([&] {
+        return iopmAssertionIsOn(CFSTR("PreventUserIdleDisplaySleep"), &display_assertion_level);
+    }, 1000);
     EXECUTION_STATE invalid = SetThreadExecutionState(0);
     DWORD invalid_error = GetLastError();
     EXECUTION_STATE reset = SetThreadExecutionState(ES_CONTINUOUS);
@@ -1824,6 +1859,11 @@ void runPowerSaveBlockerCompatibilityChecks()
             + " invalid=" + std::to_string(invalid)
             + " error=" + std::to_string(invalid_error)
             + " resetPrev=" + std::to_string(reset));
+
+    addCheck("power-save-blocker-iopm-assertions",
+        system_assertion_on && display_assertion_on,
+        "systemLevel=" + std::to_string(system_assertion_level)
+            + " displayLevel=" + std::to_string(display_assertion_level));
 }
 
 std::u16string readMenuText(const WCHAR* text)

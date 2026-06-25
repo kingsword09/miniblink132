@@ -4,7 +4,9 @@
 #include "mac/shlobj.h"
 #include "mac/shlwapi.h"
 
+#include <CoreFoundation/CoreFoundation.h>
 #include <CoreGraphics/CoreGraphics.h>
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #include <mach-o/dyld.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -1842,6 +1844,8 @@ extern "C" EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags)
 {
     static std::mutex executionStateMutex;
     static EXECUTION_STATE executionState = ES_CONTINUOUS;
+    static IOPMAssertionID systemAssertion = kIOPMNullAssertionID;
+    static IOPMAssertionID displayAssertion = kIOPMNullAssertionID;
 
     const EXECUTION_STATE validFlags = ES_CONTINUOUS
         | ES_SYSTEM_REQUIRED
@@ -1853,7 +1857,44 @@ extern "C" EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags)
     }
 
     std::lock_guard<std::mutex> lock(executionStateMutex);
+
+    IOPMAssertionID newSystemAssertion = systemAssertion;
+    IOPMAssertionID newDisplayAssertion = displayAssertion;
+    if ((esFlags & ES_SYSTEM_REQUIRED) && newSystemAssertion == kIOPMNullAssertionID) {
+        IOReturn result = IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleSystemSleep,
+            kIOPMAssertionLevelOn,
+            CFSTR("MiniBlink SetThreadExecutionState ES_SYSTEM_REQUIRED"),
+            &newSystemAssertion);
+        if (result != kIOReturnSuccess) {
+            SetLastError(ERROR_ACCESS_DENIED);
+            return 0;
+        }
+    }
+    if ((esFlags & ES_DISPLAY_REQUIRED) && newDisplayAssertion == kIOPMNullAssertionID) {
+        IOReturn result = IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
+            kIOPMAssertionLevelOn,
+            CFSTR("MiniBlink SetThreadExecutionState ES_DISPLAY_REQUIRED"),
+            &newDisplayAssertion);
+        if (result != kIOReturnSuccess) {
+            if (newSystemAssertion != systemAssertion)
+                IOPMAssertionRelease(newSystemAssertion);
+            SetLastError(ERROR_ACCESS_DENIED);
+            return 0;
+        }
+    }
+
     EXECUTION_STATE previous = executionState;
+    if (!(esFlags & ES_SYSTEM_REQUIRED) && systemAssertion != kIOPMNullAssertionID) {
+        IOPMAssertionRelease(systemAssertion);
+        newSystemAssertion = kIOPMNullAssertionID;
+    }
+    if (!(esFlags & ES_DISPLAY_REQUIRED) && displayAssertion != kIOPMNullAssertionID) {
+        IOPMAssertionRelease(displayAssertion);
+        newDisplayAssertion = kIOPMNullAssertionID;
+    }
+
+    systemAssertion = newSystemAssertion;
+    displayAssertion = newDisplayAssertion;
     executionState = esFlags;
     SetLastError(0);
     return previous;
