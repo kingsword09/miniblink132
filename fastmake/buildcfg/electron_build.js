@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var json = [{
 	"var":[
@@ -140,7 +140,7 @@ var json = [{
 		// 
 		"cmd":[
 			//"--target=x86_64-linux-guneabi", 
-			"-std=c++14",
+			"-std=c++20",
 			"-fno-exceptions",
 			"-fms-extensions",
 			//"-fshort-wchar",
@@ -175,5 +175,53 @@ var json = [{
 		"linker":constVal.linker//"${ndkBinPath}/ar.exe"
 	}
 }];
+
+if (constVal.isMac) {
+	json[0].compile.include.push("${srcPath}/mac");
+	json[0].compile.include.push("${srcPath}/gen");
+	json[0].compile.include.push("${srcPath}/gen/v8/include");
+	json[0].compile.include.push("${srcPath}/v8/include");
+	json[0].compile.include.push("${srcPath}/third_party/libnode/src");
+	json[0].compile.include.push("${srcPath}/third_party/libuv/include");
+	json[0].compile.include.push("${srcPath}/third_party/abseil-cpp");
+	json[0].compile.include.push("${srcPath}/base/allocator/partition_allocator/src");
+	json[0].compile.include.push("${srcPath}/gen/base/allocator/partition_allocator/src");
+	applyMacBuildSettings(json, { v8: true });
+	json[0].compile.include.push("${srcPath}/content");
+	json[0].compile.include.push("${srcPath}/linux");
+	json[0].compile.cmd.push("-DV8_HAVE_TARGET_OS");
+
+	const macElectronLinkedBindingSrc = new Set([
+		"${srcPath}/electron/browser/api/ApiElectron.cpp",
+		"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
+		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
+		"${srcPath}/electron/browser/api/WindowList.cpp",
+		"${srcPath}/electron/common/AtomCommandLine.cpp",
+		"${srcPath}/electron/common/IdLiveDetect.cpp",
+		"${srcPath}/electron/common/OptionsSwitches.cpp",
+		"${srcPath}/electron/common/api/ApiAsar.cpp",
+		"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
+		"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
+		"${srcPath}/electron/common/api/ApiV8Util.cpp",
+		"${srcPath}/electron/common/api/Event.cpp",
+		"${srcPath}/electron/common/api/EventEmitter.cpp",
+		"${srcPath}/electron/common/api/EventEmitterCaller.cpp",
+		"${srcPath}/electron/common/api/ObjectLifeMonitor.cpp",
+		"${srcPath}/electron/common/api/RemoteCallbackFreer.cpp",
+		"${srcPath}/electron/common/api/RemoteObjectFreer.cpp",
+		"${srcPath}/electron/renderer/api/ApiRendererIpc.cpp",
+		"${srcPath}/electron/renderer/api/ObjectCache.cpp",
+		"${srcPath}/gin/arguments.cc",
+		"${srcPath}/gin/converter.cc",
+		"${srcPath}/gin/dictionary.cc",
+		"${srcPath}/gin/function_template.cc",
+		"${srcPath}/gin/object_template_builder.cc",
+		"${srcPath}/gin/per_isolate_data.cc",
+		"${srcPath}/gin/wrappable.cc",
+		"${srcPath}/gin/wrapper_info.cc",
+	]);
+	json[0].compile.src = json[0].compile.src.filter(src => macElectronLinkedBindingSrc.has(src));
+	json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => macElectronLinkedBindingSrc.has(src));
+}
 
 buildCommonSetting(json);
