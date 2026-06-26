@@ -13,7 +13,7 @@ if [[ ! -x "$BIN" ]]; then
     exit 2
 fi
 
-"$BIN" --electron-native-theme-smoke --electron-power-monitor-smoke --electron-global-shortcut-smoke --electron-power-save-blocker-smoke --electron-screen-smoke
+"$BIN" --electron-native-theme-smoke --electron-power-monitor-smoke --electron-global-shortcut-smoke --electron-power-save-blocker-smoke --electron-screen-smoke --electron-linked-binding-runtime-smoke
 
 symbols="$(nm -gU "$BIN")"
 grep -q "__register_electron_browser_native_theme" <<<"$symbols"
@@ -22,5 +22,6 @@ grep -q "__register_electron_browser_global_shortcut" <<<"$symbols"
 grep -q "__register_electron_browser_power_save_blocker" <<<"$symbols"
 grep -q "__register_electron_common_screen" <<<"$symbols"
 grep -q "_nodeModuleInitRegister" <<<"$symbols"
+grep -q "_electronMacNodeBridgeGetLinkedBinding" <<<"$symbols"
 
 echo "ok electron_mode_smoke"

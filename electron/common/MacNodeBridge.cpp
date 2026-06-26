@@ -9,6 +9,19 @@ namespace {
 
 node::node_module* g_linkedModules = nullptr;
 
+node::node_module* findLinkedModule(const char* name)
+{
+    if (!name)
+        return nullptr;
+
+    for (node::node_module* it = g_linkedModules; it; it = it->nm_link) {
+        if (it->nm_modname && strcmp(it->nm_modname, name) == 0)
+            return it;
+    }
+
+    return nullptr;
+}
+
 } // namespace
 
 extern "C" void _register_electron_browser_native_theme(void);
@@ -37,15 +50,35 @@ extern "C" void node_module_register(void* module)
 
 extern "C" bool electronMacNodeBridgeHasLinkedModule(const char* name)
 {
-    if (!name)
+    return findLinkedModule(name) != nullptr;
+}
+
+extern "C" bool electronMacNodeBridgeGetLinkedBinding(const char* name, v8::Local<v8::Context> context, v8::Local<v8::Value>* out)
+{
+    node::node_module* module = findLinkedModule(name);
+    if (!module || !out)
         return false;
 
-    for (node::node_module* it = g_linkedModules; it; it = it->nm_link) {
-        if (it->nm_modname && strcmp(it->nm_modname, name) == 0)
-            return true;
-    }
+    v8::Isolate* isolate = context->GetIsolate();
+    v8::Local<v8::Object> moduleObject = v8::Object::New(isolate);
+    v8::Local<v8::Object> exports = v8::Object::New(isolate);
+    v8::Local<v8::String> exportsKey = v8::String::NewFromUtf8(isolate, "exports").ToLocalChecked();
+    if (moduleObject->Set(context, exportsKey, exports).IsNothing())
+        return false;
 
-    return false;
+    if (module->nm_context_register_func)
+        module->nm_context_register_func(exports, moduleObject, context, module->nm_priv);
+    else if (module->nm_register_func)
+        module->nm_register_func(exports, moduleObject, module->nm_priv);
+    else
+        return false;
+
+    v8::Local<v8::Value> effectiveExports;
+    if (!moduleObject->Get(context, exportsKey).ToLocal(&effectiveExports))
+        return false;
+
+    *out = effectiveExports;
+    return true;
 }
 
 extern "C" void nodeModuleInitRegister(void)
