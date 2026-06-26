@@ -13,10 +13,15 @@ if [[ ! -x "$BIN" ]]; then
     exit 2
 fi
 
-"$BIN" --electron-native-theme-smoke --electron-power-monitor-smoke --electron-global-shortcut-smoke --electron-power-save-blocker-smoke --electron-screen-smoke --electron-linked-binding-runtime-smoke
+"$BIN" --electron-native-theme-smoke --electron-power-monitor-smoke --electron-global-shortcut-smoke --electron-power-save-blocker-smoke --electron-screen-smoke
+"$BIN" --electron-app-smoke
+"$BIN" --electron-linked-binding-runtime-smoke
+"$BIN" --electron-v8-typed-array-smoke
+"$BIN" --electron-node-bootstrap-smoke
 
 symbols="$(nm -gU "$BIN")"
 grep -q "__register_electron_browser_native_theme" <<<"$symbols"
+grep -q "__register_electron_browser_app" <<<"$symbols"
 grep -q "__register_electron_browser_powermonitor" <<<"$symbols"
 grep -q "__register_electron_browser_global_shortcut" <<<"$symbols"
 grep -q "__register_electron_browser_power_save_blocker" <<<"$symbols"

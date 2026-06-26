@@ -5,6 +5,9 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <memory>
+#include <string>
+
 namespace {
 
 node::node_module* g_linkedModules = nullptr;
@@ -25,12 +28,13 @@ node::node_module* findLinkedModule(const char* name)
 } // namespace
 
 extern "C" void _register_electron_browser_native_theme(void);
+extern "C" void _register_electron_browser_app(void);
 extern "C" void _register_electron_browser_global_shortcut(void);
 extern "C" void _register_electron_browser_powermonitor(void);
 extern "C" void _register_electron_browser_power_save_blocker(void);
 extern "C" void _register_electron_common_screen(void);
 
-extern "C" void node_module_register(void* module)
+extern "C" void electronMacNodeBridgeRegisterModule(void* module)
 {
     node::node_module* nodeModule = static_cast<node::node_module*>(module);
     if (!nodeModule)
@@ -46,11 +50,24 @@ extern "C" void node_module_register(void* module)
     nodeModule->nm_flags = node::ModuleFlags::kLinked;
     nodeModule->nm_link = g_linkedModules;
     g_linkedModules = nodeModule;
+    node::node_module_register(module);
 }
 
 extern "C" bool electronMacNodeBridgeHasLinkedModule(const char* name)
 {
     return findLinkedModule(name) != nullptr;
+}
+
+extern "C" bool electronMacNodeBridgeGetLinkedModuleRegistration(const char* name, node::addon_context_register_func* registerFunc, void** priv)
+{
+    node::node_module* module = findLinkedModule(name);
+    if (!module || !module->nm_context_register_func || !registerFunc)
+        return false;
+
+    *registerFunc = module->nm_context_register_func;
+    if (priv)
+        *priv = module->nm_priv;
+    return true;
 }
 
 extern "C" bool electronMacNodeBridgeGetLinkedBinding(const char* name, v8::Local<v8::Context> context, v8::Local<v8::Value>* out)
@@ -84,29 +101,28 @@ extern "C" bool electronMacNodeBridgeGetLinkedBinding(const char* name, v8::Loca
 extern "C" void nodeModuleInitRegister(void)
 {
     _register_electron_browser_native_theme();
+    _register_electron_browser_app();
     _register_electron_browser_global_shortcut();
     _register_electron_browser_powermonitor();
     _register_electron_browser_power_save_blocker();
     _register_electron_common_screen();
 }
 
+bool g_isElectronMode = false;
+
+std::shared_ptr<v8::TaskRunner> nodePlatformGetForegroundTaskRunner(v8::Isolate*)
+{
+    return nullptr;
+}
+
+bool nodePlatformIdleTasksEnabled(v8::Isolate*)
+{
+    return true;
+}
+
 namespace node {
 
-v8::Local<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> recv, const char* method, int argc, v8::Local<v8::Value>* argv)
-{
-    v8::EscapableHandleScope handleScope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::String> methodName = v8::String::NewFromUtf8(isolate, method, v8::NewStringType::kNormal).ToLocalChecked();
-    v8::Local<v8::Value> callbackValue;
-    if (!recv->Get(context, methodName).ToLocal(&callbackValue) || !callbackValue->IsFunction())
-        return handleScope.Escape(v8::Undefined(isolate));
-
-    v8::Local<v8::Value> result;
-    if (!callbackValue.As<v8::Function>()->Call(context, recv, argc, argv).ToLocal(&result))
-        return handleScope.Escape(v8::Undefined(isolate));
-
-    return handleScope.Escape(result);
-}
+bool g_disable_has_run_bootstrapping_code_error = false;
 
 } // namespace node
 
@@ -115,6 +131,33 @@ struct CloneableMessage;
 } // namespace blink
 
 namespace atom {
+
+unsigned char AsarJs[32262 + 1] = "exports = {};";
+
+void bindMbConsoleLog(v8::Local<v8::Context>)
+{
+}
+
+void patchProcessObject(v8::Local<v8::Object>)
+{
+}
+
+void PreEvaluateModule()
+{
+}
+
+void PostEvaluateModule()
+{
+}
+
+bool checkMiniElectronAsarResStat(const std::string&, int* rc, std::string* result)
+{
+    if (rc)
+        *rc = -1;
+    if (result)
+        result->clear();
+    return false;
+}
 
 bool serializeV8Value(v8::Isolate*, v8::Local<v8::Value>, blink::CloneableMessage*)
 {

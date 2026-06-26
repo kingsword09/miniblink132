@@ -70,8 +70,9 @@ RUNTIME_FUNCTION(Runtime_GrowableSharedArrayBufferByteLength)
     DCHECK_EQ(1, args.length());
     DirectHandle<JSArrayBuffer> array_buffer = args.at<JSArrayBuffer>(0);
 
-    CHECK_EQ(0, array_buffer->byte_length());
-    size_t byte_length = array_buffer->GetBackingStore()->byte_length();
+    size_t byte_length = array_buffer->byte_length();
+    if (byte_length == 0)
+        byte_length = array_buffer->GetBackingStore()->byte_length();
     return *isolate->factory()->NewNumberFromSize(byte_length);
 }
 

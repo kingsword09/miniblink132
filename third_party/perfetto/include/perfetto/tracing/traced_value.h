@@ -17,6 +17,8 @@
 #ifndef INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
 #define INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
 
+#include "base/trace_event/trace_event_stub.h"
+
 #if 0
 
 #include "perfetto/base/compiler.h"

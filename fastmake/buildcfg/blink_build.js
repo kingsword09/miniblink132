@@ -3892,7 +3892,7 @@ var json = [{
             "-DBUILDING_V8_SHARED=1",
             "-DBUILDING_UV_SHARED=1",
             //"-DV8_HOST_ARCH_X64",
-            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=64",
+            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=0",
             "-DV8_INTL_SUPPORT",
             "-DV8_USE_EXTERNAL_STARTUP_DATA",
             "-DV8_ATOMIC_OBJECT_FIELD_WRITES",
@@ -5367,9 +5367,76 @@ if (!constVal.isBuildElectronMode) {
 } else {
     if (constVal.isMac) {
         json[0].compile.target = "miniblink";
+        [
+            "${srcPath}/third_party/libnode/src",
+            "${srcPath}/third_party/libnode/gen/src",
+            "${srcPath}/third_party/libnode/gen/src/node",
+            "${srcPath}/third_party/libnode/deps/ada",
+            "${srcPath}/third_party/libnode/deps/base64/base64/include",
+            "${srcPath}/third_party/libnode/deps/histogram/include",
+            "${srcPath}/third_party/libnode/deps/llhttp/include",
+            "${srcPath}/third_party/libnode/deps/nbytes/include",
+            "${srcPath}/third_party/libnode/deps/simdjson",
+            "${srcPath}/third_party/libnode/deps/simdutf",
+            "${srcPath}/third_party/libnode/deps/uvwasi/include",
+            "${srcPath}/third_party/libnode/deps/zstd/lib",
+            "${srcPath}/third_party/cares/include",
+            "${srcPath}/third_party/brotli/include",
+            "${srcPath}/third_party/libuv/include",
+            "${srcPath}/third_party/libuv/src",
+        ].forEach((path) => {
+            if (json[0].compile.include.indexOf(path) < 0)
+                json[0].compile.include.push(path);
+        });
+        [
+            "-DNODE_WANT_INTERNALS=1",
+            "-DENABLE_NODEJS=1",
+            "-D__POSIX__=1",
+            "-DHAVE_OPENSSL=0",
+            "-DHAVE_INSPECTOR=0",
+            "-DNODE_USE_V8_PLATFORM=1",
+            "-DNODE_ARCH=\\\"arm64\\\"",
+            "-DNODE_PLATFORM=\\\"darwin\\\"",
+            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=0",
+            "-DV8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0",
+            "-DV8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0",
+            "-DV8_PROMISE_INTERNAL_FIELD_COUNT=0",
+            "-DV8_INTL_SUPPORT",
+            "-DV8_USE_EXTERNAL_STARTUP_DATA",
+            "-DV8_ATOMIC_OBJECT_FIELD_WRITES",
+            "-DV8_ENABLE_LAZY_SOURCE_POSITIONS",
+            "-DV8_SHARED_RO_HEAP",
+            "-DV8_ENABLE_REGEXP_INTERPRETER_THREADED_DISPATCH",
+            "-DV8_SHORT_BUILTIN_CALLS",
+            "-DV8_EXTERNAL_CODE_SPACE",
+            "-DV8_ENABLE_SYSTEM_INSTRUMENTATION",
+            "-DV8_ENABLE_ETW_STACK_WALKING",
+            "-DV8_ENABLE_WEBASSEMBLY",
+            "-DV8_ENABLE_SPARKPLUG",
+            "-DV8_ALLOCATION_FOLDING",
+            "-DV8_ALLOCATION_SITE_TRACKING",
+            "-DV8_ADVANCED_BIGINT_ALGORITHMS",
+            "-DV8_USE_ZLIB",
+            "-DV8_COMPRESS_POINTERS",
+            "-DV8_COMPRESS_POINTERS_IN_SHARED_CAGE",
+            "-DV8_31BIT_SMIS_ON_64BIT_ARCH",
+            "-DCPPGC_CAGED_HEAP",
+            "-DCPPGC_YOUNG_GENERATION",
+            "-DCPPGC_POINTER_COMPRESSION",
+            "-DV8_HAVE_TARGET_OS",
+        ].forEach((arg) => {
+            if (json[0].compile.cmd.indexOf(arg) < 0)
+                json[0].compile.cmd.push(arg);
+        });
+        const electronModeStubSrc = new Set([
+            "${srcPath}/build/maindll/NodejsEmpty.cpp",
+        ]);
+        json[0].compile.src = json[0].compile.src.filter(src => !electronModeStubSrc.has(src));
+        json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => !electronModeStubSrc.has(src));
         json[0].compile.src.push("${srcPath}/build/electron/MacElectronMain.cpp");
         json[0].compile.prebuildSrc.push("${srcPath}/build/electron/MacElectronMain.cpp");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_native_theme");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_app");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_powermonitor");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_global_shortcut");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_power_save_blocker");

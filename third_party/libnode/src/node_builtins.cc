@@ -7,6 +7,10 @@
 #include "simdutf.h"
 #include "util-inl.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 //////////////////////////////////////////////////////////////////////////
 #include "../../../electron/common/asar/AsarJs.h"
 
@@ -42,6 +46,196 @@ using v8::String;
 using v8::TryCatch;
 using v8::Undefined;
 using v8::Value;
+
+namespace {
+
+bool ShouldTraceBuiltinBootstrap(const char* id)
+{
+#if defined(__APPLE__)
+    const char* filter = getenv("MINIBLINK_NODE_BOOTSTRAP_TRACE");
+    if (filter == nullptr || filter[0] == '\0' || strcmp(filter, "0") == 0)
+        return false;
+    return strcmp(filter, "1") == 0 || strstr(id, filter) != nullptr;
+#else
+    return false;
+#endif
+}
+
+void TraceBuiltinBootstrap(const char* id, const char* stage, int argc = -1)
+{
+    if (!ShouldTraceBuiltinBootstrap(id))
+        return;
+    if (argc >= 0)
+        fprintf(stderr, "[node-bootstrap] %s id=%s argc=%d\n", stage, id, argc);
+    else
+        fprintf(stderr, "[node-bootstrap] %s id=%s\n", stage, id);
+    fflush(stderr);
+}
+
+bool IsTruthyEnv(const char* name)
+{
+    const char* value = getenv(name);
+    return value != nullptr && value[0] != '\0' && strcmp(value, "0") != 0;
+}
+
+bool ReplaceFirst(std::string* source, const char* needle, const std::string& replacement)
+{
+    size_t position = source->find(needle);
+    if (position == std::string::npos)
+        return false;
+    source->replace(position, strlen(needle), replacement);
+    return true;
+}
+
+std::string TraceStatement(const char* stage)
+{
+    std::string statement = "if (__miniblinkBootstrapTrace('";
+    statement += stage;
+    statement += "')) return;\n";
+    return statement;
+}
+
+void TraceAround(std::string* source, const char* needle, const char* before, const char* after)
+{
+    std::string replacement = TraceStatement(before);
+    replacement += needle;
+    replacement += TraceStatement(after);
+    if (!ReplaceFirst(source, needle, replacement))
+        fprintf(stderr, "[node-bootstrap] missing JS trace needle: %s\n", before);
+}
+
+std::string InternalBufferTraceStatement(const char* stage)
+{
+    std::string statement = "__miniblinkInternalBufferTrace('";
+    statement += stage;
+    statement += "');\n";
+    return statement;
+}
+
+void InternalBufferTraceAround(std::string* source, const char* needle, const char* before, const char* after)
+{
+    std::string replacement = InternalBufferTraceStatement(before);
+    replacement += needle;
+    replacement += InternalBufferTraceStatement(after);
+    if (!ReplaceFirst(source, needle, replacement))
+        fprintf(stderr, "[node-bootstrap] missing internal/buffer trace needle: %s\n", before);
+}
+
+std::string BuildTracedNodeBootstrapSource(const UnionBytes& source_bytes)
+{
+    StaticExternalOneByteResource* one_byte_resource = source_bytes.one_byte_resource();
+    if (one_byte_resource == nullptr)
+        return std::string();
+
+    std::string source(one_byte_resource->data(), one_byte_resource->length());
+    const char* stop_after = getenv("MINIBLINK_NODE_BOOTSTRAP_JS_STOP_AFTER");
+    if (stop_after == nullptr)
+        stop_after = "";
+
+    std::string helper =
+        "'use strict';\n"
+        "const __miniblinkBootstrapStopAfter = '";
+    helper += stop_after;
+    helper +=
+        "';\n"
+        "function __miniblinkBootstrapTrace(stage) {\n"
+        "  try { process._rawDebug('[node-bootstrap-js] ' + stage); } catch (e) {}\n"
+        "  return __miniblinkBootstrapStopAfter === stage;\n"
+        "}\n";
+
+    ReplaceFirst(&source, "'use strict';\n", helper);
+    ReplaceFirst(&source, "const {\n  FunctionPrototypeCall,", TraceStatement("start") + "const {\n  FunctionPrototypeCall,");
+    ReplaceFirst(&source, "} = primordials;\n", "} = primordials;\n" + TraceStatement("after-primordials"));
+
+    TraceAround(&source, "const config = internalBinding('config');\n", "before-config", "after-config");
+    TraceAround(&source, "const internalTimers = require('internal/timers');\n", "before-internal-timers", "after-internal-timers");
+    TraceAround(&source, "const { defineOperation } = require('internal/util');\n", "before-internal-util", "after-internal-util");
+    TraceAround(&source, "const {\n  validateInteger,\n} = require('internal/validators');\n", "before-internal-validators", "after-internal-validators");
+    TraceAround(&source, "const {\n  constants: {\n    kExitCode,\n    kExiting,\n    kHasExitCode,\n  },\n  privateSymbols: {\n    exit_info_private_symbol,\n  },\n} = internalBinding('util');\n", "before-util-binding", "after-util-binding");
+
+    TraceAround(&source, "setupProcessObject();\n", "before-setup-process", "after-setup-process");
+    TraceAround(&source, "setupGlobalProxy();\n", "before-setup-global", "after-setup-global");
+    TraceAround(&source, "setupBuffer();\n", "before-setup-buffer", "after-setup-buffer");
+    TraceAround(&source, "setupAsarSupport(); // weolar: for electron\n", "before-setup-asar", "after-setup-asar");
+    TraceAround(&source, "process.domain = null;\n", "before-process-domain", "after-process-domain");
+    TraceAround(&source, "const binding = internalBinding('builtins');\n", "before-builtins-binding", "after-builtins-binding");
+    TraceAround(&source, "require('internal/worker/js_transferable').setup();\n", "before-js-transferable", "after-js-transferable");
+    TraceAround(&source, "const perThreadSetup = require('internal/process/per_thread');\n", "before-per-thread", "after-per-thread");
+    TraceAround(&source, "const rawMethods = internalBinding('process_methods');\n", "before-process-methods", "after-process-methods");
+    TraceAround(&source, "const credentials = internalBinding('credentials');\n", "before-credentials", "after-credentials");
+    TraceAround(&source, "const { nativeHooks } = require('internal/async_hooks');\n", "before-async-hooks", "after-async-hooks");
+    TraceAround(&source, "internalBinding('async_wrap').setupHooks(nativeHooks);\n", "before-setup-hooks", "after-setup-hooks");
+    TraceAround(&source, "const {\n  setupTaskQueue,\n} = require('internal/process/task_queues');\n", "before-task-queues", "after-task-queues");
+    TraceAround(&source, "const timers = require('timers');\n", "before-timers", "after-timers");
+    TraceAround(&source, "  const {\n    Buffer,\n  } = require('buffer');\n", "before-buffer-require", "after-buffer-require");
+    TraceAround(&source, "  const bufferBinding = internalBinding('buffer');\n", "before-buffer-binding", "after-buffer-binding");
+    TraceAround(&source, "  bufferBinding.setBufferPrototype(Buffer.prototype);\n", "before-set-buffer-prototype", "after-set-buffer-prototype");
+    TraceAround(&source, "  delete bufferBinding.setBufferPrototype;\n", "before-delete-set-buffer-prototype", "after-delete-set-buffer-prototype");
+    TraceAround(&source, "  let _Buffer = Buffer;\n", "before-buffer-global", "after-buffer-global");
+
+    return source;
+}
+
+std::string BuildTracedRealmBootstrapSource(const UnionBytes& source_bytes)
+{
+    StaticExternalOneByteResource* one_byte_resource = source_bytes.one_byte_resource();
+    if (one_byte_resource == nullptr)
+        return std::string();
+
+    std::string source(one_byte_resource->data(), one_byte_resource->length());
+    const char* needle =
+        "      const fn = compileFunction(id);\n"
+        "      // Arguments must match the parameters specified in\n"
+        "      // BuiltinLoader::LookupAndCompile().\n"
+        "      fn(this.exports, requireFn, this, process, internalBinding, primordials);\n";
+    std::string replacement =
+        "      try { process._rawDebug('[node-builtin-js] before ' + id); } catch (e) {}\n"
+        "      const fn = compileFunction(id);\n"
+        "      try { process._rawDebug('[node-builtin-js] compiled ' + id); } catch (e) {}\n"
+        "      // Arguments must match the parameters specified in\n"
+        "      // BuiltinLoader::LookupAndCompile().\n"
+        "      fn(this.exports, requireFn, this, process, internalBinding, primordials);\n"
+        "      try { process._rawDebug('[node-builtin-js] after ' + id); } catch (e) {}\n";
+    if (!ReplaceFirst(&source, needle, replacement))
+        fprintf(stderr, "[node-bootstrap] missing realm builtin trace needle\n");
+    return source;
+}
+
+std::string BuildTracedInternalBufferSource(const UnionBytes& source_bytes)
+{
+    StaticExternalOneByteResource* one_byte_resource = source_bytes.one_byte_resource();
+    if (one_byte_resource == nullptr)
+        return std::string();
+
+    std::string source(one_byte_resource->data(), one_byte_resource->length());
+    std::string helper =
+        "'use strict';\n"
+        "function __miniblinkInternalBufferTrace(stage) {\n"
+        "  try { process._rawDebug('[internal-buffer-js] ' + stage); } catch (e) {}\n"
+        "}\n";
+
+    ReplaceFirst(&source, "'use strict';\n", helper);
+    ReplaceFirst(&source, "const {\n  BigInt,", "__miniblinkInternalBufferTrace('start');\nconst {\n  BigInt,");
+    ReplaceFirst(&source, "} = primordials;\n", "} = primordials;\n__miniblinkInternalBufferTrace('after-primordials');\n");
+    InternalBufferTraceAround(&source, "const {\n  ERR_BUFFER_OUT_OF_BOUNDS,\n  ERR_INVALID_ARG_TYPE,\n  ERR_OUT_OF_RANGE,\n} = require('internal/errors').codes;\n", "before-errors", "after-errors");
+    InternalBufferTraceAround(&source, "const { validateNumber } = require('internal/validators');\n", "before-validators", "after-validators");
+    InternalBufferTraceAround(&source, "const {\n  asciiSlice,\n  base64Slice,\n  base64urlSlice,\n  latin1Slice,\n  hexSlice,\n  ucs2Slice,\n  utf8Slice,\n  asciiWriteStatic,\n  base64Write,\n  base64urlWrite,\n  latin1WriteStatic,\n  hexWrite,\n  ucs2Write,\n  utf8WriteStatic,\n  getZeroFillToggle,\n} = internalBinding('buffer');\n", "before-buffer-binding", "after-buffer-binding");
+    InternalBufferTraceAround(&source, "const {\n  privateSymbols: {\n    untransferable_object_private_symbol,\n  },\n} = internalBinding('util');\n", "before-util-binding", "after-util-binding");
+    InternalBufferTraceAround(&source, "const float32Array = new Float32Array(1);\n", "before-float32-array", "after-float32-array");
+    InternalBufferTraceAround(&source, "const uInt8Float32Array = new Uint8Array(float32Array.buffer);\n", "before-uint8-float32-array", "after-uint8-float32-array");
+    InternalBufferTraceAround(&source, "const float64Array = new Float64Array(1);\n", "before-float64-array", "after-float64-array");
+    InternalBufferTraceAround(&source, "const uInt8Float64Array = new Uint8Array(float64Array.buffer);\n", "before-uint8-float64-array", "after-uint8-float64-array");
+    InternalBufferTraceAround(&source, "float32Array[0] = -1; // 0xBF800000\n", "before-endian-write", "after-endian-write");
+    InternalBufferTraceAround(&source, "const bigEndian = uInt8Float32Array[3] === 0;\n", "before-endian-read", "after-endian-read");
+    ReplaceFirst(&source, "class FastBuffer extends Uint8Array {\n", InternalBufferTraceStatement("before-fast-buffer-class") + "class FastBuffer extends Uint8Array {\n");
+    ReplaceFirst(&source, "function addBufferPrototypeMethods(proto) {\n", InternalBufferTraceStatement("after-fast-buffer-class") + "function addBufferPrototypeMethods(proto) {\n");
+    InternalBufferTraceAround(&source, "let zeroFill = getZeroFillToggle();\n", "before-zero-fill", "after-zero-fill");
+    ReplaceFirst(&source, "module.exports = {\n", InternalBufferTraceStatement("before-module-exports") + "module.exports = {\n");
+
+    return source;
+}
+
+} // namespace
 
 //---
 StaticExternalOneByteResource electron_resource((const uint8_t*)"  ", 2, nullptr);
@@ -315,6 +509,13 @@ MaybeLocal<String> BuiltinLoader::LoadBuiltinSource(Isolate* isolate, const char
 {
     auto source = source_.read();
 #ifndef NODE_BUILTIN_MODULES_PATH
+    if (strcmp(id, "internal/bootstrap/node") == 0) {
+        if (IsTruthyEnv("MINIBLINK_NODE_BOOTSTRAP_STUB")) {
+            static const char kNodeBootstrapStub[] = "'use strict';\n";
+            return String::NewFromUtf8(isolate, kNodeBootstrapStub, NewStringType::kNormal, sizeof(kNodeBootstrapStub) - 1);
+        }
+    }
+
     const auto source_it = source->find(id);
     if (source_it == source->end())
         [[unlikely]]
@@ -322,6 +523,22 @@ MaybeLocal<String> BuiltinLoader::LoadBuiltinSource(Isolate* isolate, const char
             fprintf(stderr, "Cannot find native builtin: \"%s\".\n", id);
             ABORT();
         }
+    if (strcmp(id, "internal/bootstrap/node") == 0
+        && (IsTruthyEnv("MINIBLINK_NODE_BOOTSTRAP_JS_TRACE") || IsTruthyEnv("MINIBLINK_NODE_BOOTSTRAP_JS_STOP_AFTER"))) {
+        std::string traced_source = BuildTracedNodeBootstrapSource(source_it->second);
+        if (!traced_source.empty())
+            return String::NewFromUtf8(isolate, traced_source.c_str(), NewStringType::kNormal, traced_source.length());
+    }
+    if (strcmp(id, "internal/bootstrap/realm") == 0 && IsTruthyEnv("MINIBLINK_NODE_BUILTIN_JS_TRACE")) {
+        std::string traced_source = BuildTracedRealmBootstrapSource(source_it->second);
+        if (!traced_source.empty())
+            return String::NewFromUtf8(isolate, traced_source.c_str(), NewStringType::kNormal, traced_source.length());
+    }
+    if (strcmp(id, "internal/buffer") == 0 && IsTruthyEnv("MINIBLINK_NODE_BUILTIN_JS_TRACE")) {
+        std::string traced_source = BuildTracedInternalBufferSource(source_it->second);
+        if (!traced_source.empty())
+            return String::NewFromUtf8(isolate, traced_source.c_str(), NewStringType::kNormal, traced_source.length());
+    }
     return source_it->second.ToStringChecked(isolate);
 #else // !NODE_BUILTIN_MODULES_PATH
     std::string filename = OnDiskFileName(id);
@@ -550,13 +767,19 @@ MaybeLocal<Value> BuiltinLoader::CompileAndCall(Local<Context> context, const ch
 {
     // Arguments must match the parameters specified in
     // BuiltinLoader::LookupAndCompile().
+    TraceBuiltinBootstrap(id, "lookup-begin", argc);
     MaybeLocal<Function> maybe_fn = LookupAndCompile(context, id, optional_realm);
+    TraceBuiltinBootstrap(id, "lookup-end", argc);
     Local<Function> fn;
     if (!maybe_fn.ToLocal(&fn)) {
+        TraceBuiltinBootstrap(id, "lookup-empty", argc);
         return MaybeLocal<Value>();
     }
     Local<Value> undefined = Undefined(context->GetIsolate());
-    return fn->Call(context, undefined, argc, argv);
+    TraceBuiltinBootstrap(id, "call-begin", argc);
+    MaybeLocal<Value> result = fn->Call(context, undefined, argc, argv);
+    TraceBuiltinBootstrap(id, result.IsEmpty() ? "call-empty" : "call-end", argc);
+    return result;
 }
 
 MaybeLocal<Function> BuiltinLoader::LookupAndCompile(Local<Context> context, const char* id, std::vector<Local<String>>* parameters, Realm* optional_realm)
@@ -700,10 +923,15 @@ void BuiltinLoader::CompileFunction(const FunctionCallbackInfo<Value>& args)
     CHECK(args[0]->IsString());
     node::Utf8Value id_v(realm->isolate(), args[0].As<String>());
     const char* id = *id_v;
+    TraceBuiltinBootstrap(id, "compile-function-begin");
     MaybeLocal<Function> maybe = realm->env()->builtin_loader()->LookupAndCompile(realm->context(), id, realm);
+    TraceBuiltinBootstrap(id, "compile-function-end");
     Local<Function> fn;
     if (maybe.ToLocal(&fn)) {
         args.GetReturnValue().Set(fn);
+        TraceBuiltinBootstrap(id, "compile-function-return");
+    } else {
+        TraceBuiltinBootstrap(id, "compile-function-empty");
     }
 }
 

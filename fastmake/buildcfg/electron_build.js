@@ -198,16 +198,60 @@ if (constVal.isMac) {
 	json[0].compile.include.push("${srcPath}/content");
 	json[0].compile.include.push("${srcPath}/linux");
 	json[0].compile.cmd.push("-DV8_HAVE_TARGET_OS");
+	[
+		"-DNODE_WANT_INTERNALS=1",
+		"-DENABLE_NODEJS=1",
+		"-D__POSIX__=1",
+		"-DHAVE_OPENSSL=0",
+		"-DHAVE_INSPECTOR=0",
+		"-DNODE_USE_V8_PLATFORM=1",
+		"-DNODE_ARCH=\\\"arm64\\\"",
+		"-DNODE_PLATFORM=\\\"darwin\\\"",
+		"-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=0",
+		"-DV8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0",
+		"-DV8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0",
+		"-DV8_PROMISE_INTERNAL_FIELD_COUNT=0",
+		"-DV8_INTL_SUPPORT",
+		"-DV8_USE_EXTERNAL_STARTUP_DATA",
+		"-DV8_ATOMIC_OBJECT_FIELD_WRITES",
+		"-DV8_ENABLE_LAZY_SOURCE_POSITIONS",
+		"-DV8_SHARED_RO_HEAP",
+		"-DV8_ENABLE_REGEXP_INTERPRETER_THREADED_DISPATCH",
+		"-DV8_SHORT_BUILTIN_CALLS",
+		"-DV8_EXTERNAL_CODE_SPACE",
+		"-DV8_ENABLE_SYSTEM_INSTRUMENTATION",
+		"-DV8_ENABLE_ETW_STACK_WALKING",
+		"-DV8_ENABLE_WEBASSEMBLY",
+		"-DV8_ENABLE_SPARKPLUG",
+		"-DV8_ALLOCATION_FOLDING",
+		"-DV8_ALLOCATION_SITE_TRACKING",
+		"-DV8_ADVANCED_BIGINT_ALGORITHMS",
+		"-DV8_USE_ZLIB",
+		"-DV8_COMPRESS_POINTERS",
+		"-DV8_COMPRESS_POINTERS_IN_SHARED_CAGE",
+		"-DV8_31BIT_SMIS_ON_64BIT_ARCH",
+		"-DCPPGC_CAGED_HEAP",
+		"-DCPPGC_YOUNG_GENERATION",
+		"-DCPPGC_POINTER_COMPRESSION",
+	].forEach((arg) => {
+		if (json[0].compile.cmd.indexOf(arg) < 0)
+			json[0].compile.cmd.push(arg);
+	});
+	json[0].compile.cmd.push("-Dnode_module_register=electronMacNodeBridgeRegisterModule");
 
 	const macPowerMonitorSrc = "${srcPath}/electron/browser/api/ApiPowerMonitor.cpp";
 	const macPowerSaveBlockerSrc = "${srcPath}/electron/browser/api/ApiPowerSaveBlocker.cpp";
 	const macGlobalShortcutSrc = "${srcPath}/electron/browser/api/ApiGlobalShortcut.cpp";
+	const macAppSrc = "${srcPath}/electron/browser/api/ApiAppMac.cpp";
 	const macPowerMonitorIdleSrc = [
 		"${srcPath}/ui/base/idle/idle.cc",
 		"${srcPath}/ui/base/idle/idle_internal.cc",
 		"${srcPath}/ui/base/idle/idle_mac.mm",
 	];
+	const macElectronSupportSrc = [
+	];
 	const macElectronLinkedBindingSrc = new Set([
+		macAppSrc,
 		"${srcPath}/electron/browser/api/ApiElectron.cpp",
 		"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
 		macGlobalShortcutSrc,
@@ -218,7 +262,6 @@ if (constVal.isMac) {
 		"${srcPath}/electron/common/AtomCommandLine.cpp",
 		"${srcPath}/electron/common/IdLiveDetect.cpp",
 		"${srcPath}/electron/common/OptionsSwitches.cpp",
-		"${srcPath}/electron/common/api/ApiAsar.cpp",
 		"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
 		"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
 		"${srcPath}/electron/common/api/ApiScreen.cpp",
@@ -239,18 +282,23 @@ if (constVal.isMac) {
 		"${srcPath}/electron/common/api/RemoteObjectFreer.cpp",
 		"${srcPath}/electron/renderer/api/ApiRendererIpc.cpp",
 		"${srcPath}/electron/renderer/api/ObjectCache.cpp",
+		...macElectronSupportSrc,
 		...macPowerMonitorIdleSrc,
 	]);
 	json[0].compile.src = json[0].compile.src.filter(src => macElectronLinkedBindingSrc.has(src));
+	json[0].compile.src.push(macAppSrc);
 	json[0].compile.src.push(macGlobalShortcutSrc);
 	json[0].compile.src.push(macPowerMonitorSrc);
 	json[0].compile.src.push(macPowerSaveBlockerSrc);
+	json[0].compile.src.push(...macElectronSupportSrc);
 	json[0].compile.src.push(...macPowerMonitorIdleSrc);
 	json[0].compile.src = [...new Set(json[0].compile.src)];
 	json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => macElectronLinkedBindingSrc.has(src));
+	json[0].compile.prebuildSrc.push(macAppSrc);
 	json[0].compile.prebuildSrc.push(macGlobalShortcutSrc);
 	json[0].compile.prebuildSrc.push(macPowerMonitorSrc);
 	json[0].compile.prebuildSrc.push(macPowerSaveBlockerSrc);
+	json[0].compile.prebuildSrc.push(...macElectronSupportSrc);
 	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);
 	json[0].compile.prebuildSrc = [...new Set(json[0].compile.prebuildSrc)];
 }
