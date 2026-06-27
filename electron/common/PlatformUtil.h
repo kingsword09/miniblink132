@@ -27,7 +27,7 @@ void showItemInFolder(const base::FilePath& full_path);
 
 // Open the given file in the desktop's default manner.
 // Must be called from the UI thread.
-void openItem(const base::FilePath& full_path);
+bool openItem(const base::FilePath& full_path);
 
 // Open the given external protocol URL in the desktop's default manner.
 // (For example, mailto: URLs in the default mail user agent.)

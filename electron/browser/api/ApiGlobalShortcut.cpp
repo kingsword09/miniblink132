@@ -164,6 +164,7 @@ public:
     bool registerShortcut(const std::string& accelerator, v8::Local<v8::Function> callback);
     void unregisterShortcut(const std::string& accelerator);
     void unregisterAll();
+    bool dispatchForTesting(const std::string& accelerator);
     void dispatch(int id);
 
 private:
@@ -288,6 +289,14 @@ void GlobalShortcutState::unregisterAll()
     idsByAccelerator_.clear();
 }
 
+bool GlobalShortcutState::dispatchForTesting(const std::string& accelerator)
+{
+    auto it = idsByAccelerator_.find(accelerator);
+    if (it == idsByAccelerator_.end() || !window_)
+        return false;
+    return PostMessageW(window_, WM_HOTKEY, static_cast<WPARAM>(it->second), 0) == TRUE;
+}
+
 void GlobalShortcutState::dispatch(int id)
 {
     auto it = registrationsById_.find(id);
@@ -334,6 +343,18 @@ void unregisterAllApi(const v8::FunctionCallbackInfo<v8::Value>& info)
     stateForIsolate(info.GetIsolate())->unregisterAll();
 }
 
+void dispatchForTestingApi(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    std::string accelerator;
+    if (info.Length() < 1 || !stringArgument(isolate, info[0], &accelerator)) {
+        info.GetReturnValue().Set(false);
+        return;
+    }
+
+    info.GetReturnValue().Set(stateForIsolate(isolate)->dispatchForTesting(accelerator));
+}
+
 void initializeGlobalShortcutApi(v8::Local<v8::Object> exports, v8::Local<v8::Value>, v8::Local<v8::Context> context, const NodeNative*)
 {
     v8::Isolate* isolate = context->GetIsolate();
@@ -349,6 +370,10 @@ void initializeGlobalShortcutApi(v8::Local<v8::Object> exports, v8::Local<v8::Va
     exports->Set(context,
         v8::String::NewFromUtf8(isolate, "unregisterAll").ToLocalChecked(),
         v8::FunctionTemplate::New(isolate, unregisterAllApi)->GetFunction(context).ToLocalChecked()).ToChecked();
+
+    exports->Set(context,
+        v8::String::NewFromUtf8(isolate, "_dispatchForTesting").ToLocalChecked(),
+        v8::FunctionTemplate::New(isolate, dispatchForTestingApi)->GetFunction(context).ToLocalChecked()).ToChecked();
 }
 
 const char GlobalShortcutScript[] = "exports = {};";

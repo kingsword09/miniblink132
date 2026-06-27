@@ -299,12 +299,11 @@ void showItemInFolder(const base::FilePath& full_path)
     }
 }
 
-void openItem(const base::FilePath& full_path)
+bool openItem(const base::FilePath& full_path)
 {
     if (::PathIsDirectoryW(full_path.value().c_str()))
-        ui::win::OpenFolderViaShell(full_path);
-    else
-        ui::win::OpenFileViaShell(full_path);
+        return ui::win::OpenFolderViaShell(full_path);
+    return ui::win::OpenFileViaShell(full_path);
 }
 
 class OpenExternal {

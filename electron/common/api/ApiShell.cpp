@@ -194,7 +194,8 @@ void openItem(const v8::FunctionCallbackInfo<v8::Value>& info)
         return;
     }
 
-    platform_util::openItem(base::FilePath::FromUTF8Unsafe(fullPathStr));
+    bool b = platform_util::openItem(base::FilePath::FromUTF8Unsafe(fullPathStr));
+    info.GetReturnValue().Set(b);
 }
 
 void moveItemToTrash(const v8::FunctionCallbackInfo<v8::Value>& info)

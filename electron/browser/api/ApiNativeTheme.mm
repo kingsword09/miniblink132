@@ -18,7 +18,8 @@ struct NodeNative {
 @interface MiniElectronNativeThemeObserver : NSObject {
 @private
     NativeThemeWatchState* _state;
-    BOOL _observing;
+    BOOL _observingEffectiveAppearance;
+    BOOL _observingAppearance;
 }
 - (instancetype)initWithState:(NativeThemeWatchState*)state;
 - (void)invalidate;
@@ -144,6 +145,29 @@ NodeNative nativeThemeNative { "ApiNativeTheme", NativeThemeScript, sizeof(Nativ
 
 } // namespace
 
+extern "C" bool electronMacNativeThemeSetAppearanceForTesting(bool dark)
+{
+    @autoreleasepool {
+        NSApplication* app = [NSApplication sharedApplication];
+        NSAppearanceName name = dark ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua;
+        NSAppearance* appearance = [NSAppearance appearanceNamed:name];
+        if (!appearance)
+            return false;
+
+        [app setAppearance:appearance];
+        NSArray<NSAppearanceName>* names = @[ NSAppearanceNameAqua, NSAppearanceNameDarkAqua ];
+        NSAppearanceName effective = [[app effectiveAppearance] bestMatchFromAppearancesWithNames:names];
+        return [effective isEqualToString:name];
+    }
+}
+
+extern "C" void electronMacNativeThemeResetAppearanceForTesting()
+{
+    @autoreleasepool {
+        [[NSApplication sharedApplication] setAppearance:nil];
+    }
+}
+
 @implementation MiniElectronNativeThemeObserver
 
 - (instancetype)initWithState:(NativeThemeWatchState*)state
@@ -151,9 +175,14 @@ NodeNative nativeThemeNative { "ApiNativeTheme", NativeThemeScript, sizeof(Nativ
     self = [super init];
     if (self) {
         _state = state;
-        _observing = YES;
+        _observingEffectiveAppearance = YES;
+        _observingAppearance = YES;
         [[NSApplication sharedApplication] addObserver:self
                                             forKeyPath:@"effectiveAppearance"
+                                               options:0
+                                               context:nullptr];
+        [[NSApplication sharedApplication] addObserver:self
+                                            forKeyPath:@"appearance"
                                                options:0
                                                context:nullptr];
     }
@@ -162,9 +191,13 @@ NodeNative nativeThemeNative { "ApiNativeTheme", NativeThemeScript, sizeof(Nativ
 
 - (void)invalidate
 {
-    if (_observing) {
+    if (_observingEffectiveAppearance) {
         [[NSApplication sharedApplication] removeObserver:self forKeyPath:@"effectiveAppearance"];
-        _observing = NO;
+        _observingEffectiveAppearance = NO;
+    }
+    if (_observingAppearance) {
+        [[NSApplication sharedApplication] removeObserver:self forKeyPath:@"appearance"];
+        _observingAppearance = NO;
     }
     _state = nullptr;
 }

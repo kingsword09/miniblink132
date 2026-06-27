@@ -1630,6 +1630,70 @@ void runShellCompatibilityChecks()
         "result=" + std::to_string(trash_result) + " moved=" + (trash_moved ? "1" : "0"));
     unlink(expected_trash_path.c_str());
 
+    std::string multi_one_name = "trash-multi-one-" + std::to_string((long long)getpid()) + ".txt";
+    std::string multi_two_name = "trash-multi-two-" + std::to_string((long long)getpid()) + ".txt";
+    std::string multi_one_path = shell_dir + "/" + multi_one_name;
+    std::string multi_two_path = shell_dir + "/" + multi_two_name;
+    std::string expected_multi_one = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + multi_one_name;
+    std::string expected_multi_two = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + multi_two_name;
+    unlink(expected_multi_one.c_str());
+    unlink(expected_multi_two.c_str());
+    {
+        std::ofstream file(multi_one_path);
+        file << "multi one\n";
+    }
+    {
+        std::ofstream file(multi_two_path);
+        file << "multi two\n";
+    }
+    std::u16string multi_from = asciiToWidePath(multi_one_path);
+    multi_from.push_back(0);
+    std::u16string multi_two_w = asciiToWidePath(multi_two_path);
+    multi_from.append(multi_two_w);
+    multi_from.push_back(0);
+    multi_from.push_back(0);
+    SHFILEOPSTRUCTW multi_file_op = {};
+    multi_file_op.wFunc = FO_DELETE;
+    multi_file_op.pFrom = reinterpret_cast<LPCWSTR>(multi_from.c_str());
+    multi_file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    int multi_trash_result = SHFileOperationW(&multi_file_op);
+    bool multi_trash_moved = access(multi_one_path.c_str(), F_OK) != 0
+        && access(multi_two_path.c_str(), F_OK) != 0
+        && access(expected_multi_one.c_str(), F_OK) == 0
+        && access(expected_multi_two.c_str(), F_OK) == 0;
+    addCheck("shell-trash-item-multiple-shfileoperation",
+        multi_trash_result == ERROR_SUCCESS && !multi_file_op.fAnyOperationsAborted && multi_trash_moved,
+        "result=" + std::to_string(multi_trash_result) + " moved=" + (multi_trash_moved ? "1" : "0"));
+    unlink(expected_multi_one.c_str());
+    unlink(expected_multi_two.c_str());
+
+    std::string trash_dir_name = "trash-dir-" + std::to_string((long long)getpid());
+    std::string trash_dir_path = shell_dir + "/" + trash_dir_name;
+    std::string trash_dir_file = trash_dir_path + "/nested.txt";
+    std::string expected_trash_dir = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + trash_dir_name;
+    unlink((expected_trash_dir + "/nested.txt").c_str());
+    rmdir(expected_trash_dir.c_str());
+    mkdir(trash_dir_path.c_str(), 0755);
+    {
+        std::ofstream file(trash_dir_file);
+        file << "trash dir ok\n";
+    }
+    std::u16string trash_dir_from = asciiToWidePath(trash_dir_path);
+    trash_dir_from.push_back(0);
+    trash_dir_from.push_back(0);
+    SHFILEOPSTRUCTW dir_file_op = {};
+    dir_file_op.wFunc = FO_DELETE;
+    dir_file_op.pFrom = reinterpret_cast<LPCWSTR>(trash_dir_from.c_str());
+    dir_file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    int dir_trash_result = SHFileOperationW(&dir_file_op);
+    bool dir_trash_moved = access(trash_dir_path.c_str(), F_OK) != 0
+        && access((expected_trash_dir + "/nested.txt").c_str(), F_OK) == 0;
+    addCheck("shell-trash-item-directory-shfileoperation",
+        dir_trash_result == ERROR_SUCCESS && !dir_file_op.fAnyOperationsAborted && dir_trash_moved,
+        "result=" + std::to_string(dir_trash_result) + " moved=" + (dir_trash_moved ? "1" : "0"));
+    unlink((expected_trash_dir + "/nested.txt").c_str());
+    rmdir(expected_trash_dir.c_str());
+
     setenv("MINIBLINK_SUPPRESS_BEEP", "1", 1);
     BOOL message_beep = MessageBeep(MB_OK);
     BOOL beep = Beep(750, 10);

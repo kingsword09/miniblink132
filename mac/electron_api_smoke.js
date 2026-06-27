@@ -15,6 +15,7 @@ async function runAppApiSmoke() {
             this._paths = Object.create(null);
             this._locale = 'zh-CN';
             this._singleInstanceLocked = false;
+            this._quitting = false;
         }
 
         isReady() {
@@ -26,9 +27,17 @@ async function runAppApiSmoke() {
         }
 
         emit(name) {
+            const event = {
+                defaultPrevented: false,
+                preventDefault() {
+                    this.defaultPrevented = true;
+                },
+                sender: this
+            };
             this._ready = this._ready || name === 'ready';
             if (this._listeners[name])
-                this._listeners[name]();
+                this._listeners[name](event);
+            return event.defaultPrevented;
         }
 
         setName(name) {
@@ -60,8 +69,15 @@ async function runAppApiSmoke() {
         }
 
         quit() {
-            this.emit('before-quit');
+            if (this._quitting)
+                return;
+            this._quitting = true;
+            if (this.emit('before-quit')) {
+                this._quitting = false;
+                return;
+            }
             this.emit('window-all-closed');
+            this.emit('quit');
         }
 
         requestSingleInstanceLock() {
@@ -148,8 +164,35 @@ async function runAppApiSmoke() {
     const lifecycleEvents = [];
     app.on('before-quit', function() { lifecycleEvents.push('before-quit'); });
     app.on('window-all-closed', function() { lifecycleEvents.push('window-all-closed'); });
+    app.on('quit', function() { lifecycleEvents.push('quit'); });
     app.quit();
-    assert.deepStrictEqual(lifecycleEvents, ['before-quit', 'window-all-closed']);
+    assert.deepStrictEqual(lifecycleEvents, ['before-quit', 'window-all-closed', 'quit']);
+
+    const cancelApp = new App();
+    const cancelEvents = [];
+    let cancelOnce = true;
+    let cancelPrevented = false;
+    cancelApp.on('before-quit', function(event) {
+        cancelEvents.push('before-quit');
+        if (cancelOnce) {
+            cancelOnce = false;
+            event.preventDefault();
+            cancelPrevented = event.defaultPrevented === true;
+        }
+    });
+    cancelApp.on('window-all-closed', function() { cancelEvents.push('window-all-closed'); });
+    cancelApp.on('quit', function() { cancelEvents.push('quit'); });
+    cancelApp.quit();
+    assert.strictEqual(cancelPrevented, true);
+    assert.deepStrictEqual(cancelEvents, ['before-quit']);
+
+    const retryApp = new App();
+    const retryEvents = [];
+    retryApp.on('before-quit', function() { retryEvents.push('before-quit'); });
+    retryApp.on('window-all-closed', function() { retryEvents.push('window-all-closed'); });
+    retryApp.on('quit', function() { retryEvents.push('quit'); });
+    retryApp.quit();
+    assert.deepStrictEqual(retryEvents, ['before-quit', 'window-all-closed', 'quit']);
 
     const ready = app.whenReady();
     app.emit('ready');
@@ -178,9 +221,11 @@ async function runElectronAppRuntimeSmoke() {
     class RuntimeFakeApp {
         constructor() {
             this._ready = false;
+            this._listeners = Object.create(null);
             this._paths = Object.create(null);
             this._locale = '';
             this._singleInstanceLocked = false;
+            this._quitting = false;
         }
 
         isReady() {
@@ -189,6 +234,24 @@ async function runElectronAppRuntimeSmoke() {
 
         _setIsReady() {
             this._ready = true;
+        }
+
+        on(name, callback) {
+            this._listeners[name] = callback;
+        }
+
+        emit(name) {
+            const event = {
+                defaultPrevented: false,
+                preventDefault() {
+                    this.defaultPrevented = true;
+                },
+                sender: this
+            };
+            this._ready = this._ready || name === 'ready';
+            if (this._listeners[name])
+                this._listeners[name](event);
+            return event.defaultPrevented;
         }
 
         setPath(name, path) {
@@ -204,8 +267,15 @@ async function runElectronAppRuntimeSmoke() {
         }
 
         quit() {
-            this.emit('before-quit');
+            if (this._quitting)
+                return;
+            this._quitting = true;
+            if (this.emit('before-quit')) {
+                this._quitting = false;
+                return;
+            }
             this.emit('window-all-closed');
+            this.emit('quit');
         }
 
         requestSingleInstanceLock() {
@@ -317,8 +387,24 @@ async function runElectronAppRuntimeSmoke() {
         const lifecycleEvents = [];
         app.on('before-quit', function() { lifecycleEvents.push('before-quit'); });
         app.on('window-all-closed', function() { lifecycleEvents.push('window-all-closed'); });
+        app.on('quit', function() { lifecycleEvents.push('quit'); });
         app.quit();
-        assert.deepStrictEqual(lifecycleEvents, ['before-quit', 'window-all-closed']);
+        assert.deepStrictEqual(lifecycleEvents, ['before-quit', 'window-all-closed', 'quit']);
+
+        const cancelApp = new RuntimeFakeApp();
+        const cancelEvents = [];
+        let cancelOnce = true;
+        cancelApp.on('before-quit', function(event) {
+            cancelEvents.push('before-quit');
+            if (cancelOnce) {
+                cancelOnce = false;
+                event.preventDefault();
+            }
+        });
+        cancelApp.on('window-all-closed', function() { cancelEvents.push('window-all-closed'); });
+        cancelApp.on('quit', function() { cancelEvents.push('quit'); });
+        cancelApp.quit();
+        assert.deepStrictEqual(cancelEvents, ['before-quit']);
 
         assert.strictEqual(app.requestSingleInstanceLock(), true);
         assert.strictEqual(app.requestSingleInstanceLock(), false);
@@ -505,6 +591,12 @@ async function runShellApiSmoke() {
         },
         openPath(path) {
             calls.push(['openPath', path]);
+            if (path === '/tmp/fail-open')
+                return false;
+            if (path === '/tmp/native-error')
+                return 'Native open failed';
+            if (path === '/tmp/throw-open')
+                throw new Error('Open exception');
             return true;
         },
         openExternal(url, options) {
@@ -542,7 +634,10 @@ async function runShellApiSmoke() {
     assert.strictEqual(typeof fakeShell.beep, 'function');
 
     fakeShell.openExternal('https://example.com/', { activate: false });
-    fakeShell.openPath('/tmp/open-path.txt');
+    assert.strictEqual(await fakeShell.openPath('/tmp/open-path.txt'), '');
+    assert.strictEqual(await fakeShell.openPath('/tmp/fail-open'), 'Failed to open path');
+    assert.strictEqual(await fakeShell.openPath('/tmp/native-error'), 'Native open failed');
+    assert.strictEqual(await fakeShell.openPath('/tmp/throw-open'), 'Open exception');
     fakeShell.showItemInFolder('/tmp/open-path.txt');
     fakeShell.beep();
     assert.strictEqual(fakeShell.moveItemToTrash('/tmp/legacy-trash.txt'), true);
@@ -552,6 +647,9 @@ async function runShellApiSmoke() {
     assert.deepStrictEqual(calls, [
         ['openExternal', 'https://example.com/', { activate: false }],
         ['openPath', '/tmp/open-path.txt'],
+        ['openPath', '/tmp/fail-open'],
+        ['openPath', '/tmp/native-error'],
+        ['openPath', '/tmp/throw-open'],
         ['showItemInFolder', '/tmp/open-path.txt'],
         ['beep'],
         ['moveItemToTrash', '/tmp/legacy-trash.txt'],

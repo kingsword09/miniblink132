@@ -14,9 +14,15 @@ if [[ ! -x "$BIN" ]]; then
 fi
 
 "$BIN" --electron-native-theme-smoke --electron-power-monitor-smoke --electron-global-shortcut-smoke --electron-power-save-blocker-smoke --electron-screen-smoke
+"$BIN" --electron-native-theme-appearance-smoke
+"$BIN" --electron-global-shortcut-dispatch-smoke
+"$BIN" --electron-power-monitor-event-smoke
+"$BIN" --electron-power-save-blocker-lifecycle-smoke
 "$BIN" --electron-app-smoke
+"$BIN" --electron-app-single-instance-smoke
 "$BIN" --electron-linked-binding-runtime-smoke
 "$BIN" --electron-v8-typed-array-smoke
+"$BIN" --electron-v8-shared-array-buffer-smoke
 "$BIN" --electron-node-bootstrap-smoke
 
 symbols="$(nm -gU "$BIN")"

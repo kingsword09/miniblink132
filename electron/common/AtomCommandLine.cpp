@@ -24,6 +24,7 @@ std::vector<std::u16string> AtomCommandLine::wargv_;
 // static
 void AtomCommandLine::init(int argc, const char* const* argv)
 {
+    argv_.clear();
     // Hack around with the argv pointer. Used for process.title = "blah"
     char** new_argv = uv_setup_args(argc, const_cast<char**>(argv));
     for (int i = 0; i < argc; ++i) {

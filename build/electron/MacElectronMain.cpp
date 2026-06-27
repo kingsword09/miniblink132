@@ -1,12 +1,16 @@
 #include "base/message_loop/message_pump_type.h"
 #include "base/task/single_thread_task_executor.h"
+#include "electron/common/AtomCommandLine.h"
 #include "electron/common/gin_helper/per_isolate_data.h"
+#include "linux/windows.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libuv/include/uv.h"
 #include "v8/include/libplatform/libplatform.h"
 #include "v8/include/v8.h"
 
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <memory>
@@ -21,6 +25,9 @@ extern "C" void nodeModuleInitRegister(void);
 extern "C" bool electronMacNodeBridgeHasLinkedModule(const char* name);
 extern "C" bool electronMacNodeBridgeGetLinkedModuleRegistration(const char* name, node::addon_context_register_func* registerFunc, void** priv);
 extern "C" bool electronMacNodeBridgeGetLinkedBinding(const char* name, v8::Local<v8::Context> context, v8::Local<v8::Value>* out);
+extern "C" bool electronMacNativeThemeSetAppearanceForTesting(bool dark);
+extern "C" void electronMacNativeThemeResetAppearanceForTesting();
+extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event);
 
 namespace {
 
@@ -96,6 +103,16 @@ bool runV8Script(v8::Local<v8::Context> context, const char* scriptSource)
     if (!ok && tryCatch.HasCaught())
         printV8Exception(isolate, tryCatch);
     return ok;
+}
+
+void drainNodeLoop(node::CommonEnvironmentSetup* setup, node::MultiIsolatePlatform* platform, v8::Isolate* isolate, int iterations)
+{
+    if (!setup || !platform || !isolate)
+        return;
+    for (int i = 0; i < iterations; ++i) {
+        uv_run(setup->event_loop(), UV_RUN_NOWAIT);
+        platform->DrainTasks(isolate);
+    }
 }
 
 void linkedBindingApi(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -396,6 +413,499 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
     return true;
 }
 
+bool runNativeThemeAppearanceSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    if (!electronMacNativeThemeSetAppearanceForTesting(false)) {
+        fprintf(stderr, "failed to force light appearance\n");
+        return false;
+    }
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        electronMacNativeThemeResetAppearanceForTesting();
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        electronMacNativeThemeResetAppearanceForTesting();
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        electronMacNativeThemeResetAppearanceForTesting();
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_native_theme");
+        if (ok) {
+            const char scriptSource[] =
+                "delete process.env.MINIBLINK_NATIVE_THEME;"
+                "delete process.env.MINIBLINK_SYSTEM_DARK_MODE;"
+                "delete process.env.MINIBLINK_HIGH_CONTRAST;"
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const nativeTheme = localRequire('../electron/lib/browser/api/native-theme');"
+                "if (nativeTheme.themeSource !== 'system') throw new Error('bad themeSource');"
+                "if (nativeTheme.shouldUseDarkColors !== false) throw new Error('expected light start');"
+                "globalThis.__nativeTheme = nativeTheme;"
+                "globalThis.__nativeThemeEvents = [];"
+                "nativeTheme.on('updated', function() {"
+                "  globalThis.__nativeThemeEvents.push(nativeTheme.shouldUseDarkColors ? 'dark' : 'light');"
+                "});"
+                "if (!nativeTheme._nativeWatcher) throw new Error('native watcher not active');"
+                "if (nativeTheme._watchTimer) throw new Error('polling watcher should not be active');"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            ok = electronMacNativeThemeSetAppearanceForTesting(true);
+            drainNodeLoop(setup.get(), platform, isolate, 8);
+        }
+        if (ok)
+            ok = runV8Script(context, "globalThis.__nativeThemeEvents.join(',') === 'dark';");
+
+        if (ok) {
+            ok = electronMacNativeThemeSetAppearanceForTesting(false);
+            drainNodeLoop(setup.get(), platform, isolate, 8);
+        }
+        if (ok)
+            ok = runV8Script(context, "globalThis.__nativeThemeEvents.join(',') === 'dark,light';");
+
+        runV8Script(context,
+            "if (globalThis.__nativeTheme) {"
+            "  globalThis.__nativeTheme.removeAllListeners('updated');"
+            "  if (globalThis.__nativeTheme._nativeWatcher) throw new Error('native watcher leak');"
+            "}"
+            "true;");
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    electronMacNativeThemeResetAppearanceForTesting();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-native-theme-appearance-smoke\n");
+    return true;
+}
+
+void dispatchPendingMessages(int iterations)
+{
+    for (int i = 0; i < iterations; ++i) {
+        MSG msg = {};
+        if (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE))
+            DispatchMessageW(&msg);
+        else
+            usleep(10000);
+    }
+}
+
+bool runGlobalShortcutDispatchSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_global_shortcut");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "globalThis.__globalShortcut = localRequire('../electron/lib/browser/api/global-shortcut');"
+                "globalThis.__globalShortcutNative = process._linkedBinding('electron_browser_global_shortcut');"
+                "globalThis.__globalShortcutCount = 0;"
+                "if (!globalThis.__globalShortcut.register('Control+Shift+G', function() { globalThis.__globalShortcutCount++; }))"
+                "  throw new Error('register failed');"
+                "if (!globalThis.__globalShortcut.isRegistered('Ctrl+Shift+G'))"
+                "  throw new Error('isRegistered failed');"
+                "if (!globalThis.__globalShortcutNative._dispatchForTesting('Control+Shift+G'))"
+                "  throw new Error('dispatch failed');"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            dispatchPendingMessages(8);
+            drainNodeLoop(setup.get(), platform, isolate, 8);
+            ok = runV8Script(context,
+                "if (globalThis.__globalShortcutCount !== 1)"
+                "  throw new Error('hotkey callback count ' + globalThis.__globalShortcutCount);"
+                "globalThis.__globalShortcut.unregister('Control+Shift+G');"
+                "!globalThis.__globalShortcut.isRegistered('Control+Shift+G')"
+                "  && !globalThis.__globalShortcutNative._dispatchForTesting('Control+Shift+G');");
+        }
+
+        runV8Script(context, "if (globalThis.__globalShortcut) globalThis.__globalShortcut.unregisterAll(); true;");
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-global-shortcut-dispatch-smoke\n");
+    return true;
+}
+
+bool runPowerMonitorEventSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_powermonitor");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const powerMonitor = localRequire('../electron/lib/browser/api/power-monitor');"
+                "if (typeof powerMonitor.on !== 'function') throw new Error('powerMonitor.on');"
+                "if (typeof powerMonitor.getSystemIdleState !== 'function') throw new Error('idle state');"
+                "if (typeof powerMonitor.isOnBatteryPower !== 'function') throw new Error('battery');"
+                "globalThis.__powerMonitor = powerMonitor;"
+                "globalThis.__powerMonitorEvents = [];"
+                "['suspend','resume','on-battery','on-ac'].forEach(function(name) {"
+                "  powerMonitor.on(name, function() { globalThis.__powerMonitorEvents.push(name); });"
+                "});"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            MacDispatchPowerMonitorMessageForTesting(PBT_APMSUSPEND);
+            dispatchPendingMessages(4);
+            MacDispatchPowerMonitorMessageForTesting(PBT_APMRESUMESUSPEND);
+            dispatchPendingMessages(4);
+            setenv("MINIBLINK_POWER_AC", "0", 1);
+            MacDispatchPowerMonitorMessageForTesting(PBT_APMPOWERSTATUSCHANGE);
+            dispatchPendingMessages(4);
+            setenv("MINIBLINK_POWER_AC", "1", 1);
+            MacDispatchPowerMonitorMessageForTesting(PBT_APMPOWERSTATUSCHANGE);
+            dispatchPendingMessages(4);
+            unsetenv("MINIBLINK_POWER_AC");
+            drainNodeLoop(setup.get(), platform, isolate, 8);
+        }
+
+        if (ok) {
+            const char verifyScript[] =
+                "if (globalThis.__powerMonitorEvents.join(',') !== 'suspend,resume,on-battery,on-ac')"
+                "  throw new Error('bad powerMonitor order ' + globalThis.__powerMonitorEvents.join(','));"
+                "globalThis.__powerMonitor.removeAllListeners();"
+                "true;";
+            ok = runV8Script(context, verifyScript);
+        }
+
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-power-monitor-event-smoke\n");
+    return true;
+}
+
+bool iopmAssertionIsOn(CFStringRef assertionType)
+{
+    CFDictionaryRef assertions = nullptr;
+    if (IOPMCopyAssertionsStatus(&assertions) != kIOReturnSuccess || !assertions)
+        return false;
+
+    int level = 0;
+    CFTypeRef value = CFDictionaryGetValue(assertions, assertionType);
+    if (value && CFGetTypeID(value) == CFNumberGetTypeID())
+        CFNumberGetValue(static_cast<CFNumberRef>(value), kCFNumberIntType, &level);
+    CFRelease(assertions);
+    return level != 0;
+}
+
+bool waitForPowerSaveAssertions(int systemExpected, int displayExpected)
+{
+    for (int i = 0; i < 100; ++i) {
+        bool systemOn = iopmAssertionIsOn(CFSTR("PreventUserIdleSystemSleep"));
+        bool displayOn = iopmAssertionIsOn(CFSTR("PreventUserIdleDisplaySleep"));
+        if ((systemExpected < 0 || systemOn == !!systemExpected)
+            && (displayExpected < 0 || displayOn == !!displayExpected))
+            return true;
+        usleep(10000);
+    }
+    fprintf(stderr, "powerSaveBlocker assertion state mismatch system=%d display=%d expectedSystem=%d expectedDisplay=%d\n",
+        iopmAssertionIsOn(CFSTR("PreventUserIdleSystemSleep")) ? 1 : 0,
+        iopmAssertionIsOn(CFSTR("PreventUserIdleDisplaySleep")) ? 1 : 0,
+        systemExpected,
+        displayExpected);
+    return false;
+}
+
+bool runPowerSaveBlockerLifecycleSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    SetThreadExecutionState(ES_CONTINUOUS);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_power_save_blocker");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "globalThis.__powerSaveBlocker = localRequire('../electron/lib/browser/api/power-save-blocker');"
+                "globalThis.__powerSaveBlockerIds = [];"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            ok = runV8Script(context,
+                "globalThis.__powerSaveBlockerIds.push(globalThis.__powerSaveBlocker.start('prevent-app-suspension'));"
+                "globalThis.__powerSaveBlockerIds.push(globalThis.__powerSaveBlocker.start('prevent-app-suspension'));"
+                "globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[0])"
+                "  && globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[1]);")
+                && waitForPowerSaveAssertions(1, -1);
+        }
+
+        if (ok) {
+            ok = runV8Script(context,
+                "globalThis.__powerSaveBlockerIds.push(globalThis.__powerSaveBlocker.start('prevent-display-sleep'));"
+                "globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[2]);")
+                && waitForPowerSaveAssertions(1, 1);
+        }
+
+        if (ok) {
+            ok = runV8Script(context,
+                "globalThis.__powerSaveBlocker.stop(globalThis.__powerSaveBlockerIds[2]);"
+                "!globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[2])"
+                "  && globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[0]);")
+                && waitForPowerSaveAssertions(1, -1);
+        }
+
+        if (ok) {
+            ok = runV8Script(context,
+                "globalThis.__powerSaveBlocker.stop(globalThis.__powerSaveBlockerIds[0]);"
+                "globalThis.__powerSaveBlocker.stop(globalThis.__powerSaveBlockerIds[1]);"
+                "!globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[0])"
+                "  && !globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[1]);");
+        }
+
+        runV8Script(context,
+            "if (globalThis.__powerSaveBlocker) {"
+            "  for (const id of globalThis.__powerSaveBlockerIds || [])"
+            "    globalThis.__powerSaveBlocker.stop(id);"
+            "}"
+            "true;");
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    SetThreadExecutionState(ES_CONTINUOUS);
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-power-save-blocker-lifecycle-smoke\n");
+    return true;
+}
+
 bool runAppLifecycleSmoke(int argc, char** argv)
 {
     base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
@@ -460,6 +970,42 @@ bool runAppLifecycleSmoke(int argc, char** argv)
                 "app.on('quit', function(event, code) { if (!event || event.sender !== app) throw new Error('quit event'); events.push('quit:' + code); });"
                 "app.quit();"
                 "if (events.join(',') !== 'before-quit,window-all-closed,quit:0') throw new Error('bad quit order ' + events.join(','));"
+                "const cancelApp = new App();"
+                "const cancelEvents = [];"
+                "let cancelNextQuit = true;"
+                "let cancelPrevented = false;"
+                "cancelApp.on('before-quit', function(event) {"
+                "  if (!event || event.sender !== cancelApp) throw new Error('cancel before event');"
+                "  cancelEvents.push('before-quit');"
+                "  if (cancelNextQuit) {"
+                "    cancelNextQuit = false;"
+                "    event.preventDefault();"
+                "    cancelPrevented = event.defaultPrevented === true;"
+                "  }"
+                "});"
+                "cancelApp.on('window-all-closed', function() { cancelEvents.push('window-all-closed'); });"
+                "cancelApp.on('quit', function(event, code) {"
+                "  if (!event || event.sender !== cancelApp) throw new Error('cancel quit event');"
+                "  cancelEvents.push('quit:' + code);"
+                "});"
+                "cancelApp.quit();"
+                "if (!cancelPrevented) throw new Error('before-quit preventDefault not observed');"
+                "if (cancelEvents.join(',') !== 'before-quit,window-all-closed,quit:0')"
+                "  throw new Error('bad cancel order ' + cancelEvents.join(','));"
+                "const retryApp = new App();"
+                "const retryEvents = [];"
+                "retryApp.on('before-quit', function(event) {"
+                "  if (!event || event.sender !== retryApp) throw new Error('retry before event');"
+                "  retryEvents.push('before-quit');"
+                "});"
+                "retryApp.on('window-all-closed', function() { retryEvents.push('window-all-closed'); });"
+                "retryApp.on('quit', function(event, code) {"
+                "  if (!event || event.sender !== retryApp) throw new Error('retry quit event');"
+                "  retryEvents.push('quit:' + code);"
+                "});"
+                "retryApp.quit();"
+                "if (retryEvents.join(',') !== 'before-quit,window-all-closed,quit:0')"
+                "  throw new Error('bad retry order ' + retryEvents.join(','));"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
@@ -513,12 +1059,222 @@ bool runAppExitChildSmoke(int argc, char** argv)
     return ok;
 }
 
+bool runAppSingleInstanceSmoke(int argc, char** argv)
+{
+    if (argc < 1 || !argv[0])
+        return false;
+
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(init->platform(), &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_app");
+        if (ok) {
+            const char scriptSource[] =
+                "const { EventEmitter } = require('events');"
+                "const { App } = process._linkedBinding('electron_browser_app');"
+                "Object.setPrototypeOf(App.prototype, EventEmitter.prototype);"
+                "globalThis.__singleInstanceEvents = [];"
+                "globalThis.__singleInstanceLegacy = [];"
+                "globalThis.__singleInstanceApp = new App();"
+                "const app = globalThis.__singleInstanceApp;"
+                "globalThis.__singleInstanceLockPath = app._getSingleInstanceLockPathForTesting();"
+                "globalThis.__singleInstanceSocketPath = app._getSingleInstanceSocketPathForTesting();"
+                "app.on('second-instance', function(argv, cwd) {"
+                "  globalThis.__singleInstanceEvents.push({ argv, cwd });"
+                "});"
+                "if (!app.requestSingleInstanceLock()) throw new Error('first lock failed: ' + app._getSingleInstanceFailureReasonForTesting());"
+                "if (!require('fs').existsSync(globalThis.__singleInstanceLockPath)) throw new Error('missing parent lock: ' + globalThis.__singleInstanceLockPath);"
+                "if (app.makeSingleInstanceImpl(function(argString) {"
+                "  const parsed = JSON.parse(argString);"
+                "  globalThis.__singleInstanceLegacy.push({ argv: parsed.slice(0, -1), cwd: parsed[parsed.length - 1] });"
+                "})) throw new Error('first makeSingleInstanceImpl returned second');"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            drainNodeLoop(setup.get(), init->platform(), isolate, 4);
+            pid_t pid = fork();
+            if (pid == 0) {
+                execl(argv[0], argv[0], "--electron-app-single-instance-child", "--second-instance-arg", nullptr);
+                _exit(127);
+            }
+            if (pid < 0) {
+                perror("fork");
+                ok = false;
+            } else {
+                int status = 0;
+                if (waitpid(pid, &status, 0) < 0) {
+                    perror("waitpid");
+                    ok = false;
+                } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+                    fprintf(stderr, "single instance child status=%d\n", status);
+                    ok = false;
+                }
+            }
+        }
+
+        if (ok) {
+            for (int i = 0; i < 200; ++i) {
+                uv_run(setup->event_loop(), UV_RUN_NOWAIT);
+                init->platform()->DrainTasks(isolate);
+
+                const char pollScript[] =
+                    "globalThis.__singleInstanceEvents.length === 1 &&"
+                    "globalThis.__singleInstanceLegacy.length === 1;";
+                if (runV8Script(context, pollScript))
+                    break;
+                usleep(10000);
+            }
+
+            const char verifyScript[] =
+                "const event = globalThis.__singleInstanceEvents[0];"
+                "const legacy = globalThis.__singleInstanceLegacy[0];"
+                "if (!event || !legacy) throw new Error('missing single instance callback');"
+                "if (!event.argv.includes('--second-instance-arg')) throw new Error('missing event argv ' + JSON.stringify(event.argv));"
+                "if (!legacy.argv.includes('--second-instance-arg')) throw new Error('missing legacy argv ' + JSON.stringify(legacy.argv));"
+                "if (typeof event.cwd !== 'string' || event.cwd.length === 0) throw new Error('bad event cwd');"
+                "if (event.cwd !== legacy.cwd) throw new Error('cwd mismatch');"
+                "globalThis.__singleInstanceApp.releaseSingleInstance();"
+                "true;";
+            ok = runV8Script(context, verifyScript);
+        }
+
+        runV8Script(context, "if (globalThis.__singleInstanceApp) globalThis.__singleInstanceApp.releaseSingleInstance(); true;");
+        drainNodeLoop(setup.get(), init->platform(), isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-app-single-instance-smoke\n");
+    return true;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
 {
     g_isElectronMode = true;
+    atom::AtomCommandLine::init(argc, const_cast<const char* const*>(argv));
     nodeModuleInitRegister();
+
+    if (hasArg(argc, argv, "--electron-app-single-instance-child")) {
+        base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+        v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+        std::vector<std::string> args;
+        args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+        std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+            node::ProcessInitializationFlags::kNoStdioInitialization,
+            node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+            node::ProcessInitializationFlags::kNoInitOpenSSL,
+            node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+            node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+            node::ProcessInitializationFlags::kNoUseLargePages,
+            node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+        });
+        if (!init || init->early_return())
+            return 91;
+        std::vector<std::string> errors;
+        std::vector<std::string> execArgs;
+        std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(init->platform(), &errors, init->args(), execArgs);
+        if (!setup) {
+            node::TearDownOncePerProcess();
+            return 92;
+        }
+        bool ok = false;
+        {
+            v8::Isolate* isolate = setup->isolate();
+            v8::Locker locker(isolate);
+            v8::Isolate::Scope isolateScope(isolate);
+            v8::HandleScope handleScope(isolate);
+            v8::Local<v8::Context> context = setup->context();
+            v8::Context::Scope contextScope(context);
+            gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+            ok = addNodeLinkedBinding(setup->env(), "electron_browser_app");
+            if (ok) {
+                const char scriptSource[] =
+                    "const { EventEmitter } = require('events');"
+                    "const { App } = process._linkedBinding('electron_browser_app');"
+                    "Object.setPrototypeOf(App.prototype, EventEmitter.prototype);"
+                    "globalThis.__singleInstanceChildApp = new App();"
+                    "const app = globalThis.__singleInstanceChildApp;"
+                    "globalThis.__singleInstanceChildDiagnostic = 'before makeSingleInstanceImpl lock=' + app._getSingleInstanceLockPathForTesting() +"
+                    "  ' socket=' + app._getSingleInstanceSocketPathForTesting();"
+                    "const isSecond = app.makeSingleInstanceImpl() === true;"
+                    "globalThis.__singleInstanceChildDiagnostic = 'isSecond=' + isSecond +"
+                    "  ' reason=' + app._getSingleInstanceFailureReasonForTesting() +"
+                    "  ' lock=' + app._getSingleInstanceLockPathForTesting() +"
+                    "  ' socket=' + app._getSingleInstanceSocketPathForTesting();"
+                    "if (!isSecond) {"
+                    "  const reason = app._getSingleInstanceFailureReasonForTesting();"
+                    "  const lockPath = app._getSingleInstanceLockPathForTesting();"
+                    "  const socketPath = app._getSingleInstanceSocketPathForTesting();"
+                    "  app.releaseSingleInstance();"
+                    "  throw new Error('single instance child not second: ' + reason + ' lock=' + lockPath + ' socket=' + socketPath);"
+                    "}"
+                    "true;";
+                v8::TryCatch tryCatch(isolate);
+                v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+                ok = !result.IsEmpty();
+                if (!ok && tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                if (!ok && !tryCatch.HasCaught())
+                    runV8Script(context, "throw new Error('single instance child failed without exception: ' + (globalThis.__singleInstanceChildDiagnostic || '<none>'));");
+            }
+            runV8Script(context, "if (globalThis.__singleInstanceChildApp) globalThis.__singleInstanceChildApp.releaseSingleInstance(); true;");
+            drainNodeLoop(setup.get(), init->platform(), isolate, 8);
+        }
+        setup.reset();
+        node::TearDownOncePerProcess();
+        return ok ? 0 : 93;
+    }
 
     if (hasArg(argc, argv, "--electron-app-exit-child")) {
         base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
@@ -575,12 +1331,22 @@ int main(int argc, char** argv)
         printf("PASS electron-native-theme-linked-binding\n");
     }
 
+    if (hasArg(argc, argv, "--electron-native-theme-appearance-smoke")) {
+        if (!runNativeThemeAppearanceSmoke(argc, argv))
+            return 21;
+    }
+
     if (hasArg(argc, argv, "--electron-power-monitor-smoke")) {
         if (!electronMacNodeBridgeHasLinkedModule("electron_browser_powermonitor")) {
             fprintf(stderr, "missing electron_browser_powermonitor linked binding\n");
             return 4;
         }
         printf("PASS electron-power-monitor-linked-binding\n");
+    }
+
+    if (hasArg(argc, argv, "--electron-power-monitor-event-smoke")) {
+        if (!runPowerMonitorEventSmoke(argc, argv))
+            return 22;
     }
 
     if (hasArg(argc, argv, "--electron-global-shortcut-smoke")) {
@@ -591,12 +1357,22 @@ int main(int argc, char** argv)
         printf("PASS electron-global-shortcut-linked-binding\n");
     }
 
+    if (hasArg(argc, argv, "--electron-global-shortcut-dispatch-smoke")) {
+        if (!runGlobalShortcutDispatchSmoke(argc, argv))
+            return 24;
+    }
+
     if (hasArg(argc, argv, "--electron-power-save-blocker-smoke")) {
         if (!electronMacNodeBridgeHasLinkedModule("electron_browser_power_save_blocker")) {
             fprintf(stderr, "missing electron_browser_power_save_blocker linked binding\n");
             return 5;
         }
         printf("PASS electron-power-save-blocker-linked-binding\n");
+    }
+
+    if (hasArg(argc, argv, "--electron-power-save-blocker-lifecycle-smoke")) {
+        if (!runPowerSaveBlockerLifecycleSmoke(argc, argv))
+            return 23;
     }
 
     if (hasArg(argc, argv, "--electron-screen-smoke")) {
@@ -618,6 +1394,15 @@ int main(int argc, char** argv)
         if (!runAppExitChildSmoke(argc, argv))
             return 13;
         printf("PASS electron-app-exit-smoke\n");
+    }
+
+    if (hasArg(argc, argv, "--electron-app-single-instance-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_app")) {
+            fprintf(stderr, "missing electron_browser_app linked binding\n");
+            return 11;
+        }
+        if (!runAppSingleInstanceSmoke(argc, argv))
+            return 14;
     }
 
     if (hasArg(argc, argv, "--electron-linked-binding-runtime-smoke")) {
