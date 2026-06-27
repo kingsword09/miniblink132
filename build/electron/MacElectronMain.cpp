@@ -1,4 +1,5 @@
 #include "base/message_loop/message_pump_type.h"
+#include "base/command_line.h"
 #include "base/task/single_thread_task_executor.h"
 #include "electron/common/AtomCommandLine.h"
 #include "electron/common/gin_helper/per_isolate_data.h"
@@ -186,6 +187,11 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> dialog;
         v8::Local<v8::Object> tray;
         v8::Local<v8::Object> protocol;
+        v8::Local<v8::Object> commandLine;
+        v8::Local<v8::Object> safeStorage;
+        v8::Local<v8::Object> features;
+        v8::Local<v8::Object> v8Util;
+        v8::Local<v8::Object> intlCollator;
 
         ok = requireBinding(context, "electron_browser_native_theme", &nativeTheme)
             && requireFunctionProperty(context, nativeTheme, "electron_browser_native_theme", "shouldUseDarkColors")
@@ -217,7 +223,19 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireBinding(context, "electron_browser_tray", &tray)
             && requireFunctionProperty(context, tray, "electron_browser_tray", "Tray")
             && requireBinding(context, "electron_browser_protocol", &protocol)
-            && requireFunctionProperty(context, protocol, "electron_browser_protocol", "Protocol");
+            && requireFunctionProperty(context, protocol, "electron_browser_protocol", "Protocol")
+            && requireBinding(context, "electron_browser_commandline", &commandLine)
+            && requireFunctionProperty(context, commandLine, "electron_browser_commandline", "ApiCommandLine")
+            && requireBinding(context, "electron_browser_safe_storage", &safeStorage)
+            && requireFunctionProperty(context, safeStorage, "electron_browser_safe_storage", "encryptString")
+            && requireFunctionProperty(context, safeStorage, "electron_browser_safe_storage", "decryptString")
+            && requireBinding(context, "electron_common_features", &features)
+            && requireFunctionProperty(context, features, "electron_common_features", "isViewApiEnabled")
+            && requireBinding(context, "electron_common_v8_util", &v8Util)
+            && requireFunctionProperty(context, v8Util, "electron_common_v8_util", "getHiddenValue")
+            && requireFunctionProperty(context, v8Util, "electron_common_v8_util", "takeHeapSnapshot")
+            && requireBinding(context, "electron_common_intl_collator", &intlCollator)
+            && requireFunctionProperty(context, intlCollator, "electron_common_intl_collator", "IntlCollator");
 
         if (ok) {
             const char scriptSource[] =
@@ -233,6 +251,11 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const dialog = process._linkedBinding('electron_browser_dialog');"
                 "const tray = process._linkedBinding('electron_browser_tray');"
                 "const protocol = process._linkedBinding('electron_browser_protocol');"
+                "const commandLine = process._linkedBinding('electron_browser_commandline');"
+                "const safeStorage = process._linkedBinding('electron_browser_safe_storage');"
+                "const features = process._linkedBinding('electron_common_features');"
+                "const v8Util = process._linkedBinding('electron_common_v8_util');"
+                "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof app.App !== 'function') throw new Error('app');"
                 "if (typeof psb.setExecutionState !== 'function') throw new Error('powerSaveBlocker');"
@@ -245,6 +268,12 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof dialog.Dialog !== 'function') throw new Error('dialog');"
                 "if (typeof tray.Tray !== 'function') throw new Error('tray');"
                 "if (typeof protocol.Protocol !== 'function') throw new Error('protocol');"
+                "if (typeof commandLine.ApiCommandLine !== 'function') throw new Error('commandLine');"
+                "if (typeof safeStorage.encryptString !== 'function') throw new Error('safeStorage');"
+                "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"
+                "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
+                "if (typeof v8Util.takeHeapSnapshot !== 'function') throw new Error('v8Util takeHeapSnapshot');"
+                "if (typeof intlCollator.IntlCollator !== 'function') throw new Error('intlCollator');"
                 "true;";
             ok = runV8Script(context, scriptSource);
         }
@@ -351,6 +380,129 @@ bool addNodeLinkedBinding(node::Environment* env, const char* name)
     return true;
 }
 
+bool addElectronBaseApiBindings(node::Environment* env)
+{
+    return addNodeLinkedBinding(env, "electron_browser_commandline")
+        && addNodeLinkedBinding(env, "electron_browser_safe_storage")
+        && addNodeLinkedBinding(env, "electron_common_features")
+        && addNodeLinkedBinding(env, "electron_common_v8_util")
+        && addNodeLinkedBinding(env, "electron_common_original_fs")
+        && addNodeLinkedBinding(env, "electron_common_intl_collator");
+}
+
+bool runElectronBaseApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+    setenv("MINIBLINK_SAFE_STORAGE_TEST_KEY", "1", 1);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addElectronBaseApiBindings(setup->env());
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const commandLine = localRequire('../electron/lib/browser/api/command-line');"
+                "const safeStorage = localRequire('../electron/lib/browser/api/safe-storage');"
+                "const features = localRequire('../electron/lib/common/api/features');"
+                "const v8UtilBinding = process._linkedBinding('electron_common_v8_util');"
+                "const intl = localRequire('../electron/lib/common/api/intl-collator');"
+                "commandLine.appendSwitch('mb-commandline-smoke', 'value');"
+                "if (!commandLine.hasSwitch('mb-commandline-smoke')) throw new Error('commandLine hasSwitch');"
+                "if (commandLine.getSwitchValue('mb-commandline-smoke') !== 'value') throw new Error('commandLine getSwitchValue');"
+                "commandLine.appendArgument('mb-commandline-arg');"
+                "if (!safeStorage.isEncryptionAvailable()) throw new Error('safeStorage unavailable');"
+                "const plaintext = 'miniblink-safe-storage-smoke';"
+                "const ciphertext = safeStorage.encryptString(plaintext);"
+                "if (!Buffer.isBuffer(ciphertext) || ciphertext.length <= plaintext.length) throw new Error('safeStorage ciphertext');"
+                "const prefix = ciphertext.subarray(0, 3).toString('utf8');"
+                "if (prefix !== 'v10' && prefix !== 'v11') throw new Error('safeStorage prefix ' + prefix);"
+                "if (ciphertext.includes(Buffer.from(plaintext))) throw new Error('safeStorage leaked plaintext');"
+                "if (safeStorage.decryptString(ciphertext) !== plaintext) throw new Error('safeStorage decrypt');"
+                "const target = {};"
+                "v8UtilBinding.setHiddenValue(target, 'smoke', 42);"
+                "if (v8UtilBinding.getHiddenValue(target, 'smoke') !== 42) throw new Error('v8Util getHiddenValue');"
+                "v8UtilBinding.deleteHiddenValue(target, 'smoke');"
+                "if (v8UtilBinding.getHiddenValue(target, 'smoke') !== undefined) throw new Error('v8Util deleteHiddenValue');"
+                "if (typeof v8UtilBinding.takeHeapSnapshot !== 'function') throw new Error('v8Util takeHeapSnapshot');"
+                "if (features.isDesktopCapturerEnabled !== false) throw new Error('features desktopCapturer');"
+                "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features isViewApiEnabled export');"
+                "if (features.isViewApiEnabled() !== false) throw new Error('features isViewApiEnabled value');"
+                "const collator = new intl.Collator(['en-US'], {});"
+                "if (collator.compare('a', 'b') >= 0) throw new Error('intl compare');"
+                "const originalFs = process._linkedBinding('electron_common_original_fs');"
+                "if (!originalFs || typeof originalFs.readFileSync !== 'function') throw new Error('original-fs');"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok)
+            uv_run(setup->event_loop(), UV_RUN_NOWAIT);
+        if (ok)
+            platform->DrainTasks(isolate);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+    unsetenv("MINIBLINK_SAFE_STORAGE_TEST_KEY");
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-base-api-smoke\n");
+    return true;
+}
+
 bool runNodeBootstrapSmoke(int argc, char** argv)
 {
     base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
@@ -425,7 +577,13 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
             && addNodeLinkedBinding(setup->env(), "electron_common_shell")
             && addNodeLinkedBinding(setup->env(), "electron_browser_dialog")
             && addNodeLinkedBinding(setup->env(), "electron_browser_tray")
-            && addNodeLinkedBinding(setup->env(), "electron_browser_protocol");
+            && addNodeLinkedBinding(setup->env(), "electron_browser_protocol")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_commandline")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_safe_storage")
+            && addNodeLinkedBinding(setup->env(), "electron_common_features")
+            && addNodeLinkedBinding(setup->env(), "electron_common_v8_util")
+            && addNodeLinkedBinding(setup->env(), "electron_common_original_fs")
+            && addNodeLinkedBinding(setup->env(), "electron_common_intl_collator");
 
         if (ok) {
             const char scriptSource[] =
@@ -442,6 +600,12 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "const dialog = process._linkedBinding('electron_browser_dialog');"
                 "const tray = process._linkedBinding('electron_browser_tray');"
                 "const protocol = process._linkedBinding('electron_browser_protocol');"
+                "const commandLine = process._linkedBinding('electron_browser_commandline');"
+                "const safeStorage = process._linkedBinding('electron_browser_safe_storage');"
+                "const features = process._linkedBinding('electron_common_features');"
+                "const v8Util = process._linkedBinding('electron_common_v8_util');"
+                "const originalFs = process._linkedBinding('electron_common_original_fs');"
+                "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
                 "if (typeof appBinding.App !== 'function') throw new Error('app');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof powerMonitor.ApiPowerMonitor !== 'function') throw new Error('powerMonitor');"
@@ -455,6 +619,12 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "if (typeof dialog.Dialog !== 'function') throw new Error('dialog');"
                 "if (typeof tray.Tray !== 'function') throw new Error('tray');"
                 "if (typeof protocol.Protocol !== 'function') throw new Error('protocol');"
+                "if (typeof commandLine.ApiCommandLine !== 'function') throw new Error('commandLine');"
+                "if (typeof safeStorage.encryptString !== 'function') throw new Error('safeStorage');"
+                "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"
+                "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
+                "if (!originalFs || typeof originalFs.readFileSync !== 'function') throw new Error('originalFs');"
+                "if (typeof intlCollator.IntlCollator !== 'function') throw new Error('intlCollator');"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
@@ -2303,6 +2473,8 @@ bool runAppSingleInstanceSmoke(int argc, char** argv)
 int main(int argc, char** argv)
 {
     g_isElectronMode = true;
+    if (!base::CommandLine::InitializedForCurrentProcess())
+        base::CommandLine::Init(argc, argv);
     atom::AtomCommandLine::init(argc, const_cast<const char* const*>(argv));
     nodeModuleInitRegister();
 
@@ -2626,6 +2798,35 @@ int main(int argc, char** argv)
     if (hasArg(argc, argv, "--electron-linked-binding-runtime-smoke")) {
         if (!runLinkedBindingRuntimeSmoke(argc, argv))
             return 7;
+    }
+
+    if (hasArg(argc, argv, "--electron-base-api-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_commandline")) {
+            fprintf(stderr, "missing electron_browser_commandline linked binding\n");
+            return 39;
+        }
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_safe_storage")) {
+            fprintf(stderr, "missing electron_browser_safe_storage linked binding\n");
+            return 40;
+        }
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_features")) {
+            fprintf(stderr, "missing electron_common_features linked binding\n");
+            return 41;
+        }
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_v8_util")) {
+            fprintf(stderr, "missing electron_common_v8_util linked binding\n");
+            return 42;
+        }
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_original_fs")) {
+            fprintf(stderr, "missing electron_common_original_fs linked binding\n");
+            return 43;
+        }
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_intl_collator")) {
+            fprintf(stderr, "missing electron_common_intl_collator linked binding\n");
+            return 44;
+        }
+        if (!runElectronBaseApiSmoke(argc, argv))
+            return 45;
     }
 
     if (hasArg(argc, argv, "--electron-v8-typed-array-smoke")) {

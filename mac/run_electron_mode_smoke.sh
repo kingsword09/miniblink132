@@ -23,6 +23,7 @@ fi
 "$BIN" --electron-dialog-smoke
 "$BIN" --electron-tray-smoke
 "$BIN" --electron-protocol-smoke
+"$BIN" --electron-base-api-smoke
 "$BIN" --electron-power-monitor-event-smoke
 "$BIN" --electron-power-save-blocker-lifecycle-smoke
 "$BIN" --electron-app-smoke
@@ -46,7 +47,13 @@ grep -q "__register_electron_common_shell" <<<"$symbols"
 grep -q "__register_electron_browser_dialog" <<<"$symbols"
 grep -q "__register_electron_browser_tray" <<<"$symbols"
 grep -q "__register_electron_browser_protocol" <<<"$symbols"
+grep -q "__register_electron_browser_commandline" <<<"$symbols"
+grep -q "__register_electron_browser_safe_storage" <<<"$symbols"
 grep -q "_nodeModuleInitRegister" <<<"$symbols"
 grep -q "_electronMacNodeBridgeGetLinkedBinding" <<<"$symbols"
+grep -q "__register_electron_common_features" <<<"$symbols"
+grep -q "__register_electron_common_v8_util" <<<"$symbols"
+grep -q "__register_electron_common_original_fs" <<<"$symbols"
+grep -q "__register_electron_common_intl_collator" <<<"$symbols"
 
 echo "ok electron_mode_smoke"

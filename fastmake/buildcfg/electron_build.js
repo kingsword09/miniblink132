@@ -133,7 +133,6 @@ var json = [{
 			//"${srcPath}/electron/common/InitGdiPlus.cpp",
 			//"${srcPath}/electron/common/api/ApiClipboard.cpp",
 			//"${srcPath}/content/ui/WCDataObject.cpp",
-			//"${srcPath}/electron/NapiStub.cpp",
 			"${srcPath}/electron/browser/api/ApiBrowserView.cpp",
 			"${srcPath}/electron/browser/api/ApiBrowserWindow.cpp",
 			"${srcPath}/electron/common/ThreadCallWrap.cpp",
@@ -252,6 +251,9 @@ if (constVal.isMac) {
 	const macClipboardSrc = "${srcPath}/electron/common/api/ApiClipboard.cpp";
 	const macShellSrc = "${srcPath}/electron/common/api/ApiShell.cpp";
 	const macWindowListSrc = "${srcPath}/electron/browser/api/WindowList.cpp";
+	const macCommandLineSrc = "${srcPath}/electron/browser/api/ApiCommandLine.cpp";
+	const macSafeStorageSrc = "${srcPath}/electron/browser/api/ApiSafestorage.cpp";
+	const macFeaturesSrc = "${srcPath}/electron/common/api/ApiFeatures.cpp";
 	const macPowerMonitorIdleSrc = [
 		"${srcPath}/ui/base/idle/idle.cc",
 		"${srcPath}/ui/base/idle/idle_internal.cc",
@@ -273,11 +275,14 @@ if (constVal.isMac) {
 		macShellSrc,
 		macPowerMonitorSrc,
 		macPowerSaveBlockerSrc,
+		macCommandLineSrc,
+		macSafeStorageSrc,
 		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
 		macWindowListSrc,
 		"${srcPath}/electron/common/AtomCommandLine.cpp",
 		"${srcPath}/electron/common/IdLiveDetect.cpp",
 		"${srcPath}/electron/common/OptionsSwitches.cpp",
+		macFeaturesSrc,
 		"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
 		"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
 		"${srcPath}/electron/common/api/ApiScreen.cpp",
@@ -308,6 +313,9 @@ if (constVal.isMac) {
 	json[0].compile.src.push(macDialogSrc);
 	json[0].compile.src.push(macTraySrc);
 	json[0].compile.src.push(macSystemTraySrc);
+	json[0].compile.src.push(macCommandLineSrc);
+	json[0].compile.src.push(macSafeStorageSrc);
+	json[0].compile.src.push(macFeaturesSrc);
 	json[0].compile.src.push(macNativeImageSrc);
 	json[0].compile.src.push(macClipboardSrc);
 	json[0].compile.src.push(macShellSrc);
@@ -324,6 +332,9 @@ if (constVal.isMac) {
 	json[0].compile.prebuildSrc.push(macDialogSrc);
 	json[0].compile.prebuildSrc.push(macTraySrc);
 	json[0].compile.prebuildSrc.push(macSystemTraySrc);
+	json[0].compile.prebuildSrc.push(macCommandLineSrc);
+	json[0].compile.prebuildSrc.push(macSafeStorageSrc);
+	json[0].compile.prebuildSrc.push(macFeaturesSrc);
 	json[0].compile.prebuildSrc.push(macNativeImageSrc);
 	json[0].compile.prebuildSrc.push(macClipboardSrc);
 	json[0].compile.prebuildSrc.push(macShellSrc);

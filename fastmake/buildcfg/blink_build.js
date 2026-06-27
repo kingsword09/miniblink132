@@ -5443,11 +5443,17 @@ if (!constVal.isBuildElectronMode) {
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_dialog");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_tray");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_protocol");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_commandline");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_safe_storage");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_power_save_blocker");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_nativeImage");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_clipboard");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_screen");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_shell");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_features");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_v8_util");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_original_fs");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_intl_collator");
     } else if ("aarch64-linux-guneabi" == constVal.target) // ARM64
         json[0].compile.beginLibs.push("${sysroot}/usr/lib/gcc/aarch64-linux-gnu/10/crtbegin.o");
     else
