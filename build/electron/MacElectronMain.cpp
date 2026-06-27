@@ -28,6 +28,8 @@ extern "C" bool electronMacNodeBridgeGetLinkedBinding(const char* name, v8::Loca
 extern "C" bool electronMacNativeThemeSetAppearanceForTesting(bool dark);
 extern "C" void electronMacNativeThemeResetAppearanceForTesting();
 extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event);
+extern "C" void MacGetPowerSaveBlockerAssertionStateForTesting(BOOL* systemOn, BOOL* displayOn);
+extern "C" bool electronWindowListCloseAllWindowsSmokeForTesting();
 
 namespace {
 
@@ -51,6 +53,15 @@ void printV8Exception(v8::Isolate* isolate, const v8::TryCatch& tryCatch)
     v8::HandleScope handleScope(isolate);
     v8::String::Utf8Value exception(isolate, tryCatch.Exception());
     fprintf(stderr, "v8 exception: %s\n", *exception ? *exception : "<unknown>");
+    v8::Local<v8::Message> message = tryCatch.Message();
+    if (!message.IsEmpty()) {
+        v8::Local<v8::Value> stackTrace;
+        if (tryCatch.StackTrace(isolate->GetCurrentContext()).ToLocal(&stackTrace) && stackTrace->IsString()) {
+            v8::String::Utf8Value stack(isolate, stackTrace);
+            if (*stack && **stack)
+                fprintf(stderr, "v8 stack: %s\n", *stack);
+        }
+    }
 }
 
 bool getObjectProperty(v8::Local<v8::Context> context, v8::Local<v8::Object> object, const char* name, v8::Local<v8::Value>* out)
@@ -168,6 +179,13 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> globalShortcut;
         v8::Local<v8::Object> powerSaveBlocker;
         v8::Local<v8::Object> screen;
+        v8::Local<v8::Object> menu;
+        v8::Local<v8::Object> nativeImage;
+        v8::Local<v8::Object> clipboard;
+        v8::Local<v8::Object> shell;
+        v8::Local<v8::Object> dialog;
+        v8::Local<v8::Object> tray;
+        v8::Local<v8::Object> protocol;
 
         ok = requireBinding(context, "electron_browser_native_theme", &nativeTheme)
             && requireFunctionProperty(context, nativeTheme, "electron_browser_native_theme", "shouldUseDarkColors")
@@ -184,7 +202,22 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireBinding(context, "electron_browser_power_save_blocker", &powerSaveBlocker)
             && requireFunctionProperty(context, powerSaveBlocker, "electron_browser_power_save_blocker", "setExecutionState")
             && requireBinding(context, "electron_common_screen", &screen)
-            && requireFunctionProperty(context, screen, "electron_common_screen", "Screen");
+            && requireFunctionProperty(context, screen, "electron_common_screen", "Screen")
+            && requireBinding(context, "electron_browser_menu", &menu)
+            && requireFunctionProperty(context, menu, "electron_browser_menu", "Menu")
+            && requireFunctionProperty(context, menu, "electron_browser_menu", "_clearApplicationMenu")
+            && requireFunctionProperty(context, menu, "electron_browser_menu", "_sendActionToFirstResponder")
+            && requireBinding(context, "electron_common_nativeImage", &nativeImage)
+            && requireFunctionProperty(context, nativeImage, "electron_common_nativeImage", "NativeImage")
+            && requireBinding(context, "electron_common_clipboard", &clipboard)
+            && requireFunctionProperty(context, clipboard, "electron_common_clipboard", "Clipboard")
+            && requireBinding(context, "electron_common_shell", &shell)
+            && requireBinding(context, "electron_browser_dialog", &dialog)
+            && requireFunctionProperty(context, dialog, "electron_browser_dialog", "Dialog")
+            && requireBinding(context, "electron_browser_tray", &tray)
+            && requireFunctionProperty(context, tray, "electron_browser_tray", "Tray")
+            && requireBinding(context, "electron_browser_protocol", &protocol)
+            && requireFunctionProperty(context, protocol, "electron_browser_protocol", "Protocol");
 
         if (ok) {
             const char scriptSource[] =
@@ -193,11 +226,25 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const psb = process._linkedBinding('electron_browser_power_save_blocker');"
                 "const gs = process._linkedBinding('electron_browser_global_shortcut');"
                 "const screen = process._linkedBinding('electron_common_screen');"
+                "const menu = process._linkedBinding('electron_browser_menu');"
+                "const nativeImage = process._linkedBinding('electron_common_nativeImage');"
+                "const clipboard = process._linkedBinding('electron_common_clipboard');"
+                "const shellBinding = process._linkedBinding('electron_common_shell');"
+                "const dialog = process._linkedBinding('electron_browser_dialog');"
+                "const tray = process._linkedBinding('electron_browser_tray');"
+                "const protocol = process._linkedBinding('electron_browser_protocol');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof app.App !== 'function') throw new Error('app');"
                 "if (typeof psb.setExecutionState !== 'function') throw new Error('powerSaveBlocker');"
                 "if (typeof gs.register !== 'function') throw new Error('globalShortcut');"
                 "if (typeof screen.Screen !== 'function') throw new Error('screen');"
+                "if (typeof menu.Menu !== 'function') throw new Error('menu');"
+                "if (typeof nativeImage.NativeImage !== 'function') throw new Error('nativeImage');"
+                "if (typeof clipboard.Clipboard !== 'function') throw new Error('clipboard');"
+                "if (!shellBinding.Shell || typeof shellBinding.Shell.openPath !== 'function') throw new Error('shell');"
+                "if (typeof dialog.Dialog !== 'function') throw new Error('dialog');"
+                "if (typeof tray.Tray !== 'function') throw new Error('tray');"
+                "if (typeof protocol.Protocol !== 'function') throw new Error('protocol');"
                 "true;";
             ok = runV8Script(context, scriptSource);
         }
@@ -371,7 +418,14 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
             && addNodeLinkedBinding(setup->env(), "electron_browser_powermonitor")
             && addNodeLinkedBinding(setup->env(), "electron_browser_global_shortcut")
             && addNodeLinkedBinding(setup->env(), "electron_browser_power_save_blocker")
-            && addNodeLinkedBinding(setup->env(), "electron_common_screen");
+            && addNodeLinkedBinding(setup->env(), "electron_common_screen")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_menu")
+            && addNodeLinkedBinding(setup->env(), "electron_common_nativeImage")
+            && addNodeLinkedBinding(setup->env(), "electron_common_clipboard")
+            && addNodeLinkedBinding(setup->env(), "electron_common_shell")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_dialog")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_tray")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_protocol");
 
         if (ok) {
             const char scriptSource[] =
@@ -381,12 +435,26 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "const globalShortcut = process._linkedBinding('electron_browser_global_shortcut');"
                 "const powerSaveBlocker = process._linkedBinding('electron_browser_power_save_blocker');"
                 "const screen = process._linkedBinding('electron_common_screen');"
+                "const menu = process._linkedBinding('electron_browser_menu');"
+                "const nativeImage = process._linkedBinding('electron_common_nativeImage');"
+                "const clipboard = process._linkedBinding('electron_common_clipboard');"
+                "const shellBinding = process._linkedBinding('electron_common_shell');"
+                "const dialog = process._linkedBinding('electron_browser_dialog');"
+                "const tray = process._linkedBinding('electron_browser_tray');"
+                "const protocol = process._linkedBinding('electron_browser_protocol');"
                 "if (typeof appBinding.App !== 'function') throw new Error('app');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof powerMonitor.ApiPowerMonitor !== 'function') throw new Error('powerMonitor');"
                 "if (typeof globalShortcut.register !== 'function') throw new Error('globalShortcut');"
                 "if (typeof powerSaveBlocker.setExecutionState !== 'function') throw new Error('powerSaveBlocker');"
                 "if (typeof screen.Screen !== 'function') throw new Error('screen');"
+                "if (typeof menu.Menu !== 'function') throw new Error('menu');"
+                "if (typeof nativeImage.NativeImage !== 'function') throw new Error('nativeImage');"
+                "if (typeof clipboard.Clipboard !== 'function') throw new Error('clipboard');"
+                "if (!shellBinding.Shell || typeof shellBinding.Shell.openPath !== 'function') throw new Error('shell');"
+                "if (typeof dialog.Dialog !== 'function') throw new Error('dialog');"
+                "if (typeof tray.Tray !== 'function') throw new Error('tray');"
+                "if (typeof protocol.Protocol !== 'function') throw new Error('protocol');"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
@@ -643,6 +711,943 @@ bool runGlobalShortcutDispatchSmoke(int argc, char** argv)
     return true;
 }
 
+bool runMenuApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_menu")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_app");
+        if (ok) {
+            const char scriptSource[] =
+                "const Module = require('module');"
+                "const { EventEmitter } = require('events');"
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const originalLoad = Module._load;"
+                "const appBinding = process._linkedBinding('electron_browser_app');"
+                "const app = new appBinding.App();"
+                "Object.setPrototypeOf(appBinding.App.prototype, EventEmitter.prototype);"
+                "app.setName('MiniBlink Menu');"
+                "const electronShim = { app };"
+                "Module._load = function(request, parent, isMain) {"
+                "  if (request === 'electron') return electronShim;"
+                "  return originalLoad.call(this, request, parent, isMain);"
+                "};"
+                "const menuPath = localRequire.resolve('../electron/lib/browser/api/menu');"
+                "const menuItemPath = localRequire.resolve('../electron/lib/browser/api/menu-item');"
+                "const rolesPath = localRequire.resolve('../electron/lib/browser/api/menu-item-roles');"
+                "const moduleCache = require.cache || {};"
+                "delete moduleCache[menuPath];"
+                "delete moduleCache[menuItemPath];"
+                "delete moduleCache[rolesPath];"
+                "globalThis.__restoreMenuSmoke = function() {"
+                "  Module._load = originalLoad;"
+                "};"
+                "const MenuItem = localRequire('../electron/lib/browser/api/menu-item');"
+                "electronShim.MenuItem = MenuItem;"
+                "const Menu = localRequire('../electron/lib/browser/api/menu');"
+                "electronShim.Menu = Menu;"
+                "globalThis.__menuSmoke = { Menu, MenuItem, app, events: [] };"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            const char verifyScript[] =
+                "const { Menu, MenuItem, app, events } = globalThis.__menuSmoke;"
+                "if (typeof Menu !== 'function') throw new Error('Menu export');"
+                "if (typeof MenuItem !== 'function') throw new Error('MenuItem export');"
+                "if (typeof Menu.sendActionToFirstResponder !== 'function') throw new Error('sendActionToFirstResponder');"
+                "if (Menu.sendActionToFirstResponder('noop:') !== false) throw new Error('selector result');"
+                "const closeItem = new MenuItem({ role: 'close' });"
+                "if (closeItem.label !== 'Close Window') throw new Error('close label ' + closeItem.label);"
+                "if (closeItem.getDefaultRoleAccelerator() !== 'CommandOrControl+W') throw new Error('close accelerator');"
+                "const quitItem = new MenuItem({ role: 'quit' });"
+                "if (quitItem.label !== 'Quit MiniBlink Menu') throw new Error('quit label ' + quitItem.label);"
+                "if (quitItem.getDefaultRoleAccelerator() !== 'CommandOrControl+Q') throw new Error('quit accelerator');"
+                "let appQuitCount = 0;"
+                "app.quit = function() { appQuitCount++; };"
+                "quitItem.click({}, null, null);"
+                "if (appQuitCount !== 0) throw new Error('darwin role should not execute in JS');"
+                "const menu = Menu.buildFromTemplate(["
+                "  { label: 'Open', click: function(item, focusedWindow, event) {"
+                "      events.push('open:' + item.label + ':' + (event && event.sender ? 'sender' : 'missing'));"
+                "    } },"
+                "  { type: 'checkbox', label: 'Check', checked: false, click: function(item) { events.push('check:' + item.checked); } },"
+                "  { label: 'Parent', submenu: [ { label: 'Child', click: function(item) { events.push('child:' + item.label); } } ] }"
+                "]);"
+                "if (menu.getItemCount() !== 3) throw new Error('item count ' + menu.getItemCount());"
+                "if (!Array.isArray(menu.items) || menu.items.length !== 3) throw new Error('items length');"
+                "if (menu.items[2].type !== 'submenu' || menu.items[2].submenu.getItemCount() !== 1) throw new Error('submenu');"
+                "if (!menu._dispatchCommandForTesting(0)) throw new Error('dispatch open');"
+                "if (!menu._dispatchCommandForTesting(1)) throw new Error('dispatch check');"
+                "if (events.join(',') !== 'open:Open:sender,check:true') throw new Error('events ' + events.join(','));"
+                "if (menu.items[1].checked !== true) throw new Error('checkbox flag');"
+                "const appMenu = Menu.buildFromTemplate([{ label: 'App' }]);"
+                "Menu.setApplicationMenu(appMenu);"
+                "if (Menu.getApplicationMenu() !== appMenu) throw new Error('app menu set');"
+                "Menu.setApplicationMenu(null);"
+                "if (Menu.getApplicationMenu() !== null) throw new Error('app menu clear');"
+                "menu.clear();"
+                "if (menu.getItemCount() !== 0 || menu.items.length !== 0) throw new Error('clear failed');"
+                "globalThis.__restoreMenuSmoke();"
+                "true;";
+            ok = runV8Script(context, verifyScript);
+        }
+
+        runV8Script(context, "if (globalThis.__restoreMenuSmoke) globalThis.__restoreMenuSmoke(); true;");
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-menu-api-smoke\n");
+    return true;
+}
+
+bool runNativeImageApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_common_nativeImage");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const fs = require('fs');"
+                "const os = require('os');"
+                "const path = require('path');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const { NativeImage } = localRequire('../electron/lib/common/api/native-image');"
+                "if (typeof NativeImage !== 'function') throw new Error('NativeImage export');"
+                "if (typeof NativeImage.createEmpty !== 'function') throw new Error('createEmpty export');"
+                "if (typeof NativeImage.createFromBuffer !== 'function') throw new Error('createFromBuffer export');"
+                "if (typeof NativeImage.createFromPath !== 'function') throw new Error('createFromPath export');"
+                "const empty = NativeImage.createEmpty();"
+                "if (!empty.isEmpty()) throw new Error('empty image should be empty');"
+                "const emptySize = empty.getSize();"
+                "if (emptySize.width !== 0 || emptySize.height !== 0) throw new Error('empty size');"
+                "const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==', 'base64');"
+                "const image = NativeImage.createFromBuffer(png);"
+                "if (image.isEmpty()) throw new Error('buffer decode failed');"
+                "const size = image.getSize();"
+                "if (size.width !== 1 || size.height !== 1) throw new Error('bad size ' + JSON.stringify(size));"
+                "const outPng = image.toPNG();"
+                "const pngInfo = { isBuffer: Buffer.isBuffer(outPng), type: outPng && outPng.constructor && outPng.constructor.name, length: outPng && outPng.length, first: outPng && Array.prototype.slice.call(outPng, 0, 8) };"
+                "if (!Buffer.isBuffer(outPng) || outPng.length <= 8 || outPng.readUInt32BE(0) !== 0x89504e47) throw new Error('png encode ' + JSON.stringify(pngInfo));"
+                "const outJpeg = image.toJPEG();"
+                "if (!Buffer.isBuffer(outJpeg) || outJpeg.length <= 4 || outJpeg[0] !== 0xff || outJpeg[1] !== 0xd8) throw new Error('jpeg encode');"
+                "const bitmap = image.toBitmap();"
+                "if (!Buffer.isBuffer(bitmap) || bitmap.length !== 4) throw new Error('bitmap length ' + (bitmap && bitmap.length));"
+                "if (typeof image.toDataURL() !== 'string' || !image.toDataURL().startsWith('data:image/jpeg;base64,')) throw new Error('data url');"
+                "const filePath = path.join(os.tmpdir(), 'miniblink-native-image-smoke-' + process.pid + '.png');"
+                "fs.writeFileSync(filePath, png);"
+                "try {"
+                "  const fromPath = NativeImage.createFromPath(filePath);"
+                "  if (!fromPath || fromPath.isEmpty()) throw new Error('path decode failed');"
+                "  const pathSize = fromPath.getSize();"
+                "  if (pathSize.width !== 1 || pathSize.height !== 1) throw new Error('path size');"
+                "} finally {"
+                "  try { fs.unlinkSync(filePath); } catch (e) {}"
+                "}"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-native-image-api-smoke\n");
+    return true;
+}
+
+bool runClipboardApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_common_clipboard");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const clipboard = localRequire('../electron/lib/common/api/clipboard');"
+                "if (!clipboard || typeof clipboard.writeText !== 'function') throw new Error('clipboard export');"
+                "if (typeof clipboard.readText !== 'function') throw new Error('readText export');"
+                "if (typeof clipboard.clear !== 'function') throw new Error('clear export');"
+                "if (typeof clipboard.writeBuffer !== 'function') throw new Error('writeBuffer export');"
+                "if (typeof clipboard.readBuffer !== 'function') throw new Error('readBuffer export');"
+                "clipboard.clear();"
+                "clipboard.writeText('MiniBlink clipboard utf8');"
+                "if (clipboard.readText() !== 'MiniBlink clipboard utf8') throw new Error('text roundtrip');"
+                "const unicodeText = 'MiniBlink unicode ' + String.fromCharCode(0x4e2d);"
+                "clipboard.writeText(unicodeText);"
+                "if (clipboard.readText() !== unicodeText) throw new Error('unicode roundtrip ' + clipboard.readText());"
+                "const payload = Buffer.from('buffer-payload');"
+                "clipboard.writeBuffer('application/x-miniblink-clipboard-smoke', payload);"
+                "const buffer = clipboard.readBuffer('application/x-miniblink-clipboard-smoke');"
+                "if (!Buffer.isBuffer(buffer) || buffer.toString() !== 'buffer-payload') throw new Error('buffer roundtrip');"
+                "clipboard.writeHTML('<b>Clip</b>');"
+                "if (clipboard.readHTML() !== '<b>Clip</b>') throw new Error('html roundtrip ' + clipboard.readHTML());"
+                "clipboard.writeRTF('{\\\\rtf1 Clip}');"
+                "if (clipboard.readRTF().indexOf('Clip') < 0) throw new Error('rtf roundtrip');"
+                "clipboard.clear();"
+                "if (clipboard.readText() !== '') throw new Error('clear text');"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-clipboard-api-smoke\n");
+    return true;
+}
+
+bool runShellApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_common_shell");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const fs = require('fs');"
+                "const path = require('path');"
+                "const os = require('os');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const shellModule = localRequire('../electron/lib/common/api/shell');"
+                "const shell = shellModule.shell;"
+                "const root = path.join(os.tmpdir(), 'miniblink-electron-shell-smoke-' + process.pid);"
+                "fs.rmSync(root, { recursive: true, force: true });"
+                "fs.mkdirSync(root, { recursive: true });"
+                "const openPath = path.join(root, 'open-path.txt');"
+                "const logPath = path.join(root, 'shell-execute.log');"
+                "fs.writeFileSync(openPath, 'shell open ok\\n');"
+                "process.env.MINIBLINK_SHELL_EXECUTE_LOG = logPath;"
+                "process.env.MINIBLINK_SUPPRESS_BEEP = '1';"
+                "globalThis.__electronShellSmokeDone = false;"
+                "globalThis.__electronShellSmokeError = '';"
+                "(async function() {"
+                "  try {"
+                "    if (shellModule.Shell !== shell) throw new Error('bad shell exports');"
+                "    ['openExternal', 'openPath', 'showItemInFolder', 'moveItemToTrash', 'trashItem', 'beep'].forEach(function(name) {"
+                "      if (typeof shell[name] !== 'function') throw new Error('missing shell.' + name);"
+                "    });"
+                "    const openResult = await shell.openPath(openPath);"
+                "    if (openResult !== '') throw new Error('openPath result ' + openResult);"
+                "    if (shell.openExternal('https://example.com/', { activate: false }) !== true) throw new Error('openExternal failed');"
+                "    shell.showItemInFolder(openPath);"
+                "    shell.beep();"
+                "    const logText = fs.readFileSync(logPath, 'utf8');"
+                "    if (!logText.includes('/usr/bin/open\\t' + openPath)) throw new Error('missing openPath log ' + logText);"
+                "    if (!logText.includes('/usr/bin/open\\thttps://example.com/')) throw new Error('missing openExternal log ' + logText);"
+                "    if (!logText.includes('/usr/bin/open\\t-R\\t' + openPath)) throw new Error('missing showItemInFolder log ' + logText);"
+                "    const trashName = 'trash-' + process.pid + '-' + Date.now() + '.txt';"
+                "    const trashPath = path.join(root, trashName);"
+                "    const expectedTrashPath = path.join(os.homedir(), '.Trash', trashName);"
+                "    fs.rmSync(expectedTrashPath, { force: true });"
+                "    fs.writeFileSync(trashPath, 'trash ok\\n');"
+                "    if (shell.moveItemToTrash(trashPath) !== true) throw new Error('moveItemToTrash failed');"
+                "    if (fs.existsSync(trashPath) || !fs.existsSync(expectedTrashPath)) throw new Error('legacy trash path mismatch');"
+                "    fs.rmSync(expectedTrashPath, { force: true });"
+                "    const promiseTrashName = 'trash-promise-' + process.pid + '-' + Date.now() + '.txt';"
+                "    const promiseTrashPath = path.join(root, promiseTrashName);"
+                "    const expectedPromiseTrashPath = path.join(os.homedir(), '.Trash', promiseTrashName);"
+                "    fs.rmSync(expectedPromiseTrashPath, { force: true });"
+                "    fs.writeFileSync(promiseTrashPath, 'trash promise ok\\n');"
+                "    await shell.trashItem(promiseTrashPath);"
+                "    if (fs.existsSync(promiseTrashPath) || !fs.existsSync(expectedPromiseTrashPath)) throw new Error('trashItem path mismatch');"
+                "    fs.rmSync(expectedPromiseTrashPath, { force: true });"
+                "    let rejected = false;"
+                "    try { await shell.trashItem(path.join(root, 'missing.txt')); }"
+                "    catch (error) { rejected = /Failed to move item to trash/.test(error && error.message ? error.message : String(error)); }"
+                "    if (!rejected) throw new Error('trashItem missing path did not reject');"
+                "  } catch (error) {"
+                "    globalThis.__electronShellSmokeError = error && error.stack ? error.stack : String(error);"
+                "  } finally {"
+                "    delete process.env.MINIBLINK_SHELL_EXECUTE_LOG;"
+                "    delete process.env.MINIBLINK_SUPPRESS_BEEP;"
+                "    fs.rmSync(root, { recursive: true, force: true });"
+                "    globalThis.__electronShellSmokeDone = true;"
+                "  }"
+                "})();"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            for (int i = 0; i < 200; ++i) {
+                drainNodeLoop(setup.get(), platform, isolate, 4);
+                if (runV8Script(context, "globalThis.__electronShellSmokeDone === true;"))
+                    break;
+                usleep(10000);
+            }
+
+            const char verifyScript[] =
+                "if (!globalThis.__electronShellSmokeDone) throw new Error('shell smoke did not finish');"
+                "if (globalThis.__electronShellSmokeError) throw new Error(globalThis.__electronShellSmokeError);"
+                "true;";
+            ok = runV8Script(context, verifyScript);
+        }
+
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-shell-api-smoke\n");
+    return true;
+}
+
+bool runDialogApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_dialog");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const fs = require('fs');"
+                "const path = require('path');"
+                "const os = require('os');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const dialogModule = localRequire('../electron/lib/browser/api/dialog');"
+                "const dialog = dialogModule.dialog;"
+                "const root = path.join(os.tmpdir(), 'miniblink-electron-dialog-smoke-' + process.pid);"
+                "fs.rmSync(root, { recursive: true, force: true });"
+                "fs.mkdirSync(root, { recursive: true });"
+                "const openPath = path.join(root, 'open.txt');"
+                "const savePath = path.join(root, 'save.txt');"
+                "fs.writeFileSync(openPath, 'dialog open ok\\n');"
+                "process.env.MINIBLINK_OPEN_FILE_NAME = openPath;"
+                "process.env.MINIBLINK_SAVE_FILE_NAME = savePath;"
+                "process.env.MINIBLINK_FOLDER_CHOOSER_PATH = root;"
+                "globalThis.__electronDialogSmokeDone = false;"
+                "globalThis.__electronDialogSmokeError = '';"
+                "(async function() {"
+                "  try {"
+                "    if (!dialog || typeof dialog.showOpenDialogSync !== 'function') throw new Error('dialog export');"
+                "    if (typeof dialog.showSaveDialogSync !== 'function') throw new Error('save sync export');"
+                "    if (typeof dialog.showOpenDialog !== 'function') throw new Error('open async export');"
+                "    if (typeof dialog.showMessageBox !== 'function') throw new Error('message async export');"
+                "    if (typeof dialog.showErrorBox !== 'function') throw new Error('error box export');"
+                "    const openResult = dialog.showOpenDialogSync({"
+                "      defaultPath: openPath,"
+                "      properties: ['openFile'],"
+                "      filters: [{ name: 'Text', extensions: ['txt'] }]"
+                "    });"
+                "    if (!Array.isArray(openResult) || openResult.length !== 1 || openResult[0] !== openPath)"
+                "      throw new Error('open sync result ' + JSON.stringify(openResult));"
+                "    const saveResult = dialog.showSaveDialogSync({"
+                "      defaultPath: savePath,"
+                "      filters: [{ name: 'Text', extensions: ['txt'] }]"
+                "    });"
+                "    if (saveResult !== savePath) throw new Error('save sync result ' + saveResult);"
+                "    const dirResult = dialog.showOpenDialogSync({ defaultPath: root, properties: ['openDirectory'] });"
+                "    if (!Array.isArray(dirResult) || dirResult.length !== 1 || dirResult[0] !== root)"
+                "      throw new Error('directory result ' + JSON.stringify(dirResult));"
+                "    const syncMessage = dialog.showMessageBoxSync({"
+                "      type: 'question',"
+                "      buttons: ['Yes', 'No'],"
+                "      title: 'Dialog smoke',"
+                "      message: 'sync path'"
+                "    });"
+                "    if (syncMessage !== 0) throw new Error('message sync result ' + syncMessage);"
+                "    const openAsync = await dialog.showOpenDialog({ defaultPath: openPath, properties: ['openFile'] });"
+                "    if (!openAsync || openAsync.canceled !== false || !Array.isArray(openAsync.filePaths) || openAsync.filePaths[0] !== openPath)"
+                "      throw new Error('open async result ' + JSON.stringify(openAsync));"
+                "    const saveAsync = await dialog.showSaveDialog({ defaultPath: savePath });"
+                "    if (!saveAsync || saveAsync.canceled !== false || saveAsync.filePath !== savePath)"
+                "      throw new Error('save async result ' + JSON.stringify(saveAsync));"
+                "    const messageAsync = await dialog.showMessageBox({ buttons: ['OK'], title: 'Dialog smoke', message: 'async path' });"
+                "    if (!messageAsync || messageAsync.response !== 0 || messageAsync.checkboxChecked !== false)"
+                "      throw new Error('message async result ' + JSON.stringify(messageAsync));"
+                "    dialog.showErrorBox('Dialog smoke', 'error path');"
+                "  } catch (error) {"
+                "    globalThis.__electronDialogSmokeError = error && error.stack ? error.stack : String(error);"
+                "  } finally {"
+                "    delete process.env.MINIBLINK_OPEN_FILE_NAME;"
+                "    delete process.env.MINIBLINK_SAVE_FILE_NAME;"
+                "    delete process.env.MINIBLINK_FOLDER_CHOOSER_PATH;"
+                "    fs.rmSync(root, { recursive: true, force: true });"
+                "    globalThis.__electronDialogSmokeDone = true;"
+                "  }"
+                "})();"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            for (int i = 0; i < 200; ++i) {
+                drainNodeLoop(setup.get(), platform, isolate, 4);
+                if (runV8Script(context, "globalThis.__electronDialogSmokeDone === true;"))
+                    break;
+                usleep(10000);
+            }
+
+            const char verifyScript[] =
+                "if (!globalThis.__electronDialogSmokeDone) throw new Error('dialog smoke did not finish');"
+                "if (globalThis.__electronDialogSmokeError) throw new Error(globalThis.__electronDialogSmokeError);"
+                "true;";
+            ok = runV8Script(context, verifyScript);
+        }
+
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-dialog-api-smoke\n");
+    return true;
+}
+
+bool runTrayApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_tray")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_menu")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_app");
+        if (ok) {
+            const char scriptSource[] =
+                "const Module = require('module');"
+                "const { EventEmitter } = require('events');"
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "const originalLoad = Module._load;"
+                "const appBinding = process._linkedBinding('electron_browser_app');"
+                "const app = new appBinding.App();"
+                "Object.setPrototypeOf(appBinding.App.prototype, EventEmitter.prototype);"
+                "app.setName('MiniBlink Tray');"
+                "const electronShim = { app };"
+                "Module._load = function(request, parent, isMain) {"
+                "  if (request === 'electron') return electronShim;"
+                "  return originalLoad.call(this, request, parent, isMain);"
+                "};"
+                "const menuPath = localRequire.resolve('../electron/lib/browser/api/menu');"
+                "const menuItemPath = localRequire.resolve('../electron/lib/browser/api/menu-item');"
+                "const rolesPath = localRequire.resolve('../electron/lib/browser/api/menu-item-roles');"
+                "const trayPath = localRequire.resolve('../electron/lib/browser/api/tray');"
+                "const moduleCache = require.cache || {};"
+                "delete moduleCache[menuPath];"
+                "delete moduleCache[menuItemPath];"
+                "delete moduleCache[rolesPath];"
+                "delete moduleCache[trayPath];"
+                "globalThis.__restoreTraySmoke = function() { Module._load = originalLoad; };"
+                "const MenuItem = localRequire('../electron/lib/browser/api/menu-item');"
+                "electronShim.MenuItem = MenuItem;"
+                "const Menu = localRequire('../electron/lib/browser/api/menu');"
+                "electronShim.Menu = Menu;"
+                "const trayModule = localRequire('../electron/lib/browser/api/tray');"
+                "globalThis.__traySmoke = { Tray: trayModule.Tray, Menu, MenuItem, events: [] };"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            const char verifyScript[] =
+                "const { Tray, Menu, events } = globalThis.__traySmoke;"
+                "if (typeof Tray !== 'function') throw new Error('Tray export');"
+                "const tray = new Tray('');"
+                "if (typeof tray.setToolTip !== 'function') throw new Error('setToolTip');"
+                "if (typeof tray.displayBalloon !== 'function') throw new Error('displayBalloon');"
+                "if (typeof tray.setImage !== 'function') throw new Error('setImage');"
+                "if (typeof tray.destroy !== 'function') throw new Error('destroy');"
+                "if (typeof tray.setContextMenu !== 'function') throw new Error('setContextMenu');"
+                "tray.setToolTip('MiniBlink Tray Smoke');"
+                "tray.displayBalloon({ title: 'Tray smoke', content: 'native bridge' });"
+                "tray.setImage('');"
+                "const menu = Menu.buildFromTemplate([{ label: 'Open', click: function() { events.push('menu-open'); } }]);"
+                "let rightClickCount = 0;"
+                "tray.on('right-click', function() { rightClickCount++; });"
+                "tray.setContextMenu(menu);"
+                "if (tray.menu !== menu) throw new Error('context menu not retained');"
+                "tray.onNativeMessage('right-click');"
+                "if (rightClickCount !== 1) throw new Error('right click count ' + rightClickCount);"
+                "tray.onNativeMessage('click');"
+                "let clickCount = 0;"
+                "tray.on('click', function() { clickCount++; });"
+                "tray.onNativeMessage('click');"
+                "if (clickCount !== 1) throw new Error('click count ' + clickCount);"
+                "tray.destroy();"
+                "globalThis.__restoreTraySmoke();"
+                "true;";
+            ok = runV8Script(context, verifyScript);
+        }
+
+        runV8Script(context, "if (globalThis.__restoreTraySmoke) globalThis.__restoreTraySmoke(); true;");
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-tray-api-smoke\n");
+    return true;
+}
+
+bool runProtocolApiSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_browser_protocol");
+        if (ok) {
+            const char scriptSource[] =
+                "const { createRequire } = require('module');"
+                "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
+                "globalThis.__electronProtocolSkipBlinkRegistrationForTesting = true;"
+                "const protocolModule = localRequire('../electron/lib/browser/api/protocol');"
+                "const protocol = protocolModule.protocol;"
+                "if (!protocol || typeof protocol.registerStringProtocol !== 'function') throw new Error('protocol export');"
+                "if (typeof protocol.registerBufferProtocol !== 'function') throw new Error('buffer export');"
+                "if (typeof protocol.interceptStringProtocol !== 'function') throw new Error('intercept export');"
+                "if (typeof protocol.unregisterProtocol !== 'function') throw new Error('unregister export');"
+                "globalThis.__protocolSmoke = { protocol, events: [] };"
+                "true;";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            const char verifyScript[] =
+                "const { protocol, events } = globalThis.__protocolSmoke;"
+                "function isHandled(scheme) {"
+                "  let result = null;"
+                "  protocol.isProtocolHandled(scheme, value => { result = value; });"
+                "  return result;"
+                "}"
+                "protocol.registerStringProtocol('mbstring', function(request, callback) {"
+                "  events.push('string:' + request.url);"
+                "  callback({ data: 'ok', mimeType: 'text/plain' });"
+                "}, function(error) { if (error) throw error; });"
+                "if (isHandled('mbstring') !== true) throw new Error('mbstring not handled');"
+                "let duplicateMessage = '';"
+                "protocol.registerStringProtocol('mbstring', function() {}, function(error) {"
+                "  duplicateMessage = error ? String(error.message || error) : '';"
+                "});"
+                "if (!duplicateMessage) throw new Error('duplicate registration should fail');"
+                "protocol.unregisterProtocol('mbstring', function(error) { if (error) throw error; });"
+                "if (isHandled('mbstring') !== false) throw new Error('mbstring still handled');"
+                "protocol.registerBufferProtocol('mbbuffer', function(request, callback) {"
+                "  callback({ data: Buffer.from('buffer-ok'), mimeType: 'text/plain' });"
+                "}, function(error) { if (error) throw error; });"
+                "if (isHandled('mbbuffer') !== true) throw new Error('mbbuffer not handled');"
+                "protocol.unregisterProtocol('mbbuffer');"
+                "if (isHandled('mbbuffer') !== false) throw new Error('mbbuffer still handled');"
+                "protocol.interceptStringProtocol('mbintercept', function(request, callback) {"
+                "  callback({ data: 'intercept-ok', mimeType: 'text/plain' });"
+                "}, function(error) { if (error) throw error; });"
+                "if (isHandled('mbintercept') !== true) throw new Error('intercept not handled');"
+                "protocol.uninterceptProtocol('mbintercept');"
+                "if (isHandled('mbintercept') !== false) throw new Error('intercept still handled');"
+                "delete globalThis.__electronProtocolSkipBlinkRegistrationForTesting;"
+                "true;";
+            ok = runV8Script(context, verifyScript);
+        }
+
+        runV8Script(context, "delete globalThis.__electronProtocolSkipBlinkRegistrationForTesting; true;");
+        drainNodeLoop(setup.get(), platform, isolate, 8);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-protocol-api-smoke\n");
+    return true;
+}
+
 bool runPowerMonitorEventSmoke(int argc, char** argv)
 {
     base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
@@ -754,33 +1759,23 @@ bool runPowerMonitorEventSmoke(int argc, char** argv)
     return true;
 }
 
-bool iopmAssertionIsOn(CFStringRef assertionType)
-{
-    CFDictionaryRef assertions = nullptr;
-    if (IOPMCopyAssertionsStatus(&assertions) != kIOReturnSuccess || !assertions)
-        return false;
-
-    int level = 0;
-    CFTypeRef value = CFDictionaryGetValue(assertions, assertionType);
-    if (value && CFGetTypeID(value) == CFNumberGetTypeID())
-        CFNumberGetValue(static_cast<CFNumberRef>(value), kCFNumberIntType, &level);
-    CFRelease(assertions);
-    return level != 0;
-}
-
 bool waitForPowerSaveAssertions(int systemExpected, int displayExpected)
 {
     for (int i = 0; i < 100; ++i) {
-        bool systemOn = iopmAssertionIsOn(CFSTR("PreventUserIdleSystemSleep"));
-        bool displayOn = iopmAssertionIsOn(CFSTR("PreventUserIdleDisplaySleep"));
+        BOOL systemOn = FALSE;
+        BOOL displayOn = FALSE;
+        MacGetPowerSaveBlockerAssertionStateForTesting(&systemOn, &displayOn);
         if ((systemExpected < 0 || systemOn == !!systemExpected)
             && (displayExpected < 0 || displayOn == !!displayExpected))
             return true;
         usleep(10000);
     }
+    BOOL systemOn = FALSE;
+    BOOL displayOn = FALSE;
+    MacGetPowerSaveBlockerAssertionStateForTesting(&systemOn, &displayOn);
     fprintf(stderr, "powerSaveBlocker assertion state mismatch system=%d display=%d expectedSystem=%d expectedDisplay=%d\n",
-        iopmAssertionIsOn(CFSTR("PreventUserIdleSystemSleep")) ? 1 : 0,
-        iopmAssertionIsOn(CFSTR("PreventUserIdleDisplaySleep")) ? 1 : 0,
+        systemOn ? 1 : 0,
+        displayOn ? 1 : 0,
         systemExpected,
         displayExpected);
     return false;
@@ -886,10 +1881,45 @@ bool runPowerSaveBlockerLifecycleSmoke(int argc, char** argv)
                 "  && !globalThis.__powerSaveBlocker.isStarted(globalThis.__powerSaveBlockerIds[1]);");
         }
 
+        if (ok)
+            ok = waitForPowerSaveAssertions(0, 0);
+
+        if (ok) {
+            ok = runV8Script(context,
+                "globalThis.__powerSaveBlockerStressAppIds = [];"
+                "globalThis.__powerSaveBlockerStressDisplayIds = [];"
+                "for (let i = 0; i < 6; ++i)"
+                "  globalThis.__powerSaveBlockerStressAppIds.push(globalThis.__powerSaveBlocker.start('prevent-app-suspension'));"
+                "for (let i = 0; i < 4; ++i)"
+                "  globalThis.__powerSaveBlockerStressDisplayIds.push(globalThis.__powerSaveBlocker.start('prevent-display-sleep'));"
+                "globalThis.__powerSaveBlockerStressAppIds.every(id => globalThis.__powerSaveBlocker.isStarted(id))"
+                "  && globalThis.__powerSaveBlockerStressDisplayIds.every(id => globalThis.__powerSaveBlocker.isStarted(id));")
+                && waitForPowerSaveAssertions(1, 1);
+        }
+
+        if (ok) {
+            ok = runV8Script(context,
+                "[2, 0, 3, 1].forEach(index => globalThis.__powerSaveBlocker.stop(globalThis.__powerSaveBlockerStressDisplayIds[index]));"
+                "globalThis.__powerSaveBlocker.stop(globalThis.__powerSaveBlockerStressDisplayIds[0]);"
+                "globalThis.__powerSaveBlockerStressDisplayIds.every(id => !globalThis.__powerSaveBlocker.isStarted(id))"
+                "  && globalThis.__powerSaveBlockerStressAppIds.every(id => globalThis.__powerSaveBlocker.isStarted(id));")
+                && waitForPowerSaveAssertions(1, 0);
+        }
+
+        if (ok) {
+            ok = runV8Script(context,
+                "[5, 1, 3, 0, 4, 2].forEach(index => globalThis.__powerSaveBlocker.stop(globalThis.__powerSaveBlockerStressAppIds[index]));"
+                "globalThis.__powerSaveBlocker.stop(globalThis.__powerSaveBlockerStressAppIds[0]);"
+                "globalThis.__powerSaveBlocker.stop(999999);"
+                "globalThis.__powerSaveBlockerStressAppIds.every(id => !globalThis.__powerSaveBlocker.isStarted(id));")
+                && waitForPowerSaveAssertions(0, 0);
+        }
+
         runV8Script(context,
             "if (globalThis.__powerSaveBlocker) {"
-            "  for (const id of globalThis.__powerSaveBlockerIds || [])"
-            "    globalThis.__powerSaveBlocker.stop(id);"
+            "  for (const list of [globalThis.__powerSaveBlockerIds, globalThis.__powerSaveBlockerStressAppIds, globalThis.__powerSaveBlockerStressDisplayIds])"
+            "    for (const id of list || [])"
+            "      globalThis.__powerSaveBlocker.stop(id);"
             "}"
             "true;");
         drainNodeLoop(setup.get(), platform, isolate, 8);
@@ -908,6 +1938,11 @@ bool runPowerSaveBlockerLifecycleSmoke(int argc, char** argv)
 
 bool runAppLifecycleSmoke(int argc, char** argv)
 {
+    if (!electronWindowListCloseAllWindowsSmokeForTesting()) {
+        fprintf(stderr, "WindowList closeAllWindows cancellation smoke failed\n");
+        return false;
+    }
+
     base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
     v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
 
@@ -990,7 +2025,7 @@ bool runAppLifecycleSmoke(int argc, char** argv)
                 "});"
                 "cancelApp.quit();"
                 "if (!cancelPrevented) throw new Error('before-quit preventDefault not observed');"
-                "if (cancelEvents.join(',') !== 'before-quit,window-all-closed,quit:0')"
+                "if (cancelEvents.join(',') !== 'before-quit')"
                 "  throw new Error('bad cancel order ' + cancelEvents.join(','));"
                 "const retryApp = new App();"
                 "const retryEvents = [];"
@@ -1183,6 +2218,72 @@ bool runAppSingleInstanceSmoke(int argc, char** argv)
             ok = runV8Script(context, verifyScript);
         }
 
+        if (ok) {
+            pid_t stalePid = fork();
+            if (stalePid == 0) {
+                execl(argv[0], argv[0], "--electron-app-single-instance-stale-lock-child", nullptr);
+                _exit(127);
+            }
+            if (stalePid < 0) {
+                perror("fork");
+                ok = false;
+            } else {
+                int status = 0;
+                if (waitpid(stalePid, &status, 0) < 0) {
+                    perror("waitpid");
+                    ok = false;
+                } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+                    fprintf(stderr, "single instance stale child status=%d\n", status);
+                    ok = false;
+                }
+            }
+            if (ok) {
+                v8::Local<v8::Value> lockValue;
+                if (!getObjectProperty(context, context->Global(), "__singleInstanceLockPath", &lockValue)) {
+                    ok = false;
+                } else {
+                    v8::String::Utf8Value lockPath(isolate, lockValue);
+                    if (!*lockPath || access(*lockPath, F_OK) != 0) {
+                        fprintf(stderr, "missing stale single instance lock before recovery: %s\n", *lockPath ? *lockPath : "<missing>");
+                        ok = false;
+                    }
+                }
+            }
+        }
+
+        if (ok) {
+            const char staleRecoveryScript[] =
+                "const { App } = process._linkedBinding('electron_browser_app');"
+                "const staleApp = new App();"
+                "const lockPath = staleApp._getSingleInstanceLockPathForTesting();"
+                "const socketPath = staleApp._getSingleInstanceSocketPathForTesting();"
+                "globalThis.__staleRecoveryLockPath = lockPath;"
+                "globalThis.__staleRecoverySocketPath = socketPath;"
+                "if (!staleApp.requestSingleInstanceLock())"
+                "  throw new Error('stale lock recovery failed: ' + staleApp._getSingleInstanceFailureReasonForTesting());"
+                "staleApp.releaseSingleInstance();"
+                "true;";
+            ok = runV8Script(context, staleRecoveryScript);
+            if (ok) {
+                v8::Local<v8::Value> lockValue;
+                v8::Local<v8::Value> socketValue;
+                ok = getObjectProperty(context, context->Global(), "__staleRecoveryLockPath", &lockValue)
+                    && getObjectProperty(context, context->Global(), "__staleRecoverySocketPath", &socketValue);
+                if (ok) {
+                    v8::String::Utf8Value lockPath(isolate, lockValue);
+                    v8::String::Utf8Value socketPath(isolate, socketValue);
+                    if (!*lockPath || access(*lockPath, F_OK) == 0) {
+                        fprintf(stderr, "single instance stale recovery did not release lock: %s\n", *lockPath ? *lockPath : "<missing>");
+                        ok = false;
+                    }
+                    if (*socketPath && access(*socketPath, F_OK) == 0) {
+                        fprintf(stderr, "single instance stale recovery did not release socket: %s\n", *socketPath);
+                        ok = false;
+                    }
+                }
+            }
+        }
+
         runV8Script(context, "if (globalThis.__singleInstanceApp) globalThis.__singleInstanceApp.releaseSingleInstance(); true;");
         drainNodeLoop(setup.get(), init->platform(), isolate, 8);
     }
@@ -1276,6 +2377,60 @@ int main(int argc, char** argv)
         return ok ? 0 : 93;
     }
 
+    if (hasArg(argc, argv, "--electron-app-single-instance-stale-lock-child")) {
+        base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+        v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+        std::vector<std::string> args;
+        args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+        std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+            node::ProcessInitializationFlags::kNoStdioInitialization,
+            node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+            node::ProcessInitializationFlags::kNoInitOpenSSL,
+            node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+            node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+            node::ProcessInitializationFlags::kNoUseLargePages,
+            node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+        });
+        if (!init || init->early_return())
+            return 94;
+        std::vector<std::string> errors;
+        std::vector<std::string> execArgs;
+        std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(init->platform(), &errors, init->args(), execArgs);
+        if (!setup) {
+            node::TearDownOncePerProcess();
+            return 95;
+        }
+        bool ok = false;
+        {
+            v8::Isolate* isolate = setup->isolate();
+            v8::Locker locker(isolate);
+            v8::Isolate::Scope isolateScope(isolate);
+            v8::HandleScope handleScope(isolate);
+            v8::Local<v8::Context> context = setup->context();
+            v8::Context::Scope contextScope(context);
+            gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+            ok = addNodeLinkedBinding(setup->env(), "electron_browser_app");
+            if (ok) {
+                const char scriptSource[] =
+                    "const { EventEmitter } = require('events');"
+                    "const { App } = process._linkedBinding('electron_browser_app');"
+                    "Object.setPrototypeOf(App.prototype, EventEmitter.prototype);"
+                    "globalThis.__staleSingleInstanceApp = new App();"
+                    "if (!globalThis.__staleSingleInstanceApp.requestSingleInstanceLock())"
+                    "  throw new Error('stale child lock failed: ' + globalThis.__staleSingleInstanceApp._getSingleInstanceFailureReasonForTesting());"
+                    "true;";
+                v8::TryCatch tryCatch(isolate);
+                v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
+                ok = !result.IsEmpty();
+                if (!ok && tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                if (ok)
+                    drainNodeLoop(setup.get(), init->platform(), isolate, 4);
+            }
+        }
+        _exit(ok ? 0 : 96);
+    }
+
     if (hasArg(argc, argv, "--electron-app-exit-child")) {
         base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
         v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
@@ -1360,6 +2515,69 @@ int main(int argc, char** argv)
     if (hasArg(argc, argv, "--electron-global-shortcut-dispatch-smoke")) {
         if (!runGlobalShortcutDispatchSmoke(argc, argv))
             return 24;
+    }
+
+    if (hasArg(argc, argv, "--electron-menu-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_menu")) {
+            fprintf(stderr, "missing electron_browser_menu linked binding\n");
+            return 25;
+        }
+        if (!runMenuApiSmoke(argc, argv))
+            return 26;
+    }
+
+    if (hasArg(argc, argv, "--electron-native-image-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_nativeImage")) {
+            fprintf(stderr, "missing electron_common_nativeImage linked binding\n");
+            return 27;
+        }
+        if (!runNativeImageApiSmoke(argc, argv))
+            return 28;
+    }
+
+    if (hasArg(argc, argv, "--electron-clipboard-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_clipboard")) {
+            fprintf(stderr, "missing electron_common_clipboard linked binding\n");
+            return 29;
+        }
+        if (!runClipboardApiSmoke(argc, argv))
+            return 30;
+    }
+
+    if (hasArg(argc, argv, "--electron-shell-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_shell")) {
+            fprintf(stderr, "missing electron_common_shell linked binding\n");
+            return 31;
+        }
+        if (!runShellApiSmoke(argc, argv))
+            return 32;
+    }
+
+    if (hasArg(argc, argv, "--electron-dialog-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_dialog")) {
+            fprintf(stderr, "missing electron_browser_dialog linked binding\n");
+            return 33;
+        }
+        if (!runDialogApiSmoke(argc, argv))
+            return 34;
+    }
+
+    if (hasArg(argc, argv, "--electron-tray-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_tray")) {
+            fprintf(stderr, "missing electron_browser_tray linked binding\n");
+            return 35;
+        }
+        if (!runTrayApiSmoke(argc, argv))
+            return 36;
+    }
+
+    if (hasArg(argc, argv, "--electron-protocol-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_browser_protocol")) {
+            fprintf(stderr, "missing electron_browser_protocol linked binding\n");
+            return 37;
+        }
+        if (!runProtocolApiSmoke(argc, argv))
+            return 38;
     }
 
     if (hasArg(argc, argv, "--electron-power-save-blocker-smoke")) {

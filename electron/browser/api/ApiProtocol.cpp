@@ -47,11 +47,11 @@ struct ProtocolCallbackInfo {
 
 class Protocol : public mate::EventEmitter<Protocol>, public ProtocolInterface {
 public:
-    Protocol(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, v8::Local<v8::Value> jsReciver)
+    Protocol(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, v8::Local<v8::Function> jsReciver)
     {
         gin_helper::Wrappable<Protocol>::InitWith(isolate, wrapper);
         ProtocolInterface::m_inst = this;
-        m_jsReciver.Reset(isolate, v8::Local<v8::Function>::Cast(jsReciver));
+        m_jsReciver.Reset(isolate, jsReciver);
     }
 
     static void init(v8::Isolate* isolate, v8::Local<v8::Object> target)
@@ -88,11 +88,19 @@ public:
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Isolate* isolate = args.GetIsolate();
-        if (!args.IsConstructCall())
-            DebugBreak();
+        if (!args.IsConstructCall()) {
+            isolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(isolate, "Protocol must be constructed with new").ToLocalChecked()));
+            return;
+        }
 
-        v8::Local<v8::Value> jsReciver = args[0];
+        if (args.Length() < 1 || !args[0]->IsFunction()) {
+            isolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(isolate, "Protocol requires a handler function").ToLocalChecked()));
+            return;
+        }
 
+        v8::Local<v8::Function> jsReciver = args[0].As<v8::Function>();
         new Protocol(isolate, args.This(), jsReciver);
         args.GetReturnValue().Set(args.This());
         return;
@@ -153,21 +161,45 @@ public:
         std::string type;
     };
 
-    bool _registerProtocolApi(const std::string& scheme, int handlerId, const std::string& type)
+    bool registerProtocol(const std::string& scheme, int handlerId, const std::string& type, bool registerWithBlink)
     {
         base::AutoLock autoLock(m_lock);
         std::map<std::string, ProtocolInfo>::iterator it = m_schemeToHandleId.find(scheme);
         if (it != m_schemeToHandleId.end())
             return false;
 
-        content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [scheme] {
-            WTF::String schemeStr = WTF::String::FromUTF8(scheme);
-            blink::SchemeRegistry::RegisterURLSchemeAsSupportingFetchAPI(schemeStr);
-            blink::SchemeRegistry::RegisterURLSchemeAsAllowingServiceWorkers(schemeStr);
-        });
+        if (registerWithBlink) {
+            content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [scheme] {
+                WTF::String schemeStr = WTF::String::FromUTF8(scheme);
+                blink::SchemeRegistry::RegisterURLSchemeAsSupportingFetchAPI(schemeStr);
+                blink::SchemeRegistry::RegisterURLSchemeAsAllowingServiceWorkers(schemeStr);
+            });
+        }
 
         m_schemeToHandleId.insert(std::make_pair(scheme, ProtocolInfo(handlerId, type)));
         return true;
+    }
+
+    void _registerProtocolApi(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Isolate* isolate = args.GetIsolate();
+        std::string scheme;
+        std::string type;
+        int32_t handlerId = 0;
+        if (args.Length() < 3
+            || !gin_helper::ConvertFromV8(isolate, args[0], &scheme)
+            || !gin_helper::ConvertFromV8(isolate, args[1], &handlerId)
+            || !gin_helper::ConvertFromV8(isolate, args[2], &type)) {
+            isolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(isolate, "_registerProtocol requires scheme, handler id, and type").ToLocalChecked()));
+            return;
+        }
+
+        bool registerWithBlink = true;
+        if (args.Length() > 3 && args[3]->IsBoolean())
+            registerWithBlink = args[3]->BooleanValue(isolate);
+
+        args.GetReturnValue().Set(v8::Boolean::New(isolate, registerProtocol(scheme, handlerId, type, registerWithBlink)));
     }
 
     void _unregisterProtocolApi(const std::string& scheme)

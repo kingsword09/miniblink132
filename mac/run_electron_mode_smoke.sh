@@ -16,6 +16,13 @@ fi
 "$BIN" --electron-native-theme-smoke --electron-power-monitor-smoke --electron-global-shortcut-smoke --electron-power-save-blocker-smoke --electron-screen-smoke
 "$BIN" --electron-native-theme-appearance-smoke
 "$BIN" --electron-global-shortcut-dispatch-smoke
+"$BIN" --electron-menu-smoke
+"$BIN" --electron-native-image-smoke
+"$BIN" --electron-clipboard-smoke
+"$BIN" --electron-shell-smoke
+"$BIN" --electron-dialog-smoke
+"$BIN" --electron-tray-smoke
+"$BIN" --electron-protocol-smoke
 "$BIN" --electron-power-monitor-event-smoke
 "$BIN" --electron-power-save-blocker-lifecycle-smoke
 "$BIN" --electron-app-smoke
@@ -30,8 +37,15 @@ grep -q "__register_electron_browser_native_theme" <<<"$symbols"
 grep -q "__register_electron_browser_app" <<<"$symbols"
 grep -q "__register_electron_browser_powermonitor" <<<"$symbols"
 grep -q "__register_electron_browser_global_shortcut" <<<"$symbols"
+grep -q "__register_electron_browser_menu" <<<"$symbols"
 grep -q "__register_electron_browser_power_save_blocker" <<<"$symbols"
+grep -q "__register_electron_common_nativeImage" <<<"$symbols"
+grep -q "__register_electron_common_clipboard" <<<"$symbols"
 grep -q "__register_electron_common_screen" <<<"$symbols"
+grep -q "__register_electron_common_shell" <<<"$symbols"
+grep -q "__register_electron_browser_dialog" <<<"$symbols"
+grep -q "__register_electron_browser_tray" <<<"$symbols"
+grep -q "__register_electron_browser_protocol" <<<"$symbols"
 grep -q "_nodeModuleInitRegister" <<<"$symbols"
 grep -q "_electronMacNodeBridgeGetLinkedBinding" <<<"$symbols"
 

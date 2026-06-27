@@ -43,6 +43,10 @@ namespace {
 thread_local DWORD g_lastError = 0;
 thread_local DWORD g_commDlgExtendedError = 0;
 BOOL g_isLinuxOpenglDraw = FALSE;
+std::mutex g_executionStateMutex;
+EXECUTION_STATE g_executionState = ES_CONTINUOUS;
+IOPMAssertionID g_systemAssertion = kIOPMNullAssertionID;
+IOPMAssertionID g_displayAssertion = kIOPMNullAssertionID;
 
 enum MacHandleKind {
     kMacHandleThread = 1,
@@ -1865,11 +1869,6 @@ extern "C" BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus)
 
 extern "C" EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags)
 {
-    static std::mutex executionStateMutex;
-    static EXECUTION_STATE executionState = ES_CONTINUOUS;
-    static IOPMAssertionID systemAssertion = kIOPMNullAssertionID;
-    static IOPMAssertionID displayAssertion = kIOPMNullAssertionID;
-
     const EXECUTION_STATE validFlags = ES_CONTINUOUS
         | ES_SYSTEM_REQUIRED
         | ES_DISPLAY_REQUIRED
@@ -1879,10 +1878,10 @@ extern "C" EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags)
         return 0;
     }
 
-    std::lock_guard<std::mutex> lock(executionStateMutex);
+    std::lock_guard<std::mutex> lock(g_executionStateMutex);
 
-    IOPMAssertionID newSystemAssertion = systemAssertion;
-    IOPMAssertionID newDisplayAssertion = displayAssertion;
+    IOPMAssertionID newSystemAssertion = g_systemAssertion;
+    IOPMAssertionID newDisplayAssertion = g_displayAssertion;
     if ((esFlags & ES_SYSTEM_REQUIRED) && newSystemAssertion == kIOPMNullAssertionID) {
         IOReturn result = IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleSystemSleep,
             kIOPMAssertionLevelOn,
@@ -1899,28 +1898,37 @@ extern "C" EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags)
             CFSTR("MiniBlink SetThreadExecutionState ES_DISPLAY_REQUIRED"),
             &newDisplayAssertion);
         if (result != kIOReturnSuccess) {
-            if (newSystemAssertion != systemAssertion)
+            if (newSystemAssertion != g_systemAssertion)
                 IOPMAssertionRelease(newSystemAssertion);
             SetLastError(ERROR_ACCESS_DENIED);
             return 0;
         }
     }
 
-    EXECUTION_STATE previous = executionState;
-    if (!(esFlags & ES_SYSTEM_REQUIRED) && systemAssertion != kIOPMNullAssertionID) {
-        IOPMAssertionRelease(systemAssertion);
+    EXECUTION_STATE previous = g_executionState;
+    if (!(esFlags & ES_SYSTEM_REQUIRED) && g_systemAssertion != kIOPMNullAssertionID) {
+        IOPMAssertionRelease(g_systemAssertion);
         newSystemAssertion = kIOPMNullAssertionID;
     }
-    if (!(esFlags & ES_DISPLAY_REQUIRED) && displayAssertion != kIOPMNullAssertionID) {
-        IOPMAssertionRelease(displayAssertion);
+    if (!(esFlags & ES_DISPLAY_REQUIRED) && g_displayAssertion != kIOPMNullAssertionID) {
+        IOPMAssertionRelease(g_displayAssertion);
         newDisplayAssertion = kIOPMNullAssertionID;
     }
 
-    systemAssertion = newSystemAssertion;
-    displayAssertion = newDisplayAssertion;
-    executionState = esFlags;
+    g_systemAssertion = newSystemAssertion;
+    g_displayAssertion = newDisplayAssertion;
+    g_executionState = esFlags;
     SetLastError(0);
     return previous;
+}
+
+extern "C" void MacGetPowerSaveBlockerAssertionStateForTesting(BOOL* systemOn, BOOL* displayOn)
+{
+    std::lock_guard<std::mutex> lock(g_executionStateMutex);
+    if (systemOn)
+        *systemOn = g_systemAssertion != kIOPMNullAssertionID;
+    if (displayOn)
+        *displayOn = g_displayAssertion != kIOPMNullAssertionID;
 }
 
 extern "C" VOID GetSystemTime(SYSTEMTIME* lpSystemTime)

@@ -4,6 +4,7 @@
 #include "electron/common/api/EventEmitterCaller.h"
 #include "electron/common/gin_helper/object_template_builder.h"
 #include "electron/common/gin_helper/wrappable.h"
+#include "electron/browser/api/WindowList.h"
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "third_party/libnode/src/node_binding.h"
@@ -334,6 +335,10 @@ public:
             return;
         isQuitting_ = true;
         if (emit("before-quit")) {
+            isQuitting_ = false;
+            return;
+        }
+        if (!WindowList::closeAllWindows()) {
             isQuitting_ = false;
             return;
         }

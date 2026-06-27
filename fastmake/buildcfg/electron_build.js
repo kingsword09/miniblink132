@@ -192,6 +192,7 @@ if (constVal.isMac) {
 	json[0].compile.include.push("${srcPath}/third_party/libnode/src");
 	json[0].compile.include.push("${srcPath}/third_party/libuv/include");
 	json[0].compile.include.push("${srcPath}/third_party/abseil-cpp");
+	json[0].compile.include.push("${srcPath}/third_party/skia");
 	json[0].compile.include.push("${srcPath}/base/allocator/partition_allocator/src");
 	json[0].compile.include.push("${srcPath}/gen/base/allocator/partition_allocator/src");
 	applyMacBuildSettings(json, { v8: true });
@@ -243,6 +244,14 @@ if (constVal.isMac) {
 	const macPowerSaveBlockerSrc = "${srcPath}/electron/browser/api/ApiPowerSaveBlocker.cpp";
 	const macGlobalShortcutSrc = "${srcPath}/electron/browser/api/ApiGlobalShortcut.cpp";
 	const macAppSrc = "${srcPath}/electron/browser/api/ApiAppMac.cpp";
+	const macMenuSrc = "${srcPath}/electron/browser/api/ApiMenu.cpp";
+	const macDialogSrc = "${srcPath}/electron/browser/api/ApiDialogMac.cpp";
+	const macTraySrc = "${srcPath}/electron/browser/api/ApiTray.cpp";
+	const macSystemTraySrc = "${srcPath}/electron/common/SystemTray.cpp";
+	const macNativeImageSrc = "${srcPath}/electron/common/api/ApiNativeImage.cpp";
+	const macClipboardSrc = "${srcPath}/electron/common/api/ApiClipboard.cpp";
+	const macShellSrc = "${srcPath}/electron/common/api/ApiShell.cpp";
+	const macWindowListSrc = "${srcPath}/electron/browser/api/WindowList.cpp";
 	const macPowerMonitorIdleSrc = [
 		"${srcPath}/ui/base/idle/idle.cc",
 		"${srcPath}/ui/base/idle/idle_internal.cc",
@@ -253,12 +262,19 @@ if (constVal.isMac) {
 	const macElectronLinkedBindingSrc = new Set([
 		macAppSrc,
 		"${srcPath}/electron/browser/api/ApiElectron.cpp",
+		macMenuSrc,
+		macDialogSrc,
+		macTraySrc,
+		macSystemTraySrc,
 		"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
 		macGlobalShortcutSrc,
+		macNativeImageSrc,
+		macClipboardSrc,
+		macShellSrc,
 		macPowerMonitorSrc,
 		macPowerSaveBlockerSrc,
 		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
-		"${srcPath}/electron/browser/api/WindowList.cpp",
+		macWindowListSrc,
 		"${srcPath}/electron/common/AtomCommandLine.cpp",
 		"${srcPath}/electron/common/IdLiveDetect.cpp",
 		"${srcPath}/electron/common/OptionsSwitches.cpp",
@@ -288,16 +304,32 @@ if (constVal.isMac) {
 	json[0].compile.src = json[0].compile.src.filter(src => macElectronLinkedBindingSrc.has(src));
 	json[0].compile.src.push(macAppSrc);
 	json[0].compile.src.push(macGlobalShortcutSrc);
+	json[0].compile.src.push(macMenuSrc);
+	json[0].compile.src.push(macDialogSrc);
+	json[0].compile.src.push(macTraySrc);
+	json[0].compile.src.push(macSystemTraySrc);
+	json[0].compile.src.push(macNativeImageSrc);
+	json[0].compile.src.push(macClipboardSrc);
+	json[0].compile.src.push(macShellSrc);
 	json[0].compile.src.push(macPowerMonitorSrc);
 	json[0].compile.src.push(macPowerSaveBlockerSrc);
+	json[0].compile.src.push(macWindowListSrc);
 	json[0].compile.src.push(...macElectronSupportSrc);
 	json[0].compile.src.push(...macPowerMonitorIdleSrc);
 	json[0].compile.src = [...new Set(json[0].compile.src)];
 	json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => macElectronLinkedBindingSrc.has(src));
 	json[0].compile.prebuildSrc.push(macAppSrc);
 	json[0].compile.prebuildSrc.push(macGlobalShortcutSrc);
+	json[0].compile.prebuildSrc.push(macMenuSrc);
+	json[0].compile.prebuildSrc.push(macDialogSrc);
+	json[0].compile.prebuildSrc.push(macTraySrc);
+	json[0].compile.prebuildSrc.push(macSystemTraySrc);
+	json[0].compile.prebuildSrc.push(macNativeImageSrc);
+	json[0].compile.prebuildSrc.push(macClipboardSrc);
+	json[0].compile.prebuildSrc.push(macShellSrc);
 	json[0].compile.prebuildSrc.push(macPowerMonitorSrc);
 	json[0].compile.prebuildSrc.push(macPowerSaveBlockerSrc);
+	json[0].compile.prebuildSrc.push(macWindowListSrc);
 	json[0].compile.prebuildSrc.push(...macElectronSupportSrc);
 	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);
 	json[0].compile.prebuildSrc = [...new Set(json[0].compile.prebuildSrc)];

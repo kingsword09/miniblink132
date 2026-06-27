@@ -30,9 +30,16 @@ node::node_module* findLinkedModule(const char* name)
 extern "C" void _register_electron_browser_native_theme(void);
 extern "C" void _register_electron_browser_app(void);
 extern "C" void _register_electron_browser_global_shortcut(void);
+extern "C" void _register_electron_browser_menu(void);
+extern "C" void _register_electron_browser_dialog(void);
+extern "C" void _register_electron_browser_tray(void);
+extern "C" void _register_electron_browser_protocol(void);
 extern "C" void _register_electron_browser_powermonitor(void);
 extern "C" void _register_electron_browser_power_save_blocker(void);
+extern "C" void _register_electron_common_nativeImage(void);
+extern "C" void _register_electron_common_clipboard(void);
 extern "C" void _register_electron_common_screen(void);
+extern "C" void _register_electron_common_shell(void);
 
 extern "C" void electronMacNodeBridgeRegisterModule(void* module)
 {
@@ -103,9 +110,16 @@ extern "C" void nodeModuleInitRegister(void)
     _register_electron_browser_native_theme();
     _register_electron_browser_app();
     _register_electron_browser_global_shortcut();
+    _register_electron_browser_menu();
+    _register_electron_browser_dialog();
+    _register_electron_browser_tray();
+    _register_electron_browser_protocol();
     _register_electron_browser_powermonitor();
     _register_electron_browser_power_save_blocker();
+    _register_electron_common_nativeImage();
+    _register_electron_common_clipboard();
     _register_electron_common_screen();
+    _register_electron_common_shell();
 }
 
 bool g_isElectronMode = false;

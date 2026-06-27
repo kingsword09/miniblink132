@@ -3,7 +3,11 @@
 #define browser_api_WindowInterface_h
 
 #include <v8.h>
+#if defined(WINDOWS_FOR_LINUX_H) || defined(WINDOWS_FOR_MAC_H) || defined(_WIN32)
+#include <windows.h>
+#else
 typedef struct HWND__* HWND;
+#endif
 
 namespace atom {
 

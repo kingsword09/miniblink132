@@ -25,7 +25,8 @@
 #define common_SystemTray_h
 
 #include <windows.h>
-#include <ShellAPI.h>
+#include <shellapi.h>
+#include <tchar.h>
 
 #if _MSC_VER > 1000
 #pragma once
@@ -37,6 +38,30 @@
 #pragma warning(disable : 4786)
 #include <time.h>
 #include <vector>
+
+#ifndef LPCTSTR
+typedef LPCWSTR LPCTSTR;
+#endif
+
+#ifndef LPTSTR
+typedef LPWSTR LPTSTR;
+#endif
+
+#ifndef NOTIFYICONDATA
+typedef NOTIFYICONDATAW NOTIFYICONDATA;
+#endif
+
+#ifndef PASCAL
+#define PASCAL CALLBACK
+#endif
+
+#ifndef WM_APP
+#define WM_APP 0x8000
+#endif
+
+#ifndef NIIF_NONE
+#define NIIF_NONE 0x00000000
+#endif
 
 typedef std::vector<HICON> ICONVECTOR;
 
