@@ -4,8 +4,8 @@ const WebContents = binding.WebContents;
 const MessagePortMain = require('./message-port-main.js');
 
 const electron = require('electron');
-const app = electron.app;
-const ipcMain = electron.ipcMain;
+const ipcMain = require('./ipc-main');
+require('./session');
 const EventEmitter = require('events').EventEmitter;
 const url = require('url');
 const path = require('path');
@@ -17,17 +17,7 @@ WebContents.prototype._init = function () {
     if (this.hasOwnProperty('m_isInited'))
         return;
     this.m_isInited = true;
-    
-    ///
-    this.session = {
-        "webRequest" : {
-            "onBeforeSendHeaders" : function() {},
-            "onBeforeRequest" : function() {},
-            "onHeadersReceived" : function() {},
-        }
-    };
     this.webContents = this; // 兼容vscode 1.23
-    ///
     
     // Every remote callback from renderer process would add a listenter to the
     // render-view-deleted event, so ignore the listenters warning.
@@ -47,7 +37,9 @@ WebContents.prototype._init = function () {
             set: function (value) {
                 return event.sendReply(value);
             },
-        get: function () {}
+            get: function () {
+                return undefined;
+            }
         });
         event.innnerChannel = 'ipc-message-sync';
         ipcMain.emit(channel, event, ...args);
@@ -130,11 +122,11 @@ WebContents.prototype.getZoomLevel = function (z) {
 WebContents.prototype.loadFile = function (filePath) {
     if (typeof filePath !== 'string')
         throw new Error('Must pass filePath as a string');
-    
+
     return this._loadURL(url.format({
         protocol: 'file',
         slashes: true,
-        pathname: path.resolve(app.getAppPath(), filePath)
+        pathname: path.resolve(electron.app.getAppPath(), filePath)
     }));
 }
 

@@ -14,6 +14,9 @@ common.defineProperties(exports);
 defineLazyExport(exports, 'app', function() {
   return require('../app').App;
 });
+defineLazyExport(exports, 'BrowserWindow', function() {
+  return require('../browser-window');
+});
 defineLazyExport(exports, 'dialog', function() {
   return require('../dialog').dialog;
 });
@@ -46,4 +49,7 @@ defineLazyExport(exports, 'screen', function() {
 });
 defineLazyExport(exports, 'Tray', function() {
   return require('../tray').Tray;
+});
+defineLazyExport(exports, 'webContents', function() {
+  return require('../web-contents');
 });

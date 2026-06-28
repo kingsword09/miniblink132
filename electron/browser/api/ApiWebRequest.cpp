@@ -79,7 +79,7 @@ void ApiWebRequest::newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 }
 
-void ApiWebRequest::onBeforeSendHeadersApi(const v8::FunctionCallbackInfo<v8::Value>& args)
+void ApiWebRequest::setCallbackFromArgs(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Persistent<v8::Value>* callback)
 {
     v8::Local<v8::Value> cb;
     if (args.Length() == 1) {
@@ -87,54 +87,50 @@ void ApiWebRequest::onBeforeSendHeadersApi(const v8::FunctionCallbackInfo<v8::Va
     } else if (args.Length() == 2) {
         cb = args[1];
     }
-    if (!cb->IsFunction())
+    if (cb.IsEmpty() || !cb->IsFunction())
         return;
 
-    m_beforeSendHeadersCb.Reset(args.GetIsolate(), cb);
+    callback->Reset(args.GetIsolate(), cb);
+}
+
+void ApiWebRequest::onBeforeSendHeadersApi(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    setCallbackFromArgs(args, &m_beforeSendHeadersCb);
 }
 
 void ApiWebRequest::onSendHeadersApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Value> cb;
-    if (args.Length() == 1) {
-        cb = args[0];
-    } else if (args.Length() == 2) {
-        cb = args[1];
-    }
-    if (!cb->IsFunction())
-        return;
-
-    m_sendHeadersCb.Reset(args.GetIsolate(), cb);
+    setCallbackFromArgs(args, &m_sendHeadersCb);
 }
 
 void ApiWebRequest::onHeadersReceivedApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    OutputDebugStringA("ApiWebRequest::onHeadersReceivedApi NOT impl\n");
+    setCallbackFromArgs(args, &m_headersReceivedCb);
 }
 
 void ApiWebRequest::onResponseStartedApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    OutputDebugStringA("ApiWebRequest::onResponseStartedApi NOT impl\n");
+    setCallbackFromArgs(args, &m_responseStartedCb);
 }
 
 void ApiWebRequest::onBeforeRedirectApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    OutputDebugStringA("ApiWebRequest::onBeforeRedirectApi NOT impl\n");
+    setCallbackFromArgs(args, &m_beforeRedirectCb);
 }
 
 void ApiWebRequest::onCompletedApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    OutputDebugStringA("ApiWebRequest::onCompletedApi NOT impl\n");
+    setCallbackFromArgs(args, &m_completedCb);
 }
 
 void ApiWebRequest::onErrorOccurredApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    OutputDebugStringA("ApiWebRequest::onErrorOccurredApi NOT impl\n");
+    setCallbackFromArgs(args, &m_errorOccurredCb);
 }
 
 void ApiWebRequest::onBeforeRequestApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    OutputDebugStringA("ApiWebRequest::onBeforeRequestApi NOT impl\n");
+    setCallbackFromArgs(args, &m_beforeRequestCb);
 }
 
 gin_helper::WrapperInfo ApiWebRequest::kWrapperInfo = { gin_helper::GinEmbedder::kEmbedderNativeGin };

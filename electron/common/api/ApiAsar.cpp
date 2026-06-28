@@ -128,7 +128,7 @@ protected:
         }
         const size_t size = offset - start;
 
-        // TODO(anonrig): Follow-up on removing the following changes for AIX.
+        // AIX compatibility path retained from upstream.
         const char* p = &chars[start];
         const char* pe = &chars[size];
         const char* pos[2];

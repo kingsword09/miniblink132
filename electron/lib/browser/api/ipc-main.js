@@ -24,7 +24,7 @@ function createIpcMain() {
         ipcMain.m_invokeHandlers.set(channel, listener);
         
         ipcMain.__origOn__(channel, function (event, ...args) {
-            // TODO: Need channel ?
+            // The channel is already the EventEmitter event name here.
             mbConsoleLog("ipcMain.handle.on::" + channel);
             if (event.innnerChannel != 'ipc-render-invoke')
                 return;
@@ -60,4 +60,4 @@ ipcMain.createIpcMain = createIpcMain;
 module.exports = ipcMain;
 
 // Do not throw exception when channel name is "error".
-module.exports.on('error', () => {})
+module.exports.on('error', () => undefined)

@@ -33,8 +33,15 @@ app.commandLine = require('./api/command-line');
 
 const nativeTheme = require('./api/native-theme');
 
+Object.assign(electron, { app });
+Object.assign(electronMain, { app });
+
+const BrowserWindow = require('./api/browser-window');
+const webContents = require('./api/web-contents');
+
 Object.assign(electron, {
   app,
+  BrowserWindow,
   clipboard: require('../common/api/clipboard'),
   dialog: require('./api/dialog').dialog,
   globalShortcut: require('./api/global-shortcut'),
@@ -49,7 +56,8 @@ Object.assign(electron, {
   safeStorage: require('./api/safe-storage'),
   screen: require('./api/screen').Screen,
   shell: require('../common/api/shell').Shell,
-  Tray: require('./api/tray').Tray
+  Tray: require('./api/tray').Tray,
+  webContents
 });
 
 Object.assign(electronMain, electron);

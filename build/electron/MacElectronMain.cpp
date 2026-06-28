@@ -189,6 +189,11 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> protocol;
         v8::Local<v8::Object> commandLine;
         v8::Local<v8::Object> safeStorage;
+        v8::Local<v8::Object> session;
+        v8::Local<v8::Object> webRequest;
+        v8::Local<v8::Object> downloadItem;
+        v8::Local<v8::Object> webContents;
+        v8::Local<v8::Object> browserWindow;
         v8::Local<v8::Object> features;
         v8::Local<v8::Object> v8Util;
         v8::Local<v8::Object> intlCollator;
@@ -230,6 +235,16 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireBinding(context, "electron_browser_safe_storage", &safeStorage)
             && requireFunctionProperty(context, safeStorage, "electron_browser_safe_storage", "encryptString")
             && requireFunctionProperty(context, safeStorage, "electron_browser_safe_storage", "decryptString")
+            && requireBinding(context, "electron_browser_session", &session)
+            && requireFunctionProperty(context, session, "electron_browser_session", "Session")
+            && requireBinding(context, "electron_browser_webrequest", &webRequest)
+            && requireFunctionProperty(context, webRequest, "electron_browser_webrequest", "WebRequest")
+            && requireBinding(context, "electron_browser_downloaditem", &downloadItem)
+            && requireFunctionProperty(context, downloadItem, "electron_browser_downloaditem", "DownloadItem")
+            && requireBinding(context, "electron_browser_web_contents", &webContents)
+            && requireFunctionProperty(context, webContents, "electron_browser_web_contents", "WebContents")
+            && requireBinding(context, "electron_browser_browserwindow", &browserWindow)
+            && requireFunctionProperty(context, browserWindow, "electron_browser_browserwindow", "BrowserWindow")
             && requireBinding(context, "electron_common_features", &features)
             && requireFunctionProperty(context, features, "electron_common_features", "isViewApiEnabled")
             && requireBinding(context, "electron_common_v8_util", &v8Util)
@@ -257,6 +272,11 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const protocol = process._linkedBinding('electron_browser_protocol');"
                 "const commandLine = process._linkedBinding('electron_browser_commandline');"
                 "const safeStorage = process._linkedBinding('electron_browser_safe_storage');"
+                "const session = process._linkedBinding('electron_browser_session');"
+                "const webRequest = process._linkedBinding('electron_browser_webrequest');"
+                "const downloadItem = process._linkedBinding('electron_browser_downloaditem');"
+                "const webContents = process._linkedBinding('electron_browser_web_contents');"
+                "const browserWindow = process._linkedBinding('electron_browser_browserwindow');"
                 "const features = process._linkedBinding('electron_common_features');"
                 "const v8Util = process._linkedBinding('electron_common_v8_util');"
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
@@ -275,6 +295,11 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof protocol.Protocol !== 'function') throw new Error('protocol');"
                 "if (typeof commandLine.ApiCommandLine !== 'function') throw new Error('commandLine');"
                 "if (typeof safeStorage.encryptString !== 'function') throw new Error('safeStorage');"
+                "if (typeof session.Session !== 'function') throw new Error('session');"
+                "if (typeof webRequest.WebRequest !== 'function') throw new Error('webRequest');"
+                "if (typeof downloadItem.DownloadItem !== 'function') throw new Error('downloadItem');"
+                "if (typeof webContents.WebContents !== 'function') throw new Error('webContents');"
+                "if (typeof browserWindow.BrowserWindow !== 'function') throw new Error('BrowserWindow');"
                 "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"
                 "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
                 "if (typeof v8Util.takeHeapSnapshot !== 'function') throw new Error('v8Util takeHeapSnapshot');"
@@ -768,6 +793,11 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
             && addNodeLinkedBinding(setup->env(), "electron_browser_protocol")
             && addNodeLinkedBinding(setup->env(), "electron_browser_commandline")
             && addNodeLinkedBinding(setup->env(), "electron_browser_safe_storage")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_session")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_webrequest")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_downloaditem")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_web_contents")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_browserwindow")
             && addNodeLinkedBinding(setup->env(), "electron_common_features")
             && addNodeLinkedBinding(setup->env(), "electron_common_v8_util")
             && addNodeLinkedBinding(setup->env(), "electron_common_original_fs")
@@ -791,6 +821,11 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "const protocol = process._linkedBinding('electron_browser_protocol');"
                 "const commandLine = process._linkedBinding('electron_browser_commandline');"
                 "const safeStorage = process._linkedBinding('electron_browser_safe_storage');"
+                "const session = process._linkedBinding('electron_browser_session');"
+                "const webRequest = process._linkedBinding('electron_browser_webrequest');"
+                "const downloadItem = process._linkedBinding('electron_browser_downloaditem');"
+                "const webContents = process._linkedBinding('electron_browser_web_contents');"
+                "const browserWindow = process._linkedBinding('electron_browser_browserwindow');"
                 "const features = process._linkedBinding('electron_common_features');"
                 "const v8Util = process._linkedBinding('electron_common_v8_util');"
                 "const originalFs = process._linkedBinding('electron_common_original_fs');"
@@ -811,6 +846,11 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "if (typeof protocol.Protocol !== 'function') throw new Error('protocol');"
                 "if (typeof commandLine.ApiCommandLine !== 'function') throw new Error('commandLine');"
                 "if (typeof safeStorage.encryptString !== 'function') throw new Error('safeStorage');"
+                "if (typeof session.Session !== 'function') throw new Error('session');"
+                "if (typeof webRequest.WebRequest !== 'function') throw new Error('webRequest');"
+                "if (typeof downloadItem.DownloadItem !== 'function') throw new Error('downloadItem');"
+                "if (typeof webContents.WebContents !== 'function') throw new Error('webContents');"
+                "if (typeof browserWindow.BrowserWindow !== 'function') throw new Error('BrowserWindow');"
                 "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"
                 "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
                 "if (!originalFs || typeof originalFs.readFileSync !== 'function') throw new Error('originalFs');"

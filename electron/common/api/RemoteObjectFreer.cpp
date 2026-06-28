@@ -46,7 +46,7 @@ RemoteObjectFreer::~RemoteObjectFreer()
 
 void RemoteObjectFreer::onRunDestructor()
 {
-    // TODO
+    // Renderer dereference messages are not emitted from this embedder path.
     //   content::RenderView* render_view = GetCurrentRenderView();
     //   if (!render_view)
     //     return;

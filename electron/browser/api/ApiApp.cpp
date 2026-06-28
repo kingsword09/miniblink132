@@ -871,9 +871,7 @@ bool getTempDir(base::FilePath* path)
     DWORD path_len = ::GetTempPath(MAX_PATH, temp_path);
     if (path_len >= MAX_PATH || path_len <= 0)
         return false;
-    // TODO(evanm): the old behavior of this function was to always strip the
-    // trailing slash.  We duplicate this here, but it shouldn't be necessary
-    // when everyone is using the appropriate FilePath APIs.
+    // Preserve the old behavior of stripping the trailing slash.
     *path = base::FilePath(temp_path).StripTrailingSeparators();
     return true;
 }

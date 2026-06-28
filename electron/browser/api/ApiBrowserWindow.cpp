@@ -101,7 +101,6 @@ public:
         ::InitializeCriticalSection(&m_mouseMsgQueueLock);
 
         m_draggableRegion = ::CreateRectRgn(0, 0, 0, 0);
-        //m_dragAction = nullptr; // TODO
         m_foucsBrowserView = nullptr;
 
         m_id = IdLiveDetect::get()->constructed(this);
@@ -1365,7 +1364,11 @@ private:
         BrowserView* browserView = getBrowserView(info);
         if (!browserView)
             return;
-        m_browserViews.push_back(browserView); // TODO delete
+        for (std::vector<BrowserView*>::iterator it = m_browserViews.begin(); it != m_browserViews.end(); ++it) {
+            if (*it == browserView)
+                return;
+        }
+        m_browserViews.push_back(browserView);
         browserView->attachBrowserWindow(m_hWnd);
     }
 

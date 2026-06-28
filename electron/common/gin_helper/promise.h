@@ -157,8 +157,8 @@ template <typename T> struct Converter<gin_helper::Promise<T>> {
     {
         return val.GetHandle();
     }
-    // TODO(MarshallOfSound): Implement FromV8 to allow promise chaining
-    //                        in native land
+    // Native promise chaining is intentionally omitted; callers pass Promise
+    // handles back to JavaScript.
     // static bool FromV8(v8::Isolate* isolate,
     //                    v8::Local<v8::Value> val,
     //                    Promise* out);

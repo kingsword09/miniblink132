@@ -191,7 +191,7 @@ mbDownloadOpt ApiSession::onDownloadCallback(WebContents* webContents, mbWebView
         downloadOptions.magic = 'mbdo';
         downloadOptions.saveAsPathAndName = FALSE; // saveAsPathAndName表示强行把文件名+路径设置为为item->getSavePath，这里和electron规范不符合
         return mbDownloadByPath(webView, &downloadOptions, StringUtil::UTF8ToUTF16(item->getSavePath()).c_str(), expectedContentLength, url, mime, disposition,
-            job, dataBind, &bind); // TODO
+            job, dataBind, &bind);
     }
 }
 
@@ -354,7 +354,7 @@ void ApiSession::onLoadUrlBeginInBlinkThread(mbWebView webView, const char* url,
 
 void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJob job, v8::Persistent<v8::Value>* persistentCb)
 {
-    if (!m_webRequest || !(persistentCb->IsEmpty())) {
+    if (!m_webRequest || persistentCb->IsEmpty()) {
         return;
     }
     ApiSession* self = this;
@@ -369,7 +369,7 @@ void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJo
     content::ThreadCall::callUiThreadSync(FROM_HERE, [self, persistentCb, urlStr, info, httpMethod, httpHead, referrer] {
         std::unique_ptr<std::string> referrerPtr(referrer);
         std::unique_ptr<std::string> urlStrPtr(urlStr);
-        if (!self->m_webRequest || !(persistentCb->IsEmpty())) {
+        if (!self->m_webRequest || persistentCb->IsEmpty()) {
             info->isCalled = true;
             return;
         }
@@ -528,7 +528,7 @@ SessionMgr* SessionMgr::get()
 
     //  先创建rootdir/minieleses/default/目录
     if (!m_inst->createRootDir())
-        return nullptr; // TODO: 如果创建失败了，没处理
+        return nullptr;
    
     return m_inst;
 }

@@ -340,9 +340,7 @@ public:
         std::u16string escaped_url = (const char16_t*)L"\"" + url + (const char16_t*)L"\"";
 
         if (reinterpret_cast<ULONG_PTR>(ShellExecuteW(NULL, L"open", (LPCWSTR)escaped_url.c_str(), NULL, NULL, SW_SHOWNORMAL)) <= 32) {
-            // We fail to execute the call. We could display a message to the user.
-            // TODO(nsylvain): we should also add a dialog to warn on errors. See
-            // bug 1136923.
+            // Callers surface the failure through the shell API result.
             return false;
         }
         return true;

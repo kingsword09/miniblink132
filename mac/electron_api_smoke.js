@@ -302,6 +302,26 @@ async function runElectronAppRuntimeSmoke() {
         makeSingleInstanceImpl() { return false; }
     }
 
+    class RuntimeFakeWebContents {
+        static fromId() { return null; }
+        static getAllWebContents() { return []; }
+        static getFocusedWebContents() { return null; }
+    }
+
+    class RuntimeFakeBrowserWindow {
+        static fromId() { return null; }
+        static fromWebContents() { return null; }
+        static getAllWindows() { return []; }
+        static getFocusedWindow() { return null; }
+    }
+
+    class RuntimeFakeSession {
+        static fromPartition() { return new RuntimeFakeSession(); }
+    }
+
+    class RuntimeFakeWebRequest {}
+    class RuntimeFakeDownloadItem {}
+
     function Tray() {}
     function NativeImage() {}
     function MenuItem() {}
@@ -327,6 +347,16 @@ async function runElectronAppRuntimeSmoke() {
     process._linkedBinding = function(name) {
         if (name === 'electron_browser_app')
             return { App: RuntimeFakeApp };
+        if (name === 'electron_browser_web_contents')
+            return { WebContents: RuntimeFakeWebContents };
+        if (name === 'electron_browser_browserwindow')
+            return { BrowserWindow: RuntimeFakeBrowserWindow };
+        if (name === 'electron_browser_session')
+            return { Session: RuntimeFakeSession };
+        if (name === 'electron_browser_webrequest')
+            return { WebRequest: RuntimeFakeWebRequest };
+        if (name === 'electron_browser_downloaditem')
+            return { DownloadItem: RuntimeFakeDownloadItem };
         if (originalLinkedBinding)
             return originalLinkedBinding.call(process, name);
         throw new Error('unexpected linked binding: ' + name);
@@ -336,10 +366,18 @@ async function runElectronAppRuntimeSmoke() {
     const appPath = require.resolve('../electron/lib/browser/api/app');
     const nativeThemePath = require.resolve('../electron/lib/browser/api/native-theme');
     const browserExportsPath = require.resolve('../electron/lib/browser/api/exports/electron');
+    const browserWindowPath = require.resolve('../electron/lib/browser/api/browser-window');
+    const webContentsPath = require.resolve('../electron/lib/browser/api/web-contents');
+    const ipcMainPath = require.resolve('../electron/lib/browser/api/ipc-main');
+    const sessionPath = require.resolve('../electron/lib/browser/api/session');
     delete require.cache[electronPath];
     delete require.cache[appPath];
     delete require.cache[nativeThemePath];
     delete require.cache[browserExportsPath];
+    delete require.cache[browserWindowPath];
+    delete require.cache[webContentsPath];
+    delete require.cache[ipcMainPath];
+    delete require.cache[sessionPath];
 
     Module._load = function(request, parent, isMain) {
         if (request === 'electron')
@@ -408,9 +446,14 @@ async function runElectronAppRuntimeSmoke() {
 
         assert.strictEqual(electron.nativeTheme.themeSource, 'system');
         assert.strictEqual(browserExports.app, RuntimeFakeApp);
+        assert.strictEqual(electron.BrowserWindow, RuntimeFakeBrowserWindow);
+        assert.strictEqual(electronMainShim.BrowserWindow, RuntimeFakeBrowserWindow);
+        assert.strictEqual(browserExports.BrowserWindow, RuntimeFakeBrowserWindow);
+        assert.strictEqual(electron.webContents, RuntimeFakeWebContents);
+        assert.strictEqual(electronMainShim.webContents, RuntimeFakeWebContents);
+        assert.strictEqual(browserExports.webContents, RuntimeFakeWebContents);
         assert.strictEqual(browserExports.nativeTheme, electron.nativeTheme);
         assert.strictEqual(electronMainShim.nativeTheme, electron.nativeTheme);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserWindow'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserView'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'contentTracing'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'crashReporter'), false);
@@ -421,11 +464,8 @@ async function runElectronAppRuntimeSmoke() {
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'systemPreferences'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'TouchBar'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'utilityProcess'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'webContents'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'webFrameMain'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(browserExports, 'BrowserWindow'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(browserExports, 'session'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(browserExports, 'webContents'), false);
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseInvertedColorScheme, false);
@@ -487,9 +527,259 @@ async function runElectronAppRuntimeSmoke() {
         delete require.cache[appPath];
         delete require.cache[nativeThemePath];
         delete require.cache[browserExportsPath];
+        delete require.cache[browserWindowPath];
+        delete require.cache[webContentsPath];
+        delete require.cache[ipcMainPath];
+        delete require.cache[sessionPath];
     }
 
     console.log('PASS app-runtime-js-smoke');
+}
+
+async function runBrowserWindowWebContentsSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const Module = require('module');
+    const originalLoad = Module._load;
+    const electronShim = {
+        app: {
+            getAppPath() {
+                return '/tmp/miniblink-browser-window-smoke';
+            }
+        }
+    };
+    const browserWindowPath = require.resolve('../electron/lib/browser/api/browser-window');
+    const webContentsPath = require.resolve('../electron/lib/browser/api/web-contents');
+    const ipcMainPath = require.resolve('../electron/lib/browser/api/ipc-main');
+    const sessionPath = require.resolve('../electron/lib/browser/api/session');
+
+    class FakeWebContents {
+        constructor() {
+            this._url = '';
+            this._sent = [];
+            this._css = [];
+            this._devToolsOpened = false;
+        }
+
+        static fromId(id) {
+            return FakeWebContents._byId.get(id) || null;
+        }
+
+        static getAllWebContents() {
+            return Array.from(FakeWebContents._byId.values());
+        }
+
+        static getFocusedWebContents() {
+            return FakeWebContents._focused || null;
+        }
+
+        getId() {
+            return this.id;
+        }
+
+        _loadURL(targetURL) {
+            this._url = targetURL;
+            setImmediate(() => this.emit('did-finish-load'));
+        }
+
+        _getURL() {
+            return this._url;
+        }
+
+        _insertCSS(css, options) {
+            this._css.push({ css, options });
+            return Promise.resolve('miniblink-css-key');
+        }
+
+        _send(frameId, sendToAll, channel, ...args) {
+            this._sent.push({ frameId, sendToAll, channel, args });
+            return true;
+        }
+
+        reload() {
+            this._reloaded = true;
+        }
+
+        openDevTools() {
+            this._devToolsOpened = true;
+        }
+
+        closeDevTools() {
+            this._devToolsOpened = false;
+        }
+
+        isDevToolsOpened() {
+            return this._devToolsOpened;
+        }
+
+        isDevToolsFocused() {
+            return this._devToolsOpened;
+        }
+
+        toggleDevTools() {
+            this._devToolsOpened = !this._devToolsOpened;
+        }
+
+        inspectElement() {
+            this._inspected = true;
+        }
+
+        inspectServiceWorker() {
+            this._inspectedServiceWorker = true;
+        }
+
+        showDefinitionForSelection() {
+            this._showedDefinition = true;
+        }
+
+        capturePage() {
+            return Promise.resolve(Buffer.from('capture'));
+        }
+    }
+    FakeWebContents._byId = new Map();
+    FakeWebContents._focused = null;
+
+    class FakeBrowserWindow {
+        constructor() {
+            this.id = ++FakeBrowserWindow._nextId;
+            this._title = '';
+            this._webContents = new FakeWebContents();
+            this._webContents.id = this.id * 10;
+            FakeBrowserWindow._byId.set(this.id, this);
+            FakeWebContents._byId.set(this._webContents.id, this._webContents);
+            FakeBrowserWindow._focused = this;
+            FakeWebContents._focused = this._webContents;
+        }
+
+        static fromId(id) {
+            return FakeBrowserWindow._byId.get(id) || null;
+        }
+
+        static fromWebContents(contents) {
+            for (const win of FakeBrowserWindow._byId.values()) {
+                if (win._webContents === contents)
+                    return win;
+            }
+            return null;
+        }
+
+        static getAllWindows() {
+            return Array.from(FakeBrowserWindow._byId.values());
+        }
+
+        static getFocusedWindow() {
+            return FakeBrowserWindow._focused || null;
+        }
+
+        _getWebContents() {
+            return this._webContents;
+        }
+
+        _setTitle(title) {
+            this._title = title;
+        }
+
+        getTitle() {
+            return this._title;
+        }
+    }
+    FakeBrowserWindow._nextId = 0;
+    FakeBrowserWindow._byId = new Map();
+    FakeBrowserWindow._focused = null;
+
+    class FakeSession {
+        static fromPartition() {
+            return new FakeSession();
+        }
+    }
+    class FakeWebRequest {}
+    class FakeDownloadItem {}
+
+    delete require.cache[browserWindowPath];
+    delete require.cache[webContentsPath];
+    delete require.cache[ipcMainPath];
+    delete require.cache[sessionPath];
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_web_contents')
+            return { WebContents: FakeWebContents };
+        if (name === 'electron_browser_browserwindow')
+            return { BrowserWindow: FakeBrowserWindow };
+        if (name === 'electron_browser_session')
+            return { Session: FakeSession };
+        if (name === 'electron_browser_webrequest')
+            return { WebRequest: FakeWebRequest };
+        if (name === 'electron_browser_downloaditem')
+            return { DownloadItem: FakeDownloadItem };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    Module._load = function(request, parent, isMain) {
+        if (request === 'electron')
+            return electronShim;
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    try {
+        const BrowserWindow = require('../electron/lib/browser/api/browser-window');
+        const WebContents = require('../electron/lib/browser/api/web-contents');
+        const win = new BrowserWindow();
+        const contents = win.webContents;
+
+        assert.strictEqual(BrowserWindow.getFocusedWindow(), win);
+        assert.strictEqual(BrowserWindow.fromId(win.id), win);
+        assert.strictEqual(BrowserWindow.fromWebContents(contents), win);
+        assert.deepStrictEqual(BrowserWindow.getAllWindows(), [win]);
+        assert.strictEqual(WebContents.getFocusedWebContents(), contents);
+        assert.strictEqual(WebContents.fromId(contents.id), contents);
+        assert.deepStrictEqual(WebContents.getAllWebContents(), [contents]);
+
+        assert.strictEqual(contents.webContents, contents);
+        assert.strictEqual(typeof contents.ipc.on, 'function');
+        assert.strictEqual(typeof contents.ipc.handle, 'function');
+
+        win.setTitle('MiniBlink BrowserWindow');
+        assert.strictEqual(win.getTitle(), 'MiniBlink BrowserWindow');
+
+        win.setTouchBar({ items: [] });
+        assert.deepStrictEqual(win._touchBar, { items: [] });
+
+        await win.loadURL('https://example.test/page');
+        assert.strictEqual(win.getURL(), 'https://example.test/page');
+
+        await win.loadFile('index.html');
+        assert.ok(win.getURL().startsWith('file:///tmp/miniblink-browser-window-smoke/index.html'));
+
+        assert.strictEqual(await contents.insertCSS('body { color: red; }', { cssOrigin: 'author' }), 'miniblink-css-key');
+        assert.deepStrictEqual(contents._css[0], {
+            css: 'body { color: red; }',
+            options: { cssOrigin: 'author' }
+        });
+
+        assert.strictEqual(win.send('channel', 1, 'two'), true);
+        assert.deepStrictEqual(contents._sent[0], {
+            frameId: 0,
+            sendToAll: false,
+            channel: 'channel',
+            args: [1, 'two']
+        });
+
+        win.openDevTools();
+        assert.strictEqual(win.isDevToolsOpened(), true);
+        win.closeDevTools();
+        assert.strictEqual(win.isDevToolsOpened(), false);
+        assert.strictEqual((await win.capturePage()).toString(), 'capture');
+
+        console.log('PASS browser-window-webcontents-js-smoke');
+    } finally {
+        Module._load = originalLoad;
+        process._linkedBinding = originalLinkedBinding;
+        delete require.cache[browserWindowPath];
+        delete require.cache[webContentsPath];
+        delete require.cache[ipcMainPath];
+        delete require.cache[sessionPath];
+    }
 }
 
 async function runNativeThemeNativeNotificationSmoke() {
@@ -1101,6 +1391,9 @@ function runRendererExportSurfaceSmoke() {
 runAppApiSmoke()
     .then(function() {
         return runElectronAppRuntimeSmoke();
+    })
+    .then(function() {
+        return runBrowserWindowWebContentsSmoke();
     })
     .then(function() {
         return runNativeThemeNativeNotificationSmoke();
