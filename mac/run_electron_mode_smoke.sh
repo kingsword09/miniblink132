@@ -24,6 +24,7 @@ fi
 "$BIN" --electron-tray-smoke
 "$BIN" --electron-protocol-smoke
 "$BIN" --electron-base-api-smoke
+"$BIN" --electron-asar-smoke
 "$BIN" --electron-power-monitor-event-smoke
 "$BIN" --electron-power-save-blocker-lifecycle-smoke
 "$BIN" --electron-app-smoke
@@ -33,27 +34,31 @@ fi
 "$BIN" --electron-v8-shared-array-buffer-smoke
 "$BIN" --electron-node-bootstrap-smoke
 
-symbols="$(nm -gU "$BIN")"
-grep -q "__register_electron_browser_native_theme" <<<"$symbols"
-grep -q "__register_electron_browser_app" <<<"$symbols"
-grep -q "__register_electron_browser_powermonitor" <<<"$symbols"
-grep -q "__register_electron_browser_global_shortcut" <<<"$symbols"
-grep -q "__register_electron_browser_menu" <<<"$symbols"
-grep -q "__register_electron_browser_power_save_blocker" <<<"$symbols"
-grep -q "__register_electron_common_nativeImage" <<<"$symbols"
-grep -q "__register_electron_common_clipboard" <<<"$symbols"
-grep -q "__register_electron_common_screen" <<<"$symbols"
-grep -q "__register_electron_common_shell" <<<"$symbols"
-grep -q "__register_electron_browser_dialog" <<<"$symbols"
-grep -q "__register_electron_browser_tray" <<<"$symbols"
-grep -q "__register_electron_browser_protocol" <<<"$symbols"
-grep -q "__register_electron_browser_commandline" <<<"$symbols"
-grep -q "__register_electron_browser_safe_storage" <<<"$symbols"
-grep -q "_nodeModuleInitRegister" <<<"$symbols"
-grep -q "_electronMacNodeBridgeGetLinkedBinding" <<<"$symbols"
-grep -q "__register_electron_common_features" <<<"$symbols"
-grep -q "__register_electron_common_v8_util" <<<"$symbols"
-grep -q "__register_electron_common_original_fs" <<<"$symbols"
-grep -q "__register_electron_common_intl_collator" <<<"$symbols"
+require_symbol() {
+    nm -gU "$BIN" | grep "$1" >/dev/null
+}
+
+require_symbol "__register_electron_browser_native_theme"
+require_symbol "__register_electron_browser_app"
+require_symbol "__register_electron_browser_powermonitor"
+require_symbol "__register_electron_browser_global_shortcut"
+require_symbol "__register_electron_browser_menu"
+require_symbol "__register_electron_browser_power_save_blocker"
+require_symbol "__register_electron_common_nativeImage"
+require_symbol "__register_electron_common_clipboard"
+require_symbol "__register_electron_common_screen"
+require_symbol "__register_electron_common_shell"
+require_symbol "__register_electron_browser_dialog"
+require_symbol "__register_electron_browser_tray"
+require_symbol "__register_electron_browser_protocol"
+require_symbol "__register_electron_browser_commandline"
+require_symbol "__register_electron_browser_safe_storage"
+require_symbol "_nodeModuleInitRegister"
+require_symbol "_electronMacNodeBridgeGetLinkedBinding"
+require_symbol "__register_electron_common_features"
+require_symbol "__register_electron_common_v8_util"
+require_symbol "__register_electron_common_original_fs"
+require_symbol "__register_electron_common_intl_collator"
+require_symbol "__register_electron_common_asar"
 
 echo "ok electron_mode_smoke"

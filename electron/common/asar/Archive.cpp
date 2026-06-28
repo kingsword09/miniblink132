@@ -10,6 +10,8 @@
 #include "electron/common/asar/ScopedTemporaryFile.h"
 #include "electron/common/asar/AsarUtil.h"
 
+#include <cstdlib>
+
 #include "base/files/file_util.h"
 #include "base/files/file.h"
 #include "base/logging.h"
@@ -115,7 +117,7 @@ bool FillFileInfoWithNode(Archive::FileInfo* info, uint32_t header_size, const b
     //     return false;
 
     char* endptr = nullptr;
-    info->offset = _strtoui64(offset->c_str(), &endptr, 10);
+    info->offset = std::strtoull(offset->c_str(), &endptr, 10);
 
     info->offset += header_size;
 

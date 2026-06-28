@@ -254,6 +254,13 @@ if (constVal.isMac) {
 	const macCommandLineSrc = "${srcPath}/electron/browser/api/ApiCommandLine.cpp";
 	const macSafeStorageSrc = "${srcPath}/electron/browser/api/ApiSafestorage.cpp";
 	const macFeaturesSrc = "${srcPath}/electron/common/api/ApiFeatures.cpp";
+	const macAsarSrc = "${srcPath}/electron/common/api/ApiAsar.cpp";
+	const macAsarSupportSrc = [
+		"${srcPath}/electron/common/asar/AsarJs.cpp",
+		"${srcPath}/electron/common/asar/AsarUtil.cpp",
+		"${srcPath}/electron/common/asar/Archive.cpp",
+		"${srcPath}/electron/common/asar/ScopedTemporaryFile.cpp",
+	];
 	const macPowerMonitorIdleSrc = [
 		"${srcPath}/ui/base/idle/idle.cc",
 		"${srcPath}/ui/base/idle/idle_internal.cc",
@@ -287,6 +294,7 @@ if (constVal.isMac) {
 		"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
 		"${srcPath}/electron/common/api/ApiScreen.cpp",
 		"${srcPath}/electron/common/api/ApiV8Util.cpp",
+		macAsarSrc,
 		"${srcPath}/electron/common/api/Event.cpp",
 		"${srcPath}/electron/common/api/EventEmitter.cpp",
 		"${srcPath}/electron/common/api/EventEmitterCaller.cpp",
@@ -304,6 +312,7 @@ if (constVal.isMac) {
 		"${srcPath}/electron/renderer/api/ApiRendererIpc.cpp",
 		"${srcPath}/electron/renderer/api/ObjectCache.cpp",
 		...macElectronSupportSrc,
+		...macAsarSupportSrc,
 		...macPowerMonitorIdleSrc,
 	]);
 	json[0].compile.src = json[0].compile.src.filter(src => macElectronLinkedBindingSrc.has(src));
@@ -322,7 +331,9 @@ if (constVal.isMac) {
 	json[0].compile.src.push(macPowerMonitorSrc);
 	json[0].compile.src.push(macPowerSaveBlockerSrc);
 	json[0].compile.src.push(macWindowListSrc);
+	json[0].compile.src.push(macAsarSrc);
 	json[0].compile.src.push(...macElectronSupportSrc);
+	json[0].compile.src.push(...macAsarSupportSrc);
 	json[0].compile.src.push(...macPowerMonitorIdleSrc);
 	json[0].compile.src = [...new Set(json[0].compile.src)];
 	json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => macElectronLinkedBindingSrc.has(src));
@@ -341,7 +352,9 @@ if (constVal.isMac) {
 	json[0].compile.prebuildSrc.push(macPowerMonitorSrc);
 	json[0].compile.prebuildSrc.push(macPowerSaveBlockerSrc);
 	json[0].compile.prebuildSrc.push(macWindowListSrc);
+	json[0].compile.prebuildSrc.push(macAsarSrc);
 	json[0].compile.prebuildSrc.push(...macElectronSupportSrc);
+	json[0].compile.prebuildSrc.push(...macAsarSupportSrc);
 	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);
 	json[0].compile.prebuildSrc = [...new Set(json[0].compile.prebuildSrc)];
 }

@@ -46,6 +46,7 @@ extern "C" void _register_electron_common_features(void);
 extern "C" void _register_electron_common_v8_util(void);
 extern "C" void _register_electron_common_original_fs(void);
 extern "C" void _register_electron_common_intl_collator(void);
+extern "C" void _register_electron_common_asar(void);
 
 extern "C" void electronMacNodeBridgeRegisterModule(void* module)
 {
@@ -132,6 +133,7 @@ extern "C" void nodeModuleInitRegister(void)
     _register_electron_common_v8_util();
     _register_electron_common_original_fs();
     _register_electron_common_intl_collator();
+    _register_electron_common_asar();
 }
 
 bool g_isElectronMode = false;
@@ -157,8 +159,6 @@ struct CloneableMessage;
 } // namespace blink
 
 namespace atom {
-
-unsigned char AsarJs[32262 + 1] = "exports = {};";
 
 void bindMbConsoleLog(v8::Local<v8::Context>)
 {

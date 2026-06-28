@@ -192,6 +192,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> features;
         v8::Local<v8::Object> v8Util;
         v8::Local<v8::Object> intlCollator;
+        v8::Local<v8::Object> asar;
 
         ok = requireBinding(context, "electron_browser_native_theme", &nativeTheme)
             && requireFunctionProperty(context, nativeTheme, "electron_browser_native_theme", "shouldUseDarkColors")
@@ -235,7 +236,10 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireFunctionProperty(context, v8Util, "electron_common_v8_util", "getHiddenValue")
             && requireFunctionProperty(context, v8Util, "electron_common_v8_util", "takeHeapSnapshot")
             && requireBinding(context, "electron_common_intl_collator", &intlCollator)
-            && requireFunctionProperty(context, intlCollator, "electron_common_intl_collator", "IntlCollator");
+            && requireFunctionProperty(context, intlCollator, "electron_common_intl_collator", "IntlCollator")
+            && requireBinding(context, "electron_common_asar", &asar)
+            && requireFunctionProperty(context, asar, "electron_common_asar", "Archive")
+            && requireFunctionProperty(context, asar, "electron_common_asar", "initAsarSupport");
 
         if (ok) {
             const char scriptSource[] =
@@ -256,6 +260,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const features = process._linkedBinding('electron_common_features');"
                 "const v8Util = process._linkedBinding('electron_common_v8_util');"
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
+                "const asar = process._linkedBinding('electron_common_asar');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof app.App !== 'function') throw new Error('app');"
                 "if (typeof psb.setExecutionState !== 'function') throw new Error('powerSaveBlocker');"
@@ -274,6 +279,8 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
                 "if (typeof v8Util.takeHeapSnapshot !== 'function') throw new Error('v8Util takeHeapSnapshot');"
                 "if (typeof intlCollator.IntlCollator !== 'function') throw new Error('intlCollator');"
+                "if (typeof asar.Archive !== 'function') throw new Error('asar Archive');"
+                "if (typeof asar.initAsarSupport !== 'function') throw new Error('asar initAsarSupport');"
                 "true;";
             ok = runV8Script(context, scriptSource);
         }
@@ -390,6 +397,62 @@ bool addElectronBaseApiBindings(node::Environment* env)
         && addNodeLinkedBinding(env, "electron_common_intl_collator");
 }
 
+void appendUInt32LE(std::vector<unsigned char>* out, unsigned value)
+{
+    out->push_back(static_cast<unsigned char>(value & 0xff));
+    out->push_back(static_cast<unsigned char>((value >> 8) & 0xff));
+    out->push_back(static_cast<unsigned char>((value >> 16) & 0xff));
+    out->push_back(static_cast<unsigned char>((value >> 24) & 0xff));
+}
+
+void appendPickleString(std::vector<unsigned char>* out, const std::string& value)
+{
+    unsigned padding = (4 - (static_cast<unsigned>(value.size()) % 4)) % 4;
+    unsigned payloadSize = 4 + static_cast<unsigned>(value.size()) + padding;
+    appendUInt32LE(out, payloadSize);
+    appendUInt32LE(out, static_cast<unsigned>(value.size()));
+    out->insert(out->end(), value.begin(), value.end());
+    out->insert(out->end(), padding, 0);
+}
+
+bool writeElectronAsarSmokeArchive(std::string* asarPath)
+{
+    const char first[] = "asar hello\n";
+    const char second[] = "nested";
+    char pathBuffer[256];
+    snprintf(pathBuffer, sizeof(pathBuffer), "/tmp/miniblink-asar-smoke-%d.asar", static_cast<int>(getpid()));
+    *asarPath = pathBuffer;
+
+    char headerBuffer[512];
+    snprintf(headerBuffer, sizeof(headerBuffer),
+        "{\"files\":{\"hello.txt\":{\"size\":%zu,\"offset\":\"0\"},\"dir\":{\"files\":{\"nested.txt\":{\"size\":%zu,\"offset\":\"%zu\"}}}}}",
+        strlen(first), strlen(second), strlen(first));
+
+    std::vector<unsigned char> headerPickle;
+    appendPickleString(&headerPickle, headerBuffer);
+
+    std::vector<unsigned char> archive;
+    appendUInt32LE(&archive, 4);
+    appendUInt32LE(&archive, static_cast<unsigned>(headerPickle.size()));
+    archive.insert(archive.end(), headerPickle.begin(), headerPickle.end());
+    archive.insert(archive.end(), first, first + strlen(first));
+    archive.insert(archive.end(), second, second + strlen(second));
+
+    FILE* file = fopen(asarPath->c_str(), "wb");
+    if (!file) {
+        fprintf(stderr, "failed to create %s\n", asarPath->c_str());
+        return false;
+    }
+    bool ok = fwrite(archive.data(), 1, archive.size(), file) == archive.size();
+    if (fclose(file) != 0)
+        ok = false;
+    if (!ok) {
+        fprintf(stderr, "failed to write %s\n", asarPath->c_str());
+        unlink(asarPath->c_str());
+    }
+    return ok;
+}
+
 bool runElectronBaseApiSmoke(int argc, char** argv)
 {
     base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
@@ -503,6 +566,131 @@ bool runElectronBaseApiSmoke(int argc, char** argv)
     return true;
 }
 
+bool runElectronAsarSmoke(int argc, char** argv)
+{
+    base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
+    v8::V8::InitializeExternalStartupData(argc > 0 && argv[0] ? argv[0] : nullptr);
+
+    std::vector<std::string> args;
+    args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    std::shared_ptr<node::InitializationResult> init = node::InitializeOncePerProcess(args, {
+        node::ProcessInitializationFlags::kNoStdioInitialization,
+        node::ProcessInitializationFlags::kNoDefaultSignalHandling,
+        node::ProcessInitializationFlags::kNoInitOpenSSL,
+        node::ProcessInitializationFlags::kNoParseGlobalDebugVariables,
+        node::ProcessInitializationFlags::kNoAdjustResourceLimits,
+        node::ProcessInitializationFlags::kNoUseLargePages,
+        node::ProcessInitializationFlags::kNoPrintHelpOrVersionOutput,
+    });
+    if (!init || init->early_return()) {
+        if (init)
+            printNodeInitErrors(*init);
+        return false;
+    }
+
+    node::MultiIsolatePlatform* platform = init->platform();
+    if (!platform) {
+        fprintf(stderr, "node InitializeOncePerProcess did not create a V8 platform\n");
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::vector<std::string> errors;
+    std::vector<std::string> execArgs;
+    std::unique_ptr<node::CommonEnvironmentSetup> setup = node::CommonEnvironmentSetup::Create(
+        platform, &errors, init->args(), execArgs);
+    if (!setup) {
+        for (const std::string& error : errors)
+            fprintf(stderr, "node setup error: %s\n", error.c_str());
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    std::string asarPath;
+    if (!writeElectronAsarSmokeArchive(&asarPath)) {
+        setup.reset();
+        node::TearDownOncePerProcess();
+        return false;
+    }
+
+    bool ok = false;
+    {
+        v8::Isolate* isolate = setup->isolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope isolateScope(isolate);
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = setup->context();
+        v8::Context::Scope contextScope(context);
+        gin_helper::PerIsolateData perIsolateData(isolate, setup->array_buffer_allocator().get());
+
+        ok = addNodeLinkedBinding(setup->env(), "electron_common_asar");
+        if (ok) {
+            std::string scriptSource = std::string(R"JS(
+const fs = require('fs');
+const path = require('path');
+const asarPath = ")JS") + asarPath + R"JS(";
+const first = 'asar hello\n';
+const second = 'nested';
+const firstSize = 11;
+const secondSize = 6;
+
+const binding = process._linkedBinding('electron_common_asar');
+if (typeof binding.Archive !== 'function') throw new Error('asar Archive export');
+if (typeof binding.initAsarSupport !== 'function') throw new Error('asar initAsarSupport export');
+
+const archive = new binding.Archive();
+if (!archive.init(asarPath)) throw new Error('archive init');
+const rootEntries = archive.readdir('');
+if (!Array.isArray(rootEntries) || !rootEntries.includes('hello.txt') || !rootEntries.includes('dir')) {
+  throw new Error('archive readdir root');
+}
+const info = archive.getFileInfo('hello.txt');
+if (!info || info.size !== firstSize || info.unpacked !== false) throw new Error('archive getFileInfo');
+const dirStat = archive.stat('dir');
+if (!dirStat || dirStat.isDirectory !== true || dirStat.isFile !== false) throw new Error('archive stat dir');
+const nestedInfo = archive.getFileInfo('dir/nested.txt');
+if (!nestedInfo || nestedInfo.size !== secondSize) throw new Error('archive nested getFileInfo');
+const copied = archive.copyFileOut('hello.txt');
+if (!copied || fs.readFileSync(copied, 'utf8') !== first) throw new Error('archive copyFileOut');
+archive.destroy();
+process.noDeprecation = true;
+binding.initAsarSupport(process, require);
+const asarFile = path.join(asarPath, 'hello.txt');
+if (fs.readFileSync(asarFile, 'utf8') !== first) throw new Error('fs readFileSync asar');
+if (!fs.statSync(asarFile).isFile()) throw new Error('fs statSync asar file');
+const nestedFile = path.join(asarPath, 'dir', 'nested.txt');
+if (fs.readFileSync(nestedFile, 'utf8') !== second) throw new Error('fs nested readFileSync asar');
+const dirEntries = fs.readdirSync(path.join(asarPath, 'dir'));
+if (!Array.isArray(dirEntries) || !dirEntries.includes('nested.txt')) throw new Error('fs readdirSync asar');
+fs.unlinkSync(asarPath);
+true;
+)JS";
+            v8::TryCatch tryCatch(isolate);
+            v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource.c_str());
+            if (result.IsEmpty()) {
+                if (tryCatch.HasCaught())
+                    printV8Exception(isolate, tryCatch);
+                ok = false;
+            }
+        }
+
+        if (ok)
+            uv_run(setup->event_loop(), UV_RUN_NOWAIT);
+        if (ok)
+            platform->DrainTasks(isolate);
+    }
+
+    setup.reset();
+    node::TearDownOncePerProcess();
+    unlink(asarPath.c_str());
+
+    if (!ok)
+        return false;
+
+    printf("PASS electron-asar-smoke\n");
+    return true;
+}
+
 bool runNodeBootstrapSmoke(int argc, char** argv)
 {
     base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
@@ -583,7 +771,8 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
             && addNodeLinkedBinding(setup->env(), "electron_common_features")
             && addNodeLinkedBinding(setup->env(), "electron_common_v8_util")
             && addNodeLinkedBinding(setup->env(), "electron_common_original_fs")
-            && addNodeLinkedBinding(setup->env(), "electron_common_intl_collator");
+            && addNodeLinkedBinding(setup->env(), "electron_common_intl_collator")
+            && addNodeLinkedBinding(setup->env(), "electron_common_asar");
 
         if (ok) {
             const char scriptSource[] =
@@ -606,6 +795,7 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "const v8Util = process._linkedBinding('electron_common_v8_util');"
                 "const originalFs = process._linkedBinding('electron_common_original_fs');"
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
+                "const asar = process._linkedBinding('electron_common_asar');"
                 "if (typeof appBinding.App !== 'function') throw new Error('app');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof powerMonitor.ApiPowerMonitor !== 'function') throw new Error('powerMonitor');"
@@ -625,6 +815,8 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
                 "if (!originalFs || typeof originalFs.readFileSync !== 'function') throw new Error('originalFs');"
                 "if (typeof intlCollator.IntlCollator !== 'function') throw new Error('intlCollator');"
+                "if (typeof asar.Archive !== 'function') throw new Error('asar Archive');"
+                "if (typeof asar.initAsarSupport !== 'function') throw new Error('asar initAsarSupport');"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
@@ -2827,6 +3019,15 @@ int main(int argc, char** argv)
         }
         if (!runElectronBaseApiSmoke(argc, argv))
             return 45;
+    }
+
+    if (hasArg(argc, argv, "--electron-asar-smoke")) {
+        if (!electronMacNodeBridgeHasLinkedModule("electron_common_asar")) {
+            fprintf(stderr, "missing electron_common_asar linked binding\n");
+            return 46;
+        }
+        if (!runElectronAsarSmoke(argc, argv))
+            return 47;
     }
 
     if (hasArg(argc, argv, "--electron-v8-typed-array-smoke")) {
