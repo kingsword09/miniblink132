@@ -1,128 +1,49 @@
+'use strict';
+
 const common = require('../../../common/api/exports/electron');
 
-// Import common modules.
+function defineLazyExport(target, name, getter) {
+  Object.defineProperty(target, name, {
+    enumerable: true,
+    get: getter
+  });
+}
+
 common.defineProperties(exports);
 
-Object.defineProperties(exports, {
-  // Browser side modules, please sort with alphabet order.
-  app: {
-    enumerable: true,
-    get: function () {
-      return require('../app');
-    }
-  },
-  autoUpdater: {
-    enumerable: true,
-    get: function () {
-      return require('../auto-updater');
-    }
-  },
-  BrowserWindow: {
-    enumerable: true,
-    get: function () {
-      return require('../browser-window');
-    }
-  },
-  BrowserView: {
-    enumerable: true,
-    get: function () {
-      return require('../browser-view');
-    }
-  },
-  contentTracing: {
-    enumerable: true,
-    get: function () {
-      return require('../content-tracing');
-    }
-  },
-  dialog: {
-    enumerable: true,
-    get: function () {
-      return require('../dialog');
-    }
-  },
-  ipcMain: {
-    enumerable: true,
-    get: function () {
-      return require('../ipc-main');
-    }
-  },
-  globalShortcut: {
-    enumerable: true,
-    get: function () {
-      return require('../global-shortcut');
-    }
-  },
-  Menu: {
-    enumerable: true,
-    get: function () {
-      return require('../menu');
-    }
-  },
-  MenuItem: {
-    enumerable: true,
-    get: function () {
-      return require('../menu-item');
-    }
-  },
-  nativeTheme: {
-    enumerable: true,
-    get: function () {
-      return require('../native-theme');
-    }
-  },
-  powerMonitor: {
-    enumerable: true,
-    get: function () {
-      return require('../power-monitor');
-    }
-  },
-  powerSaveBlocker: {
-    enumerable: true,
-    get: function () {
-      return require('../power-save-blocker');
-    }
-  },
-  protocol: {
-    enumerable: true,
-    get: function () {
-      return require('../protocol');
-    }
-  },
-  screen: {
-    enumerable: true,
-    get: function () {
-      return require('../screen');
-    }
-  },
-  session: {
-    enumerable: true,
-    get: function () {
-      return require('../session');
-    }
-  },
-  systemPreferences: {
-    enumerable: true,
-    get: function () {
-      return require('../system-preferences');
-    }
-  },
-  Tray: {
-    enumerable: true,
-    get: function () {
-      return require('../tray')
-    }
-  },
-  webContents: {
-    enumerable: true,
-    get: function () {
-      return require('../web-contents');
-    }
-  },
-  // The internal modules, invisible unless you know their names.
-  NavigationController: {
-    get: function () {
-      return require('../navigation-controller');
-    }
-  }
-})
+defineLazyExport(exports, 'app', function() {
+  return require('../app').App;
+});
+defineLazyExport(exports, 'dialog', function() {
+  return require('../dialog').dialog;
+});
+defineLazyExport(exports, 'globalShortcut', function() {
+  return require('../global-shortcut');
+});
+defineLazyExport(exports, 'Menu', function() {
+  return require('../menu');
+});
+defineLazyExport(exports, 'MenuItem', function() {
+  return require('../menu-item');
+});
+defineLazyExport(exports, 'nativeTheme', function() {
+  return require('../native-theme');
+});
+defineLazyExport(exports, 'powerMonitor', function() {
+  return require('../power-monitor');
+});
+defineLazyExport(exports, 'powerSaveBlocker', function() {
+  return require('../power-save-blocker');
+});
+defineLazyExport(exports, 'protocol', function() {
+  return require('../protocol').protocol;
+});
+defineLazyExport(exports, 'safeStorage', function() {
+  return require('../safe-storage');
+});
+defineLazyExport(exports, 'screen', function() {
+  return require('../screen').Screen;
+});
+defineLazyExport(exports, 'Tray', function() {
+  return require('../tray').Tray;
+});

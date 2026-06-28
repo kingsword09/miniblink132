@@ -267,6 +267,7 @@ if (constVal.isMac) {
 		"${srcPath}/ui/base/idle/idle_mac.mm",
 	];
 	const macElectronSupportSrc = [
+		"${srcPath}/electron/common/LoadMiniElectronAsarRes.cpp",
 	];
 	const macElectronLinkedBindingSrc = new Set([
 		macAppSrc,

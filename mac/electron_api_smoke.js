@@ -294,41 +294,26 @@ async function runElectronAppRuntimeSmoke() {
         makeSingleInstanceImpl() { return false; }
     }
 
-    function BrowserWindow() {
-        this.webContents = { once() {} };
-    }
-    BrowserWindow.prototype.show = function() {};
-    function BrowserView() {}
-    function WebContents() {}
     function Tray() {}
     function NativeImage() {}
     function MenuItem() {}
 
-    const stubs = {
-        './api/ipc-main': {},
-        './../browser/api/browser-window.js': BrowserWindow,
-        './../browser/api/browser-view.js': BrowserView,
-        './../browser/api/web-contents.js': WebContents,
-        './../browser/api/session.js': { session: {} },
-        './../browser/api/command-line.js': {},
-        './api/menu-item.js': MenuItem,
-        './api/menu.js': { getApplicationMenu() { return null; } },
-        './../common/api/is-promise.js': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
-        './api/dialog.js': { dialog: {} },
-        './api/net.js': { net: {} },
-        './api/utility-process.js': { utilityProcess: {} },
-        './api/parent-port.js': {},
-        './api/web-frame-main.js': { webFrameMain: {} },
-        './api/message-channel-main.js': { MessageChannelMain: function MessageChannelMain() {} },
-        './../common/api/shell.js': { Shell: {} },
-        './../common/api/screen.js': { Screen: {}, Tray },
-        './../common/api/clipboard.js': {},
-        './../common/api/native-image.js': { NativeImage },
-        './api/safe-storage.js': {},
-        './api/protocol.js': { protocol: {} },
-        './api/tray': { Tray },
+    const moduleMocks = {
+        './api/command-line': {},
+        './api/dialog': { dialog: {} },
+        './api/global-shortcut': {},
+        './api/menu': { getApplicationMenu() { return null; } },
+        './api/menu-item': MenuItem,
         './api/power-monitor': {},
-        './api/power-save-blocker': {}
+        './api/power-save-blocker': {},
+        './api/protocol': { protocol: {} },
+        './api/safe-storage': {},
+        './api/screen': { Screen: {} },
+        './api/tray': { Tray },
+        '../common/api/clipboard': {},
+        '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
+        '../common/api/native-image': { NativeImage },
+        '../common/api/shell': { Shell: {} }
     };
 
     process._linkedBinding = function(name) {
@@ -353,8 +338,8 @@ async function runElectronAppRuntimeSmoke() {
             return electronShim;
         if (request === 'electron/main')
             return electronMainShim;
-        if (parent && parent.filename === electronPath && Object.prototype.hasOwnProperty.call(stubs, request))
-            return stubs[request];
+        if (parent && parent.filename === electronPath && Object.prototype.hasOwnProperty.call(moduleMocks, request))
+            return moduleMocks[request];
         return originalLoad.call(this, request, parent, isMain);
     };
 
@@ -414,8 +399,25 @@ async function runElectronAppRuntimeSmoke() {
         app.releaseSingleInstance();
 
         assert.strictEqual(electron.nativeTheme.themeSource, 'system');
+        assert.strictEqual(browserExports.app, RuntimeFakeApp);
         assert.strictEqual(browserExports.nativeTheme, electron.nativeTheme);
         assert.strictEqual(electronMainShim.nativeTheme, electron.nativeTheme);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserWindow'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserView'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'contentTracing'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'crashReporter'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'ipcMain'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'MessageChannelMain'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'net'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'session'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'systemPreferences'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'TouchBar'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'utilityProcess'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'webContents'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'webFrameMain'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(browserExports, 'BrowserWindow'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(browserExports, 'session'), false);
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(browserExports, 'webContents'), false);
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseInvertedColorScheme, false);
@@ -427,7 +429,6 @@ async function runElectronAppRuntimeSmoke() {
         electron.nativeTheme.themeSource = 'dark';
         assert.strictEqual(electron.nativeTheme.themeSource, 'dark');
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, true);
-        assert.strictEqual(electron.systemPreferences.isDarkMode(), true);
         assert.strictEqual(updatedCount, 1);
 
         process.env.MINIBLINK_HIGH_CONTRAST = '1';
@@ -435,7 +436,6 @@ async function runElectronAppRuntimeSmoke() {
 
         electron.nativeTheme.themeSource = 'light';
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
-        assert.strictEqual(electron.systemPreferences.isDarkMode(), false);
         assert.strictEqual(updatedCount, 2);
 
         electron.nativeTheme.themeSource = '';
