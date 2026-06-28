@@ -37,6 +37,7 @@ Object.assign(electron, { app });
 Object.assign(electronMain, { app });
 
 const BrowserWindow = require('./api/browser-window');
+const session = require('./api/session').session;
 const webContents = require('./api/web-contents');
 
 Object.assign(electron, {
@@ -45,6 +46,7 @@ Object.assign(electron, {
   clipboard: require('../common/api/clipboard'),
   dialog: require('./api/dialog').dialog,
   globalShortcut: require('./api/global-shortcut'),
+  ipcMain: require('./api/ipc-main'),
   isPromise: require('../common/api/is-promise').isPromise,
   Menu: require('./api/menu'),
   MenuItem: require('./api/menu-item'),
@@ -55,6 +57,7 @@ Object.assign(electron, {
   protocol: require('./api/protocol').protocol,
   safeStorage: require('./api/safe-storage'),
   screen: require('./api/screen').Screen,
+  session,
   shell: require('../common/api/shell').Shell,
   Tray: require('./api/tray').Tray,
   webContents

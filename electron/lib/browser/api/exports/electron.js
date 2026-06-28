@@ -23,6 +23,9 @@ defineLazyExport(exports, 'dialog', function() {
 defineLazyExport(exports, 'globalShortcut', function() {
   return require('../global-shortcut');
 });
+defineLazyExport(exports, 'ipcMain', function() {
+  return require('../ipc-main');
+});
 defineLazyExport(exports, 'Menu', function() {
   return require('../menu');
 });
@@ -46,6 +49,9 @@ defineLazyExport(exports, 'safeStorage', function() {
 });
 defineLazyExport(exports, 'screen', function() {
   return require('../screen').Screen;
+});
+defineLazyExport(exports, 'session', function() {
+  return require('../session').session;
 });
 defineLazyExport(exports, 'Tray', function() {
   return require('../tray').Tray;

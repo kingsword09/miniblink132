@@ -32,6 +32,8 @@ ApiDownloadItem::ApiDownloadItem(v8::Isolate* isolate, v8::Local<v8::Object> wra
 
 ApiDownloadItem::~ApiDownloadItem()
 {
+    m_saveDialogOptions.Reset();
+    m_liveSelf.Reset();
     IdLiveDetect::get()->deconstructed(m_id);
 }
 
@@ -107,10 +109,22 @@ std::string ApiDownloadItem::getSavePathApi() const
 
 void ApiDownloadItem::setSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args /*options*/)
 {
+    if (args.Length() == 0 || args[0]->IsNull() || args[0]->IsUndefined()) {
+        m_saveDialogOptions.Reset();
+        return;
+    }
+    if (args[0]->IsObject())
+        m_saveDialogOptions.Reset(args.GetIsolate(), args[0]);
 }
 
-void ApiDownloadItem::getSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args) const
+void ApiDownloadItem::getSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    v8::Isolate* isolate = args.GetIsolate();
+    if (m_saveDialogOptions.IsEmpty()) {
+        args.GetReturnValue().Set(v8::Object::New(isolate));
+        return;
+    }
+    args.GetReturnValue().Set(v8::Local<v8::Value>::New(isolate, m_saveDialogOptions));
 }
 
 void ApiDownloadItem::pauseApi()

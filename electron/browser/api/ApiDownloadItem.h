@@ -34,7 +34,7 @@ private:
     void setSavePathApi(const std::string path);
     std::string getSavePathApi() const;
     void setSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args /*options*/);
-    void getSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args) const;
+    void getSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args);
     void pauseApi();
     bool isPausedApi() const;
     void resumeApi();
@@ -66,6 +66,7 @@ public:
     std::string m_disposition;
 
     v8::Persistent<v8::Object> m_liveSelf;
+    v8::Persistent<v8::Value> m_saveDialogOptions;
 
     enum State {
         kProgressing,

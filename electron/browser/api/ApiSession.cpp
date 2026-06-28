@@ -37,6 +37,10 @@ ApiSession::ApiSession(v8::Isolate* isolate, v8::Local<v8::Object> wrapper)
 
 ApiSession::~ApiSession()
 {
+    m_permissionRequestHandler.Reset();
+    m_permissionCheckHandler.Reset();
+    m_devicePermissionHandler.Reset();
+    m_liveSelf.Reset();
     if (m_webRequest)
         delete m_webRequest;
     if (m_protocol)
@@ -420,7 +424,7 @@ void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJo
 
 void ApiSession::fromPartitionApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    if (1 != args.Length() && !(args[0]->IsString()))
+    if (args.Length() < 1 || !args[0]->IsString())
         return;
 
     std::string sessionName;
@@ -434,16 +438,29 @@ void ApiSession::fromPartitionApi(const v8::FunctionCallbackInfo<v8::Value>& arg
     args.GetReturnValue().Set(self->GetWrapper(isolate));
 }
 
-void ApiSession::setPermissionRequestHandlerApi()
+void ApiSession::setOptionalCallbackFromArgs(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Persistent<v8::Value>* callback)
 {
+    if (args.Length() == 0 || args[0]->IsNull() || args[0]->IsUndefined()) {
+        callback->Reset();
+        return;
+    }
+    if (args[0]->IsFunction())
+        callback->Reset(args.GetIsolate(), args[0]);
 }
 
-void ApiSession::setPermissionCheckHandlerApi()
+void ApiSession::setPermissionRequestHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    setOptionalCallbackFromArgs(args, &m_permissionRequestHandler);
 }
 
-void ApiSession::setDevicePermissionHandlerApi()
+void ApiSession::setPermissionCheckHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    setOptionalCallbackFromArgs(args, &m_permissionCheckHandler);
+}
+
+void ApiSession::setDevicePermissionHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    setOptionalCallbackFromArgs(args, &m_devicePermissionHandler);
 }
 
 std::vector<std::string> ApiSession::getPreloadsApi()

@@ -316,7 +316,13 @@ async function runElectronAppRuntimeSmoke() {
     }
 
     class RuntimeFakeSession {
-        static fromPartition() { return new RuntimeFakeSession(); }
+        constructor(partition) {
+            this.partition = partition || '';
+        }
+
+        static fromPartition(partition) {
+            return new RuntimeFakeSession(partition);
+        }
     }
 
     class RuntimeFakeWebRequest {}
@@ -452,20 +458,26 @@ async function runElectronAppRuntimeSmoke() {
         assert.strictEqual(electron.webContents, RuntimeFakeWebContents);
         assert.strictEqual(electronMainShim.webContents, RuntimeFakeWebContents);
         assert.strictEqual(browserExports.webContents, RuntimeFakeWebContents);
+        assert.strictEqual(electron.session, RuntimeFakeSession);
+        assert.strictEqual(electronMainShim.session, RuntimeFakeSession);
+        assert.strictEqual(browserExports.session, RuntimeFakeSession);
+        assert.ok(RuntimeFakeSession.defaultSession instanceof RuntimeFakeSession);
+        assert.strictEqual(RuntimeFakeSession.defaultSession.partition, '');
+        assert.strictEqual(typeof electron.ipcMain.on, 'function');
+        assert.strictEqual(typeof electron.ipcMain.handle, 'function');
+        assert.strictEqual(electronMainShim.ipcMain, electron.ipcMain);
+        assert.strictEqual(browserExports.ipcMain, electron.ipcMain);
         assert.strictEqual(browserExports.nativeTheme, electron.nativeTheme);
         assert.strictEqual(electronMainShim.nativeTheme, electron.nativeTheme);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserView'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'contentTracing'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'crashReporter'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'ipcMain'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'MessageChannelMain'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'net'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'session'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'systemPreferences'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'TouchBar'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'utilityProcess'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'webFrameMain'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(browserExports, 'session'), false);
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseInvertedColorScheme, false);
@@ -779,6 +791,299 @@ async function runBrowserWindowWebContentsSmoke() {
         delete require.cache[webContentsPath];
         delete require.cache[ipcMainPath];
         delete require.cache[sessionPath];
+    }
+}
+
+function runSessionApiSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const sessionPath = require.resolve('../electron/lib/browser/api/session');
+    delete require.cache[sessionPath];
+
+    class FakeWebRequest {
+        constructor() {
+            this.callbacks = Object.create(null);
+        }
+
+        setCallback(name, args) {
+            const values = Array.from(args);
+            this.callbacks[name] = {
+                filter: values.length === 2 ? values[0] : null,
+                callback: values.length === 2 ? values[1] : values[0]
+            };
+        }
+
+        onBeforeSendHeaders() { this.setCallback('onBeforeSendHeaders', arguments); }
+        onSendHeaders() { this.setCallback('onSendHeaders', arguments); }
+        onBeforeRedirect() { this.setCallback('onBeforeRedirect', arguments); }
+        onHeadersReceived() { this.setCallback('onHeadersReceived', arguments); }
+        onResponseStarted() { this.setCallback('onResponseStarted', arguments); }
+        onCompleted() { this.setCallback('onCompleted', arguments); }
+        onErrorOccurred() { this.setCallback('onErrorOccurred', arguments); }
+        onBeforeRequest() { this.setCallback('onBeforeRequest', arguments); }
+    }
+
+    class FakeSession {
+        constructor(partition) {
+            this.partition = partition || '';
+            this.webRequest = new FakeWebRequest();
+            this._preloads = [];
+            this._downloadPath = '';
+            this.permissionRequestHandler = null;
+            this.permissionCheckHandler = null;
+            this.devicePermissionHandler = null;
+        }
+
+        static fromPartition(partition) {
+            const key = partition || '';
+            if (!FakeSession.sessions.has(key))
+                FakeSession.sessions.set(key, new FakeSession(key));
+            return FakeSession.sessions.get(key);
+        }
+
+        setPreloads(paths) {
+            this._preloads = paths.slice();
+        }
+
+        getPreloads() {
+            return this._preloads.slice();
+        }
+
+        setDownloadPath(path) {
+            this._downloadPath = path;
+        }
+
+        setPermissionRequestHandler(callback) {
+            this.permissionRequestHandler = typeof callback === 'function' ? callback : null;
+        }
+
+        setPermissionCheckHandler(callback) {
+            this.permissionCheckHandler = typeof callback === 'function' ? callback : null;
+        }
+
+        setDevicePermissionHandler(callback) {
+            this.devicePermissionHandler = typeof callback === 'function' ? callback : null;
+        }
+    }
+    FakeSession.sessions = new Map();
+
+    class FakeDownloadItem {
+        constructor() {
+            this._savePath = '';
+            this._saveDialogOptions = {};
+            this._paused = false;
+            this._state = 'progressing';
+        }
+
+        setSavePath(path) {
+            this._savePath = path;
+        }
+
+        getSavePath() {
+            return this._savePath;
+        }
+
+        setSaveDialogOptions(options) {
+            this._saveDialogOptions = options || {};
+        }
+
+        getSaveDialogOptions() {
+            return this._saveDialogOptions;
+        }
+
+        pause() {
+            this._paused = true;
+        }
+
+        isPaused() {
+            return this._paused;
+        }
+
+        resume() {
+            this._paused = false;
+        }
+
+        canResume() {
+            return true;
+        }
+
+        cancel() {
+            if (this._state === 'cancelled')
+                return;
+            this._state = 'cancelled';
+            this.emit('updated', 'cancelled');
+            this.emit('done', 'cancelled', 'cancelled');
+        }
+
+        cancels() {
+            return this.cancel();
+        }
+
+        getState() {
+            return this._state;
+        }
+
+        getURLChain() {
+            return [];
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_session')
+            return { Session: FakeSession };
+        if (name === 'electron_browser_webrequest')
+            return { WebRequest: FakeWebRequest };
+        if (name === 'electron_browser_downloaditem')
+            return { DownloadItem: FakeDownloadItem };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const session = require('../electron/lib/browser/api/session').session;
+
+        assert.strictEqual(session, FakeSession);
+        assert.strictEqual(session.defaultSession, FakeSession.fromPartition(''));
+        assert.strictEqual(session.defaultSession.partition, '');
+        assert.strictEqual(typeof session.defaultSession.on, 'function');
+
+        const profileSession = session.fromPartition('persist:profile');
+        assert.strictEqual(profileSession, session.fromPartition('persist:profile'));
+        assert.notStrictEqual(profileSession, session.defaultSession);
+
+        profileSession.setPreloads(['/tmp/preload-a.js', '/tmp/preload-b.js']);
+        assert.deepStrictEqual(profileSession.getPreloads(), ['/tmp/preload-a.js', '/tmp/preload-b.js']);
+        profileSession.setDownloadPath('/tmp/downloads');
+        assert.strictEqual(profileSession._downloadPath, '/tmp/downloads');
+
+        function permissionRequestHandler() {}
+        function permissionCheckHandler() { return true; }
+        function devicePermissionHandler() { return true; }
+        profileSession.setPermissionRequestHandler(permissionRequestHandler);
+        profileSession.setPermissionCheckHandler(permissionCheckHandler);
+        profileSession.setDevicePermissionHandler(devicePermissionHandler);
+        assert.strictEqual(profileSession.permissionRequestHandler, permissionRequestHandler);
+        assert.strictEqual(profileSession.permissionCheckHandler, permissionCheckHandler);
+        assert.strictEqual(profileSession.devicePermissionHandler, devicePermissionHandler);
+        profileSession.setPermissionRequestHandler(null);
+        profileSession.setPermissionCheckHandler(null);
+        profileSession.setDevicePermissionHandler(null);
+        assert.strictEqual(profileSession.permissionRequestHandler, null);
+        assert.strictEqual(profileSession.permissionCheckHandler, null);
+        assert.strictEqual(profileSession.devicePermissionHandler, null);
+
+        const filter = { urls: ['*://example.test/*'] };
+        const webRequestMethods = [
+            'onBeforeSendHeaders',
+            'onSendHeaders',
+            'onBeforeRedirect',
+            'onHeadersReceived',
+            'onResponseStarted',
+            'onCompleted',
+            'onErrorOccurred',
+            'onBeforeRequest'
+        ];
+        for (const method of webRequestMethods) {
+            const callback = function() {};
+            profileSession.webRequest[method](filter, callback);
+            assert.strictEqual(profileSession.webRequest.callbacks[method].filter, filter);
+            assert.strictEqual(profileSession.webRequest.callbacks[method].callback, callback);
+        }
+
+        const downloadItem = new FakeDownloadItem();
+        assert.strictEqual(typeof downloadItem.on, 'function');
+        downloadItem.setSavePath('/tmp/file.bin');
+        assert.strictEqual(downloadItem.getSavePath(), '/tmp/file.bin');
+        downloadItem.setSaveDialogOptions({ title: 'Save file' });
+        assert.deepStrictEqual(downloadItem.getSaveDialogOptions(), { title: 'Save file' });
+        downloadItem.pause();
+        assert.strictEqual(downloadItem.isPaused(), true);
+        downloadItem.resume();
+        assert.strictEqual(downloadItem.canResume(), true);
+        assert.strictEqual(downloadItem.isPaused(), false);
+
+        const downloadEvents = [];
+        downloadItem.on('updated', function(state) { downloadEvents.push(['updated', state]); });
+        downloadItem.on('done', function(eventState, finalState) { downloadEvents.push(['done', eventState, finalState]); });
+        downloadItem.cancel();
+        downloadItem.cancels();
+        assert.strictEqual(downloadItem.getState(), 'cancelled');
+        assert.deepStrictEqual(downloadEvents, [
+            ['updated', 'cancelled'],
+            ['done', 'cancelled', 'cancelled']
+        ]);
+
+        console.log('PASS session-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        delete require.cache[sessionPath];
+    }
+}
+
+async function runIpcMainApiSmoke() {
+    const ipcMainPath = require.resolve('../electron/lib/browser/api/ipc-main');
+    delete require.cache[ipcMainPath];
+
+    try {
+        const ipcMain = require('../electron/lib/browser/api/ipc-main');
+        const scopedIpcMain = ipcMain.createIpcMain();
+
+        const messageEvents = [];
+        scopedIpcMain.on('plain-message', function(event, value) {
+            messageEvents.push([event.innnerChannel, value]);
+        });
+        scopedIpcMain.emit('plain-message', { innnerChannel: 'ipc-render-invoke' }, 'skip');
+        scopedIpcMain.emit('plain-message', { innnerChannel: 'ipc-message' }, 'deliver');
+        assert.deepStrictEqual(messageEvents, [['ipc-message', 'deliver']]);
+
+        const replies = [];
+        const event = {
+            innnerChannel: 'ipc-render-invoke',
+            sender: {
+                send(channel, value) {
+                    replies.push([channel, value]);
+                }
+            }
+        };
+
+        scopedIpcMain.handle('sync-channel', function(invokeEvent, value) {
+            assert.strictEqual(invokeEvent, event);
+            return value + 1;
+        });
+        assert.throws(function() {
+            scopedIpcMain.handle('sync-channel', function() {});
+        }, /second handler/);
+        scopedIpcMain.emit('sync-channel', event, 41);
+        await new Promise(function(resolve) { setImmediate(resolve); });
+        assert.deepStrictEqual(replies, [['ipc-main-handle-reply-sync-channel', 42]]);
+
+        scopedIpcMain.removeHandler('sync-channel');
+        assert.strictEqual(scopedIpcMain.m_invokeHandlers.has('sync-channel'), false);
+        scopedIpcMain.emit('sync-channel', event, 1);
+        await new Promise(function(resolve) { setImmediate(resolve); });
+        assert.deepStrictEqual(replies, [['ipc-main-handle-reply-sync-channel', 42]]);
+
+        scopedIpcMain.handle('async-channel', function(invokeEvent, value) {
+            return Promise.resolve(value.toUpperCase());
+        });
+        scopedIpcMain.emit('async-channel', event, 'ok');
+        await new Promise(function(resolve) { setImmediate(resolve); });
+        assert.deepStrictEqual(replies[1], ['ipc-main-handle-reply-async-channel', 'OK']);
+
+        scopedIpcMain.removeHandler('missing-channel');
+        assert.throws(function() {
+            scopedIpcMain.handle('bad-channel', 'not a function');
+        }, /Expected handler/);
+
+        let errorEventCount = 0;
+        ipcMain.emit('error');
+        ipcMain.on('error', function() { errorEventCount++; });
+        ipcMain.emit('error', { innnerChannel: 'ipc-message' });
+        assert.strictEqual(errorEventCount, 1);
+
+        console.log('PASS ipc-main-js-smoke');
+    } finally {
+        delete require.cache[ipcMainPath];
     }
 }
 
@@ -1394,6 +1699,12 @@ runAppApiSmoke()
     })
     .then(function() {
         return runBrowserWindowWebContentsSmoke();
+    })
+    .then(function() {
+        runSessionApiSmoke();
+    })
+    .then(function() {
+        return runIpcMainApiSmoke();
     })
     .then(function() {
         return runNativeThemeNativeNotificationSmoke();

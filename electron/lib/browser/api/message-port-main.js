@@ -20,7 +20,7 @@ MessagePortMain.prototype.close = function() {
 
 MessagePortMain.prototype.postMessage = function(msg, ports) {
     if (Array.isArray(ports)) {
-        ports = ports.map((o) => {o instanceof MessagePortMain ? o._internalPort : o});
+        ports = ports.map((o) => o instanceof MessagePortMain ? o._internalPort : o);
         return this._internalPort.postMessage(msg, ports);
     }
     return this._internalPort.postMessage(msg);
