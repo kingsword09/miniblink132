@@ -328,6 +328,10 @@ async function runElectronAppRuntimeSmoke() {
     class RuntimeFakeWebRequest {}
     class RuntimeFakeDownloadItem {}
     function RuntimeFakeMessageChannelMain() {}
+    const RuntimeFakeWebFrameMain = {
+        fromId() { return null; },
+        fromIdOrNull() { return null; }
+    };
 
     function Tray() {}
     function NativeImage() {}
@@ -341,6 +345,8 @@ async function runElectronAppRuntimeSmoke() {
         './api/menu-item': MenuItem,
         './api/message-channel-main': { MessageChannelMain: RuntimeFakeMessageChannelMain },
         '../message-channel-main': { MessageChannelMain: RuntimeFakeMessageChannelMain },
+        './api/web-frame-main': { webFrameMain: RuntimeFakeWebFrameMain },
+        '../web-frame-main': { webFrameMain: RuntimeFakeWebFrameMain },
         './api/power-monitor': {},
         './api/power-save-blocker': {},
         './api/protocol': { protocol: {} },
@@ -379,6 +385,7 @@ async function runElectronAppRuntimeSmoke() {
     const webContentsPath = require.resolve('../electron/lib/browser/api/web-contents');
     const ipcMainPath = require.resolve('../electron/lib/browser/api/ipc-main');
     const sessionPath = require.resolve('../electron/lib/browser/api/session');
+    const webFrameMainPath = require.resolve('../electron/lib/browser/api/web-frame-main');
     delete require.cache[electronPath];
     delete require.cache[appPath];
     delete require.cache[nativeThemePath];
@@ -387,6 +394,7 @@ async function runElectronAppRuntimeSmoke() {
     delete require.cache[webContentsPath];
     delete require.cache[ipcMainPath];
     delete require.cache[sessionPath];
+    delete require.cache[webFrameMainPath];
 
     Module._load = function(request, parent, isMain) {
         if (request === 'electron')
@@ -473,6 +481,11 @@ async function runElectronAppRuntimeSmoke() {
         assert.strictEqual(electron.MessageChannelMain, RuntimeFakeMessageChannelMain);
         assert.strictEqual(electronMainShim.MessageChannelMain, RuntimeFakeMessageChannelMain);
         assert.strictEqual(browserExports.MessageChannelMain, RuntimeFakeMessageChannelMain);
+        assert.strictEqual(electron.webFrameMain, RuntimeFakeWebFrameMain);
+        assert.strictEqual(electronMainShim.webFrameMain, RuntimeFakeWebFrameMain);
+        assert.strictEqual(browserExports.webFrameMain, RuntimeFakeWebFrameMain);
+        assert.strictEqual(typeof electron.webFrameMain.fromId, 'function');
+        assert.strictEqual(typeof electron.webFrameMain.fromIdOrNull, 'function');
         assert.strictEqual(browserExports.nativeTheme, electron.nativeTheme);
         assert.strictEqual(electronMainShim.nativeTheme, electron.nativeTheme);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserView'), false);
@@ -482,7 +495,6 @@ async function runElectronAppRuntimeSmoke() {
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'systemPreferences'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'TouchBar'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'utilityProcess'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'webFrameMain'), false);
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseInvertedColorScheme, false);
@@ -548,6 +560,7 @@ async function runElectronAppRuntimeSmoke() {
         delete require.cache[webContentsPath];
         delete require.cache[ipcMainPath];
         delete require.cache[sessionPath];
+        delete require.cache[webFrameMainPath];
     }
 
     console.log('PASS app-runtime-js-smoke');
@@ -1183,6 +1196,99 @@ function runMessageChannelMainSmoke() {
     }
 }
 
+function runWebFrameMainSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const webFrameMainPath = require.resolve('../electron/lib/browser/api/web-frame-main');
+    const portPath = require.resolve('../electron/lib/browser/api/message-port-main');
+    delete require.cache[webFrameMainPath];
+    delete require.cache[portPath];
+
+    const createdFrames = [];
+    class FakeWebFrameMain {
+        constructor(frameId) {
+            this.frameId = frameId;
+            this.sent = [];
+            this.posted = [];
+            createdFrames.push(this);
+        }
+
+        _send(internal, channel, ...args) {
+            this.sent.push({ internal, channel, args });
+            return 'sent:' + channel;
+        }
+
+        _postMessage(channel, message, transfer) {
+            this.posted.push({ channel, message, transfer });
+            return 'posted:' + channel;
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_web_frame_main') {
+            return {
+                WebFrameMain: FakeWebFrameMain,
+                fromId(processId, frameId) {
+                    return new FakeWebFrameMain(frameId);
+                },
+                fromIdOrNull(processId, frameId) {
+                    return frameId === 0 ? null : new FakeWebFrameMain(frameId);
+                }
+            };
+        }
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const MessagePortMain = require('../electron/lib/browser/api/message-port-main');
+        const { WebFrameMain, webFrameMain } = require('../electron/lib/browser/api/web-frame-main');
+        assert.strictEqual(WebFrameMain, FakeWebFrameMain);
+        assert.strictEqual(typeof WebFrameMain.prototype.on, 'function');
+        assert.strictEqual(typeof webFrameMain.fromId, 'function');
+        assert.strictEqual(typeof webFrameMain.fromIdOrNull, 'function');
+
+        const frame = webFrameMain.fromId(1, 42);
+        assert.strictEqual(frame.frameId, 42);
+        assert.strictEqual(frame.send('ipc-channel', 'a', 1), 'sent:ipc-channel');
+        assert.deepStrictEqual(frame.sent[0], {
+            internal: false,
+            channel: 'ipc-channel',
+            args: ['a', 1]
+        });
+
+        assert.strictEqual(frame._sendInternal('internal-channel', { ok: true }), 'sent:internal-channel');
+        assert.deepStrictEqual(frame.sent[1], {
+            internal: true,
+            channel: 'internal-channel',
+            args: [{ ok: true }]
+        });
+
+        assert.throws(function() { frame.send(null); }, /Missing required channel argument/);
+        assert.throws(function() { frame._sendInternal({}); }, /Missing required channel argument/);
+
+        const rawPort = { start() {}, close() {}, postMessage() {} };
+        const wrappedPort = new MessagePortMain(rawPort);
+        assert.strictEqual(frame.postMessage('port-channel', { data: 1 }, [wrappedPort]), undefined);
+        assert.deepStrictEqual(frame.posted[0], {
+            channel: 'port-channel',
+            message: { data: 1 },
+            transfer: [rawPort]
+        });
+
+        assert.strictEqual(webFrameMain.fromIdOrNull(1, 0), null);
+        const nullableFrame = webFrameMain.fromIdOrNull(1, 7);
+        assert.strictEqual(nullableFrame.frameId, 7);
+        assert.strictEqual(createdFrames.length, 2);
+
+        console.log('PASS web-frame-main-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        delete require.cache[webFrameMainPath];
+        delete require.cache[portPath];
+    }
+}
+
 async function runNativeThemeNativeNotificationSmoke() {
     const originalLinkedBinding = process._linkedBinding;
     const originalSetInterval = global.setInterval;
@@ -1804,6 +1910,9 @@ runAppApiSmoke()
     })
     .then(function() {
         runMessageChannelMainSmoke();
+    })
+    .then(function() {
+        runWebFrameMainSmoke();
     })
     .then(function() {
         return runNativeThemeNativeNotificationSmoke();

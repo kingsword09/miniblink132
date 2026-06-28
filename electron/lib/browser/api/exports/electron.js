@@ -62,3 +62,6 @@ defineLazyExport(exports, 'Tray', function() {
 defineLazyExport(exports, 'webContents', function() {
   return require('../web-contents');
 });
+defineLazyExport(exports, 'webFrameMain', function() {
+  return require('../web-frame-main').webFrameMain;
+});

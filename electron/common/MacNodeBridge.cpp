@@ -44,6 +44,7 @@ extern "C" void _register_electron_browser_session(void);
 extern "C" void _register_electron_browser_webrequest(void);
 extern "C" void _register_electron_browser_downloaditem(void);
 extern "C" void _register_electron_browser_message_port(void);
+extern "C" void _register_electron_browser_web_frame_main(void);
 extern "C" void _register_electron_common_nativeImage(void);
 extern "C" void _register_electron_common_clipboard(void);
 extern "C" void _register_electron_common_screen(void);
@@ -135,6 +136,7 @@ extern "C" void nodeModuleInitRegister(void)
     _register_electron_browser_webrequest();
     _register_electron_browser_downloaditem();
     _register_electron_browser_message_port();
+    _register_electron_browser_web_frame_main();
     _register_electron_browser_web_contents();
     _register_electron_browser_browserwindow();
     _register_electron_common_nativeImage();

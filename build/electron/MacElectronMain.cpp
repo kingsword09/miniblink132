@@ -193,6 +193,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> webRequest;
         v8::Local<v8::Object> downloadItem;
         v8::Local<v8::Object> messagePort;
+        v8::Local<v8::Object> webFrameMain;
         v8::Local<v8::Object> webContents;
         v8::Local<v8::Object> browserWindow;
         v8::Local<v8::Object> features;
@@ -244,6 +245,10 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireFunctionProperty(context, downloadItem, "electron_browser_downloaditem", "DownloadItem")
             && requireBinding(context, "electron_browser_message_port", &messagePort)
             && requireFunctionProperty(context, messagePort, "electron_browser_message_port", "createPair")
+            && requireBinding(context, "electron_browser_web_frame_main", &webFrameMain)
+            && requireFunctionProperty(context, webFrameMain, "electron_browser_web_frame_main", "WebFrameMain")
+            && requireFunctionProperty(context, webFrameMain, "electron_browser_web_frame_main", "fromId")
+            && requireFunctionProperty(context, webFrameMain, "electron_browser_web_frame_main", "fromIdOrNull")
             && requireBinding(context, "electron_browser_web_contents", &webContents)
             && requireFunctionProperty(context, webContents, "electron_browser_web_contents", "WebContents")
             && requireBinding(context, "electron_browser_browserwindow", &browserWindow)
@@ -279,6 +284,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const webRequest = process._linkedBinding('electron_browser_webrequest');"
                 "const downloadItem = process._linkedBinding('electron_browser_downloaditem');"
                 "const messagePort = process._linkedBinding('electron_browser_message_port');"
+                "const webFrameMain = process._linkedBinding('electron_browser_web_frame_main');"
                 "const webContents = process._linkedBinding('electron_browser_web_contents');"
                 "const browserWindow = process._linkedBinding('electron_browser_browserwindow');"
                 "const features = process._linkedBinding('electron_common_features');"
@@ -303,6 +309,9 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof webRequest.WebRequest !== 'function') throw new Error('webRequest');"
                 "if (typeof downloadItem.DownloadItem !== 'function') throw new Error('downloadItem');"
                 "if (typeof messagePort.createPair !== 'function') throw new Error('messagePort');"
+                "if (typeof webFrameMain.WebFrameMain !== 'function') throw new Error('webFrameMain');"
+                "if (typeof webFrameMain.fromId !== 'function') throw new Error('webFrameMain fromId');"
+                "if (typeof webFrameMain.fromIdOrNull !== 'function') throw new Error('webFrameMain fromIdOrNull');"
                 "if (typeof webContents.WebContents !== 'function') throw new Error('webContents');"
                 "if (typeof browserWindow.BrowserWindow !== 'function') throw new Error('BrowserWindow');"
                 "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"

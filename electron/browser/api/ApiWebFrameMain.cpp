@@ -10,6 +10,9 @@
 #include "electron/common/NodeThread.h"
 #include "electron/common/AtomVersion.h"
 #include "electron/common/V8Util.h"
+#include "electron/browser/api/ApiWebContents.h"
+#include "electron/browser/api/PostMessageUtil.h"
+#include "electron/browser/api/WindowList.h"
 #include "electron/common/api/EventEmitter.h"
 #include "electron/common/gin_helper/error_thrower.h"
 #include "electron/common/gin_helper/dictionary.h"
@@ -21,12 +24,16 @@
 #include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/public/mojom/page/page_visibility_state.mojom-shared.h"
+#include "third_party/blink/public/common/messaging/cloneable_message.h"
 #include "content/renderer/WebLocalFrameClientImpl.h"
 #include "content/browser/WebFrameMain.h"
 #include "mbvip/core/mb.h"
 #include "base/process/process_handle.h"
 #include "base/values.h"
 #include "base/no_destructor.h"
+#include "mojo/public/cpp/bindings/message.h"
+#include <memory>
+#include <vector>
 
 namespace blink {
 LocalFrame* FromFrameTokenHash(const size_t& frameTokenHash);
@@ -102,6 +109,37 @@ void ApiWebFrameMain::newFunction(const v8::FunctionCallbackInfo<v8::Value>& inf
     info.GetReturnValue().Set(info.This());
 }
 
+static WebContents* findWebContentsByFrameId(intptr_t frameId)
+{
+    intptr_t topFrameId = content::WebFrameMain::getTopFrameId(frameId);
+    if (!topFrameId)
+        topFrameId = frameId;
+
+    WindowList* windows = WindowList::getInstance();
+    for (WindowList::iterator it = windows->begin(); it != windows->end(); ++it) {
+        if (!*it)
+            continue;
+        WebContents* webContents = (*it)->getWebContents();
+        if (!webContents)
+            continue;
+        mbWebView view = webContents->getMbView();
+        if (!view)
+            continue;
+        if ((intptr_t)mbWebFrameGetMainFrame(view) == topFrameId)
+            return webContents;
+    }
+    return nullptr;
+}
+
+static void setWebFrameMainExports(v8::Isolate* isolate, v8::Local<v8::Object> target, v8::Local<v8::Function> constructor)
+{
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    target->Set(context, v8::String::NewFromUtf8(isolate, "WebFrameMain").ToLocalChecked(), constructor);
+    gin_helper::Dictionary dict(isolate, target);
+    dict.SetMethod("fromId", &ApiWebFrameMain::fromIdApi);
+    dict.SetMethod("fromIdOrNull", &ApiWebFrameMain::fromIDOrNullApi);
+}
+
 static blink::WebLocalFrameImpl* getWebLocalFrameImplById(intptr_t frameId)
 {
     blink::LocalFrame* blinkFrame = blink::FromFrameTokenHash((size_t)(frameId));
@@ -170,6 +208,53 @@ v8::Local<v8::Promise> ApiWebFrameMain::executeJavaScriptApi(gin_helper::Argumen
             },
             std::move(promise)));
     return handle;
+}
+
+void ApiWebFrameMain::_sendApi(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    gin_helper::Arguments args(info);
+
+    bool internal = false;
+    if (!args.GetNext(&internal)) {
+        args.ThrowError();
+        return;
+    }
+    (void)internal;
+
+    std::string channel;
+    if (!args.GetNext(&channel)) {
+        args.ThrowError();
+        return;
+    }
+
+    std::vector<blink::CloneableMessage>* messages = new std::vector<blink::CloneableMessage>();
+    if (!args.GetRemaining(messages)) {
+        delete messages;
+        args.ThrowError();
+        return;
+    }
+
+    WebContents* webContents = findWebContentsByFrameId(m_frameId);
+    if (!webContents) {
+        delete messages;
+        return;
+    }
+
+    webContents->anyPostMessageToRenderer(m_frameId, channel, std::unique_ptr<std::vector<blink::CloneableMessage>>(messages));
+}
+
+void ApiWebFrameMain::_postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    auto mojoMessage = std::make_unique<mojo::Message>();
+    std::string channel;
+    if (!v8FunInfoToMojoMessage(info, mojoMessage.get(), &channel))
+        return;
+
+    WebContents* webContents = findWebContentsByFrameId(m_frameId);
+    if (!webContents)
+        return;
+
+    webContents->postMojoMessageToRendererFrame(m_frameId, channel, std::move(mojoMessage));
 }
 
 intptr_t ApiWebFrameMain::getFrameTreeNodeIdApi() const
@@ -278,14 +363,19 @@ void ApiWebFrameMain::fromIDOrNullApi(const v8::FunctionCallbackInfo<v8::Value>&
 void ApiWebFrameMain::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node::Environment* env)
 {
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    if (!s_WebFrameMainConstructor.IsEmpty()) {
+        v8::Local<v8::Function> constructor = v8::Local<v8::Function>::New(isolate, s_WebFrameMainConstructor);
+        setWebFrameMainExports(isolate, target, constructor);
+        return;
+    }
     v8::Local<v8::FunctionTemplate> prototype = v8::FunctionTemplate::New(isolate, ApiWebFrameMain::newFunction);
     prototype->SetClassName(v8::String::NewFromUtf8(isolate, "WebFrameMain").ToLocalChecked());
 
     gin_helper::ObjectTemplateBuilder builder(isolate, prototype->InstanceTemplate());
     builder.SetMethod("executeJavaScript", &ApiWebFrameMain::executeJavaScriptApi);
     builder.SetMethod("reload", &ApiWebFrameMain::reloadApi);
-    //     builder.SetMethod("_send", &ApiWebFrameMain::Send);
-    //     builder.SetMethod("_postMessage", &ApiWebFrameMain::PostMessage);
+    builder.SetMethod("_send", &ApiWebFrameMain::_sendApi);
+    builder.SetMethod("_postMessage", &ApiWebFrameMain::_postMessageApi);
     builder.SetProperty("frameTreeNodeId", &ApiWebFrameMain::getFrameTreeNodeIdApi);
     builder.SetProperty("name", &ApiWebFrameMain::getNameApi);
     builder.SetProperty("osProcessId", &ApiWebFrameMain::getOSProcessIdApi);
@@ -303,11 +393,7 @@ void ApiWebFrameMain::init(v8::Isolate* isolate, v8::Local<v8::Object> target, n
     //dict.SetMethod("_fork", &ApiWebFrameMain::create);
 
     v8::Local<v8::Function> prototypFunc = prototype->GetFunction(context).ToLocalChecked();
-    target->Set(context, v8::String::NewFromUtf8(isolate, "WebFrameMain").ToLocalChecked(), prototypFunc);
-
-    gin_helper::Dictionary dict(isolate, target); // µ¼³ö¾²Ì¬º¯Êý
-    dict.SetMethod("fromId", &fromIdApi);
-    dict.SetMethod("fromIdOrNull", &fromIDOrNullApi);
+    setWebFrameMainExports(isolate, target, prototypFunc);
 
     s_WebFrameMainConstructor.Reset(isolate, prototypFunc);
 }

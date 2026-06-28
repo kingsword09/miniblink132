@@ -1,22 +1,12 @@
-const EventEmitter = require('events')
-const { IpcMainImpl } = require('events');
-//import { MessagePortMain } from '@electron/internal/browser/message-port-main';
+const EventEmitter = require('events').EventEmitter;
+const MessagePortMain = require('./message-port-main.js');
 
 const binding = process._linkedBinding('electron_browser_web_frame_main');
 const WebFrameMain = binding.WebFrameMain;
 const fromId = binding.fromId;
+const fromIdOrNull = binding.fromIdOrNull;
 
-Object.setPrototypeOf(WebFrameMain.prototype, EventEmitter.prototype); // 把on之类的函数绑定过来
-
-//Object.defineProperty(WebFrameMain.prototype, 'ipc', {
-//    get() {
-//        const ipc = new IpcMainImpl();
-//        Object.defineProperty(this, 'ipc', {
-//            value: ipc
-//        });
-//        return ipc;
-//    }
-//});
+Object.setPrototypeOf(WebFrameMain.prototype, EventEmitter.prototype);
 
 WebFrameMain.prototype.send = function(channel, ...args) {
     if (typeof channel !== 'string') {
@@ -24,7 +14,7 @@ WebFrameMain.prototype.send = function(channel, ...args) {
     }
 
     try {
-        return this._send(false /* internal */ , channel, ...args);
+        return this._send(false, channel, ...args);
     } catch (e) {
         console.error('Error sending from webFrameMain: ', e);
     }
@@ -36,7 +26,7 @@ WebFrameMain.prototype._sendInternal = function(channel, ...args) {
     }
 
     try {
-        return this._send(true /* internal */ , channel, ...args);
+        return this._send(true, channel, ...args);
     } catch (e) {
         console.error('Error sending from webFrameMain: ', e);
     }
@@ -49,10 +39,10 @@ WebFrameMain.prototype.postMessage = function(...args) {
     this._postMessage(...args);
 };
 
-//process.WebFrameMain = WebFrameMain;
-//module.exports = new WebFrameMain();
 module.exports = {
-    "webFrameMain": {
-        "fromId": fromId
+    WebFrameMain,
+    webFrameMain: {
+        fromId,
+        fromIdOrNull
     }
 };

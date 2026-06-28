@@ -9,6 +9,8 @@
 #include "electron/common/gin_helper/dictionary.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
 #include <set>
+#include <memory>
+#include <vector>
 
 namespace node {
 class Environment;
@@ -20,6 +22,7 @@ class ListValue;
 
 namespace mojo {
 class Connector;
+class Message;
 }
 
 namespace atom {
@@ -151,6 +154,7 @@ public:
     void rendererSendMessageToMain(mbWebFrameHandle frame, const std::string& channel, std::unique_ptr<std::vector<blink::CloneableMessage>> listParams, 
         std::vector<uint8_t>* encodedMessageRet);
     void anyPostMessageToRenderer(int64_t frameId, const std::string& channel, std::unique_ptr<std::vector<blink::CloneableMessage>> listParams);
+    void postMojoMessageToRendererFrame(int64_t frameId, const std::string& channel, std::unique_ptr<mojo::Message> mojoMessage);
     static void rendererSendMessageToRenderer(mbWebView view, mbWebFrameHandle frame, const std::string& channel, const std::vector<blink::CloneableMessage>& args);
 
     int getIdApi() const;

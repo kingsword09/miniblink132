@@ -39,6 +39,7 @@ Object.assign(electronMain, { app });
 const BrowserWindow = require('./api/browser-window');
 const session = require('./api/session').session;
 const webContents = require('./api/web-contents');
+const webFrameMain = require('./api/web-frame-main').webFrameMain;
 
 Object.assign(electron, {
   app,
@@ -61,7 +62,8 @@ Object.assign(electron, {
   session,
   shell: require('../common/api/shell').Shell,
   Tray: require('./api/tray').Tray,
-  webContents
+  webContents,
+  webFrameMain
 });
 
 Object.assign(electronMain, electron);

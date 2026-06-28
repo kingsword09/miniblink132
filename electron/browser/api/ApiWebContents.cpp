@@ -1613,6 +1613,22 @@ static void emitMojoMessageToRendererImpl(
     }
 }
 
+void WebContents::postMojoMessageToRendererFrame(int64_t frameId, const std::string& channel, std::unique_ptr<mojo::Message> mojoMessage)
+{
+    int id = m_id;
+    WebContents* self = this;
+    std::string* channelCopy = new std::string(channel);
+    mojo::Message* mojoMessagePtr = mojoMessage.release();
+    content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [self, frameId, id, mojoMessagePtr, channelCopy] {
+        if (IdLiveDetect::get()->isLive(id)) {
+            mbWebFrameHandle frame = frameId ? (mbWebFrameHandle)frameId : mbWebFrameGetMainFrame(self->m_view);
+            emitMojoMessageToRendererImpl(self, self->m_view, frame, WorldIDs::ISOLATED_WORLD_ID, *channelCopy, *mojoMessagePtr);
+        }
+        delete mojoMessagePtr;
+        delete channelCopy;
+    });
+}
+
 void mbTestMessageChannelMain(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
 
@@ -1625,20 +1641,12 @@ void WebContents::_testPostMessageApi(const v8::FunctionCallbackInfo<v8::Value>&
 
 bool WebContents::_postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    int id = m_id;
-    WebContents* self = this;
-    mojo::Message* mojoMessage = new mojo::Message();
-    std::string* channel = new std::string();
-    if (!v8FunInfoToMojoMessage(info, mojoMessage, channel))
+    auto mojoMessage = std::make_unique<mojo::Message>();
+    std::string channel;
+    if (!v8FunInfoToMojoMessage(info, mojoMessage.get(), &channel))
         return false;
 
-    content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [self, id, mojoMessage, channel] {
-        if (IdLiveDetect::get()->isLive(id)) {
-            emitMojoMessageToRendererImpl(self, self->m_view, mbWebFrameGetMainFrame(self->m_view), WorldIDs::ISOLATED_WORLD_ID, *channel, *mojoMessage);
-        }
-        delete mojoMessage;
-        delete channel;
-    });
+    postMojoMessageToRendererFrame(0, channel, std::move(mojoMessage));
     return true;
 }
 
