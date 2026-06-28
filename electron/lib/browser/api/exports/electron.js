@@ -32,6 +32,9 @@ defineLazyExport(exports, 'Menu', function() {
 defineLazyExport(exports, 'MenuItem', function() {
   return require('../menu-item');
 });
+defineLazyExport(exports, 'MessageChannelMain', function() {
+  return require('../message-channel-main').MessageChannelMain;
+});
 defineLazyExport(exports, 'nativeTheme', function() {
   return require('../native-theme');
 });

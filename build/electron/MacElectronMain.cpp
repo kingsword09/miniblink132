@@ -192,6 +192,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> session;
         v8::Local<v8::Object> webRequest;
         v8::Local<v8::Object> downloadItem;
+        v8::Local<v8::Object> messagePort;
         v8::Local<v8::Object> webContents;
         v8::Local<v8::Object> browserWindow;
         v8::Local<v8::Object> features;
@@ -241,6 +242,8 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireFunctionProperty(context, webRequest, "electron_browser_webrequest", "WebRequest")
             && requireBinding(context, "electron_browser_downloaditem", &downloadItem)
             && requireFunctionProperty(context, downloadItem, "electron_browser_downloaditem", "DownloadItem")
+            && requireBinding(context, "electron_browser_message_port", &messagePort)
+            && requireFunctionProperty(context, messagePort, "electron_browser_message_port", "createPair")
             && requireBinding(context, "electron_browser_web_contents", &webContents)
             && requireFunctionProperty(context, webContents, "electron_browser_web_contents", "WebContents")
             && requireBinding(context, "electron_browser_browserwindow", &browserWindow)
@@ -275,6 +278,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const session = process._linkedBinding('electron_browser_session');"
                 "const webRequest = process._linkedBinding('electron_browser_webrequest');"
                 "const downloadItem = process._linkedBinding('electron_browser_downloaditem');"
+                "const messagePort = process._linkedBinding('electron_browser_message_port');"
                 "const webContents = process._linkedBinding('electron_browser_web_contents');"
                 "const browserWindow = process._linkedBinding('electron_browser_browserwindow');"
                 "const features = process._linkedBinding('electron_common_features');"
@@ -298,6 +302,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof session.Session !== 'function') throw new Error('session');"
                 "if (typeof webRequest.WebRequest !== 'function') throw new Error('webRequest');"
                 "if (typeof downloadItem.DownloadItem !== 'function') throw new Error('downloadItem');"
+                "if (typeof messagePort.createPair !== 'function') throw new Error('messagePort');"
                 "if (typeof webContents.WebContents !== 'function') throw new Error('webContents');"
                 "if (typeof browserWindow.BrowserWindow !== 'function') throw new Error('BrowserWindow');"
                 "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"
@@ -796,6 +801,7 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
             && addNodeLinkedBinding(setup->env(), "electron_browser_session")
             && addNodeLinkedBinding(setup->env(), "electron_browser_webrequest")
             && addNodeLinkedBinding(setup->env(), "electron_browser_downloaditem")
+            && addNodeLinkedBinding(setup->env(), "electron_browser_message_port")
             && addNodeLinkedBinding(setup->env(), "electron_browser_web_contents")
             && addNodeLinkedBinding(setup->env(), "electron_browser_browserwindow")
             && addNodeLinkedBinding(setup->env(), "electron_common_features")
@@ -824,6 +830,7 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "const session = process._linkedBinding('electron_browser_session');"
                 "const webRequest = process._linkedBinding('electron_browser_webrequest');"
                 "const downloadItem = process._linkedBinding('electron_browser_downloaditem');"
+                "const messagePort = process._linkedBinding('electron_browser_message_port');"
                 "const webContents = process._linkedBinding('electron_browser_web_contents');"
                 "const browserWindow = process._linkedBinding('electron_browser_browserwindow');"
                 "const features = process._linkedBinding('electron_common_features');"
@@ -849,6 +856,7 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "if (typeof session.Session !== 'function') throw new Error('session');"
                 "if (typeof webRequest.WebRequest !== 'function') throw new Error('webRequest');"
                 "if (typeof downloadItem.DownloadItem !== 'function') throw new Error('downloadItem');"
+                "if (typeof messagePort.createPair !== 'function') throw new Error('messagePort');"
                 "if (typeof webContents.WebContents !== 'function') throw new Error('webContents');"
                 "if (typeof browserWindow.BrowserWindow !== 'function') throw new Error('BrowserWindow');"
                 "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"

@@ -3,8 +3,8 @@ const EventEmitter = require('events').EventEmitter;
 function MessagePortMain(internalPort) {
     this._internalPort = internalPort;
     this._internalPort.emit = (channel/*: string*/, event/*: {ports: any[]}*/) => {
-        if (channel === 'message') { 
-            event = { ...event, ports: event.ports.map(p => new MessagePortMain(p)) }; 
+        if (channel === 'message') {
+            event = { ...event, ports: event.ports.map(p => new MessagePortMain(p)) };
         }
         this.emit(channel, event);
     };

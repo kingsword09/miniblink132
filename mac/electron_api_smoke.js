@@ -327,6 +327,7 @@ async function runElectronAppRuntimeSmoke() {
 
     class RuntimeFakeWebRequest {}
     class RuntimeFakeDownloadItem {}
+    function RuntimeFakeMessageChannelMain() {}
 
     function Tray() {}
     function NativeImage() {}
@@ -338,6 +339,8 @@ async function runElectronAppRuntimeSmoke() {
         './api/global-shortcut': {},
         './api/menu': { getApplicationMenu() { return null; } },
         './api/menu-item': MenuItem,
+        './api/message-channel-main': { MessageChannelMain: RuntimeFakeMessageChannelMain },
+        '../message-channel-main': { MessageChannelMain: RuntimeFakeMessageChannelMain },
         './api/power-monitor': {},
         './api/power-save-blocker': {},
         './api/protocol': { protocol: {} },
@@ -390,7 +393,7 @@ async function runElectronAppRuntimeSmoke() {
             return electronShim;
         if (request === 'electron/main')
             return electronMainShim;
-        if (parent && parent.filename === electronPath && Object.prototype.hasOwnProperty.call(moduleMocks, request))
+        if (parent && (parent.filename === electronPath || parent.filename === browserExportsPath) && Object.prototype.hasOwnProperty.call(moduleMocks, request))
             return moduleMocks[request];
         return originalLoad.call(this, request, parent, isMain);
     };
@@ -467,12 +470,14 @@ async function runElectronAppRuntimeSmoke() {
         assert.strictEqual(typeof electron.ipcMain.handle, 'function');
         assert.strictEqual(electronMainShim.ipcMain, electron.ipcMain);
         assert.strictEqual(browserExports.ipcMain, electron.ipcMain);
+        assert.strictEqual(electron.MessageChannelMain, RuntimeFakeMessageChannelMain);
+        assert.strictEqual(electronMainShim.MessageChannelMain, RuntimeFakeMessageChannelMain);
+        assert.strictEqual(browserExports.MessageChannelMain, RuntimeFakeMessageChannelMain);
         assert.strictEqual(browserExports.nativeTheme, electron.nativeTheme);
         assert.strictEqual(electronMainShim.nativeTheme, electron.nativeTheme);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserView'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'contentTracing'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'crashReporter'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'MessageChannelMain'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'net'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'systemPreferences'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'TouchBar'), false);
@@ -1084,6 +1089,97 @@ async function runIpcMainApiSmoke() {
         console.log('PASS ipc-main-js-smoke');
     } finally {
         delete require.cache[ipcMainPath];
+    }
+}
+
+function runMessageChannelMainSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const channelPath = require.resolve('../electron/lib/browser/api/message-channel-main');
+    const portPath = require.resolve('../electron/lib/browser/api/message-port-main');
+    delete require.cache[channelPath];
+    delete require.cache[portPath];
+
+    class FakeInternalPort {
+        constructor(name) {
+            this.name = name;
+            this.started = false;
+            this.closed = false;
+            this.sent = [];
+        }
+
+        start() {
+            this.started = true;
+            return this.name + ':started';
+        }
+
+        close() {
+            this.closed = true;
+            return this.name + ':closed';
+        }
+
+        postMessage(message, ports) {
+            this.sent.push({ message, ports });
+            return this.name + ':posted';
+        }
+    }
+
+    const createdPairs = [];
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_message_port') {
+            return {
+                createPair() {
+                    const pair = {
+                        port1: new FakeInternalPort('port1'),
+                        port2: new FakeInternalPort('port2')
+                    };
+                    createdPairs.push(pair);
+                    return pair;
+                }
+            };
+        }
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const { MessageChannelMain } = require('../electron/lib/browser/api/message-channel-main');
+        const channel = new MessageChannelMain();
+
+        assert.strictEqual(createdPairs.length, 1);
+        assert.strictEqual(typeof channel.port1.on, 'function');
+        assert.strictEqual(typeof channel.port2.emit, 'function');
+        assert.strictEqual(channel.port1.start(), 'port1:started');
+        assert.strictEqual(channel.port1.close(), 'port1:closed');
+        assert.strictEqual(createdPairs[0].port1.started, true);
+        assert.strictEqual(createdPairs[0].port1.closed, true);
+
+        assert.strictEqual(channel.port1.postMessage({ value: 1 }, [channel.port2]), 'port1:posted');
+        assert.deepStrictEqual(createdPairs[0].port1.sent[0], {
+            message: { value: 1 },
+            ports: [createdPairs[0].port2]
+        });
+
+        assert.strictEqual(channel.port2.postMessage('plain'), 'port2:posted');
+        assert.deepStrictEqual(createdPairs[0].port2.sent[0], { message: 'plain', ports: undefined });
+
+        const received = [];
+        channel.port1.on('message', function(event) {
+            received.push(event);
+        });
+        createdPairs[0].port1.emit('message', {
+            data: 'payload',
+            ports: [new FakeInternalPort('received-port')]
+        });
+        assert.strictEqual(received.length, 1);
+        assert.strictEqual(received[0].data, 'payload');
+        assert.strictEqual(typeof received[0].ports[0].postMessage, 'function');
+
+        console.log('PASS message-channel-main-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        delete require.cache[channelPath];
+        delete require.cache[portPath];
     }
 }
 
@@ -1705,6 +1801,9 @@ runAppApiSmoke()
     })
     .then(function() {
         return runIpcMainApiSmoke();
+    })
+    .then(function() {
+        runMessageChannelMainSmoke();
     })
     .then(function() {
         return runNativeThemeNativeNotificationSmoke();

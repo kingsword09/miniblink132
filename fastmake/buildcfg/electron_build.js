@@ -238,6 +238,7 @@ if (constVal.isMac) {
 			json[0].compile.cmd.push(arg);
 	});
 	json[0].compile.cmd.push("-Dnode_module_register=electronMacNodeBridgeRegisterModule");
+	json[0].compile.cmd.push("-DMINIBLINK_ELECTRON_USE_REAL_MESSAGE_PORT");
 
 	const macPowerMonitorSrc = "${srcPath}/electron/browser/api/ApiPowerMonitor.cpp";
 	const macPowerSaveBlockerSrc = "${srcPath}/electron/browser/api/ApiPowerSaveBlocker.cpp";
@@ -253,6 +254,9 @@ if (constVal.isMac) {
 	const macWindowListSrc = "${srcPath}/electron/browser/api/WindowList.cpp";
 	const macCommandLineSrc = "${srcPath}/electron/browser/api/ApiCommandLine.cpp";
 	const macSafeStorageSrc = "${srcPath}/electron/browser/api/ApiSafestorage.cpp";
+	const macMessagePortSrc = "${srcPath}/electron/browser/api/ApiMessagePortMain.cpp";
+	const macPostMessageUtilSrc = "${srcPath}/electron/browser/api/PostMessageUtil.cpp";
+	const macV8UtilValueSrc = "${srcPath}/electron/common/V8Util.cpp";
 	const macFeaturesSrc = "${srcPath}/electron/common/api/ApiFeatures.cpp";
 	const macAsarSrc = "${srcPath}/electron/common/api/ApiAsar.cpp";
 	const macAsarSupportSrc = [
@@ -285,6 +289,9 @@ if (constVal.isMac) {
 		macPowerSaveBlockerSrc,
 		macCommandLineSrc,
 		macSafeStorageSrc,
+		macMessagePortSrc,
+		macPostMessageUtilSrc,
+		macV8UtilValueSrc,
 		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
 		macWindowListSrc,
 		"${srcPath}/electron/common/AtomCommandLine.cpp",
@@ -325,6 +332,9 @@ if (constVal.isMac) {
 	json[0].compile.src.push(macSystemTraySrc);
 	json[0].compile.src.push(macCommandLineSrc);
 	json[0].compile.src.push(macSafeStorageSrc);
+	json[0].compile.src.push(macMessagePortSrc);
+	json[0].compile.src.push(macPostMessageUtilSrc);
+	json[0].compile.src.push(macV8UtilValueSrc);
 	json[0].compile.src.push(macFeaturesSrc);
 	json[0].compile.src.push(macNativeImageSrc);
 	json[0].compile.src.push(macClipboardSrc);
@@ -346,6 +356,9 @@ if (constVal.isMac) {
 	json[0].compile.prebuildSrc.push(macSystemTraySrc);
 	json[0].compile.prebuildSrc.push(macCommandLineSrc);
 	json[0].compile.prebuildSrc.push(macSafeStorageSrc);
+	json[0].compile.prebuildSrc.push(macMessagePortSrc);
+	json[0].compile.prebuildSrc.push(macPostMessageUtilSrc);
+	json[0].compile.prebuildSrc.push(macV8UtilValueSrc);
 	json[0].compile.prebuildSrc.push(macFeaturesSrc);
 	json[0].compile.prebuildSrc.push(macNativeImageSrc);
 	json[0].compile.prebuildSrc.push(macClipboardSrc);

@@ -50,6 +50,7 @@ Object.assign(electron, {
   isPromise: require('../common/api/is-promise').isPromise,
   Menu: require('./api/menu'),
   MenuItem: require('./api/menu-item'),
+  MessageChannelMain: require('./api/message-channel-main').MessageChannelMain,
   nativeImage: require('../common/api/native-image').NativeImage,
   nativeTheme,
   powerMonitor: require('./api/power-monitor'),
