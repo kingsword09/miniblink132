@@ -170,9 +170,7 @@ public:
     //     static void readJsFile(const wchar_t* path, std::vector<char>* buffer)
     //     {
     //         HANDLE hFile = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    //         if (INVALID_HANDLE_VALUE == hFile) {
-    //             DebugBreak();
-    //             return;
+    //         if (INVALID_HANDLE_VALUE == hFile) {    //             return;
     //         }
     //
     //         DWORD fileSizeHigh;

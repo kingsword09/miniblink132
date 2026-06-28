@@ -221,14 +221,14 @@ bool ThreadCall::runTaskQueue(UINT msg, WPARAM wParam, LPARAM lParam)
         return false;
 
     if (wParam != (WPARAM)callbackInOtherThread)
-        DebugBreak();
+        return false;
     TaskAsyncData* asyncData = (TaskAsyncData*)lParam;
     callbackInOtherThread(asyncData);
 
     if (asyncData->destroyThreadId == ::GetCurrentThreadId())
         delete asyncData;
     else if (asyncData->destroyThreadId != asyncData->fromThreadId)
-        DebugBreak();
+        OutputDebugStringA("ThreadCall async data kept for origin thread cleanup\n");
 
     return false;
 }
@@ -262,8 +262,10 @@ void ThreadCall::messageLoop(uv_loop_t* loop, v8::Platform* platform, v8::Isolat
                 break;
             }
 
-            if (WM_THREAD_CALL == msg.message)
-                DebugBreak();
+            if (WM_THREAD_CALL == msg.message) {
+                runTaskQueue(msg.message, msg.wParam, msg.lParam);
+                continue;
+            }
 
             ::TranslateMessage(&msg);
             ::DispatchMessageW(&msg);

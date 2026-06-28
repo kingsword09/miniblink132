@@ -217,7 +217,7 @@ static bool doExecuteJavaScript(WebviewPluginImpl* impl, const NPVariant* args, 
     //     content::runJsOnBlinkThread(webview, frame, scriptString, true, mbRunJsCallback callback, void* param);
     //
     //     toResultString(jsonStr, result);
-    DebugBreak();
+    VOID_TO_NPVARIANT(*result);
     return true;
 }
 
@@ -358,7 +358,6 @@ bool pluginInvoke(NPObject* obj, NPIdentifier methodName, const NPVariant* args,
         return true;
     }
     if ("native_getUserAgent" == method) {
-        DebugBreak();
         BOOLEAN_TO_NPVARIANT(false, *result);
         return true;
     }
@@ -488,7 +487,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
     else if (!b)
         return NPERR_INVALID_PLUGIN_ERROR;
 
-    DebugBreak();
+    return NPERR_GENERIC_ERROR;
     //     mbWebView webview = mbGetWebViewByNData(instance->ndata);
     //     WebviewPluginImpl* impl = new WebviewPluginImpl(webview);
     //     instance->pdata = impl;

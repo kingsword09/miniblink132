@@ -287,7 +287,7 @@ public:
             case DMDO_270:
                 return Display::ROTATE_270;
             default:
-                ::DebugBreak();
+                return Display::ROTATE_0;
             }
         }
         return Display::ROTATE_0;

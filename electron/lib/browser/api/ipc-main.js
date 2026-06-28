@@ -6,12 +6,12 @@ function createIpcMain() {
     
     ipcMain.__origOn__ = ipcMain.on;
     ipcMain.on = function (channel, callback) {
-        let cbStub = function (event, ...args) {
+        let guardedCallback = function (event, ...args) {
             if (event.innnerChannel == 'ipc-render-invoke')
                 return;
             callback(event, ...args);
         }
-        return ipcMain.__origOn__(channel, cbStub);
+        return ipcMain.__origOn__(channel, guardedCallback);
     }
     
     ipcMain.handle = function (channel, listener) { // 这里的channel是用户定义的channel

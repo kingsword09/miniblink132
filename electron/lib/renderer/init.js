@@ -1,18 +1,10 @@
 'use strict'
 
-const EventEmitter = require('events').EventEmitter;
-// The global variable will be used by ipc for event dispatching
-var v8Util = new (process._linkedBinding('electron_common_v8_util').v8Util)();
-v8Util.setHiddenValue(global, 'ipc', new EventEmitter());
-
 const electron = require('./electron');
 require('../common/init.js');
 
-require('./web-view/web-view');
-
 const intlCollator = require('../common/api/intl-collator');
 
-const events = require('events');
 const path = require('path');
 const Module = require('module');
 const timers = require('timers');
@@ -119,34 +111,6 @@ global.process.on('exit', function() {
         else
             console.log("global.process.on exit fail:" + handle + ", " + handle._handle);
     }
-});
-
-const resolvePromise = Promise.resolve.bind(Promise);
-
-electron.ipcRenderer.on('ELECTRON_INTERNAL_RENDERER_ASYNC_WEB_FRAME_METHOD', 
-    (event, requestId, method, args) => {
-    const responseCallback = function (result) {
-        resolvePromise(result)
-          .then((resolvedResult) => {
-              event.sender.send(`ELECTRON_INTERNAL_BROWSER_ASYNC_WEB_FRAME_RESPONSE_${requestId}`, null, resolvedResult);
-          })
-          .catch((resolvedError) => {
-              if (resolvedError instanceof Error) {
-                  // Errors get lost, because: JSON.stringify(new Error('Message')) === {}
-                  // Take the serializable properties and construct a generic object
-                  resolvedError = {
-                      message: resolvedError.message,
-                      stack: resolvedError.stack,
-                      name: resolvedError.name,
-                      __ELECTRON_SERIALIZED_ERROR__: true
-                  }
-              }
-
-              event.sender.send(`ELECTRON_INTERNAL_BROWSER_ASYNC_WEB_FRAME_RESPONSE_${requestId}`, resolvedError);
-          })
-    }
-    args.push(responseCallback);
-    electron.webFrame[method](...args);
 });
 
 // Load the script specfied by the "preload" attribute.

@@ -1,5 +1,13 @@
 const assert = require('assert');
 
+const rendererExcludedExports = ['webFrame', 'remote', 'ipcRenderer', 'contextBridge', 'screen', 'CallbacksRegistry'];
+
+function assertRendererExportsExcluded(electron, label) {
+    for (const key of rendererExcludedExports) {
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, key), false, `${label} ${key} should stay absent`);
+    }
+}
+
 async function runAppApiSmoke() {
     const originalLinkedBinding = process._linkedBinding;
     const relaunchCalls = [];
@@ -1012,6 +1020,84 @@ function runPowerSaveBlockerSmoke() {
     console.log('PASS power-save-blocker-js-smoke');
 }
 
+
+function runElectronRendererModuleExportsSmoke() {
+    const Module = require('module');
+    const originalLoad = Module._load;
+    const electronMock = {};
+    const electronRendererMock = {};
+    const NativeImage = function NativeImage() {};
+    const moduleMocks = {
+        '../common/api/clipboard': {},
+        '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
+        '../common/api/native-image': { NativeImage },
+        '../common/api/shell': { Shell: {} }
+    };
+    const modulePath = require.resolve('../electron/lib/renderer/electron');
+
+    delete require.cache[modulePath];
+    Module._load=function(request,parent,isMain){
+        if(request==='electron') return electronMock;
+        if(request==='electron/renderer') return electronRendererMock;
+        if(parent && parent.filename === modulePath && Object.prototype.hasOwnProperty.call(moduleMocks, request))
+            return moduleMocks[request];
+        return originalLoad.call(this,request,parent,isMain);
+    }
+    try {
+        const electron = require('../electron/lib/renderer/electron');
+        assert.strictEqual(electron, electronMock);
+        assertRendererExportsExcluded(electron, 'renderer module export');
+        assert.strictEqual(typeof electron.clipboard, 'object');
+        assert.strictEqual(typeof electron.isPromise, 'function');
+        assert.strictEqual(typeof electron.nativeImage, 'function');
+        assert.strictEqual(typeof electron.shell, 'object');
+        console.log('PASS renderer-module-exports-smoke');
+    } finally {
+        Module._load=originalLoad;
+        delete require.cache[modulePath];
+    }
+}
+function runRendererExportSurfaceSmoke() {
+    const Module = require('module');
+    const originalLoad = Module._load;
+    const electronShim = {};
+    const electronRendererShim = {};
+    const NativeImage = function NativeImage() {};
+    const moduleMocks = {
+        '../common/api/clipboard': {},
+        '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
+        '../common/api/native-image': { NativeImage },
+        '../common/api/shell': { Shell: {} }
+    };
+    const rendererPath = require.resolve('../electron/lib/renderer/electron');
+
+    delete require.cache[rendererPath];
+    Module._load = function(request, parent, isMain) {
+        if (request === 'electron')
+            return electronShim;
+        if (request === 'electron/renderer')
+            return electronRendererShim;
+        if (parent && parent.filename === rendererPath && Object.prototype.hasOwnProperty.call(moduleMocks, request))
+            return moduleMocks[request];
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    try {
+        const electron = require('../electron/lib/renderer/electron');
+        assert.strictEqual(electron, electronShim);
+        assert.strictEqual(electronRendererShim.clipboard, electron.clipboard);
+        assert.strictEqual(electronRendererShim.nativeImage, NativeImage);
+        assert.strictEqual(electronRendererShim.shell, electron.shell);
+        assert.strictEqual(electron.isPromise(Promise.resolve()), true);
+        assert.strictEqual(electron.isPromise({}), false);
+        assertRendererExportsExcluded(electron, 'renderer export');
+        console.log('PASS renderer-export-surface-smoke');
+    } finally {
+        Module._load = originalLoad;
+        delete require.cache[rendererPath];
+    }
+}
+
 runAppApiSmoke()
     .then(function() {
         return runElectronAppRuntimeSmoke();
@@ -1033,6 +1119,12 @@ runAppApiSmoke()
     })
     .then(function() {
         runPowerSaveBlockerSmoke();
+    })
+    .then(function() {
+        runRendererExportSurfaceSmoke();
+    })
+    .then(function() {
+        runElectronRendererModuleExportsSmoke();
     })
     .catch(function(error) {
         console.error(error && error.stack ? error.stack : error);

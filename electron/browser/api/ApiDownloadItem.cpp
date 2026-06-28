@@ -64,7 +64,8 @@ void ApiDownloadItem::init(v8::Isolate* isolate, v8::Local<v8::Object> target)
     builder.SetMethod("isPaused", &ApiDownloadItem::isPausedApi);
     builder.SetMethod("resume", &ApiDownloadItem::resumeApi);
     builder.SetMethod("canResume", &ApiDownloadItem::canResumeApi);
-    builder.SetMethod("cancels", &ApiDownloadItem::cancelsApi);
+    builder.SetMethod("cancel", &ApiDownloadItem::cancelApi);
+    builder.SetMethod("cancels", &ApiDownloadItem::cancelApi);
     builder.SetMethod("getURL", &ApiDownloadItem::getURLApi);
     builder.SetMethod("getMimeType", &ApiDownloadItem::getMimeTypeApi);
     builder.SetMethod("hasUserGesture", &ApiDownloadItem::hasUserGestureApi);
@@ -132,9 +133,15 @@ bool ApiDownloadItem::canResumeApi() const
     return true;
 }
 
-void ApiDownloadItem::cancelsApi()
+void ApiDownloadItem::cancelApi()
 {
-    OutputDebugStringA("ApiDownloadItem::cancelsApi is not impl\n");
+    if (m_state == kCompleted || m_state == kCancelled)
+        return;
+
+    m_state = kCancelled;
+    m_isPaused = false;
+    mate::EventEmitter<ApiDownloadItem>::emit(std::string("updated"), std::string("cancelled"));
+    mate::EventEmitter<ApiDownloadItem>::emit(std::string("done"), std::string("cancelled"), std::string("cancelled"));
 }
 
 std::string ApiDownloadItem::getURLApi() const

@@ -103,11 +103,10 @@ base::FilePath SessionMgr::createSessionDirname(const std::string& name)
 
 ApiSession* ApiSession::create(v8::Isolate* isolate, const std::string& name)
 {
-    if (name.empty())
-        DebugBreak();
+    std::string sessionName = name.empty() ? ApiSession::kDefaultSessionName : name;
 
     const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = { gin_helper::ConvertToV8(isolate, name.c_str()) };
+    v8::Local<v8::Value> argv[argc] = { gin_helper::ConvertToV8(isolate, sessionName.c_str()) };
     v8::Local<v8::Function> constructorFunction = v8::Local<v8::Function>::New(isolate, constructor);
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::MaybeLocal<v8::Object> obj = constructorFunction->NewInstance(context, argc, argv);
@@ -115,9 +114,9 @@ ApiSession* ApiSession::create(v8::Isolate* isolate, const std::string& name)
 
     ApiSession* self = (ApiSession*)WrappableBase::GetNativePtr(objV8, &kWrapperInfo);
     self->m_liveSelf.Reset(isolate, objV8);
-    self->m_name = name;
+    self->m_name = sessionName;
 
-    base::FilePath fullpath = SessionMgr::createSessionDirname(name); // rootdir/minieleses/11223344/ 这种形式的目录
+    base::FilePath fullpath = SessionMgr::createSessionDirname(sessionName); // rootdir/minieleses/11223344/ 这种形式的目录
     self->m_path = fullpath;
     self->m_downloadPath = fullpath.AsUTF8Unsafe();
 

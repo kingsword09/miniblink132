@@ -35,9 +35,13 @@
 #include "third_party/blink/public/web/blink.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
+#include "third_party/libnode/src/node_buffer.h"
 #include "third_party/libuv/include/uv.h"
 #include "base/values.h"
 #include <shlwapi.h>
+#include <cstring>
+#include <memory>
+#include <vector>
 
 void MB_CALL_TYPE mbGetWorldScriptContextByWebFrame(mbWebView webviewHandle, mbWebFrameHandle frameId, int worldID, v8ContextPtr contextOut);
 void MB_CALL_TYPE mbDownloadUrl(mbWebView webviewHandle, mbWebFrameHandle frameId, const std::string& url);
@@ -79,7 +83,7 @@ void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node:
     builder.SetMethod("closeDevTools", &WebContents::closeDevToolsApi);
     builder.SetMethod("isDevToolsOpened", &WebContents::isDevToolsOpenedApi);
     builder.SetMethod("isDevToolsFocused", &WebContents::isDevToolsFocusedApi);
-    builder.SetMethod("insertCSS", &WebContents::insertCSSApi);
+    builder.SetMethod("_insertCSS", &WebContents::insertCSSApi);
     builder.SetMethod("setZoomFactor", &WebContents::setZoomFactorApi);
     builder.SetMethod("enableDeviceEmulation", &WebContents::enableDeviceEmulationApi);
     builder.SetMethod("disableDeviceEmulation", &WebContents::disableDeviceEmulationApi);
@@ -126,7 +130,6 @@ void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node:
     builder.SetMethod("unregisterServiceWorker", &WebContents::unregisterServiceWorkerApi);
     builder.SetMethod("inspectServiceWorker", &WebContents::inspectServiceWorkerApi);
     builder.SetMethod("print", &WebContents::printApi);
-    builder.SetMethod("_printToPDF", &WebContents::_printToPDFApi);
     builder.SetMethod("addWorkSpace", &WebContents::addWorkSpaceApi);
     builder.SetMethod("reNullWorkSpace", &WebContents::reNullWorkSpaceApi);
     builder.SetMethod("showDefinitionForSelection", &WebContents::showDefinitionForSelectionApi);
@@ -421,8 +424,6 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
         }
     } else if (m_createWindowParam->m_isNodeIntegration && !m_createWindowParam->m_isContextIsolation) {
         // 有预加载，预加载里有nodejs，而且预加载没隔离。主世界有nodejs
-        //if (!isMainWorld)
-        //    DebugBreak();
         shouldLoadNodejs = true;
     } else if (!m_createWindowParam->m_isNodeIntegration && !m_createWindowParam->m_isContextIsolation) {
         shouldLoadNodejs = true; // 有预加载，预加载里有nodejs，而且预加载没隔离。主世界没nodejs
@@ -586,8 +587,10 @@ void WebContents::rendererPostMessageToMain(
     int id = m_id;
     WebContents* self = this;
     std::string* channelCopy = new std::string(channel);
-    if (channel != "ipc-message" && channel != "ipc-render-invoke")
-        DebugBreak();
+    if (channel != "ipc-message" && channel != "ipc-render-invoke") {
+        delete channelCopy;
+        return;
+    }
 
     std::vector<blink::CloneableMessage>* listParamsPtr = listParams.release();
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [self, frame, id, channelCopy, listParamsPtr] {
@@ -643,7 +646,7 @@ void WebContents::rendererSendMessageToMain(
     WebContents* self = this;
 
     if (channel != "ipc-message-sync")
-        DebugBreak();
+        return;
 
     std::vector<blink::CloneableMessage>* listParamsPtr = listParams.release();
     content::ThreadCall::callUiThreadSync(FROM_HERE, [self, frame, listParamsPtr, encodedMessageRet] {
@@ -891,15 +894,125 @@ bool WebContents::canGoForwardApi() const
     return m_canGoForward;
 }
 
-void WebContents::printToPDFApi()
+namespace {
+
+void MB_CALL_TYPE onPrintToPdfDataCallback(mbWebView webView, void* param, const mbPdfDatas* datas)
 {
-    OutputDebugStringA("WebContents::printToPDFApi not impl\n");
+    gin_helper::Promise<v8::Local<v8::Value>>* promise = static_cast<gin_helper::Promise<v8::Local<v8::Value>>*>(param);
+    v8::Isolate* isolate = promise->isolate();
+    v8::HandleScope handleScope(isolate);
+    v8::Context::Scope contextScope(promise->GetContext());
+
+    if (!datas || datas->count <= 0) {
+        v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, "", 0);
+        if (buffer.IsEmpty())
+            promise->RejectWithErrorMessage("Failed to create PDF buffer");
+        else
+            promise->Resolve(buffer.ToLocalChecked().As<v8::Value>());
+        delete promise;
+        return;
+    }
+
+    if (!datas->sizes || !datas->datas) {
+        promise->RejectWithErrorMessage("Invalid PDF data");
+        delete promise;
+        return;
+    }
+
+    size_t totalSize = 0;
+    for (int i = 0; i < datas->count; ++i)
+        totalSize += datas->sizes[i];
+
+    if (!totalSize) {
+        v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, "", 0);
+        if (buffer.IsEmpty())
+            promise->RejectWithErrorMessage("Failed to create PDF buffer");
+        else
+            promise->Resolve(buffer.ToLocalChecked().As<v8::Value>());
+        delete promise;
+        return;
+    }
+
+    std::vector<char> pdfData(totalSize);
+    size_t offset = 0;
+    for (int i = 0; i < datas->count; ++i) {
+        size_t partSize = datas->sizes[i];
+        if (partSize && datas->datas[i])
+            memcpy(pdfData.data() + offset, datas->datas[i], partSize);
+        offset += partSize;
+    }
+
+    v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, pdfData.data(), pdfData.size());
+    if (buffer.IsEmpty())
+        promise->RejectWithErrorMessage("Failed to create PDF buffer");
+    else
+        promise->Resolve(buffer.ToLocalChecked().As<v8::Value>());
+    delete promise;
+}
+
+} // namespace
+
+v8::Local<v8::Promise> WebContents::printToPDFApi(gin_helper::Arguments* args)
+{
+    gin_helper::Promise<v8::Local<v8::Value>>* promise = new gin_helper::Promise<v8::Local<v8::Value>>(isolate());
+    v8::Local<v8::Promise> ret = promise->GetHandle();
+
+    mbPrintSettings settings = {};
+    settings.structSize = sizeof(settings);
+    settings.dpi = 72;
+    settings.width = 0;
+    settings.height = 0;
+    settings.marginTop = 0;
+    settings.marginBottom = 0;
+    settings.marginLeft = 0;
+    settings.marginRight = 0;
+    settings.isPrintPageHeadAndFooter = false;
+    settings.isPrintBackgroud = true;
+    settings.isLandscape = false;
+    settings.isPrintToMultiPage = true;
+
+    gin_helper::Dictionary options(isolate());
+    if (!args->PeekNext().IsEmpty() && args->PeekNext()->IsObject() && args->GetNext(&options)) {
+        options.Get("dpi", &settings.dpi);
+        options.Get("pageSizeWidth", &settings.width);
+        options.Get("pageSizeHeight", &settings.height);
+        options.Get("marginTop", &settings.marginTop);
+        options.Get("marginBottom", &settings.marginBottom);
+        options.Get("marginLeft", &settings.marginLeft);
+        options.Get("marginRight", &settings.marginRight);
+        bool displayHeaderFooter = settings.isPrintPageHeadAndFooter != FALSE;
+        bool printBackground = settings.isPrintBackgroud != FALSE;
+        bool landscape = settings.isLandscape != FALSE;
+        bool preferCSSPageSize = settings.isPrintToMultiPage != FALSE;
+        options.Get("displayHeaderFooter", &displayHeaderFooter);
+        options.Get("printBackground", &printBackground);
+        options.Get("landscape", &landscape);
+        options.Get("preferCSSPageSize", &preferCSSPageSize);
+        settings.isPrintPageHeadAndFooter = displayHeaderFooter ? TRUE : FALSE;
+        settings.isPrintBackgroud = printBackground ? TRUE : FALSE;
+        settings.isLandscape = landscape ? TRUE : FALSE;
+        settings.isPrintToMultiPage = preferCSSPageSize ? TRUE : FALSE;
+    }
+
+    if (!m_view) {
+        promise->RejectWithErrorMessage("Cannot print to PDF without a web view");
+        delete promise;
+        return ret;
+    }
+
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(m_view);
+    if (!frame) {
+        promise->RejectWithErrorMessage("Cannot print to PDF without a main frame");
+        delete promise;
+        return ret;
+    }
+
+    mbUtilPrintToPdf(m_view, frame, &settings, onPrintToPdfDataCallback, promise);
+    return ret;
 }
 
 void WebContents::setWindowOpenHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("WebContents::setWindowOpenHandlerApi not impl\n");
-
     if (1 != info.Length())
         return;
     v8::Local<v8::Value> arg0 = info[0];
@@ -1171,13 +1284,11 @@ bool WebContents::isLoadingApi()
 
 bool WebContents::isLoadingMainFrameApi()
 {
-    //todo
     return false;
 }
 
 bool WebContents::isWaitingForResponseApi()
 {
-    //todo
     return false;
 }
 
@@ -1224,7 +1335,6 @@ std::string WebContents::getUserAgentApi()
 
 void WebContents::savePageApi()
 {
-    //todo
 }
 
 void WebContents::openDevToolsApi()
@@ -1255,7 +1365,6 @@ void WebContents::openDevToolsApi()
 
 void WebContents::closeDevToolsApi()
 {
-    //todo
 }
 
 bool WebContents::isDevToolsOpenedApi()
@@ -1265,7 +1374,6 @@ bool WebContents::isDevToolsOpenedApi()
 
 bool WebContents::isDevToolsFocusedApi()
 {
-    //todo
     return true;
 }
 
@@ -1317,22 +1425,18 @@ void WebContents::setZoomFactorApi(float factor)
 
 void WebContents::enableDeviceEmulationApi()
 {
-    //todo
 }
 
 void WebContents::disableDeviceEmulationApi()
 {
-    //todo
 }
 
 void WebContents::toggleDevToolsApi()
 {
-    //todo
 }
 
 void WebContents::inspectElementApi()
 {
-    //todo
 }
 
 void WebContents::setAudioMutedApi()
@@ -1377,7 +1481,6 @@ void WebContents::pasteApi()
 
 void WebContents::pasteAndMatchStyleApi()
 {
-    //todo
 }
 
 void WebContents::_deleteApi()
@@ -1397,22 +1500,18 @@ void WebContents::unselectApi()
 
 void WebContents::replaceApi()
 {
-    //todo
 }
 
 void WebContents::replaceMisspellingApi()
 {
-    //todo
 }
 
 void WebContents::findInPageApi()
 {
-    //todo
 }
 
 void WebContents::stopFindInPageApi()
 {
-    //todo
 }
 
 void WebContents::focusApi()
@@ -1427,7 +1526,6 @@ bool WebContents::isFocusedApi()
 
 void WebContents::tabTraverseApi()
 {
-    //todo
 }
 
 bool WebContents::_sendApi(
@@ -1470,8 +1568,17 @@ bool WebContents::_sendApi(
     for (; winIt != WindowList::getInstance()->end(); ++winIt) {
         WindowInterface* windowInterface = *winIt;
         WebContents* webContents = windowInterface->getWebContents();
-        webContents->anyPostMessageToRenderer(frameId, channel, std::unique_ptr<std::vector<blink::CloneableMessage>>(args));
+        auto argsCopy = std::make_unique<std::vector<blink::CloneableMessage>>();
+        argsCopy->reserve(args->size());
+        for (const auto& arg : *args) {
+            blink::CloneableMessage message;
+            message.owned_encoded_message.assign(arg.encoded_message.begin(), arg.encoded_message.end());
+            message.encoded_message = message.owned_encoded_message;
+            argsCopy->push_back(std::move(message));
+        }
+        webContents->anyPostMessageToRenderer(frameId, channel, std::move(argsCopy));
     }
+    delete args;
     return true;
 }
 
@@ -1537,54 +1644,44 @@ bool WebContents::_postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& inf
 
 void WebContents::sendInputEventApi()
 {
-    //todo
 }
 
 void WebContents::beginFrameSubscriptionApi()
 {
-    //todo
 }
 
 void WebContents::endFrameSubscriptionApi()
 {
-    //todo
 }
 
 void WebContents::startDragApi()
 {
-    //todo
 }
 
 void WebContents::setSizeApi()
 {
-    //todo
 }
 
 bool WebContents::isGuestApi()
 {
-    //todo
     return false;
 }
 
 bool WebContents::isOffscreenApi()
 {
-    //todo
     return false;
 }
 
 void WebContents::startPaintingApi()
 {
-    //todo
 }
 
 void WebContents::stopPaintingApi()
 {
-    //todo
 }
 
 bool WebContents::isPaintingApi()
 {
-    //todo
     return false;
 }
 
@@ -1600,17 +1697,14 @@ int WebContents::getFrameRateApi()
 
 void WebContents::invalidateApi()
 {
-    //todo
 }
 
 void WebContents::getTypeApi()
 {
-    //todo
 }
 
 void WebContents::getWebPreferencesApi()
 {
-    //todo
 }
 
 v8::Local<v8::Value> WebContents::getOwnerBrowserWindowApi()
@@ -1628,52 +1722,38 @@ bool WebContents::hasServiceWorkerApi()
 
 void WebContents::unregisterServiceWorkerApi()
 {
-    //todo
 }
 
 void WebContents::inspectServiceWorkerApi()
 {
-    //todo
 }
 
 void WebContents::printApi()
 {
-    //todo
-}
-
-void WebContents::_printToPDFApi()
-{
-    //todo
 }
 
 void WebContents::addWorkSpaceApi()
 {
-    //todo
 }
 
 void WebContents::reNullWorkSpaceApi()
 {
-    //todo
 }
 
 void WebContents::showDefinitionForSelectionApi()
 {
-    //todo
 }
 
 void WebContents::copyImageAtApi()
 {
-    //todo
 }
 
 void WebContents::capturePageApi()
 {
-    //todo
 }
 
 void WebContents::setEmbedderApi()
 {
-    //todo
 }
 
 bool WebContents::isDestroyedApi() const

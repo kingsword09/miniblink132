@@ -426,7 +426,7 @@ void initializeWebFrameApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> t
 
 } // namespace
 
-static const char RenererWebFrameNative[] = "console.log('RenererWebFrameNative');;";
-static NodeNative nativeRenererWebFrameNative { "WebFrame", RenererWebFrameNative, sizeof(RenererWebFrameNative) - 1 };
+static const char RendererWebFrameNative[] = "console.log('RendererWebFrameNative');;";
+static NodeNative nativeRendererWebFrameNative { "WebFrame", RendererWebFrameNative, sizeof(RendererWebFrameNative) - 1 };
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_renerer_webframe, atom::initializeWebFrameApi, &nativeRenererWebFrameNative)
+NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_renderer_webframe, atom::initializeWebFrameApi, &nativeRendererWebFrameNative)

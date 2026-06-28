@@ -139,13 +139,11 @@ WebContents.prototype.loadFile = function (filePath) {
 }
 
 WebContents.prototype.insertCSS = function (css, options) {
-    return new Promise((resolve, reject) => {
-        ;
-    });
+    return this._insertCSS(css, options || {});
 }
 
 WebContents.prototype.setDevToolsWebContents = function() {
-    mbConsoleLog("WebContents.prototype.setDevToolsWebContents not impl\n");
+    return undefined;
 }
 
 let nextId = 0;

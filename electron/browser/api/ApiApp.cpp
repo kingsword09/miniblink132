@@ -95,8 +95,6 @@ App::~App()
 {
     ::CloseHandle(m_singleInstanceHandle);
     m_singleInstanceHandle = nullptr;
-
-    DebugBreak();
 }
 
 void App::init(v8::Local<v8::Object> target, v8::Isolate* isolate)

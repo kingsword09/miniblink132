@@ -55,9 +55,7 @@ bool Event::sendReply(const v8::FunctionCallbackInfo<v8::Value>& info)
 // 
 // void Event::returnValueSet(const std::vector<char>& json)
 // {
-//     m_returnValue = json;
-//     DebugBreak();
-//     if (m_callback)
+//     m_returnValue = json;//     if (m_callback)
 //         (*m_callback)(json);
 // }
 

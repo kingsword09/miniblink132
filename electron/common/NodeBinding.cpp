@@ -38,7 +38,7 @@ namespace {
 
 void crash(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    DebugBreak();
+    ::TerminateProcess(::GetCurrentProcess(), 1);
 }
 
 void hang(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -92,8 +92,7 @@ void getSystemMemoryInfo(const v8::FunctionCallbackInfo<v8::Value>& info)
 // we can get the stack trace.
 void fatalErrorCallback(const char* location, const char* message)
 {
-    //crash(info);
-    DebugBreak();
+    ::TerminateProcess(::GetCurrentProcess(), 1);
 }
 
 void log(const v8::FunctionCallbackInfo<v8::Value>& info)

@@ -27,9 +27,6 @@ void preventDefault(gin_helper::Arguments* args)
 
 void sendReply(const std::string& json)
 {
-    //     gin_helper::Dictionary self(args->isolate(), args->GetThis());
-    //     self.Set("defaultPrevented", true);
-    DebugBreak();
 }
 
 // Create a pure JavaScript Event object.
@@ -86,8 +83,7 @@ v8::Local<v8::Object> createEventFromFlags(v8::Isolate* isolate, int flags)
     //     obj.Set("altKey", static_cast<bool>(flags & ui::EF_ALT_DOWN));
     //     obj.Set("metaKey", static_cast<bool>(flags & ui::EF_COMMAND_DOWN));
     //     return obj.GetHandle();
-    DebugBreak();
-    return v8::Local<v8::Object>();
+    return createEventObject(isolate);
 }
 
 } // namespace internal

@@ -72,24 +72,24 @@ clipboard.write = function (data, type) {
     return;
 }
 
-// TODO(codebytere): remove in 3.0
+// Note(codebytere): remove in 3.0
 clipboard.readHtml = function () {
     //return clipboard.readHTML();
     return "";
 }
 
-// TODO(codebytere): remove in 3.0
+// Note(codebytere): remove in 3.0
 clipboard.writeHtml = function () {
     //return clipboard.writeHTML();
 }
 
-// TODO(codebytere): remove in 3.0
+// Note(codebytere): remove in 3.0
 clipboard.readRtf = function () {
     return "";
     //return clipboard.readRTF();
 }
 
-// TODO(codebytere): remove in 3.0
+// Note(codebytere): remove in 3.0
 clipboard.writeRtf = function () {
     //return clipboard.writeRTF();
 }

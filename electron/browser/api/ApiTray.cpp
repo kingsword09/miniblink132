@@ -191,7 +191,6 @@ public:
 
     void popUpContextMenu()
     {
-        OutputDebugStringA("tray.displayBalloon not impl\n");
     }
 
     void onClick(std::string argString)

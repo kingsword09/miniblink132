@@ -1403,25 +1403,21 @@ private:
     void setParentWindowApi()
     {
         OutputDebugStringA("setParentWindowApi\n");
-        DebugBreak();
     }
 
     void getParentWindowApi()
     {
         OutputDebugStringA("getParentWindowApi\n");
-        DebugBreak();
     }
 
     void getChildWindowsApi()
     {
         OutputDebugStringA("getChildWindowsApi\n");
-        DebugBreak();
     }
 
     bool isModalApi()
     {
         OutputDebugStringA("isModalApi\n");
-        DebugBreak();
         return false;
     }
 
@@ -1505,13 +1501,11 @@ private:
     void getContentBoundsApi()
     {
         ::OutputDebugStringA("getContentBoundsApi\n");
-        ::DebugBreak();
     }
 
     void setContentBoundsApi()
     {
         ::OutputDebugStringA("setContentBoundsApi\n");
-        ::DebugBreak();
     }
 
     std::vector<int> getContentSizeApi()
@@ -1709,7 +1703,7 @@ private:
         if (b) {
             style |= WS_EX_TOOLWINDOW;
             style &= ~WS_EX_APPWINDOW;
-        } else { //todo 如果窗口原来的style没有WS_EX_APPWINDOW，就可能有问题
+        } else {
             style &= ~WS_EX_TOOLWINDOW;
             style |= WS_EX_APPWINDOW;
         }
@@ -1926,7 +1920,6 @@ private:
     void nullFunction()
     {
         OutputDebugStringA("nullFunction\n");
-        DebugBreak();
     }
 
     void setTitleBarOverlayApi()
@@ -2253,7 +2246,7 @@ private:
         v8::Handle<v8::Object> webContentsV8;
         // If no WebContents was passed to the constructor, create it from options.
         if (options->Get("webContents", &webContentsV8))
-            DebugBreak();
+            gin_helper::ConvertFromV8(options->isolate(), webContentsV8, &webContents);
 
         // Use options.webPreferences to create WebContents.
         gin_helper::Dictionary webPreferences = gin_helper::Dictionary::CreateEmpty(options->isolate());

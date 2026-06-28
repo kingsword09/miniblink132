@@ -167,7 +167,7 @@ private:
     bool canGoForwardApi() const;
     void setZoomLevelApi(float level);
     float getZoomLevelApi() const;
-    void printToPDFApi();
+    v8::Local<v8::Promise> printToPDFApi(gin_helper::Arguments* args);
     void setWindowOpenHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& info);
 
     void _loadURLApi(const std::string& url);
@@ -247,7 +247,6 @@ private:
     void unregisterServiceWorkerApi();
     void inspectServiceWorkerApi();
     void printApi();
-    void _printToPDFApi();
     void addWorkSpaceApi();
     void reNullWorkSpaceApi();
     void showDefinitionForSelectionApi();

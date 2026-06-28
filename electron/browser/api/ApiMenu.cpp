@@ -176,7 +176,6 @@ public:
 
     void nullFunction()
     {
-        DebugBreak();
     }
 
     // Set the global menubar.

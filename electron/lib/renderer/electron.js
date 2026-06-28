@@ -1,16 +1,12 @@
+'use strict';
 
 const electron = require('electron');
 const electronRenderer = require('electron/renderer');
 
-electron.ipcRenderer = require("./api/ipc-renderer.js");
-electron.CallbacksRegistry = require("./../common/api/callbacks-registry.js").CallbacksRegistry;
-electron.isPromise = require("./../common/api/is-promise.js").isPromise;
-electron.remote = require("./api/remote.js");
-electron.shell = require("./../common/api/shell.js").Shell;
-electron.screen = require("./../common/api/screen.js").Screen;
-electron.webFrame = require("./api/web-frame.js");
-electron.clipboard = require("./../common/api/clipboard.js");
-electron.contextBridge = require("./../renderer/api/context-bridge.js");
+electron.clipboard = require('../common/api/clipboard');
+electron.isPromise = require('../common/api/is-promise').isPromise;
+electron.nativeImage = require('../common/api/native-image').NativeImage;
+electron.shell = require('../common/api/shell').Shell;
 
 module.exports = electron;
 Object.assign(electronRenderer, electron);

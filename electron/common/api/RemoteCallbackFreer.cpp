@@ -29,9 +29,7 @@ void RemoteCallbackFreer::onRunDestructor()
     //     base::string16 channel = base::ASCIIToUTF16("ELECTRON_RENDERER_RELEASE_CALLBACK");
     //     base::ListValue args;
     //     args.AppendInteger(m_objectId);
-    //     Send(new AtomViewMsg_Message(routing_id(), false, channel, args));
-    //     DebugBreak();
-    //     m_webContents->removeObserver(nullptr);
+    //     Send(new AtomViewMsg_Message(routing_id(), false, channel, args));    //     m_webContents->removeObserver(nullptr);
 }
 
 void RemoteCallbackFreer::onWebContentsDeleted(WebContents* webConents)

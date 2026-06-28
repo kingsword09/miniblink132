@@ -106,7 +106,6 @@ HRESULT DeleteFileProgressSink::QueryInterface(REFIID riid, LPVOID* ppvObj)
     if (!ppvObj)
         return E_INVALIDARG;
     *ppvObj = nullptr;
-    DebugBreak();
 
     //     if (riid == IID_IUnknown || riid == IID_IFileOperationProgressSink) {
     //         // Increment the reference count and return the pointer.
@@ -119,9 +118,7 @@ HRESULT DeleteFileProgressSink::QueryInterface(REFIID riid, LPVOID* ppvObj)
 
 ULONG DeleteFileProgressSink::AddRef()
 {
-    //InterlockedIncrement(&m_cRef);
-    DebugBreak();
-    return m_cRef;
+    return ++m_cRef;
 }
 
 ULONG DeleteFileProgressSink::Release()
@@ -132,8 +129,9 @@ ULONG DeleteFileProgressSink::Release()
     //         delete this;
     //     }
     //    return ulRefCount;
-    DebugBreak();
-    return 0;
+    if (m_cRef > 0)
+        --m_cRef;
+    return m_cRef;
 }
 
 HRESULT DeleteFileProgressSink::StartOperations()
@@ -390,7 +388,6 @@ void moveToCenter(HWND hWnd)
 
 bool moveItemToTrash(const base::FilePath& path)
 {
-    DebugBreak();
     return false;
     //     base::win::ScopedCOMInitializer com_initializer;
     //     if (!com_initializer.succeeded())
@@ -575,7 +572,6 @@ bool loadIconFromICOToSkBitmap(const uint8_t* data, size_t dataSize, SkBitmap* o
 
         bool isPng = iconHead->icHeader.biCompression;
 
-        DebugBreak();
 //         if (isPng) {
 //             // Step 4: 如果是 PNG，直接使用 gfx::Image::CreateFrom1xPNGBytes 加载
 //             *outBitmap = gfx::Image::CreateFrom1xPNGBytes(base::span<const uint8_t>(imageData, imageSize)).AsBitmap();

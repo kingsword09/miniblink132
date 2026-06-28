@@ -130,8 +130,9 @@ BrowserView* BrowserView::newBrowserView(const gin_helper::Dictionary* options, 
         webContents = WebContents::create(options->isolate(), webPreferences, self);
 
         //webPreferences.GetBydefaultVal("nodeIntegration", true, &webContents->m_isNodeIntegration);
-    } else
-        DebugBreak();
+    } else if (!gin_helper::ConvertFromV8(options->isolate(), webContentsV8, &webContents)) {
+        webContents = WebContents::create(options->isolate(), gin_helper::Dictionary::CreateEmpty(options->isolate()), self);
+    }
     self->m_webContents = webContents;
 
     options->GetBydefaultVal("x", kNotSetXYFlag, &createWindowParam->x);

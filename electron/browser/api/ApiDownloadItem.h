@@ -39,7 +39,7 @@ private:
     bool isPausedApi() const;
     void resumeApi();
     bool canResumeApi() const;
-    void cancelsApi();
+    void cancelApi();
     std::string getURLApi() const;
     std::string getMimeTypeApi() const;
     bool hasUserGestureApi() const;

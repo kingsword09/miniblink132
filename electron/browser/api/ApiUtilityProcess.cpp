@@ -346,7 +346,6 @@ void ApiUtilityProcess::postMessageApi(const v8::FunctionCallbackInfo<v8::Value>
 // 本函数被废弃了，用Accept
 void ApiUtilityProcess::onChildMsg(const std::vector<char>& msg)
 {
-    DebugBreak();
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
     base::span<const uint8_t> data((const uint8_t*)msg.data(), msg.size());
     v8::Local<v8::Value> msgV8 = deserializeV8Value(v8::Isolate::GetCurrent(), data);

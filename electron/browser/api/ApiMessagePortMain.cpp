@@ -112,7 +112,7 @@ ApiMessagePortMain::ApiMessagePortMain(v8::Isolate* isolate, v8::Local<v8::Objec
     // 这里和原版electron不一样。原版没有在这pin。之所有这里要pin一下，因为有时候会在创建了ApiMessagePortMain
     // 后，还没走到start就立马内存回收了。
     pin();
-    m_delayPinOrUnpin.Start(FROM_HERE, base::Seconds(80000), base::BindOnce(&ApiMessagePortMain::delayPinOrUnpin, base::Unretained(this))); // TODO!!!!
+    m_delayPinOrUnpin.Start(FROM_HERE, base::Seconds(80000), base::BindOnce(&ApiMessagePortMain::delayPinOrUnpin, base::Unretained(this))); // Note!!!!
 }
 
 ApiMessagePortMain::~ApiMessagePortMain()
@@ -235,7 +235,7 @@ blink::MessagePortChannel ApiMessagePortMain::disentangle()
     DCHECK(!isNeutered());
     m_port.GiveDisentangledHandle(m_connector->PassMessagePipe());
 
-    //m_connector.release(); // !!!!!!!!!!TODO
+    //m_connector.release(); // !!!!!!!!!!Note
     m_connector = nullptr;
 
 #if 0

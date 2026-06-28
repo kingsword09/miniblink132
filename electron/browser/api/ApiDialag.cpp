@@ -193,8 +193,10 @@ public:
         if (args[2]->IsFunction()) {
             //callback = v8::Function::Cast(*(args[2]));
             info->callback.Reset(isolate, args[2].As<v8::Function>());
-        } else if (!isSync)
-            DebugBreak();
+        } else if (!isSync) {
+            delete info;
+            return;
+        }
 
         info->recv.Reset(isolate, isolate->GetCurrentContext()->Global());
 

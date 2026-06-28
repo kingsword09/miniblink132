@@ -117,8 +117,6 @@ WebviewPluginImpl::WebviewPluginImpl(mbWebView parentWebview)
     m_guestId = -1;
     m_npObj = nullptr;
     m_instance = nullptr;
-    DebugBreak();
-
     m_parentWebview = parentWebview;
     //     m_webview = wkeCreateWebView();
     //     wkeOnPaintUpdated(m_webview, (wkePaintUpdatedCallback)staticOnPaintUpdated, this);
@@ -255,7 +253,8 @@ void WebviewPluginImpl::setPreloadURL(const std::string& preload)
 
 void WebviewPluginImpl::hostSendMessageToGuest(const std::string& channel, const base::Value::List& listParams)
 {
-    DebugBreak();
+    if (!m_webview)
+        return;
     //     std::string* channelCopy = new std::string(channel);
     //     base::ListValue* listParamsCopy = listParams.DeepCopy();
     //     wkeWebView webview = m_webview;
