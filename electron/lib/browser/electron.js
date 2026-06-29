@@ -37,12 +37,16 @@ Object.assign(electron, { app });
 Object.assign(electronMain, { app });
 
 const BrowserWindow = require('./api/browser-window');
+const BrowserView = require('./api/browser-view');
+const net = require('./api/net').net;
 const session = require('./api/session').session;
+const utilityProcess = require('./api/utility-process').utilityProcess;
 const webContents = require('./api/web-contents');
 const webFrameMain = require('./api/web-frame-main').webFrameMain;
 
 Object.assign(electron, {
   app,
+  BrowserView,
   BrowserWindow,
   clipboard: require('../common/api/clipboard'),
   dialog: require('./api/dialog').dialog,
@@ -54,6 +58,7 @@ Object.assign(electron, {
   MessageChannelMain: require('./api/message-channel-main').MessageChannelMain,
   nativeImage: require('../common/api/native-image').NativeImage,
   nativeTheme,
+  net,
   powerMonitor: require('./api/power-monitor'),
   powerSaveBlocker: require('./api/power-save-blocker'),
   protocol: require('./api/protocol').protocol,
@@ -62,6 +67,7 @@ Object.assign(electron, {
   session,
   shell: require('../common/api/shell').Shell,
   Tray: require('./api/tray').Tray,
+  utilityProcess,
   webContents,
   webFrameMain
 });

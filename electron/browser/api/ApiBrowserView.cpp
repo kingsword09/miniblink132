@@ -56,6 +56,7 @@ void BrowserView::init(v8::Isolate* isolate, v8::Local<v8::Object> target)
     gin_helper::ObjectTemplateBuilder builder(isolate, prototype->InstanceTemplate());
     builder.SetMethod("_getWebContents", &BrowserView::_getWebContentsApi);
     builder.SetMethod("_setBounds", &BrowserView::_setBoundsApi);
+    builder.SetMethod("_setBackgroundColor", &BrowserView::_setBackgroundColorApi);
 
     constructor.Reset(isolate, prototype->GetFunction(context).ToLocalChecked());
     target->Set(context, v8::String::NewFromUtf8(isolate, className).ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
@@ -98,6 +99,14 @@ void BrowserView::_setBoundsApi(int x, int y, int w, int h)
     setClientRect(r);
 
     mbResize(m_webContents->getMbView(), w, h);
+}
+
+void BrowserView::_setBackgroundColorApi(unsigned int color)
+{
+    if (!m_webContents)
+        return;
+    mbViewSettings settings = { sizeof(mbViewSettings), color };
+    mbSetViewSettings(m_webContents->getMbView(), &settings);
 }
 
 BrowserView* BrowserView::newBrowserView(const gin_helper::Dictionary* options, v8::Local<v8::Object> wrapper)

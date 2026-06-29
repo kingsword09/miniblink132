@@ -33,6 +33,7 @@ public:
 
     v8::Local<v8::Value> _getWebContentsApi();
     void _setBoundsApi(int x, int y, int w, int h);
+    void _setBackgroundColorApi(unsigned int color);
 
     static BrowserView* newBrowserView(const gin_helper::Dictionary* options, v8::Local<v8::Object> wrapper);
 

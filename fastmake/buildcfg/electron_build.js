@@ -256,7 +256,13 @@ if (constVal.isMac) {
 	const macSafeStorageSrc = "${srcPath}/electron/browser/api/ApiSafestorage.cpp";
 	const macMessagePortSrc = "${srcPath}/electron/browser/api/ApiMessagePortMain.cpp";
 	const macPostMessageUtilSrc = "${srcPath}/electron/browser/api/PostMessageUtil.cpp";
+	const macBrowserViewSrc = "${srcPath}/electron/browser/api/ApiBrowserView.cpp";
 	const macWebFrameMainSrc = "${srcPath}/electron/browser/api/ApiWebFrameMain.cpp";
+	const macUtilityProcessSrc = "${srcPath}/electron/browser/api/ApiUtilityProcess.cpp";
+	const macParentPortSrc = "${srcPath}/electron/browser/api/ApiParentPort.cpp";
+	const macIoThreadSrc = "${srcPath}/electron/common/IoThread.cpp";
+	const macUtilityProcessMsgsSrc = "${srcPath}/electron/common/ipc/UtilityProcessMsgs.cpp";
+	const macRendererContextBridgeSrc = "${srcPath}/electron/renderer/api/ApiContextBridge.cpp";
 	const macV8UtilValueSrc = "${srcPath}/electron/common/V8Util.cpp";
 	const macFeaturesSrc = "${srcPath}/electron/common/api/ApiFeatures.cpp";
 	const macAsarSrc = "${srcPath}/electron/common/api/ApiAsar.cpp";
@@ -292,7 +298,13 @@ if (constVal.isMac) {
 		macSafeStorageSrc,
 		macMessagePortSrc,
 		macPostMessageUtilSrc,
+		macBrowserViewSrc,
 		macWebFrameMainSrc,
+		macUtilityProcessSrc,
+		macParentPortSrc,
+		macIoThreadSrc,
+		macUtilityProcessMsgsSrc,
+		macRendererContextBridgeSrc,
 		macV8UtilValueSrc,
 		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
 		macWindowListSrc,
@@ -336,7 +348,13 @@ if (constVal.isMac) {
 	json[0].compile.src.push(macSafeStorageSrc);
 	json[0].compile.src.push(macMessagePortSrc);
 	json[0].compile.src.push(macPostMessageUtilSrc);
+	json[0].compile.src.push(macBrowserViewSrc);
 	json[0].compile.src.push(macWebFrameMainSrc);
+	json[0].compile.src.push(macUtilityProcessSrc);
+	json[0].compile.src.push(macParentPortSrc);
+	json[0].compile.src.push(macIoThreadSrc);
+	json[0].compile.src.push(macUtilityProcessMsgsSrc);
+	json[0].compile.src.push(macRendererContextBridgeSrc);
 	json[0].compile.src.push(macV8UtilValueSrc);
 	json[0].compile.src.push(macFeaturesSrc);
 	json[0].compile.src.push(macNativeImageSrc);
@@ -361,7 +379,13 @@ if (constVal.isMac) {
 	json[0].compile.prebuildSrc.push(macSafeStorageSrc);
 	json[0].compile.prebuildSrc.push(macMessagePortSrc);
 	json[0].compile.prebuildSrc.push(macPostMessageUtilSrc);
+	json[0].compile.prebuildSrc.push(macBrowserViewSrc);
 	json[0].compile.prebuildSrc.push(macWebFrameMainSrc);
+	json[0].compile.prebuildSrc.push(macUtilityProcessSrc);
+	json[0].compile.prebuildSrc.push(macParentPortSrc);
+	json[0].compile.prebuildSrc.push(macIoThreadSrc);
+	json[0].compile.prebuildSrc.push(macUtilityProcessMsgsSrc);
+	json[0].compile.prebuildSrc.push(macRendererContextBridgeSrc);
 	json[0].compile.prebuildSrc.push(macV8UtilValueSrc);
 	json[0].compile.prebuildSrc.push(macFeaturesSrc);
 	json[0].compile.prebuildSrc.push(macNativeImageSrc);

@@ -172,9 +172,11 @@ void traverseObjectForEnvMap(v8::Isolate* isolate, v8::Local<v8::Object> obj, ba
         v8::String::Utf8Value keyUtf8(isolate, keyStr);
         v8::String::Utf8Value valueUtf8(isolate, valueStr);
 
-        std::wstring keyW = base::UTF8ToWide(*keyUtf8);
-        std::wstring valueW = base::UTF8ToWide(*valueUtf8);
-        (*envMap)[keyW] = valueW;
+#if BUILDFLAG(IS_WIN)
+        (*envMap)[base::UTF8ToWide(*keyUtf8)] = base::UTF8ToWide(*valueUtf8);
+#else
+        (*envMap)[*keyUtf8] = *valueUtf8;
+#endif
     }
 }
 
@@ -315,7 +317,7 @@ void ApiUtilityProcess::close()
 
 bool ApiUtilityProcess::killApi()
 {
-    if (m_childProcess.IsValid())
+    if (!m_childProcess.IsValid())
         return false;
     base::Process process = base::Process::Open(m_childProcess.Pid());
     bool result = process.Terminate(/*content::RESULT_CODE_NORMAL_EXIT*/ 0, false);

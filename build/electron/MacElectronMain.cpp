@@ -193,9 +193,13 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> webRequest;
         v8::Local<v8::Object> downloadItem;
         v8::Local<v8::Object> messagePort;
+        v8::Local<v8::Object> browserView;
         v8::Local<v8::Object> webFrameMain;
+        v8::Local<v8::Object> utilityProcess;
         v8::Local<v8::Object> webContents;
         v8::Local<v8::Object> browserWindow;
+        v8::Local<v8::Object> rendererIpc;
+        v8::Local<v8::Object> rendererContextBridge;
         v8::Local<v8::Object> features;
         v8::Local<v8::Object> v8Util;
         v8::Local<v8::Object> intlCollator;
@@ -245,14 +249,22 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireFunctionProperty(context, downloadItem, "electron_browser_downloaditem", "DownloadItem")
             && requireBinding(context, "electron_browser_message_port", &messagePort)
             && requireFunctionProperty(context, messagePort, "electron_browser_message_port", "createPair")
+            && requireBinding(context, "electron_browser_browserview", &browserView)
+            && requireFunctionProperty(context, browserView, "electron_browser_browserview", "BrowserView")
             && requireBinding(context, "electron_browser_web_frame_main", &webFrameMain)
             && requireFunctionProperty(context, webFrameMain, "electron_browser_web_frame_main", "WebFrameMain")
             && requireFunctionProperty(context, webFrameMain, "electron_browser_web_frame_main", "fromId")
             && requireFunctionProperty(context, webFrameMain, "electron_browser_web_frame_main", "fromIdOrNull")
+            && requireBinding(context, "electron_browser_utility_process", &utilityProcess)
+            && requireFunctionProperty(context, utilityProcess, "electron_browser_utility_process", "_fork")
             && requireBinding(context, "electron_browser_web_contents", &webContents)
             && requireFunctionProperty(context, webContents, "electron_browser_web_contents", "WebContents")
             && requireBinding(context, "electron_browser_browserwindow", &browserWindow)
             && requireFunctionProperty(context, browserWindow, "electron_browser_browserwindow", "BrowserWindow")
+            && requireBinding(context, "electron_renderer_ipc", &rendererIpc)
+            && requireFunctionProperty(context, rendererIpc, "electron_renderer_ipc", "ipcRenderer")
+            && requireBinding(context, "electron_renderer_contextbridge", &rendererContextBridge)
+            && requireFunctionProperty(context, rendererContextBridge, "electron_renderer_contextbridge", "exposeInMainWorld")
             && requireBinding(context, "electron_common_features", &features)
             && requireFunctionProperty(context, features, "electron_common_features", "isViewApiEnabled")
             && requireBinding(context, "electron_common_v8_util", &v8Util)
@@ -284,9 +296,13 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const webRequest = process._linkedBinding('electron_browser_webrequest');"
                 "const downloadItem = process._linkedBinding('electron_browser_downloaditem');"
                 "const messagePort = process._linkedBinding('electron_browser_message_port');"
+                "const browserView = process._linkedBinding('electron_browser_browserview');"
                 "const webFrameMain = process._linkedBinding('electron_browser_web_frame_main');"
+                "const utilityProcess = process._linkedBinding('electron_browser_utility_process');"
                 "const webContents = process._linkedBinding('electron_browser_web_contents');"
                 "const browserWindow = process._linkedBinding('electron_browser_browserwindow');"
+                "const rendererIpc = process._linkedBinding('electron_renderer_ipc');"
+                "const rendererContextBridge = process._linkedBinding('electron_renderer_contextbridge');"
                 "const features = process._linkedBinding('electron_common_features');"
                 "const v8Util = process._linkedBinding('electron_common_v8_util');"
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
@@ -309,11 +325,15 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof webRequest.WebRequest !== 'function') throw new Error('webRequest');"
                 "if (typeof downloadItem.DownloadItem !== 'function') throw new Error('downloadItem');"
                 "if (typeof messagePort.createPair !== 'function') throw new Error('messagePort');"
+                "if (typeof browserView.BrowserView !== 'function') throw new Error('BrowserView');"
                 "if (typeof webFrameMain.WebFrameMain !== 'function') throw new Error('webFrameMain');"
                 "if (typeof webFrameMain.fromId !== 'function') throw new Error('webFrameMain fromId');"
                 "if (typeof webFrameMain.fromIdOrNull !== 'function') throw new Error('webFrameMain fromIdOrNull');"
+                "if (typeof utilityProcess._fork !== 'function') throw new Error('utilityProcess');"
                 "if (typeof webContents.WebContents !== 'function') throw new Error('webContents');"
                 "if (typeof browserWindow.BrowserWindow !== 'function') throw new Error('BrowserWindow');"
+                "if (typeof rendererIpc.ipcRenderer !== 'function') throw new Error('ipcRenderer');"
+                "if (typeof rendererContextBridge.exposeInMainWorld !== 'function') throw new Error('contextBridge');"
                 "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"
                 "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
                 "if (typeof v8Util.takeHeapSnapshot !== 'function') throw new Error('v8Util takeHeapSnapshot');"

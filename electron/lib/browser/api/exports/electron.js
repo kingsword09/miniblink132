@@ -17,6 +17,9 @@ defineLazyExport(exports, 'app', function() {
 defineLazyExport(exports, 'BrowserWindow', function() {
   return require('../browser-window');
 });
+defineLazyExport(exports, 'BrowserView', function() {
+  return require('../browser-view');
+});
 defineLazyExport(exports, 'dialog', function() {
   return require('../dialog').dialog;
 });
@@ -38,6 +41,9 @@ defineLazyExport(exports, 'MessageChannelMain', function() {
 defineLazyExport(exports, 'nativeTheme', function() {
   return require('../native-theme');
 });
+defineLazyExport(exports, 'net', function() {
+  return require('../net').net;
+});
 defineLazyExport(exports, 'powerMonitor', function() {
   return require('../power-monitor');
 });
@@ -58,6 +64,9 @@ defineLazyExport(exports, 'session', function() {
 });
 defineLazyExport(exports, 'Tray', function() {
   return require('../tray').Tray;
+});
+defineLazyExport(exports, 'utilityProcess', function() {
+  return require('../utility-process').utilityProcess;
 });
 defineLazyExport(exports, 'webContents', function() {
   return require('../web-contents');

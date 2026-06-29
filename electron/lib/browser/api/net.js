@@ -1,4 +1,6 @@
-const {app} = require('electron');
+'use strict';
+
+const { app } = require('electron');
 
 const hasCrypto = (process.versions.openssl != '0');
 
@@ -10,7 +12,7 @@ const URL = require('url').URL;
 function ClientRequest(options) {
     this.req = null;
     if ("string" == typeof options) {
-        const urlObj = new URL('https://example.org');
+        const urlObj = new URL(options);
         if (hasCrypto && "https:" == urlObj.protocol)
             this.req = https.request(options);
     } else if (hasCrypto && "https:" == options.protocol) {
@@ -58,7 +60,8 @@ ClientRequest.prototype.abort = function() {
 }
 
 ClientRequest.prototype.followRedirect = function() {
-    ;
+    if (this.req && typeof this.req.followRedirect === 'function')
+        return this.req.followRedirect();
 }
 
 function Net() {
@@ -66,7 +69,7 @@ function Net() {
 
 Net.request = function(options) {
     if (options.session)
-        options.session = null; // electron的session和nodejs的，意义不一样。暂时不支持electron net的session
+        options.session = null;
     return new ClientRequest(options);
 }
 

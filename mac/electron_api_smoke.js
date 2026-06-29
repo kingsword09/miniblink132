@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const rendererExcludedExports = ['webFrame', 'remote', 'ipcRenderer', 'contextBridge', 'screen', 'CallbacksRegistry'];
+const rendererExcludedExports = ['webFrame', 'remote', 'screen', 'CallbacksRegistry'];
 
 function assertRendererExportsExcluded(electron, label) {
     for (const key of rendererExcludedExports) {
@@ -327,10 +327,18 @@ async function runElectronAppRuntimeSmoke() {
 
     class RuntimeFakeWebRequest {}
     class RuntimeFakeDownloadItem {}
+    class RuntimeFakeBrowserView {}
     function RuntimeFakeMessageChannelMain() {}
     const RuntimeFakeWebFrameMain = {
         fromId() { return null; },
         fromIdOrNull() { return null; }
+    };
+    const RuntimeFakeNet = {
+        request() {},
+        isOnline() { return true; }
+    };
+    const RuntimeFakeUtilityProcess = {
+        fork() {}
     };
 
     function Tray() {}
@@ -341,12 +349,18 @@ async function runElectronAppRuntimeSmoke() {
         './api/command-line': {},
         './api/dialog': { dialog: {} },
         './api/global-shortcut': {},
+        './api/browser-view': RuntimeFakeBrowserView,
+        '../browser-view': RuntimeFakeBrowserView,
         './api/menu': { getApplicationMenu() { return null; } },
         './api/menu-item': MenuItem,
         './api/message-channel-main': { MessageChannelMain: RuntimeFakeMessageChannelMain },
         '../message-channel-main': { MessageChannelMain: RuntimeFakeMessageChannelMain },
         './api/web-frame-main': { webFrameMain: RuntimeFakeWebFrameMain },
         '../web-frame-main': { webFrameMain: RuntimeFakeWebFrameMain },
+        './api/net': { net: RuntimeFakeNet },
+        '../net': { net: RuntimeFakeNet },
+        './api/utility-process': { utilityProcess: RuntimeFakeUtilityProcess },
+        '../utility-process': { utilityProcess: RuntimeFakeUtilityProcess },
         './api/power-monitor': {},
         './api/power-save-blocker': {},
         './api/protocol': { protocol: {} },
@@ -366,6 +380,8 @@ async function runElectronAppRuntimeSmoke() {
             return { WebContents: RuntimeFakeWebContents };
         if (name === 'electron_browser_browserwindow')
             return { BrowserWindow: RuntimeFakeBrowserWindow };
+        if (name === 'electron_browser_browserview')
+            return { BrowserView: RuntimeFakeBrowserView };
         if (name === 'electron_browser_session')
             return { Session: RuntimeFakeSession };
         if (name === 'electron_browser_webrequest')
@@ -463,6 +479,9 @@ async function runElectronAppRuntimeSmoke() {
 
         assert.strictEqual(electron.nativeTheme.themeSource, 'system');
         assert.strictEqual(browserExports.app, RuntimeFakeApp);
+        assert.strictEqual(electron.BrowserView, RuntimeFakeBrowserView);
+        assert.strictEqual(electronMainShim.BrowserView, RuntimeFakeBrowserView);
+        assert.strictEqual(browserExports.BrowserView, RuntimeFakeBrowserView);
         assert.strictEqual(electron.BrowserWindow, RuntimeFakeBrowserWindow);
         assert.strictEqual(electronMainShim.BrowserWindow, RuntimeFakeBrowserWindow);
         assert.strictEqual(browserExports.BrowserWindow, RuntimeFakeBrowserWindow);
@@ -488,13 +507,19 @@ async function runElectronAppRuntimeSmoke() {
         assert.strictEqual(typeof electron.webFrameMain.fromIdOrNull, 'function');
         assert.strictEqual(browserExports.nativeTheme, electron.nativeTheme);
         assert.strictEqual(electronMainShim.nativeTheme, electron.nativeTheme);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'BrowserView'), false);
+        assert.strictEqual(electron.net, RuntimeFakeNet);
+        assert.strictEqual(electronMainShim.net, RuntimeFakeNet);
+        assert.strictEqual(browserExports.net, RuntimeFakeNet);
+        assert.strictEqual(typeof electron.net.request, 'function');
+        assert.strictEqual(typeof electron.net.isOnline, 'function');
+        assert.strictEqual(electron.utilityProcess, RuntimeFakeUtilityProcess);
+        assert.strictEqual(electronMainShim.utilityProcess, RuntimeFakeUtilityProcess);
+        assert.strictEqual(browserExports.utilityProcess, RuntimeFakeUtilityProcess);
+        assert.strictEqual(typeof electron.utilityProcess.fork, 'function');
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'contentTracing'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'crashReporter'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'net'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'systemPreferences'), false);
         assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'TouchBar'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'utilityProcess'), false);
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseInvertedColorScheme, false);
@@ -1817,6 +1842,385 @@ function runPowerSaveBlockerSmoke() {
     console.log('PASS power-save-blocker-js-smoke');
 }
 
+function runBrowserViewSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/browser/api/browser-view');
+    const cachedModule = require.cache[modulePath];
+    delete require.cache[modulePath];
+
+    class FakeBrowserView {
+        constructor() {
+            this.boundsCalls = [];
+            this.backgroundCalls = [];
+            this._webContents = {
+                initCount: 0,
+                _init() {
+                    this.initCount++;
+                }
+            };
+        }
+
+        _getWebContents() {
+            return this._webContents;
+        }
+
+        _setBounds(x, y, width, height) {
+            this.boundsCalls.push({ x, y, width, height });
+        }
+
+        _setBackgroundColor(color) {
+            this.backgroundCalls.push(color);
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_browserview')
+            return { BrowserView: FakeBrowserView };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const BrowserView = require('../electron/lib/browser/api/browser-view');
+        const view = new BrowserView();
+
+        assert.strictEqual(BrowserView, FakeBrowserView);
+        assert.strictEqual(view.webContents, view._webContents);
+        assert.strictEqual(view._webContents.initCount, 1);
+
+        assert.deepStrictEqual(view.getBounds(), { x: 0, y: 0, width: 1, height: 1 });
+        view.setBounds({ x: 10, y: 20, width: 300, height: 200 });
+        assert.deepStrictEqual(view.getBounds(), { x: 10, y: 20, width: 300, height: 200 });
+        assert.deepStrictEqual(view.boundsCalls[0], { x: 10, y: 20, width: 300, height: 200 });
+
+        view.setBounds({ width: 640, height: 480 });
+        assert.deepStrictEqual(view.getBounds(), { x: 0, y: 0, width: 640, height: 480 });
+        assert.deepStrictEqual(view.boundsCalls[1], { x: 0, y: 0, width: 640, height: 480 });
+
+        view.setBackgroundColor('#336699');
+        assert.strictEqual(view.getBackgroundColor(), '#336699');
+        assert.strictEqual(view.backgroundCalls[0], 0x996633);
+        view.setBackgroundColor('#abc');
+        assert.strictEqual(view.backgroundCalls[1], 0xccbbaa);
+        assert.throws(function() { view.setBackgroundColor('red'); }, /color must be/);
+
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(BrowserView.prototype, 'setAutoResize'), false);
+
+        console.log('PASS browser-view-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
+}
+
+function runNetSmoke() {
+    const Module = require('module');
+    const originalLoad = Module._load;
+    const modulePath = require.resolve('../electron/lib/browser/api/net');
+    const cachedModule = require.cache[modulePath];
+    const app = {
+        online: true,
+        isOnline() {
+            return this.online;
+        }
+    };
+    const calls = [];
+
+    function makeRequest(protocol, options) {
+        const headers = Object.create(null);
+        return {
+            protocol,
+            options,
+            events: [],
+            onceEvents: [],
+            writes: [],
+            ended: null,
+            aborted: false,
+            on(event, callback) {
+                this.events.push([event, callback]);
+                return this;
+            },
+            once(event, callback) {
+                this.onceEvents.push([event, callback]);
+                return this;
+            },
+            setHeader(name, value) {
+                headers[name.toLowerCase()] = value;
+            },
+            getHeader(name) {
+                return headers[name.toLowerCase()];
+            },
+            removeHeader(name) {
+                delete headers[name.toLowerCase()];
+            },
+            write(chunk, encoding, callback) {
+                this.writes.push({ chunk, encoding });
+                if (callback)
+                    callback();
+            },
+            end(chunk, encoding, callback) {
+                this.ended = { chunk, encoding };
+                if (callback)
+                    callback();
+            },
+            abort() {
+                this.aborted = true;
+            },
+            followRedirect() {
+                this.followed = true;
+                return true;
+            }
+        };
+    }
+
+    const httpMock = {
+        request(options) {
+            calls.push(['http', options]);
+            return makeRequest('http', options);
+        }
+    };
+    const httpsMock = {
+        request(options) {
+            calls.push(['https', options]);
+            return makeRequest('https', options);
+        }
+    };
+
+    delete require.cache[modulePath];
+    Module._load = function(request, parent, isMain) {
+        if (request === 'electron')
+            return { app };
+        if (parent && parent.filename === modulePath && request === 'http')
+            return httpMock;
+        if (parent && parent.filename === modulePath && request === 'https')
+            return httpsMock;
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    try {
+        const { net } = require('../electron/lib/browser/api/net');
+
+        assert.strictEqual(net.isOnline(), true);
+        assert.strictEqual(net.online, true);
+        app.online = false;
+        assert.strictEqual(net.isOnline(), false);
+        assert.strictEqual(net.online, false);
+
+        const secureRequest = net.request('https://example.test/path');
+        assert.strictEqual(secureRequest.req.protocol, 'https');
+        assert.deepStrictEqual(calls[0], ['https', 'https://example.test/path']);
+
+        const plainRequest = net.request('http://example.test/path');
+        assert.strictEqual(plainRequest.req.protocol, 'http');
+        assert.deepStrictEqual(calls[1], ['http', 'http://example.test/path']);
+
+        const options = { protocol: 'https:', hostname: 'example.test', session: { id: 1 } };
+        const optionRequest = net.request(options);
+        assert.strictEqual(optionRequest.req.protocol, 'https');
+        assert.strictEqual(options.session, null);
+
+        optionRequest.setHeader('X-Test', '1');
+        assert.strictEqual(optionRequest.getHeader('x-test'), '1');
+        optionRequest.removeHeader('X-Test');
+        assert.strictEqual(optionRequest.getHeader('x-test'), undefined);
+        optionRequest.on('response', function() {});
+        optionRequest.once('finish', function() {});
+        optionRequest.write('chunk', 'utf8');
+        optionRequest.end('done', 'utf8');
+        assert.deepStrictEqual(optionRequest.req.writes[0], { chunk: 'chunk', encoding: 'utf8' });
+        assert.deepStrictEqual(optionRequest.req.ended, { chunk: 'done', encoding: 'utf8' });
+        assert.strictEqual(optionRequest.followRedirect(), true);
+        optionRequest.abort();
+        assert.strictEqual(optionRequest.req.aborted, true);
+
+        console.log('PASS net-js-smoke');
+    } finally {
+        Module._load = originalLoad;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
+}
+
+async function runRendererWrapperSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const ipcRendererPath = require.resolve('../electron/lib/renderer/api/ipc-renderer');
+    const contextBridgePath = require.resolve('../electron/lib/renderer/api/context-bridge');
+    delete require.cache[ipcRendererPath];
+    delete require.cache[contextBridgePath];
+
+    const EventEmitter = require('events').EventEmitter;
+    const hiddenIpc = new EventEmitter();
+    const ipcBindingCalls = [];
+    class FakeIpcRendererBinding {
+        send(...args) {
+            ipcBindingCalls.push(['send', ...args]);
+            return 'sent';
+        }
+
+        sendSync(...args) {
+            ipcBindingCalls.push(['sendSync', ...args]);
+            return 'sync-result';
+        }
+    }
+    class FakeV8Util {
+        getHiddenValue(target, key) {
+            assert.strictEqual(target, global);
+            assert.strictEqual(key, 'ipc');
+            return hiddenIpc;
+        }
+    }
+    const contextBridge = {
+        exposeInMainWorld(name, value) {
+            return { name, value };
+        }
+    };
+    process._linkedBinding = function(name) {
+        if (name === 'electron_renderer_ipc')
+            return { ipcRenderer: FakeIpcRendererBinding };
+        if (name === 'electron_common_v8_util')
+            return { v8Util: FakeV8Util };
+        if (name === 'electron_renderer_contextbridge')
+            return contextBridge;
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const ipcRenderer = require('../electron/lib/renderer/api/ipc-renderer');
+        assert.strictEqual(ipcRenderer, hiddenIpc);
+        assert.strictEqual(ipcRenderer.send('channel', 1), 'sent');
+        assert.deepStrictEqual(ipcBindingCalls[0], ['send', 'ipc-message', 'channel', 1]);
+        assert.strictEqual(ipcRenderer.sendSync('sync-channel', 2), 'sync-result');
+        assert.deepStrictEqual(ipcBindingCalls[1], ['sendSync', 'ipc-message-sync', 'sync-channel', 2]);
+        ipcRenderer.sendTo(7, 'target-channel', 'payload');
+        ipcRenderer.sendToAll(8, 'all-channel', 'payload');
+        assert.deepStrictEqual(ipcBindingCalls[2], ['send', 'ipc-message', 'ELECTRON_BROWSER_SEND_TO', false, 7, 'target-channel', 'payload']);
+        assert.deepStrictEqual(ipcBindingCalls[3], ['send', 'ipc-message', 'ELECTRON_BROWSER_SEND_TO', true, 8, 'all-channel', 'payload']);
+        assert.throws(function() { ipcRenderer.sendTo('bad', 'channel'); }, /webContentsId/);
+
+        const invokePromise = ipcRenderer.invoke('invoke-channel', 3);
+        hiddenIpc.emit('ipc-main-handle-reply-invoke-channel', {}, 'invoke-result');
+        assert.strictEqual(await invokePromise, 'invoke-result');
+        assert.deepStrictEqual(ipcBindingCalls[4], ['send', 'ipc-render-invoke', 'invoke-channel', 3]);
+
+        assert.strictEqual(require('../electron/lib/renderer/api/context-bridge'), contextBridge);
+
+        console.log('PASS renderer-wrapper-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        delete require.cache[ipcRendererPath];
+        delete require.cache[contextBridgePath];
+    }
+}
+
+function runUtilityProcessSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/browser/api/utility-process');
+    const messagePortPath = require.resolve('../electron/lib/browser/api/message-port-main');
+    const cachedModule = require.cache[modulePath];
+    const cachedMessagePort = require.cache[messagePortPath];
+    delete require.cache[modulePath];
+    delete require.cache[messagePortPath];
+
+    const forkCalls = [];
+    class FakeHandle {
+        constructor() {
+            this.pidValue = 4321;
+            this.messages = [];
+            this.killed = false;
+        }
+
+        pid() {
+            return this.pidValue;
+        }
+
+        postMessage(message, transfer) {
+            this.messages.push({ message, transfer });
+            return 'posted';
+        }
+
+        kill() {
+            this.killed = true;
+            return true;
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_utility_process') {
+            return {
+                _fork(payload) {
+                    forkCalls.push(payload);
+                    return new FakeHandle();
+                }
+            };
+        }
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const MessagePortMain = require('../electron/lib/browser/api/message-port-main');
+        const { utilityProcess } = require('../electron/lib/browser/api/utility-process');
+
+        assert.throws(function() { utilityProcess.fork(''); }, /Missing UtilityProcess/);
+        assert.throws(function() { utilityProcess.fork('/tmp/worker.js', [1]); }, /args must be/);
+        assert.throws(function() { utilityProcess.fork('/tmp/worker.js', [], { execArgv: '--bad' }); }, /execArgv/);
+        assert.throws(function() { utilityProcess.fork('/tmp/worker.js', [], { stdio: 'bad' }); }, /stdio/);
+
+        const child = utilityProcess.fork('/tmp/worker.js', ['a'], {
+            cwd: '/tmp',
+            execArgv: ['--trace-warnings'],
+            serviceName: 'mini-service',
+            stdio: 'pipe'
+        });
+        assert.strictEqual(child.pid, 4321);
+        assert.strictEqual(typeof child.stdout.on, 'function');
+        assert.strictEqual(typeof child.stderr.on, 'function');
+        assert.deepStrictEqual(forkCalls[0].modulePath, '/tmp/worker.js');
+        assert.deepStrictEqual(forkCalls[0].args, ['a']);
+        assert.deepStrictEqual(forkCalls[0].options.stdio, ['ignore', 'pipe', 'pipe']);
+
+        const rawPort = { raw: true };
+        const port = new MessagePortMain(rawPort);
+        assert.strictEqual(child.postMessage({ hello: true }, [port]), 'posted');
+        assert.deepStrictEqual(child._handle.messages[0], { message: { hello: true }, transfer: [rawPort] });
+
+        const events = [];
+        child.on('message', value => events.push(['message', value]));
+        child.on('exit', () => events.push(['exit']));
+        child._handle.emit('message', { data: 1 });
+        child._handle.emit('exit');
+        assert.deepStrictEqual(events, [['message', { data: 1 }], ['exit']]);
+        assert.strictEqual(child.pid, 0);
+        assert.strictEqual(child.stdout, null);
+        assert.strictEqual(child.stderr, null);
+
+        const killChild = utilityProcess.fork('/tmp/worker.js');
+        assert.strictEqual(killChild.kill(), true);
+        assert.strictEqual(killChild._handle.killed, true);
+
+        console.log('PASS utility-process-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+        if (cachedMessagePort)
+            require.cache[messagePortPath] = cachedMessagePort;
+        else
+            delete require.cache[messagePortPath];
+    }
+}
+
 
 function runElectronRendererModuleExportsSmoke() {
     const Module = require('module');
@@ -1826,7 +2230,9 @@ function runElectronRendererModuleExportsSmoke() {
     const NativeImage = function NativeImage() {};
     const moduleMocks = {
         '../common/api/clipboard': {},
+        './api/context-bridge': { exposeInMainWorld() {} },
         '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
+        './api/ipc-renderer': { send() {} },
         '../common/api/native-image': { NativeImage },
         '../common/api/shell': { Shell: {} }
     };
@@ -1845,7 +2251,9 @@ function runElectronRendererModuleExportsSmoke() {
         assert.strictEqual(electron, electronMock);
         assertRendererExportsExcluded(electron, 'renderer module export');
         assert.strictEqual(typeof electron.clipboard, 'object');
+        assert.strictEqual(typeof electron.contextBridge.exposeInMainWorld, 'function');
         assert.strictEqual(typeof electron.isPromise, 'function');
+        assert.strictEqual(typeof electron.ipcRenderer.send, 'function');
         assert.strictEqual(typeof electron.nativeImage, 'function');
         assert.strictEqual(typeof electron.shell, 'object');
         console.log('PASS renderer-module-exports-smoke');
@@ -1862,7 +2270,9 @@ function runRendererExportSurfaceSmoke() {
     const NativeImage = function NativeImage() {};
     const moduleMocks = {
         '../common/api/clipboard': {},
+        './api/context-bridge': { exposeInMainWorld() {} },
         '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
+        './api/ipc-renderer': { send() {} },
         '../common/api/native-image': { NativeImage },
         '../common/api/shell': { Shell: {} }
     };
@@ -1883,6 +2293,8 @@ function runRendererExportSurfaceSmoke() {
         const electron = require('../electron/lib/renderer/electron');
         assert.strictEqual(electron, electronShim);
         assert.strictEqual(electronRendererShim.clipboard, electron.clipboard);
+        assert.strictEqual(electronRendererShim.contextBridge, electron.contextBridge);
+        assert.strictEqual(electronRendererShim.ipcRenderer, electron.ipcRenderer);
         assert.strictEqual(electronRendererShim.nativeImage, NativeImage);
         assert.strictEqual(electronRendererShim.shell, electron.shell);
         assert.strictEqual(electron.isPromise(Promise.resolve()), true);
@@ -1931,6 +2343,18 @@ runAppApiSmoke()
     })
     .then(function() {
         runPowerSaveBlockerSmoke();
+    })
+    .then(function() {
+        runBrowserViewSmoke();
+    })
+    .then(function() {
+        runNetSmoke();
+    })
+    .then(function() {
+        return runRendererWrapperSmoke();
+    })
+    .then(function() {
+        runUtilityProcessSmoke();
     })
     .then(function() {
         runRendererExportSurfaceSmoke();
