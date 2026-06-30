@@ -321,6 +321,8 @@ public:
         target->Set(context, v8::String::NewFromUtf8(isolate, "App").ToLocalChecked(), ctor).ToChecked();
     }
 
+    static App* getInstance();
+
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         if (!args.IsConstructCall())
@@ -345,6 +347,8 @@ public:
         emit("window-all-closed");
         emit("quit", exitCode_);
     }
+
+    void onWindowAllClosed();
 
     void exitApi(int code = 0)
     {
@@ -715,6 +719,16 @@ private:
 App* App::instance_ = nullptr;
 gin_helper::WrapperInfo App::kWrapperInfo = { gin::kEmbedderNativeGin };
 v8::Persistent<v8::Function> App::constructor;
+
+App* App::getInstance()
+{
+    return instance_;
+}
+
+void App::onWindowAllClosed()
+{
+    emit("window-all-closed");
+}
 
 static void initializeAppApi(v8::Local<v8::Object> target, v8::Local<v8::Value>, v8::Local<v8::Context> context, const NodeNative*)
 {

@@ -95,12 +95,12 @@ v8::Local<v8::Value> emitEventImpl(
             v8::Local<v8::Value> clonedValue = gin_helper::ConvertToV8(isolate, std::move(ret));
             gin_helper::testValIsTypeArray(clonedValue);
             converted_args.push_back(clonedValue);
+            break;
         }
         case base::Value::Type::NONE:
             converted_args.push_back(v8::Null(isolate));
             break;
         default:
-            *(int*)1 = 1;
             converted_args.push_back(v8::Null(isolate));
             break;
         }

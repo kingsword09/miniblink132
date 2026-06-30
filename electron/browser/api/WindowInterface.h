@@ -26,7 +26,11 @@ public:
 
     static WebContents* onCreateNewWebview(v8::Local<v8::Object>);
 
+#if defined(OS_MAC)
+    static const char16_t kElectronClassName[];
+#else
     static const wchar_t kElectronClassName[];
+#endif
     static const int kSingleInstanceMessage = 0x410;
 };
 

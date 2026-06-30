@@ -22,11 +22,21 @@
 #include "electron/common/NodeRegisterHelp.h"
 #include "electron/renderer/api/ApiContextBridge.h"
 #include "electron/renderer/api/ObjectCache.h"
+#include "third_party/blink/renderer/platform/weborigin/scheme_registry.h"
+#include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/public/web/web_script_source.h"
+#include "third_party/blink/public/web/web_security_policy.h"
 #include "third_party/blink/public/platform/web_string.h"
+#include "third_party/blink/public/web/web_text_check_client.h"
+#include "third_party/blink/public/web/web_text_checking_completion.h"
+#include "third_party/blink/public/web/web_text_checking_result.h"
+#include "third_party/blink/public/web/web_text_decoration_type.h"
 #include "third_party/blink/renderer/platform/bindings/dom_wrapper_world.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
+#include <algorithm>
+#include <cmath>
+#include <memory>
 #include <vector>
 
 namespace gin_helper {
@@ -53,6 +63,26 @@ template <> struct Converter<blink::WebCssOrigin> {
 namespace atom {
 
 namespace {
+
+WTF::String toBlinkScheme(const std::string& scheme)
+{
+    return WTF::String::FromUTF8(scheme).LowerASCII();
+}
+
+blink::WebString toWebScheme(const std::string& scheme)
+{
+    return blink::WebString::FromUTF8(toBlinkScheme(scheme).Utf8());
+}
+
+double zoomLevelToZoomFactor(double zoomLevel)
+{
+    return std::pow(1.2, zoomLevel);
+}
+
+double zoomFactorToZoomLevel(double zoomFactor)
+{
+    return std::log(zoomFactor) / std::log(1.2);
+}
 
 class ScriptExecutionCallback {
 public:
@@ -159,6 +189,162 @@ private:
     CompletionCallback m_callback;
 };
 
+class SpellCheckProviderClient : public blink::WebTextCheckClient {
+public:
+    SpellCheckProviderClient(v8::Isolate* isolate, v8::Local<v8::Context> context, v8::Local<v8::Object> provider)
+        : m_isolate(isolate)
+    {
+        m_context.Reset(isolate, context);
+        m_provider.Reset(isolate, provider);
+    }
+
+    ~SpellCheckProviderClient() override
+    {
+        m_context.Reset();
+        m_provider.Reset();
+    }
+
+    bool IsSpellCheckingEnabled() const override
+    {
+        return true;
+    }
+
+    void CheckSpelling(
+        const blink::WebString& text,
+        size_t& misspelled_offset,
+        size_t& misspelled_length,
+        blink::WebVector<blink::WebString>* optional_suggestions) override
+    {
+        std::vector<blink::WebTextCheckingResult> results = runSpellCheck(text);
+        if (results.empty()) {
+            misspelled_offset = 0;
+            misspelled_length = 0;
+            if (optional_suggestions)
+                optional_suggestions->Assign(std::vector<blink::WebString>());
+            return;
+        }
+
+        misspelled_offset = static_cast<size_t>(std::max(results[0].location, 0));
+        misspelled_length = static_cast<size_t>(std::max(results[0].length, 0));
+        if (optional_suggestions)
+            *optional_suggestions = results[0].replacements;
+    }
+
+    void RequestCheckingOfText(
+        const blink::WebString& text,
+        std::unique_ptr<blink::WebTextCheckingCompletion> completion) override
+    {
+        std::vector<blink::WebTextCheckingResult> results = runSpellCheck(text);
+        blink::WebVector<blink::WebTextCheckingResult> webResults;
+        webResults.Assign(results);
+        completion->DidFinishCheckingText(webResults);
+    }
+
+private:
+    std::vector<blink::WebTextCheckingResult> runSpellCheck(const blink::WebString& text)
+    {
+        std::vector<blink::WebTextCheckingResult> results;
+        v8::HandleScope handleScope(m_isolate);
+        v8::Local<v8::Context> context = m_context.Get(m_isolate);
+        if (context.IsEmpty())
+            return results;
+        v8::Context::Scope contextScope(context);
+        v8::Local<v8::Object> provider = m_provider.Get(m_isolate);
+        if (provider.IsEmpty())
+            return results;
+
+        v8::Local<v8::Value> spellCheckValue;
+        if (!provider->Get(context, v8::String::NewFromUtf8(m_isolate, "spellCheck").ToLocalChecked()).ToLocal(&spellCheckValue)
+            || !spellCheckValue->IsFunction()) {
+            return results;
+        }
+
+        v8::Local<v8::Function> spellCheck = spellCheckValue.As<v8::Function>();
+        v8::Local<v8::Array> words = splitWords(context, text.Utf8());
+        v8::Local<v8::Array> providerResults = v8::Array::New(m_isolate);
+        v8::Local<v8::Function> completion = v8::Function::New(
+            context,
+            [](const v8::FunctionCallbackInfo<v8::Value>& info) {
+                if (info.Length() < 1 || !info[0]->IsArray())
+                    return;
+                v8::Local<v8::External> external = info.Data().As<v8::External>();
+                v8::Local<v8::Array>* out = static_cast<v8::Local<v8::Array>*>(external->Value());
+                *out = info[0].As<v8::Array>();
+            },
+            v8::External::New(m_isolate, &providerResults))
+                                           .ToLocalChecked();
+
+        v8::Local<v8::Value> argv[2] = { words, completion };
+        v8::TryCatch tryCatch(m_isolate);
+        v8::MaybeLocal<v8::Value> callResult = spellCheck->Call(context, provider, 2, argv);
+        if (callResult.IsEmpty() || tryCatch.HasCaught())
+            return results;
+
+        std::u16string source = text.Utf16();
+        size_t searchOffset = 0;
+        uint32_t length = providerResults->Length();
+        for (uint32_t i = 0; i < length; ++i) {
+            v8::Local<v8::Value> resultValue;
+            if (!providerResults->Get(context, i).ToLocal(&resultValue) || !resultValue->IsObject())
+                continue;
+
+            gin_helper::Dictionary resultDict(m_isolate, resultValue.As<v8::Object>());
+            std::string word;
+            if (!resultDict.Get("word", &word) || word.empty())
+                continue;
+            std::u16string word16 = blink::WebString::FromUTF8(word).Utf16();
+
+            size_t location = source.find(word16, searchOffset);
+            if (location == std::string::npos)
+                location = source.find(word16);
+            if (location == std::string::npos)
+                continue;
+            searchOffset = location + word16.size();
+
+            std::vector<std::string> suggestions;
+            resultDict.Get("suggestions", &suggestions);
+            std::vector<blink::WebString> replacements;
+            for (const std::string& suggestion : suggestions)
+                replacements.push_back(blink::WebString::FromUTF8(suggestion));
+            blink::WebVector<blink::WebString> webReplacements;
+            webReplacements.Assign(replacements);
+            results.push_back(blink::WebTextCheckingResult(
+                blink::kWebTextDecorationTypeSpelling,
+                static_cast<int>(location),
+                static_cast<int>(word16.size()),
+                webReplacements));
+        }
+        return results;
+    }
+
+    v8::Local<v8::Array> splitWords(v8::Local<v8::Context> context, const std::string& text)
+    {
+        std::vector<std::string> words;
+        std::string current;
+        for (char ch : text) {
+            bool wordChar = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '\'';
+            if (wordChar) {
+                current.push_back(ch);
+            } else if (!current.empty()) {
+                words.push_back(current);
+                current.clear();
+            }
+        }
+        if (!current.empty())
+            words.push_back(current);
+
+        v8::Local<v8::Array> result = v8::Array::New(m_isolate, static_cast<int>(words.size()));
+        for (uint32_t i = 0; i < words.size(); ++i) {
+            result->Set(context, i, v8::String::NewFromUtf8(m_isolate, words[i].c_str()).ToLocalChecked()).ToChecked();
+        }
+        return result;
+    }
+
+    v8::Isolate* m_isolate;
+    v8::Persistent<v8::Context> m_context;
+    v8::Persistent<v8::Object> m_provider;
+};
+
 } // namespace
 
 class WebFrame : public mate::EventEmitter<WebFrame> {
@@ -171,30 +357,35 @@ public:
         m_zoomFactor = 1;
     }
 
+    ~WebFrame()
+    {
+        clearSpellCheckProvider();
+    }
+
     static void init(v8::Isolate* isolate, v8::Local<v8::Object> target)
     {
         v8::Local<v8::Context> context = isolate->GetCurrentContext();
         v8::Local<v8::FunctionTemplate> prototype = v8::FunctionTemplate::New(isolate, newFunction);
 
         prototype->SetClassName(v8::String::NewFromUtf8(isolate, "WebFrame").ToLocalChecked());
-        gin_helper::ObjectTemplateBuilder builder(isolate, prototype->InstanceTemplate());
+        gin_helper::ObjectTemplateBuilder builder(isolate, prototype->PrototypeTemplate());
+        gin_helper::ObjectTemplateBuilder instanceBuilder(isolate, prototype->InstanceTemplate());
         builder.SetMethod("registerEmbedderCustomElement", &WebFrame::registerEmbedderCustomElementApi);
         builder.SetMethod("setZoomFactor", &WebFrame::setZoomFactorApi);
         builder.SetMethod("getZoomFactor", &WebFrame::getZoomFactorApi);
         builder.SetMethod("getZoomLevel", &WebFrame::getZoomLevelApi);
         builder.SetMethod("setZoomLevel", &WebFrame::setZoomLevelApi);
         builder.SetMethod("setZoomLevelLimits", &WebFrame::setZoomLevelLimitsApi);
-        builder.SetMethod("setSpellCheckProvider", &WebFrame::setSpellCheckProviderApi);
         builder.SetMethod("registerURLSchemeAsSecure", &WebFrame::registerURLSchemeAsSecureApi);
         builder.SetMethod("registerURLSchemeAsBypassingCSP", &WebFrame::registerURLSchemeAsBypassingCSPApi);
         builder.SetMethod("registerURLSchemeAsPrivileged", &WebFrame::registerURLSchemeAsPrivilegedApi);
-        builder.SetMethod("insertText", &WebFrame::insertTextApi);
         builder.SetMethod("executeJavaScript", &WebFrame::executeJavaScriptApi);
-        builder.SetMethod("setMaxListeners", &WebFrame::setMaxListenersApi);
         builder.SetMethod("setVisualZoomLevelLimits", &WebFrame::setVisualZoomLevelLimitsApi);
         builder.SetMethod("setLayoutZoomLevelLimits", &WebFrame::setLayoutZoomLevelLimitsApi);
         builder.SetMethod("removeInsertedCSS", &WebFrame::removeInsertedCSSApi);
         builder.SetMethod("insertCSS", &WebFrame::insertCSSApi);
+        builder.SetMethod("insertText", &WebFrame::insertTextApi);
+        builder.SetMethod("setSpellCheckProvider", &WebFrame::setSpellCheckProviderApi);
 
         constructor.Reset(isolate, prototype->GetFunction(context).ToLocalChecked());
         target->Set(context, v8::String::NewFromUtf8(isolate, "WebFrame").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
@@ -221,59 +412,78 @@ public:
 
     void setVisualZoomLevelLimitsApi(int Level1, int Level2)
     {
+        setZoomLevelLimitsApi(Level1, Level2);
     }
 
     void setLayoutZoomLevelLimitsApi(int Level1, int Level2)
     {
+        setZoomLevelLimitsApi(Level1, Level2);
     }
 
     void setZoomFactorApi(float factor)
     {
+        if (factor <= 0)
+            return;
+
         m_zoomFactor = factor;
+        m_zoomLevel = zoomFactorToZoomLevel(factor);
+
+        mbWebView webview = mbGetWebViewForCurrentContext();
+        if (webview)
+            mbSetZoomFactor(webview, factor);
     }
 
-    float getZoomFactorApi() const
+    float getZoomFactorApi()
     {
+        mbWebView webview = mbGetWebViewForCurrentContext();
+        if (webview) {
+            m_zoomFactor = mbGetZoomFactor(webview);
+            m_zoomLevel = zoomFactorToZoomLevel(m_zoomFactor);
+        }
         return m_zoomFactor;
     }
 
     void setZoomLevelLimitsApi(float minimumLevel, float maximumLevel)
     {
-        OutputDebugStringA("setZoomLevelLimitsApi\n");
+        m_minimumZoomLevel = minimumLevel;
+        m_maximumZoomLevel = maximumLevel;
     }
 
     void setZoomLevelApi(float level)
     {
+        if (m_minimumZoomLevel <= m_maximumZoomLevel) {
+            if (level < m_minimumZoomLevel)
+                level = m_minimumZoomLevel;
+            if (level > m_maximumZoomLevel)
+                level = m_maximumZoomLevel;
+        }
+
         m_zoomLevel = level;
+        setZoomFactorApi(static_cast<float>(zoomLevelToZoomFactor(level)));
     }
 
-    float getZoomLevelApi() const
+    float getZoomLevelApi()
     {
+        getZoomFactorApi();
         return m_zoomLevel;
-    }
-
-    void setSpellCheckProviderApi(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        OutputDebugStringA("setSpellCheckProviderApi\n");
     }
 
     void registerURLSchemeAsSecureApi(const std::string& scheme)
     {
-        OutputDebugStringA("registerURLSchemeAsSecureApi\n");
+        blink::WebSecurityPolicy::AddSchemeToSecureContextSafelist(toWebScheme(scheme));
     }
 
     void registerURLSchemeAsBypassingCSPApi(const std::string& scheme)
     {
-        OutputDebugStringA("registerURLSchemeAsBypassingCSPApi\n");
+        blink::SchemeRegistry::RegisterURLSchemeAsBypassingContentSecurityPolicy(toBlinkScheme(scheme));
     }
     void registerURLSchemeAsPrivilegedApi(const std::string& scheme)
     {
-        OutputDebugStringA("registerURLSchemeAsPrivilegedApi\n");
-    }
-
-    void insertTextApi(const std::string& text)
-    {
-        OutputDebugStringA("insertTextApi\n");
+        blink::WebString webScheme = toWebScheme(scheme);
+        blink::WebSecurityPolicy::AddSchemeToSecureContextSafelist(webScheme);
+        blink::WebSecurityPolicy::RegisterURLSchemeAsSupportingFetchAPI(webScheme);
+        blink::WebSecurityPolicy::RegisterURLSchemeAsAllowingServiceWorkers(webScheme);
+        blink::SchemeRegistry::RegisterURLSchemeAsBypassingContentSecurityPolicy(toBlinkScheme(scheme));
     }
 
     std::string insertCSSApi(const std::string& css, gin_helper::Arguments* args)
@@ -289,6 +499,49 @@ public:
         if (webFrame)
             return webFrame->GetDocument().InsertStyleSheet(blink::WebString::FromUTF8(css), nullptr, (blink::WebCssOrigin)cssOrigin).Utf8();
         return std::string();
+    }
+
+    bool insertTextApi(const std::string& text)
+    {
+        v8::Local<v8::Context> context = isolate()->GetCurrentContext();
+        blink::WebLocalFrame* webFrame = blink::WebLocalFrame::FrameForContext(context);
+        if (!webFrame)
+            return false;
+        return webFrame->ExecuteCommand(blink::WebString::FromUTF8("InsertText"), blink::WebString::FromUTF8(text));
+    }
+
+    void setSpellCheckProviderApi(const std::string& language, bool autoCorrectWord, v8::Local<v8::Value> providerValue)
+    {
+        v8::Isolate* currentIsolate = isolate();
+        v8::Local<v8::Context> context = currentIsolate->GetCurrentContext();
+        blink::WebLocalFrame* webFrame = blink::WebLocalFrame::FrameForContext(context);
+        if (!webFrame)
+            return;
+
+        if (providerValue->IsNullOrUndefined()) {
+            clearSpellCheckProvider();
+            webFrame->SetTextCheckClient(nullptr);
+            return;
+        }
+
+        if (!providerValue->IsObject()) {
+            currentIsolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(currentIsolate, "provider must be an object").ToLocalChecked()));
+            return;
+        }
+
+        v8::Local<v8::Object> provider = providerValue.As<v8::Object>();
+        v8::Local<v8::Value> spellCheckValue;
+        if (!provider->Get(context, v8::String::NewFromUtf8(currentIsolate, "spellCheck").ToLocalChecked()).ToLocal(&spellCheckValue)
+            || !spellCheckValue->IsFunction()) {
+            currentIsolate->ThrowException(v8::Exception::TypeError(
+                v8::String::NewFromUtf8(currentIsolate, "provider.spellCheck must be a function").ToLocalChecked()));
+            return;
+        }
+
+        clearSpellCheckProvider();
+        m_spellCheckProvider = std::make_unique<SpellCheckProviderClient>(currentIsolate, context, provider);
+        webFrame->SetTextCheckClient(m_spellCheckProvider.get());
     }
 
     void removeInsertedCSSApi(const std::string& key)
@@ -393,11 +646,6 @@ public:
         callback->Call(context, v8::Undefined(isolate()), 1, argv);
     }
 
-    void setMaxListenersApi(int number)
-    {
-        //OutputDebugStringA("setMaxListenersApi\n");
-    }
-
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Isolate* isolate = args.GetIsolate();
@@ -414,6 +662,15 @@ public:
 
     float m_zoomFactor;
     float m_zoomLevel;
+    float m_minimumZoomLevel = 0;
+    float m_maximumZoomLevel = -1;
+    std::unique_ptr<SpellCheckProviderClient> m_spellCheckProvider;
+
+private:
+    void clearSpellCheckProvider()
+    {
+        m_spellCheckProvider.reset();
+    }
 };
 
 v8::Persistent<v8::Function> WebFrame::constructor;

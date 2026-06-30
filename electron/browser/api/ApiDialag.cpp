@@ -57,10 +57,6 @@ public:
         target->Set(context, v8::String::NewFromUtf8(isolate, "Dialog").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
     }
 
-    void nullFunction()
-    {
-    }
-
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Isolate* isolate = args.GetIsolate();

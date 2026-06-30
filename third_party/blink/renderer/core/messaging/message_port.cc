@@ -57,18 +57,6 @@
 #include "third_party/blink/renderer/platform/wtf/cross_thread_functional.h"
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string.h"
 
-enum skia::mojom::ColorType mojo::EnumTraits<enum skia::mojom::ColorType, enum SkColorType>::ToMojom(enum SkColorType t)
-{
-    return (skia::mojom::ColorType)t;
-}
-
-mojo::PendingRemote<blink::mojom::ImageReleaseCallback> 
-mojo::StructTraits<class blink::mojom::AcceleratedStaticBitmapImageDataView, blink::AcceleratedImageInfo>::release_callback(blink::AcceleratedImageInfo&)
-{
-    *(int*)1 = 1;
-    return mojo::PendingRemote<blink::mojom::ImageReleaseCallback>();
-}
-
 namespace blink {
 
 MessagePort::MessagePort(ExecutionContext& execution_context)

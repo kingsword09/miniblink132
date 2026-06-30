@@ -4,6 +4,7 @@
 #include <windows.h>
 #include "electron/browser/api/WindowInterface.h"
 #include "electron/browser/api/WindowList.h"
+#include "electron/browser/api/ApiApp.h"
 #include "electron/browser/api/MenuEventNotif.h"
 #include "electron/common/NodeRegisterHelp.h"
 #include "electron/common/HideWndHelp.h"
@@ -161,7 +162,7 @@ public:
         builder.SetMethod("_clear", &Menu::_clearApi);
         builder.SetMethod("_dispatchCommandForTesting", &Menu::dispatchCommandForTestingApi);
         builder.SetMethod("getItemCount", &Menu::getItemCountApi);
-        builder.SetMethod("quit", &Menu::nullFunction);
+        builder.SetMethod("quit", &Menu::quitApi);
 
         v8::Local<v8::Function> constructorFunction = prototype->GetFunction(context).ToLocalChecked();
         constructor.Reset(isolate, constructorFunction);
@@ -174,8 +175,11 @@ public:
             v8::FunctionTemplate::New(isolate, sendActionToFirstResponderBinding)->GetFunction(context).ToLocalChecked()).ToChecked();
     }
 
-    void nullFunction()
+    void quitApi()
     {
+        App* app = App::getInstance();
+        if (app)
+            app->quitApi();
     }
 
     // Set the global menubar.

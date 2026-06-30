@@ -5,9 +5,11 @@
 #include "electron/common/gin_helper/public/wrapper_info.h"
 #include <map>
 
+#if !defined(WINDOWS_FOR_LINUX_H)
 typedef struct HWND__* HWND;
 typedef struct tagCOPYDATASTRUCT COPYDATASTRUCT;
 typedef void* HANDLE;
+#endif
 
 namespace gin_helper {
 class Arguments;
@@ -23,8 +25,6 @@ public:
 
     static void init(v8::Local<v8::Object> target, v8::Isolate* isolate);
     static App* getInstance();
-
-    void nullFunction();
 
     void quitApi();
     void exitApi();

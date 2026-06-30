@@ -25,7 +25,7 @@ public:
     static void init(v8::Isolate* isolate, v8::Local<v8::Object> target);
     static void MB_CALL_TYPE staticOnNetJobDataFinishCallback(void* ptr, mbNetJob job, mbLoadingResult result);
     static void MB_CALL_TYPE staticOnNetJobDataRecvCallback(void* ptr, mbNetJob job, const char* data, int length);
-    static void MB_CALL_TYPE staticOnPopupDialogSaveNameCallback(void* ptr, const wchar_t* filePath);
+    static void MB_CALL_TYPE staticOnPopupDialogSaveNameCallback(void* ptr, const WCHAR* filePath);
 
 private:
     ApiDownloadItem(v8::Isolate* isolate, v8::Local<v8::Object> wrapper);

@@ -71,7 +71,11 @@ public:
         unsigned styles;
         unsigned styleEx;
         bool transparent;
+#if defined(OS_MAC)
+        std::u16string title;
+#else
         std::wstring title;
+#endif
         bool isShow;
         bool isCenter;
         bool isResizable;
@@ -146,6 +150,10 @@ public:
     WindowInterface* getOwner() const
     {
         return m_owner;
+    }
+    void setOwner(WindowInterface* owner)
+    {
+        m_owner = owner;
     }
 
     std::vector<std::string> getPreloadScript();
@@ -260,8 +268,6 @@ private:
     bool isDestroyedApi() const;
     void reloadIgnoringCacheApi();
     void downloadURLApi(const std::string& url);
-
-    void nullFunction();
 
     static void __stdcall staticDidCreateScriptContextCallback(mbWebView webView, void* param, void* frame, void* context, int extensionGroup, int worldId);
     void onDidCreateScriptContext(mbWebView webView, void* frame, v8::Local<v8::Context>* context, int extensionGroup, int worldId);

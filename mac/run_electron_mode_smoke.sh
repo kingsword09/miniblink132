@@ -34,8 +34,10 @@ fi
 "$BIN" --electron-v8-shared-array-buffer-smoke
 "$BIN" --electron-node-bootstrap-smoke
 
+SYMBOLS="$(nm -gU "$BIN")"
+
 require_symbol() {
-    nm -gU "$BIN" | grep "$1" >/dev/null
+    grep "$1" <<<"$SYMBOLS" >/dev/null
 }
 
 require_symbol "__register_electron_browser_native_theme"
@@ -53,6 +55,7 @@ require_symbol "__register_electron_browser_tray"
 require_symbol "__register_electron_browser_protocol"
 require_symbol "__register_electron_browser_commandline"
 require_symbol "__register_electron_browser_safe_storage"
+require_symbol "__register_electron_browser_system_preferences"
 require_symbol "_nodeModuleInitRegister"
 require_symbol "_electronMacNodeBridgeGetLinkedBinding"
 require_symbol "__register_electron_common_features"
@@ -60,5 +63,6 @@ require_symbol "__register_electron_common_v8_util"
 require_symbol "__register_electron_common_original_fs"
 require_symbol "__register_electron_common_intl_collator"
 require_symbol "__register_electron_common_asar"
+require_symbol "__register_electron_common_content_tracing"
 
 echo "ok electron_mode_smoke"

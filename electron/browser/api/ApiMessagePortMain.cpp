@@ -61,7 +61,8 @@ void ApiMessagePortMain::init(v8::Isolate* isolate, v8::Local<v8::Object> target
 //     v8::Persistent<v8::Function>* constructor = atom::V8PersistentTls::get(&s_ApiMessagePortMainConstructorTlsKey);
 //     if (!(*constructor).IsEmpty())
 //         return;
-    CHECK(s_ApiMessagePortMainConstructor.IsEmpty());
+    if (!s_ApiMessagePortMainConstructor.IsEmpty())
+        s_ApiMessagePortMainConstructor.Reset();
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::FunctionTemplate> prototype = v8::FunctionTemplate::New(isolate, ApiMessagePortMain::newFunction);

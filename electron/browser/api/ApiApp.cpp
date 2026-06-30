@@ -145,11 +145,6 @@ void App::init(v8::Local<v8::Object> target, v8::Isolate* isolate)
     target->Set(context, v8::String::NewFromUtf8(isolate, "App").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
 }
 
-void App::nullFunction()
-{
-    OutputDebugStringA("nullFunction\n");
-}
-
 void quit()
 {
     WindowList::closeAllWindows();

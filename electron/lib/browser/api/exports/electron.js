@@ -20,6 +20,12 @@ defineLazyExport(exports, 'BrowserWindow', function() {
 defineLazyExport(exports, 'BrowserView', function() {
   return require('../browser-view');
 });
+defineLazyExport(exports, 'contentTracing', function() {
+  return require('../content-tracing');
+});
+defineLazyExport(exports, 'crashReporter', function() {
+  return require('../crash-reporter');
+});
 defineLazyExport(exports, 'dialog', function() {
   return require('../dialog').dialog;
 });
@@ -61,6 +67,12 @@ defineLazyExport(exports, 'screen', function() {
 });
 defineLazyExport(exports, 'session', function() {
   return require('../session').session;
+});
+defineLazyExport(exports, 'systemPreferences', function() {
+  return require('../system-preferences');
+});
+defineLazyExport(exports, 'TouchBar', function() {
+  return require('../touch-bar');
 });
 defineLazyExport(exports, 'Tray', function() {
   return require('../tray').Tray;

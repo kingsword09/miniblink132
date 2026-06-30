@@ -47,6 +47,7 @@ public:
 extern "C" void* MacCreateStatusItem(HWND hwnd, UINT id, UINT callbackMessage, const char* title, bool hidden);
 extern "C" bool MacUpdateStatusItem(void* handle, UINT callbackMessage, const char* title, bool hidden);
 extern "C" void MacDestroyStatusItem(void* handle);
+extern "C" bool MacSetWindowTouchBar(HWND hwnd, const char* touchBarJson);
 extern "C" bool MacHasRegisteredSystemHotKeyForTesting(HWND hwnd, int id);
 extern "C" bool MacEnsurePowerMonitorNotificationBridge(void);
 extern "C" UINT MacPowerMonitorNotificationBridgeStateForTesting(void);

@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const rendererExcludedExports = ['webFrame', 'remote', 'screen', 'CallbacksRegistry'];
+const rendererExcludedExports = [];
 
 function assertRendererExportsExcluded(electron, label) {
     for (const key of rendererExcludedExports) {
@@ -340,6 +340,22 @@ async function runElectronAppRuntimeSmoke() {
     const RuntimeFakeUtilityProcess = {
         fork() {}
     };
+    const RuntimeFakeSystemPreferences = {
+        getAccentColor() { return '112233'; }
+    };
+    const RuntimeFakeContentTracing = {
+        startRecording() { return Promise.resolve(); },
+        stopRecording() { return Promise.resolve('/tmp/trace.json'); },
+        getCategories() { return Promise.resolve([]); },
+        getTraceBufferUsage() { return Promise.resolve({ value: 0, percentage: 0 }); }
+    };
+    const RuntimeFakeCrashReporter = {
+        start() {},
+        getParameters() { return {}; },
+        addExtraParameter() {},
+        removeExtraParameter() {}
+    };
+    function RuntimeFakeTouchBar() {}
 
     function Tray() {}
     function NativeImage() {}
@@ -351,6 +367,10 @@ async function runElectronAppRuntimeSmoke() {
         './api/global-shortcut': {},
         './api/browser-view': RuntimeFakeBrowserView,
         '../browser-view': RuntimeFakeBrowserView,
+        './api/content-tracing': RuntimeFakeContentTracing,
+        '../content-tracing': RuntimeFakeContentTracing,
+        './api/crash-reporter': RuntimeFakeCrashReporter,
+        '../crash-reporter': RuntimeFakeCrashReporter,
         './api/menu': { getApplicationMenu() { return null; } },
         './api/menu-item': MenuItem,
         './api/message-channel-main': { MessageChannelMain: RuntimeFakeMessageChannelMain },
@@ -366,6 +386,10 @@ async function runElectronAppRuntimeSmoke() {
         './api/protocol': { protocol: {} },
         './api/safe-storage': {},
         './api/screen': { Screen: {} },
+        './api/system-preferences': RuntimeFakeSystemPreferences,
+        '../system-preferences': RuntimeFakeSystemPreferences,
+        './api/touch-bar': RuntimeFakeTouchBar,
+        '../touch-bar': RuntimeFakeTouchBar,
         './api/tray': { Tray },
         '../common/api/clipboard': {},
         '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
@@ -516,10 +540,21 @@ async function runElectronAppRuntimeSmoke() {
         assert.strictEqual(electronMainShim.utilityProcess, RuntimeFakeUtilityProcess);
         assert.strictEqual(browserExports.utilityProcess, RuntimeFakeUtilityProcess);
         assert.strictEqual(typeof electron.utilityProcess.fork, 'function');
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'contentTracing'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'crashReporter'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'systemPreferences'), false);
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(electron, 'TouchBar'), false);
+        assert.strictEqual(electron.systemPreferences, RuntimeFakeSystemPreferences);
+        assert.strictEqual(electronMainShim.systemPreferences, RuntimeFakeSystemPreferences);
+        assert.strictEqual(browserExports.systemPreferences, RuntimeFakeSystemPreferences);
+        assert.strictEqual(typeof electron.systemPreferences.getAccentColor, 'function');
+        assert.strictEqual(electron.contentTracing, RuntimeFakeContentTracing);
+        assert.strictEqual(electronMainShim.contentTracing, RuntimeFakeContentTracing);
+        assert.strictEqual(browserExports.contentTracing, RuntimeFakeContentTracing);
+        assert.strictEqual(typeof electron.contentTracing.startRecording, 'function');
+        assert.strictEqual(electron.crashReporter, RuntimeFakeCrashReporter);
+        assert.strictEqual(electronMainShim.crashReporter, RuntimeFakeCrashReporter);
+        assert.strictEqual(browserExports.crashReporter, RuntimeFakeCrashReporter);
+        assert.strictEqual(typeof electron.crashReporter.start, 'function');
+        assert.strictEqual(electron.TouchBar, RuntimeFakeTouchBar);
+        assert.strictEqual(electronMainShim.TouchBar, RuntimeFakeTouchBar);
+        assert.strictEqual(browserExports.TouchBar, RuntimeFakeTouchBar);
         assert.strictEqual(electron.nativeTheme.shouldUseDarkColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseHighContrastColors, false);
         assert.strictEqual(electron.nativeTheme.shouldUseInvertedColorScheme, false);
@@ -736,6 +771,10 @@ async function runBrowserWindowWebContentsSmoke() {
         getTitle() {
             return this._title;
         }
+
+        _setTouchBar(model) {
+            this._nativeTouchBarModel = model;
+        }
     }
     FakeBrowserWindow._nextId = 0;
     FakeBrowserWindow._byId = new Map();
@@ -797,8 +836,141 @@ async function runBrowserWindowWebContentsSmoke() {
         win.setTitle('MiniBlink BrowserWindow');
         assert.strictEqual(win.getTitle(), 'MiniBlink BrowserWindow');
 
-        win.setTouchBar({ items: [] });
-        assert.deepStrictEqual(win._touchBar, { items: [] });
+        const TouchBar = require('../electron/lib/browser/api/touch-bar');
+        let touchBarClicked = 0;
+        let sliderValue = null;
+        let segmentState = null;
+        let scrubberSelected = null;
+        let scrubberHighlighted = null;
+        let groupClicked = 0;
+        let popoverClicked = 0;
+        const touchBar = new TouchBar({
+            items: [
+                new TouchBar.TouchBarButton({
+                    label: 'Run',
+                    image: Buffer.from('png-bytes'),
+                    backgroundColor: '#336699',
+                    click() { touchBarClicked++; }
+                }),
+                new TouchBar.TouchBarSlider({
+                    label: 'Level',
+                    minValue: 0,
+                    maxValue: 10,
+                    value: 5,
+                    change(value) { sliderValue = value; }
+                }),
+                new TouchBar.TouchBarSegmentedControl({
+                    mode: 'multiple',
+                    selectedIndex: 1,
+                    segments: [
+                        { label: 'One', image: Buffer.from('seg-one') },
+                        { label: 'Two', enabled: false }
+                    ],
+                    change(index, selected) { segmentState = { index, selected }; }
+                }),
+                new TouchBar.TouchBarScrubber({
+                    items: [
+                        { label: 'A', image: Buffer.from('scrub-a') },
+                        'B'
+                    ],
+                    mode: 'fixed',
+                    selectedStyle: 'outline',
+                    overlayStyle: 'background',
+                    showArrowButtons: true,
+                    continuous: true,
+                    selectedIndex: 0,
+                    select(index) { scrubberSelected = index; },
+                    highlight(index) { scrubberHighlighted = index; }
+                }),
+                new TouchBar.TouchBarGroup({
+                    label: 'Group',
+                    items: [
+                        new TouchBar.TouchBarButton({
+                            label: 'Nested',
+                            click() { groupClicked++; }
+                        })
+                    ]
+                }),
+                new TouchBar.TouchBarPopover({
+                    label: 'More',
+                    icon: Buffer.from('popover-icon'),
+                    showCloseButton: false,
+                    items: [
+                        new TouchBar.TouchBarButton({
+                            label: 'Inside',
+                            click() { popoverClicked++; }
+                        })
+                    ]
+                })
+            ]
+        });
+        win.setTouchBar(touchBar);
+        assert.strictEqual(win._touchBar, touchBar);
+        assert.strictEqual(win._nativeTouchBarModel.items[0].type, 'button');
+        assert.strictEqual(win._nativeTouchBarModel.items[0].label, 'Run');
+        assert.strictEqual(win._nativeTouchBarModel.items[0].image, 'data:image/png;base64,cG5nLWJ5dGVz');
+        assert.strictEqual(win._nativeTouchBarModel.items[0].backgroundColor, '#336699');
+        assert.strictEqual(win._nativeTouchBarModel.items[1].type, 'slider');
+        assert.strictEqual(win._nativeTouchBarModel.items[1].value, 5);
+        assert.strictEqual(win._nativeTouchBarModel.items[2].type, 'segmented-control');
+        assert.strictEqual(win._nativeTouchBarModel.items[2].mode, 'multiple');
+        assert.strictEqual(win._nativeTouchBarModel.items[2].segments[0].image, 'data:image/png;base64,c2VnLW9uZQ==');
+        assert.strictEqual(win._nativeTouchBarModel.items[3].type, 'scrubber');
+        assert.strictEqual(win._nativeTouchBarModel.items[3].items[0].image, 'data:image/png;base64,c2NydWItYQ==');
+        assert.strictEqual(win._nativeTouchBarModel.items[3].selectedStyle, 'outline');
+        assert.strictEqual(win._nativeTouchBarModel.items[3].overlayStyle, 'background');
+        assert.strictEqual(win._nativeTouchBarModel.items[3].showArrowButtons, true);
+        assert.strictEqual(win._nativeTouchBarModel.items[3].continuous, true);
+        assert.strictEqual(win._nativeTouchBarModel.items[3].selectedIndex, 0);
+        assert.strictEqual(win._nativeTouchBarModel.items[4].type, 'group');
+        assert.strictEqual(win._nativeTouchBarModel.items[4].label, 'Group');
+        assert.strictEqual(win._nativeTouchBarModel.items[4].items[0].label, 'Nested');
+        assert.strictEqual(win._nativeTouchBarModel.items[5].type, 'popover');
+        assert.strictEqual(win._nativeTouchBarModel.items[5].image, 'data:image/png;base64,cG9wb3Zlci1pY29u');
+        assert.strictEqual(win._nativeTouchBarModel.items[5].showCloseButton, false);
+        assert.strictEqual(win._dispatchTouchBarAction(JSON.stringify({
+            id: win._nativeTouchBarModel.items[0].id,
+            type: 'click'
+        })), true);
+        assert.strictEqual(touchBarClicked, 1);
+        assert.strictEqual(win._dispatchTouchBarAction({
+            id: win._nativeTouchBarModel.items[1].id,
+            type: 'change',
+            value: 7
+        }), true);
+        assert.strictEqual(sliderValue, 7);
+        assert.strictEqual(win._dispatchTouchBarAction({
+            id: win._nativeTouchBarModel.items[2].id,
+            type: 'change',
+            selectedIndex: 0,
+            isSelected: false
+        }), true);
+        assert.deepStrictEqual(segmentState, { index: 0, selected: false });
+        assert.strictEqual(win._dispatchTouchBarAction({
+            id: win._nativeTouchBarModel.items[3].id,
+            type: 'select',
+            selectedIndex: 1
+        }), true);
+        assert.strictEqual(scrubberSelected, 1);
+        assert.strictEqual(win._dispatchTouchBarAction({
+            id: win._nativeTouchBarModel.items[3].id,
+            type: 'highlight',
+            highlightedIndex: 0
+        }), true);
+        assert.strictEqual(scrubberHighlighted, 0);
+        assert.strictEqual(win._dispatchTouchBarAction({
+            id: win._nativeTouchBarModel.items[4].items[0].id,
+            type: 'click'
+        }), true);
+        assert.strictEqual(groupClicked, 1);
+        assert.strictEqual(win._dispatchTouchBarAction({
+            id: win._nativeTouchBarModel.items[5].items[0].id,
+            type: 'click'
+        }), true);
+        assert.strictEqual(popoverClicked, 1);
+        win.setTouchBar(null);
+        assert.strictEqual(win._touchBar, null);
+        assert.strictEqual(win._nativeTouchBarModel, null);
 
         await win.loadURL('https://example.test/page');
         assert.strictEqual(win.getURL(), 'https://example.test/page');
@@ -1852,6 +2024,7 @@ function runBrowserViewSmoke() {
         constructor() {
             this.boundsCalls = [];
             this.backgroundCalls = [];
+            this.autoResizeCalls = [];
             this._webContents = {
                 initCount: 0,
                 _init() {
@@ -1870,6 +2043,10 @@ function runBrowserViewSmoke() {
 
         _setBackgroundColor(color) {
             this.backgroundCalls.push(color);
+        }
+
+        _setAutoResize(width, height, horizontal, vertical) {
+            this.autoResizeCalls.push({ width, height, horizontal, vertical });
         }
     }
 
@@ -1905,7 +2082,21 @@ function runBrowserViewSmoke() {
         assert.strictEqual(view.backgroundCalls[1], 0xccbbaa);
         assert.throws(function() { view.setBackgroundColor('red'); }, /color must be/);
 
-        assert.strictEqual(Object.prototype.hasOwnProperty.call(BrowserView.prototype, 'setAutoResize'), false);
+        assert.strictEqual(typeof view.setAutoResize, 'function');
+        view.setAutoResize({ width: true, vertical: 1 });
+        assert.deepStrictEqual(view._autoResize, {
+            width: true,
+            height: false,
+            horizontal: false,
+            vertical: true
+        });
+        assert.deepStrictEqual(view.autoResizeCalls[0], {
+            width: true,
+            height: false,
+            horizontal: false,
+            vertical: true
+        });
+        assert.throws(function() { view.setAutoResize('bad'); }, /options must be an object/);
 
         console.log('PASS browser-view-js-smoke');
     } finally {
@@ -1915,6 +2106,369 @@ function runBrowserViewSmoke() {
         else
             delete require.cache[modulePath];
     }
+}
+
+async function runProtocolSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/browser/api/protocol');
+    const cachedModule = require.cache[modulePath];
+    delete require.cache[modulePath];
+
+    class FakeProtocol {
+        constructor(receiver) {
+            this.receiver = receiver;
+            this.registered = new Map();
+            this.standardSchemes = [];
+            this.privilegedSchemes = [];
+            this.finished = [];
+            FakeProtocol.latest = this;
+        }
+
+        registerStandardSchemes(schemes) {
+            this.standardSchemes.push(schemes.slice());
+        }
+
+        registerSchemesAsPrivileged(schemes) {
+            this.privilegedSchemes.push(JSON.parse(JSON.stringify(schemes)));
+        }
+
+        _registerProtocol(scheme, id, type, registerWithBlink) {
+            if (this.registered.has(scheme))
+                return false;
+            this.registered.set(scheme, { id, type, registerWithBlink });
+            return true;
+        }
+
+        _unregisterProtocol(scheme) {
+            this.registered.delete(scheme);
+        }
+
+        _isProtocolHandled(scheme) {
+            return this.registered.has(scheme);
+        }
+
+        onHandlerFinish(request, nativeCallbackInfo) {
+            this.finished.push({ request, nativeCallbackInfo });
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_protocol')
+            return { Protocol: FakeProtocol };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    globalThis.__electronProtocolSkipBlinkRegistrationForTesting = true;
+
+    try {
+        const { protocol } = require('../electron/lib/browser/api/protocol');
+
+        assert.strictEqual(typeof protocol.registerFileProtocol, 'function');
+        assert.strictEqual(typeof protocol.registerStringProtocol, 'function');
+        assert.strictEqual(typeof protocol.registerBufferProtocol, 'function');
+        assert.strictEqual(typeof protocol.registerHttpProtocol, 'function');
+        assert.strictEqual(typeof protocol.interceptFileProtocol, 'function');
+        assert.strictEqual(typeof protocol.interceptStringProtocol, 'function');
+        assert.strictEqual(typeof protocol.interceptBufferProtocol, 'function');
+        assert.strictEqual(typeof protocol.interceptHttpProtocol, 'function');
+        assert.strictEqual(typeof protocol.registerStandardSchemes, 'function');
+        assert.strictEqual(typeof protocol.registerSchemesAsPrivileged, 'function');
+        assert.strictEqual(typeof protocol.registerStreamProtocol, 'function');
+        assert.strictEqual(typeof protocol.interceptStreamProtocol, 'function');
+
+        const instance = FakeProtocol.latest;
+        let completionError = 'not-called';
+        protocol.registerFileProtocol('mbfile', function() {}, function(error) { completionError = error; });
+        assert.strictEqual(completionError, null);
+        assert.deepStrictEqual(instance.registered.get('mbfile'), {
+            id: 1,
+            type: 'file',
+            registerWithBlink: false
+        });
+
+        protocol.registerStringProtocol('mbstring', function(request, callback) {
+            callback({ data: 'ok', mimeType: 'text/plain' });
+        });
+        assert.strictEqual(instance.registered.get('mbstring').type, 'string');
+
+        let duplicateMessage = '';
+        protocol.registerStringProtocol('mbstring', function() {}, function(error) {
+            duplicateMessage = error ? error.message : '';
+        });
+        assert.strictEqual(duplicateMessage, 'The scheme has been registered');
+
+        protocol.registerBufferProtocol('mbbuffer', function() {});
+        assert.strictEqual(instance.registered.get('mbbuffer').type, 'buffer');
+        protocol.registerHttpProtocol('mbhttp', function() {});
+        assert.strictEqual(instance.registered.get('mbhttp').type, 'http');
+
+        let handled = null;
+        protocol.isProtocolHandled('mbhttp', function(value) { handled = value; });
+        assert.strictEqual(handled, true);
+        protocol.unregisterProtocol('mbhttp');
+        protocol.isProtocolHandled('mbhttp', function(value) { handled = value; });
+        assert.strictEqual(handled, false);
+
+        protocol.interceptFileProtocol('mbfile2', function() {});
+        assert.strictEqual(instance.registered.get('mbfile2').type, 'file');
+        protocol.interceptStringProtocol('mbstring2', function() {});
+        assert.strictEqual(instance.registered.get('mbstring2').type, 'string');
+        protocol.interceptBufferProtocol('mbbuffer2', function() {});
+        assert.strictEqual(instance.registered.get('mbbuffer2').type, 'buffer');
+        protocol.interceptHttpProtocol('mbhttp2', function() {});
+        assert.strictEqual(instance.registered.get('mbhttp2').type, 'http');
+        protocol.uninterceptProtocol('mbhttp2');
+        assert.strictEqual(instance.registered.has('mbhttp2'), false);
+
+        const { Readable } = require('stream');
+        protocol.registerStreamProtocol('mbstream', function(request, callback) {
+            callback({
+                data: Readable.from(['hello ', Buffer.from('stream')]),
+                mimeType: 'text/plain'
+            });
+        });
+        assert.strictEqual(instance.registered.get('mbstream').type, 'buffer');
+        protocol.interceptStreamProtocol('mbstream2', function(request, callback) {
+            callback(Readable.from([Buffer.from('intercept')]));
+        });
+        assert.strictEqual(instance.registered.get('mbstream2').type, 'buffer');
+
+        protocol.registerStandardSchemes(['mbstandard']);
+        assert.deepStrictEqual(instance.standardSchemes, [['mbstandard']]);
+        protocol.registerSchemesAsPrivileged([
+            { scheme: 'mbpriv', privileges: { secure: true, standard: true, bypassCSP: true } }
+        ]);
+        assert.deepStrictEqual(instance.privilegedSchemes, [
+            [{ scheme: 'mbpriv', privileges: { secure: true, standard: true, bypassCSP: true } }]
+        ]);
+
+        instance.receiver(2, { url: 'mbstring://host/path' }, 42n);
+        assert.deepStrictEqual(instance.finished, [
+            { request: { data: 'ok', mimeType: 'text/plain' }, nativeCallbackInfo: 42n }
+        ]);
+        instance.receiver(instance.registered.get('mbstream').id, { url: 'mbstream://host/path' }, 43n);
+        await new Promise(function(resolve, reject) {
+            const deadline = Date.now() + 1000;
+            function poll() {
+                if (instance.finished.length > 1)
+                    return resolve();
+                if (Date.now() > deadline)
+                    return reject(new Error('stream protocol response timed out'));
+                setImmediate(poll);
+            }
+            poll();
+        });
+        assert.strictEqual(instance.finished[1].request.mimeType, 'text/plain');
+        assert.strictEqual(instance.finished[1].request.data.toString(), 'hello stream');
+        assert.strictEqual(instance.finished[1].nativeCallbackInfo, 43n);
+
+        console.log('PASS protocol-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        delete globalThis.__electronProtocolSkipBlinkRegistrationForTesting;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
+}
+
+async function runSystemPreferencesSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/browser/api/system-preferences');
+    const cachedModule = require.cache[modulePath];
+    delete require.cache[modulePath];
+
+    const calls = [];
+    const fakeBinding = {
+        defaults: Object.create(null),
+        getAccentColor() {
+            calls.push(['getAccentColor']);
+            return 'AABBCC';
+        },
+        getColor(color) {
+            calls.push(['getColor', color]);
+            if (color === 'label')
+                return '101112';
+            throw new Error('Unknown system color');
+        },
+        isDarkMode() {
+            calls.push(['isDarkMode']);
+            return true;
+        },
+        isSwipeTrackingFromScrollEventsEnabled() {
+            calls.push(['isSwipeTrackingFromScrollEventsEnabled']);
+            return false;
+        },
+        getUserDefault(name, type) {
+            calls.push(['getUserDefault', name, type]);
+            return this.defaults[name] === undefined ? null : this.defaults[name];
+        },
+        setUserDefault(name, type, value) {
+            calls.push(['setUserDefault', name, type, value]);
+            this.defaults[name] = value;
+        },
+        removeUserDefault(name) {
+            calls.push(['removeUserDefault', name]);
+            delete this.defaults[name];
+        },
+        isTrustedAccessibilityClient(prompt) {
+            calls.push(['isTrustedAccessibilityClient', prompt]);
+            return !!prompt;
+        },
+        getMediaAccessStatus(mediaType) {
+            calls.push(['getMediaAccessStatus', mediaType]);
+            return mediaType === 'camera' ? 'granted' : 'not-determined';
+        },
+        askForMediaAccess(mediaType, callback) {
+            calls.push(['askForMediaAccess', mediaType]);
+            setImmediate(function() { callback(mediaType === 'microphone'); });
+        }
+    };
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_browser_system_preferences')
+            return fakeBinding;
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const systemPreferences = require('../electron/lib/browser/api/system-preferences');
+
+        assert.strictEqual(systemPreferences.getAccentColor(), 'AABBCC');
+        assert.strictEqual(systemPreferences.getColor('label'), '101112');
+        assert.throws(function() { systemPreferences.getColor(''); }, /color/);
+        assert.strictEqual(systemPreferences.isDarkMode(), true);
+        assert.strictEqual(systemPreferences.isSwipeTrackingFromScrollEventsEnabled(), false);
+
+        systemPreferences.setUserDefault('mini.test.string', 'string', 'value');
+        assert.strictEqual(systemPreferences.getUserDefault('mini.test.string', 'string'), 'value');
+        systemPreferences.setUserDefault('mini.test.bool', 'boolean', true);
+        assert.strictEqual(systemPreferences.getUserDefault('mini.test.bool', 'boolean'), true);
+        systemPreferences.removeUserDefault('mini.test.string');
+        assert.strictEqual(systemPreferences.getUserDefault('mini.test.string', 'string'), null);
+        assert.throws(function() { systemPreferences.getUserDefault('', 'string'); }, /name/);
+        assert.throws(function() { systemPreferences.getUserDefault('name', 'object'); }, /type/);
+
+        assert.strictEqual(systemPreferences.isTrustedAccessibilityClient(true), true);
+        assert.strictEqual(systemPreferences.getMediaAccessStatus('camera'), 'granted');
+        assert.strictEqual(systemPreferences.getMediaAccessStatus('microphone'), 'not-determined');
+        assert.throws(function() { systemPreferences.getMediaAccessStatus('screen'); }, /mediaType/);
+        assert.strictEqual(await systemPreferences.askForMediaAccess('microphone'), true);
+        assert.strictEqual(calls.some(function(call) { return call[0] === 'askForMediaAccess' && call[1] === 'microphone'; }), true);
+
+        console.log('PASS system-preferences-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
+    }
+}
+
+async function runContentTracingSmoke() {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    const modulePath = require.resolve('../electron/lib/browser/api/content-tracing');
+    delete require.cache[modulePath];
+    const contentTracing = require('../electron/lib/browser/api/content-tracing');
+
+    const categories = await contentTracing.getCategories();
+    assert.strictEqual(categories.includes('electron'), true);
+    assert.strictEqual(categories.includes('miniblink'), true);
+
+    await contentTracing.startRecording({
+        included_categories: ['electron', 'miniblink'],
+        traceOptions: 'record-continuously'
+    });
+
+    let duplicateStartRejected = false;
+    try {
+        await contentTracing.startRecording('*');
+    } catch (error) {
+        duplicateStartRejected = /already recording/.test(String(error && error.message));
+    }
+    assert.strictEqual(duplicateStartRejected, true);
+
+    contentTracing._recordProcessSnapshot('smoke-snapshot', { ok: true });
+    const usage = await contentTracing.getTraceBufferUsage();
+    assert.strictEqual(typeof usage.value, 'number');
+    assert.strictEqual(typeof usage.percentage, 'number');
+
+    const outputPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-content-tracing-')), 'trace.json');
+    const writtenPath = await contentTracing.stopRecording(outputPath);
+    assert.strictEqual(writtenPath, outputPath);
+    const trace = JSON.parse(fs.readFileSync(writtenPath, 'utf8'));
+    assert.ok(Array.isArray(trace.traceEvents));
+    assert.ok(trace.traceEvents.some(function(event) { return event.name === 'contentTracing.startRecording'; }));
+    assert.ok(trace.traceEvents.some(function(event) { return event.name === 'smoke-snapshot'; }));
+    assert.strictEqual(trace.metadata.product, 'miniblink-electron');
+    assert.strictEqual(typeof trace.metadata.nodeTraceEventCount, 'number');
+    assert.ok(trace.metadata.nodeTraceEventCount > 0);
+    assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.available, true);
+    assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.enabled, true);
+
+    let stopRejected = false;
+    try {
+        await contentTracing.stopRecording();
+    } catch (error) {
+        stopRejected = /not recording/.test(String(error && error.message));
+    }
+    assert.strictEqual(stopRejected, true);
+
+    console.log('PASS content-tracing-js-smoke');
+}
+
+function runCrashReporterSmoke() {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    const modulePath = require.resolve('../electron/lib/browser/api/crash-reporter');
+    delete require.cache[modulePath];
+    const crashReporter = require('../electron/lib/browser/api/crash-reporter');
+    const crashDir = fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-crash-reporter-'));
+
+    crashReporter.start({
+        productName: 'MiniBlink',
+        companyName: 'MiniBlink',
+        uploadToServer: false,
+        crashesDirectory: crashDir,
+        globalExtra: {
+            channel: 'smoke'
+        }
+    });
+
+    assert.strictEqual(crashReporter.getUploadToServer(), false);
+    assert.strictEqual(crashReporter.getCrashesDirectory(), crashDir);
+    assert.strictEqual(crashReporter.getCrashReportFolder(), crashDir);
+    assert.deepStrictEqual(crashReporter.getParameters(), { channel: 'smoke' });
+
+    crashReporter.addExtraParameter('build', 132);
+    assert.strictEqual(crashReporter.getParameters().build, '132');
+    crashReporter.removeExtraParameter('build');
+    assert.strictEqual(Object.prototype.hasOwnProperty.call(crashReporter.getParameters(), 'build'), false);
+
+    const report = crashReporter._writeReportForTesting('smoke', new Error('crash smoke'), 'test');
+    assert.strictEqual(report.kind, 'smoke');
+    assert.strictEqual(report.extra.channel, 'smoke');
+    assert.strictEqual(fs.existsSync(report.path), true);
+    assert.strictEqual(typeof report.diagnosticReport, 'string');
+    assert.strictEqual(fs.existsSync(report.diagnosticReport), true);
+    assert.strictEqual(crashReporter.getLastCrashReport().path, report.path);
+
+    const nextDir = fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-crash-reporter-next-'));
+    crashReporter.setCrashReportFolder(nextDir);
+    assert.strictEqual(crashReporter.getCrashReportFolder(), nextDir);
+    crashReporter.setUploadToServer(true);
+    assert.strictEqual(crashReporter.getUploadToServer(), true);
+
+    console.log('PASS crash-reporter-js-smoke');
 }
 
 function runNetSmoke() {
@@ -2120,6 +2674,250 @@ async function runRendererWrapperSmoke() {
     }
 }
 
+function runRendererWebFrameSmoke() {
+    const originalLinkedBinding = process._linkedBinding;
+    const modulePath = require.resolve('../electron/lib/renderer/api/web-frame');
+    delete require.cache[modulePath];
+
+    class FakeWebFrame {
+        registerEmbedderCustomElement() {}
+        setZoomFactor() {}
+        getZoomFactor() { return 1; }
+        getZoomLevel() { return 0; }
+        setZoomLevel() {}
+        setZoomLevelLimits() {}
+        setVisualZoomLevelLimits() {}
+        setLayoutZoomLevelLimits() {}
+        registerURLSchemeAsSecure() {}
+        registerURLSchemeAsBypassingCSP() {}
+        registerURLSchemeAsPrivileged() {}
+        executeJavaScript() {}
+        removeInsertedCSS() {}
+        insertCSS() {}
+        insertText(text) {
+            this.insertedText = text;
+            return true;
+        }
+        setSpellCheckProvider(language, autoCorrectWord, provider) {
+            this.spellCheckProvider = { language, autoCorrectWord, provider };
+        }
+    }
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_renderer_webframe')
+            return { WebFrame: FakeWebFrame };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
+    try {
+        const webFrame = require('../electron/lib/renderer/api/web-frame');
+        assert.strictEqual(typeof webFrame.on, 'function');
+        assert.strictEqual(typeof webFrame.insertCSS, 'function');
+        assert.strictEqual(typeof webFrame.removeInsertedCSS, 'function');
+        assert.strictEqual(typeof webFrame.executeJavaScript, 'function');
+        assert.strictEqual(typeof webFrame.setZoomFactor, 'function');
+        assert.strictEqual(typeof webFrame.getZoomFactor, 'function');
+        assert.strictEqual(typeof webFrame.setZoomLevel, 'function');
+        assert.strictEqual(typeof webFrame.getZoomLevel, 'function');
+        assert.strictEqual(typeof webFrame.setZoomLevelLimits, 'function');
+        assert.strictEqual(typeof webFrame.setVisualZoomLevelLimits, 'function');
+        assert.strictEqual(typeof webFrame.setLayoutZoomLevelLimits, 'function');
+        assert.strictEqual(typeof webFrame.registerURLSchemeAsSecure, 'function');
+        assert.strictEqual(typeof webFrame.registerURLSchemeAsBypassingCSP, 'function');
+        assert.strictEqual(typeof webFrame.registerURLSchemeAsPrivileged, 'function');
+        assert.strictEqual(typeof webFrame.insertText, 'function');
+        assert.strictEqual(typeof webFrame.setSpellCheckProvider, 'function');
+        assert.strictEqual(webFrame.insertText('typed'), true);
+        assert.strictEqual(webFrame.insertedText, 'typed');
+        const provider = { spellCheck(words, callback) { callback([]); } };
+        webFrame.setSpellCheckProvider('en-US', true, provider);
+        assert.deepStrictEqual(webFrame.spellCheckProvider, {
+            language: 'en-US',
+            autoCorrectWord: true,
+            provider
+        });
+        webFrame.setMaxListeners(0);
+        console.log('PASS renderer-webframe-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        delete require.cache[modulePath];
+    }
+}
+
+async function runRendererRemoteSmoke() {
+    const Module = require('module');
+    const EventEmitter = require('events').EventEmitter;
+    const originalLoad = Module._load;
+    const originalLinkedBinding = process._linkedBinding;
+    const remotePath = require.resolve('../electron/lib/renderer/api/remote');
+    const screenPath = require.resolve('../electron/lib/renderer/api/screen');
+    delete require.cache[remotePath];
+    delete require.cache[screenPath];
+
+    const hiddenValues = new WeakMap();
+    class FakeV8Util {
+        getHiddenValue(target, key) {
+            const values = hiddenValues.get(target);
+            return values && values.get(key);
+        }
+
+        setHiddenValue(target, key, value) {
+            let values = hiddenValues.get(target);
+            if (!values) {
+                values = new Map();
+                hiddenValues.set(target, values);
+            }
+            values.set(key, value);
+        }
+
+        deleteHiddenValue(target, key) {
+            const values = hiddenValues.get(target);
+            if (values)
+                values.delete(key);
+        }
+    }
+
+    class FakeCallbacksRegistry {
+        constructor() {
+            this.nextId = 0;
+            this.callbacks = new Map();
+        }
+
+        add(callback) {
+            const existing = fakeV8Util.getHiddenValue(callback, 'callbackId');
+            if (existing)
+                return existing;
+            const id = ++this.nextId;
+            this.callbacks.set(id, callback);
+            fakeV8Util.setHiddenValue(callback, 'callbackId', id);
+            fakeV8Util.setHiddenValue(callback, 'location', 'remote-smoke');
+            return id;
+        }
+
+        apply(id, ...args) {
+            return this.callbacks.get(id).apply(global, args);
+        }
+
+        remove(id) {
+            this.callbacks.delete(id);
+        }
+    }
+    FakeCallbacksRegistry.CallbacksRegistry = FakeCallbacksRegistry;
+
+    const fakeV8Util = new FakeV8Util();
+    const ipcRenderer = new EventEmitter();
+    const syncCalls = [];
+    const asyncCalls = [];
+    const appMeta = {
+        type: 'object',
+        id: 101,
+        name: 'App',
+        members: [
+            { name: 'version', enumerable: true, writable: true, type: 'get' },
+            { name: 'ping', enumerable: true, writable: false, type: 'method' }
+        ],
+        proto: null
+    };
+
+    ipcRenderer.send = function(channel, ...args) {
+        asyncCalls.push([channel, ...args]);
+        return true;
+    };
+    ipcRenderer.sendSync = function(channel, ...args) {
+        syncCalls.push([channel, ...args]);
+        if (channel === 'ELECTRON_BROWSER_GET_BUILTIN' && args[0] === 'app')
+            return appMeta;
+        if (channel === 'ELECTRON_BROWSER_REQUIRE')
+            return { type: 'value', value: 'required:' + args[0] };
+        if (channel === 'ELECTRON_BROWSER_MEMBER_GET')
+            return { type: 'value', value: '1.2.3' };
+        if (channel === 'ELECTRON_BROWSER_MEMBER_SET')
+            return { type: 'value', value: null };
+        if (channel === 'ELECTRON_BROWSER_MEMBER_CALL')
+            return { type: 'array', value: [{ type: 'value', value: 'pong' }] };
+        throw new Error('unexpected remote channel: ' + channel);
+    };
+
+    const electronMock = {
+        ipcRenderer,
+        isPromise(value) {
+            return !!value && typeof value.then === 'function';
+        },
+        CallbacksRegistry: FakeCallbacksRegistry
+    };
+    const screenMock = { getPrimaryDisplay() { return { id: 1 }; } };
+    const browserExportsMock = {};
+    Object.defineProperty(browserExportsMock, 'app', {
+        enumerable: true,
+        get() {
+            return {};
+        }
+    });
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_common_v8_util')
+            return { v8Util: FakeV8Util };
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+    Module._load = function(request, parent, isMain) {
+        if (request === 'electron')
+            return electronMock;
+        if (parent && parent.filename === remotePath && request === './../../browser/api/exports/electron')
+            return browserExportsMock;
+        if (parent && parent.filename === screenPath && request === '../../common/api/screen')
+            return { screen: screenMock };
+        return originalLoad.call(this, request, parent, isMain);
+    };
+
+    try {
+        const remote = require('../electron/lib/renderer/api/remote');
+        const app = remote.getBuiltin('app');
+        assert.strictEqual(remote.app, app);
+        assert.strictEqual(app.version, '1.2.3');
+        app.version = { nested: true };
+        const memberSetCall = syncCalls.find(call => call[0] === 'ELECTRON_BROWSER_MEMBER_SET');
+        assert(memberSetCall);
+        assert.strictEqual(memberSetCall[3].type, 'object');
+        assert.strictEqual(memberSetCall[3].members[0].name, 'nested');
+
+        const callbackArgs = [];
+        const result = app.ping('payload', function(first, second) {
+            callbackArgs.push([first, second]);
+        });
+        assert.deepStrictEqual(result, ['pong']);
+        const memberCall = syncCalls.find(call => call[0] === 'ELECTRON_BROWSER_MEMBER_CALL');
+        assert(memberCall);
+        const wrappedArgs = memberCall[3];
+        const callbackMeta = wrappedArgs.find(item => item.type === 'function');
+        assert.strictEqual(typeof callbackMeta.id, 'number');
+        ipcRenderer.emit('ELECTRON_RENDERER_CALLBACK', {}, callbackMeta.id, {
+            type: 'array',
+            value: [
+                { type: 'value', value: 'first' },
+                { type: 'value', value: 'second' }
+            ]
+        });
+        assert.deepStrictEqual(callbackArgs, [['first', 'second']]);
+
+        assert.strictEqual(remote.require('node:path'), 'required:node:path');
+        assert.strictEqual(remote.getBuiltin('app'), app);
+        assert.strictEqual(require('../electron/lib/renderer/api/screen'), screenMock);
+        remote.getBuiltin('app');
+        assert.strictEqual(asyncCalls.length, 0);
+
+        console.log('PASS renderer-remote-js-smoke');
+    } finally {
+        Module._load = originalLoad;
+        process._linkedBinding = originalLinkedBinding;
+        delete require.cache[remotePath];
+        delete require.cache[screenPath];
+    }
+}
+
 function runUtilityProcessSmoke() {
     const originalLinkedBinding = process._linkedBinding;
     const modulePath = require.resolve('../electron/lib/browser/api/utility-process');
@@ -2228,13 +3026,21 @@ function runElectronRendererModuleExportsSmoke() {
     const electronMock = {};
     const electronRendererMock = {};
     const NativeImage = function NativeImage() {};
+    function FakeCallbacksRegistry() {}
+    const remote = { getBuiltin() {} };
+    const screen = { getPrimaryDisplay() {} };
+    const webFrame = { insertCSS() {} };
     const moduleMocks = {
         '../common/api/clipboard': {},
+        '../common/api/callbacks-registry': { CallbacksRegistry: FakeCallbacksRegistry },
         './api/context-bridge': { exposeInMainWorld() {} },
         '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
         './api/ipc-renderer': { send() {} },
         '../common/api/native-image': { NativeImage },
-        '../common/api/shell': { Shell: {} }
+        './api/remote': remote,
+        './api/screen': screen,
+        '../common/api/shell': { Shell: {} },
+        './api/web-frame': webFrame
     };
     const modulePath = require.resolve('../electron/lib/renderer/electron');
 
@@ -2250,12 +3056,16 @@ function runElectronRendererModuleExportsSmoke() {
         const electron = require('../electron/lib/renderer/electron');
         assert.strictEqual(electron, electronMock);
         assertRendererExportsExcluded(electron, 'renderer module export');
+        assert.strictEqual(electron.CallbacksRegistry, FakeCallbacksRegistry);
         assert.strictEqual(typeof electron.clipboard, 'object');
         assert.strictEqual(typeof electron.contextBridge.exposeInMainWorld, 'function');
         assert.strictEqual(typeof electron.isPromise, 'function');
         assert.strictEqual(typeof electron.ipcRenderer.send, 'function');
         assert.strictEqual(typeof electron.nativeImage, 'function');
+        assert.strictEqual(electron.remote, remote);
+        assert.strictEqual(electron.screen, screen);
         assert.strictEqual(typeof electron.shell, 'object');
+        assert.strictEqual(electron.webFrame, webFrame);
         console.log('PASS renderer-module-exports-smoke');
     } finally {
         Module._load=originalLoad;
@@ -2268,13 +3078,21 @@ function runRendererExportSurfaceSmoke() {
     const electronShim = {};
     const electronRendererShim = {};
     const NativeImage = function NativeImage() {};
+    function FakeCallbacksRegistry() {}
+    const remote = { getBuiltin() {} };
+    const screen = { getPrimaryDisplay() {} };
+    const webFrame = { insertCSS() {} };
     const moduleMocks = {
         '../common/api/clipboard': {},
+        '../common/api/callbacks-registry': { CallbacksRegistry: FakeCallbacksRegistry },
         './api/context-bridge': { exposeInMainWorld() {} },
         '../common/api/is-promise': { isPromise(value) { return !!value && typeof value.then === 'function'; } },
         './api/ipc-renderer': { send() {} },
         '../common/api/native-image': { NativeImage },
-        '../common/api/shell': { Shell: {} }
+        './api/remote': remote,
+        './api/screen': screen,
+        '../common/api/shell': { Shell: {} },
+        './api/web-frame': webFrame
     };
     const rendererPath = require.resolve('../electron/lib/renderer/electron');
 
@@ -2292,11 +3110,15 @@ function runRendererExportSurfaceSmoke() {
     try {
         const electron = require('../electron/lib/renderer/electron');
         assert.strictEqual(electron, electronShim);
+        assert.strictEqual(electronRendererShim.CallbacksRegistry, FakeCallbacksRegistry);
         assert.strictEqual(electronRendererShim.clipboard, electron.clipboard);
         assert.strictEqual(electronRendererShim.contextBridge, electron.contextBridge);
         assert.strictEqual(electronRendererShim.ipcRenderer, electron.ipcRenderer);
         assert.strictEqual(electronRendererShim.nativeImage, NativeImage);
+        assert.strictEqual(electronRendererShim.remote, remote);
+        assert.strictEqual(electronRendererShim.screen, screen);
         assert.strictEqual(electronRendererShim.shell, electron.shell);
+        assert.strictEqual(electronRendererShim.webFrame, webFrame);
         assert.strictEqual(electron.isPromise(Promise.resolve()), true);
         assert.strictEqual(electron.isPromise({}), false);
         assertRendererExportsExcluded(electron, 'renderer export');
@@ -2348,10 +3170,28 @@ runAppApiSmoke()
         runBrowserViewSmoke();
     })
     .then(function() {
+        return runProtocolSmoke();
+    })
+    .then(function() {
+        return runSystemPreferencesSmoke();
+    })
+    .then(function() {
+        return runContentTracingSmoke();
+    })
+    .then(function() {
+        runCrashReporterSmoke();
+    })
+    .then(function() {
         runNetSmoke();
     })
     .then(function() {
         return runRendererWrapperSmoke();
+    })
+    .then(function() {
+        runRendererWebFrameSmoke();
+    })
+    .then(function() {
+        return runRendererRemoteSmoke();
     })
     .then(function() {
         runUtilityProcessSmoke();

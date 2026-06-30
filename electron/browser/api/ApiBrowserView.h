@@ -34,11 +34,13 @@ public:
     v8::Local<v8::Value> _getWebContentsApi();
     void _setBoundsApi(int x, int y, int w, int h);
     void _setBackgroundColorApi(unsigned int color);
+    void _setAutoResizeApi(bool width, bool height, bool horizontal, bool vertical);
 
     static BrowserView* newBrowserView(const gin_helper::Dictionary* options, v8::Local<v8::Object> wrapper);
 
     void attachBrowserWindow(HWND hWnd);
     void detachBrowserWindow();
+    void resizeForParent(int parentWidth, int parentHeight);
     void handleMouseMsgInUiThread(unsigned int message, int xInParent, int yInParent, unsigned int flags);
 
     // WindowInterface
@@ -91,6 +93,11 @@ public:
     HDC m_memoryDC;
     RECT m_clientRect;
     SIZE m_memoryBmpSize;
+    SIZE m_lastParentSize;
+    bool m_autoResizeWidth;
+    bool m_autoResizeHeight;
+    bool m_autoResizeHorizontal;
+    bool m_autoResizeVertical;
     v8::Persistent<v8::Object> m_liveSelf;
 
     static gin::WrapperInfo kWrapperInfo;

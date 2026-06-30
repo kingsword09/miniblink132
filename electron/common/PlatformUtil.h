@@ -7,6 +7,8 @@
 
 #include "build/build_config.h"
 
+#include <cstdint>
+
 #if defined(OS_WIN)
 #include <windows.h>
 #include <xstring>

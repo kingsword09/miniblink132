@@ -66,5 +66,25 @@ BrowserView.prototype.setBounds = function(bounds) {
     this._setBounds(x, y, w, h);
 };
 
+BrowserView.prototype.setAutoResize = function(options) {
+    if (options == null)
+        options = {};
+    if (typeof options !== 'object')
+        throw new TypeError('options must be an object');
+
+    const normalized = {
+        width: !!options.width,
+        height: !!options.height,
+        horizontal: !!options.horizontal,
+        vertical: !!options.vertical
+    };
+    this._autoResize = { ...normalized };
+    this._setAutoResize(
+        normalized.width,
+        normalized.height,
+        normalized.horizontal,
+        normalized.vertical);
+};
+
 
 module.exports = BrowserView;

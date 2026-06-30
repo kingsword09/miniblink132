@@ -192,6 +192,10 @@ if (constVal.isMac) {
 	json[0].compile.include.push("${srcPath}/third_party/libuv/include");
 	json[0].compile.include.push("${srcPath}/third_party/abseil-cpp");
 	json[0].compile.include.push("${srcPath}/third_party/skia");
+	json[0].compile.include.push("${srcPath}/third_party/icu/source/i18n");
+	json[0].compile.include.push("${srcPath}/third_party/icu/source/common");
+	json[0].compile.include.push("${srcPath}/third_party/openssl/openssl/include");
+	json[0].compile.include.push("${srcPath}/third_party/openssl");
 	json[0].compile.include.push("${srcPath}/base/allocator/partition_allocator/src");
 	json[0].compile.include.push("${srcPath}/gen/base/allocator/partition_allocator/src");
 	applyMacBuildSettings(json, { v8: true });
@@ -254,18 +258,41 @@ if (constVal.isMac) {
 	const macWindowListSrc = "${srcPath}/electron/browser/api/WindowList.cpp";
 	const macCommandLineSrc = "${srcPath}/electron/browser/api/ApiCommandLine.cpp";
 	const macSafeStorageSrc = "${srcPath}/electron/browser/api/ApiSafestorage.cpp";
+	const macSystemPreferencesSrc = "${srcPath}/electron/browser/api/ApiSystemPreferences.mm";
 	const macMessagePortSrc = "${srcPath}/electron/browser/api/ApiMessagePortMain.cpp";
 	const macPostMessageUtilSrc = "${srcPath}/electron/browser/api/PostMessageUtil.cpp";
 	const macBrowserViewSrc = "${srcPath}/electron/browser/api/ApiBrowserView.cpp";
 	const macWebFrameMainSrc = "${srcPath}/electron/browser/api/ApiWebFrameMain.cpp";
 	const macUtilityProcessSrc = "${srcPath}/electron/browser/api/ApiUtilityProcess.cpp";
 	const macParentPortSrc = "${srcPath}/electron/browser/api/ApiParentPort.cpp";
+	const macSessionSupportSrc = [
+		"${srcPath}/electron/browser/api/ApiSession.cpp",
+		"${srcPath}/electron/browser/api/ApiWebRequest.cpp",
+		"${srcPath}/electron/browser/api/ApiDownloadItem.cpp",
+	];
+	const macNodeSupportSrc = [
+		"${srcPath}/electron/common/MacNodeBinding.cpp",
+		"${srcPath}/electron/common/MacNodeSupport.cpp",
+	];
+	const macGinHelperSupportSrc = [
+		"${srcPath}/electron/common/gin_helper/promise.cpp",
+		"${srcPath}/electron/common/gin_helper/callback.cpp",
+		"${srcPath}/electron/common/gin_helper/microtasks_scope.cpp",
+		"${srcPath}/electron/common/gin_helper/locker.cpp",
+		"${srcPath}/electron/common/gin_helper/data_object_builder.cpp",
+		"${srcPath}/electron/common/gin_helper/error_thrower.cpp",
+	];
+	const macPlatformSupportSrc = [
+		"${srcPath}/electron/common/PlatformUtilMac.cpp",
+	];
 	const macIoThreadSrc = "${srcPath}/electron/common/IoThread.cpp";
 	const macUtilityProcessMsgsSrc = "${srcPath}/electron/common/ipc/UtilityProcessMsgs.cpp";
 	const macRendererContextBridgeSrc = "${srcPath}/electron/renderer/api/ApiContextBridge.cpp";
+	const macRendererWebFrameSrc = "${srcPath}/electron/renderer/api/ApiWebFrame.cpp";
 	const macV8UtilValueSrc = "${srcPath}/electron/common/V8Util.cpp";
 	const macFeaturesSrc = "${srcPath}/electron/common/api/ApiFeatures.cpp";
 	const macAsarSrc = "${srcPath}/electron/common/api/ApiAsar.cpp";
+	const macContentTracingSrc = "${srcPath}/electron/common/api/ApiContentTracing.cpp";
 	const macAsarSupportSrc = [
 		"${srcPath}/electron/common/asar/AsarJs.cpp",
 		"${srcPath}/electron/common/asar/AsarUtil.cpp",
@@ -296,15 +323,23 @@ if (constVal.isMac) {
 		macPowerSaveBlockerSrc,
 		macCommandLineSrc,
 		macSafeStorageSrc,
+		macSystemPreferencesSrc,
 		macMessagePortSrc,
 		macPostMessageUtilSrc,
+		"${srcPath}/electron/browser/api/ApiWebContents.cpp",
 		macBrowserViewSrc,
+		"${srcPath}/electron/browser/api/ApiBrowserWindow.cpp",
 		macWebFrameMainSrc,
 		macUtilityProcessSrc,
 		macParentPortSrc,
+		...macSessionSupportSrc,
+		...macNodeSupportSrc,
+		...macGinHelperSupportSrc,
+		...macPlatformSupportSrc,
 		macIoThreadSrc,
 		macUtilityProcessMsgsSrc,
 		macRendererContextBridgeSrc,
+		macRendererWebFrameSrc,
 		macV8UtilValueSrc,
 		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
 		macWindowListSrc,
@@ -312,6 +347,7 @@ if (constVal.isMac) {
 		"${srcPath}/electron/common/IdLiveDetect.cpp",
 		"${srcPath}/electron/common/OptionsSwitches.cpp",
 		macFeaturesSrc,
+		macContentTracingSrc,
 		"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
 		"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
 		"${srcPath}/electron/common/api/ApiScreen.cpp",
@@ -346,15 +382,23 @@ if (constVal.isMac) {
 	json[0].compile.src.push(macSystemTraySrc);
 	json[0].compile.src.push(macCommandLineSrc);
 	json[0].compile.src.push(macSafeStorageSrc);
+	json[0].compile.src.push(macSystemPreferencesSrc);
 	json[0].compile.src.push(macMessagePortSrc);
 	json[0].compile.src.push(macPostMessageUtilSrc);
+	json[0].compile.src.push("${srcPath}/electron/browser/api/ApiWebContents.cpp");
 	json[0].compile.src.push(macBrowserViewSrc);
+	json[0].compile.src.push("${srcPath}/electron/browser/api/ApiBrowserWindow.cpp");
 	json[0].compile.src.push(macWebFrameMainSrc);
 	json[0].compile.src.push(macUtilityProcessSrc);
 	json[0].compile.src.push(macParentPortSrc);
+	json[0].compile.src.push(...macSessionSupportSrc);
+	json[0].compile.src.push(...macNodeSupportSrc);
+	json[0].compile.src.push(...macGinHelperSupportSrc);
+	json[0].compile.src.push(...macPlatformSupportSrc);
 	json[0].compile.src.push(macIoThreadSrc);
 	json[0].compile.src.push(macUtilityProcessMsgsSrc);
 	json[0].compile.src.push(macRendererContextBridgeSrc);
+	json[0].compile.src.push(macRendererWebFrameSrc);
 	json[0].compile.src.push(macV8UtilValueSrc);
 	json[0].compile.src.push(macFeaturesSrc);
 	json[0].compile.src.push(macNativeImageSrc);
@@ -364,6 +408,7 @@ if (constVal.isMac) {
 	json[0].compile.src.push(macPowerSaveBlockerSrc);
 	json[0].compile.src.push(macWindowListSrc);
 	json[0].compile.src.push(macAsarSrc);
+	json[0].compile.src.push(macContentTracingSrc);
 	json[0].compile.src.push(...macElectronSupportSrc);
 	json[0].compile.src.push(...macAsarSupportSrc);
 	json[0].compile.src.push(...macPowerMonitorIdleSrc);
@@ -377,12 +422,19 @@ if (constVal.isMac) {
 	json[0].compile.prebuildSrc.push(macSystemTraySrc);
 	json[0].compile.prebuildSrc.push(macCommandLineSrc);
 	json[0].compile.prebuildSrc.push(macSafeStorageSrc);
+	json[0].compile.prebuildSrc.push(macSystemPreferencesSrc);
 	json[0].compile.prebuildSrc.push(macMessagePortSrc);
 	json[0].compile.prebuildSrc.push(macPostMessageUtilSrc);
+	json[0].compile.prebuildSrc.push("${srcPath}/electron/browser/api/ApiWebContents.cpp");
 	json[0].compile.prebuildSrc.push(macBrowserViewSrc);
+	json[0].compile.prebuildSrc.push("${srcPath}/electron/browser/api/ApiBrowserWindow.cpp");
 	json[0].compile.prebuildSrc.push(macWebFrameMainSrc);
 	json[0].compile.prebuildSrc.push(macUtilityProcessSrc);
 	json[0].compile.prebuildSrc.push(macParentPortSrc);
+	json[0].compile.prebuildSrc.push(...macSessionSupportSrc);
+	json[0].compile.prebuildSrc.push(...macNodeSupportSrc);
+	json[0].compile.prebuildSrc.push(...macGinHelperSupportSrc);
+	json[0].compile.prebuildSrc.push(...macPlatformSupportSrc);
 	json[0].compile.prebuildSrc.push(macIoThreadSrc);
 	json[0].compile.prebuildSrc.push(macUtilityProcessMsgsSrc);
 	json[0].compile.prebuildSrc.push(macRendererContextBridgeSrc);
@@ -395,6 +447,7 @@ if (constVal.isMac) {
 	json[0].compile.prebuildSrc.push(macPowerSaveBlockerSrc);
 	json[0].compile.prebuildSrc.push(macWindowListSrc);
 	json[0].compile.prebuildSrc.push(macAsarSrc);
+	json[0].compile.prebuildSrc.push(macContentTracingSrc);
 	json[0].compile.prebuildSrc.push(...macElectronSupportSrc);
 	json[0].compile.prebuildSrc.push(...macAsarSupportSrc);
 	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);

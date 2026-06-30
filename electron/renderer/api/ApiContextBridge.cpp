@@ -15,7 +15,8 @@
 #include "electron/common/gin_helper/arguments.h"
 #include "electron/common/gin_helper/dictionary.h"
 #include "electron/common/gin_helper/promise.h"
-#include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
+#include "third_party/blink/public/common/messaging/cloneable_message.h"
+#include "third_party/blink/public/web/web_local_frame.h"
 #include <windows.h>
 #include <map>
 #include <memory>

@@ -36,6 +36,7 @@ extern "C" void _register_electron_browser_tray(void);
 extern "C" void _register_electron_browser_protocol(void);
 extern "C" void _register_electron_browser_commandline(void);
 extern "C" void _register_electron_browser_safe_storage(void);
+extern "C" void _register_electron_browser_system_preferences(void);
 extern "C" void _register_electron_browser_powermonitor(void);
 extern "C" void _register_electron_browser_power_save_blocker(void);
 extern "C" void _register_electron_browser_web_contents(void);
@@ -50,6 +51,7 @@ extern "C" void _register_electron_browser_utility_process(void);
 extern "C" void _register_electron_browser_parent_port(void);
 extern "C" void _register_electron_renderer_ipc(void);
 extern "C" void _register_electron_renderer_contextbridge(void);
+extern "C" void _register_electron_renderer_webframe(void);
 extern "C" void _register_electron_common_nativeImage(void);
 extern "C" void _register_electron_common_clipboard(void);
 extern "C" void _register_electron_common_screen(void);
@@ -59,6 +61,7 @@ extern "C" void _register_electron_common_v8_util(void);
 extern "C" void _register_electron_common_original_fs(void);
 extern "C" void _register_electron_common_intl_collator(void);
 extern "C" void _register_electron_common_asar(void);
+extern "C" void _register_electron_common_content_tracing(void);
 
 extern "C" void electronMacNodeBridgeRegisterModule(void* module)
 {
@@ -135,6 +138,7 @@ extern "C" void nodeModuleInitRegister(void)
     _register_electron_browser_protocol();
     _register_electron_browser_commandline();
     _register_electron_browser_safe_storage();
+    _register_electron_browser_system_preferences();
     _register_electron_browser_powermonitor();
     _register_electron_browser_power_save_blocker();
     _register_electron_browser_session();
@@ -149,6 +153,7 @@ extern "C" void nodeModuleInitRegister(void)
     _register_electron_browser_browserwindow();
     _register_electron_renderer_ipc();
     _register_electron_renderer_contextbridge();
+    _register_electron_renderer_webframe();
     _register_electron_common_nativeImage();
     _register_electron_common_clipboard();
     _register_electron_common_screen();
@@ -158,6 +163,7 @@ extern "C" void nodeModuleInitRegister(void)
     _register_electron_common_original_fs();
     _register_electron_common_intl_collator();
     _register_electron_common_asar();
+    _register_electron_common_content_tracing();
 }
 
 bool g_isElectronMode = false;
@@ -178,10 +184,6 @@ bool g_disable_has_run_bootstrapping_code_error = false;
 
 } // namespace node
 
-namespace blink {
-struct CloneableMessage;
-} // namespace blink
-
 namespace atom {
 
 void bindMbConsoleLog(v8::Local<v8::Context>)
@@ -189,14 +191,6 @@ void bindMbConsoleLog(v8::Local<v8::Context>)
 }
 
 void patchProcessObject(v8::Local<v8::Object>)
-{
-}
-
-void PreEvaluateModule()
-{
-}
-
-void PostEvaluateModule()
 {
 }
 
@@ -209,44 +203,4 @@ bool checkMiniElectronAsarResStat(const std::string&, int* rc, std::string* resu
     return false;
 }
 
-#ifndef MINIBLINK_ELECTRON_USE_REAL_MESSAGE_PORT
-bool serializeV8Value(v8::Isolate*, v8::Local<v8::Value>, blink::CloneableMessage*)
-{
-    return false;
-}
-
-v8::Local<v8::Value> deserializeV8Value(v8::Isolate* isolate, const blink::CloneableMessage&)
-{
-    return v8::Null(isolate);
-}
-#endif
-
 } // namespace atom
-
-extern "C" char* nodeBufferGetData(void* buf, size_t* len)
-{
-    if (len)
-        *len = 0;
-    if (!buf)
-        return nullptr;
-
-    v8::Local<v8::Value>* value = static_cast<v8::Local<v8::Value>*>(buf);
-    if (value->IsEmpty())
-        return nullptr;
-
-    if ((*value)->IsArrayBufferView()) {
-        v8::Local<v8::ArrayBufferView> view = value->As<v8::ArrayBufferView>();
-        if (len)
-            *len = view->ByteLength();
-        return static_cast<char*>(view->Buffer()->Data()) + view->ByteOffset();
-    }
-
-    if ((*value)->IsArrayBuffer()) {
-        v8::Local<v8::ArrayBuffer> buffer = value->As<v8::ArrayBuffer>();
-        if (len)
-            *len = buffer->ByteLength();
-        return static_cast<char*>(buffer->Data());
-    }
-
-    return nullptr;
-}

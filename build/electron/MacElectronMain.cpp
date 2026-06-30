@@ -23,6 +23,7 @@
 extern bool g_isElectronMode;
 
 extern "C" void nodeModuleInitRegister(void);
+extern "C" void _register_electron_common_content_tracing(void);
 extern "C" bool electronMacNodeBridgeHasLinkedModule(const char* name);
 extern "C" bool electronMacNodeBridgeGetLinkedModuleRegistration(const char* name, node::addon_context_register_func* registerFunc, void** priv);
 extern "C" bool electronMacNodeBridgeGetLinkedBinding(const char* name, v8::Local<v8::Context> context, v8::Local<v8::Value>* out);
@@ -189,6 +190,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> protocol;
         v8::Local<v8::Object> commandLine;
         v8::Local<v8::Object> safeStorage;
+        v8::Local<v8::Object> systemPreferences;
         v8::Local<v8::Object> session;
         v8::Local<v8::Object> webRequest;
         v8::Local<v8::Object> downloadItem;
@@ -200,10 +202,12 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> browserWindow;
         v8::Local<v8::Object> rendererIpc;
         v8::Local<v8::Object> rendererContextBridge;
+        v8::Local<v8::Object> rendererWebFrame;
         v8::Local<v8::Object> features;
         v8::Local<v8::Object> v8Util;
         v8::Local<v8::Object> intlCollator;
         v8::Local<v8::Object> asar;
+        v8::Local<v8::Object> contentTracing;
 
         ok = requireBinding(context, "electron_browser_native_theme", &nativeTheme)
             && requireFunctionProperty(context, nativeTheme, "electron_browser_native_theme", "shouldUseDarkColors")
@@ -241,6 +245,11 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireBinding(context, "electron_browser_safe_storage", &safeStorage)
             && requireFunctionProperty(context, safeStorage, "electron_browser_safe_storage", "encryptString")
             && requireFunctionProperty(context, safeStorage, "electron_browser_safe_storage", "decryptString")
+            && requireBinding(context, "electron_browser_system_preferences", &systemPreferences)
+            && requireFunctionProperty(context, systemPreferences, "electron_browser_system_preferences", "getAccentColor")
+            && requireFunctionProperty(context, systemPreferences, "electron_browser_system_preferences", "getColor")
+            && requireFunctionProperty(context, systemPreferences, "electron_browser_system_preferences", "getMediaAccessStatus")
+            && requireFunctionProperty(context, systemPreferences, "electron_browser_system_preferences", "askForMediaAccess")
             && requireBinding(context, "electron_browser_session", &session)
             && requireFunctionProperty(context, session, "electron_browser_session", "Session")
             && requireBinding(context, "electron_browser_webrequest", &webRequest)
@@ -265,6 +274,8 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireFunctionProperty(context, rendererIpc, "electron_renderer_ipc", "ipcRenderer")
             && requireBinding(context, "electron_renderer_contextbridge", &rendererContextBridge)
             && requireFunctionProperty(context, rendererContextBridge, "electron_renderer_contextbridge", "exposeInMainWorld")
+            && requireBinding(context, "electron_renderer_webframe", &rendererWebFrame)
+            && requireFunctionProperty(context, rendererWebFrame, "electron_renderer_webframe", "WebFrame")
             && requireBinding(context, "electron_common_features", &features)
             && requireFunctionProperty(context, features, "electron_common_features", "isViewApiEnabled")
             && requireBinding(context, "electron_common_v8_util", &v8Util)
@@ -274,7 +285,12 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireFunctionProperty(context, intlCollator, "electron_common_intl_collator", "IntlCollator")
             && requireBinding(context, "electron_common_asar", &asar)
             && requireFunctionProperty(context, asar, "electron_common_asar", "Archive")
-            && requireFunctionProperty(context, asar, "electron_common_asar", "initAsarSupport");
+            && requireFunctionProperty(context, asar, "electron_common_asar", "initAsarSupport")
+            && requireBinding(context, "electron_common_content_tracing", &contentTracing)
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "startRecording")
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "stopRecording")
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "getTraceBufferUsage")
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "recordInstantEvent");
 
         if (ok) {
             const char scriptSource[] =
@@ -292,6 +308,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const protocol = process._linkedBinding('electron_browser_protocol');"
                 "const commandLine = process._linkedBinding('electron_browser_commandline');"
                 "const safeStorage = process._linkedBinding('electron_browser_safe_storage');"
+                "const systemPreferences = process._linkedBinding('electron_browser_system_preferences');"
                 "const session = process._linkedBinding('electron_browser_session');"
                 "const webRequest = process._linkedBinding('electron_browser_webrequest');"
                 "const downloadItem = process._linkedBinding('electron_browser_downloaditem');"
@@ -303,10 +320,12 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const browserWindow = process._linkedBinding('electron_browser_browserwindow');"
                 "const rendererIpc = process._linkedBinding('electron_renderer_ipc');"
                 "const rendererContextBridge = process._linkedBinding('electron_renderer_contextbridge');"
+                "const rendererWebFrame = process._linkedBinding('electron_renderer_webframe');"
                 "const features = process._linkedBinding('electron_common_features');"
                 "const v8Util = process._linkedBinding('electron_common_v8_util');"
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
                 "const asar = process._linkedBinding('electron_common_asar');"
+                "const contentTracing = process._linkedBinding('electron_common_content_tracing');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof app.App !== 'function') throw new Error('app');"
                 "if (typeof psb.setExecutionState !== 'function') throw new Error('powerSaveBlocker');"
@@ -321,6 +340,10 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof protocol.Protocol !== 'function') throw new Error('protocol');"
                 "if (typeof commandLine.ApiCommandLine !== 'function') throw new Error('commandLine');"
                 "if (typeof safeStorage.encryptString !== 'function') throw new Error('safeStorage');"
+                "if (typeof systemPreferences.getAccentColor !== 'function') throw new Error('systemPreferences accent');"
+                "if (typeof systemPreferences.getColor !== 'function') throw new Error('systemPreferences color');"
+                "if (typeof systemPreferences.getMediaAccessStatus !== 'function') throw new Error('systemPreferences media status');"
+                "if (typeof systemPreferences.askForMediaAccess !== 'function') throw new Error('systemPreferences media ask');"
                 "if (typeof session.Session !== 'function') throw new Error('session');"
                 "if (typeof webRequest.WebRequest !== 'function') throw new Error('webRequest');"
                 "if (typeof downloadItem.DownloadItem !== 'function') throw new Error('downloadItem');"
@@ -334,12 +357,28 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof browserWindow.BrowserWindow !== 'function') throw new Error('BrowserWindow');"
                 "if (typeof rendererIpc.ipcRenderer !== 'function') throw new Error('ipcRenderer');"
                 "if (typeof rendererContextBridge.exposeInMainWorld !== 'function') throw new Error('contextBridge');"
+                "if (typeof rendererWebFrame.WebFrame !== 'function') throw new Error('webFrame');"
+                "if (typeof rendererWebFrame.WebFrame.prototype.insertCSS !== 'function') throw new Error('webFrame insertCSS');"
+                "if (typeof rendererWebFrame.WebFrame.prototype.executeJavaScript !== 'function') throw new Error('webFrame executeJavaScript');"
+                "if (typeof rendererWebFrame.WebFrame.prototype.setSpellCheckProvider !== 'function') throw new Error('webFrame spellcheck');"
+                "if (typeof rendererWebFrame.WebFrame.prototype.insertText !== 'function') throw new Error('webFrame insertText');"
                 "if (typeof features.isViewApiEnabled !== 'function') throw new Error('features');"
                 "if (typeof v8Util.getHiddenValue !== 'function') throw new Error('v8Util');"
                 "if (typeof v8Util.takeHeapSnapshot !== 'function') throw new Error('v8Util takeHeapSnapshot');"
                 "if (typeof intlCollator.IntlCollator !== 'function') throw new Error('intlCollator');"
                 "if (typeof asar.Archive !== 'function') throw new Error('asar Archive');"
                 "if (typeof asar.initAsarSupport !== 'function') throw new Error('asar initAsarSupport');"
+                "if (typeof contentTracing.startRecording !== 'function') throw new Error('contentTracing start');"
+                "if (typeof contentTracing.stopRecording !== 'function') throw new Error('contentTracing stop');"
+                "if (typeof contentTracing.getTraceBufferUsage !== 'function') throw new Error('contentTracing buffer');"
+                "if (typeof contentTracing.recordInstantEvent !== 'function') throw new Error('contentTracing instant');"
+                "contentTracing.startRecording('electron,miniblink', 'record-continuously');"
+                "contentTracing.recordInstantEvent('runtime-smoke-native-trace');"
+                "const nativeTraceUsage = contentTracing.getTraceBufferUsage();"
+                "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 1) throw new Error('contentTracing usage');"
+                "const nativeTrace = JSON.parse(contentTracing.stopRecording());"
+                "if (!Array.isArray(nativeTrace.traceEvents)) throw new Error('contentTracing traceEvents');"
+                "if (!nativeTrace.traceEvents.some((event) => event.name === 'runtime-smoke-native-trace')) throw new Error('contentTracing native event');"
                 "true;";
             ok = runV8Script(context, scriptSource);
         }
@@ -837,7 +876,8 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
             && addNodeLinkedBinding(setup->env(), "electron_common_v8_util")
             && addNodeLinkedBinding(setup->env(), "electron_common_original_fs")
             && addNodeLinkedBinding(setup->env(), "electron_common_intl_collator")
-            && addNodeLinkedBinding(setup->env(), "electron_common_asar");
+            && addNodeLinkedBinding(setup->env(), "electron_common_asar")
+            && addNodeLinkedBinding(setup->env(), "electron_common_content_tracing");
 
         if (ok) {
             const char scriptSource[] =
@@ -867,6 +907,7 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "const originalFs = process._linkedBinding('electron_common_original_fs');"
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
                 "const asar = process._linkedBinding('electron_common_asar');"
+                "const contentTracing = process._linkedBinding('electron_common_content_tracing');"
                 "if (typeof appBinding.App !== 'function') throw new Error('app');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof powerMonitor.ApiPowerMonitor !== 'function') throw new Error('powerMonitor');"
@@ -894,6 +935,17 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "if (typeof intlCollator.IntlCollator !== 'function') throw new Error('intlCollator');"
                 "if (typeof asar.Archive !== 'function') throw new Error('asar Archive');"
                 "if (typeof asar.initAsarSupport !== 'function') throw new Error('asar initAsarSupport');"
+                "if (typeof contentTracing.startRecording !== 'function') throw new Error('contentTracing start');"
+                "if (typeof contentTracing.stopRecording !== 'function') throw new Error('contentTracing stop');"
+                "if (typeof contentTracing.getTraceBufferUsage !== 'function') throw new Error('contentTracing buffer');"
+                "if (typeof contentTracing.recordInstantEvent !== 'function') throw new Error('contentTracing instant');"
+                "contentTracing.startRecording('electron,miniblink', 'record-continuously');"
+                "contentTracing.recordInstantEvent('node-bootstrap-native-trace');"
+                "const nativeTraceUsage = contentTracing.getTraceBufferUsage();"
+                "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 1) throw new Error('contentTracing usage');"
+                "const nativeTrace = JSON.parse(contentTracing.stopRecording());"
+                "if (!Array.isArray(nativeTrace.traceEvents)) throw new Error('contentTracing traceEvents');"
+                "if (!nativeTrace.traceEvents.some((event) => event.name === 'node-bootstrap-native-trace')) throw new Error('contentTracing native event');"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
@@ -1249,7 +1301,7 @@ bool runMenuApiSmoke(int argc, char** argv)
                 "if (typeof Menu !== 'function') throw new Error('Menu export');"
                 "if (typeof MenuItem !== 'function') throw new Error('MenuItem export');"
                 "if (typeof Menu.sendActionToFirstResponder !== 'function') throw new Error('sendActionToFirstResponder');"
-                "if (Menu.sendActionToFirstResponder('noop:') !== false) throw new Error('selector result');"
+                "if (Menu.sendActionToFirstResponder('miniblinkMissingSelector:') !== false) throw new Error('selector result');"
                 "const closeItem = new MenuItem({ role: 'close' });"
                 "if (closeItem.label !== 'Close Window') throw new Error('close label ' + closeItem.label);"
                 "if (closeItem.getDefaultRoleAccelerator() !== 'CommandOrControl+W') throw new Error('close accelerator');"
@@ -2017,15 +2069,25 @@ bool runProtocolApiSmoke(int argc, char** argv)
         if (ok) {
             const char scriptSource[] =
                 "const { createRequire } = require('module');"
+                "process._rawDebug('protocol smoke stage: createRequire');"
                 "const localRequire = createRequire(process.cwd() + '/mac/electron_api_smoke.js');"
                 "globalThis.__electronProtocolSkipBlinkRegistrationForTesting = true;"
+                "process._rawDebug('protocol smoke stage: before require protocol');"
                 "const protocolModule = localRequire('../electron/lib/browser/api/protocol');"
+                "process._rawDebug('protocol smoke stage: after require protocol');"
                 "const protocol = protocolModule.protocol;"
+                "const { Readable } = localRequire('stream');"
                 "if (!protocol || typeof protocol.registerStringProtocol !== 'function') throw new Error('protocol export');"
+                "if (typeof protocol.registerFileProtocol !== 'function') throw new Error('file export');"
                 "if (typeof protocol.registerBufferProtocol !== 'function') throw new Error('buffer export');"
+                "if (typeof protocol.registerHttpProtocol !== 'function') throw new Error('http export');"
                 "if (typeof protocol.interceptStringProtocol !== 'function') throw new Error('intercept export');"
                 "if (typeof protocol.unregisterProtocol !== 'function') throw new Error('unregister export');"
-                "globalThis.__protocolSmoke = { protocol, events: [] };"
+                "if (typeof protocol.registerStandardSchemes !== 'function') throw new Error('standard scheme export');"
+                "if (typeof protocol.registerSchemesAsPrivileged !== 'function') throw new Error('privileged scheme export');"
+                "if (typeof protocol.registerStreamProtocol !== 'function') throw new Error('stream register export');"
+                "if (typeof protocol.interceptStreamProtocol !== 'function') throw new Error('stream intercept export');"
+                "globalThis.__protocolSmoke = { protocol, Readable, events: [] };"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
@@ -2038,12 +2100,23 @@ bool runProtocolApiSmoke(int argc, char** argv)
 
         if (ok) {
             const char verifyScript[] =
-                "const { protocol, events } = globalThis.__protocolSmoke;"
+                "const { protocol, Readable, events } = globalThis.__protocolSmoke;"
                 "function isHandled(scheme) {"
                 "  let result = null;"
                 "  protocol.isProtocolHandled(scheme, value => { result = value; });"
                 "  return result;"
                 "}"
+                "process._rawDebug('protocol smoke stage: before standard');"
+                "protocol.registerStandardSchemes(['mbstandard']);"
+                "process._rawDebug('protocol smoke stage: before privileged');"
+                "protocol.registerSchemesAsPrivileged([{ scheme: 'mbprivileged', privileges: { secure: true, standard: true, bypassCSP: true } }]);"
+                "process._rawDebug('protocol smoke stage: before file');"
+                "protocol.registerFileProtocol('mbfile', function(request, callback) {"
+                "  callback({ path: '/tmp/miniblink-protocol-smoke' });"
+                "}, function(error) { if (error) throw error; });"
+                "if (isHandled('mbfile') !== true) throw new Error('mbfile not handled');"
+                "protocol.unregisterProtocol('mbfile', function(error) { if (error) throw error; });"
+                "if (isHandled('mbfile') !== false) throw new Error('mbfile still handled');"
                 "protocol.registerStringProtocol('mbstring', function(request, callback) {"
                 "  events.push('string:' + request.url);"
                 "  callback({ data: 'ok', mimeType: 'text/plain' });"
@@ -2062,6 +2135,24 @@ bool runProtocolApiSmoke(int argc, char** argv)
                 "if (isHandled('mbbuffer') !== true) throw new Error('mbbuffer not handled');"
                 "protocol.unregisterProtocol('mbbuffer');"
                 "if (isHandled('mbbuffer') !== false) throw new Error('mbbuffer still handled');"
+                "protocol.registerHttpProtocol('mbhttp', function(request, callback) {"
+                "  callback({ url: 'https://example.invalid/' });"
+                "}, function(error) { if (error) throw error; });"
+                "if (isHandled('mbhttp') !== true) throw new Error('mbhttp not handled');"
+                "protocol.unregisterProtocol('mbhttp');"
+                "if (isHandled('mbhttp') !== false) throw new Error('mbhttp still handled');"
+                "protocol.registerStreamProtocol('mbstream', function(request, callback) {"
+                "  callback({ data: Readable.from(['stream-ok']), mimeType: 'text/plain' });"
+                "}, function(error) { if (error) throw error; });"
+                "if (isHandled('mbstream') !== true) throw new Error('mbstream not handled');"
+                "protocol.unregisterProtocol('mbstream');"
+                "if (isHandled('mbstream') !== false) throw new Error('mbstream still handled');"
+                "protocol.interceptStreamProtocol('mbstream2', function(request, callback) {"
+                "  callback(Readable.from([Buffer.from('intercept-ok')]));"
+                "}, function(error) { if (error) throw error; });"
+                "if (isHandled('mbstream2') !== true) throw new Error('stream intercept not handled');"
+                "protocol.uninterceptProtocol('mbstream2');"
+                "if (isHandled('mbstream2') !== false) throw new Error('stream intercept still handled');"
                 "protocol.interceptStringProtocol('mbintercept', function(request, callback) {"
                 "  callback({ data: 'intercept-ok', mimeType: 'text/plain' });"
                 "}, function(error) { if (error) throw error; });"
@@ -2743,9 +2834,10 @@ int main(int argc, char** argv)
 {
     g_isElectronMode = true;
     if (!base::CommandLine::InitializedForCurrentProcess())
-        base::CommandLine::Init(argc, argv);
+    base::CommandLine::Init(argc, argv);
     atom::AtomCommandLine::init(argc, const_cast<const char* const*>(argv));
     nodeModuleInitRegister();
+    _register_electron_common_content_tracing();
 
     if (hasArg(argc, argv, "--electron-app-single-instance-child")) {
         base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);

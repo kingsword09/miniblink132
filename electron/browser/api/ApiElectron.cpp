@@ -25,14 +25,9 @@ public:
         //
         //         prototype->SetClassName(v8::String::NewFromUtf8(isolate, "electron"));
         //         gin_helper::ObjectTemplateBuilder builder(isolate, prototype->InstanceTemplate());
-        //         builder.SetMethod("quit", &Electron::nullFunction);
         //
         //         constructor.Reset(isolate, prototype->GetFunction());
         //         target->Set(v8::String::NewFromUtf8(isolate, "Electron"), prototype->GetFunction());
-    }
-
-    void nullFunction()
-    {
     }
 
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -115,8 +115,8 @@ WebContents.prototype.getZoomLevel = function () {
     return this._getZoomLevel();
 }
 
-WebContents.prototype.getZoomLevel = function (z) {
-    return this._getZoomLevel(z);
+WebContents.prototype.setZoomLevel = function (z) {
+    return this._setZoomLevel(z);
 }
 
 WebContents.prototype.loadFile = function (filePath) {
@@ -217,9 +217,15 @@ WebContents.prototype.executeJavaScript = function (code, hasUserGesture, callba
 }
 
 WebContents.prototype.setVisualZoomLevelLimits = function (minimumLevel, maximumLevel) {
+    const level = this.getZoomLevel();
+    if (level < minimumLevel)
+        this.setZoomLevel(minimumLevel);
+    else if (level > maximumLevel)
+        this.setZoomLevel(maximumLevel);
 }
 
 WebContents.prototype.setLayoutZoomLevelLimits = function (minimumLevel, maximumLevel) {
+    return this.setVisualZoomLevelLimits(minimumLevel, maximumLevel);
 }
 
 module.exports = WebContents;

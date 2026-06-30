@@ -1368,12 +1368,14 @@ if (constVal.isMac) {
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_cookie.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_dcheck_helper.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_freelist_entry.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_apple.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc_with_advanced_checks.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_dispatch_to_noop_on_free.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/stack/asm/arm64/push_registers_asm.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/apple/foundation_util.mm",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/apple/mach_logging.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/stack_trace_mac.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/stack_trace_posix.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/files/file_util_posix.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/mac/mac_util.mm",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/memory/page_size_posix.cc",
@@ -1382,8 +1384,10 @@ if (constVal.isMac) {
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/threading/platform_thread_posix.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time_apple.mm",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/internal_allocator.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/log_message.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/cstring_builder.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/safe_sprintf_allocator.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/string_util_allocator.cc",
         "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/stack/stack.cc",
     ];
     const macChromiumAddSrc = [
@@ -1482,6 +1486,7 @@ if (constVal.isMac) {
         "${srcPath}/base/system/sys_info_linux.cc",
         "${srcPath}/base/threading/platform_thread_linux.cc",
         "${srcPath}/base/time/time_now_posix.cc",
+        "${srcPath}/ui/gfx/font_fallback_linux.cc",
         "${srcPath}/base/debug/elf_reader.cc",
         "${srcPath}/base/files/scoped_file_linux.cc",
         "${srcPath}/base/posix/can_lower_nice_to.cc",
@@ -1523,6 +1528,7 @@ if (constVal.isMac) {
                 return partitionAllocPathMap.get(path);
             return path;
         });
+    json[0].compile.src.push("${srcPath}/components/viz/common/resources/shared_image_format_utils.cc");
     for (const srcPath of macPartitionAllocAddSrc) {
         if (json[0].compile.src.indexOf(srcPath) < 0)
             json[0].compile.src.push(srcPath);

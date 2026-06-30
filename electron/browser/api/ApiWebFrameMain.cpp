@@ -61,7 +61,7 @@ ApiWebFrameMain* ApiWebFrameMain::createOrGet(intptr_t frameId)
         return create(webFrameMain->m_frameId);
 
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    v8::Local<v8::Value> arg0 = gin_helper::Converter<intptr_t>::ToV8(isolate, frameId);
+    v8::Local<v8::Value> arg0 = gin_helper::ConvertToV8(isolate, static_cast<int64_t>(frameId));
     //gin_helper::Dictionary options(isolate, arg0);
     const int argc = 1;
     v8::Local<v8::Value> argv[argc] = { arg0 }; // { gin_helper::ConvertToV8(isolate, options) };
@@ -79,7 +79,7 @@ ApiWebFrameMain* ApiWebFrameMain::createOrGet(intptr_t frameId)
 ApiWebFrameMain* ApiWebFrameMain::create(intptr_t frameId)
 {
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    v8::Local<v8::Value> arg0 = gin_helper::Converter<intptr_t>::ToV8(isolate, frameId);
+    v8::Local<v8::Value> arg0 = gin_helper::ConvertToV8(isolate, static_cast<int64_t>(frameId));
     //gin_helper::Dictionary options(isolate, arg0);
     const int argc = 1;
     v8::Local<v8::Value> argv[argc] = { arg0 }; // { gin_helper::ConvertToV8(isolate, options) };
@@ -102,8 +102,8 @@ void ApiWebFrameMain::newFunction(const v8::FunctionCallbackInfo<v8::Value>& inf
     if (info.Length() != 1)
         return;
 
-    intptr_t frameId = 0;
-    gin_helper::Converter<intptr_t>::FromV8(isolate, info[0], &frameId);
+    int64_t frameId = 0;
+    gin_helper::Converter<int64_t>::FromV8(isolate, info[0], &frameId);
 
     new ApiWebFrameMain(isolate, info.This(), frameId); // v8管理内存回收
     info.GetReturnValue().Set(info.This());
@@ -257,9 +257,9 @@ void ApiWebFrameMain::_postMessageApi(const v8::FunctionCallbackInfo<v8::Value>&
     webContents->postMojoMessageToRendererFrame(m_frameId, channel, std::move(mojoMessage));
 }
 
-intptr_t ApiWebFrameMain::getFrameTreeNodeIdApi() const
+int64_t ApiWebFrameMain::getFrameTreeNodeIdApi() const
 {
-    return m_frameId;
+    return static_cast<int64_t>(m_frameId);
 }
 
 std::string ApiWebFrameMain::getNameApi() const
@@ -267,14 +267,14 @@ std::string ApiWebFrameMain::getNameApi() const
     return content::WebFrameMain::getName(m_frameId);
 }
 
-intptr_t ApiWebFrameMain::getOSProcessIdApi() const
+int64_t ApiWebFrameMain::getOSProcessIdApi() const
 {
-    return base::GetCurrentProcId();
+    return static_cast<int64_t>(base::GetCurrentProcId());
 }
 
-intptr_t ApiWebFrameMain::getRoutingIdApi() const
+int64_t ApiWebFrameMain::getRoutingIdApi() const
 {
-    return base::GetCurrentProcId();
+    return static_cast<int64_t>(base::GetCurrentProcId());
 }
 
 std::string ApiWebFrameMain::getUrlApi() const
@@ -301,13 +301,13 @@ std::string ApiWebFrameMain::getPageVisibilityStateApi() const
 v8::Local<v8::Value> ApiWebFrameMain::getTopApi() const
 {
     intptr_t ret = content::WebFrameMain::getTopFrameId(m_frameId);
-    return gin_helper::ConvertToV8(v8::Isolate::GetCurrent(), ret);
+    return gin_helper::ConvertToV8(v8::Isolate::GetCurrent(), static_cast<int64_t>(ret));
 }
 
 v8::Local<v8::Value> ApiWebFrameMain::getParentApi() const
 {
     intptr_t ret = content::WebFrameMain::getParentFrameId(m_frameId);
-    return gin_helper::ConvertToV8(v8::Isolate::GetCurrent(), ret);
+    return gin_helper::ConvertToV8(v8::Isolate::GetCurrent(), static_cast<int64_t>(ret));
 }
 
 v8::Local<v8::Value> ApiWebFrameMain::getFramesApi() const

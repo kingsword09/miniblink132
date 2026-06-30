@@ -2,6 +2,7 @@
 process._linkedBinding('electron_browser_web_contents');
 
 const EventEmitter = require('events').EventEmitter;
+const TouchBar = require('./touch-bar');
 const BrowserWindow = process._linkedBinding('electron_browser_browserwindow').BrowserWindow;
 Object.setPrototypeOf(BrowserWindow.prototype, EventEmitter.prototype);
 
@@ -18,8 +19,26 @@ Object.defineProperty(BrowserWindow.prototype, "webContents", {
 });
 
 BrowserWindow.prototype.setTouchBar = function(touchBar) {
-    this._touchBar = touchBar || null;
+    if (touchBar == null) {
+        this._touchBar = null;
+        if (typeof this._setTouchBar === 'function')
+            this._setTouchBar(null);
+        return undefined;
+    }
+
+    if (!(touchBar instanceof TouchBar))
+        touchBar = new TouchBar(touchBar);
+
+    this._touchBar = touchBar;
+    if (typeof this._setTouchBar === 'function')
+        this._setTouchBar(touchBar._serialize());
     return undefined;
+}
+
+BrowserWindow.prototype._dispatchTouchBarAction = function(action) {
+    if (!this._touchBar || typeof this._touchBar._handleActionFromNative !== 'function')
+        return false;
+    return this._touchBar._handleActionFromNative(action);
 }
 
 BrowserWindow.prototype.setTitle = function(str) {

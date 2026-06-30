@@ -2130,6 +2130,7 @@ extern "C" BOOL MacGdiDrawBitmapToContext(HDC hdc, const unsigned char* bitmap, 
 
 extern "C" HDC GetDC(HWND hWnd) { return nullptr; }
 extern "C" HDC GetDCEx(HWND hWnd, HRGN hrgnClip, DWORD flags) { return nullptr; }
+extern "C" HDC GetWindowDC(HWND hWnd) { return GetDC(hWnd); }
 extern "C" int ReleaseDC(HWND hWnd, HDC hDC) { return 1; }
 
 enum MacGdiObjectKind {
@@ -2468,8 +2469,10 @@ extern "C" BOOL TextOutW(HDC hdc, int x, int y, LPCWSTR lpString, int c) { retur
 extern "C" BOOL SetRectRgn(HRGN hrgn, int left, int top, int right, int bottom) { return TRUE; }
 extern "C" int CombineRgn(HRGN hrgnDst, HRGN hrgnSrc1, HRGN hrgnSrc2, int iMode) { return SIMPLEREGION; }
 extern "C" HRGN CreateRectRgn(int x1, int y1, int x2, int y2) { return calloc(1, 1); }
+extern "C" HRGN CreateRoundRectRgn(int x1, int y1, int x2, int y2, int w, int h) { return CreateRectRgn(x1, y1, x2, y2); }
 extern "C" HRGN CreateRectRgnIndirect(CONST RECT* lprect) { return calloc(1, 1); }
 extern "C" BOOL PtInRegion(HRGN hrgn, int x, int y) { return TRUE; }
+extern "C" int SetWindowRgn(HWND hWnd, HRGN hRgn, BOOL bRedraw) { return TRUE; }
 extern "C" int SelectClipRgn(HDC hdc, HRGN hrgn) { return SIMPLEREGION; }
 extern "C" BOOL SetWorldTransform(HDC hdc, CONST XFORM* lpxf) { return TRUE; }
 extern "C" BOOL GdiFlush(void) { return TRUE; }

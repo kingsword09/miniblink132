@@ -23,10 +23,31 @@
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libuv/include/uv.h"
 #include "base/files/file_util.h"
+#include <string.h>
 #include <vector>
 #include <shlwapi.h>
 
 namespace atom {
+
+namespace {
+
+void showDirectoryCreateError(const char* message)
+{
+    StringUtil::WideString text = StringUtil::UTF8ToUTF16(message);
+    StringUtil::WideString title = StringUtil::UTF8ToUTF16("失败");
+    MessageBoxW(0, reinterpret_cast<LPCWSTR>(text.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), 0);
+}
+
+char* duplicateCString(const char* value)
+{
+#if defined(_WIN32)
+    return _strdup(value);
+#else
+    return strdup(value);
+#endif
+}
+
+} // namespace
 
 ApiSession::ApiSession(v8::Isolate* isolate, v8::Local<v8::Object> wrapper)
 {
@@ -126,7 +147,7 @@ ApiSession* ApiSession::create(v8::Isolate* isolate, const std::string& name)
 
     if (!base::PathExists(fullpath)) {
         if (!base::CreateDirectory(fullpath)) {
-            MessageBoxW(0, L"创建session目录失败，请把本程序安装到有权限的目录", L"失败", 0);
+            showDirectoryCreateError("创建session目录失败，请把本程序安装到有权限的目录");
             return nullptr;
         }
     }
@@ -223,7 +244,7 @@ static mbSlist* cloneMbSlist(const mbSlist* old)
     mbSlist* head = newSlist;
 
     while (old) {
-        newSlist->data = _strdup(old->data);
+        newSlist->data = duplicateCString(old->data);
         old = old->next;
         if (old) {
             newSlist->next = new mbSlist();
@@ -516,7 +537,7 @@ bool SessionMgr::createRootDir()
 
     if (!base::DirectoryExists(m_rootDir)) {
         if (!base::CreateDirectory(m_rootDir)) {
-            MessageBoxW(0, L"创建minieleses目录失败，请把本程序安装到有权限的目录", L"失败", 0);
+            showDirectoryCreateError("创建minieleses目录失败，请把本程序安装到有权限的目录");
             return false;
         }
     }
@@ -524,7 +545,7 @@ bool SessionMgr::createRootDir()
     base::FilePath defaultSessionDir = m_rootDir.AppendASCII(ApiSession::kDefaultSessionName);
     if (!base::DirectoryExists(defaultSessionDir)) {
         if (!base::CreateDirectory(defaultSessionDir)) {
-            MessageBoxW(0, L"创建minieleses目录失败，请把本程序安装到有权限的目录", L"失败", 0);
+            showDirectoryCreateError("创建minieleses目录失败，请把本程序安装到有权限的目录");
             return false;
         }
     }

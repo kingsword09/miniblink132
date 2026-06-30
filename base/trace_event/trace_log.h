@@ -459,6 +459,9 @@ private:
     int num_traces_recorded_ { 0 };
     std::unique_ptr<TraceBuffer> logged_events_;
     std::vector<std::unique_ptr<TraceEvent>> metadata_events_;
+    std::vector<std::unique_ptr<TraceEvent>> recorded_events_;
+    std::vector<std::unique_ptr<std::string>> copied_trace_strings_;
+    uint32_t next_trace_event_handle_ GUARDED_BY(lock_) = 1;
 
     // The lock protects observers access.
     mutable Lock observers_lock_;

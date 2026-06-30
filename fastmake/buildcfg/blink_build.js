@@ -3961,6 +3961,7 @@ if (constVal.isMac) {
         "${srcPath}/third_party/blink/renderer/core/exported/web_date_time_suggestion.cc",
         "${srcPath}/third_party/blink/renderer/platform/fonts/skia/font_cache_skia.cc",
         "${srcPath}/third_party/blink/renderer/platform/fonts/linux/font_cache_linux.cc",
+        "${srcPath}/third_party/blink/renderer/platform/fonts/linux/font_unique_name_lookup_linux.cc",
         "${srcPath}/third_party/blink/renderer/platform/fonts/web_font_render_style.cc",
         "${srcPath}/third_party/blink/renderer/platform/image-decoders/avif/avif_image_decoder.cc",
     ]);
@@ -4932,7 +4933,6 @@ if (constVal.isMac) {
         "${srcPath}/base/mac/mac_util.mm",
         "${srcPath}/base/power_monitor/power_monitor.cc",
         "${srcPath}/base/strings/utf_string_conversions.cc",
-        "${srcPath}/base/strings/string_util_wchar_mac_compat.cc",
         "${srcPath}/base/strings/libcxx_hash_memory_compat.cc",
         "${srcPath}/base/task/thread_pool/task_thread_pool.cc",
         "${srcPath}/base/task/thread_pool/worker_thread_set.cc",
@@ -5147,6 +5147,7 @@ if (constVal.isMac) {
         "${srcPath}/skia/public/mojom/bitmap_skbitmap_mojom_traits.cc",
         "${srcPath}/skia/public/mojom/image_info_mojom_traits.cc",
         "${srcPath}/ipc_lite/ipc_channel_mac_compat.cc",
+        "${srcPath}/third_party/blink/common/messaging/accelerated_static_bitmap_image_mojom_traits.cc",
         "${srcPath}/third_party/blink/common/messaging/cloneable_message_mojom_traits.cc",
         "${srcPath}/third_party/blink/common/messaging/message_port_descriptor_mojom_traits.cc",
         "${srcPath}/third_party/blink/common/messaging/task_attribution_id_mojom_traits.cc",
@@ -5255,6 +5256,7 @@ if (constVal.isMac) {
         "-framework", "CoreFoundation",
         "-framework", "UniformTypeIdentifiers",
         "-framework", "CoreText",
+        "-framework", "AVFoundation",
         "-framework", "CoreVideo",
         "-framework", "CoreMedia",
         "-framework", "Accelerate",
@@ -5445,7 +5447,22 @@ if (!constVal.isBuildElectronMode) {
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_protocol");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_commandline");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_safe_storage");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_system_preferences");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_power_save_blocker");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_electron");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_web_contents");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_browserwindow");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_browserview");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_session");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_webrequest");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_downloaditem");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_message_port");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_web_frame_main");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_utility_process");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_browser_parent_port");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_renderer_ipc");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_renderer_contextbridge");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_renderer_webframe");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_nativeImage");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_clipboard");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_screen");
@@ -5455,6 +5472,7 @@ if (!constVal.isBuildElectronMode) {
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_original_fs");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_intl_collator");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_asar");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_content_tracing");
     } else if ("aarch64-linux-guneabi" == constVal.target) // ARM64
         json[0].compile.beginLibs.push("${sysroot}/usr/lib/gcc/aarch64-linux-gnu/10/crtbegin.o");
     else

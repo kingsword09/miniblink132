@@ -37,6 +37,8 @@ typedef base::RepeatingCallback<bool(const char* category_group_name, const char
 
 typedef base::RepeatingCallback<bool(const std::string& metadata_name)> MetadataFilterPredicate;
 
+#ifndef BASE_TRACE_EVENT_TRACE_EVENT_HANDLE_DEFINED
+#define BASE_TRACE_EVENT_TRACE_EVENT_HANDLE_DEFINED
 struct TraceEventHandle {
     uint32_t chunk_seq;
     // These numbers of bits must be kept consistent with
@@ -45,6 +47,7 @@ struct TraceEventHandle {
     unsigned chunk_index : 26;
     unsigned event_index : 6;
 };
+#endif
 
 class BASE_EXPORT TraceEvent {
 public:

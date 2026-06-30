@@ -40,6 +40,7 @@
 #include "base/values.h"
 #include <shlwapi.h>
 #include <cstring>
+#include <cmath>
 #include <memory>
 #include <vector>
 
@@ -51,6 +52,20 @@ void printCallstack();
 }
 
 namespace atom {
+
+namespace {
+
+double zoomLevelToZoomFactor(double zoomLevel)
+{
+    return std::pow(1.2, zoomLevel);
+}
+
+double zoomFactorToZoomLevel(double zoomFactor)
+{
+    return std::log(zoomFactor) / std::log(1.2);
+}
+
+}
 
 void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node::Environment* env)
 {
@@ -1032,13 +1047,13 @@ void WebContents::downloadURLApi(const std::string& url)
 void WebContents::setZoomLevelApi(float level)
 {
     mbWebView webView = getMbView();
-    mbSetZoomFactor(webView, level);
+    mbSetZoomFactor(webView, static_cast<float>(zoomLevelToZoomFactor(level)));
 }
 
 float WebContents::getZoomLevelApi() const
 {
     mbWebView webView = getMbView();
-    float ret = mbGetZoomFactor(webView);
+    float ret = static_cast<float>(zoomFactorToZoomLevel(mbGetZoomFactor(webView)));
     return ret;
 }
 
@@ -1125,9 +1140,9 @@ void WebContents::onTitleChanged(mbWebView webView, void* param, const utf8* tit
         return;
 
     self->m_title = title;
-    std::wstring titleW = StringUtil::UTF8ToUTF16(title);
+    StringUtil::WideString titleW = StringUtil::UTF8ToUTF16(title);
     HWND hwnd = mbGetHostHWND(self->m_view);
-    ::SetWindowText(hwnd, titleW.c_str());
+    ::SetWindowText(hwnd, reinterpret_cast<LPCWSTR>(titleW.c_str()));
 }
 
 void WebContents::onURLChanged(mbWebView webView, void* param, const utf8* url, BOOL canGoBack, BOOL canGoForward)
@@ -1341,12 +1356,12 @@ void WebContents::openDevToolsApi()
 {
     std::vector<WCHAR> fullpath;
     fullpath.resize(MAX_PATH + 1);
-    memset(fullpath.data(), 0, sizeof(wchar_t) * (MAX_PATH + 1));
+    memset(fullpath.data(), 0, sizeof(WCHAR) * (MAX_PATH + 1));
     ::GetModuleFileNameW(NULL, fullpath.data(), MAX_PATH);
     ::PathRemoveFileSpecW(fullpath.data());
 
     std::vector<WCHAR> name = fullpath;
-    ::PathAppendW(name.data(), L"\\front_end\\inspector.html");
+    ::PathAppendW(name.data(), u"\\front_end\\inspector.html");
 
     std::string nameA;
     if (::PathFileExistsW(name.data())) {
@@ -1356,7 +1371,7 @@ void WebContents::openDevToolsApi()
     }
 
     name = fullpath;
-    ::PathAppendW(name.data(), L"\\resources\\devtools\\inspector.html");
+    ::PathAppendW(name.data(), u"\\resources\\devtools\\inspector.html");
     nameA = StringUtil::UTF16ToUTF8(name.data());
     mbSetDebugConfig(m_view, "showDevTools", nameA.c_str());
 
@@ -1420,7 +1435,10 @@ v8::Local<v8::Promise> WebContents::insertCSSApi(const std::string& cssText, gin
 
 void WebContents::setZoomFactorApi(float factor)
 {
-
+    if (factor <= 0)
+        return;
+    mbWebView webView = getMbView();
+    mbSetZoomFactor(webView, factor);
 }
 
 void WebContents::enableDeviceEmulationApi()
@@ -1829,10 +1847,6 @@ void WebContents::onDocumentReadyInBlinkThread(mbWebView webView, void* param, m
             obs->onWebContentsReadyToShow(self);
         }
     });
-}
-
-void WebContents::nullFunction()
-{
 }
 
 gin_helper::WrapperInfo WebContents::kWrapperInfo = { gin_helper::GinEmbedder::kEmbedderNativeGin };

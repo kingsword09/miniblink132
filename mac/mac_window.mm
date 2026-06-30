@@ -1,6 +1,7 @@
 #define BOOL OBJC_BOOL
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
+#import <objc/runtime.h>
 #undef BOOL
 #include <IOKit/IOMessage.h>
 #include <IOKit/IOKitLib.h>
@@ -8,12 +9,16 @@
 #include <IOKit/pwr_mgt/IOPMLib.h>
 
 #include "mac/mac_window.h"
+#include "electron/common/WinUserMsg.h"
 
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <deque>
+#include <math.h>
+#include <map>
 #include <mutex>
+#include <string>
 #include <vector>
 
 namespace {
@@ -23,6 +28,8 @@ std::condition_variable g_messageQueueCondition;
 std::deque<MSG> g_messageQueue;
 HWND g_focusWindow = nullptr;
 HWND g_captureWindow = nullptr;
+static char kMiniTouchBarProviderKey;
+static char kMiniTouchBarScrubberAdapterKey;
 
 struct HotKeyRegistration {
     HWND hwnd = nullptr;
@@ -774,6 +781,32 @@ extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event)
 - (void)statusItemClicked:(id)sender;
 @end
 
+@interface MiniTouchBarProvider : NSObject <NSTouchBarDelegate> {
+@private
+    HWND _hwnd;
+    NSArray<NSDictionary*>* _items;
+    NSMutableDictionary<NSString*, NSDictionary*>* _itemsById;
+}
+- (instancetype)initWithHwnd:(HWND)hwnd items:(NSArray<NSDictionary*>*)items;
+- (NSTouchBar*)makeTouchBar;
+@end
+
+@interface MiniTouchBarScrubberAdapter : NSObject <NSScrubberDataSource, NSScrubberDelegate, NSScrubberFlowLayoutDelegate> {
+@private
+    HWND _hwnd;
+    NSString* _itemId;
+    NSArray<NSDictionary*>* _items;
+}
+- (instancetype)initWithHwnd:(HWND)hwnd itemId:(NSString*)itemId items:(NSArray<NSDictionary*>*)items;
+@end
+
+@interface MiniTouchBarSpacerView : NSView {
+@private
+    NSSize _intrinsicSize;
+}
+- (instancetype)initWithWidth:(CGFloat)width;
+@end
+
 @implementation MacStatusItemTarget
 
 - (instancetype)initWithHwnd:(HWND)hwnd id:(UINT)id callbackMessage:(UINT)callbackMessage
@@ -791,6 +824,484 @@ extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event)
 {
     if (_hwnd && _callbackMessage)
         PostMessageW(_hwnd, _callbackMessage, _id, WM_LBUTTONUP);
+}
+
+@end
+
+@implementation MiniTouchBarSpacerView
+
+- (instancetype)initWithWidth:(CGFloat)width
+{
+    self = [super initWithFrame:NSMakeRect(0, 0, width, 1)];
+    if (self)
+        _intrinsicSize = NSMakeSize(width, 1);
+    return self;
+}
+
+- (NSSize)intrinsicContentSize
+{
+    return _intrinsicSize;
+}
+
+@end
+
+@implementation MiniTouchBarScrubberAdapter
+
+- (instancetype)initWithHwnd:(HWND)hwnd itemId:(NSString*)itemId items:(NSArray<NSDictionary*>*)items
+{
+    self = [super init];
+    if (self) {
+        _hwnd = hwnd;
+        _itemId = [itemId copy];
+        _items = [items copy];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_itemId release];
+    [_items release];
+#if !__has_feature(objc_arc)
+    [super dealloc];
+#endif
+}
+
+- (void)sendAction:(NSDictionary*)payload
+{
+    if (!_hwnd || !payload)
+        return;
+    NSData* jsonData = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
+    if (!jsonData)
+        return;
+    NSString* json = [[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding] autorelease];
+    if (!json)
+        return;
+    char* message = strdup([json UTF8String]);
+    if (!message)
+        return;
+    PostMessageW(_hwnd, WM_TOUCHBAR_ACTION, 0, (LPARAM)message);
+}
+
+- (NSImage*)imageFromValue:(id)value
+{
+    if (![value isKindOfClass:[NSString class]] || ![(NSString*)value length])
+        return nil;
+
+    NSString* string = (NSString*)value;
+    NSData* data = nil;
+    if ([string hasPrefix:@"data:"]) {
+        NSRange comma = [string rangeOfString:@","];
+        if (comma.location == NSNotFound)
+            return nil;
+        NSString* metadata = [string substringToIndex:comma.location];
+        NSString* payload = [string substringFromIndex:comma.location + 1];
+        if ([metadata rangeOfString:@";base64"].location != NSNotFound)
+            data = [[[NSData alloc] initWithBase64EncodedString:payload options:0] autorelease];
+    } else {
+        data = [NSData dataWithContentsOfFile:string];
+    }
+
+    if (!data.length)
+        return nil;
+    return [[[NSImage alloc] initWithData:data] autorelease];
+}
+
+- (NSInteger)numberOfItemsForScrubber:(NSScrubber*)scrubber
+{
+    return _items ? (NSInteger)_items.count : 0;
+}
+
+- (NSScrubberItemView*)scrubber:(NSScrubber*)scrubber viewForItemAtIndex:(NSInteger)index
+{
+    if (index < 0 || index >= (NSInteger)_items.count)
+        return nil;
+
+    NSDictionary* item = [_items objectAtIndex:index];
+    NSString* label = [item isKindOfClass:[NSDictionary class]] && [[item objectForKey:@"label"] isKindOfClass:[NSString class]]
+        ? [item objectForKey:@"label"]
+        : @"";
+    NSImage* image = [item isKindOfClass:[NSDictionary class]] ? [self imageFromValue:[item objectForKey:@"image"]] : nil;
+    if (image) {
+        NSScrubberImageItemView* imageView = [scrubber makeItemWithIdentifier:@"MiniTouchBarScrubberImageItem" owner:self];
+        if (!imageView)
+            imageView = [[[NSScrubberImageItemView alloc] initWithFrame:NSMakeRect(0, 0, 40, 30)] autorelease];
+        imageView.image = image;
+        return imageView;
+    }
+
+    NSScrubberTextItemView* view = [scrubber makeItemWithIdentifier:@"MiniTouchBarScrubberTextItem" owner:self];
+    if (!view)
+        view = [[[NSScrubberTextItemView alloc] initWithFrame:NSMakeRect(0, 0, 80, 30)] autorelease];
+    view.title = label;
+    return view;
+}
+
+- (void)scrubber:(NSScrubber*)scrubber didSelectItemAtIndex:(NSInteger)selectedIndex
+{
+    [self sendAction:@{ @"id" : _itemId ?: @"", @"type" : @"select", @"selectedIndex" : @(selectedIndex) }];
+}
+
+- (void)scrubber:(NSScrubber*)scrubber didHighlightItemAtIndex:(NSInteger)highlightedIndex
+{
+    [self sendAction:@{ @"id" : _itemId ?: @"", @"type" : @"highlight", @"highlightedIndex" : @(highlightedIndex) }];
+}
+
+- (NSSize)scrubber:(NSScrubber*)scrubber layout:(NSScrubberFlowLayout*)layout sizeForItemAtIndex:(NSInteger)itemIndex
+{
+    if (itemIndex < 0 || itemIndex >= (NSInteger)_items.count)
+        return NSMakeSize(64, 30);
+
+    NSDictionary* item = [_items objectAtIndex:itemIndex];
+    NSString* label = [item isKindOfClass:[NSDictionary class]] && [[item objectForKey:@"label"] isKindOfClass:[NSString class]]
+        ? [item objectForKey:@"label"]
+        : @"";
+    CGFloat width = std::max<CGFloat>(44.0, std::min<CGFloat>(160.0, 28.0 + label.length * 7.0));
+    return NSMakeSize(width, 30);
+}
+
+@end
+
+@implementation MiniTouchBarProvider
+
+- (instancetype)initWithHwnd:(HWND)hwnd items:(NSArray<NSDictionary*>*)items
+{
+    self = [super init];
+    if (self) {
+        _hwnd = hwnd;
+        _items = [items copy];
+        _itemsById = [[NSMutableDictionary alloc] init];
+        [self indexItems:_items];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [_items release];
+    [_itemsById release];
+#if !__has_feature(objc_arc)
+    [super dealloc];
+#endif
+}
+
+- (void)indexItems:(NSArray*)items
+{
+    for (id value in items) {
+        if (![value isKindOfClass:[NSDictionary class]])
+            continue;
+        NSDictionary* item = (NSDictionary*)value;
+        NSString* itemId = [item objectForKey:@"id"];
+        if ([itemId isKindOfClass:[NSString class]])
+            [_itemsById setObject:item forKey:itemId];
+        NSArray* children = [item objectForKey:@"items"];
+        if ([children isKindOfClass:[NSArray class]])
+            [self indexItems:children];
+    }
+}
+
+- (NSTouchBar*)makeTouchBar
+{
+    NSTouchBar* touchBar = [[[NSTouchBar alloc] init] autorelease];
+    touchBar.delegate = self;
+    NSMutableArray<NSTouchBarItemIdentifier>* identifiers = [NSMutableArray array];
+    for (NSDictionary* item in _items) {
+        NSString* itemId = [item objectForKey:@"id"];
+        if ([itemId isKindOfClass:[NSString class]])
+            [identifiers addObject:itemId];
+    }
+    touchBar.defaultItemIdentifiers = identifiers;
+    return touchBar;
+}
+
+- (NSTouchBar*)makeTouchBarWithItems:(NSArray*)items
+{
+    MiniTouchBarProvider* provider = [[[MiniTouchBarProvider alloc] initWithHwnd:_hwnd items:items] autorelease];
+    NSTouchBar* touchBar = [provider makeTouchBar];
+    objc_setAssociatedObject(touchBar, &kMiniTouchBarProviderKey, provider, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    return touchBar;
+}
+
+- (NSString*)stringValue:(NSDictionary*)item key:(NSString*)key fallback:(NSString*)fallback
+{
+    id value = [item objectForKey:key];
+    if ([value isKindOfClass:[NSString class]])
+        return value;
+    return fallback;
+}
+
+- (double)doubleValue:(NSDictionary*)item key:(NSString*)key fallback:(double)fallback
+{
+    id value = [item objectForKey:key];
+    if ([value respondsToSelector:@selector(doubleValue)])
+        return [value doubleValue];
+    return fallback;
+}
+
+- (BOOL)boolValue:(NSDictionary*)item key:(NSString*)key fallback:(BOOL)fallback
+{
+    id value = [item objectForKey:key];
+    if ([value respondsToSelector:@selector(boolValue)])
+        return [value boolValue];
+    return fallback;
+}
+
+- (NSColor*)colorFromString:(NSString*)value fallback:(NSColor*)fallback
+{
+    if (![value isKindOfClass:[NSString class]] || value.length != 7 || [value characterAtIndex:0] != '#')
+        return fallback;
+    unsigned int rgb = 0;
+    NSScanner* scanner = [NSScanner scannerWithString:[value substringFromIndex:1]];
+    if (![scanner scanHexInt:&rgb])
+        return fallback;
+    return [NSColor colorWithCalibratedRed:((rgb >> 16) & 0xff) / 255.0
+                                     green:((rgb >> 8) & 0xff) / 255.0
+                                      blue:(rgb & 0xff) / 255.0
+                                     alpha:1.0];
+}
+
+- (NSImage*)imageFromValue:(id)value
+{
+    if (![value isKindOfClass:[NSString class]] || ![(NSString*)value length])
+        return nil;
+
+    NSString* string = (NSString*)value;
+    NSData* data = nil;
+    if ([string hasPrefix:@"data:"]) {
+        NSRange comma = [string rangeOfString:@","];
+        if (comma.location == NSNotFound)
+            return nil;
+        NSString* metadata = [string substringToIndex:comma.location];
+        NSString* payload = [string substringFromIndex:comma.location + 1];
+        if ([metadata rangeOfString:@";base64"].location != NSNotFound)
+            data = [[[NSData alloc] initWithBase64EncodedString:payload options:0] autorelease];
+    } else {
+        data = [NSData dataWithContentsOfFile:string];
+    }
+
+    if (!data.length)
+        return nil;
+    return [[[NSImage alloc] initWithData:data] autorelease];
+}
+
+- (NSScrubberSelectionStyle*)scrubberSelectionStyle:(NSString*)name
+{
+    if (![name isKindOfClass:[NSString class]] || !name.length)
+        return nil;
+    if ([name isEqualToString:@"outline"] || [name isEqualToString:@"outline-overlay"])
+        return [NSScrubberSelectionStyle outlineOverlayStyle];
+    if ([name isEqualToString:@"background"] || [name isEqualToString:@"rounded-background"])
+        return [NSScrubberSelectionStyle roundedBackgroundStyle];
+    return nil;
+}
+
+- (NSSegmentedControl*)segmentedControlForItem:(NSDictionary*)item identifier:(NSString*)identifier
+{
+    NSArray* segments = [item objectForKey:@"segments"];
+    NSSegmentedControl* control = [[[NSSegmentedControl alloc] initWithFrame:NSMakeRect(0, 0, 120, 30)] autorelease];
+    control.segmentStyle = NSSegmentStyleTexturedRounded;
+    NSString* mode = [self stringValue:item key:@"mode" fallback:@"single"];
+    control.trackingMode = [mode isEqualToString:@"multiple"] ? NSSegmentSwitchTrackingSelectAny : NSSegmentSwitchTrackingSelectOne;
+    control.target = self;
+    control.action = @selector(segmentedChanged:);
+    if ([segments isKindOfClass:[NSArray class]]) {
+        control.segmentCount = segments.count;
+        for (NSInteger i = 0; i < (NSInteger)segments.count; ++i) {
+            NSDictionary* segment = [segments objectAtIndex:i];
+            [control setLabel:[self stringValue:segment key:@"label" fallback:@""] forSegment:i];
+            NSImage* image = [self imageFromValue:[segment objectForKey:@"image"]];
+            if (image)
+                [control setImage:image forSegment:i];
+            [control setEnabled:[self boolValue:segment key:@"enabled" fallback:YES] forSegment:i];
+        }
+    }
+    control.selectedSegment = (NSInteger)[self doubleValue:item key:@"selectedIndex" fallback:-1];
+    control.identifier = identifier;
+    return control;
+}
+
+- (void)sendAction:(NSDictionary*)payload
+{
+    if (!_hwnd || !payload)
+        return;
+    NSData* jsonData = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
+    if (!jsonData)
+        return;
+    NSString* json = [[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding] autorelease];
+    if (!json)
+        return;
+    char* message = strdup([json UTF8String]);
+    if (!message)
+        return;
+    PostMessageW(_hwnd, WM_TOUCHBAR_ACTION, 0, (LPARAM)message);
+}
+
+- (void)buttonPressed:(NSButton*)sender
+{
+    NSString* itemId = sender.identifier;
+    [self sendAction:@{ @"id" : itemId ?: @"", @"type" : @"click" }];
+}
+
+- (void)sliderChanged:(NSSlider*)sender
+{
+    NSString* itemId = (NSString*)sender.identifier;
+    [self sendAction:@{ @"id" : itemId ?: @"", @"type" : @"change", @"value" : @(sender.doubleValue) }];
+}
+
+- (void)segmentedChanged:(NSSegmentedControl*)sender
+{
+    NSString* itemId = (NSString*)sender.identifier;
+    NSInteger selected = sender.selectedSegment;
+    [self sendAction:@{
+        @"id" : itemId ?: @"",
+        @"type" : @"change",
+        @"selectedIndex" : @(selected),
+        @"isSelected" : @(selected >= 0)
+    }];
+}
+
+- (void)colorChanged:(NSColorWell*)sender
+{
+    NSString* itemId = (NSString*)sender.identifier;
+    NSColor* rgb = [sender.color colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]];
+    if (!rgb)
+        rgb = sender.color;
+    NSInteger red = (NSInteger)round(rgb.redComponent * 255.0);
+    NSInteger green = (NSInteger)round(rgb.greenComponent * 255.0);
+    NSInteger blue = (NSInteger)round(rgb.blueComponent * 255.0);
+    NSString* color = [NSString stringWithFormat:@"#%02lX%02lX%02lX", (long)red, (long)green, (long)blue];
+    [self sendAction:@{ @"id" : itemId ?: @"", @"type" : @"change", @"color" : color }];
+}
+
+- (NSTouchBarItem*)groupItemForItem:(NSDictionary*)item identifier:(NSString*)identifier
+{
+    NSArray* childItems = [item objectForKey:@"items"];
+    if (![childItems isKindOfClass:[NSArray class]])
+        childItems = @[];
+
+    NSTouchBar* groupTouchBar = [self makeTouchBarWithItems:childItems];
+    NSMutableArray<NSTouchBarItem*>* nativeItems = [NSMutableArray array];
+    for (NSTouchBarItemIdentifier childIdentifier in groupTouchBar.defaultItemIdentifiers) {
+        NSTouchBarItem* childItem = [self touchBar:groupTouchBar makeItemForIdentifier:childIdentifier];
+        if (childItem)
+            [nativeItems addObject:childItem];
+    }
+
+    NSGroupTouchBarItem* group = [NSGroupTouchBarItem groupItemWithIdentifier:identifier items:nativeItems];
+    group.groupTouchBar = groupTouchBar;
+    group.customizationLabel = [self stringValue:item key:@"label" fallback:@"Group"];
+    if ([group respondsToSelector:@selector(setPrefersEqualWidths:)])
+        group.prefersEqualWidths = [self boolValue:item key:@"prefersEqualWidths" fallback:NO];
+    return group;
+}
+
+- (NSTouchBarItem*)popoverItemForItem:(NSDictionary*)item identifier:(NSString*)identifier
+{
+    NSPopoverTouchBarItem* popover = [[[NSPopoverTouchBarItem alloc] initWithIdentifier:identifier] autorelease];
+    popover.collapsedRepresentationLabel = [self stringValue:item key:@"label" fallback:@"Popover"];
+    popover.customizationLabel = popover.collapsedRepresentationLabel;
+    popover.showsCloseButton = [self boolValue:item key:@"showCloseButton" fallback:YES];
+    NSImage* image = [self imageFromValue:[item objectForKey:@"image"]];
+    if (image)
+        popover.collapsedRepresentationImage = image;
+
+    NSArray* childItems = [item objectForKey:@"items"];
+    popover.popoverTouchBar = [self makeTouchBarWithItems:[childItems isKindOfClass:[NSArray class]] ? childItems : @[]];
+    return popover;
+}
+
+- (NSScrubber*)scrubberForItem:(NSDictionary*)item identifier:(NSString*)identifier
+{
+    NSArray* scrubberItems = [item objectForKey:@"items"];
+    if (![scrubberItems isKindOfClass:[NSArray class]])
+        scrubberItems = @[];
+
+    NSScrubber* scrubber = [[[NSScrubber alloc] initWithFrame:NSMakeRect(0, 0, 260, 30)] autorelease];
+    MiniTouchBarScrubberAdapter* adapter = [[[MiniTouchBarScrubberAdapter alloc] initWithHwnd:_hwnd itemId:identifier items:scrubberItems] autorelease];
+    scrubber.dataSource = adapter;
+    scrubber.delegate = adapter;
+    objc_setAssociatedObject(scrubber, &kMiniTouchBarScrubberAdapterKey, adapter, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+    NSScrubberFlowLayout* layout = [[[NSScrubberFlowLayout alloc] init] autorelease];
+    layout.itemSpacing = 4;
+    layout.itemSize = NSMakeSize(72, 30);
+    scrubber.scrubberLayout = layout;
+    [scrubber registerClass:[NSScrubberTextItemView class] forItemIdentifier:@"MiniTouchBarScrubberTextItem"];
+    [scrubber registerClass:[NSScrubberImageItemView class] forItemIdentifier:@"MiniTouchBarScrubberImageItem"];
+    scrubber.showsArrowButtons = [self boolValue:item key:@"showArrowButtons" fallback:NO];
+    scrubber.mode = [[self stringValue:item key:@"mode" fallback:@"free"] isEqualToString:@"fixed"] ? NSScrubberModeFixed : NSScrubberModeFree;
+    scrubber.continuous = [self boolValue:item key:@"continuous" fallback:NO];
+    scrubber.selectionBackgroundStyle = [self scrubberSelectionStyle:[self stringValue:item key:@"selectedStyle" fallback:nil]];
+    scrubber.selectionOverlayStyle = [self scrubberSelectionStyle:[self stringValue:item key:@"overlayStyle" fallback:nil]];
+    NSInteger selected = (NSInteger)[self doubleValue:item key:@"selectedIndex" fallback:-1];
+    if (selected >= 0 && selected < (NSInteger)scrubberItems.count)
+        scrubber.selectedIndex = selected;
+    [scrubber reloadData];
+    return scrubber;
+}
+
+- (NSTouchBarItem*)touchBar:(NSTouchBar*)touchBar makeItemForIdentifier:(NSTouchBarItemIdentifier)identifier
+{
+    NSDictionary* item = [_itemsById objectForKey:identifier];
+    if (!item)
+        return nil;
+
+    NSString* type = [self stringValue:item key:@"type" fallback:@"label"];
+    if ([type isEqualToString:@"spacer"]) {
+        NSString* size = [self stringValue:item key:@"size" fallback:@"small"];
+        CGFloat width = [size isEqualToString:@"large"] ? 32.0 : ([size isEqualToString:@"flexible"] ? 64.0 : 16.0);
+        NSCustomTouchBarItem* spacerItem = [[[NSCustomTouchBarItem alloc] initWithIdentifier:identifier] autorelease];
+        spacerItem.view = [[[MiniTouchBarSpacerView alloc] initWithWidth:width] autorelease];
+        return spacerItem;
+    }
+
+    NSCustomTouchBarItem* customItem = [[[NSCustomTouchBarItem alloc] initWithIdentifier:identifier] autorelease];
+    if ([type isEqualToString:@"button"]) {
+        NSButton* button = [NSButton buttonWithTitle:[self stringValue:item key:@"label" fallback:@""]
+                                              target:self
+                                              action:@selector(buttonPressed:)];
+        button.identifier = identifier;
+        button.enabled = [self boolValue:item key:@"enabled" fallback:YES];
+        NSImage* image = [self imageFromValue:[item objectForKey:@"image"]];
+        if (image) {
+            button.image = image;
+            button.imagePosition = button.title.length ? NSImageLeft : NSImageOnly;
+        }
+        NSString* backgroundColor = [item objectForKey:@"backgroundColor"];
+        if ([button respondsToSelector:@selector(setBezelColor:)])
+            button.bezelColor = [self colorFromString:backgroundColor fallback:nil];
+        customItem.view = button;
+    } else if ([type isEqualToString:@"slider"]) {
+        NSSlider* slider = [NSSlider sliderWithValue:[self doubleValue:item key:@"value" fallback:0]
+                                            minValue:[self doubleValue:item key:@"minValue" fallback:0]
+                                            maxValue:[self doubleValue:item key:@"maxValue" fallback:100]
+                                              target:self
+                                              action:@selector(sliderChanged:)];
+        slider.identifier = identifier;
+        slider.enabled = [self boolValue:item key:@"enabled" fallback:YES];
+        customItem.view = slider;
+    } else if ([type isEqualToString:@"segmented-control"]) {
+        customItem.view = [self segmentedControlForItem:item identifier:identifier];
+    } else if ([type isEqualToString:@"color-picker"]) {
+        NSColorWell* colorWell = [[[NSColorWell alloc] initWithFrame:NSMakeRect(0, 0, 44, 24)] autorelease];
+        colorWell.identifier = identifier;
+        colorWell.target = self;
+        colorWell.action = @selector(colorChanged:);
+        colorWell.color = [self colorFromString:[item objectForKey:@"selectedColor"] fallback:NSColor.whiteColor];
+        customItem.view = colorWell;
+    } else if ([type isEqualToString:@"scrubber"]) {
+        customItem.view = [self scrubberForItem:item identifier:identifier];
+    } else if ([type isEqualToString:@"popover"]) {
+        return [self popoverItemForItem:item identifier:identifier];
+    } else if ([type isEqualToString:@"group"]) {
+        return [self groupItemForItem:item identifier:identifier];
+    } else {
+        NSTextField* label = [NSTextField labelWithString:[self stringValue:item key:@"label" fallback:@""]];
+        NSString* textColor = [item objectForKey:@"textColor"];
+        label.textColor = [self colorFromString:textColor fallback:label.textColor];
+        customItem.view = label;
+    }
+    return customItem;
 }
 
 @end
@@ -975,6 +1486,44 @@ extern "C" void MacDestroyStatusItem(void* statusItem)
     else
         dispatch_sync(dispatch_get_main_queue(), destroy);
     delete handle;
+}
+
+extern "C" bool MacSetWindowTouchBar(HWND hwnd, const char* touchBarJson)
+{
+    HwndMac* self = HwndMac::from(hwnd);
+    if (!self || !self->m_window)
+        return false;
+
+    __block bool ok = false;
+    auto apply = ^{
+        NSWindow* window = (NSWindow*)self->m_window;
+        if (!touchBarJson || !touchBarJson[0]) {
+            window.touchBar = nil;
+            objc_setAssociatedObject(window, &kMiniTouchBarProviderKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            ok = true;
+            return;
+        }
+
+        NSData* data = [[NSString stringWithUTF8String:touchBarJson] dataUsingEncoding:NSUTF8StringEncoding];
+        NSError* error = nil;
+        id model = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:&error] : nil;
+        if (![model isKindOfClass:[NSDictionary class]])
+            return;
+        NSArray* items = [(NSDictionary*)model objectForKey:@"items"];
+        if (![items isKindOfClass:[NSArray class]])
+            return;
+
+        MiniTouchBarProvider* provider = [[[MiniTouchBarProvider alloc] initWithHwnd:hwnd items:items] autorelease];
+        window.touchBar = [provider makeTouchBar];
+        objc_setAssociatedObject(window, &kMiniTouchBarProviderKey, provider, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ok = true;
+    };
+
+    if ([NSThread isMainThread])
+        apply();
+    else
+        dispatch_sync(dispatch_get_main_queue(), apply);
+    return ok;
 }
 
 extern "C" ATOM RegisterClassExW(CONST WNDCLASSEXW* wndClass)
@@ -1698,6 +2247,11 @@ extern "C" HWND GetActiveWindow(void)
         if (self->m_window == keyWindow)
             return hwnd;
     }
+    return nullptr;
+}
+
+extern "C" HWND GetDesktopWindow(void)
+{
     return nullptr;
 }
 

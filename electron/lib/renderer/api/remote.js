@@ -7,7 +7,44 @@ const isPromise = require('electron').isPromise;
 const CallbacksRegistry = require('electron').CallbacksRegistry;
 
 const callbacksRegistry = new CallbacksRegistry();
-const remoteObjectCache = v8Util.createIDWeakMap();
+const remoteObjectCache = createRemoteObjectCache();
+const remoteObjectFinalizer = typeof FinalizationRegistry === 'function'
+  ? new FinalizationRegistry(function (id) {
+    try {
+      ipcRenderer.send('ELECTRON_BROWSER_DEREFERENCE', id)
+    } catch (error) {
+    }
+  })
+  : null;
+
+function createRemoteObjectCache () {
+  if (typeof v8Util.createIDWeakMap === 'function') {
+    return v8Util.createIDWeakMap();
+  }
+
+  const cache = new Map();
+  const useWeakRef = typeof WeakRef === 'function';
+  return {
+    has (id) {
+      if (!cache.has(id)) return false;
+      if (!useWeakRef) return true;
+      const ref = cache.get(id);
+      if (ref.deref()) return true;
+      cache.delete(id);
+      return false;
+    },
+    get (id) {
+      const value = cache.get(id);
+      return useWeakRef && value ? value.deref() : value;
+    },
+    set (id, value) {
+      cache.set(id, useWeakRef ? new WeakRef(value) : value);
+    },
+    remove (id) {
+      cache.delete(id);
+    }
+  };
+}
 
 // Convert the arguments object into an array of meta data.
 const wrapArgs = function (args, visited) {
@@ -132,7 +169,7 @@ const setObjectMembers = function (ref, object, metaId, members) {
       // Only set setter when it is writable.
       if (member.writable) {
         descriptor.set = function (value) {
-          ipcRenderer.sendSync('ELECTRON_BROWSER_MEMBER_SET', metaId, member.name, value)
+          ipcRenderer.sendSync('ELECTRON_BROWSER_MEMBER_SET', metaId, member.name, wrapArgs([value])[0])
           return value
         }
       }
@@ -159,7 +196,7 @@ const metaToValue = function (meta) {
     case 'value':
       return meta.value
     case 'array':
-      ref1 = meta.members
+      ref1 = meta.members || meta.value
       results = []
       for (i = 0, len = ref1.length; i < len; i++) {
         el = ref1[i]
@@ -213,7 +250,11 @@ const metaToValue = function (meta) {
 
       // Track delegate object's life time, and tell the browser to clean up
       // when the object is GCed.
-      v8Util.setRemoteObjectFreer(ret, meta.id)
+      if (typeof v8Util.setRemoteObjectFreer === 'function') {
+        v8Util.setRemoteObjectFreer(ret, meta.id)
+      } else if (remoteObjectFinalizer) {
+        remoteObjectFinalizer.register(ret, meta.id)
+      }
 
       // Remember object's id.
       v8Util.setHiddenValue(ret, 'atomId', meta.id)
@@ -244,7 +285,7 @@ const metaToPlainObject = function (meta) {
 
 // Browser calls a callback in renderer.
 ipcRenderer.on('ELECTRON_RENDERER_CALLBACK', function (event, id, args) {
-  callbacksRegistry.apply(id, metaToValue(args))
+  callbacksRegistry.apply(id, ...metaToValue(args))
 })
 
 // A callback in browser is released.

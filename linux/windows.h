@@ -1469,6 +1469,7 @@ EXTERN_C BOOL GetTextExtentPoint32W(HDC hdc, LPCWSTR lpString, int c, LPSIZE psi
 EXTERN_C BOOL GetCursorPos(POINT* lpPoint);
 EXTERN_C BOOL ClientToScreen(HWND hWnd, LPPOINT lpPoint);
 EXTERN_C HWND GetActiveWindow();
+EXTERN_C HWND GetDesktopWindow();
 EXTERN_C HWND GetParent(HWND hWnd);
 EXTERN_C BOOL EnableWindow(HWND hWnd, BOOL bEnable);
 
@@ -1492,10 +1493,12 @@ EXTERN_C BOOL EndPaint(HWND hWnd, CONST PAINTSTRUCT* lpPaint);
 EXTERN_C BOOL Rectangle(HDC hdc, int left, int top, int right, int bottom);
 EXTERN_C BOOL UpdateWindow(HWND hWnd);
 EXTERN_C HRGN CreateRectRgn(int x1, int y1, int x2, int y2);
+EXTERN_C HRGN CreateRoundRectRgn(int x1, int y1, int x2, int y2, int w, int h);
 EXTERN_C BOOL KillTimer(HWND hWnd, UINT_PTR uIDEvent);
 EXTERN_C BOOL IsWindow(HWND hWnd);
 EXTERN_C HRESULT RevokeDragDrop(HWND hwnd);
 EXTERN_C BOOL GetWindowRect(HWND hWnd, LPRECT lpRect);
+EXTERN_C int SetWindowRgn(HWND hWnd, HRGN hRgn, BOOL bRedraw);
 #define GetWindowLongPtrW GetWindowLongW
 #define SetWindowLongPtrW SetWindowLongW
 EXTERN_C LONG SetWindowLongW(HWND hWnd, int nIndex, LONG dwNewLong);

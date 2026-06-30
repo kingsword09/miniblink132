@@ -251,8 +251,10 @@ ApiUtilityProcess::ApiUtilityProcess(
     g_channel = m_channel;
 
     base::LaunchOptions launchOpt;
+#if BUILDFLAG(IS_WIN)
     launchOpt.start_hidden = true;
     launchOpt.elevated = false;
+#endif
     if (!cwd.empty())
         launchOpt.current_directory = base::FilePath::FromUTF8Unsafe(cwd);
     launchOpt.environment = envMap;
@@ -267,7 +269,10 @@ ApiUtilityProcess::ApiUtilityProcess(
     MojoHandle remotePort = pipe.handle1.get().value();
 
     char output[100] = { 0 };
-    sprintf_s(output, 99, "ApiUtilityProcess: %d %d %d\n", pipe.handle0.get().value(), pipe.handle1.get().value(), remotePort);
+    sprintf_s(output, 99, "ApiUtilityProcess: %lu %lu %lu\n",
+        static_cast<unsigned long>(pipe.handle0.get().value()),
+        static_cast<unsigned long>(pipe.handle1.get().value()),
+        static_cast<unsigned long>(remotePort));
     OutputDebugStringA(output);
 
     MojoChangeToRemoteServiceMode(m_childProcess.Pid(), remotePort);
@@ -321,14 +326,6 @@ bool ApiUtilityProcess::killApi()
         return false;
     base::Process process = base::Process::Open(m_childProcess.Pid());
     bool result = process.Terminate(/*content::RESULT_CODE_NORMAL_EXIT*/ 0, false);
-    // Refs https://bugs.chromium.org/p/chromium/issues/detail?id=818244
-    // Currently utility process is not sandboxed which
-    // means Zygote is not used on linux, refs
-    // content::UtilitySandboxedProcessLauncherDelegate::GetZygote.
-    // If sandbox feature is enabled for the utility process, then the
-    // process reap should be signaled through the zygote via
-    // content::ZygoteCommunication::EnsureProcessTerminated.
-    base::EnsureProcessTerminated(std::move(process));
     //killed_ = result;
     return result;
 }

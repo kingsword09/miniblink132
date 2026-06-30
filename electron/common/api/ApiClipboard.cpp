@@ -567,7 +567,7 @@ public:
         default:
             ::GlobalUnlock(hBitmap);
             ::CloseClipboard();
-            return v8::Null(isolate());
+            return NativeImage::createEmpty(isolate());
         }
         void* bitmapBits = reinterpret_cast<char*>(bitmap) + bitmap->bmiHeader.biSize + colorTableLength * sizeof(RGBQUAD);
         size_t size = bitmap->bmiHeader.biWidth * bitmap->bmiHeader.biHeight * 4;

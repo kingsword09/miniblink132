@@ -36,47 +36,6 @@
 
 namespace viz {
 
-SharedImageFormat GetSharedImageFormat(gfx::BufferFormat buffer_format)
-{
-    switch (buffer_format) {
-        case gfx::BufferFormat::BGRA_8888:
-            return SinglePlaneFormat::kBGRA_8888;
-        case gfx::BufferFormat::R_8:
-            return SinglePlaneFormat::kR_8;
-        case gfx::BufferFormat::R_16:
-            return SinglePlaneFormat::kR_16;
-        case gfx::BufferFormat::RG_1616:
-            return SinglePlaneFormat::kRG_1616;
-        case gfx::BufferFormat::RGBA_4444:
-            return SinglePlaneFormat::kRGBA_4444;
-        case gfx::BufferFormat::RGBA_8888:
-            return SinglePlaneFormat::kRGBA_8888;
-        case gfx::BufferFormat::RGBA_F16:
-            return SinglePlaneFormat::kRGBA_F16;
-        case gfx::BufferFormat::BGR_565:
-            return SinglePlaneFormat::kBGR_565;
-        case gfx::BufferFormat::RG_88:
-            return SinglePlaneFormat::kRG_88;
-        case gfx::BufferFormat::RGBX_8888:
-            return SinglePlaneFormat::kRGBX_8888;
-        case gfx::BufferFormat::BGRX_8888:
-            return SinglePlaneFormat::kBGRX_8888;
-        case gfx::BufferFormat::RGBA_1010102:
-            return SinglePlaneFormat::kRGBA_1010102;
-        case gfx::BufferFormat::BGRA_1010102:
-            return SinglePlaneFormat::kBGRA_1010102;
-        case gfx::BufferFormat::YVU_420:
-            return MultiPlaneFormat::kYV12;
-        case gfx::BufferFormat::YUV_420_BIPLANAR:
-            return MultiPlaneFormat::kNV12;
-        case gfx::BufferFormat::YUVA_420_TRIPLANAR:
-            return MultiPlaneFormat::kNV12A;
-        case gfx::BufferFormat::P010:
-            return MultiPlaneFormat::kP010;
-    }
-    NOTREACHED();
-}
-
 namespace {
 constexpr gfx::Size kDefaultTextureSizeForTesting = gfx::Size(20, 20);
 
@@ -211,27 +170,25 @@ std::unique_ptr<CopyOutputRequest> SurfaceSavedFrame::CreateCopyRequestIfNeeded(
         base::BindOnce(&SurfaceSavedFrame::NotifyCopyOfOutputComplete, weak_factory_.GetMutableWeakPtr(), shared_pass_index));
     request->set_result_task_runner(base::SingleThreadTaskRunner::GetCurrentDefault());
     if (use_blit_requests_) {
-        *(int*)1 = 1;
-//         scoped_refptr<gpu::ClientSharedImage>& shared_image = blit_shared_images_[shared_pass_index];
-// 
-//         const auto& display_color_spaces = directive_.display_color_spaces();
-//         bool has_transparent_background = render_pass.has_transparent_background;
-// 
-//         auto image_format = GetSharedImageFormat(display_color_spaces.GetOutputBufferFormat(content_color_usage, has_transparent_background));
-//         auto color_space = ColorSpaceUtils::CompositingColorSpace(display_color_spaces, content_color_usage, has_transparent_background);
-// 
-//         if (is_software) {
-//             gpu::SharedImageUsageSet flags = gpu::SHARED_IMAGE_USAGE_CPU_WRITE;
-//             shared_image
-//                 = shared_image_interface_->CreateSharedImage({ image_format, draw_data.size, color_space, flags, "ViewTransitionTexture" }).shared_image;
-//         } else {
-//             gpu::SharedImageUsageSet flags = gpu::SHARED_IMAGE_USAGE_DISPLAY_READ | gpu::SHARED_IMAGE_USAGE_DISPLAY_WRITE;
-//             shared_image = shared_image_interface_->CreateSharedImage(
-//                 { image_format, draw_data.size, color_space, flags, "ViewTransitionTexture" }, gpu::kNullSurfaceHandle);
-//         }
-//         request->set_result_selection(gfx::Rect(draw_data.size));
-//         request->set_blit_request(BlitRequest(gfx::Point(), LetterboxingBehavior::kDoNotLetterbox, shared_image->mailbox(), shared_image->creation_sync_token(),
-//             /*populates_gpu_memory_buffer=*/false));
+        scoped_refptr<gpu::ClientSharedImage>& shared_image = blit_shared_images_[shared_pass_index];
+
+        const auto& display_color_spaces = directive_.display_color_spaces();
+        bool has_transparent_background = render_pass.has_transparent_background;
+
+        auto image_format = GetSharedImageFormat(display_color_spaces.GetOutputBufferFormat(content_color_usage, has_transparent_background));
+        auto color_space = ColorSpaceUtils::CompositingColorSpace(display_color_spaces, content_color_usage, has_transparent_background);
+
+        if (is_software) {
+            gpu::SharedImageUsageSet flags = gpu::SHARED_IMAGE_USAGE_CPU_WRITE;
+            shared_image = shared_image_interface_->CreateSharedImage({ image_format, draw_data.size, color_space, flags, "ViewTransitionTexture" }).shared_image;
+        } else {
+            gpu::SharedImageUsageSet flags = gpu::SHARED_IMAGE_USAGE_DISPLAY_READ | gpu::SHARED_IMAGE_USAGE_DISPLAY_WRITE;
+            shared_image = shared_image_interface_->CreateSharedImage(
+                { image_format, draw_data.size, color_space, flags, "ViewTransitionTexture" }, gpu::kNullSurfaceHandle);
+        }
+        request->set_result_selection(gfx::Rect(draw_data.size));
+        request->set_blit_request(BlitRequest(gfx::Point(), LetterboxingBehavior::kDoNotLetterbox, shared_image->mailbox(), shared_image->creation_sync_token(),
+            /*populates_gpu_memory_buffer=*/false));
     }
     return request;
 }

@@ -18,6 +18,12 @@
 
 #include "../linux/windows.h"
 
+#ifndef CAPTUREBLT
+#define CAPTUREBLT (DWORD)0x40000000
+#endif
+
+EXTERN_C HDC GetWindowDC(HWND hWnd);
+
 #undef GetCurrentProcess
 #undef GetCurrentThread
 
@@ -209,6 +215,62 @@ typedef struct _RTL_SRWLOCK {
 
 #ifndef SetWindowLongPtr
 #define SetWindowLongPtr SetWindowLongPtrW
+#endif
+
+#ifndef WM_SHOWWINDOW
+#define WM_SHOWWINDOW 0x0018
+#endif
+
+#ifndef WM_ACTIVATE
+#define WM_ACTIVATE 0x0006
+#endif
+
+#ifndef WM_SETICON
+#define WM_SETICON 0x0080
+#endif
+
+#ifndef ICON_SMALL
+#define ICON_SMALL 0
+#endif
+
+#ifndef ICON_BIG
+#define ICON_BIG 1
+#endif
+
+#ifndef SW_SHOWMINNOACTIVE
+#define SW_SHOWMINNOACTIVE 7
+#endif
+
+#ifndef SWP_SHOWWINDOW
+#define SWP_SHOWWINDOW 0x0040
+#endif
+
+#ifndef WS_EX_TOPMOST
+#define WS_EX_TOPMOST 0x00000008L
+#endif
+
+#ifndef WS_EX_APPWINDOW
+#define WS_EX_APPWINDOW 0x00040000L
+#endif
+
+#ifndef SendMessage
+#define SendMessage SendMessageW
+#endif
+
+#ifndef SetWindowText
+#define SetWindowText SetWindowTextW
+#endif
+
+#ifndef GetWindowText
+#define GetWindowText GetWindowTextW
+#endif
+
+#ifndef CreateWindowEx
+#define CreateWindowEx CreateWindowExW
+#endif
+
+#ifndef WNDCLASSEX
+#define WNDCLASSEX WNDCLASSEXW
 #endif
 
 #ifndef PostMessage

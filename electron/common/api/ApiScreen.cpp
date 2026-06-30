@@ -563,10 +563,6 @@ public:
         target->Set(context, v8::String::NewFromUtf8(isolate, "Screen").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
     }
 
-    void nullFunction()
-    {
-    }
-
     void getCursorScreenPointApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         POINT pt;

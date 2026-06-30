@@ -19,7 +19,32 @@ const FUNCTION_PROPERTIES = [
 
 // The remote functions in renderer processes.
 // id => Function
-let rendererFunctions = v8Util.createDoubleIDWeakMap()
+function createRendererFunctionCache () {
+  if (typeof v8Util.createDoubleIDWeakMap === 'function') {
+    return v8Util.createDoubleIDWeakMap()
+  }
+
+  const cache = new Map()
+  const keyFor = function (objectId) {
+    return objectId[0] + ':' + objectId[1]
+  }
+  return {
+    has (objectId) {
+      return cache.has(keyFor(objectId))
+    },
+    get (objectId) {
+      return cache.get(keyFor(objectId))
+    },
+    set (objectId, value) {
+      cache.set(keyFor(objectId), value)
+    },
+    remove (objectId) {
+      cache.delete(keyFor(objectId))
+    }
+  }
+}
+
+let rendererFunctions = createRendererFunctionCache()
 
 // Return the description of object's members:
 let getObjectMembers = function (object) {
@@ -197,7 +222,8 @@ const unwrapArgs = function (sender, args) {
           }
         }
 
-        v8Util.setRemoteCallbackFreer(callIntoRenderer, meta.id, sender)
+        if (typeof v8Util.setRemoteCallbackFreer === 'function')
+          v8Util.setRemoteCallbackFreer(callIntoRenderer, meta.id, sender)
         rendererFunctions.set(objectId, callIntoRenderer)
         return callIntoRenderer
       }
@@ -327,7 +353,7 @@ ipcMain.on('ELECTRON_BROWSER_MEMBER_CALL', function (event, id, method, args) {
 ipcMain.on('ELECTRON_BROWSER_MEMBER_SET', function (event, id, name, value) {
   try {
     let obj = objectsRegistry.get(id)
-    obj[name] = value
+    obj[name] = unwrapArgs(event.sender, [value])[0]
     event.returnValue = null
   } catch (error) {
   	console.log("ELECTRON_BROWSER_MEMBER_SET error:" + error);
