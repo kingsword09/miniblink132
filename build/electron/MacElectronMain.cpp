@@ -373,12 +373,12 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof contentTracing.getTraceBufferUsage !== 'function') throw new Error('contentTracing buffer');"
                 "if (typeof contentTracing.recordInstantEvent !== 'function') throw new Error('contentTracing instant');"
                 "contentTracing.startRecording('electron,miniblink', 'record-continuously');"
-                "contentTracing.recordInstantEvent('runtime-smoke-native-trace');"
+                "contentTracing.recordInstantEvent('runtime-smoke-native-trace', '{\"ok\":true}');"
                 "const nativeTraceUsage = contentTracing.getTraceBufferUsage();"
                 "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 1) throw new Error('contentTracing usage');"
                 "const nativeTrace = JSON.parse(contentTracing.stopRecording());"
                 "if (!Array.isArray(nativeTrace.traceEvents)) throw new Error('contentTracing traceEvents');"
-                "if (!nativeTrace.traceEvents.some((event) => event.name === 'runtime-smoke-native-trace')) throw new Error('contentTracing native event');"
+                "if (!nativeTrace.traceEvents.some((event) => { if (event.name !== 'runtime-smoke-native-trace' || !event.args || typeof event.args.data !== 'string') return false; try { return JSON.parse(event.args.data).ok === true; } catch (error) { return false; } })) throw new Error('contentTracing native event');"
                 "true;";
             ok = runV8Script(context, scriptSource);
         }
@@ -940,12 +940,12 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "if (typeof contentTracing.getTraceBufferUsage !== 'function') throw new Error('contentTracing buffer');"
                 "if (typeof contentTracing.recordInstantEvent !== 'function') throw new Error('contentTracing instant');"
                 "contentTracing.startRecording('electron,miniblink', 'record-continuously');"
-                "contentTracing.recordInstantEvent('node-bootstrap-native-trace');"
+                "contentTracing.recordInstantEvent('node-bootstrap-native-trace', '{\"ok\":true}');"
                 "const nativeTraceUsage = contentTracing.getTraceBufferUsage();"
                 "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 1) throw new Error('contentTracing usage');"
                 "const nativeTrace = JSON.parse(contentTracing.stopRecording());"
                 "if (!Array.isArray(nativeTrace.traceEvents)) throw new Error('contentTracing traceEvents');"
-                "if (!nativeTrace.traceEvents.some((event) => event.name === 'node-bootstrap-native-trace')) throw new Error('contentTracing native event');"
+                "if (!nativeTrace.traceEvents.some((event) => { if (event.name !== 'node-bootstrap-native-trace' || !event.args || typeof event.args.data !== 'string') return false; try { return JSON.parse(event.args.data).ok === true; } catch (error) { return false; } })) throw new Error('contentTracing native event');"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);

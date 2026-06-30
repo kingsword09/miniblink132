@@ -1033,7 +1033,7 @@
     <ClInclude Include="..\..\base\trace_event\trace_event_etw_export_win.h" />
     <ClInclude Include="..\..\base\trace_event\trace_event_impl.h" />
     <ClInclude Include="..\..\base\trace_event\trace_event_memory_overhead.h" />
-    <ClInclude Include="..\..\base\trace_event\trace_event_stub.h" />
+    <ClInclude Include="..\..\base\trace_event\trace_event_lightweight.h" />
     <ClInclude Include="..\..\base\trace_event\trace_id_helper.h" />
     <ClInclude Include="..\..\base\trace_event\trace_log.h" />
     <ClInclude Include="..\..\base\trace_event\trace_logging_minimal_win.h" />
@@ -2600,7 +2600,7 @@
     <ClCompile Include="..\..\base\trace_event\trace_buffer.cc" />
     <ClCompile Include="..\..\base\trace_event\trace_config_category_filter.cc" />
     <ClCompile Include="..\..\base\trace_event\trace_event_empty.cc" />
-    <ClCompile Include="..\..\base\trace_event\trace_event_stub.cc" />
+    <ClCompile Include="..\..\base\trace_event\trace_event_lightweight.cc" />
     <ClCompile Include="..\..\base\trace_event\trace_id_helper.cc" />
     <ClCompile Include="..\..\base\trace_event\trace_logging_minimal_win.cc" />
     <ClCompile Include="..\..\base\trace_event\trace_log_constants.cc" />

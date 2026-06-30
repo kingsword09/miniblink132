@@ -1567,7 +1567,7 @@ if (constVal.isMac) {
     json[0].compile.src.push("${srcPath}/base/task/sequence_manager/task_time_observer.cc");
     json[0].compile.src.push("${srcPath}/base/threading/platform_thread_apple.mm");
     json[0].compile.src.push("${srcPath}/base/time/time_apple.mm");
-    json[0].compile.src.push("${srcPath}/base/trace_event/trace_event_stub.cc");
+    json[0].compile.src.push("${srcPath}/base/trace_event/trace_event_lightweight.cc");
     json[0].compile.src.push("${srcPath}/cc/paint/deferred_paint_record.cc");
     json[0].compile.src.push("${srcPath}/cc/raster/task.cc");
     json[0].compile.src.push("${srcPath}/services/network/public/cpp/cors/origin_access_list.cc");

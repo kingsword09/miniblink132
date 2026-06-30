@@ -132,7 +132,7 @@ def _WarnPbzeroIncludes(input_api, output_api):
         'gn arg "enable_base_tracing = false" when adding typed trace\n' +
         'events to //base. You can use "#if BUILDFLAG(ENABLE_BASE_TRACING)"\n' +
         'to exclude pbzero headers and anything not supported by\n' +
-        '//base/trace_event/trace_event_stub.h.\n' +
+        '//base/trace_event/trace_event_lightweight.h.\n' +
         '\n'.join(locations)) ]
   return []
 

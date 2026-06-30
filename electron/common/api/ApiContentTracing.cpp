@@ -6,7 +6,7 @@
 #include "base/functional/bind.h"
 #include "base/memory/ref_counted_memory.h"
 #include "base/trace_event/trace_config.h"
-#include "base/trace_event/trace_event_stub.h"
+#include "base/trace_event/trace_event_lightweight.h"
 #include "base/trace_event/trace_log.h"
 
 #include <string>
@@ -114,7 +114,12 @@ void recordInstantEventApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 
     const unsigned char* category = base::trace_event::TraceLog::GetCategoryGroupEnabled(g_recordingCategory.c_str());
     std::string name = stringFromV8(isolate, info[0]);
-    base::trace_event::TraceArguments args;
+    std::string data;
+    if (info.Length() > 1 && !info[1]->IsUndefined() && !info[1]->IsNull())
+        data = stringFromV8(isolate, info[1]);
+    base::trace_event::TraceArguments args = data.empty()
+        ? base::trace_event::TraceArguments()
+        : base::trace_event::TraceArguments("data", base::trace_event::TraceStringWithCopy(data.c_str()));
     base::trace_event::TraceLog::GetInstance()->AddTraceEvent(
         TRACE_EVENT_PHASE_INSTANT, category, name.c_str(), nullptr, 0, &args, TRACE_EVENT_SCOPE_PROCESS);
 }

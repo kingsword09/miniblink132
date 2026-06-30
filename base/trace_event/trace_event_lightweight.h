@@ -2,16 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef BASE_TRACE_EVENT_TRACE_EVENT_STUB_H_
-#define BASE_TRACE_EVENT_TRACE_EVENT_STUB_H_
+#ifndef BASE_TRACE_EVENT_TRACE_EVENT_LIGHTWEIGHT_H_
+#define BASE_TRACE_EVENT_TRACE_EVENT_LIGHTWEIGHT_H_
 
 #include <stddef.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 
 #include "base/base_export.h"
 #include "base/memory/scoped_refptr.h"
@@ -47,11 +50,11 @@ struct IgnoredValue {
 
 #define INTERNAL_TRACE_EVENT_UID2(prefix, line) prefix##line
 #define INTERNAL_TRACE_EVENT_UID(prefix, line) INTERNAL_TRACE_EVENT_UID2(prefix, line)
-#define INTERNAL_TRACE_EVENT_ADD(phase, category_group, name, flags)                                                                                           \
+#define INTERNAL_TRACE_EVENT_ADD(phase, category_group, name, flags, ...)                                                                                       \
     do {                                                                                                                                                       \
         const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
         if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
-            base::trace_event::TraceArguments trace_event_args;                                                                                                 \
+            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
             trace_event_internal::AddTraceEvent(phase, trace_event_category_group_enabled, name, nullptr, 0, &trace_event_args, flags);                         \
         }                                                                                                                                                      \
     } while (0)
@@ -61,7 +64,9 @@ struct IgnoredValue {
 // Defined in application_state_proto_android.h
 #define TRACE_APPLICATION_STATE(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
 
+#ifndef TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION
 #define TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION trace_event_internal::IgnoredValue
+#endif
 
 #define TRACE_ID_MANGLE(val) (val)
 
@@ -70,13 +75,16 @@ struct IgnoredValue {
 // Legacy trace macros
 #define TRACE_EVENT0(category_group, name) INTERNAL_TRACE_EVENT_SCOPED(category_group, name)
 #define TRACE_EVENT_WITH_FLOW0(category_group, name, bind_id, flags) TRACE_EVENT0(category_group, name)
-#define TRACE_EVENT1(category_group, name, ...) INTERNAL_TRACE_EVENT_SCOPED(category_group, name)
-#define TRACE_EVENT_WITH_FLOW1(category_group, name, bind_id, flags, ...) TRACE_EVENT1(category_group, name)
-#define TRACE_EVENT2(category_group, name, ...) INTERNAL_TRACE_EVENT_SCOPED(category_group, name)
-#define TRACE_EVENT_WITH_FLOW2(category_group, name, bind_id, flags, ...) TRACE_EVENT2(category_group, name)
+#define TRACE_EVENT1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COMPLETE, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_WITH_FLOW1(category_group, name, bind_id, flags, arg1_name, arg1_value) TRACE_EVENT1(category_group, name, arg1_name, arg1_value)
+#define TRACE_EVENT2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                         \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COMPLETE, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_WITH_FLOW2(category_group, name, bind_id, flags, arg1_name, arg1_value, arg2_name, arg2_value)                                              \
+    TRACE_EVENT2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
 #define TRACE_EVENT_INSTANT0(category_group, name, scope) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope)
-#define TRACE_EVENT_INSTANT1(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
-#define TRACE_EVENT_INSTANT2(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
+#define TRACE_EVENT_INSTANT1(category_group, name, scope, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope, arg1_name, arg1_value)
+#define TRACE_EVENT_INSTANT2(category_group, name, scope, arg1_name, arg1_value, arg2_name, arg2_value)                                                          \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope, arg1_name, arg1_value, arg2_name, arg2_value)
 #define TRACE_EVENT_COPY_INSTANT0(category_group, name, scope) TRACE_EVENT_INSTANT0(category_group, name, scope)
 #define TRACE_EVENT_COPY_INSTANT1(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
 #define TRACE_EVENT_COPY_INSTANT2(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
@@ -85,8 +93,9 @@ struct IgnoredValue {
 #define TRACE_EVENT_INSTANT_WITH_TIMESTAMP0(category_group, name, scope, timestamp) TRACE_EVENT_INSTANT0(category_group, name, scope)
 #define TRACE_EVENT_INSTANT_WITH_TIMESTAMP1(category_group, name, scope, timestamp, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
 #define TRACE_EVENT_BEGIN0(category_group, name) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE)
-#define TRACE_EVENT_BEGIN1(category_group, name, ...) TRACE_EVENT_BEGIN0(category_group, name)
-#define TRACE_EVENT_BEGIN2(category_group, name, ...) TRACE_EVENT_BEGIN0(category_group, name)
+#define TRACE_EVENT_BEGIN1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_BEGIN2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                   \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
 #define TRACE_EVENT_BEGIN_WITH_FLAGS0(category_group, name, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, flags)
 #define TRACE_EVENT_BEGIN_WITH_FLAGS1(category_group, name, flags, ...) TRACE_EVENT_BEGIN_WITH_FLAGS0(category_group, name, flags)
 #define TRACE_EVENT_COPY_BEGIN2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
@@ -95,8 +104,9 @@ struct IgnoredValue {
 #define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
 #define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
 #define TRACE_EVENT_END0(category_group, name) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE)
-#define TRACE_EVENT_END1(category_group, name, ...) TRACE_EVENT_END0(category_group, name)
-#define TRACE_EVENT_END2(category_group, name, ...) TRACE_EVENT_END0(category_group, name)
+#define TRACE_EVENT_END1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_END2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                     \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
 #define TRACE_EVENT_END_WITH_FLAGS0(category_group, name, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, flags)
 #define TRACE_EVENT_END_WITH_FLAGS1(category_group, name, flags, ...) TRACE_EVENT_END_WITH_FLAGS0(category_group, name, flags)
 #define TRACE_EVENT_COPY_END2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
@@ -110,13 +120,14 @@ struct IgnoredValue {
 #define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
 #define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
 #define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_COUNTER1(category_group, name, value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE)
-#define TRACE_COUNTER_WITH_FLAG1(category_group, name, value, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, flags)
+#define TRACE_COUNTER1(category_group, name, value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE, "value", value)
+#define TRACE_COUNTER_WITH_FLAG1(category_group, name, value, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, flags, "value", value)
 #define TRACE_COPY_COUNTER1(category_group, name, value) TRACE_COUNTER1(category_group, name, value)
-#define TRACE_COUNTER2(category_group, name, ...) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE)
-#define TRACE_COPY_COUNTER2(category_group, name, ...) TRACE_COUNTER2(category_group, name)
+#define TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                       \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_COPY_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value) TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
 #define TRACE_COUNTER_WITH_TIMESTAMP1(category_group, name, value, timestamp) TRACE_COUNTER1(category_group, name, value)
-#define TRACE_COUNTER_WITH_TIMESTAMP2(category_group, name, ...) TRACE_COUNTER2(category_group, name)
+#define TRACE_COUNTER_WITH_TIMESTAMP2(category_group, name, timestamp, arg1_name, arg1_value, arg2_name, arg2_value) TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
 #define TRACE_COUNTER_ID1(category_group, name, id, value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_HAS_ID)
 #define TRACE_COPY_COUNTER_ID1(category_group, name, id, value) TRACE_COUNTER_ID1(category_group, name, id, value)
 #define TRACE_COUNTER_ID2(category_group, name, id, ...) TRACE_COUNTER_ID1(category_group, name, id, 0)
@@ -273,6 +284,8 @@ struct TraceEventHandle {
 };
 #endif
 
+class TraceEventMemoryOverhead;
+
 class BASE_EXPORT ConvertableToTraceFormat {
 public:
     ConvertableToTraceFormat() = default;
@@ -285,6 +298,7 @@ public:
     // escaped. There is no processing applied to the content after it is
     // appended.
     virtual void AppendAsTraceFormat(std::string* out) const = 0;
+    virtual void EstimateTraceMemoryOverhead(TraceEventMemoryOverhead* overhead);
 };
 
 class BASE_EXPORT TracedValue : public ConvertableToTraceFormat {
@@ -484,9 +498,8 @@ union BASE_EXPORT TraceValue {
     //
     template <typename T> static TraceValue Make(T&& value)
     {
-        TraceValue ret;
-        *(int*)1 = 1;
-        //ret.Init(std::forward<T>(value));
+        TraceValue ret {};
+        ret.Init(std::forward<T>(value));
         return ret;
     }
 
@@ -501,6 +514,163 @@ union BASE_EXPORT TraceValue {
 
 private:
     void Append(unsigned char type, bool as_json, std::string* out) const;
+
+public:
+    template <typename T, class = void>
+    struct Helper {
+        static constexpr unsigned char kType = TRACE_VALUE_TYPE_COPY_STRING;
+        static inline void SetValue(TraceValue* v, const T&)
+        {
+            v->as_string = "";
+        }
+    };
+
+    template <typename T, class = void>
+    struct TypeFor {
+        static constexpr unsigned char value = Helper<std::decay_t<T>>::kType;
+    };
+
+    template <class T> void Init(T&& value)
+    {
+        using ValueType = std::decay_t<T>;
+        Helper<ValueType>::SetValue(this, std::forward<T>(value));
+    }
+};
+
+template <typename T>
+struct TraceValue::Helper<T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>> {
+    static constexpr unsigned char kType = std::is_signed_v<T> ? TRACE_VALUE_TYPE_INT : TRACE_VALUE_TYPE_UINT;
+    static inline void SetValue(TraceValue* v, T value)
+    {
+        if constexpr (std::is_signed_v<T>)
+            v->as_int = static_cast<long long>(value);
+        else
+            v->as_uint = static_cast<unsigned long long>(value);
+    }
+};
+
+template <typename T>
+struct TraceValue::Helper<T, std::enable_if_t<std::is_floating_point_v<T>>> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_DOUBLE;
+    static inline void SetValue(TraceValue* v, T value) { v->as_double = static_cast<double>(value); }
+};
+
+template <>
+struct TraceValue::Helper<bool> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_BOOL;
+    static inline void SetValue(TraceValue* v, bool value) { v->as_bool = value; }
+};
+
+template <>
+struct TraceValue::Helper<const void*> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_POINTER;
+    static inline void SetValue(TraceValue* v, const void* value) { v->as_pointer = value; }
+};
+
+template <>
+struct TraceValue::Helper<void*> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_POINTER;
+    static inline void SetValue(TraceValue* v, void* value) { v->as_pointer = value; }
+};
+
+template <typename T>
+struct TraceValue::Helper<T*, std::enable_if_t<!std::is_same_v<T, char> && !std::is_same_v<T, const char>>> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_POINTER;
+    static inline void SetValue(TraceValue* v, T* value) { v->as_pointer = value; }
+};
+
+template <>
+struct TraceValue::Helper<const char*> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_STRING;
+    static inline void SetValue(TraceValue* v, const char* value) { v->as_string = value; }
+};
+
+template <>
+struct TraceValue::Helper<char*> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_STRING;
+    static inline void SetValue(TraceValue* v, char* value) { v->as_string = value; }
+};
+
+template <>
+struct TraceValue::Helper<std::string> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_COPY_STRING;
+    static inline void SetValue(TraceValue* v, const std::string& value) { v->as_string = value.c_str(); }
+};
+
+template <>
+struct TraceValue::Helper<std::string_view> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_COPY_STRING;
+    static inline void SetValue(TraceValue* v, std::string_view value)
+    {
+        thread_local std::string storage;
+        storage.assign(value.data(), value.size());
+        v->as_string = storage.c_str();
+    }
+};
+
+template <typename CONVERTABLE_TYPE>
+struct TraceValue::Helper<std::unique_ptr<CONVERTABLE_TYPE>, std::enable_if_t<std::is_convertible_v<CONVERTABLE_TYPE*, ConvertableToTraceFormat*>>> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_CONVERTABLE;
+    static inline void SetValue(TraceValue* v, std::unique_ptr<CONVERTABLE_TYPE> value) { v->as_convertable = value.release(); }
+};
+
+class TraceStringWithCopy {
+public:
+    explicit TraceStringWithCopy(const char* str)
+        : str_(str)
+    {
+    }
+    const char* str() const { return str_; }
+
+private:
+    const char* str_;
+};
+
+template <>
+struct TraceValue::Helper<TraceStringWithCopy> {
+    static constexpr unsigned char kType = TRACE_VALUE_TYPE_COPY_STRING;
+    static inline void SetValue(TraceValue* v, const TraceStringWithCopy& value) { v->as_string = value.str(); }
+};
+
+class TraceArguments;
+
+class BASE_EXPORT StringStorage {
+public:
+    constexpr StringStorage() = default;
+    explicit StringStorage(size_t alloc_size) { Reset(alloc_size); }
+    ~StringStorage();
+
+    StringStorage(const StringStorage&) = delete;
+    StringStorage& operator=(const StringStorage&) = delete;
+    StringStorage(StringStorage&& other) noexcept;
+    StringStorage& operator=(StringStorage&& other) noexcept;
+
+    void Reset(size_t alloc_size = 0);
+
+    constexpr size_t size() const { return data_ ? data_->size : 0u; }
+    constexpr const char* data() const { return data_ ? data_->chars : nullptr; }
+    constexpr char* data() { return data_ ? data_->chars : nullptr; }
+    constexpr const char* begin() const { return data(); }
+    constexpr const char* end() const { return data() + size(); }
+    constexpr bool empty() const { return size() == 0; }
+    constexpr bool Contains(const void* ptr) const
+    {
+        const char* char_ptr = static_cast<const char*>(ptr);
+        return char_ptr >= begin() && char_ptr < end();
+    }
+    bool Contains(const TraceArguments& args) const;
+    constexpr size_t EstimateTraceMemoryOverhead() const
+    {
+        return data_ ? sizeof(size_t) + data_->size : 0u;
+    }
+
+private:
+    struct Data {
+        size_t size = 0;
+        char chars[1];
+    };
+
+    RAW_PTR_EXCLUSION Data* data_ = nullptr;
 };
 
 class BASE_EXPORT TraceArguments {
@@ -519,9 +689,9 @@ public:
     TraceArguments(const char* arg1_name, T&& arg1_value)
         : size_(1)
     {
-        //     types_[0] = TraceValue::TypeFor<T>::value;
-        //     names_[0] = arg1_name;
-        //     values_[0].Init(std::forward<T>(arg1_value));
+        types_[0] = TraceValue::TypeFor<T>::value;
+        names_[0] = arg1_name;
+        values_[0].Init(std::forward<T>(arg1_value));
     }
 
     // Constructor for two arguments.
@@ -530,12 +700,12 @@ public:
     TraceArguments(const char* arg1_name, T1&& arg1_value, const char* arg2_name, T2&& arg2_value)
         : size_(2)
     {
-        //     types_[0] = TraceValue::TypeFor<T1>::value;
-        //     types_[1] = TraceValue::TypeFor<T2>::value;
-        //     names_[0] = arg1_name;
-        //     names_[1] = arg2_name;
-        //     values_[0].Init(std::forward<T1>(arg1_value));
-        //     values_[1].Init(std::forward<T2>(arg2_value));
+        types_[0] = TraceValue::TypeFor<T1>::value;
+        types_[1] = TraceValue::TypeFor<T2>::value;
+        names_[0] = arg1_name;
+        names_[1] = arg2_name;
+        values_[0].Init(std::forward<T1>(arg1_value));
+        values_[1].Init(std::forward<T2>(arg2_value));
     }
 
     // Constructor used to convert a legacy set of arguments when there
@@ -548,32 +718,26 @@ public:
     TraceArguments(
         int num_args, const char* const* arg_names, const unsigned char* arg_types, const unsigned long long* arg_values, CONVERTABLE_TYPE* arg_convertables)
     {
-        //     static int max_args = static_cast<int>(kMaxSize);
-        //     if (num_args > max_args)
-        //       num_args = max_args;
-        //     size_ = static_cast<unsigned char>(num_args);
-        //     for (size_t n = 0; n < size_; ++n) {
-        //       types_[n] = arg_types[n];
-        //       names_[n] = arg_names[n];
-        //       if (arg_types[n] == TRACE_VALUE_TYPE_CONVERTABLE) {
-        //         values_[n].Init(
-        //           std::forward<CONVERTABLE_TYPE>(std::move(arg_convertables[n])));
-        //       }
-        //       else {
-        //         values_[n].as_uint = arg_values[n];
-        //       }
-        //     }
+        if (num_args > static_cast<int>(kMaxSize))
+            num_args = static_cast<int>(kMaxSize);
+        size_ = static_cast<unsigned char>(std::max(num_args, 0));
+        for (size_t n = 0; n < size_; ++n) {
+            types_[n] = arg_types ? arg_types[n] : TRACE_VALUE_TYPE_UINT;
+            names_[n] = arg_names ? arg_names[n] : nullptr;
+            if (types_[n] == TRACE_VALUE_TYPE_CONVERTABLE)
+                values_[n].Init(std::forward<CONVERTABLE_TYPE>(std::move(arg_convertables[n])));
+            else
+                values_[n].as_uint = arg_values ? arg_values[n] : 0;
+        }
     }
 
     // Destructor. NOTE: Intentionally inlined (see note above).
     ~TraceArguments()
     {
-        //     for (size_t n = 0; n < size_; ++n) {
-        //       if (types_[n] == TRACE_VALUE_TYPE_CONVERTABLE)
-        //         delete values_[n].as_convertable;
-        //       if (types_[n] == TRACE_VALUE_TYPE_PROTO)
-        //         delete values_[n].as_proto;
-        //     }
+        for (size_t n = 0; n < size_; ++n) {
+            if (types_[n] == TRACE_VALUE_TYPE_CONVERTABLE)
+                delete values_[n].as_convertable;
+        }
     }
 
     // Disallow copy operations.
@@ -604,10 +768,15 @@ public:
     {
         return names_;
     }
-    //const TraceValue* values() const { return values_; }
+    const TraceValue* values() const { return values_; }
 
     // Reset to empty arguments list.
     void Reset();
+
+    void CopyStringsTo(StringStorage* storage,
+        bool copy_all_strings,
+        const char** extra_string1,
+        const char** extra_string2);
 
     // Use |storage| to copy all copyable strings.
     // If |copy_all_strings| is false, then only the TRACE_VALUE_TYPE_COPY_STRING
@@ -627,7 +796,7 @@ private:
     unsigned char size_;
     unsigned char types_[kMaxSize];
     const char* names_[kMaxSize];
-    //TraceValue values_[kMaxSize];
+    TraceValue values_[kMaxSize];
 };
 
 } // namespace trace_event
@@ -725,7 +894,7 @@ private:
 
 } // namespace trace_event_internal
 
-// Stub implementation for
+// Lightweight implementation for
 // perfetto::StaticString/ThreadTrack/TracedValue/TracedDictionary/TracedArray/
 // Track.
 namespace perfetto {
@@ -1217,4 +1386,4 @@ ScopedTraceEvent::ScopedTraceEvent(const Category& category_group, const Name& n
 
 } // namespace trace_event_internal
 
-#endif // BASE_TRACE_EVENT_TRACE_EVENT_STUB_H_
+#endif // BASE_TRACE_EVENT_TRACE_EVENT_LIGHTWEIGHT_H_

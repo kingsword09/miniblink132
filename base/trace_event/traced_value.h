@@ -18,7 +18,7 @@
 #include "base/memory/raw_ptr_exclusion.h"
 #include "base/trace_event/trace_arguments.h"
 
-#include "base/trace_event/trace_event_stub.h"
+#include "base/trace_event/trace_event_lightweight.h"
 #if 0
 
 namespace base {

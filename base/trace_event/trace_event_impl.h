@@ -160,17 +160,16 @@ public:
     {
         return args_.names()[index];
     }
-    //   const TraceValue& arg_value(size_t index) const {
-    //     return args_.values()[index];
-    //   }
+    const TraceValue& arg_value(size_t index) const
+    {
+        return args_.values()[index];
+    }
 
     ConvertableToTraceFormat* arg_convertible_value(size_t index)
     {
-        //     return (arg_type(index) == TRACE_VALUE_TYPE_CONVERTABLE)
-        //                ? arg_value(index).as_convertable
-        //                : nullptr;
-        *(int*)1 = 1;
-        return nullptr;
+        return arg_type(index) == TRACE_VALUE_TYPE_CONVERTABLE
+            ? args_.values()[index].as_convertable
+            : nullptr;
     }
 
 private:
@@ -190,7 +189,7 @@ private:
     unsigned long long id_ = 0u;
     raw_ptr<const unsigned char> category_group_enabled_ = nullptr;
     const char* name_ = nullptr;
-    //StringStorage parameter_copy_storage_;
+    StringStorage parameter_copy_storage_;
     TraceArguments args_;
     // Depending on TRACE_EVENT_FLAG_HAS_PROCESS_ID the event will have either:
     //  tid: thread_id_, pid: current_process_id (default case).

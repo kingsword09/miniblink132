@@ -258,7 +258,7 @@ template <> struct BASE_EXPORT TraceTimestampTraits<::base::TimeTicks> {
 // disabled.
 // TODO(crbug/336718643): Make sure no code affected by
 // enable_base_tracing=false includes this file directly, then move the define
-// to trace_event_stub.h.
+// to trace_event_lightweight.h.
 #define TRACE_DISABLED_BY_DEFAULT(name) "disabled-by-default-" name
 
 #endif // !BUILDFLAG(ENABLE_BASE_TRACING)

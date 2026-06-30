@@ -2408,9 +2408,16 @@ async function runContentTracingSmoke() {
     assert.ok(Array.isArray(trace.traceEvents));
     assert.ok(trace.traceEvents.some(function(event) { return event.name === 'contentTracing.startRecording'; }));
     assert.ok(trace.traceEvents.some(function(event) { return event.name === 'smoke-snapshot'; }));
+    assert.ok(trace.traceEvents.some(function(event) {
+        return event.name === 'smoke-snapshot'
+            && event.args
+            && event.args.data
+            && event.args.data.ok === true;
+    }));
     assert.strictEqual(trace.metadata.product, 'miniblink-electron');
     assert.strictEqual(typeof trace.metadata.nodeTraceEventCount, 'number');
     assert.ok(trace.metadata.nodeTraceEventCount > 0);
+    assert.strictEqual(typeof trace.metadata.nativeTraceEventCount, 'number');
     assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.available, true);
     assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.enabled, true);
 

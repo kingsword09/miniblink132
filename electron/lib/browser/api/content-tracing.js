@@ -99,11 +99,13 @@ function addEvent(name, args) {
 }
 
 function addSnapshot(name, data) {
-  addEvent(name, {
+  const payload = {
     memoryUsage: process.memoryUsage ? process.memoryUsage() : null,
     resourceUsage: process.resourceUsage ? process.resourceUsage() : null,
     data: data || null
-  });
+  };
+  addEvent(name, payload);
+  return payload;
 }
 
 function parseCategoryFilter(filter) {
@@ -479,11 +481,12 @@ const contentTracing = {
   },
 
   _recordProcessSnapshot(name, data) {
-    addSnapshot(name || 'contentTracing.snapshot', data);
+    const eventName = name || 'contentTracing.snapshot';
+    const payload = addSnapshot(eventName, data);
     const binding = getNativeTracing();
     if (binding && typeof binding.recordInstantEvent === 'function') {
       try {
-        binding.recordInstantEvent(name || 'contentTracing.snapshot');
+        binding.recordInstantEvent(eventName, JSON.stringify(payload));
       } catch (error) {
       }
     }

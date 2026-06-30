@@ -2124,7 +2124,7 @@
     <ClInclude Include="..\..\base\trace_event\trace_event_memory_overhead.h">
       <Filter>src\trace_event</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\base\trace_event\trace_event_stub.h">
+    <ClInclude Include="..\..\base\trace_event\trace_event_lightweight.h">
       <Filter>src\trace_event</Filter>
     </ClInclude>
     <ClInclude Include="..\..\base\trace_event\trace_id_helper.h">

@@ -5,7 +5,10 @@
 #include <stddef.h>
 
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
+#include <inttypes.h>
 #include <memory>
 #include <optional>
 #include <ostream>
@@ -29,7 +32,7 @@
 #include "base/trace_event/trace_event_impl.h"
 #include "base/trace_event/trace_event_memory_overhead.h"
 #include "base/trace_event/trace_log.h"
-#include "base/trace_event/trace_event_stub.h"
+#include "base/trace_event/trace_event_lightweight.h"
 #include "base/unguessable_token.h"
 
 #if BUILDFLAG(USE_PERFETTO_TRACE_PROCESSOR)
@@ -115,6 +118,21 @@ TraceEventHandle MakeHandle(uint32_t value)
     return handle;
 }
 
+size_t GetAllocLength(const char* str)
+{
+    return str ? strlen(str) + 1 : 0;
+}
+
+void CopyTraceEventParameter(char** buffer, const char** member, const char* end)
+{
+    if (!member || !*member)
+        return;
+
+    size_t written = strlcpy(*buffer, *member, end - *buffer);
+    *member = *buffer;
+    *buffer += written + 1;
+}
+
 std::string SerializeTraceEvents(const std::vector<std::unique_ptr<TraceEvent>>& events,
     const ArgumentFilterPredicate& argument_filter_predicate)
 {
@@ -136,6 +154,10 @@ std::string SerializeTraceEvents(const std::vector<std::unique_ptr<TraceEvent>>&
 } // namespace
 
 ConvertableToTraceFormat::~ConvertableToTraceFormat() = default;
+
+void ConvertableToTraceFormat::EstimateTraceMemoryOverhead(TraceEventMemoryOverhead*)
+{
+}
 
 void TracedValue::AppendAsTraceFormat(std::string* out) const
 {
@@ -205,6 +227,7 @@ void TraceEvent::Reset()
     thread_timestamp_ = ThreadTicks();
     duration_ = TimeDelta::FromInternalValue(-1);
     thread_duration_ = TimeDelta();
+    parameter_copy_storage_.Reset();
     scope_ = nullptr;
     id_ = 0;
     category_group_enabled_ = nullptr;
@@ -241,8 +264,10 @@ void TraceEvent::Reset(PlatformThreadId thread_id,
     id_ = id;
     bind_id_ = bind_id;
     flags_ = flags;
-    if (args)
+    if (args) {
         args_ = std::move(*args);
+        args_.CopyStringsTo(&parameter_copy_storage_, !!(flags_ & TRACE_EVENT_FLAG_COPY), &name_, &scope_);
+    }
 }
 
 void TraceEvent::UpdateDuration(const TimeTicks& now, const ThreadTicks& thread_now)
@@ -253,15 +278,23 @@ void TraceEvent::UpdateDuration(const TimeTicks& now, const ThreadTicks& thread_
 
 void TraceEvent::EstimateTraceMemoryOverhead(TraceEventMemoryOverhead* overhead)
 {
+    if (!overhead)
+        return;
+    overhead->Add(TraceEventMemoryOverhead::kTraceEvent, parameter_copy_storage_.EstimateTraceMemoryOverhead());
+    for (size_t i = 0; i < arg_size(); ++i) {
+        if (arg_type(i) == TRACE_VALUE_TYPE_CONVERTABLE && arg_value(i).as_convertable)
+            arg_value(i).as_convertable->EstimateTraceMemoryOverhead(overhead);
+    }
     if (overhead)
         overhead->Add(TraceEventMemoryOverhead::kTraceEvent, sizeof(*this));
 }
 
-void TraceEvent::AppendAsJSON(std::string* out, const ArgumentFilterPredicate&) const
+void TraceEvent::AppendAsJSON(std::string* out, const ArgumentFilterPredicate& argument_filter_predicate) const
 {
     if (!out)
         return;
 
+    const char* category_group_name = TraceLog::GetCategoryGroupName(category_group_enabled_);
     const char* scope_name = scope_;
     char implicit_scope[2] = { 0, 0 };
     if (!scope_name && phase_ == TRACE_EVENT_PHASE_INSTANT) {
@@ -284,7 +317,7 @@ void TraceEvent::AppendAsJSON(std::string* out, const ArgumentFilterPredicate&) 
 
     out->push_back('{');
     out->append("\"cat\":");
-    AppendJsonEscaped(out, TraceLog::GetCategoryGroupName(category_group_enabled_));
+    AppendJsonEscaped(out, category_group_name);
     out->append(",\"name\":");
     AppendJsonEscaped(out, name_);
     out->append(",\"ph\":");
@@ -308,7 +341,28 @@ void TraceEvent::AppendAsJSON(std::string* out, const ArgumentFilterPredicate&) 
         out->append(base::StringPrintf(",\"id\":\"0x%llx\"", static_cast<unsigned long long>(id_)));
     if (bind_id_)
         out->append(base::StringPrintf(",\"bind_id\":\"0x%llx\"", static_cast<unsigned long long>(bind_id_)));
-    out->append(",\"args\":{}");
+    out->append(",\"args\":");
+
+    ArgumentNameFilterPredicate argument_name_filter_predicate;
+    bool strip_args = arg_size() > 0 && arg_name(0) && !argument_filter_predicate.is_null()
+        && !argument_filter_predicate.Run(category_group_name, name_, &argument_name_filter_predicate);
+
+    if (strip_args) {
+        AppendJsonEscaped(out, "__stripped__");
+    } else {
+        out->push_back('{');
+        for (size_t i = 0; i < arg_size() && arg_name(i); ++i) {
+            if (i)
+                out->push_back(',');
+            AppendJsonEscaped(out, arg_name(i));
+            out->push_back(':');
+            if (argument_name_filter_predicate.is_null() || argument_name_filter_predicate.Run(arg_name(i)))
+                arg_value(i).AppendAsJSON(arg_type(i), out);
+            else
+                AppendJsonEscaped(out, "__stripped__");
+        }
+        out->push_back('}');
+    }
     out->push_back('}');
 }
 
@@ -327,6 +381,115 @@ TraceArguments& TraceArguments::operator=(TraceArguments&& other) noexcept
     return *this;
 }
 
+StringStorage::~StringStorage()
+{
+    if (data_)
+        ::free(data_);
+}
+
+StringStorage::StringStorage(StringStorage&& other) noexcept
+    : data_(other.data_)
+{
+    other.data_ = nullptr;
+}
+
+StringStorage& StringStorage::operator=(StringStorage&& other) noexcept
+{
+    if (this != &other) {
+        if (data_)
+            ::free(data_);
+        data_ = other.data_;
+        other.data_ = nullptr;
+    }
+    return *this;
+}
+
+void StringStorage::Reset(size_t alloc_size)
+{
+    if (data_)
+        ::free(data_);
+    data_ = nullptr;
+    if (!alloc_size)
+        return;
+
+    data_ = static_cast<Data*>(::malloc(sizeof(Data) + alloc_size));
+    data_->size = alloc_size;
+}
+
+bool StringStorage::Contains(const TraceArguments& args) const
+{
+    for (size_t i = 0; i < args.size(); ++i) {
+        if (args.types()[i] == TRACE_VALUE_TYPE_COPY_STRING && !Contains(args.values()[i].as_string))
+            return false;
+    }
+    return true;
+}
+
+void TraceValue::AppendAsJSON(unsigned char type, std::string* out) const
+{
+    Append(type, true, out);
+}
+
+void TraceValue::AppendAsString(unsigned char type, std::string* out) const
+{
+    Append(type, false, out);
+}
+
+void TraceValue::Append(unsigned char type, bool as_json, std::string* out) const
+{
+    if (!out)
+        return;
+
+    switch (type) {
+    case TRACE_VALUE_TYPE_BOOL:
+        out->append(as_bool ? "true" : "false");
+        break;
+    case TRACE_VALUE_TYPE_UINT:
+        out->append(base::StringPrintf("%" PRIu64, static_cast<uint64_t>(as_uint)));
+        break;
+    case TRACE_VALUE_TYPE_INT:
+        out->append(base::StringPrintf("%" PRId64, static_cast<int64_t>(as_int)));
+        break;
+    case TRACE_VALUE_TYPE_DOUBLE:
+        if (std::isnan(as_double)) {
+            out->append(as_json ? "\"NaN\"" : "NaN");
+        } else if (!std::isfinite(as_double)) {
+            if (as_double < 0)
+                out->append(as_json ? "\"-Infinity\"" : "-Infinity");
+            else
+                out->append(as_json ? "\"Infinity\"" : "Infinity");
+        } else {
+            out->append(base::StringPrintf("%.17g", as_double));
+        }
+        break;
+    case TRACE_VALUE_TYPE_POINTER: {
+        std::string value = base::StringPrintf("0x%" PRIx64, static_cast<uint64_t>(reinterpret_cast<uintptr_t>(as_pointer)));
+        if (as_json)
+            AppendJsonEscaped(out, value.c_str());
+        else
+            out->append(value);
+        break;
+    }
+    case TRACE_VALUE_TYPE_STRING:
+    case TRACE_VALUE_TYPE_COPY_STRING:
+        if (as_json)
+            AppendJsonEscaped(out, as_string ? as_string : "NULL");
+        else
+            out->append(as_string ? as_string : "NULL");
+        break;
+    case TRACE_VALUE_TYPE_CONVERTABLE:
+        if (as_convertable)
+            as_convertable->AppendAsTraceFormat(out);
+        else if (as_json)
+            out->append("null");
+        break;
+    default:
+        if (as_json)
+            out->append("null");
+        break;
+    }
+}
+
 TraceArguments::TraceArguments(int num_args,
     const char* const* arg_names,
     const unsigned char* arg_types,
@@ -338,18 +501,74 @@ TraceArguments::TraceArguments(int num_args,
     for (size_t i = 0; i < size_; ++i) {
         types_[i] = arg_types ? arg_types[i] : TRACE_VALUE_TYPE_UINT;
         names_[i] = arg_names ? arg_names[i] : nullptr;
+        values_[i].as_uint = arg_values ? arg_values[i] : 0;
     }
 }
 
 void TraceArguments::Reset()
 {
+    for (size_t i = 0; i < size_; ++i) {
+        if (types_[i] == TRACE_VALUE_TYPE_CONVERTABLE)
+            delete values_[i].as_convertable;
+    }
     size_ = 0;
+}
+
+void TraceArguments::CopyStringsTo(StringStorage* storage,
+    bool copy_all_strings,
+    const char** extra_string1,
+    const char** extra_string2)
+{
+    if (!storage)
+        return;
+
+    size_t alloc_size = 0;
+    if (copy_all_strings) {
+        alloc_size += extra_string1 ? GetAllocLength(*extra_string1) : 0;
+        alloc_size += extra_string2 ? GetAllocLength(*extra_string2) : 0;
+        for (size_t i = 0; i < size_; ++i)
+            alloc_size += GetAllocLength(names_[i]);
+    }
+    for (size_t i = 0; i < size_; ++i) {
+        if (copy_all_strings && types_[i] == TRACE_VALUE_TYPE_STRING)
+            types_[i] = TRACE_VALUE_TYPE_COPY_STRING;
+        if (types_[i] == TRACE_VALUE_TYPE_COPY_STRING)
+            alloc_size += GetAllocLength(values_[i].as_string);
+    }
+
+    if (!alloc_size) {
+        storage->Reset();
+        return;
+    }
+
+    storage->Reset(alloc_size);
+    char* cursor = storage->data();
+    const char* end = cursor + alloc_size;
+    if (copy_all_strings) {
+        CopyTraceEventParameter(&cursor, extra_string1, end);
+        CopyTraceEventParameter(&cursor, extra_string2, end);
+        for (size_t i = 0; i < size_; ++i)
+            CopyTraceEventParameter(&cursor, &names_[i], end);
+    }
+    for (size_t i = 0; i < size_; ++i) {
+        if (types_[i] == TRACE_VALUE_TYPE_COPY_STRING)
+            CopyTraceEventParameter(&cursor, &values_[i].as_string, end);
+    }
 }
 
 void TraceArguments::AppendDebugString(std::string* out)
 {
-    if (out)
-        out->append("{}");
+    if (!out)
+        return;
+    out->append("TraceArguments(");
+    for (size_t i = 0; i < size_; ++i) {
+        if (i)
+            out->append(", ");
+        out->append(names_[i] ? names_[i] : "");
+        out->append("=");
+        values_[i].AppendAsString(types_[i], out);
+    }
+    out->push_back(')');
 }
 
 TraceConfig::MemoryDumpConfig::HeapProfiler::HeapProfiler()
