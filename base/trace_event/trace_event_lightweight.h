@@ -8,6 +8,7 @@
 #include <stddef.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
@@ -15,6 +16,7 @@
 #include <string_view>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "base/base_export.h"
 #include "base/memory/scoped_refptr.h"
@@ -25,183 +27,10 @@
 #include "base/trace_event/memory_allocator_dump_guid.h"
 #include "base/values.h"
 
-#define TRACE_STR_COPY(str) str
-#define TRACE_ID_WITH_SCOPE(scope, ...) 0
-#define TRACE_ID_GLOBAL(id) 0
-#define TRACE_ID_LOCAL(id) 0
-
-namespace trace_event_internal {
-
-const unsigned long long kNoId = 0;
-
-template <typename... Args> void Ignore(Args&&... args)
-{
-}
-
-struct IgnoredValue {
-    template <typename... Args> IgnoredValue(Args&&... args)
-    {
-    }
-};
-
-} // namespace trace_event_internal
-
-#define INTERNAL_TRACE_IGNORE(...) (false ? trace_event_internal::Ignore(__VA_ARGS__) : (void)0)
-
-#define INTERNAL_TRACE_EVENT_UID2(prefix, line) prefix##line
-#define INTERNAL_TRACE_EVENT_UID(prefix, line) INTERNAL_TRACE_EVENT_UID2(prefix, line)
-#define INTERNAL_TRACE_EVENT_ADD(phase, category_group, name, flags, ...)                                                                                       \
-    do {                                                                                                                                                       \
-        const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
-        if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
-            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
-            trace_event_internal::AddTraceEvent(phase, trace_event_category_group_enabled, name, nullptr, 0, &trace_event_args, flags);                         \
-        }                                                                                                                                                      \
-    } while (0)
-#define INTERNAL_TRACE_EVENT_SCOPED(category_group, name)                                                                                                      \
-    trace_event_internal::ScopedTraceEvent INTERNAL_TRACE_EVENT_UID(trace_event_scope_, __LINE__)(category_group, name)
-
-// Defined in application_state_proto_android.h
-#define TRACE_APPLICATION_STATE(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-
-#ifndef TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION
-#define TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION trace_event_internal::IgnoredValue
-#endif
-
-#define TRACE_ID_MANGLE(val) (val)
-
-#define TRACE_EVENT_API_CURRENT_THREAD_ID 0
-
-// Legacy trace macros
-#define TRACE_EVENT0(category_group, name) INTERNAL_TRACE_EVENT_SCOPED(category_group, name)
-#define TRACE_EVENT_WITH_FLOW0(category_group, name, bind_id, flags) TRACE_EVENT0(category_group, name)
-#define TRACE_EVENT1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COMPLETE, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
-#define TRACE_EVENT_WITH_FLOW1(category_group, name, bind_id, flags, arg1_name, arg1_value) TRACE_EVENT1(category_group, name, arg1_name, arg1_value)
-#define TRACE_EVENT2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                         \
-    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COMPLETE, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_EVENT_WITH_FLOW2(category_group, name, bind_id, flags, arg1_name, arg1_value, arg2_name, arg2_value)                                              \
-    TRACE_EVENT2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_EVENT_INSTANT0(category_group, name, scope) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope)
-#define TRACE_EVENT_INSTANT1(category_group, name, scope, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope, arg1_name, arg1_value)
-#define TRACE_EVENT_INSTANT2(category_group, name, scope, arg1_name, arg1_value, arg2_name, arg2_value)                                                          \
-    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_EVENT_COPY_INSTANT0(category_group, name, scope) TRACE_EVENT_INSTANT0(category_group, name, scope)
-#define TRACE_EVENT_COPY_INSTANT1(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
-#define TRACE_EVENT_COPY_INSTANT2(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
-#define TRACE_EVENT_INSTANT_WITH_FLAGS0(category_group, name, scope, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, (scope) | (flags))
-#define TRACE_EVENT_INSTANT_WITH_FLAGS1(category_group, name, scope, flags, ...) TRACE_EVENT_INSTANT_WITH_FLAGS0(category_group, name, scope, flags)
-#define TRACE_EVENT_INSTANT_WITH_TIMESTAMP0(category_group, name, scope, timestamp) TRACE_EVENT_INSTANT0(category_group, name, scope)
-#define TRACE_EVENT_INSTANT_WITH_TIMESTAMP1(category_group, name, scope, timestamp, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
-#define TRACE_EVENT_BEGIN0(category_group, name) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE)
-#define TRACE_EVENT_BEGIN1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
-#define TRACE_EVENT_BEGIN2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                   \
-    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_EVENT_BEGIN_WITH_FLAGS0(category_group, name, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, flags)
-#define TRACE_EVENT_BEGIN_WITH_FLAGS1(category_group, name, flags, ...) TRACE_EVENT_BEGIN_WITH_FLAGS0(category_group, name, flags)
-#define TRACE_EVENT_COPY_BEGIN2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_BEGIN_WITH_ID_TID_AND_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_END0(category_group, name) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE)
-#define TRACE_EVENT_END1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
-#define TRACE_EVENT_END2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                     \
-    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_EVENT_END_WITH_FLAGS0(category_group, name, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, flags)
-#define TRACE_EVENT_END_WITH_FLAGS1(category_group, name, flags, ...) TRACE_EVENT_END_WITH_FLAGS0(category_group, name, flags)
-#define TRACE_EVENT_COPY_END2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_MARK_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_MARK_WITH_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_MARK_WITH_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_MARK(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_MARK1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_MARK_WITH_TIMESTAMP(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_END_WITH_ID_TID_AND_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_COUNTER1(category_group, name, value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE, "value", value)
-#define TRACE_COUNTER_WITH_FLAG1(category_group, name, value, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, flags, "value", value)
-#define TRACE_COPY_COUNTER1(category_group, name, value) TRACE_COUNTER1(category_group, name, value)
-#define TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                       \
-    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_COPY_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value) TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_COUNTER_WITH_TIMESTAMP1(category_group, name, value, timestamp) TRACE_COUNTER1(category_group, name, value)
-#define TRACE_COUNTER_WITH_TIMESTAMP2(category_group, name, timestamp, arg1_name, arg1_value, arg2_name, arg2_value) TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
-#define TRACE_COUNTER_ID1(category_group, name, id, value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_HAS_ID)
-#define TRACE_COPY_COUNTER_ID1(category_group, name, id, value) TRACE_COUNTER_ID1(category_group, name, id, value)
-#define TRACE_COUNTER_ID2(category_group, name, id, ...) TRACE_COUNTER_ID1(category_group, name, id, 0)
-#define TRACE_COPY_COUNTER_ID2(category_group, name, id, ...) TRACE_COUNTER_ID2(category_group, name, id)
-#define TRACE_EVENT_SAMPLE_WITH_ID1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_BEGIN0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_BEGIN1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_BEGIN2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_BEGIN0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_BEGIN1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_BEGIN2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_BEGIN_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_BEGIN_WITH_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_BEGIN_WITH_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_BEGIN_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_STEP_INTO0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_STEP_INTO1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_STEP_INTO_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_STEP_PAST0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_STEP_PAST1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_END0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_END1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_END2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_END0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_END1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_END2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_END_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_END_WITH_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_ASYNC_END_WITH_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_ASYNC_END_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_FLAGS0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_FLAGS0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN_WITH_TTS2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END_WITH_TTS2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP_AND_FLAGS0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP_AND_FLAGS0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN2(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END_WITH_TIMESTAMP0(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_METADATA1(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_CLOCK_SYNC_RECEIVER(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_CLOCK_SYNC_ISSUER(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_OBJECT_CREATED_WITH_ID(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_OBJECT_SNAPSHOT_WITH_ID(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_OBJECT_SNAPSHOT_WITH_ID_AND_TIMESTAMP(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_OBJECT_DELETED_WITH_ID(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
-#define TRACE_EVENT_CATEGORY_GROUP_ENABLED(category_group, ret)                                                                                                \
-    do {                                                                                                                                                       \
-        *ret = trace_event_internal::CategoryGroupEnabled(category_group);                                                                                      \
-    } while (0)
-#define TRACE_EVENT_IS_NEW_TRACE(ret)                                                                                                                          \
-    do {                                                                                                                                                       \
-        *ret = trace_event_internal::GetNumTracesRecorded() > 0;                                                                                               \
-    } while (0)
+#define TRACE_STR_COPY(str) base::trace_event::TraceStringWithCopy(str)
+#define TRACE_ID_WITH_SCOPE(scope, id) trace_event_internal::TraceID::WithScope(scope, id)
+#define TRACE_ID_GLOBAL(id) trace_event_internal::TraceID::GlobalId(id)
+#define TRACE_ID_LOCAL(id) trace_event_internal::TraceID::LocalId(id)
 
 #define TRACE_EVENT_PHASE_BEGIN ('B')
 #define TRACE_EVENT_PHASE_END ('E')
@@ -261,12 +90,518 @@ struct IgnoredValue {
 #define TRACE_EVENT_SCOPE_NAME_PROCESS ('p')
 #define TRACE_EVENT_SCOPE_NAME_THREAD ('t')
 
-// Typed macros. The lightweight backend records event identity and timing while
-// intentionally ignoring Perfetto-specific tracks/debug annotations.
-#define TRACE_EVENT_BEGIN(category, name, ...) trace_event_internal::AddTypedTraceEvent(TRACE_EVENT_PHASE_BEGIN, category, name, TRACE_EVENT_FLAG_NONE)
-#define TRACE_EVENT_END(category, ...) trace_event_internal::AddTypedTraceEvent(TRACE_EVENT_PHASE_END, category, "TRACE_EVENT_END", TRACE_EVENT_FLAG_NONE)
-#define TRACE_EVENT(category, name, ...) INTERNAL_TRACE_EVENT_SCOPED(category, name)
-#define TRACE_EVENT_INSTANT(category, name, ...) trace_event_internal::AddTypedTraceEvent(TRACE_EVENT_PHASE_INSTANT, category, name, TRACE_EVENT_SCOPE_THREAD)
+namespace trace_event_internal {
+
+const unsigned long long kNoId = 0;
+
+template <typename... Args> void Ignore(Args&&... args)
+{
+}
+
+struct IgnoredValue {
+    template <typename... Args> IgnoredValue(Args&&... args)
+    {
+    }
+};
+
+#ifndef TRACE_EVENT_INTERNAL_TRACE_ID_DEFINED
+#define TRACE_EVENT_INTERNAL_TRACE_ID_DEFINED
+
+class TraceID {
+public:
+    class LocalId {
+    public:
+        explicit LocalId(const void* raw_id)
+            : raw_id_(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(raw_id)))
+        {
+        }
+        explicit LocalId(uint64_t raw_id)
+            : raw_id_(raw_id)
+        {
+        }
+        uint64_t raw_id() const { return raw_id_; }
+
+    private:
+        uint64_t raw_id_;
+    };
+
+    class GlobalId {
+    public:
+        explicit GlobalId(uint64_t raw_id)
+            : raw_id_(raw_id)
+        {
+        }
+        uint64_t raw_id() const { return raw_id_; }
+
+    private:
+        uint64_t raw_id_;
+    };
+
+    class WithScope {
+    public:
+        WithScope(const char* scope, uint64_t raw_id)
+            : scope_(scope)
+            , raw_id_(raw_id)
+        {
+        }
+        WithScope(const char* scope, LocalId local_id)
+            : scope_(scope)
+            , raw_id_(local_id.raw_id())
+            , id_flags_(TRACE_EVENT_FLAG_HAS_LOCAL_ID)
+        {
+        }
+        WithScope(const char* scope, GlobalId global_id)
+            : scope_(scope)
+            , raw_id_(global_id.raw_id())
+            , id_flags_(TRACE_EVENT_FLAG_HAS_GLOBAL_ID)
+        {
+        }
+        uint64_t raw_id() const { return raw_id_; }
+        const char* scope() const { return scope_; }
+        unsigned int id_flags() const { return id_flags_; }
+
+    private:
+        const char* scope_ = nullptr;
+        uint64_t raw_id_;
+        unsigned int id_flags_ = TRACE_EVENT_FLAG_HAS_ID;
+    };
+
+    explicit TraceID(const void* raw_id)
+        : raw_id_(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(raw_id)))
+        , id_flags_(TRACE_EVENT_FLAG_HAS_LOCAL_ID)
+    {
+    }
+    explicit TraceID(unsigned long long raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(unsigned long raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(unsigned int raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(unsigned short raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(unsigned char raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(long long raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(long raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(int raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(short raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(signed char raw_id)
+        : raw_id_(static_cast<uint64_t>(raw_id))
+    {
+    }
+    explicit TraceID(LocalId local_id)
+        : raw_id_(local_id.raw_id())
+        , id_flags_(TRACE_EVENT_FLAG_HAS_LOCAL_ID)
+    {
+    }
+    explicit TraceID(GlobalId global_id)
+        : raw_id_(global_id.raw_id())
+        , id_flags_(TRACE_EVENT_FLAG_HAS_GLOBAL_ID)
+    {
+    }
+    explicit TraceID(WithScope scoped_id)
+        : scope_(scoped_id.scope())
+        , raw_id_(scoped_id.raw_id())
+        , id_flags_(scoped_id.id_flags())
+    {
+    }
+
+    uint64_t raw_id() const { return raw_id_; }
+    const char* scope() const { return scope_; }
+    unsigned int id_flags() const { return id_flags_; }
+
+private:
+    const char* scope_ = nullptr;
+    uint64_t raw_id_;
+    unsigned int id_flags_ = TRACE_EVENT_FLAG_HAS_ID;
+};
+
+#endif // TRACE_EVENT_INTERNAL_TRACE_ID_DEFINED
+
+} // namespace trace_event_internal
+
+#define INTERNAL_TRACE_IGNORE(...) (false ? trace_event_internal::Ignore(__VA_ARGS__) : (void)0)
+
+#define INTERNAL_TRACE_EVENT_UID2(prefix, line) prefix##line
+#define INTERNAL_TRACE_EVENT_UID(prefix, line) INTERNAL_TRACE_EVENT_UID2(prefix, line)
+#define INTERNAL_TRACE_EVENT_ADD(phase, category_group, name, flags, ...)                                                                                       \
+    do {                                                                                                                                                       \
+        const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
+        if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
+            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
+            trace_event_internal::AddTraceEvent(phase, trace_event_category_group_enabled, name, nullptr, 0, &trace_event_args, flags);                         \
+        }                                                                                                                                                      \
+    } while (0)
+#define INTERNAL_TRACE_EVENT_ADD_WITH_ID(phase, category_group, name, id, flags, ...)                                                                           \
+    do {                                                                                                                                                       \
+        const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
+        if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
+            unsigned int trace_event_flags = (flags) | TRACE_EVENT_FLAG_HAS_ID;                                                                                 \
+            trace_event_internal::TraceID trace_event_id { id };                                                                                                \
+            trace_event_flags |= trace_event_id.id_flags();                                                                                                     \
+            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
+            trace_event_internal::AddTraceEvent(phase, trace_event_category_group_enabled, name, trace_event_id.scope(),                                        \
+                trace_event_id.raw_id(), &trace_event_args, trace_event_flags);                                                                                 \
+        }                                                                                                                                                      \
+    } while (0)
+#define INTERNAL_TRACE_EVENT_ADD_WITH_BIND_ID(phase, category_group, name, bind_id, flags, ...)                                                                \
+    do {                                                                                                                                                       \
+        const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
+        if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
+            unsigned int trace_event_flags = (flags);                                                                                                          \
+            trace_event_internal::TraceID trace_event_bind_id { bind_id };                                                                                      \
+            trace_event_flags |= trace_event_bind_id.id_flags();                                                                                                \
+            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
+            trace_event_internal::AddTraceEventWithBindId(phase, trace_event_category_group_enabled, name, nullptr, 0,                                          \
+                trace_event_bind_id.raw_id(), &trace_event_args, trace_event_flags);                                                                            \
+        }                                                                                                                                                      \
+    } while (0)
+#define INTERNAL_TRACE_EVENT_ADD_WITH_TIMESTAMP(phase, category_group, name, timestamp, flags, ...)                                                             \
+    do {                                                                                                                                                       \
+        const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
+        if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
+            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
+            trace_event_internal::AddTraceEventWithThreadIdAndTimestamp(phase, trace_event_category_group_enabled, name, nullptr, 0,                            \
+                TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, &trace_event_args, flags);                                                                        \
+        }                                                                                                                                                      \
+    } while (0)
+#define INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(phase, category_group, name, id, thread_id, timestamp, flags, ...)                                  \
+    do {                                                                                                                                                       \
+        const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
+        if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
+            unsigned int trace_event_flags = (flags) | TRACE_EVENT_FLAG_HAS_ID;                                                                                 \
+            trace_event_internal::TraceID trace_event_id { id };                                                                                                \
+            trace_event_flags |= trace_event_id.id_flags();                                                                                                     \
+            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
+            trace_event_internal::AddTraceEventWithThreadIdAndTimestamp(phase, trace_event_category_group_enabled, name, trace_event_id.scope(),                \
+                trace_event_id.raw_id(), thread_id, timestamp, &trace_event_args, trace_event_flags);                                                           \
+        }                                                                                                                                                      \
+    } while (0)
+#define INTERNAL_TRACE_EVENT_METADATA_ADD(category_group, name, ...)                                                                                            \
+    do {                                                                                                                                                       \
+        const unsigned char* trace_event_category_group_enabled = trace_event_internal::GetCategoryGroupEnabled(category_group);                                \
+        if (trace_event_category_group_enabled && *trace_event_category_group_enabled) {                                                                        \
+            base::trace_event::TraceArguments trace_event_args { __VA_ARGS__ };                                                                                 \
+            trace_event_internal::AddMetadataEvent(trace_event_category_group_enabled, name, &trace_event_args, TRACE_EVENT_FLAG_NONE);                         \
+        }                                                                                                                                                      \
+    } while (0)
+#define INTERNAL_TRACE_EVENT_SCOPED(category_group, name, ...)                                                                                                 \
+    INTERNAL_TRACE_TYPED_SCOPED_DISPATCH(category_group, name, ##__VA_ARGS__)
+#define INTERNAL_TRACE_TYPED_SCOPED_DISPATCH(category_group, name, ...)                                                                                        \
+    INTERNAL_TRACE_TYPED_SCOPED_PICK(_, ##__VA_ARGS__, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE,                                 \
+        INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE,        \
+        INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE,        \
+        INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE,        \
+        INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_RECORD2, INTERNAL_TRACE_TYPED_SCOPED_IGNORE,       \
+        INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_IGNORE, INTERNAL_TRACE_TYPED_SCOPED_0)(category_group, name, ##__VA_ARGS__)
+#define INTERNAL_TRACE_TYPED_SCOPED_PICK(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, NAME, ...) NAME
+#define INTERNAL_TRACE_TYPED_SCOPED_0(category_group, name)                                                                                                    \
+    trace_event_internal::ScopedTraceEvent INTERNAL_TRACE_EVENT_UID(trace_event_scope_, __LINE__)(category_group, name)
+#define INTERNAL_TRACE_TYPED_SCOPED_IGNORE(category_group, name, ...)                                                                                          \
+    trace_event_internal::ScopedTraceEvent INTERNAL_TRACE_EVENT_UID(trace_event_scope_, __LINE__)(category_group, name)
+#define INTERNAL_TRACE_TYPED_SCOPED_RECORD2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                \
+    trace_event_internal::ScopedTraceEvent INTERNAL_TRACE_EVENT_UID(trace_event_scope_, __LINE__)(category_group, name, arg1_name, arg1_value, arg2_name,      \
+        arg2_value)
+#define INTERNAL_TRACE_TYPED_EVENT_DISPATCH(phase, category, name, flags, ...)                                                                                 \
+    INTERNAL_TRACE_TYPED_EVENT_PICK(_, ##__VA_ARGS__, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE,                                    \
+        INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE,             \
+        INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE,             \
+        INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE,             \
+        INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_RECORD2, INTERNAL_TRACE_TYPED_EVENT_IGNORE,            \
+        INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_IGNORE, INTERNAL_TRACE_TYPED_EVENT_0)(phase, category, name, flags, ##__VA_ARGS__)
+#define INTERNAL_TRACE_TYPED_EVENT_PICK(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, NAME, ...) NAME
+#define INTERNAL_TRACE_TYPED_EVENT_0(phase, category, name, flags) trace_event_internal::AddTypedTraceEvent(phase, category, name, flags)
+#define INTERNAL_TRACE_TYPED_EVENT_IGNORE(phase, category, name, flags, ...) trace_event_internal::AddTypedTraceEvent(phase, category, name, flags)
+#define INTERNAL_TRACE_TYPED_EVENT_RECORD2(phase, category, name, flags, arg1_name, arg1_value, arg2_name, arg2_value)                                        \
+    trace_event_internal::AddTypedTraceEvent(phase, category, name, flags, arg1_name, arg1_value, arg2_name, arg2_value)
+
+// Defined in application_state_proto_android.h
+#define TRACE_APPLICATION_STATE(...) INTERNAL_TRACE_IGNORE(__VA_ARGS__)
+
+#ifndef TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION
+#define TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION trace_event_internal::IgnoredValue
+#endif
+
+#define TRACE_ID_MANGLE(val) (val)
+
+#define TRACE_EVENT_API_CURRENT_THREAD_ID 0
+
+// Legacy trace macros
+#define TRACE_EVENT0(category_group, name) INTERNAL_TRACE_EVENT_SCOPED(category_group, name)
+#define TRACE_EVENT_WITH_FLOW0(category_group, name, bind_id, flags)                                                                                           \
+    INTERNAL_TRACE_EVENT_ADD_WITH_BIND_ID(TRACE_EVENT_PHASE_COMPLETE, category_group, name, bind_id, flags)
+#define TRACE_EVENT1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COMPLETE, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_WITH_FLOW1(category_group, name, bind_id, flags, arg1_name, arg1_value)                                                                    \
+    INTERNAL_TRACE_EVENT_ADD_WITH_BIND_ID(TRACE_EVENT_PHASE_COMPLETE, category_group, name, bind_id, flags, arg1_name, arg1_value)
+#define TRACE_EVENT2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                         \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COMPLETE, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_WITH_FLOW2(category_group, name, bind_id, flags, arg1_name, arg1_value, arg2_name, arg2_value)                                              \
+    INTERNAL_TRACE_EVENT_ADD_WITH_BIND_ID(TRACE_EVENT_PHASE_COMPLETE, category_group, name, bind_id, flags, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_INSTANT0(category_group, name, scope) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope)
+#define TRACE_EVENT_INSTANT1(category_group, name, scope, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope, arg1_name, arg1_value)
+#define TRACE_EVENT_INSTANT2(category_group, name, scope, arg1_name, arg1_value, arg2_name, arg2_value)                                                          \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, scope, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_INSTANT0(category_group, name, scope) TRACE_EVENT_INSTANT0(category_group, name, scope)
+#define TRACE_EVENT_COPY_INSTANT1(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
+#define TRACE_EVENT_COPY_INSTANT2(category_group, name, scope, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
+#define TRACE_EVENT_INSTANT_WITH_FLAGS0(category_group, name, scope, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_INSTANT, category_group, name, (scope) | (flags))
+#define TRACE_EVENT_INSTANT_WITH_FLAGS1(category_group, name, scope, flags, ...) TRACE_EVENT_INSTANT_WITH_FLAGS0(category_group, name, scope, flags)
+#define TRACE_EVENT_INSTANT_WITH_TIMESTAMP0(category_group, name, scope, timestamp) TRACE_EVENT_INSTANT0(category_group, name, scope)
+#define TRACE_EVENT_INSTANT_WITH_TIMESTAMP1(category_group, name, scope, timestamp, ...) TRACE_EVENT_INSTANT0(category_group, name, scope)
+#define TRACE_EVENT_BEGIN0(category_group, name) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_BEGIN1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_BEGIN2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                   \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_BEGIN_WITH_FLAGS0(category_group, name, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, flags)
+#define TRACE_EVENT_BEGIN_WITH_FLAGS1(category_group, name, flags, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, flags, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_BEGIN2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                            \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_BEGIN, category_group, name, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_BEGIN_WITH_ID_TID_AND_TIMESTAMP0(category_group, name, id, thread_id, timestamp)                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP0(category_group, name, id, thread_id, timestamp)                                                     \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP1(category_group, name, id, thread_id, timestamp, arg1_name, arg1_value)                              \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_BEGIN_WITH_ID_TID_AND_TIMESTAMP2(category_group, name, id, thread_id, timestamp, arg1_name, arg1_value, arg2_name, arg2_value)       \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_END0(category_group, name) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_END1(category_group, name, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_END2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                     \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_END_WITH_FLAGS0(category_group, name, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, flags)
+#define TRACE_EVENT_END_WITH_FLAGS1(category_group, name, flags, arg1_name, arg1_value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, flags, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_END2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                              \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_END, category_group, name, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_MARK_WITH_TIMESTAMP0(category_group, name, timestamp)                                                                                     \
+    INTERNAL_TRACE_EVENT_ADD_WITH_TIMESTAMP(TRACE_EVENT_PHASE_MARK, category_group, name, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_MARK_WITH_TIMESTAMP1(category_group, name, timestamp, arg1_name, arg1_value)                                                              \
+    INTERNAL_TRACE_EVENT_ADD_WITH_TIMESTAMP(TRACE_EVENT_PHASE_MARK, category_group, name, timestamp, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_MARK_WITH_TIMESTAMP2(category_group, name, timestamp, arg1_name, arg1_value, arg2_name, arg2_value)                                       \
+    INTERNAL_TRACE_EVENT_ADD_WITH_TIMESTAMP(                                                                                                                  \
+        TRACE_EVENT_PHASE_MARK, category_group, name, timestamp, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_MARK(category_group, name) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_MARK, category_group, name, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_MARK1(category_group, name, arg1_name, arg1_value)                                                                                   \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_MARK, category_group, name, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_MARK_WITH_TIMESTAMP(category_group, name, timestamp)                                                                                 \
+    INTERNAL_TRACE_EVENT_ADD_WITH_TIMESTAMP(TRACE_EVENT_PHASE_MARK, category_group, name, timestamp, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_END_WITH_ID_TID_AND_TIMESTAMP0(category_group, name, id, thread_id, timestamp)                                                            \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP0(category_group, name, id, thread_id, timestamp)                                                       \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP1(category_group, name, id, thread_id, timestamp, arg1_name, arg1_value)                                \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_END_WITH_ID_TID_AND_TIMESTAMP2(category_group, name, id, thread_id, timestamp, arg1_name, arg1_value, arg2_name, arg2_value)         \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, thread_id, timestamp, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_COUNTER1(category_group, name, value) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE, "value", value)
+#define TRACE_COUNTER_WITH_FLAG1(category_group, name, value, flags) INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, flags, "value", value)
+#define TRACE_COPY_COUNTER1(category_group, name, value) TRACE_COUNTER1(category_group, name, value)
+#define TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)                                                                       \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_COUNTER, category_group, name, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_COPY_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value) TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_COUNTER_WITH_TIMESTAMP1(category_group, name, value, timestamp) TRACE_COUNTER1(category_group, name, value)
+#define TRACE_COUNTER_WITH_TIMESTAMP2(category_group, name, timestamp, arg1_name, arg1_value, arg2_name, arg2_value) TRACE_COUNTER2(category_group, name, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_COUNTER_ID1(category_group, name, id, value)                                                                                                    \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_COUNTER, category_group, name, id, TRACE_EVENT_FLAG_NONE, "value", value)
+#define TRACE_COPY_COUNTER_ID1(category_group, name, id, value)                                                                                                \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_COUNTER, category_group, name, id, TRACE_EVENT_FLAG_COPY, "value", value)
+#define TRACE_COUNTER_ID2(category_group, name, id, value1_name, value1_value, value2_name, value2_value)                                                     \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_COUNTER, category_group, name, id, TRACE_EVENT_FLAG_NONE,                                             \
+        value1_name, value1_value, value2_name, value2_value)
+#define TRACE_COPY_COUNTER_ID2(category_group, name, id, value1_name, value1_value, value2_name, value2_value)                                                \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_COUNTER, category_group, name, id, TRACE_EVENT_FLAG_COPY,                                             \
+        value1_name, value1_value, value2_name, value2_value)
+#define TRACE_EVENT_SAMPLE_WITH_ID1(category_group, name, id, arg1_name, arg1_value)                                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_SAMPLE, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_ASYNC_BEGIN0(category_group, name, id)                                                                                                    \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_ASYNC_BEGIN1(category_group, name, id, arg1_name, arg1_value)                                                                             \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_ASYNC_BEGIN2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                                      \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_ASYNC_BEGIN0(category_group, name, id)                                                                                               \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_ASYNC_BEGIN1(category_group, name, id, arg1_name, arg1_value)                                                                        \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_ASYNC_BEGIN2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                                 \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_ASYNC_BEGIN_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_ASYNC_BEGIN_WITH_TIMESTAMP1(category_group, name, id, timestamp, arg1_name, arg1_value)                                                   \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_ASYNC_BEGIN_WITH_TIMESTAMP2(category_group, name, id, timestamp, arg1_name, arg1_value, arg2_name, arg2_value)                            \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, \
+        TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_ASYNC_BEGIN_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                                     \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_ASYNC_STEP_INTO0(category_group, name, id, step)                                                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_STEP_INTO, category_group, name, id, TRACE_EVENT_FLAG_NONE, "step", step)
+#define TRACE_EVENT_ASYNC_STEP_INTO1(category_group, name, id, step, arg1_name, arg1_value)                                                                   \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_STEP_INTO, category_group, name, id, TRACE_EVENT_FLAG_NONE, "step", step, arg1_name, arg1_value)
+#define TRACE_EVENT_ASYNC_STEP_INTO_WITH_TIMESTAMP0(category_group, name, id, step, timestamp)                                                                \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_STEP_INTO, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE, "step", step)
+#define TRACE_EVENT_ASYNC_STEP_PAST0(category_group, name, id, step)                                                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_STEP_PAST, category_group, name, id, TRACE_EVENT_FLAG_NONE, "step", step)
+#define TRACE_EVENT_ASYNC_STEP_PAST1(category_group, name, id, step, arg1_name, arg1_value)                                                                   \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_STEP_PAST, category_group, name, id, TRACE_EVENT_FLAG_NONE, "step", step, arg1_name, arg1_value)
+#define TRACE_EVENT_ASYNC_END0(category_group, name, id)                                                                                                      \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_ASYNC_END1(category_group, name, id, arg1_name, arg1_value)                                                                               \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_ASYNC_END2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                                        \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_ASYNC_END0(category_group, name, id)                                                                                                 \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_ASYNC_END1(category_group, name, id, arg1_name, arg1_value)                                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_ASYNC_END2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                                   \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_ASYNC_END_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                                            \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_ASYNC_END_WITH_TIMESTAMP1(category_group, name, id, timestamp, arg1_name, arg1_value)                                                     \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_ASYNC_END_WITH_TIMESTAMP2(category_group, name, id, timestamp, arg1_name, arg1_value, arg2_name, arg2_value)                              \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp,   \
+        TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_ASYNC_END_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                                       \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN0(category_group, name, id)                                                                                           \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN1(category_group, name, id, arg1_name, arg1_value)                                                                    \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                             \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(                                                                                                                         \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_FLAGS0(category_group, name, id, flags)                                                                         \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, flags)
+#define TRACE_EVENT_NESTABLE_ASYNC_END0(category_group, name, id)                                                                                             \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_NESTABLE_ASYNC_END1(category_group, name, id, arg1_name, arg1_value)                                                                      \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_END2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                               \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(                                                                                                                         \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_FLAGS0(category_group, name, id, flags)                                                                           \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, flags)
+#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT0(category_group, name, id)                                                                                         \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_INSTANT, category_group, name, id, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT1(category_group, name, id, arg1_name, arg1_value)                                                                  \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_INSTANT, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                           \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(                                                                                                                         \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_INSTANT, category_group, name, id, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN_WITH_TTS2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                               \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_ASYNC_TTS | TRACE_EVENT_FLAG_COPY,    \
+        arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END_WITH_TTS2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                 \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_ASYNC_TTS | TRACE_EVENT_FLAG_COPY,      \
+        arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                                 \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP1(category_group, name, id, timestamp, arg1_name, arg1_value)                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id,                                      \
+        TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP_AND_FLAGS0(category_group, name, id, timestamp, flags)                                                \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, flags)
+#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                                   \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP1(category_group, name, id, timestamp, arg1_name, arg1_value)                                            \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID,     \
+        timestamp, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP2(category_group, name, id, timestamp, arg1_name, arg1_value, arg2_name, arg2_value)                     \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID,     \
+        timestamp, TRACE_EVENT_FLAG_NONE, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_NESTABLE_ASYNC_END_WITH_TIMESTAMP_AND_FLAGS0(category_group, name, id, timestamp, flags)                                                  \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, flags)
+#define TRACE_EVENT_NESTABLE_ASYNC_INSTANT_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                               \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_INSTANT, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN0(category_group, name, id)                                                                                      \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN1(category_group, name, id, arg1_name, arg1_value)                                                               \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN2(category_group, name, id, arg1_name, arg1_value, arg2_name, arg2_value)                                        \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value, arg2_name, arg2_value)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END0(category_group, name, id)                                                                                        \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                            \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP1(category_group, name, id, timestamp, arg1_name, arg1_value)                                     \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_NESTABLE_ASYNC_BEGIN, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID,   \
+        timestamp, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END_WITH_TIMESTAMP0(category_group, name, id, timestamp)                                                              \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(                                                                                                       \
+        TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID, timestamp, TRACE_EVENT_FLAG_COPY)
+#define TRACE_EVENT_COPY_NESTABLE_ASYNC_END1(category_group, name, id, arg1_name, arg1_value)                                                                 \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_NESTABLE_ASYNC_END, category_group, name, id, TRACE_EVENT_FLAG_COPY, arg1_name, arg1_value)
+#define TRACE_EVENT_METADATA1(category_group, name, arg1_name, arg1_value)                                                                                    \
+    INTERNAL_TRACE_EVENT_METADATA_ADD(category_group, name, arg1_name, arg1_value)
+#define TRACE_EVENT_CLOCK_SYNC_RECEIVER(sync_id)                                                                                                              \
+    INTERNAL_TRACE_EVENT_ADD(TRACE_EVENT_PHASE_CLOCK_SYNC, "__metadata", "clock_sync", TRACE_EVENT_FLAG_NONE, "sync_id", sync_id)
+#define TRACE_EVENT_CLOCK_SYNC_ISSUER(sync_id, issue_ts, issue_end_ts)                                                                                        \
+    INTERNAL_TRACE_EVENT_ADD_WITH_TIMESTAMP(TRACE_EVENT_PHASE_CLOCK_SYNC, "__metadata", "clock_sync", issue_end_ts, TRACE_EVENT_FLAG_NONE, "sync_id", sync_id, "issue_ts", issue_ts)
+#define TRACE_EVENT_OBJECT_CREATED_WITH_ID(category_group, name, id)                                                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_CREATE_OBJECT, category_group, name, id, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_OBJECT_SNAPSHOT_WITH_ID(category_group, name, id, snapshot)                                                                                \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_SNAPSHOT_OBJECT, category_group, name, id, TRACE_EVENT_FLAG_NONE, "snapshot", snapshot)
+#define TRACE_EVENT_OBJECT_SNAPSHOT_WITH_ID_AND_TIMESTAMP(category_group, name, id, timestamp, snapshot)                                                       \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID_TID_AND_TIMESTAMP(TRACE_EVENT_PHASE_SNAPSHOT_OBJECT, category_group, name, id, TRACE_EVENT_API_CURRENT_THREAD_ID,        \
+        timestamp, TRACE_EVENT_FLAG_NONE, "snapshot", snapshot)
+#define TRACE_EVENT_OBJECT_DELETED_WITH_ID(category_group, name, id)                                                                                          \
+    INTERNAL_TRACE_EVENT_ADD_WITH_ID(TRACE_EVENT_PHASE_DELETE_OBJECT, category_group, name, id, TRACE_EVENT_FLAG_NONE)
+#define TRACE_EVENT_CATEGORY_GROUP_ENABLED(category_group, ret)                                                                                                \
+    do {                                                                                                                                                       \
+        *ret = trace_event_internal::CategoryGroupEnabled(category_group);                                                                                      \
+    } while (0)
+#define TRACE_EVENT_IS_NEW_TRACE(ret)                                                                                                                          \
+    do {                                                                                                                                                       \
+        *ret = trace_event_internal::GetNumTracesRecorded() > 0;                                                                                               \
+    } while (0)
+
+// Typed macros. The lightweight backend records common "name", value debug
+// annotations and intentionally ignores Perfetto-only tracks/lambdas.
+#define TRACE_EVENT_BEGIN(category, name, ...) INTERNAL_TRACE_TYPED_EVENT_DISPATCH(TRACE_EVENT_PHASE_BEGIN, category, name, TRACE_EVENT_FLAG_NONE, ##__VA_ARGS__)
+#define TRACE_EVENT_END(category, ...) INTERNAL_TRACE_TYPED_EVENT_DISPATCH(TRACE_EVENT_PHASE_END, category, "TRACE_EVENT_END", TRACE_EVENT_FLAG_NONE, ##__VA_ARGS__)
+#define TRACE_EVENT(category, name, ...) INTERNAL_TRACE_EVENT_SCOPED(category, name, ##__VA_ARGS__)
+#define TRACE_EVENT_INSTANT(category, name, ...)                                                                                                               \
+    INTERNAL_TRACE_TYPED_EVENT_DISPATCH(TRACE_EVENT_PHASE_INSTANT, category, name, TRACE_EVENT_SCOPE_THREAD | TRACE_EVENT_FLAG_COPY, ##__VA_ARGS__)
 
 namespace base {
 
@@ -321,86 +656,70 @@ public:
         }
     };
 
-    explicit TracedValue(size_t capacity = 0)
-    {
-    }
+    explicit TracedValue(size_t capacity = 0);
 
     static DictionaryWriter Dictionary(std::initializer_list<DictionaryWriter::Entry> entries)
     {
         return DictionaryWriter(entries);
     }
 
-    void EndDictionary()
-    {
-    }
-    void EndArray()
-    {
-    }
+    void EndDictionary();
+    void EndArray();
 
-    void SetInteger(const char* name, int value)
-    {
-    }
-    void SetDouble(const char* name, double value)
-    {
-    }
-    void SetBoolean(const char* name, bool value)
-    {
-    }
-    void SetString(const char* name, std::string_view value)
-    {
-    }
-    void SetValue(const char* name, TracedValue* value)
-    {
-    }
-    void BeginDictionary(const char* name)
-    {
-    }
-    void BeginArray(const char* name)
-    {
-    }
+    void SetInteger(const char* name, int value);
+    void SetDouble(const char* name, double value);
+    void SetBoolean(const char* name, bool value);
+    void SetString(const char* name, std::string_view value);
+    void SetValue(const char* name, TracedValue* value);
+    void SetPointer(const char* name, const void* value);
+    void BeginDictionary(const char* name);
+    void BeginArray(const char* name);
 
-    void SetIntegerWithCopiedName(std::string_view name, int value)
-    {
-    }
-    void SetDoubleWithCopiedName(std::string_view name, double value)
-    {
-    }
-    void SetBooleanWithCopiedName(std::string_view name, bool value)
-    {
-    }
-    void SetStringWithCopiedName(std::string_view name, std::string_view value)
-    {
-    }
-    void SetValueWithCopiedName(std::string_view name, TracedValue* value)
-    {
-    }
-    void BeginDictionaryWithCopiedName(std::string_view name)
-    {
-    }
-    void BeginArrayWithCopiedName(std::string_view name)
-    {
-    }
+    void SetIntegerWithCopiedName(std::string_view name, int value);
+    void SetDoubleWithCopiedName(std::string_view name, double value);
+    void SetBooleanWithCopiedName(std::string_view name, bool value);
+    void SetStringWithCopiedName(std::string_view name, std::string_view value);
+    void SetValueWithCopiedName(std::string_view name, TracedValue* value);
+    void SetPointerWithCopiedName(std::string_view name, const void* value);
+    void BeginDictionaryWithCopiedName(std::string_view name);
+    void BeginArrayWithCopiedName(std::string_view name);
 
-    void AppendInteger(int)
-    {
-    }
-    void AppendDouble(double)
-    {
-    }
-    void AppendBoolean(bool)
-    {
-    }
-    void AppendString(std::string_view)
-    {
-    }
-    void BeginArray()
-    {
-    }
-    void BeginDictionary()
-    {
-    }
+    void AppendInteger(int value);
+    void AppendDouble(double value);
+    void AppendBoolean(bool value);
+    void AppendString(std::string_view value);
+    void AppendPointer(const void* value);
+    void BeginArray();
+    void BeginDictionary();
 
     void AppendAsTraceFormat(std::string* out) const override;
+
+private:
+    enum class ContainerKind {
+        kDictionary,
+        kArray,
+    };
+
+    struct ContainerState {
+        ContainerKind kind;
+        bool has_value = false;
+    };
+
+    static constexpr size_t kMaxContainerDepth = 32;
+
+    ContainerState* CurrentContainer();
+    const ContainerState* CurrentContainer() const;
+    bool PushContainer(ContainerKind kind);
+    void PopContainer();
+
+    void AppendName(std::string_view name);
+    void AppendValuePrefix();
+    void AppendRawValue(std::string_view value);
+    std::string ToTraceFormatString() const;
+
+    std::string json_;
+    std::array<ContainerState, kMaxContainerDepth> stack_ {};
+    size_t stack_size_ = 0;
 };
 
 class BASE_EXPORT TracedValueJSON : public TracedValue {
@@ -410,18 +729,9 @@ public:
     {
     }
 
-    std::unique_ptr<base::Value> ToBaseValue() const
-    {
-        return nullptr;
-    }
-    std::string ToJSON() const
-    {
-        return "";
-    }
-    std::string ToFormattedJSON() const
-    {
-        return "";
-    }
+    std::unique_ptr<base::Value> ToBaseValue() const;
+    std::string ToJSON() const;
+    std::string ToFormattedJSON() const;
 };
 
 struct MemoryDumpArgs;
@@ -881,6 +1191,8 @@ public:
     ScopedTraceEvent(const char* category_group, const char* name);
     template <typename Category, typename Name>
     ScopedTraceEvent(const Category& category_group, const Name& name);
+    template <typename Category, typename Name, typename... Args>
+    ScopedTraceEvent(const Category& category_group, const Name& name, Args&&... args);
     ScopedTraceEvent(const ScopedTraceEvent&) = delete;
     ScopedTraceEvent& operator=(const ScopedTraceEvent&) = delete;
     ~ScopedTraceEvent();
@@ -1323,6 +1635,18 @@ inline const char* TraceCStringOrNull(const char* value)
     return value;
 }
 
+template <size_t N>
+inline const char* TraceCStringOrNull(const char (&value)[N])
+{
+    return value;
+}
+
+template <size_t N>
+inline const char* TraceCStringOrNull(char (&value)[N])
+{
+    return value;
+}
+
 inline const char* TraceCStringOrNull(std::nullptr_t)
 {
     return nullptr;
@@ -1356,21 +1680,163 @@ std::string TraceStringCopy(const T& value)
     return ptr ? std::string(ptr) : std::string();
 }
 
+template <typename T>
+struct IsTypedTraceArgName : std::false_type {
+};
+
+template <>
+struct IsTypedTraceArgName<const char*> : std::true_type {
+};
+
+template <>
+struct IsTypedTraceArgName<char*> : std::true_type {
+};
+
+template <size_t N>
+struct IsTypedTraceArgName<const char (&)[N]> : std::true_type {
+};
+
+template <size_t N>
+struct IsTypedTraceArgName<char (&)[N]> : std::true_type {
+};
+
+template <size_t N>
+struct IsTypedTraceArgName<char[N]> : std::true_type {
+};
+
+template <size_t N>
+struct IsTypedTraceArgName<const char[N]> : std::true_type {
+};
+
+template <>
+struct IsTypedTraceArgName<perfetto::StaticString> : std::true_type {
+};
+
+template <>
+struct IsTypedTraceArgName<perfetto::DynamicString> : std::true_type {
+};
+
+template <typename T>
+inline constexpr bool IsTypedTraceArgNameV = IsTypedTraceArgName<std::remove_cv_t<std::remove_reference_t<T>>>::value;
+
+template <typename T>
+const char* TraceArgNameCString(const T& value)
+{
+    return TraceCStringOrNull(value);
+}
+
+template <typename Arg1Name, typename Arg1Value, typename Arg2Name, typename Arg2Value, typename... Rest>
+base::trace_event::TraceEventHandle AddTypedTraceEventWithTwoArgs(char phase,
+    const unsigned char* category_group_enabled,
+    const char* name,
+    unsigned int flags,
+    Arg1Name&& arg1_name,
+    Arg1Value&& arg1_value,
+    Arg2Name&& arg2_name,
+    Arg2Value&& arg2_value,
+    Rest&&... rest);
+
+inline base::trace_event::TraceEventHandle AddTypedTraceEventWithArgs(char phase,
+    const unsigned char* category_group_enabled,
+    const char* name,
+    unsigned int flags)
+{
+    base::trace_event::TraceArguments args;
+    return AddTraceEvent(phase, category_group_enabled, name, nullptr, 0, &args, flags | TRACE_EVENT_FLAG_COPY);
+}
+
+template <typename Arg>
+base::trace_event::TraceEventHandle AddTypedTraceEventWithArgs(char phase,
+    const unsigned char* category_group_enabled,
+    const char* name,
+    unsigned int flags,
+    Arg&& arg)
+{
+    INTERNAL_TRACE_IGNORE(std::forward<Arg>(arg));
+    return AddTypedTraceEventWithArgs(phase, category_group_enabled, name, flags);
+}
+
+template <typename ArgName, typename ArgValue, typename... Rest>
+base::trace_event::TraceEventHandle AddTypedTraceEventWithArgs(char phase,
+    const unsigned char* category_group_enabled,
+    const char* name,
+    unsigned int flags,
+    ArgName&& arg_name,
+    ArgValue&& arg_value,
+    Rest&&... rest)
+{
+    if constexpr (IsTypedTraceArgNameV<ArgName>) {
+        if constexpr (sizeof...(Rest) >= 2) {
+            return AddTypedTraceEventWithTwoArgs(phase, category_group_enabled, name, flags,
+                std::forward<ArgName>(arg_name), std::forward<ArgValue>(arg_value),
+                std::forward<Rest>(rest)...);
+        } else {
+            INTERNAL_TRACE_IGNORE(std::forward<Rest>(rest)...);
+            base::trace_event::TraceArguments args(TraceArgNameCString(arg_name), std::forward<ArgValue>(arg_value));
+            return AddTraceEvent(phase, category_group_enabled, name, nullptr, 0, &args, flags | TRACE_EVENT_FLAG_COPY);
+        }
+    } else {
+        INTERNAL_TRACE_IGNORE(std::forward<ArgName>(arg_name), std::forward<ArgValue>(arg_value), std::forward<Rest>(rest)...);
+        return AddTypedTraceEventWithArgs(phase, category_group_enabled, name, flags);
+    }
+}
+
+template <typename Arg1Name, typename Arg1Value, typename Arg2Name, typename Arg2Value, typename... Rest>
+base::trace_event::TraceEventHandle AddTypedTraceEventWithTwoArgs(char phase,
+    const unsigned char* category_group_enabled,
+    const char* name,
+    unsigned int flags,
+    Arg1Name&& arg1_name,
+    Arg1Value&& arg1_value,
+    Arg2Name&& arg2_name,
+    Arg2Value&& arg2_value,
+    Rest&&... rest)
+{
+    if constexpr (IsTypedTraceArgNameV<Arg2Name>) {
+        INTERNAL_TRACE_IGNORE(std::forward<Rest>(rest)...);
+        base::trace_event::TraceArguments args(TraceArgNameCString(arg1_name), std::forward<Arg1Value>(arg1_value),
+            TraceArgNameCString(arg2_name), std::forward<Arg2Value>(arg2_value));
+        return AddTraceEvent(phase, category_group_enabled, name, nullptr, 0, &args, flags | TRACE_EVENT_FLAG_COPY);
+    } else {
+        INTERNAL_TRACE_IGNORE(std::forward<Arg2Name>(arg2_name), std::forward<Arg2Value>(arg2_value), std::forward<Rest>(rest)...);
+        base::trace_event::TraceArguments args(TraceArgNameCString(arg1_name), std::forward<Arg1Value>(arg1_value));
+        return AddTraceEvent(phase, category_group_enabled, name, nullptr, 0, &args, flags | TRACE_EVENT_FLAG_COPY);
+    }
+}
+
 template <typename Category, typename Name>
-void AddTypedTraceEvent(char phase, const Category& category_group, const Name& name, unsigned int flags)
+base::trace_event::TraceEventHandle AddTypedTraceEvent(char phase, const Category& category_group, const Name& name, unsigned int flags)
 {
     std::string category_storage = TraceStringCopy(category_group);
     std::string name_storage = TraceStringCopy(name);
     const unsigned char* category_group_enabled = GetCategoryGroupEnabled(category_storage.c_str());
     if (!category_group_enabled || !*category_group_enabled)
-        return;
+        return {};
 
     base::trace_event::TraceArguments args;
-    AddTraceEvent(phase, category_group_enabled, name_storage.c_str(), nullptr, 0, &args, flags);
+    return AddTraceEvent(phase, category_group_enabled, name_storage.c_str(), nullptr, 0, &args, flags | TRACE_EVENT_FLAG_COPY);
+}
+
+template <typename Category, typename Name, typename... Args>
+base::trace_event::TraceEventHandle AddTypedTraceEvent(char phase, const Category& category_group, const Name& name, unsigned int flags, Args&&... args)
+{
+    std::string category_storage = TraceStringCopy(category_group);
+    std::string name_storage = TraceStringCopy(name);
+    const unsigned char* category_group_enabled = GetCategoryGroupEnabled(category_storage.c_str());
+    if (!category_group_enabled || !*category_group_enabled)
+        return {};
+
+    return AddTypedTraceEventWithArgs(phase, category_group_enabled, name_storage.c_str(), flags, std::forward<Args>(args)...);
 }
 
 template <typename Category, typename Name>
 ScopedTraceEvent::ScopedTraceEvent(const Category& category_group, const Name& name)
+    : ScopedTraceEvent(category_group, name, trace_event_internal::IgnoredValue())
+{
+}
+
+template <typename Category, typename Name, typename... Args>
+ScopedTraceEvent::ScopedTraceEvent(const Category& category_group, const Name& name, Args&&... args)
 {
     std::string category_storage = TraceStringCopy(category_group);
     name_storage_ = TraceStringCopy(name);
@@ -1379,9 +1845,8 @@ ScopedTraceEvent::ScopedTraceEvent(const Category& category_group, const Name& n
         return;
 
     name_ = name_storage_.c_str();
-    base::trace_event::TraceArguments args;
-    handle_ = AddTraceEvent(TRACE_EVENT_PHASE_BEGIN, category_group_enabled_, name_,
-        nullptr, 0, &args, TRACE_EVENT_FLAG_NONE);
+    handle_ = AddTypedTraceEventWithArgs(TRACE_EVENT_PHASE_BEGIN, category_group_enabled_, name_,
+        TRACE_EVENT_FLAG_COPY, std::forward<Args>(args)...);
 }
 
 } // namespace trace_event_internal

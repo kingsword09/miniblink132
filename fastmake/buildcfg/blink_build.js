@@ -5386,6 +5386,7 @@ if (!constVal.isBuildElectronMode) {
             "${srcPath}/third_party/brotli/include",
             "${srcPath}/third_party/libuv/include",
             "${srcPath}/third_party/libuv/src",
+            "${srcPath}/third_party/breakpad/src",
         ].forEach((path) => {
             if (json[0].compile.include.indexOf(path) < 0)
                 json[0].compile.include.push(path);
@@ -5473,6 +5474,7 @@ if (!constVal.isBuildElectronMode) {
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_intl_collator");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_asar");
         json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_content_tracing");
+        json[0].compile.endLibs.push("-Wl,-u,__register_electron_common_crash_reporter");
     } else if ("aarch64-linux-guneabi" == constVal.target) // ARM64
         json[0].compile.beginLibs.push("${sysroot}/usr/lib/gcc/aarch64-linux-gnu/10/crtbegin.o");
     else

@@ -1,6 +1,11 @@
 #include "base/message_loop/message_pump_type.h"
 #include "base/command_line.h"
+#include "base/functional/bind.h"
+#include "base/memory/ref_counted_memory.h"
 #include "base/task/single_thread_task_executor.h"
+#include "base/trace_event/trace_config.h"
+#include "base/trace_event/trace_event_lightweight.h"
+#include "base/trace_event/trace_log.h"
 #include "electron/common/AtomCommandLine.h"
 #include "electron/common/gin_helper/per_isolate_data.h"
 #include "linux/windows.h"
@@ -24,9 +29,13 @@ extern bool g_isElectronMode;
 
 extern "C" void nodeModuleInitRegister(void);
 extern "C" void _register_electron_common_content_tracing(void);
+extern "C" void _register_electron_common_crash_reporter(void);
+extern "C" int electronBreakpadCrashServiceMain(const char* portName, const char* crashDir, int parentPid);
 extern "C" bool electronMacNodeBridgeHasLinkedModule(const char* name);
 extern "C" bool electronMacNodeBridgeGetLinkedModuleRegistration(const char* name, node::addon_context_register_func* registerFunc, void** priv);
 extern "C" bool electronMacNodeBridgeGetLinkedBinding(const char* name, v8::Local<v8::Context> context, v8::Local<v8::Value>* out);
+extern "C" void* nodeCreateDefaultPlatform();
+extern "C" bool electronTracingControllerBridgeSmokeForTesting(v8::TracingController* controller);
 extern "C" bool electronMacNativeThemeSetAppearanceForTesting(bool dark);
 extern "C" void electronMacNativeThemeResetAppearanceForTesting();
 extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event);
@@ -39,6 +48,43 @@ bool hasArg(int argc, char** argv, const char* needle)
 {
     for (int i = 1; i < argc; ++i) {
         if (argv[i] && strcmp(argv[i], needle) == 0)
+            return true;
+    }
+    return false;
+}
+
+bool requireStringFragment(const std::string& value, const char* fragment)
+{
+    if (value.find(fragment) != std::string::npos)
+        return true;
+    fprintf(stderr, "missing trace fragment: %s\n", fragment);
+    return false;
+}
+
+std::string argValueWithPrefix(int argc, char** argv, const char* prefix)
+{
+    const size_t prefixLength = strlen(prefix);
+    for (int i = 1; i < argc; ++i) {
+        if (argv[i] && strncmp(argv[i], prefix, prefixLength) == 0)
+            return std::string(argv[i] + prefixLength);
+    }
+    return std::string();
+}
+
+int runBreakpadCrashService(int argc, char** argv)
+{
+    std::string portName = argValueWithPrefix(argc, argv, "--electron-breakpad-crash-port=");
+    std::string crashDir = argValueWithPrefix(argc, argv, "--electron-breakpad-crash-dir=");
+    std::string parentValue = argValueWithPrefix(argc, argv, "--electron-breakpad-crash-parent=");
+    int parentPid = parentValue.empty() ? -1 : atoi(parentValue.c_str());
+    return electronBreakpadCrashServiceMain(portName.c_str(), crashDir.c_str(), parentPid);
+}
+
+bool hasArgWithPrefix(int argc, char** argv, const char* prefix)
+{
+    const size_t prefixLength = strlen(prefix);
+    for (int i = 1; i < argc; ++i) {
+        if (argv[i] && strncmp(argv[i], prefix, prefixLength) == 0)
             return true;
     }
     return false;
@@ -208,6 +254,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
         v8::Local<v8::Object> intlCollator;
         v8::Local<v8::Object> asar;
         v8::Local<v8::Object> contentTracing;
+        v8::Local<v8::Object> crashReporter;
 
         ok = requireBinding(context, "electron_browser_native_theme", &nativeTheme)
             && requireFunctionProperty(context, nativeTheme, "electron_browser_native_theme", "shouldUseDarkColors")
@@ -290,7 +337,17 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
             && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "startRecording")
             && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "stopRecording")
             && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "getTraceBufferUsage")
-            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "recordInstantEvent");
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "getPerfettoStats")
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "getPerfettoTraceData")
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "recordInstantEvent")
+            && requireFunctionProperty(context, contentTracing, "electron_common_content_tracing", "recordCounter")
+            && requireBinding(context, "electron_common_crash_reporter", &crashReporter)
+            && requireFunctionProperty(context, crashReporter, "electron_common_crash_reporter", "writeMinidump")
+            && requireFunctionProperty(context, crashReporter, "electron_common_crash_reporter", "startCrashService")
+            && requireFunctionProperty(context, crashReporter, "electron_common_crash_reporter", "getCrashServiceStatus")
+            && requireFunctionProperty(context, crashReporter, "electron_common_crash_reporter", "requestCrashServiceDump")
+            && requireFunctionProperty(context, crashReporter, "electron_common_crash_reporter", "stopCrashService")
+            && requireFunctionProperty(context, crashReporter, "electron_common_crash_reporter", "installSignalHandlers");
 
         if (ok) {
             const char scriptSource[] =
@@ -326,6 +383,7 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
                 "const asar = process._linkedBinding('electron_common_asar');"
                 "const contentTracing = process._linkedBinding('electron_common_content_tracing');"
+                "const crashReporter = process._linkedBinding('electron_common_crash_reporter');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof app.App !== 'function') throw new Error('app');"
                 "if (typeof psb.setExecutionState !== 'function') throw new Error('powerSaveBlocker');"
@@ -371,14 +429,39 @@ bool runLinkedBindingRuntimeSmoke(int argc, char** argv)
                 "if (typeof contentTracing.startRecording !== 'function') throw new Error('contentTracing start');"
                 "if (typeof contentTracing.stopRecording !== 'function') throw new Error('contentTracing stop');"
                 "if (typeof contentTracing.getTraceBufferUsage !== 'function') throw new Error('contentTracing buffer');"
+                "if (typeof contentTracing.getPerfettoStats !== 'function') throw new Error('contentTracing perfetto stats');"
+                "if (typeof contentTracing.getPerfettoTraceData !== 'function') throw new Error('contentTracing perfetto trace data');"
                 "if (typeof contentTracing.recordInstantEvent !== 'function') throw new Error('contentTracing instant');"
+                "if (typeof contentTracing.recordCounter !== 'function') throw new Error('contentTracing counter');"
+                "if (typeof crashReporter.writeMinidump !== 'function') throw new Error('crashReporter minidump');"
+                "if (typeof crashReporter.installSignalHandlers !== 'function') throw new Error('crashReporter signals');"
+                "if (typeof crashReporter.startCrashService !== 'function') throw new Error('crashReporter service start');"
+                "if (typeof crashReporter.getCrashServiceStatus !== 'function') throw new Error('crashReporter service status');"
+                "if (typeof crashReporter.requestCrashServiceDump !== 'function') throw new Error('crashReporter service dump');"
+                "if (typeof crashReporter.stopCrashService !== 'function') throw new Error('crashReporter service stop');"
                 "contentTracing.startRecording('electron,miniblink', 'record-continuously');"
                 "contentTracing.recordInstantEvent('runtime-smoke-native-trace', '{\"ok\":true}');"
+                "contentTracing.recordCounter('runtime-smoke-native-counter', 42);"
                 "const nativeTraceUsage = contentTracing.getTraceBufferUsage();"
-                "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 1) throw new Error('contentTracing usage');"
+                "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 2) throw new Error('contentTracing usage');"
                 "const nativeTrace = JSON.parse(contentTracing.stopRecording());"
+                "const perfettoStats = contentTracing.getPerfettoStats();"
+                "const perfettoTraceData = contentTracing.getPerfettoTraceData();"
+                "if (!perfettoStats || perfettoStats.initialized !== true || perfettoStats.recording !== false || perfettoStats.eventCount < 2) throw new Error('contentTracing perfetto stats');"
+                "if (perfettoStats.lastTraceSize <= 0 || perfettoStats.lastTraceStatsSuccess !== true || perfettoStats.lastTraceStatsSize <= 0 || perfettoStats.tracePacketCount < 4 || perfettoStats.trackDescriptorPacketCount < 2 || perfettoStats.processDescriptorCount < 1 || perfettoStats.threadDescriptorCount < 1 || perfettoStats.trackEventPacketCount < 2 || perfettoStats.trackEventInstantCount < 1 || perfettoStats.trackEventCounterCount < 1 || perfettoStats.trackEventCounterValueCount < 1 || perfettoStats.trackEventTrackNameCount < 2 || perfettoStats.lastServiceStateSuccess !== true || perfettoStats.lastServiceStateSize <= 0 || perfettoStats.serviceStateDataSourceCount < 1 || perfettoStats.serviceStateNumSessionsStarted < 1) throw new Error('contentTracing perfetto service stats');"
+                "if (typeof perfettoTraceData !== 'string' || perfettoTraceData.length === 0) throw new Error('contentTracing perfetto trace data');"
                 "if (!Array.isArray(nativeTrace.traceEvents)) throw new Error('contentTracing traceEvents');"
                 "if (!nativeTrace.traceEvents.some((event) => { if (event.name !== 'runtime-smoke-native-trace' || !event.args || typeof event.args.data !== 'string') return false; try { return JSON.parse(event.args.data).ok === true; } catch (error) { return false; } })) throw new Error('contentTracing native event');"
+                "const nativeDumpPath = '/tmp/miniblink-runtime-smoke-' + Date.now() + '.dmp';"
+                "const nativeDump = crashReporter.writeMinidump(nativeDumpPath);"
+                "if (!nativeDump || nativeDump.path !== nativeDumpPath || nativeDump.size < 64 || nativeDump.threadCount < 1 || nativeDump.moduleCount < 1) throw new Error('crashReporter native dump metadata');"
+                "const serviceDir = '/tmp/miniblink-runtime-crash-service-' + Date.now();"
+                "const service = crashReporter.startCrashService(serviceDir);"
+                "if (!service || service.running !== true || service.outOfProcess !== true || service.pid < 1) throw new Error('crashReporter service metadata');"
+                "const serviceDumpPath = serviceDir + '/service.dmp';"
+                "const serviceDump = crashReporter.requestCrashServiceDump(serviceDumpPath);"
+                "if (!serviceDump || serviceDump.path !== serviceDumpPath || serviceDump.size < 64 || serviceDump.threadCount < 1 || serviceDump.moduleCount < 1 || serviceDump.outOfProcess !== true || serviceDump.servicePid !== service.pid) throw new Error('crashReporter service dump metadata');"
+                "if (crashReporter.stopCrashService() !== true) throw new Error('crashReporter service stop result');"
                 "true;";
             ok = runV8Script(context, scriptSource);
         }
@@ -796,6 +879,8 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
 
     std::vector<std::string> args;
     args.push_back(argc > 0 && argv[0] ? argv[0] : "miniblink");
+    if (!hasArgWithPrefix(argc, argv, "--electron-node-v8-flag=--jitless"))
+        args.push_back("--jitless");
     if (hasArg(argc, argv, "--electron-node-bootstrap-no-short-builtin-calls"))
         args.push_back("--no-short-builtin-calls");
     const char v8FlagPrefix[] = "--electron-node-v8-flag=";
@@ -877,7 +962,8 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
             && addNodeLinkedBinding(setup->env(), "electron_common_original_fs")
             && addNodeLinkedBinding(setup->env(), "electron_common_intl_collator")
             && addNodeLinkedBinding(setup->env(), "electron_common_asar")
-            && addNodeLinkedBinding(setup->env(), "electron_common_content_tracing");
+            && addNodeLinkedBinding(setup->env(), "electron_common_content_tracing")
+            && addNodeLinkedBinding(setup->env(), "electron_common_crash_reporter");
 
         if (ok) {
             const char scriptSource[] =
@@ -908,6 +994,7 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "const intlCollator = process._linkedBinding('electron_common_intl_collator');"
                 "const asar = process._linkedBinding('electron_common_asar');"
                 "const contentTracing = process._linkedBinding('electron_common_content_tracing');"
+                "const crashReporter = process._linkedBinding('electron_common_crash_reporter');"
                 "if (typeof appBinding.App !== 'function') throw new Error('app');"
                 "if (typeof theme.shouldUseDarkColors !== 'function') throw new Error('nativeTheme');"
                 "if (typeof powerMonitor.ApiPowerMonitor !== 'function') throw new Error('powerMonitor');"
@@ -938,14 +1025,50 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
                 "if (typeof contentTracing.startRecording !== 'function') throw new Error('contentTracing start');"
                 "if (typeof contentTracing.stopRecording !== 'function') throw new Error('contentTracing stop');"
                 "if (typeof contentTracing.getTraceBufferUsage !== 'function') throw new Error('contentTracing buffer');"
+                "if (typeof contentTracing.getPerfettoStats !== 'function') throw new Error('contentTracing perfetto stats');"
+                "if (typeof contentTracing.getPerfettoTraceData !== 'function') throw new Error('contentTracing perfetto trace data');"
                 "if (typeof contentTracing.recordInstantEvent !== 'function') throw new Error('contentTracing instant');"
+                "if (typeof contentTracing.recordCounter !== 'function') throw new Error('contentTracing counter');"
+                "if (typeof crashReporter.writeMinidump !== 'function') throw new Error('crashReporter minidump');"
+                "if (typeof crashReporter.installSignalHandlers !== 'function') throw new Error('crashReporter signals');"
+                "if (typeof crashReporter.startCrashService !== 'function') throw new Error('crashReporter service start');"
+                "if (typeof crashReporter.getCrashServiceStatus !== 'function') throw new Error('crashReporter service status');"
+                "if (typeof crashReporter.requestCrashServiceDump !== 'function') throw new Error('crashReporter service dump');"
+                "if (typeof crashReporter.stopCrashService !== 'function') throw new Error('crashReporter service stop');"
                 "contentTracing.startRecording('electron,miniblink', 'record-continuously');"
                 "contentTracing.recordInstantEvent('node-bootstrap-native-trace', '{\"ok\":true}');"
+                "contentTracing.recordCounter('node-bootstrap-native-counter', 64);"
                 "const nativeTraceUsage = contentTracing.getTraceBufferUsage();"
-                "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 1) throw new Error('contentTracing usage');"
+                "if (!nativeTraceUsage || nativeTraceUsage.eventCount < 2) throw new Error('contentTracing usage');"
                 "const nativeTrace = JSON.parse(contentTracing.stopRecording());"
+                "const perfettoStats = contentTracing.getPerfettoStats();"
+                "const perfettoTraceData = contentTracing.getPerfettoTraceData();"
+                "if (!perfettoStats || perfettoStats.initialized !== true || perfettoStats.recording !== false || perfettoStats.eventCount < 2) throw new Error('contentTracing perfetto stats');"
+                "if (perfettoStats.lastTraceSize <= 0 || perfettoStats.lastTraceStatsSuccess !== true || perfettoStats.lastTraceStatsSize <= 0 || perfettoStats.tracePacketCount < 4 || perfettoStats.trackDescriptorPacketCount < 2 || perfettoStats.processDescriptorCount < 1 || perfettoStats.threadDescriptorCount < 1 || perfettoStats.trackEventPacketCount < 2 || perfettoStats.trackEventInstantCount < 1 || perfettoStats.trackEventCounterCount < 1 || perfettoStats.trackEventCounterValueCount < 1 || perfettoStats.trackEventTrackNameCount < 2 || perfettoStats.lastServiceStateSuccess !== true || perfettoStats.lastServiceStateSize <= 0 || perfettoStats.serviceStateDataSourceCount < 1 || perfettoStats.serviceStateNumSessionsStarted < 1) throw new Error('contentTracing perfetto service stats');"
+                "if (typeof perfettoTraceData !== 'string' || perfettoTraceData.length === 0) throw new Error('contentTracing perfetto trace data');"
                 "if (!Array.isArray(nativeTrace.traceEvents)) throw new Error('contentTracing traceEvents');"
                 "if (!nativeTrace.traceEvents.some((event) => { if (event.name !== 'node-bootstrap-native-trace' || !event.args || typeof event.args.data !== 'string') return false; try { return JSON.parse(event.args.data).ok === true; } catch (error) { return false; } })) throw new Error('contentTracing native event');"
+                "contentTracing.startRecording('disabled-by-default-memory-infra,electron,miniblink', 'record-continuously', { enabled: true, mode: 'browser', samplingRate: 4096, stackMode: 'native' });"
+                "contentTracing.recordInstantEvent('node-bootstrap-heap-trace', '{\"heap\":true}');"
+                "const heapTrace = JSON.parse(contentTracing.stopRecording());"
+                "if (!heapTrace.traceEvents.some((event) => event.name === 'HeapProfiler.session' && event.args && event.args.enabled === true && event.args.memoryInfraCategoryEnabled === true && event.args.samplingRate === 4096 && event.args.stackMode === 'native')) throw new Error('contentTracing heap profiler session');"
+                "const nativeDumpPath = '/tmp/miniblink-node-bootstrap-smoke-' + Date.now() + '.dmp';"
+                "const nativeDump = crashReporter.writeMinidump(nativeDumpPath);"
+                "if (!nativeDump || nativeDump.path !== nativeDumpPath || nativeDump.size < 64 || nativeDump.threadCount < 1 || nativeDump.moduleCount < 1) throw new Error('crashReporter native dump metadata');"
+                "const fs = require('fs');"
+                "const sig = fs.readFileSync(nativeDumpPath, { encoding: 'latin1' }).slice(0, 4);"
+                "fs.unlinkSync(nativeDumpPath);"
+                "if (sig !== 'MDMP') throw new Error('crashReporter native dump signature');"
+                "const serviceDir = '/tmp/miniblink-node-bootstrap-crash-service-' + Date.now();"
+                "const service = crashReporter.startCrashService(serviceDir);"
+                "if (!service || service.running !== true || service.outOfProcess !== true || service.pid < 1) throw new Error('crashReporter service metadata');"
+                "const serviceDumpPath = serviceDir + '/service.dmp';"
+                "const serviceDump = crashReporter.requestCrashServiceDump(serviceDumpPath);"
+                "if (!serviceDump || serviceDump.path !== serviceDumpPath || serviceDump.size < 64 || serviceDump.threadCount < 1 || serviceDump.moduleCount < 1 || serviceDump.outOfProcess !== true || serviceDump.servicePid !== service.pid) throw new Error('crashReporter service dump metadata');"
+                "const serviceSig = fs.readFileSync(serviceDumpPath, { encoding: 'latin1' }).slice(0, 4);"
+                "fs.unlinkSync(serviceDumpPath);"
+                "if (serviceSig !== 'MDMP') throw new Error('crashReporter service dump signature');"
+                "if (crashReporter.stopCrashService() !== true) throw new Error('crashReporter service stop result');"
                 "true;";
             v8::TryCatch tryCatch(isolate);
             v8::MaybeLocal<v8::Value> result = node::LoadEnvironment(setup->env(), scriptSource);
@@ -969,6 +1092,147 @@ bool runNodeBootstrapSmoke(int argc, char** argv)
         return false;
 
     printf("PASS electron-node-bootstrap-smoke\n");
+    return true;
+}
+
+bool runTracingControllerBridgeSmoke()
+{
+    v8::Platform* platform = static_cast<v8::Platform*>(nodeCreateDefaultPlatform());
+    if (!platform) {
+        fprintf(stderr, "nodeCreateDefaultPlatform did not return a platform\n");
+        return false;
+    }
+
+    v8::TracingController* controller = platform->GetTracingController();
+    if (!controller) {
+        fprintf(stderr, "platform did not expose a tracing controller\n");
+        return false;
+    }
+
+    if (node::GetTracingController() != controller) {
+        fprintf(stderr, "Node tracing controller is not installed from the mac platform\n");
+        return false;
+    }
+
+    if (!electronTracingControllerBridgeSmokeForTesting(controller)) {
+        fprintf(stderr, "tracing controller did not record into TraceLog/Perfetto\n");
+        return false;
+    }
+
+    printf("PASS electron-tracing-controller-bridge-smoke\n");
+    return true;
+}
+
+bool runContentTracingNativeMacroSmoke()
+{
+    base::trace_event::TraceLog* traceLog = base::trace_event::TraceLog::GetInstance();
+    traceLog->SetEnabled(
+        base::trace_event::TraceConfig("*", "record-continuously"),
+        base::trace_event::TraceLog::RECORDING_MODE);
+
+    int flowMarker = 1;
+    int objectMarker = 2;
+    int nestableMarker = 3;
+    TRACE_EVENT_WITH_FLOW0("electron", "native-flow-zero", TRACE_ID_LOCAL(&flowMarker), TRACE_EVENT_FLAG_FLOW_OUT);
+    TRACE_EVENT_WITH_FLOW1("electron", "native-flow-one", TRACE_ID_GLOBAL(0x123456),
+        TRACE_EVENT_FLAG_FLOW_IN | TRACE_EVENT_FLAG_FLOW_OUT, "state", TRACE_STR_COPY("flow-ok"));
+    TRACE_EVENT_ASYNC_BEGIN1("electron", "native-async", TRACE_ID_WITH_SCOPE("native-scope", TRACE_ID_LOCAL(0x44)),
+        "step", TRACE_STR_COPY("begin"));
+    TRACE_EVENT_ASYNC_STEP_INTO1("electron", "native-async", TRACE_ID_WITH_SCOPE("native-scope", TRACE_ID_LOCAL(0x44)),
+        "middle", "value", 3);
+    TRACE_EVENT_ASYNC_END1("electron", "native-async", TRACE_ID_WITH_SCOPE("native-scope", TRACE_ID_LOCAL(0x44)),
+        "step", TRACE_STR_COPY("end"));
+    TRACE_EVENT_NESTABLE_ASYNC_BEGIN1("electron", "native-nestable", TRACE_ID_LOCAL(&nestableMarker),
+        "state", TRACE_STR_COPY("begin"));
+    TRACE_EVENT_NESTABLE_ASYNC_INSTANT1("electron", "native-nestable", TRACE_ID_LOCAL(&nestableMarker),
+        "state", TRACE_STR_COPY("instant"));
+    TRACE_EVENT_NESTABLE_ASYNC_END1("electron", "native-nestable", TRACE_ID_LOCAL(&nestableMarker),
+        "state", TRACE_STR_COPY("end"));
+    TRACE_COUNTER_ID1("electron", "native-counter-id", TRACE_ID_GLOBAL(0x77), 99);
+    TRACE_EVENT_METADATA1("__metadata", "native-metadata-event", "value", TRACE_STR_COPY("metadata-ok"));
+    TRACE_EVENT_CLOCK_SYNC_RECEIVER("native-clock-sync");
+    TRACE_EVENT_OBJECT_CREATED_WITH_ID("electron", "native-object-event", TRACE_ID_LOCAL(&objectMarker));
+    TRACE_EVENT_OBJECT_SNAPSHOT_WITH_ID("electron", "native-object-event", TRACE_ID_LOCAL(&objectMarker), TRACE_STR_COPY("snapshot-ok"));
+    TRACE_EVENT_OBJECT_DELETED_WITH_ID("electron", "native-object-event", TRACE_ID_LOCAL(&objectMarker));
+    {
+        TRACE_EVENT("electron", "native-typed-scoped", "typedArg", 42, "typedText", TRACE_STR_COPY("scoped-ok"));
+    }
+    TRACE_EVENT_BEGIN("electron", "native-typed-begin", "beginArg", 7, "beginText", TRACE_STR_COPY("two"));
+    TRACE_EVENT_END("electron", "endArg", 9, "endText", TRACE_STR_COPY("done"));
+    TRACE_EVENT_INSTANT("electron", "native-typed-instant", "typedText", TRACE_STR_COPY("ok"), "typedNumber", 13);
+    {
+        auto structured = std::make_unique<base::trace_event::TracedValue>();
+        structured->SetString("structured", "traced-value-ok");
+        structured->SetInteger("count", 5);
+        structured->BeginArray("items");
+        structured->AppendString("first");
+        structured->AppendInteger(2);
+        structured->EndArray();
+        structured->BeginDictionary("nested");
+        structured->SetBoolean("enabled", true);
+        structured->EndDictionary();
+        TRACE_EVENT_INSTANT1("electron", "native-traced-value", TRACE_EVENT_SCOPE_THREAD, "data", std::move(structured));
+    }
+
+    traceLog->SetDisabled();
+
+    std::string traceJson;
+    traceLog->Flush(base::BindRepeating([](std::string* out,
+                                           const scoped_refptr<base::RefCountedString>& chunk,
+                                           bool) {
+        if (chunk)
+            *out += chunk->as_string();
+    }, &traceJson));
+
+    bool ok = true;
+    ok = requireStringFragment(traceJson, "\"traceEvents\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-flow-zero\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-flow-one\"") && ok;
+    ok = requireStringFragment(traceJson, "\"bind_id\":\"0x123456\"") && ok;
+    ok = requireStringFragment(traceJson, "\"flow_in\":true") && ok;
+    ok = requireStringFragment(traceJson, "\"flow_out\":true") && ok;
+    ok = requireStringFragment(traceJson, "\"state\":\"flow-ok\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-async\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"S\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"T\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"F\"") && ok;
+    ok = requireStringFragment(traceJson, "\"s\":\"native-scope\"") && ok;
+    ok = requireStringFragment(traceJson, "\"id\":\"0x44\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-nestable\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"b\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"n\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"e\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-counter-id\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"C\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-metadata-event\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"M\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"clock_sync\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"c\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-object-event\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"N\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"O\"") && ok;
+    ok = requireStringFragment(traceJson, "\"ph\":\"D\"") && ok;
+    ok = requireStringFragment(traceJson, "\"snapshot\":\"snapshot-ok\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-typed-scoped\"") && ok;
+    ok = requireStringFragment(traceJson, "\"typedArg\":42") && ok;
+    ok = requireStringFragment(traceJson, "\"typedText\":\"scoped-ok\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-typed-begin\"") && ok;
+    ok = requireStringFragment(traceJson, "\"beginArg\":7") && ok;
+    ok = requireStringFragment(traceJson, "\"beginText\":\"two\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"TRACE_EVENT_END\"") && ok;
+    ok = requireStringFragment(traceJson, "\"endArg\":9") && ok;
+    ok = requireStringFragment(traceJson, "\"endText\":\"done\"") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-typed-instant\"") && ok;
+    ok = requireStringFragment(traceJson, "\"typedText\":\"ok\"") && ok;
+    ok = requireStringFragment(traceJson, "\"typedNumber\":13") && ok;
+    ok = requireStringFragment(traceJson, "\"name\":\"native-traced-value\"") && ok;
+    ok = requireStringFragment(traceJson, "\"data\":{\"structured\":\"traced-value-ok\",\"count\":5") && ok;
+    ok = requireStringFragment(traceJson, "\"items\":[\"first\",2]") && ok;
+    ok = requireStringFragment(traceJson, "\"nested\":{\"enabled\":true}") && ok;
+    if (!ok)
+        return false;
+
+    printf("PASS electron-content-tracing-native-macro-smoke\n");
     return true;
 }
 
@@ -2832,12 +3096,16 @@ bool runAppSingleInstanceSmoke(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+    if (hasArg(argc, argv, "--electron-breakpad-crash-service"))
+        return runBreakpadCrashService(argc, argv);
+
     g_isElectronMode = true;
     if (!base::CommandLine::InitializedForCurrentProcess())
     base::CommandLine::Init(argc, argv);
     atom::AtomCommandLine::init(argc, const_cast<const char* const*>(argv));
     nodeModuleInitRegister();
     _register_electron_common_content_tracing();
+    _register_electron_common_crash_reporter();
 
     if (hasArg(argc, argv, "--electron-app-single-instance-child")) {
         base::SingleThreadTaskExecutor taskExecutor(base::MessagePumpType::NS_RUNLOOP);
@@ -3212,6 +3480,16 @@ int main(int argc, char** argv)
     if (hasArg(argc, argv, "--electron-node-bootstrap-smoke")) {
         if (!runNodeBootstrapSmoke(argc, argv))
             return 8;
+    }
+
+    if (hasArg(argc, argv, "--electron-tracing-controller-bridge-smoke")) {
+        if (!runTracingControllerBridgeSmoke())
+            return 49;
+    }
+
+    if (hasArg(argc, argv, "--electron-content-tracing-native-macro-smoke")) {
+        if (!runContentTracingNativeMacroSmoke())
+            return 50;
     }
 
     return 0;

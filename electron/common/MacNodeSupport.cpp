@@ -9,7 +9,6 @@
 #include "third_party/libuv/include/uv.h"
 #include "gin/public/isolate_holder.h"
 #include "v8/include/libplatform/libplatform.h"
-#include "v8/src/libplatform/default-platform-wrap.h"
 
 #include <memory>
 #include <string>
@@ -17,8 +16,13 @@
 
 extern "C" NODE_EXTERN void* nodeCreateDefaultPlatform()
 {
-    gin::DefaultPlatformWrap* defaultPlatform = new gin::DefaultPlatformWrap();
-    return defaultPlatform->GetPlatform();
+    std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform(
+        0,
+        v8::platform::IdleTaskSupport::kDisabled,
+        v8::platform::InProcessStackDumping::kDisabled,
+        std::make_unique<atom::TracingControllerImpl>());
+    node::SetTracingController(platform->GetTracingController());
+    return platform.release();
 }
 
 extern "C" NODE_EXTERN void nodeDeleteNodeEnvironment(node::Environment* env)

@@ -10,7 +10,24 @@ const app = require('electron').app;
 
 // Import common settings. 
 require('./../common/init.js');
+require('./api/parent-port.js');
 require('./rpc-server.js');
+
+if (process.parentPort) {
+    process.type = 'utility';
+    process.crashReporter = require('./api/crash-reporter');
+    const utilityEntry = process.argv.slice(2).find(function(arg) {
+        return arg && arg[0] !== '-';
+    });
+    if (!utilityEntry) {
+        process.nextTick(function() {
+            return process.exit(1);
+        });
+        throw new Error('Unable to find a utility process entry script');
+    }
+    Module._load(path.resolve(utilityEntry), Module, true);
+    return;
+}
 
 if (typeof module!== 'undefined' && module.exports) {
     mbConsoleLog("is_module_js!!");

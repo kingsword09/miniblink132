@@ -196,6 +196,7 @@ if (constVal.isMac) {
 	json[0].compile.include.push("${srcPath}/third_party/icu/source/common");
 	json[0].compile.include.push("${srcPath}/third_party/openssl/openssl/include");
 	json[0].compile.include.push("${srcPath}/third_party/openssl");
+	json[0].compile.include.push("${srcPath}/third_party/breakpad/src");
 	json[0].compile.include.push("${srcPath}/base/allocator/partition_allocator/src");
 	json[0].compile.include.push("${srcPath}/gen/base/allocator/partition_allocator/src");
 	applyMacBuildSettings(json, { v8: true });
@@ -273,6 +274,7 @@ if (constVal.isMac) {
 	const macNodeSupportSrc = [
 		"${srcPath}/electron/common/MacNodeBinding.cpp",
 		"${srcPath}/electron/common/MacNodeSupport.cpp",
+		"${srcPath}/electron/common/TracingControllerImpl.cpp",
 	];
 	const macGinHelperSupportSrc = [
 		"${srcPath}/electron/common/gin_helper/promise.cpp",
@@ -293,6 +295,28 @@ if (constVal.isMac) {
 	const macFeaturesSrc = "${srcPath}/electron/common/api/ApiFeatures.cpp";
 	const macAsarSrc = "${srcPath}/electron/common/api/ApiAsar.cpp";
 	const macContentTracingSrc = "${srcPath}/electron/common/api/ApiContentTracing.cpp";
+	const macCrashReporterSrc = "${srcPath}/electron/common/api/ApiCrashReporter.cpp";
+	const macBreakpadSrc = [
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/exception_handler.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/minidump_generator.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/dynamic_images.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/breakpad_nlist_64.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/crash_generation/crash_generation_client.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/crash_generation/crash_generation_server.cc",
+		"${srcPath}/third_party/breakpad/src/client/minidump_file_writer.cc",
+		"${srcPath}/third_party/breakpad/src/common/convert_UTF.cc",
+		"${srcPath}/third_party/breakpad/src/common/string_conversion.cc",
+		"${srcPath}/third_party/breakpad/src/common/md5.cc",
+		"${srcPath}/third_party/breakpad/src/common/linux/linux_libc_support.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/file_id.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/macho_id.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/macho_walker.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/macho_utilities.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/arch_utilities.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/string_utilities.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/bootstrap_compat.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/MachIPC.mm",
+	];
 	const macAsarSupportSrc = [
 		"${srcPath}/electron/common/asar/AsarJs.cpp",
 		"${srcPath}/electron/common/asar/AsarUtil.cpp",
@@ -346,9 +370,11 @@ if (constVal.isMac) {
 		"${srcPath}/electron/common/AtomCommandLine.cpp",
 		"${srcPath}/electron/common/IdLiveDetect.cpp",
 		"${srcPath}/electron/common/OptionsSwitches.cpp",
-		macFeaturesSrc,
-		macContentTracingSrc,
-		"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
+			macFeaturesSrc,
+			macContentTracingSrc,
+			macCrashReporterSrc,
+			...macBreakpadSrc,
+			"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
 		"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
 		"${srcPath}/electron/common/api/ApiScreen.cpp",
 		"${srcPath}/electron/common/api/ApiV8Util.cpp",
@@ -409,6 +435,8 @@ if (constVal.isMac) {
 	json[0].compile.src.push(macWindowListSrc);
 	json[0].compile.src.push(macAsarSrc);
 	json[0].compile.src.push(macContentTracingSrc);
+	json[0].compile.src.push(macCrashReporterSrc);
+	json[0].compile.src.push(...macBreakpadSrc);
 	json[0].compile.src.push(...macElectronSupportSrc);
 	json[0].compile.src.push(...macAsarSupportSrc);
 	json[0].compile.src.push(...macPowerMonitorIdleSrc);
@@ -448,6 +476,8 @@ if (constVal.isMac) {
 	json[0].compile.prebuildSrc.push(macWindowListSrc);
 	json[0].compile.prebuildSrc.push(macAsarSrc);
 	json[0].compile.prebuildSrc.push(macContentTracingSrc);
+	json[0].compile.prebuildSrc.push(macCrashReporterSrc);
+	json[0].compile.prebuildSrc.push(...macBreakpadSrc);
 	json[0].compile.prebuildSrc.push(...macElectronSupportSrc);
 	json[0].compile.prebuildSrc.push(...macAsarSupportSrc);
 	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);

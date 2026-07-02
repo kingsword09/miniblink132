@@ -119,6 +119,9 @@ const std::nullptr_t kGlobalScope = nullptr;
 //const uint64_t kNoId = 0;
 
 // TraceID encapsulates an ID that can either be an integer or pointer.
+#ifndef TRACE_EVENT_INTERNAL_TRACE_ID_DEFINED
+#define TRACE_EVENT_INTERNAL_TRACE_ID_DEFINED
+
 class BASE_EXPORT TraceID {
 public:
     // Can be combined with WithScope.
@@ -275,6 +278,8 @@ private:
     uint64_t raw_id_;
     unsigned int id_flags_ = TRACE_EVENT_FLAG_HAS_ID;
 };
+
+#endif // TRACE_EVENT_INTERNAL_TRACE_ID_DEFINED
 
 // These functions all internally call
 // base::trace_event::TraceLog::GetInstance() then call the method with the same

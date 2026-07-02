@@ -8,7 +8,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <iomanip>
 #include <inttypes.h>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <ostream>
@@ -18,6 +20,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/json/json_reader.h"
+#include "base/json/json_writer.h"
 #include "base/process/process_handle.h"
 #include "base/memory/ref_counted_memory.h"
 #include "base/strings/stringprintf.h"
@@ -28,6 +32,7 @@
 #include "base/trace_event/memory_allocator_dump.h"
 #include "base/trace_event/named_trigger.h"
 #include "base/trace_event/process_memory_dump.h"
+#include "base/trace_event/perfetto_lightweight_backend.h"
 #include "base/trace_event/trace_config.h"
 #include "base/trace_event/trace_event_impl.h"
 #include "base/trace_event/trace_event_memory_overhead.h"
@@ -54,49 +59,70 @@ MemoryAllocatorDumpGuid MakeDumpGuid(std::string_view absolute_name)
     return MemoryAllocatorDumpGuid(std::string(absolute_name));
 }
 
+constexpr char kEdgeTypeOwnership[] = "ownership";
+
 const unsigned char* DisabledCategoryState()
 {
     static const unsigned char disabled = 0;
     return &disabled;
 }
 
-void AppendJsonEscaped(std::string* out, const char* value)
+void AppendJsonEscaped(std::string* out, std::string_view value)
 {
     out->push_back('"');
-    if (value) {
-        for (const char* p = value; *p; ++p) {
-            switch (*p) {
-            case '\\':
-                out->append("\\\\");
-                break;
-            case '"':
-                out->append("\\\"");
-                break;
-            case '\b':
-                out->append("\\b");
-                break;
-            case '\f':
-                out->append("\\f");
-                break;
-            case '\n':
-                out->append("\\n");
-                break;
-            case '\r':
-                out->append("\\r");
-                break;
-            case '\t':
-                out->append("\\t");
-                break;
-            default:
-                if (static_cast<unsigned char>(*p) < 0x20)
-                    out->append(base::StringPrintf("\\u%04x", static_cast<unsigned char>(*p)));
-                else
-                    out->push_back(*p);
-                break;
-            }
+    for (char ch : value) {
+        switch (ch) {
+        case '\\':
+            out->append("\\\\");
+            break;
+        case '"':
+            out->append("\\\"");
+            break;
+        case '\b':
+            out->append("\\b");
+            break;
+        case '\f':
+            out->append("\\f");
+            break;
+        case '\n':
+            out->append("\\n");
+            break;
+        case '\r':
+            out->append("\\r");
+            break;
+        case '\t':
+            out->append("\\t");
+            break;
+        default:
+            if (static_cast<unsigned char>(ch) < 0x20)
+                out->append(base::StringPrintf("\\u%04x", static_cast<unsigned char>(ch)));
+            else
+                out->push_back(ch);
+            break;
         }
     }
     out->push_back('"');
+}
+
+void AppendJsonEscaped(std::string* out, const char* value)
+{
+    AppendJsonEscaped(out, value ? std::string_view(value) : std::string_view());
+}
+
+std::string FormatJsonDouble(double value)
+{
+    if (!std::isfinite(value))
+        return "0";
+    std::ostringstream stream;
+    stream << std::setprecision(std::numeric_limits<double>::digits10 + 1) << value;
+    return stream.str();
+}
+
+std::string FormatJsonPointer(const void* value)
+{
+    std::ostringstream stream;
+    stream << "0x" << std::hex << reinterpret_cast<uintptr_t>(value);
+    return stream.str();
 }
 
 int64_t TraceTimestampMicros(const TimeTicks& timestamp)
@@ -151,6 +177,98 @@ std::string SerializeTraceEvents(const std::vector<std::unique_ptr<TraceEvent>>&
     return json;
 }
 
+PerfettoLightweightArgType PerfettoArgTypeFromTraceType(unsigned char type)
+{
+    switch (type) {
+    case TRACE_VALUE_TYPE_BOOL:
+        return PerfettoLightweightArgType::kBool;
+    case TRACE_VALUE_TYPE_UINT:
+        return PerfettoLightweightArgType::kUInt;
+    case TRACE_VALUE_TYPE_INT:
+        return PerfettoLightweightArgType::kInt;
+    case TRACE_VALUE_TYPE_DOUBLE:
+        return PerfettoLightweightArgType::kDouble;
+    case TRACE_VALUE_TYPE_POINTER:
+        return PerfettoLightweightArgType::kPointer;
+    case TRACE_VALUE_TYPE_STRING:
+    case TRACE_VALUE_TYPE_COPY_STRING:
+    default:
+        return PerfettoLightweightArgType::kString;
+    }
+}
+
+bool FillPerfettoArgFromTraceArg(const TraceEvent& event, size_t index, PerfettoLightweightArg* out, std::string* string_storage)
+{
+    if (!out)
+        return false;
+    if (!event.arg_name(index))
+        return false;
+
+    unsigned char type = event.arg_type(index);
+    const TraceValue& value = event.arg_value(index);
+    out->name = event.arg_name(index);
+    out->type = PerfettoArgTypeFromTraceType(type);
+    switch (type) {
+    case TRACE_VALUE_TYPE_BOOL:
+        out->bool_value = value.as_bool;
+        break;
+    case TRACE_VALUE_TYPE_UINT:
+        out->uint_value = static_cast<uint64_t>(value.as_uint);
+        break;
+    case TRACE_VALUE_TYPE_INT:
+        out->int_value = static_cast<int64_t>(value.as_int);
+        break;
+    case TRACE_VALUE_TYPE_DOUBLE:
+        out->double_value = value.as_double;
+        break;
+    case TRACE_VALUE_TYPE_POINTER:
+        out->pointer_value = value.as_pointer;
+        break;
+    case TRACE_VALUE_TYPE_STRING:
+    case TRACE_VALUE_TYPE_COPY_STRING:
+        out->string_value = value.as_string;
+        break;
+    case TRACE_VALUE_TYPE_CONVERTABLE:
+        return false;
+    default:
+        return false;
+    }
+    return true;
+}
+
+struct PerfettoEventPayload {
+    char phase = TRACE_EVENT_PHASE_INSTANT;
+    std::string category;
+    std::string name;
+    PerfettoLightweightArg args[TraceArguments::kMaxSize];
+    std::string string_storage[TraceArguments::kMaxSize];
+    size_t arg_count = 0;
+};
+
+void RebindPerfettoPayloadStringPointers(PerfettoEventPayload* payload)
+{
+    if (!payload)
+        return;
+    for (size_t i = 0; i < payload->arg_count; ++i) {
+        if (!payload->string_storage[i].empty())
+            payload->args[i].string_value = payload->string_storage[i].c_str();
+    }
+}
+
+PerfettoEventPayload MakePerfettoEventPayload(const TraceEvent& event)
+{
+    PerfettoEventPayload payload;
+    payload.phase = TracePhaseOrInstant(event.phase());
+    payload.category = TraceLog::GetCategoryGroupName(event.category_group_enabled());
+    payload.name = event.name() ? event.name() : "";
+    for (size_t i = 0; i < event.arg_size() && payload.arg_count < TraceArguments::kMaxSize; ++i) {
+        if (FillPerfettoArgFromTraceArg(event, i, &payload.args[payload.arg_count], &payload.string_storage[payload.arg_count]))
+            ++payload.arg_count;
+    }
+    RebindPerfettoPayloadStringPointers(&payload);
+    return payload;
+}
+
 } // namespace
 
 ConvertableToTraceFormat::~ConvertableToTraceFormat() = default;
@@ -159,8 +277,275 @@ void ConvertableToTraceFormat::EstimateTraceMemoryOverhead(TraceEventMemoryOverh
 {
 }
 
+TracedValue::TracedValue(size_t capacity)
+{
+    json_.reserve(capacity ? capacity : 32);
+    json_.push_back('{');
+    PushContainer(ContainerKind::kDictionary);
+}
+
+TracedValue::ContainerState* TracedValue::CurrentContainer()
+{
+    return stack_size_ ? &stack_[stack_size_ - 1] : nullptr;
+}
+
+const TracedValue::ContainerState* TracedValue::CurrentContainer() const
+{
+    return stack_size_ ? &stack_[stack_size_ - 1] : nullptr;
+}
+
+bool TracedValue::PushContainer(ContainerKind kind)
+{
+    if (stack_size_ >= stack_.size())
+        return false;
+    stack_[stack_size_++] = { kind, false };
+    return true;
+}
+
+void TracedValue::PopContainer()
+{
+    if (stack_size_ > 1)
+        --stack_size_;
+}
+
+void TracedValue::AppendValuePrefix()
+{
+    ContainerState* current = CurrentContainer();
+    if (!current) {
+        json_.push_back('{');
+        PushContainer(ContainerKind::kDictionary);
+        current = CurrentContainer();
+    }
+    if (!current)
+        return;
+    if (current->has_value)
+        json_.push_back(',');
+    else
+        current->has_value = true;
+}
+
+void TracedValue::AppendName(std::string_view name)
+{
+    AppendValuePrefix();
+    const ContainerState* current = CurrentContainer();
+    if (!current || current->kind != ContainerKind::kDictionary)
+        return;
+    AppendJsonEscaped(&json_, name);
+    json_.push_back(':');
+}
+
+void TracedValue::AppendRawValue(std::string_view value)
+{
+    AppendValuePrefix();
+    json_.append(value.data(), value.size());
+}
+
+void TracedValue::EndDictionary()
+{
+    const ContainerState* current = CurrentContainer();
+    if (stack_size_ <= 1 || !current || current->kind != ContainerKind::kDictionary)
+        return;
+    json_.push_back('}');
+    PopContainer();
+}
+
+void TracedValue::EndArray()
+{
+    const ContainerState* current = CurrentContainer();
+    if (stack_size_ <= 1 || !current || current->kind != ContainerKind::kArray)
+        return;
+    json_.push_back(']');
+    PopContainer();
+}
+
+void TracedValue::SetInteger(const char* name, int value)
+{
+    SetIntegerWithCopiedName(name ? std::string_view(name) : std::string_view(), value);
+}
+
+void TracedValue::SetDouble(const char* name, double value)
+{
+    SetDoubleWithCopiedName(name ? std::string_view(name) : std::string_view(), value);
+}
+
+void TracedValue::SetBoolean(const char* name, bool value)
+{
+    SetBooleanWithCopiedName(name ? std::string_view(name) : std::string_view(), value);
+}
+
+void TracedValue::SetString(const char* name, std::string_view value)
+{
+    SetStringWithCopiedName(name ? std::string_view(name) : std::string_view(), value);
+}
+
+void TracedValue::SetValue(const char* name, TracedValue* value)
+{
+    SetValueWithCopiedName(name ? std::string_view(name) : std::string_view(), value);
+}
+
+void TracedValue::SetPointer(const char* name, const void* value)
+{
+    SetPointerWithCopiedName(name ? std::string_view(name) : std::string_view(), value);
+}
+
+void TracedValue::BeginDictionary(const char* name)
+{
+    BeginDictionaryWithCopiedName(name ? std::string_view(name) : std::string_view());
+}
+
+void TracedValue::BeginArray(const char* name)
+{
+    BeginArrayWithCopiedName(name ? std::string_view(name) : std::string_view());
+}
+
+void TracedValue::SetIntegerWithCopiedName(std::string_view name, int value)
+{
+    AppendName(name);
+    json_.append(std::to_string(value));
+}
+
+void TracedValue::SetDoubleWithCopiedName(std::string_view name, double value)
+{
+    AppendName(name);
+    json_.append(FormatJsonDouble(value));
+}
+
+void TracedValue::SetBooleanWithCopiedName(std::string_view name, bool value)
+{
+    AppendName(name);
+    json_.append(value ? "true" : "false");
+}
+
+void TracedValue::SetStringWithCopiedName(std::string_view name, std::string_view value)
+{
+    AppendName(name);
+    AppendJsonEscaped(&json_, value);
+}
+
+void TracedValue::SetValueWithCopiedName(std::string_view name, TracedValue* value)
+{
+    AppendName(name);
+    if (value)
+        value->AppendAsTraceFormat(&json_);
+    else
+        json_.append("{}");
+}
+
+void TracedValue::SetPointerWithCopiedName(std::string_view name, const void* value)
+{
+    SetStringWithCopiedName(name, FormatJsonPointer(value));
+}
+
+void TracedValue::BeginDictionaryWithCopiedName(std::string_view name)
+{
+    AppendName(name);
+    if (stack_size_ >= stack_.size()) {
+        json_.append("null");
+        return;
+    }
+    json_.push_back('{');
+    PushContainer(ContainerKind::kDictionary);
+}
+
+void TracedValue::BeginArrayWithCopiedName(std::string_view name)
+{
+    AppendName(name);
+    if (stack_size_ >= stack_.size()) {
+        json_.append("[]");
+        return;
+    }
+    json_.push_back('[');
+    PushContainer(ContainerKind::kArray);
+}
+
+void TracedValue::AppendInteger(int value)
+{
+    AppendRawValue(std::to_string(value));
+}
+
+void TracedValue::AppendDouble(double value)
+{
+    AppendRawValue(FormatJsonDouble(value));
+}
+
+void TracedValue::AppendBoolean(bool value)
+{
+    AppendRawValue(value ? "true" : "false");
+}
+
+void TracedValue::AppendString(std::string_view value)
+{
+    AppendValuePrefix();
+    AppendJsonEscaped(&json_, value);
+}
+
+void TracedValue::AppendPointer(const void* value)
+{
+    AppendString(FormatJsonPointer(value));
+}
+
+void TracedValue::BeginArray()
+{
+    AppendValuePrefix();
+    if (stack_size_ >= stack_.size()) {
+        json_.append("[]");
+        return;
+    }
+    json_.push_back('[');
+    PushContainer(ContainerKind::kArray);
+}
+
+void TracedValue::BeginDictionary()
+{
+    AppendValuePrefix();
+    if (stack_size_ >= stack_.size()) {
+        json_.append("null");
+        return;
+    }
+    json_.push_back('{');
+    PushContainer(ContainerKind::kDictionary);
+}
+
+std::string TracedValue::ToTraceFormatString() const
+{
+    std::string result = json_;
+    for (size_t i = stack_size_; i > 0; --i)
+        result.push_back(stack_[i - 1].kind == ContainerKind::kDictionary ? '}' : ']');
+    return result;
+}
+
 void TracedValue::AppendAsTraceFormat(std::string* out) const
 {
+    if (out)
+        out->append(ToTraceFormatString());
+}
+
+std::unique_ptr<base::Value> TracedValueJSON::ToBaseValue() const
+{
+    std::optional<base::Value> value = base::JSONReader::Read(ToJSON());
+    if (value)
+        return std::make_unique<base::Value>(std::move(*value));
+    return std::make_unique<base::Value>(base::Value::Dict());
+}
+
+std::string TracedValueJSON::ToJSON() const
+{
+    std::string json;
+    AppendAsTraceFormat(&json);
+    return json;
+}
+
+std::string TracedValueJSON::ToFormattedJSON() const
+{
+    std::unique_ptr<base::Value> value = ToBaseValue();
+    std::string formatted;
+    if (value && base::JSONWriter::WriteWithOptions(
+            *value,
+            base::JSONWriter::OPTIONS_OMIT_DOUBLE_TYPE_PRESERVATION | base::JSONWriter::OPTIONS_PRETTY_PRINT,
+            &formatted)) {
+        return formatted;
+    }
+    return ToJSON();
 }
 
 MemoryDumpProvider::~MemoryDumpProvider() = default;
@@ -339,8 +724,12 @@ void TraceEvent::AppendAsJSON(std::string* out, const ArgumentFilterPredicate& a
         out->append(base::StringPrintf(",\"dur\":%lld", static_cast<long long>(duration_.InMicroseconds())));
     if (id_)
         out->append(base::StringPrintf(",\"id\":\"0x%llx\"", static_cast<unsigned long long>(id_)));
-    if (bind_id_)
+    if ((flags_ & (TRACE_EVENT_FLAG_FLOW_OUT | TRACE_EVENT_FLAG_FLOW_IN)) || bind_id_)
         out->append(base::StringPrintf(",\"bind_id\":\"0x%llx\"", static_cast<unsigned long long>(bind_id_)));
+    if (flags_ & TRACE_EVENT_FLAG_FLOW_IN)
+        out->append(",\"flow_in\":true");
+    if (flags_ & TRACE_EVENT_FLAG_FLOW_OUT)
+        out->append(",\"flow_out\":true");
     out->append(",\"args\":");
 
     ArgumentNameFilterPredicate argument_name_filter_predicate;
@@ -925,8 +1314,35 @@ void MemoryAllocatorDump::AddString(const char* name, const char* units, const s
     entries_.emplace_back(name ? name : "", units ? units : "", value);
 }
 
-void MemoryAllocatorDump::AsValueInto(TracedValue*) const
+void MemoryAllocatorDump::AsValueInto(TracedValue* value) const
 {
+    if (!value)
+        return;
+
+    value->BeginDictionaryWithCopiedName(absolute_name_);
+    value->SetString("guid", guid_.ToString());
+    value->BeginDictionary("attrs");
+
+    for (const Entry& entry : entries_) {
+        value->BeginDictionaryWithCopiedName(entry.name);
+        switch (entry.entry_type) {
+        case Entry::kUint64:
+            value->SetString("type", kTypeScalar);
+            value->SetString("units", entry.units);
+            value->SetString("value", StringPrintf("%" PRIx64, entry.value_uint64));
+            break;
+        case Entry::kString:
+            value->SetString("type", kTypeString);
+            value->SetString("units", entry.units);
+            value->SetString("value", entry.value_string);
+            break;
+        }
+        value->EndDictionary();
+    }
+    value->EndDictionary();
+    if (flags_)
+        value->SetInteger("flags", flags_);
+    value->EndDictionary();
 }
 
 void MemoryAllocatorDump::AsProtoInto(
@@ -1121,8 +1537,29 @@ void ProcessMemoryDump::TakeAllDumpsFrom(ProcessMemoryDump* other)
     other->allocator_dumps_edges_.clear();
 }
 
-void ProcessMemoryDump::SerializeAllocatorDumpsInto(TracedValue*) const
+void ProcessMemoryDump::SerializeAllocatorDumpsInto(TracedValue* value) const
 {
+    if (!value)
+        return;
+
+    if (!allocator_dumps_.empty()) {
+        value->BeginDictionary("allocators");
+        for (const auto& allocator_dump_it : allocator_dumps_)
+            allocator_dump_it.second->AsValueInto(value);
+        value->EndDictionary();
+    }
+
+    value->BeginArray("allocators_graph");
+    for (const auto& it : allocator_dumps_edges_) {
+        const MemoryAllocatorDumpEdge& edge = it.second;
+        value->BeginDictionary();
+        value->SetString("source", edge.source.ToString());
+        value->SetString("target", edge.target.ToString());
+        value->SetInteger("importance", edge.importance);
+        value->SetString("type", kEdgeTypeOwnership);
+        value->EndDictionary();
+    }
+    value->EndArray();
 }
 
 void ProcessMemoryDump::SerializeAllocatorDumpsInto(
@@ -1211,17 +1648,30 @@ void TraceLog::InitializeThreadLocalEventBufferIfSupported()
 
 void TraceLog::SetEnabled(const TraceConfig& trace_config, uint8_t)
 {
-    base::AutoLock auto_lock(lock_);
-    enabled_ = true;
-    ++num_traces_recorded_;
-    trace_config_ = trace_config;
-    recorded_events_.clear();
-    copied_trace_strings_.clear();
-    next_trace_event_handle_ = 1;
-    generation_.fetch_add(1, std::memory_order_relaxed);
-    UpdateCategoryRegistry();
-    if (track_event_sessions_.empty())
-        track_event_sessions_.push_back({ 0 });
+    std::string category_filter = trace_config.ToCategoryFilterString();
+    size_t buffer_size_kb = trace_config.GetTraceBufferSizeInKb();
+    std::vector<EnabledStateObserver*> observers;
+    {
+        base::AutoLock auto_lock(lock_);
+        enabled_ = true;
+        ++num_traces_recorded_;
+        trace_config_ = trace_config;
+        recorded_events_.clear();
+        copied_trace_strings_.clear();
+        next_trace_event_handle_ = 1;
+        generation_.fetch_add(1, std::memory_order_relaxed);
+        UpdateCategoryRegistry();
+        if (track_event_sessions_.empty())
+            track_event_sessions_.push_back({ 0 });
+        observers.reserve(enabled_state_observers_.size());
+        for (const auto& observer : enabled_state_observers_)
+            observers.push_back(observer.get());
+    }
+    StartPerfettoLightweightTrace(category_filter.c_str(), buffer_size_kb);
+    for (EnabledStateObserver* observer : observers) {
+        if (observer)
+            observer->OnTraceLogEnabled();
+    }
 }
 
 void TraceLog::SetDisabled()
@@ -1231,10 +1681,21 @@ void TraceLog::SetDisabled()
 
 void TraceLog::SetDisabled(uint8_t)
 {
-    base::AutoLock auto_lock(lock_);
-    enabled_ = false;
-    track_event_sessions_.clear();
-    UpdateCategoryRegistry();
+    std::vector<EnabledStateObserver*> observers;
+    {
+        base::AutoLock auto_lock(lock_);
+        enabled_ = false;
+        track_event_sessions_.clear();
+        UpdateCategoryRegistry();
+        observers.reserve(enabled_state_observers_.size());
+        for (const auto& observer : enabled_state_observers_)
+            observers.push_back(observer.get());
+    }
+    StopPerfettoLightweightTrace();
+    for (EnabledStateObserver* observer : observers) {
+        if (observer)
+            observer->OnTraceLogDisabled();
+    }
 }
 
 int TraceLog::GetNumTracesRecorded()
@@ -1504,36 +1965,48 @@ TraceEventHandle TraceLog::AddTraceEventWithThreadIdAndTimestamps(char phase,
     TraceArguments* args,
     unsigned int flags)
 {
-    base::AutoLock auto_lock(lock_);
-    if (!enabled_)
-        return {};
+    PerfettoEventPayload perfetto_payload;
+    uint32_t handle_value = 0;
+    {
+        base::AutoLock auto_lock(lock_);
+        if (!enabled_)
+            return {};
 
-    const TraceCategory* category = category_group_enabled
-        ? CategoryRegistry::GetCategoryByStatePtr(category_group_enabled)
-        : nullptr;
-    if (category && !category->is_enabled()) {
-        TraceCategory* mutable_category = CategoryRegistry::GetCategoryByName(category->name());
-        if (mutable_category)
-            UpdateCategoryState(mutable_category);
-        category = mutable_category;
-    }
-    if (!category || !category->is_enabled())
-        return {};
+        const TraceCategory* category = category_group_enabled
+            ? CategoryRegistry::GetCategoryByStatePtr(category_group_enabled)
+            : nullptr;
+        if (category && !category->is_enabled()) {
+            TraceCategory* mutable_category = CategoryRegistry::GetCategoryByName(category->name());
+            if (mutable_category)
+                UpdateCategoryState(mutable_category);
+            category = mutable_category;
+        }
+        if (!category || !category->is_enabled())
+            return {};
 
-    uint32_t handle_value = next_trace_event_handle_++;
-    const char* stored_name = name;
-    const char* stored_scope = scope;
-    if (name) {
-        copied_trace_strings_.push_back(std::make_unique<std::string>(name));
-        stored_name = copied_trace_strings_.back()->c_str();
+        handle_value = next_trace_event_handle_++;
+        const char* stored_name = name;
+        const char* stored_scope = scope;
+        if (name) {
+            copied_trace_strings_.push_back(std::make_unique<std::string>(name));
+            stored_name = copied_trace_strings_.back()->c_str();
+        }
+        if (scope) {
+            copied_trace_strings_.push_back(std::make_unique<std::string>(scope));
+            stored_scope = copied_trace_strings_.back()->c_str();
+        }
+        auto event = std::make_unique<TraceEvent>(thread_id, timestamp, thread_timestamp,
+            TracePhaseOrInstant(phase), category_group_enabled, stored_name, stored_scope, id, bind_id, args, flags);
+        perfetto_payload = MakePerfettoEventPayload(*event);
+        recorded_events_.push_back(std::move(event));
     }
-    if (scope) {
-        copied_trace_strings_.push_back(std::make_unique<std::string>(scope));
-        stored_scope = copied_trace_strings_.back()->c_str();
-    }
-    auto event = std::make_unique<TraceEvent>(thread_id, timestamp, thread_timestamp,
-        TracePhaseOrInstant(phase), category_group_enabled, stored_name, stored_scope, id, bind_id, args, flags);
-    recorded_events_.push_back(std::move(event));
+    RebindPerfettoPayloadStringPointers(&perfetto_payload);
+    AddPerfettoLightweightTraceEvent(perfetto_payload.phase,
+        perfetto_payload.category.c_str(),
+        perfetto_payload.name.c_str(),
+        static_cast<uint64_t>(thread_id),
+        perfetto_payload.args,
+        perfetto_payload.arg_count);
     return MakeHandle(handle_value);
 }
 
@@ -1543,8 +2016,12 @@ void TraceLog::AddMetadataEvent(const unsigned char* category_group_enabled, con
         nullptr, 0, 0, PlatformThread::CurrentId(), OffsetNow(), ThreadTicks(), args, flags);
 }
 
-void TraceLog::UpdateTraceEventDuration(const unsigned char*, const char*, TraceEventHandle)
+void TraceLog::UpdateTraceEventDuration(const unsigned char*, const char*, TraceEventHandle handle)
 {
+    base::AutoLock auto_lock(lock_);
+    TraceEvent* event = GetEventByHandleInternal(handle, nullptr);
+    if (event)
+        event->UpdateDuration(OffsetNow(), ThreadTicks());
 }
 
 void TraceLog::UpdateTraceEventDurationExplicit(const unsigned char*,
@@ -1640,11 +2117,12 @@ std::vector<TraceLog::TrackEventSession> TraceLog::GetTrackEventSessions() const
 
 void TraceLog::InitializePerfettoIfNeeded()
 {
+    InitializePerfettoLightweightBackend();
 }
 
 bool TraceLog::IsPerfettoInitializedByTraceLog() const
 {
-    return false;
+    return GetPerfettoLightweightStats().initialized;
 }
 
 void TraceLog::OnIncrementalStateCleared()

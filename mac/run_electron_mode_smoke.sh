@@ -33,11 +33,15 @@ fi
 "$BIN" --electron-v8-typed-array-smoke
 "$BIN" --electron-v8-shared-array-buffer-smoke
 "$BIN" --electron-node-bootstrap-smoke
+"$BIN" --electron-tracing-controller-bridge-smoke
+"$BIN" --electron-content-tracing-native-macro-smoke
 
-SYMBOLS="$(nm -gU "$BIN")"
+SYMBOLS_FILE="$(mktemp "${TMPDIR:-/tmp}/miniblink-electron-symbols.XXXXXX")"
+trap 'rm -f "$SYMBOLS_FILE"' EXIT
+nm -gU "$BIN" >"$SYMBOLS_FILE"
 
 require_symbol() {
-    grep "$1" <<<"$SYMBOLS" >/dev/null
+    grep "$1" "$SYMBOLS_FILE" >/dev/null
 }
 
 require_symbol "__register_electron_browser_native_theme"
@@ -64,5 +68,6 @@ require_symbol "__register_electron_common_original_fs"
 require_symbol "__register_electron_common_intl_collator"
 require_symbol "__register_electron_common_asar"
 require_symbol "__register_electron_common_content_tracing"
+require_symbol "__register_electron_common_crash_reporter"
 
 echo "ok electron_mode_smoke"

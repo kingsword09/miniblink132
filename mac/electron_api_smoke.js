@@ -2376,68 +2376,419 @@ async function runContentTracingSmoke() {
     const os = require('os');
     const path = require('path');
     const modulePath = require.resolve('../electron/lib/browser/api/content-tracing');
+    const cachedModule = require.cache[modulePath];
+    const originalLinkedBinding = process._linkedBinding;
+    const nativeEvents = [];
+    let nativeRecording = false;
+    let nativeStartConfig = null;
+    let perfettoTraceDataBase64 = '';
+    let perfettoStats = {
+        initialized: false,
+        recording: false,
+        startedCount: 0,
+        eventCount: 0,
+        droppedEventCount: 0,
+        lastTraceSize: 0,
+        lastTracePacketCountHint: 0
+    };
+
+    process._linkedBinding = function(name) {
+        if (name === 'electron_common_content_tracing') {
+            return {
+                startRecording(categoryFilter, traceOptions, heapProfiling) {
+                    nativeRecording = true;
+                    perfettoTraceDataBase64 = '';
+                    nativeStartConfig = {
+                        categoryFilter,
+                        traceOptions,
+                        heapProfiling
+                    };
+                    perfettoStats = {
+                        initialized: true,
+                        recording: true,
+                        startedCount: perfettoStats.startedCount + 1,
+                        eventCount: 0,
+                        droppedEventCount: 0,
+                        lastTraceSize: 0,
+                        lastTracePacketCountHint: 0,
+                        lastTraceStatsSuccess: false,
+                        lastTraceStatsSize: 0,
+                        traceStatsProducersConnected: 0,
+                        traceStatsProducersSeen: 0,
+                        traceStatsDataSourcesRegistered: 0,
+                        traceStatsDataSourcesSeen: 0,
+                        traceStatsTracingSessions: 0,
+                        traceStatsTotalBuffers: 0,
+                        traceStatsBytesWritten: 0,
+                        traceStatsChunksWritten: 0,
+                        tracePacketCount: 0,
+                        trackDescriptorPacketCount: 0,
+                        processDescriptorCount: 0,
+                        threadDescriptorCount: 0,
+                        trackEventPacketCount: 0,
+                        trackEventSliceBeginCount: 0,
+                        trackEventSliceEndCount: 0,
+                        trackEventInstantCount: 0,
+                        trackEventCounterCount: 0,
+                        trackEventCounterValueCount: 0,
+                        trackEventNamedCount: 0,
+                        trackEventDirectNameCount: 0,
+                        trackEventInternedNameCount: 0,
+                        trackEventTrackNameCount: 0,
+                        trackEventNames: '',
+                        lastServiceStateSuccess: false,
+                        lastServiceStateSize: 0,
+                        serviceStateProducerCount: 0,
+                        serviceStateDataSourceCount: 0,
+                        serviceStateTracingSessionCount: 0,
+                        serviceStateSupportsTracingSessions: false,
+                        serviceStateNumSessions: 0,
+                        serviceStateNumSessionsStarted: 0
+                    };
+                },
+                stopRecording() {
+                    nativeRecording = false;
+                    const outputEvents = nativeEvents.slice();
+                    if (nativeStartConfig && nativeStartConfig.heapProfiling) {
+                        outputEvents.push({
+                            cat: 'disabled-by-default-memory-infra',
+                            name: 'HeapProfiler.session',
+                            ph: 'i',
+                            args: {
+                                samplingRate: nativeStartConfig.heapProfiling.samplingRate,
+                                stackMode: nativeStartConfig.heapProfiling.stackMode,
+                                sampleCount: 0
+                            }
+                        });
+                    }
+                    perfettoStats.recording = false;
+                    const mirroredEvents = nativeEvents.filter(function(event) {
+                        return event.ph === 'i' || event.ph === 'C';
+                    });
+                    const trackEventNames = mirroredEvents.map(function(event) {
+                        return event.name;
+                    }).join(',');
+                    perfettoTraceDataBase64 = Buffer.from('miniblink-perfetto-track-event-smoke').toString('base64');
+                    perfettoStats.lastTraceSize = Buffer.from(perfettoTraceDataBase64, 'base64').length;
+                    perfettoStats.lastTracePacketCountHint = mirroredEvents.length;
+                    perfettoStats.lastTraceStatsSuccess = true;
+                    perfettoStats.lastTraceStatsSize = 1;
+                    perfettoStats.traceStatsProducersConnected = 1;
+                    perfettoStats.traceStatsProducersSeen = 1;
+                    perfettoStats.traceStatsDataSourcesRegistered = 1;
+                    perfettoStats.traceStatsDataSourcesSeen = 1;
+                    perfettoStats.traceStatsTracingSessions = 1;
+                    perfettoStats.traceStatsTotalBuffers = 1;
+                    perfettoStats.traceStatsBytesWritten = perfettoStats.lastTraceSize;
+                    perfettoStats.trackDescriptorPacketCount = 2;
+                    perfettoStats.processDescriptorCount = 1;
+                    perfettoStats.threadDescriptorCount = 1;
+                    perfettoStats.traceStatsChunksWritten = mirroredEvents.length + perfettoStats.trackDescriptorPacketCount;
+                    perfettoStats.tracePacketCount = mirroredEvents.length + perfettoStats.trackDescriptorPacketCount;
+                    perfettoStats.trackEventPacketCount = mirroredEvents.length;
+                    perfettoStats.trackEventInstantCount = mirroredEvents.filter(function(event) { return event.ph === 'i'; }).length;
+                    perfettoStats.trackEventCounterCount = mirroredEvents.filter(function(event) { return event.ph === 'C'; }).length;
+                    perfettoStats.trackEventCounterValueCount = perfettoStats.trackEventCounterCount;
+                    perfettoStats.trackEventNamedCount = mirroredEvents.length;
+                    perfettoStats.trackEventDirectNameCount = mirroredEvents.length;
+                    perfettoStats.trackEventInternedNameCount = 0;
+                    perfettoStats.trackEventTrackNameCount = mirroredEvents.length;
+                    perfettoStats.trackEventNames = trackEventNames;
+                    perfettoStats.lastServiceStateSuccess = true;
+                    perfettoStats.lastServiceStateSize = 1;
+                    perfettoStats.serviceStateProducerCount = 1;
+                    perfettoStats.serviceStateDataSourceCount = 1;
+                    perfettoStats.serviceStateTracingSessionCount = 0;
+                    perfettoStats.serviceStateSupportsTracingSessions = false;
+                    perfettoStats.serviceStateNumSessions = 0;
+                    perfettoStats.serviceStateNumSessionsStarted = perfettoStats.startedCount;
+                    return JSON.stringify({ traceEvents: outputEvents });
+                },
+                getTraceBufferUsage() {
+                    return {
+                        value: nativeEvents.length / 100,
+                        percentage: nativeEvents.length,
+                        eventCount: nativeEvents.length,
+                        eventCapacity: 100
+                    };
+                },
+                getPerfettoStats() {
+                    return Object.assign({}, perfettoStats);
+                },
+                getPerfettoTraceData() {
+                    return perfettoTraceDataBase64;
+                },
+                recordInstantEvent(name, data) {
+                    assert.strictEqual(nativeRecording, true);
+                    nativeEvents.push({
+                        cat: 'electron,miniblink',
+                        name,
+                        ph: 'i',
+                        args: {
+                            data
+                        }
+                    });
+                    perfettoStats.eventCount = nativeEvents.length;
+                },
+                recordCounter(name, value) {
+                    assert.strictEqual(nativeRecording, true);
+                    nativeEvents.push({
+                        cat: 'electron,miniblink',
+                        name,
+                        ph: 'C',
+                        args: {
+                            value
+                        }
+                    });
+                    perfettoStats.eventCount = nativeEvents.length;
+                }
+            };
+        }
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
+
     delete require.cache[modulePath];
-    const contentTracing = require('../electron/lib/browser/api/content-tracing');
-
-    const categories = await contentTracing.getCategories();
-    assert.strictEqual(categories.includes('electron'), true);
-    assert.strictEqual(categories.includes('miniblink'), true);
-
-    await contentTracing.startRecording({
-        included_categories: ['electron', 'miniblink'],
-        traceOptions: 'record-continuously'
-    });
-
-    let duplicateStartRejected = false;
     try {
-        await contentTracing.startRecording('*');
-    } catch (error) {
-        duplicateStartRejected = /already recording/.test(String(error && error.message));
+        const contentTracing = require('../electron/lib/browser/api/content-tracing');
+
+        const categories = await contentTracing.getCategories();
+        assert.strictEqual(categories.includes('electron'), true);
+        assert.strictEqual(categories.includes('miniblink'), true);
+        assert.strictEqual(categories.includes('disabled-by-default-memory-infra'), true);
+
+        await contentTracing.enableHeapProfiling({
+            mode: 'browser',
+            samplingRate: 2000,
+            stackMode: 'native-with-thread-names'
+        });
+
+        await contentTracing.startRecording({
+            included_categories: ['electron', 'miniblink', 'disabled-by-default-memory-infra'],
+            excluded_categories: ['netlog'],
+            traceOptions: 'record-continuously'
+        });
+        assert.ok(nativeStartConfig.categoryFilter.includes('electron'));
+        assert.ok(nativeStartConfig.categoryFilter.includes('miniblink'));
+        assert.ok(nativeStartConfig.categoryFilter.includes('disabled-by-default-memory-infra'));
+        assert.ok(nativeStartConfig.categoryFilter.includes('-netlog'));
+        assert.strictEqual(nativeStartConfig.traceOptions, 'record-continuously');
+        assert.strictEqual(nativeStartConfig.heapProfiling.enabled, true);
+        assert.strictEqual(nativeStartConfig.heapProfiling.mode, 'browser');
+        assert.strictEqual(nativeStartConfig.heapProfiling.samplingRate, 2000);
+        assert.strictEqual(nativeStartConfig.heapProfiling.stackMode, 'native-with-thread-names');
+        assert.strictEqual(nativeStartConfig.heapProfiling.memoryInfraCategoryEnabled, true);
+
+        let duplicateStartRejected = false;
+        try {
+            await contentTracing.startRecording('*');
+        } catch (error) {
+            duplicateStartRejected = /already recording/.test(String(error && error.message));
+        }
+        assert.strictEqual(duplicateStartRejected, true);
+
+        let lateHeapProfilingRejected = false;
+        try {
+            await contentTracing.enableHeapProfiling();
+        } catch (error) {
+            lateHeapProfilingRejected = /before startRecording/.test(String(error && error.message));
+        }
+        assert.strictEqual(lateHeapProfilingRejected, true);
+
+        contentTracing._recordProcessSnapshot('smoke-snapshot', { ok: true });
+        const nativeBinding = process._linkedBinding('electron_common_content_tracing');
+        nativeBinding.recordCounter('smoke-counter', 7);
+        const usage = await contentTracing.getTraceBufferUsage();
+        assert.strictEqual(typeof usage.value, 'number');
+        assert.strictEqual(typeof usage.percentage, 'number');
+        assert.strictEqual(usage.eventCount, 2);
+
+        const outputPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-content-tracing-')), 'trace.json');
+        const writtenPath = await contentTracing.stopRecording(outputPath);
+        assert.strictEqual(writtenPath, outputPath);
+        const trace = JSON.parse(fs.readFileSync(writtenPath, 'utf8'));
+        assert.ok(Array.isArray(trace.traceEvents));
+        assert.ok(trace.traceEvents.some(function(event) { return event.name === 'contentTracing.startRecording'; }));
+        assert.ok(trace.traceEvents.some(function(event) { return event.name === 'smoke-snapshot'; }));
+        assert.ok(trace.traceEvents.some(function(event) {
+            return event.name === 'HeapProfiler.session'
+                && event.args
+                && event.args.samplingRate === 2000
+                && event.args.stackMode === 'native-with-thread-names';
+        }));
+        assert.ok(trace.traceEvents.some(function(event) {
+            return event.name === 'smoke-snapshot'
+                && event.args
+                && event.args.data
+                && event.args.data.ok === true;
+        }));
+        assert.ok(trace.traceEvents.some(function(event) {
+            if (event.name !== 'smoke-snapshot' || !event.args || typeof event.args.data !== 'string')
+                return false;
+            return JSON.parse(event.args.data).data.ok === true;
+        }));
+        assert.strictEqual(trace.metadata.product, 'miniblink-electron');
+        assert.strictEqual(typeof trace.metadata.nodeTraceEventCount, 'number');
+        assert.ok(trace.metadata.nodeTraceEventCount > 0);
+        assert.strictEqual(typeof trace.metadata.nativeTraceEventCount, 'number');
+        assert.ok(trace.metadata.nativeTraceEventCount > 0);
+        assert.strictEqual(trace.metadata.nativePerfetto.initialized, true);
+        assert.strictEqual(trace.metadata.nativePerfetto.recording, false);
+        assert.strictEqual(trace.metadata.nativePerfetto.eventCount, 2);
+        assert.ok(trace.metadata.nativePerfetto.lastTraceSize > 0);
+        assert.strictEqual(trace.metadata.nativePerfetto.lastTraceStatsSuccess, true);
+        assert.ok(trace.metadata.nativePerfetto.lastTraceStatsSize > 0);
+        assert.strictEqual(trace.metadata.nativePerfetto.traceStatsProducersConnected, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.traceStatsDataSourcesRegistered, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.traceStatsTracingSessions, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.traceStatsTotalBuffers, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.traceStatsBytesWritten, trace.metadata.nativePerfetto.lastTraceSize);
+        assert.strictEqual(trace.metadata.nativePerfetto.traceStatsChunksWritten, 4);
+        assert.strictEqual(trace.metadata.nativePerfetto.tracePacketCount, 4);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackDescriptorPacketCount, 2);
+        assert.strictEqual(trace.metadata.nativePerfetto.processDescriptorCount, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.threadDescriptorCount, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventPacketCount, 2);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventInstantCount, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventCounterCount, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventCounterValueCount, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventNamedCount, 2);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventDirectNameCount, 2);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventInternedNameCount, 0);
+        assert.strictEqual(trace.metadata.nativePerfetto.trackEventTrackNameCount, 2);
+        assert.ok(trace.metadata.nativePerfetto.trackEventNames.includes('smoke-snapshot'));
+        assert.ok(trace.metadata.nativePerfetto.trackEventNames.includes('smoke-counter'));
+        assert.strictEqual(trace.metadata.nativePerfetto.lastServiceStateSuccess, true);
+        assert.ok(trace.metadata.nativePerfetto.lastServiceStateSize > 0);
+        assert.strictEqual(trace.metadata.nativePerfetto.serviceStateProducerCount, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.serviceStateDataSourceCount, 1);
+        assert.strictEqual(trace.metadata.nativePerfetto.serviceStateTracingSessionCount, 0);
+        assert.strictEqual(trace.metadata.nativePerfetto.serviceStateSupportsTracingSessions, false);
+        assert.strictEqual(trace.metadata.nativePerfetto.serviceStateNumSessions, 0);
+        assert.strictEqual(trace.metadata.nativePerfetto.serviceStateNumSessionsStarted, 1);
+        assert.strictEqual(typeof trace.metadata.nativePerfetto.traceDataBase64, 'string');
+        assert.ok(trace.metadata.nativePerfetto.traceDataBase64.length > 0);
+        assert.strictEqual(trace.metadata.traceConfig.nativeTraceEvents.available, true);
+        assert.strictEqual(trace.metadata.traceConfig.nativeTraceEvents.enabled, true);
+        assert.strictEqual(trace.metadata.traceConfig.heapProfiling.enabled, true);
+        assert.strictEqual(trace.metadata.traceConfig.heapProfiling.mode, 'browser');
+        assert.strictEqual(trace.metadata.traceConfig.heapProfiling.samplingRate, 2000);
+        assert.strictEqual(trace.metadata.traceConfig.heapProfiling.stackMode, 'native-with-thread-names');
+        assert.strictEqual(trace.metadata.traceConfig.heapProfiling.memoryInfraCategoryEnabled, true);
+        assert.strictEqual(trace.metadata.traceConfig.nativeTraceEvents.heapProfiling.samplingRate, 2000);
+        assert.strictEqual(trace.metadata.traceConfig.options.heap_profiling_options.samplingRate, 2000);
+        assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.available, true);
+        assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.enabled, true);
+
+        let stopRejected = false;
+        try {
+            await contentTracing.stopRecording();
+        } catch (error) {
+            stopRejected = /not recording/.test(String(error && error.message));
+        }
+        assert.strictEqual(stopRejected, true);
+
+        console.log('PASS content-tracing-js-smoke');
+    } finally {
+        process._linkedBinding = originalLinkedBinding;
+        if (cachedModule)
+            require.cache[modulePath] = cachedModule;
+        else
+            delete require.cache[modulePath];
     }
-    assert.strictEqual(duplicateStartRejected, true);
-
-    contentTracing._recordProcessSnapshot('smoke-snapshot', { ok: true });
-    const usage = await contentTracing.getTraceBufferUsage();
-    assert.strictEqual(typeof usage.value, 'number');
-    assert.strictEqual(typeof usage.percentage, 'number');
-
-    const outputPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-content-tracing-')), 'trace.json');
-    const writtenPath = await contentTracing.stopRecording(outputPath);
-    assert.strictEqual(writtenPath, outputPath);
-    const trace = JSON.parse(fs.readFileSync(writtenPath, 'utf8'));
-    assert.ok(Array.isArray(trace.traceEvents));
-    assert.ok(trace.traceEvents.some(function(event) { return event.name === 'contentTracing.startRecording'; }));
-    assert.ok(trace.traceEvents.some(function(event) { return event.name === 'smoke-snapshot'; }));
-    assert.ok(trace.traceEvents.some(function(event) {
-        return event.name === 'smoke-snapshot'
-            && event.args
-            && event.args.data
-            && event.args.data.ok === true;
-    }));
-    assert.strictEqual(trace.metadata.product, 'miniblink-electron');
-    assert.strictEqual(typeof trace.metadata.nodeTraceEventCount, 'number');
-    assert.ok(trace.metadata.nodeTraceEventCount > 0);
-    assert.strictEqual(typeof trace.metadata.nativeTraceEventCount, 'number');
-    assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.available, true);
-    assert.strictEqual(trace.metadata.traceConfig.nodeTraceEvents.enabled, true);
-
-    let stopRejected = false;
-    try {
-        await contentTracing.stopRecording();
-    } catch (error) {
-        stopRejected = /not recording/.test(String(error && error.message));
-    }
-    assert.strictEqual(stopRejected, true);
-
-    console.log('PASS content-tracing-js-smoke');
 }
 
-function runCrashReporterSmoke() {
+async function runCrashReporterSmoke() {
     const fs = require('fs');
+    const http = require('http');
     const os = require('os');
     const path = require('path');
     const modulePath = require.resolve('../electron/lib/browser/api/crash-reporter');
+    const originalLinkedBinding = process._linkedBinding;
+    function listen(server) {
+        return new Promise(function(resolve) {
+            server.listen(0, '127.0.0.1', function() {
+                resolve(server.address().port);
+            });
+        });
+    }
+    function closeServer(server) {
+        return new Promise(function(resolve) {
+            server.close(resolve);
+        });
+    }
+    function waitForDatabase(predicate) {
+        return new Promise(function(resolve, reject) {
+            const deadline = Date.now() + 3000;
+            function poll() {
+                if (predicate()) {
+                    resolve();
+                    return;
+                }
+                if (Date.now() > deadline) {
+                    reject(new Error('timed out waiting for crash report database'));
+                    return;
+                }
+                setTimeout(poll, 20);
+            }
+            poll();
+        });
+    }
     delete require.cache[modulePath];
+    process._linkedBinding = function(name) {
+        if (name === 'electron_common_crash_reporter') {
+            return {
+                writeMinidump(filePath) {
+                    fs.writeFileSync(filePath, Buffer.from('MDMPsmoke-minidump'));
+                    return {
+                        path: filePath,
+                        size: fs.statSync(filePath).size,
+                        streamCount: 5,
+                        threadCount: 1,
+                        moduleCount: 1
+                    };
+                },
+                installSignalHandlers(directory) {
+                    assert.strictEqual(typeof directory, 'string');
+                    return {
+                        running: true,
+                        outOfProcess: true,
+                        pid: 4321,
+                        portName: 'org.miniblink.test.crash',
+                        directory
+                    };
+                },
+                requestCrashServiceDump(filePath) {
+                    fs.writeFileSync(filePath, Buffer.from('MDMPsmoke-service-minidump'));
+                    return {
+                        path: filePath,
+                        size: fs.statSync(filePath).size,
+                        streamCount: 6,
+                        threadCount: 2,
+                        moduleCount: 3,
+                        servicePid: 4321,
+                        outOfProcess: true
+                    };
+                },
+                getCrashServiceStatus() {
+                    return {
+                        running: true,
+                        outOfProcess: true,
+                        pid: 4321,
+                        portName: 'org.miniblink.test.crash',
+                        directory: crashDir
+                    };
+                },
+                stopCrashService() {
+                    return true;
+                }
+            };
+        }
+        if (originalLinkedBinding)
+            return originalLinkedBinding.call(process, name);
+        throw new Error('unexpected linked binding: ' + name);
+    };
     const crashReporter = require('../electron/lib/browser/api/crash-reporter');
     const crashDir = fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-crash-reporter-'));
 
@@ -2467,13 +2818,94 @@ function runCrashReporterSmoke() {
     assert.strictEqual(fs.existsSync(report.path), true);
     assert.strictEqual(typeof report.diagnosticReport, 'string');
     assert.strictEqual(fs.existsSync(report.diagnosticReport), true);
+    assert.strictEqual(typeof report.minidump, 'string');
+    assert.strictEqual(fs.existsSync(report.minidump), true);
+    assert.strictEqual(fs.readFileSync(report.minidump).subarray(0, 4).toString('ascii'), 'MDMP');
+    assert.strictEqual(report.nativeMinidump.threadCount, 2);
+    assert.strictEqual(report.nativeMinidump.moduleCount, 3);
+    assert.strictEqual(report.nativeMinidump.servicePid, 4321);
+    assert.strictEqual(report.nativeMinidump.outOfProcess, true);
     assert.strictEqual(crashReporter.getLastCrashReport().path, report.path);
+    assert.strictEqual(report.database.state, 'completed');
+    assert.strictEqual(report.database.path, path.join(crashDir, 'reports'));
+    let database = crashReporter._getCrashReportDatabaseForTesting();
+    assert.strictEqual(database.path, path.join(crashDir, 'reports'));
+    assert.strictEqual(database.new, 0);
+    assert.strictEqual(database.completed, 1);
+    assert.strictEqual(database.pending, 0);
+    assert.strictEqual(database.uploaded, 0);
+    assert.strictEqual(fs.existsSync(path.join(crashDir, 'reports', 'completed', report.id + '.json')), true);
+    assert.strictEqual(crashReporter._getNativeCrashServiceForTesting().running, true);
+    crashReporter.setUploadToServer(true);
+    assert.strictEqual(crashReporter.getUploadToServer(), true);
+    database = crashReporter._getCrashReportDatabaseForTesting();
+    assert.strictEqual(database.pending, 1);
+    assert.strictEqual(crashReporter._getPendingReportsForTesting()[0].id, report.id);
+    const uploaded = crashReporter._recordUploadCompleteForTesting(report);
+    assert.strictEqual(uploaded.id, report.id);
+    database = crashReporter._getCrashReportDatabaseForTesting();
+    assert.strictEqual(database.pending, 0);
+    assert.strictEqual(database.uploaded, 1);
+    assert.strictEqual(crashReporter.getUploadedReports()[0].id, report.id);
+
+    const uploadDir = fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-crash-reporter-upload-'));
+    let uploadRequestResolve;
+    const uploadRequest = new Promise(function(resolve) {
+        uploadRequestResolve = resolve;
+    });
+    const uploadServer = http.createServer(function(request, response) {
+        const chunks = [];
+        request.on('data', function(chunk) {
+            chunks.push(chunk);
+        });
+        request.on('end', function() {
+            const body = Buffer.concat(chunks);
+            response.statusCode = 200;
+            response.end('ok');
+            uploadRequestResolve({
+                headers: request.headers,
+                body
+            });
+        });
+    });
+    const uploadPort = await listen(uploadServer);
+    try {
+        crashReporter.start({
+            productName: 'MiniBlink',
+            companyName: 'MiniBlink',
+            uploadToServer: true,
+            submitURL: `http://127.0.0.1:${uploadPort}/submit`,
+            crashesDirectory: uploadDir,
+            globalExtra: {
+                channel: 'upload-smoke'
+            }
+        });
+        const uploadedReport = crashReporter._writeReportForTesting('upload', new Error('upload smoke'), 'test');
+        assert.strictEqual(uploadedReport.kind, 'upload');
+        const receivedUpload = await uploadRequest;
+        const contentType = receivedUpload.headers['content-type'];
+        assert.ok(/^multipart\/form-data; boundary=/.test(contentType));
+        const uploadText = receivedUpload.body.toString('latin1');
+        assert.ok(uploadText.includes('name="payload"'));
+        assert.ok(uploadText.includes('"kind":"upload"'));
+        assert.ok(uploadText.includes('name="channel"'));
+        assert.ok(uploadText.includes('upload-smoke'));
+        assert.ok(uploadText.includes('name="upload_file_minidump"'));
+        assert.ok(receivedUpload.body.includes(Buffer.from('MDMPsmoke-service-minidump')));
+        await waitForDatabase(function() {
+            const uploadDatabase = crashReporter._getCrashReportDatabaseForTesting();
+            return uploadDatabase.pending === 0 && uploadDatabase.uploaded === 1;
+        });
+    } finally {
+        await closeServer(uploadServer);
+    }
+    process._linkedBinding = originalLinkedBinding;
 
     const nextDir = fs.mkdtempSync(path.join(os.tmpdir(), 'miniblink-crash-reporter-next-'));
     crashReporter.setCrashReportFolder(nextDir);
     assert.strictEqual(crashReporter.getCrashReportFolder(), nextDir);
-    crashReporter.setUploadToServer(true);
-    assert.strictEqual(crashReporter.getUploadToServer(), true);
+    database = crashReporter._getCrashReportDatabaseForTesting();
+    assert.strictEqual(database.completed, 0);
 
     console.log('PASS crash-reporter-js-smoke');
 }
@@ -2929,12 +3361,17 @@ function runUtilityProcessSmoke() {
     const originalLinkedBinding = process._linkedBinding;
     const modulePath = require.resolve('../electron/lib/browser/api/utility-process');
     const messagePortPath = require.resolve('../electron/lib/browser/api/message-port-main');
+    const parentPortPath = require.resolve('../electron/lib/browser/api/parent-port');
     const cachedModule = require.cache[modulePath];
     const cachedMessagePort = require.cache[messagePortPath];
+    const cachedParentPort = require.cache[parentPortPath];
+    const originalParentPort = process.parentPort;
     delete require.cache[modulePath];
     delete require.cache[messagePortPath];
+    delete require.cache[parentPortPath];
 
     const forkCalls = [];
+    const parentPortSends = [];
     class FakeHandle {
         constructor() {
             this.pidValue = 4321;
@@ -2965,6 +3402,15 @@ function runUtilityProcessSmoke() {
                     return new FakeHandle();
                 }
             };
+        }
+        if (name === 'electron_browser_parent_port') {
+            class ParentPort {
+                _send(message) {
+                    parentPortSends.push(message);
+                    return 'parent-posted';
+                }
+            }
+            return { ParentPort };
         }
         if (originalLinkedBinding)
             return originalLinkedBinding.call(process, name);
@@ -3012,9 +3458,26 @@ function runUtilityProcessSmoke() {
         assert.strictEqual(killChild.kill(), true);
         assert.strictEqual(killChild._handle.killed, true);
 
+        require('../electron/lib/browser/api/parent-port');
+        assert.strictEqual(typeof process.parentPort.postMessage, 'function');
+        assert.strictEqual(process.parentPort.postMessage({ from: 'child' }), 'parent-posted');
+        assert.deepStrictEqual(parentPortSends, [{ from: 'child' }]);
+        const parentMessages = [];
+        const rawTransferredPort = { raw: true };
+        process.parentPort.on('message', event => parentMessages.push(event));
+        process.parentPort.emit('message', { data: 'parent', ports: [rawTransferredPort] });
+        assert.strictEqual(parentMessages.length, 1);
+        assert.strictEqual(parentMessages[0].data, 'parent');
+        assert.strictEqual(parentMessages[0].ports.length, 1);
+        assert.strictEqual(parentMessages[0].ports[0]._internalPort, rawTransferredPort);
+
         console.log('PASS utility-process-js-smoke');
     } finally {
         process._linkedBinding = originalLinkedBinding;
+        if (originalParentPort === undefined)
+            delete process.parentPort;
+        else
+            process.parentPort = originalParentPort;
         if (cachedModule)
             require.cache[modulePath] = cachedModule;
         else
@@ -3023,6 +3486,10 @@ function runUtilityProcessSmoke() {
             require.cache[messagePortPath] = cachedMessagePort;
         else
             delete require.cache[messagePortPath];
+        if (cachedParentPort)
+            require.cache[parentPortPath] = cachedParentPort;
+        else
+            delete require.cache[parentPortPath];
     }
 }
 
@@ -3186,7 +3653,7 @@ runAppApiSmoke()
         return runContentTracingSmoke();
     })
     .then(function() {
-        runCrashReporterSmoke();
+        return runCrashReporterSmoke();
     })
     .then(function() {
         runNetSmoke();

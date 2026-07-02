@@ -13,10 +13,29 @@ let nodeTraceDirectory = null;
 let nodeTraceBaseline = null;
 let nodeTraceOwnDirectory = false;
 let nativeTracing = null;
+let heapProfilingOptions = null;
+
+const heapProfilingModes = [
+  'all',
+  'browser',
+  'gpu',
+  'minimal',
+  'renderer-sampling',
+  'all-renderers',
+  'utility-sampling',
+  'all-utilities',
+  'utility-and-browser'
+];
+
+const heapProfilingStackModes = [
+  'native',
+  'native-with-thread-names'
+];
 
 const categories = [
   'blink',
   'browser',
+  'disabled-by-default-memory-infra',
   'electron',
   'gpu',
   'input',
@@ -70,9 +89,24 @@ function normalizeOptions(options) {
   if (typeof options !== 'object')
     throw new TypeError('contentTracing.startRecording options must be an object or string');
 
-  const categoryFilter = Array.isArray(options.included_categories)
-    ? options.included_categories.join(',')
-    : (options.categoryFilter || options.category_filter || '*');
+  let categoryFilter = options.categoryFilter || options.category_filter;
+  if (Array.isArray(options.included_categories) || Array.isArray(options.excluded_categories)) {
+    const categoryParts = [];
+    if (Array.isArray(options.included_categories)) {
+      options.included_categories.forEach(function(category) {
+        if (category != null && String(category).trim())
+          categoryParts.push(String(category).trim());
+      });
+    }
+    if (Array.isArray(options.excluded_categories)) {
+      options.excluded_categories.forEach(function(category) {
+        if (category != null && String(category).trim())
+          categoryParts.push('-' + String(category).replace(/^-+/, '').trim());
+      });
+    }
+    categoryFilter = categoryParts.length ? categoryParts.join(',') : categoryFilter;
+  }
+  categoryFilter = categoryFilter || '*';
   const traceOptions = options.traceOptions || options.trace_options || options.recordMode || 'record-until-full';
 
   return {
@@ -80,6 +114,57 @@ function normalizeOptions(options) {
     traceOptions: String(traceOptions || 'record-until-full'),
     options: Object.assign({}, options)
   };
+}
+
+function normalizeHeapProfilingOptions(options) {
+  if (options == null)
+    options = {};
+  if (typeof options !== 'object')
+    throw new TypeError('contentTracing.enableHeapProfiling options must be an object');
+
+  const mode = options.mode == null ? 'all' : String(options.mode);
+  if (heapProfilingModes.indexOf(mode) < 0)
+    throw new TypeError('contentTracing.enableHeapProfiling mode is invalid');
+
+  const samplingRate = options.samplingRate == null ? 100000 : Number(options.samplingRate);
+  if (!Number.isInteger(samplingRate) || samplingRate < 1000 || samplingRate > 10000000)
+    throw new TypeError('contentTracing.enableHeapProfiling samplingRate must be an integer between 1000 and 10000000');
+
+  const stackMode = options.stackMode == null ? 'native' : String(options.stackMode);
+  if (heapProfilingStackModes.indexOf(stackMode) < 0)
+    throw new TypeError('contentTracing.enableHeapProfiling stackMode is invalid');
+
+  return {
+    enabled: true,
+    mode,
+    samplingRate,
+    stackMode
+  };
+}
+
+function isMemoryInfraCategoryEnabled(categoryFilter) {
+  const value = String(categoryFilter || '');
+  if (!value)
+    return false;
+
+  return value.split(',').some(function(category) {
+    const normalized = category.trim();
+    return normalized === 'disabled-by-default-memory-infra'
+      || normalized === 'memory-infra';
+  });
+}
+
+function applyHeapProfilingOptions(config) {
+  if (!heapProfilingOptions)
+    return;
+
+  config.heapProfiling = Object.assign({}, heapProfilingOptions, {
+    memoryInfraCategoryEnabled: isMemoryInfraCategoryEnabled(config.categoryFilter)
+  });
+
+  config.options = Object.assign({}, config.options || {}, {
+    heap_profiling_options: Object.assign({}, heapProfilingOptions)
+  });
 }
 
 function addEvent(name, args) {
@@ -349,12 +434,13 @@ function startNativeTracing(config) {
   }
 
   try {
-    binding.startRecording(config.categoryFilter, config.traceOptions);
+    binding.startRecording(config.categoryFilter, config.traceOptions, config.heapProfiling || null);
     config.nativeTraceEvents = {
       available: true,
       enabled: true,
       categoryFilter: config.categoryFilter,
-      traceOptions: config.traceOptions
+      traceOptions: config.traceOptions,
+      heapProfiling: config.heapProfiling || null
     };
   } catch (error) {
     config.nativeTraceEvents = {
@@ -387,6 +473,75 @@ function stopNativeTracing() {
   }
 }
 
+function getNativePerfettoStats() {
+  const binding = getNativeTracing();
+  if (!binding || typeof binding.getPerfettoStats !== 'function')
+    return null;
+
+  try {
+    const stats = binding.getPerfettoStats();
+    if (!stats || typeof stats !== 'object')
+      return null;
+    return {
+      initialized: !!stats.initialized,
+      recording: !!stats.recording,
+      startedCount: Number(stats.startedCount || 0),
+      eventCount: Number(stats.eventCount || 0),
+      droppedEventCount: Number(stats.droppedEventCount || 0),
+      lastTraceSize: Number(stats.lastTraceSize || 0),
+      lastTracePacketCountHint: Number(stats.lastTracePacketCountHint || 0),
+      lastTraceStatsSuccess: !!stats.lastTraceStatsSuccess,
+      lastTraceStatsSize: Number(stats.lastTraceStatsSize || 0),
+      traceStatsProducersConnected: Number(stats.traceStatsProducersConnected || 0),
+      traceStatsProducersSeen: Number(stats.traceStatsProducersSeen || 0),
+      traceStatsDataSourcesRegistered: Number(stats.traceStatsDataSourcesRegistered || 0),
+      traceStatsDataSourcesSeen: Number(stats.traceStatsDataSourcesSeen || 0),
+      traceStatsTracingSessions: Number(stats.traceStatsTracingSessions || 0),
+      traceStatsTotalBuffers: Number(stats.traceStatsTotalBuffers || 0),
+      traceStatsBytesWritten: Number(stats.traceStatsBytesWritten || 0),
+      traceStatsChunksWritten: Number(stats.traceStatsChunksWritten || 0),
+      tracePacketCount: Number(stats.tracePacketCount || 0),
+      trackDescriptorPacketCount: Number(stats.trackDescriptorPacketCount || 0),
+      processDescriptorCount: Number(stats.processDescriptorCount || 0),
+      threadDescriptorCount: Number(stats.threadDescriptorCount || 0),
+      trackEventPacketCount: Number(stats.trackEventPacketCount || 0),
+      trackEventSliceBeginCount: Number(stats.trackEventSliceBeginCount || 0),
+      trackEventSliceEndCount: Number(stats.trackEventSliceEndCount || 0),
+      trackEventInstantCount: Number(stats.trackEventInstantCount || 0),
+      trackEventCounterCount: Number(stats.trackEventCounterCount || 0),
+      trackEventCounterValueCount: Number(stats.trackEventCounterValueCount || 0),
+      trackEventNamedCount: Number(stats.trackEventNamedCount || 0),
+      trackEventDirectNameCount: Number(stats.trackEventDirectNameCount || 0),
+      trackEventInternedNameCount: Number(stats.trackEventInternedNameCount || 0),
+      trackEventTrackNameCount: Number(stats.trackEventTrackNameCount || 0),
+      trackEventNames: typeof stats.trackEventNames === 'string' ? stats.trackEventNames : '',
+      lastServiceStateSuccess: !!stats.lastServiceStateSuccess,
+      lastServiceStateSize: Number(stats.lastServiceStateSize || 0),
+      serviceStateProducerCount: Number(stats.serviceStateProducerCount || 0),
+      serviceStateDataSourceCount: Number(stats.serviceStateDataSourceCount || 0),
+      serviceStateTracingSessionCount: Number(stats.serviceStateTracingSessionCount || 0),
+      serviceStateSupportsTracingSessions: !!stats.serviceStateSupportsTracingSessions,
+      serviceStateNumSessions: Number(stats.serviceStateNumSessions || 0),
+      serviceStateNumSessionsStarted: Number(stats.serviceStateNumSessionsStarted || 0)
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+function getNativePerfettoTraceDataBase64() {
+  const binding = getNativeTracing();
+  if (!binding || typeof binding.getPerfettoTraceData !== 'function')
+    return '';
+
+  try {
+    const traceData = binding.getPerfettoTraceData();
+    return typeof traceData === 'string' ? traceData : '';
+  } catch (error) {
+    return '';
+  }
+}
+
 function waitForNodeTraceFlush() {
   return new Promise(function(resolve) {
     setTimeout(resolve, 100);
@@ -407,6 +562,10 @@ function traceOutputPath(requestedPath) {
 function writeTraceFile(filePath) {
   const nodeEvents = readNewNodeTraceEvents();
   const nativeEvents = stopNativeTracing();
+  const nativePerfetto = getNativePerfettoStats();
+  const nativePerfettoTraceData = getNativePerfettoTraceDataBase64();
+  if (nativePerfetto && nativePerfettoTraceData)
+    nativePerfetto.traceDataBase64 = nativePerfettoTraceData;
   const payload = {
     traceEvents: traceEvents.concat(nativeEvents, nodeEvents),
     metadata: {
@@ -418,7 +577,8 @@ function writeTraceFile(filePath) {
       endTime: new Date().toISOString(),
       traceConfig,
       nodeTraceEventCount: nodeEvents.length,
-      nativeTraceEventCount: nativeEvents.length
+      nativeTraceEventCount: nativeEvents.length,
+      nativePerfetto
     }
   };
   fs.writeFileSync(filePath, JSON.stringify(payload, null, 2));
@@ -430,11 +590,24 @@ const contentTracing = {
     return Promise.resolve(categories.slice());
   },
 
+  enableHeapProfiling(options) {
+    if (recording)
+      return Promise.reject(new Error('contentTracing.enableHeapProfiling must be called before startRecording'));
+
+    try {
+      heapProfilingOptions = normalizeHeapProfilingOptions(options);
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+
   startRecording(options) {
     if (recording)
       return Promise.reject(new Error('contentTracing is already recording'));
 
     traceConfig = normalizeOptions(options);
+    applyHeapProfilingOptions(traceConfig);
     traceConfig.startedAt = new Date().toISOString();
     startHrtime = process.hrtime.bigint();
     traceEvents = [];
