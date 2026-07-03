@@ -39,9 +39,7 @@ jobs:
         run: scripts/ci/build-fastmake-macos.sh
 
       - name: Build MiniElectron
-        run: |
-          ./out/mac_tools/fastmake fastmake/buildcfg/blink_build.js "$MAC_CONFIG" 2 . electron
-          test -x "out/$MAC_CONFIG/miniblink"
+        run: scripts/ci/build-minielectron-macos.sh "$MAC_CONFIG"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
