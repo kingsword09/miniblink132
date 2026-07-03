@@ -13,28 +13,29 @@
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
 
-#include "base/win/scoped_com_initializer.h"
-#include "base/win/shortcut.h"
-#include "base/files/file_path.h"
-#include "base/strings/string_util.h"
-#include "base/strings/utf_string_conversions.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libnode/src/node_version.h"
 #include "third_party/libuv/include/uv.h"
 
+namespace {
+
+bool isViewApiEnabled()
+{
+    return false;
+}
+
+} // namespace
+
 void initializeFeaturesApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unused, v8::Local<v8::Context> context, void* priv)
 {
     v8::Isolate* isolate = context->GetIsolate();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate);
-    gin_helper::Dictionary dict(context->GetIsolate(), obj);
+    gin_helper::Dictionary dict(isolate, exports);
     dict.Set("isDesktopCapturerEnabled", false);
-    dict.SetMethod("isViewApiEnabled", false);
-
-    exports->Set(context, v8::String::NewFromUtf8(isolate, "Shell").ToLocalChecked(), obj);
+    dict.SetMethodT("isViewApiEnabled", &isViewApiEnabled);
 }
 
-static const char CommonFeaturesNative[] = "console.log('CommonFeaturesNative');;";
+static const char CommonFeaturesNative[] = "exports = {};";
 static NodeNative nativeCommonFeaturesNative { "Features", CommonFeaturesNative, sizeof(CommonFeaturesNative) - 1 };
 
 NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_features, initializeFeaturesApi, &nativeCommonFeaturesNative)

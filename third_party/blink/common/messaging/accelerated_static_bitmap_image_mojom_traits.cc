@@ -4,9 +4,44 @@
 
 #include "third_party/blink/public/common/messaging/accelerated_static_bitmap_image_mojom_traits.h"
 
+#include "base/debug/alias.h"
+#include "base/hash/md5_constexpr.h"
 #include "gpu/command_buffer/common/shared_image_usage.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "mojo/public/cpp/bindings/self_owned_receiver.h"
+#include "third_party/blink/public/mojom/messaging/static_bitmap_image.mojom-shared-message-ids.h"
+
+namespace blink::mojom {
+
+const char ImageReleaseCallback::Name_[] = "blink.mojom.ImageReleaseCallback";
+
+ImageReleaseCallback::IPCStableHashFunction ImageReleaseCallback::MessageToMethodInfo_(mojo::Message& message)
+{
+#if !BUILDFLAG(IS_FUCHSIA)
+    switch (static_cast<messages::ImageReleaseCallback>(message.name())) {
+    case messages::ImageReleaseCallback::kRelease:
+        return &ImageReleaseCallback::Release_Sym::IPCStableHash;
+    }
+#endif
+    return nullptr;
+}
+
+const char* ImageReleaseCallback::MessageToMethodName_(mojo::Message& message)
+{
+    return message.has_flag(mojo::Message::kFlagIsResponse) ? "Receive mojo reply" : "Receive mojo message";
+}
+
+#if !BUILDFLAG(IS_FUCHSIA)
+uint32_t ImageReleaseCallback::Release_Sym::IPCStableHash()
+{
+    constexpr uint32_t kHash = base::MD5Hash32Constexpr("(Impl)blink::mojom::ImageReleaseCallback::Release");
+    const uint32_t hash = kHash;
+    base::debug::Alias(&hash);
+    return hash;
+}
+#endif
+
+} // namespace blink::mojom
 
 namespace {
 

@@ -1,4 +1,6 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
+
+const platformWindowsSrc = constVal.isMac ? "${srcPath}/mac/mac_windows.cpp" : "${srcPath}/linux/linuxwindows.cpp";
 
 var json = [{
     "var":[
@@ -26,10 +28,10 @@ var json = [{
             //"${srcPath}/wkexe/vip/wkexe_linux_exp.cpp",
             "${srcPath}/webdriver/MBCommandExecutor.cpp",
             "${srcPath}/webdriver/WebDriverMain.cpp",
-            "${srcPath}/linux/linuxwindows.cpp",
+            platformWindowsSrc,
         ],
         "src":[
-            "${srcPath}/linux/linuxwindows.cpp",
+            platformWindowsSrc,
             //"${srcPath}/linux/linuxgdi.cpp",
             "${srcPath}/patch_code/atomic_xp.cpp",
             "${srcPath}/webdriver/WebDriverMain.cpp",
@@ -170,7 +172,15 @@ var json = [{
 
 var endLibs = [];
 
-if ("aarch64-linux-guneabi" == constVal.target) { // ARM64
+if (constVal.isMac) {
+    applyMacBuildSettings(json, { staticLib: false });
+    json[0].compile.beginLibs = [];
+    json[0].compile.endLibs = [];
+    json[0].compile.linkerCmd = [
+        "-framework", "ApplicationServices",
+        "-framework", "Foundation",
+    ];
+} else if ("aarch64-linux-guneabi" == constVal.target) { // ARM64
     json[0].compile.linkerCmd = [
         "-dynamic-linker /usr/lib/ld-linux-aarch64.so.1",
         "-l${sysroot}/lib/aarch64-linux-gnu/libc-2.31.so",

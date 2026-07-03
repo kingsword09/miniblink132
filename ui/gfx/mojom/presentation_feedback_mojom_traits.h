@@ -12,7 +12,8 @@
 #include "ui/gfx/mojom/presentation_feedback.mojom-shared.h"
 #include "ui/gfx/presentation_feedback.h"
 
-#if BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE) && __has_include("ui/gfx/mojom/ca_layer_result.mojom-shared.h")
+#define UI_GFX_MOJOM_HAS_CA_LAYER_RESULT 1
 #include "ui/gfx/mojom/ca_layer_result_mojom_traits.h"
 #endif
 
@@ -54,7 +55,7 @@ template <> struct StructTraits<gfx::mojom::PresentationFeedbackDataView, gfx::P
         return input.writes_done_timestamp;
     }
 
-#if BUILDFLAG(IS_APPLE)
+#if defined(UI_GFX_MOJOM_HAS_CA_LAYER_RESULT)
     static gfx::CALayerResult ca_layer_error_code(const gfx::PresentationFeedback& input)
     {
         return input.ca_layer_error_code;
@@ -66,7 +67,7 @@ template <> struct StructTraits<gfx::mojom::PresentationFeedbackDataView, gfx::P
         out->flags = data.flags();
         return data.ReadTimestamp(&out->timestamp) && data.ReadInterval(&out->interval) && data.ReadAvailableTimestamp(&out->available_timestamp)
             && data.ReadReadyTimestamp(&out->ready_timestamp) && data.ReadLatchTimestamp(&out->latch_timestamp) &&
-#if BUILDFLAG(IS_APPLE)
+#if defined(UI_GFX_MOJOM_HAS_CA_LAYER_RESULT)
             data.ReadCaLayerErrorCode(&out->ca_layer_error_code) &&
 #endif
             data.ReadWritesDoneTimestamp(&out->writes_done_timestamp);

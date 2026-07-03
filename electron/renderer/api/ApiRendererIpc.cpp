@@ -128,7 +128,8 @@ public:
 
     void sendToHost(std::unique_ptr<std::vector<blink::CloneableMessage>> arguments)
     {
-        DebugBreak();
+        if (!arguments || arguments->empty())
+            return;
 //         if (arguments->empty())
 //             return;
 // 

@@ -63,20 +63,6 @@
 #include "ui/latency/mojom/latency_info_mojom_traits.h"
 
 namespace viz::mojom::blink {
-BundledFrameSubmission::BundledFrameSubmission()
-    : sink_id()
-    , data()
-{
-}
-
-BundledFrameSubmission::BundledFrameSubmission(uint32_t sink_id_in, BundledFrameSubmissionDataPtr data_in)
-    : sink_id(std::move(sink_id_in))
-    , data(std::move(data_in))
-{
-}
-
-BundledFrameSubmission::~BundledFrameSubmission() = default;
-
 void BundledFrameSubmission::WriteIntoTrace(perfetto::TracedValue traced_context) const
 {
     [[maybe_unused]] auto dict = std::move(traced_context).WriteDictionary();
@@ -100,24 +86,6 @@ bool BundledFrameSubmission::Validate(const void* data, mojo::internal::Validati
 {
     return Data_::Validate(data, validation_context);
 }
-BundledCompositorFrame::BundledCompositorFrame()
-    : local_surface_id()
-    , frame()
-    , hit_test_region_list()
-    , submit_time()
-{
-}
-
-BundledCompositorFrame::BundledCompositorFrame(const ::viz::LocalSurfaceId& local_surface_id_in, ::viz::CompositorFrame frame_in,
-    std::optional<::viz::HitTestRegionList> hit_test_region_list_in, uint64_t submit_time_in)
-    : local_surface_id(std::move(local_surface_id_in))
-    , frame(std::move(frame_in))
-    , hit_test_region_list(std::move(hit_test_region_list_in))
-    , submit_time(std::move(submit_time_in))
-{
-}
-
-BundledCompositorFrame::~BundledCompositorFrame() = default;
 
 void BundledCompositorFrame::WriteIntoTrace(perfetto::TracedValue traced_context) const
 {
@@ -156,19 +124,6 @@ bool BundledCompositorFrame::Validate(const void* data, mojo::internal::Validati
 {
     return Data_::Validate(data, validation_context);
 }
-BundledReturnedResources::BundledReturnedResources()
-    : sink_id()
-    , resources()
-{
-}
-
-BundledReturnedResources::BundledReturnedResources(uint32_t sink_id_in, WTF::Vector<::viz::ReturnedResource> resources_in)
-    : sink_id(std::move(sink_id_in))
-    , resources(std::move(resources_in))
-{
-}
-
-BundledReturnedResources::~BundledReturnedResources() = default;
 
 void BundledReturnedResources::WriteIntoTrace(perfetto::TracedValue traced_context) const
 {
@@ -193,26 +148,6 @@ bool BundledReturnedResources::Validate(const void* data, mojo::internal::Valida
 {
     return Data_::Validate(data, validation_context);
 }
-BeginFrameInfo::BeginFrameInfo()
-    : sink_id()
-    , args()
-    , details()
-    , frame_ack()
-    , resources()
-{
-}
-
-BeginFrameInfo::BeginFrameInfo(uint32_t sink_id_in, const ::viz::BeginFrameArgs& args_in, const WTF::HashMap<uint32_t, ::viz::FrameTimingDetails>& details_in,
-    bool frame_ack_in, WTF::Vector<::viz::ReturnedResource> resources_in)
-    : sink_id(std::move(sink_id_in))
-    , args(std::move(args_in))
-    , details(std::move(details_in))
-    , frame_ack(std::move(frame_ack_in))
-    , resources(std::move(resources_in))
-{
-}
-
-BeginFrameInfo::~BeginFrameInfo() = default;
 
 void BeginFrameInfo::WriteIntoTrace(perfetto::TracedValue traced_context) const
 {
@@ -258,17 +193,6 @@ bool BeginFrameInfo::Validate(const void* data, mojo::internal::ValidationContex
 {
     return Data_::Validate(data, validation_context);
 }
-BundledFrameSubmissionData::BundledFrameSubmissionData()
-    : tag_(Tag::kFrame)
-{
-    data_.frame = new BundledCompositorFramePtr;
-}
-
-BundledFrameSubmissionData::~BundledFrameSubmissionData()
-{
-    DestroyActive();
-}
-
 void BundledFrameSubmissionData::set_frame(BundledCompositorFramePtr frame)
 {
     if (tag_ == Tag::kFrame) {
@@ -582,7 +506,8 @@ void FrameSinkBundleProxy::Submit(WTF::Vector<BundledFrameSubmissionPtr> in_subm
         | ((kAllowInterrupt) ? 0 : mojo::Message::kFlagNoInterrupt) | ((is_urgent) ? mojo::Message::kFlagIsUrgent : 0);
 
     const size_t estimated_payload_size = 0;
-    mojo::Message message(base::to_underlying(messages::FrameSinkBundle::kSubmit), kFlags, MOJO_CREATE_MESSAGE_FLAG_UNLIMITED_SIZE, estimated_payload_size);
+    mojo::Message message(base::to_underlying(messages::FrameSinkBundle::kSubmit), kFlags, estimated_payload_size, 0,
+        MOJO_CREATE_MESSAGE_FLAG_UNLIMITED_SIZE, nullptr);
     mojo::internal::MessageFragment<::viz::mojom::internal::FrameSinkBundle_Submit_Params_Data> params(message);
     params.Allocate();
     mojo::internal::MessageFragment<typename decltype(params->submissions)::BaseType> submissions_fragment(params.message());

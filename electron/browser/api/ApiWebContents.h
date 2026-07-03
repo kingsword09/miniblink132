@@ -9,6 +9,8 @@
 #include "electron/common/gin_helper/dictionary.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
 #include <set>
+#include <memory>
+#include <vector>
 
 namespace node {
 class Environment;
@@ -20,6 +22,7 @@ class ListValue;
 
 namespace mojo {
 class Connector;
+class Message;
 }
 
 namespace atom {
@@ -68,7 +71,11 @@ public:
         unsigned styles;
         unsigned styleEx;
         bool transparent;
+#if defined(OS_MAC)
+        std::u16string title;
+#else
         std::wstring title;
+#endif
         bool isShow;
         bool isCenter;
         bool isResizable;
@@ -144,6 +151,10 @@ public:
     {
         return m_owner;
     }
+    void setOwner(WindowInterface* owner)
+    {
+        m_owner = owner;
+    }
 
     std::vector<std::string> getPreloadScript();
 
@@ -151,6 +162,7 @@ public:
     void rendererSendMessageToMain(mbWebFrameHandle frame, const std::string& channel, std::unique_ptr<std::vector<blink::CloneableMessage>> listParams, 
         std::vector<uint8_t>* encodedMessageRet);
     void anyPostMessageToRenderer(int64_t frameId, const std::string& channel, std::unique_ptr<std::vector<blink::CloneableMessage>> listParams);
+    void postMojoMessageToRendererFrame(int64_t frameId, const std::string& channel, std::unique_ptr<mojo::Message> mojoMessage);
     static void rendererSendMessageToRenderer(mbWebView view, mbWebFrameHandle frame, const std::string& channel, const std::vector<blink::CloneableMessage>& args);
 
     int getIdApi() const;
@@ -167,7 +179,7 @@ private:
     bool canGoForwardApi() const;
     void setZoomLevelApi(float level);
     float getZoomLevelApi() const;
-    void printToPDFApi();
+    v8::Local<v8::Promise> printToPDFApi(gin_helper::Arguments* args);
     void setWindowOpenHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& info);
 
     void _loadURLApi(const std::string& url);
@@ -247,7 +259,6 @@ private:
     void unregisterServiceWorkerApi();
     void inspectServiceWorkerApi();
     void printApi();
-    void _printToPDFApi();
     void addWorkSpaceApi();
     void reNullWorkSpaceApi();
     void showDefinitionForSelectionApi();
@@ -257,8 +268,6 @@ private:
     bool isDestroyedApi() const;
     void reloadIgnoringCacheApi();
     void downloadURLApi(const std::string& url);
-
-    void nullFunction();
 
     static void __stdcall staticDidCreateScriptContextCallback(mbWebView webView, void* param, void* frame, void* context, int extensionGroup, int worldId);
     void onDidCreateScriptContext(mbWebView webView, void* frame, v8::Local<v8::Context>* context, int extensionGroup, int worldId);

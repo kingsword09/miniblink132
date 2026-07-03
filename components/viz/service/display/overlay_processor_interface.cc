@@ -99,8 +99,7 @@ std::unique_ptr<OverlayProcessorInterface> OverlayProcessorInterface::CreateOver
     return std::make_unique<OverlayProcessorWin>(capabilities.dc_support_level, debug_settings,
         std::make_unique<DCLayerOverlayProcessor>(capabilities.allowed_yuv_overlay_count, false));
 #endif
-    * (int*)1 = 1;
-    return nullptr;
+    return std::make_unique<OverlayProcessorStub>();
 
 // #if BUILDFLAG(IS_APPLE)
 //     DCHECK(capabilities.supports_surfaceless);

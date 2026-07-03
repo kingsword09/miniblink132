@@ -15,6 +15,7 @@
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "services/viz/privileged/mojom/compositing/display_private.mojom.h"
 #include "ui/gfx/native_widget_types.h"
+#include "windows.h"
 
 namespace content {
 
@@ -36,10 +37,6 @@ public:
 
 private:
     // mojom::DisplayClient implementation:
-#if BUILDFLAG(IS_APPLE)
-    void OnDisplayReceivedCALayerParams(const gfx::CALayerParams& ca_layer_params) override;
-#endif
-
 #if 1 // BUILDFLAG(IS_WIN)
     void CreateLayeredWindowUpdater(mojo::PendingReceiver<viz::mojom::LayeredWindowUpdater> receiver) override;
 #endif
@@ -55,9 +52,7 @@ private:
     mojo::Receiver<viz::mojom::DisplayClient> m_receiver { this };
 
     int64_t m_mbwebviewId;
-#if 1 // BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_WIN)
-    gfx::AcceleratedWidget m_hwnd = nullptr;
-#endif
+    HWND m_hwnd = nullptr;
 
     bool m_isAutoDrawToHwnd = true;
 

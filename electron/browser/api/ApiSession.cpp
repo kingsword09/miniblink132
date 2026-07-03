@@ -23,10 +23,31 @@
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libuv/include/uv.h"
 #include "base/files/file_util.h"
+#include <string.h>
 #include <vector>
 #include <shlwapi.h>
 
 namespace atom {
+
+namespace {
+
+void showDirectoryCreateError(const char* message)
+{
+    StringUtil::WideString text = StringUtil::UTF8ToUTF16(message);
+    StringUtil::WideString title = StringUtil::UTF8ToUTF16("失败");
+    MessageBoxW(0, reinterpret_cast<LPCWSTR>(text.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), 0);
+}
+
+char* duplicateCString(const char* value)
+{
+#if defined(_WIN32)
+    return _strdup(value);
+#else
+    return strdup(value);
+#endif
+}
+
+} // namespace
 
 ApiSession::ApiSession(v8::Isolate* isolate, v8::Local<v8::Object> wrapper)
 {
@@ -37,6 +58,10 @@ ApiSession::ApiSession(v8::Isolate* isolate, v8::Local<v8::Object> wrapper)
 
 ApiSession::~ApiSession()
 {
+    m_permissionRequestHandler.Reset();
+    m_permissionCheckHandler.Reset();
+    m_devicePermissionHandler.Reset();
+    m_liveSelf.Reset();
     if (m_webRequest)
         delete m_webRequest;
     if (m_protocol)
@@ -103,11 +128,10 @@ base::FilePath SessionMgr::createSessionDirname(const std::string& name)
 
 ApiSession* ApiSession::create(v8::Isolate* isolate, const std::string& name)
 {
-    if (name.empty())
-        DebugBreak();
+    std::string sessionName = name.empty() ? ApiSession::kDefaultSessionName : name;
 
     const int argc = 1;
-    v8::Local<v8::Value> argv[argc] = { gin_helper::ConvertToV8(isolate, name.c_str()) };
+    v8::Local<v8::Value> argv[argc] = { gin_helper::ConvertToV8(isolate, sessionName.c_str()) };
     v8::Local<v8::Function> constructorFunction = v8::Local<v8::Function>::New(isolate, constructor);
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::MaybeLocal<v8::Object> obj = constructorFunction->NewInstance(context, argc, argv);
@@ -115,15 +139,15 @@ ApiSession* ApiSession::create(v8::Isolate* isolate, const std::string& name)
 
     ApiSession* self = (ApiSession*)WrappableBase::GetNativePtr(objV8, &kWrapperInfo);
     self->m_liveSelf.Reset(isolate, objV8);
-    self->m_name = name;
+    self->m_name = sessionName;
 
-    base::FilePath fullpath = SessionMgr::createSessionDirname(name); // rootdir/minieleses/11223344/ 这种形式的目录
+    base::FilePath fullpath = SessionMgr::createSessionDirname(sessionName); // rootdir/minieleses/11223344/ 这种形式的目录
     self->m_path = fullpath;
     self->m_downloadPath = fullpath.AsUTF8Unsafe();
 
     if (!base::PathExists(fullpath)) {
         if (!base::CreateDirectory(fullpath)) {
-            MessageBoxW(0, L"创建session目录失败，请把本程序安装到有权限的目录", L"失败", 0);
+            showDirectoryCreateError("创建session目录失败，请把本程序安装到有权限的目录");
             return nullptr;
         }
     }
@@ -192,7 +216,7 @@ mbDownloadOpt ApiSession::onDownloadCallback(WebContents* webContents, mbWebView
         downloadOptions.magic = 'mbdo';
         downloadOptions.saveAsPathAndName = FALSE; // saveAsPathAndName表示强行把文件名+路径设置为为item->getSavePath，这里和electron规范不符合
         return mbDownloadByPath(webView, &downloadOptions, StringUtil::UTF8ToUTF16(item->getSavePath()).c_str(), expectedContentLength, url, mime, disposition,
-            job, dataBind, &bind); // TODO
+            job, dataBind, &bind);
     }
 }
 
@@ -220,7 +244,7 @@ static mbSlist* cloneMbSlist(const mbSlist* old)
     mbSlist* head = newSlist;
 
     while (old) {
-        newSlist->data = _strdup(old->data);
+        newSlist->data = duplicateCString(old->data);
         old = old->next;
         if (old) {
             newSlist->next = new mbSlist();
@@ -355,7 +379,7 @@ void ApiSession::onLoadUrlBeginInBlinkThread(mbWebView webView, const char* url,
 
 void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJob job, v8::Persistent<v8::Value>* persistentCb)
 {
-    if (!m_webRequest || !(persistentCb->IsEmpty())) {
+    if (!m_webRequest || persistentCb->IsEmpty()) {
         return;
     }
     ApiSession* self = this;
@@ -370,7 +394,7 @@ void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJo
     content::ThreadCall::callUiThreadSync(FROM_HERE, [self, persistentCb, urlStr, info, httpMethod, httpHead, referrer] {
         std::unique_ptr<std::string> referrerPtr(referrer);
         std::unique_ptr<std::string> urlStrPtr(urlStr);
-        if (!self->m_webRequest || !(persistentCb->IsEmpty())) {
+        if (!self->m_webRequest || persistentCb->IsEmpty()) {
             info->isCalled = true;
             return;
         }
@@ -421,7 +445,7 @@ void ApiSession::dispatchSendHeaders(mbWebView webView, const char* url, mbNetJo
 
 void ApiSession::fromPartitionApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    if (1 != args.Length() && !(args[0]->IsString()))
+    if (args.Length() < 1 || !args[0]->IsString())
         return;
 
     std::string sessionName;
@@ -435,16 +459,29 @@ void ApiSession::fromPartitionApi(const v8::FunctionCallbackInfo<v8::Value>& arg
     args.GetReturnValue().Set(self->GetWrapper(isolate));
 }
 
-void ApiSession::setPermissionRequestHandlerApi()
+void ApiSession::setOptionalCallbackFromArgs(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Persistent<v8::Value>* callback)
 {
+    if (args.Length() == 0 || args[0]->IsNull() || args[0]->IsUndefined()) {
+        callback->Reset();
+        return;
+    }
+    if (args[0]->IsFunction())
+        callback->Reset(args.GetIsolate(), args[0]);
 }
 
-void ApiSession::setPermissionCheckHandlerApi()
+void ApiSession::setPermissionRequestHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    setOptionalCallbackFromArgs(args, &m_permissionRequestHandler);
 }
 
-void ApiSession::setDevicePermissionHandlerApi()
+void ApiSession::setPermissionCheckHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    setOptionalCallbackFromArgs(args, &m_permissionCheckHandler);
+}
+
+void ApiSession::setDevicePermissionHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    setOptionalCallbackFromArgs(args, &m_devicePermissionHandler);
 }
 
 std::vector<std::string> ApiSession::getPreloadsApi()
@@ -500,7 +537,7 @@ bool SessionMgr::createRootDir()
 
     if (!base::DirectoryExists(m_rootDir)) {
         if (!base::CreateDirectory(m_rootDir)) {
-            MessageBoxW(0, L"创建minieleses目录失败，请把本程序安装到有权限的目录", L"失败", 0);
+            showDirectoryCreateError("创建minieleses目录失败，请把本程序安装到有权限的目录");
             return false;
         }
     }
@@ -508,7 +545,7 @@ bool SessionMgr::createRootDir()
     base::FilePath defaultSessionDir = m_rootDir.AppendASCII(ApiSession::kDefaultSessionName);
     if (!base::DirectoryExists(defaultSessionDir)) {
         if (!base::CreateDirectory(defaultSessionDir)) {
-            MessageBoxW(0, L"创建minieleses目录失败，请把本程序安装到有权限的目录", L"失败", 0);
+            showDirectoryCreateError("创建minieleses目录失败，请把本程序安装到有权限的目录");
             return false;
         }
     }
@@ -529,7 +566,7 @@ SessionMgr* SessionMgr::get()
 
     //  先创建rootdir/minieleses/default/目录
     if (!m_inst->createRootDir())
-        return nullptr; // TODO: 如果创建失败了，没处理
+        return nullptr;
    
     return m_inst;
 }

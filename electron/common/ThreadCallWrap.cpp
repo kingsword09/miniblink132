@@ -30,7 +30,7 @@ void ThreadCall::init(uv_loop_t* uiLoop)
     m_uiThreadId = ::GetCurrentThreadId();
 }
 
-static void MB_CALL_TYPE threadCallStub(void* param1, void* param2)
+static void MB_CALL_TYPE threadCallThunk(void* param1, void* param2)
 {
     std::function<void(void)>* closure = (std::function<void(void)>*)param1;
     (*closure)();
@@ -39,25 +39,25 @@ static void MB_CALL_TYPE threadCallStub(void* param1, void* param2)
 void ThreadCall::callBlinkThreadAsync(std::function<void(void)>&& closure)
 {
     std::function<void(void)>* closureDummy = new std::function<void(void)>(std::move(closure));
-    mbCallBlinkThreadAsync(threadCallStub, closureDummy, nullptr);
+    mbCallBlinkThreadAsync(threadCallThunk, closureDummy, nullptr);
 }
 
 void ThreadCall::callUiThreadAsync(std::function<void(void)>&& closure)
 {
     std::function<void(void)>* closureDummy = new std::function<void(void)>(std::move(closure));
-    mbCallUiThreadAsync(threadCallStub, closureDummy, nullptr);
+    mbCallUiThreadAsync(threadCallThunk, closureDummy, nullptr);
 }
 
 void ThreadCall::callUiThreadSync(std::function<void(void)>&& closure)
 {
     std::function<void(void)>* closureDummy = new std::function<void(void)>(std::move(closure));
-    mbCallUiThreadSync(threadCallStub, closureDummy, nullptr);
+    mbCallUiThreadSync(threadCallThunk, closureDummy, nullptr);
 }
 
 void ThreadCall::callBlinkThreadSync(std::function<void(void)>&& closure)
 {
     std::function<void(void)>* closureDummy = new std::function<void(void)>(std::move(closure));
-    mbCallBlinkThreadSync(threadCallStub, closureDummy, nullptr);
+    mbCallBlinkThreadSync(threadCallThunk, closureDummy, nullptr);
 }
 
 void ThreadCall::postNodeCoreThreadTask(std::function<void(void)>&& closure)
@@ -132,9 +132,7 @@ void ThreadCall::messageLoop(uv_loop_t* loop, v8::Platform* platform, v8::Isolat
     //                 break;
     //             }
     //
-    //             if (WM_THREAD_CALL == msg.message)
-    //                 DebugBreak();
-    //
+    //             if (WM_THREAD_CALL == msg.message)    //
     //             ::TranslateMessage(&msg);
     //             ::DispatchMessageW(&msg);
     //         } else {
@@ -167,7 +165,7 @@ void ThreadCall::blinkThread(void* created)
     //
     //     free(m_blinkLoop);
     //     m_blinkLoop = nullptr;
-    DebugBreak();
+    *(bool*)created = false;
 }
 
 void ThreadCall::OnBlinkThreadIdle(ThreadCall* self, v8::Isolate* isolate)

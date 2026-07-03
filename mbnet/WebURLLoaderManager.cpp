@@ -488,6 +488,17 @@ static void dispatchWkeLoadUrlFinishCallback(WebURLLoaderInternal* job, int64_t 
 // 之所以要搞个异步的，是因为hook url的逻辑下，
 // W:\mycode\mb108\third_party\blink\renderer\bindings\core\v8\script_streamer.cc
 // 会触发ResourceScriptStreamer::OnDataPipeReadable的断言。因为这里收到arm的回调，但BeginReadData却因MojoClose断开导致MOJO_RESULT_FAILED_PRECONDITION
+
+static void dispatchMbLoadUrlFinishCallback(WebURLLoaderInternal* job, int64_t totalEncodedDataLength)
+{
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)job->m_mbwebviewId);
+    if (!webview || !webview->getClosure().m_LoadUrlFinishCallback)
+        return;
+
+    webview->getClosure().m_LoadUrlFinishCallback(
+        job->m_mbwebviewId, webview->getClosure().m_LoadUrlFinishParam, job->m_url.c_str(), job, (int)totalEncodedDataLength);
+}
+
 void asynMojoClose(MojoHandle handle)
 {
     //     WebURLLoaderManager::sharedInstance()->getMainRunner()->PostDelayedTask(FROM_HERE, base::BindOnce([](MojoHandle handle) {
@@ -512,6 +523,12 @@ void WebURLLoaderManager::handleDidFinishLoading(WebURLLoaderInternal* job, int6
 #if 0
     setBlobDataLengthByTempPath(job);
 #endif
+    if (url.SchemeIsHTTPOrHTTPS() && !job->responseFired()) {
+        blink::WebURLError error(net::ERR_EMPTY_RESPONSE, blink::KURL(String(job->m_url)));
+        handleDidFail(job, error);
+        return;
+    }
+
     if (WebURLLoaderInternal::kCacheForDownloadYes != job->m_cacheForDownloadOpt) {
         // mb108好像不能在这调用。didsenddata是表示上传数据的
         // handleDidSentData(job, job->m_totalBytesToBeSent, job->m_totalBytesToBeSent);
@@ -519,8 +536,9 @@ void WebURLLoaderManager::handleDidFinishLoading(WebURLLoaderInternal* job, int6
 #if ENABLE_WKE == 1
         dispatchWkeLoadUrlFinishCallback(job, totalEncodedDataLength);
 #endif
+        dispatchMbLoadUrlFinishCallback(job, totalEncodedDataLength);
         if (0 == job->m_dataPipeProducerHandle && !job->m_isSynchronous) {
-            DebugBreak(); // 按理不会出现没读取response就finish的情况
+            (void)0; // 按理不会出现没读取response就finish的情况
             CHECK(!job->responseFired());            
             job->m_response.SetExpectedContentLength(0);
             job->m_response.SetCurrentRequestUrl(blink::KURL(url));
@@ -663,6 +681,16 @@ static void dispatchWkeLoadUrlHeadersReceivedCallback(WebURLLoaderInternal* job)
 }
 #endif
 
+static void dispatchMbLoadUrlHeadersReceivedCallback(WebURLLoaderInternal* job)
+{
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)job->m_mbwebviewId);
+    if (!webview || !webview->getClosure().m_LoadUrlHeadersReceivedCallback)
+        return;
+
+    webview->getClosure().m_LoadUrlHeadersReceivedCallback(
+        job->m_mbwebviewId, webview->getClosure().m_LoadUrlHeadersReceivedParam, job->m_url.c_str(), job);
+}
+
 void WebURLLoaderManager::handleDidReceiveResponse(WebURLLoaderInternal* job)
 {
     const blink::WebURLResponse& response = job->m_response;
@@ -692,6 +720,7 @@ void WebURLLoaderManager::handleDidReceiveResponse(WebURLLoaderInternal* job)
 #if ENABLE_WKE == 1
         dispatchWkeLoadUrlHeadersReceivedCallback(job);
 #endif
+        dispatchMbLoadUrlHeadersReceivedCallback(job);
         handleDidSentData(job, job->m_totalBytesToBeSent, job->m_totalBytesToBeSent); // 这次mb108新加的逻辑，要小心了
 
 //         if (0 == job->m_dataPipeProducerHandle) {
@@ -1135,7 +1164,7 @@ static SetupDataInfo* setupFormDataOnMainThread(WebURLLoaderInternal* job, CURLo
 
         FlattenHTTPBodyElement* flattenElement = nullptr;
         if (network::DataElement::Tag::kFile == element.type()) {
-            DebugBreak();
+            (void)0;
             //             const network::DataElementFile& fileEle = element.As<network::DataElementFile>();
             //
             //             if (base::GetFileSize(fileEle, fileSizeResult)) {
@@ -1182,9 +1211,9 @@ static SetupDataInfo* setupFormDataOnMainThread(WebURLLoaderInternal* job, CURLo
             size += flattenElement->data.size();
             result->flattenElements.push_back(flattenElement);
         } else if (network::DataElement::Tag::kChunkedDataPipe == element.type()) {
-            DebugBreak();
+            (void)0;
         } else {
-            DebugBreak();
+            (void)0;
         }
     }
 
@@ -1865,9 +1894,9 @@ void changeRequestUrl(mbNetJob jobPtr, const char* url)
     blink::KURL newUrl(WTF::String::FromUTF8(url));
     job->m_response.SetCurrentRequestUrl(newUrl);
     job->firstRequest()->url = (GURL)(newUrl);
-    //job->m_url = url;
-    job->m_initializeHandleInfo->url = url;
-    CHECK(job->m_url.empty());
+    if (job->m_initializeHandleInfo)
+        job->m_initializeHandleInfo->url = url;
+    job->m_url = url;
 }
 
 void onNetSetData(mbNetJob jobPtr, void* buf, int len)
@@ -2208,6 +2237,7 @@ void WebURLLoaderManager::initializeHandleOnIoThread(int jobId, InitializeHandle
     curl_easy_setopt(job->m_handle, CURLOPT_HEADERFUNCTION, headerCallbackOnIoThread);
     curl_easy_setopt(job->m_handle, CURLOPT_FORBID_REUSE, 1);
     curl_easy_setopt(job->m_handle, CURLOPT_FRESH_CONNECT, 1);
+    curl_easy_setopt(job->m_handle, CURLOPT_NOPROXY, "localhost,127.0.0.1,::1");
     curl_easy_setopt(job->m_handle, CURLOPT_DEBUGFUNCTION, debugCallback);
     curl_easy_setopt(job->m_handle, CURLOPT_DEBUGDATA, jobId);
     curl_easy_setopt(job->m_handle, CURLOPT_WRITEHEADER, jobId);

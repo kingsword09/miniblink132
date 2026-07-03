@@ -299,12 +299,12 @@ void BindJsQuery::bindFun(v8::Local<v8::Context> context, QueryFn* queryFn, Quer
     v8::Local<v8::FunctionTemplate> functionTemplate = v8::FunctionTemplate::New(isolate, jsCallback, dataLocal);
     v8::Local<v8::Function> v8Function;
     if (!functionTemplate->GetFunction(context).ToLocal(&v8Function))
-        DebugBreak();
+        (void)0;
 
     v8::Local<v8::FunctionTemplate> functionTemplate2 = v8::FunctionTemplate::New(isolate, jsCallback2, dataLocal);
     v8::Local<v8::Function> v8Function2;
     if (!functionTemplate2->GetFunction(context).ToLocal(&v8Function2))
-        DebugBreak();
+        (void)0;
 
     v8::Local<v8::Object> global = context->Global();
     v8::Local<v8::Value> windowVal

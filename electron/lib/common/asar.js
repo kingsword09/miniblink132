@@ -554,7 +554,7 @@
             }
             if (info.size === 0) {
                 return process.nextTick(function () {
-                    callback(null, new Buffer(0));
+                    callback(null, Buffer.alloc(0));
                 })
             }
             if (info.unpacked) {
@@ -573,7 +573,7 @@
                 throw new TypeError('Bad arguments');
             }
             const encoding = options.encoding;
-            const buffer = new Buffer(info.size);
+            const buffer = Buffer.allocUnsafe(info.size);
             const fd = archive.getFd();
             if (!(fd >= 0)) {
                 return notFoundError(asarPath, filePath, callback);
@@ -608,7 +608,7 @@
                 if (options) {
                     return '';
                 } else {
-                    return new Buffer(0);
+                    return Buffer.alloc(0);
                 }
             }
             if (info.unpacked) {
@@ -627,7 +627,7 @@
                 throw new TypeError('Bad arguments');
             }
             const encoding = options.encoding;
-            const buffer = new Buffer(info.size);
+            const buffer = Buffer.allocUnsafe(info.size);
             //console.log("fs.readFileSync 1: " + info.size);
             const fd = archive.getFd();
             
@@ -724,7 +724,7 @@
                     encoding: 'utf8'
                 });
             }
-            const buffer = new Buffer(info.size);
+            const buffer = Buffer.allocUnsafe(info.size);
             const fd = archive.getFd();
             if (!(fd >= 0)) {
                 return;
@@ -825,7 +825,7 @@
                 });
                 return serializePackageJSON(p, jsonStr);
             }
-            const buffer = new Buffer(info.size);
+            const buffer = Buffer.allocUnsafe(info.size);
             const fd = archive.getFd();
             if (!(fd >= 0)) {
                 return [];

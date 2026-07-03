@@ -2,10 +2,16 @@
 // Use of this source code is governed by the MIT license that can be
 // found in the LICENSE file.
 
+#if !defined(OS_MAC)
 #include "electron/common/api/RemoteCallbackFreer.h"
 #include "electron/common/api/RemoteObjectFreer.h"
+#endif
+#if !defined(OS_MAC)
 #include "electron/common/api/ApiKeyWeakMap.h"
+#endif
 #include "electron/common/NodeRegisterHelp.h"
+#include "electron/common/NodeBinding.h"
+#include "electron/common/NodeThread.h"
 #include "electron/common/gin_helper/wrappable.h"
 #include "electron/common/gin_helper/object_template_builder.h"
 #include "electron/common/gin_helper/dictionary.h"
@@ -15,23 +21,11 @@
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libnode/src/node_version.h"
 #include "third_party/libuv/include/uv.h"
+#include "v8/include/v8-profiler.h"
 #include <string>
 #include <utility>
 
-namespace std {
-
-// The hash function used by DoubleIDWeakMap.
-// template <typename Type1, typename Type2>
-// struct hash<std::pair<Type1, Type2>> {
-//   std::size_t operator()(std::pair<Type1, Type2> value) const {
-//     return base::HashInts<Type1, Type2>(value.first, value.second);
-//   }
-// };
-
-} // namespace std
-
-// v8::Persistent<v8::Function> atom::api::KeyWeakMap<int32_t>::constructor;
-// v8::Persistent<v8::Function> atom::api::KeyWeakMap<std::pair<int32_t, int32_t>>::constructor;
+#if !defined(OS_MAC)
 template <> DWORD atom::api::KeyWeakMap<int32_t>::constructorTlsKey = 0;
 template <> DWORD atom::api::KeyWeakMap<std::pair<int32_t, int32_t>>::constructorTlsKey = 0;
 
@@ -59,6 +53,7 @@ template <typename Type1, typename Type2> struct Converter<std::pair<Type1, Type
 };
 
 } // namespace gin_helper
+#endif
 
 namespace {
 
@@ -108,7 +103,7 @@ public:
 
     static void takeHeapSnapshot(v8::Isolate* isolate)
     {
-        //isolate->GetHeapProfiler()->TakeHeapSnapshot();
+        isolate->GetHeapProfiler()->TakeHeapSnapshot();
     }
 
     static gin_helper::WrapperInfo kWrapperInfo;
@@ -129,18 +124,24 @@ static void buildMethod(T* builder)
     builder->SetMethodT("deleteHiddenValue", &V8Util::deleteHiddenValue);
     builder->SetMethodT("getObjectHash", &V8Util::getObjectHash);
     builder->SetMethodT("takeHeapSnapshot", &V8Util::takeHeapSnapshot);
+#if !defined(OS_MAC)
     builder->SetMethodT("setRemoteCallbackFreer", &atom::RemoteCallbackFreer::bindTo);
     builder->SetMethodT("setRemoteObjectFreer", &atom::RemoteObjectFreer::bindTo);
+#endif
+#if !defined(OS_MAC)
     builder->SetMethodT("createIDWeakMap", &atom::api::KeyWeakMap<int32_t>::create);
     builder->SetMethodT("createDoubleIDWeakMap", &atom::api::KeyWeakMap<std::pair<int32_t, int32_t>>::create);
+#endif
 }
 
 void initializeCommonV8UtilApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unused, v8::Local<v8::Context> context, void* priv)
 {
     v8::Isolate* isolate = context->GetIsolate();
 
+#if !defined(OS_MAC)
     atom::api::KeyWeakMap<int32_t>::init(isolate);
     atom::api::KeyWeakMap<std::pair<int32_t, int32_t>>::init(isolate);
+#endif
 
     v8::Local<v8::FunctionTemplate> prototype = v8::FunctionTemplate::New(isolate, newV8UtilFunction);
     prototype->SetClassName(v8::String::NewFromUtf8(isolate, "V8Util").ToLocalChecked());
@@ -148,12 +149,6 @@ void initializeCommonV8UtilApi(v8::Local<v8::Object> exports, v8::Local<v8::Valu
     buildMethod(&builder);
     exports->Set(context, v8::String::NewFromUtf8(isolate, "v8Util").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
 
-    // 支持两种写法：
-    // var v8UtilClass = process._linkedBinding('electron_common_v8_util').v8Util;
-    // const v8Util = new v8UtilClass();
-    // 
-    // const v8Util2 = process._linkedBinding('electron_common_v8_util');
-    // v8Util2.getHiddenValue();
     gin_helper::Dictionary builder2(isolate, exports);
     buildMethod(&builder2);
 }
@@ -162,6 +157,6 @@ void initializeCommonV8UtilApi(v8::Local<v8::Object> exports, v8::Local<v8::Valu
 
 static const char CommonV8UtilSricpt[] = "exports = {};";
 
-static NodeNative nativeCommonV8UtilNative { "v8Util", CommonV8UtilSricpt, sizeof(CommonV8UtilSricpt) - 1 };
+static atom::NodeNative nativeCommonV8UtilNative { "v8Util", CommonV8UtilSricpt, sizeof(CommonV8UtilSricpt) - 1 };
 
 NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_v8_util, initializeCommonV8UtilApi, &nativeCommonV8UtilNative)

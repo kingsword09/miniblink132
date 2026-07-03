@@ -128,6 +128,7 @@ public:
     void WasShown() override;
 
     scoped_refptr<network::SharedURLLoaderFactory> GetURLLoaderFactory() override;
+    blink::WebString UserAgentOverride() override;
 
     //Geometry notifications
     void DraggableRegionsChanged() /*override*/;

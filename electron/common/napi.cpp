@@ -168,7 +168,7 @@ GEN_NAPI_FUNC_3(napi_create_array_with_length);
 GEN_NAPI_FUNC_3(napi_create_double);
 GEN_NAPI_FUNC_3(napi_create_int32);
 GEN_NAPI_FUNC_3(napi_create_uint32);
-GEN_NAPI_FUNC_4(napi_create_int64); // TODO
+GEN_NAPI_FUNC_4(napi_create_int64);
 GEN_NAPI_FUNC_4(napi_create_string_latin1);
 GEN_NAPI_FUNC_4(napi_create_string_utf8);
 GEN_NAPI_FUNC_4(napi_create_string_utf16);
@@ -181,7 +181,7 @@ GEN_NAPI_FUNC_3(napi_typeof);
 GEN_NAPI_FUNC_3(napi_get_value_double);
 GEN_NAPI_FUNC_3(napi_get_value_int32);
 GEN_NAPI_FUNC_3(napi_get_value_uint32);
-GEN_NAPI_FUNC_4(napi_get_value_int64); // TODO
+GEN_NAPI_FUNC_4(napi_get_value_int64);
 GEN_NAPI_FUNC_3(napi_get_value_bool);
 GEN_NAPI_FUNC_5(napi_get_value_string_latin1);
 GEN_NAPI_FUNC_5(napi_get_value_string_utf8);

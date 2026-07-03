@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "base/strings/stringprintf.h"
+#include "base/trace_event/base_tracing.h"
 #include "mojo/public/cpp/bindings/lib/validate_params.h"
 #include "mojo/public/cpp/bindings/lib/validation_errors.h"
 #include "mojo/public/cpp/bindings/lib/validation_util.h"

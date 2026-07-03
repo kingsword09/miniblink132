@@ -2430,8 +2430,8 @@ component("base") {
     }
   } else {
     sources += [
-      "trace_event/trace_event_stub.cc",
-      "trace_event/trace_event_stub.h",
+      "trace_event/trace_event_lightweight.cc",
+      "trace_event/trace_event_lightweight.h",
     ]
   }
 

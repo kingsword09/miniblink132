@@ -132,7 +132,7 @@ void BlobURLStoreImpl::Register(::mojo::PendingRemote<::blink::mojom::blink::Blo
     const ::base::UnguessableToken& unsafe_agent_cluster_id, const ::absl::optional<::blink::BlinkSchemefulSite>& unsafe_top_level_site,
     ::blink::mojom::blink::BlobURLStore::RegisterCallback callback)
 {
-    DebugBreak();
+    (void)0;
     BlobURLStoreSet::get()->addUrlBlob(url.GetString().Utf8(), m_origin, std::move(blob));
 }
 
@@ -314,7 +314,7 @@ public:
     //using GetTokenCallback = base::OnceCallback<void(const ::base::UnguessableToken&)>;
     /*virtual*/ void GetToken(GetTokenCallback callback) override
     {
-        DebugBreak();
+        (void)0;
     }
 };
 

@@ -608,7 +608,10 @@ void ProcessRequirement::GatherMetrics()
 
     if (requirement) {
         ScopedUmaHistogramTimer timer("Mac.ProcessRequirement.Timing.ValidateSameIdentity");
-        bool result = requirement->ValidateProcess(AuditTokenForCurrentProcess(), OuterBundleCachedInfoPlistData());
+        const auto& info_plist_data = OuterBundleCachedInfoPlistData();
+        bool result = requirement->ValidateProcess(
+            AuditTokenForCurrentProcess(),
+            base::span(info_plist_data.data(), info_plist_data.size()));
         base::UmaHistogramBoolean("Mac.ProcessRequirement.CurrentProcessValid", result);
     }
 }

@@ -127,10 +127,10 @@ public:
 //private:
 //    ImplPointerType sink_;
 //};
-//class TextureReleaserRequestValidator : public mojo::MessageReceiver {
-//public:
-//    bool Accept(mojo::Message* message) override;
-//};
+class TextureReleaserRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
 
 } // viz::mojom
 

@@ -123,6 +123,7 @@ void MemoryUsageMonitorPosix::ResetFileDescriptors()
 }
 #endif
 
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
 void MemoryUsageMonitorPosix::SetProcFiles(base::File statm_file, base::File status_file)
 {
     DCHECK(statm_file.IsValid());
@@ -132,6 +133,7 @@ void MemoryUsageMonitorPosix::SetProcFiles(base::File statm_file, base::File sta
     statm_fd_.reset(statm_file.TakePlatformFile());
     status_fd_.reset(status_file.TakePlatformFile());
 }
+#endif
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 // static

@@ -1005,7 +1005,7 @@
     <ClInclude Include="..\..\base\trace_event\trace_event_filter_test_utils.h" />
     <ClInclude Include="..\..\base\trace_event\trace_event_impl.h" />
     <ClInclude Include="..\..\base\trace_event\trace_event_memory_overhead.h" />
-    <ClInclude Include="..\..\base\trace_event\trace_event_stub.h" />
+    <ClInclude Include="..\..\base\trace_event\trace_event_lightweight.h" />
     <ClInclude Include="..\..\base\trace_event\trace_id_helper.h" />
     <ClInclude Include="..\..\base\trace_event\trace_log.h" />
     <ClInclude Include="..\..\base\trace_event\trace_logging_minimal_win.h" />

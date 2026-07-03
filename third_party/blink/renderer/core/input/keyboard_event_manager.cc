@@ -44,6 +44,7 @@
 #include <windows.h>
 #elif BUILDFLAG(IS_MAC)
 #import <Carbon/Carbon.h>
+#include <CoreGraphics/CoreGraphics.h>
 #endif
 
 namespace blink {
@@ -607,7 +608,7 @@ bool KeyboardEventManager::CurrentCapsLockState()
     switch (g_override_caps_lock_state) {
     case OverrideCapsLockState::kDefault:
 #if BUILDFLAG(IS_MAC)
-        return GetCurrentKeyModifiers() & alphaLock;
+        return CGEventSourceFlagsState(kCGEventSourceStateCombinedSessionState) & kCGEventFlagMaskAlphaShift;
 #else
         // Caps lock state use is limited to Mac password input
         // fields, so just return false. See http://crbug.com/618739.
@@ -625,14 +626,14 @@ WebInputEvent::Modifiers KeyboardEventManager::GetCurrentModifierState()
 {
 #if BUILDFLAG(IS_MAC)
     unsigned modifiers = 0;
-    UInt32 current_modifiers = GetCurrentKeyModifiers();
-    if (current_modifiers & ::shiftKey)
+    CGEventFlags current_modifiers = CGEventSourceFlagsState(kCGEventSourceStateCombinedSessionState);
+    if (current_modifiers & kCGEventFlagMaskShift)
         modifiers |= WebInputEvent::kShiftKey;
-    if (current_modifiers & ::controlKey)
+    if (current_modifiers & kCGEventFlagMaskControl)
         modifiers |= WebInputEvent::kControlKey;
-    if (current_modifiers & ::optionKey)
+    if (current_modifiers & kCGEventFlagMaskAlternate)
         modifiers |= WebInputEvent::kAltKey;
-    if (current_modifiers & ::cmdKey)
+    if (current_modifiers & kCGEventFlagMaskCommand)
         modifiers |= WebInputEvent::kMetaKey;
     return static_cast<WebInputEvent::Modifiers>(modifiers);
 #else

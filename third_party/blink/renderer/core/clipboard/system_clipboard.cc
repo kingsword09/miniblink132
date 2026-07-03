@@ -409,7 +409,7 @@ void SystemClipboard::CommitWrite()
 
 void SystemClipboard::CopyToFindPboard(const String& text)
 {
-#if BUILDFLAG(IS_MAC)
+#if 0
     if (!clipboard_.is_bound())
         return;
     clipboard_->WriteStringToFindPboard(text);

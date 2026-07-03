@@ -112,7 +112,7 @@ typedef const struct __JSValue* JSValueConst;
 
 #define JS_MKVAL(tag, val) (JSValue)(intptr_t)(((val) << 4) | (tag))
 #define JS_MKPTR(tag, p) (JSValue)((intptr_t)(p) | (tag))
-inline JS_BOOL JS_VALUE_IS_EQ(JSValue a, JSValue b)
+static inline JS_BOOL JS_VALUE_IS_EQ(JSValue a, JSValue b)
 {
     return a == b;
 }
@@ -144,7 +144,7 @@ typedef uint64_t JSValue;
 
 #define JS_MKVAL(tag, val) (((uint64_t)(tag) << 32) | (uint32_t)(val))
 #define JS_MKPTR(tag, ptr) (((uint64_t)(tag) << 32) | (uintptr_t)(ptr))
-inline JS_BOOL JS_VALUE_IS_EQ(JSValue a, JSValue b)
+static inline JS_BOOL JS_VALUE_IS_EQ(JSValue a, JSValue b)
 {
     return a == b;
 }
@@ -223,7 +223,7 @@ typedef struct JSValue {
 
 // #define JS_MKVAL(tag, val) (JSValue){ (JSValueUnion){ .int32 = val }, tag }
 // #define JS_MKPTR(tag, p) (JSValue){ (JSValueUnion){ .ptr = p }, tag }
-inline JSValue JS_MKVAL(int64_t tag, int32_t val)
+static inline JSValue JS_MKVAL(int64_t tag, int32_t val)
 {
     JSValue v = { 0 };
     v.u.int32 = val;
@@ -231,7 +231,7 @@ inline JSValue JS_MKVAL(int64_t tag, int32_t val)
     return v;
 }
 
-inline JSValue JS_MKPTR(int64_t tag, void* p)
+static inline JSValue JS_MKPTR(int64_t tag, void* p)
 {
     JSValue v = { 0 };
     v.u.ptr = p;
@@ -239,7 +239,7 @@ inline JSValue JS_MKPTR(int64_t tag, void* p)
     return v;
 }
 
-inline JS_BOOL JS_VALUE_IS_EQ(JSValue a, JSValue b)
+static inline JS_BOOL JS_VALUE_IS_EQ(JSValue a, JSValue b)
 {
     if (a.tag != b.tag)
         return 0;

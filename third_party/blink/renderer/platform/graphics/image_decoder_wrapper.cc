@@ -52,18 +52,24 @@ public:
     bool allocPixelRef(SkBitmap* dst) override
     {
         const SkImageInfo& info = dst->info();
-        if (kUnknown_SkColorType == info.colorType())
+        if (kUnknown_SkColorType == info.colorType()) {
+            allocation_failed_ = true;
             return false;
+        }
 
         if (!CompatibleInfo(pixmap_.info(), info) || pixmap_.rowBytes() != dst->rowBytes()) {
+            allocation_failed_ = true;
             return false;
         }
 
         return dst->installPixels(pixmap_);
     }
 
+    bool allocation_failed() const { return allocation_failed_; }
+
 private:
     SkPixmap pixmap_;
+    bool allocation_failed_ = false;
 };
 
 } // namespace
@@ -147,7 +153,27 @@ bool ImageDecoderWrapper::Decode(ImageDecoderFactory* factory, wtf_size_t* frame
     decoder->SetData(scoped_refptr<SegmentReader>(nullptr), false);
     decoder->ClearCacheExceptFrame(frame_index_);
 
-    const bool has_decoded_frame = frame && frame->GetStatus() != ImageFrame::kFrameEmpty && !frame->Bitmap().isNull();
+    bool decoded_to_external_memory = decode_to_external_memory;
+    bool has_decoded_frame = frame && frame->GetStatus() != ImageFrame::kFrameEmpty && !frame->Bitmap().isNull();
+    if (!has_decoded_frame && decode_to_external_memory && external_memory_allocator.allocation_failed() && !resume_decoding) {
+        // The decoder may allocate a bitmap whose color type differs from the
+        // caller's target pixmap. Retry without the external allocator so Skia can
+        // convert when readPixels() copies into the target below.
+        decoded_to_external_memory = false;
+        new_decoder = CreateDecoderWithData(factory);
+        if (!new_decoder)
+            return false;
+        decoder = new_decoder.get();
+        if (all_data_received_)
+            *frame_count = decoder->FrameCount();
+        {
+            TRACE_EVENT0("blink,benchmark", "ImageFrameGenerator::decode");
+            frame = decoder->DecodeFrameBufferAtIndex(frame_index_);
+        }
+        decoder->SetData(scoped_refptr<SegmentReader>(nullptr), false);
+        decoder->ClearCacheExceptFrame(frame_index_);
+        has_decoded_frame = frame && frame->GetStatus() != ImageFrame::kFrameEmpty && !frame->Bitmap().isNull();
+    }
     if (!has_decoded_frame) {
         decode_failed_ = decoder->Failed();
         if (resume_decoding) {
@@ -162,10 +188,10 @@ bool ImageDecoderWrapper::Decode(ImageDecoderFactory* factory, wtf_size_t* frame
 
     // If we decoded into external memory, the bitmap should be backed by the
     // pixels passed to the allocator.
-    DCHECK(!decode_to_external_memory || scaled_size_bitmap.getPixels() == pixmap_.addr());
+    DCHECK(!decoded_to_external_memory || scaled_size_bitmap.getPixels() == pixmap_.addr());
 
     *has_alpha = !scaled_size_bitmap.isOpaque();
-    if (!decode_to_external_memory)
+    if (!decoded_to_external_memory)
         scaled_size_bitmap.readPixels(pixmap_);
 
     // Free as much memory as possible.  For single-frame images, we can
@@ -179,7 +205,7 @@ bool ImageDecoderWrapper::Decode(ImageDecoderFactory* factory, wtf_size_t* frame
     const bool frame_was_completely_decoded = frame->GetStatus() == ImageFrame::kFrameComplete || all_data_received_;
     PurgeAllFramesIfNecessary(decoder, frame_was_completely_decoded, *frame_count);
 
-    const bool should_remove_decoder = ShouldRemoveDecoder(frame_was_completely_decoded, decode_to_external_memory);
+    const bool should_remove_decoder = ShouldRemoveDecoder(frame_was_completely_decoded, decoded_to_external_memory);
     if (resume_decoding) {
         if (should_remove_decoder) {
             ImageDecodingStore::Instance().RemoveDecoder(generator_, client_id_, decoder);

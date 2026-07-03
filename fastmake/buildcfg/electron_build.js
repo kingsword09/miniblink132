@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var json = [{
 	"var":[
@@ -69,8 +69,16 @@ var json = [{
 			//"${srcPath}/electron/common/NodeThread.cpp",
 			//"${srcPath}/electron/common/NodeBinding.cpp",
 			//"${srcPath}/electron/common/ThreadCallWrap.cpp",
+			"${srcPath}/electron/common/gin_helper/arguments.cpp",
+			"${srcPath}/electron/common/gin_helper/converter.cpp",
+			"${srcPath}/electron/common/gin_helper/dictionary.cpp",
+			"${srcPath}/electron/common/gin_helper/function_template.cpp",
+			"${srcPath}/electron/common/gin_helper/interceptor.cpp",
+			"${srcPath}/electron/common/gin_helper/object_template_builder.cpp",
+			"${srcPath}/electron/common/gin_helper/per_isolate_data.cpp",
+			"${srcPath}/electron/common/gin_helper/wrappable.cpp",
+			"${srcPath}/electron/common/api/ApiScreen.cpp",
 			"${srcPath}/electron/browser/api/ApiDownloadItem.cpp",
-			"${srcPath}/gin/dictionary.cc",
 			"${srcPath}/electron/Electron.cpp"
 		],
 		"src":[
@@ -78,17 +86,10 @@ var json = [{
 			"${srcPath}/electron/browser/api/ApiWebContents.cpp",
 			"${srcPath}/electron/browser/api/WindowList.cpp",
 			"${srcPath}/electron/browser/api/ApiApp.cpp",
-			"${srcPath}/gin/object_template_builder.cc",
-			"${srcPath}/gin/converter.cc",
-			"${srcPath}/gin/dictionary.cc",
-			"${srcPath}/gin/wrapper_info.cc",
-			"${srcPath}/gin/wrappable.cc",
-			"${srcPath}/gin/arguments.cc",
-			"${srcPath}/gin/function_template.cc",
-			"${srcPath}/gin/per_isolate_data.cc",
 			"${srcPath}/electron/common/OptionsSwitches.cpp",
 			"${srcPath}/electron/browser/api/ApiElectron.cpp",
 			"${srcPath}/electron/browser/api/ApiMenu.cpp",
+			"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
 			"${srcPath}/electron/common/NodeThread.cpp",
 			"${srcPath}/electron/common/NodeBinding.cpp",
 			"${srcPath}/electron/common/AtomCommandLine.cpp",
@@ -97,6 +98,14 @@ var json = [{
 			"${srcPath}/electron/common/api/EventEmitter.cpp",
 			"${srcPath}/electron/common/api/EventEmitterCaller.cpp",
 			"${srcPath}/electron/common/api/Event.cpp",
+			"${srcPath}/electron/common/gin_helper/arguments.cpp",
+			"${srcPath}/electron/common/gin_helper/converter.cpp",
+			"${srcPath}/electron/common/gin_helper/dictionary.cpp",
+			"${srcPath}/electron/common/gin_helper/function_template.cpp",
+			"${srcPath}/electron/common/gin_helper/interceptor.cpp",
+			"${srcPath}/electron/common/gin_helper/object_template_builder.cpp",
+			"${srcPath}/electron/common/gin_helper/per_isolate_data.cpp",
+			"${srcPath}/electron/common/gin_helper/wrappable.cpp",
 			"${srcPath}/electron/common/api/RemoteCallbackFreer.cpp",
 			"${srcPath}/electron/common/api/RemoteObjectFreer.cpp",
 			"${srcPath}/electron/common/api/ObjectLifeMonitor.cpp",
@@ -104,7 +113,7 @@ var json = [{
 			//"${srcPath}/electron/common/api/ApiShell.cpp",
 			//"${srcPath}/electron/common/PlatformUtilWin.cpp",
 			"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
-			//"${srcPath}/electron/common/api/ApiScreen.cpp",
+			"${srcPath}/electron/common/api/ApiScreen.cpp",
 			"${srcPath}/electron/renderer/api/ApiWebFrame.cpp",
 			"${srcPath}/electron/Electron.cpp",
 			"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
@@ -124,7 +133,6 @@ var json = [{
 			//"${srcPath}/electron/common/InitGdiPlus.cpp",
 			//"${srcPath}/electron/common/api/ApiClipboard.cpp",
 			//"${srcPath}/content/ui/WCDataObject.cpp",
-			//"${srcPath}/electron/NapiStub.cpp",
 			"${srcPath}/electron/browser/api/ApiBrowserView.cpp",
 			"${srcPath}/electron/browser/api/ApiBrowserWindow.cpp",
 			"${srcPath}/electron/common/ThreadCallWrap.cpp",
@@ -139,7 +147,7 @@ var json = [{
 		// 
 		"cmd":[
 			//"--target=x86_64-linux-guneabi", 
-			"-std=c++14",
+			"-std=c++20",
 			"-fno-exceptions",
 			"-fms-extensions",
 			//"-fshort-wchar",
@@ -174,5 +182,306 @@ var json = [{
 		"linker":constVal.linker//"${ndkBinPath}/ar.exe"
 	}
 }];
+
+if (constVal.isMac) {
+	json[0].compile.include.push("${srcPath}/mac");
+	json[0].compile.include.push("${srcPath}/gen");
+	json[0].compile.include.push("${srcPath}/gen/v8/include");
+	json[0].compile.include.push("${srcPath}/v8/include");
+	json[0].compile.include.push("${srcPath}/third_party/libnode/src");
+	json[0].compile.include.push("${srcPath}/third_party/libuv/include");
+	json[0].compile.include.push("${srcPath}/third_party/abseil-cpp");
+	json[0].compile.include.push("${srcPath}/third_party/skia");
+	json[0].compile.include.push("${srcPath}/third_party/icu/source/i18n");
+	json[0].compile.include.push("${srcPath}/third_party/icu/source/common");
+	json[0].compile.include.push("${srcPath}/third_party/openssl/openssl/include");
+	json[0].compile.include.push("${srcPath}/third_party/openssl");
+	json[0].compile.include.push("${srcPath}/third_party/breakpad/src");
+	json[0].compile.include.push("${srcPath}/base/allocator/partition_allocator/src");
+	json[0].compile.include.push("${srcPath}/gen/base/allocator/partition_allocator/src");
+	applyMacBuildSettings(json, { v8: true });
+	json[0].compile.include.push("${srcPath}/content");
+	json[0].compile.include.push("${srcPath}/linux");
+	json[0].compile.cmd.push("-DV8_HAVE_TARGET_OS");
+	[
+		"-DNODE_WANT_INTERNALS=1",
+		"-DENABLE_NODEJS=1",
+		"-D__POSIX__=1",
+		"-DHAVE_OPENSSL=0",
+		"-DHAVE_INSPECTOR=0",
+		"-DNODE_USE_V8_PLATFORM=1",
+		"-DNODE_ARCH=\\\"arm64\\\"",
+		"-DNODE_PLATFORM=\\\"darwin\\\"",
+		"-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=0",
+		"-DV8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0",
+		"-DV8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0",
+		"-DV8_PROMISE_INTERNAL_FIELD_COUNT=0",
+		"-DV8_INTL_SUPPORT",
+		"-DV8_USE_EXTERNAL_STARTUP_DATA",
+		"-DV8_ATOMIC_OBJECT_FIELD_WRITES",
+		"-DV8_ENABLE_LAZY_SOURCE_POSITIONS",
+		"-DV8_SHARED_RO_HEAP",
+		"-DV8_ENABLE_REGEXP_INTERPRETER_THREADED_DISPATCH",
+		"-DV8_SHORT_BUILTIN_CALLS",
+		"-DV8_EXTERNAL_CODE_SPACE",
+		"-DV8_ENABLE_SYSTEM_INSTRUMENTATION",
+		"-DV8_ENABLE_ETW_STACK_WALKING",
+		"-DV8_ENABLE_WEBASSEMBLY",
+		"-DV8_ENABLE_SPARKPLUG",
+		"-DV8_ALLOCATION_FOLDING",
+		"-DV8_ALLOCATION_SITE_TRACKING",
+		"-DV8_ADVANCED_BIGINT_ALGORITHMS",
+		"-DV8_USE_ZLIB",
+		"-DV8_COMPRESS_POINTERS",
+		"-DV8_COMPRESS_POINTERS_IN_SHARED_CAGE",
+		"-DV8_31BIT_SMIS_ON_64BIT_ARCH",
+		"-DCPPGC_CAGED_HEAP",
+		"-DCPPGC_YOUNG_GENERATION",
+		"-DCPPGC_POINTER_COMPRESSION",
+	].forEach((arg) => {
+		if (json[0].compile.cmd.indexOf(arg) < 0)
+			json[0].compile.cmd.push(arg);
+	});
+	json[0].compile.cmd.push("-Dnode_module_register=electronMacNodeBridgeRegisterModule");
+	json[0].compile.cmd.push("-DMINIBLINK_ELECTRON_USE_REAL_MESSAGE_PORT");
+
+	const macPowerMonitorSrc = "${srcPath}/electron/browser/api/ApiPowerMonitor.cpp";
+	const macPowerSaveBlockerSrc = "${srcPath}/electron/browser/api/ApiPowerSaveBlocker.cpp";
+	const macGlobalShortcutSrc = "${srcPath}/electron/browser/api/ApiGlobalShortcut.cpp";
+	const macAppSrc = "${srcPath}/electron/browser/api/ApiAppMac.cpp";
+	const macMenuSrc = "${srcPath}/electron/browser/api/ApiMenu.cpp";
+	const macDialogSrc = "${srcPath}/electron/browser/api/ApiDialogMac.cpp";
+	const macTraySrc = "${srcPath}/electron/browser/api/ApiTray.cpp";
+	const macSystemTraySrc = "${srcPath}/electron/common/SystemTray.cpp";
+	const macNativeImageSrc = "${srcPath}/electron/common/api/ApiNativeImage.cpp";
+	const macClipboardSrc = "${srcPath}/electron/common/api/ApiClipboard.cpp";
+	const macShellSrc = "${srcPath}/electron/common/api/ApiShell.cpp";
+	const macWindowListSrc = "${srcPath}/electron/browser/api/WindowList.cpp";
+	const macCommandLineSrc = "${srcPath}/electron/browser/api/ApiCommandLine.cpp";
+	const macSafeStorageSrc = "${srcPath}/electron/browser/api/ApiSafestorage.cpp";
+	const macSystemPreferencesSrc = "${srcPath}/electron/browser/api/ApiSystemPreferences.mm";
+	const macMessagePortSrc = "${srcPath}/electron/browser/api/ApiMessagePortMain.cpp";
+	const macPostMessageUtilSrc = "${srcPath}/electron/browser/api/PostMessageUtil.cpp";
+	const macBrowserViewSrc = "${srcPath}/electron/browser/api/ApiBrowserView.cpp";
+	const macWebFrameMainSrc = "${srcPath}/electron/browser/api/ApiWebFrameMain.cpp";
+	const macUtilityProcessSrc = "${srcPath}/electron/browser/api/ApiUtilityProcess.cpp";
+	const macParentPortSrc = "${srcPath}/electron/browser/api/ApiParentPort.cpp";
+	const macSessionSupportSrc = [
+		"${srcPath}/electron/browser/api/ApiSession.cpp",
+		"${srcPath}/electron/browser/api/ApiWebRequest.cpp",
+		"${srcPath}/electron/browser/api/ApiDownloadItem.cpp",
+	];
+	const macNodeSupportSrc = [
+		"${srcPath}/electron/common/MacNodeBinding.cpp",
+		"${srcPath}/electron/common/MacNodeSupport.cpp",
+		"${srcPath}/electron/common/TracingControllerImpl.cpp",
+	];
+	const macGinHelperSupportSrc = [
+		"${srcPath}/electron/common/gin_helper/promise.cpp",
+		"${srcPath}/electron/common/gin_helper/callback.cpp",
+		"${srcPath}/electron/common/gin_helper/microtasks_scope.cpp",
+		"${srcPath}/electron/common/gin_helper/locker.cpp",
+		"${srcPath}/electron/common/gin_helper/data_object_builder.cpp",
+		"${srcPath}/electron/common/gin_helper/error_thrower.cpp",
+	];
+	const macPlatformSupportSrc = [
+		"${srcPath}/electron/common/PlatformUtilMac.cpp",
+	];
+	const macIoThreadSrc = "${srcPath}/electron/common/IoThread.cpp";
+	const macUtilityProcessMsgsSrc = "${srcPath}/electron/common/ipc/UtilityProcessMsgs.cpp";
+	const macRendererContextBridgeSrc = "${srcPath}/electron/renderer/api/ApiContextBridge.cpp";
+	const macRendererWebFrameSrc = "${srcPath}/electron/renderer/api/ApiWebFrame.cpp";
+	const macV8UtilValueSrc = "${srcPath}/electron/common/V8Util.cpp";
+	const macFeaturesSrc = "${srcPath}/electron/common/api/ApiFeatures.cpp";
+	const macAsarSrc = "${srcPath}/electron/common/api/ApiAsar.cpp";
+	const macContentTracingSrc = "${srcPath}/electron/common/api/ApiContentTracing.cpp";
+	const macCrashReporterSrc = "${srcPath}/electron/common/api/ApiCrashReporter.cpp";
+	const macBreakpadSrc = [
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/exception_handler.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/minidump_generator.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/dynamic_images.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/handler/breakpad_nlist_64.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/crash_generation/crash_generation_client.cc",
+		"${srcPath}/third_party/breakpad/src/client/mac/crash_generation/crash_generation_server.cc",
+		"${srcPath}/third_party/breakpad/src/client/minidump_file_writer.cc",
+		"${srcPath}/third_party/breakpad/src/common/convert_UTF.cc",
+		"${srcPath}/third_party/breakpad/src/common/string_conversion.cc",
+		"${srcPath}/third_party/breakpad/src/common/md5.cc",
+		"${srcPath}/third_party/breakpad/src/common/linux/linux_libc_support.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/file_id.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/macho_id.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/macho_walker.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/macho_utilities.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/arch_utilities.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/string_utilities.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/bootstrap_compat.cc",
+		"${srcPath}/third_party/breakpad/src/common/mac/MachIPC.mm",
+	];
+	const macAsarSupportSrc = [
+		"${srcPath}/electron/common/asar/AsarJs.cpp",
+		"${srcPath}/electron/common/asar/AsarUtil.cpp",
+		"${srcPath}/electron/common/asar/Archive.cpp",
+		"${srcPath}/electron/common/asar/ScopedTemporaryFile.cpp",
+	];
+	const macPowerMonitorIdleSrc = [
+		"${srcPath}/ui/base/idle/idle.cc",
+		"${srcPath}/ui/base/idle/idle_internal.cc",
+		"${srcPath}/ui/base/idle/idle_mac.mm",
+	];
+	const macElectronSupportSrc = [
+		"${srcPath}/electron/common/LoadMiniElectronAsarRes.cpp",
+	];
+	const macElectronLinkedBindingSrc = new Set([
+		macAppSrc,
+		"${srcPath}/electron/browser/api/ApiElectron.cpp",
+		macMenuSrc,
+		macDialogSrc,
+		macTraySrc,
+		macSystemTraySrc,
+		"${srcPath}/electron/browser/api/ApiNativeTheme.mm",
+		macGlobalShortcutSrc,
+		macNativeImageSrc,
+		macClipboardSrc,
+		macShellSrc,
+		macPowerMonitorSrc,
+		macPowerSaveBlockerSrc,
+		macCommandLineSrc,
+		macSafeStorageSrc,
+		macSystemPreferencesSrc,
+		macMessagePortSrc,
+		macPostMessageUtilSrc,
+		"${srcPath}/electron/browser/api/ApiWebContents.cpp",
+		macBrowserViewSrc,
+		"${srcPath}/electron/browser/api/ApiBrowserWindow.cpp",
+		macWebFrameMainSrc,
+		macUtilityProcessSrc,
+		macParentPortSrc,
+		...macSessionSupportSrc,
+		...macNodeSupportSrc,
+		...macGinHelperSupportSrc,
+		...macPlatformSupportSrc,
+		macIoThreadSrc,
+		macUtilityProcessMsgsSrc,
+		macRendererContextBridgeSrc,
+		macRendererWebFrameSrc,
+		macV8UtilValueSrc,
+		"${srcPath}/electron/browser/api/ApiProtocol.cpp",
+		macWindowListSrc,
+		"${srcPath}/electron/common/AtomCommandLine.cpp",
+		"${srcPath}/electron/common/IdLiveDetect.cpp",
+		"${srcPath}/electron/common/OptionsSwitches.cpp",
+			macFeaturesSrc,
+			macContentTracingSrc,
+			macCrashReporterSrc,
+			...macBreakpadSrc,
+			"${srcPath}/electron/common/api/ApiIntlCollator.cpp",
+		"${srcPath}/electron/common/api/ApiOriginalFs.cpp",
+		"${srcPath}/electron/common/api/ApiScreen.cpp",
+		"${srcPath}/electron/common/api/ApiV8Util.cpp",
+		macAsarSrc,
+		"${srcPath}/electron/common/api/Event.cpp",
+		"${srcPath}/electron/common/api/EventEmitter.cpp",
+		"${srcPath}/electron/common/api/EventEmitterCaller.cpp",
+		"${srcPath}/electron/common/gin_helper/arguments.cpp",
+		"${srcPath}/electron/common/gin_helper/converter.cpp",
+		"${srcPath}/electron/common/gin_helper/dictionary.cpp",
+		"${srcPath}/electron/common/gin_helper/function_template.cpp",
+		"${srcPath}/electron/common/gin_helper/interceptor.cpp",
+		"${srcPath}/electron/common/gin_helper/object_template_builder.cpp",
+		"${srcPath}/electron/common/gin_helper/per_isolate_data.cpp",
+		"${srcPath}/electron/common/gin_helper/wrappable.cpp",
+		"${srcPath}/electron/common/api/ObjectLifeMonitor.cpp",
+		"${srcPath}/electron/common/api/RemoteCallbackFreer.cpp",
+		"${srcPath}/electron/common/api/RemoteObjectFreer.cpp",
+		"${srcPath}/electron/renderer/api/ApiRendererIpc.cpp",
+		"${srcPath}/electron/renderer/api/ObjectCache.cpp",
+		...macElectronSupportSrc,
+		...macAsarSupportSrc,
+		...macPowerMonitorIdleSrc,
+	]);
+	json[0].compile.src = json[0].compile.src.filter(src => macElectronLinkedBindingSrc.has(src));
+	json[0].compile.src.push(macAppSrc);
+	json[0].compile.src.push(macGlobalShortcutSrc);
+	json[0].compile.src.push(macMenuSrc);
+	json[0].compile.src.push(macDialogSrc);
+	json[0].compile.src.push(macTraySrc);
+	json[0].compile.src.push(macSystemTraySrc);
+	json[0].compile.src.push(macCommandLineSrc);
+	json[0].compile.src.push(macSafeStorageSrc);
+	json[0].compile.src.push(macSystemPreferencesSrc);
+	json[0].compile.src.push(macMessagePortSrc);
+	json[0].compile.src.push(macPostMessageUtilSrc);
+	json[0].compile.src.push("${srcPath}/electron/browser/api/ApiWebContents.cpp");
+	json[0].compile.src.push(macBrowserViewSrc);
+	json[0].compile.src.push("${srcPath}/electron/browser/api/ApiBrowserWindow.cpp");
+	json[0].compile.src.push(macWebFrameMainSrc);
+	json[0].compile.src.push(macUtilityProcessSrc);
+	json[0].compile.src.push(macParentPortSrc);
+	json[0].compile.src.push(...macSessionSupportSrc);
+	json[0].compile.src.push(...macNodeSupportSrc);
+	json[0].compile.src.push(...macGinHelperSupportSrc);
+	json[0].compile.src.push(...macPlatformSupportSrc);
+	json[0].compile.src.push(macIoThreadSrc);
+	json[0].compile.src.push(macUtilityProcessMsgsSrc);
+	json[0].compile.src.push(macRendererContextBridgeSrc);
+	json[0].compile.src.push(macRendererWebFrameSrc);
+	json[0].compile.src.push(macV8UtilValueSrc);
+	json[0].compile.src.push(macFeaturesSrc);
+	json[0].compile.src.push(macNativeImageSrc);
+	json[0].compile.src.push(macClipboardSrc);
+	json[0].compile.src.push(macShellSrc);
+	json[0].compile.src.push(macPowerMonitorSrc);
+	json[0].compile.src.push(macPowerSaveBlockerSrc);
+	json[0].compile.src.push(macWindowListSrc);
+	json[0].compile.src.push(macAsarSrc);
+	json[0].compile.src.push(macContentTracingSrc);
+	json[0].compile.src.push(macCrashReporterSrc);
+	json[0].compile.src.push(...macBreakpadSrc);
+	json[0].compile.src.push(...macElectronSupportSrc);
+	json[0].compile.src.push(...macAsarSupportSrc);
+	json[0].compile.src.push(...macPowerMonitorIdleSrc);
+	json[0].compile.src = [...new Set(json[0].compile.src)];
+	json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter(src => macElectronLinkedBindingSrc.has(src));
+	json[0].compile.prebuildSrc.push(macAppSrc);
+	json[0].compile.prebuildSrc.push(macGlobalShortcutSrc);
+	json[0].compile.prebuildSrc.push(macMenuSrc);
+	json[0].compile.prebuildSrc.push(macDialogSrc);
+	json[0].compile.prebuildSrc.push(macTraySrc);
+	json[0].compile.prebuildSrc.push(macSystemTraySrc);
+	json[0].compile.prebuildSrc.push(macCommandLineSrc);
+	json[0].compile.prebuildSrc.push(macSafeStorageSrc);
+	json[0].compile.prebuildSrc.push(macSystemPreferencesSrc);
+	json[0].compile.prebuildSrc.push(macMessagePortSrc);
+	json[0].compile.prebuildSrc.push(macPostMessageUtilSrc);
+	json[0].compile.prebuildSrc.push("${srcPath}/electron/browser/api/ApiWebContents.cpp");
+	json[0].compile.prebuildSrc.push(macBrowserViewSrc);
+	json[0].compile.prebuildSrc.push("${srcPath}/electron/browser/api/ApiBrowserWindow.cpp");
+	json[0].compile.prebuildSrc.push(macWebFrameMainSrc);
+	json[0].compile.prebuildSrc.push(macUtilityProcessSrc);
+	json[0].compile.prebuildSrc.push(macParentPortSrc);
+	json[0].compile.prebuildSrc.push(...macSessionSupportSrc);
+	json[0].compile.prebuildSrc.push(...macNodeSupportSrc);
+	json[0].compile.prebuildSrc.push(...macGinHelperSupportSrc);
+	json[0].compile.prebuildSrc.push(...macPlatformSupportSrc);
+	json[0].compile.prebuildSrc.push(macIoThreadSrc);
+	json[0].compile.prebuildSrc.push(macUtilityProcessMsgsSrc);
+	json[0].compile.prebuildSrc.push(macRendererContextBridgeSrc);
+	json[0].compile.prebuildSrc.push(macV8UtilValueSrc);
+	json[0].compile.prebuildSrc.push(macFeaturesSrc);
+	json[0].compile.prebuildSrc.push(macNativeImageSrc);
+	json[0].compile.prebuildSrc.push(macClipboardSrc);
+	json[0].compile.prebuildSrc.push(macShellSrc);
+	json[0].compile.prebuildSrc.push(macPowerMonitorSrc);
+	json[0].compile.prebuildSrc.push(macPowerSaveBlockerSrc);
+	json[0].compile.prebuildSrc.push(macWindowListSrc);
+	json[0].compile.prebuildSrc.push(macAsarSrc);
+	json[0].compile.prebuildSrc.push(macContentTracingSrc);
+	json[0].compile.prebuildSrc.push(macCrashReporterSrc);
+	json[0].compile.prebuildSrc.push(...macBreakpadSrc);
+	json[0].compile.prebuildSrc.push(...macElectronSupportSrc);
+	json[0].compile.prebuildSrc.push(...macAsarSupportSrc);
+	json[0].compile.prebuildSrc.push(...macPowerMonitorIdleSrc);
+	json[0].compile.prebuildSrc = [...new Set(json[0].compile.prebuildSrc)];
+}
 
 buildCommonSetting(json);

@@ -43,14 +43,8 @@ protected:
 
 private:
     // mojom::DisplayClient implementation:
-#if BUILDFLAG(IS_APPLE)
-    void OnDisplayReceivedCALayerParams(const gfx::CALayerParams& ca_layer_params) override;
-#endif
-
-#if BUILDFLAG(IS_WIN)
     void CreateLayeredWindowUpdater(mojo::PendingReceiver<mojom::LayeredWindowUpdater> receiver) override;
     void AddChildWindowToBrowser(gpu::SurfaceHandle child_window) override;
-#endif
 
 #if BUILDFLAG(IS_LINUX) && BUILDFLAG(IS_OZONE_X11)
     void DidCompleteSwapWithNewSize(const gfx::Size& size) override;

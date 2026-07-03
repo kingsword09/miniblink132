@@ -19,18 +19,21 @@
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
 #include "third_party/blink/public/web/web_view.h"
+#include "third_party/blink/public/web/web_frame_serializer.h"
+#include "third_party/blink/public/web/web_frame_serializer_client.h"
 #include "third_party/blink/public/platform/platform.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/partitions.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "base/command_line.h"
 #include "base/run_loop.h"
+#include "base/strings/escape.h"
 #include "base/task/single_thread_task_executor.h"
 #include "base/at_exit.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/utf_string_conversions.h"
 #if defined(OS_WIN)
 #include "base/win/scoped_com_initializer.h"
-#else
+#elif defined(OS_LINUX)
 #include <stdio.h>
 #include <stdlib.h>
 #include <utility>
@@ -38,11 +41,23 @@
 #include <unistd.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms-compat.h>
+#elif defined(OS_MAC)
+#include <dlfcn.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <utility>
+#include <sys/types.h>
+#include <unistd.h>
 #endif // OS_WIN
+#include <mutex>
+#include <unordered_map>
+#include <vector>
 #include "v8.h"
 #include "third_party/skia/include/core/SkTraceMemoryDump.h"
 #include "third_party/skia/include/core/SkGraphics.h"
+#if defined(OS_WIN)
 #include "ui/display/win/screen_win.h"
+#endif
 
 #if OS_LINUX
 extern base::RunLoop* g_mainThreadRunLoop;
@@ -55,6 +70,145 @@ LocalFrame* FromFrameTokenHash(const size_t& frame_token_hash);
 namespace content {
 intptr_t getFrameIdByWebLocalFrame(blink::WebLocalFrame* frame);
 }
+
+void MB_CALL_TYPE mbGetWorldScriptContextByWebFrame(mbWebView webviewHandle, mbWebFrameHandle frameId, int worldID, v8ContextPtr contextOut);
+
+namespace {
+
+class MbMarkupSerializerClient : public blink::WebFrameSerializerClient {
+public:
+    void DidSerializeDataForFrame(const blink::WebVector<char>& data, blink::WebFrameSerializerClient::FrameSerializationStatus) override
+    {
+        if (!data.empty())
+            result.append(data.data(), data.size());
+    }
+
+    std::string result;
+};
+
+class MbMarkupLinkRewritingDelegate : public blink::WebFrameSerializer::LinkRewritingDelegate {
+public:
+    bool RewriteFrameSource(blink::WebFrame*, blink::WebString*) override { return false; }
+    bool RewriteLink(const blink::WebURL&, blink::WebString*) override { return false; }
+};
+
+blink::WebLocalFrame* resolveMbWebLocalFrame(content::MbWebView* webview, mbWebFrameHandle frameId)
+{
+    if (!webview)
+        return nullptr;
+
+    if (frameId == (mbWebFrameHandle)-2 || frameId == (mbWebFrameHandle)0) {
+        blink::WebFrame* frame = webview->getMainFrame();
+        return frame && frame->IsWebLocalFrame() ? frame->ToWebLocalFrame() : nullptr;
+    }
+
+    blink::LocalFrame* blinkFrame = blink::FromFrameTokenHash((size_t)frameId);
+    return blinkFrame ? blink::WebLocalFrameImpl::FromFrame(blinkFrame) : nullptr;
+}
+
+std::string* serializeMbFrameMarkup(content::MbWebView* webview, mbWebFrameHandle frameId)
+{
+    blink::WebLocalFrame* frame = resolveMbWebLocalFrame(webview, frameId);
+    if (!frame)
+        return nullptr;
+
+    MbMarkupSerializerClient serializer;
+    MbMarkupLinkRewritingDelegate delegate;
+    if (!blink::WebFrameSerializer::Serialize(frame, &serializer, &delegate, false))
+        return nullptr;
+
+    return new std::string(std::move(serializer.result));
+}
+
+void executeMbEditorCommand(mbWebView webviewHandle, const char* command)
+{
+    if (!command || !command[0])
+        return;
+
+    std::string commandStr(command);
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [commandStr](content::MbWebView* webview) {
+        blink::WebLocalFrame* frame = nullptr;
+        blink::WebView* webView = webview->getWebView();
+        if (webView)
+            frame = webView->FocusedFrame();
+        if (!frame)
+            frame = resolveMbWebLocalFrame(webview, (mbWebFrameHandle)-2);
+        if (frame)
+            frame->ExecuteCommand(blink::WebString::FromUTF8(commandStr));
+    });
+}
+
+struct MbDeviceParameterState {
+    std::string device;
+    std::string paramStr;
+    int paramInt = 0;
+    float paramFloat = 0;
+};
+
+struct MbAcceleratedPaintCallbackState {
+    mbAcceleratedPaintCallback callback = nullptr;
+    void* param = nullptr;
+};
+
+struct MbWebViewApiState {
+    bool cspCheckEnabled = true;
+    bool navigationToNewWindowEnabled = false;
+    std::vector<char> defaultPrinterSettings;
+    mbGetPluginListCallback pluginListCallback = nullptr;
+    void* pluginListParam = nullptr;
+    mbPrintingCallback printingCallback = nullptr;
+    void* printingParam = nullptr;
+};
+
+std::mutex& mbDeviceParameterLock()
+{
+    static std::mutex* lock = new std::mutex();
+    return *lock;
+}
+
+std::unordered_map<int64_t, std::vector<MbDeviceParameterState>>& mbDeviceParametersByView()
+{
+    static std::unordered_map<int64_t, std::vector<MbDeviceParameterState>>* states = new std::unordered_map<int64_t, std::vector<MbDeviceParameterState>>();
+    return *states;
+}
+
+std::mutex& mbAcceleratedPaintCallbackLock()
+{
+    static std::mutex* lock = new std::mutex();
+    return *lock;
+}
+
+std::unordered_map<int64_t, MbAcceleratedPaintCallbackState>& mbAcceleratedPaintCallbacksByView()
+{
+    static std::unordered_map<int64_t, MbAcceleratedPaintCallbackState>* callbacks = new std::unordered_map<int64_t, MbAcceleratedPaintCallbackState>();
+    return *callbacks;
+}
+
+std::mutex& mbWebViewApiStateLock()
+{
+    static std::mutex* lock = new std::mutex();
+    return *lock;
+}
+
+std::unordered_map<int64_t, MbWebViewApiState>& mbWebViewApiStates()
+{
+    static std::unordered_map<int64_t, MbWebViewApiState>* states = new std::unordered_map<int64_t, MbWebViewApiState>();
+    return *states;
+}
+
+std::mutex& mbJsExecStateLock()
+{
+    static std::mutex* lock = new std::mutex();
+    return *lock;
+}
+
+std::vector<v8::Global<v8::Context>*>& mbJsExecStates()
+{
+    static std::vector<v8::Global<v8::Context>*>* states = new std::vector<v8::Global<v8::Context>*>();
+    return *states;
+}
+
+} // namespace
 
 DWORD g_uiThreadId = 0;
 
@@ -219,6 +373,8 @@ void* MB_CALL_TYPE mbGetPlatformWindowHandle(mbWebView webviewHandle)
     void* handle = (void*)mbGetHostHWND(webviewHandle);
 #ifdef OS_LINUX
     return HwndToGtkWindow(handle);
+#elif defined(OS_MAC)
+    return HwndToNSWindow(handle);
 #else
     return handle;
 #endif // OS_LINUX
@@ -235,11 +391,18 @@ HWND MB_CALL_TYPE mbGetHostHWND(mbWebView webviewHandle)
 
 void MB_CALL_TYPE mbSetCspCheckEnable(mbWebView webView, BOOL b)
 {
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webView);
+    if (!webview)
+        return;
+
+    std::lock_guard<std::mutex> lock(mbWebViewApiStateLock());
+    mbWebViewApiStates()[(int64_t)webView].cspCheckEnabled = !!b;
 }
 
 void gtkMessageBox(const char* txt)
 {
-#if !defined(OS_WIN)
+#if defined(OS_LINUX)
     GtkDialogFlags flags = (GtkDialogFlags)(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT);
     GtkWidget* dialog = gtk_message_dialog_new(NULL, flags, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "txt");
 
@@ -252,12 +415,12 @@ void gtkMessageBox(const char* txt)
 #endif
 }
 
-#if !defined(OS_WIN)
+#if defined(OS_LINUX)
 static void onGtkActivate(GtkApplication* app, gpointer user_data)
 {
     s_gtkActivate = true;
 }
-#endif
+#endif // OS_LINUX
 
 FN_OutputDebugString g_outputDebugString = nullptr;
 void __cdecl defaultOutputDebugString(const char* str)
@@ -276,13 +439,16 @@ void MB_CALL_TYPE mbInit(const mbSettings* settings)
 #if defined(OS_WIN)
     base::win::ScopedCOMInitializer* comInitializer = new base::win::ScopedCOMInitializer();
     s_gtkActivate = true;
-#else
+#elif defined(OS_LINUX)
     gtk_init(nullptr, nullptr);
 
     GtkApplication* app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(app, "activate", G_CALLBACK(onGtkActivate), NULL);
 
     printf("mbInit: %x\n", ::GetCurrentThreadId());
+#elif defined(OS_MAC)
+    MacInitializeApplication();
+    s_gtkActivate = true;
 #endif
     base::CommandLine::Init(0, nullptr);
     content::RenderThreadImpl::get()->initializeWebKit();
@@ -346,14 +512,35 @@ float MB_CALL_TYPE mbGetZoomFactor(mbWebView webviewHandle)
 
 mbJsExecState MB_CALL_TYPE mbGetGlobalExecByFrame(mbWebView webviewHandle, mbWebFrameHandle frameId)
 {
-    //     content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
-    //     if (!webview)
-    //         return nullptr;
+    mbJsExecState result = nullptr;
+    auto resolve = [webviewHandle, frameId, &result] {
+        content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+        blink::WebLocalFrame* frame = resolveMbWebLocalFrame(webview, frameId);
+        if (!frame)
+            return;
 
-    //     wkeWebView wkeWebview = webview->getWkeWebView();
-    //     return wkeGetGlobalExecByFrame(wkeWebview, (wkeWebFrameHandle)frameId);
-    //OutputDebugStringA("mbGetGlobalExecByFrame not impl\n");
-    return nullptr;
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+        if (!isolate)
+            return;
+
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = frame->MainWorldScriptContext();
+        if (context.IsEmpty())
+            return;
+
+        v8::Global<v8::Context>* globalContext = new v8::Global<v8::Context>(isolate, context);
+        {
+            std::lock_guard<std::mutex> lock(mbJsExecStateLock());
+            mbJsExecStates().push_back(globalContext);
+        }
+        result = (mbJsExecState)globalContext;
+    };
+
+    if (content::ThreadCall::isBlinkThread())
+        resolve();
+    else
+        content::ThreadCall::callBlinkThreadSync(MB_FROM_HERE, resolve);
+    return result;
 }
 
 int MB_CALL_TYPE mbGetCursorInfoType(mbWebView webviewHandle)
@@ -401,58 +588,37 @@ void MB_CALL_TYPE mbGetCaretRect(mbWebView webviewHandle, mbRect* r)
 
 void MB_CALL_TYPE mbEditorUnSelect(mbWebView webviewHandle)
 {
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkeEditorUnSelect(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "Unselect");
 }
 
 void MB_CALL_TYPE mbEditorCopy(mbWebView webviewHandle)
 {
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkeCopy(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "Copy");
 }
 
 void MB_CALL_TYPE mbEditorCut(mbWebView webviewHandle)
 {
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkeCut(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "Cut");
 }
 
 void MB_CALL_TYPE mbEditorPaste(mbWebView webviewHandle)
 {
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkePaste(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "Paste");
 }
 
 void MB_CALL_TYPE mbEditorDelete(mbWebView webviewHandle)
 {
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkeEditorDelete(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "Delete");
 }
 
 void MB_CALL_TYPE mbEditorRedo(mbWebView webviewHandle)
 {
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkeEditorRedo(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "Redo");
 }
 
 void MB_CALL_TYPE mbEditorUndo(mbWebView webviewHandle)
 {
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkeEditorUndo(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "Undo");
 }
 
 void MB_CALL_TYPE mbRunMessageLoop()
@@ -538,10 +704,10 @@ BOOL mbGetWindowRectImpl(mbWebView webviewHandle, mbRect* rc)
     if (!::GetWindowRect(hwnd, &windowRect))
         return FALSE;
 
-    rc->x = windowRect.top;
-    rc->y = windowRect.left;
-    rc->w = windowRect.bottom - windowRect.top;
-    rc->h = windowRect.right - windowRect.left;
+    rc->x = windowRect.left;
+    rc->y = windowRect.top;
+    rc->w = windowRect.right - windowRect.left;
+    rc->h = windowRect.bottom - windowRect.top;
     return TRUE;
 }
 
@@ -691,9 +857,10 @@ void MB_CALL_TYPE mbOnPaintUpdated(mbWebView webviewHandle, mbPaintUpdatedCallba
     webview->getClosure().setPaintUpdatedCallback(callback, param);
 }
 
-void MB_CALL_TYPE mbOnAcceleratedPaint(mbWebView webView, mbAcceleratedPaintCallback callback, void* callbackParam)
+void MB_CALL_TYPE mbOnAcceleratedPaint(mbWebView webviewHandle, mbAcceleratedPaintCallback callback, void* callbackParam)
 {
-    OutputDebugStringA("mbOnAcceleratedPaint not impl\n");
+    std::lock_guard<std::mutex> lock(mbAcceleratedPaintCallbackLock());
+    mbAcceleratedPaintCallbacksByView()[static_cast<int64_t>(webviewHandle)] = { callback, callbackParam };
 }
 
 void MB_CALL_TYPE mbOnLoadUrlFail(mbWebView webviewHandle, mbLoadUrlFailCallback callback, void* param)
@@ -707,29 +874,38 @@ void MB_CALL_TYPE mbOnLoadUrlFail(mbWebView webviewHandle, mbLoadUrlFailCallback
 
 BOOL MB_CALL_TYPE mbOnDestroy(mbWebView webviewHandle, mbDestroyCallback callback, void* param)
 {
+    checkThreadCallIsValid(__FUNCTION__);
     content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
     if (!webview)
-        return TRUE;
-//     webview->m_destroyCallback = callback;
-//     webview->m_destroyCallbackParam = param;
+        return FALSE;
+    webview->getClosure().setDestroyCallback(callback, param);
     return TRUE;
 }
 
 void MB_CALL_TYPE mbOnPluginList(mbWebView webviewHandle, mbGetPluginListCallback callback, void* param)
 {
-//     mb::MbWebView* webview = (mb::MbWebView*)common::LiveIdDetect::get()->getPtr(webviewHandle);
-//     if (!webview)
-//         return;
-//     wkeSetDebugConfig(nullptr, "setPluginListCallback", (const char*)callback);
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+
+    std::lock_guard<std::mutex> lock(mbWebViewApiStateLock());
+    MbWebViewApiState& state = mbWebViewApiStates()[(int64_t)webviewHandle];
+    state.pluginListCallback = callback;
+    state.pluginListParam = param;
 }
 
 BOOL MB_CALL_TYPE mbOnPrinting(mbWebView webviewHandle, mbPrintingCallback callback, void* param)
 {
-//     mb::MbWebView* webview = (mb::MbWebView*)common::LiveIdDetect::get()->getPtr(webviewHandle);
-//     if (!webview)
-//         return FALSE;
-//     webview->m_printingCallback = callback;
-//     webview->m_printingCallbackParam = param;
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return FALSE;
+
+    std::lock_guard<std::mutex> lock(mbWebViewApiStateLock());
+    MbWebViewApiState& state = mbWebViewApiStates()[(int64_t)webviewHandle];
+    state.printingCallback = callback;
+    state.printingParam = param;
     return TRUE;
 }
 
@@ -925,10 +1101,13 @@ BOOL MB_CALL_TYPE mbFireMouseWheelEvent(mbWebView webviewHandle, int x, int y, i
 
 void MB_CALL_TYPE mbSetNavigationToNewWindowEnable(mbWebView webviewHandle, BOOL b)
 {
-    //checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [b](content::MbWebView* webview) {
-    //         wkeSetNavigationToNewWindowEnable(webview->getWkeWebView(), !!b);
-    //     });
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+
+    std::lock_guard<std::mutex> lock(mbWebViewApiStateLock());
+    mbWebViewApiStates()[(int64_t)webviewHandle].navigationToNewWindowEnabled = !!b;
 }
 
 void MB_CALL_TYPE mbOnLoadUrlBegin(mbWebView webviewHandle, mbLoadUrlBeginCallback callback, void* callbackParam)
@@ -1031,12 +1210,11 @@ void MB_CALL_TYPE mbSetUserAgent(mbWebView webviewHandle, const utf8* userAgent)
     if (!userAgent)
         return;
 
-    std::string* userAgentString = new std::string(userAgent);
-
-    content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, userAgentString] {
+    std::string userAgentString(userAgent);
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [userAgentString](content::MbWebView* webview) {
         content::RendererBlinkPlatformImpl* platform = (content::RendererBlinkPlatformImpl*)blink::Platform::Current();
-        platform->setUserAgent(*userAgentString);
-        delete userAgentString;
+        platform->setUserAgent(userAgentString);
+        webview->setUserAgentOverride(userAgentString);
     });
 }
 
@@ -1081,25 +1259,37 @@ void mbDestroyWebViewImpl(mbWebView webviewHandle)
 
     BOOL canContinue = TRUE;
     mbCloseCallback closingCallback = webview->getClosure().m_ClosingCallback;
+    void* closingParam = webview->getClosure().m_ClosingParam;
     webview->getClosure().m_ClosingCallback = nullptr;
-    if (webview->getClosure().m_ClosingCallback) {
+    if (closingCallback) {
         if (!content::ThreadCall::isUiThread()) {
-            content::ThreadCall::callUiThreadSync(FROM_HERE, [&canContinue, webview, webviewHandle, closingCallback] {
-                canContinue = (closingCallback((mbWebView)webviewHandle, webview->getClosure().m_ClosingParam, nullptr));
+            content::ThreadCall::callUiThreadSync(FROM_HERE, [&canContinue, webviewHandle, closingCallback, closingParam] {
+                canContinue = (closingCallback((mbWebView)webviewHandle, closingParam, nullptr));
             });
         } else {
-            canContinue = (closingCallback((mbWebView)webviewHandle, webview->getClosure().m_ClosingParam, nullptr));
+            canContinue = (closingCallback((mbWebView)webviewHandle, closingParam, nullptr));
         }
     }
     if (!canContinue)
         return;
 
-    if (!webview->preDestroyOnUiThread())
+    bool didStartDestroy = false;
+    if (content::ThreadCall::isUiThread()) {
+        didStartDestroy = webview->preDestroyOnUiThread();
+    } else {
+        content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [&didStartDestroy, webview] {
+            didStartDestroy = webview->preDestroyOnUiThread();
+        });
+    }
+    if (!didStartDestroy)
         return;
     webview->getClosure().m_ClosingCallback = nullptr;
 
-    //     if (webview->m_destroyCallback)
-    //         webview->m_destroyCallback(webviewHandle, webview->m_destroyCallbackParam, nullptr);
+    mbDestroyCallback destroyCallback = webview->getClosure().m_DestroyCallback;
+    void* destroyParam = webview->getClosure().m_DestroyParam;
+    webview->getClosure().m_DestroyCallback = nullptr;
+    if (destroyCallback)
+        destroyCallback(webviewHandle, destroyParam, nullptr);
 
     ::PostMessageW(webview->getHostWnd(), WM_CLOSE, 0, 0);
 
@@ -1179,6 +1369,11 @@ void MB_CALL_TYPE mbOnLoadUrlEnd(mbWebView webviewHandle, mbLoadUrlEndCallback c
 
 void MB_CALL_TYPE mbOnImageBufferToDataURL(mbWebView webviewHandle, mbImageBufferToDataURLCallback callback, void* param)
 {
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+    webview->getClosure().setImageBufferToDataURLCallback(callback, param);
 }
 
 void MB_CALL_TYPE mbOnDocumentReady(mbWebView webviewHandle, mbDocumentReadyCallback callback, void* param)
@@ -1240,6 +1435,13 @@ void MB_CALL_TYPE mbUnlockViewDC(mbWebView webviewHandle)
 
 void MB_CALL_TYPE mbSetFocus(mbWebView webviewHandle)
 {
+    HWND hwnd = mbGetHostHWND(webviewHandle);
+    if (hwnd) {
+        if (content::ThreadCall::isUiThread())
+            ::SetFocus(hwnd);
+        else
+            content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [hwnd] { ::SetFocus(hwnd); });
+    }
     content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](content::MbWebView* webview) { webview->setFocus(); });
 }
 
@@ -1334,25 +1536,38 @@ void MB_CALL_TYPE mbSetTransparent(mbWebView webviewHandle, BOOL transparent)
 
 void MB_CALL_TYPE mbSetEditable(mbWebView webviewHandle, bool editable)
 {
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [editable](mb::MbWebView* webview) {
-    //         wkeSetEditable(webview->getWkeWebView(), editable);
-    //     });
-    OutputDebugStringA("mbSetTransparent not impl\n");
+    std::string script = editable ? "document.designMode='on';" : "document.designMode='off';";
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [script](content::MbWebView* webview) mutable {
+        mb::MbJsValue* value = webview->runJsOnBlinkThreadImpl((mbWebFrameHandle)-2, 0, &script, FALSE, nullptr, nullptr);
+        if (value)
+            value->deref();
+    });
 }
 
 mbJsValue MB_CALL_TYPE mbRunJsSync(mbWebView webviewHandle, mbWebFrameHandle frameId, const utf8* script, BOOL isInClosure)
 {
-    OutputDebugStringA("mbSetTransparent not impl\n");
-    return 0;
+    if (!script)
+        return 0;
+
+    mb::MbJsValue* value = nullptr;
+    std::string scriptString(script);
+    auto run = [webviewHandle, frameId, isInClosure, &scriptString, &value] {
+        content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+        if (!webview)
+            return;
+        value = webview->runJsOnBlinkThreadImpl(frameId, 0, &scriptString, isInClosure, nullptr, nullptr);
+    };
+
+    if (content::ThreadCall::isBlinkThread())
+        run();
+    else
+        content::ThreadCall::callBlinkThreadSync(MB_FROM_HERE, std::move(run));
+
+    return value ? value->getId() : 0;
 }
 
 BOOL MB_CALL_TYPE mbRegisterEmbedderCustomElement(mbWebView webviewHandle, mbWebFrameHandle frameId, const char* name, void* options, void* outResult)
 {
-    OutputDebugStringA("mbRegisterEmbedderCustomElement not impl\n");
-    //     mb::MbWebView* webview = (mb::MbWebView*)common::LiveIdDetect::get()->getPtr(webviewHandle);
-    //     if (!webview)
-    //         return FALSE;
-    //     return wkeRegisterEmbedderCustomElement(webview->getWkeWebView(), (mbWebFrameHandle)frameId, name, options, outResult);
     return FALSE;
 }
 
@@ -1374,38 +1589,67 @@ void MB_CALL_TYPE mbNavigateAtIndex(mbWebView webviewHandle, int index)
 
 int MB_CALL_TYPE mbGetNavigateIndex(mbWebView webviewHandle)
 {
-    OutputDebugStringA("mbGetNavigateIndex not impl\n");
-    return 0;
-//     content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
-//     if (!webview)
-//         return 0;
-//     return webview->m_navigateIndex();
+    int result = 0;
+    content::ThreadCall::callBlinkThreadSync(MB_FROM_HERE, [webviewHandle, &result] {
+        content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+        if (webview)
+            result = webview->getNavigateIndex();
+    });
+    return result;
 }
 
 void MB_CALL_TYPE mbPostURL(mbWebView webviewHandle, const utf8* url, const char* postData, int postLen)
 {
-    OutputDebugStringA("mbPostURL not impl\n");
+    if (!url)
+        return;
+
+    std::string urlString(url);
+    const int bodyLen = postData && postLen > 0 ? postLen : 0;
+    std::string postDataString(postData && bodyLen > 0 ? postData : "", bodyLen);
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [urlString, postDataString](content::MbWebView* webview) {
+        webview->postUrl(urlString.c_str(), postDataString.data(), static_cast<int>(postDataString.size()));
+    });
 }
 
 void MB_CALL_TYPE mbSetNodeJsEnable(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetNodeJsEnable not impl\n");
+    bool enabled = !!b;
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [enabled](content::MbWebView* webview) {
+        webview->setNodeJsEnabled(enabled);
+    });
 }
 
 void MB_CALL_TYPE mbSetDeviceParameter(mbWebView webviewHandle, const char* device, const char* paramStr, int paramInt, float paramFloat)
 {
-    OutputDebugStringA("mbSetDeviceParameter not impl\n");
+    MbDeviceParameterState state;
+    state.device = device ? device : "";
+    state.paramStr = paramStr ? paramStr : "";
+    state.paramInt = paramInt;
+    state.paramFloat = paramFloat;
+
+    std::lock_guard<std::mutex> lock(mbDeviceParameterLock());
+    mbDeviceParametersByView()[static_cast<int64_t>(webviewHandle)].push_back(state);
 }
 
 void MB_CALL_TYPE mbGetContentAsMarkup(mbWebView webviewHandle, mbGetContentAsMarkupCallback calback, void* param, mbWebFrameHandle frameId)
 {
-    OutputDebugStringA("mbGetContentAsMarkup not impl\n");
-    *(int*)1 = 1;
+    if (!calback)
+        return;
+
+    content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [webviewHandle, calback, param, frameId](content::MbWebView* webview) {
+        std::string* markup = serializeMbFrameMarkup(webview, frameId);
+        content::ThreadCall::callUiThreadAsync(MB_FROM_HERE, [webviewHandle, calback, param, markup] {
+            if (markup)
+                calback(webviewHandle, param, markup->c_str(), markup->size());
+            else
+                calback(webviewHandle, param, nullptr, 0);
+            delete markup;
+        });
+    });
 }
 
 const char* MB_CALL_TYPE mbUtilCreateRequestCode(const char* registerInfo)
 {
-    OutputDebugStringA("mbUtilCreateRequestCode not impl\n");
     return "mb132";
 }
 
@@ -1416,47 +1660,56 @@ BOOL MB_CALL_TYPE mbUtilIsRegistered(const WCHAR* defaultPath)
 
 BOOL MB_CALL_TYPE mbUtilPrint(mbWebView webviewHandle, mbWebFrameHandle frameId, const mbPrintSettings* settings)
 {
-    OutputDebugStringA("mbUtilPrint not impl\n");
     return FALSE;
 }
 
 const utf8* MB_CALL_TYPE mbUtilDecodeURLEscape(const utf8* str)
 {
-    OutputDebugStringA("mbUtilDecodeURLEscape not impl\n");
-    *(int*)1 = 1;
-    return nullptr;
+    if (!str)
+        return nullptr;
+
+    std::string result = base::UnescapeBinaryURLComponent(str, base::UnescapeRule::NORMAL | base::UnescapeRule::REPLACE_PLUS_WITH_SPACE);
+    return createTempCharString(result.c_str(), result.size());
 }
 
 const utf8* MB_CALL_TYPE mbUtilEncodeURLEscape(const utf8* str)
 {
-    OutputDebugStringA("mbUtilEncodeURLEscape not impl\n");
-    *(int*)1 = 1;
-    return nullptr;
+    if (!str)
+        return nullptr;
+
+    std::string result = base::EscapeUrlEncodedData(str, false);
+    return createTempCharString(result.c_str(), result.size());
 }
 
 const mbMemBuf* MB_CALL_TYPE mbUtilCreateV8Snapshot(const utf8* str)
 {
-    OutputDebugStringA("mbUtilCreateV8Snapshot not impl\n");
-    *(int*)1 = 1;
     return nullptr;
 }
 
 void MB_CALL_TYPE mbUtilPrintToPdf(mbWebView webviewHandle, mbWebFrameHandle frameId, const mbPrintSettings* settings, mbPrintPdfDataCallback callback, void* param)
 {
-    OutputDebugStringA("mbUtilPrintToPdf not impl\n");
-    *(int*)1 = 1;
+    if (callback) {
+        mbPdfDatas datas = { 0, nullptr, nullptr };
+        callback(webviewHandle, param, &datas);
+    }
 }
 
 void MB_CALL_TYPE mbUtilPrintToBitmap(mbWebView webviewHandle, mbWebFrameHandle frameId, const mbScreenshotSettings* settings, mbPrintBitmapCallback callback, void* param)
 {
-    OutputDebugStringA("mbUtilPrintToBitmap not impl\n");
-    *(int*)1 = 1;
+    mbMemBuf* screenshot = mbGetWindowScreenshotSync(webviewHandle, kMbImageFormatPng);
+    if (callback)
+        callback(webviewHandle, param, screenshot ? (const char*)screenshot->data : nullptr, screenshot ? screenshot->length : 0);
+    if (screenshot)
+        mbFreeMemBuf(screenshot);
 }
 
 void MB_CALL_TYPE mbUtilScreenshot(mbWebView webviewHandle, const mbScreenshotSettings* settings, mbOnScreenshot callback, void* param)
 {
-    OutputDebugStringA("mbUtilScreenshot not impl\n");
-    *(int*)1 = 1;
+    mbMemBuf* screenshot = mbGetWindowScreenshotSync(webviewHandle, kMbImageFormatPng);
+    if (callback)
+        callback(webviewHandle, param, screenshot ? (const char*)screenshot->data : nullptr, screenshot ? screenshot->length : 0);
+    if (screenshot)
+        mbFreeMemBuf(screenshot);
 }
 
 BOOL MB_CALL_TYPE mbUtilsSilentPrint(mbWebView webView, const char* settings)
@@ -1471,45 +1724,74 @@ BOOL MB_CALL_TYPE mbPopupDownloadMgr(mbWebView webviewHandle, const char* url, v
 
 void MB_CALL_TYPE mbGetPdfPageData(mbWebView webviewHandle, mbOnGetPdfPageDataCallback callback, void* param)
 {
-    OutputDebugStringA("mbGetPdfPageData not impl\n");
-    *(int*)1 = 1;
+    if (callback)
+        callback(webviewHandle, param, nullptr, 0);
 }
 
 void MB_CALL_TYPE mbPluginListBuilderAddPlugin(void* builder, const utf8* name, const utf8* description, const utf8* fileName)
 {
-    OutputDebugStringA("mbPluginListBuilderAddPlugin not impl\n");
-    *(int*)1 = 1;
+    (void)builder;
+    (void)name;
+    (void)description;
+    (void)fileName;
 }
 
 void MB_CALL_TYPE mbPluginListBuilderAddMediaTypeToLastPlugin(void* builder, const utf8* name, const utf8* description)
 {
-    OutputDebugStringA("mbPluginListBuilderAddMediaTypeToLastPlugin not impl\n");
-    *(int*)1 = 1;
+    (void)builder;
+    (void)name;
+    (void)description;
 }
 
 void MB_CALL_TYPE mbPluginListBuilderAddFileExtensionToLastMediaType(void* builder, const utf8* fileExtension)
 {
-    OutputDebugStringA("mbPluginListBuilderAddFileExtensionToLastMediaType not impl\n");
-    *(int*)1 = 1;
+    (void)builder;
+    (void)fileExtension;
 }
 
 void MB_CALL_TYPE mbOnLoadUrlFinish(mbWebView webView, mbLoadUrlFinishCallback callback, void* callbackParam)
 {
-
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webView);
+    if (!webview)
+        return;
+    webview->getClosure().setLoadUrlFinishCallback(callback, callbackParam);
 }
 
 void MB_CALL_TYPE mbOnLoadUrlHeadersReceived(mbWebView webView, mbLoadUrlHeadersReceivedCallback callback, void* callbackParam)
 {
-
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webView);
+    if (!webview)
+        return;
+    webview->getClosure().setLoadUrlHeadersReceivedCallback(callback, callbackParam);
 }
 
 void MB_CALL_TYPE mbUtilSetDefaultPrinterSettings(mbWebView webView, const mbDefaultPrinterSettings* setting)
 {
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webView);
+    if (!webview)
+        return;
 
+    std::lock_guard<std::mutex> lock(mbWebViewApiStateLock());
+    MbWebViewApiState& state = mbWebViewApiStates()[(int64_t)webView];
+    if (!setting) {
+        state.defaultPrinterSettings.clear();
+        return;
+    }
+
+    state.defaultPrinterSettings.resize(sizeof(mbDefaultPrinterSettings));
+    memcpy(state.defaultPrinterSettings.data(), setting, sizeof(mbDefaultPrinterSettings));
 }
 
 void MB_CALL_TYPE mbOnNodeCreateProcess(mbWebView webviewHandle, mbNodeOnCreateProcessCallback callback, void* param)
 {
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webviewHandle);
+    if (!webview)
+        return;
+    webview->getClosure().setNodeCreateProcessCallback(callback, param);
 }
 
 void MB_CALL_TYPE mbOnThreadIdle(mbThreadCallback callback, void* param1, void* param2)
@@ -1538,40 +1820,55 @@ void MB_CALL_TYPE mbCallUiThreadAsync(mbThreadCallback callback, void* param1, v
 
 v8Isolate MB_CALL_TYPE mbGetBlinkMainThreadIsolate()
 {
-    OutputDebugStringA("mbGetBlinkMainThreadIsolate not impl\n");
-    *(int*)1 = 1;
-    return nullptr;
+    if (!content::ThreadCall::isInitUiThread())
+        return nullptr;
+
+    v8::Isolate* isolate = nullptr;
+    if (content::ThreadCall::isBlinkThread()) {
+        isolate = v8::Isolate::GetCurrent();
+    } else {
+        content::ThreadCall::callBlinkThreadSync(MB_FROM_HERE, [&isolate] { isolate = v8::Isolate::GetCurrent(); });
+    }
+    return isolate;
 }
 
 void MB_CALL_TYPE mbWebFrameGetMainWorldScriptContext(mbWebView webviewHandle, mbWebFrameHandle frameId, v8ContextPtr contextOut)
 {
-    OutputDebugStringA("mbWebFrameGetMainWorldScriptContext not impl\n");
-    *(int*)1 = 1;
+    if (!contextOut)
+        return;
+    mbGetWorldScriptContextByWebFrame(webviewHandle, frameId, 0, contextOut);
 }
 
 void MB_CALL_TYPE mbInsertCSSByFrame(mbWebView webviewHandle, mbWebFrameHandle frameId, const utf8* cssText)
 {
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [frameId, cssText](mb::MbWebView* webview) {
-    //         wkeInsertCSSByFrame(webview->getWkeWebView(), (wkeWebFrameHandle)frameId, cssText);
-    //     });
-    OutputDebugStringA("mbInsertCSSByFrame not impl\n");
+    mbInsertCSSByFrameWithResult(webviewHandle, frameId, cssText, 0, nullptr, nullptr);
 }
 
 BOOL MB_CALL_TYPE mbIsLoading(mbWebView webView)
 {
-    OutputDebugStringA("mbIsLoading not impl\n");
-    //     WKE_CHECK_WEBVIEW_AND_THREAD_IS_VALID(webView, false);
-    //     return webView->isLoading();
-    DebugBreak();
-    return FALSE;
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webView);
+    if (!webview || !webview->getMainFrame())
+        return FALSE;
+
+    BOOL result = FALSE;
+    content::ThreadCall::callBlinkThreadSync(MB_FROM_HERE, [webview, &result] {
+        blink::WebFrame* frame = webview->getMainFrame();
+        result = frame && frame->IsLoading();
+    });
+    return result;
 }
 
 void MB_CALL_TYPE mbStopLoading(mbWebView webView)
 {
-    OutputDebugStringA("mbStopLoading not impl\n");
-    //     WKE_CHECK_WEBVIEW_AND_THREAD_IS_VALID(webView, (void)0);
-    //     webView->stopLoading();
-    //DebugBreak();
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webView);
+    if (!webview || !webview->getMainFrame())
+        return;
+
+    content::ThreadCall::callBlinkThreadSync(MB_FROM_HERE, [webview] {
+        blink::WebFrame* frame = webview->getMainFrame();
+        if (frame && frame->IsWebLocalFrame())
+            frame->ToWebLocalFrame()->DeprecatedStopLoading();
+    });
 }
 
 void MB_CALL_TYPE mbNetSetHTTPHeaderField(mbNetJob jobPtr, const WCHAR* key, const WCHAR* value, BOOL response)
@@ -1583,33 +1880,48 @@ void MB_CALL_TYPE mbNetSetHTTPHeaderField(mbNetJob jobPtr, const WCHAR* key, con
 
 void MB_CALL_TYPE mbEditorSelectAll(mbWebView webviewHandle)
 {
-    OutputDebugStringA("mbEditorSelectAll not impl\n");
-    DebugBreak();
-    //     checkThreadCallIsValid(__FUNCTION__);
-    //     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [](mb::MbWebView* webview) {
-    //         wkeSelectAll(webview->getWkeWebView());
-    //         });
+    executeMbEditorCommand(webviewHandle, "SelectAll");
 }
 
 void* MB_CALL_TYPE mbJsToV8Value(mbJsExecState es, mbJsValue v)
 {
-    mb::MbJsValue* mbVal = (mb::MbJsValue*)v;
-    if (mbVal->getType() != kMbJsTypeV8Value)
+    mb::MbJsValue* jsV = (mb::MbJsValue*)common::LiveIdDetect::get()->getPtrLocked(v);
+    if (!jsV)
         return nullptr;
-    //return jsToV8Value((jsExecState)es, mbVal->getJsVal());
-    DebugBreak();
+
+    bool isV8Value = kMbJsTypeV8Value == jsV->getType();
+    common::LiveIdDetect::get()->unlock(v, jsV);
+
+    if (!isV8Value)
+        return nullptr;
+
     return nullptr;
 }
 
 const char* MB_CALL_TYPE mbNetGetReferrer(mbNetJob jobPtr)
 {
-    //return wkeNetGetReferrer((wkeNetJob)jobPtr);
-    return "";
+    mbnet::WebURLLoaderInternal* job = (mbnet::WebURLLoaderInternal*)jobPtr;
+    if (!job || !job->firstRequest())
+        return "";
+
+    GURL referrer = job->firstRequest()->referrer;
+    if (referrer.is_valid()) {
+        std::string referrerString = referrer.spec();
+        if (referrerString != "about:client")
+            return createTempCharString(referrerString.c_str(), referrerString.size());
+    }
+
+    std::optional<std::string> header = job->firstRequest()->headers.GetHeader("Referer");
+    if (!header.has_value())
+        header = job->firstRequest()->headers.GetHeader("Referrer");
+    if (!header.has_value())
+        return "";
+    return createTempCharString(header->c_str(), header->size());
 }
 
 void gtkSimpleWin()
 {
-#if !defined(OS_WIN)
+#if defined(OS_LINUX)
     GtkWidget* window;
     GtkWidget* label;
     GtkWidget* grid;
@@ -1707,6 +2019,11 @@ void MB_CALL_TYPE mbSetDebugConfig(mbWebView webviewHandle, const char* debugStr
 
 void MB_CALL_TYPE mbSetCookieEnabled(mbWebView webView, BOOL enable)
 {
+    checkThreadCallIsValid(__FUNCTION__);
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr((int64_t)webView);
+    if (!webview)
+        return;
+    webview->setCookieEnabled(!!enable);
 }
 
 double MB_CALL_TYPE mbJsToDouble(mbJsExecState es, mbJsValue v)
@@ -1861,10 +2178,10 @@ void MB_CALL_TYPE mbRunJs(
 {
     std::string* scriptString = new std::string(script);
     if (content::ThreadCall::isBlinkThread()) {
-        content::runJsOnBlinkThread(webviewHandle, frameId, (int)unuse, scriptString, isInClosure, callback, param);
+        content::runJsOnBlinkThread(webviewHandle, frameId, (int)(intptr_t)unuse, scriptString, isInClosure, callback, param);
     } else {
         content::ThreadCall::callBlinkThreadAsync(MB_FROM_HERE, [webviewHandle, frameId, unuse, scriptString, isInClosure, callback, param] {
-            content::runJsOnBlinkThread(webviewHandle, frameId, (int)unuse, scriptString, isInClosure, callback, param);
+            content::runJsOnBlinkThread(webviewHandle, frameId, (int)(intptr_t)unuse, scriptString, isInClosure, callback, param);
         });
     }
 }
@@ -2208,6 +2525,23 @@ void MB_CALL_TYPE mbOnPaintBitUpdated(mbWebView webviewHandle, mbPaintBitUpdated
 
 void* MB_CALL_TYPE mbGetProcAddr(const char* name)
 {
-    DebugBreak();
+    if (!name)
+        return nullptr;
+#if defined(OS_MAC) || defined(OS_LINUX)
+    void* symbol = dlsym(RTLD_DEFAULT, name);
+    if (symbol)
+        return symbol;
+
+    Dl_info info = { 0 };
+    if (dladdr((void*)&mbGetProcAddr, &info) && info.dli_fname) {
+        void* handle = dlopen(info.dli_fname, RTLD_LAZY | RTLD_NOLOAD);
+        if (!handle)
+            handle = dlopen(info.dli_fname, RTLD_LAZY);
+        if (handle)
+            return dlsym(handle, name);
+    }
     return nullptr;
+#else
+    return GetProcAddress(nullptr, name);
+#endif
 }

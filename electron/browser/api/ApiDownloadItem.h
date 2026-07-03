@@ -25,7 +25,7 @@ public:
     static void init(v8::Isolate* isolate, v8::Local<v8::Object> target);
     static void MB_CALL_TYPE staticOnNetJobDataFinishCallback(void* ptr, mbNetJob job, mbLoadingResult result);
     static void MB_CALL_TYPE staticOnNetJobDataRecvCallback(void* ptr, mbNetJob job, const char* data, int length);
-    static void MB_CALL_TYPE staticOnPopupDialogSaveNameCallback(void* ptr, const wchar_t* filePath);
+    static void MB_CALL_TYPE staticOnPopupDialogSaveNameCallback(void* ptr, const WCHAR* filePath);
 
 private:
     ApiDownloadItem(v8::Isolate* isolate, v8::Local<v8::Object> wrapper);
@@ -34,12 +34,12 @@ private:
     void setSavePathApi(const std::string path);
     std::string getSavePathApi() const;
     void setSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args /*options*/);
-    void getSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args) const;
+    void getSaveDialogOptionsApi(const v8::FunctionCallbackInfo<v8::Value>& args);
     void pauseApi();
     bool isPausedApi() const;
     void resumeApi();
     bool canResumeApi() const;
-    void cancelsApi();
+    void cancelApi();
     std::string getURLApi() const;
     std::string getMimeTypeApi() const;
     bool hasUserGestureApi() const;
@@ -66,6 +66,7 @@ public:
     std::string m_disposition;
 
     v8::Persistent<v8::Object> m_liveSelf;
+    v8::Persistent<v8::Value> m_saveDialogOptions;
 
     enum State {
         kProgressing,

@@ -66,7 +66,7 @@ public:
     virtual void* AllocateUninitialized(size_t size)
     {
         if (!content::ThreadCall::isUiThread())
-            DebugBreak();
+            OutputDebugStringA("ArrayBufferAllocator used outside UI thread\n");
         return nodeBlinkAllocateUninitialized(size);
     }
 
@@ -175,7 +175,7 @@ static void uiThreadRun(NodeArgc* nodeArgc)
 
     [[maybe_unused]] v8::Isolate* isolate = initNodeEnvAndRunLoop(nodeArgc);
 
-    OutputDebugStringA("env->CleanupHandles not impl\n");
+    OutputDebugStringA("env->CleanupHandles skipped during Node thread shutdown\n");
     //nodeArgc->uiThreadNodeEnv.env->CleanupHandles(); // Clean-up all running handles
     //delete nodeArgc->uiThreadNodeEnv.env;//nodeArgc->childEnv->Dispose();
     //nodeArgc->uiThreadNodeEnv.env = nullptr;
@@ -242,9 +242,7 @@ node::Environment* nodeGetEnvironment(NodeArgc* nodeArgc)
 // {
 //     if (state_ != kRunning)
 //         return;
-//
-//     DebugBreak();
-//     state_ = kNone;
+////     state_ = kNone;
 // }
 //
 // } // debugger

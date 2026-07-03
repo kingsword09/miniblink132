@@ -1,12 +1,15 @@
-'use strict'
+'use strict';
 
 var IpcRendererBinding = process._linkedBinding('electron_renderer_ipc').ipcRenderer;
 const EventEmitter = require('events').EventEmitter;
-var v8Util = new (process._linkedBinding('electron_common_v8_util').v8Util)();
+const v8Binding = process._linkedBinding('electron_common_v8_util');
+const V8Util = v8Binding.v8Util || v8Binding.V8Util;
+var v8Util = new V8Util();
 var ipcRendererBinding = new IpcRendererBinding();
 
-// Created by init.js.
-const ipcRenderer = v8Util.getHiddenValue(global, 'ipc'); //var ipcRenderer = new EventEmitter();
+let ipcRenderer = v8Util.getHiddenValue(global, 'ipc');
+if (!ipcRenderer)
+    ipcRenderer = new EventEmitter();
 
 ipcRenderer.invoke = function(...args) {
     var channel = arguments[0];
@@ -20,7 +23,7 @@ ipcRenderer.invoke = function(...args) {
     return promise;
 }
 
-ipcRenderer.send = function (...args) { mbConsoleLog("ipcRenderer.send:" + args[0]);
+ipcRenderer.send = function (...args) {
     return ipcRendererBinding.send('ipc-message', ...args);
 }
 

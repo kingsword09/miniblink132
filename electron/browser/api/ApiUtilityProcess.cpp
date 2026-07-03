@@ -172,9 +172,11 @@ void traverseObjectForEnvMap(v8::Isolate* isolate, v8::Local<v8::Object> obj, ba
         v8::String::Utf8Value keyUtf8(isolate, keyStr);
         v8::String::Utf8Value valueUtf8(isolate, valueStr);
 
-        std::wstring keyW = base::UTF8ToWide(*keyUtf8);
-        std::wstring valueW = base::UTF8ToWide(*valueUtf8);
-        (*envMap)[keyW] = valueW;
+#if BUILDFLAG(IS_WIN)
+        (*envMap)[base::UTF8ToWide(*keyUtf8)] = base::UTF8ToWide(*valueUtf8);
+#else
+        (*envMap)[*keyUtf8] = *valueUtf8;
+#endif
     }
 }
 
@@ -249,8 +251,10 @@ ApiUtilityProcess::ApiUtilityProcess(
     g_channel = m_channel;
 
     base::LaunchOptions launchOpt;
+#if BUILDFLAG(IS_WIN)
     launchOpt.start_hidden = true;
     launchOpt.elevated = false;
+#endif
     if (!cwd.empty())
         launchOpt.current_directory = base::FilePath::FromUTF8Unsafe(cwd);
     launchOpt.environment = envMap;
@@ -265,7 +269,10 @@ ApiUtilityProcess::ApiUtilityProcess(
     MojoHandle remotePort = pipe.handle1.get().value();
 
     char output[100] = { 0 };
-    sprintf_s(output, 99, "ApiUtilityProcess: %d %d %d\n", pipe.handle0.get().value(), pipe.handle1.get().value(), remotePort);
+    sprintf_s(output, 99, "ApiUtilityProcess: %lu %lu %lu\n",
+        static_cast<unsigned long>(pipe.handle0.get().value()),
+        static_cast<unsigned long>(pipe.handle1.get().value()),
+        static_cast<unsigned long>(remotePort));
     OutputDebugStringA(output);
 
     MojoChangeToRemoteServiceMode(m_childProcess.Pid(), remotePort);
@@ -315,18 +322,10 @@ void ApiUtilityProcess::close()
 
 bool ApiUtilityProcess::killApi()
 {
-    if (m_childProcess.IsValid())
+    if (!m_childProcess.IsValid())
         return false;
     base::Process process = base::Process::Open(m_childProcess.Pid());
     bool result = process.Terminate(/*content::RESULT_CODE_NORMAL_EXIT*/ 0, false);
-    // Refs https://bugs.chromium.org/p/chromium/issues/detail?id=818244
-    // Currently utility process is not sandboxed which
-    // means Zygote is not used on linux, refs
-    // content::UtilitySandboxedProcessLauncherDelegate::GetZygote.
-    // If sandbox feature is enabled for the utility process, then the
-    // process reap should be signaled through the zygote via
-    // content::ZygoteCommunication::EnsureProcessTerminated.
-    base::EnsureProcessTerminated(std::move(process));
     //killed_ = result;
     return result;
 }
@@ -346,7 +345,6 @@ void ApiUtilityProcess::postMessageApi(const v8::FunctionCallbackInfo<v8::Value>
 // 本函数被废弃了，用Accept
 void ApiUtilityProcess::onChildMsg(const std::vector<char>& msg)
 {
-    DebugBreak();
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
     base::span<const uint8_t> data((const uint8_t*)msg.data(), msg.size());
     v8::Local<v8::Value> msgV8 = deserializeV8Value(v8::Isolate::GetCurrent(), data);

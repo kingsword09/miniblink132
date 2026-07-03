@@ -1,25 +1,5 @@
 const IntlCollator = process._linkedBinding('electron_common_intl_collator').IntlCollator;
 
-/*
-function Collator(langArray, resolvedOptions) {
-	this.m_resolvedOptions = resolvedOptions;
-}
-
-Collator.prototype.resolvedOptions = function () {
-	return this.m_resolvedOptions;
-}
-
-
-
-IntlCollator.prototype.compare = function(a, b) {
-	console.log("this._compare:" + this._compare);
-	return this._compare(a, b);
-}
-
-
-Object.setPrototypeOf(Collator.prototype, IntlCollator.prototype);
-*/
-
 function Collator(langArray, resolvedOptions) {
 	this.m_resolvedOptions = resolvedOptions;
 	this.intl = new IntlCollator(langArray, resolvedOptions);

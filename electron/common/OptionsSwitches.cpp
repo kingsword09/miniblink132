@@ -110,8 +110,7 @@ const char kOpenerID[] = "openerId";
 // Enable the rubber banding effect.
 const char kScrollBounce[] = "scrollBounce";
 
-// Enable blink features.
-// TODO(kevinsawicki) Rename to enableBlinkFeatures in 2.0
+// Enable blink features. The legacy switch name is retained for compatibility.
 const char kBlinkFeatures[] = "blinkFeatures";
 
 // Disable blink features.

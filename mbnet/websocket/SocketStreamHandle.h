@@ -120,7 +120,7 @@ private:
     };
 
     uintptr_t m_workerThread;
-    long m_stopThread;
+    int m_stopThread;
     WTF::RecursiveMutex m_mutexSend;
     WTF::RecursiveMutex m_mutexReceive;
     WTF::Deque<SocketData*> m_sendData;

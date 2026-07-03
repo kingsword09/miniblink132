@@ -4,13 +4,13 @@
 
 #include "third_party/blink/public/common/interest_group/ad_display_size_utils.h"
 
+#include <cctype>
 #include <string>
 #include <string_view>
 
 #include "base/check.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
-#include "third_party/re2/src/re2/re2.h"
 
 namespace blink {
 
@@ -31,6 +31,55 @@ blink::AdSize::LengthUnit ConvertUnitStringToUnitEnum(std::string_view input)
     }
 
     return blink::AdSize::LengthUnit::kInvalid;
+}
+
+bool IsAsciiDigit(char c)
+{
+    return c >= '0' && c <= '9';
+}
+
+void TrimAsciiWhitespace(std::string_view* input)
+{
+    while (!input->empty() && std::isspace(static_cast<unsigned char>(input->front()))) {
+        input->remove_prefix(1);
+    }
+    while (!input->empty() && std::isspace(static_cast<unsigned char>(input->back()))) {
+        input->remove_suffix(1);
+    }
+}
+
+bool ParseAdSizeParts(std::string_view input, std::string_view* value, std::string_view* unit)
+{
+    TrimAsciiWhitespace(&input);
+    if (input.empty()) {
+        return false;
+    }
+
+    size_t pos = 0;
+    if (input[pos] == '0') {
+        ++pos;
+    } else if (input[pos] >= '1' && input[pos] <= '9') {
+        do {
+            ++pos;
+        } while (pos < input.size() && IsAsciiDigit(input[pos]));
+    } else {
+        return false;
+    }
+
+    if (pos < input.size() && input[pos] == '.') {
+        ++pos;
+        const size_t decimal_start = pos;
+        while (pos < input.size() && IsAsciiDigit(input[pos])) {
+            ++pos;
+        }
+        if (pos == decimal_start) {
+            return false;
+        }
+    }
+
+    *value = input.substr(0, pos);
+    *unit = input.substr(pos);
+    return unit->empty() || *unit == "px" || *unit == "sw" || *unit == "sh";
 }
 
 } // namespace
@@ -63,24 +112,15 @@ std::string ConvertAdSizeToString(const blink::AdSize& ad_size)
 
 std::tuple<double, blink::AdSize::LengthUnit> ParseAdSizeString(std::string_view input)
 {
-    std::string value;
-    std::string unit;
-    // This regular expression is used to parse the ad size specified in
-    // `generateBid()` and `joinAdInterestGroup()`. The input has the format of
-    // numbers followed by an optional unit, for example: "100px". Note:
-    // 1. We allow leading and trailing spaces, for example: " 100px ".
-    // 2. We allow the unit to be ignored, for example: "100" will be parsed as
-    // 100 pixels.
-    // 3. We allow decimal numbers, for example: "100.123px".
-    // 4. We disallow spaces between numbers and the unit, for example: "100 px"
-    // is not allowed.
-    if (!re2::RE2::FullMatch(std::string_view(input), R"(^\s*((?:0|(?:[1-9][0-9]*))(?:\.[0-9]+)?)(px|sw|sh)?\s*$)", &value, &unit)) {
+    std::string_view value;
+    std::string_view unit;
+    if (!ParseAdSizeParts(input, &value, &unit)) {
         // This return value will fail the interest group size validator.
         return { 0.0, blink::AdSize::LengthUnit::kInvalid };
     }
 
     double length_val = 0.0;
-    if (!base::StringToDouble(value, &length_val)) {
+    if (!base::StringToDouble(std::string(value), &length_val)) {
         return { 0.0, blink::AdSize::LengthUnit::kInvalid };
     }
 

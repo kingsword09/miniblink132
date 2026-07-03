@@ -8,13 +8,14 @@
 #include "build/build_config.h"
 #include "ui/gfx/ca_layer_result.h"
 
-#if BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE) && __has_include("ui/gfx/mojom/ca_layer_result.mojom-shared.h")
+#define UI_GFX_MOJOM_HAS_CA_LAYER_RESULT 1
 #include "ui/gfx/mojom/ca_layer_result.mojom-shared.h"
 #endif
 
 namespace mojo {
 
-#if BUILDFLAG(IS_APPLE)
+#if defined(UI_GFX_MOJOM_HAS_CA_LAYER_RESULT)
 template <> struct EnumTraits<gfx::mojom::CALayerResult, gfx::CALayerResult> {
     static gfx::mojom::CALayerResult ToMojom(gfx::CALayerResult ca_layer_error_codde);
     static bool FromMojom(gfx::mojom::CALayerResult input, gfx::CALayerResult* out);

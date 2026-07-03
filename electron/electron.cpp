@@ -28,7 +28,7 @@
 #define NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_REG_IN_MAIN(fn)                                                                                               \
     fn(atom_browser_web_contents) fn(atom_browser_app) fn(atom_browser_electron) fn(atom_browser_browserwindow) fn(atom_browser_menu) fn(atom_browser_dialog)  \
         fn(atom_browser_protocol) fn(atom_browser_tray) fn(atom_renderer_ipc) fn(atom_common_v8_util) fn(atom_common_shell) fn(atom_common_original_fs)        \
-            fn(atom_common_screen) fn(atom_renerer_webframe) fn(atom_renderer_contextbridge) fn(atom_common_intl_collator) fn(atom_common_asar)                \
+            fn(atom_common_screen) fn(atom_renderer_webframe) fn(atom_renderer_contextbridge) fn(atom_common_intl_collator) fn(atom_common_asar)                \
                 fn(atom_common_nativeImage) fn(atom_common_clipboard) fn(atom_browser_browserview) fn(atom_browser_session) fn(atom_browser_webrequest)        \
                     fn(atom_browser_downloaditem)
 

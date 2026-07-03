@@ -1,0 +1,3132 @@
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <CommonCrypto/CommonDigest.h>
+
+#include <atomic>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <functional>
+#include <map>
+#include <mutex>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
+
+#define ENABLE_MB 1
+#include "mbvip/core/mb.h"
+#include "mac/shellapi.h"
+#include "mac/shlobj.h"
+
+extern "C" bool MacHasRegisteredSystemHotKeyForTesting(HWND hwnd, int id);
+extern "C" bool MacEnsurePowerMonitorNotificationBridge(void);
+extern "C" UINT MacPowerMonitorNotificationBridgeStateForTesting(void);
+extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event);
+
+namespace {
+
+extern "C" int IOPMCopyAssertionsStatus(CFDictionaryRef* assertionsStatus);
+
+constexpr int kWindowWidth = 900;
+constexpr int kWindowHeight = 640;
+
+struct Check {
+    std::string name;
+    bool pass;
+    std::string detail;
+};
+
+std::vector<Check> g_checks;
+std::mutex g_checks_mutex;
+
+std::atomic<bool> g_title_changed(false);
+std::atomic<bool> g_url_changed(false);
+std::atomic<bool> g_navigation_seen(false);
+std::atomic<bool> g_load_finished(false);
+std::atomic<bool> g_load_finish_callback(false);
+std::atomic<bool> g_load_failed(false);
+std::atomic<bool> g_load_url_fail_callback(false);
+std::atomic<bool> g_document_ready(false);
+std::atomic<bool> g_popup_seen(false);
+std::atomic<bool> g_download_seen(false);
+std::atomic<bool> g_lifecycle_allow_close(false);
+std::atomic<int> g_load_result(-1);
+std::atomic<int> g_lifecycle_close_count(0);
+std::atomic<int> g_lifecycle_destroy_count(0);
+std::atomic<int> g_async_can_go_back(-1);
+std::atomic<int> g_async_can_go_forward(-1);
+std::atomic<int> g_async_js_callback_count(0);
+std::atomic<double> g_async_js_number(0);
+std::atomic<int> g_cookie_callback_count(0);
+std::atomic<int> g_cookie_callback_state(-1);
+std::atomic<bool> g_web_request_begin_seen(false);
+std::atomic<bool> g_web_request_end_seen(false);
+std::atomic<bool> g_web_request_post_body_seen(false);
+std::atomic<bool> g_web_request_redirect_seen(false);
+std::atomic<bool> g_web_request_cancel_seen(false);
+std::atomic<bool> g_custom_protocol_main_seen(false);
+std::atomic<bool> g_custom_protocol_subresource_seen(false);
+std::atomic<bool> g_console_seen(false);
+std::atomic<bool> g_alert_seen(false);
+std::atomic<bool> g_confirm_seen(false);
+std::atomic<bool> g_prompt_seen(false);
+std::atomic<int> g_source_callback_count(0);
+std::atomic<int> g_markup_callback_count(0);
+std::atomic<int> g_menu_command_count(0);
+std::atomic<UINT> g_menu_command_id(0);
+std::atomic<int> g_hotkey_count(0);
+std::atomic<int> g_hotkey_id(0);
+std::atomic<UINT> g_hotkey_modifiers(0);
+std::atomic<UINT> g_hotkey_vk(0);
+std::atomic<int> g_power_broadcast_count(0);
+std::atomic<int> g_power_suspend_count(0);
+std::atomic<int> g_power_resume_count(0);
+std::atomic<int> g_power_status_count(0);
+
+std::mutex g_state_mutex;
+std::string g_last_title;
+std::string g_last_url;
+std::string g_last_fail_url;
+std::string g_last_fail_reason;
+std::string g_last_download_url;
+std::string g_async_js_text;
+std::string g_last_cookie_string;
+std::string g_web_request_post_body;
+std::string g_web_request_end_body;
+std::string g_redirect_target_url;
+std::string g_console_message;
+std::string g_alert_message;
+std::string g_confirm_message;
+std::string g_prompt_message;
+std::string g_prompt_default;
+std::string g_async_source;
+std::string g_async_markup;
+BOOL g_last_can_go_back = FALSE;
+BOOL g_last_can_go_forward = FALSE;
+
+std::string networkTestPng()
+{
+    static constexpr unsigned char kPng[] = {
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x08,
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x7f, 0x14, 0xe8, 0xc0, 0x00, 0x00, 0x00,
+        0x17, 0x49, 0x44, 0x41, 0x54, 0x78, 0xda, 0x63, 0xf8, 0xcf, 0xc0, 0x40,
+        0x12, 0x62, 0x18, 0x84, 0x1a, 0x06, 0xa5, 0xa3, 0x48, 0xd3, 0x00, 0x00,
+        0xa5, 0x37, 0x7f, 0x81, 0xbe, 0xcb, 0x8a, 0x6f, 0x00, 0x00, 0x00, 0x00,
+        0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
+    };
+    return std::string(reinterpret_cast<const char*>(kPng), sizeof(kPng));
+}
+
+std::string shellEscape(const std::string& value)
+{
+    std::string out = "'";
+    for (char c : value) {
+        if (c == '\'')
+            out += "'\\''";
+        else
+            out.push_back(c);
+    }
+    out += "'";
+    return out;
+}
+
+void addCheck(const std::string& name, bool pass, const std::string& detail = std::string())
+{
+    std::lock_guard<std::mutex> lock(g_checks_mutex);
+    g_checks.push_back({ name, pass, detail });
+    printf("%s %s%s%s\n", pass ? "PASS" : "FAIL", name.c_str(), detail.empty() ? "" : " - ", detail.c_str());
+    fflush(stdout);
+}
+
+void resetLoadState()
+{
+    g_title_changed = false;
+    g_url_changed = false;
+    g_navigation_seen = false;
+    g_load_finished = false;
+    g_load_finish_callback = false;
+    g_load_failed = false;
+    g_load_url_fail_callback = false;
+    g_document_ready = false;
+    g_load_result = -1;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_title.clear();
+    g_last_url.clear();
+    g_last_fail_url.clear();
+    g_last_fail_reason.clear();
+    g_last_can_go_back = FALSE;
+    g_last_can_go_forward = FALSE;
+}
+
+bool waitFor(const std::function<bool()>& predicate, int timeout_ms)
+{
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms);
+    while (!predicate() && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    return predicate();
+}
+
+bool iopmAssertionIsOn(CFStringRef assertionType, int* levelOut)
+{
+    if (levelOut)
+        *levelOut = -1;
+
+    CFDictionaryRef assertions = nullptr;
+    int result = IOPMCopyAssertionsStatus(&assertions);
+    if (result != 0 || !assertions)
+        return false;
+
+    bool isOn = false;
+    if (CFTypeRef value = CFDictionaryGetValue(assertions, assertionType)) {
+        int level = 0;
+        if (CFGetTypeID(value) == CFNumberGetTypeID()
+            && CFNumberGetValue((CFNumberRef)value, kCFNumberIntType, &level)) {
+            if (levelOut)
+                *levelOut = level;
+            isOn = level != 0;
+        }
+    }
+
+    CFRelease(assertions);
+    return isOn;
+}
+
+void runLoopFor(int milliseconds)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
+
+struct WindowState {
+    HWND hwnd = nullptr;
+    BOOL isWindow = FALSE;
+    BOOL visible = FALSE;
+    BOOL iconic = FALSE;
+    BOOL zoomed = FALSE;
+    BOOL focused = FALSE;
+};
+
+void MB_CALL_TYPE readWindowStateOnUiThread(void* param1, void*)
+{
+    WindowState* state = static_cast<WindowState*>(param1);
+    state->isWindow = IsWindow(state->hwnd);
+    if (!state->isWindow)
+        return;
+    state->visible = IsWindowVisible(state->hwnd);
+    state->iconic = IsIconic(state->hwnd);
+    state->zoomed = IsZoomed(state->hwnd);
+    state->focused = GetFocus() == state->hwnd;
+}
+
+WindowState readWindowState(HWND hwnd)
+{
+    WindowState state;
+    state.hwnd = hwnd;
+    mbCallUiThreadSync(readWindowStateOnUiThread, &state, nullptr);
+    return state;
+}
+
+LRESULT CALLBACK hotKeyWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (msg == WM_HOTKEY) {
+        g_hotkey_count++;
+        g_hotkey_id = static_cast<int>(wParam);
+        g_hotkey_modifiers = LOWORD(lParam);
+        g_hotkey_vk = HIWORD(lParam);
+        return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+LRESULT CALLBACK powerMonitorWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (msg == WM_POWERBROADCAST) {
+        g_power_broadcast_count++;
+        if (wParam == PBT_APMSUSPEND)
+            g_power_suspend_count++;
+        else if (wParam == PBT_APMRESUMESUSPEND)
+            g_power_resume_count++;
+        else if (wParam == PBT_APMPOWERSTATUSCHANGE)
+            g_power_status_count++;
+        return TRUE;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+struct CreateWindowState {
+    mbWebView view = NULL_WEBVIEW;
+    int x = 0;
+    int y = 0;
+    int width = 0;
+    int height = 0;
+};
+
+void MB_CALL_TYPE createPopupWindowOnUiThread(void* param1, void*)
+{
+    CreateWindowState* state = static_cast<CreateWindowState*>(param1);
+    state->view = mbCreateWebWindow(MB_WINDOW_TYPE_POPUP, nullptr, state->x, state->y, state->width, state->height);
+}
+
+mbWebView createPopupWindow(int x, int y, int width, int height)
+{
+    CreateWindowState state;
+    state.x = x;
+    state.y = y;
+    state.width = width;
+    state.height = height;
+    mbCallUiThreadSync(createPopupWindowOnUiThread, &state, nullptr);
+    return state.view;
+}
+
+void MB_CALL_TYPE noOpOnBlinkThread(void*, void*)
+{
+}
+
+void flushBlinkThread()
+{
+    mbCallBlinkThreadSync(noOpOnBlinkThread, nullptr, nullptr);
+}
+
+std::u16string asciiToWidePath(const std::string& path)
+{
+    std::u16string out;
+    out.reserve(path.size());
+    for (char c : path)
+        out.push_back(static_cast<char16_t>(c));
+    return out;
+}
+
+std::string widePathToAscii(const WCHAR* path)
+{
+    std::string out;
+    if (!path)
+        return out;
+    while (*path) {
+        out.push_back(static_cast<char>(*path));
+        ++path;
+    }
+    return out;
+}
+
+std::string jsString(mbWebView view, const std::string& script)
+{
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+    mbJsExecState es = mbGetGlobalExecByFrame(view, frame);
+    mbJsValue value = mbRunJsSync(view, frame, script.c_str(), false);
+    const char* text = mbJsToString(es, value);
+    std::string result = text ? text : "";
+    mbJsValueDeref(es, value);
+    return result;
+}
+
+double jsNumber(mbWebView view, const std::string& script)
+{
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+    mbJsExecState es = mbGetGlobalExecByFrame(view, frame);
+    mbJsValue value = mbRunJsSync(view, frame, script.c_str(), false);
+    double result = mbJsToDouble(es, value);
+    mbJsValueDeref(es, value);
+    return result;
+}
+
+std::string readCommandOutput(const std::string& command)
+{
+    std::string out;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe)
+        return out;
+    char buffer[512];
+    while (fgets(buffer, sizeof(buffer), pipe))
+        out += buffer;
+    pclose(pipe);
+    return out;
+}
+
+std::string base64(const unsigned char* data, size_t len)
+{
+    static const char kTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    for (size_t i = 0; i < len; i += 3) {
+        unsigned int v = data[i] << 16;
+        if (i + 1 < len)
+            v |= data[i + 1] << 8;
+        if (i + 2 < len)
+            v |= data[i + 2];
+        out.push_back(kTable[(v >> 18) & 0x3f]);
+        out.push_back(kTable[(v >> 12) & 0x3f]);
+        out.push_back(i + 1 < len ? kTable[(v >> 6) & 0x3f] : '=');
+        out.push_back(i + 2 < len ? kTable[v & 0x3f] : '=');
+    }
+    return out;
+}
+
+std::string websocketAccept(const std::string& key)
+{
+    const std::string magic = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    unsigned char digest[CC_SHA1_DIGEST_LENGTH];
+    CC_SHA1(magic.data(), (CC_LONG)magic.size(), digest);
+    return base64(digest, sizeof(digest));
+}
+
+bool sendAll(int fd, const std::string& data)
+{
+    size_t sent = 0;
+    while (sent < data.size()) {
+        ssize_t n = send(fd, data.data() + sent, data.size() - sent, 0);
+        if (n <= 0)
+            return false;
+        sent += (size_t)n;
+    }
+    return true;
+}
+
+std::string headerValue(const std::string& request, const std::string& name)
+{
+    auto equalNoCase = [](const std::string& a, const std::string& b) {
+        if (a.size() != b.size())
+            return false;
+        for (size_t i = 0; i < a.size(); ++i) {
+            char ca = a[i];
+            char cb = b[i];
+            if (ca >= 'A' && ca <= 'Z')
+                ca = (char)(ca - 'A' + 'a');
+            if (cb >= 'A' && cb <= 'Z')
+                cb = (char)(cb - 'A' + 'a');
+            if (ca != cb)
+                return false;
+        }
+        return true;
+    };
+
+    size_t line_begin = 0;
+    while (line_begin < request.size()) {
+        size_t line_end = request.find("\r\n", line_begin);
+        if (line_end == std::string::npos)
+            line_end = request.size();
+        size_t colon = request.find(':', line_begin);
+        if (colon != std::string::npos && colon < line_end) {
+            std::string key = request.substr(line_begin, colon - line_begin);
+            if (equalNoCase(key, name)) {
+                size_t pos = colon + 1;
+                while (pos < line_end && request[pos] == ' ')
+                    ++pos;
+                return request.substr(pos, line_end - pos);
+            }
+        }
+        if (line_end == request.size())
+            break;
+        line_begin = line_end + 2;
+    }
+    return "";
+}
+
+class LocalServer {
+public:
+    ~LocalServer() { stop(); }
+
+    bool start()
+    {
+        listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+        if (listen_fd_ < 0)
+            return false;
+
+        int yes = 1;
+        setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+        sockaddr_in addr {};
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        addr.sin_port = 0;
+        if (bind(listen_fd_, (sockaddr*)&addr, sizeof(addr)) != 0)
+            return false;
+        if (listen(listen_fd_, 16) != 0)
+            return false;
+
+        socklen_t len = sizeof(addr);
+        if (getsockname(listen_fd_, (sockaddr*)&addr, &len) != 0)
+            return false;
+        port_ = ntohs(addr.sin_port);
+        running_ = true;
+        thread_ = std::thread([this] { acceptLoop(); });
+        return true;
+    }
+
+    void stop()
+    {
+        running_ = false;
+        if (listen_fd_ >= 0) {
+            shutdown(listen_fd_, SHUT_RDWR);
+            close(listen_fd_);
+            listen_fd_ = -1;
+        }
+        if (thread_.joinable())
+            thread_.join();
+    }
+
+    int port() const { return port_; }
+    std::string origin() const { return "http://127.0.0.1:" + std::to_string(port_); }
+    int websocketUpgrades() const { return websocket_upgrades_.load(); }
+    int websocketMessages() const { return websocket_messages_.load(); }
+    int webRequestHits() const { return web_request_hits_.load(); }
+    int redirectTargetHits() const { return redirect_target_hits_.load(); }
+    int cancelHits() const { return cancel_hits_.load(); }
+    std::string websocketDebug() const
+    {
+        std::lock_guard<std::mutex> lock(websocket_mutex_);
+        return " wsKey=" + websocket_key_ + " wsAccept=" + websocket_accept_;
+    }
+    std::string lastWebRequestUserAgent() const
+    {
+        std::lock_guard<std::mutex> lock(web_request_mutex_);
+        return web_request_user_agent_;
+    }
+    std::string lastWebRequestHookHeader() const
+    {
+        std::lock_guard<std::mutex> lock(web_request_mutex_);
+        return web_request_hook_header_;
+    }
+    std::string lastWebRequestBody() const
+    {
+        std::lock_guard<std::mutex> lock(web_request_mutex_);
+        return web_request_body_;
+    }
+
+private:
+    void acceptLoop()
+    {
+        while (running_) {
+            int fd = accept(listen_fd_, nullptr, nullptr);
+            if (fd < 0)
+                continue;
+            int yes = 1;
+            setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
+            std::thread([this, fd] { handleClient(fd); }).detach();
+        }
+    }
+
+    void handleClient(int fd)
+    {
+        std::string request;
+        char buffer[2048];
+        while (request.find("\r\n\r\n") == std::string::npos && request.size() < 16384) {
+            ssize_t n = recv(fd, buffer, sizeof(buffer), 0);
+            if (n <= 0) {
+                close(fd);
+                return;
+            }
+            request.append(buffer, buffer + n);
+        }
+
+        std::istringstream line_stream(request);
+        std::string method;
+        std::string path;
+        line_stream >> method >> path;
+        std::string request_body;
+        size_t headers_end = request.find("\r\n\r\n");
+        int content_length = 0;
+        std::string content_length_text = headerValue(request, "Content-Length");
+        if (!content_length_text.empty())
+            content_length = atoi(content_length_text.c_str());
+        if (headers_end != std::string::npos) {
+            request_body = request.substr(headers_end + 4);
+            while ((int)request_body.size() < content_length) {
+                ssize_t n = recv(fd, buffer, sizeof(buffer), 0);
+                if (n <= 0)
+                    break;
+                request_body.append(buffer, buffer + n);
+            }
+        }
+
+        if (request.find("Upgrade: websocket") != std::string::npos || request.find("upgrade: websocket") != std::string::npos) {
+            handleWebSocket(fd, request);
+            return;
+        }
+
+        if (path == "/abort") {
+            close(fd);
+            return;
+        }
+
+        std::string body;
+        std::string type = "text/html; charset=utf-8";
+        std::map<std::string, std::string> headers;
+        int status = 200;
+        const char* reason = "OK";
+
+        if (path == "/" || path == "/remote.html") {
+            body = remoteHtml();
+        } else if (path == "/nav-one.html") {
+            body = "<!doctype html><html><head><title>Nav One</title></head><body><h1 id='page'>one</h1></body></html>";
+        } else if (path == "/nav-two.html") {
+            body = "<!doctype html><html><head><title>Nav Two</title></head><body><h1 id='page'>two</h1><script>window.__reloadToken=Date.now()</script></body></html>";
+        } else if (path == "/slow.html") {
+            std::this_thread::sleep_for(std::chrono::seconds(4));
+            body = "<!doctype html><html><head><title>Slow Page</title></head><body>slow</body></html>";
+        } else if (path == "/popup.html") {
+            body = "<!doctype html><title>Popup Page</title><p>popup</p>";
+        } else if (path == "/partition.html") {
+            body = "<!doctype html><html><head><title>Partition Page</title></head>"
+                   "<body><script>window.__partitionReady=1;</script></body></html>";
+        } else if (path == "/network-image.png") {
+            type = "image/png";
+            body = networkTestPng();
+        } else if (path == "/api") {
+            type = "text/plain";
+            body = "fetch-ok";
+        } else if (path == "/xhr") {
+            type = "text/plain";
+            body = "xhr-ok";
+        } else if (path == "/webrequest") {
+            type = "text/plain";
+            body = "webrequest-ok";
+            ++web_request_hits_;
+            std::lock_guard<std::mutex> lock(web_request_mutex_);
+            web_request_user_agent_ = headerValue(request, "User-Agent");
+            web_request_hook_header_ = headerValue(request, "X-MB-Hooked");
+            web_request_body_ = request_body;
+        } else if (path == "/redirect-target") {
+            type = "text/plain";
+            body = "redirect-ok";
+            ++redirect_target_hits_;
+        } else if (path == "/redirect-by-api") {
+            type = "text/plain";
+            body = "redirect-source";
+        } else if (path == "/cancel-by-api") {
+            type = "text/plain";
+            body = "cancel-source";
+            ++cancel_hits_;
+        } else if (path == "/download") {
+            type = "application/octet-stream";
+            body = "download-ok\n";
+            headers["Content-Disposition"] = "attachment; filename=mb-e2e.txt";
+        } else {
+            status = 404;
+            reason = "Not Found";
+            type = "text/plain";
+            body = "missing";
+        }
+
+        std::ostringstream response;
+        response << "HTTP/1.1 " << status << " " << reason << "\r\n"
+                 << "Content-Type: " << type << "\r\n"
+                 << "Content-Length: " << body.size() << "\r\n"
+                 << "Connection: close\r\n";
+        for (const auto& it : headers)
+            response << it.first << ": " << it.second << "\r\n";
+        response << "\r\n" << body;
+        sendAll(fd, response.str());
+        close(fd);
+    }
+
+    void handleWebSocket(int fd, const std::string& request)
+    {
+        ++websocket_upgrades_;
+        std::string key = headerValue(request, "Sec-WebSocket-Key");
+        std::string accept = websocketAccept(key);
+        {
+            std::lock_guard<std::mutex> lock(websocket_mutex_);
+            websocket_key_ = key;
+            websocket_accept_ = accept;
+        }
+        std::ostringstream response;
+        response << "HTTP/1.1 101 Switching Protocols\r\n"
+                 << "Upgrade: WebSocket\r\n"
+                 << "Connection: upgrade\r\n"
+                 << "Sec-WebSocket-Accept: " << accept << "\r\n\r\n";
+        if (!sendAll(fd, response.str())) {
+            close(fd);
+            return;
+        }
+
+        unsigned char hdr[2];
+        if (recv(fd, hdr, 2, MSG_WAITALL) != 2) {
+            close(fd);
+            return;
+        }
+        size_t len = hdr[1] & 0x7f;
+        if (len == 126) {
+            unsigned char ext[2];
+            if (recv(fd, ext, 2, MSG_WAITALL) != 2) {
+                close(fd);
+                return;
+            }
+            len = (ext[0] << 8) | ext[1];
+        }
+        unsigned char mask[4] = { 0 };
+        if (hdr[1] & 0x80) {
+            if (recv(fd, mask, 4, MSG_WAITALL) != 4) {
+                close(fd);
+                return;
+            }
+        }
+        std::string payload(len, '\0');
+        if (len && recv(fd, payload.data(), len, MSG_WAITALL) != (ssize_t)len) {
+            close(fd);
+            return;
+        }
+        for (size_t i = 0; i < payload.size(); ++i)
+            payload[i] = (char)(payload[i] ^ mask[i % 4]);
+        ++websocket_messages_;
+
+        std::string reply = "ws-ok:" + payload;
+        std::string frame;
+        frame.push_back((char)0x81);
+        frame.push_back((char)reply.size());
+        frame += reply;
+        sendAll(fd, frame);
+        close(fd);
+    }
+
+    std::string remoteHtml() const
+    {
+        std::ostringstream html;
+        html << "<!doctype html><html><head><meta charset='utf-8'><title>Remote Start</title></head>"
+             << "<body><input id='textInput'><input id='fileInput' type='file'>"
+             << "<img id='networkImage' src='/network-image.png' width='16' height='8'>"
+             << "<button id='popupButton' onclick=\"window.open('/popup.html','_blank')\">popup</button>"
+             << "<a id='download' href='/download' download='mb-e2e.txt'>download</a>"
+             << "<script>"
+             << "window.__e2e={};"
+             << "(async function(){"
+             << "try{localStorage.setItem('mb-ls','storage-ok');__e2e.localStorage=localStorage.getItem('mb-ls');}catch(e){__e2e.localStorage='ERR:'+e.message;}"
+             << "try{document.cookie='mb_cookie=cookie-ok; path=/';__e2e.cookie=document.cookie;}catch(e){__e2e.cookie='ERR:'+e.message;}"
+             << "try{__e2e.fetch=await (await fetch('/api')).text();}catch(e){__e2e.fetch='ERR:'+e.message;}"
+             << "try{__e2e.xhr=await new Promise(function(resolve,reject){var x=new XMLHttpRequest();x.onload=function(){resolve(x.responseText)};x.onerror=function(){reject(new Error('xhr'))};x.open('GET','/xhr');x.send();});}catch(e){__e2e.xhr='ERR:'+e.message;}"
+             << "try{__e2e.ws=await new Promise(function(resolve,reject){var done=false,closed='';var w=new WebSocket('ws://127.0.0.1:" << port_ << "/ws');function fail(m){if(!done){done=true;reject(new Error(m+' state='+w.readyState+' close='+closed));}}w.onopen=function(){w.send('ping')};w.onmessage=function(e){done=true;resolve(e.data);w.close();};w.onerror=function(){fail('ws')};w.onclose=function(e){closed=e.code+':'+e.reason;fail('close')};setTimeout(function(){fail('timeout')},3000);});}catch(e){__e2e.ws='ERR:'+e.message;}"
+             << "try{__e2e.image=await new Promise(function(resolve,reject){var img=document.getElementById('networkImage');function done(){try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;var ctx=c.getContext('2d');ctx.drawImage(img,0,0);var t=ctx.getImageData(8,1,1,1).data;var b=ctx.getImageData(8,6,1,1).data;resolve(img.naturalWidth+'x'+img.naturalHeight+':'+t[0]+','+t[1]+','+t[2]+'|'+b[0]+','+b[1]+','+b[2]);}catch(e){reject(e);}}if(img.complete&&img.naturalWidth)done();else{img.onload=done;img.onerror=function(){reject(new Error('image'))};}});}catch(e){__e2e.image='ERR:'+e.message;}"
+             << "document.title='Remote Ready';"
+             << "console.log('MB_E2E:'+JSON.stringify(__e2e));"
+             << "})();"
+             << "</script></body></html>";
+        return html.str();
+    }
+
+    int listen_fd_ = -1;
+    int port_ = 0;
+    std::atomic<bool> running_ { false };
+    std::atomic<int> websocket_upgrades_ { 0 };
+    std::atomic<int> websocket_messages_ { 0 };
+    std::atomic<int> web_request_hits_ { 0 };
+    std::atomic<int> redirect_target_hits_ { 0 };
+    std::atomic<int> cancel_hits_ { 0 };
+    mutable std::mutex websocket_mutex_;
+    mutable std::mutex web_request_mutex_;
+    std::string websocket_key_;
+    std::string websocket_accept_;
+    std::string web_request_user_agent_;
+    std::string web_request_hook_header_;
+    std::string web_request_body_;
+    std::thread thread_;
+};
+
+void MB_CALL_TYPE onTitleChanged(mbWebView, void*, const utf8* title)
+{
+    g_title_changed = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_title = title ? title : "";
+}
+
+void MB_CALL_TYPE onUrlChanged(mbWebView, void*, const utf8* url, BOOL canGoBack, BOOL canGoForward)
+{
+    g_url_changed = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_url = url ? url : "";
+    g_last_can_go_back = canGoBack;
+    g_last_can_go_forward = canGoForward;
+}
+
+BOOL MB_CALL_TYPE onNavigation(mbWebView, void*, mbNavigationType, const utf8*)
+{
+    g_navigation_seen = true;
+    return TRUE;
+}
+
+void MB_CALL_TYPE onDocumentReady(mbWebView, void*, mbWebFrameHandle)
+{
+    g_document_ready = true;
+}
+
+void MB_CALL_TYPE onLoadingFinish(mbWebView, void*, mbWebFrameHandle, const utf8* url, mbLoadingResult result, const utf8* failedReason)
+{
+    g_load_result = (int)result;
+    if (result == MB_LOADING_FAILED) {
+        g_load_failed = true;
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_last_fail_url = url ? url : "";
+        g_last_fail_reason = failedReason ? failedReason : "";
+    } else {
+        g_load_finished = true;
+    }
+}
+
+void MB_CALL_TYPE onLoadUrlFail(mbWebView, void*, const char* url, void*)
+{
+    g_load_failed = true;
+    g_load_url_fail_callback = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_fail_url = url ? url : "";
+}
+
+void MB_CALL_TYPE onLoadUrlFinish(mbWebView, void*, const utf8* url, mbNetJob, int)
+{
+    g_load_finish_callback = true;
+    g_load_finished = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_url = url ? url : "";
+}
+
+BOOL MB_CALL_TYPE onLoadUrlBeginForWebRequest(mbWebView, void*, const char* url, void* job)
+{
+    if (!url)
+        return TRUE;
+
+    std::string request_url(url);
+    if (request_url.find("mbapp://e2e/index.html") == 0) {
+        g_custom_protocol_main_seen = true;
+        std::string html =
+            "<!doctype html><html><head><meta charset='utf-8'><title>Protocol Ready</title></head>"
+            "<body><img id='customImage' src='mbapp://e2e/image.svg' "
+            "onload='window.__customProtocolImage=1' onerror='window.__customProtocolImage=-1'>"
+            "<script>window.__customProtocol='main-ok';</script></body></html>";
+        mbNetSetMIMEType(job, "text/html");
+        mbNetSetData(job, (void*)html.data(), (int)html.size());
+        return TRUE;
+    }
+
+    if (request_url.find("mbapp://e2e/image.svg") == 0) {
+        g_custom_protocol_subresource_seen = true;
+        std::string svg =
+            "<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'>"
+            "<rect width='8' height='8' fill='green'/></svg>";
+        mbNetSetMIMEType(job, "image/svg+xml");
+        mbNetSetData(job, (void*)svg.data(), (int)svg.size());
+        return TRUE;
+    }
+
+    std::string redirect_target_url;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        redirect_target_url = g_redirect_target_url;
+    }
+    if (request_url.find("/redirect-by-api") != std::string::npos && !redirect_target_url.empty()) {
+        g_web_request_redirect_seen = true;
+        mbNetChangeRequestUrl(job, redirect_target_url.c_str());
+        return TRUE;
+    }
+
+    if (request_url.find("/cancel-by-api") != std::string::npos) {
+        g_web_request_cancel_seen = true;
+        mbNetCancelRequest(job);
+        return TRUE;
+    }
+
+    if (request_url.find("/webrequest") == std::string::npos)
+        return TRUE;
+
+    g_web_request_begin_seen = true;
+    mbNetSetHTTPHeaderFieldUtf8(job, "X-MB-Hooked", "yes", FALSE);
+
+    mbPostBodyElements* post_body = mbNetGetPostBody(job);
+    if (post_body) {
+        std::string body;
+        for (size_t i = 0; i < post_body->elementSize; ++i) {
+            mbPostBodyElement* element = post_body->element[i];
+            if (!element || element->type != mbHttBodyElementTypeData || !element->data || !element->data->data)
+                continue;
+            body.append(static_cast<const char*>(element->data->data), element->data->length);
+        }
+        {
+            std::lock_guard<std::mutex> lock(g_state_mutex);
+            g_web_request_post_body = body;
+        }
+        g_web_request_post_body_seen = !body.empty();
+        mbNetFreePostBodyElements(post_body);
+    }
+
+    mbNetHookRequest(job);
+    return TRUE;
+}
+
+void MB_CALL_TYPE onLoadUrlEndForWebRequest(mbWebView, void*, const char* url, void*, void* buf, int len)
+{
+    if (!url || !strstr(url, "/webrequest"))
+        return;
+
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_web_request_end_body.assign(static_cast<const char*>(buf), len > 0 ? len : 0);
+    }
+    g_web_request_end_seen = true;
+}
+
+mbWebView MB_CALL_TYPE onCreateView(mbWebView, void*, mbNavigationType, const utf8* url, const mbWindowFeatures*)
+{
+    g_popup_seen = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    g_last_url = url ? url : "";
+    return NULL_WEBVIEW;
+}
+
+mbDownloadOpt MB_CALL_TYPE onDownloadInBlinkThread(
+    mbWebView, void*, size_t expectedContentLength, const char* url, const char* mime, const char* disposition, mbNetJob, mbNetJobDataBind*)
+{
+    g_download_seen = true;
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    std::ostringstream detail;
+    detail << (url ? url : "") << " " << expectedContentLength << " " << (mime ? mime : "") << " " << (disposition ? disposition : "");
+    g_last_download_url = detail.str();
+    return kMbDownloadOptCancel;
+}
+
+BOOL MB_CALL_TYPE onLifecycleClose(mbWebView, void*, void*)
+{
+    ++g_lifecycle_close_count;
+    return g_lifecycle_allow_close.load() ? TRUE : FALSE;
+}
+
+BOOL MB_CALL_TYPE onLifecycleDestroy(mbWebView, void*, void*)
+{
+    ++g_lifecycle_destroy_count;
+    return TRUE;
+}
+
+void MB_CALL_TYPE onCanGoBack(mbWebView, void*, MbAsynRequestState state, BOOL canGo)
+{
+    g_async_can_go_back = state == kMbAsynRequestStateOk && canGo ? 1 : 0;
+}
+
+void MB_CALL_TYPE onCanGoForward(mbWebView, void*, MbAsynRequestState state, BOOL canGo)
+{
+    g_async_can_go_forward = state == kMbAsynRequestStateOk && canGo ? 1 : 0;
+}
+
+void MB_CALL_TYPE onGetCookie(mbWebView, void*, MbAsynRequestState state, const utf8* cookie)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_last_cookie_string = cookie ? cookie : "";
+    }
+    g_cookie_callback_state = state;
+    ++g_cookie_callback_count;
+}
+
+void MB_CALL_TYPE onRunJsNumber(mbWebView, void*, mbJsExecState es, mbJsValue value)
+{
+    g_async_js_number = mbJsToDouble(es, value);
+    ++g_async_js_callback_count;
+}
+
+void MB_CALL_TYPE onRunJsString(mbWebView, void*, mbJsExecState es, mbJsValue value)
+{
+    const char* text = mbJsToString(es, value);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_js_text = text ? text : "";
+    }
+    ++g_async_js_callback_count;
+}
+
+void MB_CALL_TYPE onConsole(mbWebView, void*, mbConsoleLevel level, const utf8* message, const utf8* sourceName, unsigned sourceLine, const utf8*)
+{
+    if (!message || strstr(message, "mb-console-ok") == nullptr)
+        return;
+
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        std::ostringstream detail;
+        detail << message << " level=" << (int)level << " source=" << (sourceName ? sourceName : "") << ":" << sourceLine;
+        g_console_message = detail.str();
+    }
+    g_console_seen = true;
+}
+
+void MB_CALL_TYPE onAlertBox(mbWebView, void*, const utf8* msg)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_alert_message = msg ? msg : "";
+    }
+    g_alert_seen = true;
+}
+
+BOOL MB_CALL_TYPE onConfirmBox(mbWebView, void*, const utf8* msg)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_confirm_message = msg ? msg : "";
+    }
+    g_confirm_seen = true;
+    return TRUE;
+}
+
+mbStringPtr MB_CALL_TYPE onPromptBox(mbWebView, void*, const utf8* msg, const utf8* defaultResult, BOOL* result)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_prompt_message = msg ? msg : "";
+        g_prompt_default = defaultResult ? defaultResult : "";
+    }
+    if (result)
+        *result = TRUE;
+    g_prompt_seen = true;
+    return mbCreateStringWithCopy("prompt-ok", 9);
+}
+
+void MB_CALL_TYPE onGetSource(mbWebView, void*, const utf8* source)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_source = source ? source : "";
+    }
+    ++g_source_callback_count;
+}
+
+void MB_CALL_TYPE onGetContentAsMarkup(mbWebView, void*, const utf8* content, size_t size)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_markup.assign(content ? content : "", content ? size : 0);
+    }
+    ++g_markup_callback_count;
+}
+
+void attachBasicLoadCallbacks(mbWebView view)
+{
+    mbOnTitleChanged(view, onTitleChanged, nullptr);
+    mbOnURLChanged(view, onUrlChanged, nullptr);
+    mbOnNavigation(view, onNavigation, nullptr);
+    mbOnLoadingFinish(view, onLoadingFinish, nullptr);
+    mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
+    mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+}
+
+void attachElectronLikeCallbacks(mbWebView view)
+{
+    mbOnConsole(view, onConsole, nullptr);
+    mbOnAlertBox(view, onAlertBox, nullptr);
+    mbOnConfirmBox(view, onConfirmBox, nullptr);
+    mbOnPromptBox(view, onPromptBox, nullptr);
+}
+
+struct CreateViewReturnState {
+    mbWebView view = NULL_WEBVIEW;
+    HWND host = nullptr;
+    std::string url;
+};
+
+mbWebView MB_CALL_TYPE onCreateViewReturningPopup(mbWebView, void* param, mbNavigationType, const utf8* url, const mbWindowFeatures*)
+{
+    g_popup_seen = true;
+    CreateViewReturnState* state = static_cast<CreateViewReturnState*>(param);
+    if (!state)
+        return NULL_WEBVIEW;
+
+    state->url = url ? url : "";
+    state->view = mbCreateWebWindow(MB_WINDOW_TYPE_POPUP, nullptr, 420, 300, 360, 260);
+    state->host = state->view ? mbGetHostHWND(state->view) : nullptr;
+    if (state->view) {
+        attachBasicLoadCallbacks(state->view);
+        mbShowWindow(state->view, SW_SHOW);
+    }
+    return state->view;
+}
+
+std::string makeLocalHtml(const std::string& dir)
+{
+    std::string path = dir + "/local.html";
+    std::ofstream file(path);
+    file << "<!doctype html><html><head><meta charset='utf-8'><title>Local Miniblink E2E</title></head>"
+            "<body><h1>local html ok</h1><script>window.__local='local-ok';</script></body></html>";
+    return path;
+}
+
+std::string fileUrl(const std::string& path)
+{
+    return "file://" + path;
+}
+
+bool waitForLoad(mbWebView view, const std::string& label, int timeout_ms)
+{
+    bool ok = waitFor([&] {
+        if (g_load_failed.load())
+            return true;
+        if (!g_url_changed.load())
+            return false;
+        return jsString(view, "document.readyState") == "complete";
+    }, timeout_ms);
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    std::ostringstream detail;
+    detail << "titleCallback=" << g_last_title << " titleNow=" << (mbGetTitle(view) ? mbGetTitle(view) : "") << " url=" << g_last_url;
+    if (g_load_failed)
+        detail << " fail=" << g_last_fail_url << " reason=" << g_last_fail_reason;
+    addCheck(label, ok && !g_load_failed, detail.str());
+    return ok && !g_load_failed;
+}
+
+void runLifecycleChecks()
+{
+    mbWebView child = createPopupWindow(220, 220, 320, 240);
+    HWND child_host = child ? mbGetHostHWND(child) : nullptr;
+    addCheck("browserwindow-lifecycle-create", child != NULL_WEBVIEW && child_host,
+        "host=" + std::to_string((uintptr_t)child_host));
+    if (child == NULL_WEBVIEW || !child_host)
+        return;
+
+    mbOnClose(child, onLifecycleClose, nullptr);
+    mbOnDestroy(child, onLifecycleDestroy, nullptr);
+    mbShowWindow(child, SW_SHOW);
+
+    bool child_ready = waitFor([&] {
+        mbWebFrameHandle frame = mbWebFrameGetMainFrame(child);
+        return frame && mbGetGlobalExecByFrame(child, frame);
+    }, 6000);
+    addCheck("browserwindow-lifecycle-frame-ready", child_ready);
+
+    int close_before_cancel = g_lifecycle_close_count.load();
+    int destroy_before_cancel = g_lifecycle_destroy_count.load();
+    g_lifecycle_allow_close = false;
+    mbDestroyWebView(child);
+    bool cancel_seen = waitFor([&] { return g_lifecycle_close_count.load() > close_before_cancel; }, 2000);
+    WindowState after_cancel = readWindowState(child_host);
+    addCheck("browserwindow-close-cancel-callback", cancel_seen && after_cancel.isWindow && g_lifecycle_destroy_count.load() == destroy_before_cancel,
+        "close=" + std::to_string(g_lifecycle_close_count.load()) + " destroy=" + std::to_string(g_lifecycle_destroy_count.load()));
+
+    mbOnClose(child, onLifecycleClose, nullptr);
+    g_lifecycle_allow_close = true;
+    int close_before_destroy = g_lifecycle_close_count.load();
+    int destroy_before_destroy = g_lifecycle_destroy_count.load();
+    mbDestroyWebView(child);
+    bool destroy_seen = waitFor([&] {
+        return g_lifecycle_close_count.load() > close_before_destroy
+            && g_lifecycle_destroy_count.load() > destroy_before_destroy
+            && !readWindowState(child_host).isWindow;
+    }, 5000);
+    addCheck("browserwindow-close-destroy-callback", g_lifecycle_close_count.load() == close_before_destroy + 1
+            && g_lifecycle_destroy_count.load() == destroy_before_destroy + 1,
+        "close=" + std::to_string(g_lifecycle_close_count.load()) + " destroy=" + std::to_string(g_lifecycle_destroy_count.load()));
+    addCheck("browserwindow-destroy-invalidates-host", destroy_seen);
+}
+
+void runAppLifecycleMessageLoopChecks()
+{
+    const UINT app_message = WM_USER + 0x123;
+    PostMessageW(nullptr, app_message, 77, 88);
+
+    MSG posted = {};
+    BOOL peek_keep = PeekMessageW(&posted, nullptr, 0, 0, 0);
+    MSG posted_removed = {};
+    BOOL peek_remove = PeekMessageW(&posted_removed, nullptr, 0, 0, PM_REMOVE);
+    addCheck("app-lifecycle-message-loop-post-peek",
+        peek_keep && peek_remove
+            && posted.message == app_message
+            && posted_removed.message == app_message
+            && posted_removed.wParam == 77
+            && posted_removed.lParam == 88,
+        "keep=" + std::to_string(peek_keep) + " remove=" + std::to_string(peek_remove)
+            + " msg=" + std::to_string(posted_removed.message));
+
+    PostQuitMessage(42);
+    MSG quit_message = {};
+    BOOL get_result = GetMessageW(&quit_message, nullptr, 0, 0);
+    addCheck("app-lifecycle-post-quit-message",
+        !get_result && quit_message.message == WM_QUIT && quit_message.wParam == 42,
+        "get=" + std::to_string(get_result) + " msg=" + std::to_string(quit_message.message)
+            + " code=" + std::to_string((unsigned long long)quit_message.wParam));
+}
+
+void MB_CALL_TYPE runGlobalShortcutCompatibilityChecksOnUiThread(void*, void*)
+{
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = hotKeyWindowProc;
+    wc.lpszClassName = u"GlobalShortcutCompatibilityWindow";
+    RegisterClassW(&wc);
+    HWND hwnd = CreateWindowExW(0, wc.lpszClassName, u"hotkey-test", WS_OVERLAPPEDWINDOW, 0, 0, 120, 80, nullptr, nullptr, nullptr, nullptr);
+
+    const int hotkey_id = 7001;
+    const UINT modifiers = MOD_CONTROL | MOD_SHIFT;
+    BOOL registered = RegisterHotKey(hwnd, hotkey_id, modifiers, 'G');
+    bool system_registered = MacHasRegisteredSystemHotKeyForTesting(hwnd, hotkey_id);
+    BOOL duplicate_chord = RegisterHotKey(hwnd, hotkey_id + 1, modifiers, 'G');
+    BOOL duplicate_id = RegisterHotKey(hwnd, hotkey_id, MOD_ALT, 'H');
+    addCheck("global-shortcut-register-state",
+        hwnd && registered && system_registered && !duplicate_chord && !duplicate_id,
+        "registered=" + std::to_string(registered)
+            + " system=" + std::to_string(system_registered)
+            + " dupChord=" + std::to_string(duplicate_chord)
+            + " dupId=" + std::to_string(duplicate_id));
+
+    g_hotkey_count = 0;
+    g_hotkey_id = 0;
+    g_hotkey_modifiers = 0;
+    g_hotkey_vk = 0;
+    PostMessageW(hwnd, WM_HOTKEY, hotkey_id, MAKELPARAM(modifiers, 'G'));
+    MSG hotkey_msg = {};
+    BOOL got_hotkey = PeekMessageW(&hotkey_msg, hwnd, 0, 0, PM_REMOVE);
+    if (got_hotkey)
+        DispatchMessageW(&hotkey_msg);
+    addCheck("global-shortcut-hotkey-message",
+        got_hotkey
+            && g_hotkey_count == 1
+            && g_hotkey_id == hotkey_id
+            && g_hotkey_modifiers == modifiers
+            && g_hotkey_vk == 'G',
+        "count=" + std::to_string(g_hotkey_count.load())
+            + " id=" + std::to_string(g_hotkey_id.load())
+            + " mods=" + std::to_string(g_hotkey_modifiers.load())
+            + " vk=" + std::to_string(g_hotkey_vk.load()));
+
+    BOOL unregistered = UnregisterHotKey(hwnd, hotkey_id);
+    bool system_unregistered = !MacHasRegisteredSystemHotKeyForTesting(hwnd, hotkey_id);
+    BOOL unregister_again = UnregisterHotKey(hwnd, hotkey_id);
+    BOOL reregistered = RegisterHotKey(hwnd, hotkey_id + 2, modifiers, 'G');
+    bool system_reregistered = MacHasRegisteredSystemHotKeyForTesting(hwnd, hotkey_id + 2);
+    BOOL final_unregister = UnregisterHotKey(hwnd, hotkey_id + 2);
+    addCheck("global-shortcut-unregister-state",
+        unregistered && system_unregistered && !unregister_again && reregistered && system_reregistered && final_unregister,
+        "unregistered=" + std::to_string(unregistered)
+            + " systemGone=" + std::to_string(system_unregistered)
+            + " again=" + std::to_string(unregister_again)
+            + " reregistered=" + std::to_string(reregistered)
+            + " systemReregistered=" + std::to_string(system_reregistered)
+            + " final=" + std::to_string(final_unregister));
+
+    const int leaked_hotkey_id = hotkey_id + 3;
+    const int cleanup_hotkey_id = hotkey_id + 4;
+    BOOL leak_registered = RegisterHotKey(hwnd, leaked_hotkey_id, MOD_ALT, 'J');
+    DestroyWindow(hwnd);
+
+    HWND cleanup_hwnd = CreateWindowExW(0, wc.lpszClassName, u"hotkey-cleanup-test", WS_OVERLAPPEDWINDOW, 0, 0, 120, 80, nullptr, nullptr, nullptr, nullptr);
+    BOOL cleanup_registered = cleanup_hwnd ? RegisterHotKey(cleanup_hwnd, cleanup_hotkey_id, MOD_ALT, 'J') : FALSE;
+    BOOL cleanup_unregistered = cleanup_registered ? UnregisterHotKey(cleanup_hwnd, cleanup_hotkey_id) : FALSE;
+    if (!cleanup_registered)
+        UnregisterHotKey(hwnd, leaked_hotkey_id);
+    DestroyWindow(cleanup_hwnd);
+    addCheck("global-shortcut-destroy-cleanup",
+        leak_registered && cleanup_hwnd && cleanup_registered && cleanup_unregistered,
+        "leakRegistered=" + std::to_string(leak_registered)
+            + " cleanupHwnd=" + std::to_string(cleanup_hwnd != nullptr)
+            + " cleanupRegistered=" + std::to_string(cleanup_registered)
+            + " cleanupUnregistered=" + std::to_string(cleanup_unregistered));
+}
+
+void runGlobalShortcutCompatibilityChecks()
+{
+    mbCallUiThreadSync(runGlobalShortcutCompatibilityChecksOnUiThread, nullptr, nullptr);
+}
+
+bool waitForUrlContains(mbWebView view, const std::string& label, const std::string& fragment, int timeout_ms)
+{
+    bool loaded = waitForLoad(view, label, timeout_ms);
+    bool matched = false;
+    std::string detail;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        matched = g_last_url.find(fragment) != std::string::npos;
+        detail = g_last_url + " title=" + std::string(mbGetTitle(view) ? mbGetTitle(view) : "");
+    }
+    addCheck(label + "-url", loaded && matched, detail);
+    return loaded && matched;
+}
+
+bool waitForObservedUrlContains(mbWebView view, const std::string& label, const std::string& fragment, const std::string& title, int timeout_ms)
+{
+    bool matched = waitFor([&] {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        const char* current_title = mbGetTitle(view);
+        return g_url_changed.load() && g_last_url.find(fragment) != std::string::npos
+            && (!current_title || title.empty() || title == current_title);
+    }, timeout_ms);
+    std::string detail;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        detail = g_last_url + " title=" + std::string(mbGetTitle(view) ? mbGetTitle(view) : "");
+    }
+    addCheck(label, matched, detail);
+    return matched;
+}
+
+void runNavigationControlChecks(const std::string& origin)
+{
+    mbWebView view = createPopupWindow(260, 260, 480, 360);
+    HWND host = view ? mbGetHostHWND(view) : nullptr;
+    addCheck("webcontents-navigation-window-create", view != NULL_WEBVIEW && host,
+        "host=" + std::to_string((uintptr_t)host));
+    if (view == NULL_WEBVIEW || !host)
+        return;
+
+    mbOnTitleChanged(view, onTitleChanged, nullptr);
+    mbOnURLChanged(view, onUrlChanged, nullptr);
+    mbOnNavigation(view, onNavigation, nullptr);
+    mbOnLoadingFinish(view, onLoadingFinish, nullptr);
+    mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
+    mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+    mbShowWindow(view, SW_SHOW);
+
+    bool child_ready = waitFor([&] {
+        mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+        return frame && mbGetGlobalExecByFrame(view, frame);
+    }, 6000);
+    addCheck("webcontents-navigation-frame-ready", child_ready);
+    if (!child_ready) {
+        mbDestroyWebView(view);
+        return;
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (origin + "/nav-one.html").c_str());
+    bool one_ok = waitForUrlContains(view, "webcontents-load-nav-one", "/nav-one.html", 6000);
+    if (!one_ok) {
+        mbDestroyWebView(view);
+        return;
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (origin + "/nav-two.html").c_str());
+    bool two_ok = waitForUrlContains(view, "webcontents-load-nav-two", "/nav-two.html", 6000);
+    if (!two_ok) {
+        mbDestroyWebView(view);
+        return;
+    }
+
+    resetLoadState();
+    mbReload(view);
+    waitForUrlContains(view, "webcontents-reload", "/nav-two.html", 6000);
+
+    bool sync_can_go_ok = mbCanGoBackOrForward(view, TRUE) && !mbCanGoBackOrForward(view, FALSE);
+    addCheck("webcontents-can-go-sync", sync_can_go_ok);
+
+    g_async_can_go_back = -1;
+    g_async_can_go_forward = -1;
+    mbCanGoBack(view, onCanGoBack, nullptr);
+    mbCanGoForward(view, onCanGoForward, nullptr);
+    bool async_can_go_ok = waitFor([] {
+        return g_async_can_go_back.load() >= 0 && g_async_can_go_forward.load() >= 0;
+    }, 3000);
+    addCheck("webcontents-can-go-async", async_can_go_ok && g_async_can_go_back.load() == 1 && g_async_can_go_forward.load() == 0,
+        "back=" + std::to_string(g_async_can_go_back.load()) + " forward=" + std::to_string(g_async_can_go_forward.load()));
+
+    resetLoadState();
+    mbGoBack(view);
+    bool back_ok = waitForObservedUrlContains(view, "webcontents-go-back", "/nav-one.html", "Nav One", 6000);
+    bool back_finished = waitFor([] { return g_load_finished.load(); }, 5000);
+    bool can_forward_after_back = waitFor([&] { return mbCanGoBackOrForward(view, FALSE); }, 3000);
+    addCheck("webcontents-can-go-forward-after-back", back_ok && back_finished && can_forward_after_back);
+
+    resetLoadState();
+    mbGoForward(view);
+    bool forward_ok = waitForObservedUrlContains(view, "webcontents-go-forward", "/nav-two.html", "Nav Two", 6000);
+    bool forward_finished = waitFor([] { return g_load_finished.load(); }, 5000);
+    bool can_back_after_forward = waitFor([&] { return mbCanGoBackOrForward(view, TRUE); }, 3000);
+    addCheck("webcontents-can-go-back-after-forward", forward_ok && forward_finished && can_back_after_forward);
+
+    resetLoadState();
+    mbLoadURL(view, (origin + "/slow.html").c_str());
+    bool loading_seen = waitFor([&] { return mbIsLoading(view); }, 2000);
+    mbStopLoading(view);
+    bool stopped = waitFor([&] { return !mbIsLoading(view); }, 5000);
+    addCheck("webcontents-stop-loading", loading_seen && stopped);
+
+    mbDestroyWebView(view);
+    waitFor([&] { return !readWindowState(host).isWindow; }, 3000);
+}
+
+void runWebContentsScriptAndZoomChecks(mbWebView view)
+{
+    mbSetZoomFactor(view, 1.25f);
+    bool zoom_set = waitFor([&] {
+        return std::abs(mbGetZoomFactor(view) - 1.25f) < 0.001f;
+    }, 3000);
+    addCheck("webcontents-zoom-factor", zoom_set, std::to_string(mbGetZoomFactor(view)));
+    mbSetZoomFactor(view, 1.0f);
+    waitFor([&] { return std::abs(mbGetZoomFactor(view) - 1.0f) < 0.001f; }, 3000);
+
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+    int before = g_async_js_callback_count.load();
+    g_async_js_number = 0;
+    mbRunJs(view, frame, "21 * 2", FALSE, onRunJsNumber, nullptr, nullptr);
+    bool number_ok = waitFor([&] {
+        return g_async_js_callback_count.load() > before && std::abs(g_async_js_number.load() - 42.0) < 0.001;
+    }, 3000);
+    addCheck("webcontents-execute-js-async", number_ok, std::to_string(g_async_js_number.load()));
+
+    before = g_async_js_callback_count.load();
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_js_text.clear();
+    }
+    mbRunJs(view, frame, "return window.__local + '-closure';", TRUE, onRunJsString, nullptr, nullptr);
+    bool closure_ok = waitFor([&] {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        return g_async_js_callback_count.load() > before && g_async_js_text == "local-ok-closure";
+    }, 3000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-execute-js-closure", closure_ok, g_async_js_text);
+    }
+}
+
+void runWebContentsDialogAndSourceChecks(mbWebView view)
+{
+    g_console_seen = false;
+    g_alert_seen = false;
+    g_confirm_seen = false;
+    g_prompt_seen = false;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_console_message.clear();
+        g_alert_message.clear();
+        g_confirm_message.clear();
+        g_prompt_message.clear();
+        g_prompt_default.clear();
+    }
+
+    jsNumber(view, "console.log('mb-console-ok'); 1");
+    bool console_ok = waitFor([] { return g_console_seen.load(); }, 3000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-console-callback", console_ok, g_console_message);
+    }
+
+    std::string dialog_result = jsString(view,
+        "alert('alert-ok');"
+        "var confirmResult = confirm('confirm-ok');"
+        "var promptResult = prompt('prompt-ok','default-ok');"
+        "JSON.stringify({confirm:confirmResult,prompt:promptResult})");
+    bool dialogs_seen = waitFor([] {
+        return g_alert_seen.load() && g_confirm_seen.load() && g_prompt_seen.load();
+    }, 3000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        std::string detail = "alert=" + g_alert_message + " confirm=" + g_confirm_message
+            + " prompt=" + g_prompt_message + " default=" + g_prompt_default + " result=" + dialog_result;
+        addCheck("webcontents-js-dialog-callbacks",
+            dialogs_seen && g_alert_message == "alert-ok" && g_confirm_message == "confirm-ok"
+                && g_prompt_message == "prompt-ok" && g_prompt_default == "default-ok"
+                && dialog_result.find("\"confirm\":true") != std::string::npos
+                && dialog_result.find("\"prompt\":\"prompt-ok\"") != std::string::npos,
+            detail);
+    }
+
+    int width = mbGetContentWidth(view);
+    int height = mbGetContentHeight(view);
+    addCheck("webcontents-content-size", width > 0 && height > 0,
+        std::to_string(width) + "x" + std::to_string(height));
+
+    mbStringPtr sync_source = mbGetSourceSync(view);
+    std::string sync_source_text;
+    if (sync_source) {
+        sync_source_text.assign(mbGetString(sync_source), mbGetStringLen(sync_source));
+        mbDeleteString(sync_source);
+    }
+    addCheck("webcontents-get-source-sync",
+        sync_source_text.find("Local Miniblink E2E") != std::string::npos
+            || sync_source_text.find("local html ok") != std::string::npos,
+        "len=" + std::to_string(sync_source_text.size()));
+
+    int before_source = g_source_callback_count.load();
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_source.clear();
+    }
+    mbGetSource(view, onGetSource, nullptr);
+    bool async_source_ok = waitFor([&] { return g_source_callback_count.load() > before_source; }, 5000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-get-source-async",
+            async_source_ok && (g_async_source.find("Local Miniblink E2E") != std::string::npos
+                || g_async_source.find("local html ok") != std::string::npos),
+            "len=" + std::to_string(g_async_source.size()));
+    }
+
+    int before_markup = g_markup_callback_count.load();
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_async_markup.clear();
+    }
+    mbGetContentAsMarkup(view, onGetContentAsMarkup, nullptr, mbWebFrameGetMainFrame(view));
+    bool markup_ok = waitFor([&] { return g_markup_callback_count.load() > before_markup; }, 5000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("webcontents-get-content-as-markup",
+            markup_ok && (g_async_markup.find("Local Miniblink E2E") != std::string::npos
+                || g_async_markup.find("local html ok") != std::string::npos),
+            "len=" + std::to_string(g_async_markup.size()));
+    }
+
+    mbSetAudioMuted(view, TRUE);
+    BOOL muted = mbIsAudioMuted(view);
+    mbSetAudioMuted(view, FALSE);
+    BOOL unmuted = !mbIsAudioMuted(view);
+    addCheck("webcontents-audio-muted-api", muted && unmuted,
+        std::string("muted=") + (muted ? "1" : "0") + " unmuted=" + (unmuted ? "1" : "0"));
+}
+
+void runDialogCompatibilityChecks()
+{
+    std::u16string title = u"Dialog";
+    std::u16string message = u"Message";
+    int ok = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_OK | MB_ICONINFORMATION);
+    int ok_cancel = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_OKCANCEL | MB_ICONWARNING);
+    int yes_no = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_YESNO | MB_ICONQUESTION);
+    int yes_no_cancel = MessageBoxW(nullptr, reinterpret_cast<LPCWSTR>(message.c_str()), reinterpret_cast<LPCWSTR>(title.c_str()), MB_YESNOCANCEL | MB_ICONERROR);
+    int ansi_yes_no = MessageBoxA(nullptr, "Message", "Dialog", MB_YESNO | MB_ICONQUESTION);
+    addCheck("dialog-messagebox-return-values",
+        ok == IDOK && ok_cancel == IDOK && yes_no == IDYES && yes_no_cancel == IDYES && ansi_yes_no == IDYES,
+        "ok=" + std::to_string(ok) + " okCancel=" + std::to_string(ok_cancel)
+            + " yesNo=" + std::to_string(yes_no) + " yesNoCancel=" + std::to_string(yes_no_cancel)
+            + " ansi=" + std::to_string(ansi_yes_no));
+
+    std::string dialog_dir = "/tmp/miniblink_browser_window_like/dialog";
+    mkdir(dialog_dir.c_str(), 0755);
+    std::string open_path = dialog_dir + "/open.txt";
+    std::string save_path = dialog_dir + "/save.txt";
+    {
+        std::ofstream file(open_path);
+        file << "open dialog ok\n";
+    }
+
+    std::u16string open_path_w = asciiToWidePath(open_path);
+    WCHAR open_buffer[MAX_PATH] = {};
+    OPENFILENAMEW open_info = {};
+    open_info.lStructSize = sizeof(open_info);
+    open_info.lpstrFile = open_buffer;
+    open_info.nMaxFile = MAX_PATH;
+    open_info.lpstrInitialDir = reinterpret_cast<LPCWSTR>(open_path_w.c_str());
+    open_info.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER;
+    BOOL opened = GetOpenFileNameW(&open_info);
+    addCheck("dialog-open-file-default-path",
+        opened && widePathToAscii(open_buffer) == open_path && CommDlgExtendedError() == 0,
+        widePathToAscii(open_buffer) + " offset=" + std::to_string(open_info.nFileOffset));
+
+    WCHAR tiny_buffer[2] = {};
+    OPENFILENAMEW tiny_info = open_info;
+    tiny_info.lpstrFile = tiny_buffer;
+    tiny_info.nMaxFile = 2;
+    BOOL tiny_opened = GetOpenFileNameW(&tiny_info);
+    WORD required_size = *((WORD*)tiny_buffer);
+    bool tiny_failed_with_size = !tiny_opened && CommDlgExtendedError() == FNERR_BUFFERTOOSMALL && required_size > open_path.size();
+
+    std::vector<WCHAR> retry_buffer(required_size + 1);
+    retry_buffer[0] = tiny_buffer[0];
+    OPENFILENAMEW retry_info = open_info;
+    retry_info.lpstrFile = retry_buffer.data();
+    retry_info.nMaxFile = required_size;
+    BOOL retry_opened = GetOpenFileNameW(&retry_info);
+    addCheck("dialog-open-file-buffer-resize",
+        tiny_failed_with_size && retry_opened && widePathToAscii(retry_buffer.data()) == open_path && CommDlgExtendedError() == 0,
+        "required=" + std::to_string(required_size) + " retry=" + widePathToAscii(retry_buffer.data()));
+
+    std::u16string save_path_w = asciiToWidePath(save_path);
+    WCHAR save_buffer[MAX_PATH] = {};
+    OPENFILENAMEW save_info = {};
+    save_info.lStructSize = sizeof(save_info);
+    save_info.lpstrFile = save_buffer;
+    save_info.nMaxFile = MAX_PATH;
+    save_info.lpstrInitialDir = reinterpret_cast<LPCWSTR>(save_path_w.c_str());
+    save_info.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_EXPLORER;
+    BOOL saved = GetSaveFileNameW(&save_info);
+    addCheck("dialog-save-file-default-path",
+        saved && widePathToAscii(save_buffer) == save_path && CommDlgExtendedError() == 0,
+        widePathToAscii(save_buffer) + " ext=" + std::to_string(save_info.nFileExtension));
+
+    std::u16string dialog_dir_w = asciiToWidePath(dialog_dir);
+    WCHAR browse_display[MAX_PATH] = {};
+    BROWSEINFOW browse_info = {};
+    browse_info.pszDisplayName = browse_display;
+    browse_info.lParam = reinterpret_cast<LPARAM>(dialog_dir_w.c_str());
+    browse_info.ulFlags = BIF_USENEWUI | BIF_RETURNONLYFSDIRS;
+    LPITEMIDLIST item = SHBrowseForFolder(&browse_info);
+    WCHAR browse_path[MAX_PATH] = {};
+    BOOL browse_path_ok = item ? SHGetPathFromIDList(item, browse_path) : FALSE;
+    if (item)
+        CoTaskMemFree(item);
+    addCheck("dialog-open-directory-default-path",
+        item && browse_path_ok && widePathToAscii(browse_path) == dialog_dir,
+        widePathToAscii(browse_path));
+}
+
+void runShellCompatibilityChecks()
+{
+    std::string shell_dir = "/tmp/miniblink_browser_window_like/shell";
+    mkdir(shell_dir.c_str(), 0755);
+    std::string open_path = shell_dir + "/open-path.txt";
+    std::string shell_log = shell_dir + "/shell-execute.log";
+    unlink(shell_log.c_str());
+    {
+        std::ofstream file(open_path);
+        file << "shell open ok\n";
+    }
+
+    setenv("MINIBLINK_SHELL_EXECUTE_LOG", shell_log.c_str(), 1);
+
+    std::u16string open_path_w = asciiToWidePath(open_path);
+    HINSTANCE open_path_result = ShellExecuteW(nullptr, u"open", reinterpret_cast<LPCWSTR>(open_path_w.c_str()), nullptr, nullptr, SW_SHOWNORMAL);
+    addCheck("shell-open-path-shellexecute",
+        reinterpret_cast<ULONG_PTR>(open_path_result) > 32,
+        std::to_string(reinterpret_cast<ULONG_PTR>(open_path_result)));
+
+    std::u16string quoted_url_w = asciiToWidePath("\"https://example.com/\"");
+    HINSTANCE open_external_result = ShellExecuteW(nullptr, u"open", reinterpret_cast<LPCWSTR>(quoted_url_w.c_str()), nullptr, nullptr, SW_SHOWNORMAL);
+    addCheck("shell-open-external-shellexecute",
+        reinterpret_cast<ULONG_PTR>(open_external_result) > 32,
+        std::to_string(reinterpret_cast<ULONG_PTR>(open_external_result)));
+
+    std::u16string shell_dir_w = asciiToWidePath(shell_dir);
+    SHELLEXECUTEINFOW exec_info = {};
+    exec_info.cbSize = sizeof(exec_info);
+    exec_info.fMask = SEE_MASK_NOASYNC;
+    exec_info.lpVerb = u"explore";
+    exec_info.lpFile = reinterpret_cast<LPCWSTR>(shell_dir_w.c_str());
+    exec_info.lpDirectory = reinterpret_cast<LPCWSTR>(shell_dir_w.c_str());
+    exec_info.nShow = SW_SHOWNORMAL;
+    BOOL shell_execute_ex = ShellExecuteExW(&exec_info);
+    addCheck("shell-show-item-in-folder-fallback",
+        shell_execute_ex && reinterpret_cast<ULONG_PTR>(exec_info.hInstApp) > 32,
+        std::to_string(reinterpret_cast<ULONG_PTR>(exec_info.hInstApp)));
+
+    HMODULE shell32 = GetModuleHandleW(u"shell32.dll");
+    void* select_proc = GetProcAddress(shell32, "SHOpenFolderAndSelectItems");
+    addCheck("shell-show-item-in-folder-optional-proc",
+        shell32 && !select_proc,
+        std::string("shell32=") + (shell32 ? "1" : "0") + " proc=" + (select_proc ? "1" : "0"));
+
+    BROWSEINFOW reveal_browse = {};
+    reveal_browse.lParam = reinterpret_cast<LPARAM>(open_path_w.c_str());
+    reveal_browse.ulFlags = BIF_BROWSEINCLUDEFILES;
+    LPITEMIDLIST reveal_item = SHBrowseForFolderW(&reveal_browse);
+    HRESULT reveal_result = reveal_item ? SHOpenFolderAndSelectItems(reveal_item, 0, nullptr, 0) : E_FAIL;
+    if (reveal_item)
+        CoTaskMemFree(reveal_item);
+    addCheck("shell-show-item-in-folder-api",
+        SUCCEEDED(reveal_result),
+        std::to_string((long)reveal_result));
+
+    unsetenv("MINIBLINK_SHELL_EXECUTE_LOG");
+
+    std::ifstream log_file(shell_log);
+    std::stringstream log_buffer;
+    log_buffer << log_file.rdbuf();
+    std::string log_text = log_buffer.str();
+    addCheck("shell-execute-log-openpath",
+        log_text.find("/usr/bin/open\t" + open_path) != std::string::npos,
+        log_text);
+    addCheck("shell-execute-log-openexternal",
+        log_text.find("/usr/bin/open\thttps://example.com/") != std::string::npos,
+        log_text);
+    addCheck("shell-execute-log-showitem",
+        log_text.find("/usr/bin/open\t-R\t" + open_path) != std::string::npos,
+        log_text);
+
+    std::string trash_name = "trash-" + std::to_string((long long)getpid()) + ".txt";
+    std::string trash_path = shell_dir + "/" + trash_name;
+    std::string expected_trash_path = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + trash_name;
+    unlink(expected_trash_path.c_str());
+    {
+        std::ofstream file(trash_path);
+        file << "trash ok\n";
+    }
+    std::u16string trash_from = asciiToWidePath(trash_path);
+    trash_from.push_back(0);
+    trash_from.push_back(0);
+    SHFILEOPSTRUCTW file_op = {};
+    file_op.wFunc = FO_DELETE;
+    file_op.pFrom = reinterpret_cast<LPCWSTR>(trash_from.c_str());
+    file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    int trash_result = SHFileOperationW(&file_op);
+    bool trash_moved = access(trash_path.c_str(), F_OK) != 0 && access(expected_trash_path.c_str(), F_OK) == 0;
+    addCheck("shell-trash-item-shfileoperation",
+        trash_result == ERROR_SUCCESS && !file_op.fAnyOperationsAborted && trash_moved,
+        "result=" + std::to_string(trash_result) + " moved=" + (trash_moved ? "1" : "0"));
+    unlink(expected_trash_path.c_str());
+
+    std::string multi_one_name = "trash-multi-one-" + std::to_string((long long)getpid()) + ".txt";
+    std::string multi_two_name = "trash-multi-two-" + std::to_string((long long)getpid()) + ".txt";
+    std::string multi_one_path = shell_dir + "/" + multi_one_name;
+    std::string multi_two_path = shell_dir + "/" + multi_two_name;
+    std::string expected_multi_one = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + multi_one_name;
+    std::string expected_multi_two = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + multi_two_name;
+    unlink(expected_multi_one.c_str());
+    unlink(expected_multi_two.c_str());
+    {
+        std::ofstream file(multi_one_path);
+        file << "multi one\n";
+    }
+    {
+        std::ofstream file(multi_two_path);
+        file << "multi two\n";
+    }
+    std::u16string multi_from = asciiToWidePath(multi_one_path);
+    multi_from.push_back(0);
+    std::u16string multi_two_w = asciiToWidePath(multi_two_path);
+    multi_from.append(multi_two_w);
+    multi_from.push_back(0);
+    multi_from.push_back(0);
+    SHFILEOPSTRUCTW multi_file_op = {};
+    multi_file_op.wFunc = FO_DELETE;
+    multi_file_op.pFrom = reinterpret_cast<LPCWSTR>(multi_from.c_str());
+    multi_file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    int multi_trash_result = SHFileOperationW(&multi_file_op);
+    bool multi_trash_moved = access(multi_one_path.c_str(), F_OK) != 0
+        && access(multi_two_path.c_str(), F_OK) != 0
+        && access(expected_multi_one.c_str(), F_OK) == 0
+        && access(expected_multi_two.c_str(), F_OK) == 0;
+    addCheck("shell-trash-item-multiple-shfileoperation",
+        multi_trash_result == ERROR_SUCCESS && !multi_file_op.fAnyOperationsAborted && multi_trash_moved,
+        "result=" + std::to_string(multi_trash_result) + " moved=" + (multi_trash_moved ? "1" : "0"));
+    unlink(expected_multi_one.c_str());
+    unlink(expected_multi_two.c_str());
+
+    std::string trash_dir_name = "trash-dir-" + std::to_string((long long)getpid());
+    std::string trash_dir_path = shell_dir + "/" + trash_dir_name;
+    std::string trash_dir_file = trash_dir_path + "/nested.txt";
+    std::string expected_trash_dir = std::string(getenv("HOME") ? getenv("HOME") : "") + "/.Trash/" + trash_dir_name;
+    unlink((expected_trash_dir + "/nested.txt").c_str());
+    rmdir(expected_trash_dir.c_str());
+    mkdir(trash_dir_path.c_str(), 0755);
+    {
+        std::ofstream file(trash_dir_file);
+        file << "trash dir ok\n";
+    }
+    std::u16string trash_dir_from = asciiToWidePath(trash_dir_path);
+    trash_dir_from.push_back(0);
+    trash_dir_from.push_back(0);
+    SHFILEOPSTRUCTW dir_file_op = {};
+    dir_file_op.wFunc = FO_DELETE;
+    dir_file_op.pFrom = reinterpret_cast<LPCWSTR>(trash_dir_from.c_str());
+    dir_file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    int dir_trash_result = SHFileOperationW(&dir_file_op);
+    bool dir_trash_moved = access(trash_dir_path.c_str(), F_OK) != 0
+        && access((expected_trash_dir + "/nested.txt").c_str(), F_OK) == 0;
+    addCheck("shell-trash-item-directory-shfileoperation",
+        dir_trash_result == ERROR_SUCCESS && !dir_file_op.fAnyOperationsAborted && dir_trash_moved,
+        "result=" + std::to_string(dir_trash_result) + " moved=" + (dir_trash_moved ? "1" : "0"));
+    unlink((expected_trash_dir + "/nested.txt").c_str());
+    rmdir(expected_trash_dir.c_str());
+
+    setenv("MINIBLINK_SUPPRESS_BEEP", "1", 1);
+    BOOL message_beep = MessageBeep(MB_OK);
+    BOOL beep = Beep(750, 10);
+    unsetenv("MINIBLINK_SUPPRESS_BEEP");
+    addCheck("shell-beep-messagebeep",
+        message_beep && beep,
+        std::string("message=") + (message_beep ? "1" : "0") + " beep=" + (beep ? "1" : "0"));
+}
+
+void runAppCompatibilityChecks()
+{
+    std::string home = getenv("HOME") && getenv("HOME")[0] ? getenv("HOME") : "/tmp";
+
+    auto checkFolderPath = [&](const std::string& label, int csidl, const std::string& expected) {
+        WCHAR buffer[MAX_PATH] = {};
+        HRESULT hr = SHGetFolderPathW(nullptr, csidl, nullptr, SHGFP_TYPE_CURRENT, buffer);
+        std::string path = widePathToAscii(buffer);
+        addCheck("app-path-" + label,
+            SUCCEEDED(hr) && path == expected,
+            path);
+    };
+
+    checkFolderPath("home", CSIDL_PROFILE, home);
+    checkFolderPath("appdata", CSIDL_APPDATA | CSIDL_FLAG_CREATE, home + "/Library/Application Support");
+    checkFolderPath("localappdata", CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, home + "/Library/Application Support");
+    checkFolderPath("desktop", CSIDL_DESKTOPDIRECTORY, home + "/Desktop");
+    checkFolderPath("documents", CSIDL_MYDOCUMENTS, home + "/Documents");
+    checkFolderPath("music", CSIDL_MYMUSIC, home + "/Music");
+    checkFolderPath("pictures", CSIDL_MYPICTURES, home + "/Pictures");
+    checkFolderPath("videos", CSIDL_MYVIDEO, home + "/Movies");
+    checkFolderPath("recent", CSIDL_RECENT | CSIDL_FLAG_CREATE, home + "/Library/Application Support/Recent");
+
+    const char* tmp_env = getenv("TMPDIR");
+    std::string expected_temp = tmp_env && tmp_env[0] ? tmp_env : "/tmp/";
+    if (!expected_temp.empty() && expected_temp.back() != '/')
+        expected_temp.push_back('/');
+    WCHAR temp_path[MAX_PATH] = {};
+    WCHAR tiny_temp_path[4] = {};
+    DWORD temp_len = GetTempPathW(MAX_PATH, temp_path);
+    DWORD temp_required = GetTempPathW(4, tiny_temp_path);
+    std::string temp = widePathToAscii(temp_path);
+    struct stat temp_stat = {};
+    addCheck("app-path-temp",
+        temp_len == expected_temp.size()
+            && temp_required == temp_len
+            && temp == expected_temp
+            && !temp.empty()
+            && temp.back() == '/'
+            && tiny_temp_path[3] == 0
+            && stat(temp.c_str(), &temp_stat) == 0
+            && S_ISDIR(temp_stat.st_mode),
+        temp + " required=" + std::to_string(temp_required));
+
+    LPWSTR downloads_path = nullptr;
+    HRESULT downloads_hr = SHGetKnownFolderPath(FOLDERID_Downloads, 0, nullptr, &downloads_path);
+    std::string downloads = widePathToAscii(downloads_path);
+    if (downloads_path)
+        CoTaskMemFree(downloads_path);
+    addCheck("app-path-downloads-known-folder",
+        SUCCEEDED(downloads_hr) && downloads == home + "/Downloads",
+        downloads);
+
+    WCHAR module_path[MAX_PATH] = {};
+    DWORD module_len = GetModuleFileNameW(nullptr, module_path, MAX_PATH);
+    std::string module = widePathToAscii(module_path);
+    addCheck("app-path-exe-module",
+        module_len > 0 && module.find("browser_window_like_test") != std::string::npos,
+        module);
+
+    WCHAR locale_name[LOCALE_NAME_MAX_LENGTH] = {};
+    WCHAR lcid_locale_name[LOCALE_NAME_MAX_LENGTH] = {};
+    WCHAR language[16] = {};
+    WCHAR country[16] = {};
+    int locale_len = GetUserDefaultLocaleName(locale_name, LOCALE_NAME_MAX_LENGTH);
+    int lcid_locale_len = LCIDToLocaleName(LOCALE_USER_DEFAULT, lcid_locale_name, LOCALE_NAME_MAX_LENGTH, 0);
+    int language_len = GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, language, 16);
+    int country_len = GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, country, 16);
+    std::string locale_text = widePathToAscii(locale_name);
+    std::string lcid_locale_text = widePathToAscii(lcid_locale_name);
+    std::string language_text = widePathToAscii(language);
+    std::string country_text = widePathToAscii(country);
+    addCheck("app-locale-default-name",
+        locale_len > 1 && locale_text.size() >= 2 && lcid_locale_text == locale_text,
+        locale_text + " lcid=" + lcid_locale_text);
+    addCheck("app-locale-components",
+        language_len > 1 && !language_text.empty() && country_len > 1 && !country_text.empty(),
+        language_text + "-" + country_text);
+
+    std::u16string mutex_name = asciiToWidePath("MiniblinkAppSingleInstance-" + std::to_string((long long)getpid()));
+    HANDLE first_mutex = CreateMutexW(nullptr, TRUE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD first_error = GetLastError();
+    BOOL release_first = ReleaseMutex(first_mutex);
+    HANDLE second_mutex = CreateMutexW(nullptr, FALSE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD second_error = GetLastError();
+    DWORD wait_result = WaitForSingleObject(first_mutex, 0);
+    BOOL close_second = CloseHandle(second_mutex);
+    HANDLE third_before_close = CreateMutexW(nullptr, FALSE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD third_before_close_error = GetLastError();
+    BOOL close_third_before = CloseHandle(third_before_close);
+    BOOL close_first = CloseHandle(first_mutex);
+    HANDLE third_mutex = CreateMutexW(nullptr, FALSE, reinterpret_cast<LPCWSTR>(mutex_name.c_str()));
+    DWORD third_error = GetLastError();
+    BOOL close_third = CloseHandle(third_mutex);
+    addCheck("app-single-instance-mutex",
+        first_mutex && second_mutex && third_before_close && third_mutex
+            && first_error == ERROR_SUCCESS
+            && release_first
+            && second_error == ERROR_ALREADY_EXISTS
+            && third_before_close_error == ERROR_ALREADY_EXISTS
+            && third_error == ERROR_SUCCESS
+            && wait_result == WAIT_OBJECT_0
+            && close_second && close_third_before && close_first && close_third,
+        "first=" + std::to_string(first_error) + " second=" + std::to_string(second_error)
+            + " thirdBeforeClose=" + std::to_string(third_before_close_error)
+            + " third=" + std::to_string(third_error) + " wait=" + std::to_string(wait_result));
+}
+
+struct MonitorEnumState {
+    int count = 0;
+    bool info_ok = true;
+    RECT first_rect = {};
+    HMONITOR first_monitor = nullptr;
+};
+
+BOOL CALLBACK collectMonitorCallback(HMONITOR monitor, HDC hdc, LPRECT rect, LPARAM data)
+{
+    MonitorEnumState* state = reinterpret_cast<MonitorEnumState*>(data);
+    if (!state || !monitor || !rect)
+        return FALSE;
+
+    MONITORINFOEXW info = {};
+    info.cbSize = sizeof(info);
+    BOOL got_info = GetMonitorInfoW(monitor, reinterpret_cast<LPMONITORINFO>(&info));
+    bool rect_valid = rect->right > rect->left && rect->bottom > rect->top;
+    bool info_valid = got_info
+        && info.rcMonitor.right > info.rcMonitor.left
+        && info.rcMonitor.bottom > info.rcMonitor.top
+        && info.szDevice[0] != 0;
+    state->info_ok = state->info_ok && rect_valid && info_valid;
+    if (state->count == 0) {
+        state->first_rect = *rect;
+        state->first_monitor = monitor;
+    }
+    ++state->count;
+    return TRUE;
+}
+
+void runScreenCompatibilityChecks(HWND host)
+{
+    int width = GetSystemMetrics(SM_CXSCREEN);
+    int height = GetSystemMetrics(SM_CYSCREEN);
+    int monitor_count = GetSystemMetrics(SM_CMONITORS);
+    addCheck("screen-system-metrics",
+        width > 0 && height > 0 && monitor_count >= 1,
+        std::to_string(width) + "x" + std::to_string(height) + " monitors=" + std::to_string(monitor_count));
+
+    HMONITOR window_monitor = MonitorFromWindow(host, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFOEXW window_info = {};
+    window_info.cbSize = sizeof(window_info);
+    BOOL got_window_info = GetMonitorInfoW(window_monitor, reinterpret_cast<LPMONITORINFO>(&window_info));
+    bool window_info_ok = window_monitor && got_window_info
+        && window_info.rcMonitor.right > window_info.rcMonitor.left
+        && window_info.rcMonitor.bottom > window_info.rcMonitor.top
+        && window_info.rcWork.right > window_info.rcWork.left
+        && window_info.rcWork.bottom > window_info.rcWork.top
+        && window_info.szDevice[0] != 0;
+    addCheck("screen-monitor-from-window",
+        window_info_ok,
+        "monitor=" + std::to_string((uintptr_t)window_monitor)
+            + " rect=" + std::to_string(window_info.rcMonitor.left) + "," + std::to_string(window_info.rcMonitor.top)
+            + " " + std::to_string(window_info.rcMonitor.right - window_info.rcMonitor.left)
+            + "x" + std::to_string(window_info.rcMonitor.bottom - window_info.rcMonitor.top));
+
+    POINT inside = { window_info.rcMonitor.left + 1, window_info.rcMonitor.top + 1 };
+    HMONITOR point_monitor = MonitorFromPoint(inside, MONITOR_DEFAULTTONULL);
+    POINT outside = { -1000000000, -1000000000 };
+    HMONITOR outside_monitor = MonitorFromPoint(outside, MONITOR_DEFAULTTONULL);
+    HMONITOR outside_nearest_monitor = MonitorFromPoint(outside, MONITOR_DEFAULTTONEAREST);
+    addCheck("screen-monitor-from-point",
+        point_monitor && !outside_monitor && outside_nearest_monitor,
+        "inside=" + std::to_string((uintptr_t)point_monitor)
+            + " outside=" + std::to_string((uintptr_t)outside_monitor)
+            + " nearest=" + std::to_string((uintptr_t)outside_nearest_monitor));
+
+    RECT inside_rect = { window_info.rcMonitor.left + 1, window_info.rcMonitor.top + 1,
+        window_info.rcMonitor.left + 16, window_info.rcMonitor.top + 16 };
+    RECT outside_rect = { -1000000000, -1000000000, -999999900, -999999900 };
+    HMONITOR rect_monitor = MonitorFromRect(&inside_rect, MONITOR_DEFAULTTONULL);
+    HMONITOR rect_outside_null = MonitorFromRect(&outside_rect, MONITOR_DEFAULTTONULL);
+    HMONITOR rect_outside_primary = MonitorFromRect(&outside_rect, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR rect_outside_nearest = MonitorFromRect(&outside_rect, MONITOR_DEFAULTTONEAREST);
+    addCheck("screen-monitor-from-rect",
+        rect_monitor == window_monitor && !rect_outside_null && rect_outside_primary && rect_outside_nearest,
+        "inside=" + std::to_string((uintptr_t)rect_monitor)
+            + " null=" + std::to_string((uintptr_t)rect_outside_null)
+            + " primary=" + std::to_string((uintptr_t)rect_outside_primary)
+            + " nearest=" + std::to_string((uintptr_t)rect_outside_nearest));
+
+    MonitorEnumState enum_state;
+    BOOL enum_ok = EnumDisplayMonitors(nullptr, nullptr, collectMonitorCallback, reinterpret_cast<LPARAM>(&enum_state));
+    addCheck("screen-enum-display-monitors",
+        enum_ok && enum_state.count == monitor_count && enum_state.info_ok && enum_state.first_monitor,
+        "count=" + std::to_string(enum_state.count) + " expected=" + std::to_string(monitor_count));
+
+    MonitorEnumState clipped_state;
+    BOOL clipped_ok = EnumDisplayMonitors(nullptr, &enum_state.first_rect, collectMonitorCallback, reinterpret_cast<LPARAM>(&clipped_state));
+    addCheck("screen-enum-display-monitors-clipped",
+        clipped_ok && clipped_state.count >= 1 && clipped_state.count <= enum_state.count && clipped_state.info_ok,
+        "count=" + std::to_string(clipped_state.count));
+
+    MonitorEnumState clipped_empty_state;
+    BOOL clipped_empty_ok = EnumDisplayMonitors(nullptr, &outside_rect, collectMonitorCallback, reinterpret_cast<LPARAM>(&clipped_empty_state));
+    addCheck("screen-enum-display-monitors-clipped-empty",
+        clipped_empty_ok && clipped_empty_state.count == 0,
+        "count=" + std::to_string(clipped_empty_state.count));
+}
+
+void runNativeThemeCompatibilityChecks()
+{
+    RECT work_area = {};
+    BOOL work_area_ok = SystemParametersInfoW(SPI_GETWORKAREA, 0, &work_area, 0);
+    addCheck("native-theme-work-area",
+        work_area_ok && work_area.right > work_area.left && work_area.bottom > work_area.top,
+        std::to_string(work_area.left) + "," + std::to_string(work_area.top)
+            + " " + std::to_string(work_area.right - work_area.left)
+            + "x" + std::to_string(work_area.bottom - work_area.top));
+
+    ANIMATIONINFO animation = {};
+    animation.cbSize = sizeof(animation);
+    BOOL animation_ok = SystemParametersInfoW(SPI_GETANIMATION, sizeof(animation), &animation, 0);
+    addCheck("native-theme-animation-info",
+        animation_ok && animation.iMinAnimate == TRUE,
+        "animate=" + std::to_string(animation.iMinAnimate));
+
+    unsetenv("MINIBLINK_HIGH_CONTRAST");
+    HIGHCONTRASTW high_contrast = {};
+    high_contrast.cbSize = sizeof(high_contrast);
+    BOOL high_contrast_default_ok = SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof(high_contrast), &high_contrast, 0);
+
+    setenv("MINIBLINK_HIGH_CONTRAST", "1", 1);
+    HIGHCONTRASTW high_contrast_forced = {};
+    high_contrast_forced.cbSize = sizeof(high_contrast_forced);
+    BOOL high_contrast_forced_ok = SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof(high_contrast_forced), &high_contrast_forced, 0);
+    unsetenv("MINIBLINK_HIGH_CONTRAST");
+
+    addCheck("native-theme-high-contrast",
+        high_contrast_default_ok && high_contrast_forced_ok
+            && (high_contrast.dwFlags & HCF_HIGHCONTRASTON) == 0
+            && (high_contrast_forced.dwFlags & HCF_HIGHCONTRASTON) != 0,
+        "default=" + std::to_string(high_contrast.dwFlags)
+            + " forced=" + std::to_string(high_contrast_forced.dwFlags));
+}
+
+void MB_CALL_TYPE runPowerMonitorNotificationBridgeChecksOnUiThread(void*, void*)
+{
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = powerMonitorWindowProc;
+    wc.lpszClassName = u"PowerMonitorCompatibilityWindow";
+    RegisterClassW(&wc);
+    HWND hwnd = CreateWindowExW(0, wc.lpszClassName, u"power-monitor-test", WS_OVERLAPPEDWINDOW, 0, 0, 120, 80, nullptr, nullptr, nullptr, nullptr);
+
+    bool bridge_ok = MacEnsurePowerMonitorNotificationBridge();
+    UINT bridge_state = MacPowerMonitorNotificationBridgeStateForTesting();
+
+    g_power_broadcast_count = 0;
+    g_power_suspend_count = 0;
+    g_power_resume_count = 0;
+    g_power_status_count = 0;
+
+    MacDispatchPowerMonitorMessageForTesting(PBT_APMSUSPEND);
+    MacDispatchPowerMonitorMessageForTesting(PBT_APMRESUMESUSPEND);
+    MacDispatchPowerMonitorMessageForTesting(PBT_APMPOWERSTATUSCHANGE);
+
+    int dispatched = 0;
+    for (int i = 0; i < 3; ++i) {
+        MSG msg = {};
+        if (PeekMessageW(&msg, hwnd, 0, 0, PM_REMOVE)) {
+            DispatchMessageW(&msg);
+            ++dispatched;
+        }
+    }
+
+    DestroyWindow(hwnd);
+    addCheck("power-monitor-native-notification-bridge",
+        hwnd
+            && bridge_ok
+            && (bridge_state & 1)
+            && (bridge_state & 2)
+            && dispatched == 3
+            && g_power_broadcast_count == 3
+            && g_power_suspend_count == 1
+            && g_power_resume_count == 1
+            && g_power_status_count == 1,
+        "bridge=" + std::to_string(bridge_ok)
+            + " state=" + std::to_string(bridge_state)
+            + " dispatched=" + std::to_string(dispatched)
+            + " count=" + std::to_string(g_power_broadcast_count.load())
+            + " suspend=" + std::to_string(g_power_suspend_count.load())
+            + " resume=" + std::to_string(g_power_resume_count.load())
+            + " status=" + std::to_string(g_power_status_count.load()));
+}
+
+void runPowerMonitorCompatibilityChecks()
+{
+    unsetenv("MINIBLINK_POWER_AC");
+    unsetenv("MINIBLINK_BATTERY_PERCENT");
+    SYSTEM_POWER_STATUS default_status = {};
+    BOOL default_ok = GetSystemPowerStatus(&default_status);
+    addCheck("power-monitor-system-power-status-default",
+        default_ok
+            && (default_status.ACLineStatus == AC_LINE_ONLINE
+                || default_status.ACLineStatus == AC_LINE_OFFLINE
+                || default_status.ACLineStatus == AC_LINE_UNKNOWN)
+            && default_status.BatteryLifePercent <= 100
+            && default_status.BatteryLifeTime == static_cast<DWORD>(-1)
+            && default_status.BatteryFullLifeTime == static_cast<DWORD>(-1),
+        "ac=" + std::to_string(default_status.ACLineStatus)
+            + " percent=" + std::to_string(default_status.BatteryLifePercent));
+
+    setenv("MINIBLINK_POWER_AC", "0", 1);
+    setenv("MINIBLINK_BATTERY_PERCENT", "42", 1);
+    SYSTEM_POWER_STATUS battery_status = {};
+    BOOL battery_ok = GetSystemPowerStatus(&battery_status);
+    unsetenv("MINIBLINK_POWER_AC");
+    unsetenv("MINIBLINK_BATTERY_PERCENT");
+
+    addCheck("power-monitor-system-power-status-battery",
+        battery_ok
+            && battery_status.ACLineStatus == AC_LINE_OFFLINE
+            && battery_status.BatteryLifePercent == 42
+            && battery_status.BatteryFlag == BATTERY_FLAG_UNKNOWN,
+        "ac=" + std::to_string(battery_status.ACLineStatus)
+            + " percent=" + std::to_string(battery_status.BatteryLifePercent));
+
+    BOOL null_ok = GetSystemPowerStatus(nullptr);
+    addCheck("power-monitor-system-power-status-null",
+        null_ok == FALSE,
+        "result=" + std::to_string(null_ok));
+
+    mbCallUiThreadSync(runPowerMonitorNotificationBridgeChecksOnUiThread, nullptr, nullptr);
+}
+
+void runPowerSaveBlockerCompatibilityChecks()
+{
+    EXECUTION_STATE initial = SetThreadExecutionState(ES_CONTINUOUS);
+    EXECUTION_STATE system_required = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+    int system_assertion_level = -1;
+    bool system_assertion_on = waitFor([&] {
+        return iopmAssertionIsOn(CFSTR("PreventUserIdleSystemSleep"), &system_assertion_level);
+    }, 1000);
+    EXECUTION_STATE display_required = SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+    int display_assertion_level = -1;
+    bool display_assertion_on = waitFor([&] {
+        return iopmAssertionIsOn(CFSTR("PreventUserIdleDisplaySleep"), &display_assertion_level);
+    }, 1000);
+    EXECUTION_STATE invalid = SetThreadExecutionState(0);
+    DWORD invalid_error = GetLastError();
+    EXECUTION_STATE reset = SetThreadExecutionState(ES_CONTINUOUS);
+
+    addCheck("power-save-blocker-execution-state",
+        initial != 0
+            && system_required == ES_CONTINUOUS
+            && display_required == (ES_CONTINUOUS | ES_SYSTEM_REQUIRED)
+            && invalid == 0
+            && invalid_error == ERROR_INVALID_PARAMETER
+            && reset == (ES_CONTINUOUS | ES_DISPLAY_REQUIRED),
+        "initial=" + std::to_string(initial)
+            + " systemPrev=" + std::to_string(system_required)
+            + " displayPrev=" + std::to_string(display_required)
+            + " invalid=" + std::to_string(invalid)
+            + " error=" + std::to_string(invalid_error)
+            + " resetPrev=" + std::to_string(reset));
+
+    addCheck("power-save-blocker-iopm-assertions",
+        system_assertion_on && display_assertion_on,
+        "systemLevel=" + std::to_string(system_assertion_level)
+            + " displayLevel=" + std::to_string(display_assertion_level));
+}
+
+std::u16string readMenuText(const WCHAR* text)
+{
+    std::u16string result;
+    if (!text)
+        return result;
+    while (*text) {
+        result.push_back((char16_t)*text);
+        ++text;
+    }
+    return result;
+}
+
+void copyWideText(const std::u16string& text, WCHAR* buffer, size_t capacity)
+{
+    if (!buffer || !capacity)
+        return;
+    size_t length = text.size() < capacity - 1 ? text.size() : capacity - 1;
+    for (size_t i = 0; i < length; ++i)
+        buffer[i] = static_cast<WCHAR>(text[i]);
+    buffer[length] = 0;
+}
+
+LRESULT menuCommandWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (msg == WM_COMMAND) {
+        g_menu_command_id = LOWORD(wParam);
+        ++g_menu_command_count;
+        return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+struct MenuCommandWindowState {
+    HWND hwnd = nullptr;
+    HMENU initialMenu = nullptr;
+};
+
+void MB_CALL_TYPE createMenuCommandWindowOnUiThread(void* param1, void*)
+{
+    MenuCommandWindowState* state = static_cast<MenuCommandWindowState*>(param1);
+    static const char16_t class_name[] = u"MiniblinkMenuCommandWindow";
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = menuCommandWindowProc;
+    wc.lpszClassName = reinterpret_cast<LPCWSTR>(class_name);
+    RegisterClassW(&wc);
+    state->hwnd = CreateWindowExW(0, reinterpret_cast<LPCWSTR>(class_name), reinterpret_cast<LPCWSTR>(class_name),
+        WS_POPUP, 0, 0, 1, 1, nullptr, state->initialMenu, nullptr, nullptr);
+}
+
+void MB_CALL_TYPE destroyMenuCommandWindowOnUiThread(void* param1, void*)
+{
+    HWND* hwnd = static_cast<HWND*>(param1);
+    if (hwnd && *hwnd) {
+        DestroyWindow(*hwnd);
+        *hwnd = nullptr;
+    }
+}
+
+void runMenuCompatibilityChecks()
+{
+    HMENU menu = CreateMenu();
+    HMENU submenu = CreatePopupMenu();
+    addCheck("menu-create", menu && submenu);
+    if (!menu || !submenu) {
+        if (menu)
+            DestroyMenu(menu);
+        if (submenu)
+            DestroyMenu(submenu);
+        return;
+    }
+
+    std::u16string open_text = u"Open";
+    std::u16string save_text = u"Save";
+    BOOL appended_open = AppendMenuW(menu, MF_STRING, 1001, reinterpret_cast<LPCWSTR>(open_text.c_str()));
+    BOOL appended_save = AppendMenuW(menu, MF_STRING | MF_CHECKED, 1002, reinterpret_cast<LPCWSTR>(save_text.c_str()));
+
+    std::u16string inserted_text = u"Inserted";
+    MENUITEMINFOW insert_info = {};
+    insert_info.cbSize = sizeof(insert_info);
+    insert_info.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE | MIIM_DATA | MIIM_SUBMENU;
+    insert_info.wID = 1000;
+    insert_info.fState = MFS_DISABLED;
+    insert_info.dwItemData = 0x42;
+    insert_info.hSubMenu = submenu;
+    insert_info.dwTypeData = reinterpret_cast<LPWSTR>(const_cast<char16_t*>(inserted_text.c_str()));
+    BOOL inserted = InsertMenuItemW(menu, 0, TRUE, &insert_info);
+    addCheck("menu-append-insert-count", appended_open && appended_save && inserted && GetMenuItemCount(menu) == 3,
+        std::to_string(GetMenuItemCount(menu)));
+
+    WCHAR text_buffer[64] = {};
+    MENUITEMINFOW read_info = {};
+    read_info.cbSize = sizeof(read_info);
+    read_info.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE | MIIM_DATA | MIIM_SUBMENU;
+    read_info.dwTypeData = text_buffer;
+    read_info.cch = 64;
+    BOOL read_inserted = GetMenuItemInfoW(menu, 0, TRUE, &read_info);
+    addCheck("menu-get-item-info-position",
+        read_inserted && read_info.wID == 1000 && read_info.fState == MFS_DISABLED
+            && read_info.dwItemData == 0x42 && read_info.hSubMenu == submenu
+            && readMenuText(text_buffer) == inserted_text,
+        "id=" + std::to_string(read_info.wID) + " textLen=" + std::to_string(read_info.cch));
+
+    std::u16string renamed_text = u"Renamed";
+    MENUITEMINFOW set_info = {};
+    set_info.cbSize = sizeof(set_info);
+    set_info.fMask = MIIM_STRING | MIIM_STATE;
+    set_info.fState = MFS_CHECKED;
+    set_info.dwTypeData = reinterpret_cast<LPWSTR>(const_cast<char16_t*>(renamed_text.c_str()));
+    BOOL renamed = SetMenuItemInfoW(menu, 1001, FALSE, &set_info);
+
+    memset(text_buffer, 0, sizeof(text_buffer));
+    MENUITEMINFOW read_renamed = {};
+    read_renamed.cbSize = sizeof(read_renamed);
+    read_renamed.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+    read_renamed.dwTypeData = text_buffer;
+    read_renamed.cch = 64;
+    BOOL read_by_command = GetMenuItemInfoW(menu, 1001, FALSE, &read_renamed);
+    addCheck("menu-set-get-item-info-command",
+        renamed && read_by_command && read_renamed.wID == 1001 && read_renamed.fState == MFS_CHECKED
+            && readMenuText(text_buffer) == renamed_text,
+        "id=" + std::to_string(read_renamed.wID) + " state=" + std::to_string(read_renamed.fState));
+
+    BOOL disabled = EnableMenuItem(menu, 1001, MFS_DISABLED);
+    MENUITEMINFOW disabled_info = {};
+    disabled_info.cbSize = sizeof(disabled_info);
+    disabled_info.fMask = MIIM_STATE;
+    BOOL read_disabled = GetMenuItemInfoW(menu, 1001, FALSE, &disabled_info);
+    BOOL enabled = EnableMenuItem(menu, 1001, MFS_ENABLED);
+    MENUITEMINFOW enabled_info = {};
+    enabled_info.cbSize = sizeof(enabled_info);
+    enabled_info.fMask = MIIM_STATE;
+    BOOL read_enabled = GetMenuItemInfoW(menu, 1001, FALSE, &enabled_info);
+    addCheck("menu-enable-disable-state",
+        disabled && read_disabled && (disabled_info.fState & MFS_DISABLED)
+            && enabled && read_enabled && !(enabled_info.fState & MFS_DISABLED),
+        "disabled=" + std::to_string(disabled_info.fState) + " enabled=" + std::to_string(enabled_info.fState));
+
+    UINT previous_check = CheckMenuItem(menu, 1002, MF_BYCOMMAND | MF_UNCHECKED);
+    UINT unchecked_state = GetMenuState(menu, 1002, MF_BYCOMMAND);
+    UINT previous_position_check = CheckMenuItem(menu, 1, MF_BYPOSITION | MF_CHECKED);
+    UINT checked_position_state = GetMenuState(menu, 1, MF_BYPOSITION);
+    addCheck("menu-check-state",
+        previous_check == MFS_CHECKED && !(unchecked_state & MFS_CHECKED)
+            && previous_position_check == MFS_CHECKED && (checked_position_state & MFS_CHECKED),
+        "unchecked=" + std::to_string(unchecked_state) + " checkedPos=" + std::to_string(checked_position_state));
+
+    BOOL deleted_by_position = DeleteMenu(menu, 0, MF_BYPOSITION);
+    BOOL deleted_by_command = DeleteMenu(menu, 1002, MF_BYCOMMAND);
+    UINT deleted_state = GetMenuState(menu, 1002, MF_BYCOMMAND);
+    addCheck("menu-delete-state",
+        deleted_by_position && deleted_by_command && GetMenuItemCount(menu) == 1 && deleted_state == (UINT)-1,
+        "count=" + std::to_string(GetMenuItemCount(menu)) + " deletedState=" + std::to_string(deleted_state));
+
+    MenuCommandWindowState command_window;
+    command_window.initialMenu = menu;
+    mbCallUiThreadSync(createMenuCommandWindowOnUiThread, &command_window, nullptr);
+    HMENU command_menu = CreatePopupMenu();
+    std::u16string disabled_command_text = u"Disabled";
+    std::u16string enabled_command_text = u"Enabled";
+    BOOL command_menu_ready = command_menu
+        && AppendMenuW(command_menu, MF_SEPARATOR, 0, nullptr)
+        && AppendMenuW(command_menu, MF_STRING | MFS_DISABLED, 2001, reinterpret_cast<LPCWSTR>(disabled_command_text.c_str()))
+        && AppendMenuW(command_menu, MF_STRING, 2002, reinterpret_cast<LPCWSTR>(enabled_command_text.c_str()));
+    addCheck("menu-track-command-setup", command_menu_ready && command_window.hwnd,
+        "hwnd=" + std::to_string((uintptr_t)command_window.hwnd));
+
+    BOOL initial_window_menu = GetMenu(command_window.hwnd) == menu;
+    BOOL set_window_menu = command_menu ? SetMenu(command_window.hwnd, command_menu) : FALSE;
+    BOOL read_window_menu = GetMenu(command_window.hwnd) == command_menu;
+    BOOL drew_menu_bar = DrawMenuBar(command_window.hwnd);
+    BOOL cleared_window_menu = SetMenu(command_window.hwnd, nullptr);
+    BOOL read_cleared_menu = GetMenu(command_window.hwnd) == nullptr;
+    addCheck("menu-window-binding",
+        initial_window_menu && set_window_menu && read_window_menu && drew_menu_bar && cleared_window_menu && read_cleared_menu,
+        "initial=" + std::to_string(initial_window_menu) + " set=" + std::to_string(set_window_menu)
+            + " read=" + std::to_string(read_window_menu) + " draw=" + std::to_string(drew_menu_bar)
+            + " cleared=" + std::to_string(read_cleared_menu));
+
+    HMENU system_menu = GetSystemMenu(command_window.hwnd, FALSE);
+    HMENU same_system_menu = GetSystemMenu(command_window.hwnd, FALSE);
+    int system_default_count = GetMenuItemCount(system_menu);
+    UINT restore_state = GetMenuState(system_menu, SC_RESTORE, MF_BYCOMMAND);
+    UINT minimize_state = GetMenuState(system_menu, SC_MINIMIZE, MF_BYCOMMAND);
+    UINT maximize_state = GetMenuState(system_menu, SC_MAXIMIZE, MF_BYCOMMAND);
+    UINT close_state = GetMenuState(system_menu, SC_CLOSE, MF_BYCOMMAND);
+    addCheck("menu-system-menu-defaults",
+        system_menu && same_system_menu == system_menu && system_default_count == 5
+            && restore_state != (UINT)-1 && minimize_state != (UINT)-1
+            && maximize_state != (UINT)-1 && close_state != (UINT)-1,
+        "count=" + std::to_string(system_default_count) + " same=" + std::to_string(same_system_menu == system_menu));
+
+    std::u16string custom_system_text = u"Custom System";
+    BOOL appended_system_custom = system_menu
+        ? AppendMenuW(system_menu, MF_STRING, 3001, reinterpret_cast<LPCWSTR>(custom_system_text.c_str()))
+        : FALSE;
+    int system_custom_count = GetMenuItemCount(system_menu);
+    HMENU revert_system_return = GetSystemMenu(command_window.hwnd, TRUE);
+    HMENU reset_system_menu = GetSystemMenu(command_window.hwnd, FALSE);
+    int reset_system_count = GetMenuItemCount(reset_system_menu);
+    UINT reset_custom_state = GetMenuState(reset_system_menu, 3001, MF_BYCOMMAND);
+    addCheck("menu-system-menu-revert",
+        appended_system_custom && system_custom_count == system_default_count + 1
+            && revert_system_return == nullptr && reset_system_menu
+            && reset_system_count == system_default_count && reset_custom_state == (UINT)-1,
+        "customCount=" + std::to_string(system_custom_count) + " resetCount=" + std::to_string(reset_system_count)
+            + " customState=" + std::to_string(reset_custom_state));
+
+    BOOL returned_command = command_menu ? TrackPopupMenuEx(command_menu, TPM_RETURNCMD, 10, 10, command_window.hwnd, nullptr) : FALSE;
+    addCheck("menu-track-return-command", (UINT)returned_command == 2002,
+        "command=" + std::to_string((UINT)returned_command));
+
+    g_menu_command_count = 0;
+    g_menu_command_id = 0;
+    BOOL posted_command = command_menu ? TrackPopupMenuEx(command_menu, TPM_LEFTALIGN, 10, 10, command_window.hwnd, nullptr) : FALSE;
+    bool received_command = waitFor([] { return g_menu_command_count.load() > 0; }, 2000);
+    addCheck("menu-track-post-command",
+        posted_command && received_command && g_menu_command_id.load() == 2002,
+        "posted=" + std::to_string(posted_command) + " count=" + std::to_string(g_menu_command_count.load())
+            + " command=" + std::to_string(g_menu_command_id.load()));
+
+    if (command_menu)
+        DestroyMenu(command_menu);
+    if (command_window.hwnd)
+        mbCallUiThreadSync(destroyMenuCommandWindowOnUiThread, &command_window.hwnd, nullptr);
+
+    DestroyMenu(menu);
+    DestroyMenu(submenu);
+}
+
+void runNativeImageCompatibilityChecks()
+{
+    BITMAPINFO bitmap_info = {};
+    bitmap_info.bmiHeader.biSize = sizeof(bitmap_info.bmiHeader);
+    bitmap_info.bmiHeader.biWidth = 2;
+    bitmap_info.bmiHeader.biHeight = -2;
+    bitmap_info.bmiHeader.biPlanes = 1;
+    bitmap_info.bmiHeader.biBitCount = 32;
+    bitmap_info.bmiHeader.biCompression = BI_RGB;
+
+    void* pixels = nullptr;
+    HBITMAP color_bitmap = CreateDIBSection(nullptr, &bitmap_info, DIB_RGB_COLORS, &pixels, nullptr, 0);
+    if (pixels) {
+        unsigned char* bytes = static_cast<unsigned char*>(pixels);
+        for (int i = 0; i < 16; ++i)
+            bytes[i] = static_cast<unsigned char>(i * 13);
+    }
+
+    BITMAP color_info = {};
+    int color_object_size = GetObject(color_bitmap, sizeof(color_info), &color_info);
+    addCheck("nativeimage-dibsection-bitmap",
+        color_bitmap && pixels && color_object_size == sizeof(BITMAP)
+            && color_info.bmWidth == 2 && color_info.bmHeight == 2
+            && color_info.bmBitsPixel == 32 && color_info.bmBits == pixels,
+        "size=" + std::to_string(color_object_size) + " " + std::to_string(color_info.bmWidth) + "x" + std::to_string(color_info.bmHeight));
+
+    HBITMAP mask_bitmap = CreateBitmap(2, 2, 1, 1, nullptr);
+    BITMAP mask_info = {};
+    int mask_object_size = GetObject(mask_bitmap, sizeof(mask_info), &mask_info);
+    addCheck("nativeimage-mask-bitmap",
+        mask_bitmap && mask_object_size == sizeof(BITMAP)
+            && mask_info.bmWidth == 2 && mask_info.bmHeight == 2 && mask_info.bmBitsPixel == 1,
+        "size=" + std::to_string(mask_object_size) + " bpp=" + std::to_string(mask_info.bmBitsPixel));
+
+    HDC source_dc = CreateCompatibleDC(nullptr);
+    HDC dest_dc = CreateCompatibleDC(nullptr);
+    HBITMAP dest_bitmap = CreateCompatibleBitmap(nullptr, 2, 2);
+    HBITMAP old_source = source_dc ? (HBITMAP)SelectObject(source_dc, color_bitmap) : nullptr;
+    HBITMAP old_dest = dest_dc ? (HBITMAP)SelectObject(dest_dc, dest_bitmap) : nullptr;
+    BOOL selected_bitmap = GetCurrentObject(source_dc, OBJ_BITMAP) == color_bitmap
+        && GetCurrentObject(dest_dc, OBJ_BITMAP) == dest_bitmap;
+    BOOL blitted = BitBlt(dest_dc, 0, 0, 2, 2, source_dc, 0, 0, SRCCOPY);
+    BITMAP blit_info = {};
+    BOOL read_blit_bitmap = GetObject(dest_bitmap, sizeof(blit_info), &blit_info) == sizeof(BITMAP);
+    BOOL copied_pixels = pixels && blit_info.bmBits
+        && memcmp(blit_info.bmBits, pixels, 16) == 0;
+    addCheck("nativeimage-memorydc-bitblt",
+        source_dc && dest_dc && dest_bitmap && selected_bitmap && blitted && read_blit_bitmap && copied_pixels,
+        "selected=" + std::to_string(selected_bitmap) + " blit=" + std::to_string(blitted));
+
+    HBITMAP blend_bitmap = CreateCompatibleBitmap(nullptr, 2, 2);
+    SelectObject(dest_dc, blend_bitmap);
+    BLENDFUNCTION blend = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+    BOOL alpha_blended = GdiAlphaBlend(dest_dc, 0, 0, 2, 2, source_dc, 0, 0, 2, 2, blend);
+    BITMAP blend_info = {};
+    BOOL read_blend_bitmap = GetObject(blend_bitmap, sizeof(blend_info), &blend_info) == sizeof(BITMAP);
+    addCheck("nativeimage-memorydc-alpha-blend",
+        blend_bitmap && alpha_blended && read_blend_bitmap && blend_info.bmBits,
+        "blend=" + std::to_string(alpha_blended));
+
+    OpenClipboard(nullptr);
+    EmptyClipboard();
+    HANDLE set_bitmap_clipboard = SetClipboardData(CF_BITMAP, dest_bitmap);
+    HANDLE dib_clipboard = GetClipboardData(CF_DIB);
+    BITMAPINFO* dib_info = dib_clipboard ? static_cast<BITMAPINFO*>(GlobalLock(dib_clipboard)) : nullptr;
+    bool clipboard_dib_ok = set_bitmap_clipboard == dest_bitmap && dib_info
+        && dib_info->bmiHeader.biWidth == 2 && dib_info->bmiHeader.biHeight == 2
+        && dib_info->bmiHeader.biBitCount == 32
+        && IsClipboardFormatAvailable(CF_DIB);
+    if (dib_clipboard) {
+        GlobalUnlock(dib_clipboard);
+        GlobalFree(dib_clipboard);
+    }
+    CloseClipboard();
+    addCheck("nativeimage-clipboard-bitmap-dib",
+        clipboard_dib_ok,
+        "ok=" + std::to_string(clipboard_dib_ok));
+
+    if (source_dc) {
+        SelectObject(source_dc, old_source);
+        DeleteDC(source_dc);
+    }
+    if (dest_dc) {
+        SelectObject(dest_dc, old_dest);
+        DeleteDC(dest_dc);
+    }
+    if (dest_bitmap)
+        DeleteObject(dest_bitmap);
+    if (blend_bitmap)
+        DeleteObject(blend_bitmap);
+
+    ICONINFO icon_info = {};
+    icon_info.fIcon = TRUE;
+    icon_info.hbmColor = color_bitmap;
+    icon_info.hbmMask = mask_bitmap;
+    HICON icon = CreateIconIndirect(&icon_info);
+    BOOL destroyed_icon = DestroyIcon(icon);
+    BOOL invalid_icon_rejected = CreateIconIndirect(nullptr) == nullptr;
+    BOOL color_deleted = DeleteObject(color_bitmap);
+    BOOL mask_deleted = DeleteObject(mask_bitmap);
+    addCheck("nativeimage-icon-lifecycle",
+        icon && destroyed_icon && invalid_icon_rejected && color_deleted && mask_deleted,
+        "icon=" + std::to_string(icon ? 1 : 0) + " destroyed=" + std::to_string(destroyed_icon));
+}
+
+void runMacGdiBitmapDrawChecks()
+{
+    unsigned char source_pixels[] = {
+        255, 0, 0, 255,
+        0, 0, 255, 255,
+    };
+    unsigned char output_pixels[] = {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    };
+
+    CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmap_info = (CGBitmapInfo)((uint32_t)kCGBitmapByteOrder32Big | (uint32_t)kCGImageAlphaPremultipliedLast);
+    CGContextRef context = color_space ? CGBitmapContextCreate(output_pixels, 2, 1, 8, 8, color_space, bitmap_info) : nullptr;
+    BOOL drew = context ? MacGdiDrawBitmapToContext((HDC)context, source_pixels, 2, 1, 0, 0, 2, 1, 0, 0) : FALSE;
+    if (context) {
+        CGContextFlush(context);
+        CGContextRelease(context);
+    }
+    if (color_space)
+        CGColorSpaceRelease(color_space);
+
+    bool colors_ok = drew
+        && output_pixels[0] == 255 && output_pixels[1] == 0 && output_pixels[2] == 0
+        && output_pixels[4] == 0 && output_pixels[5] == 0 && output_pixels[6] == 255;
+    std::string detail = std::to_string((int)output_pixels[0]) + "," + std::to_string((int)output_pixels[1]) + "," + std::to_string((int)output_pixels[2])
+        + "|" + std::to_string((int)output_pixels[4]) + "," + std::to_string((int)output_pixels[5]) + "," + std::to_string((int)output_pixels[6]);
+    addCheck("macgdi-draw-rgba-colors", colors_ok, detail);
+}
+
+void runTrayCompatibilityChecks(HWND host)
+{
+    addCheck("tray-host-window", host != nullptr, "host=" + std::to_string((uintptr_t)host));
+    if (!host)
+        return;
+
+    BITMAPINFO bitmap_info = {};
+    bitmap_info.bmiHeader.biSize = sizeof(bitmap_info.bmiHeader);
+    bitmap_info.bmiHeader.biWidth = 2;
+    bitmap_info.bmiHeader.biHeight = -2;
+    bitmap_info.bmiHeader.biPlanes = 1;
+    bitmap_info.bmiHeader.biBitCount = 32;
+    bitmap_info.bmiHeader.biCompression = BI_RGB;
+
+    void* pixels = nullptr;
+    HBITMAP color_bitmap = CreateDIBSection(nullptr, &bitmap_info, DIB_RGB_COLORS, &pixels, nullptr, 0);
+    HBITMAP mask_bitmap = CreateBitmap(2, 2, 1, 1, nullptr);
+    ICONINFO icon_info = {};
+    icon_info.fIcon = TRUE;
+    icon_info.hbmColor = color_bitmap;
+    icon_info.hbmMask = mask_bitmap;
+    HICON icon = CreateIconIndirect(&icon_info);
+    addCheck("tray-icon-create", color_bitmap && mask_bitmap && icon);
+
+    NOTIFYICONDATAW data = {};
+    data.cbSize = sizeof(data);
+    data.hWnd = host;
+    data.uID = 7001;
+    data.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+    data.uCallbackMessage = WM_USER + 57;
+    data.hIcon = icon;
+    copyWideText(u"tray-tip", data.szTip, sizeof(data.szTip) / sizeof(data.szTip[0]));
+
+    BOOL added = Shell_NotifyIconW(NIM_ADD, &data);
+    BOOL duplicate_add_rejected = !Shell_NotifyIconW(NIM_ADD, &data);
+    addCheck("tray-notify-add", added);
+    addCheck("tray-notify-duplicate-add", duplicate_add_rejected);
+
+    data.uVersion = NOTIFYICON_VERSION_4;
+    BOOL version_set = Shell_NotifyIconW(NIM_SETVERSION, &data);
+    BOOL focus_set = Shell_NotifyIconW(NIM_SETFOCUS, &data);
+    addCheck("tray-notify-version-focus", version_set && focus_set);
+
+    data.uFlags = NIF_TIP | NIF_STATE | NIF_INFO | NIF_ICON;
+    data.dwState = NIS_HIDDEN;
+    data.dwStateMask = NIS_HIDDEN;
+    data.dwInfoFlags = 0;
+    copyWideText(u"tray-tip-modified", data.szTip, sizeof(data.szTip) / sizeof(data.szTip[0]));
+    copyWideText(u"tray-info", data.szInfo, sizeof(data.szInfo) / sizeof(data.szInfo[0]));
+    copyWideText(u"tray-title", data.szInfoTitle, sizeof(data.szInfoTitle) / sizeof(data.szInfoTitle[0]));
+    BOOL modified = Shell_NotifyIconW(NIM_MODIFY, &data);
+    addCheck("tray-notify-modify-state-info", modified);
+
+    NOTIFYICONDATAA data_a = {};
+    data_a.cbSize = sizeof(data_a);
+    data_a.hWnd = host;
+    data_a.uID = data.uID;
+    data_a.uFlags = NIF_TIP | NIF_INFO;
+    snprintf(data_a.szTip, sizeof(data_a.szTip), "%s", "tray-tip-ansi");
+    snprintf(data_a.szInfo, sizeof(data_a.szInfo), "%s", "tray-info-ansi");
+    snprintf(data_a.szInfoTitle, sizeof(data_a.szInfoTitle), "%s", "tray-title-ansi");
+    BOOL ansi_modified = Shell_NotifyIconA(NIM_MODIFY, &data_a);
+    addCheck("tray-notify-ansi-modify", ansi_modified);
+
+    BOOL deleted = Shell_NotifyIconW(NIM_DELETE, &data);
+    BOOL missing_delete_rejected = !Shell_NotifyIconW(NIM_DELETE, &data);
+    addCheck("tray-notify-delete", deleted);
+    addCheck("tray-notify-delete-missing", missing_delete_rejected);
+
+    if (icon)
+        DestroyIcon(icon);
+    if (color_bitmap)
+        DeleteObject(color_bitmap);
+    if (mask_bitmap)
+        DeleteObject(mask_bitmap);
+}
+
+std::string getCookieViaApi(mbWebView view)
+{
+    int before = g_cookie_callback_count.load();
+    g_cookie_callback_state = -1;
+    mbGetCookie(view, onGetCookie, nullptr);
+    waitFor([&] { return g_cookie_callback_count.load() > before; }, 3000);
+    std::lock_guard<std::mutex> lock(g_state_mutex);
+    return g_last_cookie_string;
+}
+
+void runSessionCookieChecks(mbWebView view, const std::string& origin)
+{
+    const std::string url = origin + "/remote.html";
+    mbSetCookie(view, url.c_str(), "host_cookie=api-ok; path=/");
+    bool dom_cookie_ok = waitFor([&] {
+        return jsString(view, "document.cookie").find("host_cookie=api-ok") != std::string::npos;
+    }, 3000);
+    addCheck("session-cookie-set-via-api-dom", dom_cookie_ok, jsString(view, "document.cookie"));
+
+    std::string api_cookie = getCookieViaApi(view);
+    addCheck("session-cookie-get-via-api", g_cookie_callback_state.load() == kMbAsynRequestStateOk
+            && api_cookie.find("host_cookie=api-ok") != std::string::npos,
+        api_cookie);
+
+    mbClearCookie(view);
+    bool cleared = waitFor([&] {
+        return getCookieViaApi(view).find("host_cookie=api-ok") == std::string::npos;
+    }, 3000);
+    addCheck("session-cookie-clear-via-api", cleared, getCookieViaApi(view));
+}
+
+void runSessionPartitionCookieChecks(const std::string& origin, const std::string& tmp_dir)
+{
+    mbWebView view_a = createPopupWindow(300, 300, 360, 260);
+    mbWebView view_b = createPopupWindow(330, 330, 360, 260);
+    HWND host_a = view_a ? mbGetHostHWND(view_a) : nullptr;
+    HWND host_b = view_b ? mbGetHostHWND(view_b) : nullptr;
+    addCheck("session-partition-window-create", view_a != NULL_WEBVIEW && view_b != NULL_WEBVIEW && host_a && host_b);
+    if (view_a == NULL_WEBVIEW || view_b == NULL_WEBVIEW)
+        return;
+
+    std::u16string jar_a = asciiToWidePath(tmp_dir + "/partition_cookie_a.dat");
+    std::u16string jar_b = asciiToWidePath(tmp_dir + "/partition_cookie_b.dat");
+    mbSetCookieJarFullPath(view_a, reinterpret_cast<const WCHAR*>(jar_a.c_str()));
+    mbSetCookieJarFullPath(view_b, reinterpret_cast<const WCHAR*>(jar_b.c_str()));
+    flushBlinkThread();
+
+    attachBasicLoadCallbacks(view_a);
+    attachBasicLoadCallbacks(view_b);
+    mbShowWindow(view_a, SW_SHOW);
+    mbShowWindow(view_b, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(view_a, partition_url.c_str());
+    bool a_loaded = waitForLoad(view_a, "session-partition-load-a", 6000);
+    resetLoadState();
+    mbLoadURL(view_b, partition_url.c_str());
+    bool b_loaded = waitForLoad(view_b, "session-partition-load-b", 6000);
+
+    bool dom_isolated = false;
+    bool api_isolated = false;
+    std::string detail;
+    if (a_loaded && b_loaded) {
+        jsString(view_a, "document.cookie='partition_cookie=A; path=/'; document.cookie");
+        std::string b_before = jsString(view_b, "document.cookie");
+        jsString(view_b, "document.cookie='partition_cookie=B; path=/'; document.cookie");
+        std::string b_after = jsString(view_b, "document.cookie");
+        std::string a_after = jsString(view_a, "document.cookie");
+        dom_isolated = a_after.find("partition_cookie=A") != std::string::npos
+            && a_after.find("partition_cookie=B") == std::string::npos
+            && b_before.find("partition_cookie=A") == std::string::npos
+            && b_after.find("partition_cookie=B") != std::string::npos;
+        detail = "a=" + a_after + " bBefore=" + b_before + " bAfter=" + b_after;
+
+        mbSetCookie(view_a, partition_url.c_str(), "api_partition=A; path=/");
+        std::string a_api = getCookieViaApi(view_a);
+        std::string b_api_before = getCookieViaApi(view_b);
+        mbSetCookie(view_b, partition_url.c_str(), "api_partition=B; path=/");
+        std::string b_api_after = getCookieViaApi(view_b);
+        std::string a_api_after = getCookieViaApi(view_a);
+        api_isolated = a_api_after.find("api_partition=A") != std::string::npos
+            && a_api_after.find("api_partition=B") == std::string::npos
+            && b_api_before.find("api_partition=A") == std::string::npos
+            && b_api_after.find("api_partition=B") != std::string::npos;
+        detail += " apiA=" + a_api + " apiBBefore=" + b_api_before + " apiBAfter=" + b_api_after + " apiAAfter=" + a_api_after;
+    }
+    addCheck("session-partition-cookie-dom-isolation", dom_isolated, detail);
+    addCheck("session-partition-cookie-api-isolation", api_isolated, detail);
+
+    mbDestroyWebView(view_a);
+    mbDestroyWebView(view_b);
+    waitFor([&] { return (!host_a || !readWindowState(host_a).isWindow) && (!host_b || !readWindowState(host_b).isWindow); }, 3000);
+}
+
+void runSessionPartitionLocalStorageChecks(const std::string& origin, const std::string& tmp_dir)
+{
+    mbWebView view_a = createPopupWindow(360, 360, 360, 260);
+    mbWebView view_b = createPopupWindow(390, 390, 360, 260);
+    HWND host_a = view_a ? mbGetHostHWND(view_a) : nullptr;
+    HWND host_b = view_b ? mbGetHostHWND(view_b) : nullptr;
+    addCheck("session-partition-localstorage-window-create", view_a != NULL_WEBVIEW && view_b != NULL_WEBVIEW && host_a && host_b);
+    if (view_a == NULL_WEBVIEW || view_b == NULL_WEBVIEW)
+        return;
+
+    mkdir((tmp_dir + "/partition_ls_a").c_str(), 0755);
+    mkdir((tmp_dir + "/partition_ls_b").c_str(), 0755);
+    std::u16string path_a = asciiToWidePath(tmp_dir + "/partition_ls_a");
+    std::u16string path_b = asciiToWidePath(tmp_dir + "/partition_ls_b");
+    mbSetLocalStorageFullPath(view_a, reinterpret_cast<const WCHAR*>(path_a.c_str()));
+    mbSetLocalStorageFullPath(view_b, reinterpret_cast<const WCHAR*>(path_b.c_str()));
+    flushBlinkThread();
+
+    attachBasicLoadCallbacks(view_a);
+    attachBasicLoadCallbacks(view_b);
+    mbShowWindow(view_a, SW_SHOW);
+    mbShowWindow(view_b, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(view_a, partition_url.c_str());
+    bool a_loaded = waitForLoad(view_a, "session-partition-localstorage-load-a", 6000);
+    resetLoadState();
+    mbLoadURL(view_b, partition_url.c_str());
+    bool b_loaded = waitForLoad(view_b, "session-partition-localstorage-load-b", 6000);
+
+    bool isolated = false;
+    std::string detail;
+    if (a_loaded && b_loaded) {
+        jsString(view_a, "localStorage.clear(); localStorage.setItem('partition_ls','A'); localStorage.getItem('partition_ls')");
+        std::string b_before = jsString(view_b, "localStorage.getItem('partition_ls') || ''");
+        jsString(view_b, "localStorage.setItem('partition_ls','B'); localStorage.getItem('partition_ls')");
+        std::string b_after = jsString(view_b, "localStorage.getItem('partition_ls') || ''");
+        std::string a_after = jsString(view_a, "localStorage.getItem('partition_ls') || ''");
+        isolated = a_after == "A" && b_before.empty() && b_after == "B";
+        detail = "aAfter=" + a_after + " bBefore=" + b_before + " bAfter=" + b_after;
+    }
+    addCheck("session-partition-localstorage-isolation", isolated, detail);
+
+    mbDestroyWebView(view_a);
+    mbDestroyWebView(view_b);
+    waitFor([&] { return (!host_a || !readWindowState(host_a).isWindow) && (!host_b || !readWindowState(host_b).isWindow); }, 3000);
+}
+
+void runSessionStorageIsolationChecks(const std::string& origin)
+{
+    mbWebView view_a = createPopupWindow(420, 420, 360, 260);
+    mbWebView view_b = createPopupWindow(450, 450, 360, 260);
+    HWND host_a = view_a ? mbGetHostHWND(view_a) : nullptr;
+    HWND host_b = view_b ? mbGetHostHWND(view_b) : nullptr;
+    addCheck("session-sessionstorage-window-create", view_a != NULL_WEBVIEW && view_b != NULL_WEBVIEW && host_a && host_b);
+    if (view_a == NULL_WEBVIEW || view_b == NULL_WEBVIEW)
+        return;
+
+    attachBasicLoadCallbacks(view_a);
+    attachBasicLoadCallbacks(view_b);
+    mbShowWindow(view_a, SW_SHOW);
+    mbShowWindow(view_b, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(view_a, partition_url.c_str());
+    bool a_loaded = waitForLoad(view_a, "session-sessionstorage-load-a", 6000);
+    resetLoadState();
+    mbLoadURL(view_b, partition_url.c_str());
+    bool b_loaded = waitForLoad(view_b, "session-sessionstorage-load-b", 6000);
+
+    bool isolated = false;
+    std::string detail;
+    if (a_loaded && b_loaded) {
+        jsString(view_a, "sessionStorage.clear(); sessionStorage.setItem('partition_ss','A'); sessionStorage.getItem('partition_ss')");
+        std::string b_before = jsString(view_b, "sessionStorage.getItem('partition_ss') || ''");
+        jsString(view_b, "sessionStorage.setItem('partition_ss','B'); sessionStorage.getItem('partition_ss')");
+        std::string b_after = jsString(view_b, "sessionStorage.getItem('partition_ss') || ''");
+        std::string a_after = jsString(view_a, "sessionStorage.getItem('partition_ss') || ''");
+        isolated = a_after == "A" && b_before.empty() && b_after == "B";
+        detail = "aAfter=" + a_after + " bBefore=" + b_before + " bAfter=" + b_after;
+    }
+    addCheck("session-sessionstorage-isolation", isolated, detail);
+
+    mbDestroyWebView(view_a);
+    mbDestroyWebView(view_b);
+    waitFor([&] { return (!host_a || !readWindowState(host_a).isWindow) && (!host_b || !readWindowState(host_b).isWindow); }, 3000);
+}
+
+void runSessionStorageWindowOpenCloneChecks(const std::string& origin)
+{
+    mbWebView opener = createPopupWindow(480, 480, 360, 260);
+    HWND opener_host = opener ? mbGetHostHWND(opener) : nullptr;
+    addCheck("session-sessionstorage-window-open-opener-create", opener != NULL_WEBVIEW && opener_host);
+    if (opener == NULL_WEBVIEW)
+        return;
+
+    attachBasicLoadCallbacks(opener);
+    mbSetNavigationToNewWindowEnable(opener, TRUE);
+    mbShowWindow(opener, SW_SHOW);
+
+    const std::string partition_url = origin + "/partition.html";
+    resetLoadState();
+    mbLoadURL(opener, partition_url.c_str());
+    bool opener_loaded = waitForLoad(opener, "session-sessionstorage-window-open-opener-load", 6000);
+
+    CreateViewReturnState child_state;
+    if (opener_loaded) {
+        mbOnCreateView(opener, onCreateViewReturningPopup, &child_state);
+        resetLoadState();
+        std::string script = "sessionStorage.clear();"
+                             "sessionStorage.setItem('open_clone','from-opener');"
+                             "window.open('" + partition_url + "');"
+                             "1";
+        jsNumber(opener, script);
+    }
+
+    bool child_created = waitFor([&] { return child_state.view != NULL_WEBVIEW; }, 3000);
+    addCheck("session-sessionstorage-window-open-child-create",
+        opener_loaded && child_created && child_state.host,
+        child_state.url);
+
+    bool child_loaded = false;
+    if (child_created)
+        child_loaded = waitForLoad(child_state.view, "session-sessionstorage-window-open-child-load", 6000);
+
+    bool cloned = false;
+    bool detached = false;
+    std::string detail;
+    if (opener_loaded && child_created && child_loaded) {
+        std::string child_initial = jsString(child_state.view, "sessionStorage.getItem('open_clone') || ''");
+        jsString(opener, "sessionStorage.setItem('open_clone','after-open'); sessionStorage.getItem('open_clone')");
+        std::string child_after_parent = jsString(child_state.view, "sessionStorage.getItem('open_clone') || ''");
+        jsString(child_state.view, "sessionStorage.setItem('open_clone','child-value'); sessionStorage.getItem('open_clone')");
+        std::string opener_after_child = jsString(opener, "sessionStorage.getItem('open_clone') || ''");
+        cloned = child_initial == "from-opener";
+        detached = child_after_parent == "from-opener" && opener_after_child == "after-open";
+        detail = "childInitial=" + child_initial + " childAfterParent=" + child_after_parent + " openerAfterChild=" + opener_after_child;
+    }
+    addCheck("session-sessionstorage-window-open-clone", cloned, detail);
+    addCheck("session-sessionstorage-window-open-detached", detached, detail);
+
+    mbOnCreateView(opener, onCreateView, nullptr);
+    if (child_state.view)
+        mbDestroyWebView(child_state.view);
+    mbDestroyWebView(opener);
+    waitFor([&] {
+        return (!child_state.host || !readWindowState(child_state.host).isWindow)
+            && (!opener_host || !readWindowState(opener_host).isWindow);
+    }, 3000);
+}
+
+void runProtocolChecks(mbWebView view)
+{
+    g_custom_protocol_main_seen = false;
+    g_custom_protocol_subresource_seen = false;
+
+    resetLoadState();
+    mbLoadURL(view, "mbapp://e2e/index.html");
+    bool protocol_ok = waitForLoad(view, "protocol-custom-scheme-load", 6000);
+    addCheck("protocol-custom-scheme-main-callback", g_custom_protocol_main_seen.load());
+    if (!protocol_ok)
+        return;
+
+    addCheck("protocol-custom-scheme-js", jsString(view, "window.__customProtocol") == "main-ok",
+        jsString(view, "window.__customProtocol"));
+    bool subresource_ok = waitFor([&] {
+        return jsNumber(view, "window.__customProtocolImage || 0") == 1;
+    }, 3000);
+    addCheck("protocol-custom-scheme-subresource",
+        subresource_ok && g_custom_protocol_subresource_seen.load(),
+        jsString(view, "String(window.__customProtocolImage || 0)"));
+}
+
+void runSessionWebRequestChecks(mbWebView view, LocalServer& server)
+{
+    const std::string custom_user_agent = "MiniBlinkMacE2E/1.0";
+    mbSetUserAgent(view, custom_user_agent.c_str());
+    bool js_user_agent_ok = waitFor([&] {
+        return jsString(view, "navigator.userAgent").find(custom_user_agent) != std::string::npos;
+    }, 3000);
+    addCheck("session-user-agent-js", js_user_agent_ok, jsString(view, "navigator.userAgent"));
+
+    g_web_request_begin_seen = false;
+    g_web_request_end_seen = false;
+    g_web_request_post_body_seen = false;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_web_request_post_body.clear();
+        g_web_request_end_body.clear();
+    }
+    int before_hits = server.webRequestHits();
+    jsNumber(view,
+        "window.__webRequestResult='pending';"
+        "fetch('/webrequest',{method:'POST',headers:{'Content-Type':'text/plain'},body:'post-body-ok'})"
+        ".then(function(r){return r.text()})"
+        ".then(function(t){window.__webRequestResult=t})"
+        ".catch(function(e){window.__webRequestResult='ERR:'+e.message});"
+        "1");
+
+    bool fetch_ok = waitFor([&] {
+        return jsString(view, "window.__webRequestResult") == "webrequest-ok" && server.webRequestHits() > before_hits;
+    }, 5000);
+    addCheck("session-webrequest-fetch-post", fetch_ok, jsString(view, "window.__webRequestResult"));
+
+    addCheck("session-webrequest-user-agent-header",
+        server.lastWebRequestUserAgent().find(custom_user_agent) != std::string::npos,
+        server.lastWebRequestUserAgent());
+    addCheck("session-webrequest-header-mutation",
+        server.lastWebRequestHookHeader() == "yes",
+        server.lastWebRequestHookHeader());
+    addCheck("session-webrequest-post-body-server",
+        server.lastWebRequestBody() == "post-body-ok",
+        server.lastWebRequestBody());
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("session-webrequest-post-body-callback",
+            g_web_request_post_body_seen.load() && g_web_request_post_body == "post-body-ok",
+            g_web_request_post_body);
+        addCheck("session-webrequest-load-url-end",
+            g_web_request_end_seen.load() && g_web_request_end_body == "webrequest-ok",
+            g_web_request_end_body);
+    }
+    addCheck("session-webrequest-load-url-begin", g_web_request_begin_seen.load());
+
+    g_web_request_redirect_seen = false;
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        g_redirect_target_url = server.origin() + "/redirect-target";
+    }
+    int before_redirect_hits = server.redirectTargetHits();
+    jsNumber(view,
+        "window.__redirectResult='pending';"
+        "fetch('/redirect-by-api')"
+        ".then(function(r){return r.text()})"
+        ".then(function(t){window.__redirectResult=t})"
+        ".catch(function(e){window.__redirectResult='ERR:'+e.message});"
+        "1");
+    bool redirect_ok = waitFor([&] {
+        return jsString(view, "window.__redirectResult") == "redirect-ok"
+            && server.redirectTargetHits() > before_redirect_hits;
+    }, 5000);
+    addCheck("session-webrequest-redirect-url",
+        redirect_ok && g_web_request_redirect_seen.load(),
+        jsString(view, "window.__redirectResult"));
+
+    g_web_request_cancel_seen = false;
+    int before_cancel_hits = server.cancelHits();
+    jsNumber(view,
+        "window.__cancelResult='pending';"
+        "fetch('/cancel-by-api')"
+        ".then(function(r){window.__cancelResult='unexpected:'+r.status})"
+        ".catch(function(e){window.__cancelResult='cancelled'});"
+        "1");
+    bool cancel_ok = waitFor([&] {
+        return jsString(view, "window.__cancelResult") == "cancelled";
+    }, 5000);
+    addCheck("session-webrequest-cancel",
+        cancel_ok && g_web_request_cancel_seen.load() && server.cancelHits() == before_cancel_hits,
+        jsString(view, "window.__cancelResult") + " serverHits=" + std::to_string(server.cancelHits() - before_cancel_hits));
+}
+
+} // namespace
+
+int main()
+{
+    signal(SIGPIPE, SIG_IGN);
+
+    LocalServer server;
+    addCheck("local-http-ws-server", server.start(), server.origin());
+    if (!server.port())
+        return 1;
+
+    std::string tmp_dir = "/tmp/miniblink_browser_window_like";
+    mkdir(tmp_dir.c_str(), 0755);
+    std::string local_html = makeLocalHtml(tmp_dir);
+    std::string upload_file = tmp_dir + "/upload.txt";
+    {
+        std::ofstream file(upload_file);
+        file << "file input ok\n";
+    }
+    setenv("MINIBLINK_FILE_CHOOSER_PATH", upload_file.c_str(), 1);
+
+    mbInit(nullptr);
+
+    mbWebView view = mbCreateWebWindow(MB_WINDOW_TYPE_POPUP, nullptr, 120, 120, kWindowWidth, kWindowHeight);
+    addCheck("create-window-and-webview", view != NULL_WEBVIEW && mbGetHostHWND(view), "host=" + std::to_string((uintptr_t)mbGetHostHWND(view)));
+    if (view == NULL_WEBVIEW)
+        return 1;
+
+    mbOnTitleChanged(view, onTitleChanged, nullptr);
+    mbOnURLChanged(view, onUrlChanged, nullptr);
+    mbOnNavigation(view, onNavigation, nullptr);
+    mbOnDocumentReady(view, onDocumentReady, nullptr);
+    mbOnLoadingFinish(view, onLoadingFinish, nullptr);
+    mbOnLoadUrlFail(view, onLoadUrlFail, nullptr);
+    mbOnLoadUrlFinish(view, onLoadUrlFinish, nullptr);
+    mbOnLoadUrlBegin(view, onLoadUrlBeginForWebRequest, nullptr);
+    mbOnLoadUrlEnd(view, onLoadUrlEndForWebRequest, nullptr);
+    mbOnCreateView(view, onCreateView, nullptr);
+    mbOnDownloadInBlinkThread(view, onDownloadInBlinkThread, nullptr);
+    attachElectronLikeCallbacks(view);
+    mbSetNavigationToNewWindowEnable(view, TRUE);
+    mbShowWindow(view, 5);
+
+    std::thread driver([&] {
+    bool webview_ready = waitFor([&] {
+        mbWebFrameHandle frame = mbWebFrameGetMainFrame(view);
+        return frame && mbGetGlobalExecByFrame(view, frame);
+    }, 6000);
+    addCheck("webview-main-frame-ready", webview_ready);
+
+    mbMoveWindow(view, 180, 160, 640, 480);
+    mbRect bounds;
+    BOOL got_bounds = mbGetWindowRect(view, &bounds);
+    bool bounds_ok = got_bounds && bounds.x == 180 && bounds.y == 160 && bounds.w == 640 && bounds.h == 480;
+    addCheck("browserwindow-bounds-api", bounds_ok,
+        std::to_string(bounds.x) + "," + std::to_string(bounds.y) + " " + std::to_string(bounds.w) + "x" + std::to_string(bounds.h));
+
+    mbSetWindowTitle(view, "Host Window Title");
+    runLoopFor(100);
+    addCheck("browserwindow-title-api", std::string(mbGetTitle(view) ? mbGetTitle(view) : "") == "Host Window Title",
+        mbGetTitle(view) ? mbGetTitle(view) : "");
+
+    HWND host = mbGetHostHWND(view);
+
+    mbShowWindow(view, SW_HIDE);
+    bool hidden = waitFor([&] { return !readWindowState(host).visible; }, 2000);
+    mbShowWindow(view, SW_SHOW);
+    bool shown = waitFor([&] { return readWindowState(host).visible; }, 2000);
+    addCheck("browserwindow-show-hide-api", hidden && shown);
+
+    mbShowWindow(view, SW_MINIMIZE);
+    bool minimized = waitFor([&] { return readWindowState(host).iconic; }, 3000);
+    mbShowWindow(view, SW_RESTORE);
+    bool restoredFromMinimize = waitFor([&] {
+        WindowState state = readWindowState(host);
+        return state.visible && !state.iconic;
+    }, 3000);
+    addCheck("browserwindow-minimize-restore-api", minimized && restoredFromMinimize);
+
+    mbShowWindow(view, SW_MAXIMIZE);
+    bool maximized = waitFor([&] { return readWindowState(host).zoomed; }, 3000);
+    mbShowWindow(view, SW_RESTORE);
+    bool restoredFromMaximize = waitFor([&] {
+        WindowState state = readWindowState(host);
+        return state.visible && !state.zoomed;
+    }, 3000);
+    addCheck("browserwindow-maximize-restore-api", maximized && restoredFromMaximize);
+
+    mbSetFocus(view);
+    bool focused = waitFor([&] { return readWindowState(host).focused; }, 2000);
+    addCheck("browserwindow-focus-api", focused);
+
+    runMenuCompatibilityChecks();
+    runDialogCompatibilityChecks();
+    runShellCompatibilityChecks();
+    runAppCompatibilityChecks();
+    runGlobalShortcutCompatibilityChecks();
+    runScreenCompatibilityChecks(host);
+    runNativeThemeCompatibilityChecks();
+    runPowerMonitorCompatibilityChecks();
+    runPowerSaveBlockerCompatibilityChecks();
+    runNativeImageCompatibilityChecks();
+    runMacGdiBitmapDrawChecks();
+    runTrayCompatibilityChecks(host);
+    runLifecycleChecks();
+    runAppLifecycleMessageLoopChecks();
+    runNavigationControlChecks(server.origin());
+
+    resetLoadState();
+    mbLoadURL(view, fileUrl(local_html).c_str());
+    bool local_ok = waitForLoad(view, "load-local-html-file", 6000);
+    if (local_ok) {
+        addCheck("local-html-js-state", jsString(view, "window.__local") == "local-ok");
+        addCheck("document-ready-callback", g_document_ready.load());
+        addCheck("load-finish-callback-local", g_load_finish_callback.load());
+        runWebContentsScriptAndZoomChecks(view);
+        runWebContentsDialogAndSourceChecks(view);
+        runProtocolChecks(view);
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (server.origin() + "/remote.html").c_str());
+    bool remote_ok = waitForLoad(view, "load-loopback-browserwindow-page", 8000);
+    if (remote_ok) {
+        addCheck("navigation-callback", g_navigation_seen.load());
+        addCheck("title-callback", g_title_changed.load());
+        addCheck("url-callback", g_url_changed.load());
+        addCheck("load-finish-callback-remote", g_load_finish_callback.load());
+
+        bool platform_ok = waitFor([&] {
+            std::string json = jsString(view, "JSON.stringify(window.__e2e||{})");
+            return json.find("fetch-ok") != std::string::npos && json.find("xhr-ok") != std::string::npos && json.find("ws-ok:ping") != std::string::npos;
+        }, 5000);
+        std::string json = jsString(view, "JSON.stringify(window.__e2e||{})");
+        addCheck("fetch-xhr-websocket", platform_ok,
+            json + " wsUpgrades=" + std::to_string(server.websocketUpgrades()) + " wsMessages=" + std::to_string(server.websocketMessages())
+                + server.websocketDebug());
+        addCheck("cookie-localStorage", json.find("cookie-ok") != std::string::npos && json.find("storage-ok") != std::string::npos, json);
+        std::string image_detail = jsString(view, "window.__e2e && window.__e2e.image || ''");
+        addCheck("network-image-display",
+            image_detail == "16x8:255,0,0|0,0,255",
+            image_detail);
+        runSessionCookieChecks(view, server.origin());
+        runSessionPartitionCookieChecks(server.origin(), tmp_dir);
+        runSessionPartitionLocalStorageChecks(server.origin(), tmp_dir);
+        runSessionStorageIsolationChecks(server.origin());
+        runSessionStorageWindowOpenCloneChecks(server.origin());
+        runSessionWebRequestChecks(view, server);
+
+        mbSetFocus(view);
+        jsNumber(view, "var i=document.getElementById('textInput'); i.value=''; i.focus(); 1");
+        mbFireKeyPressEvent(view, 'A', 0, FALSE);
+        mbFireKeyPressEvent(view, 0x4e2d, 0, FALSE);
+        runLoopFor(300);
+        addCheck("keyboard-focus-unicode-input", jsString(view, "document.getElementById('textInput').value") == "A中",
+            jsString(view, "document.getElementById('textInput').value"));
+        mbRect caret_rect;
+        mbGetCaretRect(view, &caret_rect);
+        addCheck("ime-caret-rect-api", caret_rect.x >= 0 && caret_rect.y >= 0,
+            std::to_string(caret_rect.x) + "," + std::to_string(caret_rect.y) + " "
+                + std::to_string(caret_rect.w) + "x" + std::to_string(caret_rect.h));
+
+        mbFireMouseEvent(view, MB_MSG_MOUSEMOVE, 20, 20, 0);
+        mbFireMouseEvent(view, MB_MSG_LBUTTONDOWN, 20, 20, MB_LBUTTON);
+        mbFireMouseEvent(view, MB_MSG_LBUTTONUP, 20, 20, 0);
+        addCheck("mouse-event-dispatch", true, "mbFireMouseEvent accepted");
+
+        jsNumber(view, "var t=document.getElementById('textInput'); t.value='clip-ok'; t.focus(); t.select(); 1");
+        mbEditorCopy(view);
+        jsNumber(view, "var t=document.getElementById('textInput'); t.value=''; t.focus(); 1");
+        mbEditorPaste(view);
+        runLoopFor(300);
+        addCheck("clipboard-copy-paste", jsString(view, "document.getElementById('textInput').value") == "clip-ok",
+            jsString(view, "document.getElementById('textInput').value"));
+
+        g_popup_seen = false;
+        jsNumber(view, "document.getElementById('popupButton').click(); 1");
+        waitFor([] { return g_popup_seen.load(); }, 2000);
+        addCheck("new-window-popup-policy-callback", g_popup_seen.load());
+
+        g_download_seen = false;
+        jsNumber(view, "document.getElementById('download').click(); 1");
+        waitFor([] { return g_download_seen.load(); }, 3000);
+        {
+            std::lock_guard<std::mutex> lock(g_state_mutex);
+            addCheck("download-callback", g_download_seen.load(), g_last_download_url);
+        }
+
+        mbMemBuf* screenshot = mbGetWindowScreenshotSync(view, kMbImageFormatPng);
+        bool screenshot_ok = screenshot && screenshot->data && screenshot->length > 0;
+        addCheck("window-screenshot", screenshot_ok, screenshot ? std::to_string(screenshot->length) : "null");
+        if (screenshot)
+            mbFreeMemBuf(screenshot);
+
+        jsNumber(view, "var f=document.getElementById('fileInput'); f.click(); f.files.length");
+        runLoopFor(500);
+        addCheck("file-input-native-chooser", jsString(view, "document.getElementById('fileInput').files[0] && document.getElementById('fileInput').files[0].name") == "upload.txt",
+            jsString(view, "document.getElementById('fileInput').files.length + ':' + (document.getElementById('fileInput').files[0] && document.getElementById('fileInput').files[0].name)"));
+    }
+
+    resetLoadState();
+    mbLoadURL(view, "https://example.com/");
+    bool https_ok = waitForLoad(view, "load-remote-https-page", 12000);
+    if (https_ok) {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        const char* title = mbGetTitle(view);
+        addCheck("remote-https-url-title", g_last_url.find("https://") == 0 && title && title[0], std::string(title ? title : "") + " " + g_last_url);
+    }
+
+    resetLoadState();
+    mbLoadURL(view, (server.origin() + "/abort").c_str());
+    bool fail_seen = waitFor([] { return g_load_failed.load(); }, 5000);
+    {
+        std::lock_guard<std::mutex> lock(g_state_mutex);
+        addCheck("load-fail-via-loading-finish", fail_seen, g_last_fail_url + " " + g_last_fail_reason);
+        addCheck("load-url-fail-callback", g_load_url_fail_callback.load(),
+            "mbOnLoadUrlFail is registered separately from mbOnLoadingFinish");
+    }
+
+    mbDestroyWebView(view);
+    runLoopFor(300);
+    server.stop();
+    mbExitMessageLoop();
+    });
+
+    mbRunMessageLoop();
+    driver.join();
+
+    int failures = 0;
+    {
+        std::lock_guard<std::mutex> lock(g_checks_mutex);
+        for (const auto& check : g_checks) {
+            if (!check.pass)
+                ++failures;
+        }
+    }
+    printf("browser_window_like_test failures=%d\n", failures);
+    return failures == 0 ? 0 : 1;
+}

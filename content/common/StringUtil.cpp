@@ -7,7 +7,7 @@
 #include <windows.h>
 #include <shlwapi.h>
 #include "content/common/mbchar.h"
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_MAC)
 #include <iconv.h>
 #endif
 
@@ -349,7 +349,7 @@ std::u16string createPathFromDllPath(const std::u16string& fileName)
 
     return result;
 #else
-    DebugBreak();
+    (void)0;
     return std::u16string();
 #endif
 }
@@ -359,7 +359,7 @@ bool isLocalDebugMachine()
 #if defined(WIN32)
     return !!::PathFileExistsW(L"E:\\mycode\\mtmb\\mtmb\\printing\\Printing.cpp");
 #else
-    DebugBreak();
+    (void)0;
     return false;
 #endif
 }

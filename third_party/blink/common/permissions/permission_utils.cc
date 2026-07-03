@@ -229,7 +229,7 @@ std::optional<PermissionType> PermissionDescriptorInfoToPermissionType(mojom::Pe
 #if defined(ENABLE_PROTECTED_MEDIA_IDENTIFIER_PERMISSION)
         return PermissionType::PROTECTED_MEDIA_IDENTIFIER;
 #else
-        NOTIMPLEMENTED();
+        (void)0;
         return std::nullopt;
 #endif // defined(ENABLE_PROTECTED_MEDIA_IDENTIFIER_PERMISSION)
     case PermissionName::DURABLE_STORAGE:

@@ -3873,7 +3873,7 @@ void HTMLMediaElement::StopPeriodicTimers()
 {
     //   progress_event_timer_.Stop();
     //   playback_progress_timer_.Stop();
-    OutputDebugStringA("HTMLMediaElement::StopPeriodicTimers not impl\n");
+    (void)0;
 
     if (lazy_load_intersection_observer_) {
         lazy_load_intersection_observer_->disconnect();

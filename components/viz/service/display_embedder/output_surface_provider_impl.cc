@@ -4,6 +4,7 @@
 
 #include "components/viz/service/display_embedder/output_surface_provider_impl.h"
 
+#include <cstdint>
 #include <memory>
 #include <utility>
 
@@ -142,7 +143,14 @@ std::unique_ptr<SoftwareOutputDevice> OutputSurfaceProviderImpl::CreateSoftwareO
     if (headless_)
         return std::make_unique<SoftwareOutputDevice>();
 
+    (void)surface_handle;
+    (void)display_client;
+
+#if BUILDFLAG(IS_APPLE)
+    return CreateSoftwareOutputDeviceWinOrLinux(reinterpret_cast<HWND>(static_cast<uintptr_t>(surface_handle)), display_client);
+#else
     return CreateSoftwareOutputDeviceWinOrLinux(surface_handle, display_client);
+#endif
 
 // #if BUILDFLAG(IS_WIN)
 //     return CreateSoftwareOutputDeviceWin(surface_handle, &output_device_backing_, display_client);

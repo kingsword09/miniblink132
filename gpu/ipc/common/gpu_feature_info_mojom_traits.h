@@ -64,9 +64,10 @@ template <> struct GPU_EXPORT EnumTraits<gpu::mojom::GpuFeatureStatus, gpu::GpuF
 template <> struct GPU_EXPORT StructTraits<gpu::mojom::GpuFeatureInfoDataView, gpu::GpuFeatureInfo> {
     static bool Read(gpu::mojom::GpuFeatureInfoDataView data, gpu::GpuFeatureInfo* out);
 
-    static const std::array<gpu::GpuFeatureStatus, gpu::NUMBER_OF_GPU_FEATURE_TYPES>& status_values(const gpu::GpuFeatureInfo& info)
+    static std::vector<gpu::GpuFeatureStatus> status_values(const gpu::GpuFeatureInfo& info)
     {
-        return info.status_values;
+        return std::vector<gpu::GpuFeatureStatus>(
+            info.status_values, info.status_values + gpu::NUMBER_OF_GPU_FEATURE_TYPES);
     }
 
     static const std::vector<int32_t>& enabled_gpu_driver_bug_workarounds(const gpu::GpuFeatureInfo& info)

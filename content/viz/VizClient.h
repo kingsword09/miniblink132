@@ -5,6 +5,7 @@
 #ifndef COMPONENTS_VIZ_DEMO_CLIENT_DEMO_CLIENT_H_
 #define COMPONENTS_VIZ_DEMO_CLIENT_DEMO_CLIENT_H_
 
+#include <atomic>
 #include <map>
 #include <vector>
 
@@ -112,6 +113,8 @@ public:
         m_allowResize = false;
     }
 
+    void stopCommittingFrames();
+
     void setWebviewId(int64_t id)
     {
         m_webviewId = id;
@@ -179,7 +182,7 @@ private:
 
     int64_t m_webviewId = 0;
 
-    bool m_canCommitFrame = true;
+    std::atomic_bool m_canCommitFrame { true };
     bool m_allowResize = true;
 
     void* m_vizServer = nullptr;

@@ -80,7 +80,7 @@ void ResolveApplySubCaptureTargetPromiseHelper(
         // Unimplemented codepath reached, OTHER than lacking support for
         // a specific Element subtype.
         RaiseApplySubCaptureTargetException(
-            resolver, DOMExceptionCode::kOperationError, "Not implemented.", ApplySubCaptureTargetResult::kRejectedWithNotImplemented);
+            resolver, DOMExceptionCode::kOperationError, "Unsupported.", ApplySubCaptureTargetResult::kRejectedWithNotImplemented);
         return;
     case media::mojom::ApplySubCaptureTargetResult::kNonIncreasingVersion:
         // This should rarely happen, as the browser process would issue

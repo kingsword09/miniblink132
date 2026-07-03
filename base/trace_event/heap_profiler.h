@@ -14,6 +14,9 @@
 // implementation details of these macros.
 
 // Scoped tracker for task execution context in the heap profiler.
+#ifdef TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION
+#undef TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION
+#endif
 #define TRACE_HEAP_PROFILER_API_SCOPED_TASK_EXECUTION trace_event_internal::HeapProfilerScopedTaskExecutionTracker
 
 // Returns the current task context (c-string) tracked by heap profiler. This is
@@ -27,7 +30,7 @@
 // A scoped ignore event used to tell heap profiler to ignore all the
 // allocations in the scope. It is useful to exclude allocations made for
 // tracing from the heap profiler dumps.
-// TODO(crbug.com/40875107): This is a no-op since
+// TODO(crbug.com/40875107): This macro is inactive since
 // AllocationContextTracker::GetContextSnapshot was removed. Clean up the call
 // sites.
 #define HEAP_PROFILER_SCOPED_IGNORE ((void)0)

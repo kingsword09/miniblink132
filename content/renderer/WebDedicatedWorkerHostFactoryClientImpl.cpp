@@ -34,20 +34,20 @@ public:
         ::blink::mojom::blink::CodeCacheHost::FetchCachedCodeCallback callback) override
     {
         OutputDebugStringA("CodeCacheHostImpl::FetchCachedCode fail\n");
-        DebugBreak();
+        (void)0;
     }
 
     void ClearCodeCacheEntry(::blink::mojom::blink::CodeCacheType cache_type, const ::blink::KURL& url) override
     {
         OutputDebugStringA("CodeCacheHostImpl::ClearCodeCacheEntry fail\n");
-        DebugBreak();
+        (void)0;
     }
 
     void DidGenerateCacheableMetadataInCacheStorage(
         const ::blink::KURL& url, ::base::Time expected_response_time, ::mojo_base::BigBuffer data, const WTF::String& cache_storage_cache_name) override
     {
         OutputDebugStringA("CodeCacheHostImpl::DidGenerateCacheableMetadataInCacheStorage fail\n");
-        DebugBreak();
+        (void)0;
     }
 };
 
@@ -112,9 +112,9 @@ private:
             createAndBindInterface<::blink::mojom::blink::BlobURLStore, BlobURLStoreImpl>(receiver.PassPipe(), (m_origin));
         } else if ("blink.mojom.SharedWorkerConnector" == name) {
             //createAndBindInterface<::blink::mojom::blink::SharedWorkerConnector, SharedWorkerConnectorImpl>(std::move(receiver.PassPipe()), m_origin);
-            DebugBreak();
+            (void)0;
         } else
-            DebugBreak();
+            (void)0;
     }
 
     std::string m_origin;
@@ -228,7 +228,7 @@ scoped_refptr<blink::WebWorkerFetchContext> WebDedicatedWorkerHostFactoryClientI
 //             std::move(pending_subresource_loader_updater_),
 //             std::move(taskRunner));
 //     return cloned_web_dedicated_or_shared_worker_fetch_context;
-    DebugBreak();
+    (void)0;
     return nullptr;
 }
 

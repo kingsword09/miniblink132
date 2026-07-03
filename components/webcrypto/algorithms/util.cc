@@ -69,8 +69,8 @@ bool ContainsKeyUsages(blink::WebCryptoKeyUsageMask a, blink::WebCryptoKeyUsageM
 Status AeadEncryptDecrypt(EncryptOrDecrypt mode, base::span<const uint8_t> raw_key, base::span<const uint8_t> data, unsigned int tag_length_bytes,
     base::span<const uint8_t> iv, base::span<const uint8_t> additional_data, const EVP_AEAD* aead_alg, std::vector<uint8_t>* buffer)
 {
-    OutputDebugStringA("AeadEncryptDecrypt not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
 //     crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);
 //     bssl::ScopedEVP_AEAD_CTX ctx;
 // 

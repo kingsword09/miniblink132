@@ -54,8 +54,8 @@ Status GetPKeyAndDigest(const blink::WebCryptoAlgorithm& algorithm, const blink:
 // Gets the EC key's order size in bytes.
 Status GetEcGroupOrderSize(EVP_PKEY* pkey, size_t* order_size_bytes)
 {
-    OutputDebugStringA("GetEcGroupOrderSize not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
 //     crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);
 // 
 //     EC_KEY* ec = EVP_PKEY_get0_EC_KEY(pkey);
@@ -78,8 +78,8 @@ Status GetEcGroupOrderSize(EVP_PKEY* pkey, size_t* order_size_bytes)
 // TODO(eroman): Where is the specification for WebCrypto's signature format?
 Status ConvertDerSignatureToWebCryptoSignature(EVP_PKEY* key, std::vector<uint8_t>* signature)
 {
-    OutputDebugStringA("ConvertDerSignatureToWebCryptoSignature not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
 //     crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);
 // 
 //     bssl::UniquePtr<ECDSA_SIG> ecdsa_sig(ECDSA_SIG_from_bytes(signature->data(), signature->size()));
@@ -117,8 +117,8 @@ Status ConvertDerSignatureToWebCryptoSignature(EVP_PKEY* key, std::vector<uint8_
 // ECDSA-Sig-Value.
 Status ConvertWebCryptoSignatureToDerSignature(EVP_PKEY* key, base::span<const uint8_t> signature, std::vector<uint8_t>* der_signature, bool* incorrect_length)
 {
-    OutputDebugStringA("ConvertWebCryptoSignatureToDerSignature not impl\n");
-    DebugBreak();
+    (void)0;
+    (void)0;
     return Status::Success();
 
     //   crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);

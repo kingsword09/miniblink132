@@ -13,7 +13,7 @@
 #include "third_party/blink/public/web/web_frame_widget.h"
 #include "ui/display/screen.h"
 #if !defined(OS_WIN)
-#include "ui/display/screen_fake.h"
+#include "ui/display/test/test_screen.h"
 #endif
 
 extern "C" MojoResult MojoMakeIsMessageChannelFlag(MojoHandle handle);
@@ -60,15 +60,20 @@ RenderWidgetHostImpl::RenderWidgetHostImpl(__int64 parentWebviewId, scoped_refpt
 
 void RenderWidgetHostImpl::destroy()
 {
+    if (m_sinkClient)
+        m_sinkClient->stopCommittingFrames();
+
     if (m_webWiew)
         m_webWiew->Close(); // 这里面AsyncLayerTreeFrameSink同步销毁
     m_webWiew = nullptr;
 
-    if (getHostFrameSinkManager()) {
-        viz::FrameSinkId rootFrameSinkId(0xdead, 0xbeef);
-        getHostFrameSinkManager()->InvalidateFrameSinkId(rootFrameSinkId, m_sinkHost);
+    if (m_hostFrameSinkManager) {
+        if (m_registeredFrameSinkHierarchy && m_sinkClient) {
+            m_hostFrameSinkManager->UnregisterFrameSinkHierarchy(m_sinkClient->frameSinkId(), m_frameSinkId);
+            m_registeredFrameSinkHierarchy = false;
+        }
         if (isSinkReady())
-            getHostFrameSinkManager()->InvalidateFrameSinkId(m_frameSinkId, this);
+            m_hostFrameSinkManager->InvalidateFrameSinkId(m_frameSinkId, this);
     }
 }
 
@@ -157,7 +162,7 @@ display::Screen* getScreenOrCreate()
 #if defined(OS_WIN)
         display::win::ScreenWin* screenNew = new display::win::ScreenWin();
 #else
-        display::ScreenFake* screenNew = new display::ScreenFake();
+        display::test::TestScreen* screenNew = new display::test::TestScreen();
 #endif // OS_WIN
         display::Screen::SetScreenInstance(screenNew, base::Location::Current());
         screen = display::Screen::GetScreen();
@@ -170,7 +175,7 @@ void RenderWidgetHostImpl::initVisualProperties()
     display::Screen* screen = getScreenOrCreate();
     std::vector<display::Display> displays = screen->GetAllDisplays();
     if (displays.size() == 0)
-        DebugBreak();
+        (void)0;
     for (size_t i = 0; i < displays.size(); ++i) {
         const display::Display& dis = displays[i];
         display::ScreenInfo screenInfo;
@@ -248,7 +253,7 @@ void RenderWidgetHostImpl::CreateFrameSink(
 #endif
 
     getHostFrameSinkManager()->RegisterFrameSinkId(m_frameSinkId, this, viz::ReportFirstSurfaceActivation::kNo);
-    getHostFrameSinkManager()->RegisterFrameSinkHierarchy(m_sinkClient->frameSinkId(), m_frameSinkId);
+    m_registeredFrameSinkHierarchy = getHostFrameSinkManager()->RegisterFrameSinkHierarchy(m_sinkClient->frameSinkId(), m_frameSinkId);
     //viz::FrameSinkId rootGrameSinkId(0xdead, 0xbeef);
     //getHostFrameSinkManager()->RegisterFrameSinkHierarchy(rootGrameSinkId/*m_sinkClient->frame_sink_id()*/, m_frameSinkId);
     //m_frameSinkId = rootGrameSinkId;
@@ -304,6 +309,9 @@ void RenderWidgetHostImpl::TextInputStateChanged(::ui::mojom::blink::TextInputSt
 
 void RenderWidgetHostImpl::onClientConnectionLost()
 {
+    if (m_sinkClient)
+        m_sinkClient->stopCommittingFrames();
+
     MbWebView* webview = m_mbWebView;
     ThreadCall::callUiThreadAsync(MB_FROM_HERE, [webview] {
         webview->preDestroyOnUiThread();

@@ -393,9 +393,7 @@ public:
     void DragSourceEndedAt(
         const gfx::PointF& point_in_viewport, const gfx::PointF& screen_point, ui::mojom::blink::DragOperation, base::OnceClosure callback) override;
     void OnStartStylusWriting(
-#if BUILDFLAG(IS_WIN)
         const gfx::Rect& focus_rect_in_widget,
-#endif // BUILDFLAG(IS_WIN)
         OnStartStylusWritingCallback callback) override;
 #if BUILDFLAG(IS_ANDROID)
     void PassImeRenderWidgetHost(mojo::PendingRemote<mojom::blink::ImeRenderWidgetHost>) override;
@@ -726,7 +724,7 @@ private:
     // Sets the inert bit on an out-of-process iframe, causing it to ignore
     // input.
     void SetIsInertForSubFrame(bool inert) override;
-#if BUILDFLAG(IS_MAC)
+#if 0
     void GetStringAtPoint(const gfx::Point& point_in_local_root, GetStringAtPointCallback callback) override;
 #endif
 

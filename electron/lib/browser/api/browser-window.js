@@ -2,6 +2,7 @@
 process._linkedBinding('electron_browser_web_contents');
 
 const EventEmitter = require('events').EventEmitter;
+const TouchBar = require('./touch-bar');
 const BrowserWindow = process._linkedBinding('electron_browser_browserwindow').BrowserWindow;
 Object.setPrototypeOf(BrowserWindow.prototype, EventEmitter.prototype);
 
@@ -17,9 +18,30 @@ Object.defineProperty(BrowserWindow.prototype, "webContents", {
     configurable : true
 });
 
-BrowserWindow.prototype.setTouchBar = function() { }
+BrowserWindow.prototype.setTouchBar = function(touchBar) {
+    if (touchBar == null) {
+        this._touchBar = null;
+        if (typeof this._setTouchBar === 'function')
+            this._setTouchBar(null);
+        return undefined;
+    }
 
-BrowserWindow.prototype.setTitle = function() {
+    if (!(touchBar instanceof TouchBar))
+        touchBar = new TouchBar(touchBar);
+
+    this._touchBar = touchBar;
+    if (typeof this._setTouchBar === 'function')
+        this._setTouchBar(touchBar._serialize());
+    return undefined;
+}
+
+BrowserWindow.prototype._dispatchTouchBarAction = function(action) {
+    if (!this._touchBar || typeof this._touchBar._handleActionFromNative !== 'function')
+        return false;
+    return this._touchBar._handleActionFromNative(action);
+}
+
+BrowserWindow.prototype.setTitle = function(str) {
     if (typeof(str) == "string")
         this._setTitle(str);
 }
@@ -27,26 +49,26 @@ BrowserWindow.prototype.setTitle = function() {
 Object.assign(BrowserWindow.prototype, {
     loadURL (...args) {
         var self = this;
-        var result = new Promise(function(resole, reject) {
-            self.webContents.on("did-finish-load", function() {
-                resole();
+        var result = new Promise(function(resolve, reject) {
+            self.webContents.once("did-finish-load", function() {
+                resolve();
             });
-            self.webContents.on("did-fail-load", function() {
-                reject();
+            self.webContents.once("did-fail-load", function() {
+                reject(new Error("Failed to load URL"));
             });
-            
+
             self.webContents._loadURL.apply(self.webContents, args);
         });
         return result;
     },
     loadFile (...args) {
         var self = this;
-        var result = new Promise(function(resole, reject){
-            self.webContents.on("did-finish-load", function() {
-                resole();
+        var result = new Promise(function(resolve, reject){
+            self.webContents.once("did-finish-load", function() {
+                resolve();
             });
-            self.webContents.on("did-fail-load", function() {
-                reject();
+            self.webContents.once("did-fail-load", function() {
+                reject(new Error("Failed to load file"));
             });
             self.webContents.loadFile.apply(self.webContents, args);
         });

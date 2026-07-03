@@ -3,6 +3,37 @@
 
 #if 1 // ENABLE_NODEJS
 
+// Keep Node's public bridge macros aligned with the platform-specific Node
+// build.  On macOS libnode is built without OpenSSL/inspector, and redefining
+// these here changes internal class layouts in any translation unit that also
+// includes Node internals.
+#if defined(OS_MAC)
+#ifndef NODE_WANT_INTERNALS
+#define NODE_WANT_INTERNALS 1
+#endif
+#ifndef NODE_ARCH
+#if defined(__aarch64__)
+#define NODE_ARCH "arm64"
+#else
+#define NODE_ARCH "x64"
+#endif
+#endif
+#ifndef NODE_PLATFORM
+#define NODE_PLATFORM "darwin"
+#endif
+#if defined(HAVE_OPENSSL) && HAVE_OPENSSL
+#undef HAVE_OPENSSL
+#endif
+#ifndef HAVE_OPENSSL
+#define HAVE_OPENSSL 0
+#endif
+#ifndef HAVE_INSPECTOR
+#define HAVE_INSPECTOR 0
+#endif
+#ifndef NODE_USE_V8_PLATFORM
+#define NODE_USE_V8_PLATFORM 1
+#endif
+#else
 #define NODE_ARCH "ia32"
 #define NODE_PLATFORM "win32"
 #define NODE_WANT_INTERNALS 1
@@ -10,6 +41,7 @@
 #define HAVE_ETW 1
 #define HAVE_PERFCTR 1
 #define V8_INSPECTOR_USE_STL 1
+#endif
 //#define NODE_USE_V8_PLATFORM 1
 //#define USING_V8_SHARED 0
 //#define USING_UV_SHARED 0

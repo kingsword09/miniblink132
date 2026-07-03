@@ -634,7 +634,7 @@ public:
             return entry->m_handle1;
         if (entry->m_handle1 == handle)
             return entry->m_handle0;
-        DebugBreak();
+        (void)0;
         return 0;
     }
 
@@ -1042,7 +1042,7 @@ public:
             }
             return false;
         } else
-            DebugBreak();
+            (void)0;
 
         return false;
     }
@@ -1346,6 +1346,35 @@ void MojoHandleMgr::bindIpcChannelProxy(uintptr_t pid, IPC::ChannelProxy* channe
     m_processInfo.insert(std::pair<MojoHandle, MojoProcessInfo*>(pid, info));
 }
 
+namespace {
+
+struct LiteMojoMessage {
+    std::vector<uint8_t> payload;
+    std::vector<MojoHandle> handles;
+    uintptr_t context = 0;
+    MojoMessageContextSerializer serializer = nullptr;
+    MojoMessageContextDestructor destructor = nullptr;
+    bool serialized = false;
+    bool handles_extracted = false;
+};
+
+LiteMojoMessage* ToLiteMojoMessage(MojoMessageHandle message)
+{
+    return reinterpret_cast<LiteMojoMessage*>(message);
+}
+
+bool HasAppendCommitFlag(const MojoAppendMessageDataOptions* options)
+{
+    return options && (options->flags & MOJO_APPEND_MESSAGE_DATA_FLAG_COMMIT_SIZE);
+}
+
+bool HasIgnoreHandlesFlag(const MojoGetMessageDataOptions* options)
+{
+    return options && (options->flags & MOJO_GET_MESSAGE_DATA_FLAG_IGNORE_HANDLES);
+}
+
+} // namespace
+
 extern "C" {
 
 MojoResult MojoInitialize(const struct MojoInitializeOptions* options)
@@ -1360,6 +1389,144 @@ MojoResult MojoCreateMessagePipe(const MojoCreateMessagePipeOptions* options, Mo
     MojoHandleMgr* mgr = MojoHandleMgr::GetInst();
     mgr->createMessagePipe(handle0, handle1);
     return MOJO_RESULT_OK;
+}
+
+MojoResult MojoCreateMessage(const MojoCreateMessageOptions* options, MojoMessageHandle* message)
+{
+    if (!message)
+        return MOJO_RESULT_INVALID_ARGUMENT;
+
+    LiteMojoMessage* lite_message = new LiteMojoMessage();
+    lite_message->serialized = false;
+    *message = reinterpret_cast<MojoMessageHandle>(lite_message);
+    return MOJO_RESULT_OK;
+}
+
+MojoResult MojoSerializeMessage(MojoMessageHandle message, const MojoSerializeMessageOptions* options)
+{
+    LiteMojoMessage* lite_message = ToLiteMojoMessage(message);
+    if (!lite_message)
+        return MOJO_RESULT_INVALID_ARGUMENT;
+
+    if (lite_message->serialized)
+        return MOJO_RESULT_FAILED_PRECONDITION;
+
+    if (!lite_message->context) {
+        if (lite_message->payload.empty() && lite_message->handles.empty())
+            return MOJO_RESULT_NOT_FOUND;
+        lite_message->serialized = true;
+        return MOJO_RESULT_OK;
+    }
+
+    if (!lite_message->serializer)
+        return MOJO_RESULT_NOT_FOUND;
+
+    uintptr_t context = lite_message->context;
+    MojoMessageContextSerializer serializer = lite_message->serializer;
+    MojoMessageContextDestructor destructor = lite_message->destructor;
+    lite_message->context = 0;
+    lite_message->serializer = nullptr;
+    lite_message->destructor = nullptr;
+    serializer(message, context);
+    if (destructor)
+        destructor(context);
+    lite_message->serialized = true;
+    return MOJO_RESULT_OK;
+}
+
+MojoResult MojoAppendMessageData(MojoMessageHandle message, uint32_t payload_size, const MojoHandle* handles, uint32_t num_handles,
+    const MojoAppendMessageDataOptions* options, void** buffer, uint32_t* buffer_size)
+{
+    LiteMojoMessage* lite_message = ToLiteMojoMessage(message);
+    if (!lite_message || (num_handles && !handles))
+        return MOJO_RESULT_INVALID_ARGUMENT;
+    if (lite_message->context)
+        return MOJO_RESULT_FAILED_PRECONDITION;
+
+    size_t old_size = lite_message->payload.size();
+    lite_message->payload.resize(old_size + payload_size);
+    for (uint32_t i = 0; i < num_handles; ++i)
+        lite_message->handles.push_back(handles[i]);
+    if (HasAppendCommitFlag(options))
+        lite_message->serialized = true;
+
+    if (buffer)
+        *buffer = lite_message->payload.empty() ? nullptr : lite_message->payload.data();
+    if (buffer_size)
+        *buffer_size = static_cast<uint32_t>(lite_message->payload.size());
+    return MOJO_RESULT_OK;
+}
+
+MojoResult MojoGetMessageData(
+    MojoMessageHandle message, const MojoGetMessageDataOptions* options, void** buffer, uint32_t* num_bytes, MojoHandle* handles, uint32_t* num_handles)
+{
+    LiteMojoMessage* lite_message = ToLiteMojoMessage(message);
+    if (!lite_message)
+        return MOJO_RESULT_INVALID_ARGUMENT;
+    if (lite_message->context)
+        return MOJO_RESULT_FAILED_PRECONDITION;
+    if ((!buffer || !num_bytes) && !lite_message->payload.empty())
+        return MOJO_RESULT_RESOURCE_EXHAUSTED;
+
+    if (buffer)
+        *buffer = lite_message->payload.empty() ? nullptr : lite_message->payload.data();
+    if (num_bytes)
+        *num_bytes = static_cast<uint32_t>(lite_message->payload.size());
+
+    if (!HasIgnoreHandlesFlag(options)) {
+        uint32_t handle_count = lite_message->handles_extracted ? 0 : static_cast<uint32_t>(lite_message->handles.size());
+        if (num_handles)
+            *num_handles = handle_count;
+        if (handle_count && (!handles || !num_handles))
+            return MOJO_RESULT_RESOURCE_EXHAUSTED;
+        if (handle_count) {
+            for (uint32_t i = 0; i < handle_count; ++i)
+                handles[i] = lite_message->handles[i];
+            lite_message->handles.clear();
+            lite_message->handles_extracted = true;
+        }
+    }
+
+    lite_message->serialized = true;
+    return MOJO_RESULT_OK;
+}
+
+MojoResult MojoSetMessageContext(MojoMessageHandle message, uintptr_t context, MojoMessageContextSerializer serializer, MojoMessageContextDestructor destructor,
+    const MojoSetMessageContextOptions* options)
+{
+    LiteMojoMessage* lite_message = ToLiteMojoMessage(message);
+    if (!lite_message || (!context && (serializer || destructor)))
+        return MOJO_RESULT_INVALID_ARGUMENT;
+    if (!context) {
+        lite_message->context = 0;
+        lite_message->serializer = nullptr;
+        lite_message->destructor = nullptr;
+        return MOJO_RESULT_OK;
+    }
+    if (lite_message->context)
+        return MOJO_RESULT_ALREADY_EXISTS;
+    if (!lite_message->payload.empty() || !lite_message->handles.empty())
+        return MOJO_RESULT_FAILED_PRECONDITION;
+
+    lite_message->context = context;
+    lite_message->serializer = serializer;
+    lite_message->destructor = destructor;
+    lite_message->serialized = false;
+    return MOJO_RESULT_OK;
+}
+
+MojoResult MojoGetMessageContext(MojoMessageHandle message, const MojoGetMessageContextOptions* options, uintptr_t* context)
+{
+    LiteMojoMessage* lite_message = ToLiteMojoMessage(message);
+    if (!lite_message || !context)
+        return MOJO_RESULT_INVALID_ARGUMENT;
+    *context = lite_message->context;
+    return MOJO_RESULT_OK;
+}
+
+MojoResult MojoNotifyBadMessage(MojoMessageHandle message, const char* error, uint32_t error_num_bytes, const MojoNotifyBadMessageOptions* options)
+{
+    return ToLiteMojoMessage(message) ? MOJO_RESULT_OK : MOJO_RESULT_INVALID_ARGUMENT;
 }
 
 void MojoRecordCall(MojoHandle handle, void* addr, const char* from)
@@ -1441,7 +1608,12 @@ MojoResult MojoEndReadData(MojoHandle dataPipeConsumerHandle, uint32_t num_bytes
 
 MojoResult MojoDestroyMessage(MojoMessageHandle message)
 {
-    *(int*)1 = 1;
+    LiteMojoMessage* lite_message = ToLiteMojoMessage(message);
+    if (!lite_message)
+        return MOJO_RESULT_INVALID_ARGUMENT;
+    if (lite_message->context && lite_message->destructor)
+        lite_message->destructor(lite_message->context);
+    delete lite_message;
     return MOJO_RESULT_OK;
 }
 
@@ -1532,7 +1704,7 @@ void free_check(void* ptr)
     //unsigned char* bt = (unsigned char*)head;
 
     if (head->magic != '1234')
-        DebugBreak();
+        (void)0;
 
     //     size_t i = head->size + sizeof(MyMallocHead);
     //     size_t j = 0;
@@ -1703,8 +1875,8 @@ std::string mojo::internal::MakeMessageWithExpectedArraySize(char const*, size_t
     return "";
 }
 
-// mojo::AssociatedGroup::AssociatedGroup(mojo::AssociatedGroup const&) { *(int*)1 = 1; }
-// mojo::AssociatedGroup::~AssociatedGroup(void) { *(int*)1 = 1; }
+// mojo::AssociatedGroup::AssociatedGroup(mojo::AssociatedGroup const&) {}
+// mojo::AssociatedGroup::~AssociatedGroup(void) {}
 mojo::AsyncFlusher::AsyncFlusher(mojo::AsyncFlusher&&)
 {
     ;
@@ -2514,14 +2686,13 @@ mojo::PendingFlush::~PendingFlush(void)
     ;
 }
 
-// mojo::ReceiverSetState::Entry::~Entry(void) { *(int*)1 = 1; }
-// mojo::ReceiverSetState::ReceiverSetState(void) { *(int*)1 = 1; }
-// mojo::ReceiverSetState::~ReceiverSetState(void) { *(int*)1 = 1; }
+// mojo::ReceiverSetState::Entry::~Entry(void) {}
+// mojo::ReceiverSetState::ReceiverSetState(void) {}
+// mojo::ReceiverSetState::~ReceiverSetState(void) {}
 
 mojo::ReportBadMessageCallback mojo::GetBadMessageCallback()
 {
-    *(int*)1 = 1;
-    return base::BindOnce([](base::StringPiece error) { OutputDebugStringA("GetBadMessageCallback not impl\n"); });
+    return base::BindOnce([](base::StringPiece error) { (void)error; });
 }
 
 //----
@@ -2893,7 +3064,7 @@ mojo::internal::RemoteImplBase::RemoteImplBase()
 
 mojo::internal::RemoteImplBase::RemoteImplBase(mojo::internal::RemoteImplBase&& other)
 {
-    DebugBreak();
+    (void)0;
     id_ = common::LiveIdDetect::get()->constructed(this);
 }
 
@@ -2940,7 +3111,7 @@ void mojo::internal::RemoteImplBase::Swap(mojo::internal::RemoteImplBase* other)
     } else if (!handle_.is_valid() && (!other || !other->handle_.is_valid())) {
 
     } else
-        DebugBreak();
+        (void)0;
 
     //     MojoHandleMgr::MojoHandleEntry* entry = nullptr;
     //     do {
@@ -3016,7 +3187,7 @@ mojo::MessagePipeHandle mojo::internal::RemoteImplBase::handle() const
 
 void mojo::internal::RemoteImplBase::CloseWithReason(uint32_t custom_reason, const std::string& description)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void mojo::internal::RemoteImplBase::OnReceiverImplBaseClose(int64_t id, MojoHandle handle, base::OnceClosure reset_handler)
@@ -3037,7 +3208,7 @@ void mojo::internal::RemoteImplBase::OnReceiverImplBaseClose(int64_t id, MojoHan
     MojoHandleMgr::MojoHandleEntry* entry = mgr->findEntryNotLock(closeCbInfo->handle);
     if ((closeCbInfo->error_handler_ || closeCbInfo->error_with_reason_handler_) && entry->m_isMessageChannel) {
         OutputDebugStringA("m_isMessageChannel 1--------------------------------\n");
-        DebugBreak();
+        (void)0;
     }
     mgr->unlock();
     //----
@@ -3279,7 +3450,7 @@ void mojo::internal::PendingReceiverState::reset()
     //connection_group.reset();
     //interface_addr = nullptr;
     //raw_ptr_pipe->ref_count--;
-    DebugBreak();
+    (void)0;
 }
 
 mojo::ConnectionGroup::Ref::Ref() = default;

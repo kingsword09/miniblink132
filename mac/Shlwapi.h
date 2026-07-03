@@ -1,0 +1,6 @@
+#ifndef MAC_SHLWAPI_CASE_WRAPPER_H
+#define MAC_SHLWAPI_CASE_WRAPPER_H
+
+#include "shlwapi.h"
+
+#endif // MAC_SHLWAPI_CASE_WRAPPER_H

@@ -11,7 +11,9 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/strings/escape.h"
+#if defined(OS_WIN)
 #include <windows.h>
+#endif
 
 namespace asar {
 
@@ -64,6 +66,7 @@ bool getAsarArchivePath(const base::FilePath& full_path, base::FilePath* asar_pa
     return true;
 }
 
+#if defined(OS_WIN)
 bool readFileToString(const wchar_t* path, std::string* buffer)
 {
     HANDLE hFile = ::CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -79,6 +82,7 @@ bool readFileToString(const wchar_t* path, std::string* buffer)
     ::CloseHandle(hFile);
     return !!b && 0 != numberOfBytesRead;
 }
+#endif
 
 static bool readFileToStringImpl(const base::FilePath& path, std::string* contents)
 {

@@ -6,21 +6,27 @@
 #include "v8.h"
 #include <windows.h>
 
+#if defined(__APPLE__)
+#include <CoreGraphics/CoreGraphics.h>
+#else
 namespace Gdiplus {
 class Bitmap;
 }
+#endif
 
 namespace atom {
 
 class NativeImage : public mate::EventEmitter<NativeImage> {
 public:
     NativeImage(v8::Isolate* isolate, v8::Local<v8::Object> wrapper);
+    ~NativeImage() override;
     static void init(v8::Isolate* isolate, v8::Local<v8::Object> target);
-    std::vector<unsigned char>* encodeToBuffer(const CLSID* clsid);
-    v8::Local<v8::Object> toPNGAPI(const base::Value::Dict& args);
-    v8::Local<v8::Object> toJpeg(const base::Value::Dict& args);
-    v8::Local<v8::Object> toBitmap(const base::Value::Dict& args);
+    v8::Local<v8::Object> toPNGAPI();
+    v8::Local<v8::Object> toJpeg();
+    v8::Local<v8::Object> toBitmap();
     std::string toDataURLApi();
+    bool isEmptyApi() const;
+    v8::Local<v8::Object> getSizeApi() const;
 
     static v8::Local<v8::Object> createEmpty(v8::Isolate* isolate);
     static void createEmptyApi(const v8::FunctionCallbackInfo<v8::Value> info);
@@ -42,7 +48,12 @@ public:
 
 private:
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
+#if defined(__APPLE__)
+    CGImageRef m_image;
+#else
+    std::vector<unsigned char>* encodeToBuffer(const CLSID* clsid);
     Gdiplus::Bitmap* m_gdipBitmap;
+#endif
 };
 
 }

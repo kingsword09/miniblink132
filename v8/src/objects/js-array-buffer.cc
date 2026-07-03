@@ -173,9 +173,13 @@ size_t JSArrayBuffer::GsabByteLength(Isolate* isolate, Address raw_array_buffer)
     DisallowGarbageCollection no_gc;
     DisallowJavascriptExecution no_js(isolate);
     Tagged<JSArrayBuffer> buffer = Cast<JSArrayBuffer>(Tagged<Object>(raw_array_buffer));
-    CHECK(buffer->is_resizable_by_js());
-    CHECK(buffer->is_shared());
-    return buffer->GetBackingStore()->byte_length(std::memory_order_seq_cst);
+    if (!buffer->is_shared() || !buffer->is_resizable_by_js())
+        return buffer->byte_length();
+
+    std::shared_ptr<BackingStore> backing_store = buffer->GetBackingStore();
+    if (!backing_store)
+        return 0;
+    return backing_store->byte_length(std::memory_order_seq_cst);
 }
 
 // static
@@ -395,10 +399,13 @@ size_t JSTypedArray::LengthTrackingGsabBackedTypedArrayLength(Isolate* isolate, 
     Tagged<JSTypedArray> array = Cast<JSTypedArray>(Tagged<Object>(raw_array));
     CHECK(array->is_length_tracking());
     Tagged<JSArrayBuffer> buffer = array->buffer();
-    CHECK(buffer->is_resizable_by_js());
-    CHECK(buffer->is_shared());
-    size_t backing_byte_length = buffer->GetBackingStore()->byte_length(std::memory_order_seq_cst);
-    CHECK_GE(backing_byte_length, array->byte_offset());
+    size_t backing_byte_length = buffer->byte_length();
+    if (buffer->is_shared() && buffer->is_resizable_by_js()) {
+        std::shared_ptr<BackingStore> backing_store = buffer->GetBackingStore();
+        backing_byte_length = backing_store ? backing_store->byte_length(std::memory_order_seq_cst) : 0;
+    }
+    if (backing_byte_length < array->byte_offset())
+        return 0;
     auto element_byte_size = ElementsKindToByteSize(array->GetElementsKind());
     return (backing_byte_length - array->byte_offset()) / element_byte_size;
 }

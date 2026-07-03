@@ -1,8 +1,10 @@
 ﻿
 #include "electron/nodeblink.h"
 
+#include <windows.h>
 #include "electron/browser/api/WindowInterface.h"
 #include "electron/browser/api/WindowList.h"
+#include "electron/browser/api/ApiApp.h"
 #include "electron/browser/api/MenuEventNotif.h"
 #include "electron/common/NodeRegisterHelp.h"
 #include "electron/common/HideWndHelp.h"
@@ -158,16 +160,26 @@ public:
         builder.SetMethod("_append", &Menu::_appendeApi);
         builder.SetMethod("_popup", &Menu::_popupApi);
         builder.SetMethod("_clear", &Menu::_clearApi);
+        builder.SetMethod("_dispatchCommandForTesting", &Menu::dispatchCommandForTestingApi);
         builder.SetMethod("getItemCount", &Menu::getItemCountApi);
-        builder.SetMethod("quit", &Menu::nullFunction);
+        builder.SetMethod("quit", &Menu::quitApi);
 
-        constructor.Reset(isolate, prototype->GetFunction(context).ToLocalChecked());
-        target->Set(context, v8::String::NewFromUtf8(isolate, "Menu").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
+        v8::Local<v8::Function> constructorFunction = prototype->GetFunction(context).ToLocalChecked();
+        constructor.Reset(isolate, constructorFunction);
+        target->Set(context, v8::String::NewFromUtf8(isolate, "Menu").ToLocalChecked(), constructorFunction).ToChecked();
+        target->Set(context,
+            v8::String::NewFromUtf8(isolate, "_clearApplicationMenu").ToLocalChecked(),
+            v8::FunctionTemplate::New(isolate, clearApplicationMenuBinding)->GetFunction(context).ToLocalChecked()).ToChecked();
+        target->Set(context,
+            v8::String::NewFromUtf8(isolate, "_sendActionToFirstResponder").ToLocalChecked(),
+            v8::FunctionTemplate::New(isolate, sendActionToFirstResponderBinding)->GetFunction(context).ToLocalChecked()).ToChecked();
     }
 
-    void nullFunction()
+    void quitApi()
     {
-        DebugBreak();
+        App* app = App::getInstance();
+        if (app)
+            app->quitApi();
     }
 
     // Set the global menubar.
@@ -178,20 +190,56 @@ public:
         WindowList::iterator winIt = WindowList::getInstance()->begin();
         for (; winIt != WindowList::getInstance()->end(); ++winIt) {
             WindowInterface* windowInterface = *winIt;
+            if (!windowInterface)
+                continue;
             HWND hParentWnd = windowInterface->getHWND();
-            ::SetMenu(hParentWnd, hmenuBar);
+            if (hParentWnd)
+                ::SetMenu(hParentWnd, hmenuBar);
         }
         m_appMenu = this;
     }
 
-    void sendActionToFirstResponderApi(const std::string& action)
+    bool sendActionToFirstResponderApi(const std::string& action)
     {
-        DebugBreak();
+        return sendActionToFirstResponder(action);
     }
 
-    size_t getItemCountApi() const
+    static void clearApplicationMenuBinding(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        return m_items.size();
+        clearApplicationMenu();
+    }
+
+    static void sendActionToFirstResponderBinding(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Isolate* isolate = args.GetIsolate();
+        std::string action;
+        if (args.Length() >= 1)
+            gin_helper::Converter<std::string>::FromV8(isolate, args[0], &action);
+        args.GetReturnValue().Set(sendActionToFirstResponder(action));
+    }
+
+    static void clearApplicationMenu()
+    {
+        WindowList::iterator winIt = WindowList::getInstance()->begin();
+        for (; winIt != WindowList::getInstance()->end(); ++winIt) {
+            WindowInterface* windowInterface = *winIt;
+            if (!windowInterface)
+                continue;
+            HWND hParentWnd = windowInterface->getHWND();
+            if (hParentWnd)
+                ::SetMenu(hParentWnd, nullptr);
+        }
+        m_appMenu = nullptr;
+    }
+
+    static bool sendActionToFirstResponder(const std::string& action)
+    {
+        return false;
+    }
+
+    int getItemCountApi() const
+    {
+        return static_cast<int>(m_items.size());
     }
 
     void _appendeApi(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -206,8 +254,12 @@ public:
         v8::Isolate* isolate = args.GetIsolate();
         if (!args[0]->IsUint32())
             return;
+        if (!args[1]->IsObject())
+            return;
         v8::Local<v8::Context> context = isolate->GetCurrentContext();
         size_t pos = args[0]->ToUint32(context).ToLocalChecked()->Value();
+        if (pos > m_items.size())
+            pos = m_items.size();
 
         v8::Object* v8Obj = v8::Object::Cast(*args[1]);
         v8::MaybeLocal<v8::Array> v8MaybeObjProps = v8Obj->GetOwnPropertyNames(isolate->GetCurrentContext());
@@ -301,7 +353,10 @@ public:
         v8::Local<v8::Context> context = isolate->GetCurrentContext();
         Menu* self = this;
         if (!m_hideWndHelp) {
-            m_hideWndHelp = new HideWndHelp(L"HideParentWindowClass",
+            static const WCHAR kHideParentWindowClass[] = {
+                'H', 'i', 'd', 'e', 'P', 'a', 'r', 'e', 'n', 't', 'W', 'i', 'n', 'd', 'o', 'w', 'C', 'l', 'a', 's', 's', 0
+            };
+            m_hideWndHelp = new HideWndHelp(kHideParentWindowClass,
                 [self](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT { return self->hideWndProc(hWnd, uMsg, wParam, lParam); });
         }
 
@@ -312,11 +367,24 @@ public:
         POINT pt;
         if (args.Length() == 2 && args[0]->IsInt32() && args[1]->IsInt32()) {
             pt.x = args[0]->ToInt32(context).ToLocalChecked()->Value();
-            pt.y = args[0]->ToInt32(context).ToLocalChecked()->Value();
+            pt.y = args[1]->ToInt32(context).ToLocalChecked()->Value();
         } else {
             ::GetCursorPos(&pt);
         }
         ::TrackPopupMenu(m_hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, m_hideWndHelp->getWnd(), NULL);
+    }
+
+    bool dispatchCommandForTestingApi(int index)
+    {
+        if (index < 0 || static_cast<size_t>(index) >= m_items.size())
+            return false;
+        if (!m_hMenu && !buildMenus(false))
+            return false;
+        MenuItem* item = m_items[index];
+        if (!item)
+            return false;
+        MenuEventNotif::onMenuCommon(WM_COMMAND, MAKEWPARAM(item->getAction(), 0), 0);
+        return true;
     }
 
     void _clearApi()
@@ -342,21 +410,21 @@ public:
         info.cbSize = sizeof(MENUITEMINFOW);
         info.fMask = MIIM_STATE; // information to get
         int index = findItemIndex(item);
-        BOOL b = ::GetMenuItemInfo(m_hMenu, (UINT)index, TRUE, &info);
+        BOOL b = ::GetMenuItemInfoW(m_hMenu, (UINT)index, TRUE, &info);
 
         if (MenuItem::CheckableActionType == item->getType()) {
             if (item->getChecked()) {
                 info.fState = MFS_UNCHECKED;
-                b = ::SetMenuItemInfo(m_hMenu, (UINT)index, TRUE, &info);
+                b = ::SetMenuItemInfoW(m_hMenu, (UINT)index, TRUE, &info);
                 item->setChecked(false);
             } else {
                 info.fState |= MFS_CHECKED;
-                b = ::SetMenuItemInfo(m_hMenu, (UINT)index, TRUE, &info);
+                b = ::SetMenuItemInfoW(m_hMenu, (UINT)index, TRUE, &info);
                 item->setChecked(true);
             }
         }
 
-        v8::Local<v8::Value> focusedWindow = WindowInterface::getFocusedWindow(isolate());
+        v8::Local<v8::Value> focusedWindow = v8::Null(isolate());
         item->getMenu()->mate::EventEmitter<Menu>::emit("click", item->getClickCallbackValue(), focusedWindow /*, focusedWebContents*/);
     }
 
@@ -427,7 +495,7 @@ private:
             return 0;
         }
         default:
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+            return DefWindowProcW(hwnd, uMsg, wParam, lParam);
         }
         return 0;
     }
@@ -458,6 +526,7 @@ MenuItem::MenuItem(v8::Isolate* isolate, Menu* menu)
     m_isChecked = false;
     m_action = s_menuItemCount++;
     m_menu = menu;
+    m_hSubMenu = nullptr;
     m_subMenu = nullptr;
     m_id = 0;
     Menu::m_liveMenuItem->insert(this);
@@ -482,13 +551,13 @@ void MenuItem::insertPlatformMenu(size_t pos, HMENU hMenu) const
     if (count < 0 && (int)pos > count)
         return;
 
-    MENUITEMINFO info = { 0 };
-    info.cbSize = sizeof(MENUITEMINFO);
+    MENUITEMINFOW info = { 0 };
+    info.cbSize = sizeof(MENUITEMINFOW);
 
     if (m_type == SeparatorType) {
         info.fMask = MIIM_FTYPE;
         info.fType = MFT_SEPARATOR;
-        ::InsertMenuItem(hMenu, count, TRUE, &info);
+        ::InsertMenuItemW(hMenu, count, TRUE, &info);
         return;
     }
 
@@ -511,7 +580,7 @@ void MenuItem::insertPlatformMenu(size_t pos, HMENU hMenu) const
     info.fState |= m_isEnabled ? MFS_ENABLED : MFS_DISABLED;
     if (CheckableActionType == m_type)
         info.fState |= m_isChecked ? MFS_CHECKED : MFS_UNCHECKED;
-    ::InsertMenuItem(hMenu, count, TRUE, &info);
+    ::InsertMenuItemW(hMenu, count, TRUE, &info);
 }
 
 void MenuItem::clear()

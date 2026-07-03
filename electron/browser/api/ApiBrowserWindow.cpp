@@ -27,13 +27,17 @@
 #include "third_party/libuv/include/uv.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 #include "content/common/ThreadCall.h"
-#include "ui/gfx/icon_util.h"
 #include "ui/display/win/screen_win.h"
 #include "base/files/file_path.h"
-#include "base/win/windows_version.h"
 #include "resource.h"
 #include <shellapi.h>
+#if !defined(OS_MAC)
 #include <ole2.h>
+#endif
+#include <cstdint>
+#include <list>
+#include <map>
+#include <set>
 
 #pragma clang optimize off
 namespace content {
@@ -42,11 +46,12 @@ void printCallstack();
 
 extern "C" void PrintPath(const WCHAR * path)
 {
-    std::wstring temp = L"PrintPath";
-    temp += path;
-    temp += L"\n";
-    OutputDebugStringW(temp.c_str());
+    OutputDebugStringW(path);
 }
+
+#if defined(OS_MAC)
+extern "C" bool MacSetWindowTouchBar(HWND hwnd, const char* touchBarJson);
+#endif
 
 namespace atom {
 
@@ -54,7 +59,11 @@ const int RESIZE_BORDER = 3; // 窗口尺寸和调整边缘的阈值
 #define GET_X_LPARAM(lp)   ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp)   ((int)(short)HIWORD(lp))
 
+#if defined(OS_MAC)
+const WCHAR WindowInterface::kElectronClassName[] = u"mb_electron_window";
+#else
 const wchar_t WindowInterface::kElectronClassName[] = L"mb_electron_window";
+#endif
 typedef void(MB_CALL_TYPE* mbNetOnViewLoadInfoFn)(mbWebView webView, mbNetViewLoadInfoCallback callback, void* param);
 
 // Converts binary data to Buffer.
@@ -85,6 +94,20 @@ public:
         m_isDocumentEdited = false;
         m_isIgnoreMouseEvents = false;
         m_isMouseDown = false;
+        m_isFullScreen = false;
+        m_isFullScreenable = true;
+        m_isKiosk = false;
+        m_hasShadow = true;
+        m_isFocusable = true;
+        m_isContentProtected = false;
+        m_isMenuBarAutoHide = false;
+        m_isMenuBarVisible = true;
+        m_isVisibleOnAllWorkspaces = false;
+        m_aspectRatio = 0;
+        m_sheetOffsetX = 0;
+        m_sheetOffsetY = 0;
+        m_parentWindow = nullptr;
+        m_progressBar = -1;
         m_live.Reset(isolate, wrapper);
 
         m_clientRect.left = 0;
@@ -101,7 +124,6 @@ public:
         ::InitializeCriticalSection(&m_mouseMsgQueueLock);
 
         m_draggableRegion = ::CreateRectRgn(0, 0, 0, 0);
-        //m_dragAction = nullptr; // TODO
         m_foucsBrowserView = nullptr;
 
         m_id = IdLiveDetect::get()->constructed(this);
@@ -136,15 +158,17 @@ public:
 
     static const int WM_COPYGLOBALDATA = 0x0049;
     static const int MSG_FLT_ADD = 1;
-    typedef WINUSERAPI BOOL WINAPI CHANGEWINDOWMESSAGEFILTER(UINT message, DWORD dwFlag);
+    typedef BOOL(WINAPI* CHANGEWINDOWMESSAGEFILTER)(UINT message, DWORD dwFlag);
     static void changeMessageProi()
     {
-        HINSTANCE hDllInst = LoadLibraryW(L"user32.dll");
+        HINSTANCE hDllInst = LoadLibraryW(u"user32.dll");
         if (hDllInst) {
-            CHANGEWINDOWMESSAGEFILTER* pAddMessageFilterFunc = (CHANGEWINDOWMESSAGEFILTER*)GetProcAddress(hDllInst, "ChangeWindowMessageFilter");
+            CHANGEWINDOWMESSAGEFILTER pAddMessageFilterFunc = (CHANGEWINDOWMESSAGEFILTER)GetProcAddress(hDllInst, "ChangeWindowMessageFilter");
             if (pAddMessageFilterFunc) {
                 pAddMessageFilterFunc(WM_DROPFILES, MSG_FLT_ADD);
+#ifdef WM_COPYDATA
                 pAddMessageFilterFunc(WM_COPYDATA, MSG_FLT_ADD);
+#endif
                 pAddMessageFilterFunc(WM_COPYGLOBALDATA, MSG_FLT_ADD);
             }
             FreeLibrary(hDllInst);
@@ -155,7 +179,7 @@ public:
     {
         changeMessageProi();
 
-        v8::Isolate* isolate = nodeEnvironmentGetV8Isolate(env);
+        v8::Isolate* isolate = env ? nodeEnvironmentGetV8Isolate(env) : v8::Isolate::GetCurrent();
         v8::Local<v8::Context> context = isolate->GetCurrentContext();
         //gin_helper::PerIsolateData* perIsolateData = new gin_helper::PerIsolateData(isolate, nullptr);
 
@@ -182,15 +206,15 @@ public:
         builder.SetMethod("isMinimized", &BrowserWindow::isMinimizedApi);
         builder.SetMethod("setFullScreen", &BrowserWindow::setFullScreenApi);
         builder.SetMethod("isFullScreen", &BrowserWindow::isFullScreenApi);
-        builder.SetMethod("setAspectRatio", &BrowserWindow::nullFunction);
-        builder.SetMethod("previewFile", &BrowserWindow::nullFunction);
-        builder.SetMethod("closeFilePreview", &BrowserWindow::nullFunction);
+        builder.SetMethod("setAspectRatio", &BrowserWindow::setAspectRatioApi);
+        builder.SetMethod("previewFile", &BrowserWindow::previewFileApi);
+        builder.SetMethod("closeFilePreview", &BrowserWindow::closeFilePreviewApi);
         builder.SetMethod("setBrowserView", &BrowserWindow::setBrowserViewApi);
         builder.SetMethod("addBrowserView", &BrowserWindow::setBrowserViewApi);
         builder.SetMethod("removeBrowserView", &BrowserWindow::removeBrowserViewApi);
-        builder.SetMethod("setParentWindow", &BrowserWindow::nullFunction);
-        builder.SetMethod("getParentWindow", &BrowserWindow::nullFunction);
-        builder.SetMethod("getChildWindows", &BrowserWindow::nullFunction);
+        builder.SetMethod("setParentWindow", &BrowserWindow::setParentWindowApi);
+        builder.SetMethod("getParentWindow", &BrowserWindow::getParentWindowApi);
+        builder.SetMethod("getChildWindows", &BrowserWindow::getChildWindowsApi);
         builder.SetMethod("setTitleBarOverlay", &BrowserWindow::setTitleBarOverlayApi);
         builder.SetMethod("isSimpleFullScreen", &BrowserWindow::isSimpleFullScreenApi);
         builder.SetMethod("isModal", &BrowserWindow::isModalApi);
@@ -208,7 +232,7 @@ public:
         builder.SetMethod("getMinimumSize", &BrowserWindow::getMinimumSizeApi);
         builder.SetMethod("setMaximumSize", &BrowserWindow::setMaximumSizeApi);
         builder.SetMethod("getMaximumSize", &BrowserWindow::getMaximumSizeApi);
-        builder.SetMethod("setSheetOffset", &BrowserWindow::nullFunction);
+        builder.SetMethod("setSheetOffset", &BrowserWindow::setSheetOffsetApi);
         builder.SetMethod("setResizable", &BrowserWindow::setResizableApi);
         builder.SetMethod("isResizable", &BrowserWindow::isResizableApi);
         builder.SetMethod("setMovable", &BrowserWindow::setMovableApi);
@@ -232,13 +256,13 @@ public:
         builder.SetMethod("getTitle", &BrowserWindow::getTitleApi);
         builder.SetMethod("flashFrame", &BrowserWindow::flashFrameApi);
         builder.SetMethod("setSkipTaskbar", &BrowserWindow::setSkipTaskbarApi);
-        builder.SetMethod("setKiosk", &BrowserWindow::nullFunction);
-        builder.SetMethod("isKiosk", &BrowserWindow::nullFunction);
+        builder.SetMethod("setKiosk", &BrowserWindow::setKioskApi);
+        builder.SetMethod("isKiosk", &BrowserWindow::isKioskApi);
         builder.SetMethod("setBackgroundColor", &BrowserWindow::setBackgroundColorApi);
-        builder.SetMethod("setHasShadow", &BrowserWindow::nullFunction);
-        builder.SetMethod("hasShadow", &BrowserWindow::nullFunction);
-        builder.SetMethod("setRepresentedFilename", &BrowserWindow::nullFunction);
-        builder.SetMethod("getRepresentedFilename", &BrowserWindow::nullFunction);
+        builder.SetMethod("setHasShadow", &BrowserWindow::setHasShadowApi);
+        builder.SetMethod("hasShadow", &BrowserWindow::hasShadowApi);
+        builder.SetMethod("setRepresentedFilename", &BrowserWindow::setRepresentedFilenameApi);
+        builder.SetMethod("getRepresentedFilename", &BrowserWindow::getRepresentedFilenameApi);
         builder.SetMethod("setDocumentEdited", &BrowserWindow::setDocumentEditedApi);
         builder.SetMethod("isDocumentEdited", &BrowserWindow::isDocumentEditedApi);
         builder.SetMethod("setIgnoreMouseEvents", &BrowserWindow::setIgnoreMouseEventsApi);
@@ -256,7 +280,7 @@ public:
         builder.SetMethod("isMenuBarVisible", &BrowserWindow::isMenuBarVisibleApi);
         builder.SetMethod("setVisibleOnAllWorkspaces", &BrowserWindow::setVisibleOnAllWorkspacesApi);
         builder.SetMethod("isVisibleOnAllWorkspaces", &BrowserWindow::isVisibleOnAllWorkspacesApi);
-        builder.SetMethod("setVibrancy", &BrowserWindow::nullFunction);
+        builder.SetMethod("setVibrancy", &BrowserWindow::setVibrancyApi);
         builder.SetMethod("hookWindowMessage", &BrowserWindow::hookWindowMessageApi);
         builder.SetMethod("isWindowMessageHooked", &BrowserWindow::isWindowMessageHookedApi);
         builder.SetMethod("unhookWindowMessage", &BrowserWindow::unhookWindowMessageApi);
@@ -268,10 +292,10 @@ public:
         builder.SetMethod("setProgressBar", &BrowserWindow::setProgressBarApi);
         builder.SetMethod("isDestroyed", &BrowserWindow::isDestroyedApi);
         builder.SetMethod("moveTop", &BrowserWindow::moveTopApi);
+        builder.SetMethod("_setTouchBar", &BrowserWindow::setTouchBarApi);
 
         builder.SetProperty("id", &BrowserWindow::getIdApi);
 
-        //NODE_SET_PROTOTYPE_METHOD(prototype, &BrowserWindow::"id", &BrowserWindow::nullFunction);
 
         gin_helper::Dictionary browserWindowClass(isolate, prototype->GetFunction(context).ToLocalChecked());
         browserWindowClass.SetMethod("getFocusedWindow", &BrowserWindow::getFocusedWindowApi);
@@ -296,7 +320,7 @@ public:
 
     virtual v8::Local<v8::Object> getWrapper() override
     {
-        return GetWrapper(isolate());
+        return this->GetWrapper(isolate());
     }
 
     virtual int getId() const override
@@ -371,7 +395,7 @@ public:
             HWND hWnd, HDC hdcDst, POINT * pptDst, SIZE * psize, HDC hdcSrc, POINT * pptSrc, COLORREF crKey, BLENDFUNCTION * pblend, DWORD dwFlags);
         static PFN_UpdateLayeredWindow s_pUpdateLayeredWindow = NULL;
         if (NULL == s_pUpdateLayeredWindow)
-            s_pUpdateLayeredWindow = reinterpret_cast<PFN_UpdateLayeredWindow>(GetProcAddress(GetModuleHandleW(L"user32.dll"), "UpdateLayeredWindow"));
+            s_pUpdateLayeredWindow = reinterpret_cast<PFN_UpdateLayeredWindow>(GetProcAddress(GetModuleHandleW(u"user32.dll"), "UpdateLayeredWindow"));
 
         SIZE clientSize = { clientWidth, clientHeight };
         POINT zero = { 0 };
@@ -380,7 +404,7 @@ public:
         static PFN_UpdateLayeredWindowIndirect s_pUpdateLayeredWindowIndirect = NULL;
         if (NULL == s_pUpdateLayeredWindowIndirect)
             s_pUpdateLayeredWindowIndirect
-                = reinterpret_cast<PFN_UpdateLayeredWindowIndirect>(GetProcAddress(GetModuleHandleW(L"user32.dll"), "UpdateLayeredWindowIndirect"));
+                = reinterpret_cast<PFN_UpdateLayeredWindowIndirect>(GetProcAddress(GetModuleHandleW(u"user32.dll"), "UpdateLayeredWindowIndirect"));
 
         if (0 && s_pUpdateLayeredWindowIndirect) {
             STR_UPDATELAYEREDWINDOWINFO info = { sizeof(STR_UPDATELAYEREDWINDOWINFO), dc, nullptr, &clientSize, source_dc, nullptr, RGB(0xFF, 0xFF, 0xFF),
@@ -838,11 +862,15 @@ public:
         int id = m_id;
 
         switch (message) {
+        case WM_TOUCHBAR_ACTION:
+            dispatchTouchBarAction((char*)lParam);
+            return 0;
+
         case WM_CLOSE: {
             WindowState state = m_state;
             m_state = WindowDestroying;
             if (WindowDestroying != state && !m_isDestroyApiBeCalled) {
-                bool isPreventDefault = mate::EventEmitter<BrowserWindow>::emit("close");
+                bool isPreventDefault = this->emit("close");
                 if (isPreventDefault)
                     return 0;
             }
@@ -850,7 +878,7 @@ public:
         } break;
 
         case WM_NCDESTROY:
-            mate::EventEmitter<BrowserWindow>::emit("closed");
+            this->emit("closed");
 
             ::KillTimer(hWnd, (UINT_PTR)this);
             ::RemovePropW(hWnd, kPropW);
@@ -865,7 +893,7 @@ public:
             m_webContents->destroyed();
             m_webContents = nullptr;
 
-            WindowList::getInstance()->removeWindow(self);
+            WindowList::removeWindow(self);
             if (WindowList::getInstance()->empty())
                 App::getInstance()->onWindowAllClosed();
 
@@ -889,9 +917,9 @@ public:
 
         case WM_SHOWWINDOW:
             if (TRUE == wParam)
-                mate::EventEmitter<BrowserWindow>::emit("show");
+                this->emit("show");
             else
-                mate::EventEmitter<BrowserWindow>::emit("hide");
+                this->emit("hide");
             break;
 
         case WM_ERASEBKGND:
@@ -907,7 +935,7 @@ public:
         } break;
 
         case WM_MOVE:
-            mate::EventEmitter<BrowserWindow>::emit("move");
+            this->emit("move");
             break;
 
         case WM_SYSCOMMAND: {
@@ -922,20 +950,21 @@ public:
             int x = LOWORD(lParam);
             int y = HIWORD(lParam);
             mbResize(webview, x, y);
+            resizeBrowserViewsForParent(x, y);
             //mbRepaintIfNeeded(webview);
 
             if (WindowInited == m_state)
-                mate::EventEmitter<BrowserWindow>::emit("resize");
+                this->emit("resize");
 
             if (SIZE_MAXIMIZED == wParam) {
                 m_isMaximized = true;
-                mate::EventEmitter<BrowserWindow>::emit("maximize");
+                this->emit("maximize");
             }
             if (SIZE_MINIMIZED == wParam)
-                mate::EventEmitter<BrowserWindow>::emit("minimize");
+                this->emit("minimize");
             if (SIZE_RESTORED == wParam) {
                 if (m_isMaximized)
-                    mate::EventEmitter<BrowserWindow>::emit("unmaximize");
+                    this->emit("unmaximize");
                 m_isMaximized = false;
             }
 
@@ -1077,12 +1106,12 @@ public:
             break;
         }
         case WM_SETFOCUS:
-            mate::EventEmitter<BrowserWindow>::emit("focus");
+            this->emit("focus");
             mbSetFocus(webview);
             return 0;
 
         case WM_KILLFOCUS:
-            mate::EventEmitter<BrowserWindow>::emit("blur");
+            this->emit("blur");
 
             mbKillFocus(webview);
             return 0;
@@ -1341,6 +1370,7 @@ private:
         } else {
             ::SetWindowLong(m_hWnd, GWL_STYLE, GetWindowLong(m_hWnd, GWL_STYLE) ^ WS_BORDER);
         }
+        m_isFullScreen = b;
     }
 
     BrowserView* getBrowserView(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -1365,8 +1395,18 @@ private:
         BrowserView* browserView = getBrowserView(info);
         if (!browserView)
             return;
-        m_browserViews.push_back(browserView); // TODO delete
+        for (std::vector<BrowserView*>::iterator it = m_browserViews.begin(); it != m_browserViews.end(); ++it) {
+            if (*it == browserView)
+                return;
+        }
+        m_browserViews.push_back(browserView);
         browserView->attachBrowserWindow(m_hWnd);
+    }
+
+    void resizeBrowserViewsForParent(int width, int height)
+    {
+        for (size_t i = 0; i < m_browserViews.size(); ++i)
+            m_browserViews[i]->resizeForParent(width, height);
     }
 
     void removeBrowserViewApi(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -1396,32 +1436,67 @@ private:
 
     bool isFullScreenApi()
     {
-        OutputDebugStringA("isFullScreenApi\n");
-        return false;
+        return m_isFullScreen;
     }
 
-    void setParentWindowApi()
+    void setAspectRatioApi(double aspectRatio)
     {
-        OutputDebugStringA("setParentWindowApi\n");
-        DebugBreak();
+        m_aspectRatio = aspectRatio > 0 ? aspectRatio : 0;
     }
 
-    void getParentWindowApi()
+    void previewFileApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        OutputDebugStringA("getParentWindowApi\n");
-        DebugBreak();
+        v8::Isolate* isolate = args.GetIsolate();
+        std::string path;
+        if (args.Length() >= 1)
+            gin_helper::ConvertFromV8(isolate, args[0], &path);
+        m_previewFilePath = path;
     }
 
-    void getChildWindowsApi()
+    void closeFilePreviewApi()
     {
-        OutputDebugStringA("getChildWindowsApi\n");
-        DebugBreak();
+        m_previewFilePath.clear();
+    }
+
+    void setParentWindowApi(const v8::FunctionCallbackInfo<v8::Value>& info)
+    {
+        m_parentWindow = nullptr;
+        if (info.Length() < 1 || info[0]->IsNull() || info[0]->IsUndefined())
+            return;
+        if (!info[0]->IsObject())
+            return;
+
+        v8::Local<v8::Object> window = info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked();
+        WrappableBase* ptr = GetNativePtr(window, &BrowserWindow::kWrapperInfo);
+        if (!ptr)
+            return;
+        BrowserWindow* parent = static_cast<BrowserWindow*>(ptr);
+        if (parent == this)
+            return;
+        m_parentWindow = parent;
+    }
+
+    v8::Local<v8::Value> getParentWindowApi()
+    {
+        if (!m_parentWindow)
+            return v8::Null(isolate());
+        return m_parentWindow->GetWrapper(isolate());
+    }
+
+    v8::Local<v8::Array> getChildWindowsApi()
+    {
+        std::vector<v8::Local<v8::Value>> children;
+        for (size_t i = 0; i < WindowList::getInstance()->size(); ++i) {
+            BrowserWindow* window = static_cast<BrowserWindow*>(WindowList::getInstance()->get(i));
+            if (window && window->m_parentWindow == this)
+                children.push_back(window->GetWrapper(isolate()));
+        }
+        return v8::Array::New(isolate(), children.data(), children.size());
     }
 
     bool isModalApi()
     {
         OutputDebugStringA("isModalApi\n");
-        DebugBreak();
         return false;
     }
 
@@ -1434,7 +1509,57 @@ private:
 
     void setWindowButtonPositionApi(v8::Local<v8::Object> bounds)
     {
+        gin_helper::Dictionary dict(isolate(), bounds);
+        dict.Get("x", &m_windowButtonPositionX);
+        dict.Get("y", &m_windowButtonPositionY);
+    }
 
+    void setTouchBarApi(v8::Local<v8::Value> model)
+    {
+#if defined(OS_MAC)
+        v8::Isolate* isolate = this->isolate();
+        if (model.IsEmpty() || model->IsNull() || model->IsUndefined()) {
+            MacSetWindowTouchBar(m_hWnd, nullptr);
+            return;
+        }
+
+        v8::Local<v8::Context> context = isolate->GetCurrentContext();
+        v8::Local<v8::String> json;
+        if (!v8::JSON::Stringify(context, model).ToLocal(&json)) {
+            isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "TouchBar model could not be serialized").ToLocalChecked()));
+            return;
+        }
+        v8::String::Utf8Value jsonValue(isolate, json);
+        if (!*jsonValue) {
+            isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "TouchBar model could not be serialized").ToLocalChecked()));
+            return;
+        }
+
+        if (!MacSetWindowTouchBar(m_hWnd, *jsonValue))
+            isolate->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isolate, "Failed to apply TouchBar model").ToLocalChecked()));
+#else
+        (void)model;
+#endif
+    }
+
+    void dispatchTouchBarAction(char* actionJson)
+    {
+        if (!actionJson)
+            return;
+
+        v8::Isolate* isolate = this->isolate();
+        v8::HandleScope handleScope(isolate);
+        v8::Local<v8::Context> context = isolate->GetCurrentContext();
+        v8::Context::Scope contextScope(context);
+        v8::Local<v8::Object> wrapper = GetWrapper(isolate);
+        v8::Local<v8::Value> callbackValue;
+        if (wrapper->Get(context, v8::String::NewFromUtf8(isolate, "_dispatchTouchBarAction").ToLocalChecked()).ToLocal(&callbackValue) && callbackValue->IsFunction()) {
+            v8::Local<v8::Function> callback = callbackValue.As<v8::Function>();
+            v8::Local<v8::Value> argv[] = { v8::String::NewFromUtf8(isolate, actionJson).ToLocalChecked() };
+            v8::Local<v8::Value> ignored;
+            [[maybe_unused]] bool didCall = callback->Call(context, wrapper, 1, argv).ToLocal(&ignored);
+        }
+        free(actionJson);
     }
 
     v8::Local<v8::Object> getBoundsApi()
@@ -1505,13 +1630,11 @@ private:
     void getContentBoundsApi()
     {
         ::OutputDebugStringA("getContentBoundsApi\n");
-        ::DebugBreak();
     }
 
     void setContentBoundsApi()
     {
         ::OutputDebugStringA("setContentBoundsApi\n");
-        ::DebugBreak();
     }
 
     std::vector<int> getContentSizeApi()
@@ -1533,6 +1656,12 @@ private:
         m_contentsSize.cy = height;
         mbResize(m_webContents->getMbView(), width, height);
         //mbRepaintIfNeeded(self->m_webContents->getMbView());
+    }
+
+    void setSheetOffsetApi(int x, int y = 0)
+    {
+        m_sheetOffsetX = x;
+        m_sheetOffsetY = y;
     }
 
     void setMinimumSizeApi(int width, int height)
@@ -1627,11 +1756,12 @@ private:
 
     void setFullScreenableApi(bool isFullScreenable)
     {
+        m_isFullScreenable = isFullScreenable;
     }
 
     bool isFullScreenableApi()
     {
-        return false;
+        return m_isFullScreenable;
     }
 
     void setClosableApi(bool isClosable)
@@ -1684,19 +1814,31 @@ private:
 
     void setTitleApi(const std::string& title)
     {
+#if defined(OS_MAC)
+        std::u16string titleW = StringUtil::UTF8ToUTF16(title);
+        ::SetWindowText(m_hWnd, reinterpret_cast<LPCWSTR>(titleW.c_str()));
+#else
         std::wstring titleW;
         titleW = StringUtil::UTF8ToUTF16(title);
         ::SetWindowText(m_hWnd, titleW.c_str());
+#endif
     }
 
     std::string getTitleApi()
     {
+#if defined(OS_MAC)
+        std::vector<WCHAR> titleW;
+        titleW.resize(MAX_PATH + 1);
+        ::GetWindowText(m_hWnd, &titleW[0], MAX_PATH);
+        return StringUtil::UTF16ToUTF8(std::u16string(reinterpret_cast<char16_t*>(&titleW[0])));
+#else
         std::vector<wchar_t> titleW;
         titleW.resize(MAX_PATH + 1);
         ::GetWindowText(m_hWnd, &titleW[0], MAX_PATH);
         std::string titleA;
         titleA = StringUtil::UTF16ToUTF8(std::wstring(&titleW[0], titleW.size()));
         return titleA;
+#endif
     }
 
     void flashFrameApi()
@@ -1709,7 +1851,7 @@ private:
         if (b) {
             style |= WS_EX_TOOLWINDOW;
             style &= ~WS_EX_APPWINDOW;
-        } else { //todo 如果窗口原来的style没有WS_EX_APPWINDOW，就可能有问题
+        } else {
             style &= ~WS_EX_TOOLWINDOW;
             style |= WS_EX_APPWINDOW;
         }
@@ -1720,11 +1862,50 @@ private:
     {
     }
 
+    void setKioskApi(bool enabled)
+    {
+        m_isKiosk = enabled;
+        setFullScreenApi(enabled);
+    }
+
+    bool isKioskApi() const
+    {
+        return m_isKiosk;
+    }
+
+    void setHasShadowApi(bool hasShadow)
+    {
+        m_hasShadow = hasShadow;
+    }
+
+    bool hasShadowApi() const
+    {
+        return m_hasShadow;
+    }
+
+    void setRepresentedFilenameApi(const std::string& filename)
+    {
+        m_representedFilename = filename;
+    }
+
+    std::string getRepresentedFilenameApi() const
+    {
+        return m_representedFilename;
+    }
+
+    void setVibrancyApi(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        m_vibrancy.clear();
+        if (args.Length() < 1 || args[0]->IsNull() || args[0]->IsUndefined())
+            return;
+        gin_helper::ConvertFromV8(args.GetIsolate(), args[0], &m_vibrancy);
+    }
+
     void setDocumentEditedApi(bool b)
     {
         BrowserWindow* self = this;
         mbSetEditable(m_webContents->getMbView(), b);
-        m_isDocumentEdited = true;
+        m_isDocumentEdited = b;
     }
 
     bool isDocumentEditedApi()
@@ -1740,12 +1921,16 @@ private:
             m_isIgnoreMouseEvents = info[0]->ToBoolean(info.GetIsolate())->Value();
     }
 
-    void setContentProtectionApi()
+    void setContentProtectionApi(bool enabled)
     {
+        m_isContentProtected = enabled;
     }
 
-    void setFocusableApi()
+    void setFocusableApi(bool focusable)
     {
+        m_isFocusable = focusable;
+        if (!focusable && ::GetFocus() == m_hWnd)
+            ::SetFocus(NULL);
     }
 
     void focusOnWebViewApi()
@@ -1753,85 +1938,130 @@ private:
         mbSetFocus(m_webContents->getMbView());
     }
 
-    void isWebViewFocusedApi()
+    bool isWebViewFocusedApi()
     {
+        return ::GetFocus() == m_hWnd;
     }
 
-    void setOverlayIconApi()
+    void setOverlayIconApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        m_overlayIconDescription.clear();
+        if (args.Length() >= 2)
+            gin_helper::ConvertFromV8(args.GetIsolate(), args[1], &m_overlayIconDescription);
     }
 
-    void setThumbarButtonsApi()
+    bool setThumbarButtonsApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        m_thumbarButtonCount = 0;
+        if (args.Length() >= 1 && args[0]->IsArray())
+            m_thumbarButtonCount = args[0].As<v8::Array>()->Length();
+        return true;
     }
 
-    void setMenuApi()
+    void setMenuApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        m_menuObject.Reset();
+        if (args.Length() >= 1 && args[0]->IsObject())
+            m_menuObject.Reset(args.GetIsolate(), args[0].As<v8::Object>());
     }
 
-    void setAutoHideMenuBarApi()
+    void setAutoHideMenuBarApi(bool hide)
     {
+        m_isMenuBarAutoHide = hide;
     }
 
-    void isMenuBarAutoHideApi()
+    bool isMenuBarAutoHideApi() const
     {
+        return m_isMenuBarAutoHide;
     }
 
-    void setMenuBarVisibilityApi()
+    void setMenuBarVisibilityApi(bool visible)
     {
+        m_isMenuBarVisible = visible;
     }
 
-    void isMenuBarVisibleApi()
+    bool isMenuBarVisibleApi() const
     {
+        return m_isMenuBarVisible;
     }
 
-    void setVisibleOnAllWorkspacesApi()
+    void setVisibleOnAllWorkspacesApi(bool visible)
     {
+        m_isVisibleOnAllWorkspaces = visible;
     }
 
-    void isVisibleOnAllWorkspacesApi()
+    bool isVisibleOnAllWorkspacesApi() const
     {
+        return m_isVisibleOnAllWorkspaces;
     }
 
-    void hookWindowMessageApi()
+    void hookWindowMessageApi(uint32_t message)
     {
+        m_hookedWindowMessages.insert(message);
     }
 
-    void isWindowMessageHookedApi()
+    bool isWindowMessageHookedApi(uint32_t message) const
     {
+        return m_hookedWindowMessages.find(message) != m_hookedWindowMessages.end();
     }
 
-    void unhookWindowMessageApi()
+    void unhookWindowMessageApi(uint32_t message)
     {
+        m_hookedWindowMessages.erase(message);
     }
 
     void unhookAllWindowMessagesApi()
     {
+        m_hookedWindowMessages.clear();
     }
 
-    void setThumbnailClipApi()
+    void setThumbnailClipApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        m_hasThumbnailClip = args.Length() >= 1 && args[0]->IsObject();
     }
 
-    void setThumbnailToolTipApi()
+    void setThumbnailToolTipApi(const std::string& tooltip)
     {
+        m_thumbnailToolTip = tooltip;
     }
 
-    void setAppDetailsApi()
+    void setAppDetailsApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        m_appDetails.clear();
+        if (args.Length() < 1 || !args[0]->IsObject())
+            return;
+        v8::Local<v8::Object> object = args[0].As<v8::Object>();
+        v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
+        v8::Local<v8::Array> names;
+        if (!object->GetOwnPropertyNames(context).ToLocal(&names))
+            return;
+        for (uint32_t i = 0; i < names->Length(); ++i) {
+            v8::Local<v8::Value> key;
+            v8::Local<v8::Value> value;
+            std::string keyString;
+            std::string valueString;
+            if (names->Get(context, i).ToLocal(&key)
+                && object->Get(context, key).ToLocal(&value)
+                && gin_helper::ConvertFromV8(args.GetIsolate(), key, &keyString)
+                && gin_helper::ConvertFromV8(args.GetIsolate(), value, &valueString))
+                m_appDetails[keyString] = valueString;
+        }
     }
 
-    void setIconApi()
+    void setIconApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        if (args.Length() >= 1)
+            m_windowIcon.Reset(args.GetIsolate(), args[0]);
     }
 
     void setProgressBarApi(double progress)
     {
+        m_progressBar = progress;
     }
 
     bool isDestroyedApi() const
     {
-        return false;
+        return m_state == WindowDestroyed || m_isDestroyApiBeCalled || !m_webContents;
     }
 
     void moveTopApi() const
@@ -1922,20 +2152,14 @@ private:
         return v8::Local<v8::Value>::New(isolate(), m_webContents->getWrapper());
     }
 
-    // 空实现
-    void nullFunction()
+    void setTitleBarOverlayApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        OutputDebugStringA("nullFunction\n");
-        DebugBreak();
-    }
-
-    void setTitleBarOverlayApi()
-    {
+        m_hasTitleBarOverlay = args.Length() >= 1 && !args[0]->IsNull() && !args[0]->IsUndefined();
     }
 
     bool isSimpleFullScreenApi()
     {
-        return false;
+        return m_isFullScreen;
     }
 
     static bool hookUrl(void* job, const char* url, const char* hookedUrl, const WCHAR* localFile, const char* mime)
@@ -1985,7 +2209,7 @@ private:
 
         static void* ptr = nullptr;
         if (!ptr) {
-            HANDLE h = GetModuleHandleW(L"kernel32.dll");
+            HANDLE h = GetModuleHandleW(u"kernel32.dll");
             void* ptr = GetProcAddress((HMODULE)h, "OutputDebugStringW");
             char output[100] = { 0 };
             sprintf_s(output, 99, "OutputDebugStringW: %p\n", ptr);
@@ -2088,7 +2312,7 @@ private:
     //             if (needSetPos)
     //                 ::SetWindowPos(self->m_hWnd, HWND_NOTOPMOST, 0, 0, width, height, SWP_NOMOVE | SWP_NOREPOSITION);
     //
-    //             self->mate::EventEmitter<BrowserWindow>::emit("ready-to-show");
+    //             self->this->emit("ready-to-show");
     //
     //             if (self->m_webContents) {
     //                 self->m_webContents->mate::EventEmitter<WebContents>::emit("dom-ready");
@@ -2104,7 +2328,7 @@ private:
         self->m_state = WindowDestroying;
         if (WindowDestroying != state && !self->m_isDestroyApiBeCalled) {
             v8::HandleScope handleScope(v8::Isolate::GetCurrent());
-            bool isPreventDefault = self->mate::EventEmitter<BrowserWindow>::emit("close");
+            bool isPreventDefault = self->emit("close");
             if (isPreventDefault)
                 return FALSE;
         }
@@ -2253,7 +2477,7 @@ private:
         v8::Handle<v8::Object> webContentsV8;
         // If no WebContents was passed to the constructor, create it from options.
         if (options->Get("webContents", &webContentsV8))
-            DebugBreak();
+            gin_helper::ConvertFromV8(options->isolate(), webContentsV8, &webContents);
 
         // Use options.webPreferences to create WebContents.
         gin_helper::Dictionary webPreferences = gin_helper::Dictionary::CreateEmpty(options->isolate());
@@ -2319,7 +2543,11 @@ private:
 #endif
         std::string title;
         options->GetBydefaultVal("title", "Electron", &title);
+#if defined(OS_MAC)
         createWindowParam->title = StringUtil::UTF8ToUTF16(title);
+#else
+        createWindowParam->title = StringUtil::UTF8ToUTF16(title);
+#endif
 
         if (createWindowParam->transparent) {
             createWindowParam->styles = WS_POPUP;
@@ -2391,7 +2619,7 @@ private:
         ::GetClientRect(m_hWnd, &m_clientRect);
 
         if (createWindowParam->isCenter)
-            platform_util::moveToCenter(m_hWnd);
+            centerApi();
 
         int width = m_clientRect.right - m_clientRect.left;
         int height = m_clientRect.bottom - m_clientRect.top;
@@ -2447,7 +2675,7 @@ private:
     }
     virtual void onWebContentsReadyToShow(WebContents* contents) override
     {
-        mate::EventEmitter<BrowserWindow>::emit("ready-to-show");
+        this->emit("ready-to-show");
     }
 
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -2502,6 +2730,34 @@ private:
     bool m_isDocumentEdited;
     bool m_isIgnoreMouseEvents;
     bool m_isMouseDown;
+    bool m_isFullScreen;
+    bool m_isFullScreenable;
+    bool m_isKiosk;
+    bool m_hasShadow;
+    bool m_isFocusable;
+    bool m_isContentProtected;
+    bool m_isMenuBarAutoHide;
+    bool m_isMenuBarVisible;
+    bool m_isVisibleOnAllWorkspaces;
+    bool m_hasThumbnailClip = false;
+    bool m_hasTitleBarOverlay = false;
+    double m_aspectRatio;
+    double m_progressBar;
+    int m_sheetOffsetX;
+    int m_sheetOffsetY;
+    int m_windowButtonPositionX = 0;
+    int m_windowButtonPositionY = 0;
+    int m_thumbarButtonCount = 0;
+    BrowserWindow* m_parentWindow;
+    std::string m_previewFilePath;
+    std::string m_representedFilename;
+    std::string m_vibrancy;
+    std::string m_overlayIconDescription;
+    std::string m_thumbnailToolTip;
+    std::map<std::string, std::string> m_appDetails;
+    std::set<uint32_t> m_hookedWindowMessages;
+    v8::Persistent<v8::Object> m_menuObject;
+    v8::Persistent<v8::Value> m_windowIcon;
 
     SIZE m_contentsSize;
 
@@ -2575,7 +2831,11 @@ WebContents* WindowInterface::onCreateNewWebview(v8::Local<v8::Object> newGuestW
     return self->getWebContents();
 }
 
+#if defined(OS_MAC)
+const WCHAR* BrowserWindow::kPropW = u"ElectronWindow";
+#else
 const WCHAR* BrowserWindow::kPropW = L"ElectronWindow";
+#endif
 v8::Persistent<v8::Function> BrowserWindow::constructor;
 gin_helper::WrapperInfo BrowserWindow::kWrapperInfo = { gin_helper::GinEmbedder::kEmbedderNativeGin };
 

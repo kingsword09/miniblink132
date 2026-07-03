@@ -29,6 +29,8 @@
 #include "third_party/blink/public/web/web_draggable_region.h"
 #include "third_party/blink/public/platform/web_policy_container.h"
 #include "third_party/blink/public/platform/web_security_origin.h"
+#include "third_party/blink/public/platform/web_data.h"
+#include "third_party/blink/public/platform/web_http_body.h"
 #include "third_party/blink/public/platform/cross_variant_mojo_util.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/public/web/web_view.h"
@@ -50,7 +52,7 @@
 #include "gen/third_party/blink/public/mojom/frame/policy_container.mojom-blink.h"
 #include "gen/services/viz/privileged/mojom/compositing/frame_sink_manager.mojom.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
-#if defined(USE_OZONE)
+#if defined(USE_OZONE) && defined(OS_LINUX)
 #include <cairo.h>
 #include "linux/linuxgl.h"
 #endif
@@ -142,8 +144,14 @@ void MbWebView::preDestroyOnBlinkThread()
     //m_renderWidgetHostImpl.release(); // TODO:ÔÝÊ±²»Îö¹¹
 
     MbWebView* self = this;
+    int destroyCount = 0;
+    if (m_host)
+        ++destroyCount;
+    if (m_service)
+        ++destroyCount;
+
     int* aysnCount = (int*)malloc(sizeof(int));
-    *aysnCount = 2;
+    *aysnCount = destroyCount > 0 ? destroyCount : 1;
     auto destroyCb = [self, aysnCount] {
         *aysnCount -= 1;
         if (0 != *aysnCount)
@@ -152,14 +160,23 @@ void MbWebView::preDestroyOnBlinkThread()
         free(aysnCount);
     };
 
-    m_host->destroy(destroyCb);
-    m_host.release(); // TODO:
+    if (m_host) {
+        m_host->destroy(destroyCb);
+        m_host.release(); // TODO:
+    }
 
-    m_platformEventHandler->destroy();
-    m_platformEventHandler.release();
+    if (m_platformEventHandler) {
+        m_platformEventHandler->destroy();
+        m_platformEventHandler.release();
+    }
 
-    m_service->destroy(destroyCb);
-    m_service.release(); // TODO:
+    if (m_service) {
+        m_service->destroy(destroyCb);
+        m_service.release(); // TODO:
+    }
+
+    if (destroyCount == 0)
+        destroyCb();
 
     clearUiHwnd(m_hWnd, (UINT_PTR)this);
 
@@ -394,7 +411,8 @@ blink::WebView* MbWebView::initializeViewInBlinkThread(blink::WebView* opener, b
     if (!m_navigationController)
         m_navigationController = blink::MakeGarbageCollected<content::PageNavController>(this);
 
-    m_sessionStorageNamespaceId = blink::AllocateSessionStorageNamespaceId();
+    if (m_sessionStorageNamespaceId.empty())
+        m_sessionStorageNamespaceId = blink::AllocateSessionStorageNamespaceId();
 
     blink::BrowsingContextGroupInfo browsingContextGroupInfo = blink::BrowsingContextGroupInfo::CreateUnique();
     blink::WebView* webWiew = blink::WebView::Create(
@@ -579,6 +597,7 @@ void MbWebView::setDefaultPreferences(blink::WebViewImpl* webWiew)
     websettings->SetAllowScriptsToCloseWindows(true);
     websettings->SetJavaScriptCanAccessClipboard(true);
     websettings->SetDOMPasteAllowed(true);
+    websettings->SetCookieEnabled(m_isCookieEnabled);
 
 //     blink::Page* page = webWiew->GetPage();
 //     page->GetSettings().SetAcceleratedCompositingEnabled(false);
@@ -715,7 +734,6 @@ LRESULT MbWebView::windowProcImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM
 
     case WM_NCDESTROY:
         clearUiHwnd(hWnd, (UINT_PTR)this);
-        m_state = kPageDestroying;
         mbDestroyWebViewImpl(getWebviewHandle());
         break;
 
@@ -1159,6 +1177,22 @@ void MbWebView::onResize(int w, int h, bool needSetHostWnd)
     return m_renderWidgetHostImpl->m_webWiew;
 }
 
+void MbWebView::setCookieEnabled(bool b)
+{
+    m_isCookieEnabled = b;
+
+    if (ThreadCall::isBlinkThread()) {
+        if (m_renderWidgetHostImpl && m_renderWidgetHostImpl->m_webWiew)
+            m_renderWidgetHostImpl->m_webWiew->GetSettings()->SetCookieEnabled(b);
+        return;
+    }
+
+    mbWebView webviewHandle = (mbWebView)m_id;
+    ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [b](content::MbWebView* webview) {
+        webview->setCookieEnabled(b);
+    });
+}
+
 // bool MbWebView::isDraggableRegionNcHitTest(HWND hWnd)
 // {
 //     bool handle = false;
@@ -1584,7 +1618,7 @@ void MbWebView::onPaint(HWND hWnd, WPARAM wParam)
         //HBRUSH brush = CreateSolidBrush(RGB(255, 22, 34));
         //::FillRect(hdc, &ps.rcPaint, brush);
         //::DeleteObject(brush);
-#else
+#elif defined(OS_LINUX)
         if (IsLinuxOpenglDraw() && m_bitmapByte) {
             m_memoryCanvasLock->Acquire();
             //unsigned int glTexture = (unsigned int)wParam;
@@ -1614,6 +1648,19 @@ void MbWebView::onPaint(HWND hWnd, WPARAM wParam)
             cairo_surface_mark_dirty(surface);
             cairo_set_source_surface(cr, surface, 0, 0);
             m_memoryCanvasLock->Release();
+        }
+#elif defined(OS_MAC)
+        if (m_bitmapByte && m_memoryCanvasLock) {
+            m_memoryCanvasLock->Acquire();
+            MacGdiDrawBitmapToContext(hdc, m_bitmapByte, m_bitmapByteSize.width(), m_bitmapByteSize.height(),
+                destX, destY, width, height, srcX, srcY);
+            m_memoryCanvasLock->Release();
+        } else if (m_hasBackgroundColor) {
+            HBRUSH br = ::CreateSolidBrush(m_backgroundColor & 0x00ffffff);
+            ::FillRect(hdc, &ps.rcPaint, br);
+            ::DeleteObject(br);
+        } else {
+            ::FillRect(hdc, &ps.rcPaint, (HBRUSH)::GetStockObject(WHITE_BRUSH));
         }
 #endif
     }
@@ -1674,8 +1721,12 @@ bool MbWebView::setWindowTitle(const std::string& title)
     m_windowTitle = title;
 
     if (m_hWnd) {
+        HWND hWnd = m_hWnd;
         std::u16string titleW = utf8ToUtf16(m_windowTitle);
-        ::SetWindowTextW(m_hWnd, (LPCWSTR)titleW.c_str());
+        if (content::ThreadCall::isUiThread())
+            ::SetWindowTextW(hWnd, (LPCWSTR)titleW.c_str());
+        else
+            content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [hWnd, titleW] { ::SetWindowTextW(hWnd, (LPCWSTR)titleW.c_str()); });
         return true;
     }
 
@@ -1720,11 +1771,62 @@ void MbWebView::loadUrl(const char* urlStr)
     blink::WebNavigationInfo info;
     info.url_request.SetUrl(url);
     if (!navigationControl->WillStartNavigation(info))
-        DebugBreak();
+        (void)0;
 
     blink::WebURLRequest urlRequest;
     urlRequest.SetUrl(url);
     urlRequest.AddHttpHeaderField(blink::WebString::FromLatin1(kAcceptHeader), blink::WebString::FromLatin1(kDefaultAcceptHeader));
+
+    setRequestHead((blink::WebLocalFrame*)navigationControl, urlRequest);
+    navigationControl->Load(urlRequest, blink::WebFrameLoadType::kStandard, blink::WebHistoryItem());
+}
+
+void MbWebView::postUrl(const char* urlStr, const char* postData, int postLen)
+{
+    std::unique_ptr<std::string> urlPtr = urlNormalization(urlStr);
+    const int bodyLen = postData && postLen > 0 ? postLen : 0;
+
+    if (!m_frameClient) {
+        mbWebView webviewHandle = (mbWebView)m_id;
+        std::string* urlPtrTemp = urlPtr.release();
+        std::string* body = new std::string(postData && bodyLen > 0 ? postData : "", bodyLen);
+        content::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [urlPtrTemp, body](MbWebView* self) {
+            self->postUrl(urlPtrTemp->c_str(), body->data(), static_cast<int>(body->size()));
+            delete urlPtrTemp;
+            delete body;
+        });
+        return;
+    }
+
+    blink::WebNavigationControl* navigationControl = m_frameClient->m_navigationControl;
+    blink::KURL url(WTF::String::FromUTF8(std::string_view(urlPtr->c_str(), urlPtr->size())));
+    if (!url.IsValid()) {
+        String protocol = url.Protocol();
+        if (protocol.empty() && protocol != "about:blank") {
+            std::string urlTemp = *(urlPtr.get());
+            urlTemp = "https://" + urlTemp;
+            url = blink::KURL(WTF::String::FromUTF8(urlTemp.c_str()));
+        }
+    } else {
+        mbnet::WebURLLoaderManager::sharedInstance()->cancelAllJobsOfWebview(m_id);
+    }
+
+    blink::WebNavigationInfo info;
+    info.url_request.SetUrl(url);
+    info.url_request.SetHttpMethod(blink::WebString::FromLatin1("POST"));
+    if (!navigationControl->WillStartNavigation(info))
+        return;
+
+    blink::WebURLRequest urlRequest;
+    urlRequest.SetUrl(url);
+    urlRequest.SetHttpMethod(blink::WebString::FromLatin1("POST"));
+    urlRequest.AddHttpHeaderField(blink::WebString::FromLatin1(kAcceptHeader), blink::WebString::FromLatin1(kDefaultAcceptHeader));
+    if (bodyLen > 0) {
+        blink::WebHTTPBody httpBody;
+        httpBody.Initialize();
+        httpBody.AppendData(blink::WebData(postData, bodyLen));
+        urlRequest.SetHttpBody(httpBody);
+    }
 
     setRequestHead((blink::WebLocalFrame*)navigationControl, urlRequest);
     navigationControl->Load(urlRequest, blink::WebFrameLoadType::kStandard, blink::WebHistoryItem());
@@ -1749,11 +1851,36 @@ bool MbWebView::loadHTMLString(const std::string& html, const std::string& baseU
 
 void MbWebView::reload(bool force)
 {
-    if (!m_renderWidgetHostImpl || !m_renderWidgetHostImpl->m_mainFrame)
+    if (!m_renderWidgetHostImpl || !m_renderWidgetHostImpl->m_mainFrame || !m_frameClient)
         return;
-    mbnet::WebURLLoaderManager::sharedInstance()->cancelAllJobsOfWebview(m_id);
-    m_renderWidgetHostImpl->m_mainFrame->DeprecatedStopLoading();
-    m_renderWidgetHostImpl->m_mainFrame->StartReload(force ? blink::WebFrameLoadType::kReload : blink::WebFrameLoadType::kReloadBypassingCache);
+
+    std::string urlText = m_url;
+    if (urlText.empty())
+        return;
+
+    blink::WebNavigationControl* navigationControl = m_frameClient->m_navigationControl;
+    if (!navigationControl)
+        return;
+
+    blink::KURL url(WTF::String::FromUTF8(std::string_view(urlText.c_str(), urlText.size())));
+    if (!url.IsValid())
+        return;
+
+    if (m_renderWidgetHostImpl->m_mainFrame->IsLoading()) {
+        mbnet::WebURLLoaderManager::sharedInstance()->cancelAllJobsOfWebview(m_id);
+        m_renderWidgetHostImpl->m_mainFrame->DeprecatedStopLoading();
+    }
+
+    blink::WebNavigationInfo info;
+    info.url_request.SetUrl(url);
+    if (!navigationControl->WillStartNavigation(info))
+        return;
+
+    blink::WebURLRequest urlRequest;
+    urlRequest.SetUrl(url);
+    urlRequest.AddHttpHeaderField(blink::WebString::FromLatin1(kAcceptHeader), blink::WebString::FromLatin1(kDefaultAcceptHeader));
+    setRequestHead((blink::WebLocalFrame*)navigationControl, urlRequest);
+    navigationControl->Load(urlRequest, force ? blink::WebFrameLoadType::kReloadBypassingCache : blink::WebFrameLoadType::kReplaceCurrentItem, blink::WebHistoryItem());
 }
 
 LRESULT MbWebView::fireWheelEventOnUiThread(WPARAM wParam, LPARAM lParam)
@@ -1798,22 +1925,17 @@ mbnet::WebCookieJarImpl* MbWebView::getWebCookieJarImpl()
     return mbnet::WebURLLoaderManager::sharedInstance()->getShareCookieJar();
 }
 
-void MbWebView::setCookie(const std::string& ck)
+void MbWebView::setCookie(const std::string& urlText, const std::string& ck)
 {
-    blink::WebLocalFrame* frame = (blink::WebLocalFrame*)(m_renderWidgetHostImpl->m_webWiew->MainFrame());
-    if (!frame)
-        return;
-
-    blink::WebDocument webDocument = frame->GetDocument();
-    if (webDocument.IsNull())
-        return;
-
     mbnet::WebCookieJarImpl* cookieJar = getWebCookieJarImpl();
     if (!cookieJar)
         return;
 
-    const blink::Document* doc = webDocument.ConstUnwrap<blink::Document>();
-    return cookieJar->setCookiesFromDOM(blink::KURL(), /*doc->CookieURL()*/blink::KURL(), ck);
+    blink::KURL url(WTF::String::FromUTF8(std::string_view(urlText.c_str(), urlText.size())));
+    if (!url.IsValid())
+        return;
+
+    cookieJar->setCookiesFromDOM(blink::KURL(), url, ck);
 }
 
 void MbWebView::setCookieJarFullPath(const char* path)
@@ -1916,6 +2038,11 @@ void MbWebView::navigateToIndex(int index)
     m_navigationController->navigateToIndex(index);
 }
 
+int MbWebView::getNavigateIndex() const
+{
+    return m_navigationController ? m_navigationController->getCurrentOffset() : 0;
+}
+
 void MbWebView::onDidCreateScriptContext(v8::Local<v8::Context> context, int32_t worldId, const blink::LocalFrameToken& token)
 {
     BindJsQuery::bindFun(context, getClosure().m_jsQueryClosure, getClosure().m_jsQueryClosure2, this, token); // !!!!!!!
@@ -1960,8 +2087,7 @@ mb::MbJsValue* MbWebView::runJsOnBlinkThreadImpl(
     }
 
     if (base::StartsWith(*codeStr, "javascript:", base::CompareCase::INSENSITIVE_ASCII))
-        //scriptString->Remove(0, sizeof("javascript:") - 1);
-        codeStr->erase(codeStr->end() - (sizeof("javascript:") - 1));
+        codeStr->erase(0, sizeof("javascript:") - 1);
 
     if (isInClosure) {
         codeStr->insert(0, "(function(){");
@@ -2058,6 +2184,16 @@ const mbProxy* MbWebView::getProxy() const
     if (!m_pageNetExtraData)
         return nullptr;
     return m_pageNetExtraData->getProxy();
+}
+
+void MbWebView::setUserAgentOverride(const std::string& userAgent)
+{
+    m_userAgentOverride = userAgent;
+}
+
+std::string MbWebView::getUserAgentOverride() const
+{
+    return m_userAgentOverride;
 }
 
 void MbWebView::setSetLanguage(const std::string& lang)

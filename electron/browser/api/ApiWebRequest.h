@@ -26,12 +26,19 @@ private:
     void onCompletedApi(const v8::FunctionCallbackInfo<v8::Value>& args);
     void onErrorOccurredApi(const v8::FunctionCallbackInfo<v8::Value>& args);
     void onBeforeRequestApi(const v8::FunctionCallbackInfo<v8::Value>& args);
+    void setCallbackFromArgs(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Persistent<v8::Value>* callback);
 
     ApiWebRequest(v8::Isolate* isolate, v8::Local<v8::Object> wrapper);
     v8::Persistent<v8::Object> m_liveSelf;
 
     v8::Persistent<v8::Value> m_beforeSendHeadersCb;
     v8::Persistent<v8::Value> m_sendHeadersCb;
+    v8::Persistent<v8::Value> m_headersReceivedCb;
+    v8::Persistent<v8::Value> m_responseStartedCb;
+    v8::Persistent<v8::Value> m_beforeRedirectCb;
+    v8::Persistent<v8::Value> m_completedCb;
+    v8::Persistent<v8::Value> m_errorOccurredCb;
+    v8::Persistent<v8::Value> m_beforeRequestCb;
 
 public:
     static gin::WrapperInfo kWrapperInfo;

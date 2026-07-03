@@ -40,10 +40,6 @@
 #include <process.h>
 #include <netlistmgr.h>
 
-extern "C" long MB_InterlockedDecrement(long volatile* _Target);
-extern "C" long MB_InterlockedIncrement(long volatile* _Target);
-extern "C" long MB_InterlockedExchange(long volatile* _Target, long _Value);
-
 namespace mbnet {
 
 SocketStreamHandle::SocketStreamHandle(const blink::KURL& url, SocketStreamHandleClient* client)
@@ -115,7 +111,7 @@ void SocketStreamHandle::mainThreadFail()
 
 void SocketStreamHandle::mainThreadReadData()
 {
-    MB_InterlockedDecrement((long volatile*)(&m_readDataTaskCount));
+    MB_InterlockedDecrement((LONG volatile*)(&m_readDataTaskCount));
     didReceiveData();
     Release();
 }
@@ -139,7 +135,7 @@ bool SocketStreamHandle::readData(CURL* curlHandle)
         AddRef();
 
         if (0 == m_readDataTaskCount) {
-            MB_InterlockedIncrement((long volatile*)(&m_readDataTaskCount));
+            MB_InterlockedIncrement((LONG volatile*)(&m_readDataTaskCount));
             int64_t id = m_id;
             content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [id] {
                 SocketStreamHandle* self = (SocketStreamHandle*)common::LiveIdDetect::get()->getPtr((intptr_t)id);
@@ -383,8 +379,7 @@ void SocketStreamHandle::threadFunction()
     if (0 == port)
         port = isSSL ? 443 : 80;
 
-    if (isSSL)
-        url = "https://" + url;
+    url = (isSSL ? "https://" : "http://") + url;
 
     //curl_easy_setopt(curlHandle, CURLOPT_URL, m_url.host().utf8().data());
     curl_easy_setopt(curlHandle, CURLOPT_URL, url.Utf8().data());
@@ -518,7 +513,7 @@ void SocketStreamHandle::stopThread()
     if (!m_workerThread)
         return;
 
-    MB_InterlockedExchange(reinterpret_cast<long volatile*>(&m_stopThread), 1);
+    MB_InterlockedExchange(reinterpret_cast<LONG volatile*>(&m_stopThread), 1);
     waitForThreadCompletion(m_workerThread);
     m_workerThread = 0;
     Release();
@@ -564,32 +559,32 @@ char* SocketStreamHandle::createCopy(const char* data, int length)
 
 void SocketStreamHandle::didReceiveAuthenticationChallenge(const blink::AuthenticationChallenge&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void SocketStreamHandle::receivedCredential(const blink::AuthenticationChallenge&, const blink::Credential&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void SocketStreamHandle::receivedRequestToContinueWithoutCredential(const blink::AuthenticationChallenge&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void SocketStreamHandle::receivedCancellation(const blink::AuthenticationChallenge&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void SocketStreamHandle::receivedRequestToPerformDefaultHandling(const blink::AuthenticationChallenge&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 void SocketStreamHandle::receivedChallengeRejection(const blink::AuthenticationChallenge&)
 {
-    DebugBreak();
+    (void)0;
 }
 
 } // namespace net

@@ -29,7 +29,9 @@
 #include "gen/ui/strings/grit/ax_strings.h"
 #include <map>
 #include <windows.h>
+#if defined(OS_WIN)
 #include <combaseapi.h>
+#endif
 
 bool blink::mojom::blink::MimeRegistry::GetMimeTypeFromExtension(WTF::String const&, WTF::String*)
 {
@@ -119,7 +121,7 @@ public:
             createAndBindBrokerProxy<::blink::mojom::blink::PluginRegistry, PluginRegistryImpl>(receiver.PassPipe());
             return;
         }
-        DebugBreak();
+        (void)0;
     }
 
 private:
@@ -168,7 +170,7 @@ std::unique_ptr<blink::URLLoaderThrottleProvider> RendererBlinkPlatformImpl::Cre
 {
     //     return GetContentClient()->renderer()->CreateURLLoaderThrottleProvider(
     //         blink::URLLoaderThrottleProviderType::kWorker);
-    DebugBreak();
+    (void)0;
     return nullptr;
 }
 
@@ -261,7 +263,7 @@ std::string RendererBlinkPlatformImpl::GetDataResourceString(int resourceId)
         return MAKE_STD_STRING(kJsonDocumentCss);
     }
 
-    DebugBreak();
+    (void)0;
     return "";
 }
 
@@ -447,7 +449,7 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resourceId)
         break;
     }
 
-    DebugBreak();
+    (void)0;
     return blink::WebString();
 }
 
@@ -463,7 +465,7 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resourceId,
         break;
     }
 
-    DebugBreak();
+    (void)0;
     return blink::WebString();
 }
 
@@ -490,7 +492,7 @@ blink::WebString RendererBlinkPlatformImpl::QueryLocalizedString(int resourceId,
     } else if (IDS_FORM_VALIDATION_STEP_MISMATCH == resourceId) {
         return blink::WebString::FromUTF8("validation step mismatch");
     }
-    DebugBreak();
+    (void)0;
     return blink::WebString();
 }
 
@@ -616,7 +618,7 @@ void RendererBlinkPlatformImpl::CreateServiceWorkerSubresourceLoaderFactory(
     std::unique_ptr<network::PendingSharedURLLoaderFactory> fallback_factory, mojo::PendingReceiver<network::mojom::URLLoaderFactory> receiver,
     scoped_refptr<base::SequencedTaskRunner> task_runner)
 {
-    DebugBreak();
+    (void)0;
 }
 
 std::unique_ptr<blink::WebV8ValueConverter> RendererBlinkPlatformImpl::CreateWebV8ValueConverter()

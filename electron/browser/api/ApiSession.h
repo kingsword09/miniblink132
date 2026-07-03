@@ -51,11 +51,12 @@ private:
     void protocolApi(const v8::FunctionCallbackInfo<v8::Value>& args);
     void onApi(const v8::FunctionCallbackInfo<v8::Value>& args);
     void setDownloadPathApi(const std::string& path);
-    void setPermissionRequestHandlerApi();
-    void setPermissionCheckHandlerApi();
-    void setDevicePermissionHandlerApi();
+    void setPermissionRequestHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args);
+    void setPermissionCheckHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args);
+    void setDevicePermissionHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& args);
     void setPreloadsApi(const std::vector<std::string>& paths);
 
+    void setOptionalCallbackFromArgs(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Persistent<v8::Value>* callback);
     void dispatchSendHeaders(mbWebView webView, const char* url, mbNetJob job, v8::Persistent<v8::Value>* persistentCb);
 
     ApiWebRequest* m_webRequest;
@@ -63,6 +64,9 @@ private:
     base::FilePath m_path; // 在磁盘存储的路径，如G:\mycode\mb\out\Release\minieleses\default
     std::string m_name; // js设置的name
     v8::Persistent<v8::Object> m_liveSelf;
+    v8::Persistent<v8::Value> m_permissionRequestHandler;
+    v8::Persistent<v8::Value> m_permissionCheckHandler;
+    v8::Persistent<v8::Value> m_devicePermissionHandler;
 
     std::vector<std::string> m_preloadPaths;
 

@@ -121,7 +121,7 @@ var WebViewImpl = (function () {
     WebViewImpl.prototype.setupFocusPropagation = function () {
         if (!this.webviewNode.hasAttribute('tabIndex')) {
             // <webview> needs a tabIndex in order to be focusable.
-            // TODO(fsamuel): It would be nice to avoid exposing a tabIndex attribute
+            // Keep tabIndex private while still forwarding focus behavior.
             // to allow <webview> to be focusable.
             // See http://crbug.com/231664.
             this.webviewNode.setAttribute('tabIndex', -1);

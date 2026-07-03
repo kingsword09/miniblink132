@@ -73,8 +73,7 @@ public:
     /*virtual*/ void onChannelError() override
     {
         m_channel = nullptr;
-        HANDLE handle = ::OpenProcess(PROCESS_ALL_ACCESS, 0, ::GetCurrentProcessId());
-        ::TerminateProcess(handle, -1);
+        ::TerminateProcess(::GetCurrentProcess(), -1);
     }
     /*virtual*/ void onChannelClosing() override
     {
@@ -177,7 +176,7 @@ void ApiParentPort::bindIpcChannelProxy(const std::string& channelId, int64_t pa
     m_channel->AddFilter(m_messageFilterWrap.get());
 
     char output[100] = { 0 };
-    sprintf_s(output, 99, "ApiParentPort::bindIpcChannelProxy: %d\n", parentProcessId);
+    sprintf_s(output, 99, "ApiParentPort::bindIpcChannelProxy: %lld\n", static_cast<long long>(parentProcessId));
     //MessageBoxA(0, output, 0, 0);
     OutputDebugStringA(output);
     MojoBindIpcChannelProxy(parentProcessId, m_channel);
@@ -284,7 +283,7 @@ void ApiParentPort::closePipe()
 void ApiParentPort::onRecvParentMessagePortImpl()
 {
     char output2[120] = { 0 };
-    sprintf_s(output2, 119, "ApiParentPort.onRecvParentMessagePort 2: %d\n", m_parentPipe);
+    sprintf_s(output2, 119, "ApiParentPort.onRecvParentMessagePort 2: %lu\n", static_cast<unsigned long>(m_parentPipe));
     OutputDebugStringA(output2);
 
     if (m_connector.get())
@@ -306,7 +305,7 @@ void ApiParentPort::onRecvParentMessagePortImpl()
 void ApiParentPort::onRecvParentMessagePort(uintptr_t pipe)
 {
     char output[120] = { 0 };
-    sprintf_s(output, 119, "ApiParentPort.onRecvParentMessagePort 1: %d\n", pipe);
+    sprintf_s(output, 119, "ApiParentPort.onRecvParentMessagePort 1: %lu\n", static_cast<unsigned long>(pipe));
     OutputDebugStringA(output);
 
     m_parentPipe = pipe;

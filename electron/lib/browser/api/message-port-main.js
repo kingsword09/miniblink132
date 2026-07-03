@@ -3,8 +3,8 @@ const EventEmitter = require('events').EventEmitter;
 function MessagePortMain(internalPort) {
     this._internalPort = internalPort;
     this._internalPort.emit = (channel/*: string*/, event/*: {ports: any[]}*/) => {
-        if (channel === 'message') { 
-            event = { ...event, ports: event.ports.map(p => new MessagePortMain(p)) }; 
+        if (channel === 'message') {
+            event = { ...event, ports: event.ports.map(p => new MessagePortMain(p)) };
         }
         this.emit(channel, event);
     };
@@ -20,7 +20,7 @@ MessagePortMain.prototype.close = function() {
 
 MessagePortMain.prototype.postMessage = function(msg, ports) {
     if (Array.isArray(ports)) {
-        ports = ports.map((o) => {o instanceof MessagePortMain ? o._internalPort : o});
+        ports = ports.map((o) => o instanceof MessagePortMain ? o._internalPort : o);
         return this._internalPort.postMessage(msg, ports);
     }
     return this._internalPort.postMessage(msg);

@@ -7,10 +7,6 @@
 #include "base/task/single_thread_task_runner.h"
 #include "build/build_config.h"
 
-#if BUILDFLAG(IS_APPLE)
-#include "ui/accelerated_widget_mac/ca_layer_frame_sink.h"
-#endif
-
 #if BUILDFLAG(IS_WIN)
 #include <windows.h>
 
@@ -37,32 +33,28 @@ mojo::PendingRemote<mojom::DisplayClient> HostDisplayClient::GetBoundRemote(scop
     return receiver_.BindNewPipeAndPassRemote(task_runner);
 }
 
-#if BUILDFLAG(IS_APPLE)
-void HostDisplayClient::OnDisplayReceivedCALayerParams(const gfx::CALayerParams& ca_layer_params)
-{
-    ui::CALayerFrameSink* ca_layer_frame_sink = ui::CALayerFrameSink::FromAcceleratedWidget(widget_);
-    if (ca_layer_frame_sink)
-        ca_layer_frame_sink->UpdateCALayerTree(ca_layer_params);
-    else
-        DLOG(WARNING) << "Received frame for non-existent widget.";
-}
-#endif
-
-#if BUILDFLAG(IS_WIN)
 void HostDisplayClient::CreateLayeredWindowUpdater(mojo::PendingReceiver<mojom::LayeredWindowUpdater> receiver)
 {
+#if BUILDFLAG(IS_WIN)
     if (!NeedsToUseLayerWindow(widget_)) {
         DLOG(ERROR) << "HWND shouldn't be using a layered window";
         return;
     }
 
     layered_window_updater_ = std::make_unique<LayeredWindowUpdaterImpl>(widget_, std::move(receiver));
+#else
+    NOTIMPLEMENTED();
+#endif
 }
+
 void HostDisplayClient::AddChildWindowToBrowser(gpu::SurfaceHandle child_window)
 {
+#if BUILDFLAG(IS_WIN)
     NOTREACHED_IN_MIGRATION();
-}
+#else
+    NOTIMPLEMENTED();
 #endif
+}
 
 #if BUILDFLAG(IS_LINUX) && BUILDFLAG(IS_OZONE_X11)
 void HostDisplayClient::DidCompleteSwapWithNewSize(const gfx::Size& size)

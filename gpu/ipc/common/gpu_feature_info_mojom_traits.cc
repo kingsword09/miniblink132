@@ -12,7 +12,13 @@ namespace mojo {
 // static
 bool StructTraits<gpu::mojom::GpuFeatureInfoDataView, gpu::GpuFeatureInfo>::Read(gpu::mojom::GpuFeatureInfoDataView data, gpu::GpuFeatureInfo* out)
 {
-    return data.ReadStatusValues(&out->status_values) && data.ReadEnabledGpuDriverBugWorkarounds(&out->enabled_gpu_driver_bug_workarounds)
+    std::vector<gpu::GpuFeatureStatus> status_values;
+    if (!data.ReadStatusValues(&status_values) || status_values.size() != gpu::NUMBER_OF_GPU_FEATURE_TYPES)
+        return false;
+    for (size_t i = 0; i < gpu::NUMBER_OF_GPU_FEATURE_TYPES; ++i)
+        out->status_values[i] = status_values[i];
+
+    return data.ReadEnabledGpuDriverBugWorkarounds(&out->enabled_gpu_driver_bug_workarounds)
         && data.ReadDisabledExtensions(&out->disabled_extensions) && data.ReadDisabledWebglExtensions(&out->disabled_webgl_extensions)
         && data.ReadAppliedGpuBlocklistEntries(&out->applied_gpu_blocklist_entries)
         && gpu::GpuBlocklist::AreEntryIndicesValid(out->applied_gpu_blocklist_entries)

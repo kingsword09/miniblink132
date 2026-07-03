@@ -57,10 +57,6 @@ public:
         target->Set(context, v8::String::NewFromUtf8(isolate, "Dialog").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
     }
 
-    void nullFunction()
-    {
-    }
-
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Isolate* isolate = args.GetIsolate();
@@ -193,8 +189,10 @@ public:
         if (args[2]->IsFunction()) {
             //callback = v8::Function::Cast(*(args[2]));
             info->callback.Reset(isolate, args[2].As<v8::Function>());
-        } else if (!isSync)
-            DebugBreak();
+        } else if (!isSync) {
+            delete info;
+            return;
+        }
 
         info->recv.Reset(isolate, isolate->GetCurrentContext()->Global());
 

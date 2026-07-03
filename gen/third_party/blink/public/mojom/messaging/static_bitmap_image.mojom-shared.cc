@@ -87,11 +87,6 @@ bool SharedImageUsageSet_Data::Validate(const void* data, mojo::internal::Valida
     return true;
 }
 
-SharedImageUsageSet_Data::SharedImageUsageSet_Data()
-    : header_({ sizeof(*this), 0 })
-{
-}
-
 // static
 bool AcceleratedStaticBitmapImage_Data::Validate(const void* data, mojo::internal::ValidationContext* validation_context)
 {
@@ -131,11 +126,6 @@ bool AcceleratedStaticBitmapImage_Data::Validate(const void* data, mojo::interna
     }
 
     return true;
-}
-
-AcceleratedStaticBitmapImage_Data::AcceleratedStaticBitmapImage_Data()
-    : header_({ sizeof(*this), 0 })
-{
 }
 
 // static

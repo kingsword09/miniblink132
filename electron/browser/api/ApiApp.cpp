@@ -95,8 +95,6 @@ App::~App()
 {
     ::CloseHandle(m_singleInstanceHandle);
     m_singleInstanceHandle = nullptr;
-
-    DebugBreak();
 }
 
 void App::init(v8::Local<v8::Object> target, v8::Isolate* isolate)
@@ -147,18 +145,10 @@ void App::init(v8::Local<v8::Object> target, v8::Isolate* isolate)
     target->Set(context, v8::String::NewFromUtf8(isolate, "App").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
 }
 
-void App::nullFunction()
-{
-    OutputDebugStringA("nullFunction\n");
-}
-
 void quit()
 {
-    ::TerminateProcess(::GetCurrentProcess(), 0);
     WindowList::closeAllWindows();
-
-    //     content::ThreadCall::exitMessageLoop(content::ThreadCall::getBlinkThreadId());
-    //     content::ThreadCall::exitMessageLoop(content::ThreadCall::getUiThreadId());
+    ::PostQuitMessage(0);
 }
 
 void App::quitApi()
@@ -169,14 +159,14 @@ void App::quitApi()
 
     App* self = this;
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [self] {
-        content::ThreadCall::callUiThreadAsync(FROM_HERE, [self] { self->emit("before-quit"); });
+        self->emit("before-quit");
         quit();
     });
 }
 
 void App::exitApi()
 {
-    quitApi();
+    ::TerminateProcess(::GetCurrentProcess(), 0);
 }
 
 void App::focusApi()
@@ -296,20 +286,24 @@ void App::setAppUserModelIdApi(const std::string& id)
 
 bool App::requestSingleInstanceLockApi()
 {
+    if (m_singleInstanceHandle)
+        return true;
+
     base::FilePath path;
     base::PathService::Get(base::DIR_EXE, &path);
     std::string temp = path.AsUTF8Unsafe();
     temp = base::Base64Encode(std::string_view(temp.c_str(), temp.size()));
 
-    HANDLE hMutex = NULL;
-    hMutex = ::CreateMutexA(NULL, FALSE, (temp).c_str());
+    HANDLE hMutex = ::CreateMutexA(NULL, FALSE, temp.c_str());
     if (hMutex != NULL) {
         if (ERROR_ALREADY_EXISTS == ::GetLastError()) {
-            ::ReleaseMutex(hMutex);
+            ::CloseHandle(hMutex);
             return false;
         }
+        m_singleInstanceHandle = hMutex;
+        return true;
     }
-    return true;
+    return false;
 }
 
 // const std::string& protocol, const std::string& path, const std::string& args
@@ -469,7 +463,15 @@ void App::setJumpListApi(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 std::string App::getLocaleApi()
 {
-    return "zh-cn";
+    WCHAR localeName[LOCALE_NAME_MAX_LENGTH] = {};
+    if (GetUserDefaultLocaleName(localeName, LOCALE_NAME_MAX_LENGTH) > 0 && localeName[0])
+        return base::UTF16ToUTF8((const char16_t*)localeName);
+
+    WCHAR language[16] = {};
+    if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, language, 16) > 0 && language[0])
+        return base::UTF16ToUTF8((const char16_t*)language);
+
+    return "en-US";
 }
 
 static LRESULT CALLBACK staticWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -827,10 +829,28 @@ void App::relaunchApi(const base::Value::Dict& options)
     relaunchApp(argv);
 }
 
+static bool canOverridePath(const std::string& name)
+{
+    return name == "appData"
+        || name == "cache"
+        || name == "crashDumps"
+        || name == "desktop"
+        || name == "documents"
+        || name == "downloads"
+        || name == "music"
+        || name == "pictures"
+        || name == "recent"
+        || name == "temp"
+        || name == "userCache"
+        || name == "userData"
+        || name == "userDesktop"
+        || name == "videos"
+        || name == "pepperFlashSystemPlugin";
+}
+
 void App::setPathApi(const std::string& name, const std::string& path)
 {
-    if (!(name == "userData" || name == "cache" || name == "userCache" || name == "documents" || name == "downloads" || name == "music" || name == "videos"
-            || name == "pepperFlashSystemPlugin"))
+    if (!canOverridePath(name))
         return;
 
     std::map<std::string, std::string>::iterator it = m_pathMap.find(name);
@@ -846,9 +866,7 @@ bool getTempDir(base::FilePath* path)
     DWORD path_len = ::GetTempPath(MAX_PATH, temp_path);
     if (path_len >= MAX_PATH || path_len <= 0)
         return false;
-    // TODO(evanm): the old behavior of this function was to always strip the
-    // trailing slash.  We duplicate this here, but it shouldn't be necessary
-    // when everyone is using the appropriate FilePath APIs.
+    // Preserve the old behavior of stripping the trailing slash.
     *path = base::FilePath(temp_path).StripTrailingSeparators();
     return true;
 }
@@ -938,6 +956,10 @@ bool getUserDownloadsDirectory(base::FilePath* result)
 
 std::string App::getPathApi(const std::string& name) const
 {
+    std::map<std::string, std::string>::const_iterator overrideIt = m_pathMap.find(name);
+    if (overrideIt != m_pathMap.end())
+        return overrideIt->second;
+
     base::FilePath path;
     std::u16string systemBuffer;
     systemBuffer.assign(MAX_PATH, L'\0');

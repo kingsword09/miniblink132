@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var src = [
     "${srcPath}/cc/animation/animation.cc",
@@ -39,6 +39,7 @@ var src = [
     "${srcPath}/cc/input/browser_controls_offset_manager.cc",
     "${srcPath}/cc/input/input_handler.cc",
     "${srcPath}/cc/input/layer_selection_bound.cc",
+    "${srcPath}/cc/input/hit_test_opaqueness.cc",
     "${srcPath}/cc/input/main_thread_scrolling_reason.cc",
     "${srcPath}/cc/input/page_scale_animation.cc",
     "${srcPath}/cc/input/scroll_elasticity_helper.cc",
@@ -67,6 +68,8 @@ var src = [
     "${srcPath}/cc/layers/nine_patch_generator.cc",
     "${srcPath}/cc/layers/nine_patch_layer.cc",
     "${srcPath}/cc/layers/nine_patch_layer_impl.cc",
+    "${srcPath}/cc/layers/nine_patch_thumb_scrollbar_layer.cc",
+    "${srcPath}/cc/layers/nine_patch_thumb_scrollbar_layer_impl.cc",
     "${srcPath}/cc/layers/painted_overlay_scrollbar_layer.cc",
     "${srcPath}/cc/layers/painted_overlay_scrollbar_layer_impl.cc",
     "${srcPath}/cc/layers/painted_scrollbar_layer.cc",
@@ -114,6 +117,9 @@ var src = [
     "${srcPath}/cc/metrics/jank_metrics.cc",
     "${srcPath}/cc/metrics/latency_ukm_reporter.cc",
     "${srcPath}/cc/metrics/lcd_text_metrics_reporter.cc",
+    "${srcPath}/cc/metrics/predictor_jank_tracker.cc",
+    "${srcPath}/cc/metrics/scroll_jank_dropped_frame_tracker.cc",
+    "${srcPath}/cc/metrics/scroll_jank_ukm_reporter.cc",
     "${srcPath}/cc/metrics/throughput_ukm_reporter.cc",
     "${srcPath}/cc/metrics/total_frame_counter.cc",
     "${srcPath}/cc/metrics/ukm_smoothness_data.cc",
@@ -121,6 +127,9 @@ var src = [
     "${srcPath}/cc/metrics/web_vital_metrics.cc",
     "${srcPath}/cc/metrics/average_lag_tracker.cc",
     "${srcPath}/cc/mojo_embedder/async_layer_tree_frame_sink.cc",
+    "${srcPath}/cc/mojo_embedder/viz_layer_context.cc",
+    "${srcPath}/cc/paint/color_filter.cc",
+    "${srcPath}/cc/paint/draw_looper.cc",
     "${srcPath}/cc/paint/filter_operation.cc",
     "${srcPath}/cc/paint/filter_operations.cc",
     "${srcPath}/cc/paint/image_provider.cc",
@@ -131,7 +140,9 @@ var src = [
     "${srcPath}/cc/paint/paint_image.cc",
     "${srcPath}/cc/paint/paint_image_builder.cc",
     "${srcPath}/cc/paint/paint_image_generator.cc",
+    "${srcPath}/cc/paint/paint_op.cc",
     "${srcPath}/cc/paint/paint_op_buffer.cc",
+    "${srcPath}/cc/paint/paint_op_buffer_iterator.cc",
     "${srcPath}/cc/paint/paint_op_buffer_serializer.cc",
     "${srcPath}/cc/paint/paint_op_reader.cc",
     "${srcPath}/cc/paint/paint_op_writer.cc",
@@ -140,6 +151,7 @@ var src = [
     "${srcPath}/cc/paint/paint_shader.cc",
     "${srcPath}/cc/paint/paint_worklet_input.cc",
     "${srcPath}/cc/paint/paint_worklet_job.cc",
+    "${srcPath}/cc/paint/path_effect.cc",
     "${srcPath}/cc/paint/raw_memory_transfer_cache_entry.cc",
     "${srcPath}/cc/paint/record_paint_canvas.cc",
     "${srcPath}/cc/paint/render_surface_filters.cc",
@@ -158,6 +170,7 @@ var src = [
     "${srcPath}/cc/paint/skottie_wrapper_impl.cc",
     "${srcPath}/cc/paint/solid_color_analyzer.cc",
     "${srcPath}/cc/paint/target_color_params.cc",
+    "${srcPath}/cc/paint/tone_map_util.cc",
     "${srcPath}/cc/paint/transfer_cache_entry.cc",
     "${srcPath}/cc/paint/transfer_cache_serialize_helper.cc",
     "${srcPath}/cc/paint/clear_for_opaque_raster.cc",
@@ -168,6 +181,7 @@ var src = [
     "${srcPath}/cc/paint/draw_image.cc",
     "${srcPath}/cc/paint/element_id.cc",
     "${srcPath}/cc/raster/gpu_raster_buffer_provider.cc",
+    "${srcPath}/cc/raster/categorized_worker_pool.cc",
     "${srcPath}/cc/raster/lcd_text_disallowed_reason.cc",
     "${srcPath}/cc/raster/one_copy_raster_buffer_provider.cc",
     "${srcPath}/cc/raster/paint_worklet_image_provider.cc",
@@ -251,6 +265,7 @@ var src = [
     "${srcPath}/cc/trees/property_animation_state.cc",
     "${srcPath}/cc/trees/property_tree.cc",
     "${srcPath}/cc/trees/property_tree_builder.cc",
+    "${srcPath}/cc/trees/raster_capabilities.cc",
     "${srcPath}/cc/trees/proxy_common.cc",
     "${srcPath}/cc/trees/proxy_impl.cc",
     "${srcPath}/cc/trees/proxy_main.cc",
@@ -307,10 +322,14 @@ var src = [
     "${srcPath}/components/viz/common/quads/yuv_video_draw_quad.cc",
     "${srcPath}/components/viz/common/quads/aggregated_render_pass.cc",
     "${srcPath}/components/viz/common/quads/aggregated_render_pass_draw_quad.cc",
+    "${srcPath}/components/viz/common/quads/frame_interval_inputs.cc",
+    "${srcPath}/components/viz/common/quads/offset_tag.cc",
     "${srcPath}/components/viz/common/resources/resource_format_utils.cc",
     "${srcPath}/components/viz/common/resources/resource_settings.cc",
     "${srcPath}/components/viz/common/resources/returned_resource.cc",
+    "${srcPath}/components/viz/common/resources/resource_id.cc",
     "${srcPath}/components/viz/common/resources/shared_bitmap.cc",
+    "${srcPath}/components/viz/common/resources/shared_bitmap_id.cc",
     "${srcPath}/components/viz/common/resources/shared_image_format.cc",
     "${srcPath}/components/viz/common/resources/transferable_resource.cc",
     "${srcPath}/components/viz/common/resources/bitmap_allocation.cc",
@@ -327,6 +346,7 @@ var src = [
     "${srcPath}/components/viz/common/surfaces/child_local_surface_id_allocator.cc",
     "${srcPath}/components/viz/common/surfaces/frame_sink_id.cc",
     "${srcPath}/components/viz/common/shared_element_resource_id.cc",
+    "${srcPath}/components/viz/common/color_space_utils.cc",
     "${srcPath}/components/viz/common/skia_helper.cc",
     "${srcPath}/components/viz/common/switches.cc",
     "${srcPath}/components/viz/common/traced_value_viz.cc",
@@ -359,10 +379,16 @@ var src = [
     "${srcPath}/components/viz/service/display/display_resource_provider_software.cc",
     "${srcPath}/components/viz/service/display/display_scheduler.cc",
     "${srcPath}/components/viz/service/display/display_scheduler_base.cc",
+    "${srcPath}/components/viz/service/display/display_utils.cc",
     "${srcPath}/components/viz/service/display/draw_polygon.cc",
     "${srcPath}/components/viz/service/display/external_use_client.cc",
+    "${srcPath}/components/viz/service/display/delegated_ink_point_renderer_base.cc",
+    "${srcPath}/components/viz/service/display/frame_interval_decider.cc",
+    "${srcPath}/components/viz/service/display/frame_interval_matchers.cc",
     "${srcPath}/components/viz/service/display/frame_rate_decider.cc",
     "${srcPath}/components/viz/service/display/null_renderer.cc",
+    "${srcPath}/components/viz/service/display/occlusion_culler.cc",
+    "${srcPath}/components/viz/service/display/overdraw_tracker.cc",
     "${srcPath}/components/viz/service/display/output_surface.cc",
     "${srcPath}/components/viz/service/display/output_surface_frame.cc",
     "${srcPath}/components/viz/service/display/overlay_candidate.cc",
@@ -400,7 +426,10 @@ var src = [
     "${srcPath}/components/viz/service/frame_sinks/begin_frame_tracker.cc",
     "${srcPath}/components/viz/service/frame_sinks/compositor_frame_sink_impl.cc",
     "${srcPath}/components/viz/service/frame_sinks/compositor_frame_sink_support.cc",
+    "${srcPath}/components/viz/service/frame_sinks/eviction_handler.cc",
+    "${srcPath}/components/viz/service/frame_sinks/external_begin_frame_source_mac.cc",
     "${srcPath}/components/viz/service/frame_sinks/frame_sink_bundle_impl.cc",
+    "${srcPath}/components/viz/service/frame_sinks/frame_counter.cc",
     "${srcPath}/components/viz/service/frame_sinks/frame_sink_manager_impl.cc",
     "${srcPath}/components/viz/service/frame_sinks/gpu_vsync_begin_frame_source.cc",
     "${srcPath}/components/viz/service/frame_sinks/root_compositor_frame_sink_impl.cc",
@@ -408,6 +437,7 @@ var src = [
     "${srcPath}/components/viz/service/frame_sinks/video_detector.cc",
     "${srcPath}/components/viz/service/hit_test/hit_test_aggregator.cc",
     "${srcPath}/components/viz/service/hit_test/hit_test_manager.cc",
+    "${srcPath}/components/viz/service/layers/layer_context_impl.cc",
     "${srcPath}/components/viz/service/main/viz_compositor_thread_runner_impl.cc",
     "${srcPath}/components/viz/service/main/viz_main_impl.cc",
     "${srcPath}/cc/base/features_cc.cc",
@@ -557,7 +587,7 @@ var src = [
     "${srcPath}/ui/gfx/animation/keyframe/animation_curve.cc",
     "${srcPath}/ui/gfx/animation/keyframe/keyframed_animation_curve.cc",
     "${srcPath}/ui/gfx/animation/keyframe/timing_function.cc",
-    "${srcPath}/cc/animation/keyframe_effect_cc.cc",
+    "${srcPath}/cc/animation/keyframe_effect.cc",
     "${srcPath}/ui/gfx/animation/keyframe/keyframe_effect_gfx.cc",
     "${srcPath}/services/network/public/cpp/resource_request_body.cc",
     "${srcPath}/services/network/public/cpp/data_element.cc",
@@ -567,6 +597,9 @@ var src = [
     "${srcPath}/services/network/public/cpp/cors/origin_access_entry.cc",
     "${srcPath}/components/shared_highlighting/core/common/shared_highlighting_metrics.cc",
     "${srcPath}/third_party/abseil-cpp/absl/base/internal/raw_logging_empty.cc",
+    "${srcPath}/third_party/abseil-cpp/absl/container/internal/raw_hash_set.cc",
+    "${srcPath}/third_party/abseil-cpp/absl/hash/internal/hash_absl.cc",
+    "${srcPath}/third_party/abseil-cpp/absl/strings/ascii.cc",
     "${srcPath}/ui/events/base_event_utils.cc",
     "${srcPath}/components/viz/common/features_lite.cc",
     "${srcPath}/components/shared_highlighting/core/common/shared_highlighting_features.cc",
@@ -1079,6 +1112,7 @@ var src = [
     "${srcPath}/base/allocator/partition_allocator/starscan/stack/asm/x86/push_registers_asm_x86.cc",
     "${srcPath}/base/allocator/partition_allocator/page_allocator_internals_posix.cc",
     "${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_logging.cc",
+    "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/check_partition.cc",
     "${srcPath}/base/allocator/partition_allocator/partition_alloc_base/posix/safe_strerror_posix.cc",
     "${srcPath}/base/third_party/cityhash_v103/src/city_v103.cc",
     "${srcPath}/base/third_party/superfasthash/superfasthash.c",
@@ -1145,6 +1179,7 @@ var json = [{
             ...constVal.includePaths,
             "${srcPath}",
             "${srcPath}/linux",
+            "${srcPath}/v8/include",
             "${srcPath}/gen/${v8dir}/include",
             "${srcPath}/${v8dir}",
             "${srcPath}/${v8dir}/include",
@@ -1220,7 +1255,7 @@ var json = [{
             "-DBUILDING_V8_SHARED=1",
             "-DBUILDING_UV_SHARED=1",
             "-DV8_HOST_ARCH_X64",
-            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=64",
+            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=0",
             "-DV8_INTL_SUPPORT",
             "-DV8_USE_EXTERNAL_STARTUP_DATA",
             "-DV8_ATOMIC_OBJECT_FIELD_WRITES",
@@ -1261,5 +1296,298 @@ var json = [{
         "linker":"${ndkBinPath}/llvm-ar.exe"
     }
 }];
+
+if (constVal.isMac) {
+    const partitionAllocPathMap = new Map([
+        ["${srcPath}/base/allocator/partition_allocator/address_pool_manager.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/address_pool_manager.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/address_pool_manager_bitmap.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/address_pool_manager_bitmap.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/address_space_randomization.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/address_space_randomization.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/allocation_guard.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/allocation_guard.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/dangling_raw_ptr_checks.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/dangling_raw_ptr_checks.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/extended_api.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/extended_api.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/gwp_asan_support.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/gwp_asan_support.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/memory_reclaimer.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/memory_reclaimer.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/oom.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/oom.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/oom_callback.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/oom_callback.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/page_allocator.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/page_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/page_allocator_internals_posix.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/page_allocator_internals_posix.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_address_space.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_address_space.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_hooks.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_hooks.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_bucket.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_bucket.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_oom.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_oom.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_page.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_page.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_root.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_root.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_stats.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_stats.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/random.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/random.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/reservation_offset_table.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/reservation_offset_table.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/spinning_mutex.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/spinning_mutex.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/tagging.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/tagging.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/thread_cache.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/thread_cache.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/shim/allocator_shim.cc", "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/shim/allocator_shim_default_dispatch_to_partition_alloc.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/debug/pa_alias.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/alias_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/files/pa_file_path.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/files/file_path_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/memory/pa_ref_counted.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/memory/ref_counted_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/strings/pa_stringprintf.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/stringprintf_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/threading/pa_platform_thread.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/threading/platform_thread_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/threading/pa_platform_thread_posix.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/threading/platform_thread_posix.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/time/pa_time_override.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time_override_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/time/pa_time_conversion_posix.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time_conversion_posix.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/time/pa_time_now_posix.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time_now_posix.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/time/pa_time.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time_allocator.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_check.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/check_partition.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_cpu.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/cpu_partition.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_native_library.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/native_library.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_rand_util.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/rand_util_partition.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_rand_util_posix.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/rand_util_posix.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_logging.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/logging.cc"],
+        ["${srcPath}/base/allocator/partition_allocator/partition_alloc_base/posix/safe_strerror_posix.cc",
+            "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/posix/safe_strerror.cc"],
+    ]);
+    const macPartitionAllocAddSrc = [
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/compressed_pointer.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/lightweight_quarantine.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_cookie.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_dcheck_helper.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_freelist_entry.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_interception_apple.mm",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_apple.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_apple_zoned_malloc.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc_with_advanced_checks.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_dispatch_to_noop_on_free.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/malloc_zone_functions_apple.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/stack/asm/arm64/push_registers_asm.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/apple/foundation_util.mm",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/apple/mach_logging.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/stack_trace_mac.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/stack_trace_posix.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/files/file_util_posix.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/mac/mac_util.mm",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/memory/page_size_posix.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/process/process_handle_posix.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/system/sys_info_mac.mm",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/threading/platform_thread_posix.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time_apple.mm",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/internal_allocator.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/log_message.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/cstring_builder.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/safe_sprintf_allocator.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/string_util_allocator.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/stack/stack.cc",
+    ];
+    const macChromiumAddSrc = [
+        "${srcPath}/base/allocator/miracle_parameter.cc",
+        "${srcPath}/base/apple/call_with_eh_frame.cc",
+        "${srcPath}/base/apple/mach_port_rendezvous.cc",
+        "${srcPath}/base/apple/scoped_mach_port.cc",
+        "${srcPath}/base/enterprise_util_mac.mm",
+        "${srcPath}/base/mac/process_requirement.cc",
+        "${srcPath}/base/memory/post_delayed_memory_reduction_task.cc",
+        "${srcPath}/base/memory/protected_memory_posix.cc",
+        "${srcPath}/base/memory/shared_memory_switch.cc",
+        "${srcPath}/base/posix/sysctl.cc",
+        "${srcPath}/base/process/process_metrics_apple.cc",
+        "${srcPath}/base/profiler/stack_unwind_data.cc",
+        "${srcPath}/base/task/sequence_manager/work_tracker.cc",
+        "${srcPath}/cc/benchmarks/benchmark_instrumentation.cc",
+        "${srcPath}/cc/layers/tile_display_layer_impl.cc",
+        "${srcPath}/components/attribution_reporting/eligibility.cc",
+        "${srcPath}/components/attribution_reporting/is_origin_suitable.cc",
+        "${srcPath}/components/attribution_reporting/suitable_origin.cc",
+        "${srcPath}/components/shared_highlighting/core/common/fragment_directives_utils.cc",
+        "${srcPath}/components/shared_highlighting/core/common/text_fragment.cc",
+        "${srcPath}/services/network/public/cpp/attribution_utils.cc",
+        "${srcPath}/services/network/public/cpp/content_security_policy/csp_source.cc",
+        "${srcPath}/services/network/public/cpp/content_security_policy/csp_source_list.cc",
+        "${srcPath}/services/network/public/cpp/header_util.cc",
+        "${srcPath}/services/network/public/cpp/parsed_headers.cc",
+        "${srcPath}/services/network/public/cpp/single_request_url_loader_factory.cc",
+        "${srcPath}/services/network/public/cpp/timing_allow_origin_parser.cc",
+        "${srcPath}/media/base/pipeline_status.cc",
+        "${srcPath}/media/base/video_frame_pool.cc",
+        "${srcPath}/media/renderers/video_frame_yuv_converter.cc",
+        "${srcPath}/media/renderers/video_resource_updater.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/blend/blend.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/cam/cam.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/cam/hct.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/cam/hct_solver.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/cam/viewing_conditions.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/palettes/core.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/palettes/tones.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/quantize/celebi.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/quantize/lab.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/quantize/wsmeans.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/quantize/wu.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/scheme/scheme.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/score/score.cc",
+        "${srcPath}/third_party/material_color_utilities/src/cpp/utils/utils.cc",
+        "${srcPath}/ui/accessibility/ax_tree_id.cc",
+        "${srcPath}/ui/base/cocoa/defaults_utils.mm",
+        "${srcPath}/ui/base/prediction/prediction_metrics_handler.cc",
+        "${srcPath}/ui/color/color_metrics.cc",
+        "${srcPath}/ui/color/color_mixer.cc",
+        "${srcPath}/ui/color/color_mixers.cc",
+        "${srcPath}/ui/color/color_provider.cc",
+        "${srcPath}/ui/color/color_provider_manager.cc",
+        "${srcPath}/ui/color/color_provider_key.cc",
+        "${srcPath}/ui/color/color_provider_source.cc",
+        "${srcPath}/ui/color/color_provider_source_observer.cc",
+        "${srcPath}/ui/color/color_provider_utils.cc",
+        "${srcPath}/ui/color/color_recipe.cc",
+        "${srcPath}/ui/color/color_transform_ui.cc",
+        "${srcPath}/ui/color/core_default_color_mixer.cc",
+        "${srcPath}/ui/color/css_system_color_mixer.cc",
+        "${srcPath}/ui/color/dynamic_color/palette.cc",
+        "${srcPath}/ui/color/dynamic_color/palette_factory.cc",
+        "${srcPath}/ui/color/fluent_ui_color_mixer.cc",
+        "${srcPath}/ui/color/mac/css_system_color_mixer_mac.mm",
+        "${srcPath}/ui/color/mac/native_color_mixers_mac.mm",
+        "${srcPath}/ui/color/mac/native_color_transform.mm",
+        "${srcPath}/ui/color/mac/system_color_utils.mm",
+        "${srcPath}/ui/color/material_ui_color_mixer.cc",
+        "${srcPath}/ui/color/native_color_mixers.cc",
+        "${srcPath}/ui/color/ref_color_mixer.cc",
+        "${srcPath}/ui/color/sys_color_mixer.cc",
+        "${srcPath}/ui/color/ui_color_mixer.cc",
+        "${srcPath}/ui/display/mac/ca_display_link_mac.mm",
+        "${srcPath}/ui/display/mac/cv_display_link_mac.mm",
+        "${srcPath}/ui/display/mac/display_link_mac.mm",
+        "${srcPath}/ui/display/util/display_util2.cc",
+        "${srcPath}/ui/native_theme/caption_style.cc",
+        "${srcPath}/ui/native_theme/caption_style_mac.mm",
+    ];
+    const macRemoveSrc = new Set([
+        "${srcPath}/base/message_loop/message_pump_glib.cc",
+        "${srcPath}/base/native_library_posix.cc",
+        "${srcPath}/base/process/process_handle_linux.cc",
+        "${srcPath}/base/process/process_iterator_linux.cc",
+        "${srcPath}/base/process/process_metrics_linux.cc",
+        "${srcPath}/base/process/internal_linux.cc",
+        "${srcPath}/base/process/launch_posix.cc",
+        "${srcPath}/base/process/process_linux.cc",
+        "${srcPath}/base/profiler/module_cache_posix.cc",
+        "${srcPath}/base/synchronization/waitable_event_watcher_posix.cc",
+        "${srcPath}/base/synchronization/waitable_event_posix.cc",
+        "${srcPath}/base/system/sys_info_linux.cc",
+        "${srcPath}/base/threading/platform_thread_linux.cc",
+        "${srcPath}/base/time/time_now_posix.cc",
+        "${srcPath}/ui/gfx/font_fallback_linux.cc",
+        "${srcPath}/base/debug/elf_reader.cc",
+        "${srcPath}/base/files/scoped_file_linux.cc",
+        "${srcPath}/base/posix/can_lower_nice_to.cc",
+        "${srcPath}/base/trace_event/memory_allocator_dump.cc",
+        "${srcPath}/base/trace_event/memory_dump_manager.cc",
+        "${srcPath}/base/trace_event/process_memory_dump.cc",
+        "${srcPath}/base/trace_event/trace_arguments.cc",
+        "${srcPath}/base/trace_event/trace_config.cc",
+        "${srcPath}/base/trace_event/trace_event_impl.cc",
+        "${srcPath}/base/trace_event/trace_log.cc",
+        "${srcPath}/base/trace_event/traced_value.cc",
+        "${srcPath}/base/allocator/partition_allocator/partition_alloc_base/pa_native_library.cc",
+        "${srcPath}/cc/tiles/gpu_image_decode_cache.cc",
+        "${srcPath}/cc/metrics/event_latency_tracing_recorder.cc",
+        "${srcPath}/components/viz/common/display/use_layered_window.cc",
+        "${srcPath}/components/viz/common/quads/yuv_video_draw_quad.cc",
+        "${srcPath}/components/viz/host/host_gpu_memory_buffer_manager.cc",
+        "${srcPath}/components/viz/service/display/display_compositor_memory_and_task_controller.cc",
+        "${srcPath}/components/viz/service/display_embedder/skia_output_device.cc",
+        "${srcPath}/components/viz/service/display_embedder/skia_output_device_offscreen.cc",
+        "${srcPath}/components/viz/service/frame_sinks/gpu_vsync_begin_frame_source.cc",
+        "${srcPath}/components/viz/service/surfaces/surface_saved_frame_storage.cc",
+        "${srcPath}/ipc_lite/ipc_channel_posix.cc",
+        "${srcPath}/media/media_empty.cc",
+        "${srcPath}/base/allocator/partition_allocator/partition_alloc_base/time/pa_time_now_posix.cc",
+        "${srcPath}/base/allocator/partition_allocator/shim/allocator_shim.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time_now_posix.cc",
+        "${srcPath}/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim.cc",
+        "${srcPath}/skia/ext/convolver_SSE2.cc",
+        "${srcPath}/ui/gfx/sys_color_change_listener.cc",
+        "${srcPath}/ui/gfx/linux/fontconfig_util.cc",
+    ]);
+    json[0].compile.src = json[0].compile.src
+        .filter((path) => !macRemoveSrc.has(path))
+        .map((path) => {
+            if (path == "${srcPath}/base/profiler/module_cache_posix.cc")
+                return "${srcPath}/base/profiler/module_cache_apple.cc";
+            if (partitionAllocPathMap.has(path))
+                return partitionAllocPathMap.get(path);
+            return path;
+        });
+    json[0].compile.src.push("${srcPath}/components/viz/common/resources/shared_image_format_utils.cc");
+    for (const srcPath of macPartitionAllocAddSrc) {
+        if (json[0].compile.src.indexOf(srcPath) < 0)
+            json[0].compile.src.push(srcPath);
+    }
+    for (const srcPath of macChromiumAddSrc) {
+        if (json[0].compile.src.indexOf(srcPath) < 0)
+            json[0].compile.src.push(srcPath);
+    }
+    json[0].compile.src = [...new Set(json[0].compile.src)];
+    json[0].compile.src.push("${srcPath}/base/message_loop/message_pump_apple.mm");
+    json[0].compile.src.push("${srcPath}/base/message_loop/message_pump_kqueue.cc");
+    json[0].compile.src.push("${srcPath}/base/native_library_apple.mm");
+    json[0].compile.src.push("${srcPath}/base/apple/mach_logging.cc");
+    json[0].compile.src.push("${srcPath}/base/apple/bundle_locations.mm");
+    json[0].compile.src.push("${srcPath}/base/apple/foundation_util.mm");
+    json[0].compile.src.push("${srcPath}/base/apple/scoped_nsautorelease_pool.mm");
+    json[0].compile.src.push("${srcPath}/base/apple/scoped_mach_vm.cc");
+    json[0].compile.src.push("${srcPath}/base/base_paths_apple.cc");
+    json[0].compile.src.push("${srcPath}/base/base_paths_mac.mm");
+    json[0].compile.src.push("${srcPath}/base/memory/platform_shared_memory_region_apple.cc");
+    json[0].compile.src.push("${srcPath}/base/memory/platform_shared_memory_mapper_apple.cc");
+    json[0].compile.src.push("${srcPath}/base/process/launch_mac.cc");
+    json[0].compile.src.push("${srcPath}/base/process/process_handle_mac.cc");
+    json[0].compile.src.push("${srcPath}/base/process/process_iterator_mac.cc");
+    json[0].compile.src.push("${srcPath}/base/process/process_mac.cc");
+    json[0].compile.src.push("${srcPath}/base/process/process_metrics_mac.cc");
+    json[0].compile.src.push("${srcPath}/base/profiler/stack_copier.cc");
+    json[0].compile.src.push("${srcPath}/base/profiler/module_cache_apple.cc");
+    json[0].compile.src.push("${srcPath}/base/synchronization/waitable_event.cc");
+    json[0].compile.src.push("${srcPath}/base/synchronization/waitable_event_apple.cc");
+    json[0].compile.src.push("${srcPath}/base/synchronization/waitable_event_watcher_mac.cc");
+    json[0].compile.src.push("${srcPath}/base/sync_socket_posix.cc");
+    json[0].compile.src.push("${srcPath}/base/system/sys_info_apple.mm");
+    json[0].compile.src.push("${srcPath}/base/system/sys_info_mac.mm");
+    json[0].compile.src.push("${srcPath}/base/strings/sys_string_conversions_apple.mm");
+    json[0].compile.src.push("${srcPath}/base/task/sequence_manager/task_time_observer.cc");
+    json[0].compile.src.push("${srcPath}/base/threading/platform_thread_apple.mm");
+    json[0].compile.src.push("${srcPath}/base/time/time_apple.mm");
+    json[0].compile.src.push("${srcPath}/base/trace_event/trace_event_lightweight.cc");
+    json[0].compile.src.push("${srcPath}/base/trace_event/perfetto_lightweight_backend.cc");
+    json[0].compile.src.push("${srcPath}/third_party/perfetto/sdk_miniblink/perfetto_miniblink.cc");
+    json[0].compile.src.push("${srcPath}/cc/paint/deferred_paint_record.cc");
+    json[0].compile.src.push("${srcPath}/cc/raster/task.cc");
+    json[0].compile.src.push("${srcPath}/services/network/public/cpp/cors/origin_access_list.cc");
+    json[0].compile.src.push("${srcPath}/base/uuid.cc");
+    json[0].compile.src.push("${srcPath}/base/files/file_util_apple.mm");
+    json[0].compile.src.push("${srcPath}/base/third_party/xdg_user_dirs/xdg_user_dir_lookup.cc");
+    json[0].compile.src.push("${srcPath}/components/viz/service/display_embedder/software_output_device_mac.cc");
+    json[0].compile.src.push("${srcPath}/ui/display/screen_base.cc");
+    json[0].compile.src.push("${srcPath}/ui/display/screen_base_mac.cc");
+    json[0].compile.src.push("${srcPath}/ui/display/display_finder.cc");
+    json[0].compile.src.push("${srcPath}/ui/native_theme/native_theme_mac.mm");
+    json[0].compile.src.push("${srcPath}/media/capture/video/video_capture_device_descriptor.cc");
+}
+applyMacBuildSettings(json, { v8: true });
+if (constVal.isMac && json[0].compile.include.indexOf("${srcPath}/third_party/material_color_utilities/src") < 0)
+    json[0].compile.include.push("${srcPath}/third_party/material_color_utilities/src");
 
 buildCommonSetting(json);

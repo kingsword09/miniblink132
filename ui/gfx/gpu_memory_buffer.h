@@ -10,6 +10,7 @@
 
 #include "base/component_export.h"
 #include "base/memory/unsafe_shared_memory_region.h"
+#include "base/types/token_type.h"
 #include "build/build_config.h"
 #include "ui/gfx/buffer_types.h"
 #include "ui/gfx/generic_shared_memory_id.h"
@@ -22,7 +23,6 @@
 #elif BUILDFLAG(IS_WIN)
 #include <optional>
 
-#include "base/types/token_type.h"
 #include "base/win/scoped_handle.h"
 #elif BUILDFLAG(IS_ANDROID)
 #include "base/android/scoped_hardware_buffer_handle.h"
@@ -51,9 +51,7 @@ enum GpuMemoryBufferType {
 
 using GpuMemoryBufferId = GenericSharedMemoryId;
 
-#if BUILDFLAG(IS_WIN)
 using DXGIHandleToken = base::TokenType<class DXGIHandleTokenTypeMarker>;
-#endif
 
 // TODO(crbug.com/40584691): Convert this to a proper class to ensure the state
 // is always consistent, particularly that the only one handle is set at the

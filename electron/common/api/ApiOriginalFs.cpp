@@ -14,6 +14,35 @@ namespace {
 
 void initializeCommonOriginalFsApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unused, v8::Local<v8::Context> context, void* priv)
 {
+    v8::Isolate* isolate = context->GetIsolate();
+    v8::Local<v8::Value> processValue;
+    if (!context->Global()->Get(context, v8::String::NewFromUtf8(isolate, "process").ToLocalChecked()).ToLocal(&processValue) || !processValue->IsObject())
+        return;
+
+    v8::Local<v8::Object> process = processValue.As<v8::Object>();
+    v8::Local<v8::Value> getBuiltinValue;
+    if (!process->Get(context, v8::String::NewFromUtf8(isolate, "getBuiltinModule").ToLocalChecked()).ToLocal(&getBuiltinValue) || !getBuiltinValue->IsFunction())
+        return;
+
+    v8::Local<v8::Value> argv[] = {
+        v8::String::NewFromUtf8(isolate, "fs").ToLocalChecked(),
+    };
+    v8::Local<v8::Value> fsValue;
+    if (!getBuiltinValue.As<v8::Function>()->Call(context, process, 1, argv).ToLocal(&fsValue) || !fsValue->IsObject())
+        return;
+
+    if (unused->IsObject()) {
+        unused.As<v8::Object>()->Set(context, v8::String::NewFromUtf8(isolate, "exports").ToLocalChecked(), fsValue).ToChecked();
+        return;
+    }
+
+    v8::Local<v8::Array> names = fsValue.As<v8::Object>()->GetOwnPropertyNames(context).ToLocalChecked();
+    for (uint32_t i = 0; i < names->Length(); ++i) {
+        v8::Local<v8::Value> key;
+        v8::Local<v8::Value> value;
+        if (names->Get(context, i).ToLocal(&key) && fsValue.As<v8::Object>()->Get(context, key).ToLocal(&value))
+            exports->Set(context, key, value).ToChecked();
+    }
 }
 
 } // namespace

@@ -190,6 +190,12 @@ void CachedStorageArea::Clear(Source* source)
         new_observer = receiver_.BindNewPipeAndPassRemote();
     }
 
+    // The backend borrows |map_| for session-storage cloning. Drop that borrowed
+    // pointer before replacing the map, because SetStorageAreaMap(nullptr) may
+    // snapshot the current map contents.
+    if (remote_area_.is_bound())
+        remote_area_->SetStorageAreaMap(nullptr);
+
     map_ = std::make_unique<StorageAreaMap>(mojom::blink::StorageArea::kPerStorageAreaQuota);
 
     KURL page_url = source->GetPageUrl();
@@ -199,9 +205,6 @@ void CachedStorageArea::Clear(Source* source)
         remote_area_->DeleteAll(source_string, std::move(new_observer), MakeSuccessCallback(source));
         EnqueueCheckpointMicrotask(source);
     }
-
-    if (remote_area_.is_bound())
-        remote_area_->SetStorageAreaMap(nullptr);
 
     if (!IsSessionStorage())
         EnqueuePendingMutation(String(), String(), String(), source_string);
@@ -800,6 +803,8 @@ Vector<uint8_t> CachedStorageArea::StringToUint8Vector(const String& input, Form
 
 void CachedStorageArea::EvictCachedData()
 {
+    if (remote_area_.is_bound())
+        remote_area_->SetStorageAreaMap(nullptr);
     map_.reset();
 }
 

@@ -4,7 +4,11 @@
 
 #include "gpu/ipc/common/luid_mojom_traits.h"
 
+#include "build/build_config.h"
+
+#if BUILDFLAG(IS_WIN)
 #include <windows.h>
+#endif
 
 #include "gpu/gpu_export.h"
 #include "gpu/ipc/common/luid.mojom-shared.h"

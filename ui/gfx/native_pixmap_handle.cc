@@ -109,7 +109,11 @@ NativePixmapHandle CloneHandleForIPC(const NativePixmapHandle& handle)
         cloned_plane.vmo = std::move(vmo_dup);
         clone.planes.push_back(std::move(cloned_plane));
 #else
-#error Unsupported OS
+        NativePixmapPlane cloned_plane;
+        cloned_plane.stride = plane.stride;
+        cloned_plane.offset = plane.offset;
+        cloned_plane.size = plane.size;
+        clone.planes.push_back(std::move(cloned_plane));
 #endif
     }
 

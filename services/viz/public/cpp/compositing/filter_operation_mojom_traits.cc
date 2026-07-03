@@ -136,9 +136,12 @@ bool StructTraits<viz::mojom::FilterOperationDataView, cc::FilterOperation>::Rea
         mojo::ArrayDataView<float> matrix;
         data.GetMatrixDataView(&matrix);
         if (!matrix.is_null()) {
-            // Guaranteed by prior validation of the FilterOperation struct
-            // because this array specifies a fixed size in the mojom.
-            out->set_matrix(*base::span(matrix).to_fixed_extent<20>());
+            if (matrix.size() != 20)
+                return false;
+            SkScalar matrix_values[20];
+            for (size_t i = 0; i < matrix.size(); ++i)
+                matrix_values[i] = matrix[i];
+            out->set_matrix(base::span<const SkScalar, 20>(matrix_values));
         }
         return true;
     }

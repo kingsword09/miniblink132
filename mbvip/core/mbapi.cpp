@@ -28,7 +28,10 @@
 #include "gen/services/network/public/mojom/url_loader.mojom.h"
 #include "gen/services/network/public/mojom/early_hints.mojom.h"
 #include "third_party/libcurl/include/curl/curl.h"
+#if defined(OS_WIN)
 #include "ui/display/win/screen_win.h"
+#endif
+#include "ui/display/screen.h"
 #include "base/command_line.h"
 #include "base/run_loop.h"
 #include "base/synchronization/waitable_event.h"
@@ -36,11 +39,67 @@
 #include "base/task/single_thread_task_executor.h"
 #include "base/at_exit.h"
 #include "base/base64.h"
+#include "third_party/skia/include/core/SkData.h"
+#include "third_party/skia/include/core/SkImageInfo.h"
+#include "third_party/skia/include/core/SkPixmap.h"
+#include "third_party/skia/include/core/SkStream.h"
+#include "third_party/skia/include/encode/SkPngEncoder.h"
 #include "patch_code/api_xp.h"
+#include <mutex>
+#include <unordered_map>
+#include <vector>
+
 
 namespace blink {
 LocalFrame* FromFrameTokenHash(const size_t& frame_token_hash);
 }
+
+namespace content {
+void setPluginDirectory(const std::u16string& dir);
+}
+
+namespace {
+
+struct MbApiConfigState {
+    std::vector<std::u16string> pluginDirectories;
+    bool diskCacheEnabled = false;
+    std::u16string diskCachePath;
+    size_t diskCacheMemoryLimit = 0;
+    size_t diskCacheDiskLimit = 0;
+    int diskCacheLevel = 0;
+    bool npapiPluginsEnabled = false;
+};
+
+std::mutex& mbApiConfigLock()
+{
+    static std::mutex* lock = new std::mutex();
+    return *lock;
+}
+
+std::unordered_map<int64_t, MbApiConfigState>& mbApiConfigByView()
+{
+    static std::unordered_map<int64_t, MbApiConfigState>* configs = new std::unordered_map<int64_t, MbApiConfigState>();
+    return *configs;
+}
+
+std::u16string mbWideStringToU16(const WCHAR* value)
+{
+    std::u16string result;
+    if (!value)
+        return result;
+    while (*value) {
+        result.push_back(static_cast<char16_t>(*value));
+        ++value;
+    }
+    return result;
+}
+
+MbApiConfigState& mbApiConfigFor(mbWebView webviewHandle)
+{
+    return mbApiConfigByView()[static_cast<int64_t>(webviewHandle)];
+}
+
+} // namespace
 
 class WebFrameSerializerClientImpl : public blink::WebFrameSerializerClient {
 public:
@@ -129,7 +188,7 @@ mbStringPtr getSourceOrMhtmlSync(mbWebView webviewHandle, bool isSource)
         serializer->m_result.push_back('\0');
     }
 
-    mbStringPtr ret = mbCreateString(serializer->m_result.data(), serializer->m_result.size());
+    mbStringPtr ret = mbCreateStringWithCopy(serializer->m_result.data(), serializer->m_result.size());
 
     if (serializer)
         delete serializer;
@@ -193,6 +252,7 @@ mbMemBuf* createMemBufFromStdString(std::string* data)
     result->buf.unuse = kMemBufTypeStdString;
     result->buf.length = data->size();
     result->buf.data = (void*)data->data();
+    result->stdstring = data;
     return &(result->buf);
 }
 
@@ -205,45 +265,44 @@ void freeMemBuf(mbMemBuf* buf)
         if (buf->data)
             free(buf->data);
         free(buf);
+        return;
     }
 
     if (kMemBufTypeSkdata == buf->unuse) {
         MemBufSkdata* bufSkdata = (MemBufSkdata*)buf;
         delete bufSkdata;
+        return;
     }
     if (kMemBufTypeStdString == buf->unuse) {
         MemBufStdString* bufStdString = (MemBufStdString*)buf;
         delete bufStdString->stdstring;
         delete bufStdString;
+        return;
     }
 }
 
 void* getWindowScreenshotSync(void* webviewPtr)
 {
-//     content::MbWebView* webview = (content::MbWebView*)webviewPtr;
-//     if (webview->m_bitmapByteSize.IsZero() || !webview->m_bitmapByte)
-//         return nullptr;
-// 
-//     SkImageInfo info = SkImageInfo::Make(webview->m_bitmapByteSize.width(), webview->m_bitmapByteSize.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-// 
-//     const size_t kRowBytes = 4;
-//     size_t size = webview->m_bitmapByteSize.width() * webview->m_bitmapByteSize.height() * kRowBytes;
-//     sk_sp<SkData> pixels = SkData::MakeWithoutCopy((const void*)webview->m_bitmapByte, size);
-//     if (!pixels.get())
-//         return nullptr;
-// 
-//     sk_sp<SkImage> image = SkImage::MakeRasterData(info, pixels, webview->m_bitmapByteSize.width() * kRowBytes);
-//     if (!image.get())
-//         return nullptr;
-// 
-//     sk_sp<SkData> data(image->encodeToData(SkEncodedImageFormat::kPNG, 100));
-//     if (!data.get())
-//         return nullptr;
-// 
-//     mbMemBuf* outbuf = createMemBufFromSkdata(data);
-//     return outbuf;
-    DebugBreak();
-    return nullptr;
+    content::MbWebView* webview = (content::MbWebView*)webviewPtr;
+    if (!webview || webview->m_bitmapByteSize.IsZero() || !webview->m_bitmapByte)
+        return nullptr;
+
+    const int width = webview->m_bitmapByteSize.width();
+    const int height = webview->m_bitmapByteSize.height();
+    if (width <= 0 || height <= 0)
+        return nullptr;
+
+    const size_t rowBytes = static_cast<size_t>(width) * 4;
+    SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    SkPixmap pixmap(info, webview->m_bitmapByte, rowBytes);
+
+    SkDynamicMemoryWStream stream;
+    SkPngEncoder::Options options;
+    if (!SkPngEncoder::Encode(&stream, pixmap, options))
+        return nullptr;
+
+    sk_sp<SkData> data = stream.detachAsData();
+    return createMemBufFromSkdata(std::move(data));
 }
 
 }
@@ -595,32 +654,45 @@ void MB_CALL_TYPE mbSetLanguage(mbWebView webviewHandle, const char* language)
 }
 void MB_CALL_TYPE mbAddPluginDirectory(mbWebView webviewHandle, const WCHAR* path)
 {
-    OutputDebugStringA("mbAddPluginDirectory not impl\n");
+    std::u16string dir = mbWideStringToU16(path);
+    if (dir.empty())
+        return;
+
+    {
+        std::lock_guard<std::mutex> lock(mbApiConfigLock());
+        mbApiConfigFor(webviewHandle).pluginDirectories.push_back(dir);
+    }
+    content::setPluginDirectory(dir);
 }
 
 void MB_CALL_TYPE mbSetDiskCacheEnabled(mbWebView webviewHandle, BOOL enable)
 {
-    OutputDebugStringA("mbSetDiskCacheEnabled not impl\n");
+    std::lock_guard<std::mutex> lock(mbApiConfigLock());
+    mbApiConfigFor(webviewHandle).diskCacheEnabled = !!enable;
 }
 
 void MB_CALL_TYPE mbSetDiskCachePath(mbWebView webviewHandle, const WCHAR* path)
 {
-    OutputDebugStringA("mbSetDiskCachePath not impl\n");
+    std::lock_guard<std::mutex> lock(mbApiConfigLock());
+    mbApiConfigFor(webviewHandle).diskCachePath = mbWideStringToU16(path);
 }
 
 void MB_CALL_TYPE mbSetDiskCacheLimit(mbWebView webviewHandle, size_t limit)
 {
-    OutputDebugStringA("mbSetDiskCacheLimit not impl\n");
+    std::lock_guard<std::mutex> lock(mbApiConfigLock());
+    mbApiConfigFor(webviewHandle).diskCacheMemoryLimit = limit;
 }
 
 void MB_CALL_TYPE mbSetDiskCacheLimitDisk(mbWebView webviewHandle, size_t limit)
 {
-    OutputDebugStringA("mbSetDiskCacheLimitDisk not impl\n");
+    std::lock_guard<std::mutex> lock(mbApiConfigLock());
+    mbApiConfigFor(webviewHandle).diskCacheDiskLimit = limit;
 }
 
 void MB_CALL_TYPE mbSetDiskCacheLevel(mbWebView webviewHandle, int Level)
 {
-    OutputDebugStringA("mbSetDiskCacheLevel not impl\n");
+    std::lock_guard<std::mutex> lock(mbApiConfigLock());
+    mbApiConfigFor(webviewHandle).diskCacheLevel = Level;
 }
 
 void MB_CALL_TYPE mbMoveWindow(mbWebView webviewHandle, int x, int y, int w, int h)
@@ -628,73 +700,88 @@ void MB_CALL_TYPE mbMoveWindow(mbWebView webviewHandle, int x, int y, int w, int
     HWND hwnd = mbGetHostHWND(webviewHandle);
     if (!hwnd)
         return;
-    ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+    if (content::ThreadCall::isUiThread()) {
+        ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+        return;
+    }
+    content::ThreadCall::callUiThreadSync(MB_FROM_HERE, [hwnd, x, y, w, h] {
+        ::SetWindowPos(hwnd, NULL, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+    });
 }
 
-void MB_CALL_TYPE mbSetAudioMuted(mbWebView webview, BOOL b)
+void MB_CALL_TYPE mbSetAudioMuted(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetAudioMuted not impl\n");
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setAudioMuted(!!b);
 }
 
-BOOL MB_CALL_TYPE mbIsAudioMuted(mbWebView webview)
+BOOL MB_CALL_TYPE mbIsAudioMuted(mbWebView webviewHandle)
 {
-    OutputDebugStringA("mbIsAudioMuted not impl\n");
-    return FALSE;
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    return webview && webview->isAudioMuted() ? TRUE : FALSE;
 }
 
 void MB_CALL_TYPE mbSetMouseEnabled(mbWebView webviewHandle, BOOL b)
 {
-    //g_isMouseEnabled = b;
-    OutputDebugStringA("mbSetMouseEnabled not impl\n");
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setIsMouseKeyMessageEnable(!!b);
 }
 
 void MB_CALL_TYPE mbSetTouchEnabled(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetTouchEnabled not impl\n");
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setTouchEnabled(!!b);
 }
 
 void MB_CALL_TYPE mbSetSystemTouchEnabled(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetSystemTouchEnabled not impl\n");
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setSystemTouchEnabled(!!b);
 }
 
 void MB_CALL_TYPE mbSetDragDropEnable(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetDragDropEnable not impl\n");
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setDragDropEnabled(!!b);
 }
 
 void MB_CALL_TYPE mbSetDragEnable(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetDragEnable not impl\n");
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setDragEnabled(!!b);
 }
 
 void MB_CALL_TYPE mbSetHandleOffset(mbWebView webviewHandle, int x, int y)
 {
-    OutputDebugStringA("mbSetHandleOffset not impl\n");
-//     checkThreadCallIsValid(__FUNCTION__);
-// 
-//     mb::MbWebView* webview = (mb::MbWebView*)common::LiveIdDetect::get()->getPtr((int64_t)webviewHandle);
-//     if (!webview)
-//         return;
-//     webview->setOffset(x, y);
-// 
-//     common::ThreadCall::callBlinkThreadAsyncWithValid(MB_FROM_HERE, webviewHandle, [x, y](mb::MbWebView* webview) {
-//         wkeSetHandleOffset(webview->getWkeWebView(), x, y);
-//         });
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setOffset(x, y);
 }
 
 void MB_CALL_TYPE mbSetNpapiPluginsEnabled(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetNpapiPluginsEnabled not impl\n");
+    std::lock_guard<std::mutex> lock(mbApiConfigLock());
+    mbApiConfigFor(webviewHandle).npapiPluginsEnabled = !!b;
 }
 
 void MB_CALL_TYPE mbSetMemoryCacheEnable(mbWebView webviewHandle, BOOL b)
 {
-    OutputDebugStringA("mbSetMemoryCacheEnable not impl\n");
+    content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+    if (webview)
+        webview->setMemoryCacheEnabled(!!b);
 }
 
 static void callCSSByFrameWithResultHelper(mbWebView webviewHandle, const utf8* key, mbInsertCSSByFrameResultCallback callback, void* param)
 {
+    if (!callback)
+        return;
+
     std::string keyStr = key;
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [webviewHandle, keyStr, callback, param] {
         callback(webviewHandle, param, keyStr.c_str());
@@ -704,7 +791,7 @@ static void callCSSByFrameWithResultHelper(mbWebView webviewHandle, const utf8* 
 void MB_CALL_TYPE mbInsertCSSByFrameWithResult(
     mbWebView webviewHandle, mbWebFrameHandle frameId, const utf8* cssText, int cssOrigin, mbInsertCSSByFrameResultCallback callback, void* param)
 {
-    std::string cssTextStr = cssText;
+    std::string cssTextStr = cssText ? cssText : "";
     int cssOriginCopy = cssOrigin;
     content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [webviewHandle, frameId, cssTextStr, cssOriginCopy, callback, param] {
         blink::WebLocalFrame* webFrame = nullptr;

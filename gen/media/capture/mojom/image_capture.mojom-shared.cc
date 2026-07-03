@@ -15,6 +15,7 @@
 #include "mojo/public/cpp/bindings/lib/validate_params.h"
 #include "mojo/public/cpp/bindings/lib/validation_errors.h"
 #include "mojo/public/cpp/bindings/lib/validation_util.h"
+#include "base/trace_event/base_tracing.h"
 #include "third_party/perfetto/include/perfetto/tracing/traced_value.h"
 
 #include "media/capture/mojom/image_capture.mojom-params-data.h"

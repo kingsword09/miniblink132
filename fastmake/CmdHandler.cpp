@@ -1,6 +1,11 @@
 
 #include "CmdHandler.h"
+#include "content/common/StringUtil.h"
 #include <tchar.h>
+#include <string>
+#if defined(OS_MAC)
+#include <stdio.h>
+#endif
 #include <vector>
 
 #define EXCEPTIION_STATE_CHECK                                                                                                                                 \
@@ -36,11 +41,15 @@ HRESULT CmdHandler::Initalize()
     ZeroMemory(&m_startupInfo, sizeof(STARTUPINFO));
     ZeroMemory(&m_processInfo, sizeof(PROCESS_INFORMATION));
 
+#if defined(OS_MAC)
+    return S_OK;
+#else
     if (!CreatePipe(&m_hPipeRead, &m_hPipeWrite, &m_saOutPipe, PIPE_BUFFER_SIZE)) {
         m_dwErrorCode = GetLastError();
         return E_FAIL;
     }
     return S_OK;
+#endif
 }
 
 HRESULT CmdHandler::Finish()
@@ -62,7 +71,7 @@ HRESULT CmdHandler::HandleCommand(CHCmdParam* pCommmandParam)
     EXCEPTIION_STATE_CHECK;
     if (!pCommmandParam || pCommmandParam->iSize != sizeof(CHCmdParam))
         return E_INVALIDARG;
-    if (wcslen(pCommmandParam->szCommand) <= 0)
+    if (mbWideLen(pCommmandParam->szCommand) <= 0)
         return E_UNEXPECTED;
     //memset(&m_CommandParam, 0, sizeof(m_CommandParam));
     m_CommandParam = *pCommmandParam;
@@ -72,6 +81,22 @@ HRESULT CmdHandler::HandleCommand(CHCmdParam* pCommmandParam)
 HRESULT CmdHandler::ExecuteCmdWait()
 {
     EXCEPTIION_STATE_CHECK;
+#if defined(OS_MAC)
+    std::string command = content::utf16ToUtf8(m_CommandParam.szCommand);
+    std::string output;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        m_dwErrorCode = GetLastError();
+        return E_FAIL;
+    }
+    char buffer[4096];
+    while (fgets(buffer, sizeof(buffer), pipe))
+        output += buffer;
+    int status = pclose(pipe);
+    if (m_CommandParam.OnCmdEvent)
+        m_CommandParam.OnCmdEvent(&m_CommandParam, S_OK, output.empty() ? "no data" : output.c_str());
+    return status == 0 ? S_OK : E_FAIL;
+#else
     HRESULT hResult = E_FAIL;
     DWORD dwReadLen = 0;
     DWORD dwStdLen = 0;
@@ -135,6 +160,7 @@ HRESULT CmdHandler::ExecuteCmdWait()
         m_processInfo.hProcess = NULL;
     }
     return hResult;
+#endif
 }
 
 // void appendBuffer(std::vector<char>* buffer, const char* temp, size_t tempSize)

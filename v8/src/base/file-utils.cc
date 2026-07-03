@@ -24,6 +24,7 @@ std::unique_ptr<char[]> RelativePath(const char* exec_path, const char* name)
     if (basename_start > 0)
         memcpy(buffer.get(), exec_path, basename_start);
     memcpy(buffer.get() + basename_start, name, name_length);
+    buffer[basename_start + name_length] = '\0';
     return buffer;
 }
 

@@ -4233,7 +4233,7 @@
     <ClInclude Include="..\..\base\trace_event\trace_event_memory_overhead.h">
       <Filter>src\base\trace_event</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\base\trace_event\trace_event_stub.h">
+    <ClInclude Include="..\..\base\trace_event\trace_event_lightweight.h">
       <Filter>src\base\trace_event</Filter>
     </ClInclude>
     <ClInclude Include="..\..\base\trace_event\trace_id_helper.h">
@@ -8393,7 +8393,7 @@
     <ClCompile Include="..\..\base\trace_event\trace_config_category_filter.cc">
       <Filter>src\base\trace_event</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\base\trace_event\trace_event_stub.cc">
+    <ClCompile Include="..\..\base\trace_event\trace_event_lightweight.cc">
       <Filter>src\base\trace_event</Filter>
     </ClCompile>
     <ClCompile Include="..\..\base\trace_event\trace_id_helper.cc">

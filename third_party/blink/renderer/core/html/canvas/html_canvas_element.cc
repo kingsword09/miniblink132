@@ -118,53 +118,7 @@
 #include "ui/gfx/geometry/skia_conversions.h"
 #include "v8/include/v8.h"
 
-//----
-namespace media {
-
-class VideoFramePool::PoolImpl : public base::RefCountedThreadSafe<VideoFramePool::PoolImpl> {
-public:
-    PoolImpl() 
-    {
-        *(int*)1 = 1;
-    }
-    PoolImpl(const PoolImpl&) = delete;
-    PoolImpl& operator=(const PoolImpl&) = delete;
-
-private:
-    friend class base::RefCountedThreadSafe<VideoFramePool::PoolImpl>;
-    ~PoolImpl()
-    {
-        *(int*)1 = 1;
-    }
-
-    base::Lock lock_;
-    bool is_shutdown_ GUARDED_BY(lock_) = false;
-
-    struct FrameEntry {
-        base::TimeTicks last_use_time;
-        scoped_refptr<VideoFrame> frame;
-    };
-
-    base::circular_deque<FrameEntry> frames_ GUARDED_BY(lock_);
-
-    // |tick_clock_| is always a DefaultTickClock outside of testing.
-    raw_ptr<const base::TickClock> tick_clock_;
-};
-
-}
-
-media::VideoFramePool::~VideoFramePool(void)
-{
-    *(int*)1 = 1;
-}
-//----
-
 namespace blink {
-
-StaticBitmapImageToVideoFrameCopier::~StaticBitmapImageToVideoFrameCopier(void)
-{
-    *(int*)1 = 1;
-}
 
 namespace {
 
@@ -599,7 +553,7 @@ void HTMLCanvasElement::configureHighDynamicRange(const CanvasHighDynamicRangeOp
     if (IsOffscreenCanvasRegistered()) {
         // TODO(https://crbug.com/1274220): Implement HDR support for offscreen
         // canvas.
-        NOTIMPLEMENTED();
+        (void)0;
     }
 
     CanvasResourceHost::SetHdrMetadata(hdr_metadata);
@@ -1307,7 +1261,7 @@ CanvasResourceDispatcher* HTMLCanvasElement::GetOrCreateResourceDispatcher()
 
 bool HTMLCanvasElement::PushFrame(scoped_refptr<CanvasResource>&& image, const SkIRect& damage_rect)
 {
-    NOTIMPLEMENTED();
+    (void)0;
     return false;
 }
 

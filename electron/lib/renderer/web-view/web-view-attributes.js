@@ -158,7 +158,7 @@ class SrcAttribute extends WebViewAttribute {
     handleMutation(oldValue, newValue) {
         // Once we have navigated, we don't allow clearing the src attribute.
         // Once <webview> enters a navigated state, it cannot return to a
-        // placeholder state.
+        // navigated state.
         if (!newValue && oldValue) {
             // src attribute changes normally initiate a navigation. We suppress
             // the next src attribute handler call to avoid reloading the page

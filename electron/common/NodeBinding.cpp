@@ -38,7 +38,7 @@ namespace {
 
 void crash(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    DebugBreak();
+    ::TerminateProcess(::GetCurrentProcess(), 1);
 }
 
 void hang(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -92,8 +92,7 @@ void getSystemMemoryInfo(const v8::FunctionCallbackInfo<v8::Value>& info)
 // we can get the stack trace.
 void fatalErrorCallback(const char* location, const char* message)
 {
-    //crash(info);
-    DebugBreak();
+    ::TerminateProcess(::GetCurrentProcess(), 1);
 }
 
 void log(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -419,7 +418,7 @@ static void addFunction(v8::Local<v8::Context> context, const char* name, v8::Fu
 
     v8::Local<v8::Object> object = context->Global();
     v8::Local<v8::FunctionTemplate> tmpl = v8::FunctionTemplate::New(isolate);
-    v8::Local<v8::Value> data = v8::External::New(isolate, new MbConsoleLogInfo(isMainNode)); // TODO: 内存泄露
+    v8::Local<v8::Value> data = v8::External::New(isolate, new MbConsoleLogInfo(isMainNode)); // Owned for the process lifetime by V8 callback data.
 
     // Set the function handler callback.
     tmpl->SetCallHandler(callback, data);

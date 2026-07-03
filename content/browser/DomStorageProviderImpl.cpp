@@ -25,7 +25,7 @@
 bool ::blink::mojom::blink::StorageArea::GetAll(
     mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver>, WTF::Vector<::blink::mojom::blink::KeyValuePtr>*)
 {
-    DebugBreak();
+    (void)0;
     return false;
 }
 
@@ -53,9 +53,12 @@ public:
 
     static StorageAreaImplMgr* get();
 
-    StorageAreaImpl* findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey);
+    StorageAreaImpl* findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const base::FilePath& localPathDir, const WTF::String& namespaceId);
+    void cloneSessionNamespace(const WTF::String& sourceNamespaceId, const WTF::String& targetNamespaceId);
 
 private:
+    static WTF::String buildAreaKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const base::FilePath& localPathDir, const WTF::String& namespaceId);
+
     static String buildFileName(const ::blink::BlinkStorageKey& storageKey)
     {
         const scoped_refptr<const blink::SecurityOrigin>& orig = storageKey.GetSecurityOrigin();
@@ -92,6 +95,10 @@ public:
 
     void setStorageAreaMap(blink::StorageAreaMap* areaMap)
     {
+        if (!m_isLocal && !areaMap && m_areaMap) {
+            m_sessionData.clear();
+            copySessionDataTo(&m_sessionData);
+        }
         m_areaMap = areaMap;
     }
 
@@ -110,6 +117,68 @@ public:
         if (!m_areaMap)
             return 0;
         return m_areaMap->GetLength();
+    }
+
+    const blink::BlinkStorageKey& storageKey() const { return m_storageKey; }
+
+    void copySessionDataTo(WTF::Vector<::blink::mojom::blink::KeyValuePtr>* outData)
+    {
+        if (m_isLocal)
+            return;
+
+        if (!m_sessionData.empty()) {
+            for (const auto& item : m_sessionData)
+                outData->push_back(::blink::mojom::blink::KeyValue::New(item->key, item->value));
+            return;
+        }
+
+        if (m_areaMap) {
+            const unsigned length = m_areaMap->GetLength();
+            for (size_t i = 0; i < length; ++i) {
+                String key = m_areaMap->GetKey(i);
+                String value = m_areaMap->GetItem(key);
+                outData->push_back(::blink::mojom::blink::KeyValue::New(stringToSessionKeyVector(key), stringToSessionValueVector(value)));
+            }
+        }
+    }
+
+    void cloneSessionDataFrom(StorageAreaImpl* source)
+    {
+        m_sessionData.clear();
+        if (!source)
+            return;
+        source->copySessionDataTo(&m_sessionData);
+    }
+
+    void putSessionItem(const WTF::Vector<uint8_t>& key, const WTF::Vector<uint8_t>& value)
+    {
+        if (m_isLocal)
+            return;
+        for (auto& item : m_sessionData) {
+            if (item->key == key) {
+                item->value = value;
+                return;
+            }
+        }
+        m_sessionData.push_back(::blink::mojom::blink::KeyValue::New(key, value));
+    }
+
+    void deleteSessionItem(const WTF::Vector<uint8_t>& key)
+    {
+        if (m_isLocal)
+            return;
+        for (wtf_size_t i = 0; i < m_sessionData.size(); ++i) {
+            if (m_sessionData[i]->key == key) {
+                m_sessionData.EraseAt(i);
+                return;
+            }
+        }
+    }
+
+    void clearSessionData()
+    {
+        if (!m_isLocal)
+            m_sessionData.clear();
     }
 
     void destroy()
@@ -201,6 +270,25 @@ public:
     }
 
 private:
+    static WTF::Vector<uint8_t> stringToSessionKeyVector(const String& input)
+    {
+        std::string utf8 = input.Utf8();
+        WTF::Vector<uint8_t> result;
+        result.resize(utf8.size());
+        if (!utf8.empty())
+            memcpy(result.data(), utf8.data(), utf8.size());
+        return result;
+    }
+
+    static WTF::Vector<uint8_t> stringToSessionValueVector(const String& input)
+    {
+        WTF::Vector<uint8_t> result;
+        result.resize(input.length() * sizeof(UChar));
+        if (!result.empty())
+            input.CopyTo(reinterpret_cast<UChar*>(result.data()), 0, input.length());
+        return result;
+    }
+
     void loadFromBufferImpl(const std::string& buffer, WTF::Vector<::blink::mojom::blink::KeyValuePtr>* outData)
     {
         const char* pos = &buffer[0];
@@ -299,6 +387,7 @@ private:
     base::FilePath m_localPath;
     blink::StorageAreaMap* m_areaMap = nullptr;
     blink::BlinkStorageKey m_storageKey;
+    WTF::Vector<::blink::mojom::blink::KeyValuePtr> m_sessionData;
 };
 
 StorageAreaImplMgr* StorageAreaImplMgr::get()
@@ -309,9 +398,29 @@ StorageAreaImplMgr* StorageAreaImplMgr::get()
     return s_inst;
 }
 
-StorageAreaImpl* StorageAreaImplMgr::findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey)
+
+WTF::String StorageAreaImplMgr::buildAreaKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const base::FilePath& localPathDir, const WTF::String& namespaceId)
 {
     WTF::String key = buildFileNameStringByStorageKey(isLocal, storageKey);
+    if (isLocal) {
+        WTF::StringBuilder builder;
+        builder.Append(WTF::String::FromUTF8(localPathDir.AsUTF8Unsafe()));
+        builder.Append(WTF::String("/"));
+        builder.Append(key);
+        key = builder.ToString();
+    } else {
+        WTF::StringBuilder builder;
+        builder.Append(namespaceId);
+        builder.Append(WTF::String("/"));
+        builder.Append(key);
+        key = builder.ToString();
+    }
+    return key;
+}
+
+StorageAreaImpl* StorageAreaImplMgr::findOrCreateByStorageKey(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const base::FilePath& localPathDir, const WTF::String& namespaceId)
+{
+    WTF::String key = buildAreaKey(isLocal, storageKey, localPathDir, namespaceId);
     WTF::HashMap<String, StorageAreaImpl*>::iterator it = m_areas.find(key);
     if (it != m_areas.end())
         return it->value;
@@ -319,6 +428,40 @@ StorageAreaImpl* StorageAreaImplMgr::findOrCreateByStorageKey(bool isLocal, cons
     StorageAreaImpl* result = new StorageAreaImpl(isLocal, storageKey);
     m_areas.insert(key, result);
     return result;
+}
+
+void StorageAreaImplMgr::cloneSessionNamespace(const WTF::String& sourceNamespaceId, const WTF::String& targetNamespaceId)
+{
+    WTF::StringBuilder sourceBuilder;
+    sourceBuilder.Append(sourceNamespaceId);
+    sourceBuilder.Append(WTF::String("/"));
+    WTF::String sourcePrefix = sourceBuilder.ToString();
+
+    WTF::Vector<StorageAreaImpl*> sourceAreas;
+    WTF::Vector<WTF::String> targetKeys;
+    for (WTF::HashMap<String, StorageAreaImpl*>::iterator it = m_areas.begin(); it != m_areas.end(); ++it) {
+        if (!it->key.StartsWith(sourcePrefix))
+            continue;
+        WTF::String suffix = it->key.Substring(sourcePrefix.length());
+        WTF::StringBuilder targetBuilder;
+        targetBuilder.Append(targetNamespaceId);
+        targetBuilder.Append(WTF::String("/"));
+        targetBuilder.Append(suffix);
+        sourceAreas.push_back(it->value);
+        targetKeys.push_back(targetBuilder.ToString());
+    }
+
+    for (size_t i = 0; i < sourceAreas.size(); ++i) {
+        WTF::HashMap<String, StorageAreaImpl*>::iterator existing = m_areas.find(targetKeys[i]);
+        StorageAreaImpl* target = nullptr;
+        if (existing != m_areas.end()) {
+            target = existing->value;
+        } else {
+            target = new StorageAreaImpl(false, sourceAreas[i]->storageKey());
+            m_areas.insert(targetKeys[i], target);
+        }
+        target->cloneSessionDataFrom(sourceAreas[i]);
+    }
 }
 
 static base::FilePath getLocalStorageDirByLocalFrameToken(const ::blink::LocalFrameToken& localFrameToken)
@@ -352,13 +495,16 @@ int s_StorageAreaStub = 0;
 
 class StorageAreaStub : public ::blink::mojom::blink::StorageArea {
 public:
-    StorageAreaStub(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const ::blink::LocalFrameToken& localFrameToken)
+    StorageAreaStub(bool isLocal, const ::blink::BlinkStorageKey& storageKey, const ::blink::LocalFrameToken& localFrameToken, const WTF::String& namespaceId)
     {
         s_StorageAreaStub++;
         m_localStorageDir = getLocalStorageDirByLocalFrameToken(localFrameToken);
-        m_impl = StorageAreaImplMgr::get()->findOrCreateByStorageKey(isLocal, storageKey);
+        m_impl = StorageAreaImplMgr::get()->findOrCreateByStorageKey(isLocal, storageKey, m_localStorageDir, namespaceId);
 
-        m_impl->loadFromFile(m_localStorageDir, &m_outData);
+        if (isLocal)
+            m_impl->loadFromFile(m_localStorageDir, &m_outData);
+        else
+            m_impl->copySessionDataTo(&m_outData);
     }
 
     ~StorageAreaStub()
@@ -450,8 +596,12 @@ public:
             base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, 
                 base::BindOnce(&StorageAreaStub::delayDispatchObservers, base::Unretained(this), 
                     DelayDispatchObserversType::kPut, key, value, clientOldValue, source, std::move(callback)));
+            m_impl->toSave();
+            return;
         }
-        m_impl->toSave();
+
+        m_impl->putSessionItem(key, value);
+        std::move(callback).Run(true);
     }
 
     void Delete(const WTF::Vector<uint8_t>& key, const absl::optional<WTF::Vector<uint8_t>>& clientOldValue, const WTF::String& source,
@@ -462,9 +612,12 @@ public:
             base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
                 base::BindOnce(&StorageAreaStub::delayDispatchObservers, base::Unretained(this),
                     DelayDispatchObserversType::kDelete, key, WTF::Vector<uint8_t>(), std::nullopt, source, std::move(callback)));
+            m_impl->toSave();
+            return;
         }
 
-        m_impl->toSave();
+        m_impl->deleteSessionItem(key);
+        std::move(callback).Run(true);
     }
 
     void DeleteAll(const WTF::String& source, ::mojo::PendingRemote<::blink::mojom::blink::StorageAreaObserver> newObserver,
@@ -477,15 +630,18 @@ public:
             base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
                 base::BindOnce(&StorageAreaStub::delayDispatchObservers, base::Unretained(this),
                     DelayDispatchObserversType::kDeleteAll, WTF::Vector<uint8_t>(), WTF::Vector<uint8_t>(), std::nullopt, source, std::move(callback)));
+            m_impl->toSave();
+            return;
         }
 
-        m_impl->toSave();
+        m_impl->clearSessionData();
+        std::move(callback).Run(true);
     }
 
     void Get(const WTF::Vector<uint8_t>& key, ::blink::mojom::blink::StorageArea::GetCallback callback) override
     {
         CHECK(ThreadCall::isBlinkThread());
-        DebugBreak();
+        (void)0;
     }
 
     bool GetAll(
@@ -504,7 +660,7 @@ public:
     {
         CHECK(ThreadCall::isBlinkThread());
         addObserverImpl(std::move(newObserver));
-        DebugBreak();
+        (void)0;
     }
 
     void Checkpoint() override
@@ -528,11 +684,7 @@ public:
 
     void Clone(const WTF::String& cloneToNamespace) override
     {
-        // 暂时不实现window.open的拷贝。因为不同浏览器好像处理的还不太一样
-        //char* output = (char*)malloc(400);
-        //sprintf(output, "SessionStorageNamespaceImpl:Clone: %s, %s\n", m_namespaceId.Utf8().c_str(), cloneToNamespace.Utf8().c_str());
-        //OutputDebugStringA(output);
-        //free(output);
+        StorageAreaImplMgr::get()->cloneSessionNamespace(m_namespaceId, cloneToNamespace);
     }
 
 private:
@@ -552,7 +704,7 @@ public:
     void OpenLocalStorage(const ::blink::BlinkStorageKey& storageKey, const ::blink::LocalFrameToken& localFrameToken,
         ::mojo::PendingReceiver<::blink::mojom::blink::StorageArea> area) override
     {
-        createAndBindBrokerProxy<::blink::mojom::blink::StorageArea, StorageAreaStub>(area.PassPipe(), true, storageKey, localFrameToken);
+        createAndBindBrokerProxy<::blink::mojom::blink::StorageArea, StorageAreaStub>(area.PassPipe(), true, storageKey, localFrameToken, WTF::String());
     }
 
     // namespaceId是同一个页面就共用，不管是否是frame，也不管是否同源。但blink::StorageAreaMap是sub frame同源就共用
@@ -575,7 +727,7 @@ public:
         //sprintf(output, "BindSessionStorageArea: %s, %s\n", namespaceId.Utf8().c_str(), key.Utf8().c_str());
         //OutputDebugStringA(output);
         //free(output);
-        createAndBindBrokerProxy<::blink::mojom::blink::StorageArea, StorageAreaStub>(sessionNamespace.PassPipe(), false, storageKey, localFrameToken);
+        createAndBindBrokerProxy<::blink::mojom::blink::StorageArea, StorageAreaStub>(sessionNamespace.PassPipe(), false, storageKey, localFrameToken, namespaceId);
     }
 };
 

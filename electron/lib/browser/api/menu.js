@@ -4,6 +4,11 @@ const EventEmitter = require('events').EventEmitter;
 const bindings = process._linkedBinding('electron_browser_menu');
 const Menu = bindings.Menu;
 Object.setPrototypeOf(Menu.prototype, EventEmitter.prototype);
+Menu.sendActionToFirstResponder = function(action) {
+    if (bindings && typeof bindings._sendActionToFirstResponder === 'function')
+        return bindings._sendActionToFirstResponder(action);
+    return false;
+}
 
 const MenuItem = require('electron').MenuItem;
 
@@ -137,6 +142,8 @@ Menu.setApplicationMenu = function (menu) {
     applicationMenu = menu;
     if (menu)
         menu._setApplicationMenu();
+    else if (bindings && typeof bindings._clearApplicationMenu === 'function')
+        bindings._clearApplicationMenu();
 }
 
 module.exports = Menu;

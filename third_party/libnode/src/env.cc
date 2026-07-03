@@ -111,6 +111,7 @@ void Environment::ResetPromiseHooks(Local<Function> init, Local<Function> before
 {
     async_hooks()->ResetPromiseHooks(init, before, after, resolve);
 
+#ifdef V8_ENABLE_JAVASCRIPT_PROMISE_HOOKS
     for (auto it = contexts_.begin(); it != contexts_.end(); it++) {
         if (it->IsEmpty()) {
             contexts_.erase(it--);
@@ -118,6 +119,7 @@ void Environment::ResetPromiseHooks(Local<Function> init, Local<Function> before
         }
         PersistentToLocal::Weak(isolate_, *it)->SetPromiseHooks(init, before, after, resolve);
     }
+#endif
 }
 
 // Remember to keep this code aligned with pushAsyncContext() in JS.
@@ -214,10 +216,12 @@ void AsyncHooks::clear_async_id_stack()
 
 void AsyncHooks::InstallPromiseHooks(Local<Context> ctx)
 {
+#ifdef V8_ENABLE_JAVASCRIPT_PROMISE_HOOKS
     ctx->SetPromiseHooks(js_promise_hooks_[0].IsEmpty() ? Local<Function>() : PersistentToLocal::Strong(js_promise_hooks_[0]),
         js_promise_hooks_[1].IsEmpty() ? Local<Function>() : PersistentToLocal::Strong(js_promise_hooks_[1]),
         js_promise_hooks_[2].IsEmpty() ? Local<Function>() : PersistentToLocal::Strong(js_promise_hooks_[2]),
         js_promise_hooks_[3].IsEmpty() ? Local<Function>() : PersistentToLocal::Strong(js_promise_hooks_[3]));
+#endif
 }
 
 void Environment::PurgeTrackedEmptyContexts()

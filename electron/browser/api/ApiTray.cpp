@@ -24,7 +24,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/files/file_path.h"
 #include <vector>
-#include <ShellAPI.h>
+#include <shellapi.h>
 
 #ifndef NIF_SHOWTIP
 #define NIF_SHOWTIP 0x00000080
@@ -40,6 +40,9 @@ namespace atom {
 
 const UINT WM_TRAY_MESSAGE = WM_APP + 100;
 
+const char16_t kTrayHideParentWindowClass[] = u"HideParentWindowClass";
+const char16_t kDefaultTrayTooltip[] = u"TrayIcon";
+
 class Tray : public mate::EventEmitter<Tray> {
 public:
     Tray(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, /*std::string trayPath, NativeImage* nativeImage*/ v8::Local<v8::Value> arg)
@@ -50,11 +53,11 @@ public:
         m_isSetContextMenu = false;
 
         Tray* self = this;
-        m_hideWndHelp = new HideWndHelp(L"HideParentWindowClass",
+        m_hideWndHelp = new HideWndHelp(reinterpret_cast<LPCWSTR>(kTrayHideParentWindowClass),
             [self](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT { return self->windowProc(hWnd, uMsg, wParam, lParam); });
 
         HCURSOR hCur = ::LoadCursor(NULL, IDC_ARROW);
-        m_tray.create(nullptr, m_hideWndHelp->getWnd(), WM_TRAY_MESSAGE, L"TrayIcon", hCur, IDR_POPUP_MENU);
+        m_tray.create(nullptr, m_hideWndHelp->getWnd(), WM_TRAY_MESSAGE, reinterpret_cast<LPCWSTR>(kDefaultTrayTooltip), hCur, IDR_POPUP_MENU);
 
         //         if (nativeImage) {
         //             HICON hIcon = nativeImage->getIcon();
@@ -188,7 +191,6 @@ public:
 
     void popUpContextMenu()
     {
-        OutputDebugStringA("tray.displayBalloon not impl\n");
     }
 
     void onClick(std::string argString)

@@ -49,7 +49,7 @@ v8::Local<v8::Object> MultiWorldsV8Reference::GetObject(ScriptState* script_stat
 
     // TODO(nonoohara): We will create an object that is a clone of object_
     // and put it in copy_object.
-    NOTIMPLEMENTED();
+    (void)0;
     v8::Local<v8::Object> copy_object; // Suppose it contains a copy of the object.
     map.Set(script_state_->GetIsolate(), this, copy_object);
     return copy_object;

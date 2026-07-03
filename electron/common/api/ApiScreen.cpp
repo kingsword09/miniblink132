@@ -16,7 +16,10 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/threading/thread_local.h"
 #include <windows.h>
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <limits>
 
 namespace {
 
@@ -47,6 +50,74 @@ RECT scaleToEnclosingRect(const RECT& rect, float x_scale, float y_scale)
     int b = rect.top == rect.bottom ? y : static_cast<int>(std::ceil(rect.bottom * y_scale));
     RECT rc = { x, y, r, b };
     return rc;
+}
+
+RECT normalizedRect(const RECT& rect)
+{
+    RECT normalized = rect;
+    if (normalized.right < normalized.left)
+        std::swap(normalized.left, normalized.right);
+    if (normalized.bottom < normalized.top)
+        std::swap(normalized.top, normalized.bottom);
+    return normalized;
+}
+
+bool rectContainsPoint(const RECT& rect, const POINT& point)
+{
+    return rect.left <= point.x && point.x < rect.right && rect.top <= point.y && point.y < rect.bottom;
+}
+
+int64_t squaredDistanceFromPointToRect(const POINT& point, const RECT& rect)
+{
+    int64_t dx = 0;
+    int64_t dy = 0;
+    if (point.x < rect.left)
+        dx = static_cast<int64_t>(rect.left) - static_cast<int64_t>(point.x);
+    else if (point.x > rect.right)
+        dx = static_cast<int64_t>(point.x) - static_cast<int64_t>(rect.right);
+    if (point.y < rect.top)
+        dy = static_cast<int64_t>(rect.top) - static_cast<int64_t>(point.y);
+    else if (point.y > rect.bottom)
+        dy = static_cast<int64_t>(point.y) - static_cast<int64_t>(rect.bottom);
+    return dx * dx + dy * dy;
+}
+
+int64_t rangeDistance(LONG left_a, LONG right_a, LONG left_b, LONG right_b)
+{
+    if (right_a < left_b)
+        return static_cast<int64_t>(left_b) - static_cast<int64_t>(right_a);
+    if (right_b < left_a)
+        return static_cast<int64_t>(left_a) - static_cast<int64_t>(right_b);
+    return 0;
+}
+
+int64_t squaredDistanceBetweenRects(const RECT& rect_a, const RECT& rect_b)
+{
+    int64_t dx = rangeDistance(rect_a.left, rect_a.right, rect_b.left, rect_b.right);
+    int64_t dy = rangeDistance(rect_a.top, rect_a.bottom, rect_b.top, rect_b.bottom);
+    return dx * dx + dy * dy;
+}
+
+int64_t intersectionArea(const RECT& rect_a, const RECT& rect_b)
+{
+    LONG left = std::max(rect_a.left, rect_b.left);
+    LONG top = std::max(rect_a.top, rect_b.top);
+    LONG right = std::min(rect_a.right, rect_b.right);
+    LONG bottom = std::min(rect_a.bottom, rect_b.bottom);
+    if (right <= left || bottom <= top)
+        return 0;
+    return (static_cast<int64_t>(right) - static_cast<int64_t>(left)) * (static_cast<int64_t>(bottom) - static_cast<int64_t>(top));
+}
+
+LONG addClampedLong(int origin, int delta)
+{
+    using Limits = std::numeric_limits<LONG>;
+    int64_t value = static_cast<int64_t>(origin) + static_cast<int64_t>(delta);
+    if (value < static_cast<int64_t>(Limits::min()))
+        return Limits::min();
+    if (value > static_cast<int64_t>(Limits::max()))
+        return Limits::max();
+    return static_cast<LONG>(value);
 }
 
 class Display final {
@@ -195,8 +266,12 @@ public:
         return static_cast<uint32_t>(getHash(deviceNameA.c_str(), deviceNameA.length()));
     }
 
-    static Display::Rotation GetRotationForDevice(const wchar_t* device_name)
+    static Display::Rotation GetRotationForDevice(const WCHAR* device_name)
     {
+#if defined(OS_MAC)
+        (void)device_name;
+        return Display::ROTATE_0;
+#else
         DEVMODE mode;
         ::ZeroMemory(&mode, sizeof(mode));
         mode.dmSize = sizeof(mode);
@@ -212,10 +287,11 @@ public:
             case DMDO_270:
                 return Display::ROTATE_270;
             default:
-                ::DebugBreak();
+                return Display::ROTATE_0;
             }
         }
         return Display::ROTATE_0;
+#endif
     }
 
     uint32_t id() const
@@ -294,7 +370,7 @@ public:
         MONITORINFOEX monitor_info;
         ::ZeroMemory(&monitor_info, sizeof(monitor_info));
         monitor_info.cbSize = sizeof(monitor_info);
-        ::GetMonitorInfo(monitor, &monitor_info);
+        ::GetMonitorInfo(monitor, reinterpret_cast<LPMONITORINFO>(&monitor_info));
         return monitor_info;
     }
 
@@ -393,6 +469,54 @@ public:
         return screen_win_display;
     }
 
+    ScreenWinDisplay getScreenWinDisplayNearestPoint(const POINT& point) const
+    {
+        if (screen_win_displays_.empty())
+            return getPrimaryScreenWinDisplay();
+
+        const ScreenWinDisplay* nearest = nullptr;
+        int64_t nearest_distance = std::numeric_limits<int64_t>::max();
+        for (const auto& screen_win_display : screen_win_displays_) {
+            const RECT bounds = normalizedRect(screen_win_display.pixel_bounds());
+            if (rectContainsPoint(bounds, point))
+                return screen_win_display;
+            int64_t distance = squaredDistanceFromPointToRect(point, bounds);
+            if (!nearest || distance < nearest_distance) {
+                nearest = &screen_win_display;
+                nearest_distance = distance;
+            }
+        }
+        return nearest ? *nearest : getPrimaryScreenWinDisplay();
+    }
+
+    ScreenWinDisplay getScreenWinDisplayMatchingRect(const RECT& rect) const
+    {
+        if (screen_win_displays_.empty())
+            return getPrimaryScreenWinDisplay();
+
+        RECT normalized = normalizedRect(rect);
+        const ScreenWinDisplay* best_intersection = nullptr;
+        int64_t best_area = 0;
+        const ScreenWinDisplay* nearest = nullptr;
+        int64_t nearest_distance = std::numeric_limits<int64_t>::max();
+        for (const auto& screen_win_display : screen_win_displays_) {
+            const RECT bounds = normalizedRect(screen_win_display.pixel_bounds());
+            int64_t area = intersectionArea(normalized, bounds);
+            if (area > best_area) {
+                best_intersection = &screen_win_display;
+                best_area = area;
+            }
+            int64_t distance = squaredDistanceBetweenRects(normalized, bounds);
+            if (!nearest || distance < nearest_distance) {
+                nearest = &screen_win_display;
+                nearest_distance = distance;
+            }
+        }
+        if (best_intersection)
+            return *best_intersection;
+        return nearest ? *nearest : getPrimaryScreenWinDisplay();
+    }
+
     std::vector<Display> screenWinDisplaysToDisplays(const std::vector<ScreenWinDisplay>& screen_win_displays) const
     {
         std::vector<Display> displays;
@@ -439,10 +563,6 @@ public:
         target->Set(context, v8::String::NewFromUtf8(isolate, "Screen").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
     }
 
-    void nullFunction()
-    {
-    }
-
     void getCursorScreenPointApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         POINT pt;
@@ -460,10 +580,7 @@ public:
     {
         //return screen_->GetPrimaryDisplay();
         ScreenWinDisplay screenWinDisplay = m_screen.getPrimaryScreenWinDisplay();
-        base::Value::Dict display = createDisplayDictionaryValue(screenWinDisplay.display());
-
-        v8::Local<v8::Value> v8Value = gin_helper::Converter<base::Value::Dict>::ToV8(args.GetIsolate(), std::move(display));
-        args.GetReturnValue().Set(v8Value);
+        setDisplayReturnValue(args, screenWinDisplay.display());
     }
 
     static base::Value::Dict createRectDictionaryValue(const RECT& rc)
@@ -512,6 +629,13 @@ public:
         return (out);
     }
 
+    static void setDisplayReturnValue(const v8::FunctionCallbackInfo<v8::Value>& args, const Display& display)
+    {
+        base::Value::Dict displayValue = createDisplayDictionaryValue(display);
+        v8::Local<v8::Value> v8Value = gin_helper::Converter<base::Value::Dict>::ToV8(args.GetIsolate(), std::move(displayValue));
+        args.GetReturnValue().Set(v8Value);
+    }
+
     void getAllDisplaysApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         std::vector<Display> display = m_screen.getAllDisplays();
@@ -530,15 +654,52 @@ public:
     // const gfx::Point& point
     void getDisplayNearestPointApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        //return screen_->GetDisplayNearestPoint(point);
-        getPrimaryDisplayApi(args);
+        if (args.Length() < 1 || !args[0]->IsObject()) {
+            getPrimaryDisplayApi(args);
+            return;
+        }
+
+        v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
+        gin_helper::Dictionary point(args.GetIsolate(), args[0]->ToObject(context).ToLocalChecked());
+        int x = 0;
+        int y = 0;
+        if (!point.Get("x", &x) || !point.Get("y", &y)) {
+            getPrimaryDisplayApi(args);
+            return;
+        }
+
+        POINT screenPoint = { static_cast<LONG>(x), static_cast<LONG>(y) };
+        ScreenWinDisplay screenWinDisplay = m_screen.getScreenWinDisplayNearestPoint(screenPoint);
+        setDisplayReturnValue(args, screenWinDisplay.display());
     }
 
     // const gfx::Rect& match_rect
     void getDisplayMatchingApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        //return screen_->GetDisplayMatching(match_rect);
-        getPrimaryDisplayApi(args);
+        if (args.Length() < 1 || !args[0]->IsObject()) {
+            getPrimaryDisplayApi(args);
+            return;
+        }
+
+        v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
+        gin_helper::Dictionary rect(args.GetIsolate(), args[0]->ToObject(context).ToLocalChecked());
+        int x = 0;
+        int y = 0;
+        int width = 0;
+        int height = 0;
+        if (!rect.Get("x", &x) || !rect.Get("y", &y) || !rect.Get("width", &width) || !rect.Get("height", &height)) {
+            getPrimaryDisplayApi(args);
+            return;
+        }
+
+        RECT matchRect = {
+            static_cast<LONG>(x),
+            static_cast<LONG>(y),
+            addClampedLong(x, width),
+            addClampedLong(y, height),
+        };
+        ScreenWinDisplay screenWinDisplay = m_screen.getScreenWinDisplayMatchingRect(matchRect);
+        setDisplayReturnValue(args, screenWinDisplay.display());
     }
 
     void addListenerApi(const v8::FunctionCallbackInfo<v8::Value>& args)

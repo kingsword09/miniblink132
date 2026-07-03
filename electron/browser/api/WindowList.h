@@ -61,8 +61,8 @@ public:
     // Called by window when a close is cancelled by beforeunload handler.
     static void WindowCloseCancelled(WindowInterface* window);
 
-    // Closes all windows.
-    static void closeAllWindows();
+    // Closes all windows. Returns false when any window cancels closing.
+    static bool closeAllWindows();
 
 private:
     WindowList();

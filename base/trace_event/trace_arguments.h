@@ -23,7 +23,7 @@
 #include "base/trace_event/common/trace_event_common.h"
 #include "base/tracing_buildflags.h"
 
-#include "base/trace_event/trace_event_stub.h"
+#include "base/trace_event/trace_event_lightweight.h"
 #if 0
 //#include "third_party/perfetto/include/perfetto/protozero/scattered_heap_buffer.h"
 //#include "third_party/perfetto/include/perfetto/tracing/traced_value.h"

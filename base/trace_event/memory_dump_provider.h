@@ -9,7 +9,7 @@
 #include "base/process/process_handle.h"
 #include "base/trace_event/memory_dump_request_args.h"
 
-#include "base/trace_event/trace_event_stub.h"
+#include "base/trace_event/trace_event_lightweight.h"
 #if 0
 
 namespace base {

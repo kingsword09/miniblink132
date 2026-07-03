@@ -1,12 +1,20 @@
 const EventEmitter = require('events').EventEmitter;
 const MessagePortMain = require('./message-port-main.js');
-const { Duplex, PassThrough } = require('stream');
+const { PassThrough } = require('stream');
 const binding = process._linkedBinding('electron_browser_utility_process');
 const _fork = binding._fork;
 
 function ForkUtilityProcess (modulePath/*: string*/, args/*?: string[]*/, options/*?: Electron.ForkOptions*/) {
     if (!modulePath)
         throw new Error('Missing UtilityProcess entry script.');
+    if (args != null && !Array.isArray(args)) {
+        options = args;
+        args = [];
+    } else if (args == null) {
+        args = [];
+    }
+    if (!args.every(arg => typeof arg === 'string'))
+        throw new TypeError('args must be an array of strings.');
     if (options == null) {
         options = {};
     } else {
@@ -29,7 +37,7 @@ function ForkUtilityProcess (modulePath/*: string*/, args/*?: string[]*/, option
             throw new TypeError('cwd path must be a string.');
         }
     }
-    
+
     // O:\chromium\ele32fp\electron\lib\browser\api\utility-process.ts
     if (typeof options.stdio === 'string') {
         let stdio /*: Array<'pipe' | 'ignore' | 'inherit'>*/ = [];
@@ -68,13 +76,12 @@ function ForkUtilityProcess (modulePath/*: string*/, args/*?: string[]*/, option
             throw new Error('configuration missing for stdin, stdout or stderr.');
         }
     }
-    
+
     this._handle = _fork({ options, modulePath, args });
     if (!this._handle)
         throw new Error('ForkUtilityProcess _fork fail.');
-    
+
     this._handle.emit = (channel/*: string | symbol*/, ...args/*: any[]*/) => {
-        mbConsoleLog("this._handle.emit:" + channel);
         if (channel === 'exit') {
             try {
                 this.emit('exit', ...args);
@@ -90,18 +97,6 @@ function ForkUtilityProcess (modulePath/*: string*/, args/*?: string[]*/, option
                 }
             }
             return false;
-        //} else if (channel === 'stdout' && this.#stdout) {
-        //    new Socket({
-        //            fd: args[0],
-        //            readable: true
-        //        }).pipe(this.#stdout);
-        //    return true;
-        //} else if (channel === 'stderr' && this.#stderr) {
-        //    new Socket({
-        //            fd: args[0],
-        //            readable: true
-        //        }).pipe(this.#stderr);
-        //    return true;
         } else {
             return this.emit(channel, ...args);
         }
@@ -110,16 +105,26 @@ function ForkUtilityProcess (modulePath/*: string*/, args/*?: string[]*/, option
 
 Object.setPrototypeOf(ForkUtilityProcess.prototype, EventEmitter.prototype);
 
-ForkUtilityProcess.prototype.postMessage = function (message) {
-    return this._send(message);
-}
+Object.defineProperty(ForkUtilityProcess.prototype, 'pid', {
+    get: function() {
+        if (!this._handle)
+            return 0;
+        return typeof this._handle.pid === 'function' ? this._handle.pid() : this._handle.pid;
+    }
+});
 
-ForkUtilityProcess.prototype.pid = function() {
-    if (!this._handle)
-        return 0;
-    return this._handle.pid();
-}
-  
+Object.defineProperty(ForkUtilityProcess.prototype, 'stdout', {
+    get: function() {
+        return this._stdout || null;
+    }
+});
+
+Object.defineProperty(ForkUtilityProcess.prototype, 'stderr', {
+    get: function() {
+        return this._stderr || null;
+    }
+});
+
 ForkUtilityProcess.prototype.postMessage = function(message/*: any*/, transfer /*?: MessagePortMain[]*/) {
     if (!this._handle)
         return ;

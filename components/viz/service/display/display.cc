@@ -169,11 +169,10 @@ gfx::PresentationFeedback SanitizePresentationFeedback(const gfx::PresentationFe
 
 void IssueDisplayRenderingStatsEvent()
 {
-    std::unique_ptr<base::trace_event::TracedValue> record_data = std::make_unique<base::trace_event::TracedValue>();
-    record_data->SetInteger("frame_count", 1);
-    // Please don't rename this trace event as it's used by tools. The benchmarks
-    // search for events and their arguments by name.
-    TRACE_EVENT_INSTANT1("benchmark", "BenchmarkInstrumentation::DisplayRenderingStats", TRACE_EVENT_SCOPE_THREAD, "data", std::move(record_data));
+    // The lightweight trace backend used by this port is not ABI-compatible
+    // with Chromium's full TracedValue. Skip this benchmark-only event until
+    // the tracing backend is unified.
+    return;
 }
 
 } // namespace
@@ -189,7 +188,12 @@ Display::PresentationGroupTiming::~PresentationGroupTiming() = default;
 
 void Display::PresentationGroupTiming::AddPresentationHelper(std::unique_ptr<Surface::PresentationHelper> helper)
 {
+#if BUILDFLAG(IS_MAC)
+    (void)helper;
+    return;
+#else
     presentation_helpers_.push_back(std::move(helper));
+#endif
 }
 
 void Display::PresentationGroupTiming::OnDraw(base::TimeTicks frame_time, base::TimeTicks draw_start_timestamp,
@@ -224,7 +228,8 @@ void Display::PresentationGroupTiming::OnSwap(gfx::SwapTimings timings, DisplayS
 void Display::PresentationGroupTiming::OnPresent(const gfx::PresentationFeedback& feedback)
 {
     for (auto& presentation_helper : presentation_helpers_) {
-        presentation_helper->DidPresent(draw_start_timestamp_, swap_timings_, feedback);
+        if (presentation_helper)
+            presentation_helper->DidPresent(draw_start_timestamp_, swap_timings_, feedback);
     }
 }
 

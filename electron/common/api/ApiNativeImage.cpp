@@ -13,16 +13,22 @@
 #include "electron/common/gin_helper/dictionary.h"
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
-#include "electron/common/InitGdiPlus.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libnode/src/node_buffer.h"
 #include "third_party/libnode/src/node_version.h"
 #include "third_party/libuv/include/uv.h"
+#include "base/base64.h"
+#include "base/files/file_util.h"
 #include "base/strings/string_util.h"
 #include "base/threading/thread_local.h"
 #include "mbvip/core/mb.h"
 
+#if defined(__APPLE__)
+#include <ApplicationServices/ApplicationServices.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <ImageIO/ImageIO.h>
+#else
 #undef min
 #undef max
 using std::max;
@@ -31,18 +37,159 @@ using std::min;
 #include <Unknwn.h>
 #include <gdiplus.h>
 #include <objidl.h>
+#include "electron/common/InitGdiPlus.h"
+#endif
+
+#include <string.h>
 #include <vector>
 
 namespace atom {
 
 THREAD_LOCAL_CONSTRUCTOR(NativeImage)
 
-typedef mbMemBuf*(MB_CALL_TYPE* FN_mbEncodeBase64)(const char* data, unsigned len, int policy);
+namespace {
+
+v8::Local<v8::Object> copyBytesToNodeBuffer(v8::Isolate* isolate, const unsigned char* data, size_t size)
+{
+    if (!data && size)
+        return v8::Local<v8::Object>();
+    return node::Buffer::Copy(isolate, reinterpret_cast<const char*>(data), size).ToLocalChecked();
+}
+
+#if defined(__APPLE__)
+
+CGImageRef createImageFromBuffer(const unsigned char* data, size_t size)
+{
+    if (!data || !size)
+        return nullptr;
+
+    CFDataRef imageData = CFDataCreate(kCFAllocatorDefault, data, static_cast<CFIndex>(size));
+    if (!imageData)
+        return nullptr;
+
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData(imageData);
+    CGImageRef image = provider ? CGImageCreateWithPNGDataProvider(provider, nullptr, true, kCGRenderingIntentDefault) : nullptr;
+    if (!image) {
+        CGImageSourceRef source = provider ? CGImageSourceCreateWithDataProvider(provider, nullptr) : CGImageSourceCreateWithData(imageData, nullptr);
+        if (source) {
+            image = CGImageSourceCreateImageAtIndex(source, 0, nullptr);
+            CFRelease(source);
+        }
+    }
+
+    if (provider)
+        CGDataProviderRelease(provider);
+    CFRelease(imageData);
+    return image;
+}
+
+CGImageRef createRGBACopy(CGImageRef image, bool dropAlpha)
+{
+    if (!image)
+        return nullptr;
+
+    size_t width = CGImageGetWidth(image);
+    size_t height = CGImageGetHeight(image);
+    if (!width || !height)
+        return nullptr;
+
+    std::vector<unsigned char> pixels(width * height * 4);
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmapInfo = static_cast<CGBitmapInfo>(
+        static_cast<uint32_t>(kCGBitmapByteOrder32Little)
+        | static_cast<uint32_t>(dropAlpha ? kCGImageAlphaNoneSkipFirst : kCGImageAlphaPremultipliedFirst));
+    CGContextRef context = CGBitmapContextCreate(pixels.data(), width, height, 8, width * 4, colorSpace, bitmapInfo);
+    if (colorSpace)
+        CGColorSpaceRelease(colorSpace);
+    if (!context)
+        return nullptr;
+
+    if (dropAlpha) {
+        CGContextSetRGBFillColor(context, 0, 0, 0, 1);
+        CGContextFillRect(context, CGRectMake(0, 0, width, height));
+    }
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
+    CGImageRef copy = CGBitmapContextCreateImage(context);
+    CGContextRelease(context);
+    return copy;
+}
+
+std::vector<unsigned char>* encodeImage(CGImageRef image, CFStringRef type, double quality)
+{
+    if (!image)
+        return nullptr;
+
+    bool isJpeg = CFEqual(type, CFSTR("public.jpeg"));
+    CGImageRef normalized = createRGBACopy(image, isJpeg);
+    CGImageRef imageToEncode = normalized ? normalized : image;
+
+    CFMutableDataRef outputData = CFDataCreateMutable(kCFAllocatorDefault, 0);
+    if (!outputData) {
+        if (normalized)
+            CGImageRelease(normalized);
+        return nullptr;
+    }
+
+    CGImageDestinationRef destination = CGImageDestinationCreateWithData(outputData, type, 1, nullptr);
+    if (!destination) {
+        CFRelease(outputData);
+        if (normalized)
+            CGImageRelease(normalized);
+        return nullptr;
+    }
+
+    CFDictionaryRef options = nullptr;
+    if (quality >= 0) {
+        CFNumberRef qualityValue = CFNumberCreate(kCFAllocatorDefault, kCFNumberDoubleType, &quality);
+        const void* keys[] = { kCGImageDestinationLossyCompressionQuality };
+        const void* values[] = { qualityValue };
+        options = CFDictionaryCreate(kCFAllocatorDefault, keys, values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        if (qualityValue)
+            CFRelease(qualityValue);
+    }
+
+    CGImageDestinationAddImage(destination, imageToEncode, options);
+    bool ok = CGImageDestinationFinalize(destination);
+    if (normalized)
+        CGImageRelease(normalized);
+    if (options)
+        CFRelease(options);
+    CFRelease(destination);
+
+    std::vector<unsigned char>* output = nullptr;
+    if (ok) {
+        CFIndex size = CFDataGetLength(outputData);
+        if (size > 0 && size <= 2024 * 2024) {
+            output = new std::vector<unsigned char>(static_cast<size_t>(size));
+            CFDataGetBytes(outputData, CFRangeMake(0, size), output->data());
+        }
+    }
+    CFRelease(outputData);
+    return output;
+}
+
+#endif
+
+} // namespace
 
 NativeImage::NativeImage(v8::Isolate* isolate, v8::Local<v8::Object> wrapper)
 {
+#if defined(__APPLE__)
+    m_image = nullptr;
+#else
     m_gdipBitmap = nullptr;
+#endif
     gin_helper::Wrappable<NativeImage>::InitWith(isolate, wrapper);
+}
+
+NativeImage::~NativeImage()
+{
+#if defined(__APPLE__)
+    if (m_image)
+        CGImageRelease(m_image);
+#else
+    delete m_gdipBitmap;
+#endif
 }
 
 void NativeImage::init(v8::Isolate* isolate, v8::Local<v8::Object> target)
@@ -53,7 +200,11 @@ void NativeImage::init(v8::Isolate* isolate, v8::Local<v8::Object> target)
     prototype->SetClassName(v8::String::NewFromUtf8(isolate, "NativeImage").ToLocalChecked());
     gin_helper::ObjectTemplateBuilder builder(isolate, prototype->InstanceTemplate());
     builder.SetMethod("toPNG", &NativeImage::toPNGAPI);
+    builder.SetMethod("toJPEG", &NativeImage::toJpeg);
+    builder.SetMethod("toBitmap", &NativeImage::toBitmap);
     builder.SetMethod("toDataURL", &NativeImage::toDataURLApi);
+    builder.SetMethod("isEmpty", &NativeImage::isEmptyApi);
+    builder.SetMethod("getSize", &NativeImage::getSizeApi);
 
     getNativeImageConstructor().Reset(isolate, prototype->GetFunction(context).ToLocalChecked());
     target->Set(context, v8::String::NewFromUtf8(isolate, "NativeImage").ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
@@ -61,8 +212,10 @@ void NativeImage::init(v8::Isolate* isolate, v8::Local<v8::Object> target)
     gin_helper::Dictionary nativeImageClass(isolate, prototype->GetFunction(context).ToLocalChecked());
     nativeImageClass.SetMethod("createEmpty", &NativeImage::createEmptyApi);
     nativeImageClass.SetMethod("createFromPath", &NativeImage::createFromPathApi);
+    nativeImageClass.SetMethod("createFromBuffer", &NativeImage::createFromBufferApi);
 }
 
+#if !defined(__APPLE__)
 std::vector<unsigned char>* NativeImage::encodeToBuffer(const CLSID* clsid)
 {
     IStream* pIStream = nullptr;
@@ -103,47 +256,68 @@ std::vector<unsigned char>* NativeImage::encodeToBuffer(const CLSID* clsid)
 
     return output;
 }
+#endif
 
-v8::Local<v8::Object> NativeImage::toPNGAPI(const base::Value::Dict& args)
+v8::Local<v8::Object> NativeImage::toPNGAPI()
 {
-    //double scaleFactor = 1.0;
-    //absl::optional<double> scaleFactorOpt = args.FindDouble("scaleFactor");
-
+#if defined(__APPLE__)
+    std::vector<unsigned char>* output = encodeImage(m_image, CFSTR("public.png"), -1);
+#else
     std::vector<unsigned char>* output = encodeToBuffer(&s_pngClsid);
+#endif
     if (!output)
         return v8::Local<v8::Object>();
 
-    const char* data = reinterpret_cast<const char*>(output->data());
-    size_t size = output->size();
-    v8::Local<v8::Object> result = node::Buffer::Copy(isolate(), data, size).ToLocalChecked();
+    v8::Local<v8::Object> result = copyBytesToNodeBuffer(isolate(), output->data(), output->size());
 
     delete output;
 
     return result;
 }
 
-v8::Local<v8::Object> NativeImage::toJpeg(const base::Value::Dict& args)
+v8::Local<v8::Object> NativeImage::toJpeg()
 {
-    //     int quality = 100;
-    //     args.GetInteger("quality", &quality);
-
+#if defined(__APPLE__)
+    std::vector<unsigned char>* output = encodeImage(m_image, CFSTR("public.jpeg"), 1.0);
+#else
     std::vector<unsigned char>* output = encodeToBuffer(&s_jpgClsid);
+#endif
     if (!output)
         return v8::Local<v8::Object>();
 
-    const char* data = reinterpret_cast<const char*>(output->data());
-    size_t size = output->size();
-    v8::Local<v8::Object> result = node::Buffer::Copy(isolate(), data, size).ToLocalChecked();
+    v8::Local<v8::Object> result = copyBytesToNodeBuffer(isolate(), output->data(), output->size());
     delete output;
 
     return result;
 }
 
-v8::Local<v8::Object> NativeImage::toBitmap(const base::Value::Dict& args)
+v8::Local<v8::Object> NativeImage::toBitmap()
 {
-    //     int quality = 100;
-    //     args.GetInteger("quality", &quality);
+#if defined(__APPLE__)
+    if (!m_image)
+        return v8::Local<v8::Object>();
 
+    int width = getWidth();
+    int height = getHeight();
+    if (width <= 0 || height <= 0)
+        return v8::Local<v8::Object>();
+
+    std::vector<unsigned char> pixels(static_cast<size_t>(width) * height * 4);
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmapInfo = static_cast<CGBitmapInfo>(
+        static_cast<uint32_t>(kCGBitmapByteOrder32Little)
+        | static_cast<uint32_t>(kCGImageAlphaPremultipliedFirst));
+    CGContextRef context = CGBitmapContextCreate(pixels.data(), width, height, 8, width * 4, colorSpace,
+        bitmapInfo);
+    if (colorSpace)
+        CGColorSpaceRelease(colorSpace);
+    if (!context)
+        return v8::Local<v8::Object>();
+
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), m_image);
+    CGContextRelease(context);
+    return copyBytesToNodeBuffer(isolate(), pixels.data(), pixels.size());
+#else
     UINT w = m_gdipBitmap->GetWidth();
     UINT h = m_gdipBitmap->GetHeight();
 
@@ -166,6 +340,7 @@ v8::Local<v8::Object> NativeImage::toBitmap(const base::Value::Dict& args)
     result = node::Buffer::Copy(isolate(), data, size).ToLocalChecked();
 
     return result;
+#endif
 }
 
 v8::Local<v8::Object> NativeImage::createEmpty(v8::Isolate* isolate)
@@ -192,8 +367,16 @@ void NativeImage::createFromPathApi(const v8::FunctionCallbackInfo<v8::Value> in
         path = *pathString;
     }
 
-    if (0 == path.size() || !asar::readFileToString(base::FilePath::FromUTF8Unsafe(path), &fileContents))
+    if (0 == path.size())
         return;
+    base::FilePath filePath = base::FilePath::FromUTF8Unsafe(path);
+#if defined(__APPLE__)
+    if (!base::ReadFileToString(filePath, &fileContents))
+        return;
+#else
+    if (!asar::readFileToString(filePath, &fileContents))
+        return;
+#endif
 
     const unsigned char* data = reinterpret_cast<const unsigned char*>(fileContents.data());
     size_t size = fileContents.size();
@@ -205,28 +388,24 @@ void NativeImage::createFromPathApi(const v8::FunctionCallbackInfo<v8::Value> in
 void NativeImage::createFromBufferApi(const v8::FunctionCallbackInfo<v8::Value> info)
 {
     v8::Isolate* isolate = info.GetIsolate();
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Value> buffer;
+    v8::Local<v8::Value> buffer = info.Length() >= 1 ? info[0] : v8::Local<v8::Value>();
     v8::Local<v8::Object> resultObj;
-    if (info.Length() == 1) {
-        buffer = info[0];
-        if (!buffer->IsUint8Array()) {
-            info.GetReturnValue().Set(resultObj);
-            return;
-        }
-    }
-    int width = 0;
-    int height = 0;
-    double scaleFactor = 1.0;
-    if (info.Length() == 2 && info[1]->IsObject()) {
-        gin_helper::Dictionary options(isolate, info[1]->ToObject(context).ToLocalChecked());
-        options.GetBydefaultVal("width", width, &width);
-        options.GetBydefaultVal("height", height, &height);
-        options.GetBydefaultVal("scaleFactor", scaleFactor, &scaleFactor);
+    if (buffer.IsEmpty() || !buffer->IsUint8Array()) {
+        info.GetReturnValue().Set(resultObj);
+        return;
     }
 
-    unsigned char* data = reinterpret_cast<unsigned char*>(node::Buffer::Data(buffer));
-    size_t size = node::Buffer::Length(buffer);
+    const unsigned char* data = nullptr;
+    size_t size = 0;
+    if (node::Buffer::HasInstance(buffer)) {
+        data = reinterpret_cast<const unsigned char*>(node::Buffer::Data(buffer));
+        size = node::Buffer::Length(buffer);
+    } else {
+        v8::Local<v8::Uint8Array> view = buffer.As<v8::Uint8Array>();
+        std::shared_ptr<v8::BackingStore> backing = view->Buffer()->GetBackingStore();
+        data = static_cast<const unsigned char*>(backing->Data()) + view->ByteOffset();
+        size = view->ByteLength();
+    }
 
     resultObj = createNativeImageFromBuffer(isolate, data, size);
     info.GetReturnValue().Set(resultObj);
@@ -239,6 +418,30 @@ v8::Local<v8::Object> NativeImage::createFromBITMAPINFO(v8::Isolate* isolate, co
     v8::Local<v8::Object> resultObj = constructorFunction->NewInstance(context).ToLocalChecked();
     NativeImage* self = (NativeImage*)WrappableBase::GetNativePtr(resultObj, &NativeImage::kWrapperInfo);
 
+#if defined(__APPLE__)
+    if (!gdiBitmapInfo || !gdiBitmapData)
+        return resultObj;
+
+    const BITMAPINFOHEADER& header = gdiBitmapInfo->bmiHeader;
+    if (header.biBitCount != 32 || header.biWidth <= 0 || header.biHeight == 0)
+        return resultObj;
+
+    int width = header.biWidth;
+    int height = header.biHeight < 0 ? -header.biHeight : header.biHeight;
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, gdiBitmapData, static_cast<size_t>(width) * height * 4, nullptr);
+    if (colorSpace && provider) {
+        CGBitmapInfo bitmapInfo = static_cast<CGBitmapInfo>(
+            static_cast<uint32_t>(kCGBitmapByteOrder32Little)
+            | static_cast<uint32_t>(kCGImageAlphaPremultipliedFirst));
+        self->m_image = CGImageCreate(width, height, 8, 32, width * 4, colorSpace, bitmapInfo, provider, nullptr, true, kCGRenderingIntentDefault);
+    }
+    if (provider)
+        CGDataProviderRelease(provider);
+    if (colorSpace)
+        CGColorSpaceRelease(colorSpace);
+    return resultObj;
+#else
     Gdiplus::Bitmap* gdipBitmap = Gdiplus::Bitmap::FromBITMAPINFO(gdiBitmapInfo, gdiBitmapData);
     if (!gdipBitmap)
         return v8::Local<v8::Object>();
@@ -246,14 +449,24 @@ v8::Local<v8::Object> NativeImage::createFromBITMAPINFO(v8::Isolate* isolate, co
     UINT w = gdipBitmap->GetWidth();
     UINT h = gdipBitmap->GetHeight();
     Gdiplus::Rect rect(0, 0, w, h);
-    self->m_gdipBitmap = gdipBitmap->Clone(rect, PixelFormat32bppARGB); // 这个要复制一份，不然好像外面的bitmap销毁，这个bitmap也没了
+    self->m_gdipBitmap = gdipBitmap->Clone(rect, PixelFormat32bppARGB); // Clone the bitmap so the source can be released safely.
     delete gdipBitmap;
 
     return resultObj;
+#endif
 }
 
 void NativeImage::createFromBufferImpl(const unsigned char* data, size_t size)
 {
+#if defined(__APPLE__)
+    if (m_image) {
+        CGImageRelease(m_image);
+        m_image = nullptr;
+    }
+    m_image = createImageFromBuffer(data, size);
+#else
+    delete m_gdipBitmap;
+    m_gdipBitmap = nullptr;
     HGLOBAL memHandle = ::GlobalAlloc(GMEM_FIXED, size);
     BYTE* pMem = (BYTE*)::GlobalLock(memHandle);
     memcpy(pMem, data, size);
@@ -268,6 +481,7 @@ void NativeImage::createFromBufferImpl(const unsigned char* data, size_t size)
 
     if (istream)
         istream->Release();
+#endif
 }
 
 v8::Local<v8::Object> NativeImage::createNativeImageFromBuffer(v8::Isolate* isolate, const unsigned char* data, size_t size)
@@ -283,26 +497,42 @@ v8::Local<v8::Object> NativeImage::createNativeImageFromBuffer(v8::Isolate* isol
 
 std::string NativeImage::toDataURLApi()
 {
-    static FN_mbEncodeBase64 pmbEncodeBase64 = nullptr;
-    if (!pmbEncodeBase64)
-        pmbEncodeBase64 = (FN_mbEncodeBase64)mbGetProcAddr("mbEncodeBase64");
-    if (!m_gdipBitmap)
+    if (isEmptyApi())
         return "";
+#if defined(__APPLE__)
+    std::vector<unsigned char>* output = encodeImage(m_image, CFSTR("public.jpeg"), 1.0);
+#else
     UINT w = m_gdipBitmap->GetWidth();
     UINT h = m_gdipBitmap->GetHeight();
 
     Gdiplus::Rect rect(0, 0, w, h);
     std::vector<unsigned char>* output = encodeToBuffer(&s_jpgClsid);
+#endif
     if (!output)
-        return "";
-    mbMemBuf* buf = pmbEncodeBase64((const char*)output->data(), output->size(), 0);
-    delete output;
-    if (!buf)
         return "";
 
     std::string ret("data:image/jpeg;base64,");
-    ret += std::string((const char*)buf->data, buf->length);
+    ret += base::Base64Encode(base::span<const uint8_t>(output->data(), output->size()));
+    delete output;
     return ret;
+}
+
+bool NativeImage::isEmptyApi() const
+{
+#if defined(__APPLE__)
+    return !m_image;
+#else
+    return !m_gdipBitmap;
+#endif
+}
+
+v8::Local<v8::Object> NativeImage::getSizeApi() const
+{
+    v8::Local<v8::Object> size = v8::Object::New(isolate());
+    v8::Local<v8::Context> context = isolate()->GetCurrentContext();
+    size->Set(context, v8::String::NewFromUtf8(isolate(), "width").ToLocalChecked(), v8::Integer::New(isolate(), getWidth())).ToChecked();
+    size->Set(context, v8::String::NewFromUtf8(isolate(), "height").ToLocalChecked(), v8::Integer::New(isolate(), getHeight())).ToChecked();
+    return size;
 }
 
 void NativeImage::newFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -322,31 +552,49 @@ NativeImage* NativeImage::GetSelf(v8::Local<v8::Object> handle)
 
 HICON NativeImage::getIcon()
 {
+#if defined(__APPLE__)
+    return NULL;
+#else
     HICON hIcon = NULL;
     if (m_gdipBitmap)
         m_gdipBitmap->GetHICON(&hIcon);
     return hIcon;
+#endif
 }
 
 HBITMAP NativeImage::getBitmap()
 {
+#if defined(__APPLE__)
+    return NULL;
+#else
     HBITMAP hBitmap = NULL;
     Gdiplus::Color colorBackground = 0xff000000;
     if (m_gdipBitmap)
         m_gdipBitmap->GetHBITMAP(colorBackground, &hBitmap);
     return hBitmap;
+#endif
 }
 
 int NativeImage::getWidth() const
 {
+#if defined(__APPLE__)
+    if (m_image)
+        return static_cast<int>(CGImageGetWidth(m_image));
+#else
     if (m_gdipBitmap)
         return m_gdipBitmap->GetWidth();
+#endif
     return 0;
 }
 int NativeImage::getHeight() const
 {
+#if defined(__APPLE__)
+    if (m_image)
+        return static_cast<int>(CGImageGetHeight(m_image));
+#else
     if (m_gdipBitmap)
         return m_gdipBitmap->GetHeight();
+#endif
     return 0;
 }
 

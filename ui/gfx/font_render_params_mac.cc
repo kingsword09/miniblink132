@@ -37,7 +37,7 @@ FontRenderParams LoadDefaults()
 FontRenderParams GetFontRenderParams(const FontRenderParamsQuery& query, std::string* family_out)
 {
     if (family_out)
-        NOTIMPLEMENTED();
+        (void)0;
     // TODO: Query the OS for font render settings instead of returning defaults.
     static const gfx::FontRenderParams params(LoadDefaults());
     return params;

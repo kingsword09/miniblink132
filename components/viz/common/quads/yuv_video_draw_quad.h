@@ -104,8 +104,9 @@ public:
     {
         // TODO: This code is duplicated with VideoFrame::Rows and Columns. Check if
         // AlignUp is ever needed in YUV textures.
-        return gfx::Size(base::bits::AlignUp(coded_size.width(), static_cast<int>(u_scale)) / static_cast<int>(u_scale),
-            base::bits::AlignUp(coded_size.height(), static_cast<int>(v_scale)) / static_cast<int>(v_scale));
+        return gfx::Size(
+            base::bits::AlignUpDeprecatedDoNotUse(coded_size.width(), static_cast<int>(u_scale)) / static_cast<int>(u_scale),
+            base::bits::AlignUpDeprecatedDoNotUse(coded_size.height(), static_cast<int>(v_scale)) / static_cast<int>(v_scale));
     }
 
     gfx::RectF ya_tex_coord_rect() const

@@ -22,16 +22,18 @@ public:
 
     void reloadApi();
     v8::Local<v8::Promise> executeJavaScriptApi(gin_helper::Arguments* args, const std::string& code);
+    void _sendApi(const v8::FunctionCallbackInfo<v8::Value>& info);
+    void _postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info);
 
     explicit ApiWebFrameMain(v8::Isolate* isolate, v8::Local<v8::Object> wrapper, intptr_t frameId);
     ~ApiWebFrameMain();
 
     static void newFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-    intptr_t getFrameTreeNodeIdApi() const;
+    int64_t getFrameTreeNodeIdApi() const;
     std::string getNameApi() const;
-    intptr_t getOSProcessIdApi() const;
-    intptr_t getRoutingIdApi() const;
+    int64_t getOSProcessIdApi() const;
+    int64_t getRoutingIdApi() const;
     std::string getUrlApi() const;
     std::string getPageVisibilityStateApi() const;
     static void fromIdApi(const v8::FunctionCallbackInfo<v8::Value>& info);

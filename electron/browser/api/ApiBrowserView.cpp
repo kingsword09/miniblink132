@@ -35,6 +35,12 @@ BrowserView::BrowserView(v8::Isolate* isolate, v8::Local<v8::Object> wrapper)
     m_clientRect.bottom = 0;
     m_memoryBmpSize.cx = 0;
     m_memoryBmpSize.cy = 0;
+    m_lastParentSize.cx = 0;
+    m_lastParentSize.cy = 0;
+    m_autoResizeWidth = false;
+    m_autoResizeHeight = false;
+    m_autoResizeHorizontal = false;
+    m_autoResizeVertical = false;
     m_id = IdLiveDetect::get()->constructed(this);
 
     ::InitializeCriticalSection(&m_rectLock);
@@ -56,6 +62,8 @@ void BrowserView::init(v8::Isolate* isolate, v8::Local<v8::Object> target)
     gin_helper::ObjectTemplateBuilder builder(isolate, prototype->InstanceTemplate());
     builder.SetMethod("_getWebContents", &BrowserView::_getWebContentsApi);
     builder.SetMethod("_setBounds", &BrowserView::_setBoundsApi);
+    builder.SetMethod("_setBackgroundColor", &BrowserView::_setBackgroundColorApi);
+    builder.SetMethod("_setAutoResize", &BrowserView::_setAutoResizeApi);
 
     constructor.Reset(isolate, prototype->GetFunction(context).ToLocalChecked());
     target->Set(context, v8::String::NewFromUtf8(isolate, className).ToLocalChecked(), prototype->GetFunction(context).ToLocalChecked());
@@ -100,6 +108,22 @@ void BrowserView::_setBoundsApi(int x, int y, int w, int h)
     mbResize(m_webContents->getMbView(), w, h);
 }
 
+void BrowserView::_setBackgroundColorApi(unsigned int color)
+{
+    if (!m_webContents)
+        return;
+    mbViewSettings settings = { sizeof(mbViewSettings), color };
+    mbSetViewSettings(m_webContents->getMbView(), &settings);
+}
+
+void BrowserView::_setAutoResizeApi(bool width, bool height, bool horizontal, bool vertical)
+{
+    m_autoResizeWidth = width;
+    m_autoResizeHeight = height;
+    m_autoResizeHorizontal = horizontal;
+    m_autoResizeVertical = vertical;
+}
+
 BrowserView* BrowserView::newBrowserView(const gin_helper::Dictionary* options, v8::Local<v8::Object> wrapper)
 {
     BrowserView* self = new BrowserView(options->isolate(), wrapper);
@@ -130,8 +154,9 @@ BrowserView* BrowserView::newBrowserView(const gin_helper::Dictionary* options, 
         webContents = WebContents::create(options->isolate(), webPreferences, self);
 
         //webPreferences.GetBydefaultVal("nodeIntegration", true, &webContents->m_isNodeIntegration);
-    } else
-        DebugBreak();
+    } else if (!gin_helper::ConvertFromV8(options->isolate(), webContentsV8, &webContents)) {
+        webContents = WebContents::create(options->isolate(), gin_helper::Dictionary::CreateEmpty(options->isolate()), self);
+    }
     self->m_webContents = webContents;
 
     options->GetBydefaultVal("x", kNotSetXYFlag, &createWindowParam->x);
@@ -197,11 +222,64 @@ void BrowserView::attachBrowserWindow(HWND hWnd)
 
     //::ShowWindow(m_hWnd, createWindowParam->isShow ? SW_SHOWNORMAL : SW_HIDE);
     m_state = WindowInited;
+
+    RECT parentRect = { 0 };
+    if (::GetClientRect(hWnd, &parentRect)) {
+        m_lastParentSize.cx = parentRect.right - parentRect.left;
+        m_lastParentSize.cy = parentRect.bottom - parentRect.top;
+    }
 }
 
 void BrowserView::detachBrowserWindow()
 {
     m_state = WindowDestroying;
+    m_hWnd = nullptr;
+    m_lastParentSize.cx = 0;
+    m_lastParentSize.cy = 0;
+}
+
+void BrowserView::resizeForParent(int parentWidth, int parentHeight)
+{
+    if (!m_autoResizeWidth && !m_autoResizeHeight && !m_autoResizeHorizontal && !m_autoResizeVertical) {
+        m_lastParentSize.cx = parentWidth;
+        m_lastParentSize.cy = parentHeight;
+        return;
+    }
+
+    if (m_lastParentSize.cx == 0 && m_lastParentSize.cy == 0) {
+        m_lastParentSize.cx = parentWidth;
+        m_lastParentSize.cy = parentHeight;
+        return;
+    }
+
+    int deltaWidth = parentWidth - m_lastParentSize.cx;
+    int deltaHeight = parentHeight - m_lastParentSize.cy;
+    if (deltaWidth == 0 && deltaHeight == 0)
+        return;
+
+    RECT r = getClientRect();
+    int x = r.left;
+    int y = r.top;
+    int width = r.right - r.left;
+    int height = r.bottom - r.top;
+
+    if (m_autoResizeHorizontal && !m_autoResizeWidth)
+        x += deltaWidth;
+    if (m_autoResizeVertical && !m_autoResizeHeight)
+        y += deltaHeight;
+    if (m_autoResizeWidth)
+        width += deltaWidth;
+    if (m_autoResizeHeight)
+        height += deltaHeight;
+
+    if (width < 1)
+        width = 1;
+    if (height < 1)
+        height = 1;
+
+    m_lastParentSize.cx = parentWidth;
+    m_lastParentSize.cy = parentHeight;
+    _setBoundsApi(x, y, width, height);
 }
 
 void BrowserView::onPaintInUiThread(const HDC hdc, int destX, int destY, int x, int y, int cx, int cy)

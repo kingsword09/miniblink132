@@ -67,6 +67,7 @@
 
 void* g_stack_point = NULL;
 
+#if !defined(__APPLE__)
 #ifndef HAVE_STRUCT_TIMEVAL_VC6
 #define HAVE_STRUCT_TIMEVAL_VC6
 #ifndef _WINSOCK2API_
@@ -76,6 +77,7 @@ struct timeval {
 };
 #endif
 #endif // HAVE_STRUCT_TIMEVAL
+#endif
 
 #ifndef _DEBUG
 #define OPTIMIZE 1
@@ -88,6 +90,8 @@ struct timeval {
 #define DIRECT_DISPATCH 0
 #elif defined(_MSC_VER)
 #define DIRECT_DISPATCH 0 // TODO: gamiee - ?
+#elif defined(__APPLE__)
+#define DIRECT_DISPATCH 0
 #else
 #define DIRECT_DISPATCH 1
 #endif
@@ -105,7 +109,7 @@ struct timeval {
 
 /* define to include Atomics.* operations which depend on the OS
    threads */
-#if !defined(EMSCRIPTEN) && !defined(_WIN32) // TODO: (win32) make atomics working
+#if !defined(EMSCRIPTEN) && !defined(_WIN32) && !defined(QUICKJS_DISABLE_ATOMICS) // TODO: (win32) make atomics working
 #define CONFIG_ATOMICS
 #endif
 
@@ -1268,6 +1272,8 @@ static void js_async_function_free0(JSRuntime* rt, JSAsyncFunctionData* s);
 static JSValue js_instantiate_prototype(JSContext* ctx, JSObject* p, JSAtom atom, void* opaque);
 static JSValue js_module_ns_autoinit(JSContext* ctx, JSObject* p, JSAtom atom, void* opaque);
 static JSValue JS_InstantiateFunctionListItem2(JSContext* ctx, JSObject* p, JSAtom atom, void* opaque);
+static int JS_InstantiateFunctionListItem(JSContext* ctx, JSValueConst obj, JSAtom atom, const JSCFunctionListEntry* e);
+static no_inline __exception int js_eq_slow(JSContext* ctx, JSValue* sp, BOOL is_neq);
 void JS_SetUncatchableError(JSContext* ctx, JSValueConst val, BOOL flag);
 
 static const JSClassExoticMethods js_arguments_exotic_methods;
@@ -1624,7 +1630,7 @@ static inline uintptr_t js_get_stack_pointer(void)
     // TODO: This not must work when MSVC optimize the code
     return (uintptr_t)_AddressOfReturnAddress();
 #else
-    return __builtin_frame_address(0);
+    return (uintptr_t)__builtin_frame_address(0);
 #endif
 }
 
@@ -34052,6 +34058,7 @@ static void skip_shebang(JSParseState* s)
     }
 }
 
+#if defined(_WIN32)
 BOOL saveDumpFile(const WCHAR* url, const char* buffer, unsigned int size)
 {
     HANDLE hFile = CreateFileW(url, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -34064,6 +34071,7 @@ BOOL saveDumpFile(const WCHAR* url, const char* buffer, unsigned int size)
     }
     return FALSE;
 }
+#endif
 
 /* 'input' must be zero terminated i.e. input[input_len] = '\0'. */
 static JSValue __JS_EvalInternal(JSContext* ctx, JSValueConst this_obj, const char* input, size_t input_len, const char* filename, int flags, int scope_idx)

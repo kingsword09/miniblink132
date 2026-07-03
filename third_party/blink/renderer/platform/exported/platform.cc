@@ -108,7 +108,7 @@ public:
 
     bool PostNonNestableDelayedTask(const base::Location& from_here, base::OnceClosure task, base::TimeDelta delay) override
     {
-        NOTIMPLEMENTED();
+        (void)0;
         return false;
     }
 

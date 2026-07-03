@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var src = [
     "${srcPath}/third_party/icu/source/common/appendable.cpp",
@@ -518,5 +518,7 @@ if ("aarch64-linux-guneabi" == constVal.target) { // ARM64
     json[0].compile.cmd.push("-DPNG_ARM_NEON_OPT");
     json[0].compile.cmd.push("-D__ARM_NEON");
 }
+
+applyMacBuildSettings(json);
 
 buildCommonSetting(json);

@@ -40,10 +40,73 @@
 using std::max;
 using std::min;
 
-#include <Unknwn.h>
+#include <unknwn.h>
+#if !defined(__APPLE__)
 #include <gdiplus.h>
+#endif
 
-#define TRAYICON_CLASS L"TrayIconClass"
+#ifndef NIN_BALLOONSHOW
+#define NIN_BALLOONSHOW (WM_USER + 2)
+#endif
+
+#ifndef CS_DBLCLKS
+#define CS_DBLCLKS 0x0008
+#endif
+
+#ifndef WM_SETTINGCHANGE
+#define WM_SETTINGCHANGE 0x001A
+#endif
+
+#ifndef SPI_SETWORKAREA
+#define SPI_SETWORKAREA 0x002F
+#endif
+
+namespace {
+
+const WCHAR kTrayIconClass[] = { 'T', 'r', 'a', 'y', 'I', 'c', 'o', 'n', 'C', 'l', 'a', 's', 's', 0 };
+const WCHAR kTaskbarCreatedMessage[] = { 'T', 'a', 's', 'k', 'b', 'a', 'r', 'C', 'r', 'e', 'a', 't', 'e', 'd', 0 };
+const WCHAR kEmptyWideString[] = { 0 };
+
+size_t trayWideLen(LPCTSTR value)
+{
+    if (!value)
+        return 0;
+    size_t len = 0;
+    while (value[len])
+        ++len;
+    return len;
+}
+
+void trayWideCopy(WCHAR* dst, size_t capacity, LPCTSTR src, size_t maxChars)
+{
+    if (!dst || capacity == 0)
+        return;
+
+    size_t limit = std::min(capacity - 1, maxChars);
+    size_t len = 0;
+    if (src) {
+        for (; len < limit && src[len]; ++len)
+            dst[len] = src[len];
+    }
+    dst[len] = 0;
+}
+
+#if !defined(__APPLE__)
+bool trayWideEquals(LPCTSTR left, LPCTSTR right)
+{
+    if (!left || !right)
+        return left == right;
+    size_t i = 0;
+    while (left[i] && right[i]) {
+        if (left[i] != right[i])
+            return false;
+        ++i;
+    }
+    return left[i] == right[i];
+}
+#endif
+
+} // namespace
 
 // The option here is to maintain a list of all TrayIcon windows,
 // and iterate through them, instead of only allowing a single
@@ -62,7 +125,7 @@ HWND SystemTray::m_hWndInvisible;
 SystemTray::SystemTray()
 {
     if (!m_nTaskbarCreatedMsg)
-        m_nTaskbarCreatedMsg = ::RegisterWindowMessage(L"TaskbarCreated");
+        m_nTaskbarCreatedMsg = ::RegisterWindowMessageW(kTaskbarCreatedMessage);
 
     initialise();
 }
@@ -111,9 +174,9 @@ void SystemTray::initialise()
 
 ATOM SystemTray::registerClass(HINSTANCE hInstance)
 {
-    WNDCLASSEX wcex;
+    WNDCLASSEXW wcex;
 
-    wcex.cbSize = sizeof(WNDCLASSEX);
+    wcex.cbSize = sizeof(WNDCLASSEXW);
 
     wcex.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
     wcex.lpfnWndProc = (WNDPROC)WindowProc;
@@ -124,10 +187,10 @@ ATOM SystemTray::registerClass(HINSTANCE hInstance)
     wcex.hCursor = 0;
     wcex.hbrBackground = 0;
     wcex.lpszMenuName = 0;
-    wcex.lpszClassName = TRAYICON_CLASS;
+    wcex.lpszClassName = kTrayIconClass;
     wcex.hIconSm = 0;
 
-    return RegisterClassEx(&wcex);
+    return RegisterClassExW(&wcex);
 }
 
 BOOL SystemTray::create(HINSTANCE hInst, HWND hParent, UINT uCallbackMessage, LPCTSTR szToolTip, HICON icon, UINT uID, BOOL bHidden /*=FALSE*/,
@@ -135,7 +198,11 @@ BOOL SystemTray::create(HINSTANCE hInst, HWND hParent, UINT uCallbackMessage, LP
 {
 
     // this is only for Windows 95 (or higher)
+#if defined(__APPLE__)
+    m_bEnabled = TRUE;
+#else
     m_bEnabled = (GetVersion() & 0xff) >= 4;
+#endif
     if (!m_bEnabled) {
         ASSERT(FALSE);
         return FALSE;
@@ -147,14 +214,14 @@ BOOL SystemTray::create(HINSTANCE hInst, HWND hParent, UINT uCallbackMessage, LP
     ASSERT(uCallbackMessage >= WM_APP);
 
     // Tray only supports tooltip text up to m_nMaxTooltipLength) characters
-    ASSERT(wcslen(szToolTip) <= m_nMaxTooltipLength);
+    ASSERT(trayWideLen(szToolTip) <= m_nMaxTooltipLength);
 
     m_hInstance = hInst;
 
     registerClass(hInst);
 
     // create an invisible window
-    m_hWnd = ::CreateWindowW(TRAYICON_CLASS, L"", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, 0, hInst, 0);
+    m_hWnd = ::CreateWindowW(kTrayIconClass, kEmptyWideString, WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, 0, hInst, 0);
 
     // load up the NOTIFYICONDATA structure
     m_tnd.cbSize = sizeof(NOTIFYICONDATA);
@@ -164,7 +231,7 @@ BOOL SystemTray::create(HINSTANCE hInst, HWND hParent, UINT uCallbackMessage, LP
     m_tnd.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
     m_tnd.uCallbackMessage = uCallbackMessage;
 
-    wcsncpy(m_tnd.szTip, szToolTip, m_nMaxTooltipLength);
+    trayWideCopy(m_tnd.szTip, _countof(m_tnd.szTip), szToolTip, m_nMaxTooltipLength);
 
     m_bHidden = bHidden;
     m_hTargetWnd = m_tnd.hWnd;
@@ -173,7 +240,7 @@ BOOL SystemTray::create(HINSTANCE hInst, HWND hParent, UINT uCallbackMessage, LP
 
     BOOL bResult = TRUE;
     if (!m_bHidden || m_bWin2K) {
-        bResult = Shell_NotifyIcon(NIM_ADD, &m_tnd);
+        bResult = Shell_NotifyIconW(NIM_ADD, &m_tnd);
         m_bShowIconPending = m_bHidden = m_bRemoved = !bResult;
     }
 
@@ -208,7 +275,7 @@ BOOL SystemTray::addIcon()
 
     if (m_bEnabled) {
         m_tnd.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
-        if (!Shell_NotifyIcon(NIM_ADD, &m_tnd))
+        if (!Shell_NotifyIconW(NIM_ADD, &m_tnd))
             m_bShowIconPending = TRUE;
         else
             m_bRemoved = m_bHidden = FALSE;
@@ -224,7 +291,7 @@ BOOL SystemTray::removeIcon()
         return TRUE;
 
     m_tnd.uFlags = 0;
-    if (Shell_NotifyIcon(NIM_DELETE, &m_tnd))
+    if (Shell_NotifyIconW(NIM_DELETE, &m_tnd))
         m_bRemoved = m_bHidden = TRUE;
 
     return (m_bRemoved == TRUE);
@@ -264,11 +331,14 @@ BOOL SystemTray::setIcon(HICON hIcon)
     if (m_bHidden)
         return TRUE;
     else
-        return Shell_NotifyIcon(NIM_MODIFY, &m_tnd);
+        return Shell_NotifyIconW(NIM_MODIFY, &m_tnd);
 }
 
 BOOL SystemTray::setIcon(LPCTSTR lpszIconName)
 {
+#if defined(__APPLE__)
+    return FALSE;
+#else
     HICON hIcon = nullptr;
     Gdiplus::Bitmap* gdipBitmap = Gdiplus::Bitmap::FromFile(lpszIconName, false);
     if (gdipBitmap)
@@ -280,15 +350,20 @@ BOOL SystemTray::setIcon(LPCTSTR lpszIconName)
     ::DestroyIcon(hIcon);
     delete gdipBitmap;
     return returnCode;
+#endif
 }
 
 BOOL SystemTray::setIcon(UINT nIDResource)
 {
+#if defined(__APPLE__)
+    return FALSE;
+#else
     HICON hIcon = (HICON)::LoadImage(m_hInstance, MAKEINTRESOURCE(nIDResource), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 
     BOOL returnCode = setIcon(hIcon);
     ::DestroyIcon(hIcon);
     return returnCode;
+#endif
 }
 
 BOOL SystemTray::setStandardIcon(LPCTSTR lpIconName)
@@ -393,22 +468,25 @@ BOOL SystemTray::stopAnimation()
 
 BOOL SystemTray::setTooltipText(LPCTSTR pszTip)
 {
-    ASSERT(wcslen(pszTip) < m_nMaxTooltipLength);
+    ASSERT(trayWideLen(pszTip) < m_nMaxTooltipLength);
 
     if (!m_bEnabled)
         return FALSE;
 
     m_tnd.uFlags = NIF_TIP;
-    wcsncpy(m_tnd.szTip, pszTip, m_nMaxTooltipLength - 1);
+    trayWideCopy(m_tnd.szTip, _countof(m_tnd.szTip), pszTip, m_nMaxTooltipLength - 1);
 
     if (m_bHidden)
         return TRUE;
     else
-        return Shell_NotifyIcon(NIM_MODIFY, &m_tnd);
+        return Shell_NotifyIconW(NIM_MODIFY, &m_tnd);
 }
 
 BOOL SystemTray::setTooltipText(UINT nID)
 {
+#if defined(__APPLE__)
+    return FALSE;
+#else
     TCHAR strBuffer[1024];
     ASSERT(1024 >= m_nMaxTooltipLength);
 
@@ -416,6 +494,7 @@ BOOL SystemTray::setTooltipText(UINT nID)
         return FALSE;
 
     return setTooltipText(strBuffer);
+#endif
 }
 
 LPTSTR SystemTray::getTooltipText() const
@@ -426,7 +505,7 @@ LPTSTR SystemTray::getTooltipText() const
     static WCHAR strBuffer[1024];
     ASSERT(1024 >= m_nMaxTooltipLength);
 
-    wcsncpy(strBuffer, m_tnd.szTip, m_nMaxTooltipLength - 1);
+    trayWideCopy(strBuffer, _countof(strBuffer), m_tnd.szTip, m_nMaxTooltipLength - 1);
 
     return strBuffer;
 }
@@ -461,11 +540,11 @@ BOOL SystemTray::showBalloon(LPCTSTR szText, LPCTSTR szTitle /*=NULL*/, DWORD dw
 {
     m_tnd.uFlags = NIF_INFO;
     //     m_tnd.dwInfoFlags = NIIF_USER | NIIF_LARGE_ICON;
-    wcsncpy(m_tnd.szInfoTitle, szTitle, wcslen(szTitle));
-    wcsncpy(m_tnd.szInfo, szText, wcslen(szText));
+    trayWideCopy(m_tnd.szInfoTitle, _countof(m_tnd.szInfoTitle), szTitle, _countof(m_tnd.szInfoTitle) - 1);
+    trayWideCopy(m_tnd.szInfo, _countof(m_tnd.szInfo), szText, _countof(m_tnd.szInfo) - 1);
     //LoadIconMetric(g_hInst, MAKEINTRESOURCE(dwIcon), LIM_LARGE, &nid.hBalloonIcon);
-    Shell_NotifyIcon(NIM_MODIFY, &m_tnd);
-    Shell_NotifyIcon(NIN_BALLOONSHOW, &m_tnd);
+    Shell_NotifyIconW(NIM_MODIFY, &m_tnd);
+    Shell_NotifyIconW(NIN_BALLOONSHOW, &m_tnd);
     return TRUE;
 }
 
@@ -489,7 +568,7 @@ BOOL SystemTray::setNotificationWnd(HWND hNotifyWnd)
     if (m_bHidden)
         return TRUE;
     else
-        return Shell_NotifyIcon(NIM_MODIFY, &m_tnd);
+        return Shell_NotifyIconW(NIM_MODIFY, &m_tnd);
 }
 
 HWND SystemTray::getNotificationWnd() const
@@ -531,7 +610,7 @@ BOOL SystemTray::setCallbackMessage(UINT uCallbackMessage)
     if (m_bHidden)
         return TRUE;
     else
-        return Shell_NotifyIcon(NIM_MODIFY, &m_tnd);
+        return Shell_NotifyIconW(NIM_MODIFY, &m_tnd);
 }
 
 UINT SystemTray::getCallbackMessage() const
@@ -550,6 +629,9 @@ BOOL SystemTray::setMenuDefaultItem(UINT uItem, BOOL bByPos)
     m_DefaultMenuItemID = uItem;
     m_DefaultMenuItemByPos = bByPos;
 
+#if defined(__APPLE__)
+    return TRUE;
+#else
     HMENU hMenu = ::LoadMenu(m_hInstance, MAKEINTRESOURCE(m_tnd.uID));
     if (!hMenu)
         return FALSE;
@@ -566,6 +648,7 @@ BOOL SystemTray::setMenuDefaultItem(UINT uItem, BOOL bByPos)
     ::DestroyMenu(hMenu);
 
     return TRUE;
+#endif
 }
 
 void SystemTray::getMenuDefaultItem(UINT& uItem, BOOL& bByPos)
@@ -627,6 +710,9 @@ LRESULT SystemTray::OnTrayNotification(WPARAM uID, LPARAM lEvent)
     // Clicking with right button brings up a context menu
 
     if (LOWORD(lEvent) == WM_RBUTTONUP) {
+#if defined(__APPLE__)
+        return 1;
+#else
         HMENU hMenu = ::LoadMenu(m_hInstance, MAKEINTRESOURCE(m_tnd.uID));
         if (!hMenu)
             return 0;
@@ -651,7 +737,11 @@ LRESULT SystemTray::OnTrayNotification(WPARAM uID, LPARAM lEvent)
         ::PostMessage(m_tnd.hWnd, WM_NULL, 0, 0);
 
         DestroyMenu(hMenu);
+#endif
     } else if (LOWORD(lEvent) == WM_LBUTTONDBLCLK) {
+#if defined(__APPLE__)
+        return 1;
+#else
         // double click received, the default action is to execute default menu item
         ::SetForegroundWindow(m_tnd.hWnd);
 
@@ -671,6 +761,7 @@ LRESULT SystemTray::OnTrayNotification(WPARAM uID, LPARAM lEvent)
             uItem = m_DefaultMenuItemID;
 
         ::PostMessage(hTargetWnd, WM_COMMAND, uItem, 0);
+#endif
     }
 
     return 1;
@@ -683,7 +774,7 @@ LRESULT PASCAL SystemTray::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LP
     // and iterate through them. If you do this, remove these 3 lines.
     SystemTray* pTrayIcon = m_pThis;
     if (pTrayIcon->getSafeHwnd() != hWnd)
-        return ::DefWindowProc(hWnd, message, wParam, lParam);
+        return ::DefWindowProcW(hWnd, message, wParam, lParam);
 
     // If maintaining a list of TrayIcon windows, then the following...
     // pTrayIcon = GetFirstTrayIcon()
@@ -711,7 +802,7 @@ LRESULT PASCAL SystemTray::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LP
     // }
 
     // Message has not been processed, so default.
-    return ::DefWindowProc(hWnd, message, wParam, lParam);
+    return ::DefWindowProcW(hWnd, message, wParam, lParam);
 }
 
 void SystemTray::installIconPending()
@@ -724,7 +815,7 @@ void SystemTray::installIconPending()
     m_tnd.uFlags = m_uCreationFlags;
 
     // Try and recreate the icon
-    m_bHidden = !Shell_NotifyIcon(NIM_ADD, &m_tnd);
+    m_bHidden = !Shell_NotifyIconW(NIM_ADD, &m_tnd);
 
     // If it's STILL hidden, then have another go next time...
     m_bShowIconPending = !m_bHidden;
@@ -735,13 +826,15 @@ void SystemTray::installIconPending()
 /////////////////////////////////////////////////////////////////////////////
 // For minimising/maximising from system tray
 
+#if !defined(__APPLE__)
 BOOL CALLBACK FindTrayWnd(HWND hwnd, LPARAM lParam)
 {
     TCHAR szClassName[256];
     GetClassName(hwnd, szClassName, 255);
 
     // Did we find the Main System Tray? If so, then get its size and keep going
-    if (wcscmp(szClassName, L"TrayNotifyWnd") == 0) {
+    static const WCHAR kTrayNotifyWnd[] = { 'T', 'r', 'a', 'y', 'N', 'o', 't', 'i', 'f', 'y', 'W', 'n', 'd', 0 };
+    if (trayWideEquals(szClassName, kTrayNotifyWnd)) {
         LPRECT lpRect = (LPRECT)lParam;
         ::GetWindowRect(hwnd, lpRect);
         return TRUE;
@@ -749,7 +842,8 @@ BOOL CALLBACK FindTrayWnd(HWND hwnd, LPARAM lParam)
 
     // Did we find the System Clock? If so, then adjust the size of the rectangle
     // we have and quit (clock will be found after the system tray)
-    if (wcscmp(szClassName, L"TrayClockWClass") == 0) {
+    static const WCHAR kTrayClockWClass[] = { 'T', 'r', 'a', 'y', 'C', 'l', 'o', 'c', 'k', 'W', 'C', 'l', 'a', 's', 's', 0 };
+    if (trayWideEquals(szClassName, kTrayClockWClass)) {
         LPRECT lpRect = (LPRECT)lParam;
         RECT rectClock;
         ::GetWindowRect(hwnd, &rectClock);
@@ -763,9 +857,17 @@ BOOL CALLBACK FindTrayWnd(HWND hwnd, LPARAM lParam)
 
     return TRUE;
 }
+#endif
 
 void SystemTray::GetTrayWndRect(LPRECT lprect)
 {
+#if defined(__APPLE__)
+    if (!lprect)
+        return;
+    SystemParametersInfoW(SPI_GETWORKAREA, 0, lprect, 0);
+    lprect->left = lprect->right - 150;
+    lprect->top = lprect->bottom - 30;
+#else
 #define DEFAULT_RECT_WIDTH 150
 #define DEFAULT_RECT_HEIGHT 30
 
@@ -835,21 +937,29 @@ void SystemTray::GetTrayWndRect(LPRECT lprect)
     SystemParametersInfo(SPI_GETWORKAREA, 0, lprect, 0);
     lprect->left = lprect->right - DEFAULT_RECT_WIDTH;
     lprect->top = lprect->bottom - DEFAULT_RECT_HEIGHT;
+#endif
 }
 
 // Check to see if the animation has been disabled (Matthew Ellis <m.t.ellis@bigfoot.com>)
 BOOL SystemTray::GetDoWndAnimation()
 {
+#if defined(__APPLE__)
+    return FALSE;
+#else
     ANIMATIONINFO ai;
 
     ai.cbSize = sizeof(ai);
     SystemParametersInfo(SPI_GETANIMATION, sizeof(ai), &ai, 0);
 
     return ai.iMinAnimate ? TRUE : FALSE;
+#endif
 }
 
 BOOL SystemTray::RemoveTaskbarIcon(HWND hWnd)
 {
+#if defined(__APPLE__)
+    return TRUE;
+#else
     // create static invisible window
     if (!::IsWindow(m_hWndInvisible)) {
         m_hWndInvisible = CreateWindowExW(0, L"Static", L"", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, 0, NULL, 0);
@@ -861,10 +971,15 @@ BOOL SystemTray::RemoveTaskbarIcon(HWND hWnd)
     SetParent(hWnd, m_hWndInvisible);
 
     return TRUE;
+#endif
 }
 
 void SystemTray::minimiseToTray(HWND hWnd)
 {
+#if defined(__APPLE__)
+    if (hWnd)
+        SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_VISIBLE);
+#else
     if (GetDoWndAnimation()) {
         RECT rectFrom, rectTo;
 
@@ -876,10 +991,15 @@ void SystemTray::minimiseToTray(HWND hWnd)
 
     RemoveTaskbarIcon(hWnd);
     SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_VISIBLE);
+#endif
 }
 
 void SystemTray::maximiseFromTray(HWND hWnd)
 {
+#if defined(__APPLE__)
+    if (hWnd)
+        SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) | WS_VISIBLE);
+#else
     if (GetDoWndAnimation()) {
         RECT rectTo;
         ::GetWindowRect(hWnd, &rectTo);
@@ -900,4 +1020,5 @@ void SystemTray::maximiseFromTray(HWND hWnd)
         SetActiveWindow(m_hWndInvisible);
     SetActiveWindow(hWnd);
     SetForegroundWindow(hWnd);
+#endif
 }

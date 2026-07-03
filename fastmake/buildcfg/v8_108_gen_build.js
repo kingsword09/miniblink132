@@ -1,9 +1,9 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var src = [
     //"${srcPath}/v8/src/heap/base/push_registers.cc",
     "${srcPath}/v8/src/heap/base/asm/x64/push_registers_asm_x64.cc",
-    "${srcPath}/v8/src/heap/base/asm/arm64/push_registers_asm.cc",
+    "${srcPath}/v8/src/heap/base/asm/arm64/push_registers_asm_arm64.cc",
     "${srcPath}/v8/src/heap/allocation-observer.cc",
     "${srcPath}/v8/src/heap/array-buffer-sweeper.cc",
     "${srcPath}/v8/src/heap/base-space.cc",
@@ -733,6 +733,7 @@ var json = [{
             "${srcPath}/gen/v8x64linux",
             "${srcPath}/gen/v8x64linux/include",
             "${srcPath}/third_party/abseil-cpp",
+            "${srcPath}/third_party/fp16/src/include",
             "${srcPath}/v8",
             "${srcPath}/v8/include",
             "${srcPath}",
@@ -771,7 +772,10 @@ var json = [{
             "-DV8_TARGET_OS_LINUX",
             "-DBUILDING_V8_SHARED=1",
             "-DBUILDING_UV_SHARED=1",
-            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=64",
+            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=0",
+            "-DV8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0",
+            "-DV8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0",
+            "-DV8_PROMISE_INTERNAL_FIELD_COUNT=0",
             "-DV8_INTL_SUPPORT",
             "-DV8_USE_EXTERNAL_STARTUP_DATA",
             "-DV8_ATOMIC_OBJECT_FIELD_WRITES",
@@ -784,6 +788,7 @@ var json = [{
             "-DV8_ENABLE_SYSTEM_INSTRUMENTATION",
             "-DV8_ENABLE_ETW_STACK_WALKING",
             "-DV8_ENABLE_WEBASSEMBLY",
+            "-DV8_ENABLE_SPARKPLUG",
             "-DV8_ALLOCATION_FOLDING",
             "-DV8_ALLOCATION_SITE_TRACKING",
             "-DV8_ADVANCED_BIGINT_ALGORITHMS",
@@ -816,7 +821,105 @@ var json = [{
     }
 }];
 
-if ("aarch64-linux-guneabi" == constVal.target) {
+const v8GenX64Sources = [
+    "${srcPath}/v8/src/heap/base/asm/x64/push_registers_asm_x64.cc",
+];
+
+const v8GenArm64Sources = [
+    "${srcPath}/v8/src/heap/base/asm/arm64/push_registers_asm_arm64.cc",
+];
+
+json[0].compile.src = json[0].compile.src.filter((path) => (constVal.isArm64 ? v8GenX64Sources : v8GenArm64Sources).indexOf(path) < 0);
+json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.filter((path) => (constVal.isArm64 ? v8GenX64Sources : v8GenArm64Sources).indexOf(path) < 0);
+
+if (constVal.isMac) {
+    const v8CrdtpSrc = [
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/cbor.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/dispatch.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/error_support.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/json.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/json_platform_v8.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/protocol_core.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/serializable.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/span.cc",
+        "${srcPath}/v8/third_party/inspector_protocol/crdtp/status.cc",
+    ];
+    json[0].compile.src.push(...v8CrdtpSrc);
+    json[0].compile.src.push("${srcPath}/v8/src/compiler/turbofan-graph-visualizer.cc");
+    json[0].compile.src.push("${srcPath}/v8/src/codegen/assembler-codegen.cc");
+    json[0].compile.src.push("${srcPath}/v8/src/heap/cppgc/free-list-cppgc.cc");
+    json[0].compile.src.push("${srcPath}/v8/src/heap/page-metadata.cc");
+    json[0].compile.src.push("${srcPath}/v8/src/heap/main-allocator.cc");
+    json[0].compile.src.push("${srcPath}/v8/src/objects/bytecode-array.cc");
+    json[0].compile.src.push("${srcPath}/v8/src/objects/waiter-queue-node.cc");
+    json[0].compile.src.push("${srcPath}/v8/src/utils/allocation.cc");
+
+    const macV8GenMissingSources = [
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/array-flat-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/array-flat-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/array-from-async-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/array-from-async-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/iterator-from-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/iterator-from-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/iterator-helpers-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/iterator-helpers-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/js-to-js-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/js-to-js-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/js-to-wasm-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/js-to-wasm-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/map-groupby-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/map-groupby-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/object-groupby-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/object-groupby-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/promise-try-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/promise-try-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/promise-withresolvers-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/promise-withresolvers-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-difference-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-difference-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-intersection-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-intersection-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-is-disjoint-from-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-is-disjoint-from-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-is-subset-of-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-is-subset-of-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-is-superset-of-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-is-superset-of-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-symmetric-difference-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-symmetric-difference-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-union-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/set-union-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/string-iswellformed-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/string-iswellformed-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/string-towellformed-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/string-towellformed-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/suppressed-error-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/suppressed-error-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/wasm-strings-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/wasm-strings-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/wasm-to-js-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/builtins/wasm-to-js-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/bytecode-array-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/bytecode-array-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/hole-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/hole-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/js-disposable-stack-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/js-disposable-stack-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/js-iterator-helpers-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/js-iterator-helpers-tq-csa.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/turboshaft-types-tq.cc",
+        "${srcPath}/gen/v8x64linux/torque-generated/src/objects/turboshaft-types-tq-csa.cc",
+    ];
+    json[0].compile.src.push(...macV8GenMissingSources.filter((path) => json[0].compile.src.indexOf(path) < 0));
+
+    const mapV8GenPath = (path) => path.replace("${srcPath}/gen/v8x64linux", "${srcPath}/gen/v8");
+    json[0].compile.include = json[0].compile.include.map((path) => path
+        .replace("${srcPath}/gen/v8x64linux", "${srcPath}/gen/v8"));
+    json[0].compile.src = json[0].compile.src.map(mapV8GenPath);
+    json[0].compile.prebuildSrc = json[0].compile.prebuildSrc.map(mapV8GenPath);
+}
+
+if (constVal.isArm64) {
     json[0].compile.cmd.push("-DV8_HOST_ARCH_ARM64");
     json[0].compile.cmd.push("-DV8_TARGET_ARCH_ARM64");
 } else {
@@ -824,5 +927,7 @@ if ("aarch64-linux-guneabi" == constVal.target) {
     json[0].compile.cmd.push("-DV8_HOST_ARCH_X64");
     json[0].compile.cmd.push("-DV8_TARGET_ARCH_X64");
 }
+
+applyMacBuildSettings(json, { v8: true });
 
 buildCommonSetting(json);

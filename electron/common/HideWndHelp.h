@@ -9,7 +9,7 @@ namespace atom {
 
 class HideWndHelp {
 public:
-    HideWndHelp(const wchar_t* className, std::function<LRESULT(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>&& messageCallback)
+    HideWndHelp(LPCWSTR className, std::function<LRESULT(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)>&& messageCallback)
         : m_messageCallback(messageCallback)
         , m_className(className)
         , m_hHideWindow(nullptr)
@@ -25,7 +25,7 @@ public:
 private:
     static LRESULT APIENTRY staticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        const WCHAR* kPropW = L"HideWindow";
+        static const WCHAR kPropW[] = { 'H', 'i', 'd', 'e', 'W', 'i', 'n', 'd', 'o', 'w', 0 };
         HideWndHelp* self = (HideWndHelp*)::GetPropW(hWnd, kPropW);
         if (!self && uMsg == WM_CREATE) {
             LPCREATESTRUCTW cs = (LPCREATESTRUCTW)lParam;
@@ -68,7 +68,7 @@ private:
 
 private:
     std::function<LRESULT(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)> m_messageCallback;
-    std::wstring m_className;
+    std::basic_string<WCHAR> m_className;
     HWND m_hHideWindow;
 };
 

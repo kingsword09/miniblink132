@@ -106,10 +106,8 @@ SoftwareOutputDeviceWinOrLinux::~SoftwareOutputDeviceWinOrLinux()
 {
     base::AutoLock lock(canvas_lock_);
     canvas_.reset();
-#if !defined(WIN32)
-    if (bitmap_pixels_)
-        free(bitmap_pixels_);
-#endif
+    bitmap_mapping_ = base::WritableSharedMemoryMapping();
+    bitmap_region_ = base::UnsafeSharedMemoryRegion();
 }
 
 void SoftwareOutputDeviceWinOrLinux::OnSwapBuffers(SwapBuffersCallback swap_ack_callback, gfx::FrameData data)
@@ -154,13 +152,27 @@ void SoftwareOutputDeviceWinOrLinux::ResizeDelegated()
     // The SkCanvas maps shared memory on creation and unmaps on destruction.
     uint8_t* bitmap_pixels = nullptr;
 #if !defined(WIN32)
-    bitmap_pixels = (uint8_t*)malloc(required_bytes);
+    base::UnsafeSharedMemoryRegion new_region = base::UnsafeSharedMemoryRegion::Create(required_bytes);
+    if (!new_region.IsValid()) {
+        canvas_.reset();
+        bitmap_mapping_ = base::WritableSharedMemoryMapping();
+        bitmap_region_ = base::UnsafeSharedMemoryRegion();
+        DLOG(ERROR) << "Failed to allocate " << required_bytes << " bytes";
+        return;
+    }
+
+    base::WritableSharedMemoryMapping new_mapping = new_region.Map();
+    if (!new_mapping.IsValid()) {
+        canvas_.reset();
+        bitmap_mapping_ = base::WritableSharedMemoryMapping();
+        bitmap_region_ = base::UnsafeSharedMemoryRegion();
+        DLOG(ERROR) << "Failed to map " << required_bytes << " bytes";
+        return;
+    }
+
+    bitmap_pixels = new_mapping.data();
     std::unique_ptr<SkCanvas> new_canvase
         = skia::CreatePlatformCanvasWithPixels(viewport_pixel_size_.width(), viewport_pixel_size_.height(), true, bitmap_pixels, skia::CRASH_ON_FAILURE);
-    //CopyCanvasContent(bitmap_pixels_, new_canvase.get(), bitmap_pixels_size_.width(), bitmap_pixels_size_.height());
-
-    if (bitmap_pixels_)
-        free(bitmap_pixels_);
 #else
     std::unique_ptr<SkCanvas> new_canvase = skia::CreatePlatformCanvasReturnPixels(
         viewport_pixel_size_.width(), viewport_pixel_size_.height(), !has_transparent_background_canvas_, &bitmap_pixels);
@@ -174,6 +186,10 @@ void SoftwareOutputDeviceWinOrLinux::ResizeDelegated()
 #endif
     bitmap_pixels_size_ = viewport_pixel_size_;
     bitmap_pixels_ = bitmap_pixels;
+#if !defined(WIN32)
+    bitmap_mapping_ = std::move(new_mapping);
+    bitmap_region_ = std::move(new_region);
+#endif
     canvas_.reset(new_canvase.release());
     //--
     //     SkPaint mPaint;
@@ -200,8 +216,13 @@ void SoftwareOutputDeviceWinOrLinux::ResizeDelegated()
         canvas_->clear(background_color_);
     }
 
-    // Transfer region ownership to the browser process.
+    // Transfer a duplicate region handle to the browser process while keeping
+    // this mapping writable for the compositor side.
+#if !defined(WIN32)
+    layered_window_updater_->OnAllocatedSharedMemory(viewport_pixel_size_, bitmap_region_.Duplicate(), &canvas_lock_);
+#else
     layered_window_updater_->OnAllocatedBitmapMemory(viewport_pixel_size_, canvas_.get(), bitmap_pixels_, &canvas_lock_);
+#endif
 }
 
 SkCanvas* SoftwareOutputDeviceWinOrLinux::BeginPaintDelegated()
@@ -244,11 +265,13 @@ void SoftwareOutputDeviceWinOrLinux::EndPaintDelegated(const gfx::Rect& damage_r
     }
     canvas_lock_.Release();
 
-    if (layered_window_updater_.is_bound() && layered_window_updater_.get())
-        layered_window_updater_->Draw(damage_rect, base::BindOnce(&SoftwareOutputDeviceWinOrLinux::DrawAck, base::Unretained(this)));
+    if (!layered_window_updater_.is_bound() || !layered_window_updater_.get())
+        return;
+
     waiting_on_draw_ack_ = true;
 
     TRACE_EVENT_ASYNC_BEGIN0("viz", "SoftwareOutputDeviceWinOrLinux::Draw", this);
+    layered_window_updater_->Draw(damage_rect, base::BindOnce(&SoftwareOutputDeviceWinOrLinux::DrawAck, weak_factory_.GetWeakPtr()));
 }
 
 void SoftwareOutputDeviceWinOrLinux::DrawAck()
@@ -268,7 +291,6 @@ void SoftwareOutputDeviceWinOrLinux::DrawAck()
 std::unique_ptr<SoftwareOutputDevice> CreateSoftwareOutputDeviceWinOrLinux(HWND hwnd, mojom::DisplayClient* display_client)
 {
     DCHECK(display_client);
-
     // Setup mojom::LayeredWindowUpdater implementation in the browser process
     // to draw to the HWND.
     mojo::PendingRemote<mojom::LayeredWindowUpdater> layered_window_updater;

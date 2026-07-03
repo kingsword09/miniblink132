@@ -994,7 +994,8 @@ void CompositorFrameSinkSupport::DidPresentCompositorFrame(
 
     DCHECK_LE(pending_received_frame_times_.size(), 25u);
     auto received_frame_timestamp = pending_received_frame_times_.find(frame_token);
-    CHECK(received_frame_timestamp != pending_received_frame_times_.end());
+    if (received_frame_timestamp == pending_received_frame_times_.end())
+        return;
 
     FrameTimingDetails details;
     details.received_compositor_frame_timestamp = received_frame_timestamp->second->frame_submit_timestamp();
@@ -1012,7 +1013,8 @@ void CompositorFrameSinkSupport::DidPresentCompositorFrame(
     pending_received_frame_times_.erase(received_frame_timestamp);
 
     // We should only ever get one PresentationFeedback per frame_token.
-    CHECK(!frame_timing_details_.contains(frame_token));
+    if (frame_timing_details_.contains(frame_token))
+        return;
     frame_timing_details_.emplace(frame_token, details);
 
     if (!feedback.failed() && frame_sink_manager_->frame_counter()) {

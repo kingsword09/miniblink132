@@ -165,6 +165,15 @@ public:
 //    bool Accept(mojo::Message* message) override;
 //};
 
+class ImageCaptureRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
+class ImageCaptureResponseValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
+
 class Range {
 public:
     template <typename T> using EnableIfSame = std::enable_if_t<std::is_same<Range, T>::value>;

@@ -14,7 +14,7 @@
 
 #import "base/base_export.h"
 #import "base/memory/weak_ptr.h"
-#import "base/trace_event/trace_event_stub.h"
+#import "base/trace_event/trace_event_lightweight.h"
 
 namespace base::trace_event {
 

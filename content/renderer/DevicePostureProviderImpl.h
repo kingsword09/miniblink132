@@ -16,17 +16,16 @@ public:
     /*virtual*/ void AddListenerAndGetCurrentPosture(
         ::mojo::PendingRemote<::blink::mojom::blink::DevicePostureClient> client, AddListenerAndGetCurrentPostureCallback callback) override
     {
-        OutputDebugStringA("DevicePostureProviderImpl::AddListenerAndGetCurrentPosture not impl\n");
+        std::move(callback).Run(::blink::mojom::blink::DevicePostureType::kContinuous);
     }
 
     /*virtual*/ void OverrideDevicePostureForEmulation(::blink::mojom::blink::DevicePostureType posture) override
     {
-        OutputDebugStringA("DevicePostureProviderImpl::OverrideDevicePostureForEmulation not impl\n");
+        (void)posture;
     }
 
     /*virtual*/ void DisableDevicePostureOverrideForEmulation() override
     {
-        OutputDebugStringA("DevicePostureProviderImpl::DisableDevicePostureOverrideForEmulation not impl\n");
     }
 };
 

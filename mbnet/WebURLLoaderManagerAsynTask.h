@@ -198,15 +198,11 @@ public:
     static void cancel(WebURLLoaderManager* manager, WebURLLoaderInternal* job, int jobId)
     {
         job->m_isBlackList = true;
-        job->m_response.SetCurrentRequestUrl(blink::KURL(job->firstRequest()->url));
+        blink::KURL failedUrl(job->firstRequest()->url);
+        job->m_response.SetCurrentRequestUrl(failedUrl);
 
-        WebURLLoaderManager::sharedInstance()->handleDidReceiveResponse(job);
-        //job->client()->didReceiveResponse(job->loader(), job->m_response);
-
-        // 可能在didReceiveResponse里被cancel
-        // WebURLLoaderManager::sharedInstance()->didReceiveDataOrDownload(job, static_cast<char*>(""), 0, 0);
         if (!job->isCancelled()) {
-            blink::WebURLError error(net::ERR_ABORTED, blink::KURL(WTF::String(job->m_url)));
+            blink::WebURLError error(net::ERR_ABORTED, failedUrl);
             WebURLLoaderManager::sharedInstance()->handleDidFail(job, error);
 
             if (!job->isCancelled())

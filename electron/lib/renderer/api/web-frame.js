@@ -1,7 +1,7 @@
 'use strict'
 
 const EventEmitter = require('events').EventEmitter;
-const WebFrame = process._linkedBinding('electron_renerer_webframe').WebFrame;
+const WebFrame = process._linkedBinding('electron_renderer_webframe').WebFrame;
 const webFrame = new WebFrame();
 
 // WebFrame is an EventEmitter.

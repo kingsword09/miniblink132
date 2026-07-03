@@ -3,6 +3,9 @@
 
 #include "content/renderer/PolicyContainerHostImpl.h"
 #include "content/common/CreateAndBindTempl.h"
+#include "content/common/LiveIdDetect.h"
+#include "content/common/ThreadCall.h"
+#include "content/browser/MbWebview.h"
 
 #include "mojo/public/cpp/bindings/associated_receiver.h"
 #include "third_party/blink/public/web/web_navigation_params.h"
@@ -41,13 +44,17 @@ BodyLoaderClient::BodyLoaderClient(
     bool isDownload,
     std::unique_ptr<blink::WebNavigationInfo> info,
     const blink::LocalFrameToken& navigationControlToken,
-    const blink::FrameToken& token)
+    const blink::FrameToken& token,
+    int64_t mbwebviewId,
+    bool isMainFrame)
 {
     m_isDownload = isDownload;
     m_info.reset(info.release());
     m_navigationControlId = navigationControlToken;
     m_urlLoaderImpl = nullptr;
     m_frameToken = token;
+    m_mbwebviewId = mbwebviewId;
+    m_isMainFrame = isMainFrame;
 
     CHECK(WTF::IsMainThread());
 
@@ -195,7 +202,6 @@ void BodyLoaderClient::DidFinishLoading(
         m_urlLoaderImpl->m_canDestroy = true;
         m_urlLoaderImpl.reset();
     }
-
     delete this;
 }
 
@@ -215,6 +221,9 @@ void BodyLoaderClient::DidFail(
     sprintf(output, "BodyLoaderClient::DidFail: %p, %p, %p\n", this, navigationControl, m_urlLoaderImpl.get());
     OutputDebugStringA(output);
 
+    const blink::KURL failUrl = m_info->url_request.Url();
+    bool shouldDispatchMbFail = m_isMainFrame && !m_urlLoaderImpl.get() && (failUrl.ProtocolIs("http") || failUrl.ProtocolIs("https"));
+
     if (navigationControl && m_urlLoaderImpl.get()) {
         ::network::URLLoaderCompletionStatus status(error.reason());
         if (m_urlLoaderImpl->m_urlLoaderClient.get())
@@ -222,6 +231,23 @@ void BodyLoaderClient::DidFail(
         m_urlLoaderImpl->m_canDestroy = true;
         m_urlLoaderImpl.reset();
     }
+
+    if (shouldDispatchMbFail) {
+        mbWebView webviewHandle = (mbWebView)m_mbwebviewId;
+        intptr_t frameId = (intptr_t)(blink::LocalFrameToken::Hasher()(m_navigationControlId));
+        std::string* urlStr = new std::string(m_info->url_request.Url().GetString().Utf8());
+        content::ThreadCall::callUiThreadAsync(MB_FROM_HERE, [webviewHandle, frameId, urlStr]() {
+            content::MbWebView* webview = (content::MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtr(webviewHandle);
+            if (webview) {
+                if (webview->getClosure().m_LoadUrlFailCallback)
+                    webview->getClosure().m_LoadUrlFailCallback(webviewHandle, webview->getClosure().m_LoadUrlFailParam, urlStr->c_str(), nullptr);
+                if (webview->getClosure().m_LoadingFinishCallback)
+                    webview->getClosure().m_LoadingFinishCallback(webviewHandle, webview->getClosure().m_LoadingFinishParam, (mbWebFrameHandle)frameId, urlStr->c_str(), MB_LOADING_FAILED, "");
+            }
+            delete urlStr;
+        });
+    }
+
     delete this;
 }
 

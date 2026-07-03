@@ -35,9 +35,14 @@
 #include "third_party/blink/public/web/blink.h"
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
+#include "third_party/libnode/src/node_buffer.h"
 #include "third_party/libuv/include/uv.h"
 #include "base/values.h"
 #include <shlwapi.h>
+#include <cstring>
+#include <cmath>
+#include <memory>
+#include <vector>
 
 void MB_CALL_TYPE mbGetWorldScriptContextByWebFrame(mbWebView webviewHandle, mbWebFrameHandle frameId, int worldID, v8ContextPtr contextOut);
 void MB_CALL_TYPE mbDownloadUrl(mbWebView webviewHandle, mbWebFrameHandle frameId, const std::string& url);
@@ -47,6 +52,20 @@ void printCallstack();
 }
 
 namespace atom {
+
+namespace {
+
+double zoomLevelToZoomFactor(double zoomLevel)
+{
+    return std::pow(1.2, zoomLevel);
+}
+
+double zoomFactorToZoomLevel(double zoomFactor)
+{
+    return std::log(zoomFactor) / std::log(1.2);
+}
+
+}
 
 void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node::Environment* env)
 {
@@ -79,7 +98,7 @@ void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node:
     builder.SetMethod("closeDevTools", &WebContents::closeDevToolsApi);
     builder.SetMethod("isDevToolsOpened", &WebContents::isDevToolsOpenedApi);
     builder.SetMethod("isDevToolsFocused", &WebContents::isDevToolsFocusedApi);
-    builder.SetMethod("insertCSS", &WebContents::insertCSSApi);
+    builder.SetMethod("_insertCSS", &WebContents::insertCSSApi);
     builder.SetMethod("setZoomFactor", &WebContents::setZoomFactorApi);
     builder.SetMethod("enableDeviceEmulation", &WebContents::enableDeviceEmulationApi);
     builder.SetMethod("disableDeviceEmulation", &WebContents::disableDeviceEmulationApi);
@@ -126,7 +145,6 @@ void WebContents::init(v8::Isolate* isolate, v8::Local<v8::Object> target, node:
     builder.SetMethod("unregisterServiceWorker", &WebContents::unregisterServiceWorkerApi);
     builder.SetMethod("inspectServiceWorker", &WebContents::inspectServiceWorkerApi);
     builder.SetMethod("print", &WebContents::printApi);
-    builder.SetMethod("_printToPDF", &WebContents::_printToPDFApi);
     builder.SetMethod("addWorkSpace", &WebContents::addWorkSpaceApi);
     builder.SetMethod("reNullWorkSpace", &WebContents::reNullWorkSpaceApi);
     builder.SetMethod("showDefinitionForSelection", &WebContents::showDefinitionForSelectionApi);
@@ -421,8 +439,6 @@ void WebContents::onDidCreateScriptContext(mbWebView webView, mbWebFrameHandle f
         }
     } else if (m_createWindowParam->m_isNodeIntegration && !m_createWindowParam->m_isContextIsolation) {
         // 有预加载，预加载里有nodejs，而且预加载没隔离。主世界有nodejs
-        //if (!isMainWorld)
-        //    DebugBreak();
         shouldLoadNodejs = true;
     } else if (!m_createWindowParam->m_isNodeIntegration && !m_createWindowParam->m_isContextIsolation) {
         shouldLoadNodejs = true; // 有预加载，预加载里有nodejs，而且预加载没隔离。主世界没nodejs
@@ -586,8 +602,10 @@ void WebContents::rendererPostMessageToMain(
     int id = m_id;
     WebContents* self = this;
     std::string* channelCopy = new std::string(channel);
-    if (channel != "ipc-message" && channel != "ipc-render-invoke")
-        DebugBreak();
+    if (channel != "ipc-message" && channel != "ipc-render-invoke") {
+        delete channelCopy;
+        return;
+    }
 
     std::vector<blink::CloneableMessage>* listParamsPtr = listParams.release();
     content::ThreadCall::callUiThreadAsync(FROM_HERE, [self, frame, id, channelCopy, listParamsPtr] {
@@ -643,7 +661,7 @@ void WebContents::rendererSendMessageToMain(
     WebContents* self = this;
 
     if (channel != "ipc-message-sync")
-        DebugBreak();
+        return;
 
     std::vector<blink::CloneableMessage>* listParamsPtr = listParams.release();
     content::ThreadCall::callUiThreadSync(FROM_HERE, [self, frame, listParamsPtr, encodedMessageRet] {
@@ -891,15 +909,125 @@ bool WebContents::canGoForwardApi() const
     return m_canGoForward;
 }
 
-void WebContents::printToPDFApi()
+namespace {
+
+void MB_CALL_TYPE onPrintToPdfDataCallback(mbWebView webView, void* param, const mbPdfDatas* datas)
 {
-    OutputDebugStringA("WebContents::printToPDFApi not impl\n");
+    gin_helper::Promise<v8::Local<v8::Value>>* promise = static_cast<gin_helper::Promise<v8::Local<v8::Value>>*>(param);
+    v8::Isolate* isolate = promise->isolate();
+    v8::HandleScope handleScope(isolate);
+    v8::Context::Scope contextScope(promise->GetContext());
+
+    if (!datas || datas->count <= 0) {
+        v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, "", 0);
+        if (buffer.IsEmpty())
+            promise->RejectWithErrorMessage("Failed to create PDF buffer");
+        else
+            promise->Resolve(buffer.ToLocalChecked().As<v8::Value>());
+        delete promise;
+        return;
+    }
+
+    if (!datas->sizes || !datas->datas) {
+        promise->RejectWithErrorMessage("Invalid PDF data");
+        delete promise;
+        return;
+    }
+
+    size_t totalSize = 0;
+    for (int i = 0; i < datas->count; ++i)
+        totalSize += datas->sizes[i];
+
+    if (!totalSize) {
+        v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, "", 0);
+        if (buffer.IsEmpty())
+            promise->RejectWithErrorMessage("Failed to create PDF buffer");
+        else
+            promise->Resolve(buffer.ToLocalChecked().As<v8::Value>());
+        delete promise;
+        return;
+    }
+
+    std::vector<char> pdfData(totalSize);
+    size_t offset = 0;
+    for (int i = 0; i < datas->count; ++i) {
+        size_t partSize = datas->sizes[i];
+        if (partSize && datas->datas[i])
+            memcpy(pdfData.data() + offset, datas->datas[i], partSize);
+        offset += partSize;
+    }
+
+    v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, pdfData.data(), pdfData.size());
+    if (buffer.IsEmpty())
+        promise->RejectWithErrorMessage("Failed to create PDF buffer");
+    else
+        promise->Resolve(buffer.ToLocalChecked().As<v8::Value>());
+    delete promise;
+}
+
+} // namespace
+
+v8::Local<v8::Promise> WebContents::printToPDFApi(gin_helper::Arguments* args)
+{
+    gin_helper::Promise<v8::Local<v8::Value>>* promise = new gin_helper::Promise<v8::Local<v8::Value>>(isolate());
+    v8::Local<v8::Promise> ret = promise->GetHandle();
+
+    mbPrintSettings settings = {};
+    settings.structSize = sizeof(settings);
+    settings.dpi = 72;
+    settings.width = 0;
+    settings.height = 0;
+    settings.marginTop = 0;
+    settings.marginBottom = 0;
+    settings.marginLeft = 0;
+    settings.marginRight = 0;
+    settings.isPrintPageHeadAndFooter = false;
+    settings.isPrintBackgroud = true;
+    settings.isLandscape = false;
+    settings.isPrintToMultiPage = true;
+
+    gin_helper::Dictionary options(isolate());
+    if (!args->PeekNext().IsEmpty() && args->PeekNext()->IsObject() && args->GetNext(&options)) {
+        options.Get("dpi", &settings.dpi);
+        options.Get("pageSizeWidth", &settings.width);
+        options.Get("pageSizeHeight", &settings.height);
+        options.Get("marginTop", &settings.marginTop);
+        options.Get("marginBottom", &settings.marginBottom);
+        options.Get("marginLeft", &settings.marginLeft);
+        options.Get("marginRight", &settings.marginRight);
+        bool displayHeaderFooter = settings.isPrintPageHeadAndFooter != FALSE;
+        bool printBackground = settings.isPrintBackgroud != FALSE;
+        bool landscape = settings.isLandscape != FALSE;
+        bool preferCSSPageSize = settings.isPrintToMultiPage != FALSE;
+        options.Get("displayHeaderFooter", &displayHeaderFooter);
+        options.Get("printBackground", &printBackground);
+        options.Get("landscape", &landscape);
+        options.Get("preferCSSPageSize", &preferCSSPageSize);
+        settings.isPrintPageHeadAndFooter = displayHeaderFooter ? TRUE : FALSE;
+        settings.isPrintBackgroud = printBackground ? TRUE : FALSE;
+        settings.isLandscape = landscape ? TRUE : FALSE;
+        settings.isPrintToMultiPage = preferCSSPageSize ? TRUE : FALSE;
+    }
+
+    if (!m_view) {
+        promise->RejectWithErrorMessage("Cannot print to PDF without a web view");
+        delete promise;
+        return ret;
+    }
+
+    mbWebFrameHandle frame = mbWebFrameGetMainFrame(m_view);
+    if (!frame) {
+        promise->RejectWithErrorMessage("Cannot print to PDF without a main frame");
+        delete promise;
+        return ret;
+    }
+
+    mbUtilPrintToPdf(m_view, frame, &settings, onPrintToPdfDataCallback, promise);
+    return ret;
 }
 
 void WebContents::setWindowOpenHandlerApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    OutputDebugStringA("WebContents::setWindowOpenHandlerApi not impl\n");
-
     if (1 != info.Length())
         return;
     v8::Local<v8::Value> arg0 = info[0];
@@ -919,13 +1047,13 @@ void WebContents::downloadURLApi(const std::string& url)
 void WebContents::setZoomLevelApi(float level)
 {
     mbWebView webView = getMbView();
-    mbSetZoomFactor(webView, level);
+    mbSetZoomFactor(webView, static_cast<float>(zoomLevelToZoomFactor(level)));
 }
 
 float WebContents::getZoomLevelApi() const
 {
     mbWebView webView = getMbView();
-    float ret = mbGetZoomFactor(webView);
+    float ret = static_cast<float>(zoomFactorToZoomLevel(mbGetZoomFactor(webView)));
     return ret;
 }
 
@@ -1012,9 +1140,9 @@ void WebContents::onTitleChanged(mbWebView webView, void* param, const utf8* tit
         return;
 
     self->m_title = title;
-    std::wstring titleW = StringUtil::UTF8ToUTF16(title);
+    StringUtil::WideString titleW = StringUtil::UTF8ToUTF16(title);
     HWND hwnd = mbGetHostHWND(self->m_view);
-    ::SetWindowText(hwnd, titleW.c_str());
+    ::SetWindowText(hwnd, reinterpret_cast<LPCWSTR>(titleW.c_str()));
 }
 
 void WebContents::onURLChanged(mbWebView webView, void* param, const utf8* url, BOOL canGoBack, BOOL canGoForward)
@@ -1171,13 +1299,11 @@ bool WebContents::isLoadingApi()
 
 bool WebContents::isLoadingMainFrameApi()
 {
-    //todo
     return false;
 }
 
 bool WebContents::isWaitingForResponseApi()
 {
-    //todo
     return false;
 }
 
@@ -1224,19 +1350,18 @@ std::string WebContents::getUserAgentApi()
 
 void WebContents::savePageApi()
 {
-    //todo
 }
 
 void WebContents::openDevToolsApi()
 {
     std::vector<WCHAR> fullpath;
     fullpath.resize(MAX_PATH + 1);
-    memset(fullpath.data(), 0, sizeof(wchar_t) * (MAX_PATH + 1));
+    memset(fullpath.data(), 0, sizeof(WCHAR) * (MAX_PATH + 1));
     ::GetModuleFileNameW(NULL, fullpath.data(), MAX_PATH);
     ::PathRemoveFileSpecW(fullpath.data());
 
     std::vector<WCHAR> name = fullpath;
-    ::PathAppendW(name.data(), L"\\front_end\\inspector.html");
+    ::PathAppendW(name.data(), u"\\front_end\\inspector.html");
 
     std::string nameA;
     if (::PathFileExistsW(name.data())) {
@@ -1246,7 +1371,7 @@ void WebContents::openDevToolsApi()
     }
 
     name = fullpath;
-    ::PathAppendW(name.data(), L"\\resources\\devtools\\inspector.html");
+    ::PathAppendW(name.data(), u"\\resources\\devtools\\inspector.html");
     nameA = StringUtil::UTF16ToUTF8(name.data());
     mbSetDebugConfig(m_view, "showDevTools", nameA.c_str());
 
@@ -1255,7 +1380,6 @@ void WebContents::openDevToolsApi()
 
 void WebContents::closeDevToolsApi()
 {
-    //todo
 }
 
 bool WebContents::isDevToolsOpenedApi()
@@ -1265,7 +1389,6 @@ bool WebContents::isDevToolsOpenedApi()
 
 bool WebContents::isDevToolsFocusedApi()
 {
-    //todo
     return true;
 }
 
@@ -1312,27 +1435,26 @@ v8::Local<v8::Promise> WebContents::insertCSSApi(const std::string& cssText, gin
 
 void WebContents::setZoomFactorApi(float factor)
 {
-
+    if (factor <= 0)
+        return;
+    mbWebView webView = getMbView();
+    mbSetZoomFactor(webView, factor);
 }
 
 void WebContents::enableDeviceEmulationApi()
 {
-    //todo
 }
 
 void WebContents::disableDeviceEmulationApi()
 {
-    //todo
 }
 
 void WebContents::toggleDevToolsApi()
 {
-    //todo
 }
 
 void WebContents::inspectElementApi()
 {
-    //todo
 }
 
 void WebContents::setAudioMutedApi()
@@ -1377,7 +1499,6 @@ void WebContents::pasteApi()
 
 void WebContents::pasteAndMatchStyleApi()
 {
-    //todo
 }
 
 void WebContents::_deleteApi()
@@ -1397,22 +1518,18 @@ void WebContents::unselectApi()
 
 void WebContents::replaceApi()
 {
-    //todo
 }
 
 void WebContents::replaceMisspellingApi()
 {
-    //todo
 }
 
 void WebContents::findInPageApi()
 {
-    //todo
 }
 
 void WebContents::stopFindInPageApi()
 {
-    //todo
 }
 
 void WebContents::focusApi()
@@ -1427,7 +1544,6 @@ bool WebContents::isFocusedApi()
 
 void WebContents::tabTraverseApi()
 {
-    //todo
 }
 
 bool WebContents::_sendApi(
@@ -1470,8 +1586,17 @@ bool WebContents::_sendApi(
     for (; winIt != WindowList::getInstance()->end(); ++winIt) {
         WindowInterface* windowInterface = *winIt;
         WebContents* webContents = windowInterface->getWebContents();
-        webContents->anyPostMessageToRenderer(frameId, channel, std::unique_ptr<std::vector<blink::CloneableMessage>>(args));
+        auto argsCopy = std::make_unique<std::vector<blink::CloneableMessage>>();
+        argsCopy->reserve(args->size());
+        for (const auto& arg : *args) {
+            blink::CloneableMessage message;
+            message.owned_encoded_message.assign(arg.encoded_message.begin(), arg.encoded_message.end());
+            message.encoded_message = message.owned_encoded_message;
+            argsCopy->push_back(std::move(message));
+        }
+        webContents->anyPostMessageToRenderer(frameId, channel, std::move(argsCopy));
     }
+    delete args;
     return true;
 }
 
@@ -1506,6 +1631,22 @@ static void emitMojoMessageToRendererImpl(
     }
 }
 
+void WebContents::postMojoMessageToRendererFrame(int64_t frameId, const std::string& channel, std::unique_ptr<mojo::Message> mojoMessage)
+{
+    int id = m_id;
+    WebContents* self = this;
+    std::string* channelCopy = new std::string(channel);
+    mojo::Message* mojoMessagePtr = mojoMessage.release();
+    content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [self, frameId, id, mojoMessagePtr, channelCopy] {
+        if (IdLiveDetect::get()->isLive(id)) {
+            mbWebFrameHandle frame = frameId ? (mbWebFrameHandle)frameId : mbWebFrameGetMainFrame(self->m_view);
+            emitMojoMessageToRendererImpl(self, self->m_view, frame, WorldIDs::ISOLATED_WORLD_ID, *channelCopy, *mojoMessagePtr);
+        }
+        delete mojoMessagePtr;
+        delete channelCopy;
+    });
+}
+
 void mbTestMessageChannelMain(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
 
@@ -1518,73 +1659,55 @@ void WebContents::_testPostMessageApi(const v8::FunctionCallbackInfo<v8::Value>&
 
 bool WebContents::_postMessageApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-    int id = m_id;
-    WebContents* self = this;
-    mojo::Message* mojoMessage = new mojo::Message();
-    std::string* channel = new std::string();
-    if (!v8FunInfoToMojoMessage(info, mojoMessage, channel))
+    auto mojoMessage = std::make_unique<mojo::Message>();
+    std::string channel;
+    if (!v8FunInfoToMojoMessage(info, mojoMessage.get(), &channel))
         return false;
 
-    content::ThreadCall::callBlinkThreadAsync(FROM_HERE, [self, id, mojoMessage, channel] {
-        if (IdLiveDetect::get()->isLive(id)) {
-            emitMojoMessageToRendererImpl(self, self->m_view, mbWebFrameGetMainFrame(self->m_view), WorldIDs::ISOLATED_WORLD_ID, *channel, *mojoMessage);
-        }
-        delete mojoMessage;
-        delete channel;
-    });
+    postMojoMessageToRendererFrame(0, channel, std::move(mojoMessage));
     return true;
 }
 
 void WebContents::sendInputEventApi()
 {
-    //todo
 }
 
 void WebContents::beginFrameSubscriptionApi()
 {
-    //todo
 }
 
 void WebContents::endFrameSubscriptionApi()
 {
-    //todo
 }
 
 void WebContents::startDragApi()
 {
-    //todo
 }
 
 void WebContents::setSizeApi()
 {
-    //todo
 }
 
 bool WebContents::isGuestApi()
 {
-    //todo
     return false;
 }
 
 bool WebContents::isOffscreenApi()
 {
-    //todo
     return false;
 }
 
 void WebContents::startPaintingApi()
 {
-    //todo
 }
 
 void WebContents::stopPaintingApi()
 {
-    //todo
 }
 
 bool WebContents::isPaintingApi()
 {
-    //todo
     return false;
 }
 
@@ -1600,17 +1723,14 @@ int WebContents::getFrameRateApi()
 
 void WebContents::invalidateApi()
 {
-    //todo
 }
 
 void WebContents::getTypeApi()
 {
-    //todo
 }
 
 void WebContents::getWebPreferencesApi()
 {
-    //todo
 }
 
 v8::Local<v8::Value> WebContents::getOwnerBrowserWindowApi()
@@ -1628,52 +1748,38 @@ bool WebContents::hasServiceWorkerApi()
 
 void WebContents::unregisterServiceWorkerApi()
 {
-    //todo
 }
 
 void WebContents::inspectServiceWorkerApi()
 {
-    //todo
 }
 
 void WebContents::printApi()
 {
-    //todo
-}
-
-void WebContents::_printToPDFApi()
-{
-    //todo
 }
 
 void WebContents::addWorkSpaceApi()
 {
-    //todo
 }
 
 void WebContents::reNullWorkSpaceApi()
 {
-    //todo
 }
 
 void WebContents::showDefinitionForSelectionApi()
 {
-    //todo
 }
 
 void WebContents::copyImageAtApi()
 {
-    //todo
 }
 
 void WebContents::capturePageApi()
 {
-    //todo
 }
 
 void WebContents::setEmbedderApi()
 {
-    //todo
 }
 
 bool WebContents::isDestroyedApi() const
@@ -1741,10 +1847,6 @@ void WebContents::onDocumentReadyInBlinkThread(mbWebView webView, void* param, m
             obs->onWebContentsReadyToShow(self);
         }
     });
-}
-
-void WebContents::nullFunction()
-{
 }
 
 gin_helper::WrapperInfo WebContents::kWrapperInfo = { gin_helper::GinEmbedder::kEmbedderNativeGin };

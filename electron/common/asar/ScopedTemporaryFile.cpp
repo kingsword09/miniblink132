@@ -4,12 +4,14 @@
 
 #include "electron/common/asar/ScopedTemporaryFile.h"
 
-//#include "base/files/file_util.h"
+#include "base/files/file_util.h"
 //#include "base/threading/thread_restrictions.h"
 #include "base/files/file.h"
 #include "base/files/file_path.h"
 
+#if defined(OS_WIN)
 #include <windows.h>
+#endif
 #include <vector>
 
 namespace {
@@ -53,6 +55,7 @@ namespace {
 //     return false;
 // }
 
+#if defined(OS_WIN)
 bool MoveUnsafe(const base::FilePath& from_path, const base::FilePath& to_path)
 {
     //ThreadRestrictions::AssertIOAllowed();
@@ -100,9 +103,7 @@ bool GetTempDir(base::FilePath* path)
     DWORD path_len = ::GetTempPath(MAX_PATH, temp_path);
     if (path_len >= MAX_PATH || path_len <= 0)
         return false;
-    // TODO(evanm): the old behavior of this function was to always strip the
-    // trailing slash.  We duplicate this here, but it shouldn't be necessary
-    // when everyone is using the appropriate base::FilePath APIs.
+    // Preserve the old behavior of stripping the trailing slash.
     *path = base::FilePath(temp_path).StripTrailingSeparators();
     return true;
 }
@@ -153,6 +154,7 @@ bool Move(const base::FilePath& from_path, const base::FilePath& to_path)
         return false;
     return MoveUnsafe(from_path, to_path);
 }
+#endif
 
 }
 
@@ -172,7 +174,7 @@ ScopedTemporaryFile::~ScopedTemporaryFile()
 #if defined(OS_WIN)
         //base::DeleteFileAfterReboot(path_);
 #else
-        base::DeleteFile(path_, false);
+        base::DeleteFile(path_);
 #endif
     }
 }
@@ -183,7 +185,11 @@ bool ScopedTemporaryFile::Init(const base::FilePath::StringType& ext)
         return true;
 
     //base::ThreadRestrictions::ScopedAllowIO allow_io;
+#if defined(OS_WIN)
     if (!CreateTemporaryFile(&path_))
+#else
+    if (!base::CreateTemporaryFile(&path_))
+#endif
         return false;
 
 #if defined(OS_WIN)

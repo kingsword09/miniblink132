@@ -242,8 +242,10 @@
 #if BUILDFLAG(IS_MAC)
 #include "third_party/blink/renderer/core/editing/ephemeral_range.h"
 #include "third_party/blink/renderer/core/editing/substring_util.h"
+#if 0
 #include "third_party/blink/renderer/platform/fonts/mac/attributed_string_type_converter.h"
 #include "ui/base/mojom/attributed_string.mojom-blink.h"
+#endif
 #include "ui/gfx/range/range.h"
 #endif
 
@@ -1174,7 +1176,7 @@ void LocalFrame::SetTextDirection(base::i18n::TextDirection direction)
         break;
 
     default:
-        NOTIMPLEMENTED();
+        (void)0;
         break;
     }
 }
@@ -3213,7 +3215,7 @@ void LocalFrame::SetInitialFocus(bool reverse)
     GetPage()->GetFocusController().SetInitialFocus(reverse ? mojom::blink::FocusType::kBackward : mojom::blink::FocusType::kForward);
 }
 
-#if BUILDFLAG(IS_MAC)
+#if 0
 void LocalFrame::GetCharacterIndexAtPoint(const gfx::Point& point)
 {
     HitTestLocation location(View()->ViewportToFrame(gfx::Point(point)));
@@ -3620,12 +3622,16 @@ bool LocalFrame::ShouldThrottleDownload()
 #if BUILDFLAG(IS_MAC)
 void LocalFrame::ResetTextInputHostForTesting()
 {
+#if 0
     mojo_handler_->ResetTextInputHostForTesting();
+#endif
 }
 
 void LocalFrame::RebindTextInputHostForTesting()
 {
+#if 0
     mojo_handler_->RebindTextInputHostForTesting();
+#endif
 }
 #endif
 

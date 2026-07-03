@@ -1,6 +1,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #if defined(_MSC_VER)
 
@@ -49,8 +50,9 @@ extern "C" long MB_InterlockedCompareExchange(long volatile* _Destination, long 
     return _InterlockedCompareExchange((long volatile*)_Destination, _Exchange, _Comparand);
 }
 
-#else // linux
+#else // linux/mac
 
+#if !defined(OS_MAC)
 uintptr_t MbTlsAlloc()
 {
     pthread_key_t key;
@@ -99,6 +101,7 @@ extern "C" long MB_InterlockedCompareExchange(long volatile* _Destination, long 
 {
     return _InterlockedCompareExchange((volatile int*)_Destination, _Exchange, _Comparand);
 }
+#endif
 
 extern "C" void MB__atomic_load(size_t size, void* ptr, void* ret, int memorder)
 {
@@ -130,8 +133,20 @@ extern "C" void MB__atomic_store(size_t size, void* dest, const void* src, int m
 }
 
 //extern "C" int64_t _InterlockedExchange64(int64_t volatile* _Target, int64_t _Value);
+#if !defined(OS_MAC)
 extern "C" __int32 _InterlockedExchange(__int32 volatile* _Target, __int32 _Value);
 extern "C" __int64 InterlockedExchangeAcquire64(__int64 volatile* _Target, __int64 _Value);
+#endif
+
+static inline __int16 MB_InterlockedExchange16(__int16 volatile* target, __int16 value)
+{
+    return __sync_lock_test_and_set(target, value);
+}
+
+static inline int64_t MB_InterlockedExchange64(int64_t volatile* target, int64_t value)
+{
+    return __sync_lock_test_and_set(target, value);
+}
 
 extern "C" void MB__atomic_exchange(size_t size, void* ptr, void* val, void* ret, int memorder)
 {
@@ -140,15 +155,15 @@ extern "C" void MB__atomic_exchange(size_t size, void* ptr, void* val, void* ret
     do {
 #if __SIZEOF_LONG__ == 8
         if (2 == size) {
-            __int16 retv = _InterlockedExchange16((__int16 volatile*)ptr, *(__int16*)val);
+            __int16 retv = MB_InterlockedExchange16((__int16 volatile*)ptr, *(__int16*)val);
             *(__int16*)ret = (__int16)retv;
             return;
         } else if (4 == size) {
-            long retv = _InterlockedExchange((__int32 volatile*)ptr, *(__int32*)val);
+            __int32 retv = __sync_lock_test_and_set((__int32 volatile*)ptr, *(__int32*)val);
             *(int32_t*)ret = (int32_t)retv;
             return;
         } else if (8 == size) {
-            int64_t retv = _InterlockedExchange64((int64_t volatile*)ptr, *(int64_t*)val);
+            int64_t retv = MB_InterlockedExchange64((int64_t volatile*)ptr, *(int64_t*)val);
             *(int64_t*)ret = (int64_t)retv;
             return;
         }

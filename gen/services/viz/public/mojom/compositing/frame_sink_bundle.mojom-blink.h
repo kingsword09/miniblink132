@@ -295,6 +295,132 @@ public:
 //public:
 //    bool Accept(mojo::Message* message) override;
 //};
+class BLINK_PLATFORM_EXPORT FrameSinkBundleProxy : public FrameSinkBundle {
+public:
+    using InterfaceType = FrameSinkBundle;
+
+    explicit FrameSinkBundleProxy(mojo::MessageReceiverWithResponder* receiver);
+
+    void InitializeCompositorFrameSinkType(uint32_t sink_id, ::viz::mojom::blink::CompositorFrameSinkType type) final;
+
+    void SetNeedsBeginFrame(uint32_t sink_id, bool needs_begin_frame) final;
+
+    void SetWantsBeginFrameAcks(uint32_t sink_id) final;
+
+    void Submit(WTF::Vector<BundledFrameSubmissionPtr> submissions) final;
+
+    void DidAllocateSharedBitmap(uint32_t sink_id, ::base::ReadOnlySharedMemoryRegion region, const ::viz::SharedBitmapId& id) final;
+
+private:
+    mojo::MessageReceiverWithResponder* receiver_;
+};
+
+class BLINK_PLATFORM_EXPORT FrameSinkBundleClientProxy : public FrameSinkBundleClient {
+public:
+    using InterfaceType = FrameSinkBundleClient;
+
+    explicit FrameSinkBundleClientProxy(mojo::MessageReceiverWithResponder* receiver);
+
+    void FlushNotifications(WTF::Vector<BundledReturnedResourcesPtr> acks, WTF::Vector<BeginFrameInfoPtr> begin_frames,
+        WTF::Vector<BundledReturnedResourcesPtr> reclaimed_resources) final;
+
+    void OnBeginFramePausedChanged(uint32_t sink_id, bool paused) final;
+
+    void OnCompositorFrameTransitionDirectiveProcessed(uint32_t sink_id, uint32_t sequence_id) final;
+
+private:
+    mojo::MessageReceiverWithResponder* receiver_;
+};
+
+class BLINK_PLATFORM_EXPORT FrameSinkBundleStubDispatch {
+public:
+    static bool Accept(FrameSinkBundle* impl, mojo::Message* message);
+    static bool AcceptWithResponder(FrameSinkBundle* impl, mojo::Message* message, std::unique_ptr<mojo::MessageReceiverWithStatus> responder);
+};
+
+template <typename ImplRefTraits = mojo::RawPtrImplRefTraits<FrameSinkBundle>> class FrameSinkBundleStub : public mojo::MessageReceiverWithResponderStatus {
+public:
+    using ImplPointerType = typename ImplRefTraits::PointerType;
+
+    FrameSinkBundleStub() = default;
+    ~FrameSinkBundleStub() override = default;
+
+    void set_sink(ImplPointerType sink)
+    {
+        sink_ = std::move(sink);
+    }
+    ImplPointerType& sink()
+    {
+        return sink_;
+    }
+
+    bool Accept(mojo::Message* message) override
+    {
+        if (ImplRefTraits::IsNull(sink_))
+            return false;
+        return FrameSinkBundleStubDispatch::Accept(ImplRefTraits::GetRawPointer(&sink_), message);
+    }
+
+    bool AcceptWithResponder(mojo::Message* message, std::unique_ptr<mojo::MessageReceiverWithStatus> responder) override
+    {
+        if (ImplRefTraits::IsNull(sink_))
+            return false;
+        return FrameSinkBundleStubDispatch::AcceptWithResponder(ImplRefTraits::GetRawPointer(&sink_), message, std::move(responder));
+    }
+
+private:
+    ImplPointerType sink_;
+};
+
+class BLINK_PLATFORM_EXPORT FrameSinkBundleClientStubDispatch {
+public:
+    static bool Accept(FrameSinkBundleClient* impl, mojo::Message* message);
+    static bool AcceptWithResponder(FrameSinkBundleClient* impl, mojo::Message* message, std::unique_ptr<mojo::MessageReceiverWithStatus> responder);
+};
+
+template <typename ImplRefTraits = mojo::RawPtrImplRefTraits<FrameSinkBundleClient>>
+class FrameSinkBundleClientStub : public mojo::MessageReceiverWithResponderStatus {
+public:
+    using ImplPointerType = typename ImplRefTraits::PointerType;
+
+    FrameSinkBundleClientStub() = default;
+    ~FrameSinkBundleClientStub() override = default;
+
+    void set_sink(ImplPointerType sink)
+    {
+        sink_ = std::move(sink);
+    }
+    ImplPointerType& sink()
+    {
+        return sink_;
+    }
+
+    bool Accept(mojo::Message* message) override
+    {
+        if (ImplRefTraits::IsNull(sink_))
+            return false;
+        return FrameSinkBundleClientStubDispatch::Accept(ImplRefTraits::GetRawPointer(&sink_), message);
+    }
+
+    bool AcceptWithResponder(mojo::Message* message, std::unique_ptr<mojo::MessageReceiverWithStatus> responder) override
+    {
+        if (ImplRefTraits::IsNull(sink_))
+            return false;
+        return FrameSinkBundleClientStubDispatch::AcceptWithResponder(ImplRefTraits::GetRawPointer(&sink_), message, std::move(responder));
+    }
+
+private:
+    ImplPointerType sink_;
+};
+
+class BLINK_PLATFORM_EXPORT FrameSinkBundleRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
+class BLINK_PLATFORM_EXPORT FrameSinkBundleClientRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
 
 class BLINK_PLATFORM_EXPORT BundledFrameSubmissionData {
 public:

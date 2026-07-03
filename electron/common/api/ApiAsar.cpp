@@ -24,7 +24,7 @@
 #pragma clang optimize off
 
 namespace node {
-bool g_disable_has_run_bootstrapping_code_error = false;
+extern bool g_disable_has_run_bootstrapping_code_error;
 }
 
 namespace atom {
@@ -128,7 +128,7 @@ protected:
         }
         const size_t size = offset - start;
 
-        // TODO(anonrig): Follow-up on removing the following changes for AIX.
+        // AIX compatibility path retained from upstream.
         const char* p = &chars[start];
         const char* pe = &chars[size];
         const char* pos[2];
@@ -312,7 +312,7 @@ void initializeAsarApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unuse
 
 } // atom namespace
 
-static const char CommonAsarNative[] = "console.log('CommonAsarNative');;";
+static const char CommonAsarNative[] = "module.exports = process._linkedBinding('electron_common_asar');";
 static NodeNative nativeCommonAsarNative { "Asar", CommonAsarNative, sizeof(CommonAsarNative) - 1 };
 
 NODE_MODULE_CONTEXT_AWARE_BUILTIN_SCRIPT_MANUAL(electron_common_asar, atom::initializeAsarApi, &nativeCommonAsarNative)

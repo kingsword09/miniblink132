@@ -118,14 +118,13 @@ void ApiCommandLine::create(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void ApiCommandLine::hasSwitchApi(const v8::FunctionCallbackInfo<v8::Value>& info) const
 {
-    DebugBreak();
+    info.GetReturnValue().Set(false);
     return;
 }
 
 std::string ApiCommandLine::getSwitchValueApi(const std::string& switchStr) const
 {
-    DebugBreak();
-    return ";";
+    return std::string();
 }
 
 static const char CommandLineSricpt[] = "exports = {};";

@@ -12,7 +12,12 @@
 #include "base/numerics/clamped_math.h"
 #include "base/strings/stringprintf.h"
 #include "base/time/time.h"
+#if __has_include("third_party/webrtc_overrides/rtc_base/logging.h")
 #include "third_party/webrtc_overrides/rtc_base/logging.h"
+#define BLINK_HAS_WEBRTC_LOGGING_OVERRIDES 1
+#else
+#define BLINK_HAS_WEBRTC_LOGGING_OVERRIDES 0
+#endif
 
 namespace blink {
 
@@ -29,8 +34,10 @@ void InitWebRtcLoggingDelegate(WebRtcLogMessageDelegate* delegate)
 
 void InitWebRtcLogging()
 {
+#if BLINK_HAS_WEBRTC_LOGGING_OVERRIDES
     // Log messages from Libjingle should not have timestamps.
     rtc::InitDiagnosticLoggingDelegateFunction(&WebRtcLogMessage);
+#endif
 }
 
 void WebRtcLogMessage(const std::string& message)

@@ -106,7 +106,6 @@ HRESULT DeleteFileProgressSink::QueryInterface(REFIID riid, LPVOID* ppvObj)
     if (!ppvObj)
         return E_INVALIDARG;
     *ppvObj = nullptr;
-    DebugBreak();
 
     //     if (riid == IID_IUnknown || riid == IID_IFileOperationProgressSink) {
     //         // Increment the reference count and return the pointer.
@@ -119,9 +118,7 @@ HRESULT DeleteFileProgressSink::QueryInterface(REFIID riid, LPVOID* ppvObj)
 
 ULONG DeleteFileProgressSink::AddRef()
 {
-    //InterlockedIncrement(&m_cRef);
-    DebugBreak();
-    return m_cRef;
+    return ++m_cRef;
 }
 
 ULONG DeleteFileProgressSink::Release()
@@ -132,8 +129,9 @@ ULONG DeleteFileProgressSink::Release()
     //         delete this;
     //     }
     //    return ulRefCount;
-    DebugBreak();
-    return 0;
+    if (m_cRef > 0)
+        --m_cRef;
+    return m_cRef;
 }
 
 HRESULT DeleteFileProgressSink::StartOperations()
@@ -299,12 +297,11 @@ void showItemInFolder(const base::FilePath& full_path)
     }
 }
 
-void openItem(const base::FilePath& full_path)
+bool openItem(const base::FilePath& full_path)
 {
     if (::PathIsDirectoryW(full_path.value().c_str()))
-        ui::win::OpenFolderViaShell(full_path);
-    else
-        ui::win::OpenFileViaShell(full_path);
+        return ui::win::OpenFolderViaShell(full_path);
+    return ui::win::OpenFileViaShell(full_path);
 }
 
 class OpenExternal {
@@ -343,9 +340,7 @@ public:
         std::u16string escaped_url = (const char16_t*)L"\"" + url + (const char16_t*)L"\"";
 
         if (reinterpret_cast<ULONG_PTR>(ShellExecuteW(NULL, L"open", (LPCWSTR)escaped_url.c_str(), NULL, NULL, SW_SHOWNORMAL)) <= 32) {
-            // We fail to execute the call. We could display a message to the user.
-            // TODO(nsylvain): we should also add a dialog to warn on errors. See
-            // bug 1136923.
+            // Callers surface the failure through the shell API result.
             return false;
         }
         return true;
@@ -391,7 +386,6 @@ void moveToCenter(HWND hWnd)
 
 bool moveItemToTrash(const base::FilePath& path)
 {
-    DebugBreak();
     return false;
     //     base::win::ScopedCOMInitializer com_initializer;
     //     if (!com_initializer.succeeded())
@@ -576,7 +570,6 @@ bool loadIconFromICOToSkBitmap(const uint8_t* data, size_t dataSize, SkBitmap* o
 
         bool isPng = iconHead->icHeader.biCompression;
 
-        DebugBreak();
 //         if (isPng) {
 //             // Step 4: 如果是 PNG，直接使用 gfx::Image::CreateFrom1xPNGBytes 加载
 //             *outBitmap = gfx::Image::CreateFrom1xPNGBytes(base::span<const uint8_t>(imageData, imageSize)).AsBitmap();

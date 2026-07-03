@@ -3,7 +3,11 @@
 #define browser_api_WindowInterface_h
 
 #include <v8.h>
+#if defined(WINDOWS_FOR_LINUX_H) || defined(WINDOWS_FOR_MAC_H) || defined(_WIN32)
+#include <windows.h>
+#else
 typedef struct HWND__* HWND;
+#endif
 
 namespace atom {
 
@@ -22,7 +26,11 @@ public:
 
     static WebContents* onCreateNewWebview(v8::Local<v8::Object>);
 
+#if defined(OS_MAC)
+    static const char16_t kElectronClassName[];
+#else
     static const wchar_t kElectronClassName[];
+#endif
     static const int kSingleInstanceMessage = 0x410;
 };
 

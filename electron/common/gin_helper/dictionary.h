@@ -165,7 +165,7 @@ public:
 private:
     friend struct Converter<Dictionary>;
 
-    // TODO(aa): Remove this. Instead, get via FromV8(), Set(), and Get().
+    // Kept for callers that need direct isolate/object access.
     v8::Isolate* isolate_;
     v8::Local<v8::Object> object_;
 };

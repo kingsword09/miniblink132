@@ -529,8 +529,10 @@ void Surface::ActivateFrame(FrameData frame_data)
 
     // Save root pass copy requests.
     std::vector<std::unique_ptr<CopyOutputRequest>> old_copy_requests;
-    if (active_frame_data_) {
-        std::swap(old_copy_requests, active_frame_data_->frame.render_pass_list.back()->copy_requests);
+    if (active_frame_data_ && !active_frame_data_->frame.render_pass_list.empty()) {
+        CompositorRenderPass* root_pass = active_frame_data_->frame.render_pass_list.back().get();
+        if (root_pass)
+            std::swap(old_copy_requests, root_pass->copy_requests);
     }
 
     ClearCopyRequests();
@@ -806,6 +808,8 @@ void Surface::ClearCopyRequests()
 {
     if (active_frame_data_) {
         for (const auto& render_pass : GetActiveFrame().render_pass_list) {
+            if (!render_pass)
+                continue;
             // When the container is cleared, all copy requests within it will
             // auto-send an empty result as they are being destroyed.
             render_pass->copy_requests.clear();

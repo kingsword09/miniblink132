@@ -1,4 +1,4 @@
-import { constVal, buildCommonSetting } from "./const_val.js";
+import { constVal, buildCommonSetting, applyMacBuildSettings } from "./const_val.js";
 
 var src = [
     // 新版本nodejs的openssl
@@ -1361,5 +1361,35 @@ var json = [{
 if ("x86_64-linux-guneabi" == constVal.target) { // ARM64
     json[0].compile.cmd.push("-D_M_X64=100");
 }
+
+if (constVal.isMac) {
+    const winNoAsmPath = "${srcPath}/third_party/openssl/config/archs/VC-WIN32/no-asm";
+    const macNoAsmPath = "${srcPath}/third_party/openssl/config/archs/darwin64-arm64-cc/no-asm";
+    const opensslInclude = "${srcPath}/third_party/openssl/openssl/include";
+    const macConfigInclude = macNoAsmPath + "/include";
+    const macNoAsmExclude = [
+        "/crypto/bn/bn_ppc.c",
+        "/crypto/bn/bn_sparc.c",
+        "/crypto/ec/ecp_nistz256.c",
+        "/crypto/ec/ecp_ppc.c",
+        "/crypto/ec/ecp_s390x_nistp.c",
+        "/crypto/ec/ecx_s390x.c",
+        "/crypto/poly1305/poly1305_ppc.c",
+        "/crypto/sha/sha_ppc.c",
+        "/providers/implementations/rands/seeding/rand_cpu_x86.c",
+    ];
+
+    json[0].compile.src = json[0].compile.src.map((path) => path.replace(winNoAsmPath, macNoAsmPath));
+    json[0].compile.src = json[0].compile.src.filter((path) =>
+        !macNoAsmExclude.some((suffix) => path.endsWith(suffix)));
+    json[0].compile.include = json[0].compile.include.map((path) => path.replace(winNoAsmPath, macNoAsmPath));
+    json[0].compile.cmd = json[0].compile.cmd.filter((arg) => arg != "-D_GNU_SOURCE");
+
+    const opensslIncludeIndex = json[0].compile.include.indexOf(opensslInclude);
+    if (opensslIncludeIndex >= 0 && json[0].compile.include.indexOf(macConfigInclude) < 0)
+        json[0].compile.include.splice(opensslIncludeIndex, 0, macConfigInclude);
+}
+
+applyMacBuildSettings(json);
 
 buildCommonSetting(json);

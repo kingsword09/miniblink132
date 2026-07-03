@@ -61,9 +61,7 @@ public:
             ::GlobalUnlock(store.hGlobal);
             ReleaseStgMedium(&store);
         } else {
-            // FIXME: Originally, we called getURL() here because dragging and dropping files doesn't
-            // populate the drag with text data. Per https://bugs.webkit.org/show_bug.cgi?id=38826, this
-            // is undesirable, so maybe this line can be removed.
+            // Dragging and dropping files does not populate text data; keep text empty.
             text = nullptr; // wkeCreateStringW(L"", 0); // getURL(dataObject, nullptr);
         }
         return text;

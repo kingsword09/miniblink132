@@ -125,11 +125,6 @@ bool ImageInfo_Data::Validate(const void* data, mojo::internal::ValidationContex
     return true;
 }
 
-ImageInfo_Data::ImageInfo_Data()
-    : header_({ sizeof(*this), 0 })
-{
-}
-
 // static
 bool BitmapN32ImageInfo_Data::Validate(const void* data, mojo::internal::ValidationContext* validation_context)
 {

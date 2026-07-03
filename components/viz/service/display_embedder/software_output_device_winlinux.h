@@ -10,6 +10,8 @@
 #include <memory>
 
 #include "base/memory/raw_ptr.h"
+#include "base/memory/unsafe_shared_memory_region.h"
+#include "base/memory/weak_ptr.h"
 #include "base/threading/thread_checker.h"
 #include "base/synchronization/lock.h"
 #include "components/viz/service/display/software_output_device.h"
@@ -81,6 +83,8 @@ private:
     mojo::Remote<mojom::LayeredWindowUpdater> layered_window_updater_;
 
     std::unique_ptr<SkCanvas> canvas_;
+    base::UnsafeSharedMemoryRegion bitmap_region_;
+    base::WritableSharedMemoryMapping bitmap_mapping_;
 
     std::unique_ptr<SkCanvas> transparent_background_canvas_;
     uint8_t* transparent_background_pixels_ = nullptr;
@@ -95,6 +99,8 @@ private:
     base::OnceClosure swap_ack_callback_;
 
     base::Lock canvas_lock_;
+
+    base::WeakPtrFactory<SoftwareOutputDeviceWinOrLinux> weak_factory_ { this };
 };
 
 // Creates an appropriate SoftwareOutputDevice implementation.

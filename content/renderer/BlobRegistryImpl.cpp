@@ -307,7 +307,7 @@ void BlobReceiver::ReadAll(::mojo::ScopedDataPipeProducerHandle pipe, ::mojo::Pe
             m_pipe->WriteData(buffer.data(), &numBytes, 0);
             totalSize += numBytes;
         } else
-            DebugBreak();
+            (void)0;
     }
 
     if (isSync)

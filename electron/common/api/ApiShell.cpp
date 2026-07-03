@@ -13,9 +13,13 @@
 #include "electron/common/gin_helper/public/gin_embedders.h"
 #include "electron/common/gin_helper/public/wrapper_info.h"
 
-//#if defined(OS_WIN)
+#if defined(__APPLE__)
+#include <shellapi.h>
+#else
 #include "base/win/scoped_com_initializer.h"
 #include "base/win/shortcut.h"
+#endif
+
 #include "base/files/file_path.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
@@ -26,6 +30,7 @@
 
 namespace gin_helper {
 
+#if !defined(__APPLE__)
 template <> struct Converter<base::win::ShortcutOperation> {
     static bool FromV8(v8::Isolate* isolate, v8::Handle<v8::Value> val, base::win::ShortcutOperation* out)
     {
@@ -43,11 +48,34 @@ template <> struct Converter<base::win::ShortcutOperation> {
         return true;
     }
 };
+#endif
 
 } // namespace gin_helper
-//#endif
 
 namespace {
+
+#if defined(__APPLE__)
+
+std::u16string utf8ToWide(const std::string& value)
+{
+    return base::UTF8ToUTF16(value);
+}
+
+bool shellExecuteOpen(const std::u16string& target, const char16_t* verb)
+{
+    if (target.empty())
+        return false;
+
+    HINSTANCE result = ShellExecuteW(nullptr,
+        reinterpret_cast<LPCWSTR>(verb),
+        reinterpret_cast<LPCWSTR>(target.c_str()),
+        nullptr,
+        nullptr,
+        SW_SHOWNORMAL);
+    return reinterpret_cast<ULONG_PTR>(result) > 32;
+}
+
+#endif
 
 void openExternal(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
@@ -65,7 +93,6 @@ void openExternal(const v8::FunctionCallbackInfo<v8::Value>& info)
         info.GetReturnValue().Set(false);
         return;
     }
-    std::u16string urlW(base::UTF8ToUTF16(url));
 
     bool activate = true;
 
@@ -74,11 +101,16 @@ void openExternal(const v8::FunctionCallbackInfo<v8::Value>& info)
         options.Get("activate", &activate);
     }
 
+#if defined(__APPLE__)
+    bool b = shellExecuteOpen(utf8ToWide(url), u"open");
+#else
+    std::u16string urlW(base::UTF8ToUTF16(url));
     bool b = platform_util::openExternal(urlW, activate);
+#endif
     info.GetReturnValue().Set(b);
 }
 
-//#if defined(OS_WIN)
+#if !defined(__APPLE__)
 void writeShortcutLink(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     std::string shortcutPathStr;
@@ -160,6 +192,7 @@ void readShortcutLink(const v8::FunctionCallbackInfo<v8::Value>& info)
     options.Set("appUserModelId", base::WideToUTF8(properties.app_id));
     info.GetReturnValue().Set(gin_helper::Converter<gin_helper::Dictionary>::ToV8(args.isolate(), options));
 }
+#endif
 
 void showItemInFolder(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
@@ -177,7 +210,11 @@ void showItemInFolder(const v8::FunctionCallbackInfo<v8::Value>& info)
         return;
     }
 
+#if defined(__APPLE__)
+    shellExecuteOpen(utf8ToWide(fullPathStr), u"reveal");
+#else
     platform_util::showItemInFolder(base::FilePath::FromUTF8Unsafe(fullPathStr));
+#endif
 }
 
 void openItem(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -194,7 +231,12 @@ void openItem(const v8::FunctionCallbackInfo<v8::Value>& info)
         return;
     }
 
-    platform_util::openItem(base::FilePath::FromUTF8Unsafe(fullPathStr));
+#if defined(__APPLE__)
+    bool b = shellExecuteOpen(utf8ToWide(fullPathStr), u"open");
+#else
+    bool b = platform_util::openItem(base::FilePath::FromUTF8Unsafe(fullPathStr));
+#endif
+    info.GetReturnValue().Set(b);
 }
 
 void moveItemToTrash(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -213,15 +255,31 @@ void moveItemToTrash(const v8::FunctionCallbackInfo<v8::Value>& info)
         return;
     }
 
+#if defined(__APPLE__)
+    std::u16string fullPath = utf8ToWide(fullPathStr);
+    fullPath.push_back(0);
+    fullPath.push_back(0);
+
+    SHFILEOPSTRUCTW fileOp = {};
+    fileOp.wFunc = FO_DELETE;
+    fileOp.pFrom = reinterpret_cast<LPCWSTR>(fullPath.c_str());
+    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    int result = SHFileOperationW(&fileOp);
+    bool b = result == ERROR_SUCCESS && !fileOp.fAnyOperationsAborted;
+#else
     bool b = platform_util::moveItemToTrash(base::FilePath::FromUTF8Unsafe(fullPathStr));
+#endif
     info.GetReturnValue().Set(b);
 }
 
 void beep(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
+#if defined(__APPLE__)
+    MessageBeep(MB_OK);
+#else
     platform_util::beep();
+#endif
 }
-//#endif
 
 void initializeShellApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unused, v8::Local<v8::Context> context, void* priv)
 {
@@ -234,10 +292,10 @@ void initializeShellApi(v8::Local<v8::Object> exports, v8::Local<v8::Value> unus
     dict.SetMethod("openExternal", &openExternal);
     dict.SetMethod("moveItemToTrash", &moveItemToTrash);
     dict.SetMethod("beep", &beep);
-    //#if defined(OS_WIN)
+#if !defined(__APPLE__)
     dict.SetMethod("writeShortcutLink", &writeShortcutLink);
     dict.SetMethod("readShortcutLink", &readShortcutLink);
-    //#endif
+#endif
 
     exports->Set(context, v8::String::NewFromUtf8(isolate, "Shell").ToLocalChecked(), obj);
 }

@@ -10608,7 +10608,7 @@ void HTMLVideoElementExposedConstructCallback(v8::Local<v8::Name> v8_property_na
     RUNTIME_CALL_TIMER_SCOPE_DISABLED_BY_DEFAULT(info.GetIsolate(), "Blink_DOMWindow_HTMLVideoElement_ConstructorGetterCallback");
     BLINK_BINDINGS_TRACE_EVENT("Window.HTMLVideoElement");
 
-    OutputDebugStringA("HTMLVideoElementExposedConstructCallback not impl\n");
+    (void)0;
     // bindings::V8SetReturnValue(info, V8HTMLVideoElement::GetWrapperTypeInfo(), bindings::V8ReturnValue::kInterfaceObject);
 }
 

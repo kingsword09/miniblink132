@@ -14,6 +14,7 @@
 #include "third_party/libnode/src/node_binding.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/command_line.h"
+#include "base/strings/string_util.h"
 
 // electron\shell\browser\api\electron_api_utility_process.cc
 namespace atom {
@@ -110,10 +111,41 @@ std::string ApiCommandLine::getSwitchValueApi(const std::string& switchStr) cons
 
 void ApiCommandLine::appendSwitchApi(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
+    v8::Isolate* isolate = info.GetIsolate();
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "appendSwitch requires a switch name").ToLocalChecked()));
+        return;
+    }
+
+    v8::String::Utf8Value name(isolate, info[0]);
+    if (!*name || name.length() == 0) {
+        isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "appendSwitch switch name must not be empty").ToLocalChecked()));
+        return;
+    }
+
+    std::string switchName(*name, name.length());
+    base::TrimString(switchName, "-", &switchName);
+    if (switchName.empty()) {
+        isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "appendSwitch switch name must not be empty").ToLocalChecked()));
+        return;
+    }
+
+    if (info.Length() >= 2 && !info[1]->IsUndefined() && !info[1]->IsNull()) {
+        v8::String::Utf8Value value(isolate, info[1]);
+        if (!*value) {
+            isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "appendSwitch value must be convertible to string").ToLocalChecked()));
+            return;
+        }
+        base::CommandLine::ForCurrentProcess()->AppendSwitchASCII(switchName, std::string(*value, value.length()));
+        return;
+    }
+
+    base::CommandLine::ForCurrentProcess()->AppendSwitch(switchName);
 }
 
 void ApiCommandLine::appendArgumentApi(const std::string& switchStr)
 {
+    base::CommandLine::ForCurrentProcess()->AppendArg(switchStr);
 }
 
 static const char CommandLineSricpt[] = "exports = {};";

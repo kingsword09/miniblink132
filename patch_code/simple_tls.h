@@ -16,8 +16,8 @@
 extern "C" {
 #endif // __cplusplus
 
-long MB_InterlockedCompareExchange(long volatile*, long, long);
-long MB_InterlockedExchange(long volatile* _Target, long _Value);
+LONG MB_InterlockedCompareExchange(LONG volatile*, LONG, LONG);
+LONG MB_InterlockedExchange(LONG volatile* _Target, LONG _Value);
 uintptr_t MbTlsAlloc();
 LPVOID MbTlsGetValue(uintptr_t dwTlsIndex);
 BOOL MbTlsSetValue(uintptr_t dwTlsIndex, LPVOID lpTlsValue);
@@ -81,7 +81,7 @@ private:
         return it;
     }
 
-    long run_once_;
+    LONG run_once_;
     TlsKey slot_;
     void* default_val_;
 };
@@ -126,14 +126,14 @@ inline SimpleTlsPointerImpl::SlotItem* SimpleTlsPointerImpl::GetItem()
     SlotItem* it = nullptr;
 
     do {
-        volatile long old_var = MB_InterlockedCompareExchange((long volatile*)&(run_once_), 2, 0);
+        volatile LONG old_var = MB_InterlockedCompareExchange((LONG volatile*)&(run_once_), 2, 0);
         if (0 == old_var) {
             if (0 != slot_)
                 DebugBreak();
             slot_ = MbTlsAlloc();
             it = SetDefault();
 
-            MB_InterlockedExchange((long volatile*)&(run_once_), 1);
+            MB_InterlockedExchange((LONG volatile*)&(run_once_), 1);
             break;
         } else if (1 == old_var) {
             if (0 == slot_)

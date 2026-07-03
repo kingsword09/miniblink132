@@ -201,6 +201,11 @@ public:
 //    bool Accept(mojo::Message* message) override;
 //};
 
+class WatchTimeRecorderRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
+
 class PlaybackProperties {
 public:
     template <typename T> using EnableIfSame = std::enable_if_t<std::is_same<PlaybackProperties, T>::value>;

@@ -190,7 +190,6 @@ bool Converter<std::string>::FromV8(v8::Isolate* isolate, v8::Local<v8::Value> v
     return true;
 }
 
-#if defined(_WIN32)
 v8::Local<v8::Value> Converter<std::u16string>::ToV8(v8::Isolate* isolate, const std::u16string& val)
 {
     v8::Local<v8::String> ret = v8::String::NewFromTwoByte(isolate, (const uint16_t*)val.c_str(), v8::NewStringType::kNormal, val.length()).ToLocalChecked();
@@ -207,7 +206,6 @@ bool Converter<std::u16string>::FromV8(v8::Isolate* isolate, v8::Local<v8::Value
     str->Write(isolate, (uint16_t*)(out->data()), 0, length, v8::String::NO_OPTIONS);
     return true;
 }
-#endif
 
 Local<Value> Converter<v8::Local<v8::String>>::ToV8(v8::Isolate* isolate, v8::Local<v8::String> val)
 {
@@ -495,7 +493,6 @@ v8::Local<v8::Value> Converter<base::Value::Dict>::ToV8(v8::Isolate* isolate, co
             v8Ojb->Set(context, v8Key, v8::Null(isolate));
             break;
         default:
-            DebugBreak();
             v8Ojb->Set(context, v8Key, v8::Null(isolate));
             break;
         }
@@ -558,8 +555,6 @@ bool Converter<base::Value::Dict>::FromV8(Isolate* isolate, v8::Local<v8::Value>
         } else if (outValue->IsNull()) {
             out->Set(keyNameStr, base::Value());
         } else {
-            DebugBreak();
-            int type = v8ValueToType(outValue);
             out->Set(keyNameStr, base::Value());
             return false;
         }
@@ -642,7 +637,6 @@ v8::Local<v8::Value> Converter<base::Value::List>::ToV8(v8::Isolate* isolate, co
             v8Arr->Set(context, i, v8::Null(isolate));
             break;
         default:
-            DebugBreak();
             v8Arr->Set(context, i, v8::Null(isolate));
             break;
         }
@@ -701,8 +695,6 @@ bool Converter<base::Value::List>::FromV8(v8::Isolate* isolate, v8::Local<v8::Va
             }
             out->Append(std::move(dictionaryOut));
         } else {
-            DebugBreak();
-            int type = v8ValueToType(itVal);
             out->Append(base::Value());
             return false;
         }
@@ -730,7 +722,7 @@ v8::Local<v8::Value> ConvertToV8(v8::Isolate* isolate, const std::vector<intptr_
     std::vector<Local<Value>> elements;
     for (size_t i = 0; i < input.size(); ++i) {
         intptr_t element = input[i];
-        elements.push_back(ConvertToV8(isolate, element));
+        elements.push_back(ConvertToV8(isolate, static_cast<int64_t>(element)));
     }
     v8::Local<v8::Array> ret = v8::Array::New(isolate, elements.data(), input.size());
     return ret;
@@ -787,7 +779,6 @@ v8::Local<v8::Value> ConvertToV8(v8::Isolate* isolate, const base::Value& input)
     }
         break;
     default:
-        DebugBreak();
         return v8::Null(isolate);
         break;
     }
@@ -816,8 +807,27 @@ v8::Local<v8::Value> Converter<std::vector<blink::CloneableMessage>>::ToV8(v8::I
 
 bool Converter<std::vector<blink::CloneableMessage>>::FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val, std::vector<blink::CloneableMessage>* out)
 {
-    DebugBreak();
-    return false;
+    if (!val->IsArray())
+        return false;
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Array> array = val.As<v8::Array>();
+    uint32_t length = array->Length();
+    out->clear();
+    out->reserve(length);
+
+    for (uint32_t i = 0; i < length; ++i) {
+        v8::Local<v8::Value> item;
+        if (!array->Get(context, i).ToLocal(&item))
+            return false;
+
+        blink::CloneableMessage message;
+        if (!Converter<blink::CloneableMessage>::FromV8(isolate, item, &message))
+            return false;
+        out->push_back(std::move(message));
+    }
+
+    return true;
 }
 
 
@@ -825,8 +835,9 @@ v8::Local<v8::Value> Converter<std::unique_ptr<std::vector<blink::CloneableMessa
     v8::Isolate* isolate, 
     const std::unique_ptr<std::vector<blink::CloneableMessage>>& val)
 {
-    DebugBreak();
-    return v8::Local<v8::Value>();
+    if (!val)
+        return v8::Null(isolate);
+    return Converter<std::vector<blink::CloneableMessage>>::ToV8(isolate, *val);
 }
 
 bool Converter<std::unique_ptr<std::vector<blink::CloneableMessage>>>::FromV8(

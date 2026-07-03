@@ -227,6 +227,14 @@ public:
 //public:
 //    bool Accept(mojo::Message* message) override;
 //};
+class CompositingModeWatcherRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
+class CompositingModeReporterRequestValidator : public mojo::MessageReceiver {
+public:
+    bool Accept(mojo::Message* message) override;
+};
 
 } // viz::mojom
 

@@ -1,4 +1,5 @@
 const EventEmitter = require('events').EventEmitter;
+const log = typeof mbConsoleLog === 'function' ? mbConsoleLog : function() {};
 
 function createIpcMain() {
     var ipcMain = new EventEmitter();
@@ -6,12 +7,12 @@ function createIpcMain() {
     
     ipcMain.__origOn__ = ipcMain.on;
     ipcMain.on = function (channel, callback) {
-        let cbStub = function (event, ...args) {
-            if (event.innnerChannel == 'ipc-render-invoke')
+        let guardedCallback = function (event, ...args) {
+            if (event && event.innnerChannel == 'ipc-render-invoke')
                 return;
             callback(event, ...args);
         }
-        return ipcMain.__origOn__(channel, cbStub);
+        return ipcMain.__origOn__(channel, guardedCallback);
     }
     
     ipcMain.handle = function (channel, listener) { // 这里的channel是用户定义的channel
@@ -21,32 +22,27 @@ function createIpcMain() {
         if (typeof listener !== 'function') {
             throw new TypeError("Expected handler to be a function, but found type " + (typeof listener));
         }
-        ipcMain.m_invokeHandlers.set(channel, listener);
         
-        ipcMain.__origOn__(channel, function (event, ...args) {
-            // TODO: Need channel ?
-            mbConsoleLog("ipcMain.handle.on::" + channel);
+        const invokeHandler = function (event, ...args) {
+            // The channel is already the EventEmitter event name here.
+            log("ipcMain.handle.on::" + channel);
             if (event.innnerChannel != 'ipc-render-invoke')
                 return;
             
             var promiseOrResult = listener(/*channel,*/ event, ...args);
-            var promise = promiseOrResult;
-            if (!promiseOrResult || promiseOrResult.toString() != "[object Promise]") {
-                promise = new Promise((resolve) => {
-                    mbConsoleLog("ipcMain.on getAppVersion!" + promiseOrResult);
-                    resolve(promiseOrResult);
-                });
-            }
-            promise.then(function(result) {
+            Promise.resolve(promiseOrResult).then(function(result) {
+                log("ipcMain.on handle result!" + result);
                 event.sender.send('ipc-main-handle-reply-' + channel, result);
             });
-        });
+        };
+        ipcMain.m_invokeHandlers.set(channel, invokeHandler);
+        ipcMain.__origOn__(channel, invokeHandler);
     }
     
     ipcMain.removeHandler = function (channel /*string*/) {
         if (ipcMain.m_invokeHandlers.has(channel)) {
-            let listener = ipcMain.m_invokeHandlers.get(channel);
-            ipcMain.removeListener(channel, listener);
+            let invokeHandler = ipcMain.m_invokeHandlers.get(channel);
+            ipcMain.removeListener(channel, invokeHandler);
             ipcMain.m_invokeHandlers.delete(channel);
         }
     }
@@ -60,4 +56,4 @@ ipcMain.createIpcMain = createIpcMain;
 module.exports = ipcMain;
 
 // Do not throw exception when channel name is "error".
-module.exports.on('error', () => {})
+module.exports.on('error', () => undefined)

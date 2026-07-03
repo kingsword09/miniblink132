@@ -14,18 +14,120 @@
 #include "third_party/libnode/src/node.h"
 #include "third_party/libnode/src/node_binding.h"
 #include "third_party/libuv/include/uv.h"
-#include "ui/base/clipboard/clipboard.h"
-#include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "third_party/libnode/src/node_buffer.h"
 #include "base/threading/thread_local.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
+#if !defined(__APPLE__)
+#include "ui/base/clipboard/clipboard.h"
+#include "ui/base/clipboard/scoped_clipboard_writer.h"
 #include "base/containers/contains.h"
+#include "mojo/public/cpp/base/big_buffer.h"
+#endif
+#include <string>
 #include <vector>
 
 namespace atom {
 
 THREAD_LOCAL_CONSTRUCTOR(Clipboard)
+
+namespace {
+
+#if defined(__APPLE__)
+
+std::vector<std::string>& writtenClipboardFormats()
+{
+    static std::vector<std::string> formats;
+    return formats;
+}
+
+void rememberClipboardFormat(const std::string& format)
+{
+    if (format.empty())
+        return;
+
+    std::vector<std::string>& formats = writtenClipboardFormats();
+    for (const std::string& existing : formats) {
+        if (existing == format)
+            return;
+    }
+    formats.push_back(format);
+}
+
+UINT clipboardFormatForName(const std::string& format)
+{
+    if (format.empty() || format == "text/plain" || format == "text")
+        return CF_UNICODETEXT;
+    return ::RegisterClipboardFormatA(format.c_str());
+}
+
+std::string readClipboardBytes(UINT format)
+{
+    if (!format || !::OpenClipboard(nullptr))
+        return std::string();
+
+    HANDLE data = ::GetClipboardData(format);
+    if (!data) {
+        ::CloseClipboard();
+        return std::string();
+    }
+
+    SIZE_T size = ::GlobalSize(static_cast<HGLOBAL>(data));
+    const char* bytes = static_cast<const char*>(::GlobalLock(data));
+    std::string result;
+    if (bytes && size)
+        result.assign(bytes, bytes + size);
+    if (bytes)
+        ::GlobalUnlock(data);
+    ::CloseClipboard();
+    return result;
+}
+
+void writeClipboardBytes(const std::string& format, const char* data, size_t size)
+{
+    UINT clipboardFormat = clipboardFormatForName(format);
+    if (!clipboardFormat)
+        return;
+
+    HGLOBAL memory = ::GlobalAlloc(GMEM_MOVEABLE, size);
+    if (!memory)
+        return;
+
+    if (size) {
+        void* rawData = ::GlobalLock(memory);
+        if (rawData)
+            memcpy(rawData, data, size);
+        ::GlobalUnlock(memory);
+    }
+
+    ::OpenClipboard(nullptr);
+    ::EmptyClipboard();
+    ::SetClipboardData(clipboardFormat, memory);
+    ::CloseClipboard();
+    rememberClipboardFormat(format);
+}
+
+#endif
+
+std::u16string readUtf16ClipboardText(HANDLE data)
+{
+    if (!data)
+        return std::u16string();
+
+    const WCHAR* dataText = static_cast<const WCHAR*>(::GlobalLock(data));
+    if (!dataText)
+        return std::u16string();
+
+    size_t length = 0;
+    while (dataText[length])
+        ++length;
+
+    std::u16string text(reinterpret_cast<const char16_t*>(dataText), length);
+    ::GlobalUnlock(data);
+    return text;
+}
+
+} // namespace
 
 class Clipboard : public mate::EventEmitter<Clipboard> {
 public:
@@ -75,6 +177,9 @@ public:
 
     std::u16string readHTMLApi(gin_helper::Arguments* args)
     {
+#if defined(__APPLE__)
+        return base::UTF8ToUTF16(readClipboardBytes(clipboardFormatForName("text/html")));
+#else
         std::u16string data;
         std::u16string html;
         std::string url;
@@ -84,12 +189,18 @@ public:
         clipboard->ReadHTML(/*GetClipboardBuffer(args)*/ui::ClipboardBuffer::kCopyPaste, /* data_dst = */ nullptr, &html, &url, &start, &end);
         data = html.substr(start, end - start);
         return data;
+#endif
     }
 
     void Clipboard::writeHTMLApi(const std::u16string& html, gin_helper::Arguments* args)
     {
+#if defined(__APPLE__)
+        std::string data = base::UTF16ToUTF8(html);
+        writeClipboardBytes("text/html", data.data(), data.size());
+#else
         ui::ScopedClipboardWriter writer(/*GetClipboardBuffer(args)*/ui::ClipboardBuffer::kCopyPaste);
         writer.WriteHTML(html, std::string());
+#endif
     }
 
     v8::Local<v8::Value> readBookmarkApi(gin_helper::Arguments* args)
@@ -97,8 +208,10 @@ public:
         std::u16string title;
         std::string url;
         auto dict = gin_helper::Dictionary::CreateEmpty(args->isolate());
+#if !defined(__APPLE__)
         ui::Clipboard* clipboard = ui::Clipboard::GetForCurrentThread();
         clipboard->ReadBookmark(/* data_dst = */ nullptr, &title, &url);
+#endif
         dict.Set("title", title);
         dict.Set("url", url);
         return dict.GetHandle();
@@ -106,22 +219,39 @@ public:
 
     void writeBookmarkApi(const std::u16string& title, const std::string& url, gin_helper::Arguments* args)
     {
+#if defined(__APPLE__)
+        std::string data = base::UTF16ToUTF8(title);
+        if (!url.empty()) {
+            data += "\n";
+            data += url;
+        }
+        writeClipboardBytes("text/uri-list", data.data(), data.size());
+#else
         ui::ScopedClipboardWriter writer(/*GetClipboardBuffer(args)*/ui::ClipboardBuffer::kCopyPaste);
         writer.WriteBookmark(title, url);
+#endif
     }
 
     void writeRTFApi(const std::string& text, gin_helper::Arguments* args) 
     {
+#if defined(__APPLE__)
+        writeClipboardBytes("text/rtf", text.data(), text.size());
+#else
         ui::ScopedClipboardWriter writer(/*GetClipboardBuffer(args)*/ui::ClipboardBuffer::kCopyPaste);
         writer.WriteRTF(text);
+#endif
     }
 
     std::u16string Clipboard::readRTFApi()
     {
+#if defined(__APPLE__)
+        return base::UTF8ToUTF16(readClipboardBytes(clipboardFormatForName("text/rtf")));
+#else
         std::string data;
         ui::Clipboard* clipboard = ui::Clipboard::GetForCurrentThread();
         clipboard->ReadRTF(/*GetClipboardBuffer(args)*/ui::ClipboardBuffer::kCopyPaste, /* data_dst = */ nullptr, &data);
         return base::UTF8ToUTF16(data);
+#endif
     }
 
     std::string readApi(const std::string& formatSstring)
@@ -137,26 +267,43 @@ public:
 
     void writeImpl(const gin_helper::Dictionary& data)
     {
-        ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste/*GetClipboardBuffer(args)*/);
         std::u16string text, html, bookmark;
 #if 0
         gfx::Image image;
 #endif
 
+#if !defined(__APPLE__)
+        ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste/*GetClipboardBuffer(args)*/);
+#endif
+
         if (data.Get("text", &text)) {
+#if defined(__APPLE__)
+            _writeTextApi(base::UTF16ToUTF8(text), std::string());
+#else
             writer.WriteText(text);
 
             if (data.Get("bookmark", &bookmark))
                 writer.WriteBookmark(bookmark, base::UTF16ToUTF8(text));
+#endif
         }
 
         if (data.Get("rtf", &text)) {
             std::string rtf = base::UTF16ToUTF8(text);
+#if defined(__APPLE__)
+            writeClipboardBytes("text/rtf", rtf.data(), rtf.size());
+#else
             writer.WriteRTF(rtf);
+#endif
         }
 
-        if (data.Get("html", &html))
+        if (data.Get("html", &html)) {
+#if defined(__APPLE__)
+            std::string htmlUtf8 = base::UTF16ToUTF8(html);
+            writeClipboardBytes("text/html", htmlUtf8.data(), htmlUtf8.size());
+#else
             writer.WriteHTML(html, std::string());
+#endif
+        }
 #if 0
         if (data.Get("image", &image))
             writer.WriteImage(image.AsBitmap());
@@ -165,11 +312,15 @@ public:
 
     bool hasApi(const std::string& formatSstring)
     {
+#if defined(__APPLE__)
+        return ::IsClipboardFormatAvailable(clipboardFormatForName(formatSstring));
+#else
         ui::Clipboard* clipboard = ui::Clipboard::GetForCurrentThread();
         ui::ClipboardFormatType format(ui::ClipboardFormatType::GetType(formatSstring));
         if (format.GetName().empty())
             format = ui::ClipboardFormatType::CustomPlatformType(formatSstring);
         return clipboard->IsFormatAvailable(format, ui::ClipboardBuffer::kCopyPaste, /* data_dst = */ nullptr);
+#endif
     }
 
     void _clearApi(const std::string& type)
@@ -182,13 +333,28 @@ public:
     std::vector<std::u16string> availableFormatsApi()
     {
         std::vector<std::u16string> formatTypes;
+#if defined(__APPLE__)
+        if (::IsClipboardFormatAvailable(CF_UNICODETEXT))
+            formatTypes.push_back(u"text/plain");
+        for (const std::string& format : writtenClipboardFormats()) {
+            if (::IsClipboardFormatAvailable(clipboardFormatForName(format)))
+                formatTypes.push_back(base::UTF8ToUTF16(format));
+        }
+#else
         ui::Clipboard* clipboard = ui::Clipboard::GetForCurrentThread();
         clipboard->ReadAvailableTypes(/*GetClipboardBuffer(args)*/ ui::ClipboardBuffer::kCopyPaste, /* data_dst = */ nullptr, &formatTypes);
+#endif
         return formatTypes;
     }
 
     std::string readImpl(const std::string& formatSstring)
     {
+#if defined(__APPLE__)
+        UINT format = clipboardFormatForName(formatSstring);
+        if (format == CF_UNICODETEXT)
+            return _readTextApi(std::string());
+        return readClipboardBytes(format);
+#else
         ui::Clipboard* clipboard = ui::Clipboard::GetForCurrentThread();
         // Prefer raw platform format names
         ui::ClipboardFormatType rawFormat(ui::ClipboardFormatType::CustomPlatformType(formatSstring));
@@ -221,6 +387,7 @@ public:
         std::string data;
         clipboard->ReadData(format, /* data_dst = */ nullptr, &data);
         return data;
+#endif
     }
 
     v8::Local<v8::Value> readBufferApi(const std::string& formatSstring, gin_helper::Arguments* args) 
@@ -240,12 +407,19 @@ public:
         CHECK(buffer->IsArrayBufferView());
         v8::Local<v8::ArrayBufferView> buffer_view = buffer.As<v8::ArrayBufferView>();
         const size_t n_bytes = buffer_view->ByteLength();
+#if defined(__APPLE__)
+        std::vector<char> data(n_bytes);
+        [[maybe_unused]] const size_t n_got = buffer_view->CopyContents(data.data(), n_bytes);
+        DCHECK_EQ(n_got, n_bytes);
+        writeClipboardBytes(format, data.data(), data.size());
+#else
         mojo_base::BigBuffer big_buffer{ n_bytes };
         [[maybe_unused]] const size_t n_got = buffer_view->CopyContents(big_buffer.data(), n_bytes);
         DCHECK_EQ(n_got, n_bytes);
 
         ui::ScopedClipboardWriter writer(/*GetClipboardBuffer(args)*/ui::ClipboardBuffer::kCopyPaste);
         writer.WriteData(base::UTF8ToUTF16(format), std::move(big_buffer));
+#endif
     }
 
     void _writeImageApi(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -332,12 +506,9 @@ public:
             return std::string();
         }
 
-        LPCWSTR dataText = (LPCWSTR)::GlobalLock(data);
-        std::wstring text(dataText, wcslen(dataText));
-        ::GlobalUnlock(data);
-
+        std::u16string text = readUtf16ClipboardText(data);
         ::CloseClipboard();
-        return base::WideToUTF8(text);
+        return base::UTF16ToUTF8(text);
     }
 
     void _writeTextApi(const std::string& text, const std::string& type)
@@ -346,13 +517,13 @@ public:
             return;
 
         std::u16string strW(base::UTF8ToUTF16(text));
-        HGLOBAL data = ::GlobalAlloc(GMEM_MOVEABLE, ((strW.size() + 1) * sizeof(wchar_t)));
+        HGLOBAL data = ::GlobalAlloc(GMEM_MOVEABLE, ((strW.size() + 1) * sizeof(WCHAR)));
         if (!data)
             return;
 
-        wchar_t* rawData = static_cast<wchar_t*>(::GlobalLock(data));
-        memcpy(rawData, &strW[0], strW.size() * sizeof(wchar_t));
-        rawData[strW.size()] = L'\0';
+        WCHAR* rawData = static_cast<WCHAR*>(::GlobalLock(data));
+        memcpy(rawData, strW.data(), strW.size() * sizeof(WCHAR));
+        rawData[strW.size()] = 0;
         ::GlobalUnlock(data);
 
         ::EmptyClipboard();
@@ -394,7 +565,9 @@ public:
         case 24:
             break;
         default:
-            DebugBreak();
+            ::GlobalUnlock(hBitmap);
+            ::CloseClipboard();
+            return NativeImage::createEmpty(isolate());
         }
         void* bitmapBits = reinterpret_cast<char*>(bitmap) + bitmap->bmiHeader.biSize + colorTableLength * sizeof(RGBQUAD);
         size_t size = bitmap->bmiHeader.biWidth * bitmap->bmiHeader.biHeight * 4;

@@ -132,6 +132,8 @@
 #define SW_RESTORE 9
 #define SW_MINIMIZE 6
 #define SC_CLOSE 0xF060
+#define SC_MINIMIZE 0xF020
+#define SC_MAXIMIZE 0xF030
 
 #define IDC_SMALL 2
 
@@ -198,11 +200,30 @@
 #define WM_MBUTTONDBLCLK 0x0209
 #define WM_RBUTTONDBLCLK 0x0206
 #define WM_IME_COMPOSITION 0x010F
+#define WM_QUERYENDSESSION 0x0011
 #define WM_QUIT 0x0012
+#define WM_POWERBROADCAST 0x0218
+#define WM_HOTKEY 0x0312
 #define WM_USER 0x0400
 #define WM_SETFONT 0x0030
 #define WM_TOUCH 0x0240
 #define WM_CAPTURECHANGED 0x0215
+
+#define NIM_ADD 0x00000000
+#define NIM_MODIFY 0x00000001
+#define NIM_DELETE 0x00000002
+#define NIM_SETFOCUS 0x00000003
+#define NIM_SETVERSION 0x00000004
+
+#define NIF_MESSAGE 0x00000001
+#define NIF_ICON 0x00000002
+#define NIF_TIP 0x00000004
+#define NIF_STATE 0x00000008
+#define NIF_INFO 0x00000010
+
+#define NIS_HIDDEN 0x00000001
+#define NOTIFYICON_VERSION 3
+#define NOTIFYICON_VERSION_4 4
 
 #define HTERROR (-2)
 #define HTTRANSPARENT (-1)
@@ -269,12 +290,21 @@
 #define TPM_HORIZONTAL 0x0000L
 #define TPM_LEFTALIGN 0x0000L
 #define TPM_HORPOSANIMATION 0x0400L
+#define TPM_RETURNCMD 0x0100L
 #define SWP_NOOWNERZORDER 0x0200
 #define SWP_NOREPOSITION SWP_NOOWNERZORDER
 
 #define MB_OKCANCEL 0x00000001L
+#define MB_YESNOCANCEL 0x00000003L
 #define MB_YESNO 0x00000004L
+#define MB_ICONERROR 0x00000010L
+#define MB_ICONQUESTION 0x00000020L
+#define MB_ICONWARNING 0x00000030L
+#define MB_ICONINFORMATION 0x00000040L
+#define MB_TYPEMASK 0x0000000FL
 #define IDYES 6
+#define IDNO 7
+#define IDCANCEL 2
 
 #define VK_RETURN 0x0D
 #define IDOK 1
@@ -358,6 +388,8 @@
 #define LOCALE_IFIRSTDAYOFWEEK 0x0000100C
 #define LOCALE_NOUSEROVERRIDE 0x80000000
 #define LOCALE_SISO639LANGNAME 0x00000059
+#define LOCALE_SISO3166CTRYNAME 0x0000005A
+#define LOCALE_SNAME 0x0000005C
 #define LOCALE_NAME_MAX_LENGTH 85
 #define MAKELANGID(p, s) ((((WORD)(s)) << 10) | (WORD)(p))
 #define SUBLANG_DEFAULT 0x01
@@ -386,10 +418,21 @@
 
 #define CSIDL_APPDATA 0x001a
 #define CSIDL_LOCAL_APPDATA 0x001c
+#define CSIDL_DESKTOPDIRECTORY 0x0010
+#define CSIDL_PROFILE 0x0028
+#define CSIDL_PERSONAL 0x0005
+#define CSIDL_MYDOCUMENTS CSIDL_PERSONAL
+#define CSIDL_MYMUSIC 0x000d
+#define CSIDL_MYVIDEO 0x000e
+#define CSIDL_MYPICTURES 0x0027
+#define CSIDL_RECENT 0x0008
+#define SHGFP_TYPE_CURRENT 0
 #define INFINITE 0xFFFFFFFF
 #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
 #define E_INVALIDARG ((HRESULT)0x80000003L)
 #define ERROR_ALREADY_EXISTS 183L
+#define ERROR_INVALID_PARAMETER 87L
+#define ERROR_INVALID_HANDLE 6L
 #define ERROR_FILE_EXISTS 80L
 #define CSIDL_FLAG_CREATE 0x8000
 #define FILE_BEGIN 0
@@ -417,6 +460,7 @@
 #define SWP_NOZORDER 0x0004
 #define GWL_STYLE (-16)
 #define SM_CYSCREEN 1
+#define SM_CMONITORS 80
 #define GCS_COMPSTR 0x0008
 #define WM_GETDLGCODE 0x0087
 
@@ -468,10 +512,34 @@
 #define SWP_NOACTIVATE 0x0010
 
 #define MK_LBUTTON 0x0001
+#define SPI_GETWORKAREA 0x0030
+#define SPI_GETHIGHCONTRAST 0x0042
+#define SPI_GETANIMATION 0x0048
 #define SPI_GETWHEELSCROLLLINES 0x0068
 #define SPI_GETWHEELSCROLLCHARS 0x006C
 #define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam))
 #define WHEEL_DELTA 120
+#define ENDSESSION_CLOSEAPP 0x00000001
+#define ENDSESSION_LOGOFF 0x80000000
+#define PBT_APMSUSPEND 0x0004
+#define PBT_APMRESUMESUSPEND 0x0007
+#define PBT_APMPOWERSTATUSCHANGE 0x000A
+#define AC_LINE_OFFLINE 0x00
+#define AC_LINE_ONLINE 0x01
+#define AC_LINE_UNKNOWN 0xFF
+#define BATTERY_FLAG_UNKNOWN 0xFF
+#define HCF_HIGHCONTRASTON 0x00000001
+
+#define MOD_ALT 0x0001
+#define MOD_CONTROL 0x0002
+#define MOD_SHIFT 0x0004
+#define MOD_WIN 0x0008
+#define MOD_NOREPEAT 0x4000
+
+#define ES_SYSTEM_REQUIRED 0x00000001
+#define ES_DISPLAY_REQUIRED 0x00000002
+#define ES_AWAYMODE_REQUIRED 0x00000040
+#define ES_CONTINUOUS 0x80000000
 
 #define CreateWindowW(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)                                        \
     CreateWindowExW(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)
@@ -483,7 +551,10 @@
 #define RGN_OR 2
 #define RGN_DIFF 4
 
+#define MONITOR_DEFAULTTONULL 0x00000000
 #define MONITOR_DEFAULTTOPRIMARY 0x00000001
+#define MONITOR_DEFAULTTONEAREST 0x00000002
+#define CCHDEVICENAME 32
 
 #define MAX_PATH 260
 
@@ -773,6 +844,8 @@
 #define MF_SEPARATOR 0x00000800L
 #define MF_STRING 0x00000000L
 #define MF_ENABLED 0x00000000L
+#define MF_BYCOMMAND 0x00000000L
+#define MF_BYPOSITION 0x00000400L
 
 #define MFS_GRAYED 0x00000003L
 #define MFS_DISABLED MFS_GRAYED
@@ -794,6 +867,7 @@ typedef int32_t LONG;
 typedef int32_t INT;
 typedef unsigned int UINT;
 typedef uint32_t DWORD;
+typedef DWORD EXECUTION_STATE;
 typedef DWORD COLORREF;
 typedef unsigned char BYTE;
 #ifdef __cplusplus
@@ -887,6 +961,15 @@ typedef struct _SYSTEMTIME {
     WORD wSecond;
     WORD wMilliseconds;
 } SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
+
+typedef struct _SYSTEM_POWER_STATUS {
+    BYTE ACLineStatus;
+    BYTE BatteryFlag;
+    BYTE BatteryLifePercent;
+    BYTE SystemStatusFlag;
+    DWORD BatteryLifeTime;
+    DWORD BatteryFullLifeTime;
+} SYSTEM_POWER_STATUS, *LPSYSTEM_POWER_STATUS;
 
 #pragma pack(push, 8)
 typedef struct _RTL_CRITICAL_SECTION {
@@ -1123,6 +1206,44 @@ typedef struct _ICONINFO {
 } ICONINFO;
 typedef ICONINFO* PICONINFO;
 
+typedef struct _NOTIFYICONDATAW {
+    DWORD cbSize;
+    HWND hWnd;
+    UINT uID;
+    UINT uFlags;
+    UINT uCallbackMessage;
+    HICON hIcon;
+    WCHAR szTip[128];
+    DWORD dwState;
+    DWORD dwStateMask;
+    WCHAR szInfo[256];
+    union {
+        UINT uTimeout;
+        UINT uVersion;
+    };
+    WCHAR szInfoTitle[64];
+    DWORD dwInfoFlags;
+} NOTIFYICONDATAW, *PNOTIFYICONDATAW;
+
+typedef struct _NOTIFYICONDATAA {
+    DWORD cbSize;
+    HWND hWnd;
+    UINT uID;
+    UINT uFlags;
+    UINT uCallbackMessage;
+    HICON hIcon;
+    CHAR szTip[128];
+    DWORD dwState;
+    DWORD dwStateMask;
+    CHAR szInfo[256];
+    union {
+        UINT uTimeout;
+        UINT uVersion;
+    };
+    CHAR szInfoTitle[64];
+    DWORD dwInfoFlags;
+} NOTIFYICONDATAA, *PNOTIFYICONDATAA;
+
 typedef struct tagTPMPARAMS {
     UINT cbSize; /* Size of structure */
     RECT rcExclude; /* Screen coordinates of rectangle to exclude when positioning */
@@ -1181,12 +1302,35 @@ typedef struct tagPAINTSTRUCT {
     BYTE rgbReserved[32];
 } PAINTSTRUCT, *PPAINTSTRUCT, *NPPAINTSTRUCT, *LPPAINTSTRUCT;
 
+typedef struct tagANIMATIONINFO {
+    UINT cbSize;
+    int iMinAnimate;
+} ANIMATIONINFO, *LPANIMATIONINFO;
+
+typedef struct tagHIGHCONTRASTW {
+    UINT cbSize;
+    DWORD dwFlags;
+    LPWSTR lpszDefaultScheme;
+} HIGHCONTRASTW, *LPHIGHCONTRASTW;
+
 typedef struct tagMONITORINFO {
     DWORD cbSize;
     RECT rcMonitor;
     RECT rcWork;
     DWORD dwFlags;
 } MONITORINFO, *LPMONITORINFO;
+
+typedef struct tagMONITORINFOEXW {
+    DWORD cbSize;
+    RECT rcMonitor;
+    RECT rcWork;
+    DWORD dwFlags;
+    WCHAR szDevice[CCHDEVICENAME];
+} MONITORINFOEXW, *LPMONITORINFOEXW;
+
+typedef MONITORINFOEXW MONITORINFOEX;
+typedef LPMONITORINFOEXW LPMONITORINFOEX;
+typedef BOOL(CALLBACK* MONITORENUMPROC)(HMONITOR, HDC, LPRECT, LPARAM);
 
 typedef union _ULARGE_INTEGER {
     struct {
@@ -1257,6 +1401,9 @@ EXTERN_C void DebugBreak();
 EXTERN_C VOID OutputDebugStringA(LPCSTR lpOutputString);
 EXTERN_C VOID OutputDebugStringW(LPCWSTR lpOutputString);
 EXTERN_C HMODULE GetModuleHandleW(LPCWSTR lpModuleName);
+EXTERN_C HANDLE CreateMutexA(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName);
+EXTERN_C HANDLE CreateMutexW(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCWSTR lpName);
+EXTERN_C BOOL ReleaseMutex(HANDLE hMutex);
 
 EXTERN_C BOOL SetForegroundWindow(HWND hWnd);
 
@@ -1284,6 +1431,8 @@ EXTERN_C BOOL BitBlt(HDC hdc, int x, int y, int cx, int cy, HDC hdcSrc, int x1, 
 EXTERN_C BOOL TranslateMessage(CONST MSG* lpMsg);
 EXTERN_C BOOL PeekMessageW(MSG* lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 EXTERN_C LRESULT DispatchMessageW(CONST MSG* lpMsg);
+EXTERN_C BOOL RegisterHotKey(HWND hWnd, int id, UINT fsModifiers, UINT vk);
+EXTERN_C BOOL UnregisterHotKey(HWND hWnd, int id);
 EXTERN_C VOID Sleep(DWORD dwMilliseconds);
 EXTERN_C LRESULT DefWindowProcW(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 EXTERN_C ATOM RegisterClassW(CONST WNDCLASSW* lpWndClass);
@@ -1320,6 +1469,7 @@ EXTERN_C BOOL GetTextExtentPoint32W(HDC hdc, LPCWSTR lpString, int c, LPSIZE psi
 EXTERN_C BOOL GetCursorPos(POINT* lpPoint);
 EXTERN_C BOOL ClientToScreen(HWND hWnd, LPPOINT lpPoint);
 EXTERN_C HWND GetActiveWindow();
+EXTERN_C HWND GetDesktopWindow();
 EXTERN_C HWND GetParent(HWND hWnd);
 EXTERN_C BOOL EnableWindow(HWND hWnd, BOOL bEnable);
 
@@ -1332,7 +1482,9 @@ EXTERN_C DWORD GetClipboardSequenceNumber();
 EXTERN_C BOOL IsClipboardFormatAvailable(UINT format);
 
 EXTERN_C HMONITOR MonitorFromPoint(POINT pt, DWORD dwFlags);
+EXTERN_C HMONITOR MonitorFromWindow(HWND hwnd, DWORD dwFlags);
 EXTERN_C BOOL GetMonitorInfoW(HMONITOR hMonitor, LPMONITORINFO lpmi);
+EXTERN_C BOOL EnumDisplayMonitors(HDC hdc, const RECT* lprcClip, MONITORENUMPROC lpfnEnum, LPARAM dwData);
 EXTERN_C DWORD GetCurrentThreadId();
 EXTERN_C DWORD GetWindowThreadProcessId(HWND hWnd, LPDWORD lpdwProcessId);
 EXTERN_C UINT_PTR SetTimer(HWND hWnd, UINT_PTR nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc);
@@ -1341,10 +1493,12 @@ EXTERN_C BOOL EndPaint(HWND hWnd, CONST PAINTSTRUCT* lpPaint);
 EXTERN_C BOOL Rectangle(HDC hdc, int left, int top, int right, int bottom);
 EXTERN_C BOOL UpdateWindow(HWND hWnd);
 EXTERN_C HRGN CreateRectRgn(int x1, int y1, int x2, int y2);
+EXTERN_C HRGN CreateRoundRectRgn(int x1, int y1, int x2, int y2, int w, int h);
 EXTERN_C BOOL KillTimer(HWND hWnd, UINT_PTR uIDEvent);
 EXTERN_C BOOL IsWindow(HWND hWnd);
 EXTERN_C HRESULT RevokeDragDrop(HWND hwnd);
 EXTERN_C BOOL GetWindowRect(HWND hWnd, LPRECT lpRect);
+EXTERN_C int SetWindowRgn(HWND hWnd, HRGN hRgn, BOOL bRedraw);
 #define GetWindowLongPtrW GetWindowLongW
 #define SetWindowLongPtrW SetWindowLongW
 EXTERN_C LONG SetWindowLongW(HWND hWnd, int nIndex, LONG dwNewLong);
@@ -1413,6 +1567,8 @@ EXTERN_C BOOL IsWindowVisible(HWND hWnd);
 EXTERN_C UINT GetDoubleClickTime();
 EXTERN_C HWND SetFocus(HWND hWnd);
 EXTERN_C BOOL SystemParametersInfoW(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni);
+EXTERN_C BOOL GetSystemPowerStatus(LPSYSTEM_POWER_STATUS lpSystemPowerStatus);
+EXTERN_C EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 EXTERN_C BOOL TrackPopupMenuEx(HMENU, UINT, int, int, HWND, LPTPMPARAMS);
 EXTERN_C HRESULT CoInitializeEx(LPVOID pvReserved, DWORD dwCoInit);
 EXTERN_C DWORD GetLastError(VOID);
@@ -1440,6 +1596,8 @@ EXTERN_C BOOL QueryPerformanceFrequency(LARGE_INTEGER* lpFrequency);
 
 EXTERN_C /*FILE*/ void* _wfopen(const WCHAR* _FileName, const WCHAR* _Mode);
 EXTERN_C HINSTANCE ShellExecuteA(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd);
+EXTERN_C BOOL Shell_NotifyIconW(DWORD dwMessage, PNOTIFYICONDATAW lpData);
+EXTERN_C BOOL Shell_NotifyIconA(DWORD dwMessage, PNOTIFYICONDATAA lpData);
 EXTERN_C BOOL PathFileExistsW(LPCWSTR pszPath);
 EXTERN_C DWORD GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer);
 EXTERN_C BOOL InvalidateRect(HWND hWnd, CONST RECT* lpRect, BOOL bErase);
@@ -1489,6 +1647,8 @@ EXTERN_C BOOL FreeLibrary(HMODULE hLibModule);
 EXTERN_C HRESULT SHGetFolderPathW(HWND hwnd, int csidl, HANDLE hToken, DWORD dwFlags, LPWSTR pszPath);
 EXTERN_C DWORD SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LONG* lpDistanceToMoveHigh, DWORD dwMoveMethod);
 EXTERN_C int GetLocaleInfoW(LCID Locale, LCTYPE LCType, LPWSTR lpLCData, int cchData);
+EXTERN_C int GetUserDefaultLocaleName(LPWSTR lpLocaleName, int cchLocaleName);
+EXTERN_C int LCIDToLocaleName(LCID Locale, LPWSTR lpName, int cchName, DWORD dwFlags);
 EXTERN_C BOOL PathIsDirectoryW(LPCWSTR pszPath);
 EXTERN_C HIMC ImmGetContext(HWND);
 EXTERN_C BOOL ImmSetCompositionWindow(HIMC, LPCOMPOSITIONFORM lpCompForm);
@@ -1500,12 +1660,17 @@ EXTERN_C BOOL IsIconic(HWND hWnd);
 EXTERN_C HIMC ImmAssociateContext(HWND, HIMC);
 EXTERN_C BOOL IsWindowEnabled(HWND hWnd);
 EXTERN_C BOOL SetMenu(HWND hWnd, HMENU hMenu);
+EXTERN_C HMENU GetMenu(HWND hWnd);
+EXTERN_C BOOL DrawMenuBar(HWND hWnd);
 EXTERN_C BOOL TrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT* prcRect);
 EXTERN_C BOOL SetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPositon, MENUITEMINFOW* lpmii);
 EXTERN_C BOOL GetMenuItemInfoW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmii);
 EXTERN_C HMENU CreateMenu();
 EXTERN_C BOOL InsertMenuItemW(HMENU hmenu, UINT item, BOOL fByPosition, MENUITEMINFOW* lpmi);
 EXTERN_C BOOL EnableMenuItem(HMENU hMenu, UINT uIDEnableItem, UINT uEnable);
+EXTERN_C UINT CheckMenuItem(HMENU hMenu, UINT uIDCheckItem, UINT uCheck);
+EXTERN_C UINT GetMenuState(HMENU hMenu, UINT uId, UINT uFlags);
+EXTERN_C BOOL DeleteMenu(HMENU hMenu, UINT uPosition, UINT uFlags);
 EXTERN_C HMENU GetSystemMenu(HWND hWnd, BOOL bRevert);
 //////////////////////////////////////////////////////////////////////////
 typedef struct _cairo_surface cairo_surface_t;

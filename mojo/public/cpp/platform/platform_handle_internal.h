@@ -23,7 +23,7 @@ public:
     }
     static base::UnguessableToken UnmarshalUnguessableToken(const MojoSharedBufferGuid* guid)
     {
-        return base::UnguessableToken::Deserialize(guid->high, guid->low);
+        return base::UnguessableToken::Deserialize(guid->high, guid->low).value_or(base::UnguessableToken());
     }
 };
 
