@@ -115,6 +115,20 @@ std::string g_async_markup;
 BOOL g_last_can_go_back = FALSE;
 BOOL g_last_can_go_forward = FALSE;
 
+std::string networkTestPng()
+{
+    static constexpr unsigned char kPng[] = {
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x08,
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x7f, 0x14, 0xe8, 0xc0, 0x00, 0x00, 0x00,
+        0x17, 0x49, 0x44, 0x41, 0x54, 0x78, 0xda, 0x63, 0xf8, 0xcf, 0xc0, 0x40,
+        0x12, 0x62, 0x18, 0x84, 0x1a, 0x06, 0xa5, 0xa3, 0x48, 0xd3, 0x00, 0x00,
+        0xa5, 0x37, 0x7f, 0x81, 0xbe, 0xcb, 0x8a, 0x6f, 0x00, 0x00, 0x00, 0x00,
+        0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
+    };
+    return std::string(reinterpret_cast<const char*>(kPng), sizeof(kPng));
+}
+
 std::string shellEscape(const std::string& value)
 {
     std::string out = "'";
@@ -563,6 +577,9 @@ private:
         } else if (path == "/partition.html") {
             body = "<!doctype html><html><head><title>Partition Page</title></head>"
                    "<body><script>window.__partitionReady=1;</script></body></html>";
+        } else if (path == "/network-image.png") {
+            type = "image/png";
+            body = networkTestPng();
         } else if (path == "/api") {
             type = "text/plain";
             body = "fetch-ok";
@@ -675,6 +692,7 @@ private:
         std::ostringstream html;
         html << "<!doctype html><html><head><meta charset='utf-8'><title>Remote Start</title></head>"
              << "<body><input id='textInput'><input id='fileInput' type='file'>"
+             << "<img id='networkImage' src='/network-image.png' width='16' height='8'>"
              << "<button id='popupButton' onclick=\"window.open('/popup.html','_blank')\">popup</button>"
              << "<a id='download' href='/download' download='mb-e2e.txt'>download</a>"
              << "<script>"
@@ -685,6 +703,7 @@ private:
              << "try{__e2e.fetch=await (await fetch('/api')).text();}catch(e){__e2e.fetch='ERR:'+e.message;}"
              << "try{__e2e.xhr=await new Promise(function(resolve,reject){var x=new XMLHttpRequest();x.onload=function(){resolve(x.responseText)};x.onerror=function(){reject(new Error('xhr'))};x.open('GET','/xhr');x.send();});}catch(e){__e2e.xhr='ERR:'+e.message;}"
              << "try{__e2e.ws=await new Promise(function(resolve,reject){var done=false,closed='';var w=new WebSocket('ws://127.0.0.1:" << port_ << "/ws');function fail(m){if(!done){done=true;reject(new Error(m+' state='+w.readyState+' close='+closed));}}w.onopen=function(){w.send('ping')};w.onmessage=function(e){done=true;resolve(e.data);w.close();};w.onerror=function(){fail('ws')};w.onclose=function(e){closed=e.code+':'+e.reason;fail('close')};setTimeout(function(){fail('timeout')},3000);});}catch(e){__e2e.ws='ERR:'+e.message;}"
+             << "try{__e2e.image=await new Promise(function(resolve,reject){var img=document.getElementById('networkImage');function done(){try{var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;var ctx=c.getContext('2d');ctx.drawImage(img,0,0);var t=ctx.getImageData(8,1,1,1).data;var b=ctx.getImageData(8,6,1,1).data;resolve(img.naturalWidth+'x'+img.naturalHeight+':'+t[0]+','+t[1]+','+t[2]+'|'+b[0]+','+b[1]+','+b[2]);}catch(e){reject(e);}}if(img.complete&&img.naturalWidth)done();else{img.onload=done;img.onerror=function(){reject(new Error('image'))};}});}catch(e){__e2e.image='ERR:'+e.message;}"
              << "document.title='Remote Ready';"
              << "console.log('MB_E2E:'+JSON.stringify(__e2e));"
              << "})();"
@@ -2407,6 +2426,36 @@ void runNativeImageCompatibilityChecks()
         "icon=" + std::to_string(icon ? 1 : 0) + " destroyed=" + std::to_string(destroyed_icon));
 }
 
+void runMacGdiBitmapDrawChecks()
+{
+    unsigned char source_pixels[] = {
+        255, 0, 0, 255,
+        0, 0, 255, 255,
+    };
+    unsigned char output_pixels[] = {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    };
+
+    CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmap_info = (CGBitmapInfo)((uint32_t)kCGBitmapByteOrder32Big | (uint32_t)kCGImageAlphaPremultipliedLast);
+    CGContextRef context = color_space ? CGBitmapContextCreate(output_pixels, 2, 1, 8, 8, color_space, bitmap_info) : nullptr;
+    BOOL drew = context ? MacGdiDrawBitmapToContext((HDC)context, source_pixels, 2, 1, 0, 0, 2, 1, 0, 0) : FALSE;
+    if (context) {
+        CGContextFlush(context);
+        CGContextRelease(context);
+    }
+    if (color_space)
+        CGColorSpaceRelease(color_space);
+
+    bool colors_ok = drew
+        && output_pixels[0] == 255 && output_pixels[1] == 0 && output_pixels[2] == 0
+        && output_pixels[4] == 0 && output_pixels[5] == 0 && output_pixels[6] == 255;
+    std::string detail = std::to_string((int)output_pixels[0]) + "," + std::to_string((int)output_pixels[1]) + "," + std::to_string((int)output_pixels[2])
+        + "|" + std::to_string((int)output_pixels[4]) + "," + std::to_string((int)output_pixels[5]) + "," + std::to_string((int)output_pixels[6]);
+    addCheck("macgdi-draw-rgba-colors", colors_ok, detail);
+}
+
 void runTrayCompatibilityChecks(HWND host)
 {
     addCheck("tray-host-window", host != nullptr, "host=" + std::to_string((uintptr_t)host));
@@ -2944,6 +2993,7 @@ int main()
     runPowerMonitorCompatibilityChecks();
     runPowerSaveBlockerCompatibilityChecks();
     runNativeImageCompatibilityChecks();
+    runMacGdiBitmapDrawChecks();
     runTrayCompatibilityChecks(host);
     runLifecycleChecks();
     runAppLifecycleMessageLoopChecks();
@@ -2979,6 +3029,10 @@ int main()
             json + " wsUpgrades=" + std::to_string(server.websocketUpgrades()) + " wsMessages=" + std::to_string(server.websocketMessages())
                 + server.websocketDebug());
         addCheck("cookie-localStorage", json.find("cookie-ok") != std::string::npos && json.find("storage-ok") != std::string::npos, json);
+        std::string image_detail = jsString(view, "window.__e2e && window.__e2e.image || ''");
+        addCheck("network-image-display",
+            image_detail == "16x8:255,0,0|0,0,255",
+            image_detail);
         runSessionCookieChecks(view, server.origin());
         runSessionPartitionCookieChecks(server.origin(), tmp_dir);
         runSessionPartitionLocalStorageChecks(server.origin(), tmp_dir);

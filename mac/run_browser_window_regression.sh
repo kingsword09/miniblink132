@@ -95,7 +95,7 @@ run_step mbapi_extra_smoke "$OUT_DIR/mbapi_extra_smoke"
 run_step electron_api_smoke node mac/electron_api_smoke.js
 
 run_step build_browser_window_like_test clang++ -std=c++17 -ObjC++ -DENABLE_MB=1 -Imac -I. \
-    mac/browser_window_like_test.mm "$DYLIB" -framework Cocoa -framework CoreFoundation -framework IOKit -o "$TEST_BIN"
+    mac/browser_window_like_test.mm "$DYLIB" -framework Cocoa -framework CoreFoundation -framework CoreGraphics -framework IOKit -o "$TEST_BIN"
 
 run_step browser_window_like_test "$TEST_BIN"
 

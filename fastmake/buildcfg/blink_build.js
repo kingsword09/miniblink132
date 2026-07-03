@@ -4002,14 +4002,9 @@ if (constVal.isMac) {
     json[0].compile.src = json[0].compile.src
         .filter((path) => !macUnsupportedSrc.has(path))
         .map(mapMacBlinkSourcePath);
-    json[0].compile.cmd.push(
-        "-DSK_B32_SHIFT=0",
-        "-DSK_G32_SHIFT=8",
-        "-DSK_R32_SHIFT=16",
-        "-DSK_A32_SHIFT=24",
-    );
     json[0].compile.src.push(
         "${srcPath}/services/network/public/cpp/shared_url_loader_factory.cc",
+        "${srcPath}/gpu/command_buffer/common/gpu_memory_buffer_support.cc",
         "${srcPath}/gen/third_party/blink/renderer/bindings/core/v8/v8_union_sharedworkeroptions_string.cc",
         "${srcPath}/gen/third_party/blink/renderer/bindings/core/v8/v8_union_string_timelinerangeoffset.cc",
         "${srcPath}/gen/third_party/blink/renderer/bindings/modules/v8/v8_union_htmlvideoelement_videoframe.cc",
@@ -5247,6 +5242,28 @@ if (constVal.isMac) {
 var endLibs = [];
 
 if (constVal.isMac) {
+    const macHiddenCxxAllocatorSymbols = [
+        "__Znwm",
+        "__Znam",
+        "__ZdlPv",
+        "__ZdaPv",
+        "__ZnwmRKSt9nothrow_t",
+        "__ZnamRKSt9nothrow_t",
+        "__ZdlPvRKSt9nothrow_t",
+        "__ZdaPvRKSt9nothrow_t",
+        "__ZdlPvm",
+        "__ZdaPvm",
+        "__ZnwmSt11align_val_t",
+        "__ZnamSt11align_val_t",
+        "__ZdlPvSt11align_val_t",
+        "__ZdaPvSt11align_val_t",
+        "__ZdlPvmSt11align_val_t",
+        "__ZdaPvmSt11align_val_t",
+        "__ZnwmSt11align_val_tRKSt9nothrow_t",
+        "__ZnamSt11align_val_tRKSt9nothrow_t",
+        "__ZdlPvSt11align_val_tRKSt9nothrow_t",
+        "__ZdaPvSt11align_val_tRKSt9nothrow_t",
+    ];
     json[0].compile.linkerCmd = [
         "-framework", "Cocoa",
         "-framework", "Carbon",
@@ -5271,6 +5288,9 @@ if (constVal.isMac) {
         "-liconv",
         "-lbsm",
     ];
+    macHiddenCxxAllocatorSymbols.forEach((symbol) => {
+        json[0].compile.linkerCmd.push(`-Wl,-unexported_symbol,${symbol}`);
+    });
     json[0].compile.beginLibs = [];
     const macEndLibs = [...json[0].compile.endLibs];
     json[0].compile.endLibs = macEndLibs;

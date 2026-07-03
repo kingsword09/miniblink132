@@ -44,6 +44,11 @@ VizClient::~VizClient()
     common::LiveIdDetect::get()->deconstructed(m_id);
 }
 
+void VizClient::stopCommittingFrames()
+{
+    m_canCommitFrame = false;
+}
+
 void VizClient::destroy(std::function<void(void)>&& callback)
 {
     CHECK(!m_sink.is_bound());
@@ -103,7 +108,7 @@ viz::LocalSurfaceId VizClient::embedOnBlinkThread(const viz::FrameSinkId& frameS
     //m_allocator.GenerateId();
     //viz::LocalSurfaceId newLocalSurfaceId = m_allocator.GetCurrentLocalSurfaceId();
     m_embeds[frameSinkId] = { newLocalSurfaceId, bounds };
-    m_firstSetEmbeds = false; // 下一次的OnBeginFrame暂时不允许绘制真实内容，而是推迟一帧绘制，这样可以让surfaceid设置到viz线程
+    m_firstSetEmbeds = true; // 下一次的OnBeginFrame暂时不允许绘制真实内容，而是推迟一帧绘制，这样可以让surfaceid设置到viz线程
 
     //     char* output = (char*)malloc(0x500);
     //     sprintf_s(output, 0x499, "VizClient::Embed: %p (newLocalSurfaceId:%d)(m_hostLocalSurfaceId:%d)(width:%d)(tid:%d)\n",
@@ -249,7 +254,6 @@ viz::CompositorFrame VizClient::createFrame(const viz::BeginFrameArgs& args)
 {
     viz::CompositorFrame frame;
 
-    frame.metadata.begin_frame_ack = viz::BeginFrameAck(args, true);
     frame.metadata.device_scale_factor = content::RenderThreadImpl::get()->getZoom();
     frame.metadata.frame_token = ++m_nextFrameToken;
 
@@ -261,7 +265,10 @@ viz::CompositorFrame VizClient::createFrame(const viz::BeginFrameArgs& args)
 
     const viz::CompositorRenderPassId kRenderPassId { 10010 };
     const gfx::Rect& outputRect = m_bounds;
-    const gfx::Rect& damageRect = gfx::Rect(0, 0, 0, 0); // gfx::Rect(0, 0, 0, 0);//outputRect
+    const bool hasEmbeddedContent = g_canCommitFrame && m_firstSetEmbeds && !m_embeds.empty();
+    const gfx::Rect damageRect = hasEmbeddedContent ? outputRect : gfx::Rect();
+
+    frame.metadata.begin_frame_ack = viz::BeginFrameAck(args, hasEmbeddedContent);
     std::unique_ptr<viz::CompositorRenderPass> renderPass = viz::CompositorRenderPass::Create();
     renderPass->SetNew(kRenderPassId, outputRect, damageRect, gfx::Transform());
 
@@ -346,52 +353,48 @@ void onWebviewDidFirstVisuallyNonEmptyPaint(int64_t webviewId);
 void VizClient::OnBeginFrame(const ::viz::BeginFrameArgs& args, const base::flat_map<uint32_t, ::viz::FrameTimingDetails>& details, bool frame_ack,
     std::vector<::viz::ReturnedResource> resources)
 {
-    base::AutoLock lock(m_lock);
+    viz::CompositorFrame frame;
+    viz::LocalSurfaceId localSurfaceId;
+    bool firstSetEmbeds = false;
 
-    if (!m_canCommitFrame)
-        return;
+    {
+        base::AutoLock lock(m_lock);
 
-    // Generate a new compositor-frame for each begin-frame. This demo client
-    // generates and submits the compositor-frame immediately. But it is possible
-    // for the client to delay sending the compositor-frame. |args| includes the
-    // deadline for the client before it needs to submit the compositor-frame.
-    viz::CompositorFrame frame = createFrame(args);
-    viz::LocalSurfaceId localSurfaceId = m_hostLocalSurfaceId;
+        if (!m_canCommitFrame)
+            return;
+        if (m_webviewId && !common::LiveIdDetect::getMbWebviewIds()->getPtr(m_webviewId)) {
+            m_canCommitFrame = false;
+            return;
+        }
+
+        // Generate and submit on the same viz callback thread. Posting the
+        // move-only CompositorFrame through another task can leave the submitted
+        // frame with a moved-from render pass list in this in-process path.
+        frame = createFrame(args);
+        localSurfaceId = m_hostLocalSurfaceId;
+        firstSetEmbeds = m_firstSetEmbeds;
+    }
 
     onWebviewDidFirstVisuallyNonEmptyPaint(m_webviewId);
 
-    m_vizCompositorRunner->PostTask(FROM_HERE,
-        base::BindOnce(
-            [](VizClient* self, viz::CompositorFrame frame, viz::LocalSurfaceId localSurfaceId) {
-                viz::mojom::CompositorFrameSink* ptr = self->getPtrImpl();
-                // 会走到SurfaceManager::GetOrCreateAllocationGroupForSurfaceId
-                if (self->m_canCommitFrame && ptr)
-                    ptr->SubmitCompositorFrame(localSurfaceId, std::move(frame), absl::optional<viz::HitTestRegionList>(), /*trace_time=*/0);
-                else
-                    self->allowResize();
+    if (!m_canCommitFrame || (m_webviewId && !common::LiveIdDetect::getMbWebviewIds()->getPtr(m_webviewId))) {
+        m_canCommitFrame = false;
+        allowResize();
+        return;
+    }
 
-                //         DWORD time = ::GetTickCount();
-                //         if (time - g_lastBeginFrameTime > 400) {
-                //             char* output = (char*)malloc(0x500);
-                //             sprintf(output, "VizClient::OnBeginFrame on viz compos thread: (%d), w:%d %d tid:%d\n",
-                //                 self->m_hostLocalSurfaceId.hash(), self->m_bounds.width(), self->m_firstSetEmbeds, ::GetCurrentThreadId());
-                //             OutputDebugStringA(output);
-                //             free(output);
-                //         }
-                //         g_lastBeginFrameTime = time;
+    viz::mojom::CompositorFrameSink* ptr = getPtrImpl();
+    if (m_canCommitFrame && ptr) {
+        ptr->SubmitCompositorFrame(localSurfaceId, std::move(frame), absl::optional<viz::HitTestRegionList>(), /*trace_time=*/0);
+    } else {
+        allowResize();
+        return;
+    }
 
-                if (!self->getPtr())
-                    return;
-
-                if (!self->m_firstSetEmbeds) { // 预热一帧，下一帧才有真实内容
-                    //self->m_firstSetEmbeds = true;
-                    //self->allowResize(); // 这一次只是预热，所以可能走不到DidReceiveCompositorFrameAck
-                    self->getPtr()->SetNeedsBeginFrame(true); // 再触发一次OnBeginFrame
-                } else {
-                    self->getPtr()->SetNeedsBeginFrame(false);
-                }
-            },
-            base::Unretained(this), std::move(frame), localSurfaceId));
+    if (!firstSetEmbeds)
+        ptr->SetNeedsBeginFrame(true);
+    else
+        ptr->SetNeedsBeginFrame(false);
 }
 
 void VizClient::OnBeginFramePausedChanged(bool paused)

@@ -252,6 +252,7 @@ mbMemBuf* createMemBufFromStdString(std::string* data)
     result->buf.unuse = kMemBufTypeStdString;
     result->buf.length = data->size();
     result->buf.data = (void*)data->data();
+    result->stdstring = data;
     return &(result->buf);
 }
 
@@ -264,16 +265,19 @@ void freeMemBuf(mbMemBuf* buf)
         if (buf->data)
             free(buf->data);
         free(buf);
+        return;
     }
 
     if (kMemBufTypeSkdata == buf->unuse) {
         MemBufSkdata* bufSkdata = (MemBufSkdata*)buf;
         delete bufSkdata;
+        return;
     }
     if (kMemBufTypeStdString == buf->unuse) {
         MemBufStdString* bufStdString = (MemBufStdString*)buf;
         delete bufStdString->stdstring;
         delete bufStdString;
+        return;
     }
 }
 

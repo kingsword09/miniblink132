@@ -1200,7 +1200,7 @@ var json = [{
             "-DBUILDING_V8_SHARED=1",
             "-DBUILDING_UV_SHARED=1",
             //"-DV8_HOST_ARCH_X64",
-            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=64",
+            "-DV8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=0",
             "-DV8_INTL_SUPPORT",
             "-DV8_USE_EXTERNAL_STARTUP_DATA",
             "-DV8_ATOMIC_OBJECT_FIELD_WRITES",

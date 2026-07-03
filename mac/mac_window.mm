@@ -557,7 +557,6 @@ extern "C" void MacDispatchPowerMonitorMessageForTesting(UINT event)
     self = [super initWithFrame:frame];
     if (self) {
         _hwnd = hwnd;
-        [self setWantsLayer:YES];
     }
     return self;
 }

@@ -265,11 +265,13 @@ void SoftwareOutputDeviceWinOrLinux::EndPaintDelegated(const gfx::Rect& damage_r
     }
     canvas_lock_.Release();
 
-    if (layered_window_updater_.is_bound() && layered_window_updater_.get())
-        layered_window_updater_->Draw(damage_rect, base::BindOnce(&SoftwareOutputDeviceWinOrLinux::DrawAck, base::Unretained(this)));
+    if (!layered_window_updater_.is_bound() || !layered_window_updater_.get())
+        return;
+
     waiting_on_draw_ack_ = true;
 
     TRACE_EVENT_ASYNC_BEGIN0("viz", "SoftwareOutputDeviceWinOrLinux::Draw", this);
+    layered_window_updater_->Draw(damage_rect, base::BindOnce(&SoftwareOutputDeviceWinOrLinux::DrawAck, weak_factory_.GetWeakPtr()));
 }
 
 void SoftwareOutputDeviceWinOrLinux::DrawAck()

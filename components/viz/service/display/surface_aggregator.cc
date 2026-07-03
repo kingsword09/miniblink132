@@ -21,6 +21,7 @@
 #include "base/timer/elapsed_timer.h"
 #include "base/trace_event/trace_event.h"
 #include "base/trace_event/typed_macros.h"
+#include "build/build_config.h"
 #include "cc/base/math_util.h"
 #include "components/viz/common/features.h"
 #include "components/viz/common/quads/aggregated_render_pass.h"
@@ -776,7 +777,9 @@ void SurfaceAggregator::EmitSurfaceContent(ResolvedFrameData& resolved_frame, fl
     }
 
     const auto& frame_metadata = resolved_frame.GetMetadata();
+#if !BUILDFLAG(IS_MAC)
     flow_ids_for_resolved_frames_.insert(frame_metadata.begin_frame_ack.trace_id);
+#endif
 
     referenced_surfaces_.insert(surface_id);
 
@@ -1864,6 +1867,7 @@ AggregatedFrame SurfaceAggregator::Aggregate(const SurfaceId& surface_id, base::
     expected_display_time_ = expected_display_time;
 
     const CompositorFrameMetadata& frame_metadata = resolved_frame->GetMetadata();
+#if !BUILDFLAG(IS_MAC)
     flow_ids_for_resolved_frames_.insert(frame_metadata.begin_frame_ack.trace_id);
 
     TRACE_EVENT_BEGIN("viz,benchmark,graphics.pipeline", "Graphics.Pipeline", perfetto::Flow::Global(display_trace_id_), [this](perfetto::EventContext ctx) {
@@ -1895,6 +1899,7 @@ AggregatedFrame SurfaceAggregator::Aggregate(const SurfaceId& surface_id, base::
         // `absl::Cleanup` is run after `ResetAfterAggregate`.
         flow_ids_for_resolved_frames_.clear();
     };
+#endif
 
     CheckFrameSinksChanged(resolved_frame->surface_id());
 

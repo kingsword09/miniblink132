@@ -9,6 +9,7 @@
 // symbols. Include the full framework umbrella before mapping Win32 calls to
 // the miniblink shim names, otherwise later macOS framework headers can have
 // their declarations rewritten by these macros.
+typedef bool OBJC_BOOL;
 #define BOOL OBJC_BOOL
 #include <ApplicationServices/ApplicationServices.h>
 #undef BOOL

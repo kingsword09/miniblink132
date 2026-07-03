@@ -132,6 +132,15 @@ const macLinuxOnlyArgs = new Set([
     "-D__linux__",
 ]);
 
+const macSkiaPixelOrderArgs = new Set([
+    "-DSK_B32_SHIFT=0",
+    "-DSK_B32_SHIFT=16",
+    "-DSK_G32_SHIFT=8",
+    "-DSK_R32_SHIFT=0",
+    "-DSK_R32_SHIFT=16",
+    "-DSK_A32_SHIFT=24",
+]);
+
 const macArm64OnlyRemoveArgs = new Set([
     "-DV8_HOST_ARCH_X64",
     "-DV8_TARGET_ARCH_X64",
@@ -162,7 +171,7 @@ export const applyMacBuildSettings = function(json, options = {}) {
     const compile = json[0].compile;
     compile.ccompiler = "${clangPath}/clang";
     compile.cppcompiler = "${clangPath}/clang++";
-    compile.cmd = compile.cmd.filter((arg) => !macLinuxOnlyArgs.has(arg) && !(constValue.isArm64 && isX86CpuArg(arg)));
+    compile.cmd = compile.cmd.filter((arg) => !macLinuxOnlyArgs.has(arg) && !macSkiaPixelOrderArgs.has(arg) && !(constValue.isArm64 && isX86CpuArg(arg)));
 
     if (!options.keepLinuxInclude) {
         compile.include = compile.include

@@ -27,6 +27,7 @@
 #endif
 #include "base/rand_util.h"
 #include "base/memory/shared_memory_mapping.h"
+#include <memory>
 
 #if BUILDFLAG(IS_LINUX)
 #include <cairo.h>
@@ -58,6 +59,12 @@ public:
     void Draw(const gfx::Rect& damageRect, DrawCallback drawCallback) override;
 
 private:
+    struct PaintDamageState {
+        base::Lock lock;
+        bool isPosted = false;
+        std::vector<gfx::Rect> rects;
+    };
+
     HWND m_hwnd = nullptr;
 #if 1 // BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_WIN)
     bool m_isLayeredWnd = false;
@@ -67,9 +74,7 @@ private:
     SkCanvas* m_canvas = nullptr;
     bool m_isAutoDrawToHwnd = true;
 
-    bool m_isPostDamageRect = false;
-    base::Lock m_damageRectLock;
-    std::vector<gfx::Rect> m_damageRects;
+    std::shared_ptr<PaintDamageState> m_paintDamageState = std::make_shared<PaintDamageState>();
 
 #if BUILDFLAG(IS_LINUX)
     cairo_surface_t* m_surface = nullptr;
@@ -93,18 +98,14 @@ OffscreenWindowUpdater::~OffscreenWindowUpdater()
 #endif
 }
 
-void runDrawCallback(int64_t mbwebviewId, viz::mojom::LayeredWindowUpdater::DrawCallback drawCallback)
+void runDrawCallback(viz::mojom::LayeredWindowUpdater::DrawCallback drawCallback)
 {
     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
         base::BindOnce(
-            [](int64_t mbwebviewId, viz::mojom::LayeredWindowUpdater::DrawCallback drawCallback) {
-                MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtrLocked(mbwebviewId);
-                if (!webview)
-                    return;
+            [](viz::mojom::LayeredWindowUpdater::DrawCallback drawCallback) {
                 std::move(drawCallback).Run();
-                common::LiveIdDetect::getMbWebviewIds()->unlock(mbwebviewId, webview);
             },
-            mbwebviewId, std::move(drawCallback)));
+            std::move(drawCallback)));
 }
 
 void OffscreenWindowUpdater::OnAllocatedBitmapMemory(const gfx::Size& pixelSize, void* skcanvas, unsigned char* bitmap, void* lock)
@@ -176,9 +177,10 @@ void OffscreenWindowUpdater::OnAllocatedSharedMemory(const gfx::Size& pixelSize,
     m_canvas = m_sharedMemoryCanvas.get();
 
     MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtrLocked(m_mbwebviewId);
-    if (webview)
+    if (webview) {
         webview->onAllocatedBitmapMemory(pixelSize, nullptr, m_bitmapByte, m_canvasLock);
-    common::LiveIdDetect::getMbWebviewIds()->unlock(m_mbwebviewId, webview);
+        common::LiveIdDetect::getMbWebviewIds()->unlock(m_mbwebviewId, webview);
+    }
 }
 
 // bool SaveHDCToBitmap(HDC hdc, int width, int height, const char* filename)
@@ -293,12 +295,12 @@ void OffscreenWindowUpdater::Draw(const gfx::Rect& damageRect, DrawCallback draw
     //     g_lastOffscreenWindowUpdaterTime = time;
 
     if (!m_canvas) {
-        runDrawCallback(m_mbwebviewId, std::move(drawCallback));
+        runDrawCallback(std::move(drawCallback));
         return;
     }
 
     if (0 == m_pixelSize.width() * m_pixelSize.height()) {
-        runDrawCallback(m_mbwebviewId, std::move(drawCallback));
+        runDrawCallback(std::move(drawCallback));
         return;
     }
 
@@ -353,8 +355,10 @@ void OffscreenWindowUpdater::Draw(const gfx::Rect& damageRect, DrawCallback draw
         ::ReleaseDC(m_hwnd, hdc);
     }
 #elif defined(OS_LINUX)
-    if (!m_isWebWindowMode)
+    if (!m_isWebWindowMode) {
+        runDrawCallback(std::move(drawCallback));
         return;
+    }
     m_canvasLock->Acquire();
 
     if (m_canvas && m_memCanvasForUi.get()) {
@@ -398,50 +402,53 @@ void OffscreenWindowUpdater::Draw(const gfx::Rect& damageRect, DrawCallback draw
     RECT rc = { damageRect.x(), damageRect.y(), damageRect.right(), damageRect.bottom() };
     ::InvalidateRect(m_hwnd, &rc, false);
 #elif defined(OS_MAC)
-    if (!m_isWebWindowMode)
+    if (!m_isWebWindowMode) {
+        runDrawCallback(std::move(drawCallback));
         return;
-    RECT rc = { damageRect.x(), damageRect.y(), damageRect.right(), damageRect.bottom() };
-    ::InvalidateRect(m_hwnd, &rc, false);
+    }
 #endif
 
     int64_t webviewId = m_mbwebviewId;
-    OffscreenWindowUpdater* self = this;
+    std::shared_ptr<PaintDamageState> paintDamageState = m_paintDamageState;
+    bool shouldPostDamageRect = false;
+    paintDamageState->lock.Acquire();
+    mergeDirtyRects(&paintDamageState->rects, damageRect);
+    if (!paintDamageState->isPosted) {
+        paintDamageState->isPosted = true;
+        shouldPostDamageRect = true;
+    }
+    paintDamageState->lock.Release();
 
-    m_damageRectLock.Acquire();
-    mergeDirtyRects(&m_damageRects, damageRect);
-    m_damageRectLock.Release();
-
-    if (!m_isPostDamageRect) {
-        m_isPostDamageRect = true;
-        content::ThreadCall::callUiThreadAsync(MB_FROM_HERE, [webviewId, self] {
+    if (shouldPostDamageRect) {
+        content::ThreadCall::callUiThreadAsync(MB_FROM_HERE, [webviewId, paintDamageState] {
             MbWebView* webview = (MbWebView*)common::LiveIdDetect::getMbWebviewIds()->getPtrLocked(webviewId);
-            if (!webview)
+            if (!webview) {
+                paintDamageState->lock.Acquire();
+                paintDamageState->rects.clear();
+                paintDamageState->isPosted = false;
+                paintDamageState->lock.Release();
                 return;
-            common::LiveIdDetect::getMbWebviewIds()->unlock(webviewId, webview);
-
-            self->m_isPostDamageRect = false;
-            self->m_hwnd = webview->getHostWnd();
-
-            self->m_canvasLock->Acquire();
-            HDC memoryDC = nullptr;
-#if defined(OS_WIN)
-            memoryDC = skia::GetNativeDrawingContext(self->m_canvas);
-#endif
-            if (webview) {
-                self->m_damageRectLock.Acquire();
-                std::vector<gfx::Rect> damageRects = self->m_damageRects;
-                self->m_damageRects.clear();
-                self->m_damageRectLock.Release();
-                for (size_t i = 0; i < damageRects.size(); ++i) {
-                    webview->onPaintUpdatedInUiThread(memoryDC, damageRects[i].x(), damageRects[i].y(),
-                        damageRects[i].width(), damageRects[i].height());
-                }
             }
-            self->m_canvasLock->Release();
+
+            HDC memoryDC = nullptr;
+            paintDamageState->lock.Acquire();
+            std::vector<gfx::Rect> damageRects = paintDamageState->rects;
+            paintDamageState->rects.clear();
+            paintDamageState->isPosted = false;
+            paintDamageState->lock.Release();
+            for (size_t i = 0; i < damageRects.size(); ++i) {
+#if defined(OS_MAC)
+                RECT rc = { damageRects[i].x(), damageRects[i].y(), damageRects[i].right(), damageRects[i].bottom() };
+                ::InvalidateRect(webview->getHostWnd(), &rc, false);
+#endif
+                webview->onPaintUpdatedInUiThread(memoryDC, damageRects[i].x(), damageRects[i].y(),
+                    damageRects[i].width(), damageRects[i].height());
+            }
+            common::LiveIdDetect::getMbWebviewIds()->unlock(webviewId, webview);
         });
     }
 
-    runDrawCallback(m_mbwebviewId, std::move(drawCallback));
+    runDrawCallback(std::move(drawCallback));
 }
 
 //-----

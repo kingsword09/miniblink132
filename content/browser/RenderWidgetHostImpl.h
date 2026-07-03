@@ -271,6 +271,7 @@ public:
 
     VizClient* m_sinkClient = nullptr;
     VizHost* m_sinkHost = nullptr;
+    bool m_registeredFrameSinkHierarchy = false;
 
     ToolTip* m_toolTip = nullptr;
 

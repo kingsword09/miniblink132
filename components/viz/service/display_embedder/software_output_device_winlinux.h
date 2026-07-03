@@ -11,6 +11,7 @@
 
 #include "base/memory/raw_ptr.h"
 #include "base/memory/unsafe_shared_memory_region.h"
+#include "base/memory/weak_ptr.h"
 #include "base/threading/thread_checker.h"
 #include "base/synchronization/lock.h"
 #include "components/viz/service/display/software_output_device.h"
@@ -98,6 +99,8 @@ private:
     base::OnceClosure swap_ack_callback_;
 
     base::Lock canvas_lock_;
+
+    base::WeakPtrFactory<SoftwareOutputDeviceWinOrLinux> weak_factory_ { this };
 };
 
 // Creates an appropriate SoftwareOutputDevice implementation.

@@ -30,6 +30,7 @@ EventLoop::EventLoop(EventLoop::Delegate* delegate, v8::Isolate* isolate, std::u
 
 EventLoop::~EventLoop()
 {
+    microtask_queue_->RemoveMicrotasksCompletedCallback(&EventLoop::RunEndOfCheckpointTasks, this);
     DCHECK(schedulers_.empty());
 }
 

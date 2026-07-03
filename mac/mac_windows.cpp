@@ -6,6 +6,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreGraphics/CoreGraphics.h>
+#include <dispatch/dispatch.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <IOKit/ps/IOPowerSources.h>
 #include <mach-o/dyld.h>
@@ -81,6 +82,47 @@ struct MacFindHandle : MacHandle {
     std::vector<std::string> paths;
     size_t nextIndex = 0;
 };
+
+CGImageRef createMacGdiBitmapImage(const unsigned char* bitmap, int bitmapWidth, int bitmapHeight)
+{
+    const size_t rowBytes = (size_t)bitmapWidth * 4;
+    const size_t bitmapBytes = rowBytes * (size_t)bitmapHeight;
+    CFDataRef imageData = CFDataCreate(kCFAllocatorDefault, bitmap, bitmapBytes);
+    if (!imageData)
+        return nullptr;
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) {
+        CFRelease(imageData);
+        return nullptr;
+    }
+
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData(imageData);
+    if (!provider) {
+        CGColorSpaceRelease(colorSpace);
+        CFRelease(imageData);
+        return nullptr;
+    }
+
+    CGBitmapInfo bitmapInfo = (CGBitmapInfo)((uint32_t)kCGBitmapByteOrder32Big | (uint32_t)kCGImageAlphaPremultipliedLast);
+    CGImageRef image = CGImageCreate(bitmapWidth, bitmapHeight, 8, 32, rowBytes, colorSpace,
+        bitmapInfo, provider, nullptr, false, kCGRenderingIntentDefault);
+
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    CFRelease(imageData);
+    return image;
+}
+
+void releaseMacGdiBitmapImageAfterDisplayCommit(CGImageRef image)
+{
+    if (!image)
+        return;
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        CGImageRelease(image);
+    });
+}
 
 struct MacMutexHandle : MacHandle {
     std::string name;
@@ -2104,27 +2146,20 @@ extern "C" BOOL MacGdiDrawBitmapToContext(HDC hdc, const unsigned char* bitmap, 
         return FALSE;
 
     CGContextRef context = (CGContextRef)hdc;
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, bitmap, (size_t)bitmapWidth * bitmapHeight * 4, nullptr);
-    CGBitmapInfo bitmapInfo = (CGBitmapInfo)((uint32_t)kCGBitmapByteOrder32Little | (uint32_t)kCGImageAlphaPremultipliedFirst);
-    CGImageRef image = CGImageCreate(bitmapWidth, bitmapHeight, 8, 32, bitmapWidth * 4, colorSpace,
-        bitmapInfo, provider, nullptr, false, kCGRenderingIntentDefault);
-    if (!image) {
-        CGDataProviderRelease(provider);
-        CGColorSpaceRelease(colorSpace);
+    CGImageRef image = createMacGdiBitmapImage(bitmap, bitmapWidth, bitmapHeight);
+    if (!image)
         return FALSE;
-    }
 
     CGContextSaveGState(context);
     CGRect clip = CGRectMake(destX, destY, width, height);
     CGContextClipToRect(context, clip);
     CGRect drawRect = CGRectMake(destX - srcX, destY - srcY, bitmapWidth, bitmapHeight);
-    CGContextDrawImage(context, drawRect, image);
+    CGContextTranslateCTM(context, drawRect.origin.x, drawRect.origin.y + drawRect.size.height);
+    CGContextScaleCTM(context, 1, -1);
+    CGContextDrawImage(context, CGRectMake(0, 0, drawRect.size.width, drawRect.size.height), image);
     CGContextRestoreGState(context);
 
-    CGImageRelease(image);
-    CGDataProviderRelease(provider);
-    CGColorSpaceRelease(colorSpace);
+    releaseMacGdiBitmapImageAfterDisplayCommit(image);
     return TRUE;
 }
 

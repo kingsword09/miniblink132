@@ -52,7 +52,10 @@ VizHost::~VizHost()
 // 本函数运行在blink线程
 void VizHost::destroy(std::function<void(void)>&& callback)
 {
-    //m_hostFrameSinkManager.InvalidateFrameSinkId(m_frameSinkId);
+    if (m_rootClient)
+        m_rootClient->stopCommittingFrames();
+    if (m_frameSinkId.is_valid())
+        m_hostFrameSinkManager.InvalidateFrameSinkId(m_frameSinkId, this);
     //m_hostFrameSinkManager.SetConnectionLostCallback();
     VizHost* self = this;
     if (m_rootClient) {
@@ -214,7 +217,12 @@ void VizHost::initialize(mojo::PendingReceiver<viz::mojom::FrameSinkManagerClien
     rootParams->display_private = m_displayPrivate.BindNewEndpointAndPassReceiver();
     rootParams->display_client = m_displayClient->GetBoundRemote(nullptr);
 
-    constexpr viz::FrameSinkId rootFrameSinkId(0xdead, 0xbeef);
+    uint64_t rand = base::RandUint64();
+    viz::FrameSinkId rootFrameSinkId(rand >> 32, rand & 0xffffffff);
+    while (!rootFrameSinkId.is_valid()) {
+        rand = base::RandUint64();
+        rootFrameSinkId = viz::FrameSinkId(rand >> 32, rand & 0xffffffff);
+    }
     rootParams->frame_sink_id = rootFrameSinkId;
     rootParams->widget = (gpu::SurfaceHandle)(uintptr_t)m_mbwebview->getHostWnd();
     rootParams->gpu_compositing = false;
