@@ -246,6 +246,22 @@ static bool isPathEq(const std::string& pathA, const std::string& pathB)
     return a == b;
 }
 
+static bool ensureDirectoryExists(const std::string& path)
+{
+    if (path.empty())
+        return false;
+
+    std::string dir = pathNormalize(pathAppend(path, ""));
+    std::u16string dirW = content::utf8ToUtf16(dir);
+    if (common::createMultiDir((const WCHAR*)dirW.c_str()))
+        return true;
+
+    OutputDebugStringA("create directory failed: ");
+    OutputDebugStringA(path.c_str());
+    OutputDebugStringA("\n");
+    return false;
+}
+
 const FILETIME kMaxFileTime = { 0xffffffff, 0xffffffff };
 
 static bool getFileTime(const std::string& path, FILETIME* out)
@@ -758,6 +774,9 @@ public:
                 return false;
 
             if (!parseString(compile, "outdir", &m_outdir))
+                return false;
+
+            if (!ensureDirectoryExists(m_objdir) || !ensureDirectoryExists(m_outdir))
                 return false;
         }
 
