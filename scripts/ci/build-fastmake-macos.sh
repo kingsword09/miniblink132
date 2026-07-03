@@ -33,7 +33,6 @@ cxxflags=(
   -O2
   -DOS_MAC=1
   -I.
-  -Iquickjs
   -Imac
 )
 
