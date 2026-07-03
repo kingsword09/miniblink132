@@ -1,0 +1,21 @@
+#ifndef WEBP_CONFIG_H_
+#define WEBP_CONFIG_H_
+
+#define HAVE_BUILTIN_BSWAP16 1
+#define HAVE_BUILTIN_BSWAP32 1
+#define HAVE_BUILTIN_BSWAP64 1
+#define HAVE_DLFCN_H 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_MEMORY_H 1
+#define HAVE_STDINT_H 1
+#define HAVE_STDLIB_H 1
+#define HAVE_STRINGS_H 1
+#define HAVE_STRING_H 1
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_UNISTD_H 1
+#define STDC_HEADERS 1
+#define WEBP_HAVE_JPEG 1
+#define WEBP_HAVE_PNG 1
+
+#endif /* WEBP_CONFIG_H_ */

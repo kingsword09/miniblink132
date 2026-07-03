@@ -7,10 +7,18 @@ src_path="${SRC_PATH:-.}"
 fastmake="${FASTMAKE:-./out/mac_tools/fastmake}"
 out_dir="out/$config"
 
+ensure_libwebp_config() {
+  local config_dir="third_party/libwebp/src/src/webp"
+  mkdir -p "$config_dir"
+  cp scripts/ci/libwebp-config.h "$config_dir/config.h"
+}
+
 run_fastmake() {
   local cfg="$1"
   local expected="$2"
   shift 2
+
+  rm -f "$expected"
 
   echo "::group::Build $cfg"
   "$fastmake" "fastmake/buildcfg/$cfg" "$config" "$rebuild_opt" "$src_path" "$@"
@@ -22,6 +30,7 @@ run_fastmake() {
   fi
 }
 
+ensure_libwebp_config
 test -x "$fastmake"
 
 run_fastmake freetype_build.js "$out_dir/libfreetype.a"

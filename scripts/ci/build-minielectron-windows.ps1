@@ -129,6 +129,15 @@ function Ensure-VSNASMBuildCustomization {
     }
 }
 
+function Ensure-LibwebpConfig {
+    $configDir = Join-Path $repoRoot "third_party\libwebp\src\src\webp"
+    $configTemplate = Join-Path $repoRoot "scripts\ci\libwebp-config.h"
+    $configFile = Join-Path $configDir "config.h"
+
+    New-Item -ItemType Directory -Path $configDir -Force | Out-Null
+    Copy-Item -Path $configTemplate -Destination $configFile -Force
+}
+
 if (-not (Test-Path $vswhere)) {
     throw "vswhere.exe not found. This workflow requires a Visual Studio hosted runner."
 }
@@ -140,6 +149,7 @@ $llvmToolsVersion = Get-LLVMToolsVersion -LLVMInstallDir $llvmInstallDir
 
 Ensure-NASM
 Ensure-VSNASMBuildCustomization
+Ensure-LibwebpConfig
 
 Write-Host "Using MSBuild: $msbuild"
 Write-Host "Using LLVM: $llvmInstallDir"
