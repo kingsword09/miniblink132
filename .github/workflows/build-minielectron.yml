@@ -1,0 +1,87 @@
+name: Build MiniElectron
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  MAC_CONFIG: mac_release_arm64
+  WINDOWS_CONFIGURATION: Release
+  WINDOWS_PLATFORM: x64
+
+jobs:
+  macos:
+    name: macOS MiniElectron
+    runs-on: macos-26
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install LLVM
+        run: |
+          brew list llvm >/dev/null 2>&1 || brew install llvm
+
+      - name: Build fastmake
+        run: scripts/ci/build-fastmake-macos.sh
+
+      - name: Build MiniElectron
+        run: scripts/ci/build-minielectron-macos.sh "$MAC_CONFIG"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: minielectron-macos-arm64
+          if-no-files-found: error
+          path: |
+            out/${{ env.MAC_CONFIG }}/miniblink
+            out/${{ env.MAC_CONFIG }}/libelectron.a
+
+      - name: Upload macOS build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minielectron-macos-logs
+          if-no-files-found: ignore
+          path: |
+            out/build_logs/**/*.log
+            out/${{ env.MAC_CONFIG }}/**/*_resposeFile.txt
+
+  windows:
+    name: Windows MiniElectron
+    runs-on: windows-2022
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build MiniElectron
+        shell: pwsh
+        run: |
+          scripts/ci/build-minielectron-windows.ps1 `
+            -Configuration "$env:WINDOWS_CONFIGURATION" `
+            -Platform "$env:WINDOWS_PLATFORM"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: minielectron-windows-x64
+          if-no-files-found: error
+          path: |
+            out/win_${{ env.WINDOWS_CONFIGURATION }}_${{ env.WINDOWS_PLATFORM }}/minielectron*.exe
+            out/win_${{ env.WINDOWS_CONFIGURATION }}_${{ env.WINDOWS_PLATFORM }}/*.dll
+            out/win_${{ env.WINDOWS_CONFIGURATION }}_${{ env.WINDOWS_PLATFORM }}/*.pdb

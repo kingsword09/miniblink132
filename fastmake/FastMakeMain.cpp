@@ -246,6 +246,22 @@ static bool isPathEq(const std::string& pathA, const std::string& pathB)
     return a == b;
 }
 
+static bool ensureDirectoryExists(const std::string& path)
+{
+    if (path.empty())
+        return false;
+
+    std::string dir = pathNormalize(pathAppend(path, ""));
+    std::u16string dirW = content::utf8ToUtf16(dir);
+    if (common::createMultiDir((const WCHAR*)dirW.c_str()))
+        return true;
+
+    OutputDebugStringA("create directory failed: ");
+    OutputDebugStringA(path.c_str());
+    OutputDebugStringA("\n");
+    return false;
+}
+
 const FILETIME kMaxFileTime = { 0xffffffff, 0xffffffff };
 
 static bool getFileTime(const std::string& path, FILETIME* out)
@@ -758,6 +774,9 @@ public:
                 return false;
 
             if (!parseString(compile, "outdir", &m_outdir))
+                return false;
+
+            if (!ensureDirectoryExists(m_objdir) || !ensureDirectoryExists(m_outdir))
                 return false;
         }
 
@@ -1293,9 +1312,16 @@ bool buildCppsLinux(const CompileInfo& compileInfo, const std::vector<std::strin
 #if 0
     linkInfo->depsToCpp();
 #endif
+    if (!errorFile.empty()) {
+        char output[128] = { 0 };
+        sprintf_s(output, sizeof(output), "compile failed files:%zu\n", errorFile.size());
+        OutputDebugStringA(output);
+        return false;
+    }
+
     linkInfo->saveToJson();
 
-    return errorFile.empty();
+    return true;
 }
 
 // yasm -I%(RootDir)%(Directory)\ -f win32 -DXX=1 -o $(IntDir)%(Filename).obj %(FullPath)
@@ -1396,6 +1422,13 @@ bool buildCppsWinCl(const CompileInfo& compileInfo, const std::vector<std::strin
     // TODO
     //     linkInfo->depsToCpp();
     //     linkInfo->saveToJson();
+
+    if (!errorFile.empty()) {
+        char output[128] = { 0 };
+        sprintf_s(output, sizeof(output), "compile failed files:%zu\n", errorFile.size());
+        OutputDebugStringA(output);
+        return false;
+    }
 
     return errorFile.empty();
 }
@@ -2169,17 +2202,18 @@ void fmBuild(const std::u16string& buildJsonPath)
         DebugBreak();
 
     bool needLink = false;
+    bool buildOk = true;
     do {
         std::string linkJson = pathAppend(compileInfo->m_objdir, "link.json");
         std::u16string linkJsonW = content::utf8ToUtf16(pathNormalize(linkJson));
         if (!linkInfo.initByJson(linkJsonW)) {
-            rebuildAll(*compileInfo, &newLinkInfo);
+            buildOk = rebuildAll(*compileInfo, &newLinkInfo);
             needLink = true;
             break;
         }
 
         if (!getFileTime(linkJson, &linkJsonTime)) {
-            rebuildAll(*compileInfo, &newLinkInfo);
+            buildOk = rebuildAll(*compileInfo, &newLinkInfo);
             needLink = true;
             break;
         }
@@ -2194,7 +2228,7 @@ void fmBuild(const std::u16string& buildJsonPath)
             std::map<uint32_t, std::string> removes;
             diffResult = computeDiffOfBuildAndLinkJson(*compileInfo, linkInfo, &adds, &removes);
             if (kComputeDiffResultRebuildAndLink == diffResult) {
-                rebuildAll(*compileInfo, &newLinkInfo);
+                buildOk = rebuildAll(*compileInfo, &newLinkInfo);
                 needLink = true;
                 ;
                 break;
@@ -2205,7 +2239,7 @@ void fmBuild(const std::u16string& buildJsonPath)
         if (needCompileCpps.size() > 0) {
             needLink = true;
             printIncCompileCpp(needCompileCpps);
-            buildCpps(*compileInfo, needCompileCpps, &linkInfo);
+            buildOk = buildCpps(*compileInfo, needCompileCpps, &linkInfo);
         }
         if (kComputeDiffResultNone != diffResult)
             needLink = true;
@@ -2215,7 +2249,9 @@ void fmBuild(const std::u16string& buildJsonPath)
             needLink = true;
     } while (false);
 
-    if (needLink) {
+    if (!buildOk) {
+        OutputDebugStringA("fmBuild skip link because compile failed\n");
+    } else if (needLink) {
         compileInfo->doLink();
     }
     delete compileInfo;
@@ -2250,10 +2286,11 @@ void fmFastBuild(const std::u16string& buildJsonPath, RebuildOpt opt)
     OutputDebugStringA("fmFastBuild parsed\n");
 
     LinkInfo linkInfo;
+    bool buildOk = true;
     if (kRebuildOptAll == opt) {
-        rebuildAll(*compileInfo, &linkInfo);
+        buildOk = rebuildAll(*compileInfo, &linkInfo);
     } else if (kRebuildOptPrebuildSrcAndLink == opt) {
-        buildCpps(*compileInfo, compileInfo->m_prebuildSrcPaths, &linkInfo);
+        buildOk = buildCpps(*compileInfo, compileInfo->m_prebuildSrcPaths, &linkInfo);
     } else if (kRebuildOptOnlyLink == opt) {
         ;
     } else if (kRebuildOptCompileTimeOutFile == opt) { // 编译过期文件
@@ -2262,13 +2299,19 @@ void fmFastBuild(const std::u16string& buildJsonPath, RebuildOpt opt)
         std::string linkJson = pathAppend(compileInfo->m_objdir, "link.json");
         std::u16string linkJsonW = content::utf8ToUtf16(pathNormalize(linkJson));
         if (!linkInfo.initByJson(linkJsonW))
-            rebuildAll(*compileInfo, &linkInfo);
+            buildOk = rebuildAll(*compileInfo, &linkInfo);
         else
-            buildTimoutCpps(*compileInfo, &linkInfo);
+            buildOk = buildTimoutCpps(*compileInfo, &linkInfo);
 #else
-        buildTimoutCpps(*compileInfo, &linkInfo);
+        buildOk = buildTimoutCpps(*compileInfo, &linkInfo);
 #endif
         OutputDebugStringA("fmFastBuild buildTimoutCpps done\n");
+    }
+
+    if (!buildOk) {
+        OutputDebugStringA("fmFastBuild skip link because compile failed\n");
+        delete compileInfo;
+        return;
     }
 
     OutputDebugStringA("fmFastBuild doLink begin\n");
